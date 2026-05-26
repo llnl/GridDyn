@@ -139,7 +139,7 @@ class GridDynSimulation: public GridSimulation {
 
     DynamicSolverMethods defaultDynamicSolverMethod =
         DynamicSolverMethods::dae;  //!< specifies which dynamic solver method to use if it is not
-                                      //!< otherwise
+                                    //!< otherwise
     //! specified.
     OffsetOrdering default_ordering =
         OffsetOrdering::mixed;  //!< the default_ordering scheme for state variables
@@ -736,4 +736,3 @@ class GridDynSimulation: public GridSimulation {
 };
 
 }  // namespace griddyn
-

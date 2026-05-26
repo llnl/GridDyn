@@ -141,9 +141,9 @@ int dynamicInitialConditionRecovery::dynamicFix2()
                                            solver->deriv_data());
 
             const ChangeCode rootCheckResult = sim->rootCheck(noInputs,
-                                                               stateDataValue,
-                                                               solver->getSolverMode(),
-                                                               CheckLevel::complete_state_check);
+                                                              stateDataValue,
+                                                              solver->getSolverMode(),
+                                                              CheckLevel::complete_state_check);
             sim->handleRootChange(solver->getSolverMode(), solver);
             if (rootCheckResult > ChangeCode::no_change) {
                 if (sim->dynamicCheckAndReset(solver->getSolverMode(), rootCheckResult)) {
@@ -163,9 +163,9 @@ int dynamicInitialConditionRecovery::dynamicFix2()
                                            solver->state_data(),
                                            solver->deriv_data());
             const ChangeCode rootCheckResult = sim->rootCheck(noInputs,
-                                                               stateDataValue,
-                                                               solver->getSolverMode(),
-                                                               CheckLevel::reversable_only);
+                                                              stateDataValue,
+                                                              solver->getSolverMode(),
+                                                              CheckLevel::reversable_only);
             sim->handleRootChange(solver->getSolverMode(), solver);
             if (rootCheckResult > ChangeCode::non_state_change) {
                 if (sim->dynamicCheckAndReset(solver->getSolverMode(), rootCheckResult)) {
@@ -278,4 +278,3 @@ int dynamicInitialConditionRecovery::dynamicFix5()
 }
 
 }  // namespace griddyn
-

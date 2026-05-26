@@ -47,4 +47,3 @@ class eventInterface {
 };
 
 }  // namespace griddyn
-

@@ -120,4 +120,3 @@ int my_BufUnpack(braid_App app, void* buffer, braid_Vector* u_ptr, braid_BufferS
 int my_TimeGrid(braid_App app, braid_Real* ta, braid_Int* ilower, braid_Int* iupper);
 
 }  // namespace griddyn::braid
-

@@ -251,9 +251,9 @@ void BlockSequence::rootTrigger(coreTime time,
 }
 
 ChangeCode BlockSequence::rootCheck(const IOdata& inputs,
-                                     const stateData& stateData,
-                                     const solverMode& sMode,
-                                     CheckLevel level)
+                                    const stateData& stateData,
+                                    const solverMode& sMode,
+                                    CheckLevel level)
 {
     ChangeCode ret = ChangeCode::no_change;
     updateLocalCache(noInputs, stateData, sMode);
@@ -336,4 +336,3 @@ CoreObject* BlockSequence::findByUserID(std::string_view typeName, index_t searc
 }
 
 }  // namespace griddyn::blocks
-

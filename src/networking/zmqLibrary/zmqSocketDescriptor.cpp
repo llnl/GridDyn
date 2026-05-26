@@ -66,4 +66,3 @@ void ZmqSocketDescriptor::modifySocket(zmq::socket_t& sock) const
 }
 
 }  // namespace zmqlib
-

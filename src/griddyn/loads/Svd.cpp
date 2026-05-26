@@ -216,9 +216,8 @@ void Svd::guessState(coreTime /*time*/,
 {
 }
 
-ChangeCode Svd::powerFlowAdjust(const IOdata& /*inputs */,
-                                 std::uint32_t /*flags*/,
-                                 CheckLevel /*level*/)
+ChangeCode
+    Svd::powerFlowAdjust(const IOdata& /*inputs */, std::uint32_t /*flags*/, CheckLevel /*level*/)
 {
     return ChangeCode::no_change;
 }
@@ -367,11 +366,10 @@ void Svd::rootTrigger(coreTime /*time*/,
 }
 
 ChangeCode Svd::rootCheck(const IOdata& /*inputs*/,
-                           const stateData& /*sD*/,
-                           const solverMode& /*sMode*/,
-                           CheckLevel /*level*/)
+                          const stateData& /*sD*/,
+                          const solverMode& /*sMode*/,
+                          CheckLevel /*level*/)
 {
     return ChangeCode::no_change;
 }
 }  // namespace griddyn::loads
-

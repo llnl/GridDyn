@@ -28,4 +28,3 @@ TEST_F(ExtraModelTests, TestThermaltxTxage)
 
     EXPECT_EQ(col->getWarningCount(), 0);
 }
-

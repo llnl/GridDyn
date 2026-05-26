@@ -36,4 +36,3 @@ class DimeCollector: public collector {
 };
 
 }  // namespace griddyn::dimeLib
-

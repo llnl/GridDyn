@@ -66,9 +66,9 @@ class MotorLoad5: public MotorLoad3 {
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
-                                  const solverMode& sMode,
-                                  CheckLevel level) override;
+                                 const stateData& sD,
+                                 const solverMode& sMode,
+                                 CheckLevel level) override;
 
     virtual void jacobianElements(const IOdata& inputs,
                                   const stateData& sD,
@@ -92,4 +92,3 @@ class MotorLoad5: public MotorLoad3 {
     void converge();
 };
 }  // namespace griddyn::loads
-

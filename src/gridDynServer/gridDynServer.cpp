@@ -411,4 +411,3 @@ void gridDynServer::initialize()
 
     mRecvBuffer.resize(65536, 0);
 }
-

@@ -192,9 +192,9 @@ void ExciterDC1A::rootTest(const IOdata& inputs,
 }
 
 ChangeCode ExciterDC1A::rootCheck(const IOdata& inputs,
-                                   const stateData& /*sD*/,
-                                   const solverMode& /*sMode*/,
-                                   CheckLevel /*level*/)
+                                  const stateData& /*sD*/,
+                                  const solverMode& /*sMode*/,
+                                  CheckLevel /*level*/)
 {
     double* es = m_state.data();
     double test;
@@ -260,4 +260,3 @@ void ExciterDC1A::set(std::string_view param, double val, units::unit unitType)
 }
 
 }  // namespace griddyn::exciters
-

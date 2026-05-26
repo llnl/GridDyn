@@ -77,4 +77,3 @@ class randomSource: public rampSource {
     double computeBiasAdjust();
 };
 }  // namespace griddyn::sources
-

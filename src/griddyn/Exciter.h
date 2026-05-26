@@ -78,9 +78,9 @@ class Exciter: public GridSubModel {
                              const std::vector<int>& rootMask,
                              const solverMode& solverMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                  const stateData& stateData,
-                                  const solverMode& solverMode,
-                                  CheckLevel level) override;
+                                 const stateData& stateData,
+                                 const solverMode& solverMode,
+                                 CheckLevel level) override;
 
     // virtual void setTime(coreTime time){prevTime=time;};
     virtual const std::vector<stringVec>& inputNames() const override;
@@ -91,4 +91,3 @@ class Exciter: public GridSubModel {
 };
 
 }  // namespace griddyn
-

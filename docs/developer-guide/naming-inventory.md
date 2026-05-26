@@ -46,1548 +46,1548 @@ Total findings: **1523**
 
 ## Class And Struct Names
 
-| File | Line | Name | Detail |
-| --- | ---: | --- | --- |
-| `src/extraModels/txLifeSpan.h` | 15 | `txLifeSpan` | class/struct name |
-| `src/extraModels/txThermalModel.h` | 15 | `txThermalModel` | class/struct name |
-| `src/extraSolvers/braid/braidInterface.h` | 26 | `braidSolver` | class/struct name |
-| `src/extraSolvers/paradae/equations/EqGridDyn.h` | 15 | `solverMode` | class/struct name |
-| `src/extraSolvers/paradae/equations/Equation_DAE.h` | 12 | `Equation_DAE` | class/struct name |
-| `src/extraSolvers/paradae/equations/Equation_DAE_full.h` | 12 | `Equation_DAE_full` | class/struct name |
-| `src/extraSolvers/paradae/equations/Equation_ODE.h` | 13 | `Equation_ODE` | class/struct name |
-| `src/extraSolvers/paradae/math/paradaeArrayData.h` | 13 | `paradaeArrayData` | class/struct name |
-| `src/extraSolvers/paradae/solvers/Solver.h` | 14 | `Solver_App` | class/struct name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 27 | `Solver_App_BDF` | class/struct name |
-| `src/extraSolvers/paradae/timeintegrators/Billington_23.h` | 24 | `Billington_23` | class/struct name |
-| `src/extraSolvers/paradae/timeintegrators/BogaSham_23.h` | 24 | `BogaSham_23` | class/struct name |
-| `src/extraSolvers/paradae/timeintegrators/Cash_24.h` | 28 | `Cash_24` | class/struct name |
-| `src/extraSolvers/paradae/timeintegrators/Cash_34.h` | 29 | `Cash_34` | class/struct name |
-| `src/extraSolvers/paradae/timeintegrators/DormPrince_45.h` | 27 | `DormPrince_45` | class/struct name |
-| `src/extraSolvers/paradae/timeintegrators/FE_ExpTrap_12.h` | 22 | `FE_ExpTrap_12` | class/struct name |
-| `src/extraSolvers/paradae/timeintegrators/Fudziah_45.h` | 28 | `Fudziah_45` | class/struct name |
-| `src/extraSolvers/paradae/timeintegrators/ImpVarUnk_12.h` | 24 | `ImpVarUnk_12` | class/struct name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h` | 20 | `Solver_App_RK` | class/struct name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_DIRK.h` | 11 | `Solver_App_DIRK` | class/struct name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_DIRK.h` | 24 | `RungeKutta_DIRK` | class/struct name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Explicit.h` | 11 | `RungeKutta_Explicit` | class/struct name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Implicit.h` | 13 | `RungeKutta_Implicit` | class/struct name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Implicit.h` | 15 | `Solver_App_IRK` | class/struct name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Implicit.h` | 36 | `RungeKutta_Implicit` | class/struct name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_SDIRK.h` | 13 | `Solver_App_SDIRK` | class/struct name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_SDIRK.h` | 30 | `RungeKutta_SDIRK` | class/struct name |
-| `src/extraSolvers/paradae/timeintegrators/SDIRK_12.h` | 22 | `SDIRK_12` | class/struct name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 23 | `DATA_Struct` | class/struct name |
-| `src/fileInput/ReaderInfo.h` | 11 | `readerElement` | class/struct name |
-| `src/fileInput/ReaderInfo.h` | 13 | `gridGrabberInfo` | class/struct name |
-| `src/fileInput/ReaderInfo.h` | 30 | `collector` | class/struct name |
-| `src/fileInput/readElement.h` | 19 | `readerElement` | class/struct name |
-| `src/fileInput/readElement.h` | 40 | `gridPrimary` | class/struct name |
-| `src/fileInput/readElement.h` | 42 | `gridSecondary` | class/struct name |
-| `src/fmi/fmi_import/fmiImport.h` | 16 | `readerElement` | class/struct name |
-| `src/fmi/fmi_import/fmiImport.h` | 20 | `shared_library` | class/struct name |
-| `src/fmi/fmi_import/fmiInfo.h` | 132 | `readerElement` | class/struct name |
-| `src/formatInterpreters/iniReaderElement.cpp` | 21 | `gridDynINIReader` | class/struct name |
-| `src/formatInterpreters/iniReaderElement.h` | 14 | `gridDynINIReader` | class/struct name |
-| `src/formatInterpreters/iniReaderElement.h` | 17 | `iniReaderElement` | class/struct name |
-| `src/formatInterpreters/jsonElement.h` | 13 | `jsonElement` | class/struct name |
-| `src/formatInterpreters/jsonReaderElement.h` | 15 | `jsonElement` | class/struct name |
-| `src/formatInterpreters/jsonReaderElement.h` | 18 | `jsonReaderElement` | class/struct name |
-| `src/formatInterpreters/readerElement.h` | 16 | `readerAttribute` | class/struct name |
-| `src/formatInterpreters/readerElement.h` | 33 | `elementParseException` | class/struct name |
-| `src/formatInterpreters/readerElement.h` | 46 | `readerElement` | class/struct name |
-| `src/formatInterpreters/tomlElement.h` | 13 | `tomlElement` | class/struct name |
-| `src/formatInterpreters/tomlReaderElement.h` | 16 | `tomlElement` | class/struct name |
-| `src/formatInterpreters/tomlReaderElement.h` | 19 | `tomlReaderElement` | class/struct name |
-| `src/formatInterpreters/yamlElement.h` | 12 | `yamlElement` | class/struct name |
-| `src/formatInterpreters/yamlReaderElement.h` | 17 | `yamlElement` | class/struct name |
-| `src/formatInterpreters/yamlReaderElement.h` | 19 | `yamlReaderElement` | class/struct name |
-| `src/gridDynServer/gridDynServer.h` | 18 | `pmu_udp_socket` | class/struct name |
-| `src/gridDynServer/gridDynServer.h` | 34 | `pmu_tcp_acc` | class/struct name |
-| `src/gridDynServer/gridDynServer.h` | 44 | `pmu_tcp_session` | class/struct name |
-| `src/gridDynServer/gridDynServer.h` | 64 | `gridDynServer` | class/struct name |
-| `src/griddyn/Generator.h` | 19 | `scheduler` | class/struct name |
-| `src/griddyn/GridArea.h` | 25 | `listMaintainer` | class/struct name |
-| `src/griddyn/GridBus.h` | 28 | `busPowers` | class/struct name |
-| `src/griddyn/GridComponent.h` | 18 | `matrixData` | class/struct name |
-| `src/griddyn/GridComponentHelperClasses.h` | 275 | `stateSizes` | class/struct name |
-| `src/griddyn/GridComponentHelperClasses.h` | 319 | `solverOffsets` | class/struct name |
-| `src/griddyn/GridComponentHelperClasses.h` | 433 | `stateData` | class/struct name |
-| `src/griddyn/GridDynSimulation.h` | 32 | `continuationSequence` | class/struct name |
-| `src/griddyn/GridDynSimulation.h` | 34 | `parameterSet` | class/struct name |
-| `src/griddyn/GridDynSimulation.h` | 81 | `tolerances` | class/struct name |
-| `src/griddyn/GridDynSimulation.h` | 161 | `tolerances` | class/struct name |
-| `src/griddyn/GridPrimary.h` | 39 | `gridPrimary` | class/struct name |
-| `src/griddyn/GridSecondary.h` | 20 | `gridSecondary` | class/struct name |
-| `src/griddyn/Link.h` | 22 | `linkI` | class/struct name |
-| `src/griddyn/Link.h` | 33 | `linkF` | class/struct name |
-| `src/griddyn/NumericEstimationFunctions.h` | 13 | `matrixData` | class/struct name |
-| `src/griddyn/NumericEstimationFunctions.h` | 17 | `stateData` | class/struct name |
-| `src/griddyn/NumericEstimationFunctions.h` | 18 | `solverMode` | class/struct name |
-| `src/griddyn/OffsetTable.h` | 17 | `offsetTable` | class/struct name |
-| `src/griddyn/Relay.h` | 17 | `stateGrabber` | class/struct name |
-| `src/griddyn/Relay.h` | 18 | `gridGrabber` | class/struct name |
-| `src/griddyn/Relay.h` | 21 | `eventAdapter` | class/struct name |
-| `src/griddyn/Relay.h` | 23 | `commMessage` | class/struct name |
-| `src/griddyn/Relay.h` | 328 | `condCheckTime` | class/struct name |
-| `src/griddyn/Relay.h` | 350 | `mcondTrig` | class/struct name |
-| `src/griddyn/comms/CommManager.h` | 17 | `commMessage` | class/struct name |
-| `src/griddyn/comms/CommManager.h` | 21 | `commManager` | class/struct name |
-| `src/griddyn/comms/CommMessage.h` | 43 | `commMessage` | class/struct name |
-| `src/griddyn/comms/CommMessage.h` | 247 | `typeRegister` | class/struct name |
-| `src/griddyn/comms/CommMessage.h` | 266 | `payloadFactory` | class/struct name |
-| `src/griddyn/comms/CommMessage.h` | 290 | `corePayloadFactory` | class/struct name |
-| `src/griddyn/comms/CommMessage.h` | 332 | `dPayloadFactory` | class/struct name |
-| `src/griddyn/comms/CommunicationsCore.h` | 18 | `commMessage` | class/struct name |
-| `src/griddyn/comms/CommunicationsCore.h` | 29 | `communicationsCore` | class/struct name |
-| `src/griddyn/comms/Communicator.h` | 19 | `commMessage` | class/struct name |
-| `src/griddyn/comms/ControlMessage.h` | 21 | `controlMessagePayload` | class/struct name |
-| `src/griddyn/comms/SchedulerMessage.h` | 17 | `schedulerMessagePayload` | class/struct name |
-| `src/griddyn/controllers/AGControl.h` | 17 | `schedulerReg` | class/struct name |
-| `src/griddyn/controllers/AGControl.h` | 19 | `battery` | class/struct name |
-| `src/griddyn/controllers/Dispatcher.h` | 15 | `scheduler` | class/struct name |
-| `src/griddyn/controllers/ReserveDispatcher.h` | 16 | `schedulerRamp` | class/struct name |
-| `src/griddyn/controllers/Scheduler.h` | 22 | `commMessage` | class/struct name |
-| `src/griddyn/controllers/Scheduler.h` | 25 | `scheduler` | class/struct name |
-| `src/griddyn/controllers/Scheduler.h` | 86 | `schedulerRamp` | class/struct name |
-| `src/griddyn/controllers/Scheduler.h` | 162 | `schedulerReg` | class/struct name |
-| `src/griddyn/controllers/SchedulerInfo.h` | 14 | `tsched` | class/struct name |
-| `src/griddyn/events/CompoundEvent.h` | 16 | `compoundEvent` | class/struct name |
-| `src/griddyn/events/CompoundEventPlayer.h` | 20 | `compoundEventPlayer` | class/struct name |
-| `src/griddyn/events/EventAdapters.h` | 30 | `eventAdapter` | class/struct name |
-| `src/griddyn/events/EventAdapters.h` | 95 | `eventTypeAdapter` | class/struct name |
-| `src/griddyn/events/EventAdapters.h` | 177 | `eventTypeAdapter` | class/struct name |
-| `src/griddyn/events/EventAdapters.h` | 263 | `eventTypeAdapter` | class/struct name |
-| `src/griddyn/events/EventAdapters.h` | 331 | `functionEventAdapter` | class/struct name |
-| `src/griddyn/events/EventInterface.hpp` | 23 | `eventInterface` | class/struct name |
-| `src/griddyn/events/EventQueue.h` | 26 | `eventQueue` | class/struct name |
-| `src/griddyn/events/InterpolatingPlayer.h` | 21 | `interpolatingPlayer` | class/struct name |
-| `src/griddyn/events/ParameterOperator.h` | 23 | `parameterOperator` | class/struct name |
-| `src/griddyn/events/ParameterOperator.h` | 51 | `parameterSet` | class/struct name |
-| `src/griddyn/events/ReversibleEvent.h` | 14 | `gridGrabber` | class/struct name |
-| `src/griddyn/events/ReversibleEvent.h` | 17 | `reversibleEvent` | class/struct name |
-| `src/griddyn/generators/DynamicGenerator.h` | 18 | `isocController` | class/struct name |
-| `src/griddyn/generators/DynamicGenerator.h` | 190 | `subModelInputs` | class/struct name |
-| `src/griddyn/generators/DynamicGenerator.h` | 196 | `subModelInputLocs` | class/struct name |
-| `src/griddyn/generators/IsocController.h` | 14 | `isocController` | class/struct name |
-| `src/griddyn/generators/VariableGenerator.h` | 19 | `variableGenerator` | class/struct name |
-| `src/griddyn/links/AcLine.h` | 15 | `linkC` | class/struct name |
-| `src/griddyn/links/AcdcConverter.h` | 23 | `acdcConverter` | class/struct name |
-| `src/griddyn/links/AdjustableTransformer.h` | 22 | `adjustableTransformer` | class/struct name |
-| `src/griddyn/links/DcLink.h` | 15 | `dcLink` | class/struct name |
-| `src/griddyn/links/Hvdc.h` | 14 | `hvdc` | class/struct name |
-| `src/griddyn/links/Subsystem.h` | 20 | `subsystem` | class/struct name |
-| `src/griddyn/links/ZBreaker.h` | 17 | `zBreaker` | class/struct name |
-| `src/griddyn/measurement/Collector.h` | 22 | `gridGrabberInfo` | class/struct name |
-| `src/griddyn/measurement/Collector.h` | 36 | `gridGrabber` | class/struct name |
-| `src/griddyn/measurement/Collector.h` | 37 | `stateGrabber` | class/struct name |
-| `src/griddyn/measurement/Collector.h` | 40 | `collector` | class/struct name |
-| `src/griddyn/measurement/Collector.h` | 53 | `collectorPoint` | class/struct name |
-| `src/griddyn/measurement/Condition.h` | 18 | `grabberSet` | class/struct name |
-| `src/griddyn/measurement/Condition.h` | 179 | `compoundCondition` | class/struct name |
-| `src/griddyn/measurement/GrabberInterpreter.hpp` | 28 | `grabberInterpreter` | class/struct name |
-| `src/griddyn/measurement/GrabberSet.h` | 16 | `matrixData` | class/struct name |
-| `src/griddyn/measurement/GrabberSet.h` | 20 | `valuePredictor` | class/struct name |
-| `src/griddyn/measurement/GrabberSet.h` | 24 | `gridCore` | class/struct name |
-| `src/griddyn/measurement/GrabberSet.h` | 25 | `stateGrabber` | class/struct name |
-| `src/griddyn/measurement/GrabberSet.h` | 26 | `gridGrabber` | class/struct name |
-| `src/griddyn/measurement/GrabberSet.h` | 27 | `stateData` | class/struct name |
-| `src/griddyn/measurement/GrabberSet.h` | 28 | `solverMode` | class/struct name |
-| `src/griddyn/measurement/GrabberSet.h` | 32 | `grabberSet` | class/struct name |
-| `src/griddyn/measurement/GridGrabbers.h` | 20 | `gridCore` | class/struct name |
-| `src/griddyn/measurement/GridGrabbers.h` | 27 | `gridGrabber` | class/struct name |
-| `src/griddyn/measurement/GridGrabbers.h` | 103 | `customGrabber` | class/struct name |
-| `src/griddyn/measurement/GridGrabbers.h` | 124 | `functionGrabber` | class/struct name |
-| `src/griddyn/measurement/GridGrabbers.h` | 154 | `opGrabber` | class/struct name |
-| `src/griddyn/measurement/ObjectGrabbers.h` | 55 | `objectGrabber` | class/struct name |
-| `src/griddyn/measurement/ObjectGrabbers.h` | 123 | `objectOffsetGrabber` | class/struct name |
-| `src/griddyn/measurement/StateGrabber.h` | 40 | `stateGrabber` | class/struct name |
-| `src/griddyn/measurement/StateGrabber.h` | 125 | `customStateGrabber` | class/struct name |
-| `src/griddyn/measurement/StateGrabber.h` | 142 | `stateFunctionGrabber` | class/struct name |
-| `src/griddyn/measurement/StateGrabber.h` | 167 | `stateOpGrabber` | class/struct name |
-| `src/griddyn/primary/BusControls.h` | 14 | `gridSecondary` | class/struct name |
-| `src/griddyn/primary/DcBusControls.h` | 14 | `gridSecondary` | class/struct name |
-| `src/griddyn/primary/InfiniteBus.h` | 20 | `infiniteBus` | class/struct name |
-| `src/griddyn/primary/ListMaintainer.h` | 14 | `matrixData` | class/struct name |
-| `src/griddyn/primary/ListMaintainer.h` | 17 | `gridPrimary` | class/struct name |
-| `src/griddyn/primary/ListMaintainer.h` | 18 | `stateData` | class/struct name |
-| `src/griddyn/primary/ListMaintainer.h` | 22 | `listMaintainer` | class/struct name |
-| `src/griddyn/relays/Breaker.h` | 14 | `breaker` | class/struct name |
-| `src/griddyn/relays/BusRelay.h` | 15 | `busRelay` | class/struct name |
-| `src/griddyn/relays/ControlRelay.h` | 18 | `commMessage` | class/struct name |
-| `src/griddyn/relays/ControlRelay.h` | 20 | `controlMessagePayload` | class/struct name |
-| `src/griddyn/relays/ControlRelay.h` | 24 | `functionEventAdapter` | class/struct name |
-| `src/griddyn/relays/ControlRelay.h` | 25 | `gridGrabber` | class/struct name |
-| `src/griddyn/relays/ControlRelay.h` | 30 | `delayedControlAction` | class/struct name |
-| `src/griddyn/relays/ControlRelay.h` | 45 | `controlRelay` | class/struct name |
-| `src/griddyn/relays/DifferentialRelay.h` | 17 | `differentialRelay` | class/struct name |
-| `src/griddyn/relays/Fuse.h` | 16 | `fuse` | class/struct name |
-| `src/griddyn/relays/LoadRelay.h` | 17 | `loadRelay` | class/struct name |
-| `src/griddyn/relays/Pmu.h` | 15 | `pmu` | class/struct name |
-| `src/griddyn/relays/Sensor.h` | 16 | `grabberSet` | class/struct name |
-| `src/griddyn/relays/Sensor.h` | 22 | `sensor` | class/struct name |
-| `src/griddyn/relays/ZonalRelay.h` | 19 | `zonalRelay` | class/struct name |
-| `src/griddyn/simulation/Contingency.h` | 74 | `extraContingencyInfo` | class/struct name |
-| `src/griddyn/simulation/Continuation.h` | 17 | `parameterSequence` | class/struct name |
-| `src/griddyn/simulation/Continuation.h` | 37 | `continuationSequence` | class/struct name |
-| `src/griddyn/simulation/Diagnostics.cpp` | 662 | `objectCountInfo` | class/struct name |
-| `src/griddyn/simulation/Diagnostics.h` | 15 | `matrixData` | class/struct name |
-| `src/griddyn/simulation/Diagnostics.h` | 20 | `solverMode` | class/struct name |
-| `src/griddyn/simulation/DynamicInitialConditionRecovery.h` | 17 | `dynamicInitialConditionRecovery` | class/struct name |
-| `src/griddyn/simulation/FaultResetRecovery.h` | 20 | `faultResetRecovery` | class/struct name |
-| `src/griddyn/simulation/GridDynActions.h` | 17 | `gridDynAction` | class/struct name |
-| `src/griddyn/simulation/GridDynSimulationFileOps.h` | 14 | `matrixData` | class/struct name |
-| `src/griddyn/simulation/GridDynSimulationFileOps.h` | 19 | `solverMode` | class/struct name |
-| `src/griddyn/simulation/GridDynSimulationFileOps.h` | 173 | `dataInfo` | class/struct name |
-| `src/griddyn/simulation/GridSimulation.h` | 37 | `collector` | class/struct name |
-| `src/griddyn/simulation/GridSimulation.h` | 40 | `eventQueue` | class/struct name |
-| `src/griddyn/simulation/GridSimulation.h` | 41 | `eventAdapter` | class/struct name |
-| `src/griddyn/simulation/GridSimulation.h` | 42 | `functionEventAdapter` | class/struct name |
-| `src/griddyn/simulation/PowerFlowErrorRecovery.h` | 17 | `powerFlowErrorRecovery` | class/struct name |
-| `src/griddyn/solvers/ArkodeInterface.h` | 17 | `arkodeInterface` | class/struct name |
-| `src/griddyn/solvers/BasicOdeSolver.h` | 17 | `basicOdeSolver` | class/struct name |
-| `src/griddyn/solvers/BasicSolver.h` | 19 | `basicSolver` | class/struct name |
-| `src/griddyn/solvers/CvodeInterface.h` | 17 | `cvodeInterface` | class/struct name |
-| `src/griddyn/solvers/IdaInterface.h` | 17 | `idaInterface` | class/struct name |
-| `src/griddyn/solvers/KinsolInterface.h` | 16 | `kinsolInterface` | class/struct name |
-| `src/griddyn/solvers/SolverInterface.h` | 27 | `solverException` | class/struct name |
-| `src/griddyn/solvers/SolverMode.hpp` | 70 | `solverMode` | class/struct name |
-| `src/griddyn/solvers/SundialsInterface.h` | 75 | `sundialsInterface` | class/struct name |
-| `src/griddyn/solvers/SundialsMatrixData.h` | 18 | `sundialsMatrixDataDense` | class/struct name |
-| `src/griddyn/solvers/SundialsMatrixData.h` | 47 | `sundialsMatrixDataSparseColumn` | class/struct name |
-| `src/griddyn/solvers/SundialsMatrixData.h` | 82 | `sundialsMatrixDataSparseRow` | class/struct name |
-| `src/griddyn/sources/BlockSource.h` | 18 | `blockSource` | class/struct name |
-| `src/griddyn/sources/CommSource.h` | 19 | `commSource` | class/struct name |
-| `src/griddyn/sources/FileSource.h` | 15 | `fileSource` | class/struct name |
-| `src/griddyn/sources/FunctionSource.h` | 18 | `functionSource` | class/struct name |
-| `src/griddyn/sources/GrabberSource.h` | 14 | `grabberSet` | class/struct name |
-| `src/griddyn/sources/GrabberSource.h` | 17 | `grabberSource` | class/struct name |
-| `src/griddyn/sources/PulseSource.h` | 14 | `pulseSource` | class/struct name |
-| `src/griddyn/sources/RampSource.h` | 15 | `rampSource` | class/struct name |
-| `src/griddyn/sources/RandomSource.h` | 13 | `gridRandom` | class/struct name |
-| `src/griddyn/sources/RandomSource.h` | 18 | `randomSource` | class/struct name |
-| `src/griddyn/sources/SineSource.h` | 15 | `sineSource` | class/struct name |
-| `src/griddyn_shared/internal/griddyn_export_internal.h` | 29 | `solverKeyInfo` | class/struct name |
-| `src/networking/zmqLibrary/zmqContextManager.h` | 25 | `context_t` | class/struct name |
-| `src/optimization/gridOptObjects.h` | 17 | `vectData` | class/struct name |
-| `src/optimization/gridOptObjects.h` | 20 | `matrixData` | class/struct name |
-| `src/optimization/gridOptObjects.h` | 23 | `consData` | class/struct name |
-| `src/plugins/gridDynPluginApi.h` | 13 | `gridDynPlugInApi` | class/struct name |
-| `src/utilities/assert.h` | 17 | `assert_exception` | class/struct name |
-| `src/utilities/dataDictionary.h` | 18 | `dataDictionary` | class/struct name |
-| `src/utilities/dataDictionary.hpp` | 19 | `dataDictionary` | class/struct name |
-| `src/utilities/functionInterpreter.cpp` | 48 | `functionEntry` | class/struct name |
-| `src/utilities/gridRandom.cpp` | 22 | `lookupEntry` | class/struct name |
-| `src/utilities/gridRandom.h` | 19 | `distributionObject` | class/struct name |
-| `src/utilities/gridRandom.h` | 42 | `gridRandom` | class/struct name |
-| `src/utilities/gridRandom.h` | 107 | `randomDistributionObject2` | class/struct name |
-| `src/utilities/gridRandom.h` | 125 | `randomDistributionObject1` | class/struct name |
-| `src/utilities/gridRandom.h` | 138 | `randomDistributionObject1` | class/struct name |
-| `src/utilities/logger.h` | 16 | `logger` | class/struct name |
-| `src/utilities/matrixData.hpp` | 16 | `matrixElement` | class/struct name |
-| `src/utilities/matrixData.hpp` | 52 | `matrixData` | class/struct name |
-| `src/utilities/matrixDataBoost.hpp` | 16 | `matrixDataBoost` | class/struct name |
-| `src/utilities/matrixDataBoost.hpp` | 61 | `matrixIteratorBoost` | class/struct name |
-| `src/utilities/matrixDataCompact.hpp` | 17 | `matrixDataCompact` | class/struct name |
-| `src/utilities/matrixDataCompact.hpp` | 74 | `matrixIteratorCompact` | class/struct name |
-| `src/utilities/matrixDataContainer.hpp` | 17 | `matrixDataContainer` | class/struct name |
-| `src/utilities/matrixDataCustomWriteOnly.hpp` | 18 | `matrixDataCustomWriteOnly` | class/struct name |
-| `src/utilities/matrixDataFilter.hpp` | 19 | `matrixDataFilter` | class/struct name |
-| `src/utilities/matrixDataOrdered.hpp` | 18 | `matrixDataOrdered` | class/struct name |
-| `src/utilities/matrixDataOrdering.hpp` | 21 | `keyOrder` | class/struct name |
-| `src/utilities/matrixDataOrdering.hpp` | 29 | `keyOrder` | class/struct name |
-| `src/utilities/matrixDataScale.hpp` | 15 | `matrixDataScale` | class/struct name |
-| `src/utilities/matrixDataSparse.hpp` | 23 | `matrixDataSparse` | class/struct name |
-| `src/utilities/matrixDataSparseSM.hpp` | 21 | `keyCompute` | class/struct name |
-| `src/utilities/matrixDataSparseSM.hpp` | 37 | `keyCompute` | class/struct name |
-| `src/utilities/matrixDataSparseSM.hpp` | 54 | `blockCompute` | class/struct name |
-| `src/utilities/matrixDataSparseSM.hpp` | 88 | `blockCompute` | class/struct name |
-| `src/utilities/matrixDataSparseSM.hpp` | 116 | `matrixDataSparseSMB` | class/struct name |
-| `src/utilities/matrixDataSparseSM.hpp` | 340 | `matrixIteratorSM` | class/struct name |
-| `src/utilities/matrixDataSparseSM.hpp` | 399 | `matrixDataSparseSMB` | class/struct name |
-| `src/utilities/matrixDataSparseSM.hpp` | 514 | `matrixIteratorSM` | class/struct name |
-| `src/utilities/matrixDataSparseSM.hpp` | 550 | `matrixDataSparseSMB` | class/struct name |
-| `src/utilities/matrixDataSparseSM.hpp` | 716 | `matrixIteratorSM` | class/struct name |
-| `src/utilities/matrixDataTranslate.hpp` | 21 | `matrixDataTranslate` | class/struct name |
-| `src/utilities/saturation.h` | 16 | `saturation` | class/struct name |
-| `src/utilities/valuePredictor.hpp` | 14 | `valuePredictor` | class/struct name |
-| `src/utilities/vectData.hpp` | 20 | `vectData` | class/struct name |
-| `test/exeTestHelper.h` | 11 | `exeTestRunner` | class/struct name |
-| `test/gtestHelper.h` | 42 | `solverMode` | class/struct name |
-| `test/gtestHelper.h` | 69 | `gridLoadTestFixture` | class/struct name |
-| `test/gtestHelper.h` | 79 | `glbconfig` | class/struct name |
+| File                                                             | Line | Name                              | Detail            |
+| ---------------------------------------------------------------- | ---: | --------------------------------- | ----------------- |
+| `src/extraModels/txLifeSpan.h`                                   |   15 | `txLifeSpan`                      | class/struct name |
+| `src/extraModels/txThermalModel.h`                               |   15 | `txThermalModel`                  | class/struct name |
+| `src/extraSolvers/braid/braidInterface.h`                        |   26 | `braidSolver`                     | class/struct name |
+| `src/extraSolvers/paradae/equations/EqGridDyn.h`                 |   15 | `solverMode`                      | class/struct name |
+| `src/extraSolvers/paradae/equations/Equation_DAE.h`              |   12 | `Equation_DAE`                    | class/struct name |
+| `src/extraSolvers/paradae/equations/Equation_DAE_full.h`         |   12 | `Equation_DAE_full`               | class/struct name |
+| `src/extraSolvers/paradae/equations/Equation_ODE.h`              |   13 | `Equation_ODE`                    | class/struct name |
+| `src/extraSolvers/paradae/math/paradaeArrayData.h`               |   13 | `paradaeArrayData`                | class/struct name |
+| `src/extraSolvers/paradae/solvers/Solver.h`                      |   14 | `Solver_App`                      | class/struct name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   27 | `Solver_App_BDF`                  | class/struct name |
+| `src/extraSolvers/paradae/timeintegrators/Billington_23.h`       |   24 | `Billington_23`                   | class/struct name |
+| `src/extraSolvers/paradae/timeintegrators/BogaSham_23.h`         |   24 | `BogaSham_23`                     | class/struct name |
+| `src/extraSolvers/paradae/timeintegrators/Cash_24.h`             |   28 | `Cash_24`                         | class/struct name |
+| `src/extraSolvers/paradae/timeintegrators/Cash_34.h`             |   29 | `Cash_34`                         | class/struct name |
+| `src/extraSolvers/paradae/timeintegrators/DormPrince_45.h`       |   27 | `DormPrince_45`                   | class/struct name |
+| `src/extraSolvers/paradae/timeintegrators/FE_ExpTrap_12.h`       |   22 | `FE_ExpTrap_12`                   | class/struct name |
+| `src/extraSolvers/paradae/timeintegrators/Fudziah_45.h`          |   28 | `Fudziah_45`                      | class/struct name |
+| `src/extraSolvers/paradae/timeintegrators/ImpVarUnk_12.h`        |   24 | `ImpVarUnk_12`                    | class/struct name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h`          |   20 | `Solver_App_RK`                   | class/struct name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_DIRK.h`     |   11 | `Solver_App_DIRK`                 | class/struct name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_DIRK.h`     |   24 | `RungeKutta_DIRK`                 | class/struct name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Explicit.h` |   11 | `RungeKutta_Explicit`             | class/struct name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Implicit.h` |   13 | `RungeKutta_Implicit`             | class/struct name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Implicit.h` |   15 | `Solver_App_IRK`                  | class/struct name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Implicit.h` |   36 | `RungeKutta_Implicit`             | class/struct name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_SDIRK.h`    |   13 | `Solver_App_SDIRK`                | class/struct name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_SDIRK.h`    |   30 | `RungeKutta_SDIRK`                | class/struct name |
+| `src/extraSolvers/paradae/timeintegrators/SDIRK_12.h`            |   22 | `SDIRK_12`                        | class/struct name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |   23 | `DATA_Struct`                     | class/struct name |
+| `src/fileInput/ReaderInfo.h`                                     |   11 | `readerElement`                   | class/struct name |
+| `src/fileInput/ReaderInfo.h`                                     |   13 | `gridGrabberInfo`                 | class/struct name |
+| `src/fileInput/ReaderInfo.h`                                     |   30 | `collector`                       | class/struct name |
+| `src/fileInput/readElement.h`                                    |   19 | `readerElement`                   | class/struct name |
+| `src/fileInput/readElement.h`                                    |   40 | `gridPrimary`                     | class/struct name |
+| `src/fileInput/readElement.h`                                    |   42 | `gridSecondary`                   | class/struct name |
+| `src/fmi/fmi_import/fmiImport.h`                                 |   16 | `readerElement`                   | class/struct name |
+| `src/fmi/fmi_import/fmiImport.h`                                 |   20 | `shared_library`                  | class/struct name |
+| `src/fmi/fmi_import/fmiInfo.h`                                   |  132 | `readerElement`                   | class/struct name |
+| `src/formatInterpreters/iniReaderElement.cpp`                    |   21 | `gridDynINIReader`                | class/struct name |
+| `src/formatInterpreters/iniReaderElement.h`                      |   14 | `gridDynINIReader`                | class/struct name |
+| `src/formatInterpreters/iniReaderElement.h`                      |   17 | `iniReaderElement`                | class/struct name |
+| `src/formatInterpreters/jsonElement.h`                           |   13 | `jsonElement`                     | class/struct name |
+| `src/formatInterpreters/jsonReaderElement.h`                     |   15 | `jsonElement`                     | class/struct name |
+| `src/formatInterpreters/jsonReaderElement.h`                     |   18 | `jsonReaderElement`               | class/struct name |
+| `src/formatInterpreters/readerElement.h`                         |   16 | `readerAttribute`                 | class/struct name |
+| `src/formatInterpreters/readerElement.h`                         |   33 | `elementParseException`           | class/struct name |
+| `src/formatInterpreters/readerElement.h`                         |   46 | `readerElement`                   | class/struct name |
+| `src/formatInterpreters/tomlElement.h`                           |   13 | `tomlElement`                     | class/struct name |
+| `src/formatInterpreters/tomlReaderElement.h`                     |   16 | `tomlElement`                     | class/struct name |
+| `src/formatInterpreters/tomlReaderElement.h`                     |   19 | `tomlReaderElement`               | class/struct name |
+| `src/formatInterpreters/yamlElement.h`                           |   12 | `yamlElement`                     | class/struct name |
+| `src/formatInterpreters/yamlReaderElement.h`                     |   17 | `yamlElement`                     | class/struct name |
+| `src/formatInterpreters/yamlReaderElement.h`                     |   19 | `yamlReaderElement`               | class/struct name |
+| `src/gridDynServer/gridDynServer.h`                              |   18 | `pmu_udp_socket`                  | class/struct name |
+| `src/gridDynServer/gridDynServer.h`                              |   34 | `pmu_tcp_acc`                     | class/struct name |
+| `src/gridDynServer/gridDynServer.h`                              |   44 | `pmu_tcp_session`                 | class/struct name |
+| `src/gridDynServer/gridDynServer.h`                              |   64 | `gridDynServer`                   | class/struct name |
+| `src/griddyn/Generator.h`                                        |   19 | `scheduler`                       | class/struct name |
+| `src/griddyn/GridArea.h`                                         |   25 | `listMaintainer`                  | class/struct name |
+| `src/griddyn/GridBus.h`                                          |   28 | `busPowers`                       | class/struct name |
+| `src/griddyn/GridComponent.h`                                    |   18 | `matrixData`                      | class/struct name |
+| `src/griddyn/GridComponentHelperClasses.h`                       |  275 | `stateSizes`                      | class/struct name |
+| `src/griddyn/GridComponentHelperClasses.h`                       |  319 | `solverOffsets`                   | class/struct name |
+| `src/griddyn/GridComponentHelperClasses.h`                       |  433 | `stateData`                       | class/struct name |
+| `src/griddyn/GridDynSimulation.h`                                |   32 | `continuationSequence`            | class/struct name |
+| `src/griddyn/GridDynSimulation.h`                                |   34 | `parameterSet`                    | class/struct name |
+| `src/griddyn/GridDynSimulation.h`                                |   81 | `tolerances`                      | class/struct name |
+| `src/griddyn/GridDynSimulation.h`                                |  161 | `tolerances`                      | class/struct name |
+| `src/griddyn/GridPrimary.h`                                      |   39 | `gridPrimary`                     | class/struct name |
+| `src/griddyn/GridSecondary.h`                                    |   20 | `gridSecondary`                   | class/struct name |
+| `src/griddyn/Link.h`                                             |   22 | `linkI`                           | class/struct name |
+| `src/griddyn/Link.h`                                             |   33 | `linkF`                           | class/struct name |
+| `src/griddyn/NumericEstimationFunctions.h`                       |   13 | `matrixData`                      | class/struct name |
+| `src/griddyn/NumericEstimationFunctions.h`                       |   17 | `stateData`                       | class/struct name |
+| `src/griddyn/NumericEstimationFunctions.h`                       |   18 | `solverMode`                      | class/struct name |
+| `src/griddyn/OffsetTable.h`                                      |   17 | `offsetTable`                     | class/struct name |
+| `src/griddyn/Relay.h`                                            |   17 | `stateGrabber`                    | class/struct name |
+| `src/griddyn/Relay.h`                                            |   18 | `gridGrabber`                     | class/struct name |
+| `src/griddyn/Relay.h`                                            |   21 | `eventAdapter`                    | class/struct name |
+| `src/griddyn/Relay.h`                                            |   23 | `commMessage`                     | class/struct name |
+| `src/griddyn/Relay.h`                                            |  328 | `condCheckTime`                   | class/struct name |
+| `src/griddyn/Relay.h`                                            |  350 | `mcondTrig`                       | class/struct name |
+| `src/griddyn/comms/CommManager.h`                                |   17 | `commMessage`                     | class/struct name |
+| `src/griddyn/comms/CommManager.h`                                |   21 | `commManager`                     | class/struct name |
+| `src/griddyn/comms/CommMessage.h`                                |   43 | `commMessage`                     | class/struct name |
+| `src/griddyn/comms/CommMessage.h`                                |  247 | `typeRegister`                    | class/struct name |
+| `src/griddyn/comms/CommMessage.h`                                |  266 | `payloadFactory`                  | class/struct name |
+| `src/griddyn/comms/CommMessage.h`                                |  290 | `corePayloadFactory`              | class/struct name |
+| `src/griddyn/comms/CommMessage.h`                                |  332 | `dPayloadFactory`                 | class/struct name |
+| `src/griddyn/comms/CommunicationsCore.h`                         |   18 | `commMessage`                     | class/struct name |
+| `src/griddyn/comms/CommunicationsCore.h`                         |   29 | `communicationsCore`              | class/struct name |
+| `src/griddyn/comms/Communicator.h`                               |   19 | `commMessage`                     | class/struct name |
+| `src/griddyn/comms/ControlMessage.h`                             |   21 | `controlMessagePayload`           | class/struct name |
+| `src/griddyn/comms/SchedulerMessage.h`                           |   17 | `schedulerMessagePayload`         | class/struct name |
+| `src/griddyn/controllers/AGControl.h`                            |   17 | `schedulerReg`                    | class/struct name |
+| `src/griddyn/controllers/AGControl.h`                            |   19 | `battery`                         | class/struct name |
+| `src/griddyn/controllers/Dispatcher.h`                           |   15 | `scheduler`                       | class/struct name |
+| `src/griddyn/controllers/ReserveDispatcher.h`                    |   16 | `schedulerRamp`                   | class/struct name |
+| `src/griddyn/controllers/Scheduler.h`                            |   22 | `commMessage`                     | class/struct name |
+| `src/griddyn/controllers/Scheduler.h`                            |   25 | `scheduler`                       | class/struct name |
+| `src/griddyn/controllers/Scheduler.h`                            |   86 | `schedulerRamp`                   | class/struct name |
+| `src/griddyn/controllers/Scheduler.h`                            |  162 | `schedulerReg`                    | class/struct name |
+| `src/griddyn/controllers/SchedulerInfo.h`                        |   14 | `tsched`                          | class/struct name |
+| `src/griddyn/events/CompoundEvent.h`                             |   16 | `compoundEvent`                   | class/struct name |
+| `src/griddyn/events/CompoundEventPlayer.h`                       |   20 | `compoundEventPlayer`             | class/struct name |
+| `src/griddyn/events/EventAdapters.h`                             |   30 | `eventAdapter`                    | class/struct name |
+| `src/griddyn/events/EventAdapters.h`                             |   95 | `eventTypeAdapter`                | class/struct name |
+| `src/griddyn/events/EventAdapters.h`                             |  177 | `eventTypeAdapter`                | class/struct name |
+| `src/griddyn/events/EventAdapters.h`                             |  263 | `eventTypeAdapter`                | class/struct name |
+| `src/griddyn/events/EventAdapters.h`                             |  331 | `functionEventAdapter`            | class/struct name |
+| `src/griddyn/events/EventInterface.hpp`                          |   23 | `eventInterface`                  | class/struct name |
+| `src/griddyn/events/EventQueue.h`                                |   26 | `eventQueue`                      | class/struct name |
+| `src/griddyn/events/InterpolatingPlayer.h`                       |   21 | `interpolatingPlayer`             | class/struct name |
+| `src/griddyn/events/ParameterOperator.h`                         |   23 | `parameterOperator`               | class/struct name |
+| `src/griddyn/events/ParameterOperator.h`                         |   51 | `parameterSet`                    | class/struct name |
+| `src/griddyn/events/ReversibleEvent.h`                           |   14 | `gridGrabber`                     | class/struct name |
+| `src/griddyn/events/ReversibleEvent.h`                           |   17 | `reversibleEvent`                 | class/struct name |
+| `src/griddyn/generators/DynamicGenerator.h`                      |   18 | `isocController`                  | class/struct name |
+| `src/griddyn/generators/DynamicGenerator.h`                      |  190 | `subModelInputs`                  | class/struct name |
+| `src/griddyn/generators/DynamicGenerator.h`                      |  196 | `subModelInputLocs`               | class/struct name |
+| `src/griddyn/generators/IsocController.h`                        |   14 | `isocController`                  | class/struct name |
+| `src/griddyn/generators/VariableGenerator.h`                     |   19 | `variableGenerator`               | class/struct name |
+| `src/griddyn/links/AcLine.h`                                     |   15 | `linkC`                           | class/struct name |
+| `src/griddyn/links/AcdcConverter.h`                              |   23 | `acdcConverter`                   | class/struct name |
+| `src/griddyn/links/AdjustableTransformer.h`                      |   22 | `adjustableTransformer`           | class/struct name |
+| `src/griddyn/links/DcLink.h`                                     |   15 | `dcLink`                          | class/struct name |
+| `src/griddyn/links/Hvdc.h`                                       |   14 | `hvdc`                            | class/struct name |
+| `src/griddyn/links/Subsystem.h`                                  |   20 | `subsystem`                       | class/struct name |
+| `src/griddyn/links/ZBreaker.h`                                   |   17 | `zBreaker`                        | class/struct name |
+| `src/griddyn/measurement/Collector.h`                            |   22 | `gridGrabberInfo`                 | class/struct name |
+| `src/griddyn/measurement/Collector.h`                            |   36 | `gridGrabber`                     | class/struct name |
+| `src/griddyn/measurement/Collector.h`                            |   37 | `stateGrabber`                    | class/struct name |
+| `src/griddyn/measurement/Collector.h`                            |   40 | `collector`                       | class/struct name |
+| `src/griddyn/measurement/Collector.h`                            |   53 | `collectorPoint`                  | class/struct name |
+| `src/griddyn/measurement/Condition.h`                            |   18 | `grabberSet`                      | class/struct name |
+| `src/griddyn/measurement/Condition.h`                            |  179 | `compoundCondition`               | class/struct name |
+| `src/griddyn/measurement/GrabberInterpreter.hpp`                 |   28 | `grabberInterpreter`              | class/struct name |
+| `src/griddyn/measurement/GrabberSet.h`                           |   16 | `matrixData`                      | class/struct name |
+| `src/griddyn/measurement/GrabberSet.h`                           |   20 | `valuePredictor`                  | class/struct name |
+| `src/griddyn/measurement/GrabberSet.h`                           |   24 | `gridCore`                        | class/struct name |
+| `src/griddyn/measurement/GrabberSet.h`                           |   25 | `stateGrabber`                    | class/struct name |
+| `src/griddyn/measurement/GrabberSet.h`                           |   26 | `gridGrabber`                     | class/struct name |
+| `src/griddyn/measurement/GrabberSet.h`                           |   27 | `stateData`                       | class/struct name |
+| `src/griddyn/measurement/GrabberSet.h`                           |   28 | `solverMode`                      | class/struct name |
+| `src/griddyn/measurement/GrabberSet.h`                           |   32 | `grabberSet`                      | class/struct name |
+| `src/griddyn/measurement/GridGrabbers.h`                         |   20 | `gridCore`                        | class/struct name |
+| `src/griddyn/measurement/GridGrabbers.h`                         |   27 | `gridGrabber`                     | class/struct name |
+| `src/griddyn/measurement/GridGrabbers.h`                         |  103 | `customGrabber`                   | class/struct name |
+| `src/griddyn/measurement/GridGrabbers.h`                         |  124 | `functionGrabber`                 | class/struct name |
+| `src/griddyn/measurement/GridGrabbers.h`                         |  154 | `opGrabber`                       | class/struct name |
+| `src/griddyn/measurement/ObjectGrabbers.h`                       |   55 | `objectGrabber`                   | class/struct name |
+| `src/griddyn/measurement/ObjectGrabbers.h`                       |  123 | `objectOffsetGrabber`             | class/struct name |
+| `src/griddyn/measurement/StateGrabber.h`                         |   40 | `stateGrabber`                    | class/struct name |
+| `src/griddyn/measurement/StateGrabber.h`                         |  125 | `customStateGrabber`              | class/struct name |
+| `src/griddyn/measurement/StateGrabber.h`                         |  142 | `stateFunctionGrabber`            | class/struct name |
+| `src/griddyn/measurement/StateGrabber.h`                         |  167 | `stateOpGrabber`                  | class/struct name |
+| `src/griddyn/primary/BusControls.h`                              |   14 | `gridSecondary`                   | class/struct name |
+| `src/griddyn/primary/DcBusControls.h`                            |   14 | `gridSecondary`                   | class/struct name |
+| `src/griddyn/primary/InfiniteBus.h`                              |   20 | `infiniteBus`                     | class/struct name |
+| `src/griddyn/primary/ListMaintainer.h`                           |   14 | `matrixData`                      | class/struct name |
+| `src/griddyn/primary/ListMaintainer.h`                           |   17 | `gridPrimary`                     | class/struct name |
+| `src/griddyn/primary/ListMaintainer.h`                           |   18 | `stateData`                       | class/struct name |
+| `src/griddyn/primary/ListMaintainer.h`                           |   22 | `listMaintainer`                  | class/struct name |
+| `src/griddyn/relays/Breaker.h`                                   |   14 | `breaker`                         | class/struct name |
+| `src/griddyn/relays/BusRelay.h`                                  |   15 | `busRelay`                        | class/struct name |
+| `src/griddyn/relays/ControlRelay.h`                              |   18 | `commMessage`                     | class/struct name |
+| `src/griddyn/relays/ControlRelay.h`                              |   20 | `controlMessagePayload`           | class/struct name |
+| `src/griddyn/relays/ControlRelay.h`                              |   24 | `functionEventAdapter`            | class/struct name |
+| `src/griddyn/relays/ControlRelay.h`                              |   25 | `gridGrabber`                     | class/struct name |
+| `src/griddyn/relays/ControlRelay.h`                              |   30 | `delayedControlAction`            | class/struct name |
+| `src/griddyn/relays/ControlRelay.h`                              |   45 | `controlRelay`                    | class/struct name |
+| `src/griddyn/relays/DifferentialRelay.h`                         |   17 | `differentialRelay`               | class/struct name |
+| `src/griddyn/relays/Fuse.h`                                      |   16 | `fuse`                            | class/struct name |
+| `src/griddyn/relays/LoadRelay.h`                                 |   17 | `loadRelay`                       | class/struct name |
+| `src/griddyn/relays/Pmu.h`                                       |   15 | `pmu`                             | class/struct name |
+| `src/griddyn/relays/Sensor.h`                                    |   16 | `grabberSet`                      | class/struct name |
+| `src/griddyn/relays/Sensor.h`                                    |   22 | `sensor`                          | class/struct name |
+| `src/griddyn/relays/ZonalRelay.h`                                |   19 | `zonalRelay`                      | class/struct name |
+| `src/griddyn/simulation/Contingency.h`                           |   74 | `extraContingencyInfo`            | class/struct name |
+| `src/griddyn/simulation/Continuation.h`                          |   17 | `parameterSequence`               | class/struct name |
+| `src/griddyn/simulation/Continuation.h`                          |   37 | `continuationSequence`            | class/struct name |
+| `src/griddyn/simulation/Diagnostics.cpp`                         |  662 | `objectCountInfo`                 | class/struct name |
+| `src/griddyn/simulation/Diagnostics.h`                           |   15 | `matrixData`                      | class/struct name |
+| `src/griddyn/simulation/Diagnostics.h`                           |   20 | `solverMode`                      | class/struct name |
+| `src/griddyn/simulation/DynamicInitialConditionRecovery.h`       |   17 | `dynamicInitialConditionRecovery` | class/struct name |
+| `src/griddyn/simulation/FaultResetRecovery.h`                    |   20 | `faultResetRecovery`              | class/struct name |
+| `src/griddyn/simulation/GridDynActions.h`                        |   17 | `gridDynAction`                   | class/struct name |
+| `src/griddyn/simulation/GridDynSimulationFileOps.h`              |   14 | `matrixData`                      | class/struct name |
+| `src/griddyn/simulation/GridDynSimulationFileOps.h`              |   19 | `solverMode`                      | class/struct name |
+| `src/griddyn/simulation/GridDynSimulationFileOps.h`              |  173 | `dataInfo`                        | class/struct name |
+| `src/griddyn/simulation/GridSimulation.h`                        |   37 | `collector`                       | class/struct name |
+| `src/griddyn/simulation/GridSimulation.h`                        |   40 | `eventQueue`                      | class/struct name |
+| `src/griddyn/simulation/GridSimulation.h`                        |   41 | `eventAdapter`                    | class/struct name |
+| `src/griddyn/simulation/GridSimulation.h`                        |   42 | `functionEventAdapter`            | class/struct name |
+| `src/griddyn/simulation/PowerFlowErrorRecovery.h`                |   17 | `powerFlowErrorRecovery`          | class/struct name |
+| `src/griddyn/solvers/ArkodeInterface.h`                          |   17 | `arkodeInterface`                 | class/struct name |
+| `src/griddyn/solvers/BasicOdeSolver.h`                           |   17 | `basicOdeSolver`                  | class/struct name |
+| `src/griddyn/solvers/BasicSolver.h`                              |   19 | `basicSolver`                     | class/struct name |
+| `src/griddyn/solvers/CvodeInterface.h`                           |   17 | `cvodeInterface`                  | class/struct name |
+| `src/griddyn/solvers/IdaInterface.h`                             |   17 | `idaInterface`                    | class/struct name |
+| `src/griddyn/solvers/KinsolInterface.h`                          |   16 | `kinsolInterface`                 | class/struct name |
+| `src/griddyn/solvers/SolverInterface.h`                          |   27 | `solverException`                 | class/struct name |
+| `src/griddyn/solvers/SolverMode.hpp`                             |   70 | `solverMode`                      | class/struct name |
+| `src/griddyn/solvers/SundialsInterface.h`                        |   75 | `sundialsInterface`               | class/struct name |
+| `src/griddyn/solvers/SundialsMatrixData.h`                       |   18 | `sundialsMatrixDataDense`         | class/struct name |
+| `src/griddyn/solvers/SundialsMatrixData.h`                       |   47 | `sundialsMatrixDataSparseColumn`  | class/struct name |
+| `src/griddyn/solvers/SundialsMatrixData.h`                       |   82 | `sundialsMatrixDataSparseRow`     | class/struct name |
+| `src/griddyn/sources/BlockSource.h`                              |   18 | `blockSource`                     | class/struct name |
+| `src/griddyn/sources/CommSource.h`                               |   19 | `commSource`                      | class/struct name |
+| `src/griddyn/sources/FileSource.h`                               |   15 | `fileSource`                      | class/struct name |
+| `src/griddyn/sources/FunctionSource.h`                           |   18 | `functionSource`                  | class/struct name |
+| `src/griddyn/sources/GrabberSource.h`                            |   14 | `grabberSet`                      | class/struct name |
+| `src/griddyn/sources/GrabberSource.h`                            |   17 | `grabberSource`                   | class/struct name |
+| `src/griddyn/sources/PulseSource.h`                              |   14 | `pulseSource`                     | class/struct name |
+| `src/griddyn/sources/RampSource.h`                               |   15 | `rampSource`                      | class/struct name |
+| `src/griddyn/sources/RandomSource.h`                             |   13 | `gridRandom`                      | class/struct name |
+| `src/griddyn/sources/RandomSource.h`                             |   18 | `randomSource`                    | class/struct name |
+| `src/griddyn/sources/SineSource.h`                               |   15 | `sineSource`                      | class/struct name |
+| `src/griddyn_shared/internal/griddyn_export_internal.h`          |   29 | `solverKeyInfo`                   | class/struct name |
+| `src/networking/zmqLibrary/zmqContextManager.h`                  |   25 | `context_t`                       | class/struct name |
+| `src/optimization/gridOptObjects.h`                              |   17 | `vectData`                        | class/struct name |
+| `src/optimization/gridOptObjects.h`                              |   20 | `matrixData`                      | class/struct name |
+| `src/optimization/gridOptObjects.h`                              |   23 | `consData`                        | class/struct name |
+| `src/plugins/gridDynPluginApi.h`                                 |   13 | `gridDynPlugInApi`                | class/struct name |
+| `src/utilities/assert.h`                                         |   17 | `assert_exception`                | class/struct name |
+| `src/utilities/dataDictionary.h`                                 |   18 | `dataDictionary`                  | class/struct name |
+| `src/utilities/dataDictionary.hpp`                               |   19 | `dataDictionary`                  | class/struct name |
+| `src/utilities/functionInterpreter.cpp`                          |   48 | `functionEntry`                   | class/struct name |
+| `src/utilities/gridRandom.cpp`                                   |   22 | `lookupEntry`                     | class/struct name |
+| `src/utilities/gridRandom.h`                                     |   19 | `distributionObject`              | class/struct name |
+| `src/utilities/gridRandom.h`                                     |   42 | `gridRandom`                      | class/struct name |
+| `src/utilities/gridRandom.h`                                     |  107 | `randomDistributionObject2`       | class/struct name |
+| `src/utilities/gridRandom.h`                                     |  125 | `randomDistributionObject1`       | class/struct name |
+| `src/utilities/gridRandom.h`                                     |  138 | `randomDistributionObject1`       | class/struct name |
+| `src/utilities/logger.h`                                         |   16 | `logger`                          | class/struct name |
+| `src/utilities/matrixData.hpp`                                   |   16 | `matrixElement`                   | class/struct name |
+| `src/utilities/matrixData.hpp`                                   |   52 | `matrixData`                      | class/struct name |
+| `src/utilities/matrixDataBoost.hpp`                              |   16 | `matrixDataBoost`                 | class/struct name |
+| `src/utilities/matrixDataBoost.hpp`                              |   61 | `matrixIteratorBoost`             | class/struct name |
+| `src/utilities/matrixDataCompact.hpp`                            |   17 | `matrixDataCompact`               | class/struct name |
+| `src/utilities/matrixDataCompact.hpp`                            |   74 | `matrixIteratorCompact`           | class/struct name |
+| `src/utilities/matrixDataContainer.hpp`                          |   17 | `matrixDataContainer`             | class/struct name |
+| `src/utilities/matrixDataCustomWriteOnly.hpp`                    |   18 | `matrixDataCustomWriteOnly`       | class/struct name |
+| `src/utilities/matrixDataFilter.hpp`                             |   19 | `matrixDataFilter`                | class/struct name |
+| `src/utilities/matrixDataOrdered.hpp`                            |   18 | `matrixDataOrdered`               | class/struct name |
+| `src/utilities/matrixDataOrdering.hpp`                           |   21 | `keyOrder`                        | class/struct name |
+| `src/utilities/matrixDataOrdering.hpp`                           |   29 | `keyOrder`                        | class/struct name |
+| `src/utilities/matrixDataScale.hpp`                              |   15 | `matrixDataScale`                 | class/struct name |
+| `src/utilities/matrixDataSparse.hpp`                             |   23 | `matrixDataSparse`                | class/struct name |
+| `src/utilities/matrixDataSparseSM.hpp`                           |   21 | `keyCompute`                      | class/struct name |
+| `src/utilities/matrixDataSparseSM.hpp`                           |   37 | `keyCompute`                      | class/struct name |
+| `src/utilities/matrixDataSparseSM.hpp`                           |   54 | `blockCompute`                    | class/struct name |
+| `src/utilities/matrixDataSparseSM.hpp`                           |   88 | `blockCompute`                    | class/struct name |
+| `src/utilities/matrixDataSparseSM.hpp`                           |  116 | `matrixDataSparseSMB`             | class/struct name |
+| `src/utilities/matrixDataSparseSM.hpp`                           |  340 | `matrixIteratorSM`                | class/struct name |
+| `src/utilities/matrixDataSparseSM.hpp`                           |  399 | `matrixDataSparseSMB`             | class/struct name |
+| `src/utilities/matrixDataSparseSM.hpp`                           |  514 | `matrixIteratorSM`                | class/struct name |
+| `src/utilities/matrixDataSparseSM.hpp`                           |  550 | `matrixDataSparseSMB`             | class/struct name |
+| `src/utilities/matrixDataSparseSM.hpp`                           |  716 | `matrixIteratorSM`                | class/struct name |
+| `src/utilities/matrixDataTranslate.hpp`                          |   21 | `matrixDataTranslate`             | class/struct name |
+| `src/utilities/saturation.h`                                     |   16 | `saturation`                      | class/struct name |
+| `src/utilities/valuePredictor.hpp`                               |   14 | `valuePredictor`                  | class/struct name |
+| `src/utilities/vectData.hpp`                                     |   20 | `vectData`                        | class/struct name |
+| `test/exeTestHelper.h`                                           |   11 | `exeTestRunner`                   | class/struct name |
+| `test/gtestHelper.h`                                             |   42 | `solverMode`                      | class/struct name |
+| `test/gtestHelper.h`                                             |   69 | `gridLoadTestFixture`             | class/struct name |
+| `test/gtestHelper.h`                                             |   79 | `glbconfig`                       | class/struct name |
 
 ## Enum Constant Names
 
-| File | Line | Name | Detail |
-| --- | ---: | --- | --- |
-| `src/extraModels/txLifeSpan.h` | 18 | `useIECmethod` | enum constant name |
-| `src/extraModels/txLifeSpan.h` | 19 | `no_disconnect` | enum constant name |
-| `src/extraModels/txThermalModel.h` | 18 | `auto_parameter_load` | enum constant name |
-| `src/extraModels/txThermalModel.h` | 19 | `enable_parameter_updates` | enum constant name |
-| `src/extraModels/txThermalModel.h` | 20 | `enable_alarms` | enum constant name |
-| `src/griddyn/Block.h` | 34 | `step_only` | enum constant name |
-| `src/griddyn/Block.h` | 35 | `use_state` | enum constant name |
-| `src/griddyn/Block.h` | 37 | `has_limits` | enum constant name |
-| `src/griddyn/Block.h` | 38 | `use_block_limits` | enum constant name |
-| `src/griddyn/Block.h` | 39 | `use_ramp_limits` | enum constant name |
-| `src/griddyn/Block.h` | 41 | `differential_input` | enum constant name |
-| `src/griddyn/Block.h` | 42 | `object_flag5` | enum constant name |
-| `src/griddyn/Block.h` | 43 | `use_direct` | enum constant name |
-| `src/griddyn/Block.h` | 44 | `object_flag6` | enum constant name |
-| `src/griddyn/Block.h` | 45 | `simplified` | enum constant name |
-| `src/griddyn/Block.h` | 48 | `anti_windup_limits` | enum constant name |
-| `src/griddyn/Exciter.h` | 29 | `outside_vlim` | enum constant name |
-| `src/griddyn/Exciter.h` | 30 | `etrigger_high` | enum constant name |
-| `src/griddyn/GenModel.h` | 29 | `use_saturation_flag` | enum constant name |
-| `src/griddyn/GenModel.h` | 30 | `object_flag2` | enum constant name |
-| `src/griddyn/GenModel.h` | 31 | `use_speed_field_adjustment` | enum constant name |
-| `src/griddyn/GenModel.h` | 33 | `use_frequency_impedance_correction` | enum constant name |
-| `src/griddyn/GenModel.h` | 34 | `object_flag4` | enum constant name |
-| `src/griddyn/GenModel.h` | 36 | `internal_frequency_calculation` | enum constant name |
-| `src/griddyn/GenModel.h` | 37 | `at_angle_limits` | enum constant name |
-| `src/griddyn/Generator.h` | 31 | `variable_generation` | enum constant name |
-| `src/griddyn/Generator.h` | 33 | `reserve_capable` | enum constant name |
-| `src/griddyn/Generator.h` | 34 | `object_flag2` | enum constant name |
-| `src/griddyn/Generator.h` | 35 | `agc_capable` | enum constant name |
-| `src/griddyn/Generator.h` | 36 | `use_capability_curve` | enum constant name |
-| `src/griddyn/Generator.h` | 37 | `object_flag4` | enum constant name |
-| `src/griddyn/Generator.h` | 39 | `no_voltage_derate` | enum constant name |
-| `src/griddyn/Generator.h` | 40 | `object_flag5` | enum constant name |
-| `src/griddyn/Generator.h` | 41 | `independent_machine_base` | enum constant name |
-| `src/griddyn/Generator.h` | 43 | `at_limit` | enum constant name |
-| `src/griddyn/Generator.h` | 44 | `indirect_voltage_control_level` | enum constant name |
-| `src/griddyn/Generator.h` | 45 | `object_flag8` | enum constant name |
-| `src/griddyn/Generator.h` | 47 | `internal_frequency_calculation` | enum constant name |
-| `src/griddyn/Generator.h` | 48 | `object_flag9` | enum constant name |
-| `src/griddyn/Generator.h` | 49 | `isochronous_operation` | enum constant name |
-| `src/griddyn/Generator.h` | 50 | `object_flag10` | enum constant name |
-| `src/griddyn/Governor.h` | 26 | `ignore_deadband` | enum constant name |
-| `src/griddyn/Governor.h` | 27 | `ignore_filter` | enum constant name |
-| `src/griddyn/Governor.h` | 28 | `ignore_throttle` | enum constant name |
-| `src/griddyn/Governor.h` | 29 | `p_limited` | enum constant name |
-| `src/griddyn/Governor.h` | 30 | `p_limit_high` | enum constant name |
-| `src/griddyn/Governor.h` | 31 | `uses_plimits` | enum constant name |
-| `src/griddyn/Governor.h` | 32 | `uses_ramplimits` | enum constant name |
-| `src/griddyn/GridArea.h` | 38 | `reverse_converge` | enum constant name |
-| `src/griddyn/GridArea.h` | 40 | `direction_oscillate` | enum constant name |
-| `src/griddyn/GridArea.h` | 41 | `object_flag2` | enum constant name |
-| `src/griddyn/GridBus.h` | 65 | `afix` | enum constant name |
-| `src/griddyn/GridBus.h` | 71 | `normal` | enum constant name |
-| `src/griddyn/GridBus.h` | 72 | `fixAngle` | enum constant name |
-| `src/griddyn/GridBus.h` | 73 | `fixVoltage` | enum constant name |
-| `src/griddyn/GridBus.h` | 74 | `dynSLK` | enum constant name |
-| `src/griddyn/GridComponent.h` | 413 | `state_size_update` | enum constant name |
-| `src/griddyn/GridComponent.h` | 414 | `jacobian_size_update` | enum constant name |
-| `src/griddyn/GridComponent.h` | 415 | `root_size_update` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 27 | `has_constraints` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 28 | `has_roots` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 29 | `has_alg_roots` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 32 | `has_powerflow_adjustments` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 34 | `preEx_requested` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 35 | `uses_bus_frequency` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 36 | `has_pflow_states` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 37 | `has_dyn_states` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 38 | `has_differential_states` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 39 | `not_cloneable` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 40 | `extra_cascading_flag` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 44 | `remote_voltage_control` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 46 | `local_voltage_control` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 48 | `indirect_voltage_control` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 50 | `adjustable_Q` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 53 | `remote_power_control` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 55 | `local_power_control` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 57 | `indirect_power_control` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 59 | `adjustable_P` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 64 | `pFlow_initialized` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 65 | `dyn_initialized` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 66 | `object_armed_flag` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 68 | `late_b_initialize` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 71 | `error_flag` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 74 | `state_change_flag` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 75 | `object_change_flag` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 76 | `constraint_change_flag` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 77 | `root_change_flag` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 78 | `jacobian_count_change_flag` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 79 | `slack_bus_change` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 80 | `voltage_control_change` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 81 | `connectivity_change_flag` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 85 | `object_flag1` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 86 | `object_flag2` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 87 | `object_flag3` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 88 | `object_flag4` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 89 | `object_flag5` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 90 | `object_flag6` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 91 | `object_flag7` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 92 | `object_flag8` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 93 | `object_flag9` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 94 | `object_flag10` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 95 | `object_flag11` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 96 | `object_flag12` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 99 | `no_powerflow_operations` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 101 | `no_dynamics` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 103 | `disable_flag_updates` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 104 | `flag_update_required` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 105 | `pflow_init_required` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 109 | `disconnected` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 110 | `differential_output` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 112 | `no_gridcomponent_set` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 115 | `being_deleted` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 119 | `separate_processing` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 124 | `multipart_calculation_capable` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 126 | `has_subobject_pflow_states` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 128 | `extra_capability_flag1` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 129 | `dc_only` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 130 | `dc_capable` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 131 | `dc_terminal2` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 132 | `three_phase_only` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 133 | `three_phase_capable` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 134 | `three_phase_terminal2` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 140 | `sampled_only` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 146 | `single_iteration` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 147 | `voltage_only` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 148 | `high_error_only` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 149 | `local_iteration` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 150 | `block_iteration` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 151 | `strong_iteration` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 152 | `force_strong_iteration` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 153 | `force_voltage_only` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 160 | `constraints_disabled` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 161 | `roots_disabled` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 162 | `unused_control_flag1` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 163 | `no_exciter_limits` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 164 | `no_governor_limits` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 165 | `no_limits` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 166 | `ignore_bus_limits` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 167 | `disable_link_adjustments` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 168 | `disable_load_adjustments` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 169 | `auto_bus_disconnect` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 170 | `no_auto_autogen` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 171 | `all_loads_to_constant_impedence` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 172 | `force_constant_pflow_initialization` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 174 | `ignore_saturation` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 175 | `low_voltage_checking` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 254 | `minimal` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 255 | `voltage` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 256 | `angle` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 257 | `voltage_angle` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 258 | `full` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 260 | `low_voltage_pflow` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 261 | `low_voltage_dyn1` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 262 | `low_voltage_dyn2` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 263 | `low_voltage_dyn0` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 267 | `reversable_only` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 268 | `full_check` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 269 | `low_voltage_check` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 270 | `complete_state_check` | enum constant name |
-| `src/griddyn/GridComponentHelperClasses.h` | 271 | `high_angle_trip` | enum constant name |
-| `src/griddyn/GridDynGovernor.h` | 25 | `ignore_deadband` | enum constant name |
-| `src/griddyn/GridDynGovernor.h` | 26 | `ignore_filter` | enum constant name |
-| `src/griddyn/GridDynGovernor.h` | 27 | `ignore_throttle` | enum constant name |
-| `src/griddyn/GridDynGovernor.h` | 28 | `p_limited` | enum constant name |
-| `src/griddyn/GridDynGovernor.h` | 29 | `p_limit_high` | enum constant name |
-| `src/griddyn/GridDynGovernor.h` | 30 | `uses_plimits` | enum constant name |
-| `src/griddyn/GridDynGovernor.h` | 31 | `uses_ramplimits` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 38 | `dense_solver` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 39 | `power_adjust_enabled` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 40 | `dcFlow_initialization` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 41 | `parallel_residual_enabled` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 42 | `parallel_jacobian_enabled` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 43 | `parallel_contingency_enabled` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 44 | `mpi_contingency_enabled` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 45 | `first_run_limits_only` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 46 | `no_reset` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 47 | `voltage_constraints_flag` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 48 | `record_on_halt_flag` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 49 | `disable_auto_slack_bus` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 50 | `disable_auto_disconnect` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 51 | `single_step_mode` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 52 | `dc_mode` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 53 | `force_power_flow` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 54 | `power_flow_only` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 55 | `no_powerflow_adjustments` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 56 | `save_power_flow_data` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 57 | `no_powerflow_error_recovery` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 58 | `dae_initialization_for_partitioned` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 59 | `force_extra_powerflow` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 60 | `droop_power_flow` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 61 | `save_power_flow_input_data` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 62 | `power_flow_input_saved` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 63 | `disable_automatic_load_loss` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 70 | `dcJacComp_flag` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 71 | `reset_voltage_flag` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 72 | `prev_setall_pqvlimit` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 73 | `invalid_state_flag` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 74 | `check_reset_voltage_flag` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 75 | `powerflow_saved` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 76 | `low_bus_voltage` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 111 | `dae` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 112 | `partitioned` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 113 | `decoupled` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 117 | `mixed` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 121 | `algebraic_grouped` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 122 | `voltage_first` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 123 | `angle_first` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 124 | `differential_first` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 519 | `powerflow_mode` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 520 | `dae_mode` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 521 | `algebraic_mode` | enum constant name |
-| `src/griddyn/GridDynSimulation.h` | 522 | `differential_mode` | enum constant name |
-| `src/griddyn/GridPrimary.h` | 23 | `voltageInLocation` | enum constant name |
-| `src/griddyn/GridPrimary.h` | 24 | `angleInLocation` | enum constant name |
-| `src/griddyn/GridPrimary.h` | 25 | `frequencyInLocation` | enum constant name |
-| `src/griddyn/GridPrimary.h` | 29 | `PoutLocation` | enum constant name |
-| `src/griddyn/GridPrimary.h` | 30 | `QoutLocation` | enum constant name |
-| `src/griddyn/Link.h` | 55 | `switch1_open_flag` | enum constant name |
-| `src/griddyn/Link.h` | 56 | `switch2_open_flag` | enum constant name |
-| `src/griddyn/Link.h` | 57 | `fixed_target_power` | enum constant name |
-| `src/griddyn/Link.h` | 58 | `network_connected` | enum constant name |
-| `src/griddyn/Link.h` | 59 | `object_flag4` | enum constant name |
-| `src/griddyn/Load.h` | 21 | `use_power_factor_flag` | enum constant name |
-| `src/griddyn/Load.h` | 22 | `object_flag1` | enum constant name |
-| `src/griddyn/Relay.h` | 39 | `active` | enum constant name |
-| `src/griddyn/Relay.h` | 40 | `triggered` | enum constant name |
-| `src/griddyn/Relay.h` | 41 | `disabled` | enum constant name |
-| `src/griddyn/Relay.h` | 47 | `relay_flag0` | enum constant name |
-| `src/griddyn/Relay.h` | 48 | `relay_flag1` | enum constant name |
-| `src/griddyn/Relay.h` | 49 | `relay_flag2` | enum constant name |
-| `src/griddyn/Relay.h` | 50 | `relay_flag3` | enum constant name |
-| `src/griddyn/Relay.h` | 51 | `relay_flag4` | enum constant name |
-| `src/griddyn/Relay.h` | 52 | `relay_flag5` | enum constant name |
-| `src/griddyn/Relay.h` | 53 | `relay_flag6` | enum constant name |
-| `src/griddyn/Relay.h` | 54 | `relay_flag7` | enum constant name |
-| `src/griddyn/Relay.h` | 55 | `relay_flag8` | enum constant name |
-| `src/griddyn/Relay.h` | 56 | `relay_flag9` | enum constant name |
-| `src/griddyn/Relay.h` | 57 | `relay_flag10` | enum constant name |
-| `src/griddyn/Relay.h` | 58 | `relay_flag11` | enum constant name |
-| `src/griddyn/Relay.h` | 59 | `relay_flag12` | enum constant name |
-| `src/griddyn/Relay.h` | 60 | `relay_flag13` | enum constant name |
-| `src/griddyn/Relay.h` | 61 | `relay_flag14` | enum constant name |
-| `src/griddyn/Relay.h` | 62 | `relay_flag15` | enum constant name |
-| `src/griddyn/Relay.h` | 63 | `relay_flag16` | enum constant name |
-| `src/griddyn/Relay.h` | 64 | `relay_flag17` | enum constant name |
-| `src/griddyn/Relay.h` | 65 | `relay_flag18` | enum constant name |
-| `src/griddyn/Relay.h` | 66 | `relay_flag19` | enum constant name |
-| `src/griddyn/Relay.h` | 67 | `relay_flag20` | enum constant name |
-| `src/griddyn/Relay.h` | 68 | `relay_flag21` | enum constant name |
-| `src/griddyn/Relay.h` | 69 | `relay_flag22` | enum constant name |
-| `src/griddyn/Relay.h` | 70 | `relay_flag23` | enum constant name |
-| `src/griddyn/Relay.h` | 71 | `relay_flag24` | enum constant name |
-| `src/griddyn/Relay.h` | 72 | `relay_flag25` | enum constant name |
-| `src/griddyn/Relay.h` | 73 | `relay_flag26` | enum constant name |
-| `src/griddyn/Relay.h` | 74 | `relay_flag27` | enum constant name |
-| `src/griddyn/Relay.h` | 75 | `relay_flag28` | enum constant name |
-| `src/griddyn/Relay.h` | 76 | `relay_flag29` | enum constant name |
-| `src/griddyn/Relay.h` | 77 | `relay_flag30` | enum constant name |
-| `src/griddyn/Relay.h` | 78 | `relay_flag31` | enum constant name |
-| `src/griddyn/Relay.h` | 80 | `continuous_flag` | enum constant name |
-| `src/griddyn/Relay.h` | 81 | `resettable_flag` | enum constant name |
-| `src/griddyn/Relay.h` | 82 | `use_commLink` | enum constant name |
-| `src/griddyn/Relay.h` | 83 | `power_flow_checks_flag` | enum constant name |
-| `src/griddyn/Relay.h` | 85 | `extra_relay_flag` | enum constant name |
-| `src/griddyn/Relay.h` | 86 | `object_flag5` | enum constant name |
-| `src/griddyn/blocks/BlockSequence.h` | 23 | `object_flag11` | enum constant name |
-| `src/griddyn/blocks/DeadbandBlock.h` | 23 | `object_flag11` | enum constant name |
-| `src/griddyn/blocks/FunctionBlock.h` | 22 | `object_flag10` | enum constant name |
-| `src/griddyn/comms/CommMessage.h` | 47 | `ignoreMessageType` | enum constant name |
-| `src/griddyn/comms/CommMessage.h` | 48 | `pingMessageType` | enum constant name |
-| `src/griddyn/comms/CommMessage.h` | 49 | `replyMessageType` | enum constant name |
-| `src/griddyn/comms/CommMessage.h` | 50 | `unknownMessageType` | enum constant name |
-| `src/griddyn/events/EventInterface.hpp` | 14 | `normal` | enum constant name |
-| `src/griddyn/events/EventInterface.hpp` | 15 | `delayed` | enum constant name |
-| `src/griddyn/events/EventInterface.hpp` | 16 | `two_part_execution` | enum constant name |
-| `src/griddyn/generators/DynamicGenerator.h` | 30 | `invalid` | enum constant name |
-| `src/griddyn/generators/DynamicGenerator.h` | 31 | `simple` | enum constant name |
-| `src/griddyn/generators/DynamicGenerator.h` | 32 | `dc` | enum constant name |
-| `src/griddyn/generators/DynamicGenerator.h` | 33 | `transient` | enum constant name |
-| `src/griddyn/generators/DynamicGenerator.h` | 34 | `detailed` | enum constant name |
-| `src/griddyn/generators/DynamicGenerator.h` | 35 | `model_only` | enum constant name |
-| `src/griddyn/generators/DynamicGenerator.h` | 36 | `typical` | enum constant name |
-| `src/griddyn/generators/DynamicGenerator.h` | 37 | `subtransient` | enum constant name |
-| `src/griddyn/generators/DynamicGenerator.h` | 38 | `renewable` | enum constant name |
-| `src/griddyn/generators/DynamicGenerator.h` | 39 | `none` | enum constant name |
-| `src/griddyn/generators/DynamicGenerator.h` | 44 | `genmodel_loc` | enum constant name |
-| `src/griddyn/generators/DynamicGenerator.h` | 45 | `exciter_loc` | enum constant name |
-| `src/griddyn/generators/DynamicGenerator.h` | 46 | `governor_loc` | enum constant name |
-| `src/griddyn/generators/DynamicGenerator.h` | 47 | `pss_loc` | enum constant name |
-| `src/griddyn/generators/DynamicGenerator.h` | 48 | `pset_loc` | enum constant name |
-| `src/griddyn/generators/DynamicGenerator.h` | 49 | `vset_loc` | enum constant name |
-| `src/griddyn/generators/DynamicGenerator.h` | 50 | `isoc_control` | enum constant name |
-| `src/griddyn/gridDynDefinitions.hpp` | 67 | `not_triggered` | enum constant name |
-| `src/griddyn/gridDynDefinitions.hpp` | 68 | `execution_failure` | enum constant name |
-| `src/griddyn/gridDynDefinitions.hpp` | 69 | `no_change` | enum constant name |
-| `src/griddyn/gridDynDefinitions.hpp` | 70 | `non_state_change` | enum constant name |
-| `src/griddyn/gridDynDefinitions.hpp` | 71 | `parameter_change` | enum constant name |
-| `src/griddyn/gridDynDefinitions.hpp` | 72 | `jacobian_change` | enum constant name |
-| `src/griddyn/gridDynDefinitions.hpp` | 73 | `object_change` | enum constant name |
-| `src/griddyn/gridDynDefinitions.hpp` | 74 | `state_count_change` | enum constant name |
-| `src/griddyn/links/AcLine.h` | 57 | `angle_slip_on_test` | enum constant name |
-| `src/griddyn/links/AcdcConverter.h` | 26 | `fixed_power_control` | enum constant name |
-| `src/griddyn/links/AdjustableTransformer.h` | 35 | `continuous_flag` | enum constant name |
-| `src/griddyn/links/AdjustableTransformer.h` | 36 | `use_target_mode` | enum constant name |
-| `src/griddyn/links/AdjustableTransformer.h` | 37 | `at_limit` | enum constant name |
-| `src/griddyn/links/AdjustableTransformer.h` | 38 | `no_pFlow_adjustments` | enum constant name |
-| `src/griddyn/links/AdjustableTransformer.h` | 39 | `use_lookup_table` | enum constant name |
-| `src/griddyn/links/Hvdc.h` | 18 | `reverse_flow` | enum constant name |
-| `src/griddyn/loads/ApproximatingLoad.h` | 96 | `file_sent_flag` | enum constant name |
-| `src/griddyn/loads/ApproximatingLoad.h` | 97 | `uses_bounds_flag` | enum constant name |
-| `src/griddyn/loads/ApproximatingLoad.h` | 98 | `waiting_flag` | enum constant name |
-| `src/griddyn/loads/ApproximatingLoad.h` | 99 | `dual_mode_flag` | enum constant name |
-| `src/griddyn/loads/ApproximatingLoad.h` | 100 | `linearize_triple` | enum constant name |
-| `src/griddyn/loads/FileLoad.h` | 19 | `use_absolute_time_flag` | enum constant name |
-| `src/griddyn/loads/FileLoad.h` | 20 | `use_step_change_flag` | enum constant name |
-| `src/griddyn/loads/GridLabDLoad.h` | 98 | `file_sent_flag` | enum constant name |
-| `src/griddyn/loads/GridLabDLoad.h` | 99 | `uses_bounds_flag` | enum constant name |
-| `src/griddyn/loads/GridLabDLoad.h` | 100 | `waiting_flag` | enum constant name |
-| `src/griddyn/loads/GridLabDLoad.h` | 101 | `dual_mode_flag` | enum constant name |
-| `src/griddyn/loads/GridLabDLoad.h` | 102 | `linearize_triple` | enum constant name |
-| `src/griddyn/loads/MotorLoad.h` | 21 | `init_transient` | enum constant name |
-| `src/griddyn/loads/MotorLoad.h` | 22 | `object_flag8` | enum constant name |
-| `src/griddyn/loads/MotorLoad.h` | 23 | `stalled` | enum constant name |
-| `src/griddyn/loads/MotorLoad.h` | 24 | `resettable` | enum constant name |
-| `src/griddyn/loads/SourceLoad.h` | 22 | `p_source` | enum constant name |
-| `src/griddyn/loads/SourceLoad.h` | 23 | `q_source` | enum constant name |
-| `src/griddyn/loads/SourceLoad.h` | 24 | `yp_source` | enum constant name |
-| `src/griddyn/loads/SourceLoad.h` | 25 | `yq_source` | enum constant name |
-| `src/griddyn/loads/SourceLoad.h` | 26 | `ip_source` | enum constant name |
-| `src/griddyn/loads/SourceLoad.h` | 27 | `iq_source` | enum constant name |
-| `src/griddyn/loads/SourceLoad.h` | 28 | `r_source` | enum constant name |
-| `src/griddyn/loads/SourceLoad.h` | 29 | `x_source` | enum constant name |
-| `src/griddyn/loads/SourceLoad.h` | 32 | `other` | enum constant name |
-| `src/griddyn/loads/SourceLoad.h` | 33 | `pulse` | enum constant name |
-| `src/griddyn/loads/SourceLoad.h` | 34 | `sine` | enum constant name |
-| `src/griddyn/loads/SourceLoad.h` | 35 | `random` | enum constant name |
-| `src/griddyn/loads/Svd.h` | 19 | `continuous_flag` | enum constant name |
-| `src/griddyn/loads/Svd.h` | 20 | `locked_flag` | enum constant name |
-| `src/griddyn/loads/Svd.h` | 21 | `reactive_control_flag` | enum constant name |
-| `src/griddyn/loads/Svd.h` | 22 | `reverse_control_flag` | enum constant name |
-| `src/griddyn/loads/Svd.h` | 23 | `reverse_toggled_flag` | enum constant name |
-| `src/griddyn/loads/ThreePhaseLoad.h` | 16 | `abc` | enum constant name |
-| `src/griddyn/loads/ThreePhaseLoad.h` | 17 | `pnz` | enum constant name |
-| `src/griddyn/loads/ThreePhaseLoad.h` | 25 | `use_abs_angle` | enum constant name |
-| `src/griddyn/loads/ThreePhaseLoad.h` | 26 | `three_phase_output` | enum constant name |
-| `src/griddyn/loads/ThreePhaseLoad.h` | 27 | `three_phase_input` | enum constant name |
-| `src/griddyn/loads/ZipLoad.h` | 20 | `convert_to_constant_impedance` | enum constant name |
-| `src/griddyn/loads/ZipLoad.h` | 21 | `no_pqvoltage_limit` | enum constant name |
-| `src/griddyn/primary/AcBus.h` | 39 | `use_autogen` | enum constant name |
-| `src/griddyn/primary/AcBus.h` | 40 | `slave_bus` | enum constant name |
-| `src/griddyn/primary/AcBus.h` | 41 | `master_bus` | enum constant name |
-| `src/griddyn/primary/AcBus.h` | 42 | `directconnect` | enum constant name |
-| `src/griddyn/primary/AcBus.h` | 43 | `identical_PQ_control_objects` | enum constant name |
-| `src/griddyn/primary/AcBus.h` | 44 | `object_flag6` | enum constant name |
-| `src/griddyn/primary/AcBus.h` | 45 | `compute_frequency` | enum constant name |
-| `src/griddyn/primary/AcBus.h` | 46 | `object_flag7` | enum constant name |
-| `src/griddyn/primary/AcBus.h` | 47 | `ignore_angle` | enum constant name |
-| `src/griddyn/primary/AcBus.h` | 48 | `object_flag8` | enum constant name |
-| `src/griddyn/primary/AcBus.h` | 49 | `prev_low_voltage_alert` | enum constant name |
-| `src/griddyn/primary/AcBus.h` | 50 | `object_flag9` | enum constant name |
-| `src/griddyn/primary/DcBus.h` | 26 | `use_autogen` | enum constant name |
-| `src/griddyn/primary/DcBus.h` | 27 | `slave_bus` | enum constant name |
-| `src/griddyn/primary/DcBus.h` | 28 | `master_bus` | enum constant name |
-| `src/griddyn/primary/DcBus.h` | 29 | `directconnect` | enum constant name |
-| `src/griddyn/relays/Breaker.h` | 22 | `object_flag11` | enum constant name |
-| `src/griddyn/relays/Pmu.h` | 23 | `object_flag12` | enum constant name |
-| `src/griddyn/relays/Sensor.h` | 33 | `object_flag9` | enum constant name |
-| `src/griddyn/relays/Sensor.h` | 35 | `object_flag10` | enum constant name |
-| `src/griddyn/simulation/FaultResetRecovery.h` | 28 | `more_options` | enum constant name |
-| `src/griddyn/simulation/FaultResetRecovery.h` | 29 | `out_of_options` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 22 | `ignore` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 23 | `set` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 24 | `setsolver` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 25 | `setall` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 26 | `print` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 27 | `initialize` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 28 | `powerflow` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 29 | `reset` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 30 | `iterate` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 31 | `eventmode` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 32 | `dynamicDAE` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 33 | `dynamicPart` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 34 | `dynamicDecoupled` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 35 | `step` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 36 | `run` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 37 | `save` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 38 | `check` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 39 | `load` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 40 | `add` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 41 | `rollback` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 42 | `checkpoint` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 43 | `contingency` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 44 | `continuation` | enum constant name |
-| `src/griddyn/simulation/GridDynActions.h` | 45 | `invalid` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 61 | `dense_flag` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 62 | `constantJacobian_flag` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 63 | `useMask_flag` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 64 | `parallel_flag` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 65 | `locked_flag` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 66 | `use_omp_flag` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 67 | `allocated_flag` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 68 | `initialized_flag` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 69 | `fileCapture_flag` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 70 | `directLogging_flag` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 72 | `use_newton_flag` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 73 | `use_bdf_flag` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 74 | `block_mode_only` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 75 | `extra_solver_flag1` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 76 | `extra_solver_flag2` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 77 | `extra_solver_flag3` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 78 | `extra_solver_flag4` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 79 | `extra_solver_flag5` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 80 | `extra_solver_flag6` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 81 | `extra_solver_flag7` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 82 | `extra_solver_flag8` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 83 | `extra_solver_flag9` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 84 | `extra_solver_flag10` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 85 | `extra_solver_flag11` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 86 | `extra_solver_flag12` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 87 | `print_residuals` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 104 | `fixed_masked_and_deriv` | enum constant name |
-| `src/griddyn/solvers/SolverInterface.h` | 105 | `fixed_diff` | enum constant name |
-| `src/griddyn/solvers/SolverMode.hpp` | 25 | `decoupled` | enum constant name |
-| `src/griddyn/solvers/SolverMode.hpp` | 26 | `small_angle` | enum constant name |
-| `src/griddyn/solvers/SolverMode.hpp` | 27 | `small_r` | enum constant name |
-| `src/griddyn/solvers/SolverMode.hpp` | 28 | `linear` | enum constant name |
-| `src/griddyn/solvers/SolverMode.hpp` | 29 | `force_recalc` | enum constant name |
-| `src/griddyn/solvers/SolverMode.hpp` | 30 | `dc` | enum constant name |
-| `src/griddyn/solvers/SolverMode.hpp` | 34 | `none` | enum constant name |
-| `src/griddyn/solvers/SolverMode.hpp` | 41 | `fast_decoupled` | enum constant name |
-| `src/griddyn/solvers/SolverMode.hpp` | 62 | `local_mode` | enum constant name |
-| `src/griddyn/solvers/SolverMode.hpp` | 63 | `power_flow` | enum constant name |
-| `src/griddyn/solvers/SolverMode.hpp` | 64 | `dae` | enum constant name |
-| `src/griddyn/solvers/SolverMode.hpp` | 65 | `dynamic_algebraic` | enum constant name |
-| `src/griddyn/solvers/SolverMode.hpp` | 66 | `dynamic_differential` | enum constant name |
-| `src/griddyn/sources/CommSource.h` | 29 | `object_flag4` | enum constant name |
-| `src/griddyn/sources/FileSource.h` | 19 | `use_absolute_time_flag` | enum constant name |
-| `src/griddyn/sources/FileSource.h` | 20 | `object_flag7` | enum constant name |
-| `src/griddyn/sources/FileSource.h` | 21 | `use_step_change_flag` | enum constant name |
-| `src/griddyn/sources/FileSource.h` | 22 | `object_flag8` | enum constant name |
-| `src/griddyn/sources/RandomSource.h` | 22 | `interpolate_flag` | enum constant name |
-| `src/griddyn/sources/RandomSource.h` | 23 | `proportional_flag` | enum constant name |
-| `src/griddyn/sources/RandomSource.h` | 25 | `repeated_flag` | enum constant name |
-| `src/griddyn/sources/RandomSource.h` | 26 | `triggered_flag` | enum constant name |
-| `src/networking/tcpCommunicator.h` | 51 | `no_transmit_dest` | enum constant name |
-| `src/networking/tcpCommunicator.h` | 53 | `no_transmit_source` | enum constant name |
-| `src/networking/tcpCommunicator.h` | 61 | `tx_conn_specified` | enum constant name |
-| `src/networking/tcpCommunicator.h` | 62 | `rx_conn_specified` | enum constant name |
-| `src/networking/tcpCommunicator.h` | 64 | `transmit_only` | enum constant name |
-| `src/networking/zmqCommunicator.h` | 52 | `no_transmit_dest` | enum constant name |
-| `src/networking/zmqCommunicator.h` | 54 | `no_transmit_source` | enum constant name |
-| `src/networking/zmqCommunicator.h` | 60 | `tx_conn_specified` | enum constant name |
-| `src/networking/zmqCommunicator.h` | 61 | `rx_conn_specified` | enum constant name |
-| `src/networking/zmqCommunicator.h` | 63 | `transmit_only` | enum constant name |
+| File                                          | Line | Name                                  | Detail             |
+| --------------------------------------------- | ---: | ------------------------------------- | ------------------ |
+| `src/extraModels/txLifeSpan.h`                |   18 | `useIECmethod`                        | enum constant name |
+| `src/extraModels/txLifeSpan.h`                |   19 | `no_disconnect`                       | enum constant name |
+| `src/extraModels/txThermalModel.h`            |   18 | `auto_parameter_load`                 | enum constant name |
+| `src/extraModels/txThermalModel.h`            |   19 | `enable_parameter_updates`            | enum constant name |
+| `src/extraModels/txThermalModel.h`            |   20 | `enable_alarms`                       | enum constant name |
+| `src/griddyn/Block.h`                         |   34 | `step_only`                           | enum constant name |
+| `src/griddyn/Block.h`                         |   35 | `use_state`                           | enum constant name |
+| `src/griddyn/Block.h`                         |   37 | `has_limits`                          | enum constant name |
+| `src/griddyn/Block.h`                         |   38 | `use_block_limits`                    | enum constant name |
+| `src/griddyn/Block.h`                         |   39 | `use_ramp_limits`                     | enum constant name |
+| `src/griddyn/Block.h`                         |   41 | `differential_input`                  | enum constant name |
+| `src/griddyn/Block.h`                         |   42 | `object_flag5`                        | enum constant name |
+| `src/griddyn/Block.h`                         |   43 | `use_direct`                          | enum constant name |
+| `src/griddyn/Block.h`                         |   44 | `object_flag6`                        | enum constant name |
+| `src/griddyn/Block.h`                         |   45 | `simplified`                          | enum constant name |
+| `src/griddyn/Block.h`                         |   48 | `anti_windup_limits`                  | enum constant name |
+| `src/griddyn/Exciter.h`                       |   29 | `outside_vlim`                        | enum constant name |
+| `src/griddyn/Exciter.h`                       |   30 | `etrigger_high`                       | enum constant name |
+| `src/griddyn/GenModel.h`                      |   29 | `use_saturation_flag`                 | enum constant name |
+| `src/griddyn/GenModel.h`                      |   30 | `object_flag2`                        | enum constant name |
+| `src/griddyn/GenModel.h`                      |   31 | `use_speed_field_adjustment`          | enum constant name |
+| `src/griddyn/GenModel.h`                      |   33 | `use_frequency_impedance_correction`  | enum constant name |
+| `src/griddyn/GenModel.h`                      |   34 | `object_flag4`                        | enum constant name |
+| `src/griddyn/GenModel.h`                      |   36 | `internal_frequency_calculation`      | enum constant name |
+| `src/griddyn/GenModel.h`                      |   37 | `at_angle_limits`                     | enum constant name |
+| `src/griddyn/Generator.h`                     |   31 | `variable_generation`                 | enum constant name |
+| `src/griddyn/Generator.h`                     |   33 | `reserve_capable`                     | enum constant name |
+| `src/griddyn/Generator.h`                     |   34 | `object_flag2`                        | enum constant name |
+| `src/griddyn/Generator.h`                     |   35 | `agc_capable`                         | enum constant name |
+| `src/griddyn/Generator.h`                     |   36 | `use_capability_curve`                | enum constant name |
+| `src/griddyn/Generator.h`                     |   37 | `object_flag4`                        | enum constant name |
+| `src/griddyn/Generator.h`                     |   39 | `no_voltage_derate`                   | enum constant name |
+| `src/griddyn/Generator.h`                     |   40 | `object_flag5`                        | enum constant name |
+| `src/griddyn/Generator.h`                     |   41 | `independent_machine_base`            | enum constant name |
+| `src/griddyn/Generator.h`                     |   43 | `at_limit`                            | enum constant name |
+| `src/griddyn/Generator.h`                     |   44 | `indirect_voltage_control_level`      | enum constant name |
+| `src/griddyn/Generator.h`                     |   45 | `object_flag8`                        | enum constant name |
+| `src/griddyn/Generator.h`                     |   47 | `internal_frequency_calculation`      | enum constant name |
+| `src/griddyn/Generator.h`                     |   48 | `object_flag9`                        | enum constant name |
+| `src/griddyn/Generator.h`                     |   49 | `isochronous_operation`               | enum constant name |
+| `src/griddyn/Generator.h`                     |   50 | `object_flag10`                       | enum constant name |
+| `src/griddyn/Governor.h`                      |   26 | `ignore_deadband`                     | enum constant name |
+| `src/griddyn/Governor.h`                      |   27 | `ignore_filter`                       | enum constant name |
+| `src/griddyn/Governor.h`                      |   28 | `ignore_throttle`                     | enum constant name |
+| `src/griddyn/Governor.h`                      |   29 | `p_limited`                           | enum constant name |
+| `src/griddyn/Governor.h`                      |   30 | `p_limit_high`                        | enum constant name |
+| `src/griddyn/Governor.h`                      |   31 | `uses_plimits`                        | enum constant name |
+| `src/griddyn/Governor.h`                      |   32 | `uses_ramplimits`                     | enum constant name |
+| `src/griddyn/GridArea.h`                      |   38 | `reverse_converge`                    | enum constant name |
+| `src/griddyn/GridArea.h`                      |   40 | `direction_oscillate`                 | enum constant name |
+| `src/griddyn/GridArea.h`                      |   41 | `object_flag2`                        | enum constant name |
+| `src/griddyn/GridBus.h`                       |   65 | `afix`                                | enum constant name |
+| `src/griddyn/GridBus.h`                       |   71 | `normal`                              | enum constant name |
+| `src/griddyn/GridBus.h`                       |   72 | `fixAngle`                            | enum constant name |
+| `src/griddyn/GridBus.h`                       |   73 | `fixVoltage`                          | enum constant name |
+| `src/griddyn/GridBus.h`                       |   74 | `dynSLK`                              | enum constant name |
+| `src/griddyn/GridComponent.h`                 |  413 | `state_size_update`                   | enum constant name |
+| `src/griddyn/GridComponent.h`                 |  414 | `jacobian_size_update`                | enum constant name |
+| `src/griddyn/GridComponent.h`                 |  415 | `root_size_update`                    | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   27 | `has_constraints`                     | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   28 | `has_roots`                           | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   29 | `has_alg_roots`                       | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   32 | `has_powerflow_adjustments`           | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   34 | `preEx_requested`                     | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   35 | `uses_bus_frequency`                  | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   36 | `has_pflow_states`                    | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   37 | `has_dyn_states`                      | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   38 | `has_differential_states`             | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   39 | `not_cloneable`                       | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   40 | `extra_cascading_flag`                | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   44 | `remote_voltage_control`              | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   46 | `local_voltage_control`               | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   48 | `indirect_voltage_control`            | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   50 | `adjustable_Q`                        | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   53 | `remote_power_control`                | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   55 | `local_power_control`                 | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   57 | `indirect_power_control`              | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   59 | `adjustable_P`                        | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   64 | `pFlow_initialized`                   | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   65 | `dyn_initialized`                     | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   66 | `object_armed_flag`                   | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   68 | `late_b_initialize`                   | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   71 | `error_flag`                          | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   74 | `state_change_flag`                   | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   75 | `object_change_flag`                  | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   76 | `constraint_change_flag`              | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   77 | `root_change_flag`                    | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   78 | `jacobian_count_change_flag`          | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   79 | `slack_bus_change`                    | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   80 | `voltage_control_change`              | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   81 | `connectivity_change_flag`            | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   85 | `object_flag1`                        | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   86 | `object_flag2`                        | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   87 | `object_flag3`                        | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   88 | `object_flag4`                        | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   89 | `object_flag5`                        | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   90 | `object_flag6`                        | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   91 | `object_flag7`                        | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   92 | `object_flag8`                        | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   93 | `object_flag9`                        | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   94 | `object_flag10`                       | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   95 | `object_flag11`                       | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   96 | `object_flag12`                       | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |   99 | `no_powerflow_operations`             | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  101 | `no_dynamics`                         | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  103 | `disable_flag_updates`                | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  104 | `flag_update_required`                | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  105 | `pflow_init_required`                 | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  109 | `disconnected`                        | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  110 | `differential_output`                 | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  112 | `no_gridcomponent_set`                | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  115 | `being_deleted`                       | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  119 | `separate_processing`                 | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  124 | `multipart_calculation_capable`       | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  126 | `has_subobject_pflow_states`          | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  128 | `extra_capability_flag1`              | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  129 | `dc_only`                             | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  130 | `dc_capable`                          | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  131 | `dc_terminal2`                        | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  132 | `three_phase_only`                    | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  133 | `three_phase_capable`                 | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  134 | `three_phase_terminal2`               | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  140 | `sampled_only`                        | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  146 | `single_iteration`                    | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  147 | `voltage_only`                        | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  148 | `high_error_only`                     | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  149 | `local_iteration`                     | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  150 | `block_iteration`                     | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  151 | `strong_iteration`                    | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  152 | `force_strong_iteration`              | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  153 | `force_voltage_only`                  | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  160 | `constraints_disabled`                | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  161 | `roots_disabled`                      | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  162 | `unused_control_flag1`                | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  163 | `no_exciter_limits`                   | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  164 | `no_governor_limits`                  | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  165 | `no_limits`                           | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  166 | `ignore_bus_limits`                   | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  167 | `disable_link_adjustments`            | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  168 | `disable_load_adjustments`            | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  169 | `auto_bus_disconnect`                 | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  170 | `no_auto_autogen`                     | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  171 | `all_loads_to_constant_impedence`     | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  172 | `force_constant_pflow_initialization` | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  174 | `ignore_saturation`                   | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  175 | `low_voltage_checking`                | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  254 | `minimal`                             | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  255 | `voltage`                             | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  256 | `angle`                               | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  257 | `voltage_angle`                       | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  258 | `full`                                | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  260 | `low_voltage_pflow`                   | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  261 | `low_voltage_dyn1`                    | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  262 | `low_voltage_dyn2`                    | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  263 | `low_voltage_dyn0`                    | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  267 | `reversable_only`                     | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  268 | `full_check`                          | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  269 | `low_voltage_check`                   | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  270 | `complete_state_check`                | enum constant name |
+| `src/griddyn/GridComponentHelperClasses.h`    |  271 | `high_angle_trip`                     | enum constant name |
+| `src/griddyn/GridDynGovernor.h`               |   25 | `ignore_deadband`                     | enum constant name |
+| `src/griddyn/GridDynGovernor.h`               |   26 | `ignore_filter`                       | enum constant name |
+| `src/griddyn/GridDynGovernor.h`               |   27 | `ignore_throttle`                     | enum constant name |
+| `src/griddyn/GridDynGovernor.h`               |   28 | `p_limited`                           | enum constant name |
+| `src/griddyn/GridDynGovernor.h`               |   29 | `p_limit_high`                        | enum constant name |
+| `src/griddyn/GridDynGovernor.h`               |   30 | `uses_plimits`                        | enum constant name |
+| `src/griddyn/GridDynGovernor.h`               |   31 | `uses_ramplimits`                     | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   38 | `dense_solver`                        | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   39 | `power_adjust_enabled`                | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   40 | `dcFlow_initialization`               | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   41 | `parallel_residual_enabled`           | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   42 | `parallel_jacobian_enabled`           | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   43 | `parallel_contingency_enabled`        | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   44 | `mpi_contingency_enabled`             | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   45 | `first_run_limits_only`               | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   46 | `no_reset`                            | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   47 | `voltage_constraints_flag`            | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   48 | `record_on_halt_flag`                 | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   49 | `disable_auto_slack_bus`              | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   50 | `disable_auto_disconnect`             | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   51 | `single_step_mode`                    | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   52 | `dc_mode`                             | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   53 | `force_power_flow`                    | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   54 | `power_flow_only`                     | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   55 | `no_powerflow_adjustments`            | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   56 | `save_power_flow_data`                | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   57 | `no_powerflow_error_recovery`         | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   58 | `dae_initialization_for_partitioned`  | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   59 | `force_extra_powerflow`               | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   60 | `droop_power_flow`                    | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   61 | `save_power_flow_input_data`          | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   62 | `power_flow_input_saved`              | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   63 | `disable_automatic_load_loss`         | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   70 | `dcJacComp_flag`                      | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   71 | `reset_voltage_flag`                  | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   72 | `prev_setall_pqvlimit`                | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   73 | `invalid_state_flag`                  | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   74 | `check_reset_voltage_flag`            | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   75 | `powerflow_saved`                     | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |   76 | `low_bus_voltage`                     | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |  111 | `dae`                                 | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |  112 | `partitioned`                         | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |  113 | `decoupled`                           | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |  117 | `mixed`                               | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |  121 | `algebraic_grouped`                   | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |  122 | `voltage_first`                       | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |  123 | `angle_first`                         | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |  124 | `differential_first`                  | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |  519 | `powerflow_mode`                      | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |  520 | `dae_mode`                            | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |  521 | `algebraic_mode`                      | enum constant name |
+| `src/griddyn/GridDynSimulation.h`             |  522 | `differential_mode`                   | enum constant name |
+| `src/griddyn/GridPrimary.h`                   |   23 | `voltageInLocation`                   | enum constant name |
+| `src/griddyn/GridPrimary.h`                   |   24 | `angleInLocation`                     | enum constant name |
+| `src/griddyn/GridPrimary.h`                   |   25 | `frequencyInLocation`                 | enum constant name |
+| `src/griddyn/GridPrimary.h`                   |   29 | `PoutLocation`                        | enum constant name |
+| `src/griddyn/GridPrimary.h`                   |   30 | `QoutLocation`                        | enum constant name |
+| `src/griddyn/Link.h`                          |   55 | `switch1_open_flag`                   | enum constant name |
+| `src/griddyn/Link.h`                          |   56 | `switch2_open_flag`                   | enum constant name |
+| `src/griddyn/Link.h`                          |   57 | `fixed_target_power`                  | enum constant name |
+| `src/griddyn/Link.h`                          |   58 | `network_connected`                   | enum constant name |
+| `src/griddyn/Link.h`                          |   59 | `object_flag4`                        | enum constant name |
+| `src/griddyn/Load.h`                          |   21 | `use_power_factor_flag`               | enum constant name |
+| `src/griddyn/Load.h`                          |   22 | `object_flag1`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   39 | `active`                              | enum constant name |
+| `src/griddyn/Relay.h`                         |   40 | `triggered`                           | enum constant name |
+| `src/griddyn/Relay.h`                         |   41 | `disabled`                            | enum constant name |
+| `src/griddyn/Relay.h`                         |   47 | `relay_flag0`                         | enum constant name |
+| `src/griddyn/Relay.h`                         |   48 | `relay_flag1`                         | enum constant name |
+| `src/griddyn/Relay.h`                         |   49 | `relay_flag2`                         | enum constant name |
+| `src/griddyn/Relay.h`                         |   50 | `relay_flag3`                         | enum constant name |
+| `src/griddyn/Relay.h`                         |   51 | `relay_flag4`                         | enum constant name |
+| `src/griddyn/Relay.h`                         |   52 | `relay_flag5`                         | enum constant name |
+| `src/griddyn/Relay.h`                         |   53 | `relay_flag6`                         | enum constant name |
+| `src/griddyn/Relay.h`                         |   54 | `relay_flag7`                         | enum constant name |
+| `src/griddyn/Relay.h`                         |   55 | `relay_flag8`                         | enum constant name |
+| `src/griddyn/Relay.h`                         |   56 | `relay_flag9`                         | enum constant name |
+| `src/griddyn/Relay.h`                         |   57 | `relay_flag10`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   58 | `relay_flag11`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   59 | `relay_flag12`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   60 | `relay_flag13`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   61 | `relay_flag14`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   62 | `relay_flag15`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   63 | `relay_flag16`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   64 | `relay_flag17`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   65 | `relay_flag18`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   66 | `relay_flag19`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   67 | `relay_flag20`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   68 | `relay_flag21`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   69 | `relay_flag22`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   70 | `relay_flag23`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   71 | `relay_flag24`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   72 | `relay_flag25`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   73 | `relay_flag26`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   74 | `relay_flag27`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   75 | `relay_flag28`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   76 | `relay_flag29`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   77 | `relay_flag30`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   78 | `relay_flag31`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   80 | `continuous_flag`                     | enum constant name |
+| `src/griddyn/Relay.h`                         |   81 | `resettable_flag`                     | enum constant name |
+| `src/griddyn/Relay.h`                         |   82 | `use_commLink`                        | enum constant name |
+| `src/griddyn/Relay.h`                         |   83 | `power_flow_checks_flag`              | enum constant name |
+| `src/griddyn/Relay.h`                         |   85 | `extra_relay_flag`                    | enum constant name |
+| `src/griddyn/Relay.h`                         |   86 | `object_flag5`                        | enum constant name |
+| `src/griddyn/blocks/BlockSequence.h`          |   23 | `object_flag11`                       | enum constant name |
+| `src/griddyn/blocks/DeadbandBlock.h`          |   23 | `object_flag11`                       | enum constant name |
+| `src/griddyn/blocks/FunctionBlock.h`          |   22 | `object_flag10`                       | enum constant name |
+| `src/griddyn/comms/CommMessage.h`             |   47 | `ignoreMessageType`                   | enum constant name |
+| `src/griddyn/comms/CommMessage.h`             |   48 | `pingMessageType`                     | enum constant name |
+| `src/griddyn/comms/CommMessage.h`             |   49 | `replyMessageType`                    | enum constant name |
+| `src/griddyn/comms/CommMessage.h`             |   50 | `unknownMessageType`                  | enum constant name |
+| `src/griddyn/events/EventInterface.hpp`       |   14 | `normal`                              | enum constant name |
+| `src/griddyn/events/EventInterface.hpp`       |   15 | `delayed`                             | enum constant name |
+| `src/griddyn/events/EventInterface.hpp`       |   16 | `two_part_execution`                  | enum constant name |
+| `src/griddyn/generators/DynamicGenerator.h`   |   30 | `invalid`                             | enum constant name |
+| `src/griddyn/generators/DynamicGenerator.h`   |   31 | `simple`                              | enum constant name |
+| `src/griddyn/generators/DynamicGenerator.h`   |   32 | `dc`                                  | enum constant name |
+| `src/griddyn/generators/DynamicGenerator.h`   |   33 | `transient`                           | enum constant name |
+| `src/griddyn/generators/DynamicGenerator.h`   |   34 | `detailed`                            | enum constant name |
+| `src/griddyn/generators/DynamicGenerator.h`   |   35 | `model_only`                          | enum constant name |
+| `src/griddyn/generators/DynamicGenerator.h`   |   36 | `typical`                             | enum constant name |
+| `src/griddyn/generators/DynamicGenerator.h`   |   37 | `subtransient`                        | enum constant name |
+| `src/griddyn/generators/DynamicGenerator.h`   |   38 | `renewable`                           | enum constant name |
+| `src/griddyn/generators/DynamicGenerator.h`   |   39 | `none`                                | enum constant name |
+| `src/griddyn/generators/DynamicGenerator.h`   |   44 | `genmodel_loc`                        | enum constant name |
+| `src/griddyn/generators/DynamicGenerator.h`   |   45 | `exciter_loc`                         | enum constant name |
+| `src/griddyn/generators/DynamicGenerator.h`   |   46 | `governor_loc`                        | enum constant name |
+| `src/griddyn/generators/DynamicGenerator.h`   |   47 | `pss_loc`                             | enum constant name |
+| `src/griddyn/generators/DynamicGenerator.h`   |   48 | `pset_loc`                            | enum constant name |
+| `src/griddyn/generators/DynamicGenerator.h`   |   49 | `vset_loc`                            | enum constant name |
+| `src/griddyn/generators/DynamicGenerator.h`   |   50 | `isoc_control`                        | enum constant name |
+| `src/griddyn/gridDynDefinitions.hpp`          |   67 | `not_triggered`                       | enum constant name |
+| `src/griddyn/gridDynDefinitions.hpp`          |   68 | `execution_failure`                   | enum constant name |
+| `src/griddyn/gridDynDefinitions.hpp`          |   69 | `no_change`                           | enum constant name |
+| `src/griddyn/gridDynDefinitions.hpp`          |   70 | `non_state_change`                    | enum constant name |
+| `src/griddyn/gridDynDefinitions.hpp`          |   71 | `parameter_change`                    | enum constant name |
+| `src/griddyn/gridDynDefinitions.hpp`          |   72 | `jacobian_change`                     | enum constant name |
+| `src/griddyn/gridDynDefinitions.hpp`          |   73 | `object_change`                       | enum constant name |
+| `src/griddyn/gridDynDefinitions.hpp`          |   74 | `state_count_change`                  | enum constant name |
+| `src/griddyn/links/AcLine.h`                  |   57 | `angle_slip_on_test`                  | enum constant name |
+| `src/griddyn/links/AcdcConverter.h`           |   26 | `fixed_power_control`                 | enum constant name |
+| `src/griddyn/links/AdjustableTransformer.h`   |   35 | `continuous_flag`                     | enum constant name |
+| `src/griddyn/links/AdjustableTransformer.h`   |   36 | `use_target_mode`                     | enum constant name |
+| `src/griddyn/links/AdjustableTransformer.h`   |   37 | `at_limit`                            | enum constant name |
+| `src/griddyn/links/AdjustableTransformer.h`   |   38 | `no_pFlow_adjustments`                | enum constant name |
+| `src/griddyn/links/AdjustableTransformer.h`   |   39 | `use_lookup_table`                    | enum constant name |
+| `src/griddyn/links/Hvdc.h`                    |   18 | `reverse_flow`                        | enum constant name |
+| `src/griddyn/loads/ApproximatingLoad.h`       |   96 | `file_sent_flag`                      | enum constant name |
+| `src/griddyn/loads/ApproximatingLoad.h`       |   97 | `uses_bounds_flag`                    | enum constant name |
+| `src/griddyn/loads/ApproximatingLoad.h`       |   98 | `waiting_flag`                        | enum constant name |
+| `src/griddyn/loads/ApproximatingLoad.h`       |   99 | `dual_mode_flag`                      | enum constant name |
+| `src/griddyn/loads/ApproximatingLoad.h`       |  100 | `linearize_triple`                    | enum constant name |
+| `src/griddyn/loads/FileLoad.h`                |   19 | `use_absolute_time_flag`              | enum constant name |
+| `src/griddyn/loads/FileLoad.h`                |   20 | `use_step_change_flag`                | enum constant name |
+| `src/griddyn/loads/GridLabDLoad.h`            |   98 | `file_sent_flag`                      | enum constant name |
+| `src/griddyn/loads/GridLabDLoad.h`            |   99 | `uses_bounds_flag`                    | enum constant name |
+| `src/griddyn/loads/GridLabDLoad.h`            |  100 | `waiting_flag`                        | enum constant name |
+| `src/griddyn/loads/GridLabDLoad.h`            |  101 | `dual_mode_flag`                      | enum constant name |
+| `src/griddyn/loads/GridLabDLoad.h`            |  102 | `linearize_triple`                    | enum constant name |
+| `src/griddyn/loads/MotorLoad.h`               |   21 | `init_transient`                      | enum constant name |
+| `src/griddyn/loads/MotorLoad.h`               |   22 | `object_flag8`                        | enum constant name |
+| `src/griddyn/loads/MotorLoad.h`               |   23 | `stalled`                             | enum constant name |
+| `src/griddyn/loads/MotorLoad.h`               |   24 | `resettable`                          | enum constant name |
+| `src/griddyn/loads/SourceLoad.h`              |   22 | `p_source`                            | enum constant name |
+| `src/griddyn/loads/SourceLoad.h`              |   23 | `q_source`                            | enum constant name |
+| `src/griddyn/loads/SourceLoad.h`              |   24 | `yp_source`                           | enum constant name |
+| `src/griddyn/loads/SourceLoad.h`              |   25 | `yq_source`                           | enum constant name |
+| `src/griddyn/loads/SourceLoad.h`              |   26 | `ip_source`                           | enum constant name |
+| `src/griddyn/loads/SourceLoad.h`              |   27 | `iq_source`                           | enum constant name |
+| `src/griddyn/loads/SourceLoad.h`              |   28 | `r_source`                            | enum constant name |
+| `src/griddyn/loads/SourceLoad.h`              |   29 | `x_source`                            | enum constant name |
+| `src/griddyn/loads/SourceLoad.h`              |   32 | `other`                               | enum constant name |
+| `src/griddyn/loads/SourceLoad.h`              |   33 | `pulse`                               | enum constant name |
+| `src/griddyn/loads/SourceLoad.h`              |   34 | `sine`                                | enum constant name |
+| `src/griddyn/loads/SourceLoad.h`              |   35 | `random`                              | enum constant name |
+| `src/griddyn/loads/Svd.h`                     |   19 | `continuous_flag`                     | enum constant name |
+| `src/griddyn/loads/Svd.h`                     |   20 | `locked_flag`                         | enum constant name |
+| `src/griddyn/loads/Svd.h`                     |   21 | `reactive_control_flag`               | enum constant name |
+| `src/griddyn/loads/Svd.h`                     |   22 | `reverse_control_flag`                | enum constant name |
+| `src/griddyn/loads/Svd.h`                     |   23 | `reverse_toggled_flag`                | enum constant name |
+| `src/griddyn/loads/ThreePhaseLoad.h`          |   16 | `abc`                                 | enum constant name |
+| `src/griddyn/loads/ThreePhaseLoad.h`          |   17 | `pnz`                                 | enum constant name |
+| `src/griddyn/loads/ThreePhaseLoad.h`          |   25 | `use_abs_angle`                       | enum constant name |
+| `src/griddyn/loads/ThreePhaseLoad.h`          |   26 | `three_phase_output`                  | enum constant name |
+| `src/griddyn/loads/ThreePhaseLoad.h`          |   27 | `three_phase_input`                   | enum constant name |
+| `src/griddyn/loads/ZipLoad.h`                 |   20 | `convert_to_constant_impedance`       | enum constant name |
+| `src/griddyn/loads/ZipLoad.h`                 |   21 | `no_pqvoltage_limit`                  | enum constant name |
+| `src/griddyn/primary/AcBus.h`                 |   39 | `use_autogen`                         | enum constant name |
+| `src/griddyn/primary/AcBus.h`                 |   40 | `slave_bus`                           | enum constant name |
+| `src/griddyn/primary/AcBus.h`                 |   41 | `master_bus`                          | enum constant name |
+| `src/griddyn/primary/AcBus.h`                 |   42 | `directconnect`                       | enum constant name |
+| `src/griddyn/primary/AcBus.h`                 |   43 | `identical_PQ_control_objects`        | enum constant name |
+| `src/griddyn/primary/AcBus.h`                 |   44 | `object_flag6`                        | enum constant name |
+| `src/griddyn/primary/AcBus.h`                 |   45 | `compute_frequency`                   | enum constant name |
+| `src/griddyn/primary/AcBus.h`                 |   46 | `object_flag7`                        | enum constant name |
+| `src/griddyn/primary/AcBus.h`                 |   47 | `ignore_angle`                        | enum constant name |
+| `src/griddyn/primary/AcBus.h`                 |   48 | `object_flag8`                        | enum constant name |
+| `src/griddyn/primary/AcBus.h`                 |   49 | `prev_low_voltage_alert`              | enum constant name |
+| `src/griddyn/primary/AcBus.h`                 |   50 | `object_flag9`                        | enum constant name |
+| `src/griddyn/primary/DcBus.h`                 |   26 | `use_autogen`                         | enum constant name |
+| `src/griddyn/primary/DcBus.h`                 |   27 | `slave_bus`                           | enum constant name |
+| `src/griddyn/primary/DcBus.h`                 |   28 | `master_bus`                          | enum constant name |
+| `src/griddyn/primary/DcBus.h`                 |   29 | `directconnect`                       | enum constant name |
+| `src/griddyn/relays/Breaker.h`                |   22 | `object_flag11`                       | enum constant name |
+| `src/griddyn/relays/Pmu.h`                    |   23 | `object_flag12`                       | enum constant name |
+| `src/griddyn/relays/Sensor.h`                 |   33 | `object_flag9`                        | enum constant name |
+| `src/griddyn/relays/Sensor.h`                 |   35 | `object_flag10`                       | enum constant name |
+| `src/griddyn/simulation/FaultResetRecovery.h` |   28 | `more_options`                        | enum constant name |
+| `src/griddyn/simulation/FaultResetRecovery.h` |   29 | `out_of_options`                      | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   22 | `ignore`                              | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   23 | `set`                                 | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   24 | `setsolver`                           | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   25 | `setall`                              | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   26 | `print`                               | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   27 | `initialize`                          | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   28 | `powerflow`                           | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   29 | `reset`                               | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   30 | `iterate`                             | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   31 | `eventmode`                           | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   32 | `dynamicDAE`                          | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   33 | `dynamicPart`                         | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   34 | `dynamicDecoupled`                    | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   35 | `step`                                | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   36 | `run`                                 | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   37 | `save`                                | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   38 | `check`                               | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   39 | `load`                                | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   40 | `add`                                 | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   41 | `rollback`                            | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   42 | `checkpoint`                          | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   43 | `contingency`                         | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   44 | `continuation`                        | enum constant name |
+| `src/griddyn/simulation/GridDynActions.h`     |   45 | `invalid`                             | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   61 | `dense_flag`                          | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   62 | `constantJacobian_flag`               | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   63 | `useMask_flag`                        | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   64 | `parallel_flag`                       | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   65 | `locked_flag`                         | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   66 | `use_omp_flag`                        | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   67 | `allocated_flag`                      | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   68 | `initialized_flag`                    | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   69 | `fileCapture_flag`                    | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   70 | `directLogging_flag`                  | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   72 | `use_newton_flag`                     | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   73 | `use_bdf_flag`                        | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   74 | `block_mode_only`                     | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   75 | `extra_solver_flag1`                  | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   76 | `extra_solver_flag2`                  | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   77 | `extra_solver_flag3`                  | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   78 | `extra_solver_flag4`                  | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   79 | `extra_solver_flag5`                  | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   80 | `extra_solver_flag6`                  | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   81 | `extra_solver_flag7`                  | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   82 | `extra_solver_flag8`                  | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   83 | `extra_solver_flag9`                  | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   84 | `extra_solver_flag10`                 | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   85 | `extra_solver_flag11`                 | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   86 | `extra_solver_flag12`                 | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |   87 | `print_residuals`                     | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |  104 | `fixed_masked_and_deriv`              | enum constant name |
+| `src/griddyn/solvers/SolverInterface.h`       |  105 | `fixed_diff`                          | enum constant name |
+| `src/griddyn/solvers/SolverMode.hpp`          |   25 | `decoupled`                           | enum constant name |
+| `src/griddyn/solvers/SolverMode.hpp`          |   26 | `small_angle`                         | enum constant name |
+| `src/griddyn/solvers/SolverMode.hpp`          |   27 | `small_r`                             | enum constant name |
+| `src/griddyn/solvers/SolverMode.hpp`          |   28 | `linear`                              | enum constant name |
+| `src/griddyn/solvers/SolverMode.hpp`          |   29 | `force_recalc`                        | enum constant name |
+| `src/griddyn/solvers/SolverMode.hpp`          |   30 | `dc`                                  | enum constant name |
+| `src/griddyn/solvers/SolverMode.hpp`          |   34 | `none`                                | enum constant name |
+| `src/griddyn/solvers/SolverMode.hpp`          |   41 | `fast_decoupled`                      | enum constant name |
+| `src/griddyn/solvers/SolverMode.hpp`          |   62 | `local_mode`                          | enum constant name |
+| `src/griddyn/solvers/SolverMode.hpp`          |   63 | `power_flow`                          | enum constant name |
+| `src/griddyn/solvers/SolverMode.hpp`          |   64 | `dae`                                 | enum constant name |
+| `src/griddyn/solvers/SolverMode.hpp`          |   65 | `dynamic_algebraic`                   | enum constant name |
+| `src/griddyn/solvers/SolverMode.hpp`          |   66 | `dynamic_differential`                | enum constant name |
+| `src/griddyn/sources/CommSource.h`            |   29 | `object_flag4`                        | enum constant name |
+| `src/griddyn/sources/FileSource.h`            |   19 | `use_absolute_time_flag`              | enum constant name |
+| `src/griddyn/sources/FileSource.h`            |   20 | `object_flag7`                        | enum constant name |
+| `src/griddyn/sources/FileSource.h`            |   21 | `use_step_change_flag`                | enum constant name |
+| `src/griddyn/sources/FileSource.h`            |   22 | `object_flag8`                        | enum constant name |
+| `src/griddyn/sources/RandomSource.h`          |   22 | `interpolate_flag`                    | enum constant name |
+| `src/griddyn/sources/RandomSource.h`          |   23 | `proportional_flag`                   | enum constant name |
+| `src/griddyn/sources/RandomSource.h`          |   25 | `repeated_flag`                       | enum constant name |
+| `src/griddyn/sources/RandomSource.h`          |   26 | `triggered_flag`                      | enum constant name |
+| `src/networking/tcpCommunicator.h`            |   51 | `no_transmit_dest`                    | enum constant name |
+| `src/networking/tcpCommunicator.h`            |   53 | `no_transmit_source`                  | enum constant name |
+| `src/networking/tcpCommunicator.h`            |   61 | `tx_conn_specified`                   | enum constant name |
+| `src/networking/tcpCommunicator.h`            |   62 | `rx_conn_specified`                   | enum constant name |
+| `src/networking/tcpCommunicator.h`            |   64 | `transmit_only`                       | enum constant name |
+| `src/networking/zmqCommunicator.h`            |   52 | `no_transmit_dest`                    | enum constant name |
+| `src/networking/zmqCommunicator.h`            |   54 | `no_transmit_source`                  | enum constant name |
+| `src/networking/zmqCommunicator.h`            |   60 | `tx_conn_specified`                   | enum constant name |
+| `src/networking/zmqCommunicator.h`            |   61 | `rx_conn_specified`                   | enum constant name |
+| `src/networking/zmqCommunicator.h`            |   63 | `transmit_only`                       | enum constant name |
 
 ## Filename Mismatches
 
-| File | Line | Name | Detail |
-| --- | ---: | --- | --- |
-| `src/core/CoreExceptions.h` | 17 | `CoreObjectException` | file stem 'CoreExceptions' differs from declared type |
-| `src/core/CoreObject.h` | 32 | `ParamStringType` | file stem 'CoreObject' differs from declared type |
-| `src/core/CoreProperties.hpp` | 17 | `CoreObjectProperty` | file stem 'CoreProperties' differs from declared type |
-| `src/core/FactoryTemplates.hpp` | 25 | `CoreClassFactory` | file stem 'FactoryTemplates' differs from declared type |
-| `src/core/ObjectFactoryTemplates.hpp` | 21 | `GridObjectHolder` | file stem 'ObjectFactoryTemplates' differs from declared type |
-| `src/core/ObjectInterpreter.h` | 18 | `ObjectInfo` | file stem 'ObjectInterpreter' differs from declared type |
-| `src/core/ObjectOperatorInterface.hpp` | 16 | `ObjectUpdateMode` | file stem 'ObjectOperatorInterface' differs from declared type |
-| `src/core/coreDefinitions.hpp` | 58 | `PrintLevel` | file stem 'coreDefinitions' differs from declared type |
-| `src/coupling/GhostSwingBusManager.cpp` | 23 | `MpiRequests` | file stem 'GhostSwingBusManager' differs from declared type |
-| `src/coupling/GhostSwingBusMessageTypes.h` | 13 | `MessageTags` | file stem 'GhostSwingBusMessageTypes' differs from declared type |
-| `src/extraSolvers/braid/braidInterface.h` | 26 | `braidSolver` | file stem 'braidInterface' differs from declared type |
-| `src/extraSolvers/braid/braid_driver.h` | 16 | `BdfStrat` | file stem 'braid_driver' differs from declared type |
-| `src/extraSolvers/paradae/common/Timer.h` | 38 | `TimedElem` | file stem 'Timer' differs from declared type |
-| `src/extraSolvers/paradae/equations/EqGridDyn.h` | 22 | `EquationGridDyn` | file stem 'EqGridDyn' differs from declared type |
-| `src/extraSolvers/paradae/equations/Equation.h` | 18 | `TypeEquation` | file stem 'Equation' differs from declared type |
-| `src/extraSolvers/paradae/problems/ODEProblem.h` | 17 | `OdeError` | file stem 'ODEProblem' differs from declared type |
-| `src/extraSolvers/paradae/solvers/LineSearch.h` | 14 | `LsError` | file stem 'LineSearch' differs from declared type |
-| `src/extraSolvers/paradae/solvers/Newton.h` | 13 | `NwtError` | file stem 'Newton' differs from declared type |
-| `src/extraSolvers/paradae/solvers/NewtonStats.h` | 16 | `NSType` | file stem 'NewtonStats' differs from declared type |
-| `src/extraSolvers/paradae/solvers/Solver.h` | 14 | `Solver_App` | file stem 'Solver' differs from declared type |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 21 | `BdfType` | file stem 'BackwardDiff' differs from declared type |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h` | 20 | `Solver_App_RK` | file stem 'RungeKutta' differs from declared type |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_DIRK.h` | 11 | `Solver_App_DIRK` | file stem 'RungeKutta_DIRK' differs from declared type |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Implicit.h` | 15 | `Solver_App_IRK` | file stem 'RungeKutta_Implicit' differs from declared type |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_SDIRK.h` | 13 | `Solver_App_SDIRK` | file stem 'RungeKutta_SDIRK' differs from declared type |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 19 | `TiType` | file stem 'TimeIntegrator' differs from declared type |
-| `src/fileInput/ReaderInfo.h` | 35 | `BasicReaderInfo` | file stem 'ReaderInfo' differs from declared type |
-| `src/fileInput/fileInput.h` | 54 | `MatchType` | file stem 'fileInput' differs from declared type |
-| `src/fileInput/gridDynReadCSV.cpp` | 31 | `ModeState` | file stem 'gridDynReadCSV' differs from declared type |
-| `src/fileInput/gridDynReadRAW.cpp` | 83 | `SectionType` | file stem 'gridDynReadRAW' differs from declared type |
-| `src/fileInput/loadSubObjectsElement.cpp` | 38 | `LoadFunctionEntry` | file stem 'loadSubObjectsElement' differs from declared type |
-| `src/fileInput/readLibraryElement.cpp` | 38 | `LoadFunctionEntry` | file stem 'readLibraryElement' differs from declared type |
-| `src/fmi/fmiGDinfo.cpp` | 79 | `FmiPlugin` | file stem 'fmiGDinfo' differs from declared type |
-| `src/fmi/fmiProcess.cpp` | 28 | `FmiProcessOptions` | file stem 'fmiProcess' differs from declared type |
-| `src/fmi/fmi_import/fmiEnumDefinitions.h` | 12 | `FmuType` | file stem 'fmiEnumDefinitions' differs from declared type |
-| `src/fmi/fmi_import/fmiImport.h` | 34 | `FmiBaseFunctions` | file stem 'fmiImport' differs from declared type |
-| `src/fmi/fmi_import/fmiInfo.h` | 33 | `FmuDefaultExperiment` | file stem 'fmiInfo' differs from declared type |
-| `src/fmi/fmi_import/fmiLibraryManager.h` | 19 | `FmiLibraryManager` | file stem 'fmiLibraryManager' differs from declared type |
-| `src/fmi/fmi_import/fmiObjects.h` | 17 | `FmiException` | file stem 'fmiObjects' differs from declared type |
-| `src/fmi/fmi_models/CymeDistLoad.h` | 13 | `CymeDistLoadME` | file stem 'CymeDistLoad' differs from declared type |
-| `src/fmi/fmi_models/fmiCoSimLoad.h` | 14 | `FmiCoSimLoad` | file stem 'fmiCoSimLoad' differs from declared type |
-| `src/fmi/fmi_models/fmiCoSimLoad3phase.h` | 17 | `FmiCoSimLoad3phase` | file stem 'fmiCoSimLoad3phase' differs from declared type |
-| `src/fmi/fmi_models/fmiCoSimSubModel.h` | 21 | `FmiCoSimSubModel` | file stem 'fmiCoSimSubModel' differs from declared type |
-| `src/fmi/fmi_models/fmiCoSimWrapper.hpp` | 16 | `FmiCoSimWrapper` | file stem 'fmiCoSimWrapper' differs from declared type |
-| `src/fmi/fmi_models/fmiExciter.h` | 16 | `FmiExciter` | file stem 'fmiExciter' differs from declared type |
-| `src/fmi/fmi_models/fmiGenModel.h` | 16 | `FmiGenModel` | file stem 'fmiGenModel' differs from declared type |
-| `src/fmi/fmi_models/fmiGovernor.h` | 16 | `FmiGovernor` | file stem 'fmiGovernor' differs from declared type |
-| `src/fmi/fmi_models/fmiMELoad.h` | 16 | `FmiMELoad` | file stem 'fmiMELoad' differs from declared type |
-| `src/fmi/fmi_models/fmiMELoad3phase.h` | 17 | `FmiMELoad3phase` | file stem 'fmiMELoad3phase' differs from declared type |
-| `src/fmi/fmi_models/fmiMESubModel.h` | 21 | `FmuMode` | file stem 'fmiMESubModel' differs from declared type |
-| `src/fmi/fmi_models/fmiMEWrapper.hpp` | 16 | `FmiMEWrapper` | file stem 'fmiMEWrapper' differs from declared type |
-| `src/fmi/fmi_models/fmiSupport.h` | 12 | `RefMode` | file stem 'fmiSupport' differs from declared type |
-| `src/fmi/fmi_models/fmiWrapper.hpp` | 25 | `FmiWrapper` | file stem 'fmiWrapper' differs from declared type |
-| `src/fmi/fmi_models/outputEstimator.h` | 19 | `OutputEstimator` | file stem 'outputEstimator' differs from declared type |
-| `src/fmi_export/fmiCollector.h` | 18 | `FmiCollector` | file stem 'fmiCollector' differs from declared type |
-| `src/fmi_export/fmiCoordinator.h` | 21 | `FmiCoordinator` | file stem 'fmiCoordinator' differs from declared type |
-| `src/fmi_export/fmiEvent.h` | 16 | `FmiEvent` | file stem 'fmiEvent' differs from declared type |
-| `src/fmi_export/fmiRunner.h` | 24 | `FmiRunner` | file stem 'fmiRunner' differs from declared type |
-| `src/fmi_export/fmuBuilder.h` | 22 | `FmuBuilder` | file stem 'fmuBuilder' differs from declared type |
-| `src/fmi_export/testFMIExport.cpp` | 34 | `FmiExportTests` | file stem 'testFMIExport' differs from declared type |
-| `src/formatInterpreters/iniReaderElement.cpp` | 21 | `gridDynINIReader` | file stem 'iniReaderElement' differs from declared type |
-| `src/formatInterpreters/readerElement.h` | 16 | `readerAttribute` | file stem 'readerElement' differs from declared type |
-| `src/fskit/fskitCommunicator.h` | 19 | `FskitCommunicator` | file stem 'fskitCommunicator' differs from declared type |
-| `src/fskit/fskitRunner.h` | 22 | `FskitRunner` | file stem 'fskitRunner' differs from declared type |
-| `src/fskit/gridDynFederatedScheduler.h` | 27 | `GridDynFederatedScheduler` | file stem 'gridDynFederatedScheduler' differs from declared type |
-| `src/fskit/protection-message.h` | 17 | `ProtectionMessage` | file stem 'protection-message' differs from declared type |
-| `src/fskit/zonalRelayLogicalProcess.h` | 18 | `ZonalRelayLogicalProcess` | file stem 'zonalRelayLogicalProcess' differs from declared type |
-| `src/gridDynMain/gridDynMain.cpp` | 30 | `ExecMode` | file stem 'gridDynMain' differs from declared type |
-| `src/gridDynServer/gridDynServer.h` | 18 | `pmu_udp_socket` | file stem 'gridDynServer' differs from declared type |
-| `src/griddyn/Block.h` | 29 | `GridBlock` | file stem 'Block' differs from declared type |
-| `src/griddyn/GridBus.h` | 28 | `busPowers` | file stem 'GridBus' differs from declared type |
-| `src/griddyn/GridComponentHelperClasses.h` | 23 | `OperationFlags` | file stem 'GridComponentHelperClasses' differs from declared type |
-| `src/griddyn/GridDynGovernor.h` | 21 | `Governor` | file stem 'GridDynGovernor' differs from declared type |
-| `src/griddyn/GridDynSimulation.h` | 37 | `GridDynFlags` | file stem 'GridDynSimulation' differs from declared type |
-| `src/griddyn/GridPrimary.h` | 22 | `SecondaryInputLocations` | file stem 'GridPrimary' differs from declared type |
-| `src/griddyn/GridSecondary.h` | 20 | `gridSecondary` | file stem 'GridSecondary' differs from declared type |
-| `src/griddyn/Link.h` | 14 | `GridBus` | file stem 'Link' differs from declared type |
-| `src/griddyn/Load.h` | 17 | `GridLoad` | file stem 'Load' differs from declared type |
-| `src/griddyn/OffsetTable.h` | 17 | `offsetTable` | file stem 'OffsetTable' differs from declared type |
-| `src/griddyn/Relay.h` | 26 | `ChangeCode` | file stem 'Relay' differs from declared type |
-| `src/griddyn/comms/CommManager.h` | 21 | `commManager` | file stem 'CommManager' differs from declared type |
-| `src/griddyn/comms/CommMessage.h` | 25 | `CommPayload` | file stem 'CommMessage' differs from declared type |
-| `src/griddyn/comms/CommunicationsCore.h` | 29 | `communicationsCore` | file stem 'CommunicationsCore' differs from declared type |
-| `src/griddyn/comms/ControlMessage.h` | 21 | `controlMessagePayload` | file stem 'ControlMessage' differs from declared type |
-| `src/griddyn/comms/SchedulerMessage.h` | 17 | `schedulerMessagePayload` | file stem 'SchedulerMessage' differs from declared type |
-| `src/griddyn/controllers/Scheduler.h` | 25 | `scheduler` | file stem 'Scheduler' differs from declared type |
-| `src/griddyn/controllers/SchedulerInfo.h` | 14 | `tsched` | file stem 'SchedulerInfo' differs from declared type |
-| `src/griddyn/events/CompoundEvent.h` | 16 | `compoundEvent` | file stem 'CompoundEvent' differs from declared type |
-| `src/griddyn/events/CompoundEventPlayer.h` | 20 | `compoundEventPlayer` | file stem 'CompoundEventPlayer' differs from declared type |
-| `src/griddyn/events/Event.cpp` | 303 | `EventType` | file stem 'Event' differs from declared type |
-| `src/griddyn/events/Event.h` | 22 | `EventInfo` | file stem 'Event' differs from declared type |
-| `src/griddyn/events/EventAdapters.h` | 30 | `eventAdapter` | file stem 'EventAdapters' differs from declared type |
-| `src/griddyn/events/EventInterface.hpp` | 13 | `EventExecutionMode` | file stem 'EventInterface' differs from declared type |
-| `src/griddyn/events/EventQueue.h` | 26 | `eventQueue` | file stem 'EventQueue' differs from declared type |
-| `src/griddyn/events/InterpolatingPlayer.h` | 21 | `interpolatingPlayer` | file stem 'InterpolatingPlayer' differs from declared type |
-| `src/griddyn/events/ParameterOperator.h` | 23 | `parameterOperator` | file stem 'ParameterOperator' differs from declared type |
-| `src/griddyn/events/ReversibleEvent.h` | 17 | `reversibleEvent` | file stem 'ReversibleEvent' differs from declared type |
-| `src/griddyn/generators/IsocController.h` | 14 | `isocController` | file stem 'IsocController' differs from declared type |
-| `src/griddyn/generators/VariableGenerator.h` | 19 | `variableGenerator` | file stem 'VariableGenerator' differs from declared type |
-| `src/griddyn/gridDynDefinitions.hpp` | 66 | `ChangeCode` | file stem 'gridDynDefinitions' differs from declared type |
-| `src/griddyn/links/AcLine.h` | 15 | `linkC` | file stem 'AcLine' differs from declared type |
-| `src/griddyn/links/AcdcConverter.h` | 23 | `acdcConverter` | file stem 'AcdcConverter' differs from declared type |
-| `src/griddyn/links/AdjustableTransformer.h` | 22 | `adjustableTransformer` | file stem 'AdjustableTransformer' differs from declared type |
-| `src/griddyn/links/DcLink.h` | 15 | `dcLink` | file stem 'DcLink' differs from declared type |
-| `src/griddyn/links/Hvdc.h` | 14 | `hvdc` | file stem 'Hvdc' differs from declared type |
-| `src/griddyn/links/Subsystem.h` | 20 | `subsystem` | file stem 'Subsystem' differs from declared type |
-| `src/griddyn/links/ZBreaker.h` | 17 | `zBreaker` | file stem 'ZBreaker' differs from declared type |
-| `src/griddyn/loads/ThreePhaseLoad.h` | 15 | `PhaseType` | file stem 'ThreePhaseLoad' differs from declared type |
-| `src/griddyn/measurement/Collector.h` | 22 | `gridGrabberInfo` | file stem 'Collector' differs from declared type |
-| `src/griddyn/measurement/Condition.h` | 20 | `ComparisonType` | file stem 'Condition' differs from declared type |
-| `src/griddyn/measurement/GrabberInterpreter.hpp` | 28 | `grabberInterpreter` | file stem 'GrabberInterpreter' differs from declared type |
-| `src/griddyn/measurement/GrabberSet.h` | 32 | `grabberSet` | file stem 'GrabberSet' differs from declared type |
-| `src/griddyn/measurement/GridGrabbers.h` | 27 | `gridGrabber` | file stem 'GridGrabbers' differs from declared type |
-| `src/griddyn/measurement/ObjectGrabbers.h` | 55 | `objectGrabber` | file stem 'ObjectGrabbers' differs from declared type |
-| `src/griddyn/measurement/StateGrabber.h` | 31 | `JacobianMode` | file stem 'StateGrabber' differs from declared type |
-| `src/griddyn/primary/InfiniteBus.h` | 20 | `infiniteBus` | file stem 'InfiniteBus' differs from declared type |
-| `src/griddyn/primary/ListMaintainer.h` | 22 | `listMaintainer` | file stem 'ListMaintainer' differs from declared type |
-| `src/griddyn/relays/Breaker.h` | 14 | `breaker` | file stem 'Breaker' differs from declared type |
-| `src/griddyn/relays/BusRelay.h` | 15 | `busRelay` | file stem 'BusRelay' differs from declared type |
-| `src/griddyn/relays/ControlRelay.h` | 30 | `delayedControlAction` | file stem 'ControlRelay' differs from declared type |
-| `src/griddyn/relays/DifferentialRelay.h` | 17 | `differentialRelay` | file stem 'DifferentialRelay' differs from declared type |
-| `src/griddyn/relays/Fuse.h` | 16 | `fuse` | file stem 'Fuse' differs from declared type |
-| `src/griddyn/relays/LoadRelay.h` | 17 | `loadRelay` | file stem 'LoadRelay' differs from declared type |
-| `src/griddyn/relays/Pmu.h` | 15 | `pmu` | file stem 'Pmu' differs from declared type |
-| `src/griddyn/relays/Sensor.h` | 22 | `sensor` | file stem 'Sensor' differs from declared type |
-| `src/griddyn/relays/ZonalRelay.h` | 19 | `zonalRelay` | file stem 'ZonalRelay' differs from declared type |
-| `src/griddyn/simulation/Contingency.h` | 37 | `Violation` | file stem 'Contingency' differs from declared type |
-| `src/griddyn/simulation/Continuation.h` | 17 | `parameterSequence` | file stem 'Continuation' differs from declared type |
-| `src/griddyn/simulation/Diagnostics.cpp` | 662 | `objectCountInfo` | file stem 'Diagnostics' differs from declared type |
-| `src/griddyn/simulation/DynamicInitialConditionRecovery.h` | 17 | `dynamicInitialConditionRecovery` | file stem 'DynamicInitialConditionRecovery' differs from declared type |
-| `src/griddyn/simulation/FaultResetRecovery.h` | 20 | `faultResetRecovery` | file stem 'FaultResetRecovery' differs from declared type |
-| `src/griddyn/simulation/GridDynActions.h` | 17 | `gridDynAction` | file stem 'GridDynActions' differs from declared type |
-| `src/griddyn/simulation/GridDynSimulationFileOps.h` | 173 | `dataInfo` | file stem 'GridDynSimulationFileOps' differs from declared type |
-| `src/griddyn/simulation/PowerFlowErrorRecovery.h` | 17 | `powerFlowErrorRecovery` | file stem 'PowerFlowErrorRecovery' differs from declared type |
-| `src/griddyn/solvers/ArkodeInterface.h` | 17 | `arkodeInterface` | file stem 'ArkodeInterface' differs from declared type |
-| `src/griddyn/solvers/BasicOdeSolver.h` | 17 | `basicOdeSolver` | file stem 'BasicOdeSolver' differs from declared type |
-| `src/griddyn/solvers/BasicSolver.h` | 19 | `basicSolver` | file stem 'BasicSolver' differs from declared type |
-| `src/griddyn/solvers/CvodeInterface.h` | 17 | `cvodeInterface` | file stem 'CvodeInterface' differs from declared type |
-| `src/griddyn/solvers/IdaInterface.h` | 17 | `idaInterface` | file stem 'IdaInterface' differs from declared type |
-| `src/griddyn/solvers/KinsolInterface.h` | 16 | `kinsolInterface` | file stem 'KinsolInterface' differs from declared type |
-| `src/griddyn/solvers/SolverInterface.h` | 18 | `SolverPrintLevel` | file stem 'SolverInterface' differs from declared type |
-| `src/griddyn/solvers/SolverMode.hpp` | 24 | `ApproxKey` | file stem 'SolverMode' differs from declared type |
-| `src/griddyn/solvers/SundialsInterface.h` | 75 | `sundialsInterface` | file stem 'SundialsInterface' differs from declared type |
-| `src/griddyn/solvers/SundialsMatrixData.h` | 18 | `sundialsMatrixDataDense` | file stem 'SundialsMatrixData' differs from declared type |
-| `src/griddyn/sources/BlockSource.h` | 18 | `blockSource` | file stem 'BlockSource' differs from declared type |
-| `src/griddyn/sources/CommSource.h` | 19 | `commSource` | file stem 'CommSource' differs from declared type |
-| `src/griddyn/sources/FileSource.h` | 15 | `fileSource` | file stem 'FileSource' differs from declared type |
-| `src/griddyn/sources/FunctionSource.h` | 18 | `functionSource` | file stem 'FunctionSource' differs from declared type |
-| `src/griddyn/sources/GrabberSource.h` | 17 | `grabberSource` | file stem 'GrabberSource' differs from declared type |
-| `src/griddyn/sources/PulseSource.h` | 14 | `pulseSource` | file stem 'PulseSource' differs from declared type |
-| `src/griddyn/sources/RampSource.h` | 15 | `rampSource` | file stem 'RampSource' differs from declared type |
-| `src/griddyn/sources/RandomSource.h` | 18 | `randomSource` | file stem 'RandomSource' differs from declared type |
-| `src/griddyn/sources/SineSource.h` | 15 | `sineSource` | file stem 'SineSource' differs from declared type |
-| `src/griddyn_shared/internal/griddyn_export_internal.h` | 29 | `solverKeyInfo` | file stem 'griddyn_export_internal' differs from declared type |
-| `src/helics/helicsCollector.h` | 18 | `HelicsCollector` | file stem 'helicsCollector' differs from declared type |
-| `src/helics/helicsCommunicator.h` | 20 | `HelicsCommunicator` | file stem 'helicsCommunicator' differs from declared type |
-| `src/helics/helicsCoordinator.h` | 25 | `PublicationInfo` | file stem 'helicsCoordinator' differs from declared type |
-| `src/helics/helicsEvent.h` | 17 | `HelicsEvent` | file stem 'helicsEvent' differs from declared type |
-| `src/helics/helicsGhostBus.h` | 16 | `HelicsGhostBus` | file stem 'helicsGhostBus' differs from declared type |
-| `src/helics/helicsLoad.h` | 17 | `HelicsLoad` | file stem 'helicsLoad' differs from declared type |
-| `src/helics/helicsRunner.h` | 26 | `HelicsRunner` | file stem 'helicsRunner' differs from declared type |
-| `src/helics/helicsSource.h` | 16 | `HelicsSource` | file stem 'helicsSource' differs from declared type |
-| `src/helics/test/helicsTest.cpp` | 33 | `HelicsTests` | file stem 'helicsTest' differs from declared type |
-| `src/networking/dimeClientInterface.h` | 14 | `InitFailure` | file stem 'dimeClientInterface' differs from declared type |
-| `src/networking/dimeCollector.h` | 16 | `DimeCollector` | file stem 'dimeCollector' differs from declared type |
-| `src/networking/dimeCommunicator.h` | 15 | `DimeCommunicator` | file stem 'dimeCommunicator' differs from declared type |
-| `src/networking/dimeRunner.h` | 20 | `DimeRunner` | file stem 'dimeRunner' differs from declared type |
-| `src/networking/tcpCollector.h` | 15 | `TcpCollector` | file stem 'tcpCollector' differs from declared type |
-| `src/networking/tcpCommunicator.h` | 18 | `TcpCommunicator` | file stem 'tcpCommunicator' differs from declared type |
-| `src/networking/test/zmqTest.cpp` | 22 | `ZmqTests` | file stem 'zmqTest' differs from declared type |
-| `src/networking/zmqCommunicator.h` | 19 | `ZmqCommunicator` | file stem 'zmqCommunicator' differs from declared type |
-| `src/networking/zmqLibrary/zmqContextManager.h` | 30 | `ZmqContextManager` | file stem 'zmqContextManager' differs from declared type |
-| `src/networking/zmqLibrary/zmqProxyHub.h` | 33 | `ZmqProxyHub` | file stem 'zmqProxyHub' differs from declared type |
-| `src/networking/zmqLibrary/zmqReactor.h` | 33 | `ZmqReactor` | file stem 'zmqReactor' differs from declared type |
-| `src/networking/zmqLibrary/zmqSocketDescriptor.h` | 27 | `SocketOperation` | file stem 'zmqSocketDescriptor' differs from declared type |
-| `src/optimization/gridDynOpt.h` | 26 | `OptimizationType` | file stem 'gridDynOpt' differs from declared type |
-| `src/optimization/gridOptObjects.h` | 31 | `GridOptObject` | file stem 'gridOptObjects' differs from declared type |
-| `src/optimization/models/gridAreaOpt.h` | 24 | `GridAreaOpt` | file stem 'gridAreaOpt' differs from declared type |
-| `src/optimization/models/gridBusOpt.h` | 20 | `GridBusOpt` | file stem 'gridBusOpt' differs from declared type |
-| `src/optimization/models/gridGenOpt.h` | 22 | `GridGenOpt` | file stem 'gridGenOpt' differs from declared type |
-| `src/optimization/models/gridLinkOpt.h` | 21 | `GridLinkOpt` | file stem 'gridLinkOpt' differs from declared type |
-| `src/optimization/models/gridLoadOpt.h` | 18 | `GridLoadOpt` | file stem 'gridLoadOpt' differs from declared type |
-| `src/optimization/models/gridRelayOpt.h` | 21 | `GridRelayOpt` | file stem 'gridRelayOpt' differs from declared type |
-| `src/optimization/optHelperClasses.h` | 14 | `FlowModel` | file stem 'optHelperClasses' differs from declared type |
-| `src/optimization/optObjectFactory.h` | 21 | `OptFactory` | file stem 'optObjectFactory' differs from declared type |
-| `src/optimization/optimizerInterface.h` | 20 | `OptimizerInterface` | file stem 'optimizerInterface' differs from declared type |
-| `src/plugins/gridDynPluginApi.h` | 13 | `gridDynPlugInApi` | file stem 'gridDynPluginApi' differs from declared type |
-| `src/runner/gridDynRunner.h` | 31 | `GriddynRunner` | file stem 'gridDynRunner' differs from declared type |
-| `src/utilities/assert.h` | 17 | `assert_exception` | file stem 'assert' differs from declared type |
-| `src/utilities/functionInterpreter.cpp` | 48 | `functionEntry` | file stem 'functionInterpreter' differs from declared type |
-| `src/utilities/functionInterpreter.h` | 14 | `FunctionType` | file stem 'functionInterpreter' differs from declared type |
-| `src/utilities/gridRandom.cpp` | 22 | `lookupEntry` | file stem 'gridRandom' differs from declared type |
-| `src/utilities/gridRandom.h` | 19 | `distributionObject` | file stem 'gridRandom' differs from declared type |
-| `src/utilities/logger.h` | 24 | `Logger` | file stem 'logger' differs from declared type |
-| `src/utilities/matrixData.hpp` | 16 | `matrixElement` | file stem 'matrixData' differs from declared type |
-| `src/utilities/matrixDataOrdering.hpp` | 12 | `SparseOrdering` | file stem 'matrixDataOrdering' differs from declared type |
-| `src/utilities/matrixDataSparseSM.hpp` | 21 | `keyCompute` | file stem 'matrixDataSparseSM' differs from declared type |
-| `src/utilities/zipUtilities.h` | 14 | `ZipMode` | file stem 'zipUtilities' differs from declared type |
-| `test/componentTests/simulationTests.cpp` | 16 | `SimulationTests` | file stem 'simulationTests' differs from declared type |
-| `test/componentTests/testAdjustableTX.cpp` | 21 | `AdjustableTransformerTests` | file stem 'testAdjustableTX' differs from declared type |
-| `test/componentTests/testArea.cpp` | 22 | `AreaTests` | file stem 'testArea' differs from declared type |
-| `test/componentTests/testBlocks.cpp` | 28 | `BlockTests` | file stem 'testBlocks' differs from declared type |
-| `test/componentTests/testEvents.cpp` | 19 | `EventTests` | file stem 'testEvents' differs from declared type |
-| `test/componentTests/testExciters.cpp` | 29 | `ExciterTests` | file stem 'testExciters' differs from declared type |
-| `test/componentTests/testExtraModels.cpp` | 17 | `ExtraModelTests` | file stem 'testExtraModels' differs from declared type |
-| `test/componentTests/testFMI.cpp` | 32 | `FmiTests` | file stem 'testFMI' differs from declared type |
-| `test/componentTests/testGenModels.cpp` | 21 | `GenModelTests` | file stem 'testGenModels' differs from declared type |
-| `test/componentTests/testGenerators.cpp` | 18 | `GeneratorTests` | file stem 'testGenerators' differs from declared type |
-| `test/componentTests/testGovernors.cpp` | 22 | `GovernorTests` | file stem 'testGovernors' differs from declared type |
-| `test/componentTests/testGridLab.cpp` | 18 | `GridLabTests` | file stem 'testGridLab' differs from declared type |
-| `test/componentTests/testLinks.cpp` | 27 | `LinkTests` | file stem 'testLinks' differs from declared type |
-| `test/componentTests/testLoads.cpp` | 31 | `LoadTests` | file stem 'testLoads' differs from declared type |
-| `test/componentTests/testRecorders.cpp` | 26 | `RecorderTests` | file stem 'testRecorders' differs from declared type |
-| `test/componentTests/testRelays.cpp` | 26 | `RelayTests` | file stem 'testRelays' differs from declared type |
-| `test/componentTests/testSource.cpp` | 15 | `SourceTests` | file stem 'testSource' differs from declared type |
-| `test/componentTests/testdcLinks.cpp` | 17 | `HvdcTests` | file stem 'testdcLinks' differs from declared type |
-| `test/exeTestHelper.h` | 11 | `exeTestRunner` | file stem 'exeTestHelper' differs from declared type |
-| `test/extraTests/extraFMUtests.cpp` | 24 | `ExtraFmuTests` | file stem 'extraFMUtests' differs from declared type |
-| `test/extraTests/largeContingencyTests.cpp` | 16 | `LargeContingencyTests` | file stem 'largeContingencyTests' differs from declared type |
-| `test/extraTests/largeInputTests.cpp` | 25 | `LargeValidationTests` | file stem 'largeInputTests' differs from declared type |
-| `test/extraTests/performanceTests.cpp` | 28 | `ExtraPerformanceTests` | file stem 'performanceTests' differs from declared type |
-| `test/gtestHelper.h` | 45 | `GridDynSimulationTestFixture` | file stem 'gtestHelper' differs from declared type |
-| `test/gtestHelperFunctions.cpp` | 19 | `GriddynGlobalEnvironment` | file stem 'gtestHelperFunctions' differs from declared type |
-| `test/libraryTests/testXML.cpp` | 29 | `XmlTests` | file stem 'testXML' differs from declared type |
-| `test/systemTests/faultTests.cpp` | 31 | `FaultTests` | file stem 'faultTests' differs from declared type |
-| `test/systemTests/testCloning.cpp` | 22 | `CloneTests` | file stem 'testCloning' differs from declared type |
-| `test/systemTests/testConstraints.cpp` | 16 | `ConstraintTests` | file stem 'testConstraints' differs from declared type |
-| `test/systemTests/testContingency.cpp` | 18 | `ContingencyTests` | file stem 'testContingency' differs from declared type |
-| `test/systemTests/testDyn1.cpp` | 22 | `DynamicSystemTests` | file stem 'testDyn1' differs from declared type |
-| `test/systemTests/testDyn2.cpp` | 20 | `DynamicSystemTests2` | file stem 'testDyn2' differs from declared type |
-| `test/systemTests/testInputs.cpp` | 30 | `InputTests` | file stem 'testInputs' differs from declared type |
-| `test/systemTests/testOutputs.cpp` | 24 | `OutputTests` | file stem 'testOutputs' differs from declared type |
-| `test/systemTests/testRoots.cpp` | 18 | `RootTests` | file stem 'testRoots' differs from declared type |
-| `test/systemTests/testSolverModes.cpp` | 17 | `SolverModeTests` | file stem 'testSolverModes' differs from declared type |
-| `test/systemTests/testpFlow.cpp` | 25 | `PowerflowSystemTests` | file stem 'testpFlow' differs from declared type |
-| `test/systemTests/validationTests.cpp` | 41 | `ValidationTests` | file stem 'validationTests' differs from declared type |
+| File                                                             | Line | Name                              | Detail                                                                 |
+| ---------------------------------------------------------------- | ---: | --------------------------------- | ---------------------------------------------------------------------- |
+| `src/core/CoreExceptions.h`                                      |   17 | `CoreObjectException`             | file stem 'CoreExceptions' differs from declared type                  |
+| `src/core/CoreObject.h`                                          |   32 | `ParamStringType`                 | file stem 'CoreObject' differs from declared type                      |
+| `src/core/CoreProperties.hpp`                                    |   17 | `CoreObjectProperty`              | file stem 'CoreProperties' differs from declared type                  |
+| `src/core/FactoryTemplates.hpp`                                  |   25 | `CoreClassFactory`                | file stem 'FactoryTemplates' differs from declared type                |
+| `src/core/ObjectFactoryTemplates.hpp`                            |   21 | `GridObjectHolder`                | file stem 'ObjectFactoryTemplates' differs from declared type          |
+| `src/core/ObjectInterpreter.h`                                   |   18 | `ObjectInfo`                      | file stem 'ObjectInterpreter' differs from declared type               |
+| `src/core/ObjectOperatorInterface.hpp`                           |   16 | `ObjectUpdateMode`                | file stem 'ObjectOperatorInterface' differs from declared type         |
+| `src/core/coreDefinitions.hpp`                                   |   58 | `PrintLevel`                      | file stem 'coreDefinitions' differs from declared type                 |
+| `src/coupling/GhostSwingBusManager.cpp`                          |   23 | `MpiRequests`                     | file stem 'GhostSwingBusManager' differs from declared type            |
+| `src/coupling/GhostSwingBusMessageTypes.h`                       |   13 | `MessageTags`                     | file stem 'GhostSwingBusMessageTypes' differs from declared type       |
+| `src/extraSolvers/braid/braidInterface.h`                        |   26 | `braidSolver`                     | file stem 'braidInterface' differs from declared type                  |
+| `src/extraSolvers/braid/braid_driver.h`                          |   16 | `BdfStrat`                        | file stem 'braid_driver' differs from declared type                    |
+| `src/extraSolvers/paradae/common/Timer.h`                        |   38 | `TimedElem`                       | file stem 'Timer' differs from declared type                           |
+| `src/extraSolvers/paradae/equations/EqGridDyn.h`                 |   22 | `EquationGridDyn`                 | file stem 'EqGridDyn' differs from declared type                       |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |   18 | `TypeEquation`                    | file stem 'Equation' differs from declared type                        |
+| `src/extraSolvers/paradae/problems/ODEProblem.h`                 |   17 | `OdeError`                        | file stem 'ODEProblem' differs from declared type                      |
+| `src/extraSolvers/paradae/solvers/LineSearch.h`                  |   14 | `LsError`                         | file stem 'LineSearch' differs from declared type                      |
+| `src/extraSolvers/paradae/solvers/Newton.h`                      |   13 | `NwtError`                        | file stem 'Newton' differs from declared type                          |
+| `src/extraSolvers/paradae/solvers/NewtonStats.h`                 |   16 | `NSType`                          | file stem 'NewtonStats' differs from declared type                     |
+| `src/extraSolvers/paradae/solvers/Solver.h`                      |   14 | `Solver_App`                      | file stem 'Solver' differs from declared type                          |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   21 | `BdfType`                         | file stem 'BackwardDiff' differs from declared type                    |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h`          |   20 | `Solver_App_RK`                   | file stem 'RungeKutta' differs from declared type                      |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_DIRK.h`     |   11 | `Solver_App_DIRK`                 | file stem 'RungeKutta_DIRK' differs from declared type                 |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Implicit.h` |   15 | `Solver_App_IRK`                  | file stem 'RungeKutta_Implicit' differs from declared type             |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_SDIRK.h`    |   13 | `Solver_App_SDIRK`                | file stem 'RungeKutta_SDIRK' differs from declared type                |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |   19 | `TiType`                          | file stem 'TimeIntegrator' differs from declared type                  |
+| `src/fileInput/ReaderInfo.h`                                     |   35 | `BasicReaderInfo`                 | file stem 'ReaderInfo' differs from declared type                      |
+| `src/fileInput/fileInput.h`                                      |   54 | `MatchType`                       | file stem 'fileInput' differs from declared type                       |
+| `src/fileInput/gridDynReadCSV.cpp`                               |   31 | `ModeState`                       | file stem 'gridDynReadCSV' differs from declared type                  |
+| `src/fileInput/gridDynReadRAW.cpp`                               |   83 | `SectionType`                     | file stem 'gridDynReadRAW' differs from declared type                  |
+| `src/fileInput/loadSubObjectsElement.cpp`                        |   38 | `LoadFunctionEntry`               | file stem 'loadSubObjectsElement' differs from declared type           |
+| `src/fileInput/readLibraryElement.cpp`                           |   38 | `LoadFunctionEntry`               | file stem 'readLibraryElement' differs from declared type              |
+| `src/fmi/fmiGDinfo.cpp`                                          |   79 | `FmiPlugin`                       | file stem 'fmiGDinfo' differs from declared type                       |
+| `src/fmi/fmiProcess.cpp`                                         |   28 | `FmiProcessOptions`               | file stem 'fmiProcess' differs from declared type                      |
+| `src/fmi/fmi_import/fmiEnumDefinitions.h`                        |   12 | `FmuType`                         | file stem 'fmiEnumDefinitions' differs from declared type              |
+| `src/fmi/fmi_import/fmiImport.h`                                 |   34 | `FmiBaseFunctions`                | file stem 'fmiImport' differs from declared type                       |
+| `src/fmi/fmi_import/fmiInfo.h`                                   |   33 | `FmuDefaultExperiment`            | file stem 'fmiInfo' differs from declared type                         |
+| `src/fmi/fmi_import/fmiLibraryManager.h`                         |   19 | `FmiLibraryManager`               | file stem 'fmiLibraryManager' differs from declared type               |
+| `src/fmi/fmi_import/fmiObjects.h`                                |   17 | `FmiException`                    | file stem 'fmiObjects' differs from declared type                      |
+| `src/fmi/fmi_models/CymeDistLoad.h`                              |   13 | `CymeDistLoadME`                  | file stem 'CymeDistLoad' differs from declared type                    |
+| `src/fmi/fmi_models/fmiCoSimLoad.h`                              |   14 | `FmiCoSimLoad`                    | file stem 'fmiCoSimLoad' differs from declared type                    |
+| `src/fmi/fmi_models/fmiCoSimLoad3phase.h`                        |   17 | `FmiCoSimLoad3phase`              | file stem 'fmiCoSimLoad3phase' differs from declared type              |
+| `src/fmi/fmi_models/fmiCoSimSubModel.h`                          |   21 | `FmiCoSimSubModel`                | file stem 'fmiCoSimSubModel' differs from declared type                |
+| `src/fmi/fmi_models/fmiCoSimWrapper.hpp`                         |   16 | `FmiCoSimWrapper`                 | file stem 'fmiCoSimWrapper' differs from declared type                 |
+| `src/fmi/fmi_models/fmiExciter.h`                                |   16 | `FmiExciter`                      | file stem 'fmiExciter' differs from declared type                      |
+| `src/fmi/fmi_models/fmiGenModel.h`                               |   16 | `FmiGenModel`                     | file stem 'fmiGenModel' differs from declared type                     |
+| `src/fmi/fmi_models/fmiGovernor.h`                               |   16 | `FmiGovernor`                     | file stem 'fmiGovernor' differs from declared type                     |
+| `src/fmi/fmi_models/fmiMELoad.h`                                 |   16 | `FmiMELoad`                       | file stem 'fmiMELoad' differs from declared type                       |
+| `src/fmi/fmi_models/fmiMELoad3phase.h`                           |   17 | `FmiMELoad3phase`                 | file stem 'fmiMELoad3phase' differs from declared type                 |
+| `src/fmi/fmi_models/fmiMESubModel.h`                             |   21 | `FmuMode`                         | file stem 'fmiMESubModel' differs from declared type                   |
+| `src/fmi/fmi_models/fmiMEWrapper.hpp`                            |   16 | `FmiMEWrapper`                    | file stem 'fmiMEWrapper' differs from declared type                    |
+| `src/fmi/fmi_models/fmiSupport.h`                                |   12 | `RefMode`                         | file stem 'fmiSupport' differs from declared type                      |
+| `src/fmi/fmi_models/fmiWrapper.hpp`                              |   25 | `FmiWrapper`                      | file stem 'fmiWrapper' differs from declared type                      |
+| `src/fmi/fmi_models/outputEstimator.h`                           |   19 | `OutputEstimator`                 | file stem 'outputEstimator' differs from declared type                 |
+| `src/fmi_export/fmiCollector.h`                                  |   18 | `FmiCollector`                    | file stem 'fmiCollector' differs from declared type                    |
+| `src/fmi_export/fmiCoordinator.h`                                |   21 | `FmiCoordinator`                  | file stem 'fmiCoordinator' differs from declared type                  |
+| `src/fmi_export/fmiEvent.h`                                      |   16 | `FmiEvent`                        | file stem 'fmiEvent' differs from declared type                        |
+| `src/fmi_export/fmiRunner.h`                                     |   24 | `FmiRunner`                       | file stem 'fmiRunner' differs from declared type                       |
+| `src/fmi_export/fmuBuilder.h`                                    |   22 | `FmuBuilder`                      | file stem 'fmuBuilder' differs from declared type                      |
+| `src/fmi_export/testFMIExport.cpp`                               |   34 | `FmiExportTests`                  | file stem 'testFMIExport' differs from declared type                   |
+| `src/formatInterpreters/iniReaderElement.cpp`                    |   21 | `gridDynINIReader`                | file stem 'iniReaderElement' differs from declared type                |
+| `src/formatInterpreters/readerElement.h`                         |   16 | `readerAttribute`                 | file stem 'readerElement' differs from declared type                   |
+| `src/fskit/fskitCommunicator.h`                                  |   19 | `FskitCommunicator`               | file stem 'fskitCommunicator' differs from declared type               |
+| `src/fskit/fskitRunner.h`                                        |   22 | `FskitRunner`                     | file stem 'fskitRunner' differs from declared type                     |
+| `src/fskit/gridDynFederatedScheduler.h`                          |   27 | `GridDynFederatedScheduler`       | file stem 'gridDynFederatedScheduler' differs from declared type       |
+| `src/fskit/protection-message.h`                                 |   17 | `ProtectionMessage`               | file stem 'protection-message' differs from declared type              |
+| `src/fskit/zonalRelayLogicalProcess.h`                           |   18 | `ZonalRelayLogicalProcess`        | file stem 'zonalRelayLogicalProcess' differs from declared type        |
+| `src/gridDynMain/gridDynMain.cpp`                                |   30 | `ExecMode`                        | file stem 'gridDynMain' differs from declared type                     |
+| `src/gridDynServer/gridDynServer.h`                              |   18 | `pmu_udp_socket`                  | file stem 'gridDynServer' differs from declared type                   |
+| `src/griddyn/Block.h`                                            |   29 | `GridBlock`                       | file stem 'Block' differs from declared type                           |
+| `src/griddyn/GridBus.h`                                          |   28 | `busPowers`                       | file stem 'GridBus' differs from declared type                         |
+| `src/griddyn/GridComponentHelperClasses.h`                       |   23 | `OperationFlags`                  | file stem 'GridComponentHelperClasses' differs from declared type      |
+| `src/griddyn/GridDynGovernor.h`                                  |   21 | `Governor`                        | file stem 'GridDynGovernor' differs from declared type                 |
+| `src/griddyn/GridDynSimulation.h`                                |   37 | `GridDynFlags`                    | file stem 'GridDynSimulation' differs from declared type               |
+| `src/griddyn/GridPrimary.h`                                      |   22 | `SecondaryInputLocations`         | file stem 'GridPrimary' differs from declared type                     |
+| `src/griddyn/GridSecondary.h`                                    |   20 | `gridSecondary`                   | file stem 'GridSecondary' differs from declared type                   |
+| `src/griddyn/Link.h`                                             |   14 | `GridBus`                         | file stem 'Link' differs from declared type                            |
+| `src/griddyn/Load.h`                                             |   17 | `GridLoad`                        | file stem 'Load' differs from declared type                            |
+| `src/griddyn/OffsetTable.h`                                      |   17 | `offsetTable`                     | file stem 'OffsetTable' differs from declared type                     |
+| `src/griddyn/Relay.h`                                            |   26 | `ChangeCode`                      | file stem 'Relay' differs from declared type                           |
+| `src/griddyn/comms/CommManager.h`                                |   21 | `commManager`                     | file stem 'CommManager' differs from declared type                     |
+| `src/griddyn/comms/CommMessage.h`                                |   25 | `CommPayload`                     | file stem 'CommMessage' differs from declared type                     |
+| `src/griddyn/comms/CommunicationsCore.h`                         |   29 | `communicationsCore`              | file stem 'CommunicationsCore' differs from declared type              |
+| `src/griddyn/comms/ControlMessage.h`                             |   21 | `controlMessagePayload`           | file stem 'ControlMessage' differs from declared type                  |
+| `src/griddyn/comms/SchedulerMessage.h`                           |   17 | `schedulerMessagePayload`         | file stem 'SchedulerMessage' differs from declared type                |
+| `src/griddyn/controllers/Scheduler.h`                            |   25 | `scheduler`                       | file stem 'Scheduler' differs from declared type                       |
+| `src/griddyn/controllers/SchedulerInfo.h`                        |   14 | `tsched`                          | file stem 'SchedulerInfo' differs from declared type                   |
+| `src/griddyn/events/CompoundEvent.h`                             |   16 | `compoundEvent`                   | file stem 'CompoundEvent' differs from declared type                   |
+| `src/griddyn/events/CompoundEventPlayer.h`                       |   20 | `compoundEventPlayer`             | file stem 'CompoundEventPlayer' differs from declared type             |
+| `src/griddyn/events/Event.cpp`                                   |  303 | `EventType`                       | file stem 'Event' differs from declared type                           |
+| `src/griddyn/events/Event.h`                                     |   22 | `EventInfo`                       | file stem 'Event' differs from declared type                           |
+| `src/griddyn/events/EventAdapters.h`                             |   30 | `eventAdapter`                    | file stem 'EventAdapters' differs from declared type                   |
+| `src/griddyn/events/EventInterface.hpp`                          |   13 | `EventExecutionMode`              | file stem 'EventInterface' differs from declared type                  |
+| `src/griddyn/events/EventQueue.h`                                |   26 | `eventQueue`                      | file stem 'EventQueue' differs from declared type                      |
+| `src/griddyn/events/InterpolatingPlayer.h`                       |   21 | `interpolatingPlayer`             | file stem 'InterpolatingPlayer' differs from declared type             |
+| `src/griddyn/events/ParameterOperator.h`                         |   23 | `parameterOperator`               | file stem 'ParameterOperator' differs from declared type               |
+| `src/griddyn/events/ReversibleEvent.h`                           |   17 | `reversibleEvent`                 | file stem 'ReversibleEvent' differs from declared type                 |
+| `src/griddyn/generators/IsocController.h`                        |   14 | `isocController`                  | file stem 'IsocController' differs from declared type                  |
+| `src/griddyn/generators/VariableGenerator.h`                     |   19 | `variableGenerator`               | file stem 'VariableGenerator' differs from declared type               |
+| `src/griddyn/gridDynDefinitions.hpp`                             |   66 | `ChangeCode`                      | file stem 'gridDynDefinitions' differs from declared type              |
+| `src/griddyn/links/AcLine.h`                                     |   15 | `linkC`                           | file stem 'AcLine' differs from declared type                          |
+| `src/griddyn/links/AcdcConverter.h`                              |   23 | `acdcConverter`                   | file stem 'AcdcConverter' differs from declared type                   |
+| `src/griddyn/links/AdjustableTransformer.h`                      |   22 | `adjustableTransformer`           | file stem 'AdjustableTransformer' differs from declared type           |
+| `src/griddyn/links/DcLink.h`                                     |   15 | `dcLink`                          | file stem 'DcLink' differs from declared type                          |
+| `src/griddyn/links/Hvdc.h`                                       |   14 | `hvdc`                            | file stem 'Hvdc' differs from declared type                            |
+| `src/griddyn/links/Subsystem.h`                                  |   20 | `subsystem`                       | file stem 'Subsystem' differs from declared type                       |
+| `src/griddyn/links/ZBreaker.h`                                   |   17 | `zBreaker`                        | file stem 'ZBreaker' differs from declared type                        |
+| `src/griddyn/loads/ThreePhaseLoad.h`                             |   15 | `PhaseType`                       | file stem 'ThreePhaseLoad' differs from declared type                  |
+| `src/griddyn/measurement/Collector.h`                            |   22 | `gridGrabberInfo`                 | file stem 'Collector' differs from declared type                       |
+| `src/griddyn/measurement/Condition.h`                            |   20 | `ComparisonType`                  | file stem 'Condition' differs from declared type                       |
+| `src/griddyn/measurement/GrabberInterpreter.hpp`                 |   28 | `grabberInterpreter`              | file stem 'GrabberInterpreter' differs from declared type              |
+| `src/griddyn/measurement/GrabberSet.h`                           |   32 | `grabberSet`                      | file stem 'GrabberSet' differs from declared type                      |
+| `src/griddyn/measurement/GridGrabbers.h`                         |   27 | `gridGrabber`                     | file stem 'GridGrabbers' differs from declared type                    |
+| `src/griddyn/measurement/ObjectGrabbers.h`                       |   55 | `objectGrabber`                   | file stem 'ObjectGrabbers' differs from declared type                  |
+| `src/griddyn/measurement/StateGrabber.h`                         |   31 | `JacobianMode`                    | file stem 'StateGrabber' differs from declared type                    |
+| `src/griddyn/primary/InfiniteBus.h`                              |   20 | `infiniteBus`                     | file stem 'InfiniteBus' differs from declared type                     |
+| `src/griddyn/primary/ListMaintainer.h`                           |   22 | `listMaintainer`                  | file stem 'ListMaintainer' differs from declared type                  |
+| `src/griddyn/relays/Breaker.h`                                   |   14 | `breaker`                         | file stem 'Breaker' differs from declared type                         |
+| `src/griddyn/relays/BusRelay.h`                                  |   15 | `busRelay`                        | file stem 'BusRelay' differs from declared type                        |
+| `src/griddyn/relays/ControlRelay.h`                              |   30 | `delayedControlAction`            | file stem 'ControlRelay' differs from declared type                    |
+| `src/griddyn/relays/DifferentialRelay.h`                         |   17 | `differentialRelay`               | file stem 'DifferentialRelay' differs from declared type               |
+| `src/griddyn/relays/Fuse.h`                                      |   16 | `fuse`                            | file stem 'Fuse' differs from declared type                            |
+| `src/griddyn/relays/LoadRelay.h`                                 |   17 | `loadRelay`                       | file stem 'LoadRelay' differs from declared type                       |
+| `src/griddyn/relays/Pmu.h`                                       |   15 | `pmu`                             | file stem 'Pmu' differs from declared type                             |
+| `src/griddyn/relays/Sensor.h`                                    |   22 | `sensor`                          | file stem 'Sensor' differs from declared type                          |
+| `src/griddyn/relays/ZonalRelay.h`                                |   19 | `zonalRelay`                      | file stem 'ZonalRelay' differs from declared type                      |
+| `src/griddyn/simulation/Contingency.h`                           |   37 | `Violation`                       | file stem 'Contingency' differs from declared type                     |
+| `src/griddyn/simulation/Continuation.h`                          |   17 | `parameterSequence`               | file stem 'Continuation' differs from declared type                    |
+| `src/griddyn/simulation/Diagnostics.cpp`                         |  662 | `objectCountInfo`                 | file stem 'Diagnostics' differs from declared type                     |
+| `src/griddyn/simulation/DynamicInitialConditionRecovery.h`       |   17 | `dynamicInitialConditionRecovery` | file stem 'DynamicInitialConditionRecovery' differs from declared type |
+| `src/griddyn/simulation/FaultResetRecovery.h`                    |   20 | `faultResetRecovery`              | file stem 'FaultResetRecovery' differs from declared type              |
+| `src/griddyn/simulation/GridDynActions.h`                        |   17 | `gridDynAction`                   | file stem 'GridDynActions' differs from declared type                  |
+| `src/griddyn/simulation/GridDynSimulationFileOps.h`              |  173 | `dataInfo`                        | file stem 'GridDynSimulationFileOps' differs from declared type        |
+| `src/griddyn/simulation/PowerFlowErrorRecovery.h`                |   17 | `powerFlowErrorRecovery`          | file stem 'PowerFlowErrorRecovery' differs from declared type          |
+| `src/griddyn/solvers/ArkodeInterface.h`                          |   17 | `arkodeInterface`                 | file stem 'ArkodeInterface' differs from declared type                 |
+| `src/griddyn/solvers/BasicOdeSolver.h`                           |   17 | `basicOdeSolver`                  | file stem 'BasicOdeSolver' differs from declared type                  |
+| `src/griddyn/solvers/BasicSolver.h`                              |   19 | `basicSolver`                     | file stem 'BasicSolver' differs from declared type                     |
+| `src/griddyn/solvers/CvodeInterface.h`                           |   17 | `cvodeInterface`                  | file stem 'CvodeInterface' differs from declared type                  |
+| `src/griddyn/solvers/IdaInterface.h`                             |   17 | `idaInterface`                    | file stem 'IdaInterface' differs from declared type                    |
+| `src/griddyn/solvers/KinsolInterface.h`                          |   16 | `kinsolInterface`                 | file stem 'KinsolInterface' differs from declared type                 |
+| `src/griddyn/solvers/SolverInterface.h`                          |   18 | `SolverPrintLevel`                | file stem 'SolverInterface' differs from declared type                 |
+| `src/griddyn/solvers/SolverMode.hpp`                             |   24 | `ApproxKey`                       | file stem 'SolverMode' differs from declared type                      |
+| `src/griddyn/solvers/SundialsInterface.h`                        |   75 | `sundialsInterface`               | file stem 'SundialsInterface' differs from declared type               |
+| `src/griddyn/solvers/SundialsMatrixData.h`                       |   18 | `sundialsMatrixDataDense`         | file stem 'SundialsMatrixData' differs from declared type              |
+| `src/griddyn/sources/BlockSource.h`                              |   18 | `blockSource`                     | file stem 'BlockSource' differs from declared type                     |
+| `src/griddyn/sources/CommSource.h`                               |   19 | `commSource`                      | file stem 'CommSource' differs from declared type                      |
+| `src/griddyn/sources/FileSource.h`                               |   15 | `fileSource`                      | file stem 'FileSource' differs from declared type                      |
+| `src/griddyn/sources/FunctionSource.h`                           |   18 | `functionSource`                  | file stem 'FunctionSource' differs from declared type                  |
+| `src/griddyn/sources/GrabberSource.h`                            |   17 | `grabberSource`                   | file stem 'GrabberSource' differs from declared type                   |
+| `src/griddyn/sources/PulseSource.h`                              |   14 | `pulseSource`                     | file stem 'PulseSource' differs from declared type                     |
+| `src/griddyn/sources/RampSource.h`                               |   15 | `rampSource`                      | file stem 'RampSource' differs from declared type                      |
+| `src/griddyn/sources/RandomSource.h`                             |   18 | `randomSource`                    | file stem 'RandomSource' differs from declared type                    |
+| `src/griddyn/sources/SineSource.h`                               |   15 | `sineSource`                      | file stem 'SineSource' differs from declared type                      |
+| `src/griddyn_shared/internal/griddyn_export_internal.h`          |   29 | `solverKeyInfo`                   | file stem 'griddyn_export_internal' differs from declared type         |
+| `src/helics/helicsCollector.h`                                   |   18 | `HelicsCollector`                 | file stem 'helicsCollector' differs from declared type                 |
+| `src/helics/helicsCommunicator.h`                                |   20 | `HelicsCommunicator`              | file stem 'helicsCommunicator' differs from declared type              |
+| `src/helics/helicsCoordinator.h`                                 |   25 | `PublicationInfo`                 | file stem 'helicsCoordinator' differs from declared type               |
+| `src/helics/helicsEvent.h`                                       |   17 | `HelicsEvent`                     | file stem 'helicsEvent' differs from declared type                     |
+| `src/helics/helicsGhostBus.h`                                    |   16 | `HelicsGhostBus`                  | file stem 'helicsGhostBus' differs from declared type                  |
+| `src/helics/helicsLoad.h`                                        |   17 | `HelicsLoad`                      | file stem 'helicsLoad' differs from declared type                      |
+| `src/helics/helicsRunner.h`                                      |   26 | `HelicsRunner`                    | file stem 'helicsRunner' differs from declared type                    |
+| `src/helics/helicsSource.h`                                      |   16 | `HelicsSource`                    | file stem 'helicsSource' differs from declared type                    |
+| `src/helics/test/helicsTest.cpp`                                 |   33 | `HelicsTests`                     | file stem 'helicsTest' differs from declared type                      |
+| `src/networking/dimeClientInterface.h`                           |   14 | `InitFailure`                     | file stem 'dimeClientInterface' differs from declared type             |
+| `src/networking/dimeCollector.h`                                 |   16 | `DimeCollector`                   | file stem 'dimeCollector' differs from declared type                   |
+| `src/networking/dimeCommunicator.h`                              |   15 | `DimeCommunicator`                | file stem 'dimeCommunicator' differs from declared type                |
+| `src/networking/dimeRunner.h`                                    |   20 | `DimeRunner`                      | file stem 'dimeRunner' differs from declared type                      |
+| `src/networking/tcpCollector.h`                                  |   15 | `TcpCollector`                    | file stem 'tcpCollector' differs from declared type                    |
+| `src/networking/tcpCommunicator.h`                               |   18 | `TcpCommunicator`                 | file stem 'tcpCommunicator' differs from declared type                 |
+| `src/networking/test/zmqTest.cpp`                                |   22 | `ZmqTests`                        | file stem 'zmqTest' differs from declared type                         |
+| `src/networking/zmqCommunicator.h`                               |   19 | `ZmqCommunicator`                 | file stem 'zmqCommunicator' differs from declared type                 |
+| `src/networking/zmqLibrary/zmqContextManager.h`                  |   30 | `ZmqContextManager`               | file stem 'zmqContextManager' differs from declared type               |
+| `src/networking/zmqLibrary/zmqProxyHub.h`                        |   33 | `ZmqProxyHub`                     | file stem 'zmqProxyHub' differs from declared type                     |
+| `src/networking/zmqLibrary/zmqReactor.h`                         |   33 | `ZmqReactor`                      | file stem 'zmqReactor' differs from declared type                      |
+| `src/networking/zmqLibrary/zmqSocketDescriptor.h`                |   27 | `SocketOperation`                 | file stem 'zmqSocketDescriptor' differs from declared type             |
+| `src/optimization/gridDynOpt.h`                                  |   26 | `OptimizationType`                | file stem 'gridDynOpt' differs from declared type                      |
+| `src/optimization/gridOptObjects.h`                              |   31 | `GridOptObject`                   | file stem 'gridOptObjects' differs from declared type                  |
+| `src/optimization/models/gridAreaOpt.h`                          |   24 | `GridAreaOpt`                     | file stem 'gridAreaOpt' differs from declared type                     |
+| `src/optimization/models/gridBusOpt.h`                           |   20 | `GridBusOpt`                      | file stem 'gridBusOpt' differs from declared type                      |
+| `src/optimization/models/gridGenOpt.h`                           |   22 | `GridGenOpt`                      | file stem 'gridGenOpt' differs from declared type                      |
+| `src/optimization/models/gridLinkOpt.h`                          |   21 | `GridLinkOpt`                     | file stem 'gridLinkOpt' differs from declared type                     |
+| `src/optimization/models/gridLoadOpt.h`                          |   18 | `GridLoadOpt`                     | file stem 'gridLoadOpt' differs from declared type                     |
+| `src/optimization/models/gridRelayOpt.h`                         |   21 | `GridRelayOpt`                    | file stem 'gridRelayOpt' differs from declared type                    |
+| `src/optimization/optHelperClasses.h`                            |   14 | `FlowModel`                       | file stem 'optHelperClasses' differs from declared type                |
+| `src/optimization/optObjectFactory.h`                            |   21 | `OptFactory`                      | file stem 'optObjectFactory' differs from declared type                |
+| `src/optimization/optimizerInterface.h`                          |   20 | `OptimizerInterface`              | file stem 'optimizerInterface' differs from declared type              |
+| `src/plugins/gridDynPluginApi.h`                                 |   13 | `gridDynPlugInApi`                | file stem 'gridDynPluginApi' differs from declared type                |
+| `src/runner/gridDynRunner.h`                                     |   31 | `GriddynRunner`                   | file stem 'gridDynRunner' differs from declared type                   |
+| `src/utilities/assert.h`                                         |   17 | `assert_exception`                | file stem 'assert' differs from declared type                          |
+| `src/utilities/functionInterpreter.cpp`                          |   48 | `functionEntry`                   | file stem 'functionInterpreter' differs from declared type             |
+| `src/utilities/functionInterpreter.h`                            |   14 | `FunctionType`                    | file stem 'functionInterpreter' differs from declared type             |
+| `src/utilities/gridRandom.cpp`                                   |   22 | `lookupEntry`                     | file stem 'gridRandom' differs from declared type                      |
+| `src/utilities/gridRandom.h`                                     |   19 | `distributionObject`              | file stem 'gridRandom' differs from declared type                      |
+| `src/utilities/logger.h`                                         |   24 | `Logger`                          | file stem 'logger' differs from declared type                          |
+| `src/utilities/matrixData.hpp`                                   |   16 | `matrixElement`                   | file stem 'matrixData' differs from declared type                      |
+| `src/utilities/matrixDataOrdering.hpp`                           |   12 | `SparseOrdering`                  | file stem 'matrixDataOrdering' differs from declared type              |
+| `src/utilities/matrixDataSparseSM.hpp`                           |   21 | `keyCompute`                      | file stem 'matrixDataSparseSM' differs from declared type              |
+| `src/utilities/zipUtilities.h`                                   |   14 | `ZipMode`                         | file stem 'zipUtilities' differs from declared type                    |
+| `test/componentTests/simulationTests.cpp`                        |   16 | `SimulationTests`                 | file stem 'simulationTests' differs from declared type                 |
+| `test/componentTests/testAdjustableTX.cpp`                       |   21 | `AdjustableTransformerTests`      | file stem 'testAdjustableTX' differs from declared type                |
+| `test/componentTests/testArea.cpp`                               |   22 | `AreaTests`                       | file stem 'testArea' differs from declared type                        |
+| `test/componentTests/testBlocks.cpp`                             |   28 | `BlockTests`                      | file stem 'testBlocks' differs from declared type                      |
+| `test/componentTests/testEvents.cpp`                             |   19 | `EventTests`                      | file stem 'testEvents' differs from declared type                      |
+| `test/componentTests/testExciters.cpp`                           |   29 | `ExciterTests`                    | file stem 'testExciters' differs from declared type                    |
+| `test/componentTests/testExtraModels.cpp`                        |   17 | `ExtraModelTests`                 | file stem 'testExtraModels' differs from declared type                 |
+| `test/componentTests/testFMI.cpp`                                |   32 | `FmiTests`                        | file stem 'testFMI' differs from declared type                         |
+| `test/componentTests/testGenModels.cpp`                          |   21 | `GenModelTests`                   | file stem 'testGenModels' differs from declared type                   |
+| `test/componentTests/testGenerators.cpp`                         |   18 | `GeneratorTests`                  | file stem 'testGenerators' differs from declared type                  |
+| `test/componentTests/testGovernors.cpp`                          |   22 | `GovernorTests`                   | file stem 'testGovernors' differs from declared type                   |
+| `test/componentTests/testGridLab.cpp`                            |   18 | `GridLabTests`                    | file stem 'testGridLab' differs from declared type                     |
+| `test/componentTests/testLinks.cpp`                              |   27 | `LinkTests`                       | file stem 'testLinks' differs from declared type                       |
+| `test/componentTests/testLoads.cpp`                              |   31 | `LoadTests`                       | file stem 'testLoads' differs from declared type                       |
+| `test/componentTests/testRecorders.cpp`                          |   26 | `RecorderTests`                   | file stem 'testRecorders' differs from declared type                   |
+| `test/componentTests/testRelays.cpp`                             |   26 | `RelayTests`                      | file stem 'testRelays' differs from declared type                      |
+| `test/componentTests/testSource.cpp`                             |   15 | `SourceTests`                     | file stem 'testSource' differs from declared type                      |
+| `test/componentTests/testdcLinks.cpp`                            |   17 | `HvdcTests`                       | file stem 'testdcLinks' differs from declared type                     |
+| `test/exeTestHelper.h`                                           |   11 | `exeTestRunner`                   | file stem 'exeTestHelper' differs from declared type                   |
+| `test/extraTests/extraFMUtests.cpp`                              |   24 | `ExtraFmuTests`                   | file stem 'extraFMUtests' differs from declared type                   |
+| `test/extraTests/largeContingencyTests.cpp`                      |   16 | `LargeContingencyTests`           | file stem 'largeContingencyTests' differs from declared type           |
+| `test/extraTests/largeInputTests.cpp`                            |   25 | `LargeValidationTests`            | file stem 'largeInputTests' differs from declared type                 |
+| `test/extraTests/performanceTests.cpp`                           |   28 | `ExtraPerformanceTests`           | file stem 'performanceTests' differs from declared type                |
+| `test/gtestHelper.h`                                             |   45 | `GridDynSimulationTestFixture`    | file stem 'gtestHelper' differs from declared type                     |
+| `test/gtestHelperFunctions.cpp`                                  |   19 | `GriddynGlobalEnvironment`        | file stem 'gtestHelperFunctions' differs from declared type            |
+| `test/libraryTests/testXML.cpp`                                  |   29 | `XmlTests`                        | file stem 'testXML' differs from declared type                         |
+| `test/systemTests/faultTests.cpp`                                |   31 | `FaultTests`                      | file stem 'faultTests' differs from declared type                      |
+| `test/systemTests/testCloning.cpp`                               |   22 | `CloneTests`                      | file stem 'testCloning' differs from declared type                     |
+| `test/systemTests/testConstraints.cpp`                           |   16 | `ConstraintTests`                 | file stem 'testConstraints' differs from declared type                 |
+| `test/systemTests/testContingency.cpp`                           |   18 | `ContingencyTests`                | file stem 'testContingency' differs from declared type                 |
+| `test/systemTests/testDyn1.cpp`                                  |   22 | `DynamicSystemTests`              | file stem 'testDyn1' differs from declared type                        |
+| `test/systemTests/testDyn2.cpp`                                  |   20 | `DynamicSystemTests2`             | file stem 'testDyn2' differs from declared type                        |
+| `test/systemTests/testInputs.cpp`                                |   30 | `InputTests`                      | file stem 'testInputs' differs from declared type                      |
+| `test/systemTests/testOutputs.cpp`                               |   24 | `OutputTests`                     | file stem 'testOutputs' differs from declared type                     |
+| `test/systemTests/testRoots.cpp`                                 |   18 | `RootTests`                       | file stem 'testRoots' differs from declared type                       |
+| `test/systemTests/testSolverModes.cpp`                           |   17 | `SolverModeTests`                 | file stem 'testSolverModes' differs from declared type                 |
+| `test/systemTests/testpFlow.cpp`                                 |   25 | `PowerflowSystemTests`            | file stem 'testpFlow' differs from declared type                       |
+| `test/systemTests/validationTests.cpp`                           |   41 | `ValidationTests`                 | file stem 'validationTests' differs from declared type                 |
 
 ## Function And Method Names
 
-| File | Line | Name | Detail |
-| --- | ---: | --- | --- |
-| `src/core/CoreObject.h` | 310 | `enable_updates` | function/method name |
-| `src/core/CoreObject.h` | 532 | `log_to` | function/method name |
-| `src/core/CoreObject.h` | 540 | `log_to` | function/method name |
-| `src/core/CoreObject.h` | 548 | `log_to` | function/method name |
-| `src/core/CoreObject.h` | 557 | `log_to` | function/method name |
-| `src/core/CoreOwningPtr.hpp` | 80 | `make_owningPtr` | function/method name |
-| `src/core/ObjectFactoryTemplates.hpp` | 232 | `Ntype` | function/method name |
-| `src/core/ObjectFactoryTemplates.hpp` | 312 | `Ntype` | function/method name |
-| `src/extraSolvers/braid/braidInterface.h` | 52 | `state_data` | function/method name |
-| `src/extraSolvers/braid/braidInterface.h` | 53 | `deriv_data` | function/method name |
-| `src/extraSolvers/braid/braidInterface.h` | 54 | `type_data` | function/method name |
-| `src/extraSolvers/braid/braidInterface.h` | 56 | `state_data` | function/method name |
-| `src/extraSolvers/braid/braidInterface.h` | 57 | `deriv_data` | function/method name |
-| `src/extraSolvers/braid/braidInterface.h` | 58 | `type_data` | function/method name |
-| `src/extraSolvers/braid/braidInterface.h` | 71 | `RunBraid` | function/method name |
-| `src/extraSolvers/braid/braidSolver.cpp` | 64 | `BuildGrid` | function/method name |
-| `src/extraSolvers/braid/braidSolver.cpp` | 207 | `y0_` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 67 | `SetAllToDataStruct` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 68 | `SetLastToDataStruct` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 69 | `SetAllFromDataStruct` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 70 | `SetLastFromDataStruct` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 71 | `DumpDataStruct` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 82 | `my_Step_OnAllPoints` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 88 | `my_Step_OnOnePoint` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 94 | `my_Step` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 99 | `my_SpatialRefine` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 103 | `my_SpatialCoarsen` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 107 | `my_Init` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 108 | `my_InitShell` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 109 | `my_Clone` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 110 | `my_CloneShell` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 111 | `my_Free` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 112 | `my_FreeShell` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 113 | `my_PropagateShell` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 114 | `my_Sum` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 115 | `my_SpatialNorm` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 116 | `my_Access` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 117 | `my_BufSize` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 118 | `my_BufPack` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 119 | `my_BufUnpack` | function/method name |
-| `src/extraSolvers/braid/braid_driver.h` | 120 | `my_TimeGrid` | function/method name |
-| `src/extraSolvers/paradae/common/MapParam.h` | 31 | `GetMpiRank` | function/method name |
-| `src/extraSolvers/paradae/common/Timer.h` | 48 | `Stop` | function/method name |
-| `src/extraSolvers/paradae/common/Timer.h` | 49 | `GetTime` | function/method name |
-| `src/extraSolvers/paradae/common/Timer.h` | 65 | `Gather` | function/method name |
-| `src/extraSolvers/paradae/common/Timer.h` | 70 | `SetComm` | function/method name |
-| `src/extraSolvers/paradae/common/Timer.h` | 73 | `StopAll` | function/method name |
-| `src/extraSolvers/paradae/common/Timer.h` | 75 | `ShowStats` | function/method name |
-| `src/extraSolvers/paradae/equations/EqGridDyn.h` | 35 | `Default` | function/method name |
-| `src/extraSolvers/paradae/equations/EqGridDyn.h` | 44 | `jacobian_ypcdy` | function/method name |
-| `src/extraSolvers/paradae/equations/EqGridDyn.h` | 51 | `root_functions` | function/method name |
-| `src/extraSolvers/paradae/equations/EqGridDyn.h` | 56 | `root_action` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 49 | `HasSRoots` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 50 | `HasURoots` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 51 | `HasRoots` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 52 | `GetNSActRoots` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 53 | `GetNUActRoots` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 54 | `GetNActRoots` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 55 | `GetNSRoots` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 56 | `GetNURoots` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 57 | `GetNRoots` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 80 | `jacobian_ypcdy` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 86 | `jacobian_y` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 92 | `jacobian_dy` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 98 | `Get_dy_from_y` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 100 | `GetTypeEq` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 103 | `root_functions` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 109 | `root_crossings` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 110 | `root_action` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 113 | `root_init_state` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 115 | `CheckAllRoots` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 117 | `CheckUnscheduledRoots` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 125 | `CheckScheduledRoots` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 127 | `approx_jacobian_y` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 133 | `approx_jacobian_y` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 140 | `approx_jacobian_dy` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 146 | `approx_jacobian_dy` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 154 | `GetM` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 155 | `SetT0` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 156 | `SetTmax` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 157 | `SetNsteps` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 158 | `GetT0` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 159 | `GetTmax` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 160 | `GetNsteps` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 161 | `GetNbFunCalls` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 162 | `GetNbJacCalls` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 163 | `GetNbRootCalls` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 164 | `HasEvents` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 165 | `HasSEvents` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 166 | `HasUEvents` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 167 | `GetNRoots` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 168 | `GetNURoots` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 169 | `GetNSRoots` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 170 | `GetRoots` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation.h` | 171 | `GetNState` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation_DAE.h` | 16 | `GetTypeEq` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation_DAE_full.h` | 16 | `Get_dy_from_y` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation_ODE.h` | 16 | `function_ode` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation_ODE.h` | 17 | `jacobian_ode` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation_ODE.h` | 22 | `approx_jacobian_ode` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation_ODE.h` | 27 | `approx_jacobian_ode` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation_ODE.h` | 41 | `jacobian_y` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation_ODE.h` | 47 | `jacobian_dy` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation_ODE.h` | 53 | `Get_dy_from_y` | function/method name |
-| `src/extraSolvers/paradae/equations/Equation_ODE.h` | 57 | `GetTypeEq` | function/method name |
-| `src/extraSolvers/paradae/math/DBlockTriMatrix.h` | 31 | `Clone` | function/method name |
-| `src/extraSolvers/paradae/math/DBlockTriMatrix.h` | 35 | `Fill` | function/method name |
-| `src/extraSolvers/paradae/math/DBlockTriMatrix.h` | 36 | `SetSubMat` | function/method name |
-| `src/extraSolvers/paradae/math/DBlockTriMatrix.h` | 39 | `MatMult` | function/method name |
-| `src/extraSolvers/paradae/math/DBlockTriMatrix.h` | 40 | `Factorize` | function/method name |
-| `src/extraSolvers/paradae/math/DBlockTriMatrix.h` | 41 | `Solve` | function/method name |
-| `src/extraSolvers/paradae/math/DBlockTriMatrix.h` | 42 | `ClearFacto` | function/method name |
-| `src/extraSolvers/paradae/math/DenseMatrix.h` | 32 | `Clone` | function/method name |
-| `src/extraSolvers/paradae/math/DenseMatrix.h` | 36 | `Fill` | function/method name |
-| `src/extraSolvers/paradae/math/DenseMatrix.h` | 37 | `SetSubMat` | function/method name |
-| `src/extraSolvers/paradae/math/DenseMatrix.h` | 40 | `MatMult` | function/method name |
-| `src/extraSolvers/paradae/math/DenseMatrix.h` | 41 | `Factorize` | function/method name |
-| `src/extraSolvers/paradae/math/DenseMatrix.h` | 42 | `Solve` | function/method name |
-| `src/extraSolvers/paradae/math/DenseMatrix.h` | 43 | `ClearFacto` | function/method name |
-| `src/extraSolvers/paradae/math/DenseMatrix.h` | 44 | `SetIJV` | function/method name |
-| `src/extraSolvers/paradae/math/IPoly.h` | 35 | `Build` | function/method name |
-| `src/extraSolvers/paradae/math/IPoly.h` | 36 | `GetValueY` | function/method name |
-| `src/extraSolvers/paradae/math/IPoly.h` | 37 | `GetValueDY` | function/method name |
-| `src/extraSolvers/paradae/math/IPoly.h` | 38 | `GetXSize` | function/method name |
-| `src/extraSolvers/paradae/math/IVander.h` | 15 | `Build2` | function/method name |
-| `src/extraSolvers/paradae/math/IVander.h` | 16 | `Build3` | function/method name |
-| `src/extraSolvers/paradae/math/IVander.h` | 17 | `Build4` | function/method name |
-| `src/extraSolvers/paradae/math/IVander.h` | 18 | `Build5` | function/method name |
-| `src/extraSolvers/paradae/math/IVander.h` | 19 | `Build6` | function/method name |
-| `src/extraSolvers/paradae/math/IVander.h` | 20 | `Derivate` | function/method name |
-| `src/extraSolvers/paradae/math/IVander.h` | 24 | `Interp` | function/method name |
-| `src/extraSolvers/paradae/math/IVanderExt.h` | 15 | `Build2` | function/method name |
-| `src/extraSolvers/paradae/math/IVanderExt.h` | 16 | `Build3` | function/method name |
-| `src/extraSolvers/paradae/math/IVanderExt.h` | 17 | `Build4` | function/method name |
-| `src/extraSolvers/paradae/math/IVanderExt.h` | 18 | `Build5` | function/method name |
-| `src/extraSolvers/paradae/math/IVanderExt.h` | 19 | `Build6` | function/method name |
-| `src/extraSolvers/paradae/math/IVanderExt.h` | 20 | `Derivate` | function/method name |
-| `src/extraSolvers/paradae/math/IVanderExt.h` | 24 | `Interp` | function/method name |
-| `src/extraSolvers/paradae/math/PMultiVector.h` | 26 | `GetPVector` | function/method name |
-| `src/extraSolvers/paradae/math/PMultiVector.h` | 27 | `GetSVector` | function/method name |
-| `src/extraSolvers/paradae/math/PMultiVector.h` | 28 | `GetXSize` | function/method name |
-| `src/extraSolvers/paradae/math/PMultiVector.h` | 29 | `GetSSize` | function/method name |
-| `src/extraSolvers/paradae/math/PVector.h` | 19 | `Set` | function/method name |
-| `src/extraSolvers/paradae/math/SBlockTriMatrix.h` | 22 | `Clone` | function/method name |
-| `src/extraSolvers/paradae/math/SBlockTriMatrix.h` | 26 | `Fill` | function/method name |
-| `src/extraSolvers/paradae/math/SBlockTriMatrix.h` | 27 | `SetSubMat` | function/method name |
-| `src/extraSolvers/paradae/math/SBlockTriMatrix.h` | 30 | `MatMult` | function/method name |
-| `src/extraSolvers/paradae/math/SBlockTriMatrix.h` | 31 | `Factorize` | function/method name |
-| `src/extraSolvers/paradae/math/SBlockTriMatrix.h` | 32 | `Solve` | function/method name |
-| `src/extraSolvers/paradae/math/SBlockTriMatrix.h` | 33 | `ClearFacto` | function/method name |
-| `src/extraSolvers/paradae/math/SMultiVector.h` | 24 | `Free` | function/method name |
-| `src/extraSolvers/paradae/math/SMultiVector.h` | 25 | `Resize` | function/method name |
-| `src/extraSolvers/paradae/math/SMultiVector.h` | 28 | `GetPVector` | function/method name |
-| `src/extraSolvers/paradae/math/SMultiVector.h` | 29 | `GetSVector` | function/method name |
-| `src/extraSolvers/paradae/math/SMultiVector.h` | 30 | `PushFront` | function/method name |
-| `src/extraSolvers/paradae/math/SMultiVector.h` | 31 | `PushBack` | function/method name |
-| `src/extraSolvers/paradae/math/SMultiVector.h` | 32 | `PushBack` | function/method name |
-| `src/extraSolvers/paradae/math/SMultiVector.h` | 33 | `PushBack` | function/method name |
-| `src/extraSolvers/paradae/math/SMultiVector.h` | 34 | `PopFront` | function/method name |
-| `src/extraSolvers/paradae/math/SMultiVector.h` | 35 | `PopBack` | function/method name |
-| `src/extraSolvers/paradae/math/SMultiVector.h` | 36 | `PopFront` | function/method name |
-| `src/extraSolvers/paradae/math/SMultiVector.h` | 37 | `PopBack` | function/method name |
-| `src/extraSolvers/paradae/math/SMultiVector.h` | 38 | `PushAndPop` | function/method name |
-| `src/extraSolvers/paradae/math/SMultiVector.h` | 39 | `PushAndPop` | function/method name |
-| `src/extraSolvers/paradae/math/SMultiVector.h` | 40 | `PushAndPop` | function/method name |
-| `src/extraSolvers/paradae/math/SMultiVector.h` | 41 | `GetXSize` | function/method name |
-| `src/extraSolvers/paradae/math/SMultiVector.h` | 42 | `GetSSize` | function/method name |
-| `src/extraSolvers/paradae/math/SVector.h` | 21 | `Free` | function/method name |
-| `src/extraSolvers/paradae/math/SVector.h` | 22 | `Resize` | function/method name |
-| `src/extraSolvers/paradae/math/SVector.h` | 23 | `Append` | function/method name |
-| `src/extraSolvers/paradae/math/SVector.h` | 28 | `Rand` | function/method name |
-| `src/extraSolvers/paradae/math/SparseMatrix.h` | 19 | `InsertVal` | function/method name |
-| `src/extraSolvers/paradae/math/SparseMatrix.h` | 30 | `Clone` | function/method name |
-| `src/extraSolvers/paradae/math/SparseMatrix.h` | 34 | `Fill` | function/method name |
-| `src/extraSolvers/paradae/math/SparseMatrix.h` | 35 | `FillKeepingStruct` | function/method name |
-| `src/extraSolvers/paradae/math/SparseMatrix.h` | 36 | `SetSubMat` | function/method name |
-| `src/extraSolvers/paradae/math/SparseMatrix.h` | 39 | `MatMult` | function/method name |
-| `src/extraSolvers/paradae/math/SparseMatrix.h` | 40 | `Factorize` | function/method name |
-| `src/extraSolvers/paradae/math/SparseMatrix.h` | 41 | `Solve` | function/method name |
-| `src/extraSolvers/paradae/math/SparseMatrix.h` | 42 | `ClearFacto` | function/method name |
-| `src/extraSolvers/paradae/math/SparseMatrix.h` | 43 | `SetIJV` | function/method name |
-| `src/extraSolvers/paradae/math/SparseMatrix.h` | 46 | `GetNNZ` | function/method name |
-| `src/extraSolvers/paradae/math/SparseMatrix.h` | 47 | `GetRowIndex` | function/method name |
-| `src/extraSolvers/paradae/math/SparseMatrix.h` | 48 | `GetColIndex` | function/method name |
-| `src/extraSolvers/paradae/math/SparseMatrix.h` | 49 | `GetValue` | function/method name |
-| `src/extraSolvers/paradae/math/Vector.h` | 23 | `Fill` | function/method name |
-| `src/extraSolvers/paradae/math/Vector.h` | 31 | `CopyData` | function/method name |
-| `src/extraSolvers/paradae/math/Vector.h` | 33 | `Norm2` | function/method name |
-| `src/extraSolvers/paradae/math/Vector.h` | 34 | `NormInf` | function/method name |
-| `src/extraSolvers/paradae/math/Vector.h` | 35 | `GetM` | function/method name |
-| `src/extraSolvers/paradae/math/Vector.h` | 36 | `GetData` | function/method name |
-| `src/extraSolvers/paradae/math/VirtualMatrix.h` | 34 | `GetM` | function/method name |
-| `src/extraSolvers/paradae/math/VirtualMatrix.h` | 35 | `GetM` | function/method name |
-| `src/extraSolvers/paradae/math/VirtualMatrix.h` | 36 | `IsFacto` | function/method name |
-| `src/extraSolvers/paradae/math/VirtualMatrix.h` | 37 | `IsFacto` | function/method name |
-| `src/extraSolvers/paradae/math/VirtualMatrix.h` | 38 | `IsRankDeficient` | function/method name |
-| `src/extraSolvers/paradae/math/VirtualMatrix.h` | 39 | `IsRankDeficient` | function/method name |
-| `src/extraSolvers/paradae/math/VirtualMatrix.h` | 41 | `Clone` | function/method name |
-| `src/extraSolvers/paradae/math/VirtualMatrix.h` | 45 | `Fill` | function/method name |
-| `src/extraSolvers/paradae/math/VirtualMatrix.h` | 46 | `SetSubMat` | function/method name |
-| `src/extraSolvers/paradae/math/VirtualMatrix.h` | 49 | `MatMult` | function/method name |
-| `src/extraSolvers/paradae/math/VirtualMatrix.h` | 50 | `Factorize` | function/method name |
-| `src/extraSolvers/paradae/math/VirtualMatrix.h` | 51 | `Solve` | function/method name |
-| `src/extraSolvers/paradae/math/VirtualMatrix.h` | 52 | `ClearFacto` | function/method name |
-| `src/extraSolvers/paradae/math/VirtualMatrix.h` | 70 | `SetIJV` | function/method name |
-| `src/extraSolvers/paradae/math/VirtualVector.h` | 16 | `GetM` | function/method name |
-| `src/extraSolvers/paradae/math/VirtualVector.h` | 17 | `GetData` | function/method name |
-| `src/extraSolvers/paradae/math/VirtualVector.h` | 19 | `SetSubVec` | function/method name |
-| `src/extraSolvers/paradae/math/VirtualVector.h` | 20 | `GetSubVec` | function/method name |
-| `src/extraSolvers/paradae/problems/ODEProblem.h` | 33 | `SetEquation` | function/method name |
-| `src/extraSolvers/paradae/problems/ODEProblem.h` | 34 | `SetEquation` | function/method name |
-| `src/extraSolvers/paradae/problems/ODEProblem.h` | 35 | `SetTimeIntegrator` | function/method name |
-| `src/extraSolvers/paradae/problems/ODEProblem.h` | 37 | `GetM` | function/method name |
-| `src/extraSolvers/paradae/problems/ODEProblem.h` | 38 | `GetEq` | function/method name |
-| `src/extraSolvers/paradae/problems/ODEProblem.h` | 39 | `GetTI` | function/method name |
-| `src/extraSolvers/paradae/problems/ODEProblem.h` | 42 | `GetComm` | function/method name |
-| `src/extraSolvers/paradae/problems/ODEProblem.h` | 43 | `PrintSolution` | function/method name |
-| `src/extraSolvers/paradae/problems/ODEProblem.h` | 44 | `PrintAllITERSolution` | function/method name |
-| `src/extraSolvers/paradae/solvers/LineSearch.h` | 22 | `Solve` | function/method name |
-| `src/extraSolvers/paradae/solvers/Newton.h` | 26 | `Solve` | function/method name |
-| `src/extraSolvers/paradae/solvers/NewtonStats.h` | 25 | `GlobalStats_Seq` | function/method name |
-| `src/extraSolvers/paradae/solvers/NewtonStats.h` | 26 | `GlobalStats_Braid` | function/method name |
-| `src/extraSolvers/paradae/solvers/NewtonStats.h` | 34 | `SetMPIComm` | function/method name |
-| `src/extraSolvers/paradae/solvers/NewtonStats.h` | 35 | `SetType` | function/method name |
-| `src/extraSolvers/paradae/solvers/NewtonStats.h` | 36 | `SetNextStep` | function/method name |
-| `src/extraSolvers/paradae/solvers/NewtonStats.h` | 39 | `SetIL` | function/method name |
-| `src/extraSolvers/paradae/solvers/NewtonStats.h` | 40 | `Add` | function/method name |
-| `src/extraSolvers/paradae/solvers/NewtonStats.h` | 41 | `GlobalStats` | function/method name |
-| `src/extraSolvers/paradae/solvers/NewtonStats.h` | 42 | `PerStepStats` | function/method name |
-| `src/extraSolvers/paradae/solvers/NewtonStats.h` | 43 | `PerIterStats` | function/method name |
-| `src/extraSolvers/paradae/solvers/NewtonStats.h` | 44 | `PerLevelStats` | function/method name |
-| `src/extraSolvers/paradae/solvers/NewtonStats.h` | 45 | `ShowStats` | function/method name |
-| `src/extraSolvers/paradae/solvers/Solver.h` | 21 | `XNorm` | function/method name |
-| `src/extraSolvers/paradae/solvers/Solver.h` | 22 | `FxNorm` | function/method name |
-| `src/extraSolvers/paradae/solvers/Solver.h` | 23 | `XNorm` | function/method name |
-| `src/extraSolvers/paradae/solvers/Solver.h` | 27 | `FxNorm` | function/method name |
-| `src/extraSolvers/paradae/solvers/Solver.h` | 29 | `XNorm` | function/method name |
-| `src/extraSolvers/paradae/solvers/Solver.h` | 31 | `SetTol` | function/method name |
-| `src/extraSolvers/paradae/solvers/Solver.h` | 33 | `GetCurrentJacobian` | function/method name |
-| `src/extraSolvers/paradae/solvers/Solver.h` | 34 | `ForceUpdateJacobian` | function/method name |
-| `src/extraSolvers/paradae/solvers/Solver.h` | 42 | `ApproxJacobian` | function/method name |
-| `src/extraSolvers/paradae/solvers/Solver.h` | 43 | `ApproxJacobian` | function/method name |
-| `src/extraSolvers/paradae/solvers/Solver.h` | 52 | `Solve` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 52 | `EvaluateFunAndJac` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 53 | `XNorm` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 54 | `FxNorm` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 55 | `XNorm` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 56 | `FxNorm` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 70 | `InitArray` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 71 | `ComputeBDFCoeff_FS` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 75 | `ComputeBDFCoeff_VS` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 79 | `ComputeBDFCoeff_FLC` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 88 | `AdvanceStep` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 89 | `EstimateNextStepSize` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 90 | `SetOrder` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 91 | `GetOrder` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 92 | `GetA` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 93 | `GetB` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 94 | `GetCoeff` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 95 | `UseDxAsUnknown` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 96 | `UseDxAsUnknown` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 99 | `GetType` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 100 | `IsFullyVariable` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 101 | `IsFullyVariable` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 102 | `GetCurrentJac` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 103 | `SetDenseMatrix` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 104 | `ComputeUnknown` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 108 | `ComputeUnknown` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h` | 112 | `ComputeBDFCoeff` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h` | 29 | `XNorm` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h` | 30 | `FxNorm` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h` | 31 | `XNorm` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h` | 32 | `FxNorm` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h` | 33 | `EvaluateFunAndJac` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h` | 51 | `AdvanceStep` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h` | 52 | `EstimateNextStepSize` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h` | 58 | `SolveInnerSteps` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h` | 59 | `BuildSolverApp` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h` | 61 | `GetType` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h` | 64 | `GetA` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h` | 65 | `GetB` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h` | 66 | `GetBinf` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h` | 67 | `GetC` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_DIRK.h` | 26 | `InitArray` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_DIRK.h` | 30 | `SetDenseMatrix` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_DIRK.h` | 31 | `BuildSolverApp` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Explicit.h` | 15 | `SolveInnerSteps` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Implicit.h` | 39 | `InitArray` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Implicit.h` | 45 | `SolveInnerSteps` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Implicit.h` | 46 | `BuildSolverApp` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Implicit.h` | 47 | `GetCurrentJac` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Implicit.h` | 48 | `SetDenseMatrix` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_SDIRK.h` | 24 | `SetSolverStep` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_SDIRK.h` | 32 | `InitArray` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_SDIRK.h` | 36 | `SetDenseMatrix` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_SDIRK.h` | 37 | `BuildSolverApp` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/RungeKutta_SDIRK.h` | 38 | `SolveInnerSteps` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 59 | `Rotate` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 60 | `RollBack` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 61 | `SetNextAtRoot` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 94 | `AdvanceStep` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 95 | `GetSizeX` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 96 | `GetNbSteps` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 97 | `SetBraid` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 98 | `SetDenseMatrix` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 99 | `SetNewtonSolverOpt` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 103 | `CopyNewtonSolverOpt` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 104 | `CheckRoots` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 105 | `PostStep` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 107 | `DoBraid` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 108 | `DoBraid` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 109 | `DoFalseVarstep` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 110 | `DoFalseVarstep` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 111 | `DoVarstep` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 112 | `DoVarstep` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 113 | `UseDenseMatrix` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 114 | `GetPState` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 116 | `GetOrder` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 117 | `GetNbStepsDone` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 118 | `GetEq` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 121 | `GetType` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 122 | `SetRTol` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 123 | `SetATol` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 124 | `SetMaxRFactor` | function/method name |
-| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h` | 125 | `GetMaxRFactor` | function/method name |
-| `src/fileInput/loadSubObjectsElement.cpp` | 230 | `IgnoreListType` | function/method name |
-| `src/fmi/fmi_import1.cpp` | 49 | `fmi1_test` | function/method name |
-| `src/fmi/fmi_import2.cpp` | 49 | `fmi2_runModel` | function/method name |
-| `src/fmi/fmi_import2.cpp` | 51 | `fmi2_test` | function/method name |
-| `src/fmi/fmi_import2.cpp` | 143 | `fmi2_runModel` | function/method name |
-| `src/fmi/fmi_models/fmiMESubModel.h` | 83 | `LocalStateSizes` | function/method name |
-| `src/fmi/fmi_models/fmiMESubModel.h` | 85 | `LocalJacobianCount` | function/method name |
-| `src/fmi/fmi_models/fmiWrapper.hpp` | 84 | `inputNames_actual` | function/method name |
-| `src/fmi/fmi_models/fmiWrapper.hpp` | 85 | `outputNames_actual` | function/method name |
-| `src/fmi_export/fmiRunner.h` | 49 | `Run` | function/method name |
-| `src/fmi_export/fmiRunner.h` | 54 | `Step` | function/method name |
-| `src/fmi_export/fmiRunner.h` | 55 | `StepAsync` | function/method name |
-| `src/fmi_export/fmiRunner.h` | 56 | `Finalize` | function/method name |
-| `src/fmi_export/fmiRunner.h` | 62 | `Reset` | function/method name |
-| `src/formatInterpreters/jsonReaderElement.cpp` | 304 | `numeric_conversionComplete` | function/method name |
-| `src/formatInterpreters/tomlReaderElement.cpp` | 159 | `numeric_conversionComplete` | function/method name |
-| `src/formatInterpreters/tomlReaderElement.cpp` | 296 | `numeric_conversionComplete` | function/method name |
-| `src/fskit/GridDynFederatedSimulator.h` | 38 | `Initialize` | function/method name |
-| `src/fskit/GridDynFederatedSimulator.h` | 40 | `StartCommunication` | function/method name |
-| `src/fskit/GridDynFederatedSimulator.h` | 42 | `TestCommunication` | function/method name |
-| `src/fskit/GridDynFederatedSimulator.h` | 46 | `Finalize` | function/method name |
-| `src/fskit/GridDynFederatedSimulator.h` | 52 | `StartTimeAdvancement` | function/method name |
-| `src/fskit/fskitCommunicator.h` | 45 | `ProcessEventMessage` | function/method name |
-| `src/fskit/fskitRunner.cpp` | 33 | `Initialize` | function/method name |
-| `src/fskit/fskitRunner.h` | 30 | `Initialize` | function/method name |
-| `src/fskit/fskitRunner.h` | 33 | `Initialize` | function/method name |
-| `src/fskit/fskitRunner.h` | 35 | `Run` | function/method name |
-| `src/fskit/fskitRunner.h` | 36 | `Finalize` | function/method name |
-| `src/fskit/gridDynfskit.cpp` | 29 | `griddyn_runner_main` | function/method name |
-| `src/fskit/protection-message.h` | 34 | `GetMessageType` | function/method name |
-| `src/fskit/zonalRelayLogicalProcess.h` | 22 | `ProcessEventMessage` | function/method name |
-| `src/gridDynServer/gridDynServer.h` | 113 | `send_data` | function/method name |
-| `src/gridDynServer/gridDynServer.h` | 121 | `tcp_accept` | function/method name |
-| `src/gridDynServer/gridDynServer.h` | 123 | `command_loop` | function/method name |
-| `src/gridDynServer/gridDynServer.h` | 126 | `start_server` | function/method name |
-| `src/gridDynServer/gridDynServer.h` | 128 | `stop_server` | function/method name |
-| `src/griddyn/Generator.h` | 118 | `LocalStateSizes` | function/method name |
-| `src/griddyn/Generator.h` | 120 | `LocalJacobianCount` | function/method name |
-| `src/griddyn/GridArea.h` | 143 | `LocalStateSizes` | function/method name |
-| `src/griddyn/GridArea.h` | 145 | `LocalJacobianCount` | function/method name |
-| `src/griddyn/GridComponent.h` | 383 | `LocalStateSizes` | function/method name |
-| `src/griddyn/GridComponent.h` | 389 | `LocalJacobianCount` | function/method name |
-| `src/griddyn/GridComponentHelperClasses.h` | 297 | `JacobianReset` | function/method name |
-| `src/griddyn/GridComponentHelperClasses.h` | 351 | `JacobianCountReset` | function/method name |
-| `src/griddyn/OffsetTable.h` | 196 | `JacobianUnload` | function/method name |
-| `src/griddyn/blocks/RampLimiter.h` | 51 | `DoutDin` | function/method name |
-| `src/griddyn/blocks/ValueLimiter.h` | 45 | `DoutDin` | function/method name |
-| `src/griddyn/comms/CommMessage.h` | 34 | `from_string` | function/method name |
-| `src/griddyn/comms/CommMessage.h` | 257 | `uint32_t` | function/method name |
-| `src/griddyn/comms/ControlMessage.h` | 70 | `from_string` | function/method name |
-| `src/griddyn/comms/SchedulerMessage.h` | 45 | `from_string` | function/method name |
-| `src/griddyn/events/Event.cpp` | 450 | `make_event` | function/method name |
-| `src/griddyn/gridDynDefinitions.hpp` | 64 | `kMin_Res` | function/method name |
-| `src/griddyn/links/AdjustableTransformer.h` | 158 | `LocalStateSizes` | function/method name |
-| `src/griddyn/links/AdjustableTransformer.h` | 159 | `LocalJacobianCount` | function/method name |
-| `src/griddyn/links/AdjustableTransformer.h` | 185 | `MWJac` | function/method name |
-| `src/griddyn/links/AdjustableTransformer.h` | 193 | `MVarJac` | function/method name |
-| `src/griddyn/links/AdjustableTransformer.h` | 226 | `MWControlAdjust` | function/method name |
-| `src/griddyn/links/AdjustableTransformer.h` | 232 | `MVarControlAdjust` | function/method name |
-| `src/griddyn/links/DcLink.h` | 45 | `LocalStateSizes` | function/method name |
-| `src/griddyn/links/DcLink.h` | 46 | `LocalJacobianCount` | function/method name |
-| `src/griddyn/loads/GridLabDLoad.h` | 114 | `run_dummy_load` | function/method name |
-| `src/griddyn/loads/GridLabDLoad.h` | 115 | `run_dummy_load_forward` | function/method name |
-| `src/griddyn/loads/MotorLoad.h` | 76 | `LocalStateSizes` | function/method name |
-| `src/griddyn/loads/MotorLoad.h` | 78 | `LocalJacobianCount` | function/method name |
-| `src/griddyn/loads/MotorLoad3.h` | 48 | `LocalStateSizes` | function/method name |
-| `src/griddyn/loads/MotorLoad3.h` | 50 | `LocalJacobianCount` | function/method name |
-| `src/griddyn/loads/MotorLoad5.h` | 47 | `LocalStateSizes` | function/method name |
-| `src/griddyn/loads/MotorLoad5.h` | 49 | `LocalJacobianCount` | function/method name |
-| `src/griddyn/measurement/Condition.cpp` | 123 | `make_condition` | function/method name |
-| `src/griddyn/primary/AcBus.h` | 107 | `LocalStateSizes` | function/method name |
-| `src/griddyn/primary/AcBus.h` | 109 | `LocalJacobianCount` | function/method name |
-| `src/griddyn/primary/DcBus.h` | 52 | `LocalStateSizes` | function/method name |
-| `src/griddyn/primary/DcBus.h` | 54 | `LocalJacobianCount` | function/method name |
-| `src/griddyn/relays/Breaker.h` | 77 | `LocalStateSizes` | function/method name |
-| `src/griddyn/relays/Breaker.h` | 79 | `LocalJacobianCount` | function/method name |
-| `src/griddyn/relays/Fuse.h` | 73 | `LocalStateSizes` | function/method name |
-| `src/griddyn/relays/Fuse.h` | 75 | `LocalJacobianCount` | function/method name |
-| `src/griddyn/relays/Fuse.h` | 88 | `I2Tequation` | function/method name |
-| `src/griddyn/simulation/Diagnostics.cpp` | 69 | `JacobianCheck` | function/method name |
-| `src/griddyn/simulation/Diagnostics.h` | 38 | `JacobianCheck` | function/method name |
-| `src/griddyn/solvers/BasicOdeSolver.h` | 38 | `state_data` | function/method name |
-| `src/griddyn/solvers/BasicOdeSolver.h` | 39 | `deriv_data` | function/method name |
-| `src/griddyn/solvers/BasicOdeSolver.h` | 40 | `type_data` | function/method name |
-| `src/griddyn/solvers/BasicOdeSolver.h` | 42 | `state_data` | function/method name |
-| `src/griddyn/solvers/BasicOdeSolver.h` | 43 | `deriv_data` | function/method name |
-| `src/griddyn/solvers/BasicOdeSolver.h` | 44 | `type_data` | function/method name |
-| `src/griddyn/solvers/BasicSolver.h` | 49 | `state_data` | function/method name |
-| `src/griddyn/solvers/BasicSolver.h` | 50 | `deriv_data` | function/method name |
-| `src/griddyn/solvers/BasicSolver.h` | 51 | `type_data` | function/method name |
-| `src/griddyn/solvers/BasicSolver.h` | 53 | `state_data` | function/method name |
-| `src/griddyn/solvers/BasicSolver.h` | 54 | `deriv_data` | function/method name |
-| `src/griddyn/solvers/BasicSolver.h` | 55 | `type_data` | function/method name |
-| `src/griddyn/solvers/SolverInterface.h` | 165 | `state_data` | function/method name |
-| `src/griddyn/solvers/SolverInterface.h` | 170 | `deriv_data` | function/method name |
-| `src/griddyn/solvers/SolverInterface.h` | 175 | `type_data` | function/method name |
-| `src/griddyn/solvers/SolverInterface.h` | 180 | `state_data` | function/method name |
-| `src/griddyn/solvers/SolverInterface.h` | 185 | `deriv_data` | function/method name |
-| `src/griddyn/solvers/SolverInterface.h` | 190 | `type_data` | function/method name |
-| `src/griddyn/solvers/SolverInterface.h` | 356 | `check_flag` | function/method name |
-| `src/griddyn/solvers/SundialsInterface.cpp` | 366 | `MatrixNeedsSetup` | function/method name |
-| `src/griddyn/solvers/SundialsInterface.h` | 104 | `state_data` | function/method name |
-| `src/griddyn/solvers/SundialsInterface.h` | 105 | `deriv_data` | function/method name |
-| `src/griddyn/solvers/SundialsInterface.h` | 106 | `state_data` | function/method name |
-| `src/griddyn/solvers/SundialsInterface.h` | 107 | `deriv_data` | function/method name |
-| `src/griddyn/solvers/SundialsInterface.h` | 108 | `type_data` | function/method name |
-| `src/griddyn/solvers/SundialsInterface.h` | 109 | `type_data` | function/method name |
-| `src/griddyn/solvers/SundialsInterface.h` | 129 | `KLUReInit` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 282 | `GridDynSimulationCreate` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 289 | `GridDynSimulationFree` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 295 | `GridDynSimulationInitializeFromString` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 305 | `GridDynSimulationInitializeFromArgs` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 317 | `GridDynSimulationLoadfile` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 335 | `GridDynSimulationPowerflowInitialize` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 340 | `GridDynSimulationPowerflow` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 345 | `GridDynSimulationDynamicInitialize` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 350 | `GridDynSimulationReset` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 356 | `GridDynSimulationGetCurrentTime` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 362 | `GridDynSimulationRun` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 376 | `GridDynSimulationStep` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 383 | `GridDynSimulationRunAsync` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 395 | `GridDynSimulationStepAsync` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 401 | `GridDynSimulationGetStatus` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 415 | `GridDynSimulationGetSolverKey` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 437 | `GridDynSimulationBusCount` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 442 | `GridDynSimulationLineCount` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 450 | `GridDynSimulationGetResults` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 467 | `GridDynSimulationGuessState` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 484 | `GridDynSimulationSetState` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 498 | `GridDynSimulationGetStateVariableTypes` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 514 | `GridDynSimulationResidual` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 530 | `GridDynSimulationDerivative` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 546 | `GridDynSimulationAlgebraicUpdate` | function/method name |
-| `src/griddyn_shared/griddyn_export.h` | 566 | `GridDynSimulationJacobian` | function/method name |
-| `src/griddyn_shared/griddyn_exportMathFunctions.cpp` | 44 | `GridDynSimulationBusCount` | function/method name |
-| `src/griddyn_shared/griddyn_exportMathFunctions.cpp` | 54 | `GridDynSimulationLineCount` | function/method name |
-| `src/griddyn_shared/griddyn_exportMathFunctions.cpp` | 64 | `GridDynSimulationGetResults` | function/method name |
-| `src/griddyn_shared/griddyn_exportMathFunctions.cpp` | 99 | `GridDynSimulationStateSize` | function/method name |
-| `src/griddyn_shared/griddyn_exportMathFunctions.cpp` | 115 | `GridDynSimulationGuessState` | function/method name |
-| `src/griddyn_shared/griddyn_exportMathFunctions.cpp` | 136 | `GridDynSimulationSetState` | function/method name |
-| `src/griddyn_shared/griddyn_exportMathFunctions.cpp` | 157 | `GridDynSimulationGetStateVariableTypes` | function/method name |
-| `src/griddyn_shared/griddyn_exportMathFunctions.cpp` | 176 | `GridDynSimulationResidual` | function/method name |
-| `src/griddyn_shared/griddyn_exportMathFunctions.cpp` | 198 | `GridDynSimulationDerivative` | function/method name |
-| `src/griddyn_shared/griddyn_exportMathFunctions.cpp` | 219 | `GridDynSimulationAlgebraicUpdate` | function/method name |
-| `src/griddyn_shared/griddyn_exportMathFunctions.cpp` | 241 | `GridDynSimulationJacobian` | function/method name |
-| `src/griddyn_shared/griddyn_exportSimulation.cpp` | 146 | `GridDynSimulationCreate` | function/method name |
-| `src/griddyn_shared/griddyn_exportSimulation.cpp` | 180 | `GridDynSimulationFree` | function/method name |
-| `src/griddyn_shared/griddyn_exportSimulation.cpp` | 187 | `GridDynSimulationInitializeFromString` | function/method name |
-| `src/griddyn_shared/griddyn_exportSimulation.cpp` | 200 | `GridDynSimulationInitializeFromArgs` | function/method name |
-| `src/griddyn_shared/griddyn_exportSimulation.cpp` | 215 | `GridDynSimulationLoadfile` | function/method name |
-| `src/griddyn_shared/griddyn_exportSimulation.cpp` | 240 | `GridDynSimulationAddCommand` | function/method name |
-| `src/griddyn_shared/griddyn_exportSimulation.cpp` | 256 | `GridDynSimulationRun` | function/method name |
-| `src/griddyn_shared/griddyn_exportSimulation.cpp` | 272 | `GridDynSimulationRunTo` | function/method name |
-| `src/griddyn_shared/griddyn_exportSimulation.cpp` | 290 | `GridDynSimulationStep` | function/method name |
-| `src/griddyn_shared/griddyn_exportSimulation.cpp` | 302 | `GridDynSimulationRunAsync` | function/method name |
-| `src/griddyn_shared/griddyn_exportSimulation.cpp` | 318 | `GridDynSimulationRunToAsync` | function/method name |
-| `src/griddyn_shared/griddyn_exportSimulation.cpp` | 334 | `GridDynSimulationStepAsync` | function/method name |
-| `src/griddyn_shared/griddyn_exportSimulation.cpp` | 344 | `GridDynSimulationGetStatus` | function/method name |
-| `src/griddyn_shared/griddyn_exportSimulation.cpp` | 369 | `GridDynSimulationPowerflowInitialize` | function/method name |
-| `src/griddyn_shared/griddyn_exportSimulation.cpp` | 380 | `GridDynSimulationPowerflow` | function/method name |
-| `src/griddyn_shared/griddyn_exportSimulation.cpp` | 391 | `GridDynSimulationDynamicInitialize` | function/method name |
-| `src/griddyn_shared/griddyn_exportSimulation.cpp` | 402 | `GridDynSimulationReset` | function/method name |
-| `src/griddyn_shared/griddyn_exportSimulation.cpp` | 415 | `GridDynSimulationGetCurrentTime` | function/method name |
-| `src/helics/helicsRunner.h` | 41 | `Run` | function/method name |
-| `src/helics/helicsRunner.h` | 43 | `Step` | function/method name |
-| `src/helics/helicsRunner.h` | 45 | `Finalize` | function/method name |
-| `src/networking/dimeClientInterface.cpp` | 79 | `InitFailure` | function/method name |
-| `src/networking/dimeClientInterface.cpp` | 112 | `SendFailure` | function/method name |
-| `src/networking/dimeClientInterface.cpp` | 127 | `SendFailure` | function/method name |
-| `src/networking/dimeRunner.h` | 33 | `Run` | function/method name |
-| `src/networking/dimeRunner.h` | 35 | `Step` | function/method name |
-| `src/networking/dimeRunner.h` | 37 | `Finalize` | function/method name |
-| `src/optimization/optimizerInterface.h` | 44 | `val_data` | function/method name |
-| `src/runner/gridDynRunner.cpp` | 109 | `Initialize` | function/method name |
-| `src/runner/gridDynRunner.cpp` | 127 | `Reset` | function/method name |
-| `src/runner/gridDynRunner.h` | 48 | `Initialize` | function/method name |
-| `src/runner/gridDynRunner.h` | 57 | `Initialize` | function/method name |
-| `src/runner/gridDynRunner.h` | 67 | `Run` | function/method name |
-| `src/runner/gridDynRunner.h` | 73 | `RunAsync` | function/method name |
-| `src/runner/gridDynRunner.h` | 82 | `Step` | function/method name |
-| `src/runner/gridDynRunner.h` | 90 | `StepAsync` | function/method name |
-| `src/runner/gridDynRunner.h` | 104 | `Finalize` | function/method name |
-| `src/runner/gridDynRunner.h` | 105 | `Reset` | function/method name |
-| `src/runner/gridDynRunner.h` | 106 | `Reset` | function/method name |
-| `src/runner/gridDynRunner.h` | 120 | `StopRecording` | function/method name |
-| `src/utilities/ThreePhaseFunctions.h` | 76 | `ABCtoPNZ_R` | function/method name |
-| `src/utilities/ThreePhaseFunctions.h` | 91 | `ABCtoPNZ_I` | function/method name |
-| `src/utilities/ThreePhaseFunctions.h` | 106 | `ThreePhasePowerPolar` | function/method name |
-| `src/utilities/functionInterpreter.cpp` | 432 | `mult_sum` | function/method name |
-| `src/utilities/indexTypes.hpp` | 38 | `index_t` | function/method name |
-| `src/utilities/indexTypes.hpp` | 42 | `count_t` | function/method name |
-| `src/utilities/matrixDataOrdered.hpp` | 158 | `ValueT` | function/method name |
-| `src/utilities/matrixDataOrdered.hpp` | 161 | `ValueT` | function/method name |
-| `src/utilities/matrixDataTranslate.hpp` | 55 | `ValueT` | function/method name |
-| `test/gtestHelperFunctions.cpp` | 21 | `TearDown` | function/method name |
-| `test/gtestHelperFunctions.cpp` | 115 | `to_string` | function/method name |
-| `test/libraryTests/testOperatingBounds.cpp` | 16 | `Bound` | function/method name |
+| File                                                             | Line | Name                                     | Detail               |
+| ---------------------------------------------------------------- | ---: | ---------------------------------------- | -------------------- |
+| `src/core/CoreObject.h`                                          |  310 | `enable_updates`                         | function/method name |
+| `src/core/CoreObject.h`                                          |  532 | `log_to`                                 | function/method name |
+| `src/core/CoreObject.h`                                          |  540 | `log_to`                                 | function/method name |
+| `src/core/CoreObject.h`                                          |  548 | `log_to`                                 | function/method name |
+| `src/core/CoreObject.h`                                          |  557 | `log_to`                                 | function/method name |
+| `src/core/CoreOwningPtr.hpp`                                     |   80 | `make_owningPtr`                         | function/method name |
+| `src/core/ObjectFactoryTemplates.hpp`                            |  232 | `Ntype`                                  | function/method name |
+| `src/core/ObjectFactoryTemplates.hpp`                            |  312 | `Ntype`                                  | function/method name |
+| `src/extraSolvers/braid/braidInterface.h`                        |   52 | `state_data`                             | function/method name |
+| `src/extraSolvers/braid/braidInterface.h`                        |   53 | `deriv_data`                             | function/method name |
+| `src/extraSolvers/braid/braidInterface.h`                        |   54 | `type_data`                              | function/method name |
+| `src/extraSolvers/braid/braidInterface.h`                        |   56 | `state_data`                             | function/method name |
+| `src/extraSolvers/braid/braidInterface.h`                        |   57 | `deriv_data`                             | function/method name |
+| `src/extraSolvers/braid/braidInterface.h`                        |   58 | `type_data`                              | function/method name |
+| `src/extraSolvers/braid/braidInterface.h`                        |   71 | `RunBraid`                               | function/method name |
+| `src/extraSolvers/braid/braidSolver.cpp`                         |   64 | `BuildGrid`                              | function/method name |
+| `src/extraSolvers/braid/braidSolver.cpp`                         |  207 | `y0_`                                    | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |   67 | `SetAllToDataStruct`                     | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |   68 | `SetLastToDataStruct`                    | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |   69 | `SetAllFromDataStruct`                   | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |   70 | `SetLastFromDataStruct`                  | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |   71 | `DumpDataStruct`                         | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |   82 | `my_Step_OnAllPoints`                    | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |   88 | `my_Step_OnOnePoint`                     | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |   94 | `my_Step`                                | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |   99 | `my_SpatialRefine`                       | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |  103 | `my_SpatialCoarsen`                      | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |  107 | `my_Init`                                | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |  108 | `my_InitShell`                           | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |  109 | `my_Clone`                               | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |  110 | `my_CloneShell`                          | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |  111 | `my_Free`                                | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |  112 | `my_FreeShell`                           | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |  113 | `my_PropagateShell`                      | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |  114 | `my_Sum`                                 | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |  115 | `my_SpatialNorm`                         | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |  116 | `my_Access`                              | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |  117 | `my_BufSize`                             | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |  118 | `my_BufPack`                             | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |  119 | `my_BufUnpack`                           | function/method name |
+| `src/extraSolvers/braid/braid_driver.h`                          |  120 | `my_TimeGrid`                            | function/method name |
+| `src/extraSolvers/paradae/common/MapParam.h`                     |   31 | `GetMpiRank`                             | function/method name |
+| `src/extraSolvers/paradae/common/Timer.h`                        |   48 | `Stop`                                   | function/method name |
+| `src/extraSolvers/paradae/common/Timer.h`                        |   49 | `GetTime`                                | function/method name |
+| `src/extraSolvers/paradae/common/Timer.h`                        |   65 | `Gather`                                 | function/method name |
+| `src/extraSolvers/paradae/common/Timer.h`                        |   70 | `SetComm`                                | function/method name |
+| `src/extraSolvers/paradae/common/Timer.h`                        |   73 | `StopAll`                                | function/method name |
+| `src/extraSolvers/paradae/common/Timer.h`                        |   75 | `ShowStats`                              | function/method name |
+| `src/extraSolvers/paradae/equations/EqGridDyn.h`                 |   35 | `Default`                                | function/method name |
+| `src/extraSolvers/paradae/equations/EqGridDyn.h`                 |   44 | `jacobian_ypcdy`                         | function/method name |
+| `src/extraSolvers/paradae/equations/EqGridDyn.h`                 |   51 | `root_functions`                         | function/method name |
+| `src/extraSolvers/paradae/equations/EqGridDyn.h`                 |   56 | `root_action`                            | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |   49 | `HasSRoots`                              | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |   50 | `HasURoots`                              | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |   51 | `HasRoots`                               | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |   52 | `GetNSActRoots`                          | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |   53 | `GetNUActRoots`                          | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |   54 | `GetNActRoots`                           | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |   55 | `GetNSRoots`                             | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |   56 | `GetNURoots`                             | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |   57 | `GetNRoots`                              | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |   80 | `jacobian_ypcdy`                         | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |   86 | `jacobian_y`                             | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |   92 | `jacobian_dy`                            | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |   98 | `Get_dy_from_y`                          | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  100 | `GetTypeEq`                              | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  103 | `root_functions`                         | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  109 | `root_crossings`                         | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  110 | `root_action`                            | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  113 | `root_init_state`                        | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  115 | `CheckAllRoots`                          | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  117 | `CheckUnscheduledRoots`                  | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  125 | `CheckScheduledRoots`                    | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  127 | `approx_jacobian_y`                      | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  133 | `approx_jacobian_y`                      | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  140 | `approx_jacobian_dy`                     | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  146 | `approx_jacobian_dy`                     | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  154 | `GetM`                                   | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  155 | `SetT0`                                  | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  156 | `SetTmax`                                | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  157 | `SetNsteps`                              | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  158 | `GetT0`                                  | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  159 | `GetTmax`                                | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  160 | `GetNsteps`                              | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  161 | `GetNbFunCalls`                          | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  162 | `GetNbJacCalls`                          | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  163 | `GetNbRootCalls`                         | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  164 | `HasEvents`                              | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  165 | `HasSEvents`                             | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  166 | `HasUEvents`                             | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  167 | `GetNRoots`                              | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  168 | `GetNURoots`                             | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  169 | `GetNSRoots`                             | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  170 | `GetRoots`                               | function/method name |
+| `src/extraSolvers/paradae/equations/Equation.h`                  |  171 | `GetNState`                              | function/method name |
+| `src/extraSolvers/paradae/equations/Equation_DAE.h`              |   16 | `GetTypeEq`                              | function/method name |
+| `src/extraSolvers/paradae/equations/Equation_DAE_full.h`         |   16 | `Get_dy_from_y`                          | function/method name |
+| `src/extraSolvers/paradae/equations/Equation_ODE.h`              |   16 | `function_ode`                           | function/method name |
+| `src/extraSolvers/paradae/equations/Equation_ODE.h`              |   17 | `jacobian_ode`                           | function/method name |
+| `src/extraSolvers/paradae/equations/Equation_ODE.h`              |   22 | `approx_jacobian_ode`                    | function/method name |
+| `src/extraSolvers/paradae/equations/Equation_ODE.h`              |   27 | `approx_jacobian_ode`                    | function/method name |
+| `src/extraSolvers/paradae/equations/Equation_ODE.h`              |   41 | `jacobian_y`                             | function/method name |
+| `src/extraSolvers/paradae/equations/Equation_ODE.h`              |   47 | `jacobian_dy`                            | function/method name |
+| `src/extraSolvers/paradae/equations/Equation_ODE.h`              |   53 | `Get_dy_from_y`                          | function/method name |
+| `src/extraSolvers/paradae/equations/Equation_ODE.h`              |   57 | `GetTypeEq`                              | function/method name |
+| `src/extraSolvers/paradae/math/DBlockTriMatrix.h`                |   31 | `Clone`                                  | function/method name |
+| `src/extraSolvers/paradae/math/DBlockTriMatrix.h`                |   35 | `Fill`                                   | function/method name |
+| `src/extraSolvers/paradae/math/DBlockTriMatrix.h`                |   36 | `SetSubMat`                              | function/method name |
+| `src/extraSolvers/paradae/math/DBlockTriMatrix.h`                |   39 | `MatMult`                                | function/method name |
+| `src/extraSolvers/paradae/math/DBlockTriMatrix.h`                |   40 | `Factorize`                              | function/method name |
+| `src/extraSolvers/paradae/math/DBlockTriMatrix.h`                |   41 | `Solve`                                  | function/method name |
+| `src/extraSolvers/paradae/math/DBlockTriMatrix.h`                |   42 | `ClearFacto`                             | function/method name |
+| `src/extraSolvers/paradae/math/DenseMatrix.h`                    |   32 | `Clone`                                  | function/method name |
+| `src/extraSolvers/paradae/math/DenseMatrix.h`                    |   36 | `Fill`                                   | function/method name |
+| `src/extraSolvers/paradae/math/DenseMatrix.h`                    |   37 | `SetSubMat`                              | function/method name |
+| `src/extraSolvers/paradae/math/DenseMatrix.h`                    |   40 | `MatMult`                                | function/method name |
+| `src/extraSolvers/paradae/math/DenseMatrix.h`                    |   41 | `Factorize`                              | function/method name |
+| `src/extraSolvers/paradae/math/DenseMatrix.h`                    |   42 | `Solve`                                  | function/method name |
+| `src/extraSolvers/paradae/math/DenseMatrix.h`                    |   43 | `ClearFacto`                             | function/method name |
+| `src/extraSolvers/paradae/math/DenseMatrix.h`                    |   44 | `SetIJV`                                 | function/method name |
+| `src/extraSolvers/paradae/math/IPoly.h`                          |   35 | `Build`                                  | function/method name |
+| `src/extraSolvers/paradae/math/IPoly.h`                          |   36 | `GetValueY`                              | function/method name |
+| `src/extraSolvers/paradae/math/IPoly.h`                          |   37 | `GetValueDY`                             | function/method name |
+| `src/extraSolvers/paradae/math/IPoly.h`                          |   38 | `GetXSize`                               | function/method name |
+| `src/extraSolvers/paradae/math/IVander.h`                        |   15 | `Build2`                                 | function/method name |
+| `src/extraSolvers/paradae/math/IVander.h`                        |   16 | `Build3`                                 | function/method name |
+| `src/extraSolvers/paradae/math/IVander.h`                        |   17 | `Build4`                                 | function/method name |
+| `src/extraSolvers/paradae/math/IVander.h`                        |   18 | `Build5`                                 | function/method name |
+| `src/extraSolvers/paradae/math/IVander.h`                        |   19 | `Build6`                                 | function/method name |
+| `src/extraSolvers/paradae/math/IVander.h`                        |   20 | `Derivate`                               | function/method name |
+| `src/extraSolvers/paradae/math/IVander.h`                        |   24 | `Interp`                                 | function/method name |
+| `src/extraSolvers/paradae/math/IVanderExt.h`                     |   15 | `Build2`                                 | function/method name |
+| `src/extraSolvers/paradae/math/IVanderExt.h`                     |   16 | `Build3`                                 | function/method name |
+| `src/extraSolvers/paradae/math/IVanderExt.h`                     |   17 | `Build4`                                 | function/method name |
+| `src/extraSolvers/paradae/math/IVanderExt.h`                     |   18 | `Build5`                                 | function/method name |
+| `src/extraSolvers/paradae/math/IVanderExt.h`                     |   19 | `Build6`                                 | function/method name |
+| `src/extraSolvers/paradae/math/IVanderExt.h`                     |   20 | `Derivate`                               | function/method name |
+| `src/extraSolvers/paradae/math/IVanderExt.h`                     |   24 | `Interp`                                 | function/method name |
+| `src/extraSolvers/paradae/math/PMultiVector.h`                   |   26 | `GetPVector`                             | function/method name |
+| `src/extraSolvers/paradae/math/PMultiVector.h`                   |   27 | `GetSVector`                             | function/method name |
+| `src/extraSolvers/paradae/math/PMultiVector.h`                   |   28 | `GetXSize`                               | function/method name |
+| `src/extraSolvers/paradae/math/PMultiVector.h`                   |   29 | `GetSSize`                               | function/method name |
+| `src/extraSolvers/paradae/math/PVector.h`                        |   19 | `Set`                                    | function/method name |
+| `src/extraSolvers/paradae/math/SBlockTriMatrix.h`                |   22 | `Clone`                                  | function/method name |
+| `src/extraSolvers/paradae/math/SBlockTriMatrix.h`                |   26 | `Fill`                                   | function/method name |
+| `src/extraSolvers/paradae/math/SBlockTriMatrix.h`                |   27 | `SetSubMat`                              | function/method name |
+| `src/extraSolvers/paradae/math/SBlockTriMatrix.h`                |   30 | `MatMult`                                | function/method name |
+| `src/extraSolvers/paradae/math/SBlockTriMatrix.h`                |   31 | `Factorize`                              | function/method name |
+| `src/extraSolvers/paradae/math/SBlockTriMatrix.h`                |   32 | `Solve`                                  | function/method name |
+| `src/extraSolvers/paradae/math/SBlockTriMatrix.h`                |   33 | `ClearFacto`                             | function/method name |
+| `src/extraSolvers/paradae/math/SMultiVector.h`                   |   24 | `Free`                                   | function/method name |
+| `src/extraSolvers/paradae/math/SMultiVector.h`                   |   25 | `Resize`                                 | function/method name |
+| `src/extraSolvers/paradae/math/SMultiVector.h`                   |   28 | `GetPVector`                             | function/method name |
+| `src/extraSolvers/paradae/math/SMultiVector.h`                   |   29 | `GetSVector`                             | function/method name |
+| `src/extraSolvers/paradae/math/SMultiVector.h`                   |   30 | `PushFront`                              | function/method name |
+| `src/extraSolvers/paradae/math/SMultiVector.h`                   |   31 | `PushBack`                               | function/method name |
+| `src/extraSolvers/paradae/math/SMultiVector.h`                   |   32 | `PushBack`                               | function/method name |
+| `src/extraSolvers/paradae/math/SMultiVector.h`                   |   33 | `PushBack`                               | function/method name |
+| `src/extraSolvers/paradae/math/SMultiVector.h`                   |   34 | `PopFront`                               | function/method name |
+| `src/extraSolvers/paradae/math/SMultiVector.h`                   |   35 | `PopBack`                                | function/method name |
+| `src/extraSolvers/paradae/math/SMultiVector.h`                   |   36 | `PopFront`                               | function/method name |
+| `src/extraSolvers/paradae/math/SMultiVector.h`                   |   37 | `PopBack`                                | function/method name |
+| `src/extraSolvers/paradae/math/SMultiVector.h`                   |   38 | `PushAndPop`                             | function/method name |
+| `src/extraSolvers/paradae/math/SMultiVector.h`                   |   39 | `PushAndPop`                             | function/method name |
+| `src/extraSolvers/paradae/math/SMultiVector.h`                   |   40 | `PushAndPop`                             | function/method name |
+| `src/extraSolvers/paradae/math/SMultiVector.h`                   |   41 | `GetXSize`                               | function/method name |
+| `src/extraSolvers/paradae/math/SMultiVector.h`                   |   42 | `GetSSize`                               | function/method name |
+| `src/extraSolvers/paradae/math/SVector.h`                        |   21 | `Free`                                   | function/method name |
+| `src/extraSolvers/paradae/math/SVector.h`                        |   22 | `Resize`                                 | function/method name |
+| `src/extraSolvers/paradae/math/SVector.h`                        |   23 | `Append`                                 | function/method name |
+| `src/extraSolvers/paradae/math/SVector.h`                        |   28 | `Rand`                                   | function/method name |
+| `src/extraSolvers/paradae/math/SparseMatrix.h`                   |   19 | `InsertVal`                              | function/method name |
+| `src/extraSolvers/paradae/math/SparseMatrix.h`                   |   30 | `Clone`                                  | function/method name |
+| `src/extraSolvers/paradae/math/SparseMatrix.h`                   |   34 | `Fill`                                   | function/method name |
+| `src/extraSolvers/paradae/math/SparseMatrix.h`                   |   35 | `FillKeepingStruct`                      | function/method name |
+| `src/extraSolvers/paradae/math/SparseMatrix.h`                   |   36 | `SetSubMat`                              | function/method name |
+| `src/extraSolvers/paradae/math/SparseMatrix.h`                   |   39 | `MatMult`                                | function/method name |
+| `src/extraSolvers/paradae/math/SparseMatrix.h`                   |   40 | `Factorize`                              | function/method name |
+| `src/extraSolvers/paradae/math/SparseMatrix.h`                   |   41 | `Solve`                                  | function/method name |
+| `src/extraSolvers/paradae/math/SparseMatrix.h`                   |   42 | `ClearFacto`                             | function/method name |
+| `src/extraSolvers/paradae/math/SparseMatrix.h`                   |   43 | `SetIJV`                                 | function/method name |
+| `src/extraSolvers/paradae/math/SparseMatrix.h`                   |   46 | `GetNNZ`                                 | function/method name |
+| `src/extraSolvers/paradae/math/SparseMatrix.h`                   |   47 | `GetRowIndex`                            | function/method name |
+| `src/extraSolvers/paradae/math/SparseMatrix.h`                   |   48 | `GetColIndex`                            | function/method name |
+| `src/extraSolvers/paradae/math/SparseMatrix.h`                   |   49 | `GetValue`                               | function/method name |
+| `src/extraSolvers/paradae/math/Vector.h`                         |   23 | `Fill`                                   | function/method name |
+| `src/extraSolvers/paradae/math/Vector.h`                         |   31 | `CopyData`                               | function/method name |
+| `src/extraSolvers/paradae/math/Vector.h`                         |   33 | `Norm2`                                  | function/method name |
+| `src/extraSolvers/paradae/math/Vector.h`                         |   34 | `NormInf`                                | function/method name |
+| `src/extraSolvers/paradae/math/Vector.h`                         |   35 | `GetM`                                   | function/method name |
+| `src/extraSolvers/paradae/math/Vector.h`                         |   36 | `GetData`                                | function/method name |
+| `src/extraSolvers/paradae/math/VirtualMatrix.h`                  |   34 | `GetM`                                   | function/method name |
+| `src/extraSolvers/paradae/math/VirtualMatrix.h`                  |   35 | `GetM`                                   | function/method name |
+| `src/extraSolvers/paradae/math/VirtualMatrix.h`                  |   36 | `IsFacto`                                | function/method name |
+| `src/extraSolvers/paradae/math/VirtualMatrix.h`                  |   37 | `IsFacto`                                | function/method name |
+| `src/extraSolvers/paradae/math/VirtualMatrix.h`                  |   38 | `IsRankDeficient`                        | function/method name |
+| `src/extraSolvers/paradae/math/VirtualMatrix.h`                  |   39 | `IsRankDeficient`                        | function/method name |
+| `src/extraSolvers/paradae/math/VirtualMatrix.h`                  |   41 | `Clone`                                  | function/method name |
+| `src/extraSolvers/paradae/math/VirtualMatrix.h`                  |   45 | `Fill`                                   | function/method name |
+| `src/extraSolvers/paradae/math/VirtualMatrix.h`                  |   46 | `SetSubMat`                              | function/method name |
+| `src/extraSolvers/paradae/math/VirtualMatrix.h`                  |   49 | `MatMult`                                | function/method name |
+| `src/extraSolvers/paradae/math/VirtualMatrix.h`                  |   50 | `Factorize`                              | function/method name |
+| `src/extraSolvers/paradae/math/VirtualMatrix.h`                  |   51 | `Solve`                                  | function/method name |
+| `src/extraSolvers/paradae/math/VirtualMatrix.h`                  |   52 | `ClearFacto`                             | function/method name |
+| `src/extraSolvers/paradae/math/VirtualMatrix.h`                  |   70 | `SetIJV`                                 | function/method name |
+| `src/extraSolvers/paradae/math/VirtualVector.h`                  |   16 | `GetM`                                   | function/method name |
+| `src/extraSolvers/paradae/math/VirtualVector.h`                  |   17 | `GetData`                                | function/method name |
+| `src/extraSolvers/paradae/math/VirtualVector.h`                  |   19 | `SetSubVec`                              | function/method name |
+| `src/extraSolvers/paradae/math/VirtualVector.h`                  |   20 | `GetSubVec`                              | function/method name |
+| `src/extraSolvers/paradae/problems/ODEProblem.h`                 |   33 | `SetEquation`                            | function/method name |
+| `src/extraSolvers/paradae/problems/ODEProblem.h`                 |   34 | `SetEquation`                            | function/method name |
+| `src/extraSolvers/paradae/problems/ODEProblem.h`                 |   35 | `SetTimeIntegrator`                      | function/method name |
+| `src/extraSolvers/paradae/problems/ODEProblem.h`                 |   37 | `GetM`                                   | function/method name |
+| `src/extraSolvers/paradae/problems/ODEProblem.h`                 |   38 | `GetEq`                                  | function/method name |
+| `src/extraSolvers/paradae/problems/ODEProblem.h`                 |   39 | `GetTI`                                  | function/method name |
+| `src/extraSolvers/paradae/problems/ODEProblem.h`                 |   42 | `GetComm`                                | function/method name |
+| `src/extraSolvers/paradae/problems/ODEProblem.h`                 |   43 | `PrintSolution`                          | function/method name |
+| `src/extraSolvers/paradae/problems/ODEProblem.h`                 |   44 | `PrintAllITERSolution`                   | function/method name |
+| `src/extraSolvers/paradae/solvers/LineSearch.h`                  |   22 | `Solve`                                  | function/method name |
+| `src/extraSolvers/paradae/solvers/Newton.h`                      |   26 | `Solve`                                  | function/method name |
+| `src/extraSolvers/paradae/solvers/NewtonStats.h`                 |   25 | `GlobalStats_Seq`                        | function/method name |
+| `src/extraSolvers/paradae/solvers/NewtonStats.h`                 |   26 | `GlobalStats_Braid`                      | function/method name |
+| `src/extraSolvers/paradae/solvers/NewtonStats.h`                 |   34 | `SetMPIComm`                             | function/method name |
+| `src/extraSolvers/paradae/solvers/NewtonStats.h`                 |   35 | `SetType`                                | function/method name |
+| `src/extraSolvers/paradae/solvers/NewtonStats.h`                 |   36 | `SetNextStep`                            | function/method name |
+| `src/extraSolvers/paradae/solvers/NewtonStats.h`                 |   39 | `SetIL`                                  | function/method name |
+| `src/extraSolvers/paradae/solvers/NewtonStats.h`                 |   40 | `Add`                                    | function/method name |
+| `src/extraSolvers/paradae/solvers/NewtonStats.h`                 |   41 | `GlobalStats`                            | function/method name |
+| `src/extraSolvers/paradae/solvers/NewtonStats.h`                 |   42 | `PerStepStats`                           | function/method name |
+| `src/extraSolvers/paradae/solvers/NewtonStats.h`                 |   43 | `PerIterStats`                           | function/method name |
+| `src/extraSolvers/paradae/solvers/NewtonStats.h`                 |   44 | `PerLevelStats`                          | function/method name |
+| `src/extraSolvers/paradae/solvers/NewtonStats.h`                 |   45 | `ShowStats`                              | function/method name |
+| `src/extraSolvers/paradae/solvers/Solver.h`                      |   21 | `XNorm`                                  | function/method name |
+| `src/extraSolvers/paradae/solvers/Solver.h`                      |   22 | `FxNorm`                                 | function/method name |
+| `src/extraSolvers/paradae/solvers/Solver.h`                      |   23 | `XNorm`                                  | function/method name |
+| `src/extraSolvers/paradae/solvers/Solver.h`                      |   27 | `FxNorm`                                 | function/method name |
+| `src/extraSolvers/paradae/solvers/Solver.h`                      |   29 | `XNorm`                                  | function/method name |
+| `src/extraSolvers/paradae/solvers/Solver.h`                      |   31 | `SetTol`                                 | function/method name |
+| `src/extraSolvers/paradae/solvers/Solver.h`                      |   33 | `GetCurrentJacobian`                     | function/method name |
+| `src/extraSolvers/paradae/solvers/Solver.h`                      |   34 | `ForceUpdateJacobian`                    | function/method name |
+| `src/extraSolvers/paradae/solvers/Solver.h`                      |   42 | `ApproxJacobian`                         | function/method name |
+| `src/extraSolvers/paradae/solvers/Solver.h`                      |   43 | `ApproxJacobian`                         | function/method name |
+| `src/extraSolvers/paradae/solvers/Solver.h`                      |   52 | `Solve`                                  | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   52 | `EvaluateFunAndJac`                      | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   53 | `XNorm`                                  | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   54 | `FxNorm`                                 | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   55 | `XNorm`                                  | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   56 | `FxNorm`                                 | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   70 | `InitArray`                              | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   71 | `ComputeBDFCoeff_FS`                     | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   75 | `ComputeBDFCoeff_VS`                     | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   79 | `ComputeBDFCoeff_FLC`                    | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   88 | `AdvanceStep`                            | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   89 | `EstimateNextStepSize`                   | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   90 | `SetOrder`                               | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   91 | `GetOrder`                               | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   92 | `GetA`                                   | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   93 | `GetB`                                   | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   94 | `GetCoeff`                               | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   95 | `UseDxAsUnknown`                         | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   96 | `UseDxAsUnknown`                         | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |   99 | `GetType`                                | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |  100 | `IsFullyVariable`                        | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |  101 | `IsFullyVariable`                        | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |  102 | `GetCurrentJac`                          | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |  103 | `SetDenseMatrix`                         | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |  104 | `ComputeUnknown`                         | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |  108 | `ComputeUnknown`                         | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/BackwardDiff.h`        |  112 | `ComputeBDFCoeff`                        | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h`          |   29 | `XNorm`                                  | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h`          |   30 | `FxNorm`                                 | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h`          |   31 | `XNorm`                                  | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h`          |   32 | `FxNorm`                                 | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h`          |   33 | `EvaluateFunAndJac`                      | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h`          |   51 | `AdvanceStep`                            | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h`          |   52 | `EstimateNextStepSize`                   | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h`          |   58 | `SolveInnerSteps`                        | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h`          |   59 | `BuildSolverApp`                         | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h`          |   61 | `GetType`                                | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h`          |   64 | `GetA`                                   | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h`          |   65 | `GetB`                                   | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h`          |   66 | `GetBinf`                                | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta.h`          |   67 | `GetC`                                   | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_DIRK.h`     |   26 | `InitArray`                              | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_DIRK.h`     |   30 | `SetDenseMatrix`                         | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_DIRK.h`     |   31 | `BuildSolverApp`                         | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Explicit.h` |   15 | `SolveInnerSteps`                        | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Implicit.h` |   39 | `InitArray`                              | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Implicit.h` |   45 | `SolveInnerSteps`                        | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Implicit.h` |   46 | `BuildSolverApp`                         | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Implicit.h` |   47 | `GetCurrentJac`                          | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_Implicit.h` |   48 | `SetDenseMatrix`                         | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_SDIRK.h`    |   24 | `SetSolverStep`                          | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_SDIRK.h`    |   32 | `InitArray`                              | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_SDIRK.h`    |   36 | `SetDenseMatrix`                         | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_SDIRK.h`    |   37 | `BuildSolverApp`                         | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/RungeKutta_SDIRK.h`    |   38 | `SolveInnerSteps`                        | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |   59 | `Rotate`                                 | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |   60 | `RollBack`                               | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |   61 | `SetNextAtRoot`                          | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |   94 | `AdvanceStep`                            | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |   95 | `GetSizeX`                               | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |   96 | `GetNbSteps`                             | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |   97 | `SetBraid`                               | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |   98 | `SetDenseMatrix`                         | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |   99 | `SetNewtonSolverOpt`                     | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |  103 | `CopyNewtonSolverOpt`                    | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |  104 | `CheckRoots`                             | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |  105 | `PostStep`                               | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |  107 | `DoBraid`                                | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |  108 | `DoBraid`                                | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |  109 | `DoFalseVarstep`                         | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |  110 | `DoFalseVarstep`                         | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |  111 | `DoVarstep`                              | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |  112 | `DoVarstep`                              | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |  113 | `UseDenseMatrix`                         | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |  114 | `GetPState`                              | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |  116 | `GetOrder`                               | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |  117 | `GetNbStepsDone`                         | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |  118 | `GetEq`                                  | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |  121 | `GetType`                                | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |  122 | `SetRTol`                                | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |  123 | `SetATol`                                | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |  124 | `SetMaxRFactor`                          | function/method name |
+| `src/extraSolvers/paradae/timeintegrators/TimeIntegrator.h`      |  125 | `GetMaxRFactor`                          | function/method name |
+| `src/fileInput/loadSubObjectsElement.cpp`                        |  230 | `IgnoreListType`                         | function/method name |
+| `src/fmi/fmi_import1.cpp`                                        |   49 | `fmi1_test`                              | function/method name |
+| `src/fmi/fmi_import2.cpp`                                        |   49 | `fmi2_runModel`                          | function/method name |
+| `src/fmi/fmi_import2.cpp`                                        |   51 | `fmi2_test`                              | function/method name |
+| `src/fmi/fmi_import2.cpp`                                        |  143 | `fmi2_runModel`                          | function/method name |
+| `src/fmi/fmi_models/fmiMESubModel.h`                             |   83 | `LocalStateSizes`                        | function/method name |
+| `src/fmi/fmi_models/fmiMESubModel.h`                             |   85 | `LocalJacobianCount`                     | function/method name |
+| `src/fmi/fmi_models/fmiWrapper.hpp`                              |   84 | `inputNames_actual`                      | function/method name |
+| `src/fmi/fmi_models/fmiWrapper.hpp`                              |   85 | `outputNames_actual`                     | function/method name |
+| `src/fmi_export/fmiRunner.h`                                     |   49 | `Run`                                    | function/method name |
+| `src/fmi_export/fmiRunner.h`                                     |   54 | `Step`                                   | function/method name |
+| `src/fmi_export/fmiRunner.h`                                     |   55 | `StepAsync`                              | function/method name |
+| `src/fmi_export/fmiRunner.h`                                     |   56 | `Finalize`                               | function/method name |
+| `src/fmi_export/fmiRunner.h`                                     |   62 | `Reset`                                  | function/method name |
+| `src/formatInterpreters/jsonReaderElement.cpp`                   |  304 | `numeric_conversionComplete`             | function/method name |
+| `src/formatInterpreters/tomlReaderElement.cpp`                   |  159 | `numeric_conversionComplete`             | function/method name |
+| `src/formatInterpreters/tomlReaderElement.cpp`                   |  296 | `numeric_conversionComplete`             | function/method name |
+| `src/fskit/GridDynFederatedSimulator.h`                          |   38 | `Initialize`                             | function/method name |
+| `src/fskit/GridDynFederatedSimulator.h`                          |   40 | `StartCommunication`                     | function/method name |
+| `src/fskit/GridDynFederatedSimulator.h`                          |   42 | `TestCommunication`                      | function/method name |
+| `src/fskit/GridDynFederatedSimulator.h`                          |   46 | `Finalize`                               | function/method name |
+| `src/fskit/GridDynFederatedSimulator.h`                          |   52 | `StartTimeAdvancement`                   | function/method name |
+| `src/fskit/fskitCommunicator.h`                                  |   45 | `ProcessEventMessage`                    | function/method name |
+| `src/fskit/fskitRunner.cpp`                                      |   33 | `Initialize`                             | function/method name |
+| `src/fskit/fskitRunner.h`                                        |   30 | `Initialize`                             | function/method name |
+| `src/fskit/fskitRunner.h`                                        |   33 | `Initialize`                             | function/method name |
+| `src/fskit/fskitRunner.h`                                        |   35 | `Run`                                    | function/method name |
+| `src/fskit/fskitRunner.h`                                        |   36 | `Finalize`                               | function/method name |
+| `src/fskit/gridDynfskit.cpp`                                     |   29 | `griddyn_runner_main`                    | function/method name |
+| `src/fskit/protection-message.h`                                 |   34 | `GetMessageType`                         | function/method name |
+| `src/fskit/zonalRelayLogicalProcess.h`                           |   22 | `ProcessEventMessage`                    | function/method name |
+| `src/gridDynServer/gridDynServer.h`                              |  113 | `send_data`                              | function/method name |
+| `src/gridDynServer/gridDynServer.h`                              |  121 | `tcp_accept`                             | function/method name |
+| `src/gridDynServer/gridDynServer.h`                              |  123 | `command_loop`                           | function/method name |
+| `src/gridDynServer/gridDynServer.h`                              |  126 | `start_server`                           | function/method name |
+| `src/gridDynServer/gridDynServer.h`                              |  128 | `stop_server`                            | function/method name |
+| `src/griddyn/Generator.h`                                        |  118 | `LocalStateSizes`                        | function/method name |
+| `src/griddyn/Generator.h`                                        |  120 | `LocalJacobianCount`                     | function/method name |
+| `src/griddyn/GridArea.h`                                         |  143 | `LocalStateSizes`                        | function/method name |
+| `src/griddyn/GridArea.h`                                         |  145 | `LocalJacobianCount`                     | function/method name |
+| `src/griddyn/GridComponent.h`                                    |  383 | `LocalStateSizes`                        | function/method name |
+| `src/griddyn/GridComponent.h`                                    |  389 | `LocalJacobianCount`                     | function/method name |
+| `src/griddyn/GridComponentHelperClasses.h`                       |  297 | `JacobianReset`                          | function/method name |
+| `src/griddyn/GridComponentHelperClasses.h`                       |  351 | `JacobianCountReset`                     | function/method name |
+| `src/griddyn/OffsetTable.h`                                      |  196 | `JacobianUnload`                         | function/method name |
+| `src/griddyn/blocks/RampLimiter.h`                               |   51 | `DoutDin`                                | function/method name |
+| `src/griddyn/blocks/ValueLimiter.h`                              |   45 | `DoutDin`                                | function/method name |
+| `src/griddyn/comms/CommMessage.h`                                |   34 | `from_string`                            | function/method name |
+| `src/griddyn/comms/CommMessage.h`                                |  257 | `uint32_t`                               | function/method name |
+| `src/griddyn/comms/ControlMessage.h`                             |   70 | `from_string`                            | function/method name |
+| `src/griddyn/comms/SchedulerMessage.h`                           |   45 | `from_string`                            | function/method name |
+| `src/griddyn/events/Event.cpp`                                   |  450 | `make_event`                             | function/method name |
+| `src/griddyn/gridDynDefinitions.hpp`                             |   64 | `kMin_Res`                               | function/method name |
+| `src/griddyn/links/AdjustableTransformer.h`                      |  158 | `LocalStateSizes`                        | function/method name |
+| `src/griddyn/links/AdjustableTransformer.h`                      |  159 | `LocalJacobianCount`                     | function/method name |
+| `src/griddyn/links/AdjustableTransformer.h`                      |  185 | `MWJac`                                  | function/method name |
+| `src/griddyn/links/AdjustableTransformer.h`                      |  193 | `MVarJac`                                | function/method name |
+| `src/griddyn/links/AdjustableTransformer.h`                      |  226 | `MWControlAdjust`                        | function/method name |
+| `src/griddyn/links/AdjustableTransformer.h`                      |  232 | `MVarControlAdjust`                      | function/method name |
+| `src/griddyn/links/DcLink.h`                                     |   45 | `LocalStateSizes`                        | function/method name |
+| `src/griddyn/links/DcLink.h`                                     |   46 | `LocalJacobianCount`                     | function/method name |
+| `src/griddyn/loads/GridLabDLoad.h`                               |  114 | `run_dummy_load`                         | function/method name |
+| `src/griddyn/loads/GridLabDLoad.h`                               |  115 | `run_dummy_load_forward`                 | function/method name |
+| `src/griddyn/loads/MotorLoad.h`                                  |   76 | `LocalStateSizes`                        | function/method name |
+| `src/griddyn/loads/MotorLoad.h`                                  |   78 | `LocalJacobianCount`                     | function/method name |
+| `src/griddyn/loads/MotorLoad3.h`                                 |   48 | `LocalStateSizes`                        | function/method name |
+| `src/griddyn/loads/MotorLoad3.h`                                 |   50 | `LocalJacobianCount`                     | function/method name |
+| `src/griddyn/loads/MotorLoad5.h`                                 |   47 | `LocalStateSizes`                        | function/method name |
+| `src/griddyn/loads/MotorLoad5.h`                                 |   49 | `LocalJacobianCount`                     | function/method name |
+| `src/griddyn/measurement/Condition.cpp`                          |  123 | `make_condition`                         | function/method name |
+| `src/griddyn/primary/AcBus.h`                                    |  107 | `LocalStateSizes`                        | function/method name |
+| `src/griddyn/primary/AcBus.h`                                    |  109 | `LocalJacobianCount`                     | function/method name |
+| `src/griddyn/primary/DcBus.h`                                    |   52 | `LocalStateSizes`                        | function/method name |
+| `src/griddyn/primary/DcBus.h`                                    |   54 | `LocalJacobianCount`                     | function/method name |
+| `src/griddyn/relays/Breaker.h`                                   |   77 | `LocalStateSizes`                        | function/method name |
+| `src/griddyn/relays/Breaker.h`                                   |   79 | `LocalJacobianCount`                     | function/method name |
+| `src/griddyn/relays/Fuse.h`                                      |   73 | `LocalStateSizes`                        | function/method name |
+| `src/griddyn/relays/Fuse.h`                                      |   75 | `LocalJacobianCount`                     | function/method name |
+| `src/griddyn/relays/Fuse.h`                                      |   88 | `I2Tequation`                            | function/method name |
+| `src/griddyn/simulation/Diagnostics.cpp`                         |   69 | `JacobianCheck`                          | function/method name |
+| `src/griddyn/simulation/Diagnostics.h`                           |   38 | `JacobianCheck`                          | function/method name |
+| `src/griddyn/solvers/BasicOdeSolver.h`                           |   38 | `state_data`                             | function/method name |
+| `src/griddyn/solvers/BasicOdeSolver.h`                           |   39 | `deriv_data`                             | function/method name |
+| `src/griddyn/solvers/BasicOdeSolver.h`                           |   40 | `type_data`                              | function/method name |
+| `src/griddyn/solvers/BasicOdeSolver.h`                           |   42 | `state_data`                             | function/method name |
+| `src/griddyn/solvers/BasicOdeSolver.h`                           |   43 | `deriv_data`                             | function/method name |
+| `src/griddyn/solvers/BasicOdeSolver.h`                           |   44 | `type_data`                              | function/method name |
+| `src/griddyn/solvers/BasicSolver.h`                              |   49 | `state_data`                             | function/method name |
+| `src/griddyn/solvers/BasicSolver.h`                              |   50 | `deriv_data`                             | function/method name |
+| `src/griddyn/solvers/BasicSolver.h`                              |   51 | `type_data`                              | function/method name |
+| `src/griddyn/solvers/BasicSolver.h`                              |   53 | `state_data`                             | function/method name |
+| `src/griddyn/solvers/BasicSolver.h`                              |   54 | `deriv_data`                             | function/method name |
+| `src/griddyn/solvers/BasicSolver.h`                              |   55 | `type_data`                              | function/method name |
+| `src/griddyn/solvers/SolverInterface.h`                          |  165 | `state_data`                             | function/method name |
+| `src/griddyn/solvers/SolverInterface.h`                          |  170 | `deriv_data`                             | function/method name |
+| `src/griddyn/solvers/SolverInterface.h`                          |  175 | `type_data`                              | function/method name |
+| `src/griddyn/solvers/SolverInterface.h`                          |  180 | `state_data`                             | function/method name |
+| `src/griddyn/solvers/SolverInterface.h`                          |  185 | `deriv_data`                             | function/method name |
+| `src/griddyn/solvers/SolverInterface.h`                          |  190 | `type_data`                              | function/method name |
+| `src/griddyn/solvers/SolverInterface.h`                          |  356 | `check_flag`                             | function/method name |
+| `src/griddyn/solvers/SundialsInterface.cpp`                      |  366 | `MatrixNeedsSetup`                       | function/method name |
+| `src/griddyn/solvers/SundialsInterface.h`                        |  104 | `state_data`                             | function/method name |
+| `src/griddyn/solvers/SundialsInterface.h`                        |  105 | `deriv_data`                             | function/method name |
+| `src/griddyn/solvers/SundialsInterface.h`                        |  106 | `state_data`                             | function/method name |
+| `src/griddyn/solvers/SundialsInterface.h`                        |  107 | `deriv_data`                             | function/method name |
+| `src/griddyn/solvers/SundialsInterface.h`                        |  108 | `type_data`                              | function/method name |
+| `src/griddyn/solvers/SundialsInterface.h`                        |  109 | `type_data`                              | function/method name |
+| `src/griddyn/solvers/SundialsInterface.h`                        |  129 | `KLUReInit`                              | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  282 | `GridDynSimulationCreate`                | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  289 | `GridDynSimulationFree`                  | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  295 | `GridDynSimulationInitializeFromString`  | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  305 | `GridDynSimulationInitializeFromArgs`    | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  317 | `GridDynSimulationLoadfile`              | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  335 | `GridDynSimulationPowerflowInitialize`   | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  340 | `GridDynSimulationPowerflow`             | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  345 | `GridDynSimulationDynamicInitialize`     | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  350 | `GridDynSimulationReset`                 | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  356 | `GridDynSimulationGetCurrentTime`        | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  362 | `GridDynSimulationRun`                   | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  376 | `GridDynSimulationStep`                  | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  383 | `GridDynSimulationRunAsync`              | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  395 | `GridDynSimulationStepAsync`             | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  401 | `GridDynSimulationGetStatus`             | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  415 | `GridDynSimulationGetSolverKey`          | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  437 | `GridDynSimulationBusCount`              | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  442 | `GridDynSimulationLineCount`             | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  450 | `GridDynSimulationGetResults`            | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  467 | `GridDynSimulationGuessState`            | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  484 | `GridDynSimulationSetState`              | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  498 | `GridDynSimulationGetStateVariableTypes` | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  514 | `GridDynSimulationResidual`              | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  530 | `GridDynSimulationDerivative`            | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  546 | `GridDynSimulationAlgebraicUpdate`       | function/method name |
+| `src/griddyn_shared/griddyn_export.h`                            |  566 | `GridDynSimulationJacobian`              | function/method name |
+| `src/griddyn_shared/griddyn_exportMathFunctions.cpp`             |   44 | `GridDynSimulationBusCount`              | function/method name |
+| `src/griddyn_shared/griddyn_exportMathFunctions.cpp`             |   54 | `GridDynSimulationLineCount`             | function/method name |
+| `src/griddyn_shared/griddyn_exportMathFunctions.cpp`             |   64 | `GridDynSimulationGetResults`            | function/method name |
+| `src/griddyn_shared/griddyn_exportMathFunctions.cpp`             |   99 | `GridDynSimulationStateSize`             | function/method name |
+| `src/griddyn_shared/griddyn_exportMathFunctions.cpp`             |  115 | `GridDynSimulationGuessState`            | function/method name |
+| `src/griddyn_shared/griddyn_exportMathFunctions.cpp`             |  136 | `GridDynSimulationSetState`              | function/method name |
+| `src/griddyn_shared/griddyn_exportMathFunctions.cpp`             |  157 | `GridDynSimulationGetStateVariableTypes` | function/method name |
+| `src/griddyn_shared/griddyn_exportMathFunctions.cpp`             |  176 | `GridDynSimulationResidual`              | function/method name |
+| `src/griddyn_shared/griddyn_exportMathFunctions.cpp`             |  198 | `GridDynSimulationDerivative`            | function/method name |
+| `src/griddyn_shared/griddyn_exportMathFunctions.cpp`             |  219 | `GridDynSimulationAlgebraicUpdate`       | function/method name |
+| `src/griddyn_shared/griddyn_exportMathFunctions.cpp`             |  241 | `GridDynSimulationJacobian`              | function/method name |
+| `src/griddyn_shared/griddyn_exportSimulation.cpp`                |  146 | `GridDynSimulationCreate`                | function/method name |
+| `src/griddyn_shared/griddyn_exportSimulation.cpp`                |  180 | `GridDynSimulationFree`                  | function/method name |
+| `src/griddyn_shared/griddyn_exportSimulation.cpp`                |  187 | `GridDynSimulationInitializeFromString`  | function/method name |
+| `src/griddyn_shared/griddyn_exportSimulation.cpp`                |  200 | `GridDynSimulationInitializeFromArgs`    | function/method name |
+| `src/griddyn_shared/griddyn_exportSimulation.cpp`                |  215 | `GridDynSimulationLoadfile`              | function/method name |
+| `src/griddyn_shared/griddyn_exportSimulation.cpp`                |  240 | `GridDynSimulationAddCommand`            | function/method name |
+| `src/griddyn_shared/griddyn_exportSimulation.cpp`                |  256 | `GridDynSimulationRun`                   | function/method name |
+| `src/griddyn_shared/griddyn_exportSimulation.cpp`                |  272 | `GridDynSimulationRunTo`                 | function/method name |
+| `src/griddyn_shared/griddyn_exportSimulation.cpp`                |  290 | `GridDynSimulationStep`                  | function/method name |
+| `src/griddyn_shared/griddyn_exportSimulation.cpp`                |  302 | `GridDynSimulationRunAsync`              | function/method name |
+| `src/griddyn_shared/griddyn_exportSimulation.cpp`                |  318 | `GridDynSimulationRunToAsync`            | function/method name |
+| `src/griddyn_shared/griddyn_exportSimulation.cpp`                |  334 | `GridDynSimulationStepAsync`             | function/method name |
+| `src/griddyn_shared/griddyn_exportSimulation.cpp`                |  344 | `GridDynSimulationGetStatus`             | function/method name |
+| `src/griddyn_shared/griddyn_exportSimulation.cpp`                |  369 | `GridDynSimulationPowerflowInitialize`   | function/method name |
+| `src/griddyn_shared/griddyn_exportSimulation.cpp`                |  380 | `GridDynSimulationPowerflow`             | function/method name |
+| `src/griddyn_shared/griddyn_exportSimulation.cpp`                |  391 | `GridDynSimulationDynamicInitialize`     | function/method name |
+| `src/griddyn_shared/griddyn_exportSimulation.cpp`                |  402 | `GridDynSimulationReset`                 | function/method name |
+| `src/griddyn_shared/griddyn_exportSimulation.cpp`                |  415 | `GridDynSimulationGetCurrentTime`        | function/method name |
+| `src/helics/helicsRunner.h`                                      |   41 | `Run`                                    | function/method name |
+| `src/helics/helicsRunner.h`                                      |   43 | `Step`                                   | function/method name |
+| `src/helics/helicsRunner.h`                                      |   45 | `Finalize`                               | function/method name |
+| `src/networking/dimeClientInterface.cpp`                         |   79 | `InitFailure`                            | function/method name |
+| `src/networking/dimeClientInterface.cpp`                         |  112 | `SendFailure`                            | function/method name |
+| `src/networking/dimeClientInterface.cpp`                         |  127 | `SendFailure`                            | function/method name |
+| `src/networking/dimeRunner.h`                                    |   33 | `Run`                                    | function/method name |
+| `src/networking/dimeRunner.h`                                    |   35 | `Step`                                   | function/method name |
+| `src/networking/dimeRunner.h`                                    |   37 | `Finalize`                               | function/method name |
+| `src/optimization/optimizerInterface.h`                          |   44 | `val_data`                               | function/method name |
+| `src/runner/gridDynRunner.cpp`                                   |  109 | `Initialize`                             | function/method name |
+| `src/runner/gridDynRunner.cpp`                                   |  127 | `Reset`                                  | function/method name |
+| `src/runner/gridDynRunner.h`                                     |   48 | `Initialize`                             | function/method name |
+| `src/runner/gridDynRunner.h`                                     |   57 | `Initialize`                             | function/method name |
+| `src/runner/gridDynRunner.h`                                     |   67 | `Run`                                    | function/method name |
+| `src/runner/gridDynRunner.h`                                     |   73 | `RunAsync`                               | function/method name |
+| `src/runner/gridDynRunner.h`                                     |   82 | `Step`                                   | function/method name |
+| `src/runner/gridDynRunner.h`                                     |   90 | `StepAsync`                              | function/method name |
+| `src/runner/gridDynRunner.h`                                     |  104 | `Finalize`                               | function/method name |
+| `src/runner/gridDynRunner.h`                                     |  105 | `Reset`                                  | function/method name |
+| `src/runner/gridDynRunner.h`                                     |  106 | `Reset`                                  | function/method name |
+| `src/runner/gridDynRunner.h`                                     |  120 | `StopRecording`                          | function/method name |
+| `src/utilities/ThreePhaseFunctions.h`                            |   76 | `ABCtoPNZ_R`                             | function/method name |
+| `src/utilities/ThreePhaseFunctions.h`                            |   91 | `ABCtoPNZ_I`                             | function/method name |
+| `src/utilities/ThreePhaseFunctions.h`                            |  106 | `ThreePhasePowerPolar`                   | function/method name |
+| `src/utilities/functionInterpreter.cpp`                          |  432 | `mult_sum`                               | function/method name |
+| `src/utilities/indexTypes.hpp`                                   |   38 | `index_t`                                | function/method name |
+| `src/utilities/indexTypes.hpp`                                   |   42 | `count_t`                                | function/method name |
+| `src/utilities/matrixDataOrdered.hpp`                            |  158 | `ValueT`                                 | function/method name |
+| `src/utilities/matrixDataOrdered.hpp`                            |  161 | `ValueT`                                 | function/method name |
+| `src/utilities/matrixDataTranslate.hpp`                          |   55 | `ValueT`                                 | function/method name |
+| `test/gtestHelperFunctions.cpp`                                  |   21 | `TearDown`                               | function/method name |
+| `test/gtestHelperFunctions.cpp`                                  |  115 | `to_string`                              | function/method name |
+| `test/libraryTests/testOperatingBounds.cpp`                      |   16 | `Bound`                                  | function/method name |
 
 ## Member Variable Naming Patterns
 
-| File | Line | Name | Detail |
-| --- | ---: | --- | --- |
-| `src/core/ObjectFactory.hpp` | 86 | `m_factoryMap` | member-style variable |
-| `src/coupling/GhostSwingBusManager.cpp` | 25 | `m_mpiSendRequests` | member-style variable |
-| `src/coupling/GhostSwingBusManager.cpp` | 26 | `m_mpiRecvRequests` | member-style variable |
-| `src/coupling/GhostSwingBusManager.h` | 140 | `m_pInstance` | member-style variable |
-| `src/coupling/GhostSwingBusManager.h` | 142 | `m_numTasks` | member-style variable |
-| `src/coupling/GhostSwingBusManager.h` | 144 | `m_taskId` | member-style variable |
-| `src/coupling/GhostSwingBusManager.h` | 155 | `m_initializeCompleted` | member-style variable |
-| `src/coupling/GhostSwingBusManager.h` | 156 | `m_modelSpecificationMessages` | member-style variable |
-| `src/coupling/GhostSwingBusManager.h` | 171 | `m_nextTaskId` | member-style variable |
-| `src/coupling/GhostSwingBusManager.h` | 176 | `m_voltSendMessage` | member-style variable |
-| `src/coupling/GhostSwingBusManager.h` | 177 | `m_currReceiveMessage` | member-style variable |
-| `src/coupling/MpiService.h` | 88 | `m_pInstance` | member-style variable |
-| `src/extraSolvers/braid/braidSolver.cpp` | 213 | `N_unistep_` | member-style variable |
-| `src/gridDynServer/gridDynServer.h` | 23 | `socket_` | member-style variable |
-| `src/gridDynServer/gridDynServer.h` | 36 | `acceptor_` | member-style variable |
-| `src/gridDynServer/gridDynServer.h` | 49 | `socket_` | member-style variable |
-| `src/griddyn/comms/CommMessage.h` | 249 | `type_` | member-style variable |
-| `src/griddyn/comms/CommunicationsCore.cpp` | 19 | `m_pInstance` | member-style variable |
-| `src/griddyn/comms/SchedulerMessage.h` | 41 | `m_time` | member-style variable |
-| `src/griddyn/comms/SchedulerMessage.h` | 42 | `m_target` | member-style variable |
-| `src/griddyn/events/EventAdapters.h` | 182 | `m_eventObj` | member-style variable |
-| `src/griddyn/events/EventAdapters.h` | 266 | `evCode_` | member-style variable |
-| `src/griddyn/loads/ApproximatingLoad.h` | 83 | `m_lastCallTime` | member-style variable |
-| `src/griddyn/loads/GridLabDLoad.h` | 83 | `m_lastCallTime` | member-style variable |
-| `src/griddyn/simulation/Continuation.h` | 20 | `m_field` | member-style variable |
-| `src/griddyn/simulation/Continuation.h` | 21 | `m_startValue` | member-style variable |
-| `src/griddyn/simulation/Continuation.h` | 22 | `m_stepSize` | member-style variable |
-| `src/griddyn/simulation/Continuation.h` | 23 | `m_unitType` | member-style variable |
-| `src/griddyn/simulation/Continuation.h` | 26 | `m_currentStep` | member-style variable |
-| `src/griddyn/simulation/Continuation.h` | 46 | `m_currentStep` | member-style variable |
-| `src/helics/helicsCoordinator.h` | 70 | `subscriptionInfo_` | member-style variable |
-| `src/helics/helicsCoordinator.h` | 71 | `publicationInfo_` | member-style variable |
-| `src/helics/helicsCoordinator.h` | 72 | `endpointInfo_` | member-style variable |
-| `src/optimization/models/gridGenOpt.h` | 32 | `m_heatRate` | member-style variable |
-| `src/optimization/models/gridGenOpt.h` | 35 | `m_penaltyCost` | member-style variable |
-| `src/optimization/models/gridGenOpt.h` | 36 | `m_fuelCost` | member-style variable |
-| `src/optimization/models/gridGenOpt.h` | 37 | `m_Pmax` | member-style variable |
-| `src/optimization/models/gridGenOpt.h` | 38 | `m_Pmin` | member-style variable |
-| `src/optimization/models/gridGenOpt.h` | 39 | `m_forecast` | member-style variable |
-| `src/runner/gridDynRunner.h` | 122 | `m_gds` | member-style variable |
-| `src/utilities/assert.h` | 28 | `m_line` | member-style variable |
-| `src/utilities/matrixDataScale.hpp` | 17 | `scalingFactor_` | member-style variable |
-| `src/utilities/matrixDataSparse.hpp` | 220 | `data_` | member-style variable |
-| `test/systemTests/testGridDynRunner.cpp` | 35 | `m_currentGDTime` | member-style variable |
+| File                                       | Line | Name                           | Detail                |
+| ------------------------------------------ | ---: | ------------------------------ | --------------------- |
+| `src/core/ObjectFactory.hpp`               |   86 | `m_factoryMap`                 | member-style variable |
+| `src/coupling/GhostSwingBusManager.cpp`    |   25 | `m_mpiSendRequests`            | member-style variable |
+| `src/coupling/GhostSwingBusManager.cpp`    |   26 | `m_mpiRecvRequests`            | member-style variable |
+| `src/coupling/GhostSwingBusManager.h`      |  140 | `m_pInstance`                  | member-style variable |
+| `src/coupling/GhostSwingBusManager.h`      |  142 | `m_numTasks`                   | member-style variable |
+| `src/coupling/GhostSwingBusManager.h`      |  144 | `m_taskId`                     | member-style variable |
+| `src/coupling/GhostSwingBusManager.h`      |  155 | `m_initializeCompleted`        | member-style variable |
+| `src/coupling/GhostSwingBusManager.h`      |  156 | `m_modelSpecificationMessages` | member-style variable |
+| `src/coupling/GhostSwingBusManager.h`      |  171 | `m_nextTaskId`                 | member-style variable |
+| `src/coupling/GhostSwingBusManager.h`      |  176 | `m_voltSendMessage`            | member-style variable |
+| `src/coupling/GhostSwingBusManager.h`      |  177 | `m_currReceiveMessage`         | member-style variable |
+| `src/coupling/MpiService.h`                |   88 | `m_pInstance`                  | member-style variable |
+| `src/extraSolvers/braid/braidSolver.cpp`   |  213 | `N_unistep_`                   | member-style variable |
+| `src/gridDynServer/gridDynServer.h`        |   23 | `socket_`                      | member-style variable |
+| `src/gridDynServer/gridDynServer.h`        |   36 | `acceptor_`                    | member-style variable |
+| `src/gridDynServer/gridDynServer.h`        |   49 | `socket_`                      | member-style variable |
+| `src/griddyn/comms/CommMessage.h`          |  249 | `type_`                        | member-style variable |
+| `src/griddyn/comms/CommunicationsCore.cpp` |   19 | `m_pInstance`                  | member-style variable |
+| `src/griddyn/comms/SchedulerMessage.h`     |   41 | `m_time`                       | member-style variable |
+| `src/griddyn/comms/SchedulerMessage.h`     |   42 | `m_target`                     | member-style variable |
+| `src/griddyn/events/EventAdapters.h`       |  182 | `m_eventObj`                   | member-style variable |
+| `src/griddyn/events/EventAdapters.h`       |  266 | `evCode_`                      | member-style variable |
+| `src/griddyn/loads/ApproximatingLoad.h`    |   83 | `m_lastCallTime`               | member-style variable |
+| `src/griddyn/loads/GridLabDLoad.h`         |   83 | `m_lastCallTime`               | member-style variable |
+| `src/griddyn/simulation/Continuation.h`    |   20 | `m_field`                      | member-style variable |
+| `src/griddyn/simulation/Continuation.h`    |   21 | `m_startValue`                 | member-style variable |
+| `src/griddyn/simulation/Continuation.h`    |   22 | `m_stepSize`                   | member-style variable |
+| `src/griddyn/simulation/Continuation.h`    |   23 | `m_unitType`                   | member-style variable |
+| `src/griddyn/simulation/Continuation.h`    |   26 | `m_currentStep`                | member-style variable |
+| `src/griddyn/simulation/Continuation.h`    |   46 | `m_currentStep`                | member-style variable |
+| `src/helics/helicsCoordinator.h`           |   70 | `subscriptionInfo_`            | member-style variable |
+| `src/helics/helicsCoordinator.h`           |   71 | `publicationInfo_`             | member-style variable |
+| `src/helics/helicsCoordinator.h`           |   72 | `endpointInfo_`                | member-style variable |
+| `src/optimization/models/gridGenOpt.h`     |   32 | `m_heatRate`                   | member-style variable |
+| `src/optimization/models/gridGenOpt.h`     |   35 | `m_penaltyCost`                | member-style variable |
+| `src/optimization/models/gridGenOpt.h`     |   36 | `m_fuelCost`                   | member-style variable |
+| `src/optimization/models/gridGenOpt.h`     |   37 | `m_Pmax`                       | member-style variable |
+| `src/optimization/models/gridGenOpt.h`     |   38 | `m_Pmin`                       | member-style variable |
+| `src/optimization/models/gridGenOpt.h`     |   39 | `m_forecast`                   | member-style variable |
+| `src/runner/gridDynRunner.h`               |  122 | `m_gds`                        | member-style variable |
+| `src/utilities/assert.h`                   |   28 | `m_line`                       | member-style variable |
+| `src/utilities/matrixDataScale.hpp`        |   17 | `scalingFactor_`               | member-style variable |
+| `src/utilities/matrixDataSparse.hpp`       |  220 | `data_`                        | member-style variable |
+| `test/systemTests/testGridDynRunner.cpp`   |   35 | `m_currentGDTime`              | member-style variable |

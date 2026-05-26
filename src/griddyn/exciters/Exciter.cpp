@@ -203,9 +203,9 @@ void Exciter::rootTrigger(coreTime time,
 }
 
 ChangeCode Exciter::rootCheck(const IOdata& inputs,
-                               const stateData& /*stateData*/,
-                               const solverMode& /*solverMode*/,
-                               CheckLevel /*level*/)
+                              const stateData& /*stateData*/,
+                              const solverMode& /*solverMode*/,
+                              CheckLevel /*level*/)
 {
     const double eField = m_state[0];
     ChangeCode ret = ChangeCode::no_change;
@@ -291,4 +291,3 @@ const std::vector<stringVec>& Exciter::outputNames() const
 }
 
 }  // namespace griddyn
-

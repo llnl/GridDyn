@@ -401,4 +401,3 @@ TEST_F(PowerflowSystemTests, PflowTestLineModes)
         requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     }
 }
-

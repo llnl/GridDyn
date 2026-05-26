@@ -30,9 +30,9 @@ class ExciterDC2A: public ExciterDC1A {
                           double roots[],
                           const solverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
-                                  const solverMode& sMode,
-                                  CheckLevel level) override;
+                                 const stateData& sD,
+                                 const solverMode& sMode,
+                                 CheckLevel level) override;
 
   protected:
     virtual void
@@ -40,4 +40,3 @@ class ExciterDC2A: public ExciterDC1A {
 };
 
 }  // namespace griddyn::exciters
-

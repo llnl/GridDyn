@@ -586,9 +586,9 @@ void MotorLoad3::rootTrigger(coreTime /*time*/,
 }
 
 ChangeCode MotorLoad3::rootCheck(const IOdata& /*inputs*/,
-                                  const stateData& sD,
-                                  const solverMode& sMode,
-                                  CheckLevel /*level*/)
+                                 const stateData& sD,
+                                 const solverMode& sMode,
+                                 CheckLevel /*level*/)
 {
     if (opFlags[stalled]) {
         auto Loc = offsets.getLocations(sD, sMode, this);
@@ -681,4 +681,3 @@ double MotorLoad3::getReactivePower(double voltage) const
     return Qtemp * scale;
 }
 }  // namespace griddyn::loads
-

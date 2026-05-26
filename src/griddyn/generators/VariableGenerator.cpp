@@ -188,4 +188,3 @@ index_t variableGenerator::pSetLocation(const solverMode& sMode)
 }
 
 }  // namespace griddyn
-

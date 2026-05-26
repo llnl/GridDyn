@@ -97,8 +97,7 @@ count_t DcBus::LocalJacobianCount(const solverMode& sMode) const
     return localJacSize;
 }
 
-ChangeCode
-    DcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, CheckLevel level)
+ChangeCode DcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, CheckLevel level)
 {
     auto out = ChangeCode::no_change;
     // genP and genQ are defined negative for producing power so we flip the signs here
@@ -562,4 +561,3 @@ void DcBus::computePowerAdjustments()
 }
 
 }  // namespace griddyn
-

@@ -86,4 +86,3 @@ TEST_F(RootTests, TestBusDisable)
     simpleRunTestXML(fileName);
 }
 #endif
-

@@ -614,8 +614,8 @@ void adjustableTransformer::reset(ResetLevels level)
 }
 
 ChangeCode adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
-                                                   std::uint32_t flags,
-                                                   CheckLevel /*level*/)
+                                                  std::uint32_t flags,
+                                                  CheckLevel /*level*/)
 {
     if (CHECK_CONTROLFLAG(flags, disable_link_adjustments)) {
         return ChangeCode::no_change;
@@ -1357,4 +1357,3 @@ double adjustableTransformer::getValidTapRatio(double testTapValue) const
     return (std::round((testTapValue - minTap) / stepSize) * stepSize) + minTap;
 }
 }  // namespace griddyn::links
-

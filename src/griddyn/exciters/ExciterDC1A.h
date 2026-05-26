@@ -50,9 +50,9 @@ class ExciterDC1A: public ExciterIEEEtype1 {
                           double root[],
                           const solverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
-                                  const solverMode& sMode,
-                                  CheckLevel level) override;
+                                 const stateData& sD,
+                                 const solverMode& sMode,
+                                 CheckLevel level) override;
     // virtual void setTime(coreTime time){prevTime=time;};
   protected:
     /** @brief the Jacobian entries for the limiter
@@ -65,4 +65,3 @@ class ExciterDC1A: public ExciterIEEEtype1 {
     virtual void limitJacobian(double V, int Vloc, int refLoc, double cj, matrixData<double>& md);
 };
 }  // namespace griddyn::exciters
-

@@ -1021,8 +1021,7 @@ void GridDynSimulation::set(std::string_view param, double val, units::unit unit
     } else if (param == "defdynalg") {
         setDefaultMode(SolutionModes::algebraic_mode, getSolverMode(static_cast<index_t>(val)));
     } else if (param == "defdyndiff") {
-        setDefaultMode(SolutionModes::differential_mode,
-                       getSolverMode(static_cast<index_t>(val)));
+        setDefaultMode(SolutionModes::differential_mode, getSolverMode(static_cast<index_t>(val)));
     } else if (param == "maxvoltageadjustiterations") {
         max_Vadjust_iterations = static_cast<count_t>(val);
     } else {
@@ -1709,4 +1708,3 @@ static count_t searchForGridlabDobject(const CoreObject* obj)
 }
 
 }  // namespace griddyn
-

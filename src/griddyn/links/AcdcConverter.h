@@ -149,4 +149,3 @@ namespace links {
 
 }  // namespace links
 }  // namespace griddyn
-

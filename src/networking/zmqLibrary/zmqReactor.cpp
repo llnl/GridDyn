@@ -242,4 +242,3 @@ REACTOR_HALT:
 }
 
 }  // namespace zmqlib
-

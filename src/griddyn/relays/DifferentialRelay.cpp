@@ -215,4 +215,3 @@ void differentialRelay::receiveMessage(std::uint64_t /*sourceID*/,
 }
 
 }  // namespace griddyn::relays
-

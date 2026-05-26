@@ -966,4 +966,3 @@ int my_TimeGrid(braid_App app, /**< user-defined _braid_App structure */
     return 0;
 }
 }  // namespace griddyn::braid
-

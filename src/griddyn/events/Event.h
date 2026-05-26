@@ -155,4 +155,3 @@ inline bool operator==(const Event& event1, const Event& event2)
 }
 
 }  // namespace griddyn
-

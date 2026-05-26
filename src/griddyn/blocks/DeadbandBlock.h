@@ -88,9 +88,9 @@ class DeadbandBlock: public GridBlock {
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                  const stateData& stateDataRef,
-                                  const solverMode& sMode,
-                                  CheckLevel level) override;
+                                 const stateData& stateDataRef,
+                                 const solverMode& sMode,
+                                 CheckLevel level) override;
     /** @brief get the deadband state
 @return the state of the deadband block
 */
@@ -109,4 +109,3 @@ class DeadbandBlock: public GridBlock {
 };
 
 }  // namespace griddyn::blocks
-

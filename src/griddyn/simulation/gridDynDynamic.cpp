@@ -775,10 +775,8 @@ int GridDynSimulation::generateDaeDynamicInitialConditions(const solverMode& sMo
                  sMode,
                  ConvergeMode::single_iteration,
                  0.05);
-        retval = dynData->calcIC(currentTime,
-                                 probeStepTime,
-                                 SolverInterface::IcModes::fixed_diff,
-                                 true);
+        retval =
+            dynData->calcIC(currentTime, probeStepTime, SolverInterface::IcModes::fixed_diff, true);
     }
     if (retval == FUNCTION_EXECUTION_SUCCESS) {
         retval = checkAlgebraicRoots(dynData);
@@ -1227,4 +1225,3 @@ int GridDynSimulation::dynAlgebraicSolve(coreTime time,
 }
 
 }  // namespace griddyn
-

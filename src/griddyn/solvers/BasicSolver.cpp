@@ -228,4 +228,3 @@ namespace solvers {
 
 }  // namespace solvers
 }  // namespace griddyn
-

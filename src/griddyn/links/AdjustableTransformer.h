@@ -236,4 +236,3 @@ stepped
 };
 
 }  // namespace griddyn::links
-

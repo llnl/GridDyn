@@ -52,8 +52,7 @@ struct GridDynSimulationTestFixture {
     std::unique_ptr<griddyn::GridDynSimulation> gds2;
 
     void simpleRunTestXML(const std::string& fileName);
-    void runTestXML(const std::string& fileName,
-                    griddyn::GridDynSimulation::GridState finalState);
+    void runTestXML(const std::string& fileName, griddyn::GridDynSimulation::GridState finalState);
     void detailedStageCheck(const std::string& fileName,
                             griddyn::GridDynSimulation::GridState finalState);
     void simpleStageCheck(const std::string& fileName,
@@ -116,4 +115,3 @@ void printBusResultDeviations(const std::vector<double>& V1,
                               const std::vector<double>& V2,
                               const std::vector<double>& A1,
                               const std::vector<double>& A2);
-

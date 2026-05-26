@@ -26,4 +26,3 @@ class Newton: Solver {
     int Solve(Solver_App* app, Vector& x);
 };
 }  // namespace griddyn::paradae
-

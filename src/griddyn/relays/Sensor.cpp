@@ -905,9 +905,9 @@ void sensor::rootTrigger(coreTime time,
 }
 
 ChangeCode sensor::rootCheck(const IOdata& inputs,
-                              const stateData& sD,
-                              const solverMode& sMode,
-                              CheckLevel level)
+                             const stateData& sD,
+                             const solverMode& sMode,
+                             CheckLevel level)
 {
     ChangeCode ret = Relay::rootCheck(inputs, sD, sMode, level);
     if (stateSize(sMode) > 0) {
@@ -927,4 +927,3 @@ ChangeCode sensor::rootCheck(const IOdata& inputs,
 }
 }  // namespace griddyn
 // NOLINTEND
-

@@ -551,9 +551,9 @@ void MotorLoad5::rootTrigger(coreTime /*time*/,
 }
 
 ChangeCode MotorLoad5::rootCheck(const IOdata& /*inputs*/,
-                                  const stateData& sD,
-                                  const solverMode& sMode,
-                                  CheckLevel /*level*/)
+                                 const stateData& sD,
+                                 const solverMode& sMode,
+                                 CheckLevel /*level*/)
 {
     if (opFlags[stalled]) {
         auto Loc = offsets.getLocations(sD, sMode, this);
@@ -568,4 +568,3 @@ ChangeCode MotorLoad5::rootCheck(const IOdata& /*inputs*/,
     return ChangeCode::no_change;
 }
 }  // namespace griddyn::loads
-

@@ -63,8 +63,7 @@ TEST_F(ExtraPerformanceTests, PerformanceTests1)
                 std::cout << fileName << " did not complete power flow calculation\n";
                 break;
             }
-            ASSERT_EQ(gds->currentProcessState(),
-                      GridDynSimulation::GridState::POWERFLOW_COMPLETE);
+            ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
         }
         printf("%s load in %f powerflow in %f\n",
                mp.c_str(),
@@ -202,4 +201,3 @@ TEST_F(ExtraPerformanceTests, DynamicScalableTest)
 
     gds->run();
 }
-

@@ -579,4 +579,3 @@ void Solver_App_BDF::EvaluateFunAndJac(const Vector& x,
     // update_jacobian=true;
 }
 }  // namespace griddyn::paradae
-

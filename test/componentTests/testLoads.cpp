@@ -588,4 +588,3 @@ TEST_F(LoadTests, Secondary3PhaseLoadTest)
     auto Pa2 = ld3->get("pa");
     EXPECT_NEAR(Pa * 2.0, Pa2, 1e-5);
 }
-

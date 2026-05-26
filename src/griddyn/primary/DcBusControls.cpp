@@ -177,7 +177,7 @@ void DcBusControls::mergeBus(DcBus* mbus)
     if (controlledBus->getID() < mbus->getID()) {
         if (controlledBus->checkFlag(
                 DcBus::BusFlags::slave_bus))  // if we are already a slave forward the merge to the
-                                               // master
+                                              // master
         {
             masterBus->mergeBus(mbus);
         } else {
@@ -265,4 +265,3 @@ void DcBusControls::checkMerge()
 }
 
 }  // namespace griddyn
-

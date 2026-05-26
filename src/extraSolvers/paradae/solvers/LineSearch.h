@@ -22,4 +22,3 @@ class LinearSearch: Solver {
     int Solve(Solver_App* app, Vector& x);
 };
 }  // namespace griddyn::paradae
-

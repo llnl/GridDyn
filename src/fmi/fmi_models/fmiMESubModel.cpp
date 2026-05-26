@@ -1080,4 +1080,3 @@ void FmiMESubModel::loadOutputJac(int index)
 
 // NOLINTEND(readability-identifier-length,misc-const-correctness)
 }  // namespace griddyn::fmi
-

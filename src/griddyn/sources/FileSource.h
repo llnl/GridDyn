@@ -52,4 +52,3 @@ class fileSource: public rampSource {
     int loadFile();
 };
 }  // namespace griddyn::sources
-

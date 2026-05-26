@@ -61,4 +61,3 @@ class compoundEventPlayer: public compoundEvent {
     virtual void updateTrigger(coreTime time);
 };
 }  // namespace griddyn::events
-

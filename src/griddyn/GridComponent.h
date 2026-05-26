@@ -690,9 +690,9 @@ see GridComponent::dynInitializeA for more details
     @param[in] level the level of root to check for
     **/
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                  const stateData& stateDataValue,
-                                  const solverMode& sMode,
-                                  CheckLevel level);
+                                 const stateData& stateDataValue,
+                                 const solverMode& sMode,
+                                 CheckLevel level);
     /******************************************
     output functions
     *******************************************/
@@ -819,8 +819,7 @@ see GridComponent::dynInitializeA for more details
     @param[in] flags for suggesting how the object handle the adjustments
     * @param[in] level  the level of the adjustments to perform
     */
-    virtual ChangeCode
-        powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level);
+    virtual ChangeCode powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level);
     friend class offsetTable;
 };
 
@@ -831,4 +830,3 @@ see GridComponent::dynInitializeA for more details
 void printStateNames(const GridComponent* comp, const solverMode& sMode);
 
 }  // namespace griddyn
-

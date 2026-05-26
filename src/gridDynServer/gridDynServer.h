@@ -134,4 +134,3 @@ class gridDynServer {
     virtual void set(std::string_view param, int val);
     virtual void set(std::string_view param, std::string_view val) { return; }
 };
-

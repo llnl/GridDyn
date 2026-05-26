@@ -44,4 +44,3 @@ class ODEProblem {
     inline bool PrintAllITERSolution() { return print_all_iter_solution; };
 };
 }  // namespace griddyn::paradae
-

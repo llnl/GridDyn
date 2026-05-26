@@ -789,9 +789,9 @@ ChangeCode
 }
 
 ChangeCode AcLine::rootCheck(const IOdata& /*inputs*/,
-                              const stateData& sD,
-                              const solverMode& sMode,
-                              CheckLevel level)
+                             const stateData& sD,
+                             const solverMode& sMode,
+                             CheckLevel level)
 {
     auto ret = ChangeCode::no_change;
     if (level == CheckLevel::complete_state_check) {
@@ -1632,4 +1632,3 @@ void AcLine::loadApproxFunctions()
 
 // NOLINTEND(bugprone-branch-clone,misc-const-correctness,readability-else-after-return,readability-identifier-length,readability-math-missing-parentheses)
 }  // namespace griddyn
-

@@ -667,8 +667,7 @@ void GridArea::updateLocalCache(const IOdata& inputs, const stateData& sD, const
     }
 }
 
-ChangeCode
-    GridArea::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level)
+ChangeCode GridArea::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level)
 {
     auto ret = ChangeCode::no_change;
     opFlags.set(disable_flag_updates);  // this is so the adjustment object list can't get reset in
@@ -1434,9 +1433,9 @@ void GridArea::rootTest(const IOdata& inputs,
 }
 
 ChangeCode GridArea::rootCheck(const IOdata& inputs,
-                                const stateData& sD,
-                                const solverMode& sMode,
-                                CheckLevel level)
+                               const stateData& sD,
+                               const solverMode& sMode,
+                               CheckLevel level)
 {
     ChangeCode ret = ChangeCode::no_change;
     // root checks can trigger flag updates disable and just do the update once
@@ -1936,4 +1935,3 @@ GridArea* getMatchingGridArea(GridArea* area, gridPrimary* src, gridPrimary* sec
 }
 
 }  // namespace griddyn
-

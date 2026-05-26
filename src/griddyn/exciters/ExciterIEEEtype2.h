@@ -48,11 +48,10 @@ class ExciterIEEEtype2: public ExciterIEEEtype1 {
                           double roots[],
                           const solverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
-                                  const solverMode& sMode,
-                                  CheckLevel level) override;
+                                 const stateData& sD,
+                                 const solverMode& sMode,
+                                 CheckLevel level) override;
     // virtual void setTime(coreTime time){prevTime=time;};
 };
 
 }  // namespace griddyn::exciters
-

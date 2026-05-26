@@ -59,4 +59,3 @@ class txLifeSpan: public sensor {
 };
 
 }  // namespace griddyn::extra
-

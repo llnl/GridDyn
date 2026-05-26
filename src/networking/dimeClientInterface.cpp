@@ -134,4 +134,3 @@ void DimeClientInterface::broadcast(const std::string& varName, double val)
 }
 
 void DimeClientInterface::getDevices() {}
-

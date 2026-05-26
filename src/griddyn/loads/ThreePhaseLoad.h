@@ -79,8 +79,7 @@ conversions to positive sequence values.
         /** get the 3 phase real output power that based on the given voltage
     @param[in] V the bus voltage
     @return the real power consumed by the load*/
-        virtual IOdata getRealPower3Phase(const IOdata& V,
-                                          PhaseType type = PhaseType::abc) const;
+        virtual IOdata getRealPower3Phase(const IOdata& V, PhaseType type = PhaseType::abc) const;
         /** get the 3 phase reactive output power that based on the given voltage
     @param[in] V the bus voltage
     @return the reactive power consumed by the load*/
@@ -104,4 +103,3 @@ conversions to positive sequence values.
     };
 }  // namespace loads
 }  // namespace griddyn
-

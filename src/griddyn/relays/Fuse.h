@@ -91,4 +91,3 @@ class fuse: public Relay {
     ChangeCode blowFuse();
 };
 }  // namespace griddyn::relays
-

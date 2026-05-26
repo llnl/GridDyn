@@ -171,4 +171,3 @@ class Equation {
     virtual int GetNState() { return 0; };
 };
 }  // namespace griddyn::paradae
-

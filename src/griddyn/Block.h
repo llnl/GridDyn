@@ -198,9 +198,9 @@ class GridBlock: public GridSubModel {
                              const std::vector<int>& rootMask,
                              const solverMode& solverModeValue) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                  const stateData& stateDataValue,
-                                  const solverMode& solverModeValue,
-                                  CheckLevel level) override;
+                                 const stateData& stateDataValue,
+                                 const solverMode& solverModeValue,
+                                 CheckLevel level) override;
     // virtual void setTime(coreTime time){prevTime=time;};
     virtual stringVec localStateNames() const override;
     /** get the single output for the block
@@ -268,4 +268,3 @@ class GridBlock: public GridSubModel {
 std::unique_ptr<GridBlock> make_block(const std::string& blockstr);
 
 }  // namespace griddyn
-

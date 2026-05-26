@@ -126,4 +126,3 @@ class TimeIntegrator {
 };
 
 }  // namespace griddyn::paradae
-

@@ -157,8 +157,7 @@ void subsystem::updateLocalCache(const IOdata& inputs,
     subarea.updateLocalCache(inputs, stateData, sMode);
 }
 
-ChangeCode
-    subsystem::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level)
+ChangeCode subsystem::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level)
 {
     return subarea.powerFlowAdjust(inputs, flags, level);
 }
@@ -627,4 +626,3 @@ IOdata subsystem::getOutputs(id_type_t busId,
 }
 
 }  // namespace griddyn
-

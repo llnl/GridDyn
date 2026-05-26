@@ -111,12 +111,11 @@ void ControlSystem::rootTrigger(coreTime /*time*/,
 }
 
 ChangeCode ControlSystem::rootCheck(const IOdata& /*inputs*/,
-                                     const stateData& /*sD*/,
-                                     const solverMode& /*sMode*/,
-                                     CheckLevel /*level*/)
+                                    const stateData& /*sD*/,
+                                    const solverMode& /*sMode*/,
+                                    CheckLevel /*level*/)
 {
     return ChangeCode::no_change;
 }
 // virtual void setTime(coreTime time){prevTime=time;};
 }  // namespace griddyn
-

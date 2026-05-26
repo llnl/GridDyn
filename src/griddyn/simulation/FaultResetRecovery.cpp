@@ -106,10 +106,7 @@ int faultResetRecovery::faultResetFix1()
         }
     }
 
-    return solver->calcIC(timeCurr,
-                          sim->probeStepTime,
-                          SolverInterface::IcModes::fixed_diff,
-                          true);
+    return solver->calcIC(timeCurr, sim->probeStepTime, SolverInterface::IcModes::fixed_diff, true);
 }
 
 int faultResetRecovery::faultResetFix2(ResetLevels rlevel)
@@ -233,4 +230,3 @@ bool checkResetVoltages(const std::vector<double>& prev, const std::vector<doubl
 }
 
 }  // namespace griddyn
-

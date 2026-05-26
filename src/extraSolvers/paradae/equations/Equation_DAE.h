@@ -16,4 +16,3 @@ class Equation_DAE: public Equation {
     virtual TypeEquation GetTypeEq() { return DAE; };
 };
 }  // namespace griddyn::paradae
-

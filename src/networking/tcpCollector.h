@@ -35,4 +35,3 @@ class TcpCollector: public collector {
 };
 
 }  // namespace griddyn::tcpLib
-

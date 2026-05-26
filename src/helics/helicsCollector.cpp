@@ -207,4 +207,3 @@ const std::string& HelicsCollector::getSinkName() const
 }
 
 }  // namespace griddyn::helicsLib
-

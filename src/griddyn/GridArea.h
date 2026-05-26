@@ -290,9 +290,9 @@ class GridArea: public gridPrimary {
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
-                                  const solverMode& sMode,
-                                  CheckLevel level) override;
+                                 const stateData& sD,
+                                 const solverMode& sMode,
+                                 CheckLevel level) override;
     // grab information
     /** @brief get a vector of voltage from the attached buses
     @param[out] voltages the vector to put the bus voltages
@@ -499,4 +499,3 @@ class GridArea: public gridPrimary {
 GridArea* getMatchingGridArea(GridArea* area, gridPrimary* src, gridPrimary* sec);
 
 }  // namespace griddyn
-

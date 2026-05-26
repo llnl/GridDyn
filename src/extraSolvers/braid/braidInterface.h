@@ -72,4 +72,3 @@ class braidSolver: public SolverInterface {
     virtual void getRoots() override;
 };
 }  // namespace griddyn::braid
-

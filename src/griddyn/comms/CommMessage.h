@@ -356,4 +356,3 @@ class dPayloadFactory: public payloadFactory {
 };
 
 }  // namespace griddyn
-

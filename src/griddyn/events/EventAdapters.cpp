@@ -136,4 +136,3 @@ void functionEventAdapter::setExecutionMode(EventExecutionMode newMode)
 }
 
 }  // namespace griddyn
-

@@ -71,9 +71,9 @@ class NullBlock final: public GridBlock {
                              const std::vector<int>& rootMask,
                              const solverMode& solverModeValue) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                  const stateData& stateDataValue,
-                                  const solverMode& solverModeValue,
-                                  CheckLevel level) override;
+                                 const stateData& stateDataValue,
+                                 const solverMode& solverModeValue,
+                                 CheckLevel level) override;
     // virtual void setTime(coreTime time){prevTime=time;};
 
     virtual double getBlockOutput(const stateData& stateDataValue,
@@ -85,4 +85,3 @@ class NullBlock final: public GridBlock {
 };
 
 }  // namespace griddyn::blocks
-

@@ -158,4 +158,3 @@ TEST_F(GridLabTests, TestGridlabArray)
     gds->run();
     requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
-

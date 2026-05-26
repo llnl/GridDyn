@@ -153,9 +153,9 @@ class DynamicGenerator: public Generator {
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                  const stateData& stateDataValue,
-                                  const solverMode& sMode,
-                                  CheckLevel level) override;
+                                 const stateData& stateDataValue,
+                                 const solverMode& sMode,
+                                 CheckLevel level) override;
 
     using Generator::getReactivePower;
     using Generator::getRealPower;
@@ -217,4 +217,3 @@ class DynamicGenerator: public Generator {
 };
 
 }  // namespace griddyn
-

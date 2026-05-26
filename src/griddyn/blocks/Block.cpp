@@ -290,10 +290,7 @@ double GridBlock::step(coreTime time, double input)
                     m_state[offset] += cramp * (time - prevTime);
                 }
             } else {
-                rootCheck({input},
-                          emptyStateData,
-                          cLocalSolverMode,
-                          CheckLevel::reversable_only);
+                rootCheck({input}, emptyStateData, cLocalSolverMode, CheckLevel::reversable_only);
                 m_state[0] = vLimiter->clampOutput(m_state[1]);
             }
         }
@@ -312,10 +309,7 @@ double GridBlock::step(coreTime time, double input)
                 const auto offset = opFlags[differential_output] ?
                     (offsets.getDiffOffset(cLocalSolverMode)) + 1 :
                     1;
-                rootCheck(gKNullVec,
-                          emptyStateData,
-                          cLocalSolverMode,
-                          CheckLevel::reversable_only);
+                rootCheck(gKNullVec, emptyStateData, cLocalSolverMode, CheckLevel::reversable_only);
                 m_state[offset - 1] = vLimiter->clampOutput(m_state[offset]);
             }
         }
@@ -653,9 +647,9 @@ void GridBlock::rootTest(const IOdata& inputs,
 }
 
 ChangeCode GridBlock::rootCheck(const IOdata& inputs,
-                                 const stateData& stateDataValue,
-                                 const solverMode& solverModeValue,
-                                 CheckLevel /*level*/)
+                                const stateData& stateDataValue,
+                                const solverMode& solverModeValue,
+                                CheckLevel /*level*/)
 {
     ChangeCode ret = ChangeCode::no_change;
     if (!opFlags[has_limits]) {
@@ -976,4 +970,3 @@ std::unique_ptr<GridBlock> make_block(const std::string& blockstr)
     return ret;
 }
 }  // namespace griddyn
-

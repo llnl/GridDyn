@@ -139,8 +139,8 @@ class GridBus: public gridPrimary {
 
   public:
     virtual ChangeCode powerFlowAdjust(const IOdata& inputs,
-                                        std::uint32_t flags,
-                                        CheckLevel level) override;  // only applicable in pFlow
+                                       std::uint32_t flags,
+                                       CheckLevel level) override;  // only applicable in pFlow
     /** @brief  adjust the power levels of the contained adjustable secondary objects
     @param[in] adjustment the amount of the adjustment requested*/
     virtual void generationAdjust(double adjustment);
@@ -437,9 +437,9 @@ class GridBus: public gridPrimary {
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
-                                  const solverMode& sMode,
-                                  CheckLevel level) override;
+                                 const stateData& sD,
+                                 const solverMode& sMode,
+                                 CheckLevel level) override;
 
     friend bool compareBus(GridBus* bus1, GridBus* bus2, bool cmpValues, bool printDiff);
     virtual void updateFlags(bool dynOnly = false) override;
@@ -499,4 +499,3 @@ bool compareBus(GridBus* bus1, GridBus* bus2, bool cmpValues = false, bool print
 GridBus* getMatchingBus(GridBus* bus, const gridPrimary* src, gridPrimary* sec);
 
 }  // namespace griddyn
-

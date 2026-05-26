@@ -59,8 +59,8 @@ class DcBus: public GridBus {
 
   public:
     virtual ChangeCode powerFlowAdjust(const IOdata& inputs,
-                                        std::uint32_t flags,
-                                        CheckLevel level) override;  // only applicable in pFlow
+                                       std::uint32_t flags,
+                                       CheckLevel level) override;  // only applicable in pFlow
     // virtual  void generationAdjust(double adjustment);
     virtual void pFlowCheck(std::vector<Violation>& Violation_vector) override;
     // dynInitializeB dynamics
@@ -126,4 +126,3 @@ class DcBus: public GridBus {
 };
 
 }  // namespace griddyn
-

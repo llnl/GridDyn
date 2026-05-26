@@ -43,4 +43,3 @@ TEST_F(OutputTests, OutputTest1)
     EXPECT_EQ(diff, 0U);
     static_cast<void>(remove("testout.cdf"));
 }
-

@@ -62,4 +62,3 @@ class zonalRelay: public Relay {
     virtual std::string generateCommName() override;
 };
 }  // namespace griddyn::relays
-

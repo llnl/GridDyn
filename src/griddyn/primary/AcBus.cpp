@@ -551,8 +551,7 @@ double AcBus::getAverageAngle() const
     return angle;
 }
 
-ChangeCode
-    AcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, CheckLevel level)
+ChangeCode AcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, CheckLevel level)
 {
     auto out = ChangeCode::no_change;
     if (level == CheckLevel::low_voltage_check) {
@@ -2701,9 +2700,9 @@ double AcBus::get(std::string_view param, unit unitType) const
 }
 
 ChangeCode AcBus::rootCheck(const IOdata& inputs,
-                             const stateData& stateDataValue,
-                             const solverMode& sMode,
-                             CheckLevel level)
+                            const stateData& stateDataValue,
+                            const solverMode& sMode,
+                            CheckLevel level)
 {
     const double currentVoltage = getVoltage(stateDataValue, sMode);
     ChangeCode ret = ChangeCode::no_change;
@@ -2766,4 +2765,3 @@ ChangeCode AcBus::rootCheck(const IOdata& inputs,
 }
 
 }  // namespace griddyn
-

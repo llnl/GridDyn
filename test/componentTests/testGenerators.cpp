@@ -62,4 +62,3 @@ TEST_F(GeneratorTests, GenTestIsoc)
     remove(recname.c_str());
 }
 #endif
-

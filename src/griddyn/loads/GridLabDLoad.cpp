@@ -1001,9 +1001,9 @@ void GridLabDLoad::rootTrigger(coreTime time,
 }
 
 ChangeCode GridLabDLoad::rootCheck(const IOdata& inputs,
-                                    const stateData& sD,
-                                    const solverMode& /*sMode*/,
-                                    CheckLevel /*level*/)
+                                   const stateData& sD,
+                                   const solverMode& /*sMode*/,
+                                   CheckLevel /*level*/)
 {
     double V = inputs[voltageInLocation];
     if (std::abs(V - Vprev) > spread * triggerBound) {
@@ -1092,4 +1092,3 @@ void GridLabDLoad::run_dummy_load_forward(index_t kk, VoltageMessage* vm, Curren
 #endif  // GRIDDYN_ENABLE_MPI
 
 }  // namespace griddyn::loads
-

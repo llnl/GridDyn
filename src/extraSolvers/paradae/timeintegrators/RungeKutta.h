@@ -67,4 +67,3 @@ class RungeKutta: public TimeIntegrator {
     inline Vector& GetC() { return rk_c; };
 };
 }  // namespace griddyn::paradae
-

@@ -201,9 +201,9 @@ class AcLine: public Link {
                           const solverMode& sMode) override;
 
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
-                                  const solverMode& sMode,
-                                  CheckLevel level) override;
+                                 const stateData& sD,
+                                 const solverMode& sMode,
+                                 CheckLevel level) override;
 
     virtual bool testAndTrip(int tripLevel) override;
 
@@ -290,4 +290,3 @@ class AcLine: public Link {
 };
 
 }  // namespace griddyn
-

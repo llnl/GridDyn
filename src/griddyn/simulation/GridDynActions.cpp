@@ -308,4 +308,3 @@ void gridDynAction::process(std::string_view operation)
 }
 
 }  // namespace griddyn
-

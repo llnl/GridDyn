@@ -482,9 +482,9 @@ void MotorLoad::rootTrigger(coreTime /*time*/,
 }
 
 ChangeCode MotorLoad::rootCheck(const IOdata& inputs,
-                                 const stateData& /*sD*/,
-                                 const solverMode& /*sMode*/,
-                                 CheckLevel /*level*/)
+                                const stateData& /*sD*/,
+                                const solverMode& /*sMode*/,
+                                CheckLevel /*level*/)
 {
     if (opFlags[stalled]) {
         if (rPower(inputs[voltageInLocation] * Vcontrol, 1.0) - mechPower(1.0) > 0) {
@@ -615,4 +615,3 @@ double MotorLoad::qPower(double vin, double slip) const
     return reactivePowerOutput;
 }
 }  // namespace griddyn::loads
-

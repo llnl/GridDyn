@@ -404,9 +404,9 @@ void DeadbandBlock::rootTrigger(coreTime time,
 }
 
 ChangeCode DeadbandBlock::rootCheck(const IOdata& inputs,
-                                     const stateData& stateDataRef,
-                                     const solverMode& sMode,
-                                     CheckLevel /*level*/)
+                                    const stateData& stateDataRef,
+                                    const solverMode& sMode,
+                                    CheckLevel /*level*/)
 {
     ChangeCode ret = ChangeCode::no_change;
     if (opFlags[USES_DEADBAND]) {
@@ -498,8 +498,7 @@ ChangeCode DeadbandBlock::rootCheck(const IOdata& inputs,
     }
 
     if (limiter_alg > 0) {
-        auto iret =
-            GridBlock::rootCheck(inputs, stateDataRef, sMode, CheckLevel::reversable_only);
+        auto iret = GridBlock::rootCheck(inputs, stateDataRef, sMode, CheckLevel::reversable_only);
         ret = std::max(ret, iret);
     }
     return ret;
@@ -567,4 +566,3 @@ void DeadbandBlock::set(std::string_view param, double val, units::unit unitType
     }
 }
 }  // namespace griddyn::blocks
-

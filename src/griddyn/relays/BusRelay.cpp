@@ -124,4 +124,3 @@ void busRelay::actionTaken(index_t /*actionNum*/,
     }
 }
 }  // namespace griddyn::relays
-

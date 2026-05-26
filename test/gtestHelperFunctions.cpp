@@ -324,4 +324,3 @@ void printBusResultDeviations(const std::vector<double>& V1,
         }
     }
 }
-

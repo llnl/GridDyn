@@ -232,8 +232,7 @@ TEST_F(InputTests, DISABLED_CompareCases)
 
             gds2->powerflow();
 
-            ASSERT_EQ(gds2->currentProcessState(),
-                      GridDynSimulation::GridState::POWERFLOW_COMPLETE)
+            ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE)
                 << fname2 << " failed to complete";
 
             gds2->getVoltage(volts2);
@@ -309,4 +308,3 @@ TEST_F(InputTests, DISABLED_InputExecTest)
         }
     }
 }
-

@@ -527,5 +527,3 @@ void braidSolver::getRoots()
     }
 }
 }  // namespace griddyn::braid
-
-

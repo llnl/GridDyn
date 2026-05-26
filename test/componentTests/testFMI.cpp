@@ -417,4 +417,3 @@ TEST_F(FmiTests, FmiArray)
 }
 
 #endif
-

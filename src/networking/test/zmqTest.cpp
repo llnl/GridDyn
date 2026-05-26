@@ -175,4 +175,3 @@ TEST_F(ZmqTests, TestReactorB)
     EXPECT_EQ(count1, 2);
     EXPECT_EQ(count2, 4);
 }
-

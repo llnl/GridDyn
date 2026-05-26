@@ -212,9 +212,9 @@ void ExciterSEXS::rootTrigger(coreTime time,
 }
 
 ChangeCode ExciterSEXS::rootCheck(const IOdata& inputs,
-                                   const stateData& /*stateData*/,
-                                   const solverMode& /*solverMode*/,
-                                   CheckLevel /*level*/)
+                                  const stateData& /*stateData*/,
+                                  const solverMode& /*solverMode*/,
+                                  CheckLevel /*level*/)
 {
     const auto regulatorVoltage = regulatorOutput(inputs, m_state[1]);
     auto ret = ChangeCode::no_change;
@@ -248,4 +248,3 @@ ChangeCode ExciterSEXS::rootCheck(const IOdata& inputs,
 }
 
 }  // namespace griddyn::exciters
-

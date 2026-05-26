@@ -368,4 +368,3 @@ TEST_P(BlockCompareTests, BlockAlgDiffJacTest)
 }
 
 #endif
-

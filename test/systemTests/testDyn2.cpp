@@ -126,4 +126,3 @@ TEST_F(DynamicSystemTests2, DynTestPulseLoadChangePart)
     simpleRunTestXML(fileName);
 }
 #endif
-

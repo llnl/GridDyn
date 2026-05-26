@@ -88,4 +88,3 @@ TEST_F(AreaTests, AreaTestAdd)
         FAIL();
     }
 }
-

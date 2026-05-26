@@ -115,4 +115,3 @@ class BackwardDiff: public TimeIntegrator {
                          const Vector& dxprev);
 };
 }  // namespace griddyn::paradae
-

@@ -57,4 +57,3 @@ class Equation_ODE: public Equation {
     virtual TypeEquation GetTypeEq() { return ODE; };
 };
 }  // namespace griddyn::paradae
-

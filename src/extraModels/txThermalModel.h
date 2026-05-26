@@ -63,4 +63,3 @@ class txThermalModel: public sensor {
 };
 
 }  // namespace griddyn::extra
-

@@ -71,4 +71,3 @@ class gridDynAction {
     void reset();
 };
 }  // namespace griddyn
-

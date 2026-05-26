@@ -68,4 +68,3 @@ CEREAL_REGISTER_TYPE(griddyn::comms::schedulerMessagePayload)
 #if defined(__GNUC__) && !defined(__clang__)
 #    pragma GCC diagnostic pop
 #endif
-

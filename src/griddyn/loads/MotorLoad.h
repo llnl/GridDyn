@@ -118,9 +118,9 @@ class MotorLoad: public GridLoad {
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                  const stateData& stateDataValue,
-                                  const solverMode& sMode,
-                                  CheckLevel level) override;
+                                 const stateData& stateDataValue,
+                                 const solverMode& sMode,
+                                 CheckLevel level) override;
 
     /** @brief compute the mechanical torque on the motor as a function of slip
 @param[in]  slip  the slip on the motor
@@ -170,4 +170,3 @@ class MotorLoad: public GridLoad {
 };
 
 }  // namespace griddyn::loads
-

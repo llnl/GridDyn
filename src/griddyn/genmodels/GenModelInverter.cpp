@@ -452,9 +452,9 @@ void GenModelInverter::rootTrigger(coreTime /*time*/,
 }
 
 ChangeCode GenModelInverter::rootCheck(const IOdata& inputs,
-                                        const stateData& stateDataValue,
-                                        const solverMode& sMode,
-                                        CheckLevel /*level*/)
+                                       const stateData& stateDataValue,
+                                       const solverMode& sMode,
+                                       CheckLevel /*level*/)
 {
     if (rootSize(sMode) > 0) {
         auto Loc = offsets.getLocations(stateDataValue, sMode, this);
@@ -501,4 +501,3 @@ ChangeCode GenModelInverter::rootCheck(const IOdata& inputs,
 }
 
 }  // namespace griddyn::genmodels
-

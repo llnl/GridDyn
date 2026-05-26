@@ -204,8 +204,8 @@ class Generator: public gridSecondary {
     */
     virtual void generationAdjust(double adjustment);
     virtual ChangeCode powerFlowAdjust(const IOdata& inputs,
-                                        std::uint32_t flags,
-                                        CheckLevel level) override;  // only applicable in pFlow
+                                       std::uint32_t flags,
+                                       CheckLevel level) override;  // only applicable in pFlow
     virtual CoreObject* find(std::string_view object) const override;
     /** get the frequency the generator is operating at
     @param[in] stateDataValue the current stateData
@@ -233,4 +233,3 @@ class Generator: public gridSecondary {
 };
 
 }  // namespace griddyn
-

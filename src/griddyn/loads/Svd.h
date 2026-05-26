@@ -121,9 +121,9 @@ class Svd: public RampLoad {
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
-                                  const solverMode& sMode,
-                                  CheckLevel level) override;
+                                 const stateData& sD,
+                                 const solverMode& sMode,
+                                 CheckLevel level) override;
 
   protected:
     /** get the setting corresponding to a specific output level
@@ -137,4 +137,3 @@ class Svd: public RampLoad {
     virtual void updateSetting(int step);
 };
 }  // namespace griddyn::loads
-

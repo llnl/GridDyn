@@ -189,4 +189,3 @@ TEST_F(AdjustableTransformerTests, AdjTestContV)
     EXPECT_NEAR(st[1], 1.0, 1e-7);
     EXPECT_NEAR(st[2], 1.0, 1e-7);
 }
-

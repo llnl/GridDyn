@@ -107,4 +107,3 @@ const IOdata noInputs{};
 const IOlocs noInputLocs{};
 
 }  // namespace griddyn
-

@@ -271,9 +271,9 @@ void blockSource::rootTrigger(coreTime time,
 }
 
 ChangeCode blockSource::rootCheck(const IOdata& inputs,
-                                   const stateData& sD,
-                                   const solverMode& sMode,
-                                   CheckLevel level)
+                                  const stateData& sD,
+                                  const solverMode& sMode,
+                                  CheckLevel level)
 {
     double srcOut = m_output;
     double srcDout = 0.0;
@@ -394,4 +394,3 @@ CoreObject* blockSource::getSubObject(std::string_view typeName, index_t num) co
     return GridComponent::getSubObject(typeName, num);
 }
 }  // namespace griddyn::sources
-

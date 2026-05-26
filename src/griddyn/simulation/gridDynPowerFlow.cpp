@@ -534,4 +534,3 @@ int GridDynSimulation::algUpdateFunction(coreTime time,
     return FUNCTION_EXECUTION_SUCCESS;
 }
 }  // namespace griddyn
-

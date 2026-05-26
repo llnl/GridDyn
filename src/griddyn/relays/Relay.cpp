@@ -661,9 +661,9 @@ void Relay::rootTrigger(coreTime time,
 }
 
 ChangeCode Relay::rootCheck(const IOdata& /*inputs*/,
-                             const stateData& sD,
-                             const solverMode& /*sMode*/,
-                             CheckLevel /*level*/)
+                            const stateData& sD,
+                            const solverMode& /*sMode*/,
+                            CheckLevel /*level*/)
 {
     auto prevTrig = triggerCount;
     auto prevAct = actionsTakenCount;
@@ -732,8 +732,8 @@ void Relay::sendAlarm(std::uint32_t code)
 }
 
 ChangeCode Relay::triggerCondition(index_t conditionNum,
-                                    coreTime conditionTriggerTime,
-                                    coreTime minimumDelayTime)
+                                   coreTime conditionTriggerTime,
+                                   coreTime minimumDelayTime)
 {
     ChangeCode eventReturn = ChangeCode::no_change;
     cStates[conditionNum] = ConditionStatus::triggered;
@@ -780,8 +780,8 @@ ChangeCode Relay::executeAction(index_t actionNumber, index_t conditionNumber, c
 }
 
 ChangeCode Relay::multiConditionCheckExecute(index_t conditionNumber,
-                                              coreTime conditionTriggerTime,
-                                              coreTime minimumDelayTime)
+                                             coreTime conditionTriggerTime,
+                                             coreTime minimumDelayTime)
 {
     ChangeCode eventReturn = ChangeCode::no_change;
     // now check the multiCondition triggers
@@ -964,4 +964,3 @@ void Relay::getObjects(std::vector<CoreObject*>& objects) const
 }
 
 }  // namespace griddyn
-

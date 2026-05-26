@@ -588,9 +588,9 @@ void ApproximatingLoad::rootTrigger(coreTime time,
 }
 
 ChangeCode ApproximatingLoad::rootCheck(const IOdata& inputs,
-                                         const stateData& sD,
-                                         const solverMode& /*sMode*/,
-                                         CheckLevel /*level*/)
+                                        const stateData& sD,
+                                        const solverMode& /*sMode*/,
+                                        CheckLevel /*level*/)
 {
     double V = inputs[voltageInLocation];
     if (std::abs(V - Vprev) > spread * triggerBound) {
@@ -602,4 +602,3 @@ ChangeCode ApproximatingLoad::rootCheck(const IOdata& inputs,
 }
 
 }  // namespace griddyn::loads
-

@@ -88,4 +88,3 @@ class Recorder: public collector {
 };
 
 }  // namespace griddyn
-

@@ -65,4 +65,3 @@ TEST_F(GovernorTests, GovStabilityTest)
     }
     EXPECT_EQ(ncnt, 0);
 }
-

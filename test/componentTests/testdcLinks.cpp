@@ -105,4 +105,3 @@ TEST_F(HvdcTests, HvdcTest3)
     requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 #endif
-

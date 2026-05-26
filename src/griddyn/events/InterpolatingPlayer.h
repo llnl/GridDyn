@@ -51,4 +51,3 @@ class interpolatingPlayer: public Player {
 };
 }  // namespace griddyn::events
 #endif
-

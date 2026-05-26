@@ -116,8 +116,8 @@ class AcBus: public GridBus {
 
   public:
     virtual ChangeCode powerFlowAdjust(const IOdata& inputs,
-                                        std::uint32_t flags,
-                                        CheckLevel level) override;  // only applicable in pFlow
+                                       std::uint32_t flags,
+                                       CheckLevel level) override;  // only applicable in pFlow
     /** @brief  adjust the power levels of the contained adjustable secondary objects
     @param[in] adjustment the amount of the adjustment requested*/
     virtual void generationAdjust(double adjustment) override;
@@ -330,9 +330,9 @@ class AcBus: public GridBus {
     virtual double getFreq(const stateData& stateDataValue, const solverMode& sMode) const override;
 
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                  const stateData& stateDataValue,
-                                  const solverMode& sMode,
-                                  CheckLevel level) override;
+                                 const stateData& stateDataValue,
+                                 const solverMode& sMode,
+                                 CheckLevel level) override;
     /** @brief function used for returning the mode of the bus
      depends on the interaction of the SolverInterface and the bus type
     @param[in] sMode the corresponding solverMode to the state
@@ -416,4 +416,3 @@ class AcBus: public GridBus {
 };
 
 }  // namespace griddyn
-

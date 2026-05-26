@@ -281,4 +281,3 @@ TEST_F(ExciterTests, ExciterAlgDiffJacobianTests)
     }
 }
 #endif
-

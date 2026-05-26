@@ -266,9 +266,9 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
-                                  const solverMode& sMode,
-                                  CheckLevel level) override;
+                                 const stateData& sD,
+                                 const solverMode& sMode,
+                                 CheckLevel level) override;
     /** message processing function for use with communicators
     @param[in] sourceID  the source of the comm message
     @param[in] message the actual message to process
@@ -397,8 +397,8 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
     @param[in] minimumDelayTime  ignore all trigger delays below the minimumDelayTime
     */
     ChangeCode triggerCondition(index_t conditionNum,
-                                 coreTime conditionTriggerTime,
-                                 coreTime minimumDelayTime);
+                                coreTime conditionTriggerTime,
+                                coreTime minimumDelayTime);
 
     /** check and if all conditions hold execute a multi-condition trigger
     @param[in] conditionNum  the index of the condition that was just triggered that might also
@@ -407,8 +407,8 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
     @param[in] minimumDelayTime  ignore all trigger delays below the minimumDelayTime
     */
     ChangeCode multiConditionCheckExecute(index_t conditionNum,
-                                           coreTime conditionTriggerTime,
-                                           coreTime minimumDelayTime);
+                                          coreTime conditionTriggerTime,
+                                          coreTime minimumDelayTime);
     /** evaluate a condition awaiting a delay and execute the action if appropriate
     @param[in] cond the condition to check
     @param[in] checkTime the time to check
@@ -418,4 +418,3 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
 };
 
 }  // namespace griddyn
-

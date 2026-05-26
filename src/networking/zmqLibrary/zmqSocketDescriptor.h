@@ -59,4 +59,3 @@ class ZmqSocketDescriptor {
 };
 
 }  // namespace zmqlib
-

@@ -373,8 +373,8 @@ void Generator::timestep(coreTime time, const IOdata& inputs, const solverMode& 
 }
 
 ChangeCode Generator::powerFlowAdjust(const IOdata& /*inputs*/,
-                                       std::uint32_t /*flags*/,
-                                       CheckLevel /*level*/)
+                                      std::uint32_t /*flags*/,
+                                      CheckLevel /*level*/)
 {
     if (opFlags[at_limit]) {
         const double voltage = remoteBus->getVoltage();
@@ -821,4 +821,3 @@ double Generator::getAngle(const stateData& stateDataValue,
 }
 
 }  // namespace griddyn
-

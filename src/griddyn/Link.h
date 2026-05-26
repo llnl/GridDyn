@@ -355,4 +355,3 @@ more ,but it was useful during development
 bool compareLink(Link* lnk1, Link* lnk2, bool cmpBus = false, bool printDiff = false);
 
 }  // namespace griddyn
-

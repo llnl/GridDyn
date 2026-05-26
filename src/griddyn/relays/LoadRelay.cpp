@@ -220,4 +220,3 @@ commLink->transmit (commDestName, static_cast<int> (P.GetMessageType ()), P.size
 */
 }
 }  // namespace griddyn::relays
-

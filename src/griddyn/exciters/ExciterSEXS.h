@@ -62,13 +62,12 @@ class ExciterSEXS: public Exciter {
                      const std::vector<int>& rootMask,
                      const solverMode& solverMode) override;
     ChangeCode rootCheck(const IOdata& inputs,
-                          const stateData& stateData,
-                          const solverMode& solverMode,
-                          CheckLevel level) override;
+                         const stateData& stateData,
+                         const solverMode& solverMode,
+                         CheckLevel level) override;
 
   private:
     double regulatorOutput(const IOdata& inputs, const double stateX) const;
 };
 
 }  // namespace griddyn::exciters
-

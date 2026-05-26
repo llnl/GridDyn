@@ -350,8 +350,7 @@ void GridBus::reset(ResetLevels level)
     }
 }
 
-ChangeCode
-    GridBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, CheckLevel level)
+ChangeCode GridBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, CheckLevel level)
 {
     auto out = ChangeCode::no_change;
     IOdata inputs = {voltage, angle, freq};
@@ -1394,9 +1393,9 @@ double GridBus::get(std::string_view param, unit unitType) const
 }
 
 ChangeCode GridBus::rootCheck(const IOdata& /*inputs*/,
-                               const stateData& sD,
-                               const solverMode& sMode,
-                               CheckLevel level)
+                              const stateData& sD,
+                              const solverMode& sMode,
+                              CheckLevel level)
 {
     auto inputs = getOutputs(noInputs, sD, sMode);
     return GridComponent::rootCheck(inputs, sD, sMode, level);
@@ -1653,4 +1652,3 @@ GridBus* getMatchingBus(GridBus* bus, const gridPrimary* src, gridPrimary* sec)
 }
 
 }  // namespace griddyn
-

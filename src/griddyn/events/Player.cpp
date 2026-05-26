@@ -242,4 +242,3 @@ void Player::loadEventFile(const std::string& fileName)
     setNextValue();
 }
 }  // namespace griddyn::events
-

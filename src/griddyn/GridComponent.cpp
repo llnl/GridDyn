@@ -1841,9 +1841,9 @@ void GridComponent::rootTrigger(coreTime time,
 
 // NOLINTNEXTLINE(misc-no-recursion)
 ChangeCode GridComponent::rootCheck(const IOdata& inputs,
-                                     const stateData& stateDataValue,
-                                     const solverMode& sMode,
-                                     CheckLevel level)
+                                    const stateData& stateDataValue,
+                                    const solverMode& sMode,
+                                    CheckLevel level)
 {
     auto ret = ChangeCode::no_change;
 
@@ -2037,4 +2037,3 @@ void printStateNames(const GridComponent* comp, const solverMode& sMode)
 }
 
 }  // namespace griddyn
-

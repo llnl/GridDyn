@@ -387,4 +387,3 @@ bool corePayloadFactory::isValidMessage(std::string_view messageType)
 }
 
 }  // namespace griddyn
-

@@ -584,4 +584,3 @@ int idaJac(sunrealtype time,
 }
 
 }  // namespace griddyn::solvers
-

@@ -333,4 +333,3 @@ TEST_F(FmiExportTests, TestFmiRunner2)
         EXPECT_NEAR(diff, 0.0, 0.1);
     }
 }
-

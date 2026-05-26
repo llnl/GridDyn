@@ -61,9 +61,9 @@ namespace loads {
                                  const std::vector<int>& rootMask,
                                  const solverMode& sMode) override;
         virtual ChangeCode rootCheck(const IOdata& inputs,
-                                      const stateData& sD,
-                                      const solverMode& sMode,
-                                      CheckLevel level) override;
+                                     const stateData& sD,
+                                     const solverMode& sMode,
+                                     CheckLevel level) override;
         /** @brief return a count of the number of MPI objects the load requires*/
         int mpiCount() const;
         virtual void updateLocalCache(const IOdata& inputs,
@@ -117,4 +117,3 @@ namespace loads {
     };
 }  // namespace loads
 }  // namespace griddyn
-

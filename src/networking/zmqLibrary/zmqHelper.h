@@ -26,4 +26,3 @@ enum class SocketType : int;
 namespace zmqlib {
 zmq::SocketType socketTypeFromString(const std::string& socketType);
 }
-

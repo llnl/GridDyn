@@ -129,4 +129,3 @@ class ZipLoad: public GridLoad {
 bool compareLoad(ZipLoad* ld1, ZipLoad* ld2, bool printDiff = false);
 
 }  // namespace griddyn
-

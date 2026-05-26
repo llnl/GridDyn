@@ -61,14 +61,14 @@ ChangeCode reversibleEvent::trigger()
     if (stringEvent) {
         if (m_obj == nullptr) {
             armed = false;
-            return ChangeCode::execution_failure;
+            return ChangeCode::EXECUTION_FAILURE;
         }
         try {
             m_obj->set(field, newStringValue);
-            return ChangeCode::parameter_change;
+            return ChangeCode::PARAMETER_CHANGE;
         }
         catch (const std::invalid_argument&) {
-            return ChangeCode::execution_failure;
+            return ChangeCode::EXECUTION_FAILURE;
         }
 
     } else {
@@ -83,18 +83,18 @@ ChangeCode reversibleEvent::trigger(coreTime time)
         hasUndo = true;
     }
     if (stringEvent) {
-        ChangeCode ret = ChangeCode::not_triggered;
+        ChangeCode ret = ChangeCode::NOT_TRIGGERED;
         if (time >= triggerTime) {
             if (m_obj == nullptr) {
                 armed = false;
-                return ChangeCode::execution_failure;
+                return ChangeCode::EXECUTION_FAILURE;
             }
             try {
                 m_obj->set(field, newStringValue);
-                ret = ChangeCode::parameter_change;
+                ret = ChangeCode::PARAMETER_CHANGE;
             }
             catch (const std::invalid_argument&) {
-                ret = ChangeCode::execution_failure;
+                ret = ChangeCode::EXECUTION_FAILURE;
             }
             armed = false;
         }
@@ -138,7 +138,7 @@ ChangeCode reversibleEvent::undo()
         hasUndo = false;
         return Event::trigger();
     }
-    return ChangeCode::not_triggered;
+    return ChangeCode::NOT_TRIGGERED;
 }
 
 double reversibleEvent::query()
@@ -147,3 +147,4 @@ double reversibleEvent::query()
 }
 
 }  // namespace griddyn::events
+

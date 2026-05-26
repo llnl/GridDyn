@@ -161,7 +161,7 @@ ChangeCode Recorder::trigger(coreTime time)
         saveFile();
         mDataset.clear();
     }
-    return ChangeCode::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 
 void Recorder::flush()
@@ -173,3 +173,4 @@ const std::string& Recorder::getSinkName() const
     return getFileName();
 }
 }  // namespace griddyn
+

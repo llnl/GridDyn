@@ -418,23 +418,23 @@ description="Constant output value"
 variability="tunable"
 */
 
-static constexpr char ScalarVString[] = "ScalarVariable";
+static constexpr char scalarVString[] = "ScalarVariable";
 void FmiInfo::loadVariables(std::shared_ptr<readerElement>& readerElementPtr)
 {
     readerElementPtr->bookmark();
     readerElementPtr->moveToFirstChild("ModelVariables");
     // Loop over the variables to be able to allocate memory efficiently later on
-    readerElementPtr->moveToFirstChild(ScalarVString);
+    readerElementPtr->moveToFirstChild(scalarVString);
     int vcount = 0;
 
     while (readerElementPtr->isValid()) {
         ++vcount;
-        readerElementPtr->moveToNextSibling(ScalarVString);
+        readerElementPtr->moveToNextSibling(scalarVString);
     }
     variables.resize(vcount);
     readerElementPtr->moveToParent();
     // now load the variables
-    readerElementPtr->moveToFirstChild(ScalarVString);
+    readerElementPtr->moveToFirstChild(scalarVString);
     int variableIndex = 0;
     while (readerElementPtr->isValid()) {
         loadVariableInfo(readerElementPtr, variables[variableIndex]);
@@ -460,7 +460,7 @@ void FmiInfo::loadVariables(std::shared_ptr<readerElement>& readerElementPtr)
             default:
                 break;
         }
-        readerElementPtr->moveToNextSibling(ScalarVString);
+        readerElementPtr->moveToNextSibling(scalarVString);
         ++variableIndex;
     }
     readerElementPtr->restore();

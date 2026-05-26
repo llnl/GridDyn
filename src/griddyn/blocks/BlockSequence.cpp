@@ -255,7 +255,7 @@ ChangeCode BlockSequence::rootCheck(const IOdata& inputs,
                                     const solverMode& sMode,
                                     CheckLevel level)
 {
-    ChangeCode ret = ChangeCode::no_change;
+    ChangeCode ret = ChangeCode::NO_CHANGE;
     updateLocalCache(noInputs, stateData, sMode);
     const size_t cnt = sequence.size();
     IOdata inAct{!inputs.empty() ? inputs[0] + bias : kNullVal, getRateInput(inputs)};
@@ -336,3 +336,4 @@ CoreObject* BlockSequence::findByUserID(std::string_view typeName, index_t searc
 }
 
 }  // namespace griddyn::blocks
+

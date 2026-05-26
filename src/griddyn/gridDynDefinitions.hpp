@@ -64,14 +64,14 @@ constexpr double kWS50(50.0 * 2.0 * kPI);  // radians per second at 50 Hz
 constexpr double kMin_Res(1e-7);
 /** @brief enumeration of object changes that can occur throughout the simulation */
 enum class ChangeCode {
-    not_triggered = -2,  //!< no potential change was triggered
-    execution_failure = -1,  //!< the execution has failed
-    no_change = 0,  //!< there was no change
-    non_state_change = 1,  //!< a change occurred that cannot affect the states
-    parameter_change = 2,  //!< a parameter change occurred
-    jacobian_change = 3,  //!< a change to the number of non-zeros occurred
-    object_change = 4,  //!< a change in the number of number of objects occurred
-    state_count_change = 5,  //!< a change in the number of states occurred
+    NOT_TRIGGERED = -2,  //!< no potential change was triggered
+    EXECUTION_FAILURE = -1,  //!< the execution has failed
+    NO_CHANGE = 0,  //!< there was no change
+    NON_STATE_CHANGE = 1,  //!< a change occurred that cannot affect the states
+    PARAMETER_CHANGE = 2,  //!< a parameter change occurred
+    JACOBIAN_CHANGE = 3,  //!< a change to the number of non-zeros occurred
+    OBJECT_CHANGE = 4,  //!< a change in the number of number of objects occurred
+    STATE_SIZE_CHANGE = 5,  //!< a change in the number of states occurred
 };
 
 /* May at some point in the future convert all the set/get functions to use this in the function

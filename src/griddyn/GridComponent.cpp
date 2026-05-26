@@ -905,7 +905,7 @@ void GridComponent::reset(ResetLevels level)
 ChangeCode
     GridComponent::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level)
 {
-    auto ret = ChangeCode::no_change;
+    auto ret = ChangeCode::NO_CHANGE;
 
     for (auto& subobj : subObjectList) {
         if (!(subobj->checkFlag(has_powerflow_adjustments))) {
@@ -1845,7 +1845,7 @@ ChangeCode GridComponent::rootCheck(const IOdata& inputs,
                                     const solverMode& sMode,
                                     CheckLevel level)
 {
-    auto ret = ChangeCode::no_change;
+    auto ret = ChangeCode::NO_CHANGE;
 
     for (auto& subobj : subObjectList) {
         if (!(subobj->checkFlag(has_roots))) {
@@ -2037,3 +2037,4 @@ void printStateNames(const GridComponent* comp, const solverMode& sMode)
 }
 
 }  // namespace griddyn
+

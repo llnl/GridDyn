@@ -177,10 +177,10 @@ ChangeCode fuse::blowFuse()
     alert(this, FUSE_BLOWN_CURRENT);
     logging::normal(this, "Fuse {} blown on object {}", m_terminal, m_sourceObject->getName());
     opFlags.set(FUSE_BLOWN_FLAG);
-    ChangeCode cchange = ChangeCode::non_state_change;
+    ChangeCode cchange = ChangeCode::NON_STATE_CHANGE;
     if (mp_I2T > 0.0) {
         alert(this, JAC_COUNT_DECREASE);
-        cchange = ChangeCode::jacobian_change;
+        cchange = ChangeCode::JACOBIAN_CHANGE;
     }
     return std::max(triggerAction(0), cchange);
 }
@@ -203,7 +203,7 @@ ChangeCode fuse::setupFuseEvaluation()
     setConditionStatus(2, ConditionStatus::active);
     alert(this, JAC_COUNT_INCREASE);
     useI2T = true;
-    return ChangeCode::jacobian_change;
+    return ChangeCode::JACOBIAN_CHANGE;
 }
 
 stateSizes fuse::LocalStateSizes(const solverMode& sMode) const
@@ -380,3 +380,4 @@ void fuse::getStateName(stringVec& stNames,
 }
 }  // namespace griddyn::relays
 // NOLINTEND
+

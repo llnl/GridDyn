@@ -469,7 +469,7 @@ ChangeCode GenModelInverter::rootCheck(const IOdata& inputs,
                     opFlags.reset(at_angle_limits);
                     logging::debug(this, "reset angle limit-from root check");
                     algebraicUpdate(inputs, emptyStateData, m_state.data(), sMode, 1.0);
-                    return ChangeCode::jacobian_change;
+                    return ChangeCode::JACOBIAN_CHANGE;
                 }
             } else {
                 const double pmin = -realPowerCompute(inputs[genModelEftInLocation],
@@ -480,7 +480,7 @@ ChangeCode GenModelInverter::rootCheck(const IOdata& inputs,
                     opFlags.reset(at_angle_limits);
                     logging::debug(this, "reset angle limit- from root check");
                     algebraicUpdate(inputs, emptyStateData, m_state.data(), sMode, 1.0);
-                    return ChangeCode::jacobian_change;
+                    return ChangeCode::JACOBIAN_CHANGE;
                 }
             }
         } else {
@@ -493,11 +493,12 @@ ChangeCode GenModelInverter::rootCheck(const IOdata& inputs,
                 } else {
                     m_state[0] = minAngle;
                 }
-                return ChangeCode::jacobian_change;
+                return ChangeCode::JACOBIAN_CHANGE;
             }
         }
     }
-    return ChangeCode::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 
 }  // namespace griddyn::genmodels
+

@@ -142,16 +142,16 @@ ChangeCode compoundEvent::trigger()
                 ++index;
             }
         }
-        return ChangeCode::parameter_change;
+        return ChangeCode::PARAMETER_CHANGE;
     }
     catch (const std::invalid_argument&) {
-        return ChangeCode::execution_failure;
+        return ChangeCode::EXECUTION_FAILURE;
     }
 }
 
 ChangeCode compoundEvent::trigger(coreTime time)
 {
-    ChangeCode ret = ChangeCode::not_triggered;
+    ChangeCode ret = ChangeCode::NOT_TRIGGERED;
     if (time >= triggerTime) {
         try {
             if (targetObjects.empty()) {
@@ -163,10 +163,10 @@ ChangeCode compoundEvent::trigger(coreTime time)
                     ++index;
                 }
             }
-            ret = ChangeCode::parameter_change;
+            ret = ChangeCode::PARAMETER_CHANGE;
         }
         catch (const std::invalid_argument&) {
-            ret = ChangeCode::execution_failure;
+            ret = ChangeCode::EXECUTION_FAILURE;
         }
         armed = false;
     }
@@ -191,3 +191,4 @@ bool compoundEvent::setTarget(CoreObject* gdo, std::string_view var)
     return armed;
 }
 }  // namespace griddyn::events
+

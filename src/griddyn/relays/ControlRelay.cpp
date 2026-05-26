@@ -253,7 +253,7 @@ std::string controlRelay::generateAutoName(int code)
 ChangeCode controlRelay::executeAction(index_t actionNum)
 {
     if (!isValidIndex(actionNum, actions)) {
-        return ChangeCode::not_triggered;
+        return ChangeCode::NOT_TRIGGERED;
     }
     auto cact = actions[actionNum];
     if (!cact.executed) {
@@ -280,7 +280,7 @@ ChangeCode controlRelay::executeAction(index_t actionNum)
             ptr->m_value = val;
             ptr->m_time = prevTime;
             commLink->transmit(cact.sourceID, std::shared_ptr<commMessage>(std::move(gres)));
-            return ChangeCode::no_change;
+            return ChangeCode::NO_CHANGE;
         }
 
         try {
@@ -304,7 +304,7 @@ ChangeCode controlRelay::executeAction(index_t actionNum)
                 gres->getPayload<cm>()->m_actionID = cact.actionID;
                 commLink->transmit(cact.sourceID, std::move(gres));
             }
-            return ChangeCode::parameter_change;
+            return ChangeCode::PARAMETER_CHANGE;
         }
         catch (const std::invalid_argument&) {
             if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
@@ -313,10 +313,10 @@ ChangeCode controlRelay::executeAction(index_t actionNum)
                 gres->getPayload<cm>()->m_actionID = cact.actionID;
                 commLink->transmit(cact.sourceID, std::shared_ptr<commMessage>(std::move(gres)));
             }
-            return ChangeCode::execution_failure;
+            return ChangeCode::EXECUTION_FAILURE;
         }
     }
-    return ChangeCode::not_triggered;
+    return ChangeCode::NOT_TRIGGERED;
 }
 
 void controlRelay::updateObject(CoreObject* obj, ObjectUpdateMode mode)
@@ -400,3 +400,4 @@ index_t controlRelay::getFreeAction()
 }
 }  // namespace griddyn::relays
 // NOLINTEND
+

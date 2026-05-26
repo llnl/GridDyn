@@ -115,7 +115,8 @@ ChangeCode ControlSystem::rootCheck(const IOdata& /*inputs*/,
                                     const solverMode& /*sMode*/,
                                     CheckLevel /*level*/)
 {
-    return ChangeCode::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 // virtual void setTime(coreTime time){prevTime=time;};
 }  // namespace griddyn
+

@@ -208,7 +208,7 @@ ChangeCode Exciter::rootCheck(const IOdata& inputs,
                               CheckLevel /*level*/)
 {
     const double eField = m_state[0];
-    ChangeCode ret = ChangeCode::no_change;
+    ChangeCode ret = ChangeCode::NO_CHANGE;
     if (opFlags[outside_vlim]) {
         const double test = Vref + vBias - inputs[voltageInLocation];
         if (opFlags[etrigger_high]) {
@@ -216,13 +216,13 @@ ChangeCode Exciter::rootCheck(const IOdata& inputs,
                 opFlags.reset(outside_vlim);
                 opFlags.reset(etrigger_high);
                 alert(this, JAC_COUNT_INCREASE);
-                ret = ChangeCode::jacobian_change;
+                ret = ChangeCode::JACOBIAN_CHANGE;
             }
         } else {
             if (test > 0) {
                 opFlags.reset(outside_vlim);
                 alert(this, JAC_COUNT_INCREASE);
-                ret = ChangeCode::jacobian_change;
+                ret = ChangeCode::JACOBIAN_CHANGE;
             }
         }
     } else {
@@ -231,12 +231,12 @@ ChangeCode Exciter::rootCheck(const IOdata& inputs,
             opFlags.set(outside_vlim);
             m_state[0] = Vrmax;
             alert(this, JAC_COUNT_DECREASE);
-            ret = ChangeCode::jacobian_change;
+            ret = ChangeCode::JACOBIAN_CHANGE;
         } else if (eField < Vrmin - 0.0001) {
             opFlags.set(outside_vlim);
             m_state[0] = Vrmin;
             alert(this, JAC_COUNT_DECREASE);
-            ret = ChangeCode::jacobian_change;
+            ret = ChangeCode::JACOBIAN_CHANGE;
         }
     }
     return ret;
@@ -291,3 +291,4 @@ const std::vector<stringVec>& Exciter::outputNames() const
 }
 
 }  // namespace griddyn
+

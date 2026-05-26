@@ -562,9 +562,10 @@ ChangeCode MotorLoad5::rootCheck(const IOdata& /*inputs*/,
         if (Te - mechPower(1.0) > 0) {
             opFlags.reset(stalled);
             alert(this, JAC_COUNT_INCREASE);
-            return ChangeCode::jacobian_change;
+            return ChangeCode::JACOBIAN_CHANGE;
         }
     }
-    return ChangeCode::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 }  // namespace griddyn::loads
+

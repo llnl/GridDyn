@@ -408,7 +408,7 @@ ChangeCode DeadbandBlock::rootCheck(const IOdata& inputs,
                                     const solverMode& sMode,
                                     CheckLevel /*level*/)
 {
-    ChangeCode ret = ChangeCode::no_change;
+    ChangeCode ret = ChangeCode::NO_CHANGE;
     if (opFlags[USES_DEADBAND]) {
         const double inputWithBias = inputs[0] + bias;
         bool stateChanged = false;
@@ -492,7 +492,7 @@ ChangeCode DeadbandBlock::rootCheck(const IOdata& inputs,
             }
             stateChanged = (mDeadbandState != currentState);
             if (stateChanged) {
-                ret = ChangeCode::parameter_change;
+                ret = ChangeCode::PARAMETER_CHANGE;
             }
         } while (stateChanged);
     }
@@ -566,3 +566,4 @@ void DeadbandBlock::set(std::string_view param, double val, units::unit unitType
     }
 }
 }  // namespace griddyn::blocks
+

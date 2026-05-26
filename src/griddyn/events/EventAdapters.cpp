@@ -62,7 +62,7 @@ ChangeCode eventAdapter::execute(coreTime cTime)
     } else {
         m_nextTime = maxTime;
     }
-    return ChangeCode::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 
 bool compareEventAdapters(const std::shared_ptr<eventAdapter>& e1,
@@ -136,3 +136,4 @@ void functionEventAdapter::setExecutionMode(EventExecutionMode newMode)
 }
 
 }  // namespace griddyn
+

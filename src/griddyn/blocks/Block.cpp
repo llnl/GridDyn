@@ -651,7 +651,7 @@ ChangeCode GridBlock::rootCheck(const IOdata& inputs,
                                 const solverMode& solverModeValue,
                                 CheckLevel /*level*/)
 {
-    ChangeCode ret = ChangeCode::no_change;
+    ChangeCode ret = ChangeCode::NO_CHANGE;
     if (!opFlags[has_limits]) {
         return ret;
     }
@@ -665,7 +665,7 @@ ChangeCode GridBlock::rootCheck(const IOdata& inputs,
         const double limitValue = rLimiter->limitCheck(stateValues[doffset], testValue, testRate);
         if (limitValue < 0.0) {
             rLimiter->changeLimitActivation(testRate);
-            ret = ChangeCode::non_state_change;
+            ret = ChangeCode::NON_STATE_CHANGE;
         }
     }
     if (opFlags[use_block_limits]) {
@@ -673,7 +673,7 @@ ChangeCode GridBlock::rootCheck(const IOdata& inputs,
         const double limitValue = vLimiter->limitCheck(value);
         if (limitValue < 0.0) {
             vLimiter->changeLimitActivation(value);
-            ret = ChangeCode::non_state_change;
+            ret = ChangeCode::NON_STATE_CHANGE;
         }
     }
 
@@ -695,7 +695,7 @@ void GridBlock::rootTrigger(coreTime /*time*/,
             auto doffset = offsets.getDiffOffset(cLocalSolverMode);
             const double testRate = getTestRate(getRateInput(inputs), m_dstate_dt[doffset]);
             rLimiter->changeLimitActivation(testRate);
-            // ret = ChangeCode::non_state_change;
+            // ret = ChangeCode::NON_STATE_CHANGE;
         }
         ++roffset;
     }
@@ -970,3 +970,4 @@ std::unique_ptr<GridBlock> make_block(const std::string& blockstr)
     return ret;
 }
 }  // namespace griddyn
+

@@ -277,7 +277,7 @@ ChangeCode blockSource::rootCheck(const IOdata& inputs,
 {
     double srcOut = m_output;
     double srcDout = 0.0;
-    ChangeCode ret = ChangeCode::no_change;
+    ChangeCode ret = ChangeCode::NO_CHANGE;
     if (src != nullptr) {
         auto iret = src->rootCheck(inputs, sD, sMode, level);
         srcOut = src->getOutput(inputs, sD, sMode, 0);
@@ -394,3 +394,4 @@ CoreObject* blockSource::getSubObject(std::string_view typeName, index_t num) co
     return GridComponent::getSubObject(typeName, num);
 }
 }  // namespace griddyn::sources
+

@@ -106,7 +106,7 @@ int GridDynSimulation::dynInitialize(coreTime tStart)
             stateRecorder = std::make_shared<functionEventAdapter>(
                 [=, this]() {
                     saveStateBinary(this, stateFile, solverModeRef);
-                    return ChangeCode::no_change;
+                    return ChangeCode::NO_CHANGE;
                 },
                 state_record_period,
                 tStart);
@@ -307,7 +307,7 @@ int GridDynSimulation::dynamicDAE(coreTime tStop)
         setState(currentTime, dynData->state_data(), dynData->deriv_data(), sMode);
         updateLocalCache();
         const auto eventResult = EvQ->executeEvents(currentTime);
-        if (eventResult > ChangeCode::non_state_change) {
+        if (eventResult > ChangeCode::NON_STATE_CHANGE) {
             dynamicCheckAndReset(sMode);
             retval = generateDaeDynamicInitialConditions(sMode);
             if (retval != FUNCTION_EXECUTION_SUCCESS) {
@@ -485,7 +485,7 @@ int GridDynSimulation::dynamicPartitioned(coreTime tStop, coreTime tStep)
             setState(currentTime, dynDataAlg->state_data(), nullptr, sModeAlg);
             updateLocalCache();
             const auto eventResult = EvQ->executeEvents(currentTime);
-            if (eventResult > ChangeCode::non_state_change) {
+            if (eventResult > ChangeCode::NON_STATE_CHANGE) {
                 dynamicCheckAndReset(sModeDiff);
                 retval = generatePartitionedDynamicInitialConditions(sModeAlg, sModeDiff);
                 if (retval != FUNCTION_EXECUTION_SUCCESS) {
@@ -615,7 +615,7 @@ int GridDynSimulation::step(coreTime nextStep, coreTime& timeActual)
         setState(currentTime, dynData->state_data(), dynData->deriv_data(), solverModeRef);
 
         const auto eventResult = EvQ->executeEvents(currentTime);
-        if (eventResult > ChangeCode::no_change) {
+        if (eventResult > ChangeCode::NO_CHANGE) {
             dynamicCheckAndReset(solverModeRef);
             break;
         }
@@ -674,13 +674,13 @@ bool GridDynSimulation::dynamicCheckAndReset(const solverMode& sMode, ChangeCode
     if (opFlags[connectivity_change_flag]) {
         checkNetwork(NetworkCheckType::SIMPLIFIED);
     }
-    if ((opFlags[state_change_flag]) || (change == ChangeCode::state_count_change)) {
+    if ((opFlags[state_change_flag]) || (change == ChangeCode::STATE_SIZE_CHANGE)) {
         // we changed object states so we have to do a full reset
         if (checkEventsForDynamicReset(currentTime + probeStepTime, sMode)) {
             return true;
         }
         reInitDyn(sMode);
-    } else if ((opFlags[object_change_flag]) || (change == ChangeCode::object_change)) {
+    } else if ((opFlags[object_change_flag]) || (change == ChangeCode::OBJECT_CHANGE)) {
         // the object count changed
         if (checkEventsForDynamicReset(currentTime + probeStepTime, sMode)) {
             return true;
@@ -691,7 +691,7 @@ bool GridDynSimulation::dynamicCheckAndReset(const solverMode& sMode, ChangeCode
         } else {
             updateOffsets(sMode);
         }
-    } else if ((opFlags[jacobian_count_change_flag]) || (change == ChangeCode::jacobian_change)) {
+    } else if ((opFlags[jacobian_count_change_flag]) || (change == ChangeCode::JACOBIAN_CHANGE)) {
         if (checkEventsForDynamicReset(currentTime + probeStepTime, sMode)) {
             return true;
         }
@@ -851,7 +851,7 @@ int GridDynSimulation::checkAlgebraicRoots(std::shared_ptr<SolverInterface>& dyn
         const ChangeCode ret =
             rootCheck(noInputs, emptyStateData, cLocalSolverMode, CheckLevel::full_check);
         handleRootChange(sMode, dynData);
-        if (ret > ChangeCode::non_state_change) {
+        if (ret > ChangeCode::NON_STATE_CHANGE) {
             dynamicCheckAndReset(sMode, ret);
             int retval = dynData->calcIC(currentTime,
                                          probeStepTime,
@@ -1225,3 +1225,5 @@ int GridDynSimulation::dynAlgebraicSolve(coreTime time,
 }
 
 }  // namespace griddyn
+
+

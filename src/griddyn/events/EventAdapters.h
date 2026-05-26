@@ -147,7 +147,7 @@ class eventTypeAdapter: public eventAdapter {
     }
     virtual ChangeCode execute(coreTime cTime) override
     {
-        ChangeCode retval = ChangeCode::not_triggered;  // EVENT_NOT_TRIGGERED
+        ChangeCode retval = ChangeCode::NOT_TRIGGERED;  // EVENT_NOT_TRIGGERED
         int excnt = 0;
         while (m_nextTime <= cTime) {
             auto ret = m_eventObj->trigger(cTime);
@@ -231,7 +231,7 @@ class eventTypeAdapter<std::shared_ptr<Y>>: public eventAdapter {
     }
     ChangeCode execute(coreTime cTime) override
     {
-        ChangeCode retval = ChangeCode::not_triggered;  // EVENT_NOT_TRIGGERED
+        ChangeCode retval = ChangeCode::NOT_TRIGGERED;  // EVENT_NOT_TRIGGERED
         int excnt = 0;  //!< counter for protection against an event not behaving properly
         while (m_nextTime <= cTime) {
             auto ret = m_eventObj->trigger(cTime);
@@ -317,7 +317,7 @@ class eventTypeAdapter<CoreObject>: public eventAdapter {
         } else {
             m_nextTime = time;
         }
-        return ChangeCode::no_change;
+        return ChangeCode::NO_CHANGE;
     }
 
     virtual void updateTime() override { m_nextTime = targetObject->getNextUpdateTime(); }
@@ -367,3 +367,4 @@ class functionEventAdapter: public eventAdapter {
 };
 
 }  // namespace griddyn
+

@@ -352,7 +352,7 @@ void GridBus::reset(ResetLevels level)
 
 ChangeCode GridBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, CheckLevel level)
 {
-    auto out = ChangeCode::no_change;
+    auto out = ChangeCode::NO_CHANGE;
     IOdata inputs = {voltage, angle, freq};
     for (auto& gen : attachedGens) {
         if (gen->checkFlag(has_powerflow_adjustments)) {
@@ -1652,3 +1652,4 @@ GridBus* getMatchingBus(GridBus* bus, const gridPrimary* src, gridPrimary* sec)
 }
 
 }  // namespace griddyn
+

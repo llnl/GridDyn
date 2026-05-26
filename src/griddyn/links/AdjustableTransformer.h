@@ -215,18 +215,18 @@ which cases the parent of the link is searched for the bus*/
                     const solverMode& sMode);
     /** @brief do any stepped adjustments  based on voltage control from the power flow
 calculations
-@return ChangeCode::no_change if nothing was done,  PARAMETER_ADJUSTMENT if the tap changer was
+@return ChangeCode::NO_CHANGE if nothing was done,  PARAMETER_ADJUSTMENT if the tap changer was
 stepped
 */
     ChangeCode voltageControlAdjust();
     /** @brief do any stepped adjustments  based on MW control from the power flow calculations
-@return ChangeCode::no_change if nothing was done,  PARAMETER_ADJUSTMENT if the tap changer was
+@return ChangeCode::NO_CHANGE if nothing was done,  PARAMETER_ADJUSTMENT if the tap changer was
 stepped
 */
     ChangeCode MWControlAdjust();
     /** @brief do any stepped adjustments  based on MVAR control from the power flow
 calculations
-@return ChangeCode::no_change if nothing was done,  PARAMETER_ADJUSTMENT if the tap changer was
+@return ChangeCode::NO_CHANGE if nothing was done,  PARAMETER_ADJUSTMENT if the tap changer was
 stepped
 */
     ChangeCode MVarControlAdjust();
@@ -236,3 +236,4 @@ stepped
 };
 
 }  // namespace griddyn::links
+

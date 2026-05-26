@@ -145,7 +145,7 @@ int dynamicInitialConditionRecovery::dynamicFix2()
                                                               solver->getSolverMode(),
                                                               CheckLevel::complete_state_check);
             sim->handleRootChange(solver->getSolverMode(), solver);
-            if (rootCheckResult > ChangeCode::no_change) {
+            if (rootCheckResult > ChangeCode::NO_CHANGE) {
                 if (sim->dynamicCheckAndReset(solver->getSolverMode(), rootCheckResult)) {
                     retval = solver->calcIC(sim->getSimulationTime(),
                                             sim->probeStepTime,
@@ -167,7 +167,7 @@ int dynamicInitialConditionRecovery::dynamicFix2()
                                                               solver->getSolverMode(),
                                                               CheckLevel::reversable_only);
             sim->handleRootChange(solver->getSolverMode(), solver);
-            if (rootCheckResult > ChangeCode::non_state_change) {
+            if (rootCheckResult > ChangeCode::NON_STATE_CHANGE) {
                 if (sim->dynamicCheckAndReset(solver->getSolverMode(), rootCheckResult)) {
                     retval = solver->calcIC(sim->getSimulationTime(),
                                             sim->probeStepTime,
@@ -278,3 +278,4 @@ int dynamicInitialConditionRecovery::dynamicFix5()
 }
 
 }  // namespace griddyn
+

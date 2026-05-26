@@ -161,16 +161,16 @@ ChangeCode interpolatingPlayer::trigger()
 {
     try {
         m_obj->set(field, value, unitType);
-        return ChangeCode::parameter_change;
+        return ChangeCode::PARAMETER_CHANGE;
     }
     catch (const std::invalid_argument&) {
-        return ChangeCode::execution_failure;
+        return ChangeCode::EXECUTION_FAILURE;
     }
 }
 
 ChangeCode interpolatingPlayer::trigger(coreTime time)
 {
-    ChangeCode ret = ChangeCode::not_triggered;
+    ChangeCode ret = ChangeCode::NOT_TRIGGERED;
     if (time + kSmallTime >= triggerTime) {
         try {
             if (useSlopeField) {
@@ -180,13 +180,14 @@ ChangeCode interpolatingPlayer::trigger(coreTime time)
                 m_obj->set(field, value, unitType);
             }
 
-            ret = ChangeCode::parameter_change;
+            ret = ChangeCode::PARAMETER_CHANGE;
         }
         catch (const std::invalid_argument&) {
-            ret = ChangeCode::execution_failure;
+            ret = ChangeCode::EXECUTION_FAILURE;
         }
         updateTrigger(time);
     }
     return ret;
 }
 }  // namespace griddyn::events
+

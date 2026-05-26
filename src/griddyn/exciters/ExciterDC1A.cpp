@@ -198,21 +198,21 @@ ChangeCode ExciterDC1A::rootCheck(const IOdata& inputs,
 {
     double* es = m_state.data();
     double test;
-    ChangeCode ret = ChangeCode::no_change;
+    ChangeCode ret = ChangeCode::NO_CHANGE;
     if (opFlags[outside_vlim]) {
         test =
             ((Vref + vBias - inputs[voltageInLocation]) - es[0] * Kf / Tf + es[3]) * Ka * Tc / Tb +
             es[2] * (Tb - Tc) * Ka / Tb - es[1];
         if (opFlags[etrigger_high]) {
             if (test < 0.0) {
-                ret = ChangeCode::jacobian_change;
+                ret = ChangeCode::JACOBIAN_CHANGE;
                 opFlags.reset(outside_vlim);
                 opFlags.reset(etrigger_high);
                 alert(this, JAC_COUNT_INCREASE);
             }
         } else {
             if (test > 0.0) {
-                ret = ChangeCode::jacobian_change;
+                ret = ChangeCode::JACOBIAN_CHANGE;
                 opFlags.reset(outside_vlim);
                 alert(this, JAC_COUNT_INCREASE);
             }
@@ -222,13 +222,13 @@ ChangeCode ExciterDC1A::rootCheck(const IOdata& inputs,
             opFlags.set(etrigger_high);
             opFlags.set(outside_vlim);
             es[1] = Vrmax;
-            ret = ChangeCode::jacobian_change;
+            ret = ChangeCode::JACOBIAN_CHANGE;
             alert(this, JAC_COUNT_DECREASE);
         } else if (es[1] < Vrmin - 0.00001) {
             opFlags.reset(etrigger_high);
             opFlags.set(outside_vlim);
             es[1] = Vrmin;
-            ret = ChangeCode::jacobian_change;
+            ret = ChangeCode::JACOBIAN_CHANGE;
             alert(this, JAC_COUNT_DECREASE);
         }
     }
@@ -260,3 +260,4 @@ void ExciterDC1A::set(std::string_view param, double val, units::unit unitType)
 }
 
 }  // namespace griddyn::exciters
+

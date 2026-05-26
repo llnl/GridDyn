@@ -381,25 +381,25 @@ ChangeCode Generator::powerFlowAdjust(const IOdata& /*inputs*/,
         if (Q >= getQmax()) {
             if (voltage < m_Vtarget) {
                 opFlags.reset(at_limit);
-                return ChangeCode::parameter_change;
+                return ChangeCode::PARAMETER_CHANGE;
             }
         } else if (voltage > m_Vtarget) {
             opFlags.reset(at_limit);
-            return ChangeCode::parameter_change;
+            return ChangeCode::PARAMETER_CHANGE;
         }
     } else {
         if (Q > getQmax()) {
             opFlags.set(at_limit);
             Q = getQmax();
-            return ChangeCode::parameter_change;
+            return ChangeCode::PARAMETER_CHANGE;
         }
         if (Q < getQmin()) {
             opFlags.set(at_limit);
             Q = getQmin();
-            return ChangeCode::parameter_change;
+            return ChangeCode::PARAMETER_CHANGE;
         }
     }
-    return ChangeCode::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 
 void Generator::generationAdjust(double adjustment)
@@ -821,3 +821,4 @@ double Generator::getAngle(const stateData& stateDataValue,
 }
 
 }  // namespace griddyn
+

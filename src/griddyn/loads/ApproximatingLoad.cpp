@@ -596,9 +596,10 @@ ChangeCode ApproximatingLoad::rootCheck(const IOdata& inputs,
     if (std::abs(V - Vprev) > spread * triggerBound) {
         updateA((sD.empty()) ? (sD.time) : prevTime);
         updateB();
-        return ChangeCode::parameter_change;
+        return ChangeCode::PARAMETER_CHANGE;
     }
-    return ChangeCode::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 
 }  // namespace griddyn::loads
+

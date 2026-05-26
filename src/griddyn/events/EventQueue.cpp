@@ -83,10 +83,10 @@ void eventQueue::mapObjectsOnto(CoreObject* newRootObject)
 ChangeCode eventQueue::executeEvents(coreTime cTime)
 {
     if (events.front()->m_nextTime > cTime + timeTols) {
-        return ChangeCode::no_change;
+        return ChangeCode::NO_CHANGE;
     }
-    auto ret = ChangeCode::no_change;
-    auto eret = ChangeCode::no_change;
+    auto ret = ChangeCode::NO_CHANGE;
+    auto eret = ChangeCode::NO_CHANGE;
     if (!partB_list.empty()) {
         ret = executeEventsBonly();
     }
@@ -105,10 +105,10 @@ ChangeCode eventQueue::executeEvents(coreTime cTime)
 ChangeCode eventQueue::executeEventsAonly(coreTime cTime)
 {
     if (events.front()->m_nextTime > cTime + timeTols) {
-        return ChangeCode::no_change;
+        return ChangeCode::NO_CHANGE;
     }
-    auto ret = ChangeCode::no_change;
-    auto eret = ChangeCode::no_change;
+    auto ret = ChangeCode::NO_CHANGE;
+    auto eret = ChangeCode::NO_CHANGE;
 
     bool remove_events = false;
 
@@ -170,8 +170,8 @@ ChangeCode eventQueue::executeEventsAonly(coreTime cTime)
 
 ChangeCode eventQueue::executeEventsBonly()
 {
-    auto ret = ChangeCode::no_change;
-    auto eret = ChangeCode::no_change;
+    auto ret = ChangeCode::NO_CHANGE;
+    auto eret = ChangeCode::NO_CHANGE;
     std::lock_guard<std::mutex> lock(queuelock_);
     for (auto& currentEvent : partB_list) {
         eret = currentEvent->execute(currentEvent->m_nextTime);
@@ -263,3 +263,4 @@ void eventQueue::set(std::string_view param, double val)
 }
 
 }  // namespace griddyn
+

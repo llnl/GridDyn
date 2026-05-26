@@ -1009,9 +1009,9 @@ ChangeCode GridLabDLoad::rootCheck(const IOdata& inputs,
     if (std::abs(V - Vprev) > spread * triggerBound) {
         updateA((sD.empty()) ? (sD.time) : prevTime);
         updateB();
-        return ChangeCode::parameter_change;
+        return ChangeCode::PARAMETER_CHANGE;
     }
-    return ChangeCode::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 
 int GridLabDLoad::mpiCount() const
@@ -1092,3 +1092,4 @@ void GridLabDLoad::run_dummy_load_forward(index_t kk, VoltageMessage* vm, Curren
 #endif  // GRIDDYN_ENABLE_MPI
 
 }  // namespace griddyn::loads
+

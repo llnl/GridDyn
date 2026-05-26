@@ -280,7 +280,7 @@ ChangeCode collector::trigger(coreTime time)
     if (mTriggerTime > mStopTime) {
         mTriggerTime = maxTime;
     }
-    return ChangeCode::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 
 int collector::getColumn(int requestedColumn) const
@@ -490,3 +490,4 @@ std::unique_ptr<collector> makeCollector(std::string_view type, const std::strin
 }
 
 }  // namespace griddyn
+

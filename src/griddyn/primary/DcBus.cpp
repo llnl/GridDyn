@@ -99,7 +99,7 @@ count_t DcBus::LocalJacobianCount(const solverMode& sMode) const
 
 ChangeCode DcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, CheckLevel level)
 {
-    auto out = ChangeCode::no_change;
+    auto out = ChangeCode::NO_CHANGE;
     // genP and genQ are defined negative for producing power so we flip the signs here
     S.genP = -S.genP;
     if (!CHECK_CONTROLFLAG(flags, ignore_bus_limits)) {
@@ -120,7 +120,7 @@ ChangeCode DcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags,
                     }
                     type = BusType::PQ;
                     alert(this, JAC_COUNT_CHANGE);
-                    out = ChangeCode::jacobian_change;
+                    out = ChangeCode::JACOBIAN_CHANGE;
                     if (prevType == BusType::SLK) {
                         alert(this, SLACK_BUS_CHANGE);
                     }
@@ -137,7 +137,7 @@ ChangeCode DcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags,
                         //  }
                     }
                     alert(this, JAC_COUNT_CHANGE);
-                    out = ChangeCode::jacobian_change;
+                    out = ChangeCode::JACOBIAN_CHANGE;
                     if (prevType == BusType::SLK) {
                         alert(this, SLACK_BUS_CHANGE);
                     }
@@ -561,3 +561,4 @@ void DcBus::computePowerAdjustments()
 }
 
 }  // namespace griddyn
+

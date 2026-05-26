@@ -490,10 +490,10 @@ ChangeCode MotorLoad::rootCheck(const IOdata& inputs,
         if (rPower(inputs[voltageInLocation] * Vcontrol, 1.0) - mechPower(1.0) > 0) {
             opFlags.reset(stalled);
             alert(this, JAC_COUNT_INCREASE);
-            return ChangeCode::jacobian_change;
+            return ChangeCode::JACOBIAN_CHANGE;
         }
     }
-    return ChangeCode::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 
 double MotorLoad::getRealPower() const
@@ -615,3 +615,4 @@ double MotorLoad::qPower(double vin, double slip) const
     return reactivePowerOutput;
 }
 }  // namespace griddyn::loads
+

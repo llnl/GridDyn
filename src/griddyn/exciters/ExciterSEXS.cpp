@@ -217,7 +217,7 @@ ChangeCode ExciterSEXS::rootCheck(const IOdata& inputs,
                                   CheckLevel /*level*/)
 {
     const auto regulatorVoltage = regulatorOutput(inputs, m_state[1]);
-    auto ret = ChangeCode::no_change;
+    auto ret = ChangeCode::NO_CHANGE;
 
     if (opFlags[outside_vlim]) {
         if (opFlags[etrigger_high]) {
@@ -225,26 +225,27 @@ ChangeCode ExciterSEXS::rootCheck(const IOdata& inputs,
                 opFlags.reset(outside_vlim);
                 opFlags.reset(etrigger_high);
                 alert(this, JAC_COUNT_INCREASE);
-                ret = ChangeCode::jacobian_change;
+                ret = ChangeCode::JACOBIAN_CHANGE;
             }
         } else if (regulatorVoltage > Vrmin) {
             opFlags.reset(outside_vlim);
             alert(this, JAC_COUNT_INCREASE);
-            ret = ChangeCode::jacobian_change;
+            ret = ChangeCode::JACOBIAN_CHANGE;
         }
     } else if (regulatorVoltage > Vrmax + 0.00001) {
         opFlags.set(etrigger_high);
         opFlags.set(outside_vlim);
         alert(this, JAC_COUNT_DECREASE);
-        ret = ChangeCode::jacobian_change;
+        ret = ChangeCode::JACOBIAN_CHANGE;
     } else if (regulatorVoltage < Vrmin - 0.00001) {
         opFlags.reset(etrigger_high);
         opFlags.set(outside_vlim);
         alert(this, JAC_COUNT_DECREASE);
-        ret = ChangeCode::jacobian_change;
+        ret = ChangeCode::JACOBIAN_CHANGE;
     }
 
     return ret;
 }
 
 }  // namespace griddyn::exciters
+

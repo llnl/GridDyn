@@ -553,19 +553,19 @@ double AcBus::getAverageAngle() const
 
 ChangeCode AcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, CheckLevel level)
 {
-    auto out = ChangeCode::no_change;
+    auto out = ChangeCode::NO_CHANGE;
     if (level == CheckLevel::low_voltage_check) {
         if (!isConnected()) {
             return out;
         }
         if (voltage < 1e-8) {
             disconnect();
-            out = ChangeCode::jacobian_change;
+            out = ChangeCode::JACOBIAN_CHANGE;
         }
         if (opFlags[prev_low_voltage_alert]) {
             disconnect();
             opFlags.reset(prev_low_voltage_alert);
-            out = ChangeCode::jacobian_change;
+            out = ChangeCode::JACOBIAN_CHANGE;
         }
         return out;
     }
@@ -585,7 +585,7 @@ ChangeCode AcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags,
                     }
                     type = BusType::afix;
                     alert(this, JAC_COUNT_CHANGE);
-                    out = ChangeCode::jacobian_change;
+                    out = ChangeCode::JACOBIAN_CHANGE;
                 } else if (S.genQ > busController.Qmax) {
                     S.genQ = busController.Qmax;
                     for (auto& vco : busController.vControlObjects) {
@@ -593,7 +593,7 @@ ChangeCode AcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags,
                     }
                     type = BusType::afix;
                     alert(this, JAC_COUNT_CHANGE);
-                    out = ChangeCode::jacobian_change;
+                    out = ChangeCode::JACOBIAN_CHANGE;
                 }
 
                 break;
@@ -606,7 +606,7 @@ ChangeCode AcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags,
                                 type = BusType::PV;
                                 oCount++;
                                 alert(this, JAC_COUNT_CHANGE);
-                                out = ChangeCode::jacobian_change;
+                                out = ChangeCode::JACOBIAN_CHANGE;
                                 logging::trace(this, "changing from PQ to PV from low voltage");
                             }
                         }
@@ -617,7 +617,7 @@ ChangeCode AcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags,
                                 type = BusType::PV;
                                 oCount++;
                                 alert(this, JAC_COUNT_CHANGE);
-                                out = ChangeCode::jacobian_change;
+                                out = ChangeCode::JACOBIAN_CHANGE;
                                 logging::trace(this, "changing from PQ to PV from high voltage");
                             }
                         }
@@ -630,7 +630,7 @@ ChangeCode AcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags,
                                 type = BusType::SLK;
                                 oCount++;
                                 alert(this, JAC_COUNT_CHANGE);
-                                out = ChangeCode::jacobian_change;
+                                out = ChangeCode::JACOBIAN_CHANGE;
                             }
                         }
                     } else {
@@ -640,7 +640,7 @@ ChangeCode AcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags,
                                 type = BusType::SLK;
                                 oCount++;
                                 alert(this, JAC_COUNT_CHANGE);
-                                out = ChangeCode::jacobian_change;
+                                out = ChangeCode::JACOBIAN_CHANGE;
                             }
                         }
                     }
@@ -655,7 +655,7 @@ ChangeCode AcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags,
                     }
                     type = BusType::PQ;
                     alert(this, JAC_COUNT_CHANGE);
-                    out = ChangeCode::jacobian_change;
+                    out = ChangeCode::JACOBIAN_CHANGE;
                     logging::trace(this, "changing from PV to PQ from Qmin");
                 } else if (S.genQ > busController.Qmax) {
                     S.genQ = busController.Qmax;
@@ -664,7 +664,7 @@ ChangeCode AcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags,
                     }
                     type = BusType::PQ;
                     alert(this, JAC_COUNT_CHANGE);
-                    out = ChangeCode::jacobian_change;
+                    out = ChangeCode::JACOBIAN_CHANGE;
                     logging::trace(this, "changing from PV to PQ from Qmax");
                 }
                 break;
@@ -677,7 +677,7 @@ ChangeCode AcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags,
                                 type = BusType::SLK;
                                 oCount++;
                                 alert(this, JAC_COUNT_CHANGE);
-                                out = ChangeCode::jacobian_change;
+                                out = ChangeCode::JACOBIAN_CHANGE;
                             }
                         }
                     } else {
@@ -687,7 +687,7 @@ ChangeCode AcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags,
                                 type = BusType::SLK;
                                 oCount++;
                                 alert(this, JAC_COUNT_CHANGE);
-                                out = ChangeCode::jacobian_change;
+                                out = ChangeCode::JACOBIAN_CHANGE;
                             }
                         }
                     }
@@ -700,7 +700,7 @@ ChangeCode AcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags,
                     }
                     type = BusType::PQ;
                     alert(this, JAC_COUNT_CHANGE);
-                    out = ChangeCode::jacobian_change;
+                    out = ChangeCode::JACOBIAN_CHANGE;
                     if (prevType == BusType::SLK) {
                         alert(this, SLACK_BUS_CHANGE);
                     }
@@ -711,7 +711,7 @@ ChangeCode AcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags,
                         pco->set("p", "max");
                     }
                     alert(this, JAC_COUNT_CHANGE);
-                    out = ChangeCode::jacobian_change;
+                    out = ChangeCode::JACOBIAN_CHANGE;
                     if (prevType == BusType::SLK) {
                         alert(this, SLACK_BUS_CHANGE);
                     }
@@ -2705,21 +2705,21 @@ ChangeCode AcBus::rootCheck(const IOdata& inputs,
                             CheckLevel level)
 {
     const double currentVoltage = getVoltage(stateDataValue, sMode);
-    ChangeCode ret = ChangeCode::no_change;
+    ChangeCode ret = ChangeCode::NO_CHANGE;
     if (level == CheckLevel::low_voltage_check) {
         if (!isConnected()) {
             return ret;
         }
         if (currentVoltage < 1e-8) {
             disconnect();
-            ret = ChangeCode::jacobian_change;
+            ret = ChangeCode::JACOBIAN_CHANGE;
             logging::debug(this, "Bus low voltage disconnect");
         }
         if (opFlags[prev_low_voltage_alert]) {
             if (stateDataValue.time <= lowVtime) {
                 disconnect();
                 opFlags.reset(prev_low_voltage_alert);
-                ret = ChangeCode::jacobian_change;
+                ret = ChangeCode::JACOBIAN_CHANGE;
                 logging::debug(this, "Bus low voltage disconnect");
             } else {
                 opFlags.reset(prev_low_voltage_alert);
@@ -2740,7 +2740,7 @@ ChangeCode AcBus::rootCheck(const IOdata& inputs,
 
                     dynType = DynBusType::fixAngle;
                     alert(this, JAC_COUNT_DECREASE);
-                    ret = ChangeCode::jacobian_change;
+                    ret = ChangeCode::JACOBIAN_CHANGE;
                 }
             } else if (dynType == DynBusType::fixAngle) {
                 if (prevDynType == DynBusType::normal) {
@@ -2751,7 +2751,7 @@ ChangeCode AcBus::rootCheck(const IOdata& inputs,
                                 ->getMasterAngle(emptyStateData, cLocalSolverMode);
                         angle = angle + (newAngle - refAngle);
                         alert(this, JAC_COUNT_INCREASE);
-                        ret = ChangeCode::jacobian_change;
+                        ret = ChangeCode::JACOBIAN_CHANGE;
                     }
                 }
             }
@@ -2765,3 +2765,4 @@ ChangeCode AcBus::rootCheck(const IOdata& inputs,
 }
 
 }  // namespace griddyn
+

@@ -782,10 +782,10 @@ ChangeCode
     if ((level == CheckLevel::high_angle_trip) && (isConnected())) {
         if (std::abs(linkInfo.theta1) > kPI / 2.0 + 0.01) {
             disconnect();
-            return ChangeCode::jacobian_change;
+            return ChangeCode::JACOBIAN_CHANGE;
         }
     }
-    return ChangeCode::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 
 ChangeCode AcLine::rootCheck(const IOdata& /*inputs*/,
@@ -793,7 +793,7 @@ ChangeCode AcLine::rootCheck(const IOdata& /*inputs*/,
                              const solverMode& sMode,
                              CheckLevel level)
 {
-    auto ret = ChangeCode::no_change;
+    auto ret = ChangeCode::NO_CHANGE;
     if (level == CheckLevel::complete_state_check) {
         updateLocalCache(noInputs, sD, sMode);
         if (std::abs(linkInfo.theta1) > maxAngle) {
@@ -1632,3 +1632,4 @@ void AcLine::loadApproxFunctions()
 
 // NOLINTEND(bugprone-branch-clone,misc-const-correctness,readability-else-after-return,readability-identifier-length,readability-math-missing-parentheses)
 }  // namespace griddyn
+

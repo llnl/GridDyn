@@ -900,7 +900,7 @@ ChangeCode DynamicGenerator::rootCheck(const IOdata& inputs,
                                        const solverMode& sMode,
                                        CheckLevel level)
 {
-    auto ret = ChangeCode::no_change;
+    auto ret = ChangeCode::NO_CHANGE;
     updateLocalCache(inputs, stateDataValue, sMode);
 
     for (auto* sub : getSubObjects()) {
@@ -1158,3 +1158,4 @@ index_t DynamicGenerator::vSetLocation(const solverMode& sMode)
 }
 
 }  // namespace griddyn
+

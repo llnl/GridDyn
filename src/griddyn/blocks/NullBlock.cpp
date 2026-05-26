@@ -142,7 +142,7 @@ ChangeCode NullBlock::rootCheck(const IOdata& /*inputs*/,
                                 const solverMode& /*sMode*/,
                                 CheckLevel /*level*/)
 {
-    return ChangeCode::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 
 void NullBlock::rootTrigger(coreTime /*time*/,
@@ -178,3 +178,4 @@ double NullBlock::get(std::string_view param, units::unit unitType) const
 }
 
 }  // namespace griddyn::blocks
+

@@ -1657,7 +1657,7 @@ bool GridDynSimulation::checkEventsForDynamicReset(coreTime cTime, const solverM
 {
     if (EvQ->getNextTime() < cTime) {
         auto eventReturn = EvQ->executeEvents(cTime);
-        if (eventReturn > ChangeCode::non_state_change) {
+        if (eventReturn > ChangeCode::NON_STATE_CHANGE) {
             return dynamicCheckAndReset(sMode);
         }
     }
@@ -1708,3 +1708,4 @@ static count_t searchForGridlabDobject(const CoreObject* obj)
 }
 
 }  // namespace griddyn
+

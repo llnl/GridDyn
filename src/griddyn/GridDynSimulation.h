@@ -605,7 +605,7 @@ class GridDynSimulation: public GridSimulation {
     @param[in] sMode the solver Mode to reinitialize
     @param[in] change the adjustment mode
     */
-    void reInitpFlow(const solverMode& sMode, ChangeCode change = ChangeCode::no_change);
+    void reInitpFlow(const solverMode& sMode, ChangeCode change = ChangeCode::NO_CHANGE);
 
     /** @brief perform a global generator adjustment operation
     @param[in] adjustment the amount of power to distribute to the allowed generators
@@ -703,7 +703,7 @@ class GridDynSimulation: public GridSimulation {
     automatically detected
     @return true if the check did something, false if nothing has changed
     */
-    bool dynamicCheckAndReset(const solverMode& sMode, ChangeCode change = ChangeCode::no_change);
+    bool dynamicCheckAndReset(const solverMode& sMode, ChangeCode change = ChangeCode::NO_CHANGE);
 
     int handleStateChange(const solverMode& sMode);
     void handleRootChange(const solverMode& sMode, std::shared_ptr<SolverInterface>& dynData);
@@ -736,3 +736,4 @@ class GridDynSimulation: public GridSimulation {
 };
 
 }  // namespace griddyn
+

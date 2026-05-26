@@ -237,9 +237,7 @@ size_t Fmi2Object::serializedStateSize(fmi2FMUstate fmuState)
     }
     return serializedSize;
 }
-void Fmi2Object::serializeState(fmi2FMUstate fmuState,
-                                fmi2Byte serializedState[],
-                                size_t size)
+void Fmi2Object::serializeState(fmi2FMUstate fmuState, fmi2Byte serializedState[], size_t size)
 {
     auto ret = commonFunctions->fmi2SerializeFMUstate(comp, fmuState, serializedState, size);
     if (ret != fmi2Status::fmi2OK) {

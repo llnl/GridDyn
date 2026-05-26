@@ -148,9 +148,7 @@ class Fmi2Object {
     void getCurrentInputs(fmi2Real inputs[]);
     void getOutputs(fmi2Real outputs[]) const;
     fmi2Real getOutput(size_t outNum) const;
-    void deserializeState(const fmi2Byte serializedState[],
-                          size_t size,
-                          fmi2FMUstate* fmuState);
+    void deserializeState(const fmi2Byte serializedState[], size_t size, fmi2FMUstate* fmuState);
     void getDirectionalDerivative(const fmi2ValueReference vUnknownRef[],
                                   size_t nUnknown,
                                   const fmi2ValueReference vKnownRef[],

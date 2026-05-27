@@ -177,7 +177,7 @@ int main(int argc, char* argv[])
         }
 
         auto processState = simulation->currentProcessState();
-        if (processState >= griddyn::GridDynSimulation::gridState_t::DYNAMIC_COMPLETE) {
+        if (processState >= griddyn::GridDynSimulation::GridState::DYNAMIC_COMPLETE) {
             auto stateSize = simulation->getInt("dynstatesize");
             auto jacobianSize = simulation->getInt("dynnonzeros");
             auto summaryMessage = std::format(

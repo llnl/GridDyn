@@ -13,18 +13,18 @@
 #include <list>
 #include <map>
 
-enum BDF_STRAT {
-    nobdf,
-    usual,
-    usual_c,
-    uni0,
-    uni0_c,
-    uni1,
-    uni1_c,
-    inject,
-    inject_c,
-    extrap,
-    extrap_c
+enum BdfStrat {
+    NO_BDF,
+    USUAL,
+    USUAL_C,
+    UNI0,
+    UNI0_C,
+    UNI1,
+    UNI1_C,
+    INJECT,
+    INJECT_C,
+    EXTRAP,
+    EXTRAP_C
 };
 
 /*!< Basic Vector structure for braid driver
@@ -49,7 +49,7 @@ typedef struct _braid_App_struct {
     int nb_multisteps;
     int size_x; /*!< Size of the problem */
     int size_state;
-    BDF_STRAT bdf_strat;
+    BdfStrat bdf_strat;
     // bool do_bdf_uniform;
     // bool do_lowerorder; /*!< Do we lower the order of BDF method ? */
     int lowered_by_level; /*!< Lowered by how much each level ? */

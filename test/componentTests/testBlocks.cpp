@@ -40,7 +40,7 @@ TEST_F(BlockTests, TestGainBlock)
     dynamicInitializationCheck(fileName);
     gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
     gds->run();
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 
     std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
     TimeSeriesMulti<> ts3;
@@ -60,7 +60,7 @@ TEST_F(BlockTests, BlockTest2)
     dynamicInitializationCheck(fileName);
     gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
     gds->run();
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 
     std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
     TimeSeriesMulti<> ts3(recname);
@@ -79,7 +79,7 @@ TEST_F(BlockTests, BlockTest3)
     dynamicInitializationCheck(fileName);
     gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
     gds->run();
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 
     std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
     TimeSeriesMulti<> ts3(recname);
@@ -100,7 +100,7 @@ TEST_F(BlockTests, BlockTest4)
 
     gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
     gds->run();
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 
     std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
     TimeSeriesMulti<> ts3;
@@ -125,7 +125,7 @@ TEST_F(BlockTests, BlockTest5)
     dynamicInitializationCheck(fileName);
     gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
     gds->run();
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 
     std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
     TimeSeriesMulti<> ts3;
@@ -147,7 +147,7 @@ TEST_F(BlockTests, BlockTest6)
     dynamicInitializationCheck(fileName);
     gds->set("recorddirectory", BLOCK_TEST_DIRECTORY);
     gds->run();
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 
     std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
     TimeSeriesMulti<> ts3(recname);

@@ -54,6 +54,6 @@ class Equation_ODE: public Equation {
     {
         function_ode(t, y, state, dy);
     };
-    virtual type_Equation GetTypeEq() { return ODE; };
+    virtual TypeEquation GetTypeEq() { return ODE; };
 };
 }  // namespace griddyn::paradae

@@ -37,34 +37,34 @@ GridDynSimulationTestFixture::GridDynSimulationTestFixture()
 
 GridDynSimulationTestFixture::~GridDynSimulationTestFixture() = default;
 
-void GridDynSimulationTestFixture::checkState(griddyn::GridDynSimulation::gridState_t state)
+void GridDynSimulationTestFixture::checkState(griddyn::GridDynSimulation::GridState state)
 {
     EXPECT_EQ(to_string(gds->currentProcessState()), to_string(state));
 }
 
-void GridDynSimulationTestFixture::requireState(griddyn::GridDynSimulation::gridState_t state)
+void GridDynSimulationTestFixture::requireState(griddyn::GridDynSimulation::GridState state)
 {
     ASSERT_EQ(to_string(gds->currentProcessState()), to_string(state));
 }
 
-void GridDynSimulationTestFixture::checkState2(griddyn::GridDynSimulation::gridState_t state)
+void GridDynSimulationTestFixture::checkState2(griddyn::GridDynSimulation::GridState state)
 {
     EXPECT_EQ(to_string(gds2->currentProcessState()), to_string(state));
 }
 
-void GridDynSimulationTestFixture::requireState2(griddyn::GridDynSimulation::gridState_t state)
+void GridDynSimulationTestFixture::requireState2(griddyn::GridDynSimulation::GridState state)
 {
     ASSERT_EQ(to_string(gds2->currentProcessState()), to_string(state));
 }
 
-void checkStates(griddyn::GridDynSimulation::gridState_t state1,
-                 griddyn::GridDynSimulation::gridState_t state2)
+void checkStates(griddyn::GridDynSimulation::GridState state1,
+                 griddyn::GridDynSimulation::GridState state2)
 {
     EXPECT_EQ(to_string(state1), to_string(state2));
 }
 
-void requireStates(griddyn::GridDynSimulation::gridState_t state1,
-                   griddyn::GridDynSimulation::gridState_t state2)
+void requireStates(griddyn::GridDynSimulation::GridState state1,
+                   griddyn::GridDynSimulation::GridState state2)
 {
     ASSERT_EQ(to_string(state1), to_string(state2));
 }
@@ -87,30 +87,30 @@ static const std::string dpartStringRef(dpartString);
 static const std::string errorStringRef(errorString);
 static const std::string haltedStringRef(haltedString);
 static const std::string ukStringRef(ukString);
-const std::string& to_string(griddyn::GridDynSimulation::gridState_t state)
+const std::string& to_string(griddyn::GridDynSimulation::GridState state)
 {
     switch (state) {
-        case GridDynSimulation::gridState_t::STARTUP:
+        case GridDynSimulation::GridState::STARTUP:
             return startupStringRef;
-        case GridDynSimulation::gridState_t::INITIALIZED:
+        case GridDynSimulation::GridState::INITIALIZED:
             return initializedStringRef;
-        case GridDynSimulation::gridState_t::POWERFLOW_COMPLETE:
+        case GridDynSimulation::GridState::POWERFLOW_COMPLETE:
             return pflowStringRef;
-        case GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED:
+        case GridDynSimulation::GridState::DYNAMIC_INITIALIZED:
             return dinitStringRef;
-        case GridDynSimulation::gridState_t::DYNAMIC_PARTIAL:
+        case GridDynSimulation::GridState::DYNAMIC_PARTIAL:
             return dpartStringRef;
-        case GridDynSimulation::gridState_t::DYNAMIC_COMPLETE:
+        case GridDynSimulation::GridState::DYNAMIC_COMPLETE:
             return dcompStringRef;
-        case GridDynSimulation::gridState_t::GD_ERROR:
+        case GridDynSimulation::GridState::GD_ERROR:
             return errorStringRef;
-        case GridDynSimulation::gridState_t::HALTED:
+        case GridDynSimulation::GridState::HALTED:
             return haltedStringRef;
         default:
             return ukStringRef;
     }
 }
-std::ostream& operator<<(std::ostream& os, griddyn::GridDynSimulation::gridState_t state)
+std::ostream& operator<<(std::ostream& os, griddyn::GridDynSimulation::GridState state)
 {
     os << to_string(state);
     return os;
@@ -118,11 +118,11 @@ std::ostream& operator<<(std::ostream& os, griddyn::GridDynSimulation::gridState
 
 void GridDynSimulationTestFixture::simpleRunTestXML(const std::string& fileName)
 {
-    runTestXML(fileName, GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    runTestXML(fileName, GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 
 void GridDynSimulationTestFixture::runTestXML(const std::string& fileName,
-                                              GridDynSimulation::gridState_t finalState)
+                                              GridDynSimulation::GridState finalState)
 {
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
@@ -131,29 +131,29 @@ void GridDynSimulationTestFixture::runTestXML(const std::string& fileName,
 }
 
 void GridDynSimulationTestFixture::simpleStageCheck(const std::string& fileName,
-                                                    GridDynSimulation::gridState_t finalState)
+                                                    GridDynSimulation::GridState finalState)
 {
     readerConfig::setPrintMode(0);
     int retval = 0;
     gds = readSimXMLFile(fileName);
     ASSERT_EQ(readerConfig::warnCount, 0);
-    requireState(GridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::GridState::STARTUP);
     switch (finalState) {
-        case GridDynSimulation::gridState_t::STARTUP:
+        case GridDynSimulation::GridState::STARTUP:
             return;
-        case GridDynSimulation::gridState_t::INITIALIZED:
+        case GridDynSimulation::GridState::INITIALIZED:
             retval = gds->pFlowInitialize();
             EXPECT_EQ(retval, 0);
             return;
-        case GridDynSimulation::gridState_t::POWERFLOW_COMPLETE:
+        case GridDynSimulation::GridState::POWERFLOW_COMPLETE:
             retval = gds->powerflow();
             EXPECT_EQ(retval, 0);
             return;
-        case GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED:
+        case GridDynSimulation::GridState::DYNAMIC_INITIALIZED:
             retval = gds->dynInitialize();
             EXPECT_EQ(retval, 0);
             return;
-        case GridDynSimulation::gridState_t::DYNAMIC_COMPLETE:
+        case GridDynSimulation::GridState::DYNAMIC_COMPLETE:
             EXPECT_EQ(gds->run(), 0);
             return;
         default:
@@ -164,25 +164,25 @@ void GridDynSimulationTestFixture::simpleStageCheck(const std::string& fileName,
 }
 
 void GridDynSimulationTestFixture::detailedStageCheck(const std::string& fileName,
-                                                      GridDynSimulation::gridState_t finalState)
+                                                      GridDynSimulation::GridState finalState)
 {
     readerConfig::setPrintMode(0);
     gds = readSimXMLFile(fileName);
     ASSERT_EQ(readerConfig::warnCount, 0);
-    requireState(GridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::GridState::STARTUP);
     int retval = gds->pFlowInitialize();
     EXPECT_EQ(retval, 0);
-    requireState(GridDynSimulation::gridState_t::INITIALIZED);
+    requireState(GridDynSimulation::GridState::INITIALIZED);
     runJacobianCheck(gds, cPflowSolverMode);
 
-    if (finalState == GridDynSimulation::gridState_t::INITIALIZED) {
+    if (finalState == GridDynSimulation::GridState::INITIALIZED) {
         return;
     }
     gds->powerflow();
 
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
-    if (finalState == GridDynSimulation::gridState_t::POWERFLOW_COMPLETE) {
+    if (finalState == GridDynSimulation::GridState::POWERFLOW_COMPLETE) {
         return;
     }
     gds->dynInitialize();
@@ -190,16 +190,16 @@ void GridDynSimulationTestFixture::detailedStageCheck(const std::string& fileNam
 
     runJacobianCheck(gds, cDaeSolverMode);
 
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
-    if (finalState == GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED) {
+    requireState(GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
+    if (finalState == GridDynSimulation::GridState::DYNAMIC_INITIALIZED) {
         return;
     }
     retval = gds->run();
     ASSERT_EQ(retval, 0);
     if (gds->hasDynamics()) {
-        requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+        requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
     } else {
-        requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+        requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     }
 }
 

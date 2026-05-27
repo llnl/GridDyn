@@ -18,9 +18,9 @@
 #include <string>
 
 namespace griddyn::paradae {
-enum BDF_type { BDF_1 = 1, BDF_2 = 2, BDF_3 = 3, BDF_4 = 4, BDF_5 = 5, BDF_6 = 6 };
+enum BdfType { BDF_1 = 1, BDF_2 = 2, BDF_3 = 3, BDF_4 = 4, BDF_5 = 5, BDF_6 = 6 };
 
-enum BDF_error { BDF_ORDER_NOT_IMPLEMENTED, BDF_FAILED_IMPLICIT_STEP };
+enum BdfError { BDF_ORDER_NOT_IMPLEMENTED, BDF_FAILED_IMPLICIT_STEP };
 
 class BackwardDiff;
 
@@ -96,7 +96,7 @@ class BackwardDiff: public TimeIntegrator {
     inline bool& UseDxAsUnknown() { return use_dx_as_unknown; };
     virtual std::string GetName();
     virtual void show();
-    virtual TI_type GetType() { return BDF; };
+    virtual TiType GetType() { return BDF; };
     bool IsFullyVariable() const { return fullyvariable; };
     bool& IsFullyVariable() { return fullyvariable; };
     virtual VirtualMatrix* GetCurrentJac() { return CurrentJacobian; };

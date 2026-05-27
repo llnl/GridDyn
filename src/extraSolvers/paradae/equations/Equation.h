@@ -15,7 +15,7 @@
 
 namespace griddyn::paradae {
 
-enum type_Equation { ODE, DAE };
+enum TypeEquation { ODE, DAE };
 
 class RootManager {
   public:
@@ -97,7 +97,7 @@ class Equation {
                              bool add = false);
     virtual void Get_dy_from_y(const Real t, const Vector& y, const Vector& state, Vector& dy) = 0;
     virtual void init(const Real t, Vector& y) = 0;
-    virtual type_Equation GetTypeEq() = 0;
+    virtual TypeEquation GetTypeEq() = 0;
     virtual std::string GetName() { return name; };
     // The root functions, implements g(x)=0
     virtual void root_functions(const Real t,

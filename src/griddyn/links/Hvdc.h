@@ -14,7 +14,7 @@ namespace griddyn::links {
 class hvdc: public subsystem {
   public:
     /** hvdc helper flags*/
-    enum hvdc_flags {
+    enum HvdcFlags {
         reverse_flow = object_flag6,  //!< flag indicating that the flow is reverse standard
     };
 

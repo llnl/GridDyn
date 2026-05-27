@@ -52,7 +52,7 @@ class GridSimulation: public GridArea {
   public:
     std::string sourceFile;  //!< main source file name
     /** @brief enumeration describing the state of the GridDyn simulation*/
-    enum class gridState_t : int {
+    enum class GridState : int {
         HALTED = -2,  //!< the system is halted for some reason
         GD_ERROR = -1,  //!< the system has an error
         STARTUP = 0,  //!< the system is starting up either loaded or unloaded
@@ -87,8 +87,8 @@ class GridSimulation: public GridArea {
         customLogger;  //!< callback for a custom logging function
     std::shared_ptr<functionEventAdapter>
         stateRecorder;  //!< a recorder for recording the state on a periodic basis
-    gridState_t pState =
-        gridState_t::STARTUP;  //!< the system state keeps track of which state the solver is in
+    GridState pState =
+        GridState::STARTUP;  //!< the system state keeps track of which state the solver is in
     int errorCode{
         GS_NO_ERROR};  //!< for storage of an ERROR code if one exists (intended to be expandable to
     //! children objects so using int instead of enum)
@@ -133,7 +133,7 @@ class GridSimulation: public GridArea {
     /** @brief get the current state of the simulation
     @return the current state
     */
-    gridState_t currentProcessState() const { return pState; }
+    GridState currentProcessState() const { return pState; }
     /** @brief set the error code,  also sets the state to GD_ERROR
     @param[in] ecode the error code
     */

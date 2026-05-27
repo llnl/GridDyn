@@ -542,9 +542,9 @@ void adjustableTransformer::getStateName(stringVec& stNames,
     }
 }
 
-void adjustableTransformer::reset(reset_levels level)
+void adjustableTransformer::reset(ResetLevels level)
 {
-    if (level == reset_levels::full) {
+    if (level == ResetLevels::full) {
         adjCount = 0;
         oCount = 0;
         switch (cMode) {
@@ -613,14 +613,14 @@ void adjustableTransformer::reset(reset_levels level)
     }
 }
 
-change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
-                                                   std::uint32_t flags,
-                                                   check_level_t /*level*/)
+ChangeCode adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
+                                                  std::uint32_t flags,
+                                                  CheckLevel /*level*/)
 {
     if (CHECK_CONTROLFLAG(flags, disable_link_adjustments)) {
-        return change_code::no_change;
+        return ChangeCode::NO_CHANGE;
     }
-    auto ret = change_code::no_change;
+    auto ret = ChangeCode::NO_CHANGE;
     if (cMode == ControlMode::MW_CONTROL) {
         if (opFlags[continuous_flag])  // if continuous mode just check the min and max angle
         {
@@ -628,13 +628,13 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                 tapAngle = minTapAngle;
                 opFlags.set(at_limit);
                 alert(this, JAC_COUNT_DECREASE);
-                return change_code::jacobian_change;
+                return ChangeCode::JACOBIAN_CHANGE;
             }
             if (tapAngle > maxTapAngle) {
                 tapAngle = maxTapAngle;
                 opFlags.reset(has_pflow_states);
                 alert(this, JAC_COUNT_DECREASE);
-                return change_code::jacobian_change;
+                return ChangeCode::JACOBIAN_CHANGE;
             }
         } else {
             const double angleRangeToMax = maxTapAngle - tapAngle;
@@ -642,7 +642,7 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
             if (linkFlows.P1 > Pmax) {
                 if (angleRangeToMax > stepSize) {
                     tapAngle += stepSize;
-                    ret = change_code::parameter_change;
+                    ret = ChangeCode::PARAMETER_CHANGE;
                 }
                 if (adjCount > 0) {
                     if (signn(prevAdjust) != 1) {
@@ -651,18 +651,18 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                             const double currentUpperDeviation = linkFlows.P1 - Pmax;
                             const double previousLowerDeviation = Pmin - prevValue;
                             if (currentUpperDeviation < previousLowerDeviation) {
-                                ret = change_code::no_change;
+                                ret = ChangeCode::NO_CHANGE;
                             }
                         }
                     }
                 }
-                if (ret > change_code::no_change) {
+                if (ret > ChangeCode::NO_CHANGE) {
                     prevAdjust = stepSize;
                 }
             } else if (linkFlows.P1 < Pmin) {
                 if (angleRangeToMin > stepSize) {
                     tapAngle -= stepSize;
-                    ret = change_code::parameter_change;
+                    ret = ChangeCode::PARAMETER_CHANGE;
                 }
                 if (adjCount > 0) {
                     if (signn(prevAdjust) != -1) {
@@ -671,12 +671,12 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                             const double previousUpperDeviation = prevValue - Pmax;
                             const double currentLowerDeviation = Pmin - linkFlows.P1;
                             if (previousUpperDeviation > currentLowerDeviation) {
-                                ret = change_code::no_change;
+                                ret = ChangeCode::NO_CHANGE;
                             }
                         }
                     }
                 }
-                if (ret > change_code::no_change) {
+                if (ret > ChangeCode::NO_CHANGE) {
                     prevAdjust = -stepSize;
                 }
             }
@@ -690,13 +690,13 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                 tap = minTap;
                 opFlags.set(at_limit);
                 alert(this, JAC_COUNT_DECREASE);
-                return change_code::jacobian_change;
+                return ChangeCode::JACOBIAN_CHANGE;
             }
             if (tap > maxTap) {
                 tap = maxTap;
                 opFlags.set(at_limit);
                 alert(this, JAC_COUNT_DECREASE);
-                return change_code::jacobian_change;
+                return ChangeCode::JACOBIAN_CHANGE;
             }
         } else {
             ret = voltageControlAdjust();
@@ -707,13 +707,13 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                 tap = minTap;
                 opFlags.set(at_limit);
                 alert(this, JAC_COUNT_DECREASE);
-                return change_code::jacobian_change;
+                return ChangeCode::JACOBIAN_CHANGE;
             }
             if (tap > maxTap) {
                 tap = maxTap;
                 opFlags.set(at_limit);
                 alert(this, JAC_COUNT_DECREASE);
-                return change_code::jacobian_change;
+                return ChangeCode::JACOBIAN_CHANGE;
             }
         } else {
             const double tapRangeToMax = maxTap - tap;
@@ -721,7 +721,7 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
             if (linkFlows.Q2 < Qmin) {
                 if (tapRangeToMax > stepSize) {
                     tap += stepSize;
-                    ret = change_code::parameter_change;
+                    ret = ChangeCode::PARAMETER_CHANGE;
                 }
                 if (adjCount > 0) {
                     if (signn(prevAdjust) != 1) {
@@ -730,18 +730,18 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                             const double previousUpperDeviation = prevValue - Qmax;
                             const double currentLowerDeviation = Qmin - linkFlows.Q2;
                             if (previousUpperDeviation > currentLowerDeviation) {
-                                ret = change_code::no_change;
+                                ret = ChangeCode::NO_CHANGE;
                             }
                         }
                     }
                 }
-                if (ret > change_code::no_change) {
+                if (ret > ChangeCode::NO_CHANGE) {
                     prevAdjust = stepSize;
                 }
             } else if (linkFlows.Q2 > Qmax) {
                 if (tapRangeToMin > stepSize) {
                     tap -= stepSize;
-                    ret = change_code::parameter_change;
+                    ret = ChangeCode::PARAMETER_CHANGE;
                 }
                 if (adjCount > 0) {
                     if (signn(prevAdjust) != -1) {
@@ -750,12 +750,12 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                             const double currentUpperDeviation = linkFlows.Q2 - Qmax;
                             const double previousLowerDeviation = Qmin - prevValue;
                             if (currentUpperDeviation < previousLowerDeviation) {
-                                ret = change_code::no_change;
+                                ret = ChangeCode::NO_CHANGE;
                             }
                         }
                     }
                 }
-                if (ret > change_code::no_change) {
+                if (ret > ChangeCode::NO_CHANGE) {
                     prevAdjust = -stepSize;
                 }
             }
@@ -763,7 +763,7 @@ change_code adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
             prevValue = linkFlows.Q2;
         }
     }
-    if (ret > change_code::no_change) {
+    if (ret > ChangeCode::NO_CHANGE) {
         adjCount++;
     }
     return ret;
@@ -1241,9 +1241,9 @@ Q1 += tvb * cosTheta1;
     matrixDataRef.assignCheckCol(offset, B2Voffset, temp);
 }
 
-change_code adjustableTransformer::voltageControlAdjust()
+ChangeCode adjustableTransformer::voltageControlAdjust()
 {
-    auto ret = change_code::no_change;
+    auto ret = ChangeCode::NO_CHANGE;
     const double tapStep = direction * stepSize;
     const double reverseTapStep = -tapStep;
 
@@ -1252,21 +1252,21 @@ change_code adjustableTransformer::voltageControlAdjust()
     if (!(opFlags[use_target_mode])) {
         if (voltage > Vmax) {
             tap += tapStep;
-            ret = change_code::parameter_change;
+            ret = ChangeCode::PARAMETER_CHANGE;
             if (adjCount > 0) {
                 if (signn(prevAdjust) != signn(tapStep)) {
                     oCount++;
                     if (oCount > 5) {
-                        ret = change_code::no_change;
+                        ret = ChangeCode::NO_CHANGE;
                     }
                 }
             }
-            if (ret > change_code::no_change) {
+            if (ret > ChangeCode::NO_CHANGE) {
                 prevAdjust = tapStep;
             }
         } else if (voltage < Vmin) {
             tap += reverseTapStep;
-            ret = change_code::parameter_change;
+            ret = ChangeCode::PARAMETER_CHANGE;
             if (adjCount > 0) {
                 if (signn(prevAdjust) != signn(reverseTapStep)) {
                     oCount++;
@@ -1275,7 +1275,7 @@ change_code adjustableTransformer::voltageControlAdjust()
                     // it will end in a state that leaves it there.
                 }
             }
-            if (ret > change_code::no_change) {
+            if (ret > ChangeCode::NO_CHANGE) {
                 prevAdjust = reverseTapStep;
             }
         }
@@ -1283,19 +1283,19 @@ change_code adjustableTransformer::voltageControlAdjust()
         if (tap > maxTap) {
             tap -= prevAdjust;
             prevAdjust = 0;
-            ret = change_code::no_change;
+            ret = ChangeCode::NO_CHANGE;
         }
         if (tap < minTap) {
             tap -= prevAdjust;
             prevAdjust = 0;
-            ret = change_code::no_change;
+            ret = ChangeCode::NO_CHANGE;
         }
         prevValue = voltage;
     } else {
         double shift = 0;
         const double dev = voltage - Vtarget;
         if (std::abs(dev) < stepSize / 2.0) {
-            ret = change_code::no_change;
+            ret = ChangeCode::NO_CHANGE;
         } else {
             shift = direction * dev;
             if (shift > 0) {
@@ -1309,9 +1309,9 @@ change_code adjustableTransformer::voltageControlAdjust()
             shift = std::max(shift, minShift);
             tap += shift;
             if (std::abs(shift) < stepSize) {
-                ret = change_code::no_change;
+                ret = ChangeCode::NO_CHANGE;
             } else {
-                ret = change_code::parameter_change;
+                ret = ChangeCode::PARAMETER_CHANGE;
             }
             if (adjCount > 0) {
                 const double netAdjust = prevAdjust + shift;
@@ -1319,13 +1319,13 @@ change_code adjustableTransformer::voltageControlAdjust()
                     oCount++;
                     if (oCount > 3) {
                         if (voltage > prevValue) {
-                            ret = change_code::no_change;
+                            ret = ChangeCode::NO_CHANGE;
                             tap -= shift;
                         }
                     }
                 }
             }
-            if (ret > change_code::no_change) {
+            if (ret > ChangeCode::NO_CHANGE) {
                 prevAdjust = shift;
                 prevValue = voltage;
             }
@@ -1334,15 +1334,15 @@ change_code adjustableTransformer::voltageControlAdjust()
     return ret;
 }
 
-change_code adjustableTransformer::MWControlAdjust()  // NOLINT
+ChangeCode adjustableTransformer::MWControlAdjust()  // NOLINT
 {
-    auto ret = change_code::no_change;
+    auto ret = ChangeCode::NO_CHANGE;
     return ret;
 }
 
-change_code adjustableTransformer::MVarControlAdjust()  // NOLINT
+ChangeCode adjustableTransformer::MVarControlAdjust()  // NOLINT
 {
-    auto ret = change_code::no_change;
+    auto ret = ChangeCode::NO_CHANGE;
     return ret;
 }
 

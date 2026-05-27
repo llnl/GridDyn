@@ -49,10 +49,10 @@ class ExciterDC1A: public ExciterIEEEtype1 {
                           const stateData& sD,
                           double root[],
                           const solverMode& sMode) override;
-    virtual change_code rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
-                                  const solverMode& sMode,
-                                  check_level_t level) override;
+    virtual ChangeCode rootCheck(const IOdata& inputs,
+                                 const stateData& sD,
+                                 const solverMode& sMode,
+                                 CheckLevel level) override;
     // virtual void setTime(coreTime time){prevTime=time;};
   protected:
     /** @brief the Jacobian entries for the limiter

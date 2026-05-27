@@ -97,7 +97,7 @@ void Generator::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (isConnected() && isEnabled()) {
         if (opFlags[local_voltage_control]) {
-            if (bus->getType() != GridBus::busType::PQ) {
+            if (bus->getType() != GridBus::BusType::PQ) {
                 bus->registerVoltageControl(this);
                 opFlags.reset(indirect_voltage_control);
             } else if (opFlags[indirect_voltage_control]) {
@@ -112,13 +112,13 @@ void Generator::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
                 m_Vtarget = remoteBus->get("vtarget");
             }
             remoteBus->registerVoltageControl(this);
-            if (remoteBus->getType() == GridBus::busType::PQ) {
+            if (remoteBus->getType() == GridBus::BusType::PQ) {
                 opFlags.set(indirect_voltage_control);
             }
         }
         // load up power control
         if (opFlags[local_power_control]) {
-            if (bus->getType() != GridBus::busType::PQ) {
+            if (bus->getType() != GridBus::BusType::PQ) {
                 bus->registerPowerControl(this);
                 opFlags.reset(indirect_voltage_control);
             }
@@ -372,34 +372,34 @@ void Generator::timestep(coreTime time, const IOdata& inputs, const solverMode& 
     prevTime = time;
 }
 
-change_code Generator::powerFlowAdjust(const IOdata& /*inputs*/,
-                                       std::uint32_t /*flags*/,
-                                       check_level_t /*level*/)
+ChangeCode Generator::powerFlowAdjust(const IOdata& /*inputs*/,
+                                      std::uint32_t /*flags*/,
+                                      CheckLevel /*level*/)
 {
     if (opFlags[at_limit]) {
         const double voltage = remoteBus->getVoltage();
         if (Q >= getQmax()) {
             if (voltage < m_Vtarget) {
                 opFlags.reset(at_limit);
-                return change_code::parameter_change;
+                return ChangeCode::PARAMETER_CHANGE;
             }
         } else if (voltage > m_Vtarget) {
             opFlags.reset(at_limit);
-            return change_code::parameter_change;
+            return ChangeCode::PARAMETER_CHANGE;
         }
     } else {
         if (Q > getQmax()) {
             opFlags.set(at_limit);
             Q = getQmax();
-            return change_code::parameter_change;
+            return ChangeCode::PARAMETER_CHANGE;
         }
         if (Q < getQmin()) {
             opFlags.set(at_limit);
             Q = getQmin();
-            return change_code::parameter_change;
+            return ChangeCode::PARAMETER_CHANGE;
         }
     }
-    return change_code::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 
 void Generator::generationAdjust(double adjustment)

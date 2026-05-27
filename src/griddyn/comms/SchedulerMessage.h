@@ -16,7 +16,7 @@
 namespace griddyn::comms {
 class schedulerMessagePayload: public CommPayload {
   public:
-    enum scheduler_message_type_t : std::uint32_t {
+    enum SchedulerMessageType : std::uint32_t {
         CLEAR_TARGETS = BASE_SCHEDULER_MESSAGE_NUMBER + 3,
         SHUTDOWN = BASE_SCHEDULER_MESSAGE_NUMBER + 4,
         STARTUP = BASE_SCHEDULER_MESSAGE_NUMBER + 5,

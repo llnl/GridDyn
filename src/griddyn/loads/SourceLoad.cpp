@@ -21,7 +21,7 @@ SourceLoad::SourceLoad(const std::string& objName): ZipLoad(objName), sourceLink
 {
     sourceLink.fill(-1);
 }
-SourceLoad::SourceLoad(sourceType type, const std::string& objName): SourceLoad(objName)
+SourceLoad::SourceLoad(SourceType type, const std::string& objName): SourceLoad(objName)
 {
     sType = type;
     // add the sources for P and Q
@@ -165,7 +165,7 @@ Source* SourceLoad::findSource(std::string_view srcname)
         if ((index < 0) || std::cmp_less_equal(sources.size(), index) ||
             (sources[index] == nullptr)) {
             // this may not actually do anything is the sType is set to other
-            add(makeSource(static_cast<SourceLoad::sourceLoc>(ind->second)));
+            add(makeSource(static_cast<SourceLoad::SourceLoc>(ind->second)));
         }
         const int updatedIndex = sourceLink[ind->second];
         return (updatedIndex >= 0 && std::cmp_greater(sources.size(), updatedIndex)) ?
@@ -339,20 +339,20 @@ void SourceLoad::getSourceLoads()
     }
 }
 
-Source* SourceLoad::makeSource(sourceLoc loc)
+Source* SourceLoad::makeSource(SourceLoc loc)
 {
     Source* src = nullptr;
     switch (sType) {
-        case sourceType::pulse:
+        case SourceType::pulse:
             src = new sources::pulseSource();
             break;
-        case sourceType::random:
+        case SourceType::random:
             src = new sources::randomSource();
             break;
-        case sourceType::sine:
+        case SourceType::sine:
             src = new sources::sineSource();
             break;
-        case sourceType::other:
+        case SourceType::other:
         default:
             return nullptr;
     }

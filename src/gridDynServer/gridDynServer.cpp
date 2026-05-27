@@ -57,7 +57,7 @@ void gridDynServer::set(std::string_view param, int val)
         mPort = val;
     } else if (normalizedParam == "ip_protocol") {
         if ((val == 0) || (val == 1)) {
-            mIpProtocol = static_cast<ip_protocol_t>(val);
+            mIpProtocol = static_cast<IpProtocol>(val);
         } else {
             std::cout << "invalid ip protocol\n";
         }

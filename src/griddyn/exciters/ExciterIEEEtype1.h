@@ -54,10 +54,10 @@ class ExciterIEEEtype1: public Exciter {
                           const stateData& sD,
                           double roots[],
                           const solverMode& sMode) override;
-    virtual change_code rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
-                                  const solverMode& sMode,
-                                  check_level_t level) override;
+    virtual ChangeCode rootCheck(const IOdata& inputs,
+                                 const stateData& sD,
+                                 const solverMode& sMode,
+                                 CheckLevel level) override;
 };
 
 }  // namespace griddyn::exciters

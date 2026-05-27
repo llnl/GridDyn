@@ -224,10 +224,10 @@ void my_Step_OnAllPoints(braid_App app,
     /* Set the correct order of the BDF method if it is BDF */
     int ns = app->nb_multisteps;
     BackwardDiff* bdf = nullptr;
-    if (app->bdf_strat != nobdf && level > 0) {
+    if (app->bdf_strat != NO_BDF && level > 0) {
         int newq;
-        if (app->bdf_strat == usual || app->bdf_strat == usual_c || app->bdf_strat == inject ||
-            app->bdf_strat == inject_c || app->bdf_strat == extrap || app->bdf_strat == extrap_c)
+        if (app->bdf_strat == USUAL || app->bdf_strat == USUAL_C || app->bdf_strat == INJECT ||
+            app->bdf_strat == INJECT_C || app->bdf_strat == EXTRAP || app->bdf_strat == EXTRAP_C)
             newq = max(app->min_order, ns - level * app->lowered_by_level);
         else
             newq = 1;
@@ -315,7 +315,7 @@ void my_Step_OnAllPoints(braid_App app,
     app->SetAllFromDataStruct(u);
 
     /* Reset the BDF order if it was modified */
-    if (app->bdf_strat != nobdf && level > 0) {
+    if (app->bdf_strat != NO_BDF && level > 0) {
         if (bdf->GetOrder() != ns) bdf->SetOrder(ns);
     }
 
@@ -354,10 +354,10 @@ int my_Step(braid_App app,
     debug_int++;
 #endif
 
-    if (level == 0 || app->bdf_strat == nobdf || app->bdf_strat == usual ||
-        app->bdf_strat == usual_c || app->bdf_strat == inject || app->bdf_strat == inject_c ||
-        app->bdf_strat == extrap || app->bdf_strat == extrap_c ||
-        ((app->bdf_strat == uni1 || app->bdf_strat == uni1_c) && level == 1)) {
+    if (level == 0 || app->bdf_strat == NO_BDF || app->bdf_strat == USUAL ||
+        app->bdf_strat == USUAL_C || app->bdf_strat == INJECT || app->bdf_strat == INJECT_C ||
+        app->bdf_strat == EXTRAP || app->bdf_strat == EXTRAP_C ||
+        ((app->bdf_strat == UNI1 || app->bdf_strat == UNI1_C) && level == 1)) {
         my_Step_OnAllPoints(app, ustop, fstop, u, status, level);
     } else {
         my_Step_OnOnePoint(app, ustop, fstop, u, status, level);
@@ -389,8 +389,8 @@ int my_SpatialRefine(braid_App app,
     int level;
     braid_CoarsenRefStatusGetLevel(status, &level);
 
-    if (((app->bdf_strat == uni0 || app->bdf_strat == uni0_c) && level == 0) ||
-        ((app->bdf_strat == uni1 || app->bdf_strat == uni1_c) && level == 1)) {
+    if (((app->bdf_strat == UNI0 || app->bdf_strat == UNI0_C) && level == 0) ||
+        ((app->bdf_strat == UNI1 || app->bdf_strat == UNI1_C) && level == 1)) {
         PVector xi, xl;
         (*fu_ptr)->xprev.GetPVector(ns - 1, xl);
         for (int i = 0; i < ns - 1; i++) {
@@ -401,8 +401,8 @@ int my_SpatialRefine(braid_App app,
         return 0;
     }
 
-    if ((app->bdf_strat == uni0 || app->bdf_strat == uni0_c || app->bdf_strat == uni1 ||
-         app->bdf_strat == uni1_c || app->bdf_strat == usual || app->bdf_strat == usual_c) &&
+    if ((app->bdf_strat == UNI0 || app->bdf_strat == UNI0_C || app->bdf_strat == UNI1 ||
+         app->bdf_strat == UNI1_C || app->bdf_strat == USUAL || app->bdf_strat == USUAL_C) &&
         level != -1)
         return 0;
 
@@ -533,8 +533,8 @@ int my_SpatialCoarsen(braid_App app,
     int level;
     braid_CoarsenRefStatusGetLevel(status, &level);
 
-    if (app->bdf_strat == uni0 || app->bdf_strat == uni0_c || app->bdf_strat == uni1 ||
-        app->bdf_strat == uni1_c || app->bdf_strat == usual || app->bdf_strat == usual_c)
+    if (app->bdf_strat == UNI0 || app->bdf_strat == UNI0_C || app->bdf_strat == UNI1 ||
+        app->bdf_strat == UNI1_C || app->bdf_strat == USUAL || app->bdf_strat == USUAL_C)
         return 0;
 
     Real tstart, tstop_c, tstop_f, tprev_c, tprev_f;
@@ -568,7 +568,7 @@ cout << " Tstopc = " << tstop_c << endl;
         (*cu_ptr)->tprev(i) = (n - 1 - i) * new_dt + tstart;
     }
 
-    if (app->bdf_strat == inject || app->bdf_strat == inject_c) {
+    if (app->bdf_strat == INJECT || app->bdf_strat == INJECT_C) {
         (*cu_ptr)->dxprev *= 1.0 / rfactor;
 #ifdef TIMER_BRAID
         global_timer.Stop("scoarsen");
@@ -876,8 +876,8 @@ int my_Access(braid_App app, braid_Vector u, braid_AccessStatus astatus)
 
             PVector xi;
             int i0 = 0;
-            if (((app->bdf_strat == uni0 || app->bdf_strat == uni0_c) && level > 0) ||
-                ((app->bdf_strat == uni1 || app->bdf_strat == uni1_c) && level > 1))
+            if (((app->bdf_strat == UNI0 || app->bdf_strat == UNI0_C) && level > 0) ||
+                ((app->bdf_strat == UNI1 || app->bdf_strat == UNI1_C) && level > 1))
                 i0 = app->nb_multisteps - 1;
 
             for (int i = i0; i < app->nb_multisteps; i++) {

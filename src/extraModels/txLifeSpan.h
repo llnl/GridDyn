@@ -14,7 +14,7 @@ namespace griddyn::extra {
  */
 class txLifeSpan: public sensor {
   public:
-    enum lifespan_model_flags {
+    enum LifespanModelFlags {
         useIECmethod = object_flag11,
         no_disconnect = object_flag12,  //!< flag indicating that the object should create a short
                                         //!< circuit instead of disconnecting when life reaches 0
@@ -54,7 +54,7 @@ class txLifeSpan: public sensor {
 
     void actionTaken(index_t actionNumber,
                      index_t conditionNum,
-                     change_code actionReturn,
+                     ChangeCode actionReturn,
                      coreTime /*actionTime*/) override;
 };
 

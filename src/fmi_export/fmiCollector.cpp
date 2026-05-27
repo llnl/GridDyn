@@ -36,10 +36,10 @@ void FmiCollector::cloneTo(collector* collectorClone) const
     }
 }
 
-change_code FmiCollector::trigger(coreTime time)
+ChangeCode FmiCollector::trigger(coreTime time)
 {
     collector::trigger(time);
-    return change_code::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 
 void FmiCollector::set(std::string_view param, double val)

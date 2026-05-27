@@ -172,25 +172,25 @@ void ExciterIEEEtype2::rootTest(const IOdata& inputs,
     }
 }
 
-change_code ExciterIEEEtype2::rootCheck(const IOdata& inputs,
-                                        const stateData& /*sD*/,
-                                        const solverMode& /*sMode*/,
-                                        check_level_t /*level*/)
+ChangeCode ExciterIEEEtype2::rootCheck(const IOdata& inputs,
+                                       const stateData& /*sD*/,
+                                       const solverMode& /*sMode*/,
+                                       CheckLevel /*level*/)
 {
     double* es = m_state.data();
-    change_code ret = change_code::no_change;
+    ChangeCode ret = ChangeCode::NO_CHANGE;
     if (opFlags[outside_vlim]) {
         double test = Ka * Kf * es[2] + Ka * (Vref + vBias - inputs[voltageInLocation]) - es[1];
         if (opFlags[etrigger_high]) {
             if (test < 0.0) {
-                ret = change_code::jacobian_change;
+                ret = ChangeCode::JACOBIAN_CHANGE;
                 opFlags.reset(outside_vlim);
                 opFlags.reset(etrigger_high);
                 alert(this, JAC_COUNT_INCREASE);
             }
         } else {
             if (test > 0.0) {
-                ret = change_code::jacobian_change;
+                ret = ChangeCode::JACOBIAN_CHANGE;
                 opFlags.reset(outside_vlim);
                 alert(this, JAC_COUNT_INCREASE);
             }
@@ -200,13 +200,13 @@ change_code ExciterIEEEtype2::rootCheck(const IOdata& inputs,
             opFlags.set(etrigger_high);
             opFlags.set(outside_vlim);
             es[1] = Vrmax;
-            ret = change_code::jacobian_change;
+            ret = ChangeCode::JACOBIAN_CHANGE;
             alert(this, JAC_COUNT_DECREASE);
         } else if (es[1] < Vrmin - 0.0001) {
             opFlags.reset(etrigger_high);
             opFlags.set(outside_vlim);
             es[1] = Vrmin;
-            ret = change_code::jacobian_change;
+            ret = ChangeCode::JACOBIAN_CHANGE;
             alert(this, JAC_COUNT_DECREASE);
         }
     }

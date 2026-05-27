@@ -27,7 +27,7 @@ power flow solution modes of a generator with no dynamics
 class Generator: public gridSecondary {
   public:
     /** @brief flags for controlling operation of the generator*/
-    enum generator_flags {
+    enum GeneratorFlags {
         variable_generation = object_flag1,  //!< flag indicating that the generator has
                                              //!< uncontrolled variable generation
         reserve_capable =
@@ -203,9 +203,9 @@ class Generator: public gridSecondary {
     @param[in] adjustment the value of the desired adjustment
     */
     virtual void generationAdjust(double adjustment);
-    virtual change_code powerFlowAdjust(const IOdata& inputs,
-                                        std::uint32_t flags,
-                                        check_level_t level) override;  // only applicable in pFlow
+    virtual ChangeCode powerFlowAdjust(const IOdata& inputs,
+                                       std::uint32_t flags,
+                                       CheckLevel level) override;  // only applicable in pFlow
     virtual CoreObject* find(std::string_view object) const override;
     /** get the frequency the generator is operating at
     @param[in] stateDataValue the current stateData

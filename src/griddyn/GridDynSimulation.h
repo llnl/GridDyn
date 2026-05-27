@@ -34,7 +34,7 @@ class SolverInterface;
 class parameterSet;
 
 /** additional flags for the controlFlags bitset*/
-enum gd_flags {
+enum GridDynFlags {
     dense_solver = 31,
     power_adjust_enabled = 32,
     dcFlow_initialization = 33,
@@ -66,7 +66,7 @@ enum gd_flags {
 // for the status flags bitset
 
 // extra local flags
-enum gd_extra_flags {
+enum GridDynExtraFlags {
     dcJacComp_flag = object_flag6,
     reset_voltage_flag = object_flag7,
     prev_setall_pqvlimit = object_flag8,
@@ -107,13 +107,13 @@ class GridDynSimulation: public GridSimulation {
     //!< define various contingency modes  [probably will be changed in the near future]
 
     //!< define an enumeration of the dynamic solver methods
-    enum class dynamic_solver_methods {
+    enum class DynamicSolverMethods {
         dae,
         partitioned,
         decoupled,
     };
     /** @brief enumeration of ordering schemes for variables*/
-    enum class offset_ordering {
+    enum class OffsetOrdering {
         mixed = 0,  //!< everything is mixed through each other
         grouped = 1,  //!< all similar variables are grouped together (angles, then voltage, then
                       //!< algebraic, then
@@ -137,12 +137,12 @@ class GridDynSimulation: public GridSimulation {
     const solverMode* defDynDiffMode =
         &cDynDiffSolverMode;  //!< link to the default differential solver mode
 
-    dynamic_solver_methods defaultDynamicSolverMethod =
-        dynamic_solver_methods::dae;  //!< specifies which dynamic solver method to use if it is not
-                                      //!< otherwise
+    DynamicSolverMethods defaultDynamicSolverMethod =
+        DynamicSolverMethods::dae;  //!< specifies which dynamic solver method to use if it is not
+                                    //!< otherwise
     //! specified.
-    offset_ordering default_ordering =
-        offset_ordering::mixed;  //!< the default_ordering scheme for state variables
+    OffsetOrdering default_ordering =
+        OffsetOrdering::mixed;  //!< the default_ordering scheme for state variables
     count_t max_Vadjust_iterations = 30;  //!< maximum number of Voltage adjust iterations
     count_t max_Padjust_iterations = 15;  //!< maximum number of Power adjust iterations
     count_t thread_count = 1;  //!< maximum thread count
@@ -407,7 +407,7 @@ class GridDynSimulation: public GridSimulation {
       computes the roots for any root finding functions used in the system
     @param[in] time  the simulation time of the evaluation
     @param[in] state  the state information to evaluation
-    @param[in] dstate_dt  the time derivative of the state
+    @param[in] dstateDt  the time derivative of the state
     @param[out] roots the storage location for the roots
     @param[in] sMode the solverMode to solve for
     @return integer indicating success (0) or failure (non-zero)
@@ -515,7 +515,7 @@ class GridDynSimulation: public GridSimulation {
     void add(gridDynAction& newAction);
 
     /** @brief enumeration of the solution modes of operation*/
-    enum class solution_modes_t {
+    enum class SolutionModes {
         powerflow_mode,  //!< mode for power flow solutions
         dae_mode,  //!< mode for DAE solutions
         algebraic_mode,  //!< mode for algebraic solutions
@@ -526,7 +526,7 @@ class GridDynSimulation: public GridSimulation {
     @param[in] mode  the solution mode to set the solver For
     @param[in] sMode the solverMode corresponding to a particular solver
     */
-    void setDefaultMode(solution_modes_t mode, const solverMode& sMode);
+    void setDefaultMode(SolutionModes mode, const solverMode& sMode);
 
     /** @brief check if the simulation object has dynamic models
      basically checks if there are any differential states in the default solution mode
@@ -605,7 +605,7 @@ class GridDynSimulation: public GridSimulation {
     @param[in] sMode the solver Mode to reinitialize
     @param[in] change the adjustment mode
     */
-    void reInitpFlow(const solverMode& sMode, change_code change = change_code::no_change);
+    void reInitpFlow(const solverMode& sMode, ChangeCode change = ChangeCode::NO_CHANGE);
 
     /** @brief perform a global generator adjustment operation
     @param[in] adjustment the amount of power to distribute to the allowed generators
@@ -630,7 +630,7 @@ class GridDynSimulation: public GridSimulation {
     @param[in] sMode the solverMode to make the operations in
     @return FUNCTION_EXECUTION_SUCCESS(0) if successful negative number if not
     */
-    int makeReady(gridState_t desiredState, const solverMode& sMode);
+    int makeReady(GridState desiredState, const solverMode& sMode);
 
     /** @brief set the maximum number of non-zeros in the Jacobian
     @param[in] sMode the solver mode to set the max number of non-zeros in the Jacobian
@@ -683,7 +683,7 @@ class GridDynSimulation: public GridSimulation {
     @param[in] sMode the solvermode to setup the offsets for
     @param[in] offsetOrdering the type of ordering to use
     */
-    virtual void setupOffsets(const solverMode& sMode, offset_ordering offsetOrdering);
+    virtual void setupOffsets(const solverMode& sMode, OffsetOrdering offsetOrdering);
 
     /** @brief function to help with IDA solving steps
     @param[in] retval the return code from the solver
@@ -703,7 +703,7 @@ class GridDynSimulation: public GridSimulation {
     automatically detected
     @return true if the check did something, false if nothing has changed
     */
-    bool dynamicCheckAndReset(const solverMode& sMode, change_code change = change_code::no_change);
+    bool dynamicCheckAndReset(const solverMode& sMode, ChangeCode change = ChangeCode::NO_CHANGE);
 
     int handleStateChange(const solverMode& sMode);
     void handleRootChange(const solverMode& sMode, std::shared_ptr<SolverInterface>& dynData);

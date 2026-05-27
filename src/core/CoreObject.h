@@ -300,7 +300,7 @@ class CoreObject {
     @return the user defined identification code for the object*/
     index_t getUserID() const noexcept { return id; }
     /** turn on updates for an object
-    @param[in] upd_enabled a boolean defining whether to turn updates on(true) or off (false)
+    @param[in] updatesEnabled a boolean defining whether to turn updates on(true) or off (false)
     */
     void enableUpdates(bool updatesEnabled = true)
     {

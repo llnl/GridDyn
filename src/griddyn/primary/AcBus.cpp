@@ -252,17 +252,17 @@ void AcBus::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
         }
     }
     // load up control objects
-    if (type == busType::PV) {
+    if (type == BusType::PV) {
         if (busController.vControlObjects.empty()) {
             logging::normal(this, "PV BUS with no controllers: converting to PQ");
-            type = busType::PQ;
+            type = BusType::PQ;
         }
     }
 
-    if ((type == busType::PV) || (type == busType::SLK)) {
+    if ((type == BusType::PV) || (type == BusType::SLK)) {
         voltage = vTarget;
     }
-    if ((type == busType::SLK) || (type == busType::afix)) {
+    if ((type == BusType::SLK) || (type == BusType::afix)) {
         angle = aTarget;
         bool Padj = opFlags[use_autogen];
 
@@ -293,7 +293,7 @@ void AcBus::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 
     // if there is only a single control then forward the bus max and mins to the control objects
 
-    if ((type == busType::PV) || (type == busType::SLK)) {
+    if ((type == BusType::PV) || (type == BusType::SLK)) {
         if (busController.vControlObjects.size() == 1) {
             if (busController.Qmax < kHalfBigNum) {
                 auto temp = busController.vControlObjects[0]->get("qmax");
@@ -309,7 +309,7 @@ void AcBus::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
             }
         }
     }
-    if ((type == busType::afix) || (type == busType::SLK)) {
+    if ((type == BusType::afix) || (type == BusType::SLK)) {
         if (busController.pControlObjects.size() == 1) {
             if (busController.Pmax < kHalfBigNum) {
                 auto temp = busController.pControlObjects[0]->get("pmax");
@@ -327,10 +327,10 @@ void AcBus::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
 
     // update the controls
-    if ((type == busType::PV) || (type == busType::SLK)) {
+    if ((type == BusType::PV) || (type == BusType::SLK)) {
         busController.updateVoltageControls();
     }
-    if ((type == busType::afix) || (type == busType::SLK)) {
+    if ((type == BusType::afix) || (type == BusType::SLK)) {
         busController.updatePowerControls();
     }
 
@@ -439,7 +439,7 @@ void AcBus::checkMerge()
 
 // function to reset the bus type and voltage
 
-void AcBus::reset(reset_levels level)
+void AcBus::reset(ResetLevels level)
 {
     GridBus::reset(level);
     oCount = 0;
@@ -448,44 +448,44 @@ void AcBus::reset(reset_levels level)
         alert(this, JAC_COUNT_CHANGE);
     }
     switch (level) {
-        case reset_levels::minimal:
+        case ResetLevels::minimal:
             break;
-        case reset_levels::full:
-        case reset_levels::voltage_angle:
-            if ((type == busType::PV) || (type == busType::SLK)) {
+        case ResetLevels::full:
+        case ResetLevels::voltage_angle:
+            if ((type == BusType::PV) || (type == BusType::SLK)) {
                 voltage = vTarget;
             } else {
                 voltage = 1.0;
             }
 
-            if ((type == busType::SLK) || (type == busType::afix)) {
+            if ((type == BusType::SLK) || (type == BusType::afix)) {
                 angle = aTarget;
             } else {
                 angle = 0.0;
             }
 
             break;
-        case reset_levels::voltage:
-            if ((type == busType::PV) || (type == busType::SLK)) {
+        case ResetLevels::voltage:
+            if ((type == BusType::PV) || (type == BusType::SLK)) {
                 voltage = vTarget;
             } else {
                 voltage = 1.0;
             }
             break;
-        case reset_levels::angle:
-            if ((type == busType::SLK) || (type == busType::afix)) {
+        case ResetLevels::angle:
+            if ((type == BusType::SLK) || (type == BusType::afix)) {
                 angle = aTarget;
             } else {
                 angle = 0.0;
             }
             break;
-        case reset_levels::low_voltage_pflow:
+        case ResetLevels::low_voltage_pflow:
             if (voltage < 0.6) {
                 voltage = 0.9;
                 angle = getAverageAngle();
             }
             break;
-        case reset_levels::low_voltage_dyn0:
+        case ResetLevels::low_voltage_dyn0:
             if (prevDynType != dynType) {
                 dynType = prevDynType;
                 const double newAngle = static_cast<GridArea*>(getParent())
@@ -497,7 +497,7 @@ void AcBus::reset(reset_levels level)
                 angle = getAverageAngle();
             }
             break;
-        case reset_levels::low_voltage_dyn1:
+        case ResetLevels::low_voltage_dyn1:
             if (prevDynType != dynType) {
                 dynType = prevDynType;
                 const double newAngle = static_cast<GridArea*>(getParent())
@@ -511,7 +511,7 @@ void AcBus::reset(reset_levels level)
                 angle = getAverageAngle();
             }
             break;
-        case reset_levels::low_voltage_dyn2:
+        case ResetLevels::low_voltage_dyn2:
             if (prevDynType != dynType) {
                 dynType = prevDynType;
                 const double newAngle = static_cast<GridArea*>(getParent())
@@ -551,22 +551,21 @@ double AcBus::getAverageAngle() const
     return angle;
 }
 
-change_code
-    AcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, check_level_t level)
+ChangeCode AcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, CheckLevel level)
 {
-    auto out = change_code::no_change;
-    if (level == check_level_t::low_voltage_check) {
+    auto out = ChangeCode::NO_CHANGE;
+    if (level == CheckLevel::low_voltage_check) {
         if (!isConnected()) {
             return out;
         }
         if (voltage < 1e-8) {
             disconnect();
-            out = change_code::jacobian_change;
+            out = ChangeCode::JACOBIAN_CHANGE;
         }
         if (opFlags[prev_low_voltage_alert]) {
             disconnect();
             opFlags.reset(prev_low_voltage_alert);
-            out = change_code::jacobian_change;
+            out = ChangeCode::JACOBIAN_CHANGE;
         }
         return out;
     }
@@ -577,37 +576,37 @@ change_code
         S.genP = S.sumP();
 
         switch (type) {
-            case busType::SLK:
+            case BusType::SLK:
 
                 if (S.genQ < busController.Qmin) {
                     S.genQ = busController.Qmin;
                     for (auto& vco : busController.vControlObjects) {
                         vco->set("q", "min");
                     }
-                    type = busType::afix;
+                    type = BusType::afix;
                     alert(this, JAC_COUNT_CHANGE);
-                    out = change_code::jacobian_change;
+                    out = ChangeCode::JACOBIAN_CHANGE;
                 } else if (S.genQ > busController.Qmax) {
                     S.genQ = busController.Qmax;
                     for (auto& vco : busController.vControlObjects) {
                         vco->set("q", "max");
                     }
-                    type = busType::afix;
+                    type = BusType::afix;
                     alert(this, JAC_COUNT_CHANGE);
-                    out = change_code::jacobian_change;
+                    out = ChangeCode::JACOBIAN_CHANGE;
                 }
 
                 break;
-            case busType::PQ:
-                if (prevType == busType::PV) {
+            case BusType::PQ:
+                if (prevType == BusType::PV) {
                     if (std::abs(S.genQ - busController.Qmin) < 0.00001) {
                         if (voltage < vTarget) {
                             if (oCount < 5) {
                                 voltage = vTarget;
-                                type = busType::PV;
+                                type = BusType::PV;
                                 oCount++;
                                 alert(this, JAC_COUNT_CHANGE);
-                                out = change_code::jacobian_change;
+                                out = ChangeCode::JACOBIAN_CHANGE;
                                 logging::trace(this, "changing from PQ to PV from low voltage");
                             }
                         }
@@ -615,80 +614,80 @@ change_code
                         if (voltage > vTarget) {
                             if (oCount < 5) {
                                 voltage = vTarget;
-                                type = busType::PV;
+                                type = BusType::PV;
                                 oCount++;
                                 alert(this, JAC_COUNT_CHANGE);
-                                out = change_code::jacobian_change;
+                                out = ChangeCode::JACOBIAN_CHANGE;
                                 logging::trace(this, "changing from PQ to PV from high voltage");
                             }
                         }
                     }
-                } else if (prevType == busType::SLK) {
+                } else if (prevType == BusType::SLK) {
                     if (std::abs(S.genQ - busController.Qmin) < 0.00001) {
                         if (voltage < vTarget) {
                             if (oCount < 5) {
                                 voltage = vTarget;
-                                type = busType::SLK;
+                                type = BusType::SLK;
                                 oCount++;
                                 alert(this, JAC_COUNT_CHANGE);
-                                out = change_code::jacobian_change;
+                                out = ChangeCode::JACOBIAN_CHANGE;
                             }
                         }
                     } else {
                         if (voltage > vTarget) {
                             if (oCount < 5) {
                                 voltage = vTarget;
-                                type = busType::SLK;
+                                type = BusType::SLK;
                                 oCount++;
                                 alert(this, JAC_COUNT_CHANGE);
-                                out = change_code::jacobian_change;
+                                out = ChangeCode::JACOBIAN_CHANGE;
                             }
                         }
                     }
                 }
 
                 break;
-            case busType::PV:
+            case BusType::PV:
                 if (S.genQ < busController.Qmin) {
                     S.genQ = busController.Qmin;
                     for (auto& vco : busController.vControlObjects) {
                         vco->set("q", "min");
                     }
-                    type = busType::PQ;
+                    type = BusType::PQ;
                     alert(this, JAC_COUNT_CHANGE);
-                    out = change_code::jacobian_change;
+                    out = ChangeCode::JACOBIAN_CHANGE;
                     logging::trace(this, "changing from PV to PQ from Qmin");
                 } else if (S.genQ > busController.Qmax) {
                     S.genQ = busController.Qmax;
                     for (auto& vco : busController.vControlObjects) {
                         vco->set("q", "max");
                     }
-                    type = busType::PQ;
+                    type = BusType::PQ;
                     alert(this, JAC_COUNT_CHANGE);
-                    out = change_code::jacobian_change;
+                    out = ChangeCode::JACOBIAN_CHANGE;
                     logging::trace(this, "changing from PV to PQ from Qmax");
                 }
                 break;
-            case busType::afix:
-                if (prevType == busType::SLK) {
+            case BusType::afix:
+                if (prevType == BusType::SLK) {
                     if (std::abs(S.genQ - busController.Qmin) < 0.00001) {
                         if (voltage < vTarget) {
                             if (oCount < 5) {
                                 voltage = vTarget;
-                                type = busType::SLK;
+                                type = BusType::SLK;
                                 oCount++;
                                 alert(this, JAC_COUNT_CHANGE);
-                                out = change_code::jacobian_change;
+                                out = ChangeCode::JACOBIAN_CHANGE;
                             }
                         }
                     } else {
                         if (voltage > vTarget) {
                             if (oCount < 5) {
                                 voltage = vTarget;
-                                type = busType::SLK;
+                                type = BusType::SLK;
                                 oCount++;
                                 alert(this, JAC_COUNT_CHANGE);
-                                out = change_code::jacobian_change;
+                                out = ChangeCode::JACOBIAN_CHANGE;
                             }
                         }
                     }
@@ -699,28 +698,28 @@ change_code
                     for (auto& pco : busController.pControlObjects) {
                         pco->set("p", "min");
                     }
-                    type = busType::PQ;
+                    type = BusType::PQ;
                     alert(this, JAC_COUNT_CHANGE);
-                    out = change_code::jacobian_change;
-                    if (prevType == busType::SLK) {
+                    out = ChangeCode::JACOBIAN_CHANGE;
+                    if (prevType == BusType::SLK) {
                         alert(this, SLACK_BUS_CHANGE);
                     }
                 } else if (S.genP > busController.Pmax) {
                     S.genP = busController.Pmax;
-                    type = busType::PQ;
+                    type = BusType::PQ;
                     for (auto& pco : busController.pControlObjects) {
                         pco->set("p", "max");
                     }
                     alert(this, JAC_COUNT_CHANGE);
-                    out = change_code::jacobian_change;
-                    if (prevType == busType::SLK) {
+                    out = ChangeCode::JACOBIAN_CHANGE;
+                    if (prevType == BusType::SLK) {
                         alert(this, SLACK_BUS_CHANGE);
                     }
                 }
         }
         updateLocalCache();
     }
-    change_code pout;
+    ChangeCode pout;
     for (auto& gen : attachedGens) {
         if (gen->checkFlag(has_powerflow_adjustments)) {
             pout = gen->powerFlowAdjust({voltage, angle}, flags, level);
@@ -766,7 +765,7 @@ void AcBus::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         keyGen = nullptr;
         for (auto& gen : attachedGens) {
             if (gen->isConnected()) {
-                if (gen->checkFlag(Generator::generator_flags::internal_frequency_calculation)) {
+                if (gen->checkFlag(Generator::GeneratorFlags::internal_frequency_calculation)) {
                     if (gen->getPmax() > mxpower) {
                         keyGen = gen;
                         mxpower = gen->getPmax();
@@ -833,9 +832,9 @@ void AcBus::dynObjectInitializeB(const IOdata& /*inputs*/,
     int poi = 0;
     auto cid = getID();
     switch (type) {
-        case busType::PQ:
+        case BusType::PQ:
             break;
-        case busType::PV:
+        case BusType::PV:
             computePowerAdjustments();
             Qgap = -S.sumQ();
             for (auto& vco : busController.vControlObjects) {
@@ -852,7 +851,7 @@ void AcBus::dynObjectInitializeB(const IOdata& /*inputs*/,
                 ++vci;
             }
             break;
-        case busType::SLK:
+        case BusType::SLK:
 
             computePowerAdjustments();
             Qgap = -(S.sumQ());
@@ -912,7 +911,7 @@ void AcBus::dynObjectInitializeB(const IOdata& /*inputs*/,
                 }
             }
             break;
-        case busType::afix:
+        case BusType::afix:
             Pgap = -(S.sumP());
             // adjust the real power flow
             for (auto& pco : busController.pControlObjects) {
@@ -1022,45 +1021,45 @@ void AcBus::set(std::string_view param, std::string_view val)
     auto val_lowerCase = convertToLowerCase(val);
     if ((param == "type") || (param == "bustype") || (param == "pflowtype")) {
         if ((val_lowerCase == "slk") || (val_lowerCase == "swing") || (val_lowerCase == "slack")) {
-            type = busType::SLK;
-            prevType = busType::SLK;
+            type = BusType::SLK;
+            prevType = BusType::SLK;
         } else if (val_lowerCase == "pv") {
-            type = busType::PV;
-            prevType = busType::PV;
+            type = BusType::PV;
+            prevType = BusType::PV;
         } else if (val_lowerCase == "pq") {
-            type = busType::PQ;
-            prevType = busType::PQ;
+            type = BusType::PQ;
+            prevType = BusType::PQ;
         } else if ((val_lowerCase == "dynslk") || (val_lowerCase == "inf") ||
                    (val_lowerCase == "infinite")) {
-            type = busType::SLK;
-            prevType = busType::SLK;
-            dynType = dynBusType::dynSLK;
+            type = BusType::SLK;
+            prevType = BusType::SLK;
+            dynType = DynBusType::dynSLK;
         } else if ((val_lowerCase == "fixedangle") || (val_lowerCase == "fixangle") ||
                    (val_lowerCase == "ref")) {
-            dynType = dynBusType::fixAngle;
+            dynType = DynBusType::fixAngle;
         } else if ((val_lowerCase == "fixedvoltage") || (val_lowerCase == "fixvoltage") ||
                    (val_lowerCase == "vfix")) {
-            dynType = dynBusType::fixVoltage;
+            dynType = DynBusType::fixVoltage;
         } else if (val_lowerCase == "afix") {
-            type = busType::afix;
-            prevType = busType::afix;
+            type = BusType::afix;
+            prevType = BusType::afix;
         } else if (val_lowerCase == "normal") {
-            dynType = dynBusType::normal;
+            dynType = DynBusType::normal;
         } else {
             throw(InvalidParameterValue(val));
         }
     } else if (param == "dyntype") {
         if ((val_lowerCase == "dynslk") || (val_lowerCase == "inf") || (val_lowerCase == "slk")) {
-            dynType = dynBusType::dynSLK;
-            type = busType::SLK;
+            dynType = DynBusType::dynSLK;
+            type = BusType::SLK;
         } else if ((val_lowerCase == "fixedvoltage") || (val_lowerCase == "fixvoltage") ||
                    (val_lowerCase == "vfix")) {
-            dynType = dynBusType::fixVoltage;
+            dynType = DynBusType::fixVoltage;
         } else if ((val_lowerCase == "fixedangle") || (val_lowerCase == "fixangle") ||
                    (val_lowerCase == "ref") || (val_lowerCase == "afix")) {
-            dynType = dynBusType::fixAngle;
+            dynType = DynBusType::fixAngle;
         } else if ((val_lowerCase == "normal") || (val_lowerCase == "pq")) {
-            dynType = dynBusType::normal;
+            dynType = DynBusType::normal;
         } else {
             throw(InvalidParameterValue(val));
         }
@@ -1074,13 +1073,13 @@ void AcBus::set(std::string_view param, double val, unit unitType)
     if ((param == "voltage") || (param == "vol") || (param == "v") || (param == "vmag") ||
         (param == "v0") || (param == "voltage0")) {
         voltage = convert(val, unitType, puV, systemBasePower, localBaseVoltage);
-        if ((type == busType::PV) || (type == busType::SLK)) {
+        if ((type == BusType::PV) || (type == BusType::SLK)) {
             vTarget = voltage;
         }
     } else if ((param == "angle") || (param == "ang") || (param == "a") || (param == "theta") ||
                (param == "angle0")) {
         angle = convert(val, unitType, rad);
-        if ((type == busType::SLK) || (type == busType::afix)) {
+        if ((type == BusType::SLK) || (type == BusType::afix)) {
             aTarget = angle;
         }
     } else if ((param == "basefrequency") || (param == "basefreq")) {
@@ -1184,16 +1183,16 @@ void AcBus::setVoltageAngle(double Vnew, double Anew)
     voltage = Vnew;
     angle = Anew;
     switch (type) {
-        case busType::PQ:
+        case BusType::PQ:
             break;
-        case busType::PV:
+        case BusType::PV:
             vTarget = voltage;
             break;
-        case busType::SLK:
+        case BusType::SLK:
             vTarget = voltage;
             aTarget = angle;
             break;
-        case busType::afix:
+        case BusType::afix:
             aTarget = angle;
             break;
         default:
@@ -1360,7 +1359,7 @@ int AcBus::propogatePower(bool makeSlack)
 {
     if (makeSlack) {
         prevType = type;
-        type = busType::SLK;
+        type = BusType::SLK;
     }
     int unfixed_lines = 0;
     Link* unfixed_line = nullptr;
@@ -1448,7 +1447,7 @@ int AcBus::propogatePower(bool makeSlack)
 
 void AcBus::registerVoltageControl(GridComponent* comp)
 {
-    const bool update = (opFlags[pFlow_initialized]) && (type != busType::PQ);
+    const bool update = (opFlags[pFlow_initialized]) && (type != BusType::PQ);
     busController.addVoltageControlObject(comp, update);
 }
 
@@ -1459,7 +1458,7 @@ void AcBus::removeVoltageControl(GridComponent* comp)
 
 void AcBus::registerPowerControl(GridComponent* comp)
 {
-    const bool update = (opFlags[pFlow_initialized]) && (type != busType::PQ);
+    const bool update = (opFlags[pFlow_initialized]) && (type != BusType::PQ);
     busController.addPowerControlObject(comp, update);
 }
 
@@ -2005,7 +2004,7 @@ void AcBus::convergeHighErrorOnly(const stateData& stateDataValue,
 bool AcBus::convergeStrongIteration(const stateData& stateDataValue,
                                     double state[],
                                     const solverMode& sMode,
-                                    converge_mode& mode,
+                                    ConvergeMode& mode,
                                     double& err,
                                     double& voltageValue,
                                     double& angleValue,
@@ -2021,8 +2020,8 @@ bool AcBus::convergeStrongIteration(const stateData& stateDataValue,
         voltageValue = useVoltageState ? state[voltageOffset] : voltage;
         angleValue = useAngleState ? state[angleOffset] : angle;
         if ((voltageValue < currentModeVoltageLimit) &&
-            (mode != converge_mode::force_strong_iteration)) {
-            mode = converge_mode::force_voltage_only;
+            (mode != ConvergeMode::force_strong_iteration)) {
+            mode = ConvergeMode::force_voltage_only;
             return true;
         }
 
@@ -2044,7 +2043,7 @@ bool AcBus::convergeStrongIteration(const stateData& stateDataValue,
 bool AcBus::convergeVoltageOnly(const stateData& stateDataValue,
                                 double state[],
                                 const solverMode& sMode,
-                                converge_mode& mode,
+                                ConvergeMode& mode,
                                 double& voltageValue,
                                 double angleValue,
                                 double frequencyValue,
@@ -2062,8 +2061,8 @@ bool AcBus::convergeVoltageOnly(const stateData& stateDataValue,
     while (notConverged) {
         if (iteration > 1) {
             voltageValue = useVoltageState ? state[voltageOffset] : voltage;
-            if ((voltageValue > vTarget * 1.1) && (mode != converge_mode::force_voltage_only)) {
-                mode = converge_mode::force_strong_iteration;
+            if ((voltageValue > vTarget * 1.1) && (mode != ConvergeMode::force_voltage_only)) {
+                mode = ConvergeMode::force_strong_iteration;
                 return true;
             }
         }
@@ -2162,7 +2161,7 @@ void AcBus::converge(coreTime time,
                      double state[],
                      double dstate_dt[],
                      const solverMode& sMode,
-                     converge_mode mode,
+                     ConvergeMode mode,
                      double tol)
 {
     if (!isEnabled() || isDifferentialOnly(sMode) || opFlags[disconnected]) {
@@ -2191,8 +2190,8 @@ void AcBus::converge(coreTime time,
         currentModeVlimit = (!attachedGens.empty()) ? 0.4 : 0.05;
         currentModeVlimit *= vTarget;
     }
-    if ((voltageValue < currentModeVlimit) && (mode != converge_mode::force_voltage_only)) {
-        mode = converge_mode::voltage_only;
+    if ((voltageValue < currentModeVlimit) && (mode != ConvergeMode::force_voltage_only)) {
+        mode = ConvergeMode::voltage_only;
     }
 
     double err = computeError(stateDataValue, sMode);
@@ -2207,16 +2206,16 @@ void AcBus::converge(coreTime time,
     while (restartConvergence) {
         restartConvergence = false;
         switch (mode) {
-            case converge_mode::high_error_only:
+            case ConvergeMode::high_error_only:
                 convergeHighErrorOnly(stateDataValue, state, sMode, err, tol);
                 break;
-            case converge_mode::single_iteration:
-            case converge_mode::block_iteration:
+            case ConvergeMode::single_iteration:
+            case ConvergeMode::block_iteration:
                 algebraicUpdate(noInputs, stateDataValue, state, sMode, 1.0);
                 break;
-            case converge_mode::local_iteration:
-            case converge_mode::strong_iteration:
-            case converge_mode::force_strong_iteration:
+            case ConvergeMode::local_iteration:
+            case ConvergeMode::strong_iteration:
+            case ConvergeMode::force_strong_iteration:
                 restartConvergence = convergeStrongIteration(stateDataValue,
                                                              state,
                                                              sMode,
@@ -2232,8 +2231,8 @@ void AcBus::converge(coreTime time,
                                                              tol,
                                                              iteration);
                 break;
-            case converge_mode::voltage_only:
-            case converge_mode::force_voltage_only:
+            case ConvergeMode::voltage_only:
+            case ConvergeMode::force_voltage_only:
                 restartConvergence = convergeVoltageOnly(stateDataValue,
                                                          state,
                                                          sMode,
@@ -2376,10 +2375,10 @@ bool AcBus::useAngle(const solverMode& sMode) const
 {
     if ((hasAlgebraic(sMode)) && (isConnected())) {
         if (isDynamic(sMode)) {
-            if ((dynType == dynBusType::normal) || (dynType == dynBusType::fixVoltage)) {
+            if ((dynType == DynBusType::normal) || (dynType == DynBusType::fixVoltage)) {
                 return true;
             }
-        } else if ((type == busType::PQ) || (type == busType::PV)) {
+        } else if ((type == BusType::PQ) || (type == BusType::PV)) {
             return true;
         }
     }
@@ -2390,10 +2389,10 @@ bool AcBus::useVoltage(const solverMode& sMode) const
 {
     if ((hasAlgebraic(sMode)) && (isConnected()) && (!isDC(sMode))) {
         if (isDynamic(sMode)) {
-            if ((dynType == dynBusType::normal) || (dynType == dynBusType::fixAngle)) {
+            if ((dynType == DynBusType::normal) || (dynType == DynBusType::fixAngle)) {
                 return true;
             }
-        } else if ((type == busType::PQ) || (type == busType::afix)) {
+        } else if ((type == BusType::PQ) || (type == BusType::afix)) {
             return true;
         }
     }
@@ -2496,7 +2495,7 @@ void AcBus::updateFlags(bool /*dynOnly*/)
 {
     opFlags.reset(preEx_requested);
     opFlags.reset(has_powerflow_adjustments);
-    if (prevType == busType::SLK) {
+    if (prevType == BusType::SLK) {
         // check for P limits
         if ((busController.Pmin > -kHalfBigNum) || (busController.Pmax < kHalfBigNum)) {
             opFlags[has_powerflow_adjustments] = true;
@@ -2525,11 +2524,11 @@ void AcBus::updateFlags(bool /*dynOnly*/)
     if (opFlags[compute_frequency]) {
         opFlags |= fblock->cascadingFlags();
     }
-    if (prevType == busType::PV) {
+    if (prevType == BusType::PV) {
         if ((busController.Qmin > -kHalfBigNum) || (busController.Qmax < kHalfBigNum)) {
             opFlags[has_powerflow_adjustments] = true;
         }
-    } else if (prevType == busType::afix) {
+    } else if (prevType == BusType::afix) {
         if ((busController.Pmin > -kHalfBigNum) || (busController.Pmax < kHalfBigNum)) {
             opFlags[has_powerflow_adjustments] = true;
         }
@@ -2700,27 +2699,27 @@ double AcBus::get(std::string_view param, unit unitType) const
     return val;
 }
 
-change_code AcBus::rootCheck(const IOdata& inputs,
-                             const stateData& stateDataValue,
-                             const solverMode& sMode,
-                             check_level_t level)
+ChangeCode AcBus::rootCheck(const IOdata& inputs,
+                            const stateData& stateDataValue,
+                            const solverMode& sMode,
+                            CheckLevel level)
 {
     const double currentVoltage = getVoltage(stateDataValue, sMode);
-    change_code ret = change_code::no_change;
-    if (level == check_level_t::low_voltage_check) {
+    ChangeCode ret = ChangeCode::NO_CHANGE;
+    if (level == CheckLevel::low_voltage_check) {
         if (!isConnected()) {
             return ret;
         }
         if (currentVoltage < 1e-8) {
             disconnect();
-            ret = change_code::jacobian_change;
+            ret = ChangeCode::JACOBIAN_CHANGE;
             logging::debug(this, "Bus low voltage disconnect");
         }
         if (opFlags[prev_low_voltage_alert]) {
             if (stateDataValue.time <= lowVtime) {
                 disconnect();
                 opFlags.reset(prev_low_voltage_alert);
-                ret = change_code::jacobian_change;
+                ret = ChangeCode::JACOBIAN_CHANGE;
                 logging::debug(this, "Bus low voltage disconnect");
             } else {
                 opFlags.reset(prev_low_voltage_alert);
@@ -2728,31 +2727,31 @@ change_code AcBus::rootCheck(const IOdata& inputs,
         }
         return ret;
     }
-    if (level == check_level_t::complete_state_check) {
+    if (level == CheckLevel::complete_state_check) {
         if (currentVoltage < 1e-5) {
             logging::normal(this, "bus disconnecting from low voltage");
             disconnect();
         } else if (isDAE(sMode)) {
-            if (dynType == dynBusType::normal) {
+            if (dynType == DynBusType::normal) {
                 if (currentVoltage < 0.001) {
-                    prevDynType = dynBusType::normal;
+                    prevDynType = DynBusType::normal;
                     refAngle = static_cast<GridArea*>(getParent())
                                    ->getMasterAngle(emptyStateData, cLocalSolverMode);
 
-                    dynType = dynBusType::fixAngle;
+                    dynType = DynBusType::fixAngle;
                     alert(this, JAC_COUNT_DECREASE);
-                    ret = change_code::jacobian_change;
+                    ret = ChangeCode::JACOBIAN_CHANGE;
                 }
-            } else if (dynType == dynBusType::fixAngle) {
-                if (prevDynType == dynBusType::normal) {
+            } else if (dynType == DynBusType::fixAngle) {
+                if (prevDynType == DynBusType::normal) {
                     if (currentVoltage > 0.1) {
-                        dynType = dynBusType::normal;
+                        dynType = DynBusType::normal;
                         const double newAngle =
                             static_cast<GridArea*>(getParent())
                                 ->getMasterAngle(emptyStateData, cLocalSolverMode);
                         angle = angle + (newAngle - refAngle);
                         alert(this, JAC_COUNT_INCREASE);
-                        ret = change_code::jacobian_change;
+                        ret = ChangeCode::JACOBIAN_CHANGE;
                     }
                 }
             }

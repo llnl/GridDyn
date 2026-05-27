@@ -14,7 +14,7 @@
 #include <fstream>
 #include <string>
 
-enum ODE_error { ODE_FAILED };
+enum OdeError { ODE_FAILED };
 namespace griddyn::paradae {
 class ODEProblem {
     Equation* equation;

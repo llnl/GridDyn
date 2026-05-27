@@ -156,7 +156,7 @@ void commSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMess
                 auto fea = std::make_shared<functionEventAdapter>(
                     [this, val]() {
                         setLevel(val);
-                        return change_code::parameter_change;
+                        return ChangeCode::PARAMETER_CHANGE;
                     },
                     m->m_time);
                 rootSim->add(fea);

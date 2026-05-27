@@ -47,7 +47,7 @@ namespace tcpLib {
 
       protected:
         /** enumeration flags for the communicator object*/
-        enum zmqCommFlags {
+        enum ZmqCommFlags {
             no_transmit_dest = 0,  //!< flag indicating whether the communicator should include the
                                    //!< destination as the first frame
             no_transmit_source = 1,  //!< flag indicating whether the communicator should include

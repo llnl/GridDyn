@@ -38,7 +38,7 @@ class Recorder: public collector {
     */
     virtual void cloneTo(collector* col) const override;
 
-    virtual change_code trigger(coreTime time) override;
+    virtual ChangeCode trigger(coreTime time) override;
 
     /** save the data to a file
     @param[in] fileName the name of the file to save the data to

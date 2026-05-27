@@ -88,7 +88,7 @@ void HelicsCollector::dataPointAdded(const collectorPoint& cp)
     }
 }
 
-change_code HelicsCollector::trigger(coreTime time)
+ChangeCode HelicsCollector::trigger(coreTime time)
 {
     auto out = collector::trigger(time);
 

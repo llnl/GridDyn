@@ -34,7 +34,7 @@ class Violation;
 class GridComponent: public CoreObject {
   protected:
     std::bitset<64> opFlags;  //!< operational flags these flags are designed to be normal false
-                              //!< @see ::operation_flags
+                              //!< @see ::OperationFlags
     offsetTable offsets;  //!< a table of offsets for the different solver modes
     count_t m_inputSize = 0;  //!< the required size of the inputs input
     count_t m_outputSize = 0;  //!< the number of outputs the subModel produces
@@ -409,7 +409,7 @@ see GridComponent::dynInitializeA for more details
     virtual void loadRootSizes(const solverMode& sMode);
 
   protected:
-    enum class sizeCategory {
+    enum class SizeCategory {
         state_size_update,
         jacobian_size_update,
         root_size_update,
@@ -418,19 +418,19 @@ see GridComponent::dynInitializeA for more details
     @param sMode the solver mode to use.
     @param category set to the type of size data being loaded
     */
-    void loadSizesSub(const solverMode& sMode, sizeCategory category);
+    void loadSizesSub(const solverMode& sMode, SizeCategory category);
 
   public:
     /** @brief reset the object
      * reset any internal states to a base level depending on the level
      * @param[in] level  the level of the reset
      */
-    virtual void reset(reset_levels level = reset_levels::minimal);
+    virtual void reset(ResetLevels level = ResetLevels::minimal);
 
     /** @brief transfer a computed state to the objects
     @param time -the time the state corresponds to
     @param state -- a double array pointing to the state information
-    @param dstate_dt a double array pointing to the state derivative information (not necessary for
+    @param dstateDt a double array pointing to the state derivative information (not necessary for
     states with no corresponding time derivative
     @param sMode  -- the solverMode corresponding to the computed state.
     */
@@ -441,7 +441,7 @@ see GridComponent::dynInitializeA for more details
     /** @brief transfer state information from the objects to a vector
     @param time -the time the state corresponds to
     @param[out] state -- a double array pointing to the state information
-    @param[out] dstate_dt a double array pointing to the state derivative information (not necessary
+    @param[out] dstateDt a double array pointing to the state derivative information (not necessary
     for states with no corresponding time derivative
     @param sMode  -- the solverMode corresponding to the computed state.
     */
@@ -689,10 +689,10 @@ see GridComponent::dynInitializeA for more details
     * @param[in] sMode the mode the solver is in
     @param[in] level the level of root to check for
     **/
-    virtual change_code rootCheck(const IOdata& inputs,
-                                  const stateData& stateDataValue,
-                                  const solverMode& sMode,
-                                  check_level_t level);
+    virtual ChangeCode rootCheck(const IOdata& inputs,
+                                 const stateData& stateDataValue,
+                                 const solverMode& sMode,
+                                 CheckLevel level);
     /******************************************
     output functions
     *******************************************/
@@ -819,8 +819,7 @@ see GridComponent::dynInitializeA for more details
     @param[in] flags for suggesting how the object handle the adjustments
     * @param[in] level  the level of the adjustments to perform
     */
-    virtual change_code
-        powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, check_level_t level);
+    virtual ChangeCode powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level);
     friend class offsetTable;
 };
 

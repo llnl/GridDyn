@@ -67,13 +67,13 @@ void DeadbandBlock::dynObjectInitializeB(const IOdata& inputs,
 {
     if (desiredOutput.empty()) {
         m_state[limiter_alg] = mDeadbandLevel;
-        rootCheck(inputs, emptyStateData, cLocalSolverMode, check_level_t::reversable_only);
+        rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::reversable_only);
         m_state[limiter_alg] = K * computeValue(inputs[0] + bias);
         if (limiter_alg > 0) {
             GridBlock::rootCheck(inputs,
                                  emptyStateData,
                                  cLocalSolverMode,
-                                 check_level_t::reversable_only);
+                                 CheckLevel::reversable_only);
         }
     } else {
         fieldSet.resize(1);
@@ -81,7 +81,7 @@ void DeadbandBlock::dynObjectInitializeB(const IOdata& inputs,
             GridBlock::rootCheck(inputs,
                                  emptyStateData,
                                  cLocalSolverMode,
-                                 check_level_t::reversable_only);
+                                 CheckLevel::reversable_only);
         }
         mDeadbandState = DeadbandState::NORMAL;
         const double initialValue = m_state[limiter_alg] / K;
@@ -190,7 +190,7 @@ double DeadbandBlock::computeDoutDin(double input) const
 }
 double DeadbandBlock::step(coreTime time, double input)
 {
-    rootCheck({input}, emptyStateData, cLocalSolverMode, check_level_t::reversable_only);
+    rootCheck({input}, emptyStateData, cLocalSolverMode, CheckLevel::reversable_only);
     m_state[limiter_alg] = K * computeValue(input + bias);
     if (limiter_alg > 0) {
         GridBlock::step(time, input);
@@ -403,12 +403,12 @@ void DeadbandBlock::rootTrigger(coreTime time,
     }
 }
 
-change_code DeadbandBlock::rootCheck(const IOdata& inputs,
-                                     const stateData& stateDataRef,
-                                     const solverMode& sMode,
-                                     check_level_t /*level*/)
+ChangeCode DeadbandBlock::rootCheck(const IOdata& inputs,
+                                    const stateData& stateDataRef,
+                                    const solverMode& sMode,
+                                    CheckLevel /*level*/)
 {
-    change_code ret = change_code::no_change;
+    ChangeCode ret = ChangeCode::NO_CHANGE;
     if (opFlags[USES_DEADBAND]) {
         const double inputWithBias = inputs[0] + bias;
         bool stateChanged = false;
@@ -492,14 +492,13 @@ change_code DeadbandBlock::rootCheck(const IOdata& inputs,
             }
             stateChanged = (mDeadbandState != currentState);
             if (stateChanged) {
-                ret = change_code::parameter_change;
+                ret = ChangeCode::PARAMETER_CHANGE;
             }
         } while (stateChanged);
     }
 
     if (limiter_alg > 0) {
-        auto iret =
-            GridBlock::rootCheck(inputs, stateDataRef, sMode, check_level_t::reversable_only);
+        auto iret = GridBlock::rootCheck(inputs, stateDataRef, sMode, CheckLevel::reversable_only);
         ret = std::max(ret, iret);
     }
     return ret;

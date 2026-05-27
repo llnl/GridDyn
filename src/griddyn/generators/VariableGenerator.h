@@ -25,10 +25,10 @@ class variableGenerator: public DynamicGenerator {
   public:
     //!< @brief new submodel locations for the extra variable generator block extends the ones
     //!< defined in Generator
-    enum extra_block_locations { source_loc = 5, control_block_loc = 6 };
+    enum ExtraBlockLocations { source_loc = 5, control_block_loc = 6 };
     /** @brief default constructor*/
     explicit variableGenerator(const std::string& objName = "varGen_$");
-    variableGenerator(dynModel_t dynModel, const std::string& objName = "varGen_$");
+    variableGenerator(DynModel dynModel, const std::string& objName = "varGen_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
   protected:

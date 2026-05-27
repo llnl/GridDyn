@@ -60,10 +60,10 @@ namespace {
     }
 }  // namespace
 
-static ChildClassFactoryArg<solvers::basicSolver, SolverInterface, solvers::basicSolver::mode_t>
-    basicFactoryG(stringVec{"basic", "gauss"}, solvers::basicSolver::mode_t::gauss);
-static ChildClassFactoryArg<solvers::basicSolver, SolverInterface, solvers::basicSolver::mode_t>
-    basicFactoryGS(stringVec{"gs", "gauss-seidel"}, solvers::basicSolver::mode_t::gauss_seidel);
+static ChildClassFactoryArg<solvers::basicSolver, SolverInterface, solvers::basicSolver::Mode>
+    basicFactoryG(stringVec{"basic", "gauss"}, solvers::basicSolver::Mode::gauss);
+static ChildClassFactoryArg<solvers::basicSolver, SolverInterface, solvers::basicSolver::Mode>
+    basicFactoryGS(stringVec{"gs", "gauss-seidel"}, solvers::basicSolver::Mode::gauss_seidel);
 #ifdef GRIDYN_ENABLE_CVODE
 static ChildClassFactory<solvers::basicOdeSolver, SolverInterface>
     basicOdeFactory(stringVec{"basicode", "euler"});
@@ -168,7 +168,7 @@ void SolverInterface::sparseReInit(SparseReinitMode /*mode*/) {}
 void SolverInterface::setConstraints() {}
 int SolverInterface::calcIC(coreTime /*t0*/,
                             coreTime /*tstep0*/,
-                            ic_modes /*mode*/,
+                            IcModes /*mode*/,
                             bool /*constraints*/)
 {
     return -101;
@@ -394,17 +394,17 @@ void SolverInterface::setFlag(std::string_view flag, bool val)
 void SolverInterface::setApproximation(std::string_view approx)
 {
     if ((approx == "normal") || (approx == "none")) {
-        setLinkApprox(mode, approxKeyMask::none);
+        setLinkApprox(mode, ApproxKeyMask::none);
     } else if ((approx == "simple") || (approx == "simplified")) {
-        setLinkApprox(mode, approxKeyMask::simplified);
+        setLinkApprox(mode, ApproxKeyMask::simplified);
     } else if (approx == "small_angle") {
-        setLinkApprox(mode, approxKeyMask::sm_angle);
+        setLinkApprox(mode, ApproxKeyMask::sm_angle);
     } else if (approx == "small_angle_decoupled") {
-        setLinkApprox(mode, approxKeyMask::sm_angle_decoupled);
+        setLinkApprox(mode, ApproxKeyMask::sm_angle_decoupled);
     } else if (approx == "simplified_decoupled") {
-        setLinkApprox(mode, approxKeyMask::simplified_decoupled);
+        setLinkApprox(mode, ApproxKeyMask::simplified_decoupled);
     } else if ((approx == "small_angle_simplified") || (approx == "simplified_small_angle")) {
-        setLinkApprox(mode, approxKeyMask::simplified_sm_angle);
+        setLinkApprox(mode, ApproxKeyMask::simplified_sm_angle);
     } else if ((approx == "r") || (approx == "small_r")) {
         setLinkApprox(mode, linear, false);
         setLinkApprox(mode, small_r);
@@ -415,11 +415,11 @@ void SolverInterface::setApproximation(std::string_view approx)
         setLinkApprox(mode, linear, false);
         setLinkApprox(mode, decoupled);
     } else if (approx == "decoupled") {
-        setLinkApprox(mode, approxKeyMask::decoupled);
+        setLinkApprox(mode, ApproxKeyMask::decoupled);
     } else if (approx == "linear") {
-        setLinkApprox(mode, approxKeyMask::linear);
+        setLinkApprox(mode, ApproxKeyMask::linear);
     } else if ((approx == "fast_decoupled") || (approx == "fdpf")) {
-        setLinkApprox(mode, approxKeyMask::fast_decoupled);
+        setLinkApprox(mode, ApproxKeyMask::fast_decoupled);
     } else {
         throw(InvalidParameterValue(approx));
     }

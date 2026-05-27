@@ -68,7 +68,7 @@ class fuse: public Relay {
                           double state[],
                           double dstate_dt[],
                           const solverMode& sMode,
-                          converge_mode = converge_mode::high_error_only,
+                          ConvergeMode = ConvergeMode::high_error_only,
                           double tol = 0.01) override;
     virtual stateSizes LocalStateSizes(const solverMode& sMode) const override;
 
@@ -81,13 +81,13 @@ class fuse: public Relay {
   protected:
     virtual void conditionTriggered(index_t conditionNum, coreTime triggerTime) override;
     /** function to setup the numerical calculations associated with the fuse*/
-    change_code setupFuseEvaluation();
+    ChangeCode setupFuseEvaluation();
 
   private:
     /** helper calculation function to compute the i^2 t value based on a current*/
     double I2Tequation(double current);
     /** actually blow the fuse
-@return a change_code associated with the action to match a function signature*/
-    change_code blowFuse();
+@return a ChangeCode associated with the action to match a function signature*/
+    ChangeCode blowFuse();
 };
 }  // namespace griddyn::relays

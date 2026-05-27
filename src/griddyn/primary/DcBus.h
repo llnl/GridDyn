@@ -22,7 +22,7 @@ class DcBus: public GridBus {
     friend class DcBusControls;
 
   public:
-    enum bus_flags {
+    enum BusFlags {
         use_autogen = object_flag2,  //!< indicator if the bus is using an autogen
         slave_bus = object_flag3,  //!< indicator that the bus is a slave Bus
         master_bus = object_flag4,  //!< indicator that a bus is a master bus
@@ -33,9 +33,9 @@ class DcBus: public GridBus {
     double vTarget = 1.0;  //!< a target voltage
     double participation = 1.0;
     DcBusControls busController;  //!< pointer to the busController object
-    busType prevType = busType::PQ;  //!< previous type container if the type automatically changes
-    dynBusType prevDynType =
-        dynBusType::normal;  //!< previous type container if the type automatically changes
+    BusType prevType = BusType::PQ;  //!< previous type container if the type automatically changes
+    DynBusType prevDynType =
+        DynBusType::normal;  //!< previous type container if the type automatically changes
     double dVdP = 0.0;  //!< storage for the dVdP terms from all the secondary objects
     matrixDataTranslate<1> of;
 
@@ -58,9 +58,9 @@ class DcBus: public GridBus {
     virtual void pFlowObjectInitializeB() override;
 
   public:
-    virtual change_code powerFlowAdjust(const IOdata& inputs,
-                                        std::uint32_t flags,
-                                        check_level_t level) override;  // only applicable in pFlow
+    virtual ChangeCode powerFlowAdjust(const IOdata& inputs,
+                                       std::uint32_t flags,
+                                       CheckLevel level) override;  // only applicable in pFlow
     // virtual  void generationAdjust(double adjustment);
     virtual void pFlowCheck(std::vector<Violation>& Violation_vector) override;
     // dynInitializeB dynamics
@@ -100,7 +100,7 @@ class DcBus: public GridBus {
                           double state[],
                           double dstate_dt[],
                           const solverMode& sMode,
-                          converge_mode mode = converge_mode::local_iteration,
+                          ConvergeMode mode = ConvergeMode::local_iteration,
                           double tol = 0.01) override;
 
     virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;

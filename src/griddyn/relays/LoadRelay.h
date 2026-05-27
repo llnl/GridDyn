@@ -41,7 +41,7 @@ class loadRelay: public Relay {
   protected:
     virtual void actionTaken(index_t ActionNum,
                              index_t conditionNum,
-                             change_code actionReturn,
+                             ChangeCode actionReturn,
                              coreTime actionTime) override;
     virtual void conditionTriggered(index_t conditionNum, coreTime triggerTime) override;
     virtual void conditionCleared(index_t conditionNum, coreTime triggerTime) override;

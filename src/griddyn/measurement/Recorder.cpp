@@ -148,7 +148,7 @@ void Recorder::fillDatasetFields()
 {
     mDataset.setFields(collector::getColumnDescriptions());
 }
-change_code Recorder::trigger(coreTime time)
+ChangeCode Recorder::trigger(coreTime time)
 {
     collector::trigger(time);
     if (mFirstTrigger) {
@@ -161,7 +161,7 @@ change_code Recorder::trigger(coreTime time)
         saveFile();
         mDataset.clear();
     }
-    return change_code::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 
 void Recorder::flush()

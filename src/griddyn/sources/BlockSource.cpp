@@ -270,14 +270,14 @@ void blockSource::rootTrigger(coreTime time,
     }
 }
 
-change_code blockSource::rootCheck(const IOdata& inputs,
-                                   const stateData& sD,
-                                   const solverMode& sMode,
-                                   check_level_t level)
+ChangeCode blockSource::rootCheck(const IOdata& inputs,
+                                  const stateData& sD,
+                                  const solverMode& sMode,
+                                  CheckLevel level)
 {
     double srcOut = m_output;
     double srcDout = 0.0;
-    change_code ret = change_code::no_change;
+    ChangeCode ret = ChangeCode::NO_CHANGE;
     if (src != nullptr) {
         auto iret = src->rootCheck(inputs, sD, sMode, level);
         srcOut = src->getOutput(inputs, sD, sMode, 0);

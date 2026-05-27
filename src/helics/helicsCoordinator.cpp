@@ -187,7 +187,7 @@ void HelicsCoordinator::receiveMessage(helics::Endpoint& endpoint, helics::Time 
 
     auto event = std::make_unique<griddyn::functionEventAdapter>([this, msg, &endpoint]() {
         communicationsCore::instance()->send(0, endpoint.getName(), std::move(msg));
-        return griddyn::change_code::no_change;
+        return griddyn::ChangeCode::NO_CHANGE;
     });
 
     // convert helics::Time to griddynTime

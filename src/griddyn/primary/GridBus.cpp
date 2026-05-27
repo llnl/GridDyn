@@ -327,7 +327,7 @@ void GridBus::preEx(const IOdata& /*inputs*/, const stateData& sD, const solverM
 }
 // function to reset the bus type and voltage
 
-void GridBus::reset(reset_levels level)
+void GridBus::reset(ResetLevels level)
 {
     if (opFlags[disconnected]) {
         for (auto& link : attachedLinks) {
@@ -350,10 +350,9 @@ void GridBus::reset(reset_levels level)
     }
 }
 
-change_code
-    GridBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, check_level_t level)
+ChangeCode GridBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, CheckLevel level)
 {
-    auto out = change_code::no_change;
+    auto out = ChangeCode::NO_CHANGE;
     IOdata inputs = {voltage, angle, freq};
     for (auto& gen : attachedGens) {
         if (gen->checkFlag(has_powerflow_adjustments)) {
@@ -983,7 +982,7 @@ void GridBus::converge(coreTime /*time*/,
                        double /*state*/[],
                        double /*dstate_dt*/[],
                        const solverMode& /*sMode*/,
-                       converge_mode /*mode*/,
+                       ConvergeMode /*mode*/,
                        double /*tol*/)
 {
 }
@@ -1025,7 +1024,7 @@ void GridBus::reconnect(GridBus* mapBus)
             voltage = mapBus->voltage;
             freq = mapBus->freq;
         } else {
-            reset(reset_levels::low_voltage_dyn1);
+            reset(ResetLevels::low_voltage_dyn1);
         }
         for (auto& lnk : attachedLinks) {
             lnk->reconnect();
@@ -1161,10 +1160,10 @@ void GridBus::updateLocalCache()
     }
 
     if (!opFlags[dyn_initialized]) {
-        if ((type == busType::SLK) || (type == busType::afix)) {
+        if ((type == BusType::SLK) || (type == BusType::afix)) {
             S.genP = -(S.loadP + S.linkP);
         }
-        if ((type == busType::SLK) || (type == busType::PV)) {
+        if ((type == BusType::SLK) || (type == BusType::PV)) {
             // genQ = -(loadQ + linkQ);
         }
     }
@@ -1181,7 +1180,7 @@ void GridBus::updateLocalCache()
 
 double GridBus::getGenerationRealNominal() const
 {
-    if ((type == busType::SLK) || (type == busType::afix)) {
+    if ((type == BusType::SLK) || (type == BusType::afix)) {
         double general = 0.0;
         for (auto gen : attachedGens) {
             general += gen->getRealPower();
@@ -1193,7 +1192,7 @@ double GridBus::getGenerationRealNominal() const
 
 double GridBus::getGenerationReactiveNominal() const
 {
-    if ((type == busType::SLK) || (type == busType::PV)) {
+    if ((type == BusType::SLK) || (type == BusType::PV)) {
         double genreactive = 0.0;
         for (auto gen : attachedGens) {
             genreactive += gen->getReactivePower();
@@ -1393,10 +1392,10 @@ double GridBus::get(std::string_view param, unit unitType) const
     return val;
 }
 
-change_code GridBus::rootCheck(const IOdata& /*inputs*/,
-                               const stateData& sD,
-                               const solverMode& sMode,
-                               check_level_t level)
+ChangeCode GridBus::rootCheck(const IOdata& /*inputs*/,
+                              const stateData& sD,
+                              const solverMode& sMode,
+                              CheckLevel level)
 {
     auto inputs = getOutputs(noInputs, sD, sMode);
     return GridComponent::rootCheck(inputs, sD, sMode, level);

@@ -11,7 +11,7 @@
 #include "Solver.h"
 
 namespace griddyn::paradae {
-enum LS_error { LS_NOT_CONVERGED, LS_INF_NAN };
+enum LsError { LS_NOT_CONVERGED, LS_INF_NAN };
 
 class LinearSearch: Solver {
     static constexpr int max_iter_int = 100;

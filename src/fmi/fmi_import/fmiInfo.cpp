@@ -101,7 +101,7 @@ int FmiInfo::getCounts(const std::string& countType) const
     return cnt;
 }
 
-static const char emptyString[] = "";
+static constexpr char emptyString[] = "";
 
 const std::string& FmiInfo::getString(const std::string& field) const
 {
@@ -222,7 +222,7 @@ std::vector<std::string> FmiInfo::getVariableNames(const std::string& type) cons
     } else {
         const FmiCausality caus = type;
         for (const auto& var : variables) {
-            if ((caus == FmiCausalityType::any) || (var.causality == caus)) {
+            if ((caus == FmiCausalityType::ANY) || (var.causality == caus)) {
                 vnames.push_back(var.name);
             }
         }
@@ -231,7 +231,11 @@ std::vector<std::string> FmiInfo::getVariableNames(const std::string& type) cons
     return vnames;
 }
 
-static const std::vector<int> emptyVec;
+static const std::vector<int>& emptyVec()
+{
+    static const std::vector<int> emptyVector;
+    return emptyVector;
+}
 
 const std::vector<int>& FmiInfo::getVariableIndices(const std::string& type) const
 {
@@ -256,7 +260,7 @@ const std::vector<int>& FmiInfo::getVariableIndices(const std::string& type) con
     if (type == "unknown") {
         return initUnknown;
     }
-    return emptyVec;
+    return emptyVec();
 }
 
 /** get the variable indices of the derivative dependencies*/
@@ -414,23 +418,23 @@ description="Constant output value"
 variability="tunable"
 */
 
-static const char ScalarVString[] = "ScalarVariable";
+static constexpr char scalarVString[] = "ScalarVariable";
 void FmiInfo::loadVariables(std::shared_ptr<readerElement>& readerElementPtr)
 {
     readerElementPtr->bookmark();
     readerElementPtr->moveToFirstChild("ModelVariables");
     // Loop over the variables to be able to allocate memory efficiently later on
-    readerElementPtr->moveToFirstChild(ScalarVString);
+    readerElementPtr->moveToFirstChild(scalarVString);
     int vcount = 0;
 
     while (readerElementPtr->isValid()) {
         ++vcount;
-        readerElementPtr->moveToNextSibling(ScalarVString);
+        readerElementPtr->moveToNextSibling(scalarVString);
     }
     variables.resize(vcount);
     readerElementPtr->moveToParent();
     // now load the variables
-    readerElementPtr->moveToFirstChild(ScalarVString);
+    readerElementPtr->moveToFirstChild(scalarVString);
     int variableIndex = 0;
     while (readerElementPtr->isValid()) {
         loadVariableInfo(readerElementPtr, variables[variableIndex]);
@@ -444,19 +448,19 @@ void FmiInfo::loadVariables(std::shared_ptr<readerElement>& readerElementPtr)
         // lower case parameters and may not be needed
         variableLookup.emplace(convertToLowerCase(variables[variableIndex].name), variableIndex);
         switch (variables[variableIndex].causality.value()) {
-            case FmiCausalityType::parameter:
+            case FmiCausalityType::PARAMETER:
                 parameters.push_back(variableIndex);
                 break;
-            case FmiCausalityType::local:
+            case FmiCausalityType::LOCAL:
                 local.push_back(variableIndex);
                 break;
-            case FmiCausalityType::input:
+            case FmiCausalityType::INPUT:
                 inputs.push_back(variableIndex);
                 break;
             default:
                 break;
         }
-        readerElementPtr->moveToNextSibling(ScalarVString);
+        readerElementPtr->moveToNextSibling(scalarVString);
         ++variableIndex;
     }
     readerElementPtr->restore();
@@ -483,7 +487,7 @@ static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,
         att = readerElementPtr->getNextAttribute();
     }
     if (readerElementPtr->hasElement("Real")) {
-        vInfo.type = FmiVariableType::real;
+        vInfo.type = FmiVariableType::REAL;
         readerElementPtr->moveToFirstChild("Real");
         att = readerElementPtr->getFirstAttribute();
         while (att.isValid()) {
@@ -505,7 +509,7 @@ static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,
         }
         readerElementPtr->moveToParent();
     } else if (readerElementPtr->hasElement("Boolean")) {
-        vInfo.type = FmiVariableType::boolean;
+        vInfo.type = FmiVariableType::BOOLEAN;
         readerElementPtr->moveToFirstChild("Boolean");
         att = readerElementPtr->getFirstAttribute();
         while (att.isValid()) {
@@ -516,7 +520,7 @@ static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,
         }
         readerElementPtr->moveToParent();
     } else if (readerElementPtr->hasElement("String")) {
-        vInfo.type = FmiVariableType::string;
+        vInfo.type = FmiVariableType::STRING;
         readerElementPtr->moveToFirstChild("String");
         att = readerElementPtr->getFirstAttribute();
         while (att.isValid()) {
@@ -527,7 +531,7 @@ static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,
         }
         readerElementPtr->moveToParent();
     } else if (readerElementPtr->hasElement("Integer")) {
-        vInfo.type = FmiVariableType::integer;
+        vInfo.type = FmiVariableType::INTEGER;
         readerElementPtr->moveToFirstChild("Integer");
         att = readerElementPtr->getFirstAttribute();
         while (att.isValid()) {
@@ -564,9 +568,9 @@ static auto depkindNum(const std::string& depknd)
     return 6;
 }
 
-static const char unknownString[] = "Unknown";
-static const char depString[] = "dependencies";
-static const char depKindString[] = "dependenciesKind";
+static constexpr char unknownString[] = "Unknown";
+static constexpr char depString[] = "dependencies";
+static constexpr char depKindString[] = "dependenciesKind";
 
 static void loadDependencies(std::shared_ptr<readerElement>& readerElementPtr,
                              std::vector<int>& store,
@@ -634,19 +638,19 @@ void FmiInfo::loadStructure(std::shared_ptr<readerElement>& readerElementPtr)
 bool checkType(const VariableInformation& info, FmiVariableType type, FmiCausalityType caus)
 {
     if (!(info.causality == caus)) {
-        if ((info.causality != FmiCausalityType::input) || (caus != FmiCausalityType::parameter)) {
+        if ((info.causality != FmiCausalityType::INPUT) || (caus != FmiCausalityType::PARAMETER)) {
             return false;
         }
     }
     if (info.type == type) {
         return true;
     }
-    if (type == FmiVariableType::numeric) {
+    if (type == FmiVariableType::NUMERIC) {
         switch (info.type.value()) {
-            case FmiVariableType::boolean:
-            case FmiVariableType::integer:
-            case FmiVariableType::real:
-            case FmiVariableType::enumeration:
+            case FmiVariableType::BOOLEAN:
+            case FmiVariableType::INTEGER:
+            case FmiVariableType::REAL:
+            case FmiVariableType::ENUMERATION:
                 return true;
             default:
                 return false;

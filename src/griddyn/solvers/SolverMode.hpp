@@ -21,7 +21,7 @@ namespace griddyn {
  * differential_only for the differential part of the DAE solution
  *  DAE  the full DAE Solution mode
  */
-enum approxkey {
+enum ApproxKey {
     decoupled = 0,
     small_angle = 1,
     small_r = 2,
@@ -30,17 +30,17 @@ enum approxkey {
     dc = 31,
 };
 
-enum class approxKeyMask : unsigned int {
+enum class ApproxKeyMask : unsigned int {
     none = 0,
-    decoupled = (1 << approxkey::decoupled),
-    sm_angle = (1 << approxkey::small_angle),
-    simplified = (1 << approxkey::small_r),
-    simplified_decoupled = (1 << approxkey::decoupled) + (1 << approxkey::small_r),
-    simplified_sm_angle = (1 << approxkey::small_angle) + (1 << approxkey::small_r),
-    sm_angle_decoupled = (1 << approxkey::decoupled) + (1 << approxkey::small_angle),
+    decoupled = (1 << ApproxKey::decoupled),
+    sm_angle = (1 << ApproxKey::small_angle),
+    simplified = (1 << ApproxKey::small_r),
+    simplified_decoupled = (1 << ApproxKey::decoupled) + (1 << ApproxKey::small_r),
+    simplified_sm_angle = (1 << ApproxKey::small_angle) + (1 << ApproxKey::small_r),
+    sm_angle_decoupled = (1 << ApproxKey::decoupled) + (1 << ApproxKey::small_angle),
     fast_decoupled =
-        (1 << approxkey::small_r) + (1 << approxkey::small_angle) + (1 << approxkey::decoupled),
-    linear = (1 << approxkey::linear),
+        (1 << ApproxKey::small_r) + (1 << ApproxKey::small_angle) + (1 << ApproxKey::decoupled),
+    linear = (1 << ApproxKey::linear),
 };
 
 #ifdef _MSC_VER
@@ -53,12 +53,12 @@ enum class approxKeyMask : unsigned int {
 #    define KEY_QUAL constexpr
 #endif
 
-KEY_QUAL unsigned int indexVal(approxKeyMask key)
+KEY_QUAL unsigned int indexVal(ApproxKeyMask key)
 {
     return static_cast<unsigned int>(key);
 }
 
-enum defindedSolverModes : index_t {
+enum DefinedSolverModes : index_t {
     local_mode = 0,
     power_flow = 1,
     dae = 2,
@@ -124,7 +124,7 @@ constexpr int getLinkApprox(const solverMode& sMode)
 {
     return static_cast<int>(sMode.approx.to_ulong() & (LINKAPPROXMASK));
 }
-inline void setLinkApprox(solverMode& sMode, approxKeyMask key)
+inline void setLinkApprox(solverMode& sMode, ApproxKeyMask key)
 {
     sMode.approx &= (~LINKAPPROXMASK);
     sMode.approx |= indexVal(key);

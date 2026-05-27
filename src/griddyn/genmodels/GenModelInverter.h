@@ -89,24 +89,24 @@ class GenModelInverter: public GenModel {
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
-    virtual change_code rootCheck(const IOdata& inputs,
-                                  const stateData& stateDataValue,
-                                  const solverMode& sMode,
-                                  check_level_t level) override;
+    virtual ChangeCode rootCheck(const IOdata& inputs,
+                                 const stateData& stateDataValue,
+                                 const solverMode& sMode,
+                                 CheckLevel level) override;
 
   private:
     void reCalcImpedences();
     /** @brief compute the real power output
-@param V voltage
-@param Ef Exciter field
+@param voltage voltage
+@param exciterField Exciter field
 @param cosA  the cosine of the power angle
 @param sinA  the sine of the power angle
 @return the real power output;
 */
     double realPowerCompute(double voltage, double exciterField, double cosA, double sinA) const;
     /** @brief compute the reactive power output
-@param V voltage
-@param Ef Exciter field
+@param voltage voltage
+@param exciterField Exciter field
 @param cosA  the cosine of the power angle
 @param sinA  the sine of the power angle
 @return the real power output;

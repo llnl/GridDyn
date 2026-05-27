@@ -15,9 +15,9 @@ namespace griddyn::loads {
 class MotorLoad5: public MotorLoad3 {
   private:
     /** @brief private enumerations of state variable locations in powerflow*/
-    enum pLocA { irA = 0, imA = 1, slipA = 2, erpA = 3, empA = 4, erppA = 5, emppA = 6 };
+    enum PLocA { irA = 0, imA = 1, slipA = 2, erpA = 3, empA = 4, erppA = 5, emppA = 6 };
     /** @brief private enumerations of state variable locations in dynamic calculations*/
-    enum pLocD { slipD = 0, erpD = 1, empD = 2, erppD = 3, emppD = 4 };
+    enum PLocD { slipD = 0, erpD = 1, empD = 2, erppD = 3, emppD = 4 };
 
   protected:
     double r2 = 0.002;  //!< 3rd level loop resistance
@@ -65,10 +65,10 @@ class MotorLoad5: public MotorLoad3 {
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
-    virtual change_code rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
-                                  const solverMode& sMode,
-                                  check_level_t level) override;
+    virtual ChangeCode rootCheck(const IOdata& inputs,
+                                 const stateData& sD,
+                                 const solverMode& sMode,
+                                 CheckLevel level) override;
 
     virtual void jacobianElements(const IOdata& inputs,
                                   const stateData& sD,

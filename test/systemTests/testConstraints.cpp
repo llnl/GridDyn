@@ -19,14 +19,14 @@ TEST_F(ConstraintTests, ConstraintTest1)
 {
     std::string fileName = std::string(CONSTRAINT_TEST_DIRECTORY "test_constSimple1.xml");
     gds = readSimXMLFile(fileName);
-    requireState(GridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::GridState::STARTUP);
 
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
 
     gds->powerflow();
     printf("completed power flow\n");
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     gds->run(30.0);
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }

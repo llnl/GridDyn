@@ -31,7 +31,7 @@ class adjustableTransformer: public AcLine {
     };
     /** @brief  flags for
      */
-    enum adjustable_flags {
+    enum AdjustableFlags {
         continuous_flag = object_flag5,  //!< flag indicating continuous adjustments
         use_target_mode = object_flag6,  //!< flag indicating target mode
         at_limit = object_flag7,  //!< flag indicating the adjustments are at their limit
@@ -111,9 +111,9 @@ class adjustableTransformer: public AcLine {
 which cases the parent of the link is searched for the bus*/
     void setControlBus(index_t busNumber = 2);
 
-    change_code
-        powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, check_level_t level) override;
-    void reset(reset_levels level) override;
+    ChangeCode
+        powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level) override;
+    void reset(ResetLevels level) override;
 
     void updateLocalCache() override;
     void updateLocalCache(const IOdata& inputs,
@@ -215,21 +215,21 @@ which cases the parent of the link is searched for the bus*/
                     const solverMode& sMode);
     /** @brief do any stepped adjustments  based on voltage control from the power flow
 calculations
-@return change_code::no_change if nothing was done,  PARAMETER_ADJUSTMENT if the tap changer was
+@return ChangeCode::NO_CHANGE if nothing was done,  PARAMETER_ADJUSTMENT if the tap changer was
 stepped
 */
-    change_code voltageControlAdjust();
+    ChangeCode voltageControlAdjust();
     /** @brief do any stepped adjustments  based on MW control from the power flow calculations
-@return change_code::no_change if nothing was done,  PARAMETER_ADJUSTMENT if the tap changer was
+@return ChangeCode::NO_CHANGE if nothing was done,  PARAMETER_ADJUSTMENT if the tap changer was
 stepped
 */
-    change_code MWControlAdjust();
+    ChangeCode MWControlAdjust();
     /** @brief do any stepped adjustments  based on MVAR control from the power flow
 calculations
-@return change_code::no_change if nothing was done,  PARAMETER_ADJUSTMENT if the tap changer was
+@return ChangeCode::NO_CHANGE if nothing was done,  PARAMETER_ADJUSTMENT if the tap changer was
 stepped
 */
-    change_code MVarControlAdjust();
+    ChangeCode MVarControlAdjust();
 
     /** compute a valid tap ratio*/
     double getValidTapRatio(double testTapValue) const;

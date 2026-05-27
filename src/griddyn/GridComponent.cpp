@@ -401,7 +401,7 @@ bool GridComponent::isRootCountLoaded(const solverMode& sMode) const
 
 static const auto& userSettableFlags()
 {
-    static const std::map<std::string_view, operation_flags, std::less<>> flags{
+    static const std::map<std::string_view, OperationFlags, std::less<>> flags{
         {"use_bus_frequency", uses_bus_frequency},
         {"late_b_initialize", late_b_initialize},
         {"error", error_flag},
@@ -472,7 +472,7 @@ void GridComponent::parentSetFlag(index_t flagID, bool val, CoreObject* checkPar
 
 static const auto& flagMap()
 {
-    static const std::map<std::string_view, operation_flags, std::less<>> flags{
+    static const std::map<std::string_view, OperationFlags, std::less<>> flags{
         {"constraints", has_constraints},
         {"roots", has_roots},
         {"alg_roots", has_alg_roots},
@@ -894,7 +894,7 @@ void GridComponent::remove(CoreObject* obj)
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::reset(reset_levels level)
+void GridComponent::reset(ResetLevels level)
 {
     for (auto& subobj : subObjectList) {
         subobj->reset(level);
@@ -902,10 +902,10 @@ void GridComponent::reset(reset_levels level)
 }
 
 // NOLINTBEGIN(misc-no-recursion)
-change_code
-    GridComponent::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, check_level_t level)
+ChangeCode
+    GridComponent::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level)
 {
-    auto ret = change_code::no_change;
+    auto ret = ChangeCode::NO_CHANGE;
 
     for (auto& subobj : subObjectList) {
         if (!(subobj->checkFlag(has_powerflow_adjustments))) {
@@ -1061,11 +1061,11 @@ double GridComponent::getState(index_t offset) const
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::loadSizesSub(const solverMode& sMode, sizeCategory category)
+void GridComponent::loadSizesSub(const solverMode& sMode, SizeCategory category)
 {
     auto& solverOffsetsValue = offsets.getOffsets(sMode);
     switch (category) {
-        case sizeCategory::state_size_update:
+        case SizeCategory::state_size_update:
             solverOffsetsValue.localStateLoad(false);
             for (auto& sub : subObjectList) {
                 if (sub->isEnabled()) {
@@ -1080,7 +1080,7 @@ void GridComponent::loadSizesSub(const solverMode& sMode, sizeCategory category)
             }
             solverOffsetsValue.stateLoaded = true;
             break;
-        case sizeCategory::jacobian_size_update:
+        case SizeCategory::jacobian_size_update:
             solverOffsetsValue.total.jacSize = solverOffsetsValue.local.jacSize;
             for (auto& sub : subObjectList) {
                 if (sub->isEnabled()) {
@@ -1095,7 +1095,7 @@ void GridComponent::loadSizesSub(const solverMode& sMode, sizeCategory category)
             }
             solverOffsetsValue.jacobianLoaded = true;
             break;
-        case sizeCategory::root_size_update:
+        case SizeCategory::root_size_update:
             solverOffsetsValue.total.algRoots = solverOffsetsValue.local.algRoots;
             solverOffsetsValue.total.diffRoots = solverOffsetsValue.local.diffRoots;
             for (auto& sub : subObjectList) {
@@ -1182,7 +1182,7 @@ void GridComponent::loadStateSizes(const solverMode& sMode)
     if (subObjectList.empty()) {
         solverOffsetsValue.localStateLoad(true);
     } else {
-        loadSizesSub(sMode, sizeCategory::state_size_update);
+        loadSizesSub(sMode, SizeCategory::state_size_update);
     }
 }
 
@@ -1219,7 +1219,7 @@ void GridComponent::loadRootSizes(const solverMode& sMode)
         solverOffsetsValue.total.diffRoots = solverOffsetsValue.local.diffRoots;
         solverOffsetsValue.rootsLoaded = true;
     } else {
-        loadSizesSub(sMode, sizeCategory::root_size_update);
+        loadSizesSub(sMode, SizeCategory::root_size_update);
     }
     if ((solverOffsetsValue.total.diffRoots > 0) || (solverOffsetsValue.total.algRoots > 0)) {
         opFlags.set(has_roots);
@@ -1260,7 +1260,7 @@ void GridComponent::loadJacobianSizes(const solverMode& sMode)
         solverOffsetsValue.total.jacSize = solverOffsetsValue.local.jacSize;
         solverOffsetsValue.jacobianLoaded = true;
     } else {
-        loadSizesSub(sMode, sizeCategory::jacobian_size_update);
+        loadSizesSub(sMode, SizeCategory::jacobian_size_update);
     }
 }
 
@@ -1840,12 +1840,12 @@ void GridComponent::rootTrigger(coreTime time,
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-change_code GridComponent::rootCheck(const IOdata& inputs,
-                                     const stateData& stateDataValue,
-                                     const solverMode& sMode,
-                                     check_level_t level)
+ChangeCode GridComponent::rootCheck(const IOdata& inputs,
+                                    const stateData& stateDataValue,
+                                    const solverMode& sMode,
+                                    CheckLevel level)
 {
-    auto ret = change_code::no_change;
+    auto ret = ChangeCode::NO_CHANGE;
 
     for (auto& subobj : subObjectList) {
         if (!(subobj->checkFlag(has_roots))) {

@@ -24,7 +24,7 @@ variableGenerator::variableGenerator(const std::string& objName): DynamicGenerat
     opFlags.reset(local_power_control);
 }
 
-variableGenerator::variableGenerator(dynModel_t dynModel, const std::string& objName):
+variableGenerator::variableGenerator(DynModel dynModel, const std::string& objName):
     DynamicGenerator(dynModel, objName)
 {
     opFlags[variable_generation] = true;

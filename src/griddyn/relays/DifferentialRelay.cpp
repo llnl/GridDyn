@@ -159,7 +159,7 @@ void differentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t fla
 
 void differentialRelay::actionTaken(index_t ActionNum,
                                     index_t /*conditionNum*/,
-                                    change_code /*actionReturn*/,
+                                    ChangeCode /*actionReturn*/,
                                     coreTime /*actionTime*/)
 {
     logging::normal(this, "Relay Tripped");
@@ -206,7 +206,7 @@ void differentialRelay::receiveMessage(std::uint64_t /*sourceID*/,
             break;
         case commMessage::BREAKER_OOS_COMMAND:
 
-            setConditionStatus(0, condition_status_t::disabled);
+            setConditionStatus(0, ConditionStatus::disabled);
             break;
         default: {
             assert(false);

@@ -60,14 +60,14 @@ class GridBus: public gridPrimary {
     static const int low_voltage_check_flag = object_flag1;
     // afix is a fixed angle bus for power flow
     /* @brief enumeration to define potential busTypes for power flow*/
-    enum class busType : char {
+    enum class BusType : char {
         PQ = 0,  //!< a bus that defines the real and reactive power calculates V and theta
         afix = 1,  //!< a bus that defines the angle and reactive power calculates V and P
         PV = 2,  //!< a bus that defines P and V computes Q and angle
         SLK = 3  //!< a bus that defines V and theta and computes P & Q
     };
     /* @brief enumeration to define potential busTypes for dynamic calculations*/
-    enum class dynBusType : char {
+    enum class DynBusType : char {
         normal = 0,  //!< a bus that computes V and theta
         fixAngle = 1,  //!< a bus that computes V and has a fixed theta
         fixVoltage = 2,  //!< a bus that has a known voltage and computes theta
@@ -77,9 +77,9 @@ class GridBus: public gridPrimary {
     // useful for other object to define easily
     int32_t Network = 0;  //!<  the network a bus belongs to for labeling purposes
   protected:
-    busType type = busType::PQ;  //!< [busType] bus type: PV, PQ, or slack/swing
-    dynBusType dynType =
-        dynBusType::normal;  //!< dynamic bus type normal, fixAngle, fixVoltage, dynSLK same types
+    BusType type = BusType::PQ;  //!< [BusType] bus type: PV, PQ, or slack/swing
+    DynBusType dynType =
+        DynBusType::normal;  //!< dynamic bus type normal, fixAngle, fixVoltage, dynSLK same types
     //! as for power flow but for dynamic simulations
     // 2 byte gap here
     double angle = 0.0;  //!< [rad]     voltage angle
@@ -138,13 +138,13 @@ class GridBus: public gridPrimary {
     virtual void pFlowObjectInitializeB() override;
 
   public:
-    virtual change_code powerFlowAdjust(const IOdata& inputs,
-                                        std::uint32_t flags,
-                                        check_level_t level) override;  // only applicable in pFlow
+    virtual ChangeCode powerFlowAdjust(const IOdata& inputs,
+                                       std::uint32_t flags,
+                                       CheckLevel level) override;  // only applicable in pFlow
     /** @brief  adjust the power levels of the contained adjustable secondary objects
     @param[in] adjustment the amount of the adjustment requested*/
     virtual void generationAdjust(double adjustment);
-    virtual void reset(reset_levels level = reset_levels::minimal) override;
+    virtual void reset(ResetLevels level = ResetLevels::minimal) override;
     // dynInitializeB dynamics
   protected:
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -209,7 +209,7 @@ class GridBus: public gridPrimary {
                           double state[],
                           double dstate_dt[],
                           const solverMode& sMode,
-                          converge_mode = converge_mode::high_error_only,
+                          ConvergeMode = ConvergeMode::high_error_only,
                           double tol = 0.01) override;
 
     /** @brief  return the last error in the real power*/
@@ -283,11 +283,11 @@ class GridBus: public gridPrimary {
     /** @brief get the bus type for power flow mode
      * @return the type of the bus
      **/
-    busType getType() const { return type; }
+    BusType getType() const { return type; }
     /** @brief get the bus type for dynamic calculations
      * @return the type of the bus
      **/
-    dynBusType getDynType() const { return dynType; }
+    DynBusType getDynType() const { return dynType; }
     /** @brief get the bus voltage
      * @return the bus voltage
      **/
@@ -436,10 +436,10 @@ class GridBus: public gridPrimary {
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
-    virtual change_code rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
-                                  const solverMode& sMode,
-                                  check_level_t level) override;
+    virtual ChangeCode rootCheck(const IOdata& inputs,
+                                 const stateData& sD,
+                                 const solverMode& sMode,
+                                 CheckLevel level) override;
 
     friend bool compareBus(GridBus* bus1, GridBus* bus2, bool cmpValues, bool printDiff);
     virtual void updateFlags(bool dynOnly = false) override;

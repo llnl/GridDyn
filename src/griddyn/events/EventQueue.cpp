@@ -80,13 +80,13 @@ void eventQueue::mapObjectsOnto(CoreObject* newRootObject)
     }
 }
 
-change_code eventQueue::executeEvents(coreTime cTime)
+ChangeCode eventQueue::executeEvents(coreTime cTime)
 {
     if (events.front()->m_nextTime > cTime + timeTols) {
-        return change_code::no_change;
+        return ChangeCode::NO_CHANGE;
     }
-    auto ret = change_code::no_change;
-    auto eret = change_code::no_change;
+    auto ret = ChangeCode::NO_CHANGE;
+    auto eret = ChangeCode::NO_CHANGE;
     if (!partB_list.empty()) {
         ret = executeEventsBonly();
     }
@@ -102,13 +102,13 @@ change_code eventQueue::executeEvents(coreTime cTime)
     return ret;
 }
 
-change_code eventQueue::executeEventsAonly(coreTime cTime)
+ChangeCode eventQueue::executeEventsAonly(coreTime cTime)
 {
     if (events.front()->m_nextTime > cTime + timeTols) {
-        return change_code::no_change;
+        return ChangeCode::NO_CHANGE;
     }
-    auto ret = change_code::no_change;
-    auto eret = change_code::no_change;
+    auto ret = ChangeCode::NO_CHANGE;
+    auto eret = ChangeCode::NO_CHANGE;
 
     bool remove_events = false;
 
@@ -168,10 +168,10 @@ change_code eventQueue::executeEventsAonly(coreTime cTime)
     return ret;
 }
 
-change_code eventQueue::executeEventsBonly()
+ChangeCode eventQueue::executeEventsBonly()
 {
-    auto ret = change_code::no_change;
-    auto eret = change_code::no_change;
+    auto ret = ChangeCode::NO_CHANGE;
+    auto eret = ChangeCode::NO_CHANGE;
     std::lock_guard<std::mutex> lock(queuelock_);
     for (auto& currentEvent : partB_list) {
         eret = currentEvent->execute(currentEvent->m_nextTime);

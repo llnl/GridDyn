@@ -141,24 +141,24 @@ void txThermalModel::set(std::string_view param, double val, units::unit unitTyp
         if (opFlags[dyn_initialized]) {
             getCondition(0)->setConditionRHS(mAlarmTemp1);
             setConditionStatus(0,
-                               (mAlarmTemp1 > 0.1) ? condition_status_t::active :
-                                                     condition_status_t::disabled);
+                               (mAlarmTemp1 > 0.1) ? ConditionStatus::active :
+                                                     ConditionStatus::disabled);
         }
     } else if (param == "alarmtemp2") {
         mAlarmTemp2 = units::convert(val, unitType, units::degC);
         if (opFlags[dyn_initialized]) {
             getCondition(1)->setConditionRHS(mAlarmTemp2);
             setConditionStatus(1,
-                               (mAlarmTemp2 > 0.1) ? condition_status_t::active :
-                                                     condition_status_t::disabled);
+                               (mAlarmTemp2 > 0.1) ? ConditionStatus::active :
+                                                     ConditionStatus::disabled);
         }
     } else if (param == "cutouttemp") {
         mCutoutTemp = units::convert(val, unitType, units::degC);
         if (opFlags[dyn_initialized]) {
             getCondition(2)->setConditionRHS(mCutoutTemp);
             setConditionStatus(2,
-                               (mCutoutTemp > 0.1) ? condition_status_t::active :
-                                                     condition_status_t::disabled);
+                               (mCutoutTemp > 0.1) ? ConditionStatus::active :
+                                                     ConditionStatus::disabled);
         }
     } else if (param == "alarmdelay") {
         mAlarmDelay = units::convert(val, unitType, units::second);
@@ -292,13 +292,13 @@ void txThermalModel::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         setActionTrigger(3, 2, mAlarmDelay);
 
         if (mAlarmTemp1 <= 0.1) {
-            setConditionStatus(0, condition_status_t::disabled);
+            setConditionStatus(0, ConditionStatus::disabled);
         }
         if (mAlarmTemp2 <= 0.1) {
-            setConditionStatus(1, condition_status_t::disabled);
+            setConditionStatus(1, ConditionStatus::disabled);
         }
         if (mCutoutTemp <= 0.1) {
-            setConditionStatus(2, condition_status_t::disabled);
+            setConditionStatus(2, ConditionStatus::disabled);
         }
     }
     sensor::dynObjectInitializeA(time0, flags);

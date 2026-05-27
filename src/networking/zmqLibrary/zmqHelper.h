@@ -17,11 +17,8 @@ Livermore National Security, LLC.
 
 #pragma once
 
+#include "../cppzmq/zmq.hpp"
 #include <string>
-
-namespace zmq {
-enum class socket_type : int;
-}
 
 namespace zmqlib {
 zmq::socket_type socketTypeFromString(const std::string& socketType);

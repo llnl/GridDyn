@@ -77,7 +77,7 @@ CoreObject* GridSimulation::clone(CoreObject* obj) const
 
 void GridSimulation::setErrorCode(int ecode)
 {
-    pState = ((ecode == GS_NO_ERROR) ? pState : gridState_t::GD_ERROR), errorCode = ecode;
+    pState = ((ecode == GS_NO_ERROR) ? pState : GridState::GD_ERROR), errorCode = ecode;
 }
 
 void GridSimulation::add(std::shared_ptr<collector> col)

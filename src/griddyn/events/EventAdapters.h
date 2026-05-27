@@ -69,7 +69,7 @@ class eventAdapter {
     /** Execute the event or partB of the event
     @param[in] cTime the current execution time
     */
-    virtual change_code execute(coreTime cTime);
+    virtual ChangeCode execute(coreTime cTime);
 
     /** @brief update the next event time*/
     virtual void updateTime();
@@ -105,12 +105,12 @@ class eventTypeAdapter: public eventAdapter {
     {
         m_nextTime = ge->nextTriggerTime();
         switch (ge->executionMode()) {
-            case event_execution_mode::normal:
+            case EventExecutionMode::normal:
                 break;
-            case event_execution_mode::two_part_execution:
+            case EventExecutionMode::two_part_execution:
                 two_part_execute = true;
                 break;
-            case event_execution_mode::delayed:
+            case EventExecutionMode::delayed:
                 two_part_execute = true;
                 partB_only = true;
                 break;
@@ -145,9 +145,9 @@ class eventTypeAdapter: public eventAdapter {
     {
         m_eventObj->getObjects(objects);
     }
-    virtual change_code execute(coreTime cTime) override
+    virtual ChangeCode execute(coreTime cTime) override
     {
-        change_code retval = change_code::not_triggered;  // EVENT_NOT_TRIGGERED
+        ChangeCode retval = ChangeCode::NOT_TRIGGERED;  // EVENT_NOT_TRIGGERED
         int excnt = 0;
         while (m_nextTime <= cTime) {
             auto ret = m_eventObj->trigger(cTime);
@@ -187,12 +187,12 @@ class eventTypeAdapter<std::shared_ptr<Y>>: public eventAdapter {
     {
         m_nextTime = m_eventObj->nextTriggerTime();
         switch (m_eventObj->executionMode()) {
-            case event_execution_mode::normal:
+            case EventExecutionMode::normal:
                 break;
-            case event_execution_mode::two_part_execution:
+            case EventExecutionMode::two_part_execution:
                 two_part_execute = true;
                 break;
-            case event_execution_mode::delayed:
+            case EventExecutionMode::delayed:
                 two_part_execute = true;
                 partB_only = true;
                 break;
@@ -229,9 +229,9 @@ class eventTypeAdapter<std::shared_ptr<Y>>: public eventAdapter {
     {
         m_eventObj->getObjects(objects);
     }
-    change_code execute(coreTime cTime) override
+    ChangeCode execute(coreTime cTime) override
     {
-        change_code retval = change_code::not_triggered;  // EVENT_NOT_TRIGGERED
+        ChangeCode retval = ChangeCode::NOT_TRIGGERED;  // EVENT_NOT_TRIGGERED
         int excnt = 0;  //!< counter for protection against an event not behaving properly
         while (m_nextTime <= cTime) {
             auto ret = m_eventObj->trigger(cTime);
@@ -308,7 +308,7 @@ class eventTypeAdapter<CoreObject>: public eventAdapter {
 
     virtual void executeA(coreTime cTime) override { targetObject->updateA(cTime); }
 
-    virtual change_code execute(coreTime cTime) override
+    virtual ChangeCode execute(coreTime cTime) override
     {
         targetObject->updateB();
         coreTime time = targetObject->getNextUpdateTime();
@@ -317,7 +317,7 @@ class eventTypeAdapter<CoreObject>: public eventAdapter {
         } else {
             m_nextTime = time;
         }
-        return change_code::no_change;
+        return ChangeCode::NO_CHANGE;
     }
 
     virtual void updateTime() override { m_nextTime = targetObject->getNextUpdateTime(); }
@@ -330,7 +330,7 @@ class eventTypeAdapter<CoreObject>: public eventAdapter {
  */
 class functionEventAdapter: public eventAdapter {
   public:
-    using ccode_function_t = std::function<change_code()>;
+    using ccode_function_t = std::function<ChangeCode()>;
 
   private:
     ccode_function_t fptr;  //!< the function to execute
@@ -353,7 +353,7 @@ class functionEventAdapter: public eventAdapter {
 
     virtual void cloneTo(eventAdapter* ea) const override;
 
-    virtual change_code execute(coreTime cTime) override;
+    virtual ChangeCode execute(coreTime cTime) override;
 
     /** @brief set the function of the event adapter
      *@param[in] nfptr  a std::function which returns a change code and takes 0 arguments*/
@@ -363,7 +363,7 @@ class functionEventAdapter: public eventAdapter {
     virtual int eventCode() const override { return evCode_; }
     /** set the mode of execution of the event
      */
-    void setExecutionMode(event_execution_mode newMode);
+    void setExecutionMode(EventExecutionMode newMode);
 };
 
 }  // namespace griddyn

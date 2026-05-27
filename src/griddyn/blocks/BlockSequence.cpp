@@ -250,12 +250,12 @@ void BlockSequence::rootTrigger(coreTime time,
     GridBlock::rootTrigger(time, inAct, rootMask, sMode);
 }
 
-change_code BlockSequence::rootCheck(const IOdata& inputs,
-                                     const stateData& stateData,
-                                     const solverMode& sMode,
-                                     check_level_t level)
+ChangeCode BlockSequence::rootCheck(const IOdata& inputs,
+                                    const stateData& stateData,
+                                    const solverMode& sMode,
+                                    CheckLevel level)
 {
-    change_code ret = change_code::no_change;
+    ChangeCode ret = ChangeCode::NO_CHANGE;
     updateLocalCache(noInputs, stateData, sMode);
     const size_t cnt = sequence.size();
     IOdata inAct{!inputs.empty() ? inputs[0] + bias : kNullVal, getRateInput(inputs)};

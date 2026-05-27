@@ -27,7 +27,7 @@ TEST_F(OutputTests, OutputTest1)
 {
     std::string fileName = std::string(pFlow_test_directory) + "test_powerflow3m9b2.xml";
 
-    simpleStageCheck(fileName, GridSimulation::gridState_t::POWERFLOW_COMPLETE);
+    simpleStageCheck(fileName, GridSimulation::GridState::POWERFLOW_COMPLETE);
     savePowerFlowCdf(gds.get(), "testout.cdf");
 
     ASSERT_TRUE(std::filesystem::exists("testout.cdf"));

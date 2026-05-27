@@ -54,9 +54,9 @@ class VariableInformation {
     bool reinit = false;
     bool derivative = false;
     bool isAlias = false;
-    FmiVariability variability = FmiVariabilityType::continuous;
-    FmiCausality causality = FmiCausalityType::local;
-    FmiVariableTypeInfo type = FmiVariableType::real;
+    FmiVariability variability = FmiVariabilityType::CONTINUOUS;
+    FmiCausality causality = FmiCausalityType::LOCAL;
+    FmiVariableTypeInfo type = FmiVariableType::REAL;
     double start = 0;
     double min = -1e48;
     double max = 1e48;
@@ -124,7 +124,7 @@ class FmiVariableSet {
     void clear();
 
   private:
-    FmiVariableTypeInfo type = FmiVariableType::real;
+    FmiVariableTypeInfo type = FmiVariableType::REAL;
     // boost::container::small_vector<fmi2ValueReference, 4> vrset;
     std::vector<fmi2ValueReference> vrset;
 };
@@ -206,13 +206,13 @@ class FmiInfo {
 };
 
 enum class FmuMode {
-    instantiatedMode,
-    initializationMode,
-    continuousTimeMode,
-    eventMode,
-    stepMode,  //!< step Mode is a synonym for event mode that make more sense for cosimulation
-    terminated,
-    error,
+    INSTANTIATED_MODE,
+    INITIALIZATION_MODE,
+    CONTINUOUS_TIME_MODE,
+    EVENT_MODE,
+    STEP_MODE,  //!< step Mode is a synonym for event mode that make more sense for cosimulation
+    TERMINATED,
+    ERROR,
 };
 
 bool checkType(const VariableInformation& info, FmiVariableType type, FmiCausalityType caus);

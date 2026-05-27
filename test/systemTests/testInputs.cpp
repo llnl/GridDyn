@@ -63,7 +63,7 @@ TEST_F(InputTests, DISABLED_TestPowerFlowInputs)
         }
 
         loadFile(gds, fileName);
-        requireState(GridDynSimulation::gridState_t::STARTUP);
+        requireState(GridDynSimulation::GridState::STARTUP);
         int count = gds->getInt("totalbuscount");
         EXPECT_EQ(count, mp.second[0]);
         count = gds->getInt("totallinkcount");
@@ -72,16 +72,16 @@ TEST_F(InputTests, DISABLED_TestPowerFlowInputs)
         gds->getAngle(ang1);
         EXPECT_EQ(ct, static_cast<count_t>(ang1.size()));
         gds->pFlowInitialize();
-        requireState(GridDynSimulation::gridState_t::INITIALIZED);
+        requireState(GridDynSimulation::GridState::INITIALIZED);
         gds->updateLocalCache();
         gds->getBusGenerationReal(P1);
         gds->getBusGenerationReactive(Q1);
 
         gds->powerflow();
-        if (gds->currentProcessState() != GridDynSimulation::gridState_t::POWERFLOW_COMPLETE) {
+        if (gds->currentProcessState() != GridDynSimulation::GridState::POWERFLOW_COMPLETE) {
             std::cout << fileName << " did not complete power flow calculation" << '\n';
         }
-        requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+        requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
         gds->getVoltage(volts2);
         gds->getAngle(ang2);
@@ -124,11 +124,11 @@ TEST_F(InputTests, DISABLED_TestPowerFlowInputs)
         }
 
         if (mp.first == "ieee300.cdf") {
-            gds->reset(reset_levels::voltage_angle);
+            gds->reset(ResetLevels::voltage_angle);
 
             for (int ii = 0; ii < 300; ++ii) {
                 GridBus* bus = gds->getBus(ii);
-                if (bus->getType() == GridBus::busType::PQ) {
+                if (bus->getType() == GridBus::BusType::PQ) {
                     bus->set("voltage", 1.0);
                 }
             }
@@ -138,21 +138,21 @@ TEST_F(InputTests, DISABLED_TestPowerFlowInputs)
                 if (dynamic_cast<links::adjustableTransformer*>(lnk)) {
                     cnt++;
                     if ((cnt >= 2) & (cnt <= 3)) {
-                        lnk->reset(reset_levels::full);
+                        lnk->reset(ResetLevels::full);
                         lnk->set("center", "target");
                         break;
                     }
                 }
             }
         } else {
-            gds->reset(reset_levels::full);
+            gds->reset(ResetLevels::full);
         }
 
         gds->powerflow();
-        if (gds->currentProcessState() != GridDynSimulation::gridState_t::POWERFLOW_COMPLETE) {
+        if (gds->currentProcessState() != GridDynSimulation::GridState::POWERFLOW_COMPLETE) {
             std::cout << fileName << " did not complete power flow calculation 2" << '\n';
         }
-        requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+        requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
         gds->getVoltage(volts1);
         gds->getAngle(ang1);
@@ -232,8 +232,7 @@ TEST_F(InputTests, DISABLED_CompareCases)
 
             gds2->powerflow();
 
-            ASSERT_EQ(gds2->currentProcessState(),
-                      GridDynSimulation::gridState_t::POWERFLOW_COMPLETE)
+            ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE)
                 << fname2 << " failed to complete";
 
             gds2->getVoltage(volts2);
@@ -286,7 +285,7 @@ TEST_F(InputTests, DISABLED_InputExecTest)
         gds = std::make_unique<GridDynSimulation>();
 
         loadFile(gds, fileName);
-        requireState(GridDynSimulation::gridState_t::STARTUP);
+        requireState(GridDynSimulation::GridState::STARTUP);
 
         if (mp.second[1] > 0) {
             count = gds->getInt("totalbuscount");
@@ -302,10 +301,10 @@ TEST_F(InputTests, DISABLED_InputExecTest)
         }
         if (mp.second[0] == 0) {
             gds->powerflow();
-            requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+            requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
         } else if (mp.second[0] == 1) {
             gds->run();
-            requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+            requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
         }
     }
 }

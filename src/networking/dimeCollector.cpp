@@ -39,7 +39,7 @@ void DimeCollector::cloneTo(collector* col) const
     dimeCollectorClone->processName = processName;
 }
 
-change_code DimeCollector::trigger(coreTime time)
+ChangeCode DimeCollector::trigger(coreTime time)
 {
     if (!dime) {
         dime = std::make_unique<DimeClientInterface>(processName, server);

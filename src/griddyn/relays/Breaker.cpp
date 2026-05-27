@@ -153,8 +153,8 @@ void breaker::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 
     add(std::move(upperCtiCondition));
     add(std::move(lowerCtiCondition));
-    setConditionStatus(1, condition_status_t::disabled);
-    setConditionStatus(2, condition_status_t::disabled);
+    setConditionStatus(1, ConditionStatus::disabled);
+    setConditionStatus(2, ConditionStatus::disabled);
 
     Relay::dynObjectInitializeA(time0, flags);
 }
@@ -163,7 +163,7 @@ void breaker::conditionTriggered(index_t conditionNum, coreTime triggeredTime)
 {
     if (conditionNum == 0) {
         opFlags.set(OVERLIMIT_FLAG);
-        setConditionStatus(0, condition_status_t::disabled);
+        setConditionStatus(0, ConditionStatus::disabled);
         if (mRecloserTap == 0.0) {
             if (mMinClearingTime <= kMin_Res) {
                 tripBreaker(triggeredTime);
@@ -173,8 +173,8 @@ void breaker::conditionTriggered(index_t conditionNum, coreTime triggeredTime)
             }
         } else {
             mCti = 0;
-            setConditionStatus(1, condition_status_t::active);
-            setConditionStatus(2, condition_status_t::active);
+            setConditionStatus(1, ConditionStatus::active);
+            setConditionStatus(2, ConditionStatus::active);
             alert(this, JAC_COUNT_INCREASE);
             mUseCti = true;
         }
@@ -184,9 +184,9 @@ void breaker::conditionTriggered(index_t conditionNum, coreTime triggeredTime)
     } else if (conditionNum == 2) {
         assert(opFlags[OVERLIMIT_FLAG]);
 
-        setConditionStatus(1, condition_status_t::disabled);
-        setConditionStatus(2, condition_status_t::disabled);
-        setConditionStatus(0, condition_status_t::active);
+        setConditionStatus(1, ConditionStatus::disabled);
+        setConditionStatus(2, ConditionStatus::disabled);
+        setConditionStatus(0, ConditionStatus::active);
         alert(this, JAC_COUNT_DECREASE);
         opFlags.reset(OVERLIMIT_FLAG);
         mUseCti = false;
@@ -205,7 +205,7 @@ void breaker::updateA(coreTime time)
                 tripBreaker(time);
             } else {
                 opFlags.reset(OVERLIMIT_FLAG);
-                setConditionStatus(0, condition_status_t::active);
+                setConditionStatus(0, ConditionStatus::active);
             }
         }
     } else {
@@ -435,14 +435,14 @@ void breaker::resetBreaker(coreTime time)
             }
         } else {
             mCti = 0;
-            setConditionStatus(1, condition_status_t::active);
-            setConditionStatus(2, condition_status_t::active);
+            setConditionStatus(1, ConditionStatus::active);
+            setConditionStatus(2, ConditionStatus::active);
             alert(this, JAC_COUNT_INCREASE);
             mUseCti = true;
         }
     } else {
         opFlags.reset(OVERLIMIT_FLAG);
-        setConditionStatus(0, condition_status_t::active);
+        setConditionStatus(0, ConditionStatus::active);
         mUseCti = false;
     }
 

@@ -137,12 +137,12 @@ void NullBlock::rootTest(const IOdata& /*inputs*/,
 {
 }
 
-change_code NullBlock::rootCheck(const IOdata& /*inputs*/,
-                                 const stateData& /*sD*/,
-                                 const solverMode& /*sMode*/,
-                                 check_level_t /*level*/)
+ChangeCode NullBlock::rootCheck(const IOdata& /*inputs*/,
+                                const stateData& /*sD*/,
+                                const solverMode& /*sMode*/,
+                                CheckLevel /*level*/)
 {
-    return change_code::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 
 void NullBlock::rootTrigger(coreTime /*time*/,

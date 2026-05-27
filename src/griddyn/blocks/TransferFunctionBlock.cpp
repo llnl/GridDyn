@@ -97,7 +97,7 @@ void TransferFunctionBlock::dynObjectInitializeB(const IOdata& inputs,
             GridBlock::rootCheck(inputs,
                                  emptyStateData,
                                  cLocalSolverMode,
-                                 check_level_t::reversable_only);
+                                 CheckLevel::reversable_only);
             m_state[0] = gmlc::utilities::valLimit(m_state[0], Omin, Omax);
         }
         fieldSet[0] = m_state[0];

@@ -29,10 +29,10 @@ TEST_F(CloneTests, CloningTest1)
 
     gds2 = std::unique_ptr<GridDynSimulation>(static_cast<GridDynSimulation*>(gds->clone()));
     gds->powerflow();
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     gds2->powerflow();
-    ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     std::vector<double> V1;
     std::vector<double> V2;
     gds->getVoltage(V1);
@@ -49,10 +49,10 @@ TEST_F(CloneTests, CloningTest2)
 
     gds2 = std::unique_ptr<GridDynSimulation>(static_cast<GridDynSimulation*>(gds->clone()));
     gds->powerflow();
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     gds2->powerflow();
-    ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     std::vector<double> V1;
     std::vector<double> V2;
     gds->getVoltage(V1);
@@ -70,10 +70,10 @@ TEST_F(CloneTests, CloningTestSolverApprox)
 
     gds2 = std::unique_ptr<GridDynSimulation>(static_cast<GridDynSimulation*>(gds->clone()));
     gds->powerflow();
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
-    checkState2(GridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
+    checkState2(GridDynSimulation::GridState::STARTUP);
     gds2->powerflow();
-    requireState2(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState2(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     std::vector<double> V1;
     std::vector<double> V2;
     gds->getVoltage(V1);

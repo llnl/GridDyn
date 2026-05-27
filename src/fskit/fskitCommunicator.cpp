@@ -79,7 +79,7 @@ void FskitCommunicator::ProcessEventMessage(const fskit::EventMessage& eventMess
     // the shared ptr.
     auto event = std::make_unique<griddyn::functionEventAdapter>([this, message]() {
         receive(0, getName(), message);
-        return griddyn::change_code::no_change;
+        return griddyn::ChangeCode::NO_CHANGE;
     });
     event->m_nextTime = griddynTime;
     simulation->add(std::shared_ptr<griddyn::eventAdapter>(std::move(event)));

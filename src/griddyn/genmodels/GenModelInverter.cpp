@@ -451,10 +451,10 @@ void GenModelInverter::rootTrigger(coreTime /*time*/,
     }
 }
 
-change_code GenModelInverter::rootCheck(const IOdata& inputs,
-                                        const stateData& stateDataValue,
-                                        const solverMode& sMode,
-                                        check_level_t /*level*/)
+ChangeCode GenModelInverter::rootCheck(const IOdata& inputs,
+                                       const stateData& stateDataValue,
+                                       const solverMode& sMode,
+                                       CheckLevel /*level*/)
 {
     if (rootSize(sMode) > 0) {
         auto Loc = offsets.getLocations(stateDataValue, sMode, this);
@@ -469,7 +469,7 @@ change_code GenModelInverter::rootCheck(const IOdata& inputs,
                     opFlags.reset(at_angle_limits);
                     logging::debug(this, "reset angle limit-from root check");
                     algebraicUpdate(inputs, emptyStateData, m_state.data(), sMode, 1.0);
-                    return change_code::jacobian_change;
+                    return ChangeCode::JACOBIAN_CHANGE;
                 }
             } else {
                 const double pmin = -realPowerCompute(inputs[genModelEftInLocation],
@@ -480,7 +480,7 @@ change_code GenModelInverter::rootCheck(const IOdata& inputs,
                     opFlags.reset(at_angle_limits);
                     logging::debug(this, "reset angle limit- from root check");
                     algebraicUpdate(inputs, emptyStateData, m_state.data(), sMode, 1.0);
-                    return change_code::jacobian_change;
+                    return ChangeCode::JACOBIAN_CHANGE;
                 }
             }
         } else {
@@ -493,11 +493,11 @@ change_code GenModelInverter::rootCheck(const IOdata& inputs,
                 } else {
                     m_state[0] = minAngle;
                 }
-                return change_code::jacobian_change;
+                return ChangeCode::JACOBIAN_CHANGE;
             }
         }
     }
-    return change_code::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 
 }  // namespace griddyn::genmodels

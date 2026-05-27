@@ -211,13 +211,13 @@ void ExciterSEXS::rootTrigger(coreTime time,
     derivative(inputs, state, m_dstate_dt.data(), solverMode);
 }
 
-change_code ExciterSEXS::rootCheck(const IOdata& inputs,
-                                   const stateData& /*stateData*/,
-                                   const solverMode& /*solverMode*/,
-                                   check_level_t /*level*/)
+ChangeCode ExciterSEXS::rootCheck(const IOdata& inputs,
+                                  const stateData& /*stateData*/,
+                                  const solverMode& /*solverMode*/,
+                                  CheckLevel /*level*/)
 {
     const auto regulatorVoltage = regulatorOutput(inputs, m_state[1]);
-    auto ret = change_code::no_change;
+    auto ret = ChangeCode::NO_CHANGE;
 
     if (opFlags[outside_vlim]) {
         if (opFlags[etrigger_high]) {
@@ -225,23 +225,23 @@ change_code ExciterSEXS::rootCheck(const IOdata& inputs,
                 opFlags.reset(outside_vlim);
                 opFlags.reset(etrigger_high);
                 alert(this, JAC_COUNT_INCREASE);
-                ret = change_code::jacobian_change;
+                ret = ChangeCode::JACOBIAN_CHANGE;
             }
         } else if (regulatorVoltage > Vrmin) {
             opFlags.reset(outside_vlim);
             alert(this, JAC_COUNT_INCREASE);
-            ret = change_code::jacobian_change;
+            ret = ChangeCode::JACOBIAN_CHANGE;
         }
     } else if (regulatorVoltage > Vrmax + 0.00001) {
         opFlags.set(etrigger_high);
         opFlags.set(outside_vlim);
         alert(this, JAC_COUNT_DECREASE);
-        ret = change_code::jacobian_change;
+        ret = ChangeCode::JACOBIAN_CHANGE;
     } else if (regulatorVoltage < Vrmin - 0.00001) {
         opFlags.reset(etrigger_high);
         opFlags.set(outside_vlim);
         alert(this, JAC_COUNT_DECREASE);
-        ret = change_code::jacobian_change;
+        ret = ChangeCode::JACOBIAN_CHANGE;
     }
 
     return ret;

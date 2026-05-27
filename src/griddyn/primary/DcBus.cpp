@@ -97,16 +97,15 @@ count_t DcBus::LocalJacobianCount(const solverMode& sMode) const
     return localJacSize;
 }
 
-change_code
-    DcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, check_level_t level)
+ChangeCode DcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, CheckLevel level)
 {
-    auto out = change_code::no_change;
+    auto out = ChangeCode::NO_CHANGE;
     // genP and genQ are defined negative for producing power so we flip the signs here
     S.genP = -S.genP;
     if (!CHECK_CONTROLFLAG(flags, ignore_bus_limits)) {
         switch (type) {
-            case busType::SLK:
-            case busType::afix:
+            case BusType::SLK:
+            case BusType::afix:
 
                 if (S.genP < busController.Pmin) {
                     S.genP = busController.Pmin;
@@ -119,15 +118,15 @@ change_code
                         // gen->set ("p", gen->getGeneration);
                         //   }
                     }
-                    type = busType::PQ;
+                    type = BusType::PQ;
                     alert(this, JAC_COUNT_CHANGE);
-                    out = change_code::jacobian_change;
-                    if (prevType == busType::SLK) {
+                    out = ChangeCode::JACOBIAN_CHANGE;
+                    if (prevType == BusType::SLK) {
                         alert(this, SLACK_BUS_CHANGE);
                     }
                 } else if (S.genP > busController.Pmax) {
                     S.genP = busController.Pmax;
-                    type = busType::PQ;
+                    type = BusType::PQ;
                     if (attachedGens.size() == 1) {
                         attachedGens[0]->set("p", S.genP);
                     } else {
@@ -138,8 +137,8 @@ change_code
                         //  }
                     }
                     alert(this, JAC_COUNT_CHANGE);
-                    out = change_code::jacobian_change;
-                    if (prevType == busType::SLK) {
+                    out = ChangeCode::JACOBIAN_CHANGE;
+                    if (prevType == BusType::SLK) {
                         alert(this, SLACK_BUS_CHANGE);
                     }
                 }
@@ -202,43 +201,43 @@ void DcBus::set(std::string_view param, std::string_view val)
     auto val_lowerCase = gmlc::utilities::convertToLowerCase(val);
     if ((param == "type") || (param == "bustype") || (param == "pflowtype")) {
         if ((val_lowerCase == "slk") || (val_lowerCase == "swing") || (val_lowerCase == "slack")) {
-            type = busType::SLK;
-            prevType = busType::SLK;
+            type = BusType::SLK;
+            prevType = BusType::SLK;
         } else if (val_lowerCase == "pv") {
-            type = busType::PV;
-            prevType = busType::PV;
+            type = BusType::PV;
+            prevType = BusType::PV;
         } else if (val_lowerCase == "pq") {
-            type = busType::PQ;
-            prevType = busType::PQ;
+            type = BusType::PQ;
+            prevType = BusType::PQ;
         } else if ((val_lowerCase == "dynslk") || (val_lowerCase == "inf") ||
                    (val_lowerCase == "infinite")) {
-            type = busType::SLK;
-            prevType = busType::SLK;
-            dynType = dynBusType::dynSLK;
+            type = BusType::SLK;
+            prevType = BusType::SLK;
+            dynType = DynBusType::dynSLK;
         } else if ((val_lowerCase == "fixedangle") || (val_lowerCase == "fixangle") ||
                    (val_lowerCase == "ref")) {
-            dynType = dynBusType::fixAngle;
+            dynType = DynBusType::fixAngle;
         } else if ((val_lowerCase == "fixedvoltage") || (val_lowerCase == "fixvoltage")) {
-            dynType = dynBusType::fixVoltage;
+            dynType = DynBusType::fixVoltage;
         } else if (val_lowerCase == "afix") {
-            type = busType::afix;
-            prevType = busType::afix;
+            type = BusType::afix;
+            prevType = BusType::afix;
         } else if (val_lowerCase == "normal") {
-            dynType = dynBusType::normal;
+            dynType = DynBusType::normal;
         } else {
             throw(InvalidParameterValue(val));
         }
     } else if (param == "dyntype") {
         if ((val_lowerCase == "dynslk") || (val_lowerCase == "inf") || (val_lowerCase == "slk")) {
-            dynType = dynBusType::dynSLK;
-            type = busType::SLK;
+            dynType = DynBusType::dynSLK;
+            type = BusType::SLK;
         } else if ((val_lowerCase == "fixedangle") || (val_lowerCase == "fixangle") ||
                    (val_lowerCase == "ref")) {
-            dynType = dynBusType::fixAngle;
+            dynType = DynBusType::fixAngle;
         } else if ((val_lowerCase == "fixedvoltage") || (val_lowerCase == "fixvoltage")) {
-            dynType = dynBusType::fixVoltage;
+            dynType = DynBusType::fixVoltage;
         } else if ((val_lowerCase == "normal") || (val_lowerCase == "pq")) {
-            dynType = dynBusType::normal;
+            dynType = DynBusType::normal;
         } else {
             throw(InvalidParameterValue(val));
         }
@@ -454,7 +453,7 @@ void DcBus::converge(coreTime /*time*/,
                      double /*state*/[],
                      double /*dstate_dt*/[],
                      const solverMode& /*sMode*/,
-                     converge_mode /*mode*/,
+                     ConvergeMode /*mode*/,
                      double /*tol*/)
 // void DcBus::converge (const coreTime time, double state[], double dstate_dt[], const solverMode
 // &sMode, double tol, int mode)
@@ -502,11 +501,11 @@ bool DcBus::useVoltage(const solverMode& sMode) const
     if (isDifferentialOnly(sMode)) {
         ret = false;
     } else if (isDynamic(sMode)) {
-        if ((dynType == dynBusType::fixVoltage) || (dynType == dynBusType::dynSLK)) {
+        if ((dynType == DynBusType::fixVoltage) || (dynType == DynBusType::dynSLK)) {
             ret = false;
         }
     } else {
-        if ((type == busType::PV) || (type == busType::SLK)) {
+        if ((type == BusType::PV) || (type == BusType::SLK)) {
             ret = false;
         }
     }
@@ -519,7 +518,7 @@ int DcBus::propogatePower(bool makeSlack)
     int ret = 0;
     if (makeSlack) {
         prevType = type;
-        type = busType::SLK;
+        type = BusType::SLK;
     }
 
     computePowerAdjustments();

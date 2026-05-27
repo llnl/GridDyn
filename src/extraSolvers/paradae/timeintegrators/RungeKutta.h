@@ -58,7 +58,7 @@ class RungeKutta: public TimeIntegrator {
     virtual bool SolveInnerSteps(Real t, Real used_dt, const Vector& x0, SMultiVector& allK) = 0;
     virtual Solver_App_RK* BuildSolverApp(Real t, Real dt, const Vector& x0);
     virtual void show();
-    virtual TI_type GetType() { return RK; };
+    virtual TiType GetType() { return RK; };
 
     // Accessors
     inline DenseMatrix& GetA() { return rk_A; };

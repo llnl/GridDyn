@@ -21,7 +21,7 @@ and takes as input the frequency and power setting*/
 class Governor: public GridSubModel {
   public:
     /** @brief flags for governor control*/
-    enum governor_flags {
+    enum GovernorFlags {
         ignore_deadband = object_flag2,  //!< indicator that the deadband block should be ignored
         ignore_filter = object_flag3,  //!< indicator that the filter block should be ignored
         ignore_throttle = object_flag4,  //!< indicator that the delay block should be ignored

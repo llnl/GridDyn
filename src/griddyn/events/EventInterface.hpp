@@ -10,7 +10,7 @@
 
 namespace griddyn {
 /** class defining different ways an event can be run*/
-enum class event_execution_mode {
+enum class EventExecutionMode {
     normal = 0,  //!< run immediately
     delayed = 1,  //!< delay the execution until after normal events have executed
     two_part_execution = 2,  //!< event has two parts one running with the normal events and one
@@ -30,11 +30,11 @@ class eventInterface {
   delayed means it should run after other normal events
   two_part_execution means it has two components to it
   */
-    virtual event_execution_mode executionMode() const = 0;
+    virtual EventExecutionMode executionMode() const = 0;
     /** run the event if time >triggerTime
   @return a change code corresponding to what the event did
   */
-    virtual change_code trigger(coreTime ctime) = 0;
+    virtual ChangeCode trigger(coreTime ctime) = 0;
     /** answer the question if the event is ready to triggered*/
     virtual bool isArmed() const { return true; }
     /** do any event initialization that may be required before an event is ready to execute*/

@@ -15,7 +15,7 @@ namespace griddyn::loads {
 /** @brief a load that generates its value from files*/
 class FileLoad: public RampLoad {
   public:
-    enum file_load_flags {
+    enum FileLoadFlags {
         use_absolute_time_flag = object_flag7,
         use_step_change_flag = object_flag8,
     };

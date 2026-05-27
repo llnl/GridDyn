@@ -21,10 +21,10 @@ TEST_F(HvdcTests, HvdcTest1)
 {
     std::string fileName = std::string(HVDC_TEST_DIRECTORY "test_hvdc1.xml");
     gds = readSimXMLFile(fileName);
-    requireState(GridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::GridState::STARTUP);
 
     gds->pFlowInitialize();
-    requireState(GridDynSimulation::gridState_t::INITIALIZED);
+    requireState(GridDynSimulation::GridState::INITIALIZED);
 
     int mmatch = JacobianCheck(gds, cPflowSolverMode);
     if (mmatch > 0) {
@@ -34,9 +34,9 @@ TEST_F(HvdcTests, HvdcTest1)
 
     gds->powerflow();
 
-    requireState(GridDynSimulation::gridState_t::POWERFLOW_COMPLETE);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     gds->dynInitialize();
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireState(GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
     mmatch = residualCheck(gds, cDaeSolverMode);
     if (mmatch > 0) {
         printStateNames(gds, cDaeSolverMode);
@@ -56,10 +56,10 @@ TEST_F(HvdcTests, HvdcTest2)
 {
     std::string fileName = std::string(HVDC_TEST_DIRECTORY "test_hvdc2.xml");
     gds = readSimXMLFile(fileName);
-    requireState(GridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::GridState::STARTUP);
 
     gds->dynInitialize();
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireState(GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
     int mmatch = residualCheck(gds, cDaeSolverMode);
     if (mmatch > 0) {
         printStateNames(gds, cDaeSolverMode);
@@ -73,20 +73,20 @@ TEST_F(HvdcTests, HvdcTest2)
     ASSERT_EQ(mmatch, 0);
 
     gds->run(20);
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 
     gds->run(40);
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 
 TEST_F(HvdcTests, HvdcTest3)
 {
     std::string fileName = std::string(HVDC_TEST_DIRECTORY "test_hvdc3_sc.xml");
     gds = readSimXMLFile(fileName);
-    requireState(GridDynSimulation::gridState_t::STARTUP);
+    requireState(GridDynSimulation::GridState::STARTUP);
 
     gds->dynInitialize();
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireState(GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
     int mmatch = residualCheck(gds, cDaeSolverMode);
     if (mmatch > 0) {
         printStateNames(gds, cDaeSolverMode);
@@ -99,9 +99,9 @@ TEST_F(HvdcTests, HvdcTest3)
     }
     ASSERT_EQ(mmatch, 0);
     gds->run(20);
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 
     gds->run(40);
-    requireState(GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 #endif

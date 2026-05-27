@@ -191,7 +191,7 @@ TEST_F(LoadTests, RampLoadTest)
 
 TEST_F(LoadTests, RandomLoadTest)
 {
-    ld1 = new SourceLoad(SourceLoad::sourceType::random);
+    ld1 = new SourceLoad(SourceLoad::SourceType::random);
     auto ldT = static_cast<SourceLoad*>(ld1);
     ASSERT_NE(ldT, nullptr);
     ld1->set("p:trigger_dist", "constant");
@@ -235,7 +235,7 @@ TEST_F(LoadTests, RandomLoadTest)
 
 TEST_F(LoadTests, RandomLoadTest2)
 {
-    ld1 = new SourceLoad(SourceLoad::sourceType::random);
+    ld1 = new SourceLoad(SourceLoad::SourceType::random);
     auto ldT = static_cast<SourceLoad*>(ld1);
     ASSERT_NE(ldT, nullptr);
     double val;
@@ -267,7 +267,7 @@ TEST_F(LoadTests, RandomLoadTest2)
 
 TEST_F(LoadTests, PulseLoadTest2)
 {
-    ld1 = new SourceLoad(SourceLoad::sourceType::pulse);
+    ld1 = new SourceLoad(SourceLoad::SourceType::pulse);
     auto ldT = static_cast<SourceLoad*>(ld1);
     ASSERT_NE(ldT, nullptr);
 
@@ -361,7 +361,7 @@ TEST_F(LoadTests, GridDynLoadTest1)
     ASSERT_NE(gld, nullptr);
 
     gds->run();
-    requireStates(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireStates(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 #endif
 
@@ -377,11 +377,11 @@ TEST_F(LoadTests, MotorTest1)
     ASSERT_NE(mtld, nullptr);
 
     gds->dynInitialize();
-    requireStates(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireStates(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
     runResidualCheck(gds, cDaeSolverMode);
     runJacobianCheck(gds, cDaeSolverMode);
     gds->run();
-    requireStates(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireStates(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 
 TEST_F(LoadTests, MotorTest3)
@@ -399,9 +399,9 @@ TEST_F(LoadTests, MotorTest3)
     gds->dynInitialize();
     runResidualCheck(gds, cDaeSolverMode);
     runJacobianCheck(gds, cDaeSolverMode, 1e-8);
-    requireStates(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireStates(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
     gds->run();
-    requireStates(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireStates(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 
 TEST_F(LoadTests, MotorTest3Stall)
@@ -419,9 +419,9 @@ TEST_F(LoadTests, MotorTest3Stall)
     gds->dynInitialize();
     runResidualCheck(gds, cDaeSolverMode);
     runJacobianCheck(gds, cDaeSolverMode, 1e-8);
-    requireStates(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_INITIALIZED);
+    requireStates(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
     gds->run(2.5);
-    requireStates(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireStates(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
     EXPECT_TRUE(mtld->checkFlag(MotorLoad::stalled));
     gds->run();
     EXPECT_FALSE(mtld->checkFlag(MotorLoad::stalled));
@@ -440,13 +440,13 @@ TEST_F(LoadTests, MotorTest5)
 
     ASSERT_NE(mtld, nullptr);
     gds->pFlowInitialize();
-    requireStates(gds->currentProcessState(), GridDynSimulation::gridState_t::INITIALIZED);
+    requireStates(gds->currentProcessState(), GridDynSimulation::GridState::INITIALIZED);
     runJacobianCheck(gds, cPflowSolverMode);
     gds->dynInitialize();
     runResidualCheck(gds, cDaeSolverMode);
     runJacobianCheck(gds, cDaeSolverMode);
     gds->run();
-    requireStates(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireStates(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 #    endif
 #endif
@@ -467,7 +467,7 @@ TEST_F(LoadTests, FdepTest)
     runResidualCheck(gds, cDaeSolverMode);
     runJacobianCheck(gds, cDaeSolverMode);
     gds->run();
-    requireStates(gds->currentProcessState(), GridDynSimulation::gridState_t::DYNAMIC_COMPLETE);
+    requireStates(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 
 TEST_F(LoadTests, ApproxloadTest1)
@@ -555,7 +555,7 @@ TEST_F(LoadTests, Simple3PhaseLoadTest)
     EXPECT_NEAR(res[1], 0.5, 1e-7);
     EXPECT_NEAR(res[2], 0.4, 1e-7);
 
-    auto res2 = ld3->getRealPower3Phase(phase_type_t::pnz);
+    auto res2 = ld3->getRealPower3Phase(PhaseType::pnz);
     EXPECT_EQ(res2.size(), 3u);
     EXPECT_NEAR(res2[0], 1.9, 1e-5);
 
@@ -565,12 +565,12 @@ TEST_F(LoadTests, Simple3PhaseLoadTest)
     EXPECT_NEAR(res[1], 0.9, 1e-7);
     EXPECT_NEAR(res[2], 0.9, 1e-7);
 
-    res = ld3->getRealPower3Phase(phase_type_t::pnz);
+    res = ld3->getRealPower3Phase(PhaseType::pnz);
     EXPECT_NEAR(res[0], 2.7, 1e-7);
     EXPECT_NEAR(res[1], 0.0, 1e-7);
     EXPECT_NEAR(res[2], 0.0, 1e-7);
 
-    res = ld3->getReactivePower3Phase(phase_type_t::pnz);
+    res = ld3->getReactivePower3Phase(PhaseType::pnz);
     EXPECT_NEAR(res[0], 0.3, 1e-7);
     EXPECT_NEAR(res[1], 0.0, 1e-7);
     EXPECT_NEAR(res[2], 0.0, 1e-7);

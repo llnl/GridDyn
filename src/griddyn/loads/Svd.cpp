@@ -216,14 +216,13 @@ void Svd::guessState(coreTime /*time*/,
 {
 }
 
-change_code Svd::powerFlowAdjust(const IOdata& /*inputs */,
-                                 std::uint32_t /*flags*/,
-                                 check_level_t /*level*/)
+ChangeCode
+    Svd::powerFlowAdjust(const IOdata& /*inputs */, std::uint32_t /*flags*/, CheckLevel /*level*/)
 {
-    return change_code::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 
-void Svd::reset(reset_levels /*level*/) {}
+void Svd::reset(ResetLevels /*level*/) {}
 // for identifying which variables are algebraic vs differential
 void Svd::getVariableType(double /*sdata*/[], const solverMode& /*sMode*/) {}
 void Svd::set(std::string_view param, std::string_view val)
@@ -366,11 +365,11 @@ void Svd::rootTrigger(coreTime /*time*/,
 {
 }
 
-change_code Svd::rootCheck(const IOdata& /*inputs*/,
-                           const stateData& /*sD*/,
-                           const solverMode& /*sMode*/,
-                           check_level_t /*level*/)
+ChangeCode Svd::rootCheck(const IOdata& /*inputs*/,
+                          const stateData& /*sD*/,
+                          const solverMode& /*sMode*/,
+                          CheckLevel /*level*/)
 {
-    return change_code::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 }  // namespace griddyn::loads

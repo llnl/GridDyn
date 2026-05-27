@@ -51,7 +51,7 @@ class Link: public gridPrimary {
                                             //!< lines used for automatic user ID creation
     // it can be edited as it does not impact link operations just for user convenience
     /** @brief define some basic flag locations for Link*/
-    enum gridLink_flags {
+    enum GridLinkFlags {
         switch1_open_flag = object_flag1,  //!<  switch for the from bus
         switch2_open_flag = object_flag2,  //!< switch for the to bus
         fixed_target_power = object_flag3,  //!< flag indicating if the power flow was fixed

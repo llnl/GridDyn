@@ -62,7 +62,7 @@ using units::unit;
 
 DynamicGenerator::DynamicGenerator(const std::string& objName): Generator(objName) {}
 
-DynamicGenerator::DynamicGenerator(dynModel_t dynModel, const std::string& objName):
+DynamicGenerator::DynamicGenerator(DynModel dynModel, const std::string& objName):
     DynamicGenerator(objName)
 {
     buildDynModel(dynModel);
@@ -79,36 +79,36 @@ namespace {
     const auto& getDynModelFromStringMap()
     {
         static const std::
-            map<std::string_view, DynamicGenerator::dynModel_t, std::less<std::string_view>>
+            map<std::string_view, DynamicGenerator::DynModel, std::less<std::string_view>>
                 dynModelFromStringMap{
-                    {"typical", DynamicGenerator::dynModel_t::typical},
-                    {"simple", DynamicGenerator::dynModel_t::simple},
-                    {"model_only", DynamicGenerator::dynModel_t::model_only},
-                    {"modelonly", DynamicGenerator::dynModel_t::model_only},
-                    {"transient", DynamicGenerator::dynModel_t::transient},
-                    {"subtransient", DynamicGenerator::dynModel_t::detailed},
-                    {"detailed", DynamicGenerator::dynModel_t::detailed},
-                    {"none", DynamicGenerator::dynModel_t::none},
-                    {"dc", DynamicGenerator::dynModel_t::dc},
-                    {"renewable", DynamicGenerator::dynModel_t::renewable},
-                    {"variable", DynamicGenerator::dynModel_t::renewable},
+                    {"typical", DynamicGenerator::DynModel::typical},
+                    {"simple", DynamicGenerator::DynModel::simple},
+                    {"model_only", DynamicGenerator::DynModel::model_only},
+                    {"modelonly", DynamicGenerator::DynModel::model_only},
+                    {"transient", DynamicGenerator::DynModel::transient},
+                    {"subtransient", DynamicGenerator::DynModel::detailed},
+                    {"detailed", DynamicGenerator::DynModel::detailed},
+                    {"none", DynamicGenerator::DynModel::none},
+                    {"dc", DynamicGenerator::DynModel::dc},
+                    {"renewable", DynamicGenerator::DynModel::renewable},
+                    {"variable", DynamicGenerator::DynModel::renewable},
                 };
         return dynModelFromStringMap;
     }
 }  // namespace
 
-DynamicGenerator::dynModel_t DynamicGenerator::dynModelFromString(const std::string& dynModelType)
+DynamicGenerator::DynModel DynamicGenerator::dynModelFromString(const std::string& dynModelType)
 {
     const auto str = gmlc::utilities::convertToLowerCase(dynModelType);
     const auto& dynModelFromStringMap = getDynModelFromStringMap();
     const auto foundModel = dynModelFromStringMap.find(str);
-    return (foundModel != dynModelFromStringMap.end()) ? foundModel->second : dynModel_t::invalid;
+    return (foundModel != dynModelFromStringMap.end()) ? foundModel->second : DynModel::invalid;
 }
 
-void DynamicGenerator::buildDynModel(dynModel_t dynModel)
+void DynamicGenerator::buildDynModel(DynModel dynModel)
 {
     switch (dynModel) {
-        case dynModel_t::simple:
+        case DynModel::simple:
             if (gov == nullptr) {
                 add(new Governor());
             }
@@ -120,7 +120,7 @@ void DynamicGenerator::buildDynModel(dynModel_t dynModel)
             }
 
             break;
-        case dynModel_t::dc:
+        case DynModel::dc:
             if (gov == nullptr) {
                 add(new governors::GovernorIeeeSimple());
             }
@@ -129,7 +129,7 @@ void DynamicGenerator::buildDynModel(dynModel_t dynModel)
             }
 
             break;
-        case dynModel_t::typical:
+        case DynModel::typical:
             if (gov == nullptr) {
                 add(new governors::GovernorIeeeSimple());
             }
@@ -140,7 +140,7 @@ void DynamicGenerator::buildDynModel(dynModel_t dynModel)
                 add(new genmodels::GenModel4());
             }
             break;
-        case dynModel_t::renewable:
+        case DynModel::renewable:
             if (gov == nullptr) {
                 add(new Governor());
             }
@@ -151,7 +151,7 @@ void DynamicGenerator::buildDynModel(dynModel_t dynModel)
                 add(new genmodels::GenModelInverter());
             }
             break;
-        case dynModel_t::transient:
+        case DynModel::transient:
             if (gov == nullptr) {
                 add(new governors::GovernorTgov1());
             }
@@ -162,7 +162,7 @@ void DynamicGenerator::buildDynModel(dynModel_t dynModel)
                 add(new genmodels::GenModel5());
             }
             break;
-        case dynModel_t::subtransient:
+        case DynModel::subtransient:
             if (gov == nullptr) {
                 add(new governors::GovernorTgov1());
             }
@@ -173,7 +173,7 @@ void DynamicGenerator::buildDynModel(dynModel_t dynModel)
                 add(new genmodels::GenModel6());
             }
             break;
-        case dynModel_t::detailed:
+        case DynModel::detailed:
             if (gov == nullptr) {
                 add(new governors::GovernorTgov1());
             }
@@ -184,17 +184,17 @@ void DynamicGenerator::buildDynModel(dynModel_t dynModel)
                 add(new genmodels::GenModel8());
             }
             break;
-        case dynModel_t::model_only:
+        case DynModel::model_only:
             if (genModel == nullptr) {
                 add(new genmodels::GenModel4());
             }
             break;
-        case dynModel_t::none:
+        case DynModel::none:
             if (genModel == nullptr) {
                 add(new GenModel());
             }
             break;
-        case dynModel_t::invalid:
+        case DynModel::invalid:
         default:
             break;
     }
@@ -210,7 +210,7 @@ void DynamicGenerator::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         add(new GenModel());
     }
     if (gov != nullptr) {
-        if (!genModel->checkFlag(GenModel::genModel_flags::internal_frequency_calculation)) {
+        if (!genModel->checkFlag(GenModel::GenModelFlags::internal_frequency_calculation)) {
             opFlags.set(uses_bus_frequency);
         }
     }
@@ -458,7 +458,7 @@ void DynamicGenerator::set(std::string_view param, std::string_view val)
 {
     if (param == "dynmodel") {
         auto dmodel = dynModelFromString(std::string{val});
-        if (dmodel == dynModel_t::invalid) {
+        if (dmodel == DynModel::invalid) {
             throw(InvalidParameterValue(val));
         }
         buildDynModel(dmodel);
@@ -895,12 +895,12 @@ void DynamicGenerator::rootTest(const IOdata& inputs,
     }
 }
 
-change_code DynamicGenerator::rootCheck(const IOdata& inputs,
-                                        const stateData& stateDataValue,
-                                        const solverMode& sMode,
-                                        check_level_t level)
+ChangeCode DynamicGenerator::rootCheck(const IOdata& inputs,
+                                       const stateData& stateDataValue,
+                                       const solverMode& sMode,
+                                       CheckLevel level)
 {
-    auto ret = change_code::no_change;
+    auto ret = ChangeCode::NO_CHANGE;
     updateLocalCache(inputs, stateDataValue, sMode);
 
     for (auto* sub : getSubObjects()) {

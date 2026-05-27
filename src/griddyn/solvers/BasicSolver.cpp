@@ -20,18 +20,18 @@ namespace griddyn {
 using namespace gmlc::utilities;
 
 namespace solvers {
-    basicSolver::basicSolver(mode_t alg): algorithm(alg)
+    basicSolver::basicSolver(Mode alg): algorithm(alg)
     {
         mode.algebraic = true;
     }
-    basicSolver::basicSolver(const std::string& objName, mode_t alg):
+    basicSolver::basicSolver(const std::string& objName, Mode alg):
         SolverInterface(objName), algorithm(alg)
     {
         mode.algebraic = true;
     }
 
     basicSolver::basicSolver(GridDynSimulation* gds, const solverMode& sMode):
-        SolverInterface(gds, sMode), algorithm(mode_t::gauss)
+        SolverInterface(gds, sMode), algorithm(Mode::gauss)
     {
         mode.algebraic = true;
     }
@@ -117,10 +117,10 @@ namespace solvers {
         if (param == "algorithm") {
             auto lcs = convertToLowerCase(val);
             if (lcs == "gauss") {
-                algorithm = mode_t::gauss;
+                algorithm = Mode::gauss;
                 mode.approx[force_recalc] = false;
             } else if (lcs == "gauss-seidel") {
-                algorithm = mode_t::gauss_seidel;
+                algorithm = Mode::gauss_seidel;
                 mode.approx[force_recalc] = true;
             }
         } else {
@@ -145,7 +145,7 @@ namespace solvers {
     {
         double md = 1.0;
         iterations = 0;
-        if (algorithm == mode_t::gauss) {
+        if (algorithm == Mode::gauss) {
             while (md > tolerance) {
                 m_gds->algUpdateFunction(tStop, state.data(), tempState1.data(), mode, alpha);
                 ++iterations;
@@ -173,7 +173,7 @@ namespace solvers {
                 }
             }
             std::println("Iteration {} max change={}", iterations, md);
-        } else if (algorithm == mode_t::gauss_seidel) {
+        } else if (algorithm == Mode::gauss_seidel) {
             alpha = 1.2;
             while (md > tolerance) {
                 tempState1 = state;

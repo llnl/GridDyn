@@ -560,7 +560,7 @@ bool GridArea::isMember(const CoreObject* object) const
 }
 
 // reset the bus parameters
-void GridArea::reset(reset_levels level)
+void GridArea::reset(ResetLevels level)
 {
     for (auto* obj : primaryObjects) {
         obj->reset(level);
@@ -667,14 +667,13 @@ void GridArea::updateLocalCache(const IOdata& inputs, const stateData& sD, const
     }
 }
 
-change_code
-    GridArea::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, check_level_t level)
+ChangeCode GridArea::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level)
 {
-    auto ret = change_code::no_change;
+    auto ret = ChangeCode::NO_CHANGE;
     opFlags.set(disable_flag_updates);  // this is so the adjustment object list can't get reset in
                                         // the middle of
     // this computation
-    if (level < check_level_t::low_voltage_check) {
+    if (level < CheckLevel::low_voltage_check) {
         for (auto* obj : pFlowAdjustObjects) {
             auto iret = obj->powerFlowAdjust(inputs, flags, level);
             if (iret > ret) {
@@ -779,7 +778,7 @@ void GridArea::converge(coreTime time,
                         double state[],
                         double dstate_dt[],
                         const solverMode& sMode,
-                        converge_mode mode,
+                        ConvergeMode mode,
                         double tol)
 {
     if (opFlags[reverse_converge]) {
@@ -1433,15 +1432,15 @@ void GridArea::rootTest(const IOdata& inputs,
 #endif
 }
 
-change_code GridArea::rootCheck(const IOdata& inputs,
-                                const stateData& sD,
-                                const solverMode& sMode,
-                                check_level_t level)
+ChangeCode GridArea::rootCheck(const IOdata& inputs,
+                               const stateData& sD,
+                               const solverMode& sMode,
+                               CheckLevel level)
 {
-    change_code ret = change_code::no_change;
+    ChangeCode ret = ChangeCode::NO_CHANGE;
     // root checks can trigger flag updates disable and just do the update once
     opFlags.set(disable_flag_updates);
-    if (level >= check_level_t::low_voltage_check) {
+    if (level >= CheckLevel::low_voltage_check) {
         for (auto* obj : primaryObjects) {
             if (obj->isEnabled()) {
                 auto iret = obj->rootCheck(inputs, sD, sMode, level);

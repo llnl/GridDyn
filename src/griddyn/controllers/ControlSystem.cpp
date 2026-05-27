@@ -110,12 +110,12 @@ void ControlSystem::rootTrigger(coreTime /*time*/,
 {
 }
 
-change_code ControlSystem::rootCheck(const IOdata& /*inputs*/,
-                                     const stateData& /*sD*/,
-                                     const solverMode& /*sMode*/,
-                                     check_level_t /*level*/)
+ChangeCode ControlSystem::rootCheck(const IOdata& /*inputs*/,
+                                    const stateData& /*sD*/,
+                                    const solverMode& /*sMode*/,
+                                    CheckLevel /*level*/)
 {
-    return change_code::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 // virtual void setTime(coreTime time){prevTime=time;};
 }  // namespace griddyn

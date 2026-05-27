@@ -157,20 +157,20 @@ std::string interpolatingPlayer::to_string() const
     return ss.str();
 }
 
-change_code interpolatingPlayer::trigger()
+ChangeCode interpolatingPlayer::trigger()
 {
     try {
         m_obj->set(field, value, unitType);
-        return change_code::parameter_change;
+        return ChangeCode::PARAMETER_CHANGE;
     }
     catch (const std::invalid_argument&) {
-        return change_code::execution_failure;
+        return ChangeCode::EXECUTION_FAILURE;
     }
 }
 
-change_code interpolatingPlayer::trigger(coreTime time)
+ChangeCode interpolatingPlayer::trigger(coreTime time)
 {
-    change_code ret = change_code::not_triggered;
+    ChangeCode ret = ChangeCode::NOT_TRIGGERED;
     if (time + kSmallTime >= triggerTime) {
         try {
             if (useSlopeField) {
@@ -180,10 +180,10 @@ change_code interpolatingPlayer::trigger(coreTime time)
                 m_obj->set(field, value, unitType);
             }
 
-            ret = change_code::parameter_change;
+            ret = ChangeCode::PARAMETER_CHANGE;
         }
         catch (const std::invalid_argument&) {
-            ret = change_code::execution_failure;
+            ret = ChangeCode::EXECUTION_FAILURE;
         }
         updateTrigger(time);
     }

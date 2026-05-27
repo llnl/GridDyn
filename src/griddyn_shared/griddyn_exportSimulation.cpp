@@ -246,7 +246,7 @@ void GridDynSimulationAddCommand(GridDynSimulation sim, const char* command, Gri
         return;
     }
     gridDynAction action(command);
-    if (action.command != gridDynAction::gd_action_t::invalid) {
+    if (action.command != gridDynAction::GdAction::invalid) {
         runner->getSim()->add(action);
         return;
     }

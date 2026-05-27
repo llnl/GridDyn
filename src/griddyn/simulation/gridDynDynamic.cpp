@@ -37,18 +37,18 @@ int GridDynSimulation::dynInitialize(coreTime tStart)
     if (opFlags[dyn_initialized]) {
         offsets.unload(true);
     }
-    const solverMode& tempSm = (defaultDynamicSolverMethod == dynamic_solver_methods::partitioned) ?
+    const solverMode& tempSm = (defaultDynamicSolverMethod == DynamicSolverMethods::partitioned) ?
         *defDynDiffMode :
         *defDAEMode;
 
-    const int retval = makeReady(gridState_t::POWERFLOW_COMPLETE, tempSm);
+    const int retval = makeReady(GridState::POWERFLOW_COMPLETE, tempSm);
     if (retval != FUNCTION_EXECUTION_SUCCESS || controlFlags[power_flow_only]) {
         return retval;
     }
 
     auto dynData = getSolverInterface(tempSm);
     const solverMode& solverModeRef = dynData->getSolverMode();
-    if (defaultDynamicSolverMethod == dynamic_solver_methods::partitioned) {
+    if (defaultDynamicSolverMethod == DynamicSolverMethods::partitioned) {
         defDynDiffMode = &solverModeRef;
     } else {
         defDAEMode = &solverModeRef;
@@ -106,7 +106,7 @@ int GridDynSimulation::dynInitialize(coreTime tStart)
             stateRecorder = std::make_shared<functionEventAdapter>(
                 [=, this]() {
                     saveStateBinary(this, stateFile, solverModeRef);
-                    return change_code::no_change;
+                    return ChangeCode::NO_CHANGE;
                 },
                 state_record_period,
                 tStart);
@@ -125,7 +125,7 @@ int GridDynSimulation::dynInitialize(coreTime tStart)
     dynData->initialize(tStart);
 
     opFlags &= RESET_CHANGE_FLAG_MASK;
-    pState = gridState_t::DYNAMIC_INITIALIZED;
+    pState = GridState::DYNAMIC_INITIALIZED;
     currentTime = tStart;
     return FUNCTION_EXECUTION_SUCCESS;
 }
@@ -160,11 +160,11 @@ int GridDynSimulation::runDynamicSolverStep(std::shared_ptr<SolverInterface>& dy
 void GridDynSimulation::setupDynamicDAE()
 {
     if (defDAEMode == nullptr) {
-        setDefaultMode(solution_modes_t::dae_mode, getSolverMode("dae"));
+        setDefaultMode(SolutionModes::dae_mode, getSolverMode("dae"));
         updateSolver(*defDAEMode);
     }
     const solverMode& sMode = *defDAEMode;
-    const int retval = makeReady(gridState_t::DYNAMIC_INITIALIZED, sMode);
+    const int retval = makeReady(GridState::DYNAMIC_INITIALIZED, sMode);
     if (retval != FUNCTION_EXECUTION_SUCCESS) {
         logging::error(this, "Unable to prepare simulation for dynamic solution");
         setErrorCode(retval);
@@ -183,13 +183,13 @@ int GridDynSimulation::dynamicDAEStartupConditions(std::shared_ptr<SolverInterfa
                                                    const solverMode& sMode)
 {
     int retval = FUNCTION_EXECUTION_SUCCESS;
-    if (pState == gridState_t::DYNAMIC_INITIALIZED) {
+    if (pState == GridState::DYNAMIC_INITIALIZED) {
         // do mode 0 IC calculation
         guessState(currentTime, dynData->state_data(), dynData->deriv_data(), sMode);
 
         retval = dynData->calcIC(currentTime,
                                  probeStepTime,
-                                 SolverInterface::ic_modes::fixed_masked_and_deriv,
+                                 SolverInterface::IcModes::fixed_masked_and_deriv,
                                  false);
         if (retval != FUNCTION_EXECUTION_SUCCESS) {
             // for (size_t kk = 0; kk < dynData->getSize(); ++kk)
@@ -264,7 +264,7 @@ int GridDynSimulation::dynamicDAE(coreTime tStop)
             dynamicCheckAndReset(sMode);
             retval = generateDaeDynamicInitialConditions(sMode);
             if (retval != FUNCTION_EXECUTION_SUCCESS) {
-                pState = gridState_t::DYNAMIC_PARTIAL;
+                pState = GridState::DYNAMIC_PARTIAL;
                 logging::error(this, "simulation halted unable to converge");
                 logging::error(this, dynData->getLastErrorString());
                 return FUNCTION_EXECUTION_FAILURE;
@@ -284,7 +284,7 @@ int GridDynSimulation::dynamicDAE(coreTime tStop)
                     {
                         currentTime += tols.timeTol;
                     } else if (tstep > 1) {
-                        pState = gridState_t::DYNAMIC_PARTIAL;
+                        pState = GridState::DYNAMIC_PARTIAL;
                         logging::error(this, "simulation halted unable to converge");
                         logging::error(this, dynData->getLastErrorString());
                         return FUNCTION_EXECUTION_FAILURE;
@@ -307,11 +307,11 @@ int GridDynSimulation::dynamicDAE(coreTime tStop)
         setState(currentTime, dynData->state_data(), dynData->deriv_data(), sMode);
         updateLocalCache();
         const auto eventResult = EvQ->executeEvents(currentTime);
-        if (eventResult > change_code::non_state_change) {
+        if (eventResult > ChangeCode::NON_STATE_CHANGE) {
             dynamicCheckAndReset(sMode);
             retval = generateDaeDynamicInitialConditions(sMode);
             if (retval != FUNCTION_EXECUTION_SUCCESS) {
-                pState = gridState_t::DYNAMIC_PARTIAL;
+                pState = GridState::DYNAMIC_PARTIAL;
                 logging::error(this, "simulation halted unable to converge");
                 logging::error(this, dynData->getLastErrorString());
                 return FUNCTION_EXECUTION_FAILURE;
@@ -325,7 +325,7 @@ int GridDynSimulation::dynamicDAE(coreTime tStop)
     }
 
     // store the results to the buses
-    pState = gridState_t::DYNAMIC_COMPLETE;
+    pState = GridState::DYNAMIC_COMPLETE;
     return out;
 }
 
@@ -333,7 +333,7 @@ void GridDynSimulation::setupDynamicPartitioned()
 {
     const solverMode& sModeAlg = *defDynAlgMode;
     const solverMode& sModeDiff = *defDynDiffMode;
-    const int retval = makeReady(gridState_t::DYNAMIC_INITIALIZED, sModeDiff);
+    const int retval = makeReady(GridState::DYNAMIC_INITIALIZED, sModeDiff);
     if (retval != FUNCTION_EXECUTION_SUCCESS) {
         logging::error(this, "Unable to prepare simulation for dynamic solution");
         setErrorCode(retval);
@@ -359,7 +359,7 @@ int GridDynSimulation::dynamicPartitionedStartupConditions(
     const solverMode& sModeAlg)
 {
     int retval = FUNCTION_EXECUTION_SUCCESS;
-    if (pState == gridState_t::DYNAMIC_INITIALIZED) {
+    if (pState == GridState::DYNAMIC_INITIALIZED) {
         if (controlFlags[dae_initialization_for_partitioned]) {
             auto daeData = getSolverInterface(*defDAEMode);
             if (!daeData->isInitialized()) {
@@ -368,7 +368,7 @@ int GridDynSimulation::dynamicPartitionedStartupConditions(
             guessState(currentTime, daeData->state_data(), daeData->deriv_data(), *defDAEMode);
             retval = daeData->calcIC(currentTime,
                                      probeStepTime,
-                                     SolverInterface::ic_modes::fixed_masked_and_deriv,
+                                     SolverInterface::IcModes::fixed_masked_and_deriv,
                                      false);
             if (retval != FUNCTION_EXECUTION_SUCCESS) {
                 retval = generateDaeDynamicInitialConditions(*defDAEMode);
@@ -438,7 +438,7 @@ int GridDynSimulation::dynamicPartitioned(coreTime tStop, coreTime tStep)
             dynamicCheckAndReset(sModeDiff);
             retval = generatePartitionedDynamicInitialConditions(sModeAlg, sModeDiff);
             if (retval != FUNCTION_EXECUTION_SUCCESS) {
-                pState = gridState_t::DYNAMIC_PARTIAL;
+                pState = GridState::DYNAMIC_PARTIAL;
                 logging::error(this, "simulation halted unable to converge");
                 logging::error(this, dynDataDiff->getLastErrorString());
                 return FUNCTION_EXECUTION_FAILURE;
@@ -460,7 +460,7 @@ int GridDynSimulation::dynamicPartitioned(coreTime tStop, coreTime tStep)
                     {
                         currentTime = currentTime + tols.timeTol;
                     } else if (tstep > 1) {
-                        pState = gridState_t::DYNAMIC_PARTIAL;
+                        pState = GridState::DYNAMIC_PARTIAL;
                         logging::error(this, "simulation halted unable to converge");
                         logging::error(this, dynDataDiff->getLastErrorString());
                         return FUNCTION_EXECUTION_FAILURE;
@@ -485,11 +485,11 @@ int GridDynSimulation::dynamicPartitioned(coreTime tStop, coreTime tStep)
             setState(currentTime, dynDataAlg->state_data(), nullptr, sModeAlg);
             updateLocalCache();
             const auto eventResult = EvQ->executeEvents(currentTime);
-            if (eventResult > change_code::non_state_change) {
+            if (eventResult > ChangeCode::NON_STATE_CHANGE) {
                 dynamicCheckAndReset(sModeDiff);
                 retval = generatePartitionedDynamicInitialConditions(sModeAlg, sModeDiff);
                 if (retval != FUNCTION_EXECUTION_SUCCESS) {
-                    pState = gridState_t::DYNAMIC_PARTIAL;
+                    pState = GridState::DYNAMIC_PARTIAL;
                     logging::error(this, "simulation halted unable to converge");
                     logging::error(this, dynDataDiff->getLastErrorString());
                     return FUNCTION_EXECUTION_FAILURE;
@@ -504,7 +504,7 @@ int GridDynSimulation::dynamicPartitioned(coreTime tStop, coreTime tStep)
     }
 
     // store the results to the buses
-    pState = gridState_t::DYNAMIC_COMPLETE;
+    pState = GridState::DYNAMIC_COMPLETE;
     return out;
 }
 
@@ -536,19 +536,19 @@ int GridDynSimulation::step(coreTime nextStep, coreTime& timeActual)
     int retval = FUNCTION_EXECUTION_SUCCESS;
 
     auto dynData = getSolverInterface(solverModeRef);
-    if (pState == gridState_t::DYNAMIC_COMPLETE) {
+    if (pState == GridState::DYNAMIC_COMPLETE) {
         if (dynamicCheckAndReset(solverModeRef)) {
             retval = generateDaeDynamicInitialConditions(solverModeRef);
             if (retval != FUNCTION_EXECUTION_SUCCESS) {
                 return 1;
             }
         }  // this step does a reset of IDA if necessary
-    } else if (pState == gridState_t::DYNAMIC_INITIALIZED) {
+    } else if (pState == GridState::DYNAMIC_INITIALIZED) {
         // do mode 0 IC calculation
         guessState(currentTime, dynData->state_data(), dynData->deriv_data(), solverModeRef);
         retval = dynData->calcIC(currentTime,
                                  probeStepTime,
-                                 SolverInterface::ic_modes::fixed_masked_and_deriv,
+                                 SolverInterface::IcModes::fixed_masked_and_deriv,
                                  false);
         if (retval != FUNCTION_EXECUTION_SUCCESS) {
             // for (size_t kk = 0; kk < dynData->getSize(); ++kk)
@@ -565,7 +565,7 @@ int GridDynSimulation::step(coreTime nextStep, coreTime& timeActual)
                 return retval;
             }
         }
-        pState = gridState_t::DYNAMIC_PARTIAL;
+        pState = GridState::DYNAMIC_PARTIAL;
     } else {
         // check to make sure nothing has changed
         dynamicCheckAndReset(solverModeRef);
@@ -615,7 +615,7 @@ int GridDynSimulation::step(coreTime nextStep, coreTime& timeActual)
         setState(currentTime, dynData->state_data(), dynData->deriv_data(), solverModeRef);
 
         const auto eventResult = EvQ->executeEvents(currentTime);
-        if (eventResult > change_code::no_change) {
+        if (eventResult > ChangeCode::NO_CHANGE) {
             dynamicCheckAndReset(solverModeRef);
             break;
         }
@@ -623,7 +623,7 @@ int GridDynSimulation::step(coreTime nextStep, coreTime& timeActual)
         // recorders last to capture any state change
     }
     timeActual = currentTime;
-    pState = gridState_t::DYNAMIC_COMPLETE;
+    pState = GridState::DYNAMIC_COMPLETE;
     return retval;
 }
 
@@ -654,9 +654,9 @@ void GridDynSimulation::handleEarlySolverReturn(int retval,
             rootCheck(noInputs,
                       stateDataValue,
                       dynData->getSolverMode(),
-                      check_level_t::low_voltage_check);
+                      CheckLevel::low_voltage_check);
             // return dynData->calcIC(getSimulationTime(), probeStepTime,
-            // SolverInterface::ic_modes::fixed_diff, true);
+            // SolverInterface::IcModes::fixed_diff, true);
             opFlags.reset(low_bus_voltage);
 #if JAC_CHECK_ENABLED > 0
             int mmatch = JacobianCheck(this, dynData->getSolverMode());
@@ -668,19 +668,19 @@ void GridDynSimulation::handleEarlySolverReturn(int retval,
     }
 }
 
-bool GridDynSimulation::dynamicCheckAndReset(const solverMode& sMode, change_code change)
+bool GridDynSimulation::dynamicCheckAndReset(const solverMode& sMode, ChangeCode change)
 {
     auto dynData = getSolverInterface(sMode);
     if (opFlags[connectivity_change_flag]) {
         checkNetwork(NetworkCheckType::SIMPLIFIED);
     }
-    if ((opFlags[state_change_flag]) || (change == change_code::state_count_change)) {
+    if ((opFlags[state_change_flag]) || (change == ChangeCode::STATE_SIZE_CHANGE)) {
         // we changed object states so we have to do a full reset
         if (checkEventsForDynamicReset(currentTime + probeStepTime, sMode)) {
             return true;
         }
         reInitDyn(sMode);
-    } else if ((opFlags[object_change_flag]) || (change == change_code::object_change)) {
+    } else if ((opFlags[object_change_flag]) || (change == ChangeCode::OBJECT_CHANGE)) {
         // the object count changed
         if (checkEventsForDynamicReset(currentTime + probeStepTime, sMode)) {
             return true;
@@ -691,7 +691,7 @@ bool GridDynSimulation::dynamicCheckAndReset(const solverMode& sMode, change_cod
         } else {
             updateOffsets(sMode);
         }
-    } else if ((opFlags[jacobian_count_change_flag]) || (change == change_code::jacobian_change)) {
+    } else if ((opFlags[jacobian_count_change_flag]) || (change == ChangeCode::JACOBIAN_CHANGE)) {
         if (checkEventsForDynamicReset(currentTime + probeStepTime, sMode)) {
             return true;
         }
@@ -738,9 +738,9 @@ int GridDynSimulation::generateDaeDynamicInitialConditions(const solverMode& sMo
         rootCheck(noInputs,
                   stateDataValue,
                   dynData->getSolverMode(),
-                  check_level_t::low_voltage_check);
+                  CheckLevel::low_voltage_check);
         // return dynData->calcIC(getSimulationTime(), probeStepTime,
-        // SolverInterface::ic_modes::fixed_diff, true);
+        // SolverInterface::IcModes::fixed_diff, true);
         opFlags.reset(low_bus_voltage);
     }
     // Do the first cut guessState at the solution
@@ -758,13 +758,13 @@ int GridDynSimulation::generateDaeDynamicInitialConditions(const solverMode& sMo
                            maxResid.first);
         }
         // converge (currentTime, dynData->state_data (), dynData->deriv_data (), sMode,
-        // converge_mode::high_error_only, 0.05);
+        // ConvergeMode::high_error_only, 0.05);
         // JacobianCheck(sMode);
         //  printStateNames(this,sMode);
     }
 
     retval =
-        dynData->calcIC(currentTime, probeStepTime, SolverInterface::ic_modes::fixed_diff, true);
+        dynData->calcIC(currentTime, probeStepTime, SolverInterface::IcModes::fixed_diff, true);
 
     if (retval == -22) {
         // this is bad initial conditions TODO:: map this to Solver ERROR codes not
@@ -773,12 +773,10 @@ int GridDynSimulation::generateDaeDynamicInitialConditions(const solverMode& sMo
                  dynData->state_data(),
                  dynData->deriv_data(),
                  sMode,
-                 converge_mode::single_iteration,
+                 ConvergeMode::single_iteration,
                  0.05);
-        retval = dynData->calcIC(currentTime,
-                                 probeStepTime,
-                                 SolverInterface::ic_modes::fixed_diff,
-                                 true);
+        retval =
+            dynData->calcIC(currentTime, probeStepTime, SolverInterface::IcModes::fixed_diff, true);
     }
     if (retval == FUNCTION_EXECUTION_SUCCESS) {
         retval = checkAlgebraicRoots(dynData);
@@ -830,9 +828,9 @@ int GridDynSimulation::generatePartitionedDynamicInitialConditions(const solverM
     if (opFlags[low_bus_voltage]) {
         /*stateData sD(getSimulationTime(), dynData->state_data(), dynData->deriv_data());
 
-        rootCheck(&sD, dynData->getSolverMode(), check_level_t::low_voltage_check);
+        rootCheck(&sD, dynData->getSolverMode(), CheckLevel::low_voltage_check);
         //return dynData->calcIC(getSimulationTime(), probeStepTime,
-        SolverInterface::ic_modes::fixed_diff, true); opFlags.reset(low_bus_voltage);
+        SolverInterface::IcModes::fixed_diff, true); opFlags.reset(low_bus_voltage);
         */
     }
     coreTime tRet;
@@ -850,14 +848,14 @@ int GridDynSimulation::checkAlgebraicRoots(std::shared_ptr<SolverInterface>& dyn
         dynData->getCurrentData();
         setState(currentTime + probeStepTime, dynData->state_data(), dynData->deriv_data(), sMode);
         updateLocalCache();
-        const change_code ret =
-            rootCheck(noInputs, emptyStateData, cLocalSolverMode, check_level_t::full_check);
+        const ChangeCode ret =
+            rootCheck(noInputs, emptyStateData, cLocalSolverMode, CheckLevel::full_check);
         handleRootChange(sMode, dynData);
-        if (ret > change_code::non_state_change) {
+        if (ret > ChangeCode::NON_STATE_CHANGE) {
             dynamicCheckAndReset(sMode, ret);
             int retval = dynData->calcIC(currentTime,
                                          probeStepTime,
-                                         SolverInterface::ic_modes::fixed_diff,
+                                         SolverInterface::IcModes::fixed_diff,
                                          true);
 
             if (retval < 0)  // this is bad initial conditions
@@ -866,11 +864,11 @@ int GridDynSimulation::checkAlgebraicRoots(std::shared_ptr<SolverInterface>& dyn
                          dynData->state_data(),
                          dynData->deriv_data(),
                          sMode,
-                         converge_mode::single_iteration,
+                         ConvergeMode::single_iteration,
                          0.05);
                 retval = dynData->calcIC(currentTime,
                                          probeStepTime,
-                                         SolverInterface::ic_modes::fixed_diff,
+                                         SolverInterface::IcModes::fixed_diff,
                                          true);
             }
             return retval;
@@ -969,7 +967,7 @@ int GridDynSimulation::reInitDyn(const solverMode& sMode)
     }
 
     opFlags &= RESET_CHANGE_FLAG_MASK;
-    pState = gridState_t::DYNAMIC_INITIALIZED;
+    pState = GridState::DYNAMIC_INITIALIZED;
     return FUNCTION_EXECUTION_SUCCESS;
 }
 

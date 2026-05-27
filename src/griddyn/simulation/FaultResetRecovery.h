@@ -13,7 +13,7 @@ namespace griddyn {
 class GridDynSimulation;
 class SolverInterface;
 
-enum class reset_levels;
+enum class ResetLevels;
 
 /** @brief the purpose of this class is to try to recover a valid initial condition for dynamic
  * simulations*/
@@ -24,7 +24,7 @@ class faultResetRecovery {
   public:
     /** @brief enumeration describing possible return options
      */
-    enum class recovery_return_codes {
+    enum class RecoveryReturnCodes {
         more_options,
         out_of_options,
     };
@@ -39,8 +39,8 @@ class faultResetRecovery {
     virtual ~faultResetRecovery();
 
     /** @brief attempt the various fixes in order
-    @return recovery_return_codes::more_options if attemptFix can be called again without reset
-    recovery_return_codes::out_of_options if no more fix attempts are available
+    @return RecoveryReturnCodes::more_options if attemptFix can be called again without reset
+    RecoveryReturnCodes::out_of_options if no more fix attempts are available
     */
     virtual int attemptFix();
 
@@ -63,7 +63,7 @@ class faultResetRecovery {
     std::shared_ptr<SolverInterface> solver;  //!< the SolverInterface to use
 
     int faultResetFix1();
-    int faultResetFix2(reset_levels rlevel);
+    int faultResetFix2(ResetLevels rlevel);
     int faultResetFix3();
     int faultResetFix4();
 };

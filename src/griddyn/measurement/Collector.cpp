@@ -253,7 +253,7 @@ count_t collector::grabData(double* outputData, index_t outputCount)
     return currentCount;
 }
 
-change_code collector::trigger(coreTime time)
+ChangeCode collector::trigger(coreTime time)
 {
     std::vector<double> vals;
 
@@ -280,7 +280,7 @@ change_code collector::trigger(coreTime time)
     if (mTriggerTime > mStopTime) {
         mTriggerTime = maxTime;
     }
-    return change_code::no_change;
+    return ChangeCode::NO_CHANGE;
 }
 
 int collector::getColumn(int requestedColumn) const

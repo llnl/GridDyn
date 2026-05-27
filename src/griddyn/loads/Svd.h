@@ -15,7 +15,7 @@ namespace griddyn::loads {
 class Svd: public RampLoad {
   public:
     /** flags used for Svd operation*/
-    enum svd_flags {
+    enum SvdFlags {
         continuous_flag = object_flag6,
         locked_flag = object_flag7,
         reactive_control_flag = object_flag8,
@@ -82,9 +82,9 @@ class Svd: public RampLoad {
 */
     void addBlock(int steps, double Qstep, units::unit unitType = units::defunit);
 
-    virtual change_code
-        powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, check_level_t level) override;
-    virtual void reset(reset_levels level = reset_levels::minimal) override;
+    virtual ChangeCode
+        powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level) override;
+    virtual void reset(ResetLevels level = ResetLevels::minimal) override;
 
     virtual void residual(const IOdata& inputs,
                           const stateData& sD,
@@ -120,10 +120,10 @@ class Svd: public RampLoad {
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const solverMode& sMode) override;
-    virtual change_code rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
-                                  const solverMode& sMode,
-                                  check_level_t level) override;
+    virtual ChangeCode rootCheck(const IOdata& inputs,
+                                 const stateData& sD,
+                                 const solverMode& sMode,
+                                 CheckLevel level) override;
 
   protected:
     /** get the setting corresponding to a specific output level

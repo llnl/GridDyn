@@ -44,8 +44,8 @@ class pmu_tcp_acc {
 class pmu_tcp_session {
   public:
     int index;
-    enum session_state_t { accepting = 0, waiting = 1, sending = 2, halted = 3 };
-    session_state_t connectionState;
+    enum SessionState { accepting = 0, waiting = 1, sending = 2, halted = 3 };
+    SessionState connectionState;
     boost::asio::ip::tcp::socket socket_;
     // PMU not allowed to have multiple packets in flight at the same time
     std::mutex sendLock;
@@ -63,10 +63,10 @@ class pmu_tcp_session {
 // class for creating a virtual PMU server
 class gridDynServer {
   public:
-    enum ip_protocol_t { tcp = 1, udp = 2 };
+    enum IpProtocol { tcp = 1, udp = 2 };
 
     int mPort;
-    ip_protocol_t mIpProtocol;
+    IpProtocol mIpProtocol;
 
     int mTimeBase;
 

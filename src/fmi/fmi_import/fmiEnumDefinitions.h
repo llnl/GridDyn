@@ -16,12 +16,12 @@ enum class FmuType {
 };
 
 enum class FmiVariabilityType {
-    continuous = 0,
-    constant,
-    fixed,
-    tunable,
-    discrete,
-    unknown,
+    CONTINUOUS = 0,
+    CONSTANT,
+    FIXED,
+    TUNABLE,
+    DISCRETE,
+    UNKNOWN,
 };
 /** class wrapper for fmi variability
  */
@@ -38,14 +38,14 @@ class FmiVariability {
 };
 
 enum class FmiCausalityType {
-    local,
-    parameter,
-    calculatedParameter,
-    input,
-    output,
-    independent,
-    unknown,
-    any,
+    LOCAL,
+    PARAMETER,
+    CALCULATED_PARAMETER,
+    INPUT,
+    OUTPUT,
+    INDEPENDENT,
+    UNKNOWN,
+    ANY,
 };
 
 class FmiCausality {
@@ -61,19 +61,19 @@ class FmiCausality {
 };
 
 enum class FmiVariableType {
-    real = 0,
-    integer,
-    boolean,
-    string,
-    enumeration,
-    unknown,
-    numeric,  //!< not used directly in an fmu but intended to catch all numeric in search
+    REAL = 0,
+    INTEGER,
+    BOOLEAN,
+    STRING,
+    ENUMERATION,
+    UNKNOWN,
+    NUMERIC,  //!< not used directly in an fmu but intended to catch all numeric in search
               //!< operations
 };
 
 class FmiVariableTypeInfo {
   public:
-    FmiVariableType variable = FmiVariableType::real;  //!< variable type data member
+    FmiVariableType variable = FmiVariableType::REAL;  //!< variable type data member
     FmiVariableTypeInfo() {}
     FmiVariableTypeInfo(const std::string& vstring);
     FmiVariableTypeInfo(FmiVariableType type): variable(type) {}
@@ -85,18 +85,18 @@ class FmiVariableTypeInfo {
 };
 
 enum class FmiDependencyType {
-    dependent = 0,
-    constant,
-    fixed,
-    tunable,
-    discrete,
-    independent,
-    unknown,
+    DEPENDENT = 0,
+    CONSTANT,
+    FIXED,
+    TUNABLE,
+    DISCRETE,
+    INDEPENDENT,
+    UNKNOWN,
 };
 
 class FmiDependencyTypeInfo {
   public:
-    FmiDependencyType dependency = FmiDependencyType::dependent;  //!< dependency data member
+    FmiDependencyType dependency = FmiDependencyType::DEPENDENT;  //!< dependency data member
     FmiDependencyTypeInfo() {}
     FmiDependencyTypeInfo(const std::string& vstring);
     FmiDependencyTypeInfo(FmiDependencyType type): dependency(type) {}

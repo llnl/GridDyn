@@ -222,35 +222,35 @@ std::string Event::to_string() const
     return stream.str();
 }
 
-change_code Event::trigger()
+ChangeCode Event::trigger()
 {
     if (m_obj == nullptr) {
         armed = false;
-        return change_code::execution_failure;
+        return ChangeCode::EXECUTION_FAILURE;
     }
     try {
         m_obj->set(field, value, unitType);
-        return change_code::parameter_change;
+        return ChangeCode::PARAMETER_CHANGE;
     }
     catch (const std::invalid_argument&) {
-        return change_code::execution_failure;
+        return ChangeCode::EXECUTION_FAILURE;
     }
 }
 
-change_code Event::trigger(coreTime time)
+ChangeCode Event::trigger(coreTime time)
 {
-    change_code ret = change_code::not_triggered;
+    ChangeCode ret = ChangeCode::NOT_TRIGGERED;
     if (time >= triggerTime) {
         if (m_obj == nullptr) {
             armed = false;
-            return change_code::execution_failure;
+            return ChangeCode::EXECUTION_FAILURE;
         }
         try {
             m_obj->set(field, value, unitType);
-            ret = change_code::parameter_change;
+            ret = ChangeCode::PARAMETER_CHANGE;
         }
         catch (const std::invalid_argument&) {
-            ret = change_code::execution_failure;
+            ret = ChangeCode::EXECUTION_FAILURE;
         }
         armed = false;
     }

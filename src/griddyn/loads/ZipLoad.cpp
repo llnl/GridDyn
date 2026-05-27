@@ -37,17 +37,17 @@ static ChildTypeFactory<ZipLoad, GridLoad> zlf("load",
                                                std::to_array<std::string_view>({"basic", "zip"}),
                                                "zip");  // set basic to the default
 namespace loads {
-    static TypeFactoryArg<SourceLoad, SourceLoad::sourceType>
-        glfp("load", "pulse", SourceLoad::sourceType::pulse);
-    static TypeFactoryArg<SourceLoad, SourceLoad::sourceType>
+    static TypeFactoryArg<SourceLoad, SourceLoad::SourceType>
+        glfp("load", "pulse", SourceLoad::SourceType::pulse);
+    static TypeFactoryArg<SourceLoad, SourceLoad::SourceType>
         cfgsl("load",
               std::to_array<std::string_view>({"sine", "sin", "sinusoidal"}),
-              SourceLoad::sourceType::sine);
+              SourceLoad::SourceType::sine);
     static ChildTypeFactory<RampLoad, GridLoad> glfr("load", "ramp");
-    static TypeFactoryArg<SourceLoad, SourceLoad::sourceType>
+    static TypeFactoryArg<SourceLoad, SourceLoad::SourceType>
         glfrand("load",
                 std::to_array<std::string_view>({"random", "rand"}),
-                SourceLoad::sourceType::random);
+                SourceLoad::SourceType::random);
     static ChildTypeFactory<FileLoad, GridLoad> glfld("load", "file");
     static ChildTypeFactory<SourceLoad, GridLoad>
         srcld("load", std::to_array<std::string_view>({"src", "source"}));

@@ -35,7 +35,7 @@ class AcBus: public GridBus {
 
   public:
     /** @brief flags for the buses*/
-    enum bus_flags {
+    enum BusFlags {
         use_autogen = object_flag2,  //!< indicator if the bus is using an autogen
         slave_bus = object_flag3,  //!< indicator that the bus is a slave Bus
         master_bus = object_flag4,  //!< indicator that a bus is a master bus
@@ -52,9 +52,9 @@ class AcBus: public GridBus {
 
   protected:
     count_t oCount = 0;  //!< counter for updates
-    busType prevType = busType::PQ;  //!< previous type container if the type automatically changes
-    dynBusType prevDynType =
-        dynBusType::normal;  //!< previous type container if the type automatically changes
+    BusType prevType = BusType::PQ;  //!< previous type container if the type automatically changes
+    DynBusType prevDynType =
+        DynBusType::normal;  //!< previous type container if the type automatically changes
     matrixDataCompact<2, 3> partDeriv;  //!< structure containing the partial derivatives
     model_parameter aTarget = 0.0;  //!< an angle Target(for SLK and afix bus types)
     model_parameter vTarget = 1.0;  //!< a target voltage
@@ -115,14 +115,14 @@ class AcBus: public GridBus {
     virtual void pFlowObjectInitializeB() override;
 
   public:
-    virtual change_code powerFlowAdjust(const IOdata& inputs,
-                                        std::uint32_t flags,
-                                        check_level_t level) override;  // only applicable in pFlow
+    virtual ChangeCode powerFlowAdjust(const IOdata& inputs,
+                                       std::uint32_t flags,
+                                       CheckLevel level) override;  // only applicable in pFlow
     /** @brief  adjust the power levels of the contained adjustable secondary objects
     @param[in] adjustment the amount of the adjustment requested*/
     virtual void generationAdjust(double adjustment) override;
     virtual void pFlowCheck(std::vector<Violation>& violations) override;
-    virtual void reset(reset_levels level = reset_levels::minimal) override;
+    virtual void reset(ResetLevels level = ResetLevels::minimal) override;
     // dynInitializeB dynamics
   protected:
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -189,7 +189,7 @@ class AcBus: public GridBus {
                           double state[],
                           double dstate_dt[],
                           const solverMode& sMode,
-                          converge_mode mode = converge_mode::high_error_only,
+                          ConvergeMode mode = ConvergeMode::high_error_only,
                           double tol = 0.01) override;
     /** @brief  try to shift the local states to something more valid
       called when the current states do not make a consistent condition,  calling converge will
@@ -329,10 +329,10 @@ class AcBus: public GridBus {
     **/
     virtual double getFreq(const stateData& stateDataValue, const solverMode& sMode) const override;
 
-    virtual change_code rootCheck(const IOdata& inputs,
-                                  const stateData& stateDataValue,
-                                  const solverMode& sMode,
-                                  check_level_t level) override;
+    virtual ChangeCode rootCheck(const IOdata& inputs,
+                                 const stateData& stateDataValue,
+                                 const solverMode& sMode,
+                                 CheckLevel level) override;
     /** @brief function used for returning the mode of the bus
      depends on the interaction of the SolverInterface and the bus type
     @param[in] sMode the corresponding solverMode to the state
@@ -387,7 +387,7 @@ class AcBus: public GridBus {
     bool convergeStrongIteration(const stateData& stateDataValue,
                                  double state[],
                                  const solverMode& sMode,
-                                 converge_mode& mode,
+                                 ConvergeMode& mode,
                                  double& err,
                                  double& voltageValue,
                                  double& angleValue,
@@ -401,7 +401,7 @@ class AcBus: public GridBus {
     bool convergeVoltageOnly(const stateData& stateDataValue,
                              double state[],
                              const solverMode& sMode,
-                             converge_mode& mode,
+                             ConvergeMode& mode,
                              double& voltageValue,
                              double angleValue,
                              double frequencyValue,

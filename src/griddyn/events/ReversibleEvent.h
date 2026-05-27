@@ -34,8 +34,8 @@ namespace events {
         virtual void cloneTo(Event* evnt) const override;
 
         // virtual void updateEvent(EventInfo &gdEI, CoreObject *rootObject) override;
-        virtual change_code trigger() override;
-        virtual change_code trigger(coreTime time) override;
+        virtual ChangeCode trigger() override;
+        virtual ChangeCode trigger(coreTime time) override;
 
         virtual bool setTarget(CoreObject* gdo, std::string_view var = {}) override;
 
@@ -43,7 +43,7 @@ namespace events {
 
         virtual void updateObject(CoreObject* gco,
                                   ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
-        virtual change_code undo();
+        virtual ChangeCode undo();
         virtual double query();
     };
 }  // namespace events

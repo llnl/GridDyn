@@ -130,7 +130,7 @@ std::string compoundEvent::to_string() const
 
     return ss.str();
 }
-change_code compoundEvent::trigger()
+ChangeCode compoundEvent::trigger()
 {
     try {
         if (targetObjects.empty()) {
@@ -142,16 +142,16 @@ change_code compoundEvent::trigger()
                 ++index;
             }
         }
-        return change_code::parameter_change;
+        return ChangeCode::PARAMETER_CHANGE;
     }
     catch (const std::invalid_argument&) {
-        return change_code::execution_failure;
+        return ChangeCode::EXECUTION_FAILURE;
     }
 }
 
-change_code compoundEvent::trigger(coreTime time)
+ChangeCode compoundEvent::trigger(coreTime time)
 {
-    change_code ret = change_code::not_triggered;
+    ChangeCode ret = ChangeCode::NOT_TRIGGERED;
     if (time >= triggerTime) {
         try {
             if (targetObjects.empty()) {
@@ -163,10 +163,10 @@ change_code compoundEvent::trigger(coreTime time)
                     ++index;
                 }
             }
-            ret = change_code::parameter_change;
+            ret = ChangeCode::PARAMETER_CHANGE;
         }
         catch (const std::invalid_argument&) {
-            ret = change_code::execution_failure;
+            ret = ChangeCode::EXECUTION_FAILURE;
         }
         armed = false;
     }

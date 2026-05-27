@@ -348,46 +348,46 @@ void ThreePhaseLoad::set(std::string_view param, double val, unit unitType)
 IOdata ThreePhaseLoad::getRealPower3Phase(const IOdata& /*inputs*/,
                                           const stateData& /*sD*/,
                                           const solverMode& /*sMode*/,
-                                          phase_type_t type) const
+                                          PhaseType type) const
 {
     return getRealPower3Phase(type);
 }
 IOdata ThreePhaseLoad::getReactivePower3Phase(const IOdata& /*inputs*/,
                                               const stateData& /*sD*/,
                                               const solverMode& /*sMode*/,
-                                              phase_type_t type) const
+                                              PhaseType type) const
 {
     return getReactivePower3Phase(type);
 }
 /** get the 3 phase real output power that based on the given voltage
 @return the real power consumed by the load*/
-IOdata ThreePhaseLoad::getRealPower3Phase(const IOdata& /*V*/, phase_type_t type) const
+IOdata ThreePhaseLoad::getRealPower3Phase(const IOdata& /*V*/, PhaseType type) const
 {
     return getRealPower3Phase(type);
 }
 /** get the 3 phase reactive output power that based on the given voltage
 @return the reactive power consumed by the load*/
-IOdata ThreePhaseLoad::getReactivePower3Phase(const IOdata& /*V*/, phase_type_t type) const
+IOdata ThreePhaseLoad::getReactivePower3Phase(const IOdata& /*V*/, PhaseType type) const
 {
     return getReactivePower3Phase(type);
 }
-IOdata ThreePhaseLoad::getRealPower3Phase(phase_type_t type) const
+IOdata ThreePhaseLoad::getRealPower3Phase(PhaseType type) const
 {
     switch (type) {
-        case phase_type_t::abc:
+        case PhaseType::abc:
         default:
             return {Pa, Pb, Pc};
-        case phase_type_t::pnz:
+        case PhaseType::pnz:
             return ABCtoPNZ_R<IOdata>({Pa, Pb, Pc}, {Qa, Qb, Qc});
     }
 }
-IOdata ThreePhaseLoad::getReactivePower3Phase(phase_type_t type) const
+IOdata ThreePhaseLoad::getReactivePower3Phase(PhaseType type) const
 {
     switch (type) {
-        case phase_type_t::abc:
+        case PhaseType::abc:
         default:
             return {Qa, Qb, Qc};
-        case phase_type_t::pnz:
+        case PhaseType::pnz:
             return ABCtoPNZ_I<IOdata>({Pa, Pb, Pc}, {Qa, Qb, Qc});
     }
 }

@@ -19,7 +19,7 @@ namespace griddyn {
 */
 class subsystem: public Link {
   public:
-    enum subsystem_flags {
+    enum SubsystemFlags {
         direct_connection = object_flag5,  //!< flag indicating directly connected objects (skipping
                                            //!< the terminal link structure)
     };
@@ -86,8 +86,8 @@ class subsystem: public Link {
     virtual CoreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
     // solver functions
 
-    virtual change_code
-        powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, check_level_t level) override;
+    virtual ChangeCode
+        powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level) override;
 
     virtual void setState(coreTime time,
                           const double state[],
@@ -107,14 +107,14 @@ class subsystem: public Link {
                           double state[],
                           double dstate_dt[],
                           const solverMode& sMode,
-                          converge_mode mode = converge_mode::block_iteration,
+                          ConvergeMode mode = ConvergeMode::block_iteration,
                           double tol = 0.01) override;
     virtual void updateLocalCache() override;
     virtual void updateLocalCache(const IOdata& inputs,
                                   const stateData& stateData,
                                   const solverMode& sMode) override;
 
-    virtual void reset(reset_levels level) override;
+    virtual void reset(ResetLevels level) override;
     // root finding functions
 
     // grab information

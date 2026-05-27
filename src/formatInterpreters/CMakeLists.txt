@@ -8,27 +8,27 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 set(elementReader_headers
-    JsonreaderElement.h
+    jsonReaderElement.h
     jsonElement.h
-    XmlreaderElement.h
+    XmlReaderElement.h
     readerElement.h
     tomlElement.h
-    TomlreaderElement.h
-    InireaderElement.h
-    YamlreaderElement.h
+    tomlReaderElement.h
+    iniReaderElement.h
+    yamlReaderElement.h
     yamlElement.h
 )
 
 set(elementReader_files
-    JsonReaderElement.cpp
-    JsonElement.cpp
+    jsonReaderElement.cpp
+    jsonElement.cpp
     XmlReaderElement.cpp
-    ReaderElement.cpp
-    TomlElement.cpp
-    TomlReaderElement.cpp
-    IniReaderElement.cpp
-    YamlReaderElement.cpp
-    YamlElement.cpp
+    readerElement.cpp
+    tomlElement.cpp
+    tomlReaderElement.cpp
+    iniReaderElement.cpp
+    yamlReaderElement.cpp
+    yamlElement.cpp
 )
 
 list(APPEND optional_library_test_files

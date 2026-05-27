@@ -60,16 +60,16 @@ namespace {
     }
 }  // namespace
 
-static ChildClassFactoryArg<solvers::basicSolver, SolverInterface, solvers::basicSolver::Mode>
-    basicFactoryG(stringVec{"basic", "gauss"}, solvers::basicSolver::Mode::gauss);
-static ChildClassFactoryArg<solvers::basicSolver, SolverInterface, solvers::basicSolver::Mode>
-    basicFactoryGS(stringVec{"gs", "gauss-seidel"}, solvers::basicSolver::Mode::gauss_seidel);
+static ChildClassFactoryArg<solvers::BasicSolver, SolverInterface, solvers::BasicSolver::Mode>
+    basicFactoryG(stringVec{"basic", "gauss"}, solvers::BasicSolver::Mode::gauss);
+static ChildClassFactoryArg<solvers::BasicSolver, SolverInterface, solvers::BasicSolver::Mode>
+    basicFactoryGS(stringVec{"gs", "gauss-seidel"}, solvers::BasicSolver::Mode::gauss_seidel);
 #ifdef GRIDYN_ENABLE_CVODE
-static ChildClassFactory<solvers::basicOdeSolver, SolverInterface>
+static ChildClassFactory<solvers::BasicOdeSolver, SolverInterface>
     basicOdeFactory(stringVec{"basicode", "euler"});
 #else
 // if cvode is not available this becomes the default differential solver
-static ChildClassFactory<solvers::basicOdeSolver, SolverInterface>
+static ChildClassFactory<solvers::BasicOdeSolver, SolverInterface>
     basicOdeFactory(stringVec{"basicode", "dyndiff", "differential"});
 
 #endif
@@ -504,7 +504,7 @@ void SolverInterface::checkFlag(void* flagvalue,
                                 funcname,
                                 *errflag);
             }
-            throw(solverException(*errflag));
+            throw(SolverException(*errflag));
         }
     }
     // TODO(phlpt): Handle the missing opt == 2 / nullptr case if needed.

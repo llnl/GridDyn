@@ -14,9 +14,9 @@
 namespace griddyn::solvers {
 /** @brief SolverInterface interfacing to the SUNDIALS IDA solver
  */
-class idaInterface: public sundialsInterface {
+class idaInterface: public SundialsInterface {
   public:
-    using sundialsInterface::set;
+    using SundialsInterface::set;
     count_t icCount = 0;  //!< the number of times the initical condition function was called
 
   private:

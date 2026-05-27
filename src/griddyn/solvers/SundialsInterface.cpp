@@ -53,7 +53,7 @@ static void ensureSundialsFactories()
 #endif
 }
 
-sundialsInterface::sundialsInterface(const std::string& objName): SolverInterface(objName)
+SundialsInterface::SundialsInterface(const std::string& objName): SolverInterface(objName)
 {
     ensureSundialsFactories();
     tolerance = 1e-8;
@@ -61,7 +61,7 @@ sundialsInterface::sundialsInterface(const std::string& objName): SolverInterfac
     checkFlag(&retval, "SUNContext_Create", 1);
     registerErrorHandler();
 }
-sundialsInterface::sundialsInterface(GridDynSimulation* gds, const solverMode& sMode):
+SundialsInterface::SundialsInterface(GridDynSimulation* gds, const solverMode& sMode):
     SolverInterface(gds, sMode)
 {
     ensureSundialsFactories();
@@ -71,7 +71,7 @@ sundialsInterface::sundialsInterface(GridDynSimulation* gds, const solverMode& s
     registerErrorHandler();
 }
 
-sundialsInterface::~sundialsInterface()
+SundialsInterface::~SundialsInterface()
 {
     // clear variables for IDA to use
     if (state != nullptr) {
@@ -108,17 +108,17 @@ sundialsInterface::~sundialsInterface()
     }
 }
 
-std::unique_ptr<SolverInterface> sundialsInterface::clone(bool fullCopy) const
+std::unique_ptr<SolverInterface> SundialsInterface::clone(bool fullCopy) const
 {
-    std::unique_ptr<SolverInterface> si = std::make_unique<sundialsInterface>();
-    sundialsInterface::cloneTo(si.get(), fullCopy);
+    std::unique_ptr<SolverInterface> si = std::make_unique<SundialsInterface>();
+    SundialsInterface::cloneTo(si.get(), fullCopy);
     return si;
 }
 
-void sundialsInterface::cloneTo(SolverInterface* si, bool fullCopy) const
+void SundialsInterface::cloneTo(SolverInterface* si, bool fullCopy) const
 {
     SolverInterface::cloneTo(si, fullCopy);
-    auto ai = dynamic_cast<sundialsInterface*>(si);
+    auto ai = dynamic_cast<SundialsInterface*>(si);
     if (ai == nullptr) {
         return;
     }
@@ -133,7 +133,7 @@ void sundialsInterface::cloneTo(SolverInterface* si, bool fullCopy) const
     }
 }
 
-void sundialsInterface::allocate(count_t stateCount, count_t /*numRoots*/)
+void SundialsInterface::allocate(count_t stateCount, count_t /*numRoots*/)
 {
     // load the vectors
     if (stateCount == svsize) {
@@ -193,42 +193,42 @@ void sundialsInterface::allocate(count_t stateCount, count_t /*numRoots*/)
     flags.set(allocated_flag);
 }
 
-void sundialsInterface::setMaxNonZeros(count_t nonZeroCount)
+void SundialsInterface::setMaxNonZeros(count_t nonZeroCount)
 {
     maxNNZ = nonZeroCount;
     nnz = nonZeroCount;
 }
 
-double* sundialsInterface::stateData() noexcept
+double* SundialsInterface::stateData() noexcept
 {
     return nvecdata(use_omp, state);
 }
-double* sundialsInterface::derivData() noexcept
+double* SundialsInterface::derivData() noexcept
 {
     return nvecdata(use_omp, dstate_dt);
 }
 
-const double* sundialsInterface::stateData() const noexcept
+const double* SundialsInterface::stateData() const noexcept
 {
     return nvecdata(use_omp, state);
 }
 
-const double* sundialsInterface::derivData() const noexcept
+const double* SundialsInterface::derivData() const noexcept
 {
     return nvecdata(use_omp, dstate_dt);
 }
 // output solver stats
 
-double* sundialsInterface::typeData() noexcept
+double* SundialsInterface::typeData() noexcept
 {
     return nvecdata(use_omp, types);
 }
-const double* sundialsInterface::typeData() const noexcept
+const double* SundialsInterface::typeData() const noexcept
 {
     return nvecdata(use_omp, types);
 }
 
-double sundialsInterface::get(std::string_view param) const
+double SundialsInterface::get(std::string_view param) const
 {
     if (param == "maxnnz") {
         return static_cast<double>(maxNNZ);
@@ -236,7 +236,7 @@ double sundialsInterface::get(std::string_view param) const
     return SolverInterface::get(param);
 }
 
-void sundialsInterface::registerErrorHandler()
+void SundialsInterface::registerErrorHandler()
 {
     if (sunctx == nullptr) {
         return;
@@ -245,7 +245,7 @@ void sundialsInterface::registerErrorHandler()
     checkFlag(&retval, "SUNContext_PushErrHandler", 1);
 }
 
-void sundialsInterface::kluReInit(SparseReinitMode sparseReInitModes)
+void SundialsInterface::kluReInit(SparseReinitMode sparseReInitModes)
 {
 #ifdef GRIDDYN_ENABLE_KLU
     if (flags[dense_flag]) {
@@ -385,7 +385,7 @@ int sundialsJac(sunrealtype time,
                 N_Vector /*tmp1*/,
                 N_Vector /*tmp2*/)
 {
-    auto sd = reinterpret_cast<sundialsInterface*>(user_data);
+    auto sd = reinterpret_cast<SundialsInterface*>(user_data);
 
     if (matrixNeedsSetup(sd->jacCallCount, J)) {
         auto a1 = makeSparseMatrix(sd->svsize, sd->maxNNZ);

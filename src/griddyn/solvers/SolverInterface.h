@@ -24,13 +24,13 @@ enum class SolverPrintLevel {
 class GridDynSimulation;
 
 /** error class for throwing solver exceptions*/
-class solverException: public std::exception {
+class SolverException: public std::exception {
   protected:
     int errorCode;  ///< the actual solver Error Code
     std::string message;
 
   public:
-    explicit solverException(int ecode = 0):
+    explicit SolverException(int ecode = 0):
         errorCode(ecode), message(std::format("solver Exception:error code={}", errorCode))
     {
     }
@@ -41,10 +41,10 @@ class solverException: public std::exception {
 
 /** error class for throwing an invalid solver operation exception from a solver
  */
-class InvalidSolverOperation: public solverException {
+class InvalidSolverOperation: public SolverException {
   protected:
   public:
-    explicit InvalidSolverOperation(int ecode = 0): solverException(ecode)
+    explicit InvalidSolverOperation(int ecode = 0): SolverException(ecode)
     {
         message = std::format("invalid solver operation:error code={}", errorCode);
     }

@@ -45,7 +45,7 @@ int kinsolJac(N_Vector state,
 // int kinsolAlgJacDense (long int N, N_Vector u, N_Vector f, DlsMat J, void *user_data,
 // N_Vector tmp1, N_Vector tmp2);
 
-kinsolInterface::kinsolInterface(const std::string& objName): sundialsInterface(objName)
+kinsolInterface::kinsolInterface(const std::string& objName): SundialsInterface(objName)
 {
     tolerance = 1e-8;
     mode.algebraic = true;
@@ -54,7 +54,7 @@ kinsolInterface::kinsolInterface(const std::string& objName): sundialsInterface(
 }
 
 kinsolInterface::kinsolInterface(GridDynSimulation* gds, const solverMode& sMode):
-    sundialsInterface(gds, sMode)
+    SundialsInterface(gds, sMode)
 {
     tolerance = 1e-8;
     mode.algebraic = true;
@@ -64,7 +64,7 @@ kinsolInterface::kinsolInterface(GridDynSimulation* gds, const solverMode& sMode
 
 kinsolInterface::~kinsolInterface()
 {
-    // clear the memory,  the sundialsInterface destructor will clear the rest
+    // clear the memory,  the SundialsInterface destructor will clear the rest
     if (flags[initialized_flag]) {
         KINFree(&solverMem);
     }
@@ -79,7 +79,7 @@ std::unique_ptr<SolverInterface> kinsolInterface::clone(bool fullCopy) const
 
 void kinsolInterface::cloneTo(SolverInterface* si, bool fullCopy) const
 {
-    sundialsInterface::cloneTo(si, fullCopy);
+    SundialsInterface::cloneTo(si, fullCopy);
     auto* ai = dynamic_cast<kinsolInterface*>(si);
     if (ai == nullptr) {
         return;
@@ -99,7 +99,7 @@ void kinsolInterface::allocate(count_t stateCount, count_t /*numRoots*/)
     solverMem = KINCreate(sunctx);
     checkFlag(solverMem, "KINCreate", 0);
 
-    sundialsInterface::allocate(stateCount, 0);
+    SundialsInterface::allocate(stateCount, 0);
 }
 
 // output solver stats
@@ -231,7 +231,7 @@ void kinsolInterface::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
-        sundialsInterface::set(param, val);
+        SundialsInterface::set(param, val);
     }
 }
 
@@ -243,7 +243,7 @@ void kinsolInterface::set(std::string_view param, double val)
         int retval = KINSetNumMaxIters(solverMem, max_iterations);
         checkFlag(&retval, "KINSetNumMaxIters", 1);
     } else {
-        sundialsInterface::set(param, val);
+        SundialsInterface::set(param, val);
     }
 }
 
@@ -267,7 +267,7 @@ double kinsolInterface::get(std::string_view param) const
         return kinsol1Time;
 #endif
     } else {
-        return sundialsInterface::get(param);
+        return SundialsInterface::get(param);
     }
     return static_cast<double>(val);
 }

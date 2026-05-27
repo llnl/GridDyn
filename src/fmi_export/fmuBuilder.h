@@ -40,7 +40,7 @@ namespace fmi {
 
       public:
         virtual std::shared_ptr<CLI::App>
-            generateLocalCommandLineParser(ReaderInfo& ReaderInformation) override final;
+            generateLocalCommandLineParser(ReaderInfo& readerInformation) override final;
 
         /** build the FMU at the given location
     @param[in] fmuLocation optional argument to specify the location to build the FMU*/

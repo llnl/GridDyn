@@ -286,14 +286,14 @@ void dcLink::residual(const IOdata& inputs,
 
 void dcLink::setState(coreTime time,
                       const double state[],
-                      const double dstate_dt[],
+                      const double dstateDt[],
                       const solverMode& sMode)
 {
     if (stateSize(sMode) > 0) {
         if (isDynamic(sMode)) {
             auto offset = offsets.getDiffOffset(sMode);
             m_state[0] = state[offset];
-            m_dstate_dt[0] = dstate_dt[offset];
+            m_dstate_dt[0] = dstateDt[offset];
             Idc = m_state[0];
         } else {
             auto offset = offsets.getAlgOffset(sMode);
@@ -305,14 +305,14 @@ void dcLink::setState(coreTime time,
 
 void dcLink::guessState(const coreTime /*time*/,
                         double state[],
-                        double dstate_dt[],
+                        double dstateDt[],
                         const solverMode& sMode)
 {
     if (stateSize(sMode) > 0) {
         if (isDynamic(sMode)) {
             auto offset = offsets.getDiffOffset(sMode);
             state[offset] = m_state[0];
-            dstate_dt[offset] = m_dstate_dt[0];
+            dstateDt[offset] = m_dstate_dt[0];
         } else {
             auto offset = offsets.getAlgOffset(sMode);
             state[offset] = Idc;

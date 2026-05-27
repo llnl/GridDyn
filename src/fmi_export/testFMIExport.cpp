@@ -69,10 +69,10 @@ TEST_F(FmiExportTests, TestFmiEvents)
     ASSERT_NE(coordinatorObject, nullptr);
     EXPECT_EQ(coordinatorObject->getID(), fmiCon->getID());
 
-    ReaderInfo ReaderInformation;
-    loadFmiExportReaderInfoDefinitions(ReaderInformation);
+    ReaderInfo readerInformation;
+    loadFmiExportReaderInfoDefinitions(readerInformation);
     const std::string inputFile = std::string{fmiTestDirectory} + "fmi_export_fmiinput.xml";
-    loadFile(gds.get(), inputFile, &ReaderInformation, "xml");
+    loadFile(gds.get(), inputFile, &readerInformation, "xml");
 
     const auto& inputEvents = fmiCon->getInputs();
     ASSERT_EQ(inputEvents.size(), 1U);
@@ -91,10 +91,10 @@ TEST_F(FmiExportTests, TestFmiOutput)
     ASSERT_NE(coordinatorObject, nullptr);
     EXPECT_EQ(coordinatorObject->getID(), fmiCon->getID());
 
-    ReaderInfo ReaderInformation;
-    loadFmiExportReaderInfoDefinitions(ReaderInformation);
+    ReaderInfo readerInformation;
+    loadFmiExportReaderInfoDefinitions(readerInformation);
     const std::string inputFile = std::string{fmiTestDirectory} + "fmi_export_fmioutput.xml";
-    loadFile(gds.get(), inputFile, &ReaderInformation, "xml");
+    loadFile(gds.get(), inputFile, &readerInformation, "xml");
 
     const auto& outputEvents = fmiCon->getOutputs();
     ASSERT_EQ(outputEvents.size(), 1U);
@@ -113,10 +113,10 @@ TEST_F(FmiExportTests, TestFmiSimulation)
     ASSERT_NE(coordinatorObject, nullptr);
     EXPECT_EQ(coordinatorObject->getID(), fmiCon->getID());
 
-    ReaderInfo ReaderInformation;
-    loadFmiExportReaderInfoDefinitions(ReaderInformation);
+    ReaderInfo readerInformation;
+    loadFmiExportReaderInfoDefinitions(readerInformation);
     const std::string inputFile = std::string{fmiTestDirectory} + "simulation.xml";
-    loadFile(gds.get(), inputFile, &ReaderInformation, "xml");
+    loadFile(gds.get(), inputFile, &readerInformation, "xml");
 
     const auto& inputEvents = fmiCon->getInputs();
     ASSERT_EQ(inputEvents.size(), 1U);

@@ -14,9 +14,9 @@
 namespace griddyn::solvers {
 /** @brief SolverInterface interfacing to the SUNDIALS arkode solver
  */
-class arkodeInterface: public sundialsInterface {
+class arkodeInterface: public SundialsInterface {
   public:
-    using sundialsInterface::set;
+    using SundialsInterface::set;
     count_t icCount =
         0;  //!< counter for the number of times the initial condition function was called
 

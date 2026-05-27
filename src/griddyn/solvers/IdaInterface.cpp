@@ -52,13 +52,13 @@ int idaRootFunc(sunrealtype time,
                 sunrealtype* gout,
                 void* user_data);
 
-idaInterface::idaInterface(const std::string& objName): sundialsInterface(objName)
+idaInterface::idaInterface(const std::string& objName): SundialsInterface(objName)
 {
     max_iterations = 1500;
 }
 
 idaInterface::idaInterface(GridDynSimulation* gds, const solverMode& sMode):
-    sundialsInterface(gds, sMode)
+    SundialsInterface(gds, sMode)
 {
     max_iterations = 1500;
 }
@@ -80,7 +80,7 @@ std::unique_ptr<SolverInterface> idaInterface::clone(bool fullCopy) const
 
 void idaInterface::cloneTo(SolverInterface* si, bool fullCopy) const
 {
-    sundialsInterface::cloneTo(si, fullCopy);
+    SundialsInterface::cloneTo(si, fullCopy);
     auto ai = dynamic_cast<idaInterface*>(si);
     if (ai == nullptr) {
         return;
@@ -108,7 +108,7 @@ void idaInterface::allocate(count_t stateCount, count_t numRoots)
     solverMem = IDACreate(sunctx);
     checkFlag(solverMem, "IDACreate", 0);
 
-    sundialsInterface::allocate(stateCount, numRoots);
+    SundialsInterface::allocate(stateCount, numRoots);
 }
 
 void idaInterface::setMaxNonZeros(count_t nonZeros)
@@ -126,7 +126,7 @@ void idaInterface::set(std::string_view param, double val)
         int retval = IDASetMaxNumSteps(solverMem, max_iterations);
         checkFlag(&retval, "IDASetMaxNumSteps", 1);
     } else {
-        sundialsInterface::set(param, val);
+        SundialsInterface::set(param, val);
     }
 }
 
@@ -142,7 +142,7 @@ double idaInterface::get(std::string_view param) const
     } else if (param == "jac calls") {
         IDAGetNumJacEvals(solverMem, &val);
     } else {
-        return sundialsInterface::get(param);
+        return SundialsInterface::get(param);
     }
 
     return static_cast<double>(val);

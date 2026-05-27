@@ -72,30 +72,30 @@ CoreObject* adjustableTransformer::clone(CoreObject* obj) const
     return lnk;
 }
 
-static const stringVec locNumStrings{"vmin",
-                                     "vmax",
-                                     "vtarget",
-                                     "pmin",
-                                     "pmax",
-                                     "ptarget",
-                                     "qmin",
-                                     "qmax",
-                                     "qtarget",
-                                     "direction",
-                                     "mintap",
-                                     "maxtap",
-                                     "mintapangle",
-                                     "maxtapangle",
-                                     "stepsize",
-                                     "nsteps",
-                                     "dtapdt",
-                                     "dtapadt"};
-static const stringVec locStrStrings{"controlmode", "changemode", "centermode"};
-static const stringVec flagStrings{"no_pflow_adjustments"};
+static const stringVec LOC_NUM_STRINGS{"vmin",
+                                       "vmax",
+                                       "vtarget",
+                                       "pmin",
+                                       "pmax",
+                                       "ptarget",
+                                       "qmin",
+                                       "qmax",
+                                       "qtarget",
+                                       "direction",
+                                       "mintap",
+                                       "maxtap",
+                                       "mintapangle",
+                                       "maxtapangle",
+                                       "stepsize",
+                                       "nsteps",
+                                       "dtapdt",
+                                       "dtapadt"};
+static const stringVec LOC_STR_STRINGS{"controlmode", "changemode", "centermode"};
+static const stringVec FLAG_STRINGS{"no_pflow_adjustments"};
 void adjustableTransformer::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<adjustableTransformer, AcLine>(
-        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
+        this, pstr, LOC_NUM_STRINGS, LOC_STR_STRINGS, FLAG_STRINGS, pstype);
 }
 
 // set properties
@@ -771,7 +771,7 @@ ChangeCode adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
 
 void adjustableTransformer::guessState(coreTime /*time*/,
                                        double state[],
-                                       double dstate_dt[],
+                                       double dstateDt[],
                                        const solverMode& sMode)
 {
     auto offset = offsets.getAlgOffset(sMode);
@@ -783,7 +783,7 @@ void adjustableTransformer::guessState(coreTime /*time*/,
         }
     } else if ((isDynamic(sMode)) && (opFlags[has_dyn_states])) {
         auto dOffset = offsets.getDiffOffset(sMode);
-        dstate_dt[dOffset] = 0;
+        dstateDt[dOffset] = 0;
         // TODO(PT): guessState dynamic states
     }
 }
@@ -938,7 +938,7 @@ void adjustableTransformer::residual(const IOdata& /*inputs*/,
 
 void adjustableTransformer::setState(coreTime time,
                                      const double state[],
-                                     const double dstate_dt[],
+                                     const double dstateDt[],
                                      const solverMode& sMode)
 {
     auto offset = offsets.getAlgOffset(sMode);
@@ -956,7 +956,7 @@ void adjustableTransformer::setState(coreTime time,
         }
     } else if ((isDynamic(sMode)) && (opFlags[has_dyn_states])) {
     }
-    AcLine::setState(time, state, dstate_dt, sMode);
+    AcLine::setState(time, state, dstateDt, sMode);
 }
 
 void adjustableTransformer::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
@@ -1160,30 +1160,30 @@ void adjustableTransformer::MWJac(const stateData& /*sD*/,
     const double tvb = b / tap * voltage1 * voltage2;
 
     auto offset = offsets.getAlgOffset(sMode);
-    const int B1Aoffset = B1->getOutputLoc(sMode, angleInLocation);
-    const int B2Aoffset = B2->getOutputLoc(sMode, angleInLocation);
-    const int B1Voffset = B1->getOutputLoc(sMode, voltageInLocation);
-    const int B2Voffset = B2->getOutputLoc(sMode, voltageInLocation);
+    const int bus1AngleOffset = B1->getOutputLoc(sMode, angleInLocation);
+    const int bus2AngleOffset = B2->getOutputLoc(sMode, angleInLocation);
+    const int bus1VoltageOffset = B1->getOutputLoc(sMode, voltageInLocation);
+    const int bus2VoltageOffset = B2->getOutputLoc(sMode, voltageInLocation);
 
     // compute the DP1/dta
     double temp = (-tvg * sinTheta1) + (tvb * cosTheta1);
     matrixDataRef.assign(offset, offset, temp);
 
     temp = (tvg * sinTheta1) - (tvb * cosTheta1);
-    matrixDataRef.assignCheckCol(offset, B1Aoffset, temp);
+    matrixDataRef.assignCheckCol(offset, bus1AngleOffset, temp);
 
     // dP1/dV1
     temp = ((-voltage2 * ((g * cosTheta1) + (b * sinTheta1))) / tap) +
         ((2 * (g + (mp_G * 0.5)) / (tap * tap)) * voltage1);
-    matrixDataRef.assignCheckCol(offset, B1Voffset, temp);
+    matrixDataRef.assignCheckCol(offset, bus1VoltageOffset, temp);
 
     // dP1/dA2
     temp = (-tvg * sinTheta1) - (tvb * cosTheta1);
-    matrixDataRef.assignCheckCol(offset, B2Aoffset, temp);
+    matrixDataRef.assignCheckCol(offset, bus2AngleOffset, temp);
 
     // dP1/dV2
     temp = (-voltage1 * ((g * cosTheta1) + (b * sinTheta1))) / tap;
-    matrixDataRef.assignCheckCol(offset, B2Voffset, temp);
+    matrixDataRef.assignCheckCol(offset, bus2VoltageOffset, temp);
 }
 
 void adjustableTransformer::MVarJac(const stateData& /*sD*/,
@@ -1206,10 +1206,10 @@ void adjustableTransformer::MVarJac(const stateData& /*sD*/,
     const double tvb = b / tap * voltage1 * voltage2;
 
     auto offset = offsets.getAlgOffset(sMode);
-    const int B1Aoffset = B1->getOutputLoc(sMode, angleInLocation);
-    const int B2Aoffset = B2->getOutputLoc(sMode, angleInLocation);
-    const int B1Voffset = B1->getOutputLoc(sMode, voltageInLocation);
-    const int B2Voffset = B2->getOutputLoc(sMode, voltageInLocation);
+    const int bus1AngleOffset = B1->getOutputLoc(sMode, angleInLocation);
+    const int bus2AngleOffset = B2->getOutputLoc(sMode, angleInLocation);
+    const int bus1VoltageOffset = B1->getOutputLoc(sMode, voltageInLocation);
+    const int bus2VoltageOffset = B2->getOutputLoc(sMode, voltageInLocation);
     /*
 double P1 = (g + 0.5 * mp_G) / (tap * tap) * v1 * v1;
 P1 -= tvg * cosTheta1;
@@ -1225,20 +1225,20 @@ Q1 += tvb * cosTheta1;
 
     // dQ2/dA1
     temp = (tvg * cosTheta2) + (tvb * sinTheta2);
-    matrixDataRef.assignCheckCol(offset, B1Aoffset, temp);
+    matrixDataRef.assignCheckCol(offset, bus1AngleOffset, temp);
 
     // dQ2/dV1
     temp = (-voltage2 * ((g * sinTheta2) - (b * cosTheta2))) / tap;
-    matrixDataRef.assignCheckCol(offset, B1Voffset, temp);
+    matrixDataRef.assignCheckCol(offset, bus1VoltageOffset, temp);
 
     // dQ2/dA2
     temp = (-tvg * cosTheta2) - (tvb * sinTheta2);
-    matrixDataRef.assignCheckCol(offset, B2Aoffset, temp);
+    matrixDataRef.assignCheckCol(offset, bus2AngleOffset, temp);
 
     // dQ2/dV2
     temp = (-2.0 * (b + (0.5 * mp_B)) * voltage2) - ((g * voltage1 / tap) * sinTheta2) +
         ((b * voltage1 / tap) * cosTheta2);
-    matrixDataRef.assignCheckCol(offset, B2Voffset, temp);
+    matrixDataRef.assignCheckCol(offset, bus2VoltageOffset, temp);
 }
 
 ChangeCode adjustableTransformer::voltageControlAdjust()

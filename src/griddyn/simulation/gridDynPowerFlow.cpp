@@ -276,7 +276,7 @@ void GridDynSimulation::reInitpFlow(const solverMode& sMode, ChangeCode change)
         setErrorCode(-101);
         throw;
     }
-    catch (const solverException& se) {
+    catch (const SolverException& se) {
         logging::error(this, "Initialization error");
         pState = GridState::GD_ERROR;
         setErrorCode(se.code());

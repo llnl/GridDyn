@@ -42,7 +42,7 @@ int cvodeJac(sunrealtype time,
 
 int cvodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* user_data);
 
-cvodeInterface::cvodeInterface(const std::string& objName): sundialsInterface(objName)
+cvodeInterface::cvodeInterface(const std::string& objName): SundialsInterface(objName)
 {
     mode.dynamic = true;
     mode.differential = true;
@@ -51,7 +51,7 @@ cvodeInterface::cvodeInterface(const std::string& objName): sundialsInterface(ob
 }
 
 cvodeInterface::cvodeInterface(GridDynSimulation* gds, const solverMode& sMode):
-    sundialsInterface(gds, sMode)
+    SundialsInterface(gds, sMode)
 {
     mode.dynamic = true;
     mode.differential = true;
@@ -76,7 +76,7 @@ std::unique_ptr<SolverInterface> cvodeInterface::clone(bool fullCopy) const
 
 void cvodeInterface::cloneTo(SolverInterface* si, bool fullCopy) const
 {
-    sundialsInterface::cloneTo(si, fullCopy);
+    SundialsInterface::cloneTo(si, fullCopy);
     auto ai = dynamic_cast<cvodeInterface*>(si);
     if (ai == nullptr) {
         return;
@@ -107,7 +107,7 @@ void cvodeInterface::allocate(count_t stateCount, count_t numRoots)
     solverMem = CVodeCreate(CV_ADAMS, sunctx);
     checkFlag(solverMem, "CVodeCreate", 0);
 
-    sundialsInterface::allocate(stateCount, numRoots);
+    SundialsInterface::allocate(stateCount, numRoots);
 }
 
 void cvodeInterface::setMaxNonZeros(count_t nonZeroCount)
@@ -173,7 +173,7 @@ double cvodeInterface::get(std::string_view param) const
         CVodeGetNumJacEvals(solverMem, &val);
 #endif
     } else {
-        return sundialsInterface::get(param);
+        return SundialsInterface::get(param);
     }
 
     return static_cast<double>(val);

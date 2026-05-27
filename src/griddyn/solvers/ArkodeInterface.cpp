@@ -41,7 +41,7 @@ int arkodeJac(sunrealtype time,
 
 int arkodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* user_data);
 
-arkodeInterface::arkodeInterface(const std::string& objName): sundialsInterface(objName)
+arkodeInterface::arkodeInterface(const std::string& objName): SundialsInterface(objName)
 {
     mode.dynamic = true;
     mode.differential = true;
@@ -50,7 +50,7 @@ arkodeInterface::arkodeInterface(const std::string& objName): sundialsInterface(
 }
 
 arkodeInterface::arkodeInterface(GridDynSimulation* gds, const solverMode& sMode):
-    sundialsInterface(gds, sMode)
+    SundialsInterface(gds, sMode)
 {
     mode.dynamic = true;
     mode.differential = true;
@@ -75,7 +75,7 @@ std::unique_ptr<SolverInterface> arkodeInterface::clone(bool fullCopy) const
 
 void arkodeInterface::cloneTo(SolverInterface* si, bool fullCopy) const
 {
-    sundialsInterface::cloneTo(si, fullCopy);
+    SundialsInterface::cloneTo(si, fullCopy);
     auto ai = dynamic_cast<arkodeInterface*>(si);
     if (ai == nullptr) {
         return;
@@ -107,7 +107,7 @@ void arkodeInterface::allocate(count_t stateCount, count_t numRoots)
     solverMem = ARKodeCreate();
     checkFlag(solverMem, "ARKodeCVodeCreate", 0);
 
-    sundialsInterface::allocate(stateCount, numRoots);
+    SundialsInterface::allocate(stateCount, numRoots);
 }
 
 void arkodeInterface::setMaxNonZeros(count_t nonZeroCount)
@@ -121,7 +121,7 @@ void arkodeInterface::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
-        sundialsInterface::set(param, val);
+        SundialsInterface::set(param, val);
     }
 }
 
@@ -174,7 +174,7 @@ double arkodeInterface::get(std::string_view param) const
         ARKDlsGetNumJacEvals(solverMem, &val);
 #endif
     } else {
-        return sundialsInterface::get(param);
+        return SundialsInterface::get(param);
     }
 
     return static_cast<double>(val);

@@ -14,7 +14,7 @@ namespace griddyn {
 /**
  * @brief Helper class encapsulating offsets for the various solution solverMode types
  **/
-class offsetTable {
+class OffsetTable {
   private:
     // std::vector<solverOffsets> offsetContainer;       //!< a vector of containers for offsets
     // corresponding to the different solver modes
@@ -24,7 +24,7 @@ class offsetTable {
   public:
     /** @brief constructor
      */
-    offsetTable() noexcept;
+    OffsetTable();
 
     /** @brief check whether an offset set has been fully loaded
      *@param[in] sMode the solverMode we are interested in

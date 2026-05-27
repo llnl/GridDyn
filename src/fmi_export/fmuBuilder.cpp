@@ -67,7 +67,7 @@ void FmuBuilder::loadComponents()
 
 FmuBuilder::~FmuBuilder() = default;
 
-std::shared_ptr<CLI::App> FmuBuilder::generateLocalCommandLineParser(ReaderInfo& ReaderInformation)
+std::shared_ptr<CLI::App> FmuBuilder::generateLocalCommandLineParser(ReaderInfo& readerInformation)
 {
     const std::vector<std::string> validPlatforms{
         "all", "windows", "linux", "macos", "darwin", "win64", "linux64", "darwin64"};
@@ -79,7 +79,7 @@ std::shared_ptr<CLI::App> FmuBuilder::generateLocalCommandLineParser(ReaderInfo&
 
     app->add_flag("--keep_dir", mKeepDirectory, "keep the temporary directory after building")
         ->ignore_underscore();
-    loadFmiExportReaderInfoDefinitions(ReaderInformation);
+    loadFmiExportReaderInfoDefinitions(readerInformation);
     return app;
 }
 

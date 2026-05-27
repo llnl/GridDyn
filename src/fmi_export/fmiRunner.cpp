@@ -170,4 +170,3 @@ double FmiRunner::getValue(index_t valueReference)
 }
 
 }  // namespace griddyn::fmi
-

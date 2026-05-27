@@ -546,8 +546,9 @@ void acdcConverter::jacobianElements(const IOdata& /*inputs*/,
 
         matrixDataValue.assign(offset, offset, k3sq2 * linkInfo.v1);
         if (opFlags[fixed_target_power]) {
-            matrixDataValue.assignCheckCol(
-                offset, bus1VoltageOffset, k3sq2 * stateDataValue.state[offset]);
+            matrixDataValue.assignCheckCol(offset,
+                                           bus1VoltageOffset,
+                                           k3sq2 * stateDataValue.state[offset]);
             matrixDataValue.assignCheckCol(offset,
                                            bus2VoltageOffset,
                                            ((3.0 / kPI) * x * Pset / (linkInfo.v2 * linkInfo.v2)) -
@@ -756,4 +757,3 @@ void acdcConverter::getStateName(stringVec& stNames,
 }
 
 }  // namespace griddyn::links
-

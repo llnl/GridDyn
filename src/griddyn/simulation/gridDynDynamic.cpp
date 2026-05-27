@@ -379,10 +379,7 @@ int GridDynSimulation::dynamicPartitionedStartupConditions(
                 }
             }
         } else {
-            guessState(currentTime,
-                       dynDataDiff->stateData(),
-                       dynDataDiff->derivData(),
-                       sModeDiff);
+            guessState(currentTime, dynDataDiff->stateData(), dynDataDiff->derivData(), sModeDiff);
             guessState(currentTime, dynDataAlg->stateData(), nullptr, sModeAlg);
         }
     } else {
@@ -647,9 +644,7 @@ void GridDynSimulation::handleEarlySolverReturn(int retval,
             rootTrigger(timeActual, noInputs, dynData->rootsfound, dynData->getSolverMode());
         } else if (retval == SOLVER_INVALID_STATE_ERROR) {
             // if we get into here the most likely cause is a very low voltage bus
-            const stateData stateDataValue(timeActual,
-                                           dynData->stateData(),
-                                           dynData->derivData());
+            const stateData stateDataValue(timeActual, dynData->stateData(), dynData->derivData());
 
             rootCheck(noInputs,
                       stateDataValue,
@@ -1225,4 +1220,3 @@ int GridDynSimulation::dynAlgebraicSolve(coreTime time,
 }
 
 }  // namespace griddyn
-

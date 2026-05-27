@@ -957,9 +957,9 @@ int braidBufUnpack(braid_App app, void* buffer, braid_Vector* u_ptr, braid_Buffe
 }
 
 int braidTimeGrid(braid_App app, /**< user-defined _braid_App structure */
-                braid_Real* ta, /**< temporal grid on level 0 (slice per processor) */
-                braid_Int* ilower, /**< lower time index value for this processor */
-                braid_Int* iupper) /**< upper time index value for this processor */
+                  braid_Real* ta, /**< temporal grid on level 0 (slice per processor) */
+                  braid_Int* ilower, /**< lower time index value for this processor */
+                  braid_Int* iupper) /**< upper time index value for this processor */
 {
     memcpy(ta, &(app->braid_grid_initial[*ilower]), (*iupper - *ilower + 1) * sizeof(Real));
 

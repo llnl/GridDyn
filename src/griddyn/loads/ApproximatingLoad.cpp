@@ -266,8 +266,7 @@ void ApproximatingLoad::preEx(const IOdata& inputs,
                 run2ApproxA(stateDataValue.time, inputs);
             }
         } else {
-            if ((voltage > (Vprev + (1.5 * spread))) ||
-                (voltage < (Vprev - (1.5 * spread)))) {
+            if ((voltage > (Vprev + (1.5 * spread))) || (voltage < (Vprev - (1.5 * spread)))) {
                 run3ApproxA(stateDataValue.time, inputs);
             }
         }
@@ -432,14 +431,12 @@ Yq = LV[5];
         retP[0] = realPower1 - ((voltage1 * (linearTerm1 + linearTerm2)) / 2.0);
         retP[2] = (linearTerm1 + linearTerm2) / 2.0;
     } else {
-        quadraticTerm =
-            (((voltage2 - voltage1) * (realPower3 - realPower1)) +
-             ((voltage1 - voltage3) * (realPower2 - realPower1))) /
+        quadraticTerm = (((voltage2 - voltage1) * (realPower3 - realPower1)) +
+                         ((voltage1 - voltage3) * (realPower2 - realPower1))) /
             (((voltage1 - voltage3) * (voltageSq2 - voltageSq1)) +
              ((voltageSq1 - voltageSq3) * (voltage1 - voltage2)));
-        linearTerm2 =
-            ((realPower2 - realPower1) + (voltageSq1 * quadraticTerm) -
-             (voltageSq2 * quadraticTerm)) /
+        linearTerm2 = ((realPower2 - realPower1) + (voltageSq1 * quadraticTerm) -
+                       (voltageSq2 * quadraticTerm)) /
             (voltage2 - voltage1);
         linearTerm1 = realPower1 - (voltage1 * linearTerm2) - (voltageSq1 * quadraticTerm);
 
@@ -457,17 +454,14 @@ Yq = LV[5];
         retP[3] = (linearTerm1 + linearTerm2) / 2.0;
         retP[5] = 0;
     } else {
-        quadraticTerm =
-            (((voltage2 - voltage1) * (reactivePower3 - reactivePower1)) +
-             ((voltage1 - voltage3) * (reactivePower2 - reactivePower1))) /
+        quadraticTerm = (((voltage2 - voltage1) * (reactivePower3 - reactivePower1)) +
+                         ((voltage1 - voltage3) * (reactivePower2 - reactivePower1))) /
             (((voltage1 - voltage3) * (voltageSq2 - voltageSq1)) +
              ((voltageSq1 - voltageSq3) * (voltage1 - voltage2)));
-        linearTerm2 =
-            ((reactivePower2 - reactivePower1) + (voltageSq1 * quadraticTerm) -
-             (voltageSq2 * quadraticTerm)) /
+        linearTerm2 = ((reactivePower2 - reactivePower1) + (voltageSq1 * quadraticTerm) -
+                       (voltageSq2 * quadraticTerm)) /
             (voltage2 - voltage1);
-        linearTerm1 =
-            reactivePower1 - (voltage1 * linearTerm2) - (voltageSq1 * quadraticTerm);
+        linearTerm1 = reactivePower1 - (voltage1 * linearTerm2) - (voltageSq1 * quadraticTerm);
 
         retP[1] = linearTerm1;
         retP[3] = linearTerm2;
@@ -490,8 +484,8 @@ void ApproximatingLoad::set(std::string_view param, std::string_view val)
         } else if ((valueLower == "single") || (valueLower == "low") ||
                    (valueLower == "constant") || (valueLower == "1")) {
             cDetail = CouplingDetail::single;
-        } else if ((valueLower == "double") || (valueLower == "vdep") ||
-                   (valueLower == "linear") || (valueLower == "2")) {
+        } else if ((valueLower == "double") || (valueLower == "vdep") || (valueLower == "linear") ||
+                   (valueLower == "2")) {
             cDetail = CouplingDetail::VDep;
         }
     } else if ((param == "mode") || (param == "coupling") || (param == "dyncoupling")) {

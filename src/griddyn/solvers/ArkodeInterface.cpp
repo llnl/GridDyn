@@ -500,4 +500,3 @@ int arkodeJac(sunrealtype time,
 }
 
 }  // namespace griddyn::solvers
-

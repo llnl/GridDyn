@@ -512,4 +512,3 @@ void FmuBuilder::generateXML(const std::string& xmlfile)
 }
 
 }  // namespace griddyn::fmi
-

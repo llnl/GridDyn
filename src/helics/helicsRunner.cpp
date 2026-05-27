@@ -133,4 +133,3 @@ void HelicsRunner::Finalize()
     fed_->finalize();
 }
 }  // namespace griddyn::helicsLib
-

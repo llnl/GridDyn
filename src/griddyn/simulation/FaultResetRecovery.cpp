@@ -230,4 +230,3 @@ bool checkResetVoltages(const std::vector<double>& prev, const std::vector<doubl
 }
 
 }  // namespace griddyn
-

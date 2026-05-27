@@ -498,11 +498,11 @@ void SolverInterface::checkFlag(void* flagvalue,
         if (*errflag < 0) {
             if (printError) {
                 logging::logTo(m_gds,
-                                m_gds,
-                                PrintLevel::ERROR,
-                                "{} failed with flag = {}",
-                                funcname,
-                                *errflag);
+                               m_gds,
+                               PrintLevel::ERROR,
+                               "{} failed with flag = {}",
+                               funcname,
+                               *errflag);
             }
             throw(SolverException(*errflag));
         }

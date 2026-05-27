@@ -16,12 +16,12 @@
 #include <type_traits>
 
 namespace griddyn {
-void readConfigurationFields(std::shared_ptr<readerElement>& sim, ReaderInfo& ReaderInfoRef);
+void readConfigurationFields(std::shared_ptr<ReaderElement>& sim, ReaderInfo& ReaderInfoRef);
 
 template<class RX>
 CoreObject* loadElementFile(CoreObject* parentObject, const std::string& fileName, ReaderInfo* ri)
 {
-    static_assert(std::is_base_of<readerElement, RX>::value,
+    static_assert(std::is_base_of<ReaderElement, RX>::value,
                   "classes must be inherited from CoreObject");
     // pointers
 
@@ -68,7 +68,7 @@ CoreObject* loadElementFile(CoreObject* parentObject, const std::string& fileNam
         }
         return nullptr;
     }
-    auto sim = std::static_pointer_cast<readerElement>(doc);
+    auto sim = std::static_pointer_cast<ReaderElement>(doc);
     if (rootSimFile) {
         readConfigurationFields(sim, *ri);
     }
@@ -91,3 +91,5 @@ CoreObject* loadElementFile(CoreObject* parentObject, const std::string& fileNam
 }
 
 }  // namespace griddyn
+
+

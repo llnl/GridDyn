@@ -1546,7 +1546,7 @@ std::shared_ptr<SolverInterface> GridDynSimulation::updateSolver(const solverMod
 }
 
 void GridDynSimulation::parameterDerivatives(coreTime time,
-                                             parameterSet& parameterOperators,
+                                             ParameterSet& parameterOperators,
                                              const index_t indices[],
                                              const double values[],
                                              count_t parameterCount,

@@ -16,19 +16,19 @@
 #include <typeinfo>
 
 namespace griddyn {
-eventQueue::eventQueue()
+EventQueue::EventQueue()
 {
-    nullEvent = std::make_shared<eventAdapter>();
+    nullEvent = std::make_shared<EventAdapter>();
     insert(nullEvent);
 }
-eventQueue::~eventQueue() = default;
+EventQueue::~EventQueue() = default;
 
-coreTime eventQueue::getNextTime() const
+coreTime EventQueue::getNextTime() const
 {
     return events.front()->m_nextTime;
 }
 
-coreTime eventQueue::getNextTime(int eventCode) const
+coreTime EventQueue::getNextTime(int eventCode) const
 {
     std::lock_guard<std::mutex> lock(queuelock_);
     for (auto& ev : events) {
@@ -39,7 +39,7 @@ coreTime eventQueue::getNextTime(int eventCode) const
     return maxTime;
 }
 
-void eventQueue::nullEventTime(coreTime time, coreTime period)
+void EventQueue::nullEventTime(coreTime time, coreTime period)
 {
     nullEvent->m_nextTime = time;
     if (period != kNullVal) {
@@ -48,19 +48,19 @@ void eventQueue::nullEventTime(coreTime time, coreTime period)
     sort();
 }
 
-coreTime eventQueue::getNullEventTime() const
+coreTime EventQueue::getNullEventTime() const
 {
     return nullEvent->m_nextTime;
 }
 
-std::unique_ptr<eventQueue> eventQueue::clone() const
+std::unique_ptr<EventQueue> EventQueue::clone() const
 {
-    auto eq = std::make_unique<eventQueue>();
-    eventQueue::cloneTo(eq.get());
+    auto eq = std::make_unique<EventQueue>();
+    EventQueue::cloneTo(eq.get());
     return eq;
 }
 
-void eventQueue::cloneTo(eventQueue* eQ) const
+void EventQueue::cloneTo(EventQueue* eQ) const
 {
     nullEvent->cloneTo(eQ->nullEvent.get());
     for (auto& ev : events) {
@@ -73,14 +73,14 @@ void eventQueue::cloneTo(eventQueue* eQ) const
     eQ->timeTols = timeTols;
 }
 
-void eventQueue::mapObjectsOnto(CoreObject* newRootObject)
+void EventQueue::mapObjectsOnto(CoreObject* newRootObject)
 {
     for (auto& ev : events) {
         ev->updateObject(newRootObject, ObjectUpdateMode::MATCH);
     }
 }
 
-ChangeCode eventQueue::executeEvents(coreTime cTime)
+ChangeCode EventQueue::executeEvents(coreTime cTime)
 {
     if (events.front()->m_nextTime > cTime + timeTols) {
         return ChangeCode::NO_CHANGE;
@@ -102,7 +102,7 @@ ChangeCode eventQueue::executeEvents(coreTime cTime)
     return ret;
 }
 
-ChangeCode eventQueue::executeEventsAonly(coreTime cTime)
+ChangeCode EventQueue::executeEventsAonly(coreTime cTime)
 {
     if (events.front()->m_nextTime > cTime + timeTols) {
         return ChangeCode::NO_CHANGE;
@@ -168,7 +168,7 @@ ChangeCode eventQueue::executeEventsAonly(coreTime cTime)
     return ret;
 }
 
-ChangeCode eventQueue::executeEventsBonly()
+ChangeCode EventQueue::executeEventsBonly()
 {
     auto ret = ChangeCode::NO_CHANGE;
     auto eret = ChangeCode::NO_CHANGE;
@@ -184,7 +184,7 @@ ChangeCode eventQueue::executeEventsBonly()
     return ret;
 }
 
-void eventQueue::recheck()
+void EventQueue::recheck()
 {
     std::lock_guard<std::mutex> lock(queuelock_);
     for (auto& ev : events) {
@@ -193,7 +193,7 @@ void eventQueue::recheck()
     std::stable_sort(events.begin(), events.end(), compareEventAdapters);
 }
 
-void eventQueue::remove(std::int64_t eventID)
+void EventQueue::remove(std::int64_t eventID)
 {
     std::lock_guard<std::mutex> lock(queuelock_);
     auto rm = std::remove_if(events.begin(), events.end(), [eventID](const auto& evnt) {
@@ -202,25 +202,25 @@ void eventQueue::remove(std::int64_t eventID)
     events.erase(rm, events.end());
 }
 
-count_t eventQueue::size() const
+count_t EventQueue::size() const
 {
     return static_cast<count_t>(events.size());
 }
 
-void eventQueue::sort()
+void EventQueue::sort()
 {
     std::lock_guard<std::mutex> lock(queuelock_);
     std::stable_sort(events.begin(), events.end(), compareEventAdapters);
 }
 
-void eventQueue::checkDuplicates()
+void EventQueue::checkDuplicates()
 {  // checking for duplicated CoreObject updates which could potentially be bad
     // this function is a private function and should only be called from inside a locked scope
     auto pred = [](const auto& a, const auto& b) -> bool {
         if (typeid(*a) == typeid(*b)) {
-            auto ap = dynamic_cast<eventTypeAdapter<CoreObject>*>(a.get());
+            auto ap = dynamic_cast<EventTypeAdapter<CoreObject>*>(a.get());
             if (ap != nullptr) {
-                auto bp = static_cast<eventTypeAdapter<CoreObject>*>(b.get());
+                auto bp = static_cast<EventTypeAdapter<CoreObject>*>(b.get());
                 if (isSameObject(ap->getTarget(), bp->getTarget())) {
                     return true;
                 }
@@ -234,7 +234,7 @@ void eventQueue::checkDuplicates()
     }
 }
 
-void eventQueue::getEventObjects(std::vector<CoreObject*>& objV) const
+void EventQueue::getEventObjects(std::vector<CoreObject*>& objV) const
 {
     for (auto& ev : events) {
         ev->getObjects(objV);
@@ -244,7 +244,7 @@ void eventQueue::getEventObjects(std::vector<CoreObject*>& objV) const
     objV.erase(eq, objV.end());
 }
 
-void eventQueue::set(std::string_view param, double val)
+void EventQueue::set(std::string_view param, double val)
 {
     if (param == "timetol") {
         if (val > 0) {

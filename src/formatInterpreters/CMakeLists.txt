@@ -8,27 +8,27 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 set(elementReader_headers
-    jsonReaderElement.h
+    JsonreaderElement.h
     jsonElement.h
-    XmlReaderElement.h
+    XmlreaderElement.h
     readerElement.h
     tomlElement.h
-    tomlReaderElement.h
-    iniReaderElement.h
-    yamlReaderElement.h
+    TomlreaderElement.h
+    InireaderElement.h
+    YamlreaderElement.h
     yamlElement.h
 )
 
 set(elementReader_files
-    jsonReaderElement.cpp
-    jsonElement.cpp
+    JsonReaderElement.cpp
+    JsonElement.cpp
     XmlReaderElement.cpp
-    readerElement.cpp
-    tomlElement.cpp
-    tomlReaderElement.cpp
-    iniReaderElement.cpp
-    yamlReaderElement.cpp
-    yamlElement.cpp
+    ReaderElement.cpp
+    TomlElement.cpp
+    TomlReaderElement.cpp
+    IniReaderElement.cpp
+    YamlReaderElement.cpp
+    YamlElement.cpp
 )
 
 list(APPEND optional_library_test_files
@@ -54,3 +54,6 @@ set_target_properties(formatInterpreter PROPERTIES FOLDER libraries)
 install(FILES ${elementReader_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/griddyn
         COMPONENT headers
 )
+
+
+

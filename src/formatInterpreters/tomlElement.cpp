@@ -18,7 +18,7 @@ bool isTomlNodeEmpty(const toml::ordered_value& value)
 }
 }  // namespace
 
-tomlElement::tomlElement(toml::ordered_value vElement, std::string newName):
+TomlElement::TomlElement(toml::ordered_value vElement, std::string newName):
     mName(std::move(newName)), mElement(std::move(vElement))
 {
     mElementIndex = 0;
@@ -33,7 +33,7 @@ tomlElement::tomlElement(toml::ordered_value vElement, std::string newName):
     }
 }
 
-const toml::ordered_value& tomlElement::getElement() const
+const toml::ordered_value& TomlElement::getElement() const
 {
     if (mArrayType) {
         const auto& arr = mElement.as_array(std::nothrow);
@@ -44,12 +44,12 @@ const toml::ordered_value& tomlElement::getElement() const
     return mElement;
 }
 
-std::size_t tomlElement::count() const
+std::size_t TomlElement::count() const
 {
     return (mArrayType) ? mElement.as_array(std::nothrow).size() : std::size_t{1};
 }
 
-bool tomlElement::isNull() const
+bool TomlElement::isNull() const
 {
     if (mArrayType) {
         const auto& arr = mElement.as_array(std::nothrow);
@@ -58,7 +58,7 @@ bool tomlElement::isNull() const
     return isTomlNodeEmpty(mElement);
 }
 
-void tomlElement::clear()
+void TomlElement::clear()
 {
     mElement = toml::ordered_value{};
     mElementIndex = 0;
@@ -66,3 +66,5 @@ void tomlElement::clear()
     mArrayType = false;
     mName = nullStr;
 }
+
+

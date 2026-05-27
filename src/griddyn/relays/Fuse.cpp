@@ -138,8 +138,8 @@ void fuse::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     cI2T = 0;
 
     // add the event for setting up the fuse evaluation
-    auto ge2 = std::make_unique<functionEventAdapter>([this]() { return setupFuseEvaluation(); });
-    add(std::shared_ptr<functionEventAdapter>(std::move(ge2)));
+    auto ge2 = std::make_unique<FunctionEventAdapter>([this]() { return setupFuseEvaluation(); });
+    add(std::shared_ptr<FunctionEventAdapter>(std::move(ge2)));
     if (mp_I2T <= 0.0) {
         setActionTrigger(1, 0, 0.0);
     } else {
@@ -147,8 +147,8 @@ void fuse::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
 
     // add the event for blowing the fuse after i2T is exceeded
-    auto ge3 = std::make_unique<functionEventAdapter>([this]() { return blowFuse(); });
-    add(std::shared_ptr<functionEventAdapter>(std::move(ge3)));
+    auto ge3 = std::make_unique<FunctionEventAdapter>([this]() { return blowFuse(); });
+    add(std::shared_ptr<FunctionEventAdapter>(std::move(ge3)));
     setActionTrigger(2, 1, 0.0);
 
     Relay::dynObjectInitializeA(time0, flags);

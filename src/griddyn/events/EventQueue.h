@@ -23,22 +23,22 @@ events the event queue works with event adapters which allow for two part execut
 including a potential delay between parts A and B the class also includes a null event which does
 nothing but can be called periodically.
 */
-class eventQueue {
+class EventQueue {
   private:
     coreTime timeTols = kSmallTime;  //!< the temporal tolerance on events
-    std::vector<std::shared_ptr<eventAdapter>> events;  //!< storage location for events
-    std::vector<std::shared_ptr<eventAdapter>>
+    std::vector<std::shared_ptr<EventAdapter>> events;  //!< storage location for events
+    std::vector<std::shared_ptr<EventAdapter>>
         partB_list;  //!< container for immediate events awaiting part B execution
-    std::shared_ptr<eventAdapter>
+    std::shared_ptr<EventAdapter>
         nullEvent;  //!< nullEvent operation for scheduling of the null event
     mutable std::mutex
         queuelock_;  //!< a mutex to protect the queue in case of multi-threaded event insertions
   public:
     /** @brief constructor*/
-    eventQueue();
+    EventQueue();
 
     /** @brief virtual destructor*/
-    virtual ~eventQueue();
+    virtual ~EventQueue();
 
     /** @brief insert an eventAdapter into the queue
     take as an input a shared pointer to an object that implements an event interface and makes an
@@ -46,7 +46,7 @@ class eventQueue {
   @arg newEvent  a shared pointer to the eventAdapter object
   @return the event ID of the event adapter
   */
-    auto insert(std::shared_ptr<eventAdapter> newEvent)
+    auto insert(std::shared_ptr<EventAdapter> newEvent)
     {
         auto evID = newEvent->eventID;
         std::lock_guard<std::mutex> lock(queuelock_);
@@ -67,7 +67,7 @@ class eventQueue {
     auto insert(X* newEventObject)
     {
         auto ev =
-            std::shared_ptr<eventAdapter>(std::make_unique<eventTypeAdapter<X>>(newEventObject));
+            std::shared_ptr<EventAdapter>(std::make_unique<EventTypeAdapter<X>>(newEventObject));
         return insert(std::move(ev));
     }
 
@@ -81,8 +81,8 @@ class eventQueue {
     template<class X>
     auto insert(std::shared_ptr<X> newEventObject)
     {
-        auto ev = std::shared_ptr<eventAdapter>(
-            std::make_unique<eventTypeAdapter<std::shared_ptr<X>>>(std::move(newEventObject)));
+        auto ev = std::shared_ptr<EventAdapter>(
+            std::make_unique<EventTypeAdapter<std::shared_ptr<X>>>(std::move(newEventObject)));
         return insert(std::move(ev));
     }
 
@@ -99,12 +99,12 @@ class eventQueue {
     /** @brief clone the entire queue to a new queue
   @return a unique_ptr to the updated Queue
   */
-    virtual std::unique_ptr<eventQueue> clone() const;
+    virtual std::unique_ptr<EventQueue> clone() const;
 
     /** @brief clone the entire queue to a different queue
   @param eq the eventQueue to copy the data into
   */
-    virtual void cloneTo(eventQueue* eq) const;
+    virtual void cloneTo(EventQueue* eq) const;
     /** @brief map all objects used in the events to a new root object
      */
     virtual void mapObjectsOnto(CoreObject* newRootObject);

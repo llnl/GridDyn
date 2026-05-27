@@ -9,13 +9,13 @@
 #include "yaml-cpp/yaml.h"
 #include <string>
 
-class yamlElement {
+class YamlElement {
   public:
     std::string mName;  //!< the name of the element
     std::size_t mElementIndex = 0;  //!< an indicator of element Index
     std::size_t mArrayIndex = 0;  //!< the current index into a sequence
-    yamlElement() {}
-    yamlElement(const YAML::Node& vElement, std::string newName);
+    YamlElement() {}
+    YamlElement(const YAML::Node& vElement, std::string newName);
 
     /** reset the element*/
     void clear();
@@ -34,3 +34,4 @@ class yamlElement {
     YAML::Node mElement;  //!< pointer to the actual YAML element
     bool mArrayType = false;  //!< indicator if the element is a sequence
 };
+

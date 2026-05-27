@@ -34,7 +34,7 @@ class parameterSequence {
     void step(int stepNumber);
 };
 
-class continuationSequence {
+class ContinuationSequence {
   public:
     static int contCount;  // static variable counting the number of created lines
     std::string name;
@@ -46,7 +46,7 @@ class continuationSequence {
     int m_currentStep = 0;
 
   public:
-    continuationSequence();
+    ContinuationSequence();
     void step();
     void step(int StepNumber);
 };

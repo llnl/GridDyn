@@ -21,7 +21,7 @@ namespace comms {
 }
 
 class GridSimulation;
-class functionEventAdapter;
+class FunctionEventAdapter;
 class gridGrabber;
 
 enum class ChangeCode;
@@ -105,11 +105,11 @@ namespace relays {
         index_t findAction(std::uint64_t actionID);
         index_t getFreeAction();
 
-        std::unique_ptr<functionEventAdapter>
+        std::unique_ptr<FunctionEventAdapter>
             generateGetEvent(coreTime eventTime,
                              std::uint64_t sourceID,
                              comms::controlMessagePayload* message);
-        std::unique_ptr<functionEventAdapter>
+        std::unique_ptr<FunctionEventAdapter>
             generateSetEvent(coreTime eventTime,
                              std::uint64_t sourceID,
                              comms::controlMessagePayload* message);

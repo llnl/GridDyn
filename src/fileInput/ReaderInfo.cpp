@@ -438,7 +438,7 @@ bool ReaderInfo::checkDirectoryParam(std::string& strVal)
 
 // a reader info thing that requires element class information
 void ReaderInfo::addCustomElement(const std::string& name,
-                                  const std::shared_ptr<readerElement>& element,
+                                  const std::shared_ptr<ReaderElement>& element,
                                   int nargs)
 {
     customElements[name] = std::make_pair(element->clone(), nargs);
@@ -451,7 +451,7 @@ bool ReaderInfo::isCustomElement(const std::string& name) const
     return (retval != customElements.end());
 }
 
-std::pair<std::shared_ptr<readerElement>, int>
+std::pair<std::shared_ptr<ReaderElement>, int>
     ReaderInfo::getCustomElement(const std::string& name) const
 {
     auto retval = customElements.find(name);
@@ -463,3 +463,5 @@ const ignoreListType& ReaderInfo::getIgnoreList() const
     return parameterIgnoreStrings;
 }
 }  // namespace griddyn
+
+

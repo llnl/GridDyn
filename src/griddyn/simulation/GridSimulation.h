@@ -37,9 +37,9 @@ class GridBus;
 class collector;
 class Event;
 class Relay;
-class eventQueue;
-class eventAdapter;
-class functionEventAdapter;
+class EventQueue;
+class EventAdapter;
+class FunctionEventAdapter;
 
 /** @brief Grid simulation object
  GridSimulation is a base simulation class its intention is to handle some of the basic
@@ -85,7 +85,7 @@ class GridSimulation: public GridArea {
 #endif
     std::function<void(int, const std::string&)>
         customLogger;  //!< callback for a custom logging function
-    std::shared_ptr<functionEventAdapter>
+    std::shared_ptr<FunctionEventAdapter>
         stateRecorder;  //!< a recorder for recording the state on a periodic basis
     GridState pState =
         GridState::STARTUP;  //!< the system state keeps track of which state the solver is in
@@ -119,7 +119,7 @@ class GridSimulation: public GridArea {
     coreTime lastStateRecordTime = negTime;  //!< last time the full state was recorded
 
     // ----------------timestepP -----------------
-    std::unique_ptr<eventQueue> EvQ;  //!< the event queue for the simulation system
+    std::unique_ptr<EventQueue> EvQ;  //!< the event queue for the simulation system
 
   public:
     /** @brief constructor*/
@@ -160,7 +160,7 @@ class GridSimulation: public GridArea {
     /** @brief function to add an event Adapter to the event Queue
     @param[in] eA the eventAdpater to add
     */
-    virtual void add(std::shared_ptr<eventAdapter> eA);
+    virtual void add(std::shared_ptr<EventAdapter> eA);
 
     // TODO(phlpt): Recheck whether this function is actually needed.
     /** @brief reset all object counters to 0*/

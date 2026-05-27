@@ -15,62 +15,62 @@
 #include <vector>
 
 namespace griddyn::events {
-compoundEventPlayer::compoundEventPlayer() = default;
+CompoundEventPlayer::CompoundEventPlayer() = default;
 
-compoundEventPlayer::compoundEventPlayer(const std::string& eventName): compoundEvent(eventName) {}
-compoundEventPlayer::compoundEventPlayer(EventInfo& gdEI, CoreObject* rootObject):
-    compoundEvent(gdEI, rootObject)
+CompoundEventPlayer::CompoundEventPlayer(const std::string& eventName): CompoundEvent(eventName) {}
+CompoundEventPlayer::CompoundEventPlayer(EventInfo& gdEI, CoreObject* rootObject):
+    CompoundEvent(gdEI, rootObject)
 {
 }
 
-std::unique_ptr<Event> compoundEventPlayer::clone() const
+std::unique_ptr<Event> CompoundEventPlayer::clone() const
 {
-    std::unique_ptr<Event> upE = std::make_unique<compoundEventPlayer>(getName());
+    std::unique_ptr<Event> upE = std::make_unique<CompoundEventPlayer>(getName());
     cloneTo(upE.get());
     return upE;
 }
 
-void compoundEventPlayer::cloneTo(Event* gE) const
+void CompoundEventPlayer::cloneTo(Event* gE) const
 {
-    compoundEvent::cloneTo(gE);
-    auto nE = dynamic_cast<compoundEventPlayer*>(gE);
+    CompoundEvent::cloneTo(gE);
+    auto nE = dynamic_cast<CompoundEventPlayer*>(gE);
     if (nE == nullptr) {
         return;
     }
 }
 
-void compoundEventPlayer::setTime(coreTime time)
+void CompoundEventPlayer::setTime(coreTime time)
 {
     triggerTime = time;
 }
 
-void compoundEventPlayer::setTimeValue(coreTime time, double val)
+void CompoundEventPlayer::setTimeValue(coreTime time, double val)
 {
     triggerTime = time;
     value = val;
 }
 
-void compoundEventPlayer::setTimeValue(const std::vector<coreTime>& /* times */,
+void CompoundEventPlayer::setTimeValue(const std::vector<coreTime>& /* times */,
                                        const std::vector<double>& /* vals */)
 {
 }
 
-void compoundEventPlayer::set(std::string_view param, double val)
+void CompoundEventPlayer::set(std::string_view param, double val)
 {
     if (param.empty() || param[0] == '#') {
     } else {
-        compoundEvent::set(param, val);
+        CompoundEvent::set(param, val);
     }
 }
 
-void compoundEventPlayer::set(std::string_view param, std::string_view val)
+void CompoundEventPlayer::set(std::string_view param, std::string_view val)
 {
     if (param.empty() || param[0] == '#') {
     } else {
-        compoundEvent::set(param, val);
+        CompoundEvent::set(param, val);
     }
 }
-void compoundEventPlayer::updateTrigger(coreTime time)
+void CompoundEventPlayer::updateTrigger(coreTime time)
 {
     if (currIndex != kNullLocation)  // we have a file operation
     {
@@ -110,9 +110,9 @@ void compoundEventPlayer::updateTrigger(coreTime time)
     }
 }
 
-void compoundEventPlayer::initialize() {}
+void CompoundEventPlayer::initialize() {}
 
-std::string compoundEventPlayer::to_string() const
+std::string CompoundEventPlayer::to_string() const
 {
     // @time1[,time2,time3,... |+ period] >[rootobj::obj:]field(units) = val1,[val2,val3,...]
     std::stringstream ss;
@@ -151,7 +151,7 @@ std::string compoundEventPlayer::to_string() const
     return ss.str();
 }
 
-ChangeCode compoundEventPlayer::trigger()
+ChangeCode CompoundEventPlayer::trigger()
 {
     try {
         m_obj->set(field, value, unitType);
@@ -162,7 +162,7 @@ ChangeCode compoundEventPlayer::trigger()
     }
 }
 
-ChangeCode compoundEventPlayer::trigger(coreTime time)
+ChangeCode CompoundEventPlayer::trigger(coreTime time)
 {
     ChangeCode ret = ChangeCode::NOT_TRIGGERED;
     if (time + kSmallTime >= triggerTime) {
@@ -178,7 +178,7 @@ ChangeCode compoundEventPlayer::trigger(coreTime time)
     return ret;
 }
 
-bool compoundEventPlayer::setTarget(CoreObject* gdo, std::string_view var)
+bool CompoundEventPlayer::setTarget(CoreObject* gdo, std::string_view var)
 {
     if (!var.empty()) {
         field = var;
@@ -192,7 +192,7 @@ bool compoundEventPlayer::setTarget(CoreObject* gdo, std::string_view var)
     return armed;
 }
 
-void compoundEventPlayer::loadEventFile(const std::string& fileName)
+void CompoundEventPlayer::loadEventFile(const std::string& fileName)
 {
     eFile = fileName;
     ts.loadFile(eFile);

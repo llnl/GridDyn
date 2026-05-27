@@ -20,7 +20,7 @@ namespace griddyn {
 const IgnoreListType emptyIgnoreList{};
 
 template<class COMPONENT>
-void loadParentInfo(std::shared_ptr<readerElement>& element,
+void loadParentInfo(std::shared_ptr<ReaderElement>& element,
                     COMPONENT* mobj,
                     ReaderInfo& ri,
                     CoreObject* parentObject)
@@ -47,7 +47,7 @@ void loadParentInfo(std::shared_ptr<readerElement>& element,
 }
 
 template<class COMPONENT>
-CoreObject* updateSearchObject(std::shared_ptr<readerElement>& element,
+CoreObject* updateSearchObject(std::shared_ptr<ReaderElement>& element,
                                ReaderInfo& ri,
                                CoreObject* parentObject)
 {
@@ -65,7 +65,7 @@ const stringVec NumandIndexNames{"number", "index"};
 const stringVec typeandRetype{"type", "retype"};
 
 template<class COMPONENT>
-COMPONENT* locateObjectFromElement(std::shared_ptr<readerElement>& element,
+COMPONENT* locateObjectFromElement(std::shared_ptr<ReaderElement>& element,
                                    const std::string& component,
                                    ReaderInfo& ri,
                                    CoreObject* searchObject)
@@ -109,7 +109,7 @@ COMPONENT* locateObjectFromElement(std::shared_ptr<readerElement>& element,
 }
 
 template<class COMPONENT>
-COMPONENT* buildObject(std::shared_ptr<readerElement>& element,
+COMPONENT* buildObject(std::shared_ptr<ReaderElement>& element,
                        COMPONENT* mobj,
                        const std::string& component,
                        ReaderInfo& ri,
@@ -225,7 +225,7 @@ COMPONENT* buildObject(std::shared_ptr<readerElement>& element,
 }
 
 template<class COMPONENT>
-COMPONENT* elementReaderSetup(std::shared_ptr<readerElement>& element,
+COMPONENT* elementReaderSetup(std::shared_ptr<ReaderElement>& element,
                               COMPONENT* mobj,
                               const std::string& component,
                               ReaderInfo& ri,
@@ -248,7 +248,7 @@ COMPONENT* elementReaderSetup(std::shared_ptr<readerElement>& element,
 }
 
 template<class COMPONENT>
-COMPONENT* elementReader(std::shared_ptr<readerElement>& element,
+COMPONENT* elementReader(std::shared_ptr<ReaderElement>& element,
                          COMPONENT* mobj,
                          const std::string& component,
                          ReaderInfo& ri,
@@ -265,3 +265,5 @@ COMPONENT* elementReader(std::shared_ptr<readerElement>& element,
 }
 
 }  // namespace griddyn
+
+

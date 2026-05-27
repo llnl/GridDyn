@@ -25,7 +25,7 @@ namespace {
 }  // namespace
 static constexpr char linkComponentName[] = "link";
 // aP is the link element
-Link* readLinkElement(std::shared_ptr<readerElement>& element,
+Link* readLinkElement(std::shared_ptr<ReaderElement>& element,
                       ReaderInfo& ReaderInformation,
                       CoreObject* searchObject,
                       bool warnlink)
@@ -94,3 +94,5 @@ Link* readLinkElement(std::shared_ptr<readerElement>& element,
 }
 
 }  // namespace griddyn
+
+

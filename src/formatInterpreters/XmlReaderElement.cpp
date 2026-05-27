@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "XmlReaderElement.h"
+#include "XmlreaderElement.h"
 
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
@@ -48,7 +48,7 @@ bool XmlReaderElement::isDocument() const
     return false;
 }
 
-std::shared_ptr<readerElement> XmlReaderElement::clone() const
+std::shared_ptr<ReaderElement> XmlReaderElement::clone() const
 {
     auto ret = std::make_shared<XmlReaderElement>(mElement, mParent);
     ret->mDoc = mDoc;
@@ -147,7 +147,7 @@ bool XmlReaderElement::hasElement(const std::string& elementName) const
     return false;
 }
 
-readerAttribute XmlReaderElement::getFirstAttribute()
+ReaderAttribute XmlReaderElement::getFirstAttribute()
 {
     if (!mElement.empty()) {
         mAttribute = mElement.first_attribute();
@@ -158,7 +158,7 @@ readerAttribute XmlReaderElement::getFirstAttribute()
     return {};
 }
 
-readerAttribute XmlReaderElement::getNextAttribute()
+ReaderAttribute XmlReaderElement::getNextAttribute()
 {
     if (!mAttribute.empty()) {
         mAttribute = mAttribute.next_attribute();
@@ -169,7 +169,7 @@ readerAttribute XmlReaderElement::getNextAttribute()
     return {};
 }
 
-readerAttribute XmlReaderElement::getAttribute(const std::string& attributeName) const
+ReaderAttribute XmlReaderElement::getAttribute(const std::string& attributeName) const
 {
     if (!mElement.empty()) {
         auto attribute = mElement.attribute(attributeName.c_str());
@@ -202,7 +202,7 @@ double XmlReaderElement::getAttributeValue(const std::string& attributeName) con
     return readerNullVal;
 }
 
-std::shared_ptr<readerElement> XmlReaderElement::firstChild() const
+std::shared_ptr<ReaderElement> XmlReaderElement::firstChild() const
 {
     pugi::xml_node child;
     if (!mElement.empty()) {
@@ -219,7 +219,7 @@ std::shared_ptr<readerElement> XmlReaderElement::firstChild() const
     return nullptr;
 }
 
-std::shared_ptr<readerElement> XmlReaderElement::firstChild(const std::string& childName) const
+std::shared_ptr<ReaderElement> XmlReaderElement::firstChild(const std::string& childName) const
 {
     pugi::xml_node child;
     if (!mElement.empty()) {
@@ -289,7 +289,7 @@ void XmlReaderElement::moveToParent()
     }
 }
 
-std::shared_ptr<readerElement> XmlReaderElement::nextSibling() const
+std::shared_ptr<ReaderElement> XmlReaderElement::nextSibling() const
 {
     if (!mElement.empty()) {
         auto sibling = mElement.next_sibling();
@@ -303,7 +303,7 @@ std::shared_ptr<readerElement> XmlReaderElement::nextSibling() const
     return nullptr;
 }
 
-std::shared_ptr<readerElement> XmlReaderElement::nextSibling(const std::string& siblingName) const
+std::shared_ptr<ReaderElement> XmlReaderElement::nextSibling(const std::string& siblingName) const
 {
     if (!mElement.empty()) {
         auto sibling = mElement.next_sibling(siblingName.c_str());
@@ -327,3 +327,5 @@ void XmlReaderElement::restore()
     mParent = mBookmarks.back().second;
     mBookmarks.pop_back();
 }
+
+

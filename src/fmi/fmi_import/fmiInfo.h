@@ -129,7 +129,7 @@ class FmiVariableSet {
     std::vector<fmi2ValueReference> vrset;
 };
 
-class readerElement;
+class ReaderElement;
 /** class to extract and store the information in an FMU XML file*/
 class FmiInfo {
   private:
@@ -199,10 +199,10 @@ class FmiInfo {
     const std::vector<std::pair<index_t, int>>& getUnknownDependencies(int variableIndex) const;
 
   private:
-    void loadFmiHeader(std::shared_ptr<readerElement>& readerElementPtr);
-    void loadVariables(std::shared_ptr<readerElement>& readerElementPtr);
-    void loadUnitInformation(std::shared_ptr<readerElement>& readerElementPtr);
-    void loadStructure(std::shared_ptr<readerElement>& readerElementPtr);
+    void loadFmiHeader(std::shared_ptr<ReaderElement>& readerElementPtr);
+    void loadVariables(std::shared_ptr<ReaderElement>& readerElementPtr);
+    void loadUnitInformation(std::shared_ptr<ReaderElement>& readerElementPtr);
+    void loadStructure(std::shared_ptr<ReaderElement>& readerElementPtr);
 };
 
 enum class FmuMode {
@@ -216,3 +216,4 @@ enum class FmuMode {
 };
 
 bool checkType(const VariableInformation& info, FmiVariableType type, FmiCausalityType caus);
+

@@ -26,7 +26,7 @@ namespace {
 
 static constexpr char collectorNameString[] = "collector";
 
-int loadCollectorElement(std::shared_ptr<readerElement>& element,
+int loadCollectorElement(std::shared_ptr<ReaderElement>& element,
                          CoreObject* obj,
                          ReaderInfo& ReaderInformation)
 {
@@ -147,3 +147,4 @@ int loadCollectorElement(std::shared_ptr<readerElement>& element,
 }
 
 }  // namespace griddyn
+

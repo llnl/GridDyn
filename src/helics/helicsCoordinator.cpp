@@ -185,14 +185,14 @@ void HelicsCoordinator::receiveMessage(helics::Endpoint& endpoint, helics::Time 
     std::shared_ptr<griddyn::commMessage> msg;
     msg->from_string(payload);
 
-    auto event = std::make_unique<griddyn::functionEventAdapter>([this, msg, &endpoint]() {
+    auto event = std::make_unique<griddyn::FunctionEventAdapter>([this, msg, &endpoint]() {
         communicationsCore::instance()->send(0, endpoint.getName(), std::move(msg));
         return griddyn::ChangeCode::NO_CHANGE;
     });
 
     // convert helics::Time to griddynTime
     event->m_nextTime = messageTime;
-    GridDynSimulation::getInstance()->add(std::shared_ptr<griddyn::eventAdapter>(std::move(event)));
+    GridDynSimulation::getInstance()->add(std::shared_ptr<griddyn::EventAdapter>(std::move(event)));
 }
 
 void HelicsCoordinator::sendMessage(int32_t index, const char* data, count_t size)

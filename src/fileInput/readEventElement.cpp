@@ -43,7 +43,7 @@ namespace {
     }
 }  // namespace
 
-static void readEventElement(std::shared_ptr<readerElement>& element,
+static void readEventElement(std::shared_ptr<ReaderElement>& element,
                              EventInfo& eventInfo,
                              ReaderInfo& ReaderInformation,
                              CoreObject* obj)
@@ -125,7 +125,7 @@ static void readEventElement(std::shared_ptr<readerElement>& element,
     }
 }
 
-int loadEventElement(std::shared_ptr<readerElement>& element,
+int loadEventElement(std::shared_ptr<ReaderElement>& element,
                      CoreObject* obj,
                      ReaderInfo& ReaderInformation)
 {
@@ -167,3 +167,5 @@ int loadEventElement(std::shared_ptr<readerElement>& element,
 }
 
 }  // namespace griddyn
+
+

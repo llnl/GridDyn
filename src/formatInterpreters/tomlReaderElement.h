@@ -13,15 +13,15 @@
 #include <toml11/types.hpp>
 #include <vector>
 
-class tomlElement;
+class TomlElement;
 
 /** @brief class defines a reader element around the toml reader*/
-class tomlReaderElement: public readerElement {
+class TomlReaderElement: public ReaderElement {
   public:
-    tomlReaderElement();
-    explicit tomlReaderElement(const std::string& fileName);
+    TomlReaderElement();
+    explicit TomlReaderElement(const std::string& fileName);
 
-    std::shared_ptr<readerElement> clone() const override;
+    std::shared_ptr<ReaderElement> clone() const override;
 
     virtual bool isValid() const override;
     virtual bool isDocument() const override;
@@ -36,14 +36,14 @@ class tomlReaderElement: public readerElement {
     virtual bool hasAttribute(const std::string& attributeName) const override;
     virtual bool hasElement(const std::string& elementName) const override;
 
-    virtual readerAttribute getFirstAttribute() override;
-    virtual readerAttribute getNextAttribute() override;
-    virtual readerAttribute getAttribute(const std::string& attributeName) const override;
+    virtual ReaderAttribute getFirstAttribute() override;
+    virtual ReaderAttribute getNextAttribute() override;
+    virtual ReaderAttribute getAttribute(const std::string& attributeName) const override;
     virtual std::string getAttributeText(const std::string& attributeName) const override;
     virtual double getAttributeValue(const std::string& attributeName) const override;
 
-    virtual std::shared_ptr<readerElement> firstChild() const override;
-    virtual std::shared_ptr<readerElement> firstChild(const std::string& childName) const override;
+    virtual std::shared_ptr<ReaderElement> firstChild() const override;
+    virtual std::shared_ptr<ReaderElement> firstChild(const std::string& childName) const override;
 
     virtual void moveToNextSibling() override;
     virtual void moveToNextSibling(const std::string& siblingName) override;
@@ -53,8 +53,8 @@ class tomlReaderElement: public readerElement {
 
     virtual void moveToParent() override;
 
-    virtual std::shared_ptr<readerElement> nextSibling() const override;
-    virtual std::shared_ptr<readerElement>
+    virtual std::shared_ptr<ReaderElement> nextSibling() const override;
+    virtual std::shared_ptr<ReaderElement>
         nextSibling(const std::string& siblingName) const override;
 
     virtual void bookmark() override;
@@ -62,9 +62,11 @@ class tomlReaderElement: public readerElement {
 
   private:
     std::shared_ptr<toml::ordered_value> mDoc = nullptr;  //!< document root
-    std::vector<std::shared_ptr<tomlElement>> mParents;
-    std::shared_ptr<tomlElement> mCurrent = nullptr;
+    std::vector<std::shared_ptr<TomlElement>> mParents;
+    std::shared_ptr<TomlElement> mCurrent = nullptr;
     int mIteratorCount = 0;
 
-    std::vector<std::shared_ptr<tomlReaderElement>> mBookmarks;
+    std::vector<std::shared_ptr<TomlReaderElement>> mBookmarks;
 };
+
+

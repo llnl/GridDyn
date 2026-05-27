@@ -23,7 +23,7 @@
 namespace griddyn {
 
 #ifndef ENABLE_OPTIMIZATION_LIBRARY
-CoreObject* readEconElement(std::shared_ptr<readerElement>& /*element*/,
+CoreObject* readEconElement(std::shared_ptr<ReaderElement>& /*element*/,
                             ReaderInfo& /*ri*/,
                             CoreObject* searchObject)
 {
@@ -39,7 +39,7 @@ namespace {
         return *ignoreElements;
     }
 }  // namespace
-CoreObject* readEconElement(std::shared_ptr<readerElement>& element,
+CoreObject* readEconElement(std::shared_ptr<ReaderElement>& element,
                             ReaderInfo& ReaderInformation,
                             CoreObject* searchObject)
 {
@@ -214,3 +214,5 @@ CoreObject* readEconElement(std::shared_ptr<readerElement>& element,
 }
 #endif
 }  // namespace griddyn
+
+

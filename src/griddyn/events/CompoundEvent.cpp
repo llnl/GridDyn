@@ -15,11 +15,11 @@
 #include <vector>
 
 namespace griddyn::events {
-compoundEvent::compoundEvent(coreTime time0): Event(time0) {}
+CompoundEvent::CompoundEvent(coreTime time0): Event(time0) {}
 
-compoundEvent::compoundEvent(const std::string& eventName): Event(eventName) {}
+CompoundEvent::CompoundEvent(const std::string& eventName): Event(eventName) {}
 
-compoundEvent::compoundEvent(const EventInfo& gdEI, CoreObject* rootObject): Event(gdEI, rootObject)
+CompoundEvent::CompoundEvent(const EventInfo& gdEI, CoreObject* rootObject): Event(gdEI, rootObject)
 {
     targetObjects = gdEI.targetObjs;
     values = gdEI.value;
@@ -27,17 +27,17 @@ compoundEvent::compoundEvent(const EventInfo& gdEI, CoreObject* rootObject): Eve
     fields = gdEI.fieldList;
 }
 
-std::unique_ptr<Event> compoundEvent::clone() const
+std::unique_ptr<Event> CompoundEvent::clone() const
 {
-    std::unique_ptr<Event> upE = std::make_unique<compoundEvent>(getName());
+    std::unique_ptr<Event> upE = std::make_unique<CompoundEvent>(getName());
     cloneTo(upE.get());
     return upE;
 }
 
-void compoundEvent::cloneTo(Event* gE) const
+void CompoundEvent::cloneTo(Event* gE) const
 {
     Event::cloneTo(gE);
-    auto nE = dynamic_cast<compoundEvent*>(gE);
+    auto nE = dynamic_cast<CompoundEvent*>(gE);
     if (nE == nullptr) {
         return;
     }
@@ -47,7 +47,7 @@ void compoundEvent::cloneTo(Event* gE) const
     nE->targetObjects = targetObjects;
 }
 
-void compoundEvent::updateObject(CoreObject* gco, ObjectUpdateMode mode)
+void CompoundEvent::updateObject(CoreObject* gco, ObjectUpdateMode mode)
 {
     // TODO(pt): more thinking on exception safety
     if (mode == ObjectUpdateMode::DIRECT) {
@@ -65,19 +65,19 @@ void compoundEvent::updateObject(CoreObject* gco, ObjectUpdateMode mode)
     }
 }
 
-CoreObject* compoundEvent::getObject() const
+CoreObject* CompoundEvent::getObject() const
 {
     return targetObjects[0];
 }
 
-void compoundEvent::getObjects(std::vector<CoreObject*>& objects) const
+void CompoundEvent::getObjects(std::vector<CoreObject*>& objects) const
 {
     for (auto& obj : targetObjects) {
         objects.push_back(obj);
     }
 }
 
-void compoundEvent::setValue(double val, units::unit newUnits)
+void CompoundEvent::setValue(double val, units::unit newUnits)
 {
     // TODO(pt): this has issues
     for (auto& vv : values) {
@@ -88,7 +88,7 @@ void compoundEvent::setValue(double val, units::unit newUnits)
     }
 }
 
-void compoundEvent::set(std::string_view param, double val)
+void CompoundEvent::set(std::string_view param, double val)
 {
     if (param.empty() || param[0] == '#') {
     } else {
@@ -96,7 +96,7 @@ void compoundEvent::set(std::string_view param, double val)
     }
 }
 
-void compoundEvent::set(std::string_view param, std::string_view val)
+void CompoundEvent::set(std::string_view param, std::string_view val)
 {
     if (param.empty() || param[0] == '#') {
     } else {
@@ -104,12 +104,12 @@ void compoundEvent::set(std::string_view param, std::string_view val)
     }
 }
 
-void compoundEvent::setValue(const std::vector<double>& val)
+void CompoundEvent::setValue(const std::vector<double>& val)
 {
     values = val;
 }
 
-std::string compoundEvent::to_string() const
+std::string CompoundEvent::to_string() const
 {
     // @time1[,time2,time3,... |+ period] >[rootobj::obj:]field(units) = val1,[val2,val3,...]
     std::stringstream ss;
@@ -130,7 +130,7 @@ std::string compoundEvent::to_string() const
 
     return ss.str();
 }
-ChangeCode compoundEvent::trigger()
+ChangeCode CompoundEvent::trigger()
 {
     try {
         if (targetObjects.empty()) {
@@ -149,7 +149,7 @@ ChangeCode compoundEvent::trigger()
     }
 }
 
-ChangeCode compoundEvent::trigger(coreTime time)
+ChangeCode CompoundEvent::trigger(coreTime time)
 {
     ChangeCode ret = ChangeCode::NOT_TRIGGERED;
     if (time >= triggerTime) {
@@ -173,7 +173,7 @@ ChangeCode compoundEvent::trigger(coreTime time)
     return ret;
 }
 
-bool compoundEvent::setTarget(CoreObject* gdo, std::string_view var)
+bool CompoundEvent::setTarget(CoreObject* gdo, std::string_view var)
 {
     if (!var.empty()) {
         field = var;

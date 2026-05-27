@@ -30,7 +30,7 @@ static constexpr char libstring[] = "library";
 // read XML file
 // CoreObject * readSimXMLFile(const std::string &fileName, CoreObject *gco, const std::string
 // prefix, ReaderInfo *ri) const
-GridSimulation* readSimulationElement(std::shared_ptr<readerElement>& element,
+GridSimulation* readSimulationElement(std::shared_ptr<ReaderElement>& element,
                                       ReaderInfo& ReaderInformation,
                                       CoreObject* searchObject,
                                       GridSimulation* simulationObject)
@@ -178,3 +178,4 @@ namespace {
 }  // namespace
 
 }  // namespace griddyn
+

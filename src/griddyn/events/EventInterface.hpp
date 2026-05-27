@@ -20,9 +20,9 @@ enum class EventExecutionMode {
 /** @brief defining a very basic virtual interface for all objects which work with events and
  * triggers
  */
-class eventInterface {
+class EventInterface {
   public:
-    virtual ~eventInterface() = default;
+    virtual ~EventInterface() = default;
     /** get the next trigger time */
     virtual coreTime nextTriggerTime() const = 0;
     /** get the events execution mode

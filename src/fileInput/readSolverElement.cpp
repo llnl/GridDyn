@@ -24,7 +24,7 @@ namespace {
     }
 }  // namespace
 
-void loadSolverElement(std::shared_ptr<readerElement>& element,
+void loadSolverElement(std::shared_ptr<ReaderElement>& element,
                        ReaderInfo& ReaderInformation,
                        GridDynSimulation* parentObject)
 {
@@ -97,3 +97,4 @@ void loadSolverElement(std::shared_ptr<readerElement>& element,
 }
 
 }  // namespace griddyn
+

@@ -31,7 +31,7 @@
 
 namespace griddyn {
 namespace {
-    using load_function_t = CoreObject* (*)(std::shared_ptr<readerElement>&,
+    using load_function_t = CoreObject* (*)(std::shared_ptr<ReaderElement>&,
                                             ReaderInfo&,
                                             CoreObject* parent);
 
@@ -40,7 +40,7 @@ namespace {
         load_function_t mLoader;
     };
 
-    CoreObject* loadGenModel(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadGenModel(std::shared_ptr<ReaderElement>& currentElement,
                              ReaderInfo& readerInf,
                              CoreObject* parentObject)
     {
@@ -48,7 +48,7 @@ namespace {
             currentElement, static_cast<GenModel*>(nullptr), "genmodel", readerInf, parentObject);
     }
 
-    CoreObject* loadExciter(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadExciter(std::shared_ptr<ReaderElement>& currentElement,
                             ReaderInfo& readerInf,
                             CoreObject* parentObject)
     {
@@ -56,7 +56,7 @@ namespace {
             currentElement, static_cast<Exciter*>(nullptr), "exciter", readerInf, parentObject);
     }
 
-    CoreObject* loadGovernor(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadGovernor(std::shared_ptr<ReaderElement>& currentElement,
                              ReaderInfo& readerInf,
                              CoreObject* parentObject)
     {
@@ -64,7 +64,7 @@ namespace {
             currentElement, static_cast<Governor*>(nullptr), "governor", readerInf, parentObject);
     }
 
-    CoreObject* loadPss(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadPss(std::shared_ptr<ReaderElement>& currentElement,
                         ReaderInfo& readerInf,
                         CoreObject* parentObject)
     {
@@ -72,7 +72,7 @@ namespace {
             currentElement, static_cast<Stabilizer*>(nullptr), "pss", readerInf, parentObject);
     }
 
-    CoreObject* loadSource(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadSource(std::shared_ptr<ReaderElement>& currentElement,
                            ReaderInfo& readerInf,
                            CoreObject* parentObject)
     {
@@ -80,7 +80,7 @@ namespace {
             currentElement, static_cast<Source*>(nullptr), "source", readerInf, parentObject);
     }
 
-    CoreObject* loadScheduler(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadScheduler(std::shared_ptr<ReaderElement>& currentElement,
                               ReaderInfo& readerInf,
                               CoreObject* parentObject)
     {
@@ -88,7 +88,7 @@ namespace {
             currentElement, static_cast<scheduler*>(nullptr), "scheduler", readerInf, parentObject);
     }
 
-    CoreObject* loadAgc(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadAgc(std::shared_ptr<ReaderElement>& currentElement,
                         ReaderInfo& readerInf,
                         CoreObject* parentObject)
     {
@@ -96,7 +96,7 @@ namespace {
             currentElement, static_cast<AGControl*>(nullptr), "agc", readerInf, parentObject);
     }
 
-    CoreObject* loadReserveDispatcher(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadReserveDispatcher(std::shared_ptr<ReaderElement>& currentElement,
                                       ReaderInfo& readerInf,
                                       CoreObject* parentObject)
     {
@@ -107,7 +107,7 @@ namespace {
                              parentObject);
     }
 
-    CoreObject* loadBlock(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadBlock(std::shared_ptr<ReaderElement>& currentElement,
                           ReaderInfo& readerInf,
                           CoreObject* parentObject)
     {
@@ -115,7 +115,7 @@ namespace {
             currentElement, static_cast<GridBlock*>(nullptr), "block", readerInf, parentObject);
     }
 
-    CoreObject* loadGenerator(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadGenerator(std::shared_ptr<ReaderElement>& currentElement,
                               ReaderInfo& readerInf,
                               CoreObject* parentObject)
     {
@@ -123,7 +123,7 @@ namespace {
             currentElement, static_cast<Generator*>(nullptr), "generator", readerInf, parentObject);
     }
 
-    CoreObject* loadLoad(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadLoad(std::shared_ptr<ReaderElement>& currentElement,
                          ReaderInfo& readerInf,
                          CoreObject* parentObject)
     {
@@ -131,7 +131,7 @@ namespace {
             currentElement, static_cast<GridLoad*>(nullptr), "load", readerInf, parentObject);
     }
 
-    CoreObject* loadExtra(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadExtra(std::shared_ptr<ReaderElement>& currentElement,
                           ReaderInfo& readerInf,
                           CoreObject* parentObject)
     {
@@ -139,35 +139,35 @@ namespace {
             currentElement, static_cast<CoreObject*>(nullptr), "extra", readerInf, parentObject);
     }
 
-    CoreObject* loadBus(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadBus(std::shared_ptr<ReaderElement>& currentElement,
                         ReaderInfo& readerInf,
                         CoreObject* parentObject)
     {
         return readBusElement(currentElement, readerInf, parentObject);
     }
 
-    CoreObject* loadRelay(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadRelay(std::shared_ptr<ReaderElement>& currentElement,
                           ReaderInfo& readerInf,
                           CoreObject* parentObject)
     {
         return readRelayElement(currentElement, readerInf, parentObject);
     }
 
-    CoreObject* loadGridArea(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadGridArea(std::shared_ptr<ReaderElement>& currentElement,
                              ReaderInfo& readerInf,
                              CoreObject* parentObject)
     {
         return readGridAreaElement(currentElement, readerInf, parentObject);
     }
 
-    CoreObject* loadLink(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadLink(std::shared_ptr<ReaderElement>& currentElement,
                          ReaderInfo& readerInf,
                          CoreObject* parentObject)
     {
         return readLinkElement(currentElement, readerInf, parentObject, false);
     }
 
-    CoreObject* loadEcon(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadEcon(std::shared_ptr<ReaderElement>& currentElement,
                          ReaderInfo& readerInf,
                          CoreObject* parentObject)
     {
@@ -175,7 +175,7 @@ namespace {
         return parentObject;
     }
 
-    CoreObject* loadArray(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadArray(std::shared_ptr<ReaderElement>& currentElement,
                           ReaderInfo& readerInf,
                           CoreObject* parentObject)
     {
@@ -183,7 +183,7 @@ namespace {
         return parentObject;
     }
 
-    CoreObject* loadIf(std::shared_ptr<readerElement>& currentElement,
+    CoreObject* loadIf(std::shared_ptr<ReaderElement>& currentElement,
                        ReaderInfo& readerInf,
                        CoreObject* parentObject)
     {
@@ -232,7 +232,7 @@ namespace {
     }
 }  // namespace
 
-void loadSubObjects(std::shared_ptr<readerElement>& element,
+void loadSubObjects(std::shared_ptr<ReaderElement>& element,
                     ReaderInfo& ReaderInformation,
                     CoreObject* parentObject)
 {
@@ -327,3 +327,4 @@ void loadSubObjects(std::shared_ptr<readerElement>& element,
 }
 
 }  // namespace griddyn
+

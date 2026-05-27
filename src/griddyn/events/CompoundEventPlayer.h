@@ -17,7 +17,7 @@
 
 namespace griddyn::events {
 /** event type allowing multiple changes on multiple object at a set of given time points*/
-class compoundEventPlayer: public compoundEvent {
+class CompoundEventPlayer: public CompoundEvent {
   protected:
     coreTime period = maxTime;  //!< period of the player
     gmlc::utilities::TimeSeriesMulti<double, coreTime>
@@ -28,11 +28,11 @@ class compoundEventPlayer: public compoundEvent {
         columns;  //!< the columns of the time series to use for the different fields
   public:
     /** constructor from an event Name*/
-    explicit compoundEventPlayer(const std::string& eventName);
+    explicit CompoundEventPlayer(const std::string& eventName);
     /** default constructor*/
-    compoundEventPlayer();
+    CompoundEventPlayer();
     /** construct from an eventInfo structure and root object*/
-    compoundEventPlayer(EventInfo& gdEI, CoreObject* rootObject);
+    CompoundEventPlayer(EventInfo& gdEI, CoreObject* rootObject);
     virtual std::unique_ptr<Event> clone() const override;
 
     virtual void cloneTo(Event* gE) const override;

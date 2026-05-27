@@ -18,7 +18,7 @@ class stateGrabber;
 class gridGrabber;
 class Condition;
 class Communicator;
-class eventAdapter;
+class EventAdapter;
 class Event;
 class commMessage;
 class PropertyBuffer;
@@ -115,7 +115,7 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
     /**
      *@brief add an EventAdapter to the relay
      **/
-    virtual void add(std::shared_ptr<eventAdapter> geA);
+    virtual void add(std::shared_ptr<EventAdapter> geA);
     /**
      * @brief add a condition to the relay
      **/
@@ -132,7 +132,7 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
     @param[in] geA an event Adapter to associate with an action
     @param[in] actionNumber the index of the action to update
     **/
-    virtual void updateAction(std::shared_ptr<eventAdapter> geA, index_t actionNumber);
+    virtual void updateAction(std::shared_ptr<EventAdapter> geA, index_t actionNumber);
     /**
     *@brief update a specific condition
     @param[in] gc a condition object to associate with a relay condition
@@ -172,10 +172,10 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
     @return a shared pointer to the condition object
     */
     std::shared_ptr<Condition> getCondition(index_t conditionNumber);
-    /** retrieve and eventAdapter associated with a particular action
+    /** retrieve and EventAdapter associated with a particular action
     @param[in] actionNumber the index of the action to retrieve
     @return a shared pointer associated with particular action*/
-    std::shared_ptr<eventAdapter> getAction(index_t actionNumber);
+    std::shared_ptr<EventAdapter> getAction(index_t actionNumber);
     /**
     @brief get the status of one of the relays conditions
     @param[in] conditionNumber the index of the condition
@@ -282,7 +282,7 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
     /** generate an alarm event
     @param[in] val a string defining the alarm
     */
-    std::unique_ptr<eventAdapter> make_alarm(const std::string& val);
+    std::unique_ptr<EventAdapter> make_alarm(const std::string& val);
     // Object operator interface functions
 
     virtual void updateObjectLinkages(CoreObject* newRoot) override;
@@ -364,7 +364,7 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
     // count_t numAlgRoots = 0;        //!< counter for the number of root finding operations
     // related to the condition checking
     std::vector<std::shared_ptr<Condition>> conditions;  //!< state conditionals for the system
-    std::vector<std::shared_ptr<eventAdapter>>
+    std::vector<std::shared_ptr<EventAdapter>>
         actions;  //!< actions to take in response to triggers
     std::vector<std::vector<index_t>> actionTriggers;  //!< the conditions that cause actions
     std::vector<std::vector<coreTime>>

@@ -13,7 +13,7 @@
 #include <vector>
 
 namespace griddyn::helicsLib {
-HelicsEvent::HelicsEvent(const std::string& newName): reversibleEvent(newName)
+HelicsEvent::HelicsEvent(const std::string& newName): ReversibleEvent(newName)
 {
     initRequired = true;
 }
@@ -24,7 +24,7 @@ HelicsEvent::HelicsEvent(HelicsEventType type): eventType(type)
 }
 
 HelicsEvent::HelicsEvent(const EventInfo& gdEI, CoreObject* rootObject):
-    reversibleEvent(gdEI, rootObject)
+    ReversibleEvent(gdEI, rootObject)
 {
     initRequired = true;
     findCoordinator();
@@ -39,7 +39,7 @@ std::unique_ptr<Event> HelicsEvent::clone() const
 
 void HelicsEvent::cloneTo(Event* evnt) const
 {
-    reversibleEvent::cloneTo(evnt);
+    ReversibleEvent::cloneTo(evnt);
     auto fe = dynamic_cast<HelicsEvent*>(evnt);
     if (fe == nullptr) {
         return;
@@ -56,7 +56,7 @@ void HelicsEvent::set(std::string_view param, double val)
     } else if (param == "delta") {
         minimumDelta = std::abs(val);
     } else {
-        reversibleEvent::set(param, val);
+        ReversibleEvent::set(param, val);
     }
 }
 
@@ -84,26 +84,26 @@ void HelicsEvent::set(std::string_view param, std::string_view val)
             findCoordinator();
         }
     } else if (param == "units") {
-        reversibleEvent::set(param, val);
+        ReversibleEvent::set(param, val);
         if (subscriptionId >= 0) {
             coordinator_->updateSubscription(subscriptionId, subscriptionKey, unitType);
         } else if (coordinator_ == nullptr) {
             findCoordinator();
         }
     } else {
-        reversibleEvent::set(param, val);
+        ReversibleEvent::set(param, val);
     }
 }
 
 void HelicsEvent::updateEvent(const EventInfo& gdEI, CoreObject* rootObject)
 {
-    reversibleEvent::updateEvent(gdEI, rootObject);
+    ReversibleEvent::updateEvent(gdEI, rootObject);
     findCoordinator();
 }
 
 bool HelicsEvent::setTarget(CoreObject* gdo, std::string_view var)
 {
-    auto ret = reversibleEvent::setTarget(gdo, var);
+    auto ret = ReversibleEvent::setTarget(gdo, var);
     if (ret) {
         findCoordinator();
     }
@@ -154,7 +154,7 @@ void HelicsEvent::initialize()
 
 void HelicsEvent::updateObject(CoreObject* gco, ObjectUpdateMode mode)
 {
-    reversibleEvent::updateObject(gco, mode);
+    ReversibleEvent::updateObject(gco, mode);
     findCoordinator();
 }
 

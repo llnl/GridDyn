@@ -25,7 +25,7 @@ namespace {
 static constexpr char relayComponentName[] = "relay";
 
 // "aP" is the XML element passed from the reader
-Relay* readRelayElement(std::shared_ptr<readerElement>& element,
+Relay* readRelayElement(std::shared_ptr<ReaderElement>& element,
                         ReaderInfo& ReaderInformation,
                         CoreObject* searchObject)
 {
@@ -114,3 +114,4 @@ Relay* readRelayElement(std::shared_ptr<readerElement>& element,
 }
 
 }  // namespace griddyn
+

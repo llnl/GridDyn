@@ -13,7 +13,7 @@
 #include <memory>
 #include <string>
 
-class readerElement;
+class ReaderElement;
 
 namespace boost {
 namespace dll {
@@ -211,3 +211,4 @@ void loggerFunc(fmi2ComponentEnvironment /* compEnv */,
                 fmi2String /* category */,
                 fmi2String message,
                 ...);
+

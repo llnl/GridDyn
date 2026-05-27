@@ -25,7 +25,7 @@ namespace {
 
 static constexpr char nameString[] = "name";
 
-std::string getObjectName(std::shared_ptr<readerElement>& element, ReaderInfo& ReaderInformation)
+std::string getObjectName(std::shared_ptr<ReaderElement>& element, ReaderInfo& ReaderInformation)
 {
     std::string newName = getElementField(element, nameString, readerConfig::defMatchType);
     if (!newName.empty()) {
@@ -37,7 +37,7 @@ std::string getObjectName(std::shared_ptr<readerElement>& element, ReaderInfo& R
     return newName;
 }
 
-void setIndex(std::shared_ptr<readerElement>& element,
+void setIndex(std::shared_ptr<ReaderElement>& element,
               CoreObject* mainObject,
               ReaderInfo& ReaderInformation)
 {
@@ -62,3 +62,5 @@ void setIndex(std::shared_ptr<readerElement>& element,
 }
 
 }  // namespace griddyn
+
+

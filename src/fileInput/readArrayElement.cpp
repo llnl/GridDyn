@@ -22,13 +22,13 @@ namespace {
         return *ignoreVariables;
     }
 
-    int readElementInteger(std::shared_ptr<readerElement>& element,
+    int readElementInteger(std::shared_ptr<ReaderElement>& element,
                            const std::string& name,
                            ReaderInfo& ReaderInformation,
                            int defValue);
 }  // namespace
 // "aP" is the XML element passed from the reader
-void readArrayElement(std::shared_ptr<readerElement>& element,
+void readArrayElement(std::shared_ptr<ReaderElement>& element,
                       ReaderInfo& ReaderInformation,
                       CoreObject* parentObject)
 {
@@ -86,7 +86,7 @@ void readArrayElement(std::shared_ptr<readerElement>& element,
 }
 
 namespace {
-    int readElementInteger(std::shared_ptr<readerElement>& element,
+    int readElementInteger(std::shared_ptr<ReaderElement>& element,
                            const std::string& name,
                            ReaderInfo& ReaderInformation,
                            int defValue)
@@ -114,3 +114,4 @@ namespace {
 }  // namespace
 
 }  // namespace griddyn
+

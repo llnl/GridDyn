@@ -40,9 +40,9 @@ class EventInfo {
 };
 
 /** basic event class enabling a property change in an object
-eventInterface, ObjectOperatorInterface are pure virtual interfaces
+EventInterface, ObjectOperatorInterface are pure virtual interfaces
 */
-class Event: public HelperObject, public eventInterface, public ObjectOperatorInterface {
+class Event: public HelperObject, public EventInterface, public ObjectOperatorInterface {
   protected:
     std::string field;  //!< event trigger field
     double value = 0.0;  //!< new value

@@ -145,9 +145,9 @@ TEST(ConditionTests, LinkTestsQueries3)
 
     auto cond =
         makeCondition("hypot(abs(realcurrent1-realcurrent2),abs(imagcurrent1-imagcurrent2))",
-                       ">",
-                       0.01,
-                       &L2);
+                      ">",
+                      0.01,
+                      &L2);
     ASSERT_NE(cond, nullptr);
 
     auto R1 = L2.getRealCurrent(1);

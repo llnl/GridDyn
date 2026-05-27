@@ -124,10 +124,8 @@ std::unique_ptr<Condition> makeCondition(std::string_view field,
     // get the state grabbers part
 }
 
-std::unique_ptr<Condition> makeCondition(std::string_view field,
-                                         ComparisonType comp,
-                                         double level,
-                                         CoreObject* rootObject)
+std::unique_ptr<Condition>
+    makeCondition(std::string_view field, ComparisonType comp, double level, CoreObject* rootObject)
 {
     try {
         auto gset = std::make_shared<grabberSet>(std::string{field}, rootObject);

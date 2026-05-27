@@ -98,23 +98,23 @@ void differentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t fla
                 const std::string current1Expression = std::to_string(tap) + "*current1";
                 add(std::shared_ptr<Condition>(
                     makeCondition("abs(" + current1Expression + "-current2)/max(abs(" +
-                                       current1Expression + "),abs(current2))",
-                                   ">",
-                                   mMaxDifferential,
-                                   m_sourceObject)));
+                                      current1Expression + "),abs(current2))",
+                                  ">",
+                                  mMaxDifferential,
+                                  m_sourceObject)));
                 if (mMinLevel > 0.0) {
                     add(std::shared_ptr<Condition>(
                         makeCondition("max(abs(" + current1Expression + "),abs(current2))",
-                                       ">",
-                                       mMinLevel,
-                                       m_sourceObject)));
+                                      ">",
+                                      mMinLevel,
+                                      m_sourceObject)));
                 }
             } else {
                 add(std::shared_ptr<Condition>(
                     makeCondition("abs(current1-current2)/max(abs(current1),abs(current2))",
-                                   ">",
-                                   mMaxDifferential,
-                                   m_sourceObject)));
+                                  ">",
+                                  mMaxDifferential,
+                                  m_sourceObject)));
                 if (mMinLevel > 0.0) {
                     add(std::shared_ptr<Condition>(makeCondition(
                         "max(abs(current1),abs(current2))", ">", mMinLevel, m_sourceObject)));
@@ -124,9 +124,9 @@ void differentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t fla
             if (tap != 1.0) {
                 add(std::shared_ptr<Condition>(
                     makeCondition("abs(" + std::to_string(tap) + "*current1-current2)",
-                                   ">",
-                                   mMaxDifferential,
-                                   m_sourceObject)));
+                                  ">",
+                                  mMaxDifferential,
+                                  m_sourceObject)));
             } else {
                 add(std::shared_ptr<Condition>(makeCondition(
                     "abs(current1-current2)", ">", mMaxDifferential, m_sourceObject)));

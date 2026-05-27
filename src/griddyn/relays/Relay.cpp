@@ -337,7 +337,7 @@ void Relay::set(std::string_view param, std::string_view val)
     if (param == "condition") {
         add(std::shared_ptr<Condition>(
             makeCondition(std::string{val},
-                           (m_sourceObject != nullptr) ? m_sourceObject : getParent())));
+                          (m_sourceObject != nullptr) ? m_sourceObject : getParent())));
     } else if (param == "action") {
         bool isAlarm = false;
         if ((val.front() == 'a') || (val.front() == 'A')) {
@@ -350,7 +350,7 @@ void Relay::set(std::string_view param, std::string_view val)
         if (!isAlarm) {
             add(std::shared_ptr<Event>(
                 makeEvent(std::string{val},
-                           (m_sinkObject != nullptr) ? m_sinkObject : getParent())));
+                          (m_sinkObject != nullptr) ? m_sinkObject : getParent())));
         }
     } else {
         if (cManager.set(param, val)) {

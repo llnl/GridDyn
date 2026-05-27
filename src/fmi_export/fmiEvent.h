@@ -13,7 +13,7 @@
 namespace griddyn::fmi {
 class FmiCoordinator;
 /** class to manage the inputs for an FMI configuration in GridDyn*/
-class FmiEvent: public events::reversibleEvent {
+class FmiEvent: public events::ReversibleEvent {
   public:
     /** enumeration of the event types*/
     enum class FmiEventType {

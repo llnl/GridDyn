@@ -12,7 +12,7 @@
 namespace griddyn {
 using gmlc::utilities::convertToLowerCase;
 using gmlc::utilities::makeUpperCase;
-std::string findElementName(std::shared_ptr<readerElement>& element,
+std::string findElementName(std::shared_ptr<ReaderElement>& element,
                             const std::string& ename,
                             readerConfig::MatchType matching)
 {
@@ -55,7 +55,7 @@ std::string findElementName(std::shared_ptr<readerElement>& element,
     return emptyString;
 }
 
-std::string getElementAttribute(std::shared_ptr<readerElement>& element,
+std::string getElementAttribute(std::shared_ptr<ReaderElement>& element,
                                 const std::string& ename,
                                 readerConfig::MatchType matching)
 {
@@ -91,7 +91,7 @@ std::string getElementAttribute(std::shared_ptr<readerElement>& element,
     return emptyString;
 }
 
-std::string getElementField(std::shared_ptr<readerElement>& element,
+std::string getElementField(std::shared_ptr<ReaderElement>& element,
                             const std::string& ename,
                             readerConfig::MatchType matching)
 {
@@ -107,7 +107,7 @@ std::string getElementField(std::shared_ptr<readerElement>& element,
     return fieldValue;
 }
 
-std::string getElementFieldOptions(std::shared_ptr<readerElement>& element,
+std::string getElementFieldOptions(std::shared_ptr<ReaderElement>& element,
                                    const stringVec& names,
                                    readerConfig::MatchType matching)
 {
@@ -120,7 +120,7 @@ std::string getElementFieldOptions(std::shared_ptr<readerElement>& element,
     return emptyString;
 }
 
-stringVec getElementFieldMultiple(std::shared_ptr<readerElement>& element,
+stringVec getElementFieldMultiple(std::shared_ptr<ReaderElement>& element,
                                   const std::string& ename,
                                   readerConfig::MatchType matching)
 {

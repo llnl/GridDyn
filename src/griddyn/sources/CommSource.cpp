@@ -153,7 +153,7 @@ void commSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMess
         case controlMessagePayload::SET_SCHEDULED:
             if (m->m_time > prevTime) {
                 double val = m->m_value;
-                auto fea = std::make_shared<functionEventAdapter>(
+                auto fea = std::make_shared<FunctionEventAdapter>(
                     [this, val]() {
                         setLevel(val);
                         return ChangeCode::PARAMETER_CHANGE;

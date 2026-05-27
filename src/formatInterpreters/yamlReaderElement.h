@@ -14,14 +14,14 @@ namespace YAML {
 class Node;
 }
 
-class yamlElement;
+class YamlElement;
 /** @brief class defines a reader element around the yaml-cpp reader*/
-class yamlReaderElement: public readerElement {
+class YamlReaderElement: public ReaderElement {
   public:
-    yamlReaderElement();
-    explicit yamlReaderElement(const std::string& fileName);
+    YamlReaderElement();
+    explicit YamlReaderElement(const std::string& fileName);
 
-    std::shared_ptr<readerElement> clone() const override;
+    std::shared_ptr<ReaderElement> clone() const override;
 
     virtual bool isValid() const override;
     virtual bool isDocument() const override;
@@ -36,14 +36,14 @@ class yamlReaderElement: public readerElement {
     virtual bool hasAttribute(const std::string& attributeName) const override;
     virtual bool hasElement(const std::string& elementName) const override;
 
-    virtual readerAttribute getFirstAttribute() override;
-    virtual readerAttribute getNextAttribute() override;
-    virtual readerAttribute getAttribute(const std::string& attributeName) const override;
+    virtual ReaderAttribute getFirstAttribute() override;
+    virtual ReaderAttribute getNextAttribute() override;
+    virtual ReaderAttribute getAttribute(const std::string& attributeName) const override;
     virtual std::string getAttributeText(const std::string& attributeName) const override;
     virtual double getAttributeValue(const std::string& attributeName) const override;
 
-    virtual std::shared_ptr<readerElement> firstChild() const override;
-    virtual std::shared_ptr<readerElement> firstChild(const std::string& childName) const override;
+    virtual std::shared_ptr<ReaderElement> firstChild() const override;
+    virtual std::shared_ptr<ReaderElement> firstChild(const std::string& childName) const override;
 
     virtual void moveToNextSibling() override;
     virtual void moveToNextSibling(const std::string& siblingName) override;
@@ -53,8 +53,8 @@ class yamlReaderElement: public readerElement {
 
     virtual void moveToParent() override;
 
-    virtual std::shared_ptr<readerElement> nextSibling() const override;
-    virtual std::shared_ptr<readerElement>
+    virtual std::shared_ptr<ReaderElement> nextSibling() const override;
+    virtual std::shared_ptr<ReaderElement>
         nextSibling(const std::string& siblingName) const override;
 
     virtual void bookmark() override;
@@ -65,9 +65,9 @@ class yamlReaderElement: public readerElement {
 
   private:
     std::shared_ptr<YAML::Node> mDoc;  //!< document root
-    std::vector<std::shared_ptr<yamlElement>> mParents;  //!< stack of the parent objects
-    std::shared_ptr<yamlElement> mCurrent;  //!< the current object
+    std::vector<std::shared_ptr<YamlElement>> mParents;  //!< stack of the parent objects
+    std::shared_ptr<YamlElement> mCurrent;  //!< the current object
     // YAML::const_iterator attIterator;    //!< an iterator for looping through attributes
     int mIteratorCount = 0;
-    std::vector<std::shared_ptr<yamlReaderElement>> mBookmarks;
+    std::vector<std::shared_ptr<YamlReaderElement>> mBookmarks;
 };

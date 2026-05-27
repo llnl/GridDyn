@@ -25,7 +25,7 @@ namespace {
     bool checkCondition(string_view cond, ReaderInfo& ReaderInformation, CoreObject* parentObject);
 }  // namespace
 // "aP" is the XML element passed from the reader
-void loadConditionElement(std::shared_ptr<readerElement>& element,
+void loadConditionElement(std::shared_ptr<ReaderElement>& element,
                           ReaderInfo& ReaderInformation,
                           CoreObject* parentObject)
 {

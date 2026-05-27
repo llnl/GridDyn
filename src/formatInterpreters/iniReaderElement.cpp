@@ -18,7 +18,7 @@
 
 static constexpr char nullStr[] = "";
 
-class gridDynINIReader: public INIReader {
+class GridDynIniReader: public INIReader {
   public:
     using INIReader::INIReader;
 
@@ -43,41 +43,41 @@ class gridDynINIReader: public INIReader {
     }
 };
 
-iniReaderElement::iniReaderElement() = default;
-iniReaderElement::iniReaderElement(const std::string& fileName)
+IniReaderElement::IniReaderElement() = default;
+IniReaderElement::IniReaderElement(const std::string& fileName)
 {
-    iniReaderElement::loadFile(fileName);
+    IniReaderElement::loadFile(fileName);
 }
-void iniReaderElement::clear()
+void IniReaderElement::clear()
 {
     mCurrentSection.clear();
 }
 
 static const char invalidString[] = ";";
 
-bool iniReaderElement::isValid() const
+bool IniReaderElement::isValid() const
 {
     return (mCurrentSection != invalidString);
 }
-bool iniReaderElement::isDocument() const
+bool IniReaderElement::isDocument() const
 {
     return ((mDoc) && mCurrentSection.empty());
 }
 
-std::shared_ptr<readerElement> iniReaderElement::clone() const
+std::shared_ptr<ReaderElement> IniReaderElement::clone() const
 {
-    auto ret = std::make_shared<iniReaderElement>();
+    auto ret = std::make_shared<IniReaderElement>();
     ret->mDoc = mDoc;
     ret->mCurrentSection = mCurrentSection;
     ret->mIteratorIndex = mIteratorIndex;
     return ret;
 }
 
-bool iniReaderElement::loadFile(const std::string& fileName)
+bool IniReaderElement::loadFile(const std::string& fileName)
 {
     std::ifstream file(fileName);
     if (file.is_open()) {
-        mDoc = std::make_shared<gridDynINIReader>(fileName);
+        mDoc = std::make_shared<GridDynIniReader>(fileName);
         mCurrentSection = std::string();
         mIteratorIndex = 0;
         return true;
@@ -89,12 +89,12 @@ bool iniReaderElement::loadFile(const std::string& fileName)
     return false;
 }
 
-bool iniReaderElement::parse(const std::string& /*inputString*/)
+bool IniReaderElement::parse(const std::string& /*inputString*/)
 {
     return false;
 }
 
-std::string iniReaderElement::getName() const
+std::string IniReaderElement::getName() const
 {
     if (mCurrentSection.empty()) {
         return "root";
@@ -102,22 +102,22 @@ std::string iniReaderElement::getName() const
     return mCurrentSection;
 }
 
-double iniReaderElement::getValue() const
+double IniReaderElement::getValue() const
 {
     return readerNullVal;
 }
 
-std::string iniReaderElement::getText() const
+std::string IniReaderElement::getText() const
 {
     return nullStr;
 }
 
-std::string iniReaderElement::getMultiText(const std::string& /*sep*/) const
+std::string IniReaderElement::getMultiText(const std::string& /*sep*/) const
 {
     return nullStr;
 }
 
-bool iniReaderElement::hasAttribute(const std::string& attributeName) const
+bool IniReaderElement::hasAttribute(const std::string& attributeName) const
 {
     if (!isValid()) {
         return false;
@@ -127,7 +127,7 @@ bool iniReaderElement::hasAttribute(const std::string& attributeName) const
     return !(val.empty());
 }
 
-bool iniReaderElement::hasElement(const std::string& elementName) const
+bool IniReaderElement::hasElement(const std::string& elementName) const
 {
     if (!mCurrentSection.empty()) {
         return false;
@@ -136,7 +136,7 @@ bool iniReaderElement::hasElement(const std::string& elementName) const
     return sec.contains(elementName);
 }
 
-readerAttribute iniReaderElement::getFirstAttribute()
+ReaderAttribute IniReaderElement::getFirstAttribute()
 {
     if (!isValid()) {
         return {};
@@ -149,7 +149,7 @@ readerAttribute iniReaderElement::getFirstAttribute()
     return {};
 }
 
-readerAttribute iniReaderElement::getNextAttribute()
+ReaderAttribute IniReaderElement::getNextAttribute()
 {
     if (!isValid()) {
         return {};
@@ -163,7 +163,7 @@ readerAttribute iniReaderElement::getNextAttribute()
     return {};
 }
 
-readerAttribute iniReaderElement::getAttribute(const std::string& attributeName) const
+ReaderAttribute IniReaderElement::getAttribute(const std::string& attributeName) const
 {
     if (!isValid()) {
         return {};
@@ -175,7 +175,7 @@ readerAttribute iniReaderElement::getAttribute(const std::string& attributeName)
     return {};
 }
 
-std::string iniReaderElement::getAttributeText(const std::string& attributeName) const
+std::string IniReaderElement::getAttributeText(const std::string& attributeName) const
 {
     if (!isValid()) {
         return nullStr;
@@ -183,7 +183,7 @@ std::string iniReaderElement::getAttributeText(const std::string& attributeName)
     return mDoc->Get(mCurrentSection, attributeName, "");
 }
 
-double iniReaderElement::getAttributeValue(const std::string& attributeName) const
+double IniReaderElement::getAttributeValue(const std::string& attributeName) const
 {
     if (!isValid()) {
         return readerNullVal;
@@ -192,21 +192,21 @@ double iniReaderElement::getAttributeValue(const std::string& attributeName) con
         mDoc->Get(mCurrentSection, attributeName, ""), readerNullVal);
 }
 
-std::shared_ptr<readerElement> iniReaderElement::firstChild() const
+std::shared_ptr<ReaderElement> IniReaderElement::firstChild() const
 {
     auto newElement = clone();
     newElement->moveToFirstChild();
     return newElement;
 }
 
-std::shared_ptr<readerElement> iniReaderElement::firstChild(const std::string& childName) const
+std::shared_ptr<ReaderElement> IniReaderElement::firstChild(const std::string& childName) const
 {
     auto newElement = clone();
     newElement->moveToFirstChild(childName);
     return newElement;
 }
 
-void iniReaderElement::moveToFirstChild()
+void IniReaderElement::moveToFirstChild()
 {
     if (!isValid()) {
         return;
@@ -226,7 +226,7 @@ void iniReaderElement::moveToFirstChild()
     mCurrentSection = *sec.begin();
 }
 
-void iniReaderElement::moveToFirstChild(const std::string& childName)
+void IniReaderElement::moveToFirstChild(const std::string& childName)
 {
     if (!isValid()) {
         return;
@@ -255,7 +255,7 @@ void iniReaderElement::moveToFirstChild(const std::string& childName)
     mCurrentSection = ';';
 }
 
-void iniReaderElement::moveToNextSibling()
+void IniReaderElement::moveToNextSibling()
 {
     if (!isValid()) {
         return;
@@ -276,7 +276,7 @@ void iniReaderElement::moveToNextSibling()
     mCurrentSection = *csec;
 }
 
-void iniReaderElement::moveToNextSibling(const std::string& siblingName)
+void IniReaderElement::moveToNextSibling(const std::string& siblingName)
 {
     if (!isValid()) {
         return;
@@ -291,33 +291,33 @@ void iniReaderElement::moveToNextSibling(const std::string& siblingName)
     }
 }
 
-void iniReaderElement::moveToParent()
+void IniReaderElement::moveToParent()
 {
     mCurrentSection = "";
     mSectionIndex = 0;
     mIteratorIndex = 0;
 }
 
-std::shared_ptr<readerElement> iniReaderElement::nextSibling() const
+std::shared_ptr<ReaderElement> IniReaderElement::nextSibling() const
 {
     auto newElement = clone();
     newElement->moveToNextSibling();
     return newElement;
 }
 
-std::shared_ptr<readerElement> iniReaderElement::nextSibling(const std::string& siblingName) const
+std::shared_ptr<ReaderElement> IniReaderElement::nextSibling(const std::string& siblingName) const
 {
     auto newElement = clone();
     newElement->moveToNextSibling(siblingName);
     return newElement;
 }
 
-void iniReaderElement::bookmark()
+void IniReaderElement::bookmark()
 {
     mBookmarks.emplace_back(mCurrentSection, mSectionIndex);
 }
 
-void iniReaderElement::restore()
+void IniReaderElement::restore()
 {
     if (mBookmarks.empty()) {
         return;

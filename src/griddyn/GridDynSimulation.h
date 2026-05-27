@@ -29,9 +29,9 @@ namespace griddyn {
 #define STRINGIFY(x) #x
 
 class Contingency;
-class continuationSequence;
+class ContinuationSequence;
 class SolverInterface;
-class parameterSet;
+class ParameterSet;
 
 /** additional flags for the controlFlags bitset*/
 enum GridDynFlags {
@@ -171,7 +171,7 @@ class GridDynSimulation: public GridSimulation {
         singleStepObjects;  //!< objects which require a state update after time step
     std::vector<GridBus*> slkBusses;  //!< vector of slack buses to aid in powerFlow adjust
     std::queue<gridDynAction> actionQueue;  //!< queue for actions for GridDyn to execute
-    std::vector<std::shared_ptr<continuationSequence>>
+    std::vector<std::shared_ptr<ContinuationSequence>>
         continList;  //!< set of continuation sequences to run
     std::vector<std::function<int()>>
         additionalPowerflowSetupFunctions;  //!< set of additional operations to execute after the
@@ -428,7 +428,7 @@ class GridDynSimulation: public GridSimulation {
     @param[in] sMode the solverMode to use for the computations
     */
     void parameterDerivatives(coreTime time,
-                              parameterSet& parameterOperators,
+                              ParameterSet& parameterOperators,
                               const index_t indices[],
                               const double values[],
                               count_t parameterCount,

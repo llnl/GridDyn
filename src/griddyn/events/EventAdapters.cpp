@@ -15,23 +15,23 @@
 #include <utility>
 
 namespace griddyn {
-std::atomic<id_type_t> eventAdapter::eventCounter(0);
+std::atomic<id_type_t> EventAdapter::eventCounter(0);
 
-eventAdapter::eventAdapter(coreTime nextTime, coreTime period):
+EventAdapter::EventAdapter(coreTime nextTime, coreTime period):
     m_period(period), m_nextTime(nextTime)
 {
     eventID = ++eventCounter;
 }
 
-eventAdapter::~eventAdapter() = default;
+EventAdapter::~EventAdapter() = default;
 
-std::unique_ptr<eventAdapter> eventAdapter::clone() const
+std::unique_ptr<EventAdapter> EventAdapter::clone() const
 {
-    auto ea = std::make_unique<eventAdapter>();
-    eventAdapter::cloneTo(ea.get());
+    auto ea = std::make_unique<EventAdapter>();
+    EventAdapter::cloneTo(ea.get());
     return ea;
 }
-void eventAdapter::cloneTo(eventAdapter* eA) const
+void EventAdapter::cloneTo(EventAdapter* eA) const
 {
     eA->m_remove_event = m_remove_event;
     eA->partBdelay = partBdelay;
@@ -42,20 +42,20 @@ void eventAdapter::cloneTo(eventAdapter* eA) const
     eA->m_nextTime = m_nextTime;
 }
 
-void eventAdapter::updateObject(CoreObject* /*newObject*/, ObjectUpdateMode /*mode*/) {}
+void EventAdapter::updateObject(CoreObject* /*newObject*/, ObjectUpdateMode /*mode*/) {}
 
-void eventAdapter::getObjects(std::vector<CoreObject*>& /*objects*/) const {}
-void eventAdapter::executeA(coreTime /*cTime*/) {}
+void EventAdapter::getObjects(std::vector<CoreObject*>& /*objects*/) const {}
+void EventAdapter::executeA(coreTime /*cTime*/) {}
 
-void eventAdapter::updateTime() {}
-void eventAdapter::initialize() {}
+void EventAdapter::updateTime() {}
+void EventAdapter::initialize() {}
 
-int eventAdapter::eventCode() const
+int EventAdapter::eventCode() const
 {
     return 0;
 }
 
-ChangeCode eventAdapter::execute(coreTime cTime)
+ChangeCode EventAdapter::execute(coreTime cTime)
 {
     if (m_period > timeZero) {
         m_nextTime += std::floor((cTime - m_nextTime) / m_period) * m_period + m_period;
@@ -65,24 +65,24 @@ ChangeCode eventAdapter::execute(coreTime cTime)
     return ChangeCode::NO_CHANGE;
 }
 
-bool compareEventAdapters(const std::shared_ptr<eventAdapter>& e1,
-                          const std::shared_ptr<eventAdapter>& e2)
+bool compareEventAdapters(const std::shared_ptr<EventAdapter>& e1,
+                          const std::shared_ptr<EventAdapter>& e2)
 {
     return (e1->m_nextTime < e2->m_nextTime);
 }
 
-functionEventAdapter::functionEventAdapter(ccode_function_t fcal): fptr(std::move(fcal)) {}
-functionEventAdapter::functionEventAdapter(ccode_function_t fcal,
+FunctionEventAdapter::FunctionEventAdapter(ccode_function_t fcal): fptr(std::move(fcal)) {}
+FunctionEventAdapter::FunctionEventAdapter(ccode_function_t fcal,
                                            coreTime triggerTime,
                                            coreTime period):
-    eventAdapter(triggerTime, period), fptr(std::move(fcal))
+    EventAdapter(triggerTime, period), fptr(std::move(fcal))
 {
 }
 
-void functionEventAdapter::cloneTo(eventAdapter* ea) const
+void FunctionEventAdapter::cloneTo(EventAdapter* ea) const
 {
-    eventAdapter::cloneTo(ea);
-    auto fea = dynamic_cast<functionEventAdapter*>(ea);
+    EventAdapter::cloneTo(ea);
+    auto fea = dynamic_cast<FunctionEventAdapter*>(ea);
     if (ea == nullptr) {
         return;
     }
@@ -90,14 +90,14 @@ void functionEventAdapter::cloneTo(eventAdapter* ea) const
     fea->evCode_ = evCode_;
 }
 
-std::unique_ptr<eventAdapter> functionEventAdapter::clone() const
+std::unique_ptr<EventAdapter> FunctionEventAdapter::clone() const
 {
-    std::unique_ptr<eventAdapter> ea = std::make_unique<functionEventAdapter>();
-    functionEventAdapter::cloneTo(ea.get());
+    std::unique_ptr<EventAdapter> ea = std::make_unique<FunctionEventAdapter>();
+    FunctionEventAdapter::cloneTo(ea.get());
     return ea;
 }
 
-ChangeCode functionEventAdapter::execute(coreTime cTime)
+ChangeCode FunctionEventAdapter::execute(coreTime cTime)
 {
     auto retval = fptr();
     if (m_period > timeZero) {
@@ -108,12 +108,12 @@ ChangeCode functionEventAdapter::execute(coreTime cTime)
     return retval;
 }
 
-void functionEventAdapter::setfunction(ccode_function_t nfptr)
+void FunctionEventAdapter::setfunction(ccode_function_t nfptr)
 {
     fptr = std::move(nfptr);
 }
 
-void functionEventAdapter::setExecutionMode(EventExecutionMode newMode)
+void FunctionEventAdapter::setExecutionMode(EventExecutionMode newMode)
 {
     switch (newMode) {
         case EventExecutionMode::normal:

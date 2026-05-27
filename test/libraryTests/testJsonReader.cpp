@@ -17,7 +17,7 @@ static const std::string elementReaderTestDirectory(GRIDDYN_TEST_DIRECTORY
 
 TEST(JsonElementReaderTests, JsonElementReaderTest1)
 {
-    jsonReaderElement reader;
+    JsonReaderElement reader;
     ASSERT_TRUE(reader.loadFile(elementReaderTestDirectory + "json_test1.json"));
     EXPECT_TRUE(reader.isValid());
     auto firstChild = reader.clone();
@@ -65,7 +65,7 @@ TEST(JsonElementReaderTests, JsonElementReaderTest1)
 
 TEST(JsonElementReaderTests, JsonElementReaderTest2)
 {
-    jsonReaderElement reader;
+    JsonReaderElement reader;
     // test a bad file
     reader.loadFile(elementReaderTestDirectory + "xmlElementReader_missing_file.xml");
     std::cout
@@ -122,7 +122,7 @@ TEST(JsonElementReaderTests, JsonElementReaderTest2)
 
 TEST(JsonElementReaderTests, JsonElementReaderTest3)
 {
-    jsonReaderElement reader(elementReaderTestDirectory + "xmlElementReader_test2.xml");
+    JsonReaderElement reader(elementReaderTestDirectory + "xmlElementReader_test2.xml");
     std::cout
         << "NOTE:: this should have a message indicating format error >>testing bad file input\n";
     EXPECT_FALSE(reader.isValid());
@@ -164,7 +164,7 @@ TEST(JsonElementReaderTests, JsonElementReaderTest3)
 
 TEST(JsonElementReaderTests, JsonElementReaderTest4)
 {
-    /*auto reader = std::make_shared<jsonReaderElement>(xmlTestDirectory +
+    /*auto reader = std::make_shared<JsonReaderElement>(xmlTestDirectory +
     "xmlElementReader_test3.xml"); EXPECT_EQ(reader->getName(), "main_element");
 
     auto main = reader->clone();

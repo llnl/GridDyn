@@ -26,7 +26,7 @@ FmiInfo::FmiInfo(const std::string& xmlFile)
 
 int FmiInfo::loadFile(const std::string& xmlFile)
 {
-    std::shared_ptr<readerElement> readerElementPtr = std::make_shared<XmlReaderElement>(xmlFile);
+    std::shared_ptr<ReaderElement> readerElementPtr = std::make_shared<XmlReaderElement>(xmlFile);
     if (!readerElementPtr->isValid()) {
         return (-1);
     }
@@ -59,7 +59,7 @@ static const std::map<std::string, int>& flagMap()
     return *capabilityFlagMap;
 }
 
-static void loadFmuFlag(std::bitset<32>& capabilities, const readerAttribute& att)
+static void loadFmuFlag(std::bitset<32>& capabilities, const ReaderAttribute& att)
 {
     const auto& capabilityFlagMap = flagMap();
     auto fnd = capabilityFlagMap.find(att.getName());
@@ -277,7 +277,7 @@ const std::vector<std::pair<index_t, int>>& FmiInfo::getUnknownDependencies(int 
     return unknownDep.getSet(variableIndex);
 }
 
-void FmiInfo::loadFmiHeader(std::shared_ptr<readerElement>& readerElementPtr)
+void FmiInfo::loadFmiHeader(std::shared_ptr<ReaderElement>& readerElementPtr)
 {
     auto att = readerElementPtr->getFirstAttribute();
     while (att.isValid()) {
@@ -347,9 +347,9 @@ void FmiInfo::loadFmiHeader(std::shared_ptr<readerElement>& readerElementPtr)
     }
 }
 
-static void loadUnitInfo(std::shared_ptr<readerElement>& readerElementPtr, FmiUnit& unitInfo);
+static void loadUnitInfo(std::shared_ptr<ReaderElement>& readerElementPtr, FmiUnit& unitInfo);
 
-void FmiInfo::loadUnitInformation(std::shared_ptr<readerElement>& readerElementPtr)
+void FmiInfo::loadUnitInformation(std::shared_ptr<ReaderElement>& readerElementPtr)
 {
     readerElementPtr->bookmark();
     readerElementPtr->moveToFirstChild("UnitDefinitions");
@@ -372,7 +372,7 @@ void FmiInfo::loadUnitInformation(std::shared_ptr<readerElement>& readerElementP
     readerElementPtr->restore();
 }
 
-static void loadUnitInfo(std::shared_ptr<readerElement>& readerElementPtr, FmiUnit& unitInfo)
+static void loadUnitInfo(std::shared_ptr<ReaderElement>& readerElementPtr, FmiUnit& unitInfo)
 {
     unitInfo.name = readerElementPtr->getAttributeText("name");
     if (readerElementPtr->hasElement("BaseUnit")) {
@@ -406,10 +406,10 @@ static void loadUnitInfo(std::shared_ptr<readerElement>& readerElementPtr, FmiUn
 }
 
 /** load a single variable information from the XML
-@param[in] readerElementPtr the readerElement to load from
+@param[in] readerElementPtr the ReaderElement to load from
 @param[out] vInfo the variable information to store the data to
 */
-static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,
+static void loadVariableInfo(std::shared_ptr<ReaderElement>& readerElementPtr,
                              VariableInformation& vInfo);
 
 /*
@@ -419,7 +419,7 @@ variability="tunable"
 */
 
 static constexpr char scalarVString[] = "ScalarVariable";
-void FmiInfo::loadVariables(std::shared_ptr<readerElement>& readerElementPtr)
+void FmiInfo::loadVariables(std::shared_ptr<ReaderElement>& readerElementPtr)
 {
     readerElementPtr->bookmark();
     readerElementPtr->moveToFirstChild("ModelVariables");
@@ -466,7 +466,7 @@ void FmiInfo::loadVariables(std::shared_ptr<readerElement>& readerElementPtr)
     readerElementPtr->restore();
 }
 
-static void loadVariableInfo(std::shared_ptr<readerElement>& readerElementPtr,
+static void loadVariableInfo(std::shared_ptr<ReaderElement>& readerElementPtr,
                              VariableInformation& vInfo)
 {
     auto att = readerElementPtr->getFirstAttribute();
@@ -572,7 +572,7 @@ static constexpr char unknownString[] = "Unknown";
 static constexpr char depString[] = "dependencies";
 static constexpr char depKindString[] = "dependenciesKind";
 
-static void loadDependencies(std::shared_ptr<readerElement>& readerElementPtr,
+static void loadDependencies(std::shared_ptr<ReaderElement>& readerElementPtr,
                              std::vector<int>& store,
                              matrixData<int>& depData)
 {
@@ -603,7 +603,7 @@ static void loadDependencies(std::shared_ptr<readerElement>& readerElementPtr,
     readerElementPtr->moveToParent();
 }
 
-void FmiInfo::loadStructure(std::shared_ptr<readerElement>& readerElementPtr)
+void FmiInfo::loadStructure(std::shared_ptr<ReaderElement>& readerElementPtr)
 {
     readerElementPtr->bookmark();
     // get the output dependencies

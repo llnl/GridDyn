@@ -15,29 +15,29 @@
 #include <string>
 
 namespace griddyn::events {
-interpolatingPlayer::interpolatingPlayer(const std::string& eventName): Player(eventName) {}
+InterpolatingPlayer::InterpolatingPlayer(const std::string& eventName): Player(eventName) {}
 
-interpolatingPlayer::interpolatingPlayer(coreTime time0, double loopPeriod):
+InterpolatingPlayer::InterpolatingPlayer(coreTime time0, double loopPeriod):
     Player(time0, loopPeriod)
 {
 }
 
-interpolatingPlayer::interpolatingPlayer(const EventInfo& gdEI, CoreObject* rootObject):
+InterpolatingPlayer::InterpolatingPlayer(const EventInfo& gdEI, CoreObject* rootObject):
     Player(gdEI, rootObject)
 {
 }
 
-std::unique_ptr<Event> interpolatingPlayer::clone() const
+std::unique_ptr<Event> InterpolatingPlayer::clone() const
 {
-    std::unique_ptr<Event> upE = std::make_unique<interpolatingPlayer>(getName());
-    interpolatingPlayer::cloneTo(upE.get());
+    std::unique_ptr<Event> upE = std::make_unique<InterpolatingPlayer>(getName());
+    InterpolatingPlayer::cloneTo(upE.get());
     return upE;
 }
 
-void interpolatingPlayer::cloneTo(Event* gE) const
+void InterpolatingPlayer::cloneTo(Event* gE) const
 {
     Player::cloneTo(gE);
-    auto nE = dynamic_cast<interpolatingPlayer*>(gE);
+    auto nE = dynamic_cast<InterpolatingPlayer*>(gE);
     if (nE == nullptr) {
         return;
     }
@@ -45,7 +45,7 @@ void interpolatingPlayer::cloneTo(Event* gE) const
     nE->useSlopeField = useSlopeField;
 }
 
-void interpolatingPlayer::set(std::string_view param, double val)
+void InterpolatingPlayer::set(std::string_view param, double val)
 {
     if (param == "sampleperiod") {
         samplePeriod = val;
@@ -60,7 +60,7 @@ void interpolatingPlayer::set(std::string_view param, double val)
     }
 }
 
-void interpolatingPlayer::set(std::string_view param, std::string_view val)
+void InterpolatingPlayer::set(std::string_view param, std::string_view val)
 {
     if (param == "slopefield") {
         slopeField = val;
@@ -71,7 +71,7 @@ void interpolatingPlayer::set(std::string_view param, std::string_view val)
     }
 }
 
-void interpolatingPlayer::setFlag(std::string_view flag, bool val)
+void InterpolatingPlayer::setFlag(std::string_view flag, bool val)
 {
     if (flag == "useslopefield") {
         useSlopeField = val;
@@ -80,7 +80,7 @@ void interpolatingPlayer::setFlag(std::string_view flag, bool val)
         Player::setFlag(flag, val);
     }
 }
-void interpolatingPlayer::setNextValue()
+void InterpolatingPlayer::setNextValue()
 {
     if (static_cast<index_t>(ts.size()) <= currIndex) {
         return;
@@ -113,7 +113,7 @@ void interpolatingPlayer::setNextValue()
     }
 }
 
-std::string interpolatingPlayer::to_string() const
+std::string InterpolatingPlayer::to_string() const
 {
     // @time1[,time2,time3,... |+ period] >[rootobj::obj:]field(units) = val1,[val2,val3,...]
     std::stringstream ss;
@@ -157,7 +157,7 @@ std::string interpolatingPlayer::to_string() const
     return ss.str();
 }
 
-ChangeCode interpolatingPlayer::trigger()
+ChangeCode InterpolatingPlayer::trigger()
 {
     try {
         m_obj->set(field, value, unitType);
@@ -168,7 +168,7 @@ ChangeCode interpolatingPlayer::trigger()
     }
 }
 
-ChangeCode interpolatingPlayer::trigger(coreTime time)
+ChangeCode InterpolatingPlayer::trigger(coreTime time)
 {
     ChangeCode ret = ChangeCode::NOT_TRIGGERED;
     if (time + kSmallTime >= triggerTime) {

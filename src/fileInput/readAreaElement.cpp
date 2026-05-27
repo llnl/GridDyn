@@ -21,7 +21,7 @@ namespace {
     }
 }  // namespace
 static constexpr char areaComponentName[] = "area";
-GridArea* readGridAreaElement(std::shared_ptr<readerElement>& element,
+GridArea* readGridAreaElement(std::shared_ptr<ReaderElement>& element,
                               ReaderInfo& ReaderInformation,
                               CoreObject* searchObject)
 {

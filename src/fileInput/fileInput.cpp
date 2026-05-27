@@ -201,9 +201,9 @@ void loadFile(CoreObject* parentObject,
     } else if (ext == "epc") {
         loadEpc(parentObject, fileName, *readerInf);
     } else if (ext == "json") {
-        loadElementFile<jsonReaderElement>(parentObject, fileName, readerInf);
+        loadElementFile<JsonReaderElement>(parentObject, fileName, readerInf);
     } else if ((ext == "yaml") || (ext == "yml")) {
-        loadElementFile<yamlReaderElement>(parentObject, fileName, readerInf);
+        loadElementFile<YamlReaderElement>(parentObject, fileName, readerInf);
     } else if (ext == "gdz") {  // gridDyn Zipped file
         loadGdz(parentObject, fileName, *readerInf);
     }

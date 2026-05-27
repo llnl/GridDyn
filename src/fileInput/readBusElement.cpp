@@ -25,7 +25,7 @@ namespace {
 }  // namespace
 static constexpr char busComponentName[] = "bus";
 // "aP" is the XML element passed from the reader
-GridBus* readBusElement(std::shared_ptr<readerElement>& element,
+GridBus* readBusElement(std::shared_ptr<ReaderElement>& element,
                         ReaderInfo& ReaderInformation,
                         CoreObject* searchObject)
 {

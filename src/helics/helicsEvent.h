@@ -14,7 +14,7 @@
 namespace griddyn::helicsLib {
 class HelicsCoordinator;
 
-class HelicsEvent: public events::reversibleEvent {
+class HelicsEvent: public events::ReversibleEvent {
   public:
     /** enumeration of the event types*/
     enum class HelicsEventType {

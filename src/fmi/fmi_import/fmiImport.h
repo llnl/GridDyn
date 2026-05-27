@@ -13,7 +13,7 @@
 #include <memory>
 #include <string>
 
-class readerElement;
+class ReaderElement;
 
 namespace boost {
 namespace dll {

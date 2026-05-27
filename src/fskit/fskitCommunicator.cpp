@@ -77,12 +77,12 @@ void FskitCommunicator::ProcessEventMessage(const fskit::EventMessage& eventMess
     // using lambda capture to move the message to the lambda
     // unique ptr capture with message{std::move(m)} failed on gcc 4.9.3; build shared and capture
     // the shared ptr.
-    auto event = std::make_unique<griddyn::functionEventAdapter>([this, message]() {
+    auto event = std::make_unique<griddyn::FunctionEventAdapter>([this, message]() {
         receive(0, getName(), message);
         return griddyn::ChangeCode::NO_CHANGE;
     });
     event->m_nextTime = griddynTime;
-    simulation->add(std::shared_ptr<griddyn::eventAdapter>(std::move(event)));
+    simulation->add(std::shared_ptr<griddyn::EventAdapter>(std::move(event)));
 }
 
 void FskitCommunicator::transmit(const std::string& /*destName*/,

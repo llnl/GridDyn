@@ -11,15 +11,15 @@
 #include <string>
 #include <vector>
 
-class gridDynINIReader;
+class GridDynIniReader;
 
 /** @brief class defines a reader element around the ini reader*/
-class iniReaderElement: public readerElement {
+class IniReaderElement: public ReaderElement {
   public:
-    iniReaderElement();
-    explicit iniReaderElement(const std::string& fileName);
+    IniReaderElement();
+    explicit IniReaderElement(const std::string& fileName);
 
-    std::shared_ptr<readerElement> clone() const override;
+    std::shared_ptr<ReaderElement> clone() const override;
 
     virtual bool isValid() const override;
     virtual bool isDocument() const override;
@@ -34,14 +34,14 @@ class iniReaderElement: public readerElement {
     virtual bool hasAttribute(const std::string& attributeName) const override;
     virtual bool hasElement(const std::string& elementName) const override;
 
-    virtual readerAttribute getFirstAttribute() override;
-    virtual readerAttribute getNextAttribute() override;
-    virtual readerAttribute getAttribute(const std::string& attributeName) const override;
+    virtual ReaderAttribute getFirstAttribute() override;
+    virtual ReaderAttribute getNextAttribute() override;
+    virtual ReaderAttribute getAttribute(const std::string& attributeName) const override;
     virtual std::string getAttributeText(const std::string& attributeName) const override;
     virtual double getAttributeValue(const std::string& attributeName) const override;
 
-    virtual std::shared_ptr<readerElement> firstChild() const override;
-    virtual std::shared_ptr<readerElement> firstChild(const std::string& childName) const override;
+    virtual std::shared_ptr<ReaderElement> firstChild() const override;
+    virtual std::shared_ptr<ReaderElement> firstChild(const std::string& childName) const override;
 
     virtual void moveToNextSibling() override;
     virtual void moveToNextSibling(const std::string& siblingName) override;
@@ -51,8 +51,8 @@ class iniReaderElement: public readerElement {
 
     virtual void moveToParent() override;
 
-    virtual std::shared_ptr<readerElement> nextSibling() const override;
-    virtual std::shared_ptr<readerElement>
+    virtual std::shared_ptr<ReaderElement> nextSibling() const override;
+    virtual std::shared_ptr<ReaderElement>
         nextSibling(const std::string& siblingName) const override;
 
     virtual void bookmark() override;
@@ -62,7 +62,7 @@ class iniReaderElement: public readerElement {
     void clear();
 
   private:
-    std::shared_ptr<gridDynINIReader> mDoc;  //!< document root
+    std::shared_ptr<GridDynIniReader> mDoc;  //!< document root
     std::string mCurrentSection;
     size_t mIteratorIndex = 0;
     size_t mSectionIndex = 0;

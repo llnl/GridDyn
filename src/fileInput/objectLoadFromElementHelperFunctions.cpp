@@ -13,7 +13,7 @@
 #include <string>
 
 namespace griddyn {
-CoreObject* getParent(std::shared_ptr<readerElement>& element,
+CoreObject* getParent(std::shared_ptr<ReaderElement>& element,
                       ReaderInfo& ReaderInformation,
                       CoreObject* parentObject,
                       const std::string& alternateName)

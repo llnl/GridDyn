@@ -12,9 +12,9 @@
 #include <string>
 
 namespace griddyn::events {
-reversibleEvent::reversibleEvent(const std::string& eventName): Event(eventName) {}
-reversibleEvent::reversibleEvent(coreTime time0): Event(time0) {}
-reversibleEvent::reversibleEvent(const EventInfo& gdEI, CoreObject* rootObject):
+ReversibleEvent::ReversibleEvent(const std::string& eventName): Event(eventName) {}
+ReversibleEvent::ReversibleEvent(coreTime time0): Event(time0) {}
+ReversibleEvent::ReversibleEvent(const EventInfo& gdEI, CoreObject* rootObject):
     Event(gdEI, rootObject)
 {
     grabber = createGrabber(field, m_obj);
@@ -22,7 +22,7 @@ reversibleEvent::reversibleEvent(const EventInfo& gdEI, CoreObject* rootObject):
     canUndo = grabber->loaded;
 }
 
-void reversibleEvent::updateEvent(const EventInfo& gdEI, CoreObject* rootObject)
+void ReversibleEvent::updateEvent(const EventInfo& gdEI, CoreObject* rootObject)
 {
     Event::updateEvent(gdEI, rootObject);
     grabber = createGrabber(field, m_obj);
@@ -30,19 +30,19 @@ void reversibleEvent::updateEvent(const EventInfo& gdEI, CoreObject* rootObject)
     canUndo = grabber->loaded;
 }
 
-reversibleEvent::~reversibleEvent() = default;
+ReversibleEvent::~ReversibleEvent() = default;
 
-std::unique_ptr<Event> reversibleEvent::clone() const
+std::unique_ptr<Event> ReversibleEvent::clone() const
 {
-    std::unique_ptr<Event> upE = std::make_unique<reversibleEvent>(getName());
+    std::unique_ptr<Event> upE = std::make_unique<ReversibleEvent>(getName());
     cloneTo(upE.get());
     return upE;
 }
 
-void reversibleEvent::cloneTo(Event* evnt) const
+void ReversibleEvent::cloneTo(Event* evnt) const
 {
     Event::cloneTo(evnt);
-    auto* newEvent = dynamic_cast<reversibleEvent*>(evnt);
+    auto* newEvent = dynamic_cast<ReversibleEvent*>(evnt);
     if (newEvent == nullptr) {
         return;
     }
@@ -52,7 +52,7 @@ void reversibleEvent::cloneTo(Event* evnt) const
 }
 
 // virtual void updateEvent(EventInfo &gdEI, CoreObject *rootObject) override;
-ChangeCode reversibleEvent::trigger()
+ChangeCode ReversibleEvent::trigger()
 {
     if (canUndo) {
         undoValue = grabber->grabData();
@@ -76,7 +76,7 @@ ChangeCode reversibleEvent::trigger()
     }
 }
 
-ChangeCode reversibleEvent::trigger(coreTime time)
+ChangeCode ReversibleEvent::trigger(coreTime time)
 {
     if (canUndo) {
         undoValue = grabber->grabData();
@@ -103,7 +103,7 @@ ChangeCode reversibleEvent::trigger(coreTime time)
     return Event::trigger(time);
 }
 
-bool reversibleEvent::setTarget(CoreObject* gdo, std::string_view var)
+bool ReversibleEvent::setTarget(CoreObject* gdo, std::string_view var)
 {
     auto res = Event::setTarget(gdo, var);
     if (grabber) {
@@ -118,12 +118,12 @@ bool reversibleEvent::setTarget(CoreObject* gdo, std::string_view var)
     return res;
 }
 
-void reversibleEvent::updateStringValue(const std::string& newStr)
+void ReversibleEvent::updateStringValue(const std::string& newStr)
 {
     newStringValue = newStr;
 }
 
-void reversibleEvent::updateObject(CoreObject* gco, ObjectUpdateMode mode)
+void ReversibleEvent::updateObject(CoreObject* gco, ObjectUpdateMode mode)
 {
     Event::updateObject(gco, mode);
     if (grabber) {
@@ -131,7 +131,7 @@ void reversibleEvent::updateObject(CoreObject* gco, ObjectUpdateMode mode)
     }
 }
 
-ChangeCode reversibleEvent::undo()
+ChangeCode ReversibleEvent::undo()
 {
     if (hasUndo) {
         setValue(undoValue);
@@ -141,7 +141,7 @@ ChangeCode reversibleEvent::undo()
     return ChangeCode::NOT_TRIGGERED;
 }
 
-double reversibleEvent::query()
+double ReversibleEvent::query()
 {
     return (grabber) ? (grabber->grabData()) : kNullVal;
 }

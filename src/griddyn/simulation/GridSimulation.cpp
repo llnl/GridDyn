@@ -29,7 +29,7 @@ namespace griddyn {
 GridSimulation::GridSimulation(const std::string& objName):
     GridArea(objName), simulationTime(timeZero)
 {
-    EvQ = std::make_unique<eventQueue>();
+    EvQ = std::make_unique<EventQueue>();
 #ifdef ENABLE_MULTITHREADING
     gridLog = std::make_unique<helics::Logger>();
 #else
@@ -94,7 +94,7 @@ void GridSimulation::add(std::shared_ptr<Event> evnt)
     EvQ->insert(std::move(evnt));
 }
 
-void GridSimulation::add(std::shared_ptr<eventAdapter> eA)
+void GridSimulation::add(std::shared_ptr<EventAdapter> eA)
 {
     EvQ->insert(std::move(eA));
 }

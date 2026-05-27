@@ -23,7 +23,7 @@ using gmlc::utilities::convertToLowerCase;
 using gmlc::utilities::numeric_conversion;
 
 void loadElementInformation(CoreObject* obj,
-                            std::shared_ptr<readerElement>& element,
+                            std::shared_ptr<ReaderElement>& element,
                             const std::string& objectName,
                             ReaderInfo& ReaderInfoRef,
                             const IgnoreListType& ignoreList)
@@ -41,7 +41,7 @@ void loadElementInformation(CoreObject* obj,
 static void checkForEndUnits(GridParameter& param, const std::string& parameterString);
 
 static constexpr char importString[] = "import";
-void readImports(std::shared_ptr<readerElement>& element,
+void readImports(std::shared_ptr<ReaderElement>& element,
                  ReaderInfo& ReaderInformation,
                  CoreObject* parentObject,
                  bool finalFlag)
@@ -112,7 +112,7 @@ void readImports(std::shared_ptr<readerElement>& element,
 static constexpr char unitString1[] = "units";
 static constexpr char unitString2[] = "unit";
 
-static units::unit readUnits(const std::shared_ptr<readerElement>& element,
+static units::unit readUnits(const std::shared_ptr<ReaderElement>& element,
                              const std::string& field)
 {
     std::string uname = element->getAttributeText(unitString1);
@@ -144,14 +144,14 @@ static units::unit readUnits(const std::shared_ptr<readerElement>& element,
 
 static constexpr char valueString[] = "value";
 
-GridParameter getElementParam(const std::shared_ptr<readerElement>& element)
+GridParameter getElementParam(const std::shared_ptr<ReaderElement>& element)
 {
     GridParameter param;
     getElementParam(element, param);
     return param;
 }
 
-void getElementParam(const std::shared_ptr<readerElement>& element, GridParameter& param)
+void getElementParam(const std::shared_ptr<ReaderElement>& element, GridParameter& param)
 {
     param.paramUnits = units::defunit;
     param.valid = false;
@@ -250,7 +250,7 @@ static bool isXmlNamespaceAttribute(const std::string& fieldName)
 }
 
 void objSetAttributes(CoreObject* obj,
-                      std::shared_ptr<readerElement>& element,
+                      std::shared_ptr<ReaderElement>& element,
                       const std::string& component,
                       ReaderInfo& ReaderInfoRef,
                       const IgnoreListType& ignoreList)
@@ -321,7 +321,7 @@ void objSetAttributes(CoreObject* obj,
 }
 
 void paramLoopElement(CoreObject* obj,
-                      std::shared_ptr<readerElement>& element,
+                      std::shared_ptr<ReaderElement>& element,
                       const std::string& component,
                       ReaderInfo& ReaderInfoRef,
                       const IgnoreListType& ignoreList)
@@ -377,7 +377,7 @@ void paramLoopElement(CoreObject* obj,
     element->moveToParent();
 }
 
-void readConfigurationFields(std::shared_ptr<readerElement>& sim, ReaderInfo& /*ReaderInfoRef*/)
+void readConfigurationFields(std::shared_ptr<ReaderElement>& sim, ReaderInfo& /*ReaderInfoRef*/)
 {
     if (sim->hasElement("configuration")) {
         sim->bookmark();
@@ -426,7 +426,7 @@ void readConfigurationFields(std::shared_ptr<readerElement>& sim, ReaderInfo& /*
 }
 
 void setAttributes(HelperObject* obj,
-                   std::shared_ptr<readerElement>& element,
+                   std::shared_ptr<ReaderElement>& element,
                    const std::string& component,
                    ReaderInfo& ReaderInfoRef,
                    const IgnoreListType& ignoreList)
@@ -490,7 +490,7 @@ void setAttributes(HelperObject* obj,
 }
 
 void setParams(HelperObject* obj,
-               std::shared_ptr<readerElement>& element,
+               std::shared_ptr<ReaderElement>& element,
                const std::string& component,
                ReaderInfo& ReaderInfoRef,
                const IgnoreListType& ignoreList)

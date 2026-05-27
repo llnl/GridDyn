@@ -13,15 +13,15 @@
 
 const double readerNullVal(-1.345e48);
 /** @brief simple class for containing an attribute */
-class readerAttribute {
+class ReaderAttribute {
   private:
     std::string mName;
     std::string mText;
 
   public:
-    readerAttribute();
-    readerAttribute(std::string attName, std::string attText);
-    readerAttribute(std::string_view attName, std::string_view attText);
+    ReaderAttribute();
+    ReaderAttribute(std::string attName, std::string attText);
+    ReaderAttribute(std::string_view attName, std::string_view attText);
     void set(std::string_view attName, std::string_view attText);
     const std::string& getName() const { return mName; }
     const std::string& getText() const { return mText; }
@@ -30,22 +30,22 @@ class readerAttribute {
     bool isValid() const { return (!mName.empty()); }
 };
 
-class elementParseException: public std::exception {
+class ElementParseException: public std::exception {
   private:
     std::string mErrorString = "parse error\n";
 
   public:
-    explicit elementParseException(std::string_view str): mErrorString(str) {}
+    explicit ElementParseException(std::string_view str): mErrorString(str) {}
     const char* what() const noexcept override { return mErrorString.c_str(); }
 };
 
 /** @brief class for wrapping various document readers for use in the reader function for
- abstracting various file types readerElement is a abstract virtual class requiring an instantiation
+ abstracting various file types ReaderElement is a abstract virtual class requiring an instantiation
  for implementation
 */
-class readerElement {
+class ReaderElement {
   public:
-    virtual ~readerElement() = 0;
+    virtual ~ReaderElement() = 0;
     /** @brief load a file into the element
     @param[in] fileName the file to load
     @return true if the file was loaded successfully
@@ -58,7 +58,7 @@ class readerElement {
     */
     virtual bool parse(const std::string& inputString) = 0;
     /** @brief copy to the element to a new shared ptr object*/
-    virtual std::shared_ptr<readerElement> clone() const = 0;
+    virtual std::shared_ptr<ReaderElement> clone() const = 0;
 
     virtual std::string getName() const = 0;
     virtual double getValue() const = 0;
@@ -70,14 +70,14 @@ class readerElement {
 
     virtual bool hasAttribute(const std::string& attributeName) const = 0;
     virtual bool hasElement(const std::string& elementName) const = 0;
-    virtual readerAttribute getFirstAttribute() = 0;
-    virtual readerAttribute getNextAttribute() = 0;
-    virtual readerAttribute getAttribute(const std::string& attributeName) const = 0;
+    virtual ReaderAttribute getFirstAttribute() = 0;
+    virtual ReaderAttribute getNextAttribute() = 0;
+    virtual ReaderAttribute getAttribute(const std::string& attributeName) const = 0;
     virtual std::string getAttributeText(const std::string& attributeName) const = 0;
     virtual double getAttributeValue(const std::string& attributeName) const = 0;
 
-    virtual std::shared_ptr<readerElement> firstChild() const = 0;
-    virtual std::shared_ptr<readerElement> firstChild(const std::string& childName) const = 0;
+    virtual std::shared_ptr<ReaderElement> firstChild() const = 0;
+    virtual std::shared_ptr<ReaderElement> firstChild(const std::string& childName) const = 0;
 
     virtual void moveToNextSibling() = 0;
     virtual void moveToNextSibling(const std::string& siblingName) = 0;
@@ -87,8 +87,8 @@ class readerElement {
 
     virtual void moveToParent() = 0;
 
-    virtual std::shared_ptr<readerElement> nextSibling() const = 0;
-    virtual std::shared_ptr<readerElement> nextSibling(const std::string& siblingName) const = 0;
+    virtual std::shared_ptr<ReaderElement> nextSibling() const = 0;
+    virtual std::shared_ptr<ReaderElement> nextSibling(const std::string& siblingName) const = 0;
     /** check if the current element is valid
      *@return true if valid false otherwise
      */

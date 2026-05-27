@@ -12,28 +12,28 @@
 
 using gmlc::utilities::numeric_conversion;
 
-readerAttribute::readerAttribute() = default;
-readerAttribute::readerAttribute(std::string attName, std::string attText):
+ReaderAttribute::ReaderAttribute() = default;
+ReaderAttribute::ReaderAttribute(std::string attName, std::string attText):
     mName(std::move(attName)), mText(std::move(attText))
 {
 }
-readerAttribute::readerAttribute(std::string_view attName, std::string_view attText):
+ReaderAttribute::ReaderAttribute(std::string_view attName, std::string_view attText):
     mName(attName), mText(attText)
 {
 }
-void readerAttribute::set(std::string_view attName, std::string_view attText)
+void ReaderAttribute::set(std::string_view attName, std::string_view attText)
 {
     mName = attName;
     mText = attText;
 }
 
-double readerAttribute::getValue() const
+double ReaderAttribute::getValue() const
 {
     return numeric_conversion<double>(mText, readerNullVal);
 }
 constexpr int64_t nullLong = static_cast<int64_t>(0x8000'0000'0000'0000);
-int64_t readerAttribute::getInt() const
+int64_t ReaderAttribute::getInt() const
 {
     return numeric_conversion<int64_t>(mText, nullLong);
 }
-readerElement::~readerElement() = default;
+ReaderElement::~ReaderElement() = default;

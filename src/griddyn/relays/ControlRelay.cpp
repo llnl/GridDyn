@@ -148,7 +148,7 @@ void controlRelay::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMe
                     fea->execute(prevTime);  // just execute the event immediately
                 } else {
                     auto fea = generateSetEvent(prevTime + actionDelay, sourceID, m);
-                    rootSim->add(std::shared_ptr<eventAdapter>(std::move(fea)));
+                    rootSim->add(std::shared_ptr<EventAdapter>(std::move(fea)));
                 }
             } else {
                 auto gres = std::make_shared<commMessage>(cm::SET_SCHEDULED);
@@ -158,7 +158,7 @@ void controlRelay::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMe
                 commLink->transmit(sourceID, std::move(gres));
                 // make the event
                 auto fea = generateSetEvent(m->m_time, sourceID, m);
-                rootSim->add(std::shared_ptr<eventAdapter>(std::move(fea)));
+                rootSim->add(std::shared_ptr<EventAdapter>(std::move(fea)));
             }
             break;
         case cm::GET:
@@ -169,7 +169,7 @@ void controlRelay::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMe
                     fea->execute(prevTime);  // just execute the event immediately
                 } else {
                     auto fea = generateGetEvent(m->m_time + measureDelay, sourceID, m);
-                    rootSim->add(std::shared_ptr<eventAdapter>(std::move(fea)));
+                    rootSim->add(std::shared_ptr<EventAdapter>(std::move(fea)));
                 }
             } else {
                 auto gres = std::make_shared<commMessage>(cm::SET_SCHEDULED);
@@ -177,7 +177,7 @@ void controlRelay::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMe
                     (m->m_actionID > 0) ? m->m_actionID : instructionCounter;
                 commLink->transmit(sourceID, std::move(gres));
                 auto fea = generateGetEvent(m->m_time, sourceID, m);
-                rootSim->add(std::shared_ptr<eventAdapter>(std::move(fea)));
+                rootSim->add(std::shared_ptr<EventAdapter>(std::move(fea)));
             }
             break;
         case cm::GET_MULTIPLE:
@@ -334,7 +334,7 @@ void controlRelay::updateObject(CoreObject* obj, ObjectUpdateMode mode)
     }
 }
 
-std::unique_ptr<functionEventAdapter>
+std::unique_ptr<FunctionEventAdapter>
     controlRelay::generateGetEvent(coreTime eventTime, std::uint64_t sourceID, cm* message)
 {
     auto act = getFreeAction();
@@ -348,14 +348,14 @@ std::unique_ptr<functionEventAdapter>
     if (!(message->m_units.empty())) {
         actions[act].unitType = units::unit_cast_from_string(message->m_units);
     }
-    auto fea = std::make_unique<functionEventAdapter>([act, this]() { return executeAction(act); },
+    auto fea = std::make_unique<FunctionEventAdapter>([act, this]() { return executeAction(act); },
                                                       eventTime);
     /** this is so the get event triggers last*/
     fea->setExecutionMode(EventExecutionMode::delayed);
     return fea;
 }
 
-std::unique_ptr<functionEventAdapter>
+std::unique_ptr<FunctionEventAdapter>
     controlRelay::generateSetEvent(coreTime eventTime, std::uint64_t sourceID, cm* message)
 {
     auto act = getFreeAction();
@@ -372,7 +372,7 @@ std::unique_ptr<functionEventAdapter>
         actions[act].unitType = units::unit_cast_from_string(message->m_units);
     }
 
-    auto fea = std::make_unique<functionEventAdapter>([act, this]() { return executeAction(act); },
+    auto fea = std::make_unique<FunctionEventAdapter>([act, this]() { return executeAction(act); },
                                                       eventTime);
     return fea;
 }

@@ -135,12 +135,12 @@ void Relay::add(std::shared_ptr<Condition> gc)
 
 void Relay::add(std::shared_ptr<Event> ge)
 {
-    actions.emplace_back(std::make_shared<eventTypeAdapter<std::shared_ptr<Event>>>(std::move(ge)));
+    actions.emplace_back(std::make_shared<EventTypeAdapter<std::shared_ptr<Event>>>(std::move(ge)));
 }
 /**
  *add an EventAdapter to the system
  **/
-void Relay::add(std::shared_ptr<eventAdapter> geA)
+void Relay::add(std::shared_ptr<EventAdapter> geA)
 {
     actions.emplace_back(std::move(geA));
 }
@@ -292,7 +292,7 @@ std::shared_ptr<Condition> Relay::getCondition(index_t conditionNumber)
     return nullptr;
 }
 
-std::shared_ptr<eventAdapter> Relay::getAction(index_t actionNumber)
+std::shared_ptr<EventAdapter> Relay::getAction(index_t actionNumber)
 {
     if (isValidIndex(actionNumber, actions)) {
         return actions[actionNumber];
@@ -304,13 +304,13 @@ void Relay::updateAction(std::shared_ptr<Event> ge, index_t actionNumber)
 {
     if (isValidIndex(actionNumber, actions)) {
         actions[actionNumber] =
-            std::make_shared<eventTypeAdapter<std::shared_ptr<Event>>>(std::move(ge));
+            std::make_shared<EventTypeAdapter<std::shared_ptr<Event>>>(std::move(ge));
     } else {
         throw(InvalidParameterValue("actionNumber"));
     }
 }
 
-void Relay::updateAction(std::shared_ptr<eventAdapter> geA, index_t actionNumber)
+void Relay::updateAction(std::shared_ptr<EventAdapter> geA, index_t actionNumber)
 {
     if (isValidIndex(actionNumber, actions)) {
         actions[actionNumber] = std::move(geA);
@@ -344,7 +344,7 @@ void Relay::set(std::string_view param, std::string_view val)
             auto e = make_alarm(std::string{val});
             if (e) {
                 isAlarm = true;
-                add(std::shared_ptr<eventAdapter>(std::move(e)));
+                add(std::shared_ptr<EventAdapter>(std::move(e)));
             }
         }
         if (!isAlarm) {
@@ -696,7 +696,7 @@ void Relay::clearCondChecks(index_t conditionNumber)
     }
 }
 
-std::unique_ptr<eventAdapter> Relay::make_alarm(const std::string& val)
+std::unique_ptr<EventAdapter> Relay::make_alarm(const std::string& val)
 {
     auto lc = gmlc::utilities::convertToLowerCase(val);
     if (lc.compare(0, 5, "alarm") == 0) {
@@ -705,7 +705,7 @@ std::unique_ptr<eventAdapter> Relay::make_alarm(const std::string& val)
         if (code == std::uint32_t(-1)) {
             code = getAlarmCode(codeStr);
         }
-        return std::make_unique<functionEventAdapter>([this, code]() {
+        return std::make_unique<FunctionEventAdapter>([this, code]() {
             try {
                 sendAlarm(code);
                 return ChangeCode::NO_CHANGE;

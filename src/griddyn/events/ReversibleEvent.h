@@ -14,7 +14,7 @@ namespace griddyn {
 class gridGrabber;
 namespace events {
     /** an event that allows undoing,  it is a grabber and event rolled into one */
-    class reversibleEvent: public Event {
+    class ReversibleEvent: public Event {
       protected:
         bool canUndo = false;  //!< flag indicating that the event is capable of undoing
         bool hasUndo = false;  //!< flag indicating that the event has an undo value
@@ -24,11 +24,11 @@ namespace events {
         std::string undoString;  //!< the previous value for a string
         std::string newStringValue;  //!< the new value to set for a string
       public:
-        explicit reversibleEvent(const std::string& eventName);
-        explicit reversibleEvent(coreTime time0 = 0.0);
-        reversibleEvent(const EventInfo& gdEI, CoreObject* rootObject);
+        explicit ReversibleEvent(const std::string& eventName);
+        explicit ReversibleEvent(coreTime time0 = 0.0);
+        ReversibleEvent(const EventInfo& gdEI, CoreObject* rootObject);
         virtual void updateEvent(const EventInfo& gdEI, CoreObject* rootObject) override;
-        virtual ~reversibleEvent();
+        virtual ~ReversibleEvent();
         virtual std::unique_ptr<Event> clone() const override;
 
         virtual void cloneTo(Event* evnt) const override;

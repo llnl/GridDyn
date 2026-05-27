@@ -413,7 +413,7 @@ bool GridDynSimulation::loadBalance(double prevPower, const std::vector<double>&
 
 void GridDynSimulation::continuationPowerFlow(std::string_view contName)
 {
-    std::shared_ptr<continuationSequence> continuation;
+    std::shared_ptr<ContinuationSequence> continuation;
     for (auto& clN : continList) {
         if (contName == clN->name) {
             continuation = clN;

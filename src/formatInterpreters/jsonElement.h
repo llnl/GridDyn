@@ -10,15 +10,15 @@
 #include <cstddef>
 #include <string>
 
-class jsonElement {
+class JsonElement {
   public:
     using JsonValue = nlohmann::json;
 
     std::size_t mElementIndex = 0;
     std::string mName;
     std::size_t mArrayIndex = 0;
-    jsonElement() noexcept {}
-    jsonElement(JsonValue vElement, std::string newName);
+    JsonElement() noexcept {}
+    JsonElement(JsonValue vElement, std::string newName);
 
     void clear();
     const JsonValue& getElement() const { return (mArrayType) ? mElement[mArrayIndex] : mElement; }

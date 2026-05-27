@@ -14,14 +14,14 @@
 #include <string_view>
 
 namespace griddyn {
-parameterOperator::parameterOperator() = default;
-parameterOperator::parameterOperator(GridComponent* target, const std::string& field):
+ParameterOperator::ParameterOperator() = default;
+ParameterOperator::ParameterOperator(GridComponent* target, const std::string& field):
     m_field(field), comp(target)
 {
     checkField();
 }
 
-void parameterOperator::setTarget(GridComponent* target, const std::string& field)
+void ParameterOperator::setTarget(GridComponent* target, const std::string& field)
 {
     if (!field.empty()) {
         m_field = field;
@@ -32,7 +32,7 @@ void parameterOperator::setTarget(GridComponent* target, const std::string& fiel
     checkField();
 }
 
-void parameterOperator::updateObject(CoreObject* target, ObjectUpdateMode mode)
+void ParameterOperator::updateObject(CoreObject* target, ObjectUpdateMode mode)
 {
     if (mode == ObjectUpdateMode::DIRECT) {
         auto* nobj = dynamic_cast<GridComponent*>(target);
@@ -49,7 +49,7 @@ void parameterOperator::updateObject(CoreObject* target, ObjectUpdateMode mode)
     }
 }
 
-void parameterOperator::setParameter(double val)
+void ParameterOperator::setParameter(double val)
 {
     if (parameterIndex == kNullLocation) {
         comp->set(m_field, val);
@@ -58,26 +58,26 @@ void parameterOperator::setParameter(double val)
     comp->setParameter(parameterIndex, val);
 }
 
-double parameterOperator::getParameter() const
+double ParameterOperator::getParameter() const
 {
     if (parameterIndex == kNullLocation) {
         return comp->get(m_field);
     }
     return comp->getParameter(parameterIndex);
 }
-CoreObject* parameterOperator::getObject() const
+CoreObject* ParameterOperator::getObject() const
 {
     return comp;
 }
 
-void parameterOperator::getObjects(std::vector<CoreObject*>& objects) const
+void ParameterOperator::getObjects(std::vector<CoreObject*>& objects) const
 {
     objects.push_back(comp);
 }
 
-void parameterOperator::checkField() {}
+void ParameterOperator::checkField() {}
 
-std::unique_ptr<parameterOperator> make_parameterOperator(std::string_view param,
+std::unique_ptr<ParameterOperator> make_parameterOperator(std::string_view param,
                                                           GridComponent* rootObject)
 {
     using gmlc::utilities::string_viewOps::trim;
@@ -92,7 +92,7 @@ std::unique_ptr<parameterOperator> make_parameterOperator(std::string_view param
     }
     const ObjectInfo objectInfo(std::string{paramS}, rootObject);
 
-    auto pop = std::make_unique<parameterOperator>(dynamic_cast<GridComponent*>(objectInfo.mObject),
+    auto pop = std::make_unique<ParameterOperator>(dynamic_cast<GridComponent*>(objectInfo.mObject),
                                                    objectInfo.mField);
     if (!rname.empty()) {
         pop->setName(rname);
@@ -100,12 +100,12 @@ std::unique_ptr<parameterOperator> make_parameterOperator(std::string_view param
     return pop;
 }
 
-index_t parameterSet::add(const std::string& paramString, GridComponent* rootObject)
+index_t ParameterSet::add(const std::string& paramString, GridComponent* rootObject)
 {
     params.push_back(make_parameterOperator(paramString, rootObject));
     return static_cast<index_t>(params.size()) - 1;
 }
-parameterOperator* parameterSet::operator[](index_t index)
+ParameterOperator* ParameterSet::operator[](index_t index)
 {
     return params[index].get();
 }

@@ -14,7 +14,7 @@
 #include <vector>
 
 /** @brief class defines a reader element backed by pugixml. */
-class XmlReaderElement: public readerElement {
+class XmlReaderElement: public ReaderElement {
   public:
     XmlReaderElement();
     explicit XmlReaderElement(const std::string& fileName);
@@ -23,7 +23,7 @@ class XmlReaderElement: public readerElement {
 
     ~XmlReaderElement() override;
 
-    std::shared_ptr<readerElement> clone() const override;
+    std::shared_ptr<ReaderElement> clone() const override;
 
     bool isValid() const override;
     bool isDocument() const override;
@@ -40,14 +40,14 @@ class XmlReaderElement: public readerElement {
     bool hasAttribute(const std::string& attributeName) const override;
     bool hasElement(const std::string& elementName) const override;
 
-    readerAttribute getFirstAttribute() override;
-    readerAttribute getNextAttribute() override;
-    readerAttribute getAttribute(const std::string& attributeName) const override;
+    ReaderAttribute getFirstAttribute() override;
+    ReaderAttribute getNextAttribute() override;
+    ReaderAttribute getAttribute(const std::string& attributeName) const override;
     std::string getAttributeText(const std::string& attributeName) const override;
     double getAttributeValue(const std::string& attributeName) const override;
 
-    std::shared_ptr<readerElement> firstChild() const override;
-    std::shared_ptr<readerElement> firstChild(const std::string& childName) const override;
+    std::shared_ptr<ReaderElement> firstChild() const override;
+    std::shared_ptr<ReaderElement> firstChild(const std::string& childName) const override;
 
     void moveToNextSibling() override;
     void moveToNextSibling(const std::string& siblingName) override;
@@ -57,8 +57,8 @@ class XmlReaderElement: public readerElement {
 
     void moveToParent() override;
 
-    std::shared_ptr<readerElement> nextSibling() const override;
-    std::shared_ptr<readerElement> nextSibling(const std::string& siblingName) const override;
+    std::shared_ptr<ReaderElement> nextSibling() const override;
+    std::shared_ptr<ReaderElement> nextSibling(const std::string& siblingName) const override;
 
     void bookmark() override;
     void restore() override;

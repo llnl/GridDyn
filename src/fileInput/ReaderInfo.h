@@ -8,7 +8,7 @@
 
 // forward declarations
 // NOLINTNEXTLINE(readability-identifier-naming)
-class readerElement;
+class ReaderElement;
 // NOLINTNEXTLINE(readability-identifier-naming)
 class gridGrabberInfo;
 
@@ -77,7 +77,7 @@ class ReaderInfo: public BasicReaderInfo {
     std::unordered_map<std::string, std::pair<CoreObject*, std::vector<GridParameter>>>
         library;  //!< library objects
     std::unordered_map<std::string, std::string> lockDefines;  //!< locked definitions
-    std::unordered_map<std::string, std::pair<std::shared_ptr<readerElement>, int>>
+    std::unordered_map<std::string, std::pair<std::shared_ptr<ReaderElement>, int>>
         customElements;  //!< custom objects
     scopeID currentScope = 0;  //!< identification of the current scope
     std::vector<std::tuple<scopeID, std::string, bool, std::string>>
@@ -187,7 +187,7 @@ class ReaderInfo: public BasicReaderInfo {
       @param[in] nargs the number of arguments the custom element has
     */
     void addCustomElement(const std::string& name,
-                          const std::shared_ptr<readerElement>& element,
+                          const std::shared_ptr<ReaderElement>& element,
                           int nargs);
 
     /** @brief  check if a string represents a custom object
@@ -201,7 +201,7 @@ class ReaderInfo: public BasicReaderInfo {
     @return a pair with a shared pointer to the custom object and an integer representing the number
     or arguments
     */
-    std::pair<std::shared_ptr<readerElement>, int> getCustomElement(const std::string& name) const;
+    std::pair<std::shared_ptr<ReaderElement>, int> getCustomElement(const std::string& name) const;
 
     /** @brief check and translate a string for definitions
      does a direct translation for any strings also interprets and translates to a string anything

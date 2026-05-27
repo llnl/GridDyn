@@ -34,15 +34,15 @@ namespace events {
     static ChildClassFactory<Player, Event>
         gPlayerFactory(std::vector<std::string>{"player", "timeseries", "file"});
 
-    static ChildClassFactory<compoundEvent, Event>
+    static ChildClassFactory<CompoundEvent, Event>
         gCompoundEventFactory(std::vector<std::string>{"multi", "compound"});
 
-    static ChildClassFactory<compoundEventPlayer, Event> gCompoundEventPlayerFactory(
+    static ChildClassFactory<CompoundEventPlayer, Event> gCompoundEventPlayerFactory(
         std::vector<std::string>{"compoundplayer", "multifile", "multiplayer"});
 
-    static ChildClassFactory<interpolatingPlayer, Event> gInterpolatingPlayerFactory(
+    static ChildClassFactory<InterpolatingPlayer, Event> gInterpolatingPlayerFactory(
         std::vector<std::string>{"interpolating", "interp", "interpolated"});
-    static ChildClassFactory<reversibleEvent, Event>
+    static ChildClassFactory<ReversibleEvent, Event>
         gReversibleEventFactory(std::vector<std::string>{"reversible", "undo", "rollback"});
 }  // namespace events
 
@@ -467,19 +467,19 @@ std::unique_ptr<Event> make_event(EventInfo& gdEI, CoreObject* rootObject)
             eventObject = std::make_unique<Event>(gdEI, rootObject);
             break;
         case EventType::COMPOUND:
-            eventObject = std::make_unique<events::compoundEvent>(gdEI, rootObject);
+            eventObject = std::make_unique<events::CompoundEvent>(gdEI, rootObject);
             break;
         case EventType::PLAYER:
             eventObject = std::make_unique<events::Player>(gdEI, rootObject);
             break;
         case EventType::COMPOUND_PLAYER:
-            eventObject = std::make_unique<events::compoundEventPlayer>(gdEI, rootObject);
+            eventObject = std::make_unique<events::CompoundEventPlayer>(gdEI, rootObject);
             break;
         case EventType::INTERPOLATING:
-            eventObject = std::make_unique<events::interpolatingPlayer>(gdEI, rootObject);
+            eventObject = std::make_unique<events::InterpolatingPlayer>(gdEI, rootObject);
             break;
         case EventType::REVERSIBLE:
-            eventObject = std::make_unique<events::reversibleEvent>(gdEI, rootObject);
+            eventObject = std::make_unique<events::ReversibleEvent>(gdEI, rootObject);
             break;
         case EventType::TOGGLE:
             break;

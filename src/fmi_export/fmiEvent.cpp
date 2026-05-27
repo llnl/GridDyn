@@ -12,13 +12,13 @@
 
 namespace griddyn::fmi {
 FmiEvent::FmiEvent(const std::string& newName, FmiEventType type):
-    reversibleEvent(newName), mEventType(type)
+    ReversibleEvent(newName), mEventType(type)
 {
 }
 
 FmiEvent::FmiEvent(FmiEventType type): mEventType(type) {}
 
-FmiEvent::FmiEvent(const EventInfo& gdEI, CoreObject* rootObject): reversibleEvent(gdEI, rootObject)
+FmiEvent::FmiEvent(const EventInfo& gdEI, CoreObject* rootObject): ReversibleEvent(gdEI, rootObject)
 {
     findCoordinator();
 }
@@ -32,7 +32,7 @@ std::unique_ptr<Event> FmiEvent::clone() const
 
 void FmiEvent::cloneTo(Event* evnt) const
 {
-    reversibleEvent::cloneTo(evnt);
+    ReversibleEvent::cloneTo(evnt);
     auto* fmiEventClone = dynamic_cast<FmiEvent*>(evnt);
     if (fmiEventClone == nullptr) {
         return;
@@ -45,7 +45,7 @@ void FmiEvent::set(std::string_view param, double val)
     if ((param == "vr") || (param == "valuereference")) {
         // valueref = static_cast<unsigned int>(val);
     } else {
-        reversibleEvent::set(param, val);
+        ReversibleEvent::set(param, val);
     }
 }
 
@@ -60,19 +60,19 @@ void FmiEvent::set(std::string_view param, std::string_view val)
             stringEvent = false;
         }
     } else {
-        reversibleEvent::set(param, val);
+        ReversibleEvent::set(param, val);
     }
 }
 
 void FmiEvent::updateEvent(const EventInfo& gdEI, CoreObject* rootObject)
 {
-    reversibleEvent::updateEvent(gdEI, rootObject);
+    ReversibleEvent::updateEvent(gdEI, rootObject);
     findCoordinator();
 }
 
 bool FmiEvent::setTarget(CoreObject* gdo, std::string_view var)
 {
-    auto ret = reversibleEvent::setTarget(gdo, var);
+    auto ret = ReversibleEvent::setTarget(gdo, var);
     if (ret) {
         findCoordinator();
     }
@@ -86,7 +86,7 @@ CoreObject* FmiEvent::getOwner() const
 
 void FmiEvent::updateObject(CoreObject* gco, ObjectUpdateMode mode)
 {
-    reversibleEvent::updateObject(gco, mode);
+    ReversibleEvent::updateObject(gco, mode);
     findCoordinator();
 }
 

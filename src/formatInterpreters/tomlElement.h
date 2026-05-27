@@ -10,13 +10,13 @@
 #include <string>
 #include <toml11/types.hpp>
 
-class tomlElement {
+class TomlElement {
   public:
     std::size_t mElementIndex = 0;
     std::string mName;
     std::size_t mArrayIndex = 0;
-    tomlElement() = default;
-    tomlElement(toml::ordered_value vElement, std::string newName);
+    TomlElement() = default;
+    TomlElement(toml::ordered_value vElement, std::string newName);
 
     void clear();
     const toml::ordered_value& getElement() const;

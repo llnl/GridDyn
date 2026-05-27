@@ -13,16 +13,16 @@
 
 namespace griddyn::events {
 /** single event allowing multiple changes in multiple events at a single time point */
-class compoundEvent: public Event {
+class CompoundEvent: public Event {
   protected:
     stringVec fields;  //!< the vector of fields to modify
     std::vector<double> values;  //!< the vector of values to change to
     std::vector<units::unit> units;  //!< vector of units corresponding to the changes
     std::vector<CoreObject*> targetObjects;  //!< the set of objects to target
   public:
-    explicit compoundEvent(const std::string& eventName);
-    explicit compoundEvent(coreTime time0 = 0.0);
-    compoundEvent(const EventInfo& gdEI, CoreObject* rootObject);
+    explicit CompoundEvent(const std::string& eventName);
+    explicit CompoundEvent(coreTime time0 = 0.0);
+    CompoundEvent(const EventInfo& gdEI, CoreObject* rootObject);
     virtual std::unique_ptr<Event> clone() const override;
 
     virtual void cloneTo(Event* evnt) const override;

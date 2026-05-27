@@ -658,5 +658,3 @@ bool checkType(const VariableInformation& info, FmiVariableType type, FmiCausali
     }
     return false;
 }
-
-

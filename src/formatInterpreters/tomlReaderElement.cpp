@@ -478,5 +478,3 @@ bool isElement(const TomlValue& testValue)
 }
 
 }  // namespace
-
-

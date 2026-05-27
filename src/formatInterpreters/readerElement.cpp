@@ -37,5 +37,3 @@ int64_t ReaderAttribute::getInt() const
     return numeric_conversion<int64_t>(mText, nullLong);
 }
 ReaderElement::~ReaderElement() = default;
-
-

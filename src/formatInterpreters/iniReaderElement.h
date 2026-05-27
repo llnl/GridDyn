@@ -69,5 +69,3 @@ class IniReaderElement: public ReaderElement {
 
     std::vector<std::pair<std::string, size_t>> mBookmarks;
 };
-
-

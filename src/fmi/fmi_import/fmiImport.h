@@ -211,4 +211,3 @@ void loggerFunc(fmi2ComponentEnvironment /* compEnv */,
                 fmi2String /* category */,
                 fmi2String message,
                 ...);
-

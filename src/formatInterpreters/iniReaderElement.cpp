@@ -326,5 +326,3 @@ void IniReaderElement::restore()
     mSectionIndex = mBookmarks.back().second;
     mBookmarks.pop_back();
 }
-
-

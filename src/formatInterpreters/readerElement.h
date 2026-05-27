@@ -100,4 +100,3 @@ class ReaderElement {
     /** @brief restore the last bookmarked location */
     virtual void restore() = 0;
 };
-

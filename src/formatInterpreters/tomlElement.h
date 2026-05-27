@@ -27,4 +27,3 @@ class TomlElement {
     toml::ordered_value mElement;
     bool mArrayType = false;
 };
-

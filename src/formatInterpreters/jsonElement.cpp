@@ -38,5 +38,3 @@ void JsonElement::clear()
     mArrayType = false;
     mName = nullStr;
 }
-
-

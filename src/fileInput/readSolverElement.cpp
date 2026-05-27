@@ -97,4 +97,3 @@ void loadSolverElement(std::shared_ptr<ReaderElement>& element,
 }
 
 }  // namespace griddyn
-

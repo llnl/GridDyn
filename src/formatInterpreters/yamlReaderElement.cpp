@@ -427,5 +427,3 @@ void YamlReaderElement::restore()
     mCurrent = mBookmarks.back()->mCurrent;
     mBookmarks.pop_back();
 }
-
-

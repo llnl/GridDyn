@@ -32,4 +32,3 @@ class JsonElement {
     JsonValue mElement = nullptr;
     bool mArrayType = false;
 };
-

@@ -68,5 +68,3 @@ class TomlReaderElement: public ReaderElement {
 
     std::vector<std::shared_ptr<TomlReaderElement>> mBookmarks;
 };
-
-

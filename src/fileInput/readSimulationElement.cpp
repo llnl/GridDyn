@@ -178,4 +178,3 @@ namespace {
 }  // namespace
 
 }  // namespace griddyn
-

@@ -38,5 +38,3 @@ YAML::Node YamlElement::getElement() const
 {
     return (mArrayType) ? (mElement[mArrayIndex]) : mElement;
 }
-
-

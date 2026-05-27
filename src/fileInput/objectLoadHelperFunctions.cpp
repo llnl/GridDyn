@@ -62,5 +62,3 @@ void setIndex(std::shared_ptr<ReaderElement>& element,
 }
 
 }  // namespace griddyn
-
-

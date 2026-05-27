@@ -34,4 +34,3 @@ class YamlElement {
     YAML::Node mElement;  //!< pointer to the actual YAML element
     bool mArrayType = false;  //!< indicator if the element is a sequence
 };
-

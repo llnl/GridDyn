@@ -66,5 +66,3 @@ void TomlElement::clear()
     mArrayType = false;
     mName = nullStr;
 }
-
-

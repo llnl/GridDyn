@@ -463,5 +463,3 @@ const ignoreListType& ReaderInfo::getIgnoreList() const
     return parameterIgnoreStrings;
 }
 }  // namespace griddyn
-
-

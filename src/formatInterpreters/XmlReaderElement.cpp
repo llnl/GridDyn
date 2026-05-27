@@ -327,5 +327,3 @@ void XmlReaderElement::restore()
     mParent = mBookmarks.back().second;
     mBookmarks.pop_back();
 }
-
-

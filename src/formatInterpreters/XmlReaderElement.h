@@ -73,5 +73,3 @@ class XmlReaderElement: public ReaderElement {
   private:
     void clear();
 };
-
-

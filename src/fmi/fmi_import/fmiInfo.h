@@ -216,4 +216,3 @@ enum class FmuMode {
 };
 
 bool checkType(const VariableInformation& info, FmiVariableType type, FmiCausalityType caus);
-

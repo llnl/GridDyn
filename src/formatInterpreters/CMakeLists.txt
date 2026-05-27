@@ -54,6 +54,3 @@ set_target_properties(formatInterpreter PROPERTIES FOLDER libraries)
 install(FILES ${elementReader_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/griddyn
         COMPONENT headers
 )
-
-
-

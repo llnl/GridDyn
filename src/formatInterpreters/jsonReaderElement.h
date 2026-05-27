@@ -70,5 +70,3 @@ class JsonReaderElement: public ReaderElement {
 
     std::vector<std::shared_ptr<JsonReaderElement>> mBookmarks;
 };
-
-

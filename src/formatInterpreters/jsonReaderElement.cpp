@@ -494,5 +494,3 @@ bool isElement(const JsonValue& testValue)
 }
 
 }  // namespace
-
-

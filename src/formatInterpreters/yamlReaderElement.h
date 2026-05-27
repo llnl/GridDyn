@@ -71,5 +71,3 @@ class YamlReaderElement: public ReaderElement {
     int mIteratorCount = 0;
     std::vector<std::shared_ptr<YamlReaderElement>> mBookmarks;
 };
-
-

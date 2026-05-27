@@ -106,7 +106,7 @@ void idaInterface::allocate(count_t stateCount, count_t numRoots)
         IDAFree(&(solverMem));
     }
     solverMem = IDACreate(sunctx);
-    check_flag(solverMem, "IDACreate", 0);
+    checkFlag(solverMem, "IDACreate", 0);
 
     sundialsInterface::allocate(stateCount, numRoots);
 }
@@ -124,7 +124,7 @@ void idaInterface::set(std::string_view param, double val)
     if (param == "maxiterations") {
         max_iterations = static_cast<count_t>(val);
         int retval = IDASetMaxNumSteps(solverMem, max_iterations);
-        check_flag(&retval, "IDASetMaxNumSteps", 1);
+        checkFlag(&retval, "IDASetMaxNumSteps", 1);
     } else {
         sundialsInterface::set(param, val);
     }
@@ -162,32 +162,32 @@ void idaInterface::logSolverStats(PrintLevel logLevel, bool iconly) const
     std::string logstr;
 
     int retval = IDAGetNumResEvals(solverMem, &nre);
-    check_flag(&retval, "IDAGetNumResEvals", 1);
+    checkFlag(&retval, "IDAGetNumResEvals", 1);
     retval = IDAGetNumJacEvals(solverMem, &nje);
-    check_flag(&retval, "IDAGetNumJacEvals", 1);
+    checkFlag(&retval, "IDAGetNumJacEvals", 1);
     retval = IDAGetNumNonlinSolvIters(solverMem, &nni);
-    check_flag(&retval, "IDAGetNumNonlinSolvIters", 1);
+    checkFlag(&retval, "IDAGetNumNonlinSolvIters", 1);
     retval = IDAGetNumNonlinSolvConvFails(solverMem, &ncfn);
-    check_flag(&retval, "IDAGetNumNonlinSolvConvFails", 1);
+    checkFlag(&retval, "IDAGetNumNonlinSolvConvFails", 1);
     if (!iconly) {
         retval = IDAGetNumSteps(solverMem, &nst);
-        check_flag(&retval, "IDAGetNumSteps", 1);
+        checkFlag(&retval, "IDAGetNumSteps", 1);
         retval = IDAGetNumErrTestFails(solverMem, &netf);
-        check_flag(&retval, "IDAGetNumErrTestFails", 1);
+        checkFlag(&retval, "IDAGetNumErrTestFails", 1);
         retval = IDAGetNumLinResEvals(solverMem, &nreLS);
-        check_flag(&retval, "IDAGetNumLinResEvals", 1);
+        checkFlag(&retval, "IDAGetNumLinResEvals", 1);
         retval = IDAGetNumGEvals(solverMem, &nge);
-        check_flag(&retval, "IDAGetNumGEvals", 1);
+        checkFlag(&retval, "IDAGetNumGEvals", 1);
         retval = IDAGetCurrentOrder(solverMem, &kcur);
-        check_flag(&retval, "IDAGetCurrentOrder", 1);
+        checkFlag(&retval, "IDAGetCurrentOrder", 1);
         retval = IDAGetCurrentStep(solverMem, &hcur);
-        check_flag(&retval, "IDAGetCurrentStep", 1);
+        checkFlag(&retval, "IDAGetCurrentStep", 1);
         retval = IDAGetLastOrder(solverMem, &klast);
-        check_flag(&retval, "IDAGetLastOrder", 1);
+        checkFlag(&retval, "IDAGetLastOrder", 1);
         retval = IDAGetLastStep(solverMem, &hlast);
-        check_flag(&retval, "IDAGetLastStep", 1);
+        checkFlag(&retval, "IDAGetLastStep", 1);
         retval = IDAGetTolScaleFactor(solverMem, &tolsfac);
-        check_flag(&retval, "IDAGetTolScaleFactor", 1);
+        checkFlag(&retval, "IDAGetTolScaleFactor", 1);
         logstr = std::format("IDA Run Statistics: \n"
                              "Number of steps                    = {}\n"
                              "Number of residual evaluations     = {}\n"
@@ -265,68 +265,68 @@ void idaInterface::initialize(coreTime t0)
     // dynInitializeB IDA - Sundials
 
     int retval = IDASetUserData(solverMem, this);
-    check_flag(&retval, "IDASetUserData", 1);
+    checkFlag(&retval, "IDASetUserData", 1);
 
     // guessState an initial condition
     m_gds->guessState(t0, stateData(), derivData(), mode);
 
     retval = IDAInit(solverMem, idaFunc, t0, state, dstate_dt);
-    check_flag(&retval, "IDAInit", 1);
+    checkFlag(&retval, "IDAInit", 1);
 
     if (rootCount > 0) {
         rootsfound.resize(rootCount);
         retval = IDARootInit(solverMem, rootCount, idaRootFunc);
-        check_flag(&retval, "IDARootInit", 1);
+        checkFlag(&retval, "IDARootInit", 1);
     }
 
     N_VConst(tolerance, abstols);
 
     retval = IDASVtolerances(solverMem, tolerance / 100, abstols);
-    check_flag(&retval, "IDASVtolerances", 1);
+    checkFlag(&retval, "IDASVtolerances", 1);
 
     retval = IDASetMaxNumSteps(solverMem, max_iterations);
-    check_flag(&retval, "IDASetMaxNumSteps", 1);
+    checkFlag(&retval, "IDASetMaxNumSteps", 1);
 #ifdef GRIDDYN_ENABLE_KLU
     if (flags[dense_flag]) {
         J = SUNDenseMatrix(svsize, svsize, sunctx);
-        check_flag(J, "SUNDenseMatrix", 0);
+        checkFlag(J, "SUNDenseMatrix", 0);
         /* Create KLU solver object */
         LS = SUNLinSol_Dense(state, J, sunctx);
-        check_flag(LS, "SUNLinSol_Dense", 0);
+        checkFlag(LS, "SUNLinSol_Dense", 0);
     } else {
         /* Create sparse SUNMatrix */
         J = SUNSparseMatrix(svsize, svsize, jsize, CSR_MAT, sunctx);
-        check_flag(J, "SUNSparseMatrix", 0);
+        checkFlag(J, "SUNSparseMatrix", 0);
 
         /* Create KLU solver object */
         LS = SUNLinSol_KLU(state, J, sunctx);
-        check_flag(LS, "SUNLinSol_KLU", 0);
+        checkFlag(LS, "SUNLinSol_KLU", 0);
 
         retval = SUNLinSol_KLUSetOrdering(LS, 0);
-        check_flag(&retval, "SUNLinSol_KLUSetOrdering", 1);
+        checkFlag(&retval, "SUNLinSol_KLUSetOrdering", 1);
     }
 #else
     J = SUNDenseMatrix(svsize, svsize, sunctx);
-    check_flag(J, "SUNSparseMatrix", 0);
+    checkFlag(J, "SUNSparseMatrix", 0);
     /* Create KLU solver object */
     LS = SUNLinSol_Dense(state, J, sunctx);
-    check_flag(LS, "SUNLinSol_Dense", 0);
+    checkFlag(LS, "SUNLinSol_Dense", 0);
 #endif
 
     retval = IDASetLinearSolver(solverMem, LS, J);
 
-    check_flag(&retval, "IDASetLinearSolver", 1);
+    checkFlag(&retval, "IDASetLinearSolver", 1);
 
     retval = IDASetJacFn(solverMem, idaJac);
-    check_flag(&retval, "IDASetJacFn", 1);
+    checkFlag(&retval, "IDASetJacFn", 1);
 
     retval = IDASetMaxNonlinIters(solverMem, 20);
-    check_flag(&retval, "IDASetMaxNonlinIters", 1);
+    checkFlag(&retval, "IDASetMaxNonlinIters", 1);
 
     m_gds->getVariableType(typeData(), mode);
 
     retval = IDASetId(solverMem, types);
-    check_flag(&retval, "IDASetId", 1);
+    checkFlag(&retval, "IDASetId", 1);
 
     setConstraints();
     solveTime = t0;
@@ -335,7 +335,7 @@ void idaInterface::initialize(coreTime t0)
 
 void idaInterface::sparseReInit(SparseReinitMode sparseReInitMode)
 {
-    KLUReInit(sparseReInitMode);
+    kluReInit(sparseReInitMode);
 }
 
 void idaInterface::setRootFinding(count_t numRoots)
@@ -345,7 +345,7 @@ void idaInterface::setRootFinding(count_t numRoots)
     }
     rootCount = numRoots;
     int retval = IDARootInit(solverMem, numRoots, idaRootFunc);
-    check_flag(&retval, "IDARootInit", 1);
+    checkFlag(&retval, "IDARootInit", 1);
 }
 
 #define SHOW_MISSING_ELEMENTS 0
@@ -447,7 +447,7 @@ int idaInterface::calcIC(coreTime t0, coreTime tstep0, IcModes initCondMode, boo
 void idaInterface::getCurrentData()
 {
     int retval = IDAGetConsistentIC(solverMem, state, dstate_dt);
-    check_flag(&retval, "IDAGetConsistentIC", 1);
+    checkFlag(&retval, "IDAGetConsistentIC", 1);
 }
 
 int idaInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
@@ -481,7 +481,7 @@ int idaInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
 void idaInterface::getRoots()
 {
     int ret = IDAGetRootInfo(solverMem, rootsfound.data());
-    check_flag(&ret, "IDAGetRootInfo", 1);
+    checkFlag(&ret, "IDAGetRootInfo", 1);
 }
 
 void idaInterface::setConstraints()

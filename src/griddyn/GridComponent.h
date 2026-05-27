@@ -380,13 +380,13 @@ see GridComponent::dynInitializeA for more details
     @param sMode the solver mode to use.
     @return a stateSizes object containing the various segment sizes
     */
-    virtual stateSizes LocalStateSizes(const solverMode& sMode) const;
+    virtual stateSizes localStateSizes(const solverMode& sMode) const;
 
     /** @brief compute the local Jacobian count
     @param sMode the solver mode to use.
     @return a stateSizes object containing the various segment sizes
     */
-    virtual count_t LocalJacobianCount(const solverMode& sMode) const;
+    virtual count_t localJacobianCount(const solverMode& sMode) const;
 
     /** @brief compute the local root count
     @param sMode the solver mode to use.

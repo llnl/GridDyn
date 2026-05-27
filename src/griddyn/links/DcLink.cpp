@@ -133,7 +133,7 @@ void dcLink::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
     }
 }
 
-stateSizes dcLink::LocalStateSizes(const solverMode& sMode) const
+stateSizes dcLink::localStateSizes(const solverMode& sMode) const
 {
     stateSizes localSS;
     if (isDynamic(sMode)) {
@@ -148,7 +148,7 @@ stateSizes dcLink::LocalStateSizes(const solverMode& sMode) const
     return localSS;
 }
 
-count_t dcLink::LocalJacobianCount(const solverMode& sMode) const
+count_t dcLink::localJacobianCount(const solverMode& sMode) const
 {
     count_t jacCount = 0;
     if (isDynamic(sMode)) {

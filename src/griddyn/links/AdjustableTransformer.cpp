@@ -466,7 +466,7 @@ void adjustableTransformer::pFlowObjectInitializeA(coreTime time0, std::uint32_t
     AcLine::pFlowObjectInitializeA(time0, flags);
 }
 
-stateSizes adjustableTransformer::LocalStateSizes(const solverMode& sMode) const
+stateSizes adjustableTransformer::localStateSizes(const solverMode& sMode) const
 {
     stateSizes lcStates;
     if (isDynamic(sMode)) {
@@ -489,7 +489,7 @@ stateSizes adjustableTransformer::LocalStateSizes(const solverMode& sMode) const
     return lcStates;
 }
 
-count_t adjustableTransformer::LocalJacobianCount(const solverMode& sMode) const
+count_t adjustableTransformer::localJacobianCount(const solverMode& sMode) const
 {
     count_t localJacSize = 0;
     if (isDynamic(sMode)) {

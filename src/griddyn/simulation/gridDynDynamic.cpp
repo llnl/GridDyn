@@ -199,7 +199,7 @@ int GridDynSimulation::dynamicDAEStartupConditions(std::shared_ptr<SolverInterfa
             retval = generateDaeDynamicInitialConditions(sMode);
             if (retval != FUNCTION_EXECUTION_SUCCESS) {
 #if JAC_CHECK_ENABLED > 0
-                int errc = JacobianCheck(this, sMode);
+                int errc = jacobianCheck(this, sMode);
                 if (errc > 0) {
                     printStateNames(this, sMode);
                 }
@@ -558,7 +558,7 @@ int GridDynSimulation::step(coreTime nextStep, coreTime& timeActual)
             retval = generateDaeDynamicInitialConditions(solverModeRef);
             if (retval != FUNCTION_EXECUTION_SUCCESS) {
 #if JAC_CHECK_ENABLED > 0
-                if (JacobianCheck(this, solverModeRef) > 0) {
+                if (jacobianCheck(this, solverModeRef) > 0) {
                     printStateNames(this, solverModeRef);
                 }
 #endif
@@ -659,7 +659,7 @@ void GridDynSimulation::handleEarlySolverReturn(int retval,
             // SolverInterface::IcModes::fixed_diff, true);
             opFlags.reset(low_bus_voltage);
 #if JAC_CHECK_ENABLED > 0
-            int mmatch = JacobianCheck(this, dynData->getSolverMode());
+            int mmatch = jacobianCheck(this, dynData->getSolverMode());
             if (mmatch > 0) {
                 printStateNames(this, dynData->getSolverMode());
             }
@@ -759,7 +759,7 @@ int GridDynSimulation::generateDaeDynamicInitialConditions(const solverMode& sMo
         }
         // converge (currentTime, dynData->stateData (), dynData->derivData (), sMode,
         // ConvergeMode::high_error_only, 0.05);
-        // JacobianCheck(sMode);
+        // jacobianCheck(sMode);
         //  printStateNames(this,sMode);
     }
 
@@ -1213,7 +1213,7 @@ int GridDynSimulation::dynAlgebraicSolve(coreTime time,
         coreTime tret;
         ret = solverData->solve(time, tret);
         if (ret < 0) {
-            if (JacobianCheck(this, solverData->getSolverMode()) > 0) {
+            if (jacobianCheck(this, solverData->getSolverMode()) > 0) {
                 printStateNames(this, solverData->getSolverMode());
             }
             solverData->setFlag("print_resid");

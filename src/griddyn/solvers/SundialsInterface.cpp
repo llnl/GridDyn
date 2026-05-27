@@ -58,7 +58,7 @@ sundialsInterface::sundialsInterface(const std::string& objName): SolverInterfac
     ensureSundialsFactories();
     tolerance = 1e-8;
     int retval = SUNContext_Create(SUN_COMM_NULL, &sunctx);
-    check_flag(&retval, "SUNContext_Create", 1);
+    checkFlag(&retval, "SUNContext_Create", 1);
     registerErrorHandler();
 }
 sundialsInterface::sundialsInterface(GridDynSimulation* gds, const solverMode& sMode):
@@ -67,7 +67,7 @@ sundialsInterface::sundialsInterface(GridDynSimulation* gds, const solverMode& s
     ensureSundialsFactories();
     tolerance = 1e-8;
     int retval = SUNContext_Create(SUN_COMM_NULL, &sunctx);
-    check_flag(&retval, "SUNContext_Create", 1);
+    checkFlag(&retval, "SUNContext_Create", 1);
     registerErrorHandler();
 }
 
@@ -147,14 +147,14 @@ void sundialsInterface::allocate(count_t stateCount, count_t /*numRoots*/)
         NVECTOR_DESTROY(prev_omp, state);
     }
     state = NVECTOR_NEW(use_omp, stateCount);
-    check_flag(state, "NVECTOR_NEW", 0);
+    checkFlag(state, "NVECTOR_NEW", 0);
 
     if (hasDifferential(mode)) {
         if (dstate_dt != nullptr) {
             NVECTOR_DESTROY(prev_omp, dstate_dt);
         }
         dstate_dt = NVECTOR_NEW(use_omp, stateCount);
-        check_flag(dstate_dt, "NVECTOR_NEW", 0);
+        checkFlag(dstate_dt, "NVECTOR_NEW", 0);
 
         N_VConst(ZERO, dstate_dt);
     }
@@ -162,19 +162,19 @@ void sundialsInterface::allocate(count_t stateCount, count_t /*numRoots*/)
         NVECTOR_DESTROY(prev_omp, abstols);
     }
     abstols = NVECTOR_NEW(use_omp, stateCount);
-    check_flag(abstols, "NVECTOR_NEW", 0);
+    checkFlag(abstols, "NVECTOR_NEW", 0);
 
     if (consData != nullptr) {
         NVECTOR_DESTROY(prev_omp, consData);
     }
     consData = NVECTOR_NEW(use_omp, stateCount);
-    check_flag(consData, "NVECTOR_NEW", 0);
+    checkFlag(consData, "NVECTOR_NEW", 0);
 
     if (scale != nullptr) {
         NVECTOR_DESTROY(prev_omp, scale);
     }
     scale = NVECTOR_NEW(use_omp, stateCount);
-    check_flag(scale, "NVECTOR_NEW", 0);
+    checkFlag(scale, "NVECTOR_NEW", 0);
 
     N_VConst(ONE, scale);
 
@@ -183,7 +183,7 @@ void sundialsInterface::allocate(count_t stateCount, count_t /*numRoots*/)
             NVECTOR_DESTROY(prev_omp, types);
         }
         types = NVECTOR_NEW(use_omp, stateCount);
-        check_flag(types, "NVECTOR_NEW", 0);
+        checkFlag(types, "NVECTOR_NEW", 0);
 
         N_VConst(ONE, types);
     }
@@ -242,10 +242,10 @@ void sundialsInterface::registerErrorHandler()
         return;
     }
     int retval = SUNContext_PushErrHandler(sunctx, sundialsErrorHandlerFunc, this);
-    check_flag(&retval, "SUNContext_PushErrHandler", 1);
+    checkFlag(&retval, "SUNContext_PushErrHandler", 1);
 }
 
-void sundialsInterface::KLUReInit(SparseReinitMode sparseReInitModes)
+void sundialsInterface::kluReInit(SparseReinitMode sparseReInitModes)
 {
 #ifdef GRIDDYN_ENABLE_KLU
     if (flags[dense_flag]) {
@@ -254,7 +254,7 @@ void sundialsInterface::KLUReInit(SparseReinitMode sparseReInitModes)
     switch (sparseReInitModes) {
         case SparseReinitMode::REFACTOR: {
             int retval = SUNLinSol_KLUReInit(LS, J, maxNNZ, SUNKLU_REINIT_PARTIAL);
-            check_flag(&retval, "SUNLinSol_KLUReInit", 1);
+            checkFlag(&retval, "SUNLinSol_KLUReInit", 1);
         } break;
         case SparseReinitMode::RESIZE:
             /*there is a major bug in sundials with KLU on resize*/
@@ -263,10 +263,10 @@ void sundialsInterface::KLUReInit(SparseReinitMode sparseReInitModes)
                     SUNMatDestroy(J);
                     J = SUNSparseMatrix(svsize, svsize, maxNNZ, CSR_MAT, sunctx);
                     int retval = SUNLinSol_KLUReInit(LS, J, maxNNZ, SUNKLU_REINIT_PARTIAL);
-                    check_flag(&retval, "SUNLinSol_KLUReInit", 1);
+                    checkFlag(&retval, "SUNLinSol_KLUReInit", 1);
                 } else {
                     int retval = SUNLinSol_KLUReInit(LS, J, maxNNZ, SUNKLU_REINIT_PARTIAL);
-                    check_flag(&retval, "SUNLinSol_KLUReInit", 1);
+                    checkFlag(&retval, "SUNLinSol_KLUReInit", 1);
                 }
             }
             break;
@@ -363,7 +363,7 @@ void sundialsErrorHandlerFunc(int line,
     sd->logMessage(error_code, message);
 }
 
-bool MatrixNeedsSetup(count_t callCount, SUNMatrix J)
+bool matrixNeedsSetup(count_t callCount, SUNMatrix J)
 {
     switch (SUNMatGetID(J)) {
         case SUNMATRIX_DENSE:
@@ -387,7 +387,7 @@ int sundialsJac(sunrealtype time,
 {
     auto sd = reinterpret_cast<sundialsInterface*>(user_data);
 
-    if (MatrixNeedsSetup(sd->jacCallCount, J)) {
+    if (matrixNeedsSetup(sd->jacCallCount, J)) {
         auto a1 = makeSparseMatrix(sd->svsize, sd->maxNNZ);
 
         a1->setRowLimit(sd->svsize);

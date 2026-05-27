@@ -73,9 +73,9 @@ class MotorLoad: public GridLoad {
                             double state[],
                             double dstate_dt[],
                             const solverMode& sMode) override;
-    virtual stateSizes LocalStateSizes(const solverMode& sMode) const override;
+    virtual stateSizes localStateSizes(const solverMode& sMode) const override;
 
-    virtual count_t LocalJacobianCount(const solverMode& sMode) const override;
+    virtual count_t localJacobianCount(const solverMode& sMode) const override;
 
     virtual std::pair<count_t, count_t> LocalRootCount(const solverMode& sMode) const override;
 

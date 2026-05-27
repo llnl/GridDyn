@@ -42,8 +42,8 @@ class dcLink: public Link {
 
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
-    virtual stateSizes LocalStateSizes(const solverMode& sMode) const override;
-    virtual count_t LocalJacobianCount(const solverMode& sMode) const override;
+    virtual stateSizes localStateSizes(const solverMode& sMode) const override;
+    virtual count_t localJacobianCount(const solverMode& sMode) const override;
 
     virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
 

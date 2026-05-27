@@ -146,7 +146,7 @@ void Generator::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     gridSecondary::dynObjectInitializeA(time0, flags);
 }
 
-stateSizes Generator::LocalStateSizes(const solverMode& sMode) const
+stateSizes Generator::localStateSizes(const solverMode& sMode) const
 {
     stateSizes localStates;
     if (!isEnabled()) {
@@ -160,7 +160,7 @@ stateSizes Generator::LocalStateSizes(const solverMode& sMode) const
     return localStates;
 }
 
-count_t Generator::LocalJacobianCount(const solverMode& sMode) const
+count_t Generator::localJacobianCount(const solverMode& sMode) const
 {
     if (!isEnabled()) {
         return 0;

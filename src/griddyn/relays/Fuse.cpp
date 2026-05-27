@@ -206,7 +206,7 @@ ChangeCode fuse::setupFuseEvaluation()
     return ChangeCode::JACOBIAN_CHANGE;
 }
 
-stateSizes fuse::LocalStateSizes(const solverMode& sMode) const
+stateSizes fuse::localStateSizes(const solverMode& sMode) const
 {
     stateSizes SS;
     if ((!isAlgebraicOnly(sMode)) && (mp_I2T > 0.0)) {
@@ -215,7 +215,7 @@ stateSizes fuse::LocalStateSizes(const solverMode& sMode) const
     return SS;
 }
 
-count_t fuse::LocalJacobianCount(const solverMode& sMode) const
+count_t fuse::localJacobianCount(const solverMode& sMode) const
 {
     if ((!isAlgebraicOnly(sMode)) && (mp_I2T > 0.0)) {
         return 12;

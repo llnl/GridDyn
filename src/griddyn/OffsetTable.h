@@ -193,7 +193,7 @@ class offsetTable {
     /** @brief unload the Jacobian information for the solverOffsets
      *@param[in] dynamic_only only unload the dynamic solverObjects
      */
-    void JacobianUnload(bool dynamic_only = false);
+    void jacobianUnload(bool dynamic_only = false);
     /** @brief update all solverOffsets with the local information
      *@param[in] dynamic_only only unload the dynamic solverObjects
      */

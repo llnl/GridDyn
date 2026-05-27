@@ -478,12 +478,12 @@ void SolverInterface::printStates(bool getNames)
     }
 }
 
-void SolverInterface::check_flag(void* flagvalue,
-                                 std::string_view funcname,
-                                 int opt,
-                                 bool printError) const
+void SolverInterface::checkFlag(void* flagvalue,
+                                std::string_view funcname,
+                                int opt,
+                                bool printError) const
 {
-    // TODO(phlpt): Delete either this or optimizerInterface::check_flag.
+    // TODO(phlpt): Delete either this or optimizerInterface::checkFlag.
     // Check if SUNDIALS function returned nullptr pointer - no memory allocated
     if (opt == 0 && flagvalue == nullptr) {
         if (printError) {

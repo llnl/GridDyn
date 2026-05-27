@@ -68,7 +68,7 @@ class braidSolver: public SolverInterface {
     virtual int
         solve(coreTime tStop, coreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
     /** execute the braid solve*/
-    virtual int RunBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int Ngridpoints);
+    virtual int runBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int Ngridpoints);
     virtual void getRoots() override;
 };
 }  // namespace griddyn::braid

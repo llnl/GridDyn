@@ -155,8 +155,8 @@ which cases the parent of the link is searched for the bus*/
                     double state[],
                     double dstate_dt[],
                     const solverMode& sMode) override;
-    virtual stateSizes LocalStateSizes(const solverMode& sMode) const override;
-    virtual count_t LocalJacobianCount(const solverMode& sMode) const override;
+    virtual stateSizes localStateSizes(const solverMode& sMode) const override;
+    virtual count_t localJacobianCount(const solverMode& sMode) const override;
 
   protected:
     void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;

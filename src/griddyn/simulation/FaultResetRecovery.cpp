@@ -91,7 +91,7 @@ int faultResetRecovery::faultResetFix1()
     if ((retval = sim->handleStateChange(solver->getSolverMode())) != HANDLER_NO_RETURN) {
         return retval;
     }
-    // auto err = JacobianCheck(sMode, -1, true);
+    // auto err = jacobianCheck(sMode, -1, true);
     //      dynamicSolverConvergenceTest(sMode, "convFile.dat",0,3);
     double* states = solver->stateData();
     coreTime timeCurr = sim->getSimulationTime();
@@ -118,7 +118,7 @@ int faultResetRecovery::faultResetFix2(ResetLevels rlevel)
     }
     coreTime timeCurr = sim->getSimulationTime();
     sim->guessState(timeCurr, solver->stateData(), solver->derivData(), solver->getSolverMode());
-    // int mmatch = JacobianCheck(sim, solver->getSolverMode());
+    // int mmatch = jacobianCheck(sim, solver->getSolverMode());
 
     retval =
         solver->calcIC(timeCurr, sim->probeStepTime, SolverInterface::IcModes::fixed_diff, true);

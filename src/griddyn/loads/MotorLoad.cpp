@@ -96,7 +96,7 @@ void MotorLoad::dynObjectInitializeB(const IOdata& /*inputs*/,
     }
 }
 
-stateSizes MotorLoad::LocalStateSizes(const solverMode& sMode) const
+stateSizes MotorLoad::localStateSizes(const solverMode& sMode) const
 {
     stateSizes stateSizeValues;
     if (isDynamic(sMode)) {
@@ -109,7 +109,7 @@ stateSizes MotorLoad::LocalStateSizes(const solverMode& sMode) const
     return stateSizeValues;
 }
 
-count_t MotorLoad::LocalJacobianCount(const solverMode& sMode) const
+count_t MotorLoad::localJacobianCount(const solverMode& sMode) const
 {
     count_t localJacSize = 0;
     if (isDynamic(sMode)) {

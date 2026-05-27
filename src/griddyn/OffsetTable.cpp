@@ -212,7 +212,7 @@ void offsetTable::rootUnload(bool dynamic_only)
         }
     }
 }
-void offsetTable::JacobianUnload(bool dynamic_only)
+void offsetTable::jacobianUnload(bool dynamic_only)
 {
     if (dynamic_only) {
         for (auto& so : offsetContainer) {

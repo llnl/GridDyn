@@ -80,9 +80,9 @@ class FmiMESubModel: public GridSubModel {
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
     virtual index_t findIndex(std::string_view field, const solverMode& sMode) const override;
-    virtual stateSizes LocalStateSizes(const solverMode& sMode) const override;
+    virtual stateSizes localStateSizes(const solverMode& sMode) const override;
 
-    virtual count_t LocalJacobianCount(const solverMode& sMode) const override;
+    virtual count_t localJacobianCount(const solverMode& sMode) const override;
 
     virtual std::pair<count_t, count_t>
         LocalRootCount(const solverMode& /* sMode */) const override;

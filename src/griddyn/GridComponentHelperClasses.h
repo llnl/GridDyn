@@ -294,7 +294,7 @@ class stateSizes {
     void rootReset() { algRoots = diffRoots = 0; }
 
     /** reset the Jacobian counter and  sizes to 0*/
-    void JacobianReset() { jacSize = 0; }
+    void jacobianReset() { jacSize = 0; }
     /** add another stateSizes object to this one
     @param[in] arg the stateSizes object to combine*/
     void add(const stateSizes& arg);
@@ -348,7 +348,7 @@ class solverOffsets {
     void rootCountReset();
     /** @brief reset the solverOffset Jacobian component
      */
-    void JacobianCountReset();
+    void jacobianCountReset();
 
     /** @brief reset the solverOffset state components
      */

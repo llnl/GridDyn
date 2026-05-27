@@ -333,7 +333,7 @@ double FmiMESubModel::get(std::string_view param, units::unit unitType) const
     return GridSubModel::get(param, unitType);
 }
 
-stateSizes FmiMESubModel::LocalStateSizes(const solverMode& sMode) const
+stateSizes FmiMESubModel::localStateSizes(const solverMode& sMode) const
 {
     stateSizes stateSizeInfo;
     if (hasDifferential(sMode)) {
@@ -344,7 +344,7 @@ stateSizes FmiMESubModel::LocalStateSizes(const solverMode& sMode) const
     return stateSizeInfo;
 }
 
-count_t FmiMESubModel::LocalJacobianCount(const solverMode& sMode) const
+count_t FmiMESubModel::localJacobianCount(const solverMode& sMode) const
 {
     count_t jacSize = 0;
     if (hasDifferential(sMode) || (!isDynamic(sMode) && opFlags[pflow_init_required])) {

@@ -85,7 +85,7 @@ int dynamicInitialConditionRecovery::lowVoltageCheck()
                    solver->getSolverMode(),
                    CheckLevel::low_voltage_check);
 
-    const int matchCount = JacobianCheck(sim, solver->getSolverMode());
+    const int matchCount = jacobianCheck(sim, solver->getSolverMode());
     if (matchCount != 0) {
         printStateNames(sim, solver->getSolverMode());
     }

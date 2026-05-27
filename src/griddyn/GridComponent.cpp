@@ -1114,12 +1114,12 @@ void GridComponent::loadSizesSub(const solverMode& sMode, SizeCategory category)
     }
 }
 
-stateSizes GridComponent::LocalStateSizes(const solverMode& /*sMode*/) const
+stateSizes GridComponent::localStateSizes(const solverMode& /*sMode*/) const
 {
     return offsets.local().local;
 }
 
-count_t GridComponent::LocalJacobianCount(const solverMode& /*sMode*/) const
+count_t GridComponent::localJacobianCount(const solverMode& /*sMode*/) const
 {
     return offsets.local().local.jacSize;
 }
@@ -1157,7 +1157,7 @@ void GridComponent::loadStateSizes(const solverMode& sMode)
         {
             solverOffsetsValue.stateReset();
         }
-        auto selfSizes = LocalStateSizes(sMode);
+        auto selfSizes = localStateSizes(sMode);
         if (hasAlgebraic(sMode)) {
             solverOffsetsValue.local.aSize = selfSizes.aSize;
             solverOffsetsValue.local.vSize = selfSizes.vSize;
@@ -1245,11 +1245,11 @@ void GridComponent::loadJacobianSizes(const solverMode& sMode)
         return;
     }
 
-    auto selfJacCount = LocalJacobianCount(sMode);
+    auto selfJacCount = localJacobianCount(sMode);
 
     if (!isLocal(sMode))  // don't reset if it is the local offsets
     {
-        solverOffsetsValue.JacobianCountReset();
+        solverOffsetsValue.jacobianCountReset();
     }
 
     if (!(solverOffsetsValue.jacobianLoaded)) {
@@ -1349,17 +1349,17 @@ void GridComponent::alert(CoreObject* object, int code)
             switch (res->second) {
                 case 3:
                     offsets.stateUnload();
-                    offsets.JacobianUnload(true);
+                    offsets.jacobianUnload(true);
                     break;
                 case 2:
                     offsets.rootUnload(true);
                     break;
                 case 4:
-                    offsets.JacobianUnload(true);
+                    offsets.jacobianUnload(true);
                     break;
                 case 5:
                     offsets.stateUnload();
-                    offsets.JacobianUnload(true);
+                    offsets.jacobianUnload(true);
                     offsets.rootUnload(true);
                     break;
                 default:

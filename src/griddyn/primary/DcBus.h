@@ -49,9 +49,9 @@ class DcBus: public GridBus {
 
     // dynInitializeB
 
-    virtual stateSizes LocalStateSizes(const solverMode& sMode) const override;
+    virtual stateSizes localStateSizes(const solverMode& sMode) const override;
 
-    virtual count_t LocalJacobianCount(const solverMode& sMode) const override;
+    virtual count_t localJacobianCount(const solverMode& sMode) const override;
 
   protected:
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;

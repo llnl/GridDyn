@@ -66,7 +66,7 @@ std::pair<double, int>
     return gmlc::utilities::absMaxLoc(resid);
 }
 
-int JacobianCheck(GridDynSimulation* gds,
+int jacobianCheck(GridDynSimulation* gds,
                   const solverMode& queryMode,
                   double jacTol,
                   bool useStateNames)

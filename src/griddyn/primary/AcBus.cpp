@@ -2429,7 +2429,7 @@ count_t AcBus::getDependencyCount(const solverMode& sMode) const
     return sum;
 }
 
-stateSizes AcBus::LocalStateSizes(const solverMode& sMode) const
+stateSizes AcBus::localStateSizes(const solverMode& sMode) const
 {
     stateSizes busSS;
     if (hasAlgebraic(sMode)) {
@@ -2455,7 +2455,7 @@ stateSizes AcBus::LocalStateSizes(const solverMode& sMode) const
     return busSS;
 }
 
-count_t AcBus::LocalJacobianCount(const solverMode& sMode) const
+count_t AcBus::localJacobianCount(const solverMode& sMode) const
 {
     count_t totaljacSize = 0;
     if (hasAlgebraic(sMode)) {

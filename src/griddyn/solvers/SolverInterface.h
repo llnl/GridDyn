@@ -353,10 +353,10 @@ class SolverInterface: public HelperObject {
     @param[in] opt  0 for allocation 1 for other functions
     @param[in] printError  boolean flag indicating whether to print a message on error or not
     */
-    virtual void check_flag(void* flagvalue,
-                            std::string_view funcname,
-                            int opt,
-                            bool printError = true) const;
+    virtual void checkFlag(void* flagvalue,
+                           std::string_view funcname,
+                           int opt,
+                           bool printError = true) const;
 };
 
 /** @brief make a solver from a particular mode

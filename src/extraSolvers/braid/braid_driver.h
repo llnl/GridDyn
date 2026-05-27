@@ -64,11 +64,11 @@ typedef struct _braid_App_struct {
     my_Vector* solution_tfinal;
 
     _braid_App_struct(griddyn::paradae::ODEProblem* ode_);
-    void SetAllToDataStruct(braid_Vector u);
-    void SetLastToDataStruct(braid_Vector u);
-    void SetAllFromDataStruct(braid_Vector u);
-    void SetLastFromDataStruct(braid_Vector u);
-    void DumpDataStruct();
+    void setAllToDataStruct(braid_Vector u);
+    void setLastToDataStruct(braid_Vector u);
+    void setAllFromDataStruct(braid_Vector u);
+    void setLastFromDataStruct(braid_Vector u);
+    void dumpDataStruct();
 } Braid_App;
 
 namespace griddyn::braid {
@@ -79,44 +79,48 @@ paradae::Real IntegrationLoop(braid_App app,
                               const std::list<paradae::Real>& tstops,
                               std::list<paradae::Vector>& xstops,
                               paradae::Vector& dxprev);
-void my_Step_OnAllPoints(braid_App app,
+void braidStepOnAllPoints(braid_App app,
+                          braid_Vector ustop,
+                          braid_Vector fstop,
+                          braid_Vector u,
+                          braid_StepStatus status,
+                          int level);
+void braidStepOnOnePoint(braid_App app,
                          braid_Vector ustop,
                          braid_Vector fstop,
                          braid_Vector u,
                          braid_StepStatus status,
                          int level);
-void my_Step_OnOnePoint(braid_App app,
-                        braid_Vector ustop,
-                        braid_Vector fstop,
-                        braid_Vector u,
-                        braid_StepStatus status,
-                        int level);
-int my_Step(braid_App app,
-            braid_Vector ustop,
-            braid_Vector fstop,
-            braid_Vector u,
-            braid_StepStatus status);
-int my_SpatialRefine(braid_App app,
-                     braid_Vector cu,
-                     braid_Vector* fu_ptr,
-                     braid_CoarsenRefStatus status);
-int my_SpatialCoarsen(braid_App app,
-                      braid_Vector fu,
-                      braid_Vector* cu_ptr,
-                      braid_CoarsenRefStatus status);
-int my_Init(braid_App app, paradae::Real t, braid_Vector* u_ptr);
-int my_InitShell(braid_App app, paradae::Real t, braid_Vector* u_ptr);
-int my_Clone(braid_App app, braid_Vector u, braid_Vector* v_ptr);
-int my_CloneShell(braid_App app, braid_Vector u, braid_Vector* v_ptr);
-int my_Free(braid_App app, braid_Vector u);
-int my_FreeShell(braid_App app, braid_Vector u);
-int my_PropagateShell(braid_App app, braid_Vector x, braid_Vector y);
-int my_Sum(braid_App app, paradae::Real alpha, braid_Vector x, paradae::Real beta, braid_Vector y);
-int my_SpatialNorm(braid_App app, braid_Vector u, paradae::Real* norm_ptr);
-int my_Access(braid_App app, braid_Vector u, braid_AccessStatus astatus);
-int my_BufSize(braid_App app, int* size_ptr, braid_BufferStatus bstatus);
-int my_BufPack(braid_App app, braid_Vector u, void* buffer, braid_BufferStatus bstatus);
-int my_BufUnpack(braid_App app, void* buffer, braid_Vector* u_ptr, braid_BufferStatus bstatus);
-int my_TimeGrid(braid_App app, braid_Real* ta, braid_Int* ilower, braid_Int* iupper);
+int braidStep(braid_App app,
+              braid_Vector ustop,
+              braid_Vector fstop,
+              braid_Vector u,
+              braid_StepStatus status);
+int braidSpatialRefine(braid_App app,
+                       braid_Vector cu,
+                       braid_Vector* fu_ptr,
+                       braid_CoarsenRefStatus status);
+int braidSpatialCoarsen(braid_App app,
+                        braid_Vector fu,
+                        braid_Vector* cu_ptr,
+                        braid_CoarsenRefStatus status);
+int braidInit(braid_App app, paradae::Real t, braid_Vector* u_ptr);
+int braidInitShell(braid_App app, paradae::Real t, braid_Vector* u_ptr);
+int braidClone(braid_App app, braid_Vector u, braid_Vector* v_ptr);
+int braidCloneShell(braid_App app, braid_Vector u, braid_Vector* v_ptr);
+int braidFree(braid_App app, braid_Vector u);
+int braidFreeShell(braid_App app, braid_Vector u);
+int braidPropagateShell(braid_App app, braid_Vector x, braid_Vector y);
+int braidSum(braid_App app,
+             paradae::Real alpha,
+             braid_Vector x,
+             paradae::Real beta,
+             braid_Vector y);
+int braidSpatialNorm(braid_App app, braid_Vector u, paradae::Real* norm_ptr);
+int braidAccess(braid_App app, braid_Vector u, braid_AccessStatus astatus);
+int braidBufSize(braid_App app, int* size_ptr, braid_BufferStatus bstatus);
+int braidBufPack(braid_App app, braid_Vector u, void* buffer, braid_BufferStatus bstatus);
+int braidBufUnpack(braid_App app, void* buffer, braid_Vector* u_ptr, braid_BufferStatus bstatus);
+int braidTimeGrid(braid_App app, braid_Real* ta, braid_Int* ilower, braid_Int* iupper);
 
 }  // namespace griddyn::braid

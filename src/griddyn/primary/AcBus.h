@@ -104,9 +104,9 @@ class AcBus: public GridBus {
     virtual void setOffsets(const solverOffsets& newOffsets, const solverMode& sMode) override;
     virtual void setOffset(index_t offset, const solverMode& sMode) override;
 
-    virtual stateSizes LocalStateSizes(const solverMode& sMode) const override;
+    virtual stateSizes localStateSizes(const solverMode& sMode) const override;
 
-    virtual count_t LocalJacobianCount(const solverMode& sMode) const override;
+    virtual count_t localJacobianCount(const solverMode& sMode) const override;
 
     virtual void setRootOffset(index_t Roffset, const solverMode& sMode) override;
 

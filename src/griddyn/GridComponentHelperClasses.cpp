@@ -80,10 +80,10 @@ void solverOffsets::rootCountReset()
     rootsLoaded = false;
 }
 
-void solverOffsets::JacobianCountReset()
+void solverOffsets::jacobianCountReset()
 {
-    local.JacobianReset();
-    total.JacobianReset();
+    local.jacobianReset();
+    total.jacobianReset();
 
     jacobianLoaded = false;
 }

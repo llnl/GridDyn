@@ -243,7 +243,7 @@ int runJacobianCheck(std::unique_ptr<GridDynSimulation>& gds,
                      const solverMode& sMode,
                      bool checkRequired)
 {
-    int mmatch = JacobianCheck(gds.get(), sMode);
+    int mmatch = jacobianCheck(gds.get(), sMode);
     if (mmatch > 0) {
         printStateNames(gds.get(), sMode);
         if (checkRequired) {
@@ -258,7 +258,7 @@ int runJacobianCheck(std::unique_ptr<GridDynSimulation>& gds,
                      double tol,
                      bool checkRequired)
 {
-    int mmatch = JacobianCheck(gds.get(), sMode, tol);
+    int mmatch = jacobianCheck(gds.get(), sMode, tol);
     if (mmatch > 0) {
         printStateNames(gds.get(), sMode);
         if (checkRequired) {

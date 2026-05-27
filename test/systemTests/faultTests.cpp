@@ -272,7 +272,7 @@ TEST_F(FaultTests, LinkTestFaultFuse3)
     gds->consolePrintLevel = PrintLevel::DEBUG;
     // auto obj = dynamic_cast<Link *>(gds->find("bus2_to_bus3"));
     gds->dynInitialize();
-    int mmatch = JacobianCheck(gds, cDaeSolverMode);
+    int mmatch = jacobianCheck(gds, cDaeSolverMode);
     if (mmatch > 0) {
         printStateNames(gds, cDaeSolverMode);
     }

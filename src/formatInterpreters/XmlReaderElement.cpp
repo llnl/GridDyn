@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "XmlreaderElement.h"
+#include "XmlReaderElement.h"
 
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"

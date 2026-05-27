@@ -72,7 +72,7 @@ void FskitCommunicator::ProcessEventMessage(const fskit::EventMessage& eventMess
     eventMessage.Unpack(payload);
 
     std::shared_ptr<griddyn::commMessage> message;
-    message->from_datastring(payload);
+    message->fromDataString(payload);
 
     // using lambda capture to move the message to the lambda
     // unique ptr capture with message{std::move(m)} failed on gcc 4.9.3; build shared and capture
@@ -116,7 +116,7 @@ void FskitCommunicator::doTransmit(std::shared_ptr<griddyn::commMessage> message
                                  // Think about what this delay is representing: microprocessor data
                                  // transfer to comm layer, etc.
 
-    auto msg = message->to_datastring();
+    auto msg = message->toDataString();
 
     if (msg.size() > 0) {
         scheduler->SendEventMessage(

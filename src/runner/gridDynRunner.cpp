@@ -521,7 +521,7 @@ std::shared_ptr<CLI::App>
         ->each([this](const std::string& event) {
             EventInfo gdEI;
             gdEI.loadString(event, m_gds->getRoot());
-            std::shared_ptr<Event> gdE = make_event(gdEI, m_gds->getRoot());
+            std::shared_ptr<Event> gdE = makeEvent(gdEI, m_gds->getRoot());
             m_gds->add(std::move(gdE));
         });
 

@@ -78,7 +78,7 @@ void TcpCommunicator::transmit(std::uint64_t /*destID*/,
 // void TcpCommunicator::addMessageBody(zmq::multipart_t &msg, std::shared_ptr<commMessage>
 // &message)
 //{
-//    msg.addstr(message->to_datastring());
+//    msg.addstr(message->toDataString());
 //}
 
 void TcpCommunicator::initialize()
@@ -148,7 +148,7 @@ void TcpCommunicator::setFlag(std::string_view flag, bool val)
 
      std::string msgString(static_cast<const char*>(msgBody->data()), msgBody->size());
      std::shared_ptr<commMessage> gdMsg;
-     gdMsg->from_datastring(msgString);
+     gdMsg->fromDataString(msgString);
 
      // call the lower level receive function
      receive(0, getName(), std::move(gdMsg));

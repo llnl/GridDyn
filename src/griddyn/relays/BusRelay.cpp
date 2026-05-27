@@ -97,13 +97,13 @@ void busRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 
     add(std::shared_ptr<Event>(std::move(tripEvent)));
 
-    add(std::shared_ptr<Condition>(make_condition("voltage", "<", mCutoutVoltage, m_sourceObject)));
+    add(std::shared_ptr<Condition>(makeCondition("voltage", "<", mCutoutVoltage, m_sourceObject)));
     setActionTrigger(0, 0, mVoltageDelay);
     if ((mCutoutVoltage > 2.0) || (mCutoutVoltage <= 0)) {
         setConditionStatus(0, ConditionStatus::disabled);
     }
     add(std::shared_ptr<Condition>(
-        make_condition("frequency", "<", mCutoutFrequency, m_sourceObject)));
+        makeCondition("frequency", "<", mCutoutFrequency, m_sourceObject)));
     setActionTrigger(0, 1, mFrequencyDelay);
     if ((mCutoutFrequency > 2.0) || (mCutoutFrequency <= 0)) {
         setConditionStatus(1, ConditionStatus::disabled);

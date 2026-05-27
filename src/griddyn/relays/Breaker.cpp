@@ -106,7 +106,7 @@ void breaker::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     auto recloseEvent = std::make_shared<Event>();
     if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
         add(std::shared_ptr<Condition>(
-            make_condition("current" + std::to_string(m_terminal), ">=", mLimit, m_sourceObject)));
+            makeCondition("current" + std::to_string(m_terminal), ">=", mLimit, m_sourceObject)));
         tripEvent->setTarget(m_sinkObject, "switch" + std::to_string(m_terminal));
         tripEvent->setValue(1.0);
         // action 2 to re-close switch
@@ -115,7 +115,7 @@ void breaker::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         mBus = static_cast<Link*>(m_sourceObject)->getBus(m_terminal);
     } else {
         add(std::shared_ptr<Condition>(
-            make_condition("sqrt(p^2+q^2)/@bus:v", ">=", mLimit, m_sourceObject)));
+            makeCondition("sqrt(p^2+q^2)/@bus:v", ">=", mLimit, m_sourceObject)));
         opFlags.set(NONLINK_SOURCE_FLAG);
         tripEvent->setTarget(m_sinkObject, "status");
         tripEvent->setValue(0.0);

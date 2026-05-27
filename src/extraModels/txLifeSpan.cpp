@@ -142,7 +142,7 @@ void txLifeSpan::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
             generatedEvent->setValue(1.0);
             Relay::add(std::shared_ptr<Event>(std::move(generatedEvent)));
 
-            auto cond = make_condition("output0", "<", 0, this);
+            auto cond = makeCondition("output0", "<", 0, this);
             Relay::add(std::shared_ptr<Condition>(std::move(cond)));
 
             setActionTrigger(0, 0);

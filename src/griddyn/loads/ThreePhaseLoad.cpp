@@ -378,7 +378,7 @@ IOdata ThreePhaseLoad::getRealPower3Phase(PhaseType type) const
         default:
             return {Pa, Pb, Pc};
         case PhaseType::pnz:
-            return ABCtoPNZ_R<IOdata>({Pa, Pb, Pc}, {Qa, Qb, Qc});
+            return abcToPnzR<IOdata>({Pa, Pb, Pc}, {Qa, Qb, Qc});
     }
 }
 IOdata ThreePhaseLoad::getReactivePower3Phase(PhaseType type) const
@@ -388,7 +388,7 @@ IOdata ThreePhaseLoad::getReactivePower3Phase(PhaseType type) const
         default:
             return {Qa, Qb, Qc};
         case PhaseType::pnz:
-            return ABCtoPNZ_I<IOdata>({Pa, Pb, Pc}, {Qa, Qb, Qc});
+            return abcToPnzI<IOdata>({Pa, Pb, Pc}, {Qa, Qb, Qc});
     }
 }
 

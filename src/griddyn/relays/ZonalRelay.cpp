@@ -158,15 +158,15 @@ void zonalRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     for (index_t kk = 0; kk < mZoneCount; ++kk) {
         if (opFlags[NONDIRECTIONAL_FLAG]) {
             add(std::shared_ptr<Condition>(
-                make_condition("abs(admittance" + std::to_string(m_terminal) + ")",
-                               ">=",
-                               1.0 / (mZoneLevels[kk] * baseImpedance),
-                               m_sourceObject)));
+                makeCondition("abs(admittance" + std::to_string(m_terminal) + ")",
+                              ">=",
+                              1.0 / (mZoneLevels[kk] * baseImpedance),
+                              m_sourceObject)));
         } else {
-            add(std::shared_ptr<Condition>(make_condition("admittance" + std::to_string(m_terminal),
-                                                          ">=",
-                                                          1.0 / (mZoneLevels[kk] * baseImpedance),
-                                                          m_sourceObject)));
+            add(std::shared_ptr<Condition>(makeCondition("admittance" + std::to_string(m_terminal),
+                                                         ">=",
+                                                         1.0 / (mZoneLevels[kk] * baseImpedance),
+                                                         m_sourceObject)));
         }
         setResetMargin(kk, mResetMargin * 1.0 / (mZoneLevels[kk] * baseImpedance));
     }

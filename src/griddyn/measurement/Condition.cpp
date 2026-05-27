@@ -31,7 +31,7 @@ namespace {
     }
 }  // namespace
 
-std::unique_ptr<Condition> make_condition(std::string_view condString, CoreObject* rootObject)
+std::unique_ptr<Condition> makeCondition(std::string_view condString, CoreObject* rootObject)
 {
     auto cString = gmlc::utilities::stringOps::xmlCharacterCodeReplace(std::string{condString});
     // size_t posA = condString.find_first_of("&|");
@@ -115,19 +115,17 @@ std::string to_string(ComparisonType comp)
     }
 }
 
-std::unique_ptr<Condition> make_condition(std::string_view field,
-                                          std::string_view compare,
-                                          double level,
-                                          CoreObject* rootObject)
+std::unique_ptr<Condition> makeCondition(std::string_view field,
+                                         std::string_view compare,
+                                         double level,
+                                         CoreObject* rootObject)
 {
-    return make_condition(field, comparisonFromString(compare), level, rootObject);
+    return makeCondition(field, comparisonFromString(compare), level, rootObject);
     // get the state grabbers part
 }
 
-std::unique_ptr<Condition> make_condition(std::string_view field,
-                                          ComparisonType comp,
-                                          double level,
-                                          CoreObject* rootObject)
+std::unique_ptr<Condition>
+    makeCondition(std::string_view field, ComparisonType comp, double level, CoreObject* rootObject)
 {
     try {
         auto gset = std::make_shared<grabberSet>(std::string{field}, rootObject);

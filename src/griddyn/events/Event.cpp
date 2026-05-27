@@ -435,7 +435,7 @@ void EventInfo::loadString(std::string_view eventString, CoreObject* rootObj)
 }
 
 std::unique_ptr<Event>
-    make_event(std::string_view field, double val, coreTime eventTime, CoreObject* rootObject)
+    makeEvent(std::string_view field, double val, coreTime eventTime, CoreObject* rootObject)
 {
     auto eventObject = std::make_unique<Event>(eventTime);
     const ObjectInfo fdata(std::string{field}, rootObject);
@@ -444,13 +444,13 @@ std::unique_ptr<Event>
     return eventObject;
 }
 
-std::unique_ptr<Event> make_event(std::string_view eventString, CoreObject* rootObject)
+std::unique_ptr<Event> makeEvent(std::string_view eventString, CoreObject* rootObject)
 {
     EventInfo gdEI(eventString, rootObject);
-    return make_event(gdEI, rootObject);
+    return makeEvent(gdEI, rootObject);
 }
 
-std::unique_ptr<Event> make_event(EventInfo& gdEI, CoreObject* rootObject)
+std::unique_ptr<Event> makeEvent(EventInfo& gdEI, CoreObject* rootObject)
 {
     std::unique_ptr<Event> eventObject;
     if (!gdEI.type.empty()) {

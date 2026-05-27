@@ -16,7 +16,7 @@
 using griddyn::ChangeCode;
 using griddyn::Event;
 using griddyn::GriddynRunner;
-using griddyn::make_event;
+using griddyn::makeEvent;
 using griddyn::ObjectUpdateMode;
 
 static constexpr char invalidEvent[] = "the Event object is not valid";
@@ -24,7 +24,7 @@ static constexpr char invalidEvent[] = "the Event object is not valid";
 GridDynEvent gridDynEventCreate(const char* eventString, GridDynObject obj, GridDynError* err)
 {
     try {
-        auto* evnt = new std::shared_ptr<Event>(make_event(eventString, getComponentPointer(obj)));
+        auto* evnt = new std::shared_ptr<Event>(makeEvent(eventString, getComponentPointer(obj)));
         if (evnt != nullptr) {
             return static_cast<GridDynEvent>(evnt);
         }

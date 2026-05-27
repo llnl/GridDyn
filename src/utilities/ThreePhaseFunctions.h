@@ -73,7 +73,7 @@ X generate3PhasePolarVector(const X& val)
 }
 
 template<class X>
-X ABCtoPNZ_R(const X& abcR, const X& abcI)
+X abcToPnzR(const X& abcR, const X& abcI)
 {
     std::complex<double> A(abcR[0], abcI[0]);
     std::complex<double> B(abcR[1], abcI[1]);
@@ -88,7 +88,7 @@ X ABCtoPNZ_R(const X& abcR, const X& abcI)
 }
 
 template<class X>
-X ABCtoPNZ_I(const X& abcR, const X& abcI)
+X abcToPnzI(const X& abcR, const X& abcI)
 {
     std::complex<double> A(abcR[0], abcI[0]);
     std::complex<double> B(abcR[1], abcI[1]);
@@ -103,7 +103,7 @@ X ABCtoPNZ_I(const X& abcR, const X& abcI)
 }
 
 template<class X>
-X ThreePhasePowerPolar(const X& V, const X& I)
+X threePhasePowerPolar(const X& V, const X& I)
 {
     auto V1 = std::polar(V[0], V[1] * k_PI / 180.0);
     auto V2 = std::polar(V[2], V[3] * k_PI / 180.0);

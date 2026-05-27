@@ -84,9 +84,9 @@ void loadRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     tripEvent->setValue(0.0);
 
     add(std::move(tripEvent));
-    add(std::shared_ptr<Condition>(make_condition("voltage", "<", mCutoutVoltage, m_sourceObject)));
+    add(std::shared_ptr<Condition>(makeCondition("voltage", "<", mCutoutVoltage, m_sourceObject)));
     add(std::shared_ptr<Condition>(
-        make_condition("frequency", "<", mCutoutFrequency, m_sourceObject)));
+        makeCondition("frequency", "<", mCutoutFrequency, m_sourceObject)));
     if (mCutoutVoltage < 2.0) {
         setActionTrigger(0, 0, mVoltageDelay);
     } else {

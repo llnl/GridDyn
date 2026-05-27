@@ -91,7 +91,7 @@ void FmiMELoad3phase::updateLocalCache(const IOdata& inputs,
     // printf("V[%f,%f,%f,%f,%f,%f], I[%f,%f,%f,%f,%f,%f]\n", V[0], V[1], V[2], V[3], V[4],
     // V[5], I[0], I[1], I[2], I[3], I[4], I[5]);
     auto powerValues =
-        ThreePhasePowerPolar(inputVector, outputCurrent);  // TODO(phlpt): Make this conditional.
+        threePhasePowerPolar(inputVector, outputCurrent);  // TODO(phlpt): Make this conditional.
     setPa(powerValues[0]);
     setPb(powerValues[2]);
     setPc(powerValues[4]);

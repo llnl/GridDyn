@@ -18,7 +18,7 @@ TEST(ConditionTests, BasicTests)
     GridBus B;
     B.setVoltageAngle(1.0, 0.05);
 
-    auto cond = make_condition("voltage", "<", 0.7, &B);
+    auto cond = makeCondition("voltage", "<", 0.7, &B);
     ASSERT_NE(cond, nullptr);
 
     EXPECT_NEAR(cond->evalCondition(), 0.3, std::abs(0.3) * 1e-6 + 1e-12);
@@ -35,7 +35,7 @@ TEST(ConditionTests, BasicTest2)
     GridBus B;
     B.setVoltageAngle(1.0, 0.05);
 
-    auto cond = make_condition("voltage-0.4", "<", 0.7, &B);
+    auto cond = makeCondition("voltage-0.4", "<", 0.7, &B);
     ASSERT_NE(cond, nullptr);
 
     EXPECT_NEAR(cond->evalCondition(), -0.1, std::abs(-0.1) * 1e-6 + 1e-12);
@@ -61,7 +61,7 @@ TEST(ConditionTests, LinkTests)
     L2.updateBus(&B2, 2);
     L2.updateLocalCache();
 
-    auto cond = make_condition("current1>current2", &L2);
+    auto cond = makeCondition("current1>current2", &L2);
     ASSERT_NE(cond, nullptr);
 
     auto C1 = L2.getCurrent(1);
@@ -89,7 +89,7 @@ TEST(ConditionTests, LinkTestsQueries)
     L2.updateBus(&B2, 2);
     L2.updateLocalCache();
 
-    auto cond = make_condition("current1-current2", ">", 0.01, &L2);
+    auto cond = makeCondition("current1-current2", ">", 0.01, &L2);
     ASSERT_NE(cond, nullptr);
 
     auto C1 = L2.getCurrent(1);
@@ -115,7 +115,7 @@ TEST(ConditionTests, LinkTestsQueries2)
     L2.updateBus(&B2, 2);
     L2.updateLocalCache();
 
-    auto cond = make_condition("(current1-current2)*(current1-current2)", ">", 0.01, &L2);
+    auto cond = makeCondition("(current1-current2)*(current1-current2)", ">", 0.01, &L2);
     ASSERT_NE(cond, nullptr);
 
     auto C1 = L2.getCurrent(1);
@@ -144,10 +144,10 @@ TEST(ConditionTests, LinkTestsQueries3)
     L2.updateLocalCache();
 
     auto cond =
-        make_condition("hypot(abs(realcurrent1-realcurrent2),abs(imagcurrent1-imagcurrent2))",
-                       ">",
-                       0.01,
-                       &L2);
+        makeCondition("hypot(abs(realcurrent1-realcurrent2),abs(imagcurrent1-imagcurrent2))",
+                      ">",
+                      0.01,
+                      &L2);
     ASSERT_NE(cond, nullptr);
 
     auto R1 = L2.getRealCurrent(1);

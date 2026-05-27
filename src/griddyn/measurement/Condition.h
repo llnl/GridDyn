@@ -150,7 +150,7 @@ class Condition: public ObjectOperatorInterface {
  * @param[in] condString a condition string  like bus1:Voltage>bus2::voltage
  * @param[in] rootObject the root object to find the other objects
  */
-std::unique_ptr<Condition> make_condition(std::string_view condString, CoreObject* rootObject);
+std::unique_ptr<Condition> makeCondition(std::string_view condString, CoreObject* rootObject);
 /** make a condition object
 * function to create a condition object from a field a comparison type and threshold
 * @param field the field to get from the rootObject
@@ -158,10 +158,10 @@ std::unique_ptr<Condition> make_condition(std::string_view condString, CoreObjec
 @param level the threshold level for the comparson
 * @param[in] rootObject the root object to find the other objects
 */
-std::unique_ptr<Condition> make_condition(std::string_view field,
-                                          std::string_view compare,
-                                          double level,
-                                          CoreObject* rootObject);
+std::unique_ptr<Condition> makeCondition(std::string_view field,
+                                         std::string_view compare,
+                                         double level,
+                                         CoreObject* rootObject);
 /** make a condition object
 * function to create a condition object from a field a comparison type and threshold
 * @param field the field to get from the rootObject
@@ -169,10 +169,10 @@ std::unique_ptr<Condition> make_condition(std::string_view field,
 @param level the threshold level for the comparson
 * @param[in] rootObject the root object to find the other objects
 */
-std::unique_ptr<Condition> make_condition(std::string_view field,
-                                          ComparisonType comp,
-                                          double level,
-                                          CoreObject* rootObject);
+std::unique_ptr<Condition> makeCondition(std::string_view field,
+                                         ComparisonType comp,
+                                         double level,
+                                         CoreObject* rootObject);
 
 /** evaluate a compound condition consisting of multiple individual conditions
  */

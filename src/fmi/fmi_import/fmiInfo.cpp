@@ -6,7 +6,7 @@
 
 #include "fmiInfo.h"
 
-#include "formatInterpreters/XmlreaderElement.h"
+#include "formatInterpreters/XmlReaderElement.h"
 #include "gmlc/utilities/stringConversion.h"
 #include <map>
 #include <memory>

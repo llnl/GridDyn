@@ -276,6 +276,8 @@ CheckOptions:
     value:           ''
   - key:             readability-identifier-naming.FunctionCase
     value:           camelBack
+  - key:             readability-identifier-naming.FunctionIgnoredRegexp
+    value:           '^(to_string|from_string)$'
   - key:             readability-identifier-naming.FunctionPrefix
     value:           ''
   - key:             readability-identifier-naming.FunctionSuffix
@@ -288,6 +290,8 @@ CheckOptions:
     value:           ''
   - key:             readability-identifier-naming.GlobalFunctionCase
     value:           camelBack
+  - key:             readability-identifier-naming.GlobalFunctionIgnoredRegexp
+    value:           '^(to_string|from_string)$'
   - key:             readability-identifier-naming.GlobalFunctionPrefix
     value:           ''
   - key:             readability-identifier-naming.GlobalFunctionSuffix
@@ -334,6 +338,8 @@ CheckOptions:
     value:           ''
   - key:             readability-identifier-naming.MethodCase
     value:           camelBack
+  - key:             readability-identifier-naming.MethodIgnoredRegexp
+    value:           '^(to_string|from_string)$'
   - key:             readability-identifier-naming.MethodPrefix
     value:           ''
   - key:             readability-identifier-naming.MethodSuffix
@@ -364,6 +370,8 @@ CheckOptions:
     value:           ''
   - key:             readability-identifier-naming.PrivateMethodCase
     value:           camelBack
+  - key:             readability-identifier-naming.PrivateMethodIgnoredRegexp
+    value:           '^(to_string|from_string)$'
   - key:             readability-identifier-naming.PrivateMethodPrefix
     value:           ''
   - key:             readability-identifier-naming.PrivateMethodSuffix
@@ -376,6 +384,8 @@ CheckOptions:
     value:           ''
   - key:             readability-identifier-naming.ProtectedMethodCase
     value:           camelBack
+  - key:             readability-identifier-naming.ProtectedMethodIgnoredRegexp
+    value:           '^(to_string|from_string)$'
   - key:             readability-identifier-naming.ProtectedMethodPrefix
     value:           ''
   - key:             readability-identifier-naming.ProtectedMethodSuffix
@@ -388,6 +398,8 @@ CheckOptions:
     value:           ''
   - key:             readability-identifier-naming.PublicMethodCase
     value:           camelBack
+  - key:             readability-identifier-naming.PublicMethodIgnoredRegexp
+    value:           '^(to_string|from_string)$'
   - key:             readability-identifier-naming.PublicMethodPrefix
     value:           ''
   - key:             readability-identifier-naming.PublicMethodSuffix
@@ -454,6 +466,8 @@ CheckOptions:
     value:           ''
   - key:             readability-identifier-naming.VirtualMethodCase
     value:           camelBack
+  - key:             readability-identifier-naming.VirtualMethodIgnoredRegexp
+    value:           '^(to_string|from_string)$'
   - key:             readability-identifier-naming.VirtualMethodPrefix
     value:           ''
   - key:             readability-identifier-naming.VirtualMethodSuffix

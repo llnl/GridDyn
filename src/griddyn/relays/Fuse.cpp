@@ -92,13 +92,13 @@ void fuse::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 
     if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
         add(std::shared_ptr<Condition>(
-            make_condition("current" + std::to_string(m_terminal), ">=", limit, m_sourceObject)));
+            makeCondition("current" + std::to_string(m_terminal), ">=", limit, m_sourceObject)));
         ge->setTarget(m_sinkObject, "switch" + std::to_string(m_terminal));
         ge->setValue(1.0);
         bus = static_cast<Link*>(m_sourceObject)->getBus(m_terminal);
     } else {
         add(std::shared_ptr<Condition>(
-            make_condition("sqrt(p^2+q^2)/@bus:v", ">=", limit, m_sourceObject)));
+            makeCondition("sqrt(p^2+q^2)/@bus:v", ">=", limit, m_sourceObject)));
         opFlags.set(NONLINK_SOURCE_FLAG);
         ge->setTarget(m_sinkObject, "status");
         ge->setValue(0.0);

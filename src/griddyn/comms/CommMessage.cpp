@@ -141,7 +141,7 @@ int commMessage::toByteArray(char* data, size_t bufferSize) const
     }
 }
 
-std::string commMessage::to_datastring() const
+std::string commMessage::toDataString() const
 {
     std::string data;
     boost::iostreams::back_insert_device<std::string> inserter(data);
@@ -156,7 +156,7 @@ std::string commMessage::to_datastring() const
     return data;
 }
 
-std::vector<char> commMessage::to_vector() const
+std::vector<char> commMessage::toVector() const
 {
     std::vector<char> data;
     boost::iostreams::back_insert_device<std::vector<char>> inserter(data);
@@ -171,7 +171,7 @@ std::vector<char> commMessage::to_vector() const
     return data;
 }
 
-void commMessage::to_vector(std::vector<char>& data) const
+void commMessage::toVector(std::vector<char>& data) const
 {
     data.clear();
     boost::iostreams::back_insert_device<std::vector<char>> inserter(data);
@@ -185,7 +185,7 @@ void commMessage::to_vector(std::vector<char>& data) const
     outputStream.flush();
 }
 
-void commMessage::to_datastring(std::string& data) const
+void commMessage::toDataString(std::string& data) const
 {
     data.clear();
 
@@ -213,12 +213,12 @@ void commMessage::fromByteArray(const char* data, size_t bufferSize)
     }
 }
 
-void commMessage::from_datastring(std::string_view data)
+void commMessage::fromDataString(std::string_view data)
 {
     fromByteArray(data.data(), data.size());
 }
 
-void commMessage::from_vector(const std::vector<char>& data)
+void commMessage::fromVector(const std::vector<char>& data)
 {
     fromByteArray(data.data(), data.size());
 }

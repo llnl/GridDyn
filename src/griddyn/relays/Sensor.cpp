@@ -198,7 +198,7 @@ void sensor::set(std::string_view param, std::string_view val)
         }
         m_inputSize = static_cast<count_t>(inputStrings.size());
     } else if (param == "condition") {
-        add(std::shared_ptr<Condition>(make_condition(std::string{val}, this)));
+        add(std::shared_ptr<Condition>(makeCondition(std::string{val}, this)));
     } else if (iparam == "filter") {
         auto blk = make_block(std::string{val});
         if (blk) {

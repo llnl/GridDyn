@@ -87,7 +87,7 @@ void ZmqCommunicator::addHeader(zmq::multipart_t& msg,
 void ZmqCommunicator::addMessageBody(zmq::multipart_t& msg,
                                      const std::shared_ptr<commMessage>& message)
 {
-    msg.addstr(message->to_datastring());
+    msg.addstr(message->toDataString());
 }
 
 void ZmqCommunicator::initialize()
@@ -211,7 +211,7 @@ void ZmqCommunicator::messageHandler(const zmq::multipart_t& msg)
 
     const std::string msgString(static_cast<const char*>(msgBody->data()), msgBody->size());
     auto gdMsg = std::make_shared<commMessage>();
-    gdMsg->from_datastring(msgString);
+    gdMsg->fromDataString(msgString);
 
     // call the lower level receive function
     receive(0, getName(), gdMsg);

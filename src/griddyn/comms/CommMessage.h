@@ -128,20 +128,20 @@ class commMessage {
     */
     int toByteArray(char* data, size_t bufferSize) const;
     /** convert to a data string using a reference*/
-    void to_datastring(std::string& data) const;
+    void toDataString(std::string& data) const;
     /** convert to a data string
     @details a data string is a string containing raw data*/
-    std::string to_datastring() const;
+    std::string toDataString() const;
     /** convert to a byte vector using a reference*/
-    void to_vector(std::vector<char>& data) const;
+    void toVector(std::vector<char>& data) const;
     /** convert a command to a byte vector*/
-    std::vector<char> to_vector() const;
+    std::vector<char> toVector() const;
     /** generate a command from a raw data stream*/
     void fromByteArray(const char* data, size_t bufferSize);
     /** read a command from a string*/
-    void from_datastring(std::string_view data);
+    void fromDataString(std::string_view data);
     /** read a command from a char vector*/
-    void from_vector(const std::vector<char>& data);
+    void fromVector(const std::vector<char>& data);
 
   private:
     std::uint32_t m_messageType = ignoreMessageType;  //!< the actual type of the message

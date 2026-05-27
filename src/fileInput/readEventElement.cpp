@@ -133,7 +133,7 @@ int loadEventElement(std::shared_ptr<ReaderElement>& element,
     element->bookmark();
     EventInfo eventInfo;
     readEventElement(element, eventInfo, ReaderInformation, obj);
-    auto eventObject = make_event(eventInfo, obj);
+    auto eventObject = makeEvent(eventInfo, obj);
     if (!eventObject) {
         WARNPRINT(READER_WARN_IMPORTANT, "unable to create an event of type " << eventInfo.type);
         return FUNCTION_EXECUTION_FAILURE;

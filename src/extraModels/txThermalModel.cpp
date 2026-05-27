@@ -265,11 +265,11 @@ void txThermalModel::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
             3;  // the first input was setup as the current, second as the loss, 3rd as attached
         outputs[1] = 0;
         sensor::set("output2", "block0+block1");
-        auto condition = make_condition("output1", ">", mAlarmTemp1, this);
+        auto condition = makeCondition("output1", ">", mAlarmTemp1, this);
         Relay::add(std::shared_ptr<Condition>(std::move(condition)));
-        condition = make_condition("output1", ">", mAlarmTemp2, this);
+        condition = makeCondition("output1", ">", mAlarmTemp2, this);
         Relay::add(std::shared_ptr<Condition>(std::move(condition)));
-        condition = make_condition("output1", ">", mCutoutTemp, this);
+        condition = makeCondition("output1", ">", mCutoutTemp, this);
         Relay::add(std::shared_ptr<Condition>(std::move(condition)));
 
         Relay::set("action", "alarm temperature_alarm1");  // NOLINT

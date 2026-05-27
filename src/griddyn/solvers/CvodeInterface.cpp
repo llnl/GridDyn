@@ -242,7 +242,7 @@ void cvodeInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
                               tolsfac);
 
     if (m_gds != nullptr) {
-        logging::log_to(m_gds, m_gds, logLevel, logstr);
+        logging::logTo(m_gds, m_gds, logLevel, logstr);
     } else {
         printf("\n%s", logstr.c_str());
     }
@@ -264,7 +264,7 @@ void cvodeInterface::logErrorWeights(PrintLevel logLevel) const
     }
 
     if (m_gds != nullptr) {
-        logging::log_to(m_gds, m_gds, logLevel, logstr);
+        logging::logTo(m_gds, m_gds, logLevel, logstr);
     } else {
         printf("\n%s", logstr.c_str());
     }
@@ -286,7 +286,7 @@ void cvodeInterface::initialize(coreTime time0)
     check_flag(&retval, "CVodeSetUserData", 1);
 
     // guessState an initial condition
-    m_gds->guessState(time0, state_data(), deriv_data(), mode);
+    m_gds->guessState(time0, stateData(), derivData(), mode);
 
     retval = CVodeInit(solverMem, cvodeFunc, time0, state);
     check_flag(&retval, "CVodeInit", 1);
@@ -468,7 +468,7 @@ int cvodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* use
 {
     auto sd = reinterpret_cast<cvodeInterface*>(user_data);
     sd->m_gds->rootFindingFunction(
-        time, NVECTOR_DATA(sd->use_omp, state), sd->deriv_data(), gout, sd->mode);
+        time, NVECTOR_DATA(sd->use_omp, state), sd->derivData(), gout, sd->mode);
 
     return FUNCTION_EXECUTION_SUCCESS;
 }
@@ -486,3 +486,4 @@ int cvodeJac(sunrealtype time,
 }
 
 }  // namespace griddyn::solvers
+

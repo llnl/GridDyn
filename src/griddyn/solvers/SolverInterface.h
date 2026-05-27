@@ -162,32 +162,32 @@ class SolverInterface: public HelperObject {
     /** @brief get a pointer to the state data
     @return a pointer to a double array with the state data
     */
-    virtual double* state_data() noexcept;
+    virtual double* stateData() noexcept;
 
     /** @brief get a pointer to the state time derivative information
     @return a pointer to a double array with the state time derivative information
     */
-    virtual double* deriv_data() noexcept;
+    virtual double* derivData() noexcept;
 
     /** @brief get a pointer to the type data
     @return a pointer to a double array containing the type data
     */
-    virtual double* type_data() noexcept;
+    virtual double* typeData() noexcept;
 
     /** @brief get a pointer to the const state data
     @return a pointer to a const double array with the state data
     */
-    virtual const double* state_data() const noexcept;
+    virtual const double* stateData() const noexcept;
 
     /** @brief get a pointer to the const state time derivative information
     @return a pointer to a const double array with the state time derivative information
     */
-    virtual const double* deriv_data() const noexcept;
+    virtual const double* derivData() const noexcept;
 
     /** @brief get a pointer to the const type data
     @return a pointer to a const double array containing the type data
     */
-    virtual const double* type_data() const noexcept;
+    virtual const double* typeData() const noexcept;
 
     /** @brief allocate the memory for the solver
     @param[in] size  the size of the state vector

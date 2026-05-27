@@ -38,7 +38,7 @@ int FmiRunner::Reset()
 {
     m_gds = std::make_shared<GridDynSimulation>(identifier);
 
-    mCoordinator = make_owningPtr<FmiCoordinator>();
+    mCoordinator = makeOwningPtr<FmiCoordinator>();
     // store the coordinator as a support object so everything can find it
     m_gds->add(mCoordinator.get());
 
@@ -170,3 +170,4 @@ double FmiRunner::getValue(index_t valueReference)
 }
 
 }  // namespace griddyn::fmi
+

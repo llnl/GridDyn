@@ -42,10 +42,10 @@ std::pair<double, int>
     double* dstate_dt = nullptr;
     auto kSize = sd->size();
     resid.resize(kSize, 0);
-    double* state = sd->state_data();
+    double* state = sd->stateData();
     assert(kSize == const_cast<const GridDynSimulation*>(gds)->stateSize(sMode));
     if (!isAlgebraicOnly(sMode)) {
-        dstate_dt = sd->deriv_data();
+        dstate_dt = sd->derivData();
     }
 
     gds->residualFunction(time, state, dstate_dt, resid.data(), sMode);
@@ -87,8 +87,8 @@ int JacobianCheck(GridDynSimulation* gds,
     if (nsize == 0) {
         return 0;
     }
-    double* state = sd->state_data();
-    double* dstate = sd->deriv_data();
+    double* state = sd->stateData();
+    double* dstate = sd->derivData();
 
     coreTime timeCurr = gds->getSimulationTime();
     if ((gds->currentProcessState() <= GridDynSimulation::GridState::DYNAMIC_INITIALIZED) &&
@@ -321,7 +321,7 @@ int residualCheck(GridDynSimulation* gds,
     }
     int errors = 0;
     auto sd = gds->getSolverInterface(sMode);
-    double* state = sd->state_data();
+    double* state = sd->stateData();
     auto nsize = static_cast<count_t>(sd->size());
     assert(nsize == const_cast<const GridDynSimulation*>(gds)->stateSize(sMode));
     if (gds->currentProcessState() == GridDynSimulation::GridState::INITIALIZED) {
@@ -330,13 +330,13 @@ int residualCheck(GridDynSimulation* gds,
     }
 
     std::vector<double> resid(nsize);
-    stateData sD(time, sd->state_data());
+    stateData sD(time, sd->stateData());
     if (residTol < 0)  // make sure the tolerance is positive
     {
         residTol = resid_check_tol;
     }
 
-    sD.dstate_dt = (isDAE(sMode)) ? sd->deriv_data() : nullptr;
+    sD.dstate_dt = (isDAE(sMode)) ? sd->derivData() : nullptr;
 
     gds->residual(noInputs, sD, resid.data(), sMode);
     for (index_t kk = 0; kk < nsize; ++kk) {
@@ -374,14 +374,14 @@ int algebraicCheck(GridDynSimulation* gds,
     }
 
     auto sd = gds->getSolverInterface(sMode);
-    auto state = sd->state_data();
+    auto state = sd->stateData();
     auto nsize = static_cast<count_t>(sd->size());
     assert(nsize == const_cast<const GridDynSimulation*>(gds)->stateSize(sMode));
     if (gds->currentProcessState() == GridDynSimulation::GridState::INITIALIZED) {
         // sMode must be power flow or dc power flow to get here
         gds->guessState(time, state, nullptr, sMode);
     } else {
-        gds->guessState(time, state, sd->deriv_data(), sMode);
+        gds->guessState(time, state, sd->derivData(), sMode);
     }
     std::vector<double> update(nsize);
 
@@ -389,8 +389,8 @@ int algebraicCheck(GridDynSimulation* gds,
     {
         algTol = resid_check_tol;
     }
-    stateData sD(time, sd->state_data());
-    sD.dstate_dt = (isDAE(sMode)) ? sd->deriv_data() : nullptr;
+    stateData sD(time, sd->stateData());
+    sD.dstate_dt = (isDAE(sMode)) ? sd->derivData() : nullptr;
 
     gds->algebraicUpdate(noInputs, sD, update.data(), sMode, 1.0);
     std::vector<double> vtype(nsize);
@@ -439,14 +439,14 @@ int derivativeCheck(GridDynSimulation* gds,
     }
     int errors = 0;
     auto sd = gds->getSolverInterface(sMode);
-    double* state = sd->state_data();
+    double* state = sd->stateData();
     auto nsize = static_cast<count_t>(sd->size());
     assert(nsize == const_cast<const GridDynSimulation*>(gds)->stateSize(sMode));
     if (gds->currentProcessState() == GridDynSimulation::GridState::INITIALIZED) {
         // sMode must be power flow or dc power flow to get here
         gds->guessState(time, state, nullptr, sMode);
     } else {
-        gds->guessState(time, state, sd->deriv_data(), sMode);
+        gds->guessState(time, state, sd->derivData(), sMode);
     }
     std::vector<double> deriv(nsize);
 
@@ -454,7 +454,7 @@ int derivativeCheck(GridDynSimulation* gds,
     {
         derivTol = resid_check_tol;
     }
-    stateData sD(time, sd->state_data(), sd->deriv_data());
+    stateData sD(time, sd->stateData(), sd->derivData());
 
     gds->derivative(noInputs, sD, deriv.data(), sMode);
     std::vector<double> vtype(nsize);
@@ -488,7 +488,7 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
     auto sd = gds->getSolverInterface(sMode);
     auto ssize = sd->size();
 
-    double* state = sd->state_data();
+    double* state = sd->stateData();
     std::ofstream bFile(file.c_str(), std::ios::out | std::ios::binary);
 
     std::vector<double> baseState(ssize, 0);
@@ -832,3 +832,4 @@ void printStateSizes(const GridComponent* comp, const solverMode& sMode)
 }
 }  // namespace griddyn
 // NOLINTEND
+

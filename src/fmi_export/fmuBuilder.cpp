@@ -53,7 +53,7 @@ FmuBuilder::FmuBuilder(std::shared_ptr<GridDynSimulation> gds): GriddynRunner(st
 
 void FmuBuilder::loadComponents()
 {
-    mCoordinator = make_owningPtr<FmiCoordinator>();
+    mCoordinator = makeOwningPtr<FmiCoordinator>();
     auto gds = getSim();
     if (gds == nullptr) {
         resetSim(std::make_shared<GridDynSimulation>());
@@ -512,3 +512,4 @@ void FmuBuilder::generateXML(const std::string& xmlfile)
 }
 
 }  // namespace griddyn::fmi
+

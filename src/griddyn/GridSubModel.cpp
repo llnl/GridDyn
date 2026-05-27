@@ -57,7 +57,7 @@ void GridSubModel::dynInitializeB(const IOdata& inputs,
 
         dynObjectInitializeB(inputs, desiredOutput, fieldSet);
         if (updatePeriod < maxTime) {
-            enable_updates();
+            enableUpdates();
             setUpdateTime(prevTime + updatePeriod);
             alert(this, UPDATE_REQUIRED);
         }

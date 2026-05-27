@@ -41,27 +41,27 @@ void basicOdeSolver::cloneTo(SolverInterface* si, bool fullCopy) const
     bos->deltaT = deltaT;
 }
 
-double* basicOdeSolver::state_data() noexcept
+double* basicOdeSolver::stateData() noexcept
 {
     return state.data();
 }
-double* basicOdeSolver::deriv_data() noexcept
+double* basicOdeSolver::derivData() noexcept
 {
     return deriv.data();
 }
-double* basicOdeSolver::type_data() noexcept
+double* basicOdeSolver::typeData() noexcept
 {
     return type.data();
 }
-const double* basicOdeSolver::state_data() const noexcept
+const double* basicOdeSolver::stateData() const noexcept
 {
     return state.data();
 }
-const double* basicOdeSolver::deriv_data() const noexcept
+const double* basicOdeSolver::derivData() const noexcept
 {
     return deriv.data();
 }
-const double* basicOdeSolver::type_data() const noexcept
+const double* basicOdeSolver::typeData() const noexcept
 {
     return type.data();
 }

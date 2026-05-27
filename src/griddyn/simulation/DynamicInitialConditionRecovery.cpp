@@ -77,8 +77,8 @@ int dynamicInitialConditionRecovery::attempts() const
 int dynamicInitialConditionRecovery::lowVoltageCheck()
 {
     const stateData stateDataValue(sim->getSimulationTime(),
-                                   solver->state_data(),
-                                   solver->deriv_data());
+                                   solver->stateData(),
+                                   solver->derivData());
 
     sim->rootCheck(noInputs,
                    stateDataValue,
@@ -100,8 +100,8 @@ int dynamicInitialConditionRecovery::dynamicFix1()
 {
     sim->checkNetwork(GridDynSimulation::NetworkCheckType::SIMPLIFIED);  // do a network check
     sim->converge(sim->getSimulationTime(),
-                  solver->state_data(),
-                  solver->deriv_data(),
+                  solver->stateData(),
+                  solver->derivData(),
                   solver->getSolverMode(),
                   ConvergeMode::block_iteration,
                   3.0);
@@ -115,19 +115,19 @@ int dynamicInitialConditionRecovery::dynamicFix1()
 int dynamicInitialConditionRecovery::dynamicFix2()
 {
     sim->converge(sim->getSimulationTime(),
-                  solver->state_data(),
-                  solver->deriv_data(),
+                  solver->stateData(),
+                  solver->derivData(),
                   solver->getSolverMode(),
                   ConvergeMode::block_iteration,
                   3.0);
     std::vector<double> voltages;
     int retval = -10;
-    sim->getVoltage(voltages, solver->state_data(), solver->getSolverMode());
+    sim->getVoltage(voltages, solver->stateData(), solver->getSolverMode());
     if (std::any_of(voltages.begin(), voltages.end(), [](double voltageValue) {
             return (voltageValue < 0.7);
         })) {
         if (!sim->opFlags[prev_setall_pqvlimit]) {
-            logging::log_to(sim, sim, PrintLevel::DEBUG, "setting all load to PQ at V=0.9");
+            logging::logTo(sim, sim, PrintLevel::DEBUG, "setting all load to PQ at V=0.9");
             sim->opFlags.set(disable_flag_updates);
             sim->setAll("load", "pqlowvlimit", 0.9);
             sim->controlFlags.set(voltage_constraints_flag);
@@ -137,8 +137,8 @@ int dynamicInitialConditionRecovery::dynamicFix2()
             sim->updateFlags();
             sim->handleRootChange(solver->getSolverMode(), solver);
             const stateData stateDataValue(sim->getSimulationTime(),
-                                           solver->state_data(),
-                                           solver->deriv_data());
+                                           solver->stateData(),
+                                           solver->derivData());
 
             const ChangeCode rootCheckResult = sim->rootCheck(noInputs,
                                                               stateDataValue,
@@ -160,8 +160,8 @@ int dynamicInitialConditionRecovery::dynamicFix2()
             }
         } else {
             const stateData stateDataValue(sim->getSimulationTime(),
-                                           solver->state_data(),
-                                           solver->deriv_data());
+                                           solver->stateData(),
+                                           solver->derivData());
             const ChangeCode rootCheckResult = sim->rootCheck(noInputs,
                                                               stateDataValue,
                                                               solver->getSolverMode(),
@@ -176,8 +176,8 @@ int dynamicInitialConditionRecovery::dynamicFix2()
                 }
             } else {
                 sim->guessState(sim->getSimulationTime(),
-                                solver->state_data(),
-                                solver->deriv_data(),
+                                solver->stateData(),
+                                solver->derivData(),
                                 solver->getSolverMode());
                 retval = solver->calcIC(sim->getSimulationTime(),
                                         sim->probeStepTime,
@@ -187,8 +187,8 @@ int dynamicInitialConditionRecovery::dynamicFix2()
         }
     } else {  // well lets just try again for giggles
         sim->converge(sim->getSimulationTime(),
-                      solver->state_data(),
-                      solver->deriv_data(),
+                      solver->stateData(),
+                      solver->derivData(),
                       solver->getSolverMode(),
                       ConvergeMode::block_iteration,
                       0.01);
@@ -213,7 +213,7 @@ int dynamicInitialConditionRecovery::dynamicFix3()
             retval = sim->algebraicSolve(timeCurr + 0.001);
             if (retval == 0)
             {
-                    sim->guessState(timeCurr + 0.001, solver->state_data(), solver->deriv_data(),
+                    sim->guessState(timeCurr + 0.001, solver->stateData(), solver->derivData(),
     solver->getSolverMode());
                     double cr2 = checkResid(sim, timeCurr + 0.001, solver->getSolverMode());
                     // logging::debug(this, "tried alg converge from {} to {}",
@@ -222,7 +222,7 @@ int dynamicInitialConditionRecovery::dynamicFix3()
             }
             else
             {
-                    sim->guessState(timeCurr + 0.001, solver->state_data(), solver->deriv_data(),
+                    sim->guessState(timeCurr + 0.001, solver->stateData(), solver->derivData(),
     solver->getSolverMode());
                     retval = solver->calcIC(timeCurr + 0.001, sim->probeStepTime,
     SolverInterface::IcModes::fixed_diff, true);
@@ -249,8 +249,8 @@ int dynamicInitialConditionRecovery::dynamicFix4()
         sim->dynamicCheckAndReset(solver->getSolverMode());
     }
     sim->converge(sim->getSimulationTime(),
-                  solver->state_data(),
-                  solver->deriv_data(),
+                  solver->stateData(),
+                  solver->derivData(),
                   solver->getSolverMode(),
                   ConvergeMode::block_iteration,
                   0.01);
@@ -265,8 +265,8 @@ int dynamicInitialConditionRecovery::dynamicFix4()
 int dynamicInitialConditionRecovery::dynamicFix5()
 {
     sim->converge(sim->getSimulationTime(),
-                  solver->state_data(),
-                  solver->deriv_data(),
+                  solver->stateData(),
+                  solver->derivData(),
                   solver->getSolverMode(),
                   ConvergeMode::block_iteration,
                   0.01);
@@ -278,3 +278,4 @@ int dynamicInitialConditionRecovery::dynamicFix5()
 }
 
 }  // namespace griddyn
+

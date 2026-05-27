@@ -134,7 +134,7 @@ void kinsolInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
     }
 
     if (m_gds != nullptr) {
-        logging::log_to(m_gds, m_gds, logLevel, logstr);
+        logging::logTo(m_gds, m_gds, logLevel, logstr);
     } else {
         std::print("\n{}", logstr);
     }
@@ -409,3 +409,4 @@ int kinsolJac(N_Vector state,
 }
 
 }  // namespace griddyn::solvers
+

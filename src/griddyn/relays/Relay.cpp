@@ -759,7 +759,7 @@ ChangeCode Relay::triggerCondition(index_t conditionNum,
                 alert(this, UPDATE_TIME_CHANGE);
             } else {
                 nextUpdateTime = conditionTriggerTime + actionDelays[conditionNum][ii];
-                enable_updates();
+                enableUpdates();
                 alert(this, UPDATE_REQUIRED);
             }
         }

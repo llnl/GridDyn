@@ -111,8 +111,8 @@ namespace loads {
         std::vector<std::unique_ptr<GridLoad>>
             dummy_load_forward;  //!< the dummy load for forward projection
 #ifndef HAVE_MPI
-        void run_dummy_load(index_t kk, VoltageMessage* vm, CurrentMessage* cm);
-        void run_dummy_load_forward(index_t kk, VoltageMessage* vm, CurrentMessage* cm);
+        void runDummyLoad(index_t kk, VoltageMessage* vm, CurrentMessage* cm);
+        void runDummyLoadForward(index_t kk, VoltageMessage* vm, CurrentMessage* cm);
 #endif
     };
 }  // namespace loads

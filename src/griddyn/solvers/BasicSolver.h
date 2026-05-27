@@ -46,13 +46,13 @@ namespace solvers {
 
         virtual void cloneTo(SolverInterface* si, bool fullCopy = false) const override;
 
-        double* state_data() noexcept override;
-        double* deriv_data() noexcept override;
-        double* type_data() noexcept override;
+        double* stateData() noexcept override;
+        double* derivData() noexcept override;
+        double* typeData() noexcept override;
 
-        const double* state_data() const noexcept override;
-        const double* deriv_data() const noexcept override;
-        const double* type_data() const noexcept override;
+        const double* stateData() const noexcept override;
+        const double* derivData() const noexcept override;
+        const double* typeData() const noexcept override;
         virtual void allocate(count_t stateCount, count_t numRoots = 0) override;
         virtual void initialize(coreTime t0) override;
 

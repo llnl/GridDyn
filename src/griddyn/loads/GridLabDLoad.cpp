@@ -33,7 +33,7 @@ static const std::complex<double> rotn120(-0.5, -sqrt(3.0) / 2.0);
 
 GridLabDLoad::GridLabDLoad(const std::string& objName): RampLoad(objName)
 {
-    enable_updates();
+    enableUpdates();
 }
 GridLabDLoad::~GridLabDLoad() = default;
 
@@ -67,7 +67,7 @@ void GridLabDLoad::gridLabDInitialize()
                 }
                 gsm->setDummyLoadFunction(task_id[kk],
                                           [=, this](VoltageMessage* vm, CurrentMessage* cm) {
-                                              run_dummy_load(static_cast<index_t>(kk), vm, cm);
+                                              runDummyLoad(static_cast<index_t>(kk), vm, cm);
                                           });
                 if (opFlags[dual_mode_flag]) {
                     dummy_load_forward[kk] =
@@ -1034,7 +1034,7 @@ int GridLabDLoad::mpiCount() const
 }
 
 #ifndef GRIDDYN_ENABLE_MPI
-void GridLabDLoad::run_dummy_load(index_t kk, VoltageMessage* vm, CurrentMessage* cm)
+void GridLabDLoad::runDummyLoad(index_t kk, VoltageMessage* vm, CurrentMessage* cm)
 {
     for (int ii = 0; ii < vm->numThreePhaseVoltage; ii++) {
         auto vtest = std::hypot(vm->voltage[ii].real[0], vm->voltage[ii].imag[0]);
@@ -1062,7 +1062,7 @@ void GridLabDLoad::run_dummy_load(index_t kk, VoltageMessage* vm, CurrentMessage
     cm->numThreePhaseCurrent = vm->numThreePhaseVoltage;
 }
 
-void GridLabDLoad::run_dummy_load_forward(index_t kk, VoltageMessage* vm, CurrentMessage* cm)
+void GridLabDLoad::runDummyLoadForward(index_t kk, VoltageMessage* vm, CurrentMessage* cm)
 {
     for (int ii = 0; ii < vm->numThreePhaseVoltage; ii++) {
         auto vtest = std::hypot(vm->voltage[ii].real[0], vm->voltage[ii].imag[0]);

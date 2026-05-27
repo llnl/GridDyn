@@ -29,7 +29,7 @@ namespace griddyn::loads {
 
 ApproximatingLoad::ApproximatingLoad(const std::string& objName): RampLoad(objName)
 {
-    enable_updates();
+    enableUpdates();
 }
 ApproximatingLoad::~ApproximatingLoad() = default;
 

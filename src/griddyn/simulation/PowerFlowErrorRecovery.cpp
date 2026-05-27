@@ -102,16 +102,16 @@ bool powerFlowErrorRecovery::powerFlowFix1()
 bool powerFlowErrorRecovery::powerFlowFix2()
 {
     sim->guessState(sim->getSimulationTime(),
-                    solver->state_data(),
+                    solver->stateData(),
                     nullptr,
                     solver->getSolverMode());
     sim->converge(sim->getSimulationTime(),
-                  solver->state_data(),
+                  solver->stateData(),
                   nullptr,
                   solver->getSolverMode(),
                   ConvergeMode::block_iteration,
                   0.1);
-    sim->setState(sim->getSimulationTime(), solver->state_data(), nullptr, solver->getSolverMode());
+    sim->setState(sim->getSimulationTime(), solver->stateData(), nullptr, solver->getSolverMode());
     if (sim->opFlags[has_powerflow_adjustments]) {
         sim->updateLocalCache();
         const ChangeCode eval = sim->powerFlowAdjust(noInputs,
@@ -131,17 +131,17 @@ bool powerFlowErrorRecovery::powerFlowFix3()
             return (voltageValue < 0.7);
         })) {
         sim->guessState(sim->getSimulationTime(),
-                        solver->state_data(),
+                        solver->stateData(),
                         nullptr,
                         solver->getSolverMode());
         sim->converge(sim->getSimulationTime(),
-                      solver->state_data(),
+                      solver->stateData(),
                       nullptr,
                       solver->getSolverMode(),
                       ConvergeMode::single_iteration,
                       0);
         sim->setState(sim->getSimulationTime(),
-                      solver->state_data(),
+                      solver->stateData(),
                       nullptr,
                       solver->getSolverMode());
         if (!sim->opFlags[prev_setall_pqvlimit]) {
@@ -154,17 +154,17 @@ bool powerFlowErrorRecovery::powerFlowFix3()
         sim->powerFlowAdjust(noInputs, lower_flags(sim->controlFlags), CheckLevel::reversable_only);
         sim->reInitpFlow(solver->getSolverMode(), ChangeCode::STATE_SIZE_CHANGE);
         sim->guessState(sim->getSimulationTime(),
-                        solver->state_data(),
+                        solver->stateData(),
                         nullptr,
                         solver->getSolverMode());
         sim->converge(sim->getSimulationTime(),
-                      solver->state_data(),
+                      solver->stateData(),
                       nullptr,
                       solver->getSolverMode(),
                       ConvergeMode::block_iteration,
                       0.1);
         sim->setState(sim->getSimulationTime(),
-                      solver->state_data(),
+                      solver->stateData(),
                       nullptr,
                       solver->getSolverMode());
         sim->updateLocalCache();
@@ -174,17 +174,17 @@ bool powerFlowErrorRecovery::powerFlowFix3()
         while (adjustmentEval > ChangeCode::NO_CHANGE) {
             sim->reInitpFlow(solver->getSolverMode(), adjustmentEval);
             sim->guessState(sim->getSimulationTime(),
-                            solver->state_data(),
+                            solver->stateData(),
                             nullptr,
                             solver->getSolverMode());
             sim->converge(sim->getSimulationTime(),
-                          solver->state_data(),
+                          solver->stateData(),
                           nullptr,
                           solver->getSolverMode(),
                           ConvergeMode::single_iteration,
                           0);
             sim->setState(sim->getSimulationTime(),
-                          solver->state_data(),
+                          solver->stateData(),
                           nullptr,
                           solver->getSolverMode());
             sim->updateLocalCache();
@@ -238,3 +238,4 @@ bool powerFlowErrorRecovery::powerFlowFix5()
     return false;
 }
 }  // namespace griddyn
+

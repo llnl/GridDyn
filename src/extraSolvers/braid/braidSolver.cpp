@@ -153,27 +153,27 @@ void braidSolver::cloneTo(SolverInterface* si, bool fullCopy) const
     bos->deltaT = deltaT;
 }
 
-double* braidSolver::state_data() noexcept
+double* braidSolver::stateData() noexcept
 {
     return state.data();
 }
-double* braidSolver::deriv_data() noexcept
+double* braidSolver::derivData() noexcept
 {
     return deriv.data();
 }
-double* braidSolver::type_data() noexcept
+double* braidSolver::typeData() noexcept
 {
     return type.data();
 }
-const double* braidSolver::state_data() const noexcept
+const double* braidSolver::stateData() const noexcept
 {
     return state.data();
 }
-const double* braidSolver::deriv_data() const noexcept
+const double* braidSolver::derivData() const noexcept
 {
     return deriv.data();
 }
-const double* braidSolver::type_data() const noexcept
+const double* braidSolver::typeData() const noexcept
 {
     return type.data();
 }

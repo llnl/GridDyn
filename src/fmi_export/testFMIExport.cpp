@@ -50,7 +50,7 @@ using griddyn::coreTime;
 using griddyn::GridBus;
 using griddyn::GridDynSimulation;
 using griddyn::loadFile;
-using griddyn::make_owningPtr;
+using griddyn::makeOwningPtr;
 using griddyn::ReaderInfo;
 using griddyn::loads::ThreePhaseLoad;
 using std::filesystem::exists;
@@ -60,7 +60,7 @@ using std::filesystem::remove_all;
 
 TEST_F(FmiExportTests, TestFmiEvents)
 {
-    auto fmiCon = make_owningPtr<griddyn::fmi::FmiCoordinator>();
+    auto fmiCon = makeOwningPtr<griddyn::fmi::FmiCoordinator>();
 
     gds = std::make_unique<GridDynSimulation>();
     gds->add(fmiCon.get());
@@ -82,7 +82,7 @@ TEST_F(FmiExportTests, TestFmiEvents)
 
 TEST_F(FmiExportTests, TestFmiOutput)
 {
-    auto fmiCon = make_owningPtr<griddyn::fmi::FmiCoordinator>();
+    auto fmiCon = makeOwningPtr<griddyn::fmi::FmiCoordinator>();
 
     gds = std::make_unique<GridDynSimulation>();
     gds->add(fmiCon.get());
@@ -104,7 +104,7 @@ TEST_F(FmiExportTests, TestFmiOutput)
 
 TEST_F(FmiExportTests, TestFmiSimulation)
 {
-    auto fmiCon = make_owningPtr<griddyn::fmi::FmiCoordinator>();
+    auto fmiCon = makeOwningPtr<griddyn::fmi::FmiCoordinator>();
 
     gds = std::make_unique<GridDynSimulation>();
     gds->add(fmiCon.get());
@@ -333,3 +333,4 @@ TEST_F(FmiExportTests, TestFmiRunner2)
         EXPECT_NEAR(diff, 0.0, 0.1);
     }
 }
+

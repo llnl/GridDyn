@@ -33,7 +33,7 @@ HelicsRunner::HelicsRunner()
     griddyn::loadHelicsLibrary();
     m_gds = std::make_shared<GridDynSimulation>();
 
-    coord_ = make_owningPtr<HelicsCoordinator>();
+    coord_ = makeOwningPtr<HelicsCoordinator>();
     // store the coordinator as a support object so everything can find it
     m_gds->add(coord_.get());
 }
@@ -41,7 +41,7 @@ HelicsRunner::HelicsRunner()
 HelicsRunner::HelicsRunner(std::shared_ptr<GridDynSimulation> sim): GriddynRunner(sim)
 {
     griddyn::loadHelicsLibrary();
-    coord_ = make_owningPtr<HelicsCoordinator>();
+    coord_ = makeOwningPtr<HelicsCoordinator>();
     // store the coordinator as a support object so everything can find it
     m_gds->add(coord_.get());
 }
@@ -133,3 +133,4 @@ void HelicsRunner::Finalize()
     fed_->finalize();
 }
 }  // namespace griddyn::helicsLib
+

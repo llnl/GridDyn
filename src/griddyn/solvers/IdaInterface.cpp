@@ -226,7 +226,7 @@ void idaInterface::logSolverStats(PrintLevel logLevel, bool iconly) const
     }
 
     if (m_gds != nullptr) {
-        logging::log_to(m_gds, m_gds, logLevel, logstr);
+        logging::logTo(m_gds, m_gds, logLevel, logstr);
     } else {
         printf("\n%s", logstr.c_str());
     }
@@ -247,7 +247,7 @@ void idaInterface::logErrorWeights(PrintLevel logLevel) const
     }
 
     if (m_gds != nullptr) {
-        logging::log_to(m_gds, m_gds, logLevel, logstr);
+        logging::logTo(m_gds, m_gds, logLevel, logstr);
     } else {
         printf("\n%s", logstr.c_str());
     }
@@ -268,7 +268,7 @@ void idaInterface::initialize(coreTime t0)
     check_flag(&retval, "IDASetUserData", 1);
 
     // guessState an initial condition
-    m_gds->guessState(t0, state_data(), deriv_data(), mode);
+    m_gds->guessState(t0, stateData(), derivData(), mode);
 
     retval = IDAInit(solverMem, idaFunc, t0, state, dstate_dt);
     check_flag(&retval, "IDAInit", 1);
@@ -323,7 +323,7 @@ void idaInterface::initialize(coreTime t0)
     retval = IDASetMaxNonlinIters(solverMem, 20);
     check_flag(&retval, "IDASetMaxNonlinIters", 1);
 
-    m_gds->getVariableType(type_data(), mode);
+    m_gds->getVariableType(typeData(), mode);
 
     retval = IDASetId(solverMem, types);
     check_flag(&retval, "IDASetId", 1);
@@ -584,3 +584,4 @@ int idaJac(sunrealtype time,
 }
 
 }  // namespace griddyn::solvers
+

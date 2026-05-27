@@ -109,21 +109,21 @@ void SolverInterface::cloneTo(SolverInterface* si, bool fullCopy) const
             si->initialize(0.0);
         }
         // copy the state data
-        const double* sd = state_data();
-        double* statecopy = si->state_data();
+        const double* sd = stateData();
+        double* statecopy = si->stateData();
         if ((sd != nullptr) && (statecopy != nullptr)) {
             std::copy(sd, sd + svsize, statecopy);
         }
 
         // copy the derivative data
-        const double* deriv = deriv_data();
-        double* derivcopy = si->deriv_data();
+        const double* deriv = derivData();
+        double* derivcopy = si->derivData();
         if ((deriv != nullptr) && (derivcopy != nullptr)) {
             std::copy(deriv, deriv + svsize, derivcopy);
         }
         // copy the type data
-        const double* td = type_data();
-        double* tcopy = si->type_data();
+        const double* td = typeData();
+        double* tcopy = si->typeData();
         if ((td != nullptr) && (tcopy != nullptr)) {
             std::copy(td, td + svsize, tcopy);
         }
@@ -132,27 +132,27 @@ void SolverInterface::cloneTo(SolverInterface* si, bool fullCopy) const
     }
 }
 
-double* SolverInterface::state_data() noexcept
+double* SolverInterface::stateData() noexcept
 {
     return nullptr;
 }
-double* SolverInterface::deriv_data() noexcept
+double* SolverInterface::derivData() noexcept
 {
     return nullptr;
 }
-double* SolverInterface::type_data() noexcept
+double* SolverInterface::typeData() noexcept
 {
     return nullptr;
 }
-const double* SolverInterface::state_data() const noexcept
+const double* SolverInterface::stateData() const noexcept
 {
     return nullptr;
 }
-const double* SolverInterface::deriv_data() const noexcept
+const double* SolverInterface::derivData() const noexcept
 {
     return nullptr;
 }
-const double* SolverInterface::type_data() const noexcept
+const double* SolverInterface::typeData() const noexcept
 {
     return nullptr;
 }
@@ -454,9 +454,9 @@ void SolverInterface::addMaskElements(const std::vector<index_t>& newMsk)
 
 void SolverInterface::printStates(bool getNames)
 {
-    auto* state = state_data();
-    auto* dstate = deriv_data();
-    auto* type = type_data();
+    auto* state = stateData();
+    auto* dstate = derivData();
+    auto* type = typeData();
     stringVec stName;
     if (getNames) {
         m_gds->getStateName(stName, mode);
@@ -487,7 +487,7 @@ void SolverInterface::check_flag(void* flagvalue,
     // Check if SUNDIALS function returned nullptr pointer - no memory allocated
     if (opt == 0 && flagvalue == nullptr) {
         if (printError) {
-            logging::log_to(
+            logging::logTo(
                 m_gds, m_gds, PrintLevel::ERROR, "{} failed - returned nullptr pointer", funcname);
         }
         throw(std::bad_alloc());
@@ -497,7 +497,7 @@ void SolverInterface::check_flag(void* flagvalue,
         auto* errflag = reinterpret_cast<int*>(flagvalue);
         if (*errflag < 0) {
             if (printError) {
-                logging::log_to(m_gds,
+                logging::logTo(m_gds,
                                 m_gds,
                                 PrintLevel::ERROR,
                                 "{} failed with flag = {}",
@@ -519,13 +519,13 @@ void SolverInterface::logErrorWeights(PrintLevel /*logLevel*/) const {}
 void SolverInterface::logMessage(int errorCode, std::string_view message)
 {
     if ((errorCode > 0) && (printLevel == SolverPrintLevel::DEBUG_PRINT)) {
-        logging::log_to(m_gds, m_gds, PrintLevel::DEBUG, message);
+        logging::logTo(m_gds, m_gds, PrintLevel::DEBUG, message);
     }
     if (errorCode != 0) {
         lastErrorCode = errorCode;
         lastErrorString = message;
         if (printLevel == SolverPrintLevel::ERROR_LOG) {
-            logging::log_to(m_gds, m_gds, PrintLevel::WARNING, message);
+            logging::logTo(m_gds, m_gds, PrintLevel::WARNING, message);
         }
     }
 }

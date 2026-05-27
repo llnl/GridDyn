@@ -783,7 +783,7 @@ void AcBus::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         opFlags.set(uses_bus_frequency);
         logging::trace(this, "computing bus frequency using frequency block");
         if (!fblock) {
-            fblock = make_owningPtr<blocks::DerivativeBlock>(Tw);
+            fblock = makeOwningPtr<blocks::DerivativeBlock>(Tw);
             fblock->setName("frequency_calc");
             fblock->set("k", 1.0 / systemBaseFrequency);
             fblock->addOwningReference();
@@ -1002,7 +1002,7 @@ void AcBus::setFlag(std::string_view flag, bool val)
         if (!opFlags[dyn_initialized]) {
             opFlags.set(compute_frequency);
             if (!fblock) {
-                fblock = make_owningPtr<blocks::DerivativeBlock>(Tw);
+                fblock = makeOwningPtr<blocks::DerivativeBlock>(Tw);
                 fblock->setName("frequency_calc");
                 fblock->set("k", 1.0 / systemBaseFrequency);
                 fblock->addOwningReference();
@@ -2765,3 +2765,4 @@ ChangeCode AcBus::rootCheck(const IOdata& inputs,
 }
 
 }  // namespace griddyn
+

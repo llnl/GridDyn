@@ -199,31 +199,31 @@ void sundialsInterface::setMaxNonZeros(count_t nonZeroCount)
     nnz = nonZeroCount;
 }
 
-double* sundialsInterface::state_data() noexcept
+double* sundialsInterface::stateData() noexcept
 {
     return nvecdata(use_omp, state);
 }
-double* sundialsInterface::deriv_data() noexcept
+double* sundialsInterface::derivData() noexcept
 {
     return nvecdata(use_omp, dstate_dt);
 }
 
-const double* sundialsInterface::state_data() const noexcept
+const double* sundialsInterface::stateData() const noexcept
 {
     return nvecdata(use_omp, state);
 }
 
-const double* sundialsInterface::deriv_data() const noexcept
+const double* sundialsInterface::derivData() const noexcept
 {
     return nvecdata(use_omp, dstate_dt);
 }
 // output solver stats
 
-double* sundialsInterface::type_data() noexcept
+double* sundialsInterface::typeData() noexcept
 {
     return nvecdata(use_omp, types);
 }
-const double* sundialsInterface::type_data() const noexcept
+const double* sundialsInterface::typeData() const noexcept
 {
     return nvecdata(use_omp, types);
 }

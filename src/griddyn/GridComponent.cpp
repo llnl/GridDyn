@@ -170,7 +170,7 @@ void GridComponent::dynInitializeB(const IOdata& inputs,
         dynObjectInitializeB(inputs, desiredOutput, fieldSet);
         if (updatePeriod < maxTime) {
             setUpdateTime(prevTime + updatePeriod);
-            enable_updates();
+            enableUpdates();
         }
         opFlags.set(dyn_initialized);
     }

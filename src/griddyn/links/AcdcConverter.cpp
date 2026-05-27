@@ -73,12 +73,12 @@ void acdcConverter::buildSubsystem()
     opFlags.set(adjustable_P);
     opFlags.set(adjustable_Q);
     firingAngleControl =
-        make_owningPtr<blocks::PidBlock>(-dirMult * mp_Kp, -dirMult * mp_Ki, 0, "angleControl");
+        makeOwningPtr<blocks::PidBlock>(-dirMult * mp_Kp, -dirMult * mp_Ki, 0, "angleControl");
     addSubObject(firingAngleControl.get());
     powerLevelControl =
-        make_owningPtr<blocks::PidBlock>(mp_controlKp, mp_controlKi, 0, "powerControl");
+        makeOwningPtr<blocks::PidBlock>(mp_controlKp, mp_controlKi, 0, "powerControl");
     addSubObject(powerLevelControl.get());
-    controlDelay = make_owningPtr<blocks::DelayBlock>(tD, "controlDelay");
+    controlDelay = makeOwningPtr<blocks::DelayBlock>(tD, "controlDelay");
     addSubObject(controlDelay.get());
 }
 
@@ -755,3 +755,4 @@ void acdcConverter::getStateName(stringVec& stNames,
 }
 
 }  // namespace griddyn::links
+

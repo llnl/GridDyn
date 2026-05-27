@@ -307,10 +307,6 @@ class CoreObject {
         updates_enabled = updatesEnabled;
         alert(this, UPDATE_REQUIRED);
     }
-    void enable_updates(bool upd_enabled = true)  // NOLINT(readability-identifier-naming)
-    {
-        enableUpdates(upd_enabled);
-    }
     /** check if an object has updates
     @return true if updates are enabled
     */
@@ -527,40 +523,6 @@ namespace logging {
     inline void trace(CoreObject* logger, Args&&... args)
     {
         logSelf(logger, PrintLevel::TRACE, std::forward<Args>(args)...);
-    }
-
-    inline void log_to(CoreObject* logger,  // NOLINT(readability-identifier-naming)
-                       CoreObject* object,
-                       PrintLevel level,
-                       const std::string& message)
-    {
-        logTo(logger, object, level, message);
-    }
-
-    inline void log_to(CoreObject* logger,  // NOLINT(readability-identifier-naming)
-                       CoreObject* object,
-                       PrintLevel level,
-                       std::string_view message)
-    {
-        logTo(logger, object, level, message);
-    }
-
-    inline void log_to(CoreObject* logger,  // NOLINT(readability-identifier-naming)
-                       CoreObject* object,
-                       PrintLevel level,
-                       const char* message)
-    {
-        logTo(logger, object, level, message);
-    }
-
-    template<class... Args>
-    inline void log_to(CoreObject* logger,  // NOLINT(readability-identifier-naming)
-                       CoreObject* object,
-                       PrintLevel level,
-                       std::string_view formatText,
-                       Args&&... args)
-    {
-        logTo(logger, object, level, formatText, std::forward<Args>(args)...);
     }
 
 }  // namespace logging

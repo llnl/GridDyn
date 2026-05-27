@@ -101,12 +101,12 @@ class sundialsInterface: public SolverInterface {
     virtual std::unique_ptr<SolverInterface> clone(bool fullCopy = false) const override;
 
     virtual void cloneTo(SolverInterface* si, bool fullCopy = false) const override;
-    virtual double* state_data() noexcept override;
-    virtual double* deriv_data() noexcept override;
-    virtual const double* state_data() const noexcept override;
-    virtual const double* deriv_data() const noexcept override;
-    virtual double* type_data() noexcept override;
-    virtual const double* type_data() const noexcept override;
+    virtual double* stateData() noexcept override;
+    virtual double* derivData() noexcept override;
+    virtual const double* stateData() const noexcept override;
+    virtual const double* derivData() const noexcept override;
+    virtual double* typeData() noexcept override;
+    virtual const double* typeData() const noexcept override;
     virtual void allocate(count_t stateCount, count_t numRoots) override;
     virtual void setMaxNonZeros(count_t nonZeroCount) override;
     virtual double get(std::string_view param) const override;

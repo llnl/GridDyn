@@ -76,12 +76,6 @@ CoreOwningPtr<X> makeOwningPtr(Args&&... args)
     return CoreOwningPtr<X>(new X(std::forward<Args>(args)...));
 }
 
-template<typename X, typename... Args>
-CoreOwningPtr<X> make_owningPtr(Args&&... args)  // NOLINT(readability-identifier-naming)
-{
-    return makeOwningPtr<X>(std::forward<Args>(args)...);
-}
-
 /*
 template <class X>
 class childObject

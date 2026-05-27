@@ -234,7 +234,7 @@ void arkodeInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
                               tolsfac);
 
     if (m_gds != nullptr) {
-        logging::log_to(m_gds, m_gds, logLevel, logstr);
+        logging::logTo(m_gds, m_gds, logLevel, logstr);
     } else {
         printf("\n%s", logstr.c_str());
     }
@@ -257,7 +257,7 @@ void arkodeInterface::logErrorWeights(PrintLevel logLevel) const
     }
 
     if (m_gds != nullptr) {
-        logging::log_to(m_gds, m_gds, logLevel, logstr);
+        logging::logTo(m_gds, m_gds, logLevel, logstr);
     } else {
         printf("\n%s", logstr.c_str());
     }
@@ -306,7 +306,7 @@ void arkodeInterface::initialize(coreTime time0)
     check_flag(&retval, "ARKodeSetUserData", 1);
 
     // guessState an initial condition
-    m_gds->guessState(time0, state_data(), deriv_data(), mode);
+    m_gds->guessState(time0, stateData(), derivData(), mode);
 
     retval = ARKodeInit(solverMem, arkodeFunc, arkodeFunc, time0, state);
     check_flag(&retval, "ARKodeInit", 1);
@@ -482,7 +482,7 @@ int arkodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* us
 {
     auto sd = reinterpret_cast<arkodeInterface*>(user_data);
     sd->m_gds->rootFindingFunction(
-        time, NVECTOR_DATA(sd->use_omp, state), sd->deriv_data(), gout, sd->mode);
+        time, NVECTOR_DATA(sd->use_omp, state), sd->derivData(), gout, sd->mode);
 
     return FUNCTION_EXECUTION_SUCCESS;
 }
@@ -500,3 +500,4 @@ int arkodeJac(sunrealtype time,
 }
 
 }  // namespace griddyn::solvers
+

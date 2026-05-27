@@ -419,7 +419,7 @@ double GridDynSimulation::getState(index_t offset, const solverMode& sMode) cons
 
     auto solData = getSolverInterface(nMode);
     if (solData) {
-        const double* state = solData->state_data();
+        const double* state = solData->stateData();
         if (solData->size() > offset) {
             ret = state[offset];
         }
@@ -455,7 +455,7 @@ std::vector<double> GridDynSimulation::getState(const solverMode& sMode) const
     std::vector<double> states;
     auto solData = getSolverInterface(nMode);
     if (solData) {
-        const double* state = solData->state_data();
+        const double* state = solData->stateData();
         if (solData->size() != 0) {
             states.assign(state, state + solData->size());
         }
@@ -1528,7 +1528,7 @@ std::shared_ptr<SolverInterface> GridDynSimulation::updateSolver(const solverMod
         const auto stateCount = stateSize(solverModeValue);
         solverData->allocate(stateCount, rootSize(solverModeValue));
         checkOffsets(solverModeValue);
-        guessState(currentTime, solverData->state_data(), nullptr, solverModeValue);
+        guessState(currentTime, solverData->stateData(), nullptr, solverModeValue);
         solverData->initialize(currentTime);
     } else if (pState >= GridState::DYNAMIC_INITIALIZED) {
         const auto stateCount = stateSize(solverModeValue);
@@ -1536,8 +1536,8 @@ std::shared_ptr<SolverInterface> GridDynSimulation::updateSolver(const solverMod
         checkOffsets(solverModeValue);
 
         guessState(currentTime,
-                   solverData->state_data(),
-                   (hasDifferential(sMode)) ? solverData->deriv_data() : nullptr,
+                   solverData->stateData(),
+                   (hasDifferential(sMode)) ? solverData->derivData() : nullptr,
                    solverModeValue);
 
         solverData->initialize(currentTime);
@@ -1635,17 +1635,17 @@ void GridDynSimulation::fillExtraStateData(stateData& stateDataRef, const solver
                     stateDataRef.altTime = solverInterfaces[pSMode.offsetIndex]->getSolverTime();
                     stateDataRef.pairIndex = pSMode.offsetIndex;
                 } else {
-                    stateDataRef.diffState = solverInterfaces[pSMode.offsetIndex]->state_data();
-                    stateDataRef.dstate_dt = solverInterfaces[pSMode.offsetIndex]->deriv_data();
+                    stateDataRef.diffState = solverInterfaces[pSMode.offsetIndex]->stateData();
+                    stateDataRef.dstate_dt = solverInterfaces[pSMode.offsetIndex]->derivData();
                     stateDataRef.altTime = solverInterfaces[pSMode.offsetIndex]->getSolverTime();
                     stateDataRef.pairIndex = pSMode.offsetIndex;
                 }
             } else if (isAlgebraicOnly(pSMode)) {
-                stateDataRef.algState = solverInterfaces[pSMode.offsetIndex]->state_data();
+                stateDataRef.algState = solverInterfaces[pSMode.offsetIndex]->stateData();
                 stateDataRef.altTime = solverInterfaces[pSMode.offsetIndex]->getSolverTime();
                 stateDataRef.pairIndex = pSMode.offsetIndex;
             } else if (isDAE(pSMode)) {
-                stateDataRef.fullState = solverInterfaces[pSMode.offsetIndex]->state_data();
+                stateDataRef.fullState = solverInterfaces[pSMode.offsetIndex]->stateData();
                 stateDataRef.pairIndex = pSMode.offsetIndex;
                 stateDataRef.altTime = solverInterfaces[pSMode.offsetIndex]->getSolverTime();
             }
@@ -1708,3 +1708,4 @@ static count_t searchForGridlabDobject(const CoreObject* obj)
 }
 
 }  // namespace griddyn
+

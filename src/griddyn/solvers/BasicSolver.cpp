@@ -54,27 +54,27 @@ namespace solvers {
         ai->alpha = alpha;
     }
 
-    double* basicSolver::state_data() noexcept
+    double* basicSolver::stateData() noexcept
     {
         return state.data();
     }
-    double* basicSolver::deriv_data() noexcept
+    double* basicSolver::derivData() noexcept
     {
         return nullptr;
     }
-    double* basicSolver::type_data() noexcept
+    double* basicSolver::typeData() noexcept
     {
         return type.data();
     }
-    const double* basicSolver::state_data() const noexcept
+    const double* basicSolver::stateData() const noexcept
     {
         return state.data();
     }
-    const double* basicSolver::deriv_data() const noexcept
+    const double* basicSolver::derivData() const noexcept
     {
         return nullptr;
     }
-    const double* basicSolver::type_data() const noexcept
+    const double* basicSolver::typeData() const noexcept
     {
         return type.data();
     }

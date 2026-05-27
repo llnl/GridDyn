@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "InireaderElement.h"
+#include "iniReaderElement.h"
 
 #include "gmlc/utilities/stringConversion.h"
 #include "inih/INIReader.h"

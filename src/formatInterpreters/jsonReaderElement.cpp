@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "JsonreaderElement.h"
+#include "jsonReaderElement.h"
 
 #include "gmlc/utilities/stringConversion.h"
 #include "jsonElement.h"

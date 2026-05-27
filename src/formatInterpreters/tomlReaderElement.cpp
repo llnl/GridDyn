@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "TomlreaderElement.h"
+#include "tomlReaderElement.h"
 
 #include "gmlc/utilities/stringConversion.h"
 #include "tomlElement.h"

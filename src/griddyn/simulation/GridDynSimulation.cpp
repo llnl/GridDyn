@@ -392,9 +392,9 @@ double GridDynSimulation::getState(index_t offset) const
     return getState(offset, cLocalSolverMode);
 }
 
-double GridDynSimulation::getState(index_t offset, const solverMode& sMode) const
+double GridDynSimulation::getState(index_t offset, const SolverMode& sMode) const
 {
-    solverMode nMode = sMode;
+    SolverMode nMode = sMode;
     double ret = kNullVal;
     if (isLocal(sMode)) {
         switch (pState) {
@@ -428,9 +428,9 @@ double GridDynSimulation::getState(index_t offset, const solverMode& sMode) cons
     return ret;
 }
 
-std::vector<double> GridDynSimulation::getState(const solverMode& sMode) const
+std::vector<double> GridDynSimulation::getState(const SolverMode& sMode) const
 {
-    solverMode nMode = sMode;
+    SolverMode nMode = sMode;
     if (isLocal(sMode)) {
         switch (pState) {
             case GridState::POWERFLOW_COMPLETE:
@@ -473,7 +473,7 @@ grouped with the angle coming first differential_first = 5, //!< differential an
 with differential first
 */
 
-void GridDynSimulation::setupOffsets(const solverMode& sMode, OffsetOrdering offsetOrdering)
+void GridDynSimulation::setupOffsets(const SolverMode& sMode, OffsetOrdering offsetOrdering)
 {
     solverOffsets offsetValues;
     switch (offsetOrdering) {
@@ -801,7 +801,7 @@ bool GridDynSimulation::hasDynamics() const
 }
 
 // need to update probably with a new field in SolverInterface
-count_t GridDynSimulation::nonZeros(const solverMode& sMode) const
+count_t GridDynSimulation::nonZeros(const SolverMode& sMode) const
 {
     auto solverInterface = getSolverInterface(sMode);
     return solverInterface ? solverInterface->nonZeros() : 0;
@@ -874,7 +874,7 @@ std::string GridDynSimulation::getString(std::string_view param) const
     return GridSimulation::getString(param);
 }
 
-void GridDynSimulation::setDefaultMode(SolutionModes mode, const solverMode& sMode)
+void GridDynSimulation::setDefaultMode(SolutionModes mode, const SolverMode& sMode)
 {
     auto solverData = getSolverInterface(sMode);
     if (!solverData) {
@@ -1187,7 +1187,7 @@ void GridDynSimulation::alert(CoreObject* object, int code)
     }
 }
 
-int GridDynSimulation::makeReady(GridState desiredState, const solverMode& sMode)
+int GridDynSimulation::makeReady(GridState desiredState, const SolverMode& sMode)
 {
     // check to make sure we at or greater than the desiredState
     int retval = FUNCTION_EXECUTION_SUCCESS;
@@ -1267,12 +1267,12 @@ int GridDynSimulation::countMpiObjects(bool printInfo) const
     return gridlabdObjects;
 }
 
-void GridDynSimulation::setMaxNonZeros(const solverMode& sMode, count_t nonZeros)
+void GridDynSimulation::setMaxNonZeros(const SolverMode& sMode, count_t nonZeros)
 {
     getSolverInterface(sMode)->setMaxNonZeros(nonZeros);
 }
 
-std::shared_ptr<SolverInterface> GridDynSimulation::getSolverInterface(const solverMode& sMode)
+std::shared_ptr<SolverInterface> GridDynSimulation::getSolverInterface(const SolverMode& sMode)
 {
     std::shared_ptr<SolverInterface> solveD;
     if (isValidIndex(sMode.offsetIndex, solverInterfaces)) {
@@ -1287,7 +1287,7 @@ std::shared_ptr<SolverInterface> GridDynSimulation::getSolverInterface(const sol
 }
 
 std::shared_ptr<const SolverInterface>
-    GridDynSimulation::getSolverInterface(const solverMode& sMode) const
+    GridDynSimulation::getSolverInterface(const SolverMode& sMode) const
 {
     if (isValidIndex(sMode.offsetIndex, solverInterfaces)) {
         return solverInterfaces[sMode.offsetIndex];
@@ -1325,9 +1325,9 @@ void GridDynSimulation::add(std::shared_ptr<SolverInterface> nSolver)
     updateSolver(sMode);
 }
 
-solverMode GridDynSimulation::getSolverMode(std::string_view solverType)
+SolverMode GridDynSimulation::getSolverMode(std::string_view solverType)
 {
-    solverMode sMode(kInvalidCount);
+    SolverMode sMode(kInvalidCount);
     if ((solverType == "ac") || (solverType == "acflow") || (solverType == "pflow") ||
         (solverType == "powerflow")) {
         return *defPowerFlowMode;
@@ -1376,7 +1376,7 @@ solverMode GridDynSimulation::getSolverMode(std::string_view solverType)
             }
             return sMode;
         }
-        const solverMode nMode = offsets.find(sMode);
+        const SolverMode nMode = offsets.find(sMode);
         if (nMode.offsetIndex != sMode.offsetIndex) {
             return nMode;
         }
@@ -1388,7 +1388,7 @@ solverMode GridDynSimulation::getSolverMode(std::string_view solverType)
     return sMode;
 }
 
-solverMode GridDynSimulation::getCurrentMode(const solverMode& sMode) const
+SolverMode GridDynSimulation::getCurrentMode(const SolverMode& sMode) const
 {
     if (sMode.offsetIndex != kNullLocation) {
         return sMode;
@@ -1420,7 +1420,7 @@ solverMode GridDynSimulation::getCurrentMode(const solverMode& sMode) const
     }
 }
 
-const solverMode& GridDynSimulation::getSolverMode(index_t index) const
+const SolverMode& GridDynSimulation::getSolverMode(index_t index) const
 {
     if (isValidIndex(index, solverInterfaces)) {
         return (solverInterfaces[index]) ? solverInterfaces[index]->getSolverMode() :
@@ -1429,7 +1429,7 @@ const solverMode& GridDynSimulation::getSolverMode(index_t index) const
     return cEmptySolverMode;
 }
 
-const solverMode* GridDynSimulation::getSolverModePtr(std::string_view solverType) const
+const SolverMode* GridDynSimulation::getSolverModePtr(std::string_view solverType) const
 {
     if ((solverType == "ac") || (solverType == "acflow") || (solverType == "pflow") ||
         (solverType == "powerflow")) {
@@ -1453,7 +1453,7 @@ const solverMode* GridDynSimulation::getSolverModePtr(std::string_view solverTyp
     return nullptr;
 }
 
-const solverMode* GridDynSimulation::getSolverModePtr(index_t index) const
+const SolverMode* GridDynSimulation::getSolverModePtr(index_t index) const
 {
     if (isValidIndex(index, solverInterfaces)) {
         return (solverInterfaces[index]) ? &(solverInterfaces[index]->getSolverMode()) : nullptr;
@@ -1501,10 +1501,10 @@ std::shared_ptr<SolverInterface> GridDynSimulation::getSolverInterface(std::stri
     return nullptr;
 }
 
-std::shared_ptr<SolverInterface> GridDynSimulation::updateSolver(const solverMode& sMode)
+std::shared_ptr<SolverInterface> GridDynSimulation::updateSolver(const SolverMode& sMode)
 {
     auto kIndex = sMode.offsetIndex;
-    solverMode solverModeValue = sMode;
+    SolverMode solverModeValue = sMode;
     if (!isValidIndex(kIndex, solverInterfaces)) {
         if ((kIndex > 10000) || (kIndex < 0)) {
             kIndex = static_cast<index_t>(solverInterfaces.size());
@@ -1553,7 +1553,7 @@ void GridDynSimulation::parameterDerivatives(coreTime time,
                                              const double state[],
                                              const double dstateDt[],
                                              matrixData<double>& matrixDataRef,
-                                             const solverMode& sMode)
+                                             const SolverMode& sMode)
 {
     const double delta = 1e-7;
     for (index_t ii = 0; ii < parameterCount; ++ii) {
@@ -1601,7 +1601,7 @@ void GridDynSimulation::parameterDerivatives(coreTime time,
     }
 }
 
-void GridDynSimulation::checkOffsets(const solverMode& sMode)
+void GridDynSimulation::checkOffsets(const SolverMode& sMode)
 {
     if (offsets.getAlgOffset(sMode) == kNullLocation) {
         updateOffsets(sMode);
@@ -1623,11 +1623,11 @@ void GridDynSimulation::addInitOperation(std::function<int()> fptr)
         additionalPowerflowSetupFunctions.push_back(std::move(fptr));
     }
 }
-void GridDynSimulation::fillExtraStateData(stateData& stateDataRef, const solverMode& sMode) const
+void GridDynSimulation::fillExtraStateData(stateData& stateDataRef, const SolverMode& sMode) const
 {
     if ((!isDAE(sMode)) && (isDynamic(sMode))) {
         if (sMode.pairedOffsetIndex != kNullLocation) {
-            const solverMode& pSMode = getSolverMode(sMode.pairedOffsetIndex);
+            const SolverMode& pSMode = getSolverMode(sMode.pairedOffsetIndex);
             if (isDifferentialOnly(pSMode)) {
                 if (extraStateInformation[pSMode.offsetIndex] != nullptr) {
                     stateDataRef.diffState = extraStateInformation[pSMode.offsetIndex];
@@ -1653,7 +1653,7 @@ void GridDynSimulation::fillExtraStateData(stateData& stateDataRef, const solver
     }
 }
 
-bool GridDynSimulation::checkEventsForDynamicReset(coreTime cTime, const solverMode& sMode)
+bool GridDynSimulation::checkEventsForDynamicReset(coreTime cTime, const SolverMode& sMode)
 {
     if (EvQ->getNextTime() < cTime) {
         auto eventReturn = EvQ->executeEvents(cTime);

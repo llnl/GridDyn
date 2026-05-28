@@ -212,7 +212,7 @@ void GridComponent::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-count_t GridComponent::stateSize(const solverMode& sMode)
+count_t GridComponent::stateSize(const SolverMode& sMode)
 {
     const auto& solverOffsetsValue = offsets.getOffsets(sMode);
     if (!(solverOffsetsValue.stateLoaded)) {
@@ -228,7 +228,7 @@ count_t GridComponent::stateSize(const solverMode& sMode)
     return ssize;
 }
 
-count_t GridComponent::stateSize(const solverMode& sMode) const
+count_t GridComponent::stateSize(const SolverMode& sMode) const
 {
     const auto& solverOffsetsValue = offsets.getOffsets(sMode);
     count_t ssize = (hasAlgebraic(sMode)) ?
@@ -241,7 +241,7 @@ count_t GridComponent::stateSize(const solverMode& sMode) const
     return ssize;
 }
 
-count_t GridComponent::totalAlgSize(const solverMode& sMode)
+count_t GridComponent::totalAlgSize(const SolverMode& sMode)
 {
     auto& solverOffsetsValue = offsets.getOffsets(sMode);
     if (!(solverOffsetsValue.stateLoaded)) {
@@ -251,14 +251,14 @@ count_t GridComponent::totalAlgSize(const solverMode& sMode)
         solverOffsetsValue.total.aSize;
 }
 
-count_t GridComponent::totalAlgSize(const solverMode& sMode) const
+count_t GridComponent::totalAlgSize(const SolverMode& sMode) const
 {
     const auto& solverOffsetsValue = offsets.getOffsets(sMode);
     return (solverOffsetsValue.total.algSize + solverOffsetsValue.total.vSize +
             solverOffsetsValue.total.aSize);
 }
 
-count_t GridComponent::algSize(const solverMode& sMode)
+count_t GridComponent::algSize(const SolverMode& sMode)
 {
     auto& solverOffsetsValue = offsets.getOffsets(sMode);
     if (!(solverOffsetsValue.stateLoaded)) {
@@ -267,13 +267,13 @@ count_t GridComponent::algSize(const solverMode& sMode)
     return solverOffsetsValue.total.algSize;
 }
 
-count_t GridComponent::algSize(const solverMode& sMode) const
+count_t GridComponent::algSize(const SolverMode& sMode) const
 {
     const auto& solverOffsetsValue = offsets.getOffsets(sMode);
     return solverOffsetsValue.total.algSize;
 }
 
-count_t GridComponent::diffSize(const solverMode& sMode)
+count_t GridComponent::diffSize(const SolverMode& sMode)
 {
     auto& solverOffsetsValue = offsets.getOffsets(sMode);
     if (!(solverOffsetsValue.stateLoaded)) {
@@ -282,13 +282,13 @@ count_t GridComponent::diffSize(const solverMode& sMode)
     return solverOffsetsValue.total.diffSize;
 }
 
-count_t GridComponent::diffSize(const solverMode& sMode) const
+count_t GridComponent::diffSize(const SolverMode& sMode) const
 {
     const auto& solverOffsetsValue = offsets.getOffsets(sMode);
     return solverOffsetsValue.total.diffSize;
 }
 
-count_t GridComponent::rootSize(const solverMode& sMode)
+count_t GridComponent::rootSize(const SolverMode& sMode)
 {
     auto& solverOffsetsValue = offsets.getOffsets(sMode);
     if (!(solverOffsetsValue.rootsLoaded)) {
@@ -297,14 +297,14 @@ count_t GridComponent::rootSize(const solverMode& sMode)
     return solverOffsetsValue.total.algRoots + solverOffsetsValue.total.diffRoots;
 }
 
-count_t GridComponent::rootSize(const solverMode& sMode) const
+count_t GridComponent::rootSize(const SolverMode& sMode) const
 {
     const auto& solverOffsetsValue = offsets.getOffsets(sMode);
 
     return solverOffsetsValue.total.algRoots + solverOffsetsValue.total.diffRoots;
 }
 
-count_t GridComponent::jacSize(const solverMode& sMode)
+count_t GridComponent::jacSize(const SolverMode& sMode)
 {
     auto& solverOffsetsValue = offsets.getOffsets(sMode);
     if (!(solverOffsetsValue.jacobianLoaded)) {
@@ -313,13 +313,13 @@ count_t GridComponent::jacSize(const solverMode& sMode)
     return solverOffsetsValue.total.jacSize;
 }
 
-count_t GridComponent::jacSize(const solverMode& sMode) const
+count_t GridComponent::jacSize(const SolverMode& sMode) const
 {
     const auto& solverOffsetsValue = offsets.getOffsets(sMode);
     return solverOffsetsValue.total.jacSize;
 }
 
-count_t GridComponent::voltageStateCount(const solverMode& sMode)
+count_t GridComponent::voltageStateCount(const SolverMode& sMode)
 {
     auto& solverOffsetsValue = offsets.getOffsets(sMode);
     if (!(solverOffsetsValue.stateLoaded)) {
@@ -328,13 +328,13 @@ count_t GridComponent::voltageStateCount(const solverMode& sMode)
     return solverOffsetsValue.total.vSize;
 }
 
-count_t GridComponent::voltageStateCount(const solverMode& sMode) const
+count_t GridComponent::voltageStateCount(const SolverMode& sMode) const
 {
     const auto& solverOffsetsValue = offsets.getOffsets(sMode);
     return solverOffsetsValue.total.vSize;
 }
 
-count_t GridComponent::angleStateCount(const solverMode& sMode)
+count_t GridComponent::angleStateCount(const SolverMode& sMode)
 {
     auto& solverOffsetsValue = offsets.getOffsets(sMode);
     if (!(solverOffsetsValue.stateLoaded)) {
@@ -343,18 +343,18 @@ count_t GridComponent::angleStateCount(const solverMode& sMode)
     return solverOffsetsValue.total.aSize;
 }
 
-count_t GridComponent::angleStateCount(const solverMode& sMode) const
+count_t GridComponent::angleStateCount(const SolverMode& sMode) const
 {
     const auto& solverOffsetsValue = offsets.getOffsets(sMode);
     return solverOffsetsValue.total.aSize;
 }
 
-const solverOffsets& GridComponent::getOffsets(const solverMode& sMode) const
+const solverOffsets& GridComponent::getOffsets(const SolverMode& sMode) const
 {
     return offsets.getOffsets(sMode);
 }
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::setOffsets(const solverOffsets& newOffsets, const solverMode& sMode)
+void GridComponent::setOffsets(const solverOffsets& newOffsets, const SolverMode& sMode)
 {
     offsets.setOffsets(newOffsets, sMode);
 
@@ -371,7 +371,7 @@ void GridComponent::setOffsets(const solverOffsets& newOffsets, const solverMode
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::setOffset(index_t newOffset, const solverMode& sMode)
+void GridComponent::setOffset(index_t newOffset, const SolverMode& sMode)
 {
     if (!subObjectList.empty()) {
         for (auto& subobj : subObjectList) {
@@ -384,17 +384,17 @@ void GridComponent::setOffset(index_t newOffset, const solverMode& sMode)
     offsets.setOffset(newOffset, sMode);
 }
 
-bool GridComponent::isStateCountLoaded(const solverMode& sMode) const
+bool GridComponent::isStateCountLoaded(const SolverMode& sMode) const
 {
     return offsets.isStateCountLoaded(sMode);
 }
 
-bool GridComponent::isJacobianCountLoaded(const solverMode& sMode) const
+bool GridComponent::isJacobianCountLoaded(const SolverMode& sMode) const
 {
     return offsets.isJacobianCountLoaded(sMode);
 }
 
-bool GridComponent::isRootCountLoaded(const solverMode& sMode) const
+bool GridComponent::isRootCountLoaded(const SolverMode& sMode) const
 {
     return offsets.isRootCountLoaded(sMode);
 }
@@ -548,7 +548,7 @@ bool GridComponent::checkFlag(index_t flagID) const
 {
     return opFlags.test(flagID);
 }
-bool GridComponent::hasStates(const solverMode& sMode) const
+bool GridComponent::hasStates(const SolverMode& sMode) const
 {
     return (stateSize(sMode) > 0);
 }
@@ -922,7 +922,7 @@ ChangeCode
 void GridComponent::setState(coreTime time,
                              const double state[],
                              const double dstateDt[],
-                             const solverMode& sMode)
+                             const SolverMode& sMode)
 {
     prevTime = time;
     if (!hasStates(sMode))  // use the const version of stateSize
@@ -967,7 +967,7 @@ void GridComponent::setState(coreTime time,
 void GridComponent::guessState(coreTime time,
                                double state[],
                                double dstateDt[],
-                               const solverMode& sMode)
+                               const SolverMode& sMode)
 {
     if (!hasStates(sMode)) {
         return;
@@ -1061,7 +1061,7 @@ double GridComponent::getState(index_t offset) const
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::loadSizesSub(const solverMode& sMode, SizeCategory category)
+void GridComponent::loadSizesSub(const SolverMode& sMode, SizeCategory category)
 {
     auto& solverOffsetsValue = offsets.getOffsets(sMode);
     switch (category) {
@@ -1114,24 +1114,24 @@ void GridComponent::loadSizesSub(const solverMode& sMode, SizeCategory category)
     }
 }
 
-stateSizes GridComponent::localStateSizes(const solverMode& /*sMode*/) const
+stateSizes GridComponent::localStateSizes(const SolverMode& /*sMode*/) const
 {
     return offsets.local().local;
 }
 
-count_t GridComponent::localJacobianCount(const solverMode& /*sMode*/) const
+count_t GridComponent::localJacobianCount(const SolverMode& /*sMode*/) const
 {
     return offsets.local().local.jacSize;
 }
 
-std::pair<count_t, count_t> GridComponent::LocalRootCount(const solverMode& /*sMode*/) const
+std::pair<count_t, count_t> GridComponent::LocalRootCount(const SolverMode& /*sMode*/) const
 {
     const auto& localCounts = offsets.local().local;
     return std::make_pair(localCounts.algRoots, localCounts.diffRoots);
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::loadStateSizes(const solverMode& sMode)
+void GridComponent::loadStateSizes(const SolverMode& sMode)
 {
     if (isStateCountLoaded(sMode)) {
         return;
@@ -1187,7 +1187,7 @@ void GridComponent::loadStateSizes(const solverMode& sMode)
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::loadRootSizes(const solverMode& sMode)
+void GridComponent::loadRootSizes(const SolverMode& sMode)
 {
     if (isRootCountLoaded(sMode)) {
         return;
@@ -1233,7 +1233,7 @@ void GridComponent::loadRootSizes(const solverMode& sMode)
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::loadJacobianSizes(const solverMode& sMode)
+void GridComponent::loadJacobianSizes(const SolverMode& sMode)
 {
     if (isJacobianCountLoaded(sMode)) {
         return;
@@ -1265,7 +1265,7 @@ void GridComponent::loadJacobianSizes(const solverMode& sMode)
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::getTols(double tols[], const solverMode& sMode)
+void GridComponent::getTols(double tols[], const SolverMode& sMode)
 {
     for (auto& subObj : subObjectList) {
         if (subObj->isEnabled()) {
@@ -1275,7 +1275,7 @@ void GridComponent::getTols(double tols[], const solverMode& sMode)
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::getVariableType(double sdata[], const solverMode& sMode)
+void GridComponent::getVariableType(double sdata[], const SolverMode& sMode)
 {
     auto& solverOffsetsValue = offsets.getOffsets(sMode);
     if (subObjectList.empty()) {
@@ -1371,7 +1371,7 @@ void GridComponent::alert(CoreObject* object, int code)
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::getConstraints(double constraints[], const solverMode& sMode)
+void GridComponent::getConstraints(double constraints[], const SolverMode& sMode)
 {
     for (auto& subobj : subObjectList) {
         if ((subobj->isEnabled()) && (subobj->checkFlag(has_constraints))) {
@@ -1381,7 +1381,7 @@ void GridComponent::getConstraints(double constraints[], const solverMode& sMode
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::setRootOffset(index_t newRootOffset, const solverMode& sMode)
+void GridComponent::setRootOffset(index_t newRootOffset, const SolverMode& sMode)
 {
     offsets.setRootOffset(newRootOffset, sMode);
     auto& solverOffsetsValue = offsets.getOffsets(sMode);
@@ -1462,7 +1462,7 @@ units::unit GridComponent::outputUnits(index_t /*outputNum*/) const
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-index_t GridComponent::findIndex(std::string_view field, const solverMode& sMode) const
+index_t GridComponent::findIndex(std::string_view field, const SolverMode& sMode) const
 {
     const auto& solverOffsetsValue = offsets.getOffsets(sMode);
     if (field.starts_with("state")) {
@@ -1537,7 +1537,7 @@ index_t GridComponent::findIndex(std::string_view field, const solverMode& sMode
 
 // NOLINTNEXTLINE(misc-no-recursion)
 void GridComponent::getStateName(stringVec& stNames,
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  const std::string& prefix) const
 {
     const auto& solverOffsetsValue = offsets.getOffsets(sMode);
@@ -1636,7 +1636,7 @@ void GridComponent::updateFlags(bool dynamicsFlags)
 // NOLINTNEXTLINE(misc-no-recursion)
 void GridComponent::updateLocalCache(const IOdata& inputs,
                                      const stateData& stateDataValue,
-                                     const solverMode& sMode)
+                                     const SolverMode& sMode)
 {
     for (auto& sub : subObjectList) {
         sub->updateLocalCache(inputs, stateDataValue, sMode);
@@ -1687,7 +1687,7 @@ CoreObject* GridComponent::findByUserID(std::string_view typeName, index_t searc
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void GridComponent::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     prevTime = time;
 
@@ -1704,7 +1704,7 @@ void GridComponent::ioPartialDerivatives(const IOdata& /*inputs*/,
                                          const stateData& /*sD*/,
                                          matrixData<double>& /*md*/,
                                          const IOlocs& /*inputLocs*/,
-                                         const solverMode& /*sMode*/)
+                                         const SolverMode& /*sMode*/)
 {
     /* there is no way to determine partial derivatives of the output with respect to input in a
     default manner therefore the default is no dependencies
@@ -1714,7 +1714,7 @@ void GridComponent::ioPartialDerivatives(const IOdata& /*inputs*/,
 void GridComponent::outputPartialDerivatives(const IOdata& /*inputs*/,
                                              const stateData& /*stateDataValue*/,
                                              matrixData<double>& matrixDataValue,
-                                             const solverMode& sMode)
+                                             const SolverMode& sMode)
 {
     /* assume the output is a state and compute accordingly*/
     for (index_t kk = 0; kk < m_outputSize; ++kk) {
@@ -1723,7 +1723,7 @@ void GridComponent::outputPartialDerivatives(const IOdata& /*inputs*/,
     }
 }
 
-count_t GridComponent::outputDependencyCount(index_t outputNum, const solverMode& sMode) const
+count_t GridComponent::outputDependencyCount(index_t outputNum, const SolverMode& sMode) const
 {
     /* assume the output is a state and act accordingly*/
 
@@ -1734,7 +1734,7 @@ count_t GridComponent::outputDependencyCount(index_t outputNum, const solverMode
 // NOLINTNEXTLINE(misc-no-recursion)
 void GridComponent::preEx(const IOdata& inputs,
                           const stateData& stateDataValue,
-                          const solverMode& sMode)
+                          const SolverMode& sMode)
 {
     for (auto& subobj : subObjectList) {
         if (!(subobj->checkFlag(preEx_requested))) {
@@ -1750,7 +1750,7 @@ void GridComponent::preEx(const IOdata& inputs,
 void GridComponent::residual(const IOdata& inputs,
                              const stateData& stateDataValue,
                              double resid[],
-                             const solverMode& sMode)
+                             const SolverMode& sMode)
 {
     for (auto& sub : subObjectList) {
         if (!sub->checkFlag(separate_processing)) {
@@ -1765,7 +1765,7 @@ void GridComponent::residual(const IOdata& inputs,
 void GridComponent::derivative(const IOdata& inputs,
                                const stateData& stateDataValue,
                                double deriv[],
-                               const solverMode& sMode)
+                               const SolverMode& sMode)
 {
     for (auto& sub : subObjectList) {
         if (!sub->checkFlag(separate_processing)) {
@@ -1780,7 +1780,7 @@ void GridComponent::derivative(const IOdata& inputs,
 void GridComponent::algebraicUpdate(const IOdata& inputs,
                                     const stateData& stateDataValue,
                                     double update[],
-                                    const solverMode& sMode,
+                                    const SolverMode& sMode,
                                     double alpha)
 {
     for (auto& sub : subObjectList) {
@@ -1797,7 +1797,7 @@ void GridComponent::jacobianElements(const IOdata& inputs,
                                      const stateData& stateDataValue,
                                      matrixData<double>& matrixDataValue,
                                      const IOlocs& inputLocs,
-                                     const solverMode& sMode)
+                                     const SolverMode& sMode)
 {
     for (auto& sub : subObjectList) {
         if (!sub->checkFlag(separate_processing)) {
@@ -1811,7 +1811,7 @@ void GridComponent::jacobianElements(const IOdata& inputs,
 void GridComponent::rootTest(const IOdata& inputs,
                              const stateData& stateDataValue,
                              double roots[],
-                             const solverMode& sMode)
+                             const SolverMode& sMode)
 {
     for (auto& subobj : subObjectList) {
         if (!subobj->checkFlag(separate_processing)) {
@@ -1827,7 +1827,7 @@ void GridComponent::rootTest(const IOdata& inputs,
 void GridComponent::rootTrigger(coreTime time,
                                 const IOdata& inputs,
                                 const std::vector<int>& rootMask,
-                                const solverMode& sMode)
+                                const SolverMode& sMode)
 {
     for (auto& subobj : subObjectList) {
         if (!(subobj->checkFlag(has_roots))) {
@@ -1842,7 +1842,7 @@ void GridComponent::rootTrigger(coreTime time,
 // NOLINTNEXTLINE(misc-no-recursion)
 ChangeCode GridComponent::rootCheck(const IOdata& inputs,
                                     const stateData& stateDataValue,
-                                    const solverMode& sMode,
+                                    const SolverMode& sMode,
                                     CheckLevel level)
 {
     auto ret = ChangeCode::NO_CHANGE;
@@ -1884,7 +1884,7 @@ index_t GridComponent::lookupOutputIndex(std::string_view outputName) const
 
 double GridComponent::getOutput(const IOdata& /*inputs*/,
                                 const stateData& stateDataValue,
-                                const solverMode& sMode,
+                                const SolverMode& sMode,
                                 index_t outputNum) const
 {
     if (outputNum >= m_outputSize) {
@@ -1918,7 +1918,7 @@ double GridComponent::getOutput(index_t outputNum) const
 
 IOdata GridComponent::getOutputs(const IOdata& inputs,
                                  const stateData& stateDataValue,
-                                 const solverMode& sMode) const
+                                 const SolverMode& sMode) const
 {
     IOdata mout(m_outputSize);
     for (count_t pp = 0; pp < m_outputSize; ++pp) {
@@ -1931,7 +1931,7 @@ IOdata GridComponent::getOutputs(const IOdata& inputs,
 
 double GridComponent::getDoutdt(const IOdata& /*inputs*/,
                                 const stateData& stateDataValue,
-                                const solverMode& sMode,
+                                const SolverMode& sMode,
                                 index_t outputNum) const
 {
     if (outputNum >= m_outputSize) {
@@ -1953,7 +1953,7 @@ double GridComponent::getDoutdt(const IOdata& /*inputs*/,
     return 0.0;
 }
 
-index_t GridComponent::getOutputLoc(const solverMode& sMode, index_t outputNum) const
+index_t GridComponent::getOutputLoc(const SolverMode& sMode, index_t outputNum) const
 {
     if (outputNum >= m_outputSize) {
         return kNullLocation;
@@ -1978,7 +1978,7 @@ index_t GridComponent::getOutputLoc(const solverMode& sMode, index_t outputNum) 
     return kNullLocation;
 }
 
-IOlocs GridComponent::getOutputLocs(const solverMode& sMode) const
+IOlocs GridComponent::getOutputLocs(const SolverMode& sMode) const
 {
     IOlocs oloc(m_outputSize);
 
@@ -2007,7 +2007,7 @@ void GridComponent::parameterPartialDerivatives(index_t param,
                                                 const IOdata& /*inputs*/,
                                                 const stateData& /*sD*/,
                                                 matrixData<double>& /*md*/,
-                                                const solverMode& /*sMode*/)
+                                                const SolverMode& /*sMode*/)
 {
     throw(UnrecognizedParameter("param" + std::to_string(param)));
 }
@@ -2017,12 +2017,12 @@ double GridComponent::parameterOutputPartialDerivatives(index_t param,
                                                         index_t /*outputNum*/,
                                                         const IOdata& /*inputs*/,
                                                         const stateData& /*sD*/,
-                                                        const solverMode& /*sMode*/)
+                                                        const SolverMode& /*sMode*/)
 {
     throw(UnrecognizedParameter("param" + std::to_string(param)));
 }
 
-void printStateNames(const GridComponent* comp, const solverMode& sMode)
+void printStateNames(const GridComponent* comp, const SolverMode& sMode)
 {
     auto ssize = comp->stateSize(sMode);
     std::vector<std::string> sNames(ssize);

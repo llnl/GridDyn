@@ -101,7 +101,7 @@ void zBreaker::updateLocalCache()
 }
 void zBreaker::updateLocalCache(const IOdata& /*inputs*/,
                                 const stateData& sD,
-                                const solverMode& /*sMode*/)
+                                const SolverMode& /*sMode*/)
 {
     if (!isEnabled()) {
         return;

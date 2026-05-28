@@ -72,7 +72,7 @@ void GenModelInverter::dynObjectInitializeB(const IOdata& inputs,
 void GenModelInverter::algebraicUpdate(const IOdata& inputs,
                                        const stateData& /*stateDataValue*/,
                                        double update[],
-                                       const solverMode& sMode,
+                                       const SolverMode& sMode,
                                        double /*alpha*/)
 {
     auto offset = offsets.getAlgOffset(sMode);
@@ -118,7 +118,7 @@ void GenModelInverter::algebraicUpdate(const IOdata& inputs,
 void GenModelInverter::residual(const IOdata& inputs,
                                 const stateData& stateDataValue,
                                 double resid[],
-                                const solverMode& sMode)
+                                const SolverMode& sMode)
 {
     if (!hasAlgebraic(sMode)) {
         return;
@@ -155,7 +155,7 @@ void GenModelInverter::residual(const IOdata& inputs,
 }
 
 double GenModelInverter::getFreq(const stateData& stateDataValue,
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  index_t* freqOffset) const
 {
     // there is no inertia in this gen model so it can't compute a frequency and
@@ -167,7 +167,7 @@ double GenModelInverter::getFreq(const stateData& stateDataValue,
 }
 
 double GenModelInverter::getAngle(const stateData& stateDataValue,
-                                  const solverMode& sMode,
+                                  const SolverMode& sMode,
                                   index_t* angleOffset) const
 {
     auto offset = offsets.getAlgOffset(sMode);
@@ -180,7 +180,7 @@ double GenModelInverter::getAngle(const stateData& stateDataValue,
 
 IOdata GenModelInverter::getOutputs(const IOdata& inputs,
                                     const stateData& stateDataValue,
-                                    const solverMode& sMode) const
+                                    const SolverMode& sMode) const
 {
     auto Loc = offsets.getLocations(stateDataValue, sMode, this);
 
@@ -216,7 +216,7 @@ double GenModelInverter::reactivePowerCompute(double voltage,
 
 double GenModelInverter::getOutput(const IOdata& inputs,
                                    const stateData& stateDataValue,
-                                   const solverMode& sMode,
+                                   const SolverMode& sMode,
                                    index_t outNum) const
 {
     auto Loc = offsets.getLocations(stateDataValue, sMode, this);
@@ -238,7 +238,7 @@ void GenModelInverter::ioPartialDerivatives(const IOdata& inputs,
                                             const stateData& stateDataValue,
                                             matrixData<double>& matrixDataValue,
                                             const IOlocs& inputLocs,
-                                            const solverMode& sMode)
+                                            const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(stateDataValue, sMode, this);
 
@@ -276,7 +276,7 @@ void GenModelInverter::jacobianElements(const IOdata& inputs,
                                         const stateData& stateDataValue,
                                         matrixData<double>& matrixDataValue,
                                         const IOlocs& inputLocs,
-                                        const solverMode& sMode)
+                                        const SolverMode& sMode)
 {
     if (!hasAlgebraic(sMode)) {
         return;
@@ -316,7 +316,7 @@ void GenModelInverter::jacobianElements(const IOdata& inputs,
 void GenModelInverter::outputPartialDerivatives(const IOdata& inputs,
                                                 const stateData& stateDataValue,
                                                 matrixData<double>& matrixDataValue,
-                                                const solverMode& sMode)
+                                                const SolverMode& sMode)
 {
     if (!hasAlgebraic(sMode)) {
         return;
@@ -341,7 +341,7 @@ void GenModelInverter::outputPartialDerivatives(const IOdata& inputs,
                                (voltage * exciterField * g * cosineAngle));
 }
 
-count_t GenModelInverter::outputDependencyCount(index_t /*num*/, const solverMode& /*sMode*/) const
+count_t GenModelInverter::outputDependencyCount(index_t /*num*/, const SolverMode& /*sMode*/) const
 {
     return 1;
 }
@@ -400,7 +400,7 @@ void GenModelInverter::reCalcImpedences()
 void GenModelInverter::rootTest(const IOdata& inputs,
                                 const stateData& stateDataValue,
                                 double roots[],
-                                const solverMode& sMode)
+                                const SolverMode& sMode)
 {
     if (rootSize(sMode) > 0) {
         auto rootOffset = offsets.getRootOffset(sMode);
@@ -429,7 +429,7 @@ void GenModelInverter::rootTest(const IOdata& inputs,
 void GenModelInverter::rootTrigger(coreTime /*time*/,
                                    const IOdata& inputs,
                                    const std::vector<int>& rootMask,
-                                   const solverMode& sMode)
+                                   const SolverMode& sMode)
 {
     if (rootSize(sMode) > 0) {
         auto rootOffset = offsets.getRootOffset(sMode);
@@ -453,7 +453,7 @@ void GenModelInverter::rootTrigger(coreTime /*time*/,
 
 ChangeCode GenModelInverter::rootCheck(const IOdata& inputs,
                                        const stateData& stateDataValue,
-                                       const solverMode& sMode,
+                                       const SolverMode& sMode,
                                        CheckLevel /*level*/)
 {
     if (rootSize(sMode) > 0) {

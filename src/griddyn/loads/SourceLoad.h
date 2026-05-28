@@ -60,14 +60,14 @@ eventually will replace most of the shaped loads*/
 
         virtual void updateLocalCache(const IOdata& inputs,
                                       const stateData& stateDataValue,
-                                      const solverMode& sMode) override;
+                                      const SolverMode& sMode) override;
 
         virtual void setState(coreTime time,
                               const double state[],
                               const double dstate_dt[],
-                              const solverMode& sMode) override;
+                              const SolverMode& sMode) override;
         virtual void
-            timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+            timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
         CoreObject* find(std::string_view obj) const override;
 

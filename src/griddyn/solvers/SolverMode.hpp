@@ -22,25 +22,25 @@ namespace griddyn {
  *  DAE  the full DAE Solution mode
  */
 enum ApproxKey {
-    decoupled = 0,
-    small_angle = 1,
-    small_r = 2,
-    linear = 3,
-    force_recalc = 29,
-    dc = 31,
+    DECOUPLED = 0,
+    SMALL_ANGLE = 1,
+    SMALL_R = 2,
+    LINEAR = 3,
+    FORCE_RECALC = 29,
+    DC = 31,
 };
 
 enum class ApproxKeyMask : unsigned int {
-    none = 0,
-    decoupled = (1 << ApproxKey::decoupled),
-    sm_angle = (1 << ApproxKey::small_angle),
-    simplified = (1 << ApproxKey::small_r),
-    simplified_decoupled = (1 << ApproxKey::decoupled) + (1 << ApproxKey::small_r),
-    simplified_sm_angle = (1 << ApproxKey::small_angle) + (1 << ApproxKey::small_r),
-    sm_angle_decoupled = (1 << ApproxKey::decoupled) + (1 << ApproxKey::small_angle),
-    fast_decoupled =
-        (1 << ApproxKey::small_r) + (1 << ApproxKey::small_angle) + (1 << ApproxKey::decoupled),
-    linear = (1 << ApproxKey::linear),
+    NONE = 0,
+    DECOUPLED = (1 << ApproxKey::DECOUPLED),
+    SM_ANGLE = (1 << ApproxKey::SMALL_ANGLE),
+    SIMPLIFIED = (1 << ApproxKey::SMALL_R),
+    SIMPLIFIED_DECOUPLED = (1 << ApproxKey::DECOUPLED) + (1 << ApproxKey::SMALL_R),
+    SIMPLIFIED_SM_ANGLE = (1 << ApproxKey::SMALL_ANGLE) + (1 << ApproxKey::SMALL_R),
+    SM_ANGLE_DECOUPLED = (1 << ApproxKey::DECOUPLED) + (1 << ApproxKey::SMALL_ANGLE),
+    FAST_DECOUPLED =
+        (1 << ApproxKey::SMALL_R) + (1 << ApproxKey::SMALL_ANGLE) + (1 << ApproxKey::DECOUPLED),
+    LINEAR = (1 << ApproxKey::LINEAR),
 };
 
 #ifdef _MSC_VER
@@ -59,15 +59,15 @@ KEY_QUAL unsigned int indexVal(ApproxKeyMask key)
 }
 
 enum DefinedSolverModes : index_t {
-    local_mode = 0,
-    power_flow = 1,
-    dae = 2,
-    dynamic_algebraic = 3,
-    dynamic_differential = 4,
+    LOCAL_MODE = 0,
+    POWER_FLOW = 1,
+    DAE = 2,
+    DYNAMIC_ALGEBRAIC = 3,
+    DYNAMIC_DIFFERENTIAL = 4,
 };
 
 /** @brief class defining how a specific solver operates and how to find information*/
-class solverMode {
+class SolverMode {
   public:
     bool dynamic = false;  //!< indicate if the solver is for dynamic simulation
     bool differential = false;  //!< indicate if the solver uses differential states
@@ -80,38 +80,38 @@ class solverMode {
     //!(request not obligation)
     index_t offsetIndex = kNullLocation;  //!< index into an array of solverOffsets
     index_t pairedOffsetIndex =
-        kNullLocation;  //!< the index of a paired solverMode --namely one containing state
+        kNullLocation;  //!< the index of a paired SolverMode --namely one containing state
     //! information not calculated by this mode
-    /**@brief solverMode constructor
+    /**@brief SolverMode constructor
   @param[in] index the index to put in offsetIndex*/
-    constexpr explicit solverMode(index_t index): offsetIndex(index)
+    constexpr explicit SolverMode(index_t index): offsetIndex(index)
     {
-        if (index == local_mode) {  // predefined local
+        if (index == LOCAL_MODE) {  // predefined local
             local = true;
             dynamic = true;
             differential = true;
             algebraic = true;
-        } else if (index == power_flow) {  // predefined pflow
+        } else if (index == POWER_FLOW) {  // predefined pflow
             algebraic = true;
             differential = false;
             dynamic = false;
-        } else if (index == dae) {  // predefined dae
+        } else if (index == DAE) {  // predefined dae
             dynamic = true;
             differential = true;
             algebraic = true;
-        } else if (index == dynamic_algebraic) {  // predefined dynAlg
+        } else if (index == DYNAMIC_ALGEBRAIC) {  // predefined dynAlg
             algebraic = true;
             differential = false;
             dynamic = true;
-        } else if (index == dynamic_differential) {  // predefined dynDiff
+        } else if (index == DYNAMIC_DIFFERENTIAL) {  // predefined dynDiff
             algebraic = false;
             differential = true;
             dynamic = true;
         }
     }
-    /**@brief solverMode default constructor*/
-    constexpr solverMode() = default;
-    constexpr bool operator==(const solverMode& b) const
+    /**@brief SolverMode default constructor*/
+    constexpr SolverMode() = default;
+    constexpr bool operator==(const SolverMode& b) const
     {
         return ((dynamic == b.dynamic) && (differential == b.differential) &&
                 (algebraic == b.algebraic) && (local == b.local) &&
@@ -120,60 +120,60 @@ class solverMode {
 };
 
 #define LINKAPPROXMASK ((unsigned int)(0x000F))
-constexpr int getLinkApprox(const solverMode& sMode)
+constexpr int getLinkApprox(const SolverMode& sMode)
 {
     return static_cast<int>(sMode.approx.to_ulong() & (LINKAPPROXMASK));
 }
-inline void setLinkApprox(solverMode& sMode, ApproxKeyMask key)
+inline void setLinkApprox(SolverMode& sMode, ApproxKeyMask key)
 {
     sMode.approx &= (~LINKAPPROXMASK);
     sMode.approx |= indexVal(key);
 }
 
-inline void setLinkApprox(solverMode& sMode, int val)
+inline void setLinkApprox(SolverMode& sMode, int val)
 {
     sMode.approx.set(val);
 }
-inline void setLinkApprox(solverMode& sMode, int val, bool setval)
+inline void setLinkApprox(SolverMode& sMode, int val, bool setval)
 {
     sMode.approx.set(val, setval);
 }
 
-inline constexpr solverMode cLocalSolverMode(local_mode);
-inline constexpr solverMode cPflowSolverMode(power_flow);
-inline constexpr solverMode cDaeSolverMode(dae);
-inline constexpr solverMode cDynAlgSolverMode(dynamic_algebraic);
-inline constexpr solverMode cDynDiffSolverMode(dynamic_differential);
+inline constexpr SolverMode cLocalSolverMode(LOCAL_MODE);
+inline constexpr SolverMode cPflowSolverMode(POWER_FLOW);
+inline constexpr SolverMode cDaeSolverMode(DAE);
+inline constexpr SolverMode cDynAlgSolverMode(DYNAMIC_ALGEBRAIC);
+inline constexpr SolverMode cDynDiffSolverMode(DYNAMIC_DIFFERENTIAL);
 
-inline constexpr solverMode cEmptySolverMode{};
+inline constexpr SolverMode cEmptySolverMode{};
 /**
  *Helper functions for determining mode capabilities
  **/
 /**
  * @brief determine if the mode is dc only
  **/
-constexpr bool isDC(const solverMode& sMode)
+constexpr bool isDC(const SolverMode& sMode)
 {
-    return sMode.approx[dc];
+    return sMode.approx[DC];
 }
 /**
  * @brief determine if the mode is AC only
  **/
-constexpr bool isAC(const solverMode& sMode)
+constexpr bool isAC(const SolverMode& sMode)
 {
-    return !sMode.approx[dc];
+    return !sMode.approx[DC];
 }
 /**
  * @brief set the approximation mode to be DC
  **/
-inline void setDC(solverMode& sMode)
+inline void setDC(SolverMode& sMode)
 {
-    sMode.approx.set(dc);
+    sMode.approx.set(DC);
 }
 /**
  * @brief determine if the mode requires dynamic initialization
  **/
-constexpr bool isDynamic(const solverMode& sMode)
+constexpr bool isDynamic(const SolverMode& sMode)
 {
     return sMode.dynamic;
 }
@@ -181,56 +181,56 @@ constexpr bool isDynamic(const solverMode& sMode)
 * @brief determine if the mode is for power flow
 @details isPowerFlow()==(!isDynamic())
 **/
-constexpr bool isPowerFlow(const solverMode& sMode)
+constexpr bool isPowerFlow(const SolverMode& sMode)
 {
     return !sMode.dynamic;
 }
 /**
  * @brief determine if the mode only uses algebraic variables
  **/
-constexpr bool isAlgebraicOnly(const solverMode& sMode)
+constexpr bool isAlgebraicOnly(const SolverMode& sMode)
 {
     return (sMode.algebraic) && (!sMode.differential);
 }
 /**
  * @brief determine if the mode only uses differential variables
  **/
-constexpr bool isDifferentialOnly(const solverMode& sMode)
+constexpr bool isDifferentialOnly(const SolverMode& sMode)
 {
     return (!sMode.algebraic) && (sMode.differential);
 }
 /**
  * @brief determine if the mode uses both algebraic and differential variables
  **/
-constexpr bool isDAE(const solverMode& sMode)
+constexpr bool isDAE(const SolverMode& sMode)
 {
     return (sMode.algebraic) && (sMode.differential);
 }
 /**
  * @brief determine if the mode is a local mode
  **/
-constexpr bool isLocal(const solverMode& sMode)
+constexpr bool isLocal(const SolverMode& sMode)
 {
     return sMode.local;
 }
 /**
  * @brief determine if the mode has differential components to it
  **/
-constexpr bool hasDifferential(const solverMode& sMode)
+constexpr bool hasDifferential(const SolverMode& sMode)
 {
     return sMode.differential;
 }
 /**
  * @brief determine if the mode has algebraic components to it
  **/
-constexpr bool hasAlgebraic(const solverMode& sMode)
+constexpr bool hasAlgebraic(const SolverMode& sMode)
 {
     return sMode.algebraic;
 }
 /**
  * @brief determine if the bus is using extended state information (namely Pin and Qin)
  **/
-constexpr bool isExtended(const solverMode& sMode)
+constexpr bool isExtended(const SolverMode& sMode)
 {
     return sMode.extended_state;
 }

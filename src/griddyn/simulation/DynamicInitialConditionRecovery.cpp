@@ -91,7 +91,7 @@ int dynamicInitialConditionRecovery::lowVoltageCheck()
     }
     return solver->calcIC(sim->getSimulationTime(),
                           sim->probeStepTime,
-                          SolverInterface::IcModes::fixed_diff,
+                          SolverInterface::IcModes::FIXED_DIFF,
                           true);
 }
 
@@ -107,7 +107,7 @@ int dynamicInitialConditionRecovery::dynamicFix1()
                   3.0);
     return solver->calcIC(sim->getSimulationTime(),
                           sim->probeStepTime,
-                          SolverInterface::IcModes::fixed_diff,
+                          SolverInterface::IcModes::FIXED_DIFF,
                           true);
 }
 
@@ -149,13 +149,13 @@ int dynamicInitialConditionRecovery::dynamicFix2()
                 if (sim->dynamicCheckAndReset(solver->getSolverMode(), rootCheckResult)) {
                     retval = solver->calcIC(sim->getSimulationTime(),
                                             sim->probeStepTime,
-                                            SolverInterface::IcModes::fixed_diff,
+                                            SolverInterface::IcModes::FIXED_DIFF,
                                             true);
                 }
             } else {
                 retval = solver->calcIC(sim->getSimulationTime(),
                                         sim->probeStepTime,
-                                        SolverInterface::IcModes::fixed_diff,
+                                        SolverInterface::IcModes::FIXED_DIFF,
                                         true);
             }
         } else {
@@ -171,7 +171,7 @@ int dynamicInitialConditionRecovery::dynamicFix2()
                 if (sim->dynamicCheckAndReset(solver->getSolverMode(), rootCheckResult)) {
                     retval = solver->calcIC(sim->getSimulationTime(),
                                             sim->probeStepTime,
-                                            SolverInterface::IcModes::fixed_diff,
+                                            SolverInterface::IcModes::FIXED_DIFF,
                                             true);
                 }
             } else {
@@ -181,7 +181,7 @@ int dynamicInitialConditionRecovery::dynamicFix2()
                                 solver->getSolverMode());
                 retval = solver->calcIC(sim->getSimulationTime(),
                                         sim->probeStepTime,
-                                        SolverInterface::IcModes::fixed_diff,
+                                        SolverInterface::IcModes::FIXED_DIFF,
                                         true);
             }
         }
@@ -194,7 +194,7 @@ int dynamicInitialConditionRecovery::dynamicFix2()
                       0.01);
         retval = solver->calcIC(sim->getSimulationTime(),
                                 sim->probeStepTime,
-                                SolverInterface::IcModes::fixed_diff,
+                                SolverInterface::IcModes::FIXED_DIFF,
                                 true);
     }
     return retval;
@@ -218,21 +218,21 @@ int dynamicInitialConditionRecovery::dynamicFix3()
                     double cr2 = checkResid(sim, timeCurr + 0.001, solver->getSolverMode());
                     // logging::debug(this, "tried alg converge from {} to {}",
     std::to_string(cr)); retval = solver->calcIC(timeCurr + 0.001, sim->probeStepTime,
-    SolverInterface::IcModes::fixed_diff, true);
+    SolverInterface::IcModes::FIXED_DIFF, true);
             }
             else
             {
                     sim->guessState(timeCurr + 0.001, solver->stateData(), solver->derivData(),
     solver->getSolverMode());
                     retval = solver->calcIC(timeCurr + 0.001, sim->probeStepTime,
-    SolverInterface::IcModes::fixed_diff, true);
+    SolverInterface::IcModes::FIXED_DIFF, true);
             }
 
     }
     */
     const int retval = solver->calcIC(sim->getSimulationTime(),
                                       sim->probeStepTime,
-                                      SolverInterface::IcModes::fixed_diff,
+                                      SolverInterface::IcModes::FIXED_DIFF,
                                       true);
     return retval;
 }
@@ -256,7 +256,7 @@ int dynamicInitialConditionRecovery::dynamicFix4()
                   0.01);
     const int retval = solver->calcIC(sim->getSimulationTime(),
                                       sim->probeStepTime,
-                                      SolverInterface::IcModes::fixed_diff,
+                                      SolverInterface::IcModes::FIXED_DIFF,
                                       true);
     return retval;
 }
@@ -272,7 +272,7 @@ int dynamicInitialConditionRecovery::dynamicFix5()
                   0.01);
     const int retval = solver->calcIC(sim->getSimulationTime(),
                                       sim->probeStepTime,
-                                      SolverInterface::IcModes::fixed_diff,
+                                      SolverInterface::IcModes::FIXED_DIFF,
                                       true);
     return retval;
 }

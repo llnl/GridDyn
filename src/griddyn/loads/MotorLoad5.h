@@ -44,47 +44,47 @@ class MotorLoad5: public MotorLoad3 {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual stateSizes localStateSizes(const solverMode& sMode) const override;
+    virtual stateSizes localStateSizes(const SolverMode& sMode) const override;
 
-    virtual count_t localJacobianCount(const solverMode& sMode) const override;
+    virtual count_t localJacobianCount(const SolverMode& sMode) const override;
 
     virtual void residual(const IOdata& inputs,
                           const stateData& sD,
                           double resid[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
 
     virtual void derivative(const IOdata& inputs,
                             const stateData& sD,
                             double deriv[],
-                            const solverMode& sMode) override;
+                            const SolverMode& sMode) override;
     virtual void rootTest(const IOdata& inputs,
                           const stateData& sD,
                           double roots[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
-                             const solverMode& sMode) override;
+                             const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
                                  const stateData& sD,
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  CheckLevel level) override;
 
     virtual void jacobianElements(const IOdata& inputs,
                                   const stateData& sD,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
-                                  const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
     virtual void getStateName(stringVec& stNames,
-                              const solverMode& sMode,
+                              const SolverMode& sMode,
                               const std::string& prefix) const override;
 
-    virtual index_t findIndex(std::string_view field, const solverMode& sMode) const override;
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     // TODO(phlpt): Change to algebraic update.
     virtual void
-        updateCurrents(const IOdata& inputs, const stateData& sD, const solverMode& sMode) override;
+        updateCurrents(const IOdata& inputs, const stateData& sD, const SolverMode& sMode) override;
 
   private:
     /** @brief estimate the initial state values of the motor

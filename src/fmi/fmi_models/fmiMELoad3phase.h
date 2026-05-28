@@ -35,11 +35,11 @@ class FmiMELoad3phase: public FmiMEWrapper<loads::ThreePhaseLoad> {
     virtual void setState(coreTime time,
                           const double state[],
                           const double dstateDt[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
 
     virtual void updateLocalCache(const IOdata& inputs,
                                   const stateData& stateDataRef,
-                                  const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
     virtual const std::vector<stringVec>& getFmiInputNames() const override;
 
     virtual const std::vector<stringVec>& getFmiOutputNames() const override;

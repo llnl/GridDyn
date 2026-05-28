@@ -249,14 +249,14 @@ double GridLoad::getReactivePower() const
 }
 double GridLoad::getRealPower(const IOdata& /*inputs*/,
                               const stateData& /*sD*/,
-                              const solverMode& /*sMode*/) const
+                              const SolverMode& /*sMode*/) const
 {
     return getRealPower();
 }
 
 double GridLoad::getReactivePower(const IOdata& /*inputs*/,
                                   const stateData& /*sD*/,
-                                  const solverMode& /*sMode*/) const
+                                  const SolverMode& /*sMode*/) const
 {
     return getReactivePower();
 }
@@ -269,7 +269,7 @@ double GridLoad::getReactivePower(double /*V*/) const
 {
     return getReactivePower();
 }
-count_t GridLoad::outputDependencyCount(index_t /*num*/, const solverMode& /*sMode*/) const
+count_t GridLoad::outputDependencyCount(index_t /*num*/, const SolverMode& /*sMode*/) const
 {
     return 0;
 }

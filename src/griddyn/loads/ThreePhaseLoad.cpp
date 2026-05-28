@@ -347,14 +347,14 @@ void ThreePhaseLoad::set(std::string_view param, double val, unit unitType)
 
 IOdata ThreePhaseLoad::getRealPower3Phase(const IOdata& /*inputs*/,
                                           const stateData& /*sD*/,
-                                          const solverMode& /*sMode*/,
+                                          const SolverMode& /*sMode*/,
                                           PhaseType type) const
 {
     return getRealPower3Phase(type);
 }
 IOdata ThreePhaseLoad::getReactivePower3Phase(const IOdata& /*inputs*/,
                                               const stateData& /*sD*/,
-                                              const solverMode& /*sMode*/,
+                                              const SolverMode& /*sMode*/,
                                               PhaseType type) const
 {
     return getReactivePower3Phase(type);

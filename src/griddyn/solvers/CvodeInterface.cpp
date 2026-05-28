@@ -29,20 +29,20 @@
 #include <vector>
 
 namespace griddyn::solvers {
-int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_data);
+int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userData);
 
 int cvodeJac(sunrealtype time,
              N_Vector state,
-             N_Vector dstate_dt,
-             SUNMatrix J,
-             void* user_data,
+             N_Vector dstateDt,
+             SUNMatrix j,
+             void* userData,
              N_Vector tmp1,
              N_Vector tmp2,
              N_Vector tmp3);
 
-int cvodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* user_data);
+int cvodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* userData);
 
-cvodeInterface::cvodeInterface(const std::string& objName): SundialsInterface(objName)
+CvodeInterface::CvodeInterface(const std::string& objName): SundialsInterface(objName)
 {
     mode.dynamic = true;
     mode.differential = true;
@@ -50,7 +50,7 @@ cvodeInterface::cvodeInterface(const std::string& objName): SundialsInterface(ob
     max_iterations = 1500;
 }
 
-cvodeInterface::cvodeInterface(GridDynSimulation* gds, const solverMode& sMode):
+CvodeInterface::CvodeInterface(GridDynSimulation* gds, const SolverMode& sMode):
     SundialsInterface(gds, sMode)
 {
     mode.dynamic = true;
@@ -59,25 +59,25 @@ cvodeInterface::cvodeInterface(GridDynSimulation* gds, const solverMode& sMode):
     max_iterations = 1500;
 }
 
-cvodeInterface::~cvodeInterface()
+CvodeInterface::~CvodeInterface()
 {
     // clear variables for CVode to use
-    if (flags[initialized_flag]) {
+    if (flags[INITIALIZED_FLAG]) {
         CVodeFree(&solverMem);
     }
 }
 
-std::unique_ptr<SolverInterface> cvodeInterface::clone(bool fullCopy) const
+std::unique_ptr<SolverInterface> CvodeInterface::clone(bool fullCopy) const
 {
-    std::unique_ptr<SolverInterface> si = std::make_unique<cvodeInterface>();
-    cvodeInterface::cloneTo(si.get(), fullCopy);
+    std::unique_ptr<SolverInterface> si = std::make_unique<CvodeInterface>();
+    CvodeInterface::cloneTo(si.get(), fullCopy);
     return si;
 }
 
-void cvodeInterface::cloneTo(SolverInterface* si, bool fullCopy) const
+void CvodeInterface::cloneTo(SolverInterface* si, bool fullCopy) const
 {
     SundialsInterface::cloneTo(si, fullCopy);
-    auto ai = dynamic_cast<cvodeInterface*>(si);
+    auto ai = dynamic_cast<CvodeInterface*>(si);
     if (ai == nullptr) {
         return;
     }
@@ -86,13 +86,13 @@ void cvodeInterface::cloneTo(SolverInterface* si, bool fullCopy) const
     ai->step = step;
 }
 
-void cvodeInterface::allocate(count_t stateCount, count_t numRoots)
+void CvodeInterface::allocate(count_t stateCount, count_t numRoots)
 {
     // load the vectors
     if (stateCount == svsize) {
         return;
     }
-    flags.reset(initialized_flag);
+    flags.reset(INITIALIZED_FLAG);
     a1.setRowLimit(stateCount);
     a1.setColLimit(stateCount);
 
@@ -110,14 +110,14 @@ void cvodeInterface::allocate(count_t stateCount, count_t numRoots)
     SundialsInterface::allocate(stateCount, numRoots);
 }
 
-void cvodeInterface::setMaxNonZeros(count_t nonZeroCount)
+void CvodeInterface::setMaxNonZeros(count_t nonZeroCount)
 {
     maxNNZ = nonZeroCount;
     a1.reserve(nonZeroCount);
     a1.clear();
 }
 
-void cvodeInterface::set(std::string_view param, std::string_view val)
+void CvodeInterface::set(std::string_view param, std::string_view val)
 {
     if (param.empty() || param[0] == '#') {
     } else {
@@ -125,7 +125,7 @@ void cvodeInterface::set(std::string_view param, std::string_view val)
     }
 }
 
-void cvodeInterface::set(std::string_view param, double val)
+void CvodeInterface::set(std::string_view param, double val)
 {
     bool checkStepUpdate = false;
     if (param == "step") {
@@ -151,7 +151,7 @@ void cvodeInterface::set(std::string_view param, double val)
         SolverInterface::set(param, val);
     }
     if (checkStepUpdate) {
-        if (flags[initialized_flag]) {
+        if (flags[INITIALIZED_FLAG]) {
             CVodeSetMaxStep(solverMem, maxStep);
             CVodeSetMinStep(solverMem, minStep);
             CVodeSetInitStep(solverMem, step);
@@ -159,7 +159,7 @@ void cvodeInterface::set(std::string_view param, double val)
     }
 }
 
-double cvodeInterface::get(std::string_view param) const
+double CvodeInterface::get(std::string_view param) const
 {
     int val = -1;
     if ((param == "resevals") || (param == "iterationcount")) {
@@ -180,9 +180,9 @@ double cvodeInterface::get(std::string_view param) const
 }
 
 // output solver stats
-void cvodeInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
+void CvodeInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
 {
-    if (!flags[initialized_flag]) {
+    if (!flags[INITIALIZED_FLAG]) {
         return;
     }
     long nni = 0;
@@ -248,7 +248,7 @@ void cvodeInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
     }
 }
 
-void cvodeInterface::logErrorWeights(PrintLevel logLevel) const
+void CvodeInterface::logErrorWeights(PrintLevel logLevel) const
 {
     N_Vector eweight = NVECTOR_NEW(use_omp, svsize);
     N_Vector ele = NVECTOR_NEW(use_omp, svsize);
@@ -272,9 +272,9 @@ void cvodeInterface::logErrorWeights(PrintLevel logLevel) const
     NVECTOR_DESTROY(use_omp, ele);
 }
 
-void cvodeInterface::initialize(coreTime time0)
+void CvodeInterface::initialize(coreTime time0)
 {
-    if (!flags[allocated_flag]) {
+    if (!flags[ALLOCATED_FLAG]) {
         throw(InvalidSolverOperation());
     }
 
@@ -306,7 +306,7 @@ void cvodeInterface::initialize(coreTime time0)
     checkFlag(&retval, "CVodeSetMaxNumSteps", 1);
 
 #ifdef GRIDDYN_ENABLE_KLU
-    if (flags[dense_flag]) {
+    if (flags[DENSE_FLAG]) {
         J = SUNDenseMatrix(svsize, svsize, sunctx);
         checkFlag(J, "SUNDenseMatrix", 0);
         /* Create KLU solver object */
@@ -353,15 +353,15 @@ void cvodeInterface::initialize(coreTime time0)
     }
     setConstraints();
 
-    flags.set(initialized_flag);
+    flags.set(INITIALIZED_FLAG);
 }
 
-void cvodeInterface::sparseReInit(SparseReinitMode reInitMode)
+void CvodeInterface::sparseReInit(SparseReinitMode reInitMode)
 {
     kluReInit(reInitMode);
 }
 
-void cvodeInterface::setRootFinding(count_t numRoots)
+void CvodeInterface::setRootFinding(count_t numRoots)
 {
     if (numRoots != static_cast<index_t>(rootsfound.size())) {
         rootsfound.resize(numRoots);
@@ -371,7 +371,7 @@ void cvodeInterface::setRootFinding(count_t numRoots)
     checkFlag(&retval, "CVodeRootInit", 1);
 }
 
-void cvodeInterface::getCurrentData()
+void CvodeInterface::getCurrentData()
 {
     /*
 int retval = CVodeGetConsistentIC(solverMem, state, deriv);
@@ -382,7 +382,7 @@ if (checkFlag(&retval, "CVodeGetConsistentIC", 1))
 */
 }
 
-int cvodeInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
+int CvodeInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
 {
     assert(rootCount == m_gds->rootSize(mode));
     ++solverCallCount;
@@ -403,13 +403,13 @@ int cvodeInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
     return retval;
 }
 
-void cvodeInterface::getRoots()
+void CvodeInterface::getRoots()
 {
     int ret = CVodeGetRootInfo(solverMem, rootsfound.data());
     checkFlag(&ret, "CVodeGetRootInfo", 1);
 }
 
-void cvodeInterface::loadMaskElements()
+void CvodeInterface::loadMaskElements()
 {
     std::vector<double> mStates(svsize, 0.0);
     m_gds->getVoltageStates(mStates.data(), mode);
@@ -423,14 +423,14 @@ void cvodeInterface::loadMaskElements()
 }
 
 // CVode C Functions
-int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_data)
+int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userData)
 {
-    auto sd = reinterpret_cast<cvodeInterface*>(user_data);
+    auto sd = reinterpret_cast<CvodeInterface*>(userData);
     sd->funcCallCount++;
     if (sd->mode.pairedOffsetIndex != kNullLocation) {
         int ret = sd->m_gds->dynAlgebraicSolve(time,
                                                NVECTOR_DATA(sd->use_omp, state),
-                                               NVECTOR_DATA(sd->use_omp, dstate_dt),
+                                               NVECTOR_DATA(sd->use_omp, dstateDt),
                                                sd->mode);
         if (ret < FUNCTION_EXECUTION_SUCCESS) {
             return ret;
@@ -438,10 +438,10 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_d
     }
     int ret = sd->m_gds->derivativeFunction(time,
                                             NVECTOR_DATA(sd->use_omp, state),
-                                            NVECTOR_DATA(sd->use_omp, dstate_dt),
+                                            NVECTOR_DATA(sd->use_omp, dstateDt),
                                             sd->mode);
 
-    if (sd->flags[fileCapture_flag]) {
+    if (sd->flags[FILE_CAPTURE_FLAG]) {
         if (!sd->stateFile.empty()) {
             writeVector(time,
                         STATE_INFORMATION,
@@ -456,7 +456,7 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_d
                         sd->funcCallCount,
                         sd->mode.offsetIndex,
                         sd->svsize,
-                        NVECTOR_DATA(sd->use_omp, dstate_dt),
+                        NVECTOR_DATA(sd->use_omp, dstateDt),
                         sd->stateFile);
         }
     }
@@ -464,9 +464,9 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_d
     return ret;
 }
 
-int cvodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* user_data)
+int cvodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* userData)
 {
-    auto sd = reinterpret_cast<cvodeInterface*>(user_data);
+    auto sd = reinterpret_cast<CvodeInterface*>(userData);
     sd->m_gds->rootFindingFunction(
         time, NVECTOR_DATA(sd->use_omp, state), sd->derivData(), gout, sd->mode);
 
@@ -475,14 +475,14 @@ int cvodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* use
 
 int cvodeJac(sunrealtype time,
              N_Vector state,
-             N_Vector dstate_dt,
-             SUNMatrix J,
-             void* user_data,
+             N_Vector dstateDt,
+             SUNMatrix j,
+             void* userData,
              N_Vector tmp1,
              N_Vector tmp2,
              N_Vector /*tmp3*/)
 {
-    return sundialsJac(time, 0.0, state, dstate_dt, J, user_data, tmp1, tmp2);
+    return sundialsJac(time, 0.0, state, dstateDt, j, userData, tmp1, tmp2);
 }
 
 }  // namespace griddyn::solvers

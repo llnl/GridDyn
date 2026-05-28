@@ -104,7 +104,7 @@ void PidBlock::blockDerivative(double input,
                                double didt,
                                const stateData& stateDataValue,
                                double deriv[],
-                               const solverMode& sMode)
+                               const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(stateDataValue, deriv, sMode, this);
     Loc.destDiffLoc[limiter_diff + 2] = m_I * (input + bias);
@@ -126,7 +126,7 @@ void PidBlock::blockJacobianElements(double input,
                                      const stateData& stateDataValue,
                                      matrixData<double>& matrixDataValue,
                                      index_t argLoc,
-                                     const solverMode& sMode)
+                                     const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(stateDataValue, nullptr, sMode, this);
     // adjust the offset to account for the limiter states;
@@ -213,7 +213,7 @@ double PidBlock::step(coreTime time, double inputA)
     return m_output;
 }
 
-index_t PidBlock::findIndex(std::string_view field, const solverMode& sMode) const
+index_t PidBlock::findIndex(std::string_view field, const SolverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if (field == "integral") {

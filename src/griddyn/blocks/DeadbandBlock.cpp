@@ -207,7 +207,7 @@ void DeadbandBlock::blockDerivative(double input,
                                     double didt,
                                     const stateData& stateDataRef,
                                     double deriv[],
-                                    const solverMode& sMode)
+                                    const SolverMode& sMode)
 {
     if (opFlags[differential_input]) {
         auto offset = offsets.getDiffOffset(sMode) + limiter_diff;
@@ -224,7 +224,7 @@ void DeadbandBlock::blockDerivative(double input,
 void DeadbandBlock::blockAlgebraicUpdate(double input,
                                          const stateData& stateDataRef,
                                          double update[],
-                                         const solverMode& sMode)
+                                         const SolverMode& sMode)
 {
     if (!opFlags[differential_input]) {
         auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
@@ -244,7 +244,7 @@ void DeadbandBlock::blockJacobianElements(double input,
                                           const stateData& stateDataRef,
                                           matrixData<double>& jacobian,
                                           index_t argLoc,
-                                          const solverMode& sMode)
+                                          const SolverMode& sMode)
 {
     if ((!opFlags[differential_input]) && (hasAlgebraic(sMode))) {
         auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
@@ -275,7 +275,7 @@ void DeadbandBlock::blockJacobianElements(double input,
 void DeadbandBlock::rootTest(const IOdata& inputs,
                              const stateData& stateDataRef,
                              double roots[],
-                             const solverMode& sMode)
+                             const SolverMode& sMode)
 {
     if (limiter_alg + limiter_diff > 0) {
         GridBlock::rootTest(inputs, stateDataRef, roots, sMode);
@@ -337,7 +337,7 @@ void DeadbandBlock::rootTest(const IOdata& inputs,
 void DeadbandBlock::rootTrigger(coreTime time,
                                 const IOdata& inputs,
                                 const std::vector<int>& rootMask,
-                                const solverMode& sMode)
+                                const SolverMode& sMode)
 {
     auto rootOffset = offsets.getRootOffset(sMode);
     if (limiter_alg + limiter_diff > 0) {
@@ -405,7 +405,7 @@ void DeadbandBlock::rootTrigger(coreTime time,
 
 ChangeCode DeadbandBlock::rootCheck(const IOdata& inputs,
                                     const stateData& stateDataRef,
-                                    const solverMode& sMode,
+                                    const SolverMode& sMode,
                                     CheckLevel /*level*/)
 {
     ChangeCode ret = ChangeCode::NO_CHANGE;

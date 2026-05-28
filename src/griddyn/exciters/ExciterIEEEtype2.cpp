@@ -57,7 +57,7 @@ void ExciterIEEEtype2::dynObjectInitializeB(const IOdata& inputs,
 void ExciterIEEEtype2::residual(const IOdata& inputs,
                                 const stateData& sD,
                                 double resid[],
-                                const solverMode& sMode)
+                                const SolverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
         return;
@@ -84,7 +84,7 @@ void ExciterIEEEtype2::residual(const IOdata& inputs,
 void ExciterIEEEtype2::derivative(const IOdata& inputs,
                                   const stateData& sD,
                                   double deriv[],
-                                  const solverMode& sMode)
+                                  const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, deriv, sMode, this);
     const double* es = Loc.diffStateLoc;
@@ -106,7 +106,7 @@ void ExciterIEEEtype2::jacobianElements(const IOdata& /*inputs*/,
                                         const stateData& sD,
                                         matrixData<double>& md,
                                         const IOlocs& inputLocs,
-                                        const solverMode& sMode)
+                                        const SolverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
         return;
@@ -155,7 +155,7 @@ stringVec ExciterIEEEtype2::localStateNames() const
 void ExciterIEEEtype2::rootTest(const IOdata& inputs,
                                 const stateData& sD,
                                 double roots[],
-                                const solverMode& sMode)
+                                const SolverMode& sMode)
 {
     auto offset = offsets.getAlgOffset(sMode);
     int rootOffset = offsets.getRootOffset(sMode);
@@ -174,7 +174,7 @@ void ExciterIEEEtype2::rootTest(const IOdata& inputs,
 
 ChangeCode ExciterIEEEtype2::rootCheck(const IOdata& inputs,
                                        const stateData& /*sD*/,
-                                       const solverMode& /*sMode*/,
+                                       const SolverMode& /*sMode*/,
                                        CheckLevel /*level*/)
 {
     double* es = m_state.data();

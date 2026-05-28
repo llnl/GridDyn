@@ -149,13 +149,13 @@ double blockSource::get(std::string_view param, units::unit unitType) const
     return rval;
 }
 
-// void derivative(const IOdata &inputs, const stateData &sD, double deriv[], const solverMode
+// void derivative(const IOdata &inputs, const stateData &sD, double deriv[], const SolverMode
 // &sMode);
 
 void blockSource::residual(const IOdata& inputs,
                            const stateData& sD,
                            double resid[],
-                           const solverMode& sMode)
+                           const SolverMode& sMode)
 {
     double srcOut = m_output;
     double srcDout = 0.0;
@@ -172,7 +172,7 @@ void blockSource::residual(const IOdata& inputs,
 void blockSource::derivative(const IOdata& inputs,
                              const stateData& sD,
                              double deriv[],
-                             const solverMode& sMode)
+                             const SolverMode& sMode)
 {
     double srcOut = m_output;
     double srcDout = 0.0;
@@ -189,7 +189,7 @@ void blockSource::derivative(const IOdata& inputs,
 void blockSource::algebraicUpdate(const IOdata& inputs,
                                   const stateData& sD,
                                   double update[],
-                                  const solverMode& sMode,
+                                  const SolverMode& sMode,
                                   double alpha)
 {
     double srcOut = m_output;
@@ -206,7 +206,7 @@ void blockSource::jacobianElements(const IOdata& inputs,
                                    const stateData& sD,
                                    matrixData<double>& md,
                                    const IOlocs& inputLocs,
-                                   const solverMode& sMode)
+                                   const SolverMode& sMode)
 {
     double srcOut = m_output;
     double srcDout = 0.0;
@@ -222,7 +222,7 @@ void blockSource::jacobianElements(const IOdata& inputs,
     }
 }
 
-void blockSource::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void blockSource::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     while (prevTime < time) {
         auto ntime = std::min(prevTime + maxStepSize, time);
@@ -240,7 +240,7 @@ void blockSource::timestep(coreTime time, const IOdata& inputs, const solverMode
 void blockSource::rootTest(const IOdata& inputs,
                            const stateData& sD,
                            double roots[],
-                           const solverMode& sMode)
+                           const SolverMode& sMode)
 {
     double srcOut = m_output;
     double srcDout = 0.0;
@@ -256,7 +256,7 @@ void blockSource::rootTest(const IOdata& inputs,
 void blockSource::rootTrigger(coreTime time,
                               const IOdata& inputs,
                               const std::vector<int>& rootMask,
-                              const solverMode& sMode)
+                              const SolverMode& sMode)
 {
     double srcOut = m_output;
     double srcDout = 0.0;
@@ -272,7 +272,7 @@ void blockSource::rootTrigger(coreTime time,
 
 ChangeCode blockSource::rootCheck(const IOdata& inputs,
                                   const stateData& sD,
-                                  const solverMode& sMode,
+                                  const SolverMode& sMode,
                                   CheckLevel level)
 {
     double srcOut = m_output;
@@ -293,7 +293,7 @@ ChangeCode blockSource::rootCheck(const IOdata& inputs,
 
 void blockSource::updateLocalCache(const IOdata& inputs,
                                    const stateData& sD,
-                                   const solverMode& sMode)
+                                   const SolverMode& sMode)
 {
     double srcOut = m_output;
     double srcDout = 0.0;
@@ -319,7 +319,7 @@ void blockSource::setLevel(double newLevel)
 
 IOdata blockSource::getOutputs(const IOdata& /*inputs*/,
                                const stateData& sD,
-                               const solverMode& sMode) const
+                               const SolverMode& sMode) const
 {
     if (blk != nullptr) {
         return blk->getOutputs(noInputs, sD, sMode);
@@ -332,7 +332,7 @@ IOdata blockSource::getOutputs(const IOdata& /*inputs*/,
 
 double blockSource::getOutput(const IOdata& inputs,
                               const stateData& sD,
-                              const solverMode& sMode,
+                              const SolverMode& sMode,
                               index_t outputNum) const
 {
     if (blk != nullptr) {
@@ -358,7 +358,7 @@ double blockSource::getOutput(index_t outputNum) const
 
 double blockSource::getDoutdt(const IOdata& inputs,
                               const stateData& sD,
-                              const solverMode& sMode,
+                              const SolverMode& sMode,
                               index_t outputNum) const
 {
     if (blk != nullptr) {

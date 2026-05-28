@@ -104,7 +104,7 @@ void FDepLoad::ioPartialDerivatives(const IOdata& inputs,
                                     const stateData& /*sD*/,
                                     matrixData<double>& md,
                                     const IOlocs& inputLocs,
-                                    const solverMode& /*sMode*/)
+                                    const SolverMode& /*sMode*/)
 {
     const double V = inputs[voltageInLocation];
     double freq = inputs[frequencyInLocation];
@@ -139,14 +139,14 @@ double FDepLoad::getReactivePower() const
 }
 double FDepLoad::getRealPower(const IOdata& inputs,
                               const stateData& /*sD*/,
-                              const solverMode& /*sMode*/) const
+                              const SolverMode& /*sMode*/) const
 {
     return getRealPower(inputs[voltageInLocation], inputs[frequencyInLocation]);
 }
 
 double FDepLoad::getReactivePower(const IOdata& inputs,
                                   const stateData& /*sD*/,
-                                  const solverMode& /*sMode*/) const
+                                  const SolverMode& /*sMode*/) const
 {
     return getReactivePower(inputs[voltageInLocation], inputs[frequencyInLocation]);
 }

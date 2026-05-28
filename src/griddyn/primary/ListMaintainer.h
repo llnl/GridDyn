@@ -31,76 +31,76 @@ class listMaintainer {
         objectLists;  //!< lists of all the objects with states in a certain mode
     std::vector<std::vector<gridPrimary*>>
         partialLists;  //!< list of all the non preEx object with states in a certain mode
-    std::vector<solverMode> sModeLists;  //!< the list of solverModes relevant to each list
+    std::vector<SolverMode> sModeLists;  //!< the list of solverModes relevant to each list
 
   public:
     listMaintainer();
     /** generate a list of the object that requires a preEx call*/
     void makePreList(const std::vector<gridPrimary*>& possObjs);
     /** make the list of objects for a certain mode*/
-    void makeList(const solverMode& sMode, const std::vector<gridPrimary*>& possObjs);
+    void makeList(const SolverMode& sMode, const std::vector<gridPrimary*>& possObjs);
     /** append a set of objects to preexisting lists*/
-    void appendList(const solverMode& sMode, const std::vector<gridPrimary*>& possObjs);
+    void appendList(const SolverMode& sMode, const std::vector<gridPrimary*>& possObjs);
 
     void jacobianElements(const IOdata& inputs,
                           const stateData& sD,
                           matrixData<double>& md,
                           const IOlocs& inputLocs,
-                          const solverMode& sMode);
-    void preEx(const IOdata& inputs, const stateData& sD, const solverMode& sMode);
+                          const SolverMode& sMode);
+    void preEx(const IOdata& inputs, const stateData& sD, const SolverMode& sMode);
     void residual(const IOdata& inputs,
                   const stateData& sD,
                   double resid[],
-                  const solverMode& sMode);
+                  const SolverMode& sMode);
     void algebraicUpdate(const IOdata& inputs,
                          const stateData& sD,
                          double update[],
-                         const solverMode& sMode,
+                         const SolverMode& sMode,
                          double alpha);
     void derivative(const IOdata& inputs,
                     const stateData& sD,
                     double deriv[],
-                    const solverMode& sMode);
+                    const SolverMode& sMode);
 
     void delayedResidual(const IOdata& inputs,
                          const stateData& sD,
                          double resid[],
-                         const solverMode& sMode);
+                         const SolverMode& sMode);
     void delayedDerivative(const IOdata& inputs,
                            const stateData& sD,
                            double deriv[],
-                           const solverMode& sMode);
+                           const SolverMode& sMode);
     void delayedJacobian(const IOdata& inputs,
                          const stateData& sD,
                          matrixData<double>& md,
                          const IOlocs& inputLocs,
-                         const solverMode& sMode);
+                         const SolverMode& sMode);
     void delayedAlgebraicUpdate(const IOdata& inputs,
                                 const stateData& sD,
                                 double update[],
-                                const solverMode& sMode,
+                                const SolverMode& sMode,
                                 double alpha);
 
     /** check if a list is valid*/
-    bool isListValid(const solverMode& sMode) const;
-    void invalidate(const solverMode& sMode);
+    bool isListValid(const SolverMode& sMode) const;
+    void invalidate(const SolverMode& sMode);
     void invalidate();
 
-    /** get a const iterator for the beginning of a list of particular solverMode*/
-    decltype(objectLists[0].cbegin()) cbegin(const solverMode& sMode) const;
-    /** get a const iterator for the end of a list of particular solverMode*/
-    decltype(objectLists[0].cbegin()) cend(const solverMode& sMode) const;
+    /** get a const iterator for the beginning of a list of particular SolverMode*/
+    decltype(objectLists[0].cbegin()) cbegin(const SolverMode& sMode) const;
+    /** get a const iterator for the end of a list of particular SolverMode*/
+    decltype(objectLists[0].cbegin()) cend(const SolverMode& sMode) const;
 
-    /** get an iterator for the beginning of a list of particular solverMode*/
-    decltype(objectLists[0].begin()) begin(const solverMode& sMode);
+    /** get an iterator for the beginning of a list of particular SolverMode*/
+    decltype(objectLists[0].begin()) begin(const SolverMode& sMode);
 
-    /** get an iterator for the end of a list of particular solverMode*/
-    decltype(objectLists[0].begin()) end(const solverMode& sMode);
+    /** get an iterator for the end of a list of particular SolverMode*/
+    decltype(objectLists[0].begin()) end(const SolverMode& sMode);
 
-    /** get a reverse iterator for the beginning of a list of particular solverMode*/
-    decltype(objectLists[0].rbegin()) rbegin(const solverMode& sMode);
-    /** get a reverse iterator for the end of a list of particular solverMode*/
-    decltype(objectLists[0].rbegin()) rend(const solverMode& sMode);
+    /** get a reverse iterator for the beginning of a list of particular SolverMode*/
+    decltype(objectLists[0].rbegin()) rbegin(const SolverMode& sMode);
+    /** get a reverse iterator for the end of a list of particular SolverMode*/
+    decltype(objectLists[0].rbegin()) rend(const SolverMode& sMode);
 };
 
 }  // namespace griddyn

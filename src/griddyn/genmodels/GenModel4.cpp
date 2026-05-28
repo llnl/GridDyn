@@ -60,7 +60,7 @@ void GenModel4::dynObjectInitializeB(const IOdata& inputs,
 void GenModel4::residual(const IOdata& inputs,
                          const stateData& sD,
                          double resid[],
-                         const solverMode& sMode)
+                         const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, resid, sMode, this);
     const double* gm = Loc.algStateLoc;
@@ -100,7 +100,7 @@ void GenModel4::residual(const IOdata& inputs,
     //   }
 }
 
-void GenModel4::timestep(coreTime time, const IOdata& inputs, const solverMode& /*sMode*/)
+void GenModel4::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     stateData sD(time, m_state.data());
     derivative(inputs, sD, m_dstate_dt.data(), cLocalSolverMode);
@@ -116,7 +116,7 @@ void GenModel4::timestep(coreTime time, const IOdata& inputs, const solverMode& 
 void GenModel4::algebraicUpdate(const IOdata& inputs,
                                 const stateData& sD,
                                 double update[],
-                                const solverMode& sMode,
+                                const SolverMode& sMode,
                                 double /*alpha*/)
 {
     auto Loc = offsets.getLocations(sD, update, sMode, this);
@@ -135,7 +135,7 @@ void GenModel4::algebraicUpdate(const IOdata& inputs,
 void GenModel4::derivative(const IOdata& inputs,
                            const stateData& sD,
                            double deriv[],
-                           const solverMode& sMode)
+                           const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, deriv, sMode, this);
     const double* ast = Loc.algStateLoc;
@@ -162,7 +162,7 @@ void GenModel4::jacobianElements(const IOdata& inputs,
                                  const stateData& sD,
                                  matrixData<double>& md,
                                  const IOlocs& inputLocs,
-                                 const solverMode& sMode)
+                                 const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, sMode, this);
 

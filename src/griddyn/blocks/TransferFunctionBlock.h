@@ -56,25 +56,25 @@ are 0
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    virtual index_t findIndex(std::string_view field, const solverMode& sMode) const override;
+    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
     virtual void blockDerivative(double input,
                                  double didt,
                                  const stateData& sD,
                                  double deriv[],
-                                 const solverMode& sMode) override;
+                                 const SolverMode& sMode) override;
     virtual void blockResidual(double input,
                                double didt,
                                const stateData& sD,
                                double resid[],
-                               const solverMode& sMode) override;
+                               const SolverMode& sMode) override;
     // only called if the genModel is not present
     virtual void blockJacobianElements(double input,
                                        double didt,
                                        const stateData& sD,
                                        matrixData<double>& md,
                                        index_t argLoc,
-                                       const solverMode& sMode) override;
+                                       const SolverMode& sMode) override;
     virtual double step(coreTime time, double inputA) override;
     // virtual void setTime(coreTime time){prevTime=time;};
     virtual stringVec localStateNames() const override;

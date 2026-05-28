@@ -184,7 +184,7 @@ void txLifeSpan::updateA(coreTime time)
     prevTime = time;
 }
 
-void txLifeSpan::timestep(coreTime time, const IOdata& /*inputs*/, const solverMode& /*sMode*/)
+void txLifeSpan::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     updateA(time);
 }

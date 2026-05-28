@@ -40,58 +40,58 @@ class GenModelInverter: public GenModel {
     virtual void residual(const IOdata& inputs,
                           const stateData& stateDataValue,
                           double resid[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
 
     virtual IOdata getOutputs(const IOdata& inputs,
                               const stateData& stateDataValue,
-                              const solverMode& sMode) const override;
+                              const SolverMode& sMode) const override;
 
     using GenModel::getOutput;
     virtual double getOutput(const IOdata& inputs,
                              const stateData& stateDataValue,
-                             const solverMode& sMode,
+                             const SolverMode& sMode,
                              index_t outNum = 0) const override;
 
     virtual void jacobianElements(const IOdata& inputs,
                                   const stateData& stateDataValue,
                                   matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
-                                  const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
-                                          const solverMode& sMode) override;
-    virtual count_t outputDependencyCount(index_t num, const solverMode& sMode) const override;
+                                          const SolverMode& sMode) override;
+    virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
     virtual void ioPartialDerivatives(const IOdata& inputs,
                                       const stateData& stateDataValue,
                                       matrixData<double>& matrixDataValue,
                                       const IOlocs& inputLocs,
-                                      const solverMode& sMode) override;
+                                      const SolverMode& sMode) override;
 
     virtual void algebraicUpdate(const IOdata& inputs,
                                  const stateData& stateDataValue,
                                  double update[],
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  double alpha) override;
     /** helper function to get omega and its state location
      */
     virtual double getFreq(const stateData& stateDataValue,
-                           const solverMode& sMode,
+                           const SolverMode& sMode,
                            index_t* freqOffset = nullptr) const override;
     virtual double getAngle(const stateData& stateDataValue,
-                            const solverMode& sMode,
+                            const SolverMode& sMode,
                             index_t* angleOffset = nullptr) const override;
     virtual void rootTest(const IOdata& inputs,
                           const stateData& stateDataValue,
                           double roots[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
-                             const solverMode& sMode) override;
+                             const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
                                  const stateData& stateDataValue,
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  CheckLevel level) override;
 
   private:

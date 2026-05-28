@@ -50,17 +50,17 @@ namespace sources {
 
         virtual IOdata getOutputs(const IOdata& inputs,
                                   const stateData& sD,
-                                  const solverMode& sMode) const override;
+                                  const SolverMode& sMode) const override;
         virtual double getOutput(const IOdata& inputs,
                                  const stateData& sD,
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  index_t outputNum = 0) const override;
 
         virtual double getOutput(index_t outputNum = 0) const override;
 
         virtual double getDoutdt(const IOdata& inputs,
                                  const stateData& sD,
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  index_t num = 0) const override;
     };
 }  // namespace sources

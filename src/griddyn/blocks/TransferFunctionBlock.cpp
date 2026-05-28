@@ -115,7 +115,7 @@ void TransferFunctionBlock::blockResidual(double input,
                                           double didt,
                                           const stateData& sD,
                                           double resid[],
-                                          const solverMode& sMode)
+                                          const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, resid, sMode, this);
     if (extraOutputState) {
@@ -135,7 +135,7 @@ void TransferFunctionBlock::blockDerivative(double input,
                                             double didt,
                                             const stateData& sD,
                                             double deriv[],
-                                            const solverMode& sMode)
+                                            const SolverMode& sMode)
 {
     //  auto offset = offsets.getDiffOffset (sMode);
     // auto Aoffset = offsets.getAlgOffset (sMode);
@@ -151,7 +151,7 @@ void TransferFunctionBlock::blockJacobianElements(double input,
                                                   const stateData& sD,
                                                   matrixData<double>& md,
                                                   index_t argLoc,
-                                                  const solverMode& sMode)
+                                                  const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, sMode, this);
     md.assign(Loc.algOffset + 1, Loc.algOffset + 1, -1);
@@ -212,7 +212,7 @@ double TransferFunctionBlock::step(coreTime time, double inputA)
     return out;
 }
 
-index_t TransferFunctionBlock::findIndex(std::string_view field, const solverMode& sMode) const
+index_t TransferFunctionBlock::findIndex(std::string_view field, const SolverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if (field == "m1") {

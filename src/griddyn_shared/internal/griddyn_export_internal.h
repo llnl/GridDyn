@@ -28,14 +28,14 @@ const griddyn::GridComponent* getConstComponentPointer(GridDynObject obj);
 /** data class for storing some solver information and data buffers*/
 class solverKeyInfo {
   public:
-    griddyn::solverMode sMode_;  //!< solverMode
+    griddyn::SolverMode sMode_;  //!< SolverMode
     std::vector<double> stateBuffer;  //!< buffer for storing state data
     std::vector<double> dstateBuffer;  //!< buffer for storing dstate_dt data
     std::vector<std::string> stateNames;  //!< buffer for storing the stateNames
     /** default constructor*/
     solverKeyInfo() = default;
-    /** constructor from a solverMode reference*/
-    solverKeyInfo(const griddyn::solverMode& sMode): sMode_(sMode) {}
+    /** constructor from a SolverMode reference*/
+    solverKeyInfo(const griddyn::SolverMode& sMode): sMode_(sMode) {}
 };
 
 /** allocate buffers for using a solverKeyInfo object with a GridComponent*/
@@ -44,12 +44,12 @@ void setUpSolverKeyInfo(solverKeyInfo* key, griddyn::GridComponent* comp);
 void TranslateToLocal(const std::vector<double>& orig,
                       double* newData,
                       const griddyn::GridComponent* comp,
-                      const griddyn::solverMode& sMode);
+                      const griddyn::SolverMode& sMode);
 /** translate a local state vector into the appropriate elements of a system state vector*/
 void CopyFromLocal(std::vector<double>& dest,
                    const double* localData,
                    const griddyn::GridComponent* comp,
-                   const griddyn::solverMode& sMode);
+                   const griddyn::SolverMode& sMode);
 
 /** definitions to simplify error returns if an error already exists*/
 #    define GRIDDYN_ERROR_CHECK(err, retval)                                                       \

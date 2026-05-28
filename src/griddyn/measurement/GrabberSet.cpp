@@ -104,7 +104,7 @@ void grabberSet::grabData(std::vector<double>& data)
 {
     mGrabber->grabVectorData(data);
 }
-double grabberSet::grabData(const stateData& stateDataValue, const solverMode& sMode)
+double grabberSet::grabData(const stateData& stateDataValue, const SolverMode& sMode)
 {
     if (mStateGrabber) {
         return mStateGrabber->grabData(stateDataValue, sMode);
@@ -120,7 +120,7 @@ double grabberSet::grabData(const stateData& stateDataValue, const solverMode& s
 
 void grabberSet::outputPartialDerivatives(const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
-                                          const solverMode& sMode)
+                                          const SolverMode& sMode)
 {
     if (mStateGrabber) {
         mStateGrabber->outputPartialDerivatives(stateDataValue, matrixDataValue, sMode);

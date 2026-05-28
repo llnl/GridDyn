@@ -14,7 +14,7 @@
 namespace griddyn::solvers {
 /** @brief SolverInterface interfacing to the SUNDIALS cvode solver
  */
-class cvodeInterface: public SundialsInterface {
+class CvodeInterface: public SundialsInterface {
   public:
     using SundialsInterface::set;
     count_t icCount = 0;  //!< total number of initial condition calls
@@ -28,14 +28,14 @@ class cvodeInterface: public SundialsInterface {
 
   public:
     /** @brief constructor*/
-    explicit cvodeInterface(const std::string& objName = "cvode");
+    explicit CvodeInterface(const std::string& objName = "cvode");
     /** @brief alternate constructor
 @param[in] gds  the GridDynSimulation object to connect to
-@param[in] sMode the solverMode to solve For
+@param[in] sMode the SolverMode to solve For
 */
-    cvodeInterface(GridDynSimulation* gds, const solverMode& sMode);
+    CvodeInterface(GridDynSimulation* gds, const SolverMode& sMode);
     /** @brief destructor*/
-    virtual ~cvodeInterface();
+    virtual ~CvodeInterface();
 
     virtual std::unique_ptr<SolverInterface> clone(bool fullCopy = false) const override;
 
@@ -57,18 +57,18 @@ class cvodeInterface: public SundialsInterface {
     virtual double get(std::string_view param) const override;
 
     // declare friend some helper functions
-    friend int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_data);
+    friend int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userData);
 
     friend int cvodeJac(sunrealtype time,
                         N_Vector state,
-                        N_Vector dstate_dt,
+                        N_Vector dstateDt,
                         SUNMatrix J,
-                        void* user_data,
+                        void* userData,
                         N_Vector tmp1,
                         N_Vector tmp2,
                         N_Vector tmp3);
 
-    friend int cvodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* user_data);
+    friend int cvodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* userData);
 
   protected:
     void loadMaskElements();

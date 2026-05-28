@@ -57,7 +57,7 @@ void NullBlock::dynObjectInitializeB(const IOdata& inputs,
     fieldSet[0] = prevInput;
 }
 
-void NullBlock::timestep(coreTime time, const IOdata& inputs, const solverMode& /*sMode*/)
+void NullBlock::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     step(time, inputs[0]);
 }
@@ -71,7 +71,7 @@ double NullBlock::step(coreTime time, double input)
 }
 
 double NullBlock::getBlockOutput(const stateData& stateDataValue,
-                                 const solverMode& solverModeValue) const
+                                 const SolverMode& solverModeValue) const
 {
     auto locations = offsets.getLocations(stateDataValue, solverModeValue, this);
     return opFlags[differential_output] ? *locations.diffStateLoc : *locations.algStateLoc;
@@ -84,7 +84,7 @@ double NullBlock::getBlockOutput() const
 }
 
 double NullBlock::getBlockDoutDt(const stateData& stateDataValue,
-                                 const solverMode& solverModeValue) const
+                                 const SolverMode& solverModeValue) const
 {
     if (opFlags[differential_output]) {
         auto locations = offsets.getLocations(stateDataValue, solverModeValue, this);
@@ -102,14 +102,14 @@ void NullBlock::blockResidual(double /*input*/,
                               double /*didt*/,
                               const stateData& /*sD*/,
                               double /*resid*/[],
-                              const solverMode& /*sMode*/)
+                              const SolverMode& /*sMode*/)
 {
 }
 
 void NullBlock::blockAlgebraicUpdate(double /*input*/,
                                      const stateData& /*sD*/,
                                      double /*update*/[],
-                                     const solverMode& /*sMode*/)
+                                     const SolverMode& /*sMode*/)
 {
 }
 
@@ -117,7 +117,7 @@ void NullBlock::blockDerivative(double /*input*/,
                                 double /*didt*/,
                                 const stateData& /*sD*/,
                                 double /*deriv*/[],
-                                const solverMode& /*sMode*/)
+                                const SolverMode& /*sMode*/)
 {
 }
 
@@ -126,20 +126,20 @@ void NullBlock::blockJacobianElements(double /*input*/,
                                       const stateData& /*sD*/,
                                       matrixData<double>& /*md*/,
                                       index_t /*argLoc*/,
-                                      const solverMode& /*sMode*/)
+                                      const SolverMode& /*sMode*/)
 {
 }
 
 void NullBlock::rootTest(const IOdata& /*inputs*/,
                          const stateData& /*sD*/,
                          double /*roots*/[],
-                         const solverMode& /*sMode*/)
+                         const SolverMode& /*sMode*/)
 {
 }
 
 ChangeCode NullBlock::rootCheck(const IOdata& /*inputs*/,
                                 const stateData& /*sD*/,
-                                const solverMode& /*sMode*/,
+                                const SolverMode& /*sMode*/,
                                 CheckLevel /*level*/)
 {
     return ChangeCode::NO_CHANGE;
@@ -148,7 +148,7 @@ ChangeCode NullBlock::rootCheck(const IOdata& /*inputs*/,
 void NullBlock::rootTrigger(coreTime /*time*/,
                             const IOdata& /*inputs*/,
                             const std::vector<int>& /*rootMask*/,
-                            const solverMode& /*sMode*/)
+                            const SolverMode& /*sMode*/)
 {
 }
 

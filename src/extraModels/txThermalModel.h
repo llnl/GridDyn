@@ -58,7 +58,7 @@ class txThermalModel: public sensor {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void updateA(coreTime time) override;
 };
 

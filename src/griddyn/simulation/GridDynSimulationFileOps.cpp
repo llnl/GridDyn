@@ -674,7 +674,7 @@ void savePowerFlowBinary(GridDynSimulation* /*gds*/, const std::string& /*fileNa
 
 void saveState(GridDynSimulation* gds,
                const std::string& fileName,
-               const solverMode& sMode,
+               const SolverMode& sMode,
                bool append)
 {
     std::filesystem::path filePath(fileName);
@@ -698,13 +698,13 @@ void saveState(GridDynSimulation* gds,
 
 void saveStateXML(GridDynSimulation* /*gds*/,
                   const std::string& /*fileName*/,
-                  const solverMode& /*sMode*/)
+                  const SolverMode& /*sMode*/)
 {
 }
 
 void saveStateBinary(GridDynSimulation* gds,
                      const std::string& fileName,
-                     const solverMode& sMode,
+                     const SolverMode& sMode,
                      bool append)
 {
     const auto& currentMode = gds->getCurrentMode(sMode);
@@ -815,7 +815,7 @@ void writeArray(coreTime time,
     }
 }
 
-void loadState(GridDynSimulation* gds, const std::string& fileName, const solverMode& sMode)
+void loadState(GridDynSimulation* gds, const std::string& fileName, const SolverMode& sMode)
 {
     const std::filesystem::path filePath(fileName);
     if (fileName.empty()) {
@@ -843,9 +843,9 @@ void loadState(GridDynSimulation* gds, const std::string& fileName, const solver
     }
 }
 
-void loadStateBinary(GridDynSimulation* gds, const std::string& fileName, const solverMode& sMode)
+void loadStateBinary(GridDynSimulation* gds, const std::string& fileName, const SolverMode& sMode)
 {
-    const solverMode& currentMode = gds->getCurrentMode(sMode);
+    const SolverMode& currentMode = gds->getCurrentMode(sMode);
     auto solverInterface = gds->getSolverInterface(currentMode);
     if (!solverInterface) {
         return;
@@ -869,12 +869,12 @@ void loadStateBinary(GridDynSimulation* gds, const std::string& fileName, const 
         if (!solverInterface->isInitialized()) {
             solverInterface->allocate(dsize);
         } else {
-            gds->log(gds, PrintLevel::ERROR, "statefile does not match solverMode in size");
+            gds->log(gds, PrintLevel::ERROR, "statefile does not match SolverMode in size");
             return;
         }
     }
     // TODO(phlpt): Check this index at some point; the right handling is still unclear,
-    // might be used for automatic solverMode location  instead of what is done currently.
+    // might be used for automatic SolverMode location  instead of what is done currently.
     unsigned int outputIndex;
     bFile.read(reinterpret_cast<char*>(&outputIndex), sizeof(int));
     bFile.read(reinterpret_cast<char*>(solverInterface->stateData()), sizeof(double) * dsize);
@@ -885,7 +885,7 @@ void loadStateBinary(GridDynSimulation* gds, const std::string& fileName, const 
 
 void loadStateXML(GridDynSimulation* /*gds*/,
                   const std::string& /*fileName*/,
-                  const solverMode& /*sMode*/)
+                  const SolverMode& /*sMode*/)
 {
 }
 
@@ -948,7 +948,7 @@ void loadPowerFlowXML(GridDynSimulation* gds, const std::string& fileName)
     }
 }
 
-void captureJacState(GridDynSimulation* gds, const std::string& fileName, const solverMode& sMode)
+void captureJacState(GridDynSimulation* gds, const std::string& fileName, const SolverMode& sMode)
 {
     std::ofstream bFile(fileName.c_str(), std::ios::out | std::ios::binary);
     if (!bFile.is_open()) {
@@ -995,7 +995,7 @@ void captureJacState(GridDynSimulation* gds, const std::string& fileName, const 
     bFile.close();
 }
 
-void saveJacobian(GridDynSimulation* gds, const std::string& fileName, const solverMode& sMode)
+void saveJacobian(GridDynSimulation* gds, const std::string& fileName, const SolverMode& sMode)
 {
     std::ofstream bFile(fileName.c_str(), std::ios::out | std::ios::binary);
     if (!bFile.is_open()) {

@@ -32,24 +32,24 @@ class ExciterIEEEtype2: public ExciterIEEEtype1 {
     virtual void residual(const IOdata& inputs,
                           const stateData& sD,
                           double resid[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     virtual void derivative(const IOdata& inputs,
                             const stateData& sD,
                             double deriv[],
-                            const solverMode& sMode) override;
+                            const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const stateData& sD,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
-                                  const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
 
     virtual void rootTest(const IOdata& inputs,
                           const stateData& sD,
                           double roots[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
                                  const stateData& sD,
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  CheckLevel level) override;
     // virtual void setTime(coreTime time){prevTime=time;};
 };

@@ -17,7 +17,7 @@ void numericJacobianCalculation(GridComponent* /* comp */,
                                 const stateData& sD,
                                 matrixData<double>& md,
                                 const IOlocs& /*inputLocs*/,
-                                const solverMode& /*sMode*/)
+                                const SolverMode& /*sMode*/)
 {
     std::vector<double> test;
     [[maybe_unused]] std::vector<double> testState;
@@ -37,7 +37,7 @@ void numericJacobianCalculation(GridComponent* /* comp */,
 void copyObjectLocalState(GridComponent* comp,
                           const double state[],
                           double newState[],
-                          const solverMode& sMode)
+                          const SolverMode& sMode)
 {
     auto sts = getObjectLocalStateIndices(comp, sMode);
     for (auto st : sts) {
@@ -45,7 +45,7 @@ void copyObjectLocalState(GridComponent* comp,
     }
 }
 
-std::vector<index_t> getObjectLocalStateIndices(const GridComponent* comp, const solverMode& sMode)
+std::vector<index_t> getObjectLocalStateIndices(const GridComponent* comp, const SolverMode& sMode)
 {
     std::vector<index_t> states;
     const auto& offsets = comp->getOffsets(sMode);

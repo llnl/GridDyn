@@ -30,7 +30,7 @@ EquationGridDyn::EquationGridDyn(Real t0_,
                                  int N_unistep_,
                                  GridDynSimulation* gds_,
                                  const Vector& y0_,
-                                 solverMode* mode_,
+                                 SolverMode* mode_,
                                  vector<double>& discontinuities,
                                  vector<int>& rootsfound)
 {

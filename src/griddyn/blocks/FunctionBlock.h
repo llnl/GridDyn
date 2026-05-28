@@ -46,14 +46,14 @@ class FunctionBlock: public GridBlock {
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    // virtual index_t findIndex(const std::string &field, const solverMode &sMode) const;
+    // virtual index_t findIndex(const std::string &field, const SolverMode &sMode) const;
 
     // virtual void blockDerivative(double input, double didt, const stateData &sD, double
-    // deriv[], const solverMode &sMode) override;
+    // deriv[], const SolverMode &sMode) override;
     virtual void blockAlgebraicUpdate(double input,
                                       const stateData& stateDataValue,
                                       double update[],
-                                      const solverMode& sMode) override;
+                                      const SolverMode& sMode) override;
 
     // only called if the genModel is not present
     virtual void blockJacobianElements(double input,
@@ -61,7 +61,7 @@ class FunctionBlock: public GridBlock {
                                        const stateData& stateDataValue,
                                        matrixData<double>& matrixDataValue,
                                        index_t argLoc,
-                                       const solverMode& sMode) override;
+                                       const SolverMode& sMode) override;
     virtual double step(coreTime time, double input) override;
     // virtual void setTime(coreTime time){prevTime=time;};
   protected:

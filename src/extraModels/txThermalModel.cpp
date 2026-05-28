@@ -386,7 +386,7 @@ void txThermalModel::updateA(coreTime time)
     prevTime = time;
 }
 
-void txThermalModel::timestep(coreTime time, const IOdata& /*inputs*/, const solverMode& /*sMode*/)
+void txThermalModel::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     updateA(time);
 }

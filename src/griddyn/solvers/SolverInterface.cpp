@@ -61,21 +61,21 @@ namespace {
 }  // namespace
 
 static ChildClassFactoryArg<solvers::BasicSolver, SolverInterface, solvers::BasicSolver::Mode>
-    basicFactoryG(stringVec{"basic", "gauss"}, solvers::BasicSolver::Mode::gauss);
+    gBasicFactoryG(stringVec{"basic", "gauss"}, solvers::BasicSolver::Mode::gauss);
 static ChildClassFactoryArg<solvers::BasicSolver, SolverInterface, solvers::BasicSolver::Mode>
-    basicFactoryGS(stringVec{"gs", "gauss-seidel"}, solvers::BasicSolver::Mode::gauss_seidel);
+    gBasicFactoryGs(stringVec{"gs", "gauss-seidel"}, solvers::BasicSolver::Mode::gauss_seidel);
 #ifdef GRIDYN_ENABLE_CVODE
 static ChildClassFactory<solvers::BasicOdeSolver, SolverInterface>
-    basicOdeFactory(stringVec{"basicode", "euler"});
+    gBasicOdeFactory(stringVec{"basicode", "euler"});
 #else
 // if cvode is not available this becomes the default differential solver
 static ChildClassFactory<solvers::BasicOdeSolver, SolverInterface>
-    basicOdeFactory(stringVec{"basicode", "dyndiff", "differential"});
+    gBasicOdeFactory(stringVec{"basicode", "dyndiff", "differential"});
 
 #endif
 
 SolverInterface::SolverInterface(const std::string& objName): HelperObject(objName) {}
-SolverInterface::SolverInterface(GridDynSimulation* gds, const solverMode& sMode):
+SolverInterface::SolverInterface(GridDynSimulation* gds, const SolverMode& sMode):
     mode(sMode), m_gds(gds)
 {
 }
@@ -105,7 +105,7 @@ void SolverInterface::cloneTo(SolverInterface* si, bool fullCopy) const
         si->maskElements = maskElements;
         si->m_gds = m_gds;
         si->allocate(svsize, rootCount);
-        if (flags[initialized_flag]) {
+        if (flags[INITIALIZED_FLAG]) {
             si->initialize(0.0);
         }
         // copy the state data
@@ -176,11 +176,11 @@ int SolverInterface::calcIC(coreTime /*t0*/,
 void SolverInterface::getCurrentData() {}
 void SolverInterface::getRoots() {}
 void SolverInterface::setRootFinding(index_t /*numRoots*/) {}
-void SolverInterface::setSimulationData(const solverMode& sMode)
+void SolverInterface::setSimulationData(const SolverMode& sMode)
 {
     mode = sMode;
 }
-void SolverInterface::setSimulationData(GridDynSimulation* gds, const solverMode& sMode)
+void SolverInterface::setSimulationData(GridDynSimulation* gds, const SolverMode& sMode)
 {
     mode = sMode;
     if (gds != nullptr) {
@@ -309,30 +309,30 @@ void SolverInterface::set(std::string_view param, double val)
     }
 }
 
-static const std::map<std::string_view, int, std::less<std::string_view>> solverFlagMap{
-    {"filecapture", fileCapture_flag},
-    {"directlogging", directLogging_flag},
-    {"solver_log", directLogging_flag},
-    {"dense", dense_flag},
-    {"sparse", -dense_flag},
-    {"parallel", parallel_flag},
-    {"serial", -parallel_flag},
-    {"mask", useMask_flag},
-    {"constantjacobian", constantJacobian_flag},
-    {"omp", use_omp_flag},
-    {"useomp", use_omp_flag},
-    {"bdf", use_bdf_flag},
-    {"adams", -use_bdf_flag},
-    {"functional", -use_newton_flag},
-    {"newton", use_newton_flag},
-    {"print_resid", print_residuals},
-    {"print_residuals", print_residuals},
-    {"block_mode_only", block_mode_only}};
+static const std::map<std::string_view, int, std::less<std::string_view>> SOLVER_FLAG_MAP{
+    {"filecapture", FILE_CAPTURE_FLAG},
+    {"directlogging", DIRECT_LOGGING_FLAG},
+    {"solver_log", DIRECT_LOGGING_FLAG},
+    {"dense", DENSE_FLAG},
+    {"sparse", -DENSE_FLAG},
+    {"parallel", PARALLEL_FLAG},
+    {"serial", -PARALLEL_FLAG},
+    {"mask", USE_MASK_FLAG},
+    {"constantjacobian", CONSTANT_JACOBIAN_FLAG},
+    {"omp", USE_OMP_FLAG},
+    {"useomp", USE_OMP_FLAG},
+    {"bdf", USE_BDF_FLAG},
+    {"adams", -USE_BDF_FLAG},
+    {"functional", -USE_NEWTON_FLAG},
+    {"newton", USE_NEWTON_FLAG},
+    {"print_resid", PRINT_RESIDUALS},
+    {"print_residuals", PRINT_RESIDUALS},
+    {"block_mode_only", BLOCK_MODE_ONLY}};
 
 void SolverInterface::setFlag(std::string_view flag, bool val)
 {
-    const auto foundFlag = solverFlagMap.find(flag);
-    const int flgInd = (foundFlag != solverFlagMap.end()) ? foundFlag->second : -60;
+    const auto foundFlag = SOLVER_FLAG_MAP.find(flag);
+    const int flgInd = (foundFlag != SOLVER_FLAG_MAP.end()) ? foundFlag->second : -60;
     if (flgInd > -32) {
         if (flgInd > 0) {
             flags.set(flgInd, val);
@@ -343,9 +343,9 @@ void SolverInterface::setFlag(std::string_view flag, bool val)
     }
 
     if (flag == "dc") {
-        mode.approx.set(dc, val);
+        mode.approx.set(DC, val);
     } else if (flag == "ac") {
-        mode.approx.set(dc, !val);
+        mode.approx.set(DC, !val);
     } else if (flag == "dynamic") {
         mode.dynamic = val;
     } else if (flag == "powerflow") {
@@ -394,32 +394,32 @@ void SolverInterface::setFlag(std::string_view flag, bool val)
 void SolverInterface::setApproximation(std::string_view approx)
 {
     if ((approx == "normal") || (approx == "none")) {
-        setLinkApprox(mode, ApproxKeyMask::none);
+        setLinkApprox(mode, ApproxKeyMask::NONE);
     } else if ((approx == "simple") || (approx == "simplified")) {
-        setLinkApprox(mode, ApproxKeyMask::simplified);
+        setLinkApprox(mode, ApproxKeyMask::SIMPLIFIED);
     } else if (approx == "small_angle") {
-        setLinkApprox(mode, ApproxKeyMask::sm_angle);
+        setLinkApprox(mode, ApproxKeyMask::SM_ANGLE);
     } else if (approx == "small_angle_decoupled") {
-        setLinkApprox(mode, ApproxKeyMask::sm_angle_decoupled);
+        setLinkApprox(mode, ApproxKeyMask::SM_ANGLE_DECOUPLED);
     } else if (approx == "simplified_decoupled") {
-        setLinkApprox(mode, ApproxKeyMask::simplified_decoupled);
+        setLinkApprox(mode, ApproxKeyMask::SIMPLIFIED_DECOUPLED);
     } else if ((approx == "small_angle_simplified") || (approx == "simplified_small_angle")) {
-        setLinkApprox(mode, ApproxKeyMask::simplified_sm_angle);
+        setLinkApprox(mode, ApproxKeyMask::SIMPLIFIED_SM_ANGLE);
     } else if ((approx == "r") || (approx == "small_r")) {
-        setLinkApprox(mode, linear, false);
-        setLinkApprox(mode, small_r);
+        setLinkApprox(mode, LINEAR, false);
+        setLinkApprox(mode, SMALL_R);
     } else if (approx == "angle") {
-        setLinkApprox(mode, linear, false);
-        setLinkApprox(mode, small_angle);
+        setLinkApprox(mode, LINEAR, false);
+        setLinkApprox(mode, SMALL_ANGLE);
     } else if (approx == "coupling") {
-        setLinkApprox(mode, linear, false);
-        setLinkApprox(mode, decoupled);
+        setLinkApprox(mode, LINEAR, false);
+        setLinkApprox(mode, DECOUPLED);
     } else if (approx == "decoupled") {
-        setLinkApprox(mode, ApproxKeyMask::decoupled);
+        setLinkApprox(mode, ApproxKeyMask::DECOUPLED);
     } else if (approx == "linear") {
-        setLinkApprox(mode, ApproxKeyMask::linear);
+        setLinkApprox(mode, ApproxKeyMask::LINEAR);
     } else if ((approx == "fast_decoupled") || (approx == "fdpf")) {
-        setLinkApprox(mode, ApproxKeyMask::fast_decoupled);
+        setLinkApprox(mode, ApproxKeyMask::FAST_DECOUPLED);
     } else {
         throw(InvalidParameterValue(approx));
     }
@@ -427,8 +427,8 @@ void SolverInterface::setApproximation(std::string_view approx)
 
 bool SolverInterface::getFlag(std::string_view flag) const
 {
-    const auto foundFlag = solverFlagMap.find(flag);
-    const int flgInd = (foundFlag != solverFlagMap.end()) ? foundFlag->second : -60;
+    const auto foundFlag = SOLVER_FLAG_MAP.find(flag);
+    const int flgInd = (foundFlag != SOLVER_FLAG_MAP.end()) ? foundFlag->second : -60;
     if (flgInd > -32) {
         if (flgInd > 0) {
             return flags[flgInd];
@@ -536,27 +536,27 @@ void SolverInterface::setMaxNonZeros(count_t nonZeroCount)
 }
 
 // TODO(phlpt): Change this so the defaults can be something other than sundials solvers.
-std::unique_ptr<SolverInterface> makeSolver(GridDynSimulation* gds, const solverMode& sMode)
+std::unique_ptr<SolverInterface> makeSolver(GridDynSimulation* gds, const SolverMode& sMode)
 {
     std::unique_ptr<SolverInterface> sd = nullptr;
     if (isLocal(sMode)) {
         sd = std::make_unique<SolverInterface>(gds, sMode);
     } else if ((isAlgebraicOnly(sMode)) || (!isDynamic(sMode))) {
-        sd = std::make_unique<solvers::kinsolInterface>(gds, sMode);
-        if (sMode.offsetIndex == power_flow) {
+        sd = std::make_unique<solvers::KinsolInterface>(gds, sMode);
+        if (sMode.offsetIndex == POWER_FLOW) {
             sd->setName("powerflow");
-        } else if (sMode.offsetIndex == dynamic_algebraic) {
+        } else if (sMode.offsetIndex == DYNAMIC_ALGEBRAIC) {
             sd->setName("algebraic");
         }
     } else if (isDAE(sMode)) {
-        sd = std::make_unique<solvers::idaInterface>(gds, sMode);
-        if (sMode.offsetIndex == dae) {
+        sd = std::make_unique<solvers::IdaInterface>(gds, sMode);
+        if (sMode.offsetIndex == DAE) {
             sd->setName("dynamic");
         }
     } else if (isDifferentialOnly(sMode)) {
         sd = CoreClassFactory<SolverInterface>::instance()->createObject("differential");
         sd->setSimulationData(gds, sMode);
-        if (sMode.offsetIndex == dynamic_differential) {
+        if (sMode.offsetIndex == DYNAMIC_DIFFERENTIAL) {
             sd->setName("differential");
         }
     }

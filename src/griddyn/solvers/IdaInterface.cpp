@@ -33,67 +33,67 @@
 #include <vector>
 
 namespace griddyn::solvers {
-int idaFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, N_Vector resid, void* user_data);
+int idaFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, N_Vector resid, void* userData);
 
 int idaJac(sunrealtype time,
            sunrealtype cj,
            N_Vector state,
-           N_Vector dstate_dt,
+           N_Vector dstateDt,
            N_Vector resid,
-           SUNMatrix J,
-           void* user_data,
+           SUNMatrix j,
+           void* userData,
            N_Vector tmp1,
            N_Vector tmp2,
            N_Vector tmp3);
 
 int idaRootFunc(sunrealtype time,
                 N_Vector state,
-                N_Vector dstate_dt,
+                N_Vector dstateDt,
                 sunrealtype* gout,
-                void* user_data);
+                void* userData);
 
-idaInterface::idaInterface(const std::string& objName): SundialsInterface(objName)
+IdaInterface::IdaInterface(const std::string& objName): SundialsInterface(objName)
 {
     max_iterations = 1500;
 }
 
-idaInterface::idaInterface(GridDynSimulation* gds, const solverMode& sMode):
+IdaInterface::IdaInterface(GridDynSimulation* gds, const SolverMode& sMode):
     SundialsInterface(gds, sMode)
 {
     max_iterations = 1500;
 }
 
-idaInterface::~idaInterface()
+IdaInterface::~IdaInterface()
 {
     // clear variables for IDA to use
-    if (flags[initialized_flag]) {
+    if (flags[INITIALIZED_FLAG]) {
         IDAFree(&solverMem);
     }
 }
 
-std::unique_ptr<SolverInterface> idaInterface::clone(bool fullCopy) const
+std::unique_ptr<SolverInterface> IdaInterface::clone(bool fullCopy) const
 {
-    std::unique_ptr<SolverInterface> si = std::make_unique<idaInterface>();
-    idaInterface::cloneTo(si.get(), fullCopy);
+    std::unique_ptr<SolverInterface> si = std::make_unique<IdaInterface>();
+    IdaInterface::cloneTo(si.get(), fullCopy);
     return si;
 }
 
-void idaInterface::cloneTo(SolverInterface* si, bool fullCopy) const
+void IdaInterface::cloneTo(SolverInterface* si, bool fullCopy) const
 {
     SundialsInterface::cloneTo(si, fullCopy);
-    auto ai = dynamic_cast<idaInterface*>(si);
+    auto ai = dynamic_cast<IdaInterface*>(si);
     if (ai == nullptr) {
         return;
     }
 }
 
-void idaInterface::allocate(count_t stateCount, count_t numRoots)
+void IdaInterface::allocate(count_t stateCount, count_t numRoots)
 {
     // load the vectors
     if (stateCount == svsize) {
         return;
     }
-    flags.reset(initialized_flag);
+    flags.reset(INITIALIZED_FLAG);
     a1.setRowLimit(stateCount);
     a1.setColLimit(stateCount);
 
@@ -111,7 +111,7 @@ void idaInterface::allocate(count_t stateCount, count_t numRoots)
     SundialsInterface::allocate(stateCount, numRoots);
 }
 
-void idaInterface::setMaxNonZeros(count_t nonZeros)
+void IdaInterface::setMaxNonZeros(count_t nonZeros)
 {
     maxNNZ = nonZeros;
     jacCallCount = 0;
@@ -119,7 +119,7 @@ void idaInterface::setMaxNonZeros(count_t nonZeros)
     a1.clear();
 }
 
-void idaInterface::set(std::string_view param, double val)
+void IdaInterface::set(std::string_view param, double val)
 {
     if (param == "maxiterations") {
         max_iterations = static_cast<count_t>(val);
@@ -130,7 +130,7 @@ void idaInterface::set(std::string_view param, double val)
     }
 }
 
-double idaInterface::get(std::string_view param) const
+double IdaInterface::get(std::string_view param) const
 {
     long int val = -1;
     if ((param == "resevals") || (param == "iterationcount")) {
@@ -149,9 +149,9 @@ double idaInterface::get(std::string_view param) const
 }
 
 // output solver stats
-void idaInterface::logSolverStats(PrintLevel logLevel, bool iconly) const
+void IdaInterface::logSolverStats(PrintLevel logLevel, bool iconly) const
 {
-    if (!flags[initialized_flag]) {
+    if (!flags[INITIALIZED_FLAG]) {
         return;
     }
     long int nni = 0, nje = 0;
@@ -232,7 +232,7 @@ void idaInterface::logSolverStats(PrintLevel logLevel, bool iconly) const
     }
 }
 
-void idaInterface::logErrorWeights(PrintLevel logLevel) const
+void IdaInterface::logErrorWeights(PrintLevel logLevel) const
 {
     N_Vector eweight = NVECTOR_NEW(use_omp, svsize);
     N_Vector ele = NVECTOR_NEW(use_omp, svsize);
@@ -255,9 +255,9 @@ void idaInterface::logErrorWeights(PrintLevel logLevel) const
     NVECTOR_DESTROY(use_omp, ele);
 }
 
-void idaInterface::initialize(coreTime t0)
+void IdaInterface::initialize(coreTime t0)
 {
-    if (!flags[allocated_flag]) {
+    if (!flags[ALLOCATED_FLAG]) {
         throw(InvalidSolverOperation());
     }
     auto jsize = m_gds->jacSize(mode);
@@ -287,7 +287,7 @@ void idaInterface::initialize(coreTime t0)
     retval = IDASetMaxNumSteps(solverMem, max_iterations);
     checkFlag(&retval, "IDASetMaxNumSteps", 1);
 #ifdef GRIDDYN_ENABLE_KLU
-    if (flags[dense_flag]) {
+    if (flags[DENSE_FLAG]) {
         J = SUNDenseMatrix(svsize, svsize, sunctx);
         checkFlag(J, "SUNDenseMatrix", 0);
         /* Create KLU solver object */
@@ -330,15 +330,15 @@ void idaInterface::initialize(coreTime t0)
 
     setConstraints();
     solveTime = t0;
-    flags.set(initialized_flag);
+    flags.set(INITIALIZED_FLAG);
 }
 
-void idaInterface::sparseReInit(SparseReinitMode sparseReInitMode)
+void IdaInterface::sparseReInit(SparseReinitMode sparseReInitMode)
 {
     kluReInit(sparseReInitMode);
 }
 
-void idaInterface::setRootFinding(count_t numRoots)
+void IdaInterface::setRootFinding(count_t numRoots)
 {
     if (numRoots != static_cast<count_t>(rootsfound.size())) {
         rootsfound.resize(numRoots);
@@ -350,19 +350,19 @@ void idaInterface::setRootFinding(count_t numRoots)
 
 #define SHOW_MISSING_ELEMENTS 0
 
-int idaInterface::calcIC(coreTime t0, coreTime tstep0, IcModes initCondMode, bool constraints)
+int IdaInterface::calcIC(coreTime t0, coreTime tstep0, IcModes initCondMode, bool constraints)
 {
     int retval;
     ++icCount;
     assert(icCount < 200);
     if (initCondMode ==
-        IcModes::fixed_masked_and_deriv)  // mainly for use upon startup from steady state
+        IcModes::FIXED_MASKED_AND_DERIV)  // mainly for use upon startup from steady state
     {
         // do a series of steps to ensure the original algebraic states are fixed and the
         // derivatives are fixed
-        flags.set(useMask_flag);
+        flags.set(USE_MASK_FLAG);
         loadMaskElements();
-        if (!flags[dense_flag]) {
+        if (!flags[DENSE_FLAG]) {
             sparseReInit(SparseReinitMode::REFACTOR);
         }
         retval = IDACalcIC(solverMem, IDA_Y_INIT, t0 + tstep0);  // IDA_Y_INIT
@@ -382,7 +382,7 @@ int idaInterface::calcIC(coreTime t0, coreTime tstep0, IcModes initCondMode, boo
                         tempState[me] = lstate[me];
                     }
 
-                    if (!flags[dense_flag]) {
+                    if (!flags[DENSE_FLAG]) {
                         sparseReInit(SparseReinitMode::REFACTOR);
                     }
                     retval = IDACalcIC(solverMem, IDA_Y_INIT, t0 + tstep0);  // IDA_Y_INIT
@@ -406,11 +406,11 @@ int idaInterface::calcIC(coreTime t0, coreTime tstep0, IcModes initCondMode, boo
                 return retval;
             }
         }
-        flags.reset(useMask_flag);
-        if (!flags[dense_flag]) {
+        flags.reset(USE_MASK_FLAG);
+        if (!flags[DENSE_FLAG]) {
             sparseReInit(SparseReinitMode::REFACTOR);
         }
-    } else if (initCondMode == IcModes::fixed_diff) {
+    } else if (initCondMode == IcModes::FIXED_DIFF) {
         retval = IDAReInit(solverMem, t0, state, dstate_dt);
 
         if (retval < 0) {
@@ -444,13 +444,13 @@ int idaInterface::calcIC(coreTime t0, coreTime tstep0, IcModes initCondMode, boo
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-void idaInterface::getCurrentData()
+void IdaInterface::getCurrentData()
 {
     int retval = IDAGetConsistentIC(solverMem, state, dstate_dt);
     checkFlag(&retval, "IDAGetConsistentIC", 1);
 }
 
-int idaInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
+int IdaInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
 {
     assert(rootCount == m_gds->rootSize(mode));
     ++solverCallCount;
@@ -478,13 +478,13 @@ int idaInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
     return retval;
 }
 
-void idaInterface::getRoots()
+void IdaInterface::getRoots()
 {
     int ret = IDAGetRootInfo(solverMem, rootsfound.data());
     checkFlag(&ret, "IDAGetRootInfo", 1);
 }
 
-void idaInterface::setConstraints()
+void IdaInterface::setConstraints()
 {
     if (m_gds->hasConstraints()) {
         N_VConst(ZERO, consData);
@@ -493,7 +493,7 @@ void idaInterface::setConstraints()
     }
 }
 
-void idaInterface::loadMaskElements()
+void IdaInterface::loadMaskElements()
 {
     std::vector<double> mStates(svsize, 0.0);
     m_gds->getVoltageStates(mStates.data(), mode);
@@ -507,23 +507,23 @@ void idaInterface::loadMaskElements()
 }
 
 // IDA C Functions
-int idaFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, N_Vector resid, void* user_data)
+int idaFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, N_Vector resid, void* userData)
 {
-    auto sd = reinterpret_cast<idaInterface*>(user_data);
+    auto sd = reinterpret_cast<IdaInterface*>(userData);
     // printf("time=%f\n", time);
     int ret = sd->m_gds->residualFunction(time,
                                           NVECTOR_DATA(sd->use_omp, state),
-                                          NVECTOR_DATA(sd->use_omp, dstate_dt),
+                                          NVECTOR_DATA(sd->use_omp, dstateDt),
                                           NVECTOR_DATA(sd->use_omp, resid),
                                           sd->mode);
-    if (sd->flags[useMask_flag]) {
+    if (sd->flags[USE_MASK_FLAG]) {
         auto lstate = NVECTOR_DATA(sd->use_omp, state);
         auto lresid = NVECTOR_DATA(sd->use_omp, resid);
         for (auto& v : sd->maskElements) {
             lresid[v] = 100.0 * (lstate[v] - sd->tempState[v]);
         }
     }
-    if (sd->flags[fileCapture_flag]) {
+    if (sd->flags[FILE_CAPTURE_FLAG]) {
         if (!sd->stateFile.empty()) {
             writeVector(sd->solveTime,
                         STATE_INFORMATION,
@@ -538,7 +538,7 @@ int idaFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, N_Vector resid
                         sd->funcCallCount,
                         sd->mode.offsetIndex,
                         sd->svsize,
-                        NVECTOR_DATA(sd->use_omp, dstate_dt),
+                        NVECTOR_DATA(sd->use_omp, dstateDt),
                         sd->stateFile);
             writeVector(sd->solveTime,
                         RESIDUAL_INFORMATION,
@@ -555,14 +555,14 @@ int idaFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, N_Vector resid
 
 int idaRootFunc(sunrealtype time,
                 N_Vector state,
-                N_Vector dstate_dt,
+                N_Vector dstateDt,
                 sunrealtype* gout,
-                void* user_data)
+                void* userData)
 {
-    auto sd = reinterpret_cast<idaInterface*>(user_data);
+    auto sd = reinterpret_cast<IdaInterface*>(userData);
     sd->m_gds->rootFindingFunction(time,
                                    NVECTOR_DATA(sd->use_omp, state),
-                                   NVECTOR_DATA(sd->use_omp, dstate_dt),
+                                   NVECTOR_DATA(sd->use_omp, dstateDt),
                                    gout,
                                    sd->mode);
 
@@ -572,15 +572,15 @@ int idaRootFunc(sunrealtype time,
 int idaJac(sunrealtype time,
            sunrealtype cj,
            N_Vector state,
-           N_Vector dstate_dt,
+           N_Vector dstateDt,
            N_Vector /*resid*/,
-           SUNMatrix J,
-           void* user_data,
+           SUNMatrix j,
+           void* userData,
            N_Vector tmp1,
            N_Vector tmp2,
            N_Vector /*tmp3*/)
 {
-    return sundialsJac(time, cj, state, dstate_dt, J, user_data, tmp1, tmp2);
+    return sundialsJac(time, cj, state, dstateDt, j, userData, tmp1, tmp2);
 }
 
 }  // namespace griddyn::solvers

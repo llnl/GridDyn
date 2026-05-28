@@ -23,7 +23,7 @@
 
 // NOLINTBEGIN
 namespace griddyn {
-std::pair<double, int> checkResid(GridDynSimulation* gds, coreTime time, const solverMode& sMode)
+std::pair<double, int> checkResid(GridDynSimulation* gds, coreTime time, const SolverMode& sMode)
 {
     return checkResid(gds, time, gds->getSolverInterface(sMode));
 }
@@ -37,7 +37,7 @@ std::pair<double, int> checkResid(GridDynSimulation* gds,
 std::pair<double, int>
     checkResid(GridDynSimulation* gds, coreTime time, const std::shared_ptr<SolverInterface>& sd)
 {
-    const solverMode& sMode = sd->getSolverMode();
+    const SolverMode& sMode = sd->getSolverMode();
     std::vector<double> resid;
     double* dstate_dt = nullptr;
     auto kSize = sd->size();
@@ -67,7 +67,7 @@ std::pair<double, int>
 }
 
 int jacobianCheck(GridDynSimulation* gds,
-                  const solverMode& queryMode,
+                  const SolverMode& queryMode,
                   double jacTol,
                   bool useStateNames)
 {
@@ -80,7 +80,7 @@ int jacobianCheck(GridDynSimulation* gds,
     }
     int errors = 0;
     auto sd = gds->getSolverInterface(queryMode);
-    const solverMode& sMode = sd->getSolverMode();
+    const SolverMode& sMode = sd->getSolverMode();
     gds->getSolverReady(sd);
     auto nsize = sd->size();
 
@@ -295,7 +295,7 @@ int jacobianCheck(GridDynSimulation* gds,
 }
 
 int residualCheck(GridDynSimulation* gds,
-                  const solverMode& sMode,
+                  const SolverMode& sMode,
                   double residTol,
                   bool useStateNames)
 {
@@ -304,7 +304,7 @@ int residualCheck(GridDynSimulation* gds,
 
 int residualCheck(GridDynSimulation* gds,
                   coreTime time,
-                  const solverMode& sMode,
+                  const SolverMode& sMode,
                   double residTol,
                   bool useStateNames)
 {
@@ -357,7 +357,7 @@ int residualCheck(GridDynSimulation* gds,
 
 int algebraicCheck(GridDynSimulation* gds,
                    coreTime time,
-                   const solverMode& sMode,
+                   const SolverMode& sMode,
                    double algTol,
                    bool useStateNames)
 {
@@ -422,7 +422,7 @@ int algebraicCheck(GridDynSimulation* gds,
 
 int derivativeCheck(GridDynSimulation* gds,
                     coreTime time,
-                    const solverMode& sMode,
+                    const SolverMode& sMode,
                     double derivTol,
                     bool useStateNames)
 {
@@ -480,7 +480,7 @@ int derivativeCheck(GridDynSimulation* gds,
 }
 
 void dynamicSolverConvergenceTest(GridDynSimulation* gds,
-                                  const solverMode& sMode,
+                                  const SolverMode& sMode,
                                   const std::string& file,
                                   count_t pts,
                                   int mode)
@@ -524,7 +524,7 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
                 std::copy(state, state + ssize, tempState.begin());
                 int retval = sd->calcIC(gds->getSimulationTime(),
                                         0.001,
-                                        SolverInterface::IcModes::fixed_diff,
+                                        SolverInterface::IcModes::FIXED_DIFF,
                                         true);
                 if (retval < 0) {
                     double rval2 = retval;
@@ -563,7 +563,7 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
                 std::copy(state, state + ssize, tempState.begin());
                 int retval = sd->calcIC(gds->getSimulationTime(),
                                         0.001,
-                                        SolverInterface::IcModes::fixed_diff,
+                                        SolverInterface::IcModes::FIXED_DIFF,
                                         true);
                 if (retval < 0) {
                     double rval2 = retval;
@@ -587,7 +587,7 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
                 std::copy(state, state + ssize, tempState.begin());
                 int retval = sd->calcIC(gds->getSimulationTime(),
                                         0.001,
-                                        SolverInterface::IcModes::fixed_diff,
+                                        SolverInterface::IcModes::FIXED_DIFF,
                                         true);
                 if (retval < 0) {
                     double rval2 = retval;
@@ -612,7 +612,7 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
                 std::copy(state, state + ssize, tempState.begin());
                 sd->calcIC(gds->getSimulationTime(),
                            0.001,
-                           SolverInterface::IcModes::fixed_diff,
+                           SolverInterface::IcModes::FIXED_DIFF,
                            true);
                 std::copy(tempState.begin(), tempState.begin() + ssize, state);
             }
@@ -637,7 +637,7 @@ std::vector<int> getRowCounts(matrixData<double>& md)
     return rowcnt;
 }
 
-std::vector<index_t> getLocalStates(const GridComponent* comp, const solverMode& sMode)
+std::vector<index_t> getLocalStates(const GridComponent* comp, const SolverMode& sMode)
 {
     std::vector<index_t> st;
     auto& off = comp->getOffsets(sMode);
@@ -672,7 +672,7 @@ class objectCountInfo {
 };
 /** function to get the actual Jacobian information about an object*/
 objectCountInfo getObjectInformation(const GridComponent* comp,
-                                     const solverMode& sMode,
+                                     const SolverMode& sMode,
                                      const std::vector<int>& rowCount)
 {
     objectCountInfo objI;
@@ -725,7 +725,7 @@ void printObjCountInfo(const objectCountInfo& oi, int clevel, int maxLevel)
 
 void jacobianAnalysis(matrixData<double>& md,
                       GridDynSimulation* gds,
-                      const solverMode& sMode,
+                      const SolverMode& sMode,
                       int level)
 {
     auto rc = getRowCounts(md);
@@ -806,7 +806,7 @@ bool checkObjectEquivalence(const CoreObject* obj1, const CoreObject* obj2, bool
 }
 
 void printStateSizesPretty(const GridComponent* obj,
-                           const solverMode& sMode,
+                           const SolverMode& sMode,
                            const std::string& inset)
 {
     auto& off = obj->getOffsets(sMode);
@@ -826,7 +826,7 @@ void printStateSizesPretty(const GridComponent* obj,
     }
 }
 
-void printStateSizes(const GridComponent* comp, const solverMode& sMode)
+void printStateSizes(const GridComponent* comp, const SolverMode& sMode)
 {
     printStateSizesPretty(comp, sMode, "");
 }

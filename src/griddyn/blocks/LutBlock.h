@@ -37,15 +37,15 @@ class LutBlock: public GridBlock {
     virtual void blockAlgebraicUpdate(double input,
                                       const stateData& stateDataValue,
                                       double update[],
-                                      const solverMode& sMode) override;
+                                      const SolverMode& sMode) override;
     // virtual double blockResidual (double input, double didt, const stateData &sD, double
-    // resid[], const solverMode &sMode) override;
+    // resid[], const SolverMode &sMode) override;
     virtual void blockJacobianElements(double input,
                                        double didt,
                                        const stateData& stateDataValue,
                                        matrixData<double>& matrixDataValue,
                                        index_t argLoc,
-                                       const solverMode& sMode) override;
+                                       const SolverMode& sMode) override;
     virtual double step(coreTime time, double input) override;
     // virtual void setTime(coreTime time){prevTime=time;};
     double computeValue(double input);

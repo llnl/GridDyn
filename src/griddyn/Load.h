@@ -61,10 +61,10 @@ class GridLoad: public gridSecondary {
 
     virtual double getRealPower(const IOdata& inputs,
                                 const stateData& sD,
-                                const solverMode& sMode) const override;
+                                const SolverMode& sMode) const override;
     virtual double getReactivePower(const IOdata& inputs,
                                     const stateData& sD,
-                                    const solverMode& sMode) const override;
+                                    const SolverMode& sMode) const override;
     /** get the real output power that based on the given voltage
     @param[in] V the bus voltage
     @return the real power consumed by the load*/
@@ -76,7 +76,7 @@ class GridLoad: public gridSecondary {
     virtual double getRealPower() const override;
     virtual double getReactivePower() const override;  // for saving the state
 
-    count_t outputDependencyCount(index_t num, const solverMode& sMode) const override;
+    count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
 
   protected:
     // little helper functions to do some calculations

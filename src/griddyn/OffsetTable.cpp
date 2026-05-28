@@ -22,7 +22,7 @@ OffsetTable::OffsetTable(): offsetContainer(DEFAULT_OFFSET_CONTAINER_SIZE)
     offsetContainer[0].sMode = cLocalSolverMode;
 }
 
-bool OffsetTable::isLoaded(const solverMode& sMode) const
+bool OffsetTable::isLoaded(const SolverMode& sMode) const
 {
     return (isValidIndex(sMode.offsetIndex)) &&
         ((offsetContainer[sMode.offsetIndex].stateLoaded) &&
@@ -30,22 +30,22 @@ bool OffsetTable::isLoaded(const solverMode& sMode) const
          (offsetContainer[sMode.offsetIndex].jacobianLoaded));
 }
 
-bool OffsetTable::isStateCountLoaded(const solverMode& sMode) const
+bool OffsetTable::isStateCountLoaded(const SolverMode& sMode) const
 {
     return isValidIndex(sMode.offsetIndex) && offsetContainer[sMode.offsetIndex].stateLoaded;
 }
 
-bool OffsetTable::isRootCountLoaded(const solverMode& sMode) const
+bool OffsetTable::isRootCountLoaded(const SolverMode& sMode) const
 {
     return isValidIndex(sMode.offsetIndex) && offsetContainer[sMode.offsetIndex].rootsLoaded;
 }
 
-bool OffsetTable::isJacobianCountLoaded(const solverMode& sMode) const
+bool OffsetTable::isJacobianCountLoaded(const SolverMode& sMode) const
 {
     return isValidIndex(sMode.offsetIndex) && offsetContainer[sMode.offsetIndex].jacobianLoaded;
 }
 
-solverOffsets& OffsetTable::getOffsets(const solverMode& sMode)
+solverOffsets& OffsetTable::getOffsets(const SolverMode& sMode)
 {
     if (!isValidIndex(sMode.offsetIndex)) {
         offsetContainer.resize(sMode.offsetIndex + 1);
@@ -54,12 +54,12 @@ solverOffsets& OffsetTable::getOffsets(const solverMode& sMode)
     return offsetContainer[sMode.offsetIndex];
 }
 
-const solverOffsets& OffsetTable::getOffsets(const solverMode& sMode) const
+const solverOffsets& OffsetTable::getOffsets(const SolverMode& sMode) const
 {
     return isValidIndex(sMode.offsetIndex) ? offsetContainer[sMode.offsetIndex] : NULL_OFFSETS;
 }
 
-void OffsetTable::setOffsets(const solverOffsets& newOffsets, const solverMode& sMode)
+void OffsetTable::setOffsets(const solverOffsets& newOffsets, const SolverMode& sMode)
 {
     if (!isValidIndex(sMode.offsetIndex)) {
         offsetContainer.resize(sMode.offsetIndex + 1);
@@ -68,7 +68,7 @@ void OffsetTable::setOffsets(const solverOffsets& newOffsets, const solverMode& 
     offsetContainer[sMode.offsetIndex].setOffsets(newOffsets);
 }
 
-void OffsetTable::setOffset(index_t newOffset, const solverMode& sMode)
+void OffsetTable::setOffset(index_t newOffset, const SolverMode& sMode)
 {
     if (!isValidIndex(sMode.offsetIndex)) {
         offsetContainer.resize(sMode.offsetIndex + 1);
@@ -77,7 +77,7 @@ void OffsetTable::setOffset(index_t newOffset, const solverMode& sMode)
     offsetContainer[sMode.offsetIndex].setOffset(newOffset);
 }
 
-void OffsetTable::setAlgOffset(index_t newOffset, const solverMode& sMode)
+void OffsetTable::setAlgOffset(index_t newOffset, const SolverMode& sMode)
 {
     if (!isValidIndex(sMode.offsetIndex)) {
         offsetContainer.resize(sMode.offsetIndex + 1);
@@ -86,7 +86,7 @@ void OffsetTable::setAlgOffset(index_t newOffset, const solverMode& sMode)
     offsetContainer[sMode.offsetIndex].algOffset = newOffset;
 }
 
-void OffsetTable::setDiffOffset(index_t newOffset, const solverMode& sMode)
+void OffsetTable::setDiffOffset(index_t newOffset, const SolverMode& sMode)
 {
     if (!isValidIndex(sMode.offsetIndex)) {
         offsetContainer.resize(sMode.offsetIndex + 1);
@@ -95,7 +95,7 @@ void OffsetTable::setDiffOffset(index_t newOffset, const solverMode& sMode)
     offsetContainer[sMode.offsetIndex].diffOffset = newOffset;
 }
 
-void OffsetTable::setVOffset(index_t newOffset, const solverMode& sMode)
+void OffsetTable::setVOffset(index_t newOffset, const SolverMode& sMode)
 {
     if (!isValidIndex(sMode.offsetIndex)) {
         offsetContainer.resize(sMode.offsetIndex + 1);
@@ -104,7 +104,7 @@ void OffsetTable::setVOffset(index_t newOffset, const solverMode& sMode)
     offsetContainer[sMode.offsetIndex].vOffset = newOffset;
 }
 
-void OffsetTable::setAOffset(index_t newOffset, const solverMode& sMode)
+void OffsetTable::setAOffset(index_t newOffset, const SolverMode& sMode)
 {
     if (!isValidIndex(sMode.offsetIndex)) {
         offsetContainer.resize(sMode.offsetIndex + 1);
@@ -113,7 +113,7 @@ void OffsetTable::setAOffset(index_t newOffset, const solverMode& sMode)
     offsetContainer[sMode.offsetIndex].aOffset = newOffset;
 }
 
-void OffsetTable::setRootOffset(index_t newOffset, const solverMode& sMode)
+void OffsetTable::setRootOffset(index_t newOffset, const SolverMode& sMode)
 {
     if (!isValidIndex(sMode.offsetIndex)) {
         offsetContainer.resize(sMode.offsetIndex + 1);
@@ -122,7 +122,7 @@ void OffsetTable::setRootOffset(index_t newOffset, const solverMode& sMode)
     offsetContainer[sMode.offsetIndex].rootOffset = newOffset;
 }
 
-index_t OffsetTable::maxIndex(const solverMode& sMode) const
+index_t OffsetTable::maxIndex(const SolverMode& sMode) const
 {
     if (!isValidIndex(sMode.offsetIndex)) {
         return 0;
@@ -153,7 +153,7 @@ index_t OffsetTable::maxIndex(const solverMode& sMode) const
     return maxUsedIndex;
 }
 
-void OffsetTable::getLocations(const solverMode& sMode, Lp* loc) const
+void OffsetTable::getLocations(const SolverMode& sMode, Lp* loc) const
 {
     loc->algOffset = offsetContainer[sMode.offsetIndex].algOffset;
     loc->diffOffset = offsetContainer[sMode.offsetIndex].diffOffset;
@@ -251,12 +251,12 @@ void OffsetTable::localUpdateAll(bool dynamicOnly)
         }
     }
 }
-const solverMode& OffsetTable::getSolverMode(index_t index) const
+const SolverMode& OffsetTable::getSolverMode(index_t index) const
 {
     return isValidIndex(index) ? offsetContainer[index].sMode : cEmptySolverMode;
 }
 
-const solverMode& OffsetTable::find(const solverMode& tMode) const
+const SolverMode& OffsetTable::find(const SolverMode& tMode) const
 {
     for (const auto& offsetInfo : offsetContainer) {
         if (offsetInfo.sMode.dynamic != tMode.dynamic) {
@@ -285,7 +285,7 @@ const solverMode& OffsetTable::find(const solverMode& tMode) const
 
 Lp OffsetTable::getLocations(const stateData& stateDataValue,
                              double dest[],
-                             const solverMode& sMode,
+                             const SolverMode& sMode,
                              const GridComponent* comp) const
 {
     Lp loc = getLocations(stateDataValue, sMode, comp);
@@ -310,7 +310,7 @@ Lp OffsetTable::getLocations(const stateData& stateDataValue,
 }
 
 Lp OffsetTable::getLocations(const stateData& stateDataValue,
-                             const solverMode& sMode,
+                             const SolverMode& sMode,
                              const GridComponent* comp) const
 {
     Lp loc;

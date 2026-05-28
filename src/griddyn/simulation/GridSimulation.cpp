@@ -121,7 +121,7 @@ int GridSimulation::step()
     return FUNCTION_EXECUTION_FAILURE;
 }
 
-void GridSimulation::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void GridSimulation::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     GridArea::timestep(time, inputs, sMode);
     EvQ->executeEvents(time);

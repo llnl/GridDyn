@@ -127,7 +127,7 @@ coreTime HelicsLoad::updateB()
     return nextUpdateTime;
 }
 
-void HelicsLoad::timestep(coreTime ttime, const IOdata& inputs, const solverMode& sMode)
+void HelicsLoad::timestep(coreTime ttime, const IOdata& inputs, const SolverMode& sMode)
 {
     while (ttime > nextUpdateTime) {
         updateA(nextUpdateTime);

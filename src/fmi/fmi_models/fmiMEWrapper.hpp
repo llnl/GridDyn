@@ -52,7 +52,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
     virtual void residual(const IOdata& inputs,
                           const stateData& sD,
                           double resid[],
-                          const solverMode& sMode) override
+                          const SolverMode& sMode) override
     {
         if (FmiWrapper<FmiMESubModel, BaseObj>::fmisub == nullptr) {
             return;
@@ -63,7 +63,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
     virtual void derivative(const IOdata& inputs,
                             const stateData& sD,
                             double deriv[],
-                            const solverMode& sMode) override
+                            const SolverMode& sMode) override
     {
         if (FmiWrapper<FmiMESubModel, BaseObj>::fmisub == nullptr) {
             return;
@@ -74,7 +74,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const stateData& sD,
                                           matrixData<double>& md,
-                                          const solverMode& sMode) override
+                                          const SolverMode& sMode) override
     {
         if (FmiWrapper<FmiMESubModel, BaseObj>::fmisub == nullptr) {
             return;
@@ -85,7 +85,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
                                       const stateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
-                                      const solverMode& sMode) override
+                                      const SolverMode& sMode) override
     {
         if (FmiWrapper<FmiMESubModel, BaseObj>::fmisub == nullptr) {
             return;
@@ -97,7 +97,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
                                   const stateData& sD,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
-                                  const solverMode& sMode) override
+                                  const SolverMode& sMode) override
     {
         if (FmiWrapper<FmiMESubModel, BaseObj>::fmisub == nullptr) {
             return;
@@ -109,7 +109,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
     virtual void rootTest(const IOdata& inputs,
                           const stateData& sD,
                           double roots[],
-                          const solverMode& sMode) override
+                          const SolverMode& sMode) override
     {
         if (FmiWrapper<FmiMESubModel, BaseObj>::fmisub == nullptr) {
             return;
@@ -119,7 +119,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
     virtual void rootTrigger(coreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
-                             const solverMode& sMode) override
+                             const SolverMode& sMode) override
     {
         if (FmiWrapper<FmiMESubModel, BaseObj>::fmisub == nullptr) {
             return;
@@ -130,7 +130,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
     virtual void setState(coreTime time,
                           const double state[],
                           const double dstateDt[],
-                          const solverMode& sMode) override
+                          const SolverMode& sMode) override
     {
         if (FmiWrapper<FmiMESubModel, BaseObj>::fmisub == nullptr) {
             return;
@@ -138,7 +138,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
         FmiWrapper<FmiMESubModel, BaseObj>::fmisub->setState(time, state, dstateDt, sMode);
     }
 
-    virtual index_t findIndex(std::string_view field, const solverMode& sMode) const override
+    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override
     {
         if (FmiWrapper<FmiMESubModel, BaseObj>::fmisub == nullptr) {
             return kInvalidLocation;
@@ -146,7 +146,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
         return FmiWrapper<FmiMESubModel, BaseObj>::fmisub->findIndex(field, sMode);
     }
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override
     {
         BaseObj::prevTime = time;
         if (FmiWrapper<FmiMESubModel, BaseObj>::fmisub == nullptr) {

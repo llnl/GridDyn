@@ -232,7 +232,7 @@ double Relay::getConditionValue(index_t conditionNumber) const
 
 double Relay::getConditionValue(index_t conditionNumber,
                                 const stateData& sD,
-                                const solverMode& sMode) const
+                                const SolverMode& sMode) const
 {
     if (isValidIndex(conditionNumber, conditions)) {
         return conditions[conditionNumber]->getVal(1, sD, sMode);
@@ -622,7 +622,7 @@ ChangeCode
 void Relay::rootTest(const IOdata& /*inputs*/,
                      const stateData& sD,
                      double roots[],
-                     const solverMode& sMode)
+                     const SolverMode& sMode)
 {
     auto ro = offsets.getRootOffset(sMode);
     for (auto condNum : conditionsWithRoots) {
@@ -634,7 +634,7 @@ void Relay::rootTest(const IOdata& /*inputs*/,
 void Relay::rootTrigger(coreTime time,
                         const IOdata& /*inputs*/,
                         const std::vector<int>& rootMask,
-                        const solverMode& sMode)
+                        const SolverMode& sMode)
 {
     auto ro = offsets.getRootOffset(sMode);
     // Because conditionsWithRoots can change on a condition Trigger leading to an actionTaken
@@ -662,7 +662,7 @@ void Relay::rootTrigger(coreTime time,
 
 ChangeCode Relay::rootCheck(const IOdata& /*inputs*/,
                             const stateData& sD,
-                            const solverMode& /*sMode*/,
+                            const SolverMode& /*sMode*/,
                             CheckLevel /*level*/)
 {
     auto prevTrig = triggerCount;

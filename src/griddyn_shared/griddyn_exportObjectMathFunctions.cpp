@@ -19,7 +19,7 @@ using griddyn::emptyStateData;
 using griddyn::GridComponent;
 using griddyn::IOdata;
 using griddyn::IOlocs;
-using griddyn::solverMode;
+using griddyn::SolverMode;
 using griddyn::stateData;
 
 static constexpr char invalidComponent[] = "the Griddyn object is not valid";
@@ -52,7 +52,7 @@ void setUpSolverKeyInfo(solverKeyInfo* key, GridComponent* comp)
 void TranslateToLocal(const std::vector<double>& orig,
                       double* newData,
                       const GridComponent* comp,
-                      const solverMode& sMode)
+                      const SolverMode& sMode)
 {
     auto offsets = comp->getOffsets(sMode);
     double* cData = newData;
@@ -80,7 +80,7 @@ void TranslateToLocal(const std::vector<double>& orig,
 void CopyFromLocal(std::vector<double>& dest,
                    const double* localData,
                    const GridComponent* comp,
-                   const solverMode& sMode)
+                   const SolverMode& sMode)
 {
     auto offsets = comp->getOffsets(sMode);
     const double* cData = localData;

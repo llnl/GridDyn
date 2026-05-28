@@ -122,7 +122,7 @@ void DelayBlock::blockDerivative(double input,
                                  double didt,
                                  const stateData& stateDataRef,
                                  double deriv[],
-                                 const solverMode& sMode)
+                                 const SolverMode& sMode)
 {
     auto offset = offsets.getDiffOffset(sMode) + limiter_diff;
 
@@ -137,7 +137,7 @@ void DelayBlock::blockJacobianElements(double input,
                                        const stateData& stateDataRef,
                                        matrixData<double>& jacobian,
                                        index_t argLoc,
-                                       const solverMode& sMode)
+                                       const SolverMode& sMode)
 {
     if ((isAlgebraicOnly(sMode)) || (opFlags[simplified])) {
         GridBlock::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);

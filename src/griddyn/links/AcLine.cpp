@@ -139,7 +139,7 @@ double AcLine::quickupdateP()
     return linkFlows.P1;
 }
 
-void AcLine::timestep(const coreTime time, const IOdata& /*inputs*/, const solverMode& /*sMode*/)
+void AcLine::timestep(const coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     if (!isEnabled()) {
         return;
@@ -577,7 +577,7 @@ void AcLine::ioPartialDerivatives(id_type_t busId,
                                   const stateData& /*sD*/,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
-                                  const solverMode& sMode)
+                                  const SolverMode& sMode)
 {
     // check if line is enabled
 
@@ -625,7 +625,7 @@ void AcLine::ioPartialDerivatives(id_type_t busId,
 void AcLine::outputPartialDerivatives(const IOdata& /*inputs*/,
                                       const stateData& /*sD*/,
                                       matrixData<double>& /*md*/,
-                                      const solverMode& /*sMode*/)
+                                      const SolverMode& /*sMode*/)
 {
     // there are theoretically 4 outputs for a standard ac line,  but no internal states therefore
     // if this function is called from an external entity there are no output partial derivatives
@@ -634,7 +634,7 @@ void AcLine::outputPartialDerivatives(const IOdata& /*inputs*/,
 void AcLine::outputPartialDerivatives(id_type_t busId,
                                       const stateData& /*sD*/,
                                       matrixData<double>& md,
-                                      const solverMode& sMode)
+                                      const SolverMode& sMode)
 {
     if (!isConnected()) {  // if there is no connection there is no coupling
         return;
@@ -687,7 +687,7 @@ void AcLine::outputPartialDerivatives(id_type_t busId,
     }
 }
 
-count_t AcLine::outputDependencyCount(index_t /*num*/, const solverMode& /*sMode*/) const
+count_t AcLine::outputDependencyCount(index_t /*num*/, const SolverMode& /*sMode*/) const
 {
     return 2;
 }
@@ -730,12 +730,12 @@ double AcLine::getMaxTransfer() const
 void AcLine::setState(coreTime time,
                       const double state[],
                       const double dstate_dt[],
-                      const solverMode& sMode)
+                      const SolverMode& sMode)
 {
     prevTime = time;
     stateData sD(time, state, dstate_dt);
 
-    if (sMode.approx[decoupled]) {  // recompute power with new state updates for the decoupled
+    if (sMode.approx[DECOUPLED]) {  // recompute power with new state updates for the decoupled
                                     // system
         updateLocalCache(noInputs, sD, sMode);
         constLinkInfo = linkInfo;  // update the constant linkInfo
@@ -743,7 +743,7 @@ void AcLine::setState(coreTime time,
         linkInfo.seqID = 0;
         // update the cache twice to get the correct values with the decoupled mode
         updateLocalCache(noInputs, sD, sMode);
-    } else if (sMode.approx[linear]) {
+    } else if (sMode.approx[LINEAR]) {
         // reLinearize at each step
         loadLinkInfo(sD, sMode);
         if (!isConnected()) {
@@ -769,7 +769,7 @@ void AcLine::setState(coreTime time,
     constLinkFlows = linkFlows;  // update the constant linkFlows
 }
 
-double AcLine::getAngle(const double state[], const solverMode& sMode) const
+double AcLine::getAngle(const double state[], const SolverMode& sMode) const
 {
     double t1 = B1->getAngle(state, sMode);
     double t2 = B2->getAngle(state, sMode);
@@ -790,7 +790,7 @@ ChangeCode
 
 ChangeCode AcLine::rootCheck(const IOdata& /*inputs*/,
                              const stateData& sD,
-                             const solverMode& sMode,
+                             const SolverMode& sMode,
                              CheckLevel level)
 {
     auto ret = ChangeCode::NO_CHANGE;
@@ -806,7 +806,7 @@ ChangeCode AcLine::rootCheck(const IOdata& /*inputs*/,
 }
 void AcLine::updateLocalCache(const IOdata& /*inputs*/,
                               const stateData& sD,
-                              const solverMode& sMode)
+                              const SolverMode& sMode)
 {
     if (!isEnabled()) {
         return;
@@ -924,7 +924,7 @@ void AcLine::loadLinkInfo()
     constLinkComp = linkComp;
 }
 
-void AcLine::loadLinkInfo(const stateData& sD, const solverMode& sMode)
+void AcLine::loadLinkInfo(const stateData& sD, const SolverMode& sMode)
 {
     if ((linkInfo.seqID == sD.seqID) && (sD.seqID != 0)) {
         return;
@@ -1609,25 +1609,25 @@ void AcLine::swOpenDeriv()
 void AcLine::loadApproxFunctions()
 {
     // load up the member function pointer array to point to the correct function
-    flowCalc[indexVal(ApproxKeyMask::none)] = &AcLine::fullCalc;
-    flowCalc[indexVal(ApproxKeyMask::decoupled)] = &AcLine::decoupledCalc;
-    flowCalc[indexVal(ApproxKeyMask::sm_angle)] = &AcLine::smallAngleCalc;
-    flowCalc[indexVal(ApproxKeyMask::sm_angle_decoupled)] = &AcLine::smallAngleDecoupledCalc;
-    flowCalc[indexVal(ApproxKeyMask::simplified)] = &AcLine::simplifiedCalc;
-    flowCalc[indexVal(ApproxKeyMask::simplified_decoupled)] = &AcLine::simplifiedDecoupledCalc;
-    flowCalc[indexVal(ApproxKeyMask::simplified_sm_angle)] = &AcLine::smallAngleSimplifiedCalc;
-    flowCalc[indexVal(ApproxKeyMask::fast_decoupled)] = &AcLine::fastDecoupledCalc;
-    flowCalc[indexVal(ApproxKeyMask::linear)] = &AcLine::linearCalc;
+    flowCalc[indexVal(ApproxKeyMask::NONE)] = &AcLine::fullCalc;
+    flowCalc[indexVal(ApproxKeyMask::DECOUPLED)] = &AcLine::decoupledCalc;
+    flowCalc[indexVal(ApproxKeyMask::SM_ANGLE)] = &AcLine::smallAngleCalc;
+    flowCalc[indexVal(ApproxKeyMask::SM_ANGLE_DECOUPLED)] = &AcLine::smallAngleDecoupledCalc;
+    flowCalc[indexVal(ApproxKeyMask::SIMPLIFIED)] = &AcLine::simplifiedCalc;
+    flowCalc[indexVal(ApproxKeyMask::SIMPLIFIED_DECOUPLED)] = &AcLine::simplifiedDecoupledCalc;
+    flowCalc[indexVal(ApproxKeyMask::SIMPLIFIED_SM_ANGLE)] = &AcLine::smallAngleSimplifiedCalc;
+    flowCalc[indexVal(ApproxKeyMask::FAST_DECOUPLED)] = &AcLine::fastDecoupledCalc;
+    flowCalc[indexVal(ApproxKeyMask::LINEAR)] = &AcLine::linearCalc;
 
-    derivCalc[indexVal(ApproxKeyMask::none)] = &AcLine::fullDeriv;
-    derivCalc[indexVal(ApproxKeyMask::decoupled)] = &AcLine::decoupledDeriv;
-    derivCalc[indexVal(ApproxKeyMask::sm_angle)] = &AcLine::smallAngleDeriv;
-    derivCalc[indexVal(ApproxKeyMask::sm_angle_decoupled)] = &AcLine::smallAngleDecoupledDeriv;
-    derivCalc[indexVal(ApproxKeyMask::simplified)] = &AcLine::simplifiedDeriv;
-    derivCalc[indexVal(ApproxKeyMask::simplified_decoupled)] = &AcLine::simplifiedDecoupledDeriv;
-    derivCalc[indexVal(ApproxKeyMask::simplified_sm_angle)] = &AcLine::smallAngleSimplifiedDeriv;
-    derivCalc[indexVal(ApproxKeyMask::fast_decoupled)] = &AcLine::fastDecoupledDeriv;
-    derivCalc[indexVal(ApproxKeyMask::linear)] = &AcLine::linearDeriv;
+    derivCalc[indexVal(ApproxKeyMask::NONE)] = &AcLine::fullDeriv;
+    derivCalc[indexVal(ApproxKeyMask::DECOUPLED)] = &AcLine::decoupledDeriv;
+    derivCalc[indexVal(ApproxKeyMask::SM_ANGLE)] = &AcLine::smallAngleDeriv;
+    derivCalc[indexVal(ApproxKeyMask::SM_ANGLE_DECOUPLED)] = &AcLine::smallAngleDecoupledDeriv;
+    derivCalc[indexVal(ApproxKeyMask::SIMPLIFIED)] = &AcLine::simplifiedDeriv;
+    derivCalc[indexVal(ApproxKeyMask::SIMPLIFIED_DECOUPLED)] = &AcLine::simplifiedDecoupledDeriv;
+    derivCalc[indexVal(ApproxKeyMask::SIMPLIFIED_SM_ANGLE)] = &AcLine::smallAngleSimplifiedDeriv;
+    derivCalc[indexVal(ApproxKeyMask::FAST_DECOUPLED)] = &AcLine::fastDecoupledDeriv;
+    derivCalc[indexVal(ApproxKeyMask::LINEAR)] = &AcLine::linearDeriv;
 }
 
 // NOLINTEND(bugprone-branch-clone,misc-const-correctness,readability-else-after-return,readability-identifier-length,readability-math-missing-parentheses)

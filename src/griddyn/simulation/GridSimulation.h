@@ -173,7 +173,7 @@ class GridSimulation: public GridArea {
     /** @brief get all the objects from the event Queue */
     void getEventObjects(std::vector<CoreObject*>& objV) const;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     /** @brief run the simulator
     @param[in] finishTime  the time to run to
     @return return code 0 for success other for failure

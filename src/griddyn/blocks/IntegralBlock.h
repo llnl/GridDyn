@@ -33,27 +33,27 @@ class IntegralBlock: public GridBlock {
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    // virtual index_t findIndex(const std::string &field, const solverMode &sMode) const;
+    // virtual index_t findIndex(const std::string &field, const SolverMode &sMode) const;
 
     virtual void blockDerivative(double input,
                                  double didt,
                                  const stateData& stateDataValue,
                                  double deriv[],
-                                 const solverMode& sMode) override;
+                                 const SolverMode& sMode) override;
     virtual void blockResidual(double input,
                                double didt,
                                const stateData& stateDataValue,
                                double resid[],
-                               const solverMode& sMode) override;
+                               const SolverMode& sMode) override;
     // only called if the genModel is not present
     virtual void blockJacobianElements(double input,
                                        double didt,
                                        const stateData& stateDataValue,
                                        matrixData<double>& matrixDataValue,
                                        index_t argLoc,
-                                       const solverMode& sMode) override;
+                                       const SolverMode& sMode) override;
     virtual double step(coreTime time, double inputA) override;
-    // virtual void timestep(coreTime time, const IOdata &inputs, const solverMode &sMode);
+    // virtual void timestep(coreTime time, const IOdata &inputs, const SolverMode &sMode);
     // virtual void setTime(coreTime time){prevTime=time;};
 };
 }  // namespace griddyn::blocks

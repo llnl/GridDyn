@@ -13,19 +13,19 @@
 namespace griddyn::solvers {
 /** @brief SolverInterface interfacing to the SUNDIALS kinsol solver
  */
-class kinsolInterface: public SundialsInterface {
+class KinsolInterface: public SundialsInterface {
   public:
     using SundialsInterface::set;
     /** @brief constructor*/
-    explicit kinsolInterface(const std::string& objName = "kinsol");
+    explicit KinsolInterface(const std::string& objName = "kinsol");
     /** @brief constructor loading the SolverInterface structure*
 @param[in] gds  the GridDynSimulation to link with
-@param[in] sMode the solverMode for the solver
+@param[in] sMode the SolverMode for the solver
 */
-    kinsolInterface(GridDynSimulation* gds, const solverMode& sMode);
+    KinsolInterface(GridDynSimulation* gds, const SolverMode& sMode);
     /** @brief destructor
      */
-    virtual ~kinsolInterface();
+    virtual ~KinsolInterface();
 
     virtual std::unique_ptr<SolverInterface> clone(bool fullCopy = false) const override;
 
@@ -42,11 +42,11 @@ class kinsolInterface: public SundialsInterface {
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void set(std::string_view param, double val) override;
     // wrapper functions used by kinsol and ida to call the internal functions
-    friend int kinsolFunc(N_Vector state, N_Vector resid, void* user_data);
+    friend int kinsolFunc(N_Vector state, N_Vector resid, void* userData);
     friend int kinsolJac(N_Vector state,
                          N_Vector resid,
                          SUNMatrix J,
-                         void* user_data,
+                         void* userData,
                          N_Vector tmp1,
                          N_Vector tmp2);
 

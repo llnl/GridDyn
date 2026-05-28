@@ -74,7 +74,7 @@ void GovernorIeeeSimple::dynObjectInitializeB(const IOdata& /*inputs*/,
 void GovernorIeeeSimple::residual(const IOdata& inputs,
                                   const stateData& sD,
                                   double resid[],
-                                  const solverMode& sMode)
+                                  const SolverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
         return;
@@ -89,7 +89,7 @@ void GovernorIeeeSimple::residual(const IOdata& inputs,
 void GovernorIeeeSimple::derivative(const IOdata& inputs,
                                     const stateData& sD,
                                     double deriv[],
-                                    const solverMode& sMode)
+                                    const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, deriv, sMode, this);
 
@@ -106,7 +106,7 @@ void GovernorIeeeSimple::derivative(const IOdata& inputs,
     Loc.destDiffLoc[1] = (-gs[1] + (1 - T2 / T1) * (omega - 1.0)) / T1;
 }
 
-void GovernorIeeeSimple::timestep(coreTime time, const IOdata& inputs, const solverMode& /*sMode*/)
+void GovernorIeeeSimple::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     GovernorIeeeSimple::derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
     double dt = time - prevTime;
@@ -128,7 +128,7 @@ void GovernorIeeeSimple::jacobianElements(const IOdata& /*inputs*/,
                                           const stateData& sD,
                                           matrixData<double>& md,
                                           const IOlocs& inputLocs,
-                                          const solverMode& sMode)
+                                          const SolverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
         return;
@@ -169,7 +169,7 @@ if (opFlags.test (uses_deadband))
     md.assign(refI + 1, refI + 1, -1 / T1 - sD.cj);
 }
 
-index_t GovernorIeeeSimple::findIndex(std::string_view field, const solverMode& sMode) const
+index_t GovernorIeeeSimple::findIndex(std::string_view field, const SolverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if (field == "pm") {
@@ -184,7 +184,7 @@ index_t GovernorIeeeSimple::findIndex(std::string_view field, const solverMode& 
 void GovernorIeeeSimple::rootTest(const IOdata& inputs,
                                   const stateData& sD,
                                   double roots[],
-                                  const solverMode& sMode)
+                                  const SolverMode& sMode)
 {
     int rootOffset = offsets.getRootOffset(sMode);
     /*if (opFlags.test (uses_deadband))
@@ -217,7 +217,7 @@ void GovernorIeeeSimple::rootTest(const IOdata& inputs,
 void GovernorIeeeSimple::rootTrigger(coreTime /*time*/,
                                      const IOdata& inputs,
                                      const std::vector<int>& rootMask,
-                                     const solverMode& sMode)
+                                     const SolverMode& sMode)
 {
     int rootOffset = offsets.getRootOffset(sMode);
     /*if (opFlags.test (uses_deadband))

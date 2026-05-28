@@ -110,7 +110,7 @@ CoreObject* acdcConverter::clone(CoreObject* obj) const
     return nobj;
 }
 
-void acdcConverter::timestep(coreTime time, const IOdata& /*inputs*/, const solverMode& /*sMode*/)
+void acdcConverter::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     // TODO(phlpt): This function is incorrect.
     if (!isEnabled()) {
@@ -301,7 +301,7 @@ void acdcConverter::ioPartialDerivatives(id_type_t busId,
                                          const stateData& stateDataValue,
                                          matrixData<double>& matrixDataValue,
                                          const IOlocs& inputLocs,
-                                         const solverMode& sMode)
+                                         const SolverMode& sMode)
 {
     if (!(isEnabled())) {
         return;
@@ -365,7 +365,7 @@ linkInfo.Q1 = -std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
 void acdcConverter::outputPartialDerivatives(const IOdata& /*inputs*/,
                                              const stateData& stateDataValue,
                                              matrixData<double>& matrixDataValue,
-                                             const solverMode& sMode)
+                                             const SolverMode& sMode)
 {
     if (!(isEnabled())) {
         return;
@@ -388,7 +388,7 @@ void acdcConverter::outputPartialDerivatives(const IOdata& /*inputs*/,
 void acdcConverter::outputPartialDerivatives(id_type_t busId,
                                              const stateData& stateDataValue,
                                              matrixData<double>& matrixDataValue,
-                                             const solverMode& sMode)
+                                             const SolverMode& sMode)
 {
     if (!(isEnabled())) {
         return;
@@ -463,7 +463,7 @@ void acdcConverter::outputPartialDerivatives(id_type_t busId,
     }
 }
 
-count_t acdcConverter::outputDependencyCount(index_t /*num*/, const solverMode& sMode) const
+count_t acdcConverter::outputDependencyCount(index_t /*num*/, const SolverMode& sMode) const
 {
     return (isDynamic(sMode)) ? 2 : 1;
 }
@@ -472,7 +472,7 @@ void acdcConverter::jacobianElements(const IOdata& /*inputs*/,
                                      const stateData& stateDataValue,
                                      matrixData<double>& matrixDataValue,
                                      const IOlocs& /*inputLocs*/,
-                                     const solverMode& sMode)
+                                     const SolverMode& sMode)
 {
     auto bus1Locs = B1->getOutputLocs(sMode);
     auto bus1VoltageOffset = bus1Locs[voltageInLocation];
@@ -566,7 +566,7 @@ void acdcConverter::jacobianElements(const IOdata& /*inputs*/,
 void acdcConverter::residual(const IOdata& inputs,
                              const stateData& stateDataValue,
                              double resid[],
-                             const solverMode& sMode)
+                             const SolverMode& sMode)
 {
     updateLocalCache(inputs, stateDataValue, sMode);
     if (isDynamic(sMode)) {
@@ -607,7 +607,7 @@ void acdcConverter::residual(const IOdata& inputs,
 void acdcConverter::setState(coreTime time,
                              const double state[],
                              const double dstateDt[],
-                             const solverMode& sMode)
+                             const SolverMode& sMode)
 {
     if (isDynamic(sMode)) {
         Idc = state[offsets.getAlgOffset(sMode)];
@@ -633,7 +633,7 @@ void acdcConverter::setState(coreTime time,
 void acdcConverter::guessState(coreTime time,
                                double state[],
                                double dstateDt[],
-                               const solverMode& sMode)
+                               const SolverMode& sMode)
 {
     if (isDynamic(sMode)) {
         state[offsets.getAlgOffset(sMode)] = Idc;
@@ -649,7 +649,7 @@ void acdcConverter::guessState(coreTime time,
 
 void acdcConverter::updateLocalCache(const IOdata& /*inputs*/,
                                      const stateData& stateDataValue,
-                                     const solverMode& sMode)
+                                     const SolverMode& sMode)
 {
     if (!stateDataValue.updateRequired(linkInfo.seqID)) {
         return;
@@ -733,7 +733,7 @@ int acdcConverter::fixPower(double /*power*/,
 }
 
 void acdcConverter::getStateName(stringVec& stNames,
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  const std::string& prefix) const
 {
     auto offset = offsets.getAlgOffset(sMode);

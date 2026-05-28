@@ -39,48 +39,48 @@ class NullBlock final: public GridBlock {
                                double didt,
                                const stateData& stateDataValue,
                                double resid[],
-                               const solverMode& solverModeValue) override;
+                               const SolverMode& solverModeValue) override;
 
     virtual void blockDerivative(double input,
                                  double didt,
                                  const stateData& stateDataValue,
                                  double deriv[],
-                                 const solverMode& solverModeValue) override;
+                                 const SolverMode& solverModeValue) override;
 
     virtual void blockAlgebraicUpdate(double input,
                                       const stateData& stateDataValue,
                                       double update[],
-                                      const solverMode& solverModeValue) override;
+                                      const SolverMode& solverModeValue) override;
 
     virtual void blockJacobianElements(double input,
                                        double didt,
                                        const stateData& stateDataValue,
                                        matrixData<double>& matrixDataValue,
                                        index_t argLoc,
-                                       const solverMode& solverModeValue) override;
+                                       const SolverMode& solverModeValue) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     virtual double step(coreTime time, double input) override;
     virtual void rootTest(const IOdata& inputs,
                           const stateData& stateDataValue,
                           double roots[],
-                          const solverMode& solverModeValue) override;
+                          const SolverMode& solverModeValue) override;
     virtual void rootTrigger(coreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
-                             const solverMode& solverModeValue) override;
+                             const SolverMode& solverModeValue) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
                                  const stateData& stateDataValue,
-                                 const solverMode& solverModeValue,
+                                 const SolverMode& solverModeValue,
                                  CheckLevel level) override;
     // virtual void setTime(coreTime time){prevTime=time;};
 
     virtual double getBlockOutput(const stateData& stateDataValue,
-                                  const solverMode& solverModeValue) const override;
+                                  const SolverMode& solverModeValue) const override;
     virtual double getBlockOutput() const override;
     virtual double getBlockDoutDt(const stateData& stateDataValue,
-                                  const solverMode& solverModeValue) const override;
+                                  const SolverMode& solverModeValue) const override;
     virtual double getBlockDoutDt() const override;
 };
 

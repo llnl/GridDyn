@@ -29,19 +29,19 @@
 #include <vector>
 
 namespace griddyn::solvers {
-int arkodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_data);
+int arkodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userData);
 int arkodeJac(sunrealtype time,
               N_Vector state,
-              N_Vector dstate_dt,
+              N_Vector dstateDt,
               SUNMatrix J,
-              void* user_data,
+              void* userData,
               N_Vector tmp1,
               N_Vector tmp2,
               N_Vector tmp3);
 
-int arkodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* user_data);
+int arkodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* userData);
 
-arkodeInterface::arkodeInterface(const std::string& objName): SundialsInterface(objName)
+ArkodeInterface::ArkodeInterface(const std::string& objName): SundialsInterface(objName)
 {
     mode.dynamic = true;
     mode.differential = true;
@@ -49,7 +49,7 @@ arkodeInterface::arkodeInterface(const std::string& objName): SundialsInterface(
     max_iterations = 1500;
 }
 
-arkodeInterface::arkodeInterface(GridDynSimulation* gds, const solverMode& sMode):
+ArkodeInterface::ArkodeInterface(GridDynSimulation* gds, const SolverMode& sMode):
     SundialsInterface(gds, sMode)
 {
     mode.dynamic = true;
@@ -58,25 +58,25 @@ arkodeInterface::arkodeInterface(GridDynSimulation* gds, const solverMode& sMode
     max_iterations = 1500;
 }
 
-arkodeInterface::~arkodeInterface()
+ArkodeInterface::~ArkodeInterface()
 {
     // clear variables for CVode to use
-    if (flags[initialized_flag]) {
+    if (flags[INITIALIZED_FLAG]) {
         ARKodeFree(&solverMem);
     }
 }
 
-std::unique_ptr<SolverInterface> arkodeInterface::clone(bool fullCopy) const
+std::unique_ptr<SolverInterface> ArkodeInterface::clone(bool fullCopy) const
 {
-    std::unique_ptr<SolverInterface> si = std::make_unique<arkodeInterface>();
-    arkodeInterface::cloneTo(si.get(), fullCopy);
+    std::unique_ptr<SolverInterface> si = std::make_unique<ArkodeInterface>();
+    ArkodeInterface::cloneTo(si.get(), fullCopy);
     return si;
 }
 
-void arkodeInterface::cloneTo(SolverInterface* si, bool fullCopy) const
+void ArkodeInterface::cloneTo(SolverInterface* si, bool fullCopy) const
 {
     SundialsInterface::cloneTo(si, fullCopy);
-    auto ai = dynamic_cast<arkodeInterface*>(si);
+    auto ai = dynamic_cast<ArkodeInterface*>(si);
     if (ai == nullptr) {
         return;
     }
@@ -85,13 +85,13 @@ void arkodeInterface::cloneTo(SolverInterface* si, bool fullCopy) const
     ai->step = step;
 }
 
-void arkodeInterface::allocate(count_t stateCount, count_t numRoots)
+void ArkodeInterface::allocate(count_t stateCount, count_t numRoots)
 {
     // load the vectors
     if (stateCount == svsize) {
         return;
     }
-    flags.reset(initialized_flag);
+    flags.reset(INITIALIZED_FLAG);
 
     a1.setRowLimit(stateCount);
     a1.setColLimit(stateCount);
@@ -110,14 +110,14 @@ void arkodeInterface::allocate(count_t stateCount, count_t numRoots)
     SundialsInterface::allocate(stateCount, numRoots);
 }
 
-void arkodeInterface::setMaxNonZeros(count_t nonZeroCount)
+void ArkodeInterface::setMaxNonZeros(count_t nonZeroCount)
 {
     maxNNZ = nonZeroCount;
     a1.reserve(nonZeroCount);
     a1.clear();
 }
 
-void arkodeInterface::set(std::string_view param, std::string_view val)
+void ArkodeInterface::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -125,7 +125,7 @@ void arkodeInterface::set(std::string_view param, std::string_view val)
     }
 }
 
-void arkodeInterface::set(std::string_view param, double val)
+void ArkodeInterface::set(std::string_view param, double val)
 {
     bool checkStepUpdate = false;
     if (param == "step") {
@@ -152,7 +152,7 @@ void arkodeInterface::set(std::string_view param, double val)
     }
 
     if (checkStepUpdate) {
-        if (flags[initialized_flag]) {
+        if (flags[INITIALIZED_FLAG]) {
             ARKodeSetMaxStep(solverMem, maxStep);
             ARKodeSetMinStep(solverMem, minStep);
             ARKodeSetInitStep(solverMem, step);
@@ -160,7 +160,7 @@ void arkodeInterface::set(std::string_view param, double val)
     }
 }
 
-double arkodeInterface::get(std::string_view param) const
+double ArkodeInterface::get(std::string_view param) const
 {
     int val = -1;
     if ((param == "resevals") || (param == "iterationcount")) {
@@ -181,9 +181,9 @@ double arkodeInterface::get(std::string_view param) const
 }
 
 // output solver stats
-void arkodeInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
+void ArkodeInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
 {
-    if (!flags[initialized_flag]) {
+    if (!flags[INITIALIZED_FLAG]) {
         return;
     }
     int nni = 0;
@@ -240,7 +240,7 @@ void arkodeInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
     }
 }
 
-void arkodeInterface::logErrorWeights(PrintLevel logLevel) const
+void ArkodeInterface::logErrorWeights(PrintLevel logLevel) const
 {
     N_Vector eweight = NVECTOR_NEW(use_omp, svsize);
     N_Vector ele = NVECTOR_NEW(use_omp, svsize);
@@ -293,9 +293,9 @@ static const std::map<int, std::string> arkodeRetCodes{
 
 };
 
-void arkodeInterface::initialize(coreTime time0)
+void ArkodeInterface::initialize(coreTime time0)
 {
-    if (!flags[allocated_flag]) {
+    if (!flags[ALLOCATED_FLAG]) {
         throw(InvalidSolverOperation());
     }
     auto jsize = m_gds->jacSize(mode);
@@ -326,7 +326,7 @@ void arkodeInterface::initialize(coreTime time0)
     checkFlag(&retval, "ARKodeSetMaxNumSteps", 1);
 
 #ifdef ENABLE_KLU
-    if (flags[dense_flag]) {
+    if (flags[DENSE_FLAG]) {
         J = SUNDenseMatrix(svsize, svsize);
         checkFlag(J, "SUNDenseMatrix", 0);
         /* Create KLU solver object */
@@ -372,15 +372,15 @@ void arkodeInterface::initialize(coreTime time0)
         checkFlag(&retval, "ARKodeSetInitStep", 1);
     }
     setConstraints();
-    flags.set(initialized_flag);
+    flags.set(INITIALIZED_FLAG);
 }
 
-void arkodeInterface::sparseReInit(SparseReinitMode sparseReinitMode)
+void ArkodeInterface::sparseReInit(SparseReinitMode sparseReinitMode)
 {
     kluReInit(sparseReinitMode);
 }
 
-void arkodeInterface::setRootFinding(count_t numRoots)
+void ArkodeInterface::setRootFinding(count_t numRoots)
 {
     if (numRoots != static_cast<count_t>(rootsfound.size())) {
         rootsfound.resize(numRoots);
@@ -390,7 +390,7 @@ void arkodeInterface::setRootFinding(count_t numRoots)
     checkFlag(&retval, "ARKodeRootInit", 1);
 }
 
-void arkodeInterface::getCurrentData()
+void ArkodeInterface::getCurrentData()
 {
     /*
 int retval = CVodeGetConsistentIC(solverMem, state, deriv);
@@ -401,7 +401,7 @@ return(retval);
 */
 }
 
-int arkodeInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
+int ArkodeInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
 {
     assert(rootCount == m_gds->rootSize(mode));
     ++solverCallCount;
@@ -418,13 +418,13 @@ int arkodeInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
     return retval;
 }
 
-void arkodeInterface::getRoots()
+void ArkodeInterface::getRoots()
 {
     int ret = ARKodeGetRootInfo(solverMem, rootsfound.data());
     checkFlag(&ret, "ARKodeGetRootInfo", 1);
 }
 
-void arkodeInterface::loadMaskElements()
+void ArkodeInterface::loadMaskElements()
 {
     std::vector<double> mStates(svsize, 0.0);
     m_gds->getVoltageStates(mStates.data(), mode);
@@ -438,14 +438,14 @@ void arkodeInterface::loadMaskElements()
 }
 
 // CVode C Functions
-int arkodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_data)
+int arkodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userData)
 {
-    auto sd = reinterpret_cast<arkodeInterface*>(user_data);
+    auto sd = reinterpret_cast<ArkodeInterface*>(userData);
     sd->funcCallCount++;
     if (sd->mode.pairedOffsetIndex != kNullLocation) {
         int ret = sd->m_gds->dynAlgebraicSolve(time,
                                                NVECTOR_DATA(sd->use_omp, state),
-                                               NVECTOR_DATA(sd->use_omp, dstate_dt),
+                                               NVECTOR_DATA(sd->use_omp, dstateDt),
                                                sd->mode);
         if (ret < FUNCTION_EXECUTION_SUCCESS) {
             return ret;
@@ -453,10 +453,10 @@ int arkodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_
     }
     int ret = sd->m_gds->derivativeFunction(time,
                                             NVECTOR_DATA(sd->use_omp, state),
-                                            NVECTOR_DATA(sd->use_omp, dstate_dt),
+                                            NVECTOR_DATA(sd->use_omp, dstateDt),
                                             sd->mode);
 
-    if (sd->flags[fileCapture_flag]) {
+    if (sd->flags[FILE_CAPTURE_FLAG]) {
         if (!sd->stateFile.empty()) {
             writeVector(time,
                         STATE_INFORMATION,
@@ -471,16 +471,16 @@ int arkodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_
                         sd->funcCallCount,
                         sd->mode.offsetIndex,
                         sd->svsize,
-                        NVECTOR_DATA(sd->use_omp, dstate_dt),
+                        NVECTOR_DATA(sd->use_omp, dstateDt),
                         sd->stateFile);
         }
     }
     return ret;
 }
 
-int arkodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* user_data)
+int arkodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* userData)
 {
-    auto sd = reinterpret_cast<arkodeInterface*>(user_data);
+    auto sd = reinterpret_cast<ArkodeInterface*>(userData);
     sd->m_gds->rootFindingFunction(
         time, NVECTOR_DATA(sd->use_omp, state), sd->derivData(), gout, sd->mode);
 
@@ -489,14 +489,14 @@ int arkodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* us
 
 int arkodeJac(sunrealtype time,
               N_Vector state,
-              N_Vector dstate_dt,
+              N_Vector dstateDt,
               SUNMatrix J,
-              void* user_data,
+              void* userData,
               N_Vector tmp1,
               N_Vector tmp2,
               N_Vector /*tmp3*/)
 {
-    return sundialsJac(time, 0.0, state, dstate_dt, J, user_data, tmp1, tmp2);
+    return sundialsJac(time, 0.0, state, dstateDt, J, userData, tmp1, tmp2);
 }
 
 }  // namespace griddyn::solvers

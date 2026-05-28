@@ -11,14 +11,14 @@
 #include <vector>
 
 namespace griddyn {
-void fillList(const solverMode& sMode,
+void fillList(const SolverMode& sMode,
               std::vector<gridPrimary*>& list,
               std::vector<gridPrimary*>& partlist,
               const std::vector<gridPrimary*>& possObjs);
 
 listMaintainer::listMaintainer(): objectLists(4), partialLists(4), sModeLists(4) {}
 
-void listMaintainer::makeList(const solverMode& sMode, const std::vector<gridPrimary*>& possObjs)
+void listMaintainer::makeList(const SolverMode& sMode, const std::vector<gridPrimary*>& possObjs)
 {
     if (sMode.offsetIndex >= static_cast<index_t>(objectLists.size())) {
         objectLists.resize(sMode.offsetIndex + 1);
@@ -34,7 +34,7 @@ void listMaintainer::makeList(const solverMode& sMode, const std::vector<gridPri
     sModeLists[sMode.offsetIndex] = sMode;
 }
 
-void listMaintainer::appendList(const solverMode& sMode, const std::vector<gridPrimary*>& possObjs)
+void listMaintainer::appendList(const SolverMode& sMode, const std::vector<gridPrimary*>& possObjs)
 {
     if (sMode.offsetIndex >= static_cast<index_t>(objectLists.size())) {
         objectLists.resize(sMode.offsetIndex + 1);
@@ -47,7 +47,7 @@ void listMaintainer::appendList(const solverMode& sMode, const std::vector<gridP
     fillList(sMode, objectLists[sMode.offsetIndex], partialLists[sMode.offsetIndex], possObjs);
 }
 
-void fillList(const solverMode& sMode,
+void fillList(const SolverMode& sMode,
               std::vector<gridPrimary*>& list,
               std::vector<gridPrimary*>& partlist,
               const std::vector<gridPrimary*>& possObjs)
@@ -77,7 +77,7 @@ void listMaintainer::makePreList(const std::vector<gridPrimary*>& possObjs)
     }
 }
 
-void listMaintainer::preEx(const IOdata& inputs, const stateData& sD, const solverMode& sMode)
+void listMaintainer::preEx(const IOdata& inputs, const stateData& sD, const SolverMode& sMode)
 {
     for (auto& obj : preExObjs) {
         obj->preEx(inputs, sD, sMode);
@@ -88,7 +88,7 @@ void listMaintainer::jacobianElements(const IOdata& inputs,
                                       const stateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
-                                      const solverMode& sMode)
+                                      const SolverMode& sMode)
 {
     if (!isListValid(sMode)) {
         return;
@@ -117,7 +117,7 @@ void listMaintainer::jacobianElements(const IOdata& inputs,
 void listMaintainer::residual(const IOdata& inputs,
                               const stateData& sD,
                               double resid[],
-                              const solverMode& sMode)
+                              const SolverMode& sMode)
 {
     if (!isListValid(sMode)) {
         return;
@@ -147,7 +147,7 @@ void listMaintainer::residual(const IOdata& inputs,
 void listMaintainer::algebraicUpdate(const IOdata& inputs,
                                      const stateData& sD,
                                      double update[],
-                                     const solverMode& sMode,
+                                     const SolverMode& sMode,
                                      double alpha)
 {
     if (!isListValid(sMode)) {
@@ -178,7 +178,7 @@ void listMaintainer::algebraicUpdate(const IOdata& inputs,
 void listMaintainer::derivative(const IOdata& inputs,
                                 const stateData& sD,
                                 double deriv[],
-                                const solverMode& sMode)
+                                const SolverMode& sMode)
 {
     if (!isListValid(sMode)) {
         return;
@@ -207,7 +207,7 @@ void listMaintainer::derivative(const IOdata& inputs,
 void listMaintainer::delayedResidual(const IOdata& inputs,
                                      const stateData& sD,
                                      double resid[],
-                                     const solverMode& sMode)
+                                     const SolverMode& sMode)
 {
     for (auto& obj : preExObjs) {
         obj->delayedResidual(inputs, sD, resid, sMode);
@@ -216,7 +216,7 @@ void listMaintainer::delayedResidual(const IOdata& inputs,
 void listMaintainer::delayedDerivative(const IOdata& inputs,
                                        const stateData& sD,
                                        double deriv[],
-                                       const solverMode& sMode)
+                                       const SolverMode& sMode)
 {
     for (auto& obj : preExObjs) {
         obj->delayedDerivative(inputs, sD, deriv, sMode);
@@ -227,7 +227,7 @@ void listMaintainer::delayedJacobian(const IOdata& inputs,
                                      const stateData& sD,
                                      matrixData<double>& md,
                                      const IOlocs& inputLocs,
-                                     const solverMode& sMode)
+                                     const SolverMode& sMode)
 {
     for (auto& obj : preExObjs) {
         obj->delayedJacobian(inputs, sD, md, inputLocs, sMode);
@@ -237,7 +237,7 @@ void listMaintainer::delayedJacobian(const IOdata& inputs,
 void listMaintainer::delayedAlgebraicUpdate(const IOdata& inputs,
                                             const stateData& sD,
                                             double update[],
-                                            const solverMode& sMode,
+                                            const SolverMode& sMode,
                                             double alpha)
 {
     for (auto& obj : preExObjs) {
@@ -245,7 +245,7 @@ void listMaintainer::delayedAlgebraicUpdate(const IOdata& inputs,
     }
 }
 
-bool listMaintainer::isListValid(const solverMode& sMode) const
+bool listMaintainer::isListValid(const SolverMode& sMode) const
 {
     if (isValidIndex(sMode.offsetIndex, objectLists)) {
         return (sModeLists[sMode.offsetIndex].offsetIndex != kNullLocation);
@@ -253,21 +253,21 @@ bool listMaintainer::isListValid(const solverMode& sMode) const
     return false;
 }
 
-void listMaintainer::invalidate(const solverMode& sMode)
+void listMaintainer::invalidate(const SolverMode& sMode)
 {
     if (isValidIndex(sMode.offsetIndex, objectLists)) {
-        sModeLists[sMode.offsetIndex] = solverMode();
+        sModeLists[sMode.offsetIndex] = SolverMode();
     }
 }
 
 void listMaintainer::invalidate()
 {
     for (auto& sml : sModeLists) {
-        sml = solverMode();
+        sml = SolverMode();
     }
 }
 
-decltype(listMaintainer::objectLists[0].begin()) listMaintainer::begin(const solverMode& sMode)
+decltype(listMaintainer::objectLists[0].begin()) listMaintainer::begin(const SolverMode& sMode)
 {
     if (isListValid(sMode)) {
         return objectLists[sMode.offsetIndex].begin();
@@ -275,7 +275,7 @@ decltype(listMaintainer::objectLists[0].begin()) listMaintainer::begin(const sol
     return objectLists[0].end();
 }
 
-decltype(listMaintainer::objectLists[0].end()) listMaintainer::end(const solverMode& sMode)
+decltype(listMaintainer::objectLists[0].end()) listMaintainer::end(const SolverMode& sMode)
 {
     if (isListValid(sMode)) {
         return objectLists[sMode.offsetIndex].end();
@@ -284,7 +284,7 @@ decltype(listMaintainer::objectLists[0].end()) listMaintainer::end(const solverM
 }
 
 decltype(listMaintainer::objectLists[0].cbegin())
-    listMaintainer::cbegin(const solverMode& sMode) const
+    listMaintainer::cbegin(const SolverMode& sMode) const
 {
     if (isListValid(sMode)) {
         return objectLists[sMode.offsetIndex].cbegin();
@@ -292,7 +292,7 @@ decltype(listMaintainer::objectLists[0].cbegin())
     return objectLists[0].cend();
 }
 
-decltype(listMaintainer::objectLists[0].cend()) listMaintainer::cend(const solverMode& sMode) const
+decltype(listMaintainer::objectLists[0].cend()) listMaintainer::cend(const SolverMode& sMode) const
 {
     if (isListValid(sMode)) {
         return objectLists[sMode.offsetIndex].cend();
@@ -300,7 +300,7 @@ decltype(listMaintainer::objectLists[0].cend()) listMaintainer::cend(const solve
     return objectLists[0].cend();
 }
 
-decltype(listMaintainer::objectLists[0].rbegin()) listMaintainer::rbegin(const solverMode& sMode)
+decltype(listMaintainer::objectLists[0].rbegin()) listMaintainer::rbegin(const SolverMode& sMode)
 {
     if (isListValid(sMode)) {
         return objectLists[sMode.offsetIndex].rbegin();
@@ -308,7 +308,7 @@ decltype(listMaintainer::objectLists[0].rbegin()) listMaintainer::rbegin(const s
     return objectLists[0].rend();
 }
 
-decltype(listMaintainer::objectLists[0].rend()) listMaintainer::rend(const solverMode& sMode)
+decltype(listMaintainer::objectLists[0].rend()) listMaintainer::rend(const SolverMode& sMode)
 {
     if (isListValid(sMode)) {
         return objectLists[sMode.offsetIndex].rend();

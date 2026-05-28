@@ -40,7 +40,7 @@ typedef void* GridDynVectorQuery;
 /** typedef a GridDynEvent to a void * to represent an event in GridDyn*/
 typedef void* GridDynEvent;
 
-/** typedef * SolverKey to a void * to represent a solverMode object for use in a number of
+/** typedef * SolverKey to a void * to represent a SolverMode object for use in a number of
  * functions*/
 typedef void* SolverKey;
 

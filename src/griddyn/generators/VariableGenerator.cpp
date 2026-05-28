@@ -123,7 +123,7 @@ void variableGenerator::set(std::string_view param, double val, unit unitType)
 void variableGenerator::residual(const IOdata& inputs,
                                  const stateData& sD,
                                  double resid[],
-                                 const solverMode& sMode)
+                                 const SolverMode& sMode)
 {
     DynamicGenerator::residual(inputs, sD, resid, sMode);
     if ((m_source != nullptr) && (m_source->isEnabled())) {
@@ -138,7 +138,7 @@ void variableGenerator::jacobianElements(const IOdata& inputs,
                                          const stateData& sD,
                                          matrixData<double>& md,
                                          const IOlocs& inputLocs,
-                                         const solverMode& sMode)
+                                         const SolverMode& sMode)
 {
     DynamicGenerator::jacobianElements(inputs, sD, md, inputLocs, sMode);
     if ((m_source != nullptr) && (m_source->isEnabled())) {
@@ -171,7 +171,7 @@ CoreObject* variableGenerator::getSubObject(std::string_view typeName, index_t n
 
 double variableGenerator::pSetControlUpdate(const IOdata& inputs,
                                             const stateData& sD,
-                                            const solverMode& sMode)
+                                            const SolverMode& sMode)
 {
     if ((m_cBlock != nullptr) && (m_cBlock->isEnabled())) {
         return m_cBlock->getOutput();
@@ -179,7 +179,7 @@ double variableGenerator::pSetControlUpdate(const IOdata& inputs,
     return DynamicGenerator::pSetControlUpdate(inputs, sD, sMode);
 }
 
-index_t variableGenerator::pSetLocation(const solverMode& sMode)
+index_t variableGenerator::pSetLocation(const SolverMode& sMode)
 {
     if ((m_cBlock != nullptr) && (m_cBlock->isEnabled())) {
         return m_cBlock->getOutputLoc(sMode);

@@ -72,7 +72,7 @@ void GovernorSteamNR::dynObjectInitializeB(const IOdata& /*inputs*/,
 void GovernorSteamNR::residual(const IOdata& /*inputs*/,
                                const stateData& /*sD*/,
                                double resid[],
-                               const solverMode& sMode)
+                               const SolverMode& sMode)
 {
     auto offset = offsets.getAlgOffset(sMode);
     resid[offset] = 0;
@@ -83,7 +83,7 @@ void GovernorSteamNR::jacobianElements(const IOdata& /*inputs*/,
                                        const stateData& sD,
                                        matrixData<double>& md,
                                        const IOlocs& /*inputLocs*/,
-                                       const solverMode& sMode)
+                                       const SolverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
         return;
@@ -108,7 +108,7 @@ void GovernorSteamNR::jacobianElements(const IOdata& /*inputs*/,
     md.assign(refI + 1, refI + 1, -1 / T1 - sD.cj);
 }
 
-index_t GovernorSteamNR::findIndex(std::string_view field, const solverMode& /*sMode*/) const
+index_t GovernorSteamNR::findIndex(std::string_view field, const SolverMode& /*sMode*/) const
 {
     index_t ret = kInvalidLocation;
     if (field == "pm") {

@@ -239,7 +239,7 @@ void randomSource::nextStep(coreTime triggerTime)
     }
 }
 
-void randomSource::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void randomSource::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     while (time >= nextUpdateTime) {
         updateA(nextUpdateTime);

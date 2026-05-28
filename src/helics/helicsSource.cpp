@@ -123,7 +123,7 @@ void HelicsSource::updateA(coreTime time)
     prevTime = time;
 }
 
-void HelicsSource::timestep(coreTime ttime, const IOdata& inputs, const solverMode& sMode)
+void HelicsSource::timestep(coreTime ttime, const IOdata& inputs, const SolverMode& sMode)
 {
     while (ttime >= nextUpdateTime) {
         updateA(nextUpdateTime);

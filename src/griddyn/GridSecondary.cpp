@@ -140,14 +140,14 @@ void gridSecondary::set(std::string_view param, double val, units::unit unitType
 
 double gridSecondary::getRealPower(const IOdata& /*inputs*/,
                                    const stateData& /*stateDataValue*/,
-                                   const solverMode& /*sMode*/) const
+                                   const SolverMode& /*sMode*/) const
 {
     return 0.0;
 }
 
 double gridSecondary::getReactivePower(const IOdata& /*inputs*/,
                                        const stateData& /*stateDataValue*/,
-                                       const solverMode& /*sMode*/) const
+                                       const SolverMode& /*sMode*/) const
 {
     return 0.0;
 }
@@ -170,7 +170,7 @@ double gridSecondary::getAdjustableCapacityDown(coreTime /*time*/) const
 }
 double gridSecondary::getDoutdt(const IOdata& /*inputs*/,
                                 const stateData& /*stateDataValue*/,
-                                const solverMode& /*sMode*/,
+                                const SolverMode& /*sMode*/,
                                 index_t /*outputNum*/) const
 {
     return 0.0;
@@ -178,7 +178,7 @@ double gridSecondary::getDoutdt(const IOdata& /*inputs*/,
 
 double gridSecondary::getOutput(const IOdata& inputs,
                                 const stateData& stateDataValue,
-                                const solverMode& sMode,
+                                const SolverMode& sMode,
                                 index_t outputNum) const
 {
     if (outputNum == PoutLocation) {
@@ -203,7 +203,7 @@ double gridSecondary::getOutput(index_t outputNum) const
 
 IOdata gridSecondary::getOutputs(const IOdata& inputs,
                                  const stateData& stateDataValue,
-                                 const solverMode& sMode) const
+                                 const SolverMode& sMode) const
 {
     IOdata out(2);
     out[PoutLocation] = getRealPower(inputs, stateDataValue, sMode);
@@ -214,7 +214,7 @@ IOdata gridSecondary::getOutputs(const IOdata& inputs,
 IOdata gridSecondary::predictOutputs(coreTime /*predictionTime*/,
                                      const IOdata& inputs,
                                      const stateData& stateDataValue,
-                                     const solverMode& sMode) const
+                                     const SolverMode& sMode) const
 {
     IOdata out(2);
     out[PoutLocation] = getRealPower(inputs, stateDataValue, sMode);

@@ -96,11 +96,11 @@ class Generator: public gridSecondary {
     virtual void setState(coreTime time,
                           const double state[],
                           const double dstate_dt[],
-                          const solverMode& sMode) override;  // for saving the state
+                          const SolverMode& sMode) override;  // for saving the state
     virtual void guessState(coreTime time,
                             double state[],
                             double dstate_dt[],
-                            const solverMode& sMode) override;  // for initial setting of the state
+                            const SolverMode& sMode) override;  // for initial setting of the state
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
@@ -115,54 +115,54 @@ class Generator: public gridSecondary {
     @throw unrecognizedObjectError is object is not valid*/
     virtual void add(GridSubModel* obj);
 
-    virtual stateSizes localStateSizes(const solverMode& sMode) const override;
+    virtual stateSizes localStateSizes(const SolverMode& sMode) const override;
 
-    virtual count_t localJacobianCount(const solverMode& sMode) const override;
+    virtual count_t localJacobianCount(const SolverMode& sMode) const override;
 
     virtual void algebraicUpdate(const IOdata& inputs,
                                  const stateData& stateDataValue,
                                  double update[],
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  double alpha) override;
     virtual void residual(const IOdata& inputs,
                           const stateData& stateDataValue,
                           double resid[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     virtual IOdata getOutputs(const IOdata& inputs,
                               const stateData& stateDataValue,
-                              const solverMode& sMode) const override;
+                              const SolverMode& sMode) const override;
 
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
-                                          const solverMode& sMode) override;
+                                          const SolverMode& sMode) override;
     virtual void ioPartialDerivatives(const IOdata& inputs,
                                       const stateData& stateDataValue,
                                       matrixData<double>& matrixDataValue,
                                       const IOlocs& inputLocs,
-                                      const solverMode& sMode) override;
-    virtual count_t outputDependencyCount(index_t num, const solverMode& sMode) const override;
+                                      const SolverMode& sMode) override;
+    virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
 
     virtual void jacobianElements(const IOdata& inputs,
                                   const stateData& stateDataValue,
                                   matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
-                                  const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
     virtual void getStateName(stringVec& stNames,
-                              const solverMode& sMode,
+                              const SolverMode& sMode,
                               const std::string& prefix) const override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     /** @brief get the current generator set point
     @return the current generator set point*/
     virtual double getPset() const { return Pset; }
     virtual double getRealPower(const IOdata& inputs,
                                 const stateData& stateDataValue,
-                                const solverMode& sMode) const override;
+                                const SolverMode& sMode) const override;
     virtual double getReactivePower(const IOdata& inputs,
                                     const stateData& stateDataValue,
-                                    const solverMode& sMode) const override;
+                                    const SolverMode& sMode) const override;
     virtual double getRealPower() const override;
     virtual double getReactivePower() const override;
     /** @brief function to set the generator capability curve
@@ -177,7 +177,7 @@ class Generator: public gridSecondary {
     virtual IOdata predictOutputs(coreTime predictionTime,
                                   const IOdata& inputs,
                                   const stateData& stateDataValue,
-                                  const solverMode& sMode) const override;
+                                  const SolverMode& sMode) const override;
 
     virtual double getAdjustableCapacityUp(coreTime time = maxTime) const override;
     virtual double getAdjustableCapacityDown(coreTime time = maxTime) const override;
@@ -209,21 +209,21 @@ class Generator: public gridSecondary {
     virtual CoreObject* find(std::string_view object) const override;
     /** get the frequency the generator is operating at
     @param[in] stateDataValue the current stateData
-    @param[in] sMode the solvermode corresponding to the state
+    @param[in] sMode the SolverMode corresponding to the state
     @param[out] freqOffset the location of the frequency state in the sD arrays
     @return the current frequency the generator is operating at
     */
     virtual double getFreq(const stateData& stateDataValue,
-                           const solverMode& sMode,
+                           const SolverMode& sMode,
                            index_t* freqOffset = nullptr) const;
     /** get the internal angle of the generator
     @param[in] stateDataValue the current stateData
-    @param[in] sMode the solvermode corresponding to the state
+    @param[in] sMode the SolverMode corresponding to the state
     @param[out] angleOffset the location of the frequency state in the sD arrays
     @return the current angle of  the generator is operating at
     */
     virtual double getAngle(const stateData& stateDataValue,
-                            const solverMode& sMode,
+                            const SolverMode& sMode,
                             index_t* angleOffset = nullptr) const;
 
   protected:

@@ -205,14 +205,14 @@ void Svd::dynObjectInitializeB(const IOdata& /*inputs*/,
 void Svd::setState(coreTime /*time*/,
                    const double /*state*/[],
                    const double /*dstate_dt*/[],
-                   const solverMode& /*sMode*/)
+                   const SolverMode& /*sMode*/)
 {
 }
 
 void Svd::guessState(coreTime /*time*/,
                      double /*state*/[],
                      double /*dstate_dt*/[],
-                     const solverMode& /*sMode*/)
+                     const SolverMode& /*sMode*/)
 {
 }
 
@@ -224,7 +224,7 @@ ChangeCode
 
 void Svd::reset(ResetLevels /*level*/) {}
 // for identifying which variables are algebraic vs differential
-void Svd::getVariableType(double /*sdata*/[], const solverMode& /*sMode*/) {}
+void Svd::getVariableType(double /*sdata*/[], const SolverMode& /*sMode*/) {}
 void Svd::set(std::string_view param, std::string_view val)
 {
     if ((param == "blocks") || (param == "block")) {
@@ -319,21 +319,21 @@ void Svd::addBlock(int steps, double Qstep, units::unit unitType)
 void Svd::residual(const IOdata& /*inputs*/,
                    const stateData& /*sD*/,
                    double /*resid*/[],
-                   const solverMode& /*sMode*/)
+                   const SolverMode& /*sMode*/)
 {
 }
 
 void Svd::derivative(const IOdata& /*inputs*/,
                      const stateData& /*sD*/,
                      double /*deriv*/[],
-                     const solverMode& /*sMode*/)
+                     const SolverMode& /*sMode*/)
 {
 }
 
 void Svd::outputPartialDerivatives(const IOdata& /*inputs*/,
                                    const stateData& /*sD*/,
                                    matrixData<double>& /*md*/,
-                                   const solverMode& /*sMode*/)
+                                   const SolverMode& /*sMode*/)
 {
 }
 
@@ -341,33 +341,33 @@ void Svd::jacobianElements(const IOdata& /*inputs*/,
                            const stateData& /*sD*/,
                            matrixData<double>& /*md*/,
                            const IOlocs& /*inputLocs*/,
-                           const solverMode& /*sMode*/)
+                           const SolverMode& /*sMode*/)
 {
 }
 void Svd::getStateName(stringVec& /*stNames*/,
-                       const solverMode& /*sMode*/,
+                       const SolverMode& /*sMode*/,
                        const std::string& /*prefix*/) const
 {
 }
 
-void Svd::timestep(coreTime /*time*/, const IOdata& /*inputs*/, const solverMode& /*sMode*/) {}
+void Svd::timestep(coreTime /*time*/, const IOdata& /*inputs*/, const SolverMode& /*sMode*/) {}
 void Svd::rootTest(const IOdata& /*inputs*/,
                    const stateData& /*sD*/,
                    double /*roots*/[],
-                   const solverMode& /*sMode*/)
+                   const SolverMode& /*sMode*/)
 {
 }
 
 void Svd::rootTrigger(coreTime /*time*/,
                       const IOdata& /*inputs*/,
                       const std::vector<int>& /*rootMask*/,
-                      const solverMode& /*sMode*/)
+                      const SolverMode& /*sMode*/)
 {
 }
 
 ChangeCode Svd::rootCheck(const IOdata& /*inputs*/,
                           const stateData& /*sD*/,
-                          const solverMode& /*sMode*/,
+                          const SolverMode& /*sMode*/,
                           CheckLevel /*level*/)
 {
     return ChangeCode::NO_CHANGE;

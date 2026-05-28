@@ -70,11 +70,11 @@ conversions to positive sequence values.
         // for saving the state
         virtual IOdata getRealPower3Phase(const IOdata& inputs,
                                           const stateData& sD,
-                                          const solverMode& sMode,
+                                          const SolverMode& sMode,
                                           PhaseType type = PhaseType::abc) const;
         virtual IOdata getReactivePower3Phase(const IOdata& inputs,
                                               const stateData& sD,
-                                              const solverMode& sMode,
+                                              const SolverMode& sMode,
                                               PhaseType type = PhaseType::abc) const;
         /** get the 3 phase real output power that based on the given voltage
     @param[in] V the bus voltage

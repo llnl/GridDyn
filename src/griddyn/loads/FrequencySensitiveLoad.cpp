@@ -48,7 +48,7 @@ void FrequencySensitiveLoad::dynObjectInitializeA(coreTime time0, std::uint32_t 
     GridLoad::dynObjectInitializeA(time0, flags);
 }
 
-void FrequencySensitiveLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void FrequencySensitiveLoad::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     subLoad->timestep(time, inputs, sMode);
     double freq = (inputs.size() > 2) ? inputs[frequencyInLocation] : 1.0;
@@ -119,7 +119,7 @@ void FrequencySensitiveLoad::set(std::string_view param, double val, unit unitTy
 
 void FrequencySensitiveLoad::updateLocalCache(const IOdata& inputs,
                                               const stateData& sD,
-                                              const solverMode& sMode)
+                                              const SolverMode& sMode)
 {
     subLoad->updateLocalCache(inputs, sD, sMode);
     double freq = (inputs.size() >= frequencyInLocation) ? inputs[frequencyInLocation] :
@@ -130,7 +130,7 @@ void FrequencySensitiveLoad::updateLocalCache(const IOdata& inputs,
 void FrequencySensitiveLoad::setState(coreTime time,
                                       const double state[],
                                       const double dstate_dt[],
-                                      const solverMode& sMode)
+                                      const SolverMode& sMode)
 {
     subLoad->setState(time, state, dstate_dt, sMode);
     updateOutputs(bus->getFreq());
@@ -149,7 +149,7 @@ double FrequencySensitiveLoad::getReactivePower() const
 
 double FrequencySensitiveLoad::getRealPower(const IOdata& inputs,
                                             const stateData& sD,
-                                            const solverMode& sMode) const
+                                            const SolverMode& sMode) const
 {
     double Pr = subLoad->getRealPower(inputs, sD, sMode);
     double freq = (inputs.size() >= frequencyInLocation) ? inputs[frequencyInLocation] :
@@ -159,7 +159,7 @@ double FrequencySensitiveLoad::getRealPower(const IOdata& inputs,
 
 double FrequencySensitiveLoad::getReactivePower(const IOdata& inputs,
                                                 const stateData& sD,
-                                                const solverMode& sMode) const
+                                                const SolverMode& sMode) const
 {
     double Qr = subLoad->getReactivePower(inputs, sD, sMode);
     double freq = (inputs.size() >= frequencyInLocation) ? inputs[frequencyInLocation] :
@@ -184,7 +184,7 @@ double FrequencySensitiveLoad::getReactivePower(double voltage) const
 void FrequencySensitiveLoad::outputPartialDerivatives(const IOdata& inputs,
                                                       const stateData& sD,
                                                       matrixData<double>& md,
-                                                      const solverMode& sMode)
+                                                      const SolverMode& sMode)
 {
     if (inputs.empty())  // we only have output derivatives if the input arguments are not counted
     {
@@ -194,7 +194,7 @@ void FrequencySensitiveLoad::outputPartialDerivatives(const IOdata& inputs,
     }
 }
 
-count_t FrequencySensitiveLoad::outputDependencyCount(index_t num, const solverMode& sMode) const
+count_t FrequencySensitiveLoad::outputDependencyCount(index_t num, const SolverMode& sMode) const
 {
     return subLoad->outputDependencyCount(num, sMode);
 }
@@ -203,7 +203,7 @@ void FrequencySensitiveLoad::ioPartialDerivatives(const IOdata& /*inputs*/,
                                                   const stateData& /*sD*/,
                                                   matrixData<double>& /*md*/,
                                                   const IOlocs& /*inputLocs*/,
-                                                  const solverMode& /*sMode*/)
+                                                  const SolverMode& /*sMode*/)
 {
 }
 

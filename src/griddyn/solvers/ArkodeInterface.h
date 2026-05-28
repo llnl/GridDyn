@@ -14,7 +14,7 @@
 namespace griddyn::solvers {
 /** @brief SolverInterface interfacing to the SUNDIALS arkode solver
  */
-class arkodeInterface: public SundialsInterface {
+class ArkodeInterface: public SundialsInterface {
   public:
     using SundialsInterface::set;
     count_t icCount =
@@ -30,14 +30,14 @@ class arkodeInterface: public SundialsInterface {
 
   public:
     /** @brief constructor*/
-    explicit arkodeInterface(const std::string& objName = "arkode");
+    explicit ArkodeInterface(const std::string& objName = "arkode");
     /** @brief alternate constructor
 @param[in] gds  the GridDynSimulation object to connect to
-@param[in] sMode the solverMode to solve For
+@param[in] sMode the SolverMode to solve For
 */
-    arkodeInterface(GridDynSimulation* gds, const solverMode& sMode);
+    ArkodeInterface(GridDynSimulation* gds, const SolverMode& sMode);
     /** @brief destructor*/
-    virtual ~arkodeInterface();
+    virtual ~ArkodeInterface();
 
     virtual std::unique_ptr<SolverInterface> clone(bool fullCopy = false) const override;
 
@@ -59,16 +59,16 @@ class arkodeInterface: public SundialsInterface {
     virtual double get(std::string_view param) const override;
 
     // declare friend some helper functions
-    friend int arkodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_data);
+    friend int arkodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userData);
     friend int arkodeJac(sunrealtype time,
                          N_Vector state,
-                         N_Vector dstate_dt,
+                         N_Vector dstateDt,
                          SUNMatrix J,
-                         void* user_data,
+                         void* userData,
                          N_Vector tmp1,
                          N_Vector tmp2,
                          N_Vector tmp3);
-    friend int arkodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* user_data);
+    friend int arkodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* userData);
 
   protected:
     /** load up masking element if needed*/

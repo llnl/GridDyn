@@ -40,9 +40,9 @@ class braidSolver: public SolverInterface {
     explicit braidSolver(const std::string& objName = "braid");
     /** alternate constructor to feed to solverInterface
 @param[in] gds  the GridDynSimulation to link to
-@param[in] sMode the solverMode to solve with
+@param[in] sMode the SolverMode to solve with
 */
-    braidSolver(GridDynSimulation* gds, const solverMode& sMode);
+    braidSolver(GridDynSimulation* gds, const SolverMode& sMode);
 
     Equation* equation = nullptr;
 

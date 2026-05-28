@@ -73,7 +73,7 @@ double gridPrimary::get(std::string_view param, units::unit unitType) const
 void gridPrimary::converge(coreTime /*time*/,
                            double /*state*/[],
                            double /*dstate_dt*/[],
-                           const solverMode& /*sMode*/,
+                           const SolverMode& /*sMode*/,
                            ConvergeMode /*mode*/,
                            double /*tol*/)
 {
@@ -82,7 +82,7 @@ void gridPrimary::converge(coreTime /*time*/,
 void gridPrimary::setState(coreTime time,
                            const double state[],
                            const double dstate_dt[],
-                           const solverMode& sMode)
+                           const SolverMode& sMode)
 {
     GridComponent::setState(time, state, dstate_dt, sMode);
     // update local computations
@@ -92,7 +92,7 @@ void gridPrimary::setState(coreTime time,
 void gridPrimary::delayedResidual(const IOdata& inputs,
                                   const stateData& stateDataValue,
                                   double resid[],
-                                  const solverMode& sMode)
+                                  const SolverMode& sMode)
 {
     residual(inputs, stateDataValue, resid, sMode);
 }
@@ -100,7 +100,7 @@ void gridPrimary::delayedResidual(const IOdata& inputs,
 void gridPrimary::delayedDerivative(const IOdata& inputs,
                                     const stateData& stateDataValue,
                                     double deriv[],
-                                    const solverMode& sMode)
+                                    const SolverMode& sMode)
 {
     derivative(inputs, stateDataValue, deriv, sMode);
 }
@@ -108,7 +108,7 @@ void gridPrimary::delayedDerivative(const IOdata& inputs,
 void gridPrimary::delayedAlgebraicUpdate(const IOdata& inputs,
                                          const stateData& stateDataValue,
                                          double update[],
-                                         const solverMode& sMode,
+                                         const SolverMode& sMode,
                                          double alpha)
 {
     algebraicUpdate(inputs, stateDataValue, update, sMode, alpha);
@@ -118,7 +118,7 @@ void gridPrimary::delayedJacobian(const IOdata& inputs,
                                   const stateData& stateDataValue,
                                   matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
-                                  const solverMode& sMode)
+                                  const SolverMode& sMode)
 {
     jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
 }

@@ -15,20 +15,20 @@
 
 namespace griddyn::solvers {
 /** @brief class implementing an matrixData wrapper around the SUNDIALS dense matrix*/
-class sundialsMatrixDataDense: public matrixData<double> {
+class SundialsMatrixDataDense: public matrixData<double> {
   private:
     SUNMatrix J = nullptr;  //!< the vector of tuples containing the data
   public:
     /** @brief compact constructor
      */
-    sundialsMatrixDataDense() = default;
+    SundialsMatrixDataDense() = default;
     /** @brief alternate constructor defining the Dense matrix to fill
 @param[in] mat the dense SUNDIALS matrix*/
-    explicit sundialsMatrixDataDense(SUNMatrix mat);
+    explicit SundialsMatrixDataDense(SUNMatrix mat);
 
     void clear() override;
 
-    void assign(index_t X, index_t Y, double num) override;
+    void assign(index_t x, index_t y, double num) override;
 
     /** set the SUNDIALS matrix
 @param[in] mat the dense SUNDIALS matrix
@@ -39,12 +39,12 @@ class sundialsMatrixDataDense: public matrixData<double> {
 
     count_t capacity() const override;
 
-    matrixElement<double> element(index_t N) const override;
+    matrixElement<double> element(index_t n) const override;
 
     double at(index_t rowN, index_t colN) const override;
 };
 
-class sundialsMatrixDataSparseColumn: public matrixData<double> {
+class SundialsMatrixDataSparseColumn: public matrixData<double> {
   private:
     SUNMatrix J = nullptr;  //!< pointer to the sundials sparse matrix
     index_t ccol = 0;
@@ -52,9 +52,9 @@ class sundialsMatrixDataSparseColumn: public matrixData<double> {
   public:
     /** @brief compact constructor
      */
-    sundialsMatrixDataSparseColumn() = default;
+    SundialsMatrixDataSparseColumn() = default;
     /** @brief alternate constructor defining the Sparse matrix to fill*/
-    explicit sundialsMatrixDataSparseColumn(SUNMatrix mat);
+    explicit SundialsMatrixDataSparseColumn(SUNMatrix mat);
 
     void clear() override;
 
@@ -69,7 +69,7 @@ class sundialsMatrixDataSparseColumn: public matrixData<double> {
 
     count_t capacity() const override;
 
-    matrixElement<double> element(index_t N) const override;
+    matrixElement<double> element(index_t n) const override;
 
     double at(index_t rowN, index_t colN) const override;
 
@@ -79,7 +79,7 @@ class sundialsMatrixDataSparseColumn: public matrixData<double> {
 };
 
 /** @brief class implementing an matrixData wrapper around the SUNDIALS dense matrix*/
-class sundialsMatrixDataSparseRow: public matrixData<double> {
+class SundialsMatrixDataSparseRow: public matrixData<double> {
   private:
     SUNMatrix J;  //!< the vector of tuples containing the data
     index_t crow = 0;  //!< the current row of access
@@ -87,9 +87,9 @@ class sundialsMatrixDataSparseRow: public matrixData<double> {
   public:
     /** @brief compact constructor
      */
-    sundialsMatrixDataSparseRow() = default;
+    SundialsMatrixDataSparseRow() = default;
     /** @brief alternate constructor defining the Sparse matrix to fill*/
-    explicit sundialsMatrixDataSparseRow(SUNMatrix mat);
+    explicit SundialsMatrixDataSparseRow(SUNMatrix mat);
 
     void clear() override;
 
@@ -104,7 +104,7 @@ class sundialsMatrixDataSparseRow: public matrixData<double> {
 
     count_t capacity() const override;
 
-    matrixElement<double> element(index_t N) const override;
+    matrixElement<double> element(index_t n) const override;
 
     double at(index_t rowN, index_t colN) const override;
 
@@ -113,6 +113,6 @@ class sundialsMatrixDataSparseRow: public matrixData<double> {
     virtual matrixElement<double> next() override;
 };
 
-std::unique_ptr<matrixData<double>> makeSundialsMatrixData(SUNMatrix J);
+std::unique_ptr<matrixData<double>> makeSundialsMatrixData(SUNMatrix j);
 
 }  // namespace griddyn::solvers

@@ -36,7 +36,7 @@ class isocController: public GridSubModel {
 
     virtual void updateA(coreTime time) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void

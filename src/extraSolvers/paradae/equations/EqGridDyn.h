@@ -12,7 +12,7 @@
 #include <vector>
 namespace griddyn {
 class GridDynSimulation;
-class solverMode;
+class SolverMode;
 }  // namespace griddyn
 
 using namespace std;
@@ -29,11 +29,11 @@ class EquationGridDyn: public Equation_DAE_full {
                     int N_unistep_,
                     griddyn::GridDynSimulation* gds_,
                     const Vector& y0_,
-                    griddyn::solverMode* mode_,
+                    griddyn::SolverMode* mode_,
                     vector<double>& discontinuities,
                     vector<int>& rootsfound);
     static EquationGridDyn Default(const MapParam& param);
-    griddyn::solverMode* mode;  //!< to the solverMode
+    griddyn::SolverMode* mode;  //!< to the SolverMode
 
     // Redefinition of inherited virtual methods
     virtual void function(const Real t,

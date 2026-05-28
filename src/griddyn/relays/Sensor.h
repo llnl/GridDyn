@@ -106,79 +106,79 @@ class sensor: public Relay {
     std::shared_ptr<grabberSet> getGrabberSet(index_t grabberNum);
 
     // dynamic functions for evaluation with a limit exceeded
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const stateData& sD,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
-                                  const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
 
     virtual void residual(const IOdata& inputs,
                           const stateData& sD,
                           double resid[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     virtual void derivative(const IOdata& inputs,
                             const stateData& sD,
                             double deriv[],
-                            const solverMode& sMode) override;
+                            const SolverMode& sMode) override;
     virtual void algebraicUpdate(const IOdata& inputs,
                                  const stateData& sD,
                                  double update[],
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  double alpha) override;
 
     virtual double getOutput(const IOdata& inputs,
                              const stateData& sD,
-                             const solverMode& sMode,
+                             const SolverMode& sMode,
                              index_t outNum = 0) const override;
     virtual double getOutput(index_t outNum = 0) const override;
-    virtual index_t getOutputLoc(const solverMode& sMode, index_t outNum) const override;
+    virtual index_t getOutputLoc(const SolverMode& sMode, index_t outNum) const override;
     virtual IOdata getOutputs(const IOdata& inputs,
                               const stateData& sD,
-                              const solverMode& sMode) const override;
+                              const SolverMode& sMode) const override;
 
     /** @brief get the block output from the sensor
     @param[in] sD  the state data to get the output from
-    @param[in] sMode  the solverMode corresponding to the data
+    @param[in] sMode  the SolverMode corresponding to the data
     @param[in] blockNumber the number of the block to get the output from
     @return a double with the requested block output
     */
-    double getBlockOutput(const stateData& sD, const solverMode& sMode, index_t blockNumber) const;
+    double getBlockOutput(const stateData& sD, const SolverMode& sMode, index_t blockNumber) const;
 
     /** @brief get the block rate of change from the sensor
     @param[in] sD  the state data to get the output from
-    @param[in] sMode  the solverMode corresponding to the data
+    @param[in] sMode  the SolverMode corresponding to the data
     @param[in] blockNumber the number of the block to get the output from
     @return a double with the requested block output rate of change
     */
     double getBlockDerivOutput(const stateData& sD,
-                               const solverMode& sMode,
+                               const SolverMode& sMode,
                                index_t blockNumber) const;
 
     /** @brief get the raw sensor input
     @param[in] sD  the state data to get the output from
-    @param[in] sMode  the solverMode corresponding to the data
+    @param[in] sMode  the SolverMode corresponding to the data
     @param[in] inputNumber the input of the index to get the value
     @return a double with the requested raw input
     */
-    double getInput(const stateData& sD, const solverMode& sMode, index_t inputNumber = 0) const;
+    double getInput(const stateData& sD, const SolverMode& sMode, index_t inputNumber = 0) const;
     virtual void updateA(coreTime time) override;
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const stateData& sD,
                                           matrixData<double>& md,
-                                          const solverMode& sMode) override;
+                                          const SolverMode& sMode) override;
 
     virtual void rootTest(const IOdata& inputs,
                           const stateData& sD,
                           double roots[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
-                             const solverMode& sMode) override;
+                             const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
                                  const stateData& sD,
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  CheckLevel level) override;
 
     virtual void receiveMessage(std::uint64_t sourceID,
@@ -203,7 +203,7 @@ class sensor: public Relay {
     double getBlockInput(index_t blockNum,
                          const IOdata& inputs,
                          const stateData& sD,
-                         const solverMode& sMode) const;
+                         const SolverMode& sMode) const;
     /** get the input to a block based on inputs only*/
     double getBlockInput(index_t blockNum, const IOdata& inputs) const;
 };

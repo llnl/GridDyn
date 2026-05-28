@@ -115,7 +115,7 @@ void fuse::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 
     auto cgst = std::make_unique<customStateGrabber>(this);
     cgst->setGrabberFunction(
-        [](CoreObject* obj, const stateData& sD, const solverMode& sMode) -> double {
+        [](CoreObject* obj, const stateData& sD, const SolverMode& sMode) -> double {
             return sD.state[static_cast<fuse*>(obj)->offsets.getDiffOffset(sMode)];
         });
 
@@ -206,7 +206,7 @@ ChangeCode fuse::setupFuseEvaluation()
     return ChangeCode::JACOBIAN_CHANGE;
 }
 
-stateSizes fuse::localStateSizes(const solverMode& sMode) const
+stateSizes fuse::localStateSizes(const SolverMode& sMode) const
 {
     stateSizes SS;
     if ((!isAlgebraicOnly(sMode)) && (mp_I2T > 0.0)) {
@@ -215,7 +215,7 @@ stateSizes fuse::localStateSizes(const solverMode& sMode) const
     return SS;
 }
 
-count_t fuse::localJacobianCount(const solverMode& sMode) const
+count_t fuse::localJacobianCount(const SolverMode& sMode) const
 {
     if ((!isAlgebraicOnly(sMode)) && (mp_I2T > 0.0)) {
         return 12;
@@ -223,7 +223,7 @@ count_t fuse::localJacobianCount(const solverMode& sMode) const
     return 0;
 }
 
-void fuse::timestep(coreTime time, const IOdata& /*inputs*/, const solverMode& /*sMode*/)
+void fuse::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     if (limit < kBigNum / 2.0) {
         double val = getConditionValue(0);
@@ -239,7 +239,7 @@ void fuse::timestep(coreTime time, const IOdata& /*inputs*/, const solverMode& /
 void fuse::converge(coreTime time,
                     double state[],
                     double dstate_dt[],
-                    const solverMode& sMode,
+                    const SolverMode& sMode,
                     ConvergeMode /*mode*/,
                     double /*tol*/)
 {
@@ -250,7 +250,7 @@ void fuse::jacobianElements(const IOdata& /*inputs*/,
                             const stateData& sD,
                             matrixData<double>& md,
                             const IOlocs& /*inputLocs*/,
-                            const solverMode& sMode)
+                            const SolverMode& sMode)
 {
     // TODO(phlpt): Replace matrixDataSparse here with a translation matrix.
     if (useI2T) {
@@ -303,7 +303,7 @@ void fuse::jacobianElements(const IOdata& /*inputs*/,
 void fuse::setState(coreTime time,
                     const double state[],
                     const double /*dstate_dt*/[],
-                    const solverMode& sMode)
+                    const SolverMode& sMode)
 {
     if (stateSize(sMode) > 0) {
         auto offset = offsets.getDiffOffset(sMode);
@@ -320,7 +320,7 @@ double fuse::I2Tequation(double current)
 void fuse::residual(const IOdata& /*inputs*/,
                     const stateData& sD,
                     double resid[],
-                    const solverMode& sMode)
+                    const SolverMode& sMode)
 {
     if (useI2T) {
         auto offset = offsets.getDiffOffset(sMode);
@@ -347,7 +347,7 @@ void fuse::residual(const IOdata& /*inputs*/,
 void fuse::guessState(const coreTime /*time*/,
                       double state[],
                       double dstate_dt[],
-                      const solverMode& sMode)
+                      const SolverMode& sMode)
 {
     if (useI2T) {
         auto offset = offsets.getDiffOffset(sMode);
@@ -363,7 +363,7 @@ void fuse::guessState(const coreTime /*time*/,
 }
 
 void fuse::getStateName(stringVec& stNames,
-                        const solverMode& sMode,
+                        const SolverMode& sMode,
                         const std::string& prefix) const
 {
     if (stateSize(sMode) > 0) {

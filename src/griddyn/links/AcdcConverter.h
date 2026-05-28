@@ -67,14 +67,14 @@ namespace links {
         virtual double getMaxTransfer() const override;
 
         // virtual void pFlowCheck (std::vector<Violation> &Violation_vector);
-        // virtual void getVariableType (double sdata[], const solverMode &sMode);      //has no
+        // virtual void getVariableType (double sdata[], const SolverMode &sMode);      //has no
         // state variables
         virtual void updateBus(GridBus* bus, index_t busnumber) override;
 
         virtual void updateLocalCache() override;
         virtual void updateLocalCache(const IOdata& inputs,
                                       const stateData& stateDataValue,
-                                      const solverMode& sMode) override;
+                                      const SolverMode& sMode) override;
         virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
         virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
         virtual void dynObjectInitializeB(const IOdata& inputs,
@@ -82,7 +82,7 @@ namespace links {
                                           IOdata& fieldSet) override;
 
         virtual void
-            timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+            timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
         virtual double quickupdateP() override { return 0; }
 
@@ -98,35 +98,35 @@ namespace links {
                                           const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
                                           const IOlocs& inputLocs,
-                                          const solverMode& sMode) override;
+                                          const SolverMode& sMode) override;
 
         virtual void outputPartialDerivatives(const IOdata& inputs,
                                               const stateData& stateDataValue,
                                               matrixData<double>& matrixDataValue,
-                                              const solverMode& sMode) override;
+                                              const SolverMode& sMode) override;
 
         virtual void outputPartialDerivatives(id_type_t busId,
                                               const stateData& stateDataValue,
                                               matrixData<double>& matrixDataValue,
-                                              const solverMode& sMode) override;
-        virtual count_t outputDependencyCount(index_t num, const solverMode& sMode) const override;
+                                              const SolverMode& sMode) override;
+        virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
         virtual void jacobianElements(const IOdata& inputs,
                                       const stateData& stateDataValue,
                                       matrixData<double>& matrixDataValue,
                                       const IOlocs& inputLocs,
-                                      const solverMode& sMode) override;
+                                      const SolverMode& sMode) override;
         virtual void residual(const IOdata& inputs,
                               const stateData& stateDataValue,
                               double resid[],
-                              const solverMode& sMode) override;
+                              const SolverMode& sMode) override;
         virtual void setState(coreTime time,
                               const double state[],
                               const double dstateDt[],
-                              const solverMode& sMode) override;
+                              const SolverMode& sMode) override;
         virtual void guessState(coreTime time,
                                 double state[],
                                 double dstateDt[],
-                                const solverMode& sMode) override;
+                                const SolverMode& sMode) override;
         // for computing all the Jacobian elements at once
         virtual int fixRealPower(double power,
                                  id_type_t terminal,
@@ -139,7 +139,7 @@ namespace links {
                              units::unit unitType = units::defunit) override;
 
         virtual void getStateName(stringVec& stNames,
-                                  const solverMode& sMode,
+                                  const SolverMode& sMode,
                                   const std::string& prefix = "") const override;
 
       private:

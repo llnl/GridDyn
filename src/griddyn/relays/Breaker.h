@@ -56,30 +56,30 @@ class breaker: public Relay {
     virtual void updateA(coreTime time) override;
 
     // dynamic state functions
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const stateData& stateDataRef,
                                   matrixData<double>& jacobian,
                                   const IOlocs& inputLocs,
-                                  const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
     virtual void setState(coreTime time,
                           const double state[],
                           const double dstate_dt[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     virtual void residual(const IOdata& inputs,
                           const stateData& stateDataRef,
                           double resid[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     virtual void guessState(coreTime time,
                             double state[],
                             double dstate_dt[],
-                            const solverMode& sMode) override;
-    virtual stateSizes localStateSizes(const solverMode& sMode) const override;
+                            const SolverMode& sMode) override;
+    virtual stateSizes localStateSizes(const SolverMode& sMode) const override;
 
-    virtual count_t localJacobianCount(const solverMode& sMode) const override;
+    virtual count_t localJacobianCount(const SolverMode& sMode) const override;
 
     virtual void getStateName(stringVec& stNames,
-                              const solverMode& sMode,
+                              const SolverMode& sMode,
                               const std::string& prefix) const override;
 
   protected:

@@ -32,31 +32,31 @@ class Source: public GridSubModel {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     virtual IOdata getOutputs(const IOdata& inputs,
                               const stateData& sD,
-                              const solverMode& sMode) const override;
+                              const SolverMode& sMode) const override;
     virtual double getOutput(const IOdata& inputs,
                              const stateData& sD,
-                             const solverMode& sMode,
+                             const SolverMode& sMode,
                              index_t num = 0) const override;
 
     virtual double getOutput(index_t outputNum = 0) const override;
-    virtual index_t getOutputLoc(const solverMode& sMode, index_t num = 0) const override;
+    virtual index_t getOutputLoc(const SolverMode& sMode, index_t num = 0) const override;
 
     virtual units::unit outputUnits(index_t outputNum) const override;
 
-    virtual count_t outputDependencyCount(index_t num, const solverMode& sMode) const override;
+    virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
     virtual void setState(coreTime time,
                           const double state[],
                           const double dstate_dt[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     /** update the output to correspond to a new time value*/
     virtual void updateOutput(coreTime time);
     virtual void updateLocalCache(const IOdata& inputs,
                                   const stateData& sD,
-                                  const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
 
     /** update the source output and advance the model time
     @param[in] time  the time to update to

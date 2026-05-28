@@ -79,7 +79,7 @@ void Source::set(std::string_view param, double val, units::unit unitType)
 void Source::setState(coreTime time,
                       const double state[],
                       const double dstate_dt[],
-                      const solverMode& sMode)
+                      const SolverMode& sMode)
 {
     updateOutput(time);
     GridComponent::setState(time, state, dstate_dt, sMode);
@@ -95,7 +95,7 @@ void Source::updateOutput(coreTime time)
     lastTime = time;
 }
 
-void Source::timestep(coreTime time, const IOdata& /*inputs*/, const solverMode& /*sMode*/)
+void Source::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     if (time != prevTime) {
         updateOutput(time);
@@ -104,20 +104,20 @@ void Source::timestep(coreTime time, const IOdata& /*inputs*/, const solverMode&
     }
 }
 
-count_t Source::outputDependencyCount(index_t /*outputNum*/, const solverMode& /*sMode*/) const
+count_t Source::outputDependencyCount(index_t /*outputNum*/, const SolverMode& /*sMode*/) const
 {
     return 0;
 }
 IOdata Source::getOutputs(const IOdata& /*inputs*/,
                           const stateData& /*sD*/,
-                          const solverMode& /*sMode*/) const
+                          const SolverMode& /*sMode*/) const
 {
     return {m_tempOut};
 }
 
 double Source::getOutput(const IOdata& /*inputs*/,
                          const stateData& /*sD*/,
-                         const solverMode& /*sMode*/,
+                         const SolverMode& /*sMode*/,
                          index_t outputNum) const
 {
     return (outputNum == 0) ? m_tempOut : kNullVal;
@@ -133,13 +133,13 @@ units::unit Source::outputUnits(index_t outputNum) const
     return (outputNum == 0) ? outputUnits_ : units::defunit;
 }
 
-index_t Source::getOutputLoc(const solverMode& /*sMode*/, index_t /*outputNum*/) const
+index_t Source::getOutputLoc(const SolverMode& /*sMode*/, index_t /*outputNum*/) const
 {
     return kNullLocation;
 }
 void Source::updateLocalCache(const IOdata& /*inputs*/,
                               const stateData& sD,
-                              const solverMode& /*sMode*/)
+                              const SolverMode& /*sMode*/)
 {
     if ((prevTime != sD.time) && (sD.time > timeZero)) {
         m_tempOut = computeOutput(sD.time);

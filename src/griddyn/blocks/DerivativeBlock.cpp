@@ -111,7 +111,7 @@ double DerivativeBlock::step(coreTime time, double inputA)
 void DerivativeBlock::blockAlgebraicUpdate(double input,
                                            const stateData& stateDataRef,
                                            double update[],
-                                           const solverMode& sMode)
+                                           const SolverMode& sMode)
 {
     auto locationData = offsets.getLocations(stateDataRef, update, sMode, this);
     locationData.destLoc[limiter_alg] = locationData.dstateLoc[0];
@@ -124,7 +124,7 @@ void DerivativeBlock::blockDerivative(double input,
                                       double /*didt*/,
                                       const stateData& stateDataRef,
                                       double deriv[],
-                                      const solverMode& sMode)
+                                      const SolverMode& sMode)
 {
     auto offset =
         offsets.getDiffOffset(sMode);  // limiter diff must be 0 since the output is algebraic
@@ -137,7 +137,7 @@ void DerivativeBlock::blockJacobianElements(double input,
                                             const stateData& stateDataRef,
                                             matrixData<double>& jacobian,
                                             index_t argLoc,
-                                            const solverMode& sMode)
+                                            const SolverMode& sMode)
 {
     auto offset = offsets.getDiffOffset(sMode);
     if (hasDifferential(sMode)) {

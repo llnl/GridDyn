@@ -47,24 +47,24 @@ class ControlBlock: public GridBlock {
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    virtual index_t findIndex(std::string_view field, const solverMode& sMode) const override;
+    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
     virtual void blockDerivative(double input,
                                  double didt,
                                  const stateData& stateDataRef,
                                  double deriv[],
-                                 const solverMode& sMode) override;
+                                 const SolverMode& sMode) override;
     virtual void blockAlgebraicUpdate(double input,
                                       const stateData& stateDataRef,
                                       double update[],
-                                      const solverMode& sMode) override;
+                                      const SolverMode& sMode) override;
     // only called if the genModel is not present
     virtual void blockJacobianElements(double input,
                                        double didt,
                                        const stateData& stateDataRef,
                                        matrixData<double>& jacobian,
                                        index_t argLoc,
-                                       const solverMode& sMode) override;
+                                       const SolverMode& sMode) override;
     virtual double step(coreTime time, double input) override;
     // virtual void setTime(coreTime time){prevTime=time;};
     virtual stringVec localStateNames() const override;

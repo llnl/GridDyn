@@ -17,7 +17,7 @@ class matrixData;
 namespace griddyn {
 class GridDynSimulation;
 class GridComponent;
-class solverMode;
+class SolverMode;
 class SolverInterface;
 class CoreObject;
 
@@ -29,35 +29,35 @@ and a numerically calculated version from the residual,  It will not check Jacob
 dependent on other state derivatives This function is mostly useful for diagnosing problems and is
 used throughout the test suite
 @param[in] gds the GridDynSimulation object to test
-@param[in] queryMode the solverMode to check the Jacobian for
+@param[in] queryMode the SolverMode to check the Jacobian for
 @param[in] jacTol  the tolerance to check matches
 @param[in] useStateNames  set to true to collect and print state names (vs numbers) for any mismatch
 on the Jacobian check
 @return the number of mismatches
 */
 int jacobianCheck(GridDynSimulation* gds,
-                  const solverMode& queryMode,
+                  const SolverMode& queryMode,
                   double jacTol = jac_check_tol,
                   bool useStateNames = false);
 
 /** @brief do a residual check
   function checks for any non-zero residuals usually used after an initialization or step.
 @param[in] gds the griddynSimulation object to test
-@param[in] sMode the solverMode to check the residual
+@param[in] sMode the SolverMode to check the residual
 @param[in] residTol  the tolerance to check matches
 @param[in] useStateNames  set to true to collect and print state names (vs numbers) for any mismatch
 on the Jacobian check
 @return the number of mismatches
 */
 int residualCheck(GridDynSimulation* gds,
-                  const solverMode& sMode,
+                  const SolverMode& sMode,
                   double residTol = resid_check_tol,
                   bool useStateNames = false);
 /** @brief do a residual check
   function checks for any non-zero residuals usually used after an initialization or step.
 @param[in] gds the griddynSimulation object to test
 @param[in] time the time to check the residual
-@param[in] sMode the solverMode to check the residual
+@param[in] sMode the SolverMode to check the residual
 @param[in] residTol  the tolerance to check matches
 @param[in] useStateNames  set to true to collect and print state names (vs numbers) for any mismatch
 on the Jacobian check
@@ -65,7 +65,7 @@ on the Jacobian check
 */
 int residualCheck(GridDynSimulation* gds,
                   coreTime time,
-                  const solverMode& sMode,
+                  const SolverMode& sMode,
                   double residTol = resid_check_tol,
                   bool useStateNames = false);
 
@@ -75,24 +75,24 @@ std::pair<double, int> checkResid(GridDynSimulation* gds,
 std::pair<double, int>
     checkResid(GridDynSimulation* gds, coreTime time, const std::shared_ptr<SolverInterface>& sd);
 
-std::pair<double, int> checkResid(GridDynSimulation* gds, coreTime time, const solverMode& sMode);
+std::pair<double, int> checkResid(GridDynSimulation* gds, coreTime time, const SolverMode& sMode);
 
 int algebraicCheck(GridDynSimulation* gds,
                    coreTime time,
-                   const solverMode& sMode,
+                   const SolverMode& sMode,
                    double algTol = resid_check_tol,
                    bool useStateNames = false);
 
 int derivativeCheck(GridDynSimulation* gds,
                     coreTime time,
-                    const solverMode& sMode,
+                    const SolverMode& sMode,
                     double derivTol = resid_check_tol,
                     bool useStateNames = false);
 
 /** @brief do a convergence test on the solver
  */
 void dynamicSolverConvergenceTest(GridDynSimulation* gds,
-                                  const solverMode& sMode,
+                                  const SolverMode& sMode,
                                   const std::string& file,
                                   count_t pts = 100000,
                                   int mode = 0);
@@ -104,7 +104,7 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
 */
 void jacobianAnalysis(matrixData<double>& md,
                       GridDynSimulation* gds,
-                      const solverMode& sMode,
+                      const SolverMode& sMode,
                       int level);
 
 /** @brief check object equivalence
@@ -124,5 +124,5 @@ object in a hierarchy
 @param[in] comp the component to print the state sizes for
 @param[in] sMode the solver mode of the states to print
 */
-void printStateSizes(const GridComponent* comp, const solverMode& sMode);
+void printStateSizes(const GridComponent* comp, const SolverMode& sMode);
 }  // namespace griddyn

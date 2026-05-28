@@ -49,9 +49,9 @@ class DcBus: public GridBus {
 
     // dynInitializeB
 
-    virtual stateSizes localStateSizes(const solverMode& sMode) const override;
+    virtual stateSizes localStateSizes(const SolverMode& sMode) const override;
 
-    virtual count_t localJacobianCount(const solverMode& sMode) const override;
+    virtual count_t localJacobianCount(const SolverMode& sMode) const override;
 
   protected:
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -79,46 +79,46 @@ class DcBus: public GridBus {
     virtual void guessState(coreTime time,
                             double state[],
                             double dstate_dt[],
-                            const solverMode& sMode) override;
+                            const SolverMode& sMode) override;
     virtual void setState(coreTime time,
                           const double state[],
                           const double dstate_dt[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const stateData& sD,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
-                                  const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
 
-    void computeDerivatives(const stateData& sD, const solverMode& sMode);
+    void computeDerivatives(const stateData& sD, const SolverMode& sMode);
 
     virtual void residual(const IOdata& inputs,
                           const stateData& sD,
                           double resid[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     virtual void converge(coreTime time,
                           double state[],
                           double dstate_dt[],
-                          const solverMode& sMode,
+                          const SolverMode& sMode,
                           ConvergeMode mode = ConvergeMode::local_iteration,
                           double tol = 0.01) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
-    virtual double getVoltage(const double state[], const solverMode& sMode) const override;
+    virtual double getVoltage(const double state[], const SolverMode& sMode) const override;
 
-    virtual double getVoltage(const stateData& sD, const solverMode& sMode) const override;
+    virtual double getVoltage(const stateData& sD, const SolverMode& sMode) const override;
 
-    virtual IOlocs getOutputLocs(const solverMode& sMode) const override;
+    virtual IOlocs getOutputLocs(const SolverMode& sMode) const override;
 
-    virtual index_t getOutputLoc(const solverMode& sMode, index_t num = 0) const override;
+    virtual index_t getOutputLoc(const SolverMode& sMode, index_t num = 0) const override;
 
-    virtual bool useVoltage(const solverMode& sMode) const;
-    virtual int getMode(const solverMode& sMode) const;
+    virtual bool useVoltage(const SolverMode& sMode) const;
+    virtual int getMode(const SolverMode& sMode) const;
     virtual int propogatePower(bool makeSlack = false) override;
 
     virtual void getStateName(stringVec& stNames,
-                              const solverMode& sMode,
+                              const SolverMode& sMode,
                               const std::string& prefix) const override;
 
   protected:

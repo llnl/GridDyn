@@ -94,7 +94,7 @@ void fileSource::updateA(coreTime time)
     }
 }
 
-void fileSource::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void fileSource::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     if (time > nextUpdateTime) {
         updateA(time);

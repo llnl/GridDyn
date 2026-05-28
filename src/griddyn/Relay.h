@@ -195,7 +195,7 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
     */
     double getConditionValue(index_t conditionNumber,
                              const stateData& sD,
-                             const solverMode& sMode) const;
+                             const SolverMode& sMode) const;
     /** check if a particular condition is true
     @param[in] conditionNumber the index of the condition to check
     @return true if the condition is activated
@@ -260,14 +260,14 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
     virtual void rootTest(const IOdata& inputs,
                           const stateData& sD,
                           double roots[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
-                             const solverMode& sMode) override;
+                             const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
                                  const stateData& sD,
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  CheckLevel level) override;
     /** message processing function for use with communicators
     @param[in] sourceID  the source of the comm message

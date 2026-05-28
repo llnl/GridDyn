@@ -320,7 +320,7 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
 void DynamicGenerator::setState(coreTime time,
                                 const double state[],
                                 const double dstate_dt[],
-                                const solverMode& sMode)
+                                const SolverMode& sMode)
 {
     if (isDynamic(sMode)) {
         for (auto* subobj : getSubObjects()) {
@@ -341,7 +341,7 @@ void DynamicGenerator::setState(coreTime time,
 
 void DynamicGenerator::updateLocalCache(const IOdata& inputs,
                                         const stateData& stateDataValue,
-                                        const solverMode& sMode)
+                                        const SolverMode& sMode)
 {
     if ((isDynamic(sMode)) && (stateDataValue.updateRequired(subInputs.seqID))) {
         generateSubModelInputs(inputs, stateDataValue, sMode);  // generate current input values
@@ -370,7 +370,7 @@ void DynamicGenerator::updateLocalCache(const IOdata& inputs,
 void DynamicGenerator::guessState(coreTime time,
                                   double state[],
                                   double dstate_dt[],
-                                  const solverMode& sMode)
+                                  const SolverMode& sMode)
 {
     if (isDynamic(sMode)) {
         for (auto* subobj : getSubObjects()) {
@@ -487,7 +487,7 @@ void DynamicGenerator::set(std::string_view param, std::string_view val)
     }
 }
 
-void DynamicGenerator::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void DynamicGenerator::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     Generator::timestep(time, inputs, sMode);
     if (isDynamic(sMode)) {
@@ -528,7 +528,7 @@ void DynamicGenerator::timestep(coreTime time, const IOdata& inputs, const solve
 void DynamicGenerator::algebraicUpdate(const IOdata& inputs,
                                        const stateData& stateDataValue,
                                        double update[],
-                                       const solverMode& sMode,
+                                       const SolverMode& sMode,
                                        double alpha)
 {
     if (!isDynamic(sMode)) {  // the bus is managing a remote bus voltage
@@ -699,7 +699,7 @@ void DynamicGenerator::set(std::string_view param, double val, unit unitType)
 void DynamicGenerator::outputPartialDerivatives(const IOdata& inputs,
                                                 const stateData& stateDataValue,
                                                 matrixData<double>& matrixDataValue,
-                                                const solverMode& sMode)
+                                                const SolverMode& sMode)
 {
     if (!isDynamic(sMode)) {  // the bus is managing a remote bus voltage
         if (stateSize(sMode) > 0) {
@@ -724,7 +724,7 @@ void DynamicGenerator::outputPartialDerivatives(const IOdata& inputs,
                                    sMode);
 }
 
-count_t DynamicGenerator::outputDependencyCount(index_t num, const solverMode& sMode) const
+count_t DynamicGenerator::outputDependencyCount(index_t num, const SolverMode& sMode) const
 {
     if (!isDynamic(sMode)) {  // the bus is managing a remote bus voltage
         if (stateSize(sMode) > 0) {
@@ -745,7 +745,7 @@ void DynamicGenerator::ioPartialDerivatives(const IOdata& inputs,
                                             const stateData& stateDataValue,
                                             matrixData<double>& matrixDataValue,
                                             const IOlocs& inputLocs,
-                                            const solverMode& sMode)
+                                            const SolverMode& sMode)
 {
     if (isDynamic(sMode)) {
         const double scale = machineBasePower / systemBasePower;
@@ -762,7 +762,7 @@ void DynamicGenerator::ioPartialDerivatives(const IOdata& inputs,
 
 IOdata DynamicGenerator::getOutputs(const IOdata& inputs,
                                     const stateData& stateDataValue,
-                                    const solverMode& sMode) const
+                                    const SolverMode& sMode) const
 {
     if (isDynamic(sMode))  // use as a proxy for dynamic state
     {
@@ -777,7 +777,7 @@ IOdata DynamicGenerator::getOutputs(const IOdata& inputs,
 
 double DynamicGenerator::getRealPower(const IOdata& inputs,
                                       const stateData& stateDataValue,
-                                      const solverMode& sMode) const
+                                      const SolverMode& sMode) const
 {
     if (isDynamic(sMode))  // use as a proxy for dynamic state
     {
@@ -792,7 +792,7 @@ double DynamicGenerator::getRealPower(const IOdata& inputs,
 }
 double DynamicGenerator::getReactivePower(const IOdata& inputs,
                                           const stateData& stateDataValue,
-                                          const solverMode& sMode) const
+                                          const SolverMode& sMode) const
 {
     if (isDynamic(sMode))  // use as a proxy for dynamic state
     {
@@ -808,7 +808,7 @@ double DynamicGenerator::getReactivePower(const IOdata& inputs,
 void DynamicGenerator::residual(const IOdata& inputs,
                                 const stateData& stateDataValue,
                                 double resid[],
-                                const solverMode& sMode)
+                                const SolverMode& sMode)
 {
     if (!isDynamic(sMode)) {  // the bus is managing a remote bus voltage
         Generator::residual(inputs, stateDataValue, resid, sMode);
@@ -829,7 +829,7 @@ void DynamicGenerator::residual(const IOdata& inputs,
 void DynamicGenerator::derivative(const IOdata& inputs,
                                   const stateData& stateDataValue,
                                   double deriv[],
-                                  const solverMode& sMode)
+                                  const SolverMode& sMode)
 {
     updateLocalCache(inputs, stateDataValue, sMode);
     // compute the residuals
@@ -847,7 +847,7 @@ void DynamicGenerator::jacobianElements(const IOdata& inputs,
                                         const stateData& stateDataValue,
                                         matrixData<double>& matrixDataValue,
                                         const IOlocs& inputLocs,
-                                        const solverMode& sMode)
+                                        const SolverMode& sMode)
 {
     if (!isDynamic(sMode)) {  // the bus is managing a remote bus voltage
         Generator::jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
@@ -872,7 +872,7 @@ void DynamicGenerator::jacobianElements(const IOdata& inputs,
 }
 
 void DynamicGenerator::getStateName(stringVec& stNames,
-                                    const solverMode& sMode,
+                                    const SolverMode& sMode,
                                     const std::string& prefix) const
 {
     if ((!isDynamic(sMode)) && (stateSize(sMode) > 0)) {
@@ -884,7 +884,7 @@ void DynamicGenerator::getStateName(stringVec& stNames,
 void DynamicGenerator::rootTest(const IOdata& inputs,
                                 const stateData& stateDataValue,
                                 double roots[],
-                                const solverMode& sMode)
+                                const SolverMode& sMode)
 {
     updateLocalCache(inputs, stateDataValue, sMode);
 
@@ -897,7 +897,7 @@ void DynamicGenerator::rootTest(const IOdata& inputs,
 
 ChangeCode DynamicGenerator::rootCheck(const IOdata& inputs,
                                        const stateData& stateDataValue,
-                                       const solverMode& sMode,
+                                       const SolverMode& sMode,
                                        CheckLevel level)
 {
     auto ret = ChangeCode::NO_CHANGE;
@@ -916,7 +916,7 @@ ChangeCode DynamicGenerator::rootCheck(const IOdata& inputs,
 void DynamicGenerator::rootTrigger(coreTime time,
                                    const IOdata& /*inputs*/,
                                    const std::vector<int>& rootMask,
-                                   const solverMode& sMode)
+                                   const SolverMode& sMode)
 {
     for (auto* sub : getSubObjects()) {
         if (sub->checkFlag(has_roots)) {
@@ -925,7 +925,7 @@ void DynamicGenerator::rootTrigger(coreTime time,
     }
 }
 
-index_t DynamicGenerator::findIndex(std::string_view field, const solverMode& sMode) const
+index_t DynamicGenerator::findIndex(std::string_view field, const SolverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     for (auto* subobj : getSubObjects()) {
@@ -978,14 +978,14 @@ CoreObject* DynamicGenerator::getSubObject(std::string_view typeName, index_t nu
 }
 
 double DynamicGenerator::getFreq(const stateData& stateDataValue,
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  index_t* freqOffset) const
 {
     return genModel->getFreq(stateDataValue, sMode, freqOffset);
 }
 
 double DynamicGenerator::getAngle(const stateData& stateDataValue,
-                                  const solverMode& sMode,
+                                  const SolverMode& sMode,
                                   index_t* angleOffset) const
 {
     return genModel->getAngle(stateDataValue, sMode, angleOffset);
@@ -1013,7 +1013,7 @@ DynamicGenerator::subModelInputLocs::subModelInputLocs():
 
 void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
                                               const stateData& stateDataValue,
-                                              const solverMode& sMode)
+                                              const SolverMode& sMode)
 {
     if (!stateDataValue.updateRequired(subInputs.seqID)) {
         return;
@@ -1075,7 +1075,7 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
 
 void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
                                                  const stateData& stateDataValue,
-                                                 const solverMode& sMode)
+                                                 const SolverMode& sMode)
 {
     if (!stateDataValue.updateRequired(subInputLocs.seqID)) {
         return;
@@ -1122,7 +1122,7 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
 
 double DynamicGenerator::pSetControlUpdate(const IOdata& inputs,
                                            const stateData& stateDataValue,
-                                           const solverMode& sMode)
+                                           const SolverMode& sMode)
 {
     double val;
     if (pSetControl != nullptr) {
@@ -1143,16 +1143,16 @@ double DynamicGenerator::pSetControlUpdate(const IOdata& inputs,
 
 double DynamicGenerator::vSetControlUpdate(const IOdata& inputs,
                                            const stateData& stateDataValue,
-                                           const solverMode& sMode)
+                                           const SolverMode& sMode)
 {
     return (vSetControl != nullptr) ? vSetControl->getOutput(inputs, stateDataValue, sMode) : 1.0;
 }
 
-index_t DynamicGenerator::pSetLocation(const solverMode& sMode)
+index_t DynamicGenerator::pSetLocation(const SolverMode& sMode)
 {
     return (pSetControl != nullptr) ? pSetControl->getOutputLoc(sMode) : kNullLocation;
 }
-index_t DynamicGenerator::vSetLocation(const solverMode& sMode)
+index_t DynamicGenerator::vSetLocation(const SolverMode& sMode)
 {
     return (vSetControl != nullptr) ? vSetControl->getOutputLoc(sMode) : kNullLocation;
 }

@@ -70,7 +70,7 @@ void ControlSystem::set(std::string_view param, double val, units::unit unitType
     }
 }
 
-index_t ControlSystem::findIndex(std::string_view /*field*/, const solverMode& /*sMode*/) const
+index_t ControlSystem::findIndex(std::string_view /*field*/, const SolverMode& /*sMode*/) const
 {
     return kInvalidLocation;
 }
@@ -78,7 +78,7 @@ index_t ControlSystem::findIndex(std::string_view /*field*/, const solverMode& /
 void ControlSystem::residual(const IOdata& /*inputs*/,
                              const stateData& /*sD*/,
                              double /*resid*/[],
-                             const solverMode& /*sMode*/)
+                             const SolverMode& /*sMode*/)
 {
 }
 
@@ -86,33 +86,33 @@ void ControlSystem::jacobianElements(const IOdata& /*inputs*/,
                                      const stateData& /*sD*/,
                                      matrixData<double>& /*md*/,
                                      const IOlocs& /*inputLocs*/,
-                                     const solverMode& /*sMode*/)
+                                     const SolverMode& /*sMode*/)
 {
 }
 
 void ControlSystem::timestep(coreTime /*time*/,
                              const IOdata& /*inputs*/,
-                             const solverMode& /*sMode*/)
+                             const SolverMode& /*sMode*/)
 {
 }
 
 void ControlSystem::rootTest(const IOdata& /*inputs*/,
                              const stateData& /*sD*/,
                              double /*roots*/[],
-                             const solverMode& /*sMode*/)
+                             const SolverMode& /*sMode*/)
 {
 }
 
 void ControlSystem::rootTrigger(coreTime /*time*/,
                                 const IOdata& /*inputs*/,
                                 const std::vector<int>& /*rootMask*/,
-                                const solverMode& /*sMode*/)
+                                const SolverMode& /*sMode*/)
 {
 }
 
 ChangeCode ControlSystem::rootCheck(const IOdata& /*inputs*/,
                                     const stateData& /*sD*/,
-                                    const solverMode& /*sMode*/,
+                                    const SolverMode& /*sMode*/,
                                     CheckLevel /*level*/)
 {
     return ChangeCode::NO_CHANGE;

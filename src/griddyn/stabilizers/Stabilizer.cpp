@@ -40,11 +40,11 @@ void Stabilizer::dynObjectInitializeB(const IOdata& /*inputs*/,
 void Stabilizer::residual(const IOdata& /*inputs*/,
                           const stateData& /*sD*/,
                           double /*resid*/[],
-                          const solverMode& /*sMode*/)
+                          const SolverMode& /*sMode*/)
 {
 }
 
-index_t Stabilizer::findIndex(std::string_view /*field*/, const solverMode& /*sMode*/) const
+index_t Stabilizer::findIndex(std::string_view /*field*/, const SolverMode& /*sMode*/) const
 {
     return kInvalidLocation;
 }
@@ -65,7 +65,7 @@ void Stabilizer::jacobianElements(const IOdata& /*inputs*/,
                                   const stateData& /*sD*/,
                                   matrixData<double>& /*md*/,
                                   const IOlocs& /*inputLocs*/,
-                                  const solverMode& sMode)
+                                  const SolverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
         return;
@@ -75,7 +75,7 @@ void Stabilizer::jacobianElements(const IOdata& /*inputs*/,
 void Stabilizer::derivative(const IOdata& /*inputs*/,
                             const stateData& /*sD*/,
                             double /*deriv*/[],
-                            const solverMode& /*sMode*/)
+                            const SolverMode& /*sMode*/)
 {
 }
 

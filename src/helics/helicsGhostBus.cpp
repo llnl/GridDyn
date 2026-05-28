@@ -71,7 +71,7 @@ coreTime HelicsGhostBus::updateB()
     return nextUpdateTime;
 }
 
-void HelicsGhostBus::timestep(coreTime ttime, const IOdata& inputs, const solverMode& sMode)
+void HelicsGhostBus::timestep(coreTime ttime, const IOdata& inputs, const SolverMode& sMode)
 {
     while (ttime > nextUpdateTime) {
         updateA(nextUpdateTime);

@@ -61,7 +61,7 @@ void GovernorTgov1::dynObjectInitializeB(const IOdata& /*inputs*/,
 void GovernorTgov1::residual(const IOdata& inputs,
                              const stateData& sD,
                              double resid[],
-                             const solverMode& sMode)
+                             const SolverMode& sMode)
 {
     // double omega = getControlFrequency (inputs);
     double omega = inputs[govOmegaInLocation];
@@ -81,7 +81,7 @@ void GovernorTgov1::residual(const IOdata& inputs,
 void GovernorTgov1::derivative(const IOdata& inputs,
                                const stateData& sD,
                                double deriv[],
-                               const solverMode& sMode)
+                               const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, deriv, sMode, this);
 
@@ -99,7 +99,7 @@ void GovernorTgov1::derivative(const IOdata& inputs,
     Loc.destDiffLoc[0] = (Loc.diffStateLoc[1] - Loc.diffStateLoc[0] - T2 * Loc.destDiffLoc[1]) / T3;
 }
 
-void GovernorTgov1::timestep(coreTime time, const IOdata& inputs, const solverMode& /*sMode*/)
+void GovernorTgov1::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     GovernorTgov1::derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
     double dt = time - prevTime;
@@ -116,7 +116,7 @@ void GovernorTgov1::jacobianElements(const IOdata& /*inputs*/,
                                      const stateData& sD,
                                      matrixData<double>& md,
                                      const IOlocs& inputLocs,
-                                     const solverMode& sMode)
+                                     const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, nullptr, sMode, this);
 
@@ -175,7 +175,7 @@ if (opFlags.test (uses_deadband))
 void GovernorTgov1::rootTest(const IOdata& inputs,
                              const stateData& sD,
                              double roots[],
-                             const solverMode& sMode)
+                             const SolverMode& sMode)
 {
     int rootOffset = offsets.getRootOffset(sMode);
     /* if (opFlags.test (uses_deadband))
@@ -205,7 +205,7 @@ void GovernorTgov1::rootTest(const IOdata& inputs,
 void GovernorTgov1::rootTrigger(coreTime /*time*/,
                                 const IOdata& inputs,
                                 const std::vector<int>& rootMask,
-                                const solverMode& sMode)
+                                const SolverMode& sMode)
 {
     int rootOffset = offsets.getRootOffset(sMode);
     /*if (opFlags.test (uses_deadband))
@@ -239,7 +239,7 @@ void GovernorTgov1::rootTrigger(coreTime /*time*/,
     }
 }
 
-index_t GovernorTgov1::findIndex(std::string_view field, const solverMode& sMode) const
+index_t GovernorTgov1::findIndex(std::string_view field, const SolverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if ((field == "pm") || (field == "pmech")) {

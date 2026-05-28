@@ -70,11 +70,11 @@ class AGControl: public GridSubModel {
 
     virtual void updateA(coreTime time) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     virtual double getOutput(const IOdata& inputs,
                              const stateData& sD,
-                             const solverMode& sMode,
+                             const SolverMode& sMode,
                              index_t num = 0) const override;
 
     virtual double getOutput(index_t /*num*/ = 0) const override;

@@ -50,7 +50,7 @@ CoreObject* ExciterDC2A::clone(CoreObject* obj) const
 void ExciterDC2A::residual(const IOdata& inputs,
                            const stateData& sD,
                            double resid[],
-                           const solverMode& sMode)
+                           const SolverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
         return;
@@ -74,7 +74,7 @@ void ExciterDC2A::residual(const IOdata& inputs,
 void ExciterDC2A::derivative(const IOdata& inputs,
                              const stateData& sD,
                              double deriv[],
-                             const solverMode& sMode)
+                             const SolverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
         return;
@@ -116,7 +116,7 @@ void ExciterDC2A::limitJacobian(double /*V*/,
 void ExciterDC2A::rootTest(const IOdata& inputs,
                            const stateData& sD,
                            double roots[],
-                           const solverMode& sMode)
+                           const SolverMode& sMode)
 {
     auto offset = offsets.getDiffOffset(sMode);
     int rootOffset = offsets.getRootOffset(sMode);
@@ -135,7 +135,7 @@ void ExciterDC2A::rootTest(const IOdata& inputs,
 
 ChangeCode ExciterDC2A::rootCheck(const IOdata& inputs,
                                   const stateData& /*sD*/,
-                                  const solverMode& /*sMode*/,
+                                  const SolverMode& /*sMode*/,
                                   CheckLevel /*level*/)
 {
     double* es = m_state.data();

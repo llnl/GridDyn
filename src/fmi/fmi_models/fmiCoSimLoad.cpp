@@ -58,7 +58,7 @@ void FmiCoSimLoad::dynObjectInitializeB(const IOdata& inputs,
 void FmiCoSimLoad::setState(coreTime time,
                             const double state[],
                             const double dstateDt[],
-                            const solverMode& sMode)
+                            const SolverMode& sMode)
 {
     fmisub->setState(time, state, dstateDt, sMode);
     auto out = fmisub->getOutputs(noInputs, emptyStateData, cLocalSolverMode);

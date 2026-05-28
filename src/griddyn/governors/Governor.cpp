@@ -137,7 +137,7 @@ void Governor::dynObjectInitializeB(const IOdata& inputs,
 void Governor::residual(const IOdata& inputs,
                         const stateData& sD,
                         double resid[],
-                        const solverMode& sMode)
+                        const SolverMode& sMode)
 {
     cb.blockResidual(inputs[govOmegaInLocation], 0, sD, resid, sMode);
     dbb.blockResidual(cb.getBlockOutput(sD, sMode), 0, sD, resid, sMode);
@@ -145,7 +145,7 @@ void Governor::residual(const IOdata& inputs,
         dbb.getBlockOutput(sD, sMode) + inputs[govpSetInLocation], 0, sD, resid, sMode);
 }
 
-void Governor::timestep(coreTime time, const IOdata& inputs, const solverMode& /*sMode*/)
+void Governor::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     double out = cb.step(time, inputs[govOmegaInLocation]);
 
@@ -156,7 +156,7 @@ void Governor::timestep(coreTime time, const IOdata& inputs, const solverMode& /
 void Governor::derivative(const IOdata& inputs,
                           const stateData& sD,
                           double deriv[],
-                          const solverMode& sMode)
+                          const SolverMode& sMode)
 {
     IOdata i{inputs[govOmegaInLocation]};  // deadband doesn't have any derivatives
     cb.derivative(i, sD, deriv, sMode);
@@ -168,7 +168,7 @@ void Governor::jacobianElements(const IOdata& inputs,
                                 const stateData& sD,
                                 matrixData<double>& md,
                                 const IOlocs& inputLocs,
-                                const solverMode& sMode)
+                                const SolverMode& sMode)
 {
     cb.blockJacobianElements(
         inputs[govOmegaInLocation], 0, sD, md, inputLocs[govOmegaInLocation], sMode);
@@ -233,7 +233,7 @@ void Governor::jacobianElements(const IOdata& inputs,
 void Governor::rootTest(const IOdata& /*inputs*/,
                         const stateData& sD,
                         double roots[],
-                        const solverMode& sMode)
+                        const SolverMode& sMode)
 {
     IOdata i{cb.getOutput(kNullVec, sD, sMode)};
     if (dbb.checkFlag(has_roots)) {
@@ -245,7 +245,7 @@ void Governor::rootTest(const IOdata& /*inputs*/,
     }
 }
 
-index_t Governor::findIndex(std::string_view field, const solverMode& sMode) const
+index_t Governor::findIndex(std::string_view field, const SolverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if (field == "pm") {

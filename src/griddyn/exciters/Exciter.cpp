@@ -101,12 +101,12 @@ void Exciter::dynObjectInitializeB(const IOdata& inputs,
 void Exciter::residual(const IOdata& inputs,
                        const stateData& stateData,
                        double resid[],
-                       const solverMode& solverMode)
+                       const SolverMode& SolverMode)
 {
-    if (isAlgebraicOnly(solverMode)) {
+    if (isAlgebraicOnly(SolverMode)) {
         return;
     }
-    auto offset = offsets.getDiffOffset(solverMode);
+    auto offset = offsets.getDiffOffset(SolverMode);
     const auto* exciterState = stateData.state + offset;
     const auto* exciterStateDerivatives = stateData.dstate_dt + offset;
     auto* residualValues = resid + offset;
@@ -122,9 +122,9 @@ void Exciter::residual(const IOdata& inputs,
 void Exciter::derivative(const IOdata& inputs,
                          const stateData& stateData,
                          double deriv[],
-                         const solverMode& solverMode)
+                         const SolverMode& SolverMode)
 {
-    auto locations = offsets.getLocations(stateData, deriv, solverMode, this);
+    auto locations = offsets.getLocations(stateData, deriv, SolverMode, this);
     const auto* exciterState = locations.diffStateLoc;
     auto* derivatives = locations.destDiffLoc;
     if (opFlags[outside_vlim]) {
@@ -139,12 +139,12 @@ void Exciter::jacobianElements(const IOdata& /*inputs*/,
                                const stateData& stateData,
                                matrixData<double>& matrix,
                                const IOlocs& inputLocs,
-                               const solverMode& solverMode)
+                               const SolverMode& SolverMode)
 {
-    if (isAlgebraicOnly(solverMode)) {
+    if (isAlgebraicOnly(SolverMode)) {
         return;
     }
-    auto offset = offsets.getDiffOffset(solverMode);
+    auto offset = offsets.getDiffOffset(SolverMode);
 
     if (opFlags[outside_vlim]) {
         matrix.assign(offset, offset, -stateData.cj);
@@ -157,10 +157,10 @@ void Exciter::jacobianElements(const IOdata& /*inputs*/,
 void Exciter::rootTest(const IOdata& inputs,
                        const stateData& stateData,
                        double root[],
-                       const solverMode& solverMode)
+                       const SolverMode& SolverMode)
 {
-    auto offset = offsets.getDiffOffset(solverMode);
-    const auto rootOffset = offsets.getRootOffset(solverMode);
+    auto offset = offsets.getDiffOffset(SolverMode);
+    const auto rootOffset = offsets.getRootOffset(SolverMode);
     const double eField = stateData.state[offset];
 
     if (opFlags[outside_vlim]) {
@@ -176,9 +176,9 @@ void Exciter::rootTest(const IOdata& inputs,
 void Exciter::rootTrigger(coreTime time,
                           const IOdata& inputs,
                           const std::vector<int>& rootMask,
-                          const solverMode& solverMode)
+                          const SolverMode& SolverMode)
 {
-    const auto rootOffset = offsets.getRootOffset(solverMode);
+    const auto rootOffset = offsets.getRootOffset(SolverMode);
     if (rootMask[rootOffset] != 0) {
         if (opFlags[outside_vlim]) {
             logging::normal(this, "root trigger back in bounds");
@@ -204,7 +204,7 @@ void Exciter::rootTrigger(coreTime time,
 
 ChangeCode Exciter::rootCheck(const IOdata& inputs,
                               const stateData& /*stateData*/,
-                              const solverMode& /*solverMode*/,
+                              const SolverMode& /*SolverMode*/,
                               CheckLevel /*level*/)
 {
     const double eField = m_state[0];

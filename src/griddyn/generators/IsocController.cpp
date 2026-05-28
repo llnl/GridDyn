@@ -91,7 +91,7 @@ void isocController::updateA(coreTime time)
     // printf("t=%f,output=%f\n", time, m_output);
 }
 
-void isocController::timestep(coreTime time, const IOdata& inputs, const solverMode& /*sMode*/)
+void isocController::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     prevTime = time;
     lastFreq = inputs[0];

@@ -45,7 +45,7 @@ CoreObject* dcLink::clone(CoreObject* obj) const
     return nobj;
 }
 
-void dcLink::timestep(coreTime /*time*/, const IOdata& /*inputs*/, const solverMode& /*sMode*/)
+void dcLink::timestep(coreTime /*time*/, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     if (!isEnabled()) {
         return;
@@ -133,7 +133,7 @@ void dcLink::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
     }
 }
 
-stateSizes dcLink::localStateSizes(const solverMode& sMode) const
+stateSizes dcLink::localStateSizes(const SolverMode& sMode) const
 {
     stateSizes localSS;
     if (isDynamic(sMode)) {
@@ -148,7 +148,7 @@ stateSizes dcLink::localStateSizes(const solverMode& sMode) const
     return localSS;
 }
 
-count_t dcLink::localJacobianCount(const solverMode& sMode) const
+count_t dcLink::localJacobianCount(const SolverMode& sMode) const
 {
     count_t jacCount = 0;
     if (isDynamic(sMode)) {
@@ -167,7 +167,7 @@ void dcLink::ioPartialDerivatives(id_type_t busId,
                                   const stateData& stateData,
                                   matrixData<double>& jacobian,
                                   const IOlocs& inputLocs,
-                                  const solverMode& sMode)
+                                  const SolverMode& sMode)
 {
     // check if line is enabled
     updateLocalCache(noInputs, stateData, sMode);
@@ -185,7 +185,7 @@ void dcLink::ioPartialDerivatives(id_type_t busId,
 void dcLink::outputPartialDerivatives(id_type_t busId,
                                       const stateData& stateData,
                                       matrixData<double>& jacobian,
-                                      const solverMode& sMode)
+                                      const SolverMode& sMode)
 {
     if (!(isEnabled())) {
         return;
@@ -227,7 +227,7 @@ void dcLink::outputPartialDerivatives(id_type_t busId,
     }
 }
 
-count_t dcLink::outputDependencyCount(index_t num, const solverMode& /*sMode*/) const
+count_t dcLink::outputDependencyCount(index_t num, const SolverMode& /*sMode*/) const
 {
     return (num == PoutLocation) ? 1 : 0;
 }
@@ -236,7 +236,7 @@ void dcLink::jacobianElements(const IOdata& /*inputs*/,
                               const stateData& stateData,
                               matrixData<double>& jacobian,
                               const IOlocs& /*inputLocs*/,
-                              const solverMode& sMode)
+                              const SolverMode& sMode)
 {
     if (stateSize(sMode) > 0) {
         const int bus1VoltageOffset = B1->getOutputLoc(sMode, voltageInLocation);
@@ -264,7 +264,7 @@ void dcLink::jacobianElements(const IOdata& /*inputs*/,
 void dcLink::residual(const IOdata& inputs,
                       const stateData& stateData,
                       double resid[],
-                      const solverMode& sMode)
+                      const SolverMode& sMode)
 {
     if (stateSize(sMode) > 0) {
         updateLocalCache(inputs, stateData, sMode);
@@ -287,7 +287,7 @@ void dcLink::residual(const IOdata& inputs,
 void dcLink::setState(coreTime time,
                       const double state[],
                       const double dstateDt[],
-                      const solverMode& sMode)
+                      const SolverMode& sMode)
 {
     if (stateSize(sMode) > 0) {
         if (isDynamic(sMode)) {
@@ -306,7 +306,7 @@ void dcLink::setState(coreTime time,
 void dcLink::guessState(const coreTime /*time*/,
                         double state[],
                         double dstateDt[],
-                        const solverMode& sMode)
+                        const SolverMode& sMode)
 {
     if (stateSize(sMode) > 0) {
         if (isDynamic(sMode)) {
@@ -321,7 +321,7 @@ void dcLink::guessState(const coreTime /*time*/,
 }
 
 void dcLink::getStateName(stringVec& stNames,
-                          const solverMode& sMode,
+                          const SolverMode& sMode,
                           const std::string& prefix) const
 {
     if (stateSize(sMode) > 0) {
@@ -334,7 +334,7 @@ void dcLink::getStateName(stringVec& stNames,
 
 void dcLink::updateLocalCache(const IOdata& /*inputs*/,
                               const stateData& stateData,
-                              const solverMode& sMode)
+                              const SolverMode& sMode)
 {
     if (!stateData.updateRequired(linkInfo.seqID)) {
         return;

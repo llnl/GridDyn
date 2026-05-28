@@ -71,52 +71,52 @@ class gridPrimary: public GridComponent {
     virtual void setState(coreTime time,
                           const double state[],
                           const double dstate_dt[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     /** @brief get the residual computation for object requiring a delay
       basically calls the residual calculation on the delayed objects
     @param[in] stateDataValue the data representing the current state to operate on
     @param[out] resid the array to store the computed derivative values
-    @param[in] sMode the solverMode which is being solved for
+    @param[in] sMode the SolverMode which is being solved for
     */
     virtual void delayedResidual(const IOdata& inputs,
                                  const stateData& stateDataValue,
                                  double resid[],
-                                 const solverMode& sMode);
+                                 const SolverMode& sMode);
 
     /** @brief get the residual computation for object requiring a delay
       basically calls the derivative calculation on the delayed objects
     @param[in] stateDataValue the data representing the current state to operate on
     @param[out] deriv the array to store the computed derivative values
-    @param[in] sMode the solverMode which is being solved for
+    @param[in] sMode the SolverMode which is being solved for
     */
     virtual void delayedDerivative(const IOdata& inputs,
                                    const stateData& stateDataValue,
                                    double deriv[],
-                                   const solverMode& sMode);
+                                   const SolverMode& sMode);
 
     /** @brief get the algebraic update for object requesting a delay
       basically calls the residual calculation on the delayed objects
     @param[in] stateDataValue the data representing the current state to operate on
     @param[out] update the array to store the computed derivative values
-    @param[in] sMode the solverMode which is being solved for
+    @param[in] sMode the SolverMode which is being solved for
     */
     virtual void delayedAlgebraicUpdate(const IOdata& inputs,
                                         const stateData& stateDataValue,
                                         double update[],
-                                        const solverMode& sMode,
+                                        const SolverMode& sMode,
                                         double alpha);
 
     /** @brief get the residual computation for object requiring a delay
       basically calls the Jacobian calculation on the delayed objects
     @param[in] stateDataValue the data representing the current state to operate on
     @param[out] matrixDataValue the matrixData structure to store the Jacobian values
-    @param[in] sMode the solverMode which is being solved for
+    @param[in] sMode the SolverMode which is being solved for
     */
     virtual void delayedJacobian(const IOdata& inputs,
                                  const stateData& stateDataValue,
                                  matrixData<double>& matrixDataValue,
                                  const IOlocs& inputLocs,
-                                 const solverMode& sMode);
+                                 const SolverMode& sMode);
 
     /** @brief  try to shift the states to something more consistent
       called when the current states do not make a consistent condition,  calling converge will
@@ -126,14 +126,14 @@ class gridPrimary: public GridComponent {
     @param[in] time  the time of the corresponding states
     @param[in,out]  state the states of the system at present and shifted to match the updates
     @param[in,out] dstate_dt  the derivatives of the state that get updated
-    @param[in] sMode the solverMode matching the states
+    @param[in] sMode the SolverMode matching the states
     @param[in] mode  the mode of the convergence
     @param[in] tol  the convergence tolerance
     */
     virtual void converge(coreTime time,
                           double state[],
                           double dstate_dt[],
-                          const solverMode& sMode,
+                          const SolverMode& sMode,
                           ConvergeMode mode = ConvergeMode::high_error_only,
                           double tol = 0.01);
 

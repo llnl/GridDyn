@@ -45,7 +45,7 @@ double rampSource::computeOutput(coreTime time) const
 
 double rampSource::getDoutdt(const IOdata& /*inputs*/,
                              const stateData& /*sD*/,
-                             const solverMode& /*sMode*/,
+                             const SolverMode& /*sMode*/,
                              index_t num) const
 {
     return (num == 0) ? mp_dOdt : 0.0;

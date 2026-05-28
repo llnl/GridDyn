@@ -79,81 +79,81 @@ class FmiMESubModel: public GridSubModel {
 
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
-    virtual index_t findIndex(std::string_view field, const solverMode& sMode) const override;
-    virtual stateSizes localStateSizes(const solverMode& sMode) const override;
+    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
+    virtual stateSizes localStateSizes(const SolverMode& sMode) const override;
 
-    virtual count_t localJacobianCount(const solverMode& sMode) const override;
+    virtual count_t localJacobianCount(const SolverMode& sMode) const override;
 
     virtual std::pair<count_t, count_t>
-        LocalRootCount(const solverMode& /* sMode */) const override;
+        LocalRootCount(const SolverMode& /* sMode */) const override;
     virtual void residual(const IOdata& inputs,
                           const stateData& sD,
                           double resid[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     virtual void derivative(const IOdata& inputs,
                             const stateData& sD,
                             double deriv[],
-                            const solverMode& sMode) override;
+                            const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const stateData& sD,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
-                                  const solverMode& sMode) override;
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void ioPartialDerivatives(const IOdata& inputs,
                                       const stateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
-                                      const solverMode& sMode) override;
+                                      const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const stateData& sD,
                                           matrixData<double>& md,
-                                          const solverMode& sMode) override;
+                                          const SolverMode& sMode) override;
     virtual void rootTest(const IOdata& inputs,
                           const stateData& sD,
                           double roots[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
-                             const solverMode& sMode) override;
+                             const SolverMode& sMode) override;
 
     IOdata getOutputs(const IOdata& inputs,
                       const stateData& sD,
-                      const solverMode& sMode) const override;
+                      const SolverMode& sMode) const override;
     virtual double getDoutdt(const IOdata& inputs,
                              const stateData& sD,
-                             const solverMode& sMode,
+                             const SolverMode& sMode,
                              index_t outputNum = 0) const override;
     virtual double getOutput(const IOdata& inputs,
                              const stateData& sD,
-                             const solverMode& sMode,
+                             const SolverMode& sMode,
                              index_t outputNum = 0) const override;
 
     virtual double getOutput(index_t outputNum = 0) const override;
-    virtual index_t getOutputLoc(const solverMode& sMode, index_t outputNum = 0) const override;
+    virtual index_t getOutputLoc(const SolverMode& sMode, index_t outputNum = 0) const override;
 
     virtual void setState(coreTime time,
                           const double state[],
                           const double dstateDt[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     // for saving the state
     virtual void guessState(coreTime time,
                             double state[],
                             double dstateDt[],
-                            const solverMode& sMode) override;
+                            const SolverMode& sMode) override;
 
-    virtual void getTols(double tols[], const solverMode& sMode) override;
+    virtual void getTols(double tols[], const SolverMode& sMode) override;
 
     virtual void getStateName(stringVec& stNames,
-                              const solverMode& sMode,
+                              const SolverMode& sMode,
                               const std::string& prefix = "") const override;
 
     virtual bool isLoaded() const;
 
     virtual void updateLocalCache(const IOdata& inputs,
                                   const stateData& sD,
-                                  const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
 
   protected:
     void makeSettableState();

@@ -93,13 +93,13 @@ void grabberSource::dynObjectInitializeB(const IOdata& /*inputs*/,
 }
 IOdata grabberSource::getOutputs(const IOdata& /*inputs*/,
                                  const stateData& sD,
-                                 const solverMode& sMode) const
+                                 const SolverMode& sMode) const
 {
     return {gset->grabData(sD, sMode)};
 }
 double grabberSource::getOutput(const IOdata& /*inputs*/,
                                 const stateData& sD,
-                                const solverMode& sMode,
+                                const SolverMode& sMode,
                                 index_t outputNum) const
 {
     if (outputNum == 0) {
@@ -118,7 +118,7 @@ double grabberSource::getOutput(index_t outputNum) const
 
 double grabberSource::getDoutdt(const IOdata& /*inputs*/,
                                 const stateData& /*sD*/,
-                                const solverMode& /*sMode*/,
+                                const SolverMode& /*sMode*/,
                                 index_t /*outputNum*/) const
 {
     return 0.0;

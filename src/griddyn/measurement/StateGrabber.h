@@ -23,9 +23,9 @@ namespace griddyn {
 using objJacFunction = std::function<void(GridComponent* comp,
                                           const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
-                                          const solverMode& sMode)>;
+                                          const SolverMode& sMode)>;
 using objStateGrabberFunction = std::function<
-    double(GridComponent* comp, const stateData& stateDataValue, const solverMode& sMode)>;
+    double(GridComponent* comp, const stateData& stateDataValue, const SolverMode& sMode)>;
 
 /** define if the grabber can compute the Jacobian information*/
 enum class JacobianMode {
@@ -77,14 +77,14 @@ class stateGrabber: public ObjectOperatorInterface {
     @param[in] stateDataValue the stateData to grab the data from
     @param[in] sMode the solver mode associated with the stateData
     */
-    virtual double grabData(const stateData& stateDataValue, const solverMode& sMode);
+    virtual double grabData(const stateData& stateDataValue, const SolverMode& sMode);
     /** compute the partial derivatives of a grabber
     @param[in] stateDataValue the stateData for computing the information
     @param[in] matrixDataValue the  matrix to store the computed Jacobian information into
-    @param[in] sMode the solverMode associated with the stateData*/
+    @param[in] sMode the SolverMode associated with the stateData*/
     virtual void outputPartialDerivatives(const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
-                                          const solverMode& sMode);
+                                          const SolverMode& sMode);
     virtual void updateObject(CoreObject* obj,
                               ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
     virtual CoreObject* getObject() const override;
@@ -108,7 +108,7 @@ class stateGrabber: public ObjectOperatorInterface {
 };
 
 using fstateobjectPair = std::pair<
-    std::function<double(GridComponent*, const stateData& stateDataValue, const solverMode& sMode)>,
+    std::function<double(GridComponent*, const stateData& stateDataValue, const SolverMode& sMode)>,
     units::unit>;
 
 /** construct a vector of state grabbers from a specific command string
@@ -153,10 +153,10 @@ class stateFunctionGrabber: public stateGrabber {
     stateFunctionGrabber(std::shared_ptr<stateGrabber> ggb, std::string func);
     virtual std::unique_ptr<stateGrabber> clone() const override;
     virtual void cloneTo(stateGrabber* ggb) const override;
-    virtual double grabData(const stateData& stateDataValue, const solverMode& sMode) override;
+    virtual double grabData(const stateData& stateDataValue, const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
-                                          const solverMode& sMode) override;
+                                          const SolverMode& sMode) override;
     virtual void updateObject(CoreObject* obj,
                               ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
     virtual CoreObject* getObject() const override;
@@ -180,10 +180,10 @@ class stateOpGrabber: public stateGrabber {
                    std::string operationName);
     virtual std::unique_ptr<stateGrabber> clone() const override;
     virtual void cloneTo(stateGrabber* ggb) const override;
-    virtual double grabData(const stateData& stateDataValue, const solverMode& sMode) override;
+    virtual double grabData(const stateData& stateDataValue, const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
-                                          const solverMode& sMode) override;
+                                          const SolverMode& sMode) override;
     virtual void updateObject(CoreObject* obj,
                               ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
     /** overload for updating an object to a specific number of the underlying stateGrabbers

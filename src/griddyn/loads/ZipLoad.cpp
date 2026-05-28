@@ -120,7 +120,7 @@ void ZipLoad::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t flags)
 #endif
 }
 
-void ZipLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& /*sMode*/)
+void ZipLoad::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     if (!isConnected()) {
         Pout = 0;
@@ -454,7 +454,7 @@ double ZipLoad::getx() const
 
 void ZipLoad::updateLocalCache(const IOdata& /*inputs*/,
                                const stateData& sD,
-                               const solverMode& /*sMode*/)
+                               const SolverMode& /*sMode*/)
 {
     lastTime = sD.time;
 }
@@ -462,7 +462,7 @@ void ZipLoad::updateLocalCache(const IOdata& /*inputs*/,
 void ZipLoad::setState(coreTime time,
                        const double state[],
                        const double dstate_dt[],
-                       const solverMode& sMode)
+                       const SolverMode& sMode)
 {
     stateData sD(time, state, dstate_dt);
     updateLocalCache(noInputs, sD, sMode);
@@ -502,7 +502,7 @@ double ZipLoad::getReactivePower() const
 }
 
 double
-    ZipLoad::getRealPower(const IOdata& inputs, const stateData& sD, const solverMode& sMode) const
+    ZipLoad::getRealPower(const IOdata& inputs, const stateData& sD, const SolverMode& sMode) const
 {
     double voltage = (inputs.empty()) ? (bus->getVoltage(sD, sMode)) : inputs[voltageInLocation];
     return getRealPower(voltage);
@@ -510,7 +510,7 @@ double
 
 double ZipLoad::getReactivePower(const IOdata& inputs,
                                  const stateData& sD,
-                                 const solverMode& sMode) const
+                                 const SolverMode& sMode) const
 {
     double voltage = (inputs.empty()) ? (bus->getVoltage(sD, sMode)) : inputs[voltageInLocation];
     return getReactivePower(voltage);
@@ -541,7 +541,7 @@ double ZipLoad::getReactivePower(double voltage) const
 void ZipLoad::outputPartialDerivatives(const IOdata& inputs,
                                        const stateData& sD,
                                        matrixData<double>& md,
-                                       const solverMode& sMode)
+                                       const SolverMode& sMode)
 {
     if (inputs.empty())  // we only have output derivatives if the input arguments are not counted
     {
@@ -551,7 +551,7 @@ void ZipLoad::outputPartialDerivatives(const IOdata& inputs,
     }
 }
 
-count_t ZipLoad::outputDependencyCount(index_t /*num*/, const solverMode& /*sMode*/) const
+count_t ZipLoad::outputDependencyCount(index_t /*num*/, const SolverMode& /*sMode*/) const
 {
     return 0;
 }
@@ -559,7 +559,7 @@ void ZipLoad::ioPartialDerivatives(const IOdata& inputs,
                                    const stateData& sD,
                                    matrixData<double>& md,
                                    const IOlocs& inputLocs,
-                                   const solverMode& sMode)
+                                   const SolverMode& sMode)
 {
     if (sD.time != lastTime) {
         updateLocalCache(inputs, sD, sMode);

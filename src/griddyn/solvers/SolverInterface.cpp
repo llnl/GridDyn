@@ -542,14 +542,14 @@ std::unique_ptr<SolverInterface> makeSolver(GridDynSimulation* gds, const solver
     if (isLocal(sMode)) {
         sd = std::make_unique<SolverInterface>(gds, sMode);
     } else if ((isAlgebraicOnly(sMode)) || (!isDynamic(sMode))) {
-        sd = std::make_unique<solvers::kinsolInterface>(gds, sMode);
+        sd = std::make_unique<solvers::KinsolInterface>(gds, sMode);
         if (sMode.offsetIndex == power_flow) {
             sd->setName("powerflow");
         } else if (sMode.offsetIndex == dynamic_algebraic) {
             sd->setName("algebraic");
         }
     } else if (isDAE(sMode)) {
-        sd = std::make_unique<solvers::idaInterface>(gds, sMode);
+        sd = std::make_unique<solvers::IdaInterface>(gds, sMode);
         if (sMode.offsetIndex == dae) {
             sd->setName("dynamic");
         }

@@ -14,7 +14,7 @@
 namespace griddyn::solvers {
 /** @brief SolverInterface interfacing to the SUNDIALS cvode solver
  */
-class cvodeInterface: public SundialsInterface {
+class CvodeInterface: public SundialsInterface {
   public:
     using SundialsInterface::set;
     count_t icCount = 0;  //!< total number of initial condition calls
@@ -28,14 +28,14 @@ class cvodeInterface: public SundialsInterface {
 
   public:
     /** @brief constructor*/
-    explicit cvodeInterface(const std::string& objName = "cvode");
+    explicit CvodeInterface(const std::string& objName = "cvode");
     /** @brief alternate constructor
 @param[in] gds  the GridDynSimulation object to connect to
 @param[in] sMode the solverMode to solve For
 */
-    cvodeInterface(GridDynSimulation* gds, const solverMode& sMode);
+    CvodeInterface(GridDynSimulation* gds, const solverMode& sMode);
     /** @brief destructor*/
-    virtual ~cvodeInterface();
+    virtual ~CvodeInterface();
 
     virtual std::unique_ptr<SolverInterface> clone(bool fullCopy = false) const override;
 

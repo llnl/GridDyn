@@ -13,19 +13,19 @@
 namespace griddyn::solvers {
 /** @brief SolverInterface interfacing to the SUNDIALS kinsol solver
  */
-class kinsolInterface: public SundialsInterface {
+class KinsolInterface: public SundialsInterface {
   public:
     using SundialsInterface::set;
     /** @brief constructor*/
-    explicit kinsolInterface(const std::string& objName = "kinsol");
+    explicit KinsolInterface(const std::string& objName = "kinsol");
     /** @brief constructor loading the SolverInterface structure*
 @param[in] gds  the GridDynSimulation to link with
 @param[in] sMode the solverMode for the solver
 */
-    kinsolInterface(GridDynSimulation* gds, const solverMode& sMode);
+    KinsolInterface(GridDynSimulation* gds, const solverMode& sMode);
     /** @brief destructor
      */
-    virtual ~kinsolInterface();
+    virtual ~KinsolInterface();
 
     virtual std::unique_ptr<SolverInterface> clone(bool fullCopy = false) const override;
 

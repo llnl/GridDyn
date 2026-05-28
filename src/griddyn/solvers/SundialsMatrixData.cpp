@@ -15,12 +15,12 @@ std::unique_ptr<matrixData<double>> makeSundialsMatrixData(SUNMatrix J)
 {
     switch (SUNMatGetID(J)) {
         case SUNMATRIX_DENSE:
-            return std::make_unique<sundialsMatrixDataDense>(J);
+            return std::make_unique<SundialsMatrixDataDense>(J);
         case SUNMATRIX_SPARSE:
             if (SM_SPARSETYPE_S(J) == CSR_MAT) {
-                return std::make_unique<sundialsMatrixDataSparseRow>(J);
+                return std::make_unique<SundialsMatrixDataSparseRow>(J);
             } else {
-                return std::make_unique<sundialsMatrixDataSparseColumn>(J);
+                return std::make_unique<SundialsMatrixDataSparseColumn>(J);
             }
         case SUNMATRIX_CUSTOM:
         default:

@@ -14,7 +14,7 @@
 namespace griddyn::solvers {
 /** @brief SolverInterface interfacing to the SUNDIALS IDA solver
  */
-class idaInterface: public SundialsInterface {
+class IdaInterface: public SundialsInterface {
   public:
     using SundialsInterface::set;
     count_t icCount = 0;  //!< the number of times the initical condition function was called
@@ -25,14 +25,14 @@ class idaInterface: public SundialsInterface {
     std::vector<double> tempState;  //!< temporary holding location for a state vector
   public:
     /** @brief constructor*/
-    explicit idaInterface(const std::string& objName = "ida");
+    explicit IdaInterface(const std::string& objName = "ida");
     /** @brief alternate constructor
 @param[in] gds  the GridDynSimulation object to connect to
 @param[in] sMode the solverMode to solve For
 */
-    idaInterface(GridDynSimulation* gds, const solverMode& sMode);
+    IdaInterface(GridDynSimulation* gds, const solverMode& sMode);
     /** @brief destructor*/
-    ~idaInterface();
+    ~IdaInterface();
 
     virtual std::unique_ptr<SolverInterface> clone(bool fullCopy = false) const override;
 

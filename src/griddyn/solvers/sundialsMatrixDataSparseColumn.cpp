@@ -9,18 +9,18 @@
 #include <cstring>
 
 namespace griddyn::solvers {
-sundialsMatrixDataSparseColumn::sundialsMatrixDataSparseColumn(SUNMatrix mat):
+SundialsMatrixDataSparseColumn::SundialsMatrixDataSparseColumn(SUNMatrix mat):
     matrixData<double>(static_cast<count_t>(SM_ROWS_S(mat)),
                        static_cast<count_t>(SM_COLUMNS_S(mat))),
     J(mat)
 {
 }
 
-void sundialsMatrixDataSparseColumn::clear()
+void SundialsMatrixDataSparseColumn::clear()
 {
     SUNMatZero(J);
 }
-void sundialsMatrixDataSparseColumn::assign(index_t row, index_t col, double num)
+void SundialsMatrixDataSparseColumn::assign(index_t row, index_t col, double num)
 {
     int sti = SM_INDEXPTRS_S(J)[col];
     int stp = SM_INDEXPTRS_S(J)[col + 1];
@@ -35,22 +35,22 @@ void sundialsMatrixDataSparseColumn::assign(index_t row, index_t col, double num
     }
 }
 
-void sundialsMatrixDataSparseColumn::setMatrix(SUNMatrix mat)
+void SundialsMatrixDataSparseColumn::setMatrix(SUNMatrix mat)
 {
     J = mat;
     setRowLimit(static_cast<count_t>(SM_ROWS_S(J)));
     setColLimit(static_cast<count_t>(SM_COLUMNS_S(J)));
 }
 
-count_t sundialsMatrixDataSparseColumn::size() const
+count_t SundialsMatrixDataSparseColumn::size() const
 {
     return static_cast<count_t>(SM_INDEXPTRS_S(J)[colLimit()]);
 }
-count_t sundialsMatrixDataSparseColumn::capacity() const
+count_t SundialsMatrixDataSparseColumn::capacity() const
 {
     return static_cast<count_t>(SM_NNZ_S(J));
 }
-matrixElement<double> sundialsMatrixDataSparseColumn::element(index_t N) const
+matrixElement<double> SundialsMatrixDataSparseColumn::element(index_t N) const
 {
     matrixElement<double> ret;
     ret.row = static_cast<index_t>(SM_INDEXVALS_S(J)[N]);
@@ -61,13 +61,13 @@ matrixElement<double> sundialsMatrixDataSparseColumn::element(index_t N) const
     return ret;
 }
 
-void sundialsMatrixDataSparseColumn::start()
+void SundialsMatrixDataSparseColumn::start()
 {
     cur = 0;
     ccol = 0;
 }
 
-matrixElement<double> sundialsMatrixDataSparseColumn::next()
+matrixElement<double> SundialsMatrixDataSparseColumn::next()
 {
     matrixElement<double> ret{static_cast<index_t>(SM_INDEXVALS_S(J)[cur]),
                               ccol,
@@ -83,7 +83,7 @@ matrixElement<double> sundialsMatrixDataSparseColumn::next()
     return ret;
 }
 
-double sundialsMatrixDataSparseColumn::at(index_t rowN, index_t colN) const
+double SundialsMatrixDataSparseColumn::at(index_t rowN, index_t colN) const
 {
     if (static_cast<int>(colN) > SM_COLUMNS_S(J)) {
         return 0.0;

@@ -9,43 +9,43 @@
 #include <cstring>
 
 namespace griddyn::solvers {
-sundialsMatrixDataDense::sundialsMatrixDataDense(SUNMatrix mat):
+SundialsMatrixDataDense::SundialsMatrixDataDense(SUNMatrix mat):
     matrixData<double>(static_cast<count_t>(SM_ROWS_D(mat)),
                        static_cast<count_t>(SM_COLUMNS_D(mat))),
     J(mat)
 {
 }
-void sundialsMatrixDataDense::clear()
+void SundialsMatrixDataDense::clear()
 {
     SUNMatZero(J);
 }
-void sundialsMatrixDataDense::assign(index_t X, index_t Y, double num)
+void SundialsMatrixDataDense::assign(index_t X, index_t Y, double num)
 {
     SM_ELEMENT_D(J, X, Y) += num;
 }
-void sundialsMatrixDataDense::setMatrix(SUNMatrix mat)
+void SundialsMatrixDataDense::setMatrix(SUNMatrix mat)
 {
     J = mat;
     setRowLimit(static_cast<count_t>(SM_ROWS_D(J)));
     setColLimit(static_cast<count_t>(SM_COLUMNS_D(J)));
 }
 
-count_t sundialsMatrixDataDense::size() const
+count_t SundialsMatrixDataDense::size() const
 {
     return static_cast<count_t>(SM_ROWS_D(J) * SM_COLUMNS_D(J));
 }
-count_t sundialsMatrixDataDense::capacity() const
+count_t SundialsMatrixDataDense::capacity() const
 {
     return static_cast<count_t>(SM_ROWS_D(J) * SM_COLUMNS_D(J));
 }
-matrixElement<double> sundialsMatrixDataDense::element(index_t N) const
+matrixElement<double> SundialsMatrixDataDense::element(index_t N) const
 {
     return {N % static_cast<index_t>(SM_COLUMNS_D(J)),
             N / static_cast<index_t>(SM_COLUMNS_D(J)),
             SM_DATA_D(J)[N]};
 }
 
-double sundialsMatrixDataDense::at(index_t rowN, index_t colN) const
+double SundialsMatrixDataDense::at(index_t rowN, index_t colN) const
 {
     return SM_ELEMENT_D(J, rowN, colN);
 }

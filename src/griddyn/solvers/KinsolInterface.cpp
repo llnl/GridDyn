@@ -45,7 +45,7 @@ int kinsolJac(N_Vector state,
 // int kinsolAlgJacDense (long int N, N_Vector u, N_Vector f, DlsMat J, void *user_data,
 // N_Vector tmp1, N_Vector tmp2);
 
-kinsolInterface::kinsolInterface(const std::string& objName): SundialsInterface(objName)
+KinsolInterface::KinsolInterface(const std::string& objName): SundialsInterface(objName)
 {
     tolerance = 1e-8;
     mode.algebraic = true;
@@ -53,7 +53,7 @@ kinsolInterface::kinsolInterface(const std::string& objName): SundialsInterface(
     max_iterations = 50;
 }
 
-kinsolInterface::kinsolInterface(GridDynSimulation* gds, const solverMode& sMode):
+KinsolInterface::KinsolInterface(GridDynSimulation* gds, const solverMode& sMode):
     SundialsInterface(gds, sMode)
 {
     tolerance = 1e-8;
@@ -62,7 +62,7 @@ kinsolInterface::kinsolInterface(GridDynSimulation* gds, const solverMode& sMode
     max_iterations = 50;
 }
 
-kinsolInterface::~kinsolInterface()
+KinsolInterface::~KinsolInterface()
 {
     // clear the memory,  the SundialsInterface destructor will clear the rest
     if (flags[initialized_flag]) {
@@ -70,23 +70,23 @@ kinsolInterface::~kinsolInterface()
     }
 }
 
-std::unique_ptr<SolverInterface> kinsolInterface::clone(bool fullCopy) const
+std::unique_ptr<SolverInterface> KinsolInterface::clone(bool fullCopy) const
 {
-    std::unique_ptr<SolverInterface> si = std::make_unique<kinsolInterface>();
-    kinsolInterface::cloneTo(si.get(), fullCopy);
+    std::unique_ptr<SolverInterface> si = std::make_unique<KinsolInterface>();
+    KinsolInterface::cloneTo(si.get(), fullCopy);
     return si;
 }
 
-void kinsolInterface::cloneTo(SolverInterface* si, bool fullCopy) const
+void KinsolInterface::cloneTo(SolverInterface* si, bool fullCopy) const
 {
     SundialsInterface::cloneTo(si, fullCopy);
-    auto* ai = dynamic_cast<kinsolInterface*>(si);
+    auto* ai = dynamic_cast<KinsolInterface*>(si);
     if (ai == nullptr) {
         return;
     }
 }
 
-void kinsolInterface::allocate(count_t stateCount, count_t /*numRoots*/)
+void KinsolInterface::allocate(count_t stateCount, count_t /*numRoots*/)
 {
     // load the vectors
     if (stateCount == svsize) {
@@ -103,7 +103,7 @@ void kinsolInterface::allocate(count_t stateCount, count_t /*numRoots*/)
 }
 
 // output solver stats
-void kinsolInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
+void KinsolInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
 {
     if (!flags[initialized_flag]) {
         return;
@@ -140,7 +140,7 @@ void kinsolInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
     }
 }
 
-void kinsolInterface::initialize(coreTime /*t0*/)
+void KinsolInterface::initialize(coreTime /*t0*/)
 {
     if (!flags[allocated_flag]) {
         throw(InvalidSolverOperation());
@@ -222,12 +222,12 @@ void kinsolInterface::initialize(coreTime /*t0*/)
     flags.set(initialized_flag);
 }
 
-void kinsolInterface::sparseReInit(SparseReinitMode sparseReinitMode)
+void KinsolInterface::sparseReInit(SparseReinitMode sparseReinitMode)
 {
     kluReInit(sparseReinitMode);
 }
 
-void kinsolInterface::set(std::string_view param, std::string_view val)
+void KinsolInterface::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -235,7 +235,7 @@ void kinsolInterface::set(std::string_view param, std::string_view val)
     }
 }
 
-void kinsolInterface::set(std::string_view param, double val)
+void KinsolInterface::set(std::string_view param, double val)
 {
     if (param.empty()) {
     } else if (param == "maxiterations") {
@@ -247,7 +247,7 @@ void kinsolInterface::set(std::string_view param, double val)
     }
 }
 
-double kinsolInterface::get(std::string_view param) const
+double KinsolInterface::get(std::string_view param) const
 {
     long int val = -1;
     if (param == "jac calls") {
@@ -278,7 +278,7 @@ double kinsolInterface::get(std::string_view param) const
 // #define KIN_LINESEARCH 1
 // #define KIN_PICARD     2
 // #define KIN_FP         3
-int kinsolInterface::solve(coreTime tStop, coreTime& tReturn, StepMode /*mode*/)
+int KinsolInterface::solve(coreTime tStop, coreTime& tReturn, StepMode /*mode*/)
 {
     // check if the multiple data sets are in use and if we should toggle the data to use
     solveTime = tStop;
@@ -326,7 +326,7 @@ int kinsolInterface::solve(coreTime tStop, coreTime& tReturn, StepMode /*mode*/)
     return retval;
 }
 
-void kinsolInterface::setConstraints()
+void KinsolInterface::setConstraints()
 {
     if (m_gds->hasConstraints()) {
         N_VConst(ZERO, consData);
@@ -340,7 +340,7 @@ void kinsolInterface::setConstraints()
 
 int kinsolFunc(N_Vector state, N_Vector resid, void* user_data)
 {
-    auto* sd = static_cast<kinsolInterface*>(user_data);
+    auto* sd = static_cast<KinsolInterface*>(user_data);
     sd->funcCallCount++;
 #if MEASURE_TIMINGS > 0
     auto start_t = std::chrono::high_resolution_clock::now();
@@ -404,7 +404,7 @@ int kinsolJac(N_Vector state,
               N_Vector tmp1,
               N_Vector tmp2)
 {
-    auto* sd = static_cast<kinsolInterface*>(user_data);
+    auto* sd = static_cast<KinsolInterface*>(user_data);
     return sundialsJac(sd->solveTime, 0, state, nullptr, J, user_data, tmp1, tmp2);
 }
 

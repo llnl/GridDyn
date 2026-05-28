@@ -52,18 +52,18 @@ int idaRootFunc(sunrealtype time,
                 sunrealtype* gout,
                 void* user_data);
 
-idaInterface::idaInterface(const std::string& objName): SundialsInterface(objName)
+IdaInterface::IdaInterface(const std::string& objName): SundialsInterface(objName)
 {
     max_iterations = 1500;
 }
 
-idaInterface::idaInterface(GridDynSimulation* gds, const solverMode& sMode):
+IdaInterface::IdaInterface(GridDynSimulation* gds, const solverMode& sMode):
     SundialsInterface(gds, sMode)
 {
     max_iterations = 1500;
 }
 
-idaInterface::~idaInterface()
+IdaInterface::~IdaInterface()
 {
     // clear variables for IDA to use
     if (flags[initialized_flag]) {
@@ -71,23 +71,23 @@ idaInterface::~idaInterface()
     }
 }
 
-std::unique_ptr<SolverInterface> idaInterface::clone(bool fullCopy) const
+std::unique_ptr<SolverInterface> IdaInterface::clone(bool fullCopy) const
 {
-    std::unique_ptr<SolverInterface> si = std::make_unique<idaInterface>();
-    idaInterface::cloneTo(si.get(), fullCopy);
+    std::unique_ptr<SolverInterface> si = std::make_unique<IdaInterface>();
+    IdaInterface::cloneTo(si.get(), fullCopy);
     return si;
 }
 
-void idaInterface::cloneTo(SolverInterface* si, bool fullCopy) const
+void IdaInterface::cloneTo(SolverInterface* si, bool fullCopy) const
 {
     SundialsInterface::cloneTo(si, fullCopy);
-    auto ai = dynamic_cast<idaInterface*>(si);
+    auto ai = dynamic_cast<IdaInterface*>(si);
     if (ai == nullptr) {
         return;
     }
 }
 
-void idaInterface::allocate(count_t stateCount, count_t numRoots)
+void IdaInterface::allocate(count_t stateCount, count_t numRoots)
 {
     // load the vectors
     if (stateCount == svsize) {
@@ -111,7 +111,7 @@ void idaInterface::allocate(count_t stateCount, count_t numRoots)
     SundialsInterface::allocate(stateCount, numRoots);
 }
 
-void idaInterface::setMaxNonZeros(count_t nonZeros)
+void IdaInterface::setMaxNonZeros(count_t nonZeros)
 {
     maxNNZ = nonZeros;
     jacCallCount = 0;
@@ -119,7 +119,7 @@ void idaInterface::setMaxNonZeros(count_t nonZeros)
     a1.clear();
 }
 
-void idaInterface::set(std::string_view param, double val)
+void IdaInterface::set(std::string_view param, double val)
 {
     if (param == "maxiterations") {
         max_iterations = static_cast<count_t>(val);
@@ -130,7 +130,7 @@ void idaInterface::set(std::string_view param, double val)
     }
 }
 
-double idaInterface::get(std::string_view param) const
+double IdaInterface::get(std::string_view param) const
 {
     long int val = -1;
     if ((param == "resevals") || (param == "iterationcount")) {
@@ -149,7 +149,7 @@ double idaInterface::get(std::string_view param) const
 }
 
 // output solver stats
-void idaInterface::logSolverStats(PrintLevel logLevel, bool iconly) const
+void IdaInterface::logSolverStats(PrintLevel logLevel, bool iconly) const
 {
     if (!flags[initialized_flag]) {
         return;
@@ -232,7 +232,7 @@ void idaInterface::logSolverStats(PrintLevel logLevel, bool iconly) const
     }
 }
 
-void idaInterface::logErrorWeights(PrintLevel logLevel) const
+void IdaInterface::logErrorWeights(PrintLevel logLevel) const
 {
     N_Vector eweight = NVECTOR_NEW(use_omp, svsize);
     N_Vector ele = NVECTOR_NEW(use_omp, svsize);
@@ -255,7 +255,7 @@ void idaInterface::logErrorWeights(PrintLevel logLevel) const
     NVECTOR_DESTROY(use_omp, ele);
 }
 
-void idaInterface::initialize(coreTime t0)
+void IdaInterface::initialize(coreTime t0)
 {
     if (!flags[allocated_flag]) {
         throw(InvalidSolverOperation());
@@ -333,12 +333,12 @@ void idaInterface::initialize(coreTime t0)
     flags.set(initialized_flag);
 }
 
-void idaInterface::sparseReInit(SparseReinitMode sparseReInitMode)
+void IdaInterface::sparseReInit(SparseReinitMode sparseReInitMode)
 {
     kluReInit(sparseReInitMode);
 }
 
-void idaInterface::setRootFinding(count_t numRoots)
+void IdaInterface::setRootFinding(count_t numRoots)
 {
     if (numRoots != static_cast<count_t>(rootsfound.size())) {
         rootsfound.resize(numRoots);
@@ -350,7 +350,7 @@ void idaInterface::setRootFinding(count_t numRoots)
 
 #define SHOW_MISSING_ELEMENTS 0
 
-int idaInterface::calcIC(coreTime t0, coreTime tstep0, IcModes initCondMode, bool constraints)
+int IdaInterface::calcIC(coreTime t0, coreTime tstep0, IcModes initCondMode, bool constraints)
 {
     int retval;
     ++icCount;
@@ -444,13 +444,13 @@ int idaInterface::calcIC(coreTime t0, coreTime tstep0, IcModes initCondMode, boo
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-void idaInterface::getCurrentData()
+void IdaInterface::getCurrentData()
 {
     int retval = IDAGetConsistentIC(solverMem, state, dstate_dt);
     checkFlag(&retval, "IDAGetConsistentIC", 1);
 }
 
-int idaInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
+int IdaInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
 {
     assert(rootCount == m_gds->rootSize(mode));
     ++solverCallCount;
@@ -478,13 +478,13 @@ int idaInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
     return retval;
 }
 
-void idaInterface::getRoots()
+void IdaInterface::getRoots()
 {
     int ret = IDAGetRootInfo(solverMem, rootsfound.data());
     checkFlag(&ret, "IDAGetRootInfo", 1);
 }
 
-void idaInterface::setConstraints()
+void IdaInterface::setConstraints()
 {
     if (m_gds->hasConstraints()) {
         N_VConst(ZERO, consData);
@@ -493,7 +493,7 @@ void idaInterface::setConstraints()
     }
 }
 
-void idaInterface::loadMaskElements()
+void IdaInterface::loadMaskElements()
 {
     std::vector<double> mStates(svsize, 0.0);
     m_gds->getVoltageStates(mStates.data(), mode);
@@ -509,7 +509,7 @@ void idaInterface::loadMaskElements()
 // IDA C Functions
 int idaFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, N_Vector resid, void* user_data)
 {
-    auto sd = reinterpret_cast<idaInterface*>(user_data);
+    auto sd = reinterpret_cast<IdaInterface*>(user_data);
     // printf("time=%f\n", time);
     int ret = sd->m_gds->residualFunction(time,
                                           NVECTOR_DATA(sd->use_omp, state),
@@ -559,7 +559,7 @@ int idaRootFunc(sunrealtype time,
                 sunrealtype* gout,
                 void* user_data)
 {
-    auto sd = reinterpret_cast<idaInterface*>(user_data);
+    auto sd = reinterpret_cast<IdaInterface*>(user_data);
     sd->m_gds->rootFindingFunction(time,
                                    NVECTOR_DATA(sd->use_omp, state),
                                    NVECTOR_DATA(sd->use_omp, dstate_dt),

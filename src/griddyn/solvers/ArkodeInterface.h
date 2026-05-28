@@ -14,7 +14,7 @@
 namespace griddyn::solvers {
 /** @brief SolverInterface interfacing to the SUNDIALS arkode solver
  */
-class arkodeInterface: public SundialsInterface {
+class ArkodeInterface: public SundialsInterface {
   public:
     using SundialsInterface::set;
     count_t icCount =
@@ -30,14 +30,14 @@ class arkodeInterface: public SundialsInterface {
 
   public:
     /** @brief constructor*/
-    explicit arkodeInterface(const std::string& objName = "arkode");
+    explicit ArkodeInterface(const std::string& objName = "arkode");
     /** @brief alternate constructor
 @param[in] gds  the GridDynSimulation object to connect to
 @param[in] sMode the solverMode to solve For
 */
-    arkodeInterface(GridDynSimulation* gds, const solverMode& sMode);
+    ArkodeInterface(GridDynSimulation* gds, const solverMode& sMode);
     /** @brief destructor*/
-    virtual ~arkodeInterface();
+    virtual ~ArkodeInterface();
 
     virtual std::unique_ptr<SolverInterface> clone(bool fullCopy = false) const override;
 

@@ -34,11 +34,11 @@ class infiniteBus: public GridBus {
     infiniteBus(double startVoltage, double startAngle, const std::string& objName = "infbus_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components
-    void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     void setState(coreTime time,
                   const double state[],
                   const double dstate_dt[],
-                  const solverMode& sMode) override;
+                  const SolverMode& sMode) override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
@@ -46,11 +46,11 @@ class infiniteBus: public GridBus {
 
     virtual bool checkCapable() override;
 
-    virtual double getVoltage(const double state[], const solverMode& sMode) const override;
-    virtual double getAngle(const double state[], const solverMode& sMode) const override;
-    virtual double getVoltage(const stateData& sD, const solverMode& sMode) const override;
-    virtual double getAngle(const stateData& sD, const solverMode& sMode) const override;
-    virtual double getFreq(const stateData& sD, const solverMode& sMode) const override;
+    virtual double getVoltage(const double state[], const SolverMode& sMode) const override;
+    virtual double getAngle(const double state[], const SolverMode& sMode) const override;
+    virtual double getVoltage(const stateData& sD, const SolverMode& sMode) const override;
+    virtual double getAngle(const stateData& sD, const SolverMode& sMode) const override;
+    virtual double getFreq(const stateData& sD, const SolverMode& sMode) const override;
 
   protected:
     /** update the Voltage and Angle based on time using the defined ramp rates*/

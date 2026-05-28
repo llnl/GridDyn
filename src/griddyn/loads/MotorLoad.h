@@ -68,58 +68,58 @@ class MotorLoad: public GridLoad {
     virtual void setState(coreTime time,
                           const double state[],
                           const double dstate_dt[],
-                          const solverMode& sMode) override;  // for saving the state
+                          const SolverMode& sMode) override;  // for saving the state
     virtual void guessState(coreTime time,
                             double state[],
                             double dstate_dt[],
-                            const solverMode& sMode) override;
-    virtual stateSizes localStateSizes(const solverMode& sMode) const override;
+                            const SolverMode& sMode) override;
+    virtual stateSizes localStateSizes(const SolverMode& sMode) const override;
 
-    virtual count_t localJacobianCount(const solverMode& sMode) const override;
+    virtual count_t localJacobianCount(const SolverMode& sMode) const override;
 
-    virtual std::pair<count_t, count_t> LocalRootCount(const solverMode& sMode) const override;
+    virtual std::pair<count_t, count_t> LocalRootCount(const SolverMode& sMode) const override;
 
     virtual void residual(const IOdata& inputs,
                           const stateData& stateDataValue,
                           double resid[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
 
     virtual void derivative(const IOdata& inputs,
                             const stateData& stateDataValue,
                             double deriv[],
-                            const solverMode& sMode)
+                            const SolverMode& sMode)
         override;  // return D[0]=dP/dV D[1]=dP/dtheta,D[2]=dQ/dV,D[3]=dQ/dtheta
 
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
-                                          const solverMode& sMode) override;
-    virtual count_t outputDependencyCount(index_t num, const solverMode& sMode) const override;
+                                          const SolverMode& sMode) override;
+    virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
     virtual void ioPartialDerivatives(const IOdata& inputs,
                                       const stateData& stateDataValue,
                                       matrixData<double>& matrixDataValue,
                                       const IOlocs& inputLocs,
-                                      const solverMode& sMode) override;
+                                      const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const stateData& stateDataValue,
                                   matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
-                                  const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
     virtual void getStateName(stringVec& stNames,
-                              const solverMode& sMode,
+                              const SolverMode& sMode,
                               const std::string& prefix) const override;
 
     virtual void rootTest(const IOdata& inputs,
                           const stateData& stateDataValue,
                           double roots[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
-                             const solverMode& sMode) override;
+                             const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
                                  const stateData& stateDataValue,
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  CheckLevel level) override;
 
     /** @brief compute the mechanical torque on the motor as a function of slip
@@ -133,15 +133,15 @@ class MotorLoad: public GridLoad {
 */
     double dmechds(double slip) const;
 
-    virtual index_t findIndex(std::string_view field, const solverMode& sMode) const override;
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     virtual double getRealPower(const IOdata& inputs,
                                 const stateData& stateDataValue,
-                                const solverMode& sMode) const override;
+                                const SolverMode& sMode) const override;
     virtual double getReactivePower(const IOdata& inputs,
                                     const stateData& stateDataValue,
-                                    const solverMode& sMode) const override;
+                                    const SolverMode& sMode) const override;
     virtual double getRealPower(double V) const override;
     virtual double getReactivePower(double V) const override;
     virtual double getRealPower() const override;

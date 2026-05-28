@@ -163,7 +163,7 @@ double Link::quickupdateP()
 {
     return Pset;
 }
-void Link::timestep(const coreTime time, const IOdata& /*inputs*/, const solverMode& /*sMode*/)
+void Link::timestep(const coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     if (!isEnabled()) {
         return;
@@ -478,24 +478,24 @@ void Link::ioPartialDerivatives(id_type_t /*busId*/,
                                 const stateData& /*sD*/,
                                 matrixData<double>& /*md*/,
                                 const IOlocs& /*inputLocs*/,
-                                const solverMode& /*sMode*/)
+                                const SolverMode& /*sMode*/)
 {
 }
 
 void Link::outputPartialDerivatives(id_type_t /*busId*/,
                                     const stateData& /*sD*/,
                                     matrixData<double>& /*md*/,
-                                    const solverMode& /*sMode*/)
+                                    const SolverMode& /*sMode*/)
 {
 }
 
-count_t Link::outputDependencyCount(index_t /*num*/, const solverMode& /*sMode*/) const
+count_t Link::outputDependencyCount(index_t /*num*/, const SolverMode& /*sMode*/) const
 {
     return 0;
 }
 IOdata Link::getOutputs(const IOdata& /*inputs*/,
                         const stateData& stateData,
-                        const solverMode& sMode) const
+                        const SolverMode& sMode) const
 {
     return getOutputs(1, stateData, sMode);
 }
@@ -505,7 +505,7 @@ static bool isBus2(id_type_t busId, GridBus* bus)
     return ((busId == 2) || (isSameObject(busId, bus)));
 }
 
-IOdata Link::getOutputs(id_type_t busId, const stateData& /*sD*/, const solverMode& /*sMode*/) const
+IOdata Link::getOutputs(id_type_t busId, const stateData& /*sD*/, const SolverMode& /*sMode*/) const
 {
     // set from/to buses
     IOdata out{0.0, 0.0};
@@ -582,7 +582,7 @@ double Link::getBusAngle(id_type_t busId) const
     return kNullVal;
 }
 
-double Link::getBusAngle(const stateData& stateData, const solverMode& sMode, id_type_t busId) const
+double Link::getBusAngle(const stateData& stateData, const SolverMode& sMode, id_type_t busId) const
 {
     if (busId < 500_ind) {
         const auto* bus = getBus(static_cast<index_t>(busId));
@@ -616,14 +616,14 @@ double Link::getVoltage(id_type_t busId) const
 void Link::setState(coreTime time,
                     const double /*state*/[],
                     const double /*dstate_dt*/[],
-                    const solverMode& /*sMode*/)
+                    const SolverMode& /*sMode*/)
 {
     prevTime = time;
 }
 
 void Link::updateLocalCache(const IOdata& /*inputs*/,
                             const stateData& stateData,
-                            const solverMode& sMode)
+                            const SolverMode& sMode)
 {
     if (!isEnabled()) {
         return;
@@ -689,7 +689,7 @@ double Link::remainingCapacity() const
 {
     return getMaxTransfer() - std::abs(linkFlows.P1);
 }
-double Link::getAngle(const double state[], const solverMode& sMode) const
+double Link::getAngle(const double state[], const SolverMode& sMode) const
 {
     const double angle1 = B1->getAngle(state, sMode);
     const double angle2 = B2->getAngle(state, sMode);

@@ -417,7 +417,7 @@ double FmiCoSimSubModel::getPartial(int depIndex, int refIndex, RefMode /*mode*/
 
 void FmiCoSimSubModel::timestep(coreTime /*time*/,
                                 const IOdata& /*inputs*/,
-                                const solverMode& /*sMode*/)
+                                const SolverMode& /*sMode*/)
 {
     assert(unimplemented);
     /*
@@ -472,7 +472,7 @@ void FmiCoSimSubModel::ioPartialDerivatives(const IOdata& /*inputs*/,
                                             const stateData& /*sD*/,
                                             matrixData<double>& /* md*/,
                                             const IOlocs& /*inputLocs*/,
-                                            const solverMode& /*sMode*/)
+                                            const SolverMode& /*sMode*/)
 {
     assert(unimplemented);
     /*
@@ -515,7 +515,7 @@ for (kk = 0; kk < m_outputSize; ++kk)
 
 IOdata FmiCoSimSubModel::getOutputs(const IOdata& /*inputs*/,
                                     const stateData& sD,
-                                    const solverMode& sMode) const
+                                    const SolverMode& sMode) const
 {
     IOdata out(m_outputSize, 0);
     if (cs->getCurrentMode() >= FmuMode::INITIALIZATION_MODE) {
@@ -544,7 +544,7 @@ IOdata FmiCoSimSubModel::getOutputs(const IOdata& /*inputs*/,
 
 double FmiCoSimSubModel::getDoutdt(const IOdata& /*inputs*/,
                                    const stateData& /*sD*/,
-                                   const solverMode& /*sMode*/,
+                                   const SolverMode& /*sMode*/,
                                    index_t /*outputNum*/) const
 {
     return 0;
@@ -552,7 +552,7 @@ double FmiCoSimSubModel::getDoutdt(const IOdata& /*inputs*/,
 
 double FmiCoSimSubModel::getOutput(const IOdata& /*inputs*/,
                                    const stateData& sD,
-                                   const solverMode& sMode,
+                                   const SolverMode& sMode,
                                    index_t outputNum) const
 {
     double out = kNullVal;
@@ -585,7 +585,7 @@ double FmiCoSimSubModel::getOutput(index_t outputNum) const
 
 void FmiCoSimSubModel::updateLocalCache([[maybe_unused]] const IOdata& inputs,
                                         [[maybe_unused]] const stateData& sD,
-                                        [[maybe_unused]] const solverMode& sMode)
+                                        [[maybe_unused]] const SolverMode& sMode)
 {
     static_cast<void>(inputs);
     static_cast<void>(sD);

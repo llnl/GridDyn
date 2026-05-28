@@ -263,7 +263,7 @@ double Condition::evalCondition()
     return mEvalFunction(leftValue, rightValue, mCurrentMargin);
 }
 
-double Condition::evalCondition(const stateData& stateDataValue, const solverMode& sMode)
+double Condition::evalCondition(const stateData& stateDataValue, const SolverMode& sMode)
 {
     const double leftValue = mConditionLHS->grabData(stateDataValue, sMode);
     const double rightValue =
@@ -279,7 +279,7 @@ double Condition::getVal(int side) const
     return mConditionLHS->grabData();
 }
 
-double Condition::getVal(int side, const stateData& stateDataValue, const solverMode& sMode) const
+double Condition::getVal(int side, const stateData& stateDataValue, const SolverMode& sMode) const
 {
     if (side == 2) {
         return (mConstRHS) ? m_constant : mConditionRHS->grabData(stateDataValue, sMode);
@@ -295,7 +295,7 @@ bool Condition::checkCondition() const
     return (isEqualityComparison(mComparison)) ? (conditionValue <= 0.0) : (conditionValue < 0.0);
 }
 
-bool Condition::checkCondition(const stateData& stateDataValue, const solverMode& sMode) const
+bool Condition::checkCondition(const stateData& stateDataValue, const SolverMode& sMode) const
 {
     const double leftValue = mConditionLHS->grabData(stateDataValue, sMode);
     const double rightValue =

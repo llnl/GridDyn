@@ -202,13 +202,13 @@ see GridComponent::dynInitializeA for more details
     @param[in] newOffset the offset index all variables are sequential.
     @param sMode the solver mode to use.
     */
-    virtual void setOffset(index_t newOffset, const solverMode& sMode);
+    virtual void setOffset(index_t newOffset, const SolverMode& sMode);
 
     /** @brief set the offsets of an object for a particular solver mode using a single offset.
     @param newOffsets the offset index all variables are sequential.
     @param sMode the solver mode to use.
     */
-    virtual void setOffsets(const solverOffsets& newOffsets, const solverMode& sMode);
+    virtual void setOffsets(const solverOffsets& newOffsets, const SolverMode& sMode);
 
     /** @brief get a single state value
     @param offset the offset index: all state variables are sequential.
@@ -226,93 +226,93 @@ see GridComponent::dynInitializeA for more details
     @param[in] newRootOffset the offset index all variables are sequential.
     @param[in] sMode the solver mode to use.
     */
-    virtual void setRootOffset(index_t newRootOffset, const solverMode& sMode);
+    virtual void setRootOffset(index_t newRootOffset, const SolverMode& sMode);
 
     /** @brief get the number of states
-    @param[in] sMode  the solverMode to get the stateSize for
+    @param[in] sMode  the SolverMode to get the stateSize for
       @return the number of states
     */
-    count_t stateSize(const solverMode& sMode);
+    count_t stateSize(const SolverMode& sMode);
 
     /** @brief get the total number of Algebraic States algSize+vSize+aSize
-    @param[in] sMode solverMode to base the count on
+    @param[in] sMode SolverMode to base the count on
     @return the number of algebraic states
     */
-    count_t totalAlgSize(const solverMode& sMode);
+    count_t totalAlgSize(const SolverMode& sMode);
 
     /** @brief get the number of Jacobian non-zeros elements (max not necessarily actual)
-    @param[in] sMode solverMode to base the count on
+    @param[in] sMode SolverMode to base the count on
     @return the number of non-zeros in the Jacobian
     */
-    count_t jacSize(const solverMode& sMode);
+    count_t jacSize(const SolverMode& sMode);
     /** @brief get the number of roots
-    @param[in] sMode solverMode to base the count on
+    @param[in] sMode SolverMode to base the count on
     @return the number of roots
     */
-    count_t rootSize(const solverMode& sMode);
+    count_t rootSize(const SolverMode& sMode);
     /** @brief get the number of algebraic states not including voltage and angle states
-    @param[in] sMode solverMode to base the count on
+    @param[in] sMode SolverMode to base the count on
     @return the number of algebraic states
     */
-    count_t algSize(const solverMode& sMode);
+    count_t algSize(const SolverMode& sMode);
     /** @brief get the number of differential states
-     @param[in] sMode solverMode to base the count on
+     @param[in] sMode SolverMode to base the count on
     @return the number of differential states
     */
-    count_t diffSize(const solverMode& sMode);
+    count_t diffSize(const SolverMode& sMode);
     /** @brief get the number of voltage states
-    @param[in] sMode solverMode to base the count on
+    @param[in] sMode SolverMode to base the count on
     @return the number of voltage states
     */
-    count_t voltageStateCount(const solverMode& sMode);
+    count_t voltageStateCount(const SolverMode& sMode);
     /** @brief get the number of angle states
-    @param[in] sMode  solverMode to base the count on
+    @param[in] sMode  SolverMode to base the count on
     @return the number of angle states
     */
-    count_t angleStateCount(const solverMode& sMode);
+    count_t angleStateCount(const SolverMode& sMode);
 
     /** @brief get the number of states
-    @param[in] sMode  the solverMode to get the stateSize for
+    @param[in] sMode  the SolverMode to get the stateSize for
     @return the number of states
     */
-    count_t stateSize(const solverMode& sMode) const;
+    count_t stateSize(const SolverMode& sMode) const;
 
     /** @brief get the total number of Algebraic States algSize+vSize+aSize
-    @param[in] sMode solverMode to base the count on
+    @param[in] sMode SolverMode to base the count on
     @return the number of algebraic states
     */
-    count_t totalAlgSize(const solverMode& sMode) const;
+    count_t totalAlgSize(const SolverMode& sMode) const;
 
     /** @brief get the number of Jacobian non-zeros elements (max not necessarily actual)
-    @param[in] sMode solverMode to base the count on
+    @param[in] sMode SolverMode to base the count on
     @return the number of non-zeros in the Jacobian
     */
-    count_t jacSize(const solverMode& sMode) const;
+    count_t jacSize(const SolverMode& sMode) const;
     /** @brief get the number of roots
-    @param[in] sMode solverMode to base the count on
+    @param[in] sMode SolverMode to base the count on
     @return the number of roots
     */
-    count_t rootSize(const solverMode& sMode) const;
+    count_t rootSize(const SolverMode& sMode) const;
     /** @brief get the number of algebraic states not including voltage and angle states
-    @param[in] sMode solverMode to base the count on
+    @param[in] sMode SolverMode to base the count on
     @return the number of algebraic states
     */
-    count_t algSize(const solverMode& sMode) const;
+    count_t algSize(const SolverMode& sMode) const;
     /** @brief get the number of differential states
-    @param[in] sMode solverMode to base the count on
+    @param[in] sMode SolverMode to base the count on
     @return the number of differential states
     */
-    count_t diffSize(const solverMode& sMode) const;
+    count_t diffSize(const SolverMode& sMode) const;
     /** @brief get the number of voltage states
-    @param[in] sMode solverMode to base the count on
+    @param[in] sMode SolverMode to base the count on
     @return the number of voltage states
     */
-    count_t voltageStateCount(const solverMode& sMode) const;
+    count_t voltageStateCount(const SolverMode& sMode) const;
     /** @brief get the number of angle states
-    @param[in] sMode  solverMode to base the count on
+    @param[in] sMode  SolverMode to base the count on
     @return the number of angle states
     */
-    count_t angleStateCount(const solverMode& sMode) const;
+    count_t angleStateCount(const SolverMode& sMode) const;
 
     /** @brief get the number of outputs
     @return the number of outputs
@@ -327,35 +327,35 @@ see GridComponent::dynInitializeA for more details
      * @param[in] sMode the mode to get the offsets for
      * return a const pointer to the solver Offsets
      */
-    const solverOffsets& getOffsets(const solverMode& sMode) const;
+    const solverOffsets& getOffsets(const SolverMode& sMode) const;
 
     /** @brief checks if the object state sizes are loaded
-    @param[in] sMode  the solverMode to get the stateSize for
+    @param[in] sMode  the SolverMode to get the stateSize for
     @return boolean true if the object is loaded false if not
     */
-    bool isStateCountLoaded(const solverMode& sMode) const;
+    bool isStateCountLoaded(const SolverMode& sMode) const;
 
     /** @brief checks if the object state sizes are loaded
-    @param[in] sMode  the solverMode to get the stateSize for
+    @param[in] sMode  the SolverMode to get the stateSize for
     @return boolean true if the object is loaded false if not
     */
-    bool isJacobianCountLoaded(const solverMode& sMode) const;
+    bool isJacobianCountLoaded(const SolverMode& sMode) const;
 
     /** @brief checks if the object state sizes are loaded
-    @param[in] sMode  the solverMode to get the stateSize for
+    @param[in] sMode  the SolverMode to get the stateSize for
     @return boolean true if the object is loaded false if not
     */
-    bool isRootCountLoaded(const solverMode& sMode) const;
+    bool isRootCountLoaded(const SolverMode& sMode) const;
     /** @brief convenience function for checking armed status
     @return boolean true if the object is armed false if not
     */
     bool isArmed() const;
     virtual bool isCloneable() const override;
     /** @brief convenience function for checking if the object has states
-    @param[in] sMode  the solverMode to check
+    @param[in] sMode  the SolverMode to check
     @return boolean true if the object is armed false if not
     */
-    bool hasStates(const solverMode& sMode) const;
+    bool hasStates(const SolverMode& sMode) const;
 
     /** @brief function for checking connected status
     @return boolean true if the object is connect false if not
@@ -380,33 +380,33 @@ see GridComponent::dynInitializeA for more details
     @param sMode the solver mode to use.
     @return a stateSizes object containing the various segment sizes
     */
-    virtual stateSizes localStateSizes(const solverMode& sMode) const;
+    virtual stateSizes localStateSizes(const SolverMode& sMode) const;
 
     /** @brief compute the local Jacobian count
     @param sMode the solver mode to use.
     @return a stateSizes object containing the various segment sizes
     */
-    virtual count_t localJacobianCount(const solverMode& sMode) const;
+    virtual count_t localJacobianCount(const SolverMode& sMode) const;
 
     /** @brief compute the local root count
     @param sMode the solver mode to use.
     @return a pair containing the local root counts <algebraic, differential>
     */
-    virtual std::pair<count_t, count_t> LocalRootCount(const solverMode& sMode) const;
+    virtual std::pair<count_t, count_t> LocalRootCount(const SolverMode& sMode) const;
 
     /** @brief compute the sizes and store them in the offsetTables.
     @param sMode the solver mode to use.
     */
-    virtual void loadStateSizes(const solverMode& sMode);
+    virtual void loadStateSizes(const SolverMode& sMode);
     /** @brief compute the sizes and store them in the offsetTables.
     @param sMode the solver mode to use.
     */
-    virtual void loadJacobianSizes(const solverMode& sMode);
+    virtual void loadJacobianSizes(const SolverMode& sMode);
 
     /** @brief compute the sizes and store them in the offsetTables.
     @param sMode the solver mode to use.
     */
-    virtual void loadRootSizes(const solverMode& sMode);
+    virtual void loadRootSizes(const SolverMode& sMode);
 
   protected:
     enum class SizeCategory {
@@ -418,7 +418,7 @@ see GridComponent::dynInitializeA for more details
     @param sMode the solver mode to use.
     @param category set to the type of size data being loaded
     */
-    void loadSizesSub(const solverMode& sMode, SizeCategory category);
+    void loadSizesSub(const SolverMode& sMode, SizeCategory category);
 
   public:
     /** @brief reset the object
@@ -432,31 +432,31 @@ see GridComponent::dynInitializeA for more details
     @param state -- a double array pointing to the state information
     @param dstateDt a double array pointing to the state derivative information (not necessary for
     states with no corresponding time derivative
-    @param sMode  -- the solverMode corresponding to the computed state.
+    @param sMode  -- the SolverMode corresponding to the computed state.
     */
     virtual void setState(coreTime time,
                           const double state[],
                           const double dstateDt[],
-                          const solverMode& sMode);
+                          const SolverMode& sMode);
     /** @brief transfer state information from the objects to a vector
     @param time -the time the state corresponds to
     @param[out] state -- a double array pointing to the state information
     @param[out] dstateDt a double array pointing to the state derivative information (not necessary
     for states with no corresponding time derivative
-    @param sMode  -- the solverMode corresponding to the computed state.
+    @param sMode  -- the SolverMode corresponding to the computed state.
     */
     virtual void
-        guessState(coreTime time, double state[], double dstateDt[], const solverMode& sMode);
+        guessState(coreTime time, double state[], double dstateDt[], const SolverMode& sMode);
     /** @brief load tolerance information from the objects
     @param[out] tols -- a double array with the state tolerance information
-    @param[in] sMode  -- the solverMode corresponding to the computed state.
+    @param[in] sMode  -- the SolverMode corresponding to the computed state.
     */
-    virtual void getTols(double tols[], const solverMode& sMode);
+    virtual void getTols(double tols[], const SolverMode& sMode);
     /** @brief load variable information 1 for algebraic state 0 for differential state
     @param[out] sdata -- a double array with the state tolerance information
-    @param[in] sMode  -- the solverMode corresponding to the computed state.
+    @param[in] sMode  -- the SolverMode corresponding to the computed state.
     */
-    virtual void getVariableType(double sdata[], const solverMode& sMode);
+    virtual void getVariableType(double sdata[], const SolverMode& sMode);
 
     /**@brief get a reference to the vector of subObjects*/
     const objVector<GridComponent*>& getSubObjects() const { return subObjectList; }
@@ -467,9 +467,9 @@ see GridComponent::dynInitializeA for more details
     2 for >=0
     -2 for <=0
     @param[out] constraints -- a double array with the constraint
-    @param[in] sMode  -- the solverMode corresponding to the computed state.
+    @param[in] sMode  -- the SolverMode corresponding to the computed state.
     */
-    virtual void getConstraints(double constraints[], const solverMode& sMode);
+    virtual void getConstraints(double constraints[], const SolverMode& sMode);
     /** @brief update cascading flag information
     @param[in] dynamicsFlags if true only do so for flags corresponding to dynamic solution
     */
@@ -477,29 +477,29 @@ see GridComponent::dynInitializeA for more details
 
     /** @brief get the names for all the states
     @param[out] stNames -- the output state names
-    @param[in] sMode  -- the solverMode corresponding to the computed state.
+    @param[in] sMode  -- the SolverMode corresponding to the computed state.
     @param[in] prefix  a string prefix to put before the state names of the object-- intended for
     cascading calls
     */
     virtual void getStateName(stringVec& stNames,
-                              const solverMode& sMode,
+                              const SolverMode& sMode,
                               const std::string& prefix = "") const;
 
     /**brief update any local cached information about a particular state/input set
     @param[in] inputs the input inputs
     @param[in] stateDataValue  the stage data to cache information from
-    @param[in] sMode the solverMode corresponding to the stateData
+    @param[in] sMode the SolverMode corresponding to the stateData
     */
     virtual void updateLocalCache(const IOdata& inputs,
                                   const stateData& stateDataValue,
-                                  const solverMode& sMode);
+                                  const SolverMode& sMode);
     /** @brief locate a state index based on field name
     @param[in] field the name of the field to search for
-    @param[in] sMode the solverMode to find the location for
+    @param[in] sMode the SolverMode to find the location for
     @return the index of the state  some number if valid  kInvalidLocation if not found,
     kNullLocation if not initialized yet(try again later)
     */
-    virtual index_t findIndex(std::string_view field, const solverMode& sMode) const;
+    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const;
 
     /**
      *@brief set all the values of particular type of object to some value
@@ -553,37 +553,37 @@ see GridComponent::dynInitializeA for more details
     @param[in] inputs  the input arguments
     @param[in] stateDataValue the data representing the current state to operate on
     @param[out] resid the array to store the residual values in
-    @param[in] sMode the solverMode which is being solved for
+    @param[in] sMode the SolverMode which is being solved for
     */
     virtual void residual(const IOdata& inputs,
                           const stateData& stateDataValue,
                           double resid[],
-                          const solverMode& sMode);
+                          const SolverMode& sMode);
 
     /** @brief compute an update to all the algebraic variables in the object
     @param[in] inputs  the input arguments
     @param[in] stateDataValue the data representing the current state to operate on
     @param[out] update the array to store the computed state values
-    @param[in] sMode the solverMode which is being solved for
+    @param[in] sMode the SolverMode which is being solved for
     @param[in] alpha the convergence gain
     */
 
     virtual void algebraicUpdate(const IOdata& inputs,
                                  const stateData& stateDataValue,
                                  double update[],
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  double alpha);
 
     /** @brief compute the time derivative for a given state
     @param[in] inputs  the input arguments
     @param[in] stateDataValue the data representing the current state to operate on
     @param[out] deriv the array to store the computed derivative values
-    @param[in] sMode the solverMode which is being solved for
+    @param[in] sMode the SolverMode which is being solved for
     */
     virtual void derivative(const IOdata& inputs,
                             const stateData& stateDataValue,
                             double deriv[],
-                            const solverMode& sMode);
+                            const SolverMode& sMode);
     /**
     *@brief compute the partial derivatives of the internal states with respect to inputs and other
     internal states
@@ -597,7 +597,7 @@ see GridComponent::dynInitializeA for more details
                                   const stateData& stateDataValue,
                                   matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
-                                  const solverMode& sMode);
+                                  const SolverMode& sMode);
 
     // for the stepwise dynamic system
     /** @brief move the object forward in time using local calculations
@@ -605,10 +605,10 @@ see GridComponent::dynInitializeA for more details
     necessarily indicative of a particular solver it is meant as a suggestion not a requirement.
     @param[in] time the time to progress to
     @param[in] inputs  the input arguments
-    @param[in] sMode the solverMode to give guidance to objects on how to perform internal
+    @param[in] sMode the SolverMode to give guidance to objects on how to perform internal
     calculations
     */
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode);
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode);
 
     /**
     *@brief compute the partial derivatives of the output states with respect to internal states
@@ -620,14 +620,14 @@ see GridComponent::dynInitializeA for more details
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
-                                          const solverMode& sMode);
+                                          const SolverMode& sMode);
     /**
     @brief return the count of output dependencies on internal states
     @param[in] outputNum  the index of the output to query
     @param[in] sMode the solver mode to consider
     @return the count of the output Dependencies
     */
-    virtual count_t outputDependencyCount(index_t outputNum, const solverMode& sMode) const;
+    virtual count_t outputDependencyCount(index_t outputNum, const SolverMode& sMode) const;
     /**
      * @brief compute the partial derivatives of the output states with respect to inputs
      * @param[in] inputs the inputs for the secondary object
@@ -640,7 +640,7 @@ see GridComponent::dynInitializeA for more details
                                       const stateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
-                                      const solverMode& sMode);
+                                      const SolverMode& sMode);
 
     /** @brief call any objects that need 2 part execution to allow for parallelism
     do any pre-work for a residual call later in the calculations
@@ -649,10 +649,10 @@ see GridComponent::dynInitializeA for more details
     action.
     @param[in] inputs  the input arguments
     @param[in] stateDataValue the data representing the current state to operate on
-    @param[in] sMode the solverMode which is being solved for
+    @param[in] sMode the SolverMode which is being solved for
     */
     virtual void
-        preEx(const IOdata& inputs, const stateData& stateDataValue, const solverMode& sMode);
+        preEx(const IOdata& inputs, const stateData& stateDataValue, const SolverMode& sMode);
 
     /******************************************
     Functions related to root finding
@@ -667,7 +667,7 @@ see GridComponent::dynInitializeA for more details
     virtual void rootTest(const IOdata& inputs,
                           const stateData& stateDataValue,
                           double roots[],
-                          const solverMode& sMode);
+                          const SolverMode& sMode);
 
     /**
     *a root has occurred now take action
@@ -679,7 +679,7 @@ see GridComponent::dynInitializeA for more details
     virtual void rootTrigger(coreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
-                             const solverMode& sMode);
+                             const SolverMode& sMode);
 
     /**
     *evaluate the root functions and execute trigger from a static state for operation after an
@@ -691,7 +691,7 @@ see GridComponent::dynInitializeA for more details
     **/
     virtual ChangeCode rootCheck(const IOdata& inputs,
                                  const stateData& stateDataValue,
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  CheckLevel level);
     /******************************************
     output functions
@@ -705,7 +705,7 @@ see GridComponent::dynInitializeA for more details
     **/
     virtual IOdata getOutputs(const IOdata& inputs,
                               const stateData& stateDataValue,
-                              const solverMode& sMode) const;
+                              const SolverMode& sMode) const;
 
     /**
     *@brief get the time derivative of a single state
@@ -717,7 +717,7 @@ see GridComponent::dynInitializeA for more details
     **/
     virtual double getDoutdt(const IOdata& inputs,
                              const stateData& stateDataValue,
-                             const solverMode& sMode,
+                             const SolverMode& sMode,
                              index_t outputNum = 0) const;
 
     /**
@@ -730,7 +730,7 @@ see GridComponent::dynInitializeA for more details
     **/
     virtual double getOutput(const IOdata& inputs,
                              const stateData& stateDataValue,
-                             const solverMode& sMode,
+                             const SolverMode& sMode,
                              index_t outputNum = 0) const;
 
     /**
@@ -753,7 +753,7 @@ see GridComponent::dynInitializeA for more details
     @param[in] outputNum the number of the state being requested
     @return the value of the state requested
     **/
-    virtual index_t getOutputLoc(const solverMode& sMode, index_t outputNum = 0) const;
+    virtual index_t getOutputLoc(const SolverMode& sMode, index_t outputNum = 0) const;
     /**
     *@brief get a vector state indices for the output
     @ details used in cases where the state of one object is used int the computation of another for
@@ -762,7 +762,7 @@ see GridComponent::dynInitializeA for more details
     @return a vector containing  all the outputs locations,  kNullLocation if there is no state
     representing the output
     **/
-    virtual IOlocs getOutputLocs(const solverMode& sMode) const;
+    virtual IOlocs getOutputLocs(const SolverMode& sMode) const;
 
     /******************************************
     functions for setting and querying defined parameters
@@ -794,7 +794,7 @@ see GridComponent::dynInitializeA for more details
                                              const IOdata& inputs,
                                              const stateData& sD,
                                              matrixData<double>& md,
-                                             const solverMode& sMode);
+                                             const SolverMode& sMode);
     /**
     *@brief compute the partial derivatives of an outputs with respect to a parameter
      @param[in] param the index code of the parameter to set in an object
@@ -809,7 +809,7 @@ see GridComponent::dynInitializeA for more details
                                                      index_t outputNum,
                                                      const IOdata& inputs,
                                                      const stateData& sD,
-                                                     const solverMode& sMode);
+                                                     const SolverMode& sMode);
     /****
     other items
     */
@@ -827,6 +827,6 @@ see GridComponent::dynInitializeA for more details
 @param comp the object to display the states for
 @param sMode the mode which to display the states for
 */
-void printStateNames(const GridComponent* comp, const solverMode& sMode);
+void printStateNames(const GridComponent* comp, const SolverMode& sMode);
 
 }  // namespace griddyn

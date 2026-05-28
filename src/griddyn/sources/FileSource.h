@@ -44,7 +44,7 @@ class fileSource: public rampSource {
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
     virtual void updateA(coreTime time) override;
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     // let predict fall through to ramp function
 
   private:

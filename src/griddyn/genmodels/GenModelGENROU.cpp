@@ -80,7 +80,7 @@ void GenModelGENROU::dynObjectInitializeB(const IOdata& inputs,
 void GenModelGENROU::algebraicUpdate(const IOdata& inputs,
                                      const stateData& sD,
                                      double update[],
-                                     const solverMode& sMode,
+                                     const SolverMode& sMode,
                                      double /*alpha*/)
 {
     auto Loc = offsets.getLocations(sD, update, sMode, this);
@@ -99,7 +99,7 @@ void GenModelGENROU::algebraicUpdate(const IOdata& inputs,
 void GenModelGENROU::derivative(const IOdata& inputs,
                                 const stateData& sD,
                                 double deriv[],
-                                const solverMode& sMode)
+                                const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, deriv, sMode, this);
 
@@ -161,7 +161,7 @@ void GenModelGENROU::derivative(const IOdata& inputs,
 void GenModelGENROU::residual(const IOdata& inputs,
                               const stateData& sD,
                               double resid[],
-                              const solverMode& sMode)
+                              const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, resid, sMode, this);
 
@@ -199,7 +199,7 @@ void GenModelGENROU::jacobianElements(const IOdata& inputs,
                                       const stateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
-                                      const solverMode& sMode)
+                                      const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, sMode, this);
 

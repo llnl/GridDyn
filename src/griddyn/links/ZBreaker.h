@@ -34,7 +34,7 @@ class zBreaker: public Link {
     virtual void updateLocalCache() override;
     virtual void updateLocalCache(const IOdata& inputs,
                                   const stateData& sD,
-                                  const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
     virtual double quickupdateP() override;
 
     virtual int fixRealPower(double power,

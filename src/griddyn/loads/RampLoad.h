@@ -34,7 +34,7 @@ namespace loads {
 
         virtual void updateLocalCache(const IOdata& inputs,
                                       const stateData& sD,
-                                      const solverMode& sMode) override;
+                                      const SolverMode& sMode) override;
         /** set the ramps to 0*/
         void clearRamp();
     };

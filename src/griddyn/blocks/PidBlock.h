@@ -44,20 +44,20 @@ class PidBlock: public GridBlock {
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    virtual index_t findIndex(std::string_view field, const solverMode& sMode) const override;
+    virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
     virtual void blockDerivative(double input,
                                  double didt,
                                  const stateData& stateDataValue,
                                  double deriv[],
-                                 const solverMode& sMode) override;
+                                 const SolverMode& sMode) override;
     // only called if the genModel is not present
     virtual void blockJacobianElements(double input,
                                        double didt,
                                        const stateData& stateDataValue,
                                        matrixData<double>& matrixDataValue,
                                        index_t argLoc,
-                                       const solverMode& sMode) override;
+                                       const SolverMode& sMode) override;
     virtual double step(coreTime time, double inputA) override;
     virtual stringVec localStateNames() const override;
 };

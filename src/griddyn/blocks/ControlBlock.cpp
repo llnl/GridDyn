@@ -76,7 +76,7 @@ void ControlBlock::dynObjectInitializeB(const IOdata& inputs,
 void ControlBlock::blockAlgebraicUpdate(double input,
                                         const stateData& stateDataRef,
                                         double update[],
-                                        const solverMode& sMode)
+                                        const SolverMode& sMode)
 {
     if (!opFlags[differential_input]) {
         auto locationData = offsets.getLocations(stateDataRef, update, sMode, this);
@@ -93,7 +93,7 @@ void ControlBlock::blockDerivative(double input,
                                    double didt,
                                    const stateData& stateDataRef,
                                    double deriv[],
-                                   const solverMode& sMode)
+                                   const SolverMode& sMode)
 {
     auto locationData = offsets.getLocations(stateDataRef, deriv, sMode, this);
     if (opFlags[differential_input]) {
@@ -115,7 +115,7 @@ void ControlBlock::blockJacobianElements(double input,
                                          const stateData& stateDataRef,
                                          matrixData<double>& jacobian,
                                          index_t argLoc,
-                                         const solverMode& sMode)
+                                         const SolverMode& sMode)
 {
     auto locationData = offsets.getLocations(stateDataRef, sMode, this);
     if (opFlags[differential_input]) {
@@ -192,7 +192,7 @@ double ControlBlock::step(coreTime time, double input)
     return out;
 }
 
-index_t ControlBlock::findIndex(std::string_view field, const solverMode& sMode) const
+index_t ControlBlock::findIndex(std::string_view field, const SolverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if (field == "m1") {

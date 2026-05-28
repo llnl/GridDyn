@@ -136,7 +136,7 @@ void breaker::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 
     auto ctiStateGrabber = std::make_unique<customStateGrabber>(this);
     ctiStateGrabber->setGrabberFunction(
-        [](CoreObject* obj, const stateData& stateDataRef, const solverMode& sMode) -> double {
+        [](CoreObject* obj, const stateData& stateDataRef, const SolverMode& sMode) -> double {
             return stateDataRef.state[static_cast<breaker*>(obj)->offsets.getDiffOffset(sMode)];
         });
 
@@ -214,7 +214,7 @@ void breaker::updateA(coreTime time)
     lastUpdateTime = time;
 }
 
-stateSizes breaker::localStateSizes(const solverMode& sMode) const
+stateSizes breaker::localStateSizes(const SolverMode& sMode) const
 {
     stateSizes stateSizeSet;
     if ((!isAlgebraicOnly(sMode)) && (mRecloserTap > 0)) {
@@ -223,7 +223,7 @@ stateSizes breaker::localStateSizes(const solverMode& sMode) const
     return stateSizeSet;
 }
 
-count_t breaker::localJacobianCount(const solverMode& sMode) const
+count_t breaker::localJacobianCount(const SolverMode& sMode) const
 {
     if ((!isAlgebraicOnly(sMode)) && (mRecloserTap > 0)) {
         return 12;
@@ -231,7 +231,7 @@ count_t breaker::localJacobianCount(const solverMode& sMode) const
     return 0;
 }
 
-void breaker::timestep(coreTime time, const IOdata& /*inputs*/, const solverMode& /*sMode*/)
+void breaker::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     prevTime = time;
     if (mLimit < kBigNum / 2.0) {
@@ -248,7 +248,7 @@ void breaker::jacobianElements(const IOdata& /*inputs*/,
                                const stateData& stateDataRef,
                                matrixData<double>& jacobian,
                                const IOlocs& /*inputLocs*/,
-                               const solverMode& sMode)
+                               const SolverMode& sMode)
 {
     if (mUseCti) {
         matrixDataSparse<double> localJacobian;
@@ -315,7 +315,7 @@ void breaker::jacobianElements(const IOdata& /*inputs*/,
 void breaker::setState(coreTime time,
                        const double state[],
                        const double /*dstate_dt*/[],
-                       const solverMode& sMode)
+                       const SolverMode& sMode)
 {
     if (mUseCti) {
         auto offset = offsets.getDiffOffset(sMode);
@@ -327,7 +327,7 @@ void breaker::setState(coreTime time,
 void breaker::residual(const IOdata& /*inputs*/,
                        const stateData& stateDataRef,
                        double resid[],
-                       const solverMode& sMode)
+                       const SolverMode& sMode)
 {
     if (mUseCti) {
         auto offset = offsets.getDiffOffset(sMode);
@@ -356,7 +356,7 @@ void breaker::residual(const IOdata& /*inputs*/,
 void breaker::guessState(const coreTime /*time*/,
                          double state[],
                          double dstate_dt[],
-                         const solverMode& sMode)
+                         const SolverMode& sMode)
 {
     if (mUseCti) {
         auto offset = offsets.getDiffOffset(sMode);
@@ -378,7 +378,7 @@ void breaker::guessState(const coreTime /*time*/,
 }
 
 void breaker::getStateName(stringVec& stNames,
-                           const solverMode& sMode,
+                           const SolverMode& sMode,
                            const std::string& prefix) const
 {
     if (stateSize(sMode) > 0) {
@@ -420,7 +420,7 @@ void breaker::resetBreaker(coreTime time)
     alert(this, BREAKER_RECLOSE);
     logging::normal(this, "breaker {} reset on {}", m_terminal, m_sourceObject->getName());
     opFlags.reset(BREAKER_TRIPPED_FLAG);
-    // timestep (time, solverMode::pFlow);
+    // timestep (time, SolverMode::pFlow);
     triggerAction(1);  // reclose the breaker
     nextUpdateTime = maxTime;
     if (!opFlags[NONLINK_SOURCE_FLAG]) {  // do a recompute power

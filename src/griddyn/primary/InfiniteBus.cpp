@@ -52,7 +52,7 @@ void infiniteBus::updateVoltageAngle(coreTime time)
     voltage += dvdt * dt;
 }
 
-void infiniteBus::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void infiniteBus::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     updateVoltageAngle(time);
     GridBus::timestep(time, inputs, sMode);
@@ -61,7 +61,7 @@ void infiniteBus::timestep(coreTime time, const IOdata& inputs, const solverMode
 void infiniteBus::setState(coreTime time,
                            const double state[],
                            const double dstate_dt[],
-                           const solverMode& sMode)
+                           const SolverMode& sMode)
 {
     updateVoltageAngle(time);
     GridBus::setState(time, state, dstate_dt, sMode);
@@ -90,29 +90,29 @@ void infiniteBus::set(std::string_view param, double val, unit unitType)
     }
 }
 
-double infiniteBus::getVoltage(const double /*state*/[], const solverMode& /*sMode*/) const
+double infiniteBus::getVoltage(const double /*state*/[], const SolverMode& /*sMode*/) const
 {
     return voltage;
 }
 
-double infiniteBus::getAngle(const double /*state*/[], const solverMode& /*sMode*/) const
+double infiniteBus::getAngle(const double /*state*/[], const SolverMode& /*sMode*/) const
 {
     return angle;
 }
 
-double infiniteBus::getVoltage(const stateData& sD, const solverMode& /*sMode*/) const
+double infiniteBus::getVoltage(const stateData& sD, const SolverMode& /*sMode*/) const
 {
     const double dt = (!sD.empty()) ? static_cast<double>(sD.time - prevTime) : 0.0;
     return voltage + dt * dvdt;
 }
 
-double infiniteBus::getAngle(const stateData& sD, const solverMode& /*sMode*/) const
+double infiniteBus::getAngle(const stateData& sD, const SolverMode& /*sMode*/) const
 {
     const double dt = (!sD.empty()) ? static_cast<double>(sD.time - prevTime) : 0.0;
     return angle + 2 * kPI * (dt * ((freq - 1.0) + dfdt / 2));
 }
 
-double infiniteBus::getFreq(const stateData& sD, const solverMode& /*sMode*/) const
+double infiniteBus::getFreq(const stateData& sD, const SolverMode& /*sMode*/) const
 {
     double dt = (!sD.empty()) ? static_cast<double>(sD.time - prevTime) : 0.0;
     return freq + dt * dfdt;

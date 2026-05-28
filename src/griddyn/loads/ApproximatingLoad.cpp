@@ -109,7 +109,7 @@ void ApproximatingLoad::dynObjectInitializeB(const IOdata& /*inputs*/,
     }
 }
 
-void ApproximatingLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void ApproximatingLoad::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     const double voltage = inputs[voltageInLocation];
     const double angle = inputs[angleInLocation];
@@ -234,7 +234,7 @@ coreTime ApproximatingLoad::updateB()
 
 void ApproximatingLoad::preEx(const IOdata& inputs,
                               const stateData& stateDataValue,
-                              const solverMode& sMode)
+                              const SolverMode& sMode)
 {
     if ((lastSeqID == stateDataValue.seqID) && (stateDataValue.seqID != 0)) {
         return;
@@ -275,7 +275,7 @@ void ApproximatingLoad::preEx(const IOdata& inputs,
 
 void ApproximatingLoad::updateLocalCache(const IOdata& inputs,
                                          const stateData& stateDataValue,
-                                         const solverMode& sMode)
+                                         const SolverMode& sMode)
 {
     if (opFlags[waiting_flag]) {
         updateB();
@@ -553,7 +553,7 @@ void ApproximatingLoad::set(std::string_view param, double val, units::unit unit
 void ApproximatingLoad::rootTest(const IOdata& inputs,
                                  const stateData& /*sD*/,
                                  double roots[],
-                                 const solverMode& sMode)
+                                 const SolverMode& sMode)
 {
     const int rootOffset = offsets.getRootOffset(sMode);
     const double voltage = inputs[voltageInLocation];
@@ -565,7 +565,7 @@ void ApproximatingLoad::rootTest(const IOdata& inputs,
 void ApproximatingLoad::rootTrigger(coreTime time,
                                     const IOdata& /*inputs*/,
                                     const std::vector<int>& rootMask,
-                                    const solverMode& sMode)
+                                    const SolverMode& sMode)
 {
     const int rootOffset = offsets.getRootOffset(sMode);
     if (rootMask[rootOffset] != 0) {
@@ -576,7 +576,7 @@ void ApproximatingLoad::rootTrigger(coreTime time,
 
 ChangeCode ApproximatingLoad::rootCheck(const IOdata& inputs,
                                         const stateData& stateDataValue,
-                                        const solverMode& /*sMode*/,
+                                        const SolverMode& /*sMode*/,
                                         CheckLevel /*level*/)
 {
     const double voltage = inputs[voltageInLocation];

@@ -49,7 +49,7 @@ class randomSource: public rampSource {
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     /** check if the random number generation has been triggered*/
     bool isTriggered() { return opFlags[triggered_flag]; }

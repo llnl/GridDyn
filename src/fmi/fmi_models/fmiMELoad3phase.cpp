@@ -69,7 +69,7 @@ void FmiMELoad3phase::set(std::string_view param, double val, units::unit unitTy
 void FmiMELoad3phase::setState(coreTime time,
                                const double state[],
                                const double dstateDt[],
-                               const solverMode& sMode)
+                               const SolverMode& sMode)
 {
     fmisub->setState(time, state, dstateDt, sMode);
     auto out = fmisub->getOutputs(noInputs, emptyStateData, cLocalSolverMode);
@@ -79,7 +79,7 @@ void FmiMELoad3phase::setState(coreTime time,
 
 void FmiMELoad3phase::updateLocalCache(const IOdata& inputs,
                                        const stateData& stateDataRef,
-                                       const solverMode& sMode)
+                                       const SolverMode& sMode)
 {
     auto inputVector =
         opFlags[COMPLEX_VOLTAGE] ? generate3PhaseVector(inputs) : generate3PhasePolarVector(inputs);

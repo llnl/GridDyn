@@ -52,7 +52,7 @@ void LutBlock::dynObjectInitializeB(const IOdata& inputs,
 void LutBlock::blockAlgebraicUpdate(double input,
                                     const stateData& stateDataValue,
                                     double update[],
-                                    const solverMode& sMode)
+                                    const SolverMode& sMode)
 {
     auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
     update[offset] = K * computeValue(input + bias);
@@ -67,7 +67,7 @@ void LutBlock::blockJacobianElements(double input,
                                      const stateData& stateDataValue,
                                      matrixData<double>& matrixDataValue,
                                      index_t argLoc,
-                                     const solverMode& sMode)
+                                     const SolverMode& sMode)
 {
     auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
     // use the md.assign Macro defined in basicDefs

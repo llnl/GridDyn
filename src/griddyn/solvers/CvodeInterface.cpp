@@ -50,7 +50,7 @@ CvodeInterface::CvodeInterface(const std::string& objName): SundialsInterface(ob
     max_iterations = 1500;
 }
 
-CvodeInterface::CvodeInterface(GridDynSimulation* gds, const solverMode& sMode):
+CvodeInterface::CvodeInterface(GridDynSimulation* gds, const SolverMode& sMode):
     SundialsInterface(gds, sMode)
 {
     mode.dynamic = true;
@@ -62,7 +62,7 @@ CvodeInterface::CvodeInterface(GridDynSimulation* gds, const solverMode& sMode):
 CvodeInterface::~CvodeInterface()
 {
     // clear variables for CVode to use
-    if (flags[initialized_flag]) {
+    if (flags[INITIALIZED_FLAG]) {
         CVodeFree(&solverMem);
     }
 }
@@ -92,7 +92,7 @@ void CvodeInterface::allocate(count_t stateCount, count_t numRoots)
     if (stateCount == svsize) {
         return;
     }
-    flags.reset(initialized_flag);
+    flags.reset(INITIALIZED_FLAG);
     a1.setRowLimit(stateCount);
     a1.setColLimit(stateCount);
 
@@ -151,7 +151,7 @@ void CvodeInterface::set(std::string_view param, double val)
         SolverInterface::set(param, val);
     }
     if (checkStepUpdate) {
-        if (flags[initialized_flag]) {
+        if (flags[INITIALIZED_FLAG]) {
             CVodeSetMaxStep(solverMem, maxStep);
             CVodeSetMinStep(solverMem, minStep);
             CVodeSetInitStep(solverMem, step);
@@ -182,7 +182,7 @@ double CvodeInterface::get(std::string_view param) const
 // output solver stats
 void CvodeInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
 {
-    if (!flags[initialized_flag]) {
+    if (!flags[INITIALIZED_FLAG]) {
         return;
     }
     long nni = 0;
@@ -274,7 +274,7 @@ void CvodeInterface::logErrorWeights(PrintLevel logLevel) const
 
 void CvodeInterface::initialize(coreTime time0)
 {
-    if (!flags[allocated_flag]) {
+    if (!flags[ALLOCATED_FLAG]) {
         throw(InvalidSolverOperation());
     }
 
@@ -306,7 +306,7 @@ void CvodeInterface::initialize(coreTime time0)
     checkFlag(&retval, "CVodeSetMaxNumSteps", 1);
 
 #ifdef GRIDDYN_ENABLE_KLU
-    if (flags[dense_flag]) {
+    if (flags[DENSE_FLAG]) {
         J = SUNDenseMatrix(svsize, svsize, sunctx);
         checkFlag(J, "SUNDenseMatrix", 0);
         /* Create KLU solver object */
@@ -353,7 +353,7 @@ void CvodeInterface::initialize(coreTime time0)
     }
     setConstraints();
 
-    flags.set(initialized_flag);
+    flags.set(INITIALIZED_FLAG);
 }
 
 void CvodeInterface::sparseReInit(SparseReinitMode reInitMode)
@@ -441,7 +441,7 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userDat
                                             NVECTOR_DATA(sd->use_omp, dstateDt),
                                             sd->mode);
 
-    if (sd->flags[fileCapture_flag]) {
+    if (sd->flags[FILE_CAPTURE_FLAG]) {
         if (!sd->stateFile.empty()) {
             writeVector(time,
                         STATE_INFORMATION,

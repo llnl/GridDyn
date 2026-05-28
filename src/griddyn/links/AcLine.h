@@ -153,16 +153,16 @@ class AcLine: public Link {
     virtual void updateLocalCache() override;
     virtual void updateLocalCache(const IOdata& inputs,
                                   const stateData& sD,
-                                  const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     /** @brief do a quick update  (may be deprecated)
      * @return the power transfer
      */
     virtual double quickupdateP() override;
 
     using Link::getAngle;
-    virtual double getAngle(const double state[], const solverMode& sMode) const override;
+    virtual double getAngle(const double state[], const SolverMode& sMode) const override;
 
     virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
     virtual double get(std::string_view param,
@@ -181,28 +181,28 @@ class AcLine: public Link {
                                       const stateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
-                                      const solverMode& sMode) override;
+                                      const SolverMode& sMode) override;
 
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const stateData& sD,
                                           matrixData<double>& md,
-                                          const solverMode& sMode) override;
+                                          const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(id_type_t busId,
                                           const stateData& sD,
                                           matrixData<double>& md,
-                                          const solverMode& sMode) override;
-    virtual count_t outputDependencyCount(index_t num, const solverMode& sMode) const override;
+                                          const SolverMode& sMode) override;
+    virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
     virtual double getMaxTransfer() const override;
     // virtual void busResidual(index_t busId, const stateData &sD, double *Fp, double *Fq, const
-    // solverMode &sMode);
+    // SolverMode &sMode);
     virtual void setState(coreTime time,
                           const double state[],
                           const double dstate_dt[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
 
     virtual ChangeCode rootCheck(const IOdata& inputs,
                                  const stateData& sD,
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  CheckLevel level) override;
 
     virtual bool testAndTrip(int tripLevel) override;
@@ -282,7 +282,7 @@ class AcLine: public Link {
     /** @brief load information into the linkInfo structure
     @param[in] sD  the state Data
     @param[in] sMode the corresponding solver Mode*/
-    void loadLinkInfo(const stateData& sD, const solverMode& sMode);
+    void loadLinkInfo(const stateData& sD, const SolverMode& sMode);
     /** @brief load the approximation functions in the bizarrely defined array above*/
     void loadApproxFunctions();
 

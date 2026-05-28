@@ -266,7 +266,7 @@ void AggregateLoad::set(std::string_view param, double val, units::unit unitType
 void AggregateLoad::residual(const IOdata& inputs,
                              const stateData& sD,
                              double resid[],
-                             const solverMode& sMode)
+                             const SolverMode& sMode)
 {
     for (auto& ld : subLoads) {
         if (ld->stateSize(sMode) > 0) {
@@ -278,7 +278,7 @@ void AggregateLoad::residual(const IOdata& inputs,
 void AggregateLoad::derivative(const IOdata& inputs,
                                const stateData& sD,
                                double deriv[],
-                               const solverMode& sMode)
+                               const SolverMode& sMode)
 {
     for (auto& ld : subLoads) {
         if (ld->diffSize(sMode) > 0) {
@@ -290,7 +290,7 @@ void AggregateLoad::derivative(const IOdata& inputs,
 void AggregateLoad::outputPartialDerivatives(const IOdata& inputs,
                                              const stateData& sD,
                                              matrixData<double>& md,
-                                             const solverMode& sMode)
+                                             const SolverMode& sMode)
 {
     for (auto& ld : subLoads) {
         if (ld->stateSize(sMode) > 0) {
@@ -303,7 +303,7 @@ void AggregateLoad::ioPartialDerivatives(const IOdata& inputs,
                                          const stateData& sD,
                                          matrixData<double>& md,
                                          const IOlocs& inputLocs,
-                                         const solverMode& sMode)
+                                         const SolverMode& sMode)
 {
     for (auto& ld : subLoads) {
         ld->ioPartialDerivatives(inputs, sD, md, inputLocs, sMode);
@@ -314,7 +314,7 @@ void AggregateLoad::jacobianElements(const IOdata& inputs,
                                      const stateData& sD,
                                      matrixData<double>& md,
                                      const IOlocs& inputLocs,
-                                     const solverMode& sMode)
+                                     const SolverMode& sMode)
 {
     for (auto& ld : subLoads) {
         if (ld->stateSize(sMode) > 0) {
@@ -323,7 +323,7 @@ void AggregateLoad::jacobianElements(const IOdata& inputs,
     }
 }
 
-void AggregateLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void AggregateLoad::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     for (auto& ld : subLoads) {
         ld->timestep(time, inputs, sMode);
@@ -332,7 +332,7 @@ void AggregateLoad::timestep(coreTime time, const IOdata& inputs, const solverMo
 
 double AggregateLoad::getRealPower(const IOdata& inputs,
                                    const stateData& sD,
-                                   const solverMode& sMode) const
+                                   const SolverMode& sMode) const
 {
     double rp = 0;
     for (auto& ld : subLoads) {
@@ -345,7 +345,7 @@ double AggregateLoad::getRealPower(const IOdata& inputs,
 
 double AggregateLoad::getReactivePower(const IOdata& inputs,
                                        const stateData& sD,
-                                       const solverMode& sMode) const
+                                       const SolverMode& sMode) const
 {
     double rp = 0;
     for (auto& ld : subLoads) {

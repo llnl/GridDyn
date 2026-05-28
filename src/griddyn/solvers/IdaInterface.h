@@ -28,9 +28,9 @@ class IdaInterface: public SundialsInterface {
     explicit IdaInterface(const std::string& objName = "ida");
     /** @brief alternate constructor
 @param[in] gds  the GridDynSimulation object to connect to
-@param[in] sMode the solverMode to solve For
+@param[in] sMode the SolverMode to solve For
 */
-    IdaInterface(GridDynSimulation* gds, const solverMode& sMode);
+    IdaInterface(GridDynSimulation* gds, const SolverMode& sMode);
     /** @brief destructor*/
     ~IdaInterface();
 

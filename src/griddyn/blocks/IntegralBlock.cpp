@@ -55,7 +55,7 @@ void IntegralBlock::blockResidual(double input,
                                   double didt,
                                   const stateData& stateDataValue,
                                   double resid[],
-                                  const solverMode& sMode)
+                                  const SolverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
         GridBlock::blockResidual(input, didt, stateDataValue, resid, sMode);
@@ -70,7 +70,7 @@ void IntegralBlock::blockDerivative(double input,
                                     double didt,
                                     const stateData& stateDataValue,
                                     double deriv[],
-                                    const solverMode& sMode)
+                                    const SolverMode& sMode)
 {
     auto offset = offsets.getDiffOffset(sMode);
     deriv[offset + limiter_diff] = K * (input + bias);
@@ -84,7 +84,7 @@ void IntegralBlock::blockJacobianElements(double input,
                                           const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
                                           index_t argLoc,
-                                          const solverMode& sMode)
+                                          const SolverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
         GridBlock::blockJacobianElements(

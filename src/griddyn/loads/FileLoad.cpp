@@ -152,7 +152,7 @@ void FileLoad::updateA(coreTime time)
     nextUpdateTime = (currIndex == count - 1) ? maxTime : schedLoad.time(currIndex + 1);
 }
 
-void FileLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void FileLoad::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     if (time >= nextUpdateTime) {
         updateA(time);

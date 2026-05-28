@@ -69,7 +69,7 @@ void ExciterIEEEtype1::dynObjectInitializeB(const IOdata& inputs,
 void ExciterIEEEtype1::residual(const IOdata& inputs,
                                 const stateData& sD,
                                 double resid[],
-                                const solverMode& sMode)
+                                const SolverMode& sMode)
 {
     if (!hasDifferential(sMode)) {
         return;
@@ -94,7 +94,7 @@ void ExciterIEEEtype1::residual(const IOdata& inputs,
     rv[2] = (-es[2] + es[0] * Kf / Tf) / Tf - esp[2];
 }
 
-void ExciterIEEEtype1::timestep(coreTime time, const IOdata& inputs, const solverMode& /*sMode*/)
+void ExciterIEEEtype1::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
     double dt = time - prevTime;  // convert from a coreTime
@@ -107,7 +107,7 @@ void ExciterIEEEtype1::timestep(coreTime time, const IOdata& inputs, const solve
 void ExciterIEEEtype1::derivative(const IOdata& inputs,
                                   const stateData& sD,
                                   double deriv[],
-                                  const solverMode& sMode)
+                                  const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, deriv, sMode, this);
     const double* es = Loc.diffStateLoc;
@@ -128,7 +128,7 @@ void ExciterIEEEtype1::jacobianElements(const IOdata& /*inputs*/,
                                         const stateData& sD,
                                         matrixData<double>& md,
                                         const IOlocs& inputLocs,
-                                        const solverMode& sMode)
+                                        const SolverMode& sMode)
 {
     if (!hasDifferential(sMode)) {
         return;
@@ -164,7 +164,7 @@ void ExciterIEEEtype1::jacobianElements(const IOdata& /*inputs*/,
 void ExciterIEEEtype1::rootTest(const IOdata& inputs,
                                 const stateData& sD,
                                 double roots[],
-                                const solverMode& sMode)
+                                const SolverMode& sMode)
 {
     auto offset = offsets.getDiffOffset(sMode);
     auto rootOffset = offsets.getRootOffset(sMode);
@@ -185,7 +185,7 @@ void ExciterIEEEtype1::rootTest(const IOdata& inputs,
 
 ChangeCode ExciterIEEEtype1::rootCheck(const IOdata& inputs,
                                        const stateData& /*sD*/,
-                                       const solverMode& /*sMode*/,
+                                       const SolverMode& /*sMode*/,
                                        CheckLevel /*level*/)
 {
     const double* es = m_state.data();

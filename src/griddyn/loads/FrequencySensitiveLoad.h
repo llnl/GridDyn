@@ -30,7 +30,7 @@ class FrequencySensitiveLoad: public GridLoad {
 
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
 
     virtual void set(std::string_view param, std::string_view val) override;
@@ -43,31 +43,31 @@ class FrequencySensitiveLoad: public GridLoad {
 
     virtual void updateLocalCache(const IOdata& inputs,
                                   const stateData& sD,
-                                  const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
     /** update the actual outputs with a frequency related calculation*/
     virtual void updateOutputs(double frequency);
     virtual void setState(coreTime time,
                           const double state[],
                           const double dstate_dt[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
 
     virtual void ioPartialDerivatives(const IOdata& inputs,
                                       const stateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
-                                      const solverMode& sMode) override;
+                                      const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const stateData& sD,
                                           matrixData<double>& md,
-                                          const solverMode& sMode) override;
-    virtual count_t outputDependencyCount(index_t num, const solverMode& sMode) const override;
+                                          const SolverMode& sMode) override;
+    virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
 
     virtual double getRealPower(const IOdata& inputs,
                                 const stateData& sD,
-                                const solverMode& sMode) const override;
+                                const SolverMode& sMode) const override;
     virtual double getReactivePower(const IOdata& inputs,
                                     const stateData& sD,
-                                    const solverMode& sMode) const override;
+                                    const SolverMode& sMode) const override;
     virtual double getRealPower(double V) const override;
     virtual double getReactivePower(double V) const override;
     virtual double getRealPower() const override;

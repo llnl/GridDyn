@@ -106,7 +106,7 @@ int faultResetRecovery::faultResetFix1()
         }
     }
 
-    return solver->calcIC(timeCurr, sim->probeStepTime, SolverInterface::IcModes::fixed_diff, true);
+    return solver->calcIC(timeCurr, sim->probeStepTime, SolverInterface::IcModes::FIXED_DIFF, true);
 }
 
 int faultResetRecovery::faultResetFix2(ResetLevels rlevel)
@@ -121,7 +121,7 @@ int faultResetRecovery::faultResetFix2(ResetLevels rlevel)
     // int mmatch = jacobianCheck(sim, solver->getSolverMode());
 
     retval =
-        solver->calcIC(timeCurr, sim->probeStepTime, SolverInterface::IcModes::fixed_diff, true);
+        solver->calcIC(timeCurr, sim->probeStepTime, SolverInterface::IcModes::FIXED_DIFF, true);
     if (retval != 0) {
         // try local converge with mode which only deals with low voltage buses
         sim->converge(timeCurr,
@@ -134,7 +134,7 @@ int faultResetRecovery::faultResetFix2(ResetLevels rlevel)
         // sim->getVoltage(cVolts, solver->stateData(), solver->getSolverMode());
         retval = solver->calcIC(timeCurr,
                                 sim->probeStepTime,
-                                SolverInterface::IcModes::fixed_diff,
+                                SolverInterface::IcModes::FIXED_DIFF,
                                 true);
     }
     return retval;
@@ -161,7 +161,7 @@ int faultResetRecovery::faultResetFix3()
         //  dynData->printStates(true);
         retval = solver->calcIC(sim->getSimulationTime(),
                                 sim->probeStepTime,
-                                SolverInterface::IcModes::fixed_diff,
+                                SolverInterface::IcModes::FIXED_DIFF,
                                 true);
 
         if (retval == 0) {
@@ -181,7 +181,7 @@ int faultResetRecovery::faultResetFix3()
             // dynData->printStates(true);
             retval = solver->calcIC(sim->getSimulationTime(),
                                     sim->probeStepTime,
-                                    SolverInterface::IcModes::fixed_diff,
+                                    SolverInterface::IcModes::FIXED_DIFF,
                                     true);
             if (retval == 0) {
                 solver->getCurrentData();

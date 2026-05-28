@@ -20,7 +20,7 @@ BasicOdeSolver::BasicOdeSolver(const std::string& objName): SolverInterface(objN
     mode.differential = true;
     mode.algebraic = false;
 }
-BasicOdeSolver::BasicOdeSolver(GridDynSimulation* gds, const solverMode& sMode):
+BasicOdeSolver::BasicOdeSolver(GridDynSimulation* gds, const SolverMode& sMode):
     SolverInterface(gds, sMode)
 {
 }
@@ -73,18 +73,18 @@ void BasicOdeSolver::allocate(count_t stateCount, count_t numRoots)
         deriv.resize(stateCount);
         state2.resize(stateCount);
         svsize = stateCount;
-        flags.reset(initialized_flag);
-        flags.set(allocated_flag);
+        flags.reset(INITIALIZED_FLAG);
+        flags.set(ALLOCATED_FLAG);
         rootsfound.resize(numRoots);
     }
 }
 
 void BasicOdeSolver::initialize(coreTime t0)
 {
-    if (!flags[allocated_flag]) {
+    if (!flags[ALLOCATED_FLAG]) {
         throw(InvalidSolverOperation(-2));
     }
-    flags.set(initialized_flag);
+    flags.set(INITIALIZED_FLAG);
     solverCallCount = 0;
     solveTime = t0;
 }

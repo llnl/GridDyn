@@ -196,7 +196,7 @@ void GridLabDLoad::dynObjectInitializeB(const IOdata& /*inputs*/,
     }
 }
 
-void GridLabDLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void GridLabDLoad::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     double V = inputs[voltageInLocation];
     double th = inputs[angleInLocation];
@@ -348,7 +348,7 @@ coreTime GridLabDLoad::updateB()
     return nextUpdateTime;
 }
 
-void GridLabDLoad::preEx(const IOdata& inputs, const stateData& sD, const solverMode& sMode)
+void GridLabDLoad::preEx(const IOdata& inputs, const stateData& sD, const SolverMode& sMode)
 {
     if ((lastSeqID == sD.seqID) && (sD.seqID != 0)) {
         return;
@@ -389,7 +389,7 @@ void GridLabDLoad::preEx(const IOdata& inputs, const stateData& sD, const solver
 
 void GridLabDLoad::updateLocalCache(const IOdata& inputs,
                                     const stateData& sD,
-                                    const solverMode& sMode)
+                                    const SolverMode& sMode)
 {
     if (opFlags[waiting_flag]) {
         updateB();
@@ -979,7 +979,7 @@ void GridLabDLoad::set(std::string_view param, double val, units::unit unitType)
 void GridLabDLoad::rootTest(const IOdata& inputs,
                             const stateData& /*sD*/,
                             double roots[],
-                            const solverMode& sMode)
+                            const SolverMode& sMode)
 {
     int rootOffset = offsets.getRootOffset(sMode);
     double V = inputs[voltageInLocation];
@@ -991,7 +991,7 @@ void GridLabDLoad::rootTest(const IOdata& inputs,
 void GridLabDLoad::rootTrigger(coreTime time,
                                const IOdata& /*inputs*/,
                                const std::vector<int>& rootMask,
-                               const solverMode& sMode)
+                               const SolverMode& sMode)
 {
     int rootOffset = offsets.getRootOffset(sMode);
     if (rootMask[rootOffset] != 0) {
@@ -1002,7 +1002,7 @@ void GridLabDLoad::rootTrigger(coreTime time,
 
 ChangeCode GridLabDLoad::rootCheck(const IOdata& inputs,
                                    const stateData& sD,
-                                   const solverMode& /*sMode*/,
+                                   const SolverMode& /*sMode*/,
                                    CheckLevel /*level*/)
 {
     double V = inputs[voltageInLocation];

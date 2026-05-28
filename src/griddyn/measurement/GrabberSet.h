@@ -25,7 +25,7 @@ class gridCore;
 class stateGrabber;
 class gridGrabber;
 class stateData;
-class solverMode;
+class SolverMode;
 
 /** class pairing up basicGrabbers and state grabbers in a single interface
  */
@@ -81,11 +81,11 @@ class grabberSet: public ObjectOperatorInterface {
      *@param[out] desc_list  the list of descriptions
      **/
     virtual void getDesc(std::vector<std::string>& desc_list) const;
-    virtual double grabData(const stateData& stateDataValue, const solverMode& sMode);
+    virtual double grabData(const stateData& stateDataValue, const SolverMode& sMode);
     virtual void outputPartialDerivatives(const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
-                                          const solverMode& sMode);
-    // virtual void getDoutDt(const stateData &sD, const solverMode &sMode) const;
+                                          const SolverMode& sMode);
+    // virtual void getDoutDt(const stateData &sD, const SolverMode &sMode) const;
     /** get a description of the grabberSet*/
     virtual const std::string& getDesc() const;
     /** get a description of the grabber Set*/

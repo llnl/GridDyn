@@ -28,7 +28,7 @@ namespace griddyn {
 // power flow solver
 int GridDynSimulation::powerflow()
 {
-    const solverMode& solverModeRef = *defPowerFlowMode;
+    const SolverMode& solverModeRef = *defPowerFlowMode;
     const int out = FUNCTION_EXECUTION_SUCCESS;
     count_t voltage_iteration_count = 0;
     count_t power_iteration_count = 0;
@@ -218,7 +218,7 @@ int GridDynSimulation::powerflow()
     return out;
 }
 
-void GridDynSimulation::reInitpFlow(const solverMode& sMode, ChangeCode change)
+void GridDynSimulation::reInitpFlow(const SolverMode& sMode, ChangeCode change)
 {
     if (opFlags[slack_bus_change]) {
         checkNetwork(NetworkCheckType::FULL);
@@ -299,7 +299,7 @@ int GridDynSimulation::pFlowInitialize(coreTime time0)
     EvQ->executeEvents(time0 - 0.001);
 
     auto pFlowData = getSolverInterface(*defPowerFlowMode);
-    const solverMode& solverModeRef = pFlowData->getSolverMode();
+    const SolverMode& solverModeRef = pFlowData->getSolverMode();
     defPowerFlowMode = &solverModeRef;
     // dynInitializeB
     // this->savePowerFlowXML("testflow.xml");
@@ -507,12 +507,12 @@ int GridDynSimulation::eventDrivenPowerflow(coreTime t_end, coreTime t_step)
 int GridDynSimulation::algUpdateFunction(coreTime time,
                                          const double state[],
                                          double update[],
-                                         const solverMode& sMode,
+                                         const SolverMode& sMode,
                                          double alpha) noexcept
 {
     ++evalCount;
     stateData stateDataValue(time, state);
-    stateDataValue.seqID = (sMode.approx[force_recalc] ? 0 : evalCount);
+    stateDataValue.seqID = (sMode.approx[FORCE_RECALC] ? 0 : evalCount);
 
 #ifdef CHECK_STATE
     auto dynDataa = getSolverInterface(sMode);

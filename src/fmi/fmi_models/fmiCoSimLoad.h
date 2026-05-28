@@ -32,7 +32,7 @@ class FmiCoSimLoad: public FmiCoSimWrapper<GridLoad> {
     virtual void setState(coreTime time,
                           const double state[],
                           const double dstateDt[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
 };
 
 }  // namespace griddyn::fmi

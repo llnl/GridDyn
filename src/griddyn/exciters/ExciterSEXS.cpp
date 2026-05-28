@@ -99,15 +99,15 @@ double ExciterSEXS::regulatorOutput(const IOdata& inputs, const double stateX) c
 void ExciterSEXS::residual(const IOdata& inputs,
                            const stateData& stateData,
                            double resid[],
-                           const solverMode& solverMode)
+                           const SolverMode& SolverMode)
 {
-    if (!hasDifferential(solverMode)) {
+    if (!hasDifferential(SolverMode)) {
         return;
     }
 
-    derivative(inputs, stateData, resid, solverMode);
+    derivative(inputs, stateData, resid, SolverMode);
 
-    auto offset = offsets.getDiffOffset(solverMode);
+    auto offset = offsets.getDiffOffset(SolverMode);
     const auto* stateDerivatives = stateData.dstate_dt + offset;
     resid[offset] -= stateDerivatives[0];
     resid[offset + 1] -= stateDerivatives[1];
@@ -116,9 +116,9 @@ void ExciterSEXS::residual(const IOdata& inputs,
 void ExciterSEXS::derivative(const IOdata& inputs,
                              const stateData& stateData,
                              double deriv[],
-                             const solverMode& solverMode)
+                             const SolverMode& SolverMode)
 {
-    auto locations = offsets.getLocations(stateData, deriv, solverMode, this);
+    auto locations = offsets.getLocations(stateData, deriv, SolverMode, this);
     const auto* exciterState = locations.diffStateLoc;
     auto* derivatives = locations.destDiffLoc;
 
@@ -140,13 +140,13 @@ void ExciterSEXS::jacobianElements(const IOdata& /*inputs*/,
                                    const stateData& stateData,
                                    matrixData<double>& matrix,
                                    const IOlocs& inputLocs,
-                                   const solverMode& solverMode)
+                                   const SolverMode& SolverMode)
 {
-    if (!hasDifferential(solverMode)) {
+    if (!hasDifferential(SolverMode)) {
         return;
     }
 
-    auto offset = offsets.getDiffOffset(solverMode);
+    auto offset = offsets.getDiffOffset(SolverMode);
     const auto invTe = (Te != 0.0) ? (1.0 / Te) : 0.0;
     const auto invTb = (Tb != 0.0) ? (1.0 / Tb) : 0.0;
     matrix.assign(offset, offset, -invTe - stateData.cj);
@@ -165,10 +165,10 @@ void ExciterSEXS::jacobianElements(const IOdata& /*inputs*/,
 void ExciterSEXS::rootTest(const IOdata& inputs,
                            const stateData& stateData,
                            double root[],
-                           const solverMode& solverMode)
+                           const SolverMode& SolverMode)
 {
-    auto offset = offsets.getDiffOffset(solverMode);
-    auto rootOffset = offsets.getRootOffset(solverMode);
+    auto offset = offsets.getDiffOffset(SolverMode);
+    auto rootOffset = offsets.getRootOffset(SolverMode);
     const auto regulatorVoltage = regulatorOutput(inputs, stateData.state[offset + 1]);
 
     if (opFlags[outside_vlim]) {
@@ -185,9 +185,9 @@ void ExciterSEXS::rootTest(const IOdata& inputs,
 void ExciterSEXS::rootTrigger(coreTime time,
                               const IOdata& inputs,
                               const std::vector<int>& rootMask,
-                              const solverMode& solverMode)
+                              const SolverMode& SolverMode)
 {
-    auto rootOffset = offsets.getRootOffset(solverMode);
+    auto rootOffset = offsets.getRootOffset(SolverMode);
     if (rootMask[rootOffset] == 0) {
         return;
     }
@@ -208,12 +208,12 @@ void ExciterSEXS::rootTrigger(coreTime time,
     }
 
     const stateData state(time, m_state.data());
-    derivative(inputs, state, m_dstate_dt.data(), solverMode);
+    derivative(inputs, state, m_dstate_dt.data(), SolverMode);
 }
 
 ChangeCode ExciterSEXS::rootCheck(const IOdata& inputs,
                                   const stateData& /*stateData*/,
-                                  const solverMode& /*solverMode*/,
+                                  const SolverMode& /*SolverMode*/,
                                   CheckLevel /*level*/)
 {
     const auto regulatorVoltage = regulatorOutput(inputs, m_state[1]);

@@ -61,7 +61,7 @@ void DcBus::pFlowObjectInitializeB()
     propogatePower();
 }
 
-stateSizes DcBus::localStateSizes(const solverMode& sMode) const
+stateSizes DcBus::localStateSizes(const SolverMode& sMode) const
 {
     stateSizes busSS;
     if (hasAlgebraic(sMode)) {
@@ -84,7 +84,7 @@ stateSizes DcBus::localStateSizes(const solverMode& sMode) const
     return busSS;
 }
 
-count_t DcBus::localJacobianCount(const solverMode& sMode) const
+count_t DcBus::localJacobianCount(const SolverMode& sMode) const
 {
     count_t localJacSize = 0;
     if (hasAlgebraic(sMode)) {
@@ -190,7 +190,7 @@ void DcBus::dynObjectInitializeB(const IOdata& inputs,
     angle = 0;
 }
 
-void DcBus::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void DcBus::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     GridBus::timestep(time, inputs, sMode);
 }
@@ -255,7 +255,7 @@ void DcBus::set(std::string_view param, double val, unit unitType)
 }
 
 void DcBus::getStateName(stringVec& stNames,
-                         const solverMode& sMode,
+                         const SolverMode& sMode,
                          const std::string& prefix) const
 {
     if (hasAlgebraic(sMode)) {
@@ -281,7 +281,7 @@ void DcBus::getStateName(stringVec& stNames,
 void DcBus::setState(coreTime time,
                      const double state[],
                      const double dstate_dt[],
-                     const solverMode& sMode)
+                     const SolverMode& sMode)
 {
     auto Voffset = offsets.getVOffset(sMode);
 
@@ -302,7 +302,7 @@ void DcBus::setState(coreTime time,
     GridBus::setState(time, state, dstate_dt, sMode);
 }
 
-void DcBus::guessState(coreTime time, double state[], double dstate_dt[], const solverMode& sMode)
+void DcBus::guessState(coreTime time, double state[], double dstate_dt[], const SolverMode& sMode)
 {
     auto Voffset = offsets.getVOffset(sMode);
 
@@ -322,7 +322,7 @@ void DcBus::guessState(coreTime time, double state[], double dstate_dt[], const 
 void DcBus::residual(const IOdata& inputs,
                      const stateData& sD,
                      double resid[],
-                     const solverMode& sMode)
+                     const SolverMode& sMode)
 {
     GridBus::residual(inputs, sD, resid, sMode);
     auto Voffset = offsets.getVOffset(sMode);
@@ -341,7 +341,7 @@ void DcBus::residual(const IOdata& inputs,
 
 static const IOlocs inLoc{0, 1, 2};
 
-void DcBus::computeDerivatives(const stateData& sD, const solverMode& sMode)
+void DcBus::computeDerivatives(const stateData& sD, const SolverMode& sMode)
 {
     matrixDataCompact<2, 3> partDeriv;
     if (!isConnected()) {
@@ -376,7 +376,7 @@ void DcBus::jacobianElements(const IOdata& /*inputs*/,
                              const stateData& sD,
                              matrixData<double>& md,
                              const IOlocs& /*inputLocs*/,
-                             const solverMode& sMode)
+                             const SolverMode& sMode)
 {
     auto inputs = getOutputs(noInputs, sD, sMode);
 
@@ -433,14 +433,14 @@ void DcBus::jacobianElements(const IOdata& /*inputs*/,
           */
 }
 
-IOlocs DcBus::getOutputLocs(const solverMode& sMode) const
+IOlocs DcBus::getOutputLocs(const SolverMode& sMode) const
 {
     return {useVoltage(sMode) ? offsets.getVOffset(sMode) : kNullLocation,
             kNullLocation,
             kNullLocation};
 }
 
-index_t DcBus::getOutputLoc(const solverMode& sMode, index_t num) const
+index_t DcBus::getOutputLoc(const SolverMode& sMode, index_t num) const
 {
     if (num == voltageInLocation) {
         return useVoltage(sMode) ? offsets.getVOffset(sMode) : kNullLocation;
@@ -452,15 +452,15 @@ index_t DcBus::getOutputLoc(const solverMode& sMode, index_t num) const
 void DcBus::converge(coreTime /*time*/,
                      double /*state*/[],
                      double /*dstate_dt*/[],
-                     const solverMode& /*sMode*/,
+                     const SolverMode& /*sMode*/,
                      ConvergeMode /*mode*/,
                      double /*tol*/)
-// void DcBus::converge (const coreTime time, double state[], double dstate_dt[], const solverMode
+// void DcBus::converge (const coreTime time, double state[], double dstate_dt[], const SolverMode
 // &sMode, double tol, int mode)
 {
 }
 
-int DcBus::getMode(const solverMode& sMode) const
+int DcBus::getMode(const SolverMode& sMode) const
 {
     if (isDynamic(sMode)) {
         if (isDifferentialOnly(sMode)) {
@@ -471,7 +471,7 @@ int DcBus::getMode(const solverMode& sMode) const
     return (static_cast<int>(type) | 1);
 }
 
-double DcBus::getVoltage(const double state[], const solverMode& sMode) const
+double DcBus::getVoltage(const double state[], const SolverMode& sMode) const
 {
     if (isLocal(sMode)) {
         return voltage;
@@ -483,7 +483,7 @@ double DcBus::getVoltage(const double state[], const solverMode& sMode) const
     return voltage;
 }
 
-double DcBus::getVoltage(const stateData& sD, const solverMode& sMode) const
+double DcBus::getVoltage(const stateData& sD, const SolverMode& sMode) const
 {
     if (isLocal(sMode)) {
         return voltage;
@@ -495,7 +495,7 @@ double DcBus::getVoltage(const stateData& sD, const solverMode& sMode) const
     return voltage;
 }
 
-bool DcBus::useVoltage(const solverMode& sMode) const
+bool DcBus::useVoltage(const SolverMode& sMode) const
 {
     bool ret = true;
     if (isDifferentialOnly(sMode)) {

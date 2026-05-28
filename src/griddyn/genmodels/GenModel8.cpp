@@ -65,7 +65,7 @@ void GenModel8::dynObjectInitializeB(const IOdata& inputs,
 void GenModel8::derivative(const IOdata& inputs,
                            const stateData& sD,
                            double deriv[],
-                           const solverMode& sMode)
+                           const SolverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
         return;
@@ -106,7 +106,7 @@ void GenModel8::derivative(const IOdata& inputs,
 void GenModel8::residual(const IOdata& inputs,
                          const stateData& sD,
                          double resid[],
-                         const solverMode& sMode)
+                         const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, resid, sMode, this);
 
@@ -141,7 +141,7 @@ void GenModel8::jacobianElements(const IOdata& inputs,
                                  const stateData& sD,
                                  matrixData<double>& md,
                                  const IOlocs& inputLocs,
-                                 const solverMode& sMode)
+                                 const SolverMode& sMode)
 {
     // md.assign (arrayIndex, RowIndex, ColIndex, value) const
     auto Loc = offsets.getLocations(sD, nullptr, sMode, this);

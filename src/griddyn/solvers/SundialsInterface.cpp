@@ -61,7 +61,7 @@ SundialsInterface::SundialsInterface(const std::string& objName): SolverInterfac
     checkFlag(&retval, "SUNContext_Create", 1);
     registerErrorHandler();
 }
-SundialsInterface::SundialsInterface(GridDynSimulation* gds, const solverMode& sMode):
+SundialsInterface::SundialsInterface(GridDynSimulation* gds, const SolverMode& sMode):
     SolverInterface(gds, sMode)
 {
     ensureSundialsFactories();
@@ -92,7 +92,7 @@ SundialsInterface::~SundialsInterface()
     if (types != nullptr) {
         NVECTOR_DESTROY(use_omp, types);
     }
-    if (flags[initialized_flag]) {
+    if (flags[INITIALIZED_FLAG]) {
         if (m_sundialsInfoFile != nullptr) {
             static_cast<void>(fclose(m_sundialsInfoFile));
         }
@@ -123,7 +123,7 @@ void SundialsInterface::cloneTo(SolverInterface* si, bool fullCopy) const
         return;
     }
     ai->maxNNZ = maxNNZ;
-    if ((fullCopy) && (flags[allocated_flag])) {
+    if ((fullCopy) && (flags[ALLOCATED_FLAG])) {
         auto tols = nvecdata(use_omp, abstols);
         std::copy(tols, tols + svsize, nvecdata(use_omp, ai->abstols));
         auto cons = nvecdata(use_omp, consData);
@@ -141,8 +141,8 @@ void SundialsInterface::allocate(count_t stateCount, count_t /*numRoots*/)
     }
 
     [[maybe_unused]] bool prevOmp = use_omp;  // looks unused if OPENMP is not available
-    use_omp = flags[use_omp_flag];
-    flags.reset(initialized_flag);
+    use_omp = flags[USE_OMP_FLAG];
+    flags.reset(INITIALIZED_FLAG);
     if (state != nullptr) {
         NVECTOR_DESTROY(prevOmp, state);
     }
@@ -190,7 +190,7 @@ void SundialsInterface::allocate(count_t stateCount, count_t /*numRoots*/)
 
     svsize = stateCount;
 
-    flags.set(allocated_flag);
+    flags.set(ALLOCATED_FLAG);
 }
 
 void SundialsInterface::setMaxNonZeros(count_t nonZeroCount)
@@ -248,7 +248,7 @@ void SundialsInterface::registerErrorHandler()
 void SundialsInterface::kluReInit(SparseReinitMode sparseReInitModes)
 {
 #ifdef GRIDDYN_ENABLE_KLU
-    if (flags[dense_flag]) {
+    if (flags[DENSE_FLAG]) {
         return;
     }
     switch (sparseReInitModes) {
@@ -393,7 +393,7 @@ int sundialsJac(sunrealtype time,
         a1->setRowLimit(sd->svsize);
         a1->setColLimit(sd->svsize);
 
-        if (sd->flags[useMask_flag]) {
+        if (sd->flags[USE_MASK_FLAG]) {
             matrixDataFilter<double> filterAd(*(a1));
             filterAd.addFilter(sd->maskElements);
             sd->m_gds->jacobianFunction(time,
@@ -425,7 +425,7 @@ int sundialsJac(sunrealtype time,
 #endif
         matrixDataToSUNMatrix(*a1, j, sd->svsize);
         sd->nnz = a1->size();
-        if (sd->flags[fileCapture_flag]) {
+        if (sd->flags[FILE_CAPTURE_FLAG]) {
             if (!sd->jacFile.empty()) {
                 auto val = static_cast<std::uint32_t>(sd->get("nliterations"));
                 writeArray(time, 1, val, sd->mode.offsetIndex, *a1, sd->jacFile);
@@ -434,7 +434,7 @@ int sundialsJac(sunrealtype time,
     } else {
         // if it isn't the first we can use the SUNDIALS arraySparse object
         auto a1 = makeSundialsMatrixData(j);
-        if (sd->flags[useMask_flag]) {
+        if (sd->flags[USE_MASK_FLAG]) {
             matrixDataFilter<double> filterAd(*a1);
             filterAd.addFilter(sd->maskElements);
             sd->m_gds->jacobianFunction(time,
@@ -456,7 +456,7 @@ int sundialsJac(sunrealtype time,
         }
 
         sd->jacCallCount++;
-        if (sd->flags[fileCapture_flag]) {
+        if (sd->flags[FILE_CAPTURE_FLAG]) {
             if (!sd->jacFile.empty()) {
                 writeArray(time, 1, sd->jacCallCount, sd->mode.offsetIndex, *a1, sd->jacFile);
             }
@@ -466,7 +466,7 @@ int sundialsJac(sunrealtype time,
 matrixDataSparse<double> &a1 = sd->a1;
 
 sd->m_gds->jacobianFunction (time, nvecdata(sd->use_omp, state), nvecdata(sd->use_omp, dstate_dt),
-a1,cj, sd->mode); a1.sortIndexCol (); if (sd->flags[useMask_flag])
+a1,cj, sd->mode); a1.sortIndexCol (); if (sd->flags[USE_MASK_FLAG])
 {
 for (auto &v : sd->maskElements)
 {
@@ -496,7 +496,7 @@ J->rowvals[kk] = a1.rowIndex (kk);
 }
 J->colptrs[colval + 1] = static_cast<int> (a1.size ());
 
-if (sd->flags[fileCapture_flag])
+if (sd->flags[FILE_CAPTURE_FLAG])
 {
 if (!sd->jacFile.empty())
 {

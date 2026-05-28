@@ -30,7 +30,7 @@ namespace solvers {
         mode.algebraic = true;
     }
 
-    BasicSolver::BasicSolver(GridDynSimulation* gds, const solverMode& sMode):
+    BasicSolver::BasicSolver(GridDynSimulation* gds, const SolverMode& sMode):
         SolverInterface(gds, sMode), algorithm(Mode::gauss)
     {
         mode.algebraic = true;
@@ -87,18 +87,18 @@ namespace solvers {
             tempState2.resize(stateCount);
             svsize = stateCount;
 
-            flags.reset(initialized_flag);
-            flags.set(allocated_flag);
+            flags.reset(INITIALIZED_FLAG);
+            flags.set(ALLOCATED_FLAG);
             rootsfound.resize(numRoots);
         }
     }
 
     void BasicSolver::initialize(coreTime /*time0*/)
     {
-        if (!flags[allocated_flag]) {
+        if (!flags[ALLOCATED_FLAG]) {
             throw(InvalidSolverOperation(-2));
         }
-        flags.set(initialized_flag);
+        flags.set(INITIALIZED_FLAG);
         solverCallCount = 0;
     }
 
@@ -118,10 +118,10 @@ namespace solvers {
             auto lcs = convertToLowerCase(val);
             if (lcs == "gauss") {
                 algorithm = Mode::gauss;
-                mode.approx[force_recalc] = false;
+                mode.approx[FORCE_RECALC] = false;
             } else if (lcs == "gauss-seidel") {
                 algorithm = Mode::gauss_seidel;
-                mode.approx[force_recalc] = true;
+                mode.approx[FORCE_RECALC] = true;
             }
         } else {
             SolverInterface::set(param, val);

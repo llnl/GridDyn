@@ -75,7 +75,7 @@ void ExciterDC1A::dynObjectInitializeB(const IOdata& inputs,
 void ExciterDC1A::residual(const IOdata& inputs,
                            const stateData& sD,
                            double resid[],
-                           const solverMode& sMode)
+                           const SolverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
         return;
@@ -93,7 +93,7 @@ void ExciterDC1A::residual(const IOdata& inputs,
 void ExciterDC1A::derivative(const IOdata& inputs,
                              const stateData& sD,
                              double deriv[],
-                             const solverMode& sMode)
+                             const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, deriv, sMode, this);
     const double* es = Loc.diffStateLoc;
@@ -116,7 +116,7 @@ void ExciterDC1A::jacobianElements(const IOdata& inputs,
                                    const stateData& sD,
                                    matrixData<double>& md,
                                    const IOlocs& inputLocs,
-                                   const solverMode& sMode)
+                                   const SolverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
         return;
@@ -173,7 +173,7 @@ void ExciterDC1A::limitJacobian(double /*V*/,
 void ExciterDC1A::rootTest(const IOdata& inputs,
                            const stateData& sD,
                            double root[],
-                           const solverMode& sMode)
+                           const SolverMode& sMode)
 {
     auto offset = offsets.getAlgOffset(sMode);
     const double* es = sD.state + offset;
@@ -193,7 +193,7 @@ void ExciterDC1A::rootTest(const IOdata& inputs,
 
 ChangeCode ExciterDC1A::rootCheck(const IOdata& inputs,
                                   const stateData& /*sD*/,
-                                  const solverMode& /*sMode*/,
+                                  const SolverMode& /*sMode*/,
                                   CheckLevel /*level*/)
 {
     double* es = m_state.data();

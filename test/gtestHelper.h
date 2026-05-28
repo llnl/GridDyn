@@ -39,7 +39,7 @@ static const char other_test_directory[] = GRIDDYN_TEST_DIRECTORY "/other_test_c
 
 namespace griddyn {
 class GridLoad;
-class solverMode;
+class SolverMode;
 }  // namespace griddyn
 
 struct GridDynSimulationTestFixture {
@@ -91,24 +91,24 @@ void requireStates(griddyn::GridDynSimulation::GridState state1,
                    griddyn::GridDynSimulation::GridState state2);
 
 int runJacobianCheck(std::unique_ptr<griddyn::GridDynSimulation>& gds,
-                     const griddyn::solverMode& sMode,
+                     const griddyn::SolverMode& sMode,
                      bool checkRequired = true);
 
 int runJacobianCheck(std::unique_ptr<griddyn::GridDynSimulation>& gds,
-                     const griddyn::solverMode& sMode,
+                     const griddyn::SolverMode& sMode,
                      double tol,
                      bool checkRequired = true);
 
 int runResidualCheck(std::unique_ptr<griddyn::GridDynSimulation>& gds,
-                     const griddyn::solverMode& sMode,
+                     const griddyn::SolverMode& sMode,
                      bool checkRequired = true);
 
 int runDerivativeCheck(std::unique_ptr<griddyn::GridDynSimulation>& gds,
-                       const griddyn::solverMode& sMode,
+                       const griddyn::SolverMode& sMode,
                        bool checkRequired = true);
 
 int runAlgebraicCheck(std::unique_ptr<griddyn::GridDynSimulation>& gds,
-                      const griddyn::solverMode& sMode,
+                      const griddyn::SolverMode& sMode,
                       bool checkRequired = true);
 
 void printBusResultDeviations(const std::vector<double>& V1,

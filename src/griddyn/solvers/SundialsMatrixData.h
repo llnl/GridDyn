@@ -28,7 +28,7 @@ class SundialsMatrixDataDense: public matrixData<double> {
 
     void clear() override;
 
-    void assign(index_t X, index_t Y, double num) override;
+    void assign(index_t x, index_t y, double num) override;
 
     /** set the SUNDIALS matrix
 @param[in] mat the dense SUNDIALS matrix
@@ -39,7 +39,7 @@ class SundialsMatrixDataDense: public matrixData<double> {
 
     count_t capacity() const override;
 
-    matrixElement<double> element(index_t N) const override;
+    matrixElement<double> element(index_t n) const override;
 
     double at(index_t rowN, index_t colN) const override;
 };
@@ -69,7 +69,7 @@ class SundialsMatrixDataSparseColumn: public matrixData<double> {
 
     count_t capacity() const override;
 
-    matrixElement<double> element(index_t N) const override;
+    matrixElement<double> element(index_t n) const override;
 
     double at(index_t rowN, index_t colN) const override;
 
@@ -104,7 +104,7 @@ class SundialsMatrixDataSparseRow: public matrixData<double> {
 
     count_t capacity() const override;
 
-    matrixElement<double> element(index_t N) const override;
+    matrixElement<double> element(index_t n) const override;
 
     double at(index_t rowN, index_t colN) const override;
 
@@ -113,6 +113,6 @@ class SundialsMatrixDataSparseRow: public matrixData<double> {
     virtual matrixElement<double> next() override;
 };
 
-std::unique_ptr<matrixData<double>> makeSundialsMatrixData(SUNMatrix J);
+std::unique_ptr<matrixData<double>> makeSundialsMatrixData(SUNMatrix j);
 
 }  // namespace griddyn::solvers

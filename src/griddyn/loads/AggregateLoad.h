@@ -42,37 +42,37 @@ class AggregateLoad: public ZipLoad {
     virtual void residual(const IOdata& inputs,
                           const stateData& sD,
                           double resid[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
 
     virtual void derivative(const IOdata& inputs,
                             const stateData& sD,
                             double deriv[],
-                            const solverMode& sMode)
+                            const SolverMode& sMode)
         override;  // return D[0]=dP/dV D[1]=dP/dtheta,D[2]=dQ/dV,D[3]=dQ/dtheta
 
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const stateData& sD,
                                           matrixData<double>& md,
-                                          const solverMode& sMode) override;
+                                          const SolverMode& sMode) override;
     virtual void ioPartialDerivatives(const IOdata& inputs,
                                       const stateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
-                                      const solverMode& sMode) override;
+                                      const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const stateData& sD,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
-                                  const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     virtual double getRealPower(const IOdata& inputs,
                                 const stateData& sD,
-                                const solverMode& sMode) const override;
+                                const SolverMode& sMode) const override;
     virtual double getReactivePower(const IOdata& inputs,
                                     const stateData& sD,
-                                    const solverMode& sMode) const override;
+                                    const SolverMode& sMode) const override;
     virtual double getRealPower(double V) const override;
     virtual double getReactivePower(double V) const override;
     virtual double getRealPower() const override;

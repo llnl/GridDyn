@@ -46,7 +46,7 @@ class HelicsLoad: public loads::RampLoad {
 
     virtual void updateA(coreTime time) override;
     virtual coreTime updateB() override;
-    virtual void timestep(coreTime ttime, const IOdata& inputs, const solverMode& sMode) override;
+    virtual void timestep(coreTime ttime, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void setFlag(const std::string& param, bool val = true) override;
     virtual void set(const std::string& param, const std::string& val) override;
     virtual void

@@ -106,7 +106,7 @@ CoreObject* AGControl::clone(CoreObject* obj) const
 
 double AGControl::getOutput(const IOdata& /*inputs*/,
                             const stateData& /*sD*/,
-                            const solverMode& /*sMode*/,
+                            const SolverMode& /*sMode*/,
                             index_t /*outNum*/) const
 {
     return reg;
@@ -135,7 +135,7 @@ void AGControl::dynObjectInitializeB(const IOdata& inputs,
 
 void AGControl::updateA(coreTime /*time*/) {}
 
-void AGControl::timestep(coreTime time, const IOdata& inputs, const solverMode& /*sMode*/)
+void AGControl::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     prevTime = time;
 

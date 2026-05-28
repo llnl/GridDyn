@@ -66,7 +66,7 @@ void FunctionBlock::dynObjectInitializeB(const IOdata& inputs,
 void FunctionBlock::blockAlgebraicUpdate(double input,
                                          const stateData& stateDataValue,
                                          double update[],
-                                         const solverMode& sMode)
+                                         const SolverMode& sMode)
 {
     auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
     if (opFlags[USES_CONSTANT_ARG]) {
@@ -84,7 +84,7 @@ void FunctionBlock::blockJacobianElements(double input,
                                           const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
                                           index_t argLoc,
-                                          const solverMode& sMode)
+                                          const SolverMode& sMode)
 {
     auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
     // use the md.assign Macro defined in basicDefs
@@ -169,7 +169,7 @@ void FunctionBlock::setFunction(const std::string& functionName)
 
 /*
 double FunctionBlock::currentValue(const IOdata &inputs, const stateData &sD,
-const solverMode &sMode) const
+const SolverMode &sMode) const
 {
 auto Loc;
 offsets.getLocations(sD, sMode, &Loc, this);

@@ -361,7 +361,7 @@ provided with the default to the regular call
 
     IOdata getOutputs(const IOdata& inputs,
                       const stateData& sD,
-                      const solverMode& sMode) const override
+                      const SolverMode& sMode) const override
     {
         return fmisub->getOutputs(inputs, sD, sMode);
     }

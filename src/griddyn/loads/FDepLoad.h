@@ -38,13 +38,13 @@ class FDepLoad: public ExponentialLoad {
                                       const stateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
-                                      const solverMode& sMode) override;
+                                      const SolverMode& sMode) override;
     virtual double getRealPower(const IOdata& inputs,
                                 const stateData& sD,
-                                const solverMode& sMode) const override;
+                                const SolverMode& sMode) const override;
     virtual double getReactivePower(const IOdata& inputs,
                                     const stateData& sD,
-                                    const solverMode& sMode) const override;
+                                    const SolverMode& sMode) const override;
     virtual double getRealPower(double V) const override;
     virtual double getReactivePower(double V) const override;
     virtual double getRealPower() const override;

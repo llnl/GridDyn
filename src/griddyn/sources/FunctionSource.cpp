@@ -24,13 +24,13 @@ CoreObject* functionSource::clone(CoreObject* obj) const
 
 IOdata functionSource::getOutputs(const IOdata& /*inputs*/,
                                   const stateData& sD,
-                                  const solverMode& /*sMode*/) const
+                                  const SolverMode& /*sMode*/) const
 {
     return {sourceFunc(sD.time)};
 }
 double functionSource::getOutput(const IOdata& /*inputs*/,
                                  const stateData& sD,
-                                 const solverMode& /*sMode*/,
+                                 const SolverMode& /*sMode*/,
                                  index_t outputNum) const
 {
     return (outputNum == 0) ? sourceFunc(sD.time) : kNullVal;
@@ -42,7 +42,7 @@ double functionSource::getOutput(index_t outputNum) const
 }
 double functionSource::getDoutdt(const IOdata& /*inputs*/,
                                  const stateData& sD,
-                                 const solverMode& /*sMode*/,
+                                 const SolverMode& /*sMode*/,
                                  index_t outputNum) const
 {
     return (outputNum == 0) ? ((sourceFunc(sD.time + 1e-7) - sourceFunc(sD.time)) / 1e-7) : 0.0;

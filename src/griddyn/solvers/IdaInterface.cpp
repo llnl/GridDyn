@@ -57,7 +57,7 @@ IdaInterface::IdaInterface(const std::string& objName): SundialsInterface(objNam
     max_iterations = 1500;
 }
 
-IdaInterface::IdaInterface(GridDynSimulation* gds, const solverMode& sMode):
+IdaInterface::IdaInterface(GridDynSimulation* gds, const SolverMode& sMode):
     SundialsInterface(gds, sMode)
 {
     max_iterations = 1500;
@@ -66,7 +66,7 @@ IdaInterface::IdaInterface(GridDynSimulation* gds, const solverMode& sMode):
 IdaInterface::~IdaInterface()
 {
     // clear variables for IDA to use
-    if (flags[initialized_flag]) {
+    if (flags[INITIALIZED_FLAG]) {
         IDAFree(&solverMem);
     }
 }
@@ -93,7 +93,7 @@ void IdaInterface::allocate(count_t stateCount, count_t numRoots)
     if (stateCount == svsize) {
         return;
     }
-    flags.reset(initialized_flag);
+    flags.reset(INITIALIZED_FLAG);
     a1.setRowLimit(stateCount);
     a1.setColLimit(stateCount);
 
@@ -151,7 +151,7 @@ double IdaInterface::get(std::string_view param) const
 // output solver stats
 void IdaInterface::logSolverStats(PrintLevel logLevel, bool iconly) const
 {
-    if (!flags[initialized_flag]) {
+    if (!flags[INITIALIZED_FLAG]) {
         return;
     }
     long int nni = 0, nje = 0;
@@ -257,7 +257,7 @@ void IdaInterface::logErrorWeights(PrintLevel logLevel) const
 
 void IdaInterface::initialize(coreTime t0)
 {
-    if (!flags[allocated_flag]) {
+    if (!flags[ALLOCATED_FLAG]) {
         throw(InvalidSolverOperation());
     }
     auto jsize = m_gds->jacSize(mode);
@@ -287,7 +287,7 @@ void IdaInterface::initialize(coreTime t0)
     retval = IDASetMaxNumSteps(solverMem, max_iterations);
     checkFlag(&retval, "IDASetMaxNumSteps", 1);
 #ifdef GRIDDYN_ENABLE_KLU
-    if (flags[dense_flag]) {
+    if (flags[DENSE_FLAG]) {
         J = SUNDenseMatrix(svsize, svsize, sunctx);
         checkFlag(J, "SUNDenseMatrix", 0);
         /* Create KLU solver object */
@@ -330,7 +330,7 @@ void IdaInterface::initialize(coreTime t0)
 
     setConstraints();
     solveTime = t0;
-    flags.set(initialized_flag);
+    flags.set(INITIALIZED_FLAG);
 }
 
 void IdaInterface::sparseReInit(SparseReinitMode sparseReInitMode)
@@ -356,13 +356,13 @@ int IdaInterface::calcIC(coreTime t0, coreTime tstep0, IcModes initCondMode, boo
     ++icCount;
     assert(icCount < 200);
     if (initCondMode ==
-        IcModes::fixed_masked_and_deriv)  // mainly for use upon startup from steady state
+        IcModes::FIXED_MASKED_AND_DERIV)  // mainly for use upon startup from steady state
     {
         // do a series of steps to ensure the original algebraic states are fixed and the
         // derivatives are fixed
-        flags.set(useMask_flag);
+        flags.set(USE_MASK_FLAG);
         loadMaskElements();
-        if (!flags[dense_flag]) {
+        if (!flags[DENSE_FLAG]) {
             sparseReInit(SparseReinitMode::REFACTOR);
         }
         retval = IDACalcIC(solverMem, IDA_Y_INIT, t0 + tstep0);  // IDA_Y_INIT
@@ -382,7 +382,7 @@ int IdaInterface::calcIC(coreTime t0, coreTime tstep0, IcModes initCondMode, boo
                         tempState[me] = lstate[me];
                     }
 
-                    if (!flags[dense_flag]) {
+                    if (!flags[DENSE_FLAG]) {
                         sparseReInit(SparseReinitMode::REFACTOR);
                     }
                     retval = IDACalcIC(solverMem, IDA_Y_INIT, t0 + tstep0);  // IDA_Y_INIT
@@ -406,11 +406,11 @@ int IdaInterface::calcIC(coreTime t0, coreTime tstep0, IcModes initCondMode, boo
                 return retval;
             }
         }
-        flags.reset(useMask_flag);
-        if (!flags[dense_flag]) {
+        flags.reset(USE_MASK_FLAG);
+        if (!flags[DENSE_FLAG]) {
             sparseReInit(SparseReinitMode::REFACTOR);
         }
-    } else if (initCondMode == IcModes::fixed_diff) {
+    } else if (initCondMode == IcModes::FIXED_DIFF) {
         retval = IDAReInit(solverMem, t0, state, dstate_dt);
 
         if (retval < 0) {
@@ -516,14 +516,14 @@ int idaFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, N_Vector resid,
                                           NVECTOR_DATA(sd->use_omp, dstateDt),
                                           NVECTOR_DATA(sd->use_omp, resid),
                                           sd->mode);
-    if (sd->flags[useMask_flag]) {
+    if (sd->flags[USE_MASK_FLAG]) {
         auto lstate = NVECTOR_DATA(sd->use_omp, state);
         auto lresid = NVECTOR_DATA(sd->use_omp, resid);
         for (auto& v : sd->maskElements) {
             lresid[v] = 100.0 * (lstate[v] - sd->tempState[v]);
         }
     }
-    if (sd->flags[fileCapture_flag]) {
+    if (sd->flags[FILE_CAPTURE_FLAG]) {
         if (!sd->stateFile.empty()) {
             writeVector(sd->solveTime,
                         STATE_INFORMATION,

@@ -642,7 +642,7 @@ void GridArea::updateLocalCache()
     }
 }
 
-void GridArea::updateLocalCache(const IOdata& inputs, const stateData& sD, const solverMode& sMode)
+void GridArea::updateLocalCache(const IOdata& inputs, const stateData& sD, const SolverMode& sMode)
 {
     // links should come first
     for (auto* link : m_Links) {
@@ -777,7 +777,7 @@ void GridArea::updateTheta(coreTime /*time*/) {}
 void GridArea::converge(coreTime time,
                         double state[],
                         double dstate_dt[],
-                        const solverMode& sMode,
+                        const SolverMode& sMode,
                         ConvergeMode mode,
                         double tol)
 {
@@ -908,7 +908,7 @@ double GridArea::get(std::string_view param, unit unitType) const
     return (vali != 0) ? (static_cast<double>(vali)) : val;
 }
 
-void GridArea::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void GridArea::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     // update the tie lines first
     for (auto* gL : m_Links) {
@@ -978,7 +978,7 @@ count_t GridArea::getVoltage(std::vector<double>& voltages, index_t start) const
 
 count_t GridArea::getVoltage(std::vector<double>& voltages,
                              const double state[],
-                             const solverMode& sMode,
+                             const SolverMode& sMode,
                              index_t start) const
 {
     count_t cnt = 0;
@@ -1013,7 +1013,7 @@ count_t GridArea::getAngle(std::vector<double>& angles, index_t start) const
 
 count_t GridArea::getAngle(std::vector<double>& angles,
                            const double state[],
-                           const solverMode& sMode,
+                           const SolverMode& sMode,
                            index_t start) const
 {
     count_t cnt = 0;
@@ -1045,7 +1045,7 @@ count_t GridArea::getFreq(std::vector<double>& frequencies, index_t start) const
 }
 
 /*
-count_t GridArea::getFreq(std::vector<double> &F, const double state[], const solverMode &sMode,
+count_t GridArea::getFreq(std::vector<double> &F, const double state[], const SolverMode &sMode,
 index_t start) const
 {
     count_t cnt = 0;
@@ -1349,7 +1349,7 @@ double GridArea::getAvgAngle() const
     return (a / cnt);
 }
 
-double GridArea::getAvgAngle(const stateData& sD, const solverMode& sMode) const
+double GridArea::getAvgAngle(const stateData& sD, const SolverMode& sMode) const
 {
     double a = 0.0;
     double cnt = 0.0;
@@ -1382,7 +1382,7 @@ double GridArea::getAvgFreq() const
 void GridArea::guessState(coreTime time,
                           double state[],
                           double dstate_dt[],
-                          const solverMode& sMode)
+                          const SolverMode& sMode)
 {
     auto cobj = opObjectLists->begin(sMode);
     auto cend = opObjectLists->end(sMode);
@@ -1393,7 +1393,7 @@ void GridArea::guessState(coreTime time,
     // next do any internal control elements
 }
 
-void GridArea::getVariableType(double sdata[], const solverMode& sMode)
+void GridArea::getVariableType(double sdata[], const SolverMode& sMode)
 {
     auto ra = opObjectLists->begin(sMode);
     auto rend = opObjectLists->end(sMode);
@@ -1405,7 +1405,7 @@ void GridArea::getVariableType(double sdata[], const solverMode& sMode)
     // next do any internal area states
 }
 
-void GridArea::getTols(double tols[], const solverMode& sMode)
+void GridArea::getTols(double tols[], const SolverMode& sMode)
 {
     auto ra = opObjectLists->begin(sMode);
     auto rend = opObjectLists->end(sMode);
@@ -1420,7 +1420,7 @@ void GridArea::getTols(double tols[], const solverMode& sMode)
 void GridArea::rootTest(const IOdata& inputs,
                         const stateData& sD,
                         double roots[],
-                        const solverMode& sMode)
+                        const SolverMode& sMode)
 {
     for (auto* ro : rootObjects) {
         ro->rootTest(inputs, sD, roots, sMode);
@@ -1434,7 +1434,7 @@ void GridArea::rootTest(const IOdata& inputs,
 
 ChangeCode GridArea::rootCheck(const IOdata& inputs,
                                const stateData& sD,
-                               const solverMode& sMode,
+                               const SolverMode& sMode,
                                CheckLevel level)
 {
     ChangeCode ret = ChangeCode::NO_CHANGE;
@@ -1469,7 +1469,7 @@ ChangeCode GridArea::rootCheck(const IOdata& inputs,
 void GridArea::rootTrigger(coreTime time,
                            const IOdata& inputs,
                            const std::vector<int>& rootMask,
-                           const solverMode& sMode)
+                           const SolverMode& sMode)
 {
     auto RF = vecFindne(rootMask, 0);
     size_t cloc = 0;
@@ -1514,7 +1514,7 @@ void GridArea::rootTrigger(coreTime time,
 void GridArea::setState(coreTime time,
                         const double state[],
                         const double dstate_dt[],
-                        const solverMode& sMode)
+                        const SolverMode& sMode)
 {
     prevTime = time;
 
@@ -1543,7 +1543,7 @@ void GridArea::setState(coreTime time,
     // next do any internal area states
 }
 
-void GridArea::getVoltageStates(double vStates[], const solverMode& sMode) const
+void GridArea::getVoltageStates(double vStates[], const SolverMode& sMode) const
 
 {
     index_t Voffset;
@@ -1573,7 +1573,7 @@ void GridArea::getVoltageStates(double vStates[], const solverMode& sMode) const
     }
 }
 
-void GridArea::getAngleStates(double aStates[], const solverMode& sMode) const
+void GridArea::getAngleStates(double aStates[], const SolverMode& sMode) const
 
 {
     index_t Aoffset;
@@ -1605,7 +1605,7 @@ void GridArea::getAngleStates(double aStates[], const solverMode& sMode) const
 
 // residual
 
-void GridArea::preEx(const IOdata& inputs, const stateData& sD, const solverMode& sMode)
+void GridArea::preEx(const IOdata& inputs, const stateData& sD, const SolverMode& sMode)
 {
     opObjectLists->preEx(inputs, sD, sMode);
 }
@@ -1613,7 +1613,7 @@ void GridArea::preEx(const IOdata& inputs, const stateData& sD, const solverMode
 void GridArea::residual(const IOdata& inputs,
                         const stateData& sD,
                         double resid[],
-                        const solverMode& sMode)
+                        const SolverMode& sMode)
 {
     opObjectLists->residual(inputs, sD, resid, sMode);
 
@@ -1623,7 +1623,7 @@ void GridArea::residual(const IOdata& inputs,
 void GridArea::algebraicUpdate(const IOdata& inputs,
                                const stateData& sD,
                                double update[],
-                               const solverMode& sMode,
+                               const SolverMode& sMode,
                                double alpha)
 {
     opObjectLists->algebraicUpdate(inputs, sD, update, sMode, alpha);
@@ -1632,7 +1632,7 @@ void GridArea::algebraicUpdate(const IOdata& inputs,
 }
 
 void GridArea::getStateName(stringVec& stNames,
-                            const solverMode& sMode,
+                            const SolverMode& sMode,
                             const std::string& prefix) const
 {
     std::string prefix2;
@@ -1652,7 +1652,7 @@ void GridArea::getStateName(stringVec& stNames,
 void GridArea::delayedResidual(const IOdata& inputs,
                                const stateData& sD,
                                double resid[],
-                               const solverMode& sMode)
+                               const SolverMode& sMode)
 {
     opObjectLists->delayedResidual(inputs, sD, resid, sMode);
 }
@@ -1660,7 +1660,7 @@ void GridArea::delayedResidual(const IOdata& inputs,
 void GridArea::delayedDerivative(const IOdata& inputs,
                                  const stateData& sD,
                                  double deriv[],
-                                 const solverMode& sMode)
+                                 const SolverMode& sMode)
 {
     opObjectLists->delayedDerivative(inputs, sD, deriv, sMode);
 }
@@ -1669,7 +1669,7 @@ void GridArea::delayedJacobian(const IOdata& inputs,
                                const stateData& sD,
                                matrixData<double>& md,
                                const IOlocs& inputLocs,
-                               const solverMode& sMode)
+                               const SolverMode& sMode)
 {
     opObjectLists->delayedJacobian(inputs, sD, md, inputLocs, sMode);
 }
@@ -1677,7 +1677,7 @@ void GridArea::delayedJacobian(const IOdata& inputs,
 void GridArea::delayedAlgebraicUpdate(const IOdata& inputs,
                                       const stateData& sD,
                                       double update[],
-                                      const solverMode& sMode,
+                                      const SolverMode& sMode,
                                       double alpha)
 {
     opObjectLists->delayedAlgebraicUpdate(inputs, sD, update, sMode, alpha);
@@ -1686,7 +1686,7 @@ void GridArea::delayedAlgebraicUpdate(const IOdata& inputs,
 void GridArea::derivative(const IOdata& inputs,
                           const stateData& sD,
                           double deriv[],
-                          const solverMode& sMode)
+                          const SolverMode& sMode)
 {
     opObjectLists->derivative(inputs, sD, deriv, sMode);
     // next do any internal states
@@ -1697,7 +1697,7 @@ void GridArea::jacobianElements(const IOdata& inputs,
                                 const stateData& sD,
                                 matrixData<double>& md,
                                 const IOlocs& inputLocs,
-                                const solverMode& sMode)
+                                const SolverMode& sMode)
 {
     opObjectLists->jacobianElements(inputs, sD, md, inputLocs, sMode);
     // next do any internal control elements
@@ -1718,7 +1718,7 @@ void GridArea::updateFlags(bool /*dynOnly*/)
     }
 }
 
-void GridArea::setOffsets(const solverOffsets& newOffsets, const solverMode& sMode)
+void GridArea::setOffsets(const solverOffsets& newOffsets, const SolverMode& sMode)
 {
     if (!(isStateCountLoaded(sMode))) {
         loadStateSizes(sMode);
@@ -1733,7 +1733,7 @@ void GridArea::setOffsets(const solverOffsets& newOffsets, const solverMode& sMo
     }
 }
 
-void GridArea::setOffset(index_t offset, const solverMode& sMode)
+void GridArea::setOffset(index_t offset, const SolverMode& sMode)
 {
     if (!isEnabled()) {
         return;
@@ -1745,7 +1745,7 @@ void GridArea::setOffset(index_t offset, const solverMode& sMode)
     offsets.setOffset(offset, sMode);
 }
 
-void GridArea::setRootOffset(index_t Roffset, const solverMode& sMode)
+void GridArea::setRootOffset(index_t Roffset, const SolverMode& sMode)
 {
     offsets.setRootOffset(Roffset, sMode);
     const auto& so = offsets.getOffsets(sMode);
@@ -1761,7 +1761,7 @@ double GridArea::getTieFlowReal() const
     return (getGenerationReal() - getLoadReal() - getLoss());
 }
 
-double GridArea::getMasterAngle(const stateData& sD, const solverMode& sMode) const
+double GridArea::getMasterAngle(const stateData& sD, const SolverMode& sMode) const
 {
     if (masterBus >= 0) {
         return m_Buses[masterBus]->getAngle(sD, sMode);
@@ -1775,23 +1775,23 @@ double GridArea::getMasterAngle(const stateData& sD, const solverMode& sMode) co
     return 0.0;
 }
 
-stateSizes GridArea::localStateSizes(const solverMode& /*sMode*/) const
+stateSizes GridArea::localStateSizes(const SolverMode& /*sMode*/) const
 {
     return offsets.local().local;
 }
 
-count_t GridArea::localJacobianCount(const solverMode& /*sMode*/) const
+count_t GridArea::localJacobianCount(const SolverMode& /*sMode*/) const
 {
     return offsets.local().local.jacSize;
 }
 
-std::pair<count_t, count_t> GridArea::LocalRootCount(const solverMode& /*sMode*/) const
+std::pair<count_t, count_t> GridArea::LocalRootCount(const SolverMode& /*sMode*/) const
 {
     const auto& lc = offsets.local().local;
     return std::make_pair(lc.algRoots, lc.diffRoots);
 }
 
-void GridArea::loadStateSizes(const solverMode& sMode)
+void GridArea::loadStateSizes(const SolverMode& sMode)
 {
     if (isStateCountLoaded(sMode)) {
         return;
@@ -1833,7 +1833,7 @@ void GridArea::loadStateSizes(const solverMode& sMode)
     opObjectLists->makeList(sMode, primaryObjects);
 }
 
-void GridArea::loadRootSizes(const solverMode& sMode)
+void GridArea::loadRootSizes(const SolverMode& sMode)
 {
     if (isRootCountLoaded(sMode)) {
         return;
@@ -1872,7 +1872,7 @@ void GridArea::loadRootSizes(const solverMode& sMode)
     so.rootsLoaded = true;
 }
 
-void GridArea::loadJacobianSizes(const solverMode& sMode)
+void GridArea::loadJacobianSizes(const SolverMode& sMode)
 {
     if (isJacobianCountLoaded(sMode)) {
         return;

@@ -468,7 +468,7 @@ void sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage>
 static const IOdata kNullVec;
 
 double
-    sensor::getBlockOutput(const stateData& sD, const solverMode& sMode, index_t blockNumber) const
+    sensor::getBlockOutput(const stateData& sD, const SolverMode& sMode, index_t blockNumber) const
 {
     double ret = kNullVal;
     if (isLocal(sMode)) {
@@ -484,7 +484,7 @@ double
 }
 
 double sensor::getBlockDerivOutput(const stateData& sD,
-                                   const solverMode& sMode,
+                                   const SolverMode& sMode,
                                    index_t blockNumber) const
 {
     double ret = kNullVal;
@@ -500,7 +500,7 @@ double sensor::getBlockDerivOutput(const stateData& sD,
     return ret;
 }
 
-double sensor::getInput(const stateData& sD, const solverMode& sMode, index_t inputNumber) const
+double sensor::getInput(const stateData& sD, const SolverMode& sMode, index_t inputNumber) const
 {
     double ret = kNullVal;
     if (isLocal(sMode)) {
@@ -653,7 +653,7 @@ void sensor::updateA(coreTime time)
     Relay::updateA(time);
 }
 
-void sensor::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void sensor::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     auto blks = static_cast<index_t>(filterBlocks.size());
     for (index_t kk = 0; kk < blks; ++kk) {
@@ -668,7 +668,7 @@ void sensor::jacobianElements(const IOdata& inputs,
                               const stateData& sD,
                               matrixData<double>& md,
                               const IOlocs& /*inputLocs*/,
-                              const solverMode& sMode)
+                              const SolverMode& sMode)
 {
     if (stateSize(sMode) > 0) {
         matrixDataSparse<double> d2, dp;
@@ -697,7 +697,7 @@ void sensor::jacobianElements(const IOdata& inputs,
 void sensor::residual(const IOdata& inputs,
                       const stateData& sD,
                       double resid[],
-                      const solverMode& sMode)
+                      const SolverMode& sMode)
 {
     if (stateSize(sMode) > 0) {
         auto blks = static_cast<index_t>(filterBlocks.size());
@@ -713,7 +713,7 @@ void sensor::residual(const IOdata& inputs,
 void sensor::algebraicUpdate(const IOdata& inputs,
                              const stateData& sD,
                              double update[],
-                             const solverMode& sMode,
+                             const SolverMode& sMode,
                              double /*alpha*/)
 {
     if (algSize(sMode) > 0) {
@@ -729,7 +729,7 @@ void sensor::algebraicUpdate(const IOdata& inputs,
 void sensor::derivative(const IOdata& inputs,
                         const stateData& sD,
                         double deriv[],
-                        const solverMode& sMode)
+                        const SolverMode& sMode)
 {
     if (diffSize(sMode) > 0) {
         auto blks = static_cast<index_t>(filterBlocks.size());
@@ -744,7 +744,7 @@ void sensor::derivative(const IOdata& inputs,
 double sensor::getBlockInput(index_t blockNum,
                              const IOdata& /*inputs*/,
                              const stateData& sD,
-                             const solverMode& sMode) const
+                             const SolverMode& sMode) const
 {
     double res = dataSources[blockInputs[blockNum]]->grabData(sD, sMode);
     return res;
@@ -765,7 +765,7 @@ const std::vector<stringVec>& sensor::outputNames() const
     return outputStrings;
 }
 
-IOdata sensor::getOutputs(const IOdata& inputs, const stateData& sD, const solverMode& sMode) const
+IOdata sensor::getOutputs(const IOdata& inputs, const stateData& sD, const SolverMode& sMode) const
 {
     IOdata out(m_outputSize);
     for (index_t pp = 0; pp < m_outputSize; ++pp) {
@@ -776,7 +776,7 @@ IOdata sensor::getOutputs(const IOdata& inputs, const stateData& sD, const solve
 
 double sensor::getOutput(const IOdata& /*inputs*/,
                          const stateData& sD,
-                         const solverMode& sMode,
+                         const SolverMode& sMode,
                          index_t outNum) const
 {
     if (!isValidIndex(outNum, outputMode)) {
@@ -823,7 +823,7 @@ double sensor::getOutput(index_t outNum) const
     return out;
 }
 
-index_t sensor::getOutputLoc(const solverMode& sMode, index_t outNum) const
+index_t sensor::getOutputLoc(const SolverMode& sMode, index_t outNum) const
 {
     if (!isValidIndex(outNum, outputMode)) {
         return kNullLocation;
@@ -842,7 +842,7 @@ index_t sensor::getOutputLoc(const solverMode& sMode, index_t outNum) const
 void sensor::outputPartialDerivatives(const IOdata& /*inputs*/,
                                       const stateData& sD,
                                       matrixData<double>& md,
-                                      const solverMode& sMode)
+                                      const SolverMode& sMode)
 {
     matrixDataTranslate<3, double> aDT(md);
     for (index_t pp = 0; pp < static_cast<index_t>(outputs.size()); ++pp) {
@@ -867,7 +867,7 @@ void sensor::outputPartialDerivatives(const IOdata& /*inputs*/,
 void sensor::rootTest(const IOdata& inputs,
                       const stateData& sD,
                       double roots[],
-                      const solverMode& sMode)
+                      const SolverMode& sMode)
 {
     Relay::rootTest(inputs, sD, roots, sMode);
     if (stateSize(sMode) > 0) {
@@ -887,7 +887,7 @@ void sensor::rootTest(const IOdata& inputs,
 void sensor::rootTrigger(coreTime time,
                          const IOdata& inputs,
                          const std::vector<int>& rootMask,
-                         const solverMode& sMode)
+                         const SolverMode& sMode)
 {
     Relay::rootTrigger(time, inputs, rootMask, sMode);
     if (stateSize(sMode) > 0) {
@@ -906,7 +906,7 @@ void sensor::rootTrigger(coreTime time,
 
 ChangeCode sensor::rootCheck(const IOdata& inputs,
                              const stateData& sD,
-                             const solverMode& sMode,
+                             const SolverMode& sMode,
                              CheckLevel level)
 {
     ChangeCode ret = Relay::rootCheck(inputs, sD, sMode, level);

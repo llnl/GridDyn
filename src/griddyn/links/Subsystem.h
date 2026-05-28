@@ -63,7 +63,7 @@ class subsystem: public Link {
     // dynInitializeB dynamics
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     /** @brief relic of something not used to my knowledge*/
     virtual void updateTheta(coreTime /*time*/) {}
@@ -92,27 +92,27 @@ class subsystem: public Link {
     virtual void setState(coreTime time,
                           const double state[],
                           const double dstate_dt[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     // for identifying which variables are algebraic vs differential
     /** @brief do a local converge on the components in the area
    a wrapper around the area->converge function
   @param[in] time the time
   @param[in] state the system state
   @param[in] dstate_dt the time derivative of the state
-  @param[in] sMode the solverMode corresponding to the state
+  @param[in] sMode the SolverMode corresponding to the state
   @param[in] tol  the tolerance to do the convergence
   @param[in] mode the mode of convergence
   */
     virtual void converge(coreTime time,
                           double state[],
                           double dstate_dt[],
-                          const solverMode& sMode,
+                          const SolverMode& sMode,
                           ConvergeMode mode = ConvergeMode::block_iteration,
                           double tol = 0.01) override;
     virtual void updateLocalCache() override;
     virtual void updateLocalCache(const IOdata& inputs,
                                   const stateData& stateData,
-                                  const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
 
     virtual void reset(ResetLevels level) override;
     // root finding functions
@@ -121,9 +121,9 @@ class subsystem: public Link {
 
     /** @brief flag all the voltage states
   *@param[out] vStates a vector with a value of 1.0 for all voltage states and 0 otherwise
-  @param[in] sMode the solverMode to get the voltage state indicators for
+  @param[in] sMode the SolverMode to get the voltage state indicators for
   */
-    void getVoltageStates(double vStates[], const solverMode& sMode);
+    void getVoltageStates(double vStates[], const SolverMode& sMode);
 
     bool switchTest() const override;
     bool switchTest(index_t num) const override;
@@ -148,7 +148,7 @@ class subsystem: public Link {
 
     double remainingCapacity() const override;
     double getAngle() const override;
-    double getAngle(const double state[], const solverMode& sMode) const override;
+    double getAngle(const double state[], const SolverMode& sMode) const override;
     virtual double getRealImpedance(id_type_t busId = invalid_id_value) const override;
     virtual double getImagImpedance(id_type_t busId = invalid_id_value) const override;
     virtual double getTotalImpedance(id_type_t busId = invalid_id_value) const override;
@@ -173,21 +173,21 @@ class subsystem: public Link {
                                       const stateData& stateData,
                                       matrixData<double>& jacobian,
                                       const IOlocs& inputLocs,
-                                      const solverMode& sMode) override;
+                                      const SolverMode& sMode) override;
     using Link::outputPartialDerivatives;
     virtual void outputPartialDerivatives(id_type_t busId,
                                           const stateData& stateData,
                                           matrixData<double>& jacobian,
-                                          const solverMode& sMode) override;
+                                          const SolverMode& sMode) override;
 
     // virtual void busResidual(index_t busId, const stateData &sD, double *Fp, double *Fq, const
-    // solverMode &sMode);
+    // SolverMode &sMode);
     virtual IOdata getOutputs(const IOdata& inputs,
                               const stateData& stateData,
-                              const solverMode& sMode) const override;
+                              const SolverMode& sMode) const override;
     virtual IOdata getOutputs(id_type_t busId,
                               const stateData& stateData,
-                              const solverMode& sMode) const override;
+                              const SolverMode& sMode) const override;
     // TODO(phlpt): Add the other getOutput functions.
   protected:
     /** @brief get a vector with pointers to all the buses

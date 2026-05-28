@@ -15,7 +15,7 @@ class matrixData;
 namespace griddyn {
 class GridComponent;
 class stateData;
-class solverMode;
+class SolverMode;
 
 /**
 *@brief numerically compute the partial derivatives of the internal states with respect to inputs
@@ -35,7 +35,7 @@ void numericJacobianCalculation(GridComponent* comp,
                                 const stateData& sD,
                                 matrixData<double>& md,
                                 const IOlocs& inputLocs,
-                                const solverMode& sMode);
+                                const SolverMode& sMode);
 
 /**
 @brief function to copy the local state of an object from one data to another
@@ -47,13 +47,13 @@ void numericJacobianCalculation(GridComponent* comp,
 void copyObjectLocalState(const GridComponent* comp,
                           const double state[],
                           double newstate[],
-                          const solverMode& sMode);
+                          const SolverMode& sMode);
 
 /** @brief get a vector of all the local state locations of an object
 @param[in] comp  the object get all the state locations
 @param[in] sMode the solver mode to get the locations for
 @return a vector containing the indices of the states
 */
-std::vector<index_t> getObjectLocalStateIndices(const GridComponent* comp, const solverMode& sMode);
+std::vector<index_t> getObjectLocalStateIndices(const GridComponent* comp, const SolverMode& sMode);
 
 }  // namespace griddyn

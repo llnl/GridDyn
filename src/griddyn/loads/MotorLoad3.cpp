@@ -112,7 +112,7 @@ void MotorLoad3::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-stateSizes MotorLoad3::localStateSizes(const solverMode& sMode) const
+stateSizes MotorLoad3::localStateSizes(const SolverMode& sMode) const
 {
     stateSizes SS;
     if (isDynamic(sMode)) {
@@ -126,7 +126,7 @@ stateSizes MotorLoad3::localStateSizes(const solverMode& sMode) const
     return SS;
 }
 
-count_t MotorLoad3::localJacobianCount(const solverMode& sMode) const
+count_t MotorLoad3::localJacobianCount(const SolverMode& sMode) const
 {
     count_t localJacSize = 0;
     if (isDynamic(sMode)) {
@@ -165,7 +165,7 @@ void MotorLoad3::set(std::string_view param, double val, units::unit unitType)
 void MotorLoad3::setState(coreTime time,
                           const double state[],
                           const double dstate_dt[],
-                          const solverMode& sMode)
+                          const SolverMode& sMode)
 {
     // NOLINTNEXTLINE
     GridComponent::setState(time, state, dstate_dt, sMode);
@@ -174,7 +174,7 @@ void MotorLoad3::setState(coreTime time,
 void MotorLoad3::guessState(coreTime time,
                             double state[],
                             double dstate_dt[],
-                            const solverMode& sMode)
+                            const SolverMode& sMode)
 {
     // NOLINTNEXTLINE
     GridComponent::guessState(time, state, dstate_dt, sMode);
@@ -184,7 +184,7 @@ void MotorLoad3::guessState(coreTime time,
 void MotorLoad3::residual(const IOdata& inputs,
                           const stateData& sD,
                           double resid[],
-                          const solverMode& sMode)
+                          const SolverMode& sMode)
 {
     if (isDynamic(sMode)) {
         auto Loc = offsets.getLocations(sD, resid, sMode, this);
@@ -252,7 +252,7 @@ void MotorLoad3::residual(const IOdata& inputs,
 }
 
 void MotorLoad3::getStateName(stringVec& stNames,
-                              const solverMode& sMode,
+                              const SolverMode& sMode,
                               const std::string& prefix) const
 {
     std::string prefix2 = prefix + getName();
@@ -277,7 +277,7 @@ void MotorLoad3::getStateName(stringVec& stNames,
     }
 }
 
-void MotorLoad3::timestep(coreTime time, const IOdata& inputs, const solverMode& /*sMode*/)
+void MotorLoad3::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     stateData sD(time, m_state.data());
     derivative(inputs, sD, m_dstate_dt.data(), cLocalSolverMode);
@@ -289,7 +289,7 @@ void MotorLoad3::timestep(coreTime time, const IOdata& inputs, const solverMode&
     updateCurrents(inputs, sD, cLocalSolverMode);
 }
 
-void MotorLoad3::updateCurrents(const IOdata& inputs, const stateData& sD, const solverMode& sMode)
+void MotorLoad3::updateCurrents(const IOdata& inputs, const stateData& sD, const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, const_cast<double*>(sD.state), sMode, this);
     double voltage = inputs[voltageInLocation];
@@ -311,7 +311,7 @@ void MotorLoad3::updateCurrents(const IOdata& inputs, const stateData& sD, const
 void MotorLoad3::derivative(const IOdata& /*inputs*/,
                             const stateData& sD,
                             double deriv[],
-                            const solverMode& sMode)
+                            const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, deriv, sMode, this);
     const double* ast = Loc.algStateLoc;
@@ -342,7 +342,7 @@ void MotorLoad3::jacobianElements(const IOdata& inputs,
                                   const stateData& sD,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
-                                  const solverMode& sMode)
+                                  const SolverMode& sMode)
 {
     index_t refAlg;
     index_t refDiff;
@@ -444,7 +444,7 @@ void MotorLoad3::jacobianElements(const IOdata& inputs,
 void MotorLoad3::outputPartialDerivatives(const IOdata& inputs,
                                           const stateData& /*sD*/,
                                           matrixData<double>& md,
-                                          const solverMode& sMode)
+                                          const SolverMode& sMode)
 {
     auto refAlg = offsets.getAlgOffset(sMode);
     double voltage = inputs[voltageInLocation];
@@ -465,7 +465,7 @@ void MotorLoad3::outputPartialDerivatives(const IOdata& inputs,
     md.assign(QoutLocation, refAlg + 1, -vr * scale);
 }
 
-count_t MotorLoad3::outputDependencyCount(index_t /*num*/, const solverMode& /*sMode*/) const
+count_t MotorLoad3::outputDependencyCount(index_t /*num*/, const SolverMode& /*sMode*/) const
 {
     return 2;
 }
@@ -473,7 +473,7 @@ void MotorLoad3::ioPartialDerivatives(const IOdata& inputs,
                                       const stateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
-                                      const solverMode& sMode)
+                                      const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, sMode, this);
 
@@ -501,7 +501,7 @@ void MotorLoad3::ioPartialDerivatives(const IOdata& inputs,
                       vm * ir / voltage - vr * im / voltage);
 }
 
-index_t MotorLoad3::findIndex(std::string_view field, const solverMode& sMode) const
+index_t MotorLoad3::findIndex(std::string_view field, const SolverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if (field == "slip") {
@@ -545,7 +545,7 @@ index_t MotorLoad3::findIndex(std::string_view field, const solverMode& sMode) c
 void MotorLoad3::rootTest(const IOdata& /*inputs*/,
                           const stateData& sD,
                           double roots[],
-                          const solverMode& sMode)
+                          const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, sMode, this);
     auto ro = offsets.getRootOffset(sMode);
@@ -564,7 +564,7 @@ void MotorLoad3::rootTest(const IOdata& /*inputs*/,
 void MotorLoad3::rootTrigger(coreTime /*time*/,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
-                             const solverMode& sMode)
+                             const SolverMode& sMode)
 {
     if (rootMask[offsets.getRootOffset(sMode)] == 0) {
         return;
@@ -587,7 +587,7 @@ void MotorLoad3::rootTrigger(coreTime /*time*/,
 
 ChangeCode MotorLoad3::rootCheck(const IOdata& /*inputs*/,
                                  const stateData& sD,
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  CheckLevel /*level*/)
 {
     if (opFlags[stalled]) {
@@ -626,7 +626,7 @@ double MotorLoad3::getReactivePower() const
 
 double MotorLoad3::getRealPower(const IOdata& inputs,
                                 const stateData& sD,
-                                const solverMode& sMode) const
+                                const SolverMode& sMode) const
 {
     const double voltage = inputs[voltageInLocation];
     double angle = inputs[angleInLocation];
@@ -644,7 +644,7 @@ double MotorLoad3::getRealPower(const IOdata& inputs,
 
 double MotorLoad3::getReactivePower(const IOdata& inputs,
                                     const stateData& sD,
-                                    const solverMode& sMode) const
+                                    const SolverMode& sMode) const
 {
     const double voltage = inputs[voltageInLocation];
     double angle = inputs[angleInLocation];

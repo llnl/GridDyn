@@ -47,7 +47,7 @@ class pulseSource: public Source {
     virtual double computeOutput(coreTime time) const override;
     virtual double getDoutdt(const IOdata& inputs,
                              const stateData& stateData,
-                             const solverMode& sMode,
+                             const SolverMode& sMode,
                              index_t num = 0) const override;
 
     virtual void setLevel(double val) override;

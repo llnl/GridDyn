@@ -96,7 +96,7 @@ void MotorLoad::dynObjectInitializeB(const IOdata& /*inputs*/,
     }
 }
 
-stateSizes MotorLoad::localStateSizes(const solverMode& sMode) const
+stateSizes MotorLoad::localStateSizes(const SolverMode& sMode) const
 {
     stateSizes stateSizeValues;
     if (isDynamic(sMode)) {
@@ -109,7 +109,7 @@ stateSizes MotorLoad::localStateSizes(const solverMode& sMode) const
     return stateSizeValues;
 }
 
-count_t MotorLoad::localJacobianCount(const solverMode& sMode) const
+count_t MotorLoad::localJacobianCount(const SolverMode& sMode) const
 {
     count_t localJacSize = 0;
     if (isDynamic(sMode)) {
@@ -122,7 +122,7 @@ count_t MotorLoad::localJacobianCount(const solverMode& sMode) const
     return localJacSize;
 }
 
-std::pair<count_t, count_t> MotorLoad::LocalRootCount(const solverMode& /*sMode*/) const
+std::pair<count_t, count_t> MotorLoad::LocalRootCount(const SolverMode& /*sMode*/) const
 {
     count_t algRoots = 0;
     count_t diffRoots = 0;
@@ -224,7 +224,7 @@ void MotorLoad::set(std::string_view param, double val, units::unit unitType)
 void MotorLoad::setState(coreTime time,
                          const double state[],
                          const double dstate_dt[],
-                         const solverMode& sMode)
+                         const SolverMode& sMode)
 {
     if (isDynamic(sMode)) {
         if (isAlgebraicOnly(sMode)) {
@@ -244,7 +244,7 @@ void MotorLoad::setState(coreTime time,
 void MotorLoad::guessState(coreTime /*time*/,
                            double state[],
                            double dstate_dt[],
-                           const solverMode& sMode)
+                           const SolverMode& sMode)
 {
     if (isDynamic(sMode)) {
         if (hasDifferential(sMode)) {
@@ -262,7 +262,7 @@ void MotorLoad::guessState(coreTime /*time*/,
 void MotorLoad::residual(const IOdata& inputs,
                          const stateData& stateDataValue,
                          double resid[],
-                         const solverMode& sMode)
+                         const SolverMode& sMode)
 {
     if (isDynamic(sMode)) {
         if (hasDifferential(sMode)) {
@@ -280,7 +280,7 @@ void MotorLoad::residual(const IOdata& inputs,
 }
 
 void MotorLoad::getStateName(stringVec& stNames,
-                             const solverMode& sMode,
+                             const SolverMode& sMode,
                              const std::string& prefix) const
 {
     if (isDynamic(sMode)) {
@@ -297,7 +297,7 @@ void MotorLoad::getStateName(stringVec& stNames,
         return;
     }
 }
-void MotorLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& /*sMode*/)
+void MotorLoad::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     const double timeDelta = time - prevTime;
     MotorLoad::derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
@@ -307,7 +307,7 @@ void MotorLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& 
 void MotorLoad::derivative(const IOdata& inputs,
                            const stateData& stateDataValue,
                            double deriv[],
-                           const solverMode& sMode)
+                           const SolverMode& sMode)
 {
     auto offset = offsets.getDiffOffset(sMode);
     const double slip = (!stateDataValue.empty()) ? stateDataValue.state[offset] : m_state[0];
@@ -321,7 +321,7 @@ void MotorLoad::jacobianElements(const IOdata& inputs,
                                  const stateData& stateDataValue,
                                  matrixData<double>& matrixDataValue,
                                  const IOlocs& inputLocs,
-                                 const solverMode& sMode)
+                                 const SolverMode& sMode)
 {
     if (isDynamic(sMode)) {
         if (hasDifferential(sMode)) {
@@ -366,7 +366,7 @@ void MotorLoad::jacobianElements(const IOdata& inputs,
 void MotorLoad::outputPartialDerivatives(const IOdata& inputs,
                                          const stateData& stateDataValue,
                                          matrixData<double>& matrixDataValue,
-                                         const solverMode& sMode)
+                                         const SolverMode& sMode)
 {
     if (isDynamic(sMode)) {
         if (isAlgebraicOnly(sMode)) {
@@ -409,7 +409,7 @@ void MotorLoad::outputPartialDerivatives(const IOdata& inputs,
     }
 }
 
-count_t MotorLoad::outputDependencyCount(index_t /*num*/, const solverMode& /*sMode*/) const
+count_t MotorLoad::outputDependencyCount(index_t /*num*/, const SolverMode& /*sMode*/) const
 {
     return 1;
 }
@@ -417,7 +417,7 @@ void MotorLoad::ioPartialDerivatives(const IOdata& inputs,
                                      const stateData& stateDataValue,
                                      matrixData<double>& matrixDataValue,
                                      const IOlocs& inputLocs,
-                                     const solverMode& sMode)
+                                     const SolverMode& sMode)
 {
     if (inputLocs[voltageInLocation] != kNullLocation) {
         double slip = m_state[0];
@@ -436,7 +436,7 @@ void MotorLoad::ioPartialDerivatives(const IOdata& inputs,
     }
 }
 
-index_t MotorLoad::findIndex(std::string_view field, const solverMode& sMode) const
+index_t MotorLoad::findIndex(std::string_view field, const SolverMode& sMode) const
 {
     index_t ret = kInvalidLocation;
     if (field == "slip") {
@@ -448,7 +448,7 @@ index_t MotorLoad::findIndex(std::string_view field, const solverMode& sMode) co
 void MotorLoad::rootTest(const IOdata& inputs,
                          const stateData& stateDataValue,
                          double roots[],
-                         const solverMode& sMode)
+                         const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(stateDataValue, sMode, this);
     const double slip = Loc.diffStateLoc[0];
@@ -463,7 +463,7 @@ void MotorLoad::rootTest(const IOdata& inputs,
 void MotorLoad::rootTrigger(coreTime /*time*/,
                             const IOdata& inputs,
                             const std::vector<int>& rootMask,
-                            const solverMode& sMode)
+                            const SolverMode& sMode)
 {
     if (rootMask[offsets.getRootOffset(sMode)] == 0) {
         return;
@@ -483,7 +483,7 @@ void MotorLoad::rootTrigger(coreTime /*time*/,
 
 ChangeCode MotorLoad::rootCheck(const IOdata& inputs,
                                 const stateData& /*sD*/,
-                                const solverMode& /*sMode*/,
+                                const SolverMode& /*sMode*/,
                                 CheckLevel /*level*/)
 {
     if (opFlags[stalled]) {
@@ -515,7 +515,7 @@ double MotorLoad::getReactivePower() const
 
 double MotorLoad::getRealPower(const IOdata& inputs,
                                const stateData& stateDataValue,
-                               const solverMode& sMode) const
+                               const SolverMode& sMode) const
 {
     const double voltage = inputs[voltageInLocation];
 
@@ -539,7 +539,7 @@ double MotorLoad::getRealPower(const IOdata& inputs,
 
 double MotorLoad::getReactivePower(const IOdata& inputs,
                                    const stateData& stateDataValue,
-                                   const solverMode& sMode) const
+                                   const SolverMode& sMode) const
 {
     const double voltage = inputs[voltageInLocation];
     double Qtemp;

@@ -59,7 +59,7 @@ class gridSecondary: public GridComponent {
     **/
     virtual double getRealPower(const IOdata& inputs,
                                 const stateData& stateDataValue,
-                                const solverMode& sMode) const;
+                                const SolverMode& sMode) const;
 
     /**
     *@brief get the reactive output power
@@ -70,7 +70,7 @@ class gridSecondary: public GridComponent {
     **/
     virtual double getReactivePower(const IOdata& inputs,
                                     const stateData& stateDataValue,
-                                    const solverMode& sMode) const;
+                                    const SolverMode& sMode) const;
 
     /**
     *@brief get the real output power from local data
@@ -93,7 +93,7 @@ class gridSecondary: public GridComponent {
     **/
     virtual IOdata getOutputs(const IOdata& inputs,
                               const stateData& stateDataValue,
-                              const solverMode& sMode) const override;
+                              const SolverMode& sMode) const override;
 
     const GridBus* getBus() const { return bus; }
 
@@ -107,7 +107,7 @@ class gridSecondary: public GridComponent {
     **/
     virtual double getDoutdt(const IOdata& inputs,
                              const stateData& stateDataValue,
-                             const solverMode& sMode,
+                             const SolverMode& sMode,
                              index_t num = 0) const override;
 
     /**
@@ -120,7 +120,7 @@ class gridSecondary: public GridComponent {
     **/
     virtual double getOutput(const IOdata& inputs,
                              const stateData& stateDataValue,
-                             const solverMode& sMode,
+                             const SolverMode& sMode,
                              index_t outputNum = 0) const override;
 
     /**
@@ -141,7 +141,7 @@ class gridSecondary: public GridComponent {
     virtual IOdata predictOutputs(coreTime predictionTime,
                                   const IOdata& inputs,
                                   const stateData& stateDataValue,
-                                  const solverMode& sMode) const;
+                                  const SolverMode& sMode) const;
 
     /**
     *@brief get the available upwards generating capacity of a system

@@ -26,7 +26,7 @@ class rampSource: public Source {
     virtual double computeOutput(coreTime time) const override;
     virtual double getDoutdt(const IOdata& inputs,
                              const stateData& sD,
-                             const solverMode& sMode,
+                             const SolverMode& sMode,
                              index_t num = 0) const override;
     /** @brief clear the ramp (set it to 0)*/
     void clearRamp() { mp_dOdt = 0.0; }

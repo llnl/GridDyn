@@ -115,7 +115,7 @@ class Link: public gridPrimary {
     virtual void updateLocalCache() override;
     virtual void updateLocalCache(const IOdata& inputs,
                                   const stateData& stateData,
-                                  const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
 
     /** @brief allow the real power flow to be fixed by adjusting the properties of one bus or
     another performs the calculations necessary to get the power at the measureTerminal to be a
@@ -169,7 +169,7 @@ class Link: public gridPrimary {
     */
     virtual void pFlowCheck(std::vector<Violation>& Violation_vector) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     /** @brief do a quick update  (may be deprecated)
      * @return the power transfer
      */
@@ -184,10 +184,10 @@ class Link: public gridPrimary {
     virtual double getAngle() const;
     /** @brief get angle differential of the buses
     @param[in] state  the state of the system
-    @param[in] sMode the solverMode the state is based on
+    @param[in] sMode the SolverMode the state is based on
     * @return the angle difference
     */
-    virtual double getAngle(const double state[], const solverMode& sMode) const;
+    virtual double getAngle(const double state[], const SolverMode& sMode) const;
     /** @brief get the absolute angle of an attached bus
     @param[in] busId  either 1 or 2 to get the actual angle of the bus if the busID is used it gets
     the opposite angle
@@ -201,7 +201,7 @@ class Link: public gridPrimary {
     */
 
     double
-        getBusAngle(const stateData& stateData, const solverMode& sMode, id_type_t busId = 0) const;
+        getBusAngle(const stateData& stateData, const SolverMode& sMode, id_type_t busId = 0) const;
     /** @brief get the voltage of an attached bus
     @param[in] busId  either 1 or 2 or the object id of the bus
     * @return the voltage
@@ -268,7 +268,7 @@ class Link: public gridPrimary {
      */
     virtual count_t terminalCount() const { return 2; }
 
-    virtual count_t outputDependencyCount(index_t num, const solverMode& sMode) const override;
+    virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
     /** @brief get the max transfer capacity
      * @return the max capacity
      */
@@ -306,22 +306,22 @@ class Link: public gridPrimary {
                                       const stateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
-                                      const solverMode& sMode);
+                                      const SolverMode& sMode);
 
     using GridComponent::outputPartialDerivatives;
     virtual void outputPartialDerivatives(id_type_t busId,
                                           const stateData& sD,
                                           matrixData<double>& md,
-                                          const solverMode& sMode);
+                                          const SolverMode& sMode);
 
     virtual IOdata getOutputs(const IOdata& inputs,
                               const stateData& stateData,
-                              const solverMode& sMode) const override;
-    virtual IOdata getOutputs(id_type_t busId, const stateData& sD, const solverMode& sMode) const;
+                              const SolverMode& sMode) const override;
+    virtual IOdata getOutputs(id_type_t busId, const stateData& sD, const SolverMode& sMode) const;
     virtual void setState(coreTime time,
                           const double state[],
                           const double dstate_dt[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
 
   protected:
     /** @brief deal with any effects of a switch change

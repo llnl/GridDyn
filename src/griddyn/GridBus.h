@@ -176,39 +176,39 @@ class GridBus: public gridPrimary {
                        units::unit unitType = units::defunit) const override;
 
     // solver functions
-    virtual void preEx(const IOdata& inputs, const stateData& sD, const solverMode& sMode) override;
+    virtual void preEx(const IOdata& inputs, const stateData& sD, const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const stateData& sD,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
-                                  const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
     virtual void residual(const IOdata& inputs,
                           const stateData& sD,
                           double resid[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     virtual void derivative(const IOdata& inputs,
                             const stateData& sD,
                             double deriv[],
-                            const solverMode& sMode) override;
+                            const SolverMode& sMode) override;
     virtual void algebraicUpdate(const IOdata& inputs,
                                  const stateData& sD,
                                  double update[],
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  double alpha) override;
     /** do an update on the voltage similar to the algebraic update function but only looking at
     voltage
     @param[in] sD the state data to update
     @param[out] update the location to place the computed update
-    @param[in] sMode the solverMode associated with the state data
+    @param[in] sMode the SolverMode associated with the state data
     @param[in] alpha the scale associated with the update
     */
     virtual void
-        voltageUpdate(const stateData& sD, double update[], const solverMode& sMode, double alpha);
+        voltageUpdate(const stateData& sD, double update[], const SolverMode& sMode, double alpha);
 
     virtual void converge(coreTime time,
                           double state[],
                           double dstate_dt[],
-                          const solverMode& sMode,
+                          const SolverMode& sMode,
                           ConvergeMode = ConvergeMode::high_error_only,
                           double tol = 0.01) override;
 
@@ -218,10 +218,10 @@ class GridBus: public gridPrimary {
     virtual void updateLocalCache() override;
     virtual void updateLocalCache(const IOdata& inputs,
                                   const stateData& sD,
-                                  const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
 
   public:
-    void timestep(coreTime time, const IOdata& inputs, const solverMode& sMode) override;
+    void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     /** @brief a faster function to set the voltage and angle of a bus*
     @param[in] Vnew  the new voltage
@@ -381,8 +381,8 @@ class GridBus: public gridPrimary {
 
     virtual IOdata getOutputs(const IOdata& inputs,
                               const stateData& sD,
-                              const solverMode& sMode) const override;
-    virtual IOlocs getOutputLocs(const solverMode& sMode) const override;
+                              const SolverMode& sMode) const override;
+    virtual IOlocs getOutputLocs(const SolverMode& sMode) const override;
 
     /** @brief get a const ref to the outputs*/
     const IOdata& getOutputsRef() const;
@@ -392,53 +392,53 @@ class GridBus: public gridPrimary {
 
     virtual double getOutput(const IOdata& inputs,
                              const stateData& sD,
-                             const solverMode& sMode,
+                             const SolverMode& sMode,
                              index_t outNum = 0) const override;
 
     virtual double getOutput(index_t outNum = 0) const override;
 
     /** @brief get the voltage
     * @param[in] state the system state
-    @param[in] sMode the corresponding solverMode to the state
+    @param[in] sMode the corresponding SolverMode to the state
   @return the sbus voltage
     **/
-    virtual double getVoltage(const double state[], const solverMode& sMode) const;
+    virtual double getVoltage(const double state[], const SolverMode& sMode) const;
     /** @brief get the angle
     * @param[in] state the system state
-    @param[in] sMode the corresponding solverMode to the state
+    @param[in] sMode the corresponding SolverMode to the state
     @return the bus angle
     **/
-    virtual double getAngle(const double state[], const solverMode& sMode) const;
+    virtual double getAngle(const double state[], const SolverMode& sMode) const;
     /** @brief get the voltage
     * @param[in] sD the system state data
-    @param[in] sMode the corresponding solverMode to the state data
+    @param[in] sMode the corresponding SolverMode to the state data
     @return the bus voltage
     **/
-    virtual double getVoltage(const stateData& sD, const solverMode& sMode) const;
+    virtual double getVoltage(const stateData& sD, const SolverMode& sMode) const;
     /** @brief get the angle
     * @param[in] sD the system state data
-    @param[in] sMode the corresponding solverMode to the state
+    @param[in] sMode the corresponding SolverMode to the state
     @return the bus angle
     **/
-    virtual double getAngle(const stateData& sD, const solverMode& sMode) const;
+    virtual double getAngle(const stateData& sD, const SolverMode& sMode) const;
     /** @brief get the bus frequency
     * @param[in] sD the system state data
-    @param[in] sMode the corresponding solverMode to the state
+    @param[in] sMode the corresponding SolverMode to the state
     @return the bus frequency
     **/
-    virtual double getFreq(const stateData& sD, const solverMode& sMode) const;
+    virtual double getFreq(const stateData& sD, const SolverMode& sMode) const;
 
     virtual void rootTest(const IOdata& inputs,
                           const stateData& sD,
                           double roots[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
-                             const solverMode& sMode) override;
+                             const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
                                  const stateData& sD,
-                                 const solverMode& sMode,
+                                 const SolverMode& sMode,
                                  CheckLevel level) override;
 
     friend bool compareBus(GridBus* bus1, GridBus* bus2, bool cmpValues, bool printDiff);
@@ -468,10 +468,10 @@ class GridBus: public gridPrimary {
   protected:
     /** @brief compute the current power-balance error
     @param[in] sD  the stateData to compute the error for
-    @param[in] sMode the solverMode corresponding to the stateData
+    @param[in] sMode the SolverMode corresponding to the stateData
     @return the error in the power balance equations
     */
-    virtual double computeError(const stateData& sD, const solverMode& sMode);
+    virtual double computeError(const stateData& sD, const SolverMode& sMode);
 
   private:
     template<class X>

@@ -152,7 +152,7 @@ void subsystem::updateLocalCache()
 }
 void subsystem::updateLocalCache(const IOdata& inputs,
                                  const stateData& stateData,
-                                 const solverMode& sMode)
+                                 const SolverMode& sMode)
 {
     subarea.updateLocalCache(inputs, stateData, sMode);
 }
@@ -175,7 +175,7 @@ void subsystem::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 void subsystem::converge(coreTime time,
                          double state[],
                          double dstate_dt[],
-                         const solverMode& sMode,
+                         const SolverMode& sMode,
                          ConvergeMode mode,
                          double tol)
 {
@@ -304,7 +304,7 @@ double subsystem::get(std::string_view param, unit unitType) const
     return val;
 }
 
-void subsystem::timestep(const coreTime time, const IOdata& inputs, const solverMode& sMode)
+void subsystem::timestep(const coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     subarea.timestep(time, inputs, sMode);
     prevTime = time;
@@ -326,7 +326,7 @@ double subsystem::getLoss() const
 void subsystem::setState(const coreTime time,
                          const double state[],
                          const double dstate_dt[],
-                         const solverMode& sMode)
+                         const SolverMode& sMode)
 {
     subarea.setState(time, state, dstate_dt, sMode);
     prevTime = time;
@@ -334,7 +334,7 @@ void subsystem::setState(const coreTime time,
     // next do any internal area states
 }
 
-void subsystem::getVoltageStates(double vStates[], const solverMode& sMode)
+void subsystem::getVoltageStates(double vStates[], const SolverMode& sMode)
 
 {
     subarea.getVoltageStates(vStates, sMode);
@@ -436,7 +436,7 @@ double subsystem::getAngle() const
     return angleTerminal1 - angleTerminal2;
 }
 
-double subsystem::getAngle(const double state[], const solverMode& sMode) const
+double subsystem::getAngle(const double state[], const SolverMode& sMode) const
 {
     const double angleTerminal1 = terminalBus[0]->getAngle(state, sMode);
     const double angleTerminal2 = terminalBus[m_terminals - 1]->getAngle(state, sMode);
@@ -569,7 +569,7 @@ void subsystem::ioPartialDerivatives(id_type_t busId,
                                      const stateData& stateData,
                                      matrixData<double>& jacobian,
                                      const IOlocs& inputLocs,
-                                     const solverMode& sMode)
+                                     const SolverMode& sMode)
 {
     if (busId <= 0) {
         busId = 1;
@@ -586,7 +586,7 @@ void subsystem::ioPartialDerivatives(id_type_t busId,
 void subsystem::outputPartialDerivatives(id_type_t busId,
                                          const stateData& stateData,
                                          matrixData<double>& jacobian,
-                                         const solverMode& sMode)
+                                         const SolverMode& sMode)
 {
     if (busId <= 0) {
         busId = 1;
@@ -601,14 +601,14 @@ void subsystem::outputPartialDerivatives(id_type_t busId,
 
 IOdata subsystem::getOutputs(const IOdata& /*inputs*/,
                              const stateData& stateData,
-                             const solverMode& sMode) const
+                             const SolverMode& sMode) const
 {
     return getOutputs(1, stateData, sMode);
 }
 
 IOdata subsystem::getOutputs(id_type_t busId,
                              const stateData& /*stateData*/,
-                             const solverMode& /*sMode*/) const
+                             const SolverMode& /*sMode*/) const
 {
     IOdata out{Pout[0], Qout[0]};
 

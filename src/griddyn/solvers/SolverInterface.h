@@ -58,33 +58,33 @@ class InvalidSolverOperation: public SolverException {
 #define SOLVER_CONVERGENCE_ERROR (-12)
 
 enum SolverFlags : int {
-    dense_flag = 0,  //!< if the solver should use a dense or sparse version
-    constantJacobian_flag = 1,  //!< if the solver should just keep a constant Jacobian
-    useMask_flag = 2,  //!< if the solver should use a mask to filter out specific states
-    parallel_flag = 3,  //!< if the solver should use a parallel version
-    locked_flag = 4,  //!< if the solverMode is locked from further updates
-    use_omp_flag = 5,  //!< flag indicating whether to use omp data constructs
-    allocated_flag = 6,  //!< if the solver has been allocated
-    initialized_flag = 7,  //!< flag indicating if these vectors have been initialized
-    fileCapture_flag = 8,
-    directLogging_flag =
+    DENSE_FLAG = 0,  //!< if the solver should use a dense or sparse version
+    CONSTANT_JACOBIAN_FLAG = 1,  //!< if the solver should just keep a constant Jacobian
+    USE_MASK_FLAG = 2,  //!< if the solver should use a mask to filter out specific states
+    PARALLEL_FLAG = 3,  //!< if the solver should use a parallel version
+    LOCKED_FLAG = 4,  //!< if the SolverMode is locked from further updates
+    USE_OMP_FLAG = 5,  //!< flag indicating whether to use omp data constructs
+    ALLOCATED_FLAG = 6,  //!< if the solver has been allocated
+    INITIALIZED_FLAG = 7,  //!< flag indicating if these vectors have been initialized
+    FILE_CAPTURE_FLAG = 8,
+    DIRECT_LOGGING_FLAG =
         9,  //!< flag telling the SolverInterface to capture a log directly from the solver
-    use_newton_flag = 11,
-    use_bdf_flag = 12,
-    block_mode_only = 13,  //!< flag indicating that the solver only supports block mode
-    extra_solver_flag1 = 16,
-    extra_solver_flag2 = 17,
-    extra_solver_flag3 = 18,
-    extra_solver_flag4 = 19,
-    extra_solver_flag5 = 20,
-    extra_solver_flag6 = 21,
-    extra_solver_flag7 = 22,
-    extra_solver_flag8 = 23,
-    extra_solver_flag9 = 24,
-    extra_solver_flag10 = 25,
-    extra_solver_flag11 = 26,
-    extra_solver_flag12 = 27,
-    print_residuals = 28,
+    USE_NEWTON_FLAG = 11,
+    USE_BDF_FLAG = 12,
+    BLOCK_MODE_ONLY = 13,  //!< flag indicating that the solver only supports block mode
+    EXTRA_SOLVER_FLAG1 = 16,
+    EXTRA_SOLVER_FLAG2 = 17,
+    EXTRA_SOLVER_FLAG3 = 18,
+    EXTRA_SOLVER_FLAG4 = 19,
+    EXTRA_SOLVER_FLAG5 = 20,
+    EXTRA_SOLVER_FLAG6 = 21,
+    EXTRA_SOLVER_FLAG7 = 22,
+    EXTRA_SOLVER_FLAG8 = 23,
+    EXTRA_SOLVER_FLAG9 = 24,
+    EXTRA_SOLVER_FLAG10 = 25,
+    EXTRA_SOLVER_FLAG11 = 26,
+    EXTRA_SOLVER_FLAG12 = 27,
+    PRINT_RESIDUALS = 28,
 };
 /** @brief class defining the data related to a specific solver
  the SolverInterface class is the base class for solvers for the GridDyn power systems program
@@ -101,8 +101,8 @@ class SolverInterface: public HelperObject {
     };
     /** @brief enumeration of initiaL condition call modes*/
     enum class IcModes {
-        fixed_masked_and_deriv,  //!< fixed_algebraic and differential state derivatives
-        fixed_diff,  //!< differential states are fixed
+        FIXED_MASKED_AND_DERIV,  //!< fixed_algebraic and differential state derivatives
+        FIXED_DIFF,  //!< differential states are fixed
     };
     /** @brief enumeration of initiaL condition call modes*/
     enum class SparseReinitMode {
@@ -126,7 +126,7 @@ class SolverInterface: public HelperObject {
     count_t funcCallCount = 0;  //!< the number of times the function evaluation has been called
     count_t rootCallCount = 0;
     count_t max_iterations = 10000;  //!< the maximum number of iterations in the solver loop
-    solverMode mode;  //!< to the solverMode
+    SolverMode mode;  //!< to the SolverMode
     double tolerance = 1e-8;  //!< the default solver tolerance
     coreTime solveTime = negTime;  //!< storage for the time the solver is called
     std::string jacFile;  //!< the file to write the Jacobian to
@@ -144,9 +144,9 @@ class SolverInterface: public HelperObject {
 
     /** @brief alternate constructor
     @param[in] gds  GridDynSimulation to link with
-    @param[in] sMode the solverMode associated with the solver
+    @param[in] sMode the SolverMode associated with the solver
     */
-    SolverInterface(GridDynSimulation* gds, const solverMode& sMode);
+    SolverInterface(GridDynSimulation* gds, const SolverMode& sMode);
 
     /** @brief make a copy of the solver interface
     @param[in] fullCopy set to true to initialize and copy over all data to the new object
@@ -269,7 +269,7 @@ class SolverInterface: public HelperObject {
     /** @brief check if the SolverInterface has been initialized
     @return true if initialized false if not
     */
-    bool isInitialized() const { return flags[initialized_flag]; }
+    bool isInitialized() const { return flags[INITIALIZED_FLAG]; }
 
     /** @brief helper function to log specific solver stats
     @param[in] logLevel  the level of logging to display
@@ -292,9 +292,9 @@ class SolverInterface: public HelperObject {
     */
     count_t nonZeros() const { return nnz; }
 
-    const solverMode& getSolverMode() const { return mode; }
+    const SolverMode& getSolverMode() const { return mode; }
 
-    void lock() { flags.set(locked_flag); }
+    void lock() { flags.set(LOCKED_FLAG); }
 
     void setIndex(index_t newIndex) { mode.offsetIndex = newIndex; }
     /** @brief print out all the state values
@@ -303,18 +303,18 @@ class SolverInterface: public HelperObject {
     void printStates(bool getNames = false);
     /** @brief input the simulation data to attach to
     @param[in] gds the GridDynSimulationObject to attach to
-    @param[in] sMode the solverMode associated with the solver
+    @param[in] sMode the SolverMode associated with the solver
     */
-    virtual void setSimulationData(GridDynSimulation* gds, const solverMode& sMode);
+    virtual void setSimulationData(GridDynSimulation* gds, const SolverMode& sMode);
     /** @brief input the simulation data to attach to
     @param[in] gds the GridDynSimulationObject to attach to
     */
     virtual void setSimulationData(GridDynSimulation* gds);
 
-    /** @brief input the solverMode associated with the solver
-    @param[in] sMode the solverMode to attach to
+    /** @brief input the SolverMode associated with the solver
+    @param[in] sMode the SolverMode to attach to
     */
-    virtual void setSimulationData(const solverMode& sMode);
+    virtual void setSimulationData(const SolverMode& sMode);
 
     void setApproximation(std::string_view approx);
     /** @brief load up masks to the states
@@ -361,10 +361,10 @@ class SolverInterface: public HelperObject {
 
 /** @brief make a solver from a particular mode
 @param[in] gds  the GridDynSimulation to link to
-@param[in] sMode the solverMode to construct the SolverInterface from
+@param[in] sMode the SolverMode to construct the SolverInterface from
 @return a unique_ptr to a SolverInterface object
 */
-std::unique_ptr<SolverInterface> makeSolver(GridDynSimulation* gds, const solverMode& sMode);
+std::unique_ptr<SolverInterface> makeSolver(GridDynSimulation* gds, const SolverMode& sMode);
 /** @brief make a solver from a string
 @param[in] type the type of SolverInterface to create
 @return a unique_ptr to a SolverInterface object

@@ -77,12 +77,12 @@ void GovernorReheat::dynObjectInitializeB(const IOdata& inputs,
 void GovernorReheat::residual(const IOdata& inputs,
                               const stateData& sD,
                               double resid[],
-                              const solverMode& sMode)
+                              const SolverMode& sMode)
 {
     auto offset = offsets.getAlgOffset(sMode);
     const double* gsp = sD.dstate_dt + offset;
     if (isAlgebraicOnly(sMode)) {
-        gsp = sD.dstate_dt + offsets.getAlgOffset(solverMode(4));
+        gsp = sD.dstate_dt + offsets.getAlgOffset(SolverMode(4));
         resid[offset + 0] = gsp[1] + T4 / T5 * (gsp[2] + T3 / T2 * gsp[3]) - sD.state[offset];
         return;
     }
@@ -106,7 +106,7 @@ void GovernorReheat::residual(const IOdata& inputs,
 void GovernorReheat::derivative(const IOdata& inputs,
                                 const stateData& sD,
                                 double deriv[],
-                                const solverMode& sMode)
+                                const SolverMode& sMode)
 {
     auto offset = offsets.getAlgOffset(sMode);
     const double* gs = sD.state + offset;
@@ -127,7 +127,7 @@ void GovernorReheat::jacobianElements(const IOdata& inputs,
                                       const stateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
-                                      const solverMode& sMode)
+                                      const SolverMode& sMode)
 {
     auto offset = offsets.getAlgOffset(sMode);
     if (isAlgebraicOnly(sMode)) {
@@ -185,7 +185,7 @@ void GovernorReheat::jacobianElements(const IOdata& inputs,
     md.assign(refI, refI + 3, T4 / T5 * (T3 / T2));
 }
 
-index_t GovernorReheat::findIndex(std::string_view field, const solverMode& /*sMode*/) const
+index_t GovernorReheat::findIndex(std::string_view field, const SolverMode& /*sMode*/) const
 {
     index_t ret = kInvalidLocation;
     if (field == "pm") {

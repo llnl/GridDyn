@@ -119,7 +119,7 @@ void RampLoad::set(std::string_view param, double val, unit unitType)
 
 void RampLoad::updateLocalCache(const IOdata& /*inputs*/,
                                 const stateData& sD,
-                                const solverMode& /*sMode*/)
+                                const SolverMode& /*sMode*/)
 {
     auto tdiff = sD.time - lastTime;
     if (tdiff == timeZero) {

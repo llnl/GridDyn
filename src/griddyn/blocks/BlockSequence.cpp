@@ -107,7 +107,7 @@ void BlockSequence::add(GridBlock* blk)
 
 void BlockSequence::updateLocalCache(const IOdata& /*inputs*/,
                                      const stateData& stateData,
-                                     const solverMode& sMode)
+                                     const SolverMode& sMode)
 {
     if (!stateData.updateRequired(seqID)) {
         return;
@@ -148,7 +148,7 @@ void BlockSequence::blockResidual(double input,
                                   double didt,
                                   const stateData& stateData,
                                   double resid[],
-                                  const solverMode& sMode)
+                                  const SolverMode& sMode)
 {
     updateLocalCache(noInputs, stateData, sMode);
     auto cnt = static_cast<int>(sequence.size());
@@ -166,7 +166,7 @@ void BlockSequence::blockDerivative(double input,
                                     double didt,
                                     const stateData& stateData,
                                     double deriv[],
-                                    const solverMode& sMode)
+                                    const SolverMode& sMode)
 {
     updateLocalCache(noInputs, stateData, sMode);
     auto cnt = static_cast<int>(sequence.size());
@@ -183,7 +183,7 @@ void BlockSequence::blockDerivative(double input,
 void BlockSequence::blockAlgebraicUpdate(double input,
                                          const stateData& stateData,
                                          double update[],
-                                         const solverMode& sMode)
+                                         const SolverMode& sMode)
 {
     updateLocalCache(noInputs, stateData, sMode);
     auto cnt = static_cast<int>(sequence.size());
@@ -200,7 +200,7 @@ void BlockSequence::blockJacobianElements(double input,
                                           const stateData& stateData,
                                           matrixData<double>& matrixDataRef,
                                           index_t argLoc,
-                                          const solverMode& sMode)
+                                          const SolverMode& sMode)
 {
     updateLocalCache(noInputs, stateData, sMode);
     const size_t cnt = sequence.size();
@@ -220,7 +220,7 @@ void BlockSequence::blockJacobianElements(double input,
 void BlockSequence::rootTest(const IOdata& inputs,
                              const stateData& stateData,
                              double roots[],
-                             const solverMode& sMode)
+                             const SolverMode& sMode)
 {
     updateLocalCache(noInputs, stateData, sMode);
     const size_t cnt = sequence.size();
@@ -237,7 +237,7 @@ void BlockSequence::rootTest(const IOdata& inputs,
 void BlockSequence::rootTrigger(coreTime time,
                                 const IOdata& inputs,
                                 const std::vector<int>& rootMask,
-                                const solverMode& sMode)
+                                const SolverMode& sMode)
 {
     const size_t cnt = sequence.size();
     IOdata inAct{inputs.empty() ? kNullVal : inputs[0] + bias, getRateInput(inputs)};
@@ -252,7 +252,7 @@ void BlockSequence::rootTrigger(coreTime time,
 
 ChangeCode BlockSequence::rootCheck(const IOdata& inputs,
                                     const stateData& stateData,
-                                    const solverMode& sMode,
+                                    const SolverMode& sMode,
                                     CheckLevel level)
 {
     ChangeCode ret = ChangeCode::NO_CHANGE;

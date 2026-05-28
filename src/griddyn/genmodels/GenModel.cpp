@@ -110,7 +110,7 @@ void GenModel::dynObjectInitializeB(const IOdata& inputs,
 // residual
 
 double GenModel::getFreq(const stateData& stateDataValue,
-                         const solverMode& sMode,
+                         const SolverMode& sMode,
                          index_t* freqOffset) const
 {
     // there is no inertia in this gen model so it can't compute a frequency and
@@ -122,7 +122,7 @@ double GenModel::getFreq(const stateData& stateDataValue,
 }
 
 double GenModel::getAngle(const stateData& /*stateDataValue*/,
-                          const solverMode& /*sMode*/,
+                          const SolverMode& /*sMode*/,
                           index_t* angleOffset) const
 {
     // there is no inertia in this gen model so it can't compute a frequency and
@@ -133,13 +133,13 @@ double GenModel::getAngle(const stateData& /*stateDataValue*/,
     return kNullVal;
 }
 
-count_t GenModel::outputDependencyCount(index_t /*num*/, const solverMode& /*sMode*/) const
+count_t GenModel::outputDependencyCount(index_t /*num*/, const SolverMode& /*sMode*/) const
 {
     return 0;
 }
 IOdata GenModel::getOutputs(const IOdata& inputs,
                             const stateData& /*stateDataValue*/,
-                            const solverMode& /*sMode*/) const
+                            const SolverMode& /*sMode*/) const
 {
     IOdata out(2);
     const double voltage = inputs[voltageInLocation];
@@ -157,7 +157,7 @@ IOdata GenModel::getOutputs(const IOdata& inputs,
 
 double GenModel::getOutput(const IOdata& inputs,
                            const stateData& /*stateDataValue*/,
-                           const solverMode& /*sMode*/,
+                           const SolverMode& /*sMode*/,
                            index_t outNum) const
 {
     const double voltage = inputs[voltageInLocation];
@@ -189,7 +189,7 @@ void GenModel::ioPartialDerivatives(const IOdata& inputs,
                                     const stateData& /*stateDataValue*/,
                                     matrixData<double>& matrixDataValue,
                                     const IOlocs& inputLocs,
-                                    const solverMode& /*sMode*/)
+                                    const SolverMode& /*sMode*/)
 {
     const double voltage = inputs[voltageInLocation];
 

@@ -16,7 +16,7 @@ class matrixData;
 namespace griddyn {
 // forward declare the template class matrixData
 
-class solverMode;
+class SolverMode;
 class GridDynSimulation;
 
 /** @brief save the current state to a file
@@ -25,7 +25,7 @@ class GridDynSimulation;
 */
 void saveState(GridDynSimulation* gds,
                const std::string& fileName,
-               const solverMode& sMode = cEmptySolverMode,
+               const SolverMode& sMode = cEmptySolverMode,
                bool append = false);
 
 /** @brief save the bus data to a csv file
@@ -46,17 +46,17 @@ void saveLineData(GridDynSimulation* gds, const std::string& fileName);
 */
 void saveStateXML(GridDynSimulation* gds,
                   const std::string& fileName,
-                  const solverMode& sMode = cEmptySolverMode);
+                  const SolverMode& sMode = cEmptySolverMode);
 
 /** @brief save the current state to a binary file
 @param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file to save the state to
-@param[in] sMode the solverMode to save the state
+@param[in] sMode the SolverMode to save the state
 @param[in] append  boolean indicating the file should be appended
 */
 void saveStateBinary(GridDynSimulation* gds,
                      const std::string& fileName,
-                     const solverMode& sMode = cEmptySolverMode,
+                     const SolverMode& sMode = cEmptySolverMode,
                      bool append = true);
 
 /** @brief load a state vector from a file
@@ -65,7 +65,7 @@ void saveStateBinary(GridDynSimulation* gds,
 */
 void loadState(GridDynSimulation* gds,
                const std::string& fileName,
-               const solverMode& sMode = cEmptySolverMode);
+               const SolverMode& sMode = cEmptySolverMode);
 
 /** @brief load a binary state file
 @param[in] gds  the GridDynSimulation object to operate from
@@ -73,7 +73,7 @@ void loadState(GridDynSimulation* gds,
 */
 void loadStateBinary(GridDynSimulation* gds,
                      const std::string& fileName,
-                     const solverMode& sMode = cEmptySolverMode);
+                     const SolverMode& sMode = cEmptySolverMode);
 
 /** @brief load a state vector from an XML file
 @param[in] gds  the GridDynSimulation object to operate from
@@ -81,25 +81,25 @@ void loadStateBinary(GridDynSimulation* gds,
 */
 void loadStateXML(GridDynSimulation* gds,
                   const std::string& fileName,
-                  const solverMode& sMode = cEmptySolverMode);
+                  const SolverMode& sMode = cEmptySolverMode);
 
 /** @brief capture a Jacobian and a state to a file
 @param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file for storage
-@param[in] sMode the solverMode to get the state from
+@param[in] sMode the SolverMode to get the state from
 */
 void captureJacState(GridDynSimulation* gds,
                      const std::string& fileName,
-                     const solverMode& sMode = cEmptySolverMode);
+                     const SolverMode& sMode = cEmptySolverMode);
 
 /** @brief capture the Jacobian data to a file
 @param[in] gds  the GridDynSimulation object to operate from
 @param[in] fileName the name of the file for storage
-@param[in] sMode the solverMode to get the state from
+@param[in] sMode the SolverMode to get the state from
 */
 void saveJacobian(GridDynSimulation* gds,
                   const std::string& fileName,
-                  const solverMode& sMode = cEmptySolverMode);
+                  const SolverMode& sMode = cEmptySolverMode);
 
 /** @brief save the powerflow results to a file
 @param[in] gds  the GridDynSimulation object to operate from

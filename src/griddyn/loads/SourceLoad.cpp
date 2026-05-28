@@ -218,7 +218,7 @@ void SourceLoad::set(std::string_view param, std::string_view val)
     }
 }
 
-void SourceLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
+void SourceLoad::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     for (const auto& src : getSubObjects()) {
         static_cast<Source*>(src)->timestep(time, noInputs, sMode);
@@ -231,7 +231,7 @@ void SourceLoad::timestep(coreTime time, const IOdata& inputs, const solverMode&
 void SourceLoad::setState(coreTime time,
                           const double state[],
                           const double dstate_dt[],
-                          const solverMode& sMode)
+                          const SolverMode& sMode)
 {
     for (const auto& src : getSubObjects()) {
         src->setState(time, state, dstate_dt, sMode);
@@ -303,7 +303,7 @@ void SourceLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 
 void SourceLoad::updateLocalCache(const IOdata& /*inputs*/,
                                   const stateData& stateDataValue,
-                                  const solverMode& sMode)
+                                  const SolverMode& sMode)
 {
     for (auto& src : sources) {
         src->updateLocalCache(noInputs, stateDataValue, sMode);

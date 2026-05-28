@@ -38,9 +38,9 @@ namespace solvers {
         explicit BasicSolver(const std::string& objName = "basic", Mode alg = Mode::gauss);
         /** alternate constructor to feed to SolverInterface
     @param[in] gds  the GridDynSimulation to link to
-    @param[in] sMode the solverMode to solve with
+    @param[in] sMode the SolverMode to solve with
     */
-        BasicSolver(GridDynSimulation* gds, const solverMode& sMode);
+        BasicSolver(GridDynSimulation* gds, const SolverMode& sMode);
 
         virtual std::unique_ptr<SolverInterface> clone(bool fullCopy = false) const override;
 

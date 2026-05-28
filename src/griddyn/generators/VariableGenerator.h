@@ -50,13 +50,13 @@ class variableGenerator: public DynamicGenerator {
     virtual void residual(const IOdata& inputs,
                           const stateData& sD,
                           double resid[],
-                          const solverMode& sMode) override;
+                          const SolverMode& sMode) override;
 
     virtual void jacobianElements(const IOdata& inputs,
                                   const stateData& sD,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
-                                  const solverMode& sMode) override;
+                                  const SolverMode& sMode) override;
 
     virtual double getAdjustableCapacityUp(coreTime /*time*/ = maxTime) const override
     {
@@ -73,8 +73,8 @@ class variableGenerator: public DynamicGenerator {
   protected:
     virtual double pSetControlUpdate(const IOdata& inputs,
                                      const stateData& sD,
-                                     const solverMode& sMode) override;
-    virtual index_t pSetLocation(const solverMode& sMode) override;
+                                     const SolverMode& sMode) override;
+    virtual index_t pSetLocation(const SolverMode& sMode) override;
 };
 
 }  // namespace griddyn

@@ -53,7 +53,7 @@ KinsolInterface::KinsolInterface(const std::string& objName): SundialsInterface(
     max_iterations = 50;
 }
 
-KinsolInterface::KinsolInterface(GridDynSimulation* gds, const solverMode& sMode):
+KinsolInterface::KinsolInterface(GridDynSimulation* gds, const SolverMode& sMode):
     SundialsInterface(gds, sMode)
 {
     tolerance = 1e-8;
@@ -65,7 +65,7 @@ KinsolInterface::KinsolInterface(GridDynSimulation* gds, const solverMode& sMode
 KinsolInterface::~KinsolInterface()
 {
     // clear the memory,  the SundialsInterface destructor will clear the rest
-    if (flags[initialized_flag]) {
+    if (flags[INITIALIZED_FLAG]) {
         KINFree(&solverMem);
     }
 }
@@ -105,7 +105,7 @@ void KinsolInterface::allocate(count_t stateCount, count_t /*numRoots*/)
 // output solver stats
 void KinsolInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
 {
-    if (!flags[initialized_flag]) {
+    if (!flags[INITIALIZED_FLAG]) {
         return;
     }
     long int nni{0};
@@ -142,10 +142,10 @@ void KinsolInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
 
 void KinsolInterface::initialize(coreTime /*t0*/)
 {
-    if (!flags[allocated_flag]) {
+    if (!flags[ALLOCATED_FLAG]) {
         throw(InvalidSolverOperation());
     }
-    if (flags[directLogging_flag]) {
+    if (flags[DIRECT_LOGGING_FLAG]) {
         if (!(solverLogFile.empty())) {
             if (m_sundialsInfoFile == nullptr) {
                 m_sundialsInfoFile = fopen(solverLogFile.c_str(), "w");
@@ -177,7 +177,7 @@ void KinsolInterface::initialize(coreTime /*t0*/)
     checkFlag(&retval, "KINInit", 1);
 
 #ifdef GRIDDYN_ENABLE_KLU
-    if (flags[dense_flag]) {
+    if (flags[DENSE_FLAG]) {
         J = SUNDenseMatrix(svsize, svsize, sunctx);
         checkFlag(J, "SUNDenseMatrix", 0);
         /* Create KLU solver object */
@@ -219,7 +219,7 @@ void KinsolInterface::initialize(coreTime /*t0*/)
     retval = KINSetNumMaxIters(solverMem, max_iterations);  // residual calls
     checkFlag(&retval, "KINSetNumMaxIters", 1);
 
-    flags.set(initialized_flag);
+    flags.set(INITIALIZED_FLAG);
 }
 
 void KinsolInterface::sparseReInit(SparseReinitMode sparseReinitMode)
@@ -361,7 +361,7 @@ int kinsolFunc(N_Vector state, N_Vector resid, void* userData)
                                           NVECTOR_DATA(sd->use_omp, resid),
                                           sd->mode);
 #endif
-    if (sd->flags[print_residuals]) {
+    if (sd->flags[PRINT_RESIDUALS]) {
         long int val = 0;
         KINGetNumNonlinSolvIters(sd->solverMem, &val);
         double* residuals = NVECTOR_DATA(sd->use_omp, resid);
@@ -375,7 +375,7 @@ int kinsolFunc(N_Vector state, N_Vector resid, void* userData)
         }
         std::println("---------------------------------");
     }
-    if (sd->flags[fileCapture_flag]) {
+    if (sd->flags[FILE_CAPTURE_FLAG]) {
         if (!sd->stateFile.empty()) {
             writeVector(sd->solveTime,
                         STATE_INFORMATION,

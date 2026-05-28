@@ -30,7 +30,7 @@ CoreObject* FmiMELoad::clone(CoreObject* obj) const
 
 void FmiMELoad::updateLocalCache(const IOdata& inputs,
                                  const stateData& stateDataRef,
-                                 const solverMode& sMode)
+                                 const SolverMode& sMode)
 {
     auto inputVector = inputs;
     const auto voltageComplex = std::polar(inputs[voltageInLocation], inputs[angleInLocation]);
@@ -67,7 +67,7 @@ void FmiMELoad::set(std::string_view param, double val, units::unit unitType)
 void FmiMELoad::setState(coreTime time,
                          const double state[],
                          const double dstateDt[],
-                         const solverMode& sMode)
+                         const SolverMode& sMode)
 {
     FmiMEWrapper<GridLoad>::setState(time, state, dstateDt, sMode);
     auto out = fmisub->getOutputs(noInputs, emptyStateData, cLocalSolverMode);

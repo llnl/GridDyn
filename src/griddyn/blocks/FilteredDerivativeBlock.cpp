@@ -122,7 +122,7 @@ void FilteredDerivativeBlock::blockDerivative(double input,
                                               double /*didt*/,
                                               const stateData& stateDataRef,
                                               double deriv[],
-                                              const solverMode& sMode)
+                                              const SolverMode& sMode)
 {
     auto offset = offsets.getDiffOffset(sMode) + limiter_diff;
 
@@ -135,7 +135,7 @@ void FilteredDerivativeBlock::blockJacobianElements(double input,
                                                     const stateData& stateDataRef,
                                                     matrixData<double>& jacobian,
                                                     index_t argLoc,
-                                                    const solverMode& sMode)
+                                                    const SolverMode& sMode)
 {
     if (!hasDifferential(sMode)) {
         return;

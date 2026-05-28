@@ -267,7 +267,7 @@ void GridBlock::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-void GridBlock::timestep(coreTime time, const IOdata& inputs, const solverMode& /*sMode*/)
+void GridBlock::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     step(time, inputs[0]);
 }
@@ -321,7 +321,7 @@ double GridBlock::step(coreTime time, double input)
 }
 
 double GridBlock::getBlockOutput(const stateData& stateDataValue,
-                                 const solverMode& solverModeValue) const
+                                 const SolverMode& solverModeValue) const
 {
     auto locations = offsets.getLocations(stateDataValue, solverModeValue, this);
     return opFlags[differential_output] ? *locations.diffStateLoc : *locations.algStateLoc;
@@ -335,7 +335,7 @@ double GridBlock::getBlockOutput() const
 }
 
 double GridBlock::getBlockDoutDt(const stateData& stateDataValue,
-                                 const solverMode& solverModeValue) const
+                                 const SolverMode& solverModeValue) const
 {
     if (opFlags[differential_output]) {
         auto locations = offsets.getLocations(stateDataValue, solverModeValue, this);
@@ -358,7 +358,7 @@ void GridBlock::blockResidual(double input,
                               double didt,
                               const stateData& stateDataValue,
                               double resid[],
-                              const solverMode& solverModeValue)
+                              const SolverMode& solverModeValue)
 {
     auto& solverOffsetsValue = offsets.getOffsets(solverModeValue);
     if (solverOffsetsValue.total.diffSize > 0) {
@@ -389,7 +389,7 @@ void GridBlock::limiterResidElements(double input,
                                      double didt,
                                      const stateData& stateDataValue,
                                      double resid[],
-                                     const solverMode& solverModeValue)
+                                     const SolverMode& solverModeValue)
 {
     if (opFlags[differential_output]) {
         auto offset = offsets.getDiffOffset(solverModeValue) + limiter_diff;
@@ -436,7 +436,7 @@ void GridBlock::limiterResidElements(double input,
 void GridBlock::residual(const IOdata& inputs,
                          const stateData& stateDataValue,
                          double resid[],
-                         const solverMode& solverModeValue)
+                         const SolverMode& solverModeValue)
 {
     blockResidual(inputs[0], getRateInput(inputs), stateDataValue, resid, solverModeValue);
 }
@@ -472,7 +472,7 @@ double GridBlock::getTestRate(double didt, double currentStateRate) const
 void GridBlock::blockAlgebraicUpdate(double input,
                                      const stateData& stateDataValue,
                                      double update[],
-                                     const solverMode& solverModeValue)
+                                     const SolverMode& solverModeValue)
 {
     if (opFlags[differential_output]) {
         return;
@@ -494,7 +494,7 @@ void GridBlock::blockAlgebraicUpdate(double input,
 void GridBlock::algebraicUpdate(const IOdata& inputs,
                                 const stateData& stateDataValue,
                                 double update[],
-                                const solverMode& solverModeValue,
+                                const SolverMode& solverModeValue,
                                 double /*alpha*/)
 {
     blockAlgebraicUpdate(inputs[0], stateDataValue, update, solverModeValue);
@@ -504,7 +504,7 @@ void GridBlock::blockDerivative(double /*input*/,
                                 double didt,
                                 const stateData& stateDataValue,
                                 double deriv[],
-                                const solverMode& solverModeValue)
+                                const SolverMode& solverModeValue)
 {
     if (opFlags[differential_output]) {
         auto offset = offsets.getDiffOffset(solverModeValue) + limiter_diff;
@@ -528,7 +528,7 @@ void GridBlock::blockDerivative(double /*input*/,
 void GridBlock::derivative(const IOdata& inputs,
                            const stateData& stateDataValue,
                            double deriv[],
-                           const solverMode& solverModeValue)
+                           const SolverMode& solverModeValue)
 {
     blockDerivative(inputs[0], getRateInput(inputs), stateDataValue, deriv, solverModeValue);
 }
@@ -538,7 +538,7 @@ void GridBlock::blockJacobianElements(double /*input*/,
                                       const stateData& stateDataValue,
                                       matrixData<double>& matrixDataValue,
                                       index_t argLoc,
-                                      const solverMode& solverModeValue)
+                                      const SolverMode& solverModeValue)
 {
     if ((opFlags[differential_output]) && (hasDifferential(solverModeValue))) {
         auto offset = offsets.getDiffOffset(solverModeValue) + limiter_diff;
@@ -599,7 +599,7 @@ void GridBlock::jacobianElements(const IOdata& inputs,
                                  const stateData& stateDataValue,
                                  matrixData<double>& matrixDataValue,
                                  const IOlocs& inputLocs,
-                                 const solverMode& solverModeValue)
+                                 const SolverMode& solverModeValue)
 {
     blockJacobianElements(inputs[0],
                           getRateInput(inputs),
@@ -611,7 +611,7 @@ void GridBlock::jacobianElements(const IOdata& inputs,
 
 double GridBlock::getLimiterTestValue(double input,
                                       const stateData& stateDataValue,
-                                      const solverMode& solverModeValue)
+                                      const SolverMode& solverModeValue)
 {
     auto offset = (opFlags[differential_output]) ? offsets.getDiffOffset(solverModeValue) :
                                                    offsets.getAlgOffset(solverModeValue);
@@ -625,7 +625,7 @@ double GridBlock::getLimiterTestValue(double input,
 void GridBlock::rootTest(const IOdata& inputs,
                          const stateData& stateDataValue,
                          double roots[],
-                         const solverMode& solverModeValue)
+                         const SolverMode& solverModeValue)
 {
     if (!opFlags[has_limits]) {
         return;
@@ -648,7 +648,7 @@ void GridBlock::rootTest(const IOdata& inputs,
 
 ChangeCode GridBlock::rootCheck(const IOdata& inputs,
                                 const stateData& stateDataValue,
-                                const solverMode& solverModeValue,
+                                const SolverMode& solverModeValue,
                                 CheckLevel /*level*/)
 {
     ChangeCode ret = ChangeCode::NO_CHANGE;
@@ -683,7 +683,7 @@ ChangeCode GridBlock::rootCheck(const IOdata& inputs,
 void GridBlock::rootTrigger(coreTime /*time*/,
                             const IOdata& inputs,
                             const std::vector<int>& rootMask,
-                            const solverMode& solverModeValue)
+                            const SolverMode& solverModeValue)
 {
     if (!opFlags[has_limits]) {
         return;

@@ -28,9 +28,9 @@ class BasicOdeSolver: public SolverInterface {
     explicit BasicOdeSolver(const std::string& objName = "basicOde");
     /** alternate constructor to feed to SolverInterface
 @param[in] gds  the GridDynSimulation to link to
-@param[in] sMode the solverMode to solve with
+@param[in] sMode the SolverMode to solve with
 */
-    BasicOdeSolver(GridDynSimulation* gds, const solverMode& sMode);
+    BasicOdeSolver(GridDynSimulation* gds, const SolverMode& sMode);
 
     virtual std::unique_ptr<SolverInterface> clone(bool fullCopy = false) const override;
 

@@ -53,7 +53,7 @@ void loadSolverElement(std::shared_ptr<ReaderElement>& element,
     if (!solverIdentifier.empty()) {
         if (solverDefinition) {
             if (solverDefinition->getSolverMode().offsetIndex >
-                1)  // don't allow overriding the names on solvermode index 0 and 1
+                1)  // don't allow overriding the names on SolverMode index 0 and 1
             {
                 solverDefinition->setName(solverIdentifier);
             }

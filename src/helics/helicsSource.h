@@ -42,7 +42,7 @@ class HelicsSource: public sources::rampSource {
     virtual void dynObjectInitializeA(coreTime time0, uint32_t flags) override;
 
     virtual void updateA(coreTime time) override;
-    virtual void timestep(coreTime ttime, const IOdata& inputs, const solverMode& sMode) override;
+    virtual void timestep(coreTime ttime, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void setFlag(const std::string& param, bool val = true) override;
     virtual void set(const std::string& param, const std::string& val) override;
     virtual void

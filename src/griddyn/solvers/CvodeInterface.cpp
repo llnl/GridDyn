@@ -29,18 +29,18 @@
 #include <vector>
 
 namespace griddyn::solvers {
-int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_data);
+int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userData);
 
 int cvodeJac(sunrealtype time,
              N_Vector state,
-             N_Vector dstate_dt,
-             SUNMatrix J,
-             void* user_data,
+             N_Vector dstateDt,
+             SUNMatrix j,
+             void* userData,
              N_Vector tmp1,
              N_Vector tmp2,
              N_Vector tmp3);
 
-int cvodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* user_data);
+int cvodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* userData);
 
 CvodeInterface::CvodeInterface(const std::string& objName): SundialsInterface(objName)
 {
@@ -423,14 +423,14 @@ void CvodeInterface::loadMaskElements()
 }
 
 // CVode C Functions
-int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_data)
+int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userData)
 {
-    auto sd = reinterpret_cast<CvodeInterface*>(user_data);
+    auto sd = reinterpret_cast<CvodeInterface*>(userData);
     sd->funcCallCount++;
     if (sd->mode.pairedOffsetIndex != kNullLocation) {
         int ret = sd->m_gds->dynAlgebraicSolve(time,
                                                NVECTOR_DATA(sd->use_omp, state),
-                                               NVECTOR_DATA(sd->use_omp, dstate_dt),
+                                               NVECTOR_DATA(sd->use_omp, dstateDt),
                                                sd->mode);
         if (ret < FUNCTION_EXECUTION_SUCCESS) {
             return ret;
@@ -438,7 +438,7 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_d
     }
     int ret = sd->m_gds->derivativeFunction(time,
                                             NVECTOR_DATA(sd->use_omp, state),
-                                            NVECTOR_DATA(sd->use_omp, dstate_dt),
+                                            NVECTOR_DATA(sd->use_omp, dstateDt),
                                             sd->mode);
 
     if (sd->flags[fileCapture_flag]) {
@@ -456,7 +456,7 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_d
                         sd->funcCallCount,
                         sd->mode.offsetIndex,
                         sd->svsize,
-                        NVECTOR_DATA(sd->use_omp, dstate_dt),
+                        NVECTOR_DATA(sd->use_omp, dstateDt),
                         sd->stateFile);
         }
     }
@@ -464,9 +464,9 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_d
     return ret;
 }
 
-int cvodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* user_data)
+int cvodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* userData)
 {
-    auto sd = reinterpret_cast<CvodeInterface*>(user_data);
+    auto sd = reinterpret_cast<CvodeInterface*>(userData);
     sd->m_gds->rootFindingFunction(
         time, NVECTOR_DATA(sd->use_omp, state), sd->derivData(), gout, sd->mode);
 
@@ -475,14 +475,14 @@ int cvodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* use
 
 int cvodeJac(sunrealtype time,
              N_Vector state,
-             N_Vector dstate_dt,
-             SUNMatrix J,
-             void* user_data,
+             N_Vector dstateDt,
+             SUNMatrix j,
+             void* userData,
              N_Vector tmp1,
              N_Vector tmp2,
              N_Vector /*tmp3*/)
 {
-    return sundialsJac(time, 0.0, state, dstate_dt, J, user_data, tmp1, tmp2);
+    return sundialsJac(time, 0.0, state, dstateDt, j, userData, tmp1, tmp2);
 }
 
 }  // namespace griddyn::solvers

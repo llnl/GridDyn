@@ -61,16 +61,16 @@ namespace {
 }  // namespace
 
 static ChildClassFactoryArg<solvers::BasicSolver, SolverInterface, solvers::BasicSolver::Mode>
-    basicFactoryG(stringVec{"basic", "gauss"}, solvers::BasicSolver::Mode::gauss);
+    gBasicFactoryG(stringVec{"basic", "gauss"}, solvers::BasicSolver::Mode::gauss);
 static ChildClassFactoryArg<solvers::BasicSolver, SolverInterface, solvers::BasicSolver::Mode>
-    basicFactoryGS(stringVec{"gs", "gauss-seidel"}, solvers::BasicSolver::Mode::gauss_seidel);
+    gBasicFactoryGs(stringVec{"gs", "gauss-seidel"}, solvers::BasicSolver::Mode::gauss_seidel);
 #ifdef GRIDYN_ENABLE_CVODE
 static ChildClassFactory<solvers::BasicOdeSolver, SolverInterface>
-    basicOdeFactory(stringVec{"basicode", "euler"});
+    gBasicOdeFactory(stringVec{"basicode", "euler"});
 #else
 // if cvode is not available this becomes the default differential solver
 static ChildClassFactory<solvers::BasicOdeSolver, SolverInterface>
-    basicOdeFactory(stringVec{"basicode", "dyndiff", "differential"});
+    gBasicOdeFactory(stringVec{"basicode", "dyndiff", "differential"});
 
 #endif
 
@@ -309,7 +309,7 @@ void SolverInterface::set(std::string_view param, double val)
     }
 }
 
-static const std::map<std::string_view, int, std::less<std::string_view>> solverFlagMap{
+static const std::map<std::string_view, int, std::less<std::string_view>> SOLVER_FLAG_MAP{
     {"filecapture", fileCapture_flag},
     {"directlogging", directLogging_flag},
     {"solver_log", directLogging_flag},
@@ -331,8 +331,8 @@ static const std::map<std::string_view, int, std::less<std::string_view>> solver
 
 void SolverInterface::setFlag(std::string_view flag, bool val)
 {
-    const auto foundFlag = solverFlagMap.find(flag);
-    const int flgInd = (foundFlag != solverFlagMap.end()) ? foundFlag->second : -60;
+    const auto foundFlag = SOLVER_FLAG_MAP.find(flag);
+    const int flgInd = (foundFlag != SOLVER_FLAG_MAP.end()) ? foundFlag->second : -60;
     if (flgInd > -32) {
         if (flgInd > 0) {
             flags.set(flgInd, val);
@@ -427,8 +427,8 @@ void SolverInterface::setApproximation(std::string_view approx)
 
 bool SolverInterface::getFlag(std::string_view flag) const
 {
-    const auto foundFlag = solverFlagMap.find(flag);
-    const int flgInd = (foundFlag != solverFlagMap.end()) ? foundFlag->second : -60;
+    const auto foundFlag = SOLVER_FLAG_MAP.find(flag);
+    const int flgInd = (foundFlag != SOLVER_FLAG_MAP.end()) ? foundFlag->second : -60;
     if (flgInd > -32) {
         if (flgInd > 0) {
             return flags[flgInd];

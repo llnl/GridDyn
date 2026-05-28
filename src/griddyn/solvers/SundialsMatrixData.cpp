@@ -11,16 +11,16 @@
 #include <memory>
 
 namespace griddyn::solvers {
-std::unique_ptr<matrixData<double>> makeSundialsMatrixData(SUNMatrix J)
+std::unique_ptr<matrixData<double>> makeSundialsMatrixData(SUNMatrix j)
 {
-    switch (SUNMatGetID(J)) {
+    switch (SUNMatGetID(j)) {
         case SUNMATRIX_DENSE:
-            return std::make_unique<SundialsMatrixDataDense>(J);
+            return std::make_unique<SundialsMatrixDataDense>(j);
         case SUNMATRIX_SPARSE:
-            if (SM_SPARSETYPE_S(J) == CSR_MAT) {
-                return std::make_unique<SundialsMatrixDataSparseRow>(J);
+            if (SM_SPARSETYPE_S(j) == CSR_MAT) {
+                return std::make_unique<SundialsMatrixDataSparseRow>(j);
             } else {
-                return std::make_unique<SundialsMatrixDataSparseColumn>(J);
+                return std::make_unique<SundialsMatrixDataSparseColumn>(j);
             }
         case SUNMATRIX_CUSTOM:
         default:

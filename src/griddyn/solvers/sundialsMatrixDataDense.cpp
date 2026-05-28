@@ -19,9 +19,9 @@ void SundialsMatrixDataDense::clear()
 {
     SUNMatZero(J);
 }
-void SundialsMatrixDataDense::assign(index_t X, index_t Y, double num)
+void SundialsMatrixDataDense::assign(index_t x, index_t y, double num)
 {
-    SM_ELEMENT_D(J, X, Y) += num;
+    SM_ELEMENT_D(J, x, y) += num;
 }
 void SundialsMatrixDataDense::setMatrix(SUNMatrix mat)
 {
@@ -38,11 +38,11 @@ count_t SundialsMatrixDataDense::capacity() const
 {
     return static_cast<count_t>(SM_ROWS_D(J) * SM_COLUMNS_D(J));
 }
-matrixElement<double> SundialsMatrixDataDense::element(index_t N) const
+matrixElement<double> SundialsMatrixDataDense::element(index_t n) const
 {
-    return {N % static_cast<index_t>(SM_COLUMNS_D(J)),
-            N / static_cast<index_t>(SM_COLUMNS_D(J)),
-            SM_DATA_D(J)[N]};
+    return {n % static_cast<index_t>(SM_COLUMNS_D(J)),
+            n / static_cast<index_t>(SM_COLUMNS_D(J)),
+            SM_DATA_D(J)[n]};
 }
 
 double SundialsMatrixDataDense::at(index_t rowN, index_t colN) const

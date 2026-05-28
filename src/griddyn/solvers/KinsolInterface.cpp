@@ -33,11 +33,11 @@
 #include <string>
 
 namespace griddyn::solvers {
-int kinsolFunc(N_Vector state, N_Vector resid, void* user_data);
+int kinsolFunc(N_Vector state, N_Vector resid, void* userData);
 int kinsolJac(N_Vector state,
               N_Vector resid,
-              SUNMatrix J,
-              void* user_data,
+              SUNMatrix j,
+              void* userData,
               N_Vector tmp1,
               N_Vector tmp2);
 
@@ -338,9 +338,9 @@ void KinsolInterface::setConstraints()
 // function not in the class
 // KINSOL C functions
 
-int kinsolFunc(N_Vector state, N_Vector resid, void* user_data)
+int kinsolFunc(N_Vector state, N_Vector resid, void* userData)
 {
-    auto* sd = static_cast<KinsolInterface*>(user_data);
+    auto* sd = static_cast<KinsolInterface*>(userData);
     sd->funcCallCount++;
 #if MEASURE_TIMINGS > 0
     auto start_t = std::chrono::high_resolution_clock::now();
@@ -399,13 +399,13 @@ int kinsolFunc(N_Vector state, N_Vector resid, void* user_data)
 
 int kinsolJac(N_Vector state,
               N_Vector /*f*/,
-              SUNMatrix J,
-              void* user_data,
+              SUNMatrix j,
+              void* userData,
               N_Vector tmp1,
               N_Vector tmp2)
 {
-    auto* sd = static_cast<KinsolInterface*>(user_data);
-    return sundialsJac(sd->solveTime, 0, state, nullptr, J, user_data, tmp1, tmp2);
+    auto* sd = static_cast<KinsolInterface*>(userData);
+    return sundialsJac(sd->solveTime, 0, state, nullptr, j, userData, tmp1, tmp2);
 }
 
 }  // namespace griddyn::solvers

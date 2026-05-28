@@ -140,18 +140,18 @@ void SundialsInterface::allocate(count_t stateCount, count_t /*numRoots*/)
         return;
     }
 
-    [[maybe_unused]] bool prev_omp = use_omp;  // looks unused if OPENMP is not available
+    [[maybe_unused]] bool prevOmp = use_omp;  // looks unused if OPENMP is not available
     use_omp = flags[use_omp_flag];
     flags.reset(initialized_flag);
     if (state != nullptr) {
-        NVECTOR_DESTROY(prev_omp, state);
+        NVECTOR_DESTROY(prevOmp, state);
     }
     state = NVECTOR_NEW(use_omp, stateCount);
     checkFlag(state, "NVECTOR_NEW", 0);
 
     if (hasDifferential(mode)) {
         if (dstate_dt != nullptr) {
-            NVECTOR_DESTROY(prev_omp, dstate_dt);
+            NVECTOR_DESTROY(prevOmp, dstate_dt);
         }
         dstate_dt = NVECTOR_NEW(use_omp, stateCount);
         checkFlag(dstate_dt, "NVECTOR_NEW", 0);
@@ -159,19 +159,19 @@ void SundialsInterface::allocate(count_t stateCount, count_t /*numRoots*/)
         N_VConst(ZERO, dstate_dt);
     }
     if (abstols != nullptr) {
-        NVECTOR_DESTROY(prev_omp, abstols);
+        NVECTOR_DESTROY(prevOmp, abstols);
     }
     abstols = NVECTOR_NEW(use_omp, stateCount);
     checkFlag(abstols, "NVECTOR_NEW", 0);
 
     if (consData != nullptr) {
-        NVECTOR_DESTROY(prev_omp, consData);
+        NVECTOR_DESTROY(prevOmp, consData);
     }
     consData = NVECTOR_NEW(use_omp, stateCount);
     checkFlag(consData, "NVECTOR_NEW", 0);
 
     if (scale != nullptr) {
-        NVECTOR_DESTROY(prev_omp, scale);
+        NVECTOR_DESTROY(prevOmp, scale);
     }
     scale = NVECTOR_NEW(use_omp, stateCount);
     checkFlag(scale, "NVECTOR_NEW", 0);
@@ -180,7 +180,7 @@ void SundialsInterface::allocate(count_t stateCount, count_t /*numRoots*/)
 
     if (isDAE(mode)) {
         if (types != nullptr) {
-            NVECTOR_DESTROY(prev_omp, types);
+            NVECTOR_DESTROY(prevOmp, types);
         }
         types = NVECTOR_NEW(use_omp, stateCount);
         checkFlag(types, "NVECTOR_NEW", 0);
@@ -275,31 +275,31 @@ void SundialsInterface::kluReInit(SparseReinitMode sparseReInitModes)
 #endif
 }
 
-bool isSUNMatrixSetup(SUNMatrix J)
+bool isSUNMatrixSetup(SUNMatrix j)
 {
-    int id = SUNMatGetID(J);
+    int id = SUNMatGetID(j);
     if (id == SUNMATRIX_SPARSE) {
-        auto M = SM_CONTENT_S(J);
-        if ((M->indexptrs[0] != 0) || (M->indexptrs[0] > M->NNZ)) {
+        auto m = SM_CONTENT_S(j);
+        if ((m->indexptrs[0] != 0) || (m->indexptrs[0] > m->NNZ)) {
             return false;
         }
-        if ((M->indexptrs[M->N] <= 0) || (M->indexptrs[M->N] >= M->NNZ)) {
+        if ((m->indexptrs[m->N] <= 0) || (m->indexptrs[m->N] >= m->NNZ)) {
             return false;
         }
     }
     return true;
 }
 
-void matrixDataToSUNMatrix(matrixData<double>& md, SUNMatrix J, count_t svsize)
+void matrixDataToSUNMatrix(matrixData<double>& md, SUNMatrix j, count_t svsize)
 {
-    int id = SUNMatGetID(J);
+    int id = SUNMatGetID(j);
     if (id == SUNMATRIX_SPARSE) {
-        auto M = SM_CONTENT_S(J);
+        auto m = SM_CONTENT_S(j);
         count_t indval = 0;
-        M->indexptrs[0] = indval;
+        m->indexptrs[0] = indval;
 
         md.compact();
-        assert(M->NNZ >= static_cast<int>(md.size()));
+        assert(m->NNZ >= static_cast<int>(md.size()));
         auto sz = static_cast<int>(md.size());
         /*
   auto itel = md.begin();
@@ -328,19 +328,19 @@ void matrixDataToSUNMatrix(matrixData<double>& md, SUNMatrix J, count_t svsize)
             // a1->colIndex(kk));
             if (tp.row > indval) {
                 indval++;
-                M->indexptrs[indval] = kk;
+                m->indexptrs[indval] = kk;
                 assert(tp.row == indval);
             }
 
-            M->data[kk] = tp.data;
-            M->indexvals[kk] = tp.col;
+            m->data[kk] = tp.data;
+            m->indexvals[kk] = tp.col;
         }
 
         if (indval + 1 != svsize) {
             std::println("sz={}, svsize={}, colval+1={}", sz, svsize, indval + 1);
         }
         assert(indval + 1 == svsize);
-        M->indexptrs[indval + 1] = sz;
+        m->indexptrs[indval + 1] = sz;
     } else if (id == SUNMATRIX_DENSE) {
     }
 }
@@ -350,26 +350,26 @@ void sundialsErrorHandlerFunc(int line,
                               const char* function,
                               const char* file,
                               const char* msg,
-                              SUNErrCode error_code,
-                              void* user_data,
+                              SUNErrCode errorCode,
+                              void* userData,
                               SUNContext /*sunctx*/)
 {
-    if (error_code == 0) {
+    if (errorCode == 0) {
         return;
     }
-    auto sd = reinterpret_cast<SolverInterface*>(user_data);
+    auto sd = reinterpret_cast<SolverInterface*>(userData);
     auto message =
-        std::format("SUNDIALS ERROR({}) in {} [{}:{}]::{}", error_code, function, file, line, msg);
-    sd->logMessage(error_code, message);
+        std::format("SUNDIALS ERROR({}) in {} [{}:{}]::{}", errorCode, function, file, line, msg);
+    sd->logMessage(errorCode, message);
 }
 
-bool matrixNeedsSetup(count_t callCount, SUNMatrix J)
+bool matrixNeedsSetup(count_t callCount, SUNMatrix j)
 {
-    switch (SUNMatGetID(J)) {
+    switch (SUNMatGetID(j)) {
         case SUNMATRIX_DENSE:
             return false;
         case SUNMATRIX_SPARSE:
-            return ((callCount == 0) || (!isSUNMatrixSetup(J)));
+            return ((callCount == 0) || (!isSUNMatrixSetup(j)));
         default:
             return false;
     }
@@ -379,15 +379,15 @@ bool matrixNeedsSetup(count_t callCount, SUNMatrix J)
 int sundialsJac(sunrealtype time,
                 sunrealtype cj,
                 N_Vector state,
-                N_Vector dstate_dt,
-                SUNMatrix J,
-                void* user_data,
+                N_Vector dstateDt,
+                SUNMatrix j,
+                void* userData,
                 N_Vector /*tmp1*/,
                 N_Vector /*tmp2*/)
 {
-    auto sd = reinterpret_cast<SundialsInterface*>(user_data);
+    auto sd = reinterpret_cast<SundialsInterface*>(userData);
 
-    if (matrixNeedsSetup(sd->jacCallCount, J)) {
+    if (matrixNeedsSetup(sd->jacCallCount, j)) {
         auto a1 = makeSparseMatrix(sd->svsize, sd->maxNNZ);
 
         a1->setRowLimit(sd->svsize);
@@ -398,7 +398,7 @@ int sundialsJac(sunrealtype time,
             filterAd.addFilter(sd->maskElements);
             sd->m_gds->jacobianFunction(time,
                                         nvecdata(sd->use_omp, state),
-                                        nvecdata(sd->use_omp, dstate_dt),
+                                        nvecdata(sd->use_omp, dstateDt),
                                         filterAd,
                                         cj,
                                         sd->mode);
@@ -408,7 +408,7 @@ int sundialsJac(sunrealtype time,
         } else {
             sd->m_gds->jacobianFunction(time,
                                         nvecdata(sd->use_omp, state),
-                                        nvecdata(sd->use_omp, dstate_dt),
+                                        nvecdata(sd->use_omp, dstateDt),
                                         *a1,
                                         cj,
                                         sd->mode);
@@ -416,14 +416,14 @@ int sundialsJac(sunrealtype time,
 
         ++sd->jacCallCount;
 #ifdef _DEBUG
-        if (SM_CONTENT_S(J)->NNZ < static_cast<int>(a1->size())) {
+        if (SM_CONTENT_S(j)->NNZ < static_cast<int>(a1->size())) {
             a1->compact();
-            if (SM_CONTENT_S(J)->NNZ < static_cast<int>(a1->size())) {
+            if (SM_CONTENT_S(j)->NNZ < static_cast<int>(a1->size())) {
                 jacobianAnalysis(*a1, sd->m_gds, sd->mode, 5);
             }
         }
 #endif
-        matrixDataToSUNMatrix(*a1, J, sd->svsize);
+        matrixDataToSUNMatrix(*a1, j, sd->svsize);
         sd->nnz = a1->size();
         if (sd->flags[fileCapture_flag]) {
             if (!sd->jacFile.empty()) {
@@ -433,13 +433,13 @@ int sundialsJac(sunrealtype time,
         }
     } else {
         // if it isn't the first we can use the SUNDIALS arraySparse object
-        auto a1 = makeSundialsMatrixData(J);
+        auto a1 = makeSundialsMatrixData(j);
         if (sd->flags[useMask_flag]) {
             matrixDataFilter<double> filterAd(*a1);
             filterAd.addFilter(sd->maskElements);
             sd->m_gds->jacobianFunction(time,
                                         nvecdata(sd->use_omp, state),
-                                        nvecdata(sd->use_omp, dstate_dt),
+                                        nvecdata(sd->use_omp, dstateDt),
                                         filterAd,
                                         cj,
                                         sd->mode);
@@ -449,7 +449,7 @@ int sundialsJac(sunrealtype time,
         } else {
             sd->m_gds->jacobianFunction(time,
                                         nvecdata(sd->use_omp, state),
-                                        nvecdata(sd->use_omp, dstate_dt),
+                                        nvecdata(sd->use_omp, dstateDt),
                                         *a1,
                                         cj,
                                         sd->mode);

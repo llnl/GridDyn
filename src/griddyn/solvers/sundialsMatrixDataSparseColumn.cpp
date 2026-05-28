@@ -50,14 +50,14 @@ count_t SundialsMatrixDataSparseColumn::capacity() const
 {
     return static_cast<count_t>(SM_NNZ_S(J));
 }
-matrixElement<double> SundialsMatrixDataSparseColumn::element(index_t N) const
+matrixElement<double> SundialsMatrixDataSparseColumn::element(index_t n) const
 {
-    matrixElement<double> ret;
-    ret.row = static_cast<index_t>(SM_INDEXVALS_S(J)[N]);
+    matrixElement<double> ret{};
+    ret.row = static_cast<index_t>(SM_INDEXVALS_S(J)[n]);
     auto res =
-        std::lower_bound(SM_INDEXPTRS_S(J), &(SM_INDEXPTRS_S(J)[colLimit()]), static_cast<int>(N));
+        std::lower_bound(SM_INDEXPTRS_S(J), &(SM_INDEXPTRS_S(J)[colLimit()]), static_cast<int>(n));
     ret.col = static_cast<index_t>(*res - 1);
-    ret.data = SM_DATA_S(J)[N];
+    ret.data = SM_DATA_S(J)[n];
     return ret;
 }
 

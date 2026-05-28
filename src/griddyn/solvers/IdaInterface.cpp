@@ -33,24 +33,24 @@
 #include <vector>
 
 namespace griddyn::solvers {
-int idaFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, N_Vector resid, void* user_data);
+int idaFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, N_Vector resid, void* userData);
 
 int idaJac(sunrealtype time,
            sunrealtype cj,
            N_Vector state,
-           N_Vector dstate_dt,
+           N_Vector dstateDt,
            N_Vector resid,
-           SUNMatrix J,
-           void* user_data,
+           SUNMatrix j,
+           void* userData,
            N_Vector tmp1,
            N_Vector tmp2,
            N_Vector tmp3);
 
 int idaRootFunc(sunrealtype time,
                 N_Vector state,
-                N_Vector dstate_dt,
+                N_Vector dstateDt,
                 sunrealtype* gout,
-                void* user_data);
+                void* userData);
 
 IdaInterface::IdaInterface(const std::string& objName): SundialsInterface(objName)
 {
@@ -507,13 +507,13 @@ void IdaInterface::loadMaskElements()
 }
 
 // IDA C Functions
-int idaFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, N_Vector resid, void* user_data)
+int idaFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, N_Vector resid, void* userData)
 {
-    auto sd = reinterpret_cast<IdaInterface*>(user_data);
+    auto sd = reinterpret_cast<IdaInterface*>(userData);
     // printf("time=%f\n", time);
     int ret = sd->m_gds->residualFunction(time,
                                           NVECTOR_DATA(sd->use_omp, state),
-                                          NVECTOR_DATA(sd->use_omp, dstate_dt),
+                                          NVECTOR_DATA(sd->use_omp, dstateDt),
                                           NVECTOR_DATA(sd->use_omp, resid),
                                           sd->mode);
     if (sd->flags[useMask_flag]) {
@@ -538,7 +538,7 @@ int idaFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, N_Vector resid
                         sd->funcCallCount,
                         sd->mode.offsetIndex,
                         sd->svsize,
-                        NVECTOR_DATA(sd->use_omp, dstate_dt),
+                        NVECTOR_DATA(sd->use_omp, dstateDt),
                         sd->stateFile);
             writeVector(sd->solveTime,
                         RESIDUAL_INFORMATION,
@@ -555,14 +555,14 @@ int idaFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, N_Vector resid
 
 int idaRootFunc(sunrealtype time,
                 N_Vector state,
-                N_Vector dstate_dt,
+                N_Vector dstateDt,
                 sunrealtype* gout,
-                void* user_data)
+                void* userData)
 {
-    auto sd = reinterpret_cast<IdaInterface*>(user_data);
+    auto sd = reinterpret_cast<IdaInterface*>(userData);
     sd->m_gds->rootFindingFunction(time,
                                    NVECTOR_DATA(sd->use_omp, state),
-                                   NVECTOR_DATA(sd->use_omp, dstate_dt),
+                                   NVECTOR_DATA(sd->use_omp, dstateDt),
                                    gout,
                                    sd->mode);
 
@@ -572,15 +572,15 @@ int idaRootFunc(sunrealtype time,
 int idaJac(sunrealtype time,
            sunrealtype cj,
            N_Vector state,
-           N_Vector dstate_dt,
+           N_Vector dstateDt,
            N_Vector /*resid*/,
-           SUNMatrix J,
-           void* user_data,
+           SUNMatrix j,
+           void* userData,
            N_Vector tmp1,
            N_Vector tmp2,
            N_Vector /*tmp3*/)
 {
-    return sundialsJac(time, cj, state, dstate_dt, J, user_data, tmp1, tmp2);
+    return sundialsJac(time, cj, state, dstateDt, j, userData, tmp1, tmp2);
 }
 
 }  // namespace griddyn::solvers

@@ -42,11 +42,11 @@ class KinsolInterface: public SundialsInterface {
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void set(std::string_view param, double val) override;
     // wrapper functions used by kinsol and ida to call the internal functions
-    friend int kinsolFunc(N_Vector state, N_Vector resid, void* user_data);
+    friend int kinsolFunc(N_Vector state, N_Vector resid, void* userData);
     friend int kinsolJac(N_Vector state,
                          N_Vector resid,
                          SUNMatrix J,
-                         void* user_data,
+                         void* userData,
                          N_Vector tmp1,
                          N_Vector tmp2);
 

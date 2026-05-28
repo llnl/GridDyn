@@ -57,18 +57,18 @@ class CvodeInterface: public SundialsInterface {
     virtual double get(std::string_view param) const override;
 
     // declare friend some helper functions
-    friend int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstate_dt, void* user_data);
+    friend int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userData);
 
     friend int cvodeJac(sunrealtype time,
                         N_Vector state,
-                        N_Vector dstate_dt,
+                        N_Vector dstateDt,
                         SUNMatrix J,
-                        void* user_data,
+                        void* userData,
                         N_Vector tmp1,
                         N_Vector tmp2,
                         N_Vector tmp3);
 
-    friend int cvodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* user_data);
+    friend int cvodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* userData);
 
   protected:
     void loadMaskElements();

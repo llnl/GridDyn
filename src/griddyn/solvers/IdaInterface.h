@@ -58,26 +58,26 @@ class IdaInterface: public SundialsInterface {
     // declare friend some helper functions
     friend int idaFunc(sunrealtype time,
                        N_Vector state,
-                       N_Vector dstate_dt,
+                       N_Vector dstateDt,
                        N_Vector resid,
-                       void* user_data);
+                       void* userData);
 
     friend int idaJac(sunrealtype time,
                       sunrealtype cj,
                       N_Vector state,
-                      N_Vector dstate_dt,
+                      N_Vector dstateDt,
                       N_Vector resid,
                       SUNMatrix J,
-                      void* user_data,
+                      void* userData,
                       N_Vector tmp1,
                       N_Vector tmp2,
                       N_Vector tmp3);
 
     friend int idaRootFunc(sunrealtype time,
                            N_Vector state,
-                           N_Vector dstate_dt,
+                           N_Vector dstateDt,
                            sunrealtype* gout,
-                           void* user_data);
+                           void* userData);
 
   protected:
     void loadMaskElements();

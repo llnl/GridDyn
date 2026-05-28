@@ -50,8 +50,8 @@ void sundialsErrorHandlerFunc(int line,
                               const char* function,
                               const char* file,
                               const char* msg,
-                              SUNErrCode error_code,
-                              void* user_data,
+                              SUNErrCode errorCode,
+                              void* userData,
                               SUNContext sunctx);
 
 #ifdef GRIDDYN_ENABLE_KLU
@@ -119,9 +119,9 @@ class SundialsInterface: public SolverInterface {
     friend int sundialsJac(sunrealtype time,
                            sunrealtype cj,
                            N_Vector state,
-                           N_Vector dstate_dt,
+                           N_Vector dstateDt,
                            SUNMatrix J,
-                           void* user_data,
+                           void* userData,
                            N_Vector tmp1,
                            N_Vector tmp2);
 
@@ -133,9 +133,9 @@ class SundialsInterface: public SolverInterface {
 int sundialsJac(sunrealtype time,
                 sunrealtype cj,
                 N_Vector state,
-                N_Vector dstate_dt,
+                N_Vector dstateDt,
                 SUNMatrix J,
-                void* user_data,
+                void* userData,
                 N_Vector tmp1,
                 N_Vector tmp2);
 

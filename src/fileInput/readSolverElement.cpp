@@ -25,7 +25,7 @@ namespace {
 }  // namespace
 
 void loadSolverElement(std::shared_ptr<ReaderElement>& element,
-                       ReaderInfo& ReaderInformation,
+                       ReaderInfo& readerInformation,
                        GridDynSimulation* parentObject)
 {
     std::shared_ptr<SolverInterface> solverDefinition;
@@ -90,8 +90,8 @@ void loadSolverElement(std::shared_ptr<ReaderElement>& element,
     }
 
     setAttributes(
-        solverDefinition.get(), element, "solver", ReaderInformation, solverIgnoreFields());
-    setParams(solverDefinition.get(), element, "solver", ReaderInformation, solverIgnoreFields());
+        solverDefinition.get(), element, "solver", readerInformation, solverIgnoreFields());
+    setParams(solverDefinition.get(), element, "solver", readerInformation, solverIgnoreFields());
     // add the solver
     parentObject->add(solverDefinition);
 }

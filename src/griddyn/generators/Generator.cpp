@@ -37,14 +37,14 @@ governor --- Pm(t0) = Pset is stored externally as well
 
 namespace griddyn {
 static TypeFactory<Generator>
-    generatorFactory("generator", std::to_array<std::string_view>({"basic", "simple", "pflow"}));
+    gGeneratorFactory("generator", std::to_array<std::string_view>({"basic", "simple", "pflow"}));
 static ChildTypeFactory<DynamicGenerator, Generator>
-    dynamicGeneratorFactory("generator",
-                            std::to_array<std::string_view>({"dynamic", "spinning"}),
-                            "dynamic");
+    gDynamicGeneratorFactory("generator",
+                             std::to_array<std::string_view>({"dynamic", "spinning"}),
+                             "dynamic");
 static ChildTypeFactory<variableGenerator, Generator>
-    variableGeneratorFactory("generator",
-                             std::to_array<std::string_view>({"variable", "renewable"}));
+    gVariableGeneratorFactory("generator",
+                              std::to_array<std::string_view>({"variable", "renewable"}));
 
 using units::convert;
 using units::MVAR;
@@ -70,7 +70,7 @@ Generator::~Generator() = default;
 
 CoreObject* Generator::clone(CoreObject* obj) const
 {
-    auto* gen = cloneBaseFactory<Generator, gridSecondary>(this, obj, &generatorFactory);
+    auto* gen = cloneBaseFactory<Generator, gridSecondary>(this, obj, &gGeneratorFactory);
     if (gen == nullptr) {
         return obj;
     }
@@ -146,7 +146,7 @@ void Generator::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     gridSecondary::dynObjectInitializeA(time0, flags);
 }
 
-stateSizes Generator::LocalStateSizes(const solverMode& sMode) const
+stateSizes Generator::localStateSizes(const solverMode& sMode) const
 {
     stateSizes localStates;
     if (!isEnabled()) {
@@ -160,7 +160,7 @@ stateSizes Generator::LocalStateSizes(const solverMode& sMode) const
     return localStates;
 }
 
-count_t Generator::LocalJacobianCount(const solverMode& sMode) const
+count_t Generator::localJacobianCount(const solverMode& sMode) const
 {
     if (!isEnabled()) {
         return 0;
@@ -517,15 +517,15 @@ void Generator::set(std::string_view param, double val, unit unitType)
     }
 }
 
-void Generator::setCapabilityCurve(const std::vector<double>& Ppts,
-                                   const std::vector<double>& Qminpts,
-                                   const std::vector<double>& Qmaxpts)
+void Generator::setCapabilityCurve(const std::vector<double>& ppts,
+                                   const std::vector<double>& qminpts,
+                                   const std::vector<double>& qmaxpts)
 {
-    if ((Ppts.size() == Qminpts.size()) && (Ppts.size() == Qmaxpts.size())) {
+    if ((ppts.size() == qminpts.size()) && (ppts.size() == qmaxpts.size())) {
         if (!bounds) {
             bounds = std::make_unique<utilities::OperatingBoundary>(Pmin, Pmax, Qmin, Qmax);
         }
-        bounds->addPoints(Ppts, Qminpts, Qmaxpts);
+        bounds->addPoints(ppts, qminpts, qmaxpts);
         opFlags.set(use_capability_curve);
     }
 }
@@ -701,12 +701,12 @@ void Generator::jacobianElements(const IOdata& /*inputs*/,
 {
     if ((!isDynamic(sMode)) &&
         (opFlags[indirect_voltage_control])) {  // the bus is managing a remote bus voltage
-        auto Voff = remoteBus->getOutputLoc(sMode, voltageInLocation);
+        auto voltageOffset = remoteBus->getOutputLoc(sMode, voltageInLocation);
         auto offset = offsets.getAlgOffset(sMode);
         if (!opFlags[at_limit]) {
             // resid[offset] = sD.state[offset] - (voltage - m_Vtarget)*remoteVRegFraction * 10000;
             matrixDataValue.assignCheck(offset, offset, 1);
-            matrixDataValue.assignCheck(offset, Voff, -vRegFraction * 10000);
+            matrixDataValue.assignCheck(offset, voltageOffset, -vRegFraction * 10000);
         } else {
             matrixDataValue.assignCheck(offset, offset, 1.0);
         }
@@ -766,8 +766,8 @@ IOdata Generator::predictOutputs(coreTime predictionTime,
 
     if (predictionTime > prevTime + timeOneSecond) {
         if (sched != nullptr) {
-            const double Ppred = sched->predict(predictionTime);
-            out[PoutLocation] = Ppred;
+            const double predictedPower = sched->predict(predictionTime);
+            out[PoutLocation] = predictedPower;
         }
     }
     return out;
@@ -781,10 +781,10 @@ double Generator::getPmax(const coreTime time) const
     return Pmax;
 }
 
-double Generator::getQmax(const coreTime /*time*/, double Ptest) const
+double Generator::getQmax(const coreTime /*time*/, double ptest) const
 {
     if (opFlags[use_capability_curve]) {
-        return bounds->getMax((Ptest == kNullVal) ? P : Ptest);
+        return bounds->getMax((ptest == kNullVal) ? P : ptest);
     }
     return Qmax;
 }
@@ -796,10 +796,10 @@ double Generator::getPmin(const coreTime time) const
     }
     return Pmin;
 }
-double Generator::getQmin(const coreTime /*time*/, double Ptest) const
+double Generator::getQmin(const coreTime /*time*/, double ptest) const
 {
     if (opFlags[use_capability_curve]) {
-        return bounds->getMin((Ptest == kNullVal) ? P : Ptest);
+        return bounds->getMin((ptest == kNullVal) ? P : ptest);
     }
     return Qmin;
 }

@@ -100,7 +100,7 @@ void gridSecondary::dynInitializeB(const IOdata& inputs,
         dynObjectInitializeB(inputs, desiredOutput, fieldSet);
         if (updatePeriod < maxTime) {
             setUpdateTime(prevTime + updatePeriod);
-            enable_updates();
+            enableUpdates();
             alert(this, UPDATE_REQUIRED);
         }
         opFlags.set(dyn_initialized);

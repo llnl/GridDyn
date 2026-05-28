@@ -26,7 +26,7 @@ TEST_F(HvdcTests, HvdcTest1)
     gds->pFlowInitialize();
     requireState(GridDynSimulation::GridState::INITIALIZED);
 
-    int mmatch = JacobianCheck(gds, cPflowSolverMode);
+    int mmatch = jacobianCheck(gds, cPflowSolverMode);
     if (mmatch > 0) {
         printStateNames(gds, cPflowSolverMode);
     }
@@ -43,7 +43,7 @@ TEST_F(HvdcTests, HvdcTest1)
     }
     ASSERT_EQ(mmatch, 0);
 
-    mmatch = JacobianCheck(gds, cDaeSolverMode);
+    mmatch = jacobianCheck(gds, cDaeSolverMode);
     if (mmatch > 0) {
         printStateNames(gds, cDaeSolverMode);
     }
@@ -66,7 +66,7 @@ TEST_F(HvdcTests, HvdcTest2)
     }
     ASSERT_EQ(mmatch, 0);
 
-    mmatch = JacobianCheck(gds, cDaeSolverMode);
+    mmatch = jacobianCheck(gds, cDaeSolverMode);
     if (mmatch > 0) {
         printStateNames(gds, cDaeSolverMode);
     }
@@ -93,7 +93,7 @@ TEST_F(HvdcTests, HvdcTest3)
     }
     ASSERT_EQ(mmatch, 0);
 
-    mmatch = JacobianCheck(gds, cDaeSolverMode);
+    mmatch = jacobianCheck(gds, cDaeSolverMode);
     if (mmatch > 0) {
         printStateNames(gds, cDaeSolverMode);
     }

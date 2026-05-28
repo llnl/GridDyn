@@ -52,7 +52,7 @@ _braid_App_struct::_braid_App_struct(ODEProblem* ode_):
 {
 }
 
-void _braid_App_struct::SetAllToDataStruct(braid_Vector u)
+void _braid_App_struct::setAllToDataStruct(braid_Vector u)
 {
     PVector x0_u;
     u->xprev.GetPVector(0, x0_u);
@@ -65,7 +65,7 @@ void _braid_App_struct::SetAllToDataStruct(braid_Vector u)
     alloc_data.sprev.CopyData(u->state);
 }
 
-void _braid_App_struct::SetLastToDataStruct(braid_Vector u)
+void _braid_App_struct::setLastToDataStruct(braid_Vector u)
 {
     int ns = u->tprev.GetSSize();
     PVector xl_u, x0_d;
@@ -81,7 +81,7 @@ void _braid_App_struct::SetLastToDataStruct(braid_Vector u)
     alloc_data.sprev.CopyData(u->state);
 }
 
-void _braid_App_struct::SetAllFromDataStruct(braid_Vector u)
+void _braid_App_struct::setAllFromDataStruct(braid_Vector u)
 {
     u->tprev.CopyData(alloc_data.tprev);
     u->xprev.CopyData(alloc_data.xprev);
@@ -89,7 +89,7 @@ void _braid_App_struct::SetAllFromDataStruct(braid_Vector u)
     u->state.CopyData(alloc_data.sprev);
 }
 
-void _braid_App_struct::SetLastFromDataStruct(braid_Vector u)
+void _braid_App_struct::setLastFromDataStruct(braid_Vector u)
 {
     int ns = u->tprev.GetSSize();
     PVector xl_u, x0_d;
@@ -102,7 +102,7 @@ void _braid_App_struct::SetLastFromDataStruct(braid_Vector u)
     u->state.CopyData(alloc_data.sprev);
 }
 
-void _braid_App_struct::DumpDataStruct()
+void _braid_App_struct::dumpDataStruct()
 {
     cout << "# t       = " << alloc_data.t << endl;
     cout << "# used_dt = " << alloc_data.used_dt << endl;
@@ -116,12 +116,12 @@ void _braid_App_struct::DumpDataStruct()
 
 namespace griddyn::braid {
 
-void my_Step_OnOnePoint(braid_App app,
-                        braid_Vector ustop,
-                        braid_Vector fstop,
-                        braid_Vector u,
-                        braid_StepStatus status,
-                        int level)
+void braidStepOnOnePoint(braid_App app,
+                         braid_Vector ustop,
+                         braid_Vector fstop,
+                         braid_Vector u,
+                         braid_StepStatus status,
+                         int level)
 {
     Real tstart; /* current time */
     Real tstop; /* evolve to this time*/
@@ -153,7 +153,7 @@ void my_Step_OnOnePoint(braid_App app,
     }
 
     /* Set the data structure */
-    app->SetLastToDataStruct(u);
+    app->setLastToDataStruct(u);
 
     /* Do the integration */
     Real t;
@@ -191,7 +191,7 @@ void my_Step_OnOnePoint(braid_App app,
     }
 
     /* Save new values in u */
-    app->SetLastFromDataStruct(u);
+    app->setLastFromDataStruct(u);
 
     /* Reset the BDF order if it was modified */
     if (bdf->GetOrder() != ns) bdf->SetOrder(ns);
@@ -203,12 +203,12 @@ void my_Step_OnOnePoint(braid_App app,
     }
 }
 
-void my_Step_OnAllPoints(braid_App app,
-                         braid_Vector ustop,
-                         braid_Vector fstop,
-                         braid_Vector u,
-                         braid_StepStatus status,
-                         int level)
+void braidStepOnAllPoints(braid_App app,
+                          braid_Vector ustop,
+                          braid_Vector fstop,
+                          braid_Vector u,
+                          braid_StepStatus status,
+                          int level)
 {
     Real tstart; /* current time */
     Real tstop; /* evolve to this time*/
@@ -248,7 +248,7 @@ void my_Step_OnAllPoints(braid_App app,
     }
 
     /* Set the data structure */
-    app->SetAllToDataStruct(u);
+    app->setAllToDataStruct(u);
 
     /* Do the integration (ns == 1 for RK) */
     Real t;
@@ -312,7 +312,7 @@ void my_Step_OnAllPoints(braid_App app,
     }
 
     /* Save new values in u */
-    app->SetAllFromDataStruct(u);
+    app->setAllFromDataStruct(u);
 
     /* Reset the BDF order if it was modified */
     if (app->bdf_strat != NO_BDF && level > 0) {
@@ -326,11 +326,11 @@ void my_Step_OnAllPoints(braid_App app,
     }
 }
 
-int my_Step(braid_App app,
-            braid_Vector ustop,
-            braid_Vector fstop,
-            braid_Vector u,
-            braid_StepStatus status)
+int braidStep(braid_App app,
+              braid_Vector ustop,
+              braid_Vector fstop,
+              braid_Vector u,
+              braid_StepStatus status)
 {
 #ifdef TIMER_BRAID
     global_timer.Start("bstep", "Braid Step", "brun");
@@ -358,9 +358,9 @@ int my_Step(braid_App app,
         app->bdf_strat == USUAL_C || app->bdf_strat == INJECT || app->bdf_strat == INJECT_C ||
         app->bdf_strat == EXTRAP || app->bdf_strat == EXTRAP_C ||
         ((app->bdf_strat == UNI1 || app->bdf_strat == UNI1_C) && level == 1)) {
-        my_Step_OnAllPoints(app, ustop, fstop, u, status, level);
+        braidStepOnAllPoints(app, ustop, fstop, u, status, level);
     } else {
-        my_Step_OnOnePoint(app, ustop, fstop, u, status, level);
+        braidStepOnOnePoint(app, ustop, fstop, u, status, level);
     }
 
 #ifdef DEBUG_STEP
@@ -376,12 +376,12 @@ int my_Step(braid_App app,
     return 0;
 }
 
-int my_SpatialRefine(braid_App app,
-                     braid_Vector cu,
-                     braid_Vector* fu_ptr,
-                     braid_CoarsenRefStatus status)
+int braidSpatialRefine(braid_App app,
+                       braid_Vector cu,
+                       braid_Vector* fu_ptr,
+                       braid_CoarsenRefStatus status)
 {
-    my_Clone(app, cu, fu_ptr);
+    braidClone(app, cu, fu_ptr);
 
     int ns = app->nb_multisteps;
     if (ns == 1) return 0;
@@ -442,8 +442,8 @@ cout << " Tstopc = " << tstop_c << endl;
     if (tstart == app->ode->GetEq()->GetT0()) {
         map<Real, my_Vector>::iterator init = app->initial_vector.find(new_dt);
         if (init != app->initial_vector.end()) {
-            my_Free(app, *fu_ptr);
-            my_Clone(app, &(init->second), fu_ptr);
+            braidFree(app, *fu_ptr);
+            braidClone(app, &(init->second), fu_ptr);
         } else { /*
       cout << "###### Debug int = " << debug_int << " ######" << endl;
       cout << "Case cu=" << cu << ", and fu=" << *fu_ptr << endl;
@@ -520,12 +520,12 @@ cout << " Tstopc = " << tstop_c << endl;
     return 0;
 }
 
-int my_SpatialCoarsen(braid_App app,
-                      braid_Vector fu,
-                      braid_Vector* cu_ptr,
-                      braid_CoarsenRefStatus status)
+int braidSpatialCoarsen(braid_App app,
+                        braid_Vector fu,
+                        braid_Vector* cu_ptr,
+                        braid_CoarsenRefStatus status)
 {
-    my_Clone(app, fu, cu_ptr);
+    braidClone(app, fu, cu_ptr);
 
     int ns = app->nb_multisteps;
     if (ns == 1) return 0;
@@ -581,8 +581,8 @@ cout << " Tstopc = " << tstop_c << endl;
     if (tstart == app->ode->GetEq()->GetT0()) {
         map<Real, my_Vector>::iterator init = app->initial_vector.find(new_dt);
         if (init != app->initial_vector.end()) {
-            my_Free(app, *cu_ptr);
-            my_Clone(app, &(init->second), cu_ptr);
+            braidFree(app, *cu_ptr);
+            braidClone(app, &(init->second), cu_ptr);
         } else { /*
       cout << "###### Debug int = " << debug_int << " ######" << endl;
       cout << "Case fu=" << fu << ", and cu=" << *cu_ptr << endl;
@@ -674,7 +674,7 @@ int find_closest_idx(Real* ta, int n, Real t)
     return i;
 }
 
-int my_Init(braid_App app, Real t, braid_Vector* u_ptr)
+int braidInit(braid_App app, Real t, braid_Vector* u_ptr)
 {
 #ifdef TIMER_BRAID
     global_timer.Start("binitv", "Init Vector", "brun");
@@ -737,7 +737,7 @@ int my_Init(braid_App app, Real t, braid_Vector* u_ptr)
     return 0;
 }
 
-int my_InitShell(braid_App app, Real t, braid_Vector* u_ptr)
+int braidInitShell(braid_App app, Real t, braid_Vector* u_ptr)
 {
     my_Vector* u = new my_Vector;
 
@@ -758,7 +758,7 @@ int my_InitShell(braid_App app, Real t, braid_Vector* u_ptr)
     return 0;
 }
 
-int my_Clone(braid_App app, braid_Vector u, braid_Vector* v_ptr)
+int braidClone(braid_App app, braid_Vector u, braid_Vector* v_ptr)
 {
     my_Vector* v = new my_Vector;
 
@@ -772,7 +772,7 @@ int my_Clone(braid_App app, braid_Vector u, braid_Vector* v_ptr)
     return 0;
 }
 
-int my_CloneShell(braid_App app, braid_Vector u, braid_Vector* v_ptr)
+int braidCloneShell(braid_App app, braid_Vector u, braid_Vector* v_ptr)
 {
     my_Vector* v = new my_Vector;
 
@@ -784,33 +784,33 @@ int my_CloneShell(braid_App app, braid_Vector u, braid_Vector* v_ptr)
     return 0;
 }
 
-int my_FreeShell(braid_App app, braid_Vector u)
+int braidFreeShell(braid_App app, braid_Vector u)
 {
     u->xprev.Free();
     u->dxprev.Free();
     return 0;
 }
 
-int my_Free(braid_App app, braid_Vector u)
+int braidFree(braid_App app, braid_Vector u)
 {
     delete u;
     return 0;
 }
 
-int my_PropagateShell(braid_App app, braid_Vector x, braid_Vector y)
+int braidPropagateShell(braid_App app, braid_Vector x, braid_Vector y)
 {
     y->state = x->state;
     return 0;
 }
 
-int my_Sum(braid_App app, Real alpha, braid_Vector x, Real beta, braid_Vector y)
+int braidSum(braid_App app, Real alpha, braid_Vector x, Real beta, braid_Vector y)
 {
     y->xprev.AXPBY(alpha, beta, x->xprev);
     y->dxprev.AXPBY(alpha, beta, x->dxprev);
     return 0;
 }
 
-int my_SpatialNorm(braid_App app, braid_Vector u, Real* norm_ptr)
+int braidSpatialNorm(braid_App app, braid_Vector u, Real* norm_ptr)
 {
     Real sqdot = 0;
     Real v;
@@ -828,7 +828,7 @@ int my_SpatialNorm(braid_App app, braid_Vector u, Real* norm_ptr)
     return 0;
 }
 
-int my_Access(braid_App app, braid_Vector u, braid_AccessStatus astatus)
+int braidAccess(braid_App app, braid_Vector u, braid_AccessStatus astatus)
 {
     int done;
     braid_AccessStatusGetDone(astatus, &done);
@@ -838,7 +838,7 @@ int my_Access(braid_App app, braid_Vector u, braid_AccessStatus astatus)
 
         if (t == app->ode->GetEq()->GetTmax()) {
             // fprintf(stderr, "\n\n  Braid: Saving final solution\n\n");
-            my_Clone(app, u, &(app->solution_tfinal));
+            braidClone(app, u, &(app->solution_tfinal));
         }
 
         if (app->ode->PrintSolution()) {
@@ -895,14 +895,14 @@ int my_Access(braid_App app, braid_Vector u, braid_AccessStatus astatus)
     return 0;
 }
 
-int my_BufSize(braid_App app, int* size_ptr, braid_BufferStatus bstatus)
+int braidBufSize(braid_App app, int* size_ptr, braid_BufferStatus bstatus)
 {
     *size_ptr = sizeof(Real) * ((app->nb_multisteps + 1) * (app->size_x + 1) + app->size_state);
     braid_BufferStatusSetSize(bstatus, *size_ptr);
     return 0;
 }
 
-int my_BufPack(braid_App app, braid_Vector u, void* buffer, braid_BufferStatus bstatus)
+int braidBufPack(braid_App app, braid_Vector u, void* buffer, braid_BufferStatus bstatus)
 {
     Real* dbuffer = (Real*)buffer;
     int it = 0;
@@ -925,7 +925,7 @@ int my_BufPack(braid_App app, braid_Vector u, void* buffer, braid_BufferStatus b
     return 0;
 }
 
-int my_BufUnpack(braid_App app, void* buffer, braid_Vector* u_ptr, braid_BufferStatus bstatus)
+int braidBufUnpack(braid_App app, void* buffer, braid_Vector* u_ptr, braid_BufferStatus bstatus)
 {
     Real* dbuffer = (Real*)buffer;
     my_Vector* u = new my_Vector;
@@ -956,10 +956,10 @@ int my_BufUnpack(braid_App app, void* buffer, braid_Vector* u_ptr, braid_BufferS
     return 0;
 }
 
-int my_TimeGrid(braid_App app, /**< user-defined _braid_App structure */
-                braid_Real* ta, /**< temporal grid on level 0 (slice per processor) */
-                braid_Int* ilower, /**< lower time index value for this processor */
-                braid_Int* iupper) /**< upper time index value for this processor */
+int braidTimeGrid(braid_App app, /**< user-defined _braid_App structure */
+                  braid_Real* ta, /**< temporal grid on level 0 (slice per processor) */
+                  braid_Int* ilower, /**< lower time index value for this processor */
+                  braid_Int* iupper) /**< upper time index value for this processor */
 {
     memcpy(ta, &(app->braid_grid_initial[*ilower]), (*iupper - *ilower + 1) * sizeof(Real));
 

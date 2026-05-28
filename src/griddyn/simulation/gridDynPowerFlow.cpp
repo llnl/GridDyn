@@ -64,7 +64,7 @@ int GridDynSimulation::powerflow()
             voltage_iteration_count = 0;
             ChangeCode AdjustmentChanges = ChangeCode::NO_CHANGE;
             do {
-                guessState(currentTime, pFlowData->state_data(), nullptr, solverModeRef);
+                guessState(currentTime, pFlowData->stateData(), nullptr, solverModeRef);
                 if ((controlFlags[save_power_flow_input_data] &&
                      !controlFlags[power_flow_input_saved])) {
                     savePowerFlow(this, powerFlowInputFile);
@@ -119,8 +119,8 @@ int GridDynSimulation::powerflow()
                     continue;
                 }
                 if (pfer.attempts() > 0) {
-                    if (!std::all_of(pFlowData->state_data(),
-                                     pFlowData->state_data() + pFlowData->size(),
+                    if (!std::all_of(pFlowData->stateData(),
+                                     pFlowData->stateData() + pFlowData->size(),
                                      [](double stateValue) { return std::isfinite(stateValue); })) {
                         logging::warning(this, "solver returned an infinite or nan");
                         retval = -30;
@@ -128,7 +128,7 @@ int GridDynSimulation::powerflow()
                 }
                 currentTime = returnTime;
                 // pass the solution to the bus objects
-                setState(currentTime, pFlowData->state_data(), nullptr, solverModeRef);
+                setState(currentTime, pFlowData->stateData(), nullptr, solverModeRef);
                 // tell the components to calculate some parameters and power flows
                 updateLocalCache();
 
@@ -276,7 +276,7 @@ void GridDynSimulation::reInitpFlow(const solverMode& sMode, ChangeCode change)
         setErrorCode(-101);
         throw;
     }
-    catch (const solverException& se) {
+    catch (const SolverException& se) {
         logging::error(this, "Initialization error");
         pState = GridState::GD_ERROR;
         setErrorCode(se.code());
@@ -525,7 +525,7 @@ int GridDynSimulation::algUpdateFunction(coreTime time,
 #endif
 
     if ((!(isDAE(sMode))) && (isDynamic(sMode))) {
-        stateDataValue.fullState = solverInterfaces[defDAEMode->offsetIndex]->state_data();
+        stateDataValue.fullState = solverInterfaces[defDAEMode->offsetIndex]->stateData();
     }
     // call the area based function to handle the looping
     preEx(noInputs, stateDataValue, sMode);

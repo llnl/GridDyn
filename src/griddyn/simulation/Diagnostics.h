@@ -35,7 +35,7 @@ used throughout the test suite
 on the Jacobian check
 @return the number of mismatches
 */
-int JacobianCheck(GridDynSimulation* gds,
+int jacobianCheck(GridDynSimulation* gds,
                   const solverMode& queryMode,
                   double jacTol = jac_check_tol,
                   bool useStateNames = false);

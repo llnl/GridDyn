@@ -283,7 +283,7 @@ TEST_F(FmiTests, FmiXml1)
     int retval = gds->pFlowInitialize();
     EXPECT_EQ(retval, 0);
 
-    int mmatch = JacobianCheck(gds, cPflowSolverMode);
+    int mmatch = jacobianCheck(gds, cPflowSolverMode);
     if (mmatch > 0) {
         printStateNames(gds, cPflowSolverMode);
     }
@@ -300,7 +300,7 @@ TEST_F(FmiTests, FmiXml1)
         printStateNames(gds, cDaeSolverMode);
     }
     ASSERT_EQ(mmatch, 0);
-    mmatch = JacobianCheck(gds, cDaeSolverMode);
+    mmatch = jacobianCheck(gds, cDaeSolverMode);
     if (mmatch > 0) {
         printStateNames(gds, cDaeSolverMode);
     }
@@ -320,7 +320,7 @@ TEST_F(FmiTests, FmiXml2)
     int retval = gds->pFlowInitialize();
     EXPECT_EQ(retval, 0);
 
-    int mmatch = JacobianCheck(gds, cPflowSolverMode);
+    int mmatch = jacobianCheck(gds, cPflowSolverMode);
     if (mmatch > 0) {
         printStateNames(gds, cPflowSolverMode);
     }
@@ -337,7 +337,7 @@ TEST_F(FmiTests, FmiXml2)
         printStateNames(gds, cDaeSolverMode);
     }
     ASSERT_EQ(mmatch, 0);
-    mmatch = JacobianCheck(gds, cDaeSolverMode);
+    mmatch = jacobianCheck(gds, cDaeSolverMode);
     if (mmatch > 0) {
         printStateNames(gds, cDaeSolverMode);
     }
@@ -357,7 +357,7 @@ TEST_F(FmiTests, FmiXml3)
     int retval = gds->pFlowInitialize();
     EXPECT_EQ(retval, 0);
 
-    int mmatch = JacobianCheck(gds, cPflowSolverMode);
+    int mmatch = jacobianCheck(gds, cPflowSolverMode);
     if (mmatch > 0) {
         printStateNames(gds, cPflowSolverMode);
     }
@@ -374,7 +374,7 @@ TEST_F(FmiTests, FmiXml3)
         printStateNames(gds, cDaeSolverMode);
     }
     ASSERT_EQ(mmatch, 0);
-    mmatch = JacobianCheck(gds, cDaeSolverMode);
+    mmatch = jacobianCheck(gds, cDaeSolverMode);
     if (mmatch > 0) {
         printStateNames(gds, cDaeSolverMode);
     }
@@ -396,7 +396,7 @@ TEST_F(FmiTests, FmiArray)
 
     int cnt = gds->getInt("totalbuscount");
     if (cnt < 200) {
-        int mmatch = JacobianCheck(gds, cPflowSolverMode);
+        int mmatch = jacobianCheck(gds, cPflowSolverMode);
         if (mmatch > 0) {
             printStateNames(gds, cPflowSolverMode);
         }

@@ -38,20 +38,20 @@ int FmiRunner::Reset()
 {
     m_gds = std::make_shared<GridDynSimulation>(identifier);
 
-    mCoordinator = make_owningPtr<FmiCoordinator>();
+    mCoordinator = makeOwningPtr<FmiCoordinator>();
     // store the coordinator as a support object so everything can find it
     m_gds->add(mCoordinator.get());
 
-    ReaderInfo ReaderInformation;
-    loadFmiExportReaderInfoDefinitions(ReaderInformation);
+    ReaderInfo readerInformation;
+    loadFmiExportReaderInfoDefinitions(readerInformation);
 
-    ReaderInformation.addDirectory(mResourceLocation);
+    readerInformation.addDirectory(mResourceLocation);
 
     std::filesystem::path mainFilePath = mResourceLocation;
     mainFilePath /= "simulation.xml";
 
     if (std::filesystem::exists(mainFilePath)) {
-        loadFile(m_gds.get(), mainFilePath.string(), &ReaderInformation, "xml");
+        loadFile(m_gds.get(), mainFilePath.string(), &readerInformation, "xml");
     } else {
         throw(std::invalid_argument("unable to locate main file"));
     }

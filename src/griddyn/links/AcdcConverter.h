@@ -121,11 +121,11 @@ namespace links {
                               const solverMode& sMode) override;
         virtual void setState(coreTime time,
                               const double state[],
-                              const double dstate_dt[],
+                              const double dstateDt[],
                               const solverMode& sMode) override;
         virtual void guessState(coreTime time,
                                 double state[],
-                                double dstate_dt[],
+                                double dstateDt[],
                                 const solverMode& sMode) override;
         // for computing all the Jacobian elements at once
         virtual int fixRealPower(double power,

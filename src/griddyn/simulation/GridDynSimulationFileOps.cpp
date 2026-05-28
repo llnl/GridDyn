@@ -712,7 +712,7 @@ void saveStateBinary(GridDynSimulation* gds,
     if (!solverInterface) {
         return;
     }
-    auto* stateData = solverInterface->state_data();
+    auto* stateData = solverInterface->stateData();
     auto dataSize = solverInterface->size();
 
     auto index = gds->getInt("residcount");
@@ -732,7 +732,7 @@ void saveStateBinary(GridDynSimulation* gds,
                         DERIVATIVE_INFORMATION,
                         currentMode.offsetIndex,
                         dataSize,
-                        solverInterface->deriv_data(),
+                        solverInterface->derivData(),
                         stateFile);
         }
     } else {
@@ -750,7 +750,7 @@ void saveStateBinary(GridDynSimulation* gds,
                         DERIVATIVE_INFORMATION,
                         currentMode.offsetIndex,
                         dataSize,
-                        solverInterface->deriv_data(),
+                        solverInterface->derivData(),
                         fileName);
         }
     }
@@ -877,9 +877,9 @@ void loadStateBinary(GridDynSimulation* gds, const std::string& fileName, const 
     // might be used for automatic solverMode location  instead of what is done currently.
     unsigned int outputIndex;
     bFile.read(reinterpret_cast<char*>(&outputIndex), sizeof(int));
-    bFile.read(reinterpret_cast<char*>(solverInterface->state_data()), sizeof(double) * dsize);
+    bFile.read(reinterpret_cast<char*>(solverInterface->stateData()), sizeof(double) * dsize);
     if (isDynamic(sMode)) {
-        bFile.read(reinterpret_cast<char*>(solverInterface->deriv_data()), sizeof(double) * dsize);
+        bFile.read(reinterpret_cast<char*>(solverInterface->derivData()), sizeof(double) * dsize);
     }
 }
 
@@ -960,8 +960,8 @@ void captureJacState(GridDynSimulation* gds, const std::string& fileName, const 
     auto solverInterface = gds->getSolverInterface(currentMode);
     matrixDataSparse<double> matrixData;
     stateData stateDescription(gds->getSimulationTime(),
-                               solverInterface->state_data(),
-                               solverInterface->deriv_data());
+                               solverInterface->stateData(),
+                               solverInterface->derivData());
 
     stateDescription.cj = 10000;
 
@@ -980,7 +980,7 @@ void captureJacState(GridDynSimulation* gds, const std::string& fileName, const 
     }
 
     // write the state vector
-    bFile.write(reinterpret_cast<char*>(solverInterface->state_data()), dsize * sizeof(double));
+    bFile.write(reinterpret_cast<char*>(solverInterface->stateData()), dsize * sizeof(double));
     // writing the Jacobian Matrix
     dsize = matrixData.size();
     bFile.write(reinterpret_cast<char*>(&dsize), sizeof(count_t));
@@ -1009,8 +1009,8 @@ void saveJacobian(GridDynSimulation* gds, const std::string& fileName, const sol
     matrixDataSparse<double> matrixData;
 
     stateData stateDescription(gds->getSimulationTime(),
-                               SolverInterface->state_data(),
-                               SolverInterface->deriv_data());
+                               SolverInterface->stateData(),
+                               SolverInterface->derivData());
 
     stateDescription.cj = 10000;
     gds->jacobianElements(noInputs, stateDescription, matrixData, noInputLocs, currentMode);

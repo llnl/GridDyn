@@ -19,7 +19,7 @@
 namespace griddyn::sources {
 commSource::commSource(const std::string& objName): rampSource(objName)
 {
-    enable_updates();
+    enableUpdates();
 }
 CoreObject* commSource::clone(CoreObject* obj) const
 {

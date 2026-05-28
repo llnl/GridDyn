@@ -45,14 +45,14 @@ void loadFmiExportObjects()
     registerFmiExportFactories();
 }
 
-void loadFmiExportReaderInfoDefinitions(ReaderInfo& ReaderInformation)
+void loadFmiExportReaderInfoDefinitions(ReaderInfo& readerInformation)
 {
     registerFmiExportFactories();
-    ReaderInformation.addTranslate("fmi", "extra");
-    ReaderInformation.addTranslate("fmicoord", "extra");
-    ReaderInformation.addTranslate("fmiparam", "event");
-    ReaderInformation.addTranslate("fmiinput", "event");
-    ReaderInformation.addTranslate("fmioutput", "collector");
+    readerInformation.addTranslate("fmi", "extra");
+    readerInformation.addTranslate("fmicoord", "extra");
+    readerInformation.addTranslate("fmiparam", "event");
+    readerInformation.addTranslate("fmiinput", "event");
+    readerInformation.addTranslate("fmioutput", "collector");
 }
 
 }  // namespace griddyn

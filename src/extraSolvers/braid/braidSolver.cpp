@@ -61,7 +61,7 @@ using std::string;
 // Functions taken from Matt's paradae/src/programs/rk_braid.cxx
 //-------------------------------------------------------------------
 
-void BuildGrid(ODEProblem* ode, const MapParam& param, int& Nsteps, Real*& timegrid)
+void buildGrid(ODEProblem* ode, const MapParam& param, int& Nsteps, Real*& timegrid)
 {
     string gridfile = param.GetStrParam("gridfile", "");
     if (gridfile.empty()) {
@@ -153,27 +153,27 @@ void braidSolver::cloneTo(SolverInterface* si, bool fullCopy) const
     bos->deltaT = deltaT;
 }
 
-double* braidSolver::state_data() noexcept
+double* braidSolver::stateData() noexcept
 {
     return state.data();
 }
-double* braidSolver::deriv_data() noexcept
+double* braidSolver::derivData() noexcept
 {
     return deriv.data();
 }
-double* braidSolver::type_data() noexcept
+double* braidSolver::typeData() noexcept
 {
     return type.data();
 }
-const double* braidSolver::state_data() const noexcept
+const double* braidSolver::stateData() const noexcept
 {
     return state.data();
 }
-const double* braidSolver::deriv_data() const noexcept
+const double* braidSolver::derivData() const noexcept
 {
     return deriv.data();
 }
-const double* braidSolver::type_data() const noexcept
+const double* braidSolver::typeData() const noexcept
 {
     return type.data();
 }
@@ -252,7 +252,7 @@ void braidSolver::set(std::string_view param, double val)
     }
 }
 
-int braidSolver::RunBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int Ngridpoints)
+int braidSolver::runBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int Ngridpoints)
 {
     TimeIntegrator* TI = ode->GetTI();
     Equation* equation = ode->GetEq();
@@ -352,22 +352,22 @@ int braidSolver::RunBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int
                Tmax,
                braid_Nsteps,
                app,
-               my_Step,
-               my_Init,
-               my_Clone,
-               my_Free,
-               my_Sum,
-               my_SpatialNorm,
-               my_Access,
-               my_BufSize,
-               my_BufPack,
-               my_BufUnpack,
+               braidStep,
+               braidInit,
+               braidClone,
+               braidFree,
+               braidSum,
+               braidSpatialNorm,
+               braidAccess,
+               braidBufSize,
+               braidBufPack,
+               braidBufUnpack,
                &core);
-    braid_SetTimeGrid(core, my_TimeGrid);
-    braid_SetSpatialRefine(core, my_SpatialRefine);
-    braid_SetSpatialCoarsen(core, my_SpatialCoarsen);
-    // braid_SetShell(core, my_InitShell, my_CloneShell, my_FreeShell, my_PropagateShell);
-    braid_SetShell(core, my_InitShell, my_CloneShell, my_FreeShell);
+    braid_SetTimeGrid(core, braidTimeGrid);
+    braid_SetSpatialRefine(core, braidSpatialRefine);
+    braid_SetSpatialCoarsen(core, braidSpatialCoarsen);
+    // braid_SetShell(core, braidInitShell, braidCloneShell, braidFreeShell, braidPropagateShell);
+    braid_SetShell(core, braidInitShell, braidCloneShell, braidFreeShell);
 
     // User-specified parameters
     int cutoff = param->GetIntParam("braid_cutoff", 100000);
@@ -433,14 +433,14 @@ int braidSolver::RunBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int
     braid_BufferStatus bstatus = (braid_BufferStatus)core;
     int bsize = -1;
     void* buffer;
-    my_BufSize(app, &bsize, bstatus);
+    braidBufSize(app, &bsize, bstatus);
     buffer = malloc(bsize);
     if (mpi_rank == mpi_size - 1) {
-        my_BufPack(app, app->solution_tfinal, buffer, bstatus);
+        braidBufPack(app, app->solution_tfinal, buffer, bstatus);
     }
     MPI_Bcast(buffer, bsize, MPI_BYTE, mpi_size - 1, comm);
     if (mpi_rank < mpi_size - 1) {
-        my_BufUnpack(app, buffer, &(app->solution_tfinal), bstatus);
+        braidBufUnpack(app, buffer, &(app->solution_tfinal), bstatus);
     }
     // Move the data from the app to GridDyn internals
     double* data = app->solution_tfinal->xprev.GetData();
@@ -478,8 +478,8 @@ int braidSolver::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
 
     double* timegrid;
     ode.GetTI()->DoBraid() = true;
-    BuildGrid(&ode, param, Nsteps, timegrid);
-    this->RunBraid(&ode, &param, timegrid, Nsteps + 1);
+    buildGrid(&ode, param, Nsteps, timegrid);
+    this->runBraid(&ode, &param, timegrid, Nsteps + 1);
     delete[] timegrid;
 
     // Begin diagnostic output on Braid run

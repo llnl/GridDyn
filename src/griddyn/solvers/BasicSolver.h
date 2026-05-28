@@ -16,7 +16,7 @@ namespace griddyn {
 namespace solvers {
     /** @brief class implementing a Gauss Seidel solver for algebraic variables in a power system
      */
-    class basicSolver: public SolverInterface {
+    class BasicSolver: public SolverInterface {
       public:
         using SolverInterface::set;
         /** define whether to use the gauss algorithm or the gauss-seidel algorithm*/
@@ -33,26 +33,26 @@ namespace solvers {
         Mode algorithm;  //!< the algorithm to use
         count_t iterations = 0;  //!< counter for the number of iterations
       public:
-        explicit basicSolver(Mode alg);
+        explicit BasicSolver(Mode alg);
         /** @brief default constructor*/
-        explicit basicSolver(const std::string& objName = "basic", Mode alg = Mode::gauss);
+        explicit BasicSolver(const std::string& objName = "basic", Mode alg = Mode::gauss);
         /** alternate constructor to feed to SolverInterface
     @param[in] gds  the GridDynSimulation to link to
     @param[in] sMode the solverMode to solve with
     */
-        basicSolver(GridDynSimulation* gds, const solverMode& sMode);
+        BasicSolver(GridDynSimulation* gds, const solverMode& sMode);
 
         virtual std::unique_ptr<SolverInterface> clone(bool fullCopy = false) const override;
 
         virtual void cloneTo(SolverInterface* si, bool fullCopy = false) const override;
 
-        double* state_data() noexcept override;
-        double* deriv_data() noexcept override;
-        double* type_data() noexcept override;
+        double* stateData() noexcept override;
+        double* derivData() noexcept override;
+        double* typeData() noexcept override;
 
-        const double* state_data() const noexcept override;
-        const double* deriv_data() const noexcept override;
-        const double* type_data() const noexcept override;
+        const double* stateData() const noexcept override;
+        const double* derivData() const noexcept override;
+        const double* typeData() const noexcept override;
         virtual void allocate(count_t stateCount, count_t numRoots = 0) override;
         virtual void initialize(coreTime t0) override;
 

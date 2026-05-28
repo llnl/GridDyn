@@ -70,9 +70,9 @@ class fuse: public Relay {
                           const solverMode& sMode,
                           ConvergeMode = ConvergeMode::high_error_only,
                           double tol = 0.01) override;
-    virtual stateSizes LocalStateSizes(const solverMode& sMode) const override;
+    virtual stateSizes localStateSizes(const solverMode& sMode) const override;
 
-    virtual count_t LocalJacobianCount(const solverMode& sMode) const override;
+    virtual count_t localJacobianCount(const solverMode& sMode) const override;
 
     virtual void getStateName(stringVec& stNames,
                               const solverMode& sMode,

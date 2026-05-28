@@ -35,7 +35,7 @@ class GridComponent: public CoreObject {
   protected:
     std::bitset<64> opFlags;  //!< operational flags these flags are designed to be normal false
                               //!< @see ::OperationFlags
-    offsetTable offsets;  //!< a table of offsets for the different solver modes
+    OffsetTable offsets;  //!< a table of offsets for the different solver modes
     count_t m_inputSize = 0;  //!< the required size of the inputs input
     count_t m_outputSize = 0;  //!< the number of outputs the subModel produces
     model_parameter systemBaseFrequency =
@@ -380,13 +380,13 @@ see GridComponent::dynInitializeA for more details
     @param sMode the solver mode to use.
     @return a stateSizes object containing the various segment sizes
     */
-    virtual stateSizes LocalStateSizes(const solverMode& sMode) const;
+    virtual stateSizes localStateSizes(const solverMode& sMode) const;
 
     /** @brief compute the local Jacobian count
     @param sMode the solver mode to use.
     @return a stateSizes object containing the various segment sizes
     */
-    virtual count_t LocalJacobianCount(const solverMode& sMode) const;
+    virtual count_t localJacobianCount(const solverMode& sMode) const;
 
     /** @brief compute the local root count
     @param sMode the solver mode to use.
@@ -820,7 +820,7 @@ see GridComponent::dynInitializeA for more details
     * @param[in] level  the level of the adjustments to perform
     */
     virtual ChangeCode powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level);
-    friend class offsetTable;
+    friend class OffsetTable;
 };
 
 /** @brief display all the state names to the screen

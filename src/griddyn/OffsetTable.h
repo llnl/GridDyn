@@ -14,7 +14,7 @@ namespace griddyn {
 /**
  * @brief Helper class encapsulating offsets for the various solution solverMode types
  **/
-class offsetTable {
+class OffsetTable {
   private:
     // std::vector<solverOffsets> offsetContainer;       //!< a vector of containers for offsets
     // corresponding to the different solver modes
@@ -24,7 +24,7 @@ class offsetTable {
   public:
     /** @brief constructor
      */
-    offsetTable() noexcept;
+    OffsetTable();
 
     /** @brief check whether an offset set has been fully loaded
      *@param[in] sMode the solverMode we are interested in
@@ -160,7 +160,7 @@ class offsetTable {
     @param[in] comp the object to use if local information is required
     @return Lp the Location pointer object to fill
     */
-    Lp getLocations(const stateData& sD,
+    Lp getLocations(const stateData& stateDataValue,
                     double dest[],
                     const solverMode& sMode,
                     const GridComponent* comp) const;
@@ -171,7 +171,9 @@ class offsetTable {
     @param[in] comp the object to use if local information is required
     @return Lp the Location pointer object to fill
     */
-    Lp getLocations(const stateData& sD, const solverMode& sMode, const GridComponent* comp) const;
+    Lp getLocations(const stateData& stateDataValue,
+                    const solverMode& sMode,
+                    const GridComponent* comp) const;
 
     /** @brief get the locations offsets for the data
     *@param[in] sMode the solverMode we are interested in
@@ -181,23 +183,23 @@ class offsetTable {
     /** @brief unload all the solverOffset objects
      *@param[in] dynamic_only only unload the dynamic solverObjects
      */
-    void unload(bool dynamic_only = false);
+    void unload(bool dynamicOnly = false);
     /** @brief unload state information for the solverOffsets
      *@param[in] dynamic_only only unload the dynamic solverObjects
      */
-    void stateUnload(bool dynamic_only = false);
+    void stateUnload(bool dynamicOnly = false);
     /** @brief unload the root information for the solverOffsets
      *@param[in] dynamic_only only unload the dynamic solverObjects
      */
-    void rootUnload(bool dynamic_only = false);
+    void rootUnload(bool dynamicOnly = false);
     /** @brief unload the Jacobian information for the solverOffsets
      *@param[in] dynamic_only only unload the dynamic solverObjects
      */
-    void JacobianUnload(bool dynamic_only = false);
+    void jacobianUnload(bool dynamicOnly = false);
     /** @brief update all solverOffsets with the local information
      *@param[in] dynamic_only only unload the dynamic solverObjects
      */
-    void localUpdateAll(bool dynamic_only = false);
+    void localUpdateAll(bool dynamicOnly = false);
     /** @brief get the size of the solverOffsets
      *@return the size
      */

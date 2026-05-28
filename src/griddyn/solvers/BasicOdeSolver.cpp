@@ -14,58 +14,58 @@
 #include <string>
 
 namespace griddyn::solvers {
-basicOdeSolver::basicOdeSolver(const std::string& objName): SolverInterface(objName)
+BasicOdeSolver::BasicOdeSolver(const std::string& objName): SolverInterface(objName)
 {
     mode.dynamic = true;
     mode.differential = true;
     mode.algebraic = false;
 }
-basicOdeSolver::basicOdeSolver(GridDynSimulation* gds, const solverMode& sMode):
+BasicOdeSolver::BasicOdeSolver(GridDynSimulation* gds, const solverMode& sMode):
     SolverInterface(gds, sMode)
 {
 }
-std::unique_ptr<SolverInterface> basicOdeSolver::clone(bool fullCopy) const
+std::unique_ptr<SolverInterface> BasicOdeSolver::clone(bool fullCopy) const
 {
-    std::unique_ptr<SolverInterface> si = std::make_unique<basicOdeSolver>();
-    basicOdeSolver::cloneTo(si.get(), fullCopy);
+    std::unique_ptr<SolverInterface> si = std::make_unique<BasicOdeSolver>();
+    BasicOdeSolver::cloneTo(si.get(), fullCopy);
     return si;
 }
 
-void basicOdeSolver::cloneTo(SolverInterface* si, bool fullCopy) const
+void BasicOdeSolver::cloneTo(SolverInterface* si, bool fullCopy) const
 {
     SolverInterface::cloneTo(si, fullCopy);
-    auto bos = dynamic_cast<basicOdeSolver*>(si);
+    auto bos = dynamic_cast<BasicOdeSolver*>(si);
     if (bos == nullptr) {
         return;
     }
     bos->deltaT = deltaT;
 }
 
-double* basicOdeSolver::state_data() noexcept
+double* BasicOdeSolver::stateData() noexcept
 {
     return state.data();
 }
-double* basicOdeSolver::deriv_data() noexcept
+double* BasicOdeSolver::derivData() noexcept
 {
     return deriv.data();
 }
-double* basicOdeSolver::type_data() noexcept
+double* BasicOdeSolver::typeData() noexcept
 {
     return type.data();
 }
-const double* basicOdeSolver::state_data() const noexcept
+const double* BasicOdeSolver::stateData() const noexcept
 {
     return state.data();
 }
-const double* basicOdeSolver::deriv_data() const noexcept
+const double* BasicOdeSolver::derivData() const noexcept
 {
     return deriv.data();
 }
-const double* basicOdeSolver::type_data() const noexcept
+const double* BasicOdeSolver::typeData() const noexcept
 {
     return type.data();
 }
-void basicOdeSolver::allocate(count_t stateCount, count_t numRoots)
+void BasicOdeSolver::allocate(count_t stateCount, count_t numRoots)
 {
     // load the vectors
     if (stateCount != svsize) {
@@ -79,7 +79,7 @@ void basicOdeSolver::allocate(count_t stateCount, count_t numRoots)
     }
 }
 
-void basicOdeSolver::initialize(coreTime t0)
+void BasicOdeSolver::initialize(coreTime t0)
 {
     if (!flags[allocated_flag]) {
         throw(InvalidSolverOperation(-2));
@@ -89,21 +89,21 @@ void basicOdeSolver::initialize(coreTime t0)
     solveTime = t0;
 }
 
-double basicOdeSolver::get(std::string_view param) const
+double BasicOdeSolver::get(std::string_view param) const
 {
     if (param == "deltat") {
         return deltaT;
     }
     return SolverInterface::get(param);
 }
-void basicOdeSolver::set(std::string_view param, std::string_view val)
+void BasicOdeSolver::set(std::string_view param, std::string_view val)
 {
     if (param.empty() || param[0] == '#') {
     } else {
         SolverInterface::set(param, val);
     }
 }
-void basicOdeSolver::set(std::string_view param, double val)
+void BasicOdeSolver::set(std::string_view param, double val)
 {
     if ((param == "delta") || (param == "deltat") || (param == "step") || (param == "steptime")) {
         deltaT = val;
@@ -112,7 +112,7 @@ void basicOdeSolver::set(std::string_view param, double val)
     }
 }
 
-int basicOdeSolver::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
+int BasicOdeSolver::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
 {
     if (solveTime == tStop) {
         tReturn = tStop;

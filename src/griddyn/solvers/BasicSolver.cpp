@@ -20,33 +20,33 @@ namespace griddyn {
 using namespace gmlc::utilities;
 
 namespace solvers {
-    basicSolver::basicSolver(Mode alg): algorithm(alg)
+    BasicSolver::BasicSolver(Mode alg): algorithm(alg)
     {
         mode.algebraic = true;
     }
-    basicSolver::basicSolver(const std::string& objName, Mode alg):
+    BasicSolver::BasicSolver(const std::string& objName, Mode alg):
         SolverInterface(objName), algorithm(alg)
     {
         mode.algebraic = true;
     }
 
-    basicSolver::basicSolver(GridDynSimulation* gds, const solverMode& sMode):
+    BasicSolver::BasicSolver(GridDynSimulation* gds, const solverMode& sMode):
         SolverInterface(gds, sMode), algorithm(Mode::gauss)
     {
         mode.algebraic = true;
     }
 
-    std::unique_ptr<SolverInterface> basicSolver::clone(bool fullCopy) const
+    std::unique_ptr<SolverInterface> BasicSolver::clone(bool fullCopy) const
     {
-        std::unique_ptr<SolverInterface> si = std::make_unique<basicSolver>();
-        basicSolver::cloneTo(si.get(), fullCopy);
+        std::unique_ptr<SolverInterface> si = std::make_unique<BasicSolver>();
+        BasicSolver::cloneTo(si.get(), fullCopy);
         return si;
     }
 
-    void basicSolver::cloneTo(SolverInterface* si, bool fullCopy) const
+    void BasicSolver::cloneTo(SolverInterface* si, bool fullCopy) const
     {
         SolverInterface::cloneTo(si, fullCopy);
-        auto ai = dynamic_cast<basicSolver*>(si);
+        auto ai = dynamic_cast<BasicSolver*>(si);
         if (ai == nullptr) {
             return;
         }
@@ -54,31 +54,31 @@ namespace solvers {
         ai->alpha = alpha;
     }
 
-    double* basicSolver::state_data() noexcept
+    double* BasicSolver::stateData() noexcept
     {
         return state.data();
     }
-    double* basicSolver::deriv_data() noexcept
+    double* BasicSolver::derivData() noexcept
     {
         return nullptr;
     }
-    double* basicSolver::type_data() noexcept
+    double* BasicSolver::typeData() noexcept
     {
         return type.data();
     }
-    const double* basicSolver::state_data() const noexcept
+    const double* BasicSolver::stateData() const noexcept
     {
         return state.data();
     }
-    const double* basicSolver::deriv_data() const noexcept
+    const double* BasicSolver::derivData() const noexcept
     {
         return nullptr;
     }
-    const double* basicSolver::type_data() const noexcept
+    const double* BasicSolver::typeData() const noexcept
     {
         return type.data();
     }
-    void basicSolver::allocate(count_t stateCount, count_t numRoots)
+    void BasicSolver::allocate(count_t stateCount, count_t numRoots)
     {
         // load the vectors
         if (stateCount != svsize) {
@@ -93,7 +93,7 @@ namespace solvers {
         }
     }
 
-    void basicSolver::initialize(coreTime /*time0*/)
+    void BasicSolver::initialize(coreTime /*time0*/)
     {
         if (!flags[allocated_flag]) {
             throw(InvalidSolverOperation(-2));
@@ -102,7 +102,7 @@ namespace solvers {
         solverCallCount = 0;
     }
 
-    double basicSolver::get(std::string_view param) const
+    double BasicSolver::get(std::string_view param) const
     {
         if (param == "alpha") {
             return alpha;
@@ -112,7 +112,7 @@ namespace solvers {
         }
         return SolverInterface::get(param);
     }
-    void basicSolver::set(std::string_view param, std::string_view val)
+    void BasicSolver::set(std::string_view param, std::string_view val)
     {
         if (param == "algorithm") {
             auto lcs = convertToLowerCase(val);
@@ -127,7 +127,7 @@ namespace solvers {
             SolverInterface::set(param, val);
         }
     }
-    void basicSolver::set(std::string_view param, double val)
+    void BasicSolver::set(std::string_view param, double val)
     {
         if (param == "alpha") {
             alpha = val;
@@ -141,7 +141,7 @@ namespace solvers {
                            std::vector<double>& s3,
                            double conv);
 
-    int basicSolver::solve(coreTime tStop, coreTime& /*tReturn*/, StepMode /*stepMode*/)
+    int BasicSolver::solve(coreTime tStop, coreTime& /*tReturn*/, StepMode /*stepMode*/)
     {
         double md = 1.0;
         iterations = 0;

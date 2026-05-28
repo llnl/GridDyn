@@ -1775,12 +1775,12 @@ double GridArea::getMasterAngle(const stateData& sD, const solverMode& sMode) co
     return 0.0;
 }
 
-stateSizes GridArea::LocalStateSizes(const solverMode& /*sMode*/) const
+stateSizes GridArea::localStateSizes(const solverMode& /*sMode*/) const
 {
     return offsets.local().local;
 }
 
-count_t GridArea::LocalJacobianCount(const solverMode& /*sMode*/) const
+count_t GridArea::localJacobianCount(const solverMode& /*sMode*/) const
 {
     return offsets.local().local.jacSize;
 }
@@ -1807,7 +1807,7 @@ void GridArea::loadStateSizes(const solverMode& sMode)
     {
         so.stateReset();
     }
-    auto selfSizes = LocalStateSizes(sMode);
+    auto selfSizes = localStateSizes(sMode);
     if (hasAlgebraic(sMode)) {
         so.local.aSize = selfSizes.aSize;
         so.local.vSize = selfSizes.vSize;
@@ -1886,9 +1886,9 @@ void GridArea::loadJacobianSizes(const solverMode& sMode)
 
     if (!isLocal(sMode))  // don't reset if it is the local offsets
     {
-        so.JacobianCountReset();
+        so.jacobianCountReset();
     }
-    auto selfJacCount = LocalJacobianCount(sMode);
+    auto selfJacCount = localJacobianCount(sMode);
     if (!(so.jacobianLoaded)) {
         so.local.jacSize = selfJacCount;
     }

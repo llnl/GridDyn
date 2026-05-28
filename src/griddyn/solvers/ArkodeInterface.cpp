@@ -41,7 +41,7 @@ int arkodeJac(sunrealtype time,
 
 int arkodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* user_data);
 
-arkodeInterface::arkodeInterface(const std::string& objName): sundialsInterface(objName)
+arkodeInterface::arkodeInterface(const std::string& objName): SundialsInterface(objName)
 {
     mode.dynamic = true;
     mode.differential = true;
@@ -50,7 +50,7 @@ arkodeInterface::arkodeInterface(const std::string& objName): sundialsInterface(
 }
 
 arkodeInterface::arkodeInterface(GridDynSimulation* gds, const solverMode& sMode):
-    sundialsInterface(gds, sMode)
+    SundialsInterface(gds, sMode)
 {
     mode.dynamic = true;
     mode.differential = true;
@@ -75,7 +75,7 @@ std::unique_ptr<SolverInterface> arkodeInterface::clone(bool fullCopy) const
 
 void arkodeInterface::cloneTo(SolverInterface* si, bool fullCopy) const
 {
-    sundialsInterface::cloneTo(si, fullCopy);
+    SundialsInterface::cloneTo(si, fullCopy);
     auto ai = dynamic_cast<arkodeInterface*>(si);
     if (ai == nullptr) {
         return;
@@ -105,9 +105,9 @@ void arkodeInterface::allocate(count_t stateCount, count_t numRoots)
         ARKodeFree(&(solverMem));
     }
     solverMem = ARKodeCreate();
-    check_flag(solverMem, "ARKodeCVodeCreate", 0);
+    checkFlag(solverMem, "ARKodeCVodeCreate", 0);
 
-    sundialsInterface::allocate(stateCount, numRoots);
+    SundialsInterface::allocate(stateCount, numRoots);
 }
 
 void arkodeInterface::setMaxNonZeros(count_t nonZeroCount)
@@ -121,7 +121,7 @@ void arkodeInterface::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
-        sundialsInterface::set(param, val);
+        SundialsInterface::set(param, val);
     }
 }
 
@@ -146,7 +146,7 @@ void arkodeInterface::set(std::string_view param, double val)
     } else if (param == "maxiterations") {
         max_iterations = static_cast<count_t>(val);
         int retval = ARKodeSetMaxNumSteps(solverMem, max_iterations);
-        check_flag(&retval, "ARKodeSetMaxNumSteps", 1);
+        checkFlag(&retval, "ARKodeSetMaxNumSteps", 1);
     } else {
         SolverInterface::set(param, val);
     }
@@ -174,7 +174,7 @@ double arkodeInterface::get(std::string_view param) const
         ARKDlsGetNumJacEvals(solverMem, &val);
 #endif
     } else {
-        return sundialsInterface::get(param);
+        return SundialsInterface::get(param);
     }
 
     return static_cast<double>(val);
@@ -191,20 +191,20 @@ void arkodeInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
     sunrealtype tolsfac, hlast, hcur;
 
     int retval = ARKodeGetNumRhsEvals(solverMem, &nre, &nfi);
-    check_flag(&retval, "ARKodeGetNumResEvals", 1);
+    checkFlag(&retval, "ARKodeGetNumResEvals", 1);
 
     retval = ARKodeGetNumNonlinSolvIters(solverMem, &nni);
-    check_flag(&retval, "ARKodeGetNumNonlinSolvIters", 1);
+    checkFlag(&retval, "ARKodeGetNumNonlinSolvIters", 1);
     retval = ARKodeGetNumNonlinSolvConvFails(solverMem, &ncfn);
-    check_flag(&retval, "ARKodeGetNumNonlinSolvConvFails", 1);
+    checkFlag(&retval, "ARKodeGetNumNonlinSolvConvFails", 1);
 
     retval = ARKodeGetNumSteps(solverMem, &nst);
-    check_flag(&retval, "ARKodeGetNumSteps", 1);
+    checkFlag(&retval, "ARKodeGetNumSteps", 1);
     retval = ARKodeGetNumErrTestFails(solverMem, &netf);
-    check_flag(&retval, "ARKodeGetNumErrTestFails", 1);
+    checkFlag(&retval, "ARKodeGetNumErrTestFails", 1);
 
     retval = ARKodeGetNumGEvals(solverMem, &nge);
-    check_flag(&retval, "ARKodeGetNumGEvals", 1);
+    checkFlag(&retval, "ARKodeGetNumGEvals", 1);
     ARKodeGetCurrentStep(solverMem, &hcur);
 
     ARKodeGetLastStep(solverMem, &hlast);
@@ -234,7 +234,7 @@ void arkodeInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
                               tolsfac);
 
     if (m_gds != nullptr) {
-        logging::log_to(m_gds, m_gds, logLevel, logstr);
+        logging::logTo(m_gds, m_gds, logLevel, logstr);
     } else {
         printf("\n%s", logstr.c_str());
     }
@@ -248,16 +248,16 @@ void arkodeInterface::logErrorWeights(PrintLevel logLevel) const
     sunrealtype* eldata = NVECTOR_DATA(use_omp, ele);
     sunrealtype* ewdata = NVECTOR_DATA(use_omp, eweight);
     int retval = ARKodeGetErrWeights(solverMem, eweight);
-    check_flag(&retval, "ARKodeGetErrWeights", 1);
+    checkFlag(&retval, "ARKodeGetErrWeights", 1);
     retval = ARKodeGetEstLocalErrors(solverMem, ele);
-    check_flag(&retval, "ARKodeGetEstLocalErrors ", 1);
+    checkFlag(&retval, "ARKodeGetEstLocalErrors ", 1);
     std::string logstr = "Error Weight\tEstimated Local Errors\n";
     for (index_t kk = 0; kk < svsize; ++kk) {
         std::format_to(std::back_inserter(logstr), "{}:{}\t{}\n", kk, ewdata[kk], eldata[kk]);
     }
 
     if (m_gds != nullptr) {
-        logging::log_to(m_gds, m_gds, logLevel, logstr);
+        logging::logTo(m_gds, m_gds, logLevel, logstr);
     } else {
         printf("\n%s", logstr.c_str());
     }
@@ -303,73 +303,73 @@ void arkodeInterface::initialize(coreTime time0)
     // dynInitializeB CVode - Sundials
 
     int retval = ARKodeSetUserData(solverMem, this);
-    check_flag(&retval, "ARKodeSetUserData", 1);
+    checkFlag(&retval, "ARKodeSetUserData", 1);
 
     // guessState an initial condition
-    m_gds->guessState(time0, state_data(), deriv_data(), mode);
+    m_gds->guessState(time0, stateData(), derivData(), mode);
 
     retval = ARKodeInit(solverMem, arkodeFunc, arkodeFunc, time0, state);
-    check_flag(&retval, "ARKodeInit", 1);
+    checkFlag(&retval, "ARKodeInit", 1);
 
     if (rootCount > 0) {
         rootsfound.resize(rootCount);
         retval = ARKodeRootInit(solverMem, rootCount, arkodeRootFunc);
-        check_flag(&retval, "ARKodeRootInit", 1);
+        checkFlag(&retval, "ARKodeRootInit", 1);
     }
 
     N_VConst(tolerance, abstols);
 
     retval = ARKodeSVtolerances(solverMem, tolerance / 100, abstols);
-    check_flag(&retval, "ARKodeSVtolerances", 1);
+    checkFlag(&retval, "ARKodeSVtolerances", 1);
 
     retval = ARKodeSetMaxNumSteps(solverMem, max_iterations);
-    check_flag(&retval, "ARKodeSetMaxNumSteps", 1);
+    checkFlag(&retval, "ARKodeSetMaxNumSteps", 1);
 
 #ifdef ENABLE_KLU
     if (flags[dense_flag]) {
         J = SUNDenseMatrix(svsize, svsize);
-        check_flag(J, "SUNDenseMatrix", 0);
+        checkFlag(J, "SUNDenseMatrix", 0);
         /* Create KLU solver object */
         LS = SUNDenseLinearSolver(state, J);
-        check_flag(LS, "SUNDenseLinearSolver", 0);
+        checkFlag(LS, "SUNDenseLinearSolver", 0);
     } else {
         /* Create sparse SUNMatrix */
         J = SUNSparseMatrix(svsize, svsize, jsize, CSR_MAT);
-        check_flag(J, "SUNSparseMatrix", 0);
+        checkFlag(J, "SUNSparseMatrix", 0);
 
         /* Create KLU solver object */
         LS = SUNKLU(state, J);
-        check_flag(LS, "SUNKLU", 0);
+        checkFlag(LS, "SUNKLU", 0);
     }
 #else
     J = SUNDenseMatrix(svsize, svsize);
-    check_flag(J, "SUNSparseMatrix", 0);
+    checkFlag(J, "SUNSparseMatrix", 0);
     /* Create KLU solver object */
     LS = SUNDenseLinearSolver(state, J);
-    check_flag(LS, "SUNDenseLinearSolver", 0);
+    checkFlag(LS, "SUNDenseLinearSolver", 0);
 #endif
 
     retval = ARKDlsSetLinearSolver(solverMem, LS, J);
 
-    check_flag(&retval, "IDADlsSetLinearSolver", 1);
+    checkFlag(&retval, "IDADlsSetLinearSolver", 1);
 
     retval = ARKDlsSetJacFn(solverMem, arkodeJac);
-    check_flag(&retval, "IDADlsSetJacFn", 1);
+    checkFlag(&retval, "IDADlsSetJacFn", 1);
 
     retval = ARKodeSetMaxNonlinIters(solverMem, 20);
-    check_flag(&retval, "ARKodeSetMaxNonlinIters", 1);
+    checkFlag(&retval, "ARKodeSetMaxNonlinIters", 1);
 
     if (maxStep > 0.0) {
         retval = ARKodeSetMaxStep(solverMem, maxStep);
-        check_flag(&retval, "ARKodeSetMaxStep", 1);
+        checkFlag(&retval, "ARKodeSetMaxStep", 1);
     }
     if (minStep > 0.0) {
         retval = ARKodeSetMinStep(solverMem, minStep);
-        check_flag(&retval, "ARKodeSetMinStep", 1);
+        checkFlag(&retval, "ARKodeSetMinStep", 1);
     }
     if (step > 0.0) {
         retval = ARKodeSetInitStep(solverMem, step);
-        check_flag(&retval, "ARKodeSetInitStep", 1);
+        checkFlag(&retval, "ARKodeSetInitStep", 1);
     }
     setConstraints();
     flags.set(initialized_flag);
@@ -377,7 +377,7 @@ void arkodeInterface::initialize(coreTime time0)
 
 void arkodeInterface::sparseReInit(SparseReinitMode sparseReinitMode)
 {
-    KLUReInit(sparseReinitMode);
+    kluReInit(sparseReinitMode);
 }
 
 void arkodeInterface::setRootFinding(count_t numRoots)
@@ -387,14 +387,14 @@ void arkodeInterface::setRootFinding(count_t numRoots)
     }
     rootCount = numRoots;
     int retval = ARKodeRootInit(solverMem, numRoots, arkodeRootFunc);
-    check_flag(&retval, "ARKodeRootInit", 1);
+    checkFlag(&retval, "ARKodeRootInit", 1);
 }
 
 void arkodeInterface::getCurrentData()
 {
     /*
 int retval = CVodeGetConsistentIC(solverMem, state, deriv);
-if (check_flag(&retval, "CVodeGetConsistentIC", 1))
+if (checkFlag(&retval, "CVodeGetConsistentIC", 1))
 {
 return(retval);
 }
@@ -410,7 +410,7 @@ int arkodeInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
     int retval = ARKode(
         solverMem, tStop, state, &tret, (stepMode == StepMode::NORMAL) ? ARK_NORMAL : ARK_ONE_STEP);
     tReturn = tret;
-    check_flag(&retval, "ARKodeSolve", 1, false);
+    checkFlag(&retval, "ARKodeSolve", 1, false);
 
     if (retval == ARK_ROOT_RETURN) {
         retval = SOLVER_ROOT_FOUND;
@@ -421,7 +421,7 @@ int arkodeInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
 void arkodeInterface::getRoots()
 {
     int ret = ARKodeGetRootInfo(solverMem, rootsfound.data());
-    check_flag(&ret, "ARKodeGetRootInfo", 1);
+    checkFlag(&ret, "ARKodeGetRootInfo", 1);
 }
 
 void arkodeInterface::loadMaskElements()
@@ -482,7 +482,7 @@ int arkodeRootFunc(sunrealtype time, N_Vector state, sunrealtype* gout, void* us
 {
     auto sd = reinterpret_cast<arkodeInterface*>(user_data);
     sd->m_gds->rootFindingFunction(
-        time, NVECTOR_DATA(sd->use_omp, state), sd->deriv_data(), gout, sd->mode);
+        time, NVECTOR_DATA(sd->use_omp, state), sd->derivData(), gout, sd->mode);
 
     return FUNCTION_EXECUTION_SUCCESS;
 }

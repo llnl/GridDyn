@@ -30,14 +30,14 @@ void GridSubModel::dynInitializeA(coreTime time, std::uint32_t flags)
     if (isEnabled()) {
         dynObjectInitializeA(time, flags);
 
-        auto& so = offsets.getOffsets(cLocalSolverMode);
+        auto& solverOffsetsRef = offsets.getOffsets(cLocalSolverMode);
         if (getSubObjects().empty()) {
-            so.localLoadAll(true);
+            solverOffsetsRef.localLoadAll(true);
         } else {
             loadStateSizes(cLocalSolverMode);
         }
 
-        so.setOffset(0);
+        solverOffsetsRef.setOffset(0);
         prevTime = time;
         updateFlags(true);
         setupDynFlags();
@@ -50,14 +50,14 @@ void GridSubModel::dynInitializeB(const IOdata& inputs,
 {
     if (isEnabled()) {
         // make sure the state vectors are sized properly
-        auto ns = offsets.local().local.totalSize();
-        m_state.resize(ns, 0);
+        auto stateCount = offsets.local().local.totalSize();
+        m_state.resize(stateCount, 0);
         m_dstate_dt.clear();
-        m_dstate_dt.resize(ns, 0);
+        m_dstate_dt.resize(stateCount, 0);
 
         dynObjectInitializeB(inputs, desiredOutput, fieldSet);
         if (updatePeriod < maxTime) {
-            enable_updates();
+            enableUpdates();
             setUpdateTime(prevTime + updatePeriod);
             alert(this, UPDATE_REQUIRED);
         }

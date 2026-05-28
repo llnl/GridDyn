@@ -13,9 +13,9 @@
 namespace griddyn::solvers {
 /** @brief SolverInterface interfacing to the SUNDIALS kinsol solver
  */
-class kinsolInterface: public sundialsInterface {
+class kinsolInterface: public SundialsInterface {
   public:
-    using sundialsInterface::set;
+    using SundialsInterface::set;
     /** @brief constructor*/
     explicit kinsolInterface(const std::string& objName = "kinsol");
     /** @brief constructor loading the SolverInterface structure*

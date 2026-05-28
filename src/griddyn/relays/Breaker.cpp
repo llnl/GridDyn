@@ -214,7 +214,7 @@ void breaker::updateA(coreTime time)
     lastUpdateTime = time;
 }
 
-stateSizes breaker::LocalStateSizes(const solverMode& sMode) const
+stateSizes breaker::localStateSizes(const solverMode& sMode) const
 {
     stateSizes stateSizeSet;
     if ((!isAlgebraicOnly(sMode)) && (mRecloserTap > 0)) {
@@ -223,7 +223,7 @@ stateSizes breaker::LocalStateSizes(const solverMode& sMode) const
     return stateSizeSet;
 }
 
-count_t breaker::LocalJacobianCount(const solverMode& sMode) const
+count_t breaker::localJacobianCount(const solverMode& sMode) const
 {
     if ((!isAlgebraicOnly(sMode)) && (mRecloserTap > 0)) {
         return 12;

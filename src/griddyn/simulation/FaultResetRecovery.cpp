@@ -58,7 +58,7 @@ int faultResetRecovery::attemptFix()
         }
         if (retval == FUNCTION_EXECUTION_SUCCESS) {
             solver->getCurrentData();
-            sim->getVoltage(nVolts, solver->state_data(), solver->getSolverMode());
+            sim->getVoltage(nVolts, solver->stateData(), solver->getSolverMode());
             if (!checkResetVoltages(initVolts, nVolts)) {
                 sim->log(sim, PrintLevel::SUMMARY, "bad voltage reset");
                 retval = -47;
@@ -91,11 +91,11 @@ int faultResetRecovery::faultResetFix1()
     if ((retval = sim->handleStateChange(solver->getSolverMode())) != HANDLER_NO_RETURN) {
         return retval;
     }
-    // auto err = JacobianCheck(sMode, -1, true);
+    // auto err = jacobianCheck(sMode, -1, true);
     //      dynamicSolverConvergenceTest(sMode, "convFile.dat",0,3);
-    double* states = solver->state_data();
+    double* states = solver->stateData();
     coreTime timeCurr = sim->getSimulationTime();
-    sim->guessState(timeCurr, states, solver->deriv_data(), solver->getSolverMode());
+    sim->guessState(timeCurr, states, solver->derivData(), solver->getSolverMode());
     std::vector<double> vstates(solver->size(), 0);
     sim->getVoltageStates(vstates.data(), solver->getSolverMode());
     for (index_t pp = 0; pp < solver->size(); ++pp) {
@@ -117,21 +117,21 @@ int faultResetRecovery::faultResetFix2(ResetLevels rlevel)
         return retval;
     }
     coreTime timeCurr = sim->getSimulationTime();
-    sim->guessState(timeCurr, solver->state_data(), solver->deriv_data(), solver->getSolverMode());
-    // int mmatch = JacobianCheck(sim, solver->getSolverMode());
+    sim->guessState(timeCurr, solver->stateData(), solver->derivData(), solver->getSolverMode());
+    // int mmatch = jacobianCheck(sim, solver->getSolverMode());
 
     retval =
         solver->calcIC(timeCurr, sim->probeStepTime, SolverInterface::IcModes::fixed_diff, true);
     if (retval != 0) {
         // try local converge with mode which only deals with low voltage buses
         sim->converge(timeCurr,
-                      solver->state_data(),
-                      solver->deriv_data(),
+                      solver->stateData(),
+                      solver->derivData(),
                       solver->getSolverMode(),
                       ConvergeMode::voltage_only,
                       0.05);
         // std::vector<double> cVolts;
-        // sim->getVoltage(cVolts, solver->state_data(), solver->getSolverMode());
+        // sim->getVoltage(cVolts, solver->stateData(), solver->getSolverMode());
         retval = solver->calcIC(timeCurr,
                                 sim->probeStepTime,
                                 SolverInterface::IcModes::fixed_diff,
@@ -146,12 +146,12 @@ int faultResetRecovery::faultResetFix3()
     std::vector<double> vstates(solver->size(), 0);
     std::vector<double> nVolts;
     sim->getVoltageStates(vstates.data(), solver->getSolverMode());
-    double* states = solver->state_data();
+    double* states = solver->stateData();
     int retval = -10;
     for (int vv = 1; vv < 10; ++vv) {
         double rv1 = static_cast<double>(vv) * 0.1;
         int kk = 0;
-        logging::log_to(sim, sim, PrintLevel::DEBUG, "increment voltage by {}", rv1);
+        logging::logTo(sim, sim, PrintLevel::DEBUG, "increment voltage by {}", rv1);
         for (index_t pp = 0; pp < solver->size(); ++pp) {
             if (vstates[pp] != 0.0) {
                 states[pp] = rv1 + (1.0 - rv1) * initVolts[kk];
@@ -166,15 +166,15 @@ int faultResetRecovery::faultResetFix3()
 
         if (retval == 0) {
             solver->getCurrentData();
-            sim->getVoltage(nVolts, solver->state_data(), solver->getSolverMode());
+            sim->getVoltage(nVolts, solver->stateData(), solver->getSolverMode());
             if (!checkResetVoltages(initVolts, nVolts)) {
                 sim->log(sim, PrintLevel::SUMMARY, "bad voltage reset");
                 retval = -47;
             }
         } else {
             sim->converge(sim->getSimulationTime(),
-                          solver->state_data(),
-                          solver->deriv_data(),
+                          solver->stateData(),
+                          solver->derivData(),
                           solver->getSolverMode(),
                           ConvergeMode::block_iteration,
                           0.1);
@@ -186,8 +186,8 @@ int faultResetRecovery::faultResetFix3()
             if (retval == 0) {
                 solver->getCurrentData();
                 sim->setState(sim->getSimulationTime() + sim->probeStepTime,
-                              solver->state_data(),
-                              solver->deriv_data(),
+                              solver->stateData(),
+                              solver->derivData(),
                               solver->getSolverMode());
                 sim->getVoltage(nVolts);
                 if (!checkResetVoltages(initVolts, nVolts)) {

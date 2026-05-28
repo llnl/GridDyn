@@ -45,7 +45,7 @@ int kinsolJac(N_Vector state,
 // int kinsolAlgJacDense (long int N, N_Vector u, N_Vector f, DlsMat J, void *user_data,
 // N_Vector tmp1, N_Vector tmp2);
 
-kinsolInterface::kinsolInterface(const std::string& objName): sundialsInterface(objName)
+kinsolInterface::kinsolInterface(const std::string& objName): SundialsInterface(objName)
 {
     tolerance = 1e-8;
     mode.algebraic = true;
@@ -54,7 +54,7 @@ kinsolInterface::kinsolInterface(const std::string& objName): sundialsInterface(
 }
 
 kinsolInterface::kinsolInterface(GridDynSimulation* gds, const solverMode& sMode):
-    sundialsInterface(gds, sMode)
+    SundialsInterface(gds, sMode)
 {
     tolerance = 1e-8;
     mode.algebraic = true;
@@ -64,7 +64,7 @@ kinsolInterface::kinsolInterface(GridDynSimulation* gds, const solverMode& sMode
 
 kinsolInterface::~kinsolInterface()
 {
-    // clear the memory,  the sundialsInterface destructor will clear the rest
+    // clear the memory,  the SundialsInterface destructor will clear the rest
     if (flags[initialized_flag]) {
         KINFree(&solverMem);
     }
@@ -79,7 +79,7 @@ std::unique_ptr<SolverInterface> kinsolInterface::clone(bool fullCopy) const
 
 void kinsolInterface::cloneTo(SolverInterface* si, bool fullCopy) const
 {
-    sundialsInterface::cloneTo(si, fullCopy);
+    SundialsInterface::cloneTo(si, fullCopy);
     auto* ai = dynamic_cast<kinsolInterface*>(si);
     if (ai == nullptr) {
         return;
@@ -97,9 +97,9 @@ void kinsolInterface::allocate(count_t stateCount, count_t /*numRoots*/)
         KINFree(&(solverMem));
     }
     solverMem = KINCreate(sunctx);
-    check_flag(solverMem, "KINCreate", 0);
+    checkFlag(solverMem, "KINCreate", 0);
 
-    sundialsInterface::allocate(stateCount, 0);
+    SundialsInterface::allocate(stateCount, 0);
 }
 
 // output solver stats
@@ -113,14 +113,14 @@ void kinsolInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
     long int nje{0};
     long int nfeD{0};
     int flag = KINGetNumNonlinSolvIters(solverMem, &nni);
-    check_flag(&flag, "KINGetNumNonlinSolvIters", 1);
+    checkFlag(&flag, "KINGetNumNonlinSolvIters", 1);
     flag = KINGetNumFuncEvals(solverMem, &nfe);
-    check_flag(&flag, "KINGetNumFuncEvals", 1);
+    checkFlag(&flag, "KINGetNumFuncEvals", 1);
 
     flag = KINGetNumJacEvals(solverMem, &nje);
-    check_flag(&flag, "KINGetNumJacEvals", 1);
+    checkFlag(&flag, "KINGetNumJacEvals", 1);
     flag = KINGetNumLinFuncEvals(solverMem, &nfeD);
-    check_flag(&flag, "KINGetNumLinFuncEvals", 1);
+    checkFlag(&flag, "KINGetNumLinFuncEvals", 1);
 
     auto logstr = std::format("Kinsoln Statistics: \n"
                               "Number of nonlinear iterations    = {}\n"
@@ -134,7 +134,7 @@ void kinsolInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
     }
 
     if (m_gds != nullptr) {
-        logging::log_to(m_gds, m_gds, logLevel, logstr);
+        logging::logTo(m_gds, m_gds, logLevel, logstr);
     } else {
         std::print("\n{}", logstr);
     }
@@ -159,79 +159,79 @@ void kinsolInterface::initialize(coreTime /*t0*/)
     }
 
     int retval = KINSetUserData(solverMem, this);
-    check_flag(&retval, "KINSetUserData", 1);
+    checkFlag(&retval, "KINSetUserData", 1);
 
     // retval = KINSetFuncNormTol (solverMem, 1.e-9);
     retval = KINSetFuncNormTol(solverMem, tolerance);
-    check_flag(&retval, "KINSetFuncNormTol", 1);
+    checkFlag(&retval, "KINSetFuncNormTol", 1);
 
     // retval = KINSetScaledStepTol (solverMem, 1.e-9);
     retval = KINSetScaledStepTol(solverMem, tolerance / 100);
-    check_flag(&retval, "KINSetScaledStepTol", 1);
+    checkFlag(&retval, "KINSetScaledStepTol", 1);
 
     retval = KINSetNoInitSetup(solverMem, SUNTRUE);
-    check_flag(&retval, "KINSetNoInitSetup", 1);
+    checkFlag(&retval, "KINSetNoInitSetup", 1);
 
     retval = KINInit(solverMem, kinsolFunc, state);
 
-    check_flag(&retval, "KINInit", 1);
+    checkFlag(&retval, "KINInit", 1);
 
 #ifdef GRIDDYN_ENABLE_KLU
     if (flags[dense_flag]) {
         J = SUNDenseMatrix(svsize, svsize, sunctx);
-        check_flag(J, "SUNDenseMatrix", 0);
+        checkFlag(J, "SUNDenseMatrix", 0);
         /* Create KLU solver object */
         LS = SUNLinSol_Dense(state, J, sunctx);
-        check_flag(LS, "SUNLinSol_Dense", 0);
+        checkFlag(LS, "SUNLinSol_Dense", 0);
     } else {
         /* Create sparse SUNMatrix */
         J = SUNSparseMatrix(svsize, svsize, maxNNZ, CSR_MAT, sunctx);
-        check_flag(J, "SUNSparseMatrix", 0);
+        checkFlag(J, "SUNSparseMatrix", 0);
 
         /* Create KLU solver object */
         LS = SUNLinSol_KLU(state, J, sunctx);
-        check_flag(LS, "SUNLinSol_KLU", 0);
+        checkFlag(LS, "SUNLinSol_KLU", 0);
 
         retval = SUNLinSol_KLUSetOrdering(LS, 0);
-        check_flag(&retval, "SUNLinSol_KLUSetOrdering", 1);
+        checkFlag(&retval, "SUNLinSol_KLUSetOrdering", 1);
     }
 #else
     J = SUNDenseMatrix(svsize, svsize, sunctx);
-    check_flag(J, "SUNSparseMatrix", 0);
+    checkFlag(J, "SUNSparseMatrix", 0);
     /* Create KLU solver object */
     LS = SUNLinSol_Dense(state, J, sunctx);
-    check_flag(LS, "SUNLinSol_Dense", 0);
+    checkFlag(LS, "SUNLinSol_Dense", 0);
 #endif
 
     retval = KINSetLinearSolver(solverMem, LS, J);
 
-    check_flag(&retval, "KINSetLinearSolver", 1);
+    checkFlag(&retval, "KINSetLinearSolver", 1);
 
     retval = KINSetJacFn(solverMem, kinsolJac);
-    check_flag(&retval, "KINSetJacFn", 1);
+    checkFlag(&retval, "KINSetJacFn", 1);
 
     retval = KINSetMaxSetupCalls(solverMem, 1);  // exact Newton
-    check_flag(&retval, "KINSetMaxSetupCalls", 1);
+    checkFlag(&retval, "KINSetMaxSetupCalls", 1);
 
     retval = KINSetMaxSubSetupCalls(solverMem, 2);  // residual calls
-    check_flag(&retval, "KINSetMaxSubSetupCalls", 1);
+    checkFlag(&retval, "KINSetMaxSubSetupCalls", 1);
 
     retval = KINSetNumMaxIters(solverMem, max_iterations);  // residual calls
-    check_flag(&retval, "KINSetNumMaxIters", 1);
+    checkFlag(&retval, "KINSetNumMaxIters", 1);
 
     flags.set(initialized_flag);
 }
 
 void kinsolInterface::sparseReInit(SparseReinitMode sparseReinitMode)
 {
-    KLUReInit(sparseReinitMode);
+    kluReInit(sparseReinitMode);
 }
 
 void kinsolInterface::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
-        sundialsInterface::set(param, val);
+        SundialsInterface::set(param, val);
     }
 }
 
@@ -241,9 +241,9 @@ void kinsolInterface::set(std::string_view param, double val)
     } else if (param == "maxiterations") {
         max_iterations = static_cast<count_t>(val);
         int retval = KINSetNumMaxIters(solverMem, max_iterations);
-        check_flag(&retval, "KINSetNumMaxIters", 1);
+        checkFlag(&retval, "KINSetNumMaxIters", 1);
     } else {
-        sundialsInterface::set(param, val);
+        SundialsInterface::set(param, val);
     }
 }
 
@@ -267,7 +267,7 @@ double kinsolInterface::get(std::string_view param) const
         return kinsol1Time;
 #endif
     } else {
-        return sundialsInterface::get(param);
+        return SundialsInterface::get(param);
     }
     return static_cast<double>(val);
 }

@@ -24,13 +24,13 @@ enum class SolverPrintLevel {
 class GridDynSimulation;
 
 /** error class for throwing solver exceptions*/
-class solverException: public std::exception {
+class SolverException: public std::exception {
   protected:
     int errorCode;  ///< the actual solver Error Code
     std::string message;
 
   public:
-    explicit solverException(int ecode = 0):
+    explicit SolverException(int ecode = 0):
         errorCode(ecode), message(std::format("solver Exception:error code={}", errorCode))
     {
     }
@@ -41,10 +41,10 @@ class solverException: public std::exception {
 
 /** error class for throwing an invalid solver operation exception from a solver
  */
-class InvalidSolverOperation: public solverException {
+class InvalidSolverOperation: public SolverException {
   protected:
   public:
-    explicit InvalidSolverOperation(int ecode = 0): solverException(ecode)
+    explicit InvalidSolverOperation(int ecode = 0): SolverException(ecode)
     {
         message = std::format("invalid solver operation:error code={}", errorCode);
     }
@@ -162,32 +162,32 @@ class SolverInterface: public HelperObject {
     /** @brief get a pointer to the state data
     @return a pointer to a double array with the state data
     */
-    virtual double* state_data() noexcept;
+    virtual double* stateData() noexcept;
 
     /** @brief get a pointer to the state time derivative information
     @return a pointer to a double array with the state time derivative information
     */
-    virtual double* deriv_data() noexcept;
+    virtual double* derivData() noexcept;
 
     /** @brief get a pointer to the type data
     @return a pointer to a double array containing the type data
     */
-    virtual double* type_data() noexcept;
+    virtual double* typeData() noexcept;
 
     /** @brief get a pointer to the const state data
     @return a pointer to a const double array with the state data
     */
-    virtual const double* state_data() const noexcept;
+    virtual const double* stateData() const noexcept;
 
     /** @brief get a pointer to the const state time derivative information
     @return a pointer to a const double array with the state time derivative information
     */
-    virtual const double* deriv_data() const noexcept;
+    virtual const double* derivData() const noexcept;
 
     /** @brief get a pointer to the const type data
     @return a pointer to a const double array containing the type data
     */
-    virtual const double* type_data() const noexcept;
+    virtual const double* typeData() const noexcept;
 
     /** @brief allocate the memory for the solver
     @param[in] size  the size of the state vector
@@ -353,10 +353,10 @@ class SolverInterface: public HelperObject {
     @param[in] opt  0 for allocation 1 for other functions
     @param[in] printError  boolean flag indicating whether to print a message on error or not
     */
-    virtual void check_flag(void* flagvalue,
-                            std::string_view funcname,
-                            int opt,
-                            bool printError = true) const;
+    virtual void checkFlag(void* flagvalue,
+                           std::string_view funcname,
+                           int opt,
+                           bool printError = true) const;
 };
 
 /** @brief make a solver from a particular mode

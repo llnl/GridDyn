@@ -61,7 +61,7 @@ void DcBus::pFlowObjectInitializeB()
     propogatePower();
 }
 
-stateSizes DcBus::LocalStateSizes(const solverMode& sMode) const
+stateSizes DcBus::localStateSizes(const solverMode& sMode) const
 {
     stateSizes busSS;
     if (hasAlgebraic(sMode)) {
@@ -84,7 +84,7 @@ stateSizes DcBus::LocalStateSizes(const solverMode& sMode) const
     return busSS;
 }
 
-count_t DcBus::LocalJacobianCount(const solverMode& sMode) const
+count_t DcBus::localJacobianCount(const solverMode& sMode) const
 {
     count_t localJacSize = 0;
     if (hasAlgebraic(sMode)) {

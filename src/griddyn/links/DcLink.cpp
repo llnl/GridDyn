@@ -133,7 +133,7 @@ void dcLink::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
     }
 }
 
-stateSizes dcLink::LocalStateSizes(const solverMode& sMode) const
+stateSizes dcLink::localStateSizes(const solverMode& sMode) const
 {
     stateSizes localSS;
     if (isDynamic(sMode)) {
@@ -148,7 +148,7 @@ stateSizes dcLink::LocalStateSizes(const solverMode& sMode) const
     return localSS;
 }
 
-count_t dcLink::LocalJacobianCount(const solverMode& sMode) const
+count_t dcLink::localJacobianCount(const solverMode& sMode) const
 {
     count_t jacCount = 0;
     if (isDynamic(sMode)) {
@@ -286,14 +286,14 @@ void dcLink::residual(const IOdata& inputs,
 
 void dcLink::setState(coreTime time,
                       const double state[],
-                      const double dstate_dt[],
+                      const double dstateDt[],
                       const solverMode& sMode)
 {
     if (stateSize(sMode) > 0) {
         if (isDynamic(sMode)) {
             auto offset = offsets.getDiffOffset(sMode);
             m_state[0] = state[offset];
-            m_dstate_dt[0] = dstate_dt[offset];
+            m_dstate_dt[0] = dstateDt[offset];
             Idc = m_state[0];
         } else {
             auto offset = offsets.getAlgOffset(sMode);
@@ -305,14 +305,14 @@ void dcLink::setState(coreTime time,
 
 void dcLink::guessState(const coreTime /*time*/,
                         double state[],
-                        double dstate_dt[],
+                        double dstateDt[],
                         const solverMode& sMode)
 {
     if (stateSize(sMode) > 0) {
         if (isDynamic(sMode)) {
             auto offset = offsets.getDiffOffset(sMode);
             state[offset] = m_state[0];
-            dstate_dt[offset] = m_dstate_dt[0];
+            dstateDt[offset] = m_dstate_dt[0];
         } else {
             auto offset = offsets.getAlgOffset(sMode);
             state[offset] = Idc;

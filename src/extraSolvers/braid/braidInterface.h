@@ -49,13 +49,13 @@ class braidSolver: public SolverInterface {
     virtual std::unique_ptr<SolverInterface> clone(bool fullCopy = false) const override;
 
     virtual void cloneTo(SolverInterface* si, bool fullCopy = false) const override;
-    double* state_data() noexcept override;
-    double* deriv_data() noexcept override;
-    double* type_data() noexcept override;
+    double* stateData() noexcept override;
+    double* derivData() noexcept override;
+    double* typeData() noexcept override;
 
-    const double* state_data() const noexcept override;
-    const double* deriv_data() const noexcept override;
-    const double* type_data() const noexcept override;
+    const double* stateData() const noexcept override;
+    const double* derivData() const noexcept override;
+    const double* typeData() const noexcept override;
     virtual void allocate(count_t size, count_t numroots = 0) override;
     virtual void initialize(coreTime t0) override;
 
@@ -68,7 +68,7 @@ class braidSolver: public SolverInterface {
     virtual int
         solve(coreTime tStop, coreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
     /** execute the braid solve*/
-    virtual int RunBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int Ngridpoints);
+    virtual int runBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int Ngridpoints);
     virtual void getRoots() override;
 };
 }  // namespace griddyn::braid

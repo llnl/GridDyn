@@ -29,23 +29,23 @@ namespace griddyn::loads {
 
 ApproximatingLoad::ApproximatingLoad(const std::string& objName): RampLoad(objName)
 {
-    enable_updates();
+    enableUpdates();
 }
 ApproximatingLoad::~ApproximatingLoad() = default;
 
 CoreObject* ApproximatingLoad::clone(CoreObject* obj) const
 {
-    auto ld = cloneBase<ApproximatingLoad, RampLoad>(this, obj);
-    if (ld == nullptr) {
+    auto* loadClone = cloneBase<ApproximatingLoad, RampLoad>(this, obj);
+    if (loadClone == nullptr) {
         return obj;
     }
-    ld->triggerBound = triggerBound;
-    ld->spread = spread;
+    loadClone->triggerBound = triggerBound;
+    loadClone->spread = spread;
 
-    ld->cDetail = cDetail;
-    ld->dynCoupling = dynCoupling;
-    ld->pFlowCoupling = pFlowCoupling;
-    return ld;
+    loadClone->cDetail = cDetail;
+    loadClone->dynCoupling = dynCoupling;
+    loadClone->pFlowCoupling = pFlowCoupling;
+    return loadClone;
 }
 
 void ApproximatingLoad::add(CoreObject* obj)
@@ -111,8 +111,8 @@ void ApproximatingLoad::dynObjectInitializeB(const IOdata& /*inputs*/,
 
 void ApproximatingLoad::timestep(coreTime time, const IOdata& inputs, const solverMode& sMode)
 {
-    double V = inputs[voltageInLocation];
-    double th = inputs[angleInLocation];
+    const double voltage = inputs[voltageInLocation];
+    const double angle = inputs[angleInLocation];
     if (subLoad != nullptr) {
         subLoad->timestep(time, inputs, sMode);
     }
@@ -124,18 +124,18 @@ void ApproximatingLoad::timestep(coreTime time, const IOdata& inputs, const solv
     } else {
         run3ApproxA(time, inputs);
     }
-    Vprev = V;
-    Thprev = th;
+    Vprev = voltage;
+    Thprev = angle;
     prevTime = time;
 }
 
 void ApproximatingLoad::updateA(coreTime time)
 {
-    double V = bus->getVoltage();
-    double th = bus->getAngle();
+    const double voltage = bus->getVoltage();
+    const double angle = bus->getAngle();
     IOdata inputs(2);
-    inputs[voltageInLocation] = V;
-    inputs[angleInLocation] = th;
+    inputs[voltageInLocation] = voltage;
+    inputs[angleInLocation] = angle;
 
     if (subLoad != nullptr) {
         if (subLoad->currentTime() < time) {
@@ -150,8 +150,8 @@ void ApproximatingLoad::updateA(coreTime time)
     } else {
         run3ApproxA(time, inputs);
     }
-    Vprev = V;
-    Thprev = th;
+    Vprev = voltage;
+    Thprev = angle;
     prevTime = time;
 }
 
@@ -171,48 +171,48 @@ coreTime ApproximatingLoad::updateB()
         } break;
 
         case CouplingDetail::VDep: {
-            auto LV = run2ApproxB();
-            setP(LV[0]);
-            setQ(LV[1]);
-            setIp(LV[2]);
-            setIq(LV[3]);
-            if (LV.size() == 8) {
-                double diff = LV[4] - LV[0];
+            auto loadValues = run2ApproxB();
+            setP(loadValues[0]);
+            setQ(loadValues[1]);
+            setIp(loadValues[2]);
+            setIq(loadValues[3]);
+            if (loadValues.size() == 8) {
+                double diff = loadValues[4] - loadValues[0];
                 dPdt = diff / updatePeriod;
-                diff = LV[5] - LV[1];
+                diff = loadValues[5] - loadValues[1];
                 dQdt = diff / updatePeriod;
-                diff = LV[6] - LV[2];
+                diff = loadValues[6] - loadValues[2];
                 dIpdt = diff / updatePeriod;
-                diff = LV[7] - LV[3];
+                diff = loadValues[7] - loadValues[3];
                 dIqdt = diff / updatePeriod;
             }
         } break;
 
         case CouplingDetail::triple: {
-            auto LV = run3ApproxB();
+            auto loadValues = run3ApproxB();
             // printf("t=%f deltaP=%e deltaQ=%e deltaIr=%e deltaIq=%e deltaZr=%e deltaZq=%e\n",
             // prevTime, P - LV[0], Q
             // - LV[1], Ir - LV[2], Iq - LV[3], Yp - LV[4], Yq - LV[5]);
 
-            setP(LV[0]);
-            setQ(LV[1]);
-            setIp(LV[2]);
-            setIq(LV[3]);
-            setup(LV[4]);
-            setYq(LV[5]);
+            setP(loadValues[0]);
+            setQ(loadValues[1]);
+            setIp(loadValues[2]);
+            setIq(loadValues[3]);
+            setup(loadValues[4]);
+            setYq(loadValues[5]);
 
-            if (LV.size() == 12) {
-                double diff = LV[6] - LV[0];
+            if (loadValues.size() == 12) {
+                double diff = loadValues[6] - loadValues[0];
                 dPdt = diff / updatePeriod;
-                diff = LV[7] - LV[1];
+                diff = loadValues[7] - loadValues[1];
                 dQdt = diff / updatePeriod;
-                diff = LV[8] - LV[2];
+                diff = loadValues[8] - loadValues[2];
                 dIpdt = diff / updatePeriod;
-                diff = LV[9] - LV[3];
+                diff = loadValues[9] - loadValues[3];
                 dIqdt = diff / updatePeriod;
-                diff = LV[10] - LV[4];
+                diff = loadValues[10] - loadValues[4];
                 dYpdt = diff / updatePeriod;
-                diff = LV[11] - LV[5];
+                diff = loadValues[11] - loadValues[5];
                 dYqdt = diff / updatePeriod;
             }
 #ifdef SGS_DEBUG
@@ -232,13 +232,15 @@ coreTime ApproximatingLoad::updateB()
     return nextUpdateTime;
 }
 
-void ApproximatingLoad::preEx(const IOdata& inputs, const stateData& sD, const solverMode& sMode)
+void ApproximatingLoad::preEx(const IOdata& inputs,
+                              const stateData& stateDataValue,
+                              const solverMode& sMode)
 {
-    if ((lastSeqID == sD.seqID) && (sD.seqID != 0)) {
+    if ((lastSeqID == stateDataValue.seqID) && (stateDataValue.seqID != 0)) {
         return;
     }
-    lastSeqID = sD.seqID;
-    double V = inputs[voltageInLocation];
+    lastSeqID = stateDataValue.seqID;
+    const double voltage = inputs[voltageInLocation];
 
     CouplingMode mode;
     if (!isDynamic(sMode)) {
@@ -248,37 +250,37 @@ void ApproximatingLoad::preEx(const IOdata& inputs, const stateData& sD, const s
     }
     if (mode == CouplingMode::full) {
         if (cDetail == CouplingDetail::single) {
-            run1ApproxA(sD.time, inputs);
+            run1ApproxA(stateDataValue.time, inputs);
         } else if (cDetail == CouplingDetail::VDep) {
-            run2ApproxA(sD.time, inputs);
+            run2ApproxA(stateDataValue.time, inputs);
         } else {
-            run3ApproxA(sD.time, inputs);
+            run3ApproxA(stateDataValue.time, inputs);
         }
     } else {
         if (cDetail == CouplingDetail::single) {
-            if ((V > Vprev + 0.5 * spread) || (V < Vprev - 0.5 * spread)) {
-                run1ApproxA(sD.time, inputs);
+            if ((voltage > (Vprev + (0.5 * spread))) || (voltage < (Vprev - (0.5 * spread)))) {
+                run1ApproxA(stateDataValue.time, inputs);
             }
         } else if (cDetail == CouplingDetail::VDep) {
-            if ((V > Vprev + spread) || (V < Vprev - spread)) {
-                run2ApproxA(sD.time, inputs);
+            if ((voltage > (Vprev + spread)) || (voltage < (Vprev - spread))) {
+                run2ApproxA(stateDataValue.time, inputs);
             }
         } else {
-            if ((V > Vprev + 1.5 * spread) || (V < Vprev - 1.5 * spread)) {
-                run3ApproxA(sD.time, inputs);
+            if ((voltage > (Vprev + (1.5 * spread))) || (voltage < (Vprev - (1.5 * spread)))) {
+                run3ApproxA(stateDataValue.time, inputs);
             }
         }
     }
 }
 
 void ApproximatingLoad::updateLocalCache(const IOdata& inputs,
-                                         const stateData& sD,
+                                         const stateData& stateDataValue,
                                          const solverMode& sMode)
 {
     if (opFlags[waiting_flag]) {
         updateB();
     }
-    RampLoad::updateLocalCache(inputs, sD, sMode);
+    RampLoad::updateLocalCache(inputs, stateDataValue, sMode);
 }
 
 std::vector<std::tuple<double, double, double>>
@@ -291,12 +293,13 @@ std::vector<std::tuple<double, double, double>>
     }
 
     IOdata cinputs(inputs.begin(), inputs.end());
-    for (auto& V : voltages) {
-        cinputs[voltageInLocation] = V;
+    for (const auto& voltage : voltages) {
+        cinputs[voltageInLocation] = voltage;
         subLoad->updateLocalCache(cinputs, emptyStateData, cLocalSolverMode);
-        auto Psub = subLoad->getRealPower(cinputs, emptyStateData, cLocalSolverMode);
-        auto Qsub = subLoad->getReactivePower(cinputs, emptyStateData, cLocalSolverMode);
-        res.emplace_back(V, Psub, Qsub);
+        auto realPowerSub = subLoad->getRealPower(cinputs, emptyStateData, cLocalSolverMode);
+        auto reactivePowerSub =
+            subLoad->getReactivePower(cinputs, emptyStateData, cLocalSolverMode);
+        res.emplace_back(voltage, realPowerSub, reactivePowerSub);
     }
     return res;
 }
@@ -310,11 +313,11 @@ void ApproximatingLoad::run1ApproxA(coreTime /*time*/, const IOdata& inputs)
 
     std::vector<double> voltages;
     voltages.push_back(inputs[voltageInLocation]);
-    std::vector<double> inputb(inputs.begin(), inputs.end());
-    auto wb =
-        make_workBlock([inputb, voltages, this]() { return getLoadValues(inputb, voltages); });
-    vres = wb->get_future();
-    getGlobalWorkQueue()->addWorkBlock(std::move(wb));
+    const std::vector<double> inputBuffer(inputs.begin(), inputs.end());
+    auto workBlock = make_workBlock(
+        [inputBuffer, voltages, this]() { return getLoadValues(inputBuffer, voltages); });
+    vres = workBlock->get_future();
+    getGlobalWorkQueue()->addWorkBlock(std::move(workBlock));
     opFlags.set(waiting_flag);
 }
 
@@ -333,15 +336,15 @@ void ApproximatingLoad::run2ApproxA(coreTime /*time*/, const IOdata& inputs)
     // auto dt = time - m_lastCallTime;
 
     std::vector<double> voltages;
-    double V = inputs[voltageInLocation];
-    voltages.push_back(V);
-    double r1 = (V + spread) / V;
-    voltages.push_back(V * r1);
-    std::vector<double> inputb(inputs.begin(), inputs.end());
-    auto wb =
-        make_workBlock([inputb, voltages, this]() { return getLoadValues(inputb, voltages); });
-    vres = wb->get_future();
-    getGlobalWorkQueue()->addWorkBlock(std::move(wb));
+    const double voltage = inputs[voltageInLocation];
+    voltages.push_back(voltage);
+    const double ratio1 = (voltage + spread) / voltage;
+    voltages.push_back(voltage * ratio1);
+    const std::vector<double> inputBuffer(inputs.begin(), inputs.end());
+    auto workBlock = make_workBlock(
+        [inputBuffer, voltages, this]() { return getLoadValues(inputBuffer, voltages); });
+    vres = workBlock->get_future();
+    getGlobalWorkQueue()->addWorkBlock(std::move(workBlock));
     opFlags.set(waiting_flag);
 }
 
@@ -350,17 +353,17 @@ std::vector<double> ApproximatingLoad::run2ApproxB()
     assert(opFlags[waiting_flag]);  // this should not happen;
     auto res = vres.get();
     opFlags.reset(waiting_flag);
-    double V1 = std::get<0>(res[0]);
-    double P1 = std::get<1>(res[0]);
-    double Q1 = std::get<2>(res[0]);
-    double V2 = std::get<0>(res[1]);
-    double P2 = std::get<1>(res[1]);
-    double Q2 = std::get<2>(res[1]);
+    const double voltage1 = std::get<0>(res[0]);
+    const double realPower1 = std::get<1>(res[0]);
+    const double reactivePower1 = std::get<2>(res[0]);
+    const double voltage2 = std::get<0>(res[1]);
+    const double realPower2 = std::get<1>(res[1]);
+    const double reactivePower2 = std::get<2>(res[1]);
     std::vector<double> retP(4);
-    retP[2] = (P2 - P1) / (V2 - V1);
-    retP[3] = (Q2 - Q1) / (V2 - V1);
-    retP[0] = P1 - V1 * retP[2];
-    retP[1] = Q1 - V1 * retP[3];
+    retP[2] = (realPower2 - realPower1) / (voltage2 - voltage1);
+    retP[3] = (reactivePower2 - reactivePower1) / (voltage2 - voltage1);
+    retP[0] = realPower1 - (voltage1 * retP[2]);
+    retP[1] = reactivePower1 - (voltage1 * retP[3]);
     return retP;
 }
 
@@ -372,18 +375,18 @@ void ApproximatingLoad::run3ApproxA(coreTime /*time*/, const IOdata& inputs)
     // auto dt = time - m_lastCallTime;
 
     std::vector<double> voltages;
-    double V = inputs[voltageInLocation];
+    const double voltage = inputs[voltageInLocation];
 
-    double r1 = (V - spread) / V;
-    voltages.push_back(V * r1);
-    r1 = (V + spread) / V;
-    voltages.push_back(V * r1);
-    voltages.push_back(V);
-    std::vector<double> inputb(inputs.begin(), inputs.end());
-    auto wb =
-        make_workBlock([inputb, voltages, this]() { return getLoadValues(inputb, voltages); });
-    vres = wb->get_future();
-    getGlobalWorkQueue()->addWorkBlock(std::move(wb));
+    double ratio1 = (voltage - spread) / voltage;
+    voltages.push_back(voltage * ratio1);
+    ratio1 = (voltage + spread) / voltage;
+    voltages.push_back(voltage * ratio1);
+    voltages.push_back(voltage);
+    const std::vector<double> inputBuffer(inputs.begin(), inputs.end());
+    auto workBlock = make_workBlock(
+        [inputBuffer, voltages, this]() { return getLoadValues(inputBuffer, voltages); });
+    vres = workBlock->get_future();
+    getGlobalWorkQueue()->addWorkBlock(std::move(workBlock));
     opFlags.set(waiting_flag);
 }
 
@@ -392,48 +395,22 @@ std::vector<double> ApproximatingLoad::run3ApproxB()
     assert(opFlags[waiting_flag]);  // this should not happen;
     auto res = vres.get();
     opFlags.reset(waiting_flag);
-    double V1 = std::get<0>(res[0]);
-    double P1 = std::get<1>(res[0]);
-    double Q1 = std::get<2>(res[0]);
-    double V2 = std::get<0>(res[1]);
-    double P2 = std::get<1>(res[1]);
-    double Q2 = std::get<2>(res[1]);
-    double V3 = std::get<0>(res[2]);
-    double P3 = std::get<1>(res[2]);
-    double Q3 = std::get<2>(res[2]);
-#if 0
-  a1 = P1 / ((V1 - V2) * (V1 - V3));
-  double a2 = P2 / ((V2 - V1) * (V2 - V3));
-  double a3 = P3 / ((V3 - V1) * (V3 - V2));
-  double A, B, C;
-  A = a1 + a2 + a3;
-  B = (a1 * (V2 + V3) + a2 * (V1 + V3) + a3 * (V1 + V2));
-  C = a1 * V2 * V3 + a2 * V1 * V3 + a3 * V1 * V2;
-
-  std::vector<double> retP (6);
-
-  retP[0] = C;
-  retP[2] = B;
-  retP[4] = A;
-
-  a1 = Q1 / ((V1 - V2) * (V1 - V3));
-  a2 = Q2 / ((V2 - V1) * (V2 - V3));
-  a3 = Q3 / ((V3 - V1) * (V3 - V2));
-
-  A = a1 + a2 + a3;
-  B = (a1 * (V2 + V3) + a2 * (V1 + V3) + a3 * (V1 + V2));
-  C = a1 * V2 * V3 + a2 * V1 * V3 + a3 * V1 * V2;
-  retP[1] = C;
-  retP[3] = B;
-  retP[5] = A;
-#else
+    const double voltage1 = std::get<0>(res[0]);
+    const double realPower1 = std::get<1>(res[0]);
+    const double reactivePower1 = std::get<2>(res[0]);
+    const double voltage2 = std::get<0>(res[1]);
+    const double realPower2 = std::get<1>(res[1]);
+    const double reactivePower2 = std::get<2>(res[1]);
+    const double voltage3 = std::get<0>(res[2]);
+    const double realPower3 = std::get<1>(res[2]);
+    const double reactivePower3 = std::get<2>(res[2]);
 
     std::vector<double> retP(6);
-    double X3;
+    double quadraticTerm;
 
-    double b1 = V1 * V1;
-    double b2 = V2 * V2;
-    double b3 = V3 * V3;
+    const double voltageSq1 = voltage1 * voltage1;
+    const double voltageSq2 = voltage2 * voltage2;
+    const double voltageSq3 = voltage3 * voltage3;
     // do a check for linearity
 
     /*
@@ -445,44 +422,51 @@ Yp = LV[4];
 Yq = LV[5];
 */
 
-    double X1 = (P2 - P1) / (V2 - V1);
-    double X2 = (P3 - P1) / (V3 - V1);
+    double linearTerm1 = (realPower2 - realPower1) / (voltage2 - voltage1);
+    double linearTerm2 = (realPower3 - realPower1) / (voltage3 - voltage1);
     if ((opFlags[linearize_triple]) ||
-        (std::abs(X1 - X2) < 0.0001))  // we are pretty well linear here
+        (std::abs(linearTerm1 - linearTerm2) < 0.0001))  // we are pretty well linear here
     {
         retP[4] = 0;
-        retP[0] = P1 - V1 * (X1 + X2) / 2;
-        retP[2] = (X1 + X2) / 2.0;
+        retP[0] = realPower1 - ((voltage1 * (linearTerm1 + linearTerm2)) / 2.0);
+        retP[2] = (linearTerm1 + linearTerm2) / 2.0;
     } else {
-        X3 = ((V2 - V1) * (P3 - P1) + (V1 - V3) * (P2 - P1)) /
-            ((V1 - V3) * (b2 - b1) + (b1 - b3) * (V1 - V2));
-        X2 = (P2 - P1 + b1 * X3 - b2 * X3) / (V2 - V1);
-        X1 = P1 - V1 * X2 - b1 * X3;
+        quadraticTerm = (((voltage2 - voltage1) * (realPower3 - realPower1)) +
+                         ((voltage1 - voltage3) * (realPower2 - realPower1))) /
+            (((voltage1 - voltage3) * (voltageSq2 - voltageSq1)) +
+             ((voltageSq1 - voltageSq3) * (voltage1 - voltage2)));
+        linearTerm2 = ((realPower2 - realPower1) + (voltageSq1 * quadraticTerm) -
+                       (voltageSq2 * quadraticTerm)) /
+            (voltage2 - voltage1);
+        linearTerm1 = realPower1 - (voltage1 * linearTerm2) - (voltageSq1 * quadraticTerm);
 
-        retP[0] = X1;
-        retP[2] = X2;
-        retP[4] = X3;
+        retP[0] = linearTerm1;
+        retP[2] = linearTerm2;
+        retP[4] = quadraticTerm;
     }
 
-    X1 = (Q2 - Q1) / (V2 - V1);
-    X2 = (Q3 - Q1) / (V3 - V1);
+    linearTerm1 = (reactivePower2 - reactivePower1) / (voltage2 - voltage1);
+    linearTerm2 = (reactivePower3 - reactivePower1) / (voltage3 - voltage1);
     if ((opFlags[linearize_triple]) ||
-        (std::abs(X1 - X2) < 0.0001))  // we are pretty well linear here
+        (std::abs(linearTerm1 - linearTerm2) < 0.0001))  // we are pretty well linear here
     {
-        retP[1] = Q1 - V1 * (X1 + X2) / 2;
-        retP[3] = (X1 + X2) / 2.0;
+        retP[1] = reactivePower1 - ((voltage1 * (linearTerm1 + linearTerm2)) / 2.0);
+        retP[3] = (linearTerm1 + linearTerm2) / 2.0;
         retP[5] = 0;
     } else {
-        X3 = ((V2 - V1) * (Q3 - Q1) + (V1 - V3) * (Q2 - Q1)) /
-            ((V1 - V3) * (b2 - b1) + (b1 - b3) * (V1 - V2));
-        X2 = (Q2 - Q1 + b1 * X3 - b2 * X3) / (V2 - V1);
-        X1 = Q1 - V1 * X2 - b1 * X3;
+        quadraticTerm = (((voltage2 - voltage1) * (reactivePower3 - reactivePower1)) +
+                         ((voltage1 - voltage3) * (reactivePower2 - reactivePower1))) /
+            (((voltage1 - voltage3) * (voltageSq2 - voltageSq1)) +
+             ((voltageSq1 - voltageSq3) * (voltage1 - voltage2)));
+        linearTerm2 = ((reactivePower2 - reactivePower1) + (voltageSq1 * quadraticTerm) -
+                       (voltageSq2 * quadraticTerm)) /
+            (voltage2 - voltage1);
+        linearTerm1 = reactivePower1 - (voltage1 * linearTerm2) - (voltageSq1 * quadraticTerm);
 
-        retP[1] = X1;
-        retP[3] = X2;
-        retP[5] = X3;
+        retP[1] = linearTerm1;
+        retP[3] = linearTerm2;
+        retP[5] = quadraticTerm;
     }
-#endif
 
     return retP;
 }
@@ -490,37 +474,40 @@ Yq = LV[5];
 void ApproximatingLoad::set(std::string_view param, std::string_view val)
 {
     if (param == "detail") {
-        auto v2 = convertToLowerCase(val);
-        if ((v2 == "triple") || (v2 == "high") || (v2 == "zip") || (v2 == "3")) {
+        auto valueLower = convertToLowerCase(val);
+        if ((valueLower == "triple") || (valueLower == "high") || (valueLower == "zip") ||
+            (valueLower == "3")) {
             cDetail = CouplingDetail::triple;
-        } else if ((v2 == "lineartriple") || (v2 == "linear3")) {
+        } else if ((valueLower == "lineartriple") || (valueLower == "linear3")) {
             cDetail = CouplingDetail::triple;
             opFlags.set(linearize_triple);
-        } else if ((v2 == "single") || (v2 == "low") || (v2 == "constant") || (v2 == "1")) {
+        } else if ((valueLower == "single") || (valueLower == "low") ||
+                   (valueLower == "constant") || (valueLower == "1")) {
             cDetail = CouplingDetail::single;
-        } else if ((v2 == "double") || (v2 == "vdep") || (v2 == "linear") || (v2 == "2")) {
+        } else if ((valueLower == "double") || (valueLower == "vdep") || (valueLower == "linear") ||
+                   (valueLower == "2")) {
             cDetail = CouplingDetail::VDep;
         }
     } else if ((param == "mode") || (param == "coupling") || (param == "dyncoupling")) {
-        auto v2 = convertToLowerCase(val);
-        if (v2 == "none") {
+        auto valueLower = convertToLowerCase(val);
+        if (valueLower == "none") {
             dynCoupling = CouplingMode::none;
-        } else if ((v2 == "interval") || (v2 == "periodic")) {
+        } else if ((valueLower == "interval") || (valueLower == "periodic")) {
             dynCoupling = CouplingMode::interval;
-        } else if (v2 == "trigger") {
+        } else if (valueLower == "trigger") {
             dynCoupling = CouplingMode::trigger;
-        } else if (v2 == "full") {
+        } else if (valueLower == "full") {
             dynCoupling = CouplingMode::full;
         }
     } else if ((param == "pflow") || (param == "pflowcoupling")) {
-        auto v2 = convertToLowerCase(val);
-        if (v2 == "none") {
+        auto valueLower = convertToLowerCase(val);
+        if (valueLower == "none") {
             pFlowCoupling = CouplingMode::none;
-        } else if ((v2 == "interval") || (v2 == "periodic")) {
+        } else if ((valueLower == "interval") || (valueLower == "periodic")) {
             pFlowCoupling = CouplingMode::interval;
-        } else if (v2 == "trigger") {
+        } else if (valueLower == "trigger") {
             pFlowCoupling = CouplingMode::trigger;
-        } else if (v2 == "full") {
+        } else if (valueLower == "full") {
             pFlowCoupling = CouplingMode::full;
         }
     } else {
@@ -568,9 +555,9 @@ void ApproximatingLoad::rootTest(const IOdata& inputs,
                                  double roots[],
                                  const solverMode& sMode)
 {
-    int rootOffset = offsets.getRootOffset(sMode);
-    double V = inputs[voltageInLocation];
-    roots[rootOffset] = spread * triggerBound - std::abs(V - Vprev);
+    const int rootOffset = offsets.getRootOffset(sMode);
+    const double voltage = inputs[voltageInLocation];
+    roots[rootOffset] = (spread * triggerBound) - std::abs(voltage - Vprev);
 
     // printf("time=%f root =%12.10f\n", time,roots[rootOffset]);
 }
@@ -580,7 +567,7 @@ void ApproximatingLoad::rootTrigger(coreTime time,
                                     const std::vector<int>& rootMask,
                                     const solverMode& sMode)
 {
-    int rootOffset = offsets.getRootOffset(sMode);
+    const int rootOffset = offsets.getRootOffset(sMode);
     if (rootMask[rootOffset] != 0) {
         updateA(time);
         updateB();
@@ -588,13 +575,13 @@ void ApproximatingLoad::rootTrigger(coreTime time,
 }
 
 ChangeCode ApproximatingLoad::rootCheck(const IOdata& inputs,
-                                        const stateData& sD,
+                                        const stateData& stateDataValue,
                                         const solverMode& /*sMode*/,
                                         CheckLevel /*level*/)
 {
-    double V = inputs[voltageInLocation];
-    if (std::abs(V - Vprev) > spread * triggerBound) {
-        updateA((sD.empty()) ? (sD.time) : prevTime);
+    const double voltage = inputs[voltageInLocation];
+    if (std::abs(voltage - Vprev) > (spread * triggerBound)) {
+        updateA((stateDataValue.empty()) ? (stateDataValue.time) : prevTime);
         updateB();
         return ChangeCode::PARAMETER_CHANGE;
     }

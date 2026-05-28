@@ -149,14 +149,14 @@ which cases the parent of the link is searched for the bus*/
                   const solverMode& sMode) override;
     void setState(coreTime time,
                   const double state[],
-                  const double dstate_dt[],
+                  const double dstateDt[],
                   const solverMode& sMode) override;
     void guessState(coreTime time,
                     double state[],
-                    double dstate_dt[],
+                    double dstateDt[],
                     const solverMode& sMode) override;
-    virtual stateSizes LocalStateSizes(const solverMode& sMode) const override;
-    virtual count_t LocalJacobianCount(const solverMode& sMode) const override;
+    virtual stateSizes localStateSizes(const solverMode& sMode) const override;
+    virtual count_t localJacobianCount(const solverMode& sMode) const override;
 
   protected:
     void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;

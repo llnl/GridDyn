@@ -26,9 +26,9 @@ static constexpr double k3sq2sq = k3sq2 * k3sq2;
 using units::convert;
 using units::puMW;
 using units::unit;
-constexpr char RECTIFIER_NAME[] = "rectifier_$";
-constexpr char INVERTER_NAME[] = "inverter_$";
-constexpr char BIDIRECTIONAL_NAME[] = "acdcConveter_$";
+constexpr char rectifierName[] = "rectifier_$";
+constexpr char inverterName[] = "inverter_$";
+constexpr char bidirectionalName[] = "acdcConveter_$";
 
 static std::string modeToName(acdcConverter::Mode mode, const std::string& name)
 {
@@ -37,12 +37,12 @@ static std::string modeToName(acdcConverter::Mode mode, const std::string& name)
     }
     switch (mode) {
         case acdcConverter::Mode::RECTIFIER:
-            return RECTIFIER_NAME;
+            return rectifierName;
         case acdcConverter::Mode::INVERTER:
-            return INVERTER_NAME;
+            return inverterName;
         case acdcConverter::Mode::BIDIRECTIONAL:
         default:
-            return BIDIRECTIONAL_NAME;
+            return bidirectionalName;
     }
 }
 

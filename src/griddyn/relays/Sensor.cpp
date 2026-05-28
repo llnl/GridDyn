@@ -117,7 +117,7 @@ void sensor::add(GridBlock* blk)
     blk->parentSetFlag(separate_processing, true, this);
 }
 
-void sensor::add(std::shared_ptr<grabberSet> dGr)
+void sensor::add(std::shared_ptr<GrabberSet> dGr)
 {
     if (dGr) {
         auto cnum = inputStrings.size();
@@ -131,12 +131,12 @@ void sensor::add(std::shared_ptr<grabberSet> dGr)
     }
 }
 
-void sensor::add(std::shared_ptr<gridGrabber> dGr)
+void sensor::add(std::shared_ptr<GridGrabber> dGr)
 {
-    add(std::make_shared<grabberSet>(std::move(dGr), nullptr));
+    add(std::make_shared<GrabberSet>(std::move(dGr), nullptr));
 }
 
-std::shared_ptr<grabberSet> sensor::getGrabberSet(index_t grabberNum)
+std::shared_ptr<GrabberSet> sensor::getGrabberSet(index_t grabberNum)
 {
     if (grabberNum < static_cast<index_t>(dataSources.size())) {
         return dataSources[grabberNum];
@@ -276,7 +276,7 @@ void sensor::setupOutput(index_t num, const std::string& outputString)
                 outputs[num] = knum;
                 outputMode[num] = OutputMode::BLOCK_DERIV;
             } else {
-                outGrabbers[num] = std::make_shared<grabberSet>(v2, this);
+                outGrabbers[num] = std::make_shared<GrabberSet>(v2, this);
 
                 outputMode[num] = OutputMode::PROCESSED;
             }
@@ -380,11 +380,11 @@ void sensor::generateInputGrabbers()
         }
         CoreObject* target_obj = (m_sourceObject != nullptr) ? m_sourceObject : getParent();
 
-        dataSources[ii] = std::make_shared<grabberSet>(istr, target_obj, opFlags[sampled_only]);
+        dataSources[ii] = std::make_shared<GrabberSet>(istr, target_obj, opFlags[sampled_only]);
     }
 }
-using cm = comms::controlMessagePayload;
-void sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage> message)
+using cm = comms::ControlMessagePayload;
+void sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMessage> message)
 {
     auto* payload = message->getPayload<cm>();
 
@@ -399,7 +399,7 @@ void sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage>
                     units::unit_cast_from_string(payload->m_units));
                 if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
                 {
-                    auto gres = std::make_shared<commMessage>(cm::SET_SUCCESS);
+                    auto gres = std::make_shared<CommMessage>(cm::SET_SUCCESS);
                     assert(gres->getPayload<cm>());
                     gres->getPayload<cm>()->m_actionID =
                         (payload->m_actionID > 0) ? payload->m_actionID : instructionCounter;
@@ -409,7 +409,7 @@ void sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage>
             catch (const std::invalid_argument&) {
                 if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
                 {
-                    auto gres = std::make_shared<commMessage>(cm::SET_FAIL);
+                    auto gres = std::make_shared<CommMessage>(cm::SET_FAIL);
                     assert(gres->getPayload<cm>());
                     gres->getPayload<cm>()->m_actionID =
                         (payload->m_actionID > 0) ? payload->m_actionID : instructionCounter;
@@ -421,7 +421,7 @@ void sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage>
         case cm::GET: {
             val = get(gmlc::utilities::convertToLowerCase(payload->m_field),
                       units::unit_cast_from_string(payload->m_units));
-            auto reply = std::make_shared<commMessage>(cm::GET_RESULT);
+            auto reply = std::make_shared<CommMessage>(cm::GET_RESULT);
             auto rep = reply->getPayload<cm>();
             assert(rep);
             rep->m_field = payload->m_field;
@@ -442,7 +442,7 @@ void sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage>
         case cm::CANCEL:
             break;
         case cm::GET_MULTIPLE: {
-            auto reply = std::make_shared<commMessage>(cm::GET_RESULT_MULTIPLE);
+            auto reply = std::make_shared<CommMessage>(cm::GET_RESULT_MULTIPLE);
             auto rep = reply->getPayload<cm>();
             if (rep == nullptr) {
                 break;

@@ -119,7 +119,7 @@ void txLifeSpan::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         sensor::set("output0", std::to_string(mInitialLife) + "-block0");
         sensor::set("output1", "block0");
 
-        auto rateGrabber = std::make_shared<customGrabber>();
+        auto rateGrabber = std::make_shared<CustomGrabber>();
         rateGrabber->setGrabberFunction("rate", [this](CoreObject*) -> double {
             return mAgingAccelerationFactor;
         });

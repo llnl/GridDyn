@@ -39,52 +39,52 @@ namespace {
 
 using gmlc::utilities::numeric_conversion;
 
-REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_IGNORE, "IGNORE", commMessage::ignoreMessageType);
-REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_PING, "ping", commMessage::pingMessageType);
-REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_REPLY, "reply", commMessage::replyMessageType);
-REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_NO_EVENT, "NO EVENT", commMessage::NO_EVENT);
-REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_LOCAL_FAULT, "LOCAL FAULT", commMessage::LOCAL_FAULT_EVENT);
-REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_REMOTE_FAULT, "REMOTE FAULT", commMessage::REMOTE_FAULT_EVENT);
-REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_BREAKER_TRIP, "BREAKER TRIP", commMessage::BREAKER_TRIP_EVENT);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_IGNORE, "IGNORE", CommMessage::ignoreMessageType);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_PING, "ping", CommMessage::pingMessageType);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_REPLY, "reply", CommMessage::replyMessageType);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_NO_EVENT, "NO EVENT", CommMessage::NO_EVENT);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_LOCAL_FAULT, "LOCAL FAULT", CommMessage::LOCAL_FAULT_EVENT);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_REMOTE_FAULT, "REMOTE FAULT", CommMessage::REMOTE_FAULT_EVENT);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_BREAKER_TRIP, "BREAKER TRIP", CommMessage::BREAKER_TRIP_EVENT);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_BREAKER_CLOSE,
                       "BREAKER CLOSE",
-                      commMessage::BREAKER_CLOSE_EVENT);
+                      CommMessage::BREAKER_CLOSE_EVENT);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_LOCAL_FAULT_CLEARED,
                       "LOCAL FAULT CLEARED",
-                      commMessage::LOCAL_FAULT_CLEARED);
+                      CommMessage::LOCAL_FAULT_CLEARED);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_REMOTE_FAULT_CLEARED,
                       "REMOTE FAULT CLEARED",
-                      commMessage::REMOTE_FAULT_CLEARED);
+                      CommMessage::REMOTE_FAULT_CLEARED);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_BREAKER_TRIP_COMMAND,
                       "BREAKER TRIP COMMAND",
-                      commMessage::BREAKER_TRIP_COMMAND);
+                      CommMessage::BREAKER_TRIP_COMMAND);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_BREAKER_CLOSE_COMMAND,
                       "BREAKER CLOSE COMMAND",
-                      commMessage::BREAKER_CLOSE_COMMAND);
+                      CommMessage::BREAKER_CLOSE_COMMAND);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_BREAKER_OOS_COMMAND,
                       "BREAKER OOS COMMAND",
-                      commMessage::BREAKER_OOS_COMMAND);
+                      CommMessage::BREAKER_OOS_COMMAND);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_ALARM_TRIGGER_EVENT,
                       "ALARM TRIGGER EVENT",
-                      commMessage::ALARM_TRIGGER_EVENT);
+                      CommMessage::ALARM_TRIGGER_EVENT);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_ALARM_CLEARED_EVENT,
                       "ALARM CLEARED EVENT",
-                      commMessage::ALARM_CLEARED_EVENT);
+                      CommMessage::ALARM_CLEARED_EVENT);
 
-commMessage::commMessage(std::uint32_t type): m_messageType(type)
+CommMessage::CommMessage(std::uint32_t type): m_messageType(type)
 {
-    payload = corePayloadFactory::instance().createPayload(type);
+    payload = CorePayloadFactory::instance().createPayload(type);
     ptype = PayloadType::shared;
 }
 
-commMessage::commMessage(std::uint32_t type, std::uint32_t messagecode):
+CommMessage::CommMessage(std::uint32_t type, std::uint32_t messagecode):
     m_messageType(type), code(messagecode)
 {
-    payload = corePayloadFactory::instance().createPayload(type);
+    payload = CorePayloadFactory::instance().createPayload(type);
     ptype = PayloadType::shared;
 }
 
-std::string commMessage::to_string() const
+std::string CommMessage::to_string() const
 {
     std::string message = MessageTypeRegistry::instance().getTypeString(m_messageType);
 
@@ -99,7 +99,7 @@ std::string commMessage::to_string() const
     }
     return message;
 }
-void commMessage::from_string(std::string_view fromString)
+void CommMessage::from_string(std::string_view fromString)
 {
     auto delimiterPos = fromString.find_first_of(":[");
     if (delimiterPos == std::string::npos) {
@@ -119,11 +119,11 @@ void commMessage::from_string(std::string_view fromString)
     } else {
         code = 0xFFFF'FFFF;
     }
-    payload = corePayloadFactory::instance().createPayload(m_messageType);
+    payload = CorePayloadFactory::instance().createPayload(m_messageType);
     payload->from_string(m_messageType, code, fromString, delimiterPos + 1);
 }
 
-int commMessage::toByteArray(char* data, size_t bufferSize) const
+int CommMessage::toByteArray(char* data, size_t bufferSize) const
 {
     if ((data == nullptr) || (bufferSize == 0)) {
         return -1;
@@ -141,7 +141,7 @@ int commMessage::toByteArray(char* data, size_t bufferSize) const
     }
 }
 
-std::string commMessage::toDataString() const
+std::string CommMessage::toDataString() const
 {
     std::string data;
     boost::iostreams::back_insert_device<std::string> inserter(data);
@@ -156,7 +156,7 @@ std::string commMessage::toDataString() const
     return data;
 }
 
-std::vector<char> commMessage::toVector() const
+std::vector<char> CommMessage::toVector() const
 {
     std::vector<char> data;
     boost::iostreams::back_insert_device<std::vector<char>> inserter(data);
@@ -171,7 +171,7 @@ std::vector<char> commMessage::toVector() const
     return data;
 }
 
-void commMessage::toVector(std::vector<char>& data) const
+void CommMessage::toVector(std::vector<char>& data) const
 {
     data.clear();
     boost::iostreams::back_insert_device<std::vector<char>> inserter(data);
@@ -185,7 +185,7 @@ void commMessage::toVector(std::vector<char>& data) const
     outputStream.flush();
 }
 
-void commMessage::toDataString(std::string& data) const
+void CommMessage::toDataString(std::string& data) const
 {
     data.clear();
 
@@ -200,7 +200,7 @@ void commMessage::toDataString(std::string& data) const
     outputStream.flush();
 }
 
-void commMessage::fromByteArray(const char* data, size_t bufferSize)
+void CommMessage::fromByteArray(const char* data, size_t bufferSize)
 {
     boost::iostreams::basic_array_source<char> device(data, bufferSize);
     boost::iostreams::stream<boost::iostreams::basic_array_source<char>> inputStream(device);
@@ -213,12 +213,12 @@ void commMessage::fromByteArray(const char* data, size_t bufferSize)
     }
 }
 
-void commMessage::fromDataString(std::string_view data)
+void CommMessage::fromDataString(std::string_view data)
 {
     fromByteArray(data.data(), data.size());
 }
 
-void commMessage::fromVector(const std::vector<char>& data)
+void CommMessage::fromVector(const std::vector<char>& data)
 {
     fromByteArray(data.data(), data.size());
 }
@@ -254,7 +254,7 @@ uint32_t MessageTypeRegistry::getType(std::string_view name) const
         return fnd->second;
     }
     if (name.starts_with("type_")) {
-        std::uint32_t type{commMessage::unknownMessageType};
+        std::uint32_t type{CommMessage::unknownMessageType};
         const auto typeId = name.substr(5);
         const auto* begin = typeId.data();
         const auto* end = begin + typeId.size();
@@ -263,7 +263,7 @@ uint32_t MessageTypeRegistry::getType(std::string_view name) const
             return type;
         }
     }
-    return commMessage::unknownMessageType;
+    return CommMessage::unknownMessageType;
 }
 
 std::string MessageTypeRegistry::getTypeString(int32_t type) const
@@ -278,15 +278,15 @@ std::string MessageTypeRegistry::getTypeString(int32_t type) const
     return ret;
 }
 
-corePayloadFactory& corePayloadFactory::instance()
+CorePayloadFactory& CorePayloadFactory::instance()
 {
     // can't use make shared because the constructor is private  note it is static so only created
     // once
-    static corePayloadFactory factory;
+    static CorePayloadFactory factory;
     return factory;
 }
 
-void corePayloadFactory::registerFactory(std::string_view name, payloadFactory* messageFactory)
+void CorePayloadFactory::registerFactory(std::string_view name, PayloadFactory* messageFactory)
 {
     auto ret = m_factoryMap.emplace(std::string{name}, messageFactory);
     if (!ret.second) {
@@ -294,7 +294,7 @@ void corePayloadFactory::registerFactory(std::string_view name, payloadFactory* 
     }
 }
 
-void corePayloadFactory::registerFactory(payloadFactory* messageFactory)
+void CorePayloadFactory::registerFactory(PayloadFactory* messageFactory)
 {
     auto ret = m_factoryMap.emplace(messageFactory->name, messageFactory);
     if (!ret.second) {
@@ -302,7 +302,7 @@ void corePayloadFactory::registerFactory(payloadFactory* messageFactory)
     }
 }
 
-payloadFactory* corePayloadFactory::getFactory(std::string_view factoryName)
+PayloadFactory* CorePayloadFactory::getFactory(std::string_view factoryName)
 {
     auto mfind = m_factoryMap.find(std::string{factoryName});
     if (mfind != m_factoryMap.end()) {
@@ -312,10 +312,10 @@ payloadFactory* corePayloadFactory::getFactory(std::string_view factoryName)
 }
 
 // always find the narrowest range that valid
-payloadFactory* corePayloadFactory::getFactory(std::uint32_t type)
+PayloadFactory* CorePayloadFactory::getFactory(std::uint32_t type)
 {
     std::uint32_t crange = 0xFFFFFFFF;
-    payloadFactory* cfact = nullptr;
+    PayloadFactory* cfact = nullptr;
     for (auto& fact : m_factoryMap) {
         if (fact.second->inRange(type)) {
             if (fact.second->range() < crange) {
@@ -328,7 +328,7 @@ payloadFactory* corePayloadFactory::getFactory(std::uint32_t type)
     return cfact;
 }
 
-std::vector<std::string> corePayloadFactory::getPayloadTypeNames()
+std::vector<std::string> CorePayloadFactory::getPayloadTypeNames()
 {
     std::vector<std::string> typeNames;
     typeNames.reserve(m_factoryMap.size());
@@ -338,7 +338,7 @@ std::vector<std::string> corePayloadFactory::getPayloadTypeNames()
     return typeNames;
 }
 
-std::shared_ptr<CommPayload> corePayloadFactory::createPayload(std::string_view messageType)
+std::shared_ptr<CommPayload> CorePayloadFactory::createPayload(std::string_view messageType)
 {
     auto mfind = m_factoryMap.find(std::string{messageType});
     if (mfind != m_factoryMap.end()) {
@@ -348,7 +348,7 @@ std::shared_ptr<CommPayload> corePayloadFactory::createPayload(std::string_view 
     return nullptr;
 }
 
-std::shared_ptr<CommPayload> corePayloadFactory::createPayload(std::string_view messageType,
+std::shared_ptr<CommPayload> CorePayloadFactory::createPayload(std::string_view messageType,
                                                                std::uint32_t type)
 {
     auto mfind = m_factoryMap.find(std::string{messageType});
@@ -360,10 +360,10 @@ std::shared_ptr<CommPayload> corePayloadFactory::createPayload(std::string_view 
 }
 
 // always find the narrowest range that valid
-std::shared_ptr<CommPayload> corePayloadFactory::createPayload(std::uint32_t type)
+std::shared_ptr<CommPayload> CorePayloadFactory::createPayload(std::uint32_t type)
 {
     std::uint32_t crange = 0xFFFFFFFF;
-    payloadFactory* cfact = nullptr;
+    PayloadFactory* cfact = nullptr;
     for (auto& fact : m_factoryMap) {
         if (fact.second->inRange(type)) {
             if (fact.second->range() < crange) {
@@ -380,7 +380,7 @@ std::shared_ptr<CommPayload> corePayloadFactory::createPayload(std::uint32_t typ
     return nullptr;
 }
 
-bool corePayloadFactory::isValidMessage(std::string_view messageType)
+bool CorePayloadFactory::isValidMessage(std::string_view messageType)
 {
     auto mfind = m_factoryMap.find(std::string{messageType});
     return (mfind != m_factoryMap.end());

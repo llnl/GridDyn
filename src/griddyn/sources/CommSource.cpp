@@ -39,7 +39,7 @@ void commSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     if (commLink) {
         commLink->initialize();
         commLink->registerReceiveCallback(
-            [this](std::uint64_t sourceID, std::shared_ptr<commMessage> message) {
+            [this](std::uint64_t sourceID, std::shared_ptr<CommMessage> message) {
                 receiveMessage(sourceID, message);
             });
     }
@@ -106,28 +106,28 @@ void commSource::updateA(coreTime time)
     }
 }
 
-using controlMessagePayload = griddyn::comms::controlMessagePayload;
+using ControlMessagePayload = griddyn::comms::ControlMessagePayload;
 
-void commSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage> message)
+void commSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMessage> message)
 {
     if (message == nullptr) {
         return;
     }
-    auto m = message->getPayload<controlMessagePayload>();
+    auto m = message->getPayload<ControlMessagePayload>();
     if (m == nullptr) {
         return;
     }
 
-    std::shared_ptr<commMessage> reply;
+    std::shared_ptr<CommMessage> reply;
 
     switch (message->getMessageType()) {
-        case controlMessagePayload::SET:
+        case ControlMessagePayload::SET:
             setLevel(m->m_value);
 
             if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
             {
-                reply = std::make_shared<commMessage>(controlMessagePayload::SET_SUCCESS);
-                auto payload = reply->getPayload<controlMessagePayload>();
+                reply = std::make_shared<CommMessage>(ControlMessagePayload::SET_SUCCESS);
+                auto payload = reply->getPayload<ControlMessagePayload>();
                 if (payload != nullptr) {
                     payload->m_actionID = m->m_actionID;
                     commLink->transmit(sourceID, reply);
@@ -135,10 +135,10 @@ void commSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMess
             }
 
             break;
-        case controlMessagePayload::GET: {
-            reply = std::make_shared<commMessage>(controlMessagePayload::GET_RESULT);
+        case ControlMessagePayload::GET: {
+            reply = std::make_shared<CommMessage>(ControlMessagePayload::GET_RESULT);
 
-            auto rep = reply->getPayload<controlMessagePayload>();
+            auto rep = reply->getPayload<ControlMessagePayload>();
             if (rep != nullptr) {
                 rep->m_field = "level";
                 rep->m_value = m_output;
@@ -146,11 +146,11 @@ void commSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMess
                 commLink->transmit(sourceID, reply);
             }
         } break;
-        case controlMessagePayload::SET_SUCCESS:
-        case controlMessagePayload::SET_FAIL:
-        case controlMessagePayload::GET_RESULT:
+        case ControlMessagePayload::SET_SUCCESS:
+        case ControlMessagePayload::SET_FAIL:
+        case ControlMessagePayload::GET_RESULT:
             break;
-        case controlMessagePayload::SET_SCHEDULED:
+        case ControlMessagePayload::SET_SCHEDULED:
             if (m->m_time > prevTime) {
                 double val = m->m_value;
                 auto fea = std::make_shared<FunctionEventAdapter>(
@@ -165,8 +165,8 @@ void commSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMess
 
                 if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
                 {
-                    auto gres = std::make_shared<commMessage>(controlMessagePayload::SET_SUCCESS);
-                    auto payload = gres->getPayload<controlMessagePayload>();
+                    auto gres = std::make_shared<CommMessage>(ControlMessagePayload::SET_SUCCESS);
+                    auto payload = gres->getPayload<ControlMessagePayload>();
                     if (payload != nullptr) {
                         payload->m_actionID = m->m_actionID;
                         commLink->transmit(sourceID, gres);
@@ -174,17 +174,17 @@ void commSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMess
                 }
             }
             break;
-        case controlMessagePayload::GET_SCHEDULED:
-        case controlMessagePayload::CANCEL_FAIL:
-        case controlMessagePayload::CANCEL_SUCCESS:
-        case controlMessagePayload::GET_RESULT_MULTIPLE:
+        case ControlMessagePayload::GET_SCHEDULED:
+        case ControlMessagePayload::CANCEL_FAIL:
+        case ControlMessagePayload::CANCEL_SUCCESS:
+        case ControlMessagePayload::GET_RESULT_MULTIPLE:
             break;
-        case controlMessagePayload::CANCEL:
+        case ControlMessagePayload::CANCEL:
 
             break;
-        case controlMessagePayload::GET_MULTIPLE:
+        case ControlMessagePayload::GET_MULTIPLE:
             break;
-        case controlMessagePayload::GET_PERIODIC:
+        case ControlMessagePayload::GET_PERIODIC:
             break;
         default:
             break;

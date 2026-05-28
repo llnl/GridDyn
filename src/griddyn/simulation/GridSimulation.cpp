@@ -80,7 +80,7 @@ void GridSimulation::setErrorCode(int ecode)
     pState = ((ecode == GS_NO_ERROR) ? pState : GridState::GD_ERROR), errorCode = ecode;
 }
 
-void GridSimulation::add(std::shared_ptr<collector> col)
+void GridSimulation::add(std::shared_ptr<Collector> col)
 {
     if (!recordDirectory.empty()) {
         col->set("directory", recordDirectory);
@@ -133,11 +133,11 @@ void GridSimulation::saveRecorders()
     for (auto& col : collectorList) {
         try {
             col->flush();
-            logging::normal(this, "collector successfully flushed to: {}", col->getSinkName());
+            logging::normal(this, "Collector successfully flushed to: {}", col->getSinkName());
         }
         catch (const std::exception& e) {
             logging::error(this,
-                           "unable to flush collector {} (to {}): {}",
+                           "unable to flush Collector {} (to {}): {}",
                            col->getName(),
                            col->getSinkName(),
                            e.what());
@@ -243,8 +243,8 @@ void GridSimulation::set(std::string_view param, double val, units::unit unitTyp
     }
 }
 
-// find collector
-std::shared_ptr<collector> GridSimulation::findCollector(const std::string& collectorName)
+// find Collector
+std::shared_ptr<Collector> GridSimulation::findCollector(const std::string& collectorName)
 {
     for (auto& col : collectorList) {
         if (collectorName == col->getName()) {

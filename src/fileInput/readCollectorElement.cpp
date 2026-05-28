@@ -57,7 +57,7 @@ int loadCollectorElement(std::shared_ptr<ReaderElement>& element,
         ReaderInformation.collectors.push_back(collectorObject);
     }
 
-    gridGrabberInfo grabberInfo;
+    GridGrabberInfo grabberInfo;
     name = getElementField(element, "target", readerConfig::defMatchType);
     if (!name.empty()) {
         name = ReaderInformation.checkDefines(name);
@@ -99,10 +99,10 @@ int loadCollectorElement(std::shared_ptr<ReaderElement>& element,
         grabberInfo.offset = static_cast<int>(interpretString(elementText, ReaderInformation));
         if (!grabberInfo.field.empty()) {
             WARNPRINT(READER_WARN_ALL,
-                      "specifying offset in collector overrides field specification");
+                      "specifying offset in Collector overrides field specification");
         }
     }
-    // now load the other fields for the collector
+    // now load the other fields for the Collector
 
     setAttributes(collectorObject.get(),
                   element,

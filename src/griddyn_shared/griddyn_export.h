@@ -34,7 +34,7 @@ typedef void* GridDynSimulation;
 /** typedef a GridDynSingleQuery to a void * to represent a query for a single data point*/
 typedef void* GridDynSingleQuery;
 
-/** typedef a GridDynVectorQuery to a void * to represent a collector for multiple data points*/
+/** typedef a GridDynVectorQuery to a void * to represent a Collector for multiple data points*/
 typedef void* GridDynVectorQuery;
 
 /** typedef a GridDynEvent to a void * to represent an event in GridDyn*/

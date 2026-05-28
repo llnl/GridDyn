@@ -43,7 +43,7 @@ void TcpCommunicator::cloneTo(Communicator* comm) const
 }
 
 void TcpCommunicator::transmit(std::string_view /*destName*/,
-                               const std::shared_ptr<commMessage>& /* message */)
+                               const std::shared_ptr<CommMessage>& /* message */)
 {
     //  zmq::multipart_t txmsg;
     //  if (!flags[no_transmit_dest]) {
@@ -55,7 +55,7 @@ void TcpCommunicator::transmit(std::string_view /*destName*/,
 }
 
 void TcpCommunicator::transmit(std::uint64_t /*destID*/,
-                               const std::shared_ptr<commMessage>& /* message */)
+                               const std::shared_ptr<CommMessage>& /* message */)
 {
     //  zmq::multipart_t txmsg;
     // if (!flags[no_transmit_dest]) {
@@ -147,7 +147,7 @@ void TcpCommunicator::setFlag(std::string_view flag, bool val)
      auto msgBody = (sz == 2) ? msg.peek(1) : msg.peek(2);
 
      std::string msgString(static_cast<const char*>(msgBody->data()), msgBody->size());
-     std::shared_ptr<commMessage> gdMsg;
+     std::shared_ptr<CommMessage> gdMsg;
      gdMsg->fromDataString(msgString);
 
      // call the lower level receive function

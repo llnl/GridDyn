@@ -248,7 +248,7 @@ void txThermalModel::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         sensor::add(windingDelayBlock);
         topOilDelayBlock->parentSetFlag(separate_processing, true, this);
         windingDelayBlock->parentSetFlag(separate_processing, true, this);
-        auto ambientGrabber = std::make_shared<customGrabber>();
+        auto ambientGrabber = std::make_shared<CustomGrabber>();
         ambientGrabber->setGrabberFunction("ambient", [this](CoreObject* /*unused*/) -> double {
             return mAmbientTemp;
         });

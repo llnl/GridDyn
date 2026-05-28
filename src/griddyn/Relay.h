@@ -14,13 +14,13 @@
 #include <vector>
 
 namespace griddyn {
-class stateGrabber;
-class gridGrabber;
+class StateGrabber;
+class GridGrabber;
 class Condition;
 class Communicator;
 class EventAdapter;
 class Event;
-class commMessage;
+class CommMessage;
 class PropertyBuffer;
 
 enum class ChangeCode;  // forward declare ChangeCode enumeration
@@ -273,7 +273,7 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
     @param[in] sourceID  the source of the comm message
     @param[in] message the actual message to process
     */
-    virtual void receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage> message);
+    virtual void receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMessage> message);
     /** send and alarm message
     @param[in] code the identifier to put in the alarm message
     @throw  if no commlink is present

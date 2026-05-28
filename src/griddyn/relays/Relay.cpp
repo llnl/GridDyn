@@ -484,7 +484,7 @@ void Relay::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
             try {
                 commLink->initialize();
                 commLink->registerReceiveCallback(
-                    [this](std::uint64_t sourceID, std::shared_ptr<commMessage> message) {
+                    [this](std::uint64_t sourceID, std::shared_ptr<CommMessage> message) {
                         receiveMessage(sourceID, std::move(message));
                     });
             }
@@ -494,7 +494,7 @@ void Relay::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
                 try {
                     commLink->initialize();
                     commLink->registerReceiveCallback(
-                        [this](std::uint64_t sourceID, std::shared_ptr<commMessage> message) {
+                        [this](std::uint64_t sourceID, std::shared_ptr<CommMessage> message) {
                             receiveMessage(sourceID, std::move(message));
                         });
                 }
@@ -719,12 +719,12 @@ std::unique_ptr<EventAdapter> Relay::make_alarm(const std::string& val)
 }
 
 // NOLINTNEXTLINE
-void Relay::receiveMessage(std::uint64_t /*sourceID*/, std::shared_ptr<commMessage> /*message*/) {}
+void Relay::receiveMessage(std::uint64_t /*sourceID*/, std::shared_ptr<CommMessage> /*message*/) {}
 
 void Relay::sendAlarm(std::uint32_t code)
 {
     if (commLink) {
-        auto message = std::make_shared<commMessage>(commMessage::ALARM_TRIGGER_EVENT, code);
+        auto message = std::make_shared<CommMessage>(CommMessage::ALARM_TRIGGER_EVENT, code);
         cManager.send(std::move(message));
         return;
     }

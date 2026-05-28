@@ -14,7 +14,7 @@
 namespace griddyn {
 class Communicator;
 class PropertyBuffer;
-class commMessage;
+class CommMessage;
 
 namespace comms {
     /** class for build and maintaining communicators*/
@@ -44,7 +44,7 @@ namespace comms {
         std::shared_ptr<Communicator> build();
         std::shared_ptr<Communicator> getCommLink() const { return commLink; }
 
-        void send(std::shared_ptr<commMessage> m) const;
+        void send(std::shared_ptr<CommMessage> m) const;
 
         const std::string& destName() const { return commDestName; }
         const std::string& getName() const { return commName; }

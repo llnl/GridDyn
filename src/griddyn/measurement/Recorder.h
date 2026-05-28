@@ -13,8 +13,8 @@
 #include <vector>
 
 namespace griddyn {
-/** class to store and save data from the grid, based on a collector */
-class Recorder: public collector {
+/** class to store and save data from the grid, based on a Collector */
+class Recorder: public Collector {
   protected:
     coreTime mLastSaveTime = negTime;  //!< the last time the recorder saved to file
     gmlc::utilities::TimeSeriesMulti<double, coreTime> mDataset;  //!< the actual time series data
@@ -32,11 +32,11 @@ class Recorder: public collector {
     /** destructor will attempt to save the data*/
     ~Recorder();
 
-    virtual std::unique_ptr<collector> clone() const override;
-    /** duplicate the collector to a valid event
-    @param[in] col pointer to a collector object
+    virtual std::unique_ptr<Collector> clone() const override;
+    /** duplicate the Collector to a valid event
+    @param[in] col pointer to a Collector object
     */
-    virtual void cloneTo(collector* col) const override;
+    virtual void cloneTo(Collector* col) const override;
 
     virtual ChangeCode trigger(coreTime time) override;
 

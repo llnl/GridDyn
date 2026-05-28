@@ -19,7 +19,7 @@ namespace griddyn {
 class AGControl;
 class Generator;
 class Communicator;
-class commMessage;
+class CommMessage;
 /** object to manage scheduling for devices
  */
 class scheduler: public Source {
@@ -77,7 +77,7 @@ class scheduler: public Source {
     virtual void insertTarget(tsched targetSchedule);
     void clearSchedule();
     virtual void receiveMessage(std::uint64_t sourceID,
-                                const std::shared_ptr<commMessage>& message);
+                                const std::shared_ptr<CommMessage>& message);
 };
 
 /** @brief scheduler that can deal with ramping of the power on a continuous basis
@@ -154,7 +154,7 @@ class schedulerRamp: public scheduler {
     virtual void insertTarget(tsched targetSchedule) override;
 
     virtual void receiveMessage(std::uint64_t sourceID,
-                                const std::shared_ptr<commMessage>& message) override;
+                                const std::shared_ptr<CommMessage>& message) override;
 };
 
 /** @brief scheduler targeted at handling regulation management
@@ -217,7 +217,7 @@ class schedulerReg: public schedulerRamp {
 
   protected:
     virtual void receiveMessage(std::uint64_t sourceID,
-                                const std::shared_ptr<commMessage>& message) override;
+                                const std::shared_ptr<CommMessage>& message) override;
 };
 
 }  // namespace griddyn

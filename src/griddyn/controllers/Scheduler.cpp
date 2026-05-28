@@ -194,7 +194,7 @@ void scheduler::dynObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
     commLink = cManager.build();
 
     commLink->registerReceiveCallback(
-        [this](std::uint64_t sourceID, const std::shared_ptr<commMessage>& message) {
+        [this](std::uint64_t sourceID, const std::shared_ptr<CommMessage>& message) {
             receiveMessage(sourceID, message);
         });
     prevTime = time0;
@@ -301,24 +301,24 @@ void scheduler::insertTarget(tsched targetSchedule)
     }
 }
 
-void scheduler::receiveMessage(std::uint64_t sourceID, const std::shared_ptr<commMessage>& message)
+void Scheduler::receiveMessage(std::uint64_t sourceID, const std::shared_ptr<CommMessage>& message)
 {
-    using comms::schedulerMessagePayload;
-    auto* schedulerPayload = message->getPayload<schedulerMessagePayload>();
+    using comms::SchedulerMessagePayload;
+    auto* schedulerPayload = message->getPayload<SchedulerMessagePayload>();
     switch (message->getMessageType()) {
-        case schedulerMessagePayload::CLEAR_TARGETS:
+        case SchedulerMessagePayload::CLEAR_TARGETS:
             clearSchedule();
             break;
-        case schedulerMessagePayload::SHUTDOWN:
-        case schedulerMessagePayload::STARTUP:
+        case SchedulerMessagePayload::SHUTDOWN:
+        case SchedulerMessagePayload::STARTUP:
             break;
-        case schedulerMessagePayload::UPDATE_TARGETS:
+        case SchedulerMessagePayload::UPDATE_TARGETS:
             clearSchedule();
             [[fallthrough]];
-        case schedulerMessagePayload::ADD_TARGETS:
+        case SchedulerMessagePayload::ADD_TARGETS:
             setTarget(schedulerPayload->m_time, schedulerPayload->m_target);
             break;
-        case schedulerMessagePayload::REGISTER_DISPATCHER:
+        case SchedulerMessagePayload::REGISTER_DISPATCHER:
             dispatcherId = sourceID;
             break;
         default:

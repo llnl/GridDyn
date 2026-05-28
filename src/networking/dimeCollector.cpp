@@ -11,9 +11,9 @@
 #include <string>
 
 namespace griddyn::dimeLib {
-DimeCollector::DimeCollector(coreTime time0, coreTime period): collector(time0, period) {}
+DimeCollector::DimeCollector(coreTime time0, coreTime period): Collector(time0, period) {}
 
-DimeCollector::DimeCollector(const std::string& collectorName): collector(collectorName) {}
+DimeCollector::DimeCollector(const std::string& collectorName): Collector(collectorName) {}
 
 DimeCollector::~DimeCollector()
 {
@@ -21,16 +21,16 @@ DimeCollector::~DimeCollector()
         dime->close();
     }
 }
-std::unique_ptr<collector> DimeCollector::clone() const
+std::unique_ptr<Collector> DimeCollector::clone() const
 {
-    std::unique_ptr<collector> col = std::make_unique<DimeCollector>();
+    std::unique_ptr<Collector> col = std::make_unique<DimeCollector>();
     DimeCollector::cloneTo(col.get());
     return col;
 }
 
-void DimeCollector::cloneTo(collector* col) const
+void DimeCollector::cloneTo(Collector* col) const
 {
-    collector::cloneTo(col);
+    Collector::cloneTo(col);
     auto* dimeCollectorClone = dynamic_cast<DimeCollector*>(col);
     if (dimeCollectorClone == nullptr) {
         return;
@@ -45,7 +45,7 @@ ChangeCode DimeCollector::trigger(coreTime time)
         dime = std::make_unique<DimeClientInterface>(processName, server);
         dime->init();
     }
-    auto out = collector::trigger(time);
+    auto out = Collector::trigger(time);
     // figure out what to do with the data
     for (size_t kk = 0; kk < mPoints.size(); ++kk) {
         dime->sendVar(mPoints[kk].mColumnName, mData[kk]);
@@ -56,7 +56,7 @@ ChangeCode DimeCollector::trigger(coreTime time)
 
 void DimeCollector::set(std::string_view param, double val)
 {
-    collector::set(param, val);
+    Collector::set(param, val);
 }
 
 void DimeCollector::set(std::string_view param, std::string_view val)
@@ -66,7 +66,7 @@ void DimeCollector::set(std::string_view param, std::string_view val)
     } else if (param == "processname") {
         processName = val;
     } else {
-        collector::set(param, val);
+        Collector::set(param, val);
     }
 }
 

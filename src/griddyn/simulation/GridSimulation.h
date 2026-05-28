@@ -34,7 +34,7 @@ class GridBus;
 
 // define PRINT LEVELS
 
-class collector;
+class Collector;
 class Event;
 class Relay;
 class EventQueue;
@@ -113,7 +113,7 @@ class GridSimulation: public GridArea {
     // ---------------- recorders ----------------
     coreTime recordStart = negTime;  //!< [s]  recorder start time
     coreTime recordStop = maxTime;  //!< [s]  recorder stop time
-    std::vector<std::shared_ptr<collector>> collectorList;  //!< vector storing recorder objects
+    std::vector<std::shared_ptr<Collector>> collectorList;  //!< vector storing recorder objects
     coreTime nextRecordTime = maxTime;  //!< time for the next set of recorders
 
     coreTime lastStateRecordTime = negTime;  //!< last time the full state was recorded
@@ -146,9 +146,9 @@ class GridSimulation: public GridArea {
     // add components
     using GridArea::add;  // use the add function of GridArea
     /** @brief function to add collectors to the system
-    @param[in] col the collector to add into the simulation
+    @param[in] col the Collector to add into the simulation
     */
-    virtual void add(std::shared_ptr<collector> col);
+    virtual void add(std::shared_ptr<Collector> col);
     /** @brief function to add events to the system
     @param[in] evnt the event to add into the simulation
     */
@@ -166,10 +166,10 @@ class GridSimulation: public GridArea {
     /** @brief reset all object counters to 0*/
     static void resetObjectCounters();
 
-    /** @brief function to find a specific collector by name
+    /** @brief function to find a specific Collector by name
     @param[in] collectorName  the name of the recorder to find
     @return a shared_ptr to the recorder that was found or an empty shared ptr*/
-    std::shared_ptr<collector> findCollector(const std::string& collectorName);
+    std::shared_ptr<Collector> findCollector(const std::string& collectorName);
     /** @brief get all the objects from the event Queue */
     void getEventObjects(std::vector<CoreObject*>& objV) const;
 

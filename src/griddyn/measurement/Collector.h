@@ -19,7 +19,7 @@
 */
 namespace griddyn {
 /** helper data class for defining the information necessary to fully specify and a data grabber*/
-class gridGrabberInfo {
+class GridGrabberInfo {
   public:
     std::string m_target;  //!< name of the object to target
     std::string field;  //!< the field to record
@@ -30,37 +30,37 @@ class gridGrabberInfo {
     double bias = 0.0;  //!< a shift factor of the results
     units::unit outputUnits = units::defunit;  //!< which units to output the data
   public:
-    gridGrabberInfo() = default;
+    GridGrabberInfo() = default;
 };
 
-class gridGrabber;
-class stateGrabber;
+class GridGrabber;
+class StateGrabber;
 
 /** base class for capturing and storing data from a grid simulation */
-class collector: public HelperObject, public EventInterface, public ObjectOperatorInterface {
+class Collector: public HelperObject, public EventInterface, public ObjectOperatorInterface {
   protected:
     count_t mWarningCount = 0;  //!< counter for the number of warnings
     // there is currently a 4 byte gap here
     std::vector<std::string> mWarnList;  //!< listing for the number of warnings
-    coreTime mTimePeriod;  //!< the actual period of the collector
-    coreTime mRequestedPeriod;  //!< the requested period of the collector
+    coreTime mTimePeriod;  //!< the actual period of the Collector
+    coreTime mRequestedPeriod;  //!< the requested period of the Collector
     coreTime mStartTime = negTime;  //!< the time to start collecting
     coreTime mStopTime = maxTime;  //!< the time to stop collecting
-    coreTime mTriggerTime = maxTime;  //!< the next trigger time for the collector
-    coreTime mLastTriggerTime = negTime;  //!< the last time the collector was triggered
+    coreTime mTriggerTime = maxTime;  //!< the next trigger time for the Collector
+    coreTime mLastTriggerTime = negTime;  //!< the last time the Collector was triggered
 
     /** data structure to capture the grabbers and location for a specific grabber*/
     class collectorPoint {
       public:
-        std::shared_ptr<gridGrabber>
+        std::shared_ptr<GridGrabber>
             mDataGrabber;  //!< the grabber for the data from the object directly
-        std::shared_ptr<stateGrabber>
+        std::shared_ptr<StateGrabber>
             mStateGrabber;  //!< the grabber for the data from the object state
         int mColumn = -1;  //!< the starting column for the data
         int mColumnCount = 1;  //!< the number of columns associated with the point
         std::string mColumnName;  //!< the name for the data collected
-        collectorPoint(std::shared_ptr<gridGrabber> dg,
-                       std::shared_ptr<stateGrabber> sg,
+        collectorPoint(std::shared_ptr<GridGrabber> dg,
+                       std::shared_ptr<StateGrabber> sg,
                        int ncol = -1,
                        int ccnt = 1,
                        const std::string& cname = ""):
@@ -78,17 +78,17 @@ class collector: public HelperObject, public EventInterface, public ObjectOperat
     bool mDelayProcess = true;  //!< wait to process recorders until other events have executed
     bool mVectorName = false;  //!< indicator to use vector notation for the name
   public:
-    collector(coreTime time0 = timeZero, coreTime period = timeOneSecond);
-    explicit collector(const std::string& collectorName);
+    Collector(coreTime time0 = timeZero, coreTime period = timeOneSecond);
+    explicit Collector(const std::string& collectorName);
 
-    /** duplicate the collector
+    /** duplicate the Collector
     @return a pointer to the clone of the event
     */
-    virtual std::unique_ptr<collector> clone() const;
-    /** duplicate the collector to a valid event
-    @param col a pointer to a collector object
+    virtual std::unique_ptr<Collector> clone() const;
+    /** duplicate the Collector to a valid event
+    @param col a pointer to a Collector object
     */
-    virtual void cloneTo(collector* col) const;
+    virtual void cloneTo(Collector* col) const;
 
     virtual void updateObject(CoreObject* gco,
                               ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
@@ -108,12 +108,12 @@ class collector: public HelperObject, public EventInterface, public ObjectOperat
         return (mDelayProcess) ? EventExecutionMode::delayed : EventExecutionMode::normal;
     }
 
-    virtual void add(std::shared_ptr<gridGrabber> ggb, int requestedColumn = -1);
-    virtual void add(std::shared_ptr<stateGrabber> sst, int requestedColumn = -1);
-    virtual void add(const gridGrabberInfo& gdRI, CoreObject* obj);
+    virtual void add(std::shared_ptr<GridGrabber> ggb, int requestedColumn = -1);
+    virtual void add(std::shared_ptr<StateGrabber> sst, int requestedColumn = -1);
+    virtual void add(const GridGrabberInfo& gdRI, CoreObject* obj);
     virtual void add(std::string_view field, CoreObject* obj);
-    virtual void add(std::shared_ptr<gridGrabber> ggb,
-                     std::shared_ptr<stateGrabber> sst,
+    virtual void add(std::shared_ptr<GridGrabber> ggb,
+                     std::shared_ptr<StateGrabber> sst,
                      int requestedColumn = -1);
 
     bool isArmed() const override { return mArmed; }
@@ -155,9 +155,9 @@ class collector: public HelperObject, public EventInterface, public ObjectOperat
         mWarningCount = 0;
     }
 
-    /** clear all grabbers from the collector*/
+    /** clear all grabbers from the Collector*/
     void reset();
-    /** get the number of points in the collector*/
+    /** get the number of points in the Collector*/
     count_t numberOfPoints() const { return static_cast<count_t>(mPoints.size()); }
 
   protected:
@@ -181,10 +181,10 @@ class collector: public HelperObject, public EventInterface, public ObjectOperat
     }
 };
 
-/** @brief make a collector from a string
-@param[in] type the type of collector to create
-@return a shared_ptr to a collector object
+/** @brief make a Collector from a string
+@param[in] type the type of Collector to create
+@return a shared_ptr to a Collector object
 */
-std::unique_ptr<collector> makeCollector(std::string_view type, const std::string& name = "");
+std::unique_ptr<Collector> makeCollector(std::string_view type, const std::string& name = "");
 
 }  // namespace griddyn

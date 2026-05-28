@@ -22,16 +22,16 @@
 
 namespace griddyn {
 
-void autoGrabbers(CoreObject* obj, std::vector<std::unique_ptr<gridGrabber>>& v);
+void autoGrabbers(CoreObject* obj, std::vector<std::unique_ptr<GridGrabber>>& v);
 void allGrabbers(std::string_view mode,
                  CoreObject* obj,
-                 std::vector<std::unique_ptr<gridGrabber>>& v);
+                 std::vector<std::unique_ptr<GridGrabber>>& v);
 
 void perObjectGrabbers(std::string_view cmd,
                        CoreObject* obj,
-                       std::vector<std::unique_ptr<gridGrabber>>& v);
+                       std::vector<std::unique_ptr<GridGrabber>>& v);
 
-static grabberInterpreter<gridGrabber, opGrabber, functionGrabber>
+static GrabberInterpreter<GridGrabber, OpGrabber, FunctionGrabber>
     gInterpret([](std::string_view fld, CoreObject* obj) { return createGrabber(fld, obj); });
 
 bool isOperatorOutsideBlocks(const std::vector<std::pair<size_t, size_t>>& blocks, size_t loc)
@@ -49,9 +49,9 @@ bool isOperatorOutsideBlocks(const std::vector<std::pair<size_t, size_t>>& block
     }
     return true;
 }
-std::vector<std::unique_ptr<gridGrabber>> makeGrabbers(std::string_view command, CoreObject* obj)
+std::vector<std::unique_ptr<GridGrabber>> makeGrabbers(std::string_view command, CoreObject* obj)
 {
-    std::vector<std::unique_ptr<gridGrabber>> v;
+    std::vector<std::unique_ptr<GridGrabber>> v;
     auto gstr = gmlc::utilities::stringOps::splitlineBracket(std::string{command});
     gmlc::utilities::stringOps::trim(gstr);
     for (auto& cmd : gstr) {
@@ -105,38 +105,38 @@ std::vector<std::unique_ptr<gridGrabber>> makeGrabbers(std::string_view command,
     return v;
 }
 
-void autoGrabbers(CoreObject* obj, std::vector<std::unique_ptr<gridGrabber>>& v)
+void autoGrabbers(CoreObject* obj, std::vector<std::unique_ptr<GridGrabber>>& v)
 {
     auto bus = dynamic_cast<GridBus*>(obj);
     if (bus != nullptr) {
         v.reserve(v.size() + 5);
-        v.push_back(std::make_unique<objectGrabber<GridBus>>("voltage", bus));
+        v.push_back(std::make_unique<ObjectGrabber<GridBus>>("voltage", bus));
 
-        v.push_back(std::make_unique<objectGrabber<GridBus>>("angle", bus));
+        v.push_back(std::make_unique<ObjectGrabber<GridBus>>("angle", bus));
 
-        v.push_back(std::make_unique<objectGrabber<GridBus>>("gen", bus));
+        v.push_back(std::make_unique<ObjectGrabber<GridBus>>("gen", bus));
 
-        v.push_back(std::make_unique<objectGrabber<GridBus>>("load", bus));
+        v.push_back(std::make_unique<ObjectGrabber<GridBus>>("load", bus));
 
-        v.push_back(std::make_unique<objectGrabber<GridBus>>("freq", bus));
+        v.push_back(std::make_unique<ObjectGrabber<GridBus>>("freq", bus));
         return;
     }
 
     auto ld = dynamic_cast<GridLoad*>(obj);
     if (ld != nullptr) {
         v.reserve(v.size() + 2);
-        v.push_back(std::make_unique<objectGrabber<GridLoad>>("p", ld));
+        v.push_back(std::make_unique<ObjectGrabber<GridLoad>>("p", ld));
 
-        v.push_back(std::make_unique<objectGrabber<GridLoad>>("q", ld));
+        v.push_back(std::make_unique<ObjectGrabber<GridLoad>>("q", ld));
         return;
     }
 
     auto gen = dynamic_cast<Generator*>(obj);
     if (gen != nullptr) {
         v.reserve(v.size() + 2);
-        v.push_back(std::make_unique<objectGrabber<Generator>>("p", gen));
+        v.push_back(std::make_unique<ObjectGrabber<Generator>>("p", gen));
 
-        v.push_back(std::make_unique<objectGrabber<Generator>>("q", gen));
+        v.push_back(std::make_unique<ObjectGrabber<Generator>>("q", gen));
 
         return;
     }
@@ -144,11 +144,11 @@ void autoGrabbers(CoreObject* obj, std::vector<std::unique_ptr<gridGrabber>>& v)
     auto lnk = dynamic_cast<Link*>(obj);
     if (lnk != nullptr) {
         v.reserve(v.size() + 3);
-        v.push_back(std::make_unique<objectGrabber<Link>>("p1", lnk));
+        v.push_back(std::make_unique<ObjectGrabber<Link>>("p1", lnk));
 
-        v.push_back(std::make_unique<objectGrabber<Link>>("q1", lnk));
+        v.push_back(std::make_unique<ObjectGrabber<Link>>("q1", lnk));
 
-        v.push_back(std::make_unique<objectGrabber<Link>>("loss", lnk));
+        v.push_back(std::make_unique<ObjectGrabber<Link>>("loss", lnk));
         return;
     }
 
@@ -157,13 +157,13 @@ void autoGrabbers(CoreObject* obj, std::vector<std::unique_ptr<gridGrabber>>& v)
     if (gds != nullptr) {
         v.reserve(v.size() + 4);
 
-        v.push_back(std::make_unique<objectGrabber<GridArea>>("voltage", gds));
+        v.push_back(std::make_unique<ObjectGrabber<GridArea>>("voltage", gds));
 
-        v.push_back(std::make_unique<objectGrabber<GridArea>>("angle", gds));
+        v.push_back(std::make_unique<ObjectGrabber<GridArea>>("angle", gds));
 
-        v.push_back(std::make_unique<objectGrabber<GridArea>>("busgenerationreal", gds));
+        v.push_back(std::make_unique<ObjectGrabber<GridArea>>("busgenerationreal", gds));
 
-        v.push_back(std::make_unique<objectGrabber<GridArea>>("busloadreal", gds));
+        v.push_back(std::make_unique<ObjectGrabber<GridArea>>("busloadreal", gds));
         return;
     }
 
@@ -171,23 +171,23 @@ void autoGrabbers(CoreObject* obj, std::vector<std::unique_ptr<gridGrabber>>& v)
     if (area != nullptr) {
         v.reserve(v.size() + 6);
 
-        v.push_back(std::make_unique<objectGrabber<GridArea>>("generationreal", area));
+        v.push_back(std::make_unique<ObjectGrabber<GridArea>>("generationreal", area));
 
-        v.push_back(std::make_unique<objectGrabber<GridArea>>("generationreactive", area));
+        v.push_back(std::make_unique<ObjectGrabber<GridArea>>("generationreactive", area));
 
-        v.push_back(std::make_unique<objectGrabber<GridArea>>("loadreal", area));
+        v.push_back(std::make_unique<ObjectGrabber<GridArea>>("loadreal", area));
 
-        v.push_back(std::make_unique<objectGrabber<GridArea>>("loadreactive", area));
+        v.push_back(std::make_unique<ObjectGrabber<GridArea>>("loadreactive", area));
 
-        v.push_back(std::make_unique<objectGrabber<GridArea>>("loss", area));
+        v.push_back(std::make_unique<ObjectGrabber<GridArea>>("loss", area));
 
-        v.push_back(std::make_unique<objectGrabber<GridArea>>("tieflowreal", area));
+        v.push_back(std::make_unique<ObjectGrabber<GridArea>>("tieflowreal", area));
         return;
     }
 }
 void perObjectGrabbers(std::string_view cmd,
                        CoreObject* obj,
-                       std::vector<std::unique_ptr<gridGrabber>>& v)
+                       std::vector<std::unique_ptr<GridGrabber>>& v)
 {
     if (cmd.compare(0, 4, "per_") != 0) {
         return;
@@ -219,30 +219,30 @@ void perObjectGrabbers(std::string_view cmd,
 
 void allGrabbers(std::string_view mode,
                  CoreObject* obj,
-                 std::vector<std::unique_ptr<gridGrabber>>& v)
+                 std::vector<std::unique_ptr<GridGrabber>>& v)
 {
     auto bus = dynamic_cast<GridBus*>(obj);
     if (bus != nullptr) {
         v.reserve(v.size() + 5);
 
-        v.push_back(std::make_unique<objectGrabber<GridBus>>("voltage", bus));
+        v.push_back(std::make_unique<ObjectGrabber<GridBus>>("voltage", bus));
 
-        v.push_back(std::make_unique<objectGrabber<GridBus>>("angle", bus));
+        v.push_back(std::make_unique<ObjectGrabber<GridBus>>("angle", bus));
 
-        v.push_back(std::make_unique<objectGrabber<GridBus>>("gen", bus));
+        v.push_back(std::make_unique<ObjectGrabber<GridBus>>("gen", bus));
 
-        v.push_back(std::make_unique<objectGrabber<GridBus>>("load", bus));
+        v.push_back(std::make_unique<ObjectGrabber<GridBus>>("load", bus));
 
-        v.push_back(std::make_unique<objectGrabber<GridBus>>("freq", bus));
+        v.push_back(std::make_unique<ObjectGrabber<GridBus>>("freq", bus));
         return;
     }
 
     auto ld = dynamic_cast<GridLoad*>(obj);
     if (ld != nullptr) {
         v.reserve(v.size() + 2);
-        v.push_back(std::make_unique<objectGrabber<GridLoad>>("p", ld));
+        v.push_back(std::make_unique<ObjectGrabber<GridLoad>>("p", ld));
 
-        v.push_back(std::make_unique<objectGrabber<GridLoad>>("q", ld));
+        v.push_back(std::make_unique<ObjectGrabber<GridLoad>>("q", ld));
         return;
     }
 
@@ -250,14 +250,14 @@ void allGrabbers(std::string_view mode,
     if (gen != nullptr) {
         if ((mode.empty()) || (mode == "all")) {
             v.reserve(v.size() + 2);
-            v.push_back(std::make_unique<objectOffsetGrabber<Generator>>("p", gen));
+            v.push_back(std::make_unique<ObjectOffsetGrabber<Generator>>("p", gen));
 
-            v.push_back(std::make_unique<objectOffsetGrabber<Generator>>("q", gen));
+            v.push_back(std::make_unique<ObjectOffsetGrabber<Generator>>("q", gen));
         } else if (mode == "all_state") {
             auto scount = gen->stateSize(cLocalSolverMode);
             v.reserve(v.size() + scount);
             for (index_t kk = 0; kk < scount; ++kk) {
-                v.push_back(std::make_unique<objectOffsetGrabber<Generator>>(kk, gen));
+                v.push_back(std::make_unique<ObjectOffsetGrabber<Generator>>(kk, gen));
             }
         } else if (mode == "all_model") {
             /*size_t scount = gen->stateSize();
@@ -295,17 +295,17 @@ void allGrabbers(std::string_view mode,
     if (lnk != nullptr) {
         v.reserve(v.size() + 6);
 
-        v.push_back(std::make_unique<objectGrabber<Link>>("angle", lnk));
+        v.push_back(std::make_unique<ObjectGrabber<Link>>("angle", lnk));
 
-        v.push_back(std::make_unique<objectGrabber<Link>>("p1", lnk));
+        v.push_back(std::make_unique<ObjectGrabber<Link>>("p1", lnk));
 
-        v.push_back(std::make_unique<objectGrabber<Link>>("p2", lnk));
+        v.push_back(std::make_unique<ObjectGrabber<Link>>("p2", lnk));
 
-        v.push_back(std::make_unique<objectGrabber<Link>>("q1", lnk));
+        v.push_back(std::make_unique<ObjectGrabber<Link>>("q1", lnk));
 
-        v.push_back(std::make_unique<objectGrabber<Link>>("q2", lnk));
+        v.push_back(std::make_unique<ObjectGrabber<Link>>("q2", lnk));
 
-        v.push_back(std::make_unique<objectGrabber<Link>>("loss", lnk));
+        v.push_back(std::make_unique<ObjectGrabber<Link>>("loss", lnk));
         return;
     }
 
@@ -314,17 +314,17 @@ void allGrabbers(std::string_view mode,
         if ((mode.empty()) || (mode == "all")) {
             v.reserve(v.size() + 6);
 
-            v.push_back(std::make_unique<objectGrabber<GridArea>>("generationreal", area));
+            v.push_back(std::make_unique<ObjectGrabber<GridArea>>("generationreal", area));
 
-            v.push_back(std::make_unique<objectGrabber<GridArea>>("generationreactive", area));
+            v.push_back(std::make_unique<ObjectGrabber<GridArea>>("generationreactive", area));
 
-            v.push_back(std::make_unique<objectGrabber<GridArea>>("loadreal", area));
+            v.push_back(std::make_unique<ObjectGrabber<GridArea>>("loadreal", area));
 
-            v.push_back(std::make_unique<objectGrabber<GridArea>>("loadreactive", area));
+            v.push_back(std::make_unique<ObjectGrabber<GridArea>>("loadreactive", area));
 
-            v.push_back(std::make_unique<objectGrabber<GridArea>>("loss", area));
+            v.push_back(std::make_unique<ObjectGrabber<GridArea>>("loss", area));
 
-            v.push_back(std::make_unique<objectGrabber<GridArea>>("tieflowreal", area));
+            v.push_back(std::make_unique<ObjectGrabber<GridArea>>("tieflowreal", area));
             return;
         }
         if (mode.compare(0, 8, "all_gen_") == 0) {
@@ -335,7 +335,7 @@ void allGrabbers(std::string_view mode,
             for (index_t pp = 0; pp < genCount; ++pp) {
                 ngen = static_cast<Generator*>(area->getSubObject("gen", pp));
                 if (ngen != nullptr) {
-                    v.push_back(std::make_unique<objectGrabber<Generator>>(gfield, ngen));
+                    v.push_back(std::make_unique<ObjectGrabber<Generator>>(gfield, ngen));
                 }
             }
             return;

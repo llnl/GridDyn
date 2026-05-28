@@ -13,7 +13,7 @@
 
 namespace griddyn {
 class GridBlock;
-class grabberSet;
+class GrabberSet;
 /** @brief class implementing a sensor relay object
  a sensor can contain a set of basic control blocks and data grabbers which can grab data from any
 other object in the system and run in through a set of processes to obtain a result the result can
@@ -63,9 +63,9 @@ class sensor: public Relay {
     index_t m_terminal = 0;  //!< the terminal to use on link operations  NOTE: works with
                              //!< link_source and link_sink flags
     count_t instructionCounter = 0;  //!< the number of instructions the relay has received
-    std::vector<std::shared_ptr<grabberSet>> dataSources;  // the data sources for the output
+    std::vector<std::shared_ptr<GrabberSet>> dataSources;  // the data sources for the output
     std::vector<GridBlock*> filterBlocks;  //!< the filtered blocks
-    std::vector<std::shared_ptr<grabberSet>> outGrabbers;  //!< Grabbers for the output;
+    std::vector<std::shared_ptr<GrabberSet>> outGrabbers;  //!< Grabbers for the output;
     std::vector<std::shared_ptr<GridBlock>>
         blkptrs;  //!< storage locations for the shared_ptr of blocks
   public:
@@ -91,19 +91,19 @@ class sensor: public Relay {
     @param[in] blk a pointer to a filter block
     */
     virtual void add(GridBlock* blk);
-    /** @brief add a shared pointer to a grabberSet
-    @param[in] dGr a shared pointer to grabberSet Object
+    /** @brief add a shared pointer to a GrabberSet
+    @param[in] dGr a shared pointer to GrabberSet Object
     */
-    virtual void add(std::shared_ptr<grabberSet> dGr);
+    virtual void add(std::shared_ptr<GrabberSet> dGr);
 
-    /** @brief add a shared pointer to a gridGrabber object
-    @param[in] dGr a shared pointer to grabberSet Object
+    /** @brief add a shared pointer to a GridGrabber object
+    @param[in] dGr a shared pointer to GrabberSet Object
     */
-    virtual void add(std::shared_ptr<gridGrabber> dGr);
+    virtual void add(std::shared_ptr<GridGrabber> dGr);
 
-    /** retrieve the grabberSet based on index
+    /** retrieve the GrabberSet based on index
     @return a shared_ptr to a grabberset object that is used in the data retrieval*/
-    std::shared_ptr<grabberSet> getGrabberSet(index_t grabberNum);
+    std::shared_ptr<GrabberSet> getGrabberSet(index_t grabberNum);
 
     // dynamic functions for evaluation with a limit exceeded
     virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
@@ -182,7 +182,7 @@ class sensor: public Relay {
                                  CheckLevel level) override;
 
     virtual void receiveMessage(std::uint64_t sourceID,
-                                std::shared_ptr<commMessage> message) override;
+                                std::shared_ptr<CommMessage> message) override;
 
     virtual void updateObject(CoreObject* obj,
                               ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;

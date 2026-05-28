@@ -25,7 +25,7 @@ const char psubString[] = "+-";
 
 bool isOperatorOutsideBlocks(const std::vector<std::pair<size_t, size_t>>& blocks, size_t loc);
 template<class baseX, class opX, class funcX>
-class grabberInterpreter {
+class GrabberInterpreter {
     static_assert(std::is_base_of<baseX, opX>::value,
                   "Operations class and base class must have a parent child relationship");
     static_assert(std::is_base_of<baseX, funcX>::value,
@@ -35,7 +35,7 @@ class grabberInterpreter {
     std::function<std::unique_ptr<baseX>(std::string_view, CoreObject*)> createX;
 
   public:
-    explicit grabberInterpreter(
+    explicit GrabberInterpreter(
         std::function<std::unique_ptr<baseX>(std::string_view, CoreObject*)> fc): createX(fc)
     {
     }

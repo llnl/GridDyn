@@ -211,7 +211,7 @@ void zonalRelay::actionTaken(index_t ActionNum,
 
     if (opFlags[use_commLink]) {
         if (ActionNum == 0) {
-            auto relayEvent = std::make_shared<commMessage>(commMessage::BREAKER_TRIP_EVENT);
+            auto relayEvent = std::make_shared<CommMessage>(CommMessage::BREAKER_TRIP_EVENT);
             cManager.send(relayEvent);
         }
     }
@@ -229,14 +229,14 @@ void zonalRelay::conditionTriggered(index_t conditionNum, coreTime /*triggerTime
         if (conditionNum > mConditionLevel) {
             return;
         }
-        auto relayMessage = std::make_shared<commMessage>();
+        auto relayMessage = std::make_shared<CommMessage>();
         // std::cout << "GridDyn conditionTriggered(), conditionNum = " << conditionNum << '\n';
         if (conditionNum == 0) {
             // std::cout << "GridDyn setting relay message type to LOCAL_FAULT_EVENT" << '\n';
-            relayMessage->setMessageType(commMessage::LOCAL_FAULT_EVENT);
+            relayMessage->setMessageType(CommMessage::LOCAL_FAULT_EVENT);
         } else {
             // std::cout << "GridDyn setting relay message type to REMOTE_FAULT_EVENT" << '\n';
-            relayMessage->setMessageType(commMessage::REMOTE_FAULT_EVENT);
+            relayMessage->setMessageType(CommMessage::REMOTE_FAULT_EVENT);
         }
         cManager.send(relayMessage);
     }
@@ -253,28 +253,28 @@ void zonalRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/
         }
     }
     if (opFlags[use_commLink]) {
-        auto relayMessage = std::make_shared<commMessage>();
+        auto relayMessage = std::make_shared<CommMessage>();
         if (conditionNum == 0) {
-            relayMessage->setMessageType(commMessage::LOCAL_FAULT_CLEARED);
+            relayMessage->setMessageType(CommMessage::LOCAL_FAULT_CLEARED);
         } else {
-            relayMessage->setMessageType(commMessage::REMOTE_FAULT_CLEARED);
+            relayMessage->setMessageType(CommMessage::REMOTE_FAULT_CLEARED);
         }
         cManager.send(relayMessage);
     }
 }
 
-void zonalRelay::receiveMessage(std::uint64_t /*sourceID*/, std::shared_ptr<commMessage> message)
+void zonalRelay::receiveMessage(std::uint64_t /*sourceID*/, std::shared_ptr<CommMessage> message)
 {
     switch (message->getMessageType()) {
-        case commMessage::BREAKER_TRIP_COMMAND:
+        case CommMessage::BREAKER_TRIP_COMMAND:
             triggerAction(0);
             break;
-        case commMessage::BREAKER_CLOSE_COMMAND:
+        case CommMessage::BREAKER_CLOSE_COMMAND:
             if (m_sinkObject != nullptr) {
                 m_sinkObject->set("switch" + std::to_string(m_terminal), 0);
             }
             break;
-        case commMessage::BREAKER_OOS_COMMAND:
+        case CommMessage::BREAKER_OOS_COMMAND:
             for (index_t kk = 0; kk < mZoneCount; ++kk) {
                 setConditionStatus(kk, ConditionStatus::disabled);
             }

@@ -10,7 +10,7 @@
 // NOLINTNEXTLINE(readability-identifier-naming)
 class ReaderElement;
 // NOLINTNEXTLINE(readability-identifier-naming)
-class gridGrabberInfo;
+class GridGrabberInfo;
 
 #include "GridParameter.h"
 #include <cstdint>
@@ -27,7 +27,7 @@ class gridGrabberInfo;
 
 namespace griddyn {
 // NOLINTNEXTLINE(readability-identifier-naming)
-class collector;
+class Collector;
 class Event;
 class CoreObject;
 
@@ -60,7 +60,7 @@ using ignoreListType = std::unordered_set<std::string>;
  */
 class ReaderInfo: public BasicReaderInfo {
   public:
-    std::vector<std::shared_ptr<collector>> collectors;  //!< stores the active recorders
+    std::vector<std::shared_ptr<Collector>> collectors;  //!< stores the active recorders
     std::vector<std::shared_ptr<Event>> events;  //!< store the captured events
     bool keepdefines = false;
     bool captureFiles = false;
@@ -114,12 +114,12 @@ class ReaderInfo: public BasicReaderInfo {
     */
     CoreObject* findLibraryObject(const std::string& objName) const;
 
-    /** @brief  find a collector stored in the ReaderInfo either by name or by sink location
-    *@param[in] name  the name of the collector to find
-    @param[in] fileName  the sink name of the collector to find by file name
-    @return a shared pointer to the collector or nullptr if not found
+    /** @brief  find a Collector stored in the ReaderInfo either by name or by sink location
+    *@param[in] name  the name of the Collector to find
+    @param[in] fileName  the sink name of the Collector to find by file name
+    @return a shared pointer to the Collector or nullptr if not found
     */
-    std::shared_ptr<collector> findCollector(const std::string& name, const std::string& fileName);
+    std::shared_ptr<Collector> findCollector(const std::string& name, const std::string& fileName);
     /** get the keyObject*/
     CoreObject* getKeyObject() { return keyObj; }
     /** set the keyObject*/

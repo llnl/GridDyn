@@ -131,17 +131,17 @@ void breaker::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     auto upperCtiCondition = std::make_shared<Condition>();
     auto lowerCtiCondition = std::make_shared<Condition>();
 
-    auto ctiGrabber = std::make_unique<customGrabber>();
+    auto ctiGrabber = std::make_unique<CustomGrabber>();
     ctiGrabber->setGrabberFunction("I2T", [this](CoreObject* /*unused*/) { return mCti; });
 
-    auto ctiStateGrabber = std::make_unique<customStateGrabber>(this);
+    auto ctiStateGrabber = std::make_unique<CustomStateGrabber>(this);
     ctiStateGrabber->setGrabberFunction(
         [](CoreObject* obj, const stateData& stateDataRef, const SolverMode& sMode) -> double {
             return stateDataRef.state[static_cast<breaker*>(obj)->offsets.getDiffOffset(sMode)];
         });
 
     auto ctiGrabberSet =
-        std::make_shared<grabberSet>(std::move(ctiGrabber), std::move(ctiStateGrabber));
+        std::make_shared<GrabberSet>(std::move(ctiGrabber), std::move(ctiStateGrabber));
     upperCtiCondition->setConditionLHS(ctiGrabberSet);
 
     lowerCtiCondition->setConditionLHS(std::move(ctiGrabberSet));

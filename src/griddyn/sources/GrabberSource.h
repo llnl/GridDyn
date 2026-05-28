@@ -11,12 +11,12 @@
 #include <string>
 
 namespace griddyn {
-class grabberSet;
+class GrabberSet;
 namespace sources {
     /** source to grab data from another location and use it in another context*/
     class grabberSource: public rampSource {
       private:
-        std::unique_ptr<grabberSet> gset;  //!< the grabberSet to get the data
+        std::unique_ptr<GrabberSet> gset;  //!< the GrabberSet to get the data
         std::string field;  //!< the field to grab
         std::string target;  //!< the name of the target
         model_parameter multiplier;  //!< a multiplier on the grabber value

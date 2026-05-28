@@ -26,12 +26,12 @@
 
 namespace griddyn {
 namespace {
-    grabberInterpreter<stateGrabber, stateOpGrabber, stateFunctionGrabber>&
+    GrabberInterpreter<StateGrabber, StateOpGrabber, StateFunctionGrabber>&
         stateGrabberInterpreter()
     {
-        static grabberInterpreter<stateGrabber, stateOpGrabber, stateFunctionGrabber> interpreter(
+        static GrabberInterpreter<StateGrabber, StateOpGrabber, StateFunctionGrabber> interpreter(
             [](std::string_view fld, CoreObject* obj) {
-                return std::make_unique<stateGrabber>(fld, obj);
+                return std::make_unique<StateGrabber>(fld, obj);
             });
         return interpreter;
     }
@@ -54,10 +54,10 @@ namespace {
 static const char specialChars[] = R"(:(+-/*\^?)";
 static const char sepChars[] = ",;";
 
-std::vector<std::unique_ptr<stateGrabber>> makeStateGrabbers(std::string_view command,
+std::vector<std::unique_ptr<StateGrabber>> makeStateGrabbers(std::string_view command,
                                                              CoreObject* obj)
 {
-    std::vector<std::unique_ptr<stateGrabber>> grabbers;
+    std::vector<std::unique_ptr<StateGrabber>> grabbers;
     auto gsplit = gmlc::utilities::stringOps::splitlineBracket(std::string{command}, sepChars);
     gmlc::utilities::stringOps::trim(gsplit);
     for (auto& cmd : gsplit) {
@@ -67,7 +67,7 @@ std::vector<std::unique_ptr<stateGrabber>> makeStateGrabbers(std::string_view co
                 grabbers.push_back(std::move(sgb));
             }
         } else {
-            auto sgb = std::make_unique<stateGrabber>(cmd, dynamic_cast<GridComponent*>(obj));
+            auto sgb = std::make_unique<StateGrabber>(cmd, dynamic_cast<GridComponent*>(obj));
             if (sgb && sgb->loaded) {
                 grabbers.push_back(std::move(sgb));
             }
@@ -76,24 +76,24 @@ std::vector<std::unique_ptr<stateGrabber>> makeStateGrabbers(std::string_view co
     return grabbers;
 }
 
-stateGrabber::stateGrabber(CoreObject* obj): cobj(dynamic_cast<GridComponent*>(obj)) {}
-stateGrabber::stateGrabber(std::string_view fld, CoreObject* obj): stateGrabber(obj)
+StateGrabber::StateGrabber(CoreObject* obj): cobj(dynamic_cast<GridComponent*>(obj)) {}
+StateGrabber::StateGrabber(std::string_view fld, CoreObject* obj): StateGrabber(obj)
 {
-    stateGrabber::updateField(fld);
+    StateGrabber::updateField(fld);
 }
 
-stateGrabber::stateGrabber(index_t noffset, CoreObject* obj):
+StateGrabber::StateGrabber(index_t noffset, CoreObject* obj):
     offset(noffset), cobj(dynamic_cast<GridComponent*>(obj))
 {
 }
 
-std::unique_ptr<stateGrabber> stateGrabber::clone() const
+std::unique_ptr<StateGrabber> StateGrabber::clone() const
 {
-    auto stateGrabberClone = std::make_unique<stateGrabber>();
+    auto stateGrabberClone = std::make_unique<StateGrabber>();
     cloneTo(stateGrabberClone.get());
     return stateGrabberClone;
 }
-void stateGrabber::cloneTo(stateGrabber* ggb) const
+void StateGrabber::cloneTo(StateGrabber* ggb) const
 {
     ggb->field = field;
     ggb->fptr = fptr;
@@ -110,7 +110,7 @@ void stateGrabber::cloneTo(stateGrabber* ggb) const
     ggb->cobj = cobj;
 }
 
-void stateGrabber::updateField(std::string_view fld)
+void StateGrabber::updateField(std::string_view fld)
 {
     field = fld;
     auto fieldDescription = gmlc::utilities::convertToLowerCase(std::string{fld});
@@ -347,7 +347,7 @@ static const std::map<std::string, fstateobjectPair> linkFunctions{
 
 // clang-format on
 
-void stateGrabber::objectLoadInfo(std::string_view fld)
+void StateGrabber::objectLoadInfo(std::string_view fld)
 {
     auto funcfind = objectFunctions.find(std::string{fld});
     if (funcfind != objectFunctions.end()) {
@@ -385,7 +385,7 @@ void stateGrabber::objectLoadInfo(std::string_view fld)
     }
 }
 
-void stateGrabber::busLoadInfo(std::string_view fld)
+void StateGrabber::busLoadInfo(std::string_view fld)
 {
     auto fldString = std::string{fld};
     const std::string nfstr = mapFind(stringTranslate, fldString, fldString);
@@ -405,7 +405,7 @@ void stateGrabber::busLoadInfo(std::string_view fld)
     }
 }
 
-void stateGrabber::linkLoadInfo(std::string_view fld)
+void StateGrabber::linkLoadInfo(std::string_view fld)
 {
     auto fldString = std::string{fld};
     const std::string nfstr = mapFind(stringTranslate, fldString, fldString);
@@ -427,7 +427,7 @@ void stateGrabber::linkLoadInfo(std::string_view fld)
         objectLoadInfo(nfstr);
     }
 }
-void stateGrabber::relayLoadInfo(std::string_view fld)
+void StateGrabber::relayLoadInfo(std::string_view fld)
 {
     std::string fieldStr;
     const int num = gmlc::utilities::stringOps::trailingStringInt(std::string{fld}, fieldStr, 0);
@@ -473,7 +473,7 @@ void stateGrabber::relayLoadInfo(std::string_view fld)
     }
 }
 
-void stateGrabber::secondaryLoadInfo(std::string_view fld)
+void StateGrabber::secondaryLoadInfo(std::string_view fld)
 {
     if ((fld == "realpower") || (fld == "power") || (fld == "p")) {
         cacheUpdateRequired = true;
@@ -537,8 +537,8 @@ void stateGrabber::secondaryLoadInfo(std::string_view fld)
     }
 }
 
-void stateGrabber::areaLoadInfo(std::string_view /*fld*/) {}
-double stateGrabber::grabData(const stateData& stateDataValue, const SolverMode& sMode)
+void StateGrabber::areaLoadInfo(std::string_view /*fld*/) {}
+double StateGrabber::grabData(const StateData& stateDataValue, const SolverMode& sMode)
 {
     if (loaded) {
         if (cacheUpdateRequired) {
@@ -551,7 +551,7 @@ double stateGrabber::grabData(const stateData& stateDataValue, const SolverMode&
     return kNullVal;
 }
 
-void stateGrabber::updateObject(CoreObject* obj, ObjectUpdateMode mode)
+void StateGrabber::updateObject(CoreObject* obj, ObjectUpdateMode mode)
 {
     if (mode == ObjectUpdateMode::DIRECT) {
         cobj = dynamic_cast<GridComponent*>(obj);
@@ -560,15 +560,15 @@ void stateGrabber::updateObject(CoreObject* obj, ObjectUpdateMode mode)
     }
 }
 
-CoreObject* stateGrabber::getObject() const
+CoreObject* StateGrabber::getObject() const
 {
     return cobj;
 }
-void stateGrabber::getObjects(std::vector<CoreObject*>& objects) const
+void StateGrabber::getObjects(std::vector<CoreObject*>& objects) const
 {
     objects.push_back(getObject());
 }
-void stateGrabber::outputPartialDerivatives(const stateData& stateDataValue,
+void StateGrabber::outputPartialDerivatives(const StateData& stateDataValue,
                                             matrixData<double>& matrixDataValue,
                                             const SolverMode& sMode)
 {
@@ -583,35 +583,35 @@ void stateGrabber::outputPartialDerivatives(const stateData& stateDataValue,
     }
 }
 
-customStateGrabber::customStateGrabber(GridComponent* comp): stateGrabber(comp) {}
-void customStateGrabber::setGrabberFunction(objStateGrabberFunction nfptr)
+CustomStateGrabber::CustomStateGrabber(GridComponent* comp): StateGrabber(comp) {}
+void CustomStateGrabber::setGrabberFunction(objStateGrabberFunction nfptr)
 {
     fptr = std::move(nfptr);
     loaded = true;
 }
 
-void customStateGrabber::setGrabberJacFunction(objJacFunction nJfptr)
+void CustomStateGrabber::setGrabberJacFunction(objJacFunction nJfptr)
 {
     jacIfptr = std::move(nJfptr);
     jacMode = (jacIfptr) ? JacobianMode::COMPUTED : JacobianMode::NONE;
 }
 
-std::unique_ptr<stateGrabber> customStateGrabber::clone() const
+std::unique_ptr<StateGrabber> CustomStateGrabber::clone() const
 {
-    std::unique_ptr<stateGrabber> stateGrabberClone = std::make_unique<customStateGrabber>();
+    std::unique_ptr<StateGrabber> stateGrabberClone = std::make_unique<CustomStateGrabber>();
     cloneTo(stateGrabberClone.get());
     return stateGrabberClone;
 }
-void customStateGrabber::cloneTo(stateGrabber* ggb) const
+void CustomStateGrabber::cloneTo(StateGrabber* ggb) const
 {
-    stateGrabber::cloneTo(ggb);
-    auto* csg = dynamic_cast<customStateGrabber*>(ggb);
+    StateGrabber::cloneTo(ggb);
+    auto* csg = dynamic_cast<CustomStateGrabber*>(ggb);
     if (csg == nullptr) {
         return;
     }
 }
 
-stateFunctionGrabber::stateFunctionGrabber(std::shared_ptr<stateGrabber> ggb, std::string func):
+StateFunctionGrabber::StateFunctionGrabber(std::shared_ptr<StateGrabber> ggb, std::string func):
     function_name(std::move(func))
 {
     if (ggb) {
@@ -627,7 +627,7 @@ stateFunctionGrabber::stateFunctionGrabber(std::shared_ptr<stateGrabber> ggb, st
     }
 }
 
-void stateFunctionGrabber::updateField(std::string_view fld)
+void StateFunctionGrabber::updateField(std::string_view fld)
 {
     if (!fld.empty()) {
         if (auto function = get1ArgFunction(fld)) {
@@ -644,17 +644,17 @@ void stateFunctionGrabber::updateField(std::string_view fld)
     loaded = ((opptr != nullptr) && (bgrabber != nullptr) && bgrabber->loaded);
 }
 
-std::unique_ptr<stateGrabber> stateFunctionGrabber::clone() const
+std::unique_ptr<StateGrabber> StateFunctionGrabber::clone() const
 {
-    std::unique_ptr<stateGrabber> stateGrabberClone = std::make_unique<stateFunctionGrabber>();
+    std::unique_ptr<StateGrabber> stateGrabberClone = std::make_unique<StateFunctionGrabber>();
     cloneTo(stateGrabberClone.get());
     return stateGrabberClone;
 }
 
-void stateFunctionGrabber::cloneTo(stateGrabber* ggb) const
+void StateFunctionGrabber::cloneTo(StateGrabber* ggb) const
 {
-    stateGrabber::cloneTo(ggb);
-    auto* sfg = dynamic_cast<stateFunctionGrabber*>(ggb);
+    StateGrabber::cloneTo(ggb);
+    auto* sfg = dynamic_cast<StateFunctionGrabber*>(ggb);
     if (sfg == nullptr) {
         return;
     }
@@ -670,25 +670,25 @@ void stateFunctionGrabber::cloneTo(stateGrabber* ggb) const
     sfg->dopptr = dopptr;
 }
 
-double stateFunctionGrabber::grabData(const stateData& stateDataValue, const SolverMode& sMode)
+double StateFunctionGrabber::grabData(const StateData& stateDataValue, const SolverMode& sMode)
 {
     double val = opptr(bgrabber->grabData(stateDataValue, sMode));
     val = std::fma(val, gain, bias);
     return val;
 }
 
-void stateFunctionGrabber::updateObject(CoreObject* obj, ObjectUpdateMode mode)
+void StateFunctionGrabber::updateObject(CoreObject* obj, ObjectUpdateMode mode)
 {
     if (bgrabber) {
         bgrabber->updateObject(obj, mode);
     }
 }
 
-CoreObject* stateFunctionGrabber::getObject() const
+CoreObject* StateFunctionGrabber::getObject() const
 {
     return (bgrabber) ? bgrabber->getObject() : nullptr;
 }
-void stateFunctionGrabber::outputPartialDerivatives(const stateData& stateDataValue,
+void StateFunctionGrabber::outputPartialDerivatives(const StateData& stateDataValue,
                                                     matrixData<double>& matrixDataValue,
                                                     const SolverMode& sMode)
 {
@@ -704,8 +704,8 @@ void stateFunctionGrabber::outputPartialDerivatives(const stateData& stateDataVa
     bgrabber->outputPartialDerivatives(stateDataValue, scaledMatrix, sMode);
 }
 
-stateOpGrabber::stateOpGrabber(std::shared_ptr<stateGrabber> ggb1,
-                               std::shared_ptr<stateGrabber> ggb2,
+StateOpGrabber::StateOpGrabber(std::shared_ptr<StateGrabber> ggb1,
+                               std::shared_ptr<StateGrabber> ggb2,
                                std::string operationName): op_name(std::move(operationName))
 {
     if (ggb1) {
@@ -723,7 +723,7 @@ stateOpGrabber::stateOpGrabber(std::shared_ptr<stateGrabber> ggb1,
     }
 }
 
-void stateOpGrabber::updateField(std::string_view opName)
+void StateOpGrabber::updateField(std::string_view opName)
 {
     if (!opName.empty()) {
         if (auto function = get2ArgFunction(opName)) {
@@ -739,17 +739,17 @@ void stateOpGrabber::updateField(std::string_view opName)
               (bgrabber1->loaded) && (bgrabber2->loaded));
 }
 
-std::unique_ptr<stateGrabber> stateOpGrabber::clone() const
+std::unique_ptr<StateGrabber> StateOpGrabber::clone() const
 {
-    std::unique_ptr<stateGrabber> stateGrabberClone = std::make_unique<stateOpGrabber>();
+    std::unique_ptr<StateGrabber> stateGrabberClone = std::make_unique<StateOpGrabber>();
     cloneTo(stateGrabberClone.get());
     return stateGrabberClone;
 }
 
-void stateOpGrabber::cloneTo(stateGrabber* ggb) const
+void StateOpGrabber::cloneTo(StateGrabber* ggb) const
 {
-    stateGrabber::cloneTo(ggb);
-    auto* sog = dynamic_cast<stateOpGrabber*>(ggb);
+    StateGrabber::cloneTo(ggb);
+    auto* sog = dynamic_cast<StateOpGrabber*>(ggb);
     if (sog == nullptr) {
         return;
     }
@@ -771,7 +771,7 @@ void stateOpGrabber::cloneTo(stateGrabber* ggb) const
     sog->opptr = opptr;
 }
 
-double stateOpGrabber::grabData(const stateData& stateDataValue, const SolverMode& sMode)
+double StateOpGrabber::grabData(const StateData& stateDataValue, const SolverMode& sMode)
 {
     const double grabber1Data = bgrabber1->grabData(stateDataValue, sMode);
     const double grabber2Data = bgrabber2->grabData(stateDataValue, sMode);
@@ -780,7 +780,7 @@ double stateOpGrabber::grabData(const stateData& stateDataValue, const SolverMod
     return val;
 }
 
-void stateOpGrabber::updateObject(CoreObject* obj, ObjectUpdateMode mode)
+void StateOpGrabber::updateObject(CoreObject* obj, ObjectUpdateMode mode)
 {
     if (bgrabber1) {
         bgrabber1->updateObject(obj, mode);
@@ -790,7 +790,7 @@ void stateOpGrabber::updateObject(CoreObject* obj, ObjectUpdateMode mode)
     }
 }
 
-void stateOpGrabber::updateObject(CoreObject* obj, int num)
+void StateOpGrabber::updateObject(CoreObject* obj, int num)
 {
     if (num == 1) {
         if (bgrabber1) {
@@ -803,7 +803,7 @@ void stateOpGrabber::updateObject(CoreObject* obj, int num)
     }
 }
 
-CoreObject* stateOpGrabber::getObject() const
+CoreObject* StateOpGrabber::getObject() const
 {
     if (bgrabber1) {
         return bgrabber1->getObject();
@@ -814,7 +814,7 @@ CoreObject* stateOpGrabber::getObject() const
     return nullptr;
 }
 
-void stateOpGrabber::outputPartialDerivatives(const stateData& stateDataValue,
+void StateOpGrabber::outputPartialDerivatives(const StateData& stateDataValue,
                                               matrixData<double>& matrixDataValue,
                                               const SolverMode& sMode)
 {

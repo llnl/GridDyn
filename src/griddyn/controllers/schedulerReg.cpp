@@ -334,17 +334,17 @@ double schedulerReg::get(std::string_view param, units::unit unitType) const
 }
 
 void schedulerReg::receiveMessage(std::uint64_t sourceID,
-                                  const std::shared_ptr<commMessage>& message)
+                                  const std::shared_ptr<CommMessage>& message)
 {
-    using comms::schedulerMessagePayload;
+    using comms::SchedulerMessagePayload;
     // auto sm = std::dynamic_pointer_cast<schedulerMessage> (message);
     switch (message->getMessageType()) {
-        case schedulerMessagePayload::CLEAR_TARGETS:
+        case SchedulerMessagePayload::CLEAR_TARGETS:
             clearSchedule();
             break;
-        case schedulerMessagePayload::SHUTDOWN:
-        case schedulerMessagePayload::STARTUP:
-        case schedulerMessagePayload::UPDATE_TARGETS:
+        case SchedulerMessagePayload::SHUTDOWN:
+        case SchedulerMessagePayload::STARTUP:
+        case SchedulerMessagePayload::UPDATE_TARGETS:
             break;
         default:
             schedulerRamp::receiveMessage(sourceID, message);

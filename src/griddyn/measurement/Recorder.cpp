@@ -17,8 +17,8 @@
 namespace griddyn {
 using gmlc::utilities::fsize_t;
 
-Recorder::Recorder(coreTime time0, coreTime period): collector(time0, period) {}
-Recorder::Recorder(const std::string& name): collector(name) {}
+Recorder::Recorder(coreTime time0, coreTime period): Collector(time0, period) {}
+Recorder::Recorder(const std::string& name): Collector(name) {}
 Recorder::~Recorder()
 {
     // check to make sure there is no unrecorded data
@@ -28,21 +28,21 @@ Recorder::~Recorder()
         }
         catch (const std::exception& e)  // no exceptions in a destructor
         {
-            collector::getObject()->log(collector::getObject(), PrintLevel::ERROR, e.what());
+            Collector::getObject()->log(Collector::getObject(), PrintLevel::ERROR, e.what());
         }
     }
 }
 
-std::unique_ptr<collector> Recorder::clone() const
+std::unique_ptr<Collector> Recorder::clone() const
 {
-    std::unique_ptr<collector> col = std::make_unique<Recorder>();
+    std::unique_ptr<Collector> col = std::make_unique<Recorder>();
     cloneTo(col.get());
     return col;
 }
 
-void Recorder::cloneTo(collector* col) const
+void Recorder::cloneTo(Collector* col) const
 {
-    collector::cloneTo(col);
+    Collector::cloneTo(col);
     auto* nrec = dynamic_cast<Recorder*>(col);
     if (nrec == nullptr) {
         return;
@@ -63,7 +63,7 @@ void Recorder::set(std::string_view param, double val)
     } else if (param == "autosave") {
         mAutosave = static_cast<count_t>(val);
     } else {
-        collector::set(param, val);
+        Collector::set(param, val);
     }
 }
 
@@ -77,7 +77,7 @@ void Recorder::set(std::string_view param, std::string_view val)
     } else if (param == "directory") {
         mDirectory = val;
     } else {
-        collector::set(param, val);
+        Collector::set(param, val);
     }
 }
 
@@ -146,11 +146,11 @@ void Recorder::addSpace(coreTime span)
 
 void Recorder::fillDatasetFields()
 {
-    mDataset.setFields(collector::getColumnDescriptions());
+    mDataset.setFields(Collector::getColumnDescriptions());
 }
 ChangeCode Recorder::trigger(coreTime time)
 {
-    collector::trigger(time);
+    Collector::trigger(time);
     if (mFirstTrigger) {
         mDataset.setCols(static_cast<fsize_t>(mData.size()));
         fillDatasetFields();

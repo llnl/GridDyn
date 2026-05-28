@@ -44,27 +44,27 @@ void Communicator::cloneTo(Communicator* comm) const
     comm->autoPingEnabled = autoPingEnabled;
 }
 
-void Communicator::transmit(std::uint64_t destID, const std::shared_ptr<commMessage>& message)
+void Communicator::transmit(std::uint64_t destID, const std::shared_ptr<CommMessage>& message)
 {
-    communicationsCore::instance()->send(mId, destID, message);
+    CommunicationsCore::instance()->send(mId, destID, message);
 }
 
-void Communicator::transmit(std::string_view destName, const std::shared_ptr<commMessage>& message)
+void Communicator::transmit(std::string_view destName, const std::shared_ptr<CommMessage>& message)
 {
-    communicationsCore::instance()->send(mId, destName, message);
+    CommunicationsCore::instance()->send(mId, destName, message);
 }
 
 void Communicator::receive(std::uint64_t sourceID,
                            std::uint64_t destID,
-                           const std::shared_ptr<commMessage>& message)
+                           const std::shared_ptr<CommMessage>& message)
 {
     if ((destID == mId) || (destID == 0)) {
         if (autoPingEnabled) {
-            if (message->getMessageType() == commMessage::pingMessageType) {
-                communicationsCore::instance()->send(
-                    mId, sourceID, std::make_shared<commMessage>(commMessage::replyMessageType));
-            } else if (message->getMessageType() == commMessage::replyMessageType) {
-                mLastReplyRx = communicationsCore::instance()->getTime();
+            if (message->getMessageType() == CommMessage::pingMessageType) {
+                CommunicationsCore::instance()->send(
+                    mId, sourceID, std::make_shared<CommMessage>(CommMessage::replyMessageType));
+            } else if (message->getMessageType() == CommMessage::replyMessageType) {
+                mLastReplyRx = CommunicationsCore::instance()->getTime();
                 return;
             }
         }
@@ -78,15 +78,15 @@ void Communicator::receive(std::uint64_t sourceID,
 
 void Communicator::receive(std::uint64_t sourceID,
                            std::string_view destName,
-                           const std::shared_ptr<commMessage>& message)
+                           const std::shared_ptr<CommMessage>& message)
 {
     if (destName == getName()) {
         if (autoPingEnabled) {
-            if (message->getMessageType() == commMessage::pingMessageType) {
-                communicationsCore::instance()->send(
-                    mId, sourceID, std::make_shared<commMessage>(commMessage::replyMessageType));
-            } else if (message->getMessageType() == commMessage::replyMessageType) {
-                mLastReplyRx = communicationsCore::instance()->getTime();
+            if (message->getMessageType() == CommMessage::pingMessageType) {
+                CommunicationsCore::instance()->send(
+                    mId, sourceID, std::make_shared<CommMessage>(CommMessage::replyMessageType));
+            } else if (message->getMessageType() == CommMessage::replyMessageType) {
+                mLastReplyRx = CommunicationsCore::instance()->getTime();
                 return;
             }
         }
@@ -102,7 +102,7 @@ bool Communicator::messagesAvailable() const
 {
     return !(mMessageQueue.empty());
 }
-std::shared_ptr<commMessage> Communicator::getMessage(std::uint64_t& source)
+std::shared_ptr<CommMessage> Communicator::getMessage(std::uint64_t& source)
 {
     auto msg = mMessageQueue.pop();
     if (!msg) {
@@ -115,16 +115,16 @@ std::shared_ptr<commMessage> Communicator::getMessage(std::uint64_t& source)
 // ping functions
 void Communicator::ping(std::uint64_t destID)
 {
-    auto message = std::make_shared<commMessage>(commMessage::pingMessageType);
-    auto ccore = communicationsCore::instance();
+    auto message = std::make_shared<CommMessage>(CommMessage::pingMessageType);
+    auto ccore = CommunicationsCore::instance();
     mLastPingSend = ccore->getTime();
     ccore->send(mId, destID, message);
 }
 
 void Communicator::ping(std::string_view destName)
 {
-    auto message = std::make_shared<commMessage>(commMessage::pingMessageType);
-    auto ccore = communicationsCore::instance();
+    auto message = std::make_shared<CommMessage>(CommMessage::pingMessageType);
+    auto ccore = CommunicationsCore::instance();
     mLastPingSend = ccore->getTime();
     ccore->send(mId, destName, message);
 }
@@ -161,11 +161,11 @@ void Communicator::setFlag(std::string_view flag, bool val)
 
 void Communicator::initialize()
 {
-    communicationsCore::instance()->registerCommunicator(this);
+    CommunicationsCore::instance()->registerCommunicator(this);
 }
 void Communicator::disconnect()
 {
-    communicationsCore::instance()->unregisterCommunicator(this);
+    CommunicationsCore::instance()->unregisterCommunicator(this);
 }
 std::unique_ptr<Communicator> makeCommunicator(const std::string& commType,
                                                const std::string& commName,

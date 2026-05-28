@@ -473,19 +473,19 @@ double schedulerRamp::get(std::string_view param, units::unit unitType) const
 }
 
 void schedulerRamp::receiveMessage(std::uint64_t sourceID,
-                                   const std::shared_ptr<commMessage>& message)
+                                   const std::shared_ptr<CommMessage>& message)
 {
-    using comms::schedulerMessagePayload;
+    using comms::SchedulerMessagePayload;
     // auto sm = std::dynamic_pointer_cast<schedulerMessage> (message);
     switch (message->getMessageType()) {
-        case schedulerMessagePayload::CLEAR_TARGETS:
+        case SchedulerMessagePayload::CLEAR_TARGETS:
             clearSchedule();
             break;
-        case schedulerMessagePayload::SHUTDOWN:
-        case schedulerMessagePayload::STARTUP:
-        case schedulerMessagePayload::UPDATE_TARGETS:
-        case schedulerMessagePayload::UPDATE_RESERVES:
-        case schedulerMessagePayload::USE_RESERVE:
+        case SchedulerMessagePayload::SHUTDOWN:
+        case SchedulerMessagePayload::STARTUP:
+        case SchedulerMessagePayload::UPDATE_TARGETS:
+        case SchedulerMessagePayload::UPDATE_RESERVES:
+        case SchedulerMessagePayload::USE_RESERVE:
             break;
         default:
             scheduler::receiveMessage(sourceID, message);

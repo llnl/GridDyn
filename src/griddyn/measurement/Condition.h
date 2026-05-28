@@ -15,7 +15,7 @@
 #include <vector>
 
 namespace griddyn {
-class grabberSet;
+class GrabberSet;
 /** enumeration of the available comparison types*/
 enum class ComparisonType {
     EQ,
@@ -39,15 +39,15 @@ class Condition: public ObjectOperatorInterface {
     double m_constant = 0.0;  //!< right hand side constant
     double m_margin = 0.0;  //!< the margin around the conditions
     double mCurrentMargin = 0.0;  //!< the currently used margin
-    std::shared_ptr<grabberSet> mConditionLHS;  //!< grabber for left side condition
-    std::shared_ptr<grabberSet> mConditionRHS;  //!< grabber for right side condition
+    std::shared_ptr<GrabberSet> mConditionLHS;  //!< grabber for left side condition
+    std::shared_ptr<GrabberSet> mConditionRHS;  //!< grabber for right side condition
     bool mConstRHS = false;  //!< flag indicating use of a constant RHS
     bool mUseMargin = false;  //!< flag indicating margin use
   public:
     /** default constructor
     @param[in] valGrabber the grabber for the LHS of the equation
     */
-    explicit Condition(std::shared_ptr<grabberSet> valGrabber = nullptr);
+    explicit Condition(std::shared_ptr<GrabberSet> valGrabber = nullptr);
     /** destructor*/
     virtual ~Condition();
     /** clone the condition
@@ -59,13 +59,13 @@ class Condition: public ObjectOperatorInterface {
     */
     virtual void cloneTo(Condition* cond) const;
     /** load the grabbers for the Left hand side of the condition equation
-    @param[in] valGrabber a gridGrabber
+    @param[in] valGrabber a GridGrabber
     */
-    void setConditionLHS(std::shared_ptr<grabberSet> valGrabber);
+    void setConditionLHS(std::shared_ptr<GrabberSet> valGrabber);
     /** load the grabbers for the Right hand side of the condition equation
-    @param[in] valGrabber a gridGrabber
+    @param[in] valGrabber a GridGrabber
     */
-    void setConditionRHS(std::shared_ptr<grabberSet> valGrabber);
+    void setConditionRHS(std::shared_ptr<GrabberSet> valGrabber);
     /**run the comparison between condition sides from gridGrabbers
      * @return returns a difference between the condition and parameter designed to go negative if
      *the condition is met

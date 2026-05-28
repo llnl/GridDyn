@@ -29,41 +29,41 @@ namespace {
         return value;
     }
 
-    dPayloadFactory<controlMessagePayload,
+    DPayloadFactory<ControlMessagePayload,
                     BASE_CONTROL_MESSAGE_NUMBER,
                     BASE_CONTROL_MESSAGE_NUMBER + 16>
         gControlPayloadFactory("control");
 }  // namespace
 
-REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_SET, "SET", controlMessagePayload::SET);
-REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_GET, "GET", controlMessagePayload::GET);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_SET, "SET", ControlMessagePayload::SET);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_GET, "GET", ControlMessagePayload::GET);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_GET_MULTIPLE,
                       "GET MULTIPLE",
-                      controlMessagePayload::GET_MULTIPLE);
+                      ControlMessagePayload::GET_MULTIPLE);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_GET_PERIODIC,
                       "GET PERIODIC",
-                      controlMessagePayload::GET_PERIODIC);
+                      ControlMessagePayload::GET_PERIODIC);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_SET_MULTIPLE,
                       "SET MULTIPLE",
-                      controlMessagePayload::SET_MULTIPLE);
-REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_SET_SUCCESS, "SET SUCCESS", controlMessagePayload::SET_SUCCESS);
-REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_SET_FAIL, "SET FAIL", controlMessagePayload::SET_FAIL);
-REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_GET_RESULT, "GET RESULT", controlMessagePayload::GET_RESULT);
+                      ControlMessagePayload::SET_MULTIPLE);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_SET_SUCCESS, "SET SUCCESS", ControlMessagePayload::SET_SUCCESS);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_SET_FAIL, "SET FAIL", ControlMessagePayload::SET_FAIL);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_GET_RESULT, "GET RESULT", ControlMessagePayload::GET_RESULT);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_GET_RESULT_MULTIPLE,
                       "GET RESULT MULTIPLE",
-                      controlMessagePayload::GET_RESULT_MULTIPLE);
+                      ControlMessagePayload::GET_RESULT_MULTIPLE);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_SET_SCHEDULED,
                       "SET SCHEDULED",
-                      controlMessagePayload::SET_SCHEDULED);
+                      ControlMessagePayload::SET_SCHEDULED);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_GET_SCHEDULED,
                       "GET SCHEDULED",
-                      controlMessagePayload::GET_SCHEDULED);
-REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_CANCEL, "CANCEL", controlMessagePayload::CANCEL);
+                      ControlMessagePayload::GET_SCHEDULED);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_CANCEL, "CANCEL", ControlMessagePayload::CANCEL);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_CANCEL_SUCCESS,
                       "CANCEL SUCCESS",
-                      controlMessagePayload::CANCEL_SUCCESS);
-REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_CANCEL_FAIL, "CANCEL FAIL", controlMessagePayload::CANCEL_FAIL);
-std::string controlMessagePayload::to_string(uint32_t type, uint32_t /*code*/) const
+                      ControlMessagePayload::CANCEL_SUCCESS);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_CANCEL_FAIL, "CANCEL FAIL", ControlMessagePayload::CANCEL_FAIL);
+std::string ControlMessagePayload::to_string(uint32_t type, uint32_t /*code*/) const
 {
     std::string temp;
     switch (type) {
@@ -127,7 +127,7 @@ std::string controlMessagePayload::to_string(uint32_t type, uint32_t /*code*/) c
     return temp;
 }
 
-void controlMessagePayload::from_string(uint32_t type,
+void ControlMessagePayload::from_string(uint32_t type,
                                         uint32_t /*code*/,
                                         std::string_view fromString,
                                         size_t offset)

@@ -53,9 +53,9 @@ std::unique_ptr<Condition> makeCondition(std::string_view condString, CoreObject
 
     // get the state grabbers part
 
-    condition->setConditionLHS(std::make_shared<grabberSet>(lhsBlock, rootObject));
+    condition->setConditionLHS(std::make_shared<GrabberSet>(lhsBlock, rootObject));
 
-    condition->setConditionRHS(std::make_shared<grabberSet>(rhsBlock, rootObject));
+    condition->setConditionRHS(std::make_shared<GrabberSet>(rhsBlock, rootObject));
 
     std::string condstr;
     condstr.push_back(comparisonChar);
@@ -128,7 +128,7 @@ std::unique_ptr<Condition>
     makeCondition(std::string_view field, ComparisonType comp, double level, CoreObject* rootObject)
 {
     try {
-        auto gset = std::make_shared<grabberSet>(std::string{field}, rootObject);
+        auto gset = std::make_shared<GrabberSet>(std::string{field}, rootObject);
         auto condition = std::make_unique<Condition>(std::move(gset));
         condition->setConditionRHS(level);
 
@@ -142,7 +142,7 @@ std::unique_ptr<Condition>
     }
 }
 
-Condition::Condition(std::shared_ptr<grabberSet> valGrabber): mConditionLHS(std::move(valGrabber))
+Condition::Condition(std::shared_ptr<GrabberSet> valGrabber): mConditionLHS(std::move(valGrabber))
 {
 }
 Condition::~Condition() = default;
@@ -179,14 +179,14 @@ void Condition::cloneTo(Condition* cond) const
     }
 }
 
-void Condition::setConditionLHS(std::shared_ptr<grabberSet> valGrabber)
+void Condition::setConditionLHS(std::shared_ptr<GrabberSet> valGrabber)
 {
     if (valGrabber) {
         mConditionLHS = std::move(valGrabber);
     }
 }
 
-void Condition::setConditionRHS(std::shared_ptr<grabberSet> valGrabber)
+void Condition::setConditionRHS(std::shared_ptr<GrabberSet> valGrabber)
 {
     if (valGrabber) {
         mConditionRHS = std::move(valGrabber);

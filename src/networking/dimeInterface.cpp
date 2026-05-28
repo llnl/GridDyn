@@ -18,7 +18,7 @@ namespace griddyn {
 void loadDimeLibrary()
 {
     static const bool loaded = []() {
-        static const ChildClassFactory<dimeLib::DimeCollector, collector> dimeFactory(
+        static const ChildClassFactory<dimeLib::DimeCollector, Collector> dimeFactory(
             std::vector<std::string>{"dime"});
         static const ChildClassFactory<dimeLib::DimeCommunicator, Communicator>
             dimeCommunicatorFactory(std::vector<std::string>{"dime"});

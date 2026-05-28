@@ -329,7 +329,7 @@ void ReaderInfo::addDirectory(const std::string& directory)
     }
 }
 
-std::shared_ptr<collector> ReaderInfo::findCollector(const std::string& name,
+std::shared_ptr<Collector> ReaderInfo::findCollector(const std::string& name,
                                                      const std::string& fileName)
 {
     for (auto& col : collectors) {

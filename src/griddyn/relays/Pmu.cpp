@@ -286,9 +286,9 @@ void pmu::generateAndTransmitMessage() const
         const auto& oname = outputNames();
 
         auto message =
-            std::make_shared<commMessage>(comms::controlMessagePayload::GET_RESULT_MULTIPLE);
+            std::make_shared<CommMessage>(comms::ControlMessagePayload::GET_RESULT_MULTIPLE);
 
-        auto* payload = message->getPayload<comms::controlMessagePayload>();
+        auto* payload = message->getPayload<comms::ControlMessagePayload>();
         auto res = getOutputs(noInputs, emptyStateData, cLocalSolverMode);
 
         payload->multiFields.resize(res.size());

@@ -15,7 +15,7 @@
 
 namespace griddyn {
 class Communicator;
-class commMessage;
+class CommMessage;
 
 typedef std::unordered_map<std::string, Communicator*> commMapString;
 typedef std::unordered_map<std::uint64_t, Communicator*> commMapID;
@@ -26,11 +26,11 @@ typedef std::unordered_map<std::uint64_t, Communicator*> commMapID;
 GridDyn
 @details it maintains a table and sends messages to the appropriate destination using callbacks
 */
-class communicationsCore {
+class CommunicationsCore {
   public:
     /** get an instance of the singleton core */
-    static std::shared_ptr<communicationsCore> instance();
-    virtual ~communicationsCore() = default;
+    static std::shared_ptr<CommunicationsCore> instance();
+    virtual ~CommunicationsCore() = default;
     /** register a communicator*/
     virtual void registerCommunicator(Communicator* comm);
     /** unregister a communicator */
@@ -43,7 +43,7 @@ class communicationsCore {
   */
     virtual int send(std::uint64_t source,
                      std::string_view dest,
-                     const std::shared_ptr<commMessage>& message);
+                     const std::shared_ptr<CommMessage>& message);
     /** send a message to a specified destination
   @param[in] source -the identity of the source of the message
   @param[in] dest the name of the destination
@@ -51,7 +51,7 @@ class communicationsCore {
   @return SEND_SUCCESS if the message send was successful DESTINATION_NOT_FOUND otherwise
   */
     virtual int
-        send(std::uint64_t source, std::uint64_t dest, const std::shared_ptr<commMessage>& message);
+        send(std::uint64_t source, std::uint64_t dest, const std::shared_ptr<CommMessage>& message);
     coreTime getTime() const { return mTime; }
     void setTime(coreTime nTime) { mTime = nTime; }
     /** lookup an id by name
@@ -65,7 +65,7 @@ class communicationsCore {
 
   private:
     /** private constructor*/
-    communicationsCore() = default;
+    CommunicationsCore() = default;
     commMapString mStringMap;  //!< map containing the strings
     commMapID mIdMap;  //!< map containing the id
     coreTime mTime = timeZero;  //!< current time of the communicator

@@ -247,8 +247,8 @@ void Generator::add(CoreObject* obj)
 
 void Generator::add(GridSubModel* obj)
 {
-    if (dynamic_cast<scheduler*>(obj) != nullptr) {
-        sched = static_cast<scheduler*>(obj);
+    if (dynamic_cast<Scheduler*>(obj) != nullptr) {
+        sched = static_cast<Scheduler*>(obj);
     } else {
         throw(UnrecognizedObjectException(this));
     }

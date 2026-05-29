@@ -16,7 +16,7 @@
 #include <string_view>
 
 namespace griddyn {
-class commMessage;
+class CommMessage;
 
 /**
 @brief base class for communicator object
@@ -39,18 +39,18 @@ class Communicator:
     @param[in] comm an object to copy data to
     */
     virtual void cloneTo(Communicator* comm) const;
-    /** transmit a commMessage somewhere
+    /** transmit a CommMessage somewhere
      * transmits a data block to somewhere Else
      * @param[in] destName the identifier of the receiving location specified as a string
      * @param[in] message  the message to send
      */
-    virtual void transmit(std::string_view destName, const std::shared_ptr<commMessage>& message);
-    /** transmit a commMessage somewhere
+    virtual void transmit(std::string_view destName, const std::shared_ptr<CommMessage>& message);
+    /** transmit a CommMessage somewhere
      * transmits a data block to somewhere Else
      * @param[in] destID the identifier of the receiving location specified as a id code
      * @param[in] message  the message to send
      */
-    virtual void transmit(std::uint64_t destID, const std::shared_ptr<commMessage>& message);
+    virtual void transmit(std::uint64_t destID, const std::shared_ptr<CommMessage>& message);
     /** receive data
      * received a data block and takes the appropriate action
      * @param[in] sourceID the identifier of the transmit location
@@ -59,7 +59,7 @@ class Communicator:
      */
     virtual void receive(std::uint64_t sourceID,
                          std::uint64_t destID,
-                         const std::shared_ptr<commMessage>& message);
+                         const std::shared_ptr<CommMessage>& message);
     /** receive data
      * received a data block and takes the appropriate action
      * @param[in] sourceID the identifier of the transmit location
@@ -68,7 +68,7 @@ class Communicator:
      */
     virtual void receive(std::uint64_t sourceID,
                          std::string_view destName,
-                         const std::shared_ptr<commMessage>& message);
+                         const std::shared_ptr<CommMessage>& message);
 
     // ping functions
     /** transmit a ping message to the specified ID*/
@@ -82,13 +82,13 @@ class Communicator:
     void setCommID(std::uint64_t newID) { mId = newID; }
     /** get the communicator id */
     std::uint64_t getCommID() const { return mId; }
-    using rxMessageCallback_t = std::function<void(std::uint64_t, std::shared_ptr<commMessage>)>;
+    using rxMessageCallback_t = std::function<void(std::uint64_t, std::shared_ptr<CommMessage>)>;
     /** specify the callback function to use when receiving a message*/
     void registerReceiveCallback(rxMessageCallback_t newAction) { mRxCallbackMessage = newAction; }
     /** return true if message are queued*/
     bool messagesAvailable() const;
     /** get the next message on the queue*/
-    std::shared_ptr<commMessage> getMessage(std::uint64_t& source);
+    std::shared_ptr<CommMessage> getMessage(std::uint64_t& source);
 
     /** initialize the communicator
     @details setup the actual communication pathways and other component functions*/
@@ -105,7 +105,7 @@ class Communicator:
     griddyn::coreTime mLastPingSend = griddyn::timeZero;  //!< the time last ping was sent
     griddyn::coreTime mLastReplyRx =
         griddyn::timeZero;  //!< the time the last response was received
-    gmlc::containers::SimpleQueue<std::pair<std::uint64_t, std::shared_ptr<commMessage>>>
+    gmlc::containers::SimpleQueue<std::pair<std::uint64_t, std::shared_ptr<CommMessage>>>
         mMessageQueue;  //!< the message queue storing source and message
 };
 

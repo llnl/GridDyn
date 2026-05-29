@@ -33,10 +33,10 @@ namespace zmqInterface {
 
         virtual void cloneTo(Communicator* comm) const override;
         virtual void transmit(std::string_view destName,
-                              const std::shared_ptr<commMessage>& message) override;
+                              const std::shared_ptr<CommMessage>& message) override;
 
         virtual void transmit(std::uint64_t destID,
-                              const std::shared_ptr<commMessage>& message) override;
+                              const std::shared_ptr<CommMessage>& message) override;
 
         virtual void initialize() override;
 
@@ -76,10 +76,10 @@ namespace zmqInterface {
         /** handle a zmq message*/
         virtual void messageHandler(const zmq::multipart_t& msg);
         /** add a header to a message*/
-        virtual void addHeader(zmq::multipart_t& msg, const std::shared_ptr<commMessage>& message);
+        virtual void addHeader(zmq::multipart_t& msg, const std::shared_ptr<CommMessage>& message);
         /** add the body from a regular commMessage*/
         virtual void addMessageBody(zmq::multipart_t& msg,
-                                    const std::shared_ptr<commMessage>& message);
+                                    const std::shared_ptr<CommMessage>& message);
     };
 
 }  // namespace zmqInterface

@@ -132,9 +132,9 @@ void controlRelay::actionTaken(index_t ActionNum,
     (void)(conditionNum);
 }
 
-using cm = griddyn::comms::controlMessagePayload;
+using cm = griddyn::comms::ControlMessagePayload;
 
-void controlRelay::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMessage> message)
+void controlRelay::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMessage> message)
 {
     auto m = message->getPayload<cm>();
     index_t actnum;
@@ -151,7 +151,7 @@ void controlRelay::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMe
                     rootSim->add(std::shared_ptr<EventAdapter>(std::move(fea)));
                 }
             } else {
-                auto gres = std::make_shared<commMessage>(cm::SET_SCHEDULED);
+                auto gres = std::make_shared<CommMessage>(cm::SET_SCHEDULED);
                 gres->getPayload<cm>()->m_actionID =
                     (m->m_actionID > 0) ? m->m_actionID : instructionCounter;
 
@@ -172,7 +172,7 @@ void controlRelay::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMe
                     rootSim->add(std::shared_ptr<EventAdapter>(std::move(fea)));
                 }
             } else {
-                auto gres = std::make_shared<commMessage>(cm::SET_SCHEDULED);
+                auto gres = std::make_shared<CommMessage>(cm::SET_SCHEDULED);
                 gres->getPayload<cm>()->m_actionID =
                     (m->m_actionID > 0) ? m->m_actionID : instructionCounter;
                 commLink->transmit(sourceID, std::move(gres));
@@ -208,16 +208,16 @@ void controlRelay::receiveMessage(std::uint64_t sourceID, std::shared_ptr<commMe
                      actionDelay)) {  // can only cancel actions that have not executed and are
                                       // not closer than the actionDelay
                     actions[actnum].executed = true;
-                    auto gres = std::make_shared<commMessage>(cm::CANCEL_SUCCESS);
+                    auto gres = std::make_shared<CommMessage>(cm::CANCEL_SUCCESS);
                     gres->getPayload<cm>()->m_actionID = m->m_actionID;
                     commLink->transmit(sourceID, std::move(gres));
                 } else {
-                    auto gres = std::make_shared<commMessage>(cm::CANCEL_FAIL);
+                    auto gres = std::make_shared<CommMessage>(cm::CANCEL_FAIL);
                     gres->getPayload<cm>()->m_actionID = m->m_actionID;
                     commLink->transmit(sourceID, std::move(gres));
                 }
             } else {
-                auto gres = std::make_shared<commMessage>(cm::CANCEL_FAIL);
+                auto gres = std::make_shared<CommMessage>(cm::CANCEL_FAIL);
                 gres->getPayload<cm>()->m_actionID = m->m_actionID;
                 commLink->transmit(sourceID, std::move(gres));
             }
@@ -274,12 +274,12 @@ ChangeCode controlRelay::executeAction(index_t actionNum)
                     val = m_sourceObject->get(cact.field, cact.unitType);
                 }
             }
-            auto gres = std::make_shared<commMessage>(cm::GET_RESULT);
+            auto gres = std::make_shared<CommMessage>(cm::GET_RESULT);
             auto ptr = gres->getPayload<cm>();
             ptr->m_field = cact.field;
             ptr->m_value = val;
             ptr->m_time = prevTime;
-            commLink->transmit(cact.sourceID, std::shared_ptr<commMessage>(std::move(gres)));
+            commLink->transmit(cact.sourceID, std::shared_ptr<CommMessage>(std::move(gres)));
             return ChangeCode::NO_CHANGE;
         }
 
@@ -300,7 +300,7 @@ ChangeCode controlRelay::executeAction(index_t actionNum)
 
             if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
             {
-                auto gres = std::make_shared<commMessage>(cm::SET_SUCCESS);
+                auto gres = std::make_shared<CommMessage>(cm::SET_SUCCESS);
                 gres->getPayload<cm>()->m_actionID = cact.actionID;
                 commLink->transmit(cact.sourceID, std::move(gres));
             }
@@ -309,9 +309,9 @@ ChangeCode controlRelay::executeAction(index_t actionNum)
         catch (const std::invalid_argument&) {
             if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
             {
-                auto gres = std::make_shared<commMessage>(cm::SET_FAIL);
+                auto gres = std::make_shared<CommMessage>(cm::SET_FAIL);
                 gres->getPayload<cm>()->m_actionID = cact.actionID;
-                commLink->transmit(cact.sourceID, std::shared_ptr<commMessage>(std::move(gres)));
+                commLink->transmit(cact.sourceID, std::shared_ptr<CommMessage>(std::move(gres)));
             }
             return ChangeCode::EXECUTION_FAILURE;
         }

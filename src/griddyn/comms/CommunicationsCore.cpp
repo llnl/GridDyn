@@ -14,13 +14,13 @@
 #include <utility>
 
 namespace griddyn {
-std::shared_ptr<communicationsCore> communicationsCore::instance()
+std::shared_ptr<CommunicationsCore> CommunicationsCore::instance()
 {
-    static auto m_pInstance = std::shared_ptr<communicationsCore>(new communicationsCore());
-    return m_pInstance;
+    static auto mPInstance = std::shared_ptr<CommunicationsCore>(new CommunicationsCore());
+    return mPInstance;
 }
 
-void communicationsCore::registerCommunicator(Communicator* comm)
+void CommunicationsCore::registerCommunicator(Communicator* comm)
 {
     auto ret = mStringMap.emplace(comm->getName(), comm);
     if (!ret.second) {
@@ -38,7 +38,7 @@ void communicationsCore::registerCommunicator(Communicator* comm)
     }
 }
 
-void communicationsCore::unregisterCommunicator(Communicator* comm)
+void CommunicationsCore::unregisterCommunicator(Communicator* comm)
 {
     auto resName = mStringMap.find(comm->getName());
     if (resName != mStringMap.end()) {
@@ -50,9 +50,9 @@ void communicationsCore::unregisterCommunicator(Communicator* comm)
     }
 }
 
-int communicationsCore::send(std::uint64_t source,
+int CommunicationsCore::send(std::uint64_t source,
                              std::string_view dest,
-                             const std::shared_ptr<commMessage>& message)
+                             const std::shared_ptr<CommMessage>& message)
 {
     auto res = mStringMap.find(std::string{dest});
     if (res != mStringMap.end()) {
@@ -62,9 +62,9 @@ int communicationsCore::send(std::uint64_t source,
     return DESTINATION_NOT_FOUND;
 }
 
-int communicationsCore::send(std::uint64_t source,
+int CommunicationsCore::send(std::uint64_t source,
                              std::uint64_t dest,
-                             const std::shared_ptr<commMessage>& message)
+                             const std::shared_ptr<CommMessage>& message)
 {
     auto res = mIdMap.find(dest);
     if (res != mIdMap.end()) {
@@ -74,12 +74,12 @@ int communicationsCore::send(std::uint64_t source,
     return DESTINATION_NOT_FOUND;
 }
 
-std::uint64_t communicationsCore::lookup(std::string_view commName) const
+std::uint64_t CommunicationsCore::lookup(std::string_view commName) const
 {
     auto res = mStringMap.find(std::string{commName});
     return (res != mStringMap.end()) ? res->second->getID() : 0;
 }
-std::string communicationsCore::lookup(std::uint64_t did) const
+std::string CommunicationsCore::lookup(std::uint64_t did) const
 {
     auto res = mIdMap.find(did);
     return (res != mIdMap.end()) ? res->second->getName() : "";

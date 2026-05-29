@@ -11,9 +11,9 @@
 #include <string>
 
 namespace griddyn::tcpLib {
-TcpCollector::TcpCollector(coreTime time0, coreTime period): collector(time0, period) {}
+TcpCollector::TcpCollector(coreTime time0, coreTime period): Collector(time0, period) {}
 
-TcpCollector::TcpCollector(const std::string& collectorName): collector(collectorName) {}
+TcpCollector::TcpCollector(const std::string& collectorName): Collector(collectorName) {}
 
 TcpCollector::~TcpCollector()
 {
@@ -21,16 +21,16 @@ TcpCollector::~TcpCollector()
         connection->close();
     }
 }
-std::unique_ptr<collector> TcpCollector::clone() const
+std::unique_ptr<Collector> TcpCollector::clone() const
 {
-    std::unique_ptr<collector> col = std::make_unique<TcpCollector>();
+    std::unique_ptr<Collector> col = std::make_unique<TcpCollector>();
     TcpCollector::cloneTo(col.get());
     return col;
 }
 
-void TcpCollector::cloneTo(collector* col) const
+void TcpCollector::cloneTo(Collector* col) const
 {
-    collector::cloneTo(col);
+    Collector::cloneTo(col);
     auto* tcpCollectorClone = dynamic_cast<TcpCollector*>(col);
     if (tcpCollectorClone == nullptr) {
         return;
@@ -45,7 +45,7 @@ ChangeCode TcpCollector::trigger(coreTime time)
         connection = gmlc::networking::TcpConnection::create(
             gmlc::networking::AsioContextManager::getContext(), server, port);
     }
-    auto out = collector::trigger(time);
+    auto out = Collector::trigger(time);
     // figure out what to do with the data
     for (size_t kk = 0; kk < mPoints.size(); ++kk) {
         // connection->sendVar(mPoints[kk].mColumnName, mData[kk]);
@@ -59,7 +59,7 @@ void TcpCollector::set(std::string_view param, double val)
     if (param == "port") {
         port = std::to_string(val);
     } else {
-        collector::set(param, val);
+        Collector::set(param, val);
     }
 }
 
@@ -70,7 +70,7 @@ void TcpCollector::set(std::string_view param, std::string_view val)
     } else if (param == "port") {
         port = val;
     } else {
-        collector::set(param, val);
+        Collector::set(param, val);
     }
 }
 

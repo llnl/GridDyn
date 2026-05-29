@@ -37,7 +37,7 @@ enum class JacobianMode {
 /**class for grabbing a subset of fields directly from the state vector for performing certain
  * calculations
  */
-class stateGrabber: public ObjectOperatorInterface {
+class StateGrabber: public ObjectOperatorInterface {
   public:
     std::string field;  //!< name of the field to capture
 
@@ -57,17 +57,17 @@ class stateGrabber: public ObjectOperatorInterface {
     objJacFunction jacIfptr;  //!< the functional to compute the Jacobian
     index_t prevIndex = kInvalidLocation;  //!< temporary storage of the previous index
   public:
-    stateGrabber() = default;
-    explicit stateGrabber(CoreObject* obj);
+    StateGrabber() = default;
+    explicit StateGrabber(CoreObject* obj);
 
-    stateGrabber(std::string_view fld, CoreObject* obj);
-    stateGrabber(index_t noffset, CoreObject* obj);
+    StateGrabber(std::string_view fld, CoreObject* obj);
+    StateGrabber(index_t noffset, CoreObject* obj);
     /** clone the grabber*/
-    virtual std::unique_ptr<stateGrabber> clone() const;
+    virtual std::unique_ptr<StateGrabber> clone() const;
     /** clone a grabber to another grabber
     @param[in] ggb a pointer to a grabber to clone to
     */
-    virtual void cloneTo(stateGrabber* ggb) const;
+    virtual void cloneTo(StateGrabber* ggb) const;
 
     /** update the target field of a grabber
     @param[in] fld the new target string of a grabber
@@ -116,43 +116,43 @@ using fstateobjectPair = std::pair<
 @param[in] obj the root object to start any searches from
 @return a vector of unique_ptrs to stateGrabbers containing all the generated grabbers
 */
-std::vector<std::unique_ptr<stateGrabber>> makeStateGrabbers(std::string_view command,
+std::vector<std::unique_ptr<StateGrabber>> makeStateGrabbers(std::string_view command,
                                                              CoreObject* obj);
 
 /**
 class with an additional capability of a totally custom function grabber call
 */
-class customStateGrabber: public stateGrabber {
+class CustomStateGrabber: public StateGrabber {
   public:
-    customStateGrabber() = default;
-    explicit customStateGrabber(GridComponent* comp);
-    virtual std::unique_ptr<stateGrabber> clone() const override;
-    virtual void cloneTo(stateGrabber* ggb) const override;
+    CustomStateGrabber() = default;
+    explicit CustomStateGrabber(GridComponent* comp);
+    virtual std::unique_ptr<StateGrabber> clone() const override;
+    virtual void cloneTo(StateGrabber* ggb) const override;
     /** set the custom grabber function
     @param[in] nfptr the custom function for grabbing a state value
     */
     void setGrabberFunction(objStateGrabberFunction nfptr);
     /** set the custom Jacobian function related to a state Grabber
-    @param[in] nJfptr the custom function for generating Jacobian information for a stateGrabber
+    @param[in] nJfptr the custom function for generating Jacobian information for a StateGrabber
     */
     void setGrabberJacFunction(objJacFunction nJfptr);
 };
 
 /** function operation on a state grabber*/
-class stateFunctionGrabber: public stateGrabber {
+class StateFunctionGrabber: public StateGrabber {
   public:
   protected:
-    std::shared_ptr<stateGrabber>
+    std::shared_ptr<StateGrabber>
         bgrabber;  //!< the grabber that gets the data that the function operates on
     std::string function_name;  //!< the name of the function
     function1_t opptr = nullptr;  //!< function object
     function1_t dopptr = nullptr;  //!< derivative function object
 
   public:
-    stateFunctionGrabber() = default;
-    stateFunctionGrabber(std::shared_ptr<stateGrabber> ggb, std::string func);
-    virtual std::unique_ptr<stateGrabber> clone() const override;
-    virtual void cloneTo(stateGrabber* ggb) const override;
+    StateFunctionGrabber() = default;
+    StateFunctionGrabber(std::shared_ptr<StateGrabber> ggb, std::string func);
+    virtual std::unique_ptr<StateGrabber> clone() const override;
+    virtual void cloneTo(StateGrabber* ggb) const override;
     virtual double grabData(const stateData& stateDataValue, const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
@@ -164,22 +164,22 @@ class stateFunctionGrabber: public stateGrabber {
 };
 
 /** a state grabber with operation or two argument functions*/
-class stateOpGrabber: public stateGrabber {
+class StateOpGrabber: public StateGrabber {
   protected:
-    std::shared_ptr<stateGrabber> bgrabber1;  //!< grabber 1 as the first argument
-    std::shared_ptr<stateGrabber> bgrabber2;  //!< grabber 2 as the second argument
+    std::shared_ptr<StateGrabber> bgrabber1;  //!< grabber 1 as the first argument
+    std::shared_ptr<StateGrabber> bgrabber2;  //!< grabber 2 as the second argument
     std::string op_name;  //!< the name of the operation
     function2_t opptr = nullptr;  //!< function pointer for a two argument function
 
   public:
     /** default constructor*/
-    stateOpGrabber() = default;
+    StateOpGrabber() = default;
     /** construct from two state grabbers and a operation*/
-    stateOpGrabber(std::shared_ptr<stateGrabber> ggb1,
-                   std::shared_ptr<stateGrabber> ggb2,
+    StateOpGrabber(std::shared_ptr<StateGrabber> ggb1,
+                   std::shared_ptr<StateGrabber> ggb2,
                    std::string operationName);
-    virtual std::unique_ptr<stateGrabber> clone() const override;
-    virtual void cloneTo(stateGrabber* ggb) const override;
+    virtual std::unique_ptr<StateGrabber> clone() const override;
+    virtual void cloneTo(StateGrabber* ggb) const override;
     virtual double grabData(const stateData& stateDataValue, const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(const stateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,

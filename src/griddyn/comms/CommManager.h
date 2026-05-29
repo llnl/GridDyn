@@ -14,11 +14,11 @@
 namespace griddyn {
 class Communicator;
 class PropertyBuffer;
-class commMessage;
+class CommMessage;
 
 namespace comms {
     /** class for build and maintaining communicators*/
-    class commManager {
+    class CommManager {
       private:
         std::string commName;  //!< The name to use on the commlink
         std::uint64_t commId = 0;  //!< the id to use on the commlink
@@ -30,13 +30,13 @@ namespace comms {
         std::unique_ptr<PropertyBuffer> commPropBuffer;  //!< a property buffer for the communicator
 
       public:
-        commManager();
-        commManager(const commManager& other);
-        commManager(commManager&& other);
-        ~commManager();
+        CommManager();
+        CommManager(const CommManager& other);
+        CommManager(CommManager&& other);
+        ~CommManager();
 
-        commManager& operator=(const commManager& other);
-        commManager& operator=(commManager&& other);
+        CommManager& operator=(const CommManager& other);
+        CommManager& operator=(CommManager&& other);
 
         bool set(std::string_view param, std::string_view val);
         bool set(std::string_view param, double val);
@@ -44,7 +44,7 @@ namespace comms {
         std::shared_ptr<Communicator> build();
         std::shared_ptr<Communicator> getCommLink() const { return commLink; }
 
-        void send(std::shared_ptr<commMessage> m) const;
+        void send(const std::shared_ptr<CommMessage>& message) const;
 
         const std::string& destName() const { return commDestName; }
         const std::string& getName() const { return commName; }

@@ -30,9 +30,9 @@ class DimeCommunicator: public zmqInterface::ZmqCommunicator {
   protected:
     virtual void messageHandler(const zmq::multipart_t& msg) override;
     virtual void addHeader(zmq::multipart_t& msg,
-                           const std::shared_ptr<commMessage>& message) override;
+                           const std::shared_ptr<CommMessage>& message) override;
     virtual void addMessageBody(zmq::multipart_t& msg,
-                                const std::shared_ptr<commMessage>& message) override;
+                                const std::shared_ptr<CommMessage>& message) override;
 
   private:
 };

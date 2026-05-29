@@ -36,9 +36,7 @@ class GridSimulation;
 class GridDynSimulation;
 class Relay;
 class GridBus;
-// NOLINTNEXTLINE(readability-identifier-naming)
 class gridPrimary;
-// NOLINTNEXTLINE(readability-identifier-naming)
 class gridSecondary;
 class GridSubModel;
 

@@ -15,14 +15,14 @@
 #include <vector>
 
 namespace griddyn {
-class commMessage;
+class CommMessage;
 namespace comms {
-    class controlMessagePayload;
+    class ControlMessagePayload;
 }
 
 class GridSimulation;
 class FunctionEventAdapter;
-class gridGrabber;
+class GridGrabber;
 
 enum class ChangeCode;
 namespace relays {
@@ -60,7 +60,7 @@ namespace relays {
         std::int16_t autoName = -1;  //!< variable for autonaming
         std::vector<delayedControlAction> actions;  //!< queue for delayed control actions
         GridSimulation* rootSim = nullptr;  //!< pointer to the root object
-        std::vector<std::unique_ptr<gridGrabber>>
+        std::vector<std::unique_ptr<GridGrabber>>
             measurement_points_;  //!< vector of grabbers defining measurement points
         std::unordered_map<std::string, index_t>
             pointNames_;  //!< vector of names for the pointlist;
@@ -96,7 +96,7 @@ namespace relays {
                                  coreTime actionTime) override;
 
         virtual void receiveMessage(std::uint64_t sourceID,
-                                    std::shared_ptr<commMessage> message) override;
+                                    std::shared_ptr<CommMessage> message) override;
         std::string generateAutoName(int code);
         std::string generateCommName() override;
 
@@ -108,11 +108,11 @@ namespace relays {
         std::unique_ptr<FunctionEventAdapter>
             generateGetEvent(coreTime eventTime,
                              std::uint64_t sourceID,
-                             comms::controlMessagePayload* message);
+                             comms::ControlMessagePayload* message);
         std::unique_ptr<FunctionEventAdapter>
             generateSetEvent(coreTime eventTime,
                              std::uint64_t sourceID,
-                             comms::controlMessagePayload* message);
+                             comms::ControlMessagePayload* message);
     };
 }  // namespace relays
 }  // namespace griddyn

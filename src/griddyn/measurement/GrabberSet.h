@@ -22,17 +22,17 @@ class valuePredictor;
 
 namespace griddyn {
 class gridCore;
-class stateGrabber;
-class gridGrabber;
+class StateGrabber;
+class GridGrabber;
 class stateData;
 class SolverMode;
 
 /** class pairing up basicGrabbers and state grabbers in a single interface
  */
-class grabberSet: public ObjectOperatorInterface {
+class GrabberSet: public ObjectOperatorInterface {
   private:
-    std::shared_ptr<gridGrabber> mGrabber;  //!< the non state grabber
-    std::shared_ptr<stateGrabber> mStateGrabber;  //!< the state grabber
+    std::shared_ptr<GridGrabber> mGrabber;  //!< the non state grabber
+    std::shared_ptr<StateGrabber> mStateGrabber;  //!< the state grabber
     std::unique_ptr<utilities::valuePredictor<coreTime, double, double>>
         mPredictor;  //!< pointer to a predictor object
 
@@ -40,26 +40,26 @@ class grabberSet: public ObjectOperatorInterface {
     /** create a grabber from a field String and object
     @param[in] fld the field to grab from an object
     @param[in] obj the object to get the field from
-    @param[in] step_only if set to true the underlying stateGrabber is not constructed
+    @param[in] step_only if set to true the underlying StateGrabber is not constructed
     */
-    grabberSet(std::string_view fld, CoreObject* obj, bool step_only = false);
+    GrabberSet(std::string_view fld, CoreObject* obj, bool step_only = false);
     /** create a grabber from an offset index
     @param[in] noffset the offset into the state to grab
     @param[in] obj the object to get the field from
     */
-    grabberSet(index_t noffset, CoreObject* obj);
-    /** create a grabber from a gridGrabber and stateGrabber*/
-    grabberSet(std::shared_ptr<gridGrabber> ggrab, std::shared_ptr<stateGrabber> stgrab);
+    GrabberSet(index_t noffset, CoreObject* obj);
+    /** create a grabber from a GridGrabber and StateGrabber*/
+    GrabberSet(std::shared_ptr<GridGrabber> ggrab, std::shared_ptr<StateGrabber> stgrab);
     /** destructor*/
-    virtual ~grabberSet();
+    virtual ~GrabberSet();
 
     /** clone function
      *@return a unique_ptr to another GrabberSet*/
-    virtual std::unique_ptr<grabberSet> clone() const;
+    virtual std::unique_ptr<GrabberSet> clone() const;
     /** cloneTo function
-     *@param[in] gset a pointer to another grabberSet function to clone the data to
+     *@param[in] gset a pointer to another GrabberSet function to clone the data to
      */
-    virtual void cloneTo(grabberSet* gset) const;
+    virtual void cloneTo(GrabberSet* gset) const;
     /** update the field of grabber
      *@param[in]  fld the new field to capture
      *@throw unrecognized parameter exception if fld is not available
@@ -67,8 +67,8 @@ class grabberSet: public ObjectOperatorInterface {
     virtual void updateField(std::string_view fld);
     /** replace the grabbers with a new pair
      */
-    virtual void updateGrabbers(std::shared_ptr<gridGrabber> ggrab,
-                                std::shared_ptr<stateGrabber> stgrab);
+    virtual void updateGrabbers(std::shared_ptr<GridGrabber> ggrab,
+                                std::shared_ptr<StateGrabber> stgrab);
 
     /** actually go and get the data
      *@return the value produced by the grabber*/
@@ -86,7 +86,7 @@ class grabberSet: public ObjectOperatorInterface {
                                           matrixData<double>& matrixDataValue,
                                           const SolverMode& sMode);
     // virtual void getDoutDt(const stateData &sD, const SolverMode &sMode) const;
-    /** get a description of the grabberSet*/
+    /** get a description of the GrabberSet*/
     virtual const std::string& getDesc() const;
     /** get a description of the grabber Set*/
     virtual std::string getDesc();
@@ -98,9 +98,9 @@ class grabberSet: public ObjectOperatorInterface {
     virtual void getObjects(std::vector<CoreObject*>& objects) const override;
     /** set the gain of the grabbers*/
     void setGain(double newGain);
-    /** check if the grabberSet is using state information*/
+    /** check if the GrabberSet is using state information*/
     bool stateCapable() const;
-    /** check if the grabberSet can compute a Jacobian*/
+    /** check if the GrabberSet can compute a Jacobian*/
     bool hasJacobian() const;
 };
 

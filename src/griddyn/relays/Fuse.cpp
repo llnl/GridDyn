@@ -110,17 +110,17 @@ void fuse::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     auto gc = std::make_unique<Condition>();
     auto gc2 = std::make_unique<Condition>();
 
-    auto cg = std::make_unique<customGrabber>();
+    auto cg = std::make_unique<CustomGrabber>();
     cg->setGrabberFunction("I2T", [this](CoreObject*) { return cI2T; });
 
-    auto cgst = std::make_unique<customStateGrabber>(this);
+    auto cgst = std::make_unique<CustomStateGrabber>(this);
     cgst->setGrabberFunction(
         [](CoreObject* obj, const stateData& sD, const SolverMode& sMode) -> double {
             return sD.state[static_cast<fuse*>(obj)->offsets.getDiffOffset(sMode)];
         });
 
     // this one needs to be shared since I use it twice
-    auto gset = std::make_shared<grabberSet>(std::move(cg), std::move(cgst));
+    auto gset = std::make_shared<GrabberSet>(std::move(cg), std::move(cgst));
     gc->setConditionLHS(gset);
 
     gc2->setConditionLHS(std::move(gset));

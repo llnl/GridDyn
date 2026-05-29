@@ -80,7 +80,7 @@ double grabberSource::get(std::string_view param, units::unit unitType) const
 void grabberSource::pFlowObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
 {
     CoreObject* obj = locateObject(target, this);
-    gset = std::make_unique<grabberSet>(field, obj);
+    gset = std::make_unique<GrabberSet>(field, obj);
     gset->setGain(multiplier);
 }
 

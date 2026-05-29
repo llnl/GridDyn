@@ -12,7 +12,7 @@
 namespace griddyn::extra {
 /** @brief class modeling a transformer lifespan based on thermal effects
  */
-class txLifeSpan: public sensor {
+class txLifeSpan: public Sensor {
   public:
     enum LifespanModelFlags {
         useIECmethod = object_flag11,
@@ -39,7 +39,7 @@ class txLifeSpan: public sensor {
 
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    using sensor::add;
+    using Sensor::add;
     virtual void add(CoreObject* obj) override final;
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;

@@ -15,7 +15,7 @@
 
 namespace griddyn::comms {
 namespace {
-    dPayloadFactory<schedulerMessagePayload,
+    DPayloadFactory<SchedulerMessagePayload,
                     BASE_SCHEDULER_MESSAGE_NUMBER,
                     BASE_SCHEDULER_MESSAGE_NUMBER + 16>
         gSchedulerPayloadFactory("scheduler");
@@ -23,52 +23,52 @@ namespace {
 
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_CLEAR_TARGETS,
                       "CLEAR TARGETS",
-                      schedulerMessagePayload::CLEAR_TARGETS);
-REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_SHUTDOWN, "SHUTDOWN", schedulerMessagePayload::SHUTDOWN);
-REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_STARTUP, "STARTUP", schedulerMessagePayload::STARTUP);
+                      SchedulerMessagePayload::CLEAR_TARGETS);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_SHUTDOWN, "SHUTDOWN", SchedulerMessagePayload::SHUTDOWN);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_STARTUP, "STARTUP", SchedulerMessagePayload::STARTUP);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_ADD_TARGETS,
                       "ADD TARGETS",
-                      schedulerMessagePayload::ADD_TARGETS);
+                      SchedulerMessagePayload::ADD_TARGETS);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_UPDATE_TARGETS,
                       "UPDATE TARGETS",
-                      schedulerMessagePayload::UPDATE_TARGETS);
+                      SchedulerMessagePayload::UPDATE_TARGETS);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_UPDATE_RESERVES,
                       "UPDATE RESERVES",
-                      schedulerMessagePayload::UPDATE_RESERVES);
+                      SchedulerMessagePayload::UPDATE_RESERVES);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_UPDATE_REGULATION_RESERVE,
                       "UPDATE REGULATION RESERVE",
-                      schedulerMessagePayload::UPDATE_REGULATION_RESERVE);
+                      SchedulerMessagePayload::UPDATE_REGULATION_RESERVE);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_USE_RESERVE,
                       "USE RESERVE",
-                      schedulerMessagePayload::USE_RESERVE);
+                      SchedulerMessagePayload::USE_RESERVE);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_UPDATE_REGULATION_TARGET,
                       "UPDATE REGULATION RESERVE",
-                      schedulerMessagePayload::UPDATE_REGULATION_TARGET);
+                      SchedulerMessagePayload::UPDATE_REGULATION_TARGET);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_REGISTER_DISPATCHER,
                       "REGISTER DISPATCHER",
-                      schedulerMessagePayload::REGISTER_DISPATCHER);
+                      SchedulerMessagePayload::REGISTER_DISPATCHER);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_REGISTER_AGC_DISPATCHER,
                       "REGISTER AGC DISPATCHER",
-                      schedulerMessagePayload::REGISTER_AGC_DISPATCHER);
+                      SchedulerMessagePayload::REGISTER_AGC_DISPATCHER);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_REGISTER_RESERVE_DISPATCHER,
                       "REGISTER RESERVE DISPATCHER",
-                      schedulerMessagePayload::REGISTER_RESERVE_DISPATCHER);
+                      SchedulerMessagePayload::REGISTER_RESERVE_DISPATCHER);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_REGISTER_CONTROLLER,
                       "REGISTER CONTROLLER",
-                      schedulerMessagePayload::REGISTER_CONTROLLER);
+                      SchedulerMessagePayload::REGISTER_CONTROLLER);
 
-schedulerMessagePayload::schedulerMessagePayload(std::vector<double> time,
+SchedulerMessagePayload::SchedulerMessagePayload(std::vector<double> time,
                                                  std::vector<double> target):
     m_time(std::move(time)), m_target(std::move(target))
 {
 }
-void schedulerMessagePayload::loadMessage(std::vector<double> time, std::vector<double> target)
+void SchedulerMessagePayload::loadMessage(std::vector<double> time, std::vector<double> target)
 {
     m_time = std::move(time);
     m_target = std::move(target);
 }
 
-std::string schedulerMessagePayload::to_string(uint32_t type, uint32_t /*code*/) const
+std::string SchedulerMessagePayload::to_string(uint32_t type, uint32_t /*code*/) const
 {
     std::string typeString;
     auto tsize = m_time.size();
@@ -90,7 +90,7 @@ std::string schedulerMessagePayload::to_string(uint32_t type, uint32_t /*code*/)
     return typeString;
 }
 
-void schedulerMessagePayload::from_string(uint32_t type,
+void SchedulerMessagePayload::from_string(uint32_t type,
                                           uint32_t /*code*/,
                                           std::string_view fromString,
                                           size_t offset)
@@ -128,7 +128,7 @@ void schedulerMessagePayload::from_string(uint32_t type,
     }
 }
 
-std::string schedulerMessagePayload::makeTargetString(size_t cnt) const
+std::string SchedulerMessagePayload::makeTargetString(size_t cnt) const
 {
     std::string targetString;
     for (size_t kk = 0; kk < cnt; ++kk) {

@@ -12,7 +12,7 @@
 
 namespace griddyn {
 class GridArea;
-class scheduler;
+class Scheduler;
 
 class Dispatcher: public CoreObject {
   public:
@@ -23,7 +23,7 @@ class Dispatcher: public CoreObject {
     double dispatchTime = 0.0;
     unsigned int schedCount = 0;
 
-    std::vector<scheduler*> schedList;
+    std::vector<Scheduler*> schedList;
 
   public:
     Dispatcher(const std::string& objName = "dispatcher_#");
@@ -38,9 +38,9 @@ class Dispatcher: public CoreObject {
     double currentValue() { return totalDispatch; }
 
     virtual void add(CoreObject* obj) override;
-    virtual void add(scheduler* sched);
+    virtual void add(Scheduler* sched);
     virtual void remove(CoreObject* obj) override;
-    virtual void remove(scheduler* sched);
+    virtual void remove(Scheduler* sched);
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void

@@ -13,7 +13,7 @@
 class DimeClientInterface;
 
 namespace griddyn::dimeLib {
-class DimeCollector: public collector {
+class DimeCollector: public Collector {
   private:
     std::string server;
     std::string processName;
@@ -24,9 +24,9 @@ class DimeCollector: public collector {
     explicit DimeCollector(const std::string& name);
     ~DimeCollector();
 
-    virtual std::unique_ptr<collector> clone() const override;
+    virtual std::unique_ptr<Collector> clone() const override;
 
-    virtual void cloneTo(collector* col) const override;
+    virtual void cloneTo(Collector* col) const override;
     virtual ChangeCode trigger(coreTime time) override;
 
     void set(std::string_view param, double val) override;

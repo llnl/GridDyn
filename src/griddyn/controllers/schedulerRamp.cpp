@@ -16,16 +16,16 @@
 #include <string>
 
 namespace griddyn {
-schedulerRamp::schedulerRamp(const std::string& objName): scheduler(objName) {}
+SchedulerRamp::SchedulerRamp(const std::string& objName): Scheduler(objName) {}
 
-schedulerRamp::schedulerRamp(double initialValue, const std::string& objName):
-    scheduler(initialValue, objName)
+SchedulerRamp::SchedulerRamp(double initialValue, const std::string& objName):
+    Scheduler(initialValue, objName)
 {
 }
 
-CoreObject* schedulerRamp::clone(CoreObject* obj) const
+CoreObject* SchedulerRamp::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<schedulerRamp, scheduler>(this, obj);
+    auto* nobj = cloneBase<SchedulerRamp, Scheduler>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -50,20 +50,20 @@ CoreObject* schedulerRamp::clone(CoreObject* obj) const
     return nobj;
 }
 
-void schedulerRamp::setTarget(double target)
+void SchedulerRamp::setTarget(double target)
 {
-    insertTarget(tsched(prevTime, target));
+    insertTarget(Tsched(prevTime, target));
 }
 
-void schedulerRamp::setTarget(coreTime time, double target)
+void SchedulerRamp::setTarget(coreTime time, double target)
 {
-    insertTarget(tsched(time, target));
+    insertTarget(Tsched(time, target));
     if (time == nextUpdateTime) {
         updatePTarget();
     }
 }
 
-void schedulerRamp::updateA(coreTime time)
+void SchedulerRamp::updateA(coreTime time)
 {
     double deltaTime = (time - prevTime);
 
@@ -91,7 +91,7 @@ void schedulerRamp::updateA(coreTime time)
     prevTime = time;
 }
 
-double schedulerRamp::predict(coreTime time)
+double SchedulerRamp::predict(coreTime time)
 {
     const double deltaTime = (time - prevTime);
     if (deltaTime == 0) {
@@ -101,18 +101,18 @@ double schedulerRamp::predict(coreTime time)
     return (m_output + (ramp * deltaTime));
 }
 
-void schedulerRamp::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void SchedulerRamp::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    scheduler::dynObjectInitializeA(time0, flags);
+    Scheduler::dynObjectInitializeA(time0, flags);
     prevTime = time0 - 0.001;
     lastTargetTime = time0 - 0.001;
 }
 
-void schedulerRamp::dynObjectInitializeB(const IOdata& inputs,
+void SchedulerRamp::dynObjectInitializeB(const IOdata& inputs,
                                          const IOdata& desiredOutput,
                                          IOdata& fieldSet)
 {
-    scheduler::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
+    Scheduler::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
     if (reserveAvail > 0) {
         //  if (resDispatch==nullptr)
         //  {
@@ -130,7 +130,7 @@ void schedulerRamp::dynObjectInitializeB(const IOdata& inputs,
     dpdt = pRampCurr;
 }
 
-double schedulerRamp::getRamp() const
+double SchedulerRamp::getRamp() const
 {
     double ramp = pRampCurr;
     const double diff = reserveUse - reserveAct;
@@ -143,7 +143,7 @@ double schedulerRamp::getRamp() const
     return ramp;
 }
 
-double schedulerRamp::getRampTime() const
+double SchedulerRamp::getRampTime() const
 {
     const double diff = reserveUse - reserveAct;
     if (diff > 0.001) {
@@ -160,17 +160,17 @@ double schedulerRamp::getRampTime() const
     return (pTarget.front()).time - prevTime;
 }
 
-double schedulerRamp::getMax(const coreTime /*time*/) const
+double SchedulerRamp::getMax(const coreTime /*time*/) const
 {
     return pMax;
 }
 
-double schedulerRamp::getMin(coreTime /*time*/) const
+double SchedulerRamp::getMin(coreTime /*time*/) const
 {
     return pMin;
 }
 
-void schedulerRamp::setReserveTarget(double target)
+void SchedulerRamp::setReserveTarget(double target)
 {
     if (target <= reserveAvail) {
         reserveUse = target;
@@ -179,7 +179,7 @@ void schedulerRamp::setReserveTarget(double target)
     }
 }
 
-void schedulerRamp::set(std::string_view param, std::string_view val)
+void SchedulerRamp::set(std::string_view param, std::string_view val)
 {
     if (param == "rampmode") {
         const auto modeString = gmlc::utilities::convertToLowerCase(val);
@@ -195,13 +195,13 @@ void schedulerRamp::set(std::string_view param, std::string_view val)
             mode = INTERP;
         }
     } else {
-        scheduler::set(param, val);
+        Scheduler::set(param, val);
     }
 }
 
-void schedulerRamp::dispatcherLink() {}
+void SchedulerRamp::dispatcherLink() {}
 
-void schedulerRamp::set(std::string_view param, double val, units::unit unitType)
+void SchedulerRamp::set(std::string_view param, double val, units::unit unitType)
 {
     double temp;
     if (param == "ramp") {
@@ -269,19 +269,19 @@ void schedulerRamp::set(std::string_view param, double val, units::unit unitType
     } else if (param == "reserveramptime") {
         reserveRampTime = val;
     } else {
-        scheduler::set(param, val);
+        Scheduler::set(param, val);
     }
     updatePTarget();
 }
 
-void schedulerRamp::setTarget(const std::string& fileName)
+void SchedulerRamp::setTarget(const std::string& fileName)
 {
-    scheduler::setTarget(fileName);
+    Scheduler::setTarget(fileName);
     updatePTarget();
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void schedulerRamp::updatePTarget()
+void SchedulerRamp::updatePTarget()
 {
     double rempower = 0.0;
     double remtime = 0.0;
@@ -332,7 +332,7 @@ void schedulerRamp::updatePTarget()
             if (rempower != 0.0) {
                 // assume we were ramp limited so just keep ramping
                 remtime = rempower / pRampCurr;
-                insertTarget(tsched(target, prevTime + remtime));
+                insertTarget(Tsched(target, prevTime + remtime));
                 nextUpdateTime = prevTime + remtime;
             } else {
                 pRampCurr = 0;
@@ -453,42 +453,42 @@ void schedulerRamp::updatePTarget()
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void schedulerRamp::insertTarget(tsched targetSchedule)
+void SchedulerRamp::insertTarget(Tsched targetSchedule)
 {
-    scheduler::insertTarget(targetSchedule);
+    Scheduler::insertTarget(targetSchedule);
     if (nextUpdateTime == targetSchedule.time) {
         updatePTarget();
     }
 }
 
-double schedulerRamp::get(std::string_view param, units::unit unitType) const
+double SchedulerRamp::get(std::string_view param, units::unit unitType) const
 {
     double val = kNullVal;
     if (param == "reserve") {
         val = reserveAvail;
     } else {
-        val = scheduler::get(param, unitType);
+        val = Scheduler::get(param, unitType);
     }
     return val;
 }
 
-void schedulerRamp::receiveMessage(std::uint64_t sourceID,
-                                   const std::shared_ptr<commMessage>& message)
+void SchedulerRamp::receiveMessage(std::uint64_t sourceID,
+                                   const std::shared_ptr<CommMessage>& message)
 {
-    using comms::schedulerMessagePayload;
+    using comms::SchedulerMessagePayload;
     // auto sm = std::dynamic_pointer_cast<schedulerMessage> (message);
     switch (message->getMessageType()) {
-        case schedulerMessagePayload::CLEAR_TARGETS:
+        case SchedulerMessagePayload::CLEAR_TARGETS:
             clearSchedule();
             break;
-        case schedulerMessagePayload::SHUTDOWN:
-        case schedulerMessagePayload::STARTUP:
-        case schedulerMessagePayload::UPDATE_TARGETS:
-        case schedulerMessagePayload::UPDATE_RESERVES:
-        case schedulerMessagePayload::USE_RESERVE:
+        case SchedulerMessagePayload::SHUTDOWN:
+        case SchedulerMessagePayload::STARTUP:
+        case SchedulerMessagePayload::UPDATE_TARGETS:
+        case SchedulerMessagePayload::UPDATE_RESERVES:
+        case SchedulerMessagePayload::USE_RESERVE:
             break;
         default:
-            scheduler::receiveMessage(sourceID, message);
+            Scheduler::receiveMessage(sourceID, message);
             break;
     }
 }

@@ -25,14 +25,14 @@
 #include <utility>
 
 namespace griddyn::relays {
-pmu::pmu(const std::string& objName): sensor(objName)
+Pmu::Pmu(const std::string& objName): Sensor(objName)
 {
     outputStrings = {{"voltage"}, {"angle"}, {"frequency"}, {"rocof"}};
 }
 
-CoreObject* pmu::clone(CoreObject* obj) const
+CoreObject* Pmu::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<pmu, sensor>(this, obj);
+    auto* nobj = cloneBase<Pmu, Sensor>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -46,7 +46,7 @@ CoreObject* pmu::clone(CoreObject* obj) const
     return nobj;
 }
 
-void pmu::setFlag(std::string_view flag, bool val)
+void Pmu::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "transmit") || (flag == "transmitactive") || (flag == "transmit_active")) {
         opFlags.set(TRANSMIT_ACTIVE, val);
@@ -55,22 +55,22 @@ void pmu::setFlag(std::string_view flag, bool val)
     } else if ((flag == "current_active") || (flag == "current")) {
         opFlags.set(CURRENT_ACTIVE, val);
     } else {
-        sensor::setFlag(flag, val);
+        Sensor::setFlag(flag, val);
     }
 }
 
-void pmu::set(std::string_view param, std::string_view val)
+void Pmu::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
-        sensor::set(param, val);
+        Sensor::set(param, val);
     }
 }
 
 using units::convert;
 using units::unit;
 
-void pmu::set(std::string_view param, double val, unit unitType)
+void Pmu::set(std::string_view param, double val, unit unitType)
 {
     if ((param == "tv") || (param == "voltagedelay")) {
         mVoltageFilterTime = val;
@@ -95,11 +95,11 @@ void pmu::set(std::string_view param, double val, unit unitType)
     } else if (param == "samplerate") {
         mSampleRate = val;
     } else {
-        sensor::set(param, val, unitType);
+        Sensor::set(param, val, unitType);
     }
 }
 
-double pmu::get(std::string_view param, units::unit unitType) const
+double Pmu::get(std::string_view param, units::unit unitType) const
 {
     if ((param == "tv") || (param == "voltagedelay")) {
         return mVoltageFilterTime;
@@ -122,10 +122,10 @@ double pmu::get(std::string_view param, units::unit unitType) const
     if (param == "samplerate") {
         return mSampleRate;
     }
-    return sensor::get(param, unitType);
+    return Sensor::get(param, unitType);
 }
 
-void pmu::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void Pmu::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (m_sourceObject == nullptr) {
         // we know the parent is most likely an area so find the corresponding bus that matches
@@ -160,10 +160,10 @@ void pmu::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
     generateOutputNames();
     createFilterBlocks();
-    sensor::dynObjectInitializeA(time0, flags);
+    Sensor::dynObjectInitializeA(time0, flags);
 }
 
-void pmu::generateOutputNames()
+void Pmu::generateOutputNames()
 {
     // 4 different scenarios
     if (opFlags[THREE_PHASE_ACTIVE]) {
@@ -213,7 +213,7 @@ void pmu::generateOutputNames()
     }
 }
 /** generate the filter blocks and inputs for the sensor object*/
-void pmu::createFilterBlocks()
+void Pmu::createFilterBlocks()
 {
     // 4 different scenarios
     if (opFlags[THREE_PHASE_ACTIVE]) {
@@ -259,9 +259,9 @@ void pmu::createFilterBlocks()
     }
 }
 
-void pmu::updateA(coreTime time)
+void Pmu::updateA(coreTime time)
 {
-    sensor::updateA(time);
+    Sensor::updateA(time);
     if (time >= mNextTransmitTime) {
         generateAndTransmitMessage();
         mNextTransmitTime = mLastTransmitTime + mTransmissionPeriod;
@@ -271,24 +271,24 @@ void pmu::updateA(coreTime time)
     }
 }
 
-coreTime pmu::updateB()
+coreTime Pmu::updateB()
 {
-    sensor::updateB();
+    Sensor::updateB();
     if (nextUpdateTime > mNextTransmitTime) {
         nextUpdateTime = mNextTransmitTime;
     }
     return nextUpdateTime;
 }
 
-void pmu::generateAndTransmitMessage() const
+void Pmu::generateAndTransmitMessage() const
 {
     if (opFlags[use_commLink]) {
         const auto& oname = outputNames();
 
         auto message =
-            std::make_shared<commMessage>(comms::controlMessagePayload::GET_RESULT_MULTIPLE);
+            std::make_shared<CommMessage>(comms::ControlMessagePayload::GET_RESULT_MULTIPLE);
 
-        auto* payload = message->getPayload<comms::controlMessagePayload>();
+        auto* payload = message->getPayload<comms::ControlMessagePayload>();
         auto res = getOutputs(noInputs, emptyStateData, cLocalSolverMode);
 
         payload->multiFields.resize(res.size());

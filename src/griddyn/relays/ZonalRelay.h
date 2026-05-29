@@ -52,7 +52,7 @@ class zonalRelay: public Relay {
     virtual void conditionTriggered(index_t conditionNum, coreTime triggerTime) override;
     virtual void conditionCleared(index_t conditionNum, coreTime triggerTime) override;
     virtual void receiveMessage(std::uint64_t sourceID,
-                                std::shared_ptr<commMessage> message) override;
+                                std::shared_ptr<CommMessage> message) override;
     /** function to automatically generate the comm system names
 @param[in] code  a code value representing the method of generating the name
 @return the generated name

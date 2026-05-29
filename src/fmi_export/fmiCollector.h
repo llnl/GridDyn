@@ -15,7 +15,7 @@ namespace griddyn::fmi {
 class FmiCoordinator;
 
 /** collector object to interface with an fmi output*/
-class FmiCollector: public collector {
+class FmiCollector: public Collector {
   protected:
     std::vector<index_t> mValueReferences;  //!< vector of fmi value references that match the data
     FmiCoordinator* mCoordinator = nullptr;  //!< pointer the fmi coordination object
@@ -24,9 +24,9 @@ class FmiCollector: public collector {
     explicit FmiCollector(const std::string& name);
     //~fmiCollector();
 
-    virtual std::unique_ptr<collector> clone() const override;
+    virtual std::unique_ptr<Collector> clone() const override;
 
-    virtual void cloneTo(collector* collectorClone = nullptr) const override;
+    virtual void cloneTo(Collector* collectorClone = nullptr) const override;
     virtual ChangeCode trigger(coreTime time) override;
 
     void set(std::string_view param, double val) override;

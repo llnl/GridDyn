@@ -18,7 +18,7 @@
 namespace griddyn::comms {
 /** a message type used for requesting control actions to relays and sending values in response
  */
-class controlMessagePayload: public CommPayload {
+class ControlMessagePayload: public CommPayload {
   public:
     /** the enumeration of the message types available in control messages*/
     enum ControlMessageType : std::uint32_t {
@@ -54,14 +54,14 @@ class controlMessagePayload: public CommPayload {
     std::vector<std::string>
         multiUnits;  //!< the multiple units associated with different measurements
     /** default constructor*/
-    controlMessagePayload() = default;
+    ControlMessagePayload() = default;
 
     /** constructor
 @param[in] fld the name of the field in question
 @param[in] val the value associated with the field
 @param[in] time the time for a schedule
 */
-    controlMessagePayload(const std::string& fld, double val, coreTime time):
+    ControlMessagePayload(const std::string& fld, double val, coreTime time):
         m_field(fld), m_value(val), m_time(time)
     {
     }
@@ -85,4 +85,4 @@ class controlMessagePayload: public CommPayload {
 
 }  // namespace griddyn::comms
 
-CEREAL_REGISTER_TYPE(griddyn::comms::controlMessagePayload)
+CEREAL_REGISTER_TYPE(griddyn::comms::ControlMessagePayload)

@@ -19,25 +19,25 @@ namespace griddyn {
 class AGControl;
 class Generator;
 class Communicator;
-class commMessage;
+class CommMessage;
 /** object to manage scheduling for devices
  */
-class scheduler: public Source {
+class Scheduler: public Source {
   public:
   protected:
     double pMax = kBigNum;  //!< [puMW] maximum set power
     double pMin = -kBigNum;  //!< [puMW] minimum set power
     double m_Base = 100;  //!< [MW] generator base power
     double pCurr = 0;  //!<[puMW] current power output
-    std::list<tsched> pTarget;  //!< target list
+    std::list<Tsched> pTarget;  //!< target list
     std::shared_ptr<Communicator> commLink;  //!< communicator link
-    comms::commManager cManager;
+    comms::CommManager cManager;
     std::uint64_t dispatcherId = 0;  //!< communication id of the dispatcher
   public:
-    scheduler(const std::string& objName = "scheduler_#", double initialValue = 0.0);
-    scheduler(double initialValue, const std::string& objName = "scheduler_#");
+    Scheduler(const std::string& objName = "scheduler_#", double initialValue = 0.0);
+    Scheduler(double initialValue, const std::string& objName = "scheduler_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    virtual ~scheduler();
+    virtual ~Scheduler();
 
     virtual void updateA(coreTime time) override;
     virtual double predict(coreTime time);
@@ -74,16 +74,16 @@ class scheduler: public Source {
     virtual double getMin(coreTime time = maxTime) const;
 
   protected:
-    virtual void insertTarget(tsched targetSchedule);
+    virtual void insertTarget(Tsched targetSchedule);
     void clearSchedule();
     virtual void receiveMessage(std::uint64_t sourceID,
-                                const std::shared_ptr<commMessage>& message);
+                                const std::shared_ptr<CommMessage>& message);
 };
 
 /** @brief scheduler that can deal with ramping of the power on a continuous basis
 as well as handling spinning reserve like capacity in an object
 */
-class schedulerRamp: public scheduler {
+class SchedulerRamp: public Scheduler {
   public:
     enum RampMode {
         MID_POINT,
@@ -115,11 +115,11 @@ class schedulerRamp: public scheduler {
     double reservePriority = 0.0;  //!< the priority level of the reserve
 
   public:
-    explicit schedulerRamp(const std::string& objName = "schedulerRamp_#");
-    schedulerRamp(double initialValue, const std::string& objName = "schedulerRamp_#");
+    explicit SchedulerRamp(const std::string& objName = "schedulerRamp_#");
+    SchedulerRamp(double initialValue, const std::string& objName = "schedulerRamp_#");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    using scheduler::setTarget;
+    using Scheduler::setTarget;
     void setTarget(coreTime time, double target) override;
     void setTarget(double target) override;
     void setTarget(const std::string& fileName) override;
@@ -151,15 +151,15 @@ class schedulerRamp: public scheduler {
 
   protected:
     virtual void updatePTarget();
-    virtual void insertTarget(tsched targetSchedule) override;
+    virtual void insertTarget(Tsched targetSchedule) override;
 
     virtual void receiveMessage(std::uint64_t sourceID,
-                                const std::shared_ptr<commMessage>& message) override;
+                                const std::shared_ptr<CommMessage>& message) override;
 };
 
 /** @brief scheduler targeted at handling regulation management
  */
-class schedulerReg: public schedulerRamp {
+class SchedulerReg: public SchedulerRamp {
   protected:
     double regMax;  //!< the maximum regulation an object has
     double regMin;  //!< the minimum regulation level
@@ -177,13 +177,13 @@ class schedulerReg: public schedulerRamp {
     AGControl* agcController = nullptr;
 
   public:
-    explicit schedulerReg(const std::string& objName = "schedulerReg_#");
-    schedulerReg(double initialValue, const std::string& objName = "schedulerReg_#");
-    schedulerReg(double initialValue,
+    explicit SchedulerReg(const std::string& objName = "schedulerReg_#");
+    SchedulerReg(double initialValue, const std::string& objName = "schedulerReg_#");
+    SchedulerReg(double initialValue,
                  double initialReg,
                  const std::string& objName = "schedulerReg_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    ~schedulerReg();
+    ~SchedulerReg();
     void setReg(double regLevel);
 
     double getRegTarget() const { return regTarget; }
@@ -217,7 +217,7 @@ class schedulerReg: public schedulerRamp {
 
   protected:
     virtual void receiveMessage(std::uint64_t sourceID,
-                                const std::shared_ptr<commMessage>& message) override;
+                                const std::shared_ptr<CommMessage>& message) override;
 };
 
 }  // namespace griddyn

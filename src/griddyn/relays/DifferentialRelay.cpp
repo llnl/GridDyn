@@ -166,7 +166,7 @@ void differentialRelay::actionTaken(index_t ActionNum,
 
     if (opFlags[use_commLink]) {
         if (ActionNum == 0) {
-            auto relayEvent = std::make_shared<commMessage>(commMessage::BREAKER_TRIP_EVENT);
+            auto relayEvent = std::make_shared<CommMessage>(CommMessage::BREAKER_TRIP_EVENT);
             cManager.send(std::move(relayEvent));
         }
     }
@@ -177,7 +177,7 @@ void differentialRelay::conditionTriggered(index_t /*conditionNum*/, coreTime /*
     logging::normal(this, "differential condition met");
     if (opFlags.test(use_commLink)) {
         // std::cout << "GridDyn conditionTriggered(), conditionNum = " << conditionNum << '\n';
-        auto relayEvent = std::make_shared<commMessage>(commMessage::LOCAL_FAULT_EVENT);
+        auto relayEvent = std::make_shared<CommMessage>(CommMessage::LOCAL_FAULT_EVENT);
         cManager.send(relayEvent);
     }
 }
@@ -187,24 +187,24 @@ void differentialRelay::conditionCleared(index_t /*conditionNum*/, coreTime /*tr
     logging::normal(this, "differential condition cleared");
 
     if (opFlags.test(use_commLink)) {
-        auto relayEvent = std::make_shared<commMessage>(commMessage::LOCAL_FAULT_CLEARED);
+        auto relayEvent = std::make_shared<CommMessage>(CommMessage::LOCAL_FAULT_CLEARED);
         cManager.send(relayEvent);
     }
 }
 
 void differentialRelay::receiveMessage(std::uint64_t /*sourceID*/,
-                                       std::shared_ptr<commMessage> message)
+                                       std::shared_ptr<CommMessage> message)
 {
     switch (message->getMessageType()) {
-        case commMessage::BREAKER_TRIP_COMMAND:
+        case CommMessage::BREAKER_TRIP_COMMAND:
             triggerAction(0);
             break;
-        case commMessage::BREAKER_CLOSE_COMMAND:
+        case CommMessage::BREAKER_CLOSE_COMMAND:
             if (m_sinkObject != nullptr) {
                 m_sinkObject->set("enable", 1);
             }
             break;
-        case commMessage::BREAKER_OOS_COMMAND:
+        case CommMessage::BREAKER_OOS_COMMAND:
 
             setConditionStatus(0, ConditionStatus::disabled);
             break;

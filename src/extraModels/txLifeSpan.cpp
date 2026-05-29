@@ -20,7 +20,7 @@
 #include <utility>
 
 namespace griddyn::extra {
-txLifeSpan::txLifeSpan(const std::string& objName): sensor(objName)
+txLifeSpan::txLifeSpan(const std::string& objName): Sensor(objName)
 {
     opFlags.reset(continuous_flag);  // this is a not a continuous model everything is slow so
                                      // no need to make it continuous
@@ -30,7 +30,7 @@ txLifeSpan::txLifeSpan(const std::string& objName): sensor(objName)
 
 CoreObject* txLifeSpan::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<txLifeSpan, sensor>(this, obj);
+    auto* nobj = cloneBase<txLifeSpan, Sensor>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -51,7 +51,7 @@ void txLifeSpan::setFlag(std::string_view flag, bool val)
     } else if (flag == "no_discconect") {
         opFlags.set(no_disconnect, val);
     } else {
-        sensor::setFlag(flag, val);
+        Sensor::setFlag(flag, val);
     }
 }
 
@@ -59,7 +59,7 @@ void txLifeSpan::set(std::string_view param, std::string_view val)
 {
     if (param.empty() || param[0] == '#') {
     } else {
-        sensor::set(param, val);
+        Sensor::set(param, val);
     }
 }
 
@@ -72,13 +72,13 @@ void txLifeSpan::set(std::string_view param, double val, units::unit unitType)
     } else if ((param == "agingrate") || (param == "agingconstant")) {
         mAgingConstant = val;
     } else {
-        sensor::set(param, val, unitType);
+        Sensor::set(param, val, unitType);
     }
 }
 
 double txLifeSpan::get(std::string_view param, units::unit unitType) const
 {
-    return sensor::get(param, unitType);
+    return Sensor::get(param, unitType);
 }
 
 void txLifeSpan::add(CoreObject* /*obj*/)
@@ -89,7 +89,7 @@ void txLifeSpan::add(CoreObject* /*obj*/)
 void txLifeSpan::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (m_sourceObject == nullptr) {
-        sensor::dynObjectInitializeA(time0, flags);
+        Sensor::dynObjectInitializeA(time0, flags);
         return;
     }
 
@@ -106,26 +106,26 @@ void txLifeSpan::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         }
     }
     if (!opFlags[dyn_initialized]) {
-        sensor::setFlag("sampled", true);
+        Sensor::setFlag("sampled", true);
         if (inputStrings.empty()) {
             // assume we are connected to a temperature sensor
-            sensor::set("input0", "hot_spot");
+            Sensor::set("input0", "hot_spot");
         }
         auto* lifeIntegrator = new blocks::IntegralBlock(1.0 / 3600);  // add a gain so the
                                                                        // output is in hours
-        sensor::add(lifeIntegrator);
+        Sensor::add(lifeIntegrator);
         lifeIntegrator->parentSetFlag(separate_processing, true, this);
 
-        sensor::set("output0", std::to_string(mInitialLife) + "-block0");
-        sensor::set("output1", "block0");
+        Sensor::set("output0", std::to_string(mInitialLife) + "-block0");
+        Sensor::set("output1", "block0");
 
-        auto rateGrabber = std::make_shared<customGrabber>();
+        auto rateGrabber = std::make_shared<CustomGrabber>();
         rateGrabber->setGrabberFunction("rate", [this](CoreObject*) -> double {
             return mAgingAccelerationFactor;
         });
-        sensor::add(rateGrabber);
+        Sensor::add(rateGrabber);
 
-        sensor::set("output2", "input1");
+        Sensor::set("output2", "input1");
         if (m_sinkObject != nullptr) {
             auto generatedEvent = std::make_unique<Event>();
             generatedEvent->setTarget(m_sinkObject, "g");
@@ -152,7 +152,7 @@ void txLifeSpan::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
             }
         }
     }
-    sensor::dynObjectInitializeA(time0, flags);
+    Sensor::dynObjectInitializeA(time0, flags);
 }
 void txLifeSpan::dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
@@ -160,7 +160,7 @@ void txLifeSpan::dynObjectInitializeB(const IOdata& inputs,
 {
     IOdata iset{0.0};
     filterBlocks[0]->dynInitializeB(iset, iset, iset);
-    sensor::dynObjectInitializeB(inputs,
+    Sensor::dynObjectInitializeB(inputs,
                                  desiredOutput,
                                  fieldSet);  // skip over sensor::dynInitializeB since we are
                                              // initializing the blocks here
@@ -180,7 +180,7 @@ void txLifeSpan::updateA(coreTime time)
     }
 
     filterBlocks[0]->step(time, mAgingAccelerationFactor);
-    sensor::updateA(time);
+    Sensor::updateA(time);
     prevTime = time;
 }
 

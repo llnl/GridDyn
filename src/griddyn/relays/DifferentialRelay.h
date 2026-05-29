@@ -42,7 +42,7 @@ class differentialRelay: public Relay {
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
     virtual void receiveMessage(std::uint64_t sourceID,
-                                std::shared_ptr<commMessage> message) override;
+                                std::shared_ptr<CommMessage> message) override;
 
   protected:
     virtual void actionTaken(index_t ActionNum,

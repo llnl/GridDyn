@@ -125,8 +125,8 @@ TEST_F(RelayTests, TestControlRelay)
     auto comm = makeCommunicator("", "control", 0);
     comm->initialize();
 
-    auto cm = std::make_shared<commMessage>(comms::controlMessagePayload::SET);
-    auto data = cm->getPayload<comms::controlMessagePayload>();
+    auto cm = std::make_shared<CommMessage>(comms::ControlMessagePayload::SET);
+    auto data = cm->getPayload<comms::ControlMessagePayload>();
     ASSERT_NE(data, nullptr);
     data->m_field = "P";
     data->m_value = 1.3;
@@ -137,20 +137,20 @@ TEST_F(RelayTests, TestControlRelay)
     std::uint64_t src;
     auto rep = comm->getMessage(src);
     ASSERT_TRUE(rep);
-    EXPECT_EQ(rep->getMessageType(), comms::controlMessagePayload::SET_SUCCESS);
+    EXPECT_EQ(rep->getMessageType(), comms::ControlMessagePayload::SET_SUCCESS);
     auto ldr = obj->get("p");
     EXPECT_NEAR(ldr, 1.3, std::abs(1.3) * 1e-6 + 1e-12);
     // send a get request
-    cm->setMessageType(comms::controlMessagePayload::GET);
-    auto getData = cm->getPayload<comms::controlMessagePayload>();
+    cm->setMessageType(comms::ControlMessagePayload::GET);
+    auto getData = cm->getPayload<comms::ControlMessagePayload>();
     ASSERT_NE(getData, nullptr);
     getData->m_field = "q";
 
     comm->transmit("cld4", cm);
     rep = comm->getMessage(src);
     ASSERT_TRUE(rep);
-    EXPECT_EQ(rep->getMessageType(), comms::controlMessagePayload::GET_RESULT);
-    EXPECT_NEAR(rep->getPayload<comms::controlMessagePayload>()->m_value,
+    EXPECT_EQ(rep->getMessageType(), comms::ControlMessagePayload::GET_RESULT);
+    EXPECT_NEAR(rep->getPayload<comms::ControlMessagePayload>()->m_value,
                 0.126,
                 std::abs(0.126) * 1e-5 + 1e-12);
 }
@@ -181,7 +181,7 @@ TEST_F(RelayTests, PmuTest1)
 
     gds->dynInitialize(timeZero);
 
-    auto pmu = dynamic_cast<relays::pmu*>(gds->getRelay(0));
+    auto pmu = dynamic_cast<relays::Pmu*>(gds->getRelay(0));
     ASSERT_NE(pmu, nullptr);
 
     auto bus3 = gds->getBus(2);

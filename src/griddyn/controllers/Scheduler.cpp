@@ -26,69 +26,69 @@ using units::puMW;
 using units::unit;
 
 // operator overloads for Tsched object
-bool operator<(const tsched& td1, const tsched& td2)
+bool operator<(const Tsched& td1, const Tsched& td2)
 {
     return (td1.time < td2.time);
 }
-bool operator<=(const tsched& td1, const tsched& td2)
+bool operator<=(const Tsched& td1, const Tsched& td2)
 {
     return (td1.time <= td2.time);
 }
-bool operator>(const tsched& td1, const tsched& td2)
+bool operator>(const Tsched& td1, const Tsched& td2)
 {
     return (td1.time > td2.time);
 }
-bool operator>=(const tsched& td1, const tsched& td2)
+bool operator>=(const Tsched& td1, const Tsched& td2)
 {
     return (td1.time >= td2.time);
 }
-bool operator==(const tsched& td1, const tsched& td2)
+bool operator==(const Tsched& td1, const Tsched& td2)
 {
     return (td1.time == td2.time);
 }
-bool operator!=(const tsched& td1, const tsched& td2)
+bool operator!=(const Tsched& td1, const Tsched& td2)
 {
     return (td1.time != td2.time);
 }
-bool operator<(const tsched& td1, coreTime timeC)
+bool operator<(const Tsched& td1, coreTime timeC)
 {
     return (td1.time < timeC);
 }
-bool operator<=(const tsched& td1, coreTime timeC)
+bool operator<=(const Tsched& td1, coreTime timeC)
 {
     return (td1.time <= timeC);
 }
-bool operator>(const tsched& td1, coreTime timeC)
+bool operator>(const Tsched& td1, coreTime timeC)
 {
     return (td1.time > timeC);
 }
-bool operator>=(const tsched& td1, coreTime timeC)
+bool operator>=(const Tsched& td1, coreTime timeC)
 {
     return (td1.time >= timeC);
 }
-bool operator==(const tsched& td1, coreTime timeC)
+bool operator==(const Tsched& td1, coreTime timeC)
 {
     return (td1.time == timeC);
 }
-bool operator!=(const tsched& td1, coreTime timeC)
+bool operator!=(const Tsched& td1, coreTime timeC)
 {
     return (td1.time != timeC);
 }
 
-scheduler::scheduler(const std::string& objName, double initialValue):
+Scheduler::Scheduler(const std::string& objName, double initialValue):
     Source(objName, initialValue), pCurr(initialValue)
 {
     prevTime = negTime;  // override default setting
 }
 
-scheduler::scheduler(double initialValue, const std::string& objName):
-    scheduler(objName, initialValue)
+Scheduler::Scheduler(double initialValue, const std::string& objName):
+    Scheduler(objName, initialValue)
 {
 }
 
-CoreObject* scheduler::clone(CoreObject* obj) const
+CoreObject* Scheduler::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<scheduler, Source>(this, obj);
+    auto* nobj = cloneBase<Scheduler, Source>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -100,22 +100,22 @@ CoreObject* scheduler::clone(CoreObject* obj) const
     return nobj;
 }
 
-scheduler::~scheduler()
+Scheduler::~Scheduler()
 {
     clearSchedule();
 }
 
-void scheduler::setTarget(double target)
+void Scheduler::setTarget(double target)
 {
-    insertTarget(tsched(prevTime, target));
+    insertTarget(Tsched(prevTime, target));
 }
 
-void scheduler::setTarget(coreTime time, double target)
+void Scheduler::setTarget(coreTime time, double target)
 {
-    insertTarget(tsched(time, target));
+    insertTarget(Tsched(time, target));
 }
 
-void scheduler::setTarget(std::vector<double>& time, std::vector<double>& target)
+void Scheduler::setTarget(std::vector<double>& time, std::vector<double>& target)
 {
     auto timeIter = time.begin();
     auto targetIter = target.begin();
@@ -133,13 +133,13 @@ void scheduler::setTarget(std::vector<double>& time, std::vector<double>& target
     }
 }
 
-void scheduler::setTarget(const std::string& fileName)
+void Scheduler::setTarget(const std::string& fileName)
 {
     gmlc::utilities::TimeSeries<double, coreTime> targets;
     targets.loadFile(fileName);
 
     auto targetList = [&targets]() {
-        std::list<tsched> loadedTargets;
+        std::list<Tsched> loadedTargets;
         const auto targetCount = static_cast<int>(targets.size());
         for (int index = 0; index < targetCount; ++index) {
             loadedTargets.emplace_back(targets.time(index), targets.data(index));
@@ -154,7 +154,7 @@ void scheduler::setTarget(const std::string& fileName)
     }
 }
 
-void scheduler::updateA(coreTime time)
+void Scheduler::updateA(coreTime time)
 {
     const auto deltaTime = (time - prevTime);
     if (deltaTime == timeZero) {
@@ -179,7 +179,7 @@ void scheduler::updateA(coreTime time)
     lastUpdateTime = time;
 }
 
-double scheduler::predict(coreTime time)
+double Scheduler::predict(coreTime time)
 {
     double out = m_output;
     if (time >= nextUpdateTime) {
@@ -189,18 +189,18 @@ double scheduler::predict(coreTime time)
     return out;
 }
 
-void scheduler::dynObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
+void Scheduler::dynObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
 {
     commLink = cManager.build();
 
     commLink->registerReceiveCallback(
-        [this](std::uint64_t sourceID, const std::shared_ptr<commMessage>& message) {
+        [this](std::uint64_t sourceID, const std::shared_ptr<CommMessage>& message) {
             receiveMessage(sourceID, message);
         });
     prevTime = time0;
 }
 
-void scheduler::dynObjectInitializeB(const IOdata& /*inputs*/,
+void Scheduler::dynObjectInitializeB(const IOdata& /*inputs*/,
                                      const IOdata& desiredOutput,
                                      IOdata& /*fieldSet*/)
 {
@@ -216,22 +216,22 @@ void scheduler::dynObjectInitializeB(const IOdata& /*inputs*/,
     m_output = pCurr;
 }
 
-double scheduler::getTarget() const
+double Scheduler::getTarget() const
 {
     return (pTarget.empty()) ? pCurr : (pTarget.front()).target;
 }
 
-double scheduler::getMax(coreTime /*time*/) const
+double Scheduler::getMax(coreTime /*time*/) const
 {
     return pMax;
 }
 
-double scheduler::getMin(coreTime /*time*/) const
+double Scheduler::getMin(coreTime /*time*/) const
 {
     return pMin;
 }
 
-void scheduler::set(std::string_view param, std::string_view val)
+void Scheduler::set(std::string_view param, std::string_view val)
 {
     if (param.empty() || param[0] == '#') {
     } else {
@@ -241,7 +241,7 @@ void scheduler::set(std::string_view param, std::string_view val)
     }
 }
 
-void scheduler::set(std::string_view param, double val, unit unitType)
+void Scheduler::set(std::string_view param, double val, unit unitType)
 {
     if (param == "min") {
         pMin = convert(val, unitType, puMW, m_Base);
@@ -260,14 +260,14 @@ void scheduler::set(std::string_view param, double val, unit unitType)
     }
 }
 
-void scheduler::setFlag(std::string_view flag, bool val)
+void Scheduler::setFlag(std::string_view flag, bool val)
 {
     if (!cManager.setFlag(flag, val)) {
         Source::setFlag(flag, val);
     }
 }
 
-double scheduler::get(std::string_view param, unit unitType) const
+double Scheduler::get(std::string_view param, unit unitType) const
 {
     double val = kNullVal;
     if (param == "min") {
@@ -280,7 +280,7 @@ double scheduler::get(std::string_view param, unit unitType) const
     return val;
 }
 
-void scheduler::clearSchedule()
+void Scheduler::clearSchedule()
 {
     if (!pTarget.empty()) {
         pTarget.resize(0);
@@ -289,7 +289,7 @@ void scheduler::clearSchedule()
     }
 }
 
-void scheduler::insertTarget(tsched targetSchedule)
+void Scheduler::insertTarget(Tsched targetSchedule)
 {
     if (targetSchedule < nextUpdateTime) {
         pTarget.push_front(targetSchedule);
@@ -301,24 +301,24 @@ void scheduler::insertTarget(tsched targetSchedule)
     }
 }
 
-void scheduler::receiveMessage(std::uint64_t sourceID, const std::shared_ptr<commMessage>& message)
+void Scheduler::receiveMessage(std::uint64_t sourceID, const std::shared_ptr<CommMessage>& message)
 {
-    using comms::schedulerMessagePayload;
-    auto* schedulerPayload = message->getPayload<schedulerMessagePayload>();
+    using comms::SchedulerMessagePayload;
+    auto* schedulerPayload = message->getPayload<SchedulerMessagePayload>();
     switch (message->getMessageType()) {
-        case schedulerMessagePayload::CLEAR_TARGETS:
+        case SchedulerMessagePayload::CLEAR_TARGETS:
             clearSchedule();
             break;
-        case schedulerMessagePayload::SHUTDOWN:
-        case schedulerMessagePayload::STARTUP:
+        case SchedulerMessagePayload::SHUTDOWN:
+        case SchedulerMessagePayload::STARTUP:
             break;
-        case schedulerMessagePayload::UPDATE_TARGETS:
+        case SchedulerMessagePayload::UPDATE_TARGETS:
             clearSchedule();
             [[fallthrough]];
-        case schedulerMessagePayload::ADD_TARGETS:
+        case SchedulerMessagePayload::ADD_TARGETS:
             setTarget(schedulerPayload->m_time, schedulerPayload->m_target);
             break;
-        case schedulerMessagePayload::REGISTER_DISPATCHER:
+        case SchedulerMessagePayload::REGISTER_DISPATCHER:
             dispatcherId = sourceID;
             break;
         default:
@@ -326,7 +326,7 @@ void scheduler::receiveMessage(std::uint64_t sourceID, const std::shared_ptr<com
     }
 }
 
-void scheduler::dispatcherLink()
+void Scheduler::dispatcherLink()
 {
     auto* dispatch = static_cast<Dispatcher*>(getParent()->find("dispatcher"));
     if (dispatch != nullptr) {

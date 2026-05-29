@@ -25,29 +25,29 @@
 namespace griddyn {
 using gmlc::utilities::fsize_t;
 
-static ClassFactory<collector> collFac("collector");
+static ClassFactory<Collector> collFac("collector");
 
-static ChildClassFactory<Recorder, collector>
+static ChildClassFactory<Recorder, Collector>
     grFac(std::vector<std::string>{"recorder", "rec", "file"}, "recorder");
 
-collector::collector(coreTime time0, coreTime period):
+Collector::Collector(coreTime time0, coreTime period):
     mTimePeriod(period), mRequestedPeriod(period), mTriggerTime(time0)
 {
 }
 
-collector::collector(const std::string& collectorName):
+Collector::Collector(const std::string& collectorName):
     HelperObject(collectorName), mTimePeriod(1.0), mRequestedPeriod(1.0), mTriggerTime(timeZero)
 {
 }
 
-std::unique_ptr<collector> collector::clone() const
+std::unique_ptr<Collector> Collector::clone() const
 {
-    auto col = std::make_unique<collector>();
+    auto col = std::make_unique<Collector>();
     cloneTo(col.get());
     return col;
 }
 
-void collector::cloneTo(collector* col) const
+void Collector::cloneTo(Collector* col) const
 {
     col->mRequestedPeriod = mRequestedPeriod;
     col->mTimePeriod = mTimePeriod;
@@ -84,7 +84,7 @@ void collector::cloneTo(collector* col) const
     col->mData.resize(mData.size());
 }
 
-void collector::updateObject(CoreObject* gco, ObjectUpdateMode mode)
+void Collector::updateObject(CoreObject* gco, ObjectUpdateMode mode)
 {
     for (const auto& dataPoint : mPoints) {
         if (dataPoint.mDataGrabber) {
@@ -98,7 +98,7 @@ void collector::updateObject(CoreObject* gco, ObjectUpdateMode mode)
     }
 }
 
-CoreObject* collector::getObject() const
+CoreObject* Collector::getObject() const
 {
     if (!mPoints.empty()) {
         if (mPoints[0].mDataGrabber) {
@@ -111,7 +111,7 @@ CoreObject* collector::getObject() const
     return nullptr;
 }
 
-void collector::getObjects(std::vector<CoreObject*>& objects) const
+void Collector::getObjects(std::vector<CoreObject*>& objects) const
 {
     for (const auto& dataPoint : mPoints) {
         if (dataPoint.mDataGrabber) {
@@ -122,7 +122,7 @@ void collector::getObjects(std::vector<CoreObject*>& objects) const
     }
 }
 
-std::vector<std::string> collector::getColumnDescriptions() const
+std::vector<std::string> Collector::getColumnDescriptions() const
 {
     stringVec res;
     res.resize(mData.size());
@@ -149,7 +149,7 @@ std::vector<std::string> collector::getColumnDescriptions() const
     return res;
 }
 
-void collector::set(std::string_view param, double val)
+void Collector::set(std::string_view param, double val)
 {
     if (param == "period") {
         mRequestedPeriod = val;
@@ -174,7 +174,7 @@ void collector::set(std::string_view param, double val)
     }
 }
 
-void collector::set(std::string_view param, std::string_view val)
+void Collector::set(std::string_view param, std::string_view val)
 {
     if (param.front() == '#') {
     } else {
@@ -182,7 +182,7 @@ void collector::set(std::string_view param, std::string_view val)
     }
 }
 
-void collector::setFlag(std::string_view flag, bool val)
+void Collector::setFlag(std::string_view flag, bool val)
 {
     if (flag == "vector_name") {
         mVectorName = val;
@@ -191,14 +191,14 @@ void collector::setFlag(std::string_view flag, bool val)
     }
 }
 
-void collector::setTime(coreTime time)
+void Collector::setTime(coreTime time)
 {
     if (time > mTriggerTime) {
         mTriggerTime = time;
     }
 }
 
-void collector::recheckColumns()
+void Collector::recheckColumns()
 {
     fsize_t columnTracker = 0;
     std::vector<double> vals;
@@ -219,7 +219,7 @@ void collector::recheckColumns()
     mRecheck = false;
 }
 
-count_t collector::grabData(double* outputData, index_t outputCount)
+count_t Collector::grabData(double* outputData, index_t outputCount)
 {
     std::vector<double> vals;
     count_t currentCount = 0;
@@ -253,7 +253,7 @@ count_t collector::grabData(double* outputData, index_t outputCount)
     return currentCount;
 }
 
-ChangeCode collector::trigger(coreTime time)
+ChangeCode Collector::trigger(coreTime time)
 {
     std::vector<double> vals;
 
@@ -283,7 +283,7 @@ ChangeCode collector::trigger(coreTime time)
     return ChangeCode::NO_CHANGE;
 }
 
-int collector::getColumn(int requestedColumn) const
+int Collector::getColumn(int requestedColumn) const
 {
     int retColumn = requestedColumn;
     if (requestedColumn < 0) {
@@ -296,7 +296,7 @@ int collector::getColumn(int requestedColumn) const
     return retColumn;
 }
 
-void collector::updateColumns(int requestedColumn)
+void Collector::updateColumns(int requestedColumn)
 {
     if (requestedColumn >= static_cast<int>(mColumns)) {
         mColumns = requestedColumn + 1;
@@ -308,7 +308,7 @@ void collector::updateColumns(int requestedColumn)
 }
 
 // TODO(phlpt): Merge the repeated add-path code.
-void collector::add(std::shared_ptr<gridGrabber> ggb, int requestedColumn)  // NOLINT
+void Collector::add(std::shared_ptr<GridGrabber> ggb, int requestedColumn)  // NOLINT
 {
     const int newColumn = getColumn(requestedColumn);
 
@@ -331,7 +331,7 @@ void collector::add(std::shared_ptr<gridGrabber> ggb, int requestedColumn)  // N
     }
 }
 
-void collector::add(std::shared_ptr<stateGrabber> sst, int requestedColumn)  // NOLINT
+void Collector::add(std::shared_ptr<StateGrabber> sst, int requestedColumn)  // NOLINT
 {
     const int newColumn = getColumn(requestedColumn);
     updateColumns(newColumn);
@@ -349,8 +349,8 @@ void collector::add(std::shared_ptr<stateGrabber> sst, int requestedColumn)  // 
 }
 
 // NOLINTNEXTLINE
-void collector::add(std::shared_ptr<gridGrabber> ggb,
-                    std::shared_ptr<stateGrabber> sst,  // NOLINT
+void Collector::add(std::shared_ptr<GridGrabber> ggb,
+                    std::shared_ptr<StateGrabber> sst,  // NOLINT
                     int requestedColumn)
 {
     const int newColumn = getColumn(requestedColumn);
@@ -367,9 +367,9 @@ void collector::add(std::shared_ptr<gridGrabber> ggb,
 }
 
 // a notification that something was added much more useful in derived classes
-void collector::dataPointAdded(const collectorPoint& /*cp*/) {}
+void Collector::dataPointAdded(const collectorPoint& /*cp*/) {}
 // NOLINTNEXTLINE(misc-no-recursion)
-void collector::add(const gridGrabberInfo& gdRI, CoreObject* obj)
+void Collector::add(const GridGrabberInfo& gdRI, CoreObject* obj)
 {
     if (gdRI.field.empty())  // any field specification overrides the offset
     {
@@ -379,15 +379,15 @@ void collector::add(const gridGrabberInfo& gdRI, CoreObject* obj)
             if (ggb) {
                 ggb->bias = gdRI.bias;
                 ggb->gain = gdRI.gain;
-                add(std::shared_ptr<gridGrabber>(std::move(ggb)), gdRI.column);
+                add(std::shared_ptr<GridGrabber>(std::move(ggb)), gdRI.column);
                 return;
             }
             throw(AddFailureException());
         }
         obj->log(obj,
                  PrintLevel::WARNING,
-                 "unable to create collector no field or offset specified");
-        addWarning("unable to create collector no field or offset specified");
+                 "unable to create Collector no field or offset specified");
+        addWarning("unable to create Collector no field or offset specified");
         return;
     }
 
@@ -423,14 +423,14 @@ void collector::add(const gridGrabberInfo& gdRI, CoreObject* obj)
             fldGrabbers[0]->outputUnits = gdRI.outputUnits;
         }
         // TODO(PT) incorporate state grabbers properly
-        add(std::shared_ptr<gridGrabber>(std::move(fldGrabbers[0])), gdRI.column);
+        add(std::shared_ptr<GridGrabber>(std::move(fldGrabbers[0])), gdRI.column);
     } else {
         int ccol = gdRI.column;
         for (auto& ggb : fldGrabbers) {
             if (ccol > 0) {
-                add(std::shared_ptr<gridGrabber>(std::move(ggb)), ccol++);
+                add(std::shared_ptr<GridGrabber>(std::move(ggb)), ccol++);
             } else {
-                add(std::shared_ptr<gridGrabber>(std::move(ggb)));
+                add(std::shared_ptr<GridGrabber>(std::move(ggb)));
             }
         }
     }
@@ -442,7 +442,7 @@ void collector::add(const gridGrabberInfo& gdRI, CoreObject* obj)
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void collector::add(std::string_view field, CoreObject* obj)
+void Collector::add(std::string_view field, CoreObject* obj)
 {
     if (field.find_first_of(",;") !=
         std::string::npos) {  // now go into a loop of the comma variables
@@ -454,7 +454,7 @@ void collector::add(std::string_view field, CoreObject* obj)
     } else {  // now we get to the interesting bit
         auto fldGrabbers = makeGrabbers(std::string{field}, obj);
         for (auto& ggb : fldGrabbers) {
-            add(std::shared_ptr<gridGrabber>(std::move(ggb)));
+            add(std::shared_ptr<GridGrabber>(std::move(ggb)));
         }
         if (fldGrabbers.empty()) {
             obj->log(obj,
@@ -466,7 +466,7 @@ void collector::add(std::string_view field, CoreObject* obj)
     }
 }
 
-void collector::reset()
+void Collector::reset()
 {
     mPoints.clear();
     mData.clear();
@@ -475,18 +475,18 @@ void collector::reset()
     mTriggerTime = maxTime;
 }
 
-void collector::flush() {}
-const std::string& collector::getSinkName() const
+void Collector::flush() {}
+const std::string& Collector::getSinkName() const
 {
     static const std::string emptyString;
     return emptyString;
 }
-std::unique_ptr<collector> makeCollector(std::string_view type, const std::string& name)
+std::unique_ptr<Collector> makeCollector(std::string_view type, const std::string& name)
 {
     if (name.empty()) {
-        return CoreClassFactory<collector>::instance()->createObject(type);
+        return CoreClassFactory<Collector>::instance()->createObject(type);
     }
-    return CoreClassFactory<collector>::instance()->createObject(type, name);
+    return CoreClassFactory<Collector>::instance()->createObject(type, name);
 }
 
 }  // namespace griddyn

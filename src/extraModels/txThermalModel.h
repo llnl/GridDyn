@@ -12,7 +12,7 @@
 namespace griddyn::extra {
 /** @brief basic thermal model of a transformer
  */
-class txThermalModel: public sensor {
+class txThermalModel: public Sensor {
   public:
     enum ThermalModelFlags {
         auto_parameter_load = object_flag10,
@@ -48,7 +48,7 @@ class txThermalModel: public sensor {
 
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    using sensor::add;
+    using Sensor::add;
     virtual void add(CoreObject* obj) override final;
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;

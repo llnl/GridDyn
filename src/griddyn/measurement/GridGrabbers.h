@@ -24,7 +24,7 @@ class gridCore;
 @details there is a target object and a functional object that actually can extract data from that
 object it also includes a gain and bias to do a linear shift and scale on the object
 */
-class gridGrabber: public ObjectOperatorInterface {
+class GridGrabber: public ObjectOperatorInterface {
   public:
     std::string field;  //!< the target field that is being grabbed
     // TODO(phlpt): Convert this flag group to a bitset.
@@ -47,18 +47,18 @@ class gridGrabber: public ObjectOperatorInterface {
         mVectorDescriptionFunction;  //!< function to grab a vector of strings corresponding to the
                                      //!< vector of data
   public:
-    explicit gridGrabber(std::string_view fld = {});
+    explicit GridGrabber(std::string_view fld = {});
 
-    gridGrabber(std::string_view fld, CoreObject* obj);
+    GridGrabber(std::string_view fld, CoreObject* obj);
 
-    virtual ~gridGrabber() = default;
+    virtual ~GridGrabber() = default;
     /** clone function
      *@return a shared_ptr to another GridGrabber*/
-    virtual std::unique_ptr<gridGrabber> clone() const;
+    virtual std::unique_ptr<GridGrabber> clone() const;
     /** cloneTo function
-     *@param[in] ggb a pointer to another gridGrabber function to clone the data to
+     *@param[in] ggb a pointer to another GridGrabber function to clone the data to
      */
-    virtual void cloneTo(gridGrabber* ggb) const;
+    virtual void cloneTo(GridGrabber* ggb) const;
     /** update the field of grabber
      *@param[in]  fld the new field to capture
      *@throw unrecognized parameter exception*/
@@ -100,7 +100,7 @@ class gridGrabber: public ObjectOperatorInterface {
 
 /** custom grabber function class
  */
-class customGrabber: public gridGrabber {
+class CustomGrabber: public GridGrabber {
   public:
     void setGrabberFunction(std::string_view fld, std::function<double(CoreObject*)> nfptr);
     void setGrabberFunction(std::function<void(CoreObject*, std::vector<double>&)> nVptr);
@@ -111,19 +111,19 @@ class customGrabber: public gridGrabber {
 /** create a grabber from a field and object pointer
 @param[in] fld the target field to grab
 @param[in] obj the target object (can be nullptr if specified later)*/
-std::unique_ptr<gridGrabber> createGrabber(std::string_view fld, CoreObject* obj);
+std::unique_ptr<GridGrabber> createGrabber(std::string_view fld, CoreObject* obj);
 
 /** create a grabber from an offset and object pointer
 @param[in] noffset the index into a local state storage
 @param[in] obj the target object (can be nullptr if specified later)*/
-std::unique_ptr<gridGrabber> createGrabber(int noffset, CoreObject* obj);
+std::unique_ptr<GridGrabber> createGrabber(int noffset, CoreObject* obj);
 
-std::vector<std::unique_ptr<gridGrabber>> makeGrabbers(std::string_view command, CoreObject* obj);
+std::vector<std::unique_ptr<GridGrabber>> makeGrabbers(std::string_view command, CoreObject* obj);
 
 /** class defining a function operator on grabber*/
-class functionGrabber: public gridGrabber {
+class FunctionGrabber: public GridGrabber {
   protected:
-    std::shared_ptr<gridGrabber> mBaseGrabber;  //!< the underlying grabber to get the data
+    std::shared_ptr<GridGrabber> mBaseGrabber;  //!< the underlying grabber to get the data
     std::string mFunctionName;  //!< the name of the function
     function1_t mFunctionPtr = nullptr;  //!< the function operation on the data
     vector_function1_t mVectorFunctionPtr =
@@ -131,10 +131,10 @@ class functionGrabber: public gridGrabber {
     std::vector<double> mTempArray;  //!< temporary array data location
 
   public:
-    functionGrabber() = default;
-    functionGrabber(std::shared_ptr<gridGrabber> ggb, std::string func);
-    virtual std::unique_ptr<gridGrabber> clone() const override;
-    virtual void cloneTo(gridGrabber* ggb) const override;
+    FunctionGrabber() = default;
+    FunctionGrabber(std::shared_ptr<GridGrabber> ggb, std::string func);
+    virtual std::unique_ptr<GridGrabber> clone() const override;
+    virtual void cloneTo(GridGrabber* ggb) const override;
     virtual double grabData() override;
     virtual void grabVectorData(std::vector<double>& vdata) override;
     virtual void updateObject(CoreObject* obj,
@@ -142,7 +142,7 @@ class functionGrabber: public gridGrabber {
     virtual CoreObject* getObject() const override;
     virtual void getObjects(std::vector<CoreObject*>& objects) const override;
     virtual void updateField(std::string_view fld) override;
-    using gridGrabber::getDesc;
+    using GridGrabber::getDesc;
     virtual void getDesc(std::vector<std::string>& desc_list) const override;
     virtual coreTime getTime() const override;
 
@@ -151,20 +151,20 @@ class functionGrabber: public gridGrabber {
 };
 
 /** class implementing a operation on two grabbers */
-class opGrabber: public gridGrabber {
+class OpGrabber: public GridGrabber {
   protected:
-    std::shared_ptr<gridGrabber> mBaseGrabber1;  //!< grabber 1
-    std::shared_ptr<gridGrabber> mBaseGrabber2;  //!< grabber 2
+    std::shared_ptr<GridGrabber> mBaseGrabber1;  //!< grabber 1
+    std::shared_ptr<GridGrabber> mBaseGrabber2;  //!< grabber 2
     std::string mOperationName;  //!< the name of the 2 argument operation
     function2_t mFunctionPtr = nullptr;  //!< the function pointer to the operation
     vector_function2_t mVectorFunctionPtr =
         nullptr;  //!< function pointer to a vector grab operation
     std::vector<double> mTempArray1, mTempArray2;  //!< temporary arrays for processing the data
   public:
-    opGrabber() = default;
-    opGrabber(std::shared_ptr<gridGrabber> ggb1, std::shared_ptr<gridGrabber> ggb2, std::string op);
-    virtual std::unique_ptr<gridGrabber> clone() const override;
-    virtual void cloneTo(gridGrabber* ggb) const override;
+    OpGrabber() = default;
+    OpGrabber(std::shared_ptr<GridGrabber> ggb1, std::shared_ptr<GridGrabber> ggb2, std::string op);
+    virtual std::unique_ptr<GridGrabber> clone() const override;
+    virtual void cloneTo(GridGrabber* ggb) const override;
     virtual double grabData() override;
     virtual void grabVectorData(std::vector<double>& vdata) override;
     virtual void updateObject(CoreObject* obj,
@@ -177,7 +177,7 @@ class opGrabber: public gridGrabber {
     virtual CoreObject* getObject() const override;
     virtual void getObjects(std::vector<CoreObject*>& objects) const override;
     virtual void updateField(std::string_view fld) override;
-    using gridGrabber::getDesc;
+    using GridGrabber::getDesc;
 
     virtual void getDesc(std::vector<std::string>& desc_list) const override;
     virtual coreTime getTime() const override;

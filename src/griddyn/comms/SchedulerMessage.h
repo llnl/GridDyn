@@ -14,7 +14,7 @@
 
 #define BASE_SCHEDULER_MESSAGE_NUMBER 800
 namespace griddyn::comms {
-class schedulerMessagePayload: public CommPayload {
+class SchedulerMessagePayload: public CommPayload {
   public:
     enum SchedulerMessageType : std::uint32_t {
         CLEAR_TARGETS = BASE_SCHEDULER_MESSAGE_NUMBER + 3,
@@ -32,9 +32,9 @@ class schedulerMessagePayload: public CommPayload {
         REGISTER_CONTROLLER = BASE_SCHEDULER_MESSAGE_NUMBER + 15,
     };
 
-    schedulerMessagePayload() = default;
+    SchedulerMessagePayload() = default;
 
-    schedulerMessagePayload(std::vector<double> time, std::vector<double> target);
+    SchedulerMessagePayload(std::vector<double> time, std::vector<double> target);
 
     void loadMessage(std::vector<double> time, std::vector<double> target);
 
@@ -64,7 +64,7 @@ class schedulerMessagePayload: public CommPayload {
 #    pragma GCC diagnostic push
 #    pragma GCC diagnostic ignored "-Wnull-dereference"
 #endif
-CEREAL_REGISTER_TYPE(griddyn::comms::schedulerMessagePayload)
+CEREAL_REGISTER_TYPE(griddyn::comms::SchedulerMessagePayload)
 #if defined(__GNUC__) && !defined(__clang__)
 #    pragma GCC diagnostic pop
 #endif

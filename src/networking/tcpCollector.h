@@ -12,7 +12,7 @@
 #include <string>
 
 namespace griddyn::tcpLib {
-class TcpCollector: public collector {
+class TcpCollector: public Collector {
   private:
     std::string server;
     std::string port;
@@ -23,9 +23,9 @@ class TcpCollector: public collector {
     explicit TcpCollector(const std::string& name);
     ~TcpCollector();
 
-    virtual std::unique_ptr<collector> clone() const override;
+    virtual std::unique_ptr<Collector> clone() const override;
 
-    virtual void cloneTo(collector* col) const override;
+    virtual void cloneTo(Collector* col) const override;
     virtual ChangeCode trigger(coreTime time) override;
 
     void set(std::string_view param, double val) override;

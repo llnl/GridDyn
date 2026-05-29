@@ -13,7 +13,7 @@
 
 namespace griddyn {
 class GridArea;
-class schedulerRamp;
+class SchedulerRamp;
 
 /** in development object to manage the dispatch of reserve generation
  */
@@ -28,7 +28,7 @@ class ReserveDispatcher: public CoreObject {
     coreTime dispatchInterval = 60.0 * 5.0;
 
     count_t schedCount = 0;
-    std::vector<schedulerRamp*> schedList;
+    std::vector<SchedulerRamp*> schedList;
     std::vector<double> reserveAvailableByScheduler;
     std::vector<double> reserveUsed;
 
@@ -45,10 +45,10 @@ class ReserveDispatcher: public CoreObject {
     virtual double testP(coreTime time, double pShort);
     double getOutput(index_t /*num*/ = 0) { return currentDispatch; }
 
-    virtual void add(schedulerRamp* sched);
+    virtual void add(SchedulerRamp* sched);
     virtual void add(CoreObject* obj) override;
 
-    virtual void remove(schedulerRamp* sched);
+    virtual void remove(SchedulerRamp* sched);
     virtual void remove(CoreObject* obj) override;
 
     virtual void set(std::string_view param, std::string_view val) override;

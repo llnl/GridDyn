@@ -48,13 +48,13 @@ class VariableGenerator: public DynamicGenerator {
     virtual void add(GridSubModel* obj) override;
 
     virtual void residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataValue,
                           double resid[],
                           const SolverMode& sMode) override;
 
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& sD,
-                                  matrixData<double>& md,
+                                  const stateData& stateDataValue,
+                                  matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
 
@@ -72,7 +72,7 @@ class VariableGenerator: public DynamicGenerator {
 
   protected:
     virtual double pSetControlUpdate(const IOdata& inputs,
-                                     const stateData& sD,
+                                     const stateData& stateDataValue,
                                      const SolverMode& sMode) override;
     virtual index_t pSetLocation(const SolverMode& sMode) override;
 };

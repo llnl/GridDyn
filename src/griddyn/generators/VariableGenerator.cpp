@@ -121,31 +121,32 @@ void VariableGenerator::set(std::string_view param, double val, unit unitType)
 
 // compute the residual for the dynamic states
 void VariableGenerator::residual(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  double resid[],
                                  const SolverMode& sMode)
 {
-    DynamicGenerator::residual(inputs, sD, resid, sMode);
+    DynamicGenerator::residual(inputs, stateDataValue, resid, sMode);
     if ((m_source != nullptr) && (m_source->isEnabled())) {
-        m_source->residual(inputs, sD, resid, sMode);
+        m_source->residual(inputs, stateDataValue, resid, sMode);
     }
     if ((m_cBlock != nullptr) && (m_cBlock->isEnabled())) {
         // TODO(PT):: this needs to be tied to the source
-        m_cBlock->blockResidual(Pset, dPdt, sD, resid, sMode);
+        m_cBlock->blockResidual(Pset, dPdt, stateDataValue, resid, sMode);
     }
 }
 void VariableGenerator::jacobianElements(const IOdata& inputs,
-                                         const stateData& sD,
-                                         matrixData<double>& md,
+                                         const stateData& stateDataValue,
+                                         matrixData<double>& matrixDataValue,
                                          const IOlocs& inputLocs,
                                          const SolverMode& sMode)
 {
-    DynamicGenerator::jacobianElements(inputs, sD, md, inputLocs, sMode);
+    DynamicGenerator::jacobianElements(
+        inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
     if ((m_source != nullptr) && (m_source->isEnabled())) {
-        m_source->jacobianElements(inputs, sD, md, inputLocs, sMode);
+        m_source->jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
     }
     if ((m_cBlock != nullptr) && (m_cBlock->isEnabled())) {
-        m_cBlock->jacobianElements(inputs, sD, md, inputLocs, sMode);
+        m_cBlock->jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
     }
 }
 
@@ -170,13 +171,13 @@ CoreObject* VariableGenerator::getSubObject(std::string_view typeName, index_t n
 }
 
 double VariableGenerator::pSetControlUpdate(const IOdata& inputs,
-                                            const stateData& sD,
+                                            const stateData& stateDataValue,
                                             const SolverMode& sMode)
 {
     if ((m_cBlock != nullptr) && (m_cBlock->isEnabled())) {
         return m_cBlock->getOutput();
     }
-    return DynamicGenerator::pSetControlUpdate(inputs, sD, sMode);
+    return DynamicGenerator::pSetControlUpdate(inputs, stateDataValue, sMode);
 }
 
 index_t VariableGenerator::pSetLocation(const SolverMode& sMode)

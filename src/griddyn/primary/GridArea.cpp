@@ -642,27 +642,29 @@ void GridArea::updateLocalCache()
     }
 }
 
-void GridArea::updateLocalCache(const IOdata& inputs, const stateData& sD, const SolverMode& sMode)
+void GridArea::updateLocalCache(const IOdata& inputs,
+                                const stateData& stateDataValue,
+                                const SolverMode& sMode)
 {
     // links should come first
     for (auto* link : m_Links) {
         if (link->isEnabled()) {
-            link->updateLocalCache(inputs, sD, sMode);
+            link->updateLocalCache(inputs, stateDataValue, sMode);
         }
     }
     for (auto* area : m_GridAreas) {
         if (area->isEnabled()) {
-            area->updateLocalCache(inputs, sD, sMode);
+            area->updateLocalCache(inputs, stateDataValue, sMode);
         }
     }
     for (auto* bus : m_Buses) {
         if (bus->isEnabled()) {
-            bus->updateLocalCache(inputs, sD, sMode);
+            bus->updateLocalCache(inputs, stateDataValue, sMode);
         }
     }
     for (auto* rel : m_Relays) {
         if (rel->isEnabled()) {
-            rel->updateLocalCache(inputs, sD, sMode);
+            rel->updateLocalCache(inputs, stateDataValue, sMode);
         }
     }
 }
@@ -776,7 +778,7 @@ void GridArea::updateTheta(coreTime /*time*/) {}
 
 void GridArea::converge(coreTime time,
                         double state[],
-                        double dstate_dt[],
+                        double dstateDt[],
                         const SolverMode& sMode,
                         ConvergeMode mode,
                         double tol)
@@ -785,14 +787,14 @@ void GridArea::converge(coreTime time,
         auto ra = opObjectLists->rbegin(sMode);
         auto rend = opObjectLists->rend(sMode);
         while (ra != rend) {
-            (*ra)->converge(time, state, dstate_dt, sMode, mode, tol);
+            (*ra)->converge(time, state, dstateDt, sMode, mode, tol);
             ++ra;
         }
     } else {
         auto fa = opObjectLists->begin(sMode);
         auto fend = opObjectLists->end(sMode);
         while (fa != fend) {
-            (*fa)->converge(time, state, dstate_dt, sMode, mode, tol);
+            (*fa)->converge(time, state, dstateDt, sMode, mode, tol);
             ++fa;
         }
     }
@@ -1349,13 +1351,13 @@ double GridArea::getAvgAngle() const
     return (a / cnt);
 }
 
-double GridArea::getAvgAngle(const stateData& sD, const SolverMode& sMode) const
+double GridArea::getAvgAngle(const stateData& stateDataValue, const SolverMode& sMode) const
 {
     double a = 0.0;
     double cnt = 0.0;
     for (auto* bus : m_Buses) {
         if (bus->hasInertialAngle()) {
-            a += bus->getAngle(sD, sMode);
+            a += bus->getAngle(stateDataValue, sMode);
             cnt += 1.0;
         }
     }
@@ -1381,13 +1383,13 @@ double GridArea::getAvgFreq() const
 // guessState the solution
 void GridArea::guessState(coreTime time,
                           double state[],
-                          double dstate_dt[],
+                          double dstateDt[],
                           const SolverMode& sMode)
 {
     auto cobj = opObjectLists->begin(sMode);
     auto cend = opObjectLists->end(sMode);
     while (cobj != cend) {
-        (*cobj)->guessState(time, state, dstate_dt, sMode);
+        (*cobj)->guessState(time, state, dstateDt, sMode);
         ++cobj;
     }
     // next do any internal control elements
@@ -1418,12 +1420,12 @@ void GridArea::getTols(double tols[], const SolverMode& sMode)
 
 // #define DEBUG_PRINT
 void GridArea::rootTest(const IOdata& inputs,
-                        const stateData& sD,
+                        const stateData& stateDataValue,
                         double roots[],
                         const SolverMode& sMode)
 {
     for (auto* ro : rootObjects) {
-        ro->rootTest(inputs, sD, roots, sMode);
+        ro->rootTest(inputs, stateDataValue, roots, sMode);
     }
 #ifdef DEBUG_PRINT
     for (size_t kk = 0; kk < rootSize(sMode); ++kk) {
@@ -1433,7 +1435,7 @@ void GridArea::rootTest(const IOdata& inputs,
 }
 
 ChangeCode GridArea::rootCheck(const IOdata& inputs,
-                               const stateData& sD,
+                               const stateData& stateDataValue,
                                const SolverMode& sMode,
                                CheckLevel level)
 {
@@ -1443,7 +1445,7 @@ ChangeCode GridArea::rootCheck(const IOdata& inputs,
     if (level >= CheckLevel::low_voltage_check) {
         for (auto* obj : primaryObjects) {
             if (obj->isEnabled()) {
-                auto iret = obj->rootCheck(inputs, sD, sMode, level);
+                auto iret = obj->rootCheck(inputs, stateDataValue, sMode, level);
                 if (iret > ret) {
                     ret = iret;
                 }
@@ -1452,7 +1454,7 @@ ChangeCode GridArea::rootCheck(const IOdata& inputs,
     } else {
         for (auto* ro : rootObjects) {
             if (ro->checkFlag(has_alg_roots)) {
-                auto iret = ro->rootCheck(inputs, sD, sMode, level);
+                auto iret = ro->rootCheck(inputs, stateDataValue, sMode, level);
                 if (iret > ret) {
                     ret = iret;
                 }
@@ -1513,7 +1515,7 @@ void GridArea::rootTrigger(coreTime time,
 // pass the solution
 void GridArea::setState(coreTime time,
                         const double state[],
-                        const double dstate_dt[],
+                        const double dstateDt[],
                         const SolverMode& sMode)
 {
     prevTime = time;
@@ -1521,23 +1523,23 @@ void GridArea::setState(coreTime time,
     // links come first
     for (auto* link : m_Links) {
         if (link->isEnabled()) {
-            link->setState(time, state, dstate_dt, sMode);
+            link->setState(time, state, dstateDt, sMode);
         }
     }
     for (auto* area : m_GridAreas) {
         if (area->isEnabled()) {
-            area->setState(time, state, dstate_dt, sMode);
+            area->setState(time, state, dstateDt, sMode);
         }
     }
 
     for (auto* bus : m_Buses) {
         if (bus->isEnabled()) {
-            bus->setState(time, state, dstate_dt, sMode);
+            bus->setState(time, state, dstateDt, sMode);
         }
     }
     for (auto* rel : m_Relays) {
         if (rel->isEnabled()) {
-            rel->setState(time, state, dstate_dt, sMode);
+            rel->setState(time, state, dstateDt, sMode);
         }
     }
     // next do any internal area states
@@ -1605,28 +1607,30 @@ void GridArea::getAngleStates(double aStates[], const SolverMode& sMode) const
 
 // residual
 
-void GridArea::preEx(const IOdata& inputs, const stateData& sD, const SolverMode& sMode)
+void GridArea::preEx(const IOdata& inputs,
+                     const stateData& stateDataValue,
+                     const SolverMode& sMode)
 {
-    opObjectLists->preEx(inputs, sD, sMode);
+    opObjectLists->preEx(inputs, stateDataValue, sMode);
 }
 
 void GridArea::residual(const IOdata& inputs,
-                        const stateData& sD,
+                        const stateData& stateDataValue,
                         double resid[],
                         const SolverMode& sMode)
 {
-    opObjectLists->residual(inputs, sD, resid, sMode);
+    opObjectLists->residual(inputs, stateDataValue, resid, sMode);
 
     // next do any internal states
 }
 
 void GridArea::algebraicUpdate(const IOdata& inputs,
-                               const stateData& sD,
+                               const stateData& stateDataValue,
                                double update[],
                                const SolverMode& sMode,
                                double alpha)
 {
-    opObjectLists->algebraicUpdate(inputs, sD, update, sMode, alpha);
+    opObjectLists->algebraicUpdate(inputs, stateDataValue, update, sMode, alpha);
 
     // next do any internal states
 }
@@ -1650,56 +1654,56 @@ void GridArea::getStateName(stringVec& stNames,
 }
 
 void GridArea::delayedResidual(const IOdata& inputs,
-                               const stateData& sD,
+                               const stateData& stateDataValue,
                                double resid[],
                                const SolverMode& sMode)
 {
-    opObjectLists->delayedResidual(inputs, sD, resid, sMode);
+    opObjectLists->delayedResidual(inputs, stateDataValue, resid, sMode);
 }
 
 void GridArea::delayedDerivative(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  double deriv[],
                                  const SolverMode& sMode)
 {
-    opObjectLists->delayedDerivative(inputs, sD, deriv, sMode);
+    opObjectLists->delayedDerivative(inputs, stateDataValue, deriv, sMode);
 }
 
 void GridArea::delayedJacobian(const IOdata& inputs,
-                               const stateData& sD,
-                               matrixData<double>& md,
+                               const stateData& stateDataValue,
+                               matrixData<double>& matrixDataValue,
                                const IOlocs& inputLocs,
                                const SolverMode& sMode)
 {
-    opObjectLists->delayedJacobian(inputs, sD, md, inputLocs, sMode);
+    opObjectLists->delayedJacobian(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
 }
 
 void GridArea::delayedAlgebraicUpdate(const IOdata& inputs,
-                                      const stateData& sD,
+                                      const stateData& stateDataValue,
                                       double update[],
                                       const SolverMode& sMode,
                                       double alpha)
 {
-    opObjectLists->delayedAlgebraicUpdate(inputs, sD, update, sMode, alpha);
+    opObjectLists->delayedAlgebraicUpdate(inputs, stateDataValue, update, sMode, alpha);
 }
 
 void GridArea::derivative(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataValue,
                           double deriv[],
                           const SolverMode& sMode)
 {
-    opObjectLists->derivative(inputs, sD, deriv, sMode);
+    opObjectLists->derivative(inputs, stateDataValue, deriv, sMode);
     // next do any internal states
 }
 
 // Jacobian
 void GridArea::jacobianElements(const IOdata& inputs,
-                                const stateData& sD,
-                                matrixData<double>& md,
+                                const stateData& stateDataValue,
+                                matrixData<double>& matrixDataValue,
                                 const IOlocs& inputLocs,
                                 const SolverMode& sMode)
 {
-    opObjectLists->jacobianElements(inputs, sD, md, inputLocs, sMode);
+    opObjectLists->jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
     // next do any internal control elements
 }
 
@@ -1745,13 +1749,13 @@ void GridArea::setOffset(index_t offset, const SolverMode& sMode)
     offsets.setOffset(offset, sMode);
 }
 
-void GridArea::setRootOffset(index_t Roffset, const SolverMode& sMode)
+void GridArea::setRootOffset(index_t rootOffset, const SolverMode& sMode)
 {
-    offsets.setRootOffset(Roffset, sMode);
+    offsets.setRootOffset(rootOffset, sMode);
     const auto& so = offsets.getOffsets(sMode);
     auto nR = so.local.algRoots + so.local.diffRoots;
     for (auto* ro : rootObjects) {
-        ro->setRootOffset(Roffset + nR, sMode);
+        ro->setRootOffset(rootOffset + nR, sMode);
         nR += ro->rootSize(sMode);
     }
 }
@@ -1761,16 +1765,16 @@ double GridArea::getTieFlowReal() const
     return (getGenerationReal() - getLoadReal() - getLoss());
 }
 
-double GridArea::getMasterAngle(const stateData& sD, const SolverMode& sMode) const
+double GridArea::getMasterAngle(const stateData& stateDataValue, const SolverMode& sMode) const
 {
     if (masterBus >= 0) {
-        return m_Buses[masterBus]->getAngle(sD, sMode);
+        return m_Buses[masterBus]->getAngle(stateDataValue, sMode);
     }
     if (!isRoot()) {
-        return static_cast<GridArea*>(getParent())->getMasterAngle(sD, sMode);
+        return static_cast<GridArea*>(getParent())->getMasterAngle(stateDataValue, sMode);
     }
     if (!m_Buses.empty()) {
-        return m_Buses[0]->getAngle(sD, sMode);
+        return m_Buses[0]->getAngle(stateDataValue, sMode);
     }
     return 0.0;
 }

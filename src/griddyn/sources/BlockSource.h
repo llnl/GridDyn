@@ -42,28 +42,28 @@ namespace sources {
         virtual double get(std::string_view param,
                            units::unit unitType = units::defunit) const override;
 
-        // virtual void derivative(const IOdata &inputs, const stateData &sD, double deriv[], const
+        // virtual void derivative(const IOdata &inputs, const stateData &stateDataValue, double deriv[], const
         // SolverMode &sMode);
 
         virtual void residual(const IOdata& inputs,
-                              const stateData& sD,
+                              const stateData& stateDataValue,
                               double resid[],
                               const SolverMode& sMode) override;
 
         virtual void derivative(const IOdata& inputs,
-                                const stateData& sD,
+                                const stateData& stateDataValue,
                                 double deriv[],
                                 const SolverMode& sMode) override;
 
         virtual void algebraicUpdate(const IOdata& inputs,
-                                     const stateData& sD,
+                                     const stateData& stateDataValue,
                                      double update[],
                                      const SolverMode& sMode,
                                      double alpha) override;
 
         virtual void jacobianElements(const IOdata& inputs,
-                                      const stateData& sD,
-                                      matrixData<double>& md,
+                                      const stateData& stateDataValue,
+                                      matrixData<double>& matrixDataValue,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
 
@@ -71,7 +71,7 @@ namespace sources {
             timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
         virtual void rootTest(const IOdata& inputs,
-                              const stateData& sD,
+                              const stateData& stateDataValue,
                               double roots[],
                               const SolverMode& sMode) override;
         virtual void rootTrigger(coreTime time,
@@ -79,26 +79,26 @@ namespace sources {
                                  const std::vector<int>& rootMask,
                                  const SolverMode& sMode) override;
         virtual ChangeCode rootCheck(const IOdata& inputs,
-                                     const stateData& sD,
+                                     const stateData& stateDataValue,
                                      const SolverMode& sMode,
                                      CheckLevel level) override;
 
         virtual void updateLocalCache(const IOdata& inputs,
-                                      const stateData& sD,
+                                      const stateData& stateDataValue,
                                       const SolverMode& sMode) override;
 
         virtual IOdata getOutputs(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const stateData& stateDataValue,
                                   const SolverMode& sMode) const override;
         virtual double getOutput(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  const SolverMode& sMode,
                                  index_t num = 0) const override;
 
         virtual double getOutput(index_t outputNum = 0) const override;
 
         virtual double getDoutdt(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  const SolverMode& sMode,
                                  index_t num = 0) const override;
 

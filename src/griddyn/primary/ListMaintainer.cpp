@@ -77,16 +77,18 @@ void ListMaintainer::makePreList(const std::vector<GridPrimary*>& possObjs)
     }
 }
 
-void ListMaintainer::preEx(const IOdata& inputs, const stateData& sD, const SolverMode& sMode)
+void ListMaintainer::preEx(const IOdata& inputs,
+                           const stateData& stateDataValue,
+                           const SolverMode& sMode)
 {
     for (auto& obj : preExObjs) {
-        obj->preEx(inputs, sD, sMode);
+        obj->preEx(inputs, stateDataValue, sMode);
     }
 }
 
 void ListMaintainer::jacobianElements(const IOdata& inputs,
-                                      const stateData& sD,
-                                      matrixData<double>& md,
+                                      const stateData& stateDataValue,
+                                      matrixData<double>& matrixDataValue,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode)
 {
@@ -99,23 +101,23 @@ void ListMaintainer::jacobianElements(const IOdata& inputs,
         int sz = static_cast<int>(vz.size());
 #    pragma omp parallel for
         for (int kk = 0; kk < sz; ++kk) {
-            vz[kk]->jacobianElements(inputs, sD, md, inputLocs, sMode);
+            vz[kk]->jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
         }
     } else {
         for (auto& obj : partialLists[sMode.offsetIndex]) {
-            obj->jacobianElements(inputs, sD, md, inputLocs, sMode);
+            obj->jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
         }
     }
 
 #else
     for (auto& obj : partialLists[sMode.offsetIndex]) {
-        obj->jacobianElements(inputs, sD, md, inputLocs, sMode);
+        obj->jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
     }
 #endif
 }
 
 void ListMaintainer::residual(const IOdata& inputs,
-                              const stateData& sD,
+                              const stateData& stateDataValue,
                               double resid[],
                               const SolverMode& sMode)
 {
@@ -129,23 +131,23 @@ void ListMaintainer::residual(const IOdata& inputs,
         int sz = static_cast<index_t>(vz.size());
 #    pragma omp parallel for
         for (index_t kk = 0; kk < sz; ++kk) {
-            vz[kk]->residual(inputs, sD, resid, sMode);
+            vz[kk]->residual(inputs, stateDataValue, resid, sMode);
         }
     } else {
         for (auto& obj : partialLists[sMode.offsetIndex]) {
-            obj->residual(inputs, sD, resid, sMode);
+            obj->residual(inputs, stateDataValue, resid, sMode);
         }
     }
 
 #else
     for (auto& obj : partialLists[sMode.offsetIndex]) {
-        obj->residual(inputs, sD, resid, sMode);
+        obj->residual(inputs, stateDataValue, resid, sMode);
     }
 #endif
 }
 
 void ListMaintainer::algebraicUpdate(const IOdata& inputs,
-                                     const stateData& sD,
+                                     const stateData& stateDataValue,
                                      double update[],
                                      const SolverMode& sMode,
                                      double alpha)
@@ -160,23 +162,23 @@ void ListMaintainer::algebraicUpdate(const IOdata& inputs,
         int sz = static_cast<index_t>(vz.size());
 #    pragma omp parallel for
         for (index_t kk = 0; kk < sz; ++kk) {
-            vz[kk]->algebraicUpdate(inputs, sD, update, sMode, alpha);
+            vz[kk]->algebraicUpdate(inputs, stateDataValue, update, sMode, alpha);
         }
     } else {
         for (auto& obj : partialLists[sMode.offsetIndex]) {
-            obj->algebraicUpdate(inputs, sD, update, sMode, alpha);
+            obj->algebraicUpdate(inputs, stateDataValue, update, sMode, alpha);
         }
     }
 
 #else
     for (auto& obj : partialLists[sMode.offsetIndex]) {
-        obj->algebraicUpdate(inputs, sD, update, sMode, alpha);
+        obj->algebraicUpdate(inputs, stateDataValue, update, sMode, alpha);
     }
 #endif
 }
 
 void ListMaintainer::derivative(const IOdata& inputs,
-                                const stateData& sD,
+                                const stateData& stateDataValue,
                                 double deriv[],
                                 const SolverMode& sMode)
 {
@@ -189,59 +191,59 @@ void ListMaintainer::derivative(const IOdata& inputs,
         index_t sz = static_cast<index_t>(vz.size());
 #    pragma omp parallel for
         for (index_t kk = 0; kk < sz; ++kk) {
-            vz[kk]->derivative(inputs, sD, deriv, sMode);
+            vz[kk]->derivative(inputs, stateDataValue, deriv, sMode);
         }
     } else {
         for (auto& obj : partialLists[sMode.offsetIndex]) {
-            obj->derivative(inputs, sD, deriv, sMode);
+            obj->derivative(inputs, stateDataValue, deriv, sMode);
         }
     }
 
 #else
     for (auto& obj : partialLists[sMode.offsetIndex]) {
-        obj->derivative(inputs, sD, deriv, sMode);
+        obj->derivative(inputs, stateDataValue, deriv, sMode);
     }
 #endif
 }
 
 void ListMaintainer::delayedResidual(const IOdata& inputs,
-                                     const stateData& sD,
+                                     const stateData& stateDataValue,
                                      double resid[],
                                      const SolverMode& sMode)
 {
     for (auto& obj : preExObjs) {
-        obj->delayedResidual(inputs, sD, resid, sMode);
+        obj->delayedResidual(inputs, stateDataValue, resid, sMode);
     }
 }
 void ListMaintainer::delayedDerivative(const IOdata& inputs,
-                                       const stateData& sD,
+                                       const stateData& stateDataValue,
                                        double deriv[],
                                        const SolverMode& sMode)
 {
     for (auto& obj : preExObjs) {
-        obj->delayedDerivative(inputs, sD, deriv, sMode);
+        obj->delayedDerivative(inputs, stateDataValue, deriv, sMode);
     }
 }
 
 void ListMaintainer::delayedJacobian(const IOdata& inputs,
-                                     const stateData& sD,
-                                     matrixData<double>& md,
+                                     const stateData& stateDataValue,
+                                     matrixData<double>& matrixDataValue,
                                      const IOlocs& inputLocs,
                                      const SolverMode& sMode)
 {
     for (auto& obj : preExObjs) {
-        obj->delayedJacobian(inputs, sD, md, inputLocs, sMode);
+        obj->delayedJacobian(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
     }
 }
 
 void ListMaintainer::delayedAlgebraicUpdate(const IOdata& inputs,
-                                            const stateData& sD,
+                                            const stateData& stateDataValue,
                                             double update[],
                                             const SolverMode& sMode,
                                             double alpha)
 {
     for (auto& obj : preExObjs) {
-        obj->delayedAlgebraicUpdate(inputs, sD, update, sMode, alpha);
+        obj->delayedAlgebraicUpdate(inputs, stateDataValue, update, sMode, alpha);
     }
 }
 

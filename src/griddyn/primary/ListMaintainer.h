@@ -43,40 +43,40 @@ class ListMaintainer {
     void appendList(const SolverMode& sMode, const std::vector<GridPrimary*>& possObjs);
 
     void jacobianElements(const IOdata& inputs,
-                          const stateData& sD,
-                          matrixData<double>& md,
+                          const stateData& stateDataValue,
+                          matrixData<double>& matrixDataValue,
                           const IOlocs& inputLocs,
                           const SolverMode& sMode);
-    void preEx(const IOdata& inputs, const stateData& sD, const SolverMode& sMode);
+    void preEx(const IOdata& inputs, const stateData& stateDataValue, const SolverMode& sMode);
     void residual(const IOdata& inputs,
-                  const stateData& sD,
+                  const stateData& stateDataValue,
                   double resid[],
                   const SolverMode& sMode);
     void algebraicUpdate(const IOdata& inputs,
-                         const stateData& sD,
+                         const stateData& stateDataValue,
                          double update[],
                          const SolverMode& sMode,
                          double alpha);
     void derivative(const IOdata& inputs,
-                    const stateData& sD,
+                    const stateData& stateDataValue,
                     double deriv[],
                     const SolverMode& sMode);
 
     void delayedResidual(const IOdata& inputs,
-                         const stateData& sD,
+                         const stateData& stateDataValue,
                          double resid[],
                          const SolverMode& sMode);
     void delayedDerivative(const IOdata& inputs,
-                           const stateData& sD,
+                           const stateData& stateDataValue,
                            double deriv[],
                            const SolverMode& sMode);
     void delayedJacobian(const IOdata& inputs,
-                         const stateData& sD,
-                         matrixData<double>& md,
+                         const stateData& stateDataValue,
+                         matrixData<double>& matrixDataValue,
                          const IOlocs& inputLocs,
                          const SolverMode& sMode);
     void delayedAlgebraicUpdate(const IOdata& inputs,
-                                const stateData& sD,
+                                const stateData& stateDataValue,
                                 double update[],
                                 const SolverMode& sMode,
                                 double alpha);

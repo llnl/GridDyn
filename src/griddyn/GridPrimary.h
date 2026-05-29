@@ -70,7 +70,7 @@ class GridPrimary: public GridComponent {
 
     virtual void setState(coreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const SolverMode& sMode) override;
     /** @brief get the residual computation for object requiring a delay
       basically calls the residual calculation on the delayed objects
@@ -125,14 +125,14 @@ class GridPrimary: public GridComponent {
     mode=3 does it with voltage only
     @param[in] time  the time of the corresponding states
     @param[in,out]  state the states of the system at present and shifted to match the updates
-    @param[in,out] dstate_dt  the derivatives of the state that get updated
+    @param[in,out] dstateDt  the derivatives of the state that get updated
     @param[in] sMode the SolverMode matching the states
     @param[in] mode  the mode of the convergence
     @param[in] tol  the convergence tolerance
     */
     virtual void converge(coreTime time,
                           double state[],
-                          double dstate_dt[],
+                          double dstateDt[],
                           const SolverMode& sMode,
                           ConvergeMode mode = ConvergeMode::high_error_only,
                           double tol = 0.01);

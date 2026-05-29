@@ -72,7 +72,7 @@ double GridPrimary::get(std::string_view param, units::unit unitType) const
 
 void GridPrimary::converge(coreTime /*time*/,
                            double /*state*/[],
-                           double /*dstate_dt*/[],
+                           double /*dstateDt*/[],
                            const SolverMode& /*sMode*/,
                            ConvergeMode /*mode*/,
                            double /*tol*/)
@@ -81,10 +81,10 @@ void GridPrimary::converge(coreTime /*time*/,
 
 void GridPrimary::setState(coreTime time,
                            const double state[],
-                           const double dstate_dt[],
+                           const double dstateDt[],
                            const SolverMode& sMode)
 {
-    GridComponent::setState(time, state, dstate_dt, sMode);
+    GridComponent::setState(time, state, dstateDt, sMode);
     // update local computations
     updateLocalCache();
 }

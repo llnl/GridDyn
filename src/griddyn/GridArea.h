@@ -124,17 +124,17 @@ class GridArea: public GridPrimary {
     virtual void remove(Relay* relay);
 
     // get component models
-    virtual GridBus* getBus(index_t x) const override;
-    virtual Link* getLink(index_t x) const override;
-    virtual GridArea* getArea(index_t x) const override;
-    GridArea* getGridArea(index_t x) const;
-    virtual Relay* getRelay(index_t x) const override;
+    virtual GridBus* getBus(index_t index) const override;
+    virtual Link* getLink(index_t index) const override;
+    virtual GridArea* getArea(index_t index) const override;
+    GridArea* getGridArea(index_t index) const;
+    virtual Relay* getRelay(index_t index) const override;
     /** @brief get a generator by index number
      this is kind of an ugly function but needed for some applications to search through all buses
-    @param[in] x  the index of the generator to search for
+    @param[in] index  the index of the generator to search for
     @return a point to the generator or nullptr
     */
-    virtual Generator* getGen(index_t x);  //
+    virtual Generator* getGen(index_t index);  //
     // dynInitializeB
 
     virtual void setOffsets(const solverOffsets& newOffsets, const SolverMode& sMode) override;
@@ -151,7 +151,7 @@ class GridArea: public GridPrimary {
     virtual void loadJacobianSizes(const SolverMode& sMode) override;
 
     virtual void loadRootSizes(const SolverMode& sMode) override;
-    virtual void setRootOffset(index_t Roffset, const SolverMode& sMode) override;
+    virtual void setRootOffset(index_t rootOffset, const SolverMode& sMode) override;
 
   protected:
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -202,41 +202,42 @@ class GridArea: public GridPrimary {
     virtual void getStateName(stringVec& stNames,
                               const SolverMode& sMode,
                               const std::string& prefix = "") const override;
-    virtual void preEx(const IOdata& inputs, const stateData& sD, const SolverMode& sMode) override;
+    virtual void
+        preEx(const IOdata& inputs, const stateData& stateDataValue, const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& sD,
-                                  matrixData<double>& md,
+                                  const stateData& stateDataValue,
+                                  matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
     virtual void residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataValue,
                           double resid[],
                           const SolverMode& sMode) override;
     virtual void derivative(const IOdata& inputs,
-                            const stateData& sD,
+                            const stateData& stateDataValue,
                             double deriv[],
                             const SolverMode& sMode) override;
     virtual void algebraicUpdate(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  double update[],
                                  const SolverMode& sMode,
                                  double alpha) override;
 
     virtual void delayedResidual(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  double resid[],
                                  const SolverMode& sMode) override;
     virtual void delayedDerivative(const IOdata& inputs,
-                                   const stateData& sD,
+                                   const stateData& stateDataValue,
                                    double deriv[],
                                    const SolverMode& sMode) override;
     virtual void delayedJacobian(const IOdata& inputs,
-                                 const stateData& sD,
-                                 matrixData<double>& md,
+                                 const stateData& stateDataValue,
+                                 matrixData<double>& matrixDataValue,
                                  const IOlocs& inputLocs,
                                  const SolverMode& sMode) override;
     virtual void delayedAlgebraicUpdate(const IOdata& inputs,
-                                        const stateData& sD,
+                                        const stateData& stateDataValue,
                                         double update[],
                                         const SolverMode& sMode,
                                         double alpha) override;
@@ -246,7 +247,7 @@ class GridArea: public GridPrimary {
     virtual void pFlowCheck(std::vector<Violation>& Violation_vector) override;
     virtual void setState(coreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const SolverMode& sMode) override;
     // for identifying which variables are algebraic vs differential
     virtual void getVariableType(double sdata[], const SolverMode& sMode) override;
@@ -254,14 +255,14 @@ class GridArea: public GridPrimary {
     // dynamic simulation
     virtual void guessState(coreTime time,
                             double state[],
-                            double dstate_dt[],
+                            double dstateDt[],
                             const SolverMode& sMode) override;
 
     /** @brief try to do a local converge on the solution
      to be replaced by the algebraic update function soon
     @param[in] time the time
     @param[in,out] state the system state
-    @param[in,out] dstate_dt the system state derivative
+    @param[in,out] dstateDt the system state derivative
     @param[in] sMode  the SolverMode corresponding to the state
     @param[in]  mode the mode to do the convergence
     @param[in] tol  the tolerance to converge to
@@ -269,20 +270,20 @@ class GridArea: public GridPrimary {
     */
     virtual void converge(coreTime time,
                           double state[],
-                          double dstate_dt[],
+                          double dstateDt[],
                           const SolverMode& sMode,
                           ConvergeMode mode,
                           double tol) override;
     virtual void updateLocalCache() override;
 
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const stateData& stateDataValue,
                                   const SolverMode& sMode) override;
 
     virtual void reset(ResetLevels level) override;
     // root finding functions
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataValue,
                           double roots[],
                           const SolverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
@@ -290,7 +291,7 @@ class GridArea: public GridPrimary {
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  const SolverMode& sMode,
                                  CheckLevel level) override;
     // grab information
@@ -441,11 +442,11 @@ class GridArea: public GridPrimary {
     */
     double getAvgAngle() const;
     /** @brief get the average angle for the area
-    @param[in] sD the state data
+    @param[in] stateDataValue the state data
     @param[in] sMode the SolverMode corresponding to the state data
     @return the average angle
     */
-    double getAvgAngle(const stateData& sD, const SolverMode& sMode) const;
+    double getAvgAngle(const stateData& stateDataValue, const SolverMode& sMode) const;
 
     /** @brief get the average frequency for the area
     @return the average frequency
@@ -463,7 +464,7 @@ class GridArea: public GridPrimary {
      */
     void getVoltageStates(double vStates[], const SolverMode& sMode) const;
     void getAngleStates(double aStates[], const SolverMode& sMode) const;
-    double getMasterAngle(const stateData& sD, const SolverMode& sMode) const;
+    double getMasterAngle(const stateData& stateDataValue, const SolverMode& sMode) const;
     virtual void updateFlags(bool dynOnly = false) override;
     /** @brief  get a vector of all the buses of the area
     @param[out] busVector  a vector of buses

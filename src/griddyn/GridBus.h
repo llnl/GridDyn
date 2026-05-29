@@ -176,8 +176,9 @@ class GridBus: public GridPrimary {
                        units::unit unitType = units::defunit) const override;
 
     // solver functions
-    virtual void
-        preEx(const IOdata& inputs, const stateData& stateDataValue, const SolverMode& sMode) override;
+    virtual void preEx(const IOdata& inputs,
+                       const stateData& stateDataValue,
+                       const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const stateData& stateDataValue,
                                   matrixData<double>& matrixDataValue,
@@ -203,11 +204,10 @@ class GridBus: public GridPrimary {
     @param[in] sMode the SolverMode associated with the state data
     @param[in] alpha the scale associated with the update
     */
-    virtual void
-        voltageUpdate(const stateData& stateDataValue,
-                      double update[],
-                      const SolverMode& sMode,
-                      double alpha);
+    virtual void voltageUpdate(const stateData& stateDataValue,
+                               double update[],
+                               const SolverMode& sMode,
+                               double alpha);
 
     virtual void converge(coreTime time,
                           double state[],
@@ -244,8 +244,8 @@ class GridBus: public GridPrimary {
     // find components
     /** @brief find a link based on the bus desiring to be connected to
     @param[in] bus  the bus we want to check for a connecting link
-    @return  a pointer to a Link that connects the current bus to the bus specified by bus or nullptr
-    if none exists
+    @return  a pointer to a Link that connects the current bus to the bus specified by bus or
+    nullptr if none exists
     */
     Link* findLink(GridBus* bus) const;
     CoreObject* find(std::string_view objName) const override;

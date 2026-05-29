@@ -140,8 +140,7 @@ void VariableGenerator::jacobianElements(const IOdata& inputs,
                                          const IOlocs& inputLocs,
                                          const SolverMode& sMode)
 {
-    DynamicGenerator::jacobianElements(
-        inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
+    DynamicGenerator::jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
     if ((m_source != nullptr) && (m_source->isEnabled())) {
         m_source->jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
     }

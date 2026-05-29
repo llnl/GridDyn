@@ -202,8 +202,9 @@ class GridArea: public GridPrimary {
     virtual void getStateName(stringVec& stNames,
                               const SolverMode& sMode,
                               const std::string& prefix = "") const override;
-    virtual void
-        preEx(const IOdata& inputs, const stateData& stateDataValue, const SolverMode& sMode) override;
+    virtual void preEx(const IOdata& inputs,
+                       const stateData& stateDataValue,
+                       const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const stateData& stateDataValue,
                                   matrixData<double>& matrixDataValue,

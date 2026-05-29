@@ -14,10 +14,10 @@
 #include <string>
 
 namespace griddyn {
-gridPrimary::gridPrimary(const std::string& objName): GridComponent(objName) {}
-CoreObject* gridPrimary::clone(CoreObject* obj) const
+GridPrimary::GridPrimary(const std::string& objName): GridComponent(objName) {}
+CoreObject* GridPrimary::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<gridPrimary, GridComponent>(this, obj);
+    auto* nobj = cloneBase<GridPrimary, GridComponent>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -25,21 +25,21 @@ CoreObject* gridPrimary::clone(CoreObject* obj) const
     return nobj;
 }
 
-void gridPrimary::pFlowInitializeA(coreTime time0, std::uint32_t flags)
+void GridPrimary::pFlowInitializeA(coreTime time0, std::uint32_t flags)
 {
     GridComponent::pFlowInitializeA(time0, flags);
 }
 
-void gridPrimary::pFlowInitializeB()
+void GridPrimary::pFlowInitializeB()
 {
     GridComponent::pFlowInitializeB();
 }
-void gridPrimary::dynInitializeA(coreTime time0, std::uint32_t flags)
+void GridPrimary::dynInitializeA(coreTime time0, std::uint32_t flags)
 {
     GridComponent::dynInitializeA(time0, flags);
 }
 
-void gridPrimary::dynInitializeB(const IOdata& inputs,
+void GridPrimary::dynInitializeB(const IOdata& inputs,
                                  const IOdata& desiredOutput,
                                  IOdata& fieldSet)
 {
@@ -49,11 +49,11 @@ void gridPrimary::dynInitializeB(const IOdata& inputs,
     }
 }
 
-void gridPrimary::set(std::string_view param, std::string_view val)
+void GridPrimary::set(std::string_view param, std::string_view val)
 {
     GridComponent::set(param, val);
 }
-void gridPrimary::set(std::string_view param, double val, units::unit unitType)
+void GridPrimary::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "zone") || (param == "zone number")) {
         zone = static_cast<int>(val);
@@ -62,7 +62,7 @@ void gridPrimary::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-double gridPrimary::get(std::string_view param, units::unit unitType) const
+double GridPrimary::get(std::string_view param, units::unit unitType) const
 {
     if (param == "zone") {
         return static_cast<double>(zone);
@@ -70,7 +70,7 @@ double gridPrimary::get(std::string_view param, units::unit unitType) const
     return GridComponent::get(param, unitType);
 }
 
-void gridPrimary::converge(coreTime /*time*/,
+void GridPrimary::converge(coreTime /*time*/,
                            double /*state*/[],
                            double /*dstate_dt*/[],
                            const SolverMode& /*sMode*/,
@@ -79,7 +79,7 @@ void gridPrimary::converge(coreTime /*time*/,
 {
 }
 
-void gridPrimary::setState(coreTime time,
+void GridPrimary::setState(coreTime time,
                            const double state[],
                            const double dstate_dt[],
                            const SolverMode& sMode)
@@ -89,7 +89,7 @@ void gridPrimary::setState(coreTime time,
     updateLocalCache();
 }
 
-void gridPrimary::delayedResidual(const IOdata& inputs,
+void GridPrimary::delayedResidual(const IOdata& inputs,
                                   const stateData& stateDataValue,
                                   double resid[],
                                   const SolverMode& sMode)
@@ -97,7 +97,7 @@ void gridPrimary::delayedResidual(const IOdata& inputs,
     residual(inputs, stateDataValue, resid, sMode);
 }
 
-void gridPrimary::delayedDerivative(const IOdata& inputs,
+void GridPrimary::delayedDerivative(const IOdata& inputs,
                                     const stateData& stateDataValue,
                                     double deriv[],
                                     const SolverMode& sMode)
@@ -105,7 +105,7 @@ void gridPrimary::delayedDerivative(const IOdata& inputs,
     derivative(inputs, stateDataValue, deriv, sMode);
 }
 
-void gridPrimary::delayedAlgebraicUpdate(const IOdata& inputs,
+void GridPrimary::delayedAlgebraicUpdate(const IOdata& inputs,
                                          const stateData& stateDataValue,
                                          double update[],
                                          const SolverMode& sMode,
@@ -114,7 +114,7 @@ void gridPrimary::delayedAlgebraicUpdate(const IOdata& inputs,
     algebraicUpdate(inputs, stateDataValue, update, sMode, alpha);
 }
 
-void gridPrimary::delayedJacobian(const IOdata& inputs,
+void GridPrimary::delayedJacobian(const IOdata& inputs,
                                   const stateData& stateDataValue,
                                   matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
@@ -123,21 +123,21 @@ void gridPrimary::delayedJacobian(const IOdata& inputs,
     jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
 }
 
-void gridPrimary::pFlowCheck(std::vector<Violation>& /*Violation_vector*/) {}
-void gridPrimary::updateLocalCache() {}
-GridBus* gridPrimary::getBus(index_t /*num*/) const
+void GridPrimary::pFlowCheck(std::vector<Violation>& /*Violation_vector*/) {}
+void GridPrimary::updateLocalCache() {}
+GridBus* GridPrimary::getBus(index_t /*num*/) const
 {
     return nullptr;
 }
-Link* gridPrimary::getLink(index_t /*num*/) const
+Link* GridPrimary::getLink(index_t /*num*/) const
 {
     return nullptr;
 }
-GridArea* gridPrimary::getArea(index_t /*num*/) const
+GridArea* GridPrimary::getArea(index_t /*num*/) const
 {
     return nullptr;
 }
-Relay* gridPrimary::getRelay(index_t /*num*/) const
+Relay* GridPrimary::getRelay(index_t /*num*/) const
 {
     return nullptr;
 }

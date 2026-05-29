@@ -16,7 +16,7 @@ class GridBlock;
 /** @brief class defining some additional components for a variable generator such as a renewable
   source like wind and solar the generator includes the addition of a source and a filter block to
   define some sort of input and a filtering function on that input*/
-class variableGenerator: public DynamicGenerator {
+class VariableGenerator: public DynamicGenerator {
   protected:
     Source* m_source = nullptr;  //!< reference to the generation source block
     GridBlock* m_cBlock = nullptr;  //!< reference to the control block
@@ -27,8 +27,8 @@ class variableGenerator: public DynamicGenerator {
     //!< defined in Generator
     enum ExtraBlockLocations { source_loc = 5, control_block_loc = 6 };
     /** @brief default constructor*/
-    explicit variableGenerator(const std::string& objName = "varGen_$");
-    variableGenerator(DynModel dynModel, const std::string& objName = "varGen_$");
+    explicit VariableGenerator(const std::string& objName = "varGen_$");
+    VariableGenerator(DynModel dynModel, const std::string& objName = "varGen_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
   protected:

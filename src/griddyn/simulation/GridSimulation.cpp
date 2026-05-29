@@ -451,7 +451,7 @@ coreTime GridSimulation::getEventTime(int eventCode) const
     return EvQ->getNextTime(eventCode);
 }
 
-CoreObject* findMatchingObject(CoreObject* obj1, gridPrimary* src, gridPrimary* sec)
+CoreObject* findMatchingObject(CoreObject* obj1, GridPrimary* src, GridPrimary* sec)
 {
     if (obj1 == nullptr) {
         return nullptr;

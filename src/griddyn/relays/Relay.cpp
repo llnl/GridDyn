@@ -47,7 +47,7 @@ namespace relays {
     static TypeFactory<busRelay> br("relay", "bus");
     static TypeFactory<loadRelay> lr("relay", "load");
     static TypeFactory<fuse> fr("relay", "fuse");
-    static TypeFactory<breaker> brkr("relay", "breaker");
+    static TypeFactory<Breaker> brkr("relay", "breaker");
     static ChildTypeFactory<Pmu, Sensor>
         pmur("relay", std::to_array<std::string_view>({"pmu", "phasor", "PMU", "synchrophasor"}));
     static TypeFactory<controlRelay> cntrl("relay", "control");
@@ -55,7 +55,7 @@ namespace relays {
 
 std::atomic<count_t> Relay::relayCount(0);
 
-Relay::Relay(const std::string& objName): gridPrimary(objName)
+Relay::Relay(const std::string& objName): GridPrimary(objName)
 {
     // default values
     setUserID(++relayCount);
@@ -64,7 +64,7 @@ Relay::Relay(const std::string& objName): gridPrimary(objName)
 
 CoreObject* Relay::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<Relay, gridPrimary>(this, obj);
+    auto* nobj = cloneBase<Relay, GridPrimary>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -356,7 +356,7 @@ void Relay::set(std::string_view param, std::string_view val)
         if (cManager.set(param, val)) {
             opFlags.set(use_commLink);
         } else {
-            gridPrimary::set(param, val);
+            GridPrimary::set(param, val);
         }
     }
 }
@@ -373,7 +373,7 @@ void Relay::set(std::string_view param, double val, units::unit unitType)
         if (cManager.set(param, val)) {
             opFlags.set(use_commLink);
         } else {
-            gridPrimary::set(param, val, unitType);
+            GridPrimary::set(param, val, unitType);
         }
     }
 }
@@ -385,7 +385,7 @@ double Relay::get(std::string_view param, units::unit unitType) const
         CoreObject* tobj = const_cast<Relay*>(this);
         return convert(fptr.first(tobj), fptr.second, unitType, systemBasePower);
     }
-    return gridPrimary::get(param, unitType);
+    return GridPrimary::get(param, unitType);
 }
 
 void Relay::setFlag(std::string_view flag, bool val)
@@ -410,7 +410,7 @@ void Relay::setFlag(std::string_view flag, bool val)
         if (cManager.setFlag(flag, val)) {
             opFlags.set(use_commLink);
         } else {
-            gridPrimary::setFlag(flag, val);
+            GridPrimary::setFlag(flag, val);
         }
     }
 }
@@ -560,7 +560,7 @@ CoreObject* Relay::find(std::string_view objName) const
     if (objName == "relay") {
         return const_cast<Relay*>(this);
     }
-    return gridPrimary::find(objName);
+    return GridPrimary::find(objName);
 }
 
 ChangeCode Relay::triggerAction(index_t actionNumber)

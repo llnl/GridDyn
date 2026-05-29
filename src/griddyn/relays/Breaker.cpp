@@ -24,14 +24,14 @@
 namespace griddyn::relays {
 using units::convert;
 using units::puA;
-breaker::breaker(const std::string& objName): Relay(objName), mUseCti(extra_bool)
+Breaker::Breaker(const std::string& objName): Relay(objName), mUseCti(extra_bool)
 {
     opFlags.set(continuous_flag);
 }
 
-CoreObject* breaker::clone(CoreObject* obj) const
+CoreObject* Breaker::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<breaker, Relay>(this, obj);
+    auto* nobj = cloneBase<Breaker, Relay>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -53,7 +53,7 @@ CoreObject* breaker::clone(CoreObject* obj) const
     return nobj;
 }
 
-void breaker::setFlag(std::string_view flag, bool val)
+void Breaker::setFlag(std::string_view flag, bool val)
 {
     if (flag == "nondirectional") {
         opFlags.set(NONDIRECTIONAL_FLAG, val);
@@ -66,7 +66,7 @@ std::string commDestName;
 std::uint64_t commDestId=0;
 std::string commType;
 */
-void breaker::set(std::string_view param, std::string_view val)
+void Breaker::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -74,7 +74,7 @@ void breaker::set(std::string_view param, std::string_view val)
     }
 }
 
-void breaker::set(std::string_view param, double val, units::unit unitType)
+void Breaker::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "reclosetime") {
         mRecloseTime1 = val;
@@ -100,7 +100,7 @@ void breaker::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-void breaker::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void Breaker::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     auto tripEvent = std::make_shared<Event>();
     auto recloseEvent = std::make_shared<Event>();
@@ -137,7 +137,7 @@ void breaker::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     auto ctiStateGrabber = std::make_unique<CustomStateGrabber>(this);
     ctiStateGrabber->setGrabberFunction(
         [](CoreObject* obj, const stateData& stateDataRef, const SolverMode& sMode) -> double {
-            return stateDataRef.state[static_cast<breaker*>(obj)->offsets.getDiffOffset(sMode)];
+            return stateDataRef.state[static_cast<Breaker*>(obj)->offsets.getDiffOffset(sMode)];
         });
 
     auto ctiGrabberSet =
@@ -159,7 +159,7 @@ void breaker::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     Relay::dynObjectInitializeA(time0, flags);
 }
 
-void breaker::conditionTriggered(index_t conditionNum, coreTime triggeredTime)
+void Breaker::conditionTriggered(index_t conditionNum, coreTime triggeredTime)
 {
     if (conditionNum == 0) {
         opFlags.set(OVERLIMIT_FLAG);
@@ -193,7 +193,7 @@ void breaker::conditionTriggered(index_t conditionNum, coreTime triggeredTime)
     }
 }
 
-void breaker::updateA(coreTime time)
+void Breaker::updateA(coreTime time)
 {
     if (opFlags[BREAKER_TRIPPED_FLAG]) {
         if (time >= nextUpdateTime) {
@@ -214,7 +214,7 @@ void breaker::updateA(coreTime time)
     lastUpdateTime = time;
 }
 
-stateSizes breaker::localStateSizes(const SolverMode& sMode) const
+stateSizes Breaker::localStateSizes(const SolverMode& sMode) const
 {
     stateSizes stateSizeSet;
     if ((!isAlgebraicOnly(sMode)) && (mRecloserTap > 0)) {
@@ -223,7 +223,7 @@ stateSizes breaker::localStateSizes(const SolverMode& sMode) const
     return stateSizeSet;
 }
 
-count_t breaker::localJacobianCount(const SolverMode& sMode) const
+count_t Breaker::localJacobianCount(const SolverMode& sMode) const
 {
     if ((!isAlgebraicOnly(sMode)) && (mRecloserTap > 0)) {
         return 12;
@@ -231,7 +231,7 @@ count_t breaker::localJacobianCount(const SolverMode& sMode) const
     return 0;
 }
 
-void breaker::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
+void Breaker::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     prevTime = time;
     if (mLimit < kBigNum / 2.0) {
@@ -244,7 +244,7 @@ void breaker::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode
     }
 }
 
-void breaker::jacobianElements(const IOdata& /*inputs*/,
+void Breaker::jacobianElements(const IOdata& /*inputs*/,
                                const stateData& stateDataRef,
                                matrixData<double>& jacobian,
                                const IOlocs& /*inputLocs*/,
@@ -312,7 +312,7 @@ void breaker::jacobianElements(const IOdata& /*inputs*/,
     }
 }
 
-void breaker::setState(coreTime time,
+void Breaker::setState(coreTime time,
                        const double state[],
                        const double /*dstate_dt*/[],
                        const SolverMode& sMode)
@@ -324,7 +324,7 @@ void breaker::setState(coreTime time,
     prevTime = time;
 }
 
-void breaker::residual(const IOdata& /*inputs*/,
+void Breaker::residual(const IOdata& /*inputs*/,
                        const stateData& stateDataRef,
                        double resid[],
                        const SolverMode& sMode)
@@ -353,7 +353,7 @@ void breaker::residual(const IOdata& /*inputs*/,
     }
 }
 
-void breaker::guessState(const coreTime /*time*/,
+void Breaker::guessState(const coreTime /*time*/,
                          double state[],
                          double dstate_dt[],
                          const SolverMode& sMode)
@@ -377,7 +377,7 @@ void breaker::guessState(const coreTime /*time*/,
     }
 }
 
-void breaker::getStateName(stringVec& stNames,
+void Breaker::getStateName(stringVec& stNames,
                            const SolverMode& sMode,
                            const std::string& prefix) const
 {
@@ -394,7 +394,7 @@ void breaker::getStateName(stringVec& stNames,
     }
 }
 
-void breaker::tripBreaker(coreTime time)
+void Breaker::tripBreaker(coreTime time)
 {
     alert(this, BREAKER_TRIP_CURRENT);
     logging::normal(this, "breaker {} tripped on {}", m_terminal, m_sourceObject->getName());
@@ -413,7 +413,7 @@ void breaker::tripBreaker(coreTime time)
     }
 }
 
-void breaker::resetBreaker(coreTime time)
+void Breaker::resetBreaker(coreTime time)
 {
     ++mRecloseAttempts;
     mLastRecloseTime = time;

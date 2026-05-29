@@ -51,7 +51,7 @@ using units::puV;
 using units::rad;
 using units::unit;
 
-GridBus::GridBus(const std::string& objName): gridPrimary(objName), outputs(3), outLocs(3)
+GridBus::GridBus(const std::string& objName): GridPrimary(objName), outputs(3), outLocs(3)
 {
     // default values
     m_outputSize = 3;
@@ -61,7 +61,7 @@ GridBus::GridBus(const std::string& objName): gridPrimary(objName), outputs(3), 
 }
 
 GridBus::GridBus(double voltageStart, double angleStart, const std::string& objName):
-    gridPrimary(objName), angle(angleStart), voltage(voltageStart)
+    GridPrimary(objName), angle(angleStart), voltage(voltageStart)
 {
     m_outputSize = 3;
     // default values
@@ -72,7 +72,7 @@ GridBus::GridBus(double voltageStart, double angleStart, const std::string& objN
 
 CoreObject* GridBus::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBaseFactory<GridBus, gridPrimary>(this, obj, &gbf);
+    auto nobj = cloneBaseFactory<GridBus, GridPrimary>(this, obj, &gbf);
     if (nobj == nullptr) {
         return obj;
     }
@@ -274,7 +274,7 @@ void GridBus::alert(CoreObject* obj, int code)
             }
             [[fallthrough]];
         default:
-            gridPrimary::alert(obj, code);
+            GridPrimary::alert(obj, code);
     }
 }
 
@@ -503,7 +503,7 @@ void GridBus::setFlag(std::string_view flag, bool val)
             }
         }
     } else {
-        gridPrimary::setFlag(flag, val);
+        GridPrimary::setFlag(flag, val);
     }
 }
 
@@ -512,7 +512,7 @@ void GridBus::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
-        gridPrimary::set(param, val);
+        GridPrimary::set(param, val);
     }
 }
 
@@ -586,7 +586,7 @@ void GridBus::set(std::string_view param, double val, unit unitType)
     } else if ((param == "area") || (param == "area number")) {
         // Here to catch a specific issue while the area controls are being developed
     } else {
-        gridPrimary::set(param, val, unitType);
+        GridPrimary::set(param, val, unitType);
     }
 }
 
@@ -1386,7 +1386,7 @@ double GridBus::get(std::string_view param, unit unitType) const
             val =
                 convert(fptr.first(tobj), fptr.second, unitType, systemBasePower, localBaseVoltage);
         } else {
-            val = gridPrimary::get(param, unitType);
+            val = GridPrimary::get(param, unitType);
         }
     }
     return val;
@@ -1621,7 +1621,7 @@ bool compareBus(GridBus* bus1, GridBus* bus2, bool cmpValues, bool printDiff)
     return cmp;
 }
 
-GridBus* getMatchingBus(GridBus* bus, const gridPrimary* src, gridPrimary* sec)
+GridBus* getMatchingBus(GridBus* bus, const GridPrimary* src, GridPrimary* sec)
 {
     if (bus->isRoot()) {
         return nullptr;
@@ -1631,14 +1631,14 @@ GridBus* getMatchingBus(GridBus* bus, const gridPrimary* src, gridPrimary* sec)
         return sec->getBus(bus->locIndex);
     }
 
-    auto par = dynamic_cast<gridPrimary*>(bus->getParent());
+    auto par = dynamic_cast<GridPrimary*>(bus->getParent());
     if (par == nullptr) {
         return nullptr;
     }
     std::vector<index_t> lkind = {bus->locIndex};
     while (!isSameObject(par, src)) {
         lkind.push_back(par->locIndex);
-        par = dynamic_cast<gridPrimary*>(par->getParent());
+        par = dynamic_cast<GridPrimary*>(par->getParent());
         if (par == nullptr) {
             return nullptr;
         }
@@ -1646,7 +1646,7 @@ GridBus* getMatchingBus(GridBus* bus, const gridPrimary* src, gridPrimary* sec)
     // now work our way backwards through the secondary
     par = sec;
     for (auto kk = lkind.size() - 1; kk > 0; --kk) {
-        par = static_cast<gridPrimary*>(par->getGridArea(lkind[kk]));
+        par = static_cast<GridPrimary*>(par->getGridArea(lkind[kk]));
     }
     return par->getBus(lkind[0]);
 }

@@ -69,7 +69,7 @@ std::atomic<count_t> Link::linkCount(0);
 #define DERIVCOMP (this->*(derivCalc[getLinkApprox(sMode)]))
 #define DEFAULTDERIVCOMP (this->*(derivCalc[0]))
 
-Link::Link(const std::string& objName): gridPrimary(objName)
+Link::Link(const std::string& objName): GridPrimary(objName)
 {
     // default values
     setUserID(++linkCount);
@@ -78,7 +78,7 @@ Link::Link(const std::string& objName): gridPrimary(objName)
 
 CoreObject* Link::clone(CoreObject* obj) const
 {
-    auto* lnk = cloneBaseFactory<Link, gridPrimary>(this, obj, &glf);
+    auto* lnk = cloneBaseFactory<Link, GridPrimary>(this, obj, &glf);
     if (lnk == nullptr) {
         return obj;
     }
@@ -182,7 +182,7 @@ static const stringVec locStrStrings{"from", "to"};
 static const stringVec flagStrings{};
 void Link::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
-    getParamString<Link, gridPrimary>(
+    getParamString<Link, GridPrimary>(
         this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
@@ -212,7 +212,7 @@ void Link::set(std::string_view param, std::string_view val)
             disconnect();
         }
     } else {
-        gridPrimary::set(param, val);
+        GridPrimary::set(param, val);
     }
 }
 
@@ -358,7 +358,7 @@ void Link::set(std::string_view param, double val, unit unitType)
     } else if (param == "circuit") {
         circuitNum = static_cast<index_t>(val);
     } else {
-        gridPrimary::set(param, val, unitType);
+        GridPrimary::set(param, val, unitType);
     }
 }
 
@@ -411,7 +411,7 @@ double Link::get(std::string_view param, unit unitType) const
             CoreObject* tobj = const_cast<Link*>(this);
             val = convert(fptr.first(tobj), fptr.second, unitType, systemBasePower);
         } else {
-            val = gridPrimary::get(param, unitType);
+            val = GridPrimary::get(param, unitType);
         }
     }
     return val;
@@ -800,7 +800,7 @@ double Link::getImagCurrent(id_type_t busId) const
     return (std::isnormal(val) ? val : 0.0);
 }
 
-Link* getMatchingLink(Link* lnk, gridPrimary* src, gridPrimary* sec)
+Link* getMatchingLink(Link* lnk, GridPrimary* src, GridPrimary* sec)
 {
     Link* matchingLink = nullptr;
     if (lnk->isRoot()) {
@@ -811,14 +811,14 @@ Link* getMatchingLink(Link* lnk, gridPrimary* src, gridPrimary* sec)
         matchingLink = sec->getLink(lnk->locIndex);
     } else {
         std::vector<int> lkind;
-        auto* par = dynamic_cast<gridPrimary*>(lnk->getParent());
+        auto* par = dynamic_cast<GridPrimary*>(lnk->getParent());
         if (par == nullptr) {
             return nullptr;
         }
         lkind.push_back(lnk->locIndex);
         while (par->getID() != src->getID()) {
             lkind.push_back(par->locIndex);
-            par = dynamic_cast<gridPrimary*>(par->getParent());
+            par = dynamic_cast<GridPrimary*>(par->getParent());
             if (par == nullptr) {
                 return nullptr;
             }
@@ -826,7 +826,7 @@ Link* getMatchingLink(Link* lnk, gridPrimary* src, gridPrimary* sec)
         // now work our way backwards through the secondary
         par = sec;
         for (size_t kk = lkind.size() - 1; kk > 0; --kk) {
-            par = dynamic_cast<gridPrimary*>(par->getGridArea(lkind[kk]));
+            par = dynamic_cast<GridPrimary*>(par->getGridArea(lkind[kk]));
         }
         matchingLink = par->getLink(lkind[0]);
     }

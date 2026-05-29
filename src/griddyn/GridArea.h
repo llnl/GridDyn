@@ -22,15 +22,15 @@ class GridBus;
 class Generator;
 class Source;
 class CoreObjectList;
-class listMaintainer;
+class ListMaintainer;
 
 /** @brief class implementing a power system area
  the area class acts as a container for other primary objects including areas
 it also acts as focal point for wide area controls such as AGC and can compute other functions and
 statistics across a wide area
 */
-class GridArea: public gridPrimary {
-    friend class listMaintainer;
+class GridArea: public GridPrimary {
+    friend class ListMaintainer;
 
   public:
     /** @brief flags for area operations and control*/
@@ -49,12 +49,12 @@ class GridArea: public gridPrimary {
     std::vector<GridArea*> m_GridAreas;  //!< list of the areas contained within the parent area
     std::vector<Relay*> m_Relays;  //!< list of relay objects
 
-    std::vector<gridPrimary*> primaryObjects;  //!< list of all the primary objects in the area
+    std::vector<GridPrimary*> primaryObjects;  //!< list of all the primary objects in the area
     // this is done to break apart the headers
     std::unique_ptr<CoreObjectList> obList;  // a search index for object names
 
-    std::vector<gridPrimary*> rootObjects;  //!< list of objects with roots
-    std::vector<gridPrimary*> pFlowAdjustObjects;  //!< list of objects with power flow checks
+    std::vector<GridPrimary*> rootObjects;  //!< list of objects with roots
+    std::vector<GridPrimary*> pFlowAdjustObjects;  //!< list of objects with power flow checks
     /** @brief storage location for shared_ptrs to griddyn
     the direct pointer to the object will get passed to the system but the ownership will be changed
     so it won't be deleted by the normal means this allows storage of shared_ptrs to modeled objects
@@ -65,7 +65,7 @@ class GridArea: public gridPrimary {
 
     // std::vector<Source *> signalsSources;    //!< sources for the area outputs
 
-    std::unique_ptr<listMaintainer> opObjectLists;  //!<
+    std::unique_ptr<ListMaintainer> opObjectLists;  //!<
     double fTarget = 1.0;  //!<[puHz] a target frequency
     int masterBus = -1;  //!< the master bus for frequency calculations purposes
 
@@ -496,6 +496,6 @@ class GridArea: public gridPrimary {
 @param[in] sec  the desired parent object tree
 @return a pointer to an area on the second tree that matches the area based on name and location
 */
-GridArea* getMatchingGridArea(GridArea* area, gridPrimary* src, gridPrimary* sec);
+GridArea* getMatchingGridArea(GridArea* area, GridPrimary* src, GridPrimary* sec);
 
 }  // namespace griddyn

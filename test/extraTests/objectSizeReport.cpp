@@ -35,8 +35,8 @@ TEST(ExtraSizeReportTests, ObjectSizeReport)
     auto compSize = sizeof(GridComponent);
     std::cout << "GridComponent size=" << compSize << " adds " << compSize - coreSize << '\n';
 
-    auto primSize = sizeof(gridPrimary);
-    std::cout << "gridPrimary size=" << primSize << " adds " << primSize - compSize << '\n';
+    auto primSize = sizeof(GridPrimary);
+    std::cout << "GridPrimary size=" << primSize << " adds " << primSize - compSize << '\n';
 
     auto secSize = sizeof(gridSecondary);
     std::cout << "gridSecondary size=" << secSize << " adds " << secSize - compSize << '\n';

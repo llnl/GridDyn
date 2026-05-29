@@ -11,7 +11,7 @@
 namespace griddyn::relays {
 /** relay implementing a overcurrent breaker for a transmission line
  */
-class breaker: public Relay {
+class Breaker: public Relay {
   public:
     enum BreakerFlags {
         NONDIRECTIONAL_FLAG = object_flag8,  //!< flag indicating that the detection should not
@@ -44,7 +44,7 @@ class breaker: public Relay {
     bool& mUseCti;  //!< internal flag to use the CTI stuff link to a CoreObject extra boolean
   public:
     /** constructor with object name*/
-    explicit breaker(const std::string& objName = "breaker_$");
+    explicit Breaker(const std::string& objName = "breaker_$");
     virtual CoreObject* clone(CoreObject* obj) const override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;

@@ -36,7 +36,7 @@ class GridSimulation;
 class GridDynSimulation;
 class Relay;
 class GridBus;
-class gridPrimary;
+class GridPrimary;
 class gridSecondary;
 class GridSubModel;
 
@@ -180,7 +180,7 @@ inline const std::string& parentSearchComponent(CoreObject*)
     return emptyStringRef;
 }
 
-inline const std::string& parentSearchComponent(gridPrimary*)
+inline const std::string& parentSearchComponent(GridPrimary*)
 {
     static const std::string areaTypeStringRef{areaTypeString};
     return areaTypeStringRef;

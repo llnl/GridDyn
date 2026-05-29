@@ -273,7 +273,7 @@ void subsystem::set(std::string_view param, std::string_view val)
         }
     } else {
         try {
-            gridPrimary::set(param, val);
+            GridPrimary::set(param, val);
         }
         catch (const UnrecognizedParameter&) {
             subarea.set(param, val);
@@ -287,7 +287,7 @@ void subsystem::set(std::string_view param, double val, unit unitType)
         resize(static_cast<count_t>(val));
     } else {
         try {
-            gridPrimary::set(param, val, unitType);  // skipping Link set function
+            GridPrimary::set(param, val, unitType);  // skipping Link set function
         }
         catch (const UnrecognizedParameter&) {
             subarea.set(param, val, unitType);
@@ -299,7 +299,7 @@ double subsystem::get(std::string_view param, unit unitType) const
 {
     double val = subarea.get(param, unitType);
     if (val == kNullVal) {
-        val = gridPrimary::get(param, unitType);
+        val = GridPrimary::get(param, unitType);
     }
     return val;
 }

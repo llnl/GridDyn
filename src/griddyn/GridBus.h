@@ -52,7 +52,7 @@ provides the basic management of subObjects and defines the interface.  It has n
 the voltage and angle at whatever it gets set to
 
 */
-class GridBus: public gridPrimary {
+class GridBus: public GridPrimary {
   public:
     /** @brief flags for the buses*/
 
@@ -496,6 +496,6 @@ bool compareBus(GridBus* bus1, GridBus* bus2, bool cmpValues = false, bool print
 @param[in] sec  the desired parent object tree
 @return a pointer to a bus on the sec tree that matches bus based on name and location
 */
-GridBus* getMatchingBus(GridBus* bus, const gridPrimary* src, gridPrimary* sec);
+GridBus* getMatchingBus(GridBus* bus, const GridPrimary* src, GridPrimary* sec);
 
 }  // namespace griddyn

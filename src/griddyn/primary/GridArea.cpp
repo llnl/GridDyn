@@ -43,19 +43,19 @@ std::atomic<count_t> GridArea::areaCounter{0};
 static TypeFactory<GridArea>
     gf("area", std::to_array<std::string_view>({"basic", "simple"}), "basic");
 
-GridArea::GridArea(const std::string& objName): gridPrimary(objName)
+GridArea::GridArea(const std::string& objName): GridPrimary(objName)
 {
     // default values
     setUserID(++areaCounter);
     updateName();
     opFlags.set(multipart_calculation_capable);
     obList = std::make_unique<CoreObjectList>();
-    opObjectLists = std::make_unique<listMaintainer>();
+    opObjectLists = std::make_unique<ListMaintainer>();
 }
 
 CoreObject* GridArea::clone(CoreObject* obj) const
 {
-    auto* area = cloneBase<GridArea, gridPrimary>(this, obj);
+    auto* area = cloneBase<GridArea, GridPrimary>(this, obj);
     if (area == nullptr) {
         return obj;
     }
@@ -321,7 +321,7 @@ void GridArea::alert(CoreObject* obj, int code)
             }
             break;
         default:
-            gridPrimary::alert(obj, code);
+            GridPrimary::alert(obj, code);
     }
 }
 
@@ -577,7 +577,7 @@ void GridArea::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 
 void GridArea::pFlowObjectInitializeB()
 {
-    std::vector<gridPrimary*> lateBObjects;
+    std::vector<GridPrimary*> lateBObjects;
 
     // links need to be initialized first so the initial power flow can be computed through the
     // buses
@@ -720,7 +720,7 @@ void GridArea::dynObjectInitializeB(const IOdata& inputs,
                                     const IOdata& desiredOutput,
                                     IOdata& fieldSet)
 {
-    std::vector<gridPrimary*> lateBObjects;
+    std::vector<GridPrimary*> lateBObjects;
 
     for (auto* link : m_Links) {
         if (link->isEnabled()) {
@@ -809,14 +809,14 @@ void GridArea::setFlag(std::string_view flag, bool val)
     } else if (flag == "direction_oscillate") {
         opFlags.set(direction_oscillate, val);
     } else {
-        gridPrimary::setFlag(flag, val);
+        GridPrimary::setFlag(flag, val);
     }
 }
 
 // set properties
 void GridArea::set(std::string_view param, std::string_view val)
 {
-    gridPrimary::set(param, val);
+    GridPrimary::set(param, val);
 }
 
 static stringVec locNumStrings{};
@@ -846,7 +846,7 @@ void GridArea::set(std::string_view param, double val, unit unitType)
             obj->set(param, systemBaseFrequency, rad / s);
         }
     } else {
-        gridPrimary::set(param, val, unitType);
+        GridPrimary::set(param, val, unitType);
     }
 }
 
@@ -903,7 +903,7 @@ double GridArea::get(std::string_view param, unit unitType) const
         CoreObject* tobj = const_cast<GridArea*>(this);
         val = convert(fptr(tobj), unit, unitType);
     } else {
-        return gridPrimary::get(param, unitType);
+        return GridPrimary::get(param, unitType);
     }
     return (vali != 0) ? (static_cast<double>(vali)) : val;
 }
@@ -1901,7 +1901,7 @@ void GridArea::loadJacobianSizes(const SolverMode& sMode)
     }
 }
 
-GridArea* getMatchingGridArea(GridArea* area, gridPrimary* src, gridPrimary* sec)
+GridArea* getMatchingGridArea(GridArea* area, GridPrimary* src, GridPrimary* sec)
 {
     if (area->isRoot()) {
         return nullptr;
@@ -1913,7 +1913,7 @@ GridArea* getMatchingGridArea(GridArea* area, gridPrimary* src, gridPrimary* sec
     }
 
     std::vector<index_t> lkind;
-    auto* par = dynamic_cast<gridPrimary*>(area->getParent());
+    auto* par = dynamic_cast<GridPrimary*>(area->getParent());
     if (par == nullptr) {
         return nullptr;
     }
@@ -1921,7 +1921,7 @@ GridArea* getMatchingGridArea(GridArea* area, gridPrimary* src, gridPrimary* sec
 
     while (!isSameObject(par, src)) {
         lkind.push_back(par->locIndex);
-        par = dynamic_cast<gridPrimary*>(par->getParent());
+        par = dynamic_cast<GridPrimary*>(par->getParent());
         if (par == nullptr) {
             return nullptr;
         }
@@ -1929,7 +1929,7 @@ GridArea* getMatchingGridArea(GridArea* area, gridPrimary* src, gridPrimary* sec
     // now work our way backwards through the secondary
     par = sec;
     for (auto kk = lkind.size() - 1; kk > 0; --kk) {
-        par = static_cast<gridPrimary*>(par->getGridArea(lkind[kk]));
+        par = static_cast<GridPrimary*>(par->getGridArea(lkind[kk]));
     }
     return par->getGridArea(lkind[0]);
 }

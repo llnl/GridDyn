@@ -201,7 +201,7 @@ void AcBus::alert(CoreObject* obj, int code)
             }
             [[fallthrough]];
         default:
-            gridPrimary::alert(obj, code);
+            GridPrimary::alert(obj, code);
     }
 }
 

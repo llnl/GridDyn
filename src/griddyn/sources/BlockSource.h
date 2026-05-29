@@ -15,14 +15,14 @@ class GridBlock;
 namespace sources {
     /** define a source object that contains another source which is followed by a GridBlock object
      */
-    class blockSource: public Source {
+    class BlockSource: public Source {
       private:
         Source* src = nullptr;  //!< pointer to the source object
         GridBlock* blk = nullptr;  //!< pointer to the GridBlock object
         double maxStepSize =
             kBigNum;  //!< calculation for the maximum step size that should be taken in a timestep
       public:
-        blockSource(const std::string& objName = "blocksource_#");
+        BlockSource(const std::string& objName = "blocksource_#");
 
         virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 

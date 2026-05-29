@@ -13,10 +13,10 @@
 #include <string>
 #include <vector>
 namespace griddyn::sources {
-blockSource::blockSource(const std::string& objName): Source(objName) {}
-CoreObject* blockSource::clone(CoreObject* obj) const
+BlockSource::BlockSource(const std::string& objName): Source(objName) {}
+CoreObject* BlockSource::clone(CoreObject* obj) const
 {
-    auto blkSrc = cloneBase<blockSource, Source>(this, obj);
+    auto blkSrc = cloneBase<BlockSource, Source>(this, obj);
     if (blkSrc == nullptr) {
         return obj;
     }
@@ -24,7 +24,7 @@ CoreObject* blockSource::clone(CoreObject* obj) const
     return blkSrc;
 }
 
-void blockSource::add(CoreObject* obj)
+void BlockSource::add(CoreObject* obj)
 {
     if (dynamic_cast<GridBlock*>(obj) != nullptr) {
         if (blk != nullptr) {
@@ -46,7 +46,7 @@ void blockSource::add(CoreObject* obj)
     }
 }
 
-void blockSource::remove(CoreObject* obj)
+void BlockSource::remove(CoreObject* obj)
 {
     if (isSameObject(src, obj)) {
         GridComponent::remove(obj);
@@ -61,7 +61,7 @@ void blockSource::remove(CoreObject* obj)
     }
 }
 
-void blockSource::dynObjectInitializeB(const IOdata& /*inputs*/,
+void BlockSource::dynObjectInitializeB(const IOdata& /*inputs*/,
                                        const IOdata& desiredOutput,
                                        IOdata& fieldSet)
 {
@@ -89,7 +89,7 @@ void blockSource::dynObjectInitializeB(const IOdata& /*inputs*/,
     }
 }
 
-void blockSource::setFlag(std::string_view flag, bool val)
+void BlockSource::setFlag(std::string_view flag, bool val)
 {
     if (subObjectSet(flag, val)) {
         return;
@@ -105,7 +105,7 @@ void blockSource::setFlag(std::string_view flag, bool val)
     }
 }
 
-void blockSource::set(std::string_view param, std::string_view val)
+void BlockSource::set(std::string_view param, std::string_view val)
 {
     if (subObjectSet(param, val)) {
         return;
@@ -120,7 +120,7 @@ void blockSource::set(std::string_view param, std::string_view val)
         }
     }
 }
-void blockSource::set(std::string_view param, double val, units::unit unitType)
+void BlockSource::set(std::string_view param, double val, units::unit unitType)
 {
     if (subObjectSet(param, val, unitType)) {
         return;
@@ -138,7 +138,7 @@ void blockSource::set(std::string_view param, double val, units::unit unitType)
         }
     }
 }
-double blockSource::get(std::string_view param, units::unit unitType) const
+double BlockSource::get(std::string_view param, units::unit unitType) const
 {
     double rval = Source::get(param, unitType);
     if (rval == kNullVal) {
@@ -152,7 +152,7 @@ double blockSource::get(std::string_view param, units::unit unitType) const
 // void derivative(const IOdata &inputs, const stateData &sD, double deriv[], const SolverMode
 // &sMode);
 
-void blockSource::residual(const IOdata& inputs,
+void BlockSource::residual(const IOdata& inputs,
                            const stateData& sD,
                            double resid[],
                            const SolverMode& sMode)
@@ -169,7 +169,7 @@ void blockSource::residual(const IOdata& inputs,
     }
 }
 
-void blockSource::derivative(const IOdata& inputs,
+void BlockSource::derivative(const IOdata& inputs,
                              const stateData& sD,
                              double deriv[],
                              const SolverMode& sMode)
@@ -186,7 +186,7 @@ void blockSource::derivative(const IOdata& inputs,
     }
 }
 
-void blockSource::algebraicUpdate(const IOdata& inputs,
+void BlockSource::algebraicUpdate(const IOdata& inputs,
                                   const stateData& sD,
                                   double update[],
                                   const SolverMode& sMode,
@@ -202,7 +202,7 @@ void blockSource::algebraicUpdate(const IOdata& inputs,
     }
 }
 
-void blockSource::jacobianElements(const IOdata& inputs,
+void BlockSource::jacobianElements(const IOdata& inputs,
                                    const stateData& sD,
                                    matrixData<double>& md,
                                    const IOlocs& inputLocs,
@@ -222,7 +222,7 @@ void blockSource::jacobianElements(const IOdata& inputs,
     }
 }
 
-void blockSource::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void BlockSource::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     while (prevTime < time) {
         auto ntime = std::min(prevTime + maxStepSize, time);
@@ -237,7 +237,7 @@ void blockSource::timestep(coreTime time, const IOdata& inputs, const SolverMode
     }
 }
 
-void blockSource::rootTest(const IOdata& inputs,
+void BlockSource::rootTest(const IOdata& inputs,
                            const stateData& sD,
                            double roots[],
                            const SolverMode& sMode)
@@ -253,7 +253,7 @@ void blockSource::rootTest(const IOdata& inputs,
         blk->rootTest({srcOut, srcDout}, sD, roots, sMode);
     }
 }
-void blockSource::rootTrigger(coreTime time,
+void BlockSource::rootTrigger(coreTime time,
                               const IOdata& inputs,
                               const std::vector<int>& rootMask,
                               const SolverMode& sMode)
@@ -270,7 +270,7 @@ void blockSource::rootTrigger(coreTime time,
     }
 }
 
-ChangeCode blockSource::rootCheck(const IOdata& inputs,
+ChangeCode BlockSource::rootCheck(const IOdata& inputs,
                                   const stateData& sD,
                                   const SolverMode& sMode,
                                   CheckLevel level)
@@ -291,7 +291,7 @@ ChangeCode blockSource::rootCheck(const IOdata& inputs,
     return ret;
 }
 
-void blockSource::updateLocalCache(const IOdata& inputs,
+void BlockSource::updateLocalCache(const IOdata& inputs,
                                    const stateData& sD,
                                    const SolverMode& sMode)
 {
@@ -310,14 +310,14 @@ void blockSource::updateLocalCache(const IOdata& inputs,
 /** set the output level
 @param[in] newLevel the level to set the output at
 */
-void blockSource::setLevel(double newLevel)
+void BlockSource::setLevel(double newLevel)
 {
     if (src != nullptr) {
         src->setLevel(newLevel);
     }
 }
 
-IOdata blockSource::getOutputs(const IOdata& /*inputs*/,
+IOdata BlockSource::getOutputs(const IOdata& /*inputs*/,
                                const stateData& sD,
                                const SolverMode& sMode) const
 {
@@ -330,7 +330,7 @@ IOdata blockSource::getOutputs(const IOdata& /*inputs*/,
     return Source::getOutputs(noInputs, sD, sMode);
 }
 
-double blockSource::getOutput(const IOdata& inputs,
+double BlockSource::getOutput(const IOdata& inputs,
                               const stateData& sD,
                               const SolverMode& sMode,
                               index_t outputNum) const
@@ -344,7 +344,7 @@ double blockSource::getOutput(const IOdata& inputs,
     return Source::getOutput(inputs, sD, sMode, outputNum);
 }
 
-double blockSource::getOutput(index_t outputNum) const
+double BlockSource::getOutput(index_t outputNum) const
 {
     if (blk != nullptr) {
         return blk->getOutput(outputNum);
@@ -356,7 +356,7 @@ double blockSource::getOutput(index_t outputNum) const
     return Source::getOutput(outputNum);
 }
 
-double blockSource::getDoutdt(const IOdata& inputs,
+double BlockSource::getDoutdt(const IOdata& inputs,
                               const stateData& sD,
                               const SolverMode& sMode,
                               index_t outputNum) const
@@ -371,7 +371,7 @@ double blockSource::getDoutdt(const IOdata& inputs,
     return Source::getDoutdt(inputs, sD, sMode, outputNum);
 }
 
-CoreObject* blockSource::find(std::string_view object) const
+CoreObject* BlockSource::find(std::string_view object) const
 {
     if (object == "source") {
         return src;
@@ -382,7 +382,7 @@ CoreObject* blockSource::find(std::string_view object) const
     return GridComponent::find(object);
 }
 
-CoreObject* blockSource::getSubObject(std::string_view typeName, index_t num) const
+CoreObject* BlockSource::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "source") {
         return (num == 0) ? src : nullptr;

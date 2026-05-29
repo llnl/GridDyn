@@ -31,12 +31,12 @@ enum SecondaryOutputLocations {
 };
 
 /** @brief base class for top level simulation objects including GridBus, Link, gridRelays, and
-GridArea gridPrimary class defines the interface for gridPrimary objects which are nominally objects
+GridArea GridPrimary class defines the interface for GridPrimary objects which are nominally objects
 that can be contained by a root object which is an area usually,  though there is no restriction in
 other classes also containing primary objects.
 
 **/
-class gridPrimary: public GridComponent {
+class GridPrimary: public GridComponent {
   public:
     int zone = 1;  //!< publicly accessible loss zone indicator not used internally
     index_t locIndex2 = kNullLocation;  //!< a second lookup index for the object to reference
@@ -45,7 +45,7 @@ class gridPrimary: public GridComponent {
 
   public:
     /**@brief default constructor*/
-    explicit gridPrimary(const std::string& objName = "");
+    explicit GridPrimary(const std::string& objName = "");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 

@@ -42,7 +42,7 @@ static ChildTypeFactory<DynamicGenerator, Generator>
     gDynamicGeneratorFactory("generator",
                              std::to_array<std::string_view>({"dynamic", "spinning"}),
                              "dynamic");
-static ChildTypeFactory<variableGenerator, Generator>
+static ChildTypeFactory<VariableGenerator, Generator>
     gVariableGeneratorFactory("generator",
                               std::to_array<std::string_view>({"variable", "renewable"}));
 

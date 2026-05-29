@@ -169,14 +169,14 @@ void AGControl::timestep(coreTime time, const IOdata& inputs, const SolverMode& 
 
 void AGControl::add(CoreObject* obj)
 {
-    if (dynamic_cast<schedulerReg*>(obj) != nullptr) {
-        add(static_cast<schedulerReg*>(obj));
+    if (dynamic_cast<SchedulerReg*>(obj) != nullptr) {
+        add(static_cast<SchedulerReg*>(obj));
     } else {
         throw(UnrecognizedObjectException(this));
     }
 }
 
-void AGControl::add(schedulerReg* sched)
+void AGControl::add(SchedulerReg* sched)
 {
     schedCount++;
     schedList.push_back(sched);

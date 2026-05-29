@@ -94,7 +94,7 @@ class Relay: public gridPrimary, ObjectOperatorInterface {
     std::bitset<32> relayFlags =
         0;  //!< a set of extra relays flags that derived classes can use beyond the opFlags
     // comm fields
-    comms::commManager
+    comms::CommManager
         cManager;  //!< structure object to store and manage the communicator information
 
     std::shared_ptr<Communicator> commLink;  //!< communicator link

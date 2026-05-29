@@ -13,29 +13,29 @@
 #include <string>
 
 namespace griddyn {
-schedulerReg::schedulerReg(const std::string& objName):
-    schedulerRamp(objName), regMax(pMax), regMin(pMin), regRampUp(rampUp), regRampDown(rampDown)
+SchedulerReg::SchedulerReg(const std::string& objName):
+    SchedulerRamp(objName), regMax(pMax), regMin(pMin), regRampUp(rampUp), regRampDown(rampDown)
 {
     rampTime = 600;
 }
 
-schedulerReg::schedulerReg(double initialValue, const std::string& objName):
-    schedulerRamp(initialValue, objName), regMax(pMax), regMin(pMin), regRampUp(rampUp),
+SchedulerReg::SchedulerReg(double initialValue, const std::string& objName):
+    SchedulerRamp(initialValue, objName), regMax(pMax), regMin(pMin), regRampUp(rampUp),
     regRampDown(rampDown)
 {
     rampTime = 600;
 }
 
-schedulerReg::schedulerReg(double initialValue, double initialReg, const std::string& objName):
-    schedulerRamp(initialValue, objName), regMax(pMax), regMin(pMin), regRampUp(rampUp),
+SchedulerReg::SchedulerReg(double initialValue, double initialReg, const std::string& objName):
+    SchedulerRamp(initialValue, objName), regMax(pMax), regMin(pMin), regRampUp(rampUp),
     regRampDown(rampDown), regCurrent(initialReg), regTarget(initialReg)
 {
     rampTime = 600;
 }
 
-CoreObject* schedulerReg::clone(CoreObject* obj) const
+CoreObject* SchedulerReg::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<schedulerReg, schedulerRamp>(this, obj);
+    auto* nobj = cloneBase<SchedulerReg, SchedulerRamp>(this, obj);
     if (nobj == nullptr) {
         return nobj;
     }
@@ -53,12 +53,12 @@ CoreObject* schedulerReg::clone(CoreObject* obj) const
 
     nobj->participationRating = participationRating;
     // copy the scheduler object last as it runs an initialize routine
-    schedulerRamp::clone(nobj);
+    SchedulerRamp::clone(nobj);
 
     return nobj;
 }
 
-schedulerReg::~schedulerReg()
+SchedulerReg::~SchedulerReg()
 {
     clearSchedule();
     if (agcController != nullptr) {
@@ -66,7 +66,7 @@ schedulerReg::~schedulerReg()
     }
 }
 
-void schedulerReg::setReg(double regLevel)
+void SchedulerReg::setReg(double regLevel)
 {
     participationRating = (m_Base >= kHalfBigNum) ? regMax : m_Base;
 
@@ -79,7 +79,7 @@ void schedulerReg::setReg(double regLevel)
     }
 }
 
-void schedulerReg::updateA(coreTime time)
+void SchedulerReg::updateA(coreTime time)
 {
     const double deltaTime = (time - prevTime);
 
@@ -87,7 +87,7 @@ void schedulerReg::updateA(coreTime time)
         return;
     }
     const double prevOutput = m_output;
-    schedulerRamp::updateA(time);
+    SchedulerRamp::updateA(time);
 
     double ramp = ((regTarget - regCurrent) / deltaTime) + dpdt;
     if (ramp > regRampUp) {
@@ -102,13 +102,13 @@ void schedulerReg::updateA(coreTime time)
     regCurrent = m_output - pCurr - reserveAct;
 }
 
-double schedulerReg::predict(coreTime time)
+double SchedulerReg::predict(coreTime time)
 {
     const double deltaTime = (time - prevTime);
     if (deltaTime == 0) {
         return m_output;
     }
-    const double predictedOutput = schedulerRamp::predict(time);
+    const double predictedOutput = SchedulerRamp::predict(time);
 
     double ramp =
         ((regTarget - regCurrent) / deltaTime) + ((predictedOutput - m_output) / deltaTime);
@@ -122,9 +122,9 @@ double schedulerReg::predict(coreTime time)
     return predictedRampOutput;
 }
 
-void schedulerReg::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void SchedulerReg::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    schedulerRamp::dynObjectInitializeA(time0, flags);
+    SchedulerRamp::dynObjectInitializeA(time0, flags);
     participationRating = (m_Base >= kHalfBigNum) ? regMax : m_Base;
 
     if ((regUpFrac > 0) || (regDownFrac > 0)) {
@@ -134,11 +134,11 @@ void schedulerReg::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
 }
 
-void schedulerReg::dynObjectInitializeB(const IOdata& inputs,
+void SchedulerReg::dynObjectInitializeB(const IOdata& inputs,
                                         const IOdata& desiredOutput,
                                         IOdata& fieldSet)
 {
-    schedulerRamp::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
+    SchedulerRamp::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
     const double agcLevel = (desiredOutput.size() > 2) ? desiredOutput[2] : 0;
     if (agcLevel > regUpFrac * participationRating) {
         regCurrent = regUpFrac * participationRating;
@@ -151,7 +151,7 @@ void schedulerReg::dynObjectInitializeB(const IOdata& inputs,
     m_output = regCurrent + pCurr + reserveAct;
 }
 
-double schedulerReg::getRamp() const
+double SchedulerReg::getRamp() const
 {
     double ramp = 0;
     const double diff = regTarget - regCurrent;
@@ -160,12 +160,12 @@ double schedulerReg::getRamp() const
     } else if (diff < 0.001) {
         ramp = regRampDown;
     } else {
-        ramp = schedulerRamp::getRamp();
+        ramp = SchedulerRamp::getRamp();
     }
     return ramp;
 }
 
-double schedulerReg::getRampTime() const
+double SchedulerReg::getRampTime() const
 {
     const double diff = regTarget - regCurrent;
     if (diff > 0.001) {
@@ -175,20 +175,20 @@ double schedulerReg::getRampTime() const
         return (regTarget - regCurrent) / (regRampDown - pRampCurr);
     }
 
-    return schedulerRamp::getRampTime();
+    return SchedulerRamp::getRampTime();
 }
 
-double schedulerReg::getMax(const coreTime /*time*/) const
+double SchedulerReg::getMax(const coreTime /*time*/) const
 {
     return pMax;
 }
 
-double schedulerReg::getMin(coreTime /*time*/) const
+double SchedulerReg::getMin(coreTime /*time*/) const
 {
     return pMin;
 }
 
-void schedulerReg::regSettings(bool active, double upFrac, double downFrac)
+void SchedulerReg::regSettings(bool active, double upFrac, double downFrac)
 {
     if (upFrac < 0) {
         if (regEnabled) {
@@ -231,12 +231,12 @@ void schedulerReg::regSettings(bool active, double upFrac, double downFrac)
     }
 }
 
-void schedulerReg::set(std::string_view param, std::string_view val)
+void SchedulerReg::set(std::string_view param, std::string_view val)
 {
-    schedulerRamp::set(param, val);
+    SchedulerRamp::set(param, val);
 }
 
-void schedulerReg::set(std::string_view param, double val, units::unit unitType)
+void SchedulerReg::set(std::string_view param, double val, units::unit unitType)
 {
     double temp;
     if (param == "max") {
@@ -294,7 +294,7 @@ void schedulerReg::set(std::string_view param, double val, units::unit unitType)
             }
         }
     } else {
-        schedulerRamp::set(param, val, unitType);
+        SchedulerRamp::set(param, val, unitType);
     }
     if (regEnabled) {
         participationRating = (m_Base >= kHalfBigNum) ? regMax : m_Base;
@@ -311,16 +311,16 @@ void schedulerReg::set(std::string_view param, double val, units::unit unitType)
     updatePTarget();
 }
 
-void schedulerReg::dispatcherLink()
+void SchedulerReg::dispatcherLink()
 {
     agcController = static_cast<AGControl*>(find("agc"));
     if (agcController != nullptr) {
         agcController->add(this);
     }
-    schedulerRamp::dispatcherLink();
+    SchedulerRamp::dispatcherLink();
 }
 
-double schedulerReg::get(std::string_view param, units::unit unitType) const
+double SchedulerReg::get(std::string_view param, units::unit unitType) const
 {
     double val;
     if (param == "min") {
@@ -328,12 +328,12 @@ double schedulerReg::get(std::string_view param, units::unit unitType) const
     } else if (param == "max") {
         val = pMax;
     } else {
-        return schedulerRamp::get(param, unitType);
+        return SchedulerRamp::get(param, unitType);
     }
     return val;
 }
 
-void schedulerReg::receiveMessage(std::uint64_t sourceID,
+void SchedulerReg::receiveMessage(std::uint64_t sourceID,
                                   const std::shared_ptr<CommMessage>& message)
 {
     using comms::SchedulerMessagePayload;
@@ -347,7 +347,7 @@ void schedulerReg::receiveMessage(std::uint64_t sourceID,
         case SchedulerMessagePayload::UPDATE_TARGETS:
             break;
         default:
-            schedulerRamp::receiveMessage(sourceID, message);
+            SchedulerRamp::receiveMessage(sourceID, message);
             break;
     }
 }

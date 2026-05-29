@@ -37,7 +37,7 @@ namespace griddyn {
 using units::convert;
 
 static TypeFactory<Relay> gbf("relay", std::to_array<std::string_view>({"basic"}), "basic");
-static TypeFactory<sensor> snsr("relay", "sensor");
+static TypeFactory<Sensor> snsr("relay", "sensor");
 namespace relays {
     static TypeFactory<zonalRelay>
         zr("relay", std::to_array<std::string_view>({"zonal", "z", "impedance", "distance"}));
@@ -48,7 +48,7 @@ namespace relays {
     static TypeFactory<loadRelay> lr("relay", "load");
     static TypeFactory<fuse> fr("relay", "fuse");
     static TypeFactory<breaker> brkr("relay", "breaker");
-    static ChildTypeFactory<pmu, sensor>
+    static ChildTypeFactory<Pmu, Sensor>
         pmur("relay", std::to_array<std::string_view>({"pmu", "phasor", "PMU", "synchrophasor"}));
     static TypeFactory<controlRelay> cntrl("relay", "control");
 }  // namespace relays

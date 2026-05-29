@@ -11,37 +11,37 @@
 #define SCHEDULER_UPDATE 1501
 
 namespace griddyn {
-class tsched {
+class Tsched {
   public:
     coreTime time = maxTime;
     double target = 0;
-    tsched() {}
-    tsched(coreTime atime, double atarget): time(atime), target(atarget) {}
+    Tsched() {}
+    Tsched(coreTime atime, double atarget): time(atime), target(atarget) {}
 };
 
-// comparison operators for tsched classes
-bool operator<(const tsched& td1, const tsched& td2);
+// comparison operators for Tsched classes
+bool operator<(const Tsched& td1, const Tsched& td2);
 
-bool operator<=(const tsched& td1, const tsched& td2);
+bool operator<=(const Tsched& td1, const Tsched& td2);
 
-bool operator>(const tsched& td1, const tsched& td2);
+bool operator>(const Tsched& td1, const Tsched& td2);
 
-bool operator>=(const tsched& td1, const tsched& td2);
+bool operator>=(const Tsched& td1, const Tsched& td2);
 
-bool operator==(const tsched& td1, const tsched& td2);
+bool operator==(const Tsched& td1, const Tsched& td2);
 
-bool operator!=(const tsched& td1, const tsched& td2);
+bool operator!=(const Tsched& td1, const Tsched& td2);
 
-bool operator<(const tsched& td1, coreTime timeC);
+bool operator<(const Tsched& td1, coreTime timeC);
 
-bool operator<=(const tsched& td1, coreTime timeC);
+bool operator<=(const Tsched& td1, coreTime timeC);
 
-bool operator>(const tsched& td1, coreTime timeC);
+bool operator>(const Tsched& td1, coreTime timeC);
 
-bool operator>=(const tsched& td1, coreTime timeC);
+bool operator>=(const Tsched& td1, coreTime timeC);
 
-bool operator==(const tsched& td1, coreTime timeC);
+bool operator==(const Tsched& td1, coreTime timeC);
 
-bool operator!=(const tsched& td1, coreTime timeC);
+bool operator!=(const Tsched& td1, coreTime timeC);
 
 }  // namespace griddyn

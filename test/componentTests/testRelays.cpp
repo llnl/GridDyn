@@ -181,7 +181,7 @@ TEST_F(RelayTests, PmuTest1)
 
     gds->dynInitialize(timeZero);
 
-    auto pmu = dynamic_cast<relays::pmu*>(gds->getRelay(0));
+    auto pmu = dynamic_cast<relays::Pmu*>(gds->getRelay(0));
     ASSERT_NE(pmu, nullptr);
 
     auto bus3 = gds->getBus(2);

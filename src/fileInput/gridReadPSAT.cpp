@@ -959,7 +959,7 @@ void loadPsatPmuArray(CoreObject* parentObject,
         auto ind = static_cast<index_t>(pmuLine[0]);
         auto bus = busList[ind];
 
-        auto pmu = new relays::pmu();
+        auto pmu = new relays::Pmu();
         pmu->setUserID(count);
         pmu->set("samplerate", pmuLine[2]);
         pmu->set("tv", pmuLine[3]);

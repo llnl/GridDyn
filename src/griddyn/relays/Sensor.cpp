@@ -25,20 +25,19 @@
 #include <utility>
 #include <vector>
 
-// NOLINTBEGIN
 namespace griddyn {
 using gmlc::utilities::ensureSizeAtLeast;
 using units::unit_cast_from_string;
 
-sensor::sensor(const std::string& objName): Relay(objName)
+Sensor::Sensor(const std::string& objName): Relay(objName)
 {
     opFlags.set(continuous_flag);
     opFlags.set(late_b_initialize);
 }
 
-CoreObject* sensor::clone(CoreObject* obj) const
+CoreObject* Sensor::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<sensor, Relay>(this, obj);
+    auto nobj = cloneBase<Sensor, Relay>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -92,7 +91,7 @@ CoreObject* sensor::clone(CoreObject* obj) const
     return nobj;
 }
 
-void sensor::add(CoreObject* obj)
+void Sensor::add(CoreObject* obj)
 {
     if (dynamic_cast<GridBlock*>(obj) != nullptr) {
         add(static_cast<GridBlock*>(obj));
@@ -101,7 +100,7 @@ void sensor::add(CoreObject* obj)
     }
 }
 
-void sensor::add(GridBlock* blk)
+void Sensor::add(GridBlock* blk)
 {
     if (blk->locIndex != kNullLocation) {
         ensureSizeAtLeast(filterBlocks,
@@ -117,7 +116,7 @@ void sensor::add(GridBlock* blk)
     blk->parentSetFlag(separate_processing, true, this);
 }
 
-void sensor::add(std::shared_ptr<GrabberSet> dGr)
+void Sensor::add(std::shared_ptr<GrabberSet> dGr)
 {
     if (dGr) {
         auto cnum = inputStrings.size();
@@ -131,12 +130,12 @@ void sensor::add(std::shared_ptr<GrabberSet> dGr)
     }
 }
 
-void sensor::add(std::shared_ptr<GridGrabber> dGr)
+void Sensor::add(std::shared_ptr<GridGrabber> dGr)
 {
     add(std::make_shared<GrabberSet>(std::move(dGr), nullptr));
 }
 
-std::shared_ptr<GrabberSet> sensor::getGrabberSet(index_t grabberNum)
+std::shared_ptr<GrabberSet> Sensor::getGrabberSet(index_t grabberNum)
 {
     if (grabberNum < static_cast<index_t>(dataSources.size())) {
         return dataSources[grabberNum];
@@ -144,7 +143,7 @@ std::shared_ptr<GrabberSet> sensor::getGrabberSet(index_t grabberNum)
     throw(std::out_of_range("invalid index"));
 }
 
-void sensor::setFlag(std::string_view flag, bool val)
+void Sensor::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "direct_io") || (flag == "direct")) {
         opFlags.set(DIRECT_IO, val);
@@ -159,7 +158,7 @@ void sensor::setFlag(std::string_view flag, bool val)
     }
 }
 
-void sensor::set(std::string_view param, std::string_view val)
+void Sensor::set(std::string_view param, std::string_view val)
 {
     std::string iparam;
     int num = gmlc::utilities::stringOps::trailingStringInt(param, iparam);
@@ -246,7 +245,7 @@ void sensor::set(std::string_view param, std::string_view val)
     }
 }
 
-void sensor::setupOutput(index_t num, const std::string& outputString)
+void Sensor::setupOutput(index_t num, const std::string& outputString)
 {
     if (num >= 0) {
         auto el = outputString.find_first_of('=');
@@ -290,7 +289,7 @@ void sensor::setupOutput(index_t num, const std::string& outputString)
     }
 }
 
-void sensor::set(std::string_view param, double val, units::unit unitType)
+void Sensor::set(std::string_view param, double val, units::unit unitType)
 {
     std::string iparam;
     int num = gmlc::utilities::stringOps::trailingStringInt(param, iparam, -1);
@@ -321,7 +320,7 @@ void sensor::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-double sensor::get(std::string_view param, units::unit unitType) const
+double Sensor::get(std::string_view param, units::unit unitType) const
 {
     index_t ind = lookupOutputIndex(param);
     if (ind != kNullLocation) {
@@ -334,7 +333,7 @@ double sensor::get(std::string_view param, units::unit unitType) const
     return Relay::get(param, unitType);
 }
 
-void sensor::updateObject(CoreObject* obj, ObjectUpdateMode mode)
+void Sensor::updateObject(CoreObject* obj, ObjectUpdateMode mode)
 {
     for (auto& ds : dataSources) {
         if (ds) {
@@ -345,7 +344,7 @@ void sensor::updateObject(CoreObject* obj, ObjectUpdateMode mode)
     Relay::updateObject(obj, mode);
 }
 
-void sensor::getObjects(std::vector<CoreObject*>& objects) const
+void Sensor::getObjects(std::vector<CoreObject*>& objects) const
 {
     for (auto& ds : dataSources) {
         if (ds) {
@@ -356,7 +355,7 @@ void sensor::getObjects(std::vector<CoreObject*>& objects) const
     Relay::getObjects(objects);
 }
 
-void sensor::generateInputGrabbers()
+void Sensor::generateInputGrabbers()
 {
     auto iSize = static_cast<int>(inputStrings.size());
     ensureSizeAtLeast(dataSources, iSize);
@@ -384,7 +383,7 @@ void sensor::generateInputGrabbers()
     }
 }
 using cm = comms::ControlMessagePayload;
-void sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMessage> message)
+void Sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMessage> message)
 {
     auto* payload = message->getPayload<cm>();
 
@@ -468,7 +467,7 @@ void sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMessage>
 static const IOdata kNullVec;
 
 double
-    sensor::getBlockOutput(const stateData& sD, const SolverMode& sMode, index_t blockNumber) const
+    Sensor::getBlockOutput(const stateData& sD, const SolverMode& sMode, index_t blockNumber) const
 {
     double ret = kNullVal;
     if (isLocal(sMode)) {
@@ -483,7 +482,7 @@ double
     return ret;
 }
 
-double sensor::getBlockDerivOutput(const stateData& sD,
+double Sensor::getBlockDerivOutput(const stateData& sD,
                                    const SolverMode& sMode,
                                    index_t blockNumber) const
 {
@@ -500,7 +499,7 @@ double sensor::getBlockDerivOutput(const stateData& sD,
     return ret;
 }
 
-double sensor::getInput(const stateData& sD, const SolverMode& sMode, index_t inputNumber) const
+double Sensor::getInput(const stateData& sD, const SolverMode& sMode, index_t inputNumber) const
 {
     double ret = kNullVal;
     if (isLocal(sMode)) {
@@ -515,7 +514,7 @@ double sensor::getInput(const stateData& sD, const SolverMode& sMode, index_t in
     return ret;
 }
 
-void sensor::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void Sensor::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
         opFlags.set(LINK_TYPE_SOURCE);
@@ -549,7 +548,7 @@ void sensor::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     return Relay::dynObjectInitializeA(time0, flags);
 }
 
-void sensor::dynObjectInitializeB(const IOdata& inputs,
+void Sensor::dynObjectInitializeB(const IOdata& inputs,
                                   const IOdata& /*desiredOutput*/,
                                   IOdata& fieldSet)
 {
@@ -638,7 +637,7 @@ void sensor::dynObjectInitializeB(const IOdata& inputs,
     fieldSet = getOutputs(inputs, emptyStateData, cLocalSolverMode);
 }
 
-void sensor::updateA(coreTime time)
+void Sensor::updateA(coreTime time)
 {
     if (time >= m_nextSampleTime) {
         auto blks = static_cast<index_t>(filterBlocks.size());
@@ -653,7 +652,7 @@ void sensor::updateA(coreTime time)
     Relay::updateA(time);
 }
 
-void sensor::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void Sensor::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     auto blks = static_cast<index_t>(filterBlocks.size());
     for (index_t kk = 0; kk < blks; ++kk) {
@@ -664,7 +663,7 @@ void sensor::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMo
     Relay::timestep(time, inputs, sMode);
 }
 
-void sensor::jacobianElements(const IOdata& inputs,
+void Sensor::jacobianElements(const IOdata& inputs,
                               const stateData& sD,
                               matrixData<double>& md,
                               const IOlocs& /*inputLocs*/,
@@ -694,7 +693,7 @@ void sensor::jacobianElements(const IOdata& inputs,
     }
 }
 
-void sensor::residual(const IOdata& inputs,
+void Sensor::residual(const IOdata& inputs,
                       const stateData& sD,
                       double resid[],
                       const SolverMode& sMode)
@@ -710,7 +709,7 @@ void sensor::residual(const IOdata& inputs,
     }
 }
 
-void sensor::algebraicUpdate(const IOdata& inputs,
+void Sensor::algebraicUpdate(const IOdata& inputs,
                              const stateData& sD,
                              double update[],
                              const SolverMode& sMode,
@@ -726,7 +725,7 @@ void sensor::algebraicUpdate(const IOdata& inputs,
     }
 }
 
-void sensor::derivative(const IOdata& inputs,
+void Sensor::derivative(const IOdata& inputs,
                         const stateData& sD,
                         double deriv[],
                         const SolverMode& sMode)
@@ -741,7 +740,7 @@ void sensor::derivative(const IOdata& inputs,
     }
 }
 
-double sensor::getBlockInput(index_t blockNum,
+double Sensor::getBlockInput(index_t blockNum,
                              const IOdata& /*inputs*/,
                              const stateData& sD,
                              const SolverMode& sMode) const
@@ -750,13 +749,13 @@ double sensor::getBlockInput(index_t blockNum,
     return res;
 }
 
-double sensor::getBlockInput(index_t blockNum, const IOdata& /*inputs*/) const
+double Sensor::getBlockInput(index_t blockNum, const IOdata& /*inputs*/) const
 {
     double res = dataSources[blockInputs[blockNum]]->grabData();
     return res;
 }
 
-const std::vector<stringVec>& sensor::outputNames() const
+const std::vector<stringVec>& Sensor::outputNames() const
 {
     if (static_cast<count_t>(outputStrings.size()) < m_outputSize) {
         // TODO(phlpt): Correct this before outputNames is reached.
@@ -765,7 +764,7 @@ const std::vector<stringVec>& sensor::outputNames() const
     return outputStrings;
 }
 
-IOdata sensor::getOutputs(const IOdata& inputs, const stateData& sD, const SolverMode& sMode) const
+IOdata Sensor::getOutputs(const IOdata& inputs, const stateData& sD, const SolverMode& sMode) const
 {
     IOdata out(m_outputSize);
     for (index_t pp = 0; pp < m_outputSize; ++pp) {
@@ -774,7 +773,7 @@ IOdata sensor::getOutputs(const IOdata& inputs, const stateData& sD, const Solve
     return out;
 }
 
-double sensor::getOutput(const IOdata& /*inputs*/,
+double Sensor::getOutput(const IOdata& /*inputs*/,
                          const stateData& sD,
                          const SolverMode& sMode,
                          index_t outNum) const
@@ -796,7 +795,7 @@ double sensor::getOutput(const IOdata& /*inputs*/,
     }
 }
 
-double sensor::getOutput(index_t outNum) const
+double Sensor::getOutput(index_t outNum) const
 {
     double out = kNullVal;
 
@@ -823,7 +822,7 @@ double sensor::getOutput(index_t outNum) const
     return out;
 }
 
-index_t sensor::getOutputLoc(const SolverMode& sMode, index_t outNum) const
+index_t Sensor::getOutputLoc(const SolverMode& sMode, index_t outNum) const
 {
     if (!isValidIndex(outNum, outputMode)) {
         return kNullLocation;
@@ -839,7 +838,7 @@ index_t sensor::getOutputLoc(const SolverMode& sMode, index_t outNum) const
 }
 
 // TODO(phlpt): Simplify this output-partial-derivatives path.
-void sensor::outputPartialDerivatives(const IOdata& /*inputs*/,
+void Sensor::outputPartialDerivatives(const IOdata& /*inputs*/,
                                       const stateData& sD,
                                       matrixData<double>& md,
                                       const SolverMode& sMode)
@@ -864,7 +863,7 @@ void sensor::outputPartialDerivatives(const IOdata& /*inputs*/,
     }
 }
 
-void sensor::rootTest(const IOdata& inputs,
+void Sensor::rootTest(const IOdata& inputs,
                       const stateData& sD,
                       double roots[],
                       const SolverMode& sMode)
@@ -884,7 +883,7 @@ void sensor::rootTest(const IOdata& inputs,
     }
 }
 
-void sensor::rootTrigger(coreTime time,
+void Sensor::rootTrigger(coreTime time,
                          const IOdata& inputs,
                          const std::vector<int>& rootMask,
                          const SolverMode& sMode)
@@ -904,7 +903,7 @@ void sensor::rootTrigger(coreTime time,
     }
 }
 
-ChangeCode sensor::rootCheck(const IOdata& inputs,
+ChangeCode Sensor::rootCheck(const IOdata& inputs,
                              const stateData& sD,
                              const SolverMode& sMode,
                              CheckLevel level)
@@ -926,4 +925,3 @@ ChangeCode sensor::rootCheck(const IOdata& inputs,
     return ret;
 }
 }  // namespace griddyn
-// NOLINTEND

@@ -16,7 +16,7 @@ class OperatingBoundary;
 }  // namespace utilities
 
 namespace griddyn {
-class scheduler;
+class Scheduler;
 class GridSubModel;
 /**
 @ brief class describing a generator unit
@@ -74,7 +74,7 @@ class Generator: public gridSecondary {
         1.0;  //!< [%]  fraction of output reactive power to maintain voltage regulation
     model_parameter machineBasePower = 100;  //!< MW the internal base power of the generator;
 
-    scheduler* sched = nullptr;  //!< alias to pSetControl if pSetControl is a scheduler
+    Scheduler* sched = nullptr;  //!< alias to pSetControl if pSetControl is a scheduler
 
     model_parameter m_Vtarget = -1;  //!< voltage target for the generator at the control bus
     model_parameter m_Rs = 0.0;  //!< the real part of the generator impedance

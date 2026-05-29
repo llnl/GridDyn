@@ -19,7 +19,7 @@ class GrabberSet;
 other object in the system and run in through a set of processes to obtain a result the result can
 be output or used as a basis for other relay actions
 */
-class sensor: public Relay {
+class Sensor: public Relay {
   public:
     /** @brief sensor flags controlling operation
      */
@@ -70,7 +70,7 @@ class sensor: public Relay {
         blkptrs;  //!< storage locations for the shared_ptr of blocks
   public:
     /** @brief default constructor*/
-    explicit sensor(const std::string& objName = "sensor_$");
+    explicit Sensor(const std::string& objName = "sensor_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;

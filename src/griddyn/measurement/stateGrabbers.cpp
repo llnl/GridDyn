@@ -432,31 +432,31 @@ void StateGrabber::relayLoadInfo(std::string_view fld)
     std::string fieldStr;
     const int num = gmlc::utilities::stringOps::trailingStringInt(std::string{fld}, fieldStr, 0);
     if ((fieldStr == "block") || (fieldStr == "b")) {
-        if (dynamic_cast<sensor*>(cobj) != nullptr) {
+        if (dynamic_cast<Sensor*>(cobj) != nullptr) {
             fptr = [num](GridComponent* comp,
                          const stateData& stateDataValue,
                          const SolverMode& sMode) {
-                return static_cast<sensor*>(comp)->getBlockOutput(stateDataValue, sMode, num);
+                return static_cast<Sensor*>(comp)->getBlockOutput(stateDataValue, sMode, num);
             };
         } else {
             loaded = false;
         }
     } else if ((fld == "blockderiv") || (fld == "dblockdt") || (fld == "dbdt")) {
-        if (dynamic_cast<sensor*>(cobj) != nullptr) {
+        if (dynamic_cast<Sensor*>(cobj) != nullptr) {
             fptr = [num](GridComponent* comp,
                          const stateData& stateDataValue,
                          const SolverMode& sMode) {
-                return static_cast<sensor*>(comp)->getBlockDerivOutput(stateDataValue, sMode, num);
+                return static_cast<Sensor*>(comp)->getBlockDerivOutput(stateDataValue, sMode, num);
             };
         } else {
             loaded = false;
         }
     } else if ((fieldStr == "input") || (fieldStr == "i")) {
-        if (dynamic_cast<sensor*>(cobj) != nullptr) {
+        if (dynamic_cast<Sensor*>(cobj) != nullptr) {
             fptr = [num](GridComponent* comp,
                          const stateData& stateDataValue,
                          const SolverMode& sMode) {
-                return static_cast<sensor*>(comp)->getInput(stateDataValue, sMode, num);
+                return static_cast<Sensor*>(comp)->getInput(stateDataValue, sMode, num);
             };
         } else {
             loaded = false;
@@ -538,7 +538,7 @@ void StateGrabber::secondaryLoadInfo(std::string_view fld)
 }
 
 void StateGrabber::areaLoadInfo(std::string_view /*fld*/) {}
-double StateGrabber::grabData(const StateData& stateDataValue, const SolverMode& sMode)
+double StateGrabber::grabData(const stateData& stateDataValue, const SolverMode& sMode)
 {
     if (loaded) {
         if (cacheUpdateRequired) {
@@ -568,7 +568,7 @@ void StateGrabber::getObjects(std::vector<CoreObject*>& objects) const
 {
     objects.push_back(getObject());
 }
-void StateGrabber::outputPartialDerivatives(const StateData& stateDataValue,
+void StateGrabber::outputPartialDerivatives(const stateData& stateDataValue,
                                             matrixData<double>& matrixDataValue,
                                             const SolverMode& sMode)
 {
@@ -670,7 +670,7 @@ void StateFunctionGrabber::cloneTo(StateGrabber* ggb) const
     sfg->dopptr = dopptr;
 }
 
-double StateFunctionGrabber::grabData(const StateData& stateDataValue, const SolverMode& sMode)
+double StateFunctionGrabber::grabData(const stateData& stateDataValue, const SolverMode& sMode)
 {
     double val = opptr(bgrabber->grabData(stateDataValue, sMode));
     val = std::fma(val, gain, bias);
@@ -688,7 +688,7 @@ CoreObject* StateFunctionGrabber::getObject() const
 {
     return (bgrabber) ? bgrabber->getObject() : nullptr;
 }
-void StateFunctionGrabber::outputPartialDerivatives(const StateData& stateDataValue,
+void StateFunctionGrabber::outputPartialDerivatives(const stateData& stateDataValue,
                                                     matrixData<double>& matrixDataValue,
                                                     const SolverMode& sMode)
 {
@@ -771,7 +771,7 @@ void StateOpGrabber::cloneTo(StateGrabber* ggb) const
     sog->opptr = opptr;
 }
 
-double StateOpGrabber::grabData(const StateData& stateDataValue, const SolverMode& sMode)
+double StateOpGrabber::grabData(const stateData& stateDataValue, const SolverMode& sMode)
 {
     const double grabber1Data = bgrabber1->grabData(stateDataValue, sMode);
     const double grabber2Data = bgrabber2->grabData(stateDataValue, sMode);
@@ -814,7 +814,7 @@ CoreObject* StateOpGrabber::getObject() const
     return nullptr;
 }
 
-void StateOpGrabber::outputPartialDerivatives(const StateData& stateDataValue,
+void StateOpGrabber::outputPartialDerivatives(const stateData& stateDataValue,
                                               matrixData<double>& matrixDataValue,
                                               const SolverMode& sMode)
 {

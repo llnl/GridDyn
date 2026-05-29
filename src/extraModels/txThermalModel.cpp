@@ -21,7 +21,7 @@
 #include <utility>
 
 namespace griddyn::extra {
-txThermalModel::txThermalModel(const std::string& objName): sensor(objName)
+txThermalModel::txThermalModel(const std::string& objName): Sensor(objName)
 {
     opFlags.reset(continuous_flag);  // this is a not a continuous model
     outputStrings = {{"ambient", "ambientTemp", "airTemp"},
@@ -32,7 +32,7 @@ txThermalModel::txThermalModel(const std::string& objName): sensor(objName)
 
 CoreObject* txThermalModel::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<txThermalModel, sensor>(this, obj);
+    auto* nobj = cloneBase<txThermalModel, Sensor>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -66,7 +66,7 @@ void txThermalModel::setFlag(std::string_view flag, bool val)
     } else if (flag == "enable_alarms") {
         opFlags.set(enable_alarms, val);
     } else {
-        sensor::setFlag(flag, val);
+        Sensor::setFlag(flag, val);
     }
 }
 
@@ -118,7 +118,7 @@ void txThermalModel::set(std::string_view param, std::string_view val)
             mWindingExponent = 1.0;
         }
     } else {
-        sensor::set(param, val);
+        Sensor::set(param, val);
     }
 }
 
@@ -175,13 +175,13 @@ void txThermalModel::set(std::string_view param, double val, units::unit unitTyp
     } else if ((param == "n") || (param == "oil_exponent")) {
         mOilExponent = val;
     } else {
-        sensor::set(param, val, unitType);
+        Sensor::set(param, val, unitType);
     }
 }
 
 double txThermalModel::get(std::string_view param, units::unit unitType) const
 {
-    return sensor::get(param, unitType);
+    return Sensor::get(param, unitType);
 }
 
 void txThermalModel::add(CoreObject* /*obj*/)
@@ -192,7 +192,7 @@ void txThermalModel::add(CoreObject* /*obj*/)
 void txThermalModel::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (m_sourceObject == nullptr) {
-        sensor::dynObjectInitializeA(time0, flags);
+        Sensor::dynObjectInitializeA(time0, flags);
         return;
     }
 
@@ -236,23 +236,23 @@ void txThermalModel::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     mThermalCapacity =
         mOilTimeConstant * mRatedLoss / mRatedTopOilRise;  // compute the thermal mass constant
     if (!opFlags[dyn_initialized]) {
-        sensor::setFlag("sampled", true);
-        sensor::set("input0", "current");
-        sensor::set("input1", "loss");
-        sensor::set("input2", "attached");
+        Sensor::setFlag("sampled", true);
+        Sensor::set("input0", "current");
+        Sensor::set("input1", "loss");
+        Sensor::set("input2", "attached");
 
         auto* topOilDelayBlock = new blocks::DelayBlock(mOilTimeConstant);
         auto* windingDelayBlock = new blocks::DelayBlock(mWindingTimeConstant);
 
-        sensor::add(topOilDelayBlock);
-        sensor::add(windingDelayBlock);
+        Sensor::add(topOilDelayBlock);
+        Sensor::add(windingDelayBlock);
         topOilDelayBlock->parentSetFlag(separate_processing, true, this);
         windingDelayBlock->parentSetFlag(separate_processing, true, this);
         auto ambientGrabber = std::make_shared<CustomGrabber>();
         ambientGrabber->setGrabberFunction("ambient", [this](CoreObject* /*unused*/) -> double {
             return mAmbientTemp;
         });
-        sensor::add(ambientGrabber);
+        Sensor::add(ambientGrabber);
 
         m_outputSize = (m_outputSize > 3) ? m_outputSize : 3;
 
@@ -264,7 +264,7 @@ void txThermalModel::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         outputs[0] =
             3;  // the first input was setup as the current, second as the loss, 3rd as attached
         outputs[1] = 0;
-        sensor::set("output2", "block0+block1");
+        Sensor::set("output2", "block0+block1");
         auto condition = makeCondition("output1", ">", mAlarmTemp1, this);
         Relay::add(std::shared_ptr<Condition>(std::move(condition)));
         condition = makeCondition("output1", ">", mAlarmTemp2, this);
@@ -301,7 +301,7 @@ void txThermalModel::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
             setConditionStatus(2, ConditionStatus::disabled);
         }
     }
-    sensor::dynObjectInitializeA(time0, flags);
+    Sensor::dynObjectInitializeA(time0, flags);
 }
 
 void txThermalModel::dynObjectInitializeB(const IOdata& inputs,
@@ -333,8 +333,8 @@ void txThermalModel::dynObjectInitializeB(const IOdata& inputs,
         iset[0] = 0;
         filterBlocks[1]->dynInitializeB(iset, iset, iset);
     }
-    // skip over sensor::dynInitializeB since the filter blocks are initialized here.
-    sensor::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
+    // skip over Sensor::dynInitializeB since the filter blocks are initialized here.
+    Sensor::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
 }
 
 void txThermalModel::updateA(coreTime time)
@@ -382,7 +382,7 @@ void txThermalModel::updateA(coreTime time)
     }
     // printf("%f:%s A=%f to(%f)=%f hs(%f)=%f\n",time, name.c_str(), ambientTemp,
     // DTtou+ambientTemp, o1, DTgu, o2);
-    sensor::updateA(time);
+    Sensor::updateA(time);
     prevTime = time;
 }
 

@@ -43,8 +43,8 @@ using griddyn::GridSubModel;
 using griddyn::kNullVal;
 using griddyn::Link;
 using griddyn::Relay;
-using griddyn::scheduler;
-using griddyn::sensor;
+using griddyn::Scheduler;
+using griddyn::Sensor;
 using griddyn::Source;
 
 static constexpr char invalidComponent[] = "the Griddyn object is not valid";
@@ -443,7 +443,7 @@ const char* gridDynObjectGetType(GridDynObject obj)
     if (dynamic_cast<const GenModel*>(comp) != nullptr) {
         return genModel_str;
     }
-    if (dynamic_cast<const scheduler*>(comp) != nullptr) {
+    if (dynamic_cast<const Scheduler*>(comp) != nullptr) {
         return scheduler_str;
     }
     if (dynamic_cast<const Source*>(comp) != nullptr) {
@@ -452,7 +452,7 @@ const char* gridDynObjectGetType(GridDynObject obj)
     if (dynamic_cast<const GridBlock*>(comp) != nullptr) {
         return block_str;
     }
-    if (dynamic_cast<const sensor*>(comp) != nullptr) {
+    if (dynamic_cast<const Sensor*>(comp) != nullptr) {
         return sensor_str;
     }
     if (dynamic_cast<const Relay*>(comp) != nullptr) {

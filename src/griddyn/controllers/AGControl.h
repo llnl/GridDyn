@@ -14,7 +14,7 @@
 
 namespace griddyn {
 class GridArea;
-class schedulerReg;
+class SchedulerReg;
 class Generator;
 class battery;
 namespace blocks {
@@ -54,7 +54,7 @@ class AGControl: public GridSubModel {
 
     count_t schedCount = 0;
 
-    std::vector<schedulerReg*> schedList;
+    std::vector<SchedulerReg*> schedList;
     std::vector<double> upRat;
     std::vector<double> downRat;
     std::shared_ptr<Communicator> comms;
@@ -79,7 +79,7 @@ class AGControl: public GridSubModel {
 
     virtual double getOutput(index_t /*num*/ = 0) const override;
     virtual void add(CoreObject* obj) override;
-    virtual void add(schedulerReg* sched);
+    virtual void add(SchedulerReg* sched);
     virtual void remove(CoreObject* obj) override;
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void

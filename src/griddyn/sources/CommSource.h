@@ -20,7 +20,7 @@ namespace sources {
       protected:
         std::shared_ptr<Communicator> commLink;  //!< communicator link
         GridSimulation* rootSim = nullptr;  //!< pointer to the root simulation
-        comms::commManager cManager;  //!< comm manager object to build and manage the comm link
+        comms::CommManager cManager;  //!< comm manager object to build and manage the comm link
         model_parameter maxRamp = kBigNum;  //!< the maximum rate of change of the source
       public:
         enum CommSourceFlags {

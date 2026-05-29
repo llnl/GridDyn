@@ -37,12 +37,12 @@ void Dispatcher::add(CoreObject* /*obj*/)
 {
     throw(ObjectAddFailure(this));
 }
-void Dispatcher::add(scheduler* /*sched*/)
+void Dispatcher::add(Scheduler* /*sched*/)
 {
     throw(ObjectAddFailure(this));
 }
 void Dispatcher::remove(CoreObject* /*obj*/) {}
-void Dispatcher::remove(scheduler* /*sched*/) {}
+void Dispatcher::remove(Scheduler* /*sched*/) {}
 
 void Dispatcher::set(std::string_view param, std::string_view val)
 {

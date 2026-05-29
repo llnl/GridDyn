@@ -159,10 +159,10 @@ double ReserveDispatcher::testP(coreTime time, double pShort)
     return output;
 }
 
-void ReserveDispatcher::remove(schedulerRamp* sched)
+void ReserveDispatcher::remove(SchedulerRamp* sched)
 {
     const auto schedIter =
-        std::find_if(schedList.begin(), schedList.end(), [sched](schedulerRamp* candidate) {
+        std::find_if(schedList.begin(), schedList.end(), [sched](SchedulerRamp* candidate) {
             return isSameObject(candidate, sched);
         });
     if (schedIter != schedList.end()) {
@@ -174,14 +174,14 @@ void ReserveDispatcher::remove(schedulerRamp* sched)
 
 void ReserveDispatcher::add(CoreObject* obj)
 {
-    if (dynamic_cast<schedulerRamp*>(obj) != nullptr) {
-        add(static_cast<schedulerRamp*>(obj));
+    if (dynamic_cast<SchedulerRamp*>(obj) != nullptr) {
+        add(static_cast<SchedulerRamp*>(obj));
     } else {
         throw(UnrecognizedObjectException(this));
     }
 }
 
-void ReserveDispatcher::add(schedulerRamp* sched)
+void ReserveDispatcher::add(SchedulerRamp* sched)
 {
     schedList.push_back(sched);
     schedCount = static_cast<count_t>(schedList.size());
@@ -193,8 +193,8 @@ void ReserveDispatcher::add(schedulerRamp* sched)
 
 void ReserveDispatcher::remove(CoreObject* obj)
 {
-    if (dynamic_cast<schedulerRamp*>(obj) != nullptr) {
-        remove(static_cast<schedulerRamp*>(obj));
+    if (dynamic_cast<SchedulerRamp*>(obj) != nullptr) {
+        remove(static_cast<SchedulerRamp*>(obj));
     }
 }
 

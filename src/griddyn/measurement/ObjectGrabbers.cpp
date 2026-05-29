@@ -577,17 +577,17 @@ fobjectPair getObjectFunction(const Relay* rel, const std::string& field)
             return static_cast<double>(static_cast<Relay*>(obj)->getConditionStatus(num));
         };
     } else if ((fld == "block") || (fld == "b")) {
-        if (dynamic_cast<const sensor*>(rel) != nullptr) {
+        if (dynamic_cast<const Sensor*>(rel) != nullptr) {
             retPair.first = [=](CoreObject* obj) {
-                return static_cast<sensor*>(obj)->getBlockOutput(emptyStateData,
+                return static_cast<Sensor*>(obj)->getBlockOutput(emptyStateData,
                                                                  cLocalSolverMode,
                                                                  num);
             };
         }
     } else if ((fld == "blockderiv") || (fld == "dblockdt") || (fld == "dbdt")) {
-        if (dynamic_cast<const sensor*>(rel) != nullptr) {
+        if (dynamic_cast<const Sensor*>(rel) != nullptr) {
             retPair.first = [=](CoreObject* obj) {
-                return static_cast<sensor*>(obj)->getBlockDerivOutput(emptyStateData,
+                return static_cast<Sensor*>(obj)->getBlockDerivOutput(emptyStateData,
                                                                       cLocalSolverMode,
                                                                       num);
             };
@@ -597,9 +597,9 @@ fobjectPair getObjectFunction(const Relay* rel, const std::string& field)
             return static_cast<Relay*>(obj)->getConditionValue(num);
         };
     } else if ((fld == "input") || (fld == "i")) {
-        if (dynamic_cast<const sensor*>(rel) != nullptr) {
+        if (dynamic_cast<const Sensor*>(rel) != nullptr) {
             retPair.first = [num](CoreObject* obj) {
-                return static_cast<sensor*>(obj)->getInput(emptyStateData, cLocalSolverMode, num);
+                return static_cast<Sensor*>(obj)->getInput(emptyStateData, cLocalSolverMode, num);
             };
         }
     } else {

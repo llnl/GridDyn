@@ -85,7 +85,7 @@ namespace {
                               CoreObject* parentObject)
     {
         return elementReader(
-            currentElement, static_cast<scheduler*>(nullptr), "scheduler", readerInf, parentObject);
+            currentElement, static_cast<Scheduler*>(nullptr), "scheduler", readerInf, parentObject);
     }
 
     CoreObject* loadAgc(std::shared_ptr<ReaderElement>& currentElement,

@@ -12,7 +12,7 @@
 namespace griddyn::relays {
 /** @brief class modeling a PMU
  */
-class pmu: public sensor {
+class Pmu: public Sensor {
   public:
     enum PmuFlags {
         TRANSMIT_ACTIVE = object_armed_flag,  //!< flag to indicate that the relay is transmitting
@@ -36,7 +36,7 @@ class pmu: public sensor {
     coreTime mNextTransmitTime = maxTime;  //!< the time of the next transmission
     coreTime mLastTransmitTime = negTime;  //!< the time of the last transmission
   public:
-    pmu(const std::string& objName = "pmu_$");
+    Pmu(const std::string& objName = "pmu_$");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;

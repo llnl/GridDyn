@@ -420,8 +420,8 @@ void DynamicGenerator::add(GridSubModel* obj)
         auto* src = static_cast<Source*>(obj);
         if ((src->purpose_ == "power") || (src->purpose_ == "pset")) {
             pSetControl = static_cast<Source*>(replaceModel(obj, pSetControl, pset_loc));
-            if (dynamic_cast<scheduler*>(pSetControl) != nullptr) {
-                sched = static_cast<scheduler*>(pSetControl);
+            if (dynamic_cast<Scheduler*>(pSetControl) != nullptr) {
+                sched = static_cast<Scheduler*>(pSetControl);
             }
         } else if ((src->purpose_ == "voltage") || (src->purpose_ == "vset")) {
             vSetControl = static_cast<Source*>(replaceModel(obj, vSetControl, vset_loc));

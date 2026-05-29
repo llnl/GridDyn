@@ -16,8 +16,8 @@
 #include <utility>
 
 namespace griddyn::comms {
-commManager::commManager() = default;
-commManager::commManager(const commManager& other)
+CommManager::CommManager() = default;
+CommManager::CommManager(const CommManager& other)
 {
     commName = other.commName;
     commId = other.commId;
@@ -32,10 +32,10 @@ commManager::commManager(const commManager& other)
     }
 }
 
-commManager::commManager(commManager&&) = default;
-commManager::~commManager() = default;
+CommManager::CommManager(CommManager&&) = default;
+CommManager::~CommManager() = default;
 
-commManager& commManager::operator=(const commManager& other)
+CommManager& CommManager::operator=(const CommManager& other)
 {
     if (this == &other) {
         return *this;
@@ -60,13 +60,13 @@ commManager& commManager::operator=(const commManager& other)
     return *this;
 }
 
-commManager& commManager::operator=(commManager&&) = default;
+CommManager& CommManager::operator=(CommManager&&) = default;
 
-void commManager::setName(std::string_view name)
+void CommManager::setName(std::string_view name)
 {
     commName = std::string{name};
 }
-bool commManager::set(std::string_view param, std::string_view val)
+bool CommManager::set(std::string_view param, std::string_view val)
 {
     if ((param == "commname") || (param == "name")) {
         setName(val);
@@ -98,7 +98,7 @@ bool commManager::set(std::string_view param, std::string_view val)
     }
     return true;
 }
-bool commManager::set(std::string_view param, double val)
+bool CommManager::set(std::string_view param, double val)
 {
     if ((param == "commid") || (param == "id")) {
         commId = static_cast<std::uint64_t>(val);
@@ -120,7 +120,7 @@ bool commManager::set(std::string_view param, double val)
     return true;
 }
 
-bool commManager::setFlag(std::string_view flag, bool val)
+bool CommManager::setFlag(std::string_view flag, bool val)
 {
     if (flag.starts_with("comm::")) {
         if (commLink) {
@@ -137,7 +137,7 @@ bool commManager::setFlag(std::string_view flag, bool val)
     return true;
 }
 
-std::shared_ptr<Communicator> commManager::build()
+std::shared_ptr<Communicator> CommManager::build()
 {
     commLink = makeCommunicator(commType, commName, commId);
     if (commPropBuffer) {
@@ -147,7 +147,7 @@ std::shared_ptr<Communicator> commManager::build()
     return commLink;
 }
 
-void commManager::send(std::shared_ptr<CommMessage> message) const
+void CommManager::send(std::shared_ptr<CommMessage> message) const
 {
     if (commDestId != 0) {
         commLink->transmit(commDestId, std::move(message));

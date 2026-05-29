@@ -112,7 +112,7 @@ namespace {
     CoreObject* loadScheduler(std::shared_ptr<ReaderElement>& currentElement, ReaderInfo& readerInf)
     {
         return elementReader(
-            currentElement, static_cast<scheduler*>(nullptr), "scheduler", readerInf, nullptr);
+            currentElement, static_cast<Scheduler*>(nullptr), "scheduler", readerInf, nullptr);
     }
 
     CoreObject* loadAgc(std::shared_ptr<ReaderElement>& currentElement, ReaderInfo& readerInf)

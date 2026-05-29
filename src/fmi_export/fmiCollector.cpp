@@ -57,10 +57,9 @@ void FmiCollector::set(std::string_view param, std::string_view val)
     }
 }
 
-static const char defFMIName[] = "fmi";
 const std::string& FmiCollector::getSinkName() const
 {
-    static const std::string defaultFMIName{defFMIName};
+    static const std::string defaultFMIName{"fmi"};
     if (mCoordinator != nullptr) {
         return mCoordinator->getFmiName();
     }

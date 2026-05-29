@@ -333,9 +333,9 @@ double FmiMESubModel::get(std::string_view param, units::unit unitType) const
     return GridSubModel::get(param, unitType);
 }
 
-stateSizes FmiMESubModel::localStateSizes(const SolverMode& sMode) const
+StateSizes FmiMESubModel::localStateSizes(const SolverMode& sMode) const
 {
-    stateSizes stateSizeInfo;
+    StateSizes stateSizeInfo;
     if (hasDifferential(sMode)) {
         stateSizeInfo.diffSize = m_stateSize;
     } else if (!isDynamic(sMode) && opFlags[pflow_init_required]) {
@@ -470,7 +470,7 @@ index_t FmiMESubModel::findIndex(std::string_view field, const SolverMode& /*sMo
 }
 
 void FmiMESubModel::residual(const IOdata& inputs,
-                             const stateData& sD,
+                             const StateData& sD,
                              double resid[],
                              const SolverMode& sMode)
 {
@@ -486,7 +486,7 @@ void FmiMESubModel::residual(const IOdata& inputs,
 }
 
 void FmiMESubModel::derivative(const IOdata& inputs,
-                               const stateData& sD,
+                               const StateData& sD,
                                double deriv[],
                                const SolverMode& sMode)
 {
@@ -599,7 +599,7 @@ double FmiMESubModel::getPartial(int depIndex, int refIndex, RefMode mode)
     return res;
 }
 void FmiMESubModel::jacobianElements(const IOdata& inputs,
-                                     const stateData& sD,
+                                     const StateData& sD,
                                      matrixData<double>& md,
                                      const IOlocs& inputLocs,
                                      const SolverMode& sMode)
@@ -704,7 +704,7 @@ void FmiMESubModel::timestep(coreTime time, const IOdata& inputs, const SolverMo
 }
 
 void FmiMESubModel::ioPartialDerivatives(const IOdata& inputs,
-                                         const stateData& sD,
+                                         const StateData& sD,
                                          matrixData<double>& md,
                                          const IOlocs& /*inputLocs*/,
                                          const SolverMode& sMode)
@@ -734,7 +734,7 @@ void FmiMESubModel::ioPartialDerivatives(const IOdata& inputs,
 }
 
 void FmiMESubModel::outputPartialDerivatives(const IOdata& inputs,
-                                             const stateData& sD,
+                                             const StateData& sD,
                                              matrixData<double>& md,
                                              const SolverMode& sMode)
 {
@@ -765,7 +765,7 @@ void FmiMESubModel::outputPartialDerivatives(const IOdata& inputs,
 }
 
 void FmiMESubModel::rootTest(const IOdata& inputs,
-                             const stateData& sD,
+                             const StateData& sD,
                              double roots[],
                              const SolverMode& sMode)
 {
@@ -785,7 +785,7 @@ void FmiMESubModel::rootTrigger(coreTime /*time*/,
 }
 
 IOdata FmiMESubModel::getOutputs(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const StateData& sD,
                                  const SolverMode& sMode) const
 {
     IOdata out(m_outputSize, 0);
@@ -810,7 +810,7 @@ IOdata FmiMESubModel::getOutputs(const IOdata& inputs,
 }
 
 double FmiMESubModel::getDoutdt(const IOdata& /*inputs*/,
-                                const stateData& /*sD*/,
+                                const StateData& /*sD*/,
                                 const SolverMode& /*sMode*/,
                                 index_t /*outputNum*/) const
 {
@@ -818,7 +818,7 @@ double FmiMESubModel::getDoutdt(const IOdata& /*inputs*/,
 }
 
 double FmiMESubModel::getOutput(const IOdata& inputs,
-                                const stateData& sD,
+                                const StateData& sD,
                                 const SolverMode& sMode,
                                 index_t outputNum) const
 {
@@ -855,7 +855,7 @@ index_t FmiMESubModel::getOutputLoc(const SolverMode& /*sMode*/, index_t /*outpu
 }
 
 void FmiMESubModel::updateLocalCache(const IOdata& inputs,
-                                     const stateData& sD,
+                                     const StateData& sD,
                                      const SolverMode& sMode)
 {
     fmi2Boolean eventMode;

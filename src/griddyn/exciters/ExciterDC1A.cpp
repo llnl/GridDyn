@@ -73,7 +73,7 @@ void ExciterDC1A::dynObjectInitializeB(const IOdata& inputs,
 
 // residual
 void ExciterDC1A::residual(const IOdata& inputs,
-                           const stateData& stateDataValue,
+                           const StateData& stateDataValue,
                            double resid[],
                            const SolverMode& sMode)
 {
@@ -91,7 +91,7 @@ void ExciterDC1A::residual(const IOdata& inputs,
 }
 
 void ExciterDC1A::derivative(const IOdata& inputs,
-                             const stateData& stateDataValue,
+                             const StateData& stateDataValue,
                              double deriv[],
                              const SolverMode& sMode)
 {
@@ -120,7 +120,7 @@ void ExciterDC1A::derivative(const IOdata& inputs,
 
 // Jacobian
 void ExciterDC1A::jacobianElements(const IOdata& inputs,
-                                   const stateData& stateDataValue,
+                                   const StateData& stateDataValue,
                                    matrixData<double>& matrixDataValue,
                                    const IOlocs& inputLocs,
                                    const SolverMode& sMode)
@@ -182,7 +182,7 @@ void ExciterDC1A::limitJacobian(double /*V*/,
 }
 
 void ExciterDC1A::rootTest(const IOdata& inputs,
-                           const stateData& stateDataValue,
+                           const StateData& stateDataValue,
                            double root[],
                            const SolverMode& sMode)
 {
@@ -205,7 +205,7 @@ void ExciterDC1A::rootTest(const IOdata& inputs,
 }
 
 ChangeCode ExciterDC1A::rootCheck(const IOdata& inputs,
-                                  const stateData& /*sD*/,
+                                  const StateData& /*sD*/,
                                   const SolverMode& /*sMode*/,
                                   CheckLevel /*level*/)
 {

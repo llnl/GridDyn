@@ -272,7 +272,7 @@ enum class CheckLevel {
 };
 
 /** @brief helper class for containing sizes to group the data*/
-class stateSizes {
+class StateSizes {
   public:
     // state sizes
     count_t diffSize = 0;  //!< number of differential variables
@@ -295,19 +295,19 @@ class stateSizes {
 
     /** reset the Jacobian counter and  sizes to 0*/
     void jacobianReset() { jacSize = 0; }
-    /** add another stateSizes object to this one
-    @param[in] arg the stateSizes object to combine*/
-    void add(const stateSizes& arg);
+    /** add another StateSizes object to this one
+    @param[in] arg the StateSizes object to combine*/
+    void add(const StateSizes& arg);
     /** add just the actual state counts ignore the root and Jacobian counts
     @param[in] arg the update to add to the calling object
     */
-    void addStateSizes(const stateSizes& arg);
+    void addStateSizes(const StateSizes& arg);
     /** add just the root and Jacobian information
     @param[in] arg the update to add to the calling object*/
-    void addRootSizes(const stateSizes& arg);
+    void addRootSizes(const StateSizes& arg);
     /** add just the Jacobian information
     @param[in] arg the update to add to the calling object*/
-    void addJacobianSizes(const stateSizes& arg);
+    void addJacobianSizes(const StateSizes& arg);
     /** get the total count*/
     count_t totalSize() const;
 };
@@ -316,7 +316,7 @@ class stateSizes {
 *@brief Helper class encapsulating the offsets for the solver evaluation functions
  acts as a container for solver offsets and object indices into the state vectors
 **/
-class solverOffsets {
+class SolverOffsets {
   public:
     index_t aOffset = kNullLocation;  //!< Location for the voltage offset
     index_t vOffset = kNullLocation;  //!< Location for the Angle offset
@@ -332,12 +332,12 @@ class solverOffsets {
     SolverMode sMode = cLocalSolverMode;  //!< the reference SolverMode
 
     // local objectSizes
-    stateSizes total;  //!< container for total state sizes;
-    stateSizes local;  //!< container for local state sizes
+    StateSizes total;  //!< container for total state sizes;
+    StateSizes local;  //!< container for local state sizes
 
   public:
     /** @brief  default constructor*/
-    solverOffsets() = default;
+    SolverOffsets() = default;
 
     /** @brief reset the solverOffset
      */
@@ -358,32 +358,32 @@ class solverOffsets {
      */
     void increment();
 
-    /** @brief increment the offsets using the contained sizes in another solverOffset Object
-    @param offsets the solverOffset object to use as the sizes
+    /** @brief increment the offsets using the contained sizes in another SolverOffsets object
+    @param offsets the SolverOffsets object to use as the sizes
     */
-    void increment(const solverOffsets& offsets);
+    void increment(const SolverOffsets& offsets);
 
-    /** @brief increment the offsets using the contained local sizes in another solverOffset Object
-    @param offsets the solverOffset object to use as the sizes
+    /** @brief increment the offsets using the contained local sizes in another SolverOffsets object
+    @param offsets the SolverOffsets object to use as the sizes
     */
-    void localIncrement(const solverOffsets& offsets);
+    void localIncrement(const SolverOffsets& offsets);
 
-    /** @brief merge the sizes of two solverOffsets
-    @param offsets the solverOffset object to use as the sizes
+    /** @brief merge the sizes of two SolverOffsets
+    @param offsets the SolverOffsets object to use as the sizes
     */
-    void addSizes(const solverOffsets& offsets);
+    void addSizes(const SolverOffsets& offsets);
 
-    /** @brief merge the sizes of two solverOffsets state Sizes
-      @param offsets the solverOffset object to use as the sizes
+    /** @brief merge the sizes of two SolverOffsets state Sizes
+      @param offsets the SolverOffsets object to use as the sizes
       */
-    void addStateSizes(const solverOffsets& offsets);
+    void addStateSizes(const SolverOffsets& offsets);
 
     /** @brief add the Root count parameters to the sizes
      */
-    void addRootSizes(const solverOffsets& offsets);
+    void addRootSizes(const SolverOffsets& offsets);
     /** @brief add the Jacobian parameters to the sizes
      */
-    void addJacobianSizes(const solverOffsets& offsets);
+    void addJacobianSizes(const SolverOffsets& offsets);
 
     /** @brief load the local state variables to the sizes
     @param finishedLoading set the stateLoaded flag to the given value
@@ -394,10 +394,10 @@ class solverOffsets {
     */
     void localLoadAll(bool finishedLoading = false);
 
-    /** @brief set the offsets from another solverOffset object
-    @param newOffsets the solverOffset object to use as the sizes
+    /** @brief set the offsets from another SolverOffsets object
+    @param newOffsets the SolverOffsets object to use as the sizes
     */
-    void setOffsets(const solverOffsets& newOffsets);
+    void setOffsets(const SolverOffsets& newOffsets);
 
     /** @brief set the offsets from a single index
     @param newOffset the index of the new offset
@@ -430,7 +430,7 @@ class Lp {
 
 /**@brief class for containing state data information
  */
-class stateData {
+class StateData {
   public:
     coreTime time = 0.0;  //!< time corresponding to the state data
     count_t seqID = 0;  //!< a sequence id to differentiate between subsequent state data objects
@@ -455,7 +455,7 @@ class stateData {
     coreTime altTime = 0.0;  //!< the time corresponding to the other part of the state
     index_t pairIndex = kNullLocation;  //!< the index of the mode the paired data comes from
 
-    stateData(coreTime sTime = 0.0,
+    StateData(coreTime sTime = 0.0,
               const double* sstate = nullptr,
               const double* ndstate_dt = nullptr,
               count_t cseq = 0): time(sTime), seqID(cseq), state(sstate), dstate_dt(ndstate_dt)
@@ -469,7 +469,7 @@ class stateData {
     bool hasScratch() const { return (scratch1 != nullptr); }
 };
 
-const stateData emptyStateData{};
+const StateData emptyStateData{};
 
 #define DEFAULT_OFFSET_CONTAINER_SIZE 5
 class GridComponent;

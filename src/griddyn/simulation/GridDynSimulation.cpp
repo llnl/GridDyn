@@ -475,7 +475,7 @@ with differential first
 
 void GridDynSimulation::setupOffsets(const SolverMode& sMode, OffsetOrdering offsetOrdering)
 {
-    solverOffsets offsetValues;
+    SolverOffsets offsetValues;
     switch (offsetOrdering) {
         case OffsetOrdering::mixed:
         default:
@@ -1560,7 +1560,7 @@ void GridDynSimulation::parameterDerivatives(coreTime time,
         parameterOperators[indices[ii]]->setParameter(values[ii]);
     }
 
-    stateData stateDataValue(time, state, dstateDt, 0);
+    StateData stateDataValue(time, state, dstateDt, 0);
 
     fillExtraStateData(stateDataValue, sMode);
     // compute this for the base case with the specified parameters
@@ -1623,7 +1623,7 @@ void GridDynSimulation::addInitOperation(std::function<int()> fptr)
         additionalPowerflowSetupFunctions.push_back(std::move(fptr));
     }
 }
-void GridDynSimulation::fillExtraStateData(stateData& stateDataRef, const SolverMode& sMode) const
+void GridDynSimulation::fillExtraStateData(StateData& stateDataRef, const SolverMode& sMode) const
 {
     if ((!isDAE(sMode)) && (isDynamic(sMode))) {
         if (sMode.pairedOffsetIndex != kNullLocation) {

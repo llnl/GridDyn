@@ -115,7 +115,7 @@ void fuse::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 
     auto cgst = std::make_unique<CustomStateGrabber>(this);
     cgst->setGrabberFunction(
-        [](CoreObject* obj, const stateData& sD, const SolverMode& sMode) -> double {
+        [](CoreObject* obj, const StateData& sD, const SolverMode& sMode) -> double {
             return sD.state[static_cast<fuse*>(obj)->offsets.getDiffOffset(sMode)];
         });
 
@@ -206,9 +206,9 @@ ChangeCode fuse::setupFuseEvaluation()
     return ChangeCode::JACOBIAN_CHANGE;
 }
 
-stateSizes fuse::localStateSizes(const SolverMode& sMode) const
+StateSizes fuse::localStateSizes(const SolverMode& sMode) const
 {
-    stateSizes SS;
+    StateSizes SS;
     if ((!isAlgebraicOnly(sMode)) && (mp_I2T > 0.0)) {
         SS.diffSize = 1;
     }
@@ -247,7 +247,7 @@ void fuse::converge(coreTime time,
 }
 
 void fuse::jacobianElements(const IOdata& /*inputs*/,
-                            const stateData& sD,
+                            const StateData& sD,
                             matrixData<double>& md,
                             const IOlocs& /*inputLocs*/,
                             const SolverMode& sMode)
@@ -318,7 +318,7 @@ double fuse::I2Tequation(double current)
 }
 
 void fuse::residual(const IOdata& /*inputs*/,
-                    const stateData& sD,
+                    const StateData& sD,
                     double resid[],
                     const SolverMode& sMode)
 {

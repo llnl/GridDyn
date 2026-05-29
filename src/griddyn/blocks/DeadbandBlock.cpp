@@ -205,7 +205,7 @@ double DeadbandBlock::step(coreTime time, double input)
 
 void DeadbandBlock::blockDerivative(double input,
                                     double didt,
-                                    const stateData& stateDataRef,
+                                    const StateData& stateDataRef,
                                     double deriv[],
                                     const SolverMode& sMode)
 {
@@ -222,7 +222,7 @@ void DeadbandBlock::blockDerivative(double input,
 }
 
 void DeadbandBlock::blockAlgebraicUpdate(double input,
-                                         const stateData& stateDataRef,
+                                         const StateData& stateDataRef,
                                          double update[],
                                          const SolverMode& sMode)
 {
@@ -241,7 +241,7 @@ void DeadbandBlock::blockAlgebraicUpdate(double input,
 
 void DeadbandBlock::blockJacobianElements(double input,
                                           double didt,
-                                          const stateData& stateDataRef,
+                                          const StateData& stateDataRef,
                                           matrixData<double>& jacobian,
                                           index_t argLoc,
                                           const SolverMode& sMode)
@@ -273,7 +273,7 @@ void DeadbandBlock::blockJacobianElements(double input,
 }
 
 void DeadbandBlock::rootTest(const IOdata& inputs,
-                             const stateData& stateDataRef,
+                             const StateData& stateDataRef,
                              double roots[],
                              const SolverMode& sMode)
 {
@@ -404,7 +404,7 @@ void DeadbandBlock::rootTrigger(coreTime time,
 }
 
 ChangeCode DeadbandBlock::rootCheck(const IOdata& inputs,
-                                    const stateData& stateDataRef,
+                                    const StateData& stateDataRef,
                                     const SolverMode& sMode,
                                     CheckLevel /*level*/)
 {

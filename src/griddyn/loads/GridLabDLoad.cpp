@@ -348,7 +348,7 @@ coreTime GridLabDLoad::updateB()
     return nextUpdateTime;
 }
 
-void GridLabDLoad::preEx(const IOdata& inputs, const stateData& sD, const SolverMode& sMode)
+void GridLabDLoad::preEx(const IOdata& inputs, const StateData& sD, const SolverMode& sMode)
 {
     if ((lastSeqID == sD.seqID) && (sD.seqID != 0)) {
         return;
@@ -388,7 +388,7 @@ void GridLabDLoad::preEx(const IOdata& inputs, const stateData& sD, const Solver
 }
 
 void GridLabDLoad::updateLocalCache(const IOdata& inputs,
-                                    const stateData& sD,
+                                    const StateData& sD,
                                     const SolverMode& sMode)
 {
     if (opFlags[waiting_flag]) {
@@ -977,7 +977,7 @@ void GridLabDLoad::set(std::string_view param, double val, units::unit unitType)
 // return D[0]=dP/dV D[1]=dP/dtheta,D[2]=dQ/dV,D[3]=dQ/dtheta
 
 void GridLabDLoad::rootTest(const IOdata& inputs,
-                            const stateData& /*sD*/,
+                            const StateData& /*sD*/,
                             double roots[],
                             const SolverMode& sMode)
 {
@@ -1001,7 +1001,7 @@ void GridLabDLoad::rootTrigger(coreTime time,
 }
 
 ChangeCode GridLabDLoad::rootCheck(const IOdata& inputs,
-                                   const stateData& sD,
+                                   const StateData& sD,
                                    const SolverMode& /*sMode*/,
                                    CheckLevel /*level*/)
 {

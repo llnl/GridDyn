@@ -466,9 +466,9 @@ void adjustableTransformer::pFlowObjectInitializeA(coreTime time0, std::uint32_t
     AcLine::pFlowObjectInitializeA(time0, flags);
 }
 
-stateSizes adjustableTransformer::localStateSizes(const SolverMode& sMode) const
+StateSizes adjustableTransformer::localStateSizes(const SolverMode& sMode) const
 {
-    stateSizes lcStates;
+    StateSizes lcStates;
     if (isDynamic(sMode)) {
         if (opFlags[continuous_flag]) {
             switch (cMode) {
@@ -789,7 +789,7 @@ void adjustableTransformer::guessState(coreTime /*time*/,
 }
 
 void adjustableTransformer::ioPartialDerivatives(id_type_t busId,
-                                                 const stateData& stateData,
+                                                 const StateData& stateData,
                                                  matrixData<double>& matrixDataRef,
                                                  const IOlocs& inputLocs,
                                                  const SolverMode& sMode)
@@ -807,7 +807,7 @@ void adjustableTransformer::ioPartialDerivatives(id_type_t busId,
 }
 
 void adjustableTransformer::outputPartialDerivatives(const IOdata& inputs,
-                                                     const stateData& stateData,
+                                                     const StateData& stateData,
                                                      matrixData<double>& matrixDataRef,
                                                      const SolverMode& sMode)
 {
@@ -832,7 +832,7 @@ void adjustableTransformer::outputPartialDerivatives(const IOdata& inputs,
 }
 
 void adjustableTransformer::outputPartialDerivatives(id_type_t busId,
-                                                     const stateData& stateData,
+                                                     const StateData& stateData,
                                                      matrixData<double>& matrixDataRef,
                                                      const SolverMode& sMode)
 {
@@ -851,7 +851,7 @@ void adjustableTransformer::outputPartialDerivatives(id_type_t busId,
 }
 
 void adjustableTransformer::jacobianElements(const IOdata& /*inputs*/,
-                                             const stateData& stateData,
+                                             const StateData& stateData,
                                              matrixData<double>& matrixDataRef,
                                              const IOlocs& /*inputLocs*/,
                                              const SolverMode& sMode)
@@ -881,7 +881,7 @@ void adjustableTransformer::jacobianElements(const IOdata& /*inputs*/,
 }
 
 void adjustableTransformer::residual(const IOdata& /*inputs*/,
-                                     const stateData& stateData,
+                                     const StateData& stateData,
                                      double resid[],
                                      const SolverMode& sMode)
 {
@@ -969,7 +969,7 @@ void adjustableTransformer::updateLocalCache()
     AcLine::updateLocalCache();
 }
 void adjustableTransformer::updateLocalCache(const IOdata& inputs,
-                                             const stateData& stateData,
+                                             const StateData& stateData,
                                              const SolverMode& sMode)
 {
     if ((!(isDynamic(sMode))) && (opFlags[has_pflow_states])) {
@@ -995,7 +995,7 @@ count_t adjustableTransformer::outputDependencyCount(index_t /*num*/, const Solv
 }
 
 void adjustableTransformer::rootTest(const IOdata& /*inputs*/,
-                                     const stateData& stateData,
+                                     const StateData& stateData,
                                      double roots[],
                                      const SolverMode& sMode)
 {
@@ -1055,7 +1055,7 @@ void adjustableTransformer::rootTrigger(coreTime /*time*/,
 }
 
 void adjustableTransformer::tapAnglePartial(index_t busId,
-                                            const stateData& /*sD*/,
+                                            const StateData& /*sD*/,
                                             matrixData<double>& matrixDataRef,
                                             const SolverMode& sMode)
 {
@@ -1094,7 +1094,7 @@ void adjustableTransformer::tapAnglePartial(index_t busId,
 }
 
 void adjustableTransformer::tapPartial(index_t busId,
-                                       const stateData& /*sD*/,
+                                       const StateData& /*sD*/,
                                        matrixData<double>& matrixDataRef,
                                        const SolverMode& sMode)
 {
@@ -1142,7 +1142,7 @@ void adjustableTransformer::tapPartial(index_t busId,
     }
 }
 
-void adjustableTransformer::MWJac(const stateData& /*sD*/,
+void adjustableTransformer::MWJac(const StateData& /*sD*/,
                                   matrixData<double>& matrixDataRef,
                                   const SolverMode& sMode)
 {
@@ -1186,7 +1186,7 @@ void adjustableTransformer::MWJac(const stateData& /*sD*/,
     matrixDataRef.assignCheckCol(offset, bus2VoltageOffset, temp);
 }
 
-void adjustableTransformer::MVarJac(const stateData& /*sD*/,
+void adjustableTransformer::MVarJac(const StateData& /*sD*/,
                                     matrixData<double>& matrixDataRef,
                                     const SolverMode& sMode)
 {

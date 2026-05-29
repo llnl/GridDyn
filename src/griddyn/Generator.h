@@ -115,36 +115,36 @@ class Generator: public gridSecondary {
     @throw unrecognizedObjectError is object is not valid*/
     virtual void add(GridSubModel* obj);
 
-    virtual stateSizes localStateSizes(const SolverMode& sMode) const override;
+    virtual StateSizes localStateSizes(const SolverMode& sMode) const override;
 
     virtual count_t localJacobianCount(const SolverMode& sMode) const override;
 
     virtual void algebraicUpdate(const IOdata& inputs,
-                                 const stateData& stateDataValue,
+                                 const StateData& stateDataValue,
                                  double update[],
                                  const SolverMode& sMode,
                                  double alpha) override;
     virtual void residual(const IOdata& inputs,
-                          const stateData& stateDataValue,
+                          const StateData& stateDataValue,
                           double resid[],
                           const SolverMode& sMode) override;
     virtual IOdata getOutputs(const IOdata& inputs,
-                              const stateData& stateDataValue,
+                              const StateData& stateDataValue,
                               const SolverMode& sMode) const override;
 
     virtual void outputPartialDerivatives(const IOdata& inputs,
-                                          const stateData& stateDataValue,
+                                          const StateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
                                           const SolverMode& sMode) override;
     virtual void ioPartialDerivatives(const IOdata& inputs,
-                                      const stateData& stateDataValue,
+                                      const StateData& stateDataValue,
                                       matrixData<double>& matrixDataValue,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
     virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
 
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& stateDataValue,
+                                  const StateData& stateDataValue,
                                   matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
@@ -158,10 +158,10 @@ class Generator: public gridSecondary {
     @return the current generator set point*/
     virtual double getPset() const { return Pset; }
     virtual double getRealPower(const IOdata& inputs,
-                                const stateData& stateDataValue,
+                                const StateData& stateDataValue,
                                 const SolverMode& sMode) const override;
     virtual double getReactivePower(const IOdata& inputs,
-                                    const stateData& stateDataValue,
+                                    const StateData& stateDataValue,
                                     const SolverMode& sMode) const override;
     virtual double getRealPower() const override;
     virtual double getReactivePower() const override;
@@ -176,7 +176,7 @@ class Generator: public gridSecondary {
 
     virtual IOdata predictOutputs(coreTime predictionTime,
                                   const IOdata& inputs,
-                                  const stateData& stateDataValue,
+                                  const StateData& stateDataValue,
                                   const SolverMode& sMode) const override;
 
     virtual double getAdjustableCapacityUp(coreTime time = maxTime) const override;
@@ -213,7 +213,7 @@ class Generator: public gridSecondary {
     @param[out] freqOffset the location of the frequency state in the sD arrays
     @return the current frequency the generator is operating at
     */
-    virtual double getFreq(const stateData& stateDataValue,
+    virtual double getFreq(const StateData& stateDataValue,
                            const SolverMode& sMode,
                            index_t* freqOffset = nullptr) const;
     /** get the internal angle of the generator
@@ -222,7 +222,7 @@ class Generator: public gridSecondary {
     @param[out] angleOffset the location of the frequency state in the sD arrays
     @return the current angle of  the generator is operating at
     */
-    virtual double getAngle(const stateData& stateDataValue,
+    virtual double getAngle(const StateData& stateDataValue,
                             const SolverMode& sMode,
                             index_t* angleOffset = nullptr) const;
 

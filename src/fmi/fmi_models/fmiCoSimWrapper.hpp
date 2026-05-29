@@ -39,7 +39,7 @@ class FmiCoSimWrapper: public FmiWrapper<FmiCoSimSubModel, BaseObj> {
     }
 
     void residual(const IOdata& inputs,
-                  const stateData& sD,
+                  const StateData& sD,
                   double resid[],
                   const SolverMode& sMode) override
     {
@@ -47,7 +47,7 @@ class FmiCoSimWrapper: public FmiWrapper<FmiCoSimSubModel, BaseObj> {
     }
 
     void derivative(const IOdata& inputs,
-                    const stateData& sD,
+                    const StateData& sD,
                     double deriv[],
                     const SolverMode& sMode) override
     {
@@ -55,7 +55,7 @@ class FmiCoSimWrapper: public FmiWrapper<FmiCoSimSubModel, BaseObj> {
     }
 
     void outputPartialDerivatives(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const StateData& sD,
                                   matrixData<double>& md,
                                   const SolverMode& sMode) override
     {
@@ -65,7 +65,7 @@ class FmiCoSimWrapper: public FmiWrapper<FmiCoSimSubModel, BaseObj> {
                                                                                 sMode);
     }
     void ioPartialDerivatives(const IOdata& inputs,
-                              const stateData& sD,
+                              const StateData& sD,
                               matrixData<double>& md,
                               const IOlocs& inputLocs,
                               const SolverMode& sMode) override
@@ -74,7 +74,7 @@ class FmiCoSimWrapper: public FmiWrapper<FmiCoSimSubModel, BaseObj> {
             inputs, sD, md, inputLocs, sMode);
     }
     void jacobianElements(const IOdata& inputs,
-                          const stateData& sD,
+                          const StateData& sD,
                           matrixData<double>& md,
                           const IOlocs& inputLocs,
                           const SolverMode& sMode) override
@@ -84,7 +84,7 @@ class FmiCoSimWrapper: public FmiWrapper<FmiCoSimSubModel, BaseObj> {
     }
 
     void rootTest(const IOdata& inputs,
-                  const stateData& sD,
+                  const StateData& sD,
                   double roots[],
                   const SolverMode& sMode) override
     {

@@ -349,17 +349,17 @@ count_t GridComponent::angleStateCount(const SolverMode& sMode) const
     return solverOffsetsValue.total.aSize;
 }
 
-const solverOffsets& GridComponent::getOffsets(const SolverMode& sMode) const
+const SolverOffsets& GridComponent::getOffsets(const SolverMode& sMode) const
 {
     return offsets.getOffsets(sMode);
 }
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::setOffsets(const solverOffsets& newOffsets, const SolverMode& sMode)
+void GridComponent::setOffsets(const SolverOffsets& newOffsets, const SolverMode& sMode)
 {
     offsets.setOffsets(newOffsets, sMode);
 
     if (!subObjectList.empty()) {
-        solverOffsets newSubOffsets(newOffsets);
+        SolverOffsets newSubOffsets(newOffsets);
         newSubOffsets.localIncrement(offsets.getOffsets(sMode));
         for (auto& subobj : subObjectList) {
             if (subobj->isEnabled()) {
@@ -1114,7 +1114,7 @@ void GridComponent::loadSizesSub(const SolverMode& sMode, SizeCategory category)
     }
 }
 
-stateSizes GridComponent::localStateSizes(const SolverMode& /*sMode*/) const
+StateSizes GridComponent::localStateSizes(const SolverMode& /*sMode*/) const
 {
     return offsets.local().local;
 }
@@ -1635,7 +1635,7 @@ void GridComponent::updateFlags(bool dynamicsFlags)
 
 // NOLINTNEXTLINE(misc-no-recursion)
 void GridComponent::updateLocalCache(const IOdata& inputs,
-                                     const stateData& stateDataValue,
+                                     const StateData& stateDataValue,
                                      const SolverMode& sMode)
 {
     for (auto& sub : subObjectList) {
@@ -1701,7 +1701,7 @@ void GridComponent::timestep(coreTime time, const IOdata& inputs, const SolverMo
 }
 
 void GridComponent::ioPartialDerivatives(const IOdata& /*inputs*/,
-                                         const stateData& /*sD*/,
+                                         const StateData& /*sD*/,
                                          matrixData<double>& /*md*/,
                                          const IOlocs& /*inputLocs*/,
                                          const SolverMode& /*sMode*/)
@@ -1712,7 +1712,7 @@ void GridComponent::ioPartialDerivatives(const IOdata& /*inputs*/,
 }
 
 void GridComponent::outputPartialDerivatives(const IOdata& /*inputs*/,
-                                             const stateData& /*stateDataValue*/,
+                                             const StateData& /*stateDataValue*/,
                                              matrixData<double>& matrixDataValue,
                                              const SolverMode& sMode)
 {
@@ -1733,7 +1733,7 @@ count_t GridComponent::outputDependencyCount(index_t outputNum, const SolverMode
 
 // NOLINTNEXTLINE(misc-no-recursion)
 void GridComponent::preEx(const IOdata& inputs,
-                          const stateData& stateDataValue,
+                          const StateData& stateDataValue,
                           const SolverMode& sMode)
 {
     for (auto& subobj : subObjectList) {
@@ -1748,7 +1748,7 @@ void GridComponent::preEx(const IOdata& inputs,
 
 // NOLINTNEXTLINE(misc-no-recursion)
 void GridComponent::residual(const IOdata& inputs,
-                             const stateData& stateDataValue,
+                             const StateData& stateDataValue,
                              double resid[],
                              const SolverMode& sMode)
 {
@@ -1763,7 +1763,7 @@ void GridComponent::residual(const IOdata& inputs,
 
 // NOLINTNEXTLINE(misc-no-recursion)
 void GridComponent::derivative(const IOdata& inputs,
-                               const stateData& stateDataValue,
+                               const StateData& stateDataValue,
                                double deriv[],
                                const SolverMode& sMode)
 {
@@ -1778,7 +1778,7 @@ void GridComponent::derivative(const IOdata& inputs,
 
 // NOLINTNEXTLINE(misc-no-recursion)
 void GridComponent::algebraicUpdate(const IOdata& inputs,
-                                    const stateData& stateDataValue,
+                                    const StateData& stateDataValue,
                                     double update[],
                                     const SolverMode& sMode,
                                     double alpha)
@@ -1794,7 +1794,7 @@ void GridComponent::algebraicUpdate(const IOdata& inputs,
 
 // NOLINTNEXTLINE(misc-no-recursion)
 void GridComponent::jacobianElements(const IOdata& inputs,
-                                     const stateData& stateDataValue,
+                                     const StateData& stateDataValue,
                                      matrixData<double>& matrixDataValue,
                                      const IOlocs& inputLocs,
                                      const SolverMode& sMode)
@@ -1809,7 +1809,7 @@ void GridComponent::jacobianElements(const IOdata& inputs,
 }
 // NOLINTNEXTLINE(misc-no-recursion)
 void GridComponent::rootTest(const IOdata& inputs,
-                             const stateData& stateDataValue,
+                             const StateData& stateDataValue,
                              double roots[],
                              const SolverMode& sMode)
 {
@@ -1841,7 +1841,7 @@ void GridComponent::rootTrigger(coreTime time,
 
 // NOLINTNEXTLINE(misc-no-recursion)
 ChangeCode GridComponent::rootCheck(const IOdata& inputs,
-                                    const stateData& stateDataValue,
+                                    const StateData& stateDataValue,
                                     const SolverMode& sMode,
                                     CheckLevel level)
 {
@@ -1883,7 +1883,7 @@ index_t GridComponent::lookupOutputIndex(std::string_view outputName) const
 }
 
 double GridComponent::getOutput(const IOdata& /*inputs*/,
-                                const stateData& stateDataValue,
+                                const StateData& stateDataValue,
                                 const SolverMode& sMode,
                                 index_t outputNum) const
 {
@@ -1917,7 +1917,7 @@ double GridComponent::getOutput(index_t outputNum) const
 }
 
 IOdata GridComponent::getOutputs(const IOdata& inputs,
-                                 const stateData& stateDataValue,
+                                 const StateData& stateDataValue,
                                  const SolverMode& sMode) const
 {
     IOdata mout(m_outputSize);
@@ -1930,7 +1930,7 @@ IOdata GridComponent::getOutputs(const IOdata& inputs,
 // static IOdata kNullVec;
 
 double GridComponent::getDoutdt(const IOdata& /*inputs*/,
-                                const stateData& stateDataValue,
+                                const StateData& stateDataValue,
                                 const SolverMode& sMode,
                                 index_t outputNum) const
 {
@@ -2005,7 +2005,7 @@ double GridComponent::getParameter(index_t param) const
 void GridComponent::parameterPartialDerivatives(index_t param,
                                                 double /*val*/,
                                                 const IOdata& /*inputs*/,
-                                                const stateData& /*sD*/,
+                                                const StateData& /*sD*/,
                                                 matrixData<double>& /*md*/,
                                                 const SolverMode& /*sMode*/)
 {
@@ -2016,7 +2016,7 @@ double GridComponent::parameterOutputPartialDerivatives(index_t param,
                                                         double /*val*/,
                                                         index_t /*outputNum*/,
                                                         const IOdata& /*inputs*/,
-                                                        const stateData& /*sD*/,
+                                                        const StateData& /*sD*/,
                                                         const SolverMode& /*sMode*/)
 {
     throw(UnrecognizedParameter("param" + std::to_string(param)));

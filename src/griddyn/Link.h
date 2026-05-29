@@ -114,7 +114,7 @@ class Link: public GridPrimary {
 
     virtual void updateLocalCache() override;
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const stateData& stateData,
+                                  const StateData& stateData,
                                   const SolverMode& sMode) override;
 
     /** @brief allow the real power flow to be fixed by adjusting the properties of one bus or
@@ -201,7 +201,7 @@ class Link: public GridPrimary {
     */
 
     double
-        getBusAngle(const stateData& stateData, const SolverMode& sMode, id_type_t busId = 0) const;
+        getBusAngle(const StateData& stateData, const SolverMode& sMode, id_type_t busId = 0) const;
     /** @brief get the voltage of an attached bus
     @param[in] busId  either 1 or 2 or the object id of the bus
     * @return the voltage
@@ -303,21 +303,21 @@ class Link: public GridPrimary {
     // for computing all the Jacobian elements at once
     using GridComponent::ioPartialDerivatives;
     virtual void ioPartialDerivatives(id_type_t busId,
-                                      const stateData& sD,
+                                      const StateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode);
 
     using GridComponent::outputPartialDerivatives;
     virtual void outputPartialDerivatives(id_type_t busId,
-                                          const stateData& sD,
+                                          const StateData& sD,
                                           matrixData<double>& md,
                                           const SolverMode& sMode);
 
     virtual IOdata getOutputs(const IOdata& inputs,
-                              const stateData& stateData,
+                              const StateData& stateData,
                               const SolverMode& sMode) const override;
-    virtual IOdata getOutputs(id_type_t busId, const stateData& sD, const SolverMode& sMode) const;
+    virtual IOdata getOutputs(id_type_t busId, const StateData& sD, const SolverMode& sMode) const;
     virtual void setState(coreTime time,
                           const double state[],
                           const double dstate_dt[],

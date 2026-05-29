@@ -21,11 +21,11 @@
 */
 namespace griddyn {
 using objJacFunction = std::function<void(GridComponent* comp,
-                                          const stateData& stateDataValue,
+                                          const StateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
                                           const SolverMode& sMode)>;
 using objStateGrabberFunction = std::function<
-    double(GridComponent* comp, const stateData& stateDataValue, const SolverMode& sMode)>;
+    double(GridComponent* comp, const StateData& stateDataValue, const SolverMode& sMode)>;
 
 /** define if the grabber can compute the Jacobian information*/
 enum class JacobianMode {
@@ -74,15 +74,14 @@ class StateGrabber: public ObjectOperatorInterface {
     */
     virtual void updateField(std::string_view fld);
     /** retrieve the target data associated with a grabber
-    @param[in] stateDataValue the stateData to grab the data from
-    @param[in] sMode the solver mode associated with the stateData
-    */
-    virtual double grabData(const stateData& stateDataValue, const SolverMode& sMode);
+    @param[in] stateDataValue the StateData to grab the data from
+    @param[in] sMode the solver mode associated with the StateData*/
+    virtual double grabData(const StateData& stateDataValue, const SolverMode& sMode);
     /** compute the partial derivatives of a grabber
-    @param[in] stateDataValue the stateData for computing the information
+    @param[in] stateDataValue the StateData for computing the information
     @param[in] matrixDataValue the  matrix to store the computed Jacobian information into
-    @param[in] sMode the SolverMode associated with the stateData*/
-    virtual void outputPartialDerivatives(const stateData& stateDataValue,
+    @param[in] sMode the SolverMode associated with the StateData*/
+    virtual void outputPartialDerivatives(const StateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
                                           const SolverMode& sMode);
     virtual void updateObject(CoreObject* obj,
@@ -108,7 +107,7 @@ class StateGrabber: public ObjectOperatorInterface {
 };
 
 using fstateobjectPair = std::pair<
-    std::function<double(GridComponent*, const stateData& stateDataValue, const SolverMode& sMode)>,
+    std::function<double(GridComponent*, const StateData& stateDataValue, const SolverMode& sMode)>,
     units::unit>;
 
 /** construct a vector of state grabbers from a specific command string
@@ -153,8 +152,8 @@ class StateFunctionGrabber: public StateGrabber {
     StateFunctionGrabber(std::shared_ptr<StateGrabber> ggb, std::string func);
     virtual std::unique_ptr<StateGrabber> clone() const override;
     virtual void cloneTo(StateGrabber* ggb) const override;
-    virtual double grabData(const stateData& stateDataValue, const SolverMode& sMode) override;
-    virtual void outputPartialDerivatives(const stateData& stateDataValue,
+    virtual double grabData(const StateData& stateDataValue, const SolverMode& sMode) override;
+    virtual void outputPartialDerivatives(const StateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
                                           const SolverMode& sMode) override;
     virtual void updateObject(CoreObject* obj,
@@ -180,8 +179,8 @@ class StateOpGrabber: public StateGrabber {
                    std::string operationName);
     virtual std::unique_ptr<StateGrabber> clone() const override;
     virtual void cloneTo(StateGrabber* ggb) const override;
-    virtual double grabData(const stateData& stateDataValue, const SolverMode& sMode) override;
-    virtual void outputPartialDerivatives(const stateData& stateDataValue,
+    virtual double grabData(const StateData& stateDataValue, const SolverMode& sMode) override;
+    virtual void outputPartialDerivatives(const StateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
                                           const SolverMode& sMode) override;
     virtual void updateObject(CoreObject* obj,

@@ -264,7 +264,7 @@ void AggregateLoad::set(std::string_view param, double val, units::unit unitType
 }
 
 void AggregateLoad::residual(const IOdata& inputs,
-                             const stateData& sD,
+                             const StateData& sD,
                              double resid[],
                              const SolverMode& sMode)
 {
@@ -276,7 +276,7 @@ void AggregateLoad::residual(const IOdata& inputs,
 }
 
 void AggregateLoad::derivative(const IOdata& inputs,
-                               const stateData& sD,
+                               const StateData& sD,
                                double deriv[],
                                const SolverMode& sMode)
 {
@@ -288,7 +288,7 @@ void AggregateLoad::derivative(const IOdata& inputs,
 }
 
 void AggregateLoad::outputPartialDerivatives(const IOdata& inputs,
-                                             const stateData& sD,
+                                             const StateData& sD,
                                              matrixData<double>& md,
                                              const SolverMode& sMode)
 {
@@ -300,7 +300,7 @@ void AggregateLoad::outputPartialDerivatives(const IOdata& inputs,
 }
 
 void AggregateLoad::ioPartialDerivatives(const IOdata& inputs,
-                                         const stateData& sD,
+                                         const StateData& sD,
                                          matrixData<double>& md,
                                          const IOlocs& inputLocs,
                                          const SolverMode& sMode)
@@ -311,7 +311,7 @@ void AggregateLoad::ioPartialDerivatives(const IOdata& inputs,
 }
 
 void AggregateLoad::jacobianElements(const IOdata& inputs,
-                                     const stateData& sD,
+                                     const StateData& sD,
                                      matrixData<double>& md,
                                      const IOlocs& inputLocs,
                                      const SolverMode& sMode)
@@ -331,7 +331,7 @@ void AggregateLoad::timestep(coreTime time, const IOdata& inputs, const SolverMo
 }
 
 double AggregateLoad::getRealPower(const IOdata& inputs,
-                                   const stateData& sD,
+                                   const StateData& sD,
                                    const SolverMode& sMode) const
 {
     double rp = 0;
@@ -344,7 +344,7 @@ double AggregateLoad::getRealPower(const IOdata& inputs,
 }
 
 double AggregateLoad::getReactivePower(const IOdata& inputs,
-                                       const stateData& sD,
+                                       const StateData& sD,
                                        const SolverMode& sMode) const
 {
     double rp = 0;

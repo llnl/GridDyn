@@ -118,7 +118,7 @@ int jacobianCheck(GridDynSimulation* gds,
 
     std::vector<double> resid(nsize);
     std::vector<double> resid2(nsize);
-    stateData sD(timeCurr, nstate.data(), ndstate.data());
+    StateData sD(timeCurr, nstate.data(), ndstate.data());
     if (sMode.pairedOffsetIndex != kNullLocation) {
         gds->fillExtraStateData(sD, sMode);
     }
@@ -330,7 +330,7 @@ int residualCheck(GridDynSimulation* gds,
     }
 
     std::vector<double> resid(nsize);
-    stateData sD(time, sd->stateData());
+    StateData sD(time, sd->stateData());
     if (residTol < 0)  // make sure the tolerance is positive
     {
         residTol = resid_check_tol;
@@ -389,7 +389,7 @@ int algebraicCheck(GridDynSimulation* gds,
     {
         algTol = resid_check_tol;
     }
-    stateData sD(time, sd->stateData());
+    StateData sD(time, sd->stateData());
     sD.dstate_dt = (isDAE(sMode)) ? sd->derivData() : nullptr;
 
     gds->algebraicUpdate(noInputs, sD, update.data(), sMode, 1.0);
@@ -454,7 +454,7 @@ int derivativeCheck(GridDynSimulation* gds,
     {
         derivTol = resid_check_tol;
     }
-    stateData sD(time, sd->stateData(), sd->derivData());
+    StateData sD(time, sd->stateData(), sd->derivData());
 
     gds->derivative(noInputs, sD, deriv.data(), sMode);
     std::vector<double> vtype(nsize);

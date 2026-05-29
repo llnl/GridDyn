@@ -38,7 +38,7 @@ void Stabilizer::dynObjectInitializeB(const IOdata& /*inputs*/,
 
 // residual
 void Stabilizer::residual(const IOdata& /*inputs*/,
-                          const stateData& /*sD*/,
+                          const StateData& /*sD*/,
                           double /*resid*/[],
                           const SolverMode& /*sMode*/)
 {
@@ -62,7 +62,7 @@ void Stabilizer::set(std::string_view param, double val, units::unit unitType)
 }
 
 void Stabilizer::jacobianElements(const IOdata& /*inputs*/,
-                                  const stateData& /*sD*/,
+                                  const StateData& /*sD*/,
                                   matrixData<double>& /*md*/,
                                   const IOlocs& /*inputLocs*/,
                                   const SolverMode& sMode)
@@ -73,7 +73,7 @@ void Stabilizer::jacobianElements(const IOdata& /*inputs*/,
 }
 
 void Stabilizer::derivative(const IOdata& /*inputs*/,
-                            const stateData& /*sD*/,
+                            const StateData& /*sD*/,
                             double /*deriv*/[],
                             const SolverMode& /*sMode*/)
 {

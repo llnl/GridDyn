@@ -80,7 +80,7 @@ double pulseSource::computeOutput(coreTime time) const
 }
 
 double pulseSource::getDoutdt(const IOdata& /*inputs*/,
-                              const stateData& stateData,
+                              const StateData& stateData,
                               const SolverMode& /*sMode*/,
                               index_t /*num*/) const
 {

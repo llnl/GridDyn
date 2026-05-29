@@ -35,14 +35,14 @@ class LutBlock: public GridBlock {
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual void blockAlgebraicUpdate(double input,
-                                      const stateData& stateDataValue,
+                                      const StateData& stateDataValue,
                                       double update[],
                                       const SolverMode& sMode) override;
-    // virtual double blockResidual (double input, double didt, const stateData &sD, double
+    // virtual double blockResidual (double input, double didt, const StateData&sD, double
     // resid[], const SolverMode &sMode) override;
     virtual void blockJacobianElements(double input,
                                        double didt,
-                                       const stateData& stateDataValue,
+                                       const StateData& stateDataValue,
                                        matrixData<double>& matrixDataValue,
                                        index_t argLoc,
                                        const SolverMode& sMode) override;

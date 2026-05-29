@@ -1203,7 +1203,7 @@ void AcBus::setVoltageAngle(double Vnew, double Anew)
 static const IOdata kNullVec;
 
 IOdata AcBus::getOutputs(const IOdata& /*inputs*/,
-                         const stateData& stateDataValue,
+                         const StateData& stateDataValue,
                          const SolverMode& sMode) const
 {
     if (isLocal(sMode) || stateDataValue.empty()) {
@@ -1298,7 +1298,7 @@ double AcBus::getAngle(const double state[], const SolverMode& sMode) const
     return (angleOffset != kNullLocation) ? state[angleOffset] : angle;
 }
 
-double AcBus::getVoltage(const stateData& stateDataValue, const SolverMode& sMode) const
+double AcBus::getVoltage(const StateData& stateDataValue, const SolverMode& sMode) const
 {
     if (isLocal(sMode)) {
         return voltage;
@@ -1320,7 +1320,7 @@ double AcBus::getVoltage(const stateData& stateDataValue, const SolverMode& sMod
     return voltage;
 }
 
-double AcBus::getAngle(const stateData& stateDataValue, const SolverMode& sMode) const
+double AcBus::getAngle(const StateData& stateDataValue, const SolverMode& sMode) const
 {
     if (isLocal(sMode)) {
         return angle;
@@ -1340,7 +1340,7 @@ double AcBus::getAngle(const stateData& stateDataValue, const SolverMode& sMode)
     return angle;
 }
 
-double AcBus::getFreq(const stateData& stateDataValue, const SolverMode& sMode) const
+double AcBus::getFreq(const StateData& stateDataValue, const SolverMode& sMode) const
 {
     double frequencyValue = freq;
     if (opFlags[uses_bus_frequency]) {
@@ -1567,7 +1567,7 @@ void AcBus::setState(coreTime time,
 
 // residual
 void AcBus::residual(const IOdata& inputs,
-                     const stateData& stateDataValue,
+                     const StateData& stateDataValue,
                      double resid[],
                      const SolverMode& sMode)
 {
@@ -1622,7 +1622,7 @@ void AcBus::residual(const IOdata& inputs,
 }
 
 void AcBus::derivative(const IOdata& inputs,
-                       const stateData& stateDataValue,
+                       const StateData& stateDataValue,
                        double deriv[],
                        const SolverMode& sMode)
 {
@@ -1634,7 +1634,7 @@ void AcBus::derivative(const IOdata& inputs,
 
 // Jacobian
 void AcBus::jacobianElements(const IOdata& inputs,
-                             const stateData& stateDataValue,
+                             const StateData& stateDataValue,
                              matrixData<double>& matrixDataValue,
                              const IOlocs& inputLocs,
                              const SolverMode& sMode)
@@ -1718,7 +1718,7 @@ void AcBus::jacobianElements(const IOdata& inputs,
     }
 }
 
-void AcBus::voltageUpdate(const stateData& stateDataValue,
+void AcBus::voltageUpdate(const StateData& stateDataValue,
                           double update[],
                           const SolverMode& sMode,
                           double alpha)
@@ -1762,7 +1762,7 @@ void AcBus::voltageUpdate(const stateData& stateDataValue,
 }
 
 void AcBus::algebraicUpdate(const IOdata& inputs,
-                            const stateData& stateDataValue,
+                            const StateData& stateDataValue,
                             double update[],
                             const SolverMode& sMode,
                             double alpha)
@@ -1975,7 +1975,7 @@ void AcBus::localConverge(const SolverMode& sMode, int mode, double tol)
     }
 }
 
-void AcBus::convergeHighErrorOnly(const stateData& stateDataValue,
+void AcBus::convergeHighErrorOnly(const StateData& stateDataValue,
                                   double state[],
                                   const SolverMode& sMode,
                                   double& err,
@@ -2001,7 +2001,7 @@ void AcBus::convergeHighErrorOnly(const stateData& stateDataValue,
     algebraicUpdate(noInputs, stateDataValue, state, sMode, 1.0);
 }
 
-bool AcBus::convergeStrongIteration(const stateData& stateDataValue,
+bool AcBus::convergeStrongIteration(const StateData& stateDataValue,
                                     double state[],
                                     const SolverMode& sMode,
                                     ConvergeMode& mode,
@@ -2040,7 +2040,7 @@ bool AcBus::convergeStrongIteration(const stateData& stateDataValue,
     return false;
 }
 
-bool AcBus::convergeVoltageOnly(const stateData& stateDataValue,
+bool AcBus::convergeVoltageOnly(const StateData& stateDataValue,
                                 double state[],
                                 const SolverMode& sMode,
                                 ConvergeMode& mode,
@@ -2140,7 +2140,7 @@ bool AcBus::convergeVoltageOnly(const stateData& stateDataValue,
 
         if (isDynamic(sMode)) {
             for (auto& gen : attachedGens) {
-                stateData generatorState;
+                StateData generatorState;
                 generatorState.state = state;
                 gen->algebraicUpdate({voltageValue - voltageDelta, angleValue, frequencyValue},
                                      generatorState,
@@ -2173,7 +2173,7 @@ void AcBus::converge(coreTime time,
 
     const bool useVoltageState = useVoltage(sMode) && (Voffset != kNullLocation);
     const bool useAngleState = useAngle(sMode) && (Aoffset != kNullLocation);
-    const stateData stateDataValue(time, state, dstate_dt);
+    const StateData stateDataValue(time, state, dstate_dt);
     double voltageValue = useVoltageState ? state[Voffset] : voltage;
     double angleValue = useAngleState ? state[Aoffset] : angle;
     const double frequencyValue = getFreq(stateDataValue, sMode);
@@ -2252,7 +2252,7 @@ void AcBus::converge(coreTime time,
     }
 }
 
-double AcBus::computeError(const stateData& stateDataValue, const SolverMode& sMode)
+double AcBus::computeError(const StateData& stateDataValue, const SolverMode& sMode)
 {
     updateLocalCache(noInputs, stateDataValue, sMode);
     double err = 0;
@@ -2278,10 +2278,10 @@ stringVec AcBus::localStateNames() const
     return stNames;
 }
 
-void AcBus::setOffsets(const solverOffsets& newOffsets, const SolverMode& sMode)
+void AcBus::setOffsets(const SolverOffsets& newOffsets, const SolverMode& sMode)
 {
     offsets.setOffsets(newOffsets, sMode);
-    solverOffsets newLocalOffsets(newOffsets);
+    SolverOffsets newLocalOffsets(newOffsets);
     newLocalOffsets.localIncrement(offsets.getOffsets(sMode));
     for (auto* load : attachedLoads) {
         load->setOffsets(newLocalOffsets, sMode);
@@ -2429,9 +2429,9 @@ count_t AcBus::getDependencyCount(const SolverMode& sMode) const
     return sum;
 }
 
-stateSizes AcBus::localStateSizes(const SolverMode& sMode) const
+StateSizes AcBus::localStateSizes(const SolverMode& sMode) const
 {
-    stateSizes busSS;
+    StateSizes busSS;
     if (hasAlgebraic(sMode)) {
         busSS.aSize = 1;
         if (isAC(sMode)) {
@@ -2537,7 +2537,7 @@ void AcBus::updateFlags(bool /*dynOnly*/)
 
 static const IOlocs inLoc{0, 1, 2};
 
-void AcBus::computeDerivatives(const stateData& stateDataValue, const SolverMode& sMode)
+void AcBus::computeDerivatives(const StateData& stateDataValue, const SolverMode& sMode)
 {
     if (!isConnected()) {
         return;
@@ -2566,7 +2566,7 @@ void AcBus::computeDerivatives(const stateData& stateDataValue, const SolverMode
 
 // computed power at bus
 void AcBus::updateLocalCache(const IOdata& inputs,
-                             const stateData& stateDataValue,
+                             const StateData& stateDataValue,
                              const SolverMode& sMode)
 {
     if (!S.needsUpdate(stateDataValue)) {
@@ -2700,7 +2700,7 @@ double AcBus::get(std::string_view param, unit unitType) const
 }
 
 ChangeCode AcBus::rootCheck(const IOdata& inputs,
-                            const stateData& stateDataValue,
+                            const StateData& stateDataValue,
                             const SolverMode& sMode,
                             CheckLevel level)
 {

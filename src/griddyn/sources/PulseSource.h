@@ -46,7 +46,7 @@ class pulseSource: public Source {
     virtual void updateOutput(coreTime time) override;
     virtual double computeOutput(coreTime time) const override;
     virtual double getDoutdt(const IOdata& inputs,
-                             const stateData& stateData,
+                             const StateData& stateData,
                              const SolverMode& sMode,
                              index_t num = 0) const override;
 

@@ -111,7 +111,7 @@ class subsystem: public Link {
                           double tol = 0.01) override;
     virtual void updateLocalCache() override;
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const stateData& stateData,
+                                  const StateData& stateData,
                                   const SolverMode& sMode) override;
 
     virtual void reset(ResetLevels level) override;
@@ -170,23 +170,23 @@ class subsystem: public Link {
     // for computing all the Jacobian elements at once
     using Link::ioPartialDerivatives;
     virtual void ioPartialDerivatives(id_type_t busId,
-                                      const stateData& stateData,
+                                      const StateData& stateData,
                                       matrixData<double>& jacobian,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
     using Link::outputPartialDerivatives;
     virtual void outputPartialDerivatives(id_type_t busId,
-                                          const stateData& stateData,
+                                          const StateData& stateData,
                                           matrixData<double>& jacobian,
                                           const SolverMode& sMode) override;
 
-    // virtual void busResidual(index_t busId, const stateData &sD, double *Fp, double *Fq, const
+    // virtual void busResidual(index_t busId, const StateData&sD, double *Fp, double *Fq, const
     // SolverMode &sMode);
     virtual IOdata getOutputs(const IOdata& inputs,
-                              const stateData& stateData,
+                              const StateData& stateData,
                               const SolverMode& sMode) const override;
     virtual IOdata getOutputs(id_type_t busId,
-                              const stateData& stateData,
+                              const StateData& stateData,
                               const SolverMode& sMode) const override;
     // TODO(phlpt): Add the other getOutput functions.
   protected:

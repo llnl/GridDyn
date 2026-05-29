@@ -60,27 +60,27 @@ class DeadbandBlock: public GridBlock {
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     // virtual index_t findIndex(const std::string &field, const SolverMode &sMode) const;
 
-    // virtual void derivative(const IOdata &inputs, const stateData &sD, double deriv[], const
+    // virtual void derivative(const IOdata &inputs, const StateData&sD, double deriv[], const
     // SolverMode &sMode);
     virtual void blockDerivative(double input,
                                  double didt,
-                                 const stateData& stateDataRef,
+                                 const StateData& stateDataRef,
                                  double deriv[],
                                  const SolverMode& sMode) override;
     virtual void blockAlgebraicUpdate(double input,
-                                      const stateData& stateDataRef,
+                                      const StateData& stateDataRef,
                                       double update[],
                                       const SolverMode& sMode) override;
 
     virtual void blockJacobianElements(double input,
                                        double didt,
-                                       const stateData& stateDataRef,
+                                       const StateData& stateDataRef,
                                        matrixData<double>& jacobian,
                                        index_t argLoc,
                                        const SolverMode& sMode) override;
     virtual double step(coreTime time, double input) override;
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& stateDataRef,
+                          const StateData& stateDataRef,
                           double roots[],
                           const SolverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
@@ -88,7 +88,7 @@ class DeadbandBlock: public GridBlock {
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                 const stateData& stateDataRef,
+                                 const StateData& stateDataRef,
                                  const SolverMode& sMode,
                                  CheckLevel level) override;
     /** @brief get the deadband state

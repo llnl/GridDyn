@@ -109,7 +109,7 @@ void GenModel::dynObjectInitializeB(const IOdata& inputs,
 
 // residual
 
-double GenModel::getFreq(const stateData& stateDataValue,
+double GenModel::getFreq(const StateData& stateDataValue,
                          const SolverMode& sMode,
                          index_t* freqOffset) const
 {
@@ -121,7 +121,7 @@ double GenModel::getFreq(const stateData& stateDataValue,
     return bus->getFreq(stateDataValue, sMode);
 }
 
-double GenModel::getAngle(const stateData& /*stateDataValue*/,
+double GenModel::getAngle(const StateData& /*stateDataValue*/,
                           const SolverMode& /*sMode*/,
                           index_t* angleOffset) const
 {
@@ -138,7 +138,7 @@ count_t GenModel::outputDependencyCount(index_t /*num*/, const SolverMode& /*sMo
     return 0;
 }
 IOdata GenModel::getOutputs(const IOdata& inputs,
-                            const stateData& /*stateDataValue*/,
+                            const StateData& /*stateDataValue*/,
                             const SolverMode& /*sMode*/) const
 {
     IOdata out(2);
@@ -156,7 +156,7 @@ IOdata GenModel::getOutputs(const IOdata& inputs,
 }
 
 double GenModel::getOutput(const IOdata& inputs,
-                           const stateData& /*stateDataValue*/,
+                           const StateData& /*stateDataValue*/,
                            const SolverMode& /*sMode*/,
                            index_t outNum) const
 {
@@ -186,7 +186,7 @@ double GenModel::getOutput(index_t /*numOut*/) const
 }
 
 void GenModel::ioPartialDerivatives(const IOdata& inputs,
-                                    const stateData& /*stateDataValue*/,
+                                    const StateData& /*stateDataValue*/,
                                     matrixData<double>& matrixDataValue,
                                     const IOlocs& inputLocs,
                                     const SolverMode& /*sMode*/)

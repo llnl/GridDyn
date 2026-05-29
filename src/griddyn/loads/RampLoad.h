@@ -33,7 +33,7 @@ namespace loads {
             set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
         virtual void updateLocalCache(const IOdata& inputs,
-                                      const stateData& sD,
+                                      const StateData& sD,
                                       const SolverMode& sMode) override;
         /** set the ramps to 0*/
         void clearRamp();

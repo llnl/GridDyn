@@ -469,7 +469,7 @@ return out;
 }
 
 void FmiCoSimSubModel::ioPartialDerivatives(const IOdata& /*inputs*/,
-                                            const stateData& /*sD*/,
+                                            const StateData& /*sD*/,
                                             matrixData<double>& /* md*/,
                                             const IOlocs& /*inputLocs*/,
                                             const SolverMode& /*sMode*/)
@@ -514,7 +514,7 @@ for (kk = 0; kk < m_outputSize; ++kk)
 }
 
 IOdata FmiCoSimSubModel::getOutputs(const IOdata& /*inputs*/,
-                                    const stateData& sD,
+                                    const StateData& sD,
                                     const SolverMode& sMode) const
 {
     IOdata out(m_outputSize, 0);
@@ -543,7 +543,7 @@ IOdata FmiCoSimSubModel::getOutputs(const IOdata& /*inputs*/,
 }
 
 double FmiCoSimSubModel::getDoutdt(const IOdata& /*inputs*/,
-                                   const stateData& /*sD*/,
+                                   const StateData& /*sD*/,
                                    const SolverMode& /*sMode*/,
                                    index_t /*outputNum*/) const
 {
@@ -551,7 +551,7 @@ double FmiCoSimSubModel::getDoutdt(const IOdata& /*inputs*/,
 }
 
 double FmiCoSimSubModel::getOutput(const IOdata& /*inputs*/,
-                                   const stateData& sD,
+                                   const StateData& sD,
                                    const SolverMode& sMode,
                                    index_t outputNum) const
 {
@@ -584,7 +584,7 @@ double FmiCoSimSubModel::getOutput(index_t outputNum) const
 }
 
 void FmiCoSimSubModel::updateLocalCache([[maybe_unused]] const IOdata& inputs,
-                                        [[maybe_unused]] const stateData& sD,
+                                        [[maybe_unused]] const StateData& sD,
                                         [[maybe_unused]] const SolverMode& sMode)
 {
     static_cast<void>(inputs);

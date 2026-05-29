@@ -50,7 +50,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
         }
     }
     virtual void residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const StateData& sD,
                           double resid[],
                           const SolverMode& sMode) override
     {
@@ -61,7 +61,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
     }
 
     virtual void derivative(const IOdata& inputs,
-                            const stateData& sD,
+                            const StateData& sD,
                             double deriv[],
                             const SolverMode& sMode) override
     {
@@ -72,7 +72,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
     }
 
     virtual void outputPartialDerivatives(const IOdata& inputs,
-                                          const stateData& sD,
+                                          const StateData& sD,
                                           matrixData<double>& md,
                                           const SolverMode& sMode) override
     {
@@ -82,7 +82,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
         FmiWrapper<FmiMESubModel, BaseObj>::fmisub->outputPartialDerivatives(inputs, sD, md, sMode);
     }
     virtual void ioPartialDerivatives(const IOdata& inputs,
-                                      const stateData& sD,
+                                      const StateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override
@@ -94,7 +94,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
             inputs, sD, md, inputLocs, sMode);
     }
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const StateData& sD,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override
@@ -107,7 +107,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
     }
 
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& sD,
+                          const StateData& sD,
                           double roots[],
                           const SolverMode& sMode) override
     {

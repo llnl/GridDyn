@@ -19,7 +19,7 @@ double compoundCondition::evalCondition()
 {
     return 0.0;
 }
-double compoundCondition::evalCondition(const stateData& /*sD*/, const SolverMode& /*sMode*/)
+double compoundCondition::evalCondition(const StateData& /*sD*/, const SolverMode& /*sMode*/)
 {
     return 0.0;
 }
@@ -41,7 +41,7 @@ bool compoundCondition::checkCondition() const
     return evalCombinations(static_cast<count_t>(trueConditionCount));
 }
 
-bool compoundCondition::checkCondition(const stateData& stateDataValue,
+bool compoundCondition::checkCondition(const StateData& stateDataValue,
                                        const SolverMode& sMode) const
 {
     unsigned int trueConditionCount = 0;

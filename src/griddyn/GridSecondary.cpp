@@ -139,14 +139,14 @@ void gridSecondary::set(std::string_view param, double val, units::unit unitType
 }
 
 double gridSecondary::getRealPower(const IOdata& /*inputs*/,
-                                   const stateData& /*stateDataValue*/,
+                                   const StateData& /*stateDataValue*/,
                                    const SolverMode& /*sMode*/) const
 {
     return 0.0;
 }
 
 double gridSecondary::getReactivePower(const IOdata& /*inputs*/,
-                                       const stateData& /*stateDataValue*/,
+                                       const StateData& /*stateDataValue*/,
                                        const SolverMode& /*sMode*/) const
 {
     return 0.0;
@@ -169,7 +169,7 @@ double gridSecondary::getAdjustableCapacityDown(coreTime /*time*/) const
     return 0.0;
 }
 double gridSecondary::getDoutdt(const IOdata& /*inputs*/,
-                                const stateData& /*stateDataValue*/,
+                                const StateData& /*stateDataValue*/,
                                 const SolverMode& /*sMode*/,
                                 index_t /*outputNum*/) const
 {
@@ -177,7 +177,7 @@ double gridSecondary::getDoutdt(const IOdata& /*inputs*/,
 }
 
 double gridSecondary::getOutput(const IOdata& inputs,
-                                const stateData& stateDataValue,
+                                const StateData& stateDataValue,
                                 const SolverMode& sMode,
                                 index_t outputNum) const
 {
@@ -202,7 +202,7 @@ double gridSecondary::getOutput(index_t outputNum) const
 }
 
 IOdata gridSecondary::getOutputs(const IOdata& inputs,
-                                 const stateData& stateDataValue,
+                                 const StateData& stateDataValue,
                                  const SolverMode& sMode) const
 {
     IOdata out(2);
@@ -213,7 +213,7 @@ IOdata gridSecondary::getOutputs(const IOdata& inputs,
 
 IOdata gridSecondary::predictOutputs(coreTime /*predictionTime*/,
                                      const IOdata& inputs,
-                                     const stateData& stateDataValue,
+                                     const StateData& stateDataValue,
                                      const SolverMode& sMode) const
 {
     IOdata out(2);

@@ -959,7 +959,7 @@ void captureJacState(GridDynSimulation* gds, const std::string& fileName, const 
     const auto& currentMode = gds->getCurrentMode(sMode);
     auto solverInterface = gds->getSolverInterface(currentMode);
     matrixDataSparse<double> matrixData;
-    stateData stateDescription(gds->getSimulationTime(),
+    StateData stateDescription(gds->getSimulationTime(),
                                solverInterface->stateData(),
                                solverInterface->derivData());
 
@@ -1008,7 +1008,7 @@ void saveJacobian(GridDynSimulation* gds, const std::string& fileName, const Sol
 
     matrixDataSparse<double> matrixData;
 
-    stateData stateDescription(gds->getSimulationTime(),
+    StateData stateDescription(gds->getSimulationTime(),
                                SolverInterface->stateData(),
                                SolverInterface->derivData());
 

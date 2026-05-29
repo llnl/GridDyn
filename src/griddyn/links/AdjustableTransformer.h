@@ -117,11 +117,11 @@ which cases the parent of the link is searched for the bus*/
 
     void updateLocalCache() override;
     void updateLocalCache(const IOdata& inputs,
-                          const stateData& stateData,
+                          const StateData& stateData,
                           const SolverMode& sMode) override;
 
     void jacobianElements(const IOdata& inputs,
-                          const stateData& stateData,
+                          const StateData& stateData,
                           matrixData<double>& matrixDataRef,
                           const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
@@ -129,22 +129,22 @@ which cases the parent of the link is searched for the bus*/
 
     using AcLine::ioPartialDerivatives;
     virtual void ioPartialDerivatives(id_type_t busId,
-                                      const stateData& stateData,
+                                      const StateData& stateData,
                                       matrixData<double>& matrixDataRef,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(const IOdata& inputs,
-                                          const stateData& stateData,
+                                          const StateData& stateData,
                                           matrixData<double>& matrixDataRef,
                                           const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(id_type_t busId,
-                                          const stateData& stateData,
+                                          const StateData& stateData,
                                           matrixData<double>& matrixDataRef,
                                           const SolverMode& sMode) override;
     virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
 
     void residual(const IOdata& inputs,
-                  const stateData& stateData,
+                  const StateData& stateData,
                   double resid[],
                   const SolverMode& sMode) override;
     void setState(coreTime time,
@@ -155,7 +155,7 @@ which cases the parent of the link is searched for the bus*/
                     double state[],
                     double dstateDt[],
                     const SolverMode& sMode) override;
-    virtual stateSizes localStateSizes(const SolverMode& sMode) const override;
+    virtual StateSizes localStateSizes(const SolverMode& sMode) const override;
     virtual count_t localJacobianCount(const SolverMode& sMode) const override;
 
   protected:
@@ -164,7 +164,7 @@ which cases the parent of the link is searched for the bus*/
 
   public:
     void rootTest(const IOdata& inputs,
-                  const stateData& stateData,
+                  const StateData& stateData,
                   double roots[],
                   const SolverMode& sMode) override;
     void rootTrigger(coreTime time,
@@ -178,39 +178,35 @@ which cases the parent of the link is searched for the bus*/
 
   protected:
     /** @brief compute the Jacobian elements based on the MW control
-@param[in] stateData  the stateData of the current state of the system
+@param[in] StateData the StateData of the current state of the system
 @param[out] matrixDataRef the matrixData object to store the Jacobian information
-@param[in] sMode the SolverMode corresponding to the stateData
-*/
-    void MWJac(const stateData& stateData,
+@param[in] sMode the SolverMode corresponding to the StateData*/
+    void MWJac(const StateData& stateData,
                matrixData<double>& matrixDataRef,
                const SolverMode& sMode);
     /** @brief compute the Jacobian elements based on the MVar control
-@param[in] stateData  the stateData of the current state of the system
+@param[in] StateData the StateData of the current state of the system
 @param[out] matrixDataRef the matrixData object to store the Jacobian information
-@param[in] sMode the SolverMode corresponding to the stateData
-*/
-    void MVarJac(const stateData& stateData,
+@param[in] sMode the SolverMode corresponding to the StateData*/
+    void MVarJac(const StateData& stateData,
                  matrixData<double>& matrixDataRef,
                  const SolverMode& sMode);
     /** @brief compute the partial derivatives of the power flows based on the tap angle
 @param[in] busId the id of the calling bus either 1 or 2 or a busID of one of the attached buses
-@param[in] stateData  the stateData of the current state of the system
+@param[in] StateData the StateData of the current state of the system
 @param[out] matrixDataRef the matrixData object to store the Jacobian information
-@param[in] sMode the SolverMode corresponding to the stateData
-*/
+@param[in] sMode the SolverMode corresponding to the StateData*/
     void tapAnglePartial(index_t busId,
-                         const stateData& stateData,
+                         const StateData& stateData,
                          matrixData<double>& matrixDataRef,
                          const SolverMode& sMode);
     /** @brief compute the partial derivatives of the power flows based on the tap setting
 @param[in] busId the id of the calling bus either 1 or 2 or a busID of one of the attached buses
-@param[in] stateData  the stateData of the current state of the system
+@param[in] StateData the StateData of the current state of the system
 @param[out] matrixDataRef the matrixData object to store the Jacobian information
-@param[in] sMode the SolverMode corresponding to the stateData
-*/
+@param[in] sMode the SolverMode corresponding to the StateData*/
     void tapPartial(index_t busId,
-                    const stateData& stateData,
+                    const StateData& stateData,
                     matrixData<double>& matrixDataRef,
                     const SolverMode& sMode);
     /** @brief do any stepped adjustments  based on voltage control from the power flow

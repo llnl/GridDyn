@@ -31,7 +31,7 @@ class FmiMELoad: public FmiMEWrapper<GridLoad> {
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const stateData& stateDataRef,
+                                  const StateData& stateDataRef,
                                   const SolverMode& sMode) override;
     virtual void setState(coreTime time,
                           const double state[],

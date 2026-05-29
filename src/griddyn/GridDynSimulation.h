@@ -561,11 +561,11 @@ class GridDynSimulation: public GridSimulation {
     @param[in] solver pointer to a solver to make ready
     */
     void getSolverReady(std::shared_ptr<SolverInterface>& solver);
-    /** @brief load a stateData object with extra state information if necessary
-    @param[in] stateDataRef the stateData object to load
+    /** @brief load a StateData object with extra state information if necessary
+    @param[in] stateDataRef the StateData object to load
     @param[in] sMode the SolverMode of the state Data object
     */
-    void fillExtraStateData(stateData& stateDataRef, const SolverMode& sMode) const;
+    void fillExtraStateData(StateData& stateDataRef, const SolverMode& sMode) const;
     /** @brief add an initialization function that will execute prior to the internal initialization
     in HELICS
     @param fptr a function object that returns an int.  if the value is non-zero it returns a

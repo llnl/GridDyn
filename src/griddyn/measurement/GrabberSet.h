@@ -24,7 +24,7 @@ namespace griddyn {
 class gridCore;
 class StateGrabber;
 class GridGrabber;
-class stateData;
+class StateData;
 class SolverMode;
 
 /** class pairing up basicGrabbers and state grabbers in a single interface
@@ -81,11 +81,11 @@ class GrabberSet: public ObjectOperatorInterface {
      *@param[out] desc_list  the list of descriptions
      **/
     virtual void getDesc(std::vector<std::string>& desc_list) const;
-    virtual double grabData(const stateData& stateDataValue, const SolverMode& sMode);
-    virtual void outputPartialDerivatives(const stateData& stateDataValue,
+    virtual double grabData(const StateData& stateDataValue, const SolverMode& sMode);
+    virtual void outputPartialDerivatives(const StateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
                                           const SolverMode& sMode);
-    // virtual void getDoutDt(const stateData &sD, const SolverMode &sMode) const;
+    // virtual void getDoutDt(const StateData&sD, const SolverMode &sMode) const;
     /** get a description of the GrabberSet*/
     virtual const std::string& getDesc() const;
     /** get a description of the grabber Set*/

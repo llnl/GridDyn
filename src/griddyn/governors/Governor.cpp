@@ -135,7 +135,7 @@ void Governor::dynObjectInitializeB(const IOdata& inputs,
 
 // residual
 void Governor::residual(const IOdata& inputs,
-                        const stateData& sD,
+                        const StateData& sD,
                         double resid[],
                         const SolverMode& sMode)
 {
@@ -154,7 +154,7 @@ void Governor::timestep(coreTime time, const IOdata& inputs, const SolverMode& /
 }
 
 void Governor::derivative(const IOdata& inputs,
-                          const stateData& sD,
+                          const StateData& sD,
                           double deriv[],
                           const SolverMode& sMode)
 {
@@ -165,7 +165,7 @@ void Governor::derivative(const IOdata& inputs,
 }
 
 void Governor::jacobianElements(const IOdata& inputs,
-                                const stateData& sD,
+                                const StateData& sD,
                                 matrixData<double>& md,
                                 const IOlocs& inputLocs,
                                 const SolverMode& sMode)
@@ -231,7 +231,7 @@ void Governor::jacobianElements(const IOdata& inputs,
 }
 
 void Governor::rootTest(const IOdata& /*inputs*/,
-                        const stateData& sD,
+                        const StateData& sD,
                         double roots[],
                         const SolverMode& sMode)
 {

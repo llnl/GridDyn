@@ -40,21 +40,21 @@ class ExciterSEXS: public Exciter {
     stringVec localStateNames() const override;
 
     void residual(const IOdata& inputs,
-                  const stateData& stateData,
+                  const StateData& stateData,
                   double resid[],
                   const SolverMode& SolverMode) override;
     void derivative(const IOdata& inputs,
-                    const stateData& stateData,
+                    const StateData& stateData,
                     double deriv[],
                     const SolverMode& SolverMode) override;
     void jacobianElements(const IOdata& inputs,
-                          const stateData& stateData,
+                          const StateData& stateData,
                           matrixData<double>& matrix,
                           const IOlocs& inputLocs,
                           const SolverMode& SolverMode) override;
 
     void rootTest(const IOdata& inputs,
-                  const stateData& stateData,
+                  const StateData& stateData,
                   double root[],
                   const SolverMode& SolverMode) override;
     void rootTrigger(coreTime time,
@@ -62,7 +62,7 @@ class ExciterSEXS: public Exciter {
                      const std::vector<int>& rootMask,
                      const SolverMode& SolverMode) override;
     ChangeCode rootCheck(const IOdata& inputs,
-                         const stateData& stateData,
+                         const StateData& stateData,
                          const SolverMode& SolverMode,
                          CheckLevel level) override;
 

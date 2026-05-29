@@ -60,10 +60,10 @@ class GridLoad: public gridSecondary {
     virtual void setLoad(double Plevel, double Qlevel, units::unit unitType = units::defunit);
 
     virtual double getRealPower(const IOdata& inputs,
-                                const stateData& sD,
+                                const StateData& sD,
                                 const SolverMode& sMode) const override;
     virtual double getReactivePower(const IOdata& inputs,
-                                    const stateData& sD,
+                                    const StateData& sD,
                                     const SolverMode& sMode) const override;
     /** get the real output power that based on the given voltage
     @param[in] V the bus voltage

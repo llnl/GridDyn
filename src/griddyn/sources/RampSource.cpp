@@ -44,7 +44,7 @@ double rampSource::computeOutput(coreTime time) const
 }
 
 double rampSource::getDoutdt(const IOdata& /*inputs*/,
-                             const stateData& /*sD*/,
+                             const StateData& /*sD*/,
                              const SolverMode& /*sMode*/,
                              index_t num) const
 {

@@ -90,7 +90,7 @@ void GridPrimary::setState(coreTime time,
 }
 
 void GridPrimary::delayedResidual(const IOdata& inputs,
-                                  const stateData& stateDataValue,
+                                  const StateData& stateDataValue,
                                   double resid[],
                                   const SolverMode& sMode)
 {
@@ -98,7 +98,7 @@ void GridPrimary::delayedResidual(const IOdata& inputs,
 }
 
 void GridPrimary::delayedDerivative(const IOdata& inputs,
-                                    const stateData& stateDataValue,
+                                    const StateData& stateDataValue,
                                     double deriv[],
                                     const SolverMode& sMode)
 {
@@ -106,7 +106,7 @@ void GridPrimary::delayedDerivative(const IOdata& inputs,
 }
 
 void GridPrimary::delayedAlgebraicUpdate(const IOdata& inputs,
-                                         const stateData& stateDataValue,
+                                         const StateData& stateDataValue,
                                          double update[],
                                          const SolverMode& sMode,
                                          double alpha)
@@ -115,7 +115,7 @@ void GridPrimary::delayedAlgebraicUpdate(const IOdata& inputs,
 }
 
 void GridPrimary::delayedJacobian(const IOdata& inputs,
-                                  const stateData& stateDataValue,
+                                  const StateData& stateDataValue,
                                   matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode)

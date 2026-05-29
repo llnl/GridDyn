@@ -65,7 +65,7 @@ void GenModel6type2::dynObjectInitializeB(const IOdata& inputs,
 }
 
 void GenModel6type2::algebraicUpdate(const IOdata& inputs,
-                                     const stateData& sD,
+                                     const StateData& sD,
                                      double update[],
                                      const SolverMode& sMode,
                                      double /*alpha*/)
@@ -84,7 +84,7 @@ void GenModel6type2::algebraicUpdate(const IOdata& inputs,
 }
 
 void GenModel6type2::derivative(const IOdata& inputs,
-                                const stateData& sD,
+                                const StateData& sD,
                                 double deriv[],
                                 const SolverMode& sMode)
 {
@@ -119,7 +119,7 @@ void GenModel6type2::derivative(const IOdata& inputs,
 }
 
 void GenModel6type2::residual(const IOdata& inputs,
-                              const stateData& sD,
+                              const StateData& sD,
                               double resid[],
                               const SolverMode& sMode)
 {
@@ -153,7 +153,7 @@ void GenModel6type2::residual(const IOdata& inputs,
 }
 
 void GenModel6type2::jacobianElements(const IOdata& inputs,
-                                      const stateData& sD,
+                                      const StateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode)

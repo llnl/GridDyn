@@ -100,7 +100,7 @@ void zBreaker::updateLocalCache()
     linkInfo.v2 = linkInfo.v1;
 }
 void zBreaker::updateLocalCache(const IOdata& /*inputs*/,
-                                const stateData& sD,
+                                const StateData& sD,
                                 const SolverMode& /*sMode*/)
 {
     if (!isEnabled()) {

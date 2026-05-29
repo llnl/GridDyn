@@ -101,7 +101,7 @@ void FDepLoad::set(std::string_view param, double val, units::unit unitType)
 }
 
 void FDepLoad::ioPartialDerivatives(const IOdata& inputs,
-                                    const stateData& /*sD*/,
+                                    const StateData& /*sD*/,
                                     matrixData<double>& md,
                                     const IOlocs& inputLocs,
                                     const SolverMode& /*sMode*/)
@@ -138,14 +138,14 @@ double FDepLoad::getReactivePower() const
     return getReactivePower(bus->getVoltage(), bus->getFreq());
 }
 double FDepLoad::getRealPower(const IOdata& inputs,
-                              const stateData& /*sD*/,
+                              const StateData& /*sD*/,
                               const SolverMode& /*sMode*/) const
 {
     return getRealPower(inputs[voltageInLocation], inputs[frequencyInLocation]);
 }
 
 double FDepLoad::getReactivePower(const IOdata& inputs,
-                                  const stateData& /*sD*/,
+                                  const StateData& /*sD*/,
                                   const SolverMode& /*sMode*/) const
 {
     return getReactivePower(inputs[voltageInLocation], inputs[frequencyInLocation]);

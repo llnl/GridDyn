@@ -248,14 +248,14 @@ double GridLoad::getReactivePower() const
     return Q;
 }
 double GridLoad::getRealPower(const IOdata& /*inputs*/,
-                              const stateData& /*sD*/,
+                              const StateData& /*sD*/,
                               const SolverMode& /*sMode*/) const
 {
     return getRealPower();
 }
 
 double GridLoad::getReactivePower(const IOdata& /*inputs*/,
-                                  const stateData& /*sD*/,
+                                  const StateData& /*sD*/,
                                   const SolverMode& /*sMode*/) const
 {
     return getReactivePower();

@@ -80,37 +80,37 @@ class FmiMESubModel: public GridSubModel {
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
     virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
-    virtual stateSizes localStateSizes(const SolverMode& sMode) const override;
+    virtual StateSizes localStateSizes(const SolverMode& sMode) const override;
 
     virtual count_t localJacobianCount(const SolverMode& sMode) const override;
 
     virtual std::pair<count_t, count_t>
         LocalRootCount(const SolverMode& /* sMode */) const override;
     virtual void residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const StateData& sD,
                           double resid[],
                           const SolverMode& sMode) override;
     virtual void derivative(const IOdata& inputs,
-                            const stateData& sD,
+                            const StateData& sD,
                             double deriv[],
                             const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const StateData& sD,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
     virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void ioPartialDerivatives(const IOdata& inputs,
-                                      const stateData& sD,
+                                      const StateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(const IOdata& inputs,
-                                          const stateData& sD,
+                                          const StateData& sD,
                                           matrixData<double>& md,
                                           const SolverMode& sMode) override;
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& sD,
+                          const StateData& sD,
                           double roots[],
                           const SolverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
@@ -119,14 +119,14 @@ class FmiMESubModel: public GridSubModel {
                              const SolverMode& sMode) override;
 
     IOdata getOutputs(const IOdata& inputs,
-                      const stateData& sD,
+                      const StateData& sD,
                       const SolverMode& sMode) const override;
     virtual double getDoutdt(const IOdata& inputs,
-                             const stateData& sD,
+                             const StateData& sD,
                              const SolverMode& sMode,
                              index_t outputNum = 0) const override;
     virtual double getOutput(const IOdata& inputs,
-                             const stateData& sD,
+                             const StateData& sD,
                              const SolverMode& sMode,
                              index_t outputNum = 0) const override;
 
@@ -152,7 +152,7 @@ class FmiMESubModel: public GridSubModel {
     virtual bool isLoaded() const;
 
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const StateData& sD,
                                   const SolverMode& sMode) override;
 
   protected:

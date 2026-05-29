@@ -137,9 +137,9 @@ void MotorLoad5::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-stateSizes MotorLoad5::localStateSizes(const SolverMode& sMode) const
+StateSizes MotorLoad5::localStateSizes(const SolverMode& sMode) const
 {
-    stateSizes SS;
+    StateSizes SS;
     if (isDynamic(sMode)) {
         SS.algSize = 2;
         if (!isAlgebraicOnly(sMode)) {
@@ -191,7 +191,7 @@ void MotorLoad5::set(std::string_view param, double val, units::unit unitType)
 
 // residual
 void MotorLoad5::residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const StateData& sD,
                           double resid[],
                           const SolverMode& sMode)
 {
@@ -293,7 +293,7 @@ void MotorLoad5::getStateName(stringVec& stNames,
 }
 void MotorLoad5::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
-    stateData sD(time, m_state.data());
+    StateData sD(time, m_state.data());
 
     derivative(inputs, sD, m_dstate_dt.data(), cLocalSolverMode);
     double dt = time - prevTime;
@@ -306,7 +306,7 @@ void MotorLoad5::timestep(coreTime time, const IOdata& inputs, const SolverMode&
     updateCurrents(inputs, sD, cLocalSolverMode);
 }
 
-void MotorLoad5::updateCurrents(const IOdata& inputs, const stateData& sD, const SolverMode& sMode)
+void MotorLoad5::updateCurrents(const IOdata& inputs, const StateData& sD, const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, const_cast<double*>(sD.state), sMode, this);
     double voltage = inputs[voltageInLocation];
@@ -326,7 +326,7 @@ void MotorLoad5::updateCurrents(const IOdata& inputs, const stateData& sD, const
 }
 
 void MotorLoad5::derivative(const IOdata& /*inputs*/,
-                            const stateData& sD,
+                            const StateData& sD,
                             double deriv[],
                             const SolverMode& sMode)
 {
@@ -360,7 +360,7 @@ void MotorLoad5::derivative(const IOdata& /*inputs*/,
 }
 
 void MotorLoad5::jacobianElements(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const StateData& sD,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode)
@@ -513,7 +513,7 @@ index_t MotorLoad5::findIndex(std::string_view field, const SolverMode& sMode) c
 }
 
 void MotorLoad5::rootTest(const IOdata& /*inputs*/,
-                          const stateData& sD,
+                          const StateData& sD,
                           double roots[],
                           const SolverMode& sMode)
 {
@@ -551,7 +551,7 @@ void MotorLoad5::rootTrigger(coreTime /*time*/,
 }
 
 ChangeCode MotorLoad5::rootCheck(const IOdata& /*inputs*/,
-                                 const stateData& sD,
+                                 const StateData& sD,
                                  const SolverMode& sMode,
                                  CheckLevel /*level*/)
 {

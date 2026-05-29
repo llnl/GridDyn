@@ -10,7 +10,7 @@
 #include <stdexcept>
 
 namespace griddyn {
-static const solverOffsets NULL_OFFSETS{};
+static const SolverOffsets NULL_OFFSETS{};
 
 OffsetTable::OffsetTable(): offsetContainer(DEFAULT_OFFSET_CONTAINER_SIZE)
 {
@@ -45,7 +45,7 @@ bool OffsetTable::isJacobianCountLoaded(const SolverMode& sMode) const
     return isValidIndex(sMode.offsetIndex) && offsetContainer[sMode.offsetIndex].jacobianLoaded;
 }
 
-solverOffsets& OffsetTable::getOffsets(const SolverMode& sMode)
+SolverOffsets& OffsetTable::getOffsets(const SolverMode& sMode)
 {
     if (!isValidIndex(sMode.offsetIndex)) {
         offsetContainer.resize(sMode.offsetIndex + 1);
@@ -54,12 +54,12 @@ solverOffsets& OffsetTable::getOffsets(const SolverMode& sMode)
     return offsetContainer[sMode.offsetIndex];
 }
 
-const solverOffsets& OffsetTable::getOffsets(const SolverMode& sMode) const
+const SolverOffsets& OffsetTable::getOffsets(const SolverMode& sMode) const
 {
     return isValidIndex(sMode.offsetIndex) ? offsetContainer[sMode.offsetIndex] : NULL_OFFSETS;
 }
 
-void OffsetTable::setOffsets(const solverOffsets& newOffsets, const SolverMode& sMode)
+void OffsetTable::setOffsets(const SolverOffsets& newOffsets, const SolverMode& sMode)
 {
     if (!isValidIndex(sMode.offsetIndex)) {
         offsetContainer.resize(sMode.offsetIndex + 1);
@@ -283,7 +283,7 @@ const SolverMode& OffsetTable::find(const SolverMode& tMode) const
     return cEmptySolverMode;
 }
 
-Lp OffsetTable::getLocations(const stateData& stateDataValue,
+Lp OffsetTable::getLocations(const StateData& stateDataValue,
                              double dest[],
                              const SolverMode& sMode,
                              const GridComponent* comp) const
@@ -309,7 +309,7 @@ Lp OffsetTable::getLocations(const stateData& stateDataValue,
     return loc;
 }
 
-Lp OffsetTable::getLocations(const stateData& stateDataValue,
+Lp OffsetTable::getLocations(const StateData& stateDataValue,
                              const SolverMode& sMode,
                              const GridComponent* comp) const
 {

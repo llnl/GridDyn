@@ -72,7 +72,7 @@ void GovernorIeeeSimple::dynObjectInitializeB(const IOdata& /*inputs*/,
 
 // residual
 void GovernorIeeeSimple::residual(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const StateData& sD,
                                   double resid[],
                                   const SolverMode& sMode)
 {
@@ -87,7 +87,7 @@ void GovernorIeeeSimple::residual(const IOdata& inputs,
 }
 
 void GovernorIeeeSimple::derivative(const IOdata& inputs,
-                                    const stateData& sD,
+                                    const StateData& sD,
                                     double deriv[],
                                     const SolverMode& sMode)
 {
@@ -125,7 +125,7 @@ void GovernorIeeeSimple::timestep(coreTime time, const IOdata& inputs, const Sol
 }
 
 void GovernorIeeeSimple::jacobianElements(const IOdata& /*inputs*/,
-                                          const stateData& sD,
+                                          const StateData& sD,
                                           matrixData<double>& md,
                                           const IOlocs& inputLocs,
                                           const SolverMode& sMode)
@@ -182,7 +182,7 @@ index_t GovernorIeeeSimple::findIndex(std::string_view field, const SolverMode& 
 }
 
 void GovernorIeeeSimple::rootTest(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const StateData& sD,
                                   double roots[],
                                   const SolverMode& sMode)
 {

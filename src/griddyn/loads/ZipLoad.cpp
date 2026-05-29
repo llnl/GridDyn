@@ -127,7 +127,7 @@ void ZipLoad::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*
         return;
     }
     if (time != prevTime) {
-        updateLocalCache(inputs, stateData(time), cLocalSolverMode);
+        updateLocalCache(inputs, StateData(time), cLocalSolverMode);
     }
 
     double voltage = (inputs.empty()) ? (bus->getVoltage()) : inputs[voltageInLocation];
@@ -453,7 +453,7 @@ double ZipLoad::getx() const
 }
 
 void ZipLoad::updateLocalCache(const IOdata& /*inputs*/,
-                               const stateData& sD,
+                               const StateData& sD,
                                const SolverMode& /*sMode*/)
 {
     lastTime = sD.time;
@@ -464,7 +464,7 @@ void ZipLoad::setState(coreTime time,
                        const double dstate_dt[],
                        const SolverMode& sMode)
 {
-    stateData sD(time, state, dstate_dt);
+    StateData sD(time, state, dstate_dt);
     updateLocalCache(noInputs, sD, sMode);
     prevTime = time;
 }
@@ -502,14 +502,14 @@ double ZipLoad::getReactivePower() const
 }
 
 double
-    ZipLoad::getRealPower(const IOdata& inputs, const stateData& sD, const SolverMode& sMode) const
+    ZipLoad::getRealPower(const IOdata& inputs, const StateData& sD, const SolverMode& sMode) const
 {
     double voltage = (inputs.empty()) ? (bus->getVoltage(sD, sMode)) : inputs[voltageInLocation];
     return getRealPower(voltage);
 }
 
 double ZipLoad::getReactivePower(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const StateData& sD,
                                  const SolverMode& sMode) const
 {
     double voltage = (inputs.empty()) ? (bus->getVoltage(sD, sMode)) : inputs[voltageInLocation];
@@ -539,7 +539,7 @@ double ZipLoad::getReactivePower(double voltage) const
 }
 
 void ZipLoad::outputPartialDerivatives(const IOdata& inputs,
-                                       const stateData& sD,
+                                       const StateData& sD,
                                        matrixData<double>& md,
                                        const SolverMode& sMode)
 {
@@ -556,7 +556,7 @@ count_t ZipLoad::outputDependencyCount(index_t /*num*/, const SolverMode& /*sMod
     return 0;
 }
 void ZipLoad::ioPartialDerivatives(const IOdata& inputs,
-                                   const stateData& sD,
+                                   const StateData& sD,
                                    matrixData<double>& md,
                                    const IOlocs& inputLocs,
                                    const SolverMode& sMode)

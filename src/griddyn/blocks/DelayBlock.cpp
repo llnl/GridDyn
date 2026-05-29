@@ -120,7 +120,7 @@ double DelayBlock::step(coreTime time, double inputA)
 
 void DelayBlock::blockDerivative(double input,
                                  double didt,
-                                 const stateData& stateDataRef,
+                                 const StateData& stateDataRef,
                                  double deriv[],
                                  const SolverMode& sMode)
 {
@@ -134,7 +134,7 @@ void DelayBlock::blockDerivative(double input,
 
 void DelayBlock::blockJacobianElements(double input,
                                        double didt,
-                                       const stateData& stateDataRef,
+                                       const StateData& stateDataRef,
                                        matrixData<double>& jacobian,
                                        index_t argLoc,
                                        const SolverMode& sMode)

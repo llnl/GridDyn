@@ -20,7 +20,7 @@ using griddyn::GridComponent;
 using griddyn::IOdata;
 using griddyn::IOlocs;
 using griddyn::SolverMode;
-using griddyn::stateData;
+using griddyn::StateData;
 
 static constexpr char invalidComponent[] = "the Griddyn object is not valid";
 static constexpr char invalidSolver[] = "the given solver key was not valid";
@@ -332,7 +332,7 @@ void gridDynObjectJacobian(GridDynObject obj,
     md.setFunction([insert](index_t row, index_t col, double val) {
         insert(static_cast<int>(row), static_cast<int>(col), val);
     });
-    stateData sD;
+    StateData sD;
     sD.cj = cj;
     comp->jacobianElements(
         IOdata(inputs, inputs + inputSize), sD, md, defInputlocs, keyInfo->sMode_);

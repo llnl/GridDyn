@@ -38,8 +38,8 @@ class busPowers {
     busPowers() {}
     /**reset all the powers to 0*/
     void reset();
-    /** check if the busPowers needs an update based on the stateData*/
-    bool needsUpdate(const stateData& stateDataValue) const;
+    /** check if the busPowers needs an update based on the StateData*/
+    bool needsUpdate(const StateData& stateDataValue) const;
     /** calculate the real power imbalance*/
     double sumP() const { return (linkP + loadP + genP); }
     /** calculate the reactive power imbalance*/
@@ -177,23 +177,23 @@ class GridBus: public GridPrimary {
 
     // solver functions
     virtual void preEx(const IOdata& inputs,
-                       const stateData& stateDataValue,
+                       const StateData& stateDataValue,
                        const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& stateDataValue,
+                                  const StateData& stateDataValue,
                                   matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
     virtual void residual(const IOdata& inputs,
-                          const stateData& stateDataValue,
+                          const StateData& stateDataValue,
                           double resid[],
                           const SolverMode& sMode) override;
     virtual void derivative(const IOdata& inputs,
-                            const stateData& stateDataValue,
+                            const StateData& stateDataValue,
                             double deriv[],
                             const SolverMode& sMode) override;
     virtual void algebraicUpdate(const IOdata& inputs,
-                                 const stateData& stateDataValue,
+                                 const StateData& stateDataValue,
                                  double update[],
                                  const SolverMode& sMode,
                                  double alpha) override;
@@ -204,7 +204,7 @@ class GridBus: public GridPrimary {
     @param[in] sMode the SolverMode associated with the state data
     @param[in] alpha the scale associated with the update
     */
-    virtual void voltageUpdate(const stateData& stateDataValue,
+    virtual void voltageUpdate(const StateData& stateDataValue,
                                double update[],
                                const SolverMode& sMode,
                                double alpha);
@@ -221,7 +221,7 @@ class GridBus: public GridPrimary {
 
     virtual void updateLocalCache() override;
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const stateData& stateDataValue,
+                                  const StateData& stateDataValue,
                                   const SolverMode& sMode) override;
 
   public:
@@ -384,7 +384,7 @@ class GridBus: public GridPrimary {
     virtual double getSched() const;
 
     virtual IOdata getOutputs(const IOdata& inputs,
-                              const stateData& stateDataValue,
+                              const StateData& stateDataValue,
                               const SolverMode& sMode) const override;
     virtual IOlocs getOutputLocs(const SolverMode& sMode) const override;
 
@@ -395,7 +395,7 @@ class GridBus: public GridPrimary {
     virtual const IOlocs& getOutputLocsRef() const;
 
     virtual double getOutput(const IOdata& inputs,
-                             const stateData& stateDataValue,
+                             const StateData& stateDataValue,
                              const SolverMode& sMode,
                              index_t outNum = 0) const override;
 
@@ -418,22 +418,22 @@ class GridBus: public GridPrimary {
     @param[in] sMode the corresponding SolverMode to the state data
     @return the bus voltage
     **/
-    virtual double getVoltage(const stateData& stateDataValue, const SolverMode& sMode) const;
+    virtual double getVoltage(const StateData& stateDataValue, const SolverMode& sMode) const;
     /** @brief get the angle
     * @param[in] stateDataValue the system state data
     @param[in] sMode the corresponding SolverMode to the state
     @return the bus angle
     **/
-    virtual double getAngle(const stateData& stateDataValue, const SolverMode& sMode) const;
+    virtual double getAngle(const StateData& stateDataValue, const SolverMode& sMode) const;
     /** @brief get the bus frequency
     * @param[in] stateDataValue the system state data
     @param[in] sMode the corresponding SolverMode to the state
     @return the bus frequency
     **/
-    virtual double getFreq(const stateData& stateDataValue, const SolverMode& sMode) const;
+    virtual double getFreq(const StateData& stateDataValue, const SolverMode& sMode) const;
 
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& stateDataValue,
+                          const StateData& stateDataValue,
                           double roots[],
                           const SolverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
@@ -441,7 +441,7 @@ class GridBus: public GridPrimary {
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                 const stateData& stateDataValue,
+                                 const StateData& stateDataValue,
                                  const SolverMode& sMode,
                                  CheckLevel level) override;
 
@@ -471,11 +471,11 @@ class GridBus: public GridPrimary {
 
   protected:
     /** @brief compute the current power-balance error
-    @param[in] stateDataValue  the stateData to compute the error for
+    @param[in] stateDataValue  the StateData to compute the error for
     @param[in] sMode the SolverMode corresponding to the stateData
     @return the error in the power balance equations
     */
-    virtual double computeError(const stateData& stateDataValue, const SolverMode& sMode);
+    virtual double computeError(const StateData& stateDataValue, const SolverMode& sMode);
 
   private:
     template<class X>

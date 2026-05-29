@@ -644,7 +644,7 @@ void GridDynSimulation::handleEarlySolverReturn(int retval,
             rootTrigger(timeActual, noInputs, dynData->rootsfound, dynData->getSolverMode());
         } else if (retval == SOLVER_INVALID_STATE_ERROR) {
             // if we get into here the most likely cause is a very low voltage bus
-            const stateData stateDataValue(timeActual, dynData->stateData(), dynData->derivData());
+            const StateData stateDataValue(timeActual, dynData->stateData(), dynData->derivData());
 
             rootCheck(noInputs,
                       stateDataValue,
@@ -726,7 +726,7 @@ int GridDynSimulation::generateDaeDynamicInitialConditions(const SolverMode& sMo
         }
     }
     if (opFlags[low_bus_voltage]) {
-        const stateData stateDataValue(getSimulationTime(),
+        const StateData stateDataValue(getSimulationTime(),
                                        dynData->stateData(),
                                        dynData->derivData());
 
@@ -821,7 +821,7 @@ int GridDynSimulation::generatePartitionedDynamicInitialConditions(const SolverM
         */
     }
     if (opFlags[low_bus_voltage]) {
-        /*stateData sD(getSimulationTime(), dynData->stateData(), dynData->derivData());
+        /*StateData sD(getSimulationTime(), dynData->stateData(), dynData->derivData());
 
         rootCheck(&sD, dynData->getSolverMode(), CheckLevel::low_voltage_check);
         //return dynData->calcIC(getSimulationTime(), probeStepTime,
@@ -986,7 +986,7 @@ int GridDynSimulation::residualFunction(coreTime time,
                                         const SolverMode& sMode) noexcept
 {
     ++residCount;
-    stateData stateDataValue(time, state, dstate_dt, residCount);
+    StateData stateDataValue(time, state, dstate_dt, residCount);
 
 #if (CHECK_STATE > 0)
     auto dynDataa = getSolverInterface(sMode);
@@ -1140,7 +1140,7 @@ int GridDynSimulation::derivativeFunction(coreTime time,
                                           const SolverMode& sMode) noexcept
 {
     ++residCount;
-    stateData stateDataValue(time, state, dstate_dt, residCount);
+    StateData stateDataValue(time, state, dstate_dt, residCount);
     fillExtraStateData(stateDataValue, sMode);
 #if (CHECK_STATE > 0)
     auto dynDataa = getSolverInterface(sMode);
@@ -1170,7 +1170,7 @@ int GridDynSimulation::jacobianFunction(coreTime time,
     ++JacobianCallCount;
     // assuming it is the same data as the preceding residual call  (it is for IDA but not sure if
     // this assumption will be generally valid)
-    stateData stateDataValue(time, state, dstate_dt, residCount);
+    StateData stateDataValue(time, state, dstate_dt, residCount);
     stateDataValue.cj = cjValue;
     fillExtraStateData(stateDataValue, sMode);
     // the area function to evaluate the Jacobian elements
@@ -1188,7 +1188,7 @@ int GridDynSimulation::rootFindingFunction(coreTime time,
                                            double roots[],
                                            const SolverMode& sMode) noexcept
 {
-    stateData stateDataValue(time, state, dstate_dt, residCount);
+    StateData stateDataValue(time, state, dstate_dt, residCount);
     fillExtraStateData(stateDataValue, sMode);
     rootTest(noInputs, stateDataValue, roots, sMode);
     return FUNCTION_EXECUTION_SUCCESS;

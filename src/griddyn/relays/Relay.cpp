@@ -231,7 +231,7 @@ double Relay::getConditionValue(index_t conditionNumber) const
 }
 
 double Relay::getConditionValue(index_t conditionNumber,
-                                const stateData& sD,
+                                const StateData& sD,
                                 const SolverMode& sMode) const
 {
     if (isValidIndex(conditionNumber, conditions)) {
@@ -620,7 +620,7 @@ ChangeCode
 }
 
 void Relay::rootTest(const IOdata& /*inputs*/,
-                     const stateData& sD,
+                     const StateData& sD,
                      double roots[],
                      const SolverMode& sMode)
 {
@@ -661,7 +661,7 @@ void Relay::rootTrigger(coreTime time,
 }
 
 ChangeCode Relay::rootCheck(const IOdata& /*inputs*/,
-                            const stateData& sD,
+                            const StateData& sD,
                             const SolverMode& /*sMode*/,
                             CheckLevel /*level*/)
 {

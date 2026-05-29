@@ -118,7 +118,7 @@ void FrequencySensitiveLoad::set(std::string_view param, double val, unit unitTy
 }
 
 void FrequencySensitiveLoad::updateLocalCache(const IOdata& inputs,
-                                              const stateData& sD,
+                                              const StateData& sD,
                                               const SolverMode& sMode)
 {
     subLoad->updateLocalCache(inputs, sD, sMode);
@@ -148,7 +148,7 @@ double FrequencySensitiveLoad::getReactivePower() const
 }
 
 double FrequencySensitiveLoad::getRealPower(const IOdata& inputs,
-                                            const stateData& sD,
+                                            const StateData& sD,
                                             const SolverMode& sMode) const
 {
     double Pr = subLoad->getRealPower(inputs, sD, sMode);
@@ -158,7 +158,7 @@ double FrequencySensitiveLoad::getRealPower(const IOdata& inputs,
 }
 
 double FrequencySensitiveLoad::getReactivePower(const IOdata& inputs,
-                                                const stateData& sD,
+                                                const StateData& sD,
                                                 const SolverMode& sMode) const
 {
     double Qr = subLoad->getReactivePower(inputs, sD, sMode);
@@ -182,7 +182,7 @@ double FrequencySensitiveLoad::getReactivePower(double voltage) const
 }
 
 void FrequencySensitiveLoad::outputPartialDerivatives(const IOdata& inputs,
-                                                      const stateData& sD,
+                                                      const StateData& sD,
                                                       matrixData<double>& md,
                                                       const SolverMode& sMode)
 {
@@ -200,7 +200,7 @@ count_t FrequencySensitiveLoad::outputDependencyCount(index_t num, const SolverM
 }
 
 void FrequencySensitiveLoad::ioPartialDerivatives(const IOdata& /*inputs*/,
-                                                  const stateData& /*sD*/,
+                                                  const StateData& /*sD*/,
                                                   matrixData<double>& /*md*/,
                                                   const IOlocs& /*inputLocs*/,
                                                   const SolverMode& /*sMode*/)

@@ -574,7 +574,7 @@ int AcLine::fixPower(double rPower,
 }
 
 void AcLine::ioPartialDerivatives(id_type_t busId,
-                                  const stateData& /*sD*/,
+                                  const StateData& /*sD*/,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode)
@@ -623,7 +623,7 @@ void AcLine::ioPartialDerivatives(id_type_t busId,
 }
 
 void AcLine::outputPartialDerivatives(const IOdata& /*inputs*/,
-                                      const stateData& /*sD*/,
+                                      const StateData& /*sD*/,
                                       matrixData<double>& /*md*/,
                                       const SolverMode& /*sMode*/)
 {
@@ -632,7 +632,7 @@ void AcLine::outputPartialDerivatives(const IOdata& /*inputs*/,
 }
 
 void AcLine::outputPartialDerivatives(id_type_t busId,
-                                      const stateData& /*sD*/,
+                                      const StateData& /*sD*/,
                                       matrixData<double>& md,
                                       const SolverMode& sMode)
 {
@@ -733,7 +733,7 @@ void AcLine::setState(coreTime time,
                       const SolverMode& sMode)
 {
     prevTime = time;
-    stateData sD(time, state, dstate_dt);
+    StateData sD(time, state, dstate_dt);
 
     if (sMode.approx[DECOUPLED]) {  // recompute power with new state updates for the decoupled
                                     // system
@@ -789,7 +789,7 @@ ChangeCode
 }
 
 ChangeCode AcLine::rootCheck(const IOdata& /*inputs*/,
-                             const stateData& sD,
+                             const StateData& sD,
                              const SolverMode& sMode,
                              CheckLevel level)
 {
@@ -805,7 +805,7 @@ ChangeCode AcLine::rootCheck(const IOdata& /*inputs*/,
     return ret;
 }
 void AcLine::updateLocalCache(const IOdata& /*inputs*/,
-                              const stateData& sD,
+                              const StateData& sD,
                               const SolverMode& sMode)
 {
     if (!isEnabled()) {
@@ -924,7 +924,7 @@ void AcLine::loadLinkInfo()
     constLinkComp = linkComp;
 }
 
-void AcLine::loadLinkInfo(const stateData& sD, const SolverMode& sMode)
+void AcLine::loadLinkInfo(const StateData& sD, const SolverMode& sMode)
 {
     if ((linkInfo.seqID == sD.seqID) && (sD.seqID != 0)) {
         return;

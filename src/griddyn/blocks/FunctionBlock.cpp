@@ -64,7 +64,7 @@ void FunctionBlock::dynObjectInitializeB(const IOdata& inputs,
 }
 
 void FunctionBlock::blockAlgebraicUpdate(double input,
-                                         const stateData& stateDataValue,
+                                         const StateData& stateDataValue,
                                          double update[],
                                          const SolverMode& sMode)
 {
@@ -81,7 +81,7 @@ void FunctionBlock::blockAlgebraicUpdate(double input,
 
 void FunctionBlock::blockJacobianElements(double input,
                                           double didt,
-                                          const stateData& stateDataValue,
+                                          const StateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
                                           index_t argLoc,
                                           const SolverMode& sMode)
@@ -168,7 +168,7 @@ void FunctionBlock::setFunction(const std::string& functionName)
 }
 
 /*
-double FunctionBlock::currentValue(const IOdata &inputs, const stateData &sD,
+double FunctionBlock::currentValue(const IOdata &inputs, const StateData&sD,
 const SolverMode &sMode) const
 {
 auto Loc;

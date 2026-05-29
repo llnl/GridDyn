@@ -48,9 +48,9 @@ class infiniteBus: public GridBus {
 
     virtual double getVoltage(const double state[], const SolverMode& sMode) const override;
     virtual double getAngle(const double state[], const SolverMode& sMode) const override;
-    virtual double getVoltage(const stateData& sD, const SolverMode& sMode) const override;
-    virtual double getAngle(const stateData& sD, const SolverMode& sMode) const override;
-    virtual double getFreq(const stateData& sD, const SolverMode& sMode) const override;
+    virtual double getVoltage(const StateData& sD, const SolverMode& sMode) const override;
+    virtual double getAngle(const StateData& sD, const SolverMode& sMode) const override;
+    virtual double getFreq(const StateData& sD, const SolverMode& sMode) const override;
 
   protected:
     /** update the Voltage and Angle based on time using the defined ramp rates*/

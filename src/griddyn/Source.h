@@ -35,10 +35,10 @@ class Source: public GridSubModel {
     virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     virtual IOdata getOutputs(const IOdata& inputs,
-                              const stateData& sD,
+                              const StateData& sD,
                               const SolverMode& sMode) const override;
     virtual double getOutput(const IOdata& inputs,
-                             const stateData& sD,
+                             const StateData& sD,
                              const SolverMode& sMode,
                              index_t num = 0) const override;
 
@@ -55,7 +55,7 @@ class Source: public GridSubModel {
     /** update the output to correspond to a new time value*/
     virtual void updateOutput(coreTime time);
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const StateData& sD,
                                   const SolverMode& sMode) override;
 
     /** update the source output and advance the model time

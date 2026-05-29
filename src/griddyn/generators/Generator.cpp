@@ -146,9 +146,9 @@ void Generator::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     gridSecondary::dynObjectInitializeA(time0, flags);
 }
 
-stateSizes Generator::localStateSizes(const SolverMode& sMode) const
+StateSizes Generator::localStateSizes(const SolverMode& sMode) const
 {
-    stateSizes localStates;
+    StateSizes localStates;
     if (!isEnabled()) {
         return localStates;
     }
@@ -531,7 +531,7 @@ void Generator::setCapabilityCurve(const std::vector<double>& ppts,
 }
 
 void Generator::outputPartialDerivatives(const IOdata& /*inputs*/,
-                                         const stateData& /*stateDataValue*/,
+                                         const StateData& /*stateDataValue*/,
                                          matrixData<double>& matrixDataValue,
                                          const SolverMode& sMode)
 {
@@ -555,7 +555,7 @@ count_t Generator::outputDependencyCount(index_t num, const SolverMode& sMode) c
 }
 
 void Generator::ioPartialDerivatives(const IOdata& inputs,
-                                     const stateData& /*stateDataValue*/,
+                                     const StateData& /*stateDataValue*/,
                                      matrixData<double>& matrixDataValue,
                                      const IOlocs& inputLocs,
                                      const SolverMode& sMode)
@@ -575,7 +575,7 @@ void Generator::ioPartialDerivatives(const IOdata& inputs,
 }
 
 IOdata Generator::getOutputs(const IOdata& inputs,
-                             const stateData& stateDataValue,
+                             const StateData& stateDataValue,
                              const SolverMode& sMode) const
 {
     IOdata output = {-P, -Q};
@@ -602,7 +602,7 @@ IOdata Generator::getOutputs(const IOdata& inputs,
 }
 
 double Generator::getRealPower(const IOdata& inputs,
-                               const stateData& /*sD*/,
+                               const StateData& /*sD*/,
                                const SolverMode& sMode) const
 {
     double output = -P;
@@ -626,7 +626,7 @@ double Generator::getRealPower(const IOdata& inputs,
     return output;
 }
 double Generator::getReactivePower(const IOdata& inputs,
-                                   const stateData& stateDataValue,
+                                   const StateData& stateDataValue,
                                    const SolverMode& sMode) const
 {
     double output = -Q;
@@ -656,7 +656,7 @@ double Generator::getReactivePower() const
 }
 
 void Generator::algebraicUpdate(const IOdata& /*inputs*/,
-                                const stateData& stateDataValue,
+                                const StateData& stateDataValue,
                                 double update[],
                                 const SolverMode& sMode,
                                 double /*alpha*/)
@@ -675,7 +675,7 @@ void Generator::algebraicUpdate(const IOdata& /*inputs*/,
 }
 // compute the residual for the dynamic states
 void Generator::residual(const IOdata& /*inputs*/,
-                         const stateData& stateDataValue,
+                         const StateData& stateDataValue,
                          double resid[],
                          const SolverMode& sMode)
 {
@@ -694,7 +694,7 @@ void Generator::residual(const IOdata& /*inputs*/,
 }
 
 void Generator::jacobianElements(const IOdata& /*inputs*/,
-                                 const stateData& /*stateDataValue*/,
+                                 const StateData& /*stateDataValue*/,
                                  matrixData<double>& matrixDataValue,
                                  const IOlocs& /*inputLocs*/,
                                  const SolverMode& sMode)
@@ -757,7 +757,7 @@ double Generator::getAdjustableCapacityDown(coreTime time) const
 
 IOdata Generator::predictOutputs(coreTime predictionTime,
                                  const IOdata& /*inputs*/,
-                                 const stateData& /*sD*/,
+                                 const StateData& /*sD*/,
                                  const SolverMode& /*sMode*/) const
 {
     IOdata out(2);
@@ -804,7 +804,7 @@ double Generator::getQmin(const coreTime /*time*/, double ptest) const
     return Qmin;
 }
 
-double Generator::getFreq(const stateData& stateDataValue,
+double Generator::getFreq(const StateData& stateDataValue,
                           const SolverMode& sMode,
                           index_t* freqOffset) const
 {
@@ -812,7 +812,7 @@ double Generator::getFreq(const stateData& stateDataValue,
     return bus->getFreq(stateDataValue, sMode);
 }
 
-double Generator::getAngle(const stateData& stateDataValue,
+double Generator::getAngle(const StateData& stateDataValue,
                            const SolverMode& sMode,
                            index_t* angleOffset) const
 {

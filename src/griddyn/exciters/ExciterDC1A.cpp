@@ -62,28 +62,28 @@ void ExciterDC1A::dynObjectInitializeB(const IOdata& inputs,
     Exciter::dynObjectInitializeB(inputs,
                                   desiredOutput,
                                   fieldSet);  // this will dynInitializeB the field state if need be
-    double* gs = m_state.data();
-    gs[1] = (Ke + Aex * exp(Bex * gs[0])) * gs[0];  // Vr
-    gs[2] = gs[1] / Ka;  // X
-    gs[3] = gs[0] * Kf / Tf;  // Rf
+    double* stateValues = m_state.data();
+    stateValues[1] = (Ke + (Aex * exp(Bex * stateValues[0]))) * stateValues[0];  // Vr
+    stateValues[2] = stateValues[1] / Ka;  // X
+    stateValues[3] = (stateValues[0] * Kf) / Tf;  // Rf
 
-    vBias = inputs[voltageInLocation] + gs[1] / Ka - Vref;
+    vBias = inputs[voltageInLocation] + (stateValues[1] / Ka) - Vref;
     fieldSet[1] = Vref;
 }
 
 // residual
 void ExciterDC1A::residual(const IOdata& inputs,
-                           const stateData& sD,
+                           const stateData& stateDataValue,
                            double resid[],
                            const SolverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
         return;
     }
-    derivative(inputs, sD, resid, sMode);
+    derivative(inputs, stateDataValue, resid, sMode);
 
     auto offset = offsets.getDiffOffset(sMode);
-    const double* esp = sD.dstate_dt + offset;
+    const double* esp = stateDataValue.dstate_dt + offset;
     resid[offset] -= esp[0];
     resid[offset + 1] -= esp[1];
     resid[offset + 2] -= esp[2];
@@ -91,30 +91,37 @@ void ExciterDC1A::residual(const IOdata& inputs,
 }
 
 void ExciterDC1A::derivative(const IOdata& inputs,
-                             const stateData& sD,
+                             const stateData& stateDataValue,
                              double deriv[],
                              const SolverMode& sMode)
 {
-    auto Loc = offsets.getLocations(sD, deriv, sMode, this);
-    const double* es = Loc.diffStateLoc;
-    double* d = Loc.destDiffLoc;
-    double V = inputs[voltageInLocation];
-    d[0] = (-(Ke + Aex * exp(Bex * es[0])) * es[0] + es[1]) / Te;
+    auto loc = offsets.getLocations(stateDataValue, deriv, sMode, this);
+    const double* exciterState = loc.diffStateLoc;
+    double* derivatives = loc.destDiffLoc;
+    const double voltage = inputs[voltageInLocation];
+    derivatives[0] =
+        ((-(Ke + (Aex * exp(Bex * exciterState[0]))) * exciterState[0]) + exciterState[1]) / Te;
     if (opFlags[outsideVoltageLimits]) {
-        d[1] = 0;
+        derivatives[1] = 0;
     } else {
-        d[1] = (-es[1] + ((Vref + vBias - V) - es[0] * Kf / Tf + es[3]) * Ka * Tc / Tb +
-                es[2] * (Tb - Tc) * Ka / Tb) /
+        derivatives[1] =
+            (-exciterState[1] +
+             ((((Vref + vBias - voltage) - ((exciterState[0] * Kf) / Tf)) + exciterState[3]) *
+                  Ka * Tc / Tb) +
+             ((exciterState[2] * (Tb - Tc) * Ka) / Tb)) /
             Ta;
     }
-    d[2] = (-es[2] + (Vref + vBias - V) - es[0] * Kf / Tf + es[3]) / Tb;
-    d[3] = (-es[3] + es[0] * Kf / Tf) / Tf;
+    derivatives[2] =
+        ((-exciterState[2] + (Vref + vBias - voltage) - ((exciterState[0] * Kf) / Tf)) +
+         exciterState[3]) /
+        Tb;
+    derivatives[3] = (-exciterState[3] + ((exciterState[0] * Kf) / Tf)) / Tf;
 }
 
 // Jacobian
 void ExciterDC1A::jacobianElements(const IOdata& inputs,
-                                   const stateData& sD,
-                                   matrixData<double>& md,
+                                   const stateData& stateDataValue,
+                                   matrixData<double>& matrixDataValue,
                                    const IOlocs& inputLocs,
                                    const SolverMode& sMode)
 {
@@ -124,39 +131,43 @@ void ExciterDC1A::jacobianElements(const IOdata& inputs,
     auto offset = offsets.getDiffOffset(sMode);
     auto refI = offset;
 
-    auto VLoc = inputLocs[voltageInLocation];
+    auto voltageLoc = inputLocs[voltageInLocation];
     // use the md.assign Macro defined in basicDefs
     // md.assign(arrayIndex, RowIndex, ColIndex, value)
 
     // Ef
-    double temp1 =
-        -(Ke + Aex * exp(Bex * sD.state[offset]) * (1.0 + Bex * sD.state[offset])) / Te - sD.cj;
-    md.assign(refI, refI, temp1);
-    md.assign(refI, refI + 1, 1.0 / Te);
+    const double temp1 =
+        (-(Ke + (Aex * exp(Bex * stateDataValue.state[offset]) *
+                 (1.0 + (Bex * stateDataValue.state[offset])))) /
+         Te) -
+        stateDataValue.cj;
+    matrixDataValue.assign(refI, refI, temp1);
+    matrixDataValue.assign(refI, refI + 1, 1.0 / Te);
 
     if (opFlags[outsideVoltageLimits]) {
-        limitJacobian(inputs[voltageInLocation], VLoc, refI + 1, sD.cj, md);
+        limitJacobian(
+            inputs[voltageInLocation], voltageLoc, refI + 1, stateDataValue.cj, matrixDataValue);
     } else {
         // Vr
-        if (VLoc != kNullLocation) {
-            md.assign(refI + 1, VLoc, -Ka * Tc / (Ta * Tb));
+        if (voltageLoc != kNullLocation) {
+            matrixDataValue.assign(refI + 1, voltageLoc, -Ka * Tc / (Ta * Tb));
         }
-        md.assign(refI + 1, refI, -Ka * Kf * Tc / (Tf * Ta * Tb));
-        md.assign(refI + 1, refI + 1, -1.0 / Ta - sD.cj);
-        md.assign(refI + 1, refI + 2, Ka * (Tb - Tc) / (Ta * Tb));
-        md.assign(refI + 1, refI + 3, Ka * Tc / (Ta * Tb));
+        matrixDataValue.assign(refI + 1, refI, -Ka * Kf * Tc / (Tf * Ta * Tb));
+        matrixDataValue.assign(refI + 1, refI + 1, (-1.0 / Ta) - stateDataValue.cj);
+        matrixDataValue.assign(refI + 1, refI + 2, Ka * (Tb - Tc) / (Ta * Tb));
+        matrixDataValue.assign(refI + 1, refI + 3, Ka * Tc / (Ta * Tb));
     }
 
     // X
-    if (VLoc != kNullLocation) {
-        md.assign(refI + 2, VLoc, -1.0 / Tb);
+    if (voltageLoc != kNullLocation) {
+        matrixDataValue.assign(refI + 2, voltageLoc, -1.0 / Tb);
     }
-    md.assign(refI + 2, refI, -Kf / (Tf * Tb));
-    md.assign(refI + 2, refI + 2, -1.0 / Tb - sD.cj);
-    md.assign(refI + 2, refI + 3, 1.0 / Tb);
+    matrixDataValue.assign(refI + 2, refI, -Kf / (Tf * Tb));
+    matrixDataValue.assign(refI + 2, refI + 2, (-1.0 / Tb) - stateDataValue.cj);
+    matrixDataValue.assign(refI + 2, refI + 3, 1.0 / Tb);
     // Rf
-    md.assign(refI + 3, refI, Kf / (Tf * Tf));
-    md.assign(refI + 3, refI + 3, -1.0 / Tf - sD.cj);
+    matrixDataValue.assign(refI + 3, refI, Kf / (Tf * Tf));
+    matrixDataValue.assign(refI + 3, refI + 3, (-1.0 / Tf) - stateDataValue.cj);
 
     // printf("%f--%f--\n",sD.time,sD.cj);
 }
@@ -164,28 +175,30 @@ void ExciterDC1A::jacobianElements(const IOdata& inputs,
 void ExciterDC1A::limitJacobian(double /*V*/,
                                 int /*Vloc*/,
                                 int refLoc,
-                                double cj,
-                                matrixData<double>& md)
+                                double cjValue,
+                                matrixData<double>& matrixDataValue)
 {
-    md.assign(refLoc, refLoc, cj);
+    matrixDataValue.assign(refLoc, refLoc, cjValue);
 }
 
 void ExciterDC1A::rootTest(const IOdata& inputs,
-                           const stateData& sD,
+                           const stateData& stateDataValue,
                            double root[],
                            const SolverMode& sMode)
 {
     auto offset = offsets.getAlgOffset(sMode);
-    const double* es = sD.state + offset;
+    const double* exciterState = stateDataValue.state + offset;
 
-    int rootOffset = offsets.getRootOffset(sMode);
+    const int rootOffset = offsets.getRootOffset(sMode);
     if (opFlags[outsideVoltageLimits]) {
         root[rootOffset] =
-            ((Vref + vBias - inputs[voltageInLocation]) - es[0] * Kf / Tf + es[3]) * Ka * Tc / Tb +
-            es[2] * (Tb - Tc) * Ka / Tb - es[1];
+            ((((Vref + vBias - inputs[voltageInLocation]) - ((exciterState[0] * Kf) / Tf)) +
+              exciterState[3]) *
+                 Ka * Tc / Tb) +
+            ((exciterState[2] * (Tb - Tc) * Ka) / Tb) - exciterState[1];
     } else {
-        root[rootOffset] = std::min(Vrmax - es[1], es[1] - Vrmin) + 0.00001;
-        if (es[1] > Vrmax) {
+        root[rootOffset] = std::min(Vrmax - exciterState[1], exciterState[1] - Vrmin) + 0.00001;
+        if (exciterState[1] > Vrmax) {
             opFlags.set(triggerHigh);
         }
     }
@@ -196,13 +209,15 @@ ChangeCode ExciterDC1A::rootCheck(const IOdata& inputs,
                                   const SolverMode& /*sMode*/,
                                   CheckLevel /*level*/)
 {
-    double* es = m_state.data();
+    double* exciterState = m_state.data();
     double test;
     ChangeCode ret = ChangeCode::NO_CHANGE;
     if (opFlags[outsideVoltageLimits]) {
         test =
-            ((Vref + vBias - inputs[voltageInLocation]) - es[0] * Kf / Tf + es[3]) * Ka * Tc / Tb +
-            es[2] * (Tb - Tc) * Ka / Tb - es[1];
+            ((((Vref + vBias - inputs[voltageInLocation]) - ((exciterState[0] * Kf) / Tf)) +
+              exciterState[3]) *
+                 Ka * Tc / Tb) +
+            ((exciterState[2] * (Tb - Tc) * Ka) / Tb) - exciterState[1];
         if (opFlags[triggerHigh]) {
             if (test < 0.0) {
                 ret = ChangeCode::JACOBIAN_CHANGE;
@@ -218,16 +233,16 @@ ChangeCode ExciterDC1A::rootCheck(const IOdata& inputs,
             }
         }
     } else {
-        if (es[1] > Vrmax + 0.00001) {
+        if (exciterState[1] > Vrmax + 0.00001) {
             opFlags.set(triggerHigh);
             opFlags.set(outsideVoltageLimits);
-            es[1] = Vrmax;
+            exciterState[1] = Vrmax;
             ret = ChangeCode::JACOBIAN_CHANGE;
             alert(this, JAC_COUNT_DECREASE);
-        } else if (es[1] < Vrmin - 0.00001) {
+        } else if (exciterState[1] < Vrmin - 0.00001) {
             opFlags.reset(triggerHigh);
             opFlags.set(outsideVoltageLimits);
-            es[1] = Vrmin;
+            exciterState[1] = Vrmin;
             ret = ChangeCode::JACOBIAN_CHANGE;
             alert(this, JAC_COUNT_DECREASE);
         }
@@ -236,15 +251,15 @@ ChangeCode ExciterDC1A::rootCheck(const IOdata& inputs,
     return ret;
 }
 
-static const stringVec dc1aFields{"ef", "vr", "x", "rf"};
+static const stringVec DC1A_FIELDS{"ef", "vr", "x", "rf"};
 
 stringVec ExciterDC1A::localStateNames() const
 {
-    return dc1aFields;
+    return DC1A_FIELDS;
 }
 void ExciterDC1A::set(std::string_view param, std::string_view val)
 {
-    return ExciterIEEEtype1::set(param, val);
+    ExciterIEEEtype1::set(param, val);
 }
 
 // set parameters

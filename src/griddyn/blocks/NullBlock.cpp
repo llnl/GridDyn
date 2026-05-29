@@ -62,7 +62,7 @@ void NullBlock::timestep(coreTime time, const IOdata& inputs, const SolverMode& 
     step(time, inputs[0]);
 }
 
-static IOdata kNullVec;
+static IOdata gNullVec;
 
 double NullBlock::step(coreTime time, double input)
 {

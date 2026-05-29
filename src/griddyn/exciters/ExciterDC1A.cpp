@@ -106,8 +106,8 @@ void ExciterDC1A::derivative(const IOdata& inputs,
     } else {
         derivatives[1] =
             (-exciterState[1] +
-             ((((Vref + vBias - voltage) - ((exciterState[0] * Kf) / Tf)) + exciterState[3]) *
-                  Ka * Tc / Tb) +
+             ((((Vref + vBias - voltage) - ((exciterState[0] * Kf) / Tf)) + exciterState[3]) * Ka *
+              Tc / Tb) +
              ((exciterState[2] * (Tb - Tc) * Ka) / Tb)) /
             Ta;
     }
@@ -136,10 +136,10 @@ void ExciterDC1A::jacobianElements(const IOdata& inputs,
     // md.assign(arrayIndex, RowIndex, ColIndex, value)
 
     // Ef
-    const double temp1 =
-        (-(Ke + (Aex * exp(Bex * stateDataValue.state[offset]) *
-                 (1.0 + (Bex * stateDataValue.state[offset])))) /
-         Te) -
+    const double temp1 = (-(Ke +
+                            (Aex * exp(Bex * stateDataValue.state[offset]) *
+                             (1.0 + (Bex * stateDataValue.state[offset])))) /
+                          Te) -
         stateDataValue.cj;
     matrixDataValue.assign(refI, refI, temp1);
     matrixDataValue.assign(refI, refI + 1, 1.0 / Te);
@@ -194,7 +194,7 @@ void ExciterDC1A::rootTest(const IOdata& inputs,
         root[rootOffset] =
             ((((Vref + vBias - inputs[voltageInLocation]) - ((exciterState[0] * Kf) / Tf)) +
               exciterState[3]) *
-                 Ka * Tc / Tb) +
+             Ka * Tc / Tb) +
             ((exciterState[2] * (Tb - Tc) * Ka) / Tb) - exciterState[1];
     } else {
         root[rootOffset] = std::min(Vrmax - exciterState[1], exciterState[1] - Vrmin) + 0.00001;
@@ -213,10 +213,9 @@ ChangeCode ExciterDC1A::rootCheck(const IOdata& inputs,
     double test;
     ChangeCode ret = ChangeCode::NO_CHANGE;
     if (opFlags[outsideVoltageLimits]) {
-        test =
-            ((((Vref + vBias - inputs[voltageInLocation]) - ((exciterState[0] * Kf) / Tf)) +
-              exciterState[3]) *
-                 Ka * Tc / Tb) +
+        test = ((((Vref + vBias - inputs[voltageInLocation]) - ((exciterState[0] * Kf) / Tf)) +
+                 exciterState[3]) *
+                Ka * Tc / Tb) +
             ((exciterState[2] * (Tb - Tc) * Ka) / Tb) - exciterState[1];
         if (opFlags[triggerHigh]) {
             if (test < 0.0) {

@@ -14,19 +14,19 @@
 namespace griddyn::blocks {
 ControlBlock::ControlBlock(const std::string& objName): GridBlock(objName)
 {
-    opFlags.set(use_state);
+    opFlags.set(useState);
 }
 ControlBlock::ControlBlock(double timeConstant, const std::string& objName):
     GridBlock(objName), mT1(timeConstant)
 {
-    opFlags.set(use_state);
+    opFlags.set(useState);
 }
 ControlBlock::ControlBlock(double timeConstant,
                            double upperTimeConstant,
                            const std::string& objName):
     GridBlock(objName), mT1(timeConstant), mT2(upperTimeConstant)
 {
-    opFlags.set(use_state);
+    opFlags.set(useState);
 }
 
 CoreObject* ControlBlock::clone(CoreObject* obj) const
@@ -42,7 +42,7 @@ CoreObject* ControlBlock::clone(CoreObject* obj) const
 // set up the number of states
 void ControlBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    if (opFlags[differential_input]) {
+    if (opFlags[differentialInput]) {
         opFlags.set(differential_output);
     }
     GridBlock::dynObjectInitializeA(time0, flags);
@@ -56,7 +56,7 @@ void ControlBlock::dynObjectInitializeB(const IOdata& inputs,
                                         IOdata& fieldSet)
 {
     fieldSet.resize(1);
-    if (opFlags[has_limits]) {
+    if (opFlags[hasLimits]) {
         GridBlock::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
     }
     if (desiredOutput.empty()) {
@@ -78,7 +78,7 @@ void ControlBlock::blockAlgebraicUpdate(double input,
                                         double update[],
                                         const SolverMode& sMode)
 {
-    if (!opFlags[differential_input]) {
+    if (!opFlags[differentialInput]) {
         auto locationData = offsets.getLocations(stateDataRef, update, sMode, this);
 
         locationData.destLoc[limiter_alg] =
@@ -96,7 +96,7 @@ void ControlBlock::blockDerivative(double input,
                                    const SolverMode& sMode)
 {
     auto locationData = offsets.getLocations(stateDataRef, deriv, sMode, this);
-    if (opFlags[differential_input]) {
+    if (opFlags[differentialInput]) {
         locationData.destDiffLoc[limiter_diff] =
             locationData.dstateLoc[limiter_diff + 1] + ((mT2 / mT1) * didt * K);
         locationData.destDiffLoc[limiter_diff + 1] =
@@ -118,7 +118,7 @@ void ControlBlock::blockJacobianElements(double input,
                                          const SolverMode& sMode)
 {
     auto locationData = offsets.getLocations(stateDataRef, sMode, this);
-    if (opFlags[differential_input]) {
+    if (opFlags[differentialInput]) {
     } else {
         if (hasAlgebraic(sMode)) {
             jacobian.assign(locationData.algOffset + limiter_alg,
@@ -182,7 +182,7 @@ double ControlBlock::step(coreTime time, double input)
         m_state[limiter_alg + limiter_diff + 1] + ((K * mT2 / mT1) * inputWithBias);
 
     prevInput = inputWithBias;
-    if (opFlags[has_limits]) {
+    if (opFlags[hasLimits]) {
         out = GridBlock::step(time, inputWithBias);
     } else {
         out = m_state[0];
@@ -225,10 +225,10 @@ stringVec ControlBlock::localStateNames() const
 {
     stringVec out(stateSize(cLocalSolverMode));
     int loc = 0;
-    if (opFlags[use_block_limits]) {
+    if (opFlags[useBlockLimits]) {
         out[loc++] = "limiter_out";
     }
-    if (opFlags[use_ramp_limits]) {
+    if (opFlags[useRampLimits]) {
         out[loc++] = "ramp_limiter_out";
     }
     out[loc++] = "output";

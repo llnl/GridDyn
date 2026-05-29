@@ -78,12 +78,12 @@ void GridBlock::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/
     offsets.unload();  // unload all the offsets
 
     lcinfo.local.jacSize = 2;
-    if (!opFlags[use_state]) {
-        if (opFlags[use_direct]) {  // In use direct mode it just processes the input
+    if (!opFlags[useState]) {
+        if (opFlags[useDirect]) {  // In use direct mode it just processes the input
             // also ignore the gain and bias
             lcinfo.local.jacSize = 0;
         } else {
-            if (opFlags[differential_input]) {
+            if (opFlags[differentialInput]) {
                 lcinfo.local.diffSize = 1;
                 opFlags.set(differential_output);
             } else {
@@ -101,7 +101,7 @@ void GridBlock::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/
     if (resetLevel < 0) {
         resetLevel = computeDefaultResetLevel();
     }
-    if (opFlags[use_block_limits]) {
+    if (opFlags[useBlockLimits]) {
         if (opFlags[differential_output]) {
             ++(lcinfo.local.diffRoots);
             ++(lcinfo.local.diffSize);
@@ -115,7 +115,7 @@ void GridBlock::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/
         vLimiter = std::make_unique<blocks::ValueLimiter>(Omin, Omax);
         vLimiter->setResetLevel(resetLevel);
     }
-    if ((opFlags[use_ramp_limits]) &&
+    if ((opFlags[useRampLimits]) &&
         (opFlags[differential_output]))  // ramp limits only work with a
     // differential output state before the
     // limiters
@@ -130,9 +130,9 @@ void GridBlock::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/
         rLimiter->setResetLevel(resetLevel);
     }
     if (limiter_alg + limiter_diff > 0) {
-        opFlags[has_limits] = true;
+        opFlags[hasLimits] = true;
     }
-    if (opFlags[differential_input]) {
+    if (opFlags[differentialInput]) {
         m_inputSize = 2;
     }
 }
@@ -178,13 +178,13 @@ void GridBlock::dynObjectInitializeB(const IOdata& inputs,
     if (desiredOutput.empty()) {
         assert(!inputs.empty());
         prevInput = (inputs[0] + bias);
-        if (!opFlags[use_state]) {
-            if (!opFlags[use_direct]) {
+        if (!opFlags[useState]) {
+            if (!opFlags[useDirect]) {
                 m_state[limiter_alg + limiter_diff] = (prevInput)*K;
-                if (opFlags[use_ramp_limits]) {
+                if (opFlags[useRampLimits]) {
                     m_state[limiter_diff - 1] = m_state[limiter_diff];
                 }
-                if (opFlags[use_block_limits]) {
+                if (opFlags[useBlockLimits]) {
                     GridBlock::rootCheck(inputs,
                                          emptyStateData,
                                          cLocalSolverMode,
@@ -193,10 +193,10 @@ void GridBlock::dynObjectInitializeB(const IOdata& inputs,
                 }
             }
         } else {
-            if (opFlags[use_ramp_limits]) {
+            if (opFlags[useRampLimits]) {
                 const index_t diffOffset = offsets.local().local.algSize + limiter_diff;
                 m_state[diffOffset - 1] = m_state[diffOffset];
-                if (opFlags[use_block_limits]) {
+                if (opFlags[useBlockLimits]) {
                     GridBlock::rootCheck(inputs,
                                          emptyStateData,
                                          cLocalSolverMode,
@@ -204,7 +204,7 @@ void GridBlock::dynObjectInitializeB(const IOdata& inputs,
                     m_state[0] = vLimiter->clampOutput(m_state[diffOffset - 1]);
                 }
             } else {
-                if (opFlags[use_block_limits]) {
+                if (opFlags[useBlockLimits]) {
                     if (opFlags[differential_output]) {
                         const index_t diffOffset = offsets.local().local.algSize;
                         GridBlock::rootCheck(inputs,
@@ -226,28 +226,28 @@ void GridBlock::dynObjectInitializeB(const IOdata& inputs,
         fieldSet[0] = m_state[0];
     } else {
         m_state[0] = desiredOutput[0];
-        if (opFlags[use_block_limits]) {
+        if (opFlags[useBlockLimits]) {
             m_state[0] = vLimiter->clampOutput(m_state[0]);
         }
 
-        if (!opFlags[use_state]) {
-            if (opFlags[use_block_limits]) {
+        if (!opFlags[useState]) {
+            if (opFlags[useBlockLimits]) {
                 m_state[1] = m_state[0];
             }
-            if (opFlags[use_ramp_limits]) {
+            if (opFlags[useRampLimits]) {
                 m_state[2] = m_state[0];  // we know the layout in this case
             }
         } else {
-            if (opFlags[use_ramp_limits]) {
+            if (opFlags[useRampLimits]) {
                 const index_t diffOffset = offsets.getDiffOffset(cLocalSolverMode) + limiter_diff;
 
-                if (opFlags[use_block_limits]) {
+                if (opFlags[useBlockLimits]) {
                     m_state[limiter_diff - 1] = m_state[0];
                 }
                 m_state[diffOffset] = m_state[0];
                 m_state[diffOffset + 1] = m_state[0];
             } else {
-                if (opFlags[use_block_limits]) {
+                if (opFlags[useBlockLimits]) {
                     if (opFlags[differential_output]) {
                         const index_t diffOffset =
                             offsets.getDiffOffset(cLocalSolverMode) + limiter_diff;
@@ -276,11 +276,11 @@ static IOdata gKNullVec;
 
 double GridBlock::step(coreTime time, double input)
 {
-    if (!opFlags[use_state]) {
+    if (!opFlags[useState]) {
         m_state[limiter_alg + limiter_diff] = (input + bias) * K;
 
-        if (opFlags[has_limits]) {
-            if (opFlags[use_ramp_limits]) {
+        if (opFlags[hasLimits]) {
+            if (opFlags[useRampLimits]) {
                 const int offset = offsets.getDiffOffset(cLocalSolverMode);
                 const double ramp = (m_state[offset + 1] - m_state[offset]) / (time - prevTime);
                 const double cramp = rLimiter->clampOutputRamp(ramp);
@@ -295,7 +295,7 @@ double GridBlock::step(coreTime time, double input)
             }
         }
     } else {
-        if (opFlags[use_ramp_limits]) {
+        if (opFlags[useRampLimits]) {
             const int offset = offsets.getDiffOffset(cLocalSolverMode);
             const double ramp = (m_state[offset + 1] - m_state[offset]) / (time - prevTime);
             const double cramp = rLimiter->clampOutputRamp(ramp);
@@ -305,7 +305,7 @@ double GridBlock::step(coreTime time, double input)
                 m_state[offset] += ramp * (time - prevTime);
             }
         } else {
-            if (opFlags[use_block_limits]) {
+            if (opFlags[useBlockLimits]) {
                 const auto offset = opFlags[differential_output] ?
                     (offsets.getDiffOffset(cLocalSolverMode)) + 1 :
                     1;
@@ -396,13 +396,13 @@ void GridBlock::limiterResidElements(double input,
         double testValue = getTestRate(didt, stateDataValue.dstate_dt[offset]);
 
         if (limiter_diff > 0) {
-            if (opFlags[use_ramp_limits]) {
+            if (opFlags[useRampLimits]) {
                 --offset;
                 resid[offset] = rLimiter->deriv(testValue);
                 testValue = resid[offset];
                 resid[offset] -= stateDataValue.dstate_dt[offset];
             }
-            if (opFlags[use_block_limits]) {
+            if (opFlags[useBlockLimits]) {
                 resid[offset - 1] =
                     vLimiter->deriv(testValue) - stateDataValue.dstate_dt[offset - 1];
             }
@@ -410,7 +410,7 @@ void GridBlock::limiterResidElements(double input,
     } else {
         auto offset = offsets.getAlgOffset(solverModeValue) + limiter_alg;
         const double testValue = getTestValue(input, stateDataValue.state[offset]);
-        if (opFlags[has_limits]) {
+        if (opFlags[hasLimits]) {
             resid[offset - 1] = vLimiter->output(testValue) - stateDataValue.state[offset - 1];
         }
     }
@@ -443,14 +443,14 @@ void GridBlock::residual(const IOdata& inputs,
 
 bool GridBlock::hasValueState() const
 {
-    return (!((opFlags[use_state]) || (opFlags[use_direct])));
+    return (!((opFlags[useState]) || (opFlags[useDirect])));
 }
 double GridBlock::getTestValue(double input, double currentState) const
 {
     double testVal;
-    if (opFlags[use_state]) {
+    if (opFlags[useState]) {
         testVal = currentState;
-    } else if (opFlags[use_direct]) {
+    } else if (opFlags[useDirect]) {
         testVal = input * K;
     } else {
         testVal = (input + bias) * K;
@@ -461,7 +461,7 @@ double GridBlock::getTestValue(double input, double currentState) const
 double GridBlock::getTestRate(double didt, double currentStateRate) const
 {
     double testRate;
-    if (opFlags[use_state]) {
+    if (opFlags[useState]) {
         testRate = currentStateRate;
     } else {
         testRate = didt * K;
@@ -486,7 +486,7 @@ void GridBlock::blockAlgebraicUpdate(double input,
         // otherwise the residual fails to check
         // properly
     }
-    if (opFlags[has_limits]) {
+    if (opFlags[hasLimits]) {
         update[offset - 1] = vLimiter->output(testValue);
     }
 }
@@ -513,12 +513,12 @@ void GridBlock::blockDerivative(double /*input*/,
             deriv[offset] = testValue;
         }
         if (limiter_diff > 0) {
-            if (opFlags[use_ramp_limits]) {
+            if (opFlags[useRampLimits]) {
                 --offset;
                 deriv[offset] = rLimiter->output(testValue);
                 testValue = deriv[offset];
             }
-            if (opFlags[use_block_limits]) {
+            if (opFlags[useBlockLimits]) {
                 deriv[offset - 1] = vLimiter->deriv(testValue);
             }
         }
@@ -547,10 +547,10 @@ void GridBlock::blockJacobianElements(double /*input*/,
             matrixDataValue.assign(offset, offset, -stateDataValue.cj);
         }
         if (limiter_diff > 0) {
-            if (opFlags[use_ramp_limits]) {
+            if (opFlags[useRampLimits]) {
                 --offset;
                 matrixDataValue.assign(offset, offset, -stateDataValue.cj);
-                if (opFlags[use_direct]) {
+                if (opFlags[useDirect]) {
                     matrixDataValue.assignCheckCol(offset,
                                                    argLoc,
                                                    K * stateDataValue.cj * rLimiter->DoutDin());
@@ -560,11 +560,11 @@ void GridBlock::blockJacobianElements(double /*input*/,
                                            stateDataValue.cj * rLimiter->DoutDin());
                 }
             }
-            if (opFlags[use_block_limits]) {
+            if (opFlags[useBlockLimits]) {
                 --offset;
                 matrixDataValue.assign(offset, offset, -stateDataValue.cj);
 
-                if ((opFlags[use_direct]) && (!opFlags[use_ramp_limits])) {
+                if ((opFlags[useDirect]) && (!opFlags[useRampLimits])) {
                     matrixDataValue.assignCheckCol(offset,
                                                    argLoc,
                                                    K * stateDataValue.cj * vLimiter->DoutDin());
@@ -586,7 +586,7 @@ void GridBlock::blockJacobianElements(double /*input*/,
         if (limiter_alg > 0) {
             --offset;
             matrixDataValue.assign(offset, offset, -1.0);
-            if (opFlags[use_direct]) {
+            if (opFlags[useDirect]) {
                 matrixDataValue.assign(offset, argLoc, K * vLimiter->DoutDin());
             } else {
                 matrixDataValue.assign(offset, offset + 1, vLimiter->DoutDin());
@@ -616,7 +616,7 @@ double GridBlock::getLimiterTestValue(double input,
     auto offset = (opFlags[differential_output]) ? offsets.getDiffOffset(solverModeValue) :
                                                    offsets.getAlgOffset(solverModeValue);
     auto stateVal = (stateDataValue.empty()) ? m_state[1] : stateDataValue.state[offset + 1];
-    if (hasValueState() || opFlags[use_ramp_limits]) {
+    if (hasValueState() || opFlags[useRampLimits]) {
         return stateVal;
     }
     return getTestValue(input, stateVal);
@@ -627,11 +627,11 @@ void GridBlock::rootTest(const IOdata& inputs,
                          double roots[],
                          const SolverMode& solverModeValue)
 {
-    if (!opFlags[has_limits]) {
+    if (!opFlags[hasLimits]) {
         return;
     }
     int rootOffset = offsets.getRootOffset(solverModeValue);
-    if (opFlags[use_ramp_limits]) {
+    if (opFlags[useRampLimits]) {
         auto doffset = offsets.getDiffOffset(solverModeValue) + limiter_diff;
         const double testRate = getTestRate(inputs[1], stateDataValue.dstate_dt[doffset]);
         const double testValue = getTestValue(inputs[0], stateDataValue.state[doffset]);
@@ -640,7 +640,7 @@ void GridBlock::rootTest(const IOdata& inputs,
         ++rootOffset;
     }
 
-    if (opFlags[use_block_limits]) {
+    if (opFlags[useBlockLimits]) {
         const double value = getLimiterTestValue(inputs[0], stateDataValue, solverModeValue);
         roots[rootOffset] = vLimiter->limitCheck(value);
     }
@@ -652,13 +652,13 @@ ChangeCode GridBlock::rootCheck(const IOdata& inputs,
                                 CheckLevel /*level*/)
 {
     ChangeCode ret = ChangeCode::NO_CHANGE;
-    if (!opFlags[has_limits]) {
+    if (!opFlags[hasLimits]) {
         return ret;
     }
     const double* stateValues = ((!stateDataValue.empty()) ? stateDataValue.state : m_state.data());
     const double* stateDerivatives =
         ((!stateDataValue.empty()) ? stateDataValue.dstate_dt : m_dstate_dt.data());
-    if (opFlags[use_ramp_limits]) {
+    if (opFlags[useRampLimits]) {
         auto doffset = offsets.getDiffOffset(solverModeValue);
         const double testRate = getTestRate(getRateInput(inputs), stateDerivatives[doffset]);
         const double testValue = getTestValue(inputs[0], stateValues[doffset]);
@@ -668,7 +668,7 @@ ChangeCode GridBlock::rootCheck(const IOdata& inputs,
             ret = ChangeCode::NON_STATE_CHANGE;
         }
     }
-    if (opFlags[use_block_limits]) {
+    if (opFlags[useBlockLimits]) {
         const double value = getLimiterTestValue(inputs[0], stateDataValue, solverModeValue);
         const double limitValue = vLimiter->limitCheck(value);
         if (limitValue < 0.0) {
@@ -685,12 +685,12 @@ void GridBlock::rootTrigger(coreTime /*time*/,
                             const std::vector<int>& rootMask,
                             const SolverMode& solverModeValue)
 {
-    if (!opFlags[has_limits]) {
+    if (!opFlags[hasLimits]) {
         return;
     }
     auto roffset = offsets.getRootOffset(solverModeValue);
 
-    if (opFlags[use_ramp_limits]) {
+    if (opFlags[useRampLimits]) {
         if (rootMask[roffset] != 0) {
             auto doffset = offsets.getDiffOffset(cLocalSolverMode);
             const double testRate = getTestRate(getRateInput(inputs), m_dstate_dt[doffset]);
@@ -699,7 +699,7 @@ void GridBlock::rootTrigger(coreTime /*time*/,
         }
         ++roffset;
     }
-    if (opFlags[use_block_limits]) {
+    if (opFlags[useBlockLimits]) {
         if (rootMask[roffset] == 0) {
             return;
         }
@@ -716,16 +716,16 @@ void GridBlock::setFlag(std::string_view flag, bool val)
 {
     if (flag == "use_limits") {
         if (!opFlags[dyn_initialized]) {
-            opFlags[has_limits] = val;
-            opFlags[use_block_limits] = val;
-            opFlags[use_ramp_limits] = val;
+            opFlags[hasLimits] = val;
+            opFlags[useBlockLimits] = val;
+            opFlags[useRampLimits] = val;
         }
     } else if (flag == "simplified") {
         if (opFlags[dyn_initialized]) {
-            if (opFlags[simplified] != val) {
+            if (opFlags[simplifiedMode] != val) {
                 // this is probably not the best thing to
                 // be changing after initialization
-                opFlags[simplified] = val;
+                opFlags[simplifiedMode] = val;
                 dynObjectInitializeA(prevTime, 0);
                 alert(this, STATE_COUNT_CHANGE);
                 logging::warning(this,
@@ -733,19 +733,19 @@ void GridBlock::setFlag(std::string_view flag, bool val)
                                  "triggers solver reset");
             }
         } else {
-            opFlags[simplified] = val;
+            opFlags[simplifiedMode] = val;
         }
     } else if (flag == "use_direct") {
         if (!opFlags[dyn_initialized]) {
-            opFlags[use_direct] = val;
+            opFlags[useDirect] = val;
         }
     } else if (flag == "differential_input") {
         if (!opFlags[dyn_initialized]) {
-            opFlags[differential_input] = val;
+            opFlags[differentialInput] = val;
         }
     } else if (flag == "use_ramp_limits") {
         if (!opFlags[dyn_initialized]) {
-            opFlags[use_ramp_limits] = val;
+            opFlags[useRampLimits] = val;
         }
     } else {
         GridSubModel::setFlag(flag, val);
@@ -809,7 +809,7 @@ double GridBlock::get(std::string_view param, units::unit unitType) const
 void GridBlock::valLimiterUpdate()
 {
     if (!opFlags[dyn_initialized]) {
-        opFlags.set(use_block_limits);
+        opFlags.set(useBlockLimits);
     } else {
         if (vLimiter) {
             vLimiter->setLimits(Omin, Omax);
@@ -820,7 +820,7 @@ void GridBlock::valLimiterUpdate()
 void GridBlock::rampLimiterUpdate()
 {
     if (!opFlags[dyn_initialized]) {
-        opFlags.set(use_ramp_limits);
+        opFlags.set(useRampLimits);
     } else {
         if (rLimiter) {
             rLimiter->setLimits(rampMin, rampMax);
@@ -831,10 +831,10 @@ void GridBlock::rampLimiterUpdate()
 stringVec GridBlock::localStateNames() const
 {
     stringVec stNames;
-    if (opFlags[use_block_limits]) {
+    if (opFlags[useBlockLimits]) {
         stNames.emplace_back("block_limits");
     }
-    if (opFlags[use_ramp_limits]) {
+    if (opFlags[useRampLimits]) {
         stNames.emplace_back("ramp_limits");
     }
     if (hasValueState()) {

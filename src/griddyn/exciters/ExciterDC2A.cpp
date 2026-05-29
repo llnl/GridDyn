@@ -59,9 +59,9 @@ void ExciterDC2A::residual(const IOdata& inputs,
                           sD,
                           resid,
                           sMode);  // use DC1A but overwrite if we are at a limiter
-    if (opFlags[outside_vlim]) {
+    if (opFlags[outsideVoltageLimits]) {
         // auto offset = offsets.getAlgOffset(sMode);
-        if (opFlags[etrigger_high]) {
+        if (opFlags[triggerHigh]) {
             // resid[offset + 1] = state[offset + 1] -
             // inputs[voltageInLocation]*Vrmax;
         } else {
@@ -83,9 +83,9 @@ void ExciterDC2A::derivative(const IOdata& inputs,
                             sD,
                             deriv,
                             sMode);  // use DC1A but overwrite if we are at a limiter
-    if (opFlags[outside_vlim]) {
+    if (opFlags[outsideVoltageLimits]) {
         auto offset = offsets.getDiffOffset(sMode);
-        if (opFlags[etrigger_high]) {
+        if (opFlags[triggerHigh]) {
             // deriv[offset + 1] = state[offset + 1] - inputs[voltageInLocation] *
             // Vrmax;
             deriv[offset + 1] = 0;
@@ -104,7 +104,7 @@ void ExciterDC2A::limitJacobian(double /*V*/,
                                 matrixData<double>& md)
 {
     md.assign(refLoc, refLoc, 1);
-    if (opFlags[etrigger_high]) {
+    if (opFlags[triggerHigh]) {
         // md.assign(refLoc, VLoc, -Vrmax);
         md.assign(refLoc, VLoc, cj);
     } else {
@@ -122,13 +122,13 @@ void ExciterDC2A::rootTest(const IOdata& inputs,
     int rootOffset = offsets.getRootOffset(sMode);
     const double* es = sD.state + offset;
     double V = inputs[voltageInLocation];
-    if (opFlags[outside_vlim]) {
+    if (opFlags[outsideVoltageLimits]) {
         roots[rootOffset] = ((Vref - V) - es[0] * Kf / Tf + es[3]) * Ka * Tc / Tb +
             es[2] * (Tb - Tc) * Ka / Tb - es[1];
     } else {
         roots[rootOffset] = std::min(Vrmax * V - es[1], es[1] - Vrmin * V) + 0.0001;
         if (es[1] > V * Vrmax) {
-            opFlags.set(etrigger_high);
+            opFlags.set(triggerHigh);
         }
     }
 }
@@ -141,33 +141,33 @@ ChangeCode ExciterDC2A::rootCheck(const IOdata& inputs,
     double* es = m_state.data();
     double V = inputs[voltageInLocation];
     ChangeCode ret = ChangeCode::NO_CHANGE;
-    if (opFlags[outside_vlim]) {
+    if (opFlags[outsideVoltageLimits]) {
         double test = ((Vref - V) - es[0] * Kf / Tf + es[3]) * Ka * Tc / Tb +
             es[2] * (Tb - Tc) * Ka / Tb - es[1];
-        if (opFlags[etrigger_high]) {
+        if (opFlags[triggerHigh]) {
             if (test < 0.0) {
                 ret = ChangeCode::JACOBIAN_CHANGE;
-                opFlags.reset(outside_vlim);
-                opFlags.reset(etrigger_high);
+                opFlags.reset(outsideVoltageLimits);
+                opFlags.reset(triggerHigh);
                 alert(this, JAC_COUNT_INCREASE);
             }
         } else {
             if (test > 0.0) {
                 ret = ChangeCode::JACOBIAN_CHANGE;
-                opFlags.reset(outside_vlim);
+                opFlags.reset(outsideVoltageLimits);
                 alert(this, JAC_COUNT_INCREASE);
             }
         }
     } else {
         if (es[1] > V * Vrmax + 0.0001) {
-            opFlags.set(etrigger_high);
-            opFlags.set(outside_vlim);
+            opFlags.set(triggerHigh);
+            opFlags.set(outsideVoltageLimits);
             es[1] = V * Vrmax;
             ret = ChangeCode::JACOBIAN_CHANGE;
             alert(this, JAC_COUNT_DECREASE);
         } else if (es[1] < V * Vrmin - 0.0001) {
-            opFlags.reset(etrigger_high);
-            opFlags.set(outside_vlim);
+            opFlags.reset(triggerHigh);
+            opFlags.set(outsideVoltageLimits);
             es[1] = V * Vrmin;
             ret = ChangeCode::JACOBIAN_CHANGE;
             alert(this, JAC_COUNT_DECREASE);

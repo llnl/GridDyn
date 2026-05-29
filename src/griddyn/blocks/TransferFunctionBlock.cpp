@@ -20,7 +20,7 @@ TransferFunctionBlock::TransferFunctionBlock(const std::string& objName):
     GridBlock(objName), a(2, 1), b(2, 0)
 {
     b[0] = 1;
-    opFlags.set(use_state);
+    opFlags.set(useState);
 }
 
 TransferFunctionBlock::TransferFunctionBlock(int order): a(order + 1, 1), b(order + 1, 0)
@@ -31,7 +31,7 @@ TransferFunctionBlock::TransferFunctionBlock(int order): a(order + 1, 1), b(orde
     } else {
         b[0] = 1;
     }
-    opFlags.set(use_state);
+    opFlags.set(useState);
 }
 
 TransferFunctionBlock::TransferFunctionBlock(std::vector<double> Acoef):
@@ -43,7 +43,7 @@ TransferFunctionBlock::TransferFunctionBlock(std::vector<double> Acoef):
     } else {
         b[0] = 1;
     }
-    opFlags.set(use_state);
+    opFlags.set(useState);
 }
 
 TransferFunctionBlock::TransferFunctionBlock(std::vector<double> Acoef, std::vector<double> Bcoef):
@@ -53,7 +53,7 @@ TransferFunctionBlock::TransferFunctionBlock(std::vector<double> Acoef, std::vec
         a.push_back(1.0);
     }
     b.resize(a.size(), 0);
-    opFlags.set(use_state);
+    opFlags.set(useState);
 }
 
 CoreObject* TransferFunctionBlock::clone(CoreObject* obj) const
@@ -93,7 +93,7 @@ void TransferFunctionBlock::dynObjectInitializeB(const IOdata& inputs,
         //    m_state[2] = (1.0 - m_T2 / m_T1) * (inputs[0] + bias);
         m_state[1] = (inputs[0] + bias);
         m_state[0] = m_state[1] * K;
-        if (opFlags[has_limits]) {
+        if (opFlags[hasLimits]) {
             GridBlock::rootCheck(inputs,
                                  emptyStateData,
                                  cLocalSolverMode,
@@ -141,7 +141,7 @@ void TransferFunctionBlock::blockDerivative(double input,
     // auto Aoffset = offsets.getAlgOffset (sMode);
     // deriv[offset + limiter_diff] = K*(input + bias - sD.state[Aoffset +
     // limiter_alg]) / m_T1;
-    if (opFlags[use_ramp_limits]) {
+    if (opFlags[useRampLimits]) {
         GridBlock::blockDerivative(input, didt, sD, deriv, sMode);
     }
 }
@@ -201,7 +201,7 @@ double TransferFunctionBlock::step(coreTime time, double inputA)
     // m_state[1] = m_state[2] + m_T2 / m_T1 * (input);
 
     prevInput = input;
-    if (opFlags[has_limits]) {
+    if (opFlags[hasLimits]) {
         out = GridBlock::step(time, input);
     } else {
         out = K * m_state[1];

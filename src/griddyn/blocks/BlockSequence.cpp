@@ -19,7 +19,7 @@
 namespace griddyn::blocks {
 BlockSequence::BlockSequence(const std::string& objName): GridBlock(objName)
 {
-    opFlags[use_direct] = true;
+    opFlags[useDirect] = true;
 }
 CoreObject* BlockSequence::clone(CoreObject* obj) const
 {
@@ -46,7 +46,7 @@ void BlockSequence::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         blocks[sequenceIndex]->dynInitializeA(time0, flags);
         diffInput = blocks[sequenceIndex]->checkFlag(differential_output);
     }
-    opFlags[differential_input] = diffInput;
+    opFlags[differentialInput] = diffInput;
     GridBlock::dynObjectInitializeA(time0, flags);
     updateFlags();  // update the flags for the subObjects;
 }

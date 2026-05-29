@@ -28,9 +28,9 @@ GovernorTgov1::GovernorTgov1(const std::string& objName): GovernorIeeeSimple(obj
     offsets.local().local.diffSize = 2;
     offsets.local().local.algSize = 1;
     offsets.local().local.jacSize = 10;
-    opFlags.set(ignore_deadband);
-    opFlags.set(ignore_filter);
-    opFlags.set(ignore_throttle);
+    opFlags.set(ignoreDeadband);
+    opFlags.set(ignoreFilter);
+    opFlags.set(ignoreThrottle);
 }
 
 CoreObject* GovernorTgov1::clone(CoreObject* obj) const
@@ -89,7 +89,7 @@ void GovernorTgov1::derivative(const IOdata& inputs,
     // double omega = getControlFrequency (inputs);
     double omega = inputs[govOmegaInLocation];
 
-    if (opFlags[p_limited]) {
+    if (opFlags[powerLimited]) {
         Loc.destDiffLoc[1] = 0.0;
     } else {
         Loc.destDiffLoc[1] = (-gs[1] + inputs[govpSetInLocation] - K * (omega - 1.0)) / T1;
@@ -148,7 +148,7 @@ if (opFlags.test (uses_deadband))
     }
     md.assign(Loc.algOffset, refI, -1);
 
-    if (opFlags[p_limited]) {
+    if (opFlags[powerLimited]) {
         md.assign(refI + 1, refI + 1, -sD.cj);
         md.assign(refI, refI, 1 / T3);
         md.assign(refI, refI + 1, -1 / T3 - sD.cj);
@@ -183,19 +183,19 @@ void GovernorTgov1::rootTest(const IOdata& inputs,
      Governor::rootTest (inputs, sD, roots, sMode);
      ++rootOffset;
    }*/
-    if (opFlags[uses_plimits]) {
+    if (opFlags[usesPowerLimits]) {
         auto Loc = offsets.getLocations(sD, nullptr, sMode, this);
 
         double Pmech = Loc.diffStateLoc[1];
 
-        if (opFlags[p_limited]) {
+        if (opFlags[powerLimited]) {
             // double omega = getControlFrequency (inputs);
             double omega = inputs[govOmegaInLocation];
             roots[rootOffset] = (-Pmech + inputs[govpSetInLocation] + K * (omega - 1.0)) / T1;
         } else {
             roots[rootOffset] = std::min(Pmax - Pmech, Pmech - Pmin);
             if (Pmech > Pmax) {
-                opFlags.set(p_limit_high);
+                opFlags.set(powerLimitHigh);
             }
         }
         ++rootOffset;
@@ -217,20 +217,20 @@ void GovernorTgov1::rootTrigger(coreTime /*time*/,
     ++rootOffset;
   }
       */
-    if (opFlags[uses_plimits]) {
+    if (opFlags[usesPowerLimits]) {
         if (rootMask[rootOffset] != 0) {
-            if (opFlags[p_limited]) {
-                opFlags.reset(p_limited);
-                opFlags.reset(p_limit_high);
+            if (opFlags[powerLimited]) {
+                opFlags.reset(powerLimited);
+                opFlags.reset(powerLimitHigh);
                 alert(this, JAC_COUNT_INCREASE);
                 logging::debug(this, "at max power limit");
             } else {
-                if (opFlags[p_limit_high]) {
+                if (opFlags[powerLimitHigh]) {
                     logging::debug(this, "at max power limit");
                 } else {
                     logging::debug(this, "at min power limit");
                 }
-                opFlags.set(p_limited);
+                opFlags.set(powerLimited);
                 alert(this, JAC_COUNT_DECREASE);
             }
             derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);

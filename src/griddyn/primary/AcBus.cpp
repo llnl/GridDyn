@@ -765,7 +765,7 @@ void AcBus::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         keyGen = nullptr;
         for (auto& gen : attachedGens) {
             if (gen->isConnected()) {
-                if (gen->checkFlag(Generator::GeneratorFlags::internal_frequency_calculation)) {
+                if (gen->checkFlag(Generator::GeneratorFlags::internalFrequencyCalculation)) {
                     if (gen->getPmax() > mxpower) {
                         keyGen = gen;
                         mxpower = gen->getPmax();

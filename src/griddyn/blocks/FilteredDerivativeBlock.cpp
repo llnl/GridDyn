@@ -17,7 +17,7 @@
 namespace griddyn::blocks {
 FilteredDerivativeBlock::FilteredDerivativeBlock(const std::string& objName): GridBlock(objName)
 {
-    opFlags.set(use_state);
+    opFlags.set(useState);
     opFlags.set(differential_output);
 }
 
@@ -26,7 +26,7 @@ FilteredDerivativeBlock::FilteredDerivativeBlock(double preDerivativeTimeConstan
                                                  const std::string& objName):
     GridBlock(objName), mT1(preDerivativeTimeConstant), mT2(derivativeFilterTimeConstant)
 {
-    opFlags.set(use_state);
+    opFlags.set(useState);
     opFlags.set(differential_output);
 }
 
@@ -178,7 +178,7 @@ stringVec FilteredDerivativeBlock::localStateNames() const
         case 0:
             return {"deriv", "filter"};
         case 1:
-            if (opFlags[use_block_limits]) {
+            if (opFlags[useBlockLimits]) {
                 return {"limited", "deriv", "filter"};
             } else {
                 return {"ramp_limited", "deriv", "filter"};

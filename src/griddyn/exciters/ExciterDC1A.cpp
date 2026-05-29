@@ -100,7 +100,7 @@ void ExciterDC1A::derivative(const IOdata& inputs,
     double* d = Loc.destDiffLoc;
     double V = inputs[voltageInLocation];
     d[0] = (-(Ke + Aex * exp(Bex * es[0])) * es[0] + es[1]) / Te;
-    if (opFlags[outside_vlim]) {
+    if (opFlags[outsideVoltageLimits]) {
         d[1] = 0;
     } else {
         d[1] = (-es[1] + ((Vref + vBias - V) - es[0] * Kf / Tf + es[3]) * Ka * Tc / Tb +
@@ -134,7 +134,7 @@ void ExciterDC1A::jacobianElements(const IOdata& inputs,
     md.assign(refI, refI, temp1);
     md.assign(refI, refI + 1, 1.0 / Te);
 
-    if (opFlags[outside_vlim]) {
+    if (opFlags[outsideVoltageLimits]) {
         limitJacobian(inputs[voltageInLocation], VLoc, refI + 1, sD.cj, md);
     } else {
         // Vr
@@ -179,14 +179,14 @@ void ExciterDC1A::rootTest(const IOdata& inputs,
     const double* es = sD.state + offset;
 
     int rootOffset = offsets.getRootOffset(sMode);
-    if (opFlags[outside_vlim]) {
+    if (opFlags[outsideVoltageLimits]) {
         root[rootOffset] =
             ((Vref + vBias - inputs[voltageInLocation]) - es[0] * Kf / Tf + es[3]) * Ka * Tc / Tb +
             es[2] * (Tb - Tc) * Ka / Tb - es[1];
     } else {
         root[rootOffset] = std::min(Vrmax - es[1], es[1] - Vrmin) + 0.00001;
         if (es[1] > Vrmax) {
-            opFlags.set(etrigger_high);
+            opFlags.set(triggerHigh);
         }
     }
 }
@@ -199,34 +199,34 @@ ChangeCode ExciterDC1A::rootCheck(const IOdata& inputs,
     double* es = m_state.data();
     double test;
     ChangeCode ret = ChangeCode::NO_CHANGE;
-    if (opFlags[outside_vlim]) {
+    if (opFlags[outsideVoltageLimits]) {
         test =
             ((Vref + vBias - inputs[voltageInLocation]) - es[0] * Kf / Tf + es[3]) * Ka * Tc / Tb +
             es[2] * (Tb - Tc) * Ka / Tb - es[1];
-        if (opFlags[etrigger_high]) {
+        if (opFlags[triggerHigh]) {
             if (test < 0.0) {
                 ret = ChangeCode::JACOBIAN_CHANGE;
-                opFlags.reset(outside_vlim);
-                opFlags.reset(etrigger_high);
+                opFlags.reset(outsideVoltageLimits);
+                opFlags.reset(triggerHigh);
                 alert(this, JAC_COUNT_INCREASE);
             }
         } else {
             if (test > 0.0) {
                 ret = ChangeCode::JACOBIAN_CHANGE;
-                opFlags.reset(outside_vlim);
+                opFlags.reset(outsideVoltageLimits);
                 alert(this, JAC_COUNT_INCREASE);
             }
         }
     } else {
         if (es[1] > Vrmax + 0.00001) {
-            opFlags.set(etrigger_high);
-            opFlags.set(outside_vlim);
+            opFlags.set(triggerHigh);
+            opFlags.set(outsideVoltageLimits);
             es[1] = Vrmax;
             ret = ChangeCode::JACOBIAN_CHANGE;
             alert(this, JAC_COUNT_DECREASE);
         } else if (es[1] < Vrmin - 0.00001) {
-            opFlags.reset(etrigger_high);
-            opFlags.set(outside_vlim);
+            opFlags.reset(triggerHigh);
+            opFlags.set(outsideVoltageLimits);
             es[1] = Vrmin;
             ret = ChangeCode::JACOBIAN_CHANGE;
             alert(this, JAC_COUNT_DECREASE);

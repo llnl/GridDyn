@@ -92,13 +92,13 @@ void Governor::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     if (Wref < 0) {
         Wref = systemBaseFrequency;
     }
-    if (!opFlags[ignore_throttle]) {
+    if (!opFlags[ignoreThrottle]) {
         addSubObject(&delay);  // delay block comes first to set the first state as the output
     }
-    if (!opFlags[ignore_filter]) {
+    if (!opFlags[ignoreFilter]) {
         addSubObject(&cb);
     }
-    if (!opFlags[ignore_deadband]) {
+    if (!opFlags[ignoreDeadband]) {
         addSubObject(&dbb);
     }
     GridSubModel::dynObjectInitializeA(time0, flags);

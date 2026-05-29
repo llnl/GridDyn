@@ -21,7 +21,7 @@ namespace griddyn::genmodels {
 GenModelClassical::GenModelClassical(const std::string& objName): GenModel(objName)
 {
     // default values
-    opFlags.set(internal_frequency_calculation);
+    opFlags.set(internalFrequencyCalculation);
     Xd = 0.85;
 }
 

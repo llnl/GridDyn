@@ -13,7 +13,7 @@
 namespace griddyn::blocks {
 NullBlock::NullBlock(const std::string& objName): GridBlock(objName)
 {
-    opFlags[use_direct] = true;
+    opFlags[useDirect] = true;
     opFlags[no_powerflow_operations] = true;
     opFlags[no_dynamics] = true;
 }
@@ -37,7 +37,7 @@ void NullBlock::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/
     lcinfo.local.diffSize = 0;
     lcinfo.local.algSize = 0;
 
-    if (opFlags[differential_input]) {
+    if (opFlags[differentialInput]) {
         m_inputSize = 2;
     }
 }
@@ -155,7 +155,7 @@ void NullBlock::rootTrigger(coreTime /*time*/,
 void NullBlock::setFlag(std::string_view flag, bool val)
 {
     if (flag == "differential_input") {
-        opFlags[differential_input] = val;
+        opFlags[differentialInput] = val;
         opFlags[differential_output] = val;
     } else {
         GridSubModel::setFlag(flag, val);

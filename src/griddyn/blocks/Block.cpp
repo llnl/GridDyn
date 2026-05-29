@@ -115,8 +115,7 @@ void GridBlock::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/
         vLimiter = std::make_unique<blocks::ValueLimiter>(Omin, Omax);
         vLimiter->setResetLevel(resetLevel);
     }
-    if ((opFlags[useRampLimits]) &&
-        (opFlags[differential_output]))  // ramp limits only work with a
+    if ((opFlags[useRampLimits]) && (opFlags[differential_output]))  // ramp limits only work with a
     // differential output state before the
     // limiters
     {

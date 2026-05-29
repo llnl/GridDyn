@@ -30,9 +30,8 @@ class GenModel: public GridSubModel {
             object_flag2,  //!< flag indicating that the simulation should use a saturation model
         useSpeedFieldAdjustment = object_flag3,  //!< flag indicating that the simulation should
                                                  //!< use a speed field adjustment
-        useFrequencyImpedanceCorrection =
-            object_flag4,  //!< flag indicating that the model should use frequency impedance
-                           //!< corrections
+        useFrequencyImpedanceCorrection = object_flag4,  //!< flag indicating that the model should
+                                                         //!< use frequency impedance corrections
         internalFrequencyCalculation = object_flag5,
         atAngleLimits = object_flag6,
     };

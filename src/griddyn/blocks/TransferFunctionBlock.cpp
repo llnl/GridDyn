@@ -189,8 +189,7 @@ double TransferFunctionBlock::step(coreTime time, double inputA)
         //   ival = m_state[2];
         //    ival2 = m_state[1];
         while (currentTime < time) {
-            intermediateInput =
-                intermediateInput + (((input - prevInput) / timeDelta) * timeStep);
+            intermediateInput = intermediateInput + (((input - prevInput) / timeDelta) * timeStep);
             // ival = ival + 1.0 / m_T1 * ((pin + in) / 2.0 - ival2) * tstep;
             //    ival2 = ival + m_T2 / m_T1 * (input);
             currentTime += timeStep;

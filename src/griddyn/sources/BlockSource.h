@@ -42,8 +42,8 @@ namespace sources {
         virtual double get(std::string_view param,
                            units::unit unitType = units::defunit) const override;
 
-        // virtual void derivative(const IOdata &inputs, const stateData &stateDataValue, double deriv[], const
-        // SolverMode &sMode);
+        // virtual void derivative(const IOdata &inputs, const stateData &stateDataValue, double
+        // deriv[], const SolverMode &sMode);
 
         virtual void residual(const IOdata& inputs,
                               const stateData& stateDataValue,

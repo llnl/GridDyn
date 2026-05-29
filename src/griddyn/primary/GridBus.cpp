@@ -602,11 +602,10 @@ IOdata GridBus::getOutputs(const IOdata& /*inputs*/,
                            const stateData& stateDataValue,
                            const SolverMode& sMode) const
 {
-    return ((sMode.local) || (stateDataValue.empty())) ?
-        IOdata{voltage, angle, freq} :
-        IOdata{getVoltage(stateDataValue, sMode),
-               getAngle(stateDataValue, sMode),
-               getFreq(stateDataValue, sMode)};
+    return ((sMode.local) || (stateDataValue.empty())) ? IOdata{voltage, angle, freq} :
+                                                         IOdata{getVoltage(stateDataValue, sMode),
+                                                                getAngle(stateDataValue, sMode),
+                                                                getFreq(stateDataValue, sMode)};
 }
 
 static const IOlocs noLocs{kNullLocation, kNullLocation, kNullLocation};

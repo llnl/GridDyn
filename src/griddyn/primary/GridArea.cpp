@@ -1381,10 +1381,7 @@ double GridArea::getAvgFreq() const
 // -------------------- Power Flow --------------------
 
 // guessState the solution
-void GridArea::guessState(coreTime time,
-                          double state[],
-                          double dstateDt[],
-                          const SolverMode& sMode)
+void GridArea::guessState(coreTime time, double state[], double dstateDt[], const SolverMode& sMode)
 {
     auto cobj = opObjectLists->begin(sMode);
     auto cend = opObjectLists->end(sMode);
@@ -1607,9 +1604,7 @@ void GridArea::getAngleStates(double aStates[], const SolverMode& sMode) const
 
 // residual
 
-void GridArea::preEx(const IOdata& inputs,
-                     const stateData& stateDataValue,
-                     const SolverMode& sMode)
+void GridArea::preEx(const IOdata& inputs, const stateData& stateDataValue, const SolverMode& sMode)
 {
     opObjectLists->preEx(inputs, stateDataValue, sMode);
 }

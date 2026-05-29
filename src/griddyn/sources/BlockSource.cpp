@@ -149,8 +149,8 @@ double BlockSource::get(std::string_view param, units::unit unitType) const
     return rval;
 }
 
-// void derivative(const IOdata &inputs, const stateData &stateDataValue, double deriv[], const SolverMode
-// &sMode);
+// void derivative(const IOdata &inputs, const stateData &stateDataValue, double deriv[], const
+// SolverMode &sMode);
 
 void BlockSource::residual(const IOdata& inputs,
                            const stateData& stateDataValue,
@@ -218,8 +218,7 @@ void BlockSource::jacobianElements(const IOdata& inputs,
         srcLoc = src->getOutputLoc(sMode, 0);
     }
     if (blk != nullptr) {
-        blk->blockJacobianElements(
-            srcOut, srcDout, stateDataValue, matrixDataValue, srcLoc, sMode);
+        blk->blockJacobianElements(srcOut, srcDout, stateDataValue, matrixDataValue, srcLoc, sMode);
     }
 }
 

@@ -88,7 +88,7 @@ void TcpCommunicator::initialize()
 
 void TcpCommunicator::disconnect()
 {
-    if (!flags[transmit_only]) {
+    if (!flags[transmitOnly]) {
         //    ZmqReactor::getReactorInstance("")->closeSocket(getName() + "_rx");
     }
     // txSocket = nullptr;
@@ -119,22 +119,22 @@ void TcpCommunicator::set(std::string_view param, double val)
 void TcpCommunicator::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "txonly") || (flag == "transmitonly") || (flag == "transmit_only")) {
-        flags.set(transmit_only, val);
+        flags.set(transmitOnly, val);
     } else if (flag == "transmitsource") {
-        flags.set(no_transmit_source, !val);
+        flags.set(noTransmitSource, !val);
     } else if (flag == "notransmitsource") {
-        flags.set(no_transmit_source, val);
+        flags.set(noTransmitSource, val);
     } else if (flag == "transmitdest") {
-        flags.set(no_transmit_dest, !val);
+        flags.set(noTransmitDest, !val);
     } else if (flag == "notransmitdest") {
-        flags.set(no_transmit_dest, val);
+        flags.set(noTransmitDest, val);
     } else if (flag == "useproxy") {
-        flags.set(use_rx_proxy, val);
-        flags.set(use_tx_proxy, val);
+        flags.set(useRxProxy, val);
+        flags.set(useTxProxy, val);
     } else if (flag == "usetxproxy") {
-        flags.set(use_tx_proxy, val);
+        flags.set(useTxProxy, val);
     } else if (flag == "userxproxy") {
-        flags.set(use_rx_proxy, val);
+        flags.set(useRxProxy, val);
     } else {
         Communicator::setFlag(flag, val);
     }

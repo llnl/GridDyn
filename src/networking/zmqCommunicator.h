@@ -49,18 +49,18 @@ namespace zmqInterface {
       protected:
         /** enumeration flags for the communicator object*/
         enum ZmqCommFlags {
-            no_transmit_dest = 0,  //!< flag indicating whether the communicator should include the
-                                   //!< destination as the first frame
-            no_transmit_source = 1,  //!< flag indicating whether the communicator should include
-                                     //!< the source in the transmission
-            use_tx_proxy = 2,  //!< use an internal proxy NOTE:if connection and proxyAddress are
-                               //!< false this will convert to true and use the default proxy
-            use_rx_proxy = 3,  //!< use an internal proxy NOTE:if connection and proxyAddress are
-                               //!< false this will convert to true and use the default proxy
-            tx_conn_specified = 4,  //!< indicator that the transmit connection was specified
-            rx_conn_specified = 5,  //!< indicator that the receive connection was specified
+            noTransmitDest = 0,  //!< flag indicating whether the communicator should include the
+                                 //!< destination as the first frame
+            noTransmitSource = 1,  //!< flag indicating whether the communicator should include
+                                   //!< the source in the transmission
+            useTxProxy = 2,  //!< use an internal proxy NOTE:if connection and proxyAddress are
+                             //!< false this will convert to true and use the default proxy
+            useRxProxy = 3,  //!< use an internal proxy NOTE:if connection and proxyAddress are
+                             //!< false this will convert to true and use the default proxy
+            txConnectionSpecified = 4,  //!< indicator that the transmit connection was specified
+            rxConnectionSpecified = 5,  //!< indicator that the receive connection was specified
 
-            transmit_only = 6,  //!< flag indicating whether the communicator is transmit only
+            transmitOnly = 6,  //!< flag indicating whether the communicator is transmit only
         };
         std::bitset<32> flags;  //!< storage for the flags
         std::unique_ptr<zmq::socket_t> txSocket;  //!< the transmission socket

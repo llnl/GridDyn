@@ -16,7 +16,7 @@
 using namespace griddyn;
 
 namespace {
-class GriddynGlobalEnvironment final: public ::testing::Environment {
+class GridDynGlobalEnvironment final: public ::testing::Environment {
   public:
     void TearDown() override
     {
@@ -27,7 +27,7 @@ class GriddynGlobalEnvironment final: public ::testing::Environment {
 };
 
 ::testing::Environment* const registeredEnvironment =
-    ::testing::AddGlobalTestEnvironment(new GriddynGlobalEnvironment{});
+    ::testing::AddGlobalTestEnvironment(new GridDynGlobalEnvironment{});
 }  // namespace
 
 GridDynSimulationTestFixture::GridDynSimulationTestFixture()
@@ -39,34 +39,34 @@ GridDynSimulationTestFixture::~GridDynSimulationTestFixture() = default;
 
 void GridDynSimulationTestFixture::checkState(griddyn::GridDynSimulation::GridState state)
 {
-    EXPECT_EQ(to_string(gds->currentProcessState()), to_string(state));
+    EXPECT_EQ(gridStateString(gds->currentProcessState()), gridStateString(state));
 }
 
 void GridDynSimulationTestFixture::requireState(griddyn::GridDynSimulation::GridState state)
 {
-    ASSERT_EQ(to_string(gds->currentProcessState()), to_string(state));
+    ASSERT_EQ(gridStateString(gds->currentProcessState()), gridStateString(state));
 }
 
 void GridDynSimulationTestFixture::checkState2(griddyn::GridDynSimulation::GridState state)
 {
-    EXPECT_EQ(to_string(gds2->currentProcessState()), to_string(state));
+    EXPECT_EQ(gridStateString(gds2->currentProcessState()), gridStateString(state));
 }
 
 void GridDynSimulationTestFixture::requireState2(griddyn::GridDynSimulation::GridState state)
 {
-    ASSERT_EQ(to_string(gds2->currentProcessState()), to_string(state));
+    ASSERT_EQ(gridStateString(gds2->currentProcessState()), gridStateString(state));
 }
 
 void checkStates(griddyn::GridDynSimulation::GridState state1,
                  griddyn::GridDynSimulation::GridState state2)
 {
-    EXPECT_EQ(to_string(state1), to_string(state2));
+    EXPECT_EQ(gridStateString(state1), gridStateString(state2));
 }
 
 void requireStates(griddyn::GridDynSimulation::GridState state1,
                    griddyn::GridDynSimulation::GridState state2)
 {
-    ASSERT_EQ(to_string(state1), to_string(state2));
+    ASSERT_EQ(gridStateString(state1), gridStateString(state2));
 }
 
 static const char startupString[] = "startup";
@@ -87,7 +87,7 @@ static const std::string dpartStringRef(dpartString);
 static const std::string errorStringRef(errorString);
 static const std::string haltedStringRef(haltedString);
 static const std::string ukStringRef(ukString);
-const std::string& to_string(griddyn::GridDynSimulation::GridState state)
+const std::string& gridStateString(griddyn::GridDynSimulation::GridState state)
 {
     switch (state) {
         case GridDynSimulation::GridState::STARTUP:
@@ -112,7 +112,7 @@ const std::string& to_string(griddyn::GridDynSimulation::GridState state)
 }
 std::ostream& operator<<(std::ostream& os, griddyn::GridDynSimulation::GridState state)
 {
-    os << to_string(state);
+    os << gridStateString(state);
     return os;
 }
 
@@ -220,12 +220,12 @@ void GridDynSimulationTestFixture::dynamicInitializationCheck(const std::string&
     ASSERT_EQ(mmatch, 0);
 }
 
-gridLoadTestFixture::gridLoadTestFixture()
+GridLoadTestFixture::GridLoadTestFixture()
 {
     readerConfig::setPrintMode(0);
 }
 
-gridLoadTestFixture::~gridLoadTestFixture()
+GridLoadTestFixture::~GridLoadTestFixture()
 {
     if (ld1) {
         delete ld1;
@@ -236,8 +236,8 @@ gridLoadTestFixture::~gridLoadTestFixture()
     }
 }
 
-glbconfig::glbconfig() = default;
-glbconfig::~glbconfig() = default;
+GlobalConfig::GlobalConfig() = default;
+GlobalConfig::~GlobalConfig() = default;
 
 int runJacobianCheck(std::unique_ptr<GridDynSimulation>& gds,
                      const SolverMode& sMode,

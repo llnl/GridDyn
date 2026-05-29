@@ -8,7 +8,7 @@
 
 #include <string>
 /** class designed to execute a run test of gridDynMain*/
-class exeTestRunner {
+class ExeTestRunner {
   private:
     std::string exeString;
     bool active;
@@ -16,9 +16,9 @@ class exeTestRunner {
     std::string outFile;
 
   public:
-    exeTestRunner();
-    exeTestRunner(const std::string& baseLocation, const std::string& target);
-    exeTestRunner(const std::string& baseLocation,
+    ExeTestRunner();
+    ExeTestRunner(const std::string& baseLocation, const std::string& target);
+    ExeTestRunner(const std::string& baseLocation,
                   const std::string& baseLocation2,
                   const std::string& target);
     bool findFileLocation(const std::string& baseLocation, const std::string& target);

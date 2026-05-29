@@ -28,7 +28,7 @@ using namespace griddyn::loads;
 static const std::string load_test_directory(GRIDDYN_TEST_DIRECTORY "/load_tests/");
 static const std::string gridlabd_test_directory(GRIDDYN_TEST_DIRECTORY "/gridlabD_tests/");
 
-class LoadTests: public gridLoadTestFixture, public ::testing::Test {};
+class LoadTests: public GridLoadTestFixture, public ::testing::Test {};
 
 TEST_F(LoadTests, BasicLoadTest)
 {

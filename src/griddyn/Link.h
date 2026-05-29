@@ -45,7 +45,7 @@ it implements a trivial transport model Q=0, P1=Pset P2=-(Pset-LossFraction*Pset
 
 Each link has a disconnect switch at the from bus and the to bus
 */
-class Link: public gridPrimary {
+class Link: public GridPrimary {
   public:
     static std::atomic<count_t> linkCount;  //!< static variable counting the number of created
                                             //!< lines used for automatic user ID creation
@@ -341,7 +341,7 @@ class Link: public gridPrimary {
 @return a pointer to a link on the second tree that matches the calling link based on name and
 location
 */
-Link* getMatchingLink(Link* lnk, gridPrimary* src, gridPrimary* sec);
+Link* getMatchingLink(Link* lnk, GridPrimary* src, GridPrimary* sec);
 
 /** @brief compare 2 links
   check a number of link parameters to see if they match, probably not that useful of function any

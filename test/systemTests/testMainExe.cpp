@@ -17,7 +17,7 @@ static const char pFlow_test_directory[] = GRIDDYN_TEST_DIRECTORY "/pFlow_tests/
 
 TEST(MainExeTests, MainExeTest1)
 {
-    exeTestRunner mainExeRunner(GRIDDYNMAIN_LOCATION, GRIDDYNINSTALL_LOCATION, "griddynMain");
+    ExeTestRunner mainExeRunner(GRIDDYNMAIN_LOCATION, GRIDDYNINSTALL_LOCATION, "griddynMain");
     if (mainExeRunner.isActive()) {
         auto out = mainExeRunner.runCaptureOutput("--version");
         EXPECT_EQ(out.compare(0, 15, "GridDyn version"), 0);
@@ -33,7 +33,7 @@ TEST(MainExeTests, MainExeTest1)
 // test is in development
 TEST(MainExeTests, CdfReadwriteTest)
 {
-    exeTestRunner mainExeRunner(GRIDDYNMAIN_LOCATION, GRIDDYNINSTALL_LOCATION, "griddynMain");
+    ExeTestRunner mainExeRunner(GRIDDYNMAIN_LOCATION, GRIDDYNINSTALL_LOCATION, "griddynMain");
     if (mainExeRunner.isActive()) {
         std::string fileName = std::string(pFlow_test_directory) + "test_powerflow3m9b2.xml";
         auto out = mainExeRunner.runCaptureOutput(

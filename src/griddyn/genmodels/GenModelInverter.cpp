@@ -80,7 +80,7 @@ void GenModelInverter::algebraicUpdate(const IOdata& inputs,
     // double angle = std::atan2(g, b);
 
     const double mechanicalPower = inputs[genModelPmechInLocation];
-    if (opFlags[at_angle_limits]) {
+    if (opFlags[atAngleLimits]) {
         if (mechanicalPower > 0) {
             update[offset] = maxAngle;
         } else {
@@ -128,7 +128,7 @@ void GenModelInverter::residual(const IOdata& inputs,
     const double angle = *Loc.algStateLoc;
     // printf("time=%f, angle=%f\n", sD.time, angle);
     const double mechanicalPower = inputs[genModelPmechInLocation];
-    if (opFlags[at_angle_limits]) {
+    if (opFlags[atAngleLimits]) {
         if (mechanicalPower > 0) {
             Loc.destLoc[0] = maxAngle - angle;
         } else {
@@ -283,7 +283,7 @@ void GenModelInverter::jacobianElements(const IOdata& inputs,
     }
     auto Loc = offsets.getLocations(stateDataValue, sMode, this);
     auto offset = Loc.algOffset;
-    if (opFlags[at_angle_limits]) {
+    if (opFlags[atAngleLimits]) {
         matrixDataValue.assign(offset, offset, -1.0);
     } else {
         const double voltage = inputs[voltageInLocation];
@@ -406,7 +406,7 @@ void GenModelInverter::rootTest(const IOdata& inputs,
         auto rootOffset = offsets.getRootOffset(sMode);
         auto stateOffset = offsets.getAlgOffset(sMode);
         const double angle = stateDataValue.state[stateOffset];
-        if (opFlags[at_angle_limits]) {
+        if (opFlags[atAngleLimits]) {
             if (inputs[genModelPmechInLocation] > 0) {
                 const double pmax = -realPowerCompute(inputs[genModelEftInLocation],
                                                       inputs[voltageInLocation],
@@ -434,12 +434,12 @@ void GenModelInverter::rootTrigger(coreTime /*time*/,
     if (rootSize(sMode) > 0) {
         auto rootOffset = offsets.getRootOffset(sMode);
         if (rootMask[rootOffset] > 0) {
-            if (opFlags[at_angle_limits]) {
-                opFlags.reset(at_angle_limits);
+            if (opFlags[atAngleLimits]) {
+                opFlags.reset(atAngleLimits);
                 logging::debug(this, "reset angle limit");
                 algebraicUpdate(inputs, emptyStateData, m_state.data(), sMode, 1.0);
             } else {
-                opFlags.set(at_angle_limits);
+                opFlags.set(atAngleLimits);
                 logging::debug(this, "angle at limits");
                 if (inputs[genModelPmechInLocation] > 0) {
                     m_state[0] = maxAngle;
@@ -459,14 +459,14 @@ ChangeCode GenModelInverter::rootCheck(const IOdata& inputs,
     if (rootSize(sMode) > 0) {
         auto Loc = offsets.getLocations(stateDataValue, sMode, this);
         const double angle = Loc.algStateLoc[0];
-        if (opFlags[at_angle_limits]) {
+        if (opFlags[atAngleLimits]) {
             if (inputs[genModelPmechInLocation] > 0) {
                 const double pmax = -realPowerCompute(inputs[genModelEftInLocation],
                                                       inputs[voltageInLocation],
                                                       cos(maxAngle),
                                                       sin(maxAngle));
                 if (inputs[genModelPmechInLocation] - pmax < -0.0001) {
-                    opFlags.reset(at_angle_limits);
+                    opFlags.reset(atAngleLimits);
                     logging::debug(this, "reset angle limit-from root check");
                     algebraicUpdate(inputs, emptyStateData, m_state.data(), sMode, 1.0);
                     return ChangeCode::JACOBIAN_CHANGE;
@@ -477,7 +477,7 @@ ChangeCode GenModelInverter::rootCheck(const IOdata& inputs,
                                                       cos(minAngle),
                                                       sin(minAngle));
                 if (pmin - inputs[genModelPmechInLocation] < -0.0001) {
-                    opFlags.reset(at_angle_limits);
+                    opFlags.reset(atAngleLimits);
                     logging::debug(this, "reset angle limit- from root check");
                     algebraicUpdate(inputs, emptyStateData, m_state.data(), sMode, 1.0);
                     return ChangeCode::JACOBIAN_CHANGE;
@@ -486,7 +486,7 @@ ChangeCode GenModelInverter::rootCheck(const IOdata& inputs,
         } else {
             auto remAngle = std::min(angle - minAngle, maxAngle - angle);
             if (remAngle < 0.0000001) {
-                opFlags.set(at_angle_limits);
+                opFlags.set(atAngleLimits);
                 logging::debug(this, "angle at limit from check");
                 if (inputs[genModelPmechInLocation] > 0) {
                     m_state[0] = maxAngle;

@@ -17,24 +17,24 @@ using units::convert;
 using units::puV;
 using units::unit;
 
-variableGenerator::variableGenerator(const std::string& objName): DynamicGenerator(objName)
+VariableGenerator::VariableGenerator(const std::string& objName): DynamicGenerator(objName)
 {
-    opFlags[variable_generation] = true;
+    opFlags[variableGeneration] = true;
     opFlags.reset(adjustable_P);
     opFlags.reset(local_power_control);
 }
 
-variableGenerator::variableGenerator(DynModel dynModel, const std::string& objName):
+VariableGenerator::VariableGenerator(DynModel dynModel, const std::string& objName):
     DynamicGenerator(dynModel, objName)
 {
-    opFlags[variable_generation] = true;
+    opFlags[variableGeneration] = true;
     opFlags.reset(adjustable_P);
     opFlags.reset(local_power_control);
 }
 
-CoreObject* variableGenerator::clone(CoreObject* obj) const
+CoreObject* VariableGenerator::clone(CoreObject* obj) const
 {
-    auto* gen = cloneBase<variableGenerator, DynamicGenerator>(this, obj);
+    auto* gen = cloneBase<VariableGenerator, DynamicGenerator>(this, obj);
     if (gen == nullptr) {
         return obj;
     }
@@ -47,7 +47,7 @@ CoreObject* variableGenerator::clone(CoreObject* obj) const
 // initial conditions of dynamic states
 
 // initial conditions of dynamic states
-void variableGenerator::dynObjectInitializeB(const IOdata& inputs,
+void VariableGenerator::dynObjectInitializeB(const IOdata& inputs,
                                              const IOdata& desiredOutput,
                                              IOdata& fieldSet)
 {
@@ -62,7 +62,7 @@ void variableGenerator::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-void variableGenerator::add(CoreObject* obj)
+void VariableGenerator::add(CoreObject* obj)
 {
     if (dynamic_cast<GridSubModel*>(obj) != nullptr) {
         add(static_cast<GridSubModel*>(obj));
@@ -71,7 +71,7 @@ void variableGenerator::add(CoreObject* obj)
     }
 }
 
-void variableGenerator::add(GridSubModel* obj)
+void VariableGenerator::add(GridSubModel* obj)
 {
     if (dynamic_cast<Source*>(obj) != nullptr) {
         if (m_source != nullptr) {
@@ -103,12 +103,12 @@ void variableGenerator::add(GridSubModel* obj)
 }
 
 // set properties
-void variableGenerator::set(std::string_view param, std::string_view val)
+void VariableGenerator::set(std::string_view param, std::string_view val)
 {
     DynamicGenerator::set(param, val);
 }
 
-void variableGenerator::set(std::string_view param, double val, unit unitType)
+void VariableGenerator::set(std::string_view param, double val, unit unitType)
 {
     if (param == "vcutout") {
         mp_Vcutout = convert(val, unitType, puV, systemBasePower, localBaseVoltage);
@@ -120,36 +120,36 @@ void variableGenerator::set(std::string_view param, double val, unit unitType)
 }
 
 // compute the residual for the dynamic states
-void variableGenerator::residual(const IOdata& inputs,
-                                 const stateData& sD,
+void VariableGenerator::residual(const IOdata& inputs,
+                                 const stateData& stateDataValue,
                                  double resid[],
                                  const SolverMode& sMode)
 {
-    DynamicGenerator::residual(inputs, sD, resid, sMode);
+    DynamicGenerator::residual(inputs, stateDataValue, resid, sMode);
     if ((m_source != nullptr) && (m_source->isEnabled())) {
-        m_source->residual(inputs, sD, resid, sMode);
+        m_source->residual(inputs, stateDataValue, resid, sMode);
     }
     if ((m_cBlock != nullptr) && (m_cBlock->isEnabled())) {
         // TODO(PT):: this needs to be tied to the source
-        m_cBlock->blockResidual(Pset, dPdt, sD, resid, sMode);
+        m_cBlock->blockResidual(Pset, dPdt, stateDataValue, resid, sMode);
     }
 }
-void variableGenerator::jacobianElements(const IOdata& inputs,
-                                         const stateData& sD,
-                                         matrixData<double>& md,
+void VariableGenerator::jacobianElements(const IOdata& inputs,
+                                         const stateData& stateDataValue,
+                                         matrixData<double>& matrixDataValue,
                                          const IOlocs& inputLocs,
                                          const SolverMode& sMode)
 {
-    DynamicGenerator::jacobianElements(inputs, sD, md, inputLocs, sMode);
+    DynamicGenerator::jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
     if ((m_source != nullptr) && (m_source->isEnabled())) {
-        m_source->jacobianElements(inputs, sD, md, inputLocs, sMode);
+        m_source->jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
     }
     if ((m_cBlock != nullptr) && (m_cBlock->isEnabled())) {
-        m_cBlock->jacobianElements(inputs, sD, md, inputLocs, sMode);
+        m_cBlock->jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
     }
 }
 
-CoreObject* variableGenerator::find(std::string_view object) const
+CoreObject* VariableGenerator::find(std::string_view object) const
 {
     if (object == "source") {
         return m_source;
@@ -160,7 +160,7 @@ CoreObject* variableGenerator::find(std::string_view object) const
     return DynamicGenerator::find(object);
 }
 
-CoreObject* variableGenerator::getSubObject(std::string_view typeName, index_t num) const
+CoreObject* VariableGenerator::getSubObject(std::string_view typeName, index_t num) const
 {
     auto* out = DynamicGenerator::getSubObject(typeName, num);
     if (out == nullptr) {
@@ -169,17 +169,17 @@ CoreObject* variableGenerator::getSubObject(std::string_view typeName, index_t n
     return out;
 }
 
-double variableGenerator::pSetControlUpdate(const IOdata& inputs,
-                                            const stateData& sD,
+double VariableGenerator::pSetControlUpdate(const IOdata& inputs,
+                                            const stateData& stateDataValue,
                                             const SolverMode& sMode)
 {
     if ((m_cBlock != nullptr) && (m_cBlock->isEnabled())) {
         return m_cBlock->getOutput();
     }
-    return DynamicGenerator::pSetControlUpdate(inputs, sD, sMode);
+    return DynamicGenerator::pSetControlUpdate(inputs, stateDataValue, sMode);
 }
 
-index_t variableGenerator::pSetLocation(const SolverMode& sMode)
+index_t VariableGenerator::pSetLocation(const SolverMode& sMode)
 {
     if ((m_cBlock != nullptr) && (m_cBlock->isEnabled())) {
         return m_cBlock->getOutputLoc(sMode);

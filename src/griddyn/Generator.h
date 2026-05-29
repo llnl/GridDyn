@@ -28,25 +28,25 @@ class Generator: public gridSecondary {
   public:
     /** @brief flags for controlling operation of the generator*/
     enum GeneratorFlags {
-        variable_generation = object_flag1,  //!< flag indicating that the generator has
-                                             //!< uncontrolled variable generation
-        reserve_capable =
+        variableGeneration = object_flag1,  //!< flag indicating that the generator has
+                                            //!< uncontrolled variable generation
+        reserveCapable =
             object_flag2,  //!< flag indicating the generator can act as spinning reserve
-        agc_capable = object_flag3,  //!< flag indicating the generator is capable of agc response
-        use_capability_curve =
+        agcCapable = object_flag3,  //!< flag indicating the generator is capable of agc response
+        useCapabilityCurve =
             object_flag4,  //!< flag indicating that the generator should use a capability curve
         //! rather than a fixed limit
-        no_voltage_derate =
+        noVoltageDerate =
             object_flag5,  //!< flag turning off voltage derating for low voltage power flow
-        independent_machine_base = object_flag6,  //!< flag indicating that the generator has a
-                                                  //!< different machine base than the simulation
-        at_limit = object_flag7,  //!< flag indicating the generator is operating at a limit
-        indirect_voltage_control_level =
+        independentMachineBase = object_flag6,  //!< flag indicating that the generator has a
+                                                //!< different machine base than the simulation
+        atLimit = object_flag7,  //!< flag indicating the generator is operating at a limit
+        indirectVoltageControlLevel =
             object_flag8,  //!< flag indicating that the generator should perform
         //! voltage control indirectly in power flow
-        internal_frequency_calculation =
+        internalFrequencyCalculation =
             object_flag9,  //!< flag indicating that the generator computes the frequency internally
-        isochronous_operation =
+        isochronousOperation =
             object_flag10,  //!< flag telling the generator to operation is isochronous mode
     };
     /** @brief enum indicating subModel locations in the subObject structure*/

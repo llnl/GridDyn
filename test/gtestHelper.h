@@ -65,24 +65,24 @@ struct GridDynSimulationTestFixture {
     void requireState2(griddyn::GridDynSimulation::GridState state);
 };
 
-struct gridLoadTestFixture {
-    gridLoadTestFixture();
-    gridLoadTestFixture(const gridLoadTestFixture&) = delete;
-    ~gridLoadTestFixture();
-    gridLoadTestFixture& operator=(const gridLoadTestFixture&) = delete;
+struct GridLoadTestFixture {
+    GridLoadTestFixture();
+    GridLoadTestFixture(const GridLoadTestFixture&) = delete;
+    ~GridLoadTestFixture();
+    GridLoadTestFixture& operator=(const GridLoadTestFixture&) = delete;
 
     griddyn::GridLoad* ld1 = nullptr;
     griddyn::GridLoad* ld2 = nullptr;
 };
 
-struct glbconfig {
-    glbconfig();
-    ~glbconfig();
+struct GlobalConfig {
+    GlobalConfig();
+    ~GlobalConfig();
 };
 
 std::ostream& operator<<(std::ostream& os, griddyn::GridDynSimulation::GridState state);
 
-const std::string& to_string(griddyn::GridDynSimulation::GridState state);
+const std::string& gridStateString(griddyn::GridDynSimulation::GridState state);
 
 void checkStates(griddyn::GridDynSimulation::GridState state1,
                  griddyn::GridDynSimulation::GridState state2);

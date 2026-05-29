@@ -14,13 +14,13 @@ namespace griddyn::blocks {
 IntegralBlock::IntegralBlock(const std::string& objName): GridBlock(objName)
 {
     opFlags.set(differential_output);
-    opFlags.set(use_state);
+    opFlags.set(useState);
 }
 
 IntegralBlock::IntegralBlock(double gain, const std::string& objName): GridBlock(gain, objName)
 {
     opFlags.set(differential_output);
-    opFlags.set(use_state);
+    opFlags.set(useState);
 }
 
 CoreObject* IntegralBlock::clone(CoreObject* obj) const
@@ -74,7 +74,7 @@ void IntegralBlock::blockDerivative(double input,
 {
     auto offset = offsets.getDiffOffset(sMode);
     deriv[offset + limiter_diff] = K * (input + bias);
-    if (opFlags[use_ramp_limits]) {
+    if (opFlags[useRampLimits]) {
         GridBlock::blockDerivative(input, didt, stateDataValue, deriv, sMode);
     }
 }

@@ -11,14 +11,14 @@
 #include <memory>
 #include <string>
 
-class InitFailure: public std::exception {
+class InitFailureException: public std::exception {
   public:
-    InitFailure() = default;
+    InitFailureException() = default;
 };
 
-class SendFailure: public std::exception {
+class SendFailureException: public std::exception {
   public:
-    SendFailure() = default;
+    SendFailureException() = default;
 };
 
 class DimeClientInterface {

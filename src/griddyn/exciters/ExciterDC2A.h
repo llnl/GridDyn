@@ -18,15 +18,15 @@ class ExciterDC2A: public ExciterDC1A {
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataValue,
                           double resid[],
                           const SolverMode& sMode) override;
     virtual void derivative(const IOdata& inputs,
-                            const stateData& sD,
+                            const stateData& stateDataValue,
                             double deriv[],
                             const SolverMode& sMode) override;
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataValue,
                           double roots[],
                           const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
@@ -35,8 +35,11 @@ class ExciterDC2A: public ExciterDC1A {
                                  CheckLevel level) override;
 
   protected:
-    virtual void
-        limitJacobian(double V, int VLoc, int refLoc, double cj, matrixData<double>& md) override;
+    virtual void limitJacobian(double V,
+                               int voltageLoc,
+                               int refLoc,
+                               double cj,
+                               matrixData<double>& matrixDataValue) override;
 };
 
 }  // namespace griddyn::exciters

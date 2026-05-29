@@ -14,7 +14,7 @@
 namespace griddyn::blocks {
 PidBlock::PidBlock(const std::string& objName): GridBlock(objName), no_D(extra_bool)
 {
-    opFlags.set(use_state);
+    opFlags.set(useState);
     opFlags.set(differential_output);
     no_D = true;
 }
@@ -26,7 +26,7 @@ PidBlock::PidBlock(double proportionalGain,
     GridBlock(objName), m_P(proportionalGain), m_I(integralGain), m_D(derivativeGain),
     no_D(extra_bool)
 {
-    opFlags.set(use_state);
+    opFlags.set(useState);
     opFlags.set(differential_output);
     no_D = (derivativeGain == 0.0);
 }
@@ -106,15 +106,15 @@ void PidBlock::blockDerivative(double input,
                                double deriv[],
                                const SolverMode& sMode)
 {
-    auto Loc = offsets.getLocations(stateDataValue, deriv, sMode, this);
-    Loc.destDiffLoc[limiter_diff + 2] = m_I * (input + bias);
-    Loc.destDiffLoc[limiter_diff + 1] =
-        (no_D) ? 0 : ((m_D * (input + bias)) - Loc.diffStateLoc[limiter_diff + 1]) / m_T1;
+    auto loc = offsets.getLocations(stateDataValue, deriv, sMode, this);
+    loc.destDiffLoc[limiter_diff + 2] = m_I * (input + bias);
+    loc.destDiffLoc[limiter_diff + 1] =
+        (no_D) ? 0 : ((m_D * (input + bias)) - loc.diffStateLoc[limiter_diff + 1]) / m_T1;
 
-    Loc.destDiffLoc[limiter_diff] = ((K *
-                                      ((m_P * (input + bias)) + Loc.dstateLoc[limiter_diff + 1] +
-                                       Loc.diffStateLoc[limiter_diff + 2])) -
-                                     Loc.diffStateLoc[limiter_diff]) /
+    loc.destDiffLoc[limiter_diff] = ((K *
+                                      ((m_P * (input + bias)) + loc.dstateLoc[limiter_diff + 1] +
+                                       loc.diffStateLoc[limiter_diff + 2])) -
+                                     loc.diffStateLoc[limiter_diff]) /
         m_Td;
     if (limiter_diff > 0) {
         GridBlock::blockDerivative(input, didt, stateDataValue, deriv, sMode);
@@ -128,34 +128,34 @@ void PidBlock::blockJacobianElements(double input,
                                      index_t argLoc,
                                      const SolverMode& sMode)
 {
-    auto Loc = offsets.getLocations(stateDataValue, nullptr, sMode, this);
+    auto loc = offsets.getLocations(stateDataValue, nullptr, sMode, this);
     // adjust the offset to account for the limiter states;
-    Loc.diffOffset += limiter_diff;
+    loc.diffOffset += limiter_diff;
     if (hasDifferential(sMode)) {
         //  Loc.destDiffLoc[limiter_diff] = (K*(m_P*(input + bias) +
         //  Loc.dstateLoc[limiter_diff + 1] + Loc.diffStateLoc[limiter_diff + 2]) -
         //  Loc.diffStateLoc[limiter_diff]) / m_Td;
-        if (opFlags[has_limits]) {
+        if (opFlags[hasLimits]) {
             GridBlock::blockJacobianElements(
                 input, didt, stateDataValue, matrixDataValue, argLoc, sMode);
         }
 
-        matrixDataValue.assign(Loc.diffOffset, Loc.diffOffset, ((-1.0 / m_Td) - stateDataValue.cj));
-        matrixDataValue.assign(Loc.diffOffset, Loc.diffOffset + 1, K * stateDataValue.cj / m_Td);
+        matrixDataValue.assign(loc.diffOffset, loc.diffOffset, ((-1.0 / m_Td) - stateDataValue.cj));
+        matrixDataValue.assign(loc.diffOffset, loc.diffOffset + 1, K * stateDataValue.cj / m_Td);
 
-        matrixDataValue.assign(Loc.diffOffset, Loc.diffOffset + 2, K / m_Td);
-        matrixDataValue.assignCheckCol(Loc.diffOffset, argLoc, K * m_P / m_Td);
+        matrixDataValue.assign(loc.diffOffset, loc.diffOffset + 2, K / m_Td);
+        matrixDataValue.assignCheckCol(loc.diffOffset, argLoc, K * m_P / m_Td);
         if (no_D) {
-            matrixDataValue.assign(Loc.diffOffset + 1, Loc.diffOffset + 1, -stateDataValue.cj);
+            matrixDataValue.assign(loc.diffOffset + 1, loc.diffOffset + 1, -stateDataValue.cj);
         } else {
-            matrixDataValue.assignCheckCol(Loc.diffOffset + 1, argLoc, m_D / m_T1);
-            matrixDataValue.assign(Loc.diffOffset + 1,
-                                   Loc.diffOffset + 1,
+            matrixDataValue.assignCheckCol(loc.diffOffset + 1, argLoc, m_D / m_T1);
+            matrixDataValue.assign(loc.diffOffset + 1,
+                                   loc.diffOffset + 1,
                                    ((-1.0 / m_T1) - stateDataValue.cj));
         }
 
-        matrixDataValue.assignCheckCol(Loc.diffOffset + 2, argLoc, m_I);
-        matrixDataValue.assign(Loc.diffOffset + 2, Loc.diffOffset + 2, -stateDataValue.cj);
+        matrixDataValue.assignCheckCol(loc.diffOffset + 2, argLoc, m_I);
+        matrixDataValue.assign(loc.diffOffset + 2, loc.diffOffset + 2, -stateDataValue.cj);
     }
 }
 
@@ -176,35 +176,35 @@ double PidBlock::step(coreTime time, double inputA)
         double currentTime = prevTime + timeStep;
         double intermediateInput = prevInput;
         double priorInput = prevInput;
-        double ival_int = m_state[limiter_diff + 2];
-        double ival_der = m_state[limiter_diff + 1];
-        double ival_out = m_state[limiter_diff];
+        double ivalInt = m_state[limiter_diff + 2];
+        double ivalDer = m_state[limiter_diff + 1];
+        double ivalOut = m_state[limiter_diff];
         const double inputRate = (inputValue - prevInput) / timeDelta;
         double der;
         while (currentTime < time) {
             intermediateInput = intermediateInput + (inputRate * timeStep);
-            ival_int += (m_I * (intermediateInput + priorInput) / 2) * timeStep;
+            ivalInt += (m_I * (intermediateInput + priorInput) / 2) * timeStep;
             der = (no_D) ?
                 0 :
-                (1.0 / m_T1) * (((m_D * (priorInput + intermediateInput)) / 2.0) - ival_der);
-            ival_der += der * timeStep;
-            ival_out +=
-                ((K * ((m_P * intermediateInput) + der + ival_int)) - ival_out) / m_Td * timeStep;
+                (1.0 / m_T1) * (((m_D * (priorInput + intermediateInput)) / 2.0) - ivalDer);
+            ivalDer += der * timeStep;
+            ivalOut +=
+                ((K * ((m_P * intermediateInput) + der + ivalInt)) - ivalOut) / m_Td * timeStep;
             currentTime += timeStep;
             priorInput = intermediateInput;
         }
         const double remainingTime = time - currentTime + timeStep;
         m_state[limiter_diff + 2] =
-            ival_int + ((m_I * (priorInput + inputValue) / 2.0) * remainingTime);
-        der = (no_D) ? 0 : (1.0 / m_T1) * (((m_D * (priorInput + inputValue)) / 2.0) - ival_der);
-        m_state[limiter_diff + 1] = ival_der + (der * remainingTime);
-        m_state[limiter_diff] = ival_out +
-            ((((K * ((m_P * inputValue) + der + m_state[limiter_diff + 2])) - ival_out) / m_Td) *
+            ivalInt + ((m_I * (priorInput + inputValue) / 2.0) * remainingTime);
+        der = (no_D) ? 0 : (1.0 / m_T1) * (((m_D * (priorInput + inputValue)) / 2.0) - ivalDer);
+        m_state[limiter_diff + 1] = ivalDer + (der * remainingTime);
+        m_state[limiter_diff] = ivalOut +
+            ((((K * ((m_P * inputValue) + der + m_state[limiter_diff + 2])) - ivalOut) / m_Td) *
              remainingTime);
     }
     prevInput = inputValue;
 
-    if (opFlags[has_limits]) {
+    if (opFlags[hasLimits]) {
         GridBlock::step(time, inputValue);
     } else {
         prevTime = time;

@@ -30,7 +30,7 @@ enum class ChangeCode;  // forward declare ChangeCode enumeration
  relay's are sensors and actuators.  They can read data from griddyn and then take actions on other
 * objects on a regular schedule or on a functional basis.
 **/
-class Relay: public gridPrimary, ObjectOperatorInterface {
+class Relay: public GridPrimary, ObjectOperatorInterface {
   public:
     static std::atomic<count_t>
         relayCount;  //!< static counter for the number of relays to generate an id number

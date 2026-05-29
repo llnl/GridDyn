@@ -23,13 +23,13 @@ class Governor: public GridSubModel {
   public:
     /** @brief flags for governor control*/
     enum GovernorFlags {
-        ignore_deadband = object_flag2,  //!< indicator that the deadband block should be ignored
-        ignore_filter = object_flag3,  //!< indicator that the filter block should be ignored
-        ignore_throttle = object_flag4,  //!< indicator that the delay block should be ignored
-        p_limited = object_flag5,  //!< indicator that power level was limited
-        p_limit_high = object_flag6,  //!< indicator that the throttle level was at the high limit
-        uses_plimits = object_flag7,  //!< indicator that the governor uses limits
-        uses_ramplimits = object_flag8,  //!< indicator that the governor had ramp limits
+        ignoreDeadband = object_flag2,  //!< indicator that the deadband block should be ignored
+        ignoreFilter = object_flag3,  //!< indicator that the filter block should be ignored
+        ignoreThrottle = object_flag4,  //!< indicator that the delay block should be ignored
+        powerLimited = object_flag5,  //!< indicator that power level was limited
+        powerLimitHigh = object_flag6,  //!< indicator that the throttle level was at the high limit
+        usesPowerLimits = object_flag7,  //!< indicator that the governor uses limits
+        usesRampLimits = object_flag8,  //!< indicator that the governor had ramp limits
     };
 
   protected:

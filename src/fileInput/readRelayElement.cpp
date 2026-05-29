@@ -37,7 +37,7 @@ Relay* readRelayElement(std::shared_ptr<ReaderElement>& element,
     // check for the area field
     CoreObject* defaultTargetObject = searchObject;
     Relay* relay = nullptr;
-    searchObject = updateSearchObject<gridPrimary>(element, readerInformation, searchObject);
+    searchObject = updateSearchObject<GridPrimary>(element, readerInformation, searchObject);
     if (dynamic_cast<GridArea*>(searchObject) == nullptr) {
         if (searchObject != nullptr) {
             searchObject = searchObject->getRoot();

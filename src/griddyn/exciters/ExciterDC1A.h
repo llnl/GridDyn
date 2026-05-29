@@ -32,21 +32,21 @@ class ExciterDC1A: public ExciterIEEEtype1 {
     virtual stringVec localStateNames() const override;
 
     virtual void residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataValue,
                           double resid[],
                           const SolverMode& sMode) override;
     virtual void derivative(const IOdata& inputs,
-                            const stateData& sD,
+                            const stateData& stateDataValue,
                             double deriv[],
                             const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& sD,
-                                  matrixData<double>& md,
+                                  const stateData& stateDataValue,
+                                  matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
 
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataValue,
                           double root[],
                           const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
@@ -60,8 +60,12 @@ class ExciterDC1A: public ExciterIEEEtype1 {
 @param[in] Vloc the location of the voltage
 @param[in] refLoc  the location of the reference
 @param[in] cj  the differential scale variable
-@param[out] md the array structure to store the Jacobian data in
+@param[out] matrixDataValue the array structure to store the Jacobian data in
 */
-    virtual void limitJacobian(double V, int Vloc, int refLoc, double cj, matrixData<double>& md);
+    virtual void limitJacobian(double V,
+                               int Vloc,
+                               int refLoc,
+                               double cj,
+                               matrixData<double>& matrixDataValue);
 };
 }  // namespace griddyn::exciters

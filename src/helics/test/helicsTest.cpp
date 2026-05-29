@@ -486,7 +486,7 @@ TEST_F(HelicsTests, TestVectorEvent)
 
 TEST_F(HelicsTests, TestMainExe)
 {
-    exeTestRunner mainExeRunner(GRIDDYNINSTALL_LOCATION, GRIDDYNMAIN_LOCATION, "gridDynMain");
+    ExeTestRunner mainExeRunner(GRIDDYNINSTALL_LOCATION, GRIDDYNMAIN_LOCATION, "gridDynMain");
     if (mainExeRunner.isActive()) {
         auto brk = runBroker("2");
         auto play = runPlayer(std::string(helics_test_directory) +

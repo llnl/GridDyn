@@ -18,7 +18,7 @@
 namespace griddyn::blocks {
 LutBlock::LutBlock(const std::string& objName): GridBlock(objName)
 {
-    opFlags.set(use_state);
+    opFlags.set(useState);
 }
 CoreObject* LutBlock::clone(CoreObject* obj) const
 {

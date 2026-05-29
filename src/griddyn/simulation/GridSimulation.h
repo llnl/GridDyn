@@ -250,6 +250,6 @@ tree given by sec
 @param[in] sec the tree to do the search in
 @return the located object or nullptr
 */
-CoreObject* findMatchingObject(CoreObject* obj1, gridPrimary* src, gridPrimary* sec);
+CoreObject* findMatchingObject(CoreObject* obj1, GridPrimary* src, GridPrimary* sec);
 
 }  // namespace griddyn

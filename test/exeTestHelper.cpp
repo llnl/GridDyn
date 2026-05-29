@@ -12,15 +12,15 @@
 #include <streambuf>
 #include <string>
 
-int exeTestRunner::counter = 1;
+int ExeTestRunner::counter = 1;
 
-exeTestRunner::exeTestRunner()
+ExeTestRunner::ExeTestRunner()
 {
     ++counter;
     buildOutFile();
 }
 
-exeTestRunner::exeTestRunner(const std::string& baseLocation, const std::string& target)
+ExeTestRunner::ExeTestRunner(const std::string& baseLocation, const std::string& target)
 {
     ++counter;
     buildOutFile();
@@ -30,7 +30,7 @@ exeTestRunner::exeTestRunner(const std::string& baseLocation, const std::string&
     }
 }
 
-exeTestRunner::exeTestRunner(const std::string& baseLocation,
+ExeTestRunner::ExeTestRunner(const std::string& baseLocation,
                              const std::string& baseLocation2,
                              const std::string& target)
 {
@@ -45,14 +45,14 @@ exeTestRunner::exeTestRunner(const std::string& baseLocation,
     }
 }
 
-void exeTestRunner::buildOutFile()
+void ExeTestRunner::buildOutFile()
 {
     auto pth = std::filesystem::temp_directory_path();
     pth /= ("exeText_" + std::to_string(counter) + ".out");
     outFile = pth.string();
 }
 
-bool exeTestRunner::findFileLocation(const std::string& baseLocation, const std::string& target)
+bool ExeTestRunner::findFileLocation(const std::string& baseLocation, const std::string& target)
 {
     std::filesystem::path sourcePath(baseLocation);
 
@@ -117,7 +117,7 @@ bool exeTestRunner::findFileLocation(const std::string& baseLocation, const std:
     return false;
 }
 
-int exeTestRunner::run(const std::string& args) const
+int ExeTestRunner::run(const std::string& args) const
 {
     if (!active) {
         return -101;
@@ -126,7 +126,7 @@ int exeTestRunner::run(const std::string& args) const
     return system(rstr.c_str());
 }
 
-std::string exeTestRunner::runCaptureOutput(const std::string& args) const
+std::string ExeTestRunner::runCaptureOutput(const std::string& args) const
 {
     if (!active) {
         return "invalid executable";

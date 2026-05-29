@@ -76,7 +76,7 @@ void DimeClientInterface::init()
     mSocket->send(toJsonString(outgoing));
 
     if (!receivedOkResponse(*mSocket)) {
-        throw InitFailure();
+        throw InitFailureException();
     }
 }
 
@@ -109,7 +109,7 @@ void DimeClientInterface::sendVar(const std::string& varName,
     mSocket->send(toJsonString(outgoing));
 
     if (!receivedOkResponse(*mSocket)) {
-        throw SendFailure();
+        throw SendFailureException();
     }
 
     JsonValue outgoingData;
@@ -124,7 +124,7 @@ void DimeClientInterface::sendVar(const std::string& varName,
     mSocket->send(toJsonString(outgoingData));
 
     if (!receivedOkResponse(*mSocket)) {
-        throw SendFailure();
+        throw SendFailureException();
     }
 }
 

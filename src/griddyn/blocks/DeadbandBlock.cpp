@@ -17,12 +17,12 @@
 namespace griddyn::blocks {
 DeadbandBlock::DeadbandBlock(const std::string& objName): GridBlock(objName)
 {
-    opFlags.set(use_state);
+    opFlags.set(useState);
 }
 DeadbandBlock::DeadbandBlock(double deadbandWidth, const std::string& objName):
     GridBlock(objName), mDeadbandHigh(deadbandWidth), mDeadbandLow(-deadbandWidth)
 {
-    opFlags.set(use_state);
+    opFlags.set(useState);
 }
 
 CoreObject* DeadbandBlock::clone(CoreObject* obj) const
@@ -209,7 +209,7 @@ void DeadbandBlock::blockDerivative(double input,
                                     double deriv[],
                                     const SolverMode& sMode)
 {
-    if (opFlags[differential_input]) {
+    if (opFlags[differentialInput]) {
         auto offset = offsets.getDiffOffset(sMode) + limiter_diff;
         const double inputWithBias = input + bias;
         deriv[offset] = K * computeDoutDin(inputWithBias) * didt;
@@ -226,7 +226,7 @@ void DeadbandBlock::blockAlgebraicUpdate(double input,
                                          double update[],
                                          const SolverMode& sMode)
 {
-    if (!opFlags[differential_input]) {
+    if (!opFlags[differentialInput]) {
         auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
         const double inputWithBias = input + bias;
         update[offset] = K * computeValue(inputWithBias);
@@ -246,7 +246,7 @@ void DeadbandBlock::blockJacobianElements(double input,
                                           index_t argLoc,
                                           const SolverMode& sMode)
 {
-    if ((!opFlags[differential_input]) && (hasAlgebraic(sMode))) {
+    if ((!opFlags[differentialInput]) && (hasAlgebraic(sMode))) {
         auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
         jacobian.assign(offset, offset, -1.0);
         const double dInputOutput = K * computeDoutDin(input + bias);
@@ -257,7 +257,7 @@ void DeadbandBlock::blockJacobianElements(double input,
         if (limiter_alg > 0) {
             GridBlock::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
         }
-    } else if ((opFlags[differential_input]) && (hasDifferential(sMode))) {
+    } else if ((opFlags[differentialInput]) && (hasDifferential(sMode))) {
         auto offset = offsets.getDiffOffset(sMode) + limiter_diff;
         jacobian.assign(offset, offset, -stateDataRef.cj);
         const double dInputOutput = K * computeDoutDin(input + bias);

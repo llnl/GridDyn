@@ -18,7 +18,7 @@ FunctionBlock::FunctionBlock(): GridBlock("functionBlock_#")
 {
     offsets.local().local.algSize = 2;
     offsets.local().local.diffSize = 0;
-    opFlags.set(use_state);
+    opFlags.set(useState);
     offsets.local().local.jacSize = 3;
 }
 
@@ -26,7 +26,7 @@ FunctionBlock::FunctionBlock(const std::string& functionName): GridBlock("functi
 {
     offsets.local().local.algSize = 2;
     offsets.local().local.diffSize = 0;
-    opFlags.set(use_state);
+    opFlags.set(useState);
     offsets.local().local.jacSize = 3;
     setFunction(functionName);
 }

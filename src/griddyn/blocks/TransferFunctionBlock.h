@@ -39,14 +39,14 @@ class TransferFunctionBlock: public GridBlock {
     explicit TransferFunctionBlock(const std::string& objName);
     /** constructor to define the transfer function coefficients assuming $b_0=1$ and all others
 are 0
-@param[in] Acoef the denominator coefficients
+@param[in] acoef the denominator coefficients
 */
-    explicit TransferFunctionBlock(std::vector<double> Acoef);
+    explicit TransferFunctionBlock(std::vector<double> acoef);
     /** constructor to define the transfer function coefficients
-@param[in] Acoef the denominator coefficients
-@param[in] Bcoef the numerator coefficients
+@param[in] acoef the denominator coefficients
+@param[in] bcoef the numerator coefficients
 */
-    TransferFunctionBlock(std::vector<double> Acoef, std::vector<double> Bcoef);
+    TransferFunctionBlock(std::vector<double> acoef, std::vector<double> bcoef);
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
@@ -60,19 +60,19 @@ are 0
 
     virtual void blockDerivative(double input,
                                  double didt,
-                                 const stateData& sD,
+                                 const stateData& stateDataValue,
                                  double deriv[],
                                  const SolverMode& sMode) override;
     virtual void blockResidual(double input,
                                double didt,
-                               const stateData& sD,
+                               const stateData& stateDataValue,
                                double resid[],
                                const SolverMode& sMode) override;
     // only called if the genModel is not present
     virtual void blockJacobianElements(double input,
                                        double didt,
-                                       const stateData& sD,
-                                       matrixData<double>& md,
+                                       const stateData& stateDataValue,
+                                       matrixData<double>& matrixDataValue,
                                        index_t argLoc,
                                        const SolverMode& sMode) override;
     virtual double step(coreTime time, double inputA) override;

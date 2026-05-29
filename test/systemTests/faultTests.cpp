@@ -295,7 +295,7 @@ TEST_F(FaultTests, LinkTestFaultBreaker)
 
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::WARNING;
-    auto obj = dynamic_cast<breaker*>(gds->getRelay(0));
+    auto obj = dynamic_cast<Breaker*>(gds->getRelay(0));
     ASSERT_NE(obj, nullptr);
     gds->run();
     auto lobj = dynamic_cast<Link*>(gds->find("bus2_to_bus3"));
@@ -317,7 +317,7 @@ TEST_F(FaultTests, LinkTestFaultBreaker2)
 
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::WARNING;
-    auto obj = dynamic_cast<breaker*>(gds->getRelay(0));
+    auto obj = dynamic_cast<Breaker*>(gds->getRelay(0));
     ASSERT_NE(obj, nullptr);
     gds->run();
     auto lobj = dynamic_cast<Link*>(gds->find("bus8_to_bus9"));
@@ -339,7 +339,7 @@ TEST_F(FaultTests, LinkTestFaultBreaker3)
 
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::WARNING;
-    auto obj = dynamic_cast<breaker*>(gds->getRelay(0));
+    auto obj = dynamic_cast<Breaker*>(gds->getRelay(0));
     ASSERT_NE(obj, nullptr);
     gds->run();
     auto lobj = dynamic_cast<Link*>(gds->find("bus8_to_bus9"));
@@ -361,7 +361,7 @@ TEST_F(FaultTests, LinkTestFaultBreaker4)
 
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::WARNING;
-    auto obj = dynamic_cast<breaker*>(gds->getRelay(0));
+    auto obj = dynamic_cast<Breaker*>(gds->getRelay(0));
     ASSERT_NE(obj, nullptr);
     gds->run();
     auto lobj = dynamic_cast<Link*>(gds->find("bus8_to_bus9"));

@@ -16,7 +16,7 @@ class GridBlock;
 /** @brief class defining some additional components for a variable generator such as a renewable
   source like wind and solar the generator includes the addition of a source and a filter block to
   define some sort of input and a filtering function on that input*/
-class variableGenerator: public DynamicGenerator {
+class VariableGenerator: public DynamicGenerator {
   protected:
     Source* m_source = nullptr;  //!< reference to the generation source block
     GridBlock* m_cBlock = nullptr;  //!< reference to the control block
@@ -27,8 +27,8 @@ class variableGenerator: public DynamicGenerator {
     //!< defined in Generator
     enum ExtraBlockLocations { source_loc = 5, control_block_loc = 6 };
     /** @brief default constructor*/
-    explicit variableGenerator(const std::string& objName = "varGen_$");
-    variableGenerator(DynModel dynModel, const std::string& objName = "varGen_$");
+    explicit VariableGenerator(const std::string& objName = "varGen_$");
+    VariableGenerator(DynModel dynModel, const std::string& objName = "varGen_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
   protected:
@@ -48,13 +48,13 @@ class variableGenerator: public DynamicGenerator {
     virtual void add(GridSubModel* obj) override;
 
     virtual void residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const stateData& stateDataValue,
                           double resid[],
                           const SolverMode& sMode) override;
 
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& sD,
-                                  matrixData<double>& md,
+                                  const stateData& stateDataValue,
+                                  matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
 
@@ -72,7 +72,7 @@ class variableGenerator: public DynamicGenerator {
 
   protected:
     virtual double pSetControlUpdate(const IOdata& inputs,
-                                     const stateData& sD,
+                                     const stateData& stateDataValue,
                                      const SolverMode& sMode) override;
     virtual index_t pSetLocation(const SolverMode& sMode) override;
 };

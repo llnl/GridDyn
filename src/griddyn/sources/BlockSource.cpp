@@ -13,10 +13,10 @@
 #include <string>
 #include <vector>
 namespace griddyn::sources {
-blockSource::blockSource(const std::string& objName): Source(objName) {}
-CoreObject* blockSource::clone(CoreObject* obj) const
+BlockSource::BlockSource(const std::string& objName): Source(objName) {}
+CoreObject* BlockSource::clone(CoreObject* obj) const
 {
-    auto blkSrc = cloneBase<blockSource, Source>(this, obj);
+    auto blkSrc = cloneBase<BlockSource, Source>(this, obj);
     if (blkSrc == nullptr) {
         return obj;
     }
@@ -24,7 +24,7 @@ CoreObject* blockSource::clone(CoreObject* obj) const
     return blkSrc;
 }
 
-void blockSource::add(CoreObject* obj)
+void BlockSource::add(CoreObject* obj)
 {
     if (dynamic_cast<GridBlock*>(obj) != nullptr) {
         if (blk != nullptr) {
@@ -46,7 +46,7 @@ void blockSource::add(CoreObject* obj)
     }
 }
 
-void blockSource::remove(CoreObject* obj)
+void BlockSource::remove(CoreObject* obj)
 {
     if (isSameObject(src, obj)) {
         GridComponent::remove(obj);
@@ -61,7 +61,7 @@ void blockSource::remove(CoreObject* obj)
     }
 }
 
-void blockSource::dynObjectInitializeB(const IOdata& /*inputs*/,
+void BlockSource::dynObjectInitializeB(const IOdata& /*inputs*/,
                                        const IOdata& desiredOutput,
                                        IOdata& fieldSet)
 {
@@ -89,7 +89,7 @@ void blockSource::dynObjectInitializeB(const IOdata& /*inputs*/,
     }
 }
 
-void blockSource::setFlag(std::string_view flag, bool val)
+void BlockSource::setFlag(std::string_view flag, bool val)
 {
     if (subObjectSet(flag, val)) {
         return;
@@ -105,7 +105,7 @@ void blockSource::setFlag(std::string_view flag, bool val)
     }
 }
 
-void blockSource::set(std::string_view param, std::string_view val)
+void BlockSource::set(std::string_view param, std::string_view val)
 {
     if (subObjectSet(param, val)) {
         return;
@@ -120,7 +120,7 @@ void blockSource::set(std::string_view param, std::string_view val)
         }
     }
 }
-void blockSource::set(std::string_view param, double val, units::unit unitType)
+void BlockSource::set(std::string_view param, double val, units::unit unitType)
 {
     if (subObjectSet(param, val, unitType)) {
         return;
@@ -138,7 +138,7 @@ void blockSource::set(std::string_view param, double val, units::unit unitType)
         }
     }
 }
-double blockSource::get(std::string_view param, units::unit unitType) const
+double BlockSource::get(std::string_view param, units::unit unitType) const
 {
     double rval = Source::get(param, unitType);
     if (rval == kNullVal) {
@@ -149,62 +149,62 @@ double blockSource::get(std::string_view param, units::unit unitType) const
     return rval;
 }
 
-// void derivative(const IOdata &inputs, const stateData &sD, double deriv[], const SolverMode
-// &sMode);
+// void derivative(const IOdata &inputs, const stateData &stateDataValue, double deriv[], const
+// SolverMode &sMode);
 
-void blockSource::residual(const IOdata& inputs,
-                           const stateData& sD,
+void BlockSource::residual(const IOdata& inputs,
+                           const stateData& stateDataValue,
                            double resid[],
                            const SolverMode& sMode)
 {
     double srcOut = m_output;
     double srcDout = 0.0;
     if (src != nullptr) {
-        src->residual(inputs, sD, resid, sMode);
-        srcOut = src->getOutput(inputs, sD, sMode, 0);
-        srcDout = src->getDoutdt(inputs, sD, sMode, 0);
+        src->residual(inputs, stateDataValue, resid, sMode);
+        srcOut = src->getOutput(inputs, stateDataValue, sMode, 0);
+        srcDout = src->getDoutdt(inputs, stateDataValue, sMode, 0);
     }
     if (blk != nullptr) {
-        blk->blockResidual(srcOut, srcDout, sD, resid, sMode);
+        blk->blockResidual(srcOut, srcDout, stateDataValue, resid, sMode);
     }
 }
 
-void blockSource::derivative(const IOdata& inputs,
-                             const stateData& sD,
+void BlockSource::derivative(const IOdata& inputs,
+                             const stateData& stateDataValue,
                              double deriv[],
                              const SolverMode& sMode)
 {
     double srcOut = m_output;
     double srcDout = 0.0;
     if (src != nullptr) {
-        src->derivative(inputs, sD, deriv, sMode);
-        srcOut = src->getOutput(inputs, sD, sMode, 0);
-        srcDout = src->getDoutdt(inputs, sD, sMode, 0);
+        src->derivative(inputs, stateDataValue, deriv, sMode);
+        srcOut = src->getOutput(inputs, stateDataValue, sMode, 0);
+        srcDout = src->getDoutdt(inputs, stateDataValue, sMode, 0);
     }
     if (blk != nullptr) {
-        blk->blockDerivative(srcOut, srcDout, sD, deriv, sMode);
+        blk->blockDerivative(srcOut, srcDout, stateDataValue, deriv, sMode);
     }
 }
 
-void blockSource::algebraicUpdate(const IOdata& inputs,
-                                  const stateData& sD,
+void BlockSource::algebraicUpdate(const IOdata& inputs,
+                                  const stateData& stateDataValue,
                                   double update[],
                                   const SolverMode& sMode,
                                   double alpha)
 {
     double srcOut = m_output;
     if (src != nullptr) {
-        src->algebraicUpdate(inputs, sD, update, sMode, alpha);
-        srcOut = src->getOutput(inputs, sD, sMode, 0);
+        src->algebraicUpdate(inputs, stateDataValue, update, sMode, alpha);
+        srcOut = src->getOutput(inputs, stateDataValue, sMode, 0);
     }
     if (blk != nullptr) {
-        blk->blockAlgebraicUpdate(srcOut, sD, update, sMode);
+        blk->blockAlgebraicUpdate(srcOut, stateDataValue, update, sMode);
     }
 }
 
-void blockSource::jacobianElements(const IOdata& inputs,
-                                   const stateData& sD,
-                                   matrixData<double>& md,
+void BlockSource::jacobianElements(const IOdata& inputs,
+                                   const stateData& stateDataValue,
+                                   matrixData<double>& matrixDataValue,
                                    const IOlocs& inputLocs,
                                    const SolverMode& sMode)
 {
@@ -212,17 +212,17 @@ void blockSource::jacobianElements(const IOdata& inputs,
     double srcDout = 0.0;
     index_t srcLoc = kNullLocation;
     if (src != nullptr) {
-        src->jacobianElements(inputs, sD, md, inputLocs, sMode);
-        srcOut = src->getOutput(inputs, sD, sMode, 0);
-        srcDout = src->getDoutdt(inputs, sD, sMode, 0);
+        src->jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
+        srcOut = src->getOutput(inputs, stateDataValue, sMode, 0);
+        srcDout = src->getDoutdt(inputs, stateDataValue, sMode, 0);
         srcLoc = src->getOutputLoc(sMode, 0);
     }
     if (blk != nullptr) {
-        blk->blockJacobianElements(srcOut, srcDout, sD, md, srcLoc, sMode);
+        blk->blockJacobianElements(srcOut, srcDout, stateDataValue, matrixDataValue, srcLoc, sMode);
     }
 }
 
-void blockSource::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void BlockSource::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     while (prevTime < time) {
         auto ntime = std::min(prevTime + maxStepSize, time);
@@ -237,23 +237,23 @@ void blockSource::timestep(coreTime time, const IOdata& inputs, const SolverMode
     }
 }
 
-void blockSource::rootTest(const IOdata& inputs,
-                           const stateData& sD,
+void BlockSource::rootTest(const IOdata& inputs,
+                           const stateData& stateDataValue,
                            double roots[],
                            const SolverMode& sMode)
 {
     double srcOut = m_output;
     double srcDout = 0.0;
     if (src != nullptr) {
-        src->rootTest(inputs, sD, roots, sMode);
-        srcOut = src->getOutput(inputs, sD, sMode, 0);
-        srcDout = src->getDoutdt(inputs, sD, sMode, 0);
+        src->rootTest(inputs, stateDataValue, roots, sMode);
+        srcOut = src->getOutput(inputs, stateDataValue, sMode, 0);
+        srcDout = src->getDoutdt(inputs, stateDataValue, sMode, 0);
     }
     if (blk != nullptr) {
-        blk->rootTest({srcOut, srcDout}, sD, roots, sMode);
+        blk->rootTest({srcOut, srcDout}, stateDataValue, roots, sMode);
     }
 }
-void blockSource::rootTrigger(coreTime time,
+void BlockSource::rootTrigger(coreTime time,
                               const IOdata& inputs,
                               const std::vector<int>& rootMask,
                               const SolverMode& sMode)
@@ -270,8 +270,8 @@ void blockSource::rootTrigger(coreTime time,
     }
 }
 
-ChangeCode blockSource::rootCheck(const IOdata& inputs,
-                                  const stateData& sD,
+ChangeCode BlockSource::rootCheck(const IOdata& inputs,
+                                  const stateData& stateDataValue,
                                   const SolverMode& sMode,
                                   CheckLevel level)
 {
@@ -279,72 +279,72 @@ ChangeCode blockSource::rootCheck(const IOdata& inputs,
     double srcDout = 0.0;
     ChangeCode ret = ChangeCode::NO_CHANGE;
     if (src != nullptr) {
-        auto iret = src->rootCheck(inputs, sD, sMode, level);
-        srcOut = src->getOutput(inputs, sD, sMode, 0);
-        srcDout = src->getDoutdt(inputs, sD, sMode, 0);
+        auto iret = src->rootCheck(inputs, stateDataValue, sMode, level);
+        srcOut = src->getOutput(inputs, stateDataValue, sMode, 0);
+        srcDout = src->getDoutdt(inputs, stateDataValue, sMode, 0);
         ret = (std::max)(iret, ret);
     }
     if (blk != nullptr) {
-        auto iret = blk->rootCheck({srcOut, srcDout}, sD, sMode, level);
+        auto iret = blk->rootCheck({srcOut, srcDout}, stateDataValue, sMode, level);
         ret = (std::max)(iret, ret);
     }
     return ret;
 }
 
-void blockSource::updateLocalCache(const IOdata& inputs,
-                                   const stateData& sD,
+void BlockSource::updateLocalCache(const IOdata& inputs,
+                                   const stateData& stateDataValue,
                                    const SolverMode& sMode)
 {
     double srcOut = m_output;
     double srcDout = 0.0;
     if (src != nullptr) {
-        src->updateLocalCache(inputs, sD, sMode);
-        srcOut = src->getOutput(inputs, sD, sMode, 0);
-        srcDout = src->getDoutdt(inputs, sD, sMode, 0);
+        src->updateLocalCache(inputs, stateDataValue, sMode);
+        srcOut = src->getOutput(inputs, stateDataValue, sMode, 0);
+        srcDout = src->getDoutdt(inputs, stateDataValue, sMode, 0);
     }
     if (blk != nullptr) {
-        blk->updateLocalCache({srcOut, srcDout}, sD, sMode);
+        blk->updateLocalCache({srcOut, srcDout}, stateDataValue, sMode);
     }
 }
 
 /** set the output level
 @param[in] newLevel the level to set the output at
 */
-void blockSource::setLevel(double newLevel)
+void BlockSource::setLevel(double newLevel)
 {
     if (src != nullptr) {
         src->setLevel(newLevel);
     }
 }
 
-IOdata blockSource::getOutputs(const IOdata& /*inputs*/,
-                               const stateData& sD,
+IOdata BlockSource::getOutputs(const IOdata& /*inputs*/,
+                               const stateData& stateDataValue,
                                const SolverMode& sMode) const
 {
     if (blk != nullptr) {
-        return blk->getOutputs(noInputs, sD, sMode);
+        return blk->getOutputs(noInputs, stateDataValue, sMode);
     }
     if (src != nullptr) {
-        return src->getOutputs(noInputs, sD, sMode);
+        return src->getOutputs(noInputs, stateDataValue, sMode);
     }
-    return Source::getOutputs(noInputs, sD, sMode);
+    return Source::getOutputs(noInputs, stateDataValue, sMode);
 }
 
-double blockSource::getOutput(const IOdata& inputs,
-                              const stateData& sD,
+double BlockSource::getOutput(const IOdata& inputs,
+                              const stateData& stateDataValue,
                               const SolverMode& sMode,
                               index_t outputNum) const
 {
     if (blk != nullptr) {
-        return blk->getOutput(noInputs, sD, sMode, outputNum);
+        return blk->getOutput(noInputs, stateDataValue, sMode, outputNum);
     }
     if (src != nullptr) {
-        return src->getOutput(inputs, sD, sMode, outputNum);
+        return src->getOutput(inputs, stateDataValue, sMode, outputNum);
     }
-    return Source::getOutput(inputs, sD, sMode, outputNum);
+    return Source::getOutput(inputs, stateDataValue, sMode, outputNum);
 }
 
-double blockSource::getOutput(index_t outputNum) const
+double BlockSource::getOutput(index_t outputNum) const
 {
     if (blk != nullptr) {
         return blk->getOutput(outputNum);
@@ -356,22 +356,22 @@ double blockSource::getOutput(index_t outputNum) const
     return Source::getOutput(outputNum);
 }
 
-double blockSource::getDoutdt(const IOdata& inputs,
-                              const stateData& sD,
+double BlockSource::getDoutdt(const IOdata& inputs,
+                              const stateData& stateDataValue,
                               const SolverMode& sMode,
                               index_t outputNum) const
 {
     if (blk != nullptr) {
-        return blk->getDoutdt(noInputs, sD, sMode, outputNum);
+        return blk->getDoutdt(noInputs, stateDataValue, sMode, outputNum);
     }
     if (src != nullptr) {
-        return src->getDoutdt(inputs, sD, sMode, outputNum);
+        return src->getDoutdt(inputs, stateDataValue, sMode, outputNum);
     }
 
-    return Source::getDoutdt(inputs, sD, sMode, outputNum);
+    return Source::getDoutdt(inputs, stateDataValue, sMode, outputNum);
 }
 
-CoreObject* blockSource::find(std::string_view object) const
+CoreObject* BlockSource::find(std::string_view object) const
 {
     if (object == "source") {
         return src;
@@ -382,7 +382,7 @@ CoreObject* blockSource::find(std::string_view object) const
     return GridComponent::find(object);
 }
 
-CoreObject* blockSource::getSubObject(std::string_view typeName, index_t num) const
+CoreObject* BlockSource::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "source") {
         return (num == 0) ? src : nullptr;

@@ -101,16 +101,16 @@ void Exciter::dynObjectInitializeB(const IOdata& inputs,
 void Exciter::residual(const IOdata& inputs,
                        const stateData& stateData,
                        double resid[],
-                       const SolverMode& SolverMode)
+                       const SolverMode& solverMode)
 {
-    if (isAlgebraicOnly(SolverMode)) {
+    if (isAlgebraicOnly(solverMode)) {
         return;
     }
-    auto offset = offsets.getDiffOffset(SolverMode);
+    auto offset = offsets.getDiffOffset(solverMode);
     const auto* exciterState = stateData.state + offset;
     const auto* exciterStateDerivatives = stateData.dstate_dt + offset;
     auto* residualValues = resid + offset;
-    if (opFlags[outside_vlim]) {
+    if (opFlags[outsideVoltageLimits]) {
         residualValues[0] = -exciterStateDerivatives[0];
     } else {
         residualValues[0] =
@@ -122,12 +122,12 @@ void Exciter::residual(const IOdata& inputs,
 void Exciter::derivative(const IOdata& inputs,
                          const stateData& stateData,
                          double deriv[],
-                         const SolverMode& SolverMode)
+                         const SolverMode& solverMode)
 {
-    auto locations = offsets.getLocations(stateData, deriv, SolverMode, this);
+    auto locations = offsets.getLocations(stateData, deriv, solverMode, this);
     const auto* exciterState = locations.diffStateLoc;
     auto* derivatives = locations.destDiffLoc;
-    if (opFlags[outside_vlim]) {
+    if (opFlags[outsideVoltageLimits]) {
         derivatives[0] = 0.0;
     } else {
         derivatives[0] =
@@ -139,14 +139,14 @@ void Exciter::jacobianElements(const IOdata& /*inputs*/,
                                const stateData& stateData,
                                matrixData<double>& matrix,
                                const IOlocs& inputLocs,
-                               const SolverMode& SolverMode)
+                               const SolverMode& solverMode)
 {
-    if (isAlgebraicOnly(SolverMode)) {
+    if (isAlgebraicOnly(solverMode)) {
         return;
     }
-    auto offset = offsets.getDiffOffset(SolverMode);
+    auto offset = offsets.getDiffOffset(solverMode);
 
-    if (opFlags[outside_vlim]) {
+    if (opFlags[outsideVoltageLimits]) {
         matrix.assign(offset, offset, -stateData.cj);
     } else {
         matrix.assign(offset, offset, (-1.0 / Ta) - stateData.cj);
@@ -157,18 +157,18 @@ void Exciter::jacobianElements(const IOdata& /*inputs*/,
 void Exciter::rootTest(const IOdata& inputs,
                        const stateData& stateData,
                        double root[],
-                       const SolverMode& SolverMode)
+                       const SolverMode& solverMode)
 {
-    auto offset = offsets.getDiffOffset(SolverMode);
-    const auto rootOffset = offsets.getRootOffset(SolverMode);
+    auto offset = offsets.getDiffOffset(solverMode);
+    const auto rootOffset = offsets.getRootOffset(solverMode);
     const double eField = stateData.state[offset];
 
-    if (opFlags[outside_vlim]) {
+    if (opFlags[outsideVoltageLimits]) {
         root[rootOffset] = Vref + vBias - inputs[voltageInLocation];
     } else {
         root[rootOffset] = std::min(Vrmax - eField, eField - Vrmin) + 0.0001;
         if (eField > Vrmax) {
-            opFlags.set(etrigger_high);
+            opFlags.set(triggerHigh);
         }
     }
 }
@@ -176,18 +176,18 @@ void Exciter::rootTest(const IOdata& inputs,
 void Exciter::rootTrigger(coreTime time,
                           const IOdata& inputs,
                           const std::vector<int>& rootMask,
-                          const SolverMode& SolverMode)
+                          const SolverMode& solverMode)
 {
-    const auto rootOffset = offsets.getRootOffset(SolverMode);
+    const auto rootOffset = offsets.getRootOffset(solverMode);
     if (rootMask[rootOffset] != 0) {
-        if (opFlags[outside_vlim]) {
+        if (opFlags[outsideVoltageLimits]) {
             logging::normal(this, "root trigger back in bounds");
             alert(this, JAC_COUNT_INCREASE);
-            opFlags.reset(outside_vlim);
-            opFlags.reset(etrigger_high);
+            opFlags.reset(outsideVoltageLimits);
+            opFlags.reset(triggerHigh);
         } else {
-            opFlags.set(outside_vlim);
-            if (opFlags[etrigger_high]) {
+            opFlags.set(outsideVoltageLimits);
+            if (opFlags[triggerHigh]) {
                 logging::normal(this, "root trigger above bounds");
                 m_state[limitState] -= 0.0001;
             } else {
@@ -204,36 +204,36 @@ void Exciter::rootTrigger(coreTime time,
 
 ChangeCode Exciter::rootCheck(const IOdata& inputs,
                               const stateData& /*stateData*/,
-                              const SolverMode& /*SolverMode*/,
+                              const SolverMode& /*solverMode*/,
                               CheckLevel /*level*/)
 {
     const double eField = m_state[0];
     ChangeCode ret = ChangeCode::NO_CHANGE;
-    if (opFlags[outside_vlim]) {
+    if (opFlags[outsideVoltageLimits]) {
         const double test = Vref + vBias - inputs[voltageInLocation];
-        if (opFlags[etrigger_high]) {
+        if (opFlags[triggerHigh]) {
             if (test < 0) {
-                opFlags.reset(outside_vlim);
-                opFlags.reset(etrigger_high);
+                opFlags.reset(outsideVoltageLimits);
+                opFlags.reset(triggerHigh);
                 alert(this, JAC_COUNT_INCREASE);
                 ret = ChangeCode::JACOBIAN_CHANGE;
             }
         } else {
             if (test > 0) {
-                opFlags.reset(outside_vlim);
+                opFlags.reset(outsideVoltageLimits);
                 alert(this, JAC_COUNT_INCREASE);
                 ret = ChangeCode::JACOBIAN_CHANGE;
             }
         }
     } else {
         if (eField > Vrmax + 0.0001) {
-            opFlags.set(etrigger_high);
-            opFlags.set(outside_vlim);
+            opFlags.set(triggerHigh);
+            opFlags.set(outsideVoltageLimits);
             m_state[0] = Vrmax;
             alert(this, JAC_COUNT_DECREASE);
             ret = ChangeCode::JACOBIAN_CHANGE;
         } else if (eField < Vrmin - 0.0001) {
-            opFlags.set(outside_vlim);
+            opFlags.set(outsideVoltageLimits);
             m_state[0] = Vrmin;
             alert(this, JAC_COUNT_DECREASE);
             ret = ChangeCode::JACOBIAN_CHANGE;

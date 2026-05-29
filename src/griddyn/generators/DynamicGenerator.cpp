@@ -210,11 +210,11 @@ void DynamicGenerator::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         add(new GenModel());
     }
     if (gov != nullptr) {
-        if (!genModel->checkFlag(GenModel::GenModelFlags::internal_frequency_calculation)) {
+        if (!genModel->checkFlag(GenModel::GenModelFlags::internalFrequencyCalculation)) {
             opFlags.set(uses_bus_frequency);
         }
     }
-    if (opFlags[isochronous_operation]) {
+    if (opFlags[isochronousOperation]) {
         bus->setFlag("compute_frequency", true);
         // opFlags.set(uses_bus_frequency);
     }
@@ -229,7 +229,7 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
     Generator::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
 
     // load the power set point
-    if (opFlags[isochronous_operation]) {
+    if (opFlags[isochronousOperation]) {
         if (Pset > -kHalfBigNum) {
             isoc->setLevel(P - Pset);
             isoc->setFreq(0.0);
@@ -569,7 +569,7 @@ void DynamicGenerator::algebraicUpdate(const IOdata& inputs,
 void DynamicGenerator::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "isoc") || (flag == "isochronous")) {
-        opFlags.set(isochronous_operation, val);
+        opFlags.set(isochronousOperation, val);
         if (val) {
             if (isoc == nullptr) {
                 add(new isocController(getName()));
@@ -641,13 +641,13 @@ void DynamicGenerator::set(std::string_view param, double val, unit unitType)
         }
     } else if ((param == "rating") || (param == "base") || (param == "mbase")) {
         machineBasePower = convert(val, unitType, MVAR, systemBasePower, localBaseVoltage);
-        opFlags.set(independent_machine_base);
+        opFlags.set(independentMachineBase);
         if (genModel != nullptr) {
             genModel->set("base", machineBasePower);
         }
     } else if (param == "basepower") {
         systemBasePower = convert(val, unitType, units::MW);
-        if (opFlags[independent_machine_base]) {
+        if (opFlags[independentMachineBase]) {
         } else {
             machineBasePower = systemBasePower;
             for (auto* subobj : getSubObjects()) {
@@ -1130,7 +1130,7 @@ double DynamicGenerator::pSetControlUpdate(const IOdata& inputs,
     } else {
         val = (!stateDataValue.empty()) ? (Pset + dPdt * (stateDataValue.time - prevTime)) : Pset;
     }
-    if (opFlags[isochronous_operation]) {
+    if (opFlags[isochronousOperation]) {
         if (isoc != nullptr) {
             isoc->setLimits(Pmin - val, Pmax - val);
             isoc->setFreq(subInputs.inputs[isoc_control][0]);

@@ -155,7 +155,7 @@ class OffsetTable {
 
     /** @brief get the locations for the data from a stateData pointer and output array
     *@param[in] sMode the SolverMode we are interested in
-    *@param[in] sD the stateData object to fill the Lp from
+    *@param[in] stateDataValue the stateData object to fill the Lp from
     *@param[in] dest the destination location for the calculations
     @param[in] comp the object to use if local information is required
     @return Lp the Location pointer object to fill
@@ -167,7 +167,7 @@ class OffsetTable {
 
     /** @brief get the locations for the data from a stateData pointer
     *@param[in] sMode the SolverMode we are interested in
-    *@param[in] sD the stateData object to fill the Lp from
+    *@param[in] stateDataValue the stateData object to fill the Lp from
     @param[in] comp the object to use if local information is required
     @return Lp the Location pointer object to fill
     */
@@ -181,23 +181,23 @@ class OffsetTable {
     */
     void getLocations(const SolverMode& sMode, Lp* Loc) const;
     /** @brief unload all the solverOffset objects
-     *@param[in] dynamic_only only unload the dynamic solverObjects
+     *@param[in] dynamicOnly only unload the dynamic solverObjects
      */
     void unload(bool dynamicOnly = false);
     /** @brief unload state information for the solverOffsets
-     *@param[in] dynamic_only only unload the dynamic solverObjects
+     *@param[in] dynamicOnly only unload the dynamic solverObjects
      */
     void stateUnload(bool dynamicOnly = false);
     /** @brief unload the root information for the solverOffsets
-     *@param[in] dynamic_only only unload the dynamic solverObjects
+     *@param[in] dynamicOnly only unload the dynamic solverObjects
      */
     void rootUnload(bool dynamicOnly = false);
     /** @brief unload the Jacobian information for the solverOffsets
-     *@param[in] dynamic_only only unload the dynamic solverObjects
+     *@param[in] dynamicOnly only unload the dynamic solverObjects
      */
     void jacobianUnload(bool dynamicOnly = false);
     /** @brief update all solverOffsets with the local information
-     *@param[in] dynamic_only only unload the dynamic solverObjects
+     *@param[in] dynamicOnly only unload the dynamic solverObjects
      */
     void localUpdateAll(bool dynamicOnly = false);
     /** @brief get the size of the solverOffsets

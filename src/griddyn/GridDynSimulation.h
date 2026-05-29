@@ -407,7 +407,7 @@ class GridDynSimulation: public GridSimulation {
       computes the roots for any root finding functions used in the system
     @param[in] time  the simulation time of the evaluation
     @param[in] state  the state information to evaluation
-    @param[in] dstateDt  the time derivative of the state
+    @param[in] dstate_dt  the time derivative of the state
     @param[out] roots the storage location for the roots
     @param[in] sMode the SolverMode to solve for
     @return integer indicating success (0) or failure (non-zero)
@@ -423,7 +423,7 @@ class GridDynSimulation: public GridSimulation {
     @param[in] indices the indices of the parameters
     @param[in] values the values for the parameters
     @param[in] state  the state information to evaluation
-    @param[in] dstate_dt  the time derivative of the state
+    @param[in] dstateDt  the time derivative of the state
     @param[out] matrixDataRef the matrixData object to store the partial derivatives
     @param[in] sMode the SolverMode to use for the computations
     */

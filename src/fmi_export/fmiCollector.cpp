@@ -12,23 +12,23 @@
 #include <string>
 
 namespace griddyn::fmi {
-FmiCollector::FmiCollector(): collector(maxTime, maxTime) {}
-FmiCollector::FmiCollector(const std::string& name): collector(name)
+FmiCollector::FmiCollector(): Collector(maxTime, maxTime) {}
+FmiCollector::FmiCollector(const std::string& name): Collector(name)
 {
     mTriggerTime = maxTime;
     mTimePeriod = maxTime;
 }
 
-std::unique_ptr<collector> FmiCollector::clone() const
+std::unique_ptr<Collector> FmiCollector::clone() const
 {
-    std::unique_ptr<collector> fmicol = std::make_unique<FmiCollector>();
+    std::unique_ptr<Collector> fmicol = std::make_unique<FmiCollector>();
     FmiCollector::cloneTo(fmicol.get());
     return fmicol;
 }
 
-void FmiCollector::cloneTo(collector* collectorClone) const
+void FmiCollector::cloneTo(Collector* collectorClone) const
 {
-    collector::cloneTo(collectorClone);
+    Collector::cloneTo(collectorClone);
 
     auto* newCollector = dynamic_cast<FmiCollector*>(collectorClone);
     if (newCollector == nullptr) {
@@ -38,7 +38,7 @@ void FmiCollector::cloneTo(collector* collectorClone) const
 
 ChangeCode FmiCollector::trigger(coreTime time)
 {
-    collector::trigger(time);
+    Collector::trigger(time);
     return ChangeCode::NO_CHANGE;
 }
 
@@ -46,14 +46,14 @@ void FmiCollector::set(std::string_view param, double val)
 {
     if (param.empty()) {
     } else {
-        collector::set(param, val);
+        Collector::set(param, val);
     }
 }
 void FmiCollector::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
-        collector::set(param, val);
+        Collector::set(param, val);
     }
 }
 

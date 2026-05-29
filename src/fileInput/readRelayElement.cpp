@@ -26,10 +26,10 @@ static constexpr char relayComponentName[] = "relay";
 
 // "aP" is the XML element passed from the reader
 Relay* readRelayElement(std::shared_ptr<ReaderElement>& element,
-                        ReaderInfo& ReaderInformation,
+                        ReaderInfo& readerInformation,
                         CoreObject* searchObject)
 {
-    auto riScope = ReaderInformation.newScope();
+    auto riScope = readerInformation.newScope();
 
     // check the rest of the elements
 
@@ -37,7 +37,7 @@ Relay* readRelayElement(std::shared_ptr<ReaderElement>& element,
     // check for the area field
     CoreObject* defaultTargetObject = searchObject;
     Relay* relay = nullptr;
-    searchObject = updateSearchObject<GridPrimary>(element, ReaderInformation, searchObject);
+    searchObject = updateSearchObject<gridPrimary>(element, readerInformation, searchObject);
     if (dynamic_cast<GridArea*>(searchObject) == nullptr) {
         if (searchObject != nullptr) {
             searchObject = searchObject->getRoot();
@@ -65,12 +65,12 @@ Relay* readRelayElement(std::shared_ptr<ReaderElement>& element,
             }
         }
     }
-    relay = elementReaderSetup(element, relay, relayComponentName, ReaderInformation, searchObject);
+    relay = elementReaderSetup(element, relay, relayComponentName, readerInformation, searchObject);
 
     CoreObject* targetObj = nullptr;
     std::string objectName = getElementField(element, "target", defMatchType);
     if (!objectName.empty()) {
-        objectName = ReaderInformation.checkDefines(objectName);
+        objectName = readerInformation.checkDefines(objectName);
         targetObj = locateObject(objectName, searchObject);
         if (targetObj == nullptr) {
             WARNPRINT(READER_WARN_IMPORTANT, "Unable to locate target object " << objectName);
@@ -85,7 +85,7 @@ Relay* readRelayElement(std::shared_ptr<ReaderElement>& element,
         if (objectName.empty()) {
             targetObj = defaultTargetObject;
         } else if (searchObject != nullptr) {
-            objectName = ReaderInformation.checkDefines(objectName);
+            objectName = readerInformation.checkDefines(objectName);
             targetObj = locateObject(objectName, searchObject);
         }
         if (targetObj != nullptr) {
@@ -96,7 +96,7 @@ Relay* readRelayElement(std::shared_ptr<ReaderElement>& element,
         if (objectName.empty()) {
             targetObj = defaultTargetObject;
         } else if (searchObject != nullptr) {
-            objectName = ReaderInformation.checkDefines(objectName);
+            objectName = readerInformation.checkDefines(objectName);
             targetObj = locateObject(objectName, searchObject);
         }
         if (targetObj != nullptr) {
@@ -105,11 +105,11 @@ Relay* readRelayElement(std::shared_ptr<ReaderElement>& element,
     }
 
     loadElementInformation(
-        relay, element, relayComponentName, ReaderInformation, relayIgnoreElements());
+        relay, element, relayComponentName, readerInformation, relayIgnoreElements());
 
     LEVELPRINT(READER_NORMAL_PRINT, "loaded relay " << relay->getName());
 
-    ReaderInformation.closeScope(riScope);
+    readerInformation.closeScope(riScope);
     return relay;
 }
 

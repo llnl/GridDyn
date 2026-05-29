@@ -44,7 +44,7 @@ namespace comms {
         std::shared_ptr<Communicator> build();
         std::shared_ptr<Communicator> getCommLink() const { return commLink; }
 
-        void send(std::shared_ptr<CommMessage> m) const;
+        void send(const std::shared_ptr<CommMessage>& message) const;
 
         const std::string& destName() const { return commDestName; }
         const std::string& getName() const { return commName; }

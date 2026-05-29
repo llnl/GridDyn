@@ -28,17 +28,17 @@ static constexpr char collectorNameString[] = "collector";
 
 int loadCollectorElement(std::shared_ptr<ReaderElement>& element,
                          CoreObject* obj,
-                         ReaderInfo& ReaderInformation)
+                         ReaderInfo& readerInformation)
 {
     const int ret = FUNCTION_EXECUTION_SUCCESS;
-    std::string name = ReaderInformation.checkDefines(
+    std::string name = readerInformation.checkDefines(
         getElementField(element, nameString, readerConfig::defMatchType));
-    const std::string fileName = ReaderInformation.checkDefines(
+    const std::string fileName = readerInformation.checkDefines(
         getElementFieldOptions(element, {"file", "sink"}, readerConfig::defMatchType));
-    std::string type = ReaderInformation.checkDefines(
+    std::string type = readerInformation.checkDefines(
         getElementField(element, "type", readerConfig::defMatchType));
 
-    auto collectorObject = ReaderInformation.findCollector(name, fileName);
+    auto collectorObject = readerInformation.findCollector(name, fileName);
     if ((!type.empty()) && (name.empty()) && (fileName.empty())) {
         collectorObject = nullptr;
     }
@@ -54,13 +54,13 @@ int loadCollectorElement(std::shared_ptr<ReaderElement>& element,
         if (!fileName.empty()) {
             collectorObject->set("file", fileName);
         }
-        ReaderInformation.collectors.push_back(collectorObject);
+        readerInformation.collectors.push_back(collectorObject);
     }
 
     GridGrabberInfo grabberInfo;
     name = getElementField(element, "target", readerConfig::defMatchType);
     if (!name.empty()) {
-        name = ReaderInformation.checkDefines(name);
+        name = readerInformation.checkDefines(name);
         grabberInfo.m_target = name;
     }
     auto fieldList = getElementFieldMultiple(element, "field", readerConfig::defMatchType);
@@ -68,7 +68,7 @@ int loadCollectorElement(std::shared_ptr<ReaderElement>& element,
     if (!fieldList.empty()) {
         grabberInfo.field = "";
         for (auto& fieldString : fieldList) {
-            fieldString = ReaderInformation.checkDefines(fieldString);
+            fieldString = readerInformation.checkDefines(fieldString);
             if (grabberInfo.field.empty()) {
                 grabberInfo.field = fieldString;
             } else {
@@ -79,24 +79,24 @@ int loadCollectorElement(std::shared_ptr<ReaderElement>& element,
 
     std::string elementText = getElementField(element, "bias", readerConfig::defMatchType);
     if (!elementText.empty()) {
-        grabberInfo.bias = interpretString(elementText, ReaderInformation);
+        grabberInfo.bias = interpretString(elementText, readerInformation);
     }
     elementText = getElementField(element, "gain", readerConfig::defMatchType);
     if (!elementText.empty()) {
-        grabberInfo.gain = interpretString(elementText, ReaderInformation);
+        grabberInfo.gain = interpretString(elementText, readerInformation);
     }
     elementText = getElementFieldOptions(element, {"units", "unit"}, readerConfig::defMatchType);
     if (!elementText.empty()) {
-        elementText = ReaderInformation.checkDefines(elementText);
+        elementText = readerInformation.checkDefines(elementText);
         grabberInfo.outputUnits = units::unit_cast_from_string(elementText);
     }
     elementText = getElementField(element, "column", readerConfig::defMatchType);
     if (!elementText.empty()) {
-        grabberInfo.column = static_cast<int>(interpretString(elementText, ReaderInformation));
+        grabberInfo.column = static_cast<int>(interpretString(elementText, readerInformation));
     }
     elementText = getElementField(element, "offset", readerConfig::defMatchType);
     if (!elementText.empty()) {
-        grabberInfo.offset = static_cast<int>(interpretString(elementText, ReaderInformation));
+        grabberInfo.offset = static_cast<int>(interpretString(elementText, readerInformation));
         if (!grabberInfo.field.empty()) {
             WARNPRINT(READER_WARN_ALL,
                       "specifying offset in Collector overrides field specification");
@@ -107,12 +107,12 @@ int loadCollectorElement(std::shared_ptr<ReaderElement>& element,
     setAttributes(collectorObject.get(),
                   element,
                   collectorNameString,
-                  ReaderInformation,
+                  readerInformation,
                   collectorIgnoreStrings());
     setParams(collectorObject.get(),
               element,
               collectorNameString,
-              ReaderInformation,
+              readerInformation,
               collectorIgnoreStrings());
     CoreObject* targetObj = obj;
 

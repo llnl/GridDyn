@@ -233,14 +233,14 @@ namespace {
 }  // namespace
 
 void loadSubObjects(std::shared_ptr<ReaderElement>& element,
-                    ReaderInfo& ReaderInformation,
+                    ReaderInfo& readerInformation,
                     CoreObject* parentObject)
 {
     // read areas first to set them up for other things to call
     if (element->hasElement("area")) {
         element->moveToFirstChild("area");
         while (element->isValid()) {
-            readGridAreaElement(element, ReaderInformation, parentObject);
+            readGridAreaElement(element, readerInformation, parentObject);
             element->moveToNextSibling("area");  // next area
         }
         element->moveToParent();
@@ -250,7 +250,7 @@ void loadSubObjects(std::shared_ptr<ReaderElement>& element,
     if (element->hasElement("bus")) {
         element->moveToFirstChild("bus");
         while (element->isValid()) {
-            readBusElement(element, ReaderInformation, parentObject);
+            readBusElement(element, readerInformation, parentObject);
             element->moveToNextSibling("bus");  // next bus
         }
         element->moveToParent();
@@ -269,14 +269,14 @@ void loadSubObjects(std::shared_ptr<ReaderElement>& element,
         // stacked parameters and imports
         {
             loadElementInformation(
-                parentObject, element, fieldName, ReaderInformation, IgnoreListType{});
+                parentObject, element, fieldName, readerInformation, IgnoreListType{});
         } else {
             // std::cout<<"library model :"<<fieldName<<":\n";
-            auto objectName = ReaderInformation.objectNameTranslate(fieldName);
+            auto objectName = readerInformation.objectNameTranslate(fieldName);
             if (objectName == "collector") {
-                loadCollectorElement(element, parentObject, ReaderInformation);
+                loadCollectorElement(element, parentObject, readerInformation);
             } else if (objectName == "event") {
-                loadEventElement(element, parentObject, ReaderInformation);
+                loadEventElement(element, parentObject, readerInformation);
             } else {
                 const auto* const reader =
                     std::find_if(loadFunctionMap.data(),
@@ -285,26 +285,26 @@ void loadSubObjects(std::shared_ptr<ReaderElement>& element,
                                      return entry.mName == objectName;
                                  });
                 if (reader != loadFunctionMap.data() + loadFunctionMap.size()) {
-                    const auto* object = reader->mLoader(element, ReaderInformation, parentObject);
+                    const auto* object = reader->mLoader(element, readerInformation, parentObject);
                     if ((object->isRoot()) && (object != parentObject)) {
                         WARNPRINT(READER_WARN_IMPORTANT,
                                   object->getName() << " not owned by any other object");
                     }
-                } else if (ReaderInformation.isCustomElement(objectName)) {
-                    auto customElementData = ReaderInformation.getCustomElement(objectName);
-                    auto scopeId = ReaderInformation.newScope();
-                    loadDefines(element, ReaderInformation);
+                } else if (readerInformation.isCustomElement(objectName)) {
+                    auto customElementData = readerInformation.getCustomElement(objectName);
+                    auto scopeId = readerInformation.newScope();
+                    loadDefines(element, readerInformation);
                     char argVal = '1';
                     std::string argName = "arg";
                     for (int argNum = 1; argNum <= customElementData.second; ++argVal, ++argNum) {
                         argName.push_back(argVal);
                         auto argumentValue = getElementField(element, argName);
                         if (!argumentValue.empty()) {
-                            ReaderInformation.addDefinition(argName, argumentValue);
+                            readerInformation.addDefinition(argName, argumentValue);
                         } else {
                             argumentValue = getElementField(customElementData.first, argName);
                             if (!argumentValue.empty()) {
-                                ReaderInformation.addDefinition(argName, argumentValue);
+                                readerInformation.addDefinition(argName, argumentValue);
                             } else {
                                 WARNPRINT(READER_WARN_IMPORTANT,
                                           "custom element " << argName << " not specified");
@@ -315,9 +315,9 @@ void loadSubObjects(std::shared_ptr<ReaderElement>& element,
                     loadElementInformation(parentObject,
                                            customElementData.first,
                                            objectName,
-                                           ReaderInformation,
+                                           readerInformation,
                                            customIgnore());
-                    ReaderInformation.closeScope(scopeId);
+                    readerInformation.closeScope(scopeId);
                 }
             }
         }

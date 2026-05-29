@@ -147,14 +147,14 @@ std::shared_ptr<Communicator> CommManager::build()
     return commLink;
 }
 
-void CommManager::send(std::shared_ptr<CommMessage> message) const
+void CommManager::send(const std::shared_ptr<CommMessage>& message) const
 {
     if (commDestId != 0) {
-        commLink->transmit(commDestId, std::move(message));
+        commLink->transmit(commDestId, message);
     } else if (!commDestName.empty()) {
-        commLink->transmit(commDestName, std::move(message));
+        commLink->transmit(commDestName, message);
     } else {
-        commLink->transmit(0, std::move(message));
+        commLink->transmit(0, message);
     }
 }
 

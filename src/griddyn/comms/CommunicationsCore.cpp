@@ -16,8 +16,8 @@
 namespace griddyn {
 std::shared_ptr<CommunicationsCore> CommunicationsCore::instance()
 {
-    static auto m_pInstance = std::shared_ptr<CommunicationsCore>(new CommunicationsCore());
-    return m_pInstance;
+    static auto mPInstance = std::shared_ptr<CommunicationsCore>(new CommunicationsCore());
+    return mPInstance;
 }
 
 void CommunicationsCore::registerCommunicator(Communicator* comm)

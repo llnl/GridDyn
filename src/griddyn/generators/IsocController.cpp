@@ -14,10 +14,10 @@
 #include <string>
 
 namespace griddyn {
-isocController::isocController(const std::string& objName): GridSubModel(objName) {}
-CoreObject* isocController::clone(CoreObject* obj) const
+IsocController::IsocController(const std::string& objName): GridSubModel(objName) {}
+CoreObject* IsocController::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<isocController, GridSubModel>(this, obj);
+    auto* nobj = cloneBase<IsocController, GridSubModel>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -33,14 +33,14 @@ CoreObject* isocController::clone(CoreObject* obj) const
     return nobj;
 }
 
-void isocController::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void IsocController::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
 {
     gen = dynamic_cast<Generator*>(getParent());
     updatePeriod = upPeriod;
     integratorLevel = 0;
 }
 
-void isocController::dynObjectInitializeB(const IOdata& inputs,
+void IsocController::dynObjectInitializeB(const IOdata& inputs,
                                           const IOdata& desiredOutput,
                                           IOdata& fieldSet)
 {
@@ -58,14 +58,14 @@ void isocController::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-void isocController::setLimits(double minV, double maxV)
+void IsocController::setLimits(double minV, double maxV)
 {
     minLevel = std::min(maxV, minV);
     maxLevel = std::max(maxV, minV);
     m_output = gmlc::utilities::valLimit(m_output, minLevel, maxLevel);
 }
 
-void isocController::updateA(coreTime time)
+void IsocController::updateA(coreTime time)
 {
     if (time < nextUpdateTime) {
         assert(false);
@@ -91,7 +91,7 @@ void isocController::updateA(coreTime time)
     // printf("t=%f,output=%f\n", time, m_output);
 }
 
-void isocController::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
+void IsocController::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     prevTime = time;
     lastFreq = inputs[0];
@@ -101,11 +101,11 @@ void isocController::timestep(coreTime time, const IOdata& inputs, const SolverM
     }
 }
 
-void isocController::set(std::string_view param, std::string_view val)
+void IsocController::set(std::string_view param, std::string_view val)
 {
     GridSubModel::set(param, val);
 }
-void isocController::set(std::string_view param, double val, units::unit unitType)
+void IsocController::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "deadband") || (param == "db")) {
         db = val;
@@ -128,21 +128,21 @@ void isocController::set(std::string_view param, double val, units::unit unitTyp
     }
 }
 
-void isocController::setLevel(double newLevel)
+void IsocController::setLevel(double newLevel)
 {
     m_output = gmlc::utilities::valLimit(newLevel, minLevel, maxLevel);
 }
-void isocController::setFreq(double freq)
+void IsocController::setFreq(double freq)
 {
     lastFreq = freq;
 }
-void isocController::deactivate()
+void IsocController::deactivate()
 {
     m_output = 0;
     nextUpdateTime = maxTime;
 }
 
-void isocController::activate(coreTime time)
+void IsocController::activate(coreTime time)
 {
     nextUpdateTime = time + upPeriod;
 }

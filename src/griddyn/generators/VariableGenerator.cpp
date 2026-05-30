@@ -81,7 +81,7 @@ void VariableGenerator::add(GridSubModel* obj)
             GridComponent::remove(m_source);
         }
         m_source = static_cast<Source*>(obj);
-        m_source->locIndex = source_loc;
+        m_source->locIndex = sourceLoc;
 
         obj->set("basefreq", systemBaseFrequency);
         addSubObject(obj);
@@ -94,7 +94,7 @@ void VariableGenerator::add(GridSubModel* obj)
             GridComponent::remove(m_cBlock);
         }
         m_cBlock = static_cast<GridBlock*>(obj);
-        m_cBlock->locIndex = control_block_loc;
+        m_cBlock->locIndex = controlBlockLoc;
         obj->set("basefreq", systemBaseFrequency);
         addSubObject(obj);
     } else {

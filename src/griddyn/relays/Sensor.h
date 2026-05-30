@@ -25,7 +25,7 @@ class Sensor: public Relay {
      */
     enum SensorFlags {
         DIRECT_IO = object_flag6,  //!< indication that the sensor is directly listing all inputs as
-                                  //!< outputs with
+                                   //!< outputs with
         //!< no processing
         LINK_TYPE_SOURCE = object_flag7,  //!< indication that the source is a link
         LINK_TYPE_SINK = object_flag8,  //!< indicator that the sink is a link object

@@ -710,11 +710,10 @@ q0 q-axis open circuit transient time constant s IV, V.1, VI, VIII
 q0 q-axis open circuit subtransient time constant s V.1, V.2, VI, VIII
 18 M = 2H Mechanical starting time (2 ÃƒÆ’Ã¢â‚¬â€ inertia constant) kWs/kVA all
 19 D Damping coefficient ÃƒÂ¢Ã‹â€ Ã¢â‚¬â„¢ all
-ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  20 KÃƒÂÃ¢â‚¬Â° Speed feedback gain gain III, IV, V.1, V.2, VI
-ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  21 KP Active power feedback gain gain III, IV, V.1, V.2, VI
-ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  22 ÃƒÅ½Ã‚Â³P Active power ratio at node [0,1] all
-ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  23 ÃƒÅ½Ã‚Â³Q Reactive power ratio at node [0,1] all
-ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  24 TAA d-axis additional leakage time constant s V.2, VI, VIII
+ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  20 KÃƒÂÃ¢â‚¬Â° Speed feedback gain gain III, IV, V.1, V.2,
+VI ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  21 KP Active power feedback gain gain III, IV, V.1, V.2, VI ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  22
+ÃƒÅ½Ã‚Â³P Active power ratio at node [0,1] all ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  23 ÃƒÅ½Ã‚Â³Q Reactive power ratio at
+node [0,1] all ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  24 TAA d-axis additional leakage time constant s V.2, VI, VIII
 ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  25 S(1.0) First saturation factor - III, IV, V.1, V.2, VI, VIII
 ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  26 S(1.2) Second saturation factor - III, IV, V.1, V.2, VI, VIII
 ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  27 nCOI Center of inertia number int all

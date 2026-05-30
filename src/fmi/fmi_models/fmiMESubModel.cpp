@@ -13,7 +13,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "outputEstimator.h"
-#include "utilities/MatrixData.hpp"
+#include "utilities/matrixData.hpp"
 #include <algorithm>
 #include <filesystem>
 #include <memory>

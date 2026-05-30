@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<gridDyn>
+<library>
+ <model name="mod1">
+            <type>fourthOrder</type>
+            <D>0.040</D>
+            <H>5</H>
+            <Tdop>8</Tdop>
+            <Tqop>1</Tqop>
+            <Xd>1.050</Xd>
+            <Xdp>0.350</Xdp>
+            <Xq>0.850</Xq>
+            <Xqp>0.350</Xqp>
+         </model>
+         <exciter name="ext1">
+            <type>type1</type>
+            <Aex>0</Aex>
+            <Bex>0</Bex>
+            <Ka>20</Ka>
+            <Ke>1</Ke>
+            <Kf>0.040</Kf>
+            <Ta>0.200</Ta>
+            <Te>0.700</Te>
+            <Tf>1</Tf>
+            <Urmax>50</Urmax>
+            <Urmin>-50</Urmin>
+         </exciter>
+         <governor name="gov1">
+            <type>basic</type>
+            <K>16.667</K>
+
+            <T1>0.100</T1>
+            <T2>0.150</T2>
+            <T3>0.050</T3>
+         </governor>
+         <generator name="gen1">
+         <model ref="mod1"/>
+         <exciter ref="ext1"/>
+         <governor ref="gov1"/>
+      </generator>
+</library>
+</gridDyn>

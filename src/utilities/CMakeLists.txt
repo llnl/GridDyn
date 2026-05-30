@@ -16,7 +16,7 @@ set(utilities_sources
     zipUtilities.cpp
     matrixCreation.cpp
     logger.cpp
-    MatrixDataSparse.cpp
+    matrixDataSparse.cpp
     OperatingBoundary.cpp
     GlobalWorkQueue.cpp
 )
@@ -27,20 +27,20 @@ set(utilities_headers
     GridRandom.h
     Saturation.h
     vectData.hpp
-    MatrixData.hpp
+    matrixData.hpp
     matrixOps.h
-    MatrixDataCompact.hpp
-    MatrixDataSparse.hpp
-    MatrixDataSparse_impl.hpp
-    MatrixDataBoost.hpp
-    MatrixDataSparseSM.hpp
-    MatrixDataTranslate.hpp
-    MatrixDataContainer.hpp
-    MatrixDataScale.hpp
-    MatrixDataOrdered.hpp
-    MatrixDataOrdering.hpp
-    MatrixDataFilter.hpp
-    MatrixDataCustomWriteOnly.hpp
+    matrixDataCompact.hpp
+    matrixDataSparse.hpp
+    matrixDataSparse_impl.hpp
+    matrixDataBoost.hpp
+    matrixDataSparseSM.hpp
+    matrixDataTranslate.hpp
+    matrixDataContainer.hpp
+    matrixDataScale.hpp
+    matrixDataOrdered.hpp
+    matrixDataOrdering.hpp
+    matrixDataFilter.hpp
+    matrixDataCustomWriteOnly.hpp
     functionInterpreter.h
     zipUtilities.h
     valuePredictor.hpp

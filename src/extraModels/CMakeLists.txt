@@ -6,7 +6,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-set(extra_sources extraModels.cpp TxThermalModel.cpp TxLifeSpan.cpp)
+set(extra_sources extraModels.cpp TxThermalModel.cpp txLifeSpan.cpp)
 
 set(extra_headers extraModels.h TxThermalModel.h TxLifeSpan.h)
 

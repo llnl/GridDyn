@@ -209,7 +209,7 @@ void Sensor::set(std::string_view param, std::string_view val)
         }
     } else if ((iparam == "outputname") || (param == "outputnames") || (param == "outputstring")) {
         if (num >= 0) {
-            if (num >= static_cast<int>(outputs.size())) {
+            if (std::cmp_greater_equal(num, outputs.size())) {
                 outputStrings.resize(static_cast<size_t>(num) + 1);
             }
             outputStrings[num] = gmlc::utilities::stringOps::splitline(val);
@@ -246,46 +246,50 @@ void Sensor::set(std::string_view param, std::string_view val)
 
 void Sensor::setupOutput(index_t num, const std::string& outputString)
 {
-    if (num >= 0) {
-        auto equalLoc = outputString.find_first_of('=');
+    const auto configureOutput = [this](index_t outputIndex, const std::string& outputValue) {
+        auto equalLoc = outputValue.find_first_of('=');
         const std::string outputSpec =
-            (equalLoc != std::string::npos) ? outputString.substr(0, equalLoc) : outputString;
-        std::string sval = (equalLoc != std::string::npos) ? outputString.substr(equalLoc + 1) : "";
-        ensureSizeAtLeast(outputs, num + 1, -1);
-        ensureSizeAtLeast(outputStrings, num + 1);
-        ensureSizeAtLeast(outputMode, num + 1, OutputMode::BLOCK);
-        ensureSizeAtLeast(outGrabbers, num + 1);
+            (equalLoc != std::string::npos) ? outputValue.substr(0, equalLoc) : outputValue;
+        std::string sval = (equalLoc != std::string::npos) ? outputValue.substr(equalLoc + 1) : "";
+        ensureSizeAtLeast(outputs, outputIndex + 1, -1);
+        ensureSizeAtLeast(outputStrings, outputIndex + 1);
+        ensureSizeAtLeast(outputMode, outputIndex + 1, OutputMode::BLOCK);
+        ensureSizeAtLeast(outGrabbers, outputIndex + 1);
         m_outputSize = static_cast<count_t>(outputs.size());
         if (!sval.empty()) {
-            outputStrings[num] = {sval};
+            outputStrings[outputIndex] = {sval};
         }
-        auto outputValue = gmlc::utilities::numeric_conversionComplete<int>(outputSpec, -1);
-        if (outputValue >= 0) {
-            outputs[num] = outputValue;
-            outputMode[num] = OutputMode::BLOCK;
+        const auto outputNumber = gmlc::utilities::numeric_conversionComplete<int>(outputSpec, -1);
+        if (outputNumber >= 0) {
+            outputs[outputIndex] = outputNumber;
+            outputMode[outputIndex] = OutputMode::BLOCK;
         } else {
             const int keyNum = gmlc::utilities::stringOps::trailingStringInt(outputSpec, sval, 0);
             if (sval == "input") {
-                outputs[num] = keyNum;
-                outputMode[num] = OutputMode::DIRECT;
+                outputs[outputIndex] = keyNum;
+                outputMode[outputIndex] = OutputMode::DIRECT;
             } else if (sval == "block") {
-                outputs[num] = keyNum;
-                outputMode[num] = OutputMode::BLOCK;
+                outputs[outputIndex] = keyNum;
+                outputMode[outputIndex] = OutputMode::BLOCK;
             } else if (sval == "blockderiv") {
-                outputs[num] = keyNum;
-                outputMode[num] = OutputMode::BLOCK_DERIV;
+                outputs[outputIndex] = keyNum;
+                outputMode[outputIndex] = OutputMode::BLOCK_DERIV;
             } else {
-                outGrabbers[num] = std::make_shared<GrabberSet>(outputSpec, this);
+                outGrabbers[outputIndex] = std::make_shared<GrabberSet>(outputSpec, this);
 
-                outputMode[num] = OutputMode::PROCESSED;
+                outputMode[outputIndex] = OutputMode::PROCESSED;
             }
         }
+    };
+
+    if (num >= 0) {
+        configureOutput(num, outputString);
     } else {
         auto sep = gmlc::utilities::stringOps::splitline(outputString);
         gmlc::utilities::stringOps::trim(sep);
         auto outputIndex = static_cast<index_t>(outputs.size());
         for (const auto& outputValue : sep) {
-            setupOutput(outputIndex, outputValue);
+            configureOutput(outputIndex, outputValue);
             ++outputIndex;
         }
     }
@@ -659,7 +663,7 @@ void Sensor::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMo
 {
     auto blks = static_cast<index_t>(filterBlocks.size());
     for (index_t kk = 0; kk < blks; ++kk) {
-        double inputFB = getBlockInput(kk, inputs);
+        const double inputFB = getBlockInput(kk, inputs);
         // make sure the process can be handled in states
         filterBlocks[kk]->step(time, inputFB);
     }
@@ -842,6 +846,7 @@ index_t Sensor::getOutputLoc(const SolverMode& sMode, index_t outNum) const
             return filterBlocks[outputs[outNum]]->getOutputLoc(sMode);
         case OutputMode::PROCESSED:
         case OutputMode::DIRECT:
+        case OutputMode::BLOCK_DERIV:
         default:
             return kNullLocation;
     }

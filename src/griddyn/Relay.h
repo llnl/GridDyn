@@ -194,7 +194,7 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
     @return the value used in determining the status of a condition
     */
     double getConditionValue(index_t conditionNumber,
-                             const StateData& sD,
+                             const StateData& stateDataValue,
                              const SolverMode& sMode) const;
     /** check if a particular condition is true
     @param[in] conditionNumber the index of the condition to check

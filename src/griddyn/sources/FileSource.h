@@ -16,9 +16,9 @@ class FileSource: public RampSource {
   public:
     /** enumerations of flags used in the file source*/
     enum FileLoadFlags {
-        useAbsoluteTimeFlag =
+        USE_ABSOLUTE_TIME_FLAG =
             object_flag7,  //!< flag indicating use of an absolute time reference in the file
-        useStepChangeFlag = object_flag8,  //!< flag indicating a step function change on the output
+        USE_STEP_CHANGE_FLAG = object_flag8,  //!< flag indicating a step function change on the output
     };
 
   private:

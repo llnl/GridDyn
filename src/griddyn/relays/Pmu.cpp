@@ -283,7 +283,7 @@ coreTime Pmu::updateB()
 
 void Pmu::generateAndTransmitMessage() const
 {
-    if (opFlags[useCommLink]) {
+    if (opFlags[USE_COMM_LINK]) {
         const auto& oname = outputNames();
 
         auto message =

@@ -358,7 +358,7 @@ void Relay::set(std::string_view param, std::string_view val)
         }
     } else {
         if (cManager.set(param, val)) {
-            opFlags.set(useCommLink);
+            opFlags.set(USE_COMM_LINK);
         } else {
             GridPrimary::set(param, val);
         }
@@ -375,7 +375,7 @@ void Relay::set(std::string_view param, double val, units::unit unitType)
         m_nextSampleTime = timeZero;
     } else {
         if (cManager.set(param, val)) {
-            opFlags.set(useCommLink);
+            opFlags.set(USE_COMM_LINK);
         } else {
             GridPrimary::set(param, val, unitType);
         }
@@ -395,24 +395,24 @@ double Relay::get(std::string_view param, units::unit unitType) const
 void Relay::setFlag(std::string_view flag, bool val)
 {
     if (flag == "continuous") {
-        opFlags.set(continuousFlag, val);
+        opFlags.set(CONTINUOUS_FLAG, val);
         if (!val) {
             m_nextSampleTime = (prevTime < timeZero) ? timeZero : prevTime;
         }
     } else if (flag == "sampled") {
-        opFlags.set(continuousFlag, !val);
+        opFlags.set(CONTINUOUS_FLAG, !val);
         if (val) {
             m_nextSampleTime = (prevTime < timeZero) ? timeZero : prevTime;
         }
     } else if ((flag == "comm_enabled") || (flag == "comms") || (flag == "usecomms")) {
-        opFlags.set(useCommLink, val);
+        opFlags.set(USE_COMM_LINK, val);
     } else if (flag == "resettable") {
-        opFlags.set(resettableFlag, val);
+        opFlags.set(RESETTABLE_FLAG, val);
     } else if (flag == "powerflow_check") {
-        opFlags.set(powerFlowChecksFlag, val);
+        opFlags.set(POWER_FLOW_CHECKS_FLAG, val);
     } else {
         if (cManager.setFlag(flag, val)) {
-            opFlags.set(useCommLink);
+            opFlags.set(USE_COMM_LINK);
         } else {
             GridPrimary::setFlag(flag, val);
         }
@@ -426,7 +426,7 @@ void Relay::updateA(coreTime time)
     // be copied first
     condChecks.clear();
     nextUpdateTime = maxTime;
-    if (opFlags[continuousFlag]) {
+    if (opFlags[CONTINUOUS_FLAG]) {
         for (auto& cond : ncond) {
             evaluateCondCheck(cond, time);
         }
@@ -478,7 +478,7 @@ std::string Relay::generateCommName()
 
 void Relay::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
 {
-    if ((opFlags[useCommLink]) && (!(commLink))) {
+    if ((opFlags[USE_COMM_LINK]) && (!(commLink))) {
         if (cManager.getName().empty()) {
             cManager.setName(generateCommName());
         }
@@ -505,15 +505,15 @@ void Relay::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
                 catch (const std::invalid_argument&) {
                     logging::warning(this, "unable to initialize comm link");
                     commLink = nullptr;
-                    opFlags.reset(useCommLink);
+                    opFlags.reset(USE_COMM_LINK);
                 }
             }
         } else {
             logging::warning(this, "unrecognized commLink type ");
-            opFlags.reset(useCommLink);
+            opFlags.reset(USE_COMM_LINK);
         }
     }
-    if (opFlags[powerFlowChecksFlag]) {
+    if (opFlags[POWER_FLOW_CHECKS_FLAG]) {
         for (auto& conditionState : cStates) {
             if (conditionState == ConditionStatus::active) {
                 opFlags.set(has_powerflow_adjustments);
@@ -526,7 +526,7 @@ void Relay::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
 
 void Relay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    if (opFlags[continuousFlag]) {
+    if (opFlags[CONTINUOUS_FLAG]) {
         updateRootCount(false);
     } else {
         if (updatePeriod == maxTime) {  // set the period to the period of the simulation
@@ -539,7 +539,7 @@ void Relay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
 
     //*update the flag for future power flow check  BUG noticed by Colin Ponce 10/21/16
-    if (opFlags[powerFlowChecksFlag]) {
+    if (opFlags[POWER_FLOW_CHECKS_FLAG]) {
         for (auto& conditionState : cStates) {
             if (conditionState == ConditionStatus::active) {
                 opFlags.set(has_powerflow_adjustments);
@@ -586,7 +586,7 @@ void Relay::updateRootCount(bool alertChange)
     conditionsWithRoots.clear();
     for (index_t kk = 0; std::cmp_less(kk, cStates.size()); ++kk) {
         if (cStates[kk] == ConditionStatus::active ||
-            (cStates[kk] == ConditionStatus::triggered && opFlags[resettableFlag])) {
+            (cStates[kk] == ConditionStatus::triggered && opFlags[RESETTABLE_FLAG])) {
             ++localRoots;
             conditionsWithRoots.push_back(kk);
         }
@@ -651,7 +651,7 @@ void Relay::rootTrigger(coreTime time,
             }
             ++rootOffset;
         } else if ((cStates[conditionToCheck] == ConditionStatus::triggered) &&
-                   (opFlags[resettableFlag])) {
+                   (opFlags[RESETTABLE_FLAG])) {
             if (rootMask[rootOffset] != 0) {
                 cStates[conditionToCheck] = ConditionStatus::active;
                 conditions[conditionToCheck]->useMargin(false);

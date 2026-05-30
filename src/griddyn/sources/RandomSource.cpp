@@ -33,7 +33,7 @@ CoreObject* RandomSource::clone(CoreObject* obj) const
     src->param2_t = param2_t;
     src->param1_L = param1_L;
     src->param2_L = param2_L;
-    src->opFlags.reset(triggeredFlag);
+    src->opFlags.reset(TRIGGERED_FLAG);
     src->zbias = zbias;
     src->opFlags.reset(object_armed_flag);
     src->keyTime = keyTime;
@@ -70,25 +70,25 @@ void RandomSource::setFlag(std::string_view flag, bool val)
 {
     /*
 independentFlag=object_flag3,
-interpolateFlag=object_flag4,
-repeatedFlag=object_flag5,
-proportionalFlag=object_flag6,
-triggeredFlag=object_flag7,
+INTERPOLATE_FLAG=object_flag4,
+REPEATED_FLAG=object_flag5,
+PROPORTIONAL_FLAG=object_flag6,
+TRIGGERED_FLAG=object_flag7,
 armedFlag=object_flag8,*/
     if (flag == "interpolate") {
-        opFlags.set(interpolateFlag, val);
+        opFlags.set(INTERPOLATE_FLAG, val);
         if (!val) {
             mp_dOdt = 0.0;
         }
     } else if (flag == "step") {
-        opFlags.set(interpolateFlag, !val);
+        opFlags.set(INTERPOLATE_FLAG, !val);
         if (val) {
             mp_dOdt = 0.0;
         }
     } else if (flag == "repeated") {
-        opFlags.set(repeatedFlag, val);
+        opFlags.set(REPEATED_FLAG, val);
     } else if (flag == "proportional") {
-        opFlags.set(proportionalFlag, val);
+        opFlags.set(PROPORTIONAL_FLAG, val);
     } else {
         Source::setFlag(flag, val);
     }
@@ -135,7 +135,7 @@ void RandomSource::set(std::string_view param, double val, units::unit unitType)
 
 void RandomSource::reset(ResetLevels /*level*/)
 {
-    opFlags.reset(triggeredFlag);
+    opFlags.reset(TRIGGERED_FLAG);
     opFlags.reset(object_armed_flag);
     offset = 0.0;
 }
@@ -148,7 +148,7 @@ void RandomSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*
     valGenerator = std::make_unique<utilities::gridRandom>(valDistribution, param1_L, param2_L);
     const coreTime triggerTime = time0 + ntime();
 
-    if (opFlags[interpolateFlag]) {
+    if (opFlags[INTERPOLATE_FLAG]) {
         nextStep(triggerTime);
     }
     nextUpdateTime = triggerTime;
@@ -173,11 +173,11 @@ void RandomSource::updateA(coreTime time)
     }
 
     lastUpdateTime = nextUpdateTime;
-    opFlags.set(triggeredFlag);
+    opFlags.set(TRIGGERED_FLAG);
     auto triggerTime = lastUpdateTime + ntime();
-    if (opFlags[interpolateFlag]) {
+    if (opFlags[INTERPOLATE_FLAG]) {
         RampSource::setState(nextUpdateTime, nullptr, nullptr, cLocalSolverMode);
-        if (opFlags[repeatedFlag]) {
+        if (opFlags[REPEATED_FLAG]) {
             nextStep(triggerTime);
             nextUpdateTime = triggerTime;
             RampSource::setState(time, nullptr, nullptr, cLocalSolverMode);
@@ -191,9 +191,9 @@ void RandomSource::updateA(coreTime time)
     } else {
         const double rval = nval();
 
-        m_output = (opFlags[proportionalFlag]) ? m_output + (rval * m_output) : m_output + rval;
+        m_output = (opFlags[PROPORTIONAL_FLAG]) ? m_output + (rval * m_output) : m_output + rval;
 
-        if (opFlags[repeatedFlag]) {
+        if (opFlags[REPEATED_FLAG]) {
             nextUpdateTime = triggerTime;
         } else {
             nextUpdateTime = maxTime;
@@ -231,8 +231,8 @@ void RandomSource::nextStep(coreTime triggerTime)
 {
     const double rval = nval();
     const double nextVal =
-        (opFlags[proportionalFlag]) ? m_output + (rval * m_output) : m_output + rval;
-    if (opFlags[interpolateFlag]) {
+        (opFlags[PROPORTIONAL_FLAG]) ? m_output + (rval * m_output) : m_output + rval;
+    if (opFlags[INTERPOLATE_FLAG]) {
         mp_dOdt = (nextVal - m_output) / (triggerTime - keyTime);
     } else {
         mp_dOdt = 0.0;

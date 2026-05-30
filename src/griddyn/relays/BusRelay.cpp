@@ -17,8 +17,8 @@
 namespace griddyn::relays {
 BusRelay::BusRelay(const std::string& objName): Relay(objName)
 {
-    opFlags.set(continuousFlag);
-    opFlags.set(powerFlowChecksFlag);  // enable power flow checks for BusRelay
+    opFlags.set(CONTINUOUS_FLAG);
+    opFlags.set(POWER_FLOW_CHECKS_FLAG);  // enable power flow checks for BusRelay
 }
 
 CoreObject* BusRelay::clone(CoreObject* obj) const

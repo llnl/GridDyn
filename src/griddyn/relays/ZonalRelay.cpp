@@ -25,7 +25,7 @@ using gmlc::utilities::ensureSizeAtLeast;
 
 ZonalRelay::ZonalRelay(const std::string& objName): Relay(objName)
 {
-    opFlags.set(continuousFlag);
+    opFlags.set(CONTINUOUS_FLAG);
 }
 
 CoreObject* ZonalRelay::clone(CoreObject* obj) const
@@ -48,7 +48,7 @@ CoreObject* ZonalRelay::clone(CoreObject* obj) const
 void ZonalRelay::setFlag(std::string_view flag, bool val)
 {
     if (flag == "nondirectional") {
-        opFlags.set(nondirectionalFlag, val);
+        opFlags.set(NONDIRECTIONAL_FLAG, val);
     } else {
         Relay::setFlag(flag, val);
     }
@@ -156,7 +156,7 @@ void ZonalRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     const double baseImpedance = m_sourceObject->get("impedance");
     for (index_t kk = 0; kk < mZoneCount; ++kk) {
-        if (opFlags[nondirectionalFlag]) {
+        if (opFlags[NONDIRECTIONAL_FLAG]) {
             add(std::shared_ptr<Condition>(
                 makeCondition("abs(admittance" + std::to_string(m_terminal) + ")",
                               ">=",
@@ -180,7 +180,7 @@ void ZonalRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         setActionTrigger(0, kk, mZoneDelays[kk]);
     }
 
-    if (opFlags[useCommLink]) {
+    if (opFlags[USE_COMM_LINK]) {
         if (cManager.destName().starts_with("auto")) {
             if (cManager.destName().length() == 6) {
                 int code;
@@ -209,7 +209,7 @@ void ZonalRelay::actionTaken(index_t actionNum,
     logging::normal(
         this, "condition {} action {} taken terminal {}", conditionNum, actionNum, m_terminal);
 
-    if (opFlags[useCommLink]) {
+    if (opFlags[USE_COMM_LINK]) {
         if (actionNum == 0) {
             auto relayEvent = std::make_shared<CommMessage>(CommMessage::BREAKER_TRIP_EVENT);
             cManager.send(relayEvent);
@@ -225,7 +225,7 @@ void ZonalRelay::conditionTriggered(index_t conditionNum, coreTime /*triggerTime
 {
     logging::normal(this, "condition {} triggered terminal {}", conditionNum, m_terminal);
     mConditionLevel = std::min(conditionNum, mConditionLevel);
-    if (opFlags[useCommLink]) {
+    if (opFlags[USE_COMM_LINK]) {
         if (conditionNum > mConditionLevel) {
             return;
         }
@@ -252,7 +252,7 @@ void ZonalRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/
             return;
         }
     }
-    if (opFlags[useCommLink]) {
+    if (opFlags[USE_COMM_LINK]) {
         auto relayMessage = std::make_shared<CommMessage>();
         if (conditionNum == 0) {
             relayMessage->setMessageType(CommMessage::LOCAL_FAULT_CLEARED);

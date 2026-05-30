@@ -525,7 +525,7 @@ int DcBus::propogatePower(bool makeSlack)
     int unfixed = 0;
     Link* dc1 = nullptr;
     for (auto& lnk : attachedLinks) {
-        if (!(lnk->checkFlag(Link::fixedTargetPower))) {
+        if (!(lnk->checkFlag(Link::FIXED_TARGET_POWER))) {
             ++unfixed;
             dc1 = lnk;
         }

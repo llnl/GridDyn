@@ -25,7 +25,7 @@ class VariableGenerator: public DynamicGenerator {
   public:
     //!< @brief new submodel locations for the extra variable generator block extends the ones
     //!< defined in Generator
-    enum ExtraBlockLocations { sourceLoc = 5, controlBlockLoc = 6 };
+    enum ExtraBlockLocations { SOURCE_LOC = 5, CONTROL_BLOCK_LOC = 6 };
     /** @brief default constructor*/
     explicit VariableGenerator(const std::string& objName = "varGen_$");
     VariableGenerator(DynModel dynModel, const std::string& objName = "varGen_$");

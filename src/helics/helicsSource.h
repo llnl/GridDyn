@@ -16,7 +16,7 @@ class HelicsCoordinator;
 class HelicsSource: public sources::RampSource {
   public:
     enum HelicsSourceFlags {
-        useRamp = object_flag8,
+        USE_RAMP = object_flag8,
         predictiveRamp = object_flag9,
         initialQuery = object_flag10,
     };

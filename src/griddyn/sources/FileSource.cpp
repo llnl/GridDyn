@@ -41,7 +41,7 @@ int FileSource::setFile(const std::string& fileName, index_t column)
 void FileSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     prevTime = time0;
-    if (opFlags[useAbsoluteTimeFlag]) {
+    if (opFlags[USE_ABSOLUTE_TIME_FLAG]) {
         double abstime0 = get("abstime0");
         index_t ii = 0;
         while (schedLoad.time(ii) < abstime0) {
@@ -82,7 +82,7 @@ void FileSource::updateA(coreTime time)
             break;
         }
 
-        if (opFlags[useStepChangeFlag]) {
+        if (opFlags[USE_STEP_CHANGE_FLAG]) {
             mp_dOdt = 0;
         } else {
             double diff = schedLoad.data(currIndex) - m_output;
@@ -106,13 +106,13 @@ void FileSource::timestep(coreTime time, const IOdata& inputs, const SolverMode&
 void FileSource::setFlag(std::string_view flag, bool val)
 {
     if (flag == "absolute") {
-        opFlags.set(useAbsoluteTimeFlag, val);
+        opFlags.set(USE_ABSOLUTE_TIME_FLAG, val);
     } else if (flag == "relative") {
-        opFlags.set(useAbsoluteTimeFlag, !val);
+        opFlags.set(USE_ABSOLUTE_TIME_FLAG, !val);
     } else if (flag == "step") {
-        opFlags.set(useStepChangeFlag, val);
+        opFlags.set(USE_STEP_CHANGE_FLAG, val);
     } else if (flag == "interpolate") {
-        opFlags.set(useStepChangeFlag, !val);
+        opFlags.set(USE_STEP_CHANGE_FLAG, !val);
     } else {
         RampSource::setFlag(flag, val);
     }

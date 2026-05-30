@@ -48,7 +48,7 @@ void CommSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 
 void CommSource::setLevel(double val)
 {
-    if (opFlags[useRamp]) {
+    if (opFlags[USE_RAMP]) {
         if (maxRamp > 0) {
             double dt = (val - m_output) / maxRamp;
             if (dt > 0.0001) {
@@ -86,11 +86,11 @@ void CommSource::set(std::string_view param, double val, units::unit unitType)
 void CommSource::setFlag(std::string_view flag, bool val)
 {
     if (flag == "ramp") {
-        opFlags.set(useRamp, val);
+        opFlags.set(USE_RAMP, val);
     } else if (flag == "no_reply_message") {
-        opFlags.set(noMessageReply, val);
+        opFlags.set(NO_MESSAGE_REPLY, val);
     } else if (flag == "reply_message") {
-        opFlags.set(noMessageReply, !val);
+        opFlags.set(NO_MESSAGE_REPLY, !val);
     } else {
         if (!(cManager.setFlag(flag, val))) {
             Source::setFlag(flag, val);
@@ -124,7 +124,7 @@ void CommSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMess
         case ControlMessagePayload::SET:
             setLevel(m->m_value);
 
-            if (!opFlags[noMessageReply])  // unless told not to respond return with the
+            if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
             {
                 reply = std::make_shared<CommMessage>(ControlMessagePayload::SET_SUCCESS);
                 auto payload = reply->getPayload<ControlMessagePayload>();
@@ -163,7 +163,7 @@ void CommSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMess
             } else {
                 setLevel(m->m_value);
 
-                if (!opFlags[noMessageReply])  // unless told not to respond return with the
+                if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
                 {
                     auto gres = std::make_shared<CommMessage>(ControlMessagePayload::SET_SUCCESS);
                     auto payload = gres->getPayload<ControlMessagePayload>();

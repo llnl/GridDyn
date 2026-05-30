@@ -99,7 +99,7 @@ void HelicsSource::updateA(coreTime time)
     }
 
     double newVal = convert(cval * scaleFactor, inputUnits, outputUnits, systemBasePower);
-    if (opFlags[useRamp]) {
+    if (opFlags[USE_RAMP]) {
         if (opFlags[predictiveRamp])  // ramp uses the previous change to guess into the future
         {
             m_output = newVal;
@@ -138,15 +138,15 @@ void HelicsSource::setFlag(const std::string& param, bool val)
     if (param == "initial_queury") {
         opFlags.set(initialQuery, val);
     } else if (param == "predictive") {
-        opFlags.set(useRamp, val);
+        opFlags.set(USE_RAMP, val);
         opFlags.set(predictiveRamp, val);
     } else if (param == "interpolate") {
-        opFlags.set(useRamp, val);
+        opFlags.set(USE_RAMP, val);
         opFlags.set(predictiveRamp, !val);
     } else if (param == "step") {
-        opFlags.set(useRamp, !val);
+        opFlags.set(USE_RAMP, !val);
     } else if (param == "use_ramp") {
-        opFlags.set(useRamp, val);
+        opFlags.set(USE_RAMP, val);
     } else {
         RampSource::setFlag(param, val);
     }

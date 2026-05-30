@@ -77,12 +77,12 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
         relayFlag30 = 30,
         relayFlag31 = 31,
 
-        continuousFlag = object_flag1,  //!< flag indicating the relay has some continuous checks
-        resettableFlag = object_flag2,  //!< flag indicating that the conditions can be reset
-        useCommLink = object_flag3,  //!< flag indicating that the relay uses communications
-        powerFlowChecksFlag = object_flag4,  //!< flag indicating that the relay should be in
+        CONTINUOUS_FLAG = object_flag1,  //!< flag indicating the relay has some continuous checks
+        RESETTABLE_FLAG = object_flag2,  //!< flag indicating that the conditions can be reset
+        USE_COMM_LINK = object_flag3,  //!< flag indicating that the relay uses communications
+        POWER_FLOW_CHECKS_FLAG = object_flag4,  //!< flag indicating that the relay should be in
                                              //!< operation during power flow
-        extraRelayFlag = object_flag5,  //!< just defining an extra name for additional relay flags
+        EXTRA_RELAY_FLAG = object_flag5,  //!< just defining an extra name for additional relay flags
 
     };
     coreTime triggerTime = maxTime;  //!< the next time execute

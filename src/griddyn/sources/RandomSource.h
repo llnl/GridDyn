@@ -19,11 +19,11 @@ class RandomSource: public RampSource {
   public:
     /** random source flags*/
     enum RandomSourceFlags {
-        interpolateFlag = object_flag5,  //!< indicator that the output should be interpolated
-        proportionalFlag = object_flag6,  //!< indicator that the random change is proportional
+        INTERPOLATE_FLAG = object_flag5,  //!< indicator that the output should be interpolated
+        PROPORTIONAL_FLAG = object_flag6,  //!< indicator that the random change is proportional
                                           //!< to the current value
-        repeatedFlag = object_flag7,  //!< indicator that the random generation should be repeated
-        triggeredFlag = object_flag8,  //!< indicator that the random generation has been triggered
+        REPEATED_FLAG = object_flag7,  //!< indicator that the random generation should be repeated
+        TRIGGERED_FLAG = object_flag8,  //!< indicator that the random generation has been triggered
 
     };
 
@@ -52,7 +52,7 @@ class RandomSource: public RampSource {
     virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     /** check if the random number generation has been triggered*/
-    bool isTriggered() { return opFlags[triggeredFlag]; }
+    bool isTriggered() { return opFlags[TRIGGERED_FLAG]; }
     virtual void reset(ResetLevels level = ResetLevels::minimal) override;
 
     virtual void set(std::string_view param, std::string_view val) override;

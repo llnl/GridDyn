@@ -23,7 +23,7 @@ namespace links {
     class AcDcConverter: public Link {
       public:
         enum InverterFlags {
-            fixedPowerControl = object_flag6,
+            FIXED_POWER_CONTROL = object_flag6,
         };
         enum class Mode { RECTIFIER, INVERTER, BIDIRECTIONAL };
 

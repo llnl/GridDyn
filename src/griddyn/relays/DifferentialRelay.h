@@ -17,9 +17,9 @@ namespace griddyn::relays {
 class DifferentialRelay: public Relay {
   public:
     enum DifferentialRelayFlags {
-        relativeDifferentialFlag = object_flag10,
-        linkMode = object_flag11,
-        busMode = object_flag12,
+        RELATIVE_DIFFERENTIAL_FLAG = object_flag10,
+        LINK_MODE = object_flag11,
+        BUS_MODE = object_flag12,
     };
 
   protected:

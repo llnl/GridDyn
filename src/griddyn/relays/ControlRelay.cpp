@@ -42,7 +42,7 @@ CoreObject* ControlRelay::clone(CoreObject* obj) const
 void ControlRelay::setFlag(std::string_view flag, bool val)
 {
     if (flag == "noreply") {
-        opFlags.set(noMessageReply, val);
+        opFlags.set(NO_MESSAGE_REPLY, val);
     } else {
         Relay::setFlag(flag, val);
     }
@@ -115,10 +115,10 @@ void ControlRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 
     Relay::dynObjectInitializeA(time0, flags);
     if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
-        opFlags.set(linkTypeSource);
+        opFlags.set(LINK_TYPE_SOURCE);
     }
     if (dynamic_cast<Link*>(m_sinkObject) != nullptr) {
-        opFlags.set(linkTypeSink);
+        opFlags.set(LINK_TYPE_SINK);
     }
 }
 
@@ -265,7 +265,7 @@ ChangeCode ControlRelay::executeAction(index_t actionNum)
             if (findLoc != kNullLocation) {
                 val = getMeasurement(findLoc);
             } else {
-                if (opFlags[linkTypeSource]) {
+                if (opFlags[LINK_TYPE_SOURCE]) {
                     val = m_sourceObject->get(cact.field + m_terminal_key, cact.unitType);
                     if (val == kNullVal) {
                         val = m_sourceObject->get(cact.field, cact.unitType);
@@ -286,7 +286,7 @@ ChangeCode ControlRelay::executeAction(index_t actionNum)
         try {
             std::string field;
 
-            if (opFlags[linkTypeSink]) {
+            if (opFlags[LINK_TYPE_SINK]) {
                 if ((cact.field == "breaker") || (cact.field == "switch") ||
                     (cact.field == "breaker_open")) {
                     field = cact.field + m_terminal_key;
@@ -298,7 +298,7 @@ ChangeCode ControlRelay::executeAction(index_t actionNum)
             }
             m_sinkObject->set(field, cact.val, cact.unitType);
 
-            if (!opFlags[noMessageReply])  // unless told not to respond return with the
+            if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
             {
                 auto gres = std::make_shared<CommMessage>(cm::SET_SUCCESS);
                 gres->getPayload<cm>()->m_actionID = cact.actionID;
@@ -307,7 +307,7 @@ ChangeCode ControlRelay::executeAction(index_t actionNum)
             return ChangeCode::PARAMETER_CHANGE;
         }
         catch (const std::invalid_argument&) {
-            if (!opFlags[noMessageReply])  // unless told not to respond return with the
+            if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
             {
                 auto gres = std::make_shared<CommMessage>(cm::SET_FAIL);
                 gres->getPayload<cm>()->m_actionID = cact.actionID;
@@ -326,10 +326,10 @@ void ControlRelay::updateObject(CoreObject* obj, ObjectUpdateMode mode)
         rootSim = dynamic_cast<GridSimulation*>(getRoot());
 
         if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
-            opFlags.set(linkTypeSource);
+            opFlags.set(LINK_TYPE_SOURCE);
         }
         if (dynamic_cast<Link*>(m_sinkObject) != nullptr) {
-            opFlags.set(linkTypeSink);
+            opFlags.set(LINK_TYPE_SINK);
         }
     }
 }

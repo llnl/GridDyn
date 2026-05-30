@@ -120,18 +120,18 @@ void AdjustableTransformer::set(std::string_view param, std::string_view val)
                (param == "stepmode")) {
         auto cmstr = convertToLowerCase(val);
         if (cmstr == "continuous") {
-            opFlags.set(continuousFlag);
+            opFlags.set(CONTINUOUS_FLAG);
         } else if ((cmstr == "stepped") || (cmstr == "step")) {
-            opFlags.set(continuousFlag, false);
+            opFlags.set(CONTINUOUS_FLAG, false);
         } else {
             throw(InvalidParameterValue(cmstr));
         }
     } else if ((param == "center") || (param == "center_mode") || (param == "centermode")) {
         auto cmstr = convertToLowerCase(val);
         if (cmstr == "bounds") {
-            opFlags.set(useTargetMode, false);
+            opFlags.set(USE_TARGET_MODE, false);
         } else if ((cmstr == "target") || (cmstr == "center")) {
-            opFlags.set(useTargetMode);
+            opFlags.set(USE_TARGET_MODE);
         } else {
             throw(InvalidParameterValue(cmstr));
         }
@@ -156,7 +156,7 @@ void AdjustableTransformer::set(std::string_view param, double val, unit unitTyp
         tapAngle = convert(val, unitType, rad);
         tapAngle0 = tapAngle;
     } else if ((param == "no_pflow_control") || (param == "no_pflow_adjustments")) {
-        opFlags.set(noPFlowAdjustments, (val > 0));
+        opFlags.set(NO_PFLOW_ADJUSTMENTS, (val > 0));
     } else if ((param == "cbus") || (param == "controlbus")) {
         if (val > 2.5) {
             auto cbnum = static_cast<int>(val);
@@ -269,7 +269,7 @@ void AdjustableTransformer::set(std::string_view param, double val, unit unitTyp
         }
         if (stepSize == 0)  // if stepsize==0 we are continuous otherwise leave it where it was
         {
-            opFlags.set(continuousFlag);
+            opFlags.set(CONTINUOUS_FLAG);
         }
     } else if (param == "nsteps") {
         if (cMode == ControlMode::MW_CONTROL) {
@@ -393,7 +393,7 @@ void AdjustableTransformer::followNetwork(int network, std::queue<GridBus*>& stk
 {
     if (isConnected()) {
         if (cMode == ControlMode::MW_CONTROL) {
-            if (!opFlags[noPFlowAdjustments]) {
+            if (!opFlags[NO_PFLOW_ADJUSTMENTS]) {
                 return;  // no network connection if the MW flow is controlled since the angle
                          // relationship is
                 // variable
@@ -434,11 +434,11 @@ void AdjustableTransformer::pFlowObjectInitializeA(coreTime time0, std::uint32_t
                 direction = 1;
             }
         }
-        if ((opFlags[continuousFlag]) && (!opFlags[noPFlowAdjustments])) {
+        if ((opFlags[CONTINUOUS_FLAG]) && (!opFlags[NO_PFLOW_ADJUSTMENTS])) {
             opFlags.set(has_pflow_states);
             opFlags.set(has_powerflow_adjustments);
         } else {
-            opFlags[has_powerflow_adjustments] = !opFlags[noPFlowAdjustments];
+            opFlags[has_powerflow_adjustments] = !opFlags[NO_PFLOW_ADJUSTMENTS];
             opFlags.reset(has_pflow_states);
         }
         if (cMode == ControlMode::VOLTAGE_CONTROL) {
@@ -470,7 +470,7 @@ StateSizes AdjustableTransformer::localStateSizes(const SolverMode& sMode) const
 {
     StateSizes lcStates;
     if (isDynamic(sMode)) {
-        if (opFlags[continuousFlag]) {
+        if (opFlags[CONTINUOUS_FLAG]) {
             switch (cMode) {
                 case ControlMode::MANUAL_CONTROL:
                     break;
@@ -482,7 +482,7 @@ StateSizes AdjustableTransformer::localStateSizes(const SolverMode& sMode) const
             }
         }
     } else {
-        if ((opFlags[continuousFlag]) && (!opFlags[noPFlowAdjustments])) {
+        if ((opFlags[CONTINUOUS_FLAG]) && (!opFlags[NO_PFLOW_ADJUSTMENTS])) {
             lcStates.algSize = 1;
         }
     }
@@ -493,7 +493,7 @@ count_t AdjustableTransformer::localJacobianCount(const SolverMode& sMode) const
 {
     count_t localJacSize = 0;
     if (isDynamic(sMode)) {
-        if (opFlags[continuousFlag]) {
+        if (opFlags[CONTINUOUS_FLAG]) {
             switch (cMode) {
                 case ControlMode::MANUAL_CONTROL:
                     break;
@@ -507,7 +507,7 @@ count_t AdjustableTransformer::localJacobianCount(const SolverMode& sMode) const
             }
         }
     } else {
-        if ((opFlags[continuousFlag]) && (!opFlags[noPFlowAdjustments])) {
+        if ((opFlags[CONTINUOUS_FLAG]) && (!opFlags[NO_PFLOW_ADJUSTMENTS])) {
             switch (cMode) {
                 case ControlMode::MANUAL_CONTROL:
                     break;
@@ -559,7 +559,7 @@ void AdjustableTransformer::reset(ResetLevels level)
                 [[fallthrough]];
             case ControlMode::MVAR_CONTROL: {
                 const double midTap = (minTap + maxTap) / 2.0;
-                if (opFlags[continuousFlag]) {
+                if (opFlags[CONTINUOUS_FLAG]) {
                     tap = midTap;
                     tap0 = tap;
                 } else {
@@ -584,7 +584,7 @@ void AdjustableTransformer::reset(ResetLevels level)
             } break;
             case ControlMode::MW_CONTROL: {
                 const double midTap = (minTapAngle + maxTapAngle) / 2.0;
-                if (opFlags[continuousFlag]) {
+                if (opFlags[CONTINUOUS_FLAG]) {
                     tapAngle = midTap;
                     tapAngle0 = tapAngle;
                 } else {
@@ -622,11 +622,11 @@ ChangeCode AdjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
     }
     auto ret = ChangeCode::NO_CHANGE;
     if (cMode == ControlMode::MW_CONTROL) {
-        if (opFlags[continuousFlag])  // if continuous mode just check the min and max angle
+        if (opFlags[CONTINUOUS_FLAG])  // if continuous mode just check the min and max angle
         {
             if (tapAngle < minTapAngle) {
                 tapAngle = minTapAngle;
-                opFlags.set(atLimit);
+                opFlags.set(AT_LIMIT);
                 alert(this, JAC_COUNT_DECREASE);
                 return ChangeCode::JACOBIAN_CHANGE;
             }
@@ -684,17 +684,17 @@ ChangeCode AdjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
             prevValue = linkFlows.P1;
         }
     } else if (cMode == ControlMode::VOLTAGE_CONTROL) {
-        if (opFlags[continuousFlag]) {
+        if (opFlags[CONTINUOUS_FLAG]) {
             // if continuous mode just check the min and max tap angle
             if (tap < minTap) {
                 tap = minTap;
-                opFlags.set(atLimit);
+                opFlags.set(AT_LIMIT);
                 alert(this, JAC_COUNT_DECREASE);
                 return ChangeCode::JACOBIAN_CHANGE;
             }
             if (tap > maxTap) {
                 tap = maxTap;
-                opFlags.set(atLimit);
+                opFlags.set(AT_LIMIT);
                 alert(this, JAC_COUNT_DECREASE);
                 return ChangeCode::JACOBIAN_CHANGE;
             }
@@ -702,16 +702,16 @@ ChangeCode AdjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
             ret = voltageControlAdjust();
         }
     } else if (cMode == ControlMode::MVAR_CONTROL) {
-        if (opFlags[continuousFlag]) {
+        if (opFlags[CONTINUOUS_FLAG]) {
             if (tap < minTap) {
                 tap = minTap;
-                opFlags.set(atLimit);
+                opFlags.set(AT_LIMIT);
                 alert(this, JAC_COUNT_DECREASE);
                 return ChangeCode::JACOBIAN_CHANGE;
             }
             if (tap > maxTap) {
                 tap = maxTap;
-                opFlags.set(atLimit);
+                opFlags.set(AT_LIMIT);
                 alert(this, JAC_COUNT_DECREASE);
                 return ChangeCode::JACOBIAN_CHANGE;
             }
@@ -863,7 +863,7 @@ void AdjustableTransformer::jacobianElements(const IOdata& /*inputs*/,
         } else {
             tap = stateData.state[offset];
         }
-        if (opFlags[atLimit]) {
+        if (opFlags[AT_LIMIT]) {
             matrixDataRef.assign(offset, offset, 1);
         } else {
             if (cMode == ControlMode::MW_CONTROL) {
@@ -891,7 +891,7 @@ void AdjustableTransformer::residual(const IOdata& /*inputs*/,
     if ((!(isDynamic(sMode))) && (opFlags[has_pflow_states])) {
         switch (cMode) {
             case ControlMode::VOLTAGE_CONTROL:
-                if (opFlags[atLimit]) {
+                if (opFlags[AT_LIMIT]) {
                     if (tap > tap0) {
                         resid[offset] = stateData.state[offset] - maxTap;
                     } else {
@@ -903,7 +903,7 @@ void AdjustableTransformer::residual(const IOdata& /*inputs*/,
                 }
                 break;
             case ControlMode::MW_CONTROL:
-                if (opFlags[atLimit]) {
+                if (opFlags[AT_LIMIT]) {
                     if (tapAngle > tapAngle0) {
                         resid[offset] = stateData.state[offset] - maxTapAngle;
                     } else {
@@ -917,7 +917,7 @@ void AdjustableTransformer::residual(const IOdata& /*inputs*/,
                 break;
             case ControlMode::MVAR_CONTROL:
                 tap = stateData.state[offset];
-                if (opFlags[atLimit]) {
+                if (opFlags[AT_LIMIT]) {
                     if (tap > tap0) {
                         resid[offset] = stateData.state[offset] - maxTap;
                     } else {
@@ -1249,7 +1249,7 @@ ChangeCode AdjustableTransformer::voltageControlAdjust()
 
     // check the voltage to make it is within the appropriate band
     const double voltage = controlBus->getVoltage();
-    if (!(opFlags[useTargetMode])) {
+    if (!(opFlags[USE_TARGET_MODE])) {
         if (voltage > Vmax) {
             tap += tapStep;
             ret = ChangeCode::PARAMETER_CHANGE;

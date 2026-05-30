@@ -186,7 +186,7 @@ void AcDcConverter::set(std::string_view param, double val, unit unitType)
     } else if ((param == "p") || (param == "pset")) {
         Pset = convert(val, unitType, puMW, systemBasePower);
         Pset = (Pset < 0) ? dirMult * Pset : Pset;
-        opFlags.set(fixedTargetPower);
+        opFlags.set(FIXED_TARGET_POWER);
         controlMode = ControlMode::POWER;
         if (opFlags[dyn_initialized]) {
             tap = linkInfo.v2 * linkInfo.v1 / Pset;
@@ -246,7 +246,7 @@ void AcDcConverter::pFlowObjectInitializeA(coreTime /*time0*/, std::uint32_t /*f
 {
     const double voltage1 = B1->getVoltage();
     const double voltage2 = B2->getVoltage();
-    if (opFlags[fixedTargetPower]) {
+    if (opFlags[FIXED_TARGET_POWER]) {
         Idc = Pset / voltage2;
     } else {
         Idc = voltage1 / tap;
@@ -260,7 +260,7 @@ void AcDcConverter::pFlowObjectInitializeA(coreTime /*time0*/, std::uint32_t /*f
 void AcDcConverter::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     updateLocalCache();
-    if (opFlags[fixedTargetPower]) {
+    if (opFlags[FIXED_TARGET_POWER]) {
         tap = linkInfo.v2 * linkInfo.v1 / Pset;
     }
     baseTap = tap;
@@ -332,7 +332,7 @@ linkInfo.Q1 = -std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
         }
     } else {
         /*
-    Idc = (opFlags[fixedTargetPower]) ? Pset / linkInfo.v2 : linkInfo.v1 / tap;
+    Idc = (opFlags[FIXED_TARGET_POWER]) ? Pset / linkInfo.v2 : linkInfo.v1 / tap;
 
     linkInfo.P1 = linkInfo.v2 * Idc;
     linkInfo.P2 = -linkInfo.P1;
@@ -341,13 +341,13 @@ linkInfo.Q1 = -std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
     linkInfo.Q1 = std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
     */
         if (busId == B2->getID()) {
-            if (!opFlags[fixedTargetPower]) {
+            if (!opFlags[FIXED_TARGET_POWER]) {
                 matrixDataValue.assign(PoutLocation, vLoc, dirMult * linkInfo.v1 / tap);
             }
         } else {
             const double temp =
                 std::sqrt((k3sq2sq * linkInfo.v1 * linkInfo.v1) - (linkInfo.v2 * linkInfo.v2));
-            if (opFlags[fixedTargetPower]) {
+            if (opFlags[FIXED_TARGET_POWER]) {
                 matrixDataValue.assign(QoutLocation,
                                        vLoc,
                                        -k3sq2sq * Pset * linkInfo.v1 / (linkInfo.v2 * temp));
@@ -426,7 +426,7 @@ void AcDcConverter::outputPartialDerivatives(id_type_t busId,
         }
     } else {
         /*
-    Idc = (opFlags[fixedTargetPower]) ? Pset / linkInfo.v2 : linkInfo.v1 / tap;
+    Idc = (opFlags[FIXED_TARGET_POWER]) ? Pset / linkInfo.v2 : linkInfo.v1 / tap;
 
     linkInfo.P1 = linkInfo.v2 * Idc;
     linkInfo.P2 = -linkInfo.P1;
@@ -435,7 +435,7 @@ void AcDcConverter::outputPartialDerivatives(id_type_t busId,
     linkInfo.Q1 = std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
     */
         if (busId == B2->getID()) {
-            if (!opFlags[fixedTargetPower]) {
+            if (!opFlags[FIXED_TARGET_POWER]) {
                 matrixDataValue.assignCheckCol(PoutLocation,
                                                bus1VoltageOffset,
                                                dirMult * linkInfo.v2 / tap);
@@ -444,7 +444,7 @@ void AcDcConverter::outputPartialDerivatives(id_type_t busId,
             if (bus2VoltageOffset != kNullLocation) {
                 const double temp =
                     std::sqrt((k3sq2sq * linkInfo.v1 * linkInfo.v1) - (linkInfo.v2 * linkInfo.v2));
-                if (opFlags[fixedTargetPower]) {
+                if (opFlags[FIXED_TARGET_POWER]) {
                     matrixDataValue.assignCheckCol(QoutLocation,
                                                    bus2VoltageOffset,
                                                    (Pset / temp) +
@@ -545,7 +545,7 @@ void AcDcConverter::jacobianElements(const IOdata& /*inputs*/,
         // resid[offset] = k3sq2*linkInfo.v1*sD.state[offset] - 3 / kPI*x*Idc - linkInfo.v2;
 
         matrixDataValue.assign(offset, offset, k3sq2 * linkInfo.v1);
-        if (opFlags[fixedTargetPower]) {
+        if (opFlags[FIXED_TARGET_POWER]) {
             matrixDataValue.assignCheckCol(offset,
                                            bus1VoltageOffset,
                                            k3sq2 * stateDataValue.state[offset]);
@@ -597,7 +597,7 @@ void AcDcConverter::residual(const IOdata& inputs,
         }
     } else {
         auto offset = offsets.getAlgOffset(sMode);
-        Idc = (opFlags[fixedTargetPower]) ? Pset / linkInfo.v2 : linkInfo.v1 / tap;
+        Idc = (opFlags[FIXED_TARGET_POWER]) ? Pset / linkInfo.v2 : linkInfo.v1 / tap;
 
         resid[offset] = (k3sq2 * linkInfo.v1 * stateDataValue.state[offset]) -
             ((3 / kPI) * x * Idc) - linkInfo.v2;
@@ -620,7 +620,7 @@ void AcDcConverter::setState(coreTime time,
     } else {
         auto offset = offsets.getAlgOffset(sMode);
         angle = state[offset];
-        if (opFlags[fixedTargetPower]) {
+        if (opFlags[FIXED_TARGET_POWER]) {
             Idc = Pset / B2->getVoltage(state, sMode);
         } else {
             Idc = B1->getVoltage(state, sMode) / tap;
@@ -668,7 +668,7 @@ void AcDcConverter::updateLocalCache(const IOdata& /*inputs*/,
         auto loc = offsets.getLocations(stateDataValue, sMode, this);
         Idc = loc.algStateLoc[0];
     } else {
-        Idc = opFlags[fixedTargetPower] ? Pset / linkInfo.v2 : linkInfo.v1 / tap;
+        Idc = opFlags[FIXED_TARGET_POWER] ? Pset / linkInfo.v2 : linkInfo.v1 / tap;
     }
 
     linkFlows.P1 = dirMult * linkInfo.v2 * Idc;
@@ -715,7 +715,7 @@ int AcDcConverter::fixRealPower(double power,
     if (fixedTerminal != 1) {
         Pset = (power < 0) ? dirMult * power : power;
         Pset = convert(Pset, unitType, puMW, systemBasePower);
-        opFlags.set(fixedTargetPower);
+        opFlags.set(FIXED_TARGET_POWER);
         Idc = Pset / B2->getVoltage();
         updateLocalCache();
         return 1;

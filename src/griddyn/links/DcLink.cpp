@@ -23,14 +23,14 @@ using units::unit;
 DcLink::DcLink(const std::string& objName): Link(objName)
 {
     opFlags.set(dc_only);
-    opFlags.set(networkConnected);
+    opFlags.set(NETWORK_CONNECTED);
 }
 
 DcLink::DcLink(double resistancePu, double reactancePu, const std::string& objName):
     Link(objName), r(resistancePu), x(reactancePu)
 {
     opFlags.set(dc_only);
-    opFlags.set(networkConnected);
+    opFlags.set(NETWORK_CONNECTED);
 }
 
 CoreObject* DcLink::clone(CoreObject* obj) const
@@ -105,7 +105,7 @@ void DcLink::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     Link::pFlowObjectInitializeA(time0, flags);
     if (isEnabled()) {
-        if (opFlags[fixedTargetPower]) {
+        if (opFlags[FIXED_TARGET_POWER]) {
             fixRealPower(Pset, 1);
         }
     }
@@ -115,7 +115,7 @@ void DcLink::pFlowObjectInitializeB()
 {
     if (isEnabled()) {
         updateLocalCache();
-        if (opFlags[fixedTargetPower]) {
+        if (opFlags[FIXED_TARGET_POWER]) {
             fixRealPower(Pset, 1);
         }
     }
@@ -251,7 +251,7 @@ void DcLink::jacobianElements(const IOdata& /*inputs*/,
             auto offset = offsets.getAlgOffset(sMode);
             jacobian.assignCheckCol(offset, bus1VoltageOffset, 1.0);
             jacobian.assignCheckCol(offset, bus2VoltageOffset, -1.0);
-            if (opFlags[fixedTargetPower]) {
+            if (opFlags[FIXED_TARGET_POWER]) {
                 jacobian.assignCheckCol(offset,
                                         bus1VoltageOffset,
                                         -Pset / (linkInfo.v1 * linkInfo.v1));
@@ -274,7 +274,7 @@ void DcLink::residual(const IOdata& inputs,
                 stateData.dstate_dt[offset];
         } else {
             auto offset = offsets.getAlgOffset(sMode);
-            if (opFlags[fixedTargetPower]) {
+            if (opFlags[FIXED_TARGET_POWER]) {
                 resid[offset] =
                     (linkInfo.v1 - linkInfo.v2) + (Pset / linkInfo.v1) - stateData.state[offset];
             } else {
@@ -382,7 +382,7 @@ int DcLink::fixRealPower(double power,
                          units::unit unitType)
 {
     int ret = 0;
-    opFlags.set(fixedTargetPower);
+    opFlags.set(FIXED_TARGET_POWER);
     if (fixedTerminal == 0) {
         fixedTerminal = measureTerminal;
     }

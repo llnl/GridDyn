@@ -32,7 +32,7 @@ class DynamicGenerator: public Generator {
         dc,
         transient,
         detailed,
-        modelOnly,
+        MODEL_ONLY,
         typical,
         subtransient,
         renewable,
@@ -41,13 +41,13 @@ class DynamicGenerator: public Generator {
 
     /** @brief enum indicating subModel locations in the subObject structure*/
     enum SubModelLocations {
-        genModelLoc = 1,
-        exciterLoc = 2,
-        governorLoc = 3,
-        pssLoc = 4,
-        psetLoc = 5,
-        vsetLoc = 6,
-        isocControlLoc = 7,
+        GEN_MODEL_LOC = 1,
+        EXCITER_LOC = 2,
+        GOVERNOR_LOC = 3,
+        PSS_LOC = 4,
+        PSET_LOC = 5,
+        VSET_LOC = 6,
+        ISOC_CONTROL_LOC = 7,
     };
 
   protected:

@@ -17,7 +17,7 @@
 namespace griddyn::relays {
 LoadRelay::LoadRelay(const std::string& objName): Relay(objName)
 {
-    // opFlags.set(continuousFlag);
+    // opFlags.set(CONTINUOUS_FLAG);
 }
 
 CoreObject* LoadRelay::clone(CoreObject* obj) const
@@ -38,7 +38,7 @@ CoreObject* LoadRelay::clone(CoreObject* obj) const
 void LoadRelay::setFlag(std::string_view flag, bool val)
 {
     if (flag == "nondirectional") {
-        opFlags.set(nondirectionalFlag, val);
+        opFlags.set(NONDIRECTIONAL_FLAG, val);
     } else {
         Relay::setFlag(flag, val);
     }
@@ -110,7 +110,7 @@ void LoadRelay::actionTaken(index_t actionNum,
     (void)actionNum;
     (void)conditionNum;
     /*
-if (opFlags.test(useCommLink))
+if (opFlags.test(USE_COMM_LINK))
 {
 relayMessage P;
 if (actionNum == 0)
@@ -148,7 +148,7 @@ if (conditionNum < m_condition_level)
 {
 m_condition_level = conditionNum;
 }
-if (opFlags.test(useCommLink))
+if (opFlags.test(USE_COMM_LINK))
 {
 if (conditionNum > m_condition_level)
 {
@@ -195,7 +195,7 @@ else
 return;
 }
 }
-if (opFlags.test(useCommLink))
+if (opFlags.test(USE_COMM_LINK))
 {
 relayMessage P;
 if (conditionNum == 0)

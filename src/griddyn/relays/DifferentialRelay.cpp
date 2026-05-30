@@ -21,7 +21,7 @@
 namespace griddyn::relays {
 DifferentialRelay::DifferentialRelay(const std::string& objName): Relay(objName)
 {
-    opFlags.set(continuousFlag);
+    opFlags.set(CONTINUOUS_FLAG);
 }
 
 CoreObject* DifferentialRelay::clone(CoreObject* obj) const
@@ -40,10 +40,10 @@ CoreObject* DifferentialRelay::clone(CoreObject* obj) const
 void DifferentialRelay::setFlag(std::string_view flag, bool val)
 {
     if (flag == "relative") {
-        opFlags.set(relativeDifferentialFlag, val);
+        opFlags.set(RELATIVE_DIFFERENTIAL_FLAG, val);
     }
     if (flag == "absolute") {
-        opFlags.set(relativeDifferentialFlag, !val);
+        opFlags.set(RELATIVE_DIFFERENTIAL_FLAG, !val);
     } else {
         Relay::setFlag(flag, val);
     }
@@ -52,7 +52,7 @@ void DifferentialRelay::setFlag(std::string_view flag, bool val)
 bool DifferentialRelay::getFlag(std::string_view flag) const
 {
     if (flag == "relative") {
-        return opFlags[relativeDifferentialFlag];
+        return opFlags[RELATIVE_DIFFERENTIAL_FLAG];
     }
     return Relay::getFlag(flag);
 }
@@ -93,7 +93,7 @@ void DifferentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t fla
     // if the target object is a link of some kind
     if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
         const double tap = m_sourceObject->get("tap");
-        if (opFlags[relativeDifferentialFlag]) {
+        if (opFlags[RELATIVE_DIFFERENTIAL_FLAG]) {
             if (tap != 1.0) {
                 const std::string current1Expression = std::to_string(tap) + "*current1";
                 add(std::shared_ptr<Condition>(
@@ -132,13 +132,13 @@ void DifferentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t fla
                     "abs(current1-current2)", ">", mMaxDifferential, m_sourceObject)));
             }
         }
-        opFlags.set(linkMode);
-        opFlags.reset(busMode);
+        opFlags.set(LINK_MODE);
+        opFlags.reset(BUS_MODE);
     } else if (dynamic_cast<GridBus*>(m_sourceObject) != nullptr) {
         add(std::shared_ptr<Condition>(
             makeCondition("abs(load)", "<=", mMaxDifferential, m_sourceObject)));
-        opFlags.set(busMode);
-        opFlags.reset(linkMode);
+        opFlags.set(BUS_MODE);
+        opFlags.reset(LINK_MODE);
     }
 
     // using make shared here since we need a shared object and it won't get translated
@@ -148,7 +148,7 @@ void DifferentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t fla
     // action 2 to re-enable object
 
     add(std::move(tripEvent));
-    if ((opFlags[relativeDifferentialFlag]) && (opFlags[linkMode]) && (mMinLevel > 0.0)) {
+    if ((opFlags[RELATIVE_DIFFERENTIAL_FLAG]) && (opFlags[LINK_MODE]) && (mMinLevel > 0.0)) {
         setActionMultiTrigger(0, {0, 1}, mDelayTime);
     } else {
         setActionTrigger(0, 0, mDelayTime);
@@ -164,7 +164,7 @@ void DifferentialRelay::actionTaken(index_t actionNum,
 {
     logging::normal(this, "Relay Tripped");
 
-    if (opFlags[useCommLink]) {
+    if (opFlags[USE_COMM_LINK]) {
         if (actionNum == 0) {
             auto relayEvent = std::make_shared<CommMessage>(CommMessage::BREAKER_TRIP_EVENT);
             cManager.send(relayEvent);
@@ -175,7 +175,7 @@ void DifferentialRelay::actionTaken(index_t actionNum,
 void DifferentialRelay::conditionTriggered(index_t /*conditionNum*/, coreTime /*triggerTime*/)
 {
     logging::normal(this, "differential condition met");
-    if (opFlags.test(useCommLink)) {
+    if (opFlags.test(USE_COMM_LINK)) {
         // std::cout << "GridDyn conditionTriggered(), conditionNum = " << conditionNum << '\n';
         auto relayEvent = std::make_shared<CommMessage>(CommMessage::LOCAL_FAULT_EVENT);
         cManager.send(relayEvent);
@@ -186,7 +186,7 @@ void DifferentialRelay::conditionCleared(index_t /*conditionNum*/, coreTime /*tr
 {
     logging::normal(this, "differential condition cleared");
 
-    if (opFlags.test(useCommLink)) {
+    if (opFlags.test(USE_COMM_LINK)) {
         auto relayEvent = std::make_shared<CommMessage>(CommMessage::LOCAL_FAULT_CLEARED);
         cManager.send(relayEvent);
     }

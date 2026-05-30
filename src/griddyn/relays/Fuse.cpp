@@ -32,7 +32,7 @@ using units::convert;
 using units::puA;
 Fuse::Fuse(const std::string& objName): Relay(objName), useI2T(extra_bool)
 {
-    opFlags.set(continuousFlag);
+    opFlags.set(CONTINUOUS_FLAG);
 }
 
 CoreObject* Fuse::clone(CoreObject* obj) const

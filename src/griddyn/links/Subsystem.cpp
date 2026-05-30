@@ -28,10 +28,10 @@ using gmlc::utilities::signn;
 using gmlc::utilities::sum;
 using units::unit;
 
-static TypeFactory<subsystem>
-    subsystemFactory("link", std::to_array<std::string_view>({"subsystem", "simple"}));
+static TypeFactory<Subsystem>
+    gSubsystemFactory("link", std::to_array<std::string_view>({"subsystem", "simple"}));
 
-subsystem::subsystem(const std::string& objName): Link(objName)
+Subsystem::Subsystem(const std::string& objName): Link(objName)
 {
     resize(2);
     cterm[0] = 1;
@@ -41,7 +41,7 @@ subsystem::subsystem(const std::string& objName): Link(objName)
                              // in GridComponent.
 }
 
-subsystem::subsystem(count_t terminals, const std::string& objName): Link(objName)
+Subsystem::Subsystem(count_t terminals, const std::string& objName): Link(objName)
 {
     // default values
 
@@ -56,9 +56,9 @@ subsystem::subsystem(count_t terminals, const std::string& objName): Link(objNam
                              // in GridComponent.
 }
 
-CoreObject* subsystem::clone(CoreObject* obj) const
+CoreObject* Subsystem::clone(CoreObject* obj) const
 {
-    auto* sub = cloneBase<subsystem, Link>(this, obj);
+    auto* sub = cloneBase<Subsystem, Link>(this, obj);
     if (sub == nullptr) {
         return obj;
     }
@@ -71,43 +71,43 @@ CoreObject* subsystem::clone(CoreObject* obj) const
     return sub;
 }
 
-void subsystem::add(CoreObject* obj)
+void Subsystem::add(CoreObject* obj)
 {
     subarea.add(obj);
 }
 // --------------- remove components ---------------
 
-void subsystem::remove(CoreObject* obj)
+void Subsystem::remove(CoreObject* obj)
 {
     subarea.remove(obj);
 }
-GridBus* subsystem::getBus(index_t num) const
+GridBus* Subsystem::getBus(index_t num) const
 {
     return subarea.getBus(num);
 }
-Link* subsystem::getLink(index_t num) const
+Link* Subsystem::getLink(index_t num) const
 {
     return subarea.getLink(num);
 }
-Relay* subsystem::getRelay(index_t num) const
+Relay* Subsystem::getRelay(index_t num) const
 {
     return subarea.getRelay(num);
 }
-GridArea* subsystem::getArea(index_t num) const
+GridArea* Subsystem::getArea(index_t num) const
 {
     return (num == 0) ? static_cast<GridArea*>(getSubObjects()[0]) : subarea.getArea(num - 1);
 }
 
-GridArea* subsystem::getGridArea(index_t num) const
+GridArea* Subsystem::getGridArea(index_t num) const
 {
     return getArea(num);
 }
 
-CoreObject* subsystem::find(std::string_view objName) const
+CoreObject* Subsystem::find(std::string_view objName) const
 {
     return subarea.find(objName);
 }
-CoreObject* subsystem::getSubObject(std::string_view typeName, index_t num) const
+CoreObject* Subsystem::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "area") {
         return getArea(num);
@@ -115,7 +115,7 @@ CoreObject* subsystem::getSubObject(std::string_view typeName, index_t num) cons
     return subarea.getSubObject(typeName, num);
 }
 
-void subsystem::setAll(std::string_view type,
+void Subsystem::setAll(std::string_view type,
                        std::string_view param,
                        double val,
                        units::unit unitType)
@@ -123,18 +123,18 @@ void subsystem::setAll(std::string_view type,
     subarea.setAll(type, param, val, unitType);
 }
 
-CoreObject* subsystem::findByUserID(std::string_view typeName, index_t searchID) const
+CoreObject* Subsystem::findByUserID(std::string_view typeName, index_t searchID) const
 {
     return subarea.findByUserID(typeName, searchID);
 }
 
 // reset the bus parameters
-void subsystem::reset(ResetLevels level)
+void Subsystem::reset(ResetLevels level)
 {
     subarea.reset(level);
 }
 // dynInitializeB states
-void subsystem::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void Subsystem::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     // make sure the buses are set to the right terminal
     for (index_t ii = 0; ii < m_terminals; ++ii) {
@@ -146,43 +146,43 @@ void subsystem::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     subarea.pFlowInitializeA(time0, flags);
 }
 
-void subsystem::updateLocalCache()
+void Subsystem::updateLocalCache()
 {
     subarea.updateLocalCache();
 }
-void subsystem::updateLocalCache(const IOdata& inputs,
+void Subsystem::updateLocalCache(const IOdata& inputs,
                                  const StateData& stateData,
                                  const SolverMode& sMode)
 {
     subarea.updateLocalCache(inputs, stateData, sMode);
 }
 
-ChangeCode subsystem::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level)
+ChangeCode Subsystem::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level)
 {
     return subarea.powerFlowAdjust(inputs, flags, level);
 }
 
-void subsystem::pFlowCheck(std::vector<Violation>& Violation_vector)
+void Subsystem::pFlowCheck(std::vector<Violation>& violationVector)
 {
-    subarea.pFlowCheck(Violation_vector);
+    subarea.pFlowCheck(violationVector);
 }
 // dynInitializeB states for dynamic solution
-void subsystem::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void Subsystem::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     subarea.dynInitializeA(time0, flags);
 }
 
-void subsystem::converge(coreTime time,
+void Subsystem::converge(coreTime time,
                          double state[],
-                         double dstate_dt[],
+                         double dstateDt[],
                          const SolverMode& sMode,
                          ConvergeMode mode,
                          double tol)
 {
-    subarea.converge(time, state, dstate_dt, sMode, mode, tol);
+    subarea.converge(time, state, dstateDt, sMode, mode, tol);
 }
 
-void subsystem::resize(count_t newSize)
+void Subsystem::resize(count_t newSize)
 {
     m_terminals = newSize;
     terminalBus.resize(newSize);
@@ -193,7 +193,7 @@ void subsystem::resize(count_t newSize)
 }
 
 // set properties
-void subsystem::set(std::string_view param, std::string_view val)
+void Subsystem::set(std::string_view param, std::string_view val)
 
 {
     std::string iparam;
@@ -281,7 +281,7 @@ void subsystem::set(std::string_view param, std::string_view val)
     }
 }
 
-void subsystem::set(std::string_view param, double val, unit unitType)
+void Subsystem::set(std::string_view param, double val, unit unitType)
 {
     if (param == "terminals") {
         resize(static_cast<count_t>(val));
@@ -295,7 +295,7 @@ void subsystem::set(std::string_view param, double val, unit unitType)
     }
 }
 
-double subsystem::get(std::string_view param, unit unitType) const
+double Subsystem::get(std::string_view param, unit unitType) const
 {
     double val = subarea.get(param, unitType);
     if (val == kNullVal) {
@@ -304,43 +304,43 @@ double subsystem::get(std::string_view param, unit unitType) const
     return val;
 }
 
-void subsystem::timestep(const coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void Subsystem::timestep(const coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     subarea.timestep(time, inputs, sMode);
     prevTime = time;
 }
 
-count_t subsystem::getBusVector(std::vector<GridBus*>& busVector, index_t start)
+count_t Subsystem::getBusVector(std::vector<GridBus*>& busVector, index_t start)
 {
     return subarea.getBusVector(busVector, start);
 }
 
 // single value return functions
-double subsystem::getLoss() const
+double Subsystem::getLoss() const
 {
     return subarea.getLoss();
 }
 // -------------------- Power Flow --------------------
 
 // pass the solution
-void subsystem::setState(const coreTime time,
+void Subsystem::setState(const coreTime time,
                          const double state[],
-                         const double dstate_dt[],
+                         const double dstateDt[],
                          const SolverMode& sMode)
 {
-    subarea.setState(time, state, dstate_dt, sMode);
+    subarea.setState(time, state, dstateDt, sMode);
     prevTime = time;
     updateLocalCache();
     // next do any internal area states
 }
 
-void subsystem::getVoltageStates(double vStates[], const SolverMode& sMode)
+void Subsystem::getVoltageStates(double vStates[], const SolverMode& sMode)
 
 {
     subarea.getVoltageStates(vStates, sMode);
 }
 
-bool subsystem::switchTest() const
+bool Subsystem::switchTest() const
 {
     for (size_t kk = 0; kk < terminalLink.size(); ++kk) {
         if (terminalLink[kk]->switchTest(cterm[kk])) {
@@ -350,7 +350,7 @@ bool subsystem::switchTest() const
     return false;
 }
 
-bool subsystem::switchTest(index_t num) const
+bool Subsystem::switchTest(index_t num) const
 {
     if (num <= m_terminals) {
         return terminalLink[num - 1]->switchTest(cterm[num - 1]);
@@ -358,14 +358,14 @@ bool subsystem::switchTest(index_t num) const
 
     return false;
 }
-void subsystem::switchMode(index_t num, bool mode)
+void Subsystem::switchMode(index_t num, bool mode)
 {
     if (num <= m_terminals) {
         terminalLink[num - 1]->switchMode(cterm[num - 1], mode);
     }
 }
 // is connected
-bool subsystem::isConnected() const
+bool Subsystem::isConnected() const
 {
     for (index_t kk = 0; kk < m_terminals; ++kk) {
         if (!terminalLink[kk]->isConnected()) {
@@ -375,7 +375,7 @@ bool subsystem::isConnected() const
     return true;
 }
 
-int subsystem::fixRealPower(double power,
+int Subsystem::fixRealPower(double power,
                             id_type_t measureTerminal,
                             id_type_t /*fixedterminal*/,
                             units::unit unitType)
@@ -389,7 +389,7 @@ int subsystem::fixRealPower(double power,
     return 0;
 }
 
-int subsystem::fixPower(double rPower,
+int Subsystem::fixPower(double rPower,
                         double qPower,
                         id_type_t measureTerminal,
                         id_type_t /*fixedterminal*/,
@@ -402,18 +402,18 @@ int subsystem::fixPower(double rPower,
     return 0;
 }
 
-void subsystem::followNetwork(int network, std::queue<GridBus*>& stk)
+void Subsystem::followNetwork(int network, std::queue<GridBus*>& stk)
 {
     terminalLink[0]->followNetwork(network, stk);
 }
 
-void subsystem::updateBus(GridBus* bus, index_t busnumber)
+void Subsystem::updateBus(GridBus* bus, index_t busnumber)
 {
     if (busnumber <= m_terminals) {
         terminalLink[busnumber - 1]->updateBus(bus, cterm[busnumber - 1]);
         terminalBus[busnumber - 1] = bus;
     } else {
-        if (opFlags[direct_connection]) {
+        if (opFlags[directConnection]) {
             Link::updateBus(bus, busnumber);
         } else {
             throw(ObjectAddFailure(this));
@@ -421,29 +421,29 @@ void subsystem::updateBus(GridBus* bus, index_t busnumber)
     }
 }
 
-double subsystem::quickupdateP()
+double Subsystem::quickupdateP()
 {
     return 0;
 }
-double subsystem::remainingCapacity() const
+double Subsystem::remainingCapacity() const
 {
     return terminalLink[0]->remainingCapacity();
 }
-double subsystem::getAngle() const
+double Subsystem::getAngle() const
 {
     const double angleTerminal1 = terminalBus[0]->getAngle();
     const double angleTerminal2 = terminalBus[m_terminals - 1]->getAngle();
     return angleTerminal1 - angleTerminal2;
 }
 
-double subsystem::getAngle(const double state[], const SolverMode& sMode) const
+double Subsystem::getAngle(const double state[], const SolverMode& sMode) const
 {
     const double angleTerminal1 = terminalBus[0]->getAngle(state, sMode);
     const double angleTerminal2 = terminalBus[m_terminals - 1]->getAngle(state, sMode);
     return angleTerminal1 - angleTerminal2;
 }
 
-double subsystem::getRealImpedance(id_type_t busId) const
+double Subsystem::getRealImpedance(id_type_t busId) const
 {
     if (busId == invalid_id_value) {
         busId = 1;
@@ -459,7 +459,7 @@ double subsystem::getRealImpedance(id_type_t busId) const
     return kBigNum;
 }
 
-double subsystem::getImagImpedance(id_type_t busId) const
+double Subsystem::getImagImpedance(id_type_t busId) const
 {
     if (busId == invalid_id_value) {
         busId = 1;
@@ -474,7 +474,7 @@ double subsystem::getImagImpedance(id_type_t busId) const
     }
     return kBigNum;
 }
-double subsystem::getTotalImpedance(id_type_t busId) const
+double Subsystem::getTotalImpedance(id_type_t busId) const
 {
     if (busId == invalid_id_value) {
         busId = 1;
@@ -492,7 +492,7 @@ double subsystem::getTotalImpedance(id_type_t busId) const
     return kBigNum;
 }
 
-double subsystem::getCurrent(id_type_t busId) const
+double Subsystem::getCurrent(id_type_t busId) const
 {
     if (busId == invalid_id_value) {
         busId = 1;
@@ -504,7 +504,7 @@ double subsystem::getCurrent(id_type_t busId) const
     }
     return 0;
 }
-double subsystem::getRealCurrent(id_type_t busId) const
+double Subsystem::getRealCurrent(id_type_t busId) const
 {
     if (busId == invalid_id_value) {
         busId = 1;
@@ -516,7 +516,7 @@ double subsystem::getRealCurrent(id_type_t busId) const
     }
     return 0;
 }
-double subsystem::getImagCurrent(id_type_t busId) const
+double Subsystem::getImagCurrent(id_type_t busId) const
 {
     if (busId == invalid_id_value) {
         busId = 1;
@@ -529,7 +529,7 @@ double subsystem::getImagCurrent(id_type_t busId) const
     return 0;
 }
 
-double subsystem::getRealPower(id_type_t busId) const
+double Subsystem::getRealPower(id_type_t busId) const
 {
     if (busId == invalid_id_value) {
         busId = 1;
@@ -541,7 +541,7 @@ double subsystem::getRealPower(id_type_t busId) const
     }
     return 0;
 }  // function to return the real flow in
-double subsystem::getReactivePower(id_type_t busId) const
+double Subsystem::getReactivePower(id_type_t busId) const
 {
     if (busId == invalid_id_value) {
         busId = 1;
@@ -554,18 +554,18 @@ double subsystem::getReactivePower(id_type_t busId) const
     return 0;
 }  // function to return the reactive power in
 
-double subsystem::getReactiveLoss() const
+double Subsystem::getReactiveLoss() const
 {
     return std::abs(sum(Qout));
 }
-double subsystem::getMaxTransfer() const
+double Subsystem::getMaxTransfer() const
 {
     return 0;
 }
 // dynInitializeB power flow
 
 // for computing all the Jacobian elements at once
-void subsystem::ioPartialDerivatives(id_type_t busId,
+void Subsystem::ioPartialDerivatives(id_type_t busId,
                                      const StateData& stateData,
                                      matrixData<double>& jacobian,
                                      const IOlocs& inputLocs,
@@ -583,7 +583,7 @@ void subsystem::ioPartialDerivatives(id_type_t busId,
     }
 }
 
-void subsystem::outputPartialDerivatives(id_type_t busId,
+void Subsystem::outputPartialDerivatives(id_type_t busId,
                                          const StateData& stateData,
                                          matrixData<double>& jacobian,
                                          const SolverMode& sMode)
@@ -599,14 +599,14 @@ void subsystem::outputPartialDerivatives(id_type_t busId,
     }
 }
 
-IOdata subsystem::getOutputs(const IOdata& /*inputs*/,
+IOdata Subsystem::getOutputs(const IOdata& /*inputs*/,
                              const StateData& stateData,
                              const SolverMode& sMode) const
 {
     return getOutputs(1, stateData, sMode);
 }
 
-IOdata subsystem::getOutputs(id_type_t busId,
+IOdata Subsystem::getOutputs(id_type_t busId,
                              const StateData& /*StateData*/,
                              const SolverMode& /*sMode*/) const
 {

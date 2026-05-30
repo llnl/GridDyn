@@ -135,7 +135,7 @@ TEST_F(InputTests, DISABLED_TestPowerFlowInputs)
             int cnt = 0;
             for (int ii = 0; ii < 411; ++ii) {
                 Link* lnk = gds->getLink(ii);
-                if (dynamic_cast<links::adjustableTransformer*>(lnk)) {
+                if (dynamic_cast<links::AdjustableTransformer*>(lnk)) {
                     cnt++;
                     if ((cnt >= 2) & (cnt <= 3)) {
                         lnk->reset(ResetLevels::full);

@@ -19,7 +19,7 @@ local or remote buses,  local reactive power flow, and local real power flow the
 the only one that adjusts the angle.  available control include stepped and continuous
 
 */
-class adjustableTransformer: public AcLine {
+class AdjustableTransformer: public AcLine {
   public:
     /** @brief  enumeration of the available control types
      */
@@ -32,11 +32,11 @@ class adjustableTransformer: public AcLine {
     /** @brief  flags for
      */
     enum AdjustableFlags {
-        continuous_flag = object_flag5,  //!< flag indicating continuous adjustments
-        use_target_mode = object_flag6,  //!< flag indicating target mode
-        at_limit = object_flag7,  //!< flag indicating the adjustments are at their limit
-        no_pFlow_adjustments = object_flag8,  //!< flag turning off all automatic adjustments
-        use_lookup_table = object_flag9,  //!< flag indicating use of an impedance lookup table
+        continuousFlag = object_flag5,  //!< flag indicating continuous adjustments
+        useTargetMode = object_flag6,  //!< flag indicating target mode
+        atLimit = object_flag7,  //!< flag indicating the adjustments are at their limit
+        noPFlowAdjustments = object_flag8,  //!< flag turning off all automatic adjustments
+        useLookupTable = object_flag9,  //!< flag indicating use of an impedance lookup table
     };
 
   protected:
@@ -87,12 +87,12 @@ class adjustableTransformer: public AcLine {
     double prevValue = 0.0;
     // double baseValue;
   public:
-    explicit adjustableTransformer(const std::string& objName = "adjTX_$");
+    explicit AdjustableTransformer(const std::string& objName = "adjTX_$");
     /** @brief default constructor
 @param[in] resistance  resistance of the link
 @param[in] reactance  reactance of the link forwarded to the Link constructor
 */
-    adjustableTransformer(double resistance,
+    AdjustableTransformer(double resistance,
                           double reactance,
                           const std::string& objName = "adjTX_$");
     //!< @brief destructor

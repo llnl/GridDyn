@@ -13,7 +13,7 @@
 namespace griddyn::links {
 /** @brief class defining a thee winding transformer model
  */
-class ThreeWindingTransformer: public subsystem {
+class ThreeWindingTransformer: public Subsystem {
   private:
     int faultLink = -1;  //!< link number of the fault if one is present
     double r = 0.0;

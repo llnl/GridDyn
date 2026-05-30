@@ -13,25 +13,25 @@
 #include <string>
 
 namespace griddyn::links {
-ThreeWindingTransformer::ThreeWindingTransformer(const std::string& objName): subsystem(objName)
+ThreeWindingTransformer::ThreeWindingTransformer(const std::string& objName): Subsystem(objName)
 {
-    GridBus* bus = new AcBus("ibus_mid");
-    subsystem::add(bus);
+    auto* bus = new AcBus("ibus_mid");
+    Subsystem::add(bus);
 
-    AcLine* t1 = new AcLine("primary");
-    AcLine* t2 = new AcLine("secondary");
-    AcLine* t3 = new AcLine("tertiary");
-    subsystem::add(t1);
-    subsystem::add(t2);
-    subsystem::add(t3);
-    t1->updateBus(bus, 2);
-    t2->updateBus(bus, 1);
-    t3->updateBus(bus, 1);
+    auto* primaryLine = new AcLine("primary");
+    auto* secondaryLine = new AcLine("secondary");
+    auto* tertiaryLine = new AcLine("tertiary");
+    Subsystem::add(primaryLine);
+    Subsystem::add(secondaryLine);
+    Subsystem::add(tertiaryLine);
+    primaryLine->updateBus(bus, 2);
+    secondaryLine->updateBus(bus, 1);
+    tertiaryLine->updateBus(bus, 1);
     m_terminals = 3;
     terminalLink.resize(3);
-    terminalLink[0] = t1;
-    terminalLink[1] = t2;
-    terminalLink[2] = t3;
+    terminalLink[0] = primaryLine;
+    terminalLink[1] = secondaryLine;
+    terminalLink[2] = tertiaryLine;
     cterm.resize(3);
     cterm[0] = 1;
     cterm[1] = 2;
@@ -39,7 +39,7 @@ ThreeWindingTransformer::ThreeWindingTransformer(const std::string& objName): su
 }
 CoreObject* ThreeWindingTransformer::clone(CoreObject* obj) const
 {
-    auto line = cloneBase<ThreeWindingTransformer, Link>(this, obj);
+    auto* line = cloneBase<ThreeWindingTransformer, Link>(this, obj);
     if (line == nullptr) {
         return obj;
     }
@@ -57,13 +57,14 @@ void ThreeWindingTransformer::remove(CoreObject* /*obj*/) {}
 void ThreeWindingTransformer::set(std::string_view param, std::string_view val)
 {
     if (param == "primary") {
-        subsystem::set("from", val);
+        Subsystem::set("from", val);
     } else if (param == "secondary") {
-        subsystem::set("to", val);
+        Subsystem::set("to", val);
     } else if (param == "tertiary") {
-        subsystem::set("connection:3", val);
+        Subsystem::set("connection:3", val);
     } else {
-        return subsystem::set(param, val);
+        Subsystem::set(param, val);
+        return;
     }
 }
 
@@ -101,22 +102,22 @@ void ThreeWindingTransformer::set(std::string_view param, double val, units::uni
                 fault = -1;
             }
             if (fault >= 0) {
-                auto nb = getInt("linkcount");
-                double fs = 1.0 / static_cast<double>(nb);
-                int kk = 0;
-                double cm = fs;
-                while (cm < fault) {
-                    ++kk;
-                    cm += fs;
+                auto linkCountValue = getInt("linkcount");
+                const double faultStep = 1.0 / static_cast<double>(linkCountValue);
+                int faultIndex = 0;
+                double cumulativeMeasure = faultStep;
+                while (cumulativeMeasure < fault) {
+                    ++faultIndex;
+                    cumulativeMeasure += faultStep;
                 }
-                double newfaultVal = fault - cm + fs;
+                const double newFaultVal = fault - cumulativeMeasure + faultStep;
 
                 if (faultLink >= 0)  // if there is an existing fault move it
                 {
                     getLink(faultLink)->set("fault", -1.0);
                 }
-                getLink(kk)->set("fault", newfaultVal);
-                faultLink = kk;
+                getLink(faultIndex)->set("fault", newFaultVal);
+                faultLink = faultIndex;
             } else {
                 if (faultLink >= 0) {
                     getLink(faultLink)->set("fault", -1.0);
@@ -137,7 +138,7 @@ double ThreeWindingTransformer::get(std::string_view param, units::unit unitType
     if (param == "NULL") {
         val = kNullVal;
     } else {
-        val = subsystem::get(param, unitType);
+        val = Subsystem::get(param, unitType);
     }
     return val;
 }

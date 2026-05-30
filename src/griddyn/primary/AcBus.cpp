@@ -1366,7 +1366,7 @@ int AcBus::propogatePower(bool makeSlack)
     double Pexp = 0;
     double Qexp = 0;
     for (auto& lnk : attachedLinks) {
-        if (lnk->checkFlag(Link::fixed_target_power)) {
+        if (lnk->checkFlag(Link::fixedTargetPower)) {
             Pexp += lnk->getRealPower(getID());
             Qexp += lnk->getReactivePower(getID());
             continue;

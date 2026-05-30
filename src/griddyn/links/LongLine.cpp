@@ -13,16 +13,16 @@
 #include <string>
 
 namespace griddyn::links {
-LongLine::LongLine(const std::string& objName): subsystem(objName) {}
+LongLine::LongLine(const std::string& objName): Subsystem(objName) {}
 CoreObject* LongLine::clone(CoreObject* obj) const
 {
-    auto line = cloneBase<LongLine, Link>(this, obj);
+    auto* line = cloneBase<LongLine, Link>(this, obj);
     if (line == nullptr) {
         return obj;
     }
     line->segmentationLength = segmentationLength;
     if (opFlags[pFlow_initialized]) {
-        subsystem::clone(line);
+        Subsystem::clone(line);
     }
     return line;
 }
@@ -36,12 +36,12 @@ void LongLine::remove(CoreObject* /*obj*/) {}
 void LongLine::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     generateIntermediateLinks();
-    return subsystem::pFlowObjectInitializeA(time0, flags);
+    Subsystem::pFlowObjectInitializeA(time0, flags);
 }
 
 void LongLine::set(std::string_view param, std::string_view val)
 {
-    return Link::set(param, val);
+    Link::set(param, val);
 }
 void LongLine::set(std::string_view param, double val, units::unit unitType)
 {
@@ -77,22 +77,22 @@ void LongLine::set(std::string_view param, double val, units::unit unitType)
                 fault = -1;
             }
             if (fault >= 0) {
-                auto nb = getInt("linkcount");
-                double fs = 1.0 / static_cast<double>(nb);
-                int kk = 0;
-                double cm = fs;
-                while (cm < fault) {
-                    ++kk;
-                    cm += fs;
+                auto linkCountValue = getInt("linkcount");
+                const double faultStep = 1.0 / static_cast<double>(linkCountValue);
+                int faultIndex = 0;
+                double cumulativeMeasure = faultStep;
+                while (cumulativeMeasure < fault) {
+                    ++faultIndex;
+                    cumulativeMeasure += faultStep;
                 }
-                double newfaultVal = fault - cm + fs;
+                const double newFaultVal = fault - cumulativeMeasure + faultStep;
 
                 if (faultLink >= 0)  // if there is an existing fault move it
                 {
                     getLink(faultLink)->set("fault", -1.0);
                 }
-                getLink(kk)->set("fault", newfaultVal);
-                faultLink = kk;
+                getLink(faultIndex)->set("fault", newFaultVal);
+                faultLink = faultIndex;
             } else {
                 if (faultLink >= 0) {
                     getLink(faultLink)->set("fault", -1.0);
@@ -113,54 +113,54 @@ double LongLine::get(std::string_view param, units::unit unitType) const
     if (param == "segmentationlength") {
         val = segmentationLength;
     } else {
-        val = subsystem::get(param, unitType);
+        val = Subsystem::get(param, unitType);
     }
     return val;
 }
 
 void LongLine::generateIntermediateLinks()
 {
-    int numLinks = static_cast<int>(std::ceil(length / segmentationLength));
+    const int numLinks = static_cast<int>(std::ceil(length / segmentationLength));
 
-    double sr = r / static_cast<double>(numLinks);
-    double sx = x / static_cast<double>(numLinks);
-    double sB = mp_B / static_cast<double>(numLinks);
-    double sG = mp_G / static_cast<double>(numLinks);
+    const double segmentResistance = r / static_cast<double>(numLinks);
+    const double segmentReactance = x / static_cast<double>(numLinks);
+    const double segmentB = mp_B / static_cast<double>(numLinks);
+    const double segmentG = mp_G / static_cast<double>(numLinks);
 
     int clinks = getInt("linkCount");
     Link* link;
 
     if (clinks == 0) {
-        link = new AcLine(sr, sx);
-        link->set("b", sB);
-        if (sG != 0) {
-            link->set("g", sG);
+        link = new AcLine(segmentResistance, segmentReactance);
+        link->set("b", segmentB);
+        if (segmentG != 0) {
+            link->set("g", segmentG);
         }
-        subsystem::add(link);
+        Subsystem::add(link);
         clinks = 1;
         terminalLink[0] = link;
     } else {
         for (int pp = 0; pp < clinks; ++pp) {
             link = subarea.getLink(pp);
-            link->set("r", sr);
-            link->set("x", sx);
-            link->set("b", sB);
-            if (sG != 0) {
-                link->set("g", sG);
+            link->set("r", segmentResistance);
+            link->set("x", segmentReactance);
+            link->set("b", segmentB);
+            if (segmentG != 0) {
+                link->set("g", segmentG);
             }
         }
     }
     for (int pp = clinks; pp < numLinks; ++pp) {
         GridBus* bus = new AcBus("ibus" + std::to_string(pp));
 
-        subsystem::add(bus);
+        Subsystem::add(bus);
 
-        link = new AcLine(sr, sx);
-        link->set("b", sB);
-        if (sG != 0) {
-            link->set("g", sG);
+        link = new AcLine(segmentResistance, segmentReactance);
+        link->set("b", segmentB);
+        if (segmentG != 0) {
+            link->set("g", segmentG);
         }
-        subsystem::add(link);
+        Subsystem::add(link);
         link->updateBus(bus, 1);
 
         subarea.getLink(pp - 1)->updateBus(bus, 2);

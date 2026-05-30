@@ -43,7 +43,7 @@ AcLine::AcLine(const std::string& objName): Link(objName)
 {
     // default values
     loadApproxFunctions();
-    opFlags.set(network_connected);
+    opFlags.set(networkConnected);
 }
 
 // NOLINTNEXTLINE
@@ -52,15 +52,15 @@ AcLine::AcLine(double rP, double xP, const std::string& objName): Link(objName),
     // default values
     setAdmit();
     loadApproxFunctions();
-    opFlags.set(network_connected);
+    opFlags.set(networkConnected);
     // load up the member function pointer array to point to the correct function
 }
 
-static TypeFactory<AcLine> glf("link", "tie");
+static TypeFactory<AcLine> gLf("link", "tie");
 
 CoreObject* AcLine::clone(CoreObject* obj) const
 {
-    auto* lnk = cloneBaseFactory<AcLine, Link>(this, obj, &glf);
+    auto* lnk = cloneBaseFactory<AcLine, Link>(this, obj, &gLf);
     if (lnk == nullptr) {
         return obj;
     }
@@ -83,9 +83,9 @@ void AcLine::pFlowObjectInitializeB()
 {
     updateLocalCache();
 }
-void AcLine::pFlowCheck(std::vector<Violation>& Violation_vector)
+void AcLine::pFlowCheck(std::vector<Violation>& violationVector)
 {
-    Link::pFlowCheck(Violation_vector);
+    Link::pFlowCheck(violationVector);
     double angle = linkInfo.theta1;
     if (angle < minAngle) {
         Violation violation;
@@ -99,7 +99,7 @@ void AcLine::pFlowCheck(std::vector<Violation>& Violation_vector)
             violation.percentViolation = 100.0;
         }
 
-        Violation_vector.push_back(violation);
+        violationVector.push_back(violation);
     } else if (angle > maxAngle) {
         Violation violation;
         violation.m_objectName = getName();
@@ -112,7 +112,7 @@ void AcLine::pFlowCheck(std::vector<Violation>& Violation_vector)
             violation.percentViolation = 100.0;
         }
 
-        Violation_vector.push_back(violation);
+        violationVector.push_back(violation);
     }
 }
 
@@ -155,23 +155,23 @@ void AcLine::timestep(const coreTime time, const IOdata& /*inputs*/, const Solve
 
 void AcLine::checkMerge() {}
 
-static const stringVec locNumStrings{"r",
-                                     "x",
-                                     "link",
-                                     "b",
-                                     "g",
-                                     "tap",
-                                     "tapangle",
-                                     "switch1",
-                                     "switch2",
-                                     "fault",
-                                     "p"};
-static const stringVec locStrStrings{"from", "to"};
-static const stringVec flagStrings{};
+static const stringVec LOC_NUM_STRINGS{"r",
+                                       "x",
+                                       "link",
+                                       "b",
+                                       "g",
+                                       "tap",
+                                       "tapangle",
+                                       "switch1",
+                                       "switch2",
+                                       "fault",
+                                       "p"};
+static const stringVec LOC_STR_STRINGS{"from", "to"};
+static const stringVec FLAG_STRINGS{};
 void AcLine::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<AcLine, GridComponent>(
-        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
+        this, pstr, LOC_NUM_STRINGS, LOC_STR_STRINGS, FLAG_STRINGS, pstype);
 }
 
 // set properties
@@ -253,7 +253,7 @@ void AcLine::set(std::string_view param, double val, unit unitType)
                 break;
             case 'p':
                 Pset = convert(val, unitType, puMW, systemBasePower);
-                opFlags.set(fixed_target_power);
+                opFlags.set(fixedTargetPower);
                 break;
             default:
                 throw(UnrecognizedParameter(param));
@@ -277,7 +277,7 @@ void AcLine::set(std::string_view param, double val, unit unitType)
             }
         }
         if ((fault > 0.0) && (fault < 1.0)) {
-            if ((!opFlags[switch1_open_flag]) || (!opFlags[switch2_open_flag])) {
+            if ((!opFlags[switch1OpenFlag]) || (!opFlags[switch2OpenFlag])) {
                 alert(this, POTENTIAL_FAULT_CHANGE);
             }
             if ((temp < 0.0) || (temp > 1.0)) {
@@ -367,11 +367,11 @@ int AcLine::fixRealPower(double power,
     } else {
         return 0;
     }
-    opFlags.set(fixed_target_power);
+    opFlags.set(fixedTargetPower);
     return 1;
 }
 
-static IOlocs aLoc{0, 1};
+static IOlocs gALoc{0, 1};
 
 int AcLine::fixPower(double rPower,
                      double qPower,
@@ -381,7 +381,7 @@ int AcLine::fixPower(double rPower,
 {
     double valp = convert(rPower, unitType, puMW, systemBasePower);
     double valq = convert(qPower, unitType, puMW, systemBasePower);
-    opFlags.set(fixed_target_power);
+    opFlags.set(fixedTargetPower);
     double v1 = B1->getVoltage();
     double v2 = B2->getVoltage();
     double ang = 0;
@@ -458,10 +458,10 @@ int AcLine::fixPower(double rPower,
     double dQ;
     double dA;
     double dV;
-    double Pvii;
-    double Ptii;
-    double Qvii;
-    double Qtii;
+    double pvii;
+    double ptii;
+    double qvii;
+    double qtii;
     bool aboveTol = ((err > atol) || (err > vtol));
 
     while (aboveTol) {
@@ -469,7 +469,7 @@ int AcLine::fixPower(double rPower,
         if (measureTerminal == fixedTerminal) {
             outputPartialDerivatives(measureTerminal, emptyStateData, md, cLocalSolverMode);
         } else {
-            ioPartialDerivatives(measureTerminal, emptyStateData, md, aLoc, cLocalSolverMode);
+            ioPartialDerivatives(measureTerminal, emptyStateData, md, gALoc, cLocalSolverMode);
         }
         if (measureTerminal == 1) {
             dP = valp - linkFlows.P1;
@@ -479,11 +479,11 @@ int AcLine::fixPower(double rPower,
             dQ = valq - linkFlows.Q2;
         }
         // printf("A dP=%f dQ=%f\n",dP,dQ);
-        Pvii = md.at(PoutLocation, voltageInLocation);
-        Ptii = md.at(PoutLocation, angleInLocation);
-        Qvii = md.at(QoutLocation, voltageInLocation);
-        Qtii = md.at(QoutLocation, angleInLocation);
-        double detA = solve2x2(Pvii, Ptii, Qvii, Qtii, dP, dQ, dV, dA);
+        pvii = md.at(PoutLocation, voltageInLocation);
+        ptii = md.at(PoutLocation, angleInLocation);
+        qvii = md.at(QoutLocation, voltageInLocation);
+        qtii = md.at(QoutLocation, angleInLocation);
+        double detA = solve2x2(pvii, ptii, qvii, qtii, dP, dQ, dV, dA);
         if (!(std::isnormal(detA))) {
             break;
         }
@@ -597,7 +597,7 @@ void AcLine::ioPartialDerivatives(id_type_t busId,
     auto angleLoc = inputLocs[angleInLocation];
 
     if ((busId == 2) || (busId == B2->getID())) {
-        if (!opFlags[switch2_open_flag]) {
+        if (!opFlags[switch2OpenFlag]) {
             if (voltageLoc != kNullLocation) {
                 md.assign(PoutLocation, voltageLoc, LinkDeriv.dP2dv2);
                 md.assign(QoutLocation, voltageLoc, LinkDeriv.dQ2dv2);
@@ -608,7 +608,7 @@ void AcLine::ioPartialDerivatives(id_type_t busId,
             }
         }
     } else {
-        if (!opFlags[switch1_open_flag]) {
+        if (!opFlags[switch1OpenFlag]) {
             if (voltageLoc != kNullLocation) {
                 md.assign(PoutLocation, voltageLoc, LinkDeriv.dP1dv1);
                 md.assign(QoutLocation, voltageLoc, LinkDeriv.dQ1dv1);
@@ -648,41 +648,41 @@ void AcLine::outputPartialDerivatives(id_type_t busId,
         DERIVCOMP();
     }
 
-    index_t B1Voffset = voltageInLocation;
-    index_t B2Voffset = voltageInLocation;
-    index_t B1Aoffset = angleInLocation;
-    index_t B2Aoffset = angleInLocation;
+    index_t b1Voffset = voltageInLocation;
+    index_t b2Voffset = voltageInLocation;
+    index_t b1Aoffset = angleInLocation;
+    index_t b2Aoffset = angleInLocation;
 
     if (!isLocal(sMode)) {
-        B1Voffset = B1->getOutputLoc(sMode, voltageInLocation);
-        B2Voffset = B2->getOutputLoc(sMode, voltageInLocation);
-        B1Aoffset = B1->getOutputLoc(sMode, angleInLocation);
-        B2Aoffset = B2->getOutputLoc(sMode, angleInLocation);
+        b1Voffset = B1->getOutputLoc(sMode, voltageInLocation);
+        b2Voffset = B2->getOutputLoc(sMode, voltageInLocation);
+        b1Aoffset = B1->getOutputLoc(sMode, angleInLocation);
+        b2Aoffset = B2->getOutputLoc(sMode, angleInLocation);
     }
 
     if ((busId == 2) || (busId == B2->getID())) {
-        if (B1Voffset != kNullLocation) {
-            md.assign(PoutLocation, B1Voffset, LinkDeriv.dP2dv1);
+        if (b1Voffset != kNullLocation) {
+            md.assign(PoutLocation, b1Voffset, LinkDeriv.dP2dv1);
             // reactive power vs Voltage
-            md.assign(QoutLocation, B1Voffset, LinkDeriv.dQ2dv1);
+            md.assign(QoutLocation, b1Voffset, LinkDeriv.dQ2dv1);
         }
-        if (B1Aoffset != kNullLocation) {
+        if (b1Aoffset != kNullLocation) {
             // power vs angle
-            md.assign(PoutLocation, B1Aoffset, LinkDeriv.dP2dt1);
+            md.assign(PoutLocation, b1Aoffset, LinkDeriv.dP2dt1);
             // reactive power vs Angle
-            md.assign(QoutLocation, B1Aoffset, LinkDeriv.dQ2dt1);
+            md.assign(QoutLocation, b1Aoffset, LinkDeriv.dQ2dt1);
         }
     } else {
-        if (B2Voffset != kNullLocation) {
-            md.assign(PoutLocation, B2Voffset, LinkDeriv.dP1dv2);
+        if (b2Voffset != kNullLocation) {
+            md.assign(PoutLocation, b2Voffset, LinkDeriv.dP1dv2);
             // reactive power vs Voltage
-            md.assign(QoutLocation, B2Voffset, LinkDeriv.dQ1dv2);
+            md.assign(QoutLocation, b2Voffset, LinkDeriv.dQ1dv2);
         }
-        if (B2Aoffset != kNullLocation) {
+        if (b2Aoffset != kNullLocation) {
             // power vs angle
-            md.assign(PoutLocation, B2Aoffset, LinkDeriv.dP1dt2);
+            md.assign(PoutLocation, b2Aoffset, LinkDeriv.dP1dt2);
             // reactive power vs Angle
-            md.assign(QoutLocation, B2Aoffset, LinkDeriv.dQ1dt2);
+            md.assign(QoutLocation, b2Aoffset, LinkDeriv.dQ1dt2);
         }
     }
 }
@@ -729,11 +729,11 @@ double AcLine::getMaxTransfer() const
 
 void AcLine::setState(coreTime time,
                       const double state[],
-                      const double dstate_dt[],
+                      const double dstateDt[],
                       const SolverMode& sMode)
 {
     prevTime = time;
-    StateData sD(time, state, dstate_dt);
+    StateData sD(time, state, dstateDt);
 
     if (sMode.approx[DECOUPLED]) {  // recompute power with new state updates for the decoupled
                                     // system
@@ -843,7 +843,7 @@ bool AcLine::testAndTrip(int tripLevel)
         }
     }
     if (tripLevel >= 2) {
-        if (checkFlag(angle_slip_on_test)) {
+        if (checkFlag(angleSlipOnTest)) {
             disconnect();
             return true;
         }
@@ -871,7 +871,7 @@ void AcLine::updateLocalCache()
 
 void AcLine::faultCalc()
 {
-    if (opFlags[switch1_open_flag]) {
+    if (opFlags[switch1OpenFlag]) {
         linkFlows.P1 = 0;
         linkFlows.Q1 = 0;
     } else {
@@ -879,7 +879,7 @@ void AcLine::faultCalc()
 
         linkFlows.Q1 = -(b / fault + fault * mp_B) / (tap * tap) * linkInfo.v1 * linkInfo.v1;
     }
-    if (opFlags[switch2_open_flag]) {
+    if (opFlags[switch2OpenFlag]) {
         linkFlows.P2 = 0;
         linkFlows.Q2 = 0;
     } else {
@@ -906,10 +906,10 @@ void AcLine::loadLinkInfo()
     } else {
         linkInfo.theta1 = 0.0;
         linkInfo.theta2 = 0.0;
-        if (!opFlags[switch1_open_flag]) {
+        if (!opFlags[switch1OpenFlag]) {
             linkInfo.v1 = B1->getVoltage();
         }
-        if (!opFlags[switch2_open_flag]) {
+        if (!opFlags[switch2OpenFlag]) {
             linkInfo.v2 = B2->getVoltage();
         }
         linkComp.sinTheta1 = 0.0;
@@ -929,7 +929,7 @@ void AcLine::loadLinkInfo(const StateData& sD, const SolverMode& sMode)
     if ((linkInfo.seqID == sD.seqID) && (sD.seqID != 0)) {
         return;
     }
-    // std::memset (&linkInfo, 0, sizeof(linkI));
+    // std::memset (&linkInfo, 0, sizeof(LinkInfo));
     linkInfo.v1 = B1->getVoltage(sD, sMode);
 
     linkInfo.v2 = B2->getVoltage(sD, sMode);
@@ -937,7 +937,7 @@ void AcLine::loadLinkInfo(const StateData& sD, const SolverMode& sMode)
     linkInfo.theta1 = B1->getAngle(sD, sMode) - B2->getAngle(sD, sMode) - tapAngle;
     if (std::fabs(linkInfo.theta1) > kPI / 2.0) {
         if (isConnected()) {
-            opFlags.set(angle_slip_on_test);
+            opFlags.set(angleSlipOnTest);
         }
     }
     linkInfo.theta2 = -linkInfo.theta1;
@@ -1162,28 +1162,28 @@ void AcLine::fastDecoupledCalc()
 
 void AcLine::swOpenCalc()
 {
-    if (opFlags[switch1_open_flag]) {
+    if (opFlags[switch1OpenFlag]) {
         linkFlows.P1 = 0;
         linkFlows.Q1 = 0;
     } else {
-        double V2 = b * linkInfo.v1 / tap / (b + 0.5 * mp_B);
+        double v2 = b * linkInfo.v1 / tap / (b + 0.5 * mp_B);
         double dT = -((g + 0.5 * mp_G) / (b + 0.5 * mp_B) - g / b);
 
-        double vm2 = linkInfo.v1 * V2 / tap;
+        double vm2 = linkInfo.v1 * v2 / tap;
         linkFlows.P1 =
             (g + 0.5 * mp_G) / (tap * tap) * linkInfo.v1 * linkInfo.v1 - g * vm2 - b * vm2 * dT;
 
         linkFlows.Q1 = -(b + 0.5 * mp_B) / (tap * tap) * linkInfo.v1 * linkInfo.v1 + b * vm2;
     }
-    if (opFlags[switch2_open_flag]) {
+    if (opFlags[switch2OpenFlag]) {
         linkFlows.P2 = 0;
         linkFlows.Q2 = 0;
     } else {
         // flows from bus 2 to bus
-        double V1 = b * linkInfo.v2 * tap / (b + 0.5 * mp_B);
+        double v1 = b * linkInfo.v2 * tap / (b + 0.5 * mp_B);
         double dT = -((g + 0.5 * mp_G) / (b + 0.5 * mp_B) - g / b);
 
-        double vm2 = linkInfo.v2 * V1 / tap;
+        double vm2 = linkInfo.v2 * v1 / tap;
 
         linkFlows.P2 = (g + 0.5 * mp_G) * linkInfo.v2 * linkInfo.v2 - g * vm2 - b * vm2 * dT;
         linkFlows.Q2 = -(b + 0.5 * mp_B) * linkInfo.v2 * linkInfo.v2 + b * vm2;
@@ -1195,12 +1195,12 @@ void AcLine::swOpenCalc()
 void AcLine::faultDeriv()
 {
     LinkDeriv = {};
-    if (!opFlags[switch1_open_flag]) {
+    if (!opFlags[switch1OpenFlag]) {
         LinkDeriv.dP1dv1 = 2 * (g / fault + fault * mp_G) / (tap * tap) * linkInfo.v1;
         LinkDeriv.dQ1dv1 = -2 * (b / fault + fault * mp_B) / (tap * tap) * linkInfo.v1;
     }
 
-    if (!opFlags[switch2_open_flag]) {
+    if (!opFlags[switch2OpenFlag]) {
         LinkDeriv.dP2dv2 = 2 * (g / (1.0 - fault) + (1.0 - fault) * mp_G) * linkInfo.v2;
         LinkDeriv.dQ2dv2 = -2 * (b / (1.0 - fault) + (1.0 - fault) * mp_B) * linkInfo.v2;
     }
@@ -1567,37 +1567,37 @@ void AcLine::swOpenDeriv()
 
     // flows from bus 2 to bus
 
-    double Y = 1.0 / (b + 0.5 * mp_B);
-    const double dT = -((g + 0.5 * mp_G) * Y - g / b);
+    double y = 1.0 / (b + 0.5 * mp_B);
+    const double dT = -((g + 0.5 * mp_G) * y - g / b);
 
-    if (!opFlags[switch1_open_flag]) {
+    if (!opFlags[switch1OpenFlag]) {
         double it2 = 1.0 / (tap * tap);
         LinkDeriv.dP1dv1 = 2.0 * (g + 0.5 * mp_G) * it2 * linkInfo.v1;
-        LinkDeriv.dP1dv1 -= 2.0 * g * b * it2 * linkInfo.v1 * Y;
-        LinkDeriv.dP1dv1 += 2.0 * b * b * it2 * linkInfo.v1 * Y * dT;
+        LinkDeriv.dP1dv1 -= 2.0 * g * b * it2 * linkInfo.v1 * y;
+        LinkDeriv.dP1dv1 += 2.0 * b * b * it2 * linkInfo.v1 * y * dT;
 
         LinkDeriv.dQ1dv1 = -2.0 * (b + 0.5 * mp_B) * it2 * linkInfo.v1;
-        LinkDeriv.dQ1dv1 += 2.0 * b * b * it2 * linkInfo.v1 * Y;
+        LinkDeriv.dQ1dv1 += 2.0 * b * b * it2 * linkInfo.v1 * y;
     }
 
-    if (!opFlags[switch2_open_flag]) {
+    if (!opFlags[switch2OpenFlag]) {
         LinkDeriv.dP2dv2 = 2.0 * (g + 0.5 * mp_G) * linkInfo.v2;
-        LinkDeriv.dP2dv2 -= 2.0 * g * b * linkInfo.v2 * Y;
-        LinkDeriv.dP2dv2 += 2.0 * b * b * linkInfo.v2 * Y * dT;
+        LinkDeriv.dP2dv2 -= 2.0 * g * b * linkInfo.v2 * y;
+        LinkDeriv.dP2dv2 += 2.0 * b * b * linkInfo.v2 * y * dT;
 
         LinkDeriv.dQ2dv2 = -2.0 * (b + 0.5 * mp_B) * linkInfo.v2;
-        LinkDeriv.dQ2dv2 += 2.0 * b * b * linkInfo.v2 * Y;
+        LinkDeriv.dQ2dv2 += 2.0 * b * b * linkInfo.v2 * y;
     }
     LinkDeriv.seqID = linkInfo.seqID;
 
     /*
-    if (!opFlags[switch1_open_flag])
+    if (!opFlags[switch1OpenFlag])
     {
     LinkDeriv.dP1dv1 = 2 * (g + mp_G) / (tap * tap) * linkInfo.v1;
     LinkDeriv.dQ1dv1 = -2 * (b  + mp_B) / (tap * tap) * linkInfo.v1;
     }
 
-    if (!opFlags[switch2_open_flag])
+    if (!opFlags[switch2OpenFlag])
     {
     LinkDeriv.dP2dv2 = 2 * (g  + mp_G) * linkInfo.v2;
     LinkDeriv.dQ2dv2 = -2 * (b  + mp_B) * linkInfo.v2;

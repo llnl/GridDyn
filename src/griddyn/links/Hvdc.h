@@ -11,17 +11,17 @@
 
 namespace griddyn::links {
 /** @brief class defining a complete hvdc system including converters dc buses and dc line*/
-class hvdc: public subsystem {
+class Hvdc: public Subsystem {
   public:
     /** hvdc helper flags*/
     enum HvdcFlags {
-        reverse_flow = object_flag6,  //!< flag indicating that the flow is reverse standard
+        reverseFlow = object_flag6,  //!< flag indicating that the flow is reverse standard
     };
 
   protected:
   public:
     /** @brief constructor*/
-    hvdc(const std::string& objName = "hvdc_$");
+    Hvdc(const std::string& objName = "hvdc_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // parameter set functions
     virtual void set(std::string_view param, std::string_view val) override;

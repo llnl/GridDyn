@@ -12,19 +12,19 @@
 namespace griddyn::links {
 /** implementing a DC transmission line model
  */
-class dcLink: public Link {
+class DcLink: public Link {
   public:
-    /*  enum dclink_flags
+    /*  enum DcLinkFlags
   {
-    fixed_target_power = object_flag5,
+    fixedTargetPower = object_flag5,
   };*/
   protected:
     double Idc = 0;  //!< [puA] storage for DC current
     double r = 0;  //!< [puOhm]  the dc resistance
     double x = 0.0001;  //!< [puOhm]  the dc inductance
   public:
-    dcLink(const std::string& objName = "dclink_$");
-    dcLink(double resistancePu, double reactancePu, const std::string& objName = "dclink_$");
+    DcLink(const std::string& objName = "dclink_$");
+    DcLink(double resistancePu, double reactancePu, const std::string& objName = "dclink_$");
     // Link(double max_power,GridBus *bus1, GridBus *bus2);
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;

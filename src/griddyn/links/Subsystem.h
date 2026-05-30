@@ -17,11 +17,11 @@ namespace griddyn {
  built on the link model a subsystem contains an area so the whole simulation can be contained in
  layers
 */
-class subsystem: public Link {
+class Subsystem: public Link {
   public:
     enum SubsystemFlags {
-        direct_connection = object_flag5,  //!< flag indicating directly connected objects (skipping
-                                           //!< the terminal link structure)
+        directConnection = object_flag5,  //!< flag indicating directly connected objects (skipping
+                                          //!< the terminal link structure)
     };
 
   protected:
@@ -39,9 +39,9 @@ class subsystem: public Link {
   public:
     /** @brief default constructor
   @param[in] terminals  the number of terminal the subsystem should have*/
-    subsystem(count_t terminals, const std::string& objName = "subsystem_$");
+    Subsystem(count_t terminals, const std::string& objName = "subsystem_$");
 
-    subsystem(const std::string& objName = "subsystem_$");
+    Subsystem(const std::string& objName = "subsystem_$");
     /** @brief the destructor*/
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components
@@ -59,7 +59,7 @@ class subsystem: public Link {
 
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
-    virtual void pFlowCheck(std::vector<Violation>& Violation_vector) override;
+    virtual void pFlowCheck(std::vector<Violation>& violationVector) override;
     // dynInitializeB dynamics
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
@@ -91,21 +91,21 @@ class subsystem: public Link {
 
     virtual void setState(coreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const SolverMode& sMode) override;
     // for identifying which variables are algebraic vs differential
     /** @brief do a local converge on the components in the area
    a wrapper around the area->converge function
   @param[in] time the time
   @param[in] state the system state
-  @param[in] dstate_dt the time derivative of the state
+  @param[in] dstateDt the time derivative of the state
   @param[in] sMode the SolverMode corresponding to the state
   @param[in] tol  the tolerance to do the convergence
   @param[in] mode the mode of convergence
   */
     virtual void converge(coreTime time,
                           double state[],
-                          double dstate_dt[],
+                          double dstateDt[],
                           const SolverMode& sMode,
                           ConvergeMode mode = ConvergeMode::block_iteration,
                           double tol = 0.01) override;

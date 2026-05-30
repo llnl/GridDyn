@@ -10,7 +10,7 @@
 #include "../GridBus.h"
 #include "../Link.h"
 #include "../primary/DcBus.h"
-#include "AcdcConverter.h"
+#include "AcDcConverter.h"
 #include "DcLink.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
@@ -21,30 +21,30 @@
 namespace griddyn::links {
 using units::unit;
 
-static TypeFactory<hvdc> gf("link", std::to_array<std::string_view>({"hvdc"}));
+static TypeFactory<Hvdc> gHvdcFactory("link", std::to_array<std::string_view>({"hvdc"}));
 
-hvdc::hvdc(const std::string& objName): subsystem(4, objName)
+Hvdc::Hvdc(const std::string& objName): Subsystem(4, objName)
 {
     // default values
 
-    auto dcl = new dcLink("dcline");
+    auto* dcl = new DcLink("dcline");
     dcl->set("type", "slk");
-    subsystem::add(dcl);
+    Subsystem::add(dcl);
 
-    auto rec1 = new acdcConverter("rect1");
-    subsystem::add(rec1);
-    auto rec2 = new acdcConverter("rect2");
-    subsystem::add(rec2);
+    auto* rec1 = new AcDcConverter("rect1");
+    Subsystem::add(rec1);
+    auto* rec2 = new AcDcConverter("rect2");
+    Subsystem::add(rec2);
 
-    auto inv1 = new acdcConverter("inv1");
-    subsystem::add(inv1);
-    auto inv2 = new acdcConverter("inv2");
-    subsystem::add(inv2);
+    auto* inv1 = new AcDcConverter("inv1");
+    Subsystem::add(inv1);
+    auto* inv2 = new AcDcConverter("inv2");
+    Subsystem::add(inv2);
 
-    auto dcb1 = new DcBus("bus1");
-    subsystem::add(dcb1);
-    auto dcb2 = new DcBus("bus2");
-    subsystem::add(dcb2);
+    auto* dcb1 = new DcBus("bus1");
+    Subsystem::add(dcb1);
+    auto* dcb2 = new DcBus("bus2");
+    Subsystem::add(dcb2);
 
     dcl->updateBus(dcb1, 1);
     dcl->updateBus(dcb2, 2);
@@ -54,19 +54,19 @@ hvdc::hvdc(const std::string& objName): subsystem(4, objName)
     inv2->updateBus(dcb2, 2);
     rec2->updateBus(dcb1, 2);
 
-    subsystem::set("connection_1", "rect1,1");
-    subsystem::set("connection_2", "inv1,1");
-    subsystem::set("connection_3", "inv2,1");
-    subsystem::set("connection_4", "rect2,1");
+    Subsystem::set("connection_1", "rect1,1");
+    Subsystem::set("connection_2", "inv1,1");
+    Subsystem::set("connection_3", "inv2,1");
+    Subsystem::set("connection_4", "rect2,1");
     inv2->set("pset", 0);
     rec2->set("pset", 0);
     inv1->set("pset", 0);
     rec2->set("pset", 0);
 }
 
-CoreObject* hvdc::clone(CoreObject* obj) const
+CoreObject* Hvdc::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<hvdc, subsystem>(this, obj);
+    auto* nobj = cloneBase<Hvdc, Subsystem>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -75,20 +75,20 @@ CoreObject* hvdc::clone(CoreObject* obj) const
 }
 
 // set properties
-void hvdc::set(std::string_view param, std::string_view val)
+void Hvdc::set(std::string_view param, std::string_view val)
 {
     if (param == "from") {
-        subsystem::set("bus1", val);
-        subsystem::set("bus3", val);
+        Subsystem::set("bus1", val);
+        Subsystem::set("bus3", val);
     } else if (param == "to") {
-        subsystem::set("bus2", val);
-        subsystem::set("bus4", val);
+        Subsystem::set("bus2", val);
+        Subsystem::set("bus4", val);
     } else {
-        subsystem::set(param, val);
+        Subsystem::set(param, val);
     }
 }
 
-void hvdc::set(std::string_view param, double val, unit unitType)
+void Hvdc::set(std::string_view param, double val, unit unitType)
 {
     if (param == "r") {
         getLink(0)->set("r", val, unitType);
@@ -111,42 +111,42 @@ void hvdc::set(std::string_view param, double val, unit unitType)
             getLink(3)->set("pset", val, unitType);
         }
     } else {
-        subsystem::set(param, val, unitType);
+        Subsystem::set(param, val, unitType);
     }
 }
 
-double hvdc::get(std::string_view param, unit unitType) const
+double Hvdc::get(std::string_view param, unit unitType) const
 {
     double val = kNullVal;
     if (param == "#") {
     } else {
-        val = subsystem::get(param, unitType);
+        val = Subsystem::get(param, unitType);
     }
     return val;
 }
 
-void hvdc::updateBus(GridBus* bus, index_t busnumber)
+void Hvdc::updateBus(GridBus* bus, index_t busnumber)
 {
     if (busnumber == 1) {
-        subsystem::updateBus(bus, 1);
-        subsystem::updateBus(bus, 3);
+        Subsystem::updateBus(bus, 1);
+        Subsystem::updateBus(bus, 3);
     } else if (busnumber == 2) {
-        subsystem::updateBus(bus, 2);
-        subsystem::updateBus(bus, 4);
+        Subsystem::updateBus(bus, 2);
+        Subsystem::updateBus(bus, 4);
     } else {
-        subsystem::updateBus(bus, busnumber);
+        Subsystem::updateBus(bus, busnumber);
     }
 }
 
-void hvdc::setFlow(int direction)
+void Hvdc::setFlow(int direction)
 {
     if (direction == reverse) {
-        if (!opFlags[reverse_flow]) {
-            opFlags.set(reverse_flow);
+        if (!opFlags[reverseFlow]) {
+            opFlags.set(reverseFlow);
         }
     } else {
-        if (opFlags[reverse_flow]) {
-            opFlags.reset(reverse_flow);
+        if (opFlags[reverseFlow]) {
+            opFlags.reset(reverseFlow);
         }
     }
 }

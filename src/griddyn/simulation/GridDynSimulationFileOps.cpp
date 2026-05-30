@@ -397,8 +397,8 @@ static void cdfLinkPrint(std::ostream& output, int areaNumber, AcLine* link)
     double minAdj = 0.0;
     double maxAdj = 0.0;
     double stepSize = 0.0;
-    if (dynamic_cast<links::adjustableTransformer*>(link) != nullptr) {
-        auto* adjustableLink = static_cast<links::adjustableTransformer*>(link);
+    if (dynamic_cast<links::AdjustableTransformer*>(link) != nullptr) {
+        auto* adjustableLink = static_cast<links::AdjustableTransformer*>(link);
         type = adjustableLink->getInt("control_mode");
         switch (type) {
             case 0:

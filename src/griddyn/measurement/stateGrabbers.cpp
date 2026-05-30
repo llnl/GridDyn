@@ -340,8 +340,8 @@ static const std::map<std::string, fstateobjectPair> linkFunctions{
 {"lossreactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return (static_cast<Link *> (obj)->getReactiveLoss ());}, puMW}},
   {"attached",
    {FUNCTION_SIGNATURE_OBJ_ONLY{
-     return static_cast<double> (((!static_cast<Link *> (obj)->checkFlag (Link::switch1_open_flag)) ||
-                                  (!static_cast<Link *> (obj)->checkFlag (Link::switch2_open_flag))) &&
+     return static_cast<double> (((!static_cast<Link *> (obj)->checkFlag (Link::switch1OpenFlag)) ||
+                                  (!static_cast<Link *> (obj)->checkFlag (Link::switch2OpenFlag))) &&
                                  (static_cast<Link *> (obj)->isEnabled ()));}, defunit}},
 };
 

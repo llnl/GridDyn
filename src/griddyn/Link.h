@@ -19,7 +19,7 @@ class GridBus;  // forward class definition
 Vmx=\frac{v1*v2}{tap}
 \f]
 the seqID is also the index of the state data it was calculated from*/
-class linkI {
+class LinkInfo {
   public:
     double v1 = 0.0;  //!< [puV] voltage at bus1
     double v2 = 0.0;  //!< [puV] voltage at bus2
@@ -30,7 +30,7 @@ class linkI {
 
 /** @brief structure containing information on the flows for the link
         the seqID is also the index of the state data it was calculated from*/
-class linkF {
+class LinkFlows {
   public:
     double P1 = 0.0;  //!< [puMW] power transferred from bus 1
     double P2 = 0.0;  //!< [puMW] power transferred from bus 2
@@ -52,10 +52,10 @@ class Link: public GridPrimary {
     // it can be edited as it does not impact link operations just for user convenience
     /** @brief define some basic flag locations for Link*/
     enum GridLinkFlags {
-        switch1_open_flag = object_flag1,  //!<  switch for the from bus
-        switch2_open_flag = object_flag2,  //!< switch for the to bus
-        fixed_target_power = object_flag3,  //!< flag indicating if the power flow was fixed
-        network_connected =
+        switch1OpenFlag = object_flag1,  //!<  switch for the from bus
+        switch2OpenFlag = object_flag2,  //!< switch for the to bus
+        fixedTargetPower = object_flag3,  //!< flag indicating if the power flow was fixed
+        networkConnected =
             object_flag4,  //!< indicates if a link ties the buses together in connected network
 
     };
@@ -65,8 +65,8 @@ class Link: public GridPrimary {
     GridBus* B2 = nullptr;  //!< the bus on the to side
 
     index_t circuitNum = 1;  //!< helper field for multicircuit links
-    linkI linkInfo;  //!< holder for the latest bus information
-    linkF linkFlows;  //!< holder latest computed power flow information
+    LinkInfo linkInfo;  //!< holder for the latest bus information
+    LinkFlows linkFlows;  //!< holder latest computed power flow information
     double ratingA = kBigNum;  //!< [puA] the long term rating of the link
     double ratingB = kBigNum;  //!< [puA] the short term rating of the link
     double Erating = kBigNum;  //!< [puA] the emergency rating of the link
@@ -92,7 +92,7 @@ class Link: public GridPrimary {
      */
     virtual bool switchTest() const
     {
-        return (opFlags[switch1_open_flag] || opFlags[switch2_open_flag]);
+        return (opFlags[switch1OpenFlag] || opFlags[switch2OpenFlag]);
     }
     /** @brief get the switch state
     @param[in] num  the number of the switch 1 for "from" bus 2 for "to" bus
@@ -100,7 +100,7 @@ class Link: public GridPrimary {
     */
     virtual bool switchTest(index_t num) const
     {
-        return (num == 2) ? opFlags[switch2_open_flag] : opFlags[switch1_open_flag];
+        return (num == 2) ? opFlags[switch2OpenFlag] : opFlags[switch1OpenFlag];
     }
     /** @brief set the switch state
     @param[in] num  the number of the switch 1 for "from" bus 2 for "to" bus
@@ -167,7 +167,7 @@ class Link: public GridPrimary {
     @param[out] Violation_vector --a list of all the violations any new violations get added to the
     result
     */
-    virtual void pFlowCheck(std::vector<Violation>& Violation_vector) override;
+    virtual void pFlowCheck(std::vector<Violation>& violationVector) override;
 
     virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     /** @brief do a quick update  (may be deprecated)

@@ -55,7 +55,7 @@ class HelicsCollector: public collector {
     virtual const std::string& getSinkName() const override;
 
   protected:
-    void dataPointAdded(const collectorPoint& cp) override;
+    void dataPointAdded(const CollectorPoint& cp) override;
 
   private:
     /** function to find the fmi coordinator so we can connect to that*/

@@ -79,7 +79,7 @@ void DcBusControls::addControlObject(GridComponent* comp, bool update)
         }
         controlObjects.push_back(static_cast<gridSecondary*>(comp));
         cfrac.push_back(comp->get("participation"));
-    } else if (dynamic_cast<links::dcLink*>(comp) != nullptr) {
+    } else if (dynamic_cast<links::DcLink*>(comp) != nullptr) {
         auto objid = comp->getID();
         for (auto& rvc : controlLinks) {
             if (objid == rvc->getID()) {

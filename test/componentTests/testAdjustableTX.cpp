@@ -40,7 +40,7 @@ TEST_F(AdjustableTransformerTests, AdjTestSimple)
     gds2->powerflow();
     requireStates(gds2->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
-    auto adj = dynamic_cast<links::adjustableTransformer*>(gds2->getLink(1));
+    auto adj = dynamic_cast<links::AdjustableTransformer*>(gds2->getLink(1));
     ASSERT_NE(adj, nullptr);
     EXPECT_NEAR(adj->getTap() - 1.1, 0.0, 1e-3);
 }

@@ -14,12 +14,12 @@ namespace griddyn::links {
 used for implementing a bus-breaker model of a power system as well as creating slave buses and a
 few other types of linkages
 */
-class zBreaker: public Link {
+class ZBreaker: public Link {
   protected:
     bool& merged;  //!< flag indicating that the buses have been merged using the extra bool in
                    //!< CoreObject
   public:
-    zBreaker(const std::string& objName = "zbreaker_$");
+    ZBreaker(const std::string& objName = "zbreaker_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // parameter set functions
 
@@ -33,7 +33,7 @@ class zBreaker: public Link {
 
     virtual void updateLocalCache() override;
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const StateData& sD,
+                                  const StateData& stateDataValue,
                                   const SolverMode& sMode) override;
     virtual double quickupdateP() override;
 

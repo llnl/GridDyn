@@ -71,7 +71,7 @@ CoreObject* FmiCollector::getOwner() const
     return mCoordinator;
 }
 
-void FmiCollector::dataPointAdded(const collectorPoint& collectorDataPoint)
+void FmiCollector::dataPointAdded(const CollectorPoint& collectorDataPoint)
 {
     if (mCoordinator == nullptr) {
         // find the coordinator first

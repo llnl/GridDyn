@@ -37,7 +37,7 @@ void HelicsCollector::cloneTo(collector* col) const
     }
 }
 
-void HelicsCollector::dataPointAdded(const collectorPoint& cp)
+void HelicsCollector::dataPointAdded(const CollectorPoint& cp)
 {
     if (coordinator_ == nullptr) {
         // find the coordinator first

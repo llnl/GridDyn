@@ -446,12 +446,12 @@ static void cdfReadBranch(CoreObject* parentObject,
             lnk->set("basepower", base);
             break;
         case 2:
-            lnk = new links::adjustableTransformer();
+            lnk = new links::AdjustableTransformer();
             lnk->set("mode", "voltage");
             lnk->set("basepower", base);
             cbus = numeric_conversion<int>(line.substr(68, 4), 0);
             if (cbus > 0) {
-                dynamic_cast<links::adjustableTransformer*>(lnk)->setControlBus(busList[cbus]);
+                dynamic_cast<links::AdjustableTransformer*>(lnk)->setControlBus(busList[cbus]);
             }
             temp = line.substr(73, 1);
             if (temp[0] != ' ') {
@@ -478,7 +478,7 @@ static void cdfReadBranch(CoreObject* parentObject,
             lnk->set("maxtap", reactance);
             break;
         case 3:
-            lnk = new links::adjustableTransformer();
+            lnk = new links::AdjustableTransformer();
             lnk->set("basepower", base);
             lnk->set("mode", "mvar");
             resistance = numeric_conversion(line.substr(112, 7), 0.0);
@@ -492,7 +492,7 @@ static void cdfReadBranch(CoreObject* parentObject,
             lnk->set("maxtap", reactance);
             break;
         case 4:
-            lnk = new links::adjustableTransformer();
+            lnk = new links::AdjustableTransformer();
             lnk->set("basepower", base);
             lnk->set("mode", "mw");
             resistance = numeric_conversion(line.substr(112, 7), 0.0);

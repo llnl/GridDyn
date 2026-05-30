@@ -991,7 +991,7 @@ void epcReadDCBranch(CoreObject* parentObject,
 
     // check the circuit identifier
     auto name = generateLineName(strvec, bri.prefix);
-    auto lnk = new links::dcLink(name);
+    auto lnk = new links::DcLink(name);
     auto longId = trim(removeQuotes(strvec[7]));
     if (!longId.empty()) {
         lnk->setDescription(std::string{longId});
@@ -1080,19 +1080,19 @@ void epcReadTX(CoreObject* parentObject,
         case 2:
         case 12:
             code = 2;
-            lnk = new links::adjustableTransformer(name);
+            lnk = new links::AdjustableTransformer(name);
             lnk->set("mode", "voltage");
             break;
         case 3:
         case 13:
             code = 3;
-            lnk = new links::adjustableTransformer(name);
+            lnk = new links::AdjustableTransformer(name);
             lnk->set("mode", "mvar");
             break;
         case 4:
         case 14:
             code = 4;
-            lnk = new links::adjustableTransformer(name);
+            lnk = new links::AdjustableTransformer(name);
             lnk->set("mode", "mw");
             break;
         default:
@@ -1156,7 +1156,7 @@ void epcReadTX(CoreObject* parentObject,
     if (code > 1) {
         cbus = numeric_conversion<int>(strvec[10], 0);
         if (cbus != 0) {
-            static_cast<links::adjustableTransformer*>(lnk)->setControlBus(busList[cbus - 1]);
+            static_cast<links::AdjustableTransformer*>(lnk)->setControlBus(busList[cbus - 1]);
         }
         r = numeric_conversion<double>(strvec[40], 0.0);
         x = numeric_conversion<double>(strvec[41], 0.0);

@@ -14,7 +14,7 @@ namespace griddyn::links {
 /** @brief class defining a long line model
 the model splits the line into a number of short line segments with buses in between
 */
-class LongLine: public subsystem {
+class LongLine: public Subsystem {
   protected:
     double segmentationLength = 50;  //!< [km] the length of each segment
     double fault = -1.0;  //!< fault location along the line keep at <0 for no fault

@@ -444,8 +444,8 @@ static const std::map<std::string_view, fobjectPair, std::less<std::string_view>
     {"attached",
      {[](CoreObject* obj) {
           return static_cast<double>(
-              ((!static_cast<Link*>(obj)->checkFlag(Link::switch1_open_flag)) ||
-               (!static_cast<Link*>(obj)->checkFlag(Link::switch2_open_flag))) &&
+              ((!static_cast<Link*>(obj)->checkFlag(Link::switch1OpenFlag)) ||
+               (!static_cast<Link*>(obj)->checkFlag(Link::switch2OpenFlag))) &&
               (static_cast<Link*>(obj)->isEnabled()));
       },
       defunit}},

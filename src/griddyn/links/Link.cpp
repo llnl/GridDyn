@@ -8,8 +8,8 @@
 #include "../GridBus.h"
 #include "../measurement/ObjectGrabbers.h"
 #include "../simulation/Contingency.h"
+#include "AcDcConverter.h"
 #include "AcLine.h"
-#include "AcdcConverter.h"
 #include "AdjustableTransformer.h"
 #include "DcLink.h"
 #include "core/CoreExceptions.h"
@@ -35,32 +35,32 @@ using units::unit;
 
 // make the object factory types
 
-static TypeFactory<Link> blf("link",
-                             std::to_array<std::string_view>({"trivial", "basic", "transport"}));
+static TypeFactory<Link> gBlf("link",
+                              std::to_array<std::string_view>({"trivial", "basic", "transport"}));
 
-static ChildTypeFactory<AcLine, Link> glf(
+static ChildTypeFactory<AcLine, Link> gLf(
     "link",
     std::to_array<std::string_view>({"ac", "line", "phaseshifter", "phase_shifter", "transformer"}),
     "ac");
 
 namespace links {
-    static ChildTypeFactory<adjustableTransformer, Link>
-        gfad("link",
+    static ChildTypeFactory<AdjustableTransformer, Link>
+        gFad("link",
              std::to_array<std::string_view>({"adjust", "adjustable", "adjustabletransformer"}));
 
-    static ChildTypeFactory<dcLink, Link>
-        dclnk("link", std::to_array<std::string_view>({"dc", "dclink", "dcline"}));
+    static ChildTypeFactory<DcLink, Link>
+        gDclnk("link", std::to_array<std::string_view>({"dc", "dclink", "dcline"}));
 
-    static TypeFactoryArg<acdcConverter, acdcConverter::Mode>
-        dcrect("link",
-               std::to_array<std::string_view>({"rectifier", "rect"}),
-               acdcConverter::Mode::RECTIFIER);
-    static TypeFactoryArg<acdcConverter, acdcConverter::Mode>
-        dcinv("link",
-              std::to_array<std::string_view>({"inverter", "inv"}),
-              acdcConverter::Mode::INVERTER);
-    static ChildTypeFactory<acdcConverter, Link>
-        acdc("link", std::to_array<std::string_view>({"acdc", "acdcconverter", "dcconverter"}));
+    static TypeFactoryArg<AcDcConverter, AcDcConverter::Mode>
+        gDcrect("link",
+                std::to_array<std::string_view>({"rectifier", "rect"}),
+                AcDcConverter::Mode::RECTIFIER);
+    static TypeFactoryArg<AcDcConverter, AcDcConverter::Mode>
+        gDcinv("link",
+               std::to_array<std::string_view>({"inverter", "inv"}),
+               AcDcConverter::Mode::INVERTER);
+    static ChildTypeFactory<AcDcConverter, Link>
+        gAcdc("link", std::to_array<std::string_view>({"acdc", "acdcconverter", "dcconverter"}));
 }  // namespace links
 std::atomic<count_t> Link::linkCount(0);
 // helper defines to have things make more sense
@@ -78,7 +78,7 @@ Link::Link(const std::string& objName): GridPrimary(objName)
 
 CoreObject* Link::clone(CoreObject* obj) const
 {
-    auto* lnk = cloneBaseFactory<Link, GridPrimary>(this, obj, &glf);
+    auto* lnk = cloneBaseFactory<Link, GridPrimary>(this, obj, &gLf);
     if (lnk == nullptr) {
         return obj;
     }
@@ -122,7 +122,7 @@ void Link::updateBus(GridBus* bus, index_t busNumber)
 
 void Link::followNetwork(int network, std::queue<GridBus*>& stk)
 {
-    if (isConnected() && opFlags[network_connected]) {
+    if (isConnected() && opFlags[networkConnected]) {
         if (B1->Network != network) {
             stk.push(B1);
         }
@@ -132,7 +132,7 @@ void Link::followNetwork(int network, std::queue<GridBus*>& stk)
     }
 }
 
-void Link::pFlowCheck(std::vector<Violation>& Violation_vector)
+void Link::pFlowCheck(std::vector<Violation>& violationVector)
 {
     const double mva = std::max(getCurrent(0), getCurrent(1));
     if (mva > ratingA) {
@@ -140,7 +140,7 @@ void Link::pFlowCheck(std::vector<Violation>& Violation_vector)
         viol.level = mva;
         viol.limit = ratingA;
         viol.percentViolation = (mva - ratingA) / ratingA * 100;
-        Violation_vector.push_back(viol);
+        violationVector.push_back(viol);
     }
     if (mva > ratingB) {
         Violation viol(getName(), MVA_EXCEED_RATING_B);
@@ -148,14 +148,14 @@ void Link::pFlowCheck(std::vector<Violation>& Violation_vector)
         viol.level = mva;
         viol.limit = ratingB;
         viol.percentViolation = (mva - ratingB) / ratingB * 100;
-        Violation_vector.push_back(viol);
+        violationVector.push_back(viol);
     }
     if (mva > Erating) {
         Violation viol(getName(), MVA_EXCEED_ERATING);
         viol.level = mva;
         viol.limit = Erating;
         viol.percentViolation = (mva - Erating) / Erating * 100;
-        Violation_vector.push_back(viol);
+        violationVector.push_back(viol);
     }
 }
 
@@ -177,13 +177,13 @@ void Link::timestep(const coreTime time, const IOdata& /*inputs*/, const SolverM
     }*/
 }
 
-static const stringVec locNumStrings{"loss", "switch1", "switch2", "p"};
-static const stringVec locStrStrings{"from", "to"};
-static const stringVec flagStrings{};
+static const stringVec LOC_NUM_STRINGS{"loss", "switch1", "switch2", "p"};
+static const stringVec LOC_STR_STRINGS{"from", "to"};
+static const stringVec FLAG_STRINGS{};
 void Link::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<Link, GridPrimary>(
-        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
+        this, pstr, LOC_NUM_STRINGS, LOC_STR_STRINGS, FLAG_STRINGS, pstype);
 }
 
 // set properties
@@ -221,16 +221,16 @@ void Link::set(std::string_view param, std::string_view val)
 void Link::switchMode(index_t num, bool mode)
 {
     if (num == 2) {
-        if (mode == opFlags[switch2_open_flag]) {
+        if (mode == opFlags[switch2OpenFlag]) {
             return;
         }
 
-        opFlags.flip(switch2_open_flag);
+        opFlags.flip(switch2OpenFlag);
 
         if (opFlags[pFlow_initialized]) {
             logging::debug(this,
                            "Switch2 changed||state ={}, link status ={}",
-                           (opFlags[switch2_open_flag]) ? "OPEN" : "CLOSED",
+                           (opFlags[switch2OpenFlag]) ? "OPEN" : "CLOSED",
                            (isConnected()) ? "CONNECTED" : "DISCONNECTED");
             if (isConnected()) {
                 reconnect();
@@ -248,15 +248,15 @@ void Link::switchMode(index_t num, bool mode)
             }
         }
     } else {
-        if (mode == opFlags[switch1_open_flag]) {
+        if (mode == opFlags[switch1OpenFlag]) {
             return;
         }
-        opFlags.flip(switch1_open_flag);
+        opFlags.flip(switch1OpenFlag);
 
         if (opFlags[pFlow_initialized]) {
             logging::debug(this,
                            "Switch1 changed||state ={}, link status ={}",
-                           (opFlags[switch1_open_flag]) ? "OPEN" : "CLOSED",
+                           (opFlags[switch1OpenFlag]) ? "OPEN" : "CLOSED",
                            (isConnected()) ? "CONNECTED" : "DISCONNECTED");
             if (isConnected()) {
                 reconnect();
@@ -288,8 +288,8 @@ bool Link::testAndTrip([[maybe_unused]] int tripLevel)
 void Link::disconnect()
 {
     if (isConnected()) {
-        opFlags.set(switch1_open_flag, true);
-        opFlags.set(switch2_open_flag, true);
+        opFlags.set(switch1OpenFlag, true);
+        opFlags.set(switch2OpenFlag, true);
         switchChange(1);
         switchChange(2);
         if (!B1->checkCapable()) {
@@ -307,12 +307,12 @@ void Link::disconnect()
 void Link::reconnect()
 {
     if (!isConnected()) {
-        if (opFlags[switch1_open_flag]) {
-            opFlags.reset(switch1_open_flag);
+        if (opFlags[switch1OpenFlag]) {
+            opFlags.reset(switch1OpenFlag);
             switchChange(1);
         }
-        if (opFlags[switch2_open_flag]) {
-            opFlags.reset(switch2_open_flag);
+        if (opFlags[switch2OpenFlag]) {
+            opFlags.reset(switch2OpenFlag);
             switchChange(2);
         }
         logging::debug(this, "reconnecting line");
@@ -343,7 +343,7 @@ void Link::set(std::string_view param, double val, unit unitType)
         switchMode(2, (val < 0.01));
     } else if (param == "pset") {
         Pset = convert(val, unitType, puMW, systemBasePower);
-        opFlags.set(fixed_target_power);
+        opFlags.set(fixedTargetPower);
         computePowers();
     } else if ((param == "loss") || (param == "lossfraction")) {
         lossFraction = val;
@@ -381,9 +381,9 @@ double Link::get(std::string_view param, unit unitType) const
     double val = kNullVal;
 
     if ((param == "breaker1") || (param == "switch1") || (param == "breaker_open1")) {
-        val = static_cast<double>(opFlags[switch1_open_flag]);
+        val = static_cast<double>(opFlags[switch1OpenFlag]);
     } else if ((param == "breaker2") || (param == "switch2") || (param == "breaker_open2")) {
-        val = static_cast<double>(opFlags[switch2_open_flag]);
+        val = static_cast<double>(opFlags[switch2OpenFlag]);
     } else if ((param == "connected") || (param == "breaker")) {
         val = static_cast<double>(isConnected());
     } else if ((param == "set") || (param == "pset")) {
@@ -420,16 +420,16 @@ double Link::get(std::string_view param, unit unitType) const
 void Link::pFlowObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
 {
     if (B1 == nullptr) {
-        opFlags.set(switch1_open_flag);
+        opFlags.set(switch1OpenFlag);
     }
     if (B2 == nullptr) {
-        opFlags.set(switch2_open_flag);
+        opFlags.set(switch2OpenFlag);
     }
 }
 
 bool Link::isConnected() const
 {
-    return (!(opFlags[switch1_open_flag] || opFlags[switch2_open_flag]));
+    return (!(opFlags[switch1OpenFlag] || opFlags[switch2OpenFlag]));
 }
 int Link::fixRealPower(double power,
                        id_type_t measureTerminal,
@@ -441,11 +441,11 @@ int Link::fixRealPower(double power,
     } else {
         Pset = convert(power, unitType, puMW, systemBasePower) / (1.0 - lossFraction);
     }
-    opFlags.set(fixed_target_power);
+    opFlags.set(fixedTargetPower);
     return 1;
 }
 
-static IOlocs aLoc{0, 1};
+static IOlocs gALoc{0, 1};
 
 int Link::fixPower(double rPower,
                    double /*qPower*/,

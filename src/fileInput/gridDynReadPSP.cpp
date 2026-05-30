@@ -441,7 +441,7 @@ void pspReadBranch(CoreObject* parentObject,
             lnk = new AcLine();
             // lnk->set ("type", "transformer");
         } else {
-            lnk = new links::adjustableTransformer();
+            lnk = new links::AdjustableTransformer();
 
             int numTaps = std::stoi(temp);
             lnk->set("steps", static_cast<double>(numTaps));

@@ -20,10 +20,10 @@ namespace links {
     /** class defines an object that converts operation between dc and ac, can act as a inverter, a
      * rectifier or a bidirectional mode
      */
-    class acdcConverter: public Link {
+    class AcDcConverter: public Link {
       public:
         enum InverterFlags {
-            fixed_power_control = object_flag6,
+            fixedPowerControl = object_flag6,
         };
         enum class Mode { RECTIFIER, INVERTER, BIDIRECTIONAL };
 
@@ -47,21 +47,21 @@ namespace links {
         double dirMult = 1.0;
         model_parameter minAngle = -kPI / 2.0;  //!< [rad] minimum tap angle
         model_parameter maxAngle = kPI / 2.0;  //!< [rad]  maximum tap angle
-        ControlMode control_mode = ControlMode::VOLTAGE;
+        ControlMode controlMode = ControlMode::VOLTAGE;
 
         CoreOwningPtr<blocks::PidBlock> firingAngleControl;  //!< block controlling firing angle
         CoreOwningPtr<blocks::PidBlock> powerLevelControl;  //!< block controlling power
         CoreOwningPtr<blocks::DelayBlock> controlDelay;  //!< delayblock for control of tap
 
       public:
-        explicit acdcConverter(const std::string& objName = "acdcConveter_$");
+        explicit AcDcConverter(const std::string& objName = "acdcConveter_$");
         // name will be based on opType
-        acdcConverter(Mode opType, const std::string& objName = "");
-        acdcConverter(double resistanceParameter,
+        AcDcConverter(Mode opType, const std::string& objName = "");
+        AcDcConverter(double resistanceParameter,
                       double reactanceParameter,
                       const std::string& objName = "acdcConveter_$");
 
-        virtual ~acdcConverter();
+        virtual ~AcDcConverter();
         virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
         virtual double getMaxTransfer() const override;

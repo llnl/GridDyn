@@ -924,7 +924,7 @@ static void rawReadTXadj(CoreObject* parentObject,
         return;
     }
 
-    auto* adjTX = new links::adjustableTransformer();
+    auto* adjTX = new links::AdjustableTransformer();
     lnk->clone(adjTX);
     lnk->addOwningReference();
     parentObject->remove(lnk);
@@ -1102,21 +1102,21 @@ static int rawReadTxV33(CoreObject* parentObject,
             if (opt.prefix.empty()) {
                 name.insert(0, "vadj");
             }
-            lnk = new links::adjustableTransformer(name);
+            lnk = new links::AdjustableTransformer(name);
             lnk->set("mode", "voltage");
             break;
         case 2:
             if (opt.prefix.empty()) {
                 name.insert(0, "qadj");
             }
-            lnk = new links::adjustableTransformer(name);
+            lnk = new links::AdjustableTransformer(name);
             lnk->set("mode", "mvar");
             break;
         case 3:
             if (opt.prefix.empty()) {
                 name.insert(0, "padj");
             }
-            lnk = new links::adjustableTransformer(name);
+            lnk = new links::AdjustableTransformer(name);
             lnk->set("mode", "mw");
             break;
     }
@@ -1237,13 +1237,13 @@ static int rawReadTxV33(CoreObject* parentObject,
         auto cbus = numeric_conversion<int>(strvec3[7], 0);
         if (cbus != 0) {
             if (abs(cbus) == ind1) {
-                static_cast<links::adjustableTransformer*>(lnk)->setControlBus(1);
+                static_cast<links::AdjustableTransformer*>(lnk)->setControlBus(1);
             } else if (abs(cbus) == ind2) {
-                static_cast<links::adjustableTransformer*>(lnk)->setControlBus(2);
+                static_cast<links::AdjustableTransformer*>(lnk)->setControlBus(2);
             }
 
             else {
-                static_cast<links::adjustableTransformer*>(lnk)->setControlBus(busList[abs(cbus)]);
+                static_cast<links::AdjustableTransformer*>(lnk)->setControlBus(busList[abs(cbus)]);
             }
 
             if (tapcode == 2) {
@@ -1343,15 +1343,15 @@ static int rawReadTX(CoreObject* parentObject,
             lnk = gLinkfactory->makeDirectObject(name);
             break;
         case 1:
-            lnk = new links::adjustableTransformer(name);
+            lnk = new links::AdjustableTransformer(name);
             lnk->set("mode", "voltage");
             break;
         case 2:
-            lnk = new links::adjustableTransformer(name);
+            lnk = new links::AdjustableTransformer(name);
             lnk->set("mode", "mvar");
             break;
         case 3:
-            lnk = new links::adjustableTransformer(name);
+            lnk = new links::AdjustableTransformer(name);
             lnk->set("mode", "mw");
             break;
     }
@@ -1418,16 +1418,16 @@ static int rawReadTX(CoreObject* parentObject,
         if (cbus != 0) {
             /*if (abs(cbus) == ind1)
              {
-                 static_cast<links::adjustableTransformer*>(lnk)->setControlBus(1);
+                 static_cast<links::AdjustableTransformer*>(lnk)->setControlBus(1);
              }
              else if (abs(cbus) == ind2)
              {
-                 static_cast<links::adjustableTransformer*>(lnk)->setControlBus(2);
+                 static_cast<links::AdjustableTransformer*>(lnk)->setControlBus(2);
              }
 
              else */
             {
-                //    static_cast<links::adjustableTransformer*>(lnk)->setControlBus(busList[abs(cbus)]);
+                //    static_cast<links::AdjustableTransformer*>(lnk)->setControlBus(busList[abs(cbus)]);
             }
         }
 

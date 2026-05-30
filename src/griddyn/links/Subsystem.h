@@ -59,7 +59,7 @@ class Subsystem: public Link {
 
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
-    virtual void pFlowCheck(std::vector<Violation>& Violation_vector) override;
+    virtual void pFlowCheck(std::vector<Violation>& violationVector) override;
     // dynInitializeB dynamics
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
@@ -91,21 +91,21 @@ class Subsystem: public Link {
 
     virtual void setState(coreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const SolverMode& sMode) override;
     // for identifying which variables are algebraic vs differential
     /** @brief do a local converge on the components in the area
    a wrapper around the area->converge function
   @param[in] time the time
   @param[in] state the system state
-  @param[in] dstate_dt the time derivative of the state
+  @param[in] dstateDt the time derivative of the state
   @param[in] sMode the SolverMode corresponding to the state
   @param[in] tol  the tolerance to do the convergence
   @param[in] mode the mode of convergence
   */
     virtual void converge(coreTime time,
                           double state[],
-                          double dstate_dt[],
+                          double dstateDt[],
                           const SolverMode& sMode,
                           ConvergeMode mode = ConvergeMode::block_iteration,
                           double tol = 0.01) override;

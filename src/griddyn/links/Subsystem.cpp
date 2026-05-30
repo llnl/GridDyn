@@ -29,7 +29,7 @@ using gmlc::utilities::sum;
 using units::unit;
 
 static TypeFactory<Subsystem>
-    subsystemFactory("link", std::to_array<std::string_view>({"subsystem", "simple"}));
+    gSubsystemFactory("link", std::to_array<std::string_view>({"subsystem", "simple"}));
 
 Subsystem::Subsystem(const std::string& objName): Link(objName)
 {
@@ -162,9 +162,9 @@ ChangeCode Subsystem::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags,
     return subarea.powerFlowAdjust(inputs, flags, level);
 }
 
-void Subsystem::pFlowCheck(std::vector<Violation>& Violation_vector)
+void Subsystem::pFlowCheck(std::vector<Violation>& violationVector)
 {
-    subarea.pFlowCheck(Violation_vector);
+    subarea.pFlowCheck(violationVector);
 }
 // dynInitializeB states for dynamic solution
 void Subsystem::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
@@ -174,12 +174,12 @@ void Subsystem::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 
 void Subsystem::converge(coreTime time,
                          double state[],
-                         double dstate_dt[],
+                         double dstateDt[],
                          const SolverMode& sMode,
                          ConvergeMode mode,
                          double tol)
 {
-    subarea.converge(time, state, dstate_dt, sMode, mode, tol);
+    subarea.converge(time, state, dstateDt, sMode, mode, tol);
 }
 
 void Subsystem::resize(count_t newSize)
@@ -325,10 +325,10 @@ double Subsystem::getLoss() const
 // pass the solution
 void Subsystem::setState(const coreTime time,
                          const double state[],
-                         const double dstate_dt[],
+                         const double dstateDt[],
                          const SolverMode& sMode)
 {
-    subarea.setState(time, state, dstate_dt, sMode);
+    subarea.setState(time, state, dstateDt, sMode);
     prevTime = time;
     updateLocalCache();
     // next do any internal area states

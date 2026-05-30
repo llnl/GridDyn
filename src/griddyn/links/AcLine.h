@@ -143,10 +143,10 @@ class AcLine: public Link {
     /** @brief check for any violations of link limits or other factors based on power flow results
      checks things like the maximum angle,  power flow /current limits based on ratings and a few
     other things
-    @param[out] Violation_vector --a list of all the violations any new violations get added to the
+    @param[out] violationVector --a list of all the violations any new violations get added to the
     result
     */
-    virtual void pFlowCheck(std::vector<Violation>& Violation_vector) override;
+    virtual void pFlowCheck(std::vector<Violation>& violationVector) override;
     virtual ChangeCode
         powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level) override;
     virtual void pFlowObjectInitializeB() override;
@@ -197,7 +197,7 @@ class AcLine: public Link {
     // SolverMode &sMode);
     virtual void setState(coreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const SolverMode& sMode) override;
 
     virtual ChangeCode rootCheck(const IOdata& inputs,

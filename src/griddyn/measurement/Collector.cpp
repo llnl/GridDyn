@@ -25,10 +25,10 @@
 namespace griddyn {
 using gmlc::utilities::fsize_t;
 
-static ClassFactory<Collector> collFac("collector");
+static ClassFactory<Collector> gCollFac("collector");
 
 static ChildClassFactory<Recorder, Collector>
-    grFac(std::vector<std::string>{"recorder", "rec", "file"}, "recorder");
+    gRFac(std::vector<std::string>{"recorder", "rec", "file"}, "recorder");
 
 Collector::Collector(coreTime time0, coreTime period):
     mTimePeriod(period), mRequestedPeriod(period), mTriggerTime(time0)

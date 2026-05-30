@@ -9,7 +9,7 @@
 #include "../measurement/ObjectGrabbers.h"
 #include "../simulation/Contingency.h"
 #include "AcLine.h"
-#include "AcdcConverter.h"
+#include "AcDcConverter.h"
 #include "AdjustableTransformer.h"
 #include "DcLink.h"
 #include "core/CoreExceptions.h"
@@ -35,32 +35,32 @@ using units::unit;
 
 // make the object factory types
 
-static TypeFactory<Link> blf("link",
-                             std::to_array<std::string_view>({"trivial", "basic", "transport"}));
+static TypeFactory<Link> gBlf("link",
+                              std::to_array<std::string_view>({"trivial", "basic", "transport"}));
 
-static ChildTypeFactory<AcLine, Link> glf(
+static ChildTypeFactory<AcLine, Link> gLf(
     "link",
     std::to_array<std::string_view>({"ac", "line", "phaseshifter", "phase_shifter", "transformer"}),
     "ac");
 
 namespace links {
     static ChildTypeFactory<AdjustableTransformer, Link>
-        gfad("link",
+        gFad("link",
              std::to_array<std::string_view>({"adjust", "adjustable", "adjustabletransformer"}));
 
     static ChildTypeFactory<DcLink, Link>
-        dclnk("link", std::to_array<std::string_view>({"dc", "dclink", "dcline"}));
+        gDclnk("link", std::to_array<std::string_view>({"dc", "dclink", "dcline"}));
 
-    static TypeFactoryArg<AcdcConverter, AcdcConverter::Mode>
-        dcrect("link",
-               std::to_array<std::string_view>({"rectifier", "rect"}),
-               AcdcConverter::Mode::RECTIFIER);
-    static TypeFactoryArg<AcdcConverter, AcdcConverter::Mode>
-        dcinv("link",
-              std::to_array<std::string_view>({"inverter", "inv"}),
-              AcdcConverter::Mode::INVERTER);
-    static ChildTypeFactory<AcdcConverter, Link>
-        acdc("link", std::to_array<std::string_view>({"acdc", "acdcconverter", "dcconverter"}));
+    static TypeFactoryArg<AcDcConverter, AcDcConverter::Mode>
+        gDcrect("link",
+                std::to_array<std::string_view>({"rectifier", "rect"}),
+                AcDcConverter::Mode::RECTIFIER);
+    static TypeFactoryArg<AcDcConverter, AcDcConverter::Mode>
+        gDcinv("link",
+               std::to_array<std::string_view>({"inverter", "inv"}),
+               AcDcConverter::Mode::INVERTER);
+    static ChildTypeFactory<AcDcConverter, Link>
+        gAcdc("link", std::to_array<std::string_view>({"acdc", "acdcconverter", "dcconverter"}));
 }  // namespace links
 std::atomic<count_t> Link::linkCount(0);
 // helper defines to have things make more sense
@@ -78,7 +78,7 @@ Link::Link(const std::string& objName): GridPrimary(objName)
 
 CoreObject* Link::clone(CoreObject* obj) const
 {
-    auto* lnk = cloneBaseFactory<Link, GridPrimary>(this, obj, &glf);
+    auto* lnk = cloneBaseFactory<Link, GridPrimary>(this, obj, &gLf);
     if (lnk == nullptr) {
         return obj;
     }
@@ -132,7 +132,7 @@ void Link::followNetwork(int network, std::queue<GridBus*>& stk)
     }
 }
 
-void Link::pFlowCheck(std::vector<Violation>& Violation_vector)
+void Link::pFlowCheck(std::vector<Violation>& violationVector)
 {
     const double mva = std::max(getCurrent(0), getCurrent(1));
     if (mva > ratingA) {
@@ -140,7 +140,7 @@ void Link::pFlowCheck(std::vector<Violation>& Violation_vector)
         viol.level = mva;
         viol.limit = ratingA;
         viol.percentViolation = (mva - ratingA) / ratingA * 100;
-        Violation_vector.push_back(viol);
+        violationVector.push_back(viol);
     }
     if (mva > ratingB) {
         Violation viol(getName(), MVA_EXCEED_RATING_B);
@@ -148,14 +148,14 @@ void Link::pFlowCheck(std::vector<Violation>& Violation_vector)
         viol.level = mva;
         viol.limit = ratingB;
         viol.percentViolation = (mva - ratingB) / ratingB * 100;
-        Violation_vector.push_back(viol);
+        violationVector.push_back(viol);
     }
     if (mva > Erating) {
         Violation viol(getName(), MVA_EXCEED_ERATING);
         viol.level = mva;
         viol.limit = Erating;
         viol.percentViolation = (mva - Erating) / Erating * 100;
-        Violation_vector.push_back(viol);
+        violationVector.push_back(viol);
     }
 }
 
@@ -177,13 +177,13 @@ void Link::timestep(const coreTime time, const IOdata& /*inputs*/, const SolverM
     }*/
 }
 
-static const stringVec locNumStrings{"loss", "switch1", "switch2", "p"};
-static const stringVec locStrStrings{"from", "to"};
-static const stringVec flagStrings{};
+static const stringVec LOC_NUM_STRINGS{"loss", "switch1", "switch2", "p"};
+static const stringVec LOC_STR_STRINGS{"from", "to"};
+static const stringVec FLAG_STRINGS{};
 void Link::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<Link, GridPrimary>(
-        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
+        this, pstr, LOC_NUM_STRINGS, LOC_STR_STRINGS, FLAG_STRINGS, pstype);
 }
 
 // set properties
@@ -445,7 +445,7 @@ int Link::fixRealPower(double power,
     return 1;
 }
 
-static IOlocs aLoc{0, 1};
+static IOlocs gALoc{0, 1};
 
 int Link::fixPower(double rPower,
                    double /*qPower*/,

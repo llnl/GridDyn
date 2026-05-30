@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "AcdcConverter.h"
+#include "AcDcConverter.h"
 
 #include "../GridArea.h"
 #include "../blocks/DelayBlock.h"
@@ -30,23 +30,23 @@ constexpr char rectifierName[] = "rectifier_$";
 constexpr char inverterName[] = "inverter_$";
 constexpr char bidirectionalName[] = "acdcConveter_$";
 
-static std::string modeToName(AcdcConverter::Mode mode, const std::string& name)
+static std::string modeToName(AcDcConverter::Mode mode, const std::string& name)
 {
     if (!name.empty()) {
         return name;
     }
     switch (mode) {
-        case AcdcConverter::Mode::RECTIFIER:
+        case AcDcConverter::Mode::RECTIFIER:
             return rectifierName;
-        case AcdcConverter::Mode::INVERTER:
+        case AcDcConverter::Mode::INVERTER:
             return inverterName;
-        case AcdcConverter::Mode::BIDIRECTIONAL:
+        case AcDcConverter::Mode::BIDIRECTIONAL:
         default:
             return bidirectionalName;
     }
 }
 
-AcdcConverter::AcdcConverter(double resistanceParameter,
+AcDcConverter::AcDcConverter(double resistanceParameter,
                              double reactanceParameter,
                              const std::string& objName):
     Link(objName), r(resistanceParameter), x(reactanceParameter)
@@ -54,7 +54,7 @@ AcdcConverter::AcdcConverter(double resistanceParameter,
     buildSubsystem();
 }
 
-AcdcConverter::AcdcConverter(Mode opType, const std::string& objName):
+AcDcConverter::AcDcConverter(Mode opType, const std::string& objName):
     Link(modeToName(opType, objName)), type(opType)
 {
     if (opType == Mode::INVERTER) {
@@ -62,11 +62,11 @@ AcdcConverter::AcdcConverter(Mode opType, const std::string& objName):
     }
     buildSubsystem();
 }
-AcdcConverter::AcdcConverter(const std::string& objName): Link(objName)
+AcDcConverter::AcDcConverter(const std::string& objName): Link(objName)
 {
     buildSubsystem();
 }
-void AcdcConverter::buildSubsystem()
+void AcDcConverter::buildSubsystem()
 {
     tap = kBigNum;
     opFlags.set(dc_capable);
@@ -82,10 +82,10 @@ void AcdcConverter::buildSubsystem()
     addSubObject(controlDelay.get());
 }
 
-AcdcConverter::~AcdcConverter() = default;
-CoreObject* AcdcConverter::clone(CoreObject* obj) const
+AcDcConverter::~AcDcConverter() = default;
+CoreObject* AcDcConverter::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<AcdcConverter, Link>(this, obj);
+    auto* nobj = cloneBase<AcDcConverter, Link>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -110,7 +110,7 @@ CoreObject* AcdcConverter::clone(CoreObject* obj) const
     return nobj;
 }
 
-void AcdcConverter::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
+void AcDcConverter::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     // TODO(phlpt): This function is incorrect.
     if (!isEnabled()) {
@@ -127,7 +127,7 @@ Psched=sched->timestepP(time);
 
 // it may make more sense to have the dc bus as bus 1 but then the equations wouldn't be
 // symmetric with the the rectifier
-void AcdcConverter::updateBus(GridBus* bus, index_t /*busnumber*/)
+void AcDcConverter::updateBus(GridBus* bus, index_t /*busnumber*/)
 {
     if (dynamic_cast<DcBus*>(bus) != nullptr) {
         Link::updateBus(bus, 2);  // bus 2 must be the dc bus
@@ -136,7 +136,7 @@ void AcdcConverter::updateBus(GridBus* bus, index_t /*busnumber*/)
     }
 }
 
-double AcdcConverter::getMaxTransfer() const
+double AcDcConverter::getMaxTransfer() const
 {
     if (isConnected()) {
         return linkInfo.v2 * (std::max)(std::abs(Idcmax), std::abs(Idcmin));
@@ -145,7 +145,7 @@ double AcdcConverter::getMaxTransfer() const
 }
 
 // set properties
-void AcdcConverter::set(std::string_view param, std::string_view val)
+void AcDcConverter::set(std::string_view param, std::string_view val)
 {
     if (param == "mode") {
         if (val == "rectifier") {
@@ -177,7 +177,7 @@ void AcdcConverter::set(std::string_view param, std::string_view val)
     }
 }
 
-void AcdcConverter::set(std::string_view param, double val, unit unitType)
+void AcDcConverter::set(std::string_view param, double val, unit unitType)
 {
     if (param == "r") {
         r = val;
@@ -242,7 +242,7 @@ void AcdcConverter::set(std::string_view param, double val, unit unitType)
     }
 }
 
-void AcdcConverter::pFlowObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void AcDcConverter::pFlowObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
 {
     const double voltage1 = B1->getVoltage();
     const double voltage2 = B2->getVoltage();
@@ -257,7 +257,7 @@ void AcdcConverter::pFlowObjectInitializeA(coreTime /*time0*/, std::uint32_t /*f
     offsets.local().local.jacSize = 4;
 }
 
-void AcdcConverter::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void AcDcConverter::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     updateLocalCache();
     if (opFlags[fixed_target_power]) {
@@ -283,7 +283,7 @@ void AcdcConverter::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 
 static IOdata gZeroVec{0.0, 0.0, 0.0};
 
-void AcdcConverter::dynObjectInitializeB(const IOdata& /*inputs*/,
+void AcDcConverter::dynObjectInitializeB(const IOdata& /*inputs*/,
                                          const IOdata& /*desiredOutput*/,
                                          IOdata& fieldSet)
 {
@@ -297,7 +297,7 @@ void AcdcConverter::dynObjectInitializeB(const IOdata& /*inputs*/,
     }
 }
 
-void AcdcConverter::ioPartialDerivatives(id_type_t busId,
+void AcDcConverter::ioPartialDerivatives(id_type_t busId,
                                          const StateData& stateDataValue,
                                          matrixData<double>& matrixDataValue,
                                          const IOlocs& inputLocs,
@@ -362,7 +362,7 @@ linkInfo.Q1 = -std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
     }
 }
 
-void AcdcConverter::outputPartialDerivatives(const IOdata& /*inputs*/,
+void AcDcConverter::outputPartialDerivatives(const IOdata& /*inputs*/,
                                              const StateData& stateDataValue,
                                              matrixData<double>& matrixDataValue,
                                              const SolverMode& sMode)
@@ -385,7 +385,7 @@ void AcdcConverter::outputPartialDerivatives(const IOdata& /*inputs*/,
         matrixDataValue.assign(PoutLocation + 2, algOffset, -dirMult * linkInfo.v2);
     }
 }
-void AcdcConverter::outputPartialDerivatives(id_type_t busId,
+void AcDcConverter::outputPartialDerivatives(id_type_t busId,
                                              const StateData& stateDataValue,
                                              matrixData<double>& matrixDataValue,
                                              const SolverMode& sMode)
@@ -463,12 +463,12 @@ void AcdcConverter::outputPartialDerivatives(id_type_t busId,
     }
 }
 
-count_t AcdcConverter::outputDependencyCount(index_t /*num*/, const SolverMode& sMode) const
+count_t AcDcConverter::outputDependencyCount(index_t /*num*/, const SolverMode& sMode) const
 {
     return (isDynamic(sMode)) ? 2 : 1;
 }
 
-void AcdcConverter::jacobianElements(const IOdata& /*inputs*/,
+void AcDcConverter::jacobianElements(const IOdata& /*inputs*/,
                                      const StateData& stateDataValue,
                                      matrixData<double>& matrixDataValue,
                                      const IOlocs& /*inputLocs*/,
@@ -563,7 +563,7 @@ void AcdcConverter::jacobianElements(const IOdata& /*inputs*/,
     }
 }
 
-void AcdcConverter::residual(const IOdata& inputs,
+void AcDcConverter::residual(const IOdata& inputs,
                              const StateData& stateDataValue,
                              double resid[],
                              const SolverMode& sMode)
@@ -604,7 +604,7 @@ void AcdcConverter::residual(const IOdata& inputs,
     }
 }
 
-void AcdcConverter::setState(coreTime time,
+void AcDcConverter::setState(coreTime time,
                              const double state[],
                              const double dstateDt[],
                              const SolverMode& sMode)
@@ -630,7 +630,7 @@ void AcdcConverter::setState(coreTime time,
     updateLocalCache();
 }
 
-void AcdcConverter::guessState(coreTime time,
+void AcDcConverter::guessState(coreTime time,
                                double state[],
                                double dstateDt[],
                                const SolverMode& sMode)
@@ -647,7 +647,7 @@ void AcdcConverter::guessState(coreTime time,
     }
 }
 
-void AcdcConverter::updateLocalCache(const IOdata& /*inputs*/,
+void AcDcConverter::updateLocalCache(const IOdata& /*inputs*/,
                                      const StateData& stateDataValue,
                                      const SolverMode& sMode)
 {
@@ -692,7 +692,7 @@ linkFlows.Q1);
 *     */
 }
 
-void AcdcConverter::updateLocalCache()
+void AcDcConverter::updateLocalCache()
 {
     linkInfo = {};
 
@@ -707,7 +707,7 @@ void AcdcConverter::updateLocalCache()
     }
 }
 
-int AcdcConverter::fixRealPower(double power,
+int AcDcConverter::fixRealPower(double power,
                                 id_type_t /*measureTerminal*/,
                                 id_type_t fixedTerminal,
                                 units::unit unitType)
@@ -723,7 +723,7 @@ int AcdcConverter::fixRealPower(double power,
     return 0;
 }
 
-int AcdcConverter::fixPower(double /*power*/,
+int AcDcConverter::fixPower(double /*power*/,
                             double /*qpower*/,
                             id_type_t /*measureTerminal*/,
                             id_type_t /*fixedTerminal*/,
@@ -732,7 +732,7 @@ int AcdcConverter::fixPower(double /*power*/,
     return 0;
 }
 
-void AcdcConverter::getStateName(stringVec& stNames,
+void AcDcConverter::getStateName(stringVec& stNames,
                                  const SolverMode& sMode,
                                  const std::string& prefix) const
 {

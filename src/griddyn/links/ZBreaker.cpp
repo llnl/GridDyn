@@ -18,7 +18,7 @@ namespace griddyn::links {
 using units::unit;
 
 static TypeFactory<ZBreaker>
-    glf("link", std::to_array<std::string_view>({"zbreaker", "zline", "busbreaker"}));
+    gZBreakerFactory("link", std::to_array<std::string_view>({"zbreaker", "zline", "busbreaker"}));
 
 ZBreaker::ZBreaker(const std::string& objName): Link(objName), merged(CoreObject::extra_bool)
 {
@@ -26,7 +26,7 @@ ZBreaker::ZBreaker(const std::string& objName): Link(objName), merged(CoreObject
 }
 CoreObject* ZBreaker::clone(CoreObject* obj) const
 {
-    auto lnk = cloneBase<ZBreaker, Link>(this, obj);
+    auto* lnk = cloneBase<ZBreaker, Link>(this, obj);
     if (lnk == nullptr) {
         return obj;
     }
@@ -100,17 +100,17 @@ void ZBreaker::updateLocalCache()
     linkInfo.v2 = linkInfo.v1;
 }
 void ZBreaker::updateLocalCache(const IOdata& /*inputs*/,
-                                const StateData& sD,
+                                const StateData& stateDataValue,
                                 const SolverMode& /*sMode*/)
 {
     if (!isEnabled()) {
         return;
     }
-    if (!sD.updateRequired(linkInfo.seqID)) {
+    if (!stateDataValue.updateRequired(linkInfo.seqID)) {
         return;
     }
     linkInfo = {};
-    linkInfo.seqID = sD.seqID;
+    linkInfo.seqID = stateDataValue.seqID;
     linkInfo.v1 = B1->getVoltage();
     linkInfo.v2 = linkInfo.v1;
 }

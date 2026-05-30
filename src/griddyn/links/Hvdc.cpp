@@ -10,7 +10,7 @@
 #include "../GridBus.h"
 #include "../Link.h"
 #include "../primary/DcBus.h"
-#include "AcdcConverter.h"
+#include "AcDcConverter.h"
 #include "DcLink.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
@@ -21,29 +21,29 @@
 namespace griddyn::links {
 using units::unit;
 
-static TypeFactory<Hvdc> gf("link", std::to_array<std::string_view>({"hvdc"}));
+static TypeFactory<Hvdc> gHvdcFactory("link", std::to_array<std::string_view>({"hvdc"}));
 
 Hvdc::Hvdc(const std::string& objName): Subsystem(4, objName)
 {
     // default values
 
-    auto dcl = new DcLink("dcline");
+    auto* dcl = new DcLink("dcline");
     dcl->set("type", "slk");
     Subsystem::add(dcl);
 
-    auto rec1 = new AcdcConverter("rect1");
+    auto* rec1 = new AcDcConverter("rect1");
     Subsystem::add(rec1);
-    auto rec2 = new AcdcConverter("rect2");
+    auto* rec2 = new AcDcConverter("rect2");
     Subsystem::add(rec2);
 
-    auto inv1 = new AcdcConverter("inv1");
+    auto* inv1 = new AcDcConverter("inv1");
     Subsystem::add(inv1);
-    auto inv2 = new AcdcConverter("inv2");
+    auto* inv2 = new AcDcConverter("inv2");
     Subsystem::add(inv2);
 
-    auto dcb1 = new DcBus("bus1");
+    auto* dcb1 = new DcBus("bus1");
     Subsystem::add(dcb1);
-    auto dcb2 = new DcBus("bus2");
+    auto* dcb2 = new DcBus("bus2");
     Subsystem::add(dcb2);
 
     dcl->updateBus(dcb1, 1);
@@ -66,7 +66,7 @@ Hvdc::Hvdc(const std::string& objName): Subsystem(4, objName)
 
 CoreObject* Hvdc::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<Hvdc, Subsystem>(this, obj);
+    auto* nobj = cloneBase<Hvdc, Subsystem>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }

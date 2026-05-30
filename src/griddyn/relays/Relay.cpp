@@ -25,8 +25,8 @@
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/PropertyBuffer.h"
 #include "gmlc/utilities/stringConversion.h"
-#include <compare>
 #include <algorithm>
+#include <compare>
 #include <format>
 #include <memory>
 #include <stdexcept>
@@ -40,11 +40,12 @@ using units::convert;
 static TypeFactory<Relay> gBf("relay", std::to_array<std::string_view>({"basic"}), "basic");
 static TypeFactory<Sensor> gSensorFactory("relay", "sensor");
 namespace relays {
-    static TypeFactory<ZonalRelay>
-        gZonalRelayFactory("relay",
-                           std::to_array<std::string_view>({"zonal", "z", "impedance", "distance"}));
+    static TypeFactory<ZonalRelay> gZonalRelayFactory(
+        "relay",
+        std::to_array<std::string_view>({"zonal", "z", "impedance", "distance"}));
     static TypeFactory<DifferentialRelay>
-        gDifferentialRelayFactory("relay", std::to_array<std::string_view>({"differential", "diff"}));
+        gDifferentialRelayFactory("relay",
+                                  std::to_array<std::string_view>({"differential", "diff"}));
 
     static TypeFactory<BusRelay> gBusRelayFactory("relay", "bus");
     static TypeFactory<LoadRelay> gLoadRelayFactory("relay", "load");

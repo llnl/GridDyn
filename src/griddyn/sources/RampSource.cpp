@@ -12,10 +12,10 @@
 #include <string>
 
 namespace griddyn::sources {
-rampSource::rampSource(const std::string& objName, double startVal): Source(objName, startVal) {}
-CoreObject* rampSource::clone(CoreObject* obj) const
+RampSource::RampSource(const std::string& objName, double startVal): Source(objName, startVal) {}
+CoreObject* RampSource::clone(CoreObject* obj) const
 {
-    auto ld = cloneBase<rampSource, Source>(this, obj);
+    auto ld = cloneBase<RampSource, Source>(this, obj);
     if (ld == nullptr) {
         return obj;
     }
@@ -24,11 +24,11 @@ CoreObject* rampSource::clone(CoreObject* obj) const
 }
 
 // set properties
-void rampSource::set(std::string_view param, std::string_view val)
+void RampSource::set(std::string_view param, std::string_view val)
 {
     Source::set(param, val);
 }
-void rampSource::set(std::string_view param, double val, units::unit unitType)
+void RampSource::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "dodt") || (param == "ramp") || (param == "rate")) {
         mp_dOdt = val;
@@ -37,13 +37,13 @@ void rampSource::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-double rampSource::computeOutput(coreTime time) const
+double RampSource::computeOutput(coreTime time) const
 {
     auto tdiff = time - prevTime;
     return m_output + mp_dOdt * tdiff;
 }
 
-double rampSource::getDoutdt(const IOdata& /*inputs*/,
+double RampSource::getDoutdt(const IOdata& /*inputs*/,
                              const StateData& /*sD*/,
                              const SolverMode& /*sMode*/,
                              index_t num) const

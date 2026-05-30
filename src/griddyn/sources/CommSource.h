@@ -16,7 +16,7 @@ class Communicator;
 class GridSimulation;
 namespace sources {
     /** defining a source that can be connected to a communicator*/
-    class commSource: public rampSource {
+    class CommSource: public RampSource {
       protected:
         std::shared_ptr<Communicator> commLink;  //!< communicator link
         GridSimulation* rootSim = nullptr;  //!< pointer to the root simulation
@@ -24,11 +24,11 @@ namespace sources {
         model_parameter maxRamp = kBigNum;  //!< the maximum rate of change of the source
       public:
         enum CommSourceFlags {
-            USE_RAMP = object_flag3,  //!< indicator that the output should be interpolated
-            NO_MESSAGE_REPLY =
+            useRamp = object_flag3,  //!< indicator that the output should be interpolated
+            noMessageReply =
                 object_flag4,  //!< indicator that there should be no response to commands
         };
-        commSource(const std::string& objName = "commSource_#");
+        CommSource(const std::string& objName = "commSource_#");
 
         CoreObject* clone(CoreObject* obj = nullptr) const override;
         virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;

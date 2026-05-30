@@ -13,12 +13,12 @@
 #include <string>
 
 namespace griddyn::sources {
-grabberSource::grabberSource(const std::string& objName): rampSource(objName) {}
-grabberSource::~grabberSource() = default;
+GrabberSource::GrabberSource(const std::string& objName): RampSource(objName) {}
+GrabberSource::~GrabberSource() = default;
 
-CoreObject* grabberSource::clone(CoreObject* obj) const
+CoreObject* GrabberSource::clone(CoreObject* obj) const
 {
-    auto src = cloneBase<grabberSource, Source>(this, obj);
+    auto src = cloneBase<GrabberSource, Source>(this, obj);
     if (src == nullptr) {
         return obj;
     }
@@ -31,14 +31,14 @@ CoreObject* grabberSource::clone(CoreObject* obj) const
     return src;
 }
 
-void grabberSource::setFlag(std::string_view flag, bool val)
+void GrabberSource::setFlag(std::string_view flag, bool val)
 {
     if (flag.empty()) {
     } else {
         Source::setFlag(flag, val);
     }
 }
-void grabberSource::set(std::string_view param, std::string_view val)
+void GrabberSource::set(std::string_view param, std::string_view val)
 {
     if (param == "field") {
         if (opFlags[dyn_initialized]) {
@@ -57,7 +57,7 @@ void grabberSource::set(std::string_view param, std::string_view val)
     }
 }
 
-void grabberSource::set(std::string_view param, double val, units::unit unitType)
+void GrabberSource::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "gain") || (param == "multiplier")) {
         multiplier = val;
@@ -69,7 +69,7 @@ void grabberSource::set(std::string_view param, double val, units::unit unitType
     }
 }
 
-double grabberSource::get(std::string_view param, units::unit unitType) const
+double GrabberSource::get(std::string_view param, units::unit unitType) const
 {
     if (param == "multiplier") {
         return multiplier;
@@ -77,27 +77,27 @@ double grabberSource::get(std::string_view param, units::unit unitType) const
     return Source::get(param, unitType);
 }
 
-void grabberSource::pFlowObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void GrabberSource::pFlowObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
 {
     CoreObject* obj = locateObject(target, this);
     gset = std::make_unique<GrabberSet>(field, obj);
     gset->setGain(multiplier);
 }
 
-void grabberSource::dynObjectInitializeB(const IOdata& /*inputs*/,
+void GrabberSource::dynObjectInitializeB(const IOdata& /*inputs*/,
                                          const IOdata& /*desiredOutput*/,
                                          IOdata& fieldSet)
 {
     fieldSet.resize(1);
     fieldSet[0] = gset->grabData();
 }
-IOdata grabberSource::getOutputs(const IOdata& /*inputs*/,
+IOdata GrabberSource::getOutputs(const IOdata& /*inputs*/,
                                  const StateData& sD,
                                  const SolverMode& sMode) const
 {
     return {gset->grabData(sD, sMode)};
 }
-double grabberSource::getOutput(const IOdata& /*inputs*/,
+double GrabberSource::getOutput(const IOdata& /*inputs*/,
                                 const StateData& sD,
                                 const SolverMode& sMode,
                                 index_t outputNum) const
@@ -108,7 +108,7 @@ double grabberSource::getOutput(const IOdata& /*inputs*/,
     return kNullVal;
 }
 
-double grabberSource::getOutput(index_t outputNum) const
+double GrabberSource::getOutput(index_t outputNum) const
 {
     if (outputNum == 0) {
         return gset->grabData();
@@ -116,7 +116,7 @@ double grabberSource::getOutput(index_t outputNum) const
     return kNullVal;
 }
 
-double grabberSource::getDoutdt(const IOdata& /*inputs*/,
+double GrabberSource::getDoutdt(const IOdata& /*inputs*/,
                                 const StateData& /*sD*/,
                                 const SolverMode& /*sMode*/,
                                 index_t /*outputNum*/) const
@@ -124,7 +124,7 @@ double grabberSource::getDoutdt(const IOdata& /*inputs*/,
     return 0.0;
 }
 
-void grabberSource::updateField(const std::string& newField)
+void GrabberSource::updateField(const std::string& newField)
 {
     if (gset) {
         gset->updateField(newField);
@@ -132,7 +132,7 @@ void grabberSource::updateField(const std::string& newField)
     field = newField;
 }
 
-void grabberSource::updateTarget(const std::string& newTarget)
+void GrabberSource::updateTarget(const std::string& newTarget)
 {
     if (gset) {
         auto obj = locateObject(newTarget, this);
@@ -141,7 +141,7 @@ void grabberSource::updateTarget(const std::string& newTarget)
     target = newTarget;
 }
 
-void grabberSource::updateTarget(CoreObject* obj)
+void GrabberSource::updateTarget(CoreObject* obj)
 {
     if (gset) {
         gset->updateObject(obj);

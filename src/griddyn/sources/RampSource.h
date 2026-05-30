@@ -12,11 +12,11 @@
 namespace griddyn::sources {
 /**@brief defines a ramping source
  */
-class rampSource: public Source {
+class RampSource: public Source {
   protected:
     model_parameter mp_dOdt = 0.0;  //!< [1/s] the ramp rate of the output
   public:
-    rampSource(const std::string& objName = "rampSource_#", double startVal = 0.0);
+    RampSource(const std::string& objName = "rampSource_#", double startVal = 0.0);
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void set(std::string_view param, std::string_view val) override;

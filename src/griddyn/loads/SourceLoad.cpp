@@ -344,13 +344,13 @@ Source* SourceLoad::makeSource(SourceLoc loc)
     Source* src = nullptr;
     switch (sType) {
         case SourceType::pulse:
-            src = new sources::pulseSource();
+            src = new sources::PulseSource();
             break;
         case SourceType::random:
-            src = new sources::randomSource();
+            src = new sources::RandomSource();
             break;
         case SourceType::sine:
-            src = new sources::sineSource();
+            src = new sources::SineSource();
             break;
         case SourceType::other:
         default:

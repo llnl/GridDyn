@@ -26,7 +26,7 @@ TEST_F(SourceTests, SourceTest1)
     EXPECT_NEAR(src1->getOutput(), 22.0, 0.001);
     delete src1;
 
-    src1 = new rampSource("rs", 1.0);
+    src1 = new RampSource("rs", 1.0);
 
     EXPECT_NEAR(src1->getOutput(), 1.0, 0.001);
     src1->set("rate", 0.5);
@@ -40,7 +40,7 @@ TEST_F(SourceTests, SourceTest1)
     EXPECT_NEAR(rval, 1.0, 0.001);
     delete src1;
 
-    src1 = new pulseSource("ps", 1.0);
+    src1 = new PulseSource("ps", 1.0);
 
     EXPECT_NEAR(src1->getOutput(), 1.0, 0.001);
     src1->set("type", "square");
@@ -59,10 +59,10 @@ TEST_F(SourceTests, SourceTest1)
 
 TEST_F(SourceTests, SineSourceTest)
 {
-    auto src1 = new sineSource("ss", 0.0);
+    auto src1 = new SineSource("ss", 0.0);
     src1->set("freq", 1.0);
     src1->set("amp", 1.0);
-    auto src2 = new sineSource("ss", 0.0);
+    auto src2 = new SineSource("ss", 0.0);
     src2->set("freq", 1.0);
     src2->set("amp", 1.0);
     src1->pFlowInitializeA(0.0, 0);

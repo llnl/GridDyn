@@ -10,16 +10,16 @@
 #include <string>
 
 namespace griddyn::sources {
-fileSource::fileSource(const std::string& fileName, int column): rampSource("filesource_#")
+FileSource::FileSource(const std::string& fileName, int column): RampSource("filesource_#")
 {
     if (!fileName.empty()) {
         setFile(fileName, column);
     }
 }
 
-CoreObject* fileSource::clone(CoreObject* obj) const
+CoreObject* FileSource::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<fileSource, rampSource>(this, obj);
+    auto nobj = cloneBase<FileSource, RampSource>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -29,7 +29,7 @@ CoreObject* fileSource::clone(CoreObject* obj) const
     return nobj;
 }
 
-int fileSource::setFile(const std::string& fileName, index_t column)
+int FileSource::setFile(const std::string& fileName, index_t column)
 {
     fileName_ = fileName;
     m_column = column;
@@ -38,10 +38,10 @@ int fileSource::setFile(const std::string& fileName, index_t column)
     return count;
 }
 
-void fileSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void FileSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     prevTime = time0;
-    if (opFlags[use_absolute_time_flag]) {
+    if (opFlags[useAbsoluteTimeFlag]) {
         double abstime0 = get("abstime0");
         index_t ii = 0;
         while (schedLoad.time(ii) < abstime0) {
@@ -66,10 +66,10 @@ void fileSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
             timestep(time0, noInputs, cLocalSolverMode);
         }
     }
-    return rampSource::dynObjectInitializeA(time0, flags);
+    return RampSource::dynObjectInitializeA(time0, flags);
 }
 
-void fileSource::updateA(coreTime time)
+void FileSource::updateA(coreTime time)
 {
     while (time >= schedLoad.time(currIndex)) {
         m_output = schedLoad.data(currIndex);
@@ -82,7 +82,7 @@ void fileSource::updateA(coreTime time)
             break;
         }
 
-        if (opFlags[use_step_change_flag]) {
+        if (opFlags[useStepChangeFlag]) {
             mp_dOdt = 0;
         } else {
             double diff = schedLoad.data(currIndex) - m_output;
@@ -94,30 +94,30 @@ void fileSource::updateA(coreTime time)
     }
 }
 
-void fileSource::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void FileSource::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     if (time > nextUpdateTime) {
         updateA(time);
     }
 
-    rampSource::timestep(time, inputs, sMode);
+    RampSource::timestep(time, inputs, sMode);
 }
 
-void fileSource::setFlag(std::string_view flag, bool val)
+void FileSource::setFlag(std::string_view flag, bool val)
 {
     if (flag == "absolute") {
-        opFlags.set(use_absolute_time_flag, val);
+        opFlags.set(useAbsoluteTimeFlag, val);
     } else if (flag == "relative") {
-        opFlags.set(use_absolute_time_flag, !val);
+        opFlags.set(useAbsoluteTimeFlag, !val);
     } else if (flag == "step") {
-        opFlags.set(use_step_change_flag, val);
+        opFlags.set(useStepChangeFlag, val);
     } else if (flag == "interpolate") {
-        opFlags.set(use_step_change_flag, !val);
+        opFlags.set(useStepChangeFlag, !val);
     } else {
-        rampSource::setFlag(flag, val);
+        RampSource::setFlag(flag, val);
     }
 }
-void fileSource::set(std::string_view param, std::string_view val)
+void FileSource::set(std::string_view param, std::string_view val)
 {
     if ((param == "fileName") || (param == "file")) {
         setFile(std::string{val}, 0);
@@ -126,14 +126,14 @@ void fileSource::set(std::string_view param, std::string_view val)
     }
 }
 
-void fileSource::set(std::string_view param, double val, units::unit unitType)
+void FileSource::set(std::string_view param, double val, units::unit unitType)
 {
     {
         Source::set(param, val, unitType);
     }
 }
 
-int fileSource::loadFile()
+int FileSource::loadFile()
 {
     auto stl = fileName_.length();
     // TODO(phlpt): Use the filesystem library to check the extension instead of this.

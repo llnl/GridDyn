@@ -12,9 +12,9 @@
 namespace griddyn::sources {
 /** A source generating a sinusoidal output
  */
-class sineSource: public pulseSource {
+class SineSource: public PulseSource {
   public:
-    static const char pulsed_flag = object_flag4;  //!< indicator that the source should be pulsed
+    static const char pulsedFlag = object_flag4;  //!< indicator that the source should be pulsed
   protected:
     model_parameter frequency = 0.0;  //!<[Hz] frequency of an oscillation
     model_parameter phase = 0.0;  //!<[rad]  the offset angle
@@ -25,7 +25,7 @@ class sineSource: public pulseSource {
     model_parameter dAdt = 0.0;  //!< [1/s] the rate of change of amplitude
 
   public:
-    sineSource(const std::string& objName = "sineSource_#", double startVal = 0.0);
+    SineSource(const std::string& objName = "sineSource_#", double startVal = 0.0);
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void set(std::string_view param, std::string_view val) override;

@@ -12,13 +12,13 @@
 
 namespace griddyn::sources {
 /** Source getting its data from a file*/
-class fileSource: public rampSource {
+class FileSource: public RampSource {
   public:
     /** enumerations of flags used in the file source*/
     enum FileLoadFlags {
-        use_absolute_time_flag =
+        useAbsoluteTimeFlag =
             object_flag7,  //!< flag indicating use of an absolute time reference in the file
-        use_step_change_flag =
+        useStepChangeFlag =
             object_flag8,  //!< flag indicating a step function change on the output
     };
 
@@ -31,7 +31,7 @@ class fileSource: public rampSource {
     index_t m_column = 0;  //!< the column of the file to use
     // 4 byte structure hole here
   public:
-    fileSource(const std::string& fileName = "", int column = 0);
+    FileSource(const std::string& fileName = "", int column = 0);
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 

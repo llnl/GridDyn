@@ -11,10 +11,10 @@
 #include <utility>
 
 namespace griddyn::sources {
-functionSource::functionSource(const std::string& objName): Source(objName) {}
-CoreObject* functionSource::clone(CoreObject* obj) const
+FunctionSource::FunctionSource(const std::string& objName): Source(objName) {}
+CoreObject* FunctionSource::clone(CoreObject* obj) const
 {
-    auto gS = cloneBase<functionSource, GridSubModel>(this, obj);
+    auto gS = cloneBase<FunctionSource, GridSubModel>(this, obj);
     if (gS == nullptr) {
         return obj;
     }
@@ -22,13 +22,13 @@ CoreObject* functionSource::clone(CoreObject* obj) const
     return gS;
 }
 
-IOdata functionSource::getOutputs(const IOdata& /*inputs*/,
+IOdata FunctionSource::getOutputs(const IOdata& /*inputs*/,
                                   const StateData& sD,
                                   const SolverMode& /*sMode*/) const
 {
     return {sourceFunc(sD.time)};
 }
-double functionSource::getOutput(const IOdata& /*inputs*/,
+double FunctionSource::getOutput(const IOdata& /*inputs*/,
                                  const StateData& sD,
                                  const SolverMode& /*sMode*/,
                                  index_t outputNum) const
@@ -36,11 +36,11 @@ double functionSource::getOutput(const IOdata& /*inputs*/,
     return (outputNum == 0) ? sourceFunc(sD.time) : kNullVal;
 }
 
-double functionSource::getOutput(index_t outputNum) const
+double FunctionSource::getOutput(index_t outputNum) const
 {
     return (outputNum == 0) ? sourceFunc(prevTime) : kNullVal;
 }
-double functionSource::getDoutdt(const IOdata& /*inputs*/,
+double FunctionSource::getDoutdt(const IOdata& /*inputs*/,
                                  const StateData& sD,
                                  const SolverMode& /*sMode*/,
                                  index_t outputNum) const
@@ -48,7 +48,7 @@ double functionSource::getDoutdt(const IOdata& /*inputs*/,
     return (outputNum == 0) ? ((sourceFunc(sD.time + 1e-7) - sourceFunc(sD.time)) / 1e-7) : 0.0;
 }
 
-void functionSource::setFunction(std::function<double(double)> calcFunc)
+void FunctionSource::setFunction(std::function<double(double)> calcFunc)
 {
     sourceFunc = std::move(calcFunc);
 }

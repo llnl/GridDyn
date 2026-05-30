@@ -15,15 +15,15 @@ class gridRandom;
 
 namespace griddyn::sources {
 /** @brief a source generating a random output*/
-class randomSource: public rampSource {
+class RandomSource: public RampSource {
   public:
     /** random source flags*/
     enum RandomSourceFlags {
-        interpolate_flag = object_flag5,  //!< indicator that the output should be interpolated
-        proportional_flag = object_flag6,  //!< indicator that the random change is proportional
+        interpolateFlag = object_flag5,  //!< indicator that the output should be interpolated
+        proportionalFlag = object_flag6,  //!< indicator that the random change is proportional
                                            //!< to the current value
-        repeated_flag = object_flag7,  //!< indicator that the random generation should be repeated
-        triggered_flag = object_flag8,  //!< indicator that the random generation has been triggered
+        repeatedFlag = object_flag7,  //!< indicator that the random generation should be repeated
+        triggeredFlag = object_flag8,  //!< indicator that the random generation has been triggered
 
     };
 
@@ -44,15 +44,15 @@ class randomSource: public rampSource {
     std::unique_ptr<utilities::gridRandom> valGenerator;  //!< random number generator for the value
 
   public:
-    randomSource(const std::string& objName = "randomsource_#", double startVal = 0.0);
-    ~randomSource();  // included so the definition of gridRandom doesn't have to be
+    RandomSource(const std::string& objName = "randomsource_#", double startVal = 0.0);
+    ~RandomSource();  // included so the definition of gridRandom doesn't have to be
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
     virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     /** check if the random number generation has been triggered*/
-    bool isTriggered() { return opFlags[triggered_flag]; }
+    bool isTriggered() { return opFlags[triggeredFlag]; }
     virtual void reset(ResetLevels level = ResetLevels::minimal) override;
 
     virtual void set(std::string_view param, std::string_view val) override;

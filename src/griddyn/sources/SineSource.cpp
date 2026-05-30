@@ -11,12 +11,12 @@
 #include <string>
 
 namespace griddyn::sources {
-sineSource::sineSource(const std::string& objName, double startVal): pulseSource(objName, startVal)
+SineSource::SineSource(const std::string& objName, double startVal): PulseSource(objName, startVal)
 {
 }
-CoreObject* sineSource::clone(CoreObject* obj) const
+CoreObject* SineSource::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<sineSource, pulseSource>(this, obj);
+    auto* nobj = cloneBase<SineSource, PulseSource>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -30,18 +30,18 @@ CoreObject* sineSource::clone(CoreObject* obj) const
     return nobj;
 }
 
-void sineSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void SineSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (frequency <= 0.0) {
         lastCycle = negTime;
     } else {
         lastCycle = time0 - phase / (frequency * 2.0 * kPI);
     }
-    pulseSource::pFlowObjectInitializeA(time0, flags);
+    PulseSource::pFlowObjectInitializeA(time0, flags);
     updateOutput(time0);
 }
 
-double sineSource::computeOutput(coreTime time) const
+double SineSource::computeOutput(coreTime time) const
 {
     auto timeDelta = time - prevTime;
     if (timeDelta == timeZero) {
@@ -55,7 +55,7 @@ double sineSource::computeOutput(coreTime time) const
     const double addComponent = nextAmplitude * sin((2.0 * kPI * (nextFrequency * tdiff)) + phase);
     double mult = 1.0;
 
-    if (opFlags[pulsed_flag]) {
+    if (opFlags[pulsedFlag]) {
         auto tdiff2 = time - cycleTime;
         if (tdiff2 > period) {
             tdiff2 = tdiff2 % period;
@@ -66,7 +66,7 @@ double sineSource::computeOutput(coreTime time) const
     return baseValue + (mult * addComponent);
 }
 
-void sineSource::updateOutput(coreTime time)
+void SineSource::updateOutput(coreTime time)
 {
     auto timeDelta = time - prevTime;
     if (timeDelta == timeZero) {
@@ -83,7 +83,7 @@ void sineSource::updateOutput(coreTime time)
         tdiff -= sinePeriod;
         lastCycle += sinePeriod;
     }
-    if (opFlags[pulsed_flag]) {
+    if (opFlags[pulsedFlag]) {
         auto tdiff2 = time - cycleTime;
         while (tdiff2 > period) {
             cycleTime += period;
@@ -97,11 +97,11 @@ void sineSource::updateOutput(coreTime time)
     prevTime = time;
 }
 
-void sineSource::set(std::string_view param, std::string_view val)
+void SineSource::set(std::string_view param, std::string_view val)
 {
-    pulseSource::set(param, val);
+    PulseSource::set(param, val);
 }
-void sineSource::set(std::string_view param, double val, units::unit unitType)
+void SineSource::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "a") || (param == "amplitude") || (param == "amp")) {
         Amp = val;
@@ -112,9 +112,9 @@ void sineSource::set(std::string_view param, double val, units::unit unitType)
         sinePeriod = val;
         frequency = 1.0 / val;
     } else if (param == "pulseperiod") {
-        pulseSource::set("period", val, unitType);
+        PulseSource::set("period", val, unitType);
     } else if (param == "pulseamplitude") {
-        pulseSource::set("amplitude", val, unitType);
+        PulseSource::set("amplitude", val, unitType);
     } else if (param == "phase") {
         phase = val;
     } else if (param == "dfdt") {
@@ -123,15 +123,15 @@ void sineSource::set(std::string_view param, double val, units::unit unitType)
         dAdt = val;
     } else if (param == "pulsed") {
         if (val > 0.0) {
-            if (!(opFlags[pulsed_flag])) {
+            if (!(opFlags[pulsedFlag])) {
                 cycleTime = prevTime;
             }
-            opFlags.set(pulsed_flag);
+            opFlags.set(pulsedFlag);
         } else {
-            opFlags.reset(pulsed_flag);
+            opFlags.reset(pulsedFlag);
         }
     } else {
-        pulseSource::set(param, val, unitType);
+        PulseSource::set(param, val, unitType);
     }
 }
 }  // namespace griddyn::sources

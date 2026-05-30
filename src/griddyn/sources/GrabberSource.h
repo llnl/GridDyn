@@ -14,15 +14,15 @@ namespace griddyn {
 class GrabberSet;
 namespace sources {
     /** source to grab data from another location and use it in another context*/
-    class grabberSource: public rampSource {
+    class GrabberSource: public RampSource {
       private:
         std::unique_ptr<GrabberSet> gset;  //!< the GrabberSet to get the data
         std::string field;  //!< the field to grab
         std::string target;  //!< the name of the target
         model_parameter multiplier;  //!< a multiplier on the grabber value
       public:
-        grabberSource(const std::string& objName = "grabbersource_#");
-        ~grabberSource();
+        GrabberSource(const std::string& objName = "grabbersource_#");
+        ~GrabberSource();
 
       protected:
         virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;

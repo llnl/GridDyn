@@ -15,12 +15,12 @@ namespace griddyn::sources {
 @details uses a function that is dependent on time the function should not have state as the input
 time is not necessarily unidirectional
 */
-class functionSource: public Source {
+class FunctionSource: public Source {
   private:
     std::function<double(double)> sourceFunc;  //!< the function object used as a signal generator
 
   public:
-    functionSource(const std::string& objName = "functionsource_#");
+    FunctionSource(const std::string& objName = "functionsource_#");
 
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 

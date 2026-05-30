@@ -17,7 +17,7 @@ namespace griddyn {
  built on the link model a subsystem contains an area so the whole simulation can be contained in
  layers
 */
-class subsystem: public Link {
+class Subsystem: public Link {
   public:
     enum SubsystemFlags {
         direct_connection = object_flag5,  //!< flag indicating directly connected objects (skipping
@@ -39,9 +39,9 @@ class subsystem: public Link {
   public:
     /** @brief default constructor
   @param[in] terminals  the number of terminal the subsystem should have*/
-    subsystem(count_t terminals, const std::string& objName = "subsystem_$");
+    Subsystem(count_t terminals, const std::string& objName = "subsystem_$");
 
-    subsystem(const std::string& objName = "subsystem_$");
+    Subsystem(const std::string& objName = "subsystem_$");
     /** @brief the destructor*/
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components

@@ -929,7 +929,7 @@ void AcLine::loadLinkInfo(const StateData& sD, const SolverMode& sMode)
     if ((linkInfo.seqID == sD.seqID) && (sD.seqID != 0)) {
         return;
     }
-    // std::memset (&linkInfo, 0, sizeof(linkI));
+    // std::memset (&linkInfo, 0, sizeof(LinkInfo));
     linkInfo.v1 = B1->getVoltage(sD, sMode);
 
     linkInfo.v2 = B2->getVoltage(sD, sMode);

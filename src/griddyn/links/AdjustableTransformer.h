@@ -19,7 +19,7 @@ local or remote buses,  local reactive power flow, and local real power flow the
 the only one that adjusts the angle.  available control include stepped and continuous
 
 */
-class adjustableTransformer: public AcLine {
+class AdjustableTransformer: public AcLine {
   public:
     /** @brief  enumeration of the available control types
      */
@@ -87,12 +87,12 @@ class adjustableTransformer: public AcLine {
     double prevValue = 0.0;
     // double baseValue;
   public:
-    explicit adjustableTransformer(const std::string& objName = "adjTX_$");
+    explicit AdjustableTransformer(const std::string& objName = "adjTX_$");
     /** @brief default constructor
 @param[in] resistance  resistance of the link
 @param[in] reactance  reactance of the link forwarded to the Link constructor
 */
-    adjustableTransformer(double resistance,
+    AdjustableTransformer(double resistance,
                           double reactance,
                           const std::string& objName = "adjTX_$");
     //!< @brief destructor

@@ -20,22 +20,22 @@ namespace griddyn::links {
 using units::convert;
 using units::puMW;
 using units::unit;
-dcLink::dcLink(const std::string& objName): Link(objName)
+DcLink::DcLink(const std::string& objName): Link(objName)
 {
     opFlags.set(dc_only);
     opFlags.set(network_connected);
 }
 
-dcLink::dcLink(double resistancePu, double reactancePu, const std::string& objName):
+DcLink::DcLink(double resistancePu, double reactancePu, const std::string& objName):
     Link(objName), r(resistancePu), x(reactancePu)
 {
     opFlags.set(dc_only);
     opFlags.set(network_connected);
 }
 
-CoreObject* dcLink::clone(CoreObject* obj) const
+CoreObject* DcLink::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<dcLink, Link>(this, obj);
+    auto* nobj = cloneBase<DcLink, Link>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -45,7 +45,7 @@ CoreObject* dcLink::clone(CoreObject* obj) const
     return nobj;
 }
 
-void dcLink::timestep(coreTime /*time*/, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
+void DcLink::timestep(coreTime /*time*/, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     if (!isEnabled()) {
         return;
@@ -58,7 +58,7 @@ Psched=sched->timestepP(time);
 }*/
 }
 
-void dcLink::updateBus(GridBus* bus, index_t busnumber)
+void DcLink::updateBus(GridBus* bus, index_t busnumber)
 {
     if (dynamic_cast<DcBus*>(bus) != nullptr) {
         Link::updateBus(bus, busnumber);
@@ -67,7 +67,7 @@ void dcLink::updateBus(GridBus* bus, index_t busnumber)
     }
 }
 
-double dcLink::getMaxTransfer() const
+double DcLink::getMaxTransfer() const
 {
     if (!isConnected()) {
         return 0.0;
@@ -85,11 +85,11 @@ double dcLink::getMaxTransfer() const
     return ((r > 0.0) ? (1.0 / r) : kBigNum);
 }
 // set properties
-void dcLink::set(std::string_view param, std::string_view val)
+void DcLink::set(std::string_view param, std::string_view val)
 {
     Link::set(param, val);
 }
-void dcLink::set(std::string_view param, double val, unit unitType)
+void DcLink::set(std::string_view param, double val, unit unitType)
 {
     if ((param == "r") || (param == "rdc")) {
         r = val;
@@ -101,7 +101,7 @@ void dcLink::set(std::string_view param, double val, unit unitType)
     }
 }
 
-void dcLink::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void DcLink::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     Link::pFlowObjectInitializeA(time0, flags);
     if (isEnabled()) {
@@ -111,7 +111,7 @@ void dcLink::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
 }
 
-void dcLink::pFlowObjectInitializeB()
+void DcLink::pFlowObjectInitializeB()
 {
     if (isEnabled()) {
         updateLocalCache();
@@ -121,7 +121,7 @@ void dcLink::pFlowObjectInitializeB()
     }
 }
 
-void dcLink::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void DcLink::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
 {
     m_dstate_dt.resize(1);
     m_state.resize(1);
@@ -133,7 +133,7 @@ void dcLink::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
     }
 }
 
-StateSizes dcLink::localStateSizes(const SolverMode& sMode) const
+StateSizes DcLink::localStateSizes(const SolverMode& sMode) const
 {
     StateSizes localSS;
     if (isDynamic(sMode)) {
@@ -148,7 +148,7 @@ StateSizes dcLink::localStateSizes(const SolverMode& sMode) const
     return localSS;
 }
 
-count_t dcLink::localJacobianCount(const SolverMode& sMode) const
+count_t DcLink::localJacobianCount(const SolverMode& sMode) const
 {
     count_t jacCount = 0;
     if (isDynamic(sMode)) {
@@ -163,7 +163,7 @@ count_t dcLink::localJacobianCount(const SolverMode& sMode) const
     return jacCount;
 }
 
-void dcLink::ioPartialDerivatives(id_type_t busId,
+void DcLink::ioPartialDerivatives(id_type_t busId,
                                   const StateData& stateData,
                                   matrixData<double>& jacobian,
                                   const IOlocs& inputLocs,
@@ -182,7 +182,7 @@ void dcLink::ioPartialDerivatives(id_type_t busId,
     }
 }
 
-void dcLink::outputPartialDerivatives(id_type_t busId,
+void DcLink::outputPartialDerivatives(id_type_t busId,
                                       const StateData& stateData,
                                       matrixData<double>& jacobian,
                                       const SolverMode& sMode)
@@ -227,12 +227,12 @@ void dcLink::outputPartialDerivatives(id_type_t busId,
     }
 }
 
-count_t dcLink::outputDependencyCount(index_t num, const SolverMode& /*sMode*/) const
+count_t DcLink::outputDependencyCount(index_t num, const SolverMode& /*sMode*/) const
 {
     return (num == PoutLocation) ? 1 : 0;
 }
 
-void dcLink::jacobianElements(const IOdata& /*inputs*/,
+void DcLink::jacobianElements(const IOdata& /*inputs*/,
                               const StateData& stateData,
                               matrixData<double>& jacobian,
                               const IOlocs& /*inputLocs*/,
@@ -261,7 +261,7 @@ void dcLink::jacobianElements(const IOdata& /*inputs*/,
     }
 }
 
-void dcLink::residual(const IOdata& inputs,
+void DcLink::residual(const IOdata& inputs,
                       const StateData& stateData,
                       double resid[],
                       const SolverMode& sMode)
@@ -284,7 +284,7 @@ void dcLink::residual(const IOdata& inputs,
     }
 }
 
-void dcLink::setState(coreTime time,
+void DcLink::setState(coreTime time,
                       const double state[],
                       const double dstateDt[],
                       const SolverMode& sMode)
@@ -303,7 +303,7 @@ void dcLink::setState(coreTime time,
     prevTime = time;
 }
 
-void dcLink::guessState(const coreTime /*time*/,
+void DcLink::guessState(const coreTime /*time*/,
                         double state[],
                         double dstateDt[],
                         const SolverMode& sMode)
@@ -320,7 +320,7 @@ void dcLink::guessState(const coreTime /*time*/,
     }
 }
 
-void dcLink::getStateName(stringVec& stNames,
+void DcLink::getStateName(stringVec& stNames,
                           const SolverMode& sMode,
                           const std::string& prefix) const
 {
@@ -332,7 +332,7 @@ void dcLink::getStateName(stringVec& stNames,
     }
 }
 
-void dcLink::updateLocalCache(const IOdata& /*inputs*/,
+void DcLink::updateLocalCache(const IOdata& /*inputs*/,
                               const StateData& stateData,
                               const SolverMode& sMode)
 {
@@ -364,7 +364,7 @@ void dcLink::updateLocalCache(const IOdata& /*inputs*/,
     linkFlows.P2 = -linkInfo.v2 * Idc;
 }
 
-void dcLink::updateLocalCache()
+void DcLink::updateLocalCache()
 {
     linkInfo = {};
 
@@ -376,7 +376,7 @@ void dcLink::updateLocalCache()
     }
 }
 
-int dcLink::fixRealPower(double power,
+int DcLink::fixRealPower(double power,
                          id_type_t measureTerminal,
                          id_type_t fixedTerminal,
                          units::unit unitType)
@@ -467,7 +467,7 @@ int dcLink::fixRealPower(double power,
     return ret;
 }
 
-int dcLink::fixPower(double power,
+int DcLink::fixPower(double power,
                      double /*qPower*/,
                      id_type_t measureTerminal,
                      id_type_t fixedTerminal,

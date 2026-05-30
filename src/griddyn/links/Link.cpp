@@ -44,22 +44,22 @@ static ChildTypeFactory<AcLine, Link> glf(
     "ac");
 
 namespace links {
-    static ChildTypeFactory<adjustableTransformer, Link>
+    static ChildTypeFactory<AdjustableTransformer, Link>
         gfad("link",
              std::to_array<std::string_view>({"adjust", "adjustable", "adjustabletransformer"}));
 
-    static ChildTypeFactory<dcLink, Link>
+    static ChildTypeFactory<DcLink, Link>
         dclnk("link", std::to_array<std::string_view>({"dc", "dclink", "dcline"}));
 
-    static TypeFactoryArg<acdcConverter, acdcConverter::Mode>
+    static TypeFactoryArg<AcdcConverter, AcdcConverter::Mode>
         dcrect("link",
                std::to_array<std::string_view>({"rectifier", "rect"}),
-               acdcConverter::Mode::RECTIFIER);
-    static TypeFactoryArg<acdcConverter, acdcConverter::Mode>
+               AcdcConverter::Mode::RECTIFIER);
+    static TypeFactoryArg<AcdcConverter, AcdcConverter::Mode>
         dcinv("link",
               std::to_array<std::string_view>({"inverter", "inv"}),
-              acdcConverter::Mode::INVERTER);
-    static ChildTypeFactory<acdcConverter, Link>
+              AcdcConverter::Mode::INVERTER);
+    static ChildTypeFactory<AcdcConverter, Link>
         acdc("link", std::to_array<std::string_view>({"acdc", "acdcconverter", "dcconverter"}));
 }  // namespace links
 std::atomic<count_t> Link::linkCount(0);

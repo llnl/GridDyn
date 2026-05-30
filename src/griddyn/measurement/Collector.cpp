@@ -367,7 +367,7 @@ void Collector::add(std::shared_ptr<GridGrabber> ggb,
 }
 
 // a notification that something was added much more useful in derived classes
-void Collector::dataPointAdded(const collectorPoint& /*cp*/) {}
+void Collector::dataPointAdded(const CollectorPoint& /*cp*/) {}
 // NOLINTNEXTLINE(misc-no-recursion)
 void Collector::add(const GridGrabberInfo& gdRI, CoreObject* obj)
 {

@@ -20,7 +20,7 @@ namespace links {
     /** class defines an object that converts operation between dc and ac, can act as a inverter, a
      * rectifier or a bidirectional mode
      */
-    class acdcConverter: public Link {
+    class AcdcConverter: public Link {
       public:
         enum InverterFlags {
             fixed_power_control = object_flag6,
@@ -54,14 +54,14 @@ namespace links {
         CoreOwningPtr<blocks::DelayBlock> controlDelay;  //!< delayblock for control of tap
 
       public:
-        explicit acdcConverter(const std::string& objName = "acdcConveter_$");
+        explicit AcdcConverter(const std::string& objName = "acdcConveter_$");
         // name will be based on opType
-        acdcConverter(Mode opType, const std::string& objName = "");
-        acdcConverter(double resistanceParameter,
+        AcdcConverter(Mode opType, const std::string& objName = "");
+        AcdcConverter(double resistanceParameter,
                       double reactanceParameter,
                       const std::string& objName = "acdcConveter_$");
 
-        virtual ~acdcConverter();
+        virtual ~AcdcConverter();
         virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
         virtual double getMaxTransfer() const override;

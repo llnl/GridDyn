@@ -38,7 +38,7 @@ class FmiCollector: public Collector {
     friend class FmiCoordinator;
 
   protected:
-    virtual void dataPointAdded(const collectorPoint& collectorDataPoint) override;
+    virtual void dataPointAdded(const CollectorPoint& collectorDataPoint) override;
 };
 
 }  // namespace griddyn::fmi

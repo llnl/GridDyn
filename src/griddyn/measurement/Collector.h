@@ -50,7 +50,7 @@ class Collector: public HelperObject, public EventInterface, public ObjectOperat
     coreTime mLastTriggerTime = negTime;  //!< the last time the Collector was triggered
 
     /** data structure to capture the grabbers and location for a specific grabber*/
-    class collectorPoint {
+    class CollectorPoint {
       public:
         std::shared_ptr<GridGrabber>
             mDataGrabber;  //!< the grabber for the data from the object directly
@@ -59,7 +59,7 @@ class Collector: public HelperObject, public EventInterface, public ObjectOperat
         int mColumn = -1;  //!< the starting column for the data
         int mColumnCount = 1;  //!< the number of columns associated with the point
         std::string mColumnName;  //!< the name for the data collected
-        collectorPoint(std::shared_ptr<GridGrabber> dg,
+        CollectorPoint(std::shared_ptr<GridGrabber> dg,
                        std::shared_ptr<StateGrabber> sg,
                        int ncol = -1,
                        int ccnt = 1,
@@ -70,7 +70,7 @@ class Collector: public HelperObject, public EventInterface, public ObjectOperat
         }
     };
 
-    std::vector<collectorPoint> mPoints;  //!< the data grabbers
+    std::vector<CollectorPoint> mPoints;  //!< the data grabbers
     std::vector<double> mData;  //!< vector to grab store the most recent data
     count_t mColumns = 0;  //!< the length of the data vector
     bool mRecheck = false;  //!< flag indicating that the recorder should recheck all the fields
@@ -162,7 +162,7 @@ class Collector: public HelperObject, public EventInterface, public ObjectOperat
 
   protected:
     /** callback intended more for derived classes to indicate that a dataPoint has been added*/
-    virtual void dataPointAdded(const collectorPoint& cp);
+    virtual void dataPointAdded(const CollectorPoint& cp);
     /** get a column number, the requested column is a request only
     *@param[in] requestedColumn the column that is being requested
     @return the actual column granted*/

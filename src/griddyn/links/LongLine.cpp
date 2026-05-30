@@ -13,7 +13,7 @@
 #include <string>
 
 namespace griddyn::links {
-LongLine::LongLine(const std::string& objName): subsystem(objName) {}
+LongLine::LongLine(const std::string& objName): Subsystem(objName) {}
 CoreObject* LongLine::clone(CoreObject* obj) const
 {
     auto line = cloneBase<LongLine, Link>(this, obj);
@@ -22,7 +22,7 @@ CoreObject* LongLine::clone(CoreObject* obj) const
     }
     line->segmentationLength = segmentationLength;
     if (opFlags[pFlow_initialized]) {
-        subsystem::clone(line);
+        Subsystem::clone(line);
     }
     return line;
 }
@@ -36,7 +36,7 @@ void LongLine::remove(CoreObject* /*obj*/) {}
 void LongLine::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     generateIntermediateLinks();
-    return subsystem::pFlowObjectInitializeA(time0, flags);
+    return Subsystem::pFlowObjectInitializeA(time0, flags);
 }
 
 void LongLine::set(std::string_view param, std::string_view val)
@@ -113,7 +113,7 @@ double LongLine::get(std::string_view param, units::unit unitType) const
     if (param == "segmentationlength") {
         val = segmentationLength;
     } else {
-        val = subsystem::get(param, unitType);
+        val = Subsystem::get(param, unitType);
     }
     return val;
 }
@@ -136,7 +136,7 @@ void LongLine::generateIntermediateLinks()
         if (sG != 0) {
             link->set("g", sG);
         }
-        subsystem::add(link);
+        Subsystem::add(link);
         clinks = 1;
         terminalLink[0] = link;
     } else {
@@ -153,14 +153,14 @@ void LongLine::generateIntermediateLinks()
     for (int pp = clinks; pp < numLinks; ++pp) {
         GridBus* bus = new AcBus("ibus" + std::to_string(pp));
 
-        subsystem::add(bus);
+        Subsystem::add(bus);
 
         link = new AcLine(sr, sx);
         link->set("b", sB);
         if (sG != 0) {
             link->set("g", sG);
         }
-        subsystem::add(link);
+        Subsystem::add(link);
         link->updateBus(bus, 1);
 
         subarea.getLink(pp - 1)->updateBus(bus, 2);

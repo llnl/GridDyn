@@ -31,17 +31,17 @@ using units::convert;
 using units::puMW;
 using units::rad;
 using units::unit;
-adjustableTransformer::adjustableTransformer(const std::string& objName): AcLine(objName) {}
-adjustableTransformer::adjustableTransformer(double resistance,
+AdjustableTransformer::AdjustableTransformer(const std::string& objName): AcLine(objName) {}
+AdjustableTransformer::AdjustableTransformer(double resistance,
                                              double reactance,
                                              const std::string& objName):
     AcLine(resistance, reactance, objName)
 {
 }
 
-CoreObject* adjustableTransformer::clone(CoreObject* obj) const
+CoreObject* AdjustableTransformer::clone(CoreObject* obj) const
 {
-    auto* lnk = cloneBase<adjustableTransformer, AcLine>(this, obj);
+    auto* lnk = cloneBase<AdjustableTransformer, AcLine>(this, obj);
     if (lnk == nullptr) {
         return obj;
     }
@@ -92,14 +92,14 @@ static const stringVec LOC_NUM_STRINGS{"vmin",
                                        "dtapadt"};
 static const stringVec LOC_STR_STRINGS{"controlmode", "changemode", "centermode"};
 static const stringVec FLAG_STRINGS{"no_pflow_adjustments"};
-void adjustableTransformer::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+void AdjustableTransformer::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
-    getParamString<adjustableTransformer, AcLine>(
+    getParamString<AdjustableTransformer, AcLine>(
         this, pstr, LOC_NUM_STRINGS, LOC_STR_STRINGS, FLAG_STRINGS, pstype);
 }
 
 // set properties
-void adjustableTransformer::set(std::string_view param, std::string_view val)
+void AdjustableTransformer::set(std::string_view param, std::string_view val)
 {
     if ((param == "controlmode") || (param == "mode") || (param == "control_mode")) {
         auto cmstr = convertToLowerCase(val);
@@ -147,7 +147,7 @@ void adjustableTransformer::set(std::string_view param, std::string_view val)
     }
 }
 
-void adjustableTransformer::set(std::string_view param, double val, unit unitType)
+void AdjustableTransformer::set(std::string_view param, double val, unit unitType)
 {
     if (param == "tap") {
         tap = val;
@@ -286,7 +286,7 @@ void adjustableTransformer::set(std::string_view param, double val, unit unitTyp
     }
 }
 
-double adjustableTransformer::get(std::string_view param, units::unit unitType) const
+double AdjustableTransformer::get(std::string_view param, units::unit unitType) const
 {
     double val = kNullVal;
 
@@ -366,11 +366,11 @@ double adjustableTransformer::get(std::string_view param, units::unit unitType) 
     return val;
 }
 
-void adjustableTransformer::setControlBus(GridBus* cBus)
+void AdjustableTransformer::setControlBus(GridBus* cBus)
 {
     controlBus = cBus;
 }
-void adjustableTransformer::setControlBus(index_t busNumber)
+void AdjustableTransformer::setControlBus(index_t busNumber)
 {
     if ((busNumber == 1) || (busNumber == B1->getID())) {
         controlBus = B1;
@@ -389,7 +389,7 @@ void adjustableTransformer::setControlBus(index_t busNumber)
     }
 }
 
-void adjustableTransformer::followNetwork(int network, std::queue<GridBus*>& stk)
+void AdjustableTransformer::followNetwork(int network, std::queue<GridBus*>& stk)
 {
     if (isConnected()) {
         if (cMode == ControlMode::MW_CONTROL) {
@@ -408,7 +408,7 @@ void adjustableTransformer::followNetwork(int network, std::queue<GridBus*>& stk
     }
 }
 
-void adjustableTransformer::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void AdjustableTransformer::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (cMode != ControlMode::MANUAL_CONTROL) {
         if (cMode == ControlMode::VOLTAGE_CONTROL) {
@@ -466,7 +466,7 @@ void adjustableTransformer::pFlowObjectInitializeA(coreTime time0, std::uint32_t
     AcLine::pFlowObjectInitializeA(time0, flags);
 }
 
-StateSizes adjustableTransformer::localStateSizes(const SolverMode& sMode) const
+StateSizes AdjustableTransformer::localStateSizes(const SolverMode& sMode) const
 {
     StateSizes lcStates;
     if (isDynamic(sMode)) {
@@ -489,7 +489,7 @@ StateSizes adjustableTransformer::localStateSizes(const SolverMode& sMode) const
     return lcStates;
 }
 
-count_t adjustableTransformer::localJacobianCount(const SolverMode& sMode) const
+count_t AdjustableTransformer::localJacobianCount(const SolverMode& sMode) const
 {
     count_t localJacSize = 0;
     if (isDynamic(sMode)) {
@@ -524,7 +524,7 @@ count_t adjustableTransformer::localJacobianCount(const SolverMode& sMode) const
     return localJacSize;
 }
 
-void adjustableTransformer::getStateName(stringVec& stNames,
+void AdjustableTransformer::getStateName(stringVec& stNames,
                                          const SolverMode& sMode,
                                          const std::string& prefix) const
 {
@@ -542,7 +542,7 @@ void adjustableTransformer::getStateName(stringVec& stNames,
     }
 }
 
-void adjustableTransformer::reset(ResetLevels level)
+void AdjustableTransformer::reset(ResetLevels level)
 {
     if (level == ResetLevels::full) {
         adjCount = 0;
@@ -613,7 +613,7 @@ void adjustableTransformer::reset(ResetLevels level)
     }
 }
 
-ChangeCode adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
+ChangeCode AdjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                                                   std::uint32_t flags,
                                                   CheckLevel /*level*/)
 {
@@ -769,7 +769,7 @@ ChangeCode adjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
     return ret;
 }
 
-void adjustableTransformer::guessState(coreTime /*time*/,
+void AdjustableTransformer::guessState(coreTime /*time*/,
                                        double state[],
                                        double dstateDt[],
                                        const SolverMode& sMode)
@@ -788,7 +788,7 @@ void adjustableTransformer::guessState(coreTime /*time*/,
     }
 }
 
-void adjustableTransformer::ioPartialDerivatives(id_type_t busId,
+void AdjustableTransformer::ioPartialDerivatives(id_type_t busId,
                                                  const StateData& stateData,
                                                  matrixData<double>& matrixDataRef,
                                                  const IOlocs& inputLocs,
@@ -806,7 +806,7 @@ void adjustableTransformer::ioPartialDerivatives(id_type_t busId,
     AcLine::ioPartialDerivatives(busId, stateData, matrixDataRef, inputLocs, sMode);
 }
 
-void adjustableTransformer::outputPartialDerivatives(const IOdata& inputs,
+void AdjustableTransformer::outputPartialDerivatives(const IOdata& inputs,
                                                      const StateData& stateData,
                                                      matrixData<double>& matrixDataRef,
                                                      const SolverMode& sMode)
@@ -831,7 +831,7 @@ void adjustableTransformer::outputPartialDerivatives(const IOdata& inputs,
     AcLine::outputPartialDerivatives(inputs, stateData, matrixDataRef, sMode);
 }
 
-void adjustableTransformer::outputPartialDerivatives(id_type_t busId,
+void AdjustableTransformer::outputPartialDerivatives(id_type_t busId,
                                                      const StateData& stateData,
                                                      matrixData<double>& matrixDataRef,
                                                      const SolverMode& sMode)
@@ -850,7 +850,7 @@ void adjustableTransformer::outputPartialDerivatives(id_type_t busId,
     AcLine::outputPartialDerivatives(busId, stateData, matrixDataRef, sMode);
 }
 
-void adjustableTransformer::jacobianElements(const IOdata& /*inputs*/,
+void AdjustableTransformer::jacobianElements(const IOdata& /*inputs*/,
                                              const StateData& stateData,
                                              matrixData<double>& matrixDataRef,
                                              const IOlocs& /*inputLocs*/,
@@ -880,7 +880,7 @@ void adjustableTransformer::jacobianElements(const IOdata& /*inputs*/,
     }
 }
 
-void adjustableTransformer::residual(const IOdata& /*inputs*/,
+void AdjustableTransformer::residual(const IOdata& /*inputs*/,
                                      const StateData& stateData,
                                      double resid[],
                                      const SolverMode& sMode)
@@ -936,7 +936,7 @@ void adjustableTransformer::residual(const IOdata& /*inputs*/,
     }
 }
 
-void adjustableTransformer::setState(coreTime time,
+void AdjustableTransformer::setState(coreTime time,
                                      const double state[],
                                      const double dstateDt[],
                                      const SolverMode& sMode)
@@ -959,16 +959,16 @@ void adjustableTransformer::setState(coreTime time,
     AcLine::setState(time, state, dstateDt, sMode);
 }
 
-void adjustableTransformer::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void AdjustableTransformer::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     AcLine::dynObjectInitializeA(time0, flags);
 }
 
-void adjustableTransformer::updateLocalCache()
+void AdjustableTransformer::updateLocalCache()
 {
     AcLine::updateLocalCache();
 }
-void adjustableTransformer::updateLocalCache(const IOdata& inputs,
+void AdjustableTransformer::updateLocalCache(const IOdata& inputs,
                                              const StateData& stateData,
                                              const SolverMode& sMode)
 {
@@ -986,7 +986,7 @@ void adjustableTransformer::updateLocalCache(const IOdata& inputs,
     }
 }
 
-count_t adjustableTransformer::outputDependencyCount(index_t /*num*/, const SolverMode& sMode) const
+count_t AdjustableTransformer::outputDependencyCount(index_t /*num*/, const SolverMode& sMode) const
 {
     if ((!(isDynamic(sMode))) && (opFlags[has_pflow_states])) {
         return 3;
@@ -994,7 +994,7 @@ count_t adjustableTransformer::outputDependencyCount(index_t /*num*/, const Solv
     return 2;
 }
 
-void adjustableTransformer::rootTest(const IOdata& /*inputs*/,
+void AdjustableTransformer::rootTest(const IOdata& /*inputs*/,
                                      const StateData& stateData,
                                      double roots[],
                                      const SolverMode& sMode)
@@ -1023,7 +1023,7 @@ void adjustableTransformer::rootTest(const IOdata& /*inputs*/,
     }
 }
 
-void adjustableTransformer::rootTrigger(coreTime /*time*/,
+void AdjustableTransformer::rootTrigger(coreTime /*time*/,
                                         const IOdata& /*inputs*/,
                                         const std::vector<int>& /*rootMask*/,
                                         const SolverMode& /*sMode*/)
@@ -1054,7 +1054,7 @@ void adjustableTransformer::rootTrigger(coreTime /*time*/,
     }
 }
 
-void adjustableTransformer::tapAnglePartial(index_t busId,
+void AdjustableTransformer::tapAnglePartial(index_t busId,
                                             const StateData& /*sD*/,
                                             matrixData<double>& matrixDataRef,
                                             const SolverMode& sMode)
@@ -1093,7 +1093,7 @@ void adjustableTransformer::tapAnglePartial(index_t busId,
     }
 }
 
-void adjustableTransformer::tapPartial(index_t busId,
+void AdjustableTransformer::tapPartial(index_t busId,
                                        const StateData& /*sD*/,
                                        matrixData<double>& matrixDataRef,
                                        const SolverMode& sMode)
@@ -1142,7 +1142,7 @@ void adjustableTransformer::tapPartial(index_t busId,
     }
 }
 
-void adjustableTransformer::MWJac(const StateData& /*sD*/,
+void AdjustableTransformer::MWJac(const StateData& /*sD*/,
                                   matrixData<double>& matrixDataRef,
                                   const SolverMode& sMode)
 {
@@ -1186,7 +1186,7 @@ void adjustableTransformer::MWJac(const StateData& /*sD*/,
     matrixDataRef.assignCheckCol(offset, bus2VoltageOffset, temp);
 }
 
-void adjustableTransformer::MVarJac(const StateData& /*sD*/,
+void AdjustableTransformer::MVarJac(const StateData& /*sD*/,
                                     matrixData<double>& matrixDataRef,
                                     const SolverMode& sMode)
 {
@@ -1241,7 +1241,7 @@ Q1 += tvb * cosTheta1;
     matrixDataRef.assignCheckCol(offset, bus2VoltageOffset, temp);
 }
 
-ChangeCode adjustableTransformer::voltageControlAdjust()
+ChangeCode AdjustableTransformer::voltageControlAdjust()
 {
     auto ret = ChangeCode::NO_CHANGE;
     const double tapStep = direction * stepSize;
@@ -1334,19 +1334,19 @@ ChangeCode adjustableTransformer::voltageControlAdjust()
     return ret;
 }
 
-ChangeCode adjustableTransformer::MWControlAdjust()  // NOLINT
+ChangeCode AdjustableTransformer::MWControlAdjust()  // NOLINT
 {
     auto ret = ChangeCode::NO_CHANGE;
     return ret;
 }
 
-ChangeCode adjustableTransformer::MVarControlAdjust()  // NOLINT
+ChangeCode AdjustableTransformer::MVarControlAdjust()  // NOLINT
 {
     auto ret = ChangeCode::NO_CHANGE;
     return ret;
 }
 
-double adjustableTransformer::getValidTapRatio(double testTapValue) const
+double AdjustableTransformer::getValidTapRatio(double testTapValue) const
 {
     if (testTapValue >= maxTap) {
         return maxTap;

@@ -17,16 +17,16 @@
 namespace griddyn::links {
 using units::unit;
 
-static TypeFactory<zBreaker>
+static TypeFactory<ZBreaker>
     glf("link", std::to_array<std::string_view>({"zbreaker", "zline", "busbreaker"}));
 
-zBreaker::zBreaker(const std::string& objName): Link(objName), merged(CoreObject::extra_bool)
+ZBreaker::ZBreaker(const std::string& objName): Link(objName), merged(CoreObject::extra_bool)
 {
     opFlags.set(network_connected);
 }
-CoreObject* zBreaker::clone(CoreObject* obj) const
+CoreObject* ZBreaker::clone(CoreObject* obj) const
 {
-    auto lnk = cloneBase<zBreaker, Link>(this, obj);
+    auto lnk = cloneBase<ZBreaker, Link>(this, obj);
     if (lnk == nullptr) {
         return obj;
     }
@@ -34,7 +34,7 @@ CoreObject* zBreaker::clone(CoreObject* obj) const
 }
 // parameter set functions
 
-void zBreaker::set(std::string_view param, std::string_view val)
+void ZBreaker::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -42,7 +42,7 @@ void zBreaker::set(std::string_view param, std::string_view val)
     }
 }
 
-void zBreaker::set(std::string_view param, double val, unit unitType)
+void ZBreaker::set(std::string_view param, double val, unit unitType)
 {
     if (param.empty()) {
     } else {
@@ -50,19 +50,19 @@ void zBreaker::set(std::string_view param, double val, unit unitType)
     }
 }
 
-void zBreaker::switchChange(int /*switchNum*/)
+void ZBreaker::switchChange(int /*switchNum*/)
 {
     coordinateMergeStatus();
 }
-void zBreaker::pFlowObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void ZBreaker::pFlowObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
 {
     coordinateMergeStatus();
 }
-void zBreaker::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void ZBreaker::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
 {
     coordinateMergeStatus();
 }
-void zBreaker::switchMode(index_t /*num*/, bool mode)
+void ZBreaker::switchMode(index_t /*num*/, bool mode)
 {
     // TODO(phlpt): This shouldn't cause enable/disable. Replace this with some of the
     // checks for enabled disable
@@ -91,7 +91,7 @@ opFlags.set(switch2_open_flag);
 }*/
 }
 
-void zBreaker::updateLocalCache()
+void ZBreaker::updateLocalCache()
 {
     if (!isEnabled()) {
         return;
@@ -99,7 +99,7 @@ void zBreaker::updateLocalCache()
     linkInfo.v1 = B1->getVoltage();
     linkInfo.v2 = linkInfo.v1;
 }
-void zBreaker::updateLocalCache(const IOdata& /*inputs*/,
+void ZBreaker::updateLocalCache(const IOdata& /*inputs*/,
                                 const StateData& sD,
                                 const SolverMode& /*sMode*/)
 {
@@ -115,11 +115,11 @@ void zBreaker::updateLocalCache(const IOdata& /*inputs*/,
     linkInfo.v2 = linkInfo.v1;
 }
 
-double zBreaker::quickupdateP()
+double ZBreaker::quickupdateP()
 {
     return 0;
 }
-void zBreaker::coordinateMergeStatus()
+void ZBreaker::coordinateMergeStatus()
 {
     if (isConnected()) {
         if (!merged) {
@@ -129,26 +129,26 @@ void zBreaker::coordinateMergeStatus()
         unmerge();
     }
 }
-void zBreaker::merge()
+void ZBreaker::merge()
 {
     B1->mergeBus(B2);
     merged = true;
 }
 
-void zBreaker::unmerge()
+void ZBreaker::unmerge()
 {
     B1->unmergeBus(B2);
     merged = false;
 }
 
-int zBreaker::fixRealPower(double /*power*/,
+int ZBreaker::fixRealPower(double /*power*/,
                            id_type_t /*measureTerminal*/,
                            id_type_t /*fixedTerminal*/,
                            units::unit /*unitType*/)
 {
     return 1;
 }
-int zBreaker::fixPower(double /*rPower*/,
+int ZBreaker::fixPower(double /*rPower*/,
                        double /*qPower*/,
                        id_type_t /*measureTerminal*/,
                        id_type_t /*fixedTerminal*/,

@@ -13,17 +13,17 @@
 #include <string>
 
 namespace griddyn::links {
-ThreeWindingTransformer::ThreeWindingTransformer(const std::string& objName): subsystem(objName)
+ThreeWindingTransformer::ThreeWindingTransformer(const std::string& objName): Subsystem(objName)
 {
     GridBus* bus = new AcBus("ibus_mid");
-    subsystem::add(bus);
+    Subsystem::add(bus);
 
     AcLine* t1 = new AcLine("primary");
     AcLine* t2 = new AcLine("secondary");
     AcLine* t3 = new AcLine("tertiary");
-    subsystem::add(t1);
-    subsystem::add(t2);
-    subsystem::add(t3);
+    Subsystem::add(t1);
+    Subsystem::add(t2);
+    Subsystem::add(t3);
     t1->updateBus(bus, 2);
     t2->updateBus(bus, 1);
     t3->updateBus(bus, 1);
@@ -57,13 +57,13 @@ void ThreeWindingTransformer::remove(CoreObject* /*obj*/) {}
 void ThreeWindingTransformer::set(std::string_view param, std::string_view val)
 {
     if (param == "primary") {
-        subsystem::set("from", val);
+        Subsystem::set("from", val);
     } else if (param == "secondary") {
-        subsystem::set("to", val);
+        Subsystem::set("to", val);
     } else if (param == "tertiary") {
-        subsystem::set("connection:3", val);
+        Subsystem::set("connection:3", val);
     } else {
-        return subsystem::set(param, val);
+        return Subsystem::set(param, val);
     }
 }
 
@@ -137,7 +137,7 @@ double ThreeWindingTransformer::get(std::string_view param, units::unit unitType
     if (param == "NULL") {
         val = kNullVal;
     } else {
-        val = subsystem::get(param, unitType);
+        val = Subsystem::get(param, unitType);
     }
     return val;
 }

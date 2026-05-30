@@ -600,15 +600,15 @@ int ptiReadTX(CoreObject* parentObject,
             lnk->set("type", "transformer");
             break;
         case 1:
-            lnk = new links::adjustableTransformer();
+            lnk = new links::AdjustableTransformer();
             lnk->set("mode", "voltage");
             break;
         case 2:
-            lnk = new links::adjustableTransformer();
+            lnk = new links::AdjustableTransformer();
             lnk->set("mode", "mvar");
             break;
         case 3:
-            lnk = new links::adjustableTransformer();
+            lnk = new links::AdjustableTransformer();
             lnk->set("mode", "mw");
             break;
         default:

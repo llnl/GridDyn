@@ -594,7 +594,7 @@ void loadPSATLTCArray(CoreObject* parentObject,
         GridBus* bus1 = busList[ind1];
         auto ind2 = static_cast<index_t>(ltcInfo[1]);
         GridBus* bus2 = busList[ind2];
-        auto lnk = new links::adjustableTransformer();
+        auto lnk = new links::AdjustableTransformer();
 
         lnk->updateBus(bus1, 1);
         lnk->updateBus(bus2, 2);
@@ -647,8 +647,8 @@ void loadPSATLTCArray(CoreObject* parentObject,
 10 Pref Reference power pu
 11 rT Transformer resistance pu
 12 xT Transformer reactance pu
-13 ÃŽÂ±max Maximum phase angle rad
-14 ÃŽÂ±min Minimum phase angle rad
+13 ÃƒÅ½Ã‚Â±max Maximum phase angle rad
+14 ÃƒÅ½Ã‚Â±min Minimum phase angle rad
 15 m Transformer fixed tap ratio pu / pu
 16 u Connection status{ 0, 1 }
 */
@@ -661,7 +661,7 @@ void loadPSATPHSArray(CoreObject* parentObject,
         auto bus1 = busList[ind1];
         auto ind2 = static_cast<index_t>(phsInfo[1]);
         auto bus2 = busList[ind2];
-        auto lnk = new links::adjustableTransformer();
+        auto lnk = new links::AdjustableTransformer();
 
         lnk->updateBus(bus1, 1);
         lnk->updateBus(bus2, 2);
@@ -691,34 +691,34 @@ void loadPSATPHSArray(CoreObject* parentObject,
 6 xl Leakage reactance pu all
 7 ra Armature resistance pu all
 8 xd d-axis synchronous reactance pu III, IV, V.1, V.2, V.3, VI, VIII
-9 xÃ¢â‚¬Â²
+9 xÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
 d d-axis transient reactance pu II, III, IV, V.1, V.2, V.3, VI, VIII
-10 xÃ¢â‚¬Â²Ã¢â‚¬Â²
+10 xÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
 d d-axis subtransient reactance pu V.2, VI, VIII
-11 TÃ¢â‚¬Â²
+11 TÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
 d0 d-axis open circuit transient time constant s III, IV, V.1, V.2, V.3, VI, VIII
-12 TÃ¢â‚¬Â²Ã¢â‚¬Â²
+12 TÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
 d0 d-axis open circuit subtransient time constant s V.2, VI, VIII
 13 xq q-axis synchronous reactance pu III, IV, V.1, V.2, V.3, VI, VIII
-14 xÃ¢â‚¬Â²
+14 xÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
 q q-axis transient reactance pu IV, V.1, VI, VIII
-15 xÃ¢â‚¬Â²Ã¢â‚¬Â²
+15 xÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
 q q-axis subtransient reactance pu V.2, VI, VIII
-16 TÃ¢â‚¬Â²
+16 TÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
 q0 q-axis open circuit transient time constant s IV, V.1, VI, VIII
-17 TÃ¢â‚¬Â²Ã¢â‚¬Â²
+17 TÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
 q0 q-axis open circuit subtransient time constant s V.1, V.2, VI, VIII
-18 M = 2H Mechanical starting time (2 Ãƒâ€” inertia constant) kWs/kVA all
-19 D Damping coefficient Ã¢Ë†â€™ all
-Ã¢â‚¬Â  20 KÃâ€° Speed feedback gain gain III, IV, V.1, V.2, VI
-Ã¢â‚¬Â  21 KP Active power feedback gain gain III, IV, V.1, V.2, VI
-Ã¢â‚¬Â  22 ÃŽÂ³P Active power ratio at node [0,1] all
-Ã¢â‚¬Â  23 ÃŽÂ³Q Reactive power ratio at node [0,1] all
-Ã¢â‚¬Â  24 TAA d-axis additional leakage time constant s V.2, VI, VIII
-Ã¢â‚¬Â  25 S(1.0) First saturation factor - III, IV, V.1, V.2, VI, VIII
-Ã¢â‚¬Â  26 S(1.2) Second saturation factor - III, IV, V.1, V.2, VI, VIII
-Ã¢â‚¬Â  27 nCOI Center of inertia number int all
-Ã¢â‚¬Â  28 u Connection status {0, 1} all
+18 M = 2H Mechanical starting time (2 ÃƒÆ’Ã¢â‚¬â€ inertia constant) kWs/kVA all
+19 D Damping coefficient ÃƒÂ¢Ã‹â€ Ã¢â‚¬â„¢ all
+ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  20 KÃƒÂÃ¢â‚¬Â° Speed feedback gain gain III, IV, V.1, V.2, VI
+ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  21 KP Active power feedback gain gain III, IV, V.1, V.2, VI
+ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  22 ÃƒÅ½Ã‚Â³P Active power ratio at node [0,1] all
+ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  23 ÃƒÅ½Ã‚Â³Q Reactive power ratio at node [0,1] all
+ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  24 TAA d-axis additional leakage time constant s V.2, VI, VIII
+ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  25 S(1.0) First saturation factor - III, IV, V.1, V.2, VI, VIII
+ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  26 S(1.2) Second saturation factor - III, IV, V.1, V.2, VI, VIII
+ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  27 nCOI Center of inertia number int all
+ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  28 u Connection status {0, 1} all
 */
 
 void loadPSATSynArray(CoreObject* /*parentObject*/,

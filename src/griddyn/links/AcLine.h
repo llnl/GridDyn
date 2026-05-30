@@ -12,7 +12,7 @@ namespace griddyn {
 #define APPROXIMATION_LEVELS (9)
 
 /** class defining some computed information for links*/
-class linkC {
+class LinkComputed {
   public:
     double cosTheta1 = 0.0;  //!<  cos theta1
     double cosTheta2 = 0.0;  //!<  cos theta2
@@ -23,7 +23,7 @@ class linkC {
 
 /** @brief structure containing information on the partial derivatives for the the link
 the seqID is also the index of the state data it was calculated from*/
-typedef struct linkPartialDerivatives {
+struct LinkPartialDerivatives {
     double dP1dv1 = 0.0;
     double dP1dt1 = 0.0;
     double dQ1dv1 = 0.0;
@@ -42,7 +42,7 @@ typedef struct linkPartialDerivatives {
     double dP2dt2 = 0.0;
     double dQ2dt2 = 0.0;
     index_t seqID = 0;
-} linkPart;
+};
 
 /** @brief the class that links multiple nodes(buses) together
 *  the base class for objects which connect other objects mainly buses
@@ -72,12 +72,12 @@ class AcLine: public Link {
     model_parameter length{0.0};  //!< [km] transmission line length
     model_parameter r{0.0};  //!< [pu] per unit resistance
     model_parameter x{0.00000001};  //!< [pu] per unit reactance
-    linkI constLinkInfo;  //!< holder for static link bus information
-    linkC linkComp;  //!< holder for some computed information
-    linkPart LinkDeriv;  //!< holder for computed derivative information
-    linkC constLinkComp;  //!< holder for some computed information
+    LinkInfo constLinkInfo;  //!< holder for static link bus information
+    LinkComputed linkComp;  //!< holder for some computed information
+    LinkPartialDerivatives LinkDeriv;  //!< holder for computed derivative information
+    LinkComputed constLinkComp;  //!< holder for some computed information
 
-    linkF constLinkFlows;  //!< holder for previous steady state link flows
+    LinkFlows constLinkFlows;  //!< holder for previous steady state link flows
 
     using glMP = void (AcLine::*)();
     glMP flowCalc[APPROXIMATION_LEVELS];  //!< function pointers to power flow calculations

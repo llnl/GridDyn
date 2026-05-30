@@ -19,7 +19,7 @@ class GridBus;  // forward class definition
 Vmx=\frac{v1*v2}{tap}
 \f]
 the seqID is also the index of the state data it was calculated from*/
-class linkI {
+class LinkInfo {
   public:
     double v1 = 0.0;  //!< [puV] voltage at bus1
     double v2 = 0.0;  //!< [puV] voltage at bus2
@@ -30,7 +30,7 @@ class linkI {
 
 /** @brief structure containing information on the flows for the link
         the seqID is also the index of the state data it was calculated from*/
-class linkF {
+class LinkFlows {
   public:
     double P1 = 0.0;  //!< [puMW] power transferred from bus 1
     double P2 = 0.0;  //!< [puMW] power transferred from bus 2
@@ -65,8 +65,8 @@ class Link: public GridPrimary {
     GridBus* B2 = nullptr;  //!< the bus on the to side
 
     index_t circuitNum = 1;  //!< helper field for multicircuit links
-    linkI linkInfo;  //!< holder for the latest bus information
-    linkF linkFlows;  //!< holder latest computed power flow information
+    LinkInfo linkInfo;  //!< holder for the latest bus information
+    LinkFlows linkFlows;  //!< holder latest computed power flow information
     double ratingA = kBigNum;  //!< [puA] the long term rating of the link
     double ratingB = kBigNum;  //!< [puA] the short term rating of the link
     double Erating = kBigNum;  //!< [puA] the emergency rating of the link

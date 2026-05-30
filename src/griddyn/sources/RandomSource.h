@@ -21,7 +21,7 @@ class RandomSource: public RampSource {
     enum RandomSourceFlags {
         INTERPOLATE_FLAG = object_flag5,  //!< indicator that the output should be interpolated
         PROPORTIONAL_FLAG = object_flag6,  //!< indicator that the random change is proportional
-                                          //!< to the current value
+                                           //!< to the current value
         REPEATED_FLAG = object_flag7,  //!< indicator that the random generation should be repeated
         TRIGGERED_FLAG = object_flag8,  //!< indicator that the random generation has been triggered
 

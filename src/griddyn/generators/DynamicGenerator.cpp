@@ -1087,7 +1087,8 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
     subInputLocs.genModelInputLocsExternal[angleInLocation] = inputLocs[angleInLocation];
 
     if ((ext != nullptr) && (ext->isEnabled())) {
-        subInputLocs.inputLocs[EXCITER_LOC][exciterVoltageInLocation] = inputLocs[voltageInLocation];
+        subInputLocs.inputLocs[EXCITER_LOC][exciterVoltageInLocation] =
+            inputLocs[voltageInLocation];
         subInputLocs.inputLocs[EXCITER_LOC][exciterVsetInLocation] = vSetLocation(sMode);
         subInputLocs.inputLocs[GEN_MODEL_LOC][genModelEftInLocation] = ext->getOutputLoc(sMode, 0);
     } else {
@@ -1105,7 +1106,8 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
             subInputLocs.inputLocs[GOVERNOR_LOC][govOmegaInLocation] = floc;
         }
         subInputLocs.inputLocs[GOVERNOR_LOC][govpSetInLocation] = pSetLocation(sMode);
-        subInputLocs.inputLocs[GEN_MODEL_LOC][genModelPmechInLocation] = gov->getOutputLoc(sMode, 0);
+        subInputLocs.inputLocs[GEN_MODEL_LOC][genModelPmechInLocation] =
+            gov->getOutputLoc(sMode, 0);
     } else {
         subInputLocs.inputLocs[GEN_MODEL_LOC][genModelPmechInLocation] = pSetLocation(sMode);
     }

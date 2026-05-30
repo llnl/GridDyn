@@ -358,7 +358,7 @@ void loadMatDynEvent(CoreObject* parentObject,
     if (locA != std::string::npos) {
         locB = fileView.find_first_of('=', locA);
         readMatlabArray(fileText, locB + 1, matrixData);
-        for (const auto& lineChange : MatrixData) {
+        for (const auto& lineChange : matrixData) {
             auto evnt = std::make_shared<Event>(lineChange[0]);
 
             auto ind = static_cast<index_t>(lineChange[1]);

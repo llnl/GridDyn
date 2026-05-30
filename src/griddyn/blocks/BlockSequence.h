@@ -53,31 +53,31 @@ class BlockSequence: public GridBlock {
 
     virtual void blockResidual(double input,
                                double didt,
-                               const stateData& stateData,
+                               const StateData& stateData,
                                double resid[],
                                const SolverMode& sMode) override;
 
     virtual void blockDerivative(double input,
                                  double didt,
-                                 const stateData& stateData,
+                                 const StateData& stateData,
                                  double deriv[],
                                  const SolverMode& sMode) override;
 
     virtual void blockAlgebraicUpdate(double input,
-                                      const stateData& stateData,
+                                      const StateData& stateData,
                                       double update[],
                                       const SolverMode& sMode) override;
 
     virtual void blockJacobianElements(double input,
                                        double didt,
-                                       const stateData& stateData,
+                                       const StateData& stateData,
                                        matrixData<double>& matrixDataRef,
                                        index_t argLoc,
                                        const SolverMode& sMode) override;
 
     virtual double step(coreTime time, double input) override;
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& stateData,
+                          const StateData& stateData,
                           double roots[],
                           const SolverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
@@ -85,7 +85,7 @@ class BlockSequence: public GridBlock {
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                 const stateData& stateData,
+                                 const StateData& stateData,
                                  const SolverMode& sMode,
                                  CheckLevel level) override;
     // virtual void setTime(coreTime time){prevTime=time;};
@@ -101,7 +101,7 @@ class BlockSequence: public GridBlock {
     double subBlockOutput(const std::string& blockname) const;
 
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const stateData& stateData,
+                                  const StateData& stateData,
                                   const SolverMode& sMode) override;
 
     virtual CoreObject* getSubObject(std::string_view typeName, index_t num) const override;

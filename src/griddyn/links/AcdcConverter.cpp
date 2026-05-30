@@ -298,7 +298,7 @@ void acdcConverter::dynObjectInitializeB(const IOdata& /*inputs*/,
 }
 
 void acdcConverter::ioPartialDerivatives(id_type_t busId,
-                                         const stateData& stateDataValue,
+                                         const StateData& stateDataValue,
                                          matrixData<double>& matrixDataValue,
                                          const IOlocs& inputLocs,
                                          const SolverMode& sMode)
@@ -363,7 +363,7 @@ linkInfo.Q1 = -std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
 }
 
 void acdcConverter::outputPartialDerivatives(const IOdata& /*inputs*/,
-                                             const stateData& stateDataValue,
+                                             const StateData& stateDataValue,
                                              matrixData<double>& matrixDataValue,
                                              const SolverMode& sMode)
 {
@@ -386,7 +386,7 @@ void acdcConverter::outputPartialDerivatives(const IOdata& /*inputs*/,
     }
 }
 void acdcConverter::outputPartialDerivatives(id_type_t busId,
-                                             const stateData& stateDataValue,
+                                             const StateData& stateDataValue,
                                              matrixData<double>& matrixDataValue,
                                              const SolverMode& sMode)
 {
@@ -469,7 +469,7 @@ count_t acdcConverter::outputDependencyCount(index_t /*num*/, const SolverMode& 
 }
 
 void acdcConverter::jacobianElements(const IOdata& /*inputs*/,
-                                     const stateData& stateDataValue,
+                                     const StateData& stateDataValue,
                                      matrixData<double>& matrixDataValue,
                                      const IOlocs& /*inputLocs*/,
                                      const SolverMode& sMode)
@@ -564,7 +564,7 @@ void acdcConverter::jacobianElements(const IOdata& /*inputs*/,
 }
 
 void acdcConverter::residual(const IOdata& inputs,
-                             const stateData& stateDataValue,
+                             const StateData& stateDataValue,
                              double resid[],
                              const SolverMode& sMode)
 {
@@ -648,7 +648,7 @@ void acdcConverter::guessState(coreTime time,
 }
 
 void acdcConverter::updateLocalCache(const IOdata& /*inputs*/,
-                                     const stateData& stateDataValue,
+                                     const StateData& stateDataValue,
                                      const SolverMode& sMode)
 {
     if (!stateDataValue.updateRequired(linkInfo.seqID)) {

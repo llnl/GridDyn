@@ -36,26 +36,26 @@ class ExciterIEEEtype1: public Exciter {
 
     virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const StateData& sD,
                           double resid[],
                           const SolverMode& sMode) override;
     virtual void derivative(const IOdata& inputs,
-                            const stateData& sD,
+                            const StateData& sD,
                             double deriv[],
                             const SolverMode& sMode) override;
     // only called if the genModel is not present
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const StateData& sD,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
 
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& sD,
+                          const StateData& sD,
                           double roots[],
                           const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const StateData& sD,
                                  const SolverMode& sMode,
                                  CheckLevel level) override;
 };

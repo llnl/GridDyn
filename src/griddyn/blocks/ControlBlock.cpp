@@ -74,7 +74,7 @@ void ControlBlock::dynObjectInitializeB(const IOdata& inputs,
 }
 
 void ControlBlock::blockAlgebraicUpdate(double input,
-                                        const stateData& stateDataRef,
+                                        const StateData& stateDataRef,
                                         double update[],
                                         const SolverMode& sMode)
 {
@@ -91,7 +91,7 @@ void ControlBlock::blockAlgebraicUpdate(double input,
 
 void ControlBlock::blockDerivative(double input,
                                    double didt,
-                                   const stateData& stateDataRef,
+                                   const StateData& stateDataRef,
                                    double deriv[],
                                    const SolverMode& sMode)
 {
@@ -112,7 +112,7 @@ void ControlBlock::blockDerivative(double input,
 
 void ControlBlock::blockJacobianElements(double input,
                                          double didt,
-                                         const stateData& stateDataRef,
+                                         const StateData& stateDataRef,
                                          matrixData<double>& jacobian,
                                          index_t argLoc,
                                          const SolverMode& sMode)

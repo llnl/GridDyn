@@ -97,7 +97,7 @@ double ExciterSEXS::regulatorOutput(const IOdata& inputs, const double stateX) c
 }
 
 void ExciterSEXS::residual(const IOdata& inputs,
-                           const stateData& stateData,
+                           const StateData& stateData,
                            double resid[],
                            const SolverMode& SolverMode)
 {
@@ -114,7 +114,7 @@ void ExciterSEXS::residual(const IOdata& inputs,
 }
 
 void ExciterSEXS::derivative(const IOdata& inputs,
-                             const stateData& stateData,
+                             const StateData& stateData,
                              double deriv[],
                              const SolverMode& SolverMode)
 {
@@ -137,7 +137,7 @@ void ExciterSEXS::derivative(const IOdata& inputs,
 }
 
 void ExciterSEXS::jacobianElements(const IOdata& /*inputs*/,
-                                   const stateData& stateData,
+                                   const StateData& stateData,
                                    matrixData<double>& matrix,
                                    const IOlocs& inputLocs,
                                    const SolverMode& SolverMode)
@@ -163,7 +163,7 @@ void ExciterSEXS::jacobianElements(const IOdata& /*inputs*/,
 }
 
 void ExciterSEXS::rootTest(const IOdata& inputs,
-                           const stateData& stateData,
+                           const StateData& stateData,
                            double root[],
                            const SolverMode& SolverMode)
 {
@@ -207,12 +207,12 @@ void ExciterSEXS::rootTrigger(coreTime time,
         alert(this, JAC_COUNT_DECREASE);
     }
 
-    const stateData state(time, m_state.data());
+    const StateData state(time, m_state.data());
     derivative(inputs, state, m_dstate_dt.data(), SolverMode);
 }
 
 ChangeCode ExciterSEXS::rootCheck(const IOdata& inputs,
-                                  const stateData& /*stateData*/,
+                                  const StateData& /*StateData*/,
                                   const SolverMode& /*SolverMode*/,
                                   CheckLevel /*level*/)
 {

@@ -78,7 +78,7 @@ void FmiMELoad3phase::setState(coreTime time,
 }
 
 void FmiMELoad3phase::updateLocalCache(const IOdata& inputs,
-                                       const stateData& stateDataRef,
+                                       const StateData& stateDataRef,
                                        const SolverMode& sMode)
 {
     auto inputVector =

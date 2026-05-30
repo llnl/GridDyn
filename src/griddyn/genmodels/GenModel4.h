@@ -33,21 +33,21 @@ class GenModel4: public GenModel3 {
     // dynamics
     virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const StateData& sD,
                           double resid[],
                           const SolverMode& sMode) override;
     virtual void derivative(const IOdata& inputs,
-                            const stateData& sD,
+                            const StateData& sD,
                             double deriv[],
                             const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const StateData& sD,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
 
     virtual void algebraicUpdate(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const StateData& sD,
                                  double update[],
                                  const SolverMode& sMode,
                                  double alpha) override;

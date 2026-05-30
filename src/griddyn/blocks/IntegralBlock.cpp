@@ -53,7 +53,7 @@ void IntegralBlock::dynObjectInitializeB(const IOdata& inputs,
 // residual
 void IntegralBlock::blockResidual(double input,
                                   double didt,
-                                  const stateData& stateDataValue,
+                                  const StateData& stateDataValue,
                                   double resid[],
                                   const SolverMode& sMode)
 {
@@ -68,7 +68,7 @@ void IntegralBlock::blockResidual(double input,
 
 void IntegralBlock::blockDerivative(double input,
                                     double didt,
-                                    const stateData& stateDataValue,
+                                    const StateData& stateDataValue,
                                     double deriv[],
                                     const SolverMode& sMode)
 {
@@ -81,7 +81,7 @@ void IntegralBlock::blockDerivative(double input,
 
 void IntegralBlock::blockJacobianElements(double input,
                                           double didt,
-                                          const stateData& stateDataValue,
+                                          const StateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
                                           index_t argLoc,
                                           const SolverMode& sMode)

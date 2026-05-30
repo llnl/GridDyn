@@ -48,7 +48,7 @@ CoreObject* ExciterDC2A::clone(CoreObject* obj) const
 
 // residual
 void ExciterDC2A::residual(const IOdata& inputs,
-                           const stateData& stateDataValue,
+                           const StateData& stateDataValue,
                            double resid[],
                            const SolverMode& sMode)
 {
@@ -65,7 +65,7 @@ void ExciterDC2A::residual(const IOdata& inputs,
 }
 
 void ExciterDC2A::derivative(const IOdata& inputs,
-                             const stateData& stateDataValue,
+                             const StateData& stateDataValue,
                              double deriv[],
                              const SolverMode& sMode)
 {
@@ -93,7 +93,7 @@ void ExciterDC2A::limitJacobian(double /*V*/,
 }
 
 void ExciterDC2A::rootTest(const IOdata& inputs,
-                           const stateData& stateDataValue,
+                           const StateData& stateDataValue,
                            double roots[],
                            const SolverMode& sMode)
 {
@@ -117,7 +117,7 @@ void ExciterDC2A::rootTest(const IOdata& inputs,
 }
 
 ChangeCode ExciterDC2A::rootCheck(const IOdata& inputs,
-                                  const stateData& /*sD*/,
+                                  const StateData& /*sD*/,
                                   const SolverMode& /*sMode*/,
                                   CheckLevel /*level*/)
 {

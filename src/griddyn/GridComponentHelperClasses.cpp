@@ -11,15 +11,15 @@
 
 namespace griddyn {
 
-void stateSizes::reset()
+void StateSizes::reset()
 {
-    std::memset(this, 0, sizeof(stateSizes));
+    std::memset(this, 0, sizeof(StateSizes));
 }
-void stateSizes::stateReset()
+void StateSizes::stateReset()
 {
     vSize = aSize = algSize = diffSize = 0;
 }
-void stateSizes::add(const stateSizes& arg)
+void StateSizes::add(const StateSizes& arg)
 {
     vSize += arg.vSize;
     aSize += arg.aSize;
@@ -30,7 +30,7 @@ void stateSizes::add(const stateSizes& arg)
     jacSize += arg.jacSize;
 }
 
-void stateSizes::addStateSizes(const stateSizes& arg)
+void StateSizes::addStateSizes(const StateSizes& arg)
 {
     vSize += arg.vSize;
     aSize += arg.aSize;
@@ -38,23 +38,23 @@ void stateSizes::addStateSizes(const stateSizes& arg)
     diffSize += arg.diffSize;
 }
 
-void stateSizes::addRootSizes(const stateSizes& arg)
+void StateSizes::addRootSizes(const StateSizes& arg)
 {
     algRoots += arg.algRoots;
     diffRoots += arg.diffRoots;
 }
 
-void stateSizes::addJacobianSizes(const stateSizes& arg)
+void StateSizes::addJacobianSizes(const StateSizes& arg)
 {
     jacSize += arg.jacSize;
 }
 
-count_t stateSizes::totalSize() const
+count_t StateSizes::totalSize() const
 {
     return vSize + aSize + algSize + diffSize;
 }
 
-void solverOffsets::reset()
+void SolverOffsets::reset()
 {
     diffOffset = aOffset = vOffset = algOffset = rootOffset = kNullLocation;
     local.reset();
@@ -63,7 +63,7 @@ void solverOffsets::reset()
     rootsLoaded = jacobianLoaded = stateLoaded = offetLoaded = false;
 }
 
-void solverOffsets::stateReset()
+void SolverOffsets::stateReset()
 {
     local.stateReset();
     total.stateReset();
@@ -71,7 +71,7 @@ void solverOffsets::stateReset()
     stateLoaded = false;
 }
 
-void solverOffsets::rootCountReset()
+void SolverOffsets::rootCountReset()
 {
     rootOffset = kNullLocation;
     local.rootReset();
@@ -80,7 +80,7 @@ void solverOffsets::rootCountReset()
     rootsLoaded = false;
 }
 
-void solverOffsets::jacobianCountReset()
+void SolverOffsets::jacobianCountReset()
 {
     local.jacobianReset();
     total.jacobianReset();
@@ -88,7 +88,7 @@ void solverOffsets::jacobianCountReset()
     jacobianLoaded = false;
 }
 
-void solverOffsets::increment()
+void SolverOffsets::increment()
 {
     count_t algExtra = 0;
     if (aOffset != kNullLocation) {
@@ -114,7 +114,7 @@ void solverOffsets::increment()
     }
 }
 
-void solverOffsets::increment(const solverOffsets& offsets)
+void SolverOffsets::increment(const SolverOffsets& offsets)
 {
     count_t algExtra = 0;
     if (aOffset != kNullLocation) {
@@ -140,7 +140,7 @@ void solverOffsets::increment(const solverOffsets& offsets)
     }
 }
 
-void solverOffsets::localIncrement(const solverOffsets& offsets)
+void SolverOffsets::localIncrement(const SolverOffsets& offsets)
 {
     count_t algExtra = 0;
     if (aOffset != kNullLocation) {
@@ -166,25 +166,25 @@ void solverOffsets::localIncrement(const solverOffsets& offsets)
     }
 }
 
-void solverOffsets::addSizes(const solverOffsets& offsets)
+void SolverOffsets::addSizes(const SolverOffsets& offsets)
 {
     total.add(offsets.total);
 }
-void solverOffsets::addStateSizes(const solverOffsets& offsets)
+void SolverOffsets::addStateSizes(const SolverOffsets& offsets)
 {
     total.addStateSizes(offsets.total);
 }
-void solverOffsets::addJacobianSizes(const solverOffsets& offsets)
+void SolverOffsets::addJacobianSizes(const SolverOffsets& offsets)
 {
     total.addJacobianSizes(offsets.total);
 }
 
-void solverOffsets::addRootSizes(const solverOffsets& offsets)
+void SolverOffsets::addRootSizes(const SolverOffsets& offsets)
 {
     total.addRootSizes(offsets.total);
 }
 
-void solverOffsets::localStateLoad(bool finishedLoading)
+void SolverOffsets::localStateLoad(bool finishedLoading)
 {
     total.algSize = local.algSize;
     total.diffSize = local.diffSize;
@@ -193,7 +193,7 @@ void solverOffsets::localStateLoad(bool finishedLoading)
     stateLoaded = finishedLoading;
 }
 
-void solverOffsets::localLoadAll(bool finishedLoading)
+void SolverOffsets::localLoadAll(bool finishedLoading)
 {
     total = local;
     stateLoaded = finishedLoading;
@@ -201,7 +201,7 @@ void solverOffsets::localLoadAll(bool finishedLoading)
     rootsLoaded = finishedLoading;
 }
 
-void solverOffsets::setOffsets(const solverOffsets& newOffsets)
+void SolverOffsets::setOffsets(const SolverOffsets& newOffsets)
 {
     algOffset = newOffsets.algOffset;
     diffOffset = newOffsets.diffOffset;
@@ -233,7 +233,7 @@ void solverOffsets::setOffsets(const solverOffsets& newOffsets)
     }
 }
 
-void solverOffsets::setOffset(index_t newOffset)
+void SolverOffsets::setOffset(index_t newOffset)
 {
     aOffset = newOffset;
     vOffset = aOffset + total.aSize;

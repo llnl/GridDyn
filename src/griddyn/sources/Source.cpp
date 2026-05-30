@@ -109,14 +109,14 @@ count_t Source::outputDependencyCount(index_t /*outputNum*/, const SolverMode& /
     return 0;
 }
 IOdata Source::getOutputs(const IOdata& /*inputs*/,
-                          const stateData& /*sD*/,
+                          const StateData& /*sD*/,
                           const SolverMode& /*sMode*/) const
 {
     return {m_tempOut};
 }
 
 double Source::getOutput(const IOdata& /*inputs*/,
-                         const stateData& /*sD*/,
+                         const StateData& /*sD*/,
                          const SolverMode& /*sMode*/,
                          index_t outputNum) const
 {
@@ -138,7 +138,7 @@ index_t Source::getOutputLoc(const SolverMode& /*sMode*/, index_t /*outputNum*/)
     return kNullLocation;
 }
 void Source::updateLocalCache(const IOdata& /*inputs*/,
-                              const stateData& sD,
+                              const StateData& sD,
                               const SolverMode& /*sMode*/)
 {
     if ((prevTime != sD.time) && (sD.time > timeZero)) {

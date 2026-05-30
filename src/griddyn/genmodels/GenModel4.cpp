@@ -58,7 +58,7 @@ void GenModel4::dynObjectInitializeB(const IOdata& inputs,
 }
 
 void GenModel4::residual(const IOdata& inputs,
-                         const stateData& sD,
+                         const StateData& sD,
                          double resid[],
                          const SolverMode& sMode)
 {
@@ -102,7 +102,7 @@ void GenModel4::residual(const IOdata& inputs,
 
 void GenModel4::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
-    stateData sD(time, m_state.data());
+    StateData sD(time, m_state.data());
     derivative(inputs, sD, m_dstate_dt.data(), cLocalSolverMode);
     double dt = time - prevTime;
     m_state[2] += dt * m_dstate_dt[2];
@@ -114,7 +114,7 @@ void GenModel4::timestep(coreTime time, const IOdata& inputs, const SolverMode& 
 }
 
 void GenModel4::algebraicUpdate(const IOdata& inputs,
-                                const stateData& sD,
+                                const StateData& sD,
                                 double update[],
                                 const SolverMode& sMode,
                                 double /*alpha*/)
@@ -133,7 +133,7 @@ void GenModel4::algebraicUpdate(const IOdata& inputs,
 }
 
 void GenModel4::derivative(const IOdata& inputs,
-                           const stateData& sD,
+                           const StateData& sD,
                            double deriv[],
                            const SolverMode& sMode)
 {
@@ -159,7 +159,7 @@ void GenModel4::derivative(const IOdata& inputs,
 }
 
 void GenModel4::jacobianElements(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const StateData& sD,
                                  matrixData<double>& md,
                                  const IOlocs& inputLocs,
                                  const SolverMode& sMode)

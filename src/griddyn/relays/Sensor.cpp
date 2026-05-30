@@ -467,7 +467,7 @@ void Sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMessage>
 static const IOdata kNullVec;
 
 double
-    Sensor::getBlockOutput(const stateData& sD, const SolverMode& sMode, index_t blockNumber) const
+    Sensor::getBlockOutput(const StateData& sD, const SolverMode& sMode, index_t blockNumber) const
 {
     double ret = kNullVal;
     if (isLocal(sMode)) {
@@ -482,7 +482,7 @@ double
     return ret;
 }
 
-double Sensor::getBlockDerivOutput(const stateData& sD,
+double Sensor::getBlockDerivOutput(const StateData& sD,
                                    const SolverMode& sMode,
                                    index_t blockNumber) const
 {
@@ -499,7 +499,7 @@ double Sensor::getBlockDerivOutput(const stateData& sD,
     return ret;
 }
 
-double Sensor::getInput(const stateData& sD, const SolverMode& sMode, index_t inputNumber) const
+double Sensor::getInput(const StateData& sD, const SolverMode& sMode, index_t inputNumber) const
 {
     double ret = kNullVal;
     if (isLocal(sMode)) {
@@ -664,7 +664,7 @@ void Sensor::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMo
 }
 
 void Sensor::jacobianElements(const IOdata& inputs,
-                              const stateData& sD,
+                              const StateData& sD,
                               matrixData<double>& md,
                               const IOlocs& /*inputLocs*/,
                               const SolverMode& sMode)
@@ -694,7 +694,7 @@ void Sensor::jacobianElements(const IOdata& inputs,
 }
 
 void Sensor::residual(const IOdata& inputs,
-                      const stateData& sD,
+                      const StateData& sD,
                       double resid[],
                       const SolverMode& sMode)
 {
@@ -710,7 +710,7 @@ void Sensor::residual(const IOdata& inputs,
 }
 
 void Sensor::algebraicUpdate(const IOdata& inputs,
-                             const stateData& sD,
+                             const StateData& sD,
                              double update[],
                              const SolverMode& sMode,
                              double /*alpha*/)
@@ -726,7 +726,7 @@ void Sensor::algebraicUpdate(const IOdata& inputs,
 }
 
 void Sensor::derivative(const IOdata& inputs,
-                        const stateData& sD,
+                        const StateData& sD,
                         double deriv[],
                         const SolverMode& sMode)
 {
@@ -742,7 +742,7 @@ void Sensor::derivative(const IOdata& inputs,
 
 double Sensor::getBlockInput(index_t blockNum,
                              const IOdata& /*inputs*/,
-                             const stateData& sD,
+                             const StateData& sD,
                              const SolverMode& sMode) const
 {
     double res = dataSources[blockInputs[blockNum]]->grabData(sD, sMode);
@@ -764,7 +764,7 @@ const std::vector<stringVec>& Sensor::outputNames() const
     return outputStrings;
 }
 
-IOdata Sensor::getOutputs(const IOdata& inputs, const stateData& sD, const SolverMode& sMode) const
+IOdata Sensor::getOutputs(const IOdata& inputs, const StateData& sD, const SolverMode& sMode) const
 {
     IOdata out(m_outputSize);
     for (index_t pp = 0; pp < m_outputSize; ++pp) {
@@ -774,7 +774,7 @@ IOdata Sensor::getOutputs(const IOdata& inputs, const stateData& sD, const Solve
 }
 
 double Sensor::getOutput(const IOdata& /*inputs*/,
-                         const stateData& sD,
+                         const StateData& sD,
                          const SolverMode& sMode,
                          index_t outNum) const
 {
@@ -839,7 +839,7 @@ index_t Sensor::getOutputLoc(const SolverMode& sMode, index_t outNum) const
 
 // TODO(phlpt): Simplify this output-partial-derivatives path.
 void Sensor::outputPartialDerivatives(const IOdata& /*inputs*/,
-                                      const stateData& sD,
+                                      const StateData& sD,
                                       matrixData<double>& md,
                                       const SolverMode& sMode)
 {
@@ -864,7 +864,7 @@ void Sensor::outputPartialDerivatives(const IOdata& /*inputs*/,
 }
 
 void Sensor::rootTest(const IOdata& inputs,
-                      const stateData& sD,
+                      const StateData& sD,
                       double roots[],
                       const SolverMode& sMode)
 {
@@ -904,7 +904,7 @@ void Sensor::rootTrigger(coreTime time,
 }
 
 ChangeCode Sensor::rootCheck(const IOdata& inputs,
-                             const stateData& sD,
+                             const StateData& sD,
                              const SolverMode& sMode,
                              CheckLevel level)
 {

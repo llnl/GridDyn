@@ -100,19 +100,19 @@ double infiniteBus::getAngle(const double /*state*/[], const SolverMode& /*sMode
     return angle;
 }
 
-double infiniteBus::getVoltage(const stateData& sD, const SolverMode& /*sMode*/) const
+double infiniteBus::getVoltage(const StateData& sD, const SolverMode& /*sMode*/) const
 {
     const double dt = (!sD.empty()) ? static_cast<double>(sD.time - prevTime) : 0.0;
     return voltage + dt * dvdt;
 }
 
-double infiniteBus::getAngle(const stateData& sD, const SolverMode& /*sMode*/) const
+double infiniteBus::getAngle(const StateData& sD, const SolverMode& /*sMode*/) const
 {
     const double dt = (!sD.empty()) ? static_cast<double>(sD.time - prevTime) : 0.0;
     return angle + 2 * kPI * (dt * ((freq - 1.0) + dfdt / 2));
 }
 
-double infiniteBus::getFreq(const stateData& sD, const SolverMode& /*sMode*/) const
+double infiniteBus::getFreq(const StateData& sD, const SolverMode& /*sMode*/) const
 {
     double dt = (!sD.empty()) ? static_cast<double>(sD.time - prevTime) : 0.0;
     return freq + dt * dfdt;

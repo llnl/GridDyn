@@ -302,7 +302,7 @@ void SourceLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 }
 
 void SourceLoad::updateLocalCache(const IOdata& /*inputs*/,
-                                  const stateData& stateDataValue,
+                                  const StateData& stateDataValue,
                                   const SolverMode& sMode)
 {
     for (auto& src : sources) {

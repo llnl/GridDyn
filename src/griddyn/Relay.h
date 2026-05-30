@@ -194,7 +194,7 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
     @return the value used in determining the status of a condition
     */
     double getConditionValue(index_t conditionNumber,
-                             const stateData& sD,
+                             const StateData& sD,
                              const SolverMode& sMode) const;
     /** check if a particular condition is true
     @param[in] conditionNumber the index of the condition to check
@@ -258,7 +258,7 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
     virtual ChangeCode
         powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level) override;
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& sD,
+                          const StateData& sD,
                           double roots[],
                           const SolverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
@@ -266,7 +266,7 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const StateData& sD,
                                  const SolverMode& sMode,
                                  CheckLevel level) override;
     /** message processing function for use with communicators

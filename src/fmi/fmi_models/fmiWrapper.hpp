@@ -360,7 +360,7 @@ provided with the default to the regular call
     }
 
     IOdata getOutputs(const IOdata& inputs,
-                      const stateData& sD,
+                      const StateData& sD,
                       const SolverMode& sMode) const override
     {
         return fmisub->getOutputs(inputs, sD, sMode);

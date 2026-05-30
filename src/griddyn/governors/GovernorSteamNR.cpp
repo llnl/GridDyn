@@ -70,7 +70,7 @@ void GovernorSteamNR::dynObjectInitializeB(const IOdata& /*inputs*/,
 
 // residual
 void GovernorSteamNR::residual(const IOdata& /*inputs*/,
-                               const stateData& /*sD*/,
+                               const StateData& /*sD*/,
                                double resid[],
                                const SolverMode& sMode)
 {
@@ -80,7 +80,7 @@ void GovernorSteamNR::residual(const IOdata& /*inputs*/,
 }
 
 void GovernorSteamNR::jacobianElements(const IOdata& /*inputs*/,
-                                       const stateData& sD,
+                                       const StateData& sD,
                                        matrixData<double>& md,
                                        const IOlocs& /*inputLocs*/,
                                        const SolverMode& sMode)

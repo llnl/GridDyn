@@ -102,7 +102,7 @@ void PidBlock::dynObjectInitializeB(const IOdata& inputs,
 
 void PidBlock::blockDerivative(double input,
                                double didt,
-                               const stateData& stateDataValue,
+                               const StateData& stateDataValue,
                                double deriv[],
                                const SolverMode& sMode)
 {
@@ -123,7 +123,7 @@ void PidBlock::blockDerivative(double input,
 
 void PidBlock::blockJacobianElements(double input,
                                      double didt,
-                                     const stateData& stateDataValue,
+                                     const StateData& stateDataValue,
                                      matrixData<double>& matrixDataValue,
                                      index_t argLoc,
                                      const SolverMode& sMode)

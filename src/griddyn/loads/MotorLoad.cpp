@@ -96,9 +96,9 @@ void MotorLoad::dynObjectInitializeB(const IOdata& /*inputs*/,
     }
 }
 
-stateSizes MotorLoad::localStateSizes(const SolverMode& sMode) const
+StateSizes MotorLoad::localStateSizes(const SolverMode& sMode) const
 {
-    stateSizes stateSizeValues;
+    StateSizes stateSizeValues;
     if (isDynamic(sMode)) {
         if (!isAlgebraicOnly(sMode)) {
             stateSizeValues.diffSize = 1;
@@ -260,7 +260,7 @@ void MotorLoad::guessState(coreTime /*time*/,
 
 // residual
 void MotorLoad::residual(const IOdata& inputs,
-                         const stateData& stateDataValue,
+                         const StateData& stateDataValue,
                          double resid[],
                          const SolverMode& sMode)
 {
@@ -305,7 +305,7 @@ void MotorLoad::timestep(coreTime time, const IOdata& inputs, const SolverMode& 
 }
 
 void MotorLoad::derivative(const IOdata& inputs,
-                           const stateData& stateDataValue,
+                           const StateData& stateDataValue,
                            double deriv[],
                            const SolverMode& sMode)
 {
@@ -318,7 +318,7 @@ void MotorLoad::derivative(const IOdata& inputs,
 }
 
 void MotorLoad::jacobianElements(const IOdata& inputs,
-                                 const stateData& stateDataValue,
+                                 const StateData& stateDataValue,
                                  matrixData<double>& matrixDataValue,
                                  const IOlocs& inputLocs,
                                  const SolverMode& sMode)
@@ -364,7 +364,7 @@ void MotorLoad::jacobianElements(const IOdata& inputs,
 }
 
 void MotorLoad::outputPartialDerivatives(const IOdata& inputs,
-                                         const stateData& stateDataValue,
+                                         const StateData& stateDataValue,
                                          matrixData<double>& matrixDataValue,
                                          const SolverMode& sMode)
 {
@@ -414,7 +414,7 @@ count_t MotorLoad::outputDependencyCount(index_t /*num*/, const SolverMode& /*sM
     return 1;
 }
 void MotorLoad::ioPartialDerivatives(const IOdata& inputs,
-                                     const stateData& stateDataValue,
+                                     const StateData& stateDataValue,
                                      matrixData<double>& matrixDataValue,
                                      const IOlocs& inputLocs,
                                      const SolverMode& sMode)
@@ -446,7 +446,7 @@ index_t MotorLoad::findIndex(std::string_view field, const SolverMode& sMode) co
 }
 
 void MotorLoad::rootTest(const IOdata& inputs,
-                         const stateData& stateDataValue,
+                         const StateData& stateDataValue,
                          double roots[],
                          const SolverMode& sMode)
 {
@@ -482,7 +482,7 @@ void MotorLoad::rootTrigger(coreTime /*time*/,
 }
 
 ChangeCode MotorLoad::rootCheck(const IOdata& inputs,
-                                const stateData& /*sD*/,
+                                const StateData& /*sD*/,
                                 const SolverMode& /*sMode*/,
                                 CheckLevel /*level*/)
 {
@@ -514,7 +514,7 @@ double MotorLoad::getReactivePower() const
 }
 
 double MotorLoad::getRealPower(const IOdata& inputs,
-                               const stateData& stateDataValue,
+                               const StateData& stateDataValue,
                                const SolverMode& sMode) const
 {
     const double voltage = inputs[voltageInLocation];
@@ -538,7 +538,7 @@ double MotorLoad::getRealPower(const IOdata& inputs,
 }
 
 double MotorLoad::getReactivePower(const IOdata& inputs,
-                                   const stateData& stateDataValue,
+                                   const StateData& stateDataValue,
                                    const SolverMode& sMode) const
 {
     const double voltage = inputs[voltageInLocation];

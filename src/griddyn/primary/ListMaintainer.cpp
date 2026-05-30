@@ -78,7 +78,7 @@ void ListMaintainer::makePreList(const std::vector<GridPrimary*>& possObjs)
 }
 
 void ListMaintainer::preEx(const IOdata& inputs,
-                           const stateData& stateDataValue,
+                           const StateData& stateDataValue,
                            const SolverMode& sMode)
 {
     for (auto& obj : preExObjs) {
@@ -87,7 +87,7 @@ void ListMaintainer::preEx(const IOdata& inputs,
 }
 
 void ListMaintainer::jacobianElements(const IOdata& inputs,
-                                      const stateData& stateDataValue,
+                                      const StateData& stateDataValue,
                                       matrixData<double>& matrixDataValue,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode)
@@ -117,7 +117,7 @@ void ListMaintainer::jacobianElements(const IOdata& inputs,
 }
 
 void ListMaintainer::residual(const IOdata& inputs,
-                              const stateData& stateDataValue,
+                              const StateData& stateDataValue,
                               double resid[],
                               const SolverMode& sMode)
 {
@@ -147,7 +147,7 @@ void ListMaintainer::residual(const IOdata& inputs,
 }
 
 void ListMaintainer::algebraicUpdate(const IOdata& inputs,
-                                     const stateData& stateDataValue,
+                                     const StateData& stateDataValue,
                                      double update[],
                                      const SolverMode& sMode,
                                      double alpha)
@@ -178,7 +178,7 @@ void ListMaintainer::algebraicUpdate(const IOdata& inputs,
 }
 
 void ListMaintainer::derivative(const IOdata& inputs,
-                                const stateData& stateDataValue,
+                                const StateData& stateDataValue,
                                 double deriv[],
                                 const SolverMode& sMode)
 {
@@ -207,7 +207,7 @@ void ListMaintainer::derivative(const IOdata& inputs,
 }
 
 void ListMaintainer::delayedResidual(const IOdata& inputs,
-                                     const stateData& stateDataValue,
+                                     const StateData& stateDataValue,
                                      double resid[],
                                      const SolverMode& sMode)
 {
@@ -216,7 +216,7 @@ void ListMaintainer::delayedResidual(const IOdata& inputs,
     }
 }
 void ListMaintainer::delayedDerivative(const IOdata& inputs,
-                                       const stateData& stateDataValue,
+                                       const StateData& stateDataValue,
                                        double deriv[],
                                        const SolverMode& sMode)
 {
@@ -226,7 +226,7 @@ void ListMaintainer::delayedDerivative(const IOdata& inputs,
 }
 
 void ListMaintainer::delayedJacobian(const IOdata& inputs,
-                                     const stateData& stateDataValue,
+                                     const StateData& stateDataValue,
                                      matrixData<double>& matrixDataValue,
                                      const IOlocs& inputLocs,
                                      const SolverMode& sMode)
@@ -237,7 +237,7 @@ void ListMaintainer::delayedJacobian(const IOdata& inputs,
 }
 
 void ListMaintainer::delayedAlgebraicUpdate(const IOdata& inputs,
-                                            const stateData& stateDataValue,
+                                            const StateData& stateDataValue,
                                             double update[],
                                             const SolverMode& sMode,
                                             double alpha)

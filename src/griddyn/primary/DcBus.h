@@ -49,7 +49,7 @@ class DcBus: public GridBus {
 
     // dynInitializeB
 
-    virtual stateSizes localStateSizes(const SolverMode& sMode) const override;
+    virtual StateSizes localStateSizes(const SolverMode& sMode) const override;
 
     virtual count_t localJacobianCount(const SolverMode& sMode) const override;
 
@@ -85,15 +85,15 @@ class DcBus: public GridBus {
                           const double dstate_dt[],
                           const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const StateData& sD,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
 
-    void computeDerivatives(const stateData& sD, const SolverMode& sMode);
+    void computeDerivatives(const StateData& sD, const SolverMode& sMode);
 
     virtual void residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const StateData& sD,
                           double resid[],
                           const SolverMode& sMode) override;
     virtual void converge(coreTime time,
@@ -107,7 +107,7 @@ class DcBus: public GridBus {
 
     virtual double getVoltage(const double state[], const SolverMode& sMode) const override;
 
-    virtual double getVoltage(const stateData& sD, const SolverMode& sMode) const override;
+    virtual double getVoltage(const StateData& sD, const SolverMode& sMode) const override;
 
     virtual IOlocs getOutputLocs(const SolverMode& sMode) const override;
 

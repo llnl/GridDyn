@@ -233,7 +233,7 @@ coreTime ApproximatingLoad::updateB()
 }
 
 void ApproximatingLoad::preEx(const IOdata& inputs,
-                              const stateData& stateDataValue,
+                              const StateData& stateDataValue,
                               const SolverMode& sMode)
 {
     if ((lastSeqID == stateDataValue.seqID) && (stateDataValue.seqID != 0)) {
@@ -274,7 +274,7 @@ void ApproximatingLoad::preEx(const IOdata& inputs,
 }
 
 void ApproximatingLoad::updateLocalCache(const IOdata& inputs,
-                                         const stateData& stateDataValue,
+                                         const StateData& stateDataValue,
                                          const SolverMode& sMode)
 {
     if (opFlags[waiting_flag]) {
@@ -551,7 +551,7 @@ void ApproximatingLoad::set(std::string_view param, double val, units::unit unit
 // return D[0]=dP/dV D[1]=dP/dtheta,D[2]=dQ/dV,D[3]=dQ/dtheta
 
 void ApproximatingLoad::rootTest(const IOdata& inputs,
-                                 const stateData& /*sD*/,
+                                 const StateData& /*sD*/,
                                  double roots[],
                                  const SolverMode& sMode)
 {
@@ -575,7 +575,7 @@ void ApproximatingLoad::rootTrigger(coreTime time,
 }
 
 ChangeCode ApproximatingLoad::rootCheck(const IOdata& inputs,
-                                        const stateData& stateDataValue,
+                                        const StateData& stateDataValue,
                                         const SolverMode& /*sMode*/,
                                         CheckLevel /*level*/)
 {

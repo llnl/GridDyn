@@ -25,17 +25,17 @@ class functionSource: public Source {
     CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual IOdata getOutputs(const IOdata& inputs,
-                              const stateData& sD,
+                              const StateData& sD,
                               const SolverMode& sMode) const override;
     virtual double getOutput(const IOdata& inputs,
-                             const stateData& sD,
+                             const StateData& sD,
                              const SolverMode& sMode,
                              index_t outputNum = 0) const override;
 
     virtual double getOutput(index_t outputNum = 0) const override;
 
     virtual double getDoutdt(const IOdata& inputs,
-                             const stateData& sD,
+                             const StateData& sD,
                              const SolverMode& sMode,
                              index_t outputNum = 0) const override;
     /** set the generation function

@@ -76,7 +76,7 @@ int dynamicInitialConditionRecovery::attempts() const
 
 int dynamicInitialConditionRecovery::lowVoltageCheck()
 {
-    const stateData stateDataValue(sim->getSimulationTime(),
+    const StateData stateDataValue(sim->getSimulationTime(),
                                    solver->stateData(),
                                    solver->derivData());
 
@@ -136,7 +136,7 @@ int dynamicInitialConditionRecovery::dynamicFix2()
             sim->opFlags.reset(disable_flag_updates);
             sim->updateFlags();
             sim->handleRootChange(solver->getSolverMode(), solver);
-            const stateData stateDataValue(sim->getSimulationTime(),
+            const StateData stateDataValue(sim->getSimulationTime(),
                                            solver->stateData(),
                                            solver->derivData());
 
@@ -159,7 +159,7 @@ int dynamicInitialConditionRecovery::dynamicFix2()
                                         true);
             }
         } else {
-            const stateData stateDataValue(sim->getSimulationTime(),
+            const StateData stateDataValue(sim->getSimulationTime(),
                                            solver->stateData(),
                                            solver->derivData());
             const ChangeCode rootCheckResult = sim->rootCheck(noInputs,

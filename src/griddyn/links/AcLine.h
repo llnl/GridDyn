@@ -152,7 +152,7 @@ class AcLine: public Link {
     virtual void pFlowObjectInitializeB() override;
     virtual void updateLocalCache() override;
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const StateData& sD,
                                   const SolverMode& sMode) override;
 
     virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
@@ -178,22 +178,22 @@ class AcLine: public Link {
     // for computing all the Jacobian elements at once
     using Link::ioPartialDerivatives;
     virtual void ioPartialDerivatives(id_type_t busId,
-                                      const stateData& sD,
+                                      const StateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
 
     virtual void outputPartialDerivatives(const IOdata& inputs,
-                                          const stateData& sD,
+                                          const StateData& sD,
                                           matrixData<double>& md,
                                           const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(id_type_t busId,
-                                          const stateData& sD,
+                                          const StateData& sD,
                                           matrixData<double>& md,
                                           const SolverMode& sMode) override;
     virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
     virtual double getMaxTransfer() const override;
-    // virtual void busResidual(index_t busId, const stateData &sD, double *Fp, double *Fq, const
+    // virtual void busResidual(index_t busId, const StateData&sD, double *Fp, double *Fq, const
     // SolverMode &sMode);
     virtual void setState(coreTime time,
                           const double state[],
@@ -201,7 +201,7 @@ class AcLine: public Link {
                           const SolverMode& sMode) override;
 
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const StateData& sD,
                                  const SolverMode& sMode,
                                  CheckLevel level) override;
 
@@ -282,7 +282,7 @@ class AcLine: public Link {
     /** @brief load information into the linkInfo structure
     @param[in] sD  the state Data
     @param[in] sMode the corresponding solver Mode*/
-    void loadLinkInfo(const stateData& sD, const SolverMode& sMode);
+    void loadLinkInfo(const StateData& sD, const SolverMode& sMode);
     /** @brief load the approximation functions in the bizarrely defined array above*/
     void loadApproxFunctions();
 

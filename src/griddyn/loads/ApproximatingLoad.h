@@ -43,7 +43,7 @@ namespace loads {
             timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
         virtual void
-            preEx(const IOdata& inputs, const stateData& sD, const SolverMode& sMode) override;
+            preEx(const IOdata& inputs, const StateData& sD, const SolverMode& sMode) override;
 
         virtual void updateA(coreTime time) override;
         virtual coreTime updateB() override;
@@ -54,7 +54,7 @@ namespace loads {
         virtual void add(CoreObject* obj) override;
 
         virtual void rootTest(const IOdata& inputs,
-                              const stateData& sD,
+                              const StateData& sD,
                               double roots[],
                               const SolverMode& sMode) override;
         virtual void rootTrigger(coreTime time,
@@ -62,12 +62,12 @@ namespace loads {
                                  const std::vector<int>& rootMask,
                                  const SolverMode& sMode) override;
         virtual ChangeCode rootCheck(const IOdata& inputs,
-                                     const stateData& sD,
+                                     const StateData& sD,
                                      const SolverMode& sMode,
                                      CheckLevel level) override;
         /** @brief return a count of the number of MPI objects the load requires*/
         virtual void updateLocalCache(const IOdata& inputs,
-                                      const stateData& sD,
+                                      const StateData& sD,
                                       const SolverMode& sMode) override;
 
       private:

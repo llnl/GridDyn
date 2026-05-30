@@ -475,7 +475,7 @@ void Link::computePowers()
 }
 
 void Link::ioPartialDerivatives(id_type_t /*busId*/,
-                                const stateData& /*sD*/,
+                                const StateData& /*sD*/,
                                 matrixData<double>& /*md*/,
                                 const IOlocs& /*inputLocs*/,
                                 const SolverMode& /*sMode*/)
@@ -483,7 +483,7 @@ void Link::ioPartialDerivatives(id_type_t /*busId*/,
 }
 
 void Link::outputPartialDerivatives(id_type_t /*busId*/,
-                                    const stateData& /*sD*/,
+                                    const StateData& /*sD*/,
                                     matrixData<double>& /*md*/,
                                     const SolverMode& /*sMode*/)
 {
@@ -494,7 +494,7 @@ count_t Link::outputDependencyCount(index_t /*num*/, const SolverMode& /*sMode*/
     return 0;
 }
 IOdata Link::getOutputs(const IOdata& /*inputs*/,
-                        const stateData& stateData,
+                        const StateData& stateData,
                         const SolverMode& sMode) const
 {
     return getOutputs(1, stateData, sMode);
@@ -505,7 +505,7 @@ static bool isBus2(id_type_t busId, GridBus* bus)
     return ((busId == 2) || (isSameObject(busId, bus)));
 }
 
-IOdata Link::getOutputs(id_type_t busId, const stateData& /*sD*/, const SolverMode& /*sMode*/) const
+IOdata Link::getOutputs(id_type_t busId, const StateData& /*sD*/, const SolverMode& /*sMode*/) const
 {
     // set from/to buses
     IOdata out{0.0, 0.0};
@@ -582,7 +582,7 @@ double Link::getBusAngle(id_type_t busId) const
     return kNullVal;
 }
 
-double Link::getBusAngle(const stateData& stateData, const SolverMode& sMode, id_type_t busId) const
+double Link::getBusAngle(const StateData& stateData, const SolverMode& sMode, id_type_t busId) const
 {
     if (busId < 500_ind) {
         const auto* bus = getBus(static_cast<index_t>(busId));
@@ -622,7 +622,7 @@ void Link::setState(coreTime time,
 }
 
 void Link::updateLocalCache(const IOdata& /*inputs*/,
-                            const stateData& stateData,
+                            const StateData& stateData,
                             const SolverMode& sMode)
 {
     if (!isEnabled()) {

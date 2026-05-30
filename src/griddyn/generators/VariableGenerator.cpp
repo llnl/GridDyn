@@ -121,7 +121,7 @@ void VariableGenerator::set(std::string_view param, double val, unit unitType)
 
 // compute the residual for the dynamic states
 void VariableGenerator::residual(const IOdata& inputs,
-                                 const stateData& stateDataValue,
+                                 const StateData& stateDataValue,
                                  double resid[],
                                  const SolverMode& sMode)
 {
@@ -135,7 +135,7 @@ void VariableGenerator::residual(const IOdata& inputs,
     }
 }
 void VariableGenerator::jacobianElements(const IOdata& inputs,
-                                         const stateData& stateDataValue,
+                                         const StateData& stateDataValue,
                                          matrixData<double>& matrixDataValue,
                                          const IOlocs& inputLocs,
                                          const SolverMode& sMode)
@@ -170,7 +170,7 @@ CoreObject* VariableGenerator::getSubObject(std::string_view typeName, index_t n
 }
 
 double VariableGenerator::pSetControlUpdate(const IOdata& inputs,
-                                            const stateData& stateDataValue,
+                                            const StateData& stateDataValue,
                                             const SolverMode& sMode)
 {
     if ((m_cBlock != nullptr) && (m_cBlock->isEnabled())) {

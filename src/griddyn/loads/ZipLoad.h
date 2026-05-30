@@ -62,7 +62,7 @@ class ZipLoad: public GridLoad {
                        units::unit unitType = units::defunit) const override;
 
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const StateData& sD,
                                   const SolverMode& sMode) override;
 
     virtual void setState(coreTime time,
@@ -71,21 +71,21 @@ class ZipLoad: public GridLoad {
                           const SolverMode& sMode) override;
 
     virtual void ioPartialDerivatives(const IOdata& inputs,
-                                      const stateData& sD,
+                                      const StateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(const IOdata& inputs,
-                                          const stateData& sD,
+                                          const StateData& sD,
                                           matrixData<double>& md,
                                           const SolverMode& sMode) override;
     virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
 
     virtual double getRealPower(const IOdata& inputs,
-                                const stateData& sD,
+                                const StateData& sD,
                                 const SolverMode& sMode) const override;
     virtual double getReactivePower(const IOdata& inputs,
-                                    const stateData& sD,
+                                    const StateData& sD,
                                     const SolverMode& sMode) const override;
     virtual double getRealPower(double V) const override;
     virtual double getReactivePower(double V) const override;

@@ -76,7 +76,7 @@ class Condition: public ObjectOperatorInterface {
      * @return returns a difference between the condition and parameter designed to go negative if
      *the condition is met
      **/
-    virtual double evalCondition(const stateData& stateDataValue, const SolverMode& sMode);
+    virtual double evalCondition(const StateData& stateDataValue, const SolverMode& sMode);
     /**
     *get the value for which the comparison is made
     @param[in] side either 1 for left hand side or 2 for right hand side
@@ -85,7 +85,7 @@ class Condition: public ObjectOperatorInterface {
     * @return returns the value for the comparison side=1 is left hand side, side=2 is the right
     hand side
     **/
-    double getVal(int side, const stateData& stateDataValue, const SolverMode& sMode) const;
+    double getVal(int side, const StateData& stateDataValue, const SolverMode& sMode) const;
     /**
      *get the value for which the comparison is made
      * @return returns the value for the comparison side=1 is left hand side, side=2 is the right
@@ -105,7 +105,7 @@ class Condition: public ObjectOperatorInterface {
     @param[in] sMode the solver mode related to the data
     @return true if the condition evaluates true
     */
-    virtual bool checkCondition(const stateData& stateDataValue, const SolverMode& sMode) const;
+    virtual bool checkCondition(const StateData& stateDataValue, const SolverMode& sMode) const;
     /** set the comparison operator
     @param[in] comparison the comparison type*/
     void setComparison(ComparisonType comparison);
@@ -205,9 +205,9 @@ class compoundCondition: public Condition {
     compoundCondition() = default;
 
     virtual double evalCondition() override;
-    virtual double evalCondition(const stateData& stateDataValue, const SolverMode& sMode) override;
+    virtual double evalCondition(const StateData& stateDataValue, const SolverMode& sMode) override;
     virtual bool checkCondition() const override;
-    virtual bool checkCondition(const stateData& stateDataValue,
+    virtual bool checkCondition(const StateData& stateDataValue,
                                 const SolverMode& sMode) const override;
     /** add a condition to the set of conditions to evaluate*/
     void add(std::shared_ptr<Condition> condition);

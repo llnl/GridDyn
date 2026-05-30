@@ -55,7 +55,7 @@ void ExciterIEEEtype2::dynObjectInitializeB(const IOdata& inputs,
 
 // residual
 void ExciterIEEEtype2::residual(const IOdata& inputs,
-                                const stateData& sD,
+                                const StateData& sD,
                                 double resid[],
                                 const SolverMode& sMode)
 {
@@ -82,7 +82,7 @@ void ExciterIEEEtype2::residual(const IOdata& inputs,
 }
 
 void ExciterIEEEtype2::derivative(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const StateData& sD,
                                   double deriv[],
                                   const SolverMode& sMode)
 {
@@ -103,7 +103,7 @@ void ExciterIEEEtype2::derivative(const IOdata& inputs,
 
 // Jacobian
 void ExciterIEEEtype2::jacobianElements(const IOdata& /*inputs*/,
-                                        const stateData& sD,
+                                        const StateData& sD,
                                         matrixData<double>& md,
                                         const IOlocs& inputLocs,
                                         const SolverMode& sMode)
@@ -153,7 +153,7 @@ stringVec ExciterIEEEtype2::localStateNames() const
     return ieeeType2Fields;
 }
 void ExciterIEEEtype2::rootTest(const IOdata& inputs,
-                                const stateData& sD,
+                                const StateData& sD,
                                 double roots[],
                                 const SolverMode& sMode)
 {
@@ -173,7 +173,7 @@ void ExciterIEEEtype2::rootTest(const IOdata& inputs,
 }
 
 ChangeCode ExciterIEEEtype2::rootCheck(const IOdata& inputs,
-                                       const stateData& /*sD*/,
+                                       const StateData& /*sD*/,
                                        const SolverMode& /*sMode*/,
                                        CheckLevel /*level*/)
 {

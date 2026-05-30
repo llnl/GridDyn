@@ -151,7 +151,7 @@ void subsystem::updateLocalCache()
     subarea.updateLocalCache();
 }
 void subsystem::updateLocalCache(const IOdata& inputs,
-                                 const stateData& stateData,
+                                 const StateData& stateData,
                                  const SolverMode& sMode)
 {
     subarea.updateLocalCache(inputs, stateData, sMode);
@@ -566,7 +566,7 @@ double subsystem::getMaxTransfer() const
 
 // for computing all the Jacobian elements at once
 void subsystem::ioPartialDerivatives(id_type_t busId,
-                                     const stateData& stateData,
+                                     const StateData& stateData,
                                      matrixData<double>& jacobian,
                                      const IOlocs& inputLocs,
                                      const SolverMode& sMode)
@@ -584,7 +584,7 @@ void subsystem::ioPartialDerivatives(id_type_t busId,
 }
 
 void subsystem::outputPartialDerivatives(id_type_t busId,
-                                         const stateData& stateData,
+                                         const StateData& stateData,
                                          matrixData<double>& jacobian,
                                          const SolverMode& sMode)
 {
@@ -600,14 +600,14 @@ void subsystem::outputPartialDerivatives(id_type_t busId,
 }
 
 IOdata subsystem::getOutputs(const IOdata& /*inputs*/,
-                             const stateData& stateData,
+                             const StateData& stateData,
                              const SolverMode& sMode) const
 {
     return getOutputs(1, stateData, sMode);
 }
 
 IOdata subsystem::getOutputs(id_type_t busId,
-                             const stateData& /*stateData*/,
+                             const StateData& /*StateData*/,
                              const SolverMode& /*sMode*/) const
 {
     IOdata out{Pout[0], Qout[0]};

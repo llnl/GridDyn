@@ -61,9 +61,9 @@ void DcBus::pFlowObjectInitializeB()
     propogatePower();
 }
 
-stateSizes DcBus::localStateSizes(const SolverMode& sMode) const
+StateSizes DcBus::localStateSizes(const SolverMode& sMode) const
 {
-    stateSizes busSS;
+    StateSizes busSS;
     if (hasAlgebraic(sMode)) {
         busSS.vSize = 1;
 
@@ -320,7 +320,7 @@ void DcBus::guessState(coreTime time, double state[], double dstate_dt[], const 
 
 // residual
 void DcBus::residual(const IOdata& inputs,
-                     const stateData& sD,
+                     const StateData& sD,
                      double resid[],
                      const SolverMode& sMode)
 {
@@ -341,7 +341,7 @@ void DcBus::residual(const IOdata& inputs,
 
 static const IOlocs inLoc{0, 1, 2};
 
-void DcBus::computeDerivatives(const stateData& sD, const SolverMode& sMode)
+void DcBus::computeDerivatives(const StateData& sD, const SolverMode& sMode)
 {
     matrixDataCompact<2, 3> partDeriv;
     if (!isConnected()) {
@@ -373,7 +373,7 @@ void DcBus::computeDerivatives(const stateData& sD, const SolverMode& sMode)
 }
 // Jacobian
 void DcBus::jacobianElements(const IOdata& /*inputs*/,
-                             const stateData& sD,
+                             const StateData& sD,
                              matrixData<double>& md,
                              const IOlocs& /*inputLocs*/,
                              const SolverMode& sMode)
@@ -483,7 +483,7 @@ double DcBus::getVoltage(const double state[], const SolverMode& sMode) const
     return voltage;
 }
 
-double DcBus::getVoltage(const stateData& sD, const SolverMode& sMode) const
+double DcBus::getVoltage(const StateData& sD, const SolverMode& sMode) const
 {
     if (isLocal(sMode)) {
         return voltage;

@@ -317,28 +317,28 @@ void Svd::addBlock(int steps, double Qstep, units::unit unitType)
 }
 
 void Svd::residual(const IOdata& /*inputs*/,
-                   const stateData& /*sD*/,
+                   const StateData& /*sD*/,
                    double /*resid*/[],
                    const SolverMode& /*sMode*/)
 {
 }
 
 void Svd::derivative(const IOdata& /*inputs*/,
-                     const stateData& /*sD*/,
+                     const StateData& /*sD*/,
                      double /*deriv*/[],
                      const SolverMode& /*sMode*/)
 {
 }
 
 void Svd::outputPartialDerivatives(const IOdata& /*inputs*/,
-                                   const stateData& /*sD*/,
+                                   const StateData& /*sD*/,
                                    matrixData<double>& /*md*/,
                                    const SolverMode& /*sMode*/)
 {
 }
 
 void Svd::jacobianElements(const IOdata& /*inputs*/,
-                           const stateData& /*sD*/,
+                           const StateData& /*sD*/,
                            matrixData<double>& /*md*/,
                            const IOlocs& /*inputLocs*/,
                            const SolverMode& /*sMode*/)
@@ -352,7 +352,7 @@ void Svd::getStateName(stringVec& /*stNames*/,
 
 void Svd::timestep(coreTime /*time*/, const IOdata& /*inputs*/, const SolverMode& /*sMode*/) {}
 void Svd::rootTest(const IOdata& /*inputs*/,
-                   const stateData& /*sD*/,
+                   const StateData& /*sD*/,
                    double /*roots*/[],
                    const SolverMode& /*sMode*/)
 {
@@ -366,7 +366,7 @@ void Svd::rootTrigger(coreTime /*time*/,
 }
 
 ChangeCode Svd::rootCheck(const IOdata& /*inputs*/,
-                          const stateData& /*sD*/,
+                          const StateData& /*sD*/,
                           const SolverMode& /*sMode*/,
                           CheckLevel /*level*/)
 {

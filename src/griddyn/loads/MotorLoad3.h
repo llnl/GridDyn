@@ -45,22 +45,22 @@ class MotorLoad3: public MotorLoad {
                             double state[],
                             double dstate_dt[],
                             const SolverMode& sMode) override;
-    virtual stateSizes localStateSizes(const SolverMode& sMode) const override;
+    virtual StateSizes localStateSizes(const SolverMode& sMode) const override;
 
     virtual count_t localJacobianCount(const SolverMode& sMode) const override;
 
     virtual void residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const StateData& sD,
                           double resid[],
                           const SolverMode& sMode) override;
 
     virtual void derivative(const IOdata& inputs,
-                            const stateData& sD,
+                            const StateData& sD,
                             double deriv[],
                             const SolverMode& sMode)
         override;  // return D[0]=dP/dV D[1]=dP/dtheta,D[2]=dQ/dV,D[3]=dQ/dtheta
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& sD,
+                          const StateData& sD,
                           double roots[],
                           const SolverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
@@ -68,23 +68,23 @@ class MotorLoad3: public MotorLoad {
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const StateData& sD,
                                  const SolverMode& sMode,
                                  CheckLevel level) override;
 
     virtual void outputPartialDerivatives(const IOdata& inputs,
-                                          const stateData& sD,
+                                          const StateData& sD,
                                           matrixData<double>& md,
                                           const SolverMode& sMode) override;
     virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
 
     virtual void ioPartialDerivatives(const IOdata& inputs,
-                                      const stateData& sD,
+                                      const StateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const StateData& sD,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
@@ -95,16 +95,16 @@ class MotorLoad3: public MotorLoad {
     virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     virtual double getRealPower(const IOdata& inputs,
-                                const stateData& sD,
+                                const StateData& sD,
                                 const SolverMode& sMode) const override;
     virtual double getReactivePower(const IOdata& inputs,
-                                    const stateData& sD,
+                                    const StateData& sD,
                                     const SolverMode& sMode) const override;
     virtual double getRealPower(double voltage) const override;
     virtual double getReactivePower(double voltage) const override;
     virtual double getRealPower() const override;
     virtual double getReactivePower() const override;
-    virtual void updateCurrents(const IOdata& inputs, const stateData& sD, const SolverMode& sMode);
+    virtual void updateCurrents(const IOdata& inputs, const StateData& sD, const SolverMode& sMode);
 
   private:
     /** @brief estimate the initial state values of the motor

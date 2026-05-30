@@ -89,7 +89,7 @@ class DynamicGenerator: public Generator {
                             double dstate_dt[],
                             const SolverMode& sMode) override;  // for initial setting of the state
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const stateData& stateDataValue,
+                                  const StateData& stateDataValue,
                                   const SolverMode& sMode) override;
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
@@ -105,36 +105,36 @@ class DynamicGenerator: public Generator {
     virtual void add(GridSubModel* obj) override;
 
     virtual void algebraicUpdate(const IOdata& inputs,
-                                 const stateData& stateDataValue,
+                                 const StateData& stateDataValue,
                                  double update[],
                                  const SolverMode& sMode,
                                  double alpha) override;
     virtual void residual(const IOdata& inputs,
-                          const stateData& stateDataValue,
+                          const StateData& stateDataValue,
                           double resid[],
                           const SolverMode& sMode) override;
     virtual IOdata getOutputs(const IOdata& inputs,
-                              const stateData& stateDataValue,
+                              const StateData& stateDataValue,
                               const SolverMode& sMode) const override;
 
     virtual void derivative(const IOdata& inputs,
-                            const stateData& stateDataValue,
+                            const StateData& stateDataValue,
                             double deriv[],
                             const SolverMode& sMode) override;
 
     virtual void outputPartialDerivatives(const IOdata& inputs,
-                                          const stateData& stateDataValue,
+                                          const StateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
                                           const SolverMode& sMode) override;
     virtual void ioPartialDerivatives(const IOdata& inputs,
-                                      const stateData& stateDataValue,
+                                      const StateData& stateDataValue,
                                       matrixData<double>& matrixDataValue,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
     virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
 
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& stateDataValue,
+                                  const StateData& stateDataValue,
                                   matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
@@ -145,7 +145,7 @@ class DynamicGenerator: public Generator {
     virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& stateDataValue,
+                          const StateData& stateDataValue,
                           double roots[],
                           const SolverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
@@ -153,35 +153,35 @@ class DynamicGenerator: public Generator {
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                 const stateData& stateDataValue,
+                                 const StateData& stateDataValue,
                                  const SolverMode& sMode,
                                  CheckLevel level) override;
 
     using Generator::getReactivePower;
     using Generator::getRealPower;
     virtual double getRealPower(const IOdata& inputs,
-                                const stateData& stateDataValue,
+                                const StateData& stateDataValue,
                                 const SolverMode& sMode) const override;
     virtual double getReactivePower(const IOdata& inputs,
-                                    const stateData& stateDataValue,
+                                    const StateData& stateDataValue,
                                     const SolverMode& sMode) const override;
 
     virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
     virtual CoreObject* find(std::string_view object) const override;
     virtual CoreObject* getSubObject(std::string_view typeName, index_t num) const override;
-    virtual double getFreq(const stateData& stateDataValue,
+    virtual double getFreq(const StateData& stateDataValue,
                            const SolverMode& sMode,
                            index_t* freqOffset = nullptr) const override;
-    virtual double getAngle(const stateData& stateDataValue,
+    virtual double getAngle(const StateData& stateDataValue,
                             const SolverMode& sMode,
                             index_t* angleOffset = nullptr) const override;
 
   protected:
     virtual double pSetControlUpdate(const IOdata& inputs,
-                                     const stateData& stateDataValue,
+                                     const StateData& stateDataValue,
                                      const SolverMode& sMode);
     virtual double vSetControlUpdate(const IOdata& inputs,
-                                     const stateData& stateDataValue,
+                                     const StateData& stateDataValue,
                                      const SolverMode& sMode);
     virtual index_t pSetLocation(const SolverMode& sMode);
     virtual index_t vSetLocation(const SolverMode& sMode);
@@ -205,10 +205,10 @@ class DynamicGenerator: public Generator {
     subModelInputLocs subInputLocs;
 
     virtual void generateSubModelInputs(const IOdata& inputs,
-                                        const stateData& stateDataValue,
+                                        const StateData& stateDataValue,
                                         const SolverMode& sMode);
     virtual void generateSubModelInputLocs(const IOlocs& inputLocs,
-                                           const stateData& stateDataValue,
+                                           const StateData& stateDataValue,
                                            const SolverMode& sMode);
 
     GridSubModel* replaceModel(GridSubModel* newObject, GridSubModel* oldObject, index_t newIndex);

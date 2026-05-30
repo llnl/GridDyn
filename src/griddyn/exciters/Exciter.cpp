@@ -99,7 +99,7 @@ void Exciter::dynObjectInitializeB(const IOdata& inputs,
 }
 
 void Exciter::residual(const IOdata& inputs,
-                       const stateData& stateData,
+                       const StateData& stateData,
                        double resid[],
                        const SolverMode& solverMode)
 {
@@ -120,7 +120,7 @@ void Exciter::residual(const IOdata& inputs,
 }
 
 void Exciter::derivative(const IOdata& inputs,
-                         const stateData& stateData,
+                         const StateData& stateData,
                          double deriv[],
                          const SolverMode& solverMode)
 {
@@ -136,7 +136,7 @@ void Exciter::derivative(const IOdata& inputs,
 }
 
 void Exciter::jacobianElements(const IOdata& /*inputs*/,
-                               const stateData& stateData,
+                               const StateData& stateData,
                                matrixData<double>& matrix,
                                const IOlocs& inputLocs,
                                const SolverMode& solverMode)
@@ -155,7 +155,7 @@ void Exciter::jacobianElements(const IOdata& /*inputs*/,
 }
 
 void Exciter::rootTest(const IOdata& inputs,
-                       const stateData& stateData,
+                       const StateData& stateData,
                        double root[],
                        const SolverMode& solverMode)
 {
@@ -196,14 +196,14 @@ void Exciter::rootTrigger(coreTime time,
             }
             alert(this, JAC_COUNT_DECREASE);
         }
-        const stateData stateData(time, m_state.data());
+        const StateData stateData(time, m_state.data());
 
         derivative(inputs, stateData, m_dstate_dt.data(), cLocalSolverMode);
     }
 }
 
 ChangeCode Exciter::rootCheck(const IOdata& inputs,
-                              const stateData& /*stateData*/,
+                              const StateData& /*StateData*/,
                               const SolverMode& /*solverMode*/,
                               CheckLevel /*level*/)
 {

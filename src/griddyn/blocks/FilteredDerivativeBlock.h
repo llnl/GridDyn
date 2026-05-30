@@ -44,13 +44,13 @@ class FilteredDerivativeBlock: public GridBlock {
 
     virtual void blockDerivative(double input,
                                  double didt,
-                                 const stateData& stateDataRef,
+                                 const StateData& stateDataRef,
                                  double deriv[],
                                  const SolverMode& sMode) override;
     // only called if the genModel is not present
     virtual void blockJacobianElements(double input,
                                        double didt,
-                                       const stateData& stateDataRef,
+                                       const StateData& stateDataRef,
                                        matrixData<double>& jacobian,
                                        index_t argLoc,
                                        const SolverMode& sMode) override;

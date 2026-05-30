@@ -24,7 +24,7 @@ using namespace griddyn;
 
 TEST(ExtraSizeReportTests, ObjectSizeReport)
 {
-    std::cout << "solverOffset size=" << sizeof(solverOffsets) << '\n';
+    std::cout << "solverOffset size=" << sizeof(SolverOffsets) << '\n';
     std::cout << "offsetTableSize=" << sizeof(OffsetTable) << '\n';
     std::cout << "solverModeSize=" << sizeof(SolverMode) << '\n';
     std::cout << "coreTime size = " << sizeof(coreTime) << '\n';

@@ -14,7 +14,7 @@ class matrixData;
 
 namespace griddyn {
 class GridComponent;
-class stateData;
+class StateData;
 class SolverMode;
 
 /**
@@ -32,7 +32,7 @@ given object
 
 void numericJacobianCalculation(GridComponent* comp,
                                 const IOdata& inputs,
-                                const stateData& sD,
+                                const StateData& sD,
                                 matrixData<double>& md,
                                 const IOlocs& inputLocs,
                                 const SolverMode& sMode);

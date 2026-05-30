@@ -48,13 +48,13 @@ class PidBlock: public GridBlock {
 
     virtual void blockDerivative(double input,
                                  double didt,
-                                 const stateData& stateDataValue,
+                                 const StateData& stateDataValue,
                                  double deriv[],
                                  const SolverMode& sMode) override;
     // only called if the genModel is not present
     virtual void blockJacobianElements(double input,
                                        double didt,
-                                       const stateData& stateDataValue,
+                                       const StateData& stateDataValue,
                                        matrixData<double>& matrixDataValue,
                                        index_t argLoc,
                                        const SolverMode& sMode) override;

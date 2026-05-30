@@ -66,22 +66,22 @@ class Governor: public GridSubModel {
                        units::unit unitType = units::defunit) const override;
     virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
     virtual void residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const StateData& sD,
                           double resid[],
                           const SolverMode& sMode) override;
     virtual void derivative(const IOdata& inputs,
-                            const stateData& sD,
+                            const StateData& sD,
                             double deriv[],
                             const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const StateData& sD,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
     virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& sD,
+                          const StateData& sD,
                           double roots[],
                           const SolverMode& sMode) override;
 

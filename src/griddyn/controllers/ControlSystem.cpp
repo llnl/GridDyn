@@ -76,14 +76,14 @@ index_t ControlSystem::findIndex(std::string_view /*field*/, const SolverMode& /
 }
 
 void ControlSystem::residual(const IOdata& /*inputs*/,
-                             const stateData& /*sD*/,
+                             const StateData& /*sD*/,
                              double /*resid*/[],
                              const SolverMode& /*sMode*/)
 {
 }
 
 void ControlSystem::jacobianElements(const IOdata& /*inputs*/,
-                                     const stateData& /*sD*/,
+                                     const StateData& /*sD*/,
                                      matrixData<double>& /*md*/,
                                      const IOlocs& /*inputLocs*/,
                                      const SolverMode& /*sMode*/)
@@ -97,7 +97,7 @@ void ControlSystem::timestep(coreTime /*time*/,
 }
 
 void ControlSystem::rootTest(const IOdata& /*inputs*/,
-                             const stateData& /*sD*/,
+                             const StateData& /*sD*/,
                              double /*roots*/[],
                              const SolverMode& /*sMode*/)
 {
@@ -111,7 +111,7 @@ void ControlSystem::rootTrigger(coreTime /*time*/,
 }
 
 ChangeCode ControlSystem::rootCheck(const IOdata& /*inputs*/,
-                                    const stateData& /*sD*/,
+                                    const StateData& /*sD*/,
                                     const SolverMode& /*sMode*/,
                                     CheckLevel /*level*/)
 {

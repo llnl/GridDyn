@@ -56,21 +56,21 @@ class Exciter: public GridSubModel {
     virtual stringVec localStateNames() const override;
 
     virtual void residual(const IOdata& inputs,
-                          const stateData& stateData,
+                          const StateData& stateData,
                           double resid[],
                           const SolverMode& SolverMode) override;
     virtual void derivative(const IOdata& inputs,
-                            const stateData& stateData,
+                            const StateData& stateData,
                             double deriv[],
                             const SolverMode& SolverMode) override;
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& stateData,
+                                  const StateData& stateData,
                                   matrixData<double>& matrix,
                                   const IOlocs& inputLocs,
                                   const SolverMode& SolverMode) override;
     // handle the rootfinding functions
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& stateData,
+                          const StateData& stateData,
                           double root[],
                           const SolverMode& SolverMode) override;
     virtual void rootTrigger(coreTime time,
@@ -78,7 +78,7 @@ class Exciter: public GridSubModel {
                              const std::vector<int>& rootMask,
                              const SolverMode& SolverMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                 const stateData& stateData,
+                                 const StateData& stateData,
                                  const SolverMode& SolverMode,
                                  CheckLevel level) override;
 

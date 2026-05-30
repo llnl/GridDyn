@@ -15,7 +15,7 @@ class matrixData;
 
 namespace griddyn {
 class GridPrimary;
-class stateData;
+class StateData;
 
 /** @brief helper class for areas to maintain lists of objects used for execution of each mode
 used in the area class*/
@@ -43,40 +43,40 @@ class ListMaintainer {
     void appendList(const SolverMode& sMode, const std::vector<GridPrimary*>& possObjs);
 
     void jacobianElements(const IOdata& inputs,
-                          const stateData& stateDataValue,
+                          const StateData& stateDataValue,
                           matrixData<double>& matrixDataValue,
                           const IOlocs& inputLocs,
                           const SolverMode& sMode);
-    void preEx(const IOdata& inputs, const stateData& stateDataValue, const SolverMode& sMode);
+    void preEx(const IOdata& inputs, const StateData& stateDataValue, const SolverMode& sMode);
     void residual(const IOdata& inputs,
-                  const stateData& stateDataValue,
+                  const StateData& stateDataValue,
                   double resid[],
                   const SolverMode& sMode);
     void algebraicUpdate(const IOdata& inputs,
-                         const stateData& stateDataValue,
+                         const StateData& stateDataValue,
                          double update[],
                          const SolverMode& sMode,
                          double alpha);
     void derivative(const IOdata& inputs,
-                    const stateData& stateDataValue,
+                    const StateData& stateDataValue,
                     double deriv[],
                     const SolverMode& sMode);
 
     void delayedResidual(const IOdata& inputs,
-                         const stateData& stateDataValue,
+                         const StateData& stateDataValue,
                          double resid[],
                          const SolverMode& sMode);
     void delayedDerivative(const IOdata& inputs,
-                           const stateData& stateDataValue,
+                           const StateData& stateDataValue,
                            double deriv[],
                            const SolverMode& sMode);
     void delayedJacobian(const IOdata& inputs,
-                         const stateData& stateDataValue,
+                         const StateData& stateDataValue,
                          matrixData<double>& matrixDataValue,
                          const IOlocs& inputLocs,
                          const SolverMode& sMode);
     void delayedAlgebraicUpdate(const IOdata& inputs,
-                                const stateData& stateDataValue,
+                                const StateData& stateDataValue,
                                 double update[],
                                 const SolverMode& sMode,
                                 double alpha);

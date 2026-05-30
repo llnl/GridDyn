@@ -86,7 +86,7 @@ void GenModelClassical::computeInitialAngleAndCurrent(const IOdata& inputs,
 }
 
 void GenModelClassical::updateLocalCache(const IOdata& inputs,
-                                         const stateData& sD,
+                                         const StateData& sD,
                                          const SolverMode& sMode)
 {
     if (sD.updateRequired(seqId)) {
@@ -100,7 +100,7 @@ void GenModelClassical::updateLocalCache(const IOdata& inputs,
 }
 
 void GenModelClassical::algebraicUpdate(const IOdata& inputs,
-                                        const stateData& sD,
+                                        const StateData& sD,
                                         double update[],
                                         const SolverMode& sMode,
                                         double /*alpha*/)
@@ -121,7 +121,7 @@ void GenModelClassical::algebraicUpdate(const IOdata& inputs,
 // residual
 
 void GenModelClassical::residual(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const StateData& sD,
                                  double resid[],
                                  const SolverMode& sMode)
 {
@@ -176,7 +176,7 @@ rvd[1] = 0.5  * (Pmt - Pe - D * (gmd[1] - 1.0)) / H - gmp[1];
 }
 
 void GenModelClassical::derivative(const IOdata& inputs,
-                                   const stateData& sD,
+                                   const StateData& sD,
                                    double deriv[],
                                    const SolverMode& sMode)
 {
@@ -198,7 +198,7 @@ void GenModelClassical::derivative(const IOdata& inputs,
     dv[1] = 0.5 * (Pmt - Pe - D * omega) / H;
 }
 
-double GenModelClassical::getFreq(const stateData& sD,
+double GenModelClassical::getFreq(const StateData& sD,
                                   const SolverMode& sMode,
                                   index_t* freqOffset) const
 {
@@ -231,7 +231,7 @@ double GenModelClassical::getFreq(const stateData& sD,
     return omega;
 }
 
-double GenModelClassical::getAngle(const stateData& sD,
+double GenModelClassical::getAngle(const StateData& sD,
                                    const SolverMode& sMode,
                                    index_t* angleOffset) const
 {
@@ -265,7 +265,7 @@ double GenModelClassical::getAngle(const stateData& sD,
 }
 
 IOdata GenModelClassical::getOutputs(const IOdata& /*inputs*/,
-                                     const stateData& sD,
+                                     const StateData& sD,
                                      const SolverMode& sMode) const
 {
     auto Loc = offsets.getLocations(sD, sMode, this);
@@ -276,7 +276,7 @@ IOdata GenModelClassical::getOutputs(const IOdata& /*inputs*/,
 }
 
 double GenModelClassical::getOutput(const IOdata& inputs,
-                                    const stateData& sD,
+                                    const StateData& sD,
                                     const SolverMode& sMode,
                                     index_t numOut) const
 {
@@ -300,7 +300,7 @@ double GenModelClassical::getOutput(const IOdata& inputs,
 }
 
 void GenModelClassical::ioPartialDerivatives(const IOdata& inputs,
-                                             const stateData& sD,
+                                             const StateData& sD,
                                              matrixData<double>& md,
                                              const IOlocs& inputLocs,
                                              const SolverMode& sMode)
@@ -323,7 +323,7 @@ void GenModelClassical::ioPartialDerivatives(const IOdata& inputs,
 }
 
 void GenModelClassical::jacobianElements(const IOdata& inputs,
-                                         const stateData& sD,
+                                         const StateData& sD,
                                          matrixData<double>& md,
                                          const IOlocs& inputLocs,
                                          const SolverMode& sMode)
@@ -399,7 +399,7 @@ rv[1] = Vq + Rs*gm[1] - (Xdp - Xl)*gm[0];
 }
 
 void GenModelClassical::outputPartialDerivatives(const IOdata& inputs,
-                                                 const stateData& sD,
+                                                 const StateData& sD,
                                                  matrixData<double>& md,
                                                  const SolverMode& sMode)
 {

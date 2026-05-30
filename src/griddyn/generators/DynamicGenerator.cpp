@@ -340,7 +340,7 @@ void DynamicGenerator::setState(coreTime time,
 }
 
 void DynamicGenerator::updateLocalCache(const IOdata& inputs,
-                                        const stateData& stateDataValue,
+                                        const StateData& stateDataValue,
                                         const SolverMode& sMode)
 {
     if ((isDynamic(sMode)) && (stateDataValue.updateRequired(subInputs.seqID))) {
@@ -526,7 +526,7 @@ void DynamicGenerator::timestep(coreTime time, const IOdata& inputs, const Solve
 }
 
 void DynamicGenerator::algebraicUpdate(const IOdata& inputs,
-                                       const stateData& stateDataValue,
+                                       const StateData& stateDataValue,
                                        double update[],
                                        const SolverMode& sMode,
                                        double alpha)
@@ -553,7 +553,7 @@ void DynamicGenerator::algebraicUpdate(const IOdata& inputs,
     // }
     // else
     // {
-    //    stateData sD2 (0.0, m_state.data ());
+    //    StateData sD2 (0.0, m_state.data ());
     //    for (auto &sub : getSubObjects ())
     //    {
     //        if (sub->isEnabled ())
@@ -697,7 +697,7 @@ void DynamicGenerator::set(std::string_view param, double val, unit unitType)
 }
 
 void DynamicGenerator::outputPartialDerivatives(const IOdata& inputs,
-                                                const stateData& stateDataValue,
+                                                const StateData& stateDataValue,
                                                 matrixData<double>& matrixDataValue,
                                                 const SolverMode& sMode)
 {
@@ -742,7 +742,7 @@ count_t DynamicGenerator::outputDependencyCount(index_t num, const SolverMode& s
 }
 
 void DynamicGenerator::ioPartialDerivatives(const IOdata& inputs,
-                                            const stateData& stateDataValue,
+                                            const StateData& stateDataValue,
                                             matrixData<double>& matrixDataValue,
                                             const IOlocs& inputLocs,
                                             const SolverMode& sMode)
@@ -761,7 +761,7 @@ void DynamicGenerator::ioPartialDerivatives(const IOdata& inputs,
 }
 
 IOdata DynamicGenerator::getOutputs(const IOdata& inputs,
-                                    const stateData& stateDataValue,
+                                    const StateData& stateDataValue,
                                     const SolverMode& sMode) const
 {
     if (isDynamic(sMode))  // use as a proxy for dynamic state
@@ -776,7 +776,7 @@ IOdata DynamicGenerator::getOutputs(const IOdata& inputs,
 }
 
 double DynamicGenerator::getRealPower(const IOdata& inputs,
-                                      const stateData& stateDataValue,
+                                      const StateData& stateDataValue,
                                       const SolverMode& sMode) const
 {
     if (isDynamic(sMode))  // use as a proxy for dynamic state
@@ -791,7 +791,7 @@ double DynamicGenerator::getRealPower(const IOdata& inputs,
     return Generator::getRealPower(inputs, stateDataValue, sMode);
 }
 double DynamicGenerator::getReactivePower(const IOdata& inputs,
-                                          const stateData& stateDataValue,
+                                          const StateData& stateDataValue,
                                           const SolverMode& sMode) const
 {
     if (isDynamic(sMode))  // use as a proxy for dynamic state
@@ -806,7 +806,7 @@ double DynamicGenerator::getReactivePower(const IOdata& inputs,
 
 // compute the residual for the dynamic states
 void DynamicGenerator::residual(const IOdata& inputs,
-                                const stateData& stateDataValue,
+                                const StateData& stateDataValue,
                                 double resid[],
                                 const SolverMode& sMode)
 {
@@ -827,7 +827,7 @@ void DynamicGenerator::residual(const IOdata& inputs,
 }
 
 void DynamicGenerator::derivative(const IOdata& inputs,
-                                  const stateData& stateDataValue,
+                                  const StateData& stateDataValue,
                                   double deriv[],
                                   const SolverMode& sMode)
 {
@@ -844,7 +844,7 @@ void DynamicGenerator::derivative(const IOdata& inputs,
 }
 
 void DynamicGenerator::jacobianElements(const IOdata& inputs,
-                                        const stateData& stateDataValue,
+                                        const StateData& stateDataValue,
                                         matrixData<double>& matrixDataValue,
                                         const IOlocs& inputLocs,
                                         const SolverMode& sMode)
@@ -882,7 +882,7 @@ void DynamicGenerator::getStateName(stringVec& stNames,
 }
 
 void DynamicGenerator::rootTest(const IOdata& inputs,
-                                const stateData& stateDataValue,
+                                const StateData& stateDataValue,
                                 double roots[],
                                 const SolverMode& sMode)
 {
@@ -896,7 +896,7 @@ void DynamicGenerator::rootTest(const IOdata& inputs,
 }
 
 ChangeCode DynamicGenerator::rootCheck(const IOdata& inputs,
-                                       const stateData& stateDataValue,
+                                       const StateData& stateDataValue,
                                        const SolverMode& sMode,
                                        CheckLevel level)
 {
@@ -977,14 +977,14 @@ CoreObject* DynamicGenerator::getSubObject(std::string_view typeName, index_t nu
     return GridComponent::getSubObject(typeName, num);
 }
 
-double DynamicGenerator::getFreq(const stateData& stateDataValue,
+double DynamicGenerator::getFreq(const StateData& stateDataValue,
                                  const SolverMode& sMode,
                                  index_t* freqOffset) const
 {
     return genModel->getFreq(stateDataValue, sMode, freqOffset);
 }
 
-double DynamicGenerator::getAngle(const stateData& stateDataValue,
+double DynamicGenerator::getAngle(const StateData& stateDataValue,
                                   const SolverMode& sMode,
                                   index_t* angleOffset) const
 {
@@ -1012,7 +1012,7 @@ DynamicGenerator::subModelInputLocs::subModelInputLocs():
 }
 
 void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
-                                              const stateData& stateDataValue,
+                                              const StateData& stateDataValue,
                                               const SolverMode& sMode)
 {
     if (!stateDataValue.updateRequired(subInputs.seqID)) {
@@ -1074,7 +1074,7 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
 }
 
 void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
-                                                 const stateData& stateDataValue,
+                                                 const StateData& stateDataValue,
                                                  const SolverMode& sMode)
 {
     if (!stateDataValue.updateRequired(subInputLocs.seqID)) {
@@ -1121,7 +1121,7 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
 }
 
 double DynamicGenerator::pSetControlUpdate(const IOdata& inputs,
-                                           const stateData& stateDataValue,
+                                           const StateData& stateDataValue,
                                            const SolverMode& sMode)
 {
     double val;
@@ -1142,7 +1142,7 @@ double DynamicGenerator::pSetControlUpdate(const IOdata& inputs,
 }
 
 double DynamicGenerator::vSetControlUpdate(const IOdata& inputs,
-                                           const stateData& stateDataValue,
+                                           const StateData& stateDataValue,
                                            const SolverMode& sMode)
 {
     return (vSetControl != nullptr) ? vSetControl->getOutput(inputs, stateDataValue, sMode) : 1.0;

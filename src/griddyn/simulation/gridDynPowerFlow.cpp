@@ -511,7 +511,7 @@ int GridDynSimulation::algUpdateFunction(coreTime time,
                                          double alpha) noexcept
 {
     ++evalCount;
-    stateData stateDataValue(time, state);
+    StateData stateDataValue(time, state);
     stateDataValue.seqID = (sMode.approx[FORCE_RECALC] ? 0 : evalCount);
 
 #ifdef CHECK_STATE

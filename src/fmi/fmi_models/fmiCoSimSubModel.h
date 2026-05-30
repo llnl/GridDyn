@@ -59,27 +59,27 @@ class FmiCoSimSubModel: public GridSubModel {
 
     virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void ioPartialDerivatives(const IOdata& inputs,
-                                      const stateData& sD,
+                                      const StateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
 
     IOdata getOutputs(const IOdata& inputs,
-                      const stateData& sD,
+                      const StateData& sD,
                       const SolverMode& sMode) const override;
     virtual double getDoutdt(const IOdata& inputs,
-                             const stateData& sD,
+                             const StateData& sD,
                              const SolverMode& sMode,
                              index_t outputNum = 0) const override;
     virtual double getOutput(const IOdata& inputs,
-                             const stateData& sD,
+                             const StateData& sD,
                              const SolverMode& sMode,
                              index_t outputNum = 0) const override;
 
     virtual double getOutput(index_t outputNum = 0) const override;
 
     virtual void updateLocalCache([[maybe_unused]] const IOdata& inputs,
-                                  [[maybe_unused]] const stateData& sD,
+                                  [[maybe_unused]] const StateData& sD,
                                   [[maybe_unused]] const SolverMode& sMode) override;
     bool isLoaded() const;
 

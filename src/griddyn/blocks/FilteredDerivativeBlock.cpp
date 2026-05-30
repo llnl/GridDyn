@@ -120,7 +120,7 @@ double FilteredDerivativeBlock::step(coreTime time, double inputA)
 
 void FilteredDerivativeBlock::blockDerivative(double input,
                                               double /*didt*/,
-                                              const stateData& stateDataRef,
+                                              const StateData& stateDataRef,
                                               double deriv[],
                                               const SolverMode& sMode)
 {
@@ -132,7 +132,7 @@ void FilteredDerivativeBlock::blockDerivative(double input,
 
 void FilteredDerivativeBlock::blockJacobianElements(double input,
                                                     double didt,
-                                                    const stateData& stateDataRef,
+                                                    const StateData& stateDataRef,
                                                     matrixData<double>& jacobian,
                                                     index_t argLoc,
                                                     const SolverMode& sMode)

@@ -59,7 +59,7 @@ void GovernorTgov1::dynObjectInitializeB(const IOdata& /*inputs*/,
 
 // residual
 void GovernorTgov1::residual(const IOdata& inputs,
-                             const stateData& sD,
+                             const StateData& sD,
                              double resid[],
                              const SolverMode& sMode)
 {
@@ -79,7 +79,7 @@ void GovernorTgov1::residual(const IOdata& inputs,
 }
 
 void GovernorTgov1::derivative(const IOdata& inputs,
-                               const stateData& sD,
+                               const StateData& sD,
                                double deriv[],
                                const SolverMode& sMode)
 {
@@ -113,7 +113,7 @@ void GovernorTgov1::timestep(coreTime time, const IOdata& inputs, const SolverMo
 }
 
 void GovernorTgov1::jacobianElements(const IOdata& /*inputs*/,
-                                     const stateData& sD,
+                                     const StateData& sD,
                                      matrixData<double>& md,
                                      const IOlocs& inputLocs,
                                      const SolverMode& sMode)
@@ -173,7 +173,7 @@ if (opFlags.test (uses_deadband))
 }
 
 void GovernorTgov1::rootTest(const IOdata& inputs,
-                             const stateData& sD,
+                             const StateData& sD,
                              double roots[],
                              const SolverMode& sMode)
 {

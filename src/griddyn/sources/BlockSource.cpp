@@ -149,11 +149,11 @@ double BlockSource::get(std::string_view param, units::unit unitType) const
     return rval;
 }
 
-// void derivative(const IOdata &inputs, const stateData &stateDataValue, double deriv[], const
+// void derivative(const IOdata &inputs, const StateData&stateDataValue, double deriv[], const
 // SolverMode &sMode);
 
 void BlockSource::residual(const IOdata& inputs,
-                           const stateData& stateDataValue,
+                           const StateData& stateDataValue,
                            double resid[],
                            const SolverMode& sMode)
 {
@@ -170,7 +170,7 @@ void BlockSource::residual(const IOdata& inputs,
 }
 
 void BlockSource::derivative(const IOdata& inputs,
-                             const stateData& stateDataValue,
+                             const StateData& stateDataValue,
                              double deriv[],
                              const SolverMode& sMode)
 {
@@ -187,7 +187,7 @@ void BlockSource::derivative(const IOdata& inputs,
 }
 
 void BlockSource::algebraicUpdate(const IOdata& inputs,
-                                  const stateData& stateDataValue,
+                                  const StateData& stateDataValue,
                                   double update[],
                                   const SolverMode& sMode,
                                   double alpha)
@@ -203,7 +203,7 @@ void BlockSource::algebraicUpdate(const IOdata& inputs,
 }
 
 void BlockSource::jacobianElements(const IOdata& inputs,
-                                   const stateData& stateDataValue,
+                                   const StateData& stateDataValue,
                                    matrixData<double>& matrixDataValue,
                                    const IOlocs& inputLocs,
                                    const SolverMode& sMode)
@@ -238,7 +238,7 @@ void BlockSource::timestep(coreTime time, const IOdata& inputs, const SolverMode
 }
 
 void BlockSource::rootTest(const IOdata& inputs,
-                           const stateData& stateDataValue,
+                           const StateData& stateDataValue,
                            double roots[],
                            const SolverMode& sMode)
 {
@@ -271,7 +271,7 @@ void BlockSource::rootTrigger(coreTime time,
 }
 
 ChangeCode BlockSource::rootCheck(const IOdata& inputs,
-                                  const stateData& stateDataValue,
+                                  const StateData& stateDataValue,
                                   const SolverMode& sMode,
                                   CheckLevel level)
 {
@@ -292,7 +292,7 @@ ChangeCode BlockSource::rootCheck(const IOdata& inputs,
 }
 
 void BlockSource::updateLocalCache(const IOdata& inputs,
-                                   const stateData& stateDataValue,
+                                   const StateData& stateDataValue,
                                    const SolverMode& sMode)
 {
     double srcOut = m_output;
@@ -318,7 +318,7 @@ void BlockSource::setLevel(double newLevel)
 }
 
 IOdata BlockSource::getOutputs(const IOdata& /*inputs*/,
-                               const stateData& stateDataValue,
+                               const StateData& stateDataValue,
                                const SolverMode& sMode) const
 {
     if (blk != nullptr) {
@@ -331,7 +331,7 @@ IOdata BlockSource::getOutputs(const IOdata& /*inputs*/,
 }
 
 double BlockSource::getOutput(const IOdata& inputs,
-                              const stateData& stateDataValue,
+                              const StateData& stateDataValue,
                               const SolverMode& sMode,
                               index_t outputNum) const
 {
@@ -357,7 +357,7 @@ double BlockSource::getOutput(index_t outputNum) const
 }
 
 double BlockSource::getDoutdt(const IOdata& inputs,
-                              const stateData& stateDataValue,
+                              const StateData& stateDataValue,
                               const SolverMode& sMode,
                               index_t outputNum) const
 {

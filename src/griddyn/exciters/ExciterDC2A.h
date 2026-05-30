@@ -18,19 +18,19 @@ class ExciterDC2A: public ExciterDC1A {
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void residual(const IOdata& inputs,
-                          const stateData& stateDataValue,
+                          const StateData& stateDataValue,
                           double resid[],
                           const SolverMode& sMode) override;
     virtual void derivative(const IOdata& inputs,
-                            const stateData& stateDataValue,
+                            const StateData& stateDataValue,
                             double deriv[],
                             const SolverMode& sMode) override;
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& stateDataValue,
+                          const StateData& stateDataValue,
                           double roots[],
                           const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                 const stateData& sD,
+                                 const StateData& sD,
                                  const SolverMode& sMode,
                                  CheckLevel level) override;
 

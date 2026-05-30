@@ -643,7 +643,7 @@ void GridArea::updateLocalCache()
 }
 
 void GridArea::updateLocalCache(const IOdata& inputs,
-                                const stateData& stateDataValue,
+                                const StateData& stateDataValue,
                                 const SolverMode& sMode)
 {
     // links should come first
@@ -1351,7 +1351,7 @@ double GridArea::getAvgAngle() const
     return (a / cnt);
 }
 
-double GridArea::getAvgAngle(const stateData& stateDataValue, const SolverMode& sMode) const
+double GridArea::getAvgAngle(const StateData& stateDataValue, const SolverMode& sMode) const
 {
     double a = 0.0;
     double cnt = 0.0;
@@ -1417,7 +1417,7 @@ void GridArea::getTols(double tols[], const SolverMode& sMode)
 
 // #define DEBUG_PRINT
 void GridArea::rootTest(const IOdata& inputs,
-                        const stateData& stateDataValue,
+                        const StateData& stateDataValue,
                         double roots[],
                         const SolverMode& sMode)
 {
@@ -1432,7 +1432,7 @@ void GridArea::rootTest(const IOdata& inputs,
 }
 
 ChangeCode GridArea::rootCheck(const IOdata& inputs,
-                               const stateData& stateDataValue,
+                               const StateData& stateDataValue,
                                const SolverMode& sMode,
                                CheckLevel level)
 {
@@ -1604,13 +1604,13 @@ void GridArea::getAngleStates(double aStates[], const SolverMode& sMode) const
 
 // residual
 
-void GridArea::preEx(const IOdata& inputs, const stateData& stateDataValue, const SolverMode& sMode)
+void GridArea::preEx(const IOdata& inputs, const StateData& stateDataValue, const SolverMode& sMode)
 {
     opObjectLists->preEx(inputs, stateDataValue, sMode);
 }
 
 void GridArea::residual(const IOdata& inputs,
-                        const stateData& stateDataValue,
+                        const StateData& stateDataValue,
                         double resid[],
                         const SolverMode& sMode)
 {
@@ -1620,7 +1620,7 @@ void GridArea::residual(const IOdata& inputs,
 }
 
 void GridArea::algebraicUpdate(const IOdata& inputs,
-                               const stateData& stateDataValue,
+                               const StateData& stateDataValue,
                                double update[],
                                const SolverMode& sMode,
                                double alpha)
@@ -1649,7 +1649,7 @@ void GridArea::getStateName(stringVec& stNames,
 }
 
 void GridArea::delayedResidual(const IOdata& inputs,
-                               const stateData& stateDataValue,
+                               const StateData& stateDataValue,
                                double resid[],
                                const SolverMode& sMode)
 {
@@ -1657,7 +1657,7 @@ void GridArea::delayedResidual(const IOdata& inputs,
 }
 
 void GridArea::delayedDerivative(const IOdata& inputs,
-                                 const stateData& stateDataValue,
+                                 const StateData& stateDataValue,
                                  double deriv[],
                                  const SolverMode& sMode)
 {
@@ -1665,7 +1665,7 @@ void GridArea::delayedDerivative(const IOdata& inputs,
 }
 
 void GridArea::delayedJacobian(const IOdata& inputs,
-                               const stateData& stateDataValue,
+                               const StateData& stateDataValue,
                                matrixData<double>& matrixDataValue,
                                const IOlocs& inputLocs,
                                const SolverMode& sMode)
@@ -1674,7 +1674,7 @@ void GridArea::delayedJacobian(const IOdata& inputs,
 }
 
 void GridArea::delayedAlgebraicUpdate(const IOdata& inputs,
-                                      const stateData& stateDataValue,
+                                      const StateData& stateDataValue,
                                       double update[],
                                       const SolverMode& sMode,
                                       double alpha)
@@ -1683,7 +1683,7 @@ void GridArea::delayedAlgebraicUpdate(const IOdata& inputs,
 }
 
 void GridArea::derivative(const IOdata& inputs,
-                          const stateData& stateDataValue,
+                          const StateData& stateDataValue,
                           double deriv[],
                           const SolverMode& sMode)
 {
@@ -1693,7 +1693,7 @@ void GridArea::derivative(const IOdata& inputs,
 
 // Jacobian
 void GridArea::jacobianElements(const IOdata& inputs,
-                                const stateData& stateDataValue,
+                                const StateData& stateDataValue,
                                 matrixData<double>& matrixDataValue,
                                 const IOlocs& inputLocs,
                                 const SolverMode& sMode)
@@ -1717,13 +1717,13 @@ void GridArea::updateFlags(bool /*dynOnly*/)
     }
 }
 
-void GridArea::setOffsets(const solverOffsets& newOffsets, const SolverMode& sMode)
+void GridArea::setOffsets(const SolverOffsets& newOffsets, const SolverMode& sMode)
 {
     if (!(isStateCountLoaded(sMode))) {
         loadStateSizes(sMode);
     }
     offsets.setOffsets(newOffsets, sMode);
-    solverOffsets no(newOffsets);
+    SolverOffsets no(newOffsets);
     no.localIncrement(offsets.getOffsets(sMode));
 
     for (auto* obj : primaryObjects) {
@@ -1760,7 +1760,7 @@ double GridArea::getTieFlowReal() const
     return (getGenerationReal() - getLoadReal() - getLoss());
 }
 
-double GridArea::getMasterAngle(const stateData& stateDataValue, const SolverMode& sMode) const
+double GridArea::getMasterAngle(const StateData& stateDataValue, const SolverMode& sMode) const
 {
     if (masterBus >= 0) {
         return m_Buses[masterBus]->getAngle(stateDataValue, sMode);
@@ -1774,7 +1774,7 @@ double GridArea::getMasterAngle(const stateData& stateDataValue, const SolverMod
     return 0.0;
 }
 
-stateSizes GridArea::localStateSizes(const SolverMode& /*sMode*/) const
+StateSizes GridArea::localStateSizes(const SolverMode& /*sMode*/) const
 {
     return offsets.local().local;
 }

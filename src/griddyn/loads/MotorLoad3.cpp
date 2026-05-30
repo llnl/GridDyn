@@ -112,9 +112,9 @@ void MotorLoad3::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-stateSizes MotorLoad3::localStateSizes(const SolverMode& sMode) const
+StateSizes MotorLoad3::localStateSizes(const SolverMode& sMode) const
 {
-    stateSizes SS;
+    StateSizes SS;
     if (isDynamic(sMode)) {
         SS.algSize = 2;
         if (!isAlgebraicOnly(sMode)) {
@@ -182,7 +182,7 @@ void MotorLoad3::guessState(coreTime time,
 
 // residual
 void MotorLoad3::residual(const IOdata& inputs,
-                          const stateData& sD,
+                          const StateData& sD,
                           double resid[],
                           const SolverMode& sMode)
 {
@@ -279,7 +279,7 @@ void MotorLoad3::getStateName(stringVec& stNames,
 
 void MotorLoad3::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
-    stateData sD(time, m_state.data());
+    StateData sD(time, m_state.data());
     derivative(inputs, sD, m_dstate_dt.data(), cLocalSolverMode);
     double dt = time - prevTime;
     m_state[2] += dt * m_dstate_dt[2];
@@ -289,7 +289,7 @@ void MotorLoad3::timestep(coreTime time, const IOdata& inputs, const SolverMode&
     updateCurrents(inputs, sD, cLocalSolverMode);
 }
 
-void MotorLoad3::updateCurrents(const IOdata& inputs, const stateData& sD, const SolverMode& sMode)
+void MotorLoad3::updateCurrents(const IOdata& inputs, const StateData& sD, const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, const_cast<double*>(sD.state), sMode, this);
     double voltage = inputs[voltageInLocation];
@@ -309,7 +309,7 @@ void MotorLoad3::updateCurrents(const IOdata& inputs, const stateData& sD, const
 }
 
 void MotorLoad3::derivative(const IOdata& /*inputs*/,
-                            const stateData& sD,
+                            const StateData& sD,
                             double deriv[],
                             const SolverMode& sMode)
 {
@@ -339,7 +339,7 @@ void MotorLoad3::derivative(const IOdata& /*inputs*/,
 }
 
 void MotorLoad3::jacobianElements(const IOdata& inputs,
-                                  const stateData& sD,
+                                  const StateData& sD,
                                   matrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode)
@@ -442,7 +442,7 @@ void MotorLoad3::jacobianElements(const IOdata& inputs,
 }
 
 void MotorLoad3::outputPartialDerivatives(const IOdata& inputs,
-                                          const stateData& /*sD*/,
+                                          const StateData& /*sD*/,
                                           matrixData<double>& md,
                                           const SolverMode& sMode)
 {
@@ -470,7 +470,7 @@ count_t MotorLoad3::outputDependencyCount(index_t /*num*/, const SolverMode& /*s
     return 2;
 }
 void MotorLoad3::ioPartialDerivatives(const IOdata& inputs,
-                                      const stateData& sD,
+                                      const StateData& sD,
                                       matrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode)
@@ -543,7 +543,7 @@ index_t MotorLoad3::findIndex(std::string_view field, const SolverMode& sMode) c
 }
 
 void MotorLoad3::rootTest(const IOdata& /*inputs*/,
-                          const stateData& sD,
+                          const StateData& sD,
                           double roots[],
                           const SolverMode& sMode)
 {
@@ -586,7 +586,7 @@ void MotorLoad3::rootTrigger(coreTime /*time*/,
 }
 
 ChangeCode MotorLoad3::rootCheck(const IOdata& /*inputs*/,
-                                 const stateData& sD,
+                                 const StateData& sD,
                                  const SolverMode& sMode,
                                  CheckLevel /*level*/)
 {
@@ -625,7 +625,7 @@ double MotorLoad3::getReactivePower() const
 }
 
 double MotorLoad3::getRealPower(const IOdata& inputs,
-                                const stateData& sD,
+                                const StateData& sD,
                                 const SolverMode& sMode) const
 {
     const double voltage = inputs[voltageInLocation];
@@ -643,7 +643,7 @@ double MotorLoad3::getRealPower(const IOdata& inputs,
 }
 
 double MotorLoad3::getReactivePower(const IOdata& inputs,
-                                    const stateData& sD,
+                                    const StateData& sD,
                                     const SolverMode& sMode) const
 {
     const double voltage = inputs[voltageInLocation];

@@ -50,7 +50,7 @@ void LutBlock::dynObjectInitializeB(const IOdata& inputs,
 }
 
 void LutBlock::blockAlgebraicUpdate(double input,
-                                    const stateData& stateDataValue,
+                                    const StateData& stateDataValue,
                                     double update[],
                                     const SolverMode& sMode)
 {
@@ -64,7 +64,7 @@ void LutBlock::blockAlgebraicUpdate(double input,
 
 void LutBlock::blockJacobianElements(double input,
                                      double didt,
-                                     const stateData& stateDataValue,
+                                     const StateData& stateDataValue,
                                      matrixData<double>& matrixDataValue,
                                      index_t argLoc,
                                      const SolverMode& sMode)

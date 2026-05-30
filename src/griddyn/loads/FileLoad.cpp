@@ -146,7 +146,7 @@ void FileLoad::updateA(coreTime time)
     }
     lastTime = prevTime;
     if (!opFlags[use_step_change_flag]) {
-        RampLoad::updateLocalCache(noInputs, stateData(time), cLocalSolverMode);
+        RampLoad::updateLocalCache(noInputs, StateData(time), cLocalSolverMode);
     }
     lastUpdateTime = time;
     nextUpdateTime = (currIndex == count - 1) ? maxTime : schedLoad.time(currIndex + 1);

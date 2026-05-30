@@ -101,7 +101,7 @@ class GridBlock: public GridSubModel {
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
-    // virtual void derivative(const IOdata &inputs, const stateData &sD, double deriv[], const
+    // virtual void derivative(const IOdata &inputs, const StateData&sD, double deriv[], const
     // SolverMode &sMode);
 
     /** @brief simplifying function in place of residual since block have only one input/output
@@ -114,12 +114,12 @@ class GridBlock: public GridSubModel {
     */
     virtual void blockResidual(double input,
                                double didt,
-                               const stateData& stateDataValue,
+                               const StateData& stateDataValue,
                                double resid[],
                                const SolverMode& solverModeValue);
 
     virtual void residual(const IOdata& inputs,
-                          const stateData& stateDataValue,
+                          const StateData& stateDataValue,
                           double resid[],
                           const SolverMode& solverModeValue) override;
 
@@ -134,11 +134,11 @@ class GridBlock: public GridSubModel {
     */
     virtual void blockDerivative(double input,
                                  double didt,
-                                 const stateData& stateDataValue,
+                                 const StateData& stateDataValue,
                                  double deriv[],
                                  const SolverMode& solverModeValue);
     virtual void derivative(const IOdata& inputs,
-                            const stateData& stateDataValue,
+                            const StateData& stateDataValue,
                             double deriv[],
                             const SolverMode& solverModeValue) override;
 
@@ -150,11 +150,11 @@ class GridBlock: public GridSubModel {
     @param[in] solverModeValue the SolverMode that corresponds to the state data
     */
     virtual void blockAlgebraicUpdate(double input,
-                                      const stateData& stateDataValue,
+                                      const StateData& stateDataValue,
                                       double update[],
                                       const SolverMode& solverModeValue);
     virtual void algebraicUpdate(const IOdata& inputs,
-                                 const stateData& stateDataValue,
+                                 const StateData& stateDataValue,
                                  double update[],
                                  const SolverMode& solverModeValue,
                                  double alpha) override;
@@ -171,13 +171,13 @@ class GridBlock: public GridSubModel {
     */
     virtual void blockJacobianElements(double input,
                                        double didt,
-                                       const stateData& stateDataValue,
+                                       const StateData& stateDataValue,
                                        matrixData<double>& matrixDataValue,
                                        index_t argLoc,
                                        const SolverMode& solverModeValue);
 
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& stateDataValue,
+                                  const StateData& stateDataValue,
                                   matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& solverModeValue) override;
@@ -190,7 +190,7 @@ class GridBlock: public GridSubModel {
     */
     virtual double step(coreTime time, double input);
     virtual void rootTest(const IOdata& inputs,
-                          const stateData& stateDataValue,
+                          const StateData& stateDataValue,
                           double roots[],
                           const SolverMode& solverModeValue) override;
     virtual void rootTrigger(coreTime time,
@@ -198,16 +198,15 @@ class GridBlock: public GridSubModel {
                              const std::vector<int>& rootMask,
                              const SolverMode& solverModeValue) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                 const stateData& stateDataValue,
+                                 const StateData& stateDataValue,
                                  const SolverMode& solverModeValue,
                                  CheckLevel level) override;
     // virtual void setTime(coreTime time){prevTime=time;};
     virtual stringVec localStateNames() const override;
     /** get the single output for the block
     @param[in] stateDataValue the state data to use in computing the output
-    @param[in] solverModeValue the SolverMode associated with the stateData
-    */
-    virtual double getBlockOutput(const stateData& stateDataValue,
+    @param[in] solverModeValue the SolverMode associated with the StateData*/
+    virtual double getBlockOutput(const StateData& stateDataValue,
                                   const SolverMode& solverModeValue) const;
     /** get the single output for the block based on local information
      */
@@ -215,9 +214,8 @@ class GridBlock: public GridSubModel {
     /** get the time derivative of the block output -should only be used for block with a
     differential output
     @param[in] stateDataValue the state data to use in computing the output
-    @param[in] solverModeValue the SolverMode associated with the stateData
-    */
-    virtual double getBlockDoutDt(const stateData& stateDataValue,
+    @param[in] solverModeValue the SolverMode associated with the StateData*/
+    virtual double getBlockDoutDt(const StateData& stateDataValue,
                                   const SolverMode& solverModeValue) const;
     /**get the time derivative of the block output -should only be used for block with a
      * differential output based on local information
@@ -230,13 +228,13 @@ class GridBlock: public GridSubModel {
     /** compute the elements of the residual associated with the limiter
     @param[in] input the input to the block
     @param[in] didt the time derivative of the input of the block
-    @param[in] stateDataValue the stateData associated with a block
+    @param[in] stateDataValue the StateData associated with a block
     @param[in] resid the memory location to store the residual
     @param[in] solverModeValue the SolverMode associated with the state Data
     */
     void limiterResidElements(double input,
                               double didt,
-                              const stateData& stateDataValue,
+                              const StateData& stateDataValue,
                               double resid[],
                               const SolverMode& solverModeValue);
     /** get the input that goes into the rate limiter*/
@@ -257,7 +255,7 @@ class GridBlock: public GridSubModel {
     double computeDefaultResetLevel() const;
     /** generate the value to test based incoming information for the limiter*/
     double getLimiterTestValue(double input,
-                               const stateData& stateDataValue,
+                               const StateData& stateDataValue,
                                const SolverMode& solverModeValue);
 };
 

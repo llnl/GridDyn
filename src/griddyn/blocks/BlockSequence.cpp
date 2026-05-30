@@ -106,7 +106,7 @@ void BlockSequence::add(GridBlock* blk)
 }
 
 void BlockSequence::updateLocalCache(const IOdata& /*inputs*/,
-                                     const stateData& stateData,
+                                     const StateData& stateData,
                                      const SolverMode& sMode)
 {
     if (!stateData.updateRequired(seqID)) {
@@ -146,7 +146,7 @@ double BlockSequence::step(coreTime time, double input)
 
 void BlockSequence::blockResidual(double input,
                                   double didt,
-                                  const stateData& stateData,
+                                  const StateData& stateData,
                                   double resid[],
                                   const SolverMode& sMode)
 {
@@ -164,7 +164,7 @@ void BlockSequence::blockResidual(double input,
 
 void BlockSequence::blockDerivative(double input,
                                     double didt,
-                                    const stateData& stateData,
+                                    const StateData& stateData,
                                     double deriv[],
                                     const SolverMode& sMode)
 {
@@ -181,7 +181,7 @@ void BlockSequence::blockDerivative(double input,
 }
 
 void BlockSequence::blockAlgebraicUpdate(double input,
-                                         const stateData& stateData,
+                                         const StateData& stateData,
                                          double update[],
                                          const SolverMode& sMode)
 {
@@ -197,7 +197,7 @@ void BlockSequence::blockAlgebraicUpdate(double input,
 
 void BlockSequence::blockJacobianElements(double input,
                                           double didt,
-                                          const stateData& stateData,
+                                          const StateData& stateData,
                                           matrixData<double>& matrixDataRef,
                                           index_t argLoc,
                                           const SolverMode& sMode)
@@ -218,7 +218,7 @@ void BlockSequence::blockJacobianElements(double input,
 }
 
 void BlockSequence::rootTest(const IOdata& inputs,
-                             const stateData& stateData,
+                             const StateData& stateData,
                              double roots[],
                              const SolverMode& sMode)
 {
@@ -251,7 +251,7 @@ void BlockSequence::rootTrigger(coreTime time,
 }
 
 ChangeCode BlockSequence::rootCheck(const IOdata& inputs,
-                                    const stateData& stateData,
+                                    const StateData& stateData,
                                     const SolverMode& sMode,
                                     CheckLevel level)
 {

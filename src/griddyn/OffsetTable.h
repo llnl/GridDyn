@@ -16,9 +16,9 @@ namespace griddyn {
  **/
 class OffsetTable {
   private:
-    // std::vector<solverOffsets> offsetContainer;       //!< a vector of containers for offsets
+    // std::vector<SolverOffsets> offsetContainer;       //!< a vector of containers for offsets
     // corresponding to the different solver modes
-    boost::container::small_vector<solverOffsets, DEFAULT_OFFSET_CONTAINER_SIZE>
+    boost::container::small_vector<SolverOffsets, DEFAULT_OFFSET_CONTAINER_SIZE>
         offsetContainer;  //!< a vector of containers for offsets corresponding to the different
                           //!< solver modes
   public:
@@ -50,7 +50,7 @@ class OffsetTable {
      *@param[in] sMode the SolverMode we are interested in
      *@param[in] newOffsets the offsets to assign
      */
-    void setOffsets(const solverOffsets& newOffsets, const SolverMode& sMode);
+    void setOffsets(const SolverOffsets& newOffsets, const SolverMode& sMode);
 
     /** @brief set the base offset
      *@param[in] newOffset the location to set the offset to
@@ -60,27 +60,27 @@ class OffsetTable {
 
     /**get a pointer the offsets for the local mode
      */
-    solverOffsets& local()  // local is always the first element
+    SolverOffsets& local()  // local is always the first element
     {
         return offsetContainer.front();
     }
     /**get a const pointer to the local mode of operations
      */
-    const solverOffsets& local() const  // local is always the first element
+    const SolverOffsets& local() const  // local is always the first element
     {
         return offsetContainer.front();
     }
     /** @brief get the offsets for a SolverMode
      *@param[in] sMode the SolverMode we are interested in
-     *@return a pointer to a solverOffsets object
+     *@return a pointer to a SolverOffsets object
      */
-    solverOffsets& getOffsets(const SolverMode& sMode);
+    SolverOffsets& getOffsets(const SolverMode& sMode);
 
     /** @brief get the offsets for a SolverMode
      *@param[in] sMode the SolverMode we are interested in
-     *@return a const pointer to a solverOffsets object
+     *@return a const pointer to a SolverOffsets object
      */
-    const solverOffsets& getOffsets(const SolverMode& sMode) const;
+    const SolverOffsets& getOffsets(const SolverMode& sMode) const;
     /** @brief set the base offset of algebraic variables
      *@param[in] newOffset the location to set the offset to
      *@param[in] sMode the SolverMode we are interested in
@@ -153,25 +153,25 @@ class OffsetTable {
      */
     index_t maxIndex(const SolverMode& sMode) const;
 
-    /** @brief get the locations for the data from a stateData pointer and output array
+    /** @brief get the locations for the data from a StateData pointer and output array
     *@param[in] sMode the SolverMode we are interested in
-    *@param[in] stateDataValue the stateData object to fill the Lp from
+    *@param[in] stateDataValue the StateData object to fill the Lp from
     *@param[in] dest the destination location for the calculations
     @param[in] comp the object to use if local information is required
     @return Lp the Location pointer object to fill
     */
-    Lp getLocations(const stateData& stateDataValue,
+    Lp getLocations(const StateData& stateDataValue,
                     double dest[],
                     const SolverMode& sMode,
                     const GridComponent* comp) const;
 
-    /** @brief get the locations for the data from a stateData pointer
+    /** @brief get the locations for the data from a StateData pointer
     *@param[in] sMode the SolverMode we are interested in
-    *@param[in] stateDataValue the stateData object to fill the Lp from
+    *@param[in] stateDataValue the StateData object to fill the Lp from
     @param[in] comp the object to use if local information is required
     @return Lp the Location pointer object to fill
     */
-    Lp getLocations(const stateData& stateDataValue,
+    Lp getLocations(const StateData& stateDataValue,
                     const SolverMode& sMode,
                     const GridComponent* comp) const;
 
@@ -184,23 +184,23 @@ class OffsetTable {
      *@param[in] dynamicOnly only unload the dynamic solverObjects
      */
     void unload(bool dynamicOnly = false);
-    /** @brief unload state information for the solverOffsets
+    /** @brief unload state information for the SolverOffsets
      *@param[in] dynamicOnly only unload the dynamic solverObjects
      */
     void stateUnload(bool dynamicOnly = false);
-    /** @brief unload the root information for the solverOffsets
+    /** @brief unload the root information for the SolverOffsets
      *@param[in] dynamicOnly only unload the dynamic solverObjects
      */
     void rootUnload(bool dynamicOnly = false);
-    /** @brief unload the Jacobian information for the solverOffsets
+    /** @brief unload the Jacobian information for the SolverOffsets
      *@param[in] dynamicOnly only unload the dynamic solverObjects
      */
     void jacobianUnload(bool dynamicOnly = false);
-    /** @brief update all solverOffsets with the local information
+    /** @brief update all SolverOffsets with the local information
      *@param[in] dynamicOnly only unload the dynamic solverObjects
      */
     void localUpdateAll(bool dynamicOnly = false);
-    /** @brief get the size of the solverOffsets
+    /** @brief get the size of the SolverOffsets
      *@return the size
      */
     count_t size() const { return static_cast<count_t>(offsetContainer.size()); }

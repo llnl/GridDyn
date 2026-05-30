@@ -101,10 +101,10 @@ class AcBus: public GridBus {
     virtual void alert(CoreObject* obj, int code) override;
 
     // dynInitializeB
-    virtual void setOffsets(const solverOffsets& newOffsets, const SolverMode& sMode) override;
+    virtual void setOffsets(const SolverOffsets& newOffsets, const SolverMode& sMode) override;
     virtual void setOffset(index_t offset, const SolverMode& sMode) override;
 
-    virtual stateSizes localStateSizes(const SolverMode& sMode) const override;
+    virtual StateSizes localStateSizes(const SolverMode& sMode) const override;
 
     virtual count_t localJacobianCount(const SolverMode& sMode) const override;
 
@@ -147,24 +147,24 @@ class AcBus: public GridBus {
 
     // solver functions
     virtual void jacobianElements(const IOdata& inputs,
-                                  const stateData& stateDataValue,
+                                  const StateData& stateDataValue,
                                   matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
     virtual void residual(const IOdata& inputs,
-                          const stateData& stateDataValue,
+                          const StateData& stateDataValue,
                           double resid[],
                           const SolverMode& sMode) override;
     virtual void derivative(const IOdata& inputs,
-                            const stateData& stateDataValue,
+                            const StateData& stateDataValue,
                             double deriv[],
                             const SolverMode& sMode) override;
     virtual void algebraicUpdate(const IOdata& inputs,
-                                 const stateData& stateDataValue,
+                                 const StateData& stateDataValue,
                                  double update[],
                                  const SolverMode& sMode,
                                  double alpha) override;
-    virtual void voltageUpdate(const stateData& stateDataValue,
+    virtual void voltageUpdate(const StateData& stateDataValue,
                                double update[],
                                const SolverMode& sMode,
                                double alpha) override;
@@ -205,7 +205,7 @@ class AcBus: public GridBus {
 
     virtual void updateLocalCache() override;
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const stateData& stateDataValue,
+                                  const StateData& stateDataValue,
                                   const SolverMode& sMode) override;
 
   protected:
@@ -214,7 +214,7 @@ class AcBus: public GridBus {
     /** @brief  compute the partial derivatives based on the given state data
     @param[in] stateDataValue  the state Data in question
     @param[in] sMode the solver mode*/
-    virtual void computeDerivatives(const stateData& stateDataValue, const SolverMode& sMode);
+    virtual void computeDerivatives(const StateData& stateDataValue, const SolverMode& sMode);
 
   public:
     void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
@@ -291,7 +291,7 @@ class AcBus: public GridBus {
     virtual double getSched() const override;
 
     virtual IOdata getOutputs(const IOdata& inputs,
-                              const stateData& stateDataValue,
+                              const StateData& stateDataValue,
                               const SolverMode& sMode) const override;
     virtual index_t getOutputLoc(const SolverMode& sMode, index_t num) const override;
 
@@ -313,24 +313,24 @@ class AcBus: public GridBus {
     @param[in] sMode the corresponding SolverMode to the state data
     @return the bus voltage
     **/
-    virtual double getVoltage(const stateData& stateDataValue,
+    virtual double getVoltage(const StateData& stateDataValue,
                               const SolverMode& sMode) const override;
     /** @brief get the angle
     * @param[in] stateDataValue the system state data
     @param[in] sMode the corresponding SolverMode to the state
     @return the bus angle
     **/
-    virtual double getAngle(const stateData& stateDataValue,
+    virtual double getAngle(const StateData& stateDataValue,
                             const SolverMode& sMode) const override;
     /** @brief get the bus frequency
     * @param[in] stateDataValue the system state data
     @param[in] sMode the corresponding SolverMode to the state
     @return the bus frequency
     **/
-    virtual double getFreq(const stateData& stateDataValue, const SolverMode& sMode) const override;
+    virtual double getFreq(const StateData& stateDataValue, const SolverMode& sMode) const override;
 
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                 const stateData& stateDataValue,
+                                 const StateData& stateDataValue,
                                  const SolverMode& sMode,
                                  CheckLevel level) override;
     /** @brief function used for returning the mode of the bus
@@ -372,19 +372,19 @@ class AcBus: public GridBus {
 
   protected:
     /** @brief compute the current power-balance error
-    @param[in] stateDataValue the stateData from which to compute the error
+    @param[in] stateDataValue the StateData from which to compute the error
     @param[in] sMode the SolverMode corresponding to the stateData
     @return the error in the power balance equations
     */
-    virtual double computeError(const stateData& stateDataValue, const SolverMode& sMode) override;
+    virtual double computeError(const StateData& stateDataValue, const SolverMode& sMode) override;
 
   private:
-    void convergeHighErrorOnly(const stateData& stateDataValue,
+    void convergeHighErrorOnly(const StateData& stateDataValue,
                                double state[],
                                const SolverMode& sMode,
                                double& err,
                                double tol);
-    bool convergeStrongIteration(const stateData& stateDataValue,
+    bool convergeStrongIteration(const StateData& stateDataValue,
                                  double state[],
                                  const SolverMode& sMode,
                                  ConvergeMode& mode,
@@ -398,7 +398,7 @@ class AcBus: public GridBus {
                                  double currentModeVoltageLimit,
                                  double tol,
                                  int& iteration);
-    bool convergeVoltageOnly(const stateData& stateDataValue,
+    bool convergeVoltageOnly(const StateData& stateDataValue,
                              double state[],
                              const SolverMode& sMode,
                              ConvergeMode& mode,

@@ -136,7 +136,7 @@ void Breaker::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 
     auto ctiStateGrabber = std::make_unique<CustomStateGrabber>(this);
     ctiStateGrabber->setGrabberFunction(
-        [](CoreObject* obj, const stateData& stateDataRef, const SolverMode& sMode) -> double {
+        [](CoreObject* obj, const StateData& stateDataRef, const SolverMode& sMode) -> double {
             return stateDataRef.state[static_cast<Breaker*>(obj)->offsets.getDiffOffset(sMode)];
         });
 
@@ -214,9 +214,9 @@ void Breaker::updateA(coreTime time)
     lastUpdateTime = time;
 }
 
-stateSizes Breaker::localStateSizes(const SolverMode& sMode) const
+StateSizes Breaker::localStateSizes(const SolverMode& sMode) const
 {
-    stateSizes stateSizeSet;
+    StateSizes stateSizeSet;
     if ((!isAlgebraicOnly(sMode)) && (mRecloserTap > 0)) {
         stateSizeSet.diffSize = 1;
     }
@@ -245,7 +245,7 @@ void Breaker::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode
 }
 
 void Breaker::jacobianElements(const IOdata& /*inputs*/,
-                               const stateData& stateDataRef,
+                               const StateData& stateDataRef,
                                matrixData<double>& jacobian,
                                const IOlocs& /*inputLocs*/,
                                const SolverMode& sMode)
@@ -325,7 +325,7 @@ void Breaker::setState(coreTime time,
 }
 
 void Breaker::residual(const IOdata& /*inputs*/,
-                       const stateData& stateDataRef,
+                       const StateData& stateDataRef,
                        double resid[],
                        const SolverMode& sMode)
 {

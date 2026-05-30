@@ -55,27 +55,27 @@ class GenModel: public GridSubModel {
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual IOdata getOutputs(const IOdata& inputs,
-                              const stateData& stateDataValue,
+                              const StateData& stateDataValue,
                               const SolverMode& sMode) const override;
 
     virtual double getOutput(const IOdata& inputs,
-                             const stateData& stateDataValue,
+                             const StateData& stateDataValue,
                              const SolverMode& sMode,
                              index_t outNum = 0) const override;
     virtual double getOutput(index_t outNum = 0) const override;
 
     virtual void ioPartialDerivatives(const IOdata& inputs,
-                                      const stateData& stateDataValue,
+                                      const StateData& stateDataValue,
                                       matrixData<double>& matrixDataValue,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
 
     virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
     // TODO(phlpt): Split these into separate value and offset accessors.
-    virtual double getFreq(const stateData& stateDataValue,
+    virtual double getFreq(const StateData& stateDataValue,
                            const SolverMode& sMode,
                            index_t* freqOffset = nullptr) const;
-    virtual double getAngle(const stateData& stateDataValue,
+    virtual double getAngle(const StateData& stateDataValue,
                             const SolverMode& sMode,
                             index_t* angleOffset = nullptr) const;
 

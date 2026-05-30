@@ -105,7 +105,7 @@ CoreObject* AGControl::clone(CoreObject* obj) const
 }
 
 double AGControl::getOutput(const IOdata& /*inputs*/,
-                            const stateData& /*sD*/,
+                            const StateData& /*sD*/,
                             const SolverMode& /*sMode*/,
                             index_t /*outNum*/) const
 {

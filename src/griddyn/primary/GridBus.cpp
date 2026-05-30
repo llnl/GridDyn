@@ -321,7 +321,7 @@ void GridBus::pFlowObjectInitializeB()
 }
 
 void GridBus::preEx(const IOdata& /*inputs*/,
-                    const stateData& stateDataValue,
+                    const StateData& stateDataValue,
                     const SolverMode& sMode)
 {
     auto inputs = getOutputs(noInputs, stateDataValue, sMode);
@@ -599,7 +599,7 @@ void GridBus::setVoltageAngle(double voltageNew, double angleNew)
 }
 
 IOdata GridBus::getOutputs(const IOdata& /*inputs*/,
-                           const stateData& stateDataValue,
+                           const StateData& stateDataValue,
                            const SolverMode& sMode) const
 {
     return ((sMode.local) || (stateDataValue.empty())) ? IOdata{voltage, angle, freq} :
@@ -626,7 +626,7 @@ const IOlocs& GridBus::getOutputLocsRef() const
 }
 
 double GridBus::getOutput(const IOdata& /*inputs*/,
-                          const stateData& stateDataValue,
+                          const StateData& stateDataValue,
                           const SolverMode& sMode,
                           index_t outNum) const
 {
@@ -666,12 +666,12 @@ double GridBus::getAngle(const double /*state*/[], const SolverMode& /*sMode*/) 
     return angle;
 }
 
-double GridBus::getVoltage(const stateData& /*stateDataValue*/, const SolverMode& /*sMode*/) const
+double GridBus::getVoltage(const StateData& /*stateDataValue*/, const SolverMode& /*sMode*/) const
 {
     return voltage;
 }
 
-double GridBus::getAngle(const stateData& /*stateDataValue*/, const SolverMode& /*sMode*/) const
+double GridBus::getAngle(const StateData& /*stateDataValue*/, const SolverMode& /*sMode*/) const
 {
     return angle;
 }
@@ -681,7 +681,7 @@ bool GridBus::hasInertialAngle() const
     return ((!attachedGens.empty()) && (isConnected()));
 }
 
-double GridBus::getFreq(const stateData& /*stateDataValue*/, const SolverMode& /*sMode*/) const
+double GridBus::getFreq(const StateData& /*stateDataValue*/, const SolverMode& /*sMode*/) const
 {
     return freq;
 }
@@ -891,7 +891,7 @@ int GridBus::propogatePower(bool /*makeSlack*/)
 
 // residual
 void GridBus::residual(const IOdata& inputs,
-                       const stateData& stateDataValue,
+                       const StateData& stateDataValue,
                        double resid[],
                        const SolverMode& sMode)
 {
@@ -907,7 +907,7 @@ void GridBus::residual(const IOdata& inputs,
 }
 
 void GridBus::derivative(const IOdata& inputs,
-                         const stateData& stateDataValue,
+                         const StateData& stateDataValue,
                          double deriv[],
                          const SolverMode& sMode)
 {
@@ -919,7 +919,7 @@ static const IOlocs kNullLocations{kNullLocation, kNullLocation, kNullLocation};
 
 // Jacobian
 void GridBus::jacobianElements(const IOdata& inputs,
-                               const stateData& stateDataValue,
+                               const StateData& stateDataValue,
                                matrixData<double>& matrixDataValue,
                                const IOlocs& /*inputLocs*/,
                                const SolverMode& sMode)
@@ -960,7 +960,7 @@ inline double dAcheck(double dT, double /*currA*/, double mxch = kPI / 8.0)
     return dT;
 }
 
-void GridBus::voltageUpdate(const stateData& /*stateDataValue*/,
+void GridBus::voltageUpdate(const StateData& /*stateDataValue*/,
                             double /*update*/[],
                             const SolverMode& /*sMode*/,
                             double /*alpha*/)
@@ -968,7 +968,7 @@ void GridBus::voltageUpdate(const stateData& /*stateDataValue*/,
 }
 
 void GridBus::algebraicUpdate(const IOdata& inputs,
-                              const stateData& stateDataValue,
+                              const StateData& stateDataValue,
                               double update[],
                               const SolverMode& sMode,
                               double alpha)
@@ -990,7 +990,7 @@ void GridBus::converge(coreTime /*time*/,
 {
 }
 
-double GridBus::computeError(const stateData& stateDataValue, const SolverMode& sMode)
+double GridBus::computeError(const StateData& stateDataValue, const SolverMode& sMode)
 {
     updateLocalCache(noInputs, stateDataValue, sMode);
 
@@ -1052,7 +1052,7 @@ static const IOlocs inLoc{0, 1, 2};
 #define DEBUG_KEY_BUS 0
 // computed power at bus
 void GridBus::updateLocalCache(const IOdata& /*inputs*/,
-                               const stateData& stateDataValue,
+                               const StateData& stateDataValue,
                                const SolverMode& sMode)
 {
     if (!S.needsUpdate(stateDataValue)) {
@@ -1129,7 +1129,7 @@ void busPowers::reset()
     seqID = 0;
 }
 
-bool busPowers::needsUpdate(const stateData& stateDataValue) const
+bool busPowers::needsUpdate(const StateData& stateDataValue) const
 {
     bool empty = stateDataValue.empty();
     bool zeroSeqID = stateDataValue.seqID == 0;
@@ -1396,7 +1396,7 @@ double GridBus::get(std::string_view param, unit unitType) const
 }
 
 ChangeCode GridBus::rootCheck(const IOdata& /*inputs*/,
-                              const stateData& stateDataValue,
+                              const StateData& stateDataValue,
                               const SolverMode& sMode,
                               CheckLevel level)
 {
@@ -1405,7 +1405,7 @@ ChangeCode GridBus::rootCheck(const IOdata& /*inputs*/,
 }
 
 void GridBus::rootTest(const IOdata& /*inputs*/,
-                       const stateData& stateDataValue,
+                       const StateData& stateDataValue,
                        double roots[],
                        const SolverMode& sMode)
 {

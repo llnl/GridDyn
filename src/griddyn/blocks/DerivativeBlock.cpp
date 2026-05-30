@@ -109,7 +109,7 @@ double DerivativeBlock::step(coreTime time, double inputA)
 }
 
 void DerivativeBlock::blockAlgebraicUpdate(double input,
-                                           const stateData& stateDataRef,
+                                           const StateData& stateDataRef,
                                            double update[],
                                            const SolverMode& sMode)
 {
@@ -122,7 +122,7 @@ void DerivativeBlock::blockAlgebraicUpdate(double input,
 
 void DerivativeBlock::blockDerivative(double input,
                                       double /*didt*/,
-                                      const stateData& stateDataRef,
+                                      const StateData& stateDataRef,
                                       double deriv[],
                                       const SolverMode& sMode)
 {
@@ -134,7 +134,7 @@ void DerivativeBlock::blockDerivative(double input,
 
 void DerivativeBlock::blockJacobianElements(double input,
                                             double didt,
-                                            const stateData& stateDataRef,
+                                            const StateData& stateDataRef,
                                             matrixData<double>& jacobian,
                                             index_t argLoc,
                                             const SolverMode& sMode)

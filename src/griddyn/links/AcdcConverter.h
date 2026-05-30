@@ -73,7 +73,7 @@ namespace links {
 
         virtual void updateLocalCache() override;
         virtual void updateLocalCache(const IOdata& inputs,
-                                      const stateData& stateDataValue,
+                                      const StateData& stateDataValue,
                                       const SolverMode& sMode) override;
         virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
         virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -95,28 +95,28 @@ namespace links {
 
         using Link::ioPartialDerivatives;
         virtual void ioPartialDerivatives(id_type_t busId,
-                                          const stateData& stateDataValue,
+                                          const StateData& stateDataValue,
                                           matrixData<double>& matrixDataValue,
                                           const IOlocs& inputLocs,
                                           const SolverMode& sMode) override;
 
         virtual void outputPartialDerivatives(const IOdata& inputs,
-                                              const stateData& stateDataValue,
+                                              const StateData& stateDataValue,
                                               matrixData<double>& matrixDataValue,
                                               const SolverMode& sMode) override;
 
         virtual void outputPartialDerivatives(id_type_t busId,
-                                              const stateData& stateDataValue,
+                                              const StateData& stateDataValue,
                                               matrixData<double>& matrixDataValue,
                                               const SolverMode& sMode) override;
         virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
         virtual void jacobianElements(const IOdata& inputs,
-                                      const stateData& stateDataValue,
+                                      const StateData& stateDataValue,
                                       matrixData<double>& matrixDataValue,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
         virtual void residual(const IOdata& inputs,
-                              const stateData& stateDataValue,
+                              const StateData& stateDataValue,
                               double resid[],
                               const SolverMode& sMode) override;
         virtual void setState(coreTime time,

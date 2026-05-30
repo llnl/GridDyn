@@ -29,7 +29,7 @@ CoreObject* FmiMELoad::clone(CoreObject* obj) const
 }
 
 void FmiMELoad::updateLocalCache(const IOdata& inputs,
-                                 const stateData& stateDataRef,
+                                 const StateData& stateDataRef,
                                  const SolverMode& sMode)
 {
     auto inputVector = inputs;

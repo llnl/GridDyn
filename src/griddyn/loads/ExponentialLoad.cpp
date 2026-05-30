@@ -49,7 +49,7 @@ void ExponentialLoad::set(std::string_view param, double val, units::unit unitTy
 }
 
 void ExponentialLoad::ioPartialDerivatives(const IOdata& inputs,
-                                           const stateData& /*sD*/,
+                                           const StateData& /*sD*/,
                                            matrixData<double>& md,
                                            const IOlocs& inputLocs,
                                            const SolverMode& /*sMode*/)
@@ -77,14 +77,14 @@ double ExponentialLoad::getReactivePower() const
     return getReactivePower(bus->getVoltage());
 }
 double ExponentialLoad::getRealPower(const IOdata& inputs,
-                                     const stateData& /*sD*/,
+                                     const StateData& /*sD*/,
                                      const SolverMode& /*sMode*/) const
 {
     return getRealPower(inputs[voltageInLocation]);
 }
 
 double ExponentialLoad::getReactivePower(const IOdata& inputs,
-                                         const stateData& /*sD*/,
+                                         const StateData& /*sD*/,
                                          const SolverMode& /*sMode*/) const
 {
     return getReactivePower(inputs[voltageInLocation]);

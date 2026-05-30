@@ -62,7 +62,7 @@ class DcBus: public GridBus {
                                        std::uint32_t flags,
                                        CheckLevel level) override;  // only applicable in pFlow
     // virtual  void generationAdjust(double adjustment);
-    virtual void pFlowCheck(std::vector<Violation>& Violation_vector) override;
+    virtual void pFlowCheck(std::vector<Violation>& violationVector) override;
     // dynInitializeB dynamics
   protected:
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -78,27 +78,27 @@ class DcBus: public GridBus {
 
     virtual void guessState(coreTime time,
                             double state[],
-                            double dstate_dt[],
+                            double dstateDt[],
                             const SolverMode& sMode) override;
     virtual void setState(coreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
-                                  const StateData& sD,
-                                  matrixData<double>& md,
+                                  const StateData& stateDataValue,
+                                  matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
 
-    void computeDerivatives(const StateData& sD, const SolverMode& sMode);
+    void computeDerivatives(const StateData& stateDataValue, const SolverMode& sMode);
 
     virtual void residual(const IOdata& inputs,
-                          const StateData& sD,
+                          const StateData& stateDataValue,
                           double resid[],
                           const SolverMode& sMode) override;
     virtual void converge(coreTime time,
                           double state[],
-                          double dstate_dt[],
+                          double dstateDt[],
                           const SolverMode& sMode,
                           ConvergeMode mode = ConvergeMode::local_iteration,
                           double tol = 0.01) override;
@@ -107,7 +107,8 @@ class DcBus: public GridBus {
 
     virtual double getVoltage(const double state[], const SolverMode& sMode) const override;
 
-    virtual double getVoltage(const StateData& sD, const SolverMode& sMode) const override;
+    virtual double getVoltage(const StateData& stateDataValue,
+                              const SolverMode& sMode) const override;
 
     virtual IOlocs getOutputLocs(const SolverMode& sMode) const override;
 

@@ -14,8 +14,8 @@
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/OperatingBoundary.h"
 #include "utilities/MatrixData.hpp"
+#include "utilities/OperatingBoundary.h"
 #include <memory>
 #include <string>
 #include <vector>

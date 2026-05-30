@@ -8,8 +8,8 @@
 
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
-#include "utilities/ThreePhaseFunctions.h"
 #include "utilities/MatrixData.hpp"
+#include "utilities/ThreePhaseFunctions.h"
 #include <cmath>
 #include <complex>
 #include <iostream>

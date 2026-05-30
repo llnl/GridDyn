@@ -26,8 +26,8 @@
 #include "SundialsMatrixData.h"
 #include "core/FactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
-#include "utilities/matrixCreation.h"
 #include "utilities/MatrixDataFilter.hpp"
+#include "utilities/matrixCreation.h"
 #include <algorithm>
 #include <cassert>
 #include <cstdio>

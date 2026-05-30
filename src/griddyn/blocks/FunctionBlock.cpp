@@ -9,8 +9,8 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/functionInterpreter.h"
 #include "utilities/MatrixData.hpp"
+#include "utilities/functionInterpreter.h"
 #include <string>
 
 namespace griddyn::blocks {

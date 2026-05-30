@@ -10,8 +10,8 @@
 #include "../simulation/GridDynSimulationFileOps.h"
 #include "SundialsMatrixData.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixCreation.h"
 #include "utilities/MatrixDataFilter.hpp"
+#include "utilities/matrixCreation.h"
 #include <ida/ida.h>
 #include <ida/ida_ls.h>
 #include <sundials/sundials_math.h>

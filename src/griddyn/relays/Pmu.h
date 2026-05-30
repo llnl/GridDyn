@@ -15,11 +15,11 @@ namespace griddyn::relays {
 class Pmu: public Sensor {
   public:
     enum PmuFlags {
-        TRANSMIT_ACTIVE = object_armed_flag,  //!< flag to indicate that the relay is transmitting
-        THREE_PHASE_ACTIVE = three_phase_only,  //!< flag indicating 3 phase values
-        THREE_PHASE_SET = three_phase_capable,  //!< flag indicating that the 3-phase value was
-                                                //!< user set vs default
-        CURRENT_ACTIVE =
+        transmitActive = object_armed_flag,  //!< flag to indicate that the relay is transmitting
+        threePhaseActive = three_phase_only,  //!< flag indicating 3 phase values
+        threePhaseSet = three_phase_capable,  //!< flag indicating that the 3-phase value was
+                                              //!< user set vs default
+        currentActive =
             object_flag12,  //!< flag indicating that the current measurements are active
     };
 

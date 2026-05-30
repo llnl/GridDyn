@@ -23,11 +23,11 @@
 
 // NOLINTBEGIN
 namespace griddyn::relays {
-controlRelay::controlRelay(const std::string& objName): Relay(objName) {}
+ControlRelay::ControlRelay(const std::string& objName): Relay(objName) {}
 
-CoreObject* controlRelay::clone(CoreObject* obj) const
+CoreObject* ControlRelay::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<controlRelay, Relay>(this, obj);
+    auto nobj = cloneBase<ControlRelay, Relay>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -39,16 +39,16 @@ CoreObject* controlRelay::clone(CoreObject* obj) const
     return nobj;
 }
 
-void controlRelay::setFlag(std::string_view flag, bool val)
+void ControlRelay::setFlag(std::string_view flag, bool val)
 {
     if (flag == "noreply") {
-        opFlags.set(NO_MESSAGE_REPLY, val);
+        opFlags.set(noMessageReply, val);
     } else {
         Relay::setFlag(flag, val);
     }
 }
 
-void controlRelay::addMeasurement(std::string_view measure)
+void ControlRelay::addMeasurement(std::string_view measure)
 {
     auto vals = makeGrabbers(measure,
                              (m_sourceObject != nullptr)   ? m_sourceObject :
@@ -62,7 +62,7 @@ void controlRelay::addMeasurement(std::string_view measure)
     }
 }
 
-double controlRelay::getMeasurement(index_t num) const
+double ControlRelay::getMeasurement(index_t num) const
 {
     if (isValidIndex(num, measurement_points_)) {
         return measurement_points_[num]->grabData();
@@ -70,13 +70,13 @@ double controlRelay::getMeasurement(index_t num) const
     return kNullVal;
 }
 
-double controlRelay::getMeasurement(std::string_view pointName) const
+double ControlRelay::getMeasurement(std::string_view pointName) const
 {
     auto ind = findMeasurement(pointName);
     return (ind != kNullLocation) ? measurement_points_[ind]->grabData() : kNullVal;
 }
 
-index_t controlRelay::findMeasurement(std::string_view pointName) const
+index_t ControlRelay::findMeasurement(std::string_view pointName) const
 {
     auto fnd = pointNames_.find(std::string{pointName});
     return (fnd != pointNames_.end()) ? fnd->second : kNullLocation;
@@ -86,7 +86,7 @@ std::string commDestName;
 std::uint64_t commDestId=0;
 std::string commType;
 */
-void controlRelay::set(std::string_view param, std::string_view val)
+void ControlRelay::set(std::string_view param, std::string_view val)
 {
     if (param == "measurement") {
         addMeasurement(std::string{val});
@@ -95,7 +95,7 @@ void controlRelay::set(std::string_view param, std::string_view val)
     }
 }
 
-void controlRelay::set(std::string_view param, double val, units::unit unitType)
+void ControlRelay::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "autoname") {
         autoName = static_cast<int>(val);
@@ -109,20 +109,20 @@ void controlRelay::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-void controlRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void ControlRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     rootSim = dynamic_cast<GridSimulation*>(getRoot());
 
     Relay::dynObjectInitializeA(time0, flags);
     if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
-        opFlags.set(LINK_TYPE_SOURCE);
+        opFlags.set(linkTypeSource);
     }
     if (dynamic_cast<Link*>(m_sinkObject) != nullptr) {
-        opFlags.set(LINK_TYPE_SINK);
+        opFlags.set(linkTypeSink);
     }
 }
 
-void controlRelay::actionTaken(index_t ActionNum,
+void ControlRelay::actionTaken(index_t ActionNum,
                                index_t conditionNum,
                                ChangeCode /*actionReturn*/,
                                coreTime /*actionTime*/)
@@ -134,7 +134,7 @@ void controlRelay::actionTaken(index_t ActionNum,
 
 using cm = griddyn::comms::ControlMessagePayload;
 
-void controlRelay::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMessage> message)
+void ControlRelay::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMessage> message)
 {
     auto m = message->getPayload<cm>();
     index_t actnum;
@@ -225,7 +225,7 @@ void controlRelay::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMe
     }
 }
 
-std::string controlRelay::generateCommName()
+std::string ControlRelay::generateCommName()
 {
     if (autoName > 0) {
         auto aname = generateAutoName(autoName);
@@ -237,7 +237,7 @@ std::string controlRelay::generateCommName()
     return Relay::generateCommName();
 }
 
-std::string controlRelay::generateAutoName(int code)
+std::string ControlRelay::generateAutoName(int code)
 {
     switch (code) {
         case 1:
@@ -250,7 +250,7 @@ std::string controlRelay::generateAutoName(int code)
     }
 }
 
-ChangeCode controlRelay::executeAction(index_t actionNum)
+ChangeCode ControlRelay::executeAction(index_t actionNum)
 {
     if (!isValidIndex(actionNum, actions)) {
         return ChangeCode::NOT_TRIGGERED;
@@ -265,7 +265,7 @@ ChangeCode controlRelay::executeAction(index_t actionNum)
             if (findLoc != kNullLocation) {
                 val = getMeasurement(findLoc);
             } else {
-                if (opFlags[LINK_TYPE_SOURCE]) {
+                if (opFlags[linkTypeSource]) {
                     val = m_sourceObject->get(cact.field + m_terminal_key, cact.unitType);
                     if (val == kNullVal) {
                         val = m_sourceObject->get(cact.field, cact.unitType);
@@ -286,7 +286,7 @@ ChangeCode controlRelay::executeAction(index_t actionNum)
         try {
             std::string field;
 
-            if (opFlags[LINK_TYPE_SINK]) {
+            if (opFlags[linkTypeSink]) {
                 if ((cact.field == "breaker") || (cact.field == "switch") ||
                     (cact.field == "breaker_open")) {
                     field = cact.field + m_terminal_key;
@@ -298,7 +298,7 @@ ChangeCode controlRelay::executeAction(index_t actionNum)
             }
             m_sinkObject->set(field, cact.val, cact.unitType);
 
-            if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
+            if (!opFlags[noMessageReply])  // unless told not to respond return with the
             {
                 auto gres = std::make_shared<CommMessage>(cm::SET_SUCCESS);
                 gres->getPayload<cm>()->m_actionID = cact.actionID;
@@ -307,7 +307,7 @@ ChangeCode controlRelay::executeAction(index_t actionNum)
             return ChangeCode::PARAMETER_CHANGE;
         }
         catch (const std::invalid_argument&) {
-            if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
+            if (!opFlags[noMessageReply])  // unless told not to respond return with the
             {
                 auto gres = std::make_shared<CommMessage>(cm::SET_FAIL);
                 gres->getPayload<cm>()->m_actionID = cact.actionID;
@@ -319,23 +319,23 @@ ChangeCode controlRelay::executeAction(index_t actionNum)
     return ChangeCode::NOT_TRIGGERED;
 }
 
-void controlRelay::updateObject(CoreObject* obj, ObjectUpdateMode mode)
+void ControlRelay::updateObject(CoreObject* obj, ObjectUpdateMode mode)
 {
     Relay::updateObject(obj, mode);
     if (opFlags[dyn_initialized]) {
         rootSim = dynamic_cast<GridSimulation*>(getRoot());
 
         if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
-            opFlags.set(LINK_TYPE_SOURCE);
+            opFlags.set(linkTypeSource);
         }
         if (dynamic_cast<Link*>(m_sinkObject) != nullptr) {
-            opFlags.set(LINK_TYPE_SINK);
+            opFlags.set(linkTypeSink);
         }
     }
 }
 
 std::unique_ptr<FunctionEventAdapter>
-    controlRelay::generateGetEvent(coreTime eventTime, std::uint64_t sourceID, cm* message)
+    ControlRelay::generateGetEvent(coreTime eventTime, std::uint64_t sourceID, cm* message)
 {
     auto act = getFreeAction();
     actions[act].actionID = (message->m_actionID > 0) ? message->m_actionID : instructionCounter;
@@ -356,7 +356,7 @@ std::unique_ptr<FunctionEventAdapter>
 }
 
 std::unique_ptr<FunctionEventAdapter>
-    controlRelay::generateSetEvent(coreTime eventTime, std::uint64_t sourceID, cm* message)
+    ControlRelay::generateSetEvent(coreTime eventTime, std::uint64_t sourceID, cm* message)
 {
     auto act = getFreeAction();
     actions[act].actionID = (message->m_actionID > 0) ? message->m_actionID : instructionCounter;
@@ -377,7 +377,7 @@ std::unique_ptr<FunctionEventAdapter>
     return fea;
 }
 
-index_t controlRelay::findAction(std::uint64_t actionID)
+index_t ControlRelay::findAction(std::uint64_t actionID)
 {
     auto res = std::find_if(actions.begin(), actions.end(), [actionID](const auto& act) {
         return (act.actionID == actionID);
@@ -385,7 +385,7 @@ index_t controlRelay::findAction(std::uint64_t actionID)
     return (res != actions.end()) ? static_cast<index_t>(res - actions.begin()) : kNullLocation;
 }
 
-index_t controlRelay::getFreeAction()
+index_t ControlRelay::getFreeAction()
 {
     auto asize = static_cast<index_t>(actions.size());
     for (index_t act = 0; act < asize; ++act) {

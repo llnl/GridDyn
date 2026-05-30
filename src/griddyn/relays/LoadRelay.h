@@ -14,10 +14,10 @@ namespace griddyn::relays {
 the protective systems include underfrequency, undervoltage, and a return time so the load
 automatically recovers
 */
-class loadRelay: public Relay {
+class LoadRelay: public Relay {
   public:
     enum LoadRelayFlags {
-        NONDIRECTIONAL_FLAG = object_flag10,
+        nondirectionalFlag = object_flag10,
     };
 
   protected:
@@ -28,7 +28,7 @@ class loadRelay: public Relay {
     coreTime mOffTime = maxTime;  //!<[s] the time before the load comes back on line if the trip
                                   //!< cause has been corrected
   public:
-    explicit loadRelay(const std::string& objName = "loadRelay_$");
+    explicit LoadRelay(const std::string& objName = "loadRelay_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;

@@ -44,45 +44,45 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
   protected:
     /** flags for the relayFlags data*/
     enum RelayFlags {
-        relay_flag0 = 0,
-        relay_flag1 = 1,
-        relay_flag2 = 2,
-        relay_flag3 = 3,
-        relay_flag4 = 4,
-        relay_flag5 = 5,
-        relay_flag6 = 6,
-        relay_flag7 = 7,
-        relay_flag8 = 8,
-        relay_flag9 = 9,
-        relay_flag10 = 10,
-        relay_flag11 = 11,
-        relay_flag12 = 12,
-        relay_flag13 = 13,
-        relay_flag14 = 14,
-        relay_flag15 = 15,
-        relay_flag16 = 16,
-        relay_flag17 = 17,
-        relay_flag18 = 18,
-        relay_flag19 = 19,
-        relay_flag20 = 20,
-        relay_flag21 = 21,
-        relay_flag22 = 22,
-        relay_flag23 = 23,
-        relay_flag24 = 24,
-        relay_flag25 = 25,
-        relay_flag26 = 26,
-        relay_flag27 = 27,
-        relay_flag28 = 28,
-        relay_flag29 = 29,
-        relay_flag30 = 30,
-        relay_flag31 = 31,
+        relayFlag0 = 0,
+        relayFlag1 = 1,
+        relayFlag2 = 2,
+        relayFlag3 = 3,
+        relayFlag4 = 4,
+        relayFlag5 = 5,
+        relayFlag6 = 6,
+        relayFlag7 = 7,
+        relayFlag8 = 8,
+        relayFlag9 = 9,
+        relayFlag10 = 10,
+        relayFlag11 = 11,
+        relayFlag12 = 12,
+        relayFlag13 = 13,
+        relayFlag14 = 14,
+        relayFlag15 = 15,
+        relayFlag16 = 16,
+        relayFlag17 = 17,
+        relayFlag18 = 18,
+        relayFlag19 = 19,
+        relayFlag20 = 20,
+        relayFlag21 = 21,
+        relayFlag22 = 22,
+        relayFlag23 = 23,
+        relayFlag24 = 24,
+        relayFlag25 = 25,
+        relayFlag26 = 26,
+        relayFlag27 = 27,
+        relayFlag28 = 28,
+        relayFlag29 = 29,
+        relayFlag30 = 30,
+        relayFlag31 = 31,
 
-        continuous_flag = object_flag1,  //!< flag indicating the relay has some continuous checks
-        resettable_flag = object_flag2,  //!< flag indicating that the conditions can be reset
-        use_commLink = object_flag3,  //!< flag indicating that the relay uses communications
-        power_flow_checks_flag = object_flag4,  //!< flag indicating that the relay should be in
-                                                //!< operation during power flow
-        extra_relay_flag =
+        continuousFlag = object_flag1,  //!< flag indicating the relay has some continuous checks
+        resettableFlag = object_flag2,  //!< flag indicating that the conditions can be reset
+        useCommLink = object_flag3,  //!< flag indicating that the relay uses communications
+        powerFlowChecksFlag = object_flag4,  //!< flag indicating that the relay should be in
+                                             //!< operation during power flow
+        extraRelayFlag =
             object_flag5,  //!< just defining an extra name for additional relay flags
 
     };

@@ -26,7 +26,7 @@ using units::convert;
 using units::puA;
 Breaker::Breaker(const std::string& objName): Relay(objName), mUseCti(extra_bool)
 {
-    opFlags.set(continuous_flag);
+    opFlags.set(continuousFlag);
 }
 
 CoreObject* Breaker::clone(CoreObject* obj) const
@@ -56,7 +56,7 @@ CoreObject* Breaker::clone(CoreObject* obj) const
 void Breaker::setFlag(std::string_view flag, bool val)
 {
     if (flag == "nondirectional") {
-        opFlags.set(NONDIRECTIONAL_FLAG, val);
+        opFlags.set(nondirectionalFlag, val);
     } else {
         Relay::setFlag(flag, val);
     }
@@ -116,7 +116,7 @@ void Breaker::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     } else {
         add(std::shared_ptr<Condition>(
             makeCondition("sqrt(p^2+q^2)/@bus:v", ">=", mLimit, m_sourceObject)));
-        opFlags.set(NONLINK_SOURCE_FLAG);
+        opFlags.set(nonlinkSourceFlag);
         tripEvent->setTarget(m_sinkObject, "status");
         tripEvent->setValue(0.0);
         // action 2 to re-enable object
@@ -162,7 +162,7 @@ void Breaker::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 void Breaker::conditionTriggered(index_t conditionNum, coreTime triggeredTime)
 {
     if (conditionNum == 0) {
-        opFlags.set(OVERLIMIT_FLAG);
+        opFlags.set(overlimitFlag);
         setConditionStatus(0, ConditionStatus::disabled);
         if (mRecloserTap == 0.0) {
             if (mMinClearingTime <= kMin_Res) {
@@ -179,32 +179,32 @@ void Breaker::conditionTriggered(index_t conditionNum, coreTime triggeredTime)
             mUseCti = true;
         }
     } else if (conditionNum == 1) {
-        assert(opFlags[OVERLIMIT_FLAG]);
+        assert(opFlags[overlimitFlag]);
         tripBreaker(triggeredTime);
     } else if (conditionNum == 2) {
-        assert(opFlags[OVERLIMIT_FLAG]);
+        assert(opFlags[overlimitFlag]);
 
         setConditionStatus(1, ConditionStatus::disabled);
         setConditionStatus(2, ConditionStatus::disabled);
         setConditionStatus(0, ConditionStatus::active);
         alert(this, JAC_COUNT_DECREASE);
-        opFlags.reset(OVERLIMIT_FLAG);
+        opFlags.reset(overlimitFlag);
         mUseCti = false;
     }
 }
 
 void Breaker::updateA(coreTime time)
 {
-    if (opFlags[BREAKER_TRIPPED_FLAG]) {
+    if (opFlags[breakerTrippedFlag]) {
         if (time >= nextUpdateTime) {
             resetBreaker(time);
         }
-    } else if (opFlags[OVERLIMIT_FLAG]) {
+    } else if (opFlags[overlimitFlag]) {
         if (time >= nextUpdateTime) {
             if (checkCondition(0)) {  // still over the limit->trip the breaker
                 tripBreaker(time);
             } else {
-                opFlags.reset(OVERLIMIT_FLAG);
+                opFlags.reset(overlimitFlag);
                 setConditionStatus(0, ConditionStatus::active);
             }
         }
@@ -237,7 +237,7 @@ void Breaker::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode
     if (mLimit < kBigNum / 2.0) {
         const double conditionValue = getConditionValue(0);
         if (conditionValue > mLimit) {
-            opFlags.set(BREAKER_TRIPPED_FLAG);
+            opFlags.set(breakerTrippedFlag);
             disable();
             alert(this, BREAKER_TRIP_CURRENT);
         }
@@ -256,7 +256,7 @@ void Breaker::jacobianElements(const IOdata& /*inputs*/,
         auto voltageOffset = mBus->getOutputLoc(sMode, voltageInLocation);
         auto inputs = mBus->getOutputs(noInputs, stateDataRef, sMode);
         auto inputLocs = mBus->getOutputLocs(sMode);
-        if (opFlags[NONLINK_SOURCE_FLAG]) {
+        if (opFlags[nonlinkSourceFlag]) {
             auto* gridSecondaryObject = static_cast<gridSecondary*>(m_sourceObject);
             out = gridSecondaryObject->getOutputs(inputs, stateDataRef, sMode);
             gridSecondaryObject->outputPartialDerivatives(inputs,
@@ -314,7 +314,7 @@ void Breaker::jacobianElements(const IOdata& /*inputs*/,
 
 void Breaker::setState(coreTime time,
                        const double state[],
-                       const double /*dstate_dt*/[],
+                       const double /*dstateDt*/[],
                        const SolverMode& sMode)
 {
     if (mUseCti) {
@@ -333,7 +333,7 @@ void Breaker::residual(const IOdata& /*inputs*/,
         auto offset = offsets.getDiffOffset(sMode);
         const double* dst = stateDataRef.dstate_dt + offset;
 
-        if (!opFlags[NONLINK_SOURCE_FLAG]) {
+        if (!opFlags[nonlinkSourceFlag]) {
             static_cast<Link*>(m_sourceObject)->updateLocalCache(noInputs, stateDataRef, sMode);
         }
         const double currentMagnitude = getConditionValue(0, stateDataRef, sMode);
@@ -355,7 +355,7 @@ void Breaker::residual(const IOdata& /*inputs*/,
 
 void Breaker::guessState(const coreTime /*time*/,
                          double state[],
-                         double dstate_dt[],
+                         double dstateDt[],
                          const SolverMode& sMode)
 {
     if (mUseCti) {
@@ -365,15 +365,15 @@ void Breaker::guessState(const coreTime /*time*/,
         double temp;
         if (currentMagnitude > mLimit) {
             temp = pow(currentMagnitude - mLimit, 1.5);
-            dstate_dt[offset] = 1.0 / (mRecloserTap / temp + mMinClearingTime);
+            dstateDt[offset] = 1.0 / (mRecloserTap / temp + mMinClearingTime);
         } else {
             temp = pow(mLimit - currentMagnitude + 1e-8, 1.5);
-            dstate_dt[offset] = -1.0 / (mRecloserTap / temp + mMinClearingTime);
+            dstateDt[offset] = -1.0 / (mRecloserTap / temp + mMinClearingTime);
         }
     } else if (stateSize(sMode) > 0) {
         auto offset = offsets.getDiffOffset(sMode);
         state[offset] = 0;
-        dstate_dt[offset] = 0;
+        dstateDt[offset] = 0;
     }
 }
 
@@ -399,7 +399,7 @@ void Breaker::tripBreaker(coreTime time)
     alert(this, BREAKER_TRIP_CURRENT);
     logging::normal(this, "breaker {} tripped on {}", m_terminal, m_sourceObject->getName());
     triggerAction(0);
-    opFlags.set(BREAKER_TRIPPED_FLAG);
+    opFlags.set(breakerTrippedFlag);
     mUseCti = false;
     if (time > mLastRecloseTime + mRecloserResetTime) {
         mRecloseAttempts = 0;
@@ -419,11 +419,11 @@ void Breaker::resetBreaker(coreTime time)
     mLastRecloseTime = time;
     alert(this, BREAKER_RECLOSE);
     logging::normal(this, "breaker {} reset on {}", m_terminal, m_sourceObject->getName());
-    opFlags.reset(BREAKER_TRIPPED_FLAG);
+    opFlags.reset(breakerTrippedFlag);
     // timestep (time, SolverMode::pFlow);
     triggerAction(1);  // reclose the breaker
     nextUpdateTime = maxTime;
-    if (!opFlags[NONLINK_SOURCE_FLAG]) {  // do a recompute power
+    if (!opFlags[nonlinkSourceFlag]) {  // do a recompute power
         static_cast<Link*>(m_sourceObject)->updateLocalCache();
     }
     if (checkCondition(0)) {
@@ -441,7 +441,7 @@ void Breaker::resetBreaker(coreTime time)
             mUseCti = true;
         }
     } else {
-        opFlags.reset(OVERLIMIT_FLAG);
+        opFlags.reset(overlimitFlag);
         setConditionStatus(0, ConditionStatus::active);
         mUseCti = false;
     }

@@ -19,14 +19,14 @@
 #include <utility>
 
 namespace griddyn::relays {
-differentialRelay::differentialRelay(const std::string& objName): Relay(objName)
+DifferentialRelay::DifferentialRelay(const std::string& objName): Relay(objName)
 {
-    opFlags.set(continuous_flag);
+    opFlags.set(continuousFlag);
 }
 
-CoreObject* differentialRelay::clone(CoreObject* obj) const
+CoreObject* DifferentialRelay::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<differentialRelay, Relay>(this, obj);
+    auto* nobj = cloneBase<DifferentialRelay, Relay>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -37,27 +37,27 @@ CoreObject* differentialRelay::clone(CoreObject* obj) const
     return nobj;
 }
 
-void differentialRelay::setFlag(std::string_view flag, bool val)
+void DifferentialRelay::setFlag(std::string_view flag, bool val)
 {
     if (flag == "relative") {
-        opFlags.set(RELATIVE_DIFFERENTIAL_FLAG, val);
+        opFlags.set(relativeDifferentialFlag, val);
     }
     if (flag == "absolute") {
-        opFlags.set(RELATIVE_DIFFERENTIAL_FLAG, !val);
+        opFlags.set(relativeDifferentialFlag, !val);
     } else {
         Relay::setFlag(flag, val);
     }
 }
 
-bool differentialRelay::getFlag(std::string_view flag) const
+bool DifferentialRelay::getFlag(std::string_view flag) const
 {
     if (flag == "relative") {
-        return opFlags[RELATIVE_DIFFERENTIAL_FLAG];
+        return opFlags[relativeDifferentialFlag];
     }
     return Relay::getFlag(flag);
 }
 
-void differentialRelay::set(std::string_view param, std::string_view val)
+void DifferentialRelay::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -65,15 +65,15 @@ void differentialRelay::set(std::string_view param, std::string_view val)
     }
 }
 
-void differentialRelay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
+void DifferentialRelay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     const stringVec numericParameterStrings{"delay", "max_difference", "reset_margin", "minlevel"};
     const stringVec stringParameterStrings{};
-    getParamString<differentialRelay, Relay>(
+    getParamString<DifferentialRelay, Relay>(
         this, pstr, numericParameterStrings, stringParameterStrings, {}, pstype);
 }
 
-void differentialRelay::set(std::string_view param, double val, units::unit unitType)
+void DifferentialRelay::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "delay") {
         mDelayTime = val;
@@ -88,12 +88,12 @@ void differentialRelay::set(std::string_view param, double val, units::unit unit
     }
 }
 
-void differentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void DifferentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     // if the target object is a link of some kind
     if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
         const double tap = m_sourceObject->get("tap");
-        if (opFlags[RELATIVE_DIFFERENTIAL_FLAG]) {
+        if (opFlags[relativeDifferentialFlag]) {
             if (tap != 1.0) {
                 const std::string current1Expression = std::to_string(tap) + "*current1";
                 add(std::shared_ptr<Condition>(
@@ -132,13 +132,13 @@ void differentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t fla
                     "abs(current1-current2)", ">", mMaxDifferential, m_sourceObject)));
             }
         }
-        opFlags.set(LINK_MODE);
-        opFlags.reset(BUS_MODE);
+        opFlags.set(linkMode);
+        opFlags.reset(busMode);
     } else if (dynamic_cast<GridBus*>(m_sourceObject) != nullptr) {
         add(std::shared_ptr<Condition>(
             makeCondition("abs(load)", "<=", mMaxDifferential, m_sourceObject)));
-        opFlags.set(BUS_MODE);
-        opFlags.reset(LINK_MODE);
+        opFlags.set(busMode);
+        opFlags.reset(linkMode);
     }
 
     // using make shared here since we need a shared object and it won't get translated
@@ -148,7 +148,7 @@ void differentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t fla
     // action 2 to re-enable object
 
     add(std::move(tripEvent));
-    if ((opFlags[RELATIVE_DIFFERENTIAL_FLAG]) && (opFlags[LINK_MODE]) && (mMinLevel > 0.0)) {
+    if ((opFlags[relativeDifferentialFlag]) && (opFlags[linkMode]) && (mMinLevel > 0.0)) {
         setActionMultiTrigger(0, {0, 1}, mDelayTime);
     } else {
         setActionTrigger(0, 0, mDelayTime);
@@ -157,14 +157,14 @@ void differentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t fla
     Relay::pFlowObjectInitializeA(time0, flags);
 }
 
-void differentialRelay::actionTaken(index_t ActionNum,
+void DifferentialRelay::actionTaken(index_t ActionNum,
                                     index_t /*conditionNum*/,
                                     ChangeCode /*actionReturn*/,
                                     coreTime /*actionTime*/)
 {
     logging::normal(this, "Relay Tripped");
 
-    if (opFlags[use_commLink]) {
+    if (opFlags[useCommLink]) {
         if (ActionNum == 0) {
             auto relayEvent = std::make_shared<CommMessage>(CommMessage::BREAKER_TRIP_EVENT);
             cManager.send(std::move(relayEvent));
@@ -172,27 +172,27 @@ void differentialRelay::actionTaken(index_t ActionNum,
     }
 }
 
-void differentialRelay::conditionTriggered(index_t /*conditionNum*/, coreTime /*triggerTime*/)
+void DifferentialRelay::conditionTriggered(index_t /*conditionNum*/, coreTime /*triggerTime*/)
 {
     logging::normal(this, "differential condition met");
-    if (opFlags.test(use_commLink)) {
+    if (opFlags.test(useCommLink)) {
         // std::cout << "GridDyn conditionTriggered(), conditionNum = " << conditionNum << '\n';
         auto relayEvent = std::make_shared<CommMessage>(CommMessage::LOCAL_FAULT_EVENT);
         cManager.send(relayEvent);
     }
 }
 
-void differentialRelay::conditionCleared(index_t /*conditionNum*/, coreTime /*triggerTime*/)
+void DifferentialRelay::conditionCleared(index_t /*conditionNum*/, coreTime /*triggerTime*/)
 {
     logging::normal(this, "differential condition cleared");
 
-    if (opFlags.test(use_commLink)) {
+    if (opFlags.test(useCommLink)) {
         auto relayEvent = std::make_shared<CommMessage>(CommMessage::LOCAL_FAULT_CLEARED);
         cManager.send(relayEvent);
     }
 }
 
-void differentialRelay::receiveMessage(std::uint64_t /*sourceID*/,
+void DifferentialRelay::receiveMessage(std::uint64_t /*sourceID*/,
                                        std::shared_ptr<CommMessage> message)
 {
     switch (message->getMessageType()) {

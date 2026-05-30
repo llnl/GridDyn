@@ -16,10 +16,10 @@ namespace griddyn::relays {
 the number of zones is arbitrary and it works by checking the impedances of the associated link and
 comparing to specific thresholds. This zonal relays runs off a single impedance number
 */
-class zonalRelay: public Relay {
+class ZonalRelay: public Relay {
   public:
     enum ZonalRelayFlags {
-        NONDIRECTIONAL_FLAG = object_flag10,
+        nondirectionalFlag = object_flag10,
     };
 
   protected:
@@ -32,7 +32,7 @@ class zonalRelay: public Relay {
     count_t mConditionLevel = kInvalidCount;  //!< the level of condition that has been triggered
     int mAutoName = -1;  //!< storage for indicator of the type of autoname to use
   public:
-    explicit zonalRelay(const std::string& objName = "zonalRelay_$");
+    explicit ZonalRelay(const std::string& objName = "zonalRelay_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;

@@ -36,21 +36,21 @@
 namespace griddyn {
 using units::convert;
 
-static TypeFactory<Relay> gbf("relay", std::to_array<std::string_view>({"basic"}), "basic");
-static TypeFactory<Sensor> snsr("relay", "sensor");
+static TypeFactory<Relay> gBf("relay", std::to_array<std::string_view>({"basic"}), "basic");
+static TypeFactory<Sensor> sNsr("relay", "sensor");
 namespace relays {
-    static TypeFactory<zonalRelay>
-        zr("relay", std::to_array<std::string_view>({"zonal", "z", "impedance", "distance"}));
-    static TypeFactory<differentialRelay>
-        dr("relay", std::to_array<std::string_view>({"differential", "diff"}));
+    static TypeFactory<ZonalRelay>
+        zR("relay", std::to_array<std::string_view>({"zonal", "z", "impedance", "distance"}));
+    static TypeFactory<DifferentialRelay>
+        dR("relay", std::to_array<std::string_view>({"differential", "diff"}));
 
-    static TypeFactory<busRelay> br("relay", "bus");
-    static TypeFactory<loadRelay> lr("relay", "load");
-    static TypeFactory<fuse> fr("relay", "fuse");
-    static TypeFactory<Breaker> brkr("relay", "breaker");
+    static TypeFactory<BusRelay> bR("relay", "bus");
+    static TypeFactory<LoadRelay> lR("relay", "load");
+    static TypeFactory<Fuse> fR("relay", "fuse");
+    static TypeFactory<Breaker> bRkr("relay", "breaker");
     static ChildTypeFactory<Pmu, Sensor>
-        pmur("relay", std::to_array<std::string_view>({"pmu", "phasor", "PMU", "synchrophasor"}));
-    static TypeFactory<controlRelay> cntrl("relay", "control");
+        pMur("relay", std::to_array<std::string_view>({"pmu", "phasor", "PMU", "synchrophasor"}));
+    static TypeFactory<ControlRelay> cNtrl("relay", "control");
 }  // namespace relays
 
 std::atomic<count_t> Relay::relayCount(0);
@@ -354,7 +354,7 @@ void Relay::set(std::string_view param, std::string_view val)
         }
     } else {
         if (cManager.set(param, val)) {
-            opFlags.set(use_commLink);
+            opFlags.set(useCommLink);
         } else {
             GridPrimary::set(param, val);
         }
@@ -371,7 +371,7 @@ void Relay::set(std::string_view param, double val, units::unit unitType)
         m_nextSampleTime = timeZero;
     } else {
         if (cManager.set(param, val)) {
-            opFlags.set(use_commLink);
+            opFlags.set(useCommLink);
         } else {
             GridPrimary::set(param, val, unitType);
         }
@@ -391,24 +391,24 @@ double Relay::get(std::string_view param, units::unit unitType) const
 void Relay::setFlag(std::string_view flag, bool val)
 {
     if (flag == "continuous") {
-        opFlags.set(continuous_flag, val);
+        opFlags.set(continuousFlag, val);
         if (!val) {
             m_nextSampleTime = (prevTime < timeZero) ? timeZero : prevTime;
         }
     } else if (flag == "sampled") {
-        opFlags.set(continuous_flag, !val);
+        opFlags.set(continuousFlag, !val);
         if (val) {
             m_nextSampleTime = (prevTime < timeZero) ? timeZero : prevTime;
         }
     } else if ((flag == "comm_enabled") || (flag == "comms") || (flag == "usecomms")) {
-        opFlags.set(use_commLink, val);
+        opFlags.set(useCommLink, val);
     } else if (flag == "resettable") {
-        opFlags.set(resettable_flag, val);
+        opFlags.set(resettableFlag, val);
     } else if (flag == "powerflow_check") {
-        opFlags.set(power_flow_checks_flag, val);
+        opFlags.set(powerFlowChecksFlag, val);
     } else {
         if (cManager.setFlag(flag, val)) {
-            opFlags.set(use_commLink);
+            opFlags.set(useCommLink);
         } else {
             GridPrimary::setFlag(flag, val);
         }
@@ -422,7 +422,7 @@ void Relay::updateA(coreTime time)
     // be copied first
     condChecks.clear();
     nextUpdateTime = maxTime;
-    if (opFlags[continuous_flag]) {
+    if (opFlags[continuousFlag]) {
         for (auto& cond : ncond) {
             evaluateCondCheck(cond, time);
         }
@@ -474,7 +474,7 @@ std::string Relay::generateCommName()
 
 void Relay::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
 {
-    if ((opFlags[use_commLink]) && (!(commLink))) {
+    if ((opFlags[useCommLink]) && (!(commLink))) {
         if (cManager.getName().empty()) {
             cManager.setName(generateCommName());
         }
@@ -501,15 +501,15 @@ void Relay::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
                 catch (const std::invalid_argument&) {
                     logging::warning(this, "unable to initialize comm link");
                     commLink = nullptr;
-                    opFlags.reset(use_commLink);
+                    opFlags.reset(useCommLink);
                 }
             }
         } else {
             logging::warning(this, "unrecognized commLink type ");
-            opFlags.reset(use_commLink);
+            opFlags.reset(useCommLink);
         }
     }
-    if (opFlags[power_flow_checks_flag]) {
+    if (opFlags[powerFlowChecksFlag]) {
         for (auto& cs : cStates) {
             if (cs == ConditionStatus::active) {
                 opFlags.set(has_powerflow_adjustments);
@@ -522,7 +522,7 @@ void Relay::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
 
 void Relay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    if (opFlags[continuous_flag]) {
+    if (opFlags[continuousFlag]) {
         updateRootCount(false);
     } else {
         if (updatePeriod == maxTime) {  // set the period to the period of the simulation
@@ -535,7 +535,7 @@ void Relay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
 
     //*update the flag for future power flow check  BUG noticed by Colin Ponce 10/21/16
-    if (opFlags[power_flow_checks_flag]) {
+    if (opFlags[powerFlowChecksFlag]) {
         for (auto& cs : cStates) {
             if (cs == ConditionStatus::active) {
                 opFlags.set(has_powerflow_adjustments);
@@ -582,7 +582,7 @@ void Relay::updateRootCount(bool alertChange)
     conditionsWithRoots.clear();
     for (index_t kk = 0; kk < static_cast<index_t>(cStates.size()); ++kk) {
         if (cStates[kk] == ConditionStatus::active ||
-            (cStates[kk] == ConditionStatus::triggered && opFlags[resettable_flag])) {
+            (cStates[kk] == ConditionStatus::triggered && opFlags[resettableFlag])) {
             ++localRoots;
             conditionsWithRoots.push_back(kk);
         }
@@ -647,7 +647,7 @@ void Relay::rootTrigger(coreTime time,
             }
             ++ro;
         } else if ((cStates[conditionToCheck] == ConditionStatus::triggered) &&
-                   (opFlags[resettable_flag])) {
+                   (opFlags[resettableFlag])) {
             if (rootMask[ro] != 0) {
                 cStates[conditionToCheck] = ConditionStatus::active;
                 conditions[conditionToCheck]->useMargin(false);

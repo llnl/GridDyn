@@ -603,18 +603,18 @@ fobjectPair getObjectFunction(const Relay* rel, const std::string& field)
             };
         }
     } else {
-        if (dynamic_cast<const relays::controlRelay*>(rel) != nullptr) {
+        if (dynamic_cast<const relays::ControlRelay*>(rel) != nullptr) {
             if ((fld == "point") || (fld == "measurement")) {
                 retPair.first = [num](CoreObject* obj) {
-                    return static_cast<relays::controlRelay*>(obj)->getMeasurement(num);
+                    return static_cast<relays::ControlRelay*>(obj)->getMeasurement(num);
                 };
             } else {
                 // try to lookup named output for control relays
                 const index_t outIndex =
-                    static_cast<const relays::controlRelay*>(rel)->findMeasurement(field);
+                    static_cast<const relays::ControlRelay*>(rel)->findMeasurement(field);
                 if (outIndex != kNullLocation) {
                     retPair.first = [outIndex](CoreObject* obj) {
-                        return static_cast<relays::controlRelay*>(obj)->getMeasurement(outIndex);
+                        return static_cast<relays::ControlRelay*>(obj)->getMeasurement(outIndex);
                     };
                 }
             }

@@ -31,7 +31,7 @@ using units::unit_cast_from_string;
 
 Sensor::Sensor(const std::string& objName): Relay(objName)
 {
-    opFlags.set(continuous_flag);
+    opFlags.set(continuousFlag);
     opFlags.set(late_b_initialize);
 }
 
@@ -124,7 +124,7 @@ void Sensor::add(std::shared_ptr<GrabberSet> dGr)
         inputStrings.emplace_back("#");
 
         if (!(dGr->stateCapable())) {
-            opFlags.set(continuous_flag, false);
+            opFlags.set(continuousFlag, false);
         }
         dataSources[cnum] = std::move(dGr);
     }
@@ -146,13 +146,13 @@ std::shared_ptr<GrabberSet> Sensor::getGrabberSet(index_t grabberNum)
 void Sensor::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "direct_io") || (flag == "direct")) {
-        opFlags.set(DIRECT_IO, val);
+        opFlags.set(directIo, val);
     } else if (flag == "sampled") {
         opFlags[sampled_only] = val;
-        opFlags[continuous_flag] = !val;
+        opFlags[continuousFlag] = !val;
     } else if (flag == "continuous") {
         opFlags[sampled_only] = !val;
-        opFlags[continuous_flag] = val;
+        opFlags[continuousFlag] = val;
     } else {
         Relay::setFlag(flag, val);
     }
@@ -179,7 +179,7 @@ void Sensor::set(std::string_view param, std::string_view val)
                 inputStrings.push_back(istr);
             }
         }
-        if (opFlags[DIRECT_IO]) {
+        if (opFlags[directIo]) {
             if (num >= 0) {
                 ensureSizeAtLeast(outputStrings, num + sp.size());
 
@@ -303,7 +303,7 @@ void Sensor::set(std::string_view param, double val, units::unit unitType)
             blockInputs[num] = static_cast<int>(val);
         }
     } else if (param == "direct") {
-        opFlags.set(DIRECT_IO, (val > 0.1));
+        opFlags.set(directIo, (val > 0.1));
     } else if (iparam == "output") {
         if (static_cast<int>(val) < 0) {
             throw(InvalidParameterValue(param));
@@ -371,7 +371,7 @@ void Sensor::generateInputGrabbers()
         auto cloc = istr.find_first_of(':');
 
         if (cloc == std::string::npos) {  // if there is a colon assume the input is fully specified
-            if ((opFlags[LINK_TYPE_SOURCE]) && (isdigit(istr.back()) == 0)) {
+            if ((opFlags[linkTypeSource]) && (isdigit(istr.back()) == 0)) {
                 if (m_terminal > 0) {
                     istr.append(std::to_string(m_terminal));
                 }
@@ -396,7 +396,7 @@ void Sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMessage>
                 set(gmlc::utilities::convertToLowerCase(payload->m_field),
                     payload->m_value,
                     units::unit_cast_from_string(payload->m_units));
-                if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
+                if (!opFlags[noMessageReply])  // unless told not to respond return with the
                 {
                     auto gres = std::make_shared<CommMessage>(cm::SET_SUCCESS);
                     assert(gres->getPayload<cm>());
@@ -406,7 +406,7 @@ void Sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMessage>
                 }
             }
             catch (const std::invalid_argument&) {
-                if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
+                if (!opFlags[noMessageReply])  // unless told not to respond return with the
                 {
                     auto gres = std::make_shared<CommMessage>(cm::SET_FAIL);
                     assert(gres->getPayload<cm>());
@@ -517,19 +517,19 @@ double Sensor::getInput(const StateData& sD, const SolverMode& sMode, index_t in
 void Sensor::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
-        opFlags.set(LINK_TYPE_SOURCE);
+        opFlags.set(linkTypeSource);
     }
 
     if (dynamic_cast<Link*>(m_sinkObject) != nullptr) {
-        opFlags.set(LINK_TYPE_SINK);
+        opFlags.set(linkTypeSink);
     }
     generateInputGrabbers();
     // check if we need to go to sampled mode
-    if (opFlags[continuous_flag]) {
+    if (opFlags[continuousFlag]) {
         for (auto& dgs : dataSources) {
             if ((dgs) && (!dgs->stateCapable())) {
                 // TODO(phlpt): Support partially continuous sensors.
-                opFlags.set(continuous_flag, false);
+                opFlags.set(continuousFlag, false);
                 logging::warning(
                     this,
                     "not all data sources support continuous operation , reverting to sampled mode");
@@ -538,7 +538,7 @@ void Sensor::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         }
     }
 
-    if (!opFlags[continuous_flag]) {
+    if (!opFlags[continuousFlag]) {
         opFlags.set(sampled_only);
         for (auto& fb : filterBlocks) {
             fb->setFlag("sampled_only", true);
@@ -554,7 +554,7 @@ void Sensor::dynObjectInitializeB(const IOdata& inputs,
 {
     if (filterBlocks.empty())  // no filter blocks, use direct output
     {
-        opFlags.set(DIRECT_IO);
+        opFlags.set(directIo);
     }
     for (size_t kk = 0; kk < filterBlocks.size(); ++kk) {
         if (blockInputs[kk] < 0) {
@@ -569,7 +569,7 @@ void Sensor::dynObjectInitializeB(const IOdata& inputs,
     }
 
     if (outputs.empty()) {
-        if (opFlags[DIRECT_IO]) {
+        if (opFlags[directIo]) {
             for (int kk = 0; kk < static_cast<int>(dataSources.size()); ++kk) {
                 outputs.push_back(kk);
                 outputMode.push_back(OutputMode::DIRECT);

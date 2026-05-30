@@ -27,7 +27,7 @@ class GridGrabber;
 enum class ChangeCode;
 namespace relays {
     /**helper class for delayed execution of set functions*/
-    struct delayedControlAction {
+    struct DelayedControlAction {
         std::uint64_t sourceID;  //!< the id of the source
         std::uint64_t actionID;  //!< the id of the action itself
         std::string field;  //!< the field to act upon
@@ -42,12 +42,12 @@ namespace relays {
     /** @brief relay with control functionality  i.e. the ability to control an object through a
      * comm channel
      */
-    class controlRelay: public Relay {
+    class ControlRelay: public Relay {
       public:
         enum ControlRelayFlags {
-            LINK_TYPE_SOURCE = object_flag9,
-            LINK_TYPE_SINK = object_flag10,
-            NO_MESSAGE_REPLY = object_flag11,
+            linkTypeSource = object_flag9,
+            linkTypeSink = object_flag10,
+            noMessageReply = object_flag11,
         };
 
       protected:
@@ -58,7 +58,7 @@ namespace relays {
         std::int16_t m_terminal =
             1;  //!< the terminal of a link device to act upon(if source or sink is a link
         std::int16_t autoName = -1;  //!< variable for autonaming
-        std::vector<delayedControlAction> actions;  //!< queue for delayed control actions
+        std::vector<DelayedControlAction> actions;  //!< queue for delayed control actions
         GridSimulation* rootSim = nullptr;  //!< pointer to the root object
         std::vector<std::unique_ptr<GridGrabber>>
             measurement_points_;  //!< vector of grabbers defining measurement points
@@ -67,7 +67,7 @@ namespace relays {
       private:
         std::string m_terminal_key;  //!< string related to the terminal
       public:
-        explicit controlRelay(const std::string& objName = "controlRelay_$");
+        explicit ControlRelay(const std::string& objName = "controlRelay_$");
         virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
         virtual void setFlag(std::string_view flag, bool val = true) override;
         virtual void set(std::string_view param, std::string_view val) override;

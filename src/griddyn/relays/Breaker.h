@@ -14,11 +14,11 @@ namespace griddyn::relays {
 class Breaker: public Relay {
   public:
     enum BreakerFlags {
-        NONDIRECTIONAL_FLAG = object_flag8,  //!< flag indicating that the detection should not
-                                             //!< be based on direction
-        OVERLIMIT_FLAG = object_flag9,  //!< flag indicating that the current is over the limit
-        BREAKER_TRIPPED_FLAG = object_flag10,  //!< flag indicating that the breaker has tripped
-        NONLINK_SOURCE_FLAG =
+        nondirectionalFlag = object_flag8,  //!< flag indicating that the detection should not
+                                            //!< be based on direction
+        overlimitFlag = object_flag9,  //!< flag indicating that the current is over the limit
+        breakerTrippedFlag = object_flag10,  //!< flag indicating that the breaker has tripped
+        nonlinkSourceFlag =
             object_flag11,  //!< flag indicating that the source is not a transmission line
     };
 
@@ -64,7 +64,7 @@ class Breaker: public Relay {
                                   const SolverMode& sMode) override;
     virtual void setState(coreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const SolverMode& sMode) override;
     virtual void residual(const IOdata& inputs,
                           const StateData& stateDataRef,
@@ -72,7 +72,7 @@ class Breaker: public Relay {
                           const SolverMode& sMode) override;
     virtual void guessState(coreTime time,
                             double state[],
-                            double dstate_dt[],
+                            double dstateDt[],
                             const SolverMode& sMode) override;
     virtual StateSizes localStateSizes(const SolverMode& sMode) const override;
 

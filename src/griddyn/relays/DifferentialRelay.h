@@ -14,12 +14,12 @@
 namespace griddyn::relays {
 /** relay implementing differential relay protection scheme
  */
-class differentialRelay: public Relay {
+class DifferentialRelay: public Relay {
   public:
     enum DifferentialRelayFlags {
-        RELATIVE_DIFFERENTIAL_FLAG = object_flag10,
-        LINK_MODE = object_flag11,
-        BUS_MODE = object_flag12,
+        relativeDifferentialFlag = object_flag10,
+        linkMode = object_flag11,
+        busMode = object_flag12,
     };
 
   protected:
@@ -29,7 +29,7 @@ class differentialRelay: public Relay {
     double mMinLevel =
         0.01;  //!< the minimum absolute level to trigger for relative differential mode
   public:
-    explicit differentialRelay(const std::string& objName = "diffRelay_$");
+    explicit DifferentialRelay(const std::string& objName = "diffRelay_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual bool getFlag(std::string_view flag) const override;

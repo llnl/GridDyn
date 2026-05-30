@@ -11,9 +11,9 @@
 
 namespace griddyn::sources {
 /** @brief describe a pulsing source*/
-class pulseSource: public Source {
+class PulseSource: public Source {
   public:
-    static const char invert_flag = object_flag3;  //!< flag location indicating an inverse waveform
+    static const char invertFlag = object_flag3;  //!< flag location indicating an inverse waveform
     /** enumeration of the different available pulse types*/
     enum class PulseType {
         SQUARE,
@@ -35,7 +35,7 @@ class pulseSource: public Source {
     model_parameter shift = 0.0;  //!< storage for phase shift fraction (should be between 0 and 1)
 
   public:
-    pulseSource(const std::string& objName = "pulseSource_#", double startVal = 0.0);
+    PulseSource(const std::string& objName = "pulseSource_#", double startVal = 0.0);
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void set(std::string_view param, std::string_view val) override;

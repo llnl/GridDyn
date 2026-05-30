@@ -108,7 +108,7 @@ class AcBus: public GridBus {
 
     virtual count_t localJacobianCount(const SolverMode& sMode) const override;
 
-    virtual void setRootOffset(index_t Roffset, const SolverMode& sMode) override;
+    virtual void setRootOffset(index_t roffset, const SolverMode& sMode) override;
 
   protected:
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
@@ -170,7 +170,7 @@ class AcBus: public GridBus {
                                double alpha) override;
     virtual void guessState(coreTime time,
                             double state[],
-                            double dstate_dt[],
+                            double dstateDt[],
                             const SolverMode& sMode) override;
 
     /** @brief  try to shift the states to something more consistent
@@ -187,7 +187,7 @@ class AcBus: public GridBus {
     */
     virtual void converge(coreTime time,
                           double state[],
-                          double dstate_dt[],
+                          double dstateDt[],
                           const SolverMode& sMode,
                           ConvergeMode mode = ConvergeMode::high_error_only,
                           double tol = 0.01) override;
@@ -221,13 +221,13 @@ class AcBus: public GridBus {
 
     virtual void setState(coreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const SolverMode& sMode) override;
     /** @brief a faster function to set the voltage and angle of a bus*
     @param[in] Vnew  the new voltage
     @param[in] Anew  the new angle
     */
-    virtual void setVoltageAngle(double Vnew, double Anew) override;
+    virtual void setVoltageAngle(double vnew, double anew) override;
     // for identifying which variables are algebraic vs differential
     virtual void getVariableType(double sdata[],
                                  const SolverMode& sMode) override;  // only applicable in DAE

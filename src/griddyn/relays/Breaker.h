@@ -64,7 +64,7 @@ class Breaker: public Relay {
                                   const SolverMode& sMode) override;
     virtual void setState(coreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const SolverMode& sMode) override;
     virtual void residual(const IOdata& inputs,
                           const StateData& stateDataRef,
@@ -72,7 +72,7 @@ class Breaker: public Relay {
                           const SolverMode& sMode) override;
     virtual void guessState(coreTime time,
                             double state[],
-                            double dstate_dt[],
+                            double dstateDt[],
                             const SolverMode& sMode) override;
     virtual StateSizes localStateSizes(const SolverMode& sMode) const override;
 

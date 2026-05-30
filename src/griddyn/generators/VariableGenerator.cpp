@@ -52,7 +52,7 @@ void VariableGenerator::dynObjectInitializeB(const IOdata& inputs,
                                              IOdata& fieldSet)
 {
     DynamicGenerator::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
-    IOdata args2{P};
+    const IOdata args2{P};
     IOdata inputSet(4);
     if (m_source != nullptr) {
         m_source->dynInitializeB(inputs, {0.0}, inputSet);
@@ -81,7 +81,7 @@ void VariableGenerator::add(GridSubModel* obj)
             GridComponent::remove(m_source);
         }
         m_source = static_cast<Source*>(obj);
-        m_source->locIndex = source_loc;
+        m_source->locIndex = SOURCE_LOC;
 
         obj->set("basefreq", systemBaseFrequency);
         addSubObject(obj);
@@ -94,7 +94,7 @@ void VariableGenerator::add(GridSubModel* obj)
             GridComponent::remove(m_cBlock);
         }
         m_cBlock = static_cast<GridBlock*>(obj);
-        m_cBlock->locIndex = control_block_loc;
+        m_cBlock->locIndex = CONTROL_BLOCK_LOC;
         obj->set("basefreq", systemBaseFrequency);
         addSubObject(obj);
     } else {

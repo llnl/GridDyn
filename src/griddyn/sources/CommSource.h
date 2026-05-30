@@ -16,7 +16,7 @@ class Communicator;
 class GridSimulation;
 namespace sources {
     /** defining a source that can be connected to a communicator*/
-    class commSource: public rampSource {
+    class CommSource: public RampSource {
       protected:
         std::shared_ptr<Communicator> commLink;  //!< communicator link
         GridSimulation* rootSim = nullptr;  //!< pointer to the root simulation
@@ -28,7 +28,7 @@ namespace sources {
             NO_MESSAGE_REPLY =
                 object_flag4,  //!< indicator that there should be no response to commands
         };
-        commSource(const std::string& objName = "commSource_#");
+        CommSource(const std::string& objName = "commSource_#");
 
         CoreObject* clone(CoreObject* obj = nullptr) const override;
         virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;

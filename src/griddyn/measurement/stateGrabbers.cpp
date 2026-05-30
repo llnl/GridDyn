@@ -51,8 +51,8 @@ namespace {
     }
 }  // namespace
 
-static const char specialChars[] = R"(:(+-/*\^?)";
-static const char sepChars[] = ",;";
+static constexpr char specialChars[] = R"(:(+-/*\^?)";
+static constexpr char sepChars[] = ",;";
 
 std::vector<std::unique_ptr<StateGrabber>> makeStateGrabbers(std::string_view command,
                                                              CoreObject* obj)
@@ -137,7 +137,7 @@ using units::puV;
 using units::rad;
 
 /** map of all the alternate strings that can be used*/
-static const std::map<std::string, std::string> stringTranslate{
+static const std::map<std::string, std::string> STRING_TRANSLATE{
     {"v", "voltage"},
     {"vol", "voltage"},
     {"link", "linkreal"},
@@ -234,7 +234,7 @@ static const std::map<std::string, std::string> stringTranslate{
        const SolverMode& sMode)
 
 // clang-format off
-static const std::map<std::string, fstateobjectPair> objectFunctions{
+static const std::map<std::string, fstateobjectPair> OBJECT_FUNCTIONS{
   {"connected", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<double> (obj->isConnected ());}, defunit}},
   {"enabled", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<double> (obj->isEnabled ());}, defunit}},
 {"armed", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<double> (obj->isArmed ());}, defunit}},
@@ -242,7 +242,7 @@ static const std::map<std::string, fstateobjectPair> objectFunctions{
 {"deriv",{FUNCTION_SIGNATURE { return obj->getDoutdt (noInputs, stateDataValue, sMode, 0); }, defunit}}
 };
 
-static const std::map<std::string, fstateobjectPair> busFunctions{
+static const std::map<std::string, fstateobjectPair> BUS_FUNCTIONS{
   {"voltage", {FUNCTION_SIGNATURE{return static_cast<GridBus *> (obj)->getVoltage (stateDataValue, sMode);}, puV}},
 {"angle", {FUNCTION_SIGNATURE{return static_cast<GridBus *> (obj)->getAngle (stateDataValue, sMode);}, rad}},
 {"busangle",{ FUNCTION_SIGNATURE{ return static_cast<GridBus *> (obj)->getAngle(stateDataValue, sMode); }, rad } },
@@ -256,7 +256,7 @@ static const std::map<std::string, fstateobjectPair> busFunctions{
 {"linkreactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridBus *> (obj)->getLinkReactive ();}, puMW}},
 };
 
-static const std::map<std::string, objJacFunction> busJacFunctions{
+static const std::map<std::string, objJacFunction> BUS_JAC_FUNCTIONS{
   {"voltage", JAC_FUNCTION_SIGNATURE_NO_STATE{
           matrixDataValue.assignCheckCol (0, static_cast<GridBus *> (obj)->getOutputLoc (sMode, voltageInLocation), 1.0);}},
   {"angle", JAC_FUNCTION_SIGNATURE_NO_STATE{
@@ -269,7 +269,7 @@ static const std::map<std::string, objJacFunction> busJacFunctions{
     matrixDataValue.assignCheckCol(0, static_cast<GridBus *> (obj)->getOutputLoc(sMode, frequencyInLocation), 1.0); } },
 };
 
-static const std::map<std::string, fstateobjectPair> areaFunctions{
+static const std::map<std::string, fstateobjectPair> AREA_FUNCTIONS{
   {"avgfreq", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridArea *> (obj)->getAvgFreq ();}, puHz}},
 {"general", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridArea *> (obj)->getGenerationReal ();}, puMW}},
 {"genreactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridArea *> (obj)->getGenerationReactive ();}, puMW}},
@@ -279,18 +279,18 @@ static const std::map<std::string, fstateobjectPair> areaFunctions{
 {"tieflow", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<GridArea *> (obj)->getTieFlowReal ();}, puMW}},
 };
 
-static const std::map<std::string, fstateobjectPair> secondaryFunctions{ { "real",{ secondaryRealPower, puMW } },
+static const std::map<std::string, fstateobjectPair> SECONDARY_FUNCTIONS{ { "real",{ secondaryRealPower, puMW } },
 { "reactive",{ secondaryReactivePower, puMW } },
 { "busangle",{ FUNCTION_SIGNATURE{ return static_cast<gridSecondary *>(obj)->getBus()->getAngle(stateDataValue, sMode); }, rad } },
 { "busvoltage",{ FUNCTION_SIGNATURE{ return static_cast<gridSecondary *>(obj)->getBus()->getVoltage(stateDataValue, sMode); }, puV } },
 { "busfreq",{ FUNCTION_SIGNATURE{ return static_cast<gridSecondary *>(obj)->getBus()->getFreq(stateDataValue, sMode); }, puV } },
 };
 
-static const std::map<std::string, fstateobjectPair> loadFunctions{{"loadreal", {secondaryRealPower, puMW}},
+static const std::map<std::string, fstateobjectPair> LOAD_FUNCTIONS{{"loadreal", {secondaryRealPower, puMW}},
                                                                    {"loadreactive", {secondaryReactivePower, puMW}}
 };
 
-static const std::map<std::string, fstateobjectPair> genFunctions{
+static const std::map<std::string, fstateobjectPair> GEN_FUNCTIONS{
   {"general", {secondaryRealPower, puMW}},
   {"genreactive", {secondaryReactivePower, puMW}},
   {"pset", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Generator *> (obj)->getPset ();}, puMW}},
@@ -304,7 +304,7 @@ static const std::map<std::string, fstateobjectPair> genFunctions{
   {"angle",{FUNCTION_SIGNATURE{return static_cast<Generator *> (obj)->getAngle (stateDataValue, sMode);}, rad}},
 };
 
-static const std::map<std::string, fstateobjectPair> linkFunctions{
+static const std::map<std::string, fstateobjectPair> LINK_FUNCTIONS{
   {"real", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Link *> (obj)->getRealPower (1);}, puMW}},
 {"reactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Link *> (obj)->getReactivePower (1);}, puMW}},
 {"linkreal", {FUNCTION_SIGNATURE_OBJ_ONLY{return static_cast<Link *> (obj)->getRealPower (1);}, puMW}},
@@ -340,8 +340,8 @@ static const std::map<std::string, fstateobjectPair> linkFunctions{
 {"lossreactive", {FUNCTION_SIGNATURE_OBJ_ONLY{return (static_cast<Link *> (obj)->getReactiveLoss ());}, puMW}},
   {"attached",
    {FUNCTION_SIGNATURE_OBJ_ONLY{
-     return static_cast<double> (((!static_cast<Link *> (obj)->checkFlag (Link::switch1OpenFlag)) ||
-                                  (!static_cast<Link *> (obj)->checkFlag (Link::switch2OpenFlag))) &&
+     return static_cast<double> (((!static_cast<Link *> (obj)->checkFlag (Link::SWITCH1_OPEN_FLAG)) ||
+                                  (!static_cast<Link *> (obj)->checkFlag (Link::SWITCH2_OPEN_FLAG))) &&
                                  (static_cast<Link *> (obj)->isEnabled ()));}, defunit}},
 };
 
@@ -349,8 +349,8 @@ static const std::map<std::string, fstateobjectPair> linkFunctions{
 
 void StateGrabber::objectLoadInfo(std::string_view fld)
 {
-    auto funcfind = objectFunctions.find(std::string{fld});
-    if (funcfind != objectFunctions.end()) {
+    auto funcfind = OBJECT_FUNCTIONS.find(std::string{fld});
+    if (funcfind != OBJECT_FUNCTIONS.end()) {
         fptr = funcfind->second.first;
     } else {
         std::string fieldStr;
@@ -388,15 +388,15 @@ void StateGrabber::objectLoadInfo(std::string_view fld)
 void StateGrabber::busLoadInfo(std::string_view fld)
 {
     auto fldString = std::string{fld};
-    const std::string nfstr = mapFind(stringTranslate, fldString, fldString);
+    const std::string nfstr = mapFind(STRING_TRANSLATE, fldString, fldString);
 
-    auto funcfind = busFunctions.find(nfstr);
-    if (funcfind != busFunctions.end()) {
+    auto funcfind = BUS_FUNCTIONS.find(nfstr);
+    if (funcfind != BUS_FUNCTIONS.end()) {
         fptr = funcfind->second.first;
         inputUnits = funcfind->second.second;
         loaded = true;
-        auto jacfind = busJacFunctions.find(nfstr);
-        if (jacfind != busJacFunctions.end()) {
+        auto jacfind = BUS_JAC_FUNCTIONS.find(nfstr);
+        if (jacfind != BUS_JAC_FUNCTIONS.end()) {
             jacIfptr = jacfind->second;
             jacMode = JacobianMode::COMPUTED;
         }
@@ -408,16 +408,16 @@ void StateGrabber::busLoadInfo(std::string_view fld)
 void StateGrabber::linkLoadInfo(std::string_view fld)
 {
     auto fldString = std::string{fld};
-    const std::string nfstr = mapFind(stringTranslate, fldString, fldString);
+    const std::string nfstr = mapFind(STRING_TRANSLATE, fldString, fldString);
 
-    auto funcfind = linkFunctions.find(nfstr);
-    if (funcfind != linkFunctions.end()) {
+    auto funcfind = LINK_FUNCTIONS.find(nfstr);
+    if (funcfind != LINK_FUNCTIONS.end()) {
         fptr = funcfind->second.first;
         inputUnits = funcfind->second.second;
         loaded = true;
         cacheUpdateRequired = true;
         /*auto jacfind = linkJacFunctions.find(nfstr);
-        if (jacfind != busJacFunctions.end())
+        if (jacfind != BUS_JAC_FUNCTIONS.end())
         {
             jacIfptr = jacfind->second;
             jacMode = JacobianMode::COMPUTED;

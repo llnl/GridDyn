@@ -23,14 +23,14 @@
 namespace griddyn::relays {
 using gmlc::utilities::ensureSizeAtLeast;
 
-zonalRelay::zonalRelay(const std::string& objName): Relay(objName)
+ZonalRelay::ZonalRelay(const std::string& objName): Relay(objName)
 {
-    opFlags.set(continuous_flag);
+    opFlags.set(CONTINUOUS_FLAG);
 }
 
-CoreObject* zonalRelay::clone(CoreObject* obj) const
+CoreObject* ZonalRelay::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<zonalRelay, Relay>(this, obj);
+    auto* nobj = cloneBase<ZonalRelay, Relay>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -45,7 +45,7 @@ CoreObject* zonalRelay::clone(CoreObject* obj) const
     return nobj;
 }
 
-void zonalRelay::setFlag(std::string_view flag, bool val)
+void ZonalRelay::setFlag(std::string_view flag, bool val)
 {
     if (flag == "nondirectional") {
         opFlags.set(NONDIRECTIONAL_FLAG, val);
@@ -58,7 +58,7 @@ std::string commDestName;
 std::uint64_t commDestId=0;
 std::string commType;
 */
-void zonalRelay::set(std::string_view param, std::string_view val)
+void ZonalRelay::set(std::string_view param, std::string_view val)
 {
     if (param == "levels") {
         auto dvals = gmlc::utilities::str2vector<double>(std::string{val}, kNullVal);
@@ -87,7 +87,7 @@ void zonalRelay::set(std::string_view param, std::string_view val)
     }
 }
 
-void zonalRelay::set(std::string_view param, double val, units::unit unitType)
+void ZonalRelay::set(std::string_view param, double val, units::unit unitType)
 {
     auto parseZoneIndex = [](std::string_view parameterName) {
         index_t zoneIndex = 0;
@@ -141,7 +141,7 @@ void zonalRelay::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-double zonalRelay::get(std::string_view param, units::unit unitType) const
+double ZonalRelay::get(std::string_view param, units::unit unitType) const
 {
     double val;
     if (param == "condition") {
@@ -152,7 +152,7 @@ double zonalRelay::get(std::string_view param, units::unit unitType) const
     return val;
 }
 
-void zonalRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void ZonalRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     const double baseImpedance = m_sourceObject->get("impedance");
     for (index_t kk = 0; kk < mZoneCount; ++kk) {
@@ -180,7 +180,7 @@ void zonalRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         setActionTrigger(0, kk, mZoneDelays[kk]);
     }
 
-    if (opFlags[use_commLink]) {
+    if (opFlags[USE_COMM_LINK]) {
         if (cManager.destName().starts_with("auto")) {
             if (cManager.destName().length() == 6) {
                 int code;
@@ -201,16 +201,16 @@ void zonalRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     Relay::dynObjectInitializeA(time0, flags);
 }
 
-void zonalRelay::actionTaken(index_t ActionNum,
+void ZonalRelay::actionTaken(index_t actionNum,
                              index_t conditionNum,
                              ChangeCode /*actionReturn*/,
                              coreTime /*actionTime*/)
 {
     logging::normal(
-        this, "condition {} action {} taken terminal {}", conditionNum, ActionNum, m_terminal);
+        this, "condition {} action {} taken terminal {}", conditionNum, actionNum, m_terminal);
 
-    if (opFlags[use_commLink]) {
-        if (ActionNum == 0) {
+    if (opFlags[USE_COMM_LINK]) {
+        if (actionNum == 0) {
             auto relayEvent = std::make_shared<CommMessage>(CommMessage::BREAKER_TRIP_EVENT);
             cManager.send(relayEvent);
         }
@@ -221,11 +221,11 @@ void zonalRelay::actionTaken(index_t ActionNum,
     mConditionLevel = std::min(conditionNum, mConditionLevel);
 }
 
-void zonalRelay::conditionTriggered(index_t conditionNum, coreTime /*triggerTime*/)
+void ZonalRelay::conditionTriggered(index_t conditionNum, coreTime /*triggerTime*/)
 {
     logging::normal(this, "condition {} triggered terminal {}", conditionNum, m_terminal);
     mConditionLevel = std::min(conditionNum, mConditionLevel);
-    if (opFlags[use_commLink]) {
+    if (opFlags[USE_COMM_LINK]) {
         if (conditionNum > mConditionLevel) {
             return;
         }
@@ -242,7 +242,7 @@ void zonalRelay::conditionTriggered(index_t conditionNum, coreTime /*triggerTime
     }
 }
 
-void zonalRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/)
+void ZonalRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/)
 {
     logging::normal(this, "condition {} cleared terminal {}", conditionNum, m_terminal);
     for (index_t kk = 0; kk < mZoneCount; ++kk) {
@@ -252,7 +252,7 @@ void zonalRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/
             return;
         }
     }
-    if (opFlags[use_commLink]) {
+    if (opFlags[USE_COMM_LINK]) {
         auto relayMessage = std::make_shared<CommMessage>();
         if (conditionNum == 0) {
             relayMessage->setMessageType(CommMessage::LOCAL_FAULT_CLEARED);
@@ -263,7 +263,7 @@ void zonalRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/
     }
 }
 
-void zonalRelay::receiveMessage(std::uint64_t /*sourceID*/, std::shared_ptr<CommMessage> message)
+void ZonalRelay::receiveMessage(std::uint64_t /*sourceID*/, std::shared_ptr<CommMessage> message)
 {
     switch (message->getMessageType()) {
         case CommMessage::BREAKER_TRIP_COMMAND:
@@ -285,7 +285,7 @@ void zonalRelay::receiveMessage(std::uint64_t /*sourceID*/, std::shared_ptr<Comm
     }
 }
 
-std::string zonalRelay::generateCommName()
+std::string ZonalRelay::generateCommName()
 {
     if (mAutoName > 0) {
         std::string newName = generateAutoName(mAutoName);
@@ -299,7 +299,7 @@ std::string zonalRelay::generateCommName()
     return getName();
 }
 
-std::string zonalRelay::generateAutoName(int code)
+std::string ZonalRelay::generateAutoName(int code)
 {
     std::string autoname;
     auto* firstBus = m_sourceObject->getSubObject("bus", 1);

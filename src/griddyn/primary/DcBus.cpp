@@ -20,16 +20,15 @@
 #include <string>
 
 namespace griddyn {
-static TypeFactory<DcBus> gbf("bus", std::to_array<std::string_view>({"dc", "hvdc"}));
+static TypeFactory<DcBus> gBf("bus", std::to_array<std::string_view>({"dc", "hvdc"}));
 
-using units::convert;
 using units::unit;
 
 DcBus::DcBus(const std::string& objName): GridBus(objName), busController(this) {}
 
 CoreObject* DcBus::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<DcBus, GridBus>(this, obj);
+    auto* nobj = cloneBase<DcBus, GridBus>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -42,7 +41,8 @@ CoreObject* DcBus::clone(CoreObject* obj) const
 void DcBus::add(Link* lnk)
 {
     if ((lnk->checkFlag(dc_only)) || (lnk->checkFlag(dc_capable))) {
-        return GridBus::add(lnk);
+        GridBus::add(lnk);
+        return;
     }
 
     throw(UnrecognizedObjectException(this));
@@ -88,7 +88,7 @@ count_t DcBus::localJacobianCount(const SolverMode& sMode) const
 {
     count_t localJacSize = 0;
     if (hasAlgebraic(sMode)) {
-        localJacSize = 1 + 2 * static_cast<count_t>(attachedLinks.size());
+        localJacSize = 1 + (2 * static_cast<count_t>(attachedLinks.size()));
         // check for slave bus mode
         if (opFlags[slave_bus]) {
             localJacSize -= 1;
@@ -151,17 +151,13 @@ ChangeCode DcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags,
     for (auto& gen : attachedGens) {
         if (gen->checkFlag(has_powerflow_adjustments)) {
             auto iret = gen->powerFlowAdjust(inputs, flags, level);
-            if (iret > out) {
-                out = iret;
-            }
+            out = std::max(iret, out);
         }
     }
-    for (auto& ld : attachedLoads) {
-        if (ld->checkFlag(has_powerflow_adjustments)) {
-            auto iret = ld->powerFlowAdjust(inputs, flags, level);
-            if (iret > out) {
-                out = iret;
-            }
+    for (auto& load : attachedLoads) {
+        if (load->checkFlag(has_powerflow_adjustments)) {
+            auto iret = load->powerFlowAdjust(inputs, flags, level);
+            out = std::max(iret, out);
         }
     }
     // genP and genQ are defined negative for producing power so we flip the signs here
@@ -169,15 +165,16 @@ ChangeCode DcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags,
     return out;
 }
 /*function to check the current status for any limit violations*/
-void DcBus::pFlowCheck(std::vector<Violation>& Violation_vector)
+void DcBus::pFlowCheck(std::vector<Violation>& violationVector)
 {
-    GridBus::pFlowCheck(Violation_vector);
+    GridBus::pFlowCheck(violationVector);
 }
 
 // dynInitializeB states for dynamic solution
 void DcBus::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    return GridBus::dynObjectInitializeA(time0, flags);
+    GridBus::dynObjectInitializeA(time0, flags);
+    return;
 }
 
 // dynInitializeB states for dynamic solution part 2  //final clean up
@@ -198,45 +195,45 @@ void DcBus::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMod
 // set properties
 void DcBus::set(std::string_view param, std::string_view val)
 {
-    auto val_lowerCase = gmlc::utilities::convertToLowerCase(val);
+    auto valLowerCase = gmlc::utilities::convertToLowerCase(val);
     if ((param == "type") || (param == "bustype") || (param == "pflowtype")) {
-        if ((val_lowerCase == "slk") || (val_lowerCase == "swing") || (val_lowerCase == "slack")) {
+        if ((valLowerCase == "slk") || (valLowerCase == "swing") || (valLowerCase == "slack")) {
             type = BusType::SLK;
             prevType = BusType::SLK;
-        } else if (val_lowerCase == "pv") {
+        } else if (valLowerCase == "pv") {
             type = BusType::PV;
             prevType = BusType::PV;
-        } else if (val_lowerCase == "pq") {
+        } else if (valLowerCase == "pq") {
             type = BusType::PQ;
             prevType = BusType::PQ;
-        } else if ((val_lowerCase == "dynslk") || (val_lowerCase == "inf") ||
-                   (val_lowerCase == "infinite")) {
+        } else if ((valLowerCase == "dynslk") || (valLowerCase == "inf") ||
+                   (valLowerCase == "infinite")) {
             type = BusType::SLK;
             prevType = BusType::SLK;
             dynType = DynBusType::dynSLK;
-        } else if ((val_lowerCase == "fixedangle") || (val_lowerCase == "fixangle") ||
-                   (val_lowerCase == "ref")) {
+        } else if ((valLowerCase == "fixedangle") || (valLowerCase == "fixangle") ||
+                   (valLowerCase == "ref")) {
             dynType = DynBusType::fixAngle;
-        } else if ((val_lowerCase == "fixedvoltage") || (val_lowerCase == "fixvoltage")) {
+        } else if ((valLowerCase == "fixedvoltage") || (valLowerCase == "fixvoltage")) {
             dynType = DynBusType::fixVoltage;
-        } else if (val_lowerCase == "afix") {
+        } else if (valLowerCase == "afix") {
             type = BusType::afix;
             prevType = BusType::afix;
-        } else if (val_lowerCase == "normal") {
+        } else if (valLowerCase == "normal") {
             dynType = DynBusType::normal;
         } else {
             throw(InvalidParameterValue(val));
         }
     } else if (param == "dyntype") {
-        if ((val_lowerCase == "dynslk") || (val_lowerCase == "inf") || (val_lowerCase == "slk")) {
+        if ((valLowerCase == "dynslk") || (valLowerCase == "inf") || (valLowerCase == "slk")) {
             dynType = DynBusType::dynSLK;
             type = BusType::SLK;
-        } else if ((val_lowerCase == "fixedangle") || (val_lowerCase == "fixangle") ||
-                   (val_lowerCase == "ref")) {
+        } else if ((valLowerCase == "fixedangle") || (valLowerCase == "fixangle") ||
+                   (valLowerCase == "ref")) {
             dynType = DynBusType::fixAngle;
-        } else if ((val_lowerCase == "fixedvoltage") || (val_lowerCase == "fixvoltage")) {
+        } else if ((valLowerCase == "fixedvoltage") || (valLowerCase == "fixvoltage")) {
             dynType = DynBusType::fixVoltage;
-        } else if ((val_lowerCase == "normal") || (val_lowerCase == "pq")) {
+        } else if ((valLowerCase == "normal") || (valLowerCase == "pq")) {
             dynType = DynBusType::normal;
         } else {
             throw(InvalidParameterValue(val));
@@ -259,14 +256,14 @@ void DcBus::getStateName(stringVec& stNames,
                          const std::string& prefix) const
 {
     if (hasAlgebraic(sMode)) {
-        auto Voffset = offsets.getVOffset(sMode);
+        auto voffset = offsets.getVOffset(sMode);
 
         count_t bst = 0;
-        if (Voffset != kNullLocation) {
-            if (static_cast<index_t>(stNames.size()) <= Voffset) {
-                stNames.resize(static_cast<stringVec::size_type>(Voffset) + 1U);
+        if (voffset != kNullLocation) {
+            if (std::cmp_less_equal(stNames.size(), static_cast<stringVec::size_type>(voffset))) {
+                stNames.resize(static_cast<stringVec::size_type>(voffset) + 1U);
             }
-            stNames[Voffset] = getName() + ":voltage";
+            stNames[voffset] = getName() + ":voltage";
             ++bst;
         }
 
@@ -280,68 +277,68 @@ void DcBus::getStateName(stringVec& stNames,
 // pass the solution
 void DcBus::setState(coreTime time,
                      const double state[],
-                     const double dstate_dt[],
+                     const double dstateDt[],
                      const SolverMode& sMode)
 {
-    auto Voffset = offsets.getVOffset(sMode);
+    auto voffset = offsets.getVOffset(sMode);
 
     if (isDAE(sMode)) {
-        if (Voffset != kNullLocation) {
-            voltage = state[Voffset];
-            m_dstate_dt[voltageInLocation] = dstate_dt[Voffset];
+        if (voffset != kNullLocation) {
+            voltage = state[voffset];
+            m_dstate_dt[voltageInLocation] = dstateDt[voffset];
         }
     } else if (hasAlgebraic(sMode)) {
-        if (Voffset != kNullLocation) {
+        if (voffset != kNullLocation) {
             if (time > prevTime) {
                 // m_dstate_dt[voltageInLocation] = (state[Voffset] - m_state[voltageInLocation]) /
                 // (time - lastSetTime);
             }
-            voltage = state[Voffset];
+            voltage = state[voffset];
         }
     }
-    GridBus::setState(time, state, dstate_dt, sMode);
+    GridBus::setState(time, state, dstateDt, sMode);
 }
 
-void DcBus::guessState(coreTime time, double state[], double dstate_dt[], const SolverMode& sMode)
+void DcBus::guessState(coreTime time, double state[], double dstateDt[], const SolverMode& sMode)
 {
-    auto Voffset = offsets.getVOffset(sMode);
+    auto voffset = offsets.getVOffset(sMode);
 
     if (!opFlags[slave_bus]) {
-        if (Voffset != kNullLocation) {
-            state[Voffset] = voltage;
+        if (voffset != kNullLocation) {
+            state[voffset] = voltage;
 
             if (hasDifferential(sMode)) {
-                dstate_dt[Voffset] = 0.0;
+                dstateDt[voffset] = 0.0;
             }
         }
     }
-    GridBus::guessState(time, state, dstate_dt, sMode);
+    GridBus::guessState(time, state, dstateDt, sMode);
 }
 
 // residual
 void DcBus::residual(const IOdata& inputs,
-                     const StateData& sD,
+                     const StateData& stateDataValue,
                      double resid[],
                      const SolverMode& sMode)
 {
-    GridBus::residual(inputs, sD, resid, sMode);
-    auto Voffset = offsets.getVOffset(sMode);
+    GridBus::residual(inputs, stateDataValue, resid, sMode);
+    auto voffset = offsets.getVOffset(sMode);
     // output
 
-    if (Voffset != kNullLocation) {
+    if (voffset != kNullLocation) {
         if (useVoltage(sMode)) {
-            resid[Voffset] = S.sumP();
+            resid[voffset] = S.sumP();
         } else {
-            resid[Voffset] = sD.state[Voffset] - voltage;
+            resid[voffset] = stateDataValue.state[voffset] - voltage;
         }
     }
 
     // printf("[%d] Bus %d V=%f theta=%f\n", seqID, id, v1,t1);
 }
 
-static const IOlocs inLoc{0, 1, 2};
+static const IOlocs IN_LOC{0, 1, 2};
 
-void DcBus::computeDerivatives(const StateData& sD, const SolverMode& sMode)
+void DcBus::computeDerivatives(const StateData& stateDataValue, const SolverMode& sMode)
 {
     matrixDataCompact<2, 3> partDeriv;
     if (!isConnected()) {
@@ -351,21 +348,21 @@ void DcBus::computeDerivatives(const StateData& sD, const SolverMode& sMode)
 
     for (auto& link : attachedLinks) {
         if (link->isEnabled()) {
-            link->updateLocalCache(noInputs, sD, sMode);
-            link->ioPartialDerivatives(getID(), sD, partDeriv, inLoc, sMode);
+            link->updateLocalCache(noInputs, stateDataValue, sMode);
+            link->ioPartialDerivatives(getID(), stateDataValue, partDeriv, IN_LOC, sMode);
         }
     }
     if (!isExtended(sMode)) {
         for (auto& gen : attachedGens) {
             if (gen->isConnected()) {
-                gen->updateLocalCache(outputs, sD, sMode);
-                gen->ioPartialDerivatives(outputs, sD, partDeriv, inLoc, sMode);
+                gen->updateLocalCache(outputs, stateDataValue, sMode);
+                gen->ioPartialDerivatives(outputs, stateDataValue, partDeriv, IN_LOC, sMode);
             }
         }
         for (auto& load : attachedLoads) {
             if (load->isConnected()) {
-                load->updateLocalCache(outputs, sD, sMode);
-                load->ioPartialDerivatives(outputs, sD, partDeriv, inLoc, sMode);
+                load->updateLocalCache(outputs, stateDataValue, sMode);
+                load->ioPartialDerivatives(outputs, stateDataValue, partDeriv, IN_LOC, sMode);
             }
         }
     }
@@ -373,55 +370,55 @@ void DcBus::computeDerivatives(const StateData& sD, const SolverMode& sMode)
 }
 // Jacobian
 void DcBus::jacobianElements(const IOdata& /*inputs*/,
-                             const StateData& sD,
-                             matrixData<double>& md,
+                             const StateData& stateDataValue,
+                             matrixData<double>& matrixDataValue,
                              const IOlocs& /*inputLocs*/,
                              const SolverMode& sMode)
 {
-    auto inputs = getOutputs(noInputs, sD, sMode);
+    auto inputs = getOutputs(noInputs, stateDataValue, sMode);
 
     // kinsolJacDense(state, J, ind, true);
 
-    auto Voffset = offsets.getVOffset(sMode);
+    auto voffset = offsets.getVOffset(sMode);
     // import bus values (current theta and voltage)
 
-    computeDerivatives(sD, sMode);
+    computeDerivatives(stateDataValue, sMode);
     auto inputLocs = getOutputLocs(sMode);
 
     // printf("t=%f,id=%d, dpdt=%f, dpdv=%f, dqdt=%f, dqdv=%f\n", time, id, Ptii, Pvii, Qvii, Qtii);
-    if (Voffset != kNullLocation) {
+    if (voffset != kNullLocation) {
         if (useVoltage(sMode)) {
-            md.assign(Voffset, Voffset, dVdP);
-            inputLocs[voltageInLocation] = Voffset;
+            matrixDataValue.assign(voffset, voffset, dVdP);
+            inputLocs[voltageInLocation] = voffset;
         } else {
-            md.assign(Voffset, Voffset, 1.0);
+            matrixDataValue.assign(voffset, voffset, 1.0);
             inputLocs[voltageInLocation] = kNullLocation;
         }
     }
 
     // matrixDataSparse of;
-    of.setArray(md);
+    of.setArray(matrixDataValue);
     of.setTranslation(PoutLocation,
                       useVoltage(sMode) ? inputLocs[voltageInLocation] : kNullLocation);
     for (auto& gen : attachedGens) {
         if (gen->jacSize(sMode) > 0) {
-            gen->jacobianElements(inputs, sD, md, inputLocs, sMode);
+            gen->jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
             if (gen->isConnected()) {
-                gen->outputPartialDerivatives(inputs, sD, of, sMode);
+                gen->outputPartialDerivatives(inputs, stateDataValue, of, sMode);
             }
         }
     }
     for (auto& load : attachedLoads) {
         if (load->jacSize(sMode) > 0) {
-            load->jacobianElements(inputs, sD, md, inputLocs, sMode);
+            load->jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
             if (load->isConnected()) {
-                load->outputPartialDerivatives(inputs, sD, of, sMode);
+                load->outputPartialDerivatives(inputs, stateDataValue, of, sMode);
             }
         }
     }
-    id_type_t gid = getID();
+    const id_type_t gid = getID();
     for (auto& link : attachedLinks) {
-        link->outputPartialDerivatives(gid, sD, of, sMode);
+        link->outputPartialDerivatives(gid, stateDataValue, of, sMode);
     }
     /*if (inputLocs[voltageInLocation] != kNullLocation)
       {
@@ -466,9 +463,9 @@ int DcBus::getMode(const SolverMode& sMode) const
         if (isDifferentialOnly(sMode)) {
             return 3;
         }
-        return (static_cast<int>(dynType) | 1);
+        return static_cast<int>(static_cast<unsigned int>(dynType) | 1U);
     }
-    return (static_cast<int>(type) | 1);
+    return static_cast<int>(static_cast<unsigned int>(type) | 1U);
 }
 
 double DcBus::getVoltage(const double state[], const SolverMode& sMode) const
@@ -477,20 +474,20 @@ double DcBus::getVoltage(const double state[], const SolverMode& sMode) const
         return voltage;
     }
     if (useVoltage(sMode)) {
-        auto Voffset = offsets.getVOffset(sMode);
-        return (Voffset != kNullLocation) ? state[Voffset] : voltage;
+        auto voffset = offsets.getVOffset(sMode);
+        return (voffset != kNullLocation) ? state[voffset] : voltage;
     }
     return voltage;
 }
 
-double DcBus::getVoltage(const StateData& sD, const SolverMode& sMode) const
+double DcBus::getVoltage(const StateData& stateDataValue, const SolverMode& sMode) const
 {
     if (isLocal(sMode)) {
         return voltage;
     }
     if (useVoltage(sMode)) {
-        auto Voffset = offsets.getVOffset(sMode);
-        return (Voffset != kNullLocation) ? sD.state[Voffset] : voltage;
+        auto voffset = offsets.getVOffset(sMode);
+        return (voffset != kNullLocation) ? stateDataValue.state[voffset] : voltage;
     }
     return voltage;
 }
@@ -525,7 +522,7 @@ int DcBus::propogatePower(bool makeSlack)
     int unfixed = 0;
     Link* dc1 = nullptr;
     for (auto& lnk : attachedLinks) {
-        if (!(lnk->checkFlag(Link::fixedTargetPower))) {
+        if (!(lnk->checkFlag(Link::FIXED_TARGET_POWER))) {
             ++unfixed;
             dc1 = lnk;
         }

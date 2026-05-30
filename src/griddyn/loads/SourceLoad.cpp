@@ -39,7 +39,7 @@ CoreObject* SourceLoad::clone(CoreObject* obj) const
     return nobj;
 }
 
-static const std::map<std::string_view, int, std::less<>> source_lookup{
+static const std::map<std::string_view, int, std::less<>> SOURCE_LOOKUP{
     {"source", SourceLoad::p_source},
     {"psource", SourceLoad::p_source},
     {"p_source", SourceLoad::p_source},
@@ -59,7 +59,7 @@ static const std::map<std::string_view, int, std::less<>> source_lookup{
     {"iq_source", SourceLoad::iq_source},
 };
 
-static const std::map<std::string_view, int, std::less<>> sourcekey_lookup{
+static const std::map<std::string_view, int, std::less<>> SOURCEKEY_LOOKUP{
     {"p", SourceLoad::p_source},
     {"q", SourceLoad::q_source},
     {"r", SourceLoad::r_source},
@@ -73,7 +73,7 @@ static const std::map<std::string_view, int, std::less<>> sourcekey_lookup{
     {"iq", SourceLoad::iq_source},
 };
 
-static const std::map<std::string_view, int, std::less<>> source_match{
+static const std::map<std::string_view, int, std::less<>> SOURCE_MATCH{
     {"source", SourceLoad::p_source},     {"psource", SourceLoad::p_source},
     {"p_source", SourceLoad::p_source},   {"qsource", SourceLoad::q_source},
     {"q_source", SourceLoad::q_source},   {"resource", SourceLoad::r_source},
@@ -103,8 +103,8 @@ void SourceLoad::add(Source* src)
     src->setFlag("pflow_init_required", true);
     if (src->locIndex != kNullLocation) {
     } else if (!src->purpose_.empty()) {
-        auto ind = source_match.find(std::string_view{src->purpose_});
-        if (ind != source_match.end()) {
+        auto ind = SOURCE_MATCH.find(std::string_view{src->purpose_});
+        if (ind != SOURCE_MATCH.end()) {
             src->locIndex = ind->second;
         } else {
             src->locIndex = static_cast<int>(sources.size());
@@ -159,8 +159,8 @@ void SourceLoad::remove(Source* src)
 
 Source* SourceLoad::findSource(std::string_view srcname)
 {
-    auto ind = source_match.find(srcname);
-    if (ind != source_match.end()) {
+    auto ind = SOURCE_MATCH.find(srcname);
+    if (ind != SOURCE_MATCH.end()) {
         const int index = sourceLink[ind->second];
         if ((index < 0) || std::cmp_less_equal(sources.size(), index) ||
             (sources[index] == nullptr)) {
@@ -177,8 +177,8 @@ Source* SourceLoad::findSource(std::string_view srcname)
 
 Source* SourceLoad::findSource(std::string_view srcname) const
 {
-    auto ind = source_match.find(srcname);
-    if (ind != source_match.end()) {
+    auto ind = SOURCE_MATCH.find(srcname);
+    if (ind != SOURCE_MATCH.end()) {
         const int index = sourceLink[ind->second];
         if ((index < 0) || std::cmp_less_equal(sources.size(), index)) {
             return nullptr;
@@ -230,11 +230,11 @@ void SourceLoad::timestep(coreTime time, const IOdata& inputs, const SolverMode&
 
 void SourceLoad::setState(coreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const SolverMode& sMode)
 {
     for (const auto& src : getSubObjects()) {
-        src->setState(time, state, dstate_dt, sMode);
+        src->setState(time, state, dstateDt, sMode);
     }
     getSourceLoads();
     prevTime = time;
@@ -251,8 +251,8 @@ void SourceLoad::set(std::string_view param, double val, units::unit unitType)
             throw(UnrecognizedParameter(param));
         }
     } else {
-        auto ind = source_lookup.find(param);
-        if (ind != source_lookup.end()) {
+        auto ind = SOURCE_LOOKUP.find(param);
+        if (ind != SOURCE_LOOKUP.end()) {
             const bool canSetSourceLink = (std::cmp_greater(sources.size(), ind->second) &&
                                            (sources[ind->second] != nullptr)) ||
                 (!opFlags[pFlow_initialized]);
@@ -264,9 +264,9 @@ void SourceLoad::set(std::string_view param, double val, units::unit unitType)
             return;
         }
 
-        auto keyind = sourcekey_lookup.find(param);
+        auto keyind = SOURCEKEY_LOOKUP.find(param);
 
-        if (keyind != sourcekey_lookup.end()) {
+        if (keyind != SOURCEKEY_LOOKUP.end()) {
             if (std::cmp_greater(sources.size(), keyind->second) &&
                 (sources[keyind->second] != nullptr)) {
                 sources[keyind->second]->set(
@@ -344,13 +344,13 @@ Source* SourceLoad::makeSource(SourceLoc loc)
     Source* src = nullptr;
     switch (sType) {
         case SourceType::pulse:
-            src = new sources::pulseSource();
+            src = new sources::PulseSource();
             break;
         case SourceType::random:
-            src = new sources::randomSource();
+            src = new sources::RandomSource();
             break;
         case SourceType::sine:
-            src = new sources::sineSource();
+            src = new sources::SineSource();
             break;
         case SourceType::other:
         default:

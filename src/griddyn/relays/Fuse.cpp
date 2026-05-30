@@ -30,14 +30,14 @@
 namespace griddyn::relays {
 using units::convert;
 using units::puA;
-fuse::fuse(const std::string& objName): Relay(objName), useI2T(extra_bool)
+Fuse::Fuse(const std::string& objName): Relay(objName), useI2T(extra_bool)
 {
-    opFlags.set(continuous_flag);
+    opFlags.set(CONTINUOUS_FLAG);
 }
 
-CoreObject* fuse::clone(CoreObject* obj) const
+CoreObject* Fuse::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<fuse, Relay>(this, obj);
+    auto nobj = cloneBase<Fuse, Relay>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -50,7 +50,7 @@ CoreObject* fuse::clone(CoreObject* obj) const
     return nobj;
 }
 
-void fuse::setFlag(std::string_view flag, bool val)
+void Fuse::setFlag(std::string_view flag, bool val)
 {
     if (flag.empty()) {
     } else {
@@ -58,7 +58,7 @@ void fuse::setFlag(std::string_view flag, bool val)
     }
 }
 
-void fuse::set(std::string_view param, std::string_view val)
+void Fuse::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -66,7 +66,7 @@ void fuse::set(std::string_view param, std::string_view val)
     }
 }
 
-void fuse::set(std::string_view param, double val, units::unit unitType)
+void Fuse::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "limit") {
         limit = convert(val, unitType, puA, systemBasePower, Vbase);
@@ -86,7 +86,7 @@ void fuse::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-void fuse::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void Fuse::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     auto ge = std::make_shared<Event>();
 
@@ -99,7 +99,7 @@ void fuse::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     } else {
         add(std::shared_ptr<Condition>(
             makeCondition("sqrt(p^2+q^2)/@bus:v", ">=", limit, m_sourceObject)));
-        opFlags.set(NONLINK_SOURCE_FLAG);
+        opFlags.set(nonlinkSourceFlag);
         ge->setTarget(m_sinkObject, "status");
         ge->setValue(0.0);
         bus = static_cast<GridBus*>(m_sourceObject->find("bus"));
@@ -115,8 +115,8 @@ void fuse::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 
     auto cgst = std::make_unique<CustomStateGrabber>(this);
     cgst->setGrabberFunction(
-        [](CoreObject* obj, const StateData& sD, const SolverMode& sMode) -> double {
-            return sD.state[static_cast<fuse*>(obj)->offsets.getDiffOffset(sMode)];
+        [](CoreObject* obj, const StateData& stateDataRef, const SolverMode& sMode) -> double {
+            return stateDataRef.state[static_cast<Fuse*>(obj)->offsets.getDiffOffset(sMode)];
         });
 
     // this one needs to be shared since I use it twice
@@ -154,29 +154,29 @@ void fuse::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     Relay::dynObjectInitializeA(time0, flags);
 }
 
-void fuse::conditionTriggered(index_t conditionNum, coreTime /*triggerTime*/)
+void Fuse::conditionTriggered(index_t conditionNum, coreTime /*triggerTime*/)
 {
     if (conditionNum == 2) {
-        assert(opFlags[OVERLIMIT_FLAG]);
+        assert(opFlags[overlimitFlag]);
 
         setConditionStatus(1, ConditionStatus::disabled);
         setConditionStatus(2, ConditionStatus::disabled);
         setConditionStatus(0, ConditionStatus::active);
         alert(this, JAC_COUNT_DECREASE);
-        opFlags.reset(OVERLIMIT_FLAG);
+        opFlags.reset(overlimitFlag);
         useI2T = false;
     }
 }
 
-ChangeCode fuse::blowFuse()
+ChangeCode Fuse::blowFuse()
 {
-    opFlags.set(OVERLIMIT_FLAG);
+    opFlags.set(overlimitFlag);
     setConditionStatus(0, ConditionStatus::disabled);
     setConditionStatus(1, ConditionStatus::disabled);
     setConditionStatus(2, ConditionStatus::disabled);
     alert(this, FUSE_BLOWN_CURRENT);
     logging::normal(this, "Fuse {} blown on object {}", m_terminal, m_sourceObject->getName());
-    opFlags.set(FUSE_BLOWN_FLAG);
+    opFlags.set(fuseBlownFlag);
     ChangeCode cchange = ChangeCode::NON_STATE_CHANGE;
     if (mp_I2T > 0.0) {
         alert(this, JAC_COUNT_DECREASE);
@@ -185,13 +185,13 @@ ChangeCode fuse::blowFuse()
     return std::max(triggerAction(0), cchange);
 }
 
-ChangeCode fuse::setupFuseEvaluation()
+ChangeCode Fuse::setupFuseEvaluation()
 {
     if (mp_I2T <= 0.0) {
         return blowFuse();
     }
 
-    opFlags.set(OVERLIMIT_FLAG);
+    opFlags.set(overlimitFlag);
     setConditionStatus(0, ConditionStatus::disabled);
     double I = getConditionValue(0);
     cI2T = I2Tequation(I) * minBlowTime;
@@ -206,16 +206,16 @@ ChangeCode fuse::setupFuseEvaluation()
     return ChangeCode::JACOBIAN_CHANGE;
 }
 
-StateSizes fuse::localStateSizes(const SolverMode& sMode) const
+StateSizes Fuse::localStateSizes(const SolverMode& sMode) const
 {
-    StateSizes SS;
+    StateSizes stateSizeSet;
     if ((!isAlgebraicOnly(sMode)) && (mp_I2T > 0.0)) {
-        SS.diffSize = 1;
+        stateSizeSet.diffSize = 1;
     }
-    return SS;
+    return stateSizeSet;
 }
 
-count_t fuse::localJacobianCount(const SolverMode& sMode) const
+count_t Fuse::localJacobianCount(const SolverMode& sMode) const
 {
     if ((!isAlgebraicOnly(sMode)) && (mp_I2T > 0.0)) {
         return 12;
@@ -223,12 +223,12 @@ count_t fuse::localJacobianCount(const SolverMode& sMode) const
     return 0;
 }
 
-void fuse::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
+void Fuse::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     if (limit < kBigNum / 2.0) {
         double val = getConditionValue(0);
         if (val > limit) {
-            opFlags.set(FUSE_BLOWN_FLAG);
+            opFlags.set(fuseBlownFlag);
             disable();
             alert(this, FUSE1_BLOWN_CURRENT);
         }
@@ -236,73 +236,77 @@ void fuse::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& /
     prevTime = time;
 }
 
-void fuse::converge(coreTime time,
+void Fuse::converge(coreTime time,
                     double state[],
-                    double dstate_dt[],
+                    double dstateDt[],
                     const SolverMode& sMode,
                     ConvergeMode /*mode*/,
                     double /*tol*/)
 {
-    guessState(time, state, dstate_dt, sMode);
+    guessState(time, state, dstateDt, sMode);
 }
 
-void fuse::jacobianElements(const IOdata& /*inputs*/,
-                            const StateData& sD,
-                            matrixData<double>& md,
+void Fuse::jacobianElements(const IOdata& /*inputs*/,
+                            const StateData& stateDataRef,
+                            matrixData<double>& jacobian,
                             const IOlocs& /*inputLocs*/,
                             const SolverMode& sMode)
 {
     // TODO(phlpt): Replace matrixDataSparse here with a translation matrix.
     if (useI2T) {
-        matrixDataSparse<double> d;
+        matrixDataSparse<double> localJacobian;
         IOdata out;
-        auto Voffset = bus->getOutputLoc(sMode, voltageInLocation);
-        auto inputs = bus->getOutputs(noInputs, sD, sMode);
+        auto voltageOffset = bus->getOutputLoc(sMode, voltageInLocation);
+        auto inputs = bus->getOutputs(noInputs, stateDataRef, sMode);
         auto inputLocs = bus->getOutputLocs(sMode);
-        if (opFlags[NONLINK_SOURCE_FLAG]) {
-            auto gs = static_cast<gridSecondary*>(m_sourceObject);
-            out = gs->getOutputs(inputs, sD, sMode);
-            gs->outputPartialDerivatives(inputs, sD, d, sMode);
-            gs->ioPartialDerivatives(inputs, sD, d, inputLocs, sMode);
+        if (opFlags[nonlinkSourceFlag]) {
+            auto* gridSecondaryObject = static_cast<gridSecondary*>(m_sourceObject);
+            out = gridSecondaryObject->getOutputs(inputs, stateDataRef, sMode);
+            gridSecondaryObject->outputPartialDerivatives(inputs,
+                                                          stateDataRef,
+                                                          localJacobian,
+                                                          sMode);
+            gridSecondaryObject->ioPartialDerivatives(
+                inputs, stateDataRef, localJacobian, inputLocs, sMode);
         } else {
-            auto lnk = static_cast<Link*>(m_sourceObject);
-            auto bid = bus->getID();
-            lnk->updateLocalCache(noInputs, sD, sMode);
-            out = lnk->getOutputs(bid, sD, sMode);
-            lnk->outputPartialDerivatives(bid, sD, d, sMode);
-            lnk->ioPartialDerivatives(bid, sD, d, inputLocs, sMode);
+            auto* lnk = static_cast<Link*>(m_sourceObject);
+            auto busId = bus->getID();
+            lnk->updateLocalCache(noInputs, stateDataRef, sMode);
+            out = lnk->getOutputs(busId, stateDataRef, sMode);
+            lnk->outputPartialDerivatives(busId, stateDataRef, localJacobian, sMode);
+            lnk->ioPartialDerivatives(busId, stateDataRef, localJacobian, inputLocs, sMode);
         }
 
-        double I = getConditionValue(0, sD, sMode);
+        const double currentMagnitude = getConditionValue(0, stateDataRef, sMode);
 
-        double voltage = bus->getVoltage(sD, sMode);
+        const double voltage = bus->getVoltage(stateDataRef, sMode);
 
-        double apparentPower = std::hypot(out[PoutLocation], out[QoutLocation]);
-        double temp = 1.0 / (apparentPower * voltage);
-        double dIdP = out[PoutLocation] * temp;
-        double dIdQ = out[QoutLocation] * temp;
-        d.scaleRow(PoutLocation, dIdP);
-        d.scaleRow(QoutLocation, dIdQ);
+        const double apparentPower = std::hypot(out[PoutLocation], out[QoutLocation]);
+        const double inverseScale = 1.0 / (apparentPower * voltage);
+        const double dIdP = out[PoutLocation] * inverseScale;
+        const double dIdQ = out[QoutLocation] * inverseScale;
+        localJacobian.scaleRow(PoutLocation, dIdP);
+        localJacobian.scaleRow(QoutLocation, dIdQ);
 
         auto offset = offsets.getDiffOffset(sMode);
-        d.translateRow(PoutLocation, offset);
-        d.translateRow(QoutLocation, offset);
-        d.assignCheck(offset, Voffset, -apparentPower / (voltage * voltage));
+        localJacobian.translateRow(PoutLocation, offset);
+        localJacobian.translateRow(QoutLocation, offset);
+        localJacobian.assignCheck(offset, voltageOffset, -apparentPower / (voltage * voltage));
 
-        d.scaleRow(offset, 2.0 * I);
+        localJacobian.scaleRow(offset, 2.0 * currentMagnitude);
 
-        md.merge(d);
+        jacobian.merge(localJacobian);
 
-        md.assign(offset, offset, -sD.cj);
+        jacobian.assign(offset, offset, -stateDataRef.cj);
     } else if (stateSize(sMode) > 0) {
         auto offset = offsets.getDiffOffset(sMode);
-        md.assign(offset, offset, -sD.cj);
+        jacobian.assign(offset, offset, -stateDataRef.cj);
     }
 }
 
-void fuse::setState(coreTime time,
+void Fuse::setState(coreTime time,
                     const double state[],
-                    const double /*dstate_dt*/[],
+                    const double /*dstateDt*/[],
                     const SolverMode& sMode)
 {
     if (stateSize(sMode) > 0) {
@@ -312,57 +316,57 @@ void fuse::setState(coreTime time,
     prevTime = time;
 }
 
-double fuse::I2Tequation(double current)
+double Fuse::I2Tequation(double current)
 {
     return (current * current - limit * limit);
 }
 
-void fuse::residual(const IOdata& /*inputs*/,
-                    const StateData& sD,
+void Fuse::residual(const IOdata& /*inputs*/,
+                    const StateData& stateDataRef,
                     double resid[],
                     const SolverMode& sMode)
 {
     if (useI2T) {
         auto offset = offsets.getDiffOffset(sMode);
-        const double* dst = sD.dstate_dt + offset;
+        const double* dst = stateDataRef.dstate_dt + offset;
 
-        if (!opFlags[NONLINK_SOURCE_FLAG]) {
-            static_cast<Link*>(m_sourceObject)->updateLocalCache(noInputs, sD, sMode);
+        if (!opFlags[nonlinkSourceFlag]) {
+            static_cast<Link*>(m_sourceObject)->updateLocalCache(noInputs, stateDataRef, sMode);
         }
-        double I1 = getConditionValue(0, sD, sMode);
-        resid[offset] = I2Tequation(I1) - *dst;
+        const double currentMagnitude = getConditionValue(0, stateDataRef, sMode);
+        resid[offset] = I2Tequation(currentMagnitude) - *dst;
         std::println("tt={}::I1={},limit={}, r[{}]={} deriv={}",
-                     static_cast<double>(sD.time),
-                     I1,
+                     static_cast<double>(stateDataRef.time),
+                     currentMagnitude,
                      limit,
                      offset,
                      resid[offset],
                      *dst);
     } else if (stateSize(sMode) > 0) {
         auto offset = offsets.getDiffOffset(sMode);
-        resid[offset] = -sD.dstate_dt[offset];
+        resid[offset] = -stateDataRef.dstate_dt[offset];
     }
 }
 
-void fuse::guessState(const coreTime /*time*/,
+void Fuse::guessState(const coreTime /*time*/,
                       double state[],
-                      double dstate_dt[],
+                      double dstateDt[],
                       const SolverMode& sMode)
 {
     if (useI2T) {
         auto offset = offsets.getDiffOffset(sMode);
 
-        double I1 = getConditionValue(0);
+        const double currentMagnitude = getConditionValue(0);
         state[offset] = cI2T;
-        dstate_dt[offset] = I2Tequation(I1);
+        dstateDt[offset] = I2Tequation(currentMagnitude);
     } else if (stateSize(sMode) > 0) {
         auto offset = offsets.getDiffOffset(sMode);
         state[offset] = 0;
-        dstate_dt[offset] = 0;
+        dstateDt[offset] = 0;
     }
 }
 
-void fuse::getStateName(stringVec& stNames,
+void Fuse::getStateName(stringVec& stNames,
                         const SolverMode& sMode,
                         const std::string& prefix) const
 {

@@ -11,7 +11,7 @@
 namespace griddyn {
 class Generator;
 
-class isocController: public GridSubModel {
+class IsocController: public GridSubModel {
   protected:
     model_parameter db = 0.005;
     model_parameter upStep = -0.01;
@@ -26,7 +26,7 @@ class isocController: public GridSubModel {
     Generator* gen = nullptr;
 
   public:
-    explicit isocController(const std::string& objName = "ISOC_#");
+    explicit IsocController(const std::string& objName = "ISOC_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
@@ -41,7 +41,7 @@ class isocController: public GridSubModel {
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    /** set the upper and lower limits usable for the isocController
+    /** set the upper and lower limits usable for the IsocController
     @param[in] maxV  the upper limit on the value
     @param[in] minV  the lower limit on the value
     */

@@ -12,7 +12,7 @@ namespace griddyn::relays {
 /** relay object for bus protection can isolate a bus based on voltage or frequency
 with a controllable delay time operates on undervoltage and underfrequency
 */
-class busRelay: public Relay {
+class BusRelay: public Relay {
   public:
     enum BusRelayFlags {
         NONDIRECTIONAL_FLAG = object_flag10,  //!< specify that the relay is non directional
@@ -26,7 +26,7 @@ class busRelay: public Relay {
     coreTime mFrequencyDelay =
         timeZero;  //!< [s] period of time the frequency must be below limit to activate
   public:
-    explicit busRelay(const std::string& objName = "busrelay_$");
+    explicit BusRelay(const std::string& objName = "busrelay_$");
     virtual CoreObject* clone(CoreObject* obj) const override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;
@@ -37,7 +37,7 @@ class busRelay: public Relay {
     virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
   protected:
-    virtual void actionTaken(index_t ActionNum,
+    virtual void actionTaken(index_t actionNum,
                              index_t conditionNum,
                              ChangeCode actionReturn,
                              coreTime actionTime) override;

@@ -64,7 +64,7 @@ eventually will replace most of the shaped loads*/
 
         virtual void setState(coreTime time,
                               const double state[],
-                              const double dstate_dt[],
+                              const double dstateDt[],
                               const SolverMode& sMode) override;
         virtual void
             timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;

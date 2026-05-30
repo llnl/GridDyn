@@ -15,14 +15,14 @@
 namespace griddyn::sources {
 using units::unit;
 
-pulseSource::pulseSource(const std::string& objName, double startVal):
+PulseSource::PulseSource(const std::string& objName, double startVal):
     Source(objName, startVal), baseValue(startVal)
 {
 }
 
-CoreObject* pulseSource::clone(CoreObject* obj) const
+CoreObject* PulseSource::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<pulseSource, Source>(this, obj);
+    auto* nobj = cloneBase<PulseSource, Source>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -36,14 +36,14 @@ CoreObject* pulseSource::clone(CoreObject* obj) const
     return nobj;
 }
 
-void pulseSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
+void PulseSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
 {
     cycleTime =
         time0 - shift * period - period;  // subtract a period so it cycles properly the first time
     updateOutput(time0);
 }
 
-void pulseSource::updateOutput(coreTime time)
+void PulseSource::updateOutput(coreTime time)
 {
     if ((time == prevTime) || (period == maxTime)) {
         return;
@@ -66,7 +66,7 @@ void pulseSource::updateOutput(coreTime time)
     prevTime = time;
 }
 
-double pulseSource::computeOutput(coreTime time) const
+double PulseSource::computeOutput(coreTime time) const
 {
     if ((time == prevTime) || (period == maxTime)) {
         return m_output;
@@ -79,7 +79,7 @@ double pulseSource::computeOutput(coreTime time) const
     return baseValue + pcalc;
 }
 
-double pulseSource::getDoutdt(const IOdata& /*inputs*/,
+double PulseSource::getDoutdt(const IOdata& /*inputs*/,
                               const StateData& stateData,
                               const SolverMode& /*sMode*/,
                               index_t /*num*/) const
@@ -96,7 +96,7 @@ double pulseSource::getDoutdt(const IOdata& /*inputs*/,
     return ((output2 - output1) / 0.0001);
 }
 
-void pulseSource::set(std::string_view param, std::string_view val)
+void PulseSource::set(std::string_view param, std::string_view val)
 {
     if ((param == "type") || (param == "pulsetype")) {
         auto vtype = gmlc::utilities::convertToLowerCase(val);
@@ -122,14 +122,14 @@ void pulseSource::set(std::string_view param, std::string_view val)
     }
 }
 
-void pulseSource::setLevel(double val)
+void PulseSource::setLevel(double val)
 {
     baseValue = val;
     m_output = m_tempOut = val;
     cycleTime = cycleTime - period;
 }
 
-void pulseSource::set(std::string_view param, double val, unit unitType)
+void PulseSource::set(std::string_view param, double val, unit unitType)
 {
     if ((param == "a") || (param == "amplitude") || (param == "amp")) {
         Amplitude = val;
@@ -151,9 +151,9 @@ void pulseSource::set(std::string_view param, double val, unit unitType)
         cycleTime -= period;
     } else if (param == "invert") {
         if (val > 0) {
-            opFlags.set(invert_flag);
+            opFlags.set(invertFlag);
         } else {
-            opFlags.reset(invert_flag);
+            opFlags.reset(invertFlag);
         }
         cycleTime -= period;
     } else {
@@ -161,13 +161,13 @@ void pulseSource::set(std::string_view param, double val, unit unitType)
     }
 }
 
-double pulseSource::pulseCalc(double timeDelta) const
+double PulseSource::pulseCalc(double timeDelta) const
 {
     double mult = 1.0;
     const double cycleLocation = timeDelta / period;
     const double prop = (cycleLocation - (dutyCycle / 2)) / dutyCycle;
     if ((prop < 0) || (prop >= 1.0)) {
-        return (opFlags[invert_flag]) ? Amplitude : 0.0;
+        return (opFlags[invertFlag]) ? Amplitude : 0.0;
     }
 
     // calculate the multiplier
@@ -220,7 +220,7 @@ double pulseSource::pulseCalc(double timeDelta) const
         default:
             break;
     }
-    if (opFlags[invert_flag]) {
+    if (opFlags[invertFlag]) {
         pamp = Amplitude - pamp;
     }
     return pamp;

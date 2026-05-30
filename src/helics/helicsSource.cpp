@@ -17,14 +17,14 @@
 
 namespace griddyn::helicsLib {
 HelicsSource::HelicsSource(const std::string& objName):
-    rampSource(objName), valueType(helics::data_type::helics_double)
+    RampSource(objName), valueType(helics::data_type::helics_double)
 {
     opFlags.set(pflow_init_required);
 }
 
 CoreObject* HelicsSource::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<HelicsSource, rampSource>(this, obj);
+    auto nobj = cloneBase<HelicsSource, RampSource>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -41,7 +41,7 @@ void HelicsSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     auto obj = getRoot();
 
     coordinator_ = dynamic_cast<HelicsCoordinator*>(obj->find("helics"));
-    rampSource::pFlowObjectInitializeA(time0, flags);
+    RampSource::pFlowObjectInitializeA(time0, flags);
 
     if (updatePeriod == maxTime) {
         logging::warning(this, "no period specified defaulting to 10s");
@@ -62,7 +62,7 @@ void HelicsSource::pFlowObjectInitializeB()
 
 void HelicsSource::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    rampSource::dynObjectInitializeA(time0, flags);
+    RampSource::dynObjectInitializeA(time0, flags);
 
     if (updatePeriod == maxTime) {
         logging::warning(this, "no period specified defaulting to 10s");
@@ -100,7 +100,7 @@ void HelicsSource::updateA(coreTime time)
 
     double newVal = convert(cval * scaleFactor, inputUnits, outputUnits, systemBasePower);
     if (opFlags[USE_RAMP]) {
-        if (opFlags[PREDICTIVE_RAMP])  // ramp uses the previous change to guess into the future
+        if (opFlags[predictiveRamp])  // ramp uses the previous change to guess into the future
         {
             m_output = newVal;
             if ((time - lastTime) > 0.001) {
@@ -130,25 +130,25 @@ void HelicsSource::timestep(coreTime ttime, const IOdata& inputs, const SolverMo
         updateB();
     }
 
-    rampSource::timestep(ttime, inputs, sMode);
+    RampSource::timestep(ttime, inputs, sMode);
 }
 
 void HelicsSource::setFlag(const std::string& param, bool val)
 {
     if (param == "initial_queury") {
-        opFlags.set(INITIAL_QUERY, val);
+        opFlags.set(initialQuery, val);
     } else if (param == "predictive") {
         opFlags.set(USE_RAMP, val);
-        opFlags.set(PREDICTIVE_RAMP, val);
+        opFlags.set(predictiveRamp, val);
     } else if (param == "interpolate") {
         opFlags.set(USE_RAMP, val);
-        opFlags.set(PREDICTIVE_RAMP, !val);
+        opFlags.set(predictiveRamp, !val);
     } else if (param == "step") {
         opFlags.set(USE_RAMP, !val);
     } else if (param == "use_ramp") {
         opFlags.set(USE_RAMP, val);
     } else {
-        rampSource::setFlag(param, val);
+        RampSource::setFlag(param, val);
     }
 }
 

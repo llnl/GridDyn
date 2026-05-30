@@ -13,13 +13,13 @@ namespace griddyn::relays {
 /** fuse implements a standard power system fuse which can blow on time or using and I^2t
  * calculation
  */
-class fuse: public Relay {
+class Fuse: public Relay {
   public:
     /** flags for fuses*/
     enum FuseFlags {
-        OVERLIMIT_FLAG = object_flag10,  //!< flag indicating the current is over the limit
-        FUSE_BLOWN_FLAG = object_flag11,  //!< flag indicting the fuse was blown
-        NONLINK_SOURCE_FLAG = object_flag12,  //!< flag indicating the source is a not a link
+        overlimitFlag = object_flag10,  //!< flag indicating the current is over the limit
+        fuseBlownFlag = object_flag11,  //!< flag indicting the fuse was blown
+        nonlinkSourceFlag = object_flag12,  //!< flag indicating the source is a not a link
     };
 
   protected:
@@ -35,7 +35,7 @@ class fuse: public Relay {
     GridBus* bus = nullptr;  //!< storage for a bus which the line terminal or other object
     bool& useI2T;  //!< internal flag for using the i^2t functionality
   public:
-    explicit fuse(const std::string& objName = "fuse_$");
+    explicit Fuse(const std::string& objName = "fuse_$");
     virtual CoreObject* clone(CoreObject* obj) const override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;
@@ -48,25 +48,25 @@ class fuse: public Relay {
     // dynamic functions for evaluation with a limit exceeded
     virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
-                                  const StateData& sD,
-                                  matrixData<double>& md,
+                                  const StateData& stateDataRef,
+                                  matrixData<double>& jacobian,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
     virtual void setState(coreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const SolverMode& sMode) override;
     virtual void residual(const IOdata& inputs,
-                          const StateData& sD,
+                          const StateData& stateDataRef,
                           double resid[],
                           const SolverMode& sMode) override;
     virtual void guessState(coreTime time,
                             double state[],
-                            double dstate_dt[],
+                            double dstateDt[],
                             const SolverMode& sMode) override;
     virtual void converge(coreTime time,
                           double state[],
-                          double dstate_dt[],
+                          double dstateDt[],
                           const SolverMode& sMode,
                           ConvergeMode = ConvergeMode::high_error_only,
                           double tol = 0.01) override;

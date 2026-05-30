@@ -15,7 +15,7 @@ class GenModel;
 class Exciter;
 class Stabilizer;
 class Governor;
-class isocController;
+class IsocController;
 class Source;
 /**
 @ brief class describing a generator intended for dynamic simulations
@@ -32,7 +32,7 @@ class DynamicGenerator: public Generator {
         dc,
         transient,
         detailed,
-        model_only,
+        MODEL_ONLY,
         typical,
         subtransient,
         renewable,
@@ -40,14 +40,14 @@ class DynamicGenerator: public Generator {
     };
 
     /** @brief enum indicating subModel locations in the subObject structure*/
-    enum SubmodelLocations {
-        genmodel_loc = 1,
-        exciter_loc = 2,
-        governor_loc = 3,
-        pss_loc = 4,
-        pset_loc = 5,
-        vset_loc = 6,
-        isoc_control = 7,
+    enum SubModelLocations {
+        GEN_MODEL_LOC = 1,
+        EXCITER_LOC = 2,
+        GOVERNOR_LOC = 3,
+        PSS_LOC = 4,
+        PSET_LOC = 5,
+        VSET_LOC = 6,
+        ISOC_CONTROL_LOC = 7,
     };
 
   protected:
@@ -57,7 +57,7 @@ class DynamicGenerator: public Generator {
     Stabilizer* pss = nullptr;  //!< power system stabilizer type
     Source* pSetControl = nullptr;  //!< source for throttle control
     Source* vSetControl = nullptr;  //!< source for voltage level control
-    isocController* isoc = nullptr;  //!< pointer to a isochronous controller
+    IsocController* isoc = nullptr;  //!< pointer to a isochronous controller
     // const double *m_stateTemp = nullptr;                       //!< temporary state
     // vector(assumed not writable) const double *m_dstate_dt_Temp = nullptr;                   //!<
     // a temporary deriv vector;
@@ -82,11 +82,11 @@ class DynamicGenerator: public Generator {
                                       IOdata& fieldSet) override;
     virtual void setState(coreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const SolverMode& sMode) override;  // for saving the state
     virtual void guessState(coreTime time,
                             double state[],
-                            double dstate_dt[],
+                            double dstateDt[],
                             const SolverMode& sMode) override;  // for initial setting of the state
     virtual void updateLocalCache(const IOdata& inputs,
                                   const StateData& stateDataValue,
@@ -187,22 +187,22 @@ class DynamicGenerator: public Generator {
     virtual index_t vSetLocation(const SolverMode& sMode);
 
   protected:
-    class subModelInputs {
+    class SubModelInputs {
       public:
         std::vector<IOdata> inputs;
         count_t seqID = 0;
-        subModelInputs();
+        SubModelInputs();
     };
-    class subModelInputLocs {
+    class SubModelInputLocs {
       public:
         IOlocs genModelInputLocsInternal;
         IOlocs genModelInputLocsExternal;
         std::vector<IOlocs> inputLocs;
         count_t seqID = 0;
-        subModelInputLocs();
+        SubModelInputLocs();
     };
-    subModelInputs subInputs;
-    subModelInputLocs subInputLocs;
+    SubModelInputs subInputs;
+    SubModelInputLocs subInputLocs;
 
     virtual void generateSubModelInputs(const IOdata& inputs,
                                         const StateData& stateDataValue,

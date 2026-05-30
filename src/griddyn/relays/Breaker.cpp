@@ -26,7 +26,7 @@ using units::convert;
 using units::puA;
 Breaker::Breaker(const std::string& objName): Relay(objName), mUseCti(extra_bool)
 {
-    opFlags.set(continuous_flag);
+    opFlags.set(CONTINUOUS_FLAG);
 }
 
 CoreObject* Breaker::clone(CoreObject* obj) const
@@ -314,7 +314,7 @@ void Breaker::jacobianElements(const IOdata& /*inputs*/,
 
 void Breaker::setState(coreTime time,
                        const double state[],
-                       const double /*dstate_dt*/[],
+                       const double /*dstateDt*/[],
                        const SolverMode& sMode)
 {
     if (mUseCti) {
@@ -355,7 +355,7 @@ void Breaker::residual(const IOdata& /*inputs*/,
 
 void Breaker::guessState(const coreTime /*time*/,
                          double state[],
-                         double dstate_dt[],
+                         double dstateDt[],
                          const SolverMode& sMode)
 {
     if (mUseCti) {
@@ -365,15 +365,15 @@ void Breaker::guessState(const coreTime /*time*/,
         double temp;
         if (currentMagnitude > mLimit) {
             temp = pow(currentMagnitude - mLimit, 1.5);
-            dstate_dt[offset] = 1.0 / (mRecloserTap / temp + mMinClearingTime);
+            dstateDt[offset] = 1.0 / (mRecloserTap / temp + mMinClearingTime);
         } else {
             temp = pow(mLimit - currentMagnitude + 1e-8, 1.5);
-            dstate_dt[offset] = -1.0 / (mRecloserTap / temp + mMinClearingTime);
+            dstateDt[offset] = -1.0 / (mRecloserTap / temp + mMinClearingTime);
         }
     } else if (stateSize(sMode) > 0) {
         auto offset = offsets.getDiffOffset(sMode);
         state[offset] = 0;
-        dstate_dt[offset] = 0;
+        dstateDt[offset] = 0;
     }
 }
 

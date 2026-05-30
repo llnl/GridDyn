@@ -15,14 +15,14 @@
 #include <utility>
 
 namespace griddyn::relays {
-loadRelay::loadRelay(const std::string& objName): Relay(objName)
+LoadRelay::LoadRelay(const std::string& objName): Relay(objName)
 {
-    // opFlags.set(continuous_flag);
+    // opFlags.set(CONTINUOUS_FLAG);
 }
 
-CoreObject* loadRelay::clone(CoreObject* obj) const
+CoreObject* LoadRelay::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<loadRelay, Relay>(this, obj);
+    auto* nobj = cloneBase<LoadRelay, Relay>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -35,7 +35,7 @@ CoreObject* loadRelay::clone(CoreObject* obj) const
     return nobj;
 }
 
-void loadRelay::setFlag(std::string_view flag, bool val)
+void LoadRelay::setFlag(std::string_view flag, bool val)
 {
     if (flag == "nondirectional") {
         opFlags.set(NONDIRECTIONAL_FLAG, val);
@@ -48,7 +48,7 @@ std::string commDestName;
 std::uint64_t commDestId=0;
 std::string commType;
 */
-void loadRelay::set(std::string_view param, std::string_view val)
+void LoadRelay::set(std::string_view param, std::string_view val)
 {
     if (param.empty() || param[0] == '#') {
     } else {
@@ -56,7 +56,7 @@ void loadRelay::set(std::string_view param, std::string_view val)
     }
 }
 
-void loadRelay::set(std::string_view param, double val, units::unit unitType)
+void LoadRelay::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "cutoutvoltage") || (param == "voltagelimit")) {
         mCutoutVoltage = units::convert(val, unitType, units::puV, systemBasePower, baseVoltage());
@@ -76,7 +76,7 @@ void loadRelay::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-void loadRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void LoadRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     auto tripEvent = std::make_shared<Event>();
 
@@ -101,19 +101,19 @@ void loadRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     Relay::dynObjectInitializeA(time0, flags);
 }
 
-void loadRelay::actionTaken(index_t ActionNum,
+void LoadRelay::actionTaken(index_t actionNum,
                             index_t conditionNum,
                             ChangeCode /*actionReturn*/,
                             coreTime /*actionTime*/)
 {
-    logging::normal(this, "condition {} action {}", conditionNum, ActionNum);
-    (void)ActionNum;
+    logging::normal(this, "condition {} action {}", conditionNum, actionNum);
+    (void)actionNum;
     (void)conditionNum;
     /*
-if (opFlags.test (use_commLink))
+if (opFlags.test(USE_COMM_LINK))
 {
 relayMessage P;
-if (ActionNum == 0)
+if (actionNum == 0)
 {
 P.setMessageType (relayMessage::MESSAGE_TYPE::BREAKER_TRIP_EVENT);
 if (commDestName.empty ())
@@ -139,7 +139,7 @@ m_condition_level = conditionNum;
 */
 }
 
-void loadRelay::conditionTriggered(index_t conditionNum, coreTime /*triggerTime*/)
+void LoadRelay::conditionTriggered(index_t conditionNum, coreTime /*triggerTime*/)
 {
     logging::normal(this, "condition {} triggered", conditionNum);
     (void)conditionNum;
@@ -148,7 +148,7 @@ if (conditionNum < m_condition_level)
 {
 m_condition_level = conditionNum;
 }
-if (opFlags.test (use_commLink))
+if (opFlags.test(USE_COMM_LINK))
 {
 if (conditionNum > m_condition_level)
 {
@@ -180,7 +180,7 @@ commLink->transmit (commDestName, static_cast<int> (P.GetMessageType ()), P.size
 */
 }
 
-void loadRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/)
+void LoadRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/)
 {
     logging::normal(this, "condition {} cleared", conditionNum);
     (void)conditionNum;
@@ -195,7 +195,7 @@ else
 return;
 }
 }
-if (opFlags.test (use_commLink))
+if (opFlags.test(USE_COMM_LINK))
 {
 relayMessage P;
 if (conditionNum == 0)

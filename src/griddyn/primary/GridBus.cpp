@@ -808,7 +808,7 @@ int GridBus::propogatePower(bool /*makeSlack*/)
     double Pexp = 0;
     double Qexp = 0;
     for (auto& lnk : attachedLinks) {
-        if (lnk->checkFlag(Link::fixedTargetPower)) {
+        if (lnk->checkFlag(Link::FIXED_TARGET_POWER)) {
             Pexp += lnk->getRealPower(getID());
             Qexp += lnk->getReactivePower(getID());
             continue;

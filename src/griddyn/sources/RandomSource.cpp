@@ -16,16 +16,16 @@
 #include <string>
 
 namespace griddyn::sources {
-randomSource::randomSource(const std::string& objName, double startVal):
-    rampSource(objName, startVal), param1_L(startVal)
+RandomSource::RandomSource(const std::string& objName, double startVal):
+    RampSource(objName, startVal), param1_L(startVal)
 {
 }
 
-randomSource::~randomSource() = default;
+RandomSource::~RandomSource() = default;
 
-CoreObject* randomSource::clone(CoreObject* obj) const
+CoreObject* RandomSource::clone(CoreObject* obj) const
 {
-    auto* src = cloneBase<randomSource, rampSource>(this, obj);
+    auto* src = cloneBase<RandomSource, RampSource>(this, obj);
     if (src == nullptr) {
         return obj;
     }
@@ -33,7 +33,7 @@ CoreObject* randomSource::clone(CoreObject* obj) const
     src->param2_t = param2_t;
     src->param1_L = param1_L;
     src->param2_L = param2_L;
-    src->opFlags.reset(triggered_flag);
+    src->opFlags.reset(TRIGGERED_FLAG);
     src->zbias = zbias;
     src->opFlags.reset(object_armed_flag);
     src->keyTime = keyTime;
@@ -47,7 +47,7 @@ CoreObject* randomSource::clone(CoreObject* obj) const
 }
 
 // set properties
-void randomSource::set(std::string_view param, std::string_view val)
+void RandomSource::set(std::string_view param, std::string_view val)
 {
     if ((param == "trigger_dist") || (param == "time_dist")) {
         timeDistribution = val;
@@ -62,39 +62,39 @@ void randomSource::set(std::string_view param, std::string_view val)
     } else if (param == "seed") {
         utilities::gridRandom::setSeed();
     } else {
-        rampSource::set(param, val);
+        RampSource::set(param, val);
     }
 }
 
-void randomSource::setFlag(std::string_view flag, bool val)
+void RandomSource::setFlag(std::string_view flag, bool val)
 {
     /*
-independent_flag=object_flag3,
-interpolate_flag=object_flag4,
-repeated_flag=object_flag5,
-proportional_flag=object_flag6,
-triggered_flag=object_flag7,
-armed_flag=object_flag8,*/
+independentFlag=object_flag3,
+INTERPOLATE_FLAG=object_flag4,
+REPEATED_FLAG=object_flag5,
+PROPORTIONAL_FLAG=object_flag6,
+TRIGGERED_FLAG=object_flag7,
+armedFlag=object_flag8,*/
     if (flag == "interpolate") {
-        opFlags.set(interpolate_flag, val);
+        opFlags.set(INTERPOLATE_FLAG, val);
         if (!val) {
             mp_dOdt = 0.0;
         }
     } else if (flag == "step") {
-        opFlags.set(interpolate_flag, !val);
+        opFlags.set(INTERPOLATE_FLAG, !val);
         if (val) {
             mp_dOdt = 0.0;
         }
     } else if (flag == "repeated") {
-        opFlags.set(repeated_flag, val);
+        opFlags.set(REPEATED_FLAG, val);
     } else if (flag == "proportional") {
-        opFlags.set(proportional_flag, val);
+        opFlags.set(PROPORTIONAL_FLAG, val);
     } else {
         Source::setFlag(flag, val);
     }
 }
 
-void randomSource::set(std::string_view param, double val, units::unit unitType)
+void RandomSource::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "min_t") {
         if (val <= 0.0) {
@@ -129,18 +129,18 @@ void randomSource::set(std::string_view param, double val, units::unit unitType)
     } else {
         // I am purposely skipping over the RampLoad the functionality is needed but the access
         // is not
-        rampSource::set(param, val, unitType);
+        RampSource::set(param, val, unitType);
     }
 }
 
-void randomSource::reset(ResetLevels /*level*/)
+void RandomSource::reset(ResetLevels /*level*/)
 {
-    opFlags.reset(triggered_flag);
+    opFlags.reset(TRIGGERED_FLAG);
     opFlags.reset(object_armed_flag);
     offset = 0.0;
 }
 
-void randomSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
+void RandomSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
 {
     reset();
     keyTime = time0;
@@ -148,41 +148,41 @@ void randomSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*
     valGenerator = std::make_unique<utilities::gridRandom>(valDistribution, param1_L, param2_L);
     const coreTime triggerTime = time0 + ntime();
 
-    if (opFlags[interpolate_flag]) {
+    if (opFlags[INTERPOLATE_FLAG]) {
         nextStep(triggerTime);
     }
     nextUpdateTime = triggerTime;
     opFlags.set(object_armed_flag);
 }
 
-void randomSource::updateOutput(coreTime time)
+void RandomSource::updateOutput(coreTime time)
 {
     if (time >= nextUpdateTime) {
         updateA(time);
     }
 
-    rampSource::updateOutput(time);
+    RampSource::updateOutput(time);
 }
 
 // Repeats only when multiple pending trigger times must be consumed.
 // NOLINTNEXTLINE(misc-no-recursion)
-void randomSource::updateA(coreTime time)
+void RandomSource::updateA(coreTime time)
 {
     if (time < nextUpdateTime) {
         return;
     }
 
     lastUpdateTime = nextUpdateTime;
-    opFlags.set(triggered_flag);
+    opFlags.set(TRIGGERED_FLAG);
     auto triggerTime = lastUpdateTime + ntime();
-    if (opFlags[interpolate_flag]) {
-        rampSource::setState(nextUpdateTime, nullptr, nullptr, cLocalSolverMode);
-        if (opFlags[repeated_flag]) {
+    if (opFlags[INTERPOLATE_FLAG]) {
+        RampSource::setState(nextUpdateTime, nullptr, nullptr, cLocalSolverMode);
+        if (opFlags[REPEATED_FLAG]) {
             nextStep(triggerTime);
             nextUpdateTime = triggerTime;
-            rampSource::setState(time, nullptr, nullptr, cLocalSolverMode);
+            RampSource::setState(time, nullptr, nullptr, cLocalSolverMode);
         } else {
-            rampSource::clearRamp();
+            RampSource::clearRamp();
             nextUpdateTime = maxTime;
             opFlags.set(object_armed_flag, false);
             prevTime = time;
@@ -191,9 +191,9 @@ void randomSource::updateA(coreTime time)
     } else {
         const double rval = nval();
 
-        m_output = (opFlags[proportional_flag]) ? m_output + (rval * m_output) : m_output + rval;
+        m_output = (opFlags[PROPORTIONAL_FLAG]) ? m_output + (rval * m_output) : m_output + rval;
 
-        if (opFlags[repeated_flag]) {
+        if (opFlags[REPEATED_FLAG]) {
             nextUpdateTime = triggerTime;
         } else {
             nextUpdateTime = maxTime;
@@ -208,7 +208,7 @@ void randomSource::updateA(coreTime time)
     m_tempOut = m_output;
 }
 
-coreTime randomSource::ntime()
+coreTime RandomSource::ntime()
 {
     coreTime newTime = maxTime;
     do {
@@ -218,7 +218,7 @@ coreTime randomSource::ntime()
     return newTime;
 }
 
-double randomSource::nval()
+double RandomSource::nval()
 {
     double nextVal = valGenerator->generate();
     nextVal += computeBiasAdjust();
@@ -227,41 +227,41 @@ double randomSource::nval()
     return nextVal;
 }
 
-void randomSource::nextStep(coreTime triggerTime)
+void RandomSource::nextStep(coreTime triggerTime)
 {
     const double rval = nval();
     const double nextVal =
-        (opFlags[proportional_flag]) ? m_output + (rval * m_output) : m_output + rval;
-    if (opFlags[interpolate_flag]) {
+        (opFlags[PROPORTIONAL_FLAG]) ? m_output + (rval * m_output) : m_output + rval;
+    if (opFlags[INTERPOLATE_FLAG]) {
         mp_dOdt = (nextVal - m_output) / (triggerTime - keyTime);
     } else {
         mp_dOdt = 0.0;
     }
 }
 
-void randomSource::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void RandomSource::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     while (time >= nextUpdateTime) {
         updateA(nextUpdateTime);
     }
 
-    rampSource::timestep(time, inputs, sMode);
+    RampSource::timestep(time, inputs, sMode);
 }
 
-void randomSource::timeParamUpdate()
+void RandomSource::timeParamUpdate()
 {
     if (opFlags[dyn_initialized]) {
         timeGenerator->setParameters(param1_t, param2_t);
     }
 }
-void randomSource::valParamUpdate()
+void RandomSource::valParamUpdate()
 {
     if (opFlags[dyn_initialized]) {
         valGenerator->setParameters(param1_L, param2_L);
     }
 }
 
-double randomSource::computeBiasAdjust()
+double RandomSource::computeBiasAdjust()
 {
     if (zbias == 0.0) {
         return 0.0;

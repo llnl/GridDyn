@@ -94,12 +94,12 @@ class Sensor: public Relay {
     /** @brief add a shared pointer to a GrabberSet
     @param[in] dGr a shared pointer to GrabberSet Object
     */
-    virtual void add(std::shared_ptr<GrabberSet> dGr);
+    virtual void add(std::shared_ptr<GrabberSet> grabberSet);
 
     /** @brief add a shared pointer to a GridGrabber object
     @param[in] dGr a shared pointer to GrabberSet Object
     */
-    virtual void add(std::shared_ptr<GridGrabber> dGr);
+    virtual void add(std::shared_ptr<GridGrabber> gridGrabber);
 
     /** retrieve the GrabberSet based on index
     @return a shared_ptr to a grabberset object that is used in the data retrieval*/
@@ -108,33 +108,33 @@ class Sensor: public Relay {
     // dynamic functions for evaluation with a limit exceeded
     virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
-                                  const StateData& sD,
-                                  matrixData<double>& md,
+                                  const StateData& stateDataValue,
+                                  matrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
 
     virtual void residual(const IOdata& inputs,
-                          const StateData& sD,
+                          const StateData& stateDataValue,
                           double resid[],
                           const SolverMode& sMode) override;
     virtual void derivative(const IOdata& inputs,
-                            const StateData& sD,
+                            const StateData& stateDataValue,
                             double deriv[],
                             const SolverMode& sMode) override;
     virtual void algebraicUpdate(const IOdata& inputs,
-                                 const StateData& sD,
+                                 const StateData& stateDataValue,
                                  double update[],
                                  const SolverMode& sMode,
                                  double alpha) override;
 
     virtual double getOutput(const IOdata& inputs,
-                             const StateData& sD,
+                             const StateData& stateDataValue,
                              const SolverMode& sMode,
                              index_t outNum = 0) const override;
     virtual double getOutput(index_t outNum = 0) const override;
     virtual index_t getOutputLoc(const SolverMode& sMode, index_t outNum) const override;
     virtual IOdata getOutputs(const IOdata& inputs,
-                              const StateData& sD,
+                              const StateData& stateDataValue,
                               const SolverMode& sMode) const override;
 
     /** @brief get the block output from the sensor
@@ -143,7 +143,9 @@ class Sensor: public Relay {
     @param[in] blockNumber the number of the block to get the output from
     @return a double with the requested block output
     */
-    double getBlockOutput(const StateData& sD, const SolverMode& sMode, index_t blockNumber) const;
+    double getBlockOutput(const StateData& stateDataValue,
+                          const SolverMode& sMode,
+                          index_t blockNumber) const;
 
     /** @brief get the block rate of change from the sensor
     @param[in] sD  the state data to get the output from
@@ -151,7 +153,7 @@ class Sensor: public Relay {
     @param[in] blockNumber the number of the block to get the output from
     @return a double with the requested block output rate of change
     */
-    double getBlockDerivOutput(const StateData& sD,
+    double getBlockDerivOutput(const StateData& stateDataValue,
                                const SolverMode& sMode,
                                index_t blockNumber) const;
 
@@ -161,15 +163,17 @@ class Sensor: public Relay {
     @param[in] inputNumber the input of the index to get the value
     @return a double with the requested raw input
     */
-    double getInput(const StateData& sD, const SolverMode& sMode, index_t inputNumber = 0) const;
+    double getInput(const StateData& stateDataValue,
+                    const SolverMode& sMode,
+                    index_t inputNumber = 0) const;
     virtual void updateA(coreTime time) override;
     virtual void outputPartialDerivatives(const IOdata& inputs,
-                                          const StateData& sD,
-                                          matrixData<double>& md,
+                                          const StateData& stateDataValue,
+                                          matrixData<double>& matrixDataValue,
                                           const SolverMode& sMode) override;
 
     virtual void rootTest(const IOdata& inputs,
-                          const StateData& sD,
+                          const StateData& stateDataValue,
                           double roots[],
                           const SolverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
@@ -177,7 +181,7 @@ class Sensor: public Relay {
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                 const StateData& sD,
+                                 const StateData& stateDataValue,
                                  const SolverMode& sMode,
                                  CheckLevel level) override;
 
@@ -202,7 +206,7 @@ class Sensor: public Relay {
     /** get the input to a particular block based on inputs and StateData*/
     double getBlockInput(index_t blockNum,
                          const IOdata& inputs,
-                         const StateData& sD,
+                         const StateData& stateDataValue,
                          const SolverMode& sMode) const;
     /** get the input to a block based on inputs only*/
     double getBlockInput(index_t blockNum, const IOdata& inputs) const;

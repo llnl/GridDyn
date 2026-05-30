@@ -13,12 +13,12 @@ namespace griddyn::helicsLib {
 class HelicsCoordinator;
 
 /** class defining an object that pulls in data from a helics co-simulation*/
-class HelicsSource: public sources::rampSource {
+class HelicsSource: public sources::RampSource {
   public:
     enum HelicsSourceFlags {
         USE_RAMP = object_flag8,
-        PREDICTIVE_RAMP = object_flag9,
-        INITIAL_QUERY = object_flag10,
+        predictiveRamp = object_flag9,
+        initialQuery = object_flag10,
     };
 
   protected:

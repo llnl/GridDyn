@@ -17,13 +17,13 @@
 
 // NOLINTBEGIN
 namespace griddyn::sources {
-commSource::commSource(const std::string& objName): rampSource(objName)
+CommSource::CommSource(const std::string& objName): RampSource(objName)
 {
     enableUpdates();
 }
-CoreObject* commSource::clone(CoreObject* obj) const
+CoreObject* CommSource::clone(CoreObject* obj) const
 {
-    auto cs = cloneBase<commSource, rampSource>(this, obj);
+    auto cs = cloneBase<CommSource, RampSource>(this, obj);
     if (cs == nullptr) {
         return obj;
     }
@@ -31,7 +31,7 @@ CoreObject* commSource::clone(CoreObject* obj) const
     return cs;
 }
 
-void commSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void CommSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     rootSim = dynamic_cast<GridSimulation*>(getRoot());
     commLink = cManager.build();
@@ -43,10 +43,10 @@ void commSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
                 receiveMessage(sourceID, message);
             });
     }
-    rampSource::pFlowObjectInitializeA(time0, flags);
+    RampSource::pFlowObjectInitializeA(time0, flags);
 }
 
-void commSource::setLevel(double val)
+void CommSource::setLevel(double val)
 {
     if (opFlags[USE_RAMP]) {
         if (maxRamp > 0) {
@@ -65,14 +65,14 @@ void commSource::setLevel(double val)
     }
 }
 
-void commSource::set(std::string_view param, std::string_view val)
+void CommSource::set(std::string_view param, std::string_view val)
 {
     if (!(cManager.set(param, val))) {
         Source::set(param, val);
     }
 }
 
-void commSource::set(std::string_view param, double val, units::unit unitType)
+void CommSource::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "ramp") || (param == "maxramp")) {
         maxRamp = std::abs(val);
@@ -83,7 +83,7 @@ void commSource::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-void commSource::setFlag(std::string_view flag, bool val)
+void CommSource::setFlag(std::string_view flag, bool val)
 {
     if (flag == "ramp") {
         opFlags.set(USE_RAMP, val);
@@ -98,7 +98,7 @@ void commSource::setFlag(std::string_view flag, bool val)
     }
 }
 
-void commSource::updateA(coreTime time)
+void CommSource::updateA(coreTime time)
 {
     if (time > nextUpdateTime) {
         mp_dOdt = 0;
@@ -108,7 +108,7 @@ void commSource::updateA(coreTime time)
 
 using ControlMessagePayload = griddyn::comms::ControlMessagePayload;
 
-void commSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMessage> message)
+void CommSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMessage> message)
 {
     if (message == nullptr) {
         return;

@@ -26,6 +26,7 @@
 #include "core/PropertyBuffer.h"
 #include "gmlc/utilities/stringConversion.h"
 #include <algorithm>
+#include <compare>
 #include <format>
 #include <memory>
 #include <stdexcept>
@@ -36,21 +37,24 @@
 namespace griddyn {
 using units::convert;
 
-static TypeFactory<Relay> gbf("relay", std::to_array<std::string_view>({"basic"}), "basic");
-static TypeFactory<Sensor> snsr("relay", "sensor");
+static TypeFactory<Relay> gBf("relay", std::to_array<std::string_view>({"basic"}), "basic");
+static TypeFactory<Sensor> gSensorFactory("relay", "sensor");
 namespace relays {
-    static TypeFactory<zonalRelay>
-        zr("relay", std::to_array<std::string_view>({"zonal", "z", "impedance", "distance"}));
-    static TypeFactory<differentialRelay>
-        dr("relay", std::to_array<std::string_view>({"differential", "diff"}));
+    static TypeFactory<ZonalRelay> gZonalRelayFactory(
+        "relay",
+        std::to_array<std::string_view>({"zonal", "z", "impedance", "distance"}));
+    static TypeFactory<DifferentialRelay>
+        gDifferentialRelayFactory("relay",
+                                  std::to_array<std::string_view>({"differential", "diff"}));
 
-    static TypeFactory<busRelay> br("relay", "bus");
-    static TypeFactory<loadRelay> lr("relay", "load");
-    static TypeFactory<fuse> fr("relay", "fuse");
-    static TypeFactory<Breaker> brkr("relay", "breaker");
+    static TypeFactory<BusRelay> gBusRelayFactory("relay", "bus");
+    static TypeFactory<LoadRelay> gLoadRelayFactory("relay", "load");
+    static TypeFactory<Fuse> gFuseFactory("relay", "fuse");
+    static TypeFactory<Breaker> gBreakerFactory("relay", "breaker");
     static ChildTypeFactory<Pmu, Sensor>
-        pmur("relay", std::to_array<std::string_view>({"pmu", "phasor", "PMU", "synchrophasor"}));
-    static TypeFactory<controlRelay> cntrl("relay", "control");
+        gPmuFactory("relay",
+                    std::to_array<std::string_view>({"pmu", "phasor", "PMU", "synchrophasor"}));
+    static TypeFactory<ControlRelay> gControlRelayFactory("relay", "control");
 }  // namespace relays
 
 std::atomic<count_t> Relay::relayCount(0);
@@ -70,8 +74,8 @@ CoreObject* Relay::clone(CoreObject* obj) const
     }
 
     // clone the conditions
-    for (index_t kk = 0; kk < static_cast<index_t>(conditions.size()); ++kk) {
-        if (static_cast<index_t>(nobj->conditions.size()) <= kk) {
+    for (index_t kk = 0; std::cmp_less(kk, conditions.size()); ++kk) {
+        if (std::cmp_less_equal(nobj->conditions.size(), static_cast<size_t>(kk))) {
             // the other things which depend on this are being duplicated later so just use
             // push_back
             nobj->conditions.emplace_back(conditions[kk]->clone());
@@ -80,8 +84,8 @@ CoreObject* Relay::clone(CoreObject* obj) const
         }
     }
     // clone the actions
-    for (index_t kk = 0; kk < static_cast<index_t>(actions.size()); ++kk) {
-        if (static_cast<index_t>(nobj->actions.size()) <= kk) {
+    for (index_t kk = 0; std::cmp_less(kk, actions.size()); ++kk) {
+        if (std::cmp_less_equal(nobj->actions.size(), static_cast<size_t>(kk))) {
             // the other things which depend on this are being duplicated later so just use
             // push_back
             nobj->actions.emplace_back(actions[kk]->clone());
@@ -120,9 +124,9 @@ void Relay::add(CoreObject* obj)
     m_sinkObject = obj;
 }
 
-void Relay::add(std::shared_ptr<Condition> gc)
+void Relay::add(std::shared_ptr<Condition> conditionObject)
 {
-    conditions.push_back(std::move(gc));
+    conditions.push_back(std::move(conditionObject));
     actionTriggers.resize(conditions.size());
     actionDelays.resize(conditions.size());  //!< the periods of time in which the condition must be
                                              //!< true for an action to occur
@@ -133,16 +137,17 @@ void Relay::add(std::shared_ptr<Condition> gc)
     multiConditionTriggers.resize(conditions.size());
 }
 
-void Relay::add(std::shared_ptr<Event> ge)
+void Relay::add(std::shared_ptr<Event> eventObject)
 {
-    actions.emplace_back(std::make_shared<EventTypeAdapter<std::shared_ptr<Event>>>(std::move(ge)));
+    actions.emplace_back(
+        std::make_shared<EventTypeAdapter<std::shared_ptr<Event>>>(std::move(eventObject)));
 }
 /**
  *add an EventAdapter to the system
  **/
-void Relay::add(std::shared_ptr<EventAdapter> geA)
+void Relay::add(std::shared_ptr<EventAdapter> eventAdapter)
 {
-    actions.emplace_back(std::move(geA));
+    actions.emplace_back(std::move(eventAdapter));
 }
 
 void Relay::setSource(CoreObject* obj)
@@ -159,16 +164,16 @@ void Relay::setSink(CoreObject* obj)
 
 void Relay::setActionTrigger(index_t actionNumber, index_t conditionNumber, coreTime delayTime)
 {
-    if (conditionNumber >= static_cast<index_t>(conditions.size())) {
+    if (std::cmp_greater_equal(conditionNumber, conditions.size())) {
         logging::warning(this, "attempted set of invalid conditonNumber");
         return;
     }
-    if (actionNumber >= static_cast<index_t>(actions.size())) {
+    if (std::cmp_greater_equal(actionNumber, actions.size())) {
         logging::warning(this, "attempted set of invalid actionNumber");
         return;
     }
     // search for an existing entry
-    for (index_t pp = 0; pp < static_cast<index_t>(actionTriggers[conditionNumber].size()); ++pp) {
+    for (index_t pp = 0; std::cmp_less(pp, actionTriggers[conditionNumber].size()); ++pp) {
         if (actionTriggers[conditionNumber][pp] == actionNumber) {
             actionDelays[conditionNumber][pp] = delayTime;
             return;
@@ -180,20 +185,20 @@ void Relay::setActionTrigger(index_t actionNumber, index_t conditionNumber, core
 }
 
 void Relay::setActionMultiTrigger(index_t actionNumber,
-                                  const IOlocs& multi_conditions,
+                                  const IOlocs& multiConditions,
                                   coreTime delayTime)
 {
-    if (actionNumber >= static_cast<index_t>(actions.size())) {
+    if (std::cmp_greater_equal(actionNumber, actions.size())) {
         return;
     }
-    for (const auto& cnum : multi_conditions) {
-        multiConditionTriggers[cnum].emplace_back(actionNumber, multi_conditions, delayTime);
+    for (const auto& conditionNum : multiConditions) {
+        multiConditionTriggers[conditionNum].emplace_back(actionNumber, multiConditions, delayTime);
     }
 }
 
 void Relay::setResetMargin(index_t conditionNumber, double margin)
 {
-    if (conditionNumber >= static_cast<index_t>(conditions.size())) {
+    if (std::cmp_greater_equal(conditionNumber, conditions.size())) {
         return;
     }
     conditions[conditionNumber]->setMargin(margin);
@@ -231,11 +236,11 @@ double Relay::getConditionValue(index_t conditionNumber) const
 }
 
 double Relay::getConditionValue(index_t conditionNumber,
-                                const StateData& sD,
+                                const StateData& stateDataValue,
                                 const SolverMode& sMode) const
 {
     if (isValidIndex(conditionNumber, conditions)) {
-        return conditions[conditionNumber]->getVal(1, sD, sMode);
+        return conditions[conditionNumber]->getVal(1, stateDataValue, sMode);
     }
     return kNullVal;
 }
@@ -265,8 +270,8 @@ Relay::ConditionStatus Relay::getConditionStatus(index_t conditionNumber)
 
 void Relay::removeAction(index_t actionNumber)
 {
-    for (index_t kk = 0; kk < static_cast<index_t>(actionTriggers.size()); ++kk) {
-        for (index_t pp = 0; pp < static_cast<index_t>(actionTriggers[kk].size()); ++pp) {
+    for (index_t kk = 0; std::cmp_less(kk, actionTriggers.size()); ++kk) {
+        for (index_t pp = 0; std::cmp_less(pp, actionTriggers[kk].size()); ++pp) {
             if (actionTriggers[kk][pp] == actionNumber) {
                 // set all the existing delay time for this action to a very large number
                 actionDelays[kk][pp] = kBigNum;
@@ -300,31 +305,31 @@ std::shared_ptr<EventAdapter> Relay::getAction(index_t actionNumber)
     return nullptr;
 }
 
-void Relay::updateAction(std::shared_ptr<Event> ge, index_t actionNumber)
+void Relay::updateAction(std::shared_ptr<Event> eventObject, index_t actionNumber)
 {
     if (isValidIndex(actionNumber, actions)) {
         actions[actionNumber] =
-            std::make_shared<EventTypeAdapter<std::shared_ptr<Event>>>(std::move(ge));
+            std::make_shared<EventTypeAdapter<std::shared_ptr<Event>>>(std::move(eventObject));
     } else {
         throw(InvalidParameterValue("actionNumber"));
     }
 }
 
-void Relay::updateAction(std::shared_ptr<EventAdapter> geA, index_t actionNumber)
+void Relay::updateAction(std::shared_ptr<EventAdapter> eventAdapter, index_t actionNumber)
 {
     if (isValidIndex(actionNumber, actions)) {
-        actions[actionNumber] = std::move(geA);
+        actions[actionNumber] = std::move(eventAdapter);
     } else {
         throw(InvalidParameterValue("actionNumber"));
     }
 }
 
-void Relay::updateCondition(std::shared_ptr<Condition> gc, index_t conditionNumber)
+void Relay::updateCondition(std::shared_ptr<Condition> conditionObject, index_t conditionNumber)
 {
     if (!isValidIndex(conditionNumber, conditions)) {
         throw(InvalidParameterValue("conditionNumber"));
     }
-    conditions[conditionNumber] = std::move(gc);
+    conditions[conditionNumber] = std::move(conditionObject);
     cStates[conditionNumber] = ConditionStatus::active;
     conditionTriggerTimes[conditionNumber] = negTime;
     updateRootCount(true);
@@ -341,10 +346,10 @@ void Relay::set(std::string_view param, std::string_view val)
     } else if (param == "action") {
         bool isAlarm = false;
         if ((val.front() == 'a') || (val.front() == 'A')) {
-            auto e = make_alarm(std::string{val});
-            if (e) {
+            auto eventAdapter = make_alarm(std::string{val});
+            if (eventAdapter) {
                 isAlarm = true;
-                add(std::shared_ptr<EventAdapter>(std::move(e)));
+                add(std::shared_ptr<EventAdapter>(std::move(eventAdapter)));
             }
         }
         if (!isAlarm) {
@@ -354,7 +359,7 @@ void Relay::set(std::string_view param, std::string_view val)
         }
     } else {
         if (cManager.set(param, val)) {
-            opFlags.set(use_commLink);
+            opFlags.set(USE_COMM_LINK);
         } else {
             GridPrimary::set(param, val);
         }
@@ -371,7 +376,7 @@ void Relay::set(std::string_view param, double val, units::unit unitType)
         m_nextSampleTime = timeZero;
     } else {
         if (cManager.set(param, val)) {
-            opFlags.set(use_commLink);
+            opFlags.set(USE_COMM_LINK);
         } else {
             GridPrimary::set(param, val, unitType);
         }
@@ -391,24 +396,24 @@ double Relay::get(std::string_view param, units::unit unitType) const
 void Relay::setFlag(std::string_view flag, bool val)
 {
     if (flag == "continuous") {
-        opFlags.set(continuous_flag, val);
+        opFlags.set(CONTINUOUS_FLAG, val);
         if (!val) {
             m_nextSampleTime = (prevTime < timeZero) ? timeZero : prevTime;
         }
     } else if (flag == "sampled") {
-        opFlags.set(continuous_flag, !val);
+        opFlags.set(CONTINUOUS_FLAG, !val);
         if (val) {
             m_nextSampleTime = (prevTime < timeZero) ? timeZero : prevTime;
         }
     } else if ((flag == "comm_enabled") || (flag == "comms") || (flag == "usecomms")) {
-        opFlags.set(use_commLink, val);
+        opFlags.set(USE_COMM_LINK, val);
     } else if (flag == "resettable") {
-        opFlags.set(resettable_flag, val);
+        opFlags.set(RESETTABLE_FLAG, val);
     } else if (flag == "powerflow_check") {
-        opFlags.set(power_flow_checks_flag, val);
+        opFlags.set(POWER_FLOW_CHECKS_FLAG, val);
     } else {
         if (cManager.setFlag(flag, val)) {
-            opFlags.set(use_commLink);
+            opFlags.set(USE_COMM_LINK);
         } else {
             GridPrimary::setFlag(flag, val);
         }
@@ -422,7 +427,7 @@ void Relay::updateA(coreTime time)
     // be copied first
     condChecks.clear();
     nextUpdateTime = maxTime;
-    if (opFlags[continuous_flag]) {
+    if (opFlags[CONTINUOUS_FLAG]) {
         for (auto& cond : ncond) {
             evaluateCondCheck(cond, time);
         }
@@ -431,8 +436,8 @@ void Relay::updateA(coreTime time)
                 nextUpdateTime = cond.testTime;
             }
         }
-        auto cz = static_cast<index_t>(conditions.size());
-        for (index_t kk = 0; kk < cz; ++kk) {
+        auto conditionCount = static_cast<index_t>(conditions.size());
+        for (index_t kk = 0; kk < conditionCount; ++kk) {
             if (cStates[kk] == ConditionStatus::active) {
                 if (conditions[kk]->checkCondition()) {
                     triggerCondition(kk, time, timeZero);
@@ -451,8 +456,8 @@ void Relay::updateA(coreTime time)
         }
 
         if (time >= m_nextSampleTime) {
-            auto cz = static_cast<index_t>(conditions.size());
-            for (index_t kk = 0; kk < cz; ++kk) {
+            auto conditionCount = static_cast<index_t>(conditions.size());
+            for (index_t kk = 0; kk < conditionCount; ++kk) {
                 if (cStates[kk] == ConditionStatus::active) {
                     if (conditions[kk]->checkCondition()) {
                         triggerCondition(kk, time, timeZero);
@@ -474,7 +479,7 @@ std::string Relay::generateCommName()
 
 void Relay::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
 {
-    if ((opFlags[use_commLink]) && (!(commLink))) {
+    if ((opFlags[USE_COMM_LINK]) && (!(commLink))) {
         if (cManager.getName().empty()) {
             cManager.setName(generateCommName());
         }
@@ -485,7 +490,7 @@ void Relay::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
                 commLink->initialize();
                 commLink->registerReceiveCallback(
                     [this](std::uint64_t sourceID, std::shared_ptr<CommMessage> message) {
-                        receiveMessage(sourceID, std::move(message));
+                        receiveMessage(sourceID, message);
                     });
             }
             catch (const std::invalid_argument&) {
@@ -495,23 +500,23 @@ void Relay::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
                     commLink->initialize();
                     commLink->registerReceiveCallback(
                         [this](std::uint64_t sourceID, std::shared_ptr<CommMessage> message) {
-                            receiveMessage(sourceID, std::move(message));
+                            receiveMessage(sourceID, message);
                         });
                 }
                 catch (const std::invalid_argument&) {
                     logging::warning(this, "unable to initialize comm link");
                     commLink = nullptr;
-                    opFlags.reset(use_commLink);
+                    opFlags.reset(USE_COMM_LINK);
                 }
             }
         } else {
             logging::warning(this, "unrecognized commLink type ");
-            opFlags.reset(use_commLink);
+            opFlags.reset(USE_COMM_LINK);
         }
     }
-    if (opFlags[power_flow_checks_flag]) {
-        for (auto& cs : cStates) {
-            if (cs == ConditionStatus::active) {
+    if (opFlags[POWER_FLOW_CHECKS_FLAG]) {
+        for (auto& conditionState : cStates) {
+            if (conditionState == ConditionStatus::active) {
                 opFlags.set(has_powerflow_adjustments);
                 break;
             }
@@ -522,7 +527,7 @@ void Relay::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
 
 void Relay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
-    if (opFlags[continuous_flag]) {
+    if (opFlags[CONTINUOUS_FLAG]) {
         updateRootCount(false);
     } else {
         if (updatePeriod == maxTime) {  // set the period to the period of the simulation
@@ -535,9 +540,9 @@ void Relay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
 
     //*update the flag for future power flow check  BUG noticed by Colin Ponce 10/21/16
-    if (opFlags[power_flow_checks_flag]) {
-        for (auto& cs : cStates) {
-            if (cs == ConditionStatus::active) {
+    if (opFlags[POWER_FLOW_CHECKS_FLAG]) {
+        for (auto& conditionState : cStates) {
+            if (conditionState == ConditionStatus::active) {
                 opFlags.set(has_powerflow_adjustments);
                 break;
             }
@@ -580,9 +585,9 @@ void Relay::updateRootCount(bool alertChange)
 
     localRoots = 0;  // reset the local roots
     conditionsWithRoots.clear();
-    for (index_t kk = 0; kk < static_cast<index_t>(cStates.size()); ++kk) {
+    for (index_t kk = 0; std::cmp_less(kk, cStates.size()); ++kk) {
         if (cStates[kk] == ConditionStatus::active ||
-            (cStates[kk] == ConditionStatus::triggered && opFlags[resettable_flag])) {
+            (cStates[kk] == ConditionStatus::triggered && opFlags[RESETTABLE_FLAG])) {
             ++localRoots;
             conditionsWithRoots.push_back(kk);
         }
@@ -607,8 +612,8 @@ ChangeCode
 {
     ChangeCode ret = ChangeCode::NO_CHANGE;
     if (level >= CheckLevel::full_check) {
-        auto cz = static_cast<index_t>(conditions.size());
-        for (index_t kk = 0; kk < cz; ++kk) {
+        auto conditionCount = static_cast<index_t>(conditions.size());
+        for (index_t kk = 0; kk < conditionCount; ++kk) {
             if (cStates[kk] == ConditionStatus::active) {
                 if (conditions[kk]->checkCondition()) {
                     ret = std::max(triggerCondition(kk, prevTime, maxTime), ret);
@@ -620,14 +625,14 @@ ChangeCode
 }
 
 void Relay::rootTest(const IOdata& /*inputs*/,
-                     const StateData& sD,
+                     const StateData& stateDataValue,
                      double roots[],
                      const SolverMode& sMode)
 {
-    auto ro = offsets.getRootOffset(sMode);
+    auto rootOffset = offsets.getRootOffset(sMode);
     for (auto condNum : conditionsWithRoots) {
-        roots[ro] = conditions[condNum]->evalCondition(sD, sMode);
-        ++ro;
+        roots[rootOffset] = conditions[condNum]->evalCondition(stateDataValue, sMode);
+        ++rootOffset;
     }
 }
 
@@ -636,39 +641,39 @@ void Relay::rootTrigger(coreTime time,
                         const std::vector<int>& rootMask,
                         const SolverMode& sMode)
 {
-    auto ro = offsets.getRootOffset(sMode);
+    auto rootOffset = offsets.getRootOffset(sMode);
     // Because conditionsWithRoots can change on a condition Trigger leading to an actionTaken
     // so we need to cache the conditions first to prevent manipulation
     auto checkConditions = conditionsWithRoots;
     for (auto conditionToCheck : checkConditions) {
         if (cStates[conditionToCheck] == ConditionStatus::active) {
-            if (rootMask[ro] != 0) {
+            if (rootMask[rootOffset] != 0) {
                 triggerCondition(conditionToCheck, time, timeZero);
             }
-            ++ro;
+            ++rootOffset;
         } else if ((cStates[conditionToCheck] == ConditionStatus::triggered) &&
-                   (opFlags[resettable_flag])) {
-            if (rootMask[ro] != 0) {
+                   (opFlags[RESETTABLE_FLAG])) {
+            if (rootMask[rootOffset] != 0) {
                 cStates[conditionToCheck] = ConditionStatus::active;
                 conditions[conditionToCheck]->useMargin(false);
                 clearCondChecks(conditionToCheck);
                 conditionCleared(conditionToCheck, time);
             }
-            ++ro;
+            ++rootOffset;
         }
     }
     updateRootCount(true);
 }
 
 ChangeCode Relay::rootCheck(const IOdata& /*inputs*/,
-                            const StateData& sD,
+                            const StateData& stateDataValue,
                             const SolverMode& /*sMode*/,
                             CheckLevel /*level*/)
 {
     auto prevTrig = triggerCount;
     auto prevAct = actionsTakenCount;
-    coreTime ctime = (!sD.empty()) ? (sD.time) : prevTime;
-    updateA(ctime);
+    const coreTime currentTime = (!stateDataValue.empty()) ? (stateDataValue.time) : prevTime;
+    updateA(currentTime);
     if ((triggerCount != prevTrig) || (actionsTakenCount != prevAct)) {
         alert(this, UPDATE_TIME_CHANGE);
         updateRootCount(true);
@@ -679,10 +684,10 @@ ChangeCode Relay::rootCheck(const IOdata& /*inputs*/,
 
 void Relay::clearCondChecks(index_t conditionNumber)
 {
-    auto cc = condChecks;
+    auto condChecksCopy = condChecks;
     condChecks.resize(0);
     coreTime mTime = nextUpdateTime;
-    for (auto& cond : cc) {
+    for (auto& cond : condChecksCopy) {
         if (cond.conditionNum != conditionNumber) {
             condChecks.push_back(cond);
             if (cond.testTime < mTime) {
@@ -698,11 +703,12 @@ void Relay::clearCondChecks(index_t conditionNumber)
 
 std::unique_ptr<EventAdapter> Relay::make_alarm(const std::string& val)
 {
-    auto lc = gmlc::utilities::convertToLowerCase(val);
-    if (lc.compare(0, 5, "alarm") == 0) {
-        auto codeStr = lc.substr(6);
-        auto code = gmlc::utilities::numeric_conversion<std::uint32_t>(codeStr, std::uint32_t(-1));
-        if (code == std::uint32_t(-1)) {
+    auto lowerCaseValue = gmlc::utilities::convertToLowerCase(val);
+    if (lowerCaseValue.starts_with("alarm")) {
+        auto codeStr = lowerCaseValue.substr(6);
+        constexpr auto invalidCode = static_cast<std::uint32_t>(-1);
+        auto code = gmlc::utilities::numeric_conversion<std::uint32_t>(codeStr, invalidCode);
+        if (std::cmp_equal(code, invalidCode)) {
             code = getAlarmCode(codeStr);
         }
         return std::make_unique<FunctionEventAdapter>([this, code]() {
@@ -725,7 +731,7 @@ void Relay::sendAlarm(std::uint32_t code)
 {
     if (commLink) {
         auto message = std::make_shared<CommMessage>(CommMessage::ALARM_TRIGGER_EVENT, code);
-        cManager.send(std::move(message));
+        cManager.send(message);
         return;
     }
     throw(ExecutionFailure(this, "no communication link"));
@@ -742,13 +748,11 @@ ChangeCode Relay::triggerCondition(index_t conditionNum,
     conditionTriggerTimes[conditionNum] = conditionTriggerTime;
     ++triggerCount;
     conditionTriggered(conditionNum, conditionTriggerTime);
-    for (index_t ii = 0; ii < static_cast<index_t>(actionTriggers[conditionNum].size()); ++ii) {
+    for (index_t ii = 0; std::cmp_less(ii, actionTriggers[conditionNum].size()); ++ii) {
         if (actionDelays[conditionNum][ii] <= minimumDelayTime) {
             auto iret =
                 executeAction(actionTriggers[conditionNum][ii], conditionNum, conditionTriggerTime);
-            if (iret > eventReturn) {
-                eventReturn = iret;
-            }
+            eventReturn = std::max(iret, eventReturn);
         } else {
             condChecks.emplace_back(conditionNum,
                                     ii,
@@ -765,9 +769,7 @@ ChangeCode Relay::triggerCondition(index_t conditionNum,
         }
     }
     auto iret = multiConditionCheckExecute(conditionNum, conditionTriggerTime, minimumDelayTime);
-    if (iret > eventReturn) {
-        eventReturn = iret;
-    }
+    eventReturn = std::max(iret, eventReturn);
     return eventReturn;
 }
 
@@ -786,19 +788,17 @@ ChangeCode Relay::multiConditionCheckExecute(index_t conditionNumber,
     ChangeCode eventReturn = ChangeCode::NO_CHANGE;
     // now check the multiCondition triggers
     for (auto& mct : multiConditionTriggers[conditionNumber]) {
-        bool all_triggered = false;
-        for (auto& cn : mct.multiConditions) {
-            if (cStates[cn] != ConditionStatus::triggered) {
-                all_triggered = false;
+        bool allTriggered = true;
+        for (auto& conditionNum : mct.multiConditions) {
+            if (cStates[conditionNum] != ConditionStatus::triggered) {
+                allTriggered = false;
                 break;
             }
         }
-        if (all_triggered) {
+        if (allTriggered) {
             if (mct.delayTime <= minimumDelayTime) {
                 auto iret = executeAction(mct.actionNum, conditionNumber, prevTime);
-                if (iret > eventReturn) {
-                    eventReturn = iret;
-                }
+                eventReturn = std::max(iret, eventReturn);
             } else {
                 condChecks.emplace_back(conditionNumber,
                                         mct.actionNum,
@@ -819,34 +819,30 @@ ChangeCode Relay::evaluateCondCheck(condCheckTime& cond, coreTime checkTime)
         if (conditions[cond.conditionNum]->checkCondition()) {
             if (!cond.multiCondition) {
                 auto iret = executeAction(cond.actionNum, cond.conditionNum, checkTime);
-                if (iret > eventReturn) {
-                    eventReturn = iret;
-                }
+                eventReturn = std::max(iret, eventReturn);
             } else {  // it was a multiCondition trigger
-                bool all_triggered = true;
-                coreTime trigDelay =
+                bool allTriggered = true;
+                const coreTime trigDelay =
                     multiConditionTriggers[cond.conditionNum][cond.actionNum].delayTime;
-                for (auto& cnum :
+                for (auto& conditionNum :
                      multiConditionTriggers[cond.conditionNum][cond.actionNum].multiConditions) {
-                    if (cStates[cnum] != ConditionStatus::triggered) {
-                        all_triggered = false;
+                    if (cStates[conditionNum] != ConditionStatus::triggered) {
+                        allTriggered = false;
                         break;
                     }
-                    if (checkTime - conditionTriggerTimes[cnum] < trigDelay) {
-                        cond.testTime = conditionTriggerTimes[cnum] + trigDelay;
+                    if (checkTime - conditionTriggerTimes[conditionNum] < trigDelay) {
+                        cond.testTime = conditionTriggerTimes[conditionNum] + trigDelay;
                         condChecks.push_back(cond);
-                        all_triggered = false;
+                        allTriggered = false;
                         break;
                     }
                 }
-                if (all_triggered) {
+                if (allTriggered) {
                     auto iret = executeAction(
                         multiConditionTriggers[cond.conditionNum][cond.actionNum].actionNum,
                         cond.conditionNum,
                         checkTime);
-                    if (iret > eventReturn) {
-                        eventReturn = iret;
-                    }
+                    eventReturn = std::max(iret, eventReturn);
                 }
             }
         } else {
@@ -864,17 +860,17 @@ ChangeCode Relay::evaluateCondCheck(condCheckTime& cond, coreTime checkTime)
     return eventReturn;
 }
 
-void Relay::actionTaken(index_t ActionNum,
+void Relay::actionTaken(index_t actionNum,
                         index_t conditionNum,
                         ChangeCode actionReturn,
                         coreTime /*actionTime*/)
 {
-    static_cast<void>(ActionNum);
+    static_cast<void>(actionNum);
     static_cast<void>(conditionNum);
     static_cast<void>(actionReturn);
     logging::debug(this,
                    "action {} taken based on condition {}  with return code {}",
-                   ActionNum,
+                   actionNum,
                    conditionNum,
                    static_cast<int>(actionReturn));
 }

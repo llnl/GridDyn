@@ -49,11 +49,12 @@ CoreObject* Pmu::clone(CoreObject* obj) const
 void Pmu::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "transmit") || (flag == "transmitactive") || (flag == "transmit_active")) {
-        opFlags.set(TRANSMIT_ACTIVE, val);
+        opFlags.set(transmitActive, val);
     } else if ((flag == "three_phase") || (flag == "3phase") || (flag == "three_phase_active")) {
-        opFlags.set(three_phase_capable, val);
+        opFlags.set(threePhaseSet, val);
+        opFlags.set(threePhaseActive, val);
     } else if ((flag == "current_active") || (flag == "current")) {
-        opFlags.set(CURRENT_ACTIVE, val);
+        opFlags.set(currentActive, val);
     } else {
         Sensor::setFlag(flag, val);
     }
@@ -146,17 +147,17 @@ void Pmu::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     // check for 3 phase sensors
     if (dynamic_cast<GridComponent*>(m_sourceObject) != nullptr) {
         if (static_cast<GridComponent*>(m_sourceObject)->checkFlag(three_phase_capable)) {
-            if (!opFlags[THREE_PHASE_SET]) {
-                opFlags[THREE_PHASE_ACTIVE] = true;
+            if (!opFlags[threePhaseSet]) {
+                opFlags[threePhaseActive] = true;
             }
         } else {
-            opFlags[THREE_PHASE_ACTIVE] = false;
+            opFlags[threePhaseActive] = false;
         }
     }
 
     if (dynamic_cast<GridBus*>(m_sourceObject) != nullptr) {
         // no way to get current from a bus
-        opFlags[CURRENT_ACTIVE] = false;
+        opFlags[currentActive] = false;
     }
     generateOutputNames();
     createFilterBlocks();
@@ -166,8 +167,8 @@ void Pmu::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 void Pmu::generateOutputNames()
 {
     // 4 different scenarios
-    if (opFlags[THREE_PHASE_ACTIVE]) {
-        if (opFlags[CURRENT_ACTIVE]) {
+    if (opFlags[threePhaseActive]) {
+        if (opFlags[currentActive]) {
             // three phase voltage and current
             outputStrings = {{"voltageA"},
                              {"angleA"},
@@ -195,7 +196,7 @@ void Pmu::generateOutputNames()
                              {"rocof"}};
         }
     } else {
-        if (opFlags[CURRENT_ACTIVE]) {
+        if (opFlags[currentActive]) {
             // single phase voltage and current
             outputStrings = {{"voltage"},
                              {"angle"},
@@ -216,8 +217,8 @@ void Pmu::generateOutputNames()
 void Pmu::createFilterBlocks()
 {
     // 4 different scenarios
-    if (opFlags[THREE_PHASE_ACTIVE]) {
-        if (opFlags[CURRENT_ACTIVE]) {  // NOLINT
+    if (opFlags[threePhaseActive]) {
+        if (opFlags[currentActive]) {  // NOLINT
             // three phase voltage and current
         } else {
             // three phase voltage
@@ -235,7 +236,7 @@ void Pmu::createFilterBlocks()
         set("blockinput1", 1);
         setupOutput(0, "block0");
         setupOutput(1, "block1");
-        if (opFlags[CURRENT_ACTIVE]) {
+        if (opFlags[currentActive]) {
             vBlock = new blocks::DelayBlock(mCurrentFilterTime);
             vBlock->setName("current_real");
             add(vBlock);
@@ -282,7 +283,7 @@ coreTime Pmu::updateB()
 
 void Pmu::generateAndTransmitMessage() const
 {
-    if (opFlags[use_commLink]) {
+    if (opFlags[USE_COMM_LINK]) {
         const auto& oname = outputNames();
 
         auto message =
@@ -305,7 +306,7 @@ void Pmu::generateAndTransmitMessage() const
             payload->multiUnits[outputIndex] = to_string(outputUnits(unitIndex));
         }
 
-        cManager.send(std::move(message));
+        cManager.send(message);
     }
 }
 

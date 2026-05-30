@@ -413,7 +413,7 @@ void Subsystem::updateBus(GridBus* bus, index_t busnumber)
         terminalLink[busnumber - 1]->updateBus(bus, cterm[busnumber - 1]);
         terminalBus[busnumber - 1] = bus;
     } else {
-        if (opFlags[directConnection]) {
+        if (opFlags[DIRECT_CONNECTION]) {
             Link::updateBus(bus, busnumber);
         } else {
             throw(ObjectAddFailure(this));

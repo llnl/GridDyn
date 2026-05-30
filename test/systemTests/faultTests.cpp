@@ -228,7 +228,7 @@ TEST_F(FaultTests, LinkTestFaultFuse)
 
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::WARNING;
-    auto obj = dynamic_cast<fuse*>(gds->getRelay(0));
+    auto obj = dynamic_cast<Fuse*>(gds->getRelay(0));
     ASSERT_NE(obj, nullptr);
     gds->run();
     auto lobj = dynamic_cast<Link*>(gds->find("bus2_to_bus3"));

@@ -33,7 +33,7 @@ TEST_F(RelayTests, RelayTest1)
 
     gds->dynInitialize(timeZero);
 
-    auto Yp = dynamic_cast<relays::zonalRelay*>(gds->getRelay(0));
+    auto Yp = dynamic_cast<relays::ZonalRelay*>(gds->getRelay(0));
     EXPECT_NE(Yp, nullptr);
 }
 
@@ -47,9 +47,9 @@ TEST_F(RelayTests, RelayTest2)
 
     gds->dynInitialize(timeZero);
 
-    zonalRelay* Yp = dynamic_cast<zonalRelay*>(gds->getRelay(0));
+    ZonalRelay* Yp = dynamic_cast<ZonalRelay*>(gds->getRelay(0));
     EXPECT_NE(Yp, nullptr);
-    Yp = dynamic_cast<zonalRelay*>(gds->getRelay(1));
+    Yp = dynamic_cast<ZonalRelay*>(gds->getRelay(1));
     EXPECT_NE(Yp, nullptr);
 
     auto obj = dynamic_cast<Link*>(gds->find("bus2_to_bus3"));
@@ -117,7 +117,7 @@ TEST_F(RelayTests, TestControlRelay)
     gds = readSimXMLFile(fileName);
     // gds->consolePrintLevel = PrintLevel::NO_PRINT;
     auto obj = gds->find("bus4::load4");
-    auto cr = dynamic_cast<relays::controlRelay*>(gds->getRelay(0));
+    auto cr = dynamic_cast<relays::ControlRelay*>(gds->getRelay(0));
     ASSERT_NE(obj, nullptr);
     ASSERT_NE(cr, nullptr);
     gds->dynInitialize();

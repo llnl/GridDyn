@@ -23,7 +23,7 @@
 namespace griddyn::extra {
 txThermalModel::txThermalModel(const std::string& objName): Sensor(objName)
 {
-    opFlags.reset(continuous_flag);  // this is a not a continuous model
+    opFlags.reset(CONTINUOUS_FLAG);  // this is a not a continuous model
     outputStrings = {{"ambient", "ambientTemp", "airTemp"},
                      {"top_oil", "top_oil_temp"},
                      {"hot_spot", "hot_spot_temp"}};  // preset the outputNames

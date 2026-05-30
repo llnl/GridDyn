@@ -52,10 +52,10 @@ class Link: public GridPrimary {
     // it can be edited as it does not impact link operations just for user convenience
     /** @brief define some basic flag locations for Link*/
     enum GridLinkFlags {
-        switch1OpenFlag = object_flag1,  //!<  switch for the from bus
-        switch2OpenFlag = object_flag2,  //!< switch for the to bus
-        fixedTargetPower = object_flag3,  //!< flag indicating if the power flow was fixed
-        networkConnected =
+        SWITCH1_OPEN_FLAG = object_flag1,  //!<  switch for the from bus
+        SWITCH2_OPEN_FLAG = object_flag2,  //!< switch for the to bus
+        FIXED_TARGET_POWER = object_flag3,  //!< flag indicating if the power flow was fixed
+        NETWORK_CONNECTED =
             object_flag4,  //!< indicates if a link ties the buses together in connected network
 
     };
@@ -92,7 +92,7 @@ class Link: public GridPrimary {
      */
     virtual bool switchTest() const
     {
-        return (opFlags[switch1OpenFlag] || opFlags[switch2OpenFlag]);
+        return (opFlags[SWITCH1_OPEN_FLAG] || opFlags[SWITCH2_OPEN_FLAG]);
     }
     /** @brief get the switch state
     @param[in] num  the number of the switch 1 for "from" bus 2 for "to" bus
@@ -100,7 +100,7 @@ class Link: public GridPrimary {
     */
     virtual bool switchTest(index_t num) const
     {
-        return (num == 2) ? opFlags[switch2OpenFlag] : opFlags[switch1OpenFlag];
+        return (num == 2) ? opFlags[SWITCH2_OPEN_FLAG] : opFlags[SWITCH1_OPEN_FLAG];
     }
     /** @brief set the switch state
     @param[in] num  the number of the switch 1 for "from" bus 2 for "to" bus

@@ -15,15 +15,15 @@
 #include <utility>
 
 namespace griddyn::relays {
-busRelay::busRelay(const std::string& objName): Relay(objName)
+BusRelay::BusRelay(const std::string& objName): Relay(objName)
 {
-    opFlags.set(continuous_flag);
-    opFlags.set(power_flow_checks_flag);  // enable power flow checks for busRelay
+    opFlags.set(CONTINUOUS_FLAG);
+    opFlags.set(POWER_FLOW_CHECKS_FLAG);  // enable power flow checks for BusRelay
 }
 
-CoreObject* busRelay::clone(CoreObject* obj) const
+CoreObject* BusRelay::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<busRelay, Relay>(this, obj);
+    auto* nobj = cloneBase<BusRelay, Relay>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -34,7 +34,7 @@ CoreObject* busRelay::clone(CoreObject* obj) const
     return nobj;
 }
 
-void busRelay::setFlag(std::string_view flag, bool val)
+void BusRelay::setFlag(std::string_view flag, bool val)
 {
     if (flag.empty()) {
     } else {
@@ -46,7 +46,7 @@ std::string commDestName;
 std::uint64_t commDestId=0;
 std::string commType;
 */
-void busRelay::set(std::string_view param, std::string_view val)
+void BusRelay::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
@@ -54,7 +54,7 @@ void busRelay::set(std::string_view param, std::string_view val)
     }
 }
 
-void busRelay::set(std::string_view param, double val, units::unit unitType)
+void BusRelay::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "cutoutvoltage") || (param == "voltagelimit")) {
         mCutoutVoltage = units::convert(val, unitType, units::puV, systemBasePower, baseVoltage());
@@ -88,7 +88,7 @@ void busRelay::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-void busRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void BusRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 {
     auto tripEvent = std::make_unique<Event>(0.0);
 
@@ -112,7 +112,7 @@ void busRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     Relay::pFlowObjectInitializeA(time0, flags);
 }
 
-void busRelay::actionTaken(index_t /*actionNum*/,
+void BusRelay::actionTaken(index_t /*actionNum*/,
                            index_t conditionNum,
                            ChangeCode /*actionReturn*/,
                            coreTime /*actionTime*/)

@@ -349,17 +349,17 @@ void paramLoopElement(CoreObject* obj,
         auto param = getElementParam(element);
         if (param.valid) {
             if (param.stringType) {
-                    if (param.field.contains("file") || (param.field == "fmu")) {
-                        readerInfoRef.checkFileParam(param.strVal);
-                        setObjectParameter(component, obj, param);
-                    } else if (param.field.contains("workdir") || param.field.contains("directory")) {
-                        readerInfoRef.checkDirectoryParam(param.strVal);
-                        setObjectParameter(component, obj, param);
-                    } else if ((fieldName == "flag") || (fieldName == "flags")) {
-                        // read the flags parameter
-                        processParamString(param, readerInfoRef);
-                        try {
-                            setMultipleFlags(obj, param.strVal);
+                if (param.field.contains("file") || (param.field == "fmu")) {
+                    readerInfoRef.checkFileParam(param.strVal);
+                    setObjectParameter(component, obj, param);
+                } else if (param.field.contains("workdir") || param.field.contains("directory")) {
+                    readerInfoRef.checkDirectoryParam(param.strVal);
+                    setObjectParameter(component, obj, param);
+                } else if ((fieldName == "flag") || (fieldName == "flags")) {
+                    // read the flags parameter
+                    processParamString(param, readerInfoRef);
+                    try {
+                        setMultipleFlags(obj, param.strVal);
                     }
                     catch (const UnrecognizedParameter&) {
                         WARNPRINT(READER_WARN_ALL, "unrecognized flag in " << param.strVal << "\n");

@@ -18,7 +18,7 @@ the input and states and summing them with the actual difference between the las
 */
 class OutputEstimator {
   private:
-    coreTime time = timeZero;  //!< the last time of known values
+    CoreTime time = timeZero;  //!< the last time of known values
     double prevValue = 0.0;  //!< the previous known value
     std::vector<double> prevInputs;  //!< the last known inputs
     std::vector<double> prevStates;  //!< the last known states
@@ -35,9 +35,9 @@ class OutputEstimator {
     /** construct with the known indices of the dependencies*/
     OutputEstimator(std::vector<int> sDep, std::vector<int> iDep);
     /** make a guess as to the present output based on time inputs and states*/
-    double estimate(coreTime time, const IOdata& inputs, const double state[]);
+    double estimate(CoreTime time, const IOdata& inputs, const double state[]);
     /** update the estimator with new values inputs and states*/
-    bool update(coreTime time, double val, const IOdata& inputs, const double state[]);
+    bool update(CoreTime time, double val, const IOdata& inputs, const double state[]);
 };
 
 }  // namespace griddyn::fmi

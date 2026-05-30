@@ -357,11 +357,11 @@ CoreObject* CoreObject::findByUserID(std::string_view /*typeName*/, index_t sear
     return nullptr;
 }
 
-void CoreObject::updateA(coreTime time)
+void CoreObject::updateA(CoreTime time)
 {
     lastUpdateTime = time;
 }
-coreTime CoreObject::updateB()
+CoreTime CoreObject::updateB()
 {
     assert(nextUpdateTime > negTime / 2.0);  // The assert is to check for spurious calls
     if (nextUpdateTime < maxTime) {

@@ -48,7 +48,7 @@ are 0
 */
     TransferFunctionBlock(std::vector<double> acoef, std::vector<double> bcoef);
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -72,11 +72,11 @@ are 0
     virtual void blockJacobianElements(double input,
                                        double didt,
                                        const StateData& stateDataValue,
-                                       matrixData<double>& matrixDataValue,
+                                       MatrixData<double>& matrixDataValue,
                                        index_t argLoc,
                                        const SolverMode& sMode) override;
-    virtual double step(coreTime time, double inputA) override;
-    // virtual void setTime(coreTime time){prevTime=time;};
+    virtual double step(CoreTime time, double inputA) override;
+    // virtual void setTime(CoreTime time){prevTime=time;};
     virtual stringVec localStateNames() const override;
 };
 }  // namespace griddyn::blocks

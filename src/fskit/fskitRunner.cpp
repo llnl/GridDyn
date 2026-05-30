@@ -42,7 +42,7 @@ int FskitRunner::Initialize(int argc, char* argv[])
     return returnValue;
 }
 
-coreTime FskitRunner::Run()
+CoreTime FskitRunner::Run()
 {
     GRIDDYN_TRACER("GridDyn::GriddynRunner::Run");
     return GriddynRunner::Run();

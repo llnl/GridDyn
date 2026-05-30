@@ -11,7 +11,7 @@
 #include <memory>
 
 namespace griddyn::solvers {
-std::unique_ptr<matrixData<double>> makeSundialsMatrixData(SUNMatrix j)
+std::unique_ptr<MatrixData<double>> makeSundialsMatrixData(SUNMatrix j)
 {
     switch (SUNMatGetID(j)) {
         case SUNMATRIX_DENSE:

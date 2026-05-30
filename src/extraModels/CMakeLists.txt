@@ -6,9 +6,9 @@
 # SPDX-License-Identifier: BSD-3-Clause
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-set(extra_sources extraModels.cpp txThermalModel.cpp txLifeSpan.cpp)
+set(extra_sources extraModels.cpp TxThermalModel.cpp TxLifeSpan.cpp)
 
-set(extra_headers extraModels.h txThermalModel.h txLifeSpan.h)
+set(extra_headers extraModels.h TxThermalModel.h TxLifeSpan.h)
 
 add_library(extraModelLibrary STATIC ${extra_sources} ${extra_headers})
 set_target_properties(extraModelLibrary PROPERTIES FOLDER libraries)

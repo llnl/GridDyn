@@ -62,12 +62,12 @@ if (dimeOptions.count("test") != 0u)
 }
 
 */
-coreTime DimeRunner::Run()
+CoreTime DimeRunner::Run()
 {
     return GriddynRunner::Run();
 }
 
-coreTime DimeRunner::Step(coreTime time)
+CoreTime DimeRunner::Step(CoreTime time)
 {
     auto retTime = GriddynRunner::Step(time);
     // coord->updateOutputs(retTime);

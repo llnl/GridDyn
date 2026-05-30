@@ -88,7 +88,7 @@ void BusRelay::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-void BusRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void BusRelay::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     auto tripEvent = std::make_unique<Event>(0.0);
 
@@ -115,7 +115,7 @@ void BusRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 void BusRelay::actionTaken(index_t /*actionNum*/,
                            index_t conditionNum,
                            ChangeCode /*actionReturn*/,
-                           coreTime /*actionTime*/)
+                           CoreTime /*actionTime*/)
 {
     if (conditionNum == 0) {
         alert(m_sourceObject, BUS_UNDER_VOLTAGE);

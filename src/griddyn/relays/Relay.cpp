@@ -162,7 +162,7 @@ void Relay::setSink(CoreObject* obj)
     m_sinkObject = obj;
 }
 
-void Relay::setActionTrigger(index_t actionNumber, index_t conditionNumber, coreTime delayTime)
+void Relay::setActionTrigger(index_t actionNumber, index_t conditionNumber, CoreTime delayTime)
 {
     if (std::cmp_greater_equal(conditionNumber, conditions.size())) {
         logging::warning(this, "attempted set of invalid conditonNumber");
@@ -186,7 +186,7 @@ void Relay::setActionTrigger(index_t actionNumber, index_t conditionNumber, core
 
 void Relay::setActionMultiTrigger(index_t actionNumber,
                                   const IOlocs& multiConditions,
-                                  coreTime delayTime)
+                                  CoreTime delayTime)
 {
     if (std::cmp_greater_equal(actionNumber, actions.size())) {
         return;
@@ -420,7 +420,7 @@ void Relay::setFlag(std::string_view flag, bool val)
     }
 }
 
-void Relay::updateA(coreTime time)
+void Relay::updateA(CoreTime time)
 {
     auto ncond = condChecks;  // the condition triggers may change the number of conditions so the
                               // array needs to
@@ -477,7 +477,7 @@ std::string Relay::generateCommName()
     return getName();
 }
 
-void Relay::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
+void Relay::pFlowObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
 {
     if ((opFlags[USE_COMM_LINK]) && (!(commLink))) {
         if (cManager.getName().empty()) {
@@ -525,7 +525,7 @@ void Relay::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
     prevTime = time0;
 }
 
-void Relay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void Relay::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (opFlags[CONTINUOUS_FLAG]) {
         updateRootCount(false);
@@ -636,7 +636,7 @@ void Relay::rootTest(const IOdata& /*inputs*/,
     }
 }
 
-void Relay::rootTrigger(coreTime time,
+void Relay::rootTrigger(CoreTime time,
                         const IOdata& /*inputs*/,
                         const std::vector<int>& rootMask,
                         const SolverMode& sMode)
@@ -672,7 +672,7 @@ ChangeCode Relay::rootCheck(const IOdata& /*inputs*/,
 {
     auto prevTrig = triggerCount;
     auto prevAct = actionsTakenCount;
-    const coreTime currentTime = (!stateDataValue.empty()) ? (stateDataValue.time) : prevTime;
+    const CoreTime currentTime = (!stateDataValue.empty()) ? (stateDataValue.time) : prevTime;
     updateA(currentTime);
     if ((triggerCount != prevTrig) || (actionsTakenCount != prevAct)) {
         alert(this, UPDATE_TIME_CHANGE);
@@ -686,7 +686,7 @@ void Relay::clearCondChecks(index_t conditionNumber)
 {
     auto condChecksCopy = condChecks;
     condChecks.resize(0);
-    coreTime mTime = nextUpdateTime;
+    CoreTime mTime = nextUpdateTime;
     for (auto& cond : condChecksCopy) {
         if (cond.conditionNum != conditionNumber) {
             condChecks.push_back(cond);
@@ -738,8 +738,8 @@ void Relay::sendAlarm(std::uint32_t code)
 }
 
 ChangeCode Relay::triggerCondition(index_t conditionNum,
-                                   coreTime conditionTriggerTime,
-                                   coreTime minimumDelayTime)
+                                   CoreTime conditionTriggerTime,
+                                   CoreTime minimumDelayTime)
 {
     ChangeCode eventReturn = ChangeCode::NO_CHANGE;
     cStates[conditionNum] = ConditionStatus::triggered;
@@ -773,7 +773,7 @@ ChangeCode Relay::triggerCondition(index_t conditionNum,
     return eventReturn;
 }
 
-ChangeCode Relay::executeAction(index_t actionNumber, index_t conditionNumber, coreTime actionTime)
+ChangeCode Relay::executeAction(index_t actionNumber, index_t conditionNumber, CoreTime actionTime)
 {
     auto eventReturn = actions[actionNumber]->execute(actionTime);
     ++actionsTakenCount;
@@ -782,8 +782,8 @@ ChangeCode Relay::executeAction(index_t actionNumber, index_t conditionNumber, c
 }
 
 ChangeCode Relay::multiConditionCheckExecute(index_t conditionNumber,
-                                             coreTime conditionTriggerTime,
-                                             coreTime minimumDelayTime)
+                                             CoreTime conditionTriggerTime,
+                                             CoreTime minimumDelayTime)
 {
     ChangeCode eventReturn = ChangeCode::NO_CHANGE;
     // now check the multiCondition triggers
@@ -812,7 +812,7 @@ ChangeCode Relay::multiConditionCheckExecute(index_t conditionNumber,
     return eventReturn;
 }
 
-ChangeCode Relay::evaluateCondCheck(condCheckTime& cond, coreTime checkTime)
+ChangeCode Relay::evaluateCondCheck(condCheckTime& cond, CoreTime checkTime)
 {
     ChangeCode eventReturn = ChangeCode::NO_CHANGE;
     if (checkTime >= cond.testTime) {
@@ -822,7 +822,7 @@ ChangeCode Relay::evaluateCondCheck(condCheckTime& cond, coreTime checkTime)
                 eventReturn = std::max(iret, eventReturn);
             } else {  // it was a multiCondition trigger
                 bool allTriggered = true;
-                const coreTime trigDelay =
+                const CoreTime trigDelay =
                     multiConditionTriggers[cond.conditionNum][cond.actionNum].delayTime;
                 for (auto& conditionNum :
                      multiConditionTriggers[cond.conditionNum][cond.actionNum].multiConditions) {
@@ -863,7 +863,7 @@ ChangeCode Relay::evaluateCondCheck(condCheckTime& cond, coreTime checkTime)
 void Relay::actionTaken(index_t actionNum,
                         index_t conditionNum,
                         ChangeCode actionReturn,
-                        coreTime /*actionTime*/)
+                        CoreTime /*actionTime*/)
 {
     static_cast<void>(actionNum);
     static_cast<void>(conditionNum);
@@ -874,7 +874,7 @@ void Relay::actionTaken(index_t actionNum,
                    conditionNum,
                    static_cast<int>(actionReturn));
 }
-void Relay::conditionTriggered(index_t conditionNum, coreTime timeTriggered)
+void Relay::conditionTriggered(index_t conditionNum, CoreTime timeTriggered)
 {
     static_cast<void>(conditionNum);
     static_cast<void>(timeTriggered);
@@ -890,7 +890,7 @@ void Relay::conditionTriggered(index_t conditionNum, coreTime timeTriggered)
                        static_cast<double>(timeTriggered));
     }
 }
-void Relay::conditionCleared(index_t conditionNum, coreTime timeCleared)
+void Relay::conditionCleared(index_t conditionNum, CoreTime timeCleared)
 {
     static_cast<void>(conditionNum);
     static_cast<void>(timeCleared);

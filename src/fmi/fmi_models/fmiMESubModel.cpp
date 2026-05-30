@@ -13,7 +13,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "outputEstimator.h"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <filesystem>
 #include <memory>
@@ -49,7 +49,7 @@ bool FmiMESubModel::isLoaded() const
     return static_cast<bool>(me);
 }
 
-void FmiMESubModel::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void FmiMESubModel::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     // printf("GridDyn Pflow A\n");
     if (CHECK_CONTROLFLAG(flags, force_constant_pflow_initialization)) {
@@ -72,7 +72,7 @@ void FmiMESubModel::pFlowObjectInitializeB()
     }
 }
 
-void FmiMESubModel::dynObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
+void FmiMESubModel::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
 {
     prevTime = time0;
 }
@@ -358,7 +358,7 @@ std::pair<count_t, count_t> FmiMESubModel::LocalRootCount(const SolverMode& /* s
     return {0, m_eventCount};
 }
 
-void FmiMESubModel::setState(coreTime time,
+void FmiMESubModel::setState(CoreTime time,
                              const double state[],
                              const double dstateDt[],
                              const SolverMode& sMode)
@@ -406,7 +406,7 @@ void FmiMESubModel::setState(coreTime time,
     prevTime = time;
 }
 // for saving the state
-void FmiMESubModel::guessState(coreTime /*time*/,
+void FmiMESubModel::guessState(CoreTime /*time*/,
                                double state[],
                                double dstateDt[],
                                const SolverMode& sMode)
@@ -600,7 +600,7 @@ double FmiMESubModel::getPartial(int depIndex, int refIndex, RefMode mode)
 }
 void FmiMESubModel::jacobianElements(const IOdata& inputs,
                                      const StateData& sD,
-                                     matrixData<double>& md,
+                                     MatrixData<double>& md,
                                      const IOlocs& inputLocs,
                                      const SolverMode& sMode)
 {
@@ -659,16 +659,16 @@ void FmiMESubModel::jacobianElements(const IOdata& inputs,
     }
 }
 
-void FmiMESubModel::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
+void FmiMESubModel::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
-    coreTime h = localIntegrationTime;
+    CoreTime h = localIntegrationTime;
     // int sv = 0;
     // double aval = 0.95;
     // size_t aloc = 7;
-    coreTime curTime = prevTime;
+    CoreTime curTime = prevTime;
     fmi2Boolean eventMode;
     fmi2Boolean terminateSim;
-    coreTime tend = time;
+    CoreTime tend = time;
     std::vector<double> derX(m_stateSize);
     std::vector<double> derX2(m_stateSize);
     std::vector<double> prevInput(m_inputSize);
@@ -705,7 +705,7 @@ void FmiMESubModel::timestep(coreTime time, const IOdata& inputs, const SolverMo
 
 void FmiMESubModel::ioPartialDerivatives(const IOdata& inputs,
                                          const StateData& sD,
-                                         matrixData<double>& md,
+                                         MatrixData<double>& md,
                                          const IOlocs& /*inputLocs*/,
                                          const SolverMode& sMode)
 {
@@ -735,7 +735,7 @@ void FmiMESubModel::ioPartialDerivatives(const IOdata& inputs,
 
 void FmiMESubModel::outputPartialDerivatives(const IOdata& inputs,
                                              const StateData& sD,
-                                             matrixData<double>& md,
+                                             MatrixData<double>& md,
                                              const SolverMode& sMode)
 {
     auto loc = offsets.getLocations(sD, sMode, this);
@@ -774,7 +774,7 @@ void FmiMESubModel::rootTest(const IOdata& inputs,
     me->getEventIndicators(&(roots[rootOffset]));
 }
 
-void FmiMESubModel::rootTrigger(coreTime /*time*/,
+void FmiMESubModel::rootTrigger(CoreTime /*time*/,
                                 const IOdata& /*inputs*/,
                                 const std::vector<int>& /*rootMask*/,
                                 const SolverMode& /*sMode*/)

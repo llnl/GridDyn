@@ -11,7 +11,7 @@
 #include "SundialsMatrixData.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/matrixCreation.h"
-#include "utilities/matrixDataFilter.hpp"
+#include "utilities/MatrixDataFilter.hpp"
 #include <ida/ida.h>
 #include <ida/ida_ls.h>
 #include <sundials/sundials_math.h>
@@ -255,7 +255,7 @@ void IdaInterface::logErrorWeights(PrintLevel logLevel) const
     NVECTOR_DESTROY(use_omp, ele);
 }
 
-void IdaInterface::initialize(coreTime t0)
+void IdaInterface::initialize(CoreTime t0)
 {
     if (!flags[ALLOCATED_FLAG]) {
         throw(InvalidSolverOperation());
@@ -350,7 +350,7 @@ void IdaInterface::setRootFinding(count_t numRoots)
 
 #define SHOW_MISSING_ELEMENTS 0
 
-int IdaInterface::calcIC(coreTime t0, coreTime tstep0, IcModes initCondMode, bool constraints)
+int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, bool constraints)
 {
     int retval;
     ++icCount;
@@ -450,7 +450,7 @@ void IdaInterface::getCurrentData()
     checkFlag(&retval, "IDAGetConsistentIC", 1);
 }
 
-int IdaInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
+int IdaInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
 {
     assert(rootCount == m_gds->rootSize(mode));
     ++solverCallCount;

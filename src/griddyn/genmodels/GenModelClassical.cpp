@@ -12,7 +12,7 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactory.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <complex>
 #include <string>
@@ -37,7 +37,7 @@ CoreObject* GenModelClassical::clone(CoreObject* obj) const
     return gd;
 }
 
-void GenModelClassical::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void GenModelClassical::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
     offsets.local().local.diffSize = 2;
     offsets.local().local.algSize = 2;
@@ -301,7 +301,7 @@ double GenModelClassical::getOutput(const IOdata& inputs,
 
 void GenModelClassical::ioPartialDerivatives(const IOdata& inputs,
                                              const StateData& sD,
-                                             matrixData<double>& md,
+                                             MatrixData<double>& md,
                                              const IOlocs& inputLocs,
                                              const SolverMode& sMode)
 {
@@ -324,7 +324,7 @@ void GenModelClassical::ioPartialDerivatives(const IOdata& inputs,
 
 void GenModelClassical::jacobianElements(const IOdata& inputs,
                                          const StateData& sD,
-                                         matrixData<double>& md,
+                                         MatrixData<double>& md,
                                          const IOlocs& inputLocs,
                                          const SolverMode& sMode)
 {
@@ -400,7 +400,7 @@ rv[1] = Vq + Rs*gm[1] - (Xdp - Xl)*gm[0];
 
 void GenModelClassical::outputPartialDerivatives(const IOdata& inputs,
                                                  const StateData& sD,
-                                                 matrixData<double>& md,
+                                                 MatrixData<double>& md,
                                                  const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, sMode, this);

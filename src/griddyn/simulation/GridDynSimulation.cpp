@@ -21,7 +21,7 @@
 #include "core/ObjectInterpreter.h"
 #include "gmlc/containers/mapOps.hpp"
 #include "gmlc/utilities/stringOps.h"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <cassert>
 #include <compare>
 #include <cstdio>
@@ -516,7 +516,7 @@ void GridDynSimulation::setupOffsets(const SolverMode& sMode, OffsetOrdering off
 
 // --------------- run the simulation ---------------
 
-int GridDynSimulation::run(coreTime tEnd)
+int GridDynSimulation::run(CoreTime tEnd)
 {
     if (tEnd == negTime) {
         tEnd = stopTime;
@@ -613,8 +613,8 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
             out = FUNCTION_EXECUTION_FAILURE;
             break;
         case gridDynAction::GdAction::initialize: {
-            const coreTime startTimeValue =
-                (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : startTime;
+            const CoreTime startTimeValue =
+                (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : startTime;
 
             if (pState == GridState::STARTUP) {
                 out = pFlowInitialize(startTimeValue);
@@ -631,17 +631,17 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
             }
         } break;
         case gridDynAction::GdAction::iterate: {
-            const coreTime timeStepValue =
-                (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stepTime;
-            const coreTime endTimeValue =
-                (cmd.val_double2 != kNullVal) ? coreTime(cmd.val_double2) : stopTime;
+            const CoreTime timeStepValue =
+                (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stepTime;
+            const CoreTime endTimeValue =
+                (cmd.val_double2 != kNullVal) ? CoreTime(cmd.val_double2) : stopTime;
             out = eventDrivenPowerflow(endTimeValue, timeStepValue);
         } break;
         case gridDynAction::GdAction::eventmode: {
-            const coreTime endTimeValue =
-                (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stopTime;
+            const CoreTime endTimeValue =
+                (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stopTime;
             if (cmd.val_double2 != kNullVal) {
-                const coreTime timeStepValue = cmd.val_double2;
+                const CoreTime timeStepValue = cmd.val_double2;
                 out = eventDrivenPowerflow(endTimeValue, timeStepValue);
             } else {
                 out = eventDrivenPowerflow(endTimeValue);
@@ -650,8 +650,8 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
 
         break;
         case gridDynAction::GdAction::dynamicDAE: {
-            const coreTime endTimeValue =
-                (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stopTime;
+            const CoreTime endTimeValue =
+                (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stopTime;
             if (pState < GridState::DYNAMIC_INITIALIZED) {
                 out = dynInitialize();
                 if (out != FUNCTION_EXECUTION_SUCCESS) {
@@ -667,9 +667,9 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
         } break;
         case gridDynAction::GdAction::dynamicPart: {
             const double endTimeValue =
-                (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stopTime;
+                (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stopTime;
             const double timeStepValue =
-                (cmd.val_double2 != kNullVal) ? coreTime(cmd.val_double2) : stepTime;
+                (cmd.val_double2 != kNullVal) ? CoreTime(cmd.val_double2) : stepTime;
             if (pState < GridState::DYNAMIC_INITIALIZED) {
                 out = dynInitialize();
                 if (out != FUNCTION_EXECUTION_SUCCESS) {
@@ -685,9 +685,9 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
         } break;
         case gridDynAction::GdAction::dynamicDecoupled: {
             const double endTimeValue =
-                (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stopTime;
+                (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stopTime;
             const double timeStepValue =
-                (cmd.val_double2 != kNullVal) ? coreTime(cmd.val_double2) : stepTime;
+                (cmd.val_double2 != kNullVal) ? CoreTime(cmd.val_double2) : stepTime;
             if (pState < GridState::DYNAMIC_INITIALIZED) {
                 out = dynInitialize();
                 if (out != FUNCTION_EXECUTION_SUCCESS) {
@@ -698,10 +698,10 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
             out = dynamicDecoupled(endTimeValue, timeStepValue);
         } break;
         case gridDynAction::GdAction::step: {
-            const coreTime timeStepValue =
-                (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stepTime;
-            coreTime timeActual =
-                (cmd.val_double2 != kNullVal) ? coreTime(cmd.val_double2) : stopTime;
+            const CoreTime timeStepValue =
+                (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stepTime;
+            CoreTime timeActual =
+                (cmd.val_double2 != kNullVal) ? CoreTime(cmd.val_double2) : stopTime;
             if (pState < GridState::DYNAMIC_INITIALIZED) {
                 out = dynInitialize();
                 if (out != FUNCTION_EXECUTION_SUCCESS) {
@@ -717,8 +717,8 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
         } break;
         case gridDynAction::GdAction::run:
             if (actionQueue.empty()) {
-                const coreTime endTimeValue =
-                    (cmd.val_double != kNullVal) ? coreTime(cmd.val_double) : stopTime;
+                const CoreTime endTimeValue =
+                    (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stopTime;
                 if (controlFlags[power_flow_only]) {
                     out = powerflow();
                 } else {
@@ -1545,14 +1545,14 @@ std::shared_ptr<SolverInterface> GridDynSimulation::updateSolver(const SolverMod
     return solverData;
 }
 
-void GridDynSimulation::parameterDerivatives(coreTime time,
+void GridDynSimulation::parameterDerivatives(CoreTime time,
                                              ParameterSet& parameterOperators,
                                              const index_t indices[],
                                              const double values[],
                                              count_t parameterCount,
                                              const double state[],
                                              const double dstateDt[],
-                                             matrixData<double>& matrixDataRef,
+                                             MatrixData<double>& matrixDataRef,
                                              const SolverMode& sMode)
 {
     const double delta = 1e-7;
@@ -1653,7 +1653,7 @@ void GridDynSimulation::fillExtraStateData(StateData& stateDataRef, const Solver
     }
 }
 
-bool GridDynSimulation::checkEventsForDynamicReset(coreTime cTime, const SolverMode& sMode)
+bool GridDynSimulation::checkEventsForDynamicReset(CoreTime cTime, const SolverMode& sMode)
 {
     if (EvQ->getNextTime() < cTime) {
         auto eventReturn = EvQ->executeEvents(cTime);

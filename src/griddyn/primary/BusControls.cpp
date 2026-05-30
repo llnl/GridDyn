@@ -44,7 +44,7 @@ bool BusControls::hasPowerAdjustments(id_type_t sid) const
     return false;
 }
 
-double BusControls::getAdjustableCapacityUp(coreTime time) const
+double BusControls::getAdjustableCapacityUp(CoreTime time) const
 {
     double cap = 0.0;
 
@@ -62,7 +62,7 @@ double BusControls::getAdjustableCapacityUp(coreTime time) const
     return cap;
 }
 
-double BusControls::getAdjustableCapacityDown(coreTime time) const
+double BusControls::getAdjustableCapacityDown(CoreTime time) const
 {
     double cap = 0.0;
 
@@ -81,14 +81,14 @@ double BusControls::getAdjustableCapacityDown(coreTime time) const
 
 void BusControls::addPowerControlObject(GridComponent* comp, bool update)
 {
-    if (dynamic_cast<gridSecondary*>(comp) != nullptr) {
+    if (dynamic_cast<GridSecondary*>(comp) != nullptr) {
         auto objid = comp->getID();
         for (auto& rvc : pControlObjects) {
             if (objid == rvc->getID()) {
                 return;
             }
         }
-        pControlObjects.push_back(static_cast<gridSecondary*>(comp));
+        pControlObjects.push_back(static_cast<GridSecondary*>(comp));
         pcfrac.push_back(comp->get("participation"));
     } else if (dynamic_cast<Link*>(comp) != nullptr) {
         auto objid = comp->getID();
@@ -109,14 +109,14 @@ void BusControls::addPowerControlObject(GridComponent* comp, bool update)
 
 void BusControls::addVoltageControlObject(GridComponent* comp, bool update)
 {
-    if (dynamic_cast<gridSecondary*>(comp) != nullptr) {
+    if (dynamic_cast<GridSecondary*>(comp) != nullptr) {
         auto objid = comp->getID();
         for (auto& rvc : vControlObjects) {
             if (objid == rvc->getID()) {
                 return;
             }
         }
-        vControlObjects.push_back(static_cast<gridSecondary*>(comp));
+        vControlObjects.push_back(static_cast<GridSecondary*>(comp));
         vcfrac.push_back(comp->get("vcontrolfrac"));
     } else if (dynamic_cast<Link*>(comp) != nullptr) {
         auto objid = comp->getID();

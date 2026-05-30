@@ -10,8 +10,8 @@
 #include "../GridBus.h"
 #include "BusControls.h"
 #include "core/CoreOwningPtr.hpp"
-#include "utilities/matrixDataCompact.hpp"
-#include "utilities/matrixDataTranslate.hpp"
+#include "utilities/MatrixDataCompact.hpp"
+#include "utilities/MatrixDataTranslate.hpp"
 #include <string>
 
 namespace griddyn {
@@ -26,7 +26,7 @@ voltage and angle,  PV buses fix the voltage and real power,  PQ buses have know
 generation/load, afix buses fix the angle and reactive power.  there are different setting for power
 flow calculations and dynamic calculations.
 
-Buses act as connection points for links to tie to other buses and gridSecondary components such as
+Buses act as connection points for links to tie to other buses and GridSecondary components such as
 generators and loads.
 
 */
@@ -55,7 +55,7 @@ class AcBus: public GridBus {
     BusType prevType = BusType::PQ;  //!< previous type container if the type automatically changes
     DynBusType prevDynType =
         DynBusType::normal;  //!< previous type container if the type automatically changes
-    matrixDataCompact<2, 3> partDeriv;  //!< structure containing the partial derivatives
+    MatrixDataCompact<2, 3> partDeriv;  //!< structure containing the partial derivatives
     model_parameter aTarget = 0.0;  //!< an angle Target(for SLK and afix bus types)
     model_parameter vTarget = 1.0;  //!< a target voltage
     model_parameter participation =
@@ -67,12 +67,12 @@ class AcBus: public GridBus {
     model_parameter prevPower = 0.0;  //!< previous power level
     model_parameter Tw = 0.1;  //!< time constant for the frequency estimator
 
-    coreTime lastSetTime = negTime;  //!< last set time
+    CoreTime lastSetTime = negTime;  //!< last set time
     CoreOwningPtr<GridBlock> fblock;  //!< pointer to frequency estimator block
 
     BusControls busController;  //!< pointer to the eControls object
     // extra blocks and object for remote controlled buses and bus merging
-    matrixDataTranslate<4> of;
+    MatrixDataTranslate<4> of;
     index_t lastSmode = kInvalidLocation;
 
   public:
@@ -111,7 +111,7 @@ class AcBus: public GridBus {
     virtual void setRootOffset(index_t roffset, const SolverMode& sMode) override;
 
   protected:
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void pFlowObjectInitializeB() override;
 
   public:
@@ -125,7 +125,7 @@ class AcBus: public GridBus {
     virtual void reset(ResetLevels level = ResetLevels::minimal) override;
     // dynInitializeB dynamics
   protected:
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -148,7 +148,7 @@ class AcBus: public GridBus {
     // solver functions
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& stateDataValue,
-                                  matrixData<double>& matrixDataValue,
+                                  MatrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
     virtual void residual(const IOdata& inputs,
@@ -168,7 +168,7 @@ class AcBus: public GridBus {
                                double update[],
                                const SolverMode& sMode,
                                double alpha) override;
-    virtual void guessState(coreTime time,
+    virtual void guessState(CoreTime time,
                             double state[],
                             double dstateDt[],
                             const SolverMode& sMode) override;
@@ -185,7 +185,7 @@ class AcBus: public GridBus {
     @param[in] mode  the mode of the convergence
     @param[in] tol  the convergence tolerance
     */
-    virtual void converge(coreTime time,
+    virtual void converge(CoreTime time,
                           double state[],
                           double dstateDt[],
                           const SolverMode& sMode,
@@ -217,9 +217,9 @@ class AcBus: public GridBus {
     virtual void computeDerivatives(const StateData& stateDataValue, const SolverMode& sMode);
 
   public:
-    void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
-    virtual void setState(coreTime time,
+    virtual void setState(CoreTime time,
                           const double state[],
                           const double dstateDt[],
                           const SolverMode& sMode) override;
@@ -258,13 +258,13 @@ class AcBus: public GridBus {
     @param[in] time  the time period within which to do the adjustments
     * @return the reactive link power
     **/
-    virtual double getAdjustableCapacityUp(coreTime time = maxTime) const override;
+    virtual double getAdjustableCapacityUp(CoreTime time = maxTime) const override;
     /** @brief get the available controllable upward adjustments within a time period
     @ details this means power production or load reduction
     @param[in] time  the time period within which to do the adjustments
     * @return the reactive link power
     **/
-    virtual double getAdjustableCapacityDown(coreTime time = maxTime) const override;
+    virtual double getAdjustableCapacityDown(CoreTime time = maxTime) const override;
     /** @brief the dPdf partial derivative  (may be deprecated in the future)
      * @return the $\frac{\partial P}{\partial f}$
      **/

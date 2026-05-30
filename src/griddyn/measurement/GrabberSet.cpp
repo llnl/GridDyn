@@ -51,7 +51,7 @@ std::unique_ptr<GrabberSet> GrabberSet::clone() const
                                              (mStateGrabber) ? mStateGrabber->clone() : nullptr);
     if (mPredictor) {
         gset->mPredictor =
-            std::make_unique<utilities::valuePredictor<coreTime, double>>(*mPredictor);
+            std::make_unique<utilities::valuePredictor<CoreTime, double>>(*mPredictor);
     }
     return gset;
 }
@@ -61,7 +61,7 @@ void GrabberSet::cloneTo(GrabberSet* gset) const
     gset->updateGrabbers(mGrabber->clone(), (mStateGrabber) ? mStateGrabber->clone() : nullptr);
     if (mPredictor) {
         gset->mPredictor =
-            std::make_unique<utilities::valuePredictor<coreTime, double>>(*mPredictor);
+            std::make_unique<utilities::valuePredictor<CoreTime, double>>(*mPredictor);
     }
 }
 
@@ -119,7 +119,7 @@ double GrabberSet::grabData(const StateData& stateDataValue, const SolverMode& s
 }
 
 void GrabberSet::outputPartialDerivatives(const StateData& stateDataValue,
-                                          matrixData<double>& matrixDataValue,
+                                          MatrixData<double>& matrixDataValue,
                                           const SolverMode& sMode)
 {
     if (mStateGrabber) {

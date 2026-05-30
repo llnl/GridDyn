@@ -13,7 +13,7 @@
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixDataSparse.hpp"
+#include "utilities/MatrixDataSparse.hpp"
 #include <cmath>
 #include <cstring>
 #include <numbers>
@@ -110,7 +110,7 @@ CoreObject* AcDcConverter::clone(CoreObject* obj) const
     return nobj;
 }
 
-void AcDcConverter::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
+void AcDcConverter::timestep(CoreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     // TODO(phlpt): This function is incorrect.
     if (!isEnabled()) {
@@ -242,7 +242,7 @@ void AcDcConverter::set(std::string_view param, double val, unit unitType)
     }
 }
 
-void AcDcConverter::pFlowObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void AcDcConverter::pFlowObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
     const double voltage1 = B1->getVoltage();
     const double voltage2 = B2->getVoltage();
@@ -257,7 +257,7 @@ void AcDcConverter::pFlowObjectInitializeA(coreTime /*time0*/, std::uint32_t /*f
     offsets.local().local.jacSize = 4;
 }
 
-void AcDcConverter::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void AcDcConverter::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     updateLocalCache();
     if (opFlags[FIXED_TARGET_POWER]) {
@@ -299,7 +299,7 @@ void AcDcConverter::dynObjectInitializeB(const IOdata& /*inputs*/,
 
 void AcDcConverter::ioPartialDerivatives(id_type_t busId,
                                          const StateData& stateDataValue,
-                                         matrixData<double>& matrixDataValue,
+                                         MatrixData<double>& matrixDataValue,
                                          const IOlocs& inputLocs,
                                          const SolverMode& sMode)
 {
@@ -364,7 +364,7 @@ linkInfo.Q1 = -std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
 
 void AcDcConverter::outputPartialDerivatives(const IOdata& /*inputs*/,
                                              const StateData& stateDataValue,
-                                             matrixData<double>& matrixDataValue,
+                                             MatrixData<double>& matrixDataValue,
                                              const SolverMode& sMode)
 {
     if (!(isEnabled())) {
@@ -387,7 +387,7 @@ void AcDcConverter::outputPartialDerivatives(const IOdata& /*inputs*/,
 }
 void AcDcConverter::outputPartialDerivatives(id_type_t busId,
                                              const StateData& stateDataValue,
-                                             matrixData<double>& matrixDataValue,
+                                             MatrixData<double>& matrixDataValue,
                                              const SolverMode& sMode)
 {
     if (!(isEnabled())) {
@@ -470,7 +470,7 @@ count_t AcDcConverter::outputDependencyCount(index_t /*num*/, const SolverMode& 
 
 void AcDcConverter::jacobianElements(const IOdata& /*inputs*/,
                                      const StateData& stateDataValue,
-                                     matrixData<double>& matrixDataValue,
+                                     MatrixData<double>& matrixDataValue,
                                      const IOlocs& /*inputLocs*/,
                                      const SolverMode& sMode)
 {
@@ -486,8 +486,8 @@ void AcDcConverter::jacobianElements(const IOdata& /*inputs*/,
         IOdata controlSignalInput{linkInfo.v2 - vTarget};
 
         index_t refLoc;
-        matrixDataSparse<double> translatedAngleJacobian;
-        matrixDataSparse<double> translatedInputJacobian;
+        MatrixDataSparse<double> translatedAngleJacobian;
+        MatrixDataSparse<double> translatedInputJacobian;
 
         if (refAlg != kNullLocation) {
             if (controlMode == ControlMode::VOLTAGE) {
@@ -604,7 +604,7 @@ void AcDcConverter::residual(const IOdata& inputs,
     }
 }
 
-void AcDcConverter::setState(coreTime time,
+void AcDcConverter::setState(CoreTime time,
                              const double state[],
                              const double dstateDt[],
                              const SolverMode& sMode)
@@ -630,7 +630,7 @@ void AcDcConverter::setState(coreTime time,
     updateLocalCache();
 }
 
-void AcDcConverter::guessState(coreTime time,
+void AcDcConverter::guessState(CoreTime time,
                                double state[],
                                double dstateDt[],
                                const SolverMode& sMode)

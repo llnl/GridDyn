@@ -21,7 +21,7 @@ class ArkodeInterface: public SundialsInterface {
         0;  //!< counter for the number of times the initial condition function was called
 
   private:
-    matrixDataSparse<double> a1;  //!< array structure for holding the Jacobian information
+    MatrixDataSparse<double> a1;  //!< array structure for holding the Jacobian information
 
     std::vector<double> tempState;  //!< temporary holding location for a state vector
     double maxStep = -1.0;  //!< the maximum step size to take
@@ -43,12 +43,12 @@ class ArkodeInterface: public SundialsInterface {
 
     virtual void cloneTo(SolverInterface* si, bool fullCopy = false) const override;
     virtual void allocate(count_t stateCount, count_t numRoots = 0) override;
-    virtual void initialize(coreTime time0) override;
+    virtual void initialize(CoreTime time0) override;
     virtual void setMaxNonZeros(count_t nonZeroCount) override;
     virtual void sparseReInit(SparseReinitMode sparseReinitMode) override;
     virtual void getCurrentData() override;
     virtual int
-        solve(coreTime tStop, coreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
+        solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
     virtual void getRoots() override;
     virtual void setRootFinding(count_t numRoots) override;
 

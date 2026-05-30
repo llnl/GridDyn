@@ -21,7 +21,7 @@ class CompoundEvent: public Event {
     std::vector<CoreObject*> targetObjects;  //!< the set of objects to target
   public:
     explicit CompoundEvent(const std::string& eventName);
-    explicit CompoundEvent(coreTime time0 = 0.0);
+    explicit CompoundEvent(CoreTime time0 = 0.0);
     CompoundEvent(const EventInfo& gdEI, CoreObject* rootObject);
     virtual std::unique_ptr<Event> clone() const override;
 
@@ -29,7 +29,7 @@ class CompoundEvent: public Event {
 
     // virtual void updateEvent(EventInfo &gdEI, CoreObject *rootObject) override;
     virtual ChangeCode trigger() override;
-    virtual ChangeCode trigger(coreTime time) override;
+    virtual ChangeCode trigger(CoreTime time) override;
 
     virtual void set(std::string_view param, double val) override;
     virtual void set(std::string_view param, std::string_view val) override;

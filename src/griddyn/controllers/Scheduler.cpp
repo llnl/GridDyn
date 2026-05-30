@@ -50,27 +50,27 @@ bool operator!=(const Tsched& td1, const Tsched& td2)
 {
     return (td1.time != td2.time);
 }
-bool operator<(const Tsched& td1, coreTime timeC)
+bool operator<(const Tsched& td1, CoreTime timeC)
 {
     return (td1.time < timeC);
 }
-bool operator<=(const Tsched& td1, coreTime timeC)
+bool operator<=(const Tsched& td1, CoreTime timeC)
 {
     return (td1.time <= timeC);
 }
-bool operator>(const Tsched& td1, coreTime timeC)
+bool operator>(const Tsched& td1, CoreTime timeC)
 {
     return (td1.time > timeC);
 }
-bool operator>=(const Tsched& td1, coreTime timeC)
+bool operator>=(const Tsched& td1, CoreTime timeC)
 {
     return (td1.time >= timeC);
 }
-bool operator==(const Tsched& td1, coreTime timeC)
+bool operator==(const Tsched& td1, CoreTime timeC)
 {
     return (td1.time == timeC);
 }
-bool operator!=(const Tsched& td1, coreTime timeC)
+bool operator!=(const Tsched& td1, CoreTime timeC)
 {
     return (td1.time != timeC);
 }
@@ -110,7 +110,7 @@ void Scheduler::setTarget(double target)
     insertTarget(Tsched(prevTime, target));
 }
 
-void Scheduler::setTarget(coreTime time, double target)
+void Scheduler::setTarget(CoreTime time, double target)
 {
     insertTarget(Tsched(time, target));
 }
@@ -135,7 +135,7 @@ void Scheduler::setTarget(std::vector<double>& time, std::vector<double>& target
 
 void Scheduler::setTarget(const std::string& fileName)
 {
-    gmlc::utilities::TimeSeries<double, coreTime> targets;
+    gmlc::utilities::TimeSeries<double, CoreTime> targets;
     targets.loadFile(fileName);
 
     auto targetList = [&targets]() {
@@ -154,7 +154,7 @@ void Scheduler::setTarget(const std::string& fileName)
     }
 }
 
-void Scheduler::updateA(coreTime time)
+void Scheduler::updateA(CoreTime time)
 {
     const auto deltaTime = (time - prevTime);
     if (deltaTime == timeZero) {
@@ -179,7 +179,7 @@ void Scheduler::updateA(coreTime time)
     lastUpdateTime = time;
 }
 
-double Scheduler::predict(coreTime time)
+double Scheduler::predict(CoreTime time)
 {
     double out = m_output;
     if (time >= nextUpdateTime) {
@@ -189,7 +189,7 @@ double Scheduler::predict(coreTime time)
     return out;
 }
 
-void Scheduler::dynObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
+void Scheduler::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
 {
     commLink = cManager.build();
 
@@ -221,12 +221,12 @@ double Scheduler::getTarget() const
     return (pTarget.empty()) ? pCurr : (pTarget.front()).target;
 }
 
-double Scheduler::getMax(coreTime /*time*/) const
+double Scheduler::getMax(CoreTime /*time*/) const
 {
     return pMax;
 }
 
-double Scheduler::getMin(coreTime /*time*/) const
+double Scheduler::getMin(CoreTime /*time*/) const
 {
     return pMin;
 }

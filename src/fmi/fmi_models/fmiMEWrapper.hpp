@@ -26,7 +26,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
         return nobj;
     }
 
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override
     {
         if (FmiWrapper<FmiMESubModel, BaseObj>::fmisub == nullptr) {
             this->disable();
@@ -41,7 +41,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
         }
     }
 
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override
     {
         if (!BaseObj::opFlags[pFlow_initialized]) {  // just to make sure we actually
                                                      // initialized and didn't go directly to
@@ -73,7 +73,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
 
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const StateData& sD,
-                                          matrixData<double>& md,
+                                          MatrixData<double>& md,
                                           const SolverMode& sMode) override
     {
         if (FmiWrapper<FmiMESubModel, BaseObj>::fmisub == nullptr) {
@@ -83,7 +83,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
     }
     virtual void ioPartialDerivatives(const IOdata& inputs,
                                       const StateData& sD,
-                                      matrixData<double>& md,
+                                      MatrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override
     {
@@ -95,7 +95,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
     }
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& sD,
-                                  matrixData<double>& md,
+                                  MatrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override
     {
@@ -116,7 +116,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
         }
         FmiWrapper<FmiMESubModel, BaseObj>::fmisub->rootTest(inputs, sD, roots, sMode);
     }
-    virtual void rootTrigger(coreTime time,
+    virtual void rootTrigger(CoreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override
@@ -127,7 +127,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
         FmiWrapper<FmiMESubModel, BaseObj>::fmisub->rootTrigger(time, inputs, rootMask, sMode);
     }
 
-    virtual void setState(coreTime time,
+    virtual void setState(CoreTime time,
                           const double state[],
                           const double dstateDt[],
                           const SolverMode& sMode) override
@@ -146,7 +146,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
         return FmiWrapper<FmiMESubModel, BaseObj>::fmisub->findIndex(field, sMode);
     }
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override
     {
         BaseObj::prevTime = time;
         if (FmiWrapper<FmiMESubModel, BaseObj>::fmisub == nullptr) {

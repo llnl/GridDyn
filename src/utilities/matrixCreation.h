@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include "matrixData.hpp"
+#include "MatrixData.hpp"
 #include <memory>
 
-std::unique_ptr<matrixData<double>> makeSparseMatrix(count_t size, count_t maxElements);
+std::unique_ptr<MatrixData<double>> makeSparseMatrix(count_t size, count_t maxElements);

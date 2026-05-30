@@ -8,7 +8,7 @@
 
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <string>
 namespace griddyn::blocks {
 IntegralBlock::IntegralBlock(const std::string& objName): GridBlock(objName)
@@ -82,7 +82,7 @@ void IntegralBlock::blockDerivative(double input,
 void IntegralBlock::blockJacobianElements(double input,
                                           double didt,
                                           const StateData& stateDataValue,
-                                          matrixData<double>& matrixDataValue,
+                                          MatrixData<double>& matrixDataValue,
                                           index_t argLoc,
                                           const SolverMode& sMode)
 {
@@ -98,7 +98,7 @@ void IntegralBlock::blockJacobianElements(double input,
     GridBlock::blockJacobianElements(input, didt, stateDataValue, matrixDataValue, argLoc, sMode);
 }
 
-double IntegralBlock::step(coreTime time, double inputA)
+double IntegralBlock::step(CoreTime time, double inputA)
 {
     const double timeDelta = time - prevTime;
     double out;

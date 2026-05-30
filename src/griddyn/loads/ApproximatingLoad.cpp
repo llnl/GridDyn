@@ -52,7 +52,7 @@ void ApproximatingLoad::add(CoreObject* obj)
 {
     if (dynamic_cast<GridLoad*>(obj) != nullptr) {
         if (subLoad != nullptr) {
-            gridSecondary::remove(subLoad);
+            GridSecondary::remove(subLoad);
         }
         subLoad = static_cast<GridLoad*>(obj);
         addSubObject(subLoad);
@@ -61,7 +61,7 @@ void ApproximatingLoad::add(CoreObject* obj)
     }
 }
 
-void ApproximatingLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void ApproximatingLoad::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     m_lastCallTime = time0;
 
@@ -76,7 +76,7 @@ void ApproximatingLoad::pFlowObjectInitializeB()
     RampLoad::pFlowObjectInitializeB();
 }
 
-void ApproximatingLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void ApproximatingLoad::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     switch (dynCoupling) {
         case CouplingMode::none:
@@ -109,7 +109,7 @@ void ApproximatingLoad::dynObjectInitializeB(const IOdata& /*inputs*/,
     }
 }
 
-void ApproximatingLoad::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void ApproximatingLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     const double voltage = inputs[voltageInLocation];
     const double angle = inputs[angleInLocation];
@@ -129,7 +129,7 @@ void ApproximatingLoad::timestep(coreTime time, const IOdata& inputs, const Solv
     prevTime = time;
 }
 
-void ApproximatingLoad::updateA(coreTime time)
+void ApproximatingLoad::updateA(CoreTime time)
 {
     const double voltage = bus->getVoltage();
     const double angle = bus->getAngle();
@@ -155,7 +155,7 @@ void ApproximatingLoad::updateA(coreTime time)
     prevTime = time;
 }
 
-coreTime ApproximatingLoad::updateB()
+CoreTime ApproximatingLoad::updateB()
 {
     switch (cDetail) {
         case CouplingDetail::single: {
@@ -304,7 +304,7 @@ std::vector<std::tuple<double, double, double>>
     return res;
 }
 
-void ApproximatingLoad::run1ApproxA(coreTime /*time*/, const IOdata& inputs)
+void ApproximatingLoad::run1ApproxA(CoreTime /*time*/, const IOdata& inputs)
 {
     using gmlc::containers::make_workBlock;
     assert(!opFlags[waiting_flag]);  // this should not happen;
@@ -328,7 +328,7 @@ std::vector<double> ApproximatingLoad::run1ApproxB()
     return {std::get<1>(res[0]), std::get<2>(res[0])};
 }
 
-void ApproximatingLoad::run2ApproxA(coreTime /*time*/, const IOdata& inputs)
+void ApproximatingLoad::run2ApproxA(CoreTime /*time*/, const IOdata& inputs)
 {
     using gmlc::containers::make_workBlock;
     assert(!opFlags[waiting_flag]);  // this should not happen;
@@ -367,7 +367,7 @@ std::vector<double> ApproximatingLoad::run2ApproxB()
     return retP;
 }
 
-void ApproximatingLoad::run3ApproxA(coreTime /*time*/, const IOdata& inputs)
+void ApproximatingLoad::run3ApproxA(CoreTime /*time*/, const IOdata& inputs)
 {
     using gmlc::containers::make_workBlock;
     assert(!opFlags[waiting_flag]);  // this should not happen;
@@ -562,7 +562,7 @@ void ApproximatingLoad::rootTest(const IOdata& inputs,
     // printf("time=%f root =%12.10f\n", time,roots[rootOffset]);
 }
 
-void ApproximatingLoad::rootTrigger(coreTime time,
+void ApproximatingLoad::rootTrigger(CoreTime time,
                                     const IOdata& /*inputs*/,
                                     const std::vector<int>& rootMask,
                                     const SolverMode& sMode)

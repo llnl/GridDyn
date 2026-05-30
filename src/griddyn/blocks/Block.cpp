@@ -12,7 +12,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewConversion.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <memory>
 #include <string>
 #include <vector>
@@ -71,7 +71,7 @@ CoreObject* GridBlock::clone(CoreObject* obj) const
     return nobj;
 }
 
-void GridBlock::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void GridBlock::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
     auto& lcinfo = offsets.local();
     lcinfo.reset();
@@ -266,14 +266,14 @@ void GridBlock::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-void GridBlock::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
+void GridBlock::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     step(time, inputs[0]);
 }
 
 static IOdata gKNullVec;
 
-double GridBlock::step(coreTime time, double input)
+double GridBlock::step(CoreTime time, double input)
 {
     if (!opFlags[useState]) {
         m_state[limiter_alg + limiter_diff] = (input + bias) * K;
@@ -535,7 +535,7 @@ void GridBlock::derivative(const IOdata& inputs,
 void GridBlock::blockJacobianElements(double /*input*/,
                                       double /*didt*/,
                                       const StateData& stateDataValue,
-                                      matrixData<double>& matrixDataValue,
+                                      MatrixData<double>& matrixDataValue,
                                       index_t argLoc,
                                       const SolverMode& solverModeValue)
 {
@@ -596,7 +596,7 @@ void GridBlock::blockJacobianElements(double /*input*/,
 
 void GridBlock::jacobianElements(const IOdata& inputs,
                                  const StateData& stateDataValue,
-                                 matrixData<double>& matrixDataValue,
+                                 MatrixData<double>& matrixDataValue,
                                  const IOlocs& inputLocs,
                                  const SolverMode& solverModeValue)
 {
@@ -679,7 +679,7 @@ ChangeCode GridBlock::rootCheck(const IOdata& inputs,
     return ret;
 }
 
-void GridBlock::rootTrigger(coreTime /*time*/,
+void GridBlock::rootTrigger(CoreTime /*time*/,
                             const IOdata& inputs,
                             const std::vector<int>& rootMask,
                             const SolverMode& solverModeValue)

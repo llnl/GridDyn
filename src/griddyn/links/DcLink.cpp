@@ -45,7 +45,7 @@ CoreObject* DcLink::clone(CoreObject* obj) const
     return nobj;
 }
 
-void DcLink::timestep(coreTime /*time*/, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
+void DcLink::timestep(CoreTime /*time*/, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     if (!isEnabled()) {
         return;
@@ -101,7 +101,7 @@ void DcLink::set(std::string_view param, double val, unit unitType)
     }
 }
 
-void DcLink::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void DcLink::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     Link::pFlowObjectInitializeA(time0, flags);
     if (isEnabled()) {
@@ -121,7 +121,7 @@ void DcLink::pFlowObjectInitializeB()
     }
 }
 
-void DcLink::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void DcLink::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
     m_dstate_dt.resize(1);
     m_state.resize(1);
@@ -165,7 +165,7 @@ count_t DcLink::localJacobianCount(const SolverMode& sMode) const
 
 void DcLink::ioPartialDerivatives(id_type_t busId,
                                   const StateData& stateData,
-                                  matrixData<double>& jacobian,
+                                  MatrixData<double>& jacobian,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode)
 {
@@ -184,7 +184,7 @@ void DcLink::ioPartialDerivatives(id_type_t busId,
 
 void DcLink::outputPartialDerivatives(id_type_t busId,
                                       const StateData& stateData,
-                                      matrixData<double>& jacobian,
+                                      MatrixData<double>& jacobian,
                                       const SolverMode& sMode)
 {
     if (!(isEnabled())) {
@@ -234,7 +234,7 @@ count_t DcLink::outputDependencyCount(index_t num, const SolverMode& /*sMode*/) 
 
 void DcLink::jacobianElements(const IOdata& /*inputs*/,
                               const StateData& stateData,
-                              matrixData<double>& jacobian,
+                              MatrixData<double>& jacobian,
                               const IOlocs& /*inputLocs*/,
                               const SolverMode& sMode)
 {
@@ -284,7 +284,7 @@ void DcLink::residual(const IOdata& inputs,
     }
 }
 
-void DcLink::setState(coreTime time,
+void DcLink::setState(CoreTime time,
                       const double state[],
                       const double dstateDt[],
                       const SolverMode& sMode)
@@ -303,7 +303,7 @@ void DcLink::setState(coreTime time,
     prevTime = time;
 }
 
-void DcLink::guessState(const coreTime /*time*/,
+void DcLink::guessState(const CoreTime /*time*/,
                         double state[],
                         double dstateDt[],
                         const SolverMode& sMode)

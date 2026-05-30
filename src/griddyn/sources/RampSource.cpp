@@ -37,7 +37,7 @@ void RampSource::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-double RampSource::computeOutput(coreTime time) const
+double RampSource::computeOutput(CoreTime time) const
 {
     auto tdiff = time - prevTime;
     return m_output + mp_dOdt * tdiff;

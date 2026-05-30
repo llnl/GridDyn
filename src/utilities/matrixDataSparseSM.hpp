@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "matrixData.hpp"
-#include "matrixDataOrdering.hpp"
+#include "MatrixData.hpp"
+#include "MatrixDataOrdering.hpp"
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -18,7 +18,7 @@
 
 /** @brief simple class for compute the keyIndex from a row and column and inverting it*/
 template<class X, SparseOrdering M>
-class keyCompute {  // default is row ordered
+class KeyCompute {  // default is row ordered
   public:
     static X keyGen(index_t rowIndex, index_t colIndex)
     {
@@ -34,7 +34,7 @@ class keyCompute {  // default is row ordered
 };
 
 template<class X>
-class keyCompute<X, SparseOrdering::COLUMN_ORDERED> {
+class KeyCompute<X, SparseOrdering::COLUMN_ORDERED> {
   public:
     static X keyGen(index_t rowIndex, index_t colIndex)
     {
@@ -51,7 +51,7 @@ class keyCompute<X, SparseOrdering::COLUMN_ORDERED> {
 
 /** @brief simple class for compute the blockIndex from a row and column and inverting it*/
 template<count_t K, SparseOrdering M>
-class blockCompute {
+class BlockCompute {
   public:
     index_t blockIndexGen(index_t row, index_t col) const
     {
@@ -85,7 +85,7 @@ class blockCompute {
 
 /** @brief simple class for compute the blockIndex from a row and column and inverting it*/
 template<SparseOrdering M>
-class blockCompute<1, M> {
+class BlockCompute<1, M> {
   public:
     index_t blockIndexGen(index_t row, index_t col) const
     {
@@ -113,7 +113,7 @@ template<count_t K,
          class X = std::uint32_t,
          class ValueT = double,
          SparseOrdering M = SparseOrdering::ROW_ORDERED>
-class matrixDataSparseSMB: public matrixData<ValueT> {
+class MatrixDataSparseSMB: public MatrixData<ValueT> {
     static_assert(std::is_integral<X>::value, "class X must be of integral type");
     static_assert(std::is_unsigned<X>::value, "class X must be of an unsigned type");
     using pLoc = std::pair<X, ValueT>;
@@ -149,11 +149,11 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
         return bucketCount;
     }
 
-    keyCompute<X, M>
+    KeyCompute<X, M>
         key_computer;  //!< object that generators the keys and extracts row and column information
     std::array<std::vector<pLoc>, bucketCount> dVec;  //!< the vector of pairs containing the data
     count_t sortCount = 0;  //!< count of the last sort operation
-    blockCompute<K, M> block_computer;  //!< object that generates the appropriate block index;
+    BlockCompute<K, M> block_computer;  //!< object that generates the appropriate block index;
     cIterator cptr;  //!< ptr to the beginning of the sequence;
     cIterator iend;  //!< ptr to the end of the current sequence;
     count_t ci = 0;  //!< indicator of which vector of the array we are sequencing on;
@@ -162,7 +162,7 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
       the actual storage space used is approx 2x startCount due to expected unevenness in the array
     @param[in] startCount  the number of elements to reserve
     */
-    explicit matrixDataSparseSMB(index_t startCount = 1000)
+    explicit MatrixDataSparseSMB(index_t startCount = 1000)
     {
         for (auto& dvk : dVec) {
             dvk.reserve(startCount >> (K - 1));
@@ -254,7 +254,7 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
         sortCount = size();
     }
 
-    matrixElement<ValueT> element(index_t N) const override
+    MatrixElement<ValueT> element(index_t N) const override
     {
         count_t ii = 0;
         index_t sz1 = 0;
@@ -270,8 +270,8 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
                 dVec[ii][N - sz1].second};
     }
 
-    auto begin() const { return matrixIteratorSM(this, 0); }
-    auto end() const { return matrixIteratorSM(this, size()); }
+    auto begin() const { return MatrixIteratorSM(this, 0); }
+    auto end() const { return MatrixIteratorSM(this, size()); }
     void start() override
     {
         ci = findNextNonEmptyBucket(0);
@@ -284,12 +284,12 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
         }
     }
 
-    matrixElement<ValueT> next() override
+    MatrixElement<ValueT> next() override
     {
         if (ci >= bucketCount) {
             return {};
         }
-        matrixElement<ValueT> tp{key_computer.row(cptr->first),
+        MatrixElement<ValueT> tp{key_computer.row(cptr->first),
                                  key_computer.col(cptr->first),
                                  cptr->second};
         ++cptr;
@@ -337,10 +337,10 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
     }
 
   protected:
-    class matrixIteratorSM {
+    class MatrixIteratorSM {
       public:
-        explicit matrixIteratorSM(const matrixDataSparseSMB<K, X, ValueT, M>* matrixData,
-                                  index_t start = 0): mDS(matrixData)
+        explicit MatrixIteratorSM(const MatrixDataSparseSMB<K, X, ValueT, M>* MatrixData,
+                                  index_t start = 0): mDS(MatrixData)
         {
             if (start == 0) {
                 ci = mDS->findNextNonEmptyBucket(0);
@@ -362,7 +362,7 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
             }
         }
 
-        matrixIteratorSM& operator++()
+        MatrixIteratorSM& operator++()
         {
             ++cptr;
             if (cptr == iend) {
@@ -375,7 +375,7 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
             return *this;
         }
 
-        matrixElement<ValueT> operator*() const
+        MatrixElement<ValueT> operator*() const
         {
             return {mDS->key_computer.row(cptr->first),
                     mDS->key_computer.col(cptr->first),
@@ -383,7 +383,7 @@ class matrixDataSparseSMB: public matrixData<ValueT> {
         }
 
       private:
-        const matrixDataSparseSMB<K, X, ValueT, M>* mDS = nullptr;
+        const MatrixDataSparseSMB<K, X, ValueT, M>* mDS = nullptr;
         cIterator cptr;  //!< ptr to the beginning of the sequence;
         cIterator iend;  //!< ptr to the end of the current sequence;
         count_t ci = 0;  //!< indicator of which vector of the array we are sequencing on;
@@ -396,7 +396,7 @@ necessary the vector contains a single 32 bit unsigned number composed by using 
 the sorting faster when done
 */
 template<class X, class ValueT, SparseOrdering M>
-class matrixDataSparseSMB<0, X, ValueT, M>: public matrixData<ValueT> {
+class MatrixDataSparseSMB<0, X, ValueT, M>: public MatrixData<ValueT> {
     static_assert(std::is_integral<X>::value, "class X must be of integral type");
     static_assert(std::is_unsigned<X>::value, "class X must be of an unsigned type");
 
@@ -406,7 +406,7 @@ class matrixDataSparseSMB<0, X, ValueT, M>: public matrixData<ValueT> {
     count_t sortCount = 0;  //!< count of the last sort operation
     std::vector<pLoc> dVec;  //!< the vector of pairs containing the data
     cIterator cptr;  //!< ptr to the beginning of the sequence;
-    keyCompute<X, M>
+    KeyCompute<X, M>
         key_computer;  //!< object that generators the keys and extracts row and column information
 
   public:
@@ -414,7 +414,7 @@ class matrixDataSparseSMB<0, X, ValueT, M>: public matrixData<ValueT> {
       the actual storage space used is approx 2x startCount due to expected unevenness in the array
     @param[in] startCount  the number of elements to reserve
     */
-    explicit matrixDataSparseSMB(index_t startCount = 1000) { dVec.reserve(startCount); }
+    explicit MatrixDataSparseSMB(index_t startCount = 1000) { dVec.reserve(startCount); }
     void clear() override { dVec.clear(); }
     void assign(index_t row, index_t col, ValueT num) override
     {
@@ -466,17 +466,17 @@ class matrixDataSparseSMB<0, X, ValueT, M>: public matrixData<ValueT> {
         sortCount = size();
     }
 
-    matrixElement<ValueT> element(index_t N) const override
+    MatrixElement<ValueT> element(index_t N) const override
     {
         return {key_computer.row(dVec[N].first), key_computer.col(dVec[N].first), dVec[N].second};
     }
 
-    auto begin() const { return matrixIteratorSM(this, 0); }
-    auto end() const { return matrixIteratorSM(this, size()); }
+    auto begin() const { return MatrixIteratorSM(this, 0); }
+    auto end() const { return MatrixIteratorSM(this, size()); }
     void start() override { cptr = dVec.cbegin(); }
-    matrixElement<ValueT> next() override
+    MatrixElement<ValueT> next() override
     {
-        matrixElement<ValueT> tp{key_computer.row(cptr->first),
+        MatrixElement<ValueT> tp{key_computer.row(cptr->first),
                                  key_computer.col(cptr->first),
                                  cptr->second};
         ++cptr;
@@ -511,10 +511,10 @@ class matrixDataSparseSMB<0, X, ValueT, M>: public matrixData<ValueT> {
         }
         return ValueT(0);
     }
-    class matrixIteratorSM {
+    class MatrixIteratorSM {
       public:
-        explicit matrixIteratorSM(const matrixDataSparseSMB<0, X, ValueT, M>* matrixData,
-                                  index_t start = 0): mDS(matrixData)
+        explicit MatrixIteratorSM(const MatrixDataSparseSMB<0, X, ValueT, M>* MatrixData,
+                                  index_t start = 0): mDS(MatrixData)
         {
             if (start == 0) {
                 cptr = mDS->dVec.cbegin();
@@ -525,8 +525,8 @@ class matrixDataSparseSMB<0, X, ValueT, M>: public matrixData<ValueT> {
             }
         }
 
-        matrixIteratorSM& operator++() { ++cptr; }
-        virtual matrixElement<ValueT> operator*() const override
+        MatrixIteratorSM& operator++() { ++cptr; }
+        virtual MatrixElement<ValueT> operator*() const override
         {
             return {mDS->key_computer.row(cptr->first),
                     mDS->key_computer.col(cptr->first),
@@ -534,7 +534,7 @@ class matrixDataSparseSMB<0, X, ValueT, M>: public matrixData<ValueT> {
         }
 
       private:
-        const matrixDataSparseSMB<0, X, ValueT, M>* mDS = nullptr;
+        const MatrixDataSparseSMB<0, X, ValueT, M>* mDS = nullptr;
         cIterator cptr;  //!< ptr to the beginning of the sequence;
     };
 };
@@ -547,7 +547,7 @@ parameter K indicates that the structure should use 2^K vectors for data storage
 is approximately 2x that used in the single column structure
 */
 template<class X, class ValueT, SparseOrdering M>
-class matrixDataSparseSMB<1, X, ValueT, M>: public matrixData<ValueT> {
+class MatrixDataSparseSMB<1, X, ValueT, M>: public MatrixData<ValueT> {
     static_assert(std::is_integral<X>::value, "class X must be of integral type");
     static_assert(std::is_unsigned<X>::value, "class X must be of an unsigned type");
     using pLoc = std::pair<X, ValueT>;
@@ -561,16 +561,16 @@ class matrixDataSparseSMB<1, X, ValueT, M>: public matrixData<ValueT> {
     cIterator cptr;  //!< iterator to the beginning of the sequence;
     cIterator iend;  //!< iterator to the end of the current sequence;
 
-    keyCompute<X, M>
+    KeyCompute<X, M>
         key_computer;  //!< object that generators the keys and extracts row and column information
-    blockCompute<1, M> block_computer;  //!< object that generators the appropriate block to use
+    BlockCompute<1, M> block_computer;  //!< object that generators the appropriate block to use
 
   public:
     /** @brief constructor
       the actual storage space used is approx 2x startCount due to expected unevenness in the array
     @param[in] startCount  the number of elements to reserve
     */
-    explicit matrixDataSparseSMB(index_t startCount = 1000)
+    explicit MatrixDataSparseSMB(index_t startCount = 1000)
     {
         dVec[0].reserve(startCount);
         dVec[1].reserve(startCount);
@@ -645,9 +645,9 @@ class matrixDataSparseSMB<1, X, ValueT, M>: public matrixData<ValueT> {
         sortCount = size();
     }
 
-    virtual matrixElement<ValueT> element(index_t N) const override
+    virtual MatrixElement<ValueT> element(index_t N) const override
     {
-        matrixElement<ValueT> ret;
+        MatrixElement<ValueT> ret;
         auto dvs = static_cast<index_t>(dVec[0].size());
         ret.row = static_cast<index_t>(
             key_computer.row((N >= dvs) ? dVec[1][N - dvs].first : dVec[0][N].first));
@@ -657,8 +657,8 @@ class matrixDataSparseSMB<1, X, ValueT, M>: public matrixData<ValueT> {
         return ret;
     }
 
-    auto begin() const { return matrixIteratorSM(this, 0); }
-    auto end() const { return matrixIteratorSM(this, size()); }
+    auto begin() const { return MatrixIteratorSM(this, 0); }
+    auto end() const { return MatrixIteratorSM(this, size()); }
     void start() override
     {
         cptr = dVec[0].cbegin();
@@ -666,9 +666,9 @@ class matrixDataSparseSMB<1, X, ValueT, M>: public matrixData<ValueT> {
         ci = 0;
     }
 
-    matrixElement<ValueT> next() override
+    MatrixElement<ValueT> next() override
     {
-        matrixElement<ValueT> tp{key_computer.row(cptr->first),
+        MatrixElement<ValueT> tp{key_computer.row(cptr->first),
                                  key_computer.col(cptr->first),
                                  cptr->second};
         ++cptr;
@@ -713,10 +713,10 @@ class matrixDataSparseSMB<1, X, ValueT, M>: public matrixData<ValueT> {
     }
 
   protected:
-    class matrixIteratorSM {
+    class MatrixIteratorSM {
       public:
-        explicit matrixIteratorSM(const matrixDataSparseSMB<1, X, ValueT, M>* matrixData,
-                                  index_t start = 0): mDS(matrixData)
+        explicit MatrixIteratorSM(const MatrixDataSparseSMB<1, X, ValueT, M>* MatrixData,
+                                  index_t start = 0): mDS(MatrixData)
         {
             if (start == 0) {
                 ci = 0;
@@ -730,7 +730,7 @@ class matrixDataSparseSMB<1, X, ValueT, M>: public matrixData<ValueT> {
             }
         }
 
-        matrixIteratorSM& operator++()
+        MatrixIteratorSM& operator++()
         {
             ++cptr;
             if (cptr == iend) {
@@ -743,7 +743,7 @@ class matrixDataSparseSMB<1, X, ValueT, M>: public matrixData<ValueT> {
             return &this;
         }
 
-        virtual matrixElement<ValueT> operator*() const override
+        virtual MatrixElement<ValueT> operator*() const override
         {
             return {mDS->key_computer.row(cptr->first),
                     mDS->key_computer.col(cptr->first),
@@ -751,7 +751,7 @@ class matrixDataSparseSMB<1, X, ValueT, M>: public matrixData<ValueT> {
         }
 
       private:
-        const matrixDataSparseSMB<1, X, ValueT, M>* mDS = nullptr;
+        const MatrixDataSparseSMB<1, X, ValueT, M>* mDS = nullptr;
         cIterator cptr;  //!< ptr to the beginning of the sequence;
         cIterator iend;  //!< ptr to the end of the current sequence;
         int ci = 0;  //!< indicator of which vector of the array we are sequencing on;

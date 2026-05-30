@@ -24,7 +24,7 @@ class GovernorIeeeSimple: public Governor {
     explicit GovernorIeeeSimple(const std::string& objName = "govIeeeSimple_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual ~GovernorIeeeSimple();
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -43,19 +43,19 @@ class GovernorIeeeSimple: public Governor {
                             const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& sD,
-                                  matrixData<double>& md,
+                                  MatrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void rootTest(const IOdata& inputs,
                           const StateData& sD,
                           double roots[],
                           const SolverMode& sMode) override;
-    virtual void rootTrigger(coreTime time,
+    virtual void rootTrigger(CoreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override;
-    // virtual void setTime(coreTime time){prevTime=time;};
+    // virtual void setTime(CoreTime time){prevTime=time;};
 };
 
 }  // namespace griddyn::governors

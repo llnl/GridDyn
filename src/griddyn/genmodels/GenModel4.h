@@ -7,7 +7,7 @@
 #pragma once
 
 #include "GenModel3.h"
-#include "utilities/saturation.h"
+#include "utilities/Saturation.h"
 #include <string>
 namespace griddyn::genmodels {
 class GenModel4: public GenModel3 {
@@ -16,11 +16,11 @@ class GenModel4: public GenModel3 {
     double Tqop = 1.0;  //!< [s]    q-axis time constant
     double S10 = 1.0;  //!< the saturation S (1.0) const
     double S12 = 1.0;  //!< the saturation S(1.2)
-    utilities::saturation sat;  //!< saturation function object
+    utilities::Saturation sat;  //!< saturation function object
   public:
     explicit GenModel4(const std::string& objName = "genModel4_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -31,7 +31,7 @@ class GenModel4: public GenModel3 {
 
     virtual stringVec localStateNames() const override;
     // dynamics
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void residual(const IOdata& inputs,
                           const StateData& sD,
                           double resid[],
@@ -42,7 +42,7 @@ class GenModel4: public GenModel3 {
                             const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& sD,
-                                  matrixData<double>& md,
+                                  MatrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
 

@@ -39,7 +39,7 @@ class GovernorSteamTCSR: public GovernorSteamNR {
 
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& sD,
-                                  matrixData<double>& md,
+                                  MatrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
 };

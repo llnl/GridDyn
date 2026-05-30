@@ -568,7 +568,7 @@ void GridArea::reset(ResetLevels level)
 }
 
 // dynInitializeB states
-void GridArea::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void GridArea::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     for (auto* obj : primaryObjects) {
         obj->pFlowInitializeA(time0, flags);
@@ -708,7 +708,7 @@ void GridArea::pFlowCheck(std::vector<Violation>& Violation_vector)
 }
 
 // dynInitializeB states for dynamic solution
-void GridArea::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void GridArea::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     for (auto* obj : primaryObjects) {
         if (obj->isEnabled()) {
@@ -774,9 +774,9 @@ void GridArea::dynObjectInitializeB(const IOdata& inputs,
 }
 
 // TODO(PT): make this do something or remove it
-void GridArea::updateTheta(coreTime /*time*/) {}
+void GridArea::updateTheta(CoreTime /*time*/) {}
 
-void GridArea::converge(coreTime time,
+void GridArea::converge(CoreTime time,
                         double state[],
                         double dstateDt[],
                         const SolverMode& sMode,
@@ -910,7 +910,7 @@ double GridArea::get(std::string_view param, unit unitType) const
     return (vali != 0) ? (static_cast<double>(vali)) : val;
 }
 
-void GridArea::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void GridArea::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     // update the tie lines first
     for (auto* gL : m_Links) {
@@ -1235,7 +1235,7 @@ count_t GridArea::getLinkBus(stringVec& names, index_t start, int busNumber) con
 
 // single value return functions
 
-double GridArea::getAdjustableCapacityUp(coreTime time) const
+double GridArea::getAdjustableCapacityUp(CoreTime time) const
 {
     double adjUp = 0.0;
     for (auto* area : m_GridAreas) {
@@ -1249,7 +1249,7 @@ double GridArea::getAdjustableCapacityUp(coreTime time) const
     return adjUp;
 }
 
-double GridArea::getAdjustableCapacityDown(coreTime time) const
+double GridArea::getAdjustableCapacityDown(CoreTime time) const
 {
     double adjDown = 0.0;
     for (auto* area : m_GridAreas) {
@@ -1381,7 +1381,7 @@ double GridArea::getAvgFreq() const
 // -------------------- Power Flow --------------------
 
 // guessState the solution
-void GridArea::guessState(coreTime time, double state[], double dstateDt[], const SolverMode& sMode)
+void GridArea::guessState(CoreTime time, double state[], double dstateDt[], const SolverMode& sMode)
 {
     auto cobj = opObjectLists->begin(sMode);
     auto cend = opObjectLists->end(sMode);
@@ -1465,7 +1465,7 @@ ChangeCode GridArea::rootCheck(const IOdata& inputs,
     return ret;
 }
 
-void GridArea::rootTrigger(coreTime time,
+void GridArea::rootTrigger(CoreTime time,
                            const IOdata& inputs,
                            const std::vector<int>& rootMask,
                            const SolverMode& sMode)
@@ -1510,7 +1510,7 @@ void GridArea::rootTrigger(coreTime time,
 }
 
 // pass the solution
-void GridArea::setState(coreTime time,
+void GridArea::setState(CoreTime time,
                         const double state[],
                         const double dstateDt[],
                         const SolverMode& sMode)
@@ -1666,7 +1666,7 @@ void GridArea::delayedDerivative(const IOdata& inputs,
 
 void GridArea::delayedJacobian(const IOdata& inputs,
                                const StateData& stateDataValue,
-                               matrixData<double>& matrixDataValue,
+                               MatrixData<double>& matrixDataValue,
                                const IOlocs& inputLocs,
                                const SolverMode& sMode)
 {
@@ -1694,7 +1694,7 @@ void GridArea::derivative(const IOdata& inputs,
 // Jacobian
 void GridArea::jacobianElements(const IOdata& inputs,
                                 const StateData& stateDataValue,
-                                matrixData<double>& matrixDataValue,
+                                MatrixData<double>& matrixDataValue,
                                 const IOlocs& inputLocs,
                                 const SolverMode& sMode)
 {

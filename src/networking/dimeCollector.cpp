@@ -11,7 +11,7 @@
 #include <string>
 
 namespace griddyn::dimeLib {
-DimeCollector::DimeCollector(coreTime time0, coreTime period): Collector(time0, period) {}
+DimeCollector::DimeCollector(CoreTime time0, CoreTime period): Collector(time0, period) {}
 
 DimeCollector::DimeCollector(const std::string& collectorName): Collector(collectorName) {}
 
@@ -39,7 +39,7 @@ void DimeCollector::cloneTo(Collector* col) const
     dimeCollectorClone->processName = processName;
 }
 
-ChangeCode DimeCollector::trigger(coreTime time)
+ChangeCode DimeCollector::trigger(CoreTime time)
 {
     if (!dime) {
         dime = std::make_unique<DimeClientInterface>(processName, server);

@@ -58,7 +58,7 @@ class GridDynFederatedSimulator:
 
     fskit::Time mCurrentFskitTime;
     fskit::Time mGrantedTime;
-    griddyn::coreTime mCurrentGriddynTime;
+    griddyn::CoreTime mCurrentGriddynTime;
 
     std::shared_ptr<griddyn::FskitRunner> mGridDyn;
 };

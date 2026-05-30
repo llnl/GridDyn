@@ -14,7 +14,7 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "core/coreDefinitions.hpp"
 #include "solvers/SolverMode.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cstdint>
 #include <string>
@@ -43,7 +43,7 @@ CoreObject* ExciterSEXS::clone(CoreObject* obj) const
     return gdE;
 }
 
-void ExciterSEXS::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void ExciterSEXS::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
     offsets.local().local.diffSize = 2;
     offsets.local().local.jacSize = 6;
@@ -138,7 +138,7 @@ void ExciterSEXS::derivative(const IOdata& inputs,
 
 void ExciterSEXS::jacobianElements(const IOdata& /*inputs*/,
                                    const StateData& stateData,
-                                   matrixData<double>& matrix,
+                                   MatrixData<double>& matrix,
                                    const IOlocs& inputLocs,
                                    const SolverMode& SolverMode)
 {
@@ -182,7 +182,7 @@ void ExciterSEXS::rootTest(const IOdata& inputs,
     }
 }
 
-void ExciterSEXS::rootTrigger(coreTime time,
+void ExciterSEXS::rootTrigger(CoreTime time,
                               const IOdata& inputs,
                               const std::vector<int>& rootMask,
                               const SolverMode& SolverMode)

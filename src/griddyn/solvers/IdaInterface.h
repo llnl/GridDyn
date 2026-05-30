@@ -20,7 +20,7 @@ class IdaInterface: public SundialsInterface {
     count_t icCount = 0;  //!< the number of times the initical condition function was called
 
   private:
-    matrixDataSparse<double> a1;  //!< array structure for holding the Jacobian information
+    MatrixDataSparse<double> a1;  //!< array structure for holding the Jacobian information
 
     std::vector<double> tempState;  //!< temporary holding location for a state vector
   public:
@@ -40,11 +40,11 @@ class IdaInterface: public SundialsInterface {
 
     virtual void allocate(count_t stateCount, count_t numRoots = 0) override;
     void setMaxNonZeros(count_t nonZeros) override;
-    virtual void initialize(coreTime t0) override;
+    virtual void initialize(CoreTime t0) override;
     virtual void sparseReInit(SparseReinitMode sparseReInitMode) override;
-    int calcIC(coreTime t0, coreTime tstep0, IcModes initCondMode, bool constraints) override;
+    int calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, bool constraints) override;
     virtual void getCurrentData() override;
-    int solve(coreTime tStop, coreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
+    int solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
     virtual void getRoots() override;
     virtual void setRootFinding(count_t numRoots) override;
 

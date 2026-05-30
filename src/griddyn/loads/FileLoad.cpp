@@ -40,7 +40,7 @@ CoreObject* FileLoad::clone(CoreObject* obj) const
     return nobj;
 }
 
-void FileLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void FileLoad::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     currIndex = 0;
     count = loadFile();
@@ -61,7 +61,7 @@ void FileLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     updateA(time0);
 }
 
-void FileLoad::updateA(coreTime time)
+void FileLoad::updateA(CoreTime time)
 {
     while (time >= schedLoad.time(currIndex)) {
         ++currIndex;
@@ -152,7 +152,7 @@ void FileLoad::updateA(coreTime time)
     nextUpdateTime = (currIndex == count - 1) ? maxTime : schedLoad.time(currIndex + 1);
 }
 
-void FileLoad::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void FileLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     if (time >= nextUpdateTime) {
         updateA(time);

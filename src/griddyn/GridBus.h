@@ -100,7 +100,7 @@ class GridBus: public GridPrimary {
     model_parameter Atol =
         -1.0;  //!<[rad] angle tolerance  value <0 implies automatic setting from global levels
 
-    coreTime lowVtime = negTime;  //!< the last time a low voltage alert was triggered
+    CoreTime lowVtime = negTime;  //!< the last time a low voltage alert was triggered
 
   public:
     /** @brief default constructor*/
@@ -134,7 +134,7 @@ class GridBus: public GridPrimary {
 
     // dynInitializeB
   protected:
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void pFlowObjectInitializeB() override;
 
   public:
@@ -147,7 +147,7 @@ class GridBus: public GridPrimary {
     virtual void reset(ResetLevels level = ResetLevels::minimal) override;
     // dynInitializeB dynamics
   protected:
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -181,7 +181,7 @@ class GridBus: public GridPrimary {
                        const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& stateDataValue,
-                                  matrixData<double>& matrixDataValue,
+                                  MatrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
     virtual void residual(const IOdata& inputs,
@@ -209,7 +209,7 @@ class GridBus: public GridPrimary {
                                const SolverMode& sMode,
                                double alpha);
 
-    virtual void converge(coreTime time,
+    virtual void converge(CoreTime time,
                           double state[],
                           double dstateDt[],
                           const SolverMode& sMode,
@@ -225,7 +225,7 @@ class GridBus: public GridPrimary {
                                   const SolverMode& sMode) override;
 
   public:
-    void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     /** @brief a faster function to set the voltage and angle of a bus*
     @param[in] voltageNew  the new voltage
@@ -352,13 +352,13 @@ class GridBus: public GridPrimary {
     @param[in] time  the time period within which to do the adjustments
     * @return the reactive link power
     **/
-    virtual double getAdjustableCapacityUp(coreTime time = maxTime) const;
+    virtual double getAdjustableCapacityUp(CoreTime time = maxTime) const;
     /** @brief get the available controllable upward adjustments within a time period
     @ details this means power production or load reduction
     @param[in] time  the time period within which to do the adjustments
     * @return the reactive link power
     **/
-    virtual double getAdjustableCapacityDown(coreTime time = maxTime) const;
+    virtual double getAdjustableCapacityDown(CoreTime time = maxTime) const;
     /** @brief the dPdf partial derivative  (may be deprecated in the future)
      * @return the $\frac{\partial P}{\partial f}$
      **/
@@ -436,7 +436,7 @@ class GridBus: public GridPrimary {
                           const StateData& stateDataValue,
                           double roots[],
                           const SolverMode& sMode) override;
-    virtual void rootTrigger(coreTime time,
+    virtual void rootTrigger(CoreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override;

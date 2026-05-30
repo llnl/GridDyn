@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "matrixDataOrdering.hpp"
-#include "utilities/matrixData.hpp"
+#include "MatrixDataOrdering.hpp"
+#include "utilities/MatrixData.hpp"
 #include <utility>
 #include <vector>
 
@@ -15,7 +15,7 @@
  *row also adding a function to get all the data in a particular row.
  */
 template<SparseOrdering M = SparseOrdering::ROW_ORDERED, class ValueT = double>
-class matrixDataOrdered: public matrixData<ValueT> {
+class MatrixDataOrdered: public MatrixData<ValueT> {
   private:
     std::vector<std::vector<std::pair<index_t, ValueT>>>
         dVec;  //!< vector of data vectors for each Row
@@ -27,12 +27,12 @@ class matrixDataOrdered: public matrixData<ValueT> {
     count_t primary_max = 0;  //!< the limit on the primary key
   public:
     /** @brief default constructor*/
-    matrixDataOrdered() noexcept {}
+    MatrixDataOrdered() noexcept {}
     /** @brief constructor
     @param[in] RowCount  the number of rows and columns in the matrix
     */
-    explicit matrixDataOrdered(index_t RowCount):
-        matrixData<ValueT>(RowCount, RowCount), dVec(RowCount)
+    explicit MatrixDataOrdered(index_t RowCount):
+        MatrixData<ValueT>(RowCount, RowCount), dVec(RowCount)
     {
     }
     void clear() override
@@ -45,7 +45,7 @@ class matrixDataOrdered: public matrixData<ValueT> {
 
     void assign(index_t row, index_t col, ValueT num) override
     {
-        auto key = keyOrder<index_t, M>::order(row, col);
+        auto key = KeyOrder<index_t, M>::order(row, col);
         auto iI = dVec[key.first].begin();
         auto iEnd = dVec[key.first].end();
         while (iI != iEnd) {
@@ -68,7 +68,7 @@ class matrixDataOrdered: public matrixData<ValueT> {
 
     virtual void limitUpdate(index_t newRowLimit, index_t newColLimit) override
     {
-        primary_max = keyOrder<index_t, M>::primary(newRowLimit, newColLimit);
+        primary_max = KeyOrder<index_t, M>::primary(newRowLimit, newColLimit);
         dVec.resize(primary_max);
     }
 
@@ -89,7 +89,7 @@ class matrixDataOrdered: public matrixData<ValueT> {
         }
         return sz;
     }
-    matrixElement<ValueT> element(index_t N) const override
+    MatrixElement<ValueT> element(index_t N) const override
     {
         index_t ii = 0;
 
@@ -100,7 +100,7 @@ class matrixDataOrdered: public matrixData<ValueT> {
             ++ii;
             sz2 += dVec[ii].size();
         }
-        auto res = keyOrder<index_t, M>::order(ii, dVec[ii][N - sz1].first);
+        auto res = KeyOrder<index_t, M>::order(ii, dVec[ii][N - sz1].first);
         return {res.first, res.second, dVec[ii][N - sz1].second};
     }
 
@@ -121,10 +121,10 @@ class matrixDataOrdered: public matrixData<ValueT> {
         }
     }
 
-    matrixElement<ValueT> next() override
+    MatrixElement<ValueT> next() override
     {
-        auto res = keyOrder<index_t, M>::order(ci, cptr->first);
-        matrixElement<ValueT> tp{res.first, res.second, cptr->second};
+        auto res = KeyOrder<index_t, M>::order(ci, cptr->first);
+        MatrixElement<ValueT> tp{res.first, res.second, cptr->second};
         ++cptr;
         if (cptr == iend) {
             ++ci;
@@ -149,7 +149,7 @@ class matrixDataOrdered: public matrixData<ValueT> {
     bool moreData() override { return (ci < primary_max); }
     ValueT at(index_t rowN, index_t colN) const override
     {
-        auto key = keyOrder<index_t, M>::order(rowN, colN);
+        auto key = KeyOrder<index_t, M>::order(rowN, colN);
         for (auto& de : dVec[key.first]) {
             if (de.first == key.second) {
                 return de.second;

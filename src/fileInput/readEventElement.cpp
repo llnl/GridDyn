@@ -100,7 +100,7 @@ static void readEventElement(std::shared_ptr<ReaderElement>& element,
     field = getElementFieldOptions(element, {"t", "time"}, readerConfig::defMatchType);
     if (!field.empty()) {
         eventInfo.time =
-            gmlc::utilities::str2vector<coreTime>(ReaderInformation.checkDefines(field), negTime);
+            gmlc::utilities::str2vector<CoreTime>(ReaderInformation.checkDefines(field), negTime);
     } else {
         if (eventInfo.time.empty() && element->getName() == "scenario") {
             eventInfo.time.emplace_back(-1.0);

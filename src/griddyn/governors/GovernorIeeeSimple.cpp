@@ -10,7 +10,7 @@
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactory.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -48,7 +48,7 @@ CoreObject* GovernorIeeeSimple::clone(CoreObject* obj) const
 
 // destructor
 GovernorIeeeSimple::~GovernorIeeeSimple() = default;
-void GovernorIeeeSimple::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void GovernorIeeeSimple::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     Governor::dynObjectInitializeA(time0, flags);
     if ((Pmax < 5000) || (Pmin > -5000)) {
@@ -106,7 +106,7 @@ void GovernorIeeeSimple::derivative(const IOdata& inputs,
     Loc.destDiffLoc[1] = (-gs[1] + (1 - T2 / T1) * (omega - 1.0)) / T1;
 }
 
-void GovernorIeeeSimple::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
+void GovernorIeeeSimple::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     GovernorIeeeSimple::derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
     double dt = time - prevTime;
@@ -126,7 +126,7 @@ void GovernorIeeeSimple::timestep(coreTime time, const IOdata& inputs, const Sol
 
 void GovernorIeeeSimple::jacobianElements(const IOdata& /*inputs*/,
                                           const StateData& sD,
-                                          matrixData<double>& md,
+                                          MatrixData<double>& md,
                                           const IOlocs& inputLocs,
                                           const SolverMode& sMode)
 {
@@ -214,7 +214,7 @@ void GovernorIeeeSimple::rootTest(const IOdata& inputs,
     }
 }
 
-void GovernorIeeeSimple::rootTrigger(coreTime /*time*/,
+void GovernorIeeeSimple::rootTrigger(CoreTime /*time*/,
                                      const IOdata& inputs,
                                      const std::vector<int>& rootMask,
                                      const SolverMode& sMode)

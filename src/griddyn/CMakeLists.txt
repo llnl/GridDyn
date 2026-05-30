@@ -385,7 +385,7 @@ set(measurement_sources
     measurement/stateGrabbers.cpp
     measurement/Condition.cpp
     measurement/ObjectGrabbers.cpp
-    measurement/compoundCondition.cpp
+    measurement/CompoundCondition.cpp
     measurement/Collector.cpp
     measurement/GrabberSet.cpp
 )

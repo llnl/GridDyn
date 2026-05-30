@@ -33,7 +33,7 @@ class FmiMELoad: public FmiMEWrapper<GridLoad> {
     virtual void updateLocalCache(const IOdata& inputs,
                                   const StateData& stateDataRef,
                                   const SolverMode& sMode) override;
-    virtual void setState(coreTime time,
+    virtual void setState(CoreTime time,
                           const double state[],
                           const double dstateDt[],
                           const SolverMode& sMode) override;

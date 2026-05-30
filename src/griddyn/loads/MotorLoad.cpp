@@ -11,7 +11,7 @@
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <iostream>
 #include <string>
@@ -60,7 +60,7 @@ CoreObject* MotorLoad::clone(CoreObject* obj) const
     return clonedLoad;
 }
 
-void MotorLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void MotorLoad::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     m_state.resize(1);
     if (opFlags[init_transient]) {
@@ -78,7 +78,7 @@ void MotorLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     GridLoad::pFlowObjectInitializeA(time0, flags);
 }
 
-void MotorLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void MotorLoad::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     opFlags.set(has_roots);
     GridLoad::dynObjectInitializeA(time0, flags);
@@ -221,7 +221,7 @@ void MotorLoad::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-void MotorLoad::setState(coreTime time,
+void MotorLoad::setState(CoreTime time,
                          const double state[],
                          const double dstate_dt[],
                          const SolverMode& sMode)
@@ -241,7 +241,7 @@ void MotorLoad::setState(coreTime time,
     prevTime = time;
 }
 
-void MotorLoad::guessState(coreTime /*time*/,
+void MotorLoad::guessState(CoreTime /*time*/,
                            double state[],
                            double dstate_dt[],
                            const SolverMode& sMode)
@@ -297,7 +297,7 @@ void MotorLoad::getStateName(stringVec& stNames,
         return;
     }
 }
-void MotorLoad::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
+void MotorLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     const double timeDelta = time - prevTime;
     MotorLoad::derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
@@ -319,7 +319,7 @@ void MotorLoad::derivative(const IOdata& inputs,
 
 void MotorLoad::jacobianElements(const IOdata& inputs,
                                  const StateData& stateDataValue,
-                                 matrixData<double>& matrixDataValue,
+                                 MatrixData<double>& matrixDataValue,
                                  const IOlocs& inputLocs,
                                  const SolverMode& sMode)
 {
@@ -365,7 +365,7 @@ void MotorLoad::jacobianElements(const IOdata& inputs,
 
 void MotorLoad::outputPartialDerivatives(const IOdata& inputs,
                                          const StateData& stateDataValue,
-                                         matrixData<double>& matrixDataValue,
+                                         MatrixData<double>& matrixDataValue,
                                          const SolverMode& sMode)
 {
     if (isDynamic(sMode)) {
@@ -415,7 +415,7 @@ count_t MotorLoad::outputDependencyCount(index_t /*num*/, const SolverMode& /*sM
 }
 void MotorLoad::ioPartialDerivatives(const IOdata& inputs,
                                      const StateData& stateDataValue,
-                                     matrixData<double>& matrixDataValue,
+                                     MatrixData<double>& matrixDataValue,
                                      const IOlocs& inputLocs,
                                      const SolverMode& sMode)
 {
@@ -460,7 +460,7 @@ void MotorLoad::rootTest(const IOdata& inputs,
     }
 }
 
-void MotorLoad::rootTrigger(coreTime /*time*/,
+void MotorLoad::rootTrigger(CoreTime /*time*/,
                             const IOdata& inputs,
                             const std::vector<int>& rootMask,
                             const SolverMode& sMode)

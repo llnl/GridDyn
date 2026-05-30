@@ -21,7 +21,7 @@
 #include "gmlc/containers/mapOps.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixDataScale.hpp"
+#include "utilities/MatrixDataScale.hpp"
 #include <algorithm>
 #include <functional>
 #include <map>
@@ -200,7 +200,7 @@ void DynamicGenerator::buildDynModel(DynModel dynModel)
     }
 }
 
-void DynamicGenerator::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void DynamicGenerator::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (machineBasePower < 0) {
         machineBasePower = systemBasePower;
@@ -218,7 +218,7 @@ void DynamicGenerator::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
         bus->setFlag("compute_frequency", true);
         // opFlags.set(uses_bus_frequency);
     }
-    gridSecondary::dynObjectInitializeA(time0, flags);  // NOLINT
+    GridSecondary::dynObjectInitializeA(time0, flags);  // NOLINT
 }
 
 // initial conditions of dynamic states
@@ -317,7 +317,7 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
 }
 
 // save an external state to the internal one
-void DynamicGenerator::setState(coreTime time,
+void DynamicGenerator::setState(CoreTime time,
                                 const double state[],
                                 const double dstateDt[],
                                 const SolverMode& sMode)
@@ -367,7 +367,7 @@ void DynamicGenerator::updateLocalCache(const IOdata& inputs,
 }
 
 // copy the current state to a vector
-void DynamicGenerator::guessState(coreTime time,
+void DynamicGenerator::guessState(CoreTime time,
                                   double state[],
                                   double dstateDt[],
                                   const SolverMode& sMode)
@@ -487,7 +487,7 @@ void DynamicGenerator::set(std::string_view param, std::string_view val)
     }
 }
 
-void DynamicGenerator::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void DynamicGenerator::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     Generator::timestep(time, inputs, sMode);
     if (isDynamic(sMode)) {
@@ -698,7 +698,7 @@ void DynamicGenerator::set(std::string_view param, double val, unit unitType)
 
 void DynamicGenerator::outputPartialDerivatives(const IOdata& inputs,
                                                 const StateData& stateDataValue,
-                                                matrixData<double>& matrixDataValue,
+                                                MatrixData<double>& matrixDataValue,
                                                 const SolverMode& sMode)
 {
     if (!isDynamic(sMode)) {  // the bus is managing a remote bus voltage
@@ -708,8 +708,8 @@ void DynamicGenerator::outputPartialDerivatives(const IOdata& inputs,
         return;
     }
     const double scale = machineBasePower / systemBasePower;
-    // matrixDataSparse<double> d;
-    matrixDataScale<double> scaledMatrixData(matrixDataValue, scale);
+    // MatrixDataSparse<double> d;
+    MatrixDataScale<double> scaledMatrixData(matrixDataValue, scale);
     // compute the Jacobian
 
     genModel->outputPartialDerivatives(subInputs.inputs[GEN_MODEL_LOC],
@@ -743,13 +743,13 @@ count_t DynamicGenerator::outputDependencyCount(index_t num, const SolverMode& s
 
 void DynamicGenerator::ioPartialDerivatives(const IOdata& inputs,
                                             const StateData& stateDataValue,
-                                            matrixData<double>& matrixDataValue,
+                                            MatrixData<double>& matrixDataValue,
                                             const IOlocs& inputLocs,
                                             const SolverMode& sMode)
 {
     if (isDynamic(sMode)) {
         const double scale = machineBasePower / systemBasePower;
-        matrixDataScale<double> scaledMatrixData(matrixDataValue, scale);
+        MatrixDataScale<double> scaledMatrixData(matrixDataValue, scale);
         auto gmLocs = subInputLocs.genModelInputLocsExternal;
         gmLocs[voltageInLocation] = inputLocs[voltageInLocation];
         gmLocs[angleInLocation] = inputLocs[angleInLocation];
@@ -845,7 +845,7 @@ void DynamicGenerator::derivative(const IOdata& inputs,
 
 void DynamicGenerator::jacobianElements(const IOdata& inputs,
                                         const StateData& stateDataValue,
-                                        matrixData<double>& matrixDataValue,
+                                        MatrixData<double>& matrixDataValue,
                                         const IOlocs& inputLocs,
                                         const SolverMode& sMode)
 {
@@ -913,7 +913,7 @@ ChangeCode DynamicGenerator::rootCheck(const IOdata& inputs,
 
     return ret;
 }
-void DynamicGenerator::rootTrigger(coreTime time,
+void DynamicGenerator::rootTrigger(CoreTime time,
                                    const IOdata& /*inputs*/,
                                    const std::vector<int>& rootMask,
                                    const SolverMode& sMode)

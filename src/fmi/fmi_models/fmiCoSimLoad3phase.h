@@ -32,7 +32,7 @@ class FmiCoSimLoad3phase: public FmiCoSimWrapper<loads::ThreePhaseLoad> {
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     virtual void setFlag(std::string_view flag, bool val) override;
 
-    virtual void setState(coreTime time,
+    virtual void setState(CoreTime time,
                           const double state[],
                           const double dstateDt[],
                           const SolverMode& sMode) override;

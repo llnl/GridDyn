@@ -47,8 +47,8 @@ class Svd: public RampLoad {
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
@@ -56,11 +56,11 @@ class Svd: public RampLoad {
     virtual void setLoad(double level, units::unit unitType = units::defunit) override;
     virtual void
         setLoad(double Plevel, double Qlevel, units::unit unitType = units::defunit) override;
-    virtual void setState(coreTime time,
+    virtual void setState(CoreTime time,
                           const double state[],
                           const double dstate_dt[],
                           const SolverMode& sMode) override;  // for saving the state
-    virtual void guessState(coreTime time,
+    virtual void guessState(CoreTime time,
                             double state[],
                             double dstate_dt[],
                             const SolverMode& sMode) override;  // for initial setting of the state
@@ -98,25 +98,25 @@ class Svd: public RampLoad {
 
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const StateData& sD,
-                                          matrixData<double>& md,
+                                          MatrixData<double>& md,
                                           const SolverMode& sMode) override;
 
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& sD,
-                                  matrixData<double>& md,
+                                  MatrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
     virtual void getStateName(stringVec& stNames,
                               const SolverMode& sMode,
                               const std::string& prefix) const override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     virtual void rootTest(const IOdata& inputs,
                           const StateData& sD,
                           double roots[],
                           const SolverMode& sMode) override;
-    virtual void rootTrigger(coreTime time,
+    virtual void rootTrigger(CoreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override;

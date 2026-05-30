@@ -19,8 +19,8 @@ namespace griddyn::events {
 /** event type allowing multiple changes on multiple object at a set of given time points*/
 class CompoundEventPlayer: public CompoundEvent {
   protected:
-    coreTime period = maxTime;  //!< period of the player
-    gmlc::utilities::TimeSeriesMulti<double, coreTime>
+    CoreTime period = maxTime;  //!< period of the player
+    gmlc::utilities::TimeSeriesMulti<double, CoreTime>
         ts;  //!< the time series containing the data for the player
     index_t currIndex = kNullLocation;  //!< the current index of the player
     std::string eFile;  //!< the file name
@@ -40,13 +40,13 @@ class CompoundEventPlayer: public CompoundEvent {
     // virtual void updateEvent(EventInfo &gdEI, CoreObject *rootObject) override;
 
     virtual ChangeCode trigger() override;
-    virtual ChangeCode trigger(coreTime time) override;
+    virtual ChangeCode trigger(CoreTime time) override;
 
     virtual void set(std::string_view param, double val) override;
     virtual void set(std::string_view param, std::string_view val) override;
-    void setTime(coreTime time) override;
-    void setTimeValue(coreTime time, double val);
-    void setTimeValue(const std::vector<coreTime>& time, const std::vector<double>& val);
+    void setTime(CoreTime time) override;
+    void setTimeValue(CoreTime time, double val);
+    void setTimeValue(const std::vector<CoreTime>& time, const std::vector<double>& val);
     /** load the player data from a file
 @param[in] fileName the name of the file to load
 */
@@ -58,6 +58,6 @@ class CompoundEventPlayer: public CompoundEvent {
 
   protected:
     /** helper function to update the trigger time*/
-    virtual void updateTrigger(coreTime time);
+    virtual void updateTrigger(CoreTime time);
 };
 }  // namespace griddyn::events

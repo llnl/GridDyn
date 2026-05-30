@@ -9,7 +9,7 @@
 // headers
 #include "../GridBus.h"
 #include "DcBusControls.h"
-#include "utilities/matrixDataTranslate.hpp"
+#include "utilities/MatrixDataTranslate.hpp"
 #include <string>
 
 namespace griddyn {
@@ -37,7 +37,7 @@ class DcBus: public GridBus {
     DynBusType prevDynType =
         DynBusType::normal;  //!< previous type container if the type automatically changes
     double dVdP = 0.0;  //!< storage for the dVdP terms from all the secondary objects
-    matrixDataTranslate<1> of;
+    MatrixDataTranslate<1> of;
 
   public:
     explicit DcBus(const std::string& objName = "dcBus_$");
@@ -54,7 +54,7 @@ class DcBus: public GridBus {
     virtual count_t localJacobianCount(const SolverMode& sMode) const override;
 
   protected:
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void pFlowObjectInitializeB() override;
 
   public:
@@ -65,7 +65,7 @@ class DcBus: public GridBus {
     virtual void pFlowCheck(std::vector<Violation>& violationVector) override;
     // dynInitializeB dynamics
   protected:
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -76,17 +76,17 @@ class DcBus: public GridBus {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual void guessState(coreTime time,
+    virtual void guessState(CoreTime time,
                             double state[],
                             double dstateDt[],
                             const SolverMode& sMode) override;
-    virtual void setState(coreTime time,
+    virtual void setState(CoreTime time,
                           const double state[],
                           const double dstateDt[],
                           const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& stateDataValue,
-                                  matrixData<double>& matrixDataValue,
+                                  MatrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
 
@@ -96,14 +96,14 @@ class DcBus: public GridBus {
                           const StateData& stateDataValue,
                           double resid[],
                           const SolverMode& sMode) override;
-    virtual void converge(coreTime time,
+    virtual void converge(CoreTime time,
                           double state[],
                           double dstateDt[],
                           const SolverMode& sMode,
                           ConvergeMode mode = ConvergeMode::local_iteration,
                           double tol = 0.01) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     virtual double getVoltage(const double state[], const SolverMode& sMode) const override;
 

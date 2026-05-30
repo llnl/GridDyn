@@ -25,8 +25,8 @@ class EventInfo {
     std::string description;  //!< event description
     std::string type;  //!< event type
     std::string file;  //!< file associated with the event
-    coreTime period = timeZero;  //!< event periodicity
-    std::vector<coreTime> time;  //!< event trigger times
+    CoreTime period = timeZero;  //!< event periodicity
+    std::vector<CoreTime> time;  //!< event trigger times
     std::vector<double> value;  //!< event trigger values
     stringVec fieldList;  //!< list of fields associated with the event
     std::vector<CoreObject*> targetObjs;  //!< the event targets
@@ -46,7 +46,7 @@ class Event: public HelperObject, public EventInterface, public ObjectOperatorIn
   protected:
     std::string field;  //!< event trigger field
     double value = 0.0;  //!< new value
-    coreTime triggerTime;  //!< the time the event is scheduled to be triggered
+    CoreTime triggerTime;  //!< the time the event is scheduled to be triggered
     CoreObject* m_obj = nullptr;  //!< the target object of the event
     units::unit unitType = units::defunit;  //!< units of the event
     index_t eventId;  //!< a unique Identifier code for the event
@@ -63,7 +63,7 @@ class Event: public HelperObject, public EventInterface, public ObjectOperatorIn
     own
     @param[in] time0 the time to trigger the event
     */
-    explicit Event(coreTime time0 = negTime);
+    explicit Event(CoreTime time0 = negTime);
     /** constructor from and EventInfo object and rootObject
     @param[in] gdEI a structure defining the information of an event
     @param[in] rootObject the base object to use for searching for any parameters or other objects*/
@@ -86,9 +86,9 @@ class Event: public HelperObject, public EventInterface, public ObjectOperatorIn
     */
     virtual ChangeCode trigger();
 
-    virtual ChangeCode trigger(coreTime time) override;
+    virtual ChangeCode trigger(CoreTime time) override;
 
-    virtual coreTime nextTriggerTime() const override { return triggerTime; }
+    virtual CoreTime nextTriggerTime() const override { return triggerTime; }
     virtual bool isArmed() const override { return armed; }
     EventExecutionMode executionMode() const override { return EventExecutionMode::normal; }
     bool initNeeded() const { return initRequired; }
@@ -97,7 +97,7 @@ class Event: public HelperObject, public EventInterface, public ObjectOperatorIn
     virtual void setFlag(std::string_view flag, bool val) override;
     /** set the trigger time of an event
      */
-    virtual void setTime(coreTime time);
+    virtual void setTime(CoreTime time);
     /** set the value associated with a parameter change event
     @param[in] val the new value
     @param[in] newUnits the units associated with the value
@@ -134,7 +134,7 @@ class Event: public HelperObject, public EventInterface, public ObjectOperatorIn
 @return a unique ptr to the created event
 */
 std::unique_ptr<Event>
-    makeEvent(std::string_view field, double val, coreTime eventTime, CoreObject* rootObject);
+    makeEvent(std::string_view field, double val, CoreTime eventTime, CoreObject* rootObject);
 /** construct an event from an event Info structure
 @param[in] gdEI the information associated with an event
 @param[in] rootObject the high level object to base any object searches from

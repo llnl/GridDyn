@@ -64,7 +64,7 @@ void FmiMELoad::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-void FmiMELoad::setState(coreTime time,
+void FmiMELoad::setState(CoreTime time,
                          const double state[],
                          const double dstateDt[],
                          const SolverMode& sMode)

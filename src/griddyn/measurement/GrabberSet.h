@@ -13,7 +13,7 @@
 #include <string_view>
 
 template<class Y>
-class matrixData;
+class MatrixData;
 
 namespace utilities {
 template<typename X, typename Y, typename Z>
@@ -33,7 +33,7 @@ class GrabberSet: public ObjectOperatorInterface {
   private:
     std::shared_ptr<GridGrabber> mGrabber;  //!< the non state grabber
     std::shared_ptr<StateGrabber> mStateGrabber;  //!< the state grabber
-    std::unique_ptr<utilities::valuePredictor<coreTime, double, double>>
+    std::unique_ptr<utilities::valuePredictor<CoreTime, double, double>>
         mPredictor;  //!< pointer to a predictor object
 
   public:
@@ -83,7 +83,7 @@ class GrabberSet: public ObjectOperatorInterface {
     virtual void getDesc(std::vector<std::string>& desc_list) const;
     virtual double grabData(const StateData& stateDataValue, const SolverMode& sMode);
     virtual void outputPartialDerivatives(const StateData& stateDataValue,
-                                          matrixData<double>& matrixDataValue,
+                                          MatrixData<double>& matrixDataValue,
                                           const SolverMode& sMode);
     // virtual void getDoutDt(const StateData&sD, const SolverMode &sMode) const;
     /** get a description of the GrabberSet*/

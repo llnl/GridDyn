@@ -8,7 +8,7 @@
 
 #include "../Generator.h"
 #include "../GridBus.h"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <string>
 
 namespace griddyn::governors {
@@ -81,7 +81,7 @@ void GovernorSteamNR::residual(const IOdata& /*inputs*/,
 
 void GovernorSteamNR::jacobianElements(const IOdata& /*inputs*/,
                                        const StateData& sD,
-                                       matrixData<double>& md,
+                                       MatrixData<double>& md,
                                        const IOlocs& /*inputLocs*/,
                                        const SolverMode& sMode)
 {

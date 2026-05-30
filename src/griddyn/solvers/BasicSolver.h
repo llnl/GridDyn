@@ -54,14 +54,14 @@ namespace solvers {
         const double* derivData() const noexcept override;
         const double* typeData() const noexcept override;
         virtual void allocate(count_t stateCount, count_t numRoots = 0) override;
-        virtual void initialize(coreTime t0) override;
+        virtual void initialize(CoreTime t0) override;
 
         virtual double get(std::string_view param) const override;
         virtual void set(std::string_view param, std::string_view val) override;
         virtual void set(std::string_view param, double val) override;
 
         virtual int
-            solve(coreTime tStop, coreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
+            solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
     };
 
 }  // namespace solvers

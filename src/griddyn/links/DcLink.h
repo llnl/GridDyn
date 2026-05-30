@@ -37,15 +37,15 @@ class DcLink: public Link {
                                   const SolverMode& sMode) override;
 
     virtual double getMaxTransfer() const override;
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void pFlowObjectInitializeB() override;
 
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
     virtual StateSizes localStateSizes(const SolverMode& sMode) const override;
     virtual count_t localJacobianCount(const SolverMode& sMode) const override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     virtual double quickupdateP() override { return 0; }
 
@@ -54,34 +54,34 @@ class DcLink: public Link {
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     // dynInitializeB dynamics
-    // virtual void dynObjectInitializeA (coreTime time0, std::uint32_t flags);
+    // virtual void dynObjectInitializeA (CoreTime time0, std::uint32_t flags);
     using Link::ioPartialDerivatives;
     virtual void ioPartialDerivatives(id_type_t busId,
                                       const StateData& stateData,
-                                      matrixData<double>& jacobian,
+                                      MatrixData<double>& jacobian,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
     using Link::outputPartialDerivatives;
     virtual void outputPartialDerivatives(id_type_t busId,
                                           const StateData& stateData,
-                                          matrixData<double>& jacobian,
+                                          MatrixData<double>& jacobian,
                                           const SolverMode& sMode) override;
 
     virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& stateData,
-                                  matrixData<double>& jacobian,
+                                  MatrixData<double>& jacobian,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
     virtual void residual(const IOdata& inputs,
                           const StateData& stateData,
                           double resid[],
                           const SolverMode& sMode) override;
-    virtual void setState(coreTime time,
+    virtual void setState(CoreTime time,
                           const double state[],
                           const double dstateDt[],
                           const SolverMode& sMode) override;
-    virtual void guessState(coreTime time,
+    virtual void guessState(CoreTime time,
                             double state[],
                             double dstateDt[],
                             const SolverMode& sMode) override;

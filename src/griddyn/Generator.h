@@ -21,10 +21,10 @@ class GridSubModel;
 /**
 @ brief class describing a generator unit
  a generator is a power production unit in GridDyn.  the base generator class implements methods set
-forth in the gridSecondary class and inherits from that class it has mechanics for dealing with the
+forth in the GridSecondary class and inherits from that class it has mechanics for dealing with the
 power flow solution modes of a generator with no dynamics
 */
-class Generator: public gridSecondary {
+class Generator: public GridSecondary {
   public:
     /** @brief flags for controlling operation of the generator*/
     enum GeneratorFlags {
@@ -87,17 +87,17 @@ class Generator: public gridSecondary {
     ~Generator();
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
-    virtual void setState(coreTime time,
+    virtual void setState(CoreTime time,
                           const double state[],
                           const double dstate_dt[],
                           const SolverMode& sMode) override;  // for saving the state
-    virtual void guessState(coreTime time,
+    virtual void guessState(CoreTime time,
                             double state[],
                             double dstate_dt[],
                             const SolverMode& sMode) override;  // for initial setting of the state
@@ -134,25 +134,25 @@ class Generator: public gridSecondary {
 
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const StateData& stateDataValue,
-                                          matrixData<double>& matrixDataValue,
+                                          MatrixData<double>& matrixDataValue,
                                           const SolverMode& sMode) override;
     virtual void ioPartialDerivatives(const IOdata& inputs,
                                       const StateData& stateDataValue,
-                                      matrixData<double>& matrixDataValue,
+                                      MatrixData<double>& matrixDataValue,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
     virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
 
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& stateDataValue,
-                                  matrixData<double>& matrixDataValue,
+                                  MatrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
     virtual void getStateName(stringVec& stNames,
                               const SolverMode& sMode,
                               const std::string& prefix) const override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     /** @brief get the current generator set point
     @return the current generator set point*/
@@ -174,31 +174,31 @@ class Generator: public gridSecondary {
                                     const std::vector<double>& Qminpts,
                                     const std::vector<double>& Qmaxpts);
 
-    virtual IOdata predictOutputs(coreTime predictionTime,
+    virtual IOdata predictOutputs(CoreTime predictionTime,
                                   const IOdata& inputs,
                                   const StateData& stateDataValue,
                                   const SolverMode& sMode) const override;
 
-    virtual double getAdjustableCapacityUp(coreTime time = maxTime) const override;
-    virtual double getAdjustableCapacityDown(coreTime time = maxTime) const override;
+    virtual double getAdjustableCapacityUp(CoreTime time = maxTime) const override;
+    virtual double getAdjustableCapacityDown(CoreTime time = maxTime) const override;
     /** @brief get the maximum generation attainable in a specific amount of time
     @param[in] time  the time window to achieve the generation
     @return the max real power*/
-    virtual double getPmax(coreTime time = maxTime) const;
+    virtual double getPmax(CoreTime time = maxTime) const;
     /** @brief get the maximum reactive generation attainable in a specific amount of time
     @param[in] time  the time window to achieve the generation
     @param[in] Ptest the real power output corresponding to the desired attainable generation
     @return the max reactive power*/
-    virtual double getQmax(coreTime time = maxTime, double Ptest = kNullVal) const;
+    virtual double getQmax(CoreTime time = maxTime, double Ptest = kNullVal) const;
     /** @brief get the minimum real generation attainable in a specific amount of time
     @param[in] time  the time window to achieve the generation
     @return the max real power*/
-    virtual double getPmin(coreTime time = maxTime) const;
+    virtual double getPmin(CoreTime time = maxTime) const;
     /** @brief get the minimum reactive generation attainable in a specific amount of time
     @param[in] time  the time window to achieve the generation
     @param[in] Ptest the real power output corresponding to the desired attainable generation
     @return the min reactive power*/
-    virtual double getQmin(coreTime time = maxTime, double Ptest = kNullVal) const;
+    virtual double getQmin(CoreTime time = maxTime, double Ptest = kNullVal) const;
     /** @brief adjust the output generation by the specified amount
     @param[in] adjustment the value of the desired adjustment
     */

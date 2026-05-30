@@ -17,8 +17,8 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "gmlc/utilities/stringConversion.h"
-#include "utilities/matrixDataSparse.hpp"
-#include "utilities/matrixDataTranslate.hpp"
+#include "utilities/MatrixDataSparse.hpp"
+#include "utilities/MatrixDataTranslate.hpp"
 #include <algorithm>
 #include <memory>
 #include <string>
@@ -521,7 +521,7 @@ double Sensor::getInput(const StateData& stateDataValue,
     return ret;
 }
 
-void Sensor::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void Sensor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
         opFlags.set(LINK_TYPE_SOURCE);
@@ -644,7 +644,7 @@ void Sensor::dynObjectInitializeB(const IOdata& inputs,
     fieldSet = getOutputs(inputs, emptyStateData, cLocalSolverMode);
 }
 
-void Sensor::updateA(coreTime time)
+void Sensor::updateA(CoreTime time)
 {
     if (time >= m_nextSampleTime) {
         auto blks = static_cast<index_t>(filterBlocks.size());
@@ -659,7 +659,7 @@ void Sensor::updateA(coreTime time)
     Relay::updateA(time);
 }
 
-void Sensor::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void Sensor::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     auto blks = static_cast<index_t>(filterBlocks.size());
     for (index_t kk = 0; kk < blks; ++kk) {
@@ -672,13 +672,13 @@ void Sensor::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMo
 
 void Sensor::jacobianElements(const IOdata& inputs,
                               const StateData& stateDataValue,
-                              matrixData<double>& matrixDataValue,
+                              MatrixData<double>& matrixDataValue,
                               const IOlocs& /*inputLocs*/,
                               const SolverMode& sMode)
 {
     if (stateSize(sMode) > 0) {
-        matrixDataSparse<double> sourceDerivatives;
-        matrixDataSparse<double> processedDerivatives;
+        MatrixDataSparse<double> sourceDerivatives;
+        MatrixDataSparse<double> processedDerivatives;
         auto blks = static_cast<index_t>(filterBlocks.size());
         for (index_t kk = 0; kk < blks; ++kk) {
             // TODO(phlpt): This needs some help for performance and organization.
@@ -855,10 +855,10 @@ index_t Sensor::getOutputLoc(const SolverMode& sMode, index_t outNum) const
 // TODO(phlpt): Simplify this output-partial-derivatives path.
 void Sensor::outputPartialDerivatives(const IOdata& /*inputs*/,
                                       const StateData& stateDataValue,
-                                      matrixData<double>& matrixDataValue,
+                                      MatrixData<double>& matrixDataValue,
                                       const SolverMode& sMode)
 {
-    matrixDataTranslate<3, double> aDT(matrixDataValue);
+    MatrixDataTranslate<3, double> aDT(matrixDataValue);
     for (index_t pp = 0; std::cmp_less(pp, outputs.size()); ++pp) {
         switch (outputMode[pp]) {
             case OutputMode::BLOCK:
@@ -901,7 +901,7 @@ void Sensor::rootTest(const IOdata& inputs,
     }
 }
 
-void Sensor::rootTrigger(coreTime time,
+void Sensor::rootTrigger(CoreTime time,
                          const IOdata& inputs,
                          const std::vector<int>& rootMask,
                          const SolverMode& sMode)

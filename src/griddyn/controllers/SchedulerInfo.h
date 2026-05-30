@@ -13,10 +13,10 @@
 namespace griddyn {
 class Tsched {
   public:
-    coreTime time = maxTime;
+    CoreTime time = maxTime;
     double target = 0;
     Tsched() {}
-    Tsched(coreTime atime, double atarget): time(atime), target(atarget) {}
+    Tsched(CoreTime atime, double atarget): time(atime), target(atarget) {}
 };
 
 // comparison operators for Tsched classes
@@ -32,16 +32,16 @@ bool operator==(const Tsched& td1, const Tsched& td2);
 
 bool operator!=(const Tsched& td1, const Tsched& td2);
 
-bool operator<(const Tsched& td1, coreTime timeC);
+bool operator<(const Tsched& td1, CoreTime timeC);
 
-bool operator<=(const Tsched& td1, coreTime timeC);
+bool operator<=(const Tsched& td1, CoreTime timeC);
 
-bool operator>(const Tsched& td1, coreTime timeC);
+bool operator>(const Tsched& td1, CoreTime timeC);
 
-bool operator>=(const Tsched& td1, coreTime timeC);
+bool operator>=(const Tsched& td1, CoreTime timeC);
 
-bool operator==(const Tsched& td1, coreTime timeC);
+bool operator==(const Tsched& td1, CoreTime timeC);
 
-bool operator!=(const Tsched& td1, coreTime timeC);
+bool operator!=(const Tsched& td1, CoreTime timeC);
 
 }  // namespace griddyn

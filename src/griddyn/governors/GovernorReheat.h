@@ -37,11 +37,11 @@ class GovernorReheat: public Governor {
                             const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& sD,
-                                  matrixData<double>& md,
+                                  MatrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
 
-    // virtual void setTime (coreTime time) const{prevTime=time;};
+    // virtual void setTime (CoreTime time) const{prevTime=time;};
 };
 
 }  // namespace griddyn::governors

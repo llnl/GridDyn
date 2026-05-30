@@ -64,12 +64,12 @@ void FmiRunner::updateOutputs()
     mCoordinator->updateOutputs(m_gds->getSimulationTime());
 }
 
-coreTime FmiRunner::Run()
+CoreTime FmiRunner::Run()
 {
     return GriddynRunner::Run();
 }
 
-void FmiRunner::StepAsync(coreTime time)
+void FmiRunner::StepAsync(CoreTime time)
 {
     if (stepFinished != nullptr) {
         mAsyncReturn = std::async(std::launch::async, [this, time] {
@@ -90,7 +90,7 @@ bool FmiRunner::isFinished() const
         (mAsyncReturn.wait_for(std::chrono::seconds(0)) == std::future_status::ready) :
         true;
 }
-coreTime FmiRunner::Step(coreTime time)
+CoreTime FmiRunner::Step(CoreTime time)
 {
     auto retTime = GriddynRunner::Step(time);
     mCoordinator->updateOutputs(retTime);

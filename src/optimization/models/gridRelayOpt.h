@@ -66,10 +66,10 @@ class GridRelayOpt: public GridOptObject {
                           double deriv[],
                           const OptimizationMode& oMode) override;
     virtual void jacobianElements(const OptimizationData& of,
-                                  matrixData<double>& md,
+                                  MatrixData<double>& md,
                                   const OptimizationMode& oMode) override;
     virtual void getConstraints(const OptimizationData& of,
-                                matrixData<double>& cons,
+                                MatrixData<double>& cons,
                                 double upperLimit[],
                                 double lowerLimit[],
                                 const OptimizationMode& oMode) override;
@@ -77,7 +77,7 @@ class GridRelayOpt: public GridOptObject {
                                  double cVals[],
                                  const OptimizationMode& oMode) override;
     virtual void constraintJacobianElements(const OptimizationData& of,
-                                            matrixData<double>& md,
+                                            MatrixData<double>& md,
                                             const OptimizationMode& oMode) override;
     virtual void getObjectiveNames(stringVec& objectiveNames,
                                    const OptimizationMode& oMode,

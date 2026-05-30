@@ -52,8 +52,8 @@ class CommunicationsCore {
   */
     virtual int
         send(std::uint64_t source, std::uint64_t dest, const std::shared_ptr<CommMessage>& message);
-    coreTime getTime() const { return mTime; }
-    void setTime(coreTime nTime) { mTime = nTime; }
+    CoreTime getTime() const { return mTime; }
+    void setTime(CoreTime nTime) { mTime = nTime; }
     /** lookup an id by name
   @param[in] commName the name of the communicator
   @return the id associated with the communicator*/
@@ -68,6 +68,6 @@ class CommunicationsCore {
     CommunicationsCore() = default;
     commMapString mStringMap;  //!< map containing the strings
     commMapID mIdMap;  //!< map containing the id
-    coreTime mTime = timeZero;  //!< current time of the communicator
+    CoreTime mTime = timeZero;  //!< current time of the communicator
 };
 }  // namespace griddyn

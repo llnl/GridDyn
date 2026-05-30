@@ -39,7 +39,7 @@ class distributionObject {
 // safe.
 
 /** class defining random number generation*/
-class gridRandom {
+class GridRandom {
   private:
     static std::unique_ptr<std::mt19937>
         mGenerator;  //!< generator  //May need to make a generator per thread
@@ -64,10 +64,10 @@ class gridRandom {
         GAMMA,
         UNIFORM_INT,
     };
-    explicit gridRandom(DistributionType dist = DistributionType::NORMAL,
+    explicit GridRandom(DistributionType dist = DistributionType::NORMAL,
                         double param1 = 0.0,
                         double param2 = 1.0);
-    explicit gridRandom(std::string_view dist_name, double param1 = 0.0, double param2 = 1.0);
+    explicit GridRandom(std::string_view dist_name, double param1 = 0.0, double param2 = 1.0);
 
     void setDistribution(DistributionType dist);
     DistributionType getDistribution() const { return mDist; }
@@ -112,7 +112,7 @@ class randomDistributionObject2: public distributionObject {
     randomDistributionObject2() {}
     explicit randomDistributionObject2(double param1): dist(param1) {}
     randomDistributionObject2(double param1, double param2): dist(param1, param2) {}
-    virtual double operator()() override { return dist(gridRandom::getEngine()); }
+    virtual double operator()() override { return dist(GridRandom::getEngine()); }
     virtual void updateParameter(double param1) override { dist = DIST(param1); }
     virtual void updateParameters(double param1, double param2) override
     {
@@ -129,7 +129,7 @@ class randomDistributionObject1: public distributionObject {
   public:
     randomDistributionObject1() {}
     explicit randomDistributionObject1(double param1): dist(param1) {}
-    virtual double operator()() override { return dist(gridRandom::getEngine()); }
+    virtual double operator()() override { return dist(GridRandom::getEngine()); }
     virtual void updateParameter(double param1) override { dist = DIST(param1); }
 };
 
@@ -147,6 +147,6 @@ class randomDistributionObject1<void>: public distributionObject {
 };
 
 /** get the distribution type from a string*/
-gridRandom::DistributionType getDist(std::string_view dist_name);
+GridRandom::DistributionType getDist(std::string_view dist_name);
 
 }  // namespace utilities

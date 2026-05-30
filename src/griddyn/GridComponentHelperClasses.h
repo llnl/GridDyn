@@ -416,7 +416,7 @@ class SolverOffsets {
  */
 class Lp {
   public:
-    coreTime time = timeZero;  //!< time
+    CoreTime time = timeZero;  //!< time
     count_t algOffset = kNullLocation;  //!< data offset for algebraic components
     count_t diffOffset = kNullLocation;  //!< data offset for differential components
     const double* algStateLoc = nullptr;  //!< location of algebraic state variables
@@ -432,7 +432,7 @@ class Lp {
  */
 class StateData {
   public:
-    coreTime time = 0.0;  //!< time corresponding to the state data
+    CoreTime time = 0.0;  //!< time corresponding to the state data
     count_t seqID = 0;  //!< a sequence id to differentiate between subsequent state data objects
     index_t stateSize = 0;  //!< the size of the state vector, if at zero the information is
                             //!< presumed to come from another source
@@ -452,10 +452,10 @@ class StateData {
     double* scratch2 =
         nullptr;  //!< scratch space the objects can use for calculations (if not null it should be
     //! the same size as state
-    coreTime altTime = 0.0;  //!< the time corresponding to the other part of the state
+    CoreTime altTime = 0.0;  //!< the time corresponding to the other part of the state
     index_t pairIndex = kNullLocation;  //!< the index of the mode the paired data comes from
 
-    StateData(coreTime sTime = 0.0,
+    StateData(CoreTime sTime = 0.0,
               const double* sstate = nullptr,
               const double* ndstate_dt = nullptr,
               count_t cseq = 0): time(sTime), seqID(cseq), state(sstate), dstate_dt(ndstate_dt)

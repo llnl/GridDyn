@@ -18,7 +18,7 @@ class ExciterIEEEtype2: public ExciterIEEEtype1 {
   public:
     explicit ExciterIEEEtype2(const std::string& objName = "exciterIEEEtype2_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -39,7 +39,7 @@ class ExciterIEEEtype2: public ExciterIEEEtype1 {
                             const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& sD,
-                                  matrixData<double>& md,
+                                  MatrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
 
@@ -51,7 +51,7 @@ class ExciterIEEEtype2: public ExciterIEEEtype1 {
                                  const StateData& sD,
                                  const SolverMode& sMode,
                                  CheckLevel level) override;
-    // virtual void setTime(coreTime time){prevTime=time;};
+    // virtual void setTime(CoreTime time){prevTime=time;};
 };
 
 }  // namespace griddyn::exciters

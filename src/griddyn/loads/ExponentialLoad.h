@@ -34,7 +34,7 @@ class ExponentialLoad: public GridLoad {
 
     virtual void ioPartialDerivatives(const IOdata& inputs,
                                       const StateData& sD,
-                                      matrixData<double>& md,
+                                      MatrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
     virtual double getRealPower(const IOdata& inputs,

@@ -69,11 +69,11 @@ class CoreObject {
     index_t id = 0;  //!< a user defined id for the object
     CoreObject* parent = nullptr;  //!< a pointer to the parent object
   protected:  // variables that are used regularly by child class objects
-    coreTime prevTime = negTime;  //!<[s]the last state time of the object
-    coreTime nextUpdateTime = maxTime;  //!<[s] the next scheduled update
-    coreTime lastUpdateTime = negTime;  //!<[s] the last update time
-    coreTime updatePeriod = maxTime;  //!<[s]the update period
-    coreTime updateDelay = timeZero;  //!<[s]the requested delay between updateA and
+    CoreTime prevTime = negTime;  //!<[s]the last state time of the object
+    CoreTime nextUpdateTime = maxTime;  //!<[s] the next scheduled update
+    CoreTime lastUpdateTime = negTime;  //!<[s] the last update time
+    CoreTime updatePeriod = maxTime;  //!<[s]the update period
+    CoreTime updateDelay = timeZero;  //!<[s]the requested delay between updateA and
                                       //!< updateB--requested is key here not guaranteed
   private:
     // these shouldn't generate false sharing as one is static
@@ -234,11 +234,11 @@ class CoreObject {
   a later time
     * @param[in] time the times to update the object to
     */
-    virtual void updateA(coreTime time);
+    virtual void updateA(CoreTime time);
     /**
      * @brief the B update function for update calls with two parts
      */
-    virtual coreTime updateB();
+    virtual CoreTime updateB();
     /**
      * @brief function to enable the object, most objects are enabled by default
      */
@@ -317,11 +317,11 @@ class CoreObject {
     virtual void setUpdateTime(double newUpdateTime);
     /** @brief get the next time the system should call the update functions
      */
-    coreTime getNextUpdateTime() const noexcept { return nextUpdateTime; }
+    CoreTime getNextUpdateTime() const noexcept { return nextUpdateTime; }
 
     /**@brief return the last time the object had its state set or was updated
      */
-    coreTime currentTime() const noexcept { return prevTime; }
+    CoreTime currentTime() const noexcept { return prevTime; }
     friend void removeReference(CoreObject* objToDelete);
     friend void removeReference(CoreObject* objToDelete, const CoreObject* parent);
     friend bool compareUpdates(const CoreObject* o1, const CoreObject* o2);

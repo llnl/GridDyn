@@ -12,7 +12,7 @@
 #include <utility>
 
 template<class X>
-class matrixData;
+class MatrixData;
 
 namespace griddyn {
 class GridDynSimulation;
@@ -64,7 +64,7 @@ on the Jacobian check
 @return the number of mismatches
 */
 int residualCheck(GridDynSimulation* gds,
-                  coreTime time,
+                  CoreTime time,
                   const SolverMode& sMode,
                   double residTol = resid_check_tol,
                   bool useStateNames = false);
@@ -73,18 +73,18 @@ std::pair<double, int> checkResid(GridDynSimulation* gds,
                                   const std::shared_ptr<SolverInterface>& sd);
 
 std::pair<double, int>
-    checkResid(GridDynSimulation* gds, coreTime time, const std::shared_ptr<SolverInterface>& sd);
+    checkResid(GridDynSimulation* gds, CoreTime time, const std::shared_ptr<SolverInterface>& sd);
 
-std::pair<double, int> checkResid(GridDynSimulation* gds, coreTime time, const SolverMode& sMode);
+std::pair<double, int> checkResid(GridDynSimulation* gds, CoreTime time, const SolverMode& sMode);
 
 int algebraicCheck(GridDynSimulation* gds,
-                   coreTime time,
+                   CoreTime time,
                    const SolverMode& sMode,
                    double algTol = resid_check_tol,
                    bool useStateNames = false);
 
 int derivativeCheck(GridDynSimulation* gds,
-                    coreTime time,
+                    CoreTime time,
                     const SolverMode& sMode,
                     double derivTol = resid_check_tol,
                     bool useStateNames = false);
@@ -102,7 +102,7 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
 @param[in] gds the GridDynSimulation object to work with
 @param[in] sMode the solver mode in use
 */
-void jacobianAnalysis(matrixData<double>& md,
+void jacobianAnalysis(MatrixData<double>& md,
                       GridDynSimulation* gds,
                       const SolverMode& sMode,
                       int level);

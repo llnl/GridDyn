@@ -25,7 +25,7 @@ nothing but can be called periodically.
 */
 class EventQueue {
   private:
-    coreTime timeTols = kSmallTime;  //!< the temporal tolerance on events
+    CoreTime timeTols = kSmallTime;  //!< the temporal tolerance on events
     std::vector<std::shared_ptr<EventAdapter>> events;  //!< storage location for events
     std::vector<std::shared_ptr<EventAdapter>>
         partB_list;  //!< container for immediate events awaiting part B execution
@@ -89,12 +89,12 @@ class EventQueue {
     /** @brief get the next event time
         @return the next Event time
         */
-    virtual coreTime getNextTime() const;
+    virtual CoreTime getNextTime() const;
     /** @brief get the next event time of a specific type of event
   @param[in] eventCode a specific code corresponding to a specific type of event
   @return the next Event time
   */
-    virtual coreTime getNextTime(int eventCode) const;
+    virtual CoreTime getNextTime(int eventCode) const;
 
     /** @brief clone the entire queue to a new queue
   @return a unique_ptr to the updated Queue
@@ -112,13 +112,13 @@ class EventQueue {
   @param[in] cTime the current Time
   @return code describing the effect of the executed events
   */
-    virtual ChangeCode executeEvents(coreTime cTime);
+    virtual ChangeCode executeEvents(CoreTime cTime);
 
     /** @brief Execute the first part of the events only
   @param[in] cTime the current Time
   @return code describing the effect of the executed events
   */
-    virtual ChangeCode executeEventsAonly(coreTime cTime);
+    virtual ChangeCode executeEventsAonly(CoreTime cTime);
 
     /** @brief Execute second portion of any events where the A portion (could be skipped) was
   executed by a call to execute A Events only
@@ -155,10 +155,10 @@ class EventQueue {
   @param[in] time the time for the null event
   @param[in] period the period of the null event
   */
-    void nullEventTime(coreTime time, coreTime period = negTime);
+    void nullEventTime(CoreTime time, CoreTime period = negTime);
 
     /** @brief get the time for the next Null Event*/
-    coreTime getNullEventTime() const;
+    CoreTime getNullEventTime() const;
 
   private:
     /** @brief check for duplicate events and remove the duplicate

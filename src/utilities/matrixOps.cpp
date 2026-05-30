@@ -9,14 +9,14 @@
 #include <cstring>
 #include <vector>
 
-std::vector<double> matrixDataMultiply(matrixData<double>& md, const double vec[])
+std::vector<double> matrixDataMultiply(MatrixData<double>& md, const double vec[])
 {
     std::vector<double> res(md.rowLimit());
     matrixDataMultiply(md, vec, res.data());
     return res;
 }
 
-void matrixDataMultiply(matrixData<double>& md, const double vec[], double res[])
+void matrixDataMultiply(MatrixData<double>& md, const double vec[], double res[])
 {
     memset(res, 0, sizeof(double) * md.rowLimit());
     auto sz = md.size();

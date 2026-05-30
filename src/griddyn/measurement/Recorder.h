@@ -16,8 +16,8 @@ namespace griddyn {
 /** class to store and save data from the grid, based on a Collector */
 class Recorder: public Collector {
   protected:
-    coreTime mLastSaveTime = negTime;  //!< the last time the recorder saved to file
-    gmlc::utilities::TimeSeriesMulti<double, coreTime> mDataset;  //!< the actual time series data
+    CoreTime mLastSaveTime = negTime;  //!< the last time the recorder saved to file
+    gmlc::utilities::TimeSeriesMulti<double, CoreTime> mDataset;  //!< the actual time series data
     std::string mFileName;  //!< the fileName to store the data
     std::string mDirectory;  //!< the directory to generate the specified file
 
@@ -27,7 +27,7 @@ class Recorder: public Collector {
     count_t mAutosave =
         0;  //!< flag indicating the recorder should autosave after the given number of points
   public:
-    Recorder(coreTime time0 = timeZero, coreTime period = 1.0);
+    Recorder(CoreTime time0 = timeZero, CoreTime period = 1.0);
     explicit Recorder(const std::string& name);
     /** destructor will attempt to save the data*/
     ~Recorder();
@@ -38,7 +38,7 @@ class Recorder: public Collector {
     */
     virtual void cloneTo(Collector* col) const override;
 
-    virtual ChangeCode trigger(coreTime time) override;
+    virtual ChangeCode trigger(CoreTime time) override;
 
     /** save the data to a file
     @param[in] fileName the name of the file to save the data to
@@ -47,11 +47,11 @@ class Recorder: public Collector {
     /** set the total number of points the recorder has allocated space for
     @param span the total time period the recorder can save space for
     */
-    void setSpace(coreTime span);
+    void setSpace(CoreTime span);
     /** tell the recorder to allocate space for an additional period of time
     @param span the total time period the recorder can save space for
     */
-    void addSpace(coreTime span);
+    void addSpace(CoreTime span);
 
     void set(std::string_view param, double val) override;
     void set(std::string_view param, std::string_view val) override;
@@ -72,7 +72,7 @@ class Recorder: public Collector {
     /** get the underlying timeSeries object*/
     const auto& getTimeSeries() const { return mDataset; }
     /** get a vector of the time data*/
-    const std::vector<coreTime>& getTime() const { return mDataset.time(); }
+    const std::vector<CoreTime>& getTime() const { return mDataset.time(); }
 
     /** get a vector of the stored data for a particular column
     @param[in] col the column of data to request

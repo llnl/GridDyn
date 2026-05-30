@@ -7,10 +7,10 @@
 #pragma once
 
 #include "../math/SparseMatrix.h"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 
 namespace griddyn::paradae {
-class paradaeArrayData: public matrixData<double> {
+class paradaeArrayData: public MatrixData<double> {
   private:
     SparseMatrix* J = nullptr;
 
@@ -27,6 +27,6 @@ class paradaeArrayData: public matrixData<double> {
     index_t colIndex(index_t N) const;
     double val(index_t N) const;
     double at(index_t rowN, index_t colN) const;
-    matrixElement<double> element(index_t N) const;
+    MatrixElement<double> element(index_t N) const;
 };
 }  // namespace griddyn::paradae

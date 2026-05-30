@@ -17,7 +17,7 @@
 namespace griddyn {
 std::atomic<id_type_t> EventAdapter::eventCounter(0);
 
-EventAdapter::EventAdapter(coreTime nextTime, coreTime period):
+EventAdapter::EventAdapter(CoreTime nextTime, CoreTime period):
     m_period(period), m_nextTime(nextTime)
 {
     eventID = ++eventCounter;
@@ -45,7 +45,7 @@ void EventAdapter::cloneTo(EventAdapter* eA) const
 void EventAdapter::updateObject(CoreObject* /*newObject*/, ObjectUpdateMode /*mode*/) {}
 
 void EventAdapter::getObjects(std::vector<CoreObject*>& /*objects*/) const {}
-void EventAdapter::executeA(coreTime /*cTime*/) {}
+void EventAdapter::executeA(CoreTime /*cTime*/) {}
 
 void EventAdapter::updateTime() {}
 void EventAdapter::initialize() {}
@@ -55,7 +55,7 @@ int EventAdapter::eventCode() const
     return 0;
 }
 
-ChangeCode EventAdapter::execute(coreTime cTime)
+ChangeCode EventAdapter::execute(CoreTime cTime)
 {
     if (m_period > timeZero) {
         m_nextTime += std::floor((cTime - m_nextTime) / m_period) * m_period + m_period;
@@ -73,8 +73,8 @@ bool compareEventAdapters(const std::shared_ptr<EventAdapter>& e1,
 
 FunctionEventAdapter::FunctionEventAdapter(ccode_function_t fcal): fptr(std::move(fcal)) {}
 FunctionEventAdapter::FunctionEventAdapter(ccode_function_t fcal,
-                                           coreTime triggerTime,
-                                           coreTime period):
+                                           CoreTime triggerTime,
+                                           CoreTime period):
     EventAdapter(triggerTime, period), fptr(std::move(fcal))
 {
 }
@@ -97,7 +97,7 @@ std::unique_ptr<EventAdapter> FunctionEventAdapter::clone() const
     return ea;
 }
 
-ChangeCode FunctionEventAdapter::execute(coreTime cTime)
+ChangeCode FunctionEventAdapter::execute(CoreTime cTime)
 {
     auto retval = fptr();
     if (m_period > timeZero) {

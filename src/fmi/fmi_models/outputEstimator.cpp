@@ -22,7 +22,7 @@ OutputEstimator::OutputEstimator(std::vector<int> sDep, std::vector<int> iDep):
     prevInputs.resize(inputDep.size());
 }
 
-double OutputEstimator::estimate(coreTime timeVal, const IOdata& inputs, const double state[])
+double OutputEstimator::estimate(CoreTime timeVal, const IOdata& inputs, const double state[])
 {
     double val = prevValue;
     for (size_t kk = 0; kk < stateDep.size(); ++kk) {
@@ -35,7 +35,7 @@ double OutputEstimator::estimate(coreTime timeVal, const IOdata& inputs, const d
     return val;
 }
 
-bool OutputEstimator::update(coreTime timeVal,
+bool OutputEstimator::update(CoreTime timeVal,
                              double val,
                              const IOdata& inputs,
                              const double state[])

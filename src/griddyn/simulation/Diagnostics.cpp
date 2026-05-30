@@ -9,8 +9,8 @@
 #include "../GridDynSimulation.h"
 #include "../solvers/SolverInterface.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/gridRandom.h"
-#include "utilities/matrixDataSparse.hpp"
+#include "utilities/GridRandom.h"
+#include "utilities/MatrixDataSparse.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cstdio>
@@ -23,7 +23,7 @@
 
 // NOLINTBEGIN
 namespace griddyn {
-std::pair<double, int> checkResid(GridDynSimulation* gds, coreTime time, const SolverMode& sMode)
+std::pair<double, int> checkResid(GridDynSimulation* gds, CoreTime time, const SolverMode& sMode)
 {
     return checkResid(gds, time, gds->getSolverInterface(sMode));
 }
@@ -35,7 +35,7 @@ std::pair<double, int> checkResid(GridDynSimulation* gds,
 }
 
 std::pair<double, int>
-    checkResid(GridDynSimulation* gds, coreTime time, const std::shared_ptr<SolverInterface>& sd)
+    checkResid(GridDynSimulation* gds, CoreTime time, const std::shared_ptr<SolverInterface>& sd)
 {
     const SolverMode& sMode = sd->getSolverMode();
     std::vector<double> resid;
@@ -90,7 +90,7 @@ int jacobianCheck(GridDynSimulation* gds,
     double* state = sd->stateData();
     double* dstate = sd->derivData();
 
-    coreTime timeCurr = gds->getSimulationTime();
+    CoreTime timeCurr = gds->getSimulationTime();
     if ((gds->currentProcessState() <= GridDynSimulation::GridState::DYNAMIC_INITIALIZED) &&
         (timeCurr <= gds->getStartTime())) {
         gds->guessState(timeCurr, state, dstate, sd->getSolverMode());
@@ -103,14 +103,14 @@ int jacobianCheck(GridDynSimulation* gds,
         std::copy(dstate, dstate + nsize, ndstate.data());
     }
 
-    matrixDataSparse<double> tad, tad2, md;
+    MatrixDataSparse<double> tad, tad2, md;
     tad.reserve(gds->jacSize(sMode));
     md.reserve(gds->jacSize(sMode));
     tad2.reserve(gds->jacSize(sMode));
     double delta = 1e-8;
     double delta2 = 1e-10;
 
-    // matrixDataSparse b2;
+    // MatrixDataSparse b2;
     if (jacTol < 0)  // make sure the tolerance is positive
     {
         jacTol = jac_check_tol;
@@ -303,7 +303,7 @@ int residualCheck(GridDynSimulation* gds,
 }
 
 int residualCheck(GridDynSimulation* gds,
-                  coreTime time,
+                  CoreTime time,
                   const SolverMode& sMode,
                   double residTol,
                   bool useStateNames)
@@ -356,7 +356,7 @@ int residualCheck(GridDynSimulation* gds,
 }
 
 int algebraicCheck(GridDynSimulation* gds,
-                   coreTime time,
+                   CoreTime time,
                    const SolverMode& sMode,
                    double algTol,
                    bool useStateNames)
@@ -421,7 +421,7 @@ int algebraicCheck(GridDynSimulation* gds,
 }
 
 int derivativeCheck(GridDynSimulation* gds,
-                    coreTime time,
+                    CoreTime time,
                     const SolverMode& sMode,
                     double derivTol,
                     bool useStateNames)
@@ -552,7 +552,7 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
             break;
         case 1:  // random points
         {
-            utilities::gridRandom rng(utilities::gridRandom::DistributionType::UNIFORM, 0.0, 1.51);
+            utilities::GridRandom rng(utilities::GridRandom::DistributionType::UNIFORM, 0.0, 1.51);
             std::vector<double> rvals(cvs);
             for (index_t kk = 0; kk < pts; ++kk) {
                 rng.getNewValues(rvals, static_cast<count_t>(cvs));
@@ -623,7 +623,7 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
     std::copy(baseState.begin(), baseState.begin() + ssize, state);
 }
 
-std::vector<int> getRowCounts(matrixData<double>& md)
+std::vector<int> getRowCounts(MatrixData<double>& md)
 {
     std::vector<int> rowcnt(md.rowLimit());
     auto sz = static_cast<int>(md.size());
@@ -723,7 +723,7 @@ void printObjCountInfo(const objectCountInfo& oi, int clevel, int maxLevel)
     }
 }
 
-void jacobianAnalysis(matrixData<double>& md,
+void jacobianAnalysis(MatrixData<double>& md,
                       GridDynSimulation* gds,
                       const SolverMode& sMode,
                       int level)

@@ -134,7 +134,7 @@ void Subsystem::reset(ResetLevels level)
     subarea.reset(level);
 }
 // dynInitializeB states
-void Subsystem::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void Subsystem::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     // make sure the buses are set to the right terminal
     for (index_t ii = 0; ii < m_terminals; ++ii) {
@@ -167,12 +167,12 @@ void Subsystem::pFlowCheck(std::vector<Violation>& violationVector)
     subarea.pFlowCheck(violationVector);
 }
 // dynInitializeB states for dynamic solution
-void Subsystem::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void Subsystem::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     subarea.dynInitializeA(time0, flags);
 }
 
-void Subsystem::converge(coreTime time,
+void Subsystem::converge(CoreTime time,
                          double state[],
                          double dstateDt[],
                          const SolverMode& sMode,
@@ -304,7 +304,7 @@ double Subsystem::get(std::string_view param, unit unitType) const
     return val;
 }
 
-void Subsystem::timestep(const coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void Subsystem::timestep(const CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     subarea.timestep(time, inputs, sMode);
     prevTime = time;
@@ -323,7 +323,7 @@ double Subsystem::getLoss() const
 // -------------------- Power Flow --------------------
 
 // pass the solution
-void Subsystem::setState(const coreTime time,
+void Subsystem::setState(const CoreTime time,
                          const double state[],
                          const double dstateDt[],
                          const SolverMode& sMode)
@@ -567,7 +567,7 @@ double Subsystem::getMaxTransfer() const
 // for computing all the Jacobian elements at once
 void Subsystem::ioPartialDerivatives(id_type_t busId,
                                      const StateData& stateData,
-                                     matrixData<double>& jacobian,
+                                     MatrixData<double>& jacobian,
                                      const IOlocs& inputLocs,
                                      const SolverMode& sMode)
 {
@@ -585,7 +585,7 @@ void Subsystem::ioPartialDerivatives(id_type_t busId,
 
 void Subsystem::outputPartialDerivatives(id_type_t busId,
                                          const StateData& stateData,
-                                         matrixData<double>& jacobian,
+                                         MatrixData<double>& jacobian,
                                          const SolverMode& sMode)
 {
     if (busId <= 0) {

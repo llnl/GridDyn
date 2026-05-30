@@ -30,9 +30,9 @@ dime
         virtual std::shared_ptr<CLI::App>
             generateLocalCommandLineParser(ReaderInfo& ReaderInformation) override;
 
-        virtual coreTime Run(void) override;
+        virtual CoreTime Run(void) override;
 
-        virtual coreTime Step(coreTime time) override;
+        virtual CoreTime Step(CoreTime time) override;
 
         virtual void Finalize(void) override;
     };

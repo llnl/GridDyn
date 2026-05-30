@@ -136,7 +136,7 @@ void VariableGenerator::residual(const IOdata& inputs,
 }
 void VariableGenerator::jacobianElements(const IOdata& inputs,
                                          const StateData& stateDataValue,
-                                         matrixData<double>& matrixDataValue,
+                                         MatrixData<double>& matrixDataValue,
                                          const IOlocs& inputLocs,
                                          const SolverMode& sMode)
 {

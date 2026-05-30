@@ -24,7 +24,7 @@ class FileSource: public RampSource {
 
   private:
     std::string fileName_;  //!< name of the file
-    gmlc::utilities::TimeSeries<double, coreTime>
+    gmlc::utilities::TimeSeries<double, CoreTime>
         schedLoad;  //!< time series containing the output schedule
     index_t currIndex = 0;  //!< the current location in the file
     count_t count = 0;  //!< the total number of elements in the file
@@ -41,10 +41,10 @@ class FileSource: public RampSource {
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     int setFile(const std::string& fileName, index_t column);
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
-    virtual void updateA(coreTime time) override;
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void updateA(CoreTime time) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     // let predict fall through to ramp function
 
   private:

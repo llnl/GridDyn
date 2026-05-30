@@ -27,7 +27,7 @@ class GenModelClassical: public GenModel {
     explicit GenModelClassical(const std::string& objName = "genModelClassic_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -59,18 +59,18 @@ class GenModelClassical: public GenModel {
 
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& sD,
-                                  matrixData<double>& md,
+                                  MatrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const StateData& sD,
-                                          matrixData<double>& md,
+                                          MatrixData<double>& md,
                                           const SolverMode& sMode) override;
 
     virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
     virtual void ioPartialDerivatives(const IOdata& inputs,
                                       const StateData& sD,
-                                      matrixData<double>& md,
+                                      MatrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
 

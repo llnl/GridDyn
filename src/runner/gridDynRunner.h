@@ -64,7 +64,7 @@ class GriddynRunner {
      * Run simulation to completion
      @return the final time of the simulation
      */
-    virtual coreTime Run();
+    virtual CoreTime Run();
 
     /**
     * Run simulation to completion but return immediately
@@ -79,7 +79,7 @@ class GriddynRunner {
      * @param nextStep maximum time simulation may advance to.
      * @return time simulation successfully advanced to.
      */
-    virtual coreTime Step(coreTime nextStep);
+    virtual CoreTime Step(CoreTime nextStep);
 
     /**
      * Run simulation up to provided time.   Simulation may
@@ -87,19 +87,19 @@ class GriddynRunner {
      *
      * @param time maximum time simulation may advance to.
      */
-    virtual void StepAsync(coreTime time);
+    virtual void StepAsync(CoreTime time);
 
     /** get the current execution status of the simulation
     @param[out] timeReturn the current simulation time
     @return GRIDDYN_PENDING if an asynchronous operation is ongoing otherwise returns the current
     state of the simulation*/
-    virtual int getStatus(coreTime& timeReturn);
+    virtual int getStatus(CoreTime& timeReturn);
     /**
      * Get the next GridDyn Event time
      *
      * @return the next event time
      */
-    coreTime getNextEvent() const;
+    CoreTime getNextEvent() const;
 
     virtual void Finalize();
     virtual int Reset();
@@ -135,7 +135,7 @@ class GriddynRunner {
   protected:
     std::string mExecutablePath;  //!< the executable path from command line arguments
   private:
-    std::future<coreTime> mAsyncReturn;  //!< future code for the asynchronous operations
+    std::future<CoreTime> mAsyncReturn;  //!< future code for the asynchronous operations
     int mArgcValue{0};
     char** mArgValues = nullptr;
     std::string mArgumentString;

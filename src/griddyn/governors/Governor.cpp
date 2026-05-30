@@ -10,7 +10,7 @@
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
-#include "utilities/matrixDataSparse.hpp"
+#include "utilities/MatrixDataSparse.hpp"
 #include <string>
 #include <vector>
 
@@ -86,7 +86,7 @@ CoreObject* Governor::clone(CoreObject* obj) const
 // destructor
 Governor::~Governor() = default;
 
-void Governor::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void Governor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     prevTime = time0;
     if (Wref < 0) {
@@ -145,7 +145,7 @@ void Governor::residual(const IOdata& inputs,
         dbb.getBlockOutput(sD, sMode) + inputs[govpSetInLocation], 0, sD, resid, sMode);
 }
 
-void Governor::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
+void Governor::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     double out = cb.step(time, inputs[govOmegaInLocation]);
 
@@ -166,14 +166,14 @@ void Governor::derivative(const IOdata& inputs,
 
 void Governor::jacobianElements(const IOdata& inputs,
                                 const StateData& sD,
-                                matrixData<double>& md,
+                                MatrixData<double>& md,
                                 const IOlocs& inputLocs,
                                 const SolverMode& sMode)
 {
     cb.blockJacobianElements(
         inputs[govOmegaInLocation], 0, sD, md, inputLocs[govOmegaInLocation], sMode);
 
-    matrixDataSparse<double> kp;
+    MatrixDataSparse<double> kp;
     index_t wloc = cb.getOutputLoc(sMode);
     double out = cb.getOutput(kNullVec, sD, sMode);
     dbb.blockJacobianElements(out, 0, sD, md, wloc, sMode);
@@ -204,7 +204,7 @@ void Governor::jacobianElements(const IOdata& inputs,
     }
 
     /*
-    copyReplicate(matrixDataSparse *a2, index_t origCol, std::vector<index_t>
+    copyReplicate(MatrixDataSparse *a2, index_t origCol, std::vector<index_t>
     newIndices, std::vector<double> mult)
     auto res = a2->dVec.begin();
           auto term = a2->dVec.end();

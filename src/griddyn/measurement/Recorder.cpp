@@ -17,7 +17,7 @@
 namespace griddyn {
 using gmlc::utilities::fsize_t;
 
-Recorder::Recorder(coreTime time0, coreTime period): Collector(time0, period) {}
+Recorder::Recorder(CoreTime time0, CoreTime period): Collector(time0, period) {}
 Recorder::Recorder(const std::string& name): Collector(name) {}
 Recorder::~Recorder()
 {
@@ -132,13 +132,13 @@ void Recorder::reset()
 {
     mDataset.clear();
 }
-void Recorder::setSpace(coreTime span)
+void Recorder::setSpace(CoreTime span)
 {
     auto pts = static_cast<count_t>(std::floor(span / mTimePeriod));
     mDataset.reserve(pts + 1);
 }
 
-void Recorder::addSpace(coreTime span)
+void Recorder::addSpace(CoreTime span)
 {
     auto pts = static_cast<count_t>(std::floor(span / mTimePeriod));
     mDataset.reserve(static_cast<fsize_t>(mDataset.time().capacity()) + pts + 1);
@@ -148,7 +148,7 @@ void Recorder::fillDatasetFields()
 {
     mDataset.setFields(Collector::getColumnDescriptions());
 }
-ChangeCode Recorder::trigger(coreTime time)
+ChangeCode Recorder::trigger(CoreTime time)
 {
     Collector::trigger(time);
     if (mFirstTrigger) {

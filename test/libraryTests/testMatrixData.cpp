@@ -12,8 +12,8 @@
 
 #include "../gtestHelper.h"
 #include "griddyn/gridDynDefinitions.hpp"
-#include "utilities/matrixDataSparse.hpp"
-#include "utilities/matrixDataSparseSM.hpp"
+#include "utilities/MatrixDataSparse.hpp"
+#include "utilities/MatrixDataSparseSM.hpp"
 #include "utilities/matrixOps.h"
 #include <gtest/gtest.h>
 #include <iostream>
@@ -23,7 +23,7 @@
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
 TEST(MatrixDataTests, BlockCompute)
 {
-    blockCompute<2, SparseOrdering::COLUMN_ORDERED> bc1;
+    BlockCompute<2, SparseOrdering::COLUMN_ORDERED> bc1;
     bc1.setMaxIndex(0, 20);
     std::vector<index_t> colcnt(6, 0);
     for (index_t pp = 0; pp < 20; ++pp) {
@@ -34,7 +34,7 @@ TEST(MatrixDataTests, BlockCompute)
     EXPECT_EQ(colcnt[2], 8);
     EXPECT_EQ(colcnt[3], 2);
 
-    blockCompute<2, SparseOrdering::ROW_ORDERED> bc2;
+    BlockCompute<2, SparseOrdering::ROW_ORDERED> bc2;
     bc2.setMaxIndex(20, 0);
     std::vector<index_t> colcnt2(6, 0);
     for (index_t pp = 0; pp < 20; ++pp) {
@@ -49,7 +49,7 @@ TEST(MatrixDataTests, BlockCompute)
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
 TEST(MatrixDataTests, BlockCompute2)
 {
-    blockCompute<3, SparseOrdering::COLUMN_ORDERED> bc1;
+    BlockCompute<3, SparseOrdering::COLUMN_ORDERED> bc1;
     bc1.setMaxIndex(7893, 7893);
     std::vector<index_t> colcnt(10, 0);
     for (index_t pp = 0; pp < 7893; ++pp) {
@@ -68,25 +68,25 @@ TEST(MatrixDataTests, BlockCompute2)
 
 TEST(MatrixDataTests, Keygen)
 {
-    auto key1 = keyCompute<std::uint32_t, SparseOrdering::COLUMN_ORDERED>::keyGen(45, 1);
+    auto key1 = KeyCompute<std::uint32_t, SparseOrdering::COLUMN_ORDERED>::keyGen(45, 1);
     EXPECT_EQ(key1, (1 << 16) + 45);
-    auto key2 = keyCompute<std::uint32_t, SparseOrdering::ROW_ORDERED>::keyGen(45, 1);
+    auto key2 = KeyCompute<std::uint32_t, SparseOrdering::ROW_ORDERED>::keyGen(45, 1);
     EXPECT_EQ(key2, (45 << 16) + 1);
 
-    keyCompute<std::uint32_t, SparseOrdering::COLUMN_ORDERED> kc1;
-    keyCompute<std::uint32_t, SparseOrdering::ROW_ORDERED> kc2;
+    KeyCompute<std::uint32_t, SparseOrdering::COLUMN_ORDERED> kc1;
+    KeyCompute<std::uint32_t, SparseOrdering::ROW_ORDERED> kc2;
     EXPECT_EQ(kc1.row(key1), 45);
     EXPECT_EQ(kc1.col(key1), 1);
     EXPECT_EQ(kc2.row(key2), 45);
     EXPECT_EQ(kc2.col(key2), 1);
 
-    auto key3 = keyCompute<std::uint64_t, SparseOrdering::COLUMN_ORDERED>::keyGen(45, 1);
+    auto key3 = KeyCompute<std::uint64_t, SparseOrdering::COLUMN_ORDERED>::keyGen(45, 1);
     EXPECT_EQ(key3, (static_cast<std::uint64_t>(1) << 32) + 45);
-    auto key4 = keyCompute<std::uint64_t, SparseOrdering::ROW_ORDERED>::keyGen(45, 1);
+    auto key4 = KeyCompute<std::uint64_t, SparseOrdering::ROW_ORDERED>::keyGen(45, 1);
     EXPECT_EQ(key4, (static_cast<std::uint64_t>(45) << 32) + 1);
 
-    keyCompute<std::uint64_t, SparseOrdering::COLUMN_ORDERED> kc3;
-    keyCompute<std::uint64_t, SparseOrdering::ROW_ORDERED> kc4;
+    KeyCompute<std::uint64_t, SparseOrdering::COLUMN_ORDERED> kc3;
+    KeyCompute<std::uint64_t, SparseOrdering::ROW_ORDERED> kc4;
     EXPECT_EQ(kc3.row(key3), 45);
     EXPECT_EQ(kc3.col(key3), 1);
     EXPECT_EQ(kc4.row(key4), 45);
@@ -96,7 +96,7 @@ TEST(MatrixDataTests, Keygen)
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
 TEST(MatrixDataTests, Matrix1)
 {
-    matrixDataSparseSMB<4, std::uint64_t> bigMatrix;
+    MatrixDataSparseSMB<4, std::uint64_t> bigMatrix;
     bigMatrix.setColLimit(1000000);
     bigMatrix.setRowLimit(1000000);
     bigMatrix.reserve(200000);
@@ -136,7 +136,7 @@ TEST(MatrixDataTests, Matrix1)
 // NOLINTNEXTLINE(readability-function-cognitive-complexity)
 TEST(MatrixDataTests, Matrix2)
 {
-    matrixDataSparseSMB<3, std::uint64_t, double, SparseOrdering::ROW_ORDERED> bigMatrix;
+    MatrixDataSparseSMB<3, std::uint64_t, double, SparseOrdering::ROW_ORDERED> bigMatrix;
     bigMatrix.setColLimit(1000000);
     bigMatrix.setRowLimit(1000000);
     bigMatrix.reserve(200000);
@@ -175,7 +175,7 @@ TEST(MatrixDataTests, Matrix2)
 
 TEST(MatrixDataTests, SparseMatrix)
 {
-    matrixDataSparse<double> testMatrix;
+    MatrixDataSparse<double> testMatrix;
     testMatrix.setColLimit(10);
     testMatrix.setRowLimit(10);
     testMatrix.assign(0, 0, 3.1);
@@ -204,7 +204,7 @@ TEST(MatrixDataTests, SparseMatrix)
 
 TEST(MatrixDataTests, SparseMatrixMultiply)
 {
-    matrixDataSparse<double> testMatrix;
+    MatrixDataSparse<double> testMatrix;
     testMatrix.setColLimit(10);
     testMatrix.setRowLimit(10);
     for (int ii = 0; ii < 10; ++ii) {

@@ -21,9 +21,9 @@ class BusRelay: public Relay {
   protected:
     model_parameter mCutoutVoltage = 0.0;  //!<[puV] low voltage limit
     model_parameter mCutoutFrequency = 0.0;  //!<[puHz] trip on low frequency
-    coreTime mVoltageDelay =
+    CoreTime mVoltageDelay =
         timeZero;  //!< [s] period of time the voltage must be below limit to activate
-    coreTime mFrequencyDelay =
+    CoreTime mFrequencyDelay =
         timeZero;  //!< [s] period of time the frequency must be below limit to activate
   public:
     explicit BusRelay(const std::string& objName = "busrelay_$");
@@ -34,12 +34,12 @@ class BusRelay: public Relay {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
   protected:
     virtual void actionTaken(index_t actionNum,
                              index_t conditionNum,
                              ChangeCode actionReturn,
-                             coreTime actionTime) override;
+                             CoreTime actionTime) override;
 };
 }  // namespace griddyn::relays

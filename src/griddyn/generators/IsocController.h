@@ -28,15 +28,15 @@ class IsocController: public GridSubModel {
   public:
     explicit IsocController(const std::string& objName = "ISOC_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual void updateA(coreTime time) override;
+    virtual void updateA(CoreTime time) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
@@ -53,7 +53,7 @@ class IsocController: public GridSubModel {
 
     void setFreq(double freq);
     void deactivate();
-    void activate(coreTime time);
+    void activate(CoreTime time);
 };
 
 }  // namespace griddyn

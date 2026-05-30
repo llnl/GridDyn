@@ -37,7 +37,7 @@ class BlockSequence: public GridBlock {
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
   protected:
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -71,16 +71,16 @@ class BlockSequence: public GridBlock {
     virtual void blockJacobianElements(double input,
                                        double didt,
                                        const StateData& stateData,
-                                       matrixData<double>& matrixDataRef,
+                                       MatrixData<double>& matrixDataRef,
                                        index_t argLoc,
                                        const SolverMode& sMode) override;
 
-    virtual double step(coreTime time, double input) override;
+    virtual double step(CoreTime time, double input) override;
     virtual void rootTest(const IOdata& inputs,
                           const StateData& stateData,
                           double roots[],
                           const SolverMode& sMode) override;
-    virtual void rootTrigger(coreTime time,
+    virtual void rootTrigger(CoreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override;
@@ -88,7 +88,7 @@ class BlockSequence: public GridBlock {
                                  const StateData& stateData,
                                  const SolverMode& sMode,
                                  CheckLevel level) override;
-    // virtual void setTime(coreTime time){prevTime=time;};
+    // virtual void setTime(CoreTime time){prevTime=time;};
     /** get the output of one of the component blocks
 *@param[in] blockNum the index of the block to the get the output of
 @return the output value of the requested block

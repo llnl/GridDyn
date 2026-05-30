@@ -155,7 +155,7 @@ class AcLine: public Link {
                                   const StateData& sD,
                                   const SolverMode& sMode) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     /** @brief do a quick update  (may be deprecated)
      * @return the power transfer
      */
@@ -179,23 +179,23 @@ class AcLine: public Link {
     using Link::ioPartialDerivatives;
     virtual void ioPartialDerivatives(id_type_t busId,
                                       const StateData& sD,
-                                      matrixData<double>& md,
+                                      MatrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
 
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const StateData& sD,
-                                          matrixData<double>& md,
+                                          MatrixData<double>& md,
                                           const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(id_type_t busId,
                                           const StateData& sD,
-                                          matrixData<double>& md,
+                                          MatrixData<double>& md,
                                           const SolverMode& sMode) override;
     virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
     virtual double getMaxTransfer() const override;
     // virtual void busResidual(index_t busId, const StateData&sD, double *Fp, double *Fq, const
     // SolverMode &sMode);
-    virtual void setState(coreTime time,
+    virtual void setState(CoreTime time,
                           const double state[],
                           const double dstateDt[],
                           const SolverMode& sMode) override;

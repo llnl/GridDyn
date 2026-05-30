@@ -10,7 +10,7 @@
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <string>
 #include <utility>
@@ -65,7 +65,7 @@ void LutBlock::blockAlgebraicUpdate(double input,
 void LutBlock::blockJacobianElements(double input,
                                      double didt,
                                      const StateData& stateDataValue,
-                                     matrixData<double>& matrixDataValue,
+                                     MatrixData<double>& matrixDataValue,
                                      index_t argLoc,
                                      const SolverMode& sMode)
 {
@@ -129,7 +129,7 @@ void LutBlock::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-double LutBlock::step(coreTime time, double input)
+double LutBlock::step(CoreTime time, double input)
 {
     m_state[limiter_alg] = K * computeValue(input + bias);
 

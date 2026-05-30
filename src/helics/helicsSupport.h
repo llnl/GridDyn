@@ -14,9 +14,9 @@
 #include <string_view>
 
 namespace griddyn::helicsLib {
-helics::Time gdToHelicsTime(coreTime eventTime);
+helics::Time gdToHelicsTime(CoreTime eventTime);
 
-coreTime helicsToGdTime(helics::Time federateTime);
+CoreTime helicsToGdTime(helics::Time federateTime);
 
 std::future<int> runBroker(std::string_view cmd_args);
 std::future<int> runPlayer(std::string_view cmd_args);

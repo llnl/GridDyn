@@ -13,7 +13,7 @@ namespace utilities {
  *@details 4 mathematical models are available including: quadratic, scaled_quadratic, exponential,
  *and linear
  */
-class saturation {
+class Saturation {
   public:
     /** @brief enumeration of saturation types
      */
@@ -33,10 +33,10 @@ class saturation {
      * @details constructor is converting type
      * @param[in] sT saturation Type
      */
-    explicit saturation(SaturationType sT = SaturationType::SCALED_QUADRATIC);
+    explicit Saturation(SaturationType sT = SaturationType::SCALED_QUADRATIC);
     /** construct from string naming saturation type
      *@param[in] satType a string containing the type of the saturation*/
-    explicit saturation(const std::string& satType);
+    explicit Saturation(const std::string& satType);
     /** set the S10 and S12 parameter
      *@details sets the parameters of the saturation function previously specified at the point 1.0
      *and 1.2 The values input should correspond to the reduction in values so 0.0 for no saturation

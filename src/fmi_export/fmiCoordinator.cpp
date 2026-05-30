@@ -178,7 +178,7 @@ double FmiCoordinator::getOutput(index_t valueReference)
     return kNullVal;
 }
 
-void FmiCoordinator::updateOutputs(coreTime time)
+void FmiCoordinator::updateOutputs(CoreTime time)
 {
     for (auto* collector : mCollectors) {
         collector->trigger(time);

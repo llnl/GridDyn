@@ -272,7 +272,7 @@ void CvodeInterface::logErrorWeights(PrintLevel logLevel) const
     NVECTOR_DESTROY(use_omp, ele);
 }
 
-void CvodeInterface::initialize(coreTime time0)
+void CvodeInterface::initialize(CoreTime time0)
 {
     if (!flags[ALLOCATED_FLAG]) {
         throw(InvalidSolverOperation());
@@ -382,7 +382,7 @@ if (checkFlag(&retval, "CVodeGetConsistentIC", 1))
 */
 }
 
-int CvodeInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
+int CvodeInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
 {
     assert(rootCount == m_gds->rootSize(mode));
     ++solverCallCount;

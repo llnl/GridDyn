@@ -37,12 +37,12 @@ class HelicsSource: public sources::RampSource {
     explicit HelicsSource(const std::string& objName = "helicsSource_$");
 
     CoreObject* clone(CoreObject* obj = nullptr) const override;
-    virtual void pFlowObjectInitializeA(coreTime time0, uint32_t flags) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, uint32_t flags) override;
     virtual void pFlowObjectInitializeB() override;
-    virtual void dynObjectInitializeA(coreTime time0, uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, uint32_t flags) override;
 
-    virtual void updateA(coreTime time) override;
-    virtual void timestep(coreTime ttime, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void updateA(CoreTime time) override;
+    virtual void timestep(CoreTime ttime, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void setFlag(const std::string& param, bool val = true) override;
     virtual void set(const std::string& param, const std::string& val) override;
     virtual void

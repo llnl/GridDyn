@@ -4,31 +4,31 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "matrixDataSparse.hpp"
+#include "MatrixDataSparse.hpp"
 
-#include "matrixDataSparse_impl.hpp"
+#include "MatrixDataSparse_impl.hpp"
 #include <complex>
 #include <vector>
 
-template class matrixDataSparse<int>;
-// template class matrixDataSparse<float>;
-template class matrixDataSparse<double>;
-// template class matrixDataSparse<std::complex<float>>;
-// template class matrixDataSparse<std::complex<double>>;
+template class MatrixDataSparse<int>;
+// template class MatrixDataSparse<float>;
+template class MatrixDataSparse<double>;
+// template class MatrixDataSparse<std::complex<float>>;
+// template class MatrixDataSparse<std::complex<double>>;
 
-// template std::vector<index_t> findMissing<int>(matrixDataSparse<int> &md);
-// template std::vector<index_t> findMissing<float> (matrixDataSparse<float> &md);
-template std::vector<index_t> findMissing<double>(matrixDataSparse<double>& md);
+// template std::vector<index_t> findMissing<int>(MatrixDataSparse<int> &md);
+// template std::vector<index_t> findMissing<float> (MatrixDataSparse<float> &md);
+template std::vector<index_t> findMissing<double>(MatrixDataSparse<double>& md);
 // template std::vector<index_t>
-// findMissing<std::complex<float>>(matrixDataSparse<std::complex<float>> &md);
+// findMissing<std::complex<float>>(MatrixDataSparse<std::complex<float>> &md);
 // template std::vector<index_t>
-// findMissing<std::complex<double>>(matrixDataSparse<std::complex<double>> &md);
+// findMissing<std::complex<double>>(MatrixDataSparse<std::complex<double>> &md);
 
 // template std::vector<std::vector<index_t>>
-// findRank<int>(matrixDataSparse<int> &md);
-// template std::vector<std::vector<index_t>> findRank<float> (matrixDataSparse<float> &md);
-template std::vector<std::vector<index_t>> findRank<double>(matrixDataSparse<double>& md);
+// findRank<int>(MatrixDataSparse<int> &md);
+// template std::vector<std::vector<index_t>> findRank<float> (MatrixDataSparse<float> &md);
+template std::vector<std::vector<index_t>> findRank<double>(MatrixDataSparse<double>& md);
 // template std::vector<std::vector<index_t>>
-// findRank<std::complex<float>>(matrixDataSparse<std::complex<float>> &md);
+// findRank<std::complex<float>>(MatrixDataSparse<std::complex<float>> &md);
 // template std::vector<std::vector<index_t>>
-// findRank<std::complex<double>>(matrixDataSparse<std::complex<double>> &md);
+// findRank<std::complex<double>>(MatrixDataSparse<std::complex<double>> &md);

@@ -20,14 +20,14 @@ class DimeCollector: public Collector {
     std::unique_ptr<DimeClientInterface> dime;
 
   public:
-    DimeCollector(coreTime time0 = timeZero, coreTime period = timeOneSecond);
+    DimeCollector(CoreTime time0 = timeZero, CoreTime period = timeOneSecond);
     explicit DimeCollector(const std::string& name);
     ~DimeCollector();
 
     virtual std::unique_ptr<Collector> clone() const override;
 
     virtual void cloneTo(Collector* col) const override;
-    virtual ChangeCode trigger(coreTime time) override;
+    virtual ChangeCode trigger(CoreTime time) override;
 
     void set(std::string_view param, double val) override;
     void set(std::string_view param, std::string_view val) override;

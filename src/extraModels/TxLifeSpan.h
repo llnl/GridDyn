@@ -12,7 +12,7 @@
 namespace griddyn::extra {
 /** @brief class modeling a transformer lifespan based on thermal effects
  */
-class txLifeSpan: public Sensor {
+class TxLifeSpan: public Sensor {
   public:
     enum LifespanModelFlags {
         useIECmethod = object_flag11,
@@ -32,7 +32,7 @@ class txLifeSpan: public Sensor {
     double mAgingAccelerationFactor = 0.0;
 
   public:
-    txLifeSpan(const std::string& objName = "txlifeSpan_$");
+    TxLifeSpan(const std::string& objName = "txlifeSpan_$");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;
@@ -44,18 +44,18 @@ class txLifeSpan: public Sensor {
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
-    virtual void updateA(coreTime time) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void updateA(CoreTime time) override;
 
     void actionTaken(index_t actionNumber,
                      index_t conditionNum,
                      ChangeCode actionReturn,
-                     coreTime /*actionTime*/) override;
+                     CoreTime /*actionTime*/) override;
 };
 
 }  // namespace griddyn::extra

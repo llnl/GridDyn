@@ -63,18 +63,18 @@ namespace sources {
 
         virtual void jacobianElements(const IOdata& inputs,
                                       const StateData& stateDataValue,
-                                      matrixData<double>& matrixDataValue,
+                                      MatrixData<double>& matrixDataValue,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
 
         virtual void
-            timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+            timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
         virtual void rootTest(const IOdata& inputs,
                               const StateData& stateDataValue,
                               double roots[],
                               const SolverMode& sMode) override;
-        virtual void rootTrigger(coreTime time,
+        virtual void rootTrigger(CoreTime time,
                                  const IOdata& inputs,
                                  const std::vector<int>& rootMask,
                                  const SolverMode& sMode) override;

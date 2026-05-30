@@ -88,7 +88,7 @@ void ListMaintainer::preEx(const IOdata& inputs,
 
 void ListMaintainer::jacobianElements(const IOdata& inputs,
                                       const StateData& stateDataValue,
-                                      matrixData<double>& matrixDataValue,
+                                      MatrixData<double>& matrixDataValue,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode)
 {
@@ -227,7 +227,7 @@ void ListMaintainer::delayedDerivative(const IOdata& inputs,
 
 void ListMaintainer::delayedJacobian(const IOdata& inputs,
                                      const StateData& stateDataValue,
-                                     matrixData<double>& matrixDataValue,
+                                     MatrixData<double>& matrixDataValue,
                                      const IOlocs& inputLocs,
                                      const SolverMode& sMode)
 {

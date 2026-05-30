@@ -38,7 +38,7 @@ int FileSource::setFile(const std::string& fileName, index_t column)
     return count;
 }
 
-void FileSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void FileSource::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     prevTime = time0;
     if (opFlags[USE_ABSOLUTE_TIME_FLAG]) {
@@ -69,7 +69,7 @@ void FileSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     return RampSource::dynObjectInitializeA(time0, flags);
 }
 
-void FileSource::updateA(coreTime time)
+void FileSource::updateA(CoreTime time)
 {
     while (time >= schedLoad.time(currIndex)) {
         m_output = schedLoad.data(currIndex);
@@ -94,7 +94,7 @@ void FileSource::updateA(coreTime time)
     }
 }
 
-void FileSource::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void FileSource::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     if (time > nextUpdateTime) {
         updateA(time);

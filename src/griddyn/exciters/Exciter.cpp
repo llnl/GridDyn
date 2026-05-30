@@ -21,7 +21,7 @@
 #include "core/coreDefinitions.hpp"
 #include "solvers/SolverMode.hpp"
 #include "units/units.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cstdint>
 #include <string>
@@ -66,7 +66,7 @@ CoreObject* Exciter::clone(CoreObject* obj) const
     return gdE;
 }
 
-void Exciter::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void Exciter::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
     offsets.local().local.diffSize = 1;
     offsets.local().local.jacSize = 4;
@@ -137,7 +137,7 @@ void Exciter::derivative(const IOdata& inputs,
 
 void Exciter::jacobianElements(const IOdata& /*inputs*/,
                                const StateData& stateData,
-                               matrixData<double>& matrix,
+                               MatrixData<double>& matrix,
                                const IOlocs& inputLocs,
                                const SolverMode& solverMode)
 {
@@ -173,7 +173,7 @@ void Exciter::rootTest(const IOdata& inputs,
     }
 }
 
-void Exciter::rootTrigger(coreTime time,
+void Exciter::rootTrigger(CoreTime time,
                           const IOdata& inputs,
                           const std::vector<int>& rootMask,
                           const SolverMode& solverMode)

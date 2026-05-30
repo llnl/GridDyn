@@ -13,7 +13,7 @@
 
 namespace griddyn::events {
 ReversibleEvent::ReversibleEvent(const std::string& eventName): Event(eventName) {}
-ReversibleEvent::ReversibleEvent(coreTime time0): Event(time0) {}
+ReversibleEvent::ReversibleEvent(CoreTime time0): Event(time0) {}
 ReversibleEvent::ReversibleEvent(const EventInfo& gdEI, CoreObject* rootObject):
     Event(gdEI, rootObject)
 {
@@ -76,7 +76,7 @@ ChangeCode ReversibleEvent::trigger()
     }
 }
 
-ChangeCode ReversibleEvent::trigger(coreTime time)
+ChangeCode ReversibleEvent::trigger(CoreTime time)
 {
     if (canUndo) {
         undoValue = grabber->grabData();

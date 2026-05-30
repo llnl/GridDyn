@@ -382,13 +382,13 @@ void GridOptObject::gradient(const OptimizationData& /*unused*/,
 }
 
 void GridOptObject::jacobianElements(const OptimizationData& /*unused*/,
-                                     matrixData<double>& /*md*/,
+                                     MatrixData<double>& /*md*/,
                                      const OptimizationMode& /*unused*/)
 {
 }
 
 void GridOptObject::getConstraints(const OptimizationData& /*unused*/,
-                                   matrixData<double>& /*cons*/,
+                                   MatrixData<double>& /*cons*/,
                                    double /*upperLimit*/[],
                                    double /*lowerLimit*/[],
                                    const OptimizationMode& /*unused*/)
@@ -402,13 +402,13 @@ void GridOptObject::constraintValue(const OptimizationData& /*unused*/,
 }
 
 void GridOptObject::constraintJacobianElements(const OptimizationData& /*unused*/,
-                                               matrixData<double>& /*md*/,
+                                               MatrixData<double>& /*md*/,
                                                const OptimizationMode& /*unused*/)
 {
 }
 
 void GridOptObject::hessianElements(const OptimizationData& /*unused*/,
-                                    matrixData<double>& /*md*/,
+                                    MatrixData<double>& /*md*/,
                                     const OptimizationMode& /*unused*/)
 {
 }

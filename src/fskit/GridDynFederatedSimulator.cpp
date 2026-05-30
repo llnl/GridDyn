@@ -43,7 +43,7 @@ fskit::Time GridDynFederatedSimulator::CalculateLocalGrantedTime(void)
 {
     const double kBigNum(1e49);
 
-    griddyn::coreTime griddynNextEventTime = mGridDyn->getNextEvent();
+    griddyn::CoreTime griddynNextEventTime = mGridDyn->getNextEvent();
 
     // assert(griddynNextEventTime > mCurrentGriddynTime);
 
@@ -66,9 +66,9 @@ bool GridDynFederatedSimulator::Finalize(void)
 // Method used by Variable Step Size simulator
 std::tuple<fskit::Time, bool> GridDynFederatedSimulator::TimeAdvancement(const fskit::Time& time)
 {
-    griddyn::coreTime gdTime;
+    griddyn::CoreTime gdTime;
 
-    // Convert fskit time to coreTime used by Griddyn
+    // Convert fskit time to CoreTime used by Griddyn
     gdTime.setBaseTimeCode(time.GetRaw());
     bool stopSimulation = false;
 
@@ -86,7 +86,7 @@ std::tuple<fskit::Time, bool> GridDynFederatedSimulator::TimeAdvancement(const f
 
             {
                 // Next event time should now be larger than granted time
-                griddyn::coreTime griddynNextEventTime = mGridDyn->getNextEvent();
+                griddyn::CoreTime griddynNextEventTime = mGridDyn->getNextEvent();
                 // assert(griddynNextEventTime > mCurrentGriddynTime);
             }
         }

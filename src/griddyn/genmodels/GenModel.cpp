@@ -11,7 +11,7 @@
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "otherGenModels.h"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <string>
 #include <vector>
 
@@ -187,7 +187,7 @@ double GenModel::getOutput(index_t /*numOut*/) const
 
 void GenModel::ioPartialDerivatives(const IOdata& inputs,
                                     const StateData& /*stateDataValue*/,
-                                    matrixData<double>& matrixDataValue,
+                                    MatrixData<double>& matrixDataValue,
                                     const IOlocs& inputLocs,
                                     const SolverMode& /*sMode*/)
 {

@@ -27,7 +27,7 @@
 #include "core/FactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/matrixCreation.h"
-#include "utilities/matrixDataFilter.hpp"
+#include "utilities/MatrixDataFilter.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cstdio>
@@ -290,7 +290,7 @@ bool isSUNMatrixSetup(SUNMatrix j)
     return true;
 }
 
-void matrixDataToSUNMatrix(matrixData<double>& md, SUNMatrix j, count_t svsize)
+void matrixDataToSUNMatrix(MatrixData<double>& md, SUNMatrix j, count_t svsize)
 {
     int id = SUNMatGetID(j);
     if (id == SUNMATRIX_SPARSE) {
@@ -394,7 +394,7 @@ int sundialsJac(sunrealtype time,
         a1->setColLimit(sd->svsize);
 
         if (sd->flags[USE_MASK_FLAG]) {
-            matrixDataFilter<double> filterAd(*(a1));
+            MatrixDataFilter<double> filterAd(*(a1));
             filterAd.addFilter(sd->maskElements);
             sd->m_gds->jacobianFunction(time,
                                         nvecdata(sd->use_omp, state),
@@ -435,7 +435,7 @@ int sundialsJac(sunrealtype time,
         // if it isn't the first we can use the SUNDIALS arraySparse object
         auto a1 = makeSundialsMatrixData(j);
         if (sd->flags[USE_MASK_FLAG]) {
-            matrixDataFilter<double> filterAd(*a1);
+            MatrixDataFilter<double> filterAd(*a1);
             filterAd.addFilter(sd->maskElements);
             sd->m_gds->jacobianFunction(time,
                                         nvecdata(sd->use_omp, state),
@@ -463,7 +463,7 @@ int sundialsJac(sunrealtype time,
         }
     }
 /*
-matrixDataSparse<double> &a1 = sd->a1;
+MatrixDataSparse<double> &a1 = sd->a1;
 
 sd->m_gds->jacobianFunction (time, nvecdata(sd->use_omp, state), nvecdata(sd->use_omp, dstate_dt),
 a1,cj, sd->mode); a1.sortIndexCol (); if (sd->flags[USE_MASK_FLAG])

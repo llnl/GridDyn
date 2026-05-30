@@ -7,9 +7,9 @@
 #pragma once
 
 /** @file
- *  @brief define some operations related to matrixData objects
+ *  @brief define some operations related to MatrixData objects
  */
-#include "matrixData.hpp"
+#include "MatrixData.hpp"
 #include <vector>
 /** multiply a matrix data object by a vector
 @details assumes vec has the appropriate size otherwise undefined behavior will occur
@@ -17,7 +17,7 @@
 @param[in] vec the vector data to multiply at least size N
 @param[out] res the location to store the results, with length M
 */
-void matrixDataMultiply(matrixData<double>& md, const double vec[], double res[]);
+void matrixDataMultiply(MatrixData<double>& md, const double vec[], double res[]);
 
 /** multiply a matrix data object by a vector
 @details assumes vec has the appropriate size otherwise undefined behavior will occur
@@ -25,4 +25,4 @@ void matrixDataMultiply(matrixData<double>& md, const double vec[], double res[]
 @param[in] vec the vector data to multiply at least size N
 @return a vector with the results the vector will be of length M
 */
-std::vector<double> matrixDataMultiply(matrixData<double>& md, const double vec[]);
+std::vector<double> matrixDataMultiply(MatrixData<double>& md, const double vec[]);

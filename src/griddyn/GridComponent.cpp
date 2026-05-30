@@ -11,7 +11,7 @@
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cassert>
 #include <format>
@@ -122,7 +122,7 @@ void GridComponent::updateObjectLinkages(CoreObject* newRoot)
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::pFlowInitializeA(coreTime time0, std::uint32_t flags)
+void GridComponent::pFlowInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (localBaseVoltage == kNullVal) {
         if (isRoot()) {  // NOLINT
@@ -151,7 +151,7 @@ void GridComponent::pFlowInitializeB()
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::dynInitializeA(coreTime time0, std::uint32_t flags)
+void GridComponent::dynInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (isEnabled()) {
         dynObjectInitializeA(time0, flags);
@@ -177,7 +177,7 @@ void GridComponent::dynInitializeB(const IOdata& inputs,
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void GridComponent::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     for (auto& subobj : subObjectList) {
         subobj->pFlowInitializeA(time0, flags);
@@ -193,7 +193,7 @@ void GridComponent::pFlowObjectInitializeB()
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void GridComponent::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     for (auto& subobj : subObjectList) {
         subobj->dynInitializeA(time0, flags);
@@ -919,7 +919,7 @@ ChangeCode
 // NOLINTEND(misc-no-recursion)
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::setState(coreTime time,
+void GridComponent::setState(CoreTime time,
                              const double state[],
                              const double dstateDt[],
                              const SolverMode& sMode)
@@ -964,7 +964,7 @@ void GridComponent::setState(coreTime time,
 }
 // for saving the state
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::guessState(coreTime time,
+void GridComponent::guessState(CoreTime time,
                                double state[],
                                double dstateDt[],
                                const SolverMode& sMode)
@@ -1687,7 +1687,7 @@ CoreObject* GridComponent::findByUserID(std::string_view typeName, index_t searc
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void GridComponent::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     prevTime = time;
 
@@ -1702,7 +1702,7 @@ void GridComponent::timestep(coreTime time, const IOdata& inputs, const SolverMo
 
 void GridComponent::ioPartialDerivatives(const IOdata& /*inputs*/,
                                          const StateData& /*sD*/,
-                                         matrixData<double>& /*md*/,
+                                         MatrixData<double>& /*md*/,
                                          const IOlocs& /*inputLocs*/,
                                          const SolverMode& /*sMode*/)
 {
@@ -1713,7 +1713,7 @@ void GridComponent::ioPartialDerivatives(const IOdata& /*inputs*/,
 
 void GridComponent::outputPartialDerivatives(const IOdata& /*inputs*/,
                                              const StateData& /*stateDataValue*/,
-                                             matrixData<double>& matrixDataValue,
+                                             MatrixData<double>& matrixDataValue,
                                              const SolverMode& sMode)
 {
     /* assume the output is a state and compute accordingly*/
@@ -1795,7 +1795,7 @@ void GridComponent::algebraicUpdate(const IOdata& inputs,
 // NOLINTNEXTLINE(misc-no-recursion)
 void GridComponent::jacobianElements(const IOdata& inputs,
                                      const StateData& stateDataValue,
-                                     matrixData<double>& matrixDataValue,
+                                     MatrixData<double>& matrixDataValue,
                                      const IOlocs& inputLocs,
                                      const SolverMode& sMode)
 {
@@ -1824,7 +1824,7 @@ void GridComponent::rootTest(const IOdata& inputs,
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridComponent::rootTrigger(coreTime time,
+void GridComponent::rootTrigger(CoreTime time,
                                 const IOdata& inputs,
                                 const std::vector<int>& rootMask,
                                 const SolverMode& sMode)
@@ -2006,7 +2006,7 @@ void GridComponent::parameterPartialDerivatives(index_t param,
                                                 double /*val*/,
                                                 const IOdata& /*inputs*/,
                                                 const StateData& /*sD*/,
-                                                matrixData<double>& /*md*/,
+                                                MatrixData<double>& /*md*/,
                                                 const SolverMode& /*sMode*/)
 {
     throw(UnrecognizedParameter("param" + std::to_string(param)));

@@ -7,8 +7,8 @@
 #include "extraModels.h"
 
 #include "core/ObjectFactoryTemplates.hpp"
-#include "txLifeSpan.h"
-#include "txThermalModel.h"
+#include "TxLifeSpan.h"
+#include "TxThermalModel.h"
 #include <memory>
 #include <string>
 #include <vector>
@@ -19,12 +19,12 @@ static std::vector<std::shared_ptr<ObjectFactory>> gExtraModelFactories;
 void loadExtraModels(const std::string& /*subset*/)
 {
     auto thermalModelFactory =
-        std::make_shared<ChildTypeFactory<extra::txThermalModel, Relay>>("relay",
+        std::make_shared<ChildTypeFactory<extra::TxThermalModel, Relay>>("relay",
                                                                          stringVec{"thermaltx"});
     gExtraModelFactories.push_back(thermalModelFactory);
 
     auto lifeSpanFactory =
-        std::make_shared<ChildTypeFactory<extra::txLifeSpan, Relay>>("relay",
+        std::make_shared<ChildTypeFactory<extra::TxLifeSpan, Relay>>("relay",
                                                                      stringVec{"txaging", "txage"});
     gExtraModelFactories.push_back(lifeSpanFactory);
 }

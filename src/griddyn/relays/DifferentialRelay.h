@@ -39,7 +39,7 @@ class DifferentialRelay: public Relay {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
     virtual void receiveMessage(std::uint64_t sourceID,
                                 std::shared_ptr<CommMessage> message) override;
@@ -48,9 +48,9 @@ class DifferentialRelay: public Relay {
     virtual void actionTaken(index_t actionNum,
                              index_t conditionNum,
                              ChangeCode actionReturn,
-                             coreTime actionTime) override;
-    virtual void conditionTriggered(index_t conditionNum, coreTime triggerTime) override;
-    virtual void conditionCleared(index_t conditionNum, coreTime triggerTime) override;
+                             CoreTime actionTime) override;
+    virtual void conditionTriggered(index_t conditionNum, CoreTime triggerTime) override;
+    virtual void conditionCleared(index_t conditionNum, CoreTime triggerTime) override;
 };
 
 }  // namespace griddyn::relays

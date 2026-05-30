@@ -17,7 +17,7 @@ template<class Y>
 class vectData;
 
 template<class Y>
-class matrixData;
+class MatrixData;
 
 namespace griddyn {
 class consData;
@@ -25,7 +25,7 @@ class consData;
  * the basic object for creating a power system encapsulating some common functions and data that is
  *needed by all objects in the simulation and defining some common methods for use by all objects.
  *This object is not really intended to be instantiated directly and is mostly a common interface to
- *inheriting objects gridPrimary, gridSecondary, and GridSubModel as it encapsulated common
+ *inheriting objects GridPrimary, GridSecondary, and GridSubModel as it encapsulated common
  *functionality between those objects
  **/
 class GridOptObject: public CoreObject {
@@ -220,7 +220,7 @@ class GridOptObject: public CoreObject {
     @param oMode the optimization mode to use.
     */
     virtual void jacobianElements(const OptimizationData& of,
-                                  matrixData<double>& md,
+                                  MatrixData<double>& md,
                                   const OptimizationMode& oMode);
 
     // constraint functions
@@ -234,7 +234,7 @@ class GridOptObject: public CoreObject {
     @param[in] oMode the optimization mode to use.
     */
     virtual void getConstraints(const OptimizationData& of,
-                                matrixData<double>& cons,
+                                MatrixData<double>& cons,
                                 double upperLimit[],
                                 double lowerLimit[],
                                 const OptimizationMode& oMode);
@@ -252,7 +252,7 @@ class GridOptObject: public CoreObject {
     @param oMode the optimization mode to use.
     */
     virtual void constraintJacobianElements(const OptimizationData& of,
-                                            matrixData<double>& md,
+                                            MatrixData<double>& md,
                                             const OptimizationMode& oMode);
 
     /** get the Hessian array for the objective function
@@ -261,7 +261,7 @@ class GridOptObject: public CoreObject {
     @param oMode the optimization mode to use.
     */
     virtual void hessianElements(const OptimizationData& of,
-                                 matrixData<double>& md,
+                                 MatrixData<double>& md,
                                  const OptimizationMode& oMode);
 
     /** get the names of the objective variables

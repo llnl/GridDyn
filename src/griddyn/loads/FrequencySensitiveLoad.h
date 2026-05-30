@@ -26,11 +26,11 @@ class FrequencySensitiveLoad: public GridLoad {
     explicit FrequencySensitiveLoad(const std::string& objName = "load_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
 
     virtual void set(std::string_view param, std::string_view val) override;
@@ -46,19 +46,19 @@ class FrequencySensitiveLoad: public GridLoad {
                                   const SolverMode& sMode) override;
     /** update the actual outputs with a frequency related calculation*/
     virtual void updateOutputs(double frequency);
-    virtual void setState(coreTime time,
+    virtual void setState(CoreTime time,
                           const double state[],
                           const double dstate_dt[],
                           const SolverMode& sMode) override;
 
     virtual void ioPartialDerivatives(const IOdata& inputs,
                                       const StateData& sD,
-                                      matrixData<double>& md,
+                                      MatrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const StateData& sD,
-                                          matrixData<double>& md,
+                                          MatrixData<double>& md,
                                           const SolverMode& sMode) override;
     virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
 

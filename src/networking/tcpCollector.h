@@ -19,14 +19,14 @@ class TcpCollector: public Collector {
     std::shared_ptr<gmlc::networking::TcpConnection> connection;
 
   public:
-    TcpCollector(coreTime time0 = timeZero, coreTime period = timeOneSecond);
+    TcpCollector(CoreTime time0 = timeZero, CoreTime period = timeOneSecond);
     explicit TcpCollector(const std::string& name);
     ~TcpCollector();
 
     virtual std::unique_ptr<Collector> clone() const override;
 
     virtual void cloneTo(Collector* col) const override;
-    virtual ChangeCode trigger(coreTime time) override;
+    virtual ChangeCode trigger(CoreTime time) override;
 
     void set(std::string_view param, double val) override;
     void set(std::string_view param, std::string_view val) override;

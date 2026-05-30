@@ -71,7 +71,7 @@ void ZonalRelay::set(std::string_view param, std::string_view val)
         Relay::set("zones", static_cast<double>(dvals.size()), units::defunit);
         mZoneLevels = std::move(dvals);
     } else if (param == "delay") {
-        auto dvals = gmlc::utilities::str2vector<coreTime>(std::string{val}, negTime);
+        auto dvals = gmlc::utilities::str2vector<CoreTime>(std::string{val}, negTime);
         if (dvals.size() != mZoneDelays.size()) {
             throw(InvalidParameterValue(param));
         }
@@ -152,7 +152,7 @@ double ZonalRelay::get(std::string_view param, units::unit unitType) const
     return val;
 }
 
-void ZonalRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void ZonalRelay::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     const double baseImpedance = m_sourceObject->get("impedance");
     for (index_t kk = 0; kk < mZoneCount; ++kk) {
@@ -204,7 +204,7 @@ void ZonalRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 void ZonalRelay::actionTaken(index_t actionNum,
                              index_t conditionNum,
                              ChangeCode /*actionReturn*/,
-                             coreTime /*actionTime*/)
+                             CoreTime /*actionTime*/)
 {
     logging::normal(
         this, "condition {} action {} taken terminal {}", conditionNum, actionNum, m_terminal);
@@ -221,7 +221,7 @@ void ZonalRelay::actionTaken(index_t actionNum,
     mConditionLevel = std::min(conditionNum, mConditionLevel);
 }
 
-void ZonalRelay::conditionTriggered(index_t conditionNum, coreTime /*triggerTime*/)
+void ZonalRelay::conditionTriggered(index_t conditionNum, CoreTime /*triggerTime*/)
 {
     logging::normal(this, "condition {} triggered terminal {}", conditionNum, m_terminal);
     mConditionLevel = std::min(conditionNum, mConditionLevel);
@@ -242,7 +242,7 @@ void ZonalRelay::conditionTriggered(index_t conditionNum, coreTime /*triggerTime
     }
 }
 
-void ZonalRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/)
+void ZonalRelay::conditionCleared(index_t conditionNum, CoreTime /*triggerTime*/)
 {
     logging::normal(this, "condition {} cleared terminal {}", conditionNum, m_terminal);
     for (index_t kk = 0; kk < mZoneCount; ++kk) {

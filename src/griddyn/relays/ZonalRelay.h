@@ -28,7 +28,7 @@ class ZonalRelay: public Relay {
                              //!< multiterminal devices
     double mResetMargin = 0.01;  //!<! the reset margin for clearing a fault
     std::vector<double> mZoneLevels;  //!< the level of impedance to trigger
-    std::vector<coreTime> mZoneDelays;  //!< the delay upon which to act for the relay
+    std::vector<CoreTime> mZoneDelays;  //!< the delay upon which to act for the relay
     count_t mConditionLevel = kInvalidCount;  //!< the level of condition that has been triggered
     int mAutoName = -1;  //!< storage for indicator of the type of autoname to use
   public:
@@ -42,15 +42,15 @@ class ZonalRelay: public Relay {
 
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
   protected:
     virtual void actionTaken(index_t actionNum,
                              index_t conditionNum,
                              ChangeCode actionReturn,
-                             coreTime actionTime) override;
-    virtual void conditionTriggered(index_t conditionNum, coreTime triggerTime) override;
-    virtual void conditionCleared(index_t conditionNum, coreTime triggerTime) override;
+                             CoreTime actionTime) override;
+    virtual void conditionTriggered(index_t conditionNum, CoreTime triggerTime) override;
+    virtual void conditionCleared(index_t conditionNum, CoreTime triggerTime) override;
     virtual void receiveMessage(std::uint64_t sourceID,
                                 std::shared_ptr<CommMessage> message) override;
     /** function to automatically generate the comm system names

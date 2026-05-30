@@ -10,7 +10,7 @@
 #include <vector>
 
 template<class X>
-class matrixData;
+class MatrixData;
 
 namespace griddyn {
 class GridComponent;
@@ -33,7 +33,7 @@ given object
 void numericJacobianCalculation(GridComponent* comp,
                                 const IOdata& inputs,
                                 const StateData& sD,
-                                matrixData<double>& md,
+                                MatrixData<double>& md,
                                 const IOlocs& inputLocs,
                                 const SolverMode& sMode);
 

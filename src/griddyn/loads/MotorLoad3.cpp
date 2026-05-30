@@ -9,7 +9,7 @@
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -28,7 +28,7 @@ CoreObject* MotorLoad3::clone(CoreObject* obj) const
     return ld;
 }
 
-void MotorLoad3::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void MotorLoad3::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     // setup the parameters
     x0 = x + xm;
@@ -102,7 +102,7 @@ void MotorLoad3::converge()
     }
 }
 
-void MotorLoad3::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/) {}
+void MotorLoad3::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/) {}
 void MotorLoad3::dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& /*desiredOutput*/,
                                       IOdata& /*fieldSet*/)
@@ -162,7 +162,7 @@ void MotorLoad3::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-void MotorLoad3::setState(coreTime time,
+void MotorLoad3::setState(CoreTime time,
                           const double state[],
                           const double dstate_dt[],
                           const SolverMode& sMode)
@@ -171,7 +171,7 @@ void MotorLoad3::setState(coreTime time,
     GridComponent::setState(time, state, dstate_dt, sMode);
 }
 
-void MotorLoad3::guessState(coreTime time,
+void MotorLoad3::guessState(CoreTime time,
                             double state[],
                             double dstate_dt[],
                             const SolverMode& sMode)
@@ -277,7 +277,7 @@ void MotorLoad3::getStateName(stringVec& stNames,
     }
 }
 
-void MotorLoad3::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
+void MotorLoad3::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     StateData sD(time, m_state.data());
     derivative(inputs, sD, m_dstate_dt.data(), cLocalSolverMode);
@@ -340,7 +340,7 @@ void MotorLoad3::derivative(const IOdata& /*inputs*/,
 
 void MotorLoad3::jacobianElements(const IOdata& inputs,
                                   const StateData& sD,
-                                  matrixData<double>& md,
+                                  MatrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode)
 {
@@ -443,7 +443,7 @@ void MotorLoad3::jacobianElements(const IOdata& inputs,
 
 void MotorLoad3::outputPartialDerivatives(const IOdata& inputs,
                                           const StateData& /*sD*/,
-                                          matrixData<double>& md,
+                                          MatrixData<double>& md,
                                           const SolverMode& sMode)
 {
     auto refAlg = offsets.getAlgOffset(sMode);
@@ -471,7 +471,7 @@ count_t MotorLoad3::outputDependencyCount(index_t /*num*/, const SolverMode& /*s
 }
 void MotorLoad3::ioPartialDerivatives(const IOdata& inputs,
                                       const StateData& sD,
-                                      matrixData<double>& md,
+                                      MatrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode)
 {
@@ -561,7 +561,7 @@ void MotorLoad3::rootTest(const IOdata& /*inputs*/,
     }
 }
 
-void MotorLoad3::rootTrigger(coreTime /*time*/,
+void MotorLoad3::rootTrigger(CoreTime /*time*/,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode)

@@ -81,7 +81,7 @@ class Sensor: public Relay {
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -106,10 +106,10 @@ class Sensor: public Relay {
     std::shared_ptr<GrabberSet> getGrabberSet(index_t grabberNum);
 
     // dynamic functions for evaluation with a limit exceeded
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& stateDataValue,
-                                  matrixData<double>& matrixDataValue,
+                                  MatrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
 
@@ -166,17 +166,17 @@ class Sensor: public Relay {
     double getInput(const StateData& stateDataValue,
                     const SolverMode& sMode,
                     index_t inputNumber = 0) const;
-    virtual void updateA(coreTime time) override;
+    virtual void updateA(CoreTime time) override;
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const StateData& stateDataValue,
-                                          matrixData<double>& matrixDataValue,
+                                          MatrixData<double>& matrixDataValue,
                                           const SolverMode& sMode) override;
 
     virtual void rootTest(const IOdata& inputs,
                           const StateData& stateDataValue,
                           double roots[],
                           const SolverMode& sMode) override;
-    virtual void rootTrigger(coreTime time,
+    virtual void rootTrigger(CoreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override;

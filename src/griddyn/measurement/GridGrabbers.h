@@ -75,7 +75,7 @@ class GridGrabber: public ObjectOperatorInterface {
      **/
     virtual void getDesc(std::vector<std::string>& desc_list) const;
     /** get the current time associated with the grabber*/
-    virtual coreTime getTime() const;
+    virtual CoreTime getTime() const;
     /** get a single description of the grabber*/
     virtual const std::string& getDesc() const;
     /** set the description text*/
@@ -144,7 +144,7 @@ class FunctionGrabber: public GridGrabber {
     virtual void updateField(std::string_view fld) override;
     using GridGrabber::getDesc;
     virtual void getDesc(std::vector<std::string>& desc_list) const override;
-    virtual coreTime getTime() const override;
+    virtual CoreTime getTime() const override;
 
   protected:
     virtual bool checkIfLoaded() override;
@@ -180,7 +180,7 @@ class OpGrabber: public GridGrabber {
     using GridGrabber::getDesc;
 
     virtual void getDesc(std::vector<std::string>& desc_list) const override;
-    virtual coreTime getTime() const override;
+    virtual CoreTime getTime() const override;
 
   protected:
     virtual bool checkIfLoaded() override;

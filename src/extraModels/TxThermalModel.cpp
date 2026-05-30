@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "txThermalModel.h"
+#include "TxThermalModel.h"
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
@@ -21,7 +21,7 @@
 #include <utility>
 
 namespace griddyn::extra {
-txThermalModel::txThermalModel(const std::string& objName): Sensor(objName)
+TxThermalModel::TxThermalModel(const std::string& objName): Sensor(objName)
 {
     opFlags.reset(CONTINUOUS_FLAG);  // this is a not a continuous model
     outputStrings = {{"ambient", "ambientTemp", "airTemp"},
@@ -30,9 +30,9 @@ txThermalModel::txThermalModel(const std::string& objName): Sensor(objName)
     m_outputSize = 3;
 }
 
-CoreObject* txThermalModel::clone(CoreObject* obj) const
+CoreObject* TxThermalModel::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<txThermalModel, Sensor>(this, obj);
+    auto* nobj = cloneBase<TxThermalModel, Sensor>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -57,7 +57,7 @@ CoreObject* txThermalModel::clone(CoreObject* obj) const
     return nobj;
 }
 
-void txThermalModel::setFlag(std::string_view flag, bool val)
+void TxThermalModel::setFlag(std::string_view flag, bool val)
 {
     if (flag == "auto") {
         opFlags.set(auto_parameter_load, val);
@@ -70,7 +70,7 @@ void txThermalModel::setFlag(std::string_view flag, bool val)
     }
 }
 
-void txThermalModel::set(std::string_view param, std::string_view val)
+void TxThermalModel::set(std::string_view param, std::string_view val)
 {
     if ((param == "txtype") || (param == "cooling")) {
         const auto normalizedValue = gmlc::utilities::convertToLowerCase(val);
@@ -122,7 +122,7 @@ void txThermalModel::set(std::string_view param, std::string_view val)
     }
 }
 
-void txThermalModel::set(std::string_view param, double val, units::unit unitType)
+void TxThermalModel::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "ambient") || (param == "ambienttemp")) {
         mAmbientTemp = units::convert(val, unitType, units::degC);
@@ -179,17 +179,17 @@ void txThermalModel::set(std::string_view param, double val, units::unit unitTyp
     }
 }
 
-double txThermalModel::get(std::string_view param, units::unit unitType) const
+double TxThermalModel::get(std::string_view param, units::unit unitType) const
 {
     return Sensor::get(param, unitType);
 }
 
-void txThermalModel::add(CoreObject* /*obj*/)
+void TxThermalModel::add(CoreObject* /*obj*/)
 {
     throw(UnrecognizedObjectException(this));
 }
 
-void txThermalModel::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void TxThermalModel::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (m_sourceObject == nullptr) {
         Sensor::dynObjectInitializeA(time0, flags);
@@ -304,7 +304,7 @@ void txThermalModel::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     Sensor::dynObjectInitializeA(time0, flags);
 }
 
-void txThermalModel::dynObjectInitializeB(const IOdata& inputs,
+void TxThermalModel::dynObjectInitializeB(const IOdata& inputs,
                                           const IOdata& desiredOutput,
                                           IOdata& fieldSet)
 {
@@ -337,7 +337,7 @@ void txThermalModel::dynObjectInitializeB(const IOdata& inputs,
     Sensor::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
 }
 
-void txThermalModel::updateA(coreTime time)
+void TxThermalModel::updateA(CoreTime time)
 {
     auto deltaTime = time - prevTime;
     if (deltaTime == timeZero) {
@@ -386,7 +386,7 @@ void txThermalModel::updateA(coreTime time)
     prevTime = time;
 }
 
-void txThermalModel::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
+void TxThermalModel::timestep(CoreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     updateA(time);
 }

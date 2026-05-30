@@ -8,7 +8,7 @@
 
 #include "../Generator.h"
 #include "../GridBus.h"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
 #include <string>
@@ -47,7 +47,7 @@ CoreObject* ExciterDC1A::clone(CoreObject* obj) const
     return gdE;
 }
 
-void ExciterDC1A::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void ExciterDC1A::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
     offsets.local().local.diffSize = 4;
     offsets.local().local.jacSize = 19;
@@ -121,7 +121,7 @@ void ExciterDC1A::derivative(const IOdata& inputs,
 // Jacobian
 void ExciterDC1A::jacobianElements(const IOdata& inputs,
                                    const StateData& stateDataValue,
-                                   matrixData<double>& matrixDataValue,
+                                   MatrixData<double>& matrixDataValue,
                                    const IOlocs& inputLocs,
                                    const SolverMode& sMode)
 {
@@ -176,7 +176,7 @@ void ExciterDC1A::limitJacobian(double /*V*/,
                                 int /*Vloc*/,
                                 int refLoc,
                                 double cjValue,
-                                matrixData<double>& matrixDataValue)
+                                MatrixData<double>& matrixDataValue)
 {
     matrixDataValue.assign(refLoc, refLoc, cjValue);
 }

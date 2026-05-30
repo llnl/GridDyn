@@ -11,7 +11,7 @@
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
 #include <complex>
@@ -33,7 +33,7 @@ CoreObject* GenModelInverter::clone(CoreObject* obj) const
     return genModelClone;
 }
 
-void GenModelInverter::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void GenModelInverter::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
     offsets.local().local.algSize = 1;
     offsets.local().local.jacSize = 4;
@@ -236,7 +236,7 @@ double GenModelInverter::getOutput(const IOdata& inputs,
 
 void GenModelInverter::ioPartialDerivatives(const IOdata& inputs,
                                             const StateData& stateDataValue,
-                                            matrixData<double>& matrixDataValue,
+                                            MatrixData<double>& matrixDataValue,
                                             const IOlocs& inputLocs,
                                             const SolverMode& sMode)
 {
@@ -274,7 +274,7 @@ void GenModelInverter::ioPartialDerivatives(const IOdata& inputs,
 
 void GenModelInverter::jacobianElements(const IOdata& inputs,
                                         const StateData& stateDataValue,
-                                        matrixData<double>& matrixDataValue,
+                                        MatrixData<double>& matrixDataValue,
                                         const IOlocs& inputLocs,
                                         const SolverMode& sMode)
 {
@@ -315,7 +315,7 @@ void GenModelInverter::jacobianElements(const IOdata& inputs,
 
 void GenModelInverter::outputPartialDerivatives(const IOdata& inputs,
                                                 const StateData& stateDataValue,
-                                                matrixData<double>& matrixDataValue,
+                                                MatrixData<double>& matrixDataValue,
                                                 const SolverMode& sMode)
 {
     if (!hasAlgebraic(sMode)) {
@@ -426,7 +426,7 @@ void GenModelInverter::rootTest(const IOdata& inputs,
     }
 }
 
-void GenModelInverter::rootTrigger(coreTime /*time*/,
+void GenModelInverter::rootTrigger(CoreTime /*time*/,
                                    const IOdata& inputs,
                                    const std::vector<int>& rootMask,
                                    const SolverMode& sMode)

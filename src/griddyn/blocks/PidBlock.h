@@ -36,7 +36,7 @@ class PidBlock: public GridBlock {
              double derivativeGain,
              const std::string& objName = "pidBlock_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -55,10 +55,10 @@ class PidBlock: public GridBlock {
     virtual void blockJacobianElements(double input,
                                        double didt,
                                        const StateData& stateDataValue,
-                                       matrixData<double>& matrixDataValue,
+                                       MatrixData<double>& matrixDataValue,
                                        index_t argLoc,
                                        const SolverMode& sMode) override;
-    virtual double step(coreTime time, double inputA) override;
+    virtual double step(CoreTime time, double inputA) override;
     virtual stringVec localStateNames() const override;
 };
 

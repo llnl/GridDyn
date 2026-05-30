@@ -39,7 +39,7 @@ class ExciterDC2A: public ExciterDC1A {
                                int voltageLoc,
                                int refLoc,
                                double cj,
-                               matrixData<double>& matrixDataValue) override;
+                               MatrixData<double>& matrixDataValue) override;
 };
 
 }  // namespace griddyn::exciters

@@ -79,7 +79,7 @@ void SchedulerReg::setReg(double regLevel)
     }
 }
 
-void SchedulerReg::updateA(coreTime time)
+void SchedulerReg::updateA(CoreTime time)
 {
     const double deltaTime = (time - prevTime);
 
@@ -102,7 +102,7 @@ void SchedulerReg::updateA(coreTime time)
     regCurrent = m_output - pCurr - reserveAct;
 }
 
-double SchedulerReg::predict(coreTime time)
+double SchedulerReg::predict(CoreTime time)
 {
     const double deltaTime = (time - prevTime);
     if (deltaTime == 0) {
@@ -122,7 +122,7 @@ double SchedulerReg::predict(coreTime time)
     return predictedRampOutput;
 }
 
-void SchedulerReg::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void SchedulerReg::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     SchedulerRamp::dynObjectInitializeA(time0, flags);
     participationRating = (m_Base >= kHalfBigNum) ? regMax : m_Base;
@@ -178,12 +178,12 @@ double SchedulerReg::getRampTime() const
     return SchedulerRamp::getRampTime();
 }
 
-double SchedulerReg::getMax(const coreTime /*time*/) const
+double SchedulerReg::getMax(const CoreTime /*time*/) const
 {
     return pMax;
 }
 
-double SchedulerReg::getMin(coreTime /*time*/) const
+double SchedulerReg::getMin(CoreTime /*time*/) const
 {
     return pMin;
 }

@@ -31,8 +31,8 @@ namespace relays {
         std::uint64_t sourceID;  //!< the id of the source
         std::uint64_t actionID;  //!< the id of the action itself
         std::string field;  //!< the field to act upon
-        coreTime triggerTime;  //!< the time the delayed action should be triggered
-        coreTime executionTime;  //!< the time it was executed
+        CoreTime triggerTime;  //!< the time the delayed action should be triggered
+        CoreTime executionTime;  //!< the time it was executed
         double val;  //!< the value associated with the change
         units::unit unitType = units::defunit;  //!< the units associated with the action
         bool executed;  //!< flag indicating the action is executed
@@ -51,8 +51,8 @@ namespace relays {
         };
 
       protected:
-        coreTime actionDelay = timeZero;  //!< the delay between comm signal and action
-        coreTime measureDelay =
+        CoreTime actionDelay = timeZero;  //!< the delay between comm signal and action
+        CoreTime measureDelay =
             timeZero;  //!< the delay between comm measure request and action measurement extraction
         count_t instructionCounter = 0;  //!< counter for the number of instructions
         std::int16_t m_terminal =
@@ -75,7 +75,7 @@ namespace relays {
         virtual void
             set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-        virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+        virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
         virtual void updateObject(CoreObject* obj,
                                   ObjectUpdateMode mode = ObjectUpdateMode::DIRECT) override;
         /** add a measurement point to the relay
@@ -93,7 +93,7 @@ namespace relays {
         virtual void actionTaken(index_t actionNum,
                                  index_t conditionNum,
                                  ChangeCode actionReturn,
-                                 coreTime actionTime) override;
+                                 CoreTime actionTime) override;
 
         virtual void receiveMessage(std::uint64_t sourceID,
                                     std::shared_ptr<CommMessage> message) override;
@@ -106,11 +106,11 @@ namespace relays {
         index_t getFreeAction();
 
         std::unique_ptr<FunctionEventAdapter>
-            generateGetEvent(coreTime eventTime,
+            generateGetEvent(CoreTime eventTime,
                              std::uint64_t sourceID,
                              comms::ControlMessagePayload* message);
         std::unique_ptr<FunctionEventAdapter>
-            generateSetEvent(coreTime eventTime,
+            generateSetEvent(CoreTime eventTime,
                              std::uint64_t sourceID,
                              comms::ControlMessagePayload* message);
     };

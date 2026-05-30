@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "gridRandom.h"
+#include "GridRandom.h"
 
 #include "gmlc/utilities/vectorOps.hpp"
 #include <algorithm>
@@ -74,12 +74,12 @@ namespace {
     }
 }  // namespace
 
-std::unique_ptr<std::mt19937> gridRandom::mGenerator;
+std::unique_ptr<std::mt19937> GridRandom::mGenerator;
 
-bool gridRandom::mSeeded = false;
-unsigned int gridRandom::mActualSeed = 0;
+bool GridRandom::mSeeded = false;
+unsigned int GridRandom::mActualSeed = 0;
 
-gridRandom::gridRandom(DistributionType dist, double param1, double param2):
+GridRandom::GridRandom(DistributionType dist, double param1, double param2):
     mDist(dist), mParam1(param1), mParam2(param2)
 {
     setDistribution(dist);
@@ -88,33 +88,33 @@ gridRandom::gridRandom(DistributionType dist, double param1, double param2):
     }
 }
 
-gridRandom::gridRandom(std::string_view dist_name, double param1, double param2):
-    gridRandom(getDist(dist_name), param1, param2)
+GridRandom::GridRandom(std::string_view dist_name, double param1, double param2):
+    GridRandom(getDist(dist_name), param1, param2)
 {
 }
 
-void gridRandom::ensureEngine()
+void GridRandom::ensureEngine()
 {
     if (!mGenerator) {
         mGenerator = std::make_unique<std::mt19937>();
     }
 }
 
-void gridRandom::setParameters(double param1, double param2)
+void GridRandom::setParameters(double param1, double param2)
 {
     mParam1 = param1;
     mParam2 = param2;
     mDistribution->updateParameters(mParam1, mParam2);
 }
 
-void gridRandom::setSeed(unsigned int seed)
+void GridRandom::setSeed(unsigned int seed)
 {
     ensureEngine();
     mActualSeed = seed;
     mGenerator->seed(seed);
     mSeeded = true;
 }
-void gridRandom::setSeed()
+void GridRandom::setSeed()
 {
     ensureEngine();
     mActualSeed = static_cast<unsigned int>(time(nullptr));
@@ -122,11 +122,11 @@ void gridRandom::setSeed()
     mSeeded = true;
 }
 
-unsigned int gridRandom::getSeed()
+unsigned int GridRandom::getSeed()
 {
     return mActualSeed;
 }
-void gridRandom::setDistribution(DistributionType dist)
+void GridRandom::setDistribution(DistributionType dist)
 {
     mDist = dist;
     switch (dist) {
@@ -171,7 +171,7 @@ void gridRandom::setDistribution(DistributionType dist)
     }
 }
 
-double gridRandom::randNumber(DistributionType dist)
+double GridRandom::randNumber(DistributionType dist)
 {
     if (!mSeeded) {
         setSeed();
@@ -205,7 +205,7 @@ double gridRandom::randNumber(DistributionType dist)
     }
 }
 
-double gridRandom::randNumber(DistributionType dist, double param1, double param2)
+double GridRandom::randNumber(DistributionType dist, double param1, double param2)
 {
     if (!mSeeded) {
         setSeed();
@@ -249,15 +249,15 @@ double gridRandom::randNumber(DistributionType dist, double param1, double param
     }
 }
 
-double gridRandom::operator()()
+double GridRandom::operator()()
 {
     return generate();
 }
-double gridRandom::generate()
+double GridRandom::generate()
 {
     return (*mDistribution)();
 }
-std::vector<double> gridRandom::getNewValues(size_t count)
+std::vector<double> GridRandom::getNewValues(size_t count)
 {
     std::vector<double> randomValues(count);
     std::generate(randomValues.begin(), randomValues.end(), [this]() {
@@ -266,32 +266,32 @@ std::vector<double> gridRandom::getNewValues(size_t count)
     return randomValues;
 }
 
-void gridRandom::getNewValues(std::vector<double>& rvec, size_t count)
+void GridRandom::getNewValues(std::vector<double>& rvec, size_t count)
 {
     gmlc::utilities::ensureSizeAtLeast(rvec, count);
     std::generate(rvec.begin(), rvec.begin() + count - 1, [this]() { return (*mDistribution)(); });
 }
 
-std::pair<double, double> gridRandom::getPair()
+std::pair<double, double> GridRandom::getPair()
 {
     return std::make_pair((*mDistribution)(), (*mDistribution)());
 }
-static constexpr auto distmap = makeLookupTable<gridRandom::DistributionType>({
-    {"constant", gridRandom::DistributionType::CONSTANT},
-    {"const", gridRandom::DistributionType::CONSTANT},
-    {"uniform", gridRandom::DistributionType::UNIFORM},
-    {"lognormal", gridRandom::DistributionType::LOGNORMAL},
-    {"extreme", gridRandom::DistributionType::EXTREME_VALUE},
-    {"exponential", gridRandom::DistributionType::EXPONENTIAL},
-    {"gamma", gridRandom::DistributionType::GAMMA},
-    {"normal", gridRandom::DistributionType::NORMAL},
-    {"gaussian", gridRandom::DistributionType::NORMAL},
-    {"uniform_int", gridRandom::DistributionType::UNIFORM_INT},
+static constexpr auto distmap = makeLookupTable<GridRandom::DistributionType>({
+    {"constant", GridRandom::DistributionType::CONSTANT},
+    {"const", GridRandom::DistributionType::CONSTANT},
+    {"uniform", GridRandom::DistributionType::UNIFORM},
+    {"lognormal", GridRandom::DistributionType::LOGNORMAL},
+    {"extreme", GridRandom::DistributionType::EXTREME_VALUE},
+    {"exponential", GridRandom::DistributionType::EXPONENTIAL},
+    {"gamma", GridRandom::DistributionType::GAMMA},
+    {"normal", GridRandom::DistributionType::NORMAL},
+    {"gaussian", GridRandom::DistributionType::NORMAL},
+    {"uniform_int", GridRandom::DistributionType::UNIFORM_INT},
 });
 
-gridRandom::DistributionType getDist(std::string_view dist_name)
+GridRandom::DistributionType getDist(std::string_view dist_name)
 {
-    return lookupValue(distmap, dist_name, gridRandom::DistributionType::CONSTANT);
+    return lookupValue(distmap, dist_name, GridRandom::DistributionType::CONSTANT);
 }
 
 }  // namespace utilities

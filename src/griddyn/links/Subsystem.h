@@ -57,16 +57,16 @@ class Subsystem: public Link {
     GridArea* getGridArea(index_t num) const;
     // dynInitializeB
 
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
     virtual void pFlowCheck(std::vector<Violation>& violationVector) override;
     // dynInitializeB dynamics
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     /** @brief relic of something not used to my knowledge*/
-    virtual void updateTheta(coreTime /*time*/) {}
+    virtual void updateTheta(CoreTime /*time*/) {}
 
     // parameter set functions
     virtual void set(std::string_view param, std::string_view val) override;
@@ -89,7 +89,7 @@ class Subsystem: public Link {
     virtual ChangeCode
         powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level) override;
 
-    virtual void setState(coreTime time,
+    virtual void setState(CoreTime time,
                           const double state[],
                           const double dstateDt[],
                           const SolverMode& sMode) override;
@@ -103,7 +103,7 @@ class Subsystem: public Link {
   @param[in] tol  the tolerance to do the convergence
   @param[in] mode the mode of convergence
   */
-    virtual void converge(coreTime time,
+    virtual void converge(CoreTime time,
                           double state[],
                           double dstateDt[],
                           const SolverMode& sMode,
@@ -171,13 +171,13 @@ class Subsystem: public Link {
     using Link::ioPartialDerivatives;
     virtual void ioPartialDerivatives(id_type_t busId,
                                       const StateData& stateData,
-                                      matrixData<double>& jacobian,
+                                      MatrixData<double>& jacobian,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
     using Link::outputPartialDerivatives;
     virtual void outputPartialDerivatives(id_type_t busId,
                                           const StateData& stateData,
-                                          matrixData<double>& jacobian,
+                                          MatrixData<double>& jacobian,
                                           const SolverMode& sMode) override;
 
     // virtual void busResidual(index_t busId, const StateData&sD, double *Fp, double *Fq, const

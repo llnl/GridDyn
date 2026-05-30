@@ -160,14 +160,14 @@ void SolverInterface::allocate(count_t /*stateSize*/, count_t numRoots)
 {
     rootsfound.resize(numRoots);
 }
-void SolverInterface::initialize(coreTime t0)
+void SolverInterface::initialize(CoreTime t0)
 {
     solveTime = t0;
 }
 void SolverInterface::sparseReInit(SparseReinitMode /*mode*/) {}
 void SolverInterface::setConstraints() {}
-int SolverInterface::calcIC(coreTime /*t0*/,
-                            coreTime /*tstep0*/,
+int SolverInterface::calcIC(CoreTime /*t0*/,
+                            CoreTime /*tstep0*/,
                             IcModes /*mode*/,
                             bool /*constraints*/)
 {
@@ -510,7 +510,7 @@ void SolverInterface::checkFlag(void* flagvalue,
     // TODO(phlpt): Handle the missing opt == 2 / nullptr case if needed.
 }
 
-int SolverInterface::solve(coreTime /*tStop*/, coreTime& /*tReturn*/, StepMode /* stepMode */)
+int SolverInterface::solve(CoreTime /*tStop*/, CoreTime& /*tReturn*/, StepMode /* stepMode */)
 {
     return -101;
 }

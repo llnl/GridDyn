@@ -43,7 +43,7 @@ CoreObject* infiniteBus::clone(CoreObject* obj) const
     return nobj;
 }
 
-void infiniteBus::updateVoltageAngle(coreTime time)
+void infiniteBus::updateVoltageAngle(CoreTime time)
 {
     auto dt = static_cast<double>(time - prevTime);
 
@@ -52,13 +52,13 @@ void infiniteBus::updateVoltageAngle(coreTime time)
     voltage += dvdt * dt;
 }
 
-void infiniteBus::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void infiniteBus::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     updateVoltageAngle(time);
     GridBus::timestep(time, inputs, sMode);
 }
 
-void infiniteBus::setState(coreTime time,
+void infiniteBus::setState(CoreTime time,
                            const double state[],
                            const double dstate_dt[],
                            const SolverMode& sMode)

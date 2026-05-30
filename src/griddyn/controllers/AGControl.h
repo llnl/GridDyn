@@ -68,9 +68,9 @@ class AGControl: public GridSubModel {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual void updateA(coreTime time) override;
+    virtual void updateA(CoreTime time) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     virtual double getOutput(const IOdata& inputs,
                              const StateData& sD,
@@ -114,9 +114,9 @@ public:
         virtual CoreObject *clone(CoreObject *obj = nullptr, bool copyName = false) const;
         virtual ~AGControlBattery();
 
-        virtual double dynObjectInitializeA (coreTime time0,double freq0,double tiedev0);
+        virtual double dynObjectInitializeA (CoreTime time0,double freq0,double tiedev0);
 
-        virtual double updateA(coreTime time, double freq, double tiedev);
+        virtual double updateA(CoreTime time, double freq, double tiedev);
 
         virtual void addGen(schedulerReg *sched);
         virtual void removeSched(schedulerReg *sched);

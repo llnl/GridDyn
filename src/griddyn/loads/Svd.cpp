@@ -176,7 +176,7 @@ void Svd::updateSetting(int step)
     }
 }
 
-void Svd::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void Svd::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (opFlags[continuous_flag]) {
         if (!opFlags[locked_flag]) {
@@ -191,7 +191,7 @@ void Svd::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     return ZipLoad::pFlowObjectInitializeA(time0, flags);
 }
 
-void Svd::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void Svd::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     return ZipLoad::dynObjectInitializeA(time0, flags);
 }
@@ -202,14 +202,14 @@ void Svd::dynObjectInitializeB(const IOdata& /*inputs*/,
 {
 }
 
-void Svd::setState(coreTime /*time*/,
+void Svd::setState(CoreTime /*time*/,
                    const double /*state*/[],
                    const double /*dstate_dt*/[],
                    const SolverMode& /*sMode*/)
 {
 }
 
-void Svd::guessState(coreTime /*time*/,
+void Svd::guessState(CoreTime /*time*/,
                      double /*state*/[],
                      double /*dstate_dt*/[],
                      const SolverMode& /*sMode*/)
@@ -332,14 +332,14 @@ void Svd::derivative(const IOdata& /*inputs*/,
 
 void Svd::outputPartialDerivatives(const IOdata& /*inputs*/,
                                    const StateData& /*sD*/,
-                                   matrixData<double>& /*md*/,
+                                   MatrixData<double>& /*md*/,
                                    const SolverMode& /*sMode*/)
 {
 }
 
 void Svd::jacobianElements(const IOdata& /*inputs*/,
                            const StateData& /*sD*/,
-                           matrixData<double>& /*md*/,
+                           MatrixData<double>& /*md*/,
                            const IOlocs& /*inputLocs*/,
                            const SolverMode& /*sMode*/)
 {
@@ -350,7 +350,7 @@ void Svd::getStateName(stringVec& /*stNames*/,
 {
 }
 
-void Svd::timestep(coreTime /*time*/, const IOdata& /*inputs*/, const SolverMode& /*sMode*/) {}
+void Svd::timestep(CoreTime /*time*/, const IOdata& /*inputs*/, const SolverMode& /*sMode*/) {}
 void Svd::rootTest(const IOdata& /*inputs*/,
                    const StateData& /*sD*/,
                    double /*roots*/[],
@@ -358,7 +358,7 @@ void Svd::rootTest(const IOdata& /*inputs*/,
 {
 }
 
-void Svd::rootTrigger(coreTime /*time*/,
+void Svd::rootTrigger(CoreTime /*time*/,
                       const IOdata& /*inputs*/,
                       const std::vector<int>& /*rootMask*/,
                       const SolverMode& /*sMode*/)

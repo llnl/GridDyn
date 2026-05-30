@@ -38,9 +38,9 @@ executing with helics
             generateLocalCommandLineParser(ReaderInfo& ReaderInformation) override;
 
         virtual void simInitialize() override;
-        virtual coreTime Run() override;
+        virtual CoreTime Run() override;
 
-        virtual coreTime Step(coreTime time) override;
+        virtual CoreTime Step(CoreTime time) override;
 
         virtual void Finalize() override;
     };

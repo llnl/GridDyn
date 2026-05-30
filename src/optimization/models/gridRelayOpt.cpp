@@ -142,7 +142,7 @@ void GridRelayOpt::constraintValue(const OptimizationData& /*of*/,
 {
 }
 void GridRelayOpt::constraintJacobianElements(const OptimizationData& /*of*/,
-                                              matrixData<double>& /*md*/,
+                                              MatrixData<double>& /*md*/,
                                               const OptimizationMode& /*oMode*/)
 {
 }
@@ -160,12 +160,12 @@ void GridRelayOpt::gradient(const OptimizationData& /*of*/,
 {
 }
 void GridRelayOpt::jacobianElements(const OptimizationData& /*of*/,
-                                    matrixData<double>& /*md*/,
+                                    MatrixData<double>& /*md*/,
                                     const OptimizationMode& /*oMode*/)
 {
 }
 void GridRelayOpt::getConstraints(const OptimizationData& /*of*/,
-                                  matrixData<double>& /*cons*/,
+                                  MatrixData<double>& /*cons*/,
                                   double /*upperLimit*/[],
                                   double /*lowerLimit*/[],
                                   const OptimizationMode& /*oMode*/)

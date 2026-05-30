@@ -27,7 +27,7 @@ CoreObject* NullBlock::clone(CoreObject* obj) const
     return nobj;
 }
 
-void NullBlock::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void NullBlock::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
     auto& lcinfo = offsets.local();
     lcinfo.reset();
@@ -57,14 +57,14 @@ void NullBlock::dynObjectInitializeB(const IOdata& inputs,
     fieldSet[0] = prevInput;
 }
 
-void NullBlock::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
+void NullBlock::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     step(time, inputs[0]);
 }
 
 static IOdata gNullVec;
 
-double NullBlock::step(coreTime time, double input)
+double NullBlock::step(CoreTime time, double input)
 {
     prevTime = time;
     return input;
@@ -124,7 +124,7 @@ void NullBlock::blockDerivative(double /*input*/,
 void NullBlock::blockJacobianElements(double /*input*/,
                                       double /*didt*/,
                                       const StateData& /*sD*/,
-                                      matrixData<double>& /*md*/,
+                                      MatrixData<double>& /*md*/,
                                       index_t /*argLoc*/,
                                       const SolverMode& /*sMode*/)
 {
@@ -145,7 +145,7 @@ ChangeCode NullBlock::rootCheck(const IOdata& /*inputs*/,
     return ChangeCode::NO_CHANGE;
 }
 
-void NullBlock::rootTrigger(coreTime /*time*/,
+void NullBlock::rootTrigger(CoreTime /*time*/,
                             const IOdata& /*inputs*/,
                             const std::vector<int>& /*rootMask*/,
                             const SolverMode& /*sMode*/)

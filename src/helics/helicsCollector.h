@@ -42,12 +42,12 @@ class HelicsCollector: public collector {
     HelicsCoordinator* coordinator_ =
         nullptr;  //!< the coordinator for interaction with the helics interface
   public:
-    HelicsCollector(coreTime time0 = timeZero, coreTime period = timeOneSecond);
+    HelicsCollector(CoreTime time0 = timeZero, CoreTime period = timeOneSecond);
     explicit HelicsCollector(const std::string& name);
 
     virtual std::unique_ptr<collector> clone() const override;
     virtual void cloneTo(collector* col) const override;
-    virtual ChangeCode trigger(coreTime time) override;
+    virtual ChangeCode trigger(CoreTime time) override;
 
     void set(std::string_view param, double val) override;
     void set(std::string_view param, std::string_view val) override;

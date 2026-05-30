@@ -42,7 +42,7 @@ void ControlSystem::add(GridBlock* blk)
     addSubObject(blk);
 }
 
-void ControlSystem::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void ControlSystem::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     for (auto& blockObject : blocks) {
         blockObject->dynInitializeA(time0, flags);
@@ -84,13 +84,13 @@ void ControlSystem::residual(const IOdata& /*inputs*/,
 
 void ControlSystem::jacobianElements(const IOdata& /*inputs*/,
                                      const StateData& /*sD*/,
-                                     matrixData<double>& /*md*/,
+                                     MatrixData<double>& /*md*/,
                                      const IOlocs& /*inputLocs*/,
                                      const SolverMode& /*sMode*/)
 {
 }
 
-void ControlSystem::timestep(coreTime /*time*/,
+void ControlSystem::timestep(CoreTime /*time*/,
                              const IOdata& /*inputs*/,
                              const SolverMode& /*sMode*/)
 {
@@ -103,7 +103,7 @@ void ControlSystem::rootTest(const IOdata& /*inputs*/,
 {
 }
 
-void ControlSystem::rootTrigger(coreTime /*time*/,
+void ControlSystem::rootTrigger(CoreTime /*time*/,
                                 const IOdata& /*inputs*/,
                                 const std::vector<int>& /*rootMask*/,
                                 const SolverMode& /*sMode*/)
@@ -117,5 +117,5 @@ ChangeCode ControlSystem::rootCheck(const IOdata& /*inputs*/,
 {
     return ChangeCode::NO_CHANGE;
 }
-// virtual void setTime(coreTime time){prevTime=time;};
+// virtual void setTime(CoreTime time){prevTime=time;};
 }  // namespace griddyn

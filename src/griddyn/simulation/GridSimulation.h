@@ -77,7 +77,7 @@ class GridSimulation: public GridArea {
     std::string stateFile;  //!< record file for the state
     std::string recordDirectory;  //!< folder location for storing recorded files
     std::string version;  //!< storage for the version string
-    coreTime state_record_period = negTime;  //!< how often to record the state
+    CoreTime state_record_period = negTime;  //!< how often to record the state
 #ifdef ENABLE_MULTITHREADING
     std::unique_ptr<helics::Logger> gridLog;  //!< the object that does the logging
 #else
@@ -97,26 +97,26 @@ class GridSimulation: public GridArea {
     count_t errorCount = 0;  //!< count the number of logged warnings
     // ---------------- clock ----------------
 
-    coreTime startTime = timeZero;  //!< [s]  start time
-    coreTime stopTime = 30.0;  //!< [s]  end time
-    coreTime currentTime = timeZero;  //!< [s] the current time
-    std::atomic<coreTime> simulationTime;  //!< [s]  current time
-    coreTime stepTime = coreTime(0.05);  //!< [s]  time step
-    coreTime timeReturn = timeZero;  //!< [s]  time returned by the solver
-    coreTime nextStopTime = negTime;  //!< next time to stop the dynamic Simulation
+    CoreTime startTime = timeZero;  //!< [s]  start time
+    CoreTime stopTime = 30.0;  //!< [s]  end time
+    CoreTime currentTime = timeZero;  //!< [s] the current time
+    std::atomic<CoreTime> simulationTime;  //!< [s]  current time
+    CoreTime stepTime = CoreTime(0.05);  //!< [s]  time step
+    CoreTime timeReturn = timeZero;  //!< [s]  time returned by the solver
+    CoreTime nextStopTime = negTime;  //!< next time to stop the dynamic Simulation
 
-    coreTime minUpdateTime = coreTime(0.0001);  //!< minimum time period to go between updates; for
+    CoreTime minUpdateTime = CoreTime(0.0001);  //!< minimum time period to go between updates; for
                                                 //!< the hybrid simultaneous partitioned solution
-    coreTime maxUpdateTime = maxTime;  //!<(s) max time period to go between updates
+    CoreTime maxUpdateTime = maxTime;  //!<(s) max time period to go between updates
     double absTime = 0;  //!< [s] seconds in unix time of the system start time;
 
     // ---------------- recorders ----------------
-    coreTime recordStart = negTime;  //!< [s]  recorder start time
-    coreTime recordStop = maxTime;  //!< [s]  recorder stop time
+    CoreTime recordStart = negTime;  //!< [s]  recorder start time
+    CoreTime recordStop = maxTime;  //!< [s]  recorder stop time
     std::vector<std::shared_ptr<Collector>> collectorList;  //!< vector storing recorder objects
-    coreTime nextRecordTime = maxTime;  //!< time for the next set of recorders
+    CoreTime nextRecordTime = maxTime;  //!< time for the next set of recorders
 
-    coreTime lastStateRecordTime = negTime;  //!< last time the full state was recorded
+    CoreTime lastStateRecordTime = negTime;  //!< last time the full state was recorded
 
     // ----------------timestepP -----------------
     std::unique_ptr<EventQueue> EvQ;  //!< the event queue for the simulation system
@@ -173,12 +173,12 @@ class GridSimulation: public GridArea {
     /** @brief get all the objects from the event Queue */
     void getEventObjects(std::vector<CoreObject*>& objV) const;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     /** @brief run the simulator
     @param[in] finishTime  the time to run to
     @return return code 0 for success other for failure
     */
-    virtual int run(coreTime finishTime = negTime);
+    virtual int run(CoreTime finishTime = negTime);
     /** @brief have the simulator step forward in time
     @return return code 0 for success other for failure
     */
@@ -205,38 +205,38 @@ class GridSimulation: public GridArea {
      * @brief Gets the current simulation time.
      @details currentTime is atomic and can be used in a multithreaded context to observe the
      current progress of an asyncrhonously running dynamic simulation
-     * @return a coreTime representing the current simulation time.
+     * @return a CoreTime representing the current simulation time.
 
      */
-    coreTime getSimulationTime() const { return currentTime; }
+    CoreTime getSimulationTime() const { return currentTime; }
 
     /**
      * @brief Gets the simulation start time.
      * @return a double representing the simulation start time, in seconds.
      */
-    coreTime getStartTime() const { return startTime; }
+    CoreTime getStartTime() const { return startTime; }
     /**
      * @brief Gets the simulation stop time.
      * @return a double representing the simulation start time, in seconds.
      */
-    coreTime getStopTime() const { return stopTime; }
+    CoreTime getStopTime() const { return stopTime; }
     /**
      * @brief Gets the simulation step time.
      * @return a time representing the simulation start time, in seconds.
      */
-    coreTime getStepTime() const { return stepTime; }
+    CoreTime getStepTime() const { return stepTime; }
 
     /**
      * @brief gets the next event time.
      * @return a double representing the next scheduled event in GridDyn.
      */
-    coreTime getEventTime() const;
+    CoreTime getEventTime() const;
     /**
      * @brief gets the next event time.
      * @param[in] eventCode a code corresponding to a specific type of event
      * @return a time representing the next scheduled event in GridDyn.
      */
-    coreTime getEventTime(int eventCode) const;
+    CoreTime getEventTime(int eventCode) const;
 
     /** set a custom logging function
      */

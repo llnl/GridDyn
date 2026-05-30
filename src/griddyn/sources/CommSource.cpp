@@ -31,7 +31,7 @@ CoreObject* CommSource::clone(CoreObject* obj) const
     return cs;
 }
 
-void CommSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void CommSource::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     rootSim = dynamic_cast<GridSimulation*>(getRoot());
     commLink = cManager.build();
@@ -98,7 +98,7 @@ void CommSource::setFlag(std::string_view flag, bool val)
     }
 }
 
-void CommSource::updateA(coreTime time)
+void CommSource::updateA(CoreTime time)
 {
     if (time > nextUpdateTime) {
         mp_dOdt = 0;

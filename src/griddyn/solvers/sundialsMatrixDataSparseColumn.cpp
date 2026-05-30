@@ -10,7 +10,7 @@
 
 namespace griddyn::solvers {
 SundialsMatrixDataSparseColumn::SundialsMatrixDataSparseColumn(SUNMatrix mat):
-    matrixData<double>(static_cast<count_t>(SM_ROWS_S(mat)),
+    MatrixData<double>(static_cast<count_t>(SM_ROWS_S(mat)),
                        static_cast<count_t>(SM_COLUMNS_S(mat))),
     J(mat)
 {
@@ -50,9 +50,9 @@ count_t SundialsMatrixDataSparseColumn::capacity() const
 {
     return static_cast<count_t>(SM_NNZ_S(J));
 }
-matrixElement<double> SundialsMatrixDataSparseColumn::element(index_t n) const
+MatrixElement<double> SundialsMatrixDataSparseColumn::element(index_t n) const
 {
-    matrixElement<double> ret{};
+    MatrixElement<double> ret{};
     ret.row = static_cast<index_t>(SM_INDEXVALS_S(J)[n]);
     auto res =
         std::lower_bound(SM_INDEXPTRS_S(J), &(SM_INDEXPTRS_S(J)[colLimit()]), static_cast<int>(n));
@@ -67,9 +67,9 @@ void SundialsMatrixDataSparseColumn::start()
     ccol = 0;
 }
 
-matrixElement<double> SundialsMatrixDataSparseColumn::next()
+MatrixElement<double> SundialsMatrixDataSparseColumn::next()
 {
-    matrixElement<double> ret{static_cast<index_t>(SM_INDEXVALS_S(J)[cur]),
+    MatrixElement<double> ret{static_cast<index_t>(SM_INDEXVALS_S(J)[cur]),
                               ccol,
                               SM_DATA_S(J)[cur]};
     ++cur;

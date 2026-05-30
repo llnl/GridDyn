@@ -54,11 +54,11 @@ void ZBreaker::switchChange(int /*switchNum*/)
 {
     coordinateMergeStatus();
 }
-void ZBreaker::pFlowObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void ZBreaker::pFlowObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
     coordinateMergeStatus();
 }
-void ZBreaker::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void ZBreaker::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
     coordinateMergeStatus();
 }

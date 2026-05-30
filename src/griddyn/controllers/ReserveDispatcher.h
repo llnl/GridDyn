@@ -24,8 +24,8 @@ class ReserveDispatcher: public CoreObject {
     double thresholdStop = kBigNum;
     double currentDispatch = 0.0;
     double reserveAvailable = 0.0;
-    coreTime dispatchTime = negTime;
-    coreTime dispatchInterval = 60.0 * 5.0;
+    CoreTime dispatchTime = negTime;
+    CoreTime dispatchInterval = 60.0 * 5.0;
 
     count_t schedCount = 0;
     std::vector<SchedulerRamp*> schedList;
@@ -37,12 +37,12 @@ class ReserveDispatcher: public CoreObject {
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual ~ReserveDispatcher();
 
-    virtual double dynInitializeA(coreTime time0, double dispatchSet);
+    virtual double dynInitializeA(CoreTime time0, double dispatchSet);
 
     void moveSchedulers(ReserveDispatcher* dispatcherToMove);
 
-    virtual double updateP(coreTime time, double pShort);
-    virtual double testP(coreTime time, double pShort);
+    virtual double updateP(CoreTime time, double pShort);
+    virtual double testP(CoreTime time, double pShort);
     double getOutput(index_t /*num*/ = 0) { return currentDispatch; }
 
     virtual void add(SchedulerRamp* sched);

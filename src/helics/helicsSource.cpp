@@ -36,7 +36,7 @@ CoreObject* HelicsSource::clone(CoreObject* obj) const
     return nobj;
 }
 
-void HelicsSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void HelicsSource::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     auto obj = getRoot();
 
@@ -60,7 +60,7 @@ void HelicsSource::pFlowObjectInitializeB()
     updateB();
 }
 
-void HelicsSource::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void HelicsSource::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     RampSource::dynObjectInitializeA(time0, flags);
 
@@ -73,7 +73,7 @@ void HelicsSource::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     updateB();
 }
 
-void HelicsSource::updateA(coreTime time)
+void HelicsSource::updateA(CoreTime time)
 {
     if (time < nextUpdateTime) {
         return;
@@ -123,7 +123,7 @@ void HelicsSource::updateA(coreTime time)
     prevTime = time;
 }
 
-void HelicsSource::timestep(coreTime ttime, const IOdata& inputs, const SolverMode& sMode)
+void HelicsSource::timestep(CoreTime ttime, const IOdata& inputs, const SolverMode& sMode)
 {
     while (ttime >= nextUpdateTime) {
         updateA(nextUpdateTime);

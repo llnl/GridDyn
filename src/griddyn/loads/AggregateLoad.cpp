@@ -66,7 +66,7 @@ void AggregateLoad::add(CoreObject* obj)
     throw(UnrecognizedObjectException(this));
 }
 
-void AggregateLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void AggregateLoad::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     // TODO(phlpt): Need to rethink this object.
     ZipLoad::pFlowInitializeA(time0, flags);
@@ -152,7 +152,7 @@ void AggregateLoad::pFlowObjectInitializeB()
     }
 }
 
-void AggregateLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void AggregateLoad::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     for (auto& ld : subLoads) {
         ld->dynInitializeA(time0, flags);
@@ -289,7 +289,7 @@ void AggregateLoad::derivative(const IOdata& inputs,
 
 void AggregateLoad::outputPartialDerivatives(const IOdata& inputs,
                                              const StateData& sD,
-                                             matrixData<double>& md,
+                                             MatrixData<double>& md,
                                              const SolverMode& sMode)
 {
     for (auto& ld : subLoads) {
@@ -301,7 +301,7 @@ void AggregateLoad::outputPartialDerivatives(const IOdata& inputs,
 
 void AggregateLoad::ioPartialDerivatives(const IOdata& inputs,
                                          const StateData& sD,
-                                         matrixData<double>& md,
+                                         MatrixData<double>& md,
                                          const IOlocs& inputLocs,
                                          const SolverMode& sMode)
 {
@@ -312,7 +312,7 @@ void AggregateLoad::ioPartialDerivatives(const IOdata& inputs,
 
 void AggregateLoad::jacobianElements(const IOdata& inputs,
                                      const StateData& sD,
-                                     matrixData<double>& md,
+                                     MatrixData<double>& md,
                                      const IOlocs& inputLocs,
                                      const SolverMode& sMode)
 {
@@ -323,7 +323,7 @@ void AggregateLoad::jacobianElements(const IOdata& inputs,
     }
 }
 
-void AggregateLoad::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void AggregateLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     for (auto& ld : subLoads) {
         ld->timestep(time, inputs, sMode);

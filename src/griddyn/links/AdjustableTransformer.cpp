@@ -14,8 +14,8 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/griddyn-config.h"
-#include "utilities/matrixData.hpp"
-#include "utilities/matrixDataTranslate.hpp"
+#include "utilities/MatrixData.hpp"
+#include "utilities/MatrixDataTranslate.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -408,7 +408,7 @@ void AdjustableTransformer::followNetwork(int network, std::queue<GridBus*>& stk
     }
 }
 
-void AdjustableTransformer::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void AdjustableTransformer::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (cMode != ControlMode::MANUAL_CONTROL) {
         if (cMode == ControlMode::VOLTAGE_CONTROL) {
@@ -769,7 +769,7 @@ ChangeCode AdjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
     return ret;
 }
 
-void AdjustableTransformer::guessState(coreTime /*time*/,
+void AdjustableTransformer::guessState(CoreTime /*time*/,
                                        double state[],
                                        double dstateDt[],
                                        const SolverMode& sMode)
@@ -790,7 +790,7 @@ void AdjustableTransformer::guessState(coreTime /*time*/,
 
 void AdjustableTransformer::ioPartialDerivatives(id_type_t busId,
                                                  const StateData& stateData,
-                                                 matrixData<double>& matrixDataRef,
+                                                 MatrixData<double>& matrixDataRef,
                                                  const IOlocs& inputLocs,
                                                  const SolverMode& sMode)
 {
@@ -808,13 +808,13 @@ void AdjustableTransformer::ioPartialDerivatives(id_type_t busId,
 
 void AdjustableTransformer::outputPartialDerivatives(const IOdata& inputs,
                                                      const StateData& stateData,
-                                                     matrixData<double>& matrixDataRef,
+                                                     MatrixData<double>& matrixDataRef,
                                                      const SolverMode& sMode)
 {
     // if the terminal is not specified assume there are 4 outputs
     if ((!(isDynamic(sMode))) && (opFlags[has_pflow_states])) {
         auto offset = offsets.getAlgOffset(sMode);
-        matrixDataTranslate<2> mtrans(matrixDataRef);
+        MatrixDataTranslate<2> mtrans(matrixDataRef);
         mtrans.setTranslation(0, 2);
         mtrans.setTranslation(1, 3);
         if (cMode == ControlMode::MW_CONTROL) {
@@ -833,7 +833,7 @@ void AdjustableTransformer::outputPartialDerivatives(const IOdata& inputs,
 
 void AdjustableTransformer::outputPartialDerivatives(id_type_t busId,
                                                      const StateData& stateData,
-                                                     matrixData<double>& matrixDataRef,
+                                                     MatrixData<double>& matrixDataRef,
                                                      const SolverMode& sMode)
 {
     if ((!(isDynamic(sMode))) && (opFlags[has_pflow_states])) {
@@ -852,7 +852,7 @@ void AdjustableTransformer::outputPartialDerivatives(id_type_t busId,
 
 void AdjustableTransformer::jacobianElements(const IOdata& /*inputs*/,
                                              const StateData& stateData,
-                                             matrixData<double>& matrixDataRef,
+                                             MatrixData<double>& matrixDataRef,
                                              const IOlocs& /*inputLocs*/,
                                              const SolverMode& sMode)
 {
@@ -936,7 +936,7 @@ void AdjustableTransformer::residual(const IOdata& /*inputs*/,
     }
 }
 
-void AdjustableTransformer::setState(coreTime time,
+void AdjustableTransformer::setState(CoreTime time,
                                      const double state[],
                                      const double dstateDt[],
                                      const SolverMode& sMode)
@@ -959,7 +959,7 @@ void AdjustableTransformer::setState(coreTime time,
     AcLine::setState(time, state, dstateDt, sMode);
 }
 
-void AdjustableTransformer::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void AdjustableTransformer::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     AcLine::dynObjectInitializeA(time0, flags);
 }
@@ -1023,7 +1023,7 @@ void AdjustableTransformer::rootTest(const IOdata& /*inputs*/,
     }
 }
 
-void AdjustableTransformer::rootTrigger(coreTime /*time*/,
+void AdjustableTransformer::rootTrigger(CoreTime /*time*/,
                                         const IOdata& /*inputs*/,
                                         const std::vector<int>& /*rootMask*/,
                                         const SolverMode& /*sMode*/)
@@ -1056,7 +1056,7 @@ void AdjustableTransformer::rootTrigger(coreTime /*time*/,
 
 void AdjustableTransformer::tapAnglePartial(index_t busId,
                                             const StateData& /*sD*/,
-                                            matrixData<double>& matrixDataRef,
+                                            MatrixData<double>& matrixDataRef,
                                             const SolverMode& sMode)
 {
     if (!(isEnabled())) {
@@ -1095,7 +1095,7 @@ void AdjustableTransformer::tapAnglePartial(index_t busId,
 
 void AdjustableTransformer::tapPartial(index_t busId,
                                        const StateData& /*sD*/,
-                                       matrixData<double>& matrixDataRef,
+                                       MatrixData<double>& matrixDataRef,
                                        const SolverMode& sMode)
 {
     if (!(isEnabled())) {
@@ -1143,7 +1143,7 @@ void AdjustableTransformer::tapPartial(index_t busId,
 }
 
 void AdjustableTransformer::MWJac(const StateData& /*sD*/,
-                                  matrixData<double>& matrixDataRef,
+                                  MatrixData<double>& matrixDataRef,
                                   const SolverMode& sMode)
 {
     if (!(isEnabled())) {
@@ -1187,7 +1187,7 @@ void AdjustableTransformer::MWJac(const StateData& /*sD*/,
 }
 
 void AdjustableTransformer::MVarJac(const StateData& /*sD*/,
-                                    matrixData<double>& matrixDataRef,
+                                    MatrixData<double>& matrixDataRef,
                                     const SolverMode& sMode)
 {
     if (!(isEnabled())) {

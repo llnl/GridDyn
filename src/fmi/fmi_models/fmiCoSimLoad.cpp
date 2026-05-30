@@ -27,7 +27,7 @@ CoreObject* FmiCoSimLoad::clone(CoreObject* obj) const
     return nobj;
 }
 
-void FmiCoSimLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void FmiCoSimLoad::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (fmisub->isLoaded()) {
         configureFmiIo();
@@ -42,7 +42,7 @@ void FmiCoSimLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
         disable();
     }
 }
-void FmiCoSimLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void FmiCoSimLoad::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     fmisub->dynInitializeA(time0, flags);
     // ZipLoad::dynObjectInitializeA(time0, flags);
@@ -55,7 +55,7 @@ void FmiCoSimLoad::dynObjectInitializeB(const IOdata& inputs,
     fmisub->dynInitializeB(inputs, desiredOutput, fieldSet);
 }
 
-void FmiCoSimLoad::setState(coreTime time,
+void FmiCoSimLoad::setState(CoreTime time,
                             const double state[],
                             const double dstateDt[],
                             const SolverMode& sMode)

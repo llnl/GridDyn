@@ -287,7 +287,7 @@ void GridBus::followNetwork(int networkID, std::queue<GridBus*>& bstk)
 }
 
 // dynInitializeB states
-void GridBus::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void GridBus::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     // run the subObjects
     if (Vtol < 0) {
@@ -372,7 +372,7 @@ ChangeCode GridBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flag
 }
 
 // dynInitializeB states for dynamic solution
-void GridBus::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void GridBus::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     opFlags[preEx_requested] = false;
     opFlags[has_constraints] = false;
@@ -432,7 +432,7 @@ void GridBus::generationAdjust(double /*adjustment*/)
     // adjust the real power flow
 }
 
-void GridBus::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& sMode)
+void GridBus::timestep(CoreTime time, const IOdata& /*inputs*/, const SolverMode& sMode)
 {
     auto inputs = getOutputs(noInputs, emptyStateData, sMode);
     GridComponent::timestep(time, inputs, sMode);
@@ -920,7 +920,7 @@ static const IOlocs kNullLocations{kNullLocation, kNullLocation, kNullLocation};
 // Jacobian
 void GridBus::jacobianElements(const IOdata& inputs,
                                const StateData& stateDataValue,
-                               matrixData<double>& matrixDataValue,
+                               MatrixData<double>& matrixDataValue,
                                const IOlocs& /*inputLocs*/,
                                const SolverMode& sMode)
 {
@@ -981,7 +981,7 @@ void GridBus::algebraicUpdate(const IOdata& inputs,
     GridComponent::algebraicUpdate(outputs, stateDataValue, update, sMode, alpha);
 }
 
-void GridBus::converge(coreTime /*time*/,
+void GridBus::converge(CoreTime /*time*/,
                        double /*state*/[],
                        double /*dstateDt*/[],
                        const SolverMode& /*sMode*/,
@@ -1204,12 +1204,12 @@ double GridBus::getGenerationReactiveNominal() const
     }
     return S.genQ;
 }
-double GridBus::getAdjustableCapacityUp(coreTime /*time*/) const
+double GridBus::getAdjustableCapacityUp(CoreTime /*time*/) const
 {
     return 0.0;
 }
 
-double GridBus::getAdjustableCapacityDown(coreTime /*time*/) const
+double GridBus::getAdjustableCapacityDown(CoreTime /*time*/) const
 {
     return 0.0;
 }
@@ -1413,7 +1413,7 @@ void GridBus::rootTest(const IOdata& /*inputs*/,
     GridComponent::rootTest(inputs, stateDataValue, roots, sMode);
 }
 
-void GridBus::rootTrigger(coreTime time,
+void GridBus::rootTrigger(CoreTime time,
                           const IOdata& /*inputs*/,
                           const std::vector<int>& rootMask,
                           const SolverMode& sMode)

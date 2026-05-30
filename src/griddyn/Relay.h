@@ -86,7 +86,7 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
             object_flag5,  //!< just defining an extra name for additional relay flags
 
     };
-    coreTime triggerTime = maxTime;  //!< the next time execute
+    CoreTime triggerTime = maxTime;  //!< the next time execute
     CoreObject* m_sourceObject = nullptr;  //!< the default object where the data comes from
     CoreObject* m_sinkObject = nullptr;  //!< the default object where the actions occur
     std::uint16_t triggerCount = 0;  //!< count of the number of triggers
@@ -99,7 +99,7 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
 
     std::shared_ptr<Communicator> commLink;  //!< communicator link
 
-    coreTime m_nextSampleTime = maxTime;  //!< the next time to sample the conditions
+    CoreTime m_nextSampleTime = maxTime;  //!< the next time to sample the conditions
 
   public:
     explicit Relay(const std::string& objName = "relay_$");
@@ -218,7 +218,7 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
     */
     virtual void setActionTrigger(index_t actionNumber,
                                   index_t conditionNumber,
-                                  coreTime delayTime = timeZero);
+                                  CoreTime delayTime = timeZero);
     /** manually trigger a particular action
     @param[in] actionNumber the index of the action to manually trigger
     @return a ChangeCode associated with the action describing the level of change to the system
@@ -235,7 +235,7 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
     */
     virtual void setActionMultiTrigger(index_t actionNumber,
                                        const IOlocs& multiConditions,
-                                       coreTime delayTime = timeZero);
+                                       CoreTime delayTime = timeZero);
 
     /** define the margin by which a resettable condition must be on the other side of reset level
     to actually reset
@@ -253,16 +253,16 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
-    virtual void updateA(coreTime time) override;
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void updateA(CoreTime time) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual ChangeCode
         powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level) override;
     virtual void rootTest(const IOdata& inputs,
                           const StateData& stateDataValue,
                           double roots[],
                           const SolverMode& sMode) override;
-    virtual void rootTrigger(coreTime time,
+    virtual void rootTrigger(CoreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override;
@@ -309,17 +309,17 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
     virtual void actionTaken(index_t actionNum,
                              index_t conditionNum,
                              ChangeCode actionReturn,
-                             coreTime actionTime);
+                             CoreTime actionTime);
     /** do something when an condition is triggered
     @param conditionNum the index of the condition that triggered the action
     @param timeTriggered the time at which the condition was triggered
     */
-    virtual void conditionTriggered(index_t conditionNum, coreTime timeTriggered);
+    virtual void conditionTriggered(index_t conditionNum, CoreTime timeTriggered);
     /** do something when an condition is cleared
     @param conditionNum the index of the condition that triggered the action
     @param timeCleared the time at which the condition was cleared
     */
-    virtual void conditionCleared(index_t conditionNum, coreTime timeCleared);
+    virtual void conditionCleared(index_t conditionNum, CoreTime timeCleared);
 
     /** generate the commlink name*/
     virtual std::string generateCommName();
@@ -330,7 +330,7 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
       public:
         index_t conditionNum;  //!< the condition Number
         index_t actionNum;  //!< the action number
-        coreTime testTime;  //!< the time the test should be performed
+        CoreTime testTime;  //!< the time the test should be performed
         bool multiCondition = false;  //!< flag if the condition is part of a multiCondition
 
         /** @brief constructor with all the data
@@ -341,7 +341,7 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
         */
         condCheckTime(index_t cNum = 0,
                       index_t aNum = 0,
-                      coreTime time = maxTime,
+                      CoreTime time = maxTime,
                       bool mcond = false):
             conditionNum(cNum), actionNum(aNum), testTime(time), multiCondition(mcond)
         {
@@ -352,11 +352,11 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
       public:
         index_t actionNum = kInvalidLocation;  //!< the related ActionNumber
         IOlocs multiConditions;  //!< identification of all the conditions involved
-        coreTime delayTime =
+        CoreTime delayTime =
             timeZero;  //!< the delay time all conditions must be true before the action is taken
         //!< TODO:PT account for this delay
         mcondTrig() = default;
-        mcondTrig(index_t actNum, const IOlocs& conds, coreTime delTime = timeZero):
+        mcondTrig(index_t actNum, const IOlocs& conds, CoreTime delTime = timeZero):
             actionNum(actNum), multiConditions(conds), delayTime(delTime)
         {
         }
@@ -368,11 +368,11 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
     std::vector<std::shared_ptr<EventAdapter>>
         actions;  //!< actions to take in response to triggers
     std::vector<std::vector<index_t>> actionTriggers;  //!< the conditions that cause actions
-    std::vector<std::vector<coreTime>>
+    std::vector<std::vector<CoreTime>>
         actionDelays;  //!< the periods of time in which the condition must be true for an action to
                        //!< occur
     std::vector<ConditionStatus> cStates;  //!< a vector of states for the conditions
-    std::vector<coreTime> conditionTriggerTimes;  //!< the times at which the condition triggered
+    std::vector<CoreTime> conditionTriggerTimes;  //!< the times at which the condition triggered
     std::vector<condCheckTime>
         condChecks;  //!< a vector of condition action pairs that are in wait and see mode
     std::vector<std::vector<mcondTrig>>
@@ -391,15 +391,15 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
     @param[in] actionTime the time which to execute the action
     @return a ChangeCode indicating the effect of the action
     */
-    ChangeCode executeAction(index_t actionNumber, index_t conditionNumber, coreTime actionTime);
+    ChangeCode executeAction(index_t actionNumber, index_t conditionNumber, CoreTime actionTime);
     /** trigger a specific condition
     @param[in] conditionNum  the index of the condition to trigger
     @param[in] conditionTriggerTime the time of the trigger
     @param[in] minimumDelayTime  ignore all trigger delays below the minimumDelayTime
     */
     ChangeCode triggerCondition(index_t conditionNum,
-                                coreTime conditionTriggerTime,
-                                coreTime minimumDelayTime);
+                                CoreTime conditionTriggerTime,
+                                CoreTime minimumDelayTime);
 
     /** check and if all conditions hold execute a multi-condition trigger
     @param[in] conditionNum  the index of the condition that was just triggered that might also
@@ -408,14 +408,14 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
     @param[in] minimumDelayTime  ignore all trigger delays below the minimumDelayTime
     */
     ChangeCode multiConditionCheckExecute(index_t conditionNum,
-                                          coreTime conditionTriggerTime,
-                                          coreTime minimumDelayTime);
+                                          CoreTime conditionTriggerTime,
+                                          CoreTime minimumDelayTime);
     /** evaluate a condition awaiting a delay and execute the action if appropriate
     @param[in] cond the condition to check
     @param[in] checkTime the time to check
     @return a change code indicating the effect of any action Taken
     */
-    ChangeCode evaluateCondCheck(condCheckTime& cond, coreTime checkTime);
+    ChangeCode evaluateCondCheck(condCheckTime& cond, CoreTime checkTime);
 };
 
 }  // namespace griddyn

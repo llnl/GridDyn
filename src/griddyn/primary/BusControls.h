@@ -11,7 +11,7 @@
 
 namespace griddyn {
 
-class gridSecondary;
+class GridSecondary;
 class AcBus;
 class GridBus;
 class Link;
@@ -37,7 +37,7 @@ class BusControls {
     double autogenQact = 0;  //!< use an automatic generator to locally match Q load
 
     // for managing voltage control objects
-    std::vector<gridSecondary*> vControlObjects;  //!< object which control the voltage of the bus
+    std::vector<GridSecondary*> vControlObjects;  //!< object which control the voltage of the bus
     std::vector<Link*> proxyVControlObject;  //!< object which act as an interface for remote
                                              //!< objects acting on a bus
     std::vector<Link*>
@@ -49,7 +49,7 @@ class BusControls {
                                      //!< a specific controllable link
 
     // for managing p control objects
-    std::vector<gridSecondary*> pControlObjects;  //!< object which control the angle of a bus
+    std::vector<GridSecondary*> pControlObjects;  //!< object which control the angle of a bus
     std::vector<Link*> proxyPControlObject;  //!< object which act as an interface for remote
                                              //!< objects acting on a bus
     std::vector<Link*>
@@ -71,8 +71,8 @@ class BusControls {
     bool hasVoltageAdjustments(id_type_t sid) const;
     bool hasPowerAdjustments(id_type_t sid) const;
 
-    double getAdjustableCapacityUp(coreTime time) const;
-    double getAdjustableCapacityDown(coreTime time) const;
+    double getAdjustableCapacityUp(CoreTime time) const;
+    double getAdjustableCapacityDown(CoreTime time) const;
 
     void addPowerControlObject(GridComponent* comp, bool update);
     void addVoltageControlObject(GridComponent* comp, bool update);

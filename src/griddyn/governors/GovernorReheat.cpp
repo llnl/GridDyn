@@ -10,7 +10,7 @@
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactory.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <string>
 
 namespace griddyn::governors {
@@ -125,7 +125,7 @@ void GovernorReheat::derivative(const IOdata& inputs,
 
 void GovernorReheat::jacobianElements(const IOdata& inputs,
                                       const StateData& sD,
-                                      matrixData<double>& md,
+                                      MatrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode)
 {

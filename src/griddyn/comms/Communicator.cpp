@@ -129,7 +129,7 @@ void Communicator::ping(std::string_view destName)
     ccore->send(mId, destName, message);
 }
 
-coreTime Communicator::getLastPingTime() const
+CoreTime Communicator::getLastPingTime() const
 {
     return mLastReplyRx - mLastPingSend;
 }

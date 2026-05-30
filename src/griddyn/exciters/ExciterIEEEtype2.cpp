@@ -9,7 +9,7 @@
 #include "../Generator.h"
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
 #include <string>
@@ -29,7 +29,7 @@ CoreObject* ExciterIEEEtype2::clone(CoreObject* obj) const
     return gdE;
 }
 
-void ExciterIEEEtype2::dynObjectInitializeA(coreTime /*time*/, std::uint32_t /*flags*/)
+void ExciterIEEEtype2::dynObjectInitializeA(CoreTime /*time*/, std::uint32_t /*flags*/)
 {
     offsets.local().local.diffSize = 4;
     offsets.local().local.jacSize = 16;
@@ -104,7 +104,7 @@ void ExciterIEEEtype2::derivative(const IOdata& inputs,
 // Jacobian
 void ExciterIEEEtype2::jacobianElements(const IOdata& /*inputs*/,
                                         const StateData& sD,
-                                        matrixData<double>& md,
+                                        MatrixData<double>& md,
                                         const IOlocs& inputLocs,
                                         const SolverMode& sMode)
 {

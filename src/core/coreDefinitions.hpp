@@ -93,23 +93,23 @@ enum class PrintLevel : int {
 using id_type_t = std::int64_t;
 
 constexpr auto invalid_id_value = std::numeric_limits<id_type_t>::min();
-using coreTime = TimeRepresentation<count_time<9>>;
+using CoreTime = TimeRepresentation<count_time<9>>;
 using stringVec = std::vector<std::string>;
 
 /** commonly used time expressions*/
-constexpr coreTime maxTime = coreTime::maxVal();
-constexpr coreTime negTime = coreTime::minVal();
-constexpr coreTime timeZero = coreTime::zeroVal();
+constexpr CoreTime maxTime = CoreTime::maxVal();
+constexpr CoreTime negTime = CoreTime::minVal();
+constexpr CoreTime timeZero = CoreTime::zeroVal();
 
-constexpr coreTime timeOneSecond(1.0);
+constexpr CoreTime timeOneSecond(1.0);
 
-constexpr coreTime kDayLength(86400.0f);
-constexpr coreTime kSmallTime(1e-7);
-constexpr coreTime kShortTime(1e-6);
+constexpr CoreTime kDayLength(86400.0f);
+constexpr CoreTime kSmallTime(1e-7);
+constexpr CoreTime kShortTime(1e-6);
 
-constexpr coreTime operator""_t(long double val)
+constexpr CoreTime operator""_t(long double val)
 {
-    return coreTime(val);
+    return CoreTime(val);
 }
 
 // create an inline check for valid indices

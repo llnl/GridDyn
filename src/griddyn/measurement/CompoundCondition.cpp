@@ -15,15 +15,15 @@ enum class CompoundMode
     AND, OR, ANY, XOR, ONE_OF, TWO_OF, THREE_OF
 };
 */
-double compoundCondition::evalCondition()
+double CompoundCondition::evalCondition()
 {
     return 0.0;
 }
-double compoundCondition::evalCondition(const StateData& /*sD*/, const SolverMode& /*sMode*/)
+double CompoundCondition::evalCondition(const StateData& /*sD*/, const SolverMode& /*sMode*/)
 {
     return 0.0;
 }
-bool compoundCondition::checkCondition() const
+bool CompoundCondition::checkCondition() const
 {
     unsigned int trueConditionCount = 0;
     for (const auto& condition : mConditions) {
@@ -41,7 +41,7 @@ bool compoundCondition::checkCondition() const
     return evalCombinations(static_cast<count_t>(trueConditionCount));
 }
 
-bool compoundCondition::checkCondition(const StateData& stateDataValue,
+bool CompoundCondition::checkCondition(const StateData& stateDataValue,
                                        const SolverMode& sMode) const
 {
     unsigned int trueConditionCount = 0;
@@ -60,7 +60,7 @@ bool compoundCondition::checkCondition(const StateData& stateDataValue,
     return evalCombinations(static_cast<count_t>(trueConditionCount));
 }
 
-void compoundCondition::add(std::shared_ptr<Condition> condition)
+void CompoundCondition::add(std::shared_ptr<Condition> condition)
 {
     if (condition) {
         mConditions.push_back(std::move(condition));
@@ -69,7 +69,7 @@ void compoundCondition::add(std::shared_ptr<Condition> condition)
     throw(AddFailureException());
 }
 
-void compoundCondition::setMode(CompoundMode newMode)
+void CompoundCondition::setMode(CompoundMode newMode)
 {
     mMode = newMode;
     switch (mMode) {
@@ -90,7 +90,7 @@ void compoundCondition::setMode(CompoundMode newMode)
     }
 }
 
-bool compoundCondition::evalCombinations(count_t trueCount) const
+bool CompoundCondition::evalCombinations(count_t trueCount) const
 {
     switch (mMode) {
         case CompoundMode::AND:

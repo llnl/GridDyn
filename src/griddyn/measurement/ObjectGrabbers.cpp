@@ -319,31 +319,31 @@ namespace {
         static const std::map<std::string_view, fobjectPair, std::less<std::string_view>>
             secondaryFunctions{
                 {"real",
-                 {[](CoreObject* obj) { return static_cast<gridSecondary*>(obj)->getRealPower(); },
+                 {[](CoreObject* obj) { return static_cast<GridSecondary*>(obj)->getRealPower(); },
                   puMW}},
                 {"reactive",
                  {[](CoreObject* obj) {
-                      return static_cast<gridSecondary*>(obj)->getReactivePower();
+                      return static_cast<GridSecondary*>(obj)->getReactivePower();
                   },
                   puMW}},
                 {"voltage",
                  {[](CoreObject* obj) {
-                      return static_cast<gridSecondary*>(obj)->getBus()->getVoltage();
+                      return static_cast<GridSecondary*>(obj)->getBus()->getVoltage();
                   },
                   puV}},
                 {"busvoltage",
                  {[](CoreObject* obj) {
-                      return static_cast<gridSecondary*>(obj)->getBus()->getVoltage();
+                      return static_cast<GridSecondary*>(obj)->getBus()->getVoltage();
                   },
                   puV}},
                 {"busangle",
                  {[](CoreObject* obj) {
-                      return static_cast<gridSecondary*>(obj)->getBus()->getAngle();
+                      return static_cast<GridSecondary*>(obj)->getBus()->getAngle();
                   },
                   rad}},
                 {"busfreq",
                  {[](CoreObject* obj) {
-                      return static_cast<gridSecondary*>(obj)->getBus()->getFreq();
+                      return static_cast<GridSecondary*>(obj)->getBus()->getFreq();
                   },
                   puHz}},
             };

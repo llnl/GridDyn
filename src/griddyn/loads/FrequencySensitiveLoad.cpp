@@ -10,7 +10,7 @@
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <complex>
 #include <iostream>
@@ -36,19 +36,19 @@ CoreObject* FrequencySensitiveLoad::clone(CoreObject* obj) const
     return nobj;
 }
 
-void FrequencySensitiveLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void FrequencySensitiveLoad::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     GridLoad::pFlowObjectInitializeA(time0, flags);
     auto Psched = subLoad->getRealPower();
     dPdf = -H / 30.0 * Psched;
 }
 
-void FrequencySensitiveLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void FrequencySensitiveLoad::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     GridLoad::dynObjectInitializeA(time0, flags);
 }
 
-void FrequencySensitiveLoad::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void FrequencySensitiveLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     subLoad->timestep(time, inputs, sMode);
     double freq = (inputs.size() > 2) ? inputs[frequencyInLocation] : 1.0;
@@ -127,7 +127,7 @@ void FrequencySensitiveLoad::updateLocalCache(const IOdata& inputs,
     updateOutputs(freq);
 }
 
-void FrequencySensitiveLoad::setState(coreTime time,
+void FrequencySensitiveLoad::setState(CoreTime time,
                                       const double state[],
                                       const double dstate_dt[],
                                       const SolverMode& sMode)
@@ -183,7 +183,7 @@ double FrequencySensitiveLoad::getReactivePower(double voltage) const
 
 void FrequencySensitiveLoad::outputPartialDerivatives(const IOdata& inputs,
                                                       const StateData& sD,
-                                                      matrixData<double>& md,
+                                                      MatrixData<double>& md,
                                                       const SolverMode& sMode)
 {
     if (inputs.empty())  // we only have output derivatives if the input arguments are not counted
@@ -201,7 +201,7 @@ count_t FrequencySensitiveLoad::outputDependencyCount(index_t num, const SolverM
 
 void FrequencySensitiveLoad::ioPartialDerivatives(const IOdata& /*inputs*/,
                                                   const StateData& /*sD*/,
-                                                  matrixData<double>& /*md*/,
+                                                  MatrixData<double>& /*md*/,
                                                   const IOlocs& /*inputLocs*/,
                                                   const SolverMode& /*sMode*/)
 {

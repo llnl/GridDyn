@@ -76,7 +76,7 @@ void Source::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-void Source::setState(coreTime time,
+void Source::setState(CoreTime time,
                       const double state[],
                       const double dstate_dt[],
                       const SolverMode& sMode)
@@ -87,7 +87,7 @@ void Source::setState(coreTime time,
     lastTime = time;
 }
 
-void Source::updateOutput(coreTime time)
+void Source::updateOutput(CoreTime time)
 {
     m_tempOut = computeOutput(time);
     m_output = m_tempOut;
@@ -95,7 +95,7 @@ void Source::updateOutput(coreTime time)
     lastTime = time;
 }
 
-void Source::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
+void Source::timestep(CoreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     if (time != prevTime) {
         updateOutput(time);
@@ -147,7 +147,7 @@ void Source::updateLocalCache(const IOdata& /*inputs*/,
     }
 }
 
-double Source::computeOutput(coreTime /*time*/) const
+double Source::computeOutput(CoreTime /*time*/) const
 {
     return m_output;
 }

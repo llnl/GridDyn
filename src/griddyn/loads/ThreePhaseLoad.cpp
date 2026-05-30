@@ -9,7 +9,7 @@
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "utilities/ThreePhaseFunctions.h"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <complex>
 #include <iostream>
@@ -33,7 +33,7 @@ ThreePhaseLoad::ThreePhaseLoad(double realPower, double reactivePower, const std
     Qa = Qb = Qc = reactivePower / 3.0;
 }
 
-void ThreePhaseLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void ThreePhaseLoad::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (bus->checkFlag(three_phase_only)) {
         opFlags[three_phase_input] = true;

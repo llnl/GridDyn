@@ -61,7 +61,7 @@ class ControlMessagePayload: public CommPayload {
 @param[in] val the value associated with the field
 @param[in] time the time for a schedule
 */
-    ControlMessagePayload(const std::string& fld, double val, coreTime time):
+    ControlMessagePayload(const std::string& fld, double val, CoreTime time):
         m_field(fld), m_value(val), m_time(time)
     {
     }

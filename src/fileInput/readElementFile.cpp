@@ -11,7 +11,7 @@
 #include "gmlc/utilities/stringConversion.h"
 #include "griddyn/GridDynSimulation.h"
 #include "readerHelper.h"
-#include "utilities/gridRandom.h"
+#include "utilities/GridRandom.h"
 #include <filesystem>
 #include <memory>
 #include <sstream>
@@ -393,7 +393,7 @@ void readConfigurationFields(std::shared_ptr<ReaderElement>& sim, ReaderInfo& /*
             } else if ((cfgname == "seed")) {
                 try {
                     auto seed = std::stoul(cfgAtt.getText());
-                    utilities::gridRandom::setSeed(seed);
+                    utilities::GridRandom::setSeed(seed);
                 }
                 catch (const std::invalid_argument&) {
                     WARNPRINT(READER_WARN_IMPORTANT, "invalid seed value, must be an integer");
@@ -412,7 +412,7 @@ void readConfigurationFields(std::shared_ptr<ReaderElement>& sim, ReaderInfo& /*
             } else if ((fieldName == "seed")) {
                 try {
                     auto seed = std::stoul(cfgAtt.getText());
-                    utilities::gridRandom::setSeed(seed);
+                    utilities::GridRandom::setSeed(seed);
                 }
                 catch (const std::invalid_argument&) {
                     WARNPRINT(READER_WARN_IMPORTANT, "invalid seed value, must be an integer");

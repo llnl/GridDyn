@@ -25,7 +25,7 @@ namespace events {
         std::string newStringValue;  //!< the new value to set for a string
       public:
         explicit ReversibleEvent(const std::string& eventName);
-        explicit ReversibleEvent(coreTime time0 = 0.0);
+        explicit ReversibleEvent(CoreTime time0 = 0.0);
         ReversibleEvent(const EventInfo& gdEI, CoreObject* rootObject);
         virtual void updateEvent(const EventInfo& gdEI, CoreObject* rootObject) override;
         virtual ~ReversibleEvent();
@@ -35,7 +35,7 @@ namespace events {
 
         // virtual void updateEvent(EventInfo &gdEI, CoreObject *rootObject) override;
         virtual ChangeCode trigger() override;
-        virtual ChangeCode trigger(coreTime time) override;
+        virtual ChangeCode trigger(CoreTime time) override;
 
         virtual bool setTarget(CoreObject* gdo, std::string_view var = {}) override;
 

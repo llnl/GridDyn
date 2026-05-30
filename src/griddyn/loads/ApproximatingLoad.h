@@ -30,23 +30,23 @@ namespace loads {
         virtual ~ApproximatingLoad();
 
         virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-        virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+        virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
         virtual void pFlowObjectInitializeB() override;
 
-        virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+        virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
         virtual void dynObjectInitializeB(const IOdata& inputs,
                                           const IOdata& desiredOutput,
                                           IOdata& fieldSet) override;
 
         virtual void
-            timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+            timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
         virtual void
             preEx(const IOdata& inputs, const StateData& sD, const SolverMode& sMode) override;
 
-        virtual void updateA(coreTime time) override;
-        virtual coreTime updateB() override;
+        virtual void updateA(CoreTime time) override;
+        virtual CoreTime updateB() override;
 
         virtual void set(std::string_view param, std::string_view val) override;
         virtual void
@@ -57,7 +57,7 @@ namespace loads {
                               const StateData& sD,
                               double roots[],
                               const SolverMode& sMode) override;
-        virtual void rootTrigger(coreTime time,
+        virtual void rootTrigger(CoreTime time,
                                  const IOdata& inputs,
                                  const std::vector<int>& rootMask,
                                  const SolverMode& sMode) override;
@@ -80,13 +80,13 @@ namespace loads {
         double Thprev = 0.0;  //!< storage for recent phase call (phase is not really used yet)
         double triggerBound = 1.5;  //!< the bounds on the voltage in terms of the spread
                                     //!< determining when to generate a new calculation
-        coreTime m_lastCallTime = negTime;
+        CoreTime m_lastCallTime = negTime;
 
-        void run1ApproxA(coreTime time, const IOdata& inputs);
+        void run1ApproxA(CoreTime time, const IOdata& inputs);
         std::vector<double> run1ApproxB();
-        void run2ApproxA(coreTime time, const IOdata& inputs);
+        void run2ApproxA(CoreTime time, const IOdata& inputs);
         std::vector<double> run2ApproxB();
-        void run3ApproxA(coreTime time, const IOdata& inputs);
+        void run3ApproxA(CoreTime time, const IOdata& inputs);
         std::vector<double> run3ApproxB();
 
         std::vector<std::tuple<double, double, double>>

@@ -17,7 +17,7 @@
 #include "../measurement/StateGrabber.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
-#include "utilities/matrixDataSparse.hpp"
+#include "utilities/MatrixDataSparse.hpp"
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -86,7 +86,7 @@ void Fuse::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-void Fuse::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void Fuse::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     auto ge = std::make_shared<Event>();
 
@@ -154,7 +154,7 @@ void Fuse::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     Relay::dynObjectInitializeA(time0, flags);
 }
 
-void Fuse::conditionTriggered(index_t conditionNum, coreTime /*triggerTime*/)
+void Fuse::conditionTriggered(index_t conditionNum, CoreTime /*triggerTime*/)
 {
     if (conditionNum == 2) {
         assert(opFlags[overlimitFlag]);
@@ -223,7 +223,7 @@ count_t Fuse::localJacobianCount(const SolverMode& sMode) const
     return 0;
 }
 
-void Fuse::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
+void Fuse::timestep(CoreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     if (limit < kBigNum / 2.0) {
         double val = getConditionValue(0);
@@ -236,7 +236,7 @@ void Fuse::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& /
     prevTime = time;
 }
 
-void Fuse::converge(coreTime time,
+void Fuse::converge(CoreTime time,
                     double state[],
                     double dstateDt[],
                     const SolverMode& sMode,
@@ -248,19 +248,19 @@ void Fuse::converge(coreTime time,
 
 void Fuse::jacobianElements(const IOdata& /*inputs*/,
                             const StateData& stateDataRef,
-                            matrixData<double>& jacobian,
+                            MatrixData<double>& jacobian,
                             const IOlocs& /*inputLocs*/,
                             const SolverMode& sMode)
 {
-    // TODO(phlpt): Replace matrixDataSparse here with a translation matrix.
+    // TODO(phlpt): Replace MatrixDataSparse here with a translation matrix.
     if (useI2T) {
-        matrixDataSparse<double> localJacobian;
+        MatrixDataSparse<double> localJacobian;
         IOdata out;
         auto voltageOffset = bus->getOutputLoc(sMode, voltageInLocation);
         auto inputs = bus->getOutputs(noInputs, stateDataRef, sMode);
         auto inputLocs = bus->getOutputLocs(sMode);
         if (opFlags[nonlinkSourceFlag]) {
-            auto* gridSecondaryObject = static_cast<gridSecondary*>(m_sourceObject);
+            auto* gridSecondaryObject = static_cast<GridSecondary*>(m_sourceObject);
             out = gridSecondaryObject->getOutputs(inputs, stateDataRef, sMode);
             gridSecondaryObject->outputPartialDerivatives(inputs,
                                                           stateDataRef,
@@ -304,7 +304,7 @@ void Fuse::jacobianElements(const IOdata& /*inputs*/,
     }
 }
 
-void Fuse::setState(coreTime time,
+void Fuse::setState(CoreTime time,
                     const double state[],
                     const double /*dstateDt*/[],
                     const SolverMode& sMode)
@@ -348,7 +348,7 @@ void Fuse::residual(const IOdata& /*inputs*/,
     }
 }
 
-void Fuse::guessState(const coreTime /*time*/,
+void Fuse::guessState(const CoreTime /*time*/,
                       double state[],
                       double dstateDt[],
                       const SolverMode& sMode)

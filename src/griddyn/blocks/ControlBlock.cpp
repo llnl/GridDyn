@@ -8,7 +8,7 @@
 
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <string>
 
 namespace griddyn::blocks {
@@ -40,7 +40,7 @@ CoreObject* ControlBlock::clone(CoreObject* obj) const
     return nobj;
 }
 // set up the number of states
-void ControlBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void ControlBlock::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (opFlags[differentialInput]) {
         opFlags.set(differential_output);
@@ -113,7 +113,7 @@ void ControlBlock::blockDerivative(double input,
 void ControlBlock::blockJacobianElements(double input,
                                          double didt,
                                          const StateData& stateDataRef,
-                                         matrixData<double>& jacobian,
+                                         MatrixData<double>& jacobian,
                                          index_t argLoc,
                                          const SolverMode& sMode)
 {
@@ -147,7 +147,7 @@ void ControlBlock::blockJacobianElements(double input,
     }
 }
 
-double ControlBlock::step(coreTime time, double input)
+double ControlBlock::step(CoreTime time, double input)
 {
     const double timeDelta = time - prevTime;
     double out;

@@ -213,8 +213,8 @@ TEST_F(LoadTests, RandomLoadTest)
     auto src = ld1->find("p");
     ASSERT_NE(src, nullptr);
     auto otime = src->getNextUpdateTime();
-    EXPECT_GE(otime, coreTime(8.0));
-    EXPECT_LE(otime, coreTime(11.0));
+    EXPECT_GE(otime, CoreTime(8.0));
+    EXPECT_LE(otime, CoreTime(11.0));
     ld1->timestep(otime - 0.2, noInputs, cLocalSolverMode);
     val = ld1->getRealPower(1.1);
     EXPECT_NEAR(val, 0.8, 1e-6);

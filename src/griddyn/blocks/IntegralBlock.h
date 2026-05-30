@@ -49,11 +49,11 @@ class IntegralBlock: public GridBlock {
     virtual void blockJacobianElements(double input,
                                        double didt,
                                        const StateData& stateDataValue,
-                                       matrixData<double>& matrixDataValue,
+                                       MatrixData<double>& matrixDataValue,
                                        index_t argLoc,
                                        const SolverMode& sMode) override;
-    virtual double step(coreTime time, double inputA) override;
-    // virtual void timestep(coreTime time, const IOdata &inputs, const SolverMode &sMode);
-    // virtual void setTime(coreTime time){prevTime=time;};
+    virtual double step(CoreTime time, double inputA) override;
+    // virtual void timestep(CoreTime time, const IOdata &inputs, const SolverMode &sMode);
+    // virtual void setTime(CoreTime time){prevTime=time;};
 };
 }  // namespace griddyn::blocks

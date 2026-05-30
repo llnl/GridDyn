@@ -126,7 +126,7 @@ double Pmu::get(std::string_view param, units::unit unitType) const
     return Sensor::get(param, unitType);
 }
 
-void Pmu::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void Pmu::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (m_sourceObject == nullptr) {
         // we know the parent is most likely an area so find the corresponding bus that matches
@@ -260,7 +260,7 @@ void Pmu::createFilterBlocks()
     }
 }
 
-void Pmu::updateA(coreTime time)
+void Pmu::updateA(CoreTime time)
 {
     Sensor::updateA(time);
     if (time >= mNextTransmitTime) {
@@ -272,7 +272,7 @@ void Pmu::updateA(coreTime time)
     }
 }
 
-coreTime Pmu::updateB()
+CoreTime Pmu::updateB()
 {
     Sensor::updateB();
     if (nextUpdateTime > mNextTransmitTime) {

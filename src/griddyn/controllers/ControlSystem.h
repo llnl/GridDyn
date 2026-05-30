@@ -7,7 +7,7 @@
 #pragma once
 
 #include "../GridSubModel.h"
-#include "utilities/matrixDataSparse.hpp"
+#include "utilities/MatrixDataSparse.hpp"
 #include <string>
 #include <vector>
 namespace griddyn {
@@ -17,9 +17,9 @@ class GridBlock;
 class ControlSystem: public GridSubModel {
   protected:
     std::vector<GridBlock*> blocks;  //!< the set of blocks to operate on
-    matrixDataSparse<double> inputMult;  //!< multipliers for the input to the blocks
-    matrixDataSparse<double> outputMult;  //!< multipliers for the outputs
-    matrixDataSparse<double> connections;  //!< multipliers for the block inputs
+    MatrixDataSparse<double> inputMult;  //!< multipliers for the input to the blocks
+    MatrixDataSparse<double> outputMult;  //!< multipliers for the outputs
+    MatrixDataSparse<double> connections;  //!< multipliers for the block inputs
 
     std::vector<double> blockOutputs;  //!< current vector of block outputs
 
@@ -28,7 +28,7 @@ class ControlSystem: public GridSubModel {
     virtual ~ControlSystem();
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -48,17 +48,17 @@ class ControlSystem: public GridSubModel {
 
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& sD,
-                                  matrixData<double>& md,
+                                  MatrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     virtual void rootTest(const IOdata& inputs,
                           const StateData& sD,
                           double roots[],
                           const SolverMode& sMode) override;
-    virtual void rootTrigger(coreTime time,
+    virtual void rootTrigger(CoreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override;
@@ -66,6 +66,6 @@ class ControlSystem: public GridSubModel {
                                  const StateData& sD,
                                  const SolverMode& sMode,
                                  CheckLevel level) override;
-    // virtual void setTime(coreTime time){prevTime=time;};
+    // virtual void setTime(CoreTime time){prevTime=time;};
 };
 }  // namespace griddyn

@@ -9,7 +9,7 @@
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
-#include "utilities/gridRandom.h"
+#include "utilities/GridRandom.h"
 #include <cassert>
 #include <iostream>
 #include <memory>
@@ -40,9 +40,9 @@ CoreObject* RandomSource::clone(CoreObject* obj) const
     src->timeDistribution = timeDistribution;
     src->valDistribution = valDistribution;
     src->timeGenerator =
-        std::make_unique<utilities::gridRandom>(timeDistribution, param1_t, param2_t);
+        std::make_unique<utilities::GridRandom>(timeDistribution, param1_t, param2_t);
     src->valGenerator =
-        std::make_unique<utilities::gridRandom>(valDistribution, param1_L, param2_L);
+        std::make_unique<utilities::GridRandom>(valDistribution, param1_L, param2_L);
     return src;
 }
 
@@ -60,7 +60,7 @@ void RandomSource::set(std::string_view param, std::string_view val)
             valGenerator->setDistribution(utilities::getDist(valDistribution));
         }
     } else if (param == "seed") {
-        utilities::gridRandom::setSeed();
+        utilities::GridRandom::setSeed();
     } else {
         RampSource::set(param, val);
     }
@@ -125,7 +125,7 @@ void RandomSource::set(std::string_view param, double val, units::unit unitType)
     } else if (param == "zbias") {
         zbias = val;
     } else if (param == "seed") {
-        utilities::gridRandom::setSeed(static_cast<int>(val));
+        utilities::GridRandom::setSeed(static_cast<int>(val));
     } else {
         // I am purposely skipping over the RampLoad the functionality is needed but the access
         // is not
@@ -140,13 +140,13 @@ void RandomSource::reset(ResetLevels /*level*/)
     offset = 0.0;
 }
 
-void RandomSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
+void RandomSource::pFlowObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
 {
     reset();
     keyTime = time0;
-    timeGenerator = std::make_unique<utilities::gridRandom>(timeDistribution, param1_t, param2_t);
-    valGenerator = std::make_unique<utilities::gridRandom>(valDistribution, param1_L, param2_L);
-    const coreTime triggerTime = time0 + ntime();
+    timeGenerator = std::make_unique<utilities::GridRandom>(timeDistribution, param1_t, param2_t);
+    valGenerator = std::make_unique<utilities::GridRandom>(valDistribution, param1_L, param2_L);
+    const CoreTime triggerTime = time0 + ntime();
 
     if (opFlags[INTERPOLATE_FLAG]) {
         nextStep(triggerTime);
@@ -155,7 +155,7 @@ void RandomSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*
     opFlags.set(object_armed_flag);
 }
 
-void RandomSource::updateOutput(coreTime time)
+void RandomSource::updateOutput(CoreTime time)
 {
     if (time >= nextUpdateTime) {
         updateA(time);
@@ -166,7 +166,7 @@ void RandomSource::updateOutput(coreTime time)
 
 // Repeats only when multiple pending trigger times must be consumed.
 // NOLINTNEXTLINE(misc-no-recursion)
-void RandomSource::updateA(coreTime time)
+void RandomSource::updateA(CoreTime time)
 {
     if (time < nextUpdateTime) {
         return;
@@ -208,9 +208,9 @@ void RandomSource::updateA(coreTime time)
     m_tempOut = m_output;
 }
 
-coreTime RandomSource::ntime()
+CoreTime RandomSource::ntime()
 {
-    coreTime newTime = maxTime;
+    CoreTime newTime = maxTime;
     do {
         newTime = timeGenerator->generate();
     } while (newTime < 0.0);
@@ -227,7 +227,7 @@ double RandomSource::nval()
     return nextVal;
 }
 
-void RandomSource::nextStep(coreTime triggerTime)
+void RandomSource::nextStep(CoreTime triggerTime)
 {
     const double rval = nval();
     const double nextVal =
@@ -239,7 +239,7 @@ void RandomSource::nextStep(coreTime triggerTime)
     }
 }
 
-void RandomSource::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void RandomSource::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     while (time >= nextUpdateTime) {
         updateA(nextUpdateTime);
@@ -268,15 +268,15 @@ double RandomSource::computeBiasAdjust()
     }
     double bias = 0.0;
     switch (valGenerator->getDistribution()) {
-        case utilities::gridRandom::DistributionType::UNIFORM:
+        case utilities::GridRandom::DistributionType::UNIFORM:
             bias = -(param2_L - param1_L) * zbias * (offset);
             break;
-        case utilities::gridRandom::DistributionType::EXPONENTIAL:  // load varies in a
+        case utilities::GridRandom::DistributionType::EXPONENTIAL:  // load varies in a
                                                                     // biexponential pattern
             bias = ((offset / param1_L) * zbias) - 0.5;
 
             break;
-        case utilities::gridRandom::DistributionType::NORMAL:
+        case utilities::GridRandom::DistributionType::NORMAL:
             bias = -param2_L * zbias * (offset);
             break;
         default:

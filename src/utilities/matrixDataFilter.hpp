@@ -6,31 +6,31 @@
 
 #pragma once
 
-#include "matrixDataContainer.hpp"
+#include "MatrixDataContainer.hpp"
 #include <algorithm>
 #include <vector>
 
-/** @brief class implementation filter for another matrixData object
-most functions are just simple forwarding to the underlying matrixData object
+/** @brief class implementation filter for another MatrixData object
+most functions are just simple forwarding to the underlying MatrixData object
 except the assign operator, the row index is checked against a set of filtered rows
 if it is not in the filtered list it is passed through to the underlying matrix
 */
 template<class ValueT = double>
-class matrixDataFilter: public matrixDataContainer<ValueT> {
+class MatrixDataFilter: public MatrixDataContainer<ValueT> {
   private:
     std::vector<index_t> rowFilter;  //!< the vector of translations
   public:
     /** @brief constructor
      */
-    matrixDataFilter() = default;
+    MatrixDataFilter() = default;
 
-    explicit matrixDataFilter(matrixData<ValueT>& input): matrixDataContainer<ValueT>(input) {}
+    explicit MatrixDataFilter(MatrixData<ValueT>& input): MatrixDataContainer<ValueT>(input) {}
 
     void assign(index_t row, index_t col, ValueT num) override
     {
         bool found = std::binary_search(rowFilter.begin(), rowFilter.end(), row);
         if (!found) {
-            matrixDataContainer<ValueT>::md->assign(row, col, num);
+            MatrixDataContainer<ValueT>::md->assign(row, col, num);
         }
     }
 

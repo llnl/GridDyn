@@ -29,7 +29,7 @@ class InterpolatingPlayer: public Player {
     /** construct with a name*/
     explicit InterpolatingPlayer(const std::string& eventName);
     /** construct with a time and looping period*/
-    InterpolatingPlayer(coreTime time0 = 0.0, double loopPeriod = 0.0);
+    InterpolatingPlayer(CoreTime time0 = 0.0, double loopPeriod = 0.0);
     /** construct from an event Info structure and root object*/
     InterpolatingPlayer(const EventInfo& gdEI, CoreObject* rootObject);
     virtual std::unique_ptr<Event> clone() const override;
@@ -38,7 +38,7 @@ class InterpolatingPlayer: public Player {
 
     // virtual void updateEvent(EventInfo &gdEI, CoreObject *rootObject) override;
     virtual ChangeCode trigger() override;
-    virtual ChangeCode trigger(coreTime time) override;
+    virtual ChangeCode trigger(CoreTime time) override;
 
     virtual void set(std::string_view param, double val) override;
     virtual void set(std::string_view param, std::string_view val) override;

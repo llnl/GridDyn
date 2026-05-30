@@ -17,7 +17,7 @@
 namespace griddyn::events {
 InterpolatingPlayer::InterpolatingPlayer(const std::string& eventName): Player(eventName) {}
 
-InterpolatingPlayer::InterpolatingPlayer(coreTime time0, double loopPeriod):
+InterpolatingPlayer::InterpolatingPlayer(CoreTime time0, double loopPeriod):
     Player(time0, loopPeriod)
 {
 }
@@ -168,7 +168,7 @@ ChangeCode InterpolatingPlayer::trigger()
     }
 }
 
-ChangeCode InterpolatingPlayer::trigger(coreTime time)
+ChangeCode InterpolatingPlayer::trigger(CoreTime time)
 {
     ChangeCode ret = ChangeCode::NOT_TRIGGERED;
     if (time + kSmallTime >= triggerTime) {

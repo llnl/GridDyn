@@ -18,9 +18,9 @@ class SineSource: public PulseSource {
   protected:
     model_parameter frequency = 0.0;  //!<[Hz] frequency of an oscillation
     model_parameter phase = 0.0;  //!<[rad]  the offset angle
-    coreTime lastCycle = negTime;  ///!< time of the last cycle completion
+    CoreTime lastCycle = negTime;  ///!< time of the last cycle completion
     model_parameter Amp = 0.0;  //!< the amplitude of the pulse
-    coreTime sinePeriod = maxTime;  //!< the period of the sinusoid
+    CoreTime sinePeriod = maxTime;  //!< the period of the sinusoid
     model_parameter dfdt = 0.0;  ///!<[Hz/s] the rate of change of frequency
     model_parameter dAdt = 0.0;  //!< [1/s] the rate of change of amplitude
 
@@ -32,9 +32,9 @@ class SineSource: public PulseSource {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
-    virtual void updateOutput(coreTime time) override;
-    virtual double computeOutput(coreTime time) const override;
+    virtual void updateOutput(CoreTime time) override;
+    virtual double computeOutput(CoreTime time) const override;
 };
 }  // namespace griddyn::sources

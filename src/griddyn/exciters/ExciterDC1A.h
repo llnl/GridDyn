@@ -20,7 +20,7 @@ class ExciterDC1A: public ExciterIEEEtype1 {
     explicit ExciterDC1A(const std::string& objName = "exciterDC1A_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -41,7 +41,7 @@ class ExciterDC1A: public ExciterIEEEtype1 {
                             const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& stateDataValue,
-                                  matrixData<double>& matrixDataValue,
+                                  MatrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
 
@@ -53,7 +53,7 @@ class ExciterDC1A: public ExciterIEEEtype1 {
                                  const StateData& sD,
                                  const SolverMode& sMode,
                                  CheckLevel level) override;
-    // virtual void setTime(coreTime time){prevTime=time;};
+    // virtual void setTime(CoreTime time){prevTime=time;};
   protected:
     /** @brief the Jacobian entries for the limiter
 @param[in] V the voltage
@@ -66,6 +66,6 @@ class ExciterDC1A: public ExciterIEEEtype1 {
                                int Vloc,
                                int refLoc,
                                double cj,
-                               matrixData<double>& matrixDataValue);
+                               MatrixData<double>& matrixDataValue);
 };
 }  // namespace griddyn::exciters

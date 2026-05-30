@@ -10,7 +10,7 @@
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <complex>
 #include <string>
@@ -31,7 +31,7 @@ CoreObject* GenModel5::clone(CoreObject* obj) const
     return gd;
 }
 
-void GenModel5::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void GenModel5::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
     offsets.local().local.diffSize = 5;
     offsets.local().local.algSize = 2;
@@ -148,7 +148,7 @@ void GenModel5::derivative(const IOdata& inputs,
 
 void GenModel5::jacobianElements(const IOdata& inputs,
                                  const StateData& sD,
-                                 matrixData<double>& md,
+                                 MatrixData<double>& md,
                                  const IOlocs& inputLocs,
                                  const SolverMode& sMode)
 {

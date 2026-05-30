@@ -6,35 +6,35 @@
 
 #pragma once
 
-#include "matrixDataContainer.hpp"
+#include "MatrixDataContainer.hpp"
 #include <array>
 
-/** @brief class implementation translation for another matrixData object
- most functions are just simple forwarding to the underlying matrixData object
-except the assign and at operator which basically means the matrixData can interact with a small
-subset of a bigger matrixData object though rowIndex, colIndex, and val will still return the
+/** @brief class implementation translation for another MatrixData object
+ most functions are just simple forwarding to the underlying MatrixData object
+except the assign and at operator which basically means the MatrixData can interact with a small
+subset of a bigger MatrixData object though rowIndex, colIndex, and val will still return the
 original values.  The intent of this class is not to replace the interactions with another it is to
 act as a filter in cases where elements need to be added but the row needs a translation,  using it
 outside that purpose could lead to issues
 */
 template<int CT, class ValueT = double>
-class matrixDataTranslate: public matrixDataContainer<ValueT> {
+class MatrixDataTranslate: public MatrixDataContainer<ValueT> {
   private:
     std::array<index_t, CT> Trow;  //!< the vector of translations
   public:
     /** @brief constructor
      */
-    matrixDataTranslate() { Trow.fill(kNullLocation); }
-    explicit matrixDataTranslate(matrixData<ValueT>& input): matrixDataContainer<ValueT>(input)
+    MatrixDataTranslate() { Trow.fill(kNullLocation); }
+    explicit MatrixDataTranslate(MatrixData<ValueT>& input): MatrixDataContainer<ValueT>(input)
     {
         Trow.fill(kNullLocation);
     }
     inline bool isValidRow(index_t row) const
     {
 #ifdef UNSIGNED_INDEXING
-        return ((row < CT) && (Trow[row] < matrixData<ValueT>::rowLimit()));
+        return ((row < CT) && (Trow[row] < MatrixData<ValueT>::rowLimit()));
 #else
-        return ((row < CT) && (row >= 0) && (Trow[row] < matrixData<ValueT>::rowLimit()));
+        return ((row < CT) && (row >= 0) && (Trow[row] < MatrixData<ValueT>::rowLimit()));
 #endif
     }
     void assign(index_t row, index_t col, ValueT num) override
@@ -43,14 +43,14 @@ class matrixDataTranslate: public matrixDataContainer<ValueT> {
         // and we do automatic checking of the translation and if it isn't valid don't do the
         // assignment
         if (isValidRow(row)) {
-            matrixDataContainer<ValueT>::md->assign(Trow[row], col, num);
+            MatrixDataContainer<ValueT>::md->assign(Trow[row], col, num);
         }
     };
 
     ValueT at(index_t rowN, index_t colN) const override
     {
         if (isValidRow(rowN)) {
-            return matrixDataContainer<ValueT>::md->at(Trow[rowN], colN);
+            return MatrixDataContainer<ValueT>::md->at(Trow[rowN], colN);
         }
         return ValueT(0);
     };

@@ -30,7 +30,7 @@ CoreObject* HelicsGhostBus::clone(CoreObject* obj) const
     return nobj;
 }
 
-void HelicsGhostBus::pFlowObjectInitializeA(coreTime time0, uint32_t flags)
+void HelicsGhostBus::pFlowObjectInitializeA(CoreTime time0, uint32_t flags)
 {
     GridBus::pFlowObjectInitializeA(time0, flags);
 }
@@ -42,7 +42,7 @@ void HelicsGhostBus::pFlowObjectInitializeB()
     updateB();
 }
 
-void HelicsGhostBus::updateA(coreTime time)
+void HelicsGhostBus::updateA(CoreTime time)
 {
     if (!loadKey.empty()) {
         double Pact = convert(S.sumP(), units::puMW, outUnits, systemBasePower);
@@ -54,7 +54,7 @@ void HelicsGhostBus::updateA(coreTime time)
     lastUpdateTime = time;
 }
 
-coreTime HelicsGhostBus::updateB()
+CoreTime HelicsGhostBus::updateB()
 {
     nextUpdateTime += updatePeriod;
 
@@ -71,7 +71,7 @@ coreTime HelicsGhostBus::updateB()
     return nextUpdateTime;
 }
 
-void HelicsGhostBus::timestep(coreTime ttime, const IOdata& inputs, const SolverMode& sMode)
+void HelicsGhostBus::timestep(CoreTime ttime, const IOdata& inputs, const SolverMode& sMode)
 {
     while (ttime > nextUpdateTime) {
         updateA(nextUpdateTime);

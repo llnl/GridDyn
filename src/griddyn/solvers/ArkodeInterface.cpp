@@ -293,7 +293,7 @@ static const std::map<int, std::string> arkodeRetCodes{
 
 };
 
-void ArkodeInterface::initialize(coreTime time0)
+void ArkodeInterface::initialize(CoreTime time0)
 {
     if (!flags[ALLOCATED_FLAG]) {
         throw(InvalidSolverOperation());
@@ -401,7 +401,7 @@ return(retval);
 */
 }
 
-int ArkodeInterface::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
+int ArkodeInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
 {
     assert(rootCount == m_gds->rootSize(mode));
     ++solverCallCount;

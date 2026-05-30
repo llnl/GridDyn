@@ -45,7 +45,7 @@ namespace {
 
 static void readEventElement(std::shared_ptr<ReaderElement>& element,
                              EventInfo& eventInfo,
-                             ReaderInfo& ReaderInformation,
+                             ReaderInfo& readerInformation,
                              CoreObject* obj)
 {
     if (element->getName() != "event") {
@@ -62,31 +62,31 @@ static void readEventElement(std::shared_ptr<ReaderElement>& element,
     // check for the field attributes
     std::string name = getElementField(element, "name", readerConfig::defMatchType);
     if (!name.empty()) {
-        name = ReaderInformation.checkDefines(name);
+        name = readerInformation.checkDefines(name);
         eventInfo.name = name;
     }
 
     // check for the field attributes
     const std::string type = getElementField(element, "type", readerConfig::defMatchType);
     if (!type.empty()) {
-        eventInfo.type = ReaderInformation.checkDefines(type);
+        eventInfo.type = readerInformation.checkDefines(type);
     }
 
     // check for the field attributes
     auto targetList = getElementFieldMultiple(element, "target", readerConfig::defMatchType);
     for (auto& targetName : targetList) {
-        targetName = ReaderInformation.checkDefines(targetName);
+        targetName = readerInformation.checkDefines(targetName);
         eventInfo.targetObjs.push_back(locateObject(targetName, obj));
     }
 
     auto fieldList = getElementFieldMultiple(element, "field", readerConfig::defMatchType);
     for (auto& fieldName : fieldList) {
-        fieldName = ReaderInformation.checkDefines(fieldName);
+        fieldName = readerInformation.checkDefines(fieldName);
         eventInfo.fieldList.push_back(fieldName);
     }
     auto unitList = getElementFieldMultiple(element, "units", readerConfig::defMatchType);
     for (auto& unitName : unitList) {
-        unitName = ReaderInformation.checkDefines(unitName);
+        unitName = readerInformation.checkDefines(unitName);
         eventInfo.units.push_back(units::unit_cast_from_string(unitName));
     }
 
@@ -94,13 +94,13 @@ static void readEventElement(std::shared_ptr<ReaderElement>& element,
 
     std::string field = getElementField(element, "period", readerConfig::defMatchType);
     if (!field.empty()) {
-        eventInfo.period = interpretString(field, ReaderInformation);
+        eventInfo.period = interpretString(field, readerInformation);
     }
 
     field = getElementFieldOptions(element, {"t", "time"}, readerConfig::defMatchType);
     if (!field.empty()) {
         eventInfo.time =
-            gmlc::utilities::str2vector<CoreTime>(ReaderInformation.checkDefines(field), negTime);
+            gmlc::utilities::str2vector<CoreTime>(readerInformation.checkDefines(field), negTime);
     } else {
         if (eventInfo.time.empty() && element->getName() == "scenario") {
             eventInfo.time.emplace_back(-1.0);
@@ -110,37 +110,37 @@ static void readEventElement(std::shared_ptr<ReaderElement>& element,
     field = getElementFieldOptions(element, {"value", "val"}, readerConfig::defMatchType);
     if (!field.empty()) {
         eventInfo.value =
-            gmlc::utilities::str2vector(ReaderInformation.checkDefines(field), kNullVal);
+            gmlc::utilities::str2vector(readerInformation.checkDefines(field), kNullVal);
     }
 
     name = getElementField(element, "file", readerConfig::defMatchType);
     if (!name.empty()) {
-        ReaderInformation.checkFileParam(name);
+        readerInformation.checkFileParam(name);
         eventInfo.file = name;
     }
 
     field = getElementField(element, "column", readerConfig::defMatchType);
     if (!field.empty()) {
-        eventInfo.columns.push_back(static_cast<int>(interpretString(field, ReaderInformation)));
+        eventInfo.columns.push_back(static_cast<int>(interpretString(field, readerInformation)));
     }
 }
 
 int loadEventElement(std::shared_ptr<ReaderElement>& element,
                      CoreObject* obj,
-                     ReaderInfo& ReaderInformation)
+                     ReaderInfo& readerInformation)
 {
     int returnValue = FUNCTION_EXECUTION_SUCCESS;
     element->bookmark();
     EventInfo eventInfo;
-    readEventElement(element, eventInfo, ReaderInformation, obj);
+    readEventElement(element, eventInfo, readerInformation, obj);
     auto eventObject = makeEvent(eventInfo, obj);
     if (!eventObject) {
         WARNPRINT(READER_WARN_IMPORTANT, "unable to create an event of type " << eventInfo.type);
         return FUNCTION_EXECUTION_FAILURE;
     }
     setAttributes(
-        eventObject.get(), element, eventNameString, ReaderInformation, eventIgnoreStrings());
-    setParams(eventObject.get(), element, eventNameString, ReaderInformation, eventIgnoreStrings());
+        eventObject.get(), element, eventNameString, readerInformation, eventIgnoreStrings());
+    setParams(eventObject.get(), element, eventNameString, readerInformation, eventIgnoreStrings());
 
     if (!eventObject->isArmed()) {
         WARNPRINT(READER_WARN_IMPORTANT, "event for " << eventInfo.name << ":unable to load event");
@@ -156,10 +156,10 @@ int loadEventElement(std::shared_ptr<ReaderElement>& element,
                 WARNPRINT(READER_WARN_IMPORTANT,
                           "Event: " << ownedEvent->getName() << " unable to be added to "
                                     << owner->getName());
-                ReaderInformation.events.push_back(std::move(ownedEvent));
+                readerInformation.events.push_back(std::move(ownedEvent));
             }
         } else {  // if it doesn't just put it on the stack and deal with it later
-            ReaderInformation.events.push_back(std::move(eventObject));
+            readerInformation.events.push_back(std::move(eventObject));
         }
     }
     element->restore();

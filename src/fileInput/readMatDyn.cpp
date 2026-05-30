@@ -45,7 +45,7 @@ void loadMatDyn(CoreObject* parentObject,
                 const BasicReaderInfo& /*bri*/)
 {
     string_view fileView = fileText;
-    mArray MatrixData;
+    mArray matrixData;
 
     std::vector<Generator*> genList;
     // read the frequency
@@ -85,22 +85,22 @@ void loadMatDyn(CoreObject* parentObject,
     openBracketPos = fileView.find(tokens[0], dataIndex);  // gen
     if (openBracketPos != std::string_view::npos) {
         closeBracketPos = fileView.find_first_of('=', openBracketPos);
-        readMatlabArray(fileText, closeBracketPos + 1, MatrixData);
-        loadGenDynArray(parentObject, MatrixData, genList);
+        readMatlabArray(fileText, closeBracketPos + 1, matrixData);
+        loadGenDynArray(parentObject, matrixData, genList);
     }
 
     openBracketPos = fileView.find(tokens[1], dataIndex);  // exc
     if (openBracketPos != std::string_view::npos) {
         closeBracketPos = fileView.find_first_of('=', openBracketPos);
-        readMatlabArray(fileText, closeBracketPos + 1, MatrixData);
-        loadGenExcArray(parentObject, MatrixData, genList);
+        readMatlabArray(fileText, closeBracketPos + 1, matrixData);
+        loadGenExcArray(parentObject, matrixData, genList);
     }
 
     openBracketPos = fileView.find(tokens[2], dataIndex);  // gov
     if (openBracketPos != std::string_view::npos) {
         closeBracketPos = fileView.find_first_of('=', openBracketPos);
-        readMatlabArray(fileText, closeBracketPos + 1, MatrixData);
-        loadGenGovArray(parentObject, MatrixData, genList);
+        readMatlabArray(fileText, closeBracketPos + 1, matrixData);
+        loadGenGovArray(parentObject, matrixData, genList);
     }
     int generatorIndex = 1;
     for (auto& nextGenerator : genList) {
@@ -298,7 +298,7 @@ void loadMatDynEvent(CoreObject* parentObject,
 {
     string_view fileView = fileText;
     mArray event1;
-    mArray MatrixData;
+    mArray matrixData;
     auto* gds = dynamic_cast<GridSimulation*>(parentObject->getRoot());
     if (gds == nullptr) {  // can't make events if we don't have access to the simulation
         return;
@@ -319,8 +319,8 @@ void loadMatDynEvent(CoreObject* parentObject,
     locA = fileView.find(tokenList[1], locC);  // buschange
     if (locA != std::string_view::npos) {
         locB = fileView.find_first_of('=', locA);
-        readMatlabArray(fileText, locB + 1, MatrixData);
-        for (auto& eventSpec : MatrixData) {
+        readMatlabArray(fileText, locB + 1, matrixData);
+        for (auto& eventSpec : matrixData) {
             auto evnt = std::make_shared<Event>(eventSpec[0]);
             auto ind = static_cast<index_t>(eventSpec[1]);
             auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", ind));
@@ -357,7 +357,7 @@ void loadMatDynEvent(CoreObject* parentObject,
     locA = fileView.find(tokenList[2], locC);  // linechange
     if (locA != std::string::npos) {
         locB = fileView.find_first_of('=', locA);
-        readMatlabArray(fileText, locB + 1, MatrixData);
+        readMatlabArray(fileText, locB + 1, matrixData);
         for (const auto& lineChange : MatrixData) {
             auto evnt = std::make_shared<Event>(lineChange[0]);
 

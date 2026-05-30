@@ -1087,8 +1087,7 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
     subInputLocs.genModelInputLocsExternal[angleInLocation] = inputLocs[angleInLocation];
 
     if ((ext != nullptr) && (ext->isEnabled())) {
-        subInputLocs.inputLocs[exciterLoc][exciterVoltageInLocation] =
-            inputLocs[voltageInLocation];
+        subInputLocs.inputLocs[exciterLoc][exciterVoltageInLocation] = inputLocs[voltageInLocation];
         subInputLocs.inputLocs[exciterLoc][exciterVsetInLocation] = vSetLocation(sMode);
         subInputLocs.inputLocs[genModelLoc][genModelEftInLocation] = ext->getOutputLoc(sMode, 0);
     } else {

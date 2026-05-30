@@ -262,8 +262,10 @@ void Fuse::jacobianElements(const IOdata& /*inputs*/,
         if (opFlags[nonlinkSourceFlag]) {
             auto* gridSecondaryObject = static_cast<gridSecondary*>(m_sourceObject);
             out = gridSecondaryObject->getOutputs(inputs, stateDataRef, sMode);
-            gridSecondaryObject->outputPartialDerivatives(
-                inputs, stateDataRef, localJacobian, sMode);
+            gridSecondaryObject->outputPartialDerivatives(inputs,
+                                                          stateDataRef,
+                                                          localJacobian,
+                                                          sMode);
             gridSecondaryObject->ioPartialDerivatives(
                 inputs, stateDataRef, localJacobian, inputLocs, sMode);
         } else {

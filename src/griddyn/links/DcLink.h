@@ -14,9 +14,9 @@ namespace griddyn::links {
  */
 class DcLink: public Link {
   public:
-    /*  enum dclink_flags
+    /*  enum DcLinkFlags
   {
-    fixed_target_power = object_flag5,
+    fixedTargetPower = object_flag5,
   };*/
   protected:
     double Idc = 0;  //!< [puA] storage for DC current

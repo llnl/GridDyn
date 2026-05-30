@@ -23,7 +23,7 @@ namespace links {
     class AcDcConverter: public Link {
       public:
         enum InverterFlags {
-            fixed_power_control = object_flag6,
+            fixedPowerControl = object_flag6,
         };
         enum class Mode { RECTIFIER, INVERTER, BIDIRECTIONAL };
 
@@ -47,7 +47,7 @@ namespace links {
         double dirMult = 1.0;
         model_parameter minAngle = -kPI / 2.0;  //!< [rad] minimum tap angle
         model_parameter maxAngle = kPI / 2.0;  //!< [rad]  maximum tap angle
-        ControlMode control_mode = ControlMode::VOLTAGE;
+        ControlMode controlMode = ControlMode::VOLTAGE;
 
         CoreOwningPtr<blocks::PidBlock> firingAngleControl;  //!< block controlling firing angle
         CoreOwningPtr<blocks::PidBlock> powerLevelControl;  //!< block controlling power

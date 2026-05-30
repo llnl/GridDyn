@@ -43,7 +43,7 @@ AcLine::AcLine(const std::string& objName): Link(objName)
 {
     // default values
     loadApproxFunctions();
-    opFlags.set(network_connected);
+    opFlags.set(networkConnected);
 }
 
 // NOLINTNEXTLINE
@@ -52,7 +52,7 @@ AcLine::AcLine(double rP, double xP, const std::string& objName): Link(objName),
     // default values
     setAdmit();
     loadApproxFunctions();
-    opFlags.set(network_connected);
+    opFlags.set(networkConnected);
     // load up the member function pointer array to point to the correct function
 }
 
@@ -253,7 +253,7 @@ void AcLine::set(std::string_view param, double val, unit unitType)
                 break;
             case 'p':
                 Pset = convert(val, unitType, puMW, systemBasePower);
-                opFlags.set(fixed_target_power);
+                opFlags.set(fixedTargetPower);
                 break;
             default:
                 throw(UnrecognizedParameter(param));
@@ -277,7 +277,7 @@ void AcLine::set(std::string_view param, double val, unit unitType)
             }
         }
         if ((fault > 0.0) && (fault < 1.0)) {
-            if ((!opFlags[switch1_open_flag]) || (!opFlags[switch2_open_flag])) {
+            if ((!opFlags[switch1OpenFlag]) || (!opFlags[switch2OpenFlag])) {
                 alert(this, POTENTIAL_FAULT_CHANGE);
             }
             if ((temp < 0.0) || (temp > 1.0)) {
@@ -367,7 +367,7 @@ int AcLine::fixRealPower(double power,
     } else {
         return 0;
     }
-    opFlags.set(fixed_target_power);
+    opFlags.set(fixedTargetPower);
     return 1;
 }
 
@@ -381,7 +381,7 @@ int AcLine::fixPower(double rPower,
 {
     double valp = convert(rPower, unitType, puMW, systemBasePower);
     double valq = convert(qPower, unitType, puMW, systemBasePower);
-    opFlags.set(fixed_target_power);
+    opFlags.set(fixedTargetPower);
     double v1 = B1->getVoltage();
     double v2 = B2->getVoltage();
     double ang = 0;
@@ -597,7 +597,7 @@ void AcLine::ioPartialDerivatives(id_type_t busId,
     auto angleLoc = inputLocs[angleInLocation];
 
     if ((busId == 2) || (busId == B2->getID())) {
-        if (!opFlags[switch2_open_flag]) {
+        if (!opFlags[switch2OpenFlag]) {
             if (voltageLoc != kNullLocation) {
                 md.assign(PoutLocation, voltageLoc, LinkDeriv.dP2dv2);
                 md.assign(QoutLocation, voltageLoc, LinkDeriv.dQ2dv2);
@@ -608,7 +608,7 @@ void AcLine::ioPartialDerivatives(id_type_t busId,
             }
         }
     } else {
-        if (!opFlags[switch1_open_flag]) {
+        if (!opFlags[switch1OpenFlag]) {
             if (voltageLoc != kNullLocation) {
                 md.assign(PoutLocation, voltageLoc, LinkDeriv.dP1dv1);
                 md.assign(QoutLocation, voltageLoc, LinkDeriv.dQ1dv1);
@@ -843,7 +843,7 @@ bool AcLine::testAndTrip(int tripLevel)
         }
     }
     if (tripLevel >= 2) {
-        if (checkFlag(angle_slip_on_test)) {
+        if (checkFlag(angleSlipOnTest)) {
             disconnect();
             return true;
         }
@@ -871,7 +871,7 @@ void AcLine::updateLocalCache()
 
 void AcLine::faultCalc()
 {
-    if (opFlags[switch1_open_flag]) {
+    if (opFlags[switch1OpenFlag]) {
         linkFlows.P1 = 0;
         linkFlows.Q1 = 0;
     } else {
@@ -879,7 +879,7 @@ void AcLine::faultCalc()
 
         linkFlows.Q1 = -(b / fault + fault * mp_B) / (tap * tap) * linkInfo.v1 * linkInfo.v1;
     }
-    if (opFlags[switch2_open_flag]) {
+    if (opFlags[switch2OpenFlag]) {
         linkFlows.P2 = 0;
         linkFlows.Q2 = 0;
     } else {
@@ -906,10 +906,10 @@ void AcLine::loadLinkInfo()
     } else {
         linkInfo.theta1 = 0.0;
         linkInfo.theta2 = 0.0;
-        if (!opFlags[switch1_open_flag]) {
+        if (!opFlags[switch1OpenFlag]) {
             linkInfo.v1 = B1->getVoltage();
         }
-        if (!opFlags[switch2_open_flag]) {
+        if (!opFlags[switch2OpenFlag]) {
             linkInfo.v2 = B2->getVoltage();
         }
         linkComp.sinTheta1 = 0.0;
@@ -937,7 +937,7 @@ void AcLine::loadLinkInfo(const StateData& sD, const SolverMode& sMode)
     linkInfo.theta1 = B1->getAngle(sD, sMode) - B2->getAngle(sD, sMode) - tapAngle;
     if (std::fabs(linkInfo.theta1) > kPI / 2.0) {
         if (isConnected()) {
-            opFlags.set(angle_slip_on_test);
+            opFlags.set(angleSlipOnTest);
         }
     }
     linkInfo.theta2 = -linkInfo.theta1;
@@ -1162,7 +1162,7 @@ void AcLine::fastDecoupledCalc()
 
 void AcLine::swOpenCalc()
 {
-    if (opFlags[switch1_open_flag]) {
+    if (opFlags[switch1OpenFlag]) {
         linkFlows.P1 = 0;
         linkFlows.Q1 = 0;
     } else {
@@ -1175,7 +1175,7 @@ void AcLine::swOpenCalc()
 
         linkFlows.Q1 = -(b + 0.5 * mp_B) / (tap * tap) * linkInfo.v1 * linkInfo.v1 + b * vm2;
     }
-    if (opFlags[switch2_open_flag]) {
+    if (opFlags[switch2OpenFlag]) {
         linkFlows.P2 = 0;
         linkFlows.Q2 = 0;
     } else {
@@ -1195,12 +1195,12 @@ void AcLine::swOpenCalc()
 void AcLine::faultDeriv()
 {
     LinkDeriv = {};
-    if (!opFlags[switch1_open_flag]) {
+    if (!opFlags[switch1OpenFlag]) {
         LinkDeriv.dP1dv1 = 2 * (g / fault + fault * mp_G) / (tap * tap) * linkInfo.v1;
         LinkDeriv.dQ1dv1 = -2 * (b / fault + fault * mp_B) / (tap * tap) * linkInfo.v1;
     }
 
-    if (!opFlags[switch2_open_flag]) {
+    if (!opFlags[switch2OpenFlag]) {
         LinkDeriv.dP2dv2 = 2 * (g / (1.0 - fault) + (1.0 - fault) * mp_G) * linkInfo.v2;
         LinkDeriv.dQ2dv2 = -2 * (b / (1.0 - fault) + (1.0 - fault) * mp_B) * linkInfo.v2;
     }
@@ -1570,7 +1570,7 @@ void AcLine::swOpenDeriv()
     double y = 1.0 / (b + 0.5 * mp_B);
     const double dT = -((g + 0.5 * mp_G) * y - g / b);
 
-    if (!opFlags[switch1_open_flag]) {
+    if (!opFlags[switch1OpenFlag]) {
         double it2 = 1.0 / (tap * tap);
         LinkDeriv.dP1dv1 = 2.0 * (g + 0.5 * mp_G) * it2 * linkInfo.v1;
         LinkDeriv.dP1dv1 -= 2.0 * g * b * it2 * linkInfo.v1 * y;
@@ -1580,7 +1580,7 @@ void AcLine::swOpenDeriv()
         LinkDeriv.dQ1dv1 += 2.0 * b * b * it2 * linkInfo.v1 * y;
     }
 
-    if (!opFlags[switch2_open_flag]) {
+    if (!opFlags[switch2OpenFlag]) {
         LinkDeriv.dP2dv2 = 2.0 * (g + 0.5 * mp_G) * linkInfo.v2;
         LinkDeriv.dP2dv2 -= 2.0 * g * b * linkInfo.v2 * y;
         LinkDeriv.dP2dv2 += 2.0 * b * b * linkInfo.v2 * y * dT;
@@ -1591,13 +1591,13 @@ void AcLine::swOpenDeriv()
     LinkDeriv.seqID = linkInfo.seqID;
 
     /*
-    if (!opFlags[switch1_open_flag])
+    if (!opFlags[switch1OpenFlag])
     {
     LinkDeriv.dP1dv1 = 2 * (g + mp_G) / (tap * tap) * linkInfo.v1;
     LinkDeriv.dQ1dv1 = -2 * (b  + mp_B) / (tap * tap) * linkInfo.v1;
     }
 
-    if (!opFlags[switch2_open_flag])
+    if (!opFlags[switch2OpenFlag])
     {
     LinkDeriv.dP2dv2 = 2 * (g  + mp_G) * linkInfo.v2;
     LinkDeriv.dQ2dv2 = -2 * (b  + mp_B) * linkInfo.v2;

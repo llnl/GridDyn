@@ -141,12 +141,12 @@ void Hvdc::updateBus(GridBus* bus, index_t busnumber)
 void Hvdc::setFlow(int direction)
 {
     if (direction == reverse) {
-        if (!opFlags[reverse_flow]) {
-            opFlags.set(reverse_flow);
+        if (!opFlags[reverseFlow]) {
+            opFlags.set(reverseFlow);
         }
     } else {
-        if (opFlags[reverse_flow]) {
-            opFlags.reset(reverse_flow);
+        if (opFlags[reverseFlow]) {
+            opFlags.reset(reverseFlow);
         }
     }
 }

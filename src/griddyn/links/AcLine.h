@@ -54,7 +54,7 @@ class AcLine: public Link {
   public:
     enum AcLineFlags {
         // indicator that the angle slipped past 90 degree on a test
-        angle_slip_on_test = object_flag10,
+        angleSlipOnTest = object_flag10,
     };
 
   protected:

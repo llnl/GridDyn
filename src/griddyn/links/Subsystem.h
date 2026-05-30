@@ -20,7 +20,7 @@ namespace griddyn {
 class Subsystem: public Link {
   public:
     enum SubsystemFlags {
-        direct_connection = object_flag5,  //!< flag indicating directly connected objects (skipping
+        directConnection = object_flag5,  //!< flag indicating directly connected objects (skipping
                                            //!< the terminal link structure)
     };
 

@@ -22,7 +22,7 @@ static TypeFactory<ZBreaker>
 
 ZBreaker::ZBreaker(const std::string& objName): Link(objName), merged(CoreObject::extra_bool)
 {
-    opFlags.set(network_connected);
+    opFlags.set(networkConnected);
 }
 CoreObject* ZBreaker::clone(CoreObject* obj) const
 {
@@ -66,12 +66,12 @@ void ZBreaker::switchMode(index_t /*num*/, bool mode)
 {
     // TODO(phlpt): This shouldn't cause enable/disable. Replace this with some of the
     // checks for enabled disable
-    if (mode == opFlags[switch1_open_flag]) {
+    if (mode == opFlags[switch1OpenFlag]) {
         return;
     }
 
-    opFlags.flip(switch1_open_flag);
-    opFlags.flip(switch2_open_flag);
+    opFlags.flip(switch1OpenFlag);
+    opFlags.flip(switch2OpenFlag);
     if (opFlags[pFlow_initialized]) {
         if (linkInfo.v1 < 0.2) {
             alert(this, POTENTIAL_FAULT_CHANGE);
@@ -79,15 +79,15 @@ void ZBreaker::switchMode(index_t /*num*/, bool mode)
         coordinateMergeStatus();
     }
 
-    /*if (opFlags[switch2_open_flag])
+    /*if (opFlags[switch2OpenFlag])
 {
 enable();
-opFlags.reset(switch2_open_flag);
+opFlags.reset(switch2OpenFlag);
 }
 else
 {
 disable();
-opFlags.set(switch2_open_flag);
+opFlags.set(switch2OpenFlag);
 }*/
 }
 

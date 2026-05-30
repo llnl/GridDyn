@@ -52,7 +52,7 @@ void VariableGenerator::dynObjectInitializeB(const IOdata& inputs,
                                              IOdata& fieldSet)
 {
     DynamicGenerator::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
-    IOdata args2{P};
+    const IOdata args2{P};
     IOdata inputSet(4);
     if (m_source != nullptr) {
         m_source->dynInitializeB(inputs, {0.0}, inputSet);

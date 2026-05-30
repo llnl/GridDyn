@@ -101,19 +101,19 @@ void LoadRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     Relay::dynObjectInitializeA(time0, flags);
 }
 
-void LoadRelay::actionTaken(index_t ActionNum,
+void LoadRelay::actionTaken(index_t actionNum,
                             index_t conditionNum,
                             ChangeCode /*actionReturn*/,
                             coreTime /*actionTime*/)
 {
-    logging::normal(this, "condition {} action {}", conditionNum, ActionNum);
-    (void)ActionNum;
+    logging::normal(this, "condition {} action {}", conditionNum, actionNum);
+    (void)actionNum;
     (void)conditionNum;
     /*
 if (opFlags.test(useCommLink))
 {
 relayMessage P;
-if (ActionNum == 0)
+if (actionNum == 0)
 {
 P.setMessageType (relayMessage::MESSAGE_TYPE::BREAKER_TRIP_EVENT);
 if (commDestName.empty ())

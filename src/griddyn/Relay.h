@@ -111,34 +111,35 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
     /**
      *@brief add a Event to the relay
      **/
-    virtual void add(std::shared_ptr<Event> ge);
+    virtual void add(std::shared_ptr<Event> eventObject);
     /**
      *@brief add an EventAdapter to the relay
      **/
-    virtual void add(std::shared_ptr<EventAdapter> geA);
+    virtual void add(std::shared_ptr<EventAdapter> eventAdapter);
     /**
      * @brief add a condition to the relay
      **/
-    virtual void add(std::shared_ptr<Condition> gc);
+    virtual void add(std::shared_ptr<Condition> conditionObject);
 
     /**
     *@brief update a specific action
-    @param[in] ge a gridEvent associated with the action
+    @param[in] eventObject a gridEvent associated with the action
     @param[in] actionNumber the index of the action to update
     **/
-    virtual void updateAction(std::shared_ptr<Event> ge, index_t actionNumber);
+    virtual void updateAction(std::shared_ptr<Event> eventObject, index_t actionNumber);
     /**
     *@brief update a specific action
-    @param[in] geA an event Adapter to associate with an action
+    @param[in] eventAdapter an event Adapter to associate with an action
     @param[in] actionNumber the index of the action to update
     **/
-    virtual void updateAction(std::shared_ptr<EventAdapter> geA, index_t actionNumber);
+    virtual void updateAction(std::shared_ptr<EventAdapter> eventAdapter, index_t actionNumber);
     /**
     *@brief update a specific condition
-    @param[in] gc a condition object to associate with a relay condition
+    @param[in] conditionObject a condition object to associate with a relay condition
     @param[in] conditionNumber the index of the condition to update with the new condition object
     **/
-    virtual void updateCondition(std::shared_ptr<Condition> gc, index_t conditionNumber);
+    virtual void updateCondition(std::shared_ptr<Condition> conditionObject,
+                                 index_t conditionNumber);
 
     /**
      *@brief reset the relay
@@ -225,7 +226,7 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
     virtual ChangeCode triggerAction(index_t actionNumber);
     /** define a set of conditions which all must be true for certain period of time before the
     action is triggered
-    @param[in] multi_conditions the set of condition indices which must all be true before an action
+    @param[in] multiConditions the set of condition indices which must all be true before an action
     is taken
     @param[in] actionNumber the index of the action to take once all conditions are true for
     delayTime
@@ -233,7 +234,7 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
     action
     */
     virtual void setActionMultiTrigger(index_t actionNumber,
-                                       const IOlocs& multi_conditions,
+                                       const IOlocs& multiConditions,
                                        coreTime delayTime = timeZero);
 
     /** define the margin by which a resettable condition must be on the other side of reset level
@@ -258,7 +259,7 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
     virtual ChangeCode
         powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level) override;
     virtual void rootTest(const IOdata& inputs,
-                          const StateData& sD,
+                          const StateData& stateDataValue,
                           double roots[],
                           const SolverMode& sMode) override;
     virtual void rootTrigger(coreTime time,
@@ -266,7 +267,7 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                 const StateData& sD,
+                                 const StateData& stateDataValue,
                                  const SolverMode& sMode,
                                  CheckLevel level) override;
     /** message processing function for use with communicators
@@ -300,12 +301,12 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
     */
     virtual void updateRootCount(bool alertChange = true);
     /** do something when an action is taken
-    @param ActionNum  the index of the action that was executed
+    @param actionNum  the index of the action that was executed
     @param conditionNum the index of the condition that triggered the action
     @param actionReturn  the return code of the action execution
     @param actionTime the time at which the action was taken
     */
-    virtual void actionTaken(index_t ActionNum,
+    virtual void actionTaken(index_t actionNum,
                              index_t conditionNum,
                              ChangeCode actionReturn,
                              coreTime actionTime);

@@ -47,7 +47,7 @@ governor --- Pm(t0) = Pset is stored externally as well
 
 namespace griddyn {
 static TypeFactory<DynamicGenerator>
-    generatorFactory("generator", std::to_array<std::string_view>({"local_dynamic"}));
+    gGeneratorFactory("generator", std::to_array<std::string_view>({"local_dynamic"}));
 
 using units::convert;
 using units::MVAR;
@@ -69,7 +69,7 @@ DynamicGenerator::DynamicGenerator(DynModel dynModel, const std::string& objName
 }
 CoreObject* DynamicGenerator::clone(CoreObject* obj) const
 {
-    auto* gen = cloneBaseFactory<DynamicGenerator, Generator>(this, obj, &generatorFactory);
+    auto* gen = cloneBaseFactory<DynamicGenerator, Generator>(this, obj, &gGeneratorFactory);
     if (gen == nullptr) {
         return obj;
     }
@@ -319,13 +319,13 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
 // save an external state to the internal one
 void DynamicGenerator::setState(coreTime time,
                                 const double state[],
-                                const double dstate_dt[],
+                                const double dstateDt[],
                                 const SolverMode& sMode)
 {
     if (isDynamic(sMode)) {
         for (auto* subobj : getSubObjects()) {
             if (subobj->isEnabled()) {
-                subobj->setState(time, state, dstate_dt, sMode);
+                subobj->setState(time, state, dstateDt, sMode);
                 // subobj->guessState (time, m_state.data (), m_dstate_dt.data (),
                 // cLocalbSolverMode);
             }
@@ -334,7 +334,7 @@ void DynamicGenerator::setState(coreTime time,
         Pset = gmlc::utilities::valLimit(Pset, Pmin, Pmax);
         updateLocalCache(noInputs, emptyStateData, cLocalSolverMode);
     } else if (stateSize(sMode) > 0) {
-        Generator::setState(time, state, dstate_dt, sMode);
+        Generator::setState(time, state, dstateDt, sMode);
     }
     prevTime = time;
 }
@@ -369,19 +369,19 @@ void DynamicGenerator::updateLocalCache(const IOdata& inputs,
 // copy the current state to a vector
 void DynamicGenerator::guessState(coreTime time,
                                   double state[],
-                                  double dstate_dt[],
+                                  double dstateDt[],
                                   const SolverMode& sMode)
 {
     if (isDynamic(sMode)) {
         for (auto* subobj : getSubObjects()) {
             if (subobj->isEnabled()) {
-                subobj->guessState(time, state, dstate_dt, sMode);
+                subobj->guessState(time, state, dstateDt, sMode);
                 // subobj->guessState (time, m_state.data (), m_dstate_dt.data (),
                 // cLocalbSolverMode);
             }
         }
     } else if (stateSize(sMode) > 0) {
-        Generator::guessState(time, state, dstate_dt, sMode);
+        Generator::guessState(time, state, dstateDt, sMode);
     }
 }
 
@@ -1047,19 +1047,19 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
     }
 
     const double scale = systemBasePower / machineBasePower;
-    double Pcontrol = pSetControlUpdate(inputs, stateDataValue, sMode);
-    Pcontrol = gmlc::utilities::valLimit(Pcontrol, Pmin, Pmax);
+    double pcontrol = pSetControlUpdate(inputs, stateDataValue, sMode);
+    pcontrol = gmlc::utilities::valLimit(pcontrol, Pmin, Pmax);
 
-    subInputs.inputs[governorLoc][govpSetInLocation] = Pcontrol * scale;
+    subInputs.inputs[governorLoc][govpSetInLocation] = pcontrol * scale;
 
     subInputs.inputs[exciterLoc][exciterVsetInLocation] =
         vSetControlUpdate(inputs, stateDataValue, sMode);
-    double Eft = m_Eft;
+    double eft = m_Eft;
     if ((ext != nullptr) && (ext->isEnabled())) {
-        Eft = ext->getOutput(subInputs.inputs[exciterLoc], stateDataValue, sMode, 0);
+        eft = ext->getOutput(subInputs.inputs[exciterLoc], stateDataValue, sMode, 0);
     }
-    subInputs.inputs[genModelLoc][genModelEftInLocation] = Eft;
-    double pmech = Pcontrol * scale;
+    subInputs.inputs[genModelLoc][genModelEftInLocation] = eft;
+    double pmech = pcontrol * scale;
     if ((gov != nullptr) && (gov->isEnabled())) {
         pmech = gov->getOutput(subInputs.inputs[governorLoc], stateDataValue, sMode, 0);
     }

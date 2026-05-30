@@ -45,7 +45,7 @@ class ZonalRelay: public Relay {
     virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
 
   protected:
-    virtual void actionTaken(index_t ActionNum,
+    virtual void actionTaken(index_t actionNum,
                              index_t conditionNum,
                              ChangeCode actionReturn,
                              coreTime actionTime) override;

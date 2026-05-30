@@ -45,7 +45,7 @@ class DifferentialRelay: public Relay {
                                 std::shared_ptr<CommMessage> message) override;
 
   protected:
-    virtual void actionTaken(index_t ActionNum,
+    virtual void actionTaken(index_t actionNum,
                              index_t conditionNum,
                              ChangeCode actionReturn,
                              coreTime actionTime) override;

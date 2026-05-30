@@ -122,13 +122,13 @@ void ControlRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
 }
 
-void ControlRelay::actionTaken(index_t ActionNum,
+void ControlRelay::actionTaken(index_t actionNum,
                                index_t conditionNum,
                                ChangeCode /*actionReturn*/,
                                coreTime /*actionTime*/)
 {
-    logging::normal(this, "condition {}-> action {} taken", conditionNum, ActionNum);
-    (void)(ActionNum);
+    logging::normal(this, "condition {}-> action {} taken", conditionNum, actionNum);
+    (void)(actionNum);
     (void)(conditionNum);
 }
 

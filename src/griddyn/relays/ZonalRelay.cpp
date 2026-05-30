@@ -201,16 +201,16 @@ void ZonalRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     Relay::dynObjectInitializeA(time0, flags);
 }
 
-void ZonalRelay::actionTaken(index_t ActionNum,
+void ZonalRelay::actionTaken(index_t actionNum,
                              index_t conditionNum,
                              ChangeCode /*actionReturn*/,
                              coreTime /*actionTime*/)
 {
     logging::normal(
-        this, "condition {} action {} taken terminal {}", conditionNum, ActionNum, m_terminal);
+        this, "condition {} action {} taken terminal {}", conditionNum, actionNum, m_terminal);
 
     if (opFlags[useCommLink]) {
-        if (ActionNum == 0) {
+        if (actionNum == 0) {
             auto relayEvent = std::make_shared<CommMessage>(CommMessage::BREAKER_TRIP_EVENT);
             cManager.send(relayEvent);
         }

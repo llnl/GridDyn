@@ -82,11 +82,11 @@ class DynamicGenerator: public Generator {
                                       IOdata& fieldSet) override;
     virtual void setState(coreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const SolverMode& sMode) override;  // for saving the state
     virtual void guessState(coreTime time,
                             double state[],
-                            double dstate_dt[],
+                            double dstateDt[],
                             const SolverMode& sMode) override;  // for initial setting of the state
     virtual void updateLocalCache(const IOdata& inputs,
                                   const StateData& stateDataValue,

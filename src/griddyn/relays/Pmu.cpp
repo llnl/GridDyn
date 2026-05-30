@@ -306,7 +306,7 @@ void Pmu::generateAndTransmitMessage() const
             payload->multiUnits[outputIndex] = to_string(outputUnits(unitIndex));
         }
 
-        cManager.send(std::move(message));
+        cManager.send(message);
     }
 }
 

@@ -157,7 +157,7 @@ void DifferentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t fla
     Relay::pFlowObjectInitializeA(time0, flags);
 }
 
-void DifferentialRelay::actionTaken(index_t ActionNum,
+void DifferentialRelay::actionTaken(index_t actionNum,
                                     index_t /*conditionNum*/,
                                     ChangeCode /*actionReturn*/,
                                     coreTime /*actionTime*/)
@@ -165,9 +165,9 @@ void DifferentialRelay::actionTaken(index_t ActionNum,
     logging::normal(this, "Relay Tripped");
 
     if (opFlags[useCommLink]) {
-        if (ActionNum == 0) {
+        if (actionNum == 0) {
             auto relayEvent = std::make_shared<CommMessage>(CommMessage::BREAKER_TRIP_EVENT);
-            cManager.send(std::move(relayEvent));
+            cManager.send(relayEvent);
         }
     }
 }

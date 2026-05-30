@@ -90,7 +90,7 @@ namespace relays {
         index_t findMeasurement(std::string_view pointName) const;
 
       protected:
-        virtual void actionTaken(index_t ActionNum,
+        virtual void actionTaken(index_t actionNum,
                                  index_t conditionNum,
                                  ChangeCode actionReturn,
                                  coreTime actionTime) override;

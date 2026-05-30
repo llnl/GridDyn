@@ -178,14 +178,14 @@ which cases the parent of the link is searched for the bus*/
 
   protected:
     /** @brief compute the Jacobian elements based on the MW control
-@param[in] StateData the StateData of the current state of the system
+@param[in] stateData the StateData of the current state of the system
 @param[out] matrixDataRef the MatrixData object to store the Jacobian information
 @param[in] sMode the SolverMode corresponding to the StateData*/
     void MWJac(const StateData& stateData,
                MatrixData<double>& matrixDataRef,
                const SolverMode& sMode);
     /** @brief compute the Jacobian elements based on the MVar control
-@param[in] StateData the StateData of the current state of the system
+@param[in] stateData the StateData of the current state of the system
 @param[out] matrixDataRef the MatrixData object to store the Jacobian information
 @param[in] sMode the SolverMode corresponding to the StateData*/
     void MVarJac(const StateData& stateData,
@@ -193,7 +193,7 @@ which cases the parent of the link is searched for the bus*/
                  const SolverMode& sMode);
     /** @brief compute the partial derivatives of the power flows based on the tap angle
 @param[in] busId the id of the calling bus either 1 or 2 or a busID of one of the attached buses
-@param[in] StateData the StateData of the current state of the system
+@param[in] stateData the StateData of the current state of the system
 @param[out] matrixDataRef the MatrixData object to store the Jacobian information
 @param[in] sMode the SolverMode corresponding to the StateData*/
     void tapAnglePartial(index_t busId,
@@ -202,7 +202,7 @@ which cases the parent of the link is searched for the bus*/
                          const SolverMode& sMode);
     /** @brief compute the partial derivatives of the power flows based on the tap setting
 @param[in] busId the id of the calling bus either 1 or 2 or a busID of one of the attached buses
-@param[in] StateData the StateData of the current state of the system
+@param[in] stateData the StateData of the current state of the system
 @param[out] matrixDataRef the MatrixData object to store the Jacobian information
 @param[in] sMode the SolverMode corresponding to the StateData*/
     void tapPartial(index_t busId,

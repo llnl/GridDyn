@@ -92,12 +92,12 @@ class Sensor: public Relay {
     */
     virtual void add(GridBlock* blk);
     /** @brief add a shared pointer to a GrabberSet
-    @param[in] dGr a shared pointer to GrabberSet Object
+    @param[in] grabberSet a shared pointer to GrabberSet Object
     */
     virtual void add(std::shared_ptr<GrabberSet> grabberSet);
 
     /** @brief add a shared pointer to a GridGrabber object
-    @param[in] dGr a shared pointer to GrabberSet Object
+    @param[in] gridGrabber a shared pointer to GridGrabber Object
     */
     virtual void add(std::shared_ptr<GridGrabber> gridGrabber);
 
@@ -138,7 +138,7 @@ class Sensor: public Relay {
                               const SolverMode& sMode) const override;
 
     /** @brief get the block output from the sensor
-    @param[in] sD  the state data to get the output from
+    @param[in] stateDataValue  the state data to get the output from
     @param[in] sMode  the SolverMode corresponding to the data
     @param[in] blockNumber the number of the block to get the output from
     @return a double with the requested block output
@@ -148,7 +148,7 @@ class Sensor: public Relay {
                           index_t blockNumber) const;
 
     /** @brief get the block rate of change from the sensor
-    @param[in] sD  the state data to get the output from
+    @param[in] stateDataValue  the state data to get the output from
     @param[in] sMode  the SolverMode corresponding to the data
     @param[in] blockNumber the number of the block to get the output from
     @return a double with the requested block output rate of change
@@ -158,7 +158,7 @@ class Sensor: public Relay {
                                index_t blockNumber) const;
 
     /** @brief get the raw sensor input
-    @param[in] sD  the state data to get the output from
+    @param[in] stateDataValue  the state data to get the output from
     @param[in] sMode  the SolverMode corresponding to the data
     @param[in] inputNumber the input of the index to get the value
     @return a double with the requested raw input

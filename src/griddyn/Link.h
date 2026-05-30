@@ -164,7 +164,7 @@ class Link: public GridPrimary {
     /** @brief check for any violations of link limits or other factors based on power flow results
      checks things like the maximum angle,  power flow /current limits based on ratings and a few
     other things
-    @param[out] Violation_vector --a list of all the violations any new violations get added to the
+    @param[out] violationVector --a list of all the violations any new violations get added to the
     result
     */
     virtual void pFlowCheck(std::vector<Violation>& violationVector) override;

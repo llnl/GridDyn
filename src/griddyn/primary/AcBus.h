@@ -180,7 +180,7 @@ class AcBus: public GridBus {
     mode=3 does it with voltage only
     @param[in] time  the time of the corresponding states
     @param[in,out]  state the states of the system at present and shifted to match the updates
-    @param[in,out] dstate_dt  the derivatives of the state that get updated
+    @param[in,out] dstateDt  the derivatives of the state that get updated
     @param[in] sMode the solvemode matching the states
     @param[in] mode  the mode of the convergence
     @param[in] tol  the convergence tolerance
@@ -224,8 +224,8 @@ class AcBus: public GridBus {
                           const double dstateDt[],
                           const SolverMode& sMode) override;
     /** @brief a faster function to set the voltage and angle of a bus*
-    @param[in] Vnew  the new voltage
-    @param[in] Anew  the new angle
+    @param[in] vnew  the new voltage
+    @param[in] anew  the new angle
     */
     virtual void setVoltageAngle(double vnew, double anew) override;
     // for identifying which variables are algebraic vs differential

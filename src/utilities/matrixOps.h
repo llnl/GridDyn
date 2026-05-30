@@ -9,7 +9,7 @@
 /** @file
  *  @brief define some operations related to MatrixData objects
  */
-#include "matrixData.hpp"
+#include "MatrixData.hpp"
 #include <vector>
 /** multiply a matrix data object by a vector
 @details assumes vec has the appropriate size otherwise undefined behavior will occur

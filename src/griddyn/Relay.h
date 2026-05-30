@@ -82,8 +82,7 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
         useCommLink = object_flag3,  //!< flag indicating that the relay uses communications
         powerFlowChecksFlag = object_flag4,  //!< flag indicating that the relay should be in
                                              //!< operation during power flow
-        extraRelayFlag =
-            object_flag5,  //!< just defining an extra name for additional relay flags
+        extraRelayFlag = object_flag5,  //!< just defining an extra name for additional relay flags
 
     };
     coreTime triggerTime = maxTime;  //!< the next time execute

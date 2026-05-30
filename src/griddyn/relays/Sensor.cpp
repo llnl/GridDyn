@@ -250,8 +250,7 @@ void Sensor::setupOutput(index_t num, const std::string& outputString)
         auto equalLoc = outputString.find_first_of('=');
         const std::string outputSpec =
             (equalLoc != std::string::npos) ? outputString.substr(0, equalLoc) : outputString;
-        std::string sval =
-            (equalLoc != std::string::npos) ? outputString.substr(equalLoc + 1) : "";
+        std::string sval = (equalLoc != std::string::npos) ? outputString.substr(equalLoc + 1) : "";
         ensureSizeAtLeast(outputs, num + 1, -1);
         ensureSizeAtLeast(outputStrings, num + 1);
         ensureSizeAtLeast(outputMode, num + 1, OutputMode::BLOCK);
@@ -467,10 +466,9 @@ void Sensor::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMessage>
 
 static const IOdata K_NULL_VEC;
 
-double
-    Sensor::getBlockOutput(const StateData& stateDataValue,
-                           const SolverMode& sMode,
-                           index_t blockNumber) const
+double Sensor::getBlockOutput(const StateData& stateDataValue,
+                              const SolverMode& sMode,
+                              index_t blockNumber) const
 {
     double ret = kNullVal;
     if (isLocal(sMode)) {
@@ -683,8 +681,9 @@ void Sensor::jacobianElements(const IOdata& inputs,
             const double inputFB = getBlockInput(kk, inputs, stateDataValue, sMode);
             sourceDerivatives.clear();
             if (dataSources[blockInputs[kk]]->hasJacobian()) {
-                dataSources[blockInputs[kk]]->outputPartialDerivatives(
-                    stateDataValue, sourceDerivatives, sMode);
+                dataSources[blockInputs[kk]]->outputPartialDerivatives(stateDataValue,
+                                                                       sourceDerivatives,
+                                                                       sMode);
             }
 
             // make sure the process can be handled in states
@@ -859,8 +858,10 @@ void Sensor::outputPartialDerivatives(const IOdata& /*inputs*/,
         switch (outputMode[pp]) {
             case OutputMode::BLOCK:
                 aDT.setTranslation(0, pp);
-                filterBlocks[outputs[pp]]->outputPartialDerivatives(
-                    noInputs, stateDataValue, aDT, sMode);
+                filterBlocks[outputs[pp]]->outputPartialDerivatives(noInputs,
+                                                                    stateDataValue,
+                                                                    aDT,
+                                                                    sMode);
                 break;
             case OutputMode::PROCESSED:
                 // out[pp] = outGrabbers[pp]->grabData(sD, sMode);

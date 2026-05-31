@@ -20,7 +20,6 @@
 #include <utility>
 
 namespace griddyn::fmi {
-// NOLINTBEGIN(readability-identifier-length,misc-const-correctness)
 
 [[maybe_unused]] static constexpr bool unimplemented = false;
 
@@ -708,5 +707,4 @@ void FmiCoSimSubModel::loadOutputJac(int index)  // NOLINT
     }
 }
 
-// NOLINTEND(readability-identifier-length,misc-const-correctness)
 }  // namespace griddyn::fmi

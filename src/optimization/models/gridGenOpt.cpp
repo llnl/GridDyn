@@ -38,7 +38,6 @@ namespace {
 }  // namespace
 
 static OptObjectFactory<GridGenOpt, Generator> opgen("basic", "gen", 0, true);
-// NOLINTBEGIN(readability-identifier-length,misc-const-correctness,readability-isolate-declaration)
 
 GridGenOpt::GridGenOpt(const std::string& objName): GridOptObject(objName), bus(nullptr) {}
 

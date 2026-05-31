@@ -21,7 +21,7 @@
 #include <utility>
 #include <vector>
 
-// NOLINTBEGIN
+
 namespace griddyn {
 std::pair<double, int> checkResid(GridDynSimulation* gds, CoreTime time, const SolverMode& sMode)
 {
@@ -831,4 +831,3 @@ void printStateSizes(const GridComponent* comp, const SolverMode& sMode)
     printStateSizesPretty(comp, sMode, "");
 }
 }  // namespace griddyn
-// NOLINTEND

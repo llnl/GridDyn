@@ -36,7 +36,6 @@ using units::s;
 
 using mArray = std::vector<std::vector<double>>;
 
-// NOLINTBEGIN(misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,readability-qualified-auto,modernize-use-integer-sign-comparison,readability-math-missing-parentheses)
 void loadBusArray(CoreObject* parentObject,
                   double basepower,
                   mArray& buses,
@@ -416,7 +415,5 @@ void loadLinkArray(CoreObject* parentObject,
         }
     }
 }
-
-// NOLINTEND(misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,readability-qualified-auto,modernize-use-integer-sign-comparison,readability-math-missing-parentheses)
 
 }  // namespace griddyn

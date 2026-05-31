@@ -149,40 +149,40 @@ Goal: establish the measurable list of remaining work.
   - `test/systemTests`: 314
   - `src/utilities`: 309
   - `src/networking`: 258
-- Current planning baseline was regenerated on 2026-05-25 after the merged
-  Phase 9 cleanup batches and should be treated as the source of truth for
-  remaining work.
-- Current heuristic finding total: 1,678
+- Current planning baseline was regenerated on 2026-05-31 after the merged
+  Phase 9 cleanup batches, including the canonical `MatrixData*` / `TxLifeSpan`
+  filename cleanup and follow-on `clang-tidy` fallout fixes, and should be
+  treated as the source of truth for remaining work.
+- Current heuristic finding total: 1,108
 - Current findings by category:
-  - `class_type`: 267
-  - `enum_constant`: 516
-  - `enum_type`: 93
-  - `filename_mismatch`: 236
-  - `function_like`: 522
-  - `member_variable`: 44
+  - `class_type`: 66
+  - `enum_constant`: 382
+  - `filename_mismatch`: 197
+  - `function_like`: 420
+  - `member_variable`: 43
 - Current largest finding buckets by subsystem include:
-  - `src/griddyn`: 846
-  - `src/extraSolvers`: 380
-  - `src/fmi`: 86
-  - `src/utilities`: 61
+  - `src/griddyn`: 446
+  - `src/extraSolvers`: 328
   - `src/griddyn_shared`: 57
-  - `src/networking`: 32
-  - `src/optimization`: 21
-  - `src/formatInterpreters`: 20
+  - `src/utilities`: 31
+  - `src/fmi`: 29
+  - `src/networking`: 29
+  - `src/optimization`: 20
   - `src/fskit`: 19
+  - `src/helics`: 18
   - `test/componentTests`: 18
 
 ## Phase 2: Tooling And Non-Blocking Enforcement
 
 Goal: make the naming work visible without blocking all development.
 
-- [ ] Configure `clang-tidy` naming checks for first-party code paths
+- [x] Configure `clang-tidy` naming checks for first-party code paths
 - [ ] Define the final `clang-tidy` naming rule set that matches the GridDyn
       style guide and HELICS-aligned target conventions
-- [ ] Keep naming enforcement report-only at first
-- [ ] Exclude `ThirdParty` and generated code from naming checks
-- [ ] Add CI reporting for naming violations
-- [ ] Prevent new naming violations from being introduced
+- [x] Keep naming enforcement report-only at first
+- [x] Exclude `ThirdParty` and generated code from naming checks
+- [x] Add CI reporting for naming violations
+- [~] Prevent new naming violations from being introduced
 - [ ] Document how suppressions or temporary exceptions are handled
 
 ### Phase 2 Exit Criteria
@@ -519,9 +519,12 @@ Goal: make compliance durable.
 
 Use this section to track PR-by-PR progress at a higher level.
 
-Tracker status should follow the regenerated naming inventory rather than older
-merged-batch assumptions. A checked subsystem should have no remaining findings
-in the current inventory or be intentionally excluded from remaining scope.
+Tracker status should follow the regenerated 2026-05-31 naming inventory rather
+than older merged-batch assumptions. A checked subsystem should have no
+remaining findings in the current inventory or be intentionally excluded from
+remaining scope. Low-count residuals in otherwise heavily migrated areas should
+stay unchecked here until they are either removed or explicitly documented as
+intentional exceptions.
 
 ### Core Source Areas
 
@@ -572,6 +575,7 @@ Use this table to log each naming migration PR as it lands.
 
 | PR / Branch | Area                                                                                                                    | Phase   | Summary                                                                                                                                                                                                                                                                              | Compatibility Needed | Tests Run                                                | Status   |
 | ----------- | ----------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------- | -------------------------------------------------------- | -------- |
+| merged      | `src/utilities` + `src/extraModels` + `src/fileInput` + `src/fmi` + `src/griddyn`                                     | Phase 9 | Final enforcement cleanup covering canonical `MatrixData*` and `TxLifeSpan` filename normalization for case-sensitive builds, dependent include/CMake follow-through, file-input local naming fixes from `clang-tidy`, and targeted documentation-parameter warning cleanup        | No                   | CI compile and `clang-tidy` run                          | Complete |
 | merged      | `src/griddyn/measurement` + `src/griddyn/primary`                                                                       | Phase 9 | Final enforcement cleanup covering state-grabber lookup constant normalization, `AcBus`/`DcBus` factory and local naming fixes, header-definition parameter alignment, and the associated `clang-tidy` plus targeted `griddyn` rebuild follow-through                                | No                   | CI compile and `clang-tidy` run                          | Complete |
 | merged      | `src/core` + `src/fileInput` + `src/griddyn` + `src/griddyn_shared` + `test/`                                           | Phase 9 | Final enforcement cleanup removing the remaining core/file-input/simulation compatibility type aliases, deleting the obsolete relay-message alias layer, fixing export-side `GridDynSimulation` ambiguity, and following through with targeted `griddyn` and component-test rebuilds | No                   | Targeted `griddyn` and `OptionalComponentTests` rebuilds | Complete |
 | merged      | `src/griddyn/controllers` + `src/griddyn/events`                                                                        | Phase 9 | Final enforcement cleanup covering controller/event naming fallout in dispatcher, scheduler ramp/regulation, reversible-event helpers, member initialization, callback/signature alignment, and the associated `clang-tidy` plus targeted build follow-through                       | No                   | CI compile and `clang-tidy` run                          | Complete |

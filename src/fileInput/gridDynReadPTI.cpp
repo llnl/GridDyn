@@ -27,8 +27,6 @@ using gmlc::utilities::stringOps::removeQuotes;
 using gmlc::utilities::stringOps::trim;
 using units::MVAR;
 using units::MW;
-
-// NOLINTBEGIN(misc-unused-using-decls,misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,bugprone-unchecked-string-to-number-conversion,cert-err34-c,hicpp-vararg,modernize-use-integer-sign-comparison,readability-math-missing-parentheses,readability-isolate-declaration,hicpp-multiway-paths-covered,bugprone-switch-missing-default-case,bugprone-unused-local-non-trivial-variable)
 void ptiReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& opt);
 void ptiReadLoad(GridLoad* ld, const std::string& line, BasicReaderInfo& opt);
 void ptiReadFixedShunt(GridLoad* ld, const std::string& line, BasicReaderInfo& opt);
@@ -661,6 +659,4 @@ int ptiReadTX(CoreObject* parentObject,
     }
     return tline;
 }
-
-// NOLINTEND(misc-unused-using-decls,misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,bugprone-unchecked-string-to-number-conversion,cert-err34-c,hicpp-vararg,modernize-use-integer-sign-comparison,readability-math-missing-parentheses,readability-isolate-declaration,hicpp-multiway-paths-covered,bugprone-switch-missing-default-case,bugprone-unused-local-non-trivial-variable)
 }  // namespace griddyn

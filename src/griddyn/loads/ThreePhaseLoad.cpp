@@ -17,7 +17,6 @@
 #include <vector>
 
 namespace griddyn::loads {
-// NOLINTBEGIN(readability-identifier-length,bugprone-switch-missing-default-case,modernize-use-starts-ends-with,readability-math-missing-parentheses,misc-const-correctness,readability-redundant-parentheses)
 using units::convert;
 using units::puA;
 using units::puMW;
@@ -458,5 +457,4 @@ const std::vector<stringVec>& ThreePhaseLoad::outputNames() const
     return GridLoad::outputNames();
 }
 
-// NOLINTEND(readability-identifier-length,bugprone-switch-missing-default-case,modernize-use-starts-ends-with,readability-math-missing-parentheses,misc-const-correctness,readability-redundant-parentheses)
 }  // namespace griddyn::loads

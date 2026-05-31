@@ -22,7 +22,6 @@
 #include <vector>
 
 namespace griddyn::fmi {
-// NOLINTBEGIN(readability-identifier-length,misc-const-correctness)
 using gmlc::utilities::vectorMultAdd;
 
 FmiMESubModel::FmiMESubModel(const std::string& newName,

@@ -25,7 +25,6 @@ using gmlc::utilities::string_viewOps::splitlineBracket;
 using gmlc::utilities::string_viewOps::trim;
 using std::string_view;
 
-// NOLINTBEGIN(misc-use-internal-linkage,readability-identifier-length,misc-no-recursion,bugprone-assignment-in-if-condition,misc-const-correctness)
 double interpretStringBlock(string_view command, ReaderInfo& ri);
 
 void interpretStringBlock(string_view command, ReaderInfo& ri, std::vector<double>& outputs);
@@ -290,4 +289,3 @@ double stringBlocktoDouble(string_view block, ReaderInfo& ri)
 }
 
 }  // namespace griddyn
-// NOLINTEND(misc-use-internal-linkage,readability-identifier-length,misc-no-recursion,bugprone-assignment-in-if-condition,misc-const-correctness)

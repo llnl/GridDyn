@@ -27,7 +27,6 @@ using gmlc::utilities::numeric_conversion;
 using gmlc::utilities::string_viewOps::split;
 using gmlc::utilities::string_viewOps::trim;
 
-// NOLINTBEGIN(misc-use-internal-linkage,performance-enum-size,readability-function-cognitive-complexity,misc-const-correctness,performance-avoid-endl,modernize-use-starts-ends-with,readability-qualified-auto)
 enum class ModeState { READ_HEADER, READ_DATA };
 
 void loadCsv(CoreObject* parentObject,
@@ -305,6 +304,4 @@ void loadCsv(CoreObject* parentObject,
         }
     }
 }
-
-// NOLINTEND(misc-use-internal-linkage,performance-enum-size,readability-function-cognitive-complexity,misc-const-correctness,performance-avoid-endl,modernize-use-starts-ends-with,readability-qualified-auto)
 }  // namespace griddyn

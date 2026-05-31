@@ -14,8 +14,8 @@
 #include "GrabberInterpreter.hpp"
 #include "StateGrabber.h"
 #include "gmlc/containers/mapOps.hpp"
-#include "utilities/matrixDataScale.hpp"
-#include "utilities/matrixDataTranslate.hpp"
+#include "utilities/MatrixDataScale.hpp"
+#include "utilities/MatrixDataTranslate.hpp"
 #include <algorithm>
 #include <map>
 #include <memory>
@@ -40,14 +40,14 @@ namespace {
                               const StateData& stateDataValue,
                               const SolverMode& sMode)
     {
-        return static_cast<gridSecondary*>(obj)->getRealPower(noInputs, stateDataValue, sMode);
+        return static_cast<GridSecondary*>(obj)->getRealPower(noInputs, stateDataValue, sMode);
     }
 
     double secondaryReactivePower(GridComponent* obj,
                                   const StateData& stateDataValue,
                                   const SolverMode& sMode)
     {
-        return static_cast<gridSecondary*>(obj)->getReactivePower(noInputs, stateDataValue, sMode);
+        return static_cast<GridSecondary*>(obj)->getReactivePower(noInputs, stateDataValue, sMode);
     }
 }  // namespace
 
@@ -119,7 +119,7 @@ void StateGrabber::updateField(std::string_view fld)
         busLoadInfo(fieldDescription);
     } else if (dynamic_cast<Link*>(cobj) != nullptr) {
         linkLoadInfo(fieldDescription);
-    } else if (dynamic_cast<gridSecondary*>(cobj) != nullptr) {
+    } else if (dynamic_cast<GridSecondary*>(cobj) != nullptr) {
         secondaryLoadInfo(fieldDescription);
     } else if (dynamic_cast<Relay*>(cobj) != nullptr) {
         relayLoadInfo(fieldDescription);
@@ -225,12 +225,12 @@ static const std::map<std::string, std::string> STRING_TRANSLATE{
 #define JAC_FUNCTION_SIGNATURE                                                                     \
     [](GridComponent * obj,                                                                        \
        const StateData& stateDataValue,                                                            \
-       matrixData<double>& matrixDataValue,                                                        \
+       MatrixData<double>& matrixDataValue,                                                        \
        const SolverMode& sMode)
 #define JAC_FUNCTION_SIGNATURE_NO_STATE                                                            \
     [](GridComponent * obj,                                                                        \
        const StateData& /*sD*/,                                                                    \
-       matrixData<double>& matrixDataValue,                                                        \
+       MatrixData<double>& matrixDataValue,                                                        \
        const SolverMode& sMode)
 
 // clang-format off
@@ -281,9 +281,9 @@ static const std::map<std::string, fstateobjectPair> AREA_FUNCTIONS{
 
 static const std::map<std::string, fstateobjectPair> SECONDARY_FUNCTIONS{ { "real",{ secondaryRealPower, puMW } },
 { "reactive",{ secondaryReactivePower, puMW } },
-{ "busangle",{ FUNCTION_SIGNATURE{ return static_cast<gridSecondary *>(obj)->getBus()->getAngle(stateDataValue, sMode); }, rad } },
-{ "busvoltage",{ FUNCTION_SIGNATURE{ return static_cast<gridSecondary *>(obj)->getBus()->getVoltage(stateDataValue, sMode); }, puV } },
-{ "busfreq",{ FUNCTION_SIGNATURE{ return static_cast<gridSecondary *>(obj)->getBus()->getFreq(stateDataValue, sMode); }, puV } },
+{ "busangle",{ FUNCTION_SIGNATURE{ return static_cast<GridSecondary*>(obj)->getBus()->getAngle(stateDataValue, sMode); }, rad } },
+{ "busvoltage",{ FUNCTION_SIGNATURE{ return static_cast<GridSecondary*>(obj)->getBus()->getVoltage(stateDataValue, sMode); }, puV } },
+{ "busfreq",{ FUNCTION_SIGNATURE{ return static_cast<GridSecondary*>(obj)->getBus()->getFreq(stateDataValue, sMode); }, puV } },
 };
 
 static const std::map<std::string, fstateobjectPair> LOAD_FUNCTIONS{{"loadreal", {secondaryRealPower, puMW}},
@@ -478,16 +478,16 @@ void StateGrabber::secondaryLoadInfo(std::string_view fld)
     if ((fld == "realpower") || (fld == "power") || (fld == "p")) {
         cacheUpdateRequired = true;
         fptr = [](GridComponent* comp, const StateData& stateDataValue, const SolverMode& sMode) {
-            return static_cast<gridSecondary*>(comp)->getRealPower(noInputs, stateDataValue, sMode);
+            return static_cast<GridSecondary*>(comp)->getRealPower(noInputs, stateDataValue, sMode);
         };
         jacMode = JacobianMode::COMPUTED;
         jacIfptr = [](GridComponent* comp,
                       const StateData& stateDataValue,
-                      matrixData<double>& matrixDataValue,
+                      MatrixData<double>& matrixDataValue,
                       const SolverMode& sMode) {
-            matrixDataTranslate<1, double> translatedMatrix(matrixDataValue);
+            MatrixDataTranslate<1, double> translatedMatrix(matrixDataValue);
             translatedMatrix.setTranslation(PoutLocation, 0);
-            static_cast<gridSecondary*>(comp)->outputPartialDerivatives(noInputs,
+            static_cast<GridSecondary*>(comp)->outputPartialDerivatives(noInputs,
                                                                         stateDataValue,
                                                                         translatedMatrix,
                                                                         sMode);
@@ -495,31 +495,31 @@ void StateGrabber::secondaryLoadInfo(std::string_view fld)
     } else if ((fld == "reactivepower") || (fld == "reactive") || (fld == "q")) {
         cacheUpdateRequired = true;
         fptr = [](GridComponent* comp, const StateData& stateDataValue, const SolverMode& sMode) {
-            return static_cast<gridSecondary*>(comp)->getReactivePower(noInputs,
+            return static_cast<GridSecondary*>(comp)->getReactivePower(noInputs,
                                                                        stateDataValue,
                                                                        sMode);
         };
         jacMode = JacobianMode::COMPUTED;
         jacIfptr = [](GridComponent* comp,
                       const StateData& stateDataValue,
-                      matrixData<double>& matrixDataValue,
+                      MatrixData<double>& matrixDataValue,
                       const SolverMode& sMode) {
-            matrixDataTranslate<1, double> translatedMatrix(matrixDataValue);
+            MatrixDataTranslate<1, double> translatedMatrix(matrixDataValue);
             translatedMatrix.setTranslation(QoutLocation, 0);
-            static_cast<gridSecondary*>(comp)->outputPartialDerivatives(noInputs,
+            static_cast<GridSecondary*>(comp)->outputPartialDerivatives(noInputs,
                                                                         stateDataValue,
                                                                         translatedMatrix,
                                                                         sMode);
         };
     } else {
-        offset = static_cast<gridSecondary*>(cobj)->findIndex(fld, cLocalSolverMode);
+        offset = static_cast<GridSecondary*>(cobj)->findIndex(fld, cLocalSolverMode);
         if (offset != kInvalidLocation) {
             prevIndex = 1;
             fptr = [this](GridComponent* comp,
                           const StateData& stateDataValue,
                           const SolverMode& sMode) {
                 if (sMode.offsetIndex != prevIndex) {
-                    offset = static_cast<gridSecondary*>(comp)->findIndex(field, sMode);
+                    offset = static_cast<GridSecondary*>(comp)->findIndex(field, sMode);
                     prevIndex = sMode.offsetIndex;
                 }
                 return (offset != kNullLocation) ? stateDataValue.state[offset] : kNullVal;
@@ -527,7 +527,7 @@ void StateGrabber::secondaryLoadInfo(std::string_view fld)
             jacMode = JacobianMode::COMPUTED;
             jacIfptr = [this](GridComponent* /*comp*/,
                               const StateData& /*sD*/,
-                              matrixData<double>& matrixDataValue,
+                              MatrixData<double>& matrixDataValue,
                               const SolverMode& /*sMode*/) {
                 matrixDataValue.assignCheckCol(0, offset, 1.0);
             };
@@ -569,14 +569,14 @@ void StateGrabber::getObjects(std::vector<CoreObject*>& objects) const
     objects.push_back(getObject());
 }
 void StateGrabber::outputPartialDerivatives(const StateData& stateDataValue,
-                                            matrixData<double>& matrixDataValue,
+                                            MatrixData<double>& matrixDataValue,
                                             const SolverMode& sMode)
 {
     if (jacMode == JacobianMode::NONE) {
         return;
     }
     if (gain != 1.0) {
-        matrixDataScale<double> scaledMatrix(matrixDataValue, gain);
+        MatrixDataScale<double> scaledMatrix(matrixDataValue, gain);
         jacIfptr(cobj, stateDataValue, scaledMatrix, sMode);
     } else {
         jacIfptr(cobj, stateDataValue, matrixDataValue, sMode);
@@ -689,7 +689,7 @@ CoreObject* StateFunctionGrabber::getObject() const
     return (bgrabber) ? bgrabber->getObject() : nullptr;
 }
 void StateFunctionGrabber::outputPartialDerivatives(const StateData& stateDataValue,
-                                                    matrixData<double>& matrixDataValue,
+                                                    MatrixData<double>& matrixDataValue,
                                                     const SolverMode& sMode)
 {
     if (jacMode == JacobianMode::NONE) {
@@ -700,7 +700,7 @@ void StateFunctionGrabber::outputPartialDerivatives(const StateData& stateDataVa
     const double derivativeOutput =
         (dopptr != nullptr) ? dopptr(temp) : (opptr(temp + 1e-7) - opptr(temp)) / 1e-7;
 
-    matrixDataScale<double> scaledMatrix(matrixDataValue, derivativeOutput * gain);
+    MatrixDataScale<double> scaledMatrix(matrixDataValue, derivativeOutput * gain);
     bgrabber->outputPartialDerivatives(stateDataValue, scaledMatrix, sMode);
 }
 
@@ -815,7 +815,7 @@ CoreObject* StateOpGrabber::getObject() const
 }
 
 void StateOpGrabber::outputPartialDerivatives(const StateData& stateDataValue,
-                                              matrixData<double>& matrixDataValue,
+                                              MatrixData<double>& matrixDataValue,
                                               const SolverMode& sMode)
 {
     if (jacMode == JacobianMode::NONE) {
@@ -830,7 +830,7 @@ void StateOpGrabber::outputPartialDerivatives(const StateData& stateDataValue,
 
     const double firstDerivativeOutput = (perturbedFirstValue - baseValue) / 1e-7;
 
-    matrixDataScale<double> scaledMatrix(matrixDataValue, firstDerivativeOutput * gain);
+    MatrixDataScale<double> scaledMatrix(matrixDataValue, firstDerivativeOutput * gain);
     bgrabber1->outputPartialDerivatives(stateDataValue, scaledMatrix, sMode);
 
     const double perturbedSecondValue = opptr(grabber1Data, grabber2Data + 1e-7);

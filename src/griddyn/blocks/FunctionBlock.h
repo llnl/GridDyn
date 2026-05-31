@@ -59,11 +59,11 @@ class FunctionBlock: public GridBlock {
     virtual void blockJacobianElements(double input,
                                        double didt,
                                        const StateData& stateDataValue,
-                                       matrixData<double>& matrixDataValue,
+                                       MatrixData<double>& matrixDataValue,
                                        index_t argLoc,
                                        const SolverMode& sMode) override;
-    virtual double step(coreTime time, double input) override;
-    // virtual void setTime(coreTime time){prevTime=time;};
+    virtual double step(CoreTime time, double input) override;
+    // virtual void setTime(CoreTime time){prevTime=time;};
   protected:
     /** @brief load the function objects from a string input
 @param[in] functionName the name of the function as a string*/

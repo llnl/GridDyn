@@ -17,7 +17,7 @@
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <complex>
 #include <iostream>
@@ -83,7 +83,7 @@ CoreObject* ZipLoad::clone(CoreObject* obj) const
     return nobj;
 }
 
-void ZipLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void ZipLoad::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     GridLoad::pFlowObjectInitializeA(time0, flags);
     // Psched = getRealPower();
@@ -96,7 +96,7 @@ void ZipLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
 #endif
 }
 
-void ZipLoad::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t flags)
+void ZipLoad::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t flags)
 {
     if ((opFlags[convert_to_constant_impedance]) ||
         CHECK_CONTROLFLAG(flags, all_loads_to_constant_impedence)) {
@@ -120,7 +120,7 @@ void ZipLoad::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t flags)
 #endif
 }
 
-void ZipLoad::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
+void ZipLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     if (!isConnected()) {
         Pout = 0;
@@ -293,7 +293,7 @@ void ZipLoad::set(std::string_view param, double val, unit unitType)
             Iq += convert(val, unitType, puA, systemBasePower, localBaseVoltage);
             checkFaultChange();
         } else {
-            gridSecondary::set(param, val, unitType);  // NOLINT
+            GridSecondary::set(param, val, unitType);  // NOLINT
         }
     } else if (param.back() == '*') {
         // load increments  allows a delta on the load through the set functions
@@ -316,7 +316,7 @@ void ZipLoad::set(std::string_view param, double val, unit unitType)
             Iq *= val;
             checkFaultChange();
         } else {
-            gridSecondary::set(param, val, unitType);  // NOLINT
+            GridSecondary::set(param, val, unitType);  // NOLINT
         }
     } else if (param == "load p") {
         setP(convert(val, unitType, puMW, systemBasePower, localBaseVoltage));
@@ -459,7 +459,7 @@ void ZipLoad::updateLocalCache(const IOdata& /*inputs*/,
     lastTime = sD.time;
 }
 
-void ZipLoad::setState(coreTime time,
+void ZipLoad::setState(CoreTime time,
                        const double state[],
                        const double dstate_dt[],
                        const SolverMode& sMode)
@@ -540,7 +540,7 @@ double ZipLoad::getReactivePower(double voltage) const
 
 void ZipLoad::outputPartialDerivatives(const IOdata& inputs,
                                        const StateData& sD,
-                                       matrixData<double>& md,
+                                       MatrixData<double>& md,
                                        const SolverMode& sMode)
 {
     if (inputs.empty())  // we only have output derivatives if the input arguments are not counted
@@ -557,7 +557,7 @@ count_t ZipLoad::outputDependencyCount(index_t /*num*/, const SolverMode& /*sMod
 }
 void ZipLoad::ioPartialDerivatives(const IOdata& inputs,
                                    const StateData& sD,
-                                   matrixData<double>& md,
+                                   MatrixData<double>& md,
                                    const IOlocs& inputLocs,
                                    const SolverMode& sMode)
 {

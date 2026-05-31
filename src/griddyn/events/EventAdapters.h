@@ -34,9 +34,9 @@ class EventAdapter {
     bool two_part_execute = false;  //!< flag if the event has two parts
     bool partB_turn = false;  //!< if we need to execute the second part only
     bool partB_only = false;  //!< flag indicating we only run when partB runs
-    coreTime m_period;  //!< the period of the event;
-    coreTime m_nextTime;  //!< the next time the event is scheduled to execute
-    coreTime partBdelay = timeZero;  //!< the delay between the first and second parts
+    CoreTime m_period;  //!< the period of the event;
+    CoreTime m_nextTime;  //!< the next time the event is scheduled to execute
+    CoreTime partBdelay = timeZero;  //!< the delay between the first and second parts
   private:
     static std::atomic<id_type_t> eventCounter;  //!< counter for generating the unique event ID
   public:
@@ -45,7 +45,7 @@ class EventAdapter {
     @param[in] period the period of the event  (the event will trigger once per period starting at
     nextTime
     */
-    EventAdapter(coreTime nextTime = maxTime, coreTime period = timeZero);
+    EventAdapter(CoreTime nextTime = maxTime, CoreTime period = timeZero);
 
     /** @brief destructor*/
     virtual ~EventAdapter();
@@ -64,12 +64,12 @@ class EventAdapter {
     /** Execute the pre-event portion of the event for two part execution events
     @param[in] cTime the current execution time
     */
-    virtual void executeA(coreTime cTime);
+    virtual void executeA(CoreTime cTime);
 
     /** Execute the event or partB of the event
     @param[in] cTime the current execution time
     */
-    virtual ChangeCode execute(coreTime cTime);
+    virtual ChangeCode execute(CoreTime cTime);
 
     /** @brief update the next event time*/
     virtual void updateTime();
@@ -145,7 +145,7 @@ class EventTypeAdapter: public EventAdapter {
     {
         m_eventObj->getObjects(objects);
     }
-    virtual ChangeCode execute(coreTime cTime) override
+    virtual ChangeCode execute(CoreTime cTime) override
     {
         ChangeCode retval = ChangeCode::NOT_TRIGGERED;  // EVENT_NOT_TRIGGERED
         int excnt = 0;
@@ -229,7 +229,7 @@ class EventTypeAdapter<std::shared_ptr<Y>>: public EventAdapter {
     {
         m_eventObj->getObjects(objects);
     }
-    ChangeCode execute(coreTime cTime) override
+    ChangeCode execute(CoreTime cTime) override
     {
         ChangeCode retval = ChangeCode::NOT_TRIGGERED;  // EVENT_NOT_TRIGGERED
         int excnt = 0;  //!< counter for protection against an event not behaving properly
@@ -306,12 +306,12 @@ class EventTypeAdapter<CoreObject>: public EventAdapter {
         return newAdapter;
     }
 
-    virtual void executeA(coreTime cTime) override { targetObject->updateA(cTime); }
+    virtual void executeA(CoreTime cTime) override { targetObject->updateA(cTime); }
 
-    virtual ChangeCode execute(coreTime cTime) override
+    virtual ChangeCode execute(CoreTime cTime) override
     {
         targetObject->updateB();
-        coreTime time = targetObject->getNextUpdateTime();
+        CoreTime time = targetObject->getNextUpdateTime();
         if ((time <= cTime) && (time <= m_nextTime)) {
             m_nextTime = maxTime;
         } else {
@@ -347,13 +347,13 @@ class FunctionEventAdapter: public EventAdapter {
     @param period if greater than 0 the function will execute with the specified period after
     triggerTIme
     */
-    FunctionEventAdapter(ccode_function_t fcal, coreTime triggerTime, coreTime period = 0.0);
+    FunctionEventAdapter(ccode_function_t fcal, CoreTime triggerTime, CoreTime period = 0.0);
 
     virtual std::unique_ptr<EventAdapter> clone() const override;
 
     virtual void cloneTo(EventAdapter* ea) const override;
 
-    virtual ChangeCode execute(coreTime cTime) override;
+    virtual ChangeCode execute(CoreTime cTime) override;
 
     /** @brief set the function of the event adapter
      *@param[in] nfptr  a std::function which returns a change code and takes 0 arguments*/

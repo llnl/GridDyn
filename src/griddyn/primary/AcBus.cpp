@@ -17,7 +17,7 @@
 #include "core/CoreOwningPtr.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
-// #include "matrixDataSparse.hpp"
+// #include "MatrixDataSparse.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <algorithm>
 #include <cassert>
@@ -206,7 +206,7 @@ void AcBus::alert(CoreObject* obj, int code)
 }
 
 // dynInitializeB states
-void AcBus::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void AcBus::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (Vtol < 0) {
         Vtol = getRoot()->get("voltagetolerance");
@@ -756,7 +756,7 @@ void AcBus::pFlowCheck(std::vector<Violation>& violations)
 }
 
 // dynInitializeB states for dynamic solution
-void AcBus::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void AcBus::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     GridBus::dynObjectInitializeA(time0, flags);
     // find a
@@ -954,7 +954,7 @@ void AcBus::generationAdjust(double adjustment)
     }
 }
 
-void AcBus::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& sMode)
+void AcBus::timestep(CoreTime time, const IOdata& /*inputs*/, const SolverMode& sMode)
 {
     const double timeDelta = time - prevTime;
     if (timeDelta < 1.0) {
@@ -1469,7 +1469,7 @@ void AcBus::removePowerControl(GridComponent* comp)
 }
 
 // guessState the solution
-void AcBus::guessState(coreTime time, double state[], double dstateDt[], const SolverMode& sMode)
+void AcBus::guessState(CoreTime time, double state[], double dstateDt[], const SolverMode& sMode)
 {
     auto voffset = offsets.getVOffset(sMode);
     auto aoffset = offsets.getAOffset(sMode);
@@ -1522,7 +1522,7 @@ void AcBus::getTols(double tols[], const SolverMode& sMode)
 }
 
 // pass the solution
-void AcBus::setState(coreTime time,
+void AcBus::setState(CoreTime time,
                      const double state[],
                      const double dstateDt[],
                      const SolverMode& sMode)
@@ -1636,7 +1636,7 @@ void AcBus::derivative(const IOdata& inputs,
 // Jacobian
 void AcBus::jacobianElements(const IOdata& inputs,
                              const StateData& stateDataValue,
-                             matrixData<double>& matrixDataValue,
+                             MatrixData<double>& matrixDataValue,
                              const IOlocs& inputLocs,
                              const SolverMode& sMode)
 {
@@ -2158,7 +2158,7 @@ bool AcBus::convergeVoltageOnly(const StateData& stateDataValue,
     return false;
 }
 
-void AcBus::converge(coreTime time,
+void AcBus::converge(CoreTime time,
                      double state[],
                      double dstateDt[],
                      const SolverMode& sMode,
@@ -2632,12 +2632,12 @@ double AcBus::getMaxGenReactive() const
     return busController.Qmax;
 }
 
-double AcBus::getAdjustableCapacityUp(coreTime time) const
+double AcBus::getAdjustableCapacityUp(CoreTime time) const
 {
     return busController.getAdjustableCapacityUp(time);
 }
 
-double AcBus::getAdjustableCapacityDown(coreTime time) const
+double AcBus::getAdjustableCapacityDown(CoreTime time) const
 {
     return busController.getAdjustableCapacityDown(time);
 }

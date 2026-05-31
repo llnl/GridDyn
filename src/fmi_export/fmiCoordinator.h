@@ -92,7 +92,7 @@ class FmiCoordinator: public griddyn::CoreObject {
 buffer
 @param[in] time the time to get the outputs for
 */
-    void updateOutputs(coreTime time);
+    void updateOutputs(CoreTime time);
 
     /** get a string representing the FMIName of the current simulation*/
     const std::string& getFmiName() const;

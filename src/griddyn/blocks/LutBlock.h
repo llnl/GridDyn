@@ -25,7 +25,7 @@ class LutBlock: public GridBlock {
   public:
     explicit LutBlock(const std::string& objName = "lutBlock_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    // virtual void dynObjectInitializeA (coreTime time0, std::uint32_t flags);
+    // virtual void dynObjectInitializeA (CoreTime time0, std::uint32_t flags);
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -43,11 +43,11 @@ class LutBlock: public GridBlock {
     virtual void blockJacobianElements(double input,
                                        double didt,
                                        const StateData& stateDataValue,
-                                       matrixData<double>& matrixDataValue,
+                                       MatrixData<double>& matrixDataValue,
                                        index_t argLoc,
                                        const SolverMode& sMode) override;
-    virtual double step(coreTime time, double input) override;
-    // virtual void setTime(coreTime time){prevTime=time;};
+    virtual double step(CoreTime time, double input) override;
+    // virtual void setTime(CoreTime time){prevTime=time;};
     double computeValue(double input);
 };
 }  // namespace griddyn::blocks

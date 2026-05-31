@@ -25,7 +25,7 @@ CoreObject* GridPrimary::clone(CoreObject* obj) const
     return nobj;
 }
 
-void GridPrimary::pFlowInitializeA(coreTime time0, std::uint32_t flags)
+void GridPrimary::pFlowInitializeA(CoreTime time0, std::uint32_t flags)
 {
     GridComponent::pFlowInitializeA(time0, flags);
 }
@@ -34,7 +34,7 @@ void GridPrimary::pFlowInitializeB()
 {
     GridComponent::pFlowInitializeB();
 }
-void GridPrimary::dynInitializeA(coreTime time0, std::uint32_t flags)
+void GridPrimary::dynInitializeA(CoreTime time0, std::uint32_t flags)
 {
     GridComponent::dynInitializeA(time0, flags);
 }
@@ -70,7 +70,7 @@ double GridPrimary::get(std::string_view param, units::unit unitType) const
     return GridComponent::get(param, unitType);
 }
 
-void GridPrimary::converge(coreTime /*time*/,
+void GridPrimary::converge(CoreTime /*time*/,
                            double /*state*/[],
                            double /*dstateDt*/[],
                            const SolverMode& /*sMode*/,
@@ -79,7 +79,7 @@ void GridPrimary::converge(coreTime /*time*/,
 {
 }
 
-void GridPrimary::setState(coreTime time,
+void GridPrimary::setState(CoreTime time,
                            const double state[],
                            const double dstateDt[],
                            const SolverMode& sMode)
@@ -116,7 +116,7 @@ void GridPrimary::delayedAlgebraicUpdate(const IOdata& inputs,
 
 void GridPrimary::delayedJacobian(const IOdata& inputs,
                                   const StateData& stateDataValue,
-                                  matrixData<double>& matrixDataValue,
+                                  MatrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode)
 {

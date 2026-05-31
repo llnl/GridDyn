@@ -49,11 +49,11 @@ class GridPrimary: public GridComponent {
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    virtual void pFlowInitializeA(coreTime time0, std::uint32_t flags) override final;
+    virtual void pFlowInitializeA(CoreTime time0, std::uint32_t flags) override final;
 
     virtual void pFlowInitializeB() override final;
 
-    virtual void dynInitializeA(coreTime time0, std::uint32_t flags) override final;
+    virtual void dynInitializeA(CoreTime time0, std::uint32_t flags) override final;
 
     virtual void dynInitializeB(const IOdata& inputs,
                                 const IOdata& desiredOutput,
@@ -68,7 +68,7 @@ class GridPrimary: public GridComponent {
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
-    virtual void setState(coreTime time,
+    virtual void setState(CoreTime time,
                           const double state[],
                           const double dstateDt[],
                           const SolverMode& sMode) override;
@@ -109,12 +109,12 @@ class GridPrimary: public GridComponent {
     /** @brief get the residual computation for object requiring a delay
       basically calls the Jacobian calculation on the delayed objects
     @param[in] stateDataValue the data representing the current state to operate on
-    @param[out] matrixDataValue the matrixData structure to store the Jacobian values
+    @param[out] matrixDataValue the MatrixData structure to store the Jacobian values
     @param[in] sMode the SolverMode which is being solved for
     */
     virtual void delayedJacobian(const IOdata& inputs,
                                  const StateData& stateDataValue,
-                                 matrixData<double>& matrixDataValue,
+                                 MatrixData<double>& matrixDataValue,
                                  const IOlocs& inputLocs,
                                  const SolverMode& sMode);
 
@@ -130,7 +130,7 @@ class GridPrimary: public GridComponent {
     @param[in] mode  the mode of the convergence
     @param[in] tol  the convergence tolerance
     */
-    virtual void converge(coreTime time,
+    virtual void converge(CoreTime time,
                           double state[],
                           double dstateDt[],
                           const SolverMode& sMode,

@@ -148,7 +148,7 @@ void GridLabDLoad::add(CoreObject* obj)
     }
 }
 
-void GridLabDLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void GridLabDLoad::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (!opFlags[file_sent_flag]) {
         gridLabDInitialize();
@@ -163,7 +163,7 @@ void GridLabDLoad::pFlowObjectInitializeB()
 {
     updateB();
 }
-void GridLabDLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void GridLabDLoad::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     switch (dynCoupling) {
         case CouplingMode::none:
@@ -196,7 +196,7 @@ void GridLabDLoad::dynObjectInitializeB(const IOdata& /*inputs*/,
     }
 }
 
-void GridLabDLoad::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void GridLabDLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     double V = inputs[voltageInLocation];
     double th = inputs[angleInLocation];
@@ -233,7 +233,7 @@ void GridLabDLoad::timestep(coreTime time, const IOdata& inputs, const SolverMod
     prevTime = time;
 }
 
-void GridLabDLoad::updateA(coreTime time)
+void GridLabDLoad::updateA(CoreTime time)
 {
     double V = bus->getVoltage();
     double th = bus->getAngle();
@@ -271,7 +271,7 @@ void GridLabDLoad::updateA(coreTime time)
     prevTime = time;
 }
 
-coreTime GridLabDLoad::updateB()
+CoreTime GridLabDLoad::updateB()
 {
     switch (cDetail) {
         case CouplingDetail::single: {
@@ -397,7 +397,7 @@ void GridLabDLoad::updateLocalCache(const IOdata& inputs,
     RampLoad::updateLocalCache(inputs, sD, sMode);
 }
 
-void GridLabDLoad::runGridLabA(coreTime time, const IOdata& inputs)
+void GridLabDLoad::runGridLabA(CoreTime time, const IOdata& inputs)
 {
     assert(!opFlags[waiting_flag]);  // this should not happen;
     logging::trace(this, "calling gridlab load 1A");
@@ -502,7 +502,7 @@ std::vector<double> GridLabDLoad::runGridLabB(bool unbalancedAlert)
     return {retP, retQ};
 }
 
-void GridLabDLoad::run2GridLabA(coreTime time, const IOdata& inputs)
+void GridLabDLoad::run2GridLabA(CoreTime time, const IOdata& inputs)
 {
     assert(opFlags[waiting_flag] == false);  // this should not happen;
     logging::trace(this, "calling gridlab load 2A");
@@ -623,7 +623,7 @@ std::vector<double> GridLabDLoad::run2GridLabB(bool unbalancedAlert)
     return retP;
 }
 
-void GridLabDLoad::run3GridLabA(coreTime time, const IOdata& inputs)
+void GridLabDLoad::run3GridLabA(CoreTime time, const IOdata& inputs)
 {
     assert(!opFlags[waiting_flag]);  // this should not happen;
     logging::trace(this, "calling gridLab-d load 3A");
@@ -988,7 +988,7 @@ void GridLabDLoad::rootTest(const IOdata& inputs,
     // printf("time=%f root =%12.10f\n", time,roots[rootOffset]);
 }
 
-void GridLabDLoad::rootTrigger(coreTime time,
+void GridLabDLoad::rootTrigger(CoreTime time,
                                const IOdata& /*inputs*/,
                                const std::vector<int>& rootMask,
                                const SolverMode& sMode)

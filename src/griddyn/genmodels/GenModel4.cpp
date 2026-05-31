@@ -9,7 +9,7 @@
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <string>
 namespace griddyn::genmodels {
@@ -27,7 +27,7 @@ CoreObject* GenModel4::clone(CoreObject* obj) const
     return gd;
 }
 
-void GenModel4::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void GenModel4::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
     offsets.local().local.diffSize = 4;
     offsets.local().local.algSize = 2;
@@ -100,7 +100,7 @@ void GenModel4::residual(const IOdata& inputs,
     //   }
 }
 
-void GenModel4::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
+void GenModel4::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     StateData sD(time, m_state.data());
     derivative(inputs, sD, m_dstate_dt.data(), cLocalSolverMode);
@@ -160,7 +160,7 @@ void GenModel4::derivative(const IOdata& inputs,
 
 void GenModel4::jacobianElements(const IOdata& inputs,
                                  const StateData& sD,
-                                 matrixData<double>& md,
+                                 MatrixData<double>& md,
                                  const IOlocs& inputLocs,
                                  const SolverMode& sMode)
 {

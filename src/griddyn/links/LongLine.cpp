@@ -33,7 +33,7 @@ void LongLine::add(CoreObject* /*obj*/)
 }
 // remove components
 void LongLine::remove(CoreObject* /*obj*/) {}
-void LongLine::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void LongLine::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     generateIntermediateLinks();
     Subsystem::pFlowObjectInitializeA(time0, flags);

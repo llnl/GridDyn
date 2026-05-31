@@ -25,7 +25,7 @@ class FmiCoSimWrapper: public FmiWrapper<FmiCoSimSubModel, BaseObj> {
         return nobj;
     }
 
-    void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override
+    void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override
     {
         if (FmiWrapper<FmiCoSimSubModel, BaseObj>::fmisub->isLoaded()) {
             FmiWrapper<FmiCoSimSubModel, BaseObj>::configureFmiIo();
@@ -56,7 +56,7 @@ class FmiCoSimWrapper: public FmiWrapper<FmiCoSimSubModel, BaseObj> {
 
     void outputPartialDerivatives(const IOdata& inputs,
                                   const StateData& sD,
-                                  matrixData<double>& md,
+                                  MatrixData<double>& md,
                                   const SolverMode& sMode) override
     {
         FmiWrapper<FmiCoSimSubModel, BaseObj>::fmisub->outputPartialDerivatives(inputs,
@@ -66,7 +66,7 @@ class FmiCoSimWrapper: public FmiWrapper<FmiCoSimSubModel, BaseObj> {
     }
     void ioPartialDerivatives(const IOdata& inputs,
                               const StateData& sD,
-                              matrixData<double>& md,
+                              MatrixData<double>& md,
                               const IOlocs& inputLocs,
                               const SolverMode& sMode) override
     {
@@ -75,7 +75,7 @@ class FmiCoSimWrapper: public FmiWrapper<FmiCoSimSubModel, BaseObj> {
     }
     void jacobianElements(const IOdata& inputs,
                           const StateData& sD,
-                          matrixData<double>& md,
+                          MatrixData<double>& md,
                           const IOlocs& inputLocs,
                           const SolverMode& sMode) override
     {
@@ -90,7 +90,7 @@ class FmiCoSimWrapper: public FmiWrapper<FmiCoSimSubModel, BaseObj> {
     {
         FmiWrapper<FmiCoSimSubModel, BaseObj>::fmisub->rootTest(inputs, sD, roots, sMode);
     }
-    void rootTrigger(coreTime time,
+    void rootTrigger(CoreTime time,
                      const IOdata& inputs,
                      const std::vector<int>& rootMask,
                      const SolverMode& sMode) override
@@ -98,7 +98,7 @@ class FmiCoSimWrapper: public FmiWrapper<FmiCoSimSubModel, BaseObj> {
         FmiWrapper<FmiCoSimSubModel, BaseObj>::fmisub->rootTrigger(time, inputs, rootMask, sMode);
     }
 
-    void setState(coreTime time,
+    void setState(CoreTime time,
                   const double state[],
                   const double dstateDt[],
                   const SolverMode& sMode) override
@@ -111,7 +111,7 @@ class FmiCoSimWrapper: public FmiWrapper<FmiCoSimSubModel, BaseObj> {
         return FmiWrapper<FmiCoSimSubModel, BaseObj>::fmisub->findIndex(field, sMode);
     }
 
-    void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override
+    void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override
     {
         BaseObj::prevTime = time;
         FmiWrapper<FmiCoSimSubModel, BaseObj>::fmisub->timestep(time, inputs, sMode);

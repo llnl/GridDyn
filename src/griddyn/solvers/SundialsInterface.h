@@ -7,7 +7,7 @@
 #pragma once
 
 #include "SolverInterface.h"
-#include "utilities/matrixDataSparse.hpp"
+#include "utilities/MatrixDataSparse.hpp"
 // SUNDIALS libraries
 #include "griddyn/griddyn-config.h"  // Needed for ENABLE_OPENMP_SUNDIALS define
 #include "nvector/nvector_serial.h"
@@ -66,7 +66,7 @@ bool isSUNMatrixSetup(SUNMatrix J);
 @param[out] J the SUNDIALS matrix to store the data
 @param[in] svsize the number of states representing the matrix
 */
-void matrixDataToSUNMatrix(matrixData<double>& md, SUNMatrix J, count_t svsize);
+void matrixDataToSUNMatrix(MatrixData<double>& md, SUNMatrix J, count_t svsize);
 
 #endif
 /** brief abstract base class for SUNDIALS based SolverInterface objects doesn't really do

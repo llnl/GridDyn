@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include "txLifeSpan.h"
+#include "TxLifeSpan.h"
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
@@ -20,7 +20,7 @@
 #include <utility>
 
 namespace griddyn::extra {
-txLifeSpan::txLifeSpan(const std::string& objName): Sensor(objName)
+TxLifeSpan::TxLifeSpan(const std::string& objName): Sensor(objName)
 {
     opFlags.reset(CONTINUOUS_FLAG);  // this is a not a continuous model everything is slow so
                                      // no need to make it continuous
@@ -28,9 +28,9 @@ txLifeSpan::txLifeSpan(const std::string& objName): Sensor(objName)
     m_outputSize = 3;
 }
 
-CoreObject* txLifeSpan::clone(CoreObject* obj) const
+CoreObject* TxLifeSpan::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<txLifeSpan, Sensor>(this, obj);
+    auto* nobj = cloneBase<TxLifeSpan, Sensor>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -42,7 +42,7 @@ CoreObject* txLifeSpan::clone(CoreObject* obj) const
     return nobj;
 }
 
-void txLifeSpan::setFlag(std::string_view flag, bool val)
+void TxLifeSpan::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "useiec") || (flag == "iec")) {
         opFlags.set(useIECmethod, val);
@@ -55,7 +55,7 @@ void txLifeSpan::setFlag(std::string_view flag, bool val)
     }
 }
 
-void txLifeSpan::set(std::string_view param, std::string_view val)
+void TxLifeSpan::set(std::string_view param, std::string_view val)
 {
     if (param.empty() || param[0] == '#') {
     } else {
@@ -63,7 +63,7 @@ void txLifeSpan::set(std::string_view param, std::string_view val)
     }
 }
 
-void txLifeSpan::set(std::string_view param, double val, units::unit unitType)
+void TxLifeSpan::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "initial") || (param == "initiallife")) {
         mInitialLife = units::convert(val, unitType, units::hr);
@@ -76,17 +76,17 @@ void txLifeSpan::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-double txLifeSpan::get(std::string_view param, units::unit unitType) const
+double TxLifeSpan::get(std::string_view param, units::unit unitType) const
 {
     return Sensor::get(param, unitType);
 }
 
-void txLifeSpan::add(CoreObject* /*obj*/)
+void TxLifeSpan::add(CoreObject* /*obj*/)
 {
     throw(UnrecognizedObjectException(this));
 }
 
-void txLifeSpan::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void TxLifeSpan::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (m_sourceObject == nullptr) {
         Sensor::dynObjectInitializeA(time0, flags);
@@ -95,11 +95,11 @@ void txLifeSpan::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 
     if (updatePeriod > negTime) {  // set the period to the period of the simulation to at least
                                    // 1/5 the winding time constant
-        coreTime simulationStep = getRoot()->get("steptime");
+        CoreTime simulationStep = getRoot()->get("steptime");
         if (simulationStep < timeZero) {
             simulationStep = 1.0;
         }
-        const coreTime modelTimestep = 120.0;  // update once per minute
+        const CoreTime modelTimestep = 120.0;  // update once per minute
         updatePeriod = simulationStep * std::floor(modelTimestep / simulationStep);
         if (updatePeriod < simulationStep) {
             updatePeriod = simulationStep;
@@ -154,7 +154,7 @@ void txLifeSpan::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     }
     Sensor::dynObjectInitializeA(time0, flags);
 }
-void txLifeSpan::dynObjectInitializeB(const IOdata& inputs,
+void TxLifeSpan::dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet)
 {
@@ -166,7 +166,7 @@ void txLifeSpan::dynObjectInitializeB(const IOdata& inputs,
                                              // initializing the blocks here
 }
 
-void txLifeSpan::updateA(coreTime time)
+void TxLifeSpan::updateA(CoreTime time)
 {
     if (time == prevTime) {
         return;
@@ -184,15 +184,15 @@ void txLifeSpan::updateA(coreTime time)
     prevTime = time;
 }
 
-void txLifeSpan::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
+void TxLifeSpan::timestep(CoreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     updateA(time);
 }
 
-void txLifeSpan::actionTaken(index_t actionNumber,
+void TxLifeSpan::actionTaken(index_t actionNumber,
                              index_t /*conditionNum*/,
                              ChangeCode /*actionReturn*/,
-                             coreTime /*actionTime*/)
+                             CoreTime /*actionTime*/)
 {
     if (m_sinkObject != nullptr) {
         if (actionNumber == 0) {

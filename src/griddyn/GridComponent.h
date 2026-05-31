@@ -15,11 +15,11 @@
 #include <vector>
 
 template<class Y>
-class matrixData;
+class MatrixData;
 
 /** the primary namespace for the griddyn library*/
 namespace griddyn {
-// forward declare the template class matrixData
+// forward declare the template class MatrixData
 
 class Violation;
 
@@ -27,8 +27,8 @@ class Violation;
  * the basic object for creating a power system encapsulating some common functions and data that is
  *needed by all objects in the simulation and defining some common methods for use by all objects.
  *This object is not really intended to be instantiated directly and is mostly a common interface to
- *inheriting objects @see gridPrimary,
- *@see gridSecondary, and @see GridSubModel as it encapsulated common functionality between those
+ *inheriting objects @see GridPrimary,
+ *@see GridSecondary, and @see GridSubModel as it encapsulated common functionality between those
  *objects
  **/
 class GridComponent: public CoreObject {
@@ -73,7 +73,7 @@ class GridComponent: public CoreObject {
     @param[in] flags  any flags indicating how the initialization or execution will take place
     @throw an error if something went wrong
     */
-    virtual void pFlowInitializeA(coreTime time0, std::uint32_t flags);
+    virtual void pFlowInitializeA(CoreTime time0, std::uint32_t flags);
 
     /** @brief initialize object for power flow part B
     partB is to actually initialize the object so an initial guessState will be meaningful,  many
@@ -92,7 +92,7 @@ class GridComponent: public CoreObject {
     @param[in] time0 the time0 at which the power flow will take place
     @param[in] flags  any flags indicating how the initialization or execution will take place
     */
-    virtual void dynInitializeA(coreTime time0, std::uint32_t flags);
+    virtual void dynInitializeA(CoreTime time0, std::uint32_t flags);
 
     /** @brief initialize object for dynamic simulation part B
     partB is to actually initialize the object so an initial guessState will be meaningful,  many
@@ -110,7 +110,7 @@ class GridComponent: public CoreObject {
     @param[in] time0 the time0 at which the power flow will take place
     @param[in] flags  any flags indicating how the initialization or execution will take place
     */
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags);
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags);
 
     /** @brief initialize local object for power flow part B
     see GridComponent::pFlowInitializeB for more details
@@ -121,7 +121,7 @@ see GridComponent::dynInitializeA for more details
 @param[in] time0 the time at which the power flow will take place
 @param[in] flags  any flags indicating how the initialization or execution will take place
 */
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags);
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags);
 
     /** @brief initialize local object for dynamics part B
     see GridComponent::dynInitializeB for more details
@@ -434,7 +434,7 @@ see GridComponent::dynInitializeA for more details
     states with no corresponding time derivative
     @param sMode  -- the SolverMode corresponding to the computed state.
     */
-    virtual void setState(coreTime time,
+    virtual void setState(CoreTime time,
                           const double state[],
                           const double dstateDt[],
                           const SolverMode& sMode);
@@ -446,7 +446,7 @@ see GridComponent::dynInitializeA for more details
     @param sMode  -- the SolverMode corresponding to the computed state.
     */
     virtual void
-        guessState(coreTime time, double state[], double dstateDt[], const SolverMode& sMode);
+        guessState(CoreTime time, double state[], double dstateDt[], const SolverMode& sMode);
     /** @brief load tolerance information from the objects
     @param[out] tols -- a double array with the state tolerance information
     @param[in] sMode  -- the SolverMode corresponding to the computed state.
@@ -594,7 +594,7 @@ see GridComponent::dynInitializeA for more details
     **/
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& stateDataValue,
-                                  matrixData<double>& matrixDataValue,
+                                  MatrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode);
 
@@ -607,7 +607,7 @@ see GridComponent::dynInitializeA for more details
     @param[in] sMode the SolverMode to give guidance to objects on how to perform internal
     calculations
     */
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode);
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode);
 
     /**
     *@brief compute the partial derivatives of the output states with respect to internal states
@@ -618,7 +618,7 @@ see GridComponent::dynInitializeA for more details
     **/
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const StateData& stateDataValue,
-                                          matrixData<double>& matrixDataValue,
+                                          MatrixData<double>& matrixDataValue,
                                           const SolverMode& sMode);
     /**
     @brief return the count of output dependencies on internal states
@@ -637,7 +637,7 @@ see GridComponent::dynInitializeA for more details
      **/
     virtual void ioPartialDerivatives(const IOdata& inputs,
                                       const StateData& sD,
-                                      matrixData<double>& md,
+                                      MatrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode);
 
@@ -675,7 +675,7 @@ see GridComponent::dynInitializeA for more details
     1 in their root locations should actually trigger
     * @param[in] sMode the mode the solver is in
     **/
-    virtual void rootTrigger(coreTime time,
+    virtual void rootTrigger(CoreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode);
@@ -792,7 +792,7 @@ see GridComponent::dynInitializeA for more details
                                              double val,
                                              const IOdata& inputs,
                                              const StateData& sD,
-                                             matrixData<double>& md,
+                                             MatrixData<double>& md,
                                              const SolverMode& sMode);
     /**
     *@brief compute the partial derivatives of an outputs with respect to a parameter

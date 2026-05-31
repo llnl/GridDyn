@@ -39,18 +39,18 @@ void CompoundEventPlayer::cloneTo(Event* gE) const
     }
 }
 
-void CompoundEventPlayer::setTime(coreTime time)
+void CompoundEventPlayer::setTime(CoreTime time)
 {
     triggerTime = time;
 }
 
-void CompoundEventPlayer::setTimeValue(coreTime time, double val)
+void CompoundEventPlayer::setTimeValue(CoreTime time, double val)
 {
     triggerTime = time;
     value = val;
 }
 
-void CompoundEventPlayer::setTimeValue(const std::vector<coreTime>& /* times */,
+void CompoundEventPlayer::setTimeValue(const std::vector<CoreTime>& /* times */,
                                        const std::vector<double>& /* vals */)
 {
 }
@@ -70,7 +70,7 @@ void CompoundEventPlayer::set(std::string_view param, std::string_view val)
         CompoundEvent::set(param, val);
     }
 }
-void CompoundEventPlayer::updateTrigger(coreTime time)
+void CompoundEventPlayer::updateTrigger(CoreTime time)
 {
     if (currIndex != kNullLocation)  // we have a file operation
     {
@@ -162,7 +162,7 @@ ChangeCode CompoundEventPlayer::trigger()
     }
 }
 
-ChangeCode CompoundEventPlayer::trigger(coreTime time)
+ChangeCode CompoundEventPlayer::trigger(CoreTime time)
 {
     ChangeCode ret = ChangeCode::NOT_TRIGGERED;
     if (time + kSmallTime >= triggerTime) {

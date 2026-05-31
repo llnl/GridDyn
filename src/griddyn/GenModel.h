@@ -66,7 +66,7 @@ class GenModel: public GridSubModel {
 
     virtual void ioPartialDerivatives(const IOdata& inputs,
                                       const StateData& stateDataValue,
-                                      matrixData<double>& matrixDataValue,
+                                      MatrixData<double>& matrixDataValue,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
 

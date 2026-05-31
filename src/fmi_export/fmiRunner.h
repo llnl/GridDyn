@@ -46,13 +46,13 @@ it inherits from gridDynRunner and adds some extra features necessary for execut
         ~FmiRunner();
 
       public:
-        virtual coreTime Run() override;
+        virtual CoreTime Run() override;
 
         /** update the FMI outputs*/
         void updateOutputs();
 
-        virtual coreTime Step(coreTime time) override;
-        virtual void StepAsync(coreTime time) override;
+        virtual CoreTime Step(CoreTime time) override;
+        virtual void StepAsync(CoreTime time) override;
         virtual void Finalize() override;
 
       private:

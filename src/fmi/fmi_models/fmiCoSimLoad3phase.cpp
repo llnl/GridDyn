@@ -65,7 +65,7 @@ void FmiCoSimLoad3phase::set(std::string_view param, double val, units::unit uni
     }
 }
 
-void FmiCoSimLoad3phase::setState(coreTime time,
+void FmiCoSimLoad3phase::setState(CoreTime time,
                                   const double state[],
                                   const double dstateDt[],
                                   const SolverMode& sMode)

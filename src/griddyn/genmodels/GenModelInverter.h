@@ -25,7 +25,7 @@ class GenModelInverter: public GenModel {
     explicit GenModelInverter(const std::string& objName = "genModel_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -54,17 +54,17 @@ class GenModelInverter: public GenModel {
 
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& stateDataValue,
-                                  matrixData<double>& matrixDataValue,
+                                  MatrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const StateData& stateDataValue,
-                                          matrixData<double>& matrixDataValue,
+                                          MatrixData<double>& matrixDataValue,
                                           const SolverMode& sMode) override;
     virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
     virtual void ioPartialDerivatives(const IOdata& inputs,
                                       const StateData& stateDataValue,
-                                      matrixData<double>& matrixDataValue,
+                                      MatrixData<double>& matrixDataValue,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
 
@@ -85,7 +85,7 @@ class GenModelInverter: public GenModel {
                           const StateData& stateDataValue,
                           double roots[],
                           const SolverMode& sMode) override;
-    virtual void rootTrigger(coreTime time,
+    virtual void rootTrigger(CoreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override;

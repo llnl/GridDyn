@@ -32,7 +32,7 @@ class FskitRunner: public GriddynRunner {
                    std::shared_ptr<fskit::GrantedTimeWindowScheduler> grantedTimeWindowScheduler);
     virtual int Initialize(int argc, char* argv[]) override;
 
-    virtual coreTime Run() override;
+    virtual CoreTime Run() override;
     virtual void Finalize() override;
 };
 }  // namespace griddyn

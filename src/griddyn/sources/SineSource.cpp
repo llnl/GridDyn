@@ -30,7 +30,7 @@ CoreObject* SineSource::clone(CoreObject* obj) const
     return nobj;
 }
 
-void SineSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void SineSource::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (frequency <= 0.0) {
         lastCycle = negTime;
@@ -41,7 +41,7 @@ void SineSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     updateOutput(time0);
 }
 
-double SineSource::computeOutput(coreTime time) const
+double SineSource::computeOutput(CoreTime time) const
 {
     auto timeDelta = time - prevTime;
     if (timeDelta == timeZero) {
@@ -66,7 +66,7 @@ double SineSource::computeOutput(coreTime time) const
     return baseValue + (mult * addComponent);
 }
 
-void SineSource::updateOutput(coreTime time)
+void SineSource::updateOutput(CoreTime time)
 {
     auto timeDelta = time - prevTime;
     if (timeDelta == timeZero) {

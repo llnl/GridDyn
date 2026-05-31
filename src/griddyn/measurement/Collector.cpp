@@ -30,7 +30,7 @@ static ClassFactory<Collector> gCollFac("collector");
 static ChildClassFactory<Recorder, Collector>
     gRFac(std::vector<std::string>{"recorder", "rec", "file"}, "recorder");
 
-Collector::Collector(coreTime time0, coreTime period):
+Collector::Collector(CoreTime time0, CoreTime period):
     mTimePeriod(period), mRequestedPeriod(period), mTriggerTime(time0)
 {
 }
@@ -191,7 +191,7 @@ void Collector::setFlag(std::string_view flag, bool val)
     }
 }
 
-void Collector::setTime(coreTime time)
+void Collector::setTime(CoreTime time)
 {
     if (time > mTriggerTime) {
         mTriggerTime = time;
@@ -253,7 +253,7 @@ count_t Collector::grabData(double* outputData, index_t outputCount)
     return currentCount;
 }
 
-ChangeCode Collector::trigger(coreTime time)
+ChangeCode Collector::trigger(CoreTime time)
 {
     std::vector<double> vals;
 

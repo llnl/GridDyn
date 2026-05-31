@@ -16,7 +16,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "units/units.hpp"
-#include "utilities/matrixDataSparse.hpp"
+#include "utilities/MatrixDataSparse.hpp"
 #include <cmath>
 #include <cstdio>
 #include <filesystem>
@@ -756,7 +756,7 @@ void saveStateBinary(GridDynSimulation* gds,
     }
 }
 
-void writeVector(coreTime time,
+void writeVector(CoreTime time,
                  std::uint32_t code,
                  std::uint32_t index,
                  std::uint32_t key,
@@ -783,11 +783,11 @@ void writeVector(coreTime time,
     bFile.write(reinterpret_cast<const char*>(data), sizeof(double) * numElements);
 }
 
-void writeArray(coreTime time,
+void writeArray(CoreTime time,
                 std::uint32_t code,
                 std::uint32_t index,
                 std::uint32_t key,
-                matrixData<double>& matrixValues,
+                MatrixData<double>& matrixValues,
                 const std::string& fileName,
                 bool append)
 {
@@ -811,7 +811,7 @@ void writeArray(coreTime time,
     matrixValues.start();
     for (size_t elementIndex = 0; elementIndex < numElements; ++elementIndex) {
         const auto elementData = matrixValues.next();
-        bFile.write(reinterpret_cast<const char*>(&elementData), sizeof(matrixElement<double>));
+        bFile.write(reinterpret_cast<const char*>(&elementData), sizeof(MatrixElement<double>));
     }
 }
 
@@ -958,14 +958,14 @@ void captureJacState(GridDynSimulation* gds, const std::string& fileName, const 
     // writing the state vector
     const auto& currentMode = gds->getCurrentMode(sMode);
     auto solverInterface = gds->getSolverInterface(currentMode);
-    matrixDataSparse<double> matrixData;
+    MatrixDataSparse<double> MatrixData;
     StateData stateDescription(gds->getSimulationTime(),
                                solverInterface->stateData(),
                                solverInterface->derivData());
 
     stateDescription.cj = 10000;
 
-    gds->jacobianElements(noInputs, stateDescription, matrixData, noInputLocs, currentMode);
+    gds->jacobianElements(noInputs, stateDescription, MatrixData, noInputLocs, currentMode);
 
     stringVec stateNames;
     gds->getStateName(stateNames, currentMode);
@@ -982,11 +982,11 @@ void captureJacState(GridDynSimulation* gds, const std::string& fileName, const 
     // write the state vector
     bFile.write(reinterpret_cast<char*>(solverInterface->stateData()), dsize * sizeof(double));
     // writing the Jacobian Matrix
-    dsize = matrixData.size();
+    dsize = MatrixData.size();
     bFile.write(reinterpret_cast<char*>(&dsize), sizeof(count_t));
 
     for (index_t elementIndex = 0; elementIndex < dsize; ++elementIndex) {
-        const auto elementData = matrixData.element(elementIndex);
+        const auto elementData = MatrixData.element(elementIndex);
         bFile.write(reinterpret_cast<const char*>(&(elementData.row)), sizeof(index_t));
         bFile.write(reinterpret_cast<const char*>(&(elementData.col)), sizeof(index_t));
         bFile.write(reinterpret_cast<const char*>(&(elementData.data)), sizeof(double));
@@ -1006,14 +1006,14 @@ void saveJacobian(GridDynSimulation* gds, const std::string& fileName, const Sol
     const auto& currentMode = gds->getCurrentMode(sMode);
     auto SolverInterface = gds->getSolverInterface(currentMode);
 
-    matrixDataSparse<double> matrixData;
+    MatrixDataSparse<double> MatrixData;
 
     StateData stateDescription(gds->getSimulationTime(),
                                SolverInterface->stateData(),
                                SolverInterface->derivData());
 
     stateDescription.cj = 10000;
-    gds->jacobianElements(noInputs, stateDescription, matrixData, noInputLocs, currentMode);
+    gds->jacobianElements(noInputs, stateDescription, MatrixData, noInputLocs, currentMode);
 
     stringVec stateNames;
     gds->getStateName(stateNames, currentMode);
@@ -1026,11 +1026,11 @@ void saveJacobian(GridDynSimulation* gds, const std::string& fileName, const Sol
         bFile.write(stN.c_str(), stnSize);
     }
     // writing the Jacobian Matrix
-    dsize = matrixData.size();
+    dsize = MatrixData.size();
     bFile.write(reinterpret_cast<char*>(&dsize), sizeof(count_t));
 
     for (index_t elementIndex = 0; elementIndex < dsize; ++elementIndex) {
-        const auto elementData = matrixData.element(elementIndex);
+        const auto elementData = MatrixData.element(elementIndex);
         bFile.write(reinterpret_cast<const char*>(&(elementData.row)), sizeof(index_t));
         bFile.write(reinterpret_cast<const char*>(&(elementData.col)), sizeof(index_t));
         bFile.write(reinterpret_cast<const char*>(&(elementData.data)), sizeof(double));

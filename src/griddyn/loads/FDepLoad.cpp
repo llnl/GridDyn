@@ -9,7 +9,7 @@
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <string>
 namespace griddyn::loads {
@@ -18,7 +18,7 @@ FDepLoad::FDepLoad(double rP, double qP, const std::string& objName):
     ExponentialLoad(rP, qP, objName)
 {
 }
-void FDepLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void FDepLoad::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if ((betaP != 0.0) || (betaQ != 0.0)) {
         opFlags.set(uses_bus_frequency);
@@ -102,7 +102,7 @@ void FDepLoad::set(std::string_view param, double val, units::unit unitType)
 
 void FDepLoad::ioPartialDerivatives(const IOdata& inputs,
                                     const StateData& /*sD*/,
-                                    matrixData<double>& md,
+                                    MatrixData<double>& md,
                                     const IOlocs& inputLocs,
                                     const SolverMode& /*sMode*/)
 {

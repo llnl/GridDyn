@@ -14,32 +14,32 @@ namespace griddyn {
 class GridBus;
 
 /** @brief base class for objects that can attach to a bus like GridLoad and Generator
- *  gridSecondary class defines the interface for secondary objects which are nominally objects that
+ *  GridSecondary class defines the interface for secondary objects which are nominally objects that
  *hang directly off a bus
  **/
-class gridSecondary: public GridComponent {
+class GridSecondary: public GridComponent {
   protected:
     GridBus* bus = nullptr;  //!< reference to the bus connecting the object;
   public:
     /** @brief default constructor*/
-    explicit gridSecondary(const std::string& objName = "");
+    explicit GridSecondary(const std::string& objName = "");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void updateObjectLinkages(CoreObject* newRoot) override;
 
-    virtual void pFlowInitializeA(coreTime time0, std::uint32_t flags) override final;
+    virtual void pFlowInitializeA(CoreTime time0, std::uint32_t flags) override final;
 
     virtual void pFlowInitializeB() override final;
 
-    virtual void dynInitializeA(coreTime time0, std::uint32_t flags) override final;
+    virtual void dynInitializeA(CoreTime time0, std::uint32_t flags) override final;
 
     virtual void dynInitializeB(const IOdata& inputs,
                                 const IOdata& desiredOutput,
                                 IOdata& fieldSet) override final;
 
   protected:
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
   public:
     virtual void set(std::string_view param, std::string_view val) override;
@@ -138,7 +138,7 @@ class gridSecondary: public GridComponent {
     * @param[in] sMode the mode the solver is in
     @return a vector containing  all the predicted outputs
     **/
-    virtual IOdata predictOutputs(coreTime predictionTime,
+    virtual IOdata predictOutputs(CoreTime predictionTime,
                                   const IOdata& inputs,
                                   const StateData& stateDataValue,
                                   const SolverMode& sMode) const;
@@ -146,16 +146,16 @@ class gridSecondary: public GridComponent {
     /**
     *@brief get the available upwards generating capacity of a system
     @param[in] time the time period within which to do the adjustment
-    @return the available up capacity of the gridSecondary unit
+    @return the available up capacity of the GridSecondary unit
     **/
-    virtual double getAdjustableCapacityUp(coreTime time = maxTime) const;
+    virtual double getAdjustableCapacityUp(CoreTime time = maxTime) const;
 
     /**
     *@brief get the available downwards generating capacity of a system
     @param[in] time the time period within which to do the adjustment
-    @return the available up capacity of the gridSecondary unit
+    @return the available up capacity of the GridSecondary unit
     **/
-    virtual double getAdjustableCapacityDown(coreTime time = maxTime) const;
+    virtual double getAdjustableCapacityDown(CoreTime time = maxTime) const;
 
     virtual const std::vector<stringVec>& inputNames() const override;
     virtual const std::vector<stringVec>& outputNames() const override;

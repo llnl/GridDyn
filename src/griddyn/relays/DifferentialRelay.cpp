@@ -88,7 +88,7 @@ void DifferentialRelay::set(std::string_view param, double val, units::unit unit
     }
 }
 
-void DifferentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void DifferentialRelay::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     // if the target object is a link of some kind
     if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
@@ -160,7 +160,7 @@ void DifferentialRelay::pFlowObjectInitializeA(coreTime time0, std::uint32_t fla
 void DifferentialRelay::actionTaken(index_t actionNum,
                                     index_t /*conditionNum*/,
                                     ChangeCode /*actionReturn*/,
-                                    coreTime /*actionTime*/)
+                                    CoreTime /*actionTime*/)
 {
     logging::normal(this, "Relay Tripped");
 
@@ -172,7 +172,7 @@ void DifferentialRelay::actionTaken(index_t actionNum,
     }
 }
 
-void DifferentialRelay::conditionTriggered(index_t /*conditionNum*/, coreTime /*triggerTime*/)
+void DifferentialRelay::conditionTriggered(index_t /*conditionNum*/, CoreTime /*triggerTime*/)
 {
     logging::normal(this, "differential condition met");
     if (opFlags.test(USE_COMM_LINK)) {
@@ -182,7 +182,7 @@ void DifferentialRelay::conditionTriggered(index_t /*conditionNum*/, coreTime /*
     }
 }
 
-void DifferentialRelay::conditionCleared(index_t /*conditionNum*/, coreTime /*triggerTime*/)
+void DifferentialRelay::conditionCleared(index_t /*conditionNum*/, CoreTime /*triggerTime*/)
 {
     logging::normal(this, "differential condition cleared");
 

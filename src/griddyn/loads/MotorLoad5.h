@@ -33,8 +33,8 @@ class MotorLoad5: public MotorLoad3 {
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
   protected:
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -61,7 +61,7 @@ class MotorLoad5: public MotorLoad3 {
                           const StateData& sD,
                           double roots[],
                           const SolverMode& sMode) override;
-    virtual void rootTrigger(coreTime time,
+    virtual void rootTrigger(CoreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override;
@@ -72,7 +72,7 @@ class MotorLoad5: public MotorLoad3 {
 
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& sD,
-                                  matrixData<double>& md,
+                                  MatrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
     virtual void getStateName(stringVec& stNames,
@@ -80,7 +80,7 @@ class MotorLoad5: public MotorLoad3 {
                               const std::string& prefix) const override;
 
     virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     // TODO(phlpt): Change to algebraic update.
     virtual void

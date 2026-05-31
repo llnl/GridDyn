@@ -145,7 +145,7 @@ int GriddynRunner::Reset(ReaderInfo& ReaderInformation)
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-coreTime GriddynRunner::Run()
+CoreTime GriddynRunner::Run()
 {
     if (!isReady()) {
         throw(ExecutionFailure(m_gds.get(), "asynchronous operation ongoing"));
@@ -169,12 +169,12 @@ void GriddynRunner::RunAsync()
     mAsyncReturn = std::async(std::launch::async, [this] { return Run(); });
 }
 
-coreTime GriddynRunner::Step(coreTime nextStep)
+CoreTime GriddynRunner::Step(CoreTime nextStep)
 {
     if (!isReady()) {
         throw(ExecutionFailure(m_gds.get(), "asynchronous operation ongoing"));
     }
-    coreTime actual = nextStep;
+    CoreTime actual = nextStep;
     if (m_gds) {
         if (mEventMode) {
             const int returnValue = m_gds->eventDrivenPowerflow(nextStep);
@@ -197,7 +197,7 @@ coreTime GriddynRunner::Step(coreTime nextStep)
     return actual;
 }
 
-void GriddynRunner::StepAsync(coreTime time)
+void GriddynRunner::StepAsync(CoreTime time)
 {
     if (!isReady()) {
         throw(ExecutionFailure(m_gds.get(), "asynchronous operation ongoing"));
@@ -220,13 +220,13 @@ bool GriddynRunner::isReady() const
         true;
 }
 
-int GriddynRunner::getStatus(coreTime& timeReturn)
+int GriddynRunner::getStatus(CoreTime& timeReturn)
 {
     timeReturn = m_gds->getSimulationTime();
     return (isReady()) ? static_cast<int>(m_gds->currentProcessState()) : GRIDDYN_PENDING;
 }
 
-coreTime GriddynRunner::getNextEvent() const
+CoreTime GriddynRunner::getNextEvent() const
 {
     return m_gds->getEventTime();
 }

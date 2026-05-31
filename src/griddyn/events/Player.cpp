@@ -17,7 +17,7 @@
 namespace griddyn::events {
 Player::Player(const std::string& eventName): Event(eventName) {}
 
-Player::Player(coreTime time0, double loopPeriod): Event(time0), period(loopPeriod) {}
+Player::Player(CoreTime time0, double loopPeriod): Event(time0), period(loopPeriod) {}
 
 Player::Player(const EventInfo& gdEI, CoreObject* rootObject):
     Event(gdEI, rootObject), period(gdEI.period)
@@ -89,18 +89,18 @@ void Player::set(std::string_view param, std::string_view val)
     }
 }
 
-void Player::setTime(coreTime time)
+void Player::setTime(CoreTime time)
 {
     triggerTime = time;
 }
 
-void Player::setTimeValue(coreTime time, double val)
+void Player::setTimeValue(CoreTime time, double val)
 {
     triggerTime = time;
     value = val;
 }
 
-void Player::setTimeValue(const std::vector<coreTime>& time, const std::vector<double>& val)
+void Player::setTimeValue(const std::vector<CoreTime>& time, const std::vector<double>& val)
 {
     ts.reserve(static_cast<gmlc::utilities::fsize_t>(time.size()));
 
@@ -118,7 +118,7 @@ void Player::setNextValue()
     }
 }
 
-void Player::updateTrigger(coreTime time)
+void Player::updateTrigger(CoreTime time)
 {
     if (time >= triggerTime) {
         if (time >= ts.time(currIndex) + timeOffset) {
@@ -198,7 +198,7 @@ ChangeCode Player::trigger()
     }
 }
 
-ChangeCode Player::trigger(coreTime time)
+ChangeCode Player::trigger(CoreTime time)
 {
     ChangeCode ret = ChangeCode::NOT_TRIGGERED;
     if (time + kSmallTime >= triggerTime) {

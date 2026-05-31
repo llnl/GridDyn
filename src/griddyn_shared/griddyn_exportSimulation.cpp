@@ -20,7 +20,7 @@ DECLARE_TRIPLINE()
 
 using griddyn::buildFlags;
 using griddyn::compiler;
-using griddyn::coreTime;
+using griddyn::CoreTime;
 using griddyn::ExecutionFailure;
 using griddyn::FileOperationError;
 using griddyn::gridDynAction;
@@ -349,7 +349,7 @@ int GridDynSimulationGetStatus(GridDynSimulation sim, GridDynError* err)
         assignError(err, griddyn_error_invalid_object, invalidSimulation);
         return griddyn_error_invalid_object;
     }
-    coreTime tRet;
+    CoreTime tRet;
     auto res = runner->getStatus(tRet);
     return res;
 }

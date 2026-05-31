@@ -154,23 +154,23 @@ class GridArea: public GridPrimary {
     virtual void setRootOffset(index_t rootOffset, const SolverMode& sMode) override;
 
   protected:
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void pFlowObjectInitializeB() override;
 
     // dynInitializeB dynamics
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
   public:
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     // TODO(phlpt): Implement this or remove it if angle updates are no longer used.
     /** @brief update the angles may be deprecated
     @param[in] time the time to update to
     */
-    virtual void updateTheta(coreTime time);
+    virtual void updateTheta(CoreTime time);
 
     // parameter set functions
     virtual void setFlag(std::string_view flag, bool val) override;
@@ -207,7 +207,7 @@ class GridArea: public GridPrimary {
                        const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& stateDataValue,
-                                  matrixData<double>& matrixDataValue,
+                                  MatrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
     virtual void residual(const IOdata& inputs,
@@ -234,7 +234,7 @@ class GridArea: public GridPrimary {
                                    const SolverMode& sMode) override;
     virtual void delayedJacobian(const IOdata& inputs,
                                  const StateData& stateDataValue,
-                                 matrixData<double>& matrixDataValue,
+                                 MatrixData<double>& matrixDataValue,
                                  const IOlocs& inputLocs,
                                  const SolverMode& sMode) override;
     virtual void delayedAlgebraicUpdate(const IOdata& inputs,
@@ -246,7 +246,7 @@ class GridArea: public GridPrimary {
     virtual ChangeCode
         powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level) override;
     virtual void pFlowCheck(std::vector<Violation>& Violation_vector) override;
-    virtual void setState(coreTime time,
+    virtual void setState(CoreTime time,
                           const double state[],
                           const double dstateDt[],
                           const SolverMode& sMode) override;
@@ -254,7 +254,7 @@ class GridArea: public GridPrimary {
     virtual void getVariableType(double sdata[], const SolverMode& sMode) override;
     virtual void getTols(double tols[], const SolverMode& sMode) override;
     // dynamic simulation
-    virtual void guessState(coreTime time,
+    virtual void guessState(CoreTime time,
                             double state[],
                             double dstateDt[],
                             const SolverMode& sMode) override;
@@ -269,7 +269,7 @@ class GridArea: public GridPrimary {
     @param[in] tol  the tolerance to converge to
 
     */
-    virtual void converge(coreTime time,
+    virtual void converge(CoreTime time,
                           double state[],
                           double dstateDt[],
                           const SolverMode& sMode,
@@ -287,7 +287,7 @@ class GridArea: public GridPrimary {
                           const StateData& stateDataValue,
                           double roots[],
                           const SolverMode& sMode) override;
-    virtual void rootTrigger(coreTime time,
+    virtual void rootTrigger(CoreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override;
@@ -412,12 +412,12 @@ class GridArea: public GridPrimary {
     @param[in] time  the time within which to make the adjustment
     @return athe total adjustable capacity Up
     */
-    double getAdjustableCapacityUp(coreTime time = maxTime) const;
+    double getAdjustableCapacityUp(CoreTime time = maxTime) const;
     /** @brief get the total adjustable Capacity Down for the area within a certain time frame
     @param[in] time  the time within which to make the adjustment
     @return athe total adjustable capacity Down
     */
-    double getAdjustableCapacityDown(coreTime time = maxTime) const;
+    double getAdjustableCapacityDown(CoreTime time = maxTime) const;
     /** @brief get the total loss for contained links
     @return the total area loss
     */

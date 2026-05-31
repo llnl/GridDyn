@@ -71,7 +71,7 @@ int GridDynSimulation::powerflow()
                     controlFlags[power_flow_input_saved] = true;
                 }
                 // solve
-                coreTime returnTime = currentTime;
+                CoreTime returnTime = currentTime;
                 retval = pFlowData->solve(currentTime, returnTime);
 
                 if (retval < 0) {
@@ -286,7 +286,7 @@ void GridDynSimulation::reInitpFlow(const SolverMode& sMode, ChangeCode change)
 
 // we initialize all the objects in the simulation and the default SolverInterface
 // all other solver data objects would be initialized by a reInitPFlow(xxx) call;
-int GridDynSimulation::pFlowInitialize(coreTime time0)
+int GridDynSimulation::pFlowInitialize(CoreTime time0)
 {
     if (time0 == negTime) {
         time0 = powerFlowStartTime;
@@ -427,7 +427,7 @@ void GridDynSimulation::continuationPowerFlow(std::string_view contName)
 
 void GridDynSimulation::pFlowSensitivityAnalysis() {}
 
-int GridDynSimulation::eventDrivenPowerflow(coreTime t_end, coreTime t_step)
+int GridDynSimulation::eventDrivenPowerflow(CoreTime t_end, CoreTime t_step)
 {
     if (t_end == negTime) {
         t_end = stopTime;
@@ -504,7 +504,7 @@ int GridDynSimulation::eventDrivenPowerflow(coreTime t_end, coreTime t_step)
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-int GridDynSimulation::algUpdateFunction(coreTime time,
+int GridDynSimulation::algUpdateFunction(CoreTime time,
                                          const double state[],
                                          double update[],
                                          const SolverMode& sMode,

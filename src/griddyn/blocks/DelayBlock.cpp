@@ -8,7 +8,7 @@
 
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <string>
 namespace griddyn::blocks {
@@ -50,7 +50,7 @@ CoreObject* DelayBlock::clone(CoreObject* obj) const
     return nobj;
 }
 
-void DelayBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void DelayBlock::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if ((mT1 < kMin_Res) || (opFlags[simplifiedMode])) {
         opFlags.set(simplifiedMode);
@@ -73,7 +73,7 @@ void DelayBlock::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-double DelayBlock::step(coreTime time, double inputA)
+double DelayBlock::step(CoreTime time, double inputA)
 {
     if (opFlags[simplifiedMode]) {
         return GridBlock::step(time, inputA);
@@ -135,7 +135,7 @@ void DelayBlock::blockDerivative(double input,
 void DelayBlock::blockJacobianElements(double input,
                                        double didt,
                                        const StateData& stateDataRef,
-                                       matrixData<double>& jacobian,
+                                       MatrixData<double>& jacobian,
                                        index_t argLoc,
                                        const SolverMode& sMode)
 {

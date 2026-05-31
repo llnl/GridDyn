@@ -9,8 +9,8 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
+#include "utilities/MatrixData.hpp"
 #include "utilities/functionInterpreter.h"
-#include "utilities/matrixData.hpp"
 #include <string>
 
 namespace griddyn::blocks {
@@ -82,7 +82,7 @@ void FunctionBlock::blockAlgebraicUpdate(double input,
 void FunctionBlock::blockJacobianElements(double input,
                                           double didt,
                                           const StateData& stateDataValue,
-                                          matrixData<double>& matrixDataValue,
+                                          MatrixData<double>& matrixDataValue,
                                           index_t argLoc,
                                           const SolverMode& sMode)
 {
@@ -111,7 +111,7 @@ void FunctionBlock::blockJacobianElements(double input,
     }
 }
 
-double FunctionBlock::step(coreTime time, double input)
+double FunctionBlock::step(CoreTime time, double input)
 {
     if (opFlags[USES_CONSTANT_ARG]) {
         m_state[limiter_alg] = K * mBinaryFunctionPtr(mGain * (input + bias), mArg2);

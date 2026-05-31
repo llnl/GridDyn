@@ -11,7 +11,7 @@
 #include <vector>
 
 template<class Y>
-class matrixData;
+class MatrixData;
 
 namespace griddyn {
 class GridPrimary;
@@ -44,7 +44,7 @@ class ListMaintainer {
 
     void jacobianElements(const IOdata& inputs,
                           const StateData& stateDataValue,
-                          matrixData<double>& matrixDataValue,
+                          MatrixData<double>& matrixDataValue,
                           const IOlocs& inputLocs,
                           const SolverMode& sMode);
     void preEx(const IOdata& inputs, const StateData& stateDataValue, const SolverMode& sMode);
@@ -72,7 +72,7 @@ class ListMaintainer {
                            const SolverMode& sMode);
     void delayedJacobian(const IOdata& inputs,
                          const StateData& stateDataValue,
-                         matrixData<double>& matrixDataValue,
+                         MatrixData<double>& matrixDataValue,
                          const IOlocs& inputLocs,
                          const SolverMode& sMode);
     void delayedAlgebraicUpdate(const IOdata& inputs,

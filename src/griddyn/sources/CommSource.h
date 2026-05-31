@@ -31,7 +31,7 @@ namespace sources {
         CommSource(const std::string& objName = "commSource_#");
 
         CoreObject* clone(CoreObject* obj = nullptr) const override;
-        virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+        virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
         virtual void set(std::string_view param, std::string_view val) override;
         virtual void
@@ -39,7 +39,7 @@ namespace sources {
         virtual void setFlag(std::string_view flag, bool val) override;
 
         virtual void setLevel(double val) override;
-        virtual void updateA(coreTime time) override;
+        virtual void updateA(CoreTime time) override;
 
         /** message processing function for use with communicators
     @param[in] sourceID  the source of the comm message

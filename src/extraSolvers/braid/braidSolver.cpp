@@ -193,7 +193,7 @@ void braidSolver::allocate(count_t stateCount, count_t numRoots)
     rootsfound.resize(numRoots);
 }
 
-void braidSolver::initialize(coreTime t0)
+void braidSolver::initialize(CoreTime t0)
 {
     if (!flags[ALLOCATED_FLAG]) {
         throw(InvalidSolverOperation(-2));
@@ -457,7 +457,7 @@ int braidSolver::runBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int
     return 0;
 }
 
-int braidSolver::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
+int braidSolver::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
 {
     int mpi_rank;
     MPI_Comm comm = MPI_COMM_WORLD;
@@ -508,7 +508,7 @@ int braidSolver::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-int braidSolver::calcIC(coreTime t0, coreTime tstep0, IcModes mode, bool constraints)
+int braidSolver::calcIC(CoreTime t0, CoreTime tstep0, IcModes mode, bool constraints)
 {
     return 0;
 }

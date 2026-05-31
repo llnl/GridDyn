@@ -17,7 +17,7 @@
 #include <vector>
 
 namespace griddyn::helicsLib {
-HelicsCollector::HelicsCollector(coreTime time0, coreTime period): collector(time0, period) {}
+HelicsCollector::HelicsCollector(CoreTime time0, CoreTime period): collector(time0, period) {}
 
 HelicsCollector::HelicsCollector(const std::string& collectorName): collector(collectorName) {}
 
@@ -88,7 +88,7 @@ void HelicsCollector::dataPointAdded(const CollectorPoint& cp)
     }
 }
 
-ChangeCode HelicsCollector::trigger(coreTime time)
+ChangeCode HelicsCollector::trigger(CoreTime time)
 {
     auto out = collector::trigger(time);
 

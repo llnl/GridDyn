@@ -18,7 +18,7 @@ class Source: public GridSubModel {
     std::string purpose_;  //!< string for use by applications to indicate usage
   protected:
     double m_tempOut = 0;  //!< temporary output corresponding to desired time
-    coreTime lastTime = timeZero;  //!< storage for the previously queried time
+    CoreTime lastTime = timeZero;  //!< storage for the previously queried time
     units::unit outputUnits_ = units::defunit;  //!< specify the units of the output
   public:
     /** constructor
@@ -32,7 +32,7 @@ class Source: public GridSubModel {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     virtual IOdata getOutputs(const IOdata& inputs,
                               const StateData& sD,
@@ -48,12 +48,12 @@ class Source: public GridSubModel {
     virtual units::unit outputUnits(index_t outputNum) const override;
 
     virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
-    virtual void setState(coreTime time,
+    virtual void setState(CoreTime time,
                           const double state[],
                           const double dstate_dt[],
                           const SolverMode& sMode) override;
     /** update the output to correspond to a new time value*/
-    virtual void updateOutput(coreTime time);
+    virtual void updateOutput(CoreTime time);
     virtual void updateLocalCache(const IOdata& inputs,
                                   const StateData& sD,
                                   const SolverMode& sMode) override;
@@ -61,7 +61,7 @@ class Source: public GridSubModel {
     /** update the source output and advance the model time
     @param[in] time  the time to update to
     */
-    virtual double computeOutput(coreTime time) const;
+    virtual double computeOutput(CoreTime time) const;
     /** set the output level
     @param[in] newLevel the level to set the output at
     */

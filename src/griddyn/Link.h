@@ -164,12 +164,12 @@ class Link: public GridPrimary {
     /** @brief check for any violations of link limits or other factors based on power flow results
      checks things like the maximum angle,  power flow /current limits based on ratings and a few
     other things
-    @param[out] Violation_vector --a list of all the violations any new violations get added to the
+    @param[out] violationVector --a list of all the violations any new violations get added to the
     result
     */
     virtual void pFlowCheck(std::vector<Violation>& violationVector) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     /** @brief do a quick update  (may be deprecated)
      * @return the power transfer
      */
@@ -244,13 +244,13 @@ class Link: public GridPrimary {
     */
     virtual double getImagCurrent(id_type_t busId = 0) const;
     /** @brief get the real power at a particular bus
-     this function is to allow a link to act similarly to a gridSecondary
+     this function is to allow a link to act similarly to a GridSecondary
     @param[in] busId  either 1 or 2 or the object id of the bus
     * @return the real Power
     */
     virtual double getRealPower(id_type_t busId = 0) const;
     /** @brief get the real power at a particular bus
-     this function is to allow a link to act similarly to a gridSecondary
+     this function is to allow a link to act similarly to a GridSecondary
     @param[in] busId  either 1 or 2 or the object id of the bus
     * @return the real Power
     */
@@ -289,7 +289,7 @@ class Link: public GridPrimary {
     virtual bool testAndTrip(int tripLevel);
     // dynInitializeB power flow
   protected:
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
   public:
     /** @brief check if two buses should be merged and the line effects ignored
@@ -297,28 +297,28 @@ class Link: public GridPrimary {
     virtual void checkMerge() {}
     // dynInitializeB dynamics
   protected:
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
   public:
     // for computing all the Jacobian elements at once
     using GridComponent::ioPartialDerivatives;
     virtual void ioPartialDerivatives(id_type_t busId,
                                       const StateData& sD,
-                                      matrixData<double>& md,
+                                      MatrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode);
 
     using GridComponent::outputPartialDerivatives;
     virtual void outputPartialDerivatives(id_type_t busId,
                                           const StateData& sD,
-                                          matrixData<double>& md,
+                                          MatrixData<double>& md,
                                           const SolverMode& sMode);
 
     virtual IOdata getOutputs(const IOdata& inputs,
                               const StateData& stateData,
                               const SolverMode& sMode) const override;
     virtual IOdata getOutputs(id_type_t busId, const StateData& sD, const SolverMode& sMode) const;
-    virtual void setState(coreTime time,
+    virtual void setState(CoreTime time,
                           const double state[],
                           const double dstate_dt[],
                           const SolverMode& sMode) override;

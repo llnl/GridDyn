@@ -14,8 +14,8 @@
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
+#include "utilities/MatrixData.hpp"
 #include "utilities/OperatingBoundary.h"
-#include "utilities/matrixData.hpp"
 #include <memory>
 #include <string>
 #include <vector>
@@ -56,7 +56,7 @@ using units::unit;
 std::atomic<count_t> Generator::genCount(0);
 // default bus object
 
-Generator::Generator(const std::string& objName): gridSecondary(objName)
+Generator::Generator(const std::string& objName): GridSecondary(objName)
 {
     setUserID(++genCount);
     updateName();
@@ -70,7 +70,7 @@ Generator::~Generator() = default;
 
 CoreObject* Generator::clone(CoreObject* obj) const
 {
-    auto* gen = cloneBaseFactory<Generator, gridSecondary>(this, obj, &gGeneratorFactory);
+    auto* gen = cloneBaseFactory<Generator, GridSecondary>(this, obj, &gGeneratorFactory);
     if (gen == nullptr) {
         return obj;
     }
@@ -93,7 +93,7 @@ CoreObject* Generator::clone(CoreObject* obj) const
     return gen;
 }
 
-void Generator::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void Generator::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (isConnected() && isEnabled()) {
         if (opFlags[local_voltage_control]) {
@@ -134,16 +134,16 @@ void Generator::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
         Q = 0.0;
     }
 
-    gridSecondary::pFlowObjectInitializeA(time0, flags);
+    GridSecondary::pFlowObjectInitializeA(time0, flags);
 }
 
-void Generator::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void Generator::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (machineBasePower < 0.0) {
         machineBasePower = systemBasePower;
     }
 
-    gridSecondary::dynObjectInitializeA(time0, flags);
+    GridSecondary::dynObjectInitializeA(time0, flags);
 }
 
 StateSizes Generator::localStateSizes(const SolverMode& sMode) const
@@ -205,7 +205,7 @@ void Generator::dynObjectInitializeB(const IOdata& /*inputs*/,
 }
 
 // save an external state to the internal one
-void Generator::setState(coreTime time,
+void Generator::setState(CoreTime time,
                          const double state[],
                          const double /*dstate_dt*/[],
                          const SolverMode& sMode)
@@ -221,7 +221,7 @@ void Generator::setState(coreTime time,
 }
 
 // copy the current state to a vector
-void Generator::guessState(coreTime /*time*/,
+void Generator::guessState(CoreTime /*time*/,
                            double state[],
                            double /*dstate_dt*/[],
                            const SolverMode& sMode)
@@ -316,7 +316,7 @@ void Generator::set(std::string_view param, std::string_view val)
             throw(InvalidParameterValue(val));
         }
     } else {
-        gridSecondary::set(param, val);
+        GridSecondary::set(param, val);
     }
 }
 
@@ -344,12 +344,12 @@ double Generator::get(std::string_view param, unit unitType) const
         CoreObject* tobj = const_cast<Generator*>(this);
         ret = convert(fptr(tobj), unit, unitType, systemBasePower, localBaseVoltage);
     } else {
-        ret = gridSecondary::get(param, unitType);
+        ret = GridSecondary::get(param, unitType);
     }
     return ret;
 }
 
-void Generator::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
+void Generator::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     if (Pset < -kHalfBigNum) {
         Pset = P;
@@ -442,7 +442,7 @@ void Generator::setFlag(std::string_view flag, bool val)
     } else if ((flag == "isoc") || (flag == "isochronous")) {
         opFlags.set(isochronousOperation, val);
     } else {
-        gridSecondary::setFlag(flag, val);
+        GridSecondary::setFlag(flag, val);
     }
 }
 
@@ -513,7 +513,7 @@ void Generator::set(std::string_view param, double val, unit unitType)
         const CoreObject* root = getRoot();
         setRemoteBus(root->findByUserID("bus", static_cast<index_t>(val)));
     } else {
-        gridSecondary::set(param, val, unitType);
+        GridSecondary::set(param, val, unitType);
     }
 }
 
@@ -532,7 +532,7 @@ void Generator::setCapabilityCurve(const std::vector<double>& ppts,
 
 void Generator::outputPartialDerivatives(const IOdata& /*inputs*/,
                                          const StateData& /*stateDataValue*/,
-                                         matrixData<double>& matrixDataValue,
+                                         MatrixData<double>& matrixDataValue,
                                          const SolverMode& sMode)
 {
     if (!isDynamic(sMode)) {  // the bus is managing a remote bus voltage
@@ -556,7 +556,7 @@ count_t Generator::outputDependencyCount(index_t num, const SolverMode& sMode) c
 
 void Generator::ioPartialDerivatives(const IOdata& inputs,
                                      const StateData& /*stateDataValue*/,
-                                     matrixData<double>& matrixDataValue,
+                                     MatrixData<double>& matrixDataValue,
                                      const IOlocs& inputLocs,
                                      const SolverMode& sMode)
 {
@@ -695,7 +695,7 @@ void Generator::residual(const IOdata& /*inputs*/,
 
 void Generator::jacobianElements(const IOdata& /*inputs*/,
                                  const StateData& /*stateDataValue*/,
-                                 matrixData<double>& matrixDataValue,
+                                 MatrixData<double>& matrixDataValue,
                                  const IOlocs& /*inputLocs*/,
                                  const SolverMode& sMode)
 {
@@ -739,7 +739,7 @@ CoreObject* Generator::find(std::string_view object) const
     return GridComponent::find(object);
 }
 
-double Generator::getAdjustableCapacityUp(coreTime time) const
+double Generator::getAdjustableCapacityUp(CoreTime time) const
 {
     if (sched != nullptr) {
         return (sched->getMax(time) - Pset);
@@ -747,7 +747,7 @@ double Generator::getAdjustableCapacityUp(coreTime time) const
     return Pmax - Pset;
 }
 
-double Generator::getAdjustableCapacityDown(coreTime time) const
+double Generator::getAdjustableCapacityDown(CoreTime time) const
 {
     if (sched != nullptr) {
         return (Pset - sched->getMin(time));
@@ -755,7 +755,7 @@ double Generator::getAdjustableCapacityDown(coreTime time) const
     return (Pset - Pmin);
 }
 
-IOdata Generator::predictOutputs(coreTime predictionTime,
+IOdata Generator::predictOutputs(CoreTime predictionTime,
                                  const IOdata& /*inputs*/,
                                  const StateData& /*sD*/,
                                  const SolverMode& /*sMode*/) const
@@ -773,7 +773,7 @@ IOdata Generator::predictOutputs(coreTime predictionTime,
     return out;
 }
 
-double Generator::getPmax(const coreTime time) const
+double Generator::getPmax(const CoreTime time) const
 {
     if (sched != nullptr) {
         return sched->getMax(time);
@@ -781,7 +781,7 @@ double Generator::getPmax(const coreTime time) const
     return Pmax;
 }
 
-double Generator::getQmax(const coreTime /*time*/, double ptest) const
+double Generator::getQmax(const CoreTime /*time*/, double ptest) const
 {
     if (opFlags[useCapabilityCurve]) {
         return bounds->getMax((ptest == kNullVal) ? P : ptest);
@@ -789,14 +789,14 @@ double Generator::getQmax(const coreTime /*time*/, double ptest) const
     return Qmax;
 }
 
-double Generator::getPmin(const coreTime time) const
+double Generator::getPmin(const CoreTime time) const
 {
     if (sched != nullptr) {
         return sched->getMin(time);
     }
     return Pmin;
 }
-double Generator::getQmin(const coreTime /*time*/, double ptest) const
+double Generator::getQmin(const CoreTime /*time*/, double ptest) const
 {
     if (opFlags[useCapabilityCurve]) {
         return bounds->getMin((ptest == kNullVal) ? P : ptest);

@@ -128,7 +128,7 @@ class SolverInterface: public HelperObject {
     count_t max_iterations = 10000;  //!< the maximum number of iterations in the solver loop
     SolverMode mode;  //!< to the SolverMode
     double tolerance = 1e-8;  //!< the default solver tolerance
-    coreTime solveTime = negTime;  //!< storage for the time the solver is called
+    CoreTime solveTime = negTime;  //!< storage for the time the solver is called
     std::string jacFile;  //!< the file to write the Jacobian to
     std::string stateFile;  //!< the file to write the state and residual to
     GridDynSimulation* m_gds = nullptr;  //!< pointer the GridDynSimulation object used
@@ -198,7 +198,7 @@ class SolverInterface: public HelperObject {
     /** @brief initialize the solver to time t0
     @param[in] t0  the time for the initialization
     */
-    virtual void initialize(coreTime t0);
+    virtual void initialize(CoreTime t0);
 
     /** @brief reinitialize the sparse components
     @param[in] mode the reinitialization mode
@@ -215,7 +215,7 @@ class SolverInterface: public HelperObject {
     @param[in] constraints  flag indicating that constraints should be used
     @return the function success status  FUNCTION_EXECUTION_SUCCESS on success
     */
-    virtual int calcIC(coreTime t0, coreTime tstep0, IcModes mode, bool constraints);
+    virtual int calcIC(CoreTime t0, CoreTime tstep0, IcModes mode, bool constraints);
     /** @brief get the current solution
      usually called after a call to CalcIC to get the calculated conditions
     */
@@ -254,14 +254,14 @@ class SolverInterface: public HelperObject {
     */
     virtual bool getFlag(std::string_view flag) const override;
     /** get the last time the solver was called*/
-    coreTime getSolverTime() const { return solveTime; }
+    CoreTime getSolverTime() const { return solveTime; }
     /** @brief perform the solver calculations
   @param[in] tStop  the requested return time   not that useful for algebraic solvers
   @param[out]  tReturn  the actual return time
   @param[in] stepMode  the step mode
   @return the function success status  FUNCTION_EXECUTION_SUCCESS on success
   */
-    virtual int solve(coreTime tStop, coreTime& tReturn, StepMode stepMode = StepMode::NORMAL);
+    virtual int solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode = StepMode::NORMAL);
     /** @brief resize the storage array for the Jacobian
     @param[in] nonZeroCount  the number of elements to potentially store
     */

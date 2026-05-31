@@ -13,10 +13,10 @@
 
 #include "functionInterpreter.h"
 
+#include "GridRandom.h"
 #include "gmlc/containers/mapOps.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "gridRandom.h"
 #include "griddyn/griddyn-config.h"
 #include <algorithm>
 #include <array>
@@ -41,7 +41,7 @@ using gmlc::utilities::mult_sum;
 using gmlc::utilities::product;
 using gmlc::utilities::stdev;
 using gmlc::utilities::sum;
-using utilities::gridRandom;
+using utilities::GridRandom;
 
 namespace {
 template<class Fn>
@@ -164,19 +164,19 @@ double piValue()
 }
 double randUniform()
 {
-    return gridRandom::randNumber(gridRandom::DistributionType::UNIFORM);
+    return GridRandom::randNumber(GridRandom::DistributionType::UNIFORM);
 }
 double randNormal()
 {
-    return gridRandom::randNumber(gridRandom::DistributionType::NORMAL);
+    return GridRandom::randNumber(GridRandom::DistributionType::NORMAL);
 }
 double randExponential()
 {
-    return gridRandom::randNumber(gridRandom::DistributionType::EXPONENTIAL);
+    return GridRandom::randNumber(GridRandom::DistributionType::EXPONENTIAL);
 }
 double randLognormal()
 {
-    return gridRandom::randNumber(gridRandom::DistributionType::LOGNORMAL);
+    return GridRandom::randNumber(GridRandom::DistributionType::LOGNORMAL);
 }
 
 double signValue(double val)
@@ -200,7 +200,7 @@ double decimalValue(double val)
 }
 double randExpSingle(double val)
 {
-    return gridRandom::randNumber(gridRandom::DistributionType::EXPONENTIAL, val, val);
+    return GridRandom::randNumber(GridRandom::DistributionType::EXPONENTIAL, val, val);
 }
 
 double pow10Value(double val)
@@ -324,31 +324,31 @@ double median3(double val1, double val2, double val3)
 
 double randUniformRange(double val1, double val2)
 {
-    return gridRandom::randNumber(gridRandom::DistributionType::UNIFORM, val1, val2);
+    return GridRandom::randNumber(GridRandom::DistributionType::UNIFORM, val1, val2);
 }
 double randNormalRange(double val1, double val2)
 {
-    return gridRandom::randNumber(gridRandom::DistributionType::NORMAL, val1, val2);
+    return GridRandom::randNumber(GridRandom::DistributionType::NORMAL, val1, val2);
 }
 double randExponentialRange(double val1, double val2)
 {
-    return gridRandom::randNumber(gridRandom::DistributionType::EXPONENTIAL, val1, val2);
+    return GridRandom::randNumber(GridRandom::DistributionType::EXPONENTIAL, val1, val2);
 }
 double randLognormalRange(double val1, double val2)
 {
-    return gridRandom::randNumber(gridRandom::DistributionType::LOGNORMAL, val1, val2);
+    return GridRandom::randNumber(GridRandom::DistributionType::LOGNORMAL, val1, val2);
 }
 double randIntegerRange(double val1, double val2)
 {
-    return gridRandom::randNumber(gridRandom::DistributionType::UNIFORM_INT, val1, val2);
+    return GridRandom::randNumber(GridRandom::DistributionType::UNIFORM_INT, val1, val2);
 }
 double randExtremeValueRange(double val1, double val2)
 {
-    return gridRandom::randNumber(gridRandom::DistributionType::EXTREME_VALUE, val1, val2);
+    return GridRandom::randNumber(GridRandom::DistributionType::EXTREME_VALUE, val1, val2);
 }
 double randGammaRange(double val1, double val2)
 {
-    return gridRandom::randNumber(gridRandom::DistributionType::GAMMA, val1, val2);
+    return GridRandom::randNumber(GridRandom::DistributionType::GAMMA, val1, val2);
 }
 double addValue(double val1, double val2)
 {

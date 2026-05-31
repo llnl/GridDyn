@@ -3,27 +3,26 @@
  * See the top-level NOTICE for additional details. All rights reserved.
  * SPDX-License-Identifier: BSD-3-Clause
  */
-#include "saturation.h"
+#include "Saturation.h"
 
 #include <cmath>
 #include <string>
 
-// NOLINTBEGIN
 namespace utilities {
-saturation::saturation(SaturationType sT): type(sT)
+Saturation::Saturation(SaturationType sT): type(sT)
 {
     loadFunctions();
     computeParam();
 }
 
-saturation::saturation(const std::string& satType): type(SaturationType::NONE)
+Saturation::Saturation(const std::string& satType): type(SaturationType::NONE)
 {
     setType(satType);
     loadFunctions();
     computeParam();
 }
 
-void saturation::setType(const std::string& stype)
+void Saturation::setType(const std::string& stype)
 {
     if (stype == "none") {
         type = SaturationType::NONE;
@@ -40,14 +39,14 @@ void saturation::setType(const std::string& stype)
     computeParam();
 }
 
-void saturation::setParam(double S1, double S2)
+void Saturation::setParam(double S1, double S2)
 {
     s10 = S1;
     s12 = S2;
     computeParam();
 }
 
-void saturation::setParam(double V1, double S1, double V2, double S2)
+void Saturation::setParam(double V1, double S1, double V2, double S2)
 {
     switch (type) {
         case SaturationType::QUADRATIC: {
@@ -78,30 +77,30 @@ void saturation::setParam(double V1, double S1, double V2, double S2)
     s12 = compute(1.2);
 }
 
-void saturation::setType(SaturationType sT)
+void Saturation::setType(SaturationType sT)
 {
     type = sT;
     loadFunctions();
     computeParam();
 }
 
-saturation::SaturationType saturation::getType() const
+Saturation::SaturationType Saturation::getType() const
 {
     return type;
 }
-double saturation::operator()(double val) const
+double Saturation::operator()(double val) const
 {
     return satFunc(val);
 }
-double saturation::compute(double val) const
+double Saturation::compute(double val) const
 {
     return satFunc(val);
 }
-double saturation::deriv(double val) const
+double Saturation::deriv(double val) const
 {
     return derivFunc(val);
 }
-double saturation::inv(double val) const
+double Saturation::inv(double val) const
 {
     if (val < 0.00001) {
         return 0.5;
@@ -129,7 +128,7 @@ double saturation::inv(double val) const
     return ret;
 }
 
-void saturation::computeParam()
+void Saturation::computeParam()
 {
     switch (type) {
         case SaturationType::QUADRATIC: {
@@ -160,7 +159,7 @@ void saturation::computeParam()
     }
 }
 
-void saturation::loadFunctions()
+void Saturation::loadFunctions()
 {
     switch (type) {
         case SaturationType::QUADRATIC:
@@ -191,4 +190,3 @@ void saturation::loadFunctions()
 }
 
 }  // namespace utilities
-// NOLINTEND

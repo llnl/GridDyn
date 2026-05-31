@@ -78,7 +78,7 @@ class GridBlock: public GridSubModel {
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
   protected:
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
@@ -172,28 +172,28 @@ class GridBlock: public GridSubModel {
     virtual void blockJacobianElements(double input,
                                        double didt,
                                        const StateData& stateDataValue,
-                                       matrixData<double>& matrixDataValue,
+                                       MatrixData<double>& matrixDataValue,
                                        index_t argLoc,
                                        const SolverMode& solverModeValue);
 
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& stateDataValue,
-                                  matrixData<double>& matrixDataValue,
+                                  MatrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& solverModeValue) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     /** @brief simplifying function in place of timestep since block have only one input/output
     @param[in] time  the time to step to
     @param[in] input  the input argument
     @return the output
     */
-    virtual double step(coreTime time, double input);
+    virtual double step(CoreTime time, double input);
     virtual void rootTest(const IOdata& inputs,
                           const StateData& stateDataValue,
                           double roots[],
                           const SolverMode& solverModeValue) override;
-    virtual void rootTrigger(coreTime time,
+    virtual void rootTrigger(CoreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const SolverMode& solverModeValue) override;
@@ -201,7 +201,7 @@ class GridBlock: public GridSubModel {
                                  const StateData& stateDataValue,
                                  const SolverMode& solverModeValue,
                                  CheckLevel level) override;
-    // virtual void setTime(coreTime time){prevTime=time;};
+    // virtual void setTime(CoreTime time){prevTime=time;};
     virtual stringVec localStateNames() const override;
     /** get the single output for the block
     @param[in] stateDataValue the state data to use in computing the output

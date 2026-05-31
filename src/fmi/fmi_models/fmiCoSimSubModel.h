@@ -42,7 +42,7 @@ class FmiCoSimSubModel: public GridSubModel {
     FmiCoSimSubModel(std::shared_ptr<Fmi2CoSimObject> fmi = nullptr);
     virtual ~FmiCoSimSubModel();
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    virtual void dynObjectInitializeA(coreTime time, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -57,10 +57,10 @@ class FmiCoSimSubModel: public GridSubModel {
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void ioPartialDerivatives(const IOdata& inputs,
                                       const StateData& sD,
-                                      matrixData<double>& md,
+                                      MatrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
 

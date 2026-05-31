@@ -37,7 +37,7 @@ class GridDynSimulation;
 class Relay;
 class GridBus;
 class GridPrimary;
-class gridSecondary;
+class GridSecondary;
 class GridSubModel;
 
 GridBus* readBusElement(std::shared_ptr<ReaderElement>& element,
@@ -186,7 +186,7 @@ inline const std::string& parentSearchComponent(GridPrimary*)
     return areaTypeStringRef;
 }
 
-inline const std::string& parentSearchComponent(gridSecondary*)
+inline const std::string& parentSearchComponent(GridSecondary*)
 {
     static const std::string busTypeStringRef{busTypeString};
     return busTypeStringRef;

@@ -36,20 +36,20 @@ CoreObject* PulseSource::clone(CoreObject* obj) const
     return nobj;
 }
 
-void PulseSource::pFlowObjectInitializeA(coreTime time0, std::uint32_t /*flags*/)
+void PulseSource::pFlowObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
 {
     cycleTime =
         time0 - shift * period - period;  // subtract a period so it cycles properly the first time
     updateOutput(time0);
 }
 
-void PulseSource::updateOutput(coreTime time)
+void PulseSource::updateOutput(CoreTime time)
 {
     if ((time == prevTime) || (period == maxTime)) {
         return;
     }
 
-    coreTime tdiff = time - cycleTime;
+    CoreTime tdiff = time - cycleTime;
     if (tdiff > period) {
         cycleTime += period;
         tdiff -= period;
@@ -66,7 +66,7 @@ void PulseSource::updateOutput(coreTime time)
     prevTime = time;
 }
 
-double PulseSource::computeOutput(coreTime time) const
+double PulseSource::computeOutput(CoreTime time) const
 {
     if ((time == prevTime) || (period == maxTime)) {
         return m_output;

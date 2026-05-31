@@ -66,7 +66,7 @@ void FmiMELoad3phase::set(std::string_view param, double val, units::unit unitTy
     }
 }
 
-void FmiMELoad3phase::setState(coreTime time,
+void FmiMELoad3phase::setState(CoreTime time,
                                const double state[],
                                const double dstateDt[],
                                const SolverMode& sMode)

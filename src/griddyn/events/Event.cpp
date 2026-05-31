@@ -51,7 +51,7 @@ Event::Event(const std::string& eventName):
 {
 }
 
-Event::Event(coreTime time0): triggerTime(time0), eventId(static_cast<count_t>(getID())) {}
+Event::Event(CoreTime time0): triggerTime(time0), eventId(static_cast<count_t>(getID())) {}
 
 Event::Event(const EventInfo& gdEI, CoreObject* rootObject):
     triggerTime(negTime), eventId(static_cast<count_t>(getID()))
@@ -182,7 +182,7 @@ void Event::set(std::string_view param, std::string_view val)
     }
 }
 
-void Event::setTime(coreTime time)
+void Event::setTime(CoreTime time)
 {
     triggerTime = time;
 }
@@ -237,7 +237,7 @@ ChangeCode Event::trigger()
     }
 }
 
-ChangeCode Event::trigger(coreTime time)
+ChangeCode Event::trigger(CoreTime time)
 {
     ChangeCode ret = ChangeCode::NOT_TRIGGERED;
     if (time >= triggerTime) {
@@ -396,7 +396,7 @@ void EventInfo::loadString(std::string_view eventString, CoreObject* rootObj)
                 period = std::stod(tstring.substr(cstr + 1, std::string::npos));
             }
         } else {
-            time = str2vector<coreTime>(tstring, negTime, ",");
+            time = str2vector<CoreTime>(tstring, negTime, ",");
         }
         objString = (posA > 2) ? eventString.substr(0, posA - 1) :
                                  eventString.substr(posT + 1, std::string::npos);
@@ -435,7 +435,7 @@ void EventInfo::loadString(std::string_view eventString, CoreObject* rootObj)
 }
 
 std::unique_ptr<Event>
-    makeEvent(std::string_view field, double val, coreTime eventTime, CoreObject* rootObject)
+    makeEvent(std::string_view field, double val, CoreTime eventTime, CoreObject* rootObject)
 {
     auto eventObject = std::make_unique<Event>(eventTime);
     const ObjectInfo fdata(std::string{field}, rootObject);

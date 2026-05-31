@@ -23,12 +23,12 @@ EventQueue::EventQueue()
 }
 EventQueue::~EventQueue() = default;
 
-coreTime EventQueue::getNextTime() const
+CoreTime EventQueue::getNextTime() const
 {
     return events.front()->m_nextTime;
 }
 
-coreTime EventQueue::getNextTime(int eventCode) const
+CoreTime EventQueue::getNextTime(int eventCode) const
 {
     std::lock_guard<std::mutex> lock(queuelock_);
     for (auto& ev : events) {
@@ -39,7 +39,7 @@ coreTime EventQueue::getNextTime(int eventCode) const
     return maxTime;
 }
 
-void EventQueue::nullEventTime(coreTime time, coreTime period)
+void EventQueue::nullEventTime(CoreTime time, CoreTime period)
 {
     nullEvent->m_nextTime = time;
     if (period != kNullVal) {
@@ -48,7 +48,7 @@ void EventQueue::nullEventTime(coreTime time, coreTime period)
     sort();
 }
 
-coreTime EventQueue::getNullEventTime() const
+CoreTime EventQueue::getNullEventTime() const
 {
     return nullEvent->m_nextTime;
 }
@@ -80,7 +80,7 @@ void EventQueue::mapObjectsOnto(CoreObject* newRootObject)
     }
 }
 
-ChangeCode EventQueue::executeEvents(coreTime cTime)
+ChangeCode EventQueue::executeEvents(CoreTime cTime)
 {
     if (events.front()->m_nextTime > cTime + timeTols) {
         return ChangeCode::NO_CHANGE;
@@ -102,7 +102,7 @@ ChangeCode EventQueue::executeEvents(coreTime cTime)
     return ret;
 }
 
-ChangeCode EventQueue::executeEventsAonly(coreTime cTime)
+ChangeCode EventQueue::executeEventsAonly(CoreTime cTime)
 {
     if (events.front()->m_nextTime > cTime + timeTols) {
         return ChangeCode::NO_CHANGE;

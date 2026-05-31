@@ -31,10 +31,10 @@ class Dispatcher: public CoreObject {
     virtual ~Dispatcher();
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     void moveSchedulers(Dispatcher* dis);
-    virtual double initialize(coreTime time0, double dispatch);
+    virtual double initialize(CoreTime time0, double dispatch);
 
-    virtual double updateP(coreTime time, double required, double targetTime);
-    virtual double testP(coreTime time, double required, double targetTime);
+    virtual double updateP(CoreTime time, double required, double targetTime);
+    virtual double testP(CoreTime time, double required, double targetTime);
     double currentValue() { return totalDispatch; }
 
     virtual void add(CoreObject* obj) override;

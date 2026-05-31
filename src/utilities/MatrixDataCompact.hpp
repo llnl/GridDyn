@@ -6,15 +6,15 @@
 
 #pragma once
 
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <array>
 
 /** @brief class implementing a dense matrix geared for Jacobian entries
- this matrixData structure is intended to be for small dense matrices with a required fast value
+ this MatrixData structure is intended to be for small dense matrices with a required fast value
 lookup and possibly lots of duplicate entries
 */
 template<count_t R, count_t C, class ValueT = double>
-class matrixDataCompact: public matrixData<ValueT> {
+class MatrixDataCompact: public MatrixData<ValueT> {
   private:
     std::array<ValueT, R * C> dVec;  //!< the array containing the data
     index_t Rctr = 0;
@@ -23,7 +23,7 @@ class matrixDataCompact: public matrixData<ValueT> {
   public:
     /** @brief compact constructor
      */
-    matrixDataCompact(): matrixData<ValueT>(R, C) {}
+    MatrixDataCompact(): MatrixData<ValueT>(R, C) {}
 
     virtual void clear() override { dVec.fill(0); }
     virtual void assign(index_t row, index_t col, ValueT num) override
@@ -37,27 +37,27 @@ class matrixDataCompact: public matrixData<ValueT> {
     virtual void limitUpdate(index_t newRowLimit, index_t newColLimit) final override
     {  // the row and col limits cannot change
         if (newRowLimit != R) {
-            matrixData<ValueT>::setRowLimit(R);
+            MatrixData<ValueT>::setRowLimit(R);
         }
         if (newColLimit != C) {
-            matrixData<ValueT>::setColLimit(R);
+            MatrixData<ValueT>::setColLimit(R);
         }
     }
-    virtual matrixElement<ValueT> element(index_t N) const override
+    virtual MatrixElement<ValueT> element(index_t N) const override
     {
         return {N % R, N / R, dVec[N]};
     }
     virtual void start() override
     {
-        matrixData<ValueT>::cur = 0;
+        MatrixData<ValueT>::cur = 0;
         Rctr = 0;
         Cctr = 0;
     }
 
-    virtual matrixElement<ValueT> next() override
+    virtual MatrixElement<ValueT> next() override
     {
-        matrixElement<ValueT> tp{Rctr, Cctr, dVec[matrixData<ValueT>::cur]};
-        ++matrixData<ValueT>::cur;
+        MatrixElement<ValueT> tp{Rctr, Cctr, dVec[MatrixData<ValueT>::cur]};
+        ++MatrixData<ValueT>::cur;
         ++Rctr;
         if (Rctr == R) {
             Rctr = 0;
@@ -67,14 +67,14 @@ class matrixDataCompact: public matrixData<ValueT> {
     }
 
     virtual ValueT at(index_t rowN, index_t colN) const override { return dVec[colN * R + rowN]; }
-    auto begin() { return matrixIteratorCompact(this, 0); }
-    auto end() { return matrixIteratorCompact(this, R * C); }
+    auto begin() { return MatrixIteratorCompact(this, 0); }
+    auto end() { return MatrixIteratorCompact(this, R * C); }
 
   protected:
-    class matrixIteratorCompact {
+    class MatrixIteratorCompact {
       public:
-        explicit matrixIteratorCompact(const matrixDataCompact<R, C, ValueT>* matrixData,
-                                       index_t start = 0): mDC(matrixData), counter(start)
+        explicit MatrixIteratorCompact(const MatrixDataCompact<R, C, ValueT>* MatrixData,
+                                       index_t start = 0): mDC(MatrixData), counter(start)
         {
             if (start == mDC->size()) {
                 Rctr = R;
@@ -82,7 +82,7 @@ class matrixDataCompact: public matrixData<ValueT> {
             }
         }
 
-        virtual matrixIteratorCompact& operator++()
+        virtual MatrixIteratorCompact& operator++()
         {
             ++counter;
             ++Rctr;
@@ -93,10 +93,10 @@ class matrixDataCompact: public matrixData<ValueT> {
             return *this;
         }
 
-        virtual matrixElement<ValueT> operator*() const { return {Rctr, Cctr, mDC->dVec[counter]}; }
+        virtual MatrixElement<ValueT> operator*() const { return {Rctr, Cctr, mDC->dVec[counter]}; }
 
       private:
-        const matrixDataCompact<R, C, ValueT>* mDC;
+        const MatrixDataCompact<R, C, ValueT>* mDC;
         index_t Rctr{0};
         index_t Cctr{0};
         index_t counter;

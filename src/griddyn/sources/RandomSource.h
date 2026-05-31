@@ -10,7 +10,7 @@
 #include <memory>
 #include <string>
 namespace utilities {
-class gridRandom;
+class GridRandom;
 }
 
 namespace griddyn::sources {
@@ -35,21 +35,21 @@ class RandomSource: public RampSource {
     model_parameter zbias =
         0.0;  //!< a factor describing the preference of changes to trend toward zero mean
     model_parameter offset = 0.0;  //!< the current bias in the value
-    coreTime keyTime = 0.0;  //!< the next time change
+    CoreTime keyTime = 0.0;  //!< the next time change
     std::string timeDistribution = "constant";  //!< string representing the time Distribution
                                                 //!< random number generation type
     std::string valDistribution = "constant";  //!< string representing the value Distribution
                                                //!< random number generation type
-    std::unique_ptr<utilities::gridRandom> timeGenerator;  //!< random number generator for the time
-    std::unique_ptr<utilities::gridRandom> valGenerator;  //!< random number generator for the value
+    std::unique_ptr<utilities::GridRandom> timeGenerator;  //!< random number generator for the time
+    std::unique_ptr<utilities::GridRandom> valGenerator;  //!< random number generator for the value
 
   public:
     RandomSource(const std::string& objName = "randomsource_#", double startVal = 0.0);
-    ~RandomSource();  // included so the definition of gridRandom doesn't have to be
+    ~RandomSource();  // included so the definition of GridRandom doesn't have to be
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     /** check if the random number generation has been triggered*/
     bool isTriggered() { return opFlags[TRIGGERED_FLAG]; }
@@ -58,17 +58,17 @@ class RandomSource: public RampSource {
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    virtual void updateA(coreTime time) override;
+    virtual void updateA(CoreTime time) override;
 
     void setFlag(std::string_view flag, bool val = true) override;
 
-    virtual void updateOutput(coreTime time) override;
+    virtual void updateOutput(CoreTime time) override;
 
   private:
     /** generate the next step in the random process this source represents*/
-    void nextStep(coreTime triggerTime);
+    void nextStep(CoreTime triggerTime);
     /** generate a random time for the next update*/
-    coreTime ntime();
+    CoreTime ntime();
     /** generate a new random value*/
     double nval();
     void timeParamUpdate();

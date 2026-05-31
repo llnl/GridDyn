@@ -9,7 +9,7 @@
 #include "../Generator.h"
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -99,7 +99,7 @@ void GovernorTgov1::derivative(const IOdata& inputs,
     Loc.destDiffLoc[0] = (Loc.diffStateLoc[1] - Loc.diffStateLoc[0] - T2 * Loc.destDiffLoc[1]) / T3;
 }
 
-void GovernorTgov1::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
+void GovernorTgov1::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     GovernorTgov1::derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
     double dt = time - prevTime;
@@ -114,7 +114,7 @@ void GovernorTgov1::timestep(coreTime time, const IOdata& inputs, const SolverMo
 
 void GovernorTgov1::jacobianElements(const IOdata& /*inputs*/,
                                      const StateData& sD,
-                                     matrixData<double>& md,
+                                     MatrixData<double>& md,
                                      const IOlocs& inputLocs,
                                      const SolverMode& sMode)
 {
@@ -202,7 +202,7 @@ void GovernorTgov1::rootTest(const IOdata& inputs,
     }
 }
 
-void GovernorTgov1::rootTrigger(coreTime /*time*/,
+void GovernorTgov1::rootTrigger(CoreTime /*time*/,
                                 const IOdata& inputs,
                                 const std::vector<int>& rootMask,
                                 const SolverMode& sMode)

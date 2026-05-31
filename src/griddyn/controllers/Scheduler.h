@@ -39,10 +39,10 @@ class Scheduler: public Source {
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual ~Scheduler();
 
-    virtual void updateA(coreTime time) override;
-    virtual double predict(coreTime time);
+    virtual void updateA(CoreTime time) override;
+    virtual double predict(CoreTime time);
 
-    virtual void setTarget(coreTime time, double target);
+    virtual void setTarget(CoreTime time, double target);
     virtual void setTarget(double target);
     virtual void setTarget(const std::string& fileName);
     virtual void setTarget(std::vector<double>& time, std::vector<double>& target);
@@ -50,7 +50,7 @@ class Scheduler: public Source {
     double getEnergy() { return pCurr; }
 
   protected:
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -67,11 +67,11 @@ class Scheduler: public Source {
     /** get the maximum available power within a specified time window
     @param[in] time the time window to make the power
     */
-    virtual double getMax(coreTime time = maxTime) const;
+    virtual double getMax(CoreTime time = maxTime) const;
     /** get the low power level available within a specified time window
     @param[in] time the time window to make the power level
     */
-    virtual double getMin(coreTime time = maxTime) const;
+    virtual double getMin(CoreTime time = maxTime) const;
 
   protected:
     virtual void insertTarget(Tsched targetSchedule);
@@ -96,10 +96,10 @@ class SchedulerRamp: public Scheduler {
   protected:
     double rampUp = kBigNum;  //!< maximum ramp rate in the up direction
     double rampDown = kBigNum;  //!< maximum ramp rate in the down direction
-    coreTime rampTime = 20.0 * 60.0;  //!< the ramp window
+    CoreTime rampTime = 20.0 * 60.0;  //!< the ramp window
     double dpdt = 0.0;  //!< the actual ramp rate
     double pRampCurr = 0.0;  //!< the current scheduled ramp rate
-    coreTime lastTargetTime = negTime;  //!< the time of the last scheduled target power level
+    CoreTime lastTargetTime = negTime;  //!< the time of the last scheduled target power level
 
     double ramp10Up = kBigNum;  //!<[puMW] The 10 minute maximum up ramp
     double ramp30Up = kBigNum;  //!< the 30 minute maximum up ramp
@@ -110,7 +110,7 @@ class SchedulerRamp: public Scheduler {
     // spinning reserve capacity
     double reserveAvail = 0.0;  //!< the amount of reserve power in the generator
     double reserveUse = 0.0;  //!< the amount of reserve power to use
-    coreTime reserveRampTime = 15.0 * 60.0;  //!< the time window the object has to meet the reserve
+    CoreTime reserveRampTime = 15.0 * 60.0;  //!< the time window the object has to meet the reserve
     double reserveAct = 0.0;  //!< the actual current reserve
     double reservePriority = 0.0;  //!< the priority level of the reserve
 
@@ -120,14 +120,14 @@ class SchedulerRamp: public Scheduler {
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     using Scheduler::setTarget;
-    void setTarget(coreTime time, double target) override;
+    void setTarget(CoreTime time, double target) override;
     void setTarget(double target) override;
     void setTarget(const std::string& fileName) override;
 
-    virtual void updateA(coreTime time) override;
-    virtual double predict(coreTime time) override;
+    virtual void updateA(CoreTime time) override;
+    virtual double predict(CoreTime time) override;
 
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -146,8 +146,8 @@ class SchedulerRamp: public Scheduler {
     double getReserveUse() { return reserveAct; }
     double getReserveAvailable() { return reserveAvail; }
     virtual void dispatcherLink() override;
-    virtual double getMax(coreTime time = maxTime) const override;
-    virtual double getMin(coreTime time = maxTime) const override;
+    virtual double getMax(CoreTime time = maxTime) const override;
+    virtual double getMin(CoreTime time = maxTime) const override;
 
   protected:
     virtual void updatePTarget();
@@ -192,10 +192,10 @@ class SchedulerReg: public SchedulerRamp {
     double getRegDownAvailable() const { return regDownFrac * participationRating; }
     bool getRegEnabled() const { return regEnabled; }
 
-    void updateA(coreTime time) override;
-    double predict(coreTime time) override;
+    void updateA(CoreTime time) override;
+    double predict(CoreTime time) override;
 
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -212,8 +212,8 @@ class SchedulerReg: public SchedulerRamp {
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
     virtual void dispatcherLink() override;
-    virtual double getMax(coreTime time = maxTime) const override;
-    virtual double getMin(coreTime time = maxTime) const override;
+    virtual double getMax(CoreTime time = maxTime) const override;
+    virtual double getMin(CoreTime time = maxTime) const override;
 
   protected:
     virtual void receiveMessage(std::uint64_t sourceID,

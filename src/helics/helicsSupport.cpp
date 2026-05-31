@@ -12,14 +12,14 @@
 #include <string_view>
 
 namespace griddyn::helicsLib {
-helics::Time gdToHelicsTime(coreTime eventTime)
+helics::Time gdToHelicsTime(CoreTime eventTime)
 {
     return helics::Time(eventTime.toCount(time_units::ns), time_units::ns);
 }
 
-coreTime helicsToGdTime(helics::Time federateTime)
+CoreTime helicsToGdTime(helics::Time federateTime)
 {
-    return coreTime(federateTime.toCount(time_units::ns), time_units::ns);
+    return CoreTime(federateTime.toCount(time_units::ns), time_units::ns);
 }
 
 const std::regex creg(

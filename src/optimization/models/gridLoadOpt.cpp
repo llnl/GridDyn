@@ -140,7 +140,7 @@ void GridLoadOpt::constraintValue(const OptimizationData& /*of*/,
 {
 }
 void GridLoadOpt::constraintJacobianElements(const OptimizationData& /*of*/,
-                                             matrixData<double>& /*md*/,
+                                             MatrixData<double>& /*md*/,
                                              const OptimizationMode& /*oMode*/)
 {
 }
@@ -158,12 +158,12 @@ void GridLoadOpt::gradient(const OptimizationData& /*of*/,
 {
 }
 void GridLoadOpt::jacobianElements(const OptimizationData& /*of*/,
-                                   matrixData<double>& /*md*/,
+                                   MatrixData<double>& /*md*/,
                                    const OptimizationMode& /*oMode*/)
 {
 }
 void GridLoadOpt::getConstraints(const OptimizationData& /*of*/,
-                                 matrixData<double>& /*cons*/,
+                                 MatrixData<double>& /*cons*/,
                                  double /*upperLimit*/[],
                                  double /*lowerLimit*/[],
                                  const OptimizationMode& /*oMode*/)

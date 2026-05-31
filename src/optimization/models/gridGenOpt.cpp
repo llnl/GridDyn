@@ -13,7 +13,7 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "gridBusOpt.h"
 #include "griddyn/Generator.h"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include "utilities/vectData.hpp"
 #include <algorithm>
 #include <charconv>
@@ -268,7 +268,7 @@ void GridGenOpt::gradient(const OptimizationData& of, double deriv[], const Opti
     }
 }
 void GridGenOpt::jacobianElements(const OptimizationData& of,
-                                  matrixData<double>& md,
+                                  MatrixData<double>& md,
                                   const OptimizationMode& oMode)
 {
     auto& oo = offsets.getOffsets(oMode);
@@ -312,7 +312,7 @@ void GridGenOpt::jacobianElements(const OptimizationData& of,
 }
 
 void GridGenOpt::getConstraints(const OptimizationData& /* of */,
-                                matrixData<double>& /*cons*/,
+                                MatrixData<double>& /*cons*/,
                                 double /*upperLimit*/[],
                                 double /*lowerLimit*/[],
                                 const OptimizationMode& /* oMode */)
@@ -326,7 +326,7 @@ void GridGenOpt::constraintValue(const OptimizationData& /* of */,
 }
 
 void GridGenOpt::constraintJacobianElements(const OptimizationData& /* of */,
-                                            matrixData<double>& /*md*/,
+                                            MatrixData<double>& /*md*/,
                                             const OptimizationMode& /* oMode */)
 {
 }

@@ -42,12 +42,12 @@ class Collector: public HelperObject, public EventInterface, public ObjectOperat
     count_t mWarningCount = 0;  //!< counter for the number of warnings
     // there is currently a 4 byte gap here
     std::vector<std::string> mWarnList;  //!< listing for the number of warnings
-    coreTime mTimePeriod;  //!< the actual period of the Collector
-    coreTime mRequestedPeriod;  //!< the requested period of the Collector
-    coreTime mStartTime = negTime;  //!< the time to start collecting
-    coreTime mStopTime = maxTime;  //!< the time to stop collecting
-    coreTime mTriggerTime = maxTime;  //!< the next trigger time for the Collector
-    coreTime mLastTriggerTime = negTime;  //!< the last time the Collector was triggered
+    CoreTime mTimePeriod;  //!< the actual period of the Collector
+    CoreTime mRequestedPeriod;  //!< the requested period of the Collector
+    CoreTime mStartTime = negTime;  //!< the time to start collecting
+    CoreTime mStopTime = maxTime;  //!< the time to stop collecting
+    CoreTime mTriggerTime = maxTime;  //!< the next trigger time for the Collector
+    CoreTime mLastTriggerTime = negTime;  //!< the last time the Collector was triggered
 
     /** data structure to capture the grabbers and location for a specific grabber*/
     class CollectorPoint {
@@ -78,7 +78,7 @@ class Collector: public HelperObject, public EventInterface, public ObjectOperat
     bool mDelayProcess = true;  //!< wait to process recorders until other events have executed
     bool mVectorName = false;  //!< indicator to use vector notation for the name
   public:
-    Collector(coreTime time0 = timeZero, coreTime period = timeOneSecond);
+    Collector(CoreTime time0 = timeZero, CoreTime period = timeOneSecond);
     explicit Collector(const std::string& collectorName);
 
     /** duplicate the Collector
@@ -99,10 +99,10 @@ class Collector: public HelperObject, public EventInterface, public ObjectOperat
     @return the number of data points stored
     */
     count_t grabData(double* outputData, index_t outputCount);
-    virtual ChangeCode trigger(coreTime time) override;
+    virtual ChangeCode trigger(CoreTime time) override;
     /** do a check to check and assign all columns*/
     void recheckColumns();
-    coreTime nextTriggerTime() const override { return mTriggerTime; }
+    CoreTime nextTriggerTime() const override { return mTriggerTime; }
     EventExecutionMode executionMode() const override
     {
         return (mDelayProcess) ? EventExecutionMode::delayed : EventExecutionMode::normal;
@@ -122,7 +122,7 @@ class Collector: public HelperObject, public EventInterface, public ObjectOperat
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void setFlag(std::string_view flag, bool val) override;
 
-    virtual void setTime(coreTime time);
+    virtual void setTime(CoreTime time);
 
     virtual CoreObject* getObject() const override;
 

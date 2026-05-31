@@ -12,7 +12,7 @@
 namespace griddyn::extra {
 /** @brief basic thermal model of a transformer
  */
-class txThermalModel: public Sensor {
+class TxThermalModel: public Sensor {
   public:
     enum ThermalModelFlags {
         auto_parameter_load = object_flag10,
@@ -41,7 +41,7 @@ class txThermalModel: public Sensor {
     double mRadiationConstant = 0.0;  //!< transformer radiation constant
   public:
     /** @brief constructor*/
-    txThermalModel(const std::string& objName = "txThermal_$");
+    TxThermalModel(const std::string& objName = "txThermal_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
     virtual void set(std::string_view param, std::string_view val) override;
@@ -53,13 +53,13 @@ class txThermalModel: public Sensor {
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
-    virtual void updateA(coreTime time) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void updateA(CoreTime time) override;
 };
 
 }  // namespace griddyn::extra

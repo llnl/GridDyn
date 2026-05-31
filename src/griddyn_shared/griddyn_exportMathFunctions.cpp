@@ -9,7 +9,7 @@
 #include "griddyn_export.h"
 #include "internal/griddyn_export_internal.h"
 #include "runner/gridDynRunner.h"
-#include "utilities/matrixDataCustomWriteOnly.hpp"
+#include "utilities/MatrixDataCustomWriteOnly.hpp"
 #include <algorithm>
 #include <utility>
 #include <vector>
@@ -258,9 +258,9 @@ void GridDynSimulationJacobian(GridDynSimulation sim,
         assignError(err, griddyn_error_invalid_object, invalidSolver);
         return;
     }
-    matrixDataCustomWriteOnly<double> matrixData;
-    matrixData.setFunction([insert](index_t row, index_t col, double val) {
+    MatrixDataCustomWriteOnly<double> MatrixData;
+    MatrixData.setFunction([insert](index_t row, index_t col, double val) {
         insert(static_cast<int>(row), static_cast<int>(col), val);
     });
-    runner->getSim()->jacobianFunction(time, states, dstate_dt, matrixData, cj, sMode);
+    runner->getSim()->jacobianFunction(time, states, dstate_dt, MatrixData, cj, sMode);
 }

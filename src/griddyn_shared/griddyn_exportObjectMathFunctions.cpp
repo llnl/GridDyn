@@ -11,7 +11,7 @@
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn_export_advanced.h"
 #include "internal/griddyn_export_internal.h"
-#include "utilities/matrixDataCustomWriteOnly.hpp"
+#include "utilities/MatrixDataCustomWriteOnly.hpp"
 #include <vector>
 
 using griddyn::dyn_initialized;
@@ -328,7 +328,7 @@ void gridDynObjectJacobian(GridDynObject obj,
         assignError(err, griddyn_error_invalid_object, invalidSolver);
         return;
     }
-    matrixDataCustomWriteOnly<double> md;
+    MatrixDataCustomWriteOnly<double> md;
     md.setFunction([insert](index_t row, index_t col, double val) {
         insert(static_cast<int>(row), static_cast<int>(col), val);
     });
@@ -358,7 +358,7 @@ void gridDynObjecIoPartialDerivatives(GridDynObject obj,
         assignError(err, griddyn_error_invalid_object, invalidSolver);
         return;
     }
-    matrixDataCustomWriteOnly<double> md;
+    MatrixDataCustomWriteOnly<double> md;
     md.setFunction([insert](index_t row, index_t col, double val) {
         insert(static_cast<int>(row), static_cast<int>(col), val);
     });
@@ -385,7 +385,7 @@ void gridDynObjectOutputPartialDerivatives(GridDynObject obj,
         return;
     }
 
-    matrixDataCustomWriteOnly<double> md;
+    MatrixDataCustomWriteOnly<double> md;
     md.setFunction([insert](index_t row, index_t col, double val) {
         insert(static_cast<int>(row), static_cast<int>(col), val);
     });

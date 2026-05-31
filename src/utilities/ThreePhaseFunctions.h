@@ -7,7 +7,7 @@
 #pragma once
 
 /** @file
- *  @brief define some operations related to matrixData objects
+ *  @brief define some operations related to MatrixData objects
  */
 #include <complex>
 #include <type_traits>

@@ -32,7 +32,7 @@ class FmiMELoad3phase: public FmiMEWrapper<loads::ThreePhaseLoad> {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual void setState(coreTime time,
+    virtual void setState(CoreTime time,
                           const double state[],
                           const double dstateDt[],
                           const SolverMode& sMode) override;

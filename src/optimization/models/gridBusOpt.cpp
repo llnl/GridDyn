@@ -223,7 +223,7 @@ void GridBusOpt::gradient(const OptimizationData& optimizationData,
     }
 }
 void GridBusOpt::jacobianElements(const OptimizationData& optimizationData,
-                                  matrixData<double>& matrixDataRef,
+                                  MatrixData<double>& matrixDataRef,
                                   const OptimizationMode& oMode)
 {
     for (auto* loadObject : loadList) {
@@ -234,7 +234,7 @@ void GridBusOpt::jacobianElements(const OptimizationData& optimizationData,
     }
 }
 void GridBusOpt::getConstraints(const OptimizationData& optimizationData,
-                                matrixData<double>& cons,
+                                MatrixData<double>& cons,
                                 double upperLimit[],
                                 double lowerLimit[],
                                 const OptimizationMode& oMode)
@@ -260,7 +260,7 @@ void GridBusOpt::constraintValue(const OptimizationData& optimizationData,
 }
 
 void GridBusOpt::constraintJacobianElements(const OptimizationData& optimizationData,
-                                            matrixData<double>& matrixDataRef,
+                                            MatrixData<double>& matrixDataRef,
                                             const OptimizationMode& oMode)
 {
     for (auto* loadObject : loadList) {

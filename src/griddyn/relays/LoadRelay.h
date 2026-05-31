@@ -23,9 +23,9 @@ class LoadRelay: public Relay {
   protected:
     double mCutoutVoltage = 0.0;  //!<[puV] low voltage trigger for load
     double mCutoutFrequency = 0.0;  //!<[puHz] low frequency trigger for load
-    coreTime mVoltageDelay = timeZero;  //!<[s]  the delay on the voltage trip
-    coreTime mFrequencyDelay = timeZero;  //!<[s] the delay on the frequency tripping
-    coreTime mOffTime = maxTime;  //!<[s] the time before the load comes back on line if the trip
+    CoreTime mVoltageDelay = timeZero;  //!<[s]  the delay on the voltage trip
+    CoreTime mFrequencyDelay = timeZero;  //!<[s] the delay on the frequency tripping
+    CoreTime mOffTime = maxTime;  //!<[s] the time before the load comes back on line if the trip
                                   //!< cause has been corrected
   public:
     explicit LoadRelay(const std::string& objName = "loadRelay_$");
@@ -36,14 +36,14 @@ class LoadRelay: public Relay {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
   protected:
     virtual void actionTaken(index_t actionNum,
                              index_t conditionNum,
                              ChangeCode actionReturn,
-                             coreTime actionTime) override;
-    virtual void conditionTriggered(index_t conditionNum, coreTime triggerTime) override;
-    virtual void conditionCleared(index_t conditionNum, coreTime triggerTime) override;
+                             CoreTime actionTime) override;
+    virtual void conditionTriggered(index_t conditionNum, CoreTime triggerTime) override;
+    virtual void conditionCleared(index_t conditionNum, CoreTime triggerTime) override;
 };
 }  // namespace griddyn::relays

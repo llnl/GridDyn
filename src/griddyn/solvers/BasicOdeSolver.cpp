@@ -79,7 +79,7 @@ void BasicOdeSolver::allocate(count_t stateCount, count_t numRoots)
     }
 }
 
-void BasicOdeSolver::initialize(coreTime t0)
+void BasicOdeSolver::initialize(CoreTime t0)
 {
     if (!flags[ALLOCATED_FLAG]) {
         throw(InvalidSolverOperation(-2));
@@ -112,13 +112,13 @@ void BasicOdeSolver::set(std::string_view param, double val)
     }
 }
 
-int BasicOdeSolver::solve(coreTime tStop, coreTime& tReturn, StepMode stepMode)
+int BasicOdeSolver::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
 {
     if (solveTime == tStop) {
         tReturn = tStop;
         return FUNCTION_EXECUTION_SUCCESS;
     }
-    coreTime Tstep = (std::min)(deltaT, tStop - solveTime);
+    CoreTime Tstep = (std::min)(deltaT, tStop - solveTime);
     if (mode.pairedOffsetIndex != kNullLocation) {
         int ret = m_gds->dynAlgebraicSolve(solveTime, state.data(), deriv.data(), mode);
         if (ret < FUNCTION_EXECUTION_SUCCESS) {

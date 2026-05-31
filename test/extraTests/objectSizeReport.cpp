@@ -27,7 +27,7 @@ TEST(ExtraSizeReportTests, ObjectSizeReport)
     std::cout << "solverOffset size=" << sizeof(SolverOffsets) << '\n';
     std::cout << "offsetTableSize=" << sizeof(OffsetTable) << '\n';
     std::cout << "solverModeSize=" << sizeof(SolverMode) << '\n';
-    std::cout << "coreTime size = " << sizeof(coreTime) << '\n';
+    std::cout << "CoreTime size = " << sizeof(CoreTime) << '\n';
 
     auto coreSize = sizeof(CoreObject);
     std::cout << "core object size=" << coreSize << '\n';
@@ -38,8 +38,8 @@ TEST(ExtraSizeReportTests, ObjectSizeReport)
     auto primSize = sizeof(GridPrimary);
     std::cout << "GridPrimary size=" << primSize << " adds " << primSize - compSize << '\n';
 
-    auto secSize = sizeof(gridSecondary);
-    std::cout << "gridSecondary size=" << secSize << " adds " << secSize - compSize << '\n';
+    auto secSize = sizeof(GridSecondary);
+    std::cout << "GridSecondary size=" << secSize << " adds " << secSize - compSize << '\n';
 
     std::cout << "bus size=" << sizeof(GridBus) << " adds " << sizeof(GridBus) - primSize << '\n';
     std::cout << "acbus size=" << sizeof(AcBus) << " adds " << sizeof(AcBus) - sizeof(GridBus)

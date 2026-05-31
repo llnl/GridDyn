@@ -40,7 +40,7 @@ class FmiMESubModel: public GridSubModel {
 
     std::vector<OutputEstimator*> oEst;  //!< vector of objects used for output estimation
                                          //!< //TODO:: Make this an actual vector of objects
-    coreTime localIntegrationTime = 0.01;
+    CoreTime localIntegrationTime = 0.01;
     FmuMode prevFmiState = FmuMode::INSTANTIATED_MODE;
     std::vector<ValueDependencyInfo> stateInformation;
     std::vector<ValueDependencyInfo> outputInformation;
@@ -61,10 +61,10 @@ class FmiMESubModel: public GridSubModel {
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
   protected:
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void pFlowObjectInitializeB() override;
 
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -96,24 +96,24 @@ class FmiMESubModel: public GridSubModel {
                             const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& sD,
-                                  matrixData<double>& md,
+                                  MatrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void ioPartialDerivatives(const IOdata& inputs,
                                       const StateData& sD,
-                                      matrixData<double>& md,
+                                      MatrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(const IOdata& inputs,
                                           const StateData& sD,
-                                          matrixData<double>& md,
+                                          MatrixData<double>& md,
                                           const SolverMode& sMode) override;
     virtual void rootTest(const IOdata& inputs,
                           const StateData& sD,
                           double roots[],
                           const SolverMode& sMode) override;
-    virtual void rootTrigger(coreTime time,
+    virtual void rootTrigger(CoreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode) override;
@@ -133,12 +133,12 @@ class FmiMESubModel: public GridSubModel {
     virtual double getOutput(index_t outputNum = 0) const override;
     virtual index_t getOutputLoc(const SolverMode& sMode, index_t outputNum = 0) const override;
 
-    virtual void setState(coreTime time,
+    virtual void setState(CoreTime time,
                           const double state[],
                           const double dstateDt[],
                           const SolverMode& sMode) override;
     // for saving the state
-    virtual void guessState(coreTime time,
+    virtual void guessState(CoreTime time,
                             double state[],
                             double dstateDt[],
                             const SolverMode& sMode) override;

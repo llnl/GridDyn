@@ -28,7 +28,7 @@ class FDepLoad: public ExponentialLoad {
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
@@ -36,7 +36,7 @@ class FDepLoad: public ExponentialLoad {
 
     virtual void ioPartialDerivatives(const IOdata& inputs,
                                       const StateData& sD,
-                                      matrixData<double>& md,
+                                      MatrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
     virtual double getRealPower(const IOdata& inputs,

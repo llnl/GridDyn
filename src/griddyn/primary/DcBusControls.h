@@ -11,7 +11,7 @@
 
 namespace griddyn {
 
-class gridSecondary;
+class GridSecondary;
 class DcBus;
 class GridBus;
 class Link;
@@ -33,7 +33,7 @@ class DcBusControls {
     double autogenPact = 0;  //!< use an automatic generator to local match P load
 
     // for managing voltage control objects
-    std::vector<gridSecondary*> controlObjects;  //!< object which control the voltage of the bus
+    std::vector<GridSecondary*> controlObjects;  //!< object which control the voltage of the bus
     std::vector<Link*> proxyControlObject;  //!< object which act as an interface for remote objects
                                             //!< acting on a bus
     std::vector<Link*> controlLinks;  //!< set of Link which themselves act as controllable objects;
@@ -54,8 +54,8 @@ class DcBusControls {
     bool hasAdjustments() const;
     bool hasAdjustments(id_type_t sid) const;
 
-    double getAdjustableCapacityUp(coreTime time) const;
-    double getAdjustableCapacityDown(coreTime time) const;
+    double getAdjustableCapacityUp(CoreTime time) const;
+    double getAdjustableCapacityDown(CoreTime time) const;
 
     void addControlObject(GridComponent* comp, bool update);
 

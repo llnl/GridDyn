@@ -13,7 +13,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "outputEstimator.h"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <memory>
 #include <string>
@@ -49,7 +49,7 @@ bool FmiCoSimSubModel::isLoaded() const
     return static_cast<bool>(cs);
 }
 
-void FmiCoSimSubModel::dynObjectInitializeA(coreTime time, std::uint32_t flags)
+void FmiCoSimSubModel::dynObjectInitializeA(CoreTime time, std::uint32_t flags)
 {
     if (CHECK_CONTROLFLAG(force_constant_pflow_initialization, flags)) {
         opFlags.set(pflow_init_required);
@@ -415,7 +415,7 @@ double FmiCoSimSubModel::getPartial(int depIndex, int refIndex, RefMode /*mode*/
     return res;
 }
 
-void FmiCoSimSubModel::timestep(coreTime /*time*/,
+void FmiCoSimSubModel::timestep(CoreTime /*time*/,
                                 const IOdata& /*inputs*/,
                                 const SolverMode& /*sMode*/)
 {
@@ -470,7 +470,7 @@ return out;
 
 void FmiCoSimSubModel::ioPartialDerivatives(const IOdata& /*inputs*/,
                                             const StateData& /*sD*/,
-                                            matrixData<double>& /* md*/,
+                                            MatrixData<double>& /* md*/,
                                             const IOlocs& /*inputLocs*/,
                                             const SolverMode& /*sMode*/)
 {

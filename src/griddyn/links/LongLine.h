@@ -35,7 +35,7 @@ class LongLine: public Subsystem {
     virtual void remove(CoreObject* obj)
         override final;  // there shouldn't be any removes all models are controlled internally
 
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void

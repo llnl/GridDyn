@@ -6,17 +6,17 @@
 
 #pragma once
 
-#include "matrixDataSparse.hpp"
+#include "MatrixDataSparse.hpp"
 #include <algorithm>
 #include <vector>
 
 template<typename ValueT>
-void matrixDataSparse<ValueT>::assign(index_t row, index_t col, ValueT num)
+void MatrixDataSparse<ValueT>::assign(index_t row, index_t col, ValueT num)
 {
     assert(row != kNullLocation);
     assert(col != kNullLocation);
-    assert(row < matrixData<ValueT>::rowLimit());
-    assert(col < matrixData<ValueT>::colLimit());
+    assert(row < MatrixData<ValueT>::rowLimit());
+    assert(col < MatrixData<ValueT>::colLimit());
     // assert (std::isfinite (num));
     assert(static_cast<int>(row) >= 0);
     assert(static_cast<int>(col) >= 0);
@@ -26,7 +26,7 @@ void matrixDataSparse<ValueT>::assign(index_t row, index_t col, ValueT num)
 }
 
 template<typename ValueT>
-void matrixDataSparse<ValueT>::sortIndex(SparseOrdering ordering)
+void MatrixDataSparse<ValueT>::sortIndex(SparseOrdering ordering)
 {
     switch (ordering) {
         case SparseOrdering::COLUMN_ORDERED:
@@ -40,7 +40,7 @@ void matrixDataSparse<ValueT>::sortIndex(SparseOrdering ordering)
 }
 
 template<typename ValueT>
-void matrixDataSparse<ValueT>::compact()
+void MatrixDataSparse<ValueT>::compact()
 {
     if (data_.empty()) {
         return;
@@ -72,7 +72,7 @@ void matrixDataSparse<ValueT>::compact()
 }
 
 template<typename ValueT>
-std::vector<count_t> matrixDataSparse<ValueT>::columnCount()
+std::vector<count_t> MatrixDataSparse<ValueT>::columnCount()
 {
     if (!isSorted()) {
         sortIndex(SparseOrdering::COLUMN_ORDERED);
@@ -95,12 +95,12 @@ std::vector<count_t> matrixDataSparse<ValueT>::columnCount()
 }
 
 template<typename ValueT>
-ValueT matrixDataSparse<ValueT>::at(index_t rowN, index_t colN) const
+ValueT MatrixDataSparse<ValueT>::at(index_t rowN, index_t colN) const
 {
     if (isSorted()) {
         auto res = std::lower_bound(data_.begin(),
                                     data_.end(),
-                                    matrixElement<ValueT>{rowN, colN, ValueT{0}},
+                                    MatrixElement<ValueT>{rowN, colN, ValueT{0}},
                                     compareCol<ValueT>);
         if (res == data_.end()) {
             return ValueT{0};
@@ -119,7 +119,7 @@ ValueT matrixDataSparse<ValueT>::at(index_t rowN, index_t colN) const
 }
 
 template<typename ValueT>
-void matrixDataSparse<ValueT>::scale(ValueT factor, index_t startIndex, count_t count)
+void MatrixDataSparse<ValueT>::scale(ValueT factor, index_t startIndex, count_t count)
 {
     if (startIndex >= static_cast<index_t>(data_.size())) {
         return;
@@ -136,7 +136,7 @@ void matrixDataSparse<ValueT>::scale(ValueT factor, index_t startIndex, count_t 
 }
 
 template<typename ValueT>
-void matrixDataSparse<ValueT>::copyReplicate(const matrixDataSparse<ValueT>& a2,
+void MatrixDataSparse<ValueT>::copyReplicate(const MatrixDataSparse<ValueT>& a2,
                                              index_t origCol,
                                              std::vector<index_t> newIndices,
                                              std::vector<ValueT> mult)
@@ -153,14 +153,14 @@ void matrixDataSparse<ValueT>::copyReplicate(const matrixDataSparse<ValueT>& a2,
 }
 
 template<typename ValueT>
-void matrixDataSparse<ValueT>::filter(index_t rowTest)
+void MatrixDataSparse<ValueT>::filter(index_t rowTest)
 {
     auto rem =
         std::remove_if(data_.begin(),
                        data_.end(),
                        [rowTest,
-                        clim = matrixData<ValueT>::colLimit(),
-                        rlim = matrixData<ValueT>::rowLimit()](const matrixElement<ValueT>& el) {
+                        clim = MatrixData<ValueT>::colLimit(),
+                        rlim = MatrixData<ValueT>::rowLimit()](const MatrixElement<ValueT>& el) {
                            return ((el.row == rowTest) || (el.row >= rlim) || (el.col >= clim));
                        });
 
@@ -168,7 +168,7 @@ void matrixDataSparse<ValueT>::filter(index_t rowTest)
 }
 
 template<typename ValueT>
-void matrixDataSparse<ValueT>::cascade(matrixDataSparse<ValueT>& a2, index_t elementIndex)
+void MatrixDataSparse<ValueT>::cascade(MatrixDataSparse<ValueT>& a2, index_t elementIndex)
 {
     auto term = data_.size();
     size_t nn = 0;
@@ -201,7 +201,7 @@ void matrixDataSparse<ValueT>::cascade(matrixDataSparse<ValueT>& a2, index_t ele
 }
 
 template<typename ValueT>
-std::vector<ValueT> matrixDataSparse<ValueT>::vectorMult(std::vector<ValueT> V)
+std::vector<ValueT> MatrixDataSparse<ValueT>::vectorMult(std::vector<ValueT> V)
 {
     sortIndex(SparseOrdering::ROW_ORDERED);
     auto maxRow = data_.back().row;
@@ -218,7 +218,7 @@ std::vector<ValueT> matrixDataSparse<ValueT>::vectorMult(std::vector<ValueT> V)
 }
 
 template<class ValueT>
-std::vector<index_t> findMissing(matrixDataSparse<ValueT>& md)
+std::vector<index_t> findMissing(MatrixDataSparse<ValueT>& md)
 {
     std::vector<index_t> missing;
     md.compact();
@@ -251,7 +251,7 @@ std::vector<index_t> findMissing(matrixDataSparse<ValueT>& md)
 }
 
 template<class ValueT>
-std::vector<std::vector<index_t>> findRank(matrixDataSparse<ValueT>& md)
+std::vector<std::vector<index_t>> findRank(MatrixDataSparse<ValueT>& md)
 {
     std::vector<index_t> vr, vt;
     std::vector<ValueT> vq, vtq;

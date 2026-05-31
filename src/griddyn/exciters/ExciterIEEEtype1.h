@@ -24,7 +24,7 @@ class ExciterIEEEtype1: public Exciter {
     explicit ExciterIEEEtype1(const std::string& objName = "exciterIEEEtype1_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -34,7 +34,7 @@ class ExciterIEEEtype1: public Exciter {
 
     virtual stringVec localStateNames() const override;
 
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void residual(const IOdata& inputs,
                           const StateData& sD,
                           double resid[],
@@ -46,7 +46,7 @@ class ExciterIEEEtype1: public Exciter {
     // only called if the genModel is not present
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& sD,
-                                  matrixData<double>& md,
+                                  MatrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
 

@@ -27,10 +27,10 @@ class PulseSource: public Source {
     };
     PulseType ptype = PulseType::SQUARE;  //!< the type of the pulse
   protected:
-    coreTime period = maxTime;  //!<[s] pulse period
+    CoreTime period = maxTime;  //!<[s] pulse period
     model_parameter dutyCycle = 0.5;  //!<[%] pulse duty cycle
     model_parameter Amplitude = 0.0;  //!< pulse amplitude
-    coreTime cycleTime = maxTime;  //!<[s] the start time of the last cycle
+    CoreTime cycleTime = maxTime;  //!<[s] the start time of the last cycle
     model_parameter baseValue;  //!< the base level of the output
     model_parameter shift = 0.0;  //!< storage for phase shift fraction (should be between 0 and 1)
 
@@ -41,10 +41,10 @@ class PulseSource: public Source {
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
-    virtual void updateOutput(coreTime time) override;
-    virtual double computeOutput(coreTime time) const override;
+    virtual void updateOutput(CoreTime time) override;
+    virtual double computeOutput(CoreTime time) const override;
     virtual double getDoutdt(const IOdata& inputs,
                              const StateData& stateData,
                              const SolverMode& sMode,

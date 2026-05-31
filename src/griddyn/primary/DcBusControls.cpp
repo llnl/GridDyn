@@ -33,7 +33,7 @@ bool DcBusControls::hasAdjustments(id_type_t sid) const
     return false;
 }
 
-double DcBusControls::getAdjustableCapacityUp(coreTime time) const
+double DcBusControls::getAdjustableCapacityUp(CoreTime time) const
 {
     double cap = 0.0;
 
@@ -51,7 +51,7 @@ double DcBusControls::getAdjustableCapacityUp(coreTime time) const
     return cap;
 }
 
-double DcBusControls::getAdjustableCapacityDown(coreTime time) const
+double DcBusControls::getAdjustableCapacityDown(CoreTime time) const
 {
     double cap = 0.0;
 
@@ -70,14 +70,14 @@ double DcBusControls::getAdjustableCapacityDown(coreTime time) const
 
 void DcBusControls::addControlObject(GridComponent* comp, bool update)
 {
-    if (dynamic_cast<gridSecondary*>(comp) != nullptr) {
+    if (dynamic_cast<GridSecondary*>(comp) != nullptr) {
         auto objid = comp->getID();
         for (auto& rvc : controlObjects) {
             if (objid == rvc->getID()) {
                 return;
             }
         }
-        controlObjects.push_back(static_cast<gridSecondary*>(comp));
+        controlObjects.push_back(static_cast<GridSecondary*>(comp));
         cfrac.push_back(comp->get("participation"));
     } else if (dynamic_cast<links::DcLink*>(comp) != nullptr) {
         auto objid = comp->getID();

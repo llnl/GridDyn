@@ -148,7 +148,7 @@ void GridGrabber::grabVectorData(std::vector<double>& vdata)
     }
 }
 
-coreTime GridGrabber::getTime() const
+CoreTime GridGrabber::getTime() const
 {
     if (mObject != nullptr) {
         return mObject->currentTime();
@@ -409,7 +409,7 @@ void FunctionGrabber::grabVectorData(std::vector<double>& vdata)
     std::transform(mTempArray.begin(), mTempArray.end(), vdata.begin(), mFunctionPtr);
 }
 
-coreTime FunctionGrabber::getTime() const
+CoreTime FunctionGrabber::getTime() const
 {
     if (mBaseGrabber) {
         return mBaseGrabber->getTime();
@@ -596,7 +596,7 @@ void OpGrabber::updateObject(CoreObject* obj, int num)
     }
 }
 
-coreTime OpGrabber::getTime() const
+CoreTime OpGrabber::getTime() const
 {
     if (mBaseGrabber1) {
         return mBaseGrabber1->getTime();

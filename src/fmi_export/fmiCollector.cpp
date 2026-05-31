@@ -36,7 +36,7 @@ void FmiCollector::cloneTo(Collector* collectorClone) const
     }
 }
 
-ChangeCode FmiCollector::trigger(coreTime time)
+ChangeCode FmiCollector::trigger(CoreTime time)
 {
     Collector::trigger(time);
     return ChangeCode::NO_CHANGE;

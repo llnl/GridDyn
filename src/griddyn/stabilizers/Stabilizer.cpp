@@ -63,7 +63,7 @@ void Stabilizer::set(std::string_view param, double val, units::unit unitType)
 
 void Stabilizer::jacobianElements(const IOdata& /*inputs*/,
                                   const StateData& /*sD*/,
-                                  matrixData<double>& /*md*/,
+                                  MatrixData<double>& /*md*/,
                                   const IOlocs& /*inputLocs*/,
                                   const SolverMode& sMode)
 {

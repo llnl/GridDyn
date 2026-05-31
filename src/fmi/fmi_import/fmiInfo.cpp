@@ -574,7 +574,7 @@ static constexpr char depKindString[] = "dependenciesKind";
 
 static void loadDependencies(std::shared_ptr<ReaderElement>& readerElementPtr,
                              std::vector<int>& store,
-                             matrixData<int>& depData)
+                             MatrixData<int>& depData)
 {
     using gmlc::utilities::stringOps::delimiter_compression;
     using gmlc::utilities::stringOps::splitline;

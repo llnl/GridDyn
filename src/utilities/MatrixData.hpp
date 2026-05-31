@@ -13,24 +13,24 @@
 /** @brief convenience structure for returning data
  */
 template<class ValueT>
-class matrixElement {
+class MatrixElement {
   public:
     using value_t = ValueT;
 
     index_t row;  //!< row
     index_t col;  //!< column
     value_t data;  //!< value
-    matrixElement() = default;
-    matrixElement(index_t R, index_t C, value_t D) noexcept: row{R}, col{C}, data{std::move(D)} {}
+    MatrixElement() = default;
+    MatrixElement(index_t R, index_t C, value_t D) noexcept: row{R}, col{C}, data{std::move(D)} {}
 };
 
 template<class X>
-static bool compareRow(const matrixElement<X>& A, const matrixElement<X>& B)
+static bool compareRow(const MatrixElement<X>& A, const MatrixElement<X>& B)
 {
     return (A.row < B.row) ? true : ((A.row > B.row) ? false : (A.col < B.col));
 }
 template<class X>
-static bool compareCol(const matrixElement<X>& A, const matrixElement<X>& B)
+static bool compareCol(const MatrixElement<X>& A, const MatrixElement<X>& B)
 {
     return (A.col < B.col) ? true : ((A.col > B.col) ? false : (A.row < B.row));
 }
@@ -38,7 +38,7 @@ static bool compareCol(const matrixElement<X>& A, const matrixElement<X>& B)
 /** @brief class implementing a matrix entry class for handling Jacobian entries
  *
  *  @details this is a purely virtual interface a specific
- *  instantiation is required in general matrixData objects are not
+ *  instantiation is required in general MatrixData objects are not
  *  thread safe, accessing from more than one thread at a time will
  *  likely be problematic, because they are virtual classes, no
  *  specific iterator is possible without dynamic allocation and that
@@ -49,7 +49,7 @@ static bool compareCol(const matrixElement<X>& A, const matrixElement<X>& B)
  *  that may be more useful. individual classes
  */
 template<class ValueT = double>
-class matrixData {
+class MatrixData {
   public:
     using value_t = ValueT;
 
@@ -58,13 +58,13 @@ class matrixData {
      *  @param[in] rows  the initial row limit
      *  @param[in] cols the initial column limit
      */
-    explicit matrixData(index_t rows = kIndexMax, index_t cols = kIndexMax) noexcept:
+    explicit MatrixData(index_t rows = kIndexMax, index_t cols = kIndexMax) noexcept:
         rowLim{rows}, colLim{cols}
     {
     }
 
     /** @brief virtual destructor */
-    virtual ~matrixData() = default;
+    virtual ~MatrixData() = default;
 
     /** @brief function to clear the data */
     virtual void clear() = 0;
@@ -189,9 +189,9 @@ class matrixData {
      *  @param[in] N the element number to return
      *  @return the element corresponding to the index
      */
-    virtual matrixElement<value_t> element(index_t N) const = 0;
+    virtual MatrixElement<value_t> element(index_t N) const = 0;
 
-    /**  @brief change the matrixData to a compact sorted form
+    /**  @brief change the MatrixData to a compact sorted form
      */
     virtual void compact()
     {
@@ -210,17 +210,17 @@ class matrixData {
      *
      *  @return a triple with the row/col/val of the first element
      */
-    virtual matrixElement<value_t> next() { return element(cur++); }
+    virtual MatrixElement<value_t> next() { return element(cur++); }
     /**
      *  @brief check if the data sequence is at its end
      *  @return true if there are more points to grab false if not
      */
     virtual bool moreData() { return (cur < size()); }
     /**
-     *  @brief merge 2 matrixData structures together
-     *  @param[in] a2 the matrixData to merge in
+     *  @brief merge 2 MatrixData structures together
+     *  @param[in] a2 the MatrixData to merge in
      */
-    virtual void merge(matrixData<value_t>& a2)
+    virtual void merge(MatrixData<value_t>& a2)
     {
         count_t count = a2.size();
         a2.start();
@@ -231,13 +231,13 @@ class matrixData {
     }
 
     /**
-     *  @brief merge 2 matrixData structures together
+     *  @brief merge 2 MatrixData structures together
      *
-     *  @param[in] a2 the matrixData to merge in
+     *  @param[in] a2 the MatrixData to merge in
      *  @param[in] scale a double scaler for each of the elements in
      *  the second matrix;
      */
-    virtual void merge(matrixData<value_t>& a2, value_t scale)
+    virtual void merge(MatrixData<value_t>& a2, value_t scale)
     {
         count_t count = a2.size();
         a2.start();
@@ -247,12 +247,12 @@ class matrixData {
         }
     }
     /**
-     *  @merge copy and translate a row from a2 into the calling matrixData
-     *  @param[in] a2 the matrixData to  copy and translate
+     *  @merge copy and translate a row from a2 into the calling MatrixData
+     *  @param[in] a2 the MatrixData to  copy and translate
      *  @param[in] origRow  the original row
      *  @param[in] newRow the new row Value
      */
-    virtual void copyTranslateRow(matrixData<value_t>& a2, index_t origRow, index_t newRow)
+    virtual void copyTranslateRow(MatrixData<value_t>& a2, index_t origRow, index_t newRow)
     {
         count_t count = a2.size();
         a2.start();

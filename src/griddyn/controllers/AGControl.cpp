@@ -51,9 +51,9 @@ public:
 
         ~AGControl();
 
-        double initialize(coreTime time0,double freq0,double tiedev0);
+        double initialize(CoreTime time0,double freq0,double tiedev0);
 
-        double updateP(coreTime time, double freq, double tiedev);
+        double updateP(CoreTime time, double freq, double tiedev);
         double currentValue();
 
         double addGen(scheduler *sched);
@@ -133,9 +133,9 @@ void AGControl::dynObjectInitializeB(const IOdata& inputs,
     fieldSet[0] = pid->getOutput();
 }
 
-void AGControl::updateA(coreTime /*time*/) {}
+void AGControl::updateA(CoreTime /*time*/) {}
 
-void AGControl::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
+void AGControl::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     prevTime = time;
 

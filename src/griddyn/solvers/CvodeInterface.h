@@ -20,7 +20,7 @@ class CvodeInterface: public SundialsInterface {
     count_t icCount = 0;  //!< total number of initial condition calls
 
   private:
-    matrixDataSparse<double> a1;  //!< array structure for holding the Jacobian information
+    MatrixDataSparse<double> a1;  //!< array structure for holding the Jacobian information
     std::vector<double> tempState;  //!< temporary holding location for a state vector
     double maxStep = -1.0;  //!< the maximum step size permitted
     double minStep = -1.0;  //!< the minimum step size permitted
@@ -41,12 +41,12 @@ class CvodeInterface: public SundialsInterface {
 
     virtual void cloneTo(SolverInterface* si, bool fullCopy = false) const override;
     virtual void allocate(count_t stateCount, count_t numRoots = 0) override;
-    virtual void initialize(coreTime time0) override;
+    virtual void initialize(CoreTime time0) override;
     virtual void setMaxNonZeros(count_t nonZeroCount) override;
     virtual void sparseReInit(SparseReinitMode reInitMode) override;
     virtual void getCurrentData() override;
     virtual int
-        solve(coreTime tStop, coreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
+        solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
     virtual void getRoots() override;
     virtual void setRootFinding(count_t numRoots) override;
 

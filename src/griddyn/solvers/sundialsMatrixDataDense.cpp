@@ -10,7 +10,7 @@
 
 namespace griddyn::solvers {
 SundialsMatrixDataDense::SundialsMatrixDataDense(SUNMatrix mat):
-    matrixData<double>(static_cast<count_t>(SM_ROWS_D(mat)),
+    MatrixData<double>(static_cast<count_t>(SM_ROWS_D(mat)),
                        static_cast<count_t>(SM_COLUMNS_D(mat))),
     J(mat)
 {
@@ -38,7 +38,7 @@ count_t SundialsMatrixDataDense::capacity() const
 {
     return static_cast<count_t>(SM_ROWS_D(J) * SM_COLUMNS_D(J));
 }
-matrixElement<double> SundialsMatrixDataDense::element(index_t n) const
+MatrixElement<double> SundialsMatrixDataDense::element(index_t n) const
 {
     return {n % static_cast<index_t>(SM_COLUMNS_D(J)),
             n / static_cast<index_t>(SM_COLUMNS_D(J)),

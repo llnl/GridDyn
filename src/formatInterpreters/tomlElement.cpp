@@ -9,7 +9,7 @@
 #include <string>
 #include <utility>
 
-static const char nullStr[] = "";
+static constexpr char nullStr[] = "";
 
 namespace {
 bool isTomlNodeEmpty(const toml::ordered_value& value)

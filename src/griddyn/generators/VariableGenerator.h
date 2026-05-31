@@ -32,7 +32,7 @@ class VariableGenerator: public DynamicGenerator {
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
   protected:
-    // virtual void pFlowObjectInitializeA (coreTime time0, std::uint32_t flags) override;
+    // virtual void pFlowObjectInitializeA (CoreTime time0, std::uint32_t flags) override;
 
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
@@ -54,15 +54,15 @@ class VariableGenerator: public DynamicGenerator {
 
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& stateDataValue,
-                                  matrixData<double>& matrixDataValue,
+                                  MatrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
 
-    virtual double getAdjustableCapacityUp(coreTime /*time*/ = maxTime) const override
+    virtual double getAdjustableCapacityUp(CoreTime /*time*/ = maxTime) const override
     {
         return 0.0;
     }  // get the available adjustment Up within the specified timeframe
-    virtual double getAdjustableCapacityDown(coreTime /*time*/ = maxTime) const override
+    virtual double getAdjustableCapacityDown(CoreTime /*time*/ = maxTime) const override
     {
         return 0.0;
     }  // get the available adjustment Up within the specified timeframe

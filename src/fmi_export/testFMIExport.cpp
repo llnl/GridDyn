@@ -46,7 +46,7 @@ void generateFmu(const std::string& target, const std::string& inputFile)
 
 }  // namespace
 
-using griddyn::coreTime;
+using griddyn::CoreTime;
 using griddyn::GridBus;
 using griddyn::GridDynSimulation;
 using griddyn::loadFile;
@@ -260,7 +260,7 @@ TEST_F(FmiExportTests, TestFmiRunner2)
     ASSERT_NE(loadObject, nullptr);
 
     auto ret = runner->Step(10.0);
-    EXPECT_EQ(ret, coreTime(10.0));
+    EXPECT_EQ(ret, CoreTime(10.0));
 
     auto vaVr = runner->findVR("Bus11_VA");
     auto vbVr = runner->findVR("Bus11_VB");

@@ -45,7 +45,7 @@ class Exciter: public GridSubModel {
     explicit Exciter(const std::string& objName = "exciter_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -65,7 +65,7 @@ class Exciter: public GridSubModel {
                             const SolverMode& SolverMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& stateData,
-                                  matrixData<double>& matrix,
+                                  MatrixData<double>& matrix,
                                   const IOlocs& inputLocs,
                                   const SolverMode& SolverMode) override;
     // handle the rootfinding functions
@@ -73,7 +73,7 @@ class Exciter: public GridSubModel {
                           const StateData& stateData,
                           double root[],
                           const SolverMode& SolverMode) override;
-    virtual void rootTrigger(coreTime time,
+    virtual void rootTrigger(CoreTime time,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const SolverMode& SolverMode) override;
@@ -82,7 +82,7 @@ class Exciter: public GridSubModel {
                                  const SolverMode& SolverMode,
                                  CheckLevel level) override;
 
-    // virtual void setTime(coreTime time){prevTime=time;};
+    // virtual void setTime(CoreTime time){prevTime=time;};
     virtual const std::vector<stringVec>& inputNames() const override;
     virtual const std::vector<stringVec>& outputNames() const override;
 

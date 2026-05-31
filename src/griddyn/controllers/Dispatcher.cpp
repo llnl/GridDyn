@@ -19,16 +19,16 @@ CoreObject* Dispatcher::clone(CoreObject* /*obj*/) const
 }
 
 void Dispatcher::moveSchedulers(Dispatcher* /*dis*/) {}
-double Dispatcher::initialize(coreTime /*time0*/, double /*dispatch*/)
+double Dispatcher::initialize(CoreTime /*time0*/, double /*dispatch*/)
 {
     return 0;
 }
 
-double Dispatcher::updateP(coreTime /*time*/, double /*required*/, double /*targetTime*/)
+double Dispatcher::updateP(CoreTime /*time*/, double /*required*/, double /*targetTime*/)
 {
     return 0;
 }
-double Dispatcher::testP(coreTime /*time*/, double /*required*/, double /*targetTime*/)
+double Dispatcher::testP(CoreTime /*time*/, double /*required*/, double /*targetTime*/)
 {
     return 0;
 }

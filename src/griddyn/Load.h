@@ -14,7 +14,7 @@ class GridBus;
 
 /** primary load class defines the load component is a very simple constant power load
  */
-class GridLoad: public gridSecondary {
+class GridLoad: public GridSecondary {
   public:
     /** flags used in the load object*/
     enum LoadFlags {

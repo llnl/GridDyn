@@ -73,6 +73,6 @@ for nn=1:length(cls)
     cls(nn).used=0;
 end
 %%
-%order={'gridCoreObject','gridObject','gridPrimary','gridSecondary','gridSubModel'};
+%order={'gridCoreObject','gridObject','gridPrimary','GridSecondary','gridSubModel'};
 %saveDir='C:\Users\top1\Documents\codeProjects\transmission\docs\manuals\inputTables';
 %generateLatexTables(cls,order,saveDir);

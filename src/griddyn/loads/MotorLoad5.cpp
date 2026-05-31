@@ -10,7 +10,7 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactory.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <iostream>
 #include <string>
 #include <vector>
@@ -35,7 +35,7 @@ CoreObject* MotorLoad5::clone(CoreObject* obj) const
     return ld;
 }
 
-void MotorLoad5::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void MotorLoad5::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     // setup the parameters
     x0 = x + xm;
@@ -127,7 +127,7 @@ void MotorLoad5::converge()
     }
 }
 
-void MotorLoad5::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/) {}
+void MotorLoad5::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/) {}
 void MotorLoad5::dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& /*desiredOutput*/,
                                       IOdata& /*fieldSet*/)
@@ -291,7 +291,7 @@ void MotorLoad5::getStateName(stringVec& stNames,
         stNames[offset + 6] = prefix2 + ":empp";
     }
 }
-void MotorLoad5::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
+void MotorLoad5::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     StateData sD(time, m_state.data());
 
@@ -361,7 +361,7 @@ void MotorLoad5::derivative(const IOdata& /*inputs*/,
 
 void MotorLoad5::jacobianElements(const IOdata& inputs,
                                   const StateData& sD,
-                                  matrixData<double>& md,
+                                  MatrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode)
 {
@@ -529,7 +529,7 @@ void MotorLoad5::rootTest(const IOdata& /*inputs*/,
     }
 }
 
-void MotorLoad5::rootTrigger(coreTime /*time*/,
+void MotorLoad5::rootTrigger(CoreTime /*time*/,
                              const IOdata& inputs,
                              const std::vector<int>& rootMask,
                              const SolverMode& sMode)

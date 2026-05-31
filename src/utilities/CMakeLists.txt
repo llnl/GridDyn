@@ -8,15 +8,15 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 set(utilities_sources
-    gridRandom.cpp
-    saturation.cpp
+    GridRandom.cpp
+    Saturation.cpp
     ThreePhaseFunctions.cpp
     matrixOps.cpp
     functionInterpreter.cpp
     zipUtilities.cpp
     matrixCreation.cpp
     logger.cpp
-    matrixDataSparse.cpp
+    MatrixDataSparse.cpp
     OperatingBoundary.cpp
     GlobalWorkQueue.cpp
 )
@@ -24,23 +24,23 @@ set(utilities_sources
 set(utilities_headers
     dataDictionary.hpp
     ThreePhaseFunctions.h
-    gridRandom.h
-    saturation.h
+    GridRandom.h
+    Saturation.h
     vectData.hpp
-    matrixData.hpp
+    MatrixData.hpp
     matrixOps.h
-    matrixDataCompact.hpp
-    matrixDataSparse.hpp
-    matrixDataSparse_impl.hpp
-    matrixDataBoost.hpp
-    matrixDataSparseSM.hpp
-    matrixDataTranslate.hpp
-    matrixDataContainer.hpp
-    matrixDataScale.hpp
-    matrixDataOrdered.hpp
-    matrixDataOrdering.hpp
-    matrixDataFilter.hpp
-    matrixDataCustomWriteOnly.hpp
+    MatrixDataCompact.hpp
+    MatrixDataSparse.hpp
+    MatrixDataSparse_impl.hpp
+    MatrixDataBoost.hpp
+    MatrixDataSparseSM.hpp
+    MatrixDataTranslate.hpp
+    MatrixDataContainer.hpp
+    MatrixDataScale.hpp
+    MatrixDataOrdered.hpp
+    MatrixDataOrdering.hpp
+    MatrixDataFilter.hpp
+    MatrixDataCustomWriteOnly.hpp
     functionInterpreter.h
     zipUtilities.h
     valuePredictor.hpp

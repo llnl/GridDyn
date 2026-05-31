@@ -93,7 +93,7 @@ namespace solvers {
         }
     }
 
-    void BasicSolver::initialize(coreTime /*time0*/)
+    void BasicSolver::initialize(CoreTime /*time0*/)
     {
         if (!flags[ALLOCATED_FLAG]) {
             throw(InvalidSolverOperation(-2));
@@ -141,7 +141,7 @@ namespace solvers {
                            std::vector<double>& s3,
                            double conv);
 
-    int BasicSolver::solve(coreTime tStop, coreTime& /*tReturn*/, StepMode /*stepMode*/)
+    int BasicSolver::solve(CoreTime tStop, CoreTime& /*tReturn*/, StepMode /*stepMode*/)
     {
         double md = 1.0;
         iterations = 0;

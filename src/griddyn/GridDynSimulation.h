@@ -84,7 +84,7 @@ struct tolerances {
     double defaultTolerance = 1e-8;  //!< default tolerance on all other variables
     double toleranceRelaxationFactor = 1.0;  //!< relax the tolerances to help the solver
     double rtol = 1e-6;  //!< the relative tolerance
-    coreTime timeTol =
+    CoreTime timeTol =
         kSmallTime;  //!< the allowable time slop in events.  The time span below which the system
     //! doesn't really care about
 };
@@ -154,9 +154,9 @@ class GridDynSimulation: public GridSimulation {
     count_t busCount = 0;  //!< counter for the number of buses
     count_t linkCount = 0;  //!< counter for the number of links
     count_t networkCount{0};  //!< number of islanded networks in the simulation
-    coreTime probeStepTime = coreTime(1e-3);  //!< initial step size
+    CoreTime probeStepTime = CoreTime(1e-3);  //!< initial step size
     double powerAdjustThreshold = 0.01;  //!< tolerance on the power adjust step
-    coreTime powerFlowStartTime =
+    CoreTime powerFlowStartTime =
         negTime;  //!< power flow start time  if negTime then it computes based on start time;
     struct tolerances tols;  //!< structure of the tolerances
 
@@ -257,23 +257,23 @@ class GridDynSimulation: public GridSimulation {
     /**@brief run the simulation until the specified time
     @param[in] tEnd  the simulation time to stop defaults to the time given in system parameters
     @return int indicating success (0) or failure (non-zero)*/
-    int run(coreTime tEnd = negTime) override;
+    int run(CoreTime tEnd = negTime) override;
 
     /**@brief initialize the simulation for power flow at the specified time
     @param[in] time0 the time of the initialization default to 0
     @return int indicating success (0) or failure (non-zero)*/
-    int pFlowInitialize(coreTime time0 = negTime);
+    int pFlowInitialize(CoreTime time0 = negTime);
 
     /**@brief step the simulation until the next event or stop point
     @param[in] nextStep the maximum time to stop
     @param[out] timeActual the actual time that was achieved
     @return int indicating success (0) or failure (non-zero)*/
-    int step(coreTime nextStep, coreTime& timeActual);
+    int step(CoreTime nextStep, CoreTime& timeActual);
 
     /**@brief step the simulation until the next event or stop point
     @param[out] timeActual the actual time that was achieved
     @return int indicating success (0) or failure (non-zero)*/
-    int step(coreTime& timeActual) { return step(getSimulationTime() + stepTime, timeActual); }
+    int step(CoreTime& timeActual) { return step(getSimulationTime() + stepTime, timeActual); }
 
     /**@brief step the simulation until the next event or stop point
     @return int indicating success (0) or failure (non-zero)*/
@@ -284,7 +284,7 @@ class GridDynSimulation: public GridSimulation {
     @param[in] t_end the stopping time for the simulation
     @param[in] t_step  the step size (the maximum time between powerFlow evaluation is t_step
     @return int indicating success (0) or failure (non-zero)*/
-    virtual int eventDrivenPowerflow(coreTime t_end = negTime, coreTime t_step = negTime);
+    virtual int eventDrivenPowerflow(CoreTime t_end = negTime, CoreTime t_step = negTime);
 
     /** @brief execute a specific command
     *@param[in] cmd  the command to execute
@@ -327,7 +327,7 @@ class GridDynSimulation: public GridSimulation {
     /**@brief initialize the simulation for dynamic simulation at the specified time
     @param[in] tStart the time of the initialization default to 0
     @return int indicating success (0) or failure (non-zero)*/
-    int dynInitialize(coreTime tStart = negTime);  // code can detect this default param and use a
+    int dynInitialize(CoreTime tStart = negTime);  // code can detect this default param and use a
                                                    // previously specified start time
     void alert(CoreObject* object, int code) override;
 
@@ -353,7 +353,7 @@ class GridDynSimulation: public GridSimulation {
     @param[in] sMode the SolverMode to solve for
     @return integer indicating success (0) or failure (non-zero)
     */
-    int residualFunction(coreTime time,
+    int residualFunction(CoreTime time,
                          const double state[],
                          const double dstate_dt[],
                          double resid[],
@@ -366,7 +366,7 @@ class GridDynSimulation: public GridSimulation {
     @param[in] sMode the SolverMode to solve for
     @return integer indicating success (0) or failure (non-zero)
     */
-    int derivativeFunction(coreTime time,
+    int derivativeFunction(CoreTime time,
                            const double state[],
                            double dstate_dt[],
                            const SolverMode& sMode) noexcept;
@@ -380,7 +380,7 @@ class GridDynSimulation: public GridSimulation {
     @param[in] alpha a multiplication factor for updates that are expected to be iterative
     @return integer indicating success (0) or failure (non-zero)
     */
-    int algUpdateFunction(coreTime time,
+    int algUpdateFunction(CoreTime time,
                           const double state[],
                           double update[],
                           const SolverMode& sMode,
@@ -391,15 +391,15 @@ class GridDynSimulation: public GridSimulation {
     @param[in] time  the simulation time of the evaluation
     @param[in] state  the state information to evaluation
     @param[in] dstate_dt  the time derivative of the state
-    @param[out] matrixDataRef the matrixData object to store the Jacobian information into
+    @param[out] matrixDataRef the MatrixData object to store the Jacobian information into
     @param[in] cjValue the constant of integration for use in Jacobian elements using derivatives
     @param[in] sMode the SolverMode to solve for
     @return integer indicating success (0) or failure (non-zero)
     */
-    int jacobianFunction(coreTime time,
+    int jacobianFunction(CoreTime time,
                          const double state[],
                          const double dstate_dt[],
-                         matrixData<double>& matrixDataRef,
+                         MatrixData<double>& matrixDataRef,
                          double cjValue,
                          const SolverMode& sMode) noexcept;
 
@@ -412,7 +412,7 @@ class GridDynSimulation: public GridSimulation {
     @param[in] sMode the SolverMode to solve for
     @return integer indicating success (0) or failure (non-zero)
     */
-    int rootFindingFunction(coreTime time,
+    int rootFindingFunction(CoreTime time,
                             const double state[],
                             const double dstate_dt[],
                             double roots[],
@@ -424,17 +424,17 @@ class GridDynSimulation: public GridSimulation {
     @param[in] values the values for the parameters
     @param[in] state  the state information to evaluation
     @param[in] dstateDt  the time derivative of the state
-    @param[out] matrixDataRef the matrixData object to store the partial derivatives
+    @param[out] matrixDataRef the MatrixData object to store the partial derivatives
     @param[in] sMode the SolverMode to use for the computations
     */
-    void parameterDerivatives(coreTime time,
+    void parameterDerivatives(CoreTime time,
                               ParameterSet& parameterOperators,
                               const index_t indices[],
                               const double values[],
                               count_t parameterCount,
                               const double state[],
                               const double dstateDt[],
-                              matrixData<double>& matrixDataRef,
+                              MatrixData<double>& matrixDataRef,
                               const SolverMode& sMode);
 
     /** @brief solve for the algebraic components of a system for use with the ode solvers
@@ -444,7 +444,7 @@ class GridDynSimulation: public GridSimulation {
 @param[in] sMode the SolverMode to solve related to the differential state information
 @return integer indicating success (0) or failure (non-zero)
 */
-    int dynAlgebraicSolve(coreTime time,
+    int dynAlgebraicSolve(CoreTime time,
                           const double diffState[],
                           const double deriv[],
                           const SolverMode& sMode) noexcept;
@@ -648,21 +648,21 @@ class GridDynSimulation: public GridSimulation {
     @param[in] tStop the stop time for the simulation
     @return FUNCTION_EXECUTION_SUCCESS(0) if successful negative number if not
     */
-    virtual int dynamicDAE(coreTime tStop);
+    virtual int dynamicDAE(CoreTime tStop);
 
     /** @brief execute a partitioned dynamic simulation
     @param[in] tStop the stop time for the simulation
     @param[in] tStep the step interval (defaults to the step size parameter stored in the simulation
    @return FUNCTION_EXECUTION_SUCCESS(0) if successful negative number if not
     */
-    virtual int dynamicPartitioned(coreTime tStop, coreTime tStep = negTime);
+    virtual int dynamicPartitioned(CoreTime tStop, CoreTime tStep = negTime);
 
     /** @brief execute a decoupled dynamic simulation
     @param[in] tStop the stop time for the simulation
     @param[in] tStep the step interval (defaults to the step size parameter stored in the simulation
    @return FUNCTION_EXECUTION_SUCCESS(0) if successful negative number if not
     */
-    virtual int dynamicDecoupled(coreTime tStop, coreTime tStep = negTime);
+    virtual int dynamicDecoupled(CoreTime tStop, CoreTime tStep = negTime);
 
     /** @brief ensure that the simulation has consistent initial conditions for starting a dynamic
     simulation
@@ -691,7 +691,7 @@ class GridDynSimulation: public GridSimulation {
     @param[in] dynData the SolverInterface currently in use
      */
     void handleEarlySolverReturn(int retval,
-                                 coreTime timeActual,
+                                 CoreTime timeActual,
                                  std::shared_ptr<SolverInterface>& dynData);
 
     /** @brief reset the dynamic simulation
@@ -715,7 +715,7 @@ class GridDynSimulation: public GridSimulation {
     @param[in] sMode the SolverMode to run
     @return true if the reset Function was run and did something
     */
-    bool checkEventsForDynamicReset(coreTime cTime, const SolverMode& sMode);
+    bool checkEventsForDynamicReset(CoreTime cTime, const SolverMode& sMode);
 
   private:
     void setupDynamicDAE();
@@ -728,8 +728,8 @@ class GridDynSimulation: public GridSimulation {
                                             const SolverMode& sModeDiff,
                                             const SolverMode& sModeAlg);
     int runDynamicSolverStep(std::shared_ptr<SolverInterface>& dynData,
-                             coreTime nextStop,
-                             coreTime& timeActual);
+                             CoreTime nextStop,
+                             CoreTime& timeActual);
 
     static std::atomic<GridDynSimulation*>
         s_instance;  //!< static variable to set the master simulation instance

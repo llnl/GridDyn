@@ -27,7 +27,7 @@ class Fuse: public Relay {
     // 4 byte gap here to use for something if need be
     model_parameter limit = kBigNum;  //!<[puA] maximum current
     model_parameter mp_I2T = 0.0;  //!<[puA^2*s] I squared t characteristic of fuse 1 in puA^2*s
-    coreTime minBlowTime =
+    CoreTime minBlowTime =
         0.001;  //!<[s] the minimum time required to for the fuse to blow only used if I2T>0;
   private:
     double cI2T = 0.0;  //!< calculated I2t value for fuse
@@ -43,16 +43,16 @@ class Fuse: public Relay {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
     // dynamic functions for evaluation with a limit exceeded
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& stateDataRef,
-                                  matrixData<double>& jacobian,
+                                  MatrixData<double>& jacobian,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
-    virtual void setState(coreTime time,
+    virtual void setState(CoreTime time,
                           const double state[],
                           const double dstateDt[],
                           const SolverMode& sMode) override;
@@ -60,11 +60,11 @@ class Fuse: public Relay {
                           const StateData& stateDataRef,
                           double resid[],
                           const SolverMode& sMode) override;
-    virtual void guessState(coreTime time,
+    virtual void guessState(CoreTime time,
                             double state[],
                             double dstateDt[],
                             const SolverMode& sMode) override;
-    virtual void converge(coreTime time,
+    virtual void converge(CoreTime time,
                           double state[],
                           double dstateDt[],
                           const SolverMode& sMode,
@@ -79,7 +79,7 @@ class Fuse: public Relay {
                               const std::string& prefix) const override;
 
   protected:
-    virtual void conditionTriggered(index_t conditionNum, coreTime triggerTime) override;
+    virtual void conditionTriggered(index_t conditionNum, CoreTime triggerTime) override;
     /** function to setup the numerical calculations associated with the fuse*/
     ChangeCode setupFuseEvaluation();
 

@@ -24,7 +24,7 @@ class EventInterface {
   public:
     virtual ~EventInterface() = default;
     /** get the next trigger time */
-    virtual coreTime nextTriggerTime() const = 0;
+    virtual CoreTime nextTriggerTime() const = 0;
     /** get the events execution mode
   normal mean it run immediately
   delayed means it should run after other normal events
@@ -34,7 +34,7 @@ class EventInterface {
     /** run the event if time >triggerTime
   @return a change code corresponding to what the event did
   */
-    virtual ChangeCode trigger(coreTime ctime) = 0;
+    virtual ChangeCode trigger(CoreTime ctime) = 0;
     /** answer the question if the event is ready to triggered*/
     virtual bool isArmed() const { return true; }
     /** do any event initialization that may be required before an event is ready to execute*/

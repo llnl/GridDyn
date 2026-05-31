@@ -15,7 +15,7 @@
 #include "../measurement/GridGrabbers.h"
 #include "../measurement/StateGrabber.h"
 #include "core/CoreObjectTemplates.hpp"
-#include "utilities/matrixDataSparse.hpp"
+#include "utilities/MatrixDataSparse.hpp"
 #include <cmath>
 #include <memory>
 #include <string>
@@ -100,7 +100,7 @@ void Breaker::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-void Breaker::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void Breaker::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     auto tripEvent = std::make_shared<Event>();
     auto recloseEvent = std::make_shared<Event>();
@@ -159,7 +159,7 @@ void Breaker::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
     Relay::dynObjectInitializeA(time0, flags);
 }
 
-void Breaker::conditionTriggered(index_t conditionNum, coreTime triggeredTime)
+void Breaker::conditionTriggered(index_t conditionNum, CoreTime triggeredTime)
 {
     if (conditionNum == 0) {
         opFlags.set(OVERLIMIT_FLAG);
@@ -193,7 +193,7 @@ void Breaker::conditionTriggered(index_t conditionNum, coreTime triggeredTime)
     }
 }
 
-void Breaker::updateA(coreTime time)
+void Breaker::updateA(CoreTime time)
 {
     if (opFlags[BREAKER_TRIPPED_FLAG]) {
         if (time >= nextUpdateTime) {
@@ -231,7 +231,7 @@ count_t Breaker::localJacobianCount(const SolverMode& sMode) const
     return 0;
 }
 
-void Breaker::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
+void Breaker::timestep(CoreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     prevTime = time;
     if (mLimit < kBigNum / 2.0) {
@@ -246,18 +246,18 @@ void Breaker::timestep(coreTime time, const IOdata& /*inputs*/, const SolverMode
 
 void Breaker::jacobianElements(const IOdata& /*inputs*/,
                                const StateData& stateDataRef,
-                               matrixData<double>& jacobian,
+                               MatrixData<double>& jacobian,
                                const IOlocs& /*inputLocs*/,
                                const SolverMode& sMode)
 {
     if (mUseCti) {
-        matrixDataSparse<double> localJacobian;
+        MatrixDataSparse<double> localJacobian;
         IOdata out;
         auto voltageOffset = mBus->getOutputLoc(sMode, voltageInLocation);
         auto inputs = mBus->getOutputs(noInputs, stateDataRef, sMode);
         auto inputLocs = mBus->getOutputLocs(sMode);
         if (opFlags[NONLINK_SOURCE_FLAG]) {
-            auto* gridSecondaryObject = static_cast<gridSecondary*>(m_sourceObject);
+            auto* gridSecondaryObject = static_cast<GridSecondary*>(m_sourceObject);
             out = gridSecondaryObject->getOutputs(inputs, stateDataRef, sMode);
             gridSecondaryObject->outputPartialDerivatives(inputs,
                                                           stateDataRef,
@@ -312,7 +312,7 @@ void Breaker::jacobianElements(const IOdata& /*inputs*/,
     }
 }
 
-void Breaker::setState(coreTime time,
+void Breaker::setState(CoreTime time,
                        const double state[],
                        const double /*dstateDt*/[],
                        const SolverMode& sMode)
@@ -353,7 +353,7 @@ void Breaker::residual(const IOdata& /*inputs*/,
     }
 }
 
-void Breaker::guessState(const coreTime /*time*/,
+void Breaker::guessState(const CoreTime /*time*/,
                          double state[],
                          double dstateDt[],
                          const SolverMode& sMode)
@@ -394,7 +394,7 @@ void Breaker::getStateName(stringVec& stNames,
     }
 }
 
-void Breaker::tripBreaker(coreTime time)
+void Breaker::tripBreaker(CoreTime time)
 {
     alert(this, BREAKER_TRIP_CURRENT);
     logging::normal(this, "breaker {} tripped on {}", m_terminal, m_sourceObject->getName());
@@ -413,7 +413,7 @@ void Breaker::tripBreaker(coreTime time)
     }
 }
 
-void Breaker::resetBreaker(coreTime time)
+void Breaker::resetBreaker(CoreTime time)
 {
     ++mRecloseAttempts;
     mLastRecloseTime = time;

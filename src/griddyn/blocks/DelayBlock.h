@@ -35,7 +35,7 @@ class DelayBlock: public GridBlock {
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
   protected:
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -55,11 +55,11 @@ class DelayBlock: public GridBlock {
     virtual void blockJacobianElements(double input,
                                        double didt,
                                        const StateData& stateDataRef,
-                                       matrixData<double>& jacobian,
+                                       MatrixData<double>& jacobian,
                                        index_t argLoc,
                                        const SolverMode& sMode) override;
-    virtual double step(coreTime time, double inputA) override;
-    // virtual void setTime(coreTime time){prevTime=time;};
+    virtual double step(CoreTime time, double inputA) override;
+    // virtual void setTime(CoreTime time){prevTime=time;};
 };
 
 }  // namespace griddyn::blocks

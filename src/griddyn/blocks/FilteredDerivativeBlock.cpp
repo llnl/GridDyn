@@ -9,7 +9,7 @@
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactory.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
 #include <string>
@@ -41,7 +41,7 @@ CoreObject* FilteredDerivativeBlock::clone(CoreObject* obj) const
     return nobj;
 }
 
-void FilteredDerivativeBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void FilteredDerivativeBlock::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     GridBlock::dynObjectInitializeA(time0, flags);
     offsets.local().local.diffSize++;
@@ -71,7 +71,7 @@ void FilteredDerivativeBlock::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-double FilteredDerivativeBlock::step(coreTime time, double inputA)
+double FilteredDerivativeBlock::step(CoreTime time, double inputA)
 {
     const index_t loc = limiter_diff;
     const double timeDelta = time - prevTime;
@@ -133,7 +133,7 @@ void FilteredDerivativeBlock::blockDerivative(double input,
 void FilteredDerivativeBlock::blockJacobianElements(double input,
                                                     double didt,
                                                     const StateData& stateDataRef,
-                                                    matrixData<double>& jacobian,
+                                                    MatrixData<double>& jacobian,
                                                     index_t argLoc,
                                                     const SolverMode& sMode)
 {

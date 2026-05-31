@@ -9,7 +9,7 @@
 #include "../GridDynSimulation.h"
 #include "../simulation/GridDynSimulationFileOps.h"
 #include "SundialsMatrixData.h"
-// #include "matrixDataBoost.h"
+// #include "MatrixDataBoost.h"
 #include "core/CoreExceptions.h"
 #include "utilities/matrixCreation.h"
 #include <kinsol/kinsol.h>
@@ -140,7 +140,7 @@ void KinsolInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
     }
 }
 
-void KinsolInterface::initialize(coreTime /*t0*/)
+void KinsolInterface::initialize(CoreTime /*t0*/)
 {
     if (!flags[ALLOCATED_FLAG]) {
         throw(InvalidSolverOperation());
@@ -278,7 +278,7 @@ double KinsolInterface::get(std::string_view param) const
 // #define KIN_LINESEARCH 1
 // #define KIN_PICARD     2
 // #define KIN_FP         3
-int KinsolInterface::solve(coreTime tStop, coreTime& tReturn, StepMode /*mode*/)
+int KinsolInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode /*mode*/)
 {
     // check if the multiple data sets are in use and if we should toggle the data to use
     solveTime = tStop;

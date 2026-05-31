@@ -9,7 +9,7 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <string>
 #include <vector>
@@ -41,7 +41,7 @@ CoreObject* DeadbandBlock::clone(CoreObject* obj) const
     return nobj;
 }
 
-void DeadbandBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void DeadbandBlock::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     GridBlock::dynObjectInitializeA(time0, flags);
     if (mDeadbandLow < mDeadbandHigh)  // this means it was set to some value
@@ -188,7 +188,7 @@ double DeadbandBlock::computeDoutDin(double input) const
     }
     return out;
 }
-double DeadbandBlock::step(coreTime time, double input)
+double DeadbandBlock::step(CoreTime time, double input)
 {
     rootCheck({input}, emptyStateData, cLocalSolverMode, CheckLevel::reversable_only);
     m_state[limiter_alg] = K * computeValue(input + bias);
@@ -242,7 +242,7 @@ void DeadbandBlock::blockAlgebraicUpdate(double input,
 void DeadbandBlock::blockJacobianElements(double input,
                                           double didt,
                                           const StateData& stateDataRef,
-                                          matrixData<double>& jacobian,
+                                          MatrixData<double>& jacobian,
                                           index_t argLoc,
                                           const SolverMode& sMode)
 {
@@ -334,7 +334,7 @@ void DeadbandBlock::rootTest(const IOdata& inputs,
     }
 }
 
-void DeadbandBlock::rootTrigger(coreTime time,
+void DeadbandBlock::rootTrigger(CoreTime time,
                                 const IOdata& inputs,
                                 const std::vector<int>& rootMask,
                                 const SolverMode& sMode)

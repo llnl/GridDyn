@@ -12,7 +12,7 @@
 
 #include "../FMI2/fmi2TypesPlatform.h"
 #include "fmiEnumDefinitions.h"
-#include "utilities/matrixDataOrdered.hpp"
+#include "utilities/MatrixDataOrdered.hpp"
 
 #ifdef __GNUC__
 #    pragma GCC diagnostic push
@@ -145,11 +145,11 @@ class FmiInfo {
     std::map<std::string, int>
         variableLookup;  //!< map translating strings to indices into the variables array
 
-    matrixDataOrdered<SparseOrdering::ROW_ORDERED, int>
+    MatrixDataOrdered<SparseOrdering::ROW_ORDERED, int>
         outputDep;  //!< the output dependency information
-    matrixDataOrdered<SparseOrdering::ROW_ORDERED, int>
+    MatrixDataOrdered<SparseOrdering::ROW_ORDERED, int>
         derivDep;  //!< the derivative dependency information
-    matrixDataOrdered<SparseOrdering::ROW_ORDERED, int>
+    MatrixDataOrdered<SparseOrdering::ROW_ORDERED, int>
         unknownDep;  //!< the initial unknown dependency information
     std::vector<int> outputs;  //!< a list of the output indices
     std::vector<int> parameters;  //!< a list of all the parameters

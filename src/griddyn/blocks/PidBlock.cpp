@@ -8,7 +8,7 @@
 
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <string>
 namespace griddyn::blocks {
@@ -47,7 +47,7 @@ CoreObject* PidBlock::clone(CoreObject* obj) const
     return nobj;
 }
 
-void PidBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void PidBlock::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     GridBlock::dynObjectInitializeA(time0, flags);
     offsets.local().local.diffSize += 2;
@@ -124,7 +124,7 @@ void PidBlock::blockDerivative(double input,
 void PidBlock::blockJacobianElements(double input,
                                      double didt,
                                      const StateData& stateDataValue,
-                                     matrixData<double>& matrixDataValue,
+                                     MatrixData<double>& matrixDataValue,
                                      index_t argLoc,
                                      const SolverMode& sMode)
 {
@@ -159,7 +159,7 @@ void PidBlock::blockJacobianElements(double input,
     }
 }
 
-double PidBlock::step(coreTime time, double inputA)
+double PidBlock::step(CoreTime time, double inputA)
 {
     const double timeDelta = time - prevTime;
     const double inputValue = inputA + bias;

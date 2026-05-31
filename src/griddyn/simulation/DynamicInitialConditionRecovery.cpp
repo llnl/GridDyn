@@ -203,7 +203,7 @@ int dynamicInitialConditionRecovery::dynamicFix2()
 // check for some low voltage conditions and change the low voltage load conditions
 int dynamicInitialConditionRecovery::dynamicFix3()
 {
-    const coreTime timeCurrent = sim->getSimulationTime();
+    const CoreTime timeCurrent = sim->getSimulationTime();
     sim->timestep(timeCurrent + 0.001, noInputs, solver->getSolverMode());
     sim->dynamicCheckAndReset(solver->getSolverMode());
     /*if (retval == 4)

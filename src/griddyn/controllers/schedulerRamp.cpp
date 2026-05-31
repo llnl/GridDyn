@@ -55,7 +55,7 @@ void SchedulerRamp::setTarget(double target)
     insertTarget(Tsched(prevTime, target));
 }
 
-void SchedulerRamp::setTarget(coreTime time, double target)
+void SchedulerRamp::setTarget(CoreTime time, double target)
 {
     insertTarget(Tsched(time, target));
     if (time == nextUpdateTime) {
@@ -63,7 +63,7 @@ void SchedulerRamp::setTarget(coreTime time, double target)
     }
 }
 
-void SchedulerRamp::updateA(coreTime time)
+void SchedulerRamp::updateA(CoreTime time)
 {
     double deltaTime = (time - prevTime);
 
@@ -91,7 +91,7 @@ void SchedulerRamp::updateA(coreTime time)
     prevTime = time;
 }
 
-double SchedulerRamp::predict(coreTime time)
+double SchedulerRamp::predict(CoreTime time)
 {
     const double deltaTime = (time - prevTime);
     if (deltaTime == 0) {
@@ -101,7 +101,7 @@ double SchedulerRamp::predict(coreTime time)
     return (m_output + (ramp * deltaTime));
 }
 
-void SchedulerRamp::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void SchedulerRamp::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     Scheduler::dynObjectInitializeA(time0, flags);
     prevTime = time0 - 0.001;
@@ -160,12 +160,12 @@ double SchedulerRamp::getRampTime() const
     return (pTarget.front()).time - prevTime;
 }
 
-double SchedulerRamp::getMax(const coreTime /*time*/) const
+double SchedulerRamp::getMax(const CoreTime /*time*/) const
 {
     return pMax;
 }
 
-double SchedulerRamp::getMin(coreTime /*time*/) const
+double SchedulerRamp::getMin(CoreTime /*time*/) const
 {
     return pMin;
 }
@@ -286,7 +286,7 @@ void SchedulerRamp::updatePTarget()
     double rempower = 0.0;
     double remtime = 0.0;
     double target;
-    coreTime time;
+    CoreTime time;
     double targetSpan;
     double rampLimitUp;
 

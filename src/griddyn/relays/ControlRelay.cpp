@@ -109,7 +109,7 @@ void ControlRelay::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-void ControlRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void ControlRelay::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     rootSim = dynamic_cast<GridSimulation*>(getRoot());
 
@@ -125,7 +125,7 @@ void ControlRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 void ControlRelay::actionTaken(index_t actionNum,
                                index_t conditionNum,
                                ChangeCode /*actionReturn*/,
-                               coreTime /*actionTime*/)
+                               CoreTime /*actionTime*/)
 {
     logging::normal(this, "condition {}-> action {} taken", conditionNum, actionNum);
     (void)(actionNum);
@@ -335,7 +335,7 @@ void ControlRelay::updateObject(CoreObject* obj, ObjectUpdateMode mode)
 }
 
 std::unique_ptr<FunctionEventAdapter>
-    ControlRelay::generateGetEvent(coreTime eventTime, std::uint64_t sourceID, cm* message)
+    ControlRelay::generateGetEvent(CoreTime eventTime, std::uint64_t sourceID, cm* message)
 {
     auto act = getFreeAction();
     actions[act].actionID = (message->m_actionID > 0) ? message->m_actionID : instructionCounter;
@@ -356,7 +356,7 @@ std::unique_ptr<FunctionEventAdapter>
 }
 
 std::unique_ptr<FunctionEventAdapter>
-    ControlRelay::generateSetEvent(coreTime eventTime, std::uint64_t sourceID, cm* message)
+    ControlRelay::generateSetEvent(CoreTime eventTime, std::uint64_t sourceID, cm* message)
 {
     auto act = getFreeAction();
     actions[act].actionID = (message->m_actionID > 0) ? message->m_actionID : instructionCounter;

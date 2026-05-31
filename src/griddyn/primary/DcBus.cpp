@@ -15,7 +15,8 @@
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixDataCompact.hpp"
+#include "utilities/MatrixDataCompact.hpp"
+#include <algorithm>
 #include <iostream>
 #include <string>
 
@@ -49,7 +50,7 @@ void DcBus::add(Link* lnk)
 }
 
 // dynInitializeB states
-void DcBus::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void DcBus::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     GridBus::pFlowObjectInitializeA(time0, flags);
 }
@@ -171,7 +172,7 @@ void DcBus::pFlowCheck(std::vector<Violation>& violationVector)
 }
 
 // dynInitializeB states for dynamic solution
-void DcBus::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void DcBus::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     GridBus::dynObjectInitializeA(time0, flags);
     return;
@@ -187,7 +188,7 @@ void DcBus::dynObjectInitializeB(const IOdata& inputs,
     angle = 0;
 }
 
-void DcBus::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void DcBus::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     GridBus::timestep(time, inputs, sMode);
 }
@@ -275,7 +276,7 @@ void DcBus::getStateName(stringVec& stNames,
 }
 
 // pass the solution
-void DcBus::setState(coreTime time,
+void DcBus::setState(CoreTime time,
                      const double state[],
                      const double dstateDt[],
                      const SolverMode& sMode)
@@ -299,7 +300,7 @@ void DcBus::setState(coreTime time,
     GridBus::setState(time, state, dstateDt, sMode);
 }
 
-void DcBus::guessState(coreTime time, double state[], double dstateDt[], const SolverMode& sMode)
+void DcBus::guessState(CoreTime time, double state[], double dstateDt[], const SolverMode& sMode)
 {
     auto voffset = offsets.getVOffset(sMode);
 
@@ -340,7 +341,7 @@ static const IOlocs IN_LOC{0, 1, 2};
 
 void DcBus::computeDerivatives(const StateData& stateDataValue, const SolverMode& sMode)
 {
-    matrixDataCompact<2, 3> partDeriv;
+    MatrixDataCompact<2, 3> partDeriv;
     if (!isConnected()) {
         return;
     }
@@ -371,7 +372,7 @@ void DcBus::computeDerivatives(const StateData& stateDataValue, const SolverMode
 // Jacobian
 void DcBus::jacobianElements(const IOdata& /*inputs*/,
                              const StateData& stateDataValue,
-                             matrixData<double>& matrixDataValue,
+                             MatrixData<double>& matrixDataValue,
                              const IOlocs& /*inputLocs*/,
                              const SolverMode& sMode)
 {
@@ -396,7 +397,7 @@ void DcBus::jacobianElements(const IOdata& /*inputs*/,
         }
     }
 
-    // matrixDataSparse of;
+    // MatrixDataSparse of;
     of.setArray(matrixDataValue);
     of.setTranslation(PoutLocation,
                       useVoltage(sMode) ? inputLocs[voltageInLocation] : kNullLocation);
@@ -446,13 +447,13 @@ index_t DcBus::getOutputLoc(const SolverMode& sMode, index_t num) const
 }
 
 // TODO(phlpt): Write this function.
-void DcBus::converge(coreTime /*time*/,
+void DcBus::converge(CoreTime /*time*/,
                      double /*state*/[],
                      double /*dstate_dt*/[],
                      const SolverMode& /*sMode*/,
                      ConvergeMode /*mode*/,
                      double /*tol*/)
-// void DcBus::converge (const coreTime time, double state[], double dstate_dt[], const SolverMode
+// void DcBus::converge (const CoreTime time, double state[], double dstate_dt[], const SolverMode
 // &sMode, double tol, int mode)
 {
 }

@@ -34,8 +34,8 @@ class infiniteBus: public GridBus {
     infiniteBus(double startVoltage, double startAngle, const std::string& objName = "infbus_$");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components
-    void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
-    void setState(coreTime time,
+    void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    void setState(CoreTime time,
                   const double state[],
                   const double dstate_dt[],
                   const SolverMode& sMode) override;
@@ -54,7 +54,7 @@ class infiniteBus: public GridBus {
 
   protected:
     /** update the Voltage and Angle based on time using the defined ramp rates*/
-    void updateVoltageAngle(coreTime time);
+    void updateVoltageAngle(CoreTime time);
 };
 
 }  // namespace griddyn

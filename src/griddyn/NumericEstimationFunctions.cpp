@@ -7,7 +7,7 @@
 #include "NumericEstimationFunctions.h"
 
 #include "GridComponent.h"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <vector>
 
 namespace griddyn {
@@ -15,7 +15,7 @@ namespace griddyn {
 void numericJacobianCalculation(GridComponent* /* comp */,
                                 const IOdata& inputs,
                                 const StateData& sD,
-                                matrixData<double>& md,
+                                MatrixData<double>& md,
                                 const IOlocs& /*inputLocs*/,
                                 const SolverMode& /*sMode*/)
 {

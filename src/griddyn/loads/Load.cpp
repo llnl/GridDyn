@@ -10,7 +10,7 @@
 #include "../measurement/ObjectGrabbers.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <complex>
 #include <iostream>
@@ -22,12 +22,12 @@ using units::puMW;
 using units::unit;
 
 std::atomic<count_t> GridLoad::loadCount(0);
-GridLoad::GridLoad(const std::string& objName): gridSecondary(objName)
+GridLoad::GridLoad(const std::string& objName): GridSecondary(objName)
 {
     constructionHelper();
 }
 GridLoad::GridLoad(double rP, double rQ, const std::string& objName):
-    gridSecondary(objName), P(rP), Q(rQ)
+    GridSecondary(objName), P(rP), Q(rQ)
 {
     constructionHelper();
 }
@@ -41,7 +41,7 @@ void GridLoad::constructionHelper()
 
 CoreObject* GridLoad::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<GridLoad, gridSecondary>(this, obj);
+    auto nobj = cloneBase<GridLoad, GridSecondary>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -89,7 +89,7 @@ void GridLoad::setFlag(std::string_view flag, bool val)
             opFlags.reset(use_power_factor_flag);
         }
     } else {
-        gridSecondary::setFlag(flag, val);
+        GridSecondary::setFlag(flag, val);
     }
 }
 
@@ -98,7 +98,7 @@ void GridLoad::set(std::string_view param, std::string_view val)
 {
     if (param.empty() || param[0] == '#') {
     } else {
-        gridSecondary::set(param, val);
+        GridSecondary::set(param, val);
     }
 }
 
@@ -126,7 +126,7 @@ double GridLoad::get(std::string_view param, unit unitType) const
         CoreObject* tobj = const_cast<GridLoad*>(this);
         val = convert(fptr(tobj), unit, unitType, systemBasePower, localBaseVoltage);
     } else {
-        val = gridSecondary::get(param, unitType);
+        val = GridSecondary::get(param, unitType);
     }
     return val;
 }
@@ -163,7 +163,7 @@ void GridLoad::set(std::string_view param, double val, unit unitType)
             Q += convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
             updatepfq();
         } else {
-            gridSecondary::set(param, val, unitType);
+            GridSecondary::set(param, val, unitType);
         }
     } else if (param.back() == '*') {
         // load increments  allows a delta on the load through the set functions
@@ -174,7 +174,7 @@ void GridLoad::set(std::string_view param, double val, unit unitType)
             Q *= val;
             updatepfq();
         } else {
-            gridSecondary::set(param, val, unitType);
+            GridSecondary::set(param, val, unitType);
         }
     } else if (param == "load p") {
         setP(convert(val, unitType, puMW, systemBasePower, localBaseVoltage));
@@ -195,7 +195,7 @@ void GridLoad::set(std::string_view param, double val, unit unitType)
         pfq = val;
         opFlags.set(use_power_factor_flag);
     } else {
-        gridSecondary::set(param, val, unitType);
+        GridSecondary::set(param, val, unitType);
     }
 }
 

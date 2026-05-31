@@ -29,8 +29,8 @@ class braidSolver: public SolverInterface {
     std::vector<double> deriv;  //!< temp state data location 1
     std::vector<double> state2;  //!< temp state data location 2
     std::vector<double> type;  //!< type data
-    coreTime deltaT = 0.005;  //!< the default time step
-    coreTime tStart = 0.0;  //!< the start time
+    CoreTime deltaT = 0.005;  //!< the default time step
+    CoreTime tStart = 0.0;  //!< the start time
     std::string configFile{
         "braid_params.ini"};  //!< file containing additional braid configuration data
     std::vector<double>
@@ -57,16 +57,16 @@ class braidSolver: public SolverInterface {
     const double* derivData() const noexcept override;
     const double* typeData() const noexcept override;
     virtual void allocate(count_t size, count_t numroots = 0) override;
-    virtual void initialize(coreTime t0) override;
+    virtual void initialize(CoreTime t0) override;
 
     virtual double get(std::string_view param) const override;
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void set(std::string_view param, double val) override;
 
-    virtual int calcIC(coreTime t0, coreTime tstep0, IcModes mode, bool constraints) override;
+    virtual int calcIC(CoreTime t0, CoreTime tstep0, IcModes mode, bool constraints) override;
 
     virtual int
-        solve(coreTime tStop, coreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
+        solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
     /** execute the braid solve*/
     virtual int runBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int Ngridpoints);
     virtual void getRoots() override;

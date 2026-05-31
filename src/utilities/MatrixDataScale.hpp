@@ -6,27 +6,27 @@
 
 #pragma once
 
-#include "matrixDataContainer.hpp"
+#include "MatrixDataContainer.hpp"
 
 /** @brief class implementation for a scaling array data
- all data is multiplied by a factor before being sent to the underlying matrixData object
+ all data is multiplied by a factor before being sent to the underlying MatrixData object
 */
 template<class ValueT = double, class ScaleT = ValueT>
-class matrixDataScale: public matrixDataContainer<ValueT> {
+class MatrixDataScale: public MatrixDataContainer<ValueT> {
   private:
     ScaleT scalingFactor_;
 
   public:
     /** @brief constructor
      */
-    matrixDataScale(matrixData<ValueT>& input, ScaleT scaleFactor):
-        matrixDataContainer<ValueT>(input), scalingFactor_(scaleFactor)
+    MatrixDataScale(MatrixData<ValueT>& input, ScaleT scaleFactor):
+        MatrixDataContainer<ValueT>(input), scalingFactor_(scaleFactor)
     {
     }
 
     void assign(index_t row, index_t col, ValueT num) override
     {
-        matrixDataContainer<ValueT>::md->assign(row, col, num * scalingFactor_);
+        MatrixDataContainer<ValueT>::md->assign(row, col, num * scalingFactor_);
     }
     /** @brief set the scale factor for the array
     @param[in] scaleFactor  the input row to translate

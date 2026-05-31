@@ -85,7 +85,7 @@ Total findings: **1239**
 | `src/gridDynServer/gridDynServer.h`                              |   64 | `gridDynServer`                   | class/struct name |
 | `src/griddyn/GridArea.h`                                         |   25 | `listMaintainer`                  | class/struct name |
 | `src/griddyn/GridBus.h`                                          |   28 | `busPowers`                       | class/struct name |
-| `src/griddyn/GridComponent.h`                                    |   18 | `matrixData`                      | class/struct name |
+| `src/griddyn/GridComponent.h`                                    |   18 | `MatrixData`                      | class/struct name |
 | `src/griddyn/GridComponentHelperClasses.h`                       |  275 | `stateSizes`                      | class/struct name |
 | `src/griddyn/GridComponentHelperClasses.h`                       |  319 | `solverOffsets`                   | class/struct name |
 | `src/griddyn/GridComponentHelperClasses.h`                       |  433 | `stateData`                       | class/struct name |
@@ -95,7 +95,7 @@ Total findings: **1239**
 | `src/griddyn/GridSecondary.h`                                    |   20 | `gridSecondary`                   | class/struct name |
 | `src/griddyn/Link.h`                                             |   22 | `linkI`                           | class/struct name |
 | `src/griddyn/Link.h`                                             |   33 | `linkF`                           | class/struct name |
-| `src/griddyn/NumericEstimationFunctions.h`                       |   13 | `matrixData`                      | class/struct name |
+| `src/griddyn/NumericEstimationFunctions.h`                       |   13 | `MatrixData`                      | class/struct name |
 | `src/griddyn/NumericEstimationFunctions.h`                       |   17 | `stateData`                       | class/struct name |
 | `src/griddyn/Relay.h`                                            |  328 | `condCheckTime`                   | class/struct name |
 | `src/griddyn/Relay.h`                                            |  350 | `mcondTrig`                       | class/struct name |
@@ -114,7 +114,7 @@ Total findings: **1239**
 | `src/griddyn/links/ZBreaker.h`                                   |   17 | `zBreaker`                        | class/struct name |
 | `src/griddyn/measurement/Collector.h`                            |   53 | `collectorPoint`                  | class/struct name |
 | `src/griddyn/measurement/Condition.h`                            |  179 | `compoundCondition`               | class/struct name |
-| `src/griddyn/measurement/GrabberSet.h`                           |   16 | `matrixData`                      | class/struct name |
+| `src/griddyn/measurement/GrabberSet.h`                           |   16 | `MatrixData`                      | class/struct name |
 | `src/griddyn/measurement/GrabberSet.h`                           |   20 | `valuePredictor`                  | class/struct name |
 | `src/griddyn/measurement/GrabberSet.h`                           |   24 | `gridCore`                        | class/struct name |
 | `src/griddyn/measurement/GrabberSet.h`                           |   27 | `stateData`                       | class/struct name |
@@ -122,7 +122,7 @@ Total findings: **1239**
 | `src/griddyn/primary/BusControls.h`                              |   14 | `gridSecondary`                   | class/struct name |
 | `src/griddyn/primary/DcBusControls.h`                            |   14 | `gridSecondary`                   | class/struct name |
 | `src/griddyn/primary/InfiniteBus.h`                              |   20 | `infiniteBus`                     | class/struct name |
-| `src/griddyn/primary/ListMaintainer.h`                           |   14 | `matrixData`                      | class/struct name |
+| `src/griddyn/primary/ListMaintainer.h`                           |   14 | `MatrixData`                      | class/struct name |
 | `src/griddyn/primary/ListMaintainer.h`                           |   17 | `gridPrimary`                     | class/struct name |
 | `src/griddyn/primary/ListMaintainer.h`                           |   18 | `stateData`                       | class/struct name |
 | `src/griddyn/primary/ListMaintainer.h`                           |   22 | `listMaintainer`                  | class/struct name |
@@ -137,11 +137,11 @@ Total findings: **1239**
 | `src/griddyn/simulation/Contingency.h`                           |   74 | `extraContingencyInfo`            | class/struct name |
 | `src/griddyn/simulation/Continuation.h`                          |   17 | `parameterSequence`               | class/struct name |
 | `src/griddyn/simulation/Diagnostics.cpp`                         |  662 | `objectCountInfo`                 | class/struct name |
-| `src/griddyn/simulation/Diagnostics.h`                           |   15 | `matrixData`                      | class/struct name |
+| `src/griddyn/simulation/Diagnostics.h`                           |   15 | `MatrixData`                      | class/struct name |
 | `src/griddyn/simulation/DynamicInitialConditionRecovery.h`       |   17 | `dynamicInitialConditionRecovery` | class/struct name |
 | `src/griddyn/simulation/FaultResetRecovery.h`                    |   20 | `faultResetRecovery`              | class/struct name |
 | `src/griddyn/simulation/GridDynActions.h`                        |   17 | `gridDynAction`                   | class/struct name |
-| `src/griddyn/simulation/GridDynSimulationFileOps.h`              |   14 | `matrixData`                      | class/struct name |
+| `src/griddyn/simulation/GridDynSimulationFileOps.h`              |   14 | `MatrixData`                      | class/struct name |
 | `src/griddyn/simulation/GridDynSimulationFileOps.h`              |  173 | `dataInfo`                        | class/struct name |
 | `src/griddyn/simulation/PowerFlowErrorRecovery.h`                |   17 | `powerFlowErrorRecovery`          | class/struct name |
 | `src/griddyn/sources/BlockSource.h`                              |   18 | `blockSource`                     | class/struct name |
@@ -157,7 +157,7 @@ Total findings: **1239**
 | `src/griddyn_shared/internal/griddyn_export_internal.h`          |   29 | `solverKeyInfo`                   | class/struct name |
 | `src/networking/zmqLibrary/zmqContextManager.h`                  |   25 | `context_t`                       | class/struct name |
 | `src/optimization/gridOptObjects.h`                              |   17 | `vectData`                        | class/struct name |
-| `src/optimization/gridOptObjects.h`                              |   20 | `matrixData`                      | class/struct name |
+| `src/optimization/gridOptObjects.h`                              |   20 | `MatrixData`                      | class/struct name |
 | `src/optimization/gridOptObjects.h`                              |   23 | `consData`                        | class/struct name |
 | `src/plugins/gridDynPluginApi.h`                                 |   13 | `gridDynPlugInApi`                | class/struct name |
 | `src/utilities/assert.h`                                         |   17 | `assert_exception`                | class/struct name |
@@ -171,31 +171,31 @@ Total findings: **1239**
 | `src/utilities/gridRandom.h`                                     |  125 | `randomDistributionObject1`       | class/struct name |
 | `src/utilities/gridRandom.h`                                     |  138 | `randomDistributionObject1`       | class/struct name |
 | `src/utilities/logger.h`                                         |   16 | `logger`                          | class/struct name |
-| `src/utilities/matrixData.hpp`                                   |   16 | `matrixElement`                   | class/struct name |
-| `src/utilities/matrixData.hpp`                                   |   52 | `matrixData`                      | class/struct name |
-| `src/utilities/matrixDataBoost.hpp`                              |   16 | `matrixDataBoost`                 | class/struct name |
-| `src/utilities/matrixDataBoost.hpp`                              |   61 | `matrixIteratorBoost`             | class/struct name |
-| `src/utilities/matrixDataCompact.hpp`                            |   17 | `matrixDataCompact`               | class/struct name |
-| `src/utilities/matrixDataCompact.hpp`                            |   74 | `matrixIteratorCompact`           | class/struct name |
-| `src/utilities/matrixDataContainer.hpp`                          |   17 | `matrixDataContainer`             | class/struct name |
-| `src/utilities/matrixDataCustomWriteOnly.hpp`                    |   18 | `matrixDataCustomWriteOnly`       | class/struct name |
-| `src/utilities/matrixDataFilter.hpp`                             |   19 | `matrixDataFilter`                | class/struct name |
-| `src/utilities/matrixDataOrdered.hpp`                            |   18 | `matrixDataOrdered`               | class/struct name |
-| `src/utilities/matrixDataOrdering.hpp`                           |   21 | `keyOrder`                        | class/struct name |
-| `src/utilities/matrixDataOrdering.hpp`                           |   29 | `keyOrder`                        | class/struct name |
-| `src/utilities/matrixDataScale.hpp`                              |   15 | `matrixDataScale`                 | class/struct name |
-| `src/utilities/matrixDataSparse.hpp`                             |   23 | `matrixDataSparse`                | class/struct name |
-| `src/utilities/matrixDataSparseSM.hpp`                           |   21 | `keyCompute`                      | class/struct name |
-| `src/utilities/matrixDataSparseSM.hpp`                           |   37 | `keyCompute`                      | class/struct name |
-| `src/utilities/matrixDataSparseSM.hpp`                           |   54 | `blockCompute`                    | class/struct name |
-| `src/utilities/matrixDataSparseSM.hpp`                           |   88 | `blockCompute`                    | class/struct name |
-| `src/utilities/matrixDataSparseSM.hpp`                           |  116 | `matrixDataSparseSMB`             | class/struct name |
-| `src/utilities/matrixDataSparseSM.hpp`                           |  340 | `matrixIteratorSM`                | class/struct name |
-| `src/utilities/matrixDataSparseSM.hpp`                           |  399 | `matrixDataSparseSMB`             | class/struct name |
-| `src/utilities/matrixDataSparseSM.hpp`                           |  514 | `matrixIteratorSM`                | class/struct name |
-| `src/utilities/matrixDataSparseSM.hpp`                           |  550 | `matrixDataSparseSMB`             | class/struct name |
-| `src/utilities/matrixDataSparseSM.hpp`                           |  716 | `matrixIteratorSM`                | class/struct name |
-| `src/utilities/matrixDataTranslate.hpp`                          |   21 | `matrixDataTranslate`             | class/struct name |
+| `src/utilities/MatrixData.hpp`                                   |   16 | `MatrixElement`                   | class/struct name |
+| `src/utilities/MatrixData.hpp`                                   |   52 | `MatrixData`                      | class/struct name |
+| `src/utilities/MatrixDataBoost.hpp`                              |   16 | `MatrixDataBoost`                 | class/struct name |
+| `src/utilities/MatrixDataBoost.hpp`                              |   61 | `MatrixIteratorBoost`             | class/struct name |
+| `src/utilities/MatrixDataCompact.hpp`                            |   17 | `MatrixDataCompact`               | class/struct name |
+| `src/utilities/MatrixDataCompact.hpp`                            |   74 | `MatrixIteratorCompact`           | class/struct name |
+| `src/utilities/MatrixDataContainer.hpp`                          |   17 | `MatrixDataContainer`             | class/struct name |
+| `src/utilities/MatrixDataCustomWriteOnly.hpp`                    |   18 | `MatrixDataCustomWriteOnly`       | class/struct name |
+| `src/utilities/MatrixDataFilter.hpp`                             |   19 | `MatrixDataFilter`                | class/struct name |
+| `src/utilities/MatrixDataOrdered.hpp`                            |   18 | `MatrixDataOrdered`               | class/struct name |
+| `src/utilities/MatrixDataOrdering.hpp`                           |   21 | `KeyOrder`                        | class/struct name |
+| `src/utilities/MatrixDataOrdering.hpp`                           |   29 | `KeyOrder`                        | class/struct name |
+| `src/utilities/MatrixDataScale.hpp`                              |   15 | `MatrixDataScale`                 | class/struct name |
+| `src/utilities/MatrixDataSparse.hpp`                             |   23 | `MatrixDataSparse`                | class/struct name |
+| `src/utilities/MatrixDataSparseSM.hpp`                           |   21 | `KeyCompute`                      | class/struct name |
+| `src/utilities/MatrixDataSparseSM.hpp`                           |   37 | `KeyCompute`                      | class/struct name |
+| `src/utilities/MatrixDataSparseSM.hpp`                           |   54 | `BlockCompute`                    | class/struct name |
+| `src/utilities/MatrixDataSparseSM.hpp`                           |   88 | `BlockCompute`                    | class/struct name |
+| `src/utilities/MatrixDataSparseSM.hpp`                           |  116 | `MatrixDataSparseSMB`             | class/struct name |
+| `src/utilities/MatrixDataSparseSM.hpp`                           |  340 | `MatrixIteratorSM`                | class/struct name |
+| `src/utilities/MatrixDataSparseSM.hpp`                           |  399 | `MatrixDataSparseSMB`             | class/struct name |
+| `src/utilities/MatrixDataSparseSM.hpp`                           |  514 | `MatrixIteratorSM`                | class/struct name |
+| `src/utilities/MatrixDataSparseSM.hpp`                           |  550 | `MatrixDataSparseSMB`             | class/struct name |
+| `src/utilities/MatrixDataSparseSM.hpp`                           |  716 | `MatrixIteratorSM`                | class/struct name |
+| `src/utilities/MatrixDataTranslate.hpp`                          |   21 | `MatrixDataTranslate`             | class/struct name |
 | `src/utilities/saturation.h`                                     |   16 | `saturation`                      | class/struct name |
 | `src/utilities/valuePredictor.hpp`                               |   14 | `valuePredictor`                  | class/struct name |
 | `src/utilities/vectData.hpp`                                     |   20 | `vectData`                        | class/struct name |
@@ -794,9 +794,9 @@ Total findings: **1239**
 | `src/utilities/gridRandom.cpp`                                   |   22 | `lookupEntry`                     | file stem 'gridRandom' differs from declared type                      |
 | `src/utilities/gridRandom.h`                                     |   19 | `distributionObject`              | file stem 'gridRandom' differs from declared type                      |
 | `src/utilities/logger.h`                                         |   24 | `Logger`                          | file stem 'logger' differs from declared type                          |
-| `src/utilities/matrixData.hpp`                                   |   16 | `matrixElement`                   | file stem 'matrixData' differs from declared type                      |
-| `src/utilities/matrixDataOrdering.hpp`                           |   12 | `SparseOrdering`                  | file stem 'matrixDataOrdering' differs from declared type              |
-| `src/utilities/matrixDataSparseSM.hpp`                           |   21 | `keyCompute`                      | file stem 'matrixDataSparseSM' differs from declared type              |
+| `src/utilities/MatrixData.hpp`                                   |   16 | `MatrixElement`                   | file stem 'MatrixData' differs from declared type                      |
+| `src/utilities/MatrixDataOrdering.hpp`                           |   12 | `SparseOrdering`                  | file stem 'matrixDataOrdering' differs from declared type              |
+| `src/utilities/MatrixDataSparseSM.hpp`                           |   21 | `KeyCompute`                      | file stem 'matrixDataSparseSM' differs from declared type              |
 | `src/utilities/zipUtilities.h`                                   |   14 | `ZipMode`                         | file stem 'zipUtilities' differs from declared type                    |
 | `test/componentTests/simulationTests.cpp`                        |   16 | `SimulationTests`                 | file stem 'simulationTests' differs from declared type                 |
 | `test/componentTests/testAdjustableTX.cpp`                       |   21 | `AdjustableTransformerTests`      | file stem 'testAdjustableTX' differs from declared type                |
@@ -1254,9 +1254,9 @@ Total findings: **1239**
 | `src/utilities/functionInterpreter.cpp`                          |  432 | `mult_sum`                               | function/method name |
 | `src/utilities/indexTypes.hpp`                                   |   38 | `index_t`                                | function/method name |
 | `src/utilities/indexTypes.hpp`                                   |   42 | `count_t`                                | function/method name |
-| `src/utilities/matrixDataOrdered.hpp`                            |  158 | `ValueT`                                 | function/method name |
-| `src/utilities/matrixDataOrdered.hpp`                            |  161 | `ValueT`                                 | function/method name |
-| `src/utilities/matrixDataTranslate.hpp`                          |   55 | `ValueT`                                 | function/method name |
+| `src/utilities/MatrixDataOrdered.hpp`                            |  158 | `ValueT`                                 | function/method name |
+| `src/utilities/MatrixDataOrdered.hpp`                            |  161 | `ValueT`                                 | function/method name |
+| `src/utilities/MatrixDataTranslate.hpp`                          |   55 | `ValueT`                                 | function/method name |
 | `test/gtestHelperFunctions.cpp`                                  |   21 | `TearDown`                               | function/method name |
 | `test/libraryTests/testOperatingBounds.cpp`                      |   16 | `Bound`                                  | function/method name |
 
@@ -1304,6 +1304,6 @@ Total findings: **1239**
 | `src/optimization/models/gridGenOpt.h`   |   39 | `m_forecast`                   | member-style variable |
 | `src/runner/gridDynRunner.h`             |  122 | `m_gds`                        | member-style variable |
 | `src/utilities/assert.h`                 |   28 | `m_line`                       | member-style variable |
-| `src/utilities/matrixDataScale.hpp`      |   17 | `scalingFactor_`               | member-style variable |
-| `src/utilities/matrixDataSparse.hpp`     |  220 | `data_`                        | member-style variable |
+| `src/utilities/MatrixDataScale.hpp`      |   17 | `scalingFactor_`               | member-style variable |
+| `src/utilities/MatrixDataSparse.hpp`     |  220 | `data_`                        | member-style variable |
 | `test/systemTests/testGridDynRunner.cpp` |   35 | `m_currentGDTime`              | member-style variable |

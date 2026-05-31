@@ -10,7 +10,7 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <string>
 #include <utility>
 #include <vector>
@@ -68,7 +68,7 @@ CoreObject* TransferFunctionBlock::clone(CoreObject* obj) const
     return nobj;
 }
 // set up the number of states
-void TransferFunctionBlock::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void TransferFunctionBlock::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (b.back() == 0) {
         opFlags[differential_output] = true;
@@ -149,7 +149,7 @@ void TransferFunctionBlock::blockDerivative(double input,
 void TransferFunctionBlock::blockJacobianElements(double input,
                                                   double didt,
                                                   const StateData& stateDataValue,
-                                                  matrixData<double>& matrixDataValue,
+                                                  MatrixData<double>& matrixDataValue,
                                                   index_t argLoc,
                                                   const SolverMode& sMode)
 {
@@ -170,7 +170,7 @@ void TransferFunctionBlock::blockJacobianElements(double input,
     matrixDataValue.assign(loc.diffOffset, loc.diffOffset, -stateDataValue.cj);
 }
 
-double TransferFunctionBlock::step(coreTime time, double inputA)
+double TransferFunctionBlock::step(CoreTime time, double inputA)
 {
     const double timeDelta = time - prevTime;
     double out;

@@ -40,11 +40,11 @@ public:
 
         virtual ~reserveDispatcher();
 
-        virtual double initialize(coreTime time0,double dispatchSet);
+        virtual double initialize(CoreTime time0,double dispatchSet);
 
-        void setTime(coreTime time);
-        virtual double updateP(coreTime time);
-        virtual double testP(coreTime time);
+        void setTime(CoreTime time);
+        virtual double updateP(CoreTime time);
+        virtual double testP(CoreTime time);
         double currentValue(){return dispatch;};
 
         virtual void addGen(scheduler *sched);
@@ -105,7 +105,7 @@ void ReserveDispatcher::moveSchedulers(ReserveDispatcher* dispatcherToMove)
     checkGen();
 }
 
-double ReserveDispatcher::dynInitializeA(coreTime time0, double dispatchSet)
+double ReserveDispatcher::dynInitializeA(CoreTime time0, double dispatchSet)
 {
     currentDispatch = dispatchSet;
     if (dispatchSet > 0) {
@@ -116,7 +116,7 @@ double ReserveDispatcher::dynInitializeA(coreTime time0, double dispatchSet)
     return currentDispatch;
 }
 
-double ReserveDispatcher::updateP(coreTime time, double pShort)
+double ReserveDispatcher::updateP(CoreTime time, double pShort)
 {
     if (currentDispatch > 0) {
         if (time > (dispatchTime + dispatchInterval)) {
@@ -139,7 +139,7 @@ double ReserveDispatcher::updateP(coreTime time, double pShort)
     return currentDispatch;
 }
 
-double ReserveDispatcher::testP(coreTime time, double pShort)
+double ReserveDispatcher::testP(CoreTime time, double pShort)
 {
     double output = 0;
     if (currentDispatch > 0) {

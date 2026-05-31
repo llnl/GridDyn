@@ -6,14 +6,14 @@
 
 #pragma once
 
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 
 #include <boost/numeric/ublas/matrix_sparse.hpp>
 
 /** @brief class implementing an expandable sparse matrix based on the boost matrices geared for
  * Jacobian entries*/
 template<class type>
-class matrixDataBoost: public matrixData<type> {
+class MatrixDataBoost: public MatrixData<type> {
   public:
     boost::numeric::ublas::mapped_matrix<type, boost::numeric::ublas::column_major>
         m;  //!< boost matrix to interface
@@ -22,7 +22,7 @@ class matrixDataBoost: public matrixData<type> {
     @param[in] R  number of rows
     @param[in] C  number of columns
     */
-    matrixDataBoost(count_t R, count_t C): matrixData<type>(R, C), m(R, C) {}
+    MatrixDataBoost(count_t R, count_t C): MatrixData<type>(R, C), m(R, C) {}
     /**
      * function to clear the data
      */
@@ -38,29 +38,29 @@ class matrixDataBoost: public matrixData<type> {
     /**
      * @brief don't use this function
      */
-    matrixElement<type> element(index_t N) { return matrixElement<type>(); }
+    MatrixElement<type> element(index_t N) { return MatrixElement<type>(); }
     /**
      * @brief don't use this function
      */
-    matrixElement<type> start() override
+    MatrixElement<type> start() override
     {
-        return {matrixData<type>::rowLim, matrixData<type>::colLim, type(0)};
+        return {MatrixData<type>::rowLim, MatrixData<type>::colLim, type(0)};
     }
     /**
      * @brief don't use this function
      */
-    matrixElement<type> next() override
+    MatrixElement<type> next() override
     {
-        return {matrixData<type>::rowLim, matrixData<type>::colLim, type(0)};
+        return {MatrixData<type>::rowLim, MatrixData<type>::colLim, type(0)};
     }
     type at(index_t rowN, index_t colN) const override { return m(rowN, colN); }
     auto begin() const { return matriIteratorBoost(this, 0); }
     auto end() const { return matriIteratorBoost(this, size()); }
 
   protected:
-    class matrixIteratorBoost {
+    class MatrixIteratorBoost {
       public:
-        explicit matrixIteratorBoost(const matrixDataBoost<type>* matrixData, index_t start = 0)
+        explicit MatrixIteratorBoost(const MatrixDataBoost<type>* MatrixData, index_t start = 0)
         {
             if (start == 0) {
                 cptr = mDB->m.begin1();
@@ -82,7 +82,7 @@ class matrixDataBoost: public matrixData<type> {
             }
         }
 
-        matrixIteratorBoost& operator++() override
+        MatrixIteratorBoost& operator++() override
         {
             ++cptr2;
             if (cptr2 == cptr2end) {
@@ -100,13 +100,13 @@ class matrixDataBoost: public matrixData<type> {
             }
         }
 
-        virtual matrixElement<type> operator*() const override
+        virtual MatrixElement<type> operator*() const override
         {
             return {cptr2.index1(), cptr2.index2(), *cptr2};
         }
 
       private:
-        matrixDataBoost<type>* mDB = nullptr;
+        MatrixDataBoost<type>* mDB = nullptr;
         decltype(mDB->m.begin1()) cptr;
         decltype(cptr->begin()) cptr2;
         decltype(cptr->end()) cptr2end;

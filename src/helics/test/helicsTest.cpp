@@ -34,7 +34,7 @@ class HelicsTests: public GridDynSimulationTestFixture, public ::testing::Test {
 
 using griddyn::CoreObject;
 using griddyn::CoreObjectFactory;
-using griddyn::coreTime;
+using griddyn::CoreTime;
 using griddyn::Generator;
 using griddyn::GridDynSimulationTestFixture;
 using griddyn::Source;
@@ -52,9 +52,9 @@ static const char helics_test_directory[] = GRIDDYN_TEST_DIRECTORY "/helics_test
 
 TEST_F(HelicsTests, TimeConversionTest)
 {
-    coreTime val = 4.5234235;
+    CoreTime val = 4.5234235;
     auto helicsTime = gdToHelicsTime(val);
-    coreTime ret = helicsToGdTime(helicsTime);
+    CoreTime ret = helicsToGdTime(helicsTime);
 
     EXPECT_NEAR(static_cast<double>(val), static_cast<double>(ret), 0.0000001);
 

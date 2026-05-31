@@ -24,7 +24,7 @@ class Pmu: public Sensor {
     };
 
   protected:
-    coreTime mTransmissionPeriod = 1.0 / 30.0;  //!< the rate of data transmission
+    CoreTime mTransmissionPeriod = 1.0 / 30.0;  //!< the rate of data transmission
     model_parameter mVoltageFilterTime =
         0.05;  //!< filter time constant for the voltage measurement
     model_parameter mAngleFilterTime = 0.05;  //!< filter time constant for the angle measurement
@@ -33,8 +33,8 @@ class Pmu: public Sensor {
     model_parameter mRocofFilterTime = 0.05;  //!< filter time constant for computing the ROCOF
     model_parameter mSampleRate = 720.0;  //!< [Hz] the actual sample time
   private:
-    coreTime mNextTransmitTime = maxTime;  //!< the time of the next transmission
-    coreTime mLastTransmitTime = negTime;  //!< the time of the last transmission
+    CoreTime mNextTransmitTime = maxTime;  //!< the time of the next transmission
+    CoreTime mLastTransmitTime = negTime;  //!< the time of the last transmission
   public:
     Pmu(const std::string& objName = "pmu_$");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
@@ -47,10 +47,10 @@ class Pmu: public Sensor {
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
-    virtual void updateA(coreTime time) override;
-    virtual coreTime updateB() override;
+    virtual void updateA(CoreTime time) override;
+    virtual CoreTime updateB() override;
 
   private:
     /** create the appropriate output names based on the settings*/

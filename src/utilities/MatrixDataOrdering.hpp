@@ -18,7 +18,7 @@ enum class SparseOrdering {
 /** class to reorder row and column into primary and secondary indices
  */
 template<class Y, SparseOrdering M>
-class keyOrder {
+class KeyOrder {
   public:
     static Y primary(Y rowIndex, Y /*colIndex*/) { return rowIndex; }
     static Y secondary(Y /*rowIndex*/, Y colIndex) { return colIndex; }
@@ -26,7 +26,7 @@ class keyOrder {
 };
 
 template<class Y>
-class keyOrder<Y, SparseOrdering::COLUMN_ORDERED> {
+class KeyOrder<Y, SparseOrdering::COLUMN_ORDERED> {
   public:
     static Y primary(Y /*rowIndex*/, Y colIndex) { return colIndex; }
     static Y secondary(Y rowIndex, Y /*colIndex*/) { return rowIndex; }

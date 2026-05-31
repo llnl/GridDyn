@@ -9,7 +9,7 @@
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <string>
 namespace griddyn::loads {
@@ -50,7 +50,7 @@ void ExponentialLoad::set(std::string_view param, double val, units::unit unitTy
 
 void ExponentialLoad::ioPartialDerivatives(const IOdata& inputs,
                                            const StateData& /*sD*/,
-                                           matrixData<double>& md,
+                                           MatrixData<double>& md,
                                            const IOlocs& inputLocs,
                                            const SolverMode& /*sMode*/)
 {

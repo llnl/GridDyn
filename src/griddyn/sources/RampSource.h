@@ -23,7 +23,7 @@ class RampSource: public Source {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual double computeOutput(coreTime time) const override;
+    virtual double computeOutput(CoreTime time) const override;
     virtual double getDoutdt(const IOdata& inputs,
                              const StateData& sD,
                              const SolverMode& sMode,

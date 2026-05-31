@@ -63,7 +63,7 @@ double paradaeArrayData::at(index_t rowN, index_t colN) const
     return (*J)(rowN, colN);
 }
 
-matrixElement<double> paradaeArrayData::element(index_t N) const
+MatrixElement<double> paradaeArrayData::element(index_t N) const
 {
     return {J->GetRowIndex(N), J->GetColIndex(N), J->GetValue(N)};
 }

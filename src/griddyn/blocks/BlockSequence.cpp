@@ -10,7 +10,7 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <compare>
 #include <string>
@@ -31,7 +31,7 @@ CoreObject* BlockSequence::clone(CoreObject* obj) const
     return nobj;
 }
 
-void BlockSequence::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void BlockSequence::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     bool diffInput = opFlags[DIFFERENTIAL_INPUT_ACTUAL];
     if (sequence.empty()) {  // create a default sequence with all the blocks
@@ -127,14 +127,14 @@ void BlockSequence::updateLocalCache(const IOdata& /*inputs*/,
     seqID = stateData.seqID;
 }
 
-double BlockSequence::step(coreTime time, double input)
+double BlockSequence::step(CoreTime time, double input)
 {
     // compute a core sample time then cycle through all the objects at that
     // sampling rate
     input = input + bias;
     const double drate = (input - prevInput) / (time - prevTime);
     while (prevTime < time) {
-        const coreTime newTime = std::min(time, prevTime + sampleTime);
+        const CoreTime newTime = std::min(time, prevTime + sampleTime);
         double blockInput = prevInput + drate * (newTime - prevTime);
         for (auto& blkIn : sequence) {
             blockInput = blocks[blkIn]->step(newTime, blockInput);
@@ -198,7 +198,7 @@ void BlockSequence::blockAlgebraicUpdate(double input,
 void BlockSequence::blockJacobianElements(double input,
                                           double didt,
                                           const StateData& stateData,
-                                          matrixData<double>& matrixDataRef,
+                                          MatrixData<double>& matrixDataRef,
                                           index_t argLoc,
                                           const SolverMode& sMode)
 {
@@ -234,7 +234,7 @@ void BlockSequence::rootTest(const IOdata& inputs,
     GridBlock::rootTest(inAct, stateData, roots, sMode);
 }
 
-void BlockSequence::rootTrigger(coreTime time,
+void BlockSequence::rootTrigger(CoreTime time,
                                 const IOdata& inputs,
                                 const std::vector<int>& rootMask,
                                 const SolverMode& sMode)

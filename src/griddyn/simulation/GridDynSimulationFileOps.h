@@ -11,10 +11,10 @@
 #include <string>
 #include <vector>
 template<class Y>
-class matrixData;
+class MatrixData;
 
 namespace griddyn {
-// forward declare the template class matrixData
+// forward declare the template class MatrixData
 
 class SolverMode;
 class GridDynSimulation;
@@ -171,7 +171,7 @@ void loadPowerFlowCSV(GridDynSimulation* gds, const std::string& fileName);
 /** struct containing binary Data information
  */
 struct dataInfo {
-    coreTime time = 0.0;
+    CoreTime time = 0.0;
     std::uint32_t code = 0;
     std::uint32_t index = 0;
     std::uint32_t key = 0;
@@ -201,7 +201,7 @@ data object)
 @throw FileOperationError if the file cannot be opened
 */
 
-void writeVector(coreTime time,
+void writeVector(CoreTime time,
                  std::uint32_t code,
                  std::uint32_t index,
                  std::uint32_t key,
@@ -226,11 +226,11 @@ data object)
 */
 
 #define JACOBIAN_DATA 1
-void writeArray(coreTime time,
+void writeArray(CoreTime time,
                 std::uint32_t code,
                 std::uint32_t index,
                 std::uint32_t key,
-                matrixData<double>& matrixValues,
+                MatrixData<double>& matrixValues,
                 const std::string& fileName,
                 bool append = true);
 

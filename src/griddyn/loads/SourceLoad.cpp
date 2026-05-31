@@ -134,7 +134,7 @@ void SourceLoad::remove(CoreObject* obj)
     if (dynamic_cast<Source*>(obj) != nullptr) {
         remove(static_cast<Source*>(obj));
     } else {
-        gridSecondary::remove(obj);
+        GridSecondary::remove(obj);
     }
 }
 
@@ -152,7 +152,7 @@ void SourceLoad::remove(Source* src)
                     lnk = -1;
                 }
             }
-            gridSecondary::remove(src);
+            GridSecondary::remove(src);
         }
     }
 }
@@ -218,7 +218,7 @@ void SourceLoad::set(std::string_view param, std::string_view val)
     }
 }
 
-void SourceLoad::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void SourceLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     for (const auto& src : getSubObjects()) {
         static_cast<Source*>(src)->timestep(time, noInputs, sMode);
@@ -228,7 +228,7 @@ void SourceLoad::timestep(coreTime time, const IOdata& inputs, const SolverMode&
     ZipLoad::timestep(time, inputs, sMode);
 }
 
-void SourceLoad::setState(coreTime time,
+void SourceLoad::setState(CoreTime time,
                           const double state[],
                           const double dstateDt[],
                           const SolverMode& sMode)
@@ -278,7 +278,7 @@ void SourceLoad::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-void SourceLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
+void SourceLoad::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     // Do a check on the sources;
     for (auto& sourceLocation : sourceLink) {
@@ -295,7 +295,7 @@ void SourceLoad::pFlowObjectInitializeA(coreTime time0, std::uint32_t flags)
     getSourceLoads();
 }
 
-void SourceLoad::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void SourceLoad::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     ZipLoad::dynObjectInitializeA(time0, flags);
     getSourceLoads();

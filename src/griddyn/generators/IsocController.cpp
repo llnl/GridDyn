@@ -33,7 +33,7 @@ CoreObject* IsocController::clone(CoreObject* obj) const
     return nobj;
 }
 
-void IsocController::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void IsocController::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
     gen = dynamic_cast<Generator*>(getParent());
     updatePeriod = upPeriod;
@@ -65,7 +65,7 @@ void IsocController::setLimits(double minV, double maxV)
     m_output = gmlc::utilities::valLimit(m_output, minLevel, maxLevel);
 }
 
-void IsocController::updateA(coreTime time)
+void IsocController::updateA(CoreTime time)
 {
     if (time < nextUpdateTime) {
         assert(false);
@@ -91,7 +91,7 @@ void IsocController::updateA(coreTime time)
     // printf("t=%f,output=%f\n", time, m_output);
 }
 
-void IsocController::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
+void IsocController::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     prevTime = time;
     lastFreq = inputs[0];
@@ -142,7 +142,7 @@ void IsocController::deactivate()
     nextUpdateTime = maxTime;
 }
 
-void IsocController::activate(coreTime time)
+void IsocController::activate(CoreTime time)
 {
     nextUpdateTime = time + upPeriod;
 }

@@ -30,7 +30,7 @@ Formatting conventions are primarily enforced through the repository
 3. Class methods should be `camelCase`
 
    ```cpp
-   void setTime(coreTime newTime);
+   void setTime(CoreTime newTime);
    ```
 
    Exception: methods that intentionally match standard library naming.

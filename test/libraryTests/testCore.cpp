@@ -167,17 +167,17 @@ TEST(CoreTests, ObjectFactory)
 
 TEST(CoreTests, GridDynTime)
 {
-    coreTime rt(34.123141512);
+    CoreTime rt(34.123141512);
 
     auto dval = static_cast<double>(rt);
     EXPECT_NEAR(dval, 34.123141512, 34.123141512 * 1e-9);
 
-    coreTime rt2(-2.3);
+    CoreTime rt2(-2.3);
 
     auto dval2 = static_cast<double>(rt2);
     EXPECT_NEAR(dval2, -2.3, 2.3e-9);
 
-    coreTime rt3(-1.0);
+    CoreTime rt3(-1.0);
 
     auto dval3 = static_cast<double>(rt3);
     EXPECT_NEAR(dval3, -1.0, 1e-9);

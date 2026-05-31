@@ -18,7 +18,7 @@
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixDataCompact.hpp"
+#include "utilities/MatrixDataCompact.hpp"
 #include <algorithm>
 #include <cmath>
 #include <complex>
@@ -163,7 +163,7 @@ double Link::quickupdateP()
 {
     return Pset;
 }
-void Link::timestep(const coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
+void Link::timestep(const CoreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     if (!isEnabled()) {
         return;
@@ -417,7 +417,7 @@ double Link::get(std::string_view param, unit unitType) const
     return val;
 }
 
-void Link::pFlowObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void Link::pFlowObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
     if (B1 == nullptr) {
         opFlags.set(SWITCH1_OPEN_FLAG);
@@ -456,7 +456,7 @@ int Link::fixPower(double rPower,
     return fixRealPower(rPower, measureTerminal, fixedTerminal, unitType);
 }
 
-void Link::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void Link::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
     if ((B1 == nullptr || !B1->isEnabled()) || (B2 == nullptr || !B2->isEnabled())) {
         disable();
@@ -476,7 +476,7 @@ void Link::computePowers()
 
 void Link::ioPartialDerivatives(id_type_t /*busId*/,
                                 const StateData& /*sD*/,
-                                matrixData<double>& /*md*/,
+                                MatrixData<double>& /*md*/,
                                 const IOlocs& /*inputLocs*/,
                                 const SolverMode& /*sMode*/)
 {
@@ -484,7 +484,7 @@ void Link::ioPartialDerivatives(id_type_t /*busId*/,
 
 void Link::outputPartialDerivatives(id_type_t /*busId*/,
                                     const StateData& /*sD*/,
-                                    matrixData<double>& /*md*/,
+                                    MatrixData<double>& /*md*/,
                                     const SolverMode& /*sMode*/)
 {
 }
@@ -613,7 +613,7 @@ double Link::getVoltage(id_type_t busId) const
     return B1->getVoltage();
 }
 
-void Link::setState(coreTime time,
+void Link::setState(CoreTime time,
                     const double /*state*/[],
                     const double /*dstate_dt*/[],
                     const SolverMode& /*sMode*/)

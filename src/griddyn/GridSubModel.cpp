@@ -16,7 +16,7 @@ GridSubModel::GridSubModel(const std::string& objName): GridComponent(objName)
     m_outputSize = 1;
 }
 
-void GridSubModel::pFlowInitializeA(coreTime time, std::uint32_t flags)
+void GridSubModel::pFlowInitializeA(CoreTime time, std::uint32_t flags)
 {
     GridComponent::pFlowInitializeA(time, flags);
 }
@@ -25,7 +25,7 @@ void GridSubModel::pFlowInitializeB()
 {
     GridComponent::pFlowInitializeB();
 }
-void GridSubModel::dynInitializeA(coreTime time, std::uint32_t flags)
+void GridSubModel::dynInitializeA(CoreTime time, std::uint32_t flags)
 {
     if (isEnabled()) {
         dynObjectInitializeA(time, flags);

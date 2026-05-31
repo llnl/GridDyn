@@ -82,15 +82,15 @@ void HelicsRunner::simInitialize()
     fed_->enterExecutingMode();
 }
 
-coreTime HelicsRunner::Run()
+CoreTime HelicsRunner::Run()
 {
-    coreTime stop_time = m_gds->getStopTime();
+    CoreTime stop_time = m_gds->getStopTime();
     auto retTime = Step(stop_time);
     fed_->finalize();
     return retTime;
 }
 
-coreTime HelicsRunner::Step(coreTime time)
+CoreTime HelicsRunner::Step(CoreTime time)
 {
     helics::Time time_granted = 0.0; /* the time step HELICS has allowed us to process */
     helics::Time time_desired = 0.0; /* the time step we would like to go to next */

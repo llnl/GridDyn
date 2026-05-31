@@ -16,7 +16,7 @@
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixDataCompact.hpp"
+#include "utilities/MatrixDataCompact.hpp"
 #include <cmath>
 #include <complex>
 #include <cstring>
@@ -139,7 +139,7 @@ double AcLine::quickupdateP()
     return linkFlows.P1;
 }
 
-void AcLine::timestep(const coreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
+void AcLine::timestep(const CoreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)
 {
     if (!isEnabled()) {
         return;
@@ -453,7 +453,7 @@ int AcLine::fixPower(double rPower,
         (std::abs(linkFlows.P2 - valp) + std::abs(linkFlows.Q2 - valq));
     double pErr = err;
 
-    matrixDataCompact<2, 2> md;
+    MatrixDataCompact<2, 2> md;
     double dP;
     double dQ;
     double dA;
@@ -575,7 +575,7 @@ int AcLine::fixPower(double rPower,
 
 void AcLine::ioPartialDerivatives(id_type_t busId,
                                   const StateData& /*sD*/,
-                                  matrixData<double>& md,
+                                  MatrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode)
 {
@@ -624,7 +624,7 @@ void AcLine::ioPartialDerivatives(id_type_t busId,
 
 void AcLine::outputPartialDerivatives(const IOdata& /*inputs*/,
                                       const StateData& /*sD*/,
-                                      matrixData<double>& /*md*/,
+                                      MatrixData<double>& /*md*/,
                                       const SolverMode& /*sMode*/)
 {
     // there are theoretically 4 outputs for a standard ac line,  but no internal states therefore
@@ -633,7 +633,7 @@ void AcLine::outputPartialDerivatives(const IOdata& /*inputs*/,
 
 void AcLine::outputPartialDerivatives(id_type_t busId,
                                       const StateData& /*sD*/,
-                                      matrixData<double>& md,
+                                      MatrixData<double>& md,
                                       const SolverMode& sMode)
 {
     if (!isConnected()) {  // if there is no connection there is no coupling
@@ -727,7 +727,7 @@ double AcLine::getMaxTransfer() const
     return (std::abs(b / tap));
 }
 
-void AcLine::setState(coreTime time,
+void AcLine::setState(CoreTime time,
                       const double state[],
                       const double dstateDt[],
                       const SolverMode& sMode)

@@ -20,7 +20,7 @@ class BasicOdeSolver: public SolverInterface {
     std::vector<double> deriv;  //!< temp state data location 1
     std::vector<double> state2;  //!< temp state data location 2
     std::vector<double> type;  //!< type data
-    coreTime deltaT = 0.005;  //!< the default time step
+    CoreTime deltaT = 0.005;  //!< the default time step
 
   public:
     using SolverInterface::set;
@@ -43,14 +43,14 @@ class BasicOdeSolver: public SolverInterface {
     const double* derivData() const noexcept override;
     const double* typeData() const noexcept override;
     virtual void allocate(count_t stateCount, count_t numRoots = 0) override;
-    virtual void initialize(coreTime t0) override;
+    virtual void initialize(CoreTime t0) override;
 
     virtual double get(std::string_view param) const override;
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void set(std::string_view param, double val) override;
 
     virtual int
-        solve(coreTime tStop, coreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
+        solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
 };
 
 }  // namespace griddyn::solvers

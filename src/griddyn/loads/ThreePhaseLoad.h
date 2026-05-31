@@ -43,7 +43,7 @@ conversions to positive sequence values.
 
         virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
-        virtual void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override;
+        virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
 
         virtual void getParameterStrings(stringVec& pstr, ParamStringType pstype) const override;
 

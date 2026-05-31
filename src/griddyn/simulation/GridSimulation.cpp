@@ -111,7 +111,7 @@ void GridSimulation::getEventObjects(std::vector<CoreObject*>& objV) const
     EvQ->getEventObjects(objV);
 }
 
-int GridSimulation::run(coreTime /*finishTime*/)
+int GridSimulation::run(CoreTime /*finishTime*/)
 {
     return FUNCTION_EXECUTION_FAILURE;
 }
@@ -121,7 +121,7 @@ int GridSimulation::step()
     return FUNCTION_EXECUTION_FAILURE;
 }
 
-void GridSimulation::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void GridSimulation::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     GridArea::timestep(time, inputs, sMode);
     EvQ->executeEvents(time);
@@ -441,12 +441,12 @@ void GridSimulation::resetObjectCounters()
     Generator::genCount = 0;
 }
 
-coreTime GridSimulation::getEventTime() const
+CoreTime GridSimulation::getEventTime() const
 {
     return EvQ->getNextTime();
 }
 
-coreTime GridSimulation::getEventTime(int eventCode) const
+CoreTime GridSimulation::getEventTime(int eventCode) const
 {
     return EvQ->getNextTime(eventCode);
 }
@@ -460,7 +460,7 @@ CoreObject* findMatchingObject(CoreObject* obj1, GridPrimary* src, GridPrimary* 
         return sec;
     }
     CoreObject* obj2 = nullptr;
-    if (dynamic_cast<gridSecondary*>(obj1) !=
+    if (dynamic_cast<GridSecondary*>(obj1) !=
         nullptr)  // we know it is a gen or load so it parent should be a bus
     {
         auto* bus = dynamic_cast<GridBus*>(obj1->getParent());
@@ -479,7 +479,7 @@ CoreObject* findMatchingObject(CoreObject* obj1, GridPrimary* src, GridPrimary* 
     } else if (dynamic_cast<Link*>(obj1) != nullptr) {
         obj2 = getMatchingLink(dynamic_cast<Link*>(obj1), src, sec);
     } else {
-        // now we get ugly we are gridSecondary Object
+        // now we get ugly we are GridSecondary object
         CoreObject* pobj = findMatchingObject(obj1->getParent(), src, sec);
         if (pobj != nullptr) {  // this is an internal string sequence for this purpose, likely
                                 // won't be documented

@@ -11,7 +11,7 @@
 #include <string>
 
 namespace griddyn::tcpLib {
-TcpCollector::TcpCollector(coreTime time0, coreTime period): Collector(time0, period) {}
+TcpCollector::TcpCollector(CoreTime time0, CoreTime period): Collector(time0, period) {}
 
 TcpCollector::TcpCollector(const std::string& collectorName): Collector(collectorName) {}
 
@@ -39,7 +39,7 @@ void TcpCollector::cloneTo(Collector* col) const
     tcpCollectorClone->port = port;
 }
 
-ChangeCode TcpCollector::trigger(coreTime time)
+ChangeCode TcpCollector::trigger(CoreTime time)
 {
     if (!connection) {
         connection = gmlc::networking::TcpConnection::create(

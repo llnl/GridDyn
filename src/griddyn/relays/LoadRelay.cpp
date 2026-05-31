@@ -76,7 +76,7 @@ void LoadRelay::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-void LoadRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
+void LoadRelay::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     auto tripEvent = std::make_shared<Event>();
 
@@ -104,7 +104,7 @@ void LoadRelay::dynObjectInitializeA(coreTime time0, std::uint32_t flags)
 void LoadRelay::actionTaken(index_t actionNum,
                             index_t conditionNum,
                             ChangeCode /*actionReturn*/,
-                            coreTime /*actionTime*/)
+                            CoreTime /*actionTime*/)
 {
     logging::normal(this, "condition {} action {}", conditionNum, actionNum);
     (void)actionNum;
@@ -139,7 +139,7 @@ m_condition_level = conditionNum;
 */
 }
 
-void LoadRelay::conditionTriggered(index_t conditionNum, coreTime /*triggerTime*/)
+void LoadRelay::conditionTriggered(index_t conditionNum, CoreTime /*triggerTime*/)
 {
     logging::normal(this, "condition {} triggered", conditionNum);
     (void)conditionNum;
@@ -180,7 +180,7 @@ commLink->transmit (commDestName, static_cast<int> (P.GetMessageType ()), P.size
 */
 }
 
-void LoadRelay::conditionCleared(index_t conditionNum, coreTime /*triggerTime*/)
+void LoadRelay::conditionCleared(index_t conditionNum, CoreTime /*triggerTime*/)
 {
     logging::normal(this, "condition {} cleared", conditionNum);
     (void)conditionNum;

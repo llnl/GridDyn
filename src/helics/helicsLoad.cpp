@@ -36,7 +36,7 @@ CoreObject* HelicsLoad::clone(CoreObject* obj) const
     return nobj;
 }
 
-void HelicsLoad::pFlowObjectInitializeA(coreTime time0, uint32_t flags)
+void HelicsLoad::pFlowObjectInitializeA(CoreTime time0, uint32_t flags)
 {
     if (coordinator_ == nullptr) {
         auto rt = getRoot();
@@ -57,7 +57,7 @@ void HelicsLoad::pFlowObjectInitializeB()
     dQdt = 0.0;
 }
 
-void HelicsLoad::updateA(coreTime time)
+void HelicsLoad::updateA(CoreTime time)
 {
     double V = bus->getVoltage();
     double A = bus->getAngle();
@@ -70,7 +70,7 @@ void HelicsLoad::updateA(coreTime time)
     lastUpdateTime = time;
 }
 
-coreTime HelicsLoad::updateB()
+CoreTime HelicsLoad::updateB()
 {
     nextUpdateTime += updatePeriod;
 
@@ -127,7 +127,7 @@ coreTime HelicsLoad::updateB()
     return nextUpdateTime;
 }
 
-void HelicsLoad::timestep(coreTime ttime, const IOdata& inputs, const SolverMode& sMode)
+void HelicsLoad::timestep(CoreTime ttime, const IOdata& inputs, const SolverMode& sMode)
 {
     while (ttime > nextUpdateTime) {
         updateA(nextUpdateTime);

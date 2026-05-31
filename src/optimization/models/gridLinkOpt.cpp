@@ -144,7 +144,7 @@ void GridLinkOpt::constraintValue(const OptimizationData& /*optimizationData*/,
 }
 
 void GridLinkOpt::constraintJacobianElements(const OptimizationData& /*optimizationData*/,
-                                             matrixData<double>& /*matrixDataRef*/,
+                                             MatrixData<double>& /*matrixDataRef*/,
                                              const OptimizationMode& /*oMode*/)
 {
 }
@@ -165,13 +165,13 @@ void GridLinkOpt::gradient(const OptimizationData& /*optimizationData*/,
 }
 
 void GridLinkOpt::jacobianElements(const OptimizationData& /*optimizationData*/,
-                                   matrixData<double>& /*matrixDataRef*/,
+                                   MatrixData<double>& /*matrixDataRef*/,
                                    const OptimizationMode& /*oMode*/)
 {
 }
 
 void GridLinkOpt::getConstraints(const OptimizationData& /*optimizationData*/,
-                                 matrixData<double>& /*cons*/,
+                                 MatrixData<double>& /*cons*/,
                                  double /*upperLimit*/[],
                                  double /*lowerLimit*/[],
                                  const OptimizationMode& /*oMode*/)

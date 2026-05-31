@@ -176,7 +176,7 @@ std::unique_ptr<Condition> makeCondition(std::string_view field,
 
 /** evaluate a compound condition consisting of multiple individual conditions
  */
-class compoundCondition: public Condition {
+class CompoundCondition: public Condition {
   public:
     /** enumeration of the possible compounding modes*/
     enum class CompoundMode {
@@ -202,7 +202,7 @@ class compoundCondition: public Condition {
     std::vector<std::shared_ptr<Condition>> mConditions;  //!< vector of pointers to the conditions
     CompoundMode mMode = CompoundMode::AND;  //!< the compounding mode to use
   public:
-    compoundCondition() = default;
+    CompoundCondition() = default;
 
     virtual double evalCondition() override;
     virtual double evalCondition(const StateData& stateDataValue, const SolverMode& sMode) override;

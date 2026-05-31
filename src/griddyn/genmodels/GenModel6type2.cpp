@@ -10,7 +10,7 @@
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <string>
 
@@ -25,7 +25,7 @@ CoreObject* GenModel6type2::clone(CoreObject* obj) const
     return gd;
 }
 
-void GenModel6type2::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void GenModel6type2::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
     offsets.local().local.diffSize = 6;
     offsets.local().local.algSize = 2;
@@ -154,7 +154,7 @@ void GenModel6type2::residual(const IOdata& inputs,
 
 void GenModel6type2::jacobianElements(const IOdata& inputs,
                                       const StateData& sD,
-                                      matrixData<double>& md,
+                                      MatrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode)
 {

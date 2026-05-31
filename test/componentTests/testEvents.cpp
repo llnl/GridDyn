@@ -30,8 +30,8 @@ TEST_F(EventTests, EventTestLoadstring)
     EXPECT_EQ(gdEI.fieldList[0], "param");
     EXPECT_EQ(gdEI.value[0], 13);
     EXPECT_EQ(gdEI.units[0], units::MW);
-    EXPECT_EQ(gdEI.time[0], griddyn::coreTime(2));
-    EXPECT_EQ(gdEI.period, griddyn::coreTime(3));
+    EXPECT_EQ(gdEI.time[0], griddyn::CoreTime(2));
+    EXPECT_EQ(gdEI.period, griddyn::CoreTime(3));
 }
 
 TEST_F(EventTests, EventTest1) {}

@@ -12,7 +12,7 @@
 function vArray=getClassVariables(cblock)
 %function to extract the class variables from a code Block
 
-vtypes={'double','coreTime','int','index_t','count_t','std::string'};
+vtypes={'double','CoreTime','int','index_t','count_t','std::string'};
 vArray=cell(0,4);
 for vv=1:length(vtypes)
     %get variables with comments
@@ -112,7 +112,7 @@ switch(str)
     case {'kNullVal','kNullLocation','kInvalidLocation','kInvalidCount'}
         val=nan;
     otherwise
-        if (isequal(str(1:8),'coreTime'))
+        if (isequal(str(1:8),'CoreTime'))
             try
             val=eval(str(10:end-1));
             catch

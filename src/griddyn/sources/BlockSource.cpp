@@ -204,7 +204,7 @@ void BlockSource::algebraicUpdate(const IOdata& inputs,
 
 void BlockSource::jacobianElements(const IOdata& inputs,
                                    const StateData& stateDataValue,
-                                   matrixData<double>& matrixDataValue,
+                                   MatrixData<double>& matrixDataValue,
                                    const IOlocs& inputLocs,
                                    const SolverMode& sMode)
 {
@@ -222,7 +222,7 @@ void BlockSource::jacobianElements(const IOdata& inputs,
     }
 }
 
-void BlockSource::timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode)
+void BlockSource::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     while (prevTime < time) {
         auto ntime = std::min(prevTime + maxStepSize, time);
@@ -253,7 +253,7 @@ void BlockSource::rootTest(const IOdata& inputs,
         blk->rootTest({srcOut, srcDout}, stateDataValue, roots, sMode);
     }
 }
-void BlockSource::rootTrigger(coreTime time,
+void BlockSource::rootTrigger(CoreTime time,
                               const IOdata& inputs,
                               const std::vector<int>& rootMask,
                               const SolverMode& sMode)

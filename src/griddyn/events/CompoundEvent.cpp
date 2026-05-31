@@ -15,7 +15,7 @@
 #include <vector>
 
 namespace griddyn::events {
-CompoundEvent::CompoundEvent(coreTime time0): Event(time0) {}
+CompoundEvent::CompoundEvent(CoreTime time0): Event(time0) {}
 
 CompoundEvent::CompoundEvent(const std::string& eventName): Event(eventName) {}
 
@@ -149,7 +149,7 @@ ChangeCode CompoundEvent::trigger()
     }
 }
 
-ChangeCode CompoundEvent::trigger(coreTime time)
+ChangeCode CompoundEvent::trigger(CoreTime time)
 {
     ChangeCode ret = ChangeCode::NOT_TRIGGERED;
     if (time >= triggerTime) {

@@ -9,7 +9,7 @@
 #include "../Generator.h"
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
 #include <string>
@@ -40,7 +40,7 @@ CoreObject* ExciterIEEEtype1::clone(CoreObject* obj) const
     return gdE;
 }
 
-void ExciterIEEEtype1::dynObjectInitializeA(coreTime /*time0*/, std::uint32_t /*flags*/)
+void ExciterIEEEtype1::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
     offsets.local().local.diffSize = 3;
     offsets.local().local.jacSize = 14;
@@ -94,10 +94,10 @@ void ExciterIEEEtype1::residual(const IOdata& inputs,
     rv[2] = (-es[2] + es[0] * Kf / Tf) / Tf - esp[2];
 }
 
-void ExciterIEEEtype1::timestep(coreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
+void ExciterIEEEtype1::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
-    double dt = time - prevTime;  // convert from a coreTime
+    double dt = time - prevTime;  // convert from a CoreTime
     m_state[0] += dt * m_dstate_dt[0];
     m_state[1] += dt * m_dstate_dt[1];
     m_state[2] += dt * m_dstate_dt[2];
@@ -126,7 +126,7 @@ void ExciterIEEEtype1::derivative(const IOdata& inputs,
 // Jacobian
 void ExciterIEEEtype1::jacobianElements(const IOdata& /*inputs*/,
                                         const StateData& sD,
-                                        matrixData<double>& md,
+                                        MatrixData<double>& md,
                                         const IOlocs& inputLocs,
                                         const SolverMode& sMode)
 {

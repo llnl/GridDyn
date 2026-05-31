@@ -205,7 +205,7 @@ provided with the default to the regular call
         fmisub->set("outputs", outputs);
     }
 
-    void pFlowObjectInitializeA(coreTime time0, std::uint32_t flags) override
+    void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override
     {
         if (fmisub->isLoaded()) {
             configureFmiIo();

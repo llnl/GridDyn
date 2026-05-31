@@ -27,7 +27,7 @@ class FmiCollector: public Collector {
     virtual std::unique_ptr<Collector> clone() const override;
 
     virtual void cloneTo(Collector* collectorClone = nullptr) const override;
-    virtual ChangeCode trigger(coreTime time) override;
+    virtual ChangeCode trigger(CoreTime time) override;
 
     void set(std::string_view param, double val) override;
     void set(std::string_view param, std::string_view val) override;

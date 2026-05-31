@@ -9,7 +9,7 @@
 #include "../Generator.h"
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
-#include "utilities/matrixData.hpp"
+#include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
 #include <string>
@@ -86,7 +86,7 @@ void ExciterDC2A::limitJacobian(double /*V*/,
                                 int voltageLoc,
                                 int refLoc,
                                 double cjValue,
-                                matrixData<double>& matrixDataValue)
+                                MatrixData<double>& matrixDataValue)
 {
     matrixDataValue.assign(refLoc, refLoc, 1);
     matrixDataValue.assign(refLoc, voltageLoc, cjValue);

@@ -23,14 +23,14 @@ class Breaker: public Relay {
     };
 
   protected:
-    coreTime mMinClearingTime = timeZero;  //!<[s] minimum clearing time for from bus breaker
-    coreTime mRecloseTime1 = timeOneSecond;  //!<[s] first reclose time
-    coreTime mRecloseTime2 = 5.0;  //!<[s] second reclose time
+    CoreTime mMinClearingTime = timeZero;  //!<[s] minimum clearing time for from bus breaker
+    CoreTime mRecloseTime1 = timeOneSecond;  //!<[s] first reclose time
+    CoreTime mRecloseTime2 = 5.0;  //!<[s] second reclose time
     model_parameter mRecloserTap = 0.0;  //!< From side tap multiplier
     model_parameter mLimit = 1.0;  //!<[puA] maximum current in puA
-    coreTime mLastRecloseTime = negTime;  //!<[s] last reclose time
-    coreTime mRecloserResetTime =
-        coreTime(60.0);  //!<[s] time the breaker has to be on before the recloser count resets
+    CoreTime mLastRecloseTime = negTime;  //!<[s] last reclose time
+    CoreTime mRecloserResetTime =
+        CoreTime(60.0);  //!<[s] time the breaker has to be on before the recloser count resets
     std::uint16_t mMaxRecloseAttempts = 0;  //!< total number of recloses
   private:
     std::uint16_t mRecloseAttempts = 0;  //!< reclose attempt counter
@@ -52,17 +52,17 @@ class Breaker: public Relay {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    virtual void dynObjectInitializeA(coreTime time0, std::uint32_t flags) override;
-    virtual void updateA(coreTime time) override;
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
+    virtual void updateA(CoreTime time) override;
 
     // dynamic state functions
-    virtual void timestep(coreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
                                   const StateData& stateDataRef,
-                                  matrixData<double>& jacobian,
+                                  MatrixData<double>& jacobian,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
-    virtual void setState(coreTime time,
+    virtual void setState(CoreTime time,
                           const double state[],
                           const double dstateDt[],
                           const SolverMode& sMode) override;
@@ -70,7 +70,7 @@ class Breaker: public Relay {
                           const StateData& stateDataRef,
                           double resid[],
                           const SolverMode& sMode) override;
-    virtual void guessState(coreTime time,
+    virtual void guessState(CoreTime time,
                             double state[],
                             double dstateDt[],
                             const SolverMode& sMode) override;
@@ -83,15 +83,15 @@ class Breaker: public Relay {
                               const std::string& prefix) const override;
 
   protected:
-    virtual void conditionTriggered(index_t conditionNum, coreTime triggeredTime) override;
+    virtual void conditionTriggered(index_t conditionNum, CoreTime triggeredTime) override;
     /** trip the breaker
 @param[in] time current time
 */
-    void tripBreaker(coreTime time);
+    void tripBreaker(CoreTime time);
     /** reset the breaker
 @param[in] time current time
 */
-    void resetBreaker(coreTime time);
+    void resetBreaker(CoreTime time);
 };
 
 }  // namespace griddyn::relays

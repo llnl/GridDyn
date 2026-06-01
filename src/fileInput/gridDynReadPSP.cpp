@@ -24,16 +24,19 @@ using gmlc::utilities::numeric_conversion;
 using gmlc::utilities::stringOps::removeQuotes;
 using gmlc::utilities::stringOps::trim;
 using units::deg;
-void pspReadBus(GridBus* bus,
-                const std::string& line,
-                double base,
-                const BasicReaderInfo& readerOptions);
-void pspReadBranch(CoreObject* parentObject,
-                   const std::string& line,
-                   const std::string& line2,
-                   double base,
-                   std::vector<GridBus*> busList,
-                   const BasicReaderInfo& readerOptions);
+
+namespace {
+    void pspReadBus(GridBus* bus,
+                    const std::string& line,
+                    double base,
+                    const BasicReaderInfo& readerOptions);
+    void pspReadBranch(CoreObject* parentObject,
+                       const std::string& line,
+                       const std::string& line2,
+                       double base,
+                       const std::vector<GridBus*>& busList,
+                       const BasicReaderInfo& readerOptions);
+}
 
 /*
 The PECO PSAP File Format is fully described in the _PJM Power System
@@ -174,6 +177,8 @@ void loadPsp(CoreObject* parentObject,
                     }
                 }
             } break;
+            default:
+                break;
         }
     }
     file.close();
@@ -210,158 +215,162 @@ Three default decimal places.
 
 */
 
-void pspReadBus(GridBus* bus,
-                const std::string& line,
-                double base,
-                const BasicReaderInfo& readerOptions)
-{
-    const auto& bri = readerOptions;
-    std::string temp, temp2;
-    GridLoad* ld = nullptr;
-    Generator* gen = nullptr;
-    int code;
-    double p, q;
-    double val;
-    temp = line.substr(9, 12);
-    temp = removeQuotes(temp);
-    if (bri.prefix.empty()) {
-        if (temp.empty()) {
-            temp = line.substr(0, 4);
-            gmlc::utilities::stringOps::trimString(temp);
-            temp = "BUS_" + temp;
-        }
-    } else {
-        if (temp.empty()) {
-            temp = line.substr(0, 4);
-            gmlc::utilities::stringOps::trimString(temp);
-            temp = bri.prefix + "BUS_" + temp;
+namespace {
+    void pspReadBus(GridBus* bus,
+                    const std::string& line,
+                    double base,
+                    const BasicReaderInfo& readerOptions)
+    {
+        const auto& bri = readerOptions;
+        std::string temp;
+        GridLoad* load = nullptr;
+        Generator* gen = nullptr;
+        int code;
+        double pValue;
+        double qValue;
+        double val;
+        temp = line.substr(9, 12);
+        temp = removeQuotes(temp);
+        if (bri.prefix.empty()) {
+            if (temp.empty()) {
+                temp = line.substr(0, 4);
+                gmlc::utilities::stringOps::trimString(temp);
+                temp = "BUS_" + temp;
+            }
         } else {
-            temp = bri.prefix + '_' + temp;
-        }
-    }
-
-    bus->setName(temp);  // set the name
-
-    // get the localBaseVoltage
-    temp = line.substr(18, 3);
-
-    val = numeric_conversion<double>(temp, 0.0);
-
-    if (val > 0.0) {
-        bus->set("basevoltage", val);
-    }
-    // voltage and angle common to all bus types
-    // get the actual voltage
-    temp = line.substr(22, 4);
-    val = numeric_conversion<double>(temp, 0.0);
-    if (val > 0.0) {
-        bus->set("voltage", val / 1000);
-    }
-    // get the angle
-    temp = line.substr(26, 4);
-    val = numeric_conversion<double>(temp, 0.0);
-    if (val != 0.0) {
-        bus->set("angle", val / 180 * kPI);
-    }
-
-    // get the bus type
-    temp = line.substr(7, 1);
-    code = (temp[0] == ' ') ? 0 : numeric_conversion<int>(temp, 0);
-    switch (code) {
-        case 0:  // PQ
-            bus->set("type", "pq");
-
-            break;
-        case 1:  // pv bus
-            bus->set("type", "pv");
-            // get the Qmax and Qmin
-            temp = line.substr(40, 5);
-            p = numeric_conversion<double>(temp, 0.0);
-            temp = line.substr(45, 5);
-            q = numeric_conversion<double>(temp, 0.0);
-            if (p != 0.0) {
-                bus->set("qmin", p / base);
+            if (temp.empty()) {
+                temp = line.substr(0, 4);
+                gmlc::utilities::stringOps::trimString(temp);
+                temp = bri.prefix + "BUS_" + temp;
+            } else {
+                temp = bri.prefix + '_' + temp;
             }
-            if (q != 0.0) {
-                bus->set("qmax", q / base);
-            }
-            // get the desired voltage
-            temp = line.substr(22, 4);
-            val = numeric_conversion<double>(temp, 0.0);
-            bus->set("vtarget", val / 1000);
-            break;
-        case 2:  // swing bus
-            bus->set("type", "slk");
-            // get the desired voltage
-            temp = line.substr(22, 4);
-            val = numeric_conversion<double>(temp, 0.0);
-            bus->set("vtarget", val / 1000);
-            temp = line.substr(26, 4);
-            val = numeric_conversion<double>(temp, 0.0);
-            if (val != 0) {
-                bus->set("atarget", val, deg);
-            }
-            break;
-    }
-    // load section
-    temp = line.substr(55, 5);
-    p = numeric_conversion<double>(temp, 0.0);
-    temp = line.substr(60, 5);
-    q = numeric_conversion<double>(temp, 0.0);
+        }
 
-    if ((p != 0) || (q != 0)) {
-        ld = new ZipLoad(p / base, q / base);
-        bus->add(ld);
-    }
-    // get the shunt impedance
-    temp = trim(line.substr(65, 5));
-    q = numeric_conversion<double>(temp, 0.0);
-    if (q != 0.0) {
-        if (ld == nullptr) {
-            ld = new ZipLoad();
-            bus->add(ld);
-        }
-        ld->set("yq", -q / base);
-    }
-    // get the generation
-    temp = trim(line.substr(30, 5));
-    p = numeric_conversion<double>(temp, 0.0);
-    temp = trim(line.substr(35, 5));
-    q = numeric_conversion<double>(temp, 0.0);
+        bus->setName(temp);  // set the name
 
-    if ((p != 0.0) || (q != 0.0)) {
-        gen = new Generator();
-        bus->add(gen);
-        gen->set("p", p / base);
-        gen->set("q", q / base);
-        // get the Qmax and Qmin
-        temp = line.substr(40, 5);
-        p = numeric_conversion<double>(temp, 0.0);
-        temp = line.substr(45, 5);
-        q = numeric_conversion<double>(temp, 0.0);
-        if (p != 0.0) {
-            gen->set("qmin", p / base);
+        // get the localBaseVoltage
+        temp = line.substr(18, 3);
+
+        val = numeric_conversion<double>(temp, 0.0);
+
+        if (val > 0.0) {
+            bus->set("basevoltage", val);
         }
-        if (q != 0.0) {
-            gen->set("qmax", q / base);
+        // voltage and angle common to all bus types
+        // get the actual voltage
+        temp = line.substr(22, 4);
+        val = numeric_conversion<double>(temp, 0.0);
+        if (val > 0.0) {
+            bus->set("voltage", val / 1000);
         }
-    } else if (bus->getType() != GridBus::BusType::PQ) {
-        temp = line.substr(40, 5);
-        p = numeric_conversion<double>(temp, 0.0);
-        temp = line.substr(45, 5);
-        q = numeric_conversion<double>(temp, 0.0);
-        if ((p != 0.0) || (q != 0.0)) {
+        // get the angle
+        temp = line.substr(26, 4);
+        val = numeric_conversion<double>(temp, 0.0);
+        if (val != 0.0) {
+            bus->set("angle", val / 180 * kPI);
+        }
+
+        // get the bus type
+        temp = line.substr(7, 1);
+        code = (temp[0] == ' ') ? 0 : numeric_conversion<int>(temp, 0);
+        switch (code) {
+            case 0:  // PQ
+                bus->set("type", "pq");
+
+                break;
+            case 1:  // pv bus
+                bus->set("type", "pv");
+                // get the Qmax and Qmin
+                temp = line.substr(40, 5);
+                pValue = numeric_conversion<double>(temp, 0.0);
+                temp = line.substr(45, 5);
+                qValue = numeric_conversion<double>(temp, 0.0);
+                if (pValue != 0.0) {
+                    bus->set("qmin", pValue / base);
+                }
+                if (qValue != 0.0) {
+                    bus->set("qmax", qValue / base);
+                }
+                // get the desired voltage
+                temp = line.substr(22, 4);
+                val = numeric_conversion<double>(temp, 0.0);
+                bus->set("vtarget", val / 1000);
+                break;
+            case 2:  // swing bus
+                bus->set("type", "slk");
+                // get the desired voltage
+                temp = line.substr(22, 4);
+                val = numeric_conversion<double>(temp, 0.0);
+                bus->set("vtarget", val / 1000);
+                temp = line.substr(26, 4);
+                val = numeric_conversion<double>(temp, 0.0);
+                if (val != 0) {
+                    bus->set("atarget", val, deg);
+                }
+                break;
+            default:
+                break;
+        }
+        // load section
+        temp = line.substr(55, 5);
+        pValue = numeric_conversion<double>(temp, 0.0);
+        temp = line.substr(60, 5);
+        qValue = numeric_conversion<double>(temp, 0.0);
+
+        if ((pValue != 0) || (qValue != 0)) {
+            load = new ZipLoad(pValue / base, qValue / base);
+            bus->add(load);
+        }
+        // get the shunt impedance
+        temp = trim(line.substr(65, 5));
+        qValue = numeric_conversion<double>(temp, 0.0);
+        if (qValue != 0.0) {
+            if (load == nullptr) {
+                load = new ZipLoad();
+                bus->add(load);
+            }
+            load->set("yq", -qValue / base);
+        }
+        // get the generation
+        temp = trim(line.substr(30, 5));
+        pValue = numeric_conversion<double>(temp, 0.0);
+        temp = trim(line.substr(35, 5));
+        qValue = numeric_conversion<double>(temp, 0.0);
+
+        if ((pValue != 0.0) || (qValue != 0.0)) {
             gen = new Generator();
             bus->add(gen);
-            if (p != 0.0) {
-                gen->set("qmin", p / base);
+            gen->set("p", pValue / base);
+            gen->set("q", qValue / base);
+            // get the Qmax and Qmin
+            temp = line.substr(40, 5);
+            pValue = numeric_conversion<double>(temp, 0.0);
+            temp = line.substr(45, 5);
+            qValue = numeric_conversion<double>(temp, 0.0);
+            if (pValue != 0.0) {
+                gen->set("qmin", pValue / base);
             }
-            if (q != 0.0) {
-                gen->set("qmax", q / base);
+            if (qValue != 0.0) {
+                gen->set("qmax", qValue / base);
+            }
+        } else if (bus->getType() != GridBus::BusType::PQ) {
+            temp = line.substr(40, 5);
+            pValue = numeric_conversion<double>(temp, 0.0);
+            temp = line.substr(45, 5);
+            qValue = numeric_conversion<double>(temp, 0.0);
+            if ((pValue != 0.0) || (qValue != 0.0)) {
+                gen = new Generator();
+                bus->add(gen);
+                if (pValue != 0.0) {
+                    gen->set("qmin", pValue / base);
+                }
+                if (qValue != 0.0) {
+                    gen->set("qmax", qValue / base);
+                }
             }
         }
     }
-}
 /*
 Line Data Card (Code 4 cards)
 =============================
@@ -403,94 +412,97 @@ Second Line Card (follows 'C' in first card)
 
 */
 
-void pspReadBranch(CoreObject* parentObject,
-                   const std::string& line,
-                   const std::string& line2,
-                   double base,
-                   std::vector<GridBus*> busList,
-                   const BasicReaderInfo& readerOptions)
-{
-    const auto& bri = readerOptions;
-    GridBus *bus1, *bus2;
-    Link* lnk;
-    int ind1, ind2;
-    double val;
-    bool istransformer = false;
-    std::string temp = line.substr(0, 4);
-    ind1 = std::stoi(temp);
-    std::string temp2;
-    if (!bri.prefix.empty()) {
-        temp2 = bri.prefix + '_' + temp + "_to_";
-    } else {
-        temp2 = temp + "_to_";
-    }
-
-    temp = line.substr(8, 4);
-    ind2 = std::stoi(temp);
-
-    temp2 = temp2 + temp;
-    bus1 = busList[ind1];
-    bus2 = busList[ind2];
-    if (line[6] == 'C') {
-        istransformer = true;
-        temp = line2.substr(66, 4);
-        gmlc::utilities::stringOps::trimString(temp);
-        if (temp.empty()) {
-            lnk = new AcLine();
-            // lnk->set ("type", "transformer");
+    void pspReadBranch(CoreObject* parentObject,
+                       const std::string& line,
+                       const std::string& line2,
+                       double base,
+                       const std::vector<GridBus*>& busList,
+                       const BasicReaderInfo& readerOptions)
+    {
+        const auto& bri = readerOptions;
+        GridBus* bus1;
+        GridBus* bus2;
+        Link* lnk;
+        int ind1;
+        int ind2;
+        double val;
+        bool istransformer = false;
+        std::string temp = line.substr(0, 4);
+        ind1 = std::stoi(temp);
+        std::string temp2;
+        if (!bri.prefix.empty()) {
+            temp2 = bri.prefix + '_' + temp + "_to_";
         } else {
-            lnk = new links::AdjustableTransformer();
-
-            int numTaps = std::stoi(temp);
-            lnk->set("steps", static_cast<double>(numTaps));
-            /*TODO add the controls for an adjustable transformer*/
+            temp2 = temp + "_to_";
         }
-    } else {
-        lnk = new AcLine();
-    }
-    lnk->updateBus(bus1, 1);
-    lnk->updateBus(bus2, 2);
-    // get the circuit number
-    if (line[13] != ' ') {
-        if (line[13] != '1') {
-            temp2.push_back('_');
-            temp2.push_back(line[13]);
+
+        temp = line.substr(8, 4);
+        ind2 = std::stoi(temp);
+
+        temp2 = temp2 + temp;
+        bus1 = busList[ind1];
+        bus2 = busList[ind2];
+        if (line[6] == 'C') {
+            istransformer = true;
+            temp = line2.substr(66, 4);
+            gmlc::utilities::stringOps::trimString(temp);
+            if (temp.empty()) {
+                lnk = new AcLine();
+                // lnk->set ("type", "transformer");
+            } else {
+                lnk = new links::AdjustableTransformer();
+
+                const int numTaps = std::stoi(temp);
+                lnk->set("steps", static_cast<double>(numTaps));
+                /*TODO add the controls for an adjustable transformer*/
+            }
+        } else {
+            lnk = new AcLine();
         }
-    }
-    lnk->setName(temp2);
-    addToParentWithRename(lnk, parentObject);
+        lnk->updateBus(bus1, 1);
+        lnk->updateBus(bus2, 2);
+        // get the circuit number
+        if (line[13] != ' ') {
+            if (line[13] != '1') {
+                temp2.push_back('_');
+                temp2.push_back(line[13]);
+            }
+        }
+        lnk->setName(temp2);
+        addToParentWithRename(lnk, parentObject);
 
-    // skip the load flow area and loss zone and circuit for now
+        // skip the load flow area and loss zone and circuit for now
 
-    // get the branch type
-    temp = trim(line.substr(6, 1));
+        // get the branch type
+        temp = trim(line.substr(6, 1));
 
-    // get the branch impedance
-    temp = line.substr(17, 6);
-    auto r = numeric_conversion<double>(temp, 0.0);
-    temp = line.substr(23, 6);
-    auto x = numeric_conversion<double>(temp, 0.0);
+        // get the branch impedance
+        temp = line.substr(17, 6);
+        const auto resistance = numeric_conversion<double>(temp, 0.0);
+        temp = line.substr(23, 6);
+        const auto reactance = numeric_conversion<double>(temp, 0.0);
 
-    lnk->set("r", r / 100.0);
-    lnk->set("x", x / 100.0);
-    // get line capacitance
-    temp = line.substr(29, 6);
-    val = numeric_conversion<double>(temp, 0.0);
-    lnk->set("b", val / base);
-
-    // turns ratio
-    if (istransformer) {
-        temp = line.substr(35, 5);
+        lnk->set("r", resistance / 100.0);
+        lnk->set("x", reactance / 100.0);
+        // get line capacitance
+        temp = line.substr(29, 6);
         val = numeric_conversion<double>(temp, 0.0);
-        if (val > 0.0) {
-            lnk->set("tap", val / 1000.0);
-        }
-        // tapAngle
-        val = numeric_conversion(trim(line.substr(50, 5)), 0.0);
-        if (val != 0.0) {
-            lnk->set("tapangle", val / 1000.0);
+        lnk->set("b", val / base);
+
+        // turns ratio
+        if (istransformer) {
+            temp = line.substr(35, 5);
+            val = numeric_conversion<double>(temp, 0.0);
+            if (val > 0.0) {
+                lnk->set("tap", val / 1000.0);
+            }
+            // tapAngle
+            val = numeric_conversion(trim(line.substr(50, 5)), 0.0);
+            if (val != 0.0) {
+                lnk->set("tapangle", val / 1000.0);
+            }
         }
     }
-}
+}  // namespace
 
 }  // namespace griddyn

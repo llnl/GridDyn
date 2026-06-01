@@ -33,12 +33,12 @@ namespace {
     enum class ModeState : std::uint8_t { READ_HEADER, READ_DATA };
 
     struct CsvSectionState {
-        stringVec headers;
-        std::vector<int> skipToken;
-        std::vector<units::unit> units;
-        std::string objectMode;
-        int typeKey = -1;
-        int refKey = -1;
+        stringVec mHeaders;
+        std::vector<int> mSkipToken;
+        std::vector<units::unit> mUnits;
+        std::string mObjectMode;
+        int mTypeKey = -1;
+        int mRefKey = -1;
     };
 
     bool processHeaderLine(const std::string& line,
@@ -46,39 +46,40 @@ namespace {
                            const std::shared_ptr<CoreObjectFactory>& cof,
                            CsvSectionState& sectionState)
     {
-        sectionState.headers = gmlc::utilities::stringOps::splitline(line);
-        gmlc::utilities::stringOps::trim(sectionState.headers);
-        sectionState.objectMode = sectionState.headers[0];
-        makeLowerCase(sectionState.objectMode);
-        if ((sectionState.objectMode == "branch") || (sectionState.objectMode == "line")) {
-            sectionState.objectMode = "link";
+        sectionState.mHeaders = gmlc::utilities::stringOps::splitline(line);
+        gmlc::utilities::stringOps::trim(sectionState.mHeaders);
+        sectionState.mObjectMode = sectionState.mHeaders[0];
+        makeLowerCase(sectionState.mObjectMode);
+        if ((sectionState.mObjectMode == "branch") || (sectionState.mObjectMode == "line")) {
+            sectionState.mObjectMode = "link";
         }
 
-        if (!(cof->isValidObject(sectionState.objectMode))) {
+        if (!(cof->isValidObject(sectionState.mObjectMode))) {
             if (!objectName.empty()) {
                 if (!(cof->isValidObject(objectName))) {
-                    sectionState.objectMode = objectName;
+                    sectionState.mObjectMode = objectName;
                 } else {
                     WARNPRINT(READER_WARN_IMPORTANT,
-                              "Unrecognized object " << sectionState.objectMode
+                              "Unrecognized object " << sectionState.mObjectMode
                                                      << " Unable to process CSV");
                     return false;
                 }
             } else {
                 WARNPRINT(READER_WARN_IMPORTANT,
-                          "Unrecognized object " << sectionState.objectMode
+                          "Unrecognized object " << sectionState.mObjectMode
                                                  << " Unable to process CSV");
                 return false;
             }
         }
 
-        sectionState.units = std::vector<units::unit>(sectionState.headers.size(), units::defunit);
-        sectionState.skipToken.assign(sectionState.headers.size(), 0);
-        sectionState.typeKey = -1;
-        sectionState.refKey = -1;
+        sectionState.mUnits =
+            std::vector<units::unit>(sectionState.mHeaders.size(), units::defunit);
+        sectionState.mSkipToken.assign(sectionState.mHeaders.size(), 0);
+        sectionState.mTypeKey = -1;
+        sectionState.mRefKey = -1;
 
         int headerIndex = 0;
-        for (auto& headerToken : sectionState.headers) {
+        for (auto& headerToken : sectionState.mHeaders) {
             gmlc::utilities::stringOps::trimString(headerToken);
             if (headerToken.empty()) {
                 ++headerIndex;
@@ -92,18 +93,18 @@ namespace {
 
             makeLowerCase(headerToken);
             if (headerToken == "type") {
-                sectionState.typeKey = headerIndex;
+                sectionState.mTypeKey = headerIndex;
             }
             if ((headerToken == "ref") || (headerToken == "reference")) {
-                sectionState.refKey = headerIndex;
+                sectionState.mRefKey = headerIndex;
             }
             if (headerToken.back() == ')') {
                 const auto unitStartPos = headerToken.find_first_of('(');
                 if (unitStartPos != std::string::npos) {
-                    std::string unitName =
+                    const std::string unitName =
                         headerToken.substr(unitStartPos + 1,
                                            headerToken.length() - 2 - unitStartPos);
-                    sectionState.units[headerIndex] = units::unit_cast_from_string(unitName);
+                    sectionState.mUnits[headerIndex] = units::unit_cast_from_string(unitName);
                     headerToken =
                         gmlc::utilities::stringOps::trim(headerToken.substr(0, unitStartPos));
                 }
@@ -111,8 +112,8 @@ namespace {
             ++headerIndex;
         }
 
-        if (sectionState.refKey > 0) {
-            sectionState.skipToken[sectionState.refKey] = 4;
+        if (sectionState.mRefKey > 0) {
+            sectionState.mSkipToken[sectionState.mRefKey] = 4;
         }
         return true;
     }
@@ -135,13 +136,13 @@ namespace {
         const auto index = numeric_conversion<int>(lineTokens[0], -2);
         CoreObject* obj = nullptr;
         if (index >= 0) {
-            obj = parentObject->findByUserID(sectionState.objectMode, index);
+            obj = parentObject->findByUserID(sectionState.mObjectMode, index);
         } else if (index == -2) {
             obj = locateObject(std::string{trim(lineTokens[0])}, parentObject);
         }
 
-        if (sectionState.refKey >= 0) {
-            const std::string ref = std::string{trim(lineTokens[sectionState.refKey])};
+        if (sectionState.mRefKey >= 0) {
+            const std::string ref = std::string{trim(lineTokens[sectionState.mRefKey])};
             obj = readerInformation.makeLibraryObject(ref, obj);
         }
 
@@ -149,10 +150,10 @@ namespace {
             return obj;
         }
 
-        const std::string type = (sectionState.typeKey >= 0) ?
-            std::string{trim(lineTokens[sectionState.typeKey])} :
+        const std::string type = (sectionState.mTypeKey >= 0) ?
+            std::string{trim(lineTokens[sectionState.mTypeKey])} :
             std::string{};
-        obj = cof->createObject(sectionState.objectMode, type);
+        obj = cof->createObject(sectionState.mObjectMode, type);
         if (obj == nullptr) {
             return nullptr;
         }
@@ -311,22 +312,22 @@ namespace {
                           int lineNumber)
     {
         for (size_t kk = 1; kk < lineTokens.size(); ++kk) {
-            if (sectionState.skipToken[kk] > 2) {
+            if (sectionState.mSkipToken[kk] > 2) {
                 continue;
             }
             if (lineTokens[kk].empty()) {
                 continue;
             }
 
-            auto& skipTokenValue = sectionState.skipToken[kk];
-            const auto& field = sectionState.headers[kk];
+            auto& skipTokenValue = sectionState.mSkipToken[kk];
+            const auto& field = sectionState.mHeaders[kk];
             if (field.empty()) {
                 skipTokenValue = 4;
                 continue;
             }
 
             if (field == "type") {
-                if (sectionState.objectMode == "bus") {
+                if (sectionState.mObjectMode == "bus") {
                     obj->set("type", std::string{trim(lineTokens[kk])});
                 }
                 continue;
@@ -337,21 +338,21 @@ namespace {
             }
             if (handleLinkBusField(parentObject,
                                    obj,
-                                   sectionState.objectMode,
+                                   sectionState.mObjectMode,
                                    field,
                                    lineTokens[kk],
                                    readerInformation,
                                    lineNumber) ||
                 handleParentBusField(parentObject,
                                      obj,
-                                     sectionState.objectMode,
+                                     sectionState.mObjectMode,
                                      field,
                                      lineTokens[kk],
                                      readerInformation,
                                      lineNumber) ||
                 handleRelayField(parentObject,
                                  obj,
-                                 sectionState.objectMode,
+                                 sectionState.mObjectMode,
                                  field,
                                  lineTokens[kk],
                                  readerInformation,
@@ -363,7 +364,7 @@ namespace {
             handleGenericField(obj,
                                field,
                                lineTokens[kk],
-                               sectionState.units[kk],
+                               sectionState.mUnits[kk],
                                readerInformation,
                                lineNumber,
                                skipTokenValue);
@@ -430,7 +431,7 @@ void loadCsv(CoreObject* parentObject,
             mState = ModeState::READ_DATA;
         } else {
             auto lineTokens = split(line);
-            if (lineTokens.size() != sectionState.headers.size()) {
+            if (lineTokens.size() != sectionState.mHeaders.size()) {
                 std::cerr << "line " << std::to_string(lineNumber)
                           << " length does not match section header\n";
                 return;
@@ -438,11 +439,11 @@ void loadCsv(CoreObject* parentObject,
             CoreObject* obj =
                 findOrCreateObject(parentObject, cof, sectionState, readerInformation, lineTokens);
             if (obj == nullptr) {
-                const std::string type = (sectionState.typeKey >= 0) ?
-                    std::string{trim(lineTokens[sectionState.typeKey])} :
+                const std::string type = (sectionState.mTypeKey >= 0) ?
+                    std::string{trim(lineTokens[sectionState.mTypeKey])} :
                     std::string{};
                 std::cerr << "Line " << lineNumber << "::Unable to create object "
-                          << sectionState.objectMode << " of Type " << type << '\n';
+                          << sectionState.mObjectMode << " of Type " << type << '\n';
                 return;
             }
             loadObjectFields(

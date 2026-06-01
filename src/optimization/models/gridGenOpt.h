@@ -69,12 +69,13 @@ class GridGenOpt: public GridOptObject {
                               vectData<double>& quadObj,
                               const OptimizationMode& oMode) override;
 
-    virtual double objValue(const OptimizationData& of, const OptimizationMode& oMode) override;
-    virtual void gradient(const OptimizationData& of,
+    virtual double
+        objValue(const OptimizationData& optimizationData, const OptimizationMode& oMode) override;
+    virtual void gradient(const OptimizationData& optimizationData,
                           double deriv[],
                           const OptimizationMode& oMode) override;
-    virtual void jacobianElements(const OptimizationData& of,
-                                  MatrixData<double>& md,
+    virtual void jacobianElements(const OptimizationData& optimizationData,
+                                  MatrixData<double>& matrixDataRef,
                                   const OptimizationMode& oMode) override;
     virtual void getConstraints(const OptimizationData& of,
                                 MatrixData<double>& cons,

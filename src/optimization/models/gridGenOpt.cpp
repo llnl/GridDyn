@@ -258,7 +258,7 @@ void GridGenOpt::gradient(const OptimizationData& optimizationData,
     const double pValue = optimizationData.val[optimizationOffsets.gOffset];
     if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
-        const std::size_t orderLimit = static_cast<std::size_t>(getPolynomialOrderLimit(oMode));
+        const auto orderLimit = static_cast<std::size_t>(getPolynomialOrderLimit(oMode));
         deriv[optimizationOffsets.gOffset] =
             evaluatePolynomialDerivative(Pcoeff, pValue, oMode.period, orderLimit);
         if ((!(Qcoeff.empty())) && (isAC(oMode))) {
@@ -277,7 +277,7 @@ void GridGenOpt::jacobianElements(const OptimizationData& optimizationData,
     const double pValue = optimizationData.val[optimizationOffsets.gOffset];
     if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
-        const std::size_t orderLimit = static_cast<std::size_t>(getPolynomialOrderLimit(oMode));
+        const auto orderLimit = static_cast<std::size_t>(getPolynomialOrderLimit(oMode));
         const double pDerivative =
             evaluatePolynomialDerivative(Pcoeff, pValue, oMode.period, orderLimit);
         if (pDerivative != 0) {

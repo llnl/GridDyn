@@ -233,8 +233,7 @@ void GridGenOpt::quadraticObj(const OptimizationData& /* of */,
     }
 }
 
-double GridGenOpt::objValue(const OptimizationData& optimizationData,
-                            const OptimizationMode& oMode)
+double GridGenOpt::objValue(const OptimizationData& optimizationData, const OptimizationMode& oMode)
 {
     double cost = 0;
     auto& optimizationOffsets = offsets.getOffsets(oMode);
@@ -259,8 +258,7 @@ void GridGenOpt::gradient(const OptimizationData& optimizationData,
     const double pValue = optimizationData.val[optimizationOffsets.gOffset];
     if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
-        const std::size_t orderLimit =
-            static_cast<std::size_t>(getPolynomialOrderLimit(oMode));
+        const std::size_t orderLimit = static_cast<std::size_t>(getPolynomialOrderLimit(oMode));
         deriv[optimizationOffsets.gOffset] =
             evaluatePolynomialDerivative(Pcoeff, pValue, oMode.period, orderLimit);
         if ((!(Qcoeff.empty())) && (isAC(oMode))) {
@@ -279,20 +277,22 @@ void GridGenOpt::jacobianElements(const OptimizationData& optimizationData,
     const double pValue = optimizationData.val[optimizationOffsets.gOffset];
     if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
-        const std::size_t orderLimit =
-            static_cast<std::size_t>(getPolynomialOrderLimit(oMode));
+        const std::size_t orderLimit = static_cast<std::size_t>(getPolynomialOrderLimit(oMode));
         const double pDerivative =
             evaluatePolynomialDerivative(Pcoeff, pValue, oMode.period, orderLimit);
         if (pDerivative != 0) {
-            matrixDataRef.assign(optimizationOffsets.gOffset, optimizationOffsets.gOffset, pDerivative);
+            matrixDataRef.assign(optimizationOffsets.gOffset,
+                                 optimizationOffsets.gOffset,
+                                 pDerivative);
         }
         if ((!(Qcoeff.empty())) && (isAC(oMode))) {
             const double qValue = optimizationData.val[optimizationOffsets.qOffset];
             const double qDerivative =
                 evaluatePolynomialDerivative(Qcoeff, qValue, oMode.period, orderLimit);
             if (qDerivative != 0) {
-                matrixDataRef.assign(
-                    optimizationOffsets.qOffset, optimizationOffsets.qOffset, qDerivative);
+                matrixDataRef.assign(optimizationOffsets.qOffset,
+                                     optimizationOffsets.qOffset,
+                                     qDerivative);
             }
         }
     }

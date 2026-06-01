@@ -72,8 +72,7 @@ namespace {
             }
         }
 
-        sectionState.units =
-            std::vector<units::unit>(sectionState.headers.size(), units::defunit);
+        sectionState.units = std::vector<units::unit>(sectionState.headers.size(), units::defunit);
         sectionState.skipToken.assign(sectionState.headers.size(), 0);
         sectionState.typeKey = -1;
         sectionState.refKey = -1;
@@ -122,8 +121,7 @@ namespace {
     {
         const auto val = numeric_conversion<double>(busToken, kBigNum);
         if (val < kHalfBigNum) {
-            return static_cast<GridBus*>(
-                parentObject->findByUserID("bus", static_cast<int>(val)));
+            return static_cast<GridBus*>(parentObject->findByUserID("bus", static_cast<int>(val)));
         }
         return static_cast<GridBus*>(locateObject(busToken, parentObject));
     }
@@ -143,8 +141,7 @@ namespace {
         }
 
         if (sectionState.refKey >= 0) {
-            const std::string ref =
-                std::string{trim(lineTokens[sectionState.refKey])};
+            const std::string ref = std::string{trim(lineTokens[sectionState.refKey])};
             obj = readerInformation.makeLibraryObject(ref, obj);
         }
 
@@ -152,9 +149,9 @@ namespace {
             return obj;
         }
 
-        const std::string type =
-            (sectionState.typeKey >= 0) ? std::string{trim(lineTokens[sectionState.typeKey])} :
-                                          std::string{};
+        const std::string type = (sectionState.typeKey >= 0) ?
+            std::string{trim(lineTokens[sectionState.typeKey])} :
+            std::string{};
         obj = cof->createObject(sectionState.objectMode, type);
         if (obj == nullptr) {
             return nullptr;
@@ -359,8 +356,7 @@ namespace {
                                  lineTokens[kk],
                                  readerInformation,
                                  lineNumber) ||
-                handleFilePathField(
-                    obj, field, lineTokens[kk], readerInformation, lineNumber)) {
+                handleFilePathField(obj, field, lineTokens[kk], readerInformation, lineNumber)) {
                 continue;
             }
 
@@ -396,7 +392,7 @@ namespace {
         }
         return true;
     }
-}
+}  // namespace
 
 void loadCsv(CoreObject* parentObject,
              const std::string& fileName,

@@ -36,7 +36,7 @@ namespace {
                        double base,
                        const std::vector<GridBus*>& busList,
                        const BasicReaderInfo& readerOptions);
-}
+}  // namespace
 
 /*
 The PECO PSAP File Format is fully described in the _PJM Power System
@@ -371,46 +371,46 @@ namespace {
             }
         }
     }
-/*
-Line Data Card (Code 4 cards)
-=============================
+    /*
+    Line Data Card (Code 4 cards)
+    =============================
 
-Cols    Data
-1-4     From bus number
-6       Change code (blank in 4 section)
-7       'C' if second card present for same line. Used for transformers.
-9-12    To bus number
-14      Circuit number (blank in 4 section)
-16      'T' or 'F' - GridLoad flow area of bus at this end of line gets losses.
-18-23   Line resistance in percent of base. (NOT per unit.)
-(percent = 100 x per unit) Two default decimal places.
-24-29   Line reactance, in percent. Two default decimal places.
-30-35   Line charging MVAR (total). Three default decimal places.
-36-40   Transformer tap (per unit turns ratio). Three default decimal
-places, 1000 = 1.000.
-41-45   Min tap, for OLTC. Three default decimal places.
-46-50   Max tap, for OLTC. Three default decimal places.
-51-55   Phase shift angle, for OL phase shifter. Two default decimal places.
-56-60   Remote voltage control bus number. Negative if lower tap increases
-voltage of this bus.
-61-64   Normal MVA rating
-65-68   Emergency MVA rating
-69-72   MVA Base. Default value 100 MVA if blank.
+    Cols    Data
+    1-4     From bus number
+    6       Change code (blank in 4 section)
+    7       'C' if second card present for same line. Used for transformers.
+    9-12    To bus number
+    14      Circuit number (blank in 4 section)
+    16      'T' or 'F' - GridLoad flow area of bus at this end of line gets losses.
+    18-23   Line resistance in percent of base. (NOT per unit.)
+    (percent = 100 x per unit) Two default decimal places.
+    24-29   Line reactance, in percent. Two default decimal places.
+    30-35   Line charging MVAR (total). Three default decimal places.
+    36-40   Transformer tap (per unit turns ratio). Three default decimal
+    places, 1000 = 1.000.
+    41-45   Min tap, for OLTC. Three default decimal places.
+    46-50   Max tap, for OLTC. Three default decimal places.
+    51-55   Phase shift angle, for OL phase shifter. Two default decimal places.
+    56-60   Remote voltage control bus number. Negative if lower tap increases
+    voltage of this bus.
+    61-64   Normal MVA rating
+    65-68   Emergency MVA rating
+    69-72   MVA Base. Default value 100 MVA if blank.
 
-Second Line Card (follows 'C' in first card)
-============================================
+    Second Line Card (follows 'C' in first card)
+    ============================================
 
-1-17    Same as first card, except no 'C'. Can be left blank.
-35-40   Desired MVAR flow or Min voltage setpoint for OLTC.
-41-45   Min phase shifter degrees. Two default decimal places.
-46-50   Max phase shifter degrees. Two default decimal places.
-51-55   Desired MW flow for phase shifter.
-57-60   Controlled line from bus.
-62-65   Controlled line to bus.
-67-70   Available taps (number of taps)
-71-75   Maximum voltage setpoint. Three default decimal places.
+    1-17    Same as first card, except no 'C'. Can be left blank.
+    35-40   Desired MVAR flow or Min voltage setpoint for OLTC.
+    41-45   Min phase shifter degrees. Two default decimal places.
+    46-50   Max phase shifter degrees. Two default decimal places.
+    51-55   Desired MW flow for phase shifter.
+    57-60   Controlled line from bus.
+    62-65   Controlled line to bus.
+    67-70   Available taps (number of taps)
+    71-75   Maximum voltage setpoint. Three default decimal places.
 
-*/
+    */
 
     void pspReadBranch(CoreObject* parentObject,
                        const std::string& line,

@@ -40,7 +40,7 @@ namespace {
                   stringVec& txlines,
                   std::vector<GridBus*>& busList,
                   BasicReaderInfo& opt);
-}
+}  // namespace
 
 // static variables with the factories
 // get the basic busFactory
@@ -99,7 +99,8 @@ void loadPti(CoreObject* parentObject,
     if (std::getline(file, line)) {
         const auto headerFields = gmlc::utilities::stringOps::splitline(line);
         if (headerFields.size() > 1) {
-            readerOptionsCopy.base = numeric_conversion<double>(headerFields[1], readerOptionsCopy.base);
+            readerOptionsCopy.base =
+                numeric_conversion<double>(headerFields[1], readerOptionsCopy.base);
             parentObject->set("systemBasePower", readerOptionsCopy.base);
         }
         if (headerFields.size() > 5) {
@@ -286,396 +287,397 @@ void loadPti(CoreObject* parentObject,
 
 namespace {
 
-void ptiReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& opt)
-{
-    std::string temp;
-    std::string temp2;
-    double baseVoltage;
-    double voltageMagnitude;
-    double voltageAngle;
-    int type;
+    void ptiReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& opt)
+    {
+        std::string temp;
+        std::string temp2;
+        double baseVoltage;
+        double voltageMagnitude;
+        double voltageAngle;
+        int type;
 
-    auto strvec = gmlc::utilities::stringOps::splitline(line);
-    // get the bus name
-    temp = strvec[0];
-    gmlc::utilities::stringOps::trimString(temp);
-    temp2 = strvec[1];
-    // check for quotes on the name
-    removeQuotes(temp2);
-    if (opt.prefix.empty()) {
-        if (temp2.empty())  // 12 spaces is default value which would all get trimmed
-        {
-            temp2 = "BUS_" + temp;
-        }
-    } else {
-        if (temp2.empty())  // 12 spaces is default value which would all get trimmed
-        {
-            temp2 = opt.prefix + '_' + temp;
+        auto strvec = gmlc::utilities::stringOps::splitline(line);
+        // get the bus name
+        temp = strvec[0];
+        gmlc::utilities::stringOps::trimString(temp);
+        temp2 = strvec[1];
+        // check for quotes on the name
+        removeQuotes(temp2);
+        if (opt.prefix.empty()) {
+            if (temp2.empty())  // 12 spaces is default value which would all get trimmed
+            {
+                temp2 = "BUS_" + temp;
+            }
         } else {
-            temp2 = opt.prefix + '_' + temp2;
+            if (temp2.empty())  // 12 spaces is default value which would all get trimmed
+            {
+                temp2 = opt.prefix + '_' + temp;
+            } else {
+                temp2 = opt.prefix + '_' + temp2;
+            }
+        }
+        bus->setName(temp2);
+
+        // get the localBaseVoltage
+        baseVoltage = std::stod(strvec[2]);
+        if (baseVoltage > 0.0) {
+            bus->set("basevoltage", baseVoltage);
+        }
+
+        // get the bus type
+        if (strvec[3].empty()) {
+            type = 1;
+        } else {
+            type = std::stoi(strvec[3]);
+        }
+
+        switch (type) {
+            case 1:
+                temp = "PQ";
+                break;
+            case 2:
+                temp = "PV";
+                break;
+            case 3:
+                temp = "swing";
+                break;
+            case 4:
+                bus->disable();
+                temp = "PQ";
+                break;
+            default:
+                temp = "PQ";
+                break;
+        }
+        bus->set("type", temp);
+        // skip the load flow area and loss zone for now
+        // skip the owner information
+        // get the voltage and angle specifications
+        voltageMagnitude = numeric_conversion<double>(strvec[7], 0.0);
+        voltageAngle = numeric_conversion<double>(strvec[8], 0.0);
+        if (voltageAngle != 0) {
+            bus->set("angle", voltageAngle / 180 * kPI);
+        }
+        if (voltageMagnitude != 0) {
+            bus->set("voltage", voltageMagnitude);
         }
     }
-    bus->setName(temp2);
 
-    // get the localBaseVoltage
-    baseVoltage = std::stod(strvec[2]);
-    if (baseVoltage > 0.0) {
-        bus->set("basevoltage", baseVoltage);
+    void ptiReadLoad(GridLoad* load, const std::string& line, BasicReaderInfo& /*opt*/)
+    {
+        std::string temp;
+        std::string prefix;
+        double pValue;
+        double qValue;
+        int status;
+
+        auto strvec = gmlc::utilities::stringOps::splitline(line);
+
+        // get the load index and name
+        temp = strvec[1];
+        gmlc::utilities::stringOps::trimString(temp);
+        prefix = load->getParent()->getName() + "_load_" + temp;
+        load->setName(prefix);
+
+        // get the status
+        status = std::stoi(strvec[2]);
+        if (status == 0) {
+            load->disable();
+        }
+        // skip the area and zone information for now
+
+        // get the constant power part of the load
+        pValue = numeric_conversion<double>(strvec[5], 0.0);
+        qValue = numeric_conversion<double>(strvec[6], 0.0);
+        if (pValue != 0.0) {
+            load->set("p", pValue, MW);
+        }
+        if (qValue != 0.0) {
+            load->set("q", qValue, MVAR);
+        }
+        // get the constant current part of the load
+        pValue = numeric_conversion<double>(strvec[7], 0.0);
+        qValue = numeric_conversion<double>(strvec[8], 0.0);
+        if (pValue != 0.0) {
+            load->set("ip", pValue, MW);
+        }
+        if (qValue != 0.0) {
+            load->set("iq", qValue, MVAR);
+        }
+        // get the impedance part of the load
+        // note:: in PU power units, need to convert to Pu resistance
+        pValue = numeric_conversion<double>(strvec[9], 0.0);
+        qValue = numeric_conversion<double>(strvec[10], 0.0);
+        if (pValue != 0.0) {
+            load->set("r", pValue, MW);
+        }
+        if (qValue != 0.0) {
+            load->set("x", qValue, MVAR);
+        }
+        // ignore the owner field
     }
 
-    // get the bus type
-    if (strvec[3].empty()) {
-        type = 1;
-    } else {
-        type = std::stoi(strvec[3]);
+    void ptiReadFixedShunt(GridLoad* load, const std::string& line, BasicReaderInfo& /*opt*/)
+    {
+        std::string temp;
+        std::string prefix;
+        double pValue;
+        double qValue;
+        int status;
+
+        auto strvec = gmlc::utilities::stringOps::splitline(line);
+
+        // get the load index and name
+        temp = strvec[1];
+        gmlc::utilities::stringOps::trimString(temp);
+        prefix = load->getParent()->getName() + "_shunt_" + temp;
+        load->setName(prefix);
+
+        // get the status
+        status = std::stoi(strvec[2]);
+        if (status == 0) {
+            load->disable();
+        }
+        // skip the area and zone information for now
+
+        // get the constant power part of the load
+        pValue = numeric_conversion<double>(strvec[3], 0.0);
+        qValue = numeric_conversion<double>(strvec[4], 0.0);
+        if (pValue != 0.0) {
+            load->set("yp", pValue, MW);
+        }
+        if (qValue != 0.0) {
+            load->set("yq", -qValue, MVAR);
+        }
     }
 
-    switch (type) {
-        case 1:
-            temp = "PQ";
-            break;
-        case 2:
-            temp = "PV";
-            break;
-        case 3:
-            temp = "swing";
-            break;
-        case 4:
-            bus->disable();
-            temp = "PQ";
-            break;
-        default:
-            temp = "PQ";
-            break;
-    }
-    bus->set("type", temp);
-    // skip the load flow area and loss zone for now
-    // skip the owner information
-    // get the voltage and angle specifications
-    voltageMagnitude = numeric_conversion<double>(strvec[7], 0.0);
-    voltageAngle = numeric_conversion<double>(strvec[8], 0.0);
-    if (voltageAngle != 0) {
-        bus->set("angle", voltageAngle / 180 * kPI);
-    }
-    if (voltageMagnitude != 0) {
-        bus->set("voltage", voltageMagnitude);
-    }
-}
+    void ptiReadGen(Generator* gen, const std::string& line, BasicReaderInfo& /*opt*/)
+    {
+        int rbus;
 
-void ptiReadLoad(GridLoad* load, const std::string& line, BasicReaderInfo& /*opt*/)
-{
-    std::string temp;
-    std::string prefix;
-    double pValue;
-    double qValue;
-    int status;
+        auto strvec = gmlc::utilities::stringOps::splitline(line);
 
-    auto strvec = gmlc::utilities::stringOps::splitline(line);
+        // get the load index and name
+        const std::string temp = trim(strvec[1]);
+        const std::string prefix = gen->getParent()->getName() + "_Gen_" + temp;
+        gen->setName(prefix);
+        // get the status
+        auto status = std::stoi(strvec[14]);
+        if (status == 0) {
+            gen->disable();
+        }
 
-    // get the load index and name
-    temp = strvec[1];
-    gmlc::utilities::stringOps::trimString(temp);
-    prefix = load->getParent()->getName() + "_load_" + temp;
-    load->setName(prefix);
+        // get the power generation
+        auto pValue = numeric_conversion<double>(strvec[2], 0.0);
+        auto qValue = numeric_conversion<double>(strvec[3], 0.0);
+        if (pValue != 0.0) {
+            gen->set("p", pValue, MW);
+        }
+        if (qValue != 0.0) {
+            gen->set("q", qValue, MVAR);
+        }
+        // get the Qmax and Qmin
+        pValue = numeric_conversion<double>(strvec[4], 0.0);
+        qValue = numeric_conversion<double>(strvec[5], 0.0);
+        if (pValue != 0.0) {
+            gen->set("qmax", pValue, MW);
+        }
+        if (qValue != 0.0) {
+            gen->set("qmin", qValue, MVAR);
+        }
+        auto voltage = numeric_conversion<double>(strvec[6], 0.0);
+        if (voltage > 0) {
+            gen->set("vset", voltage);
+        }
+        rbus = numeric_conversion<int>(strvec[7], 0);
 
-    // get the status
-    status = std::stoi(strvec[2]);
-    if (status == 0) {
-        load->disable();
-    }
-    // skip the area and zone information for now
-
-    // get the constant power part of the load
-    pValue = numeric_conversion<double>(strvec[5], 0.0);
-    qValue = numeric_conversion<double>(strvec[6], 0.0);
-    if (pValue != 0.0) {
-        load->set("p", pValue, MW);
-    }
-    if (qValue != 0.0) {
-        load->set("q", qValue, MVAR);
-    }
-    // get the constant current part of the load
-    pValue = numeric_conversion<double>(strvec[7], 0.0);
-    qValue = numeric_conversion<double>(strvec[8], 0.0);
-    if (pValue != 0.0) {
-        load->set("ip", pValue, MW);
-    }
-    if (qValue != 0.0) {
-        load->set("iq", qValue, MVAR);
-    }
-    // get the impedance part of the load
-    // note:: in PU power units, need to convert to Pu resistance
-    pValue = numeric_conversion<double>(strvec[9], 0.0);
-    qValue = numeric_conversion<double>(strvec[10], 0.0);
-    if (pValue != 0.0) {
-        load->set("r", pValue, MW);
-    }
-    if (qValue != 0.0) {
-        load->set("x", qValue, MVAR);
-    }
-    // ignore the owner field
-}
-
-void ptiReadFixedShunt(GridLoad* load, const std::string& line, BasicReaderInfo& /*opt*/)
-{
-    std::string temp;
-    std::string prefix;
-    double pValue;
-    double qValue;
-    int status;
-
-    auto strvec = gmlc::utilities::stringOps::splitline(line);
-
-    // get the load index and name
-    temp = strvec[1];
-    gmlc::utilities::stringOps::trimString(temp);
-    prefix = load->getParent()->getName() + "_shunt_" + temp;
-    load->setName(prefix);
-
-    // get the status
-    status = std::stoi(strvec[2]);
-    if (status == 0) {
-        load->disable();
-    }
-    // skip the area and zone information for now
-
-    // get the constant power part of the load
-    pValue = numeric_conversion<double>(strvec[3], 0.0);
-    qValue = numeric_conversion<double>(strvec[4], 0.0);
-    if (pValue != 0.0) {
-        load->set("yp", pValue, MW);
-    }
-    if (qValue != 0.0) {
-        load->set("yq", -qValue, MVAR);
-    }
-}
-
-void ptiReadGen(Generator* gen, const std::string& line, BasicReaderInfo& /*opt*/)
-{
-    int rbus;
-
-    auto strvec = gmlc::utilities::stringOps::splitline(line);
-
-    // get the load index and name
-    const std::string temp = trim(strvec[1]);
-    const std::string prefix = gen->getParent()->getName() + "_Gen_" + temp;
-    gen->setName(prefix);
-    // get the status
-    auto status = std::stoi(strvec[14]);
-    if (status == 0) {
-        gen->disable();
+        if (rbus != 0) {
+            // TODO(phlpt): Handle the remote-controlled bus case.
+        }
+        // TODO(phlpt): Get the impedance fields and other data.
     }
 
-    // get the power generation
-    auto pValue = numeric_conversion<double>(strvec[2], 0.0);
-    auto qValue = numeric_conversion<double>(strvec[3], 0.0);
-    if (pValue != 0.0) {
-        gen->set("p", pValue, MW);
-    }
-    if (qValue != 0.0) {
-        gen->set("q", qValue, MVAR);
-    }
-    // get the Qmax and Qmin
-    pValue = numeric_conversion<double>(strvec[4], 0.0);
-    qValue = numeric_conversion<double>(strvec[5], 0.0);
-    if (pValue != 0.0) {
-        gen->set("qmax", pValue, MW);
-    }
-    if (qValue != 0.0) {
-        gen->set("qmin", qValue, MVAR);
-    }
-    auto voltage = numeric_conversion<double>(strvec[6], 0.0);
-    if (voltage > 0) {
-        gen->set("vset", voltage);
-    }
-    rbus = numeric_conversion<int>(strvec[7], 0);
+    void ptiReadBranch(CoreObject* parentObject,
+                       const std::string& line,
+                       std::vector<GridBus*>& busList,
+                       BasicReaderInfo& opt)
+    {
+        std::string temp;
+        std::string temp2;
+        GridBus* bus1;
+        GridBus* bus2;
+        Link* lnk;
+        int ind1;
+        int ind2;
+        double resistance;
+        double reactance;
+        double val;
+        int status;
 
-    if (rbus != 0) {
-        // TODO(phlpt): Handle the remote-controlled bus case.
-    }
-    // TODO(phlpt): Get the impedance fields and other data.
-}
+        auto strvec = gmlc::utilities::stringOps::splitline(line);
 
-void ptiReadBranch(CoreObject* parentObject,
-                   const std::string& line,
-                   std::vector<GridBus*>& busList,
-                   BasicReaderInfo& opt)
-{
-    std::string temp;
-    std::string temp2;
-    GridBus* bus1;
-    GridBus* bus2;
-    Link* lnk;
-    int ind1;
-    int ind2;
-    double resistance;
-    double reactance;
-    double val;
-    int status;
+        temp = strvec[0];
+        ind1 = std::stoi(temp);
+        if (opt.prefix.empty()) {
+            temp2 = temp + "_to_";
+        } else {
+            temp2 = opt.prefix + '_' + temp + "_to_";
+        }
 
-    auto strvec = gmlc::utilities::stringOps::splitline(line);
+        temp = strvec[1];
+        ind2 = std::stoi(temp);
 
-    temp = strvec[0];
-    ind1 = std::stoi(temp);
-    if (opt.prefix.empty()) {
-        temp2 = temp + "_to_";
-    } else {
-        temp2 = opt.prefix + '_' + temp + "_to_";
-    }
+        temp2 = temp2 + temp;
+        bus1 = busList[ind1];
+        bus2 = busList[ind2];
 
-    temp = strvec[1];
-    ind2 = std::stoi(temp);
+        lnk = gLinkfactory->makeTypeObject();
+        lnk->updateBus(bus1, 1);
+        lnk->updateBus(bus2, 2);
+        lnk->setName(temp2);
 
-    temp2 = temp2 + temp;
-    bus1 = busList[ind1];
-    bus2 = busList[ind2];
+        parentObject->add(lnk);
 
-    lnk = gLinkfactory->makeTypeObject();
-    lnk->updateBus(bus1, 1);
-    lnk->updateBus(bus2, 2);
-    lnk->setName(temp2);
+        status = std::stoi(strvec[13]);
+        if (status == 0) {
+            lnk->disable();
+        }
 
-    parentObject->add(lnk);
+        // skip the load flow area and loss zone and circuit for now
 
-    status = std::stoi(strvec[13]);
-    if (status == 0) {
-        lnk->disable();
+        // get the branch impedance
+
+        resistance = numeric_conversion<double>(strvec[3], 0.0);
+        reactance = numeric_conversion<double>(strvec[4], 0.0);
+
+        lnk->set("r", resistance);
+        lnk->set("x", reactance);
+        // get line capacitance
+        val = numeric_conversion<double>(strvec[5], 0.0);
+        lnk->set("b", val);
+
+        // TODO(phlpt): Get the other parameters; not critical for power flow.
     }
 
-    // skip the load flow area and loss zone and circuit for now
+    int ptiReadTX(CoreObject* parentObject,
+                  stringVec& txlines,
+                  std::vector<GridBus*>& busList,
+                  BasicReaderInfo& opt)
+    {
+        int tline = 4;
+        std::string temp;
+        std::string temp2;
+        GridBus* bus1;
+        GridBus* bus2;
+        // GridBus *bus3;
+        Link* lnk;
+        int code;
+        int ind1;
+        int ind2;
+        int ind3;
+        double resistance;
+        double reactance;
+        double val;
+        int status;
 
-    // get the branch impedance
+        stringVec strvec = gmlc::utilities::stringOps::splitline(txlines[0]);
+        stringVec strvec2 = gmlc::utilities::stringOps::splitline(txlines[1]);
+        stringVec strvec3 = gmlc::utilities::stringOps::splitline(txlines[2]);
+        stringVec strvec4 = gmlc::utilities::stringOps::splitline(txlines[3]);
 
-    resistance = numeric_conversion<double>(strvec[3], 0.0);
-    reactance = numeric_conversion<double>(strvec[4], 0.0);
+        temp = strvec[0];
+        ind1 = std::stoi(temp);
 
-    lnk->set("r", resistance);
-    lnk->set("x", reactance);
-    // get line capacitance
-    val = numeric_conversion<double>(strvec[5], 0.0);
-    lnk->set("b", val);
+        temp = strvec[2];
+        ind3 = std::stoi(temp);
+        if (ind3 != 0) {
+            tline = 5;
+            const stringVec strvec5 = gmlc::utilities::stringOps::splitline(txlines[4]);
+            // TODO(phlpt): Handle three-way transformers.
+            std::cout << "3 winding transformers not supported at this time\n";
+            return tline;
+        }
 
-    // TODO(phlpt): Get the other parameters; not critical for power flow.
-}
+        if (opt.prefix.empty()) {
+            temp2 = "tx_" + temp + "_to_";
+        } else {
+            temp2 = opt.prefix + "_tx_" + temp + "_to_";
+        }
+        temp = strvec[1];
+        ind2 = std::stoi(temp);
 
-int ptiReadTX(CoreObject* parentObject,
-              stringVec& txlines,
-              std::vector<GridBus*>& busList,
-              BasicReaderInfo& opt)
-{
-    int tline = 4;
-    std::string temp;
-    std::string temp2;
-    GridBus* bus1;
-    GridBus* bus2;
-    // GridBus *bus3;
-    Link* lnk;
-    int code;
-    int ind1;
-    int ind2;
-    int ind3;
-    double resistance;
-    double reactance;
-    double val;
-    int status;
+        temp2 = temp2 + temp;
+        bus1 = busList[ind1];
+        bus2 = busList[ind2];
+        code = std::stoi(strvec3[6]);
+        switch (code) {
+            case 0:
+                lnk = gLinkfactory->makeTypeObject();
+                lnk->set("type", "transformer");
+                break;
+            case 1:
+                lnk = new links::AdjustableTransformer();
+                lnk->set("mode", "voltage");
+                break;
+            case 2:
+                lnk = new links::AdjustableTransformer();
+                lnk->set("mode", "mvar");
+                break;
+            case 3:
+                lnk = new links::AdjustableTransformer();
+                lnk->set("mode", "mw");
+                break;
+            default:
+                parentObject->log(parentObject,
+                                  PrintLevel::WARNING,
+                                  "Unrecognized link code assuming transformer" +
+                                      std::to_string(code));
+                lnk = gLinkfactory->makeTypeObject();
+                lnk->set("type", "transformer");
+                break;
+        }
 
-    stringVec strvec = gmlc::utilities::stringOps::splitline(txlines[0]);
-    stringVec strvec2 = gmlc::utilities::stringOps::splitline(txlines[1]);
-    stringVec strvec3 = gmlc::utilities::stringOps::splitline(txlines[2]);
-    stringVec strvec4 = gmlc::utilities::stringOps::splitline(txlines[3]);
+        lnk->updateBus(bus1, 1);
+        lnk->updateBus(bus2, 2);
+        lnk->setName(temp2);
 
-    temp = strvec[0];
-    ind1 = std::stoi(temp);
+        parentObject->add(lnk);
 
-    temp = strvec[2];
-    ind3 = std::stoi(temp);
-    if (ind3 != 0) {
-        tline = 5;
-        const stringVec strvec5 = gmlc::utilities::stringOps::splitline(txlines[4]);
-        // TODO(phlpt): Handle three-way transformers.
-        std::cout << "3 winding transformers not supported at this time\n";
+        // skip the load flow area and loss zone and circuit for now
+
+        // get the branch impedance
+
+        resistance = numeric_conversion<double>(strvec2[0], 0.0);
+        reactance = numeric_conversion<double>(strvec2[1], 0.0);
+
+        lnk->set("r", resistance);
+        lnk->set("x", reactance);
+        // get line capacitance
+        val = numeric_conversion<double>(strvec[5], 0.0);
+        lnk->set("b", val);
+
+        status = std::stoi(strvec[11]);
+        if (status == 0) {
+            lnk->disable();
+        } else if (status > 1) {
+            // TODO(phlpt): Handle the other conditions for three-way transformers.
+        }
+
+        // TODO(phlpt): Get the other parameters; not critical for power flow.
+
+        val = numeric_conversion<double>(strvec3[0], 0.0);
+        if (val != 0) {
+            lnk->set("tap", val);
+        }
+        val = numeric_conversion<double>(strvec3[2], 0.0);
+        if (val != 0) {
+            lnk->set("tapangle", val);
+        }
+        // now get the stuff for the adjustable transformers
+        if (code > 0) {
+        }
         return tline;
     }
-
-    if (opt.prefix.empty()) {
-        temp2 = "tx_" + temp + "_to_";
-    } else {
-        temp2 = opt.prefix + "_tx_" + temp + "_to_";
-    }
-    temp = strvec[1];
-    ind2 = std::stoi(temp);
-
-    temp2 = temp2 + temp;
-    bus1 = busList[ind1];
-    bus2 = busList[ind2];
-    code = std::stoi(strvec3[6]);
-    switch (code) {
-        case 0:
-            lnk = gLinkfactory->makeTypeObject();
-            lnk->set("type", "transformer");
-            break;
-        case 1:
-            lnk = new links::AdjustableTransformer();
-            lnk->set("mode", "voltage");
-            break;
-        case 2:
-            lnk = new links::AdjustableTransformer();
-            lnk->set("mode", "mvar");
-            break;
-        case 3:
-            lnk = new links::AdjustableTransformer();
-            lnk->set("mode", "mw");
-            break;
-        default:
-            parentObject->log(parentObject,
-                              PrintLevel::WARNING,
-                              "Unrecognized link code assuming transformer" + std::to_string(code));
-            lnk = gLinkfactory->makeTypeObject();
-            lnk->set("type", "transformer");
-            break;
-    }
-
-    lnk->updateBus(bus1, 1);
-    lnk->updateBus(bus2, 2);
-    lnk->setName(temp2);
-
-    parentObject->add(lnk);
-
-    // skip the load flow area and loss zone and circuit for now
-
-    // get the branch impedance
-
-    resistance = numeric_conversion<double>(strvec2[0], 0.0);
-    reactance = numeric_conversion<double>(strvec2[1], 0.0);
-
-    lnk->set("r", resistance);
-    lnk->set("x", reactance);
-    // get line capacitance
-    val = numeric_conversion<double>(strvec[5], 0.0);
-    lnk->set("b", val);
-
-    status = std::stoi(strvec[11]);
-    if (status == 0) {
-        lnk->disable();
-    } else if (status > 1) {
-        // TODO(phlpt): Handle the other conditions for three-way transformers.
-    }
-
-    // TODO(phlpt): Get the other parameters; not critical for power flow.
-
-    val = numeric_conversion<double>(strvec3[0], 0.0);
-    if (val != 0) {
-        lnk->set("tap", val);
-    }
-    val = numeric_conversion<double>(strvec3[2], 0.0);
-    if (val != 0) {
-        lnk->set("tapangle", val);
-    }
-    // now get the stuff for the adjustable transformers
-    if (code > 0) {
-    }
-    return tline;
-}
 
 }  // namespace
 }  // namespace griddyn

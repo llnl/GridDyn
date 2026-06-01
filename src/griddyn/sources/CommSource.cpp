@@ -107,8 +107,7 @@ void CommSource::updateA(CoreTime time)
 
 using ControlMessagePayload = griddyn::comms::ControlMessagePayload;
 
-void CommSource::receiveMessage(std::uint64_t sourceID,
-                                const std::shared_ptr<CommMessage>& message)
+void CommSource::receiveMessage(std::uint64_t sourceID, const std::shared_ptr<CommMessage>& message)
 {
     if (message == nullptr) {
         return;

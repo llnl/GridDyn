@@ -624,140 +624,140 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
 
 namespace {
 
-std::vector<int> getRowCounts(MatrixData<double>& md)
-{
-    std::vector<int> rowcnt(md.rowLimit());
-    auto sz = static_cast<int>(md.size());
-    md.start();
-    int ii = 0;
-    while (ii < sz) {
-        auto el = md.next();
-        ++rowcnt[el.row];
-        ++ii;
-    }
-    return rowcnt;
-}
-
-std::vector<index_t> getLocalStates(const GridComponent* comp, const SolverMode& sMode)
-{
-    std::vector<index_t> st;
-    auto& off = comp->getOffsets(sMode);
-    st.reserve(static_cast<size_t>(off.local.algSize) + off.local.diffSize + off.local.vSize +
-               off.local.aSize);
-    for (index_t ii = 0; ii < off.local.algSize; ++ii) {
-        st.push_back(off.algOffset + ii);
-    }
-    for (index_t ii = 0; ii < off.local.diffSize; ++ii) {
-        st.push_back(off.diffOffset + ii);
-    }
-    for (index_t ii = 0; ii < off.local.vSize; ++ii) {
-        st.push_back(off.vOffset + ii);
-    }
-    for (index_t ii = 0; ii < off.local.aSize; ++ii) {
-        st.push_back(off.aOffset + ii);
-    }
-    return st;
-}
-
-// helper class for aggregating information
-class objectCountInfo {
-  public:
-    std::string name;
-    count_t totalStates = 0;
-    count_t localStates = 0;
-    count_t localJacListed = 0;
-    count_t totalJacListed = 0;
-    count_t localJacActual = 0;
-    count_t totalJacActual = 0;
-    std::vector<objectCountInfo> subObjectInfo;
-};
-/** function to get the actual Jacobian information about an object*/
-objectCountInfo getObjectInformation(const GridComponent* comp,
-                                     const SolverMode& sMode,
-                                     const std::vector<int>& rowCount)
-{
-    objectCountInfo objI;
-    objI.name = comp->getName();
-    objI.totalStates = comp->stateSize(sMode);
-
-    auto lcStates = getLocalStates(comp, sMode);
-    objI.localStates = static_cast<count_t>(lcStates.size());
-    objI.totalJacListed = comp->jacSize(sMode);
-    for (auto& stateIndex : lcStates) {
-        objI.localJacActual += rowCount[stateIndex];
-    }
-
-    auto* subObject = comp->getSubObject("subobject", 0);
-    int subObjectIndex = 0;
-    while (subObject != nullptr) {
-        objI.subObjectInfo.push_back(
-            getObjectInformation(static_cast<GridComponent*>(subObject), sMode, rowCount));
-        ++subObjectIndex;
-        subObject = comp->getSubObject("subobject", subObjectIndex);
-    }
-    objI.localJacListed = objI.totalJacListed;
-    objI.totalJacActual = objI.localJacActual;
-    for (auto& sui : objI.subObjectInfo) {
-        objI.localJacListed -= sui.totalJacListed;
-        objI.totalJacActual += sui.totalJacActual;
-    }
-    return objI;
-}
-
-void printObjCountInfo(const objectCountInfo& objectInfo, int clevel, int maxLevel)
-{
-    for (int ii = 0; ii < clevel; ++ii) {
-        std::print("  ");
-    }
-    std::println("{}:: st {}({}) list {}({}) NNZ {}({})",
-                 objectInfo.name,
-                 objectInfo.totalStates,
-                 objectInfo.localStates,
-                 objectInfo.totalJacListed,
-                 objectInfo.localJacListed,
-                 objectInfo.totalJacActual,
-                 objectInfo.localJacActual);
-    if (clevel < maxLevel) {
-        for (auto& subObjectInfo : objectInfo.subObjectInfo) {
-            printObjCountInfo(subObjectInfo, clevel + 1, maxLevel);
+    std::vector<int> getRowCounts(MatrixData<double>& md)
+    {
+        std::vector<int> rowcnt(md.rowLimit());
+        auto sz = static_cast<int>(md.size());
+        md.start();
+        int ii = 0;
+        while (ii < sz) {
+            auto el = md.next();
+            ++rowcnt[el.row];
+            ++ii;
         }
+        return rowcnt;
     }
-}
 
-void printStateSizesPretty(const GridComponent* comp, const SolverMode& sMode)
-{
-    std::vector<std::pair<const GridComponent*, std::string>> componentStack;
-    componentStack.emplace_back(comp, "");
-    while (!componentStack.empty()) {
-        auto [currentComponent, inset] = std::move(componentStack.back());
-        componentStack.pop_back();
+    std::vector<index_t> getLocalStates(const GridComponent* comp, const SolverMode& sMode)
+    {
+        std::vector<index_t> st;
+        auto& off = comp->getOffsets(sMode);
+        st.reserve(static_cast<size_t>(off.local.algSize) + off.local.diffSize + off.local.vSize +
+                   off.local.aSize);
+        for (index_t ii = 0; ii < off.local.algSize; ++ii) {
+            st.push_back(off.algOffset + ii);
+        }
+        for (index_t ii = 0; ii < off.local.diffSize; ++ii) {
+            st.push_back(off.diffOffset + ii);
+        }
+        for (index_t ii = 0; ii < off.local.vSize; ++ii) {
+            st.push_back(off.vOffset + ii);
+        }
+        for (index_t ii = 0; ii < off.local.aSize; ++ii) {
+            st.push_back(off.aOffset + ii);
+        }
+        return st;
+    }
 
-        const auto& offsets = currentComponent->getOffsets(sMode);
-        std::println("{}{}:: ssize={}, alg={}, diff={}, local={}",
-                     inset,
-                     currentComponent->getName(),
-                     currentComponent->stateSize(sMode),
-                     currentComponent->algSize(sMode),
-                     currentComponent->diffSize(sMode),
-                     offsets.local.totalSize());
+    // helper class for aggregating information
+    class objectCountInfo {
+      public:
+        std::string name;
+        count_t totalStates = 0;
+        count_t localStates = 0;
+        count_t localJacListed = 0;
+        count_t totalJacListed = 0;
+        count_t localJacActual = 0;
+        count_t totalJacActual = 0;
+        std::vector<objectCountInfo> subObjectInfo;
+    };
+    /** function to get the actual Jacobian information about an object*/
+    objectCountInfo getObjectInformation(const GridComponent* comp,
+                                         const SolverMode& sMode,
+                                         const std::vector<int>& rowCount)
+    {
+        objectCountInfo objI;
+        objI.name = comp->getName();
+        objI.totalStates = comp->stateSize(sMode);
 
+        auto lcStates = getLocalStates(comp, sMode);
+        objI.localStates = static_cast<count_t>(lcStates.size());
+        objI.totalJacListed = comp->jacSize(sMode);
+        for (auto& stateIndex : lcStates) {
+            objI.localJacActual += rowCount[stateIndex];
+        }
+
+        auto* subObject = comp->getSubObject("subobject", 0);
         int subObjectIndex = 0;
-        std::vector<const GridComponent*> subObjects;
-        auto* subObject =
-            dynamic_cast<GridComponent*>(currentComponent->getSubObject("subobject", subObjectIndex));
         while (subObject != nullptr) {
-            subObjects.push_back(subObject);
+            objI.subObjectInfo.push_back(
+                getObjectInformation(static_cast<GridComponent*>(subObject), sMode, rowCount));
             ++subObjectIndex;
-            subObject = dynamic_cast<GridComponent*>(
-                currentComponent->getSubObject("subobject", subObjectIndex));
+            subObject = comp->getSubObject("subobject", subObjectIndex);
         }
+        objI.localJacListed = objI.totalJacListed;
+        objI.totalJacActual = objI.localJacActual;
+        for (auto& sui : objI.subObjectInfo) {
+            objI.localJacListed -= sui.totalJacListed;
+            objI.totalJacActual += sui.totalJacActual;
+        }
+        return objI;
+    }
 
-        for (auto subObjectIter = subObjects.rbegin(); subObjectIter != subObjects.rend();
-             ++subObjectIter) {
-            componentStack.emplace_back(*subObjectIter, inset + "   ");
+    void printObjCountInfo(const objectCountInfo& objectInfo, int clevel, int maxLevel)
+    {
+        for (int ii = 0; ii < clevel; ++ii) {
+            std::print("  ");
+        }
+        std::println("{}:: st {}({}) list {}({}) NNZ {}({})",
+                     objectInfo.name,
+                     objectInfo.totalStates,
+                     objectInfo.localStates,
+                     objectInfo.totalJacListed,
+                     objectInfo.localJacListed,
+                     objectInfo.totalJacActual,
+                     objectInfo.localJacActual);
+        if (clevel < maxLevel) {
+            for (auto& subObjectInfo : objectInfo.subObjectInfo) {
+                printObjCountInfo(subObjectInfo, clevel + 1, maxLevel);
+            }
         }
     }
-}
+
+    void printStateSizesPretty(const GridComponent* comp, const SolverMode& sMode)
+    {
+        std::vector<std::pair<const GridComponent*, std::string>> componentStack;
+        componentStack.emplace_back(comp, "");
+        while (!componentStack.empty()) {
+            auto [currentComponent, inset] = std::move(componentStack.back());
+            componentStack.pop_back();
+
+            const auto& offsets = currentComponent->getOffsets(sMode);
+            std::println("{}{}:: ssize={}, alg={}, diff={}, local={}",
+                         inset,
+                         currentComponent->getName(),
+                         currentComponent->stateSize(sMode),
+                         currentComponent->algSize(sMode),
+                         currentComponent->diffSize(sMode),
+                         offsets.local.totalSize());
+
+            int subObjectIndex = 0;
+            std::vector<const GridComponent*> subObjects;
+            auto* subObject = dynamic_cast<GridComponent*>(
+                currentComponent->getSubObject("subobject", subObjectIndex));
+            while (subObject != nullptr) {
+                subObjects.push_back(subObject);
+                ++subObjectIndex;
+                subObject = dynamic_cast<GridComponent*>(
+                    currentComponent->getSubObject("subobject", subObjectIndex));
+            }
+
+            for (auto subObjectIter = subObjects.rbegin(); subObjectIter != subObjects.rend();
+                 ++subObjectIter) {
+                componentStack.emplace_back(*subObjectIter, inset + "   ");
+            }
+        }
+    }
 
 }  // namespace
 

@@ -21,7 +21,6 @@
 #include <utility>
 #include <vector>
 
-
 namespace griddyn {
 std::pair<double, int> checkResid(GridDynSimulation* gds, CoreTime time, const SolverMode& sMode)
 {

@@ -1011,5 +1011,4 @@ void loadPsatMotorArray(CoreObject* /*parentObject*/,
     }
 }
 
-
 }  // namespace griddyn

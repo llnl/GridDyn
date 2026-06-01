@@ -69,8 +69,8 @@ class GridGenOpt: public GridOptObject {
                               vectData<double>& quadObj,
                               const OptimizationMode& oMode) override;
 
-    virtual double
-        objValue(const OptimizationData& optimizationData, const OptimizationMode& oMode) override;
+    virtual double objValue(const OptimizationData& optimizationData,
+                            const OptimizationMode& oMode) override;
     virtual void gradient(const OptimizationData& optimizationData,
                           double deriv[],
                           const OptimizationMode& oMode) override;

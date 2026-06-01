@@ -18,6 +18,7 @@
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/primary/DcBus.h"
 #include "readerHelper.h"
+#include <compare>
 #include <cstdlib>
 #include <fstream>
 #include <functional>
@@ -46,11 +47,13 @@ using units::MW;
 using units::pu;
 using units::puMW;
 
+namespace {
+
 void epcReadBus(GridBus* bus, string_view line, double base, const BasicReaderInfo& bri);
 void epcReadDCBus(DcBus* bus, string_view line, double base, const BasicReaderInfo& bri);
-void epcReadLoad(ZipLoad* ld, string_view line, double base);
-void epcReadFixedShunt(ZipLoad* ld, string_view line, double base);
-void epcReadSwitchShunt(loads::Svd* ld, string_view line, double /* base */);
+void epcReadLoad(ZipLoad* load, string_view line, double base);
+void epcReadFixedShunt(ZipLoad* load, string_view line, double base);
+void epcReadSwitchShunt(loads::Svd* load, string_view line, double /* base */);
 void epcReadGen(Generator* gen, string_view line, double base);
 void epcReadBranch(CoreObject* parentObject,
                    string_view line,
@@ -130,7 +133,7 @@ void ignoreSection(std::string line, std::ifstream& file)
     }
     while (bcount < cnt) {
         nextLine(file, line);
-        int index = getLineIndex(line);
+        const int index = getLineIndex(line);
         if (index < 0) {
         }
         ++bcount;
@@ -149,7 +152,7 @@ void processSection(std::string line,
     }
     while (bcount < cnt) {
         nextLine(file, line);
-        int index = getLineIndex(line);
+        const int index = getLineIndex(line);
         if (index < 0) {
         }
         ++bcount;
@@ -172,23 +175,25 @@ void processSectionObject(std::string line,
     }
     while (bcount < cnt) {
         nextLine(file, line);
-        int index = getLineIndex(line);
+        const int index = getLineIndex(line);
         if (index < 0) {
         }
         ++bcount;
 
-        if (index > static_cast<int>(busList.size())) {
+        if (std::cmp_greater(index, busList.size())) {
             std::cerr << "Invalid bus number for " << oname << " " << index << '\n';
         }
         if (busList[index - 1] == nullptr) {
             std::cerr << "Invalid bus number for " << oname << " " << index << '\n';
         } else {
-            auto obj = new X();
+            auto* obj = new X();
             busList[index - 1]->add(obj);
             func(obj, line);
         }
     }
 }
+
+}  // namespace
 
 void loadEpc(CoreObject* parentObject,
              const std::string& fileName,
@@ -202,7 +207,8 @@ void loadEpc(CoreObject* parentObject,
     std::vector<DcBus*> dcbusList;
     int index;
     double base = 100;
-    int cnt, bcount;
+    int cnt;
+    int bcount;
 
     /* Process the first line
     First card in file.
@@ -244,7 +250,7 @@ void loadEpc(CoreObject* parentObject,
             bcount = 0;
             if (cnt < 0) {
                 cnt = kBigINT;
-            } else if (cnt > static_cast<int>(busList.size())) {
+            } else if (std::cmp_greater(cnt, busList.size())) {
                 busList.resize(cnt + 2);
             }
             while (bcount < cnt) {
@@ -253,7 +259,7 @@ void loadEpc(CoreObject* parentObject,
                 if (index < 0) {
                 }
                 ++bcount;
-                if (index > static_cast<int>(busList.size())) {
+                if (std::cmp_greater(index, busList.size())) {
                     if (index < 100000000) {
                         busList.resize(2 * index, nullptr);
                     } else {
@@ -299,18 +305,18 @@ void loadEpc(CoreObject* parentObject,
                 });
         } else if (tokens[0] == "load") {
             processSectionObject<ZipLoad>(
-                line, file, "load", busList, [base](ZipLoad* ld, string_view config) {
-                    epcReadLoad(ld, config, base);
+                line, file, "load", busList, [base](ZipLoad* load, string_view config) {
+                    epcReadLoad(load, config, base);
                 });
         } else if (tokens[0] == "shunt") {
             processSectionObject<ZipLoad>(
-                line, file, "shunt", busList, [base](ZipLoad* ld, string_view config) {
-                    epcReadFixedShunt(ld, config, base);
+                line, file, "shunt", busList, [base](ZipLoad* load, string_view config) {
+                    epcReadFixedShunt(load, config, base);
                 });
         } else if (tokens[0] == "Svd") {
             processSectionObject<loads::Svd>(
-                line, file, "Svd", busList, [base](loads::Svd* ld, string_view config) {
-                    epcReadSwitchShunt(ld, config, base);
+                line, file, "Svd", busList, [base](loads::Svd* load, string_view config) {
+                    epcReadSwitchShunt(load, config, base);
                 });
         } else if (tokens[0] == "area") {
             ignoreSection(line, file);
@@ -327,7 +333,7 @@ void loadEpc(CoreObject* parentObject,
                 bcount = 0;
                 if (cnt < 0) {
                     cnt = kBigINT;
-                } else if (cnt > static_cast<int>(dcbusList.size())) {
+                } else if (std::cmp_greater(cnt, dcbusList.size())) {
                     dcbusList.resize(cnt + 2);
                 }
                 while (bcount < cnt) {
@@ -336,7 +342,7 @@ void loadEpc(CoreObject* parentObject,
                     if (index < 0) {
                     }
                     ++bcount;
-                    if (index > static_cast<int>(dcbusList.size())) {
+                    if (std::cmp_greater(index, dcbusList.size())) {
                         if (index < 100000000) {
                             dcbusList.resize(2 * index, nullptr);
                         } else {
@@ -409,6 +415,8 @@ sbase
 <value>
 System base, MVA
 */
+
+namespace {
 
 double epcReadSolutionParamters(CoreObject* parentObject, string_view line)
 {
@@ -572,24 +580,24 @@ void epcReadDCBus(DcBus* bus, string_view line, double /*base*/, const BasicRead
 // #load data  [10485]          id   ------------long_id_------------     st      mw      mvar mw_i
 //  mvar_i
 //  mw_z      mvar_z  ar zone  date_in date_out pid N own sdmon nonc ithbus ithflag
-void epcReadLoad(ZipLoad* ld, string_view line, double /*base*/)
+void epcReadLoad(ZipLoad* load, string_view line, double /*base*/)
 {
     auto strvec = splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
 
     // get the load index and name
-    std::string prefix = ld->getParent()->getName() + "_Load";
+    std::string prefix = load->getParent()->getName() + "_Load";
     if (!strvec[3].empty()) {
         prefix += '_' + std::string{strvec[3]};
     }
-    ld->setName(prefix);
+    load->setName(prefix);
     auto longId = trim(removeQuotes(strvec[4]));
     if (!longId.empty()) {
-        ld->setDescription(std::string{longId});
+        load->setDescription(std::string{longId});
     }
     // get the status
     int status = toIntSimple(strvec[5]);
     if (status == 0) {
-        ld->disable();
+        load->disable();
     }
     // skip the area and zone information for now
 
@@ -597,29 +605,29 @@ void epcReadLoad(ZipLoad* ld, string_view line, double /*base*/)
     auto p = numeric_conversion<double>(strvec[6], 0.0);
     auto q = numeric_conversion<double>(strvec[7], 0.0);
     if (p != 0.0) {
-        ld->set("p", p, MW);
+        load->set("p", p, MW);
     }
     if (q != 0.0) {
-        ld->set("q", q, MVAR);
+        load->set("q", q, MVAR);
     }
     // get the constant current part of the load
     p = numeric_conversion<double>(strvec[8], 0.0);
     q = numeric_conversion<double>(strvec[9], 0.0);
     if (p != 0.0) {
-        ld->set("ip", p, MW);
+        load->set("ip", p, MW);
     }
     if (q != 0.0) {
-        ld->set("iq", q, MVAR);
+        load->set("iq", q, MVAR);
     }
     // get the impedance part of the load
     // note:: in PU power units, need to convert to Pu resistance
     p = numeric_conversion<double>(strvec[10], 0.0);
     q = numeric_conversion<double>(strvec[11], 0.0);
     if (p != 0.0) {
-        ld->set("r", p, MW);
+        load->set("r", p, MW);
     }
     if (q != 0.0) {
-        ld->set("x", q, MVAR);
+        load->set("x", q, MVAR);
     }
     // ignore the owner field
 }
@@ -629,27 +637,27 @@ void epcReadLoad(ZipLoad* ld, string_view line, double /*base*/)
 //  pu_mvar
 //  date_in date_out pid N own part1 own part2 own part3 own part4 --num--  --name--  --kv--
 
-void epcReadFixedShunt(ZipLoad* ld, string_view line, double /*base*/)
+void epcReadFixedShunt(ZipLoad* load, string_view line, double /*base*/)
 {
     auto strvec = splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
 
     // get the load index and name
-    std::string prefix = ld->getParent()->getName() + "_Shunt";
+    std::string prefix = load->getParent()->getName() + "_Shunt";
     if (!strvec[7].empty()) {
         prefix += '_' + std::string{trim(strvec[7])};
     }
 
     auto longId = trim(removeQuotes(strvec[4]));
     if (!longId.empty()) {
-        ld->setDescription(std::string{longId});
+        load->setDescription(std::string{longId});
     }
 
-    ld->setName(prefix);
+    load->setName(prefix);
 
     // get the status
     int status = toIntSimple(strvec[10]);
     if (status == 0) {
-        ld->disable();
+        load->disable();
     }
     // skip the area and zone information for now
 
@@ -657,29 +665,29 @@ void epcReadFixedShunt(ZipLoad* ld, string_view line, double /*base*/)
     auto p = numeric_conversion<double>(strvec[13], 0.0);
     auto q = numeric_conversion<double>(strvec[14], 0.0);
     if (p != 0.0) {
-        ld->set("yp", p, puMW);
+        load->set("yp", p, puMW);
     }
     if (q != 0.0) {
-        ld->set("yq", -q, puMW);
+        load->set("yq", -q, puMW);
     }
 }
 
 // #Svd data[1253]            id  ------------long_id_------------  st ty --no-- - reg_name
 //  ar zone      g      b  min_c  max_c  vband   bmin   bmax  date_in date_out pid N
 //  own part1 own part2 own part3 own part4
-void epcReadSwitchShunt(loads::Svd* ld, string_view line, double /*base*/)
+void epcReadSwitchShunt(loads::Svd* load, string_view line, double /*base*/)
 {
     auto strvec = splitlineBracket(line, " ", default_bracket_chars, delimiter_compression::on);
     auto sz = strvec.size();
     // get the load index and name
-    std::string prefix = ld->getParent()->getName() + "_svd";
+    std::string prefix = load->getParent()->getName() + "_svd";
 
     auto longId = trim(removeQuotes(strvec[1]));
     if (!longId.empty()) {
-        ld->setDescription(std::string{longId});
+        load->setDescription(std::string{longId});
     }
 
-    ld->setName(prefix);
+    load->setName(prefix);
 
     int offset = 2;
     while (strvec[offset] != ":") {
@@ -688,16 +696,16 @@ void epcReadSwitchShunt(loads::Svd* ld, string_view line, double /*base*/)
     // get the status
     int status = toIntSimple(strvec[offset + 1]);
     if (status == 0) {
-        ld->disable();
+        load->disable();
     }
     // skip the area and zone information for now
 
     auto cbus = numeric_conversion<int>(strvec[offset + 3], -1);
     GridBus* rbus = nullptr;
     if (cbus <= 0) {
-        rbus = static_cast<GridBus*>(ld->getParent());
+        rbus = static_cast<GridBus*>(load->getParent());
     } else {
-        rbus = static_cast<GridBus*>(ld->getRoot()->find(std::string("#") + std::to_string(cbus)));
+        rbus = static_cast<GridBus*>(load->getRoot()->find(std::string("#") + std::to_string(cbus)));
     }
     int mode = toIntSimple(strvec[offset + 2]);
     double high;
@@ -705,69 +713,69 @@ void epcReadSwitchShunt(loads::Svd* ld, string_view line, double /*base*/)
     int bsize = 6;
     switch (mode) {
         case 0:
-            ld->set("mode", "manual");
+            load->set("mode", "manual");
             bsize = 4;
             break;
         case 1:
-            ld->set("mode", "stepped");
+            load->set("mode", "stepped");
             // ld->set("vmax", high);
             // ld->set("vmin", low);
             if (rbus != nullptr) {
-                ld->setControlBus(rbus);
+                load->setControlBus(rbus);
             }
 
             break;
         case 2:
             bsize = 4;
-            ld->set("mode", "cont");
+            load->set("mode", "cont");
             //    ld->set("vmax", high);
             //    ld->set("vmin", low);
             if (rbus != nullptr) {
-                ld->setControlBus(rbus);
+                load->setControlBus(rbus);
             }
             break;
         case 3:
-            ld->set("mode", "stepped");
-            ld->set("control", "reactive");
+            load->set("mode", "stepped");
+            load->set("control", "reactive");
             //    ld->set("qmax", high);
             //    ld->set("qmin", low);
             if (rbus != nullptr) {
-                ld->setControlBus(rbus);
+                load->setControlBus(rbus);
             }
             break;
         case 4:
-            ld->set("mode", "stepped");
-            ld->set("control", "reactive");
+            load->set("mode", "stepped");
+            load->set("control", "reactive");
             high = numeric_conversion<double>(strvec[sz - 5], 0.0);
             low = numeric_conversion<double>(strvec[sz - 6], 0.0);
-            ld->set("qmax", high);
-            ld->set("qmin", low);
+            load->set("qmax", high);
+            load->set("qmin", low);
             if (rbus != nullptr) {
-                ld->setControlBus(rbus);
+                load->setControlBus(rbus);
             }
             // TODO(phlpt): Handle the unusual PT load target object condition.
             break;
         case 5:
-            ld->set("mode", "stepped");
-            ld->set("control", "reactive");
+            load->set("mode", "stepped");
+            load->set("control", "reactive");
             //    ld->set("qmax", high);
             //    ld->set("qmin", low);
             if (rbus != nullptr) {
-                ld->setControlBus(rbus);
+                load->setControlBus(rbus);
             }
             break;
         case 6:
-            ld->set("mode", "stepped");
-            ld->set("control", "reactive");
+            load->set("mode", "stepped");
+            load->set("control", "reactive");
             //    ld->set("qmax", high);
             //    ld->set("qmin", low);
             if (rbus != nullptr) {
-                ld->setControlBus(rbus);
+                load->setControlBus(rbus);
             }
             // TODO(phlpt): Handle the unusual PT load target object condition.
             break;
         default:
-            ld->set("mode", "manual");
+            load->set("mode", "manual");
             break;
     }
     // load the switched shunt blocks
@@ -776,7 +784,7 @@ void epcReadSwitchShunt(loads::Svd* ld, string_view line, double /*base*/)
         auto cnt = numeric_conversion<int>(strvec[kk], 0);
         auto block = numeric_conversion<double>(strvec[kk + 1], 0.0);
         if ((cnt > 0) && (block != 0.0)) {
-            ld->addBlock(cnt, -block, pu);
+            load->addBlock(cnt, -block, pu);
         } else {
             break;
         }
@@ -784,7 +792,7 @@ void epcReadSwitchShunt(loads::Svd* ld, string_view line, double /*base*/)
     // set the initial value
     auto initVal = numeric_conversion<double>(strvec[offset + 8], 0.0);
 
-    ld->set("yq", -initVal, pu);
+    load->set("yq", -initVal, pu);
 }
 // #generator data  [XXX]    id   ------------long_id_------------    st ---no--     reg_name prf
 // qrf
@@ -1186,6 +1194,8 @@ void epcReadTX(CoreObject* parentObject,
         }
     }
 }
+
+}  // namespace
 
 // NOLINTEND(misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,modernize-use-integer-sign-comparison,bugprone-implicit-widening-of-multiplication-result,readability-isolate-declaration,modernize-use-starts-ends-with,bugprone-branch-clone,readability-qualified-auto)
 }  // namespace griddyn

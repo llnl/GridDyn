@@ -622,6 +622,8 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
     std::copy(baseState.begin(), baseState.begin() + ssize, state);
 }
 
+namespace {
+
 std::vector<int> getRowCounts(MatrixData<double>& md)
 {
     std::vector<int> rowcnt(md.rowLimit());
@@ -681,17 +683,17 @@ objectCountInfo getObjectInformation(const GridComponent* comp,
     auto lcStates = getLocalStates(comp, sMode);
     objI.localStates = static_cast<count_t>(lcStates.size());
     objI.totalJacListed = comp->jacSize(sMode);
-    for (auto& st : lcStates) {
-        objI.localJacActual += rowCount[st];
+    for (auto& stateIndex : lcStates) {
+        objI.localJacActual += rowCount[stateIndex];
     }
 
-    auto subobj = comp->getSubObject("subobject", 0);
-    int ii = 0;
-    while (subobj != nullptr) {
+    auto* subObject = comp->getSubObject("subobject", 0);
+    int subObjectIndex = 0;
+    while (subObject != nullptr) {
         objI.subObjectInfo.push_back(
-            getObjectInformation(static_cast<GridComponent*>(subobj), sMode, rowCount));
-        ++ii;
-        subobj = comp->getSubObject("subobject", ii);
+            getObjectInformation(static_cast<GridComponent*>(subObject), sMode, rowCount));
+        ++subObjectIndex;
+        subObject = comp->getSubObject("subobject", subObjectIndex);
     }
     objI.localJacListed = objI.totalJacListed;
     objI.totalJacActual = objI.localJacActual;
@@ -702,34 +704,71 @@ objectCountInfo getObjectInformation(const GridComponent* comp,
     return objI;
 }
 
-void printObjCountInfo(const objectCountInfo& oi, int clevel, int maxLevel)
+void printObjCountInfo(const objectCountInfo& objectInfo, int clevel, int maxLevel)
 {
     for (int ii = 0; ii < clevel; ++ii) {
         std::print("  ");
     }
     std::println("{}:: st {}({}) list {}({}) NNZ {}({})",
-                 oi.name.c_str(),
-                 oi.totalStates,
-                 oi.localStates,
-                 oi.totalJacListed,
-                 oi.localJacListed,
-                 oi.totalJacActual,
-                 oi.localJacActual);
+                 objectInfo.name,
+                 objectInfo.totalStates,
+                 objectInfo.localStates,
+                 objectInfo.totalJacListed,
+                 objectInfo.localJacListed,
+                 objectInfo.totalJacActual,
+                 objectInfo.localJacActual);
     if (clevel < maxLevel) {
-        for (auto& soi : oi.subObjectInfo) {
-            printObjCountInfo(soi, clevel + 1, maxLevel);
+        for (auto& subObjectInfo : objectInfo.subObjectInfo) {
+            printObjCountInfo(subObjectInfo, clevel + 1, maxLevel);
         }
     }
 }
+
+void printStateSizesPretty(const GridComponent* comp, const SolverMode& sMode)
+{
+    std::vector<std::pair<const GridComponent*, std::string>> componentStack;
+    componentStack.emplace_back(comp, "");
+    while (!componentStack.empty()) {
+        auto [currentComponent, inset] = std::move(componentStack.back());
+        componentStack.pop_back();
+
+        const auto& offsets = currentComponent->getOffsets(sMode);
+        std::println("{}{}:: ssize={}, alg={}, diff={}, local={}",
+                     inset,
+                     currentComponent->getName(),
+                     currentComponent->stateSize(sMode),
+                     currentComponent->algSize(sMode),
+                     currentComponent->diffSize(sMode),
+                     offsets.local.totalSize());
+
+        int subObjectIndex = 0;
+        std::vector<const GridComponent*> subObjects;
+        auto* subObject =
+            dynamic_cast<GridComponent*>(currentComponent->getSubObject("subobject", subObjectIndex));
+        while (subObject != nullptr) {
+            subObjects.push_back(subObject);
+            ++subObjectIndex;
+            subObject = dynamic_cast<GridComponent*>(
+                currentComponent->getSubObject("subobject", subObjectIndex));
+        }
+
+        for (auto subObjectIter = subObjects.rbegin(); subObjectIter != subObjects.rend();
+             ++subObjectIter) {
+            componentStack.emplace_back(*subObjectIter, inset + "   ");
+        }
+    }
+}
+
+}  // namespace
 
 void jacobianAnalysis(MatrixData<double>& md,
                       GridDynSimulation* gds,
                       const SolverMode& sMode,
                       int level)
 {
-    auto rc = getRowCounts(md);
-    auto oi = getObjectInformation(gds, sMode, rc);
-    printObjCountInfo(oi, 0, level);
+    auto rowCounts = getRowCounts(md);
+    auto objectInfo = getObjectInformation(gds, sMode, rowCounts);
+    printObjCountInfo(objectInfo, 0, level);
 }
 
 bool checkObjectEquivalence(const CoreObject* obj1, const CoreObject* obj2, bool printMessage)
@@ -743,16 +782,16 @@ bool checkObjectEquivalence(const CoreObject* obj1, const CoreObject* obj2, bool
     if (typeid(*obj1) != typeid(*obj2)) {
         if (printMessage) {
             std::println("object 1 name ({}) not matching type of object 2({})",
-                         obj1->getName().c_str(),
-                         obj2->getName().c_str());
+                         obj1->getName(),
+                         obj2->getName());
         }
         return false;
     }
     if (obj1->getName() != obj2->getName()) {
         if (printMessage) {
             std::println("object 1 name ({}) not matching object 2({})",
-                         obj1->getName().c_str(),
-                         obj2->getName().c_str());
+                         obj1->getName(),
+                         obj2->getName());
         }
         return false;
     }
@@ -761,41 +800,41 @@ bool checkObjectEquivalence(const CoreObject* obj1, const CoreObject* obj2, bool
         obj2->getParent()->getName()) {  // these do not affect equivalence but should be noted
         if (printMessage) {
             std::println("object 1 ({}) has a different parent than object 2({})",
-                         obj1->getName().c_str(),
-                         obj2->getName().c_str());
+                         obj1->getName(),
+                         obj2->getName());
         }
     }
 
     if (obj1 == obj2) {  // these do not affect equivalence but should be noted
         if (printMessage) {
-            std::println("object 1 and object 2 ({}) have same id", obj1->getName().c_str());
+            std::println("object 1 and object 2 ({}) have same id", obj1->getName());
         }
         return true;
     }
     if (obj1->get("subobjectcount") != obj2->get("subobjectcount")) {
         if (printMessage) {
             std::println("object 1 ({}) has a different number of subobjects than object 2({})",
-                         obj1->getName().c_str(),
-                         obj2->getName().c_str());
+                         obj1->getName(),
+                         obj2->getName());
         }
         return false;
     }
-    int ii = 0;
-    CoreObject* sub1 = obj1->getSubObject("subobject", ii);
+    int subObjectIndex = 0;
+    CoreObject* sub1 = obj1->getSubObject("subobject", subObjectIndex);
     bool result = true;
     while (sub1 != nullptr) {
         CoreObject* sub2 = obj2->find(sub1->getName());
         if (sub2 == nullptr) {
             if (printMessage) {
                 std::println("object 2 ({}) does not have a subobject named {}",
-                             obj1->getName().c_str(),
-                             sub1->getName().c_str());
+                             obj1->getName(),
+                             sub1->getName());
             }
             continue;
         }
         auto res = checkObjectEquivalence(sub1, sub2, printMessage);
-        ++ii;
-        sub1 = obj1->getSubObject("subobject", ii);
+        ++subObjectIndex;
+        sub1 = obj1->getSubObject("subobject", subObjectIndex);
         if (!res) {
             result = false;
         }
@@ -804,29 +843,8 @@ bool checkObjectEquivalence(const CoreObject* obj1, const CoreObject* obj2, bool
     return result;
 }
 
-void printStateSizesPretty(const GridComponent* obj,
-                           const SolverMode& sMode,
-                           const std::string& inset)
-{
-    auto& off = obj->getOffsets(sMode);
-    std::println("{}{}:: ssize={}, alg={}, diff={}, local={}",
-                 inset.c_str(),
-                 obj->getName().c_str(),
-                 obj->stateSize(sMode),
-                 obj->algSize(sMode),
-                 obj->diffSize(sMode),
-                 off.local.totalSize());
-    auto subObj = dynamic_cast<GridComponent*>(obj->getSubObject("subobject", 0));
-    int ii = 1;
-    while (subObj != nullptr) {
-        printStateSizesPretty(subObj, sMode, inset + "   ");
-        subObj = dynamic_cast<GridComponent*>(obj->getSubObject("subobject", ii));
-        ++ii;
-    }
-}
-
 void printStateSizes(const GridComponent* comp, const SolverMode& sMode)
 {
-    printStateSizesPretty(comp, sMode, "");
+    printStateSizesPretty(comp, sMode);
 }
 }  // namespace griddyn

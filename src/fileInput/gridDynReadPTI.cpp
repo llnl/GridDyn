@@ -14,7 +14,7 @@
 #include "griddyn/links/AdjustableTransformer.h"
 #include "griddyn/loads/ZipLoad.h"
 #include "readerHelper.h"
-#include <cstdio>
+#include <compare>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -27,18 +27,20 @@ using gmlc::utilities::stringOps::removeQuotes;
 using gmlc::utilities::stringOps::trim;
 using units::MVAR;
 using units::MW;
-void ptiReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& opt);
-void ptiReadLoad(GridLoad* ld, const std::string& line, BasicReaderInfo& opt);
-void ptiReadFixedShunt(GridLoad* ld, const std::string& line, BasicReaderInfo& opt);
-void ptiReadGen(Generator* gen, const std::string& line, BasicReaderInfo& opt);
-void ptiReadBranch(CoreObject* parentObject,
-                   const std::string& line,
-                   std::vector<GridBus*>& busList,
-                   BasicReaderInfo& opt);
-int ptiReadTX(CoreObject* parentObject,
-              stringVec& txlines,
-              std::vector<GridBus*>& busList,
-              BasicReaderInfo& opt);
+namespace {
+    void ptiReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& opt);
+    void ptiReadLoad(GridLoad* load, const std::string& line, BasicReaderInfo& opt);
+    void ptiReadFixedShunt(GridLoad* load, const std::string& line, BasicReaderInfo& opt);
+    void ptiReadGen(Generator* gen, const std::string& line, BasicReaderInfo& opt);
+    void ptiReadBranch(CoreObject* parentObject,
+                       const std::string& line,
+                       std::vector<GridBus*>& busList,
+                       BasicReaderInfo& opt);
+    int ptiReadTX(CoreObject* parentObject,
+                  stringVec& txlines,
+                  std::vector<GridBus*>& busList,
+                  BasicReaderInfo& opt);
+}
 
 // static variables with the factories
 // get the basic busFactory
@@ -58,9 +60,8 @@ void loadPti(CoreObject* parentObject,
     std::ifstream file(fileName.c_str(), std::ios::in);
     std::string line;  // line storage
     std::string temp1;  // temporary storage for substrings
-    std::string pref2;  // temp storage to 2nd order prefix.
     std::vector<GridBus*> busList;
-    GridLoad* ld;
+    GridLoad* load;
     Generator* gen;
     index_t index;
     size_t pos;
@@ -96,12 +97,14 @@ void loadPti(CoreObject* parentObject,
     Column  46-73   Case identification (A) */
 
     if (std::getline(file, line)) {
-        auto res = sscanf(line.c_str(),
-                          "%*d, %lf,%*d,%*d,%*d,%lf",
-                          &(readerOptionsCopy.base),
-                          &(readerOptionsCopy.basefreq));
-        if (res > 0) {
+        const auto headerFields = gmlc::utilities::stringOps::splitline(line);
+        if (headerFields.size() > 1) {
+            readerOptionsCopy.base = numeric_conversion<double>(headerFields[1], readerOptionsCopy.base);
             parentObject->set("systemBasePower", readerOptionsCopy.base);
+        }
+        if (headerFields.size() > 5) {
+            readerOptionsCopy.basefreq =
+                numeric_conversion<double>(headerFields[5], readerOptionsCopy.basefreq);
         }
         // temp1=line.substr(45,27);
         // parentObject->setName(temp1);
@@ -127,9 +130,9 @@ void loadPti(CoreObject* parentObject,
             temp1 = trim(line.substr(0, pos));
             index = gmlc::utilities::numeric_conversion<index_t>(temp1, 0);
 
-            if (index >= static_cast<index_t>(busList.size())) {
+            if (std::cmp_greater_equal(index, busList.size())) {
                 if (index < 100000000) {
-                    busList.resize(2 * index + 1, nullptr);
+                    busList.resize((2 * index) + 1, nullptr);
                 } else {
                     std::cerr << "Bus index overload " << index << '\n';
                 }
@@ -170,9 +173,9 @@ void loadPti(CoreObject* parentObject,
             if (busList[index] == nullptr) {
                 std::cerr << "Invalid bus number for load " << index << '\n';
             } else {
-                ld = gLdfactory->makeTypeObject();
-                busList[index]->add(ld);
-                ptiReadLoad(ld, line, readerOptionsCopy);
+                load = gLdfactory->makeTypeObject();
+                busList[index]->add(load);
+                ptiReadLoad(load, line, readerOptionsCopy);
             }
         } else {
             moreData = false;
@@ -191,15 +194,15 @@ void loadPti(CoreObject* parentObject,
             temp1 = trim(line.substr(0, pos));
             index = gmlc::utilities::numeric_conversion<index_t>(temp1, 0);
 
-            if (index >= static_cast<index_t>(busList.size())) {
+            if (std::cmp_greater_equal(index, busList.size())) {
                 std::cerr << "Invalid bus number for load " << index << '\n';
             }
             if (busList[index] == nullptr) {
                 std::cerr << "Invalid bus number for load " << index << '\n';
             } else {
-                ld = gLdfactory->makeTypeObject();
-                busList[index]->add(ld);
-                ptiReadFixedShunt(ld, line, readerOptionsCopy);
+                load = gLdfactory->makeTypeObject();
+                busList[index]->add(load);
+                ptiReadFixedShunt(load, line, readerOptionsCopy);
             }
         } else {
             moreData = false;
@@ -218,7 +221,7 @@ void loadPti(CoreObject* parentObject,
             temp1 = trim(line.substr(0, pos));
             index = gmlc::utilities::numeric_conversion<index_t>(temp1, 0);
 
-            if (index >= static_cast<index_t>(busList.size())) {
+            if (std::cmp_greater_equal(index, busList.size())) {
                 std::cerr << "Invalid bus number for generator " << index << '\n';
             }
             if (busList[index] == nullptr) {
@@ -281,12 +284,15 @@ void loadPti(CoreObject* parentObject,
     file.close();
 }
 
+namespace {
+
 void ptiReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& opt)
 {
-    std::string temp, temp2;
-    double bv;
-    double vm;
-    double va;
+    std::string temp;
+    std::string temp2;
+    double baseVoltage;
+    double voltageMagnitude;
+    double voltageAngle;
     int type;
 
     auto strvec = gmlc::utilities::stringOps::splitline(line);
@@ -312,9 +318,9 @@ void ptiReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& opt)
     bus->setName(temp2);
 
     // get the localBaseVoltage
-    bv = std::stod(strvec[2]);
-    if (bv > 0.0) {
-        bus->set("basevoltage", bv);
+    baseVoltage = std::stod(strvec[2]);
+    if (baseVoltage > 0.0) {
+        bus->set("basevoltage", baseVoltage);
     }
 
     // get the bus type
@@ -337,27 +343,31 @@ void ptiReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& opt)
         case 4:
             bus->disable();
             temp = "PQ";
+            break;
+        default:
+            temp = "PQ";
+            break;
     }
     bus->set("type", temp);
     // skip the load flow area and loss zone for now
     // skip the owner information
     // get the voltage and angle specifications
-    vm = numeric_conversion<double>(strvec[7], 0.0);
-    va = numeric_conversion<double>(strvec[8], 0.0);
-    if (va != 0) {
-        bus->set("angle", va / 180 * kPI);
+    voltageMagnitude = numeric_conversion<double>(strvec[7], 0.0);
+    voltageAngle = numeric_conversion<double>(strvec[8], 0.0);
+    if (voltageAngle != 0) {
+        bus->set("angle", voltageAngle / 180 * kPI);
     }
-    if (vm != 0) {
-        bus->set("voltage", vm);
+    if (voltageMagnitude != 0) {
+        bus->set("voltage", voltageMagnitude);
     }
 }
 
-void ptiReadLoad(GridLoad* ld, const std::string& line, BasicReaderInfo& /*opt*/)
+void ptiReadLoad(GridLoad* load, const std::string& line, BasicReaderInfo& /*opt*/)
 {
     std::string temp;
     std::string prefix;
-    double p;
-    double q;
+    double pValue;
+    double qValue;
     int status;
 
     auto strvec = gmlc::utilities::stringOps::splitline(line);
@@ -365,53 +375,53 @@ void ptiReadLoad(GridLoad* ld, const std::string& line, BasicReaderInfo& /*opt*/
     // get the load index and name
     temp = strvec[1];
     gmlc::utilities::stringOps::trimString(temp);
-    prefix = ld->getParent()->getName() + "_load_" + temp;
-    ld->setName(prefix);
+    prefix = load->getParent()->getName() + "_load_" + temp;
+    load->setName(prefix);
 
     // get the status
     status = std::stoi(strvec[2]);
     if (status == 0) {
-        ld->disable();
+        load->disable();
     }
     // skip the area and zone information for now
 
     // get the constant power part of the load
-    p = numeric_conversion<double>(strvec[5], 0.0);
-    q = numeric_conversion<double>(strvec[6], 0.0);
-    if (p != 0.0) {
-        ld->set("p", p, MW);
+    pValue = numeric_conversion<double>(strvec[5], 0.0);
+    qValue = numeric_conversion<double>(strvec[6], 0.0);
+    if (pValue != 0.0) {
+        load->set("p", pValue, MW);
     }
-    if (q != 0.0) {
-        ld->set("q", q, MVAR);
+    if (qValue != 0.0) {
+        load->set("q", qValue, MVAR);
     }
     // get the constant current part of the load
-    p = numeric_conversion<double>(strvec[7], 0.0);
-    q = numeric_conversion<double>(strvec[8], 0.0);
-    if (p != 0.0) {
-        ld->set("ip", p, MW);
+    pValue = numeric_conversion<double>(strvec[7], 0.0);
+    qValue = numeric_conversion<double>(strvec[8], 0.0);
+    if (pValue != 0.0) {
+        load->set("ip", pValue, MW);
     }
-    if (q != 0.0) {
-        ld->set("iq", q, MVAR);
+    if (qValue != 0.0) {
+        load->set("iq", qValue, MVAR);
     }
     // get the impedance part of the load
     // note:: in PU power units, need to convert to Pu resistance
-    p = numeric_conversion<double>(strvec[9], 0.0);
-    q = numeric_conversion<double>(strvec[10], 0.0);
-    if (p != 0.0) {
-        ld->set("r", p, MW);
+    pValue = numeric_conversion<double>(strvec[9], 0.0);
+    qValue = numeric_conversion<double>(strvec[10], 0.0);
+    if (pValue != 0.0) {
+        load->set("r", pValue, MW);
     }
-    if (q != 0.0) {
-        ld->set("x", q, MVAR);
+    if (qValue != 0.0) {
+        load->set("x", qValue, MVAR);
     }
     // ignore the owner field
 }
 
-void ptiReadFixedShunt(GridLoad* ld, const std::string& line, BasicReaderInfo& /*opt*/)
+void ptiReadFixedShunt(GridLoad* load, const std::string& line, BasicReaderInfo& /*opt*/)
 {
     std::string temp;
     std::string prefix;
-    double p;
-    double q;
+    double pValue;
+    double qValue;
     int status;
 
     auto strvec = gmlc::utilities::stringOps::splitline(line);
@@ -419,24 +429,24 @@ void ptiReadFixedShunt(GridLoad* ld, const std::string& line, BasicReaderInfo& /
     // get the load index and name
     temp = strvec[1];
     gmlc::utilities::stringOps::trimString(temp);
-    prefix = ld->getParent()->getName() + "_shunt_" + temp;
-    ld->setName(prefix);
+    prefix = load->getParent()->getName() + "_shunt_" + temp;
+    load->setName(prefix);
 
     // get the status
     status = std::stoi(strvec[2]);
     if (status == 0) {
-        ld->disable();
+        load->disable();
     }
     // skip the area and zone information for now
 
     // get the constant power part of the load
-    p = numeric_conversion<double>(strvec[3], 0.0);
-    q = numeric_conversion<double>(strvec[4], 0.0);
-    if (p != 0.0) {
-        ld->set("yp", p, MW);
+    pValue = numeric_conversion<double>(strvec[3], 0.0);
+    qValue = numeric_conversion<double>(strvec[4], 0.0);
+    if (pValue != 0.0) {
+        load->set("yp", pValue, MW);
     }
-    if (q != 0.0) {
-        ld->set("yq", -q, MVAR);
+    if (qValue != 0.0) {
+        load->set("yq", -qValue, MVAR);
     }
 }
 
@@ -447,8 +457,8 @@ void ptiReadGen(Generator* gen, const std::string& line, BasicReaderInfo& /*opt*
     auto strvec = gmlc::utilities::stringOps::splitline(line);
 
     // get the load index and name
-    std::string temp = trim(strvec[1]);
-    std::string prefix = gen->getParent()->getName() + "_Gen_" + temp;
+    const std::string temp = trim(strvec[1]);
+    const std::string prefix = gen->getParent()->getName() + "_Gen_" + temp;
     gen->setName(prefix);
     // get the status
     auto status = std::stoi(strvec[14]);
@@ -457,22 +467,22 @@ void ptiReadGen(Generator* gen, const std::string& line, BasicReaderInfo& /*opt*
     }
 
     // get the power generation
-    auto p = numeric_conversion<double>(strvec[2], 0.0);
-    auto q = numeric_conversion<double>(strvec[3], 0.0);
-    if (p != 0.0) {
-        gen->set("p", p, MW);
+    auto pValue = numeric_conversion<double>(strvec[2], 0.0);
+    auto qValue = numeric_conversion<double>(strvec[3], 0.0);
+    if (pValue != 0.0) {
+        gen->set("p", pValue, MW);
     }
-    if (q != 0.0) {
-        gen->set("q", q, MVAR);
+    if (qValue != 0.0) {
+        gen->set("q", qValue, MVAR);
     }
     // get the Qmax and Qmin
-    p = numeric_conversion<double>(strvec[4], 0.0);
-    q = numeric_conversion<double>(strvec[5], 0.0);
-    if (p != 0.0) {
-        gen->set("qmax", p, MW);
+    pValue = numeric_conversion<double>(strvec[4], 0.0);
+    qValue = numeric_conversion<double>(strvec[5], 0.0);
+    if (pValue != 0.0) {
+        gen->set("qmax", pValue, MW);
     }
-    if (q != 0.0) {
-        gen->set("qmin", q, MVAR);
+    if (qValue != 0.0) {
+        gen->set("qmin", qValue, MVAR);
     }
     auto voltage = numeric_conversion<double>(strvec[6], 0.0);
     if (voltage > 0) {
@@ -491,11 +501,15 @@ void ptiReadBranch(CoreObject* parentObject,
                    std::vector<GridBus*>& busList,
                    BasicReaderInfo& opt)
 {
-    std::string temp, temp2;
-    GridBus *bus1, *bus2;
+    std::string temp;
+    std::string temp2;
+    GridBus* bus1;
+    GridBus* bus2;
     Link* lnk;
-    int ind1, ind2;
-    double resistance, reactance;
+    int ind1;
+    int ind2;
+    double resistance;
+    double reactance;
     double val;
     int status;
 
@@ -550,22 +564,25 @@ int ptiReadTX(CoreObject* parentObject,
               BasicReaderInfo& opt)
 {
     int tline = 4;
-    std::string temp, temp2;
-    GridBus *bus1, *bus2;
+    std::string temp;
+    std::string temp2;
+    GridBus* bus1;
+    GridBus* bus2;
     // GridBus *bus3;
     Link* lnk;
     int code;
-    int ind1, ind2, ind3;
-    double resistance, reactance;
+    int ind1;
+    int ind2;
+    int ind3;
+    double resistance;
+    double reactance;
     double val;
     int status;
 
-    stringVec strvec, strvec2, strvec3, strvec4, strvec5;
-    strvec = gmlc::utilities::stringOps::splitline(txlines[0]);
-
-    strvec2 = gmlc::utilities::stringOps::splitline(txlines[1]);
-    strvec3 = gmlc::utilities::stringOps::splitline(txlines[2]);
-    strvec4 = gmlc::utilities::stringOps::splitline(txlines[3]);
+    stringVec strvec = gmlc::utilities::stringOps::splitline(txlines[0]);
+    stringVec strvec2 = gmlc::utilities::stringOps::splitline(txlines[1]);
+    stringVec strvec3 = gmlc::utilities::stringOps::splitline(txlines[2]);
+    stringVec strvec4 = gmlc::utilities::stringOps::splitline(txlines[3]);
 
     temp = strvec[0];
     ind1 = std::stoi(temp);
@@ -574,7 +591,7 @@ int ptiReadTX(CoreObject* parentObject,
     ind3 = std::stoi(temp);
     if (ind3 != 0) {
         tline = 5;
-        strvec5 = gmlc::utilities::stringOps::splitline(txlines[4]);
+        const stringVec strvec5 = gmlc::utilities::stringOps::splitline(txlines[4]);
         // TODO(phlpt): Handle three-way transformers.
         std::cout << "3 winding transformers not supported at this time\n";
         return tline;
@@ -659,4 +676,6 @@ int ptiReadTX(CoreObject* parentObject,
     }
     return tline;
 }
+
+}  // namespace
 }  // namespace griddyn

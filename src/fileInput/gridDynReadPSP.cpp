@@ -114,7 +114,7 @@ void loadPsp(CoreObject* parentObject,
                         // trimString(temp);
                         index = std::stoi(temp);
                         if (static_cast<size_t>(index) >= busList.size()) {
-                            busList.resize(2 * index + 1, nullptr);
+                            busList.resize((2 * index) + 1, nullptr);
                         }
                         if (busList[index] == nullptr) {
                             busList[index] = new AcBus();

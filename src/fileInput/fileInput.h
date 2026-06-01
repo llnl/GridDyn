@@ -119,7 +119,7 @@ void loadMatlabFile(CoreObject* parentObject,
 
 void loadCsv(CoreObject* parentObject,
              const std::string& fileName,
-             ReaderInfo& ReaderInformation,
+             ReaderInfo& readerInformation,
              const std::string& objectName = "");
 
 /** function sets a parameter in an object

@@ -168,7 +168,7 @@ void loadPti(CoreObject* parentObject,
             temp1 = trim(line.substr(0, pos));
             index = gmlc::utilities::numeric_conversion<index_t>(temp1, 0);
 
-            if (index >= static_cast<index_t>(busList.size())) {
+            if (std::cmp_greater_equal(index, busList.size())) {
                 std::cerr << "Invalid bus number for load " << index << '\n';
             }
             if (busList[index] == nullptr) {
@@ -583,7 +583,7 @@ namespace {
         stringVec strvec = gmlc::utilities::stringOps::splitline(txlines[0]);
         stringVec strvec2 = gmlc::utilities::stringOps::splitline(txlines[1]);
         stringVec strvec3 = gmlc::utilities::stringOps::splitline(txlines[2]);
-        stringVec strvec4 = gmlc::utilities::stringOps::splitline(txlines[3]);
+        const stringVec strvec4 = gmlc::utilities::stringOps::splitline(txlines[3]);
 
         temp = strvec[0];
         ind1 = std::stoi(temp);

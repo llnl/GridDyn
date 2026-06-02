@@ -178,6 +178,7 @@ void CommSource::receiveMessage(std::uint64_t sourceID, const std::shared_ptr<Co
         case ControlMessagePayload::CANCEL_SUCCESS:
         case ControlMessagePayload::GET_RESULT_MULTIPLE:
         case ControlMessagePayload::CANCEL:
+            break;
         case ControlMessagePayload::GET_MULTIPLE:
         case ControlMessagePayload::GET_PERIODIC:
             break;

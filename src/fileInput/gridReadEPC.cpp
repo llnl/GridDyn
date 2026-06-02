@@ -261,7 +261,9 @@ void loadEpc(CoreObject* parentObject,
                 ++bcount;
                 if (std::cmp_greater(index, busList.size())) {
                     if (index < 100000000) {
-                        busList.resize(2 * index, nullptr);
+                        busList.resize(static_cast<std::vector<GridBus*>::size_type>(
+                                           static_cast<long long>(2) * index),
+                                       nullptr);
                     } else {
                         std::cerr << "Bus index overload " << index << '\n';
                     }
@@ -283,7 +285,7 @@ void loadEpc(CoreObject* parentObject,
         } else if (tokens[0] == "solution") {
             nextLine(file, line);
             while (line[0] != '!') {
-                if (line.compare(0, 5, "sbase") == 0) {
+                if (line.starts_with("sbase")) {
                     base = epcReadSolutionParamters(parentObject, line);
                 } else {
                     epcReadSolutionParamters(parentObject, line);
@@ -318,13 +320,8 @@ void loadEpc(CoreObject* parentObject,
                 line, file, "Svd", busList, [base](loads::Svd* load, string_view config) {
                     epcReadSwitchShunt(load, config, base);
                 });
-        } else if (tokens[0] == "area") {
-            ignoreSection(line, file);
-        } else if (tokens[0] == "zone") {
-            ignoreSection(line, file);
-        } else if (tokens[0] == "interface") {
-            ignoreSection(line, file);
-        } else if (tokens[0] == "z") {
+        } else if ((tokens[0] == "area") || (tokens[0] == "zone") || (tokens[0] == "interface") ||
+                   (tokens[0] == "z")) {
             ignoreSection(line, file);
         } else if (tokens[0] == "dc") {
             if (tokens[1] == "bus") {
@@ -344,7 +341,9 @@ void loadEpc(CoreObject* parentObject,
                     ++bcount;
                     if (std::cmp_greater(index, dcbusList.size())) {
                         if (index < 100000000) {
-                            dcbusList.resize(2 * index, nullptr);
+                            dcbusList.resize(static_cast<std::vector<DcBus*>::size_type>(
+                                                 static_cast<long long>(2) * index),
+                                             nullptr);
                         } else {
                             std::cerr << "Bus index overload " << index << '\n';
                         }
@@ -369,13 +368,8 @@ void loadEpc(CoreObject* parentObject,
                 });
             } else if (tokens[1] == "converter") {
             }
-        } else if (tokens[0] == "gcd") {
-            ignoreSection(line, file);
-        } else if (tokens[0] == "owner") {
-            ignoreSection(line, file);
-        } else if (tokens[0] == "transaction") {
-            ignoreSection(line, file);
-        } else if (tokens[0] == "qtable") {
+        } else if ((tokens[0] == "gcd") || (tokens[0] == "owner") ||
+                   (tokens[0] == "transaction") || (tokens[0] == "qtable")) {
             ignoreSection(line, file);
         } else if (tokens[0] == "end") {
             break;
@@ -422,13 +416,9 @@ namespace {
     {
         auto tokens = split(line, " ", delimiter_compression::on);
         auto val = numeric_conversion<double>(tokens[1], 0.0);
-        if (tokens[0] == "tap") {
-        } else if (tokens[0] == "phas") {
-        } else if (tokens[0] == "area") {
-        } else if (tokens[0] == "Svd") {
-        } else if (tokens[0] == "dctap") {
-        } else if (tokens[0] == "gcd") {
-        } else if (tokens[0] == "jump") {
+        if ((tokens[0] == "tap") || (tokens[0] == "phas") || (tokens[0] == "area") ||
+            (tokens[0] == "Svd") || (tokens[0] == "dctap") || (tokens[0] == "gcd") ||
+            (tokens[0] == "jump")) {
         } else if (tokens[0] == "toler") {
             parentObject->set("tolerance", val);
         } else if (tokens[0] == "sbase") {
@@ -464,9 +454,9 @@ namespace {
         bus->setName(temp2);
 
         // get the localBaseVoltage
-        auto bv = numeric_conversion<double>(strvec[2], -1.0);
-        if (bv > 0.0) {
-            bus->set("basevoltage", bv);
+        auto baseVoltage = numeric_conversion<double>(strvec[2], -1.0);
+        if (baseVoltage > 0.0) {
+            bus->set("basevoltage", baseVoltage);
         }
 
         auto type = numeric_conversion<int>(strvec[3], 1);
@@ -490,17 +480,17 @@ namespace {
         // skip the load flow area and loss zone for now
         // skip the owner information
         // get the voltage and angle specifications
-        auto vm = numeric_conversion<double>(strvec[4], 0.0);
-        if (vm != 0) {
-            bus->set("vtarget", vm);
+        auto voltageMagnitude = numeric_conversion<double>(strvec[4], 0.0);
+        if (voltageMagnitude != 0) {
+            bus->set("vtarget", voltageMagnitude);
         }
-        vm = numeric_conversion<double>(strvec[5], 0.0);
-        auto va = numeric_conversion<double>(strvec[6], 0.0);
-        if (va != 0) {
-            bus->set("angle", va, deg);
+        voltageMagnitude = numeric_conversion<double>(strvec[5], 0.0);
+        auto voltageAngle = numeric_conversion<double>(strvec[6], 0.0);
+        if (voltageAngle != 0) {
+            bus->set("angle", voltageAngle, deg);
         }
-        if (vm != 0) {
-            bus->set("voltage", vm);
+        if (voltageMagnitude != 0) {
+            bus->set("voltage", voltageMagnitude);
         }
 
         // auto area = numeric_conversion<int>(strvec[7], 0);
@@ -508,13 +498,13 @@ namespace {
         if (zone != 0) {
             bus->set("zone", static_cast<double>(zone));
         }
-        vm = numeric_conversion<double>(strvec[9], 0.0);
-        va = numeric_conversion<double>(strvec[10], 0.0);
-        if (va != 0) {
-            bus->set("vmin", va);
+        voltageMagnitude = numeric_conversion<double>(strvec[9], 0.0);
+        voltageAngle = numeric_conversion<double>(strvec[10], 0.0);
+        if (voltageAngle != 0) {
+            bus->set("vmin", voltageAngle);
         }
-        if (vm != 0) {
-            bus->set("vmax", vm);
+        if (voltageMagnitude != 0) {
+            bus->set("vmax", voltageMagnitude);
         }
     }
 
@@ -542,9 +532,9 @@ namespace {
         bus->setName(temp2);
 
         // get the localBaseVoltage
-        auto bv = numeric_conversion<double>(strvec[2], -1.0);
-        if (bv > 0.0) {
-            bus->set("basevoltage", bv);
+        auto baseVoltage = numeric_conversion<double>(strvec[2], -1.0);
+        if (baseVoltage > 0.0) {
+            bus->set("basevoltage", baseVoltage);
         }
         auto type = numeric_conversion<int>(strvec[3], 1);
         switch (type) {
@@ -567,9 +557,9 @@ namespace {
         // skip the load flow area and loss zone for now
         // skip the owner information
         // get the voltage and angle specifications
-        auto vm = numeric_conversion<double>(strvec[7], 0.0);
-        if (vm != 0) {
-            bus->set("voltage", vm);
+        auto voltageMagnitude = numeric_conversion<double>(strvec[7], 0.0);
+        if (voltageMagnitude != 0) {
+            bus->set("voltage", voltageMagnitude);
         }
 
         // auto area = numeric_conversion<int>(strvec[7], 0);
@@ -599,39 +589,39 @@ namespace {
             load->setDescription(std::string{longId});
         }
         // get the status
-        int status = toIntSimple(strvec[5]);
+        const int status = toIntSimple(strvec[5]);
         if (status == 0) {
             load->disable();
         }
         // skip the area and zone information for now
 
         // get the constant power part of the load
-        auto p = numeric_conversion<double>(strvec[6], 0.0);
-        auto q = numeric_conversion<double>(strvec[7], 0.0);
-        if (p != 0.0) {
-            load->set("p", p, MW);
+        auto activePower = numeric_conversion<double>(strvec[6], 0.0);
+        auto reactivePower = numeric_conversion<double>(strvec[7], 0.0);
+        if (activePower != 0.0) {
+            load->set("p", activePower, MW);
         }
-        if (q != 0.0) {
-            load->set("q", q, MVAR);
+        if (reactivePower != 0.0) {
+            load->set("q", reactivePower, MVAR);
         }
         // get the constant current part of the load
-        p = numeric_conversion<double>(strvec[8], 0.0);
-        q = numeric_conversion<double>(strvec[9], 0.0);
-        if (p != 0.0) {
-            load->set("ip", p, MW);
+        activePower = numeric_conversion<double>(strvec[8], 0.0);
+        reactivePower = numeric_conversion<double>(strvec[9], 0.0);
+        if (activePower != 0.0) {
+            load->set("ip", activePower, MW);
         }
-        if (q != 0.0) {
-            load->set("iq", q, MVAR);
+        if (reactivePower != 0.0) {
+            load->set("iq", reactivePower, MVAR);
         }
         // get the impedance part of the load
         // note:: in PU power units, need to convert to Pu resistance
-        p = numeric_conversion<double>(strvec[10], 0.0);
-        q = numeric_conversion<double>(strvec[11], 0.0);
-        if (p != 0.0) {
-            load->set("r", p, MW);
+        activePower = numeric_conversion<double>(strvec[10], 0.0);
+        reactivePower = numeric_conversion<double>(strvec[11], 0.0);
+        if (activePower != 0.0) {
+            load->set("r", activePower, MW);
         }
-        if (q != 0.0) {
-            load->set("x", q, MVAR);
+        if (reactivePower != 0.0) {
+            load->set("x", reactivePower, MVAR);
         }
         // ignore the owner field
     }
@@ -660,20 +650,20 @@ namespace {
         load->setName(prefix);
 
         // get the status
-        int status = toIntSimple(strvec[10]);
+        const int status = toIntSimple(strvec[10]);
         if (status == 0) {
             load->disable();
         }
         // skip the area and zone information for now
 
         // get the constant power part of the load
-        auto p = numeric_conversion<double>(strvec[13], 0.0);
-        auto q = numeric_conversion<double>(strvec[14], 0.0);
-        if (p != 0.0) {
-            load->set("yp", p, puMW);
+        auto activePower = numeric_conversion<double>(strvec[13], 0.0);
+        auto reactivePower = numeric_conversion<double>(strvec[14], 0.0);
+        if (activePower != 0.0) {
+            load->set("yp", activePower, puMW);
         }
-        if (q != 0.0) {
-            load->set("yq", -q, puMW);
+        if (reactivePower != 0.0) {
+            load->set("yq", -reactivePower, puMW);
         }
     }
 
@@ -683,9 +673,9 @@ namespace {
     void epcReadSwitchShunt(loads::Svd* load, string_view line, double /*base*/)
     {
         auto strvec = splitlineBracket(line, " ", default_bracket_chars, delimiter_compression::on);
-        auto sz = strvec.size();
+        const auto vectorSize = strvec.size();
         // get the load index and name
-        std::string prefix = load->getParent()->getName() + "_svd";
+        const std::string prefix = load->getParent()->getName() + "_svd";
 
         auto longId = trim(removeQuotes(strvec[1]));
         if (!longId.empty()) {
@@ -699,7 +689,7 @@ namespace {
             ++offset;
         }
         // get the status
-        int status = toIntSimple(strvec[offset + 1]);
+        const int status = toIntSimple(strvec[offset + 1]);
         if (status == 0) {
             load->disable();
         }
@@ -713,7 +703,7 @@ namespace {
             rbus = static_cast<GridBus*>(
                 load->getRoot()->find(std::string("#") + std::to_string(cbus)));
         }
-        int mode = toIntSimple(strvec[offset + 2]);
+        const int mode = toIntSimple(strvec[offset + 2]);
         double high;
         double low;
         int bsize = 6;
@@ -752,8 +742,8 @@ namespace {
             case 4:
                 load->set("mode", "stepped");
                 load->set("control", "reactive");
-                high = numeric_conversion<double>(strvec[sz - 5], 0.0);
-                low = numeric_conversion<double>(strvec[sz - 6], 0.0);
+                high = numeric_conversion<double>(strvec[vectorSize - 5], 0.0);
+                low = numeric_conversion<double>(strvec[vectorSize - 6], 0.0);
                 load->set("qmax", high);
                 load->set("qmin", low);
                 if (rbus != nullptr) {
@@ -762,14 +752,6 @@ namespace {
                 // TODO(phlpt): Handle the unusual PT load target object condition.
                 break;
             case 5:
-                load->set("mode", "stepped");
-                load->set("control", "reactive");
-                //    ld->set("qmax", high);
-                //    ld->set("qmin", low);
-                if (rbus != nullptr) {
-                    load->setControlBus(rbus);
-                }
-                break;
             case 6:
                 load->set("mode", "stepped");
                 load->set("control", "reactive");
@@ -786,7 +768,7 @@ namespace {
         }
         // load the switched shunt blocks
 
-        for (size_t kk = offset + 26; kk < sz - bsize; kk += 2) {
+        for (size_t kk = offset + 26; kk < vectorSize - bsize; kk += 2) {
             auto cnt = numeric_conversion<int>(strvec[kk], 0);
             auto block = numeric_conversion<double>(strvec[kk + 1], 0.0);
             if ((cnt > 0) && (block != 0.0)) {
@@ -827,47 +809,47 @@ namespace {
         }
 
         // get the status
-        int status = toIntSimple(strvec[5]);
+        const int status = toIntSimple(strvec[5]);
         if (status == 0) {
             gen->disable();
         }
 
         // get the power generation
-        auto p = numeric_conversion<double>(strvec[13], 0.0);
-        auto q = numeric_conversion<double>(strvec[16], 0.0);
-        if (p != 0.0) {
-            gen->set("p", p, MW);
+        auto activePower = numeric_conversion<double>(strvec[13], 0.0);
+        auto reactivePower = numeric_conversion<double>(strvec[16], 0.0);
+        if (activePower != 0.0) {
+            gen->set("p", activePower, MW);
         }
-        if (q != 0.0) {
-            gen->set("q", q, MVAR);
+        if (reactivePower != 0.0) {
+            gen->set("q", reactivePower, MVAR);
         }
         // get the Pmax and Pmin
-        p = numeric_conversion<double>(strvec[14], 0.0);
-        q = numeric_conversion<double>(strvec[15], 0.0);
-        if (p != 0.0) {
-            gen->set("pmax", p, MW);
+        activePower = numeric_conversion<double>(strvec[14], 0.0);
+        reactivePower = numeric_conversion<double>(strvec[15], 0.0);
+        if (activePower != 0.0) {
+            gen->set("pmax", activePower, MW);
         }
-        if (q != 0.0) {
-            gen->set("pmin", q, MW);
+        if (reactivePower != 0.0) {
+            gen->set("pmin", reactivePower, MW);
         }
         // get the Qmax and Qmin
-        p = numeric_conversion<double>(strvec[17], 0.0);
-        q = numeric_conversion<double>(strvec[18], 0.0);
-        if (p != 0.0) {
-            gen->set("qmax", p, MVAR);
+        activePower = numeric_conversion<double>(strvec[17], 0.0);
+        reactivePower = numeric_conversion<double>(strvec[18], 0.0);
+        if (activePower != 0.0) {
+            gen->set("qmax", activePower, MVAR);
         }
-        if (q != 0.0) {
-            gen->set("qmin", q, MVAR);
+        if (reactivePower != 0.0) {
+            gen->set("qmin", reactivePower, MVAR);
         }
         // get the machine base
-        auto mb = numeric_conversion<double>(strvec[19], 0.0);
-        gen->set("mbase", mb);
+        auto machineBase = numeric_conversion<double>(strvec[19], 0.0);
+        gen->set("mbase", machineBase);
 
-        mb = numeric_conversion<double>(strvec[22], 0.0);
-        gen->set("rs", mb);
+        machineBase = numeric_conversion<double>(strvec[22], 0.0);
+        gen->set("rs", machineBase);
 
-        mb = numeric_conversion<double>(strvec[23], 0.0);
-        gen->set("xs", mb);
+        machineBase = numeric_conversion<double>(strvec[23], 0.0);
+        gen->set("xs", machineBase);
 
         auto rbus = numeric_conversion<int>(strvec[6], 0);
 
@@ -930,7 +912,7 @@ namespace {
 
         // check the circuit identifier
         auto name = generateLineName(strvec, bri.prefix);
-        auto lnk = new AcLine(name);
+        auto* lnk = new AcLine(name);
         auto longId = trim(removeQuotes(strvec[8]));
         if (!longId.empty()) {
             lnk->setDescription(std::string{longId});
@@ -943,16 +925,16 @@ namespace {
 
         addToParentWithRename(lnk, parentObject);
         // get the branch parameters
-        int status = toIntSimple(strvec[9]);
+        const int status = toIntSimple(strvec[9]);
         if (status == 0) {
             lnk->disable();
         }
 
-        auto r = numeric_conversion<double>(strvec[10], 0.0);
-        auto x = numeric_conversion<double>(strvec[11], 0.0);
+        auto resistance = numeric_conversion<double>(strvec[10], 0.0);
+        auto reactance = numeric_conversion<double>(strvec[11], 0.0);
 
-        lnk->set("r", r);
-        lnk->set("x", x);
+        lnk->set("r", resistance);
+        lnk->set("x", reactance);
 
         // skip the load flow area and loss zone and circuit for now
 
@@ -1009,7 +991,7 @@ namespace {
 
         // check the circuit identifier
         auto name = generateLineName(strvec, bri.prefix);
-        auto lnk = new links::DcLink(name);
+        auto* lnk = new links::DcLink(name);
         auto longId = trim(removeQuotes(strvec[7]));
         if (!longId.empty()) {
             lnk->setDescription(std::string{longId});
@@ -1022,16 +1004,16 @@ namespace {
 
         addToParentWithRename(lnk, parentObject);
         // get the branch parameters
-        int status = toIntSimple(strvec[8]);
+        const int status = toIntSimple(strvec[8]);
         if (status == 0) {
             lnk->disable();
         }
 
-        auto r = numeric_conversion<double>(strvec[11], 0.0);
-        auto x = numeric_conversion<double>(strvec[12], 0.0);
+        auto resistance = numeric_conversion<double>(strvec[11], 0.0);
+        auto reactance = numeric_conversion<double>(strvec[12], 0.0);
 
-        lnk->set("r", r);
-        lnk->set("x", x);
+        lnk->set("r", resistance);
+        lnk->set("x", reactance);
 
         // skip the load flow area and loss zone and circuit for now
 
@@ -1138,11 +1120,11 @@ namespace {
         double tbase = base;
         tbase = numeric_conversion<double>(strvec[22], 0.0);
         // primary and secondary winding resistance
-        auto r = numeric_conversion<double>(strvec[23], 0.0);
-        auto x = numeric_conversion<double>(strvec[24], 0.0);
+        auto resistance = numeric_conversion<double>(strvec[23], 0.0);
+        auto reactance = numeric_conversion<double>(strvec[24], 0.0);
 
-        lnk->set("r", r * tbase / base);
-        lnk->set("x", x * tbase / base);
+        lnk->set("r", resistance * tbase / base);
+        lnk->set("x", reactance * tbase / base);
 
         // skip the load flow area and loss zone and circuit for now
 
@@ -1177,37 +1159,35 @@ namespace {
             if (cbus != 0) {
                 static_cast<links::AdjustableTransformer*>(lnk)->setControlBus(busList[cbus - 1]);
             }
-            r = numeric_conversion<double>(strvec[40], 0.0);
-            x = numeric_conversion<double>(strvec[41], 0.0);
+            resistance = numeric_conversion<double>(strvec[40], 0.0);
+            reactance = numeric_conversion<double>(strvec[41], 0.0);
             if (code == 4) {
-                lnk->set("maxtapangle", r, deg);
-                lnk->set("mintapangle", x, deg);
+                lnk->set("maxtapangle", resistance, deg);
+                lnk->set("mintapangle", reactance, deg);
             } else {
-                lnk->set("maxtap", r);
-                lnk->set("mintap", x);
+                lnk->set("maxtap", resistance);
+                lnk->set("mintap", reactance);
             }
-            r = numeric_conversion<double>(strvec[42], 0.0);
-            x = numeric_conversion<double>(strvec[43], 0.0);
+            resistance = numeric_conversion<double>(strvec[42], 0.0);
+            reactance = numeric_conversion<double>(strvec[43], 0.0);
             if (code == 4) {
-                lnk->set("pmax", r, MW);
-                lnk->set("pmin", x, MW);
+                lnk->set("pmax", resistance, MW);
+                lnk->set("pmin", reactance, MW);
             } else if (code == 3) {
-                lnk->set("qmax", r, MVAR);
-                lnk->set("qmin", x, MVAR);
+                lnk->set("qmax", resistance, MVAR);
+                lnk->set("qmin", reactance, MVAR);
             } else {
-                lnk->set("vmax", r);
-                lnk->set("vmin", x);
+                lnk->set("vmax", resistance);
+                lnk->set("vmin", reactance);
             }
-            r = numeric_conversion<double>(strvec[44], 0.0);
+            resistance = numeric_conversion<double>(strvec[44], 0.0);
             if (code == 4) {
-                lnk->set("stepsize", r, deg);
+                lnk->set("stepsize", resistance, deg);
             } else {
-                lnk->set("stepsize", r);
+                lnk->set("stepsize", resistance);
             }
         }
     }
 
 }  // namespace
-
-// NOLINTEND(misc-use-internal-linkage,readability-identifier-length,misc-const-correctness,modernize-use-integer-sign-comparison,bugprone-implicit-widening-of-multiplication-result,readability-isolate-declaration,modernize-use-starts-ends-with,bugprone-branch-clone,readability-qualified-auto)
 }  // namespace griddyn

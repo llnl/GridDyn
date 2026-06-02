@@ -368,8 +368,8 @@ void loadEpc(CoreObject* parentObject,
                 });
             } else if (tokens[1] == "converter") {
             }
-        } else if ((tokens[0] == "gcd") || (tokens[0] == "owner") ||
-                   (tokens[0] == "transaction") || (tokens[0] == "qtable")) {
+        } else if ((tokens[0] == "gcd") || (tokens[0] == "owner") || (tokens[0] == "transaction") ||
+                   (tokens[0] == "qtable")) {
             ignoreSection(line, file);
         } else if (tokens[0] == "end") {
             break;

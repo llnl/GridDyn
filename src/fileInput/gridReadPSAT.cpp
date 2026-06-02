@@ -41,7 +41,7 @@ namespace griddyn {
 // using namespace units;
 
 namespace {
-void loadPSATBusArray(CoreObject* parentObject,
+    void loadPSATBusArray(CoreObject* parentObject,
                       double basepower,
                       const mArray& buses,
                       const mArray& swingBuses,
@@ -49,53 +49,53 @@ void loadPSATBusArray(CoreObject* parentObject,
                       const mArray& pqBuses,
                       const stringVec& busnames,
                       std::vector<GridBus*>& busList);
-void loadPSATGenArray(CoreObject* parentObject,
+    void loadPSATGenArray(CoreObject* parentObject,
                       const mArray& gens,
                       const std::vector<GridBus*>& busList);
-void loadPSATLinkArray(CoreObject* parentObject,
+    void loadPSATLinkArray(CoreObject* parentObject,
                        const mArray& links,
                        const std::vector<GridBus*>& busList);
-void loadPSATLinkArrayB(CoreObject* parentObject,
+    void loadPSATLinkArrayB(CoreObject* parentObject,
                         const mArray& links,
                         const std::vector<GridBus*>& busList);
-void loadPSATShuntArray(CoreObject* parentObject,
+    void loadPSATShuntArray(CoreObject* parentObject,
                         const mArray& shunts,
                         const std::vector<GridBus*>& busList);
-void loadPSATLTCArray(CoreObject* parentObject,
+    void loadPSATLTCArray(CoreObject* parentObject,
                       const mArray& ltcData,
                       const std::vector<GridBus*>& busList);
-void loadPSATPHSArray(CoreObject* parentObject,
+    void loadPSATPHSArray(CoreObject* parentObject,
                       const mArray& phsData,
                       const std::vector<GridBus*>& busList);
-void loadPSATSynArray(CoreObject* parentObject,
+    void loadPSATSynArray(CoreObject* parentObject,
                       const mArray& synData,
                       const std::vector<GridBus*>& busList);
-void loadPSATExcArray(CoreObject* parentObject,
+    void loadPSATExcArray(CoreObject* parentObject,
                       const mArray& excData,
                       const std::vector<GridBus*>& busList);
-void loadPSATTgArray(CoreObject* parentObject,
+    void loadPSATTgArray(CoreObject* parentObject,
                      const mArray& tgData,
                      const std::vector<GridBus*>& busList);
-void loadPsatFaultArray(CoreObject* parentObject,
+    void loadPsatFaultArray(CoreObject* parentObject,
                         const mArray& faultData,
                         const std::vector<GridBus*>& busList);
-void loadPsatBreakerArray(CoreObject* parentObject,
+    void loadPsatBreakerArray(CoreObject* parentObject,
                           const mArray& breakerData,
                           const std::vector<GridBus*>& busList);
-void loadPsatSupplyArray(CoreObject* parentObject,
+    void loadPsatSupplyArray(CoreObject* parentObject,
                          const mArray& genCost,
                          const std::vector<GridBus*>& busList);
-void loadPsatMotorArray(CoreObject* parentObject,
+    void loadPsatMotorArray(CoreObject* parentObject,
                         const mArray& motorData,
                         const std::vector<GridBus*>& busList);
-/** load a PSAT PMU data*/
-void loadPsatPmuArray(CoreObject* parentObject,
+    /** load a PSAT PMU data*/
+    void loadPsatPmuArray(CoreObject* parentObject,
                       const mArray& pmuData,
                       const std::vector<GridBus*>& busList);
-void loadOtherObjectData(CoreObject* parentObject,
+    void loadOtherObjectData(CoreObject* parentObject,
                          const std::string& filetext,
                          const std::vector<GridBus*>& busList);
-const std::vector<
+    const std::vector<
     std::pair<std::string, void (*)(CoreObject*, const mArray&, const std::vector<GridBus*>&)>>
     ARRAY_IDENTIFIERS{
         {"Shunt.con", loadPSATShuntArray},
@@ -205,10 +205,10 @@ void loadPSAT(CoreObject* parentObject,
 
 namespace {
 
-void loadOtherObjectData(CoreObject* parentObject,
+    void loadOtherObjectData(CoreObject* parentObject,
                          const std::string& filetext,
                          const std::vector<GridBus*>& busList)
-{
+    {
     mArray objectArrayData;
     for (const auto& namepair : ARRAY_IDENTIFIERS) {
         auto arrayStart = filetext.find(namepair.first);
@@ -218,9 +218,9 @@ void loadOtherObjectData(CoreObject* parentObject,
             namepair.second(parentObject, objectArrayData, busList);
         }
     }
-}
+    }
 
-void loadPSATBusArray(CoreObject* parentObject,
+    void loadPSATBusArray(CoreObject* parentObject,
                       double basepower,
                       const mArray& buses,
                       const mArray& swingBuses,
@@ -228,7 +228,7 @@ void loadPSATBusArray(CoreObject* parentObject,
                       const mArray& pqBuses,
                       const stringVec& busnames,
                       std::vector<GridBus*>& busList)
-{
+    {
     for (size_t busIndex = 0; busIndex < buses.size(); ++busIndex) {
         auto ind1 = static_cast<index_t>(buses[busIndex][0]);
         if (std::cmp_greater_equal(ind1, busList.size())) {
@@ -309,12 +309,12 @@ void loadPSATBusArray(CoreObject* parentObject,
             bus->set("vmin", pqInfo[6]);
         }
     }
-}
+    }
 
-void loadPSATGenArray(CoreObject* /*parentObject*/,
+    void loadPSATGenArray(CoreObject* /*parentObject*/,
                       const mArray& gens,
                       const std::vector<GridBus*>& busList)
-{
+    {
     using units::MVAR;
     using units::MW;
 
@@ -346,7 +346,7 @@ void loadPSATGenArray(CoreObject* /*parentObject*/,
             gen->set("pmin", genInfo[9], MW);
         }
     }
-}
+    }
 
 /*
 Column Variable Description Unit
@@ -366,10 +366,10 @@ Column Variable Description Unit
 14 kTB Tie breaking cost $ / MWh
 */
 #ifdef ENABLE_OPTIMIZATION_LIBRARY
-void loadPsatSupplyArray(CoreObject* parentObject,
+    void loadPsatSupplyArray(CoreObject* parentObject,
                          const mArray& genCost,
                          const std::vector<GridBus*>& busList)
-{
+    {
     auto gdo = dynamic_cast<gridDynOptimization*>(parentObject->getRoot());
     if (gdo == nullptr) {
         return;
@@ -416,32 +416,32 @@ void loadPsatSupplyArray(CoreObject* parentObject,
             go->set("penalty", genLine[13], currency / MW / hr);
         }
     }
-}
+    }
 #endif  // ENABLE_OPTIMIZATION_LIBRARY
 
-/* Branch data
-Column Variable Description Unit
-1 k From Bus int
-2 m To Bus int
-3 Sn Power rating MVA
-4 Vn Voltage rating kV
-5 fn Frequency rating Hz
-6 - not used -
-7 kT Primary and secondary voltage ratio kV/kV
-8 r Resistance pu
-9 x Reactance pu
-10 - not used -
-y 11 a Fixed tap ratio pu/pu
-y 12  Fixed phase shift deg
-y 13 Imax Current limit pu
-y 14 Pmax Active power limit pu
-y 15 Smax Apparent power limit pu
-*/
+    /* Branch data
+    Column Variable Description Unit
+    1 k From Bus int
+    2 m To Bus int
+    3 Sn Power rating MVA
+    4 Vn Voltage rating kV
+    5 fn Frequency rating Hz
+    6 - not used -
+    7 kT Primary and secondary voltage ratio kV/kV
+    8 r Resistance pu
+    9 x Reactance pu
+    10 - not used -
+    y 11 a Fixed tap ratio pu/pu
+    y 12  Fixed phase shift deg
+    y 13 Imax Current limit pu
+    y 14 Pmax Active power limit pu
+    y 15 Smax Apparent power limit pu
+    */
 
-void loadPSATLinkArray(CoreObject* parentObject,
+    void loadPSATLinkArray(CoreObject* parentObject,
                        const mArray& links,
                        const std::vector<GridBus*>& busList)
-{
+    {
     for (const auto& lnkInfo : links) {
         auto ind1 = static_cast<index_t>(lnkInfo[0]);
         auto* bus1 = busList[ind1];
@@ -487,12 +487,12 @@ void loadPSATLinkArray(CoreObject* parentObject,
             }
         }
     }
-}
+    }
 
-void loadPSATLinkArrayB(CoreObject* parentObject,
+    void loadPSATLinkArrayB(CoreObject* parentObject,
                         const mArray& links,
                         const std::vector<GridBus*>& busList)
-{
+    {
     for (const auto& lnkInfo : links) {
         auto ind1 = static_cast<index_t>(lnkInfo[0]);
         auto* bus1 = busList[ind1];
@@ -530,12 +530,12 @@ void loadPSATLinkArrayB(CoreObject* parentObject,
             }
         }
     }
-}
+    }
 
-void loadPSATShuntArray(CoreObject* /*parentObject*/,
+    void loadPSATShuntArray(CoreObject* /*parentObject*/,
                         const mArray& shunts,
                         const std::vector<GridBus*>& busList)
-{
+    {
     for (const auto& shuntInfo : shunts) {
         auto ind1 = static_cast<size_t>(shuntInfo[0]);
         auto* bus1 = busList[ind1];
@@ -560,35 +560,35 @@ void loadPSATShuntArray(CoreObject* /*parentObject*/,
             }
         }
     }
-}
-/*
-Column Variable Description Unit
-1 k Bus number(from) int
-2 m Bus number(to) int
-3 Sn Power rating MVA
-4 Vn Voltage rating kV
-5 fn Frequency rating Hz
-6 kT Nominal tap ratio kV / kV
-7 H Integral deviation pu
-8 K Inverse time constant 1 / s
-9 mmax Max tap ratio pu / pu
-10 mmin Min tap ratio pu / pu
-11 m Tap ratio step pu / pu
-12 Vref(Qref) Reference voltage(power) pu
-13 xT Transformer reactance pu
-14 rT Transformer resistance pu
-15 r Remote control bus number int
-16 - Control
-1 Secondary voltage Vm
-2 Reactive power Qm
-3 Remote voltage Vr
-int
-17 u Connection status{ 0, 1 }
-*/
-void loadPSATLTCArray(CoreObject* parentObject,
+    }
+    /*
+    Column Variable Description Unit
+    1 k Bus number(from) int
+    2 m Bus number(to) int
+    3 Sn Power rating MVA
+    4 Vn Voltage rating kV
+    5 fn Frequency rating Hz
+    6 kT Nominal tap ratio kV / kV
+    7 H Integral deviation pu
+    8 K Inverse time constant 1 / s
+    9 mmax Max tap ratio pu / pu
+    10 mmin Min tap ratio pu / pu
+    11 m Tap ratio step pu / pu
+    12 Vref(Qref) Reference voltage(power) pu
+    13 xT Transformer reactance pu
+    14 rT Transformer resistance pu
+    15 r Remote control bus number int
+    16 - Control
+    1 Secondary voltage Vm
+    2 Reactive power Qm
+    3 Remote voltage Vr
+    int
+    17 u Connection status{ 0, 1 }
+    */
+    void loadPSATLTCArray(CoreObject* parentObject,
                       const mArray& ltcData,
                       const std::vector<GridBus*>& busList)
-{
+    {
     for (const auto& ltcInfo : ltcData) {
         auto ind1 = static_cast<index_t>(ltcInfo[0]);
         GridBus* bus1 = busList[ind1];
@@ -635,29 +635,29 @@ void loadPSATLTCArray(CoreObject* parentObject,
             }
         }
     }
-}
-/*
-1 k Bus number(from) int
-2 m Bus number(to) int
-3 Sn Power rating MVA
-4 Vn1 Primary voltage rating kV
-5 Vn2 Secondary voltage rating kV
-6 fn Frequency rating Hz
-7 Tm Measurement time constant s
-8 Kp Proportional gain -
-9 Ki Integral gain -
-10 Pref Reference power pu
-11 rT Transformer resistance pu
-12 xT Transformer reactance pu
-13 ÃƒÅ½Ã‚Â±max Maximum phase angle rad
-14 ÃƒÅ½Ã‚Â±min Minimum phase angle rad
-15 m Transformer fixed tap ratio pu / pu
-16 u Connection status{ 0, 1 }
-*/
-void loadPSATPHSArray(CoreObject* parentObject,
+    }
+    /*
+    1 k Bus number(from) int
+    2 m Bus number(to) int
+    3 Sn Power rating MVA
+    4 Vn1 Primary voltage rating kV
+    5 Vn2 Secondary voltage rating kV
+    6 fn Frequency rating Hz
+    7 Tm Measurement time constant s
+    8 Kp Proportional gain -
+    9 Ki Integral gain -
+    10 Pref Reference power pu
+    11 rT Transformer resistance pu
+    12 xT Transformer reactance pu
+    13 ÃƒÅ½Ã‚Â±max Maximum phase angle rad
+    14 ÃƒÅ½Ã‚Â±min Minimum phase angle rad
+    15 m Transformer fixed tap ratio pu / pu
+    16 u Connection status{ 0, 1 }
+    */
+    void loadPSATPHSArray(CoreObject* parentObject,
                       const mArray& phs,
                       const std::vector<GridBus*>& busList)
-{
+    {
     for (auto& phsInfo : phs) {
         auto ind1 = static_cast<index_t>(phsInfo[0]);
         auto bus1 = busList[ind1];
@@ -683,49 +683,49 @@ void loadPSATPHSArray(CoreObject* parentObject,
             lnk->disable();
         }
     }
-}
-/*
-1 - Bus number int all
-2 Sn Power rating MVA all
-3 Vn Voltage rating kV all
-4 fn Frequency rating Hz all
-5 - Machine model - all
-6 xl Leakage reactance pu all
-7 ra Armature resistance pu all
-8 xd d-axis synchronous reactance pu III, IV, V.1, V.2, V.3, VI, VIII
-9 xÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
-d d-axis transient reactance pu II, III, IV, V.1, V.2, V.3, VI, VIII
-10 xÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
-d d-axis subtransient reactance pu V.2, VI, VIII
-11 TÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
-d0 d-axis open circuit transient time constant s III, IV, V.1, V.2, V.3, VI, VIII
-12 TÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
-d0 d-axis open circuit subtransient time constant s V.2, VI, VIII
-13 xq q-axis synchronous reactance pu III, IV, V.1, V.2, V.3, VI, VIII
-14 xÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
-q q-axis transient reactance pu IV, V.1, VI, VIII
-15 xÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
-q q-axis subtransient reactance pu V.2, VI, VIII
-16 TÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
-q0 q-axis open circuit transient time constant s IV, V.1, VI, VIII
-17 TÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
-q0 q-axis open circuit subtransient time constant s V.1, V.2, VI, VIII
-18 M = 2H Mechanical starting time (2 ÃƒÆ’Ã¢â‚¬â€ inertia constant) kWs/kVA all
-19 D Damping coefficient ÃƒÂ¢Ã‹â€ Ã¢â‚¬â„¢ all
-ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  20 KÃƒÂÃ¢â‚¬Â° Speed feedback gain gain III, IV, V.1,
-V.2, VI ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  21 KP Active power feedback gain gain III, IV, V.1, V.2, VI ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â 
-22 ÃƒÅ½Ã‚Â³P Active power ratio at node [0,1] all ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  23 ÃƒÅ½Ã‚Â³Q Reactive power ratio
-at node [0,1] all ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  24 TAA d-axis additional leakage time constant s V.2, VI, VIII
-ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  25 S(1.0) First saturation factor - III, IV, V.1, V.2, VI, VIII
-ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  26 S(1.2) Second saturation factor - III, IV, V.1, V.2, VI, VIII
-ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  27 nCOI Center of inertia number int all
-ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  28 u Connection status {0, 1} all
-*/
+    }
+    /*
+    1 - Bus number int all
+    2 Sn Power rating MVA all
+    3 Vn Voltage rating kV all
+    4 fn Frequency rating Hz all
+    5 - Machine model - all
+    6 xl Leakage reactance pu all
+    7 ra Armature resistance pu all
+    8 xd d-axis synchronous reactance pu III, IV, V.1, V.2, V.3, VI, VIII
+    9 xÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
+    d d-axis transient reactance pu II, III, IV, V.1, V.2, V.3, VI, VIII
+    10 xÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
+    d d-axis subtransient reactance pu V.2, VI, VIII
+    11 TÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
+    d0 d-axis open circuit transient time constant s III, IV, V.1, V.2, V.3, VI, VIII
+    12 TÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
+    d0 d-axis open circuit subtransient time constant s V.2, VI, VIII
+    13 xq q-axis synchronous reactance pu III, IV, V.1, V.2, V.3, VI, VIII
+    14 xÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
+    q q-axis transient reactance pu IV, V.1, VI, VIII
+    15 xÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
+    q q-axis subtransient reactance pu V.2, VI, VIII
+    16 TÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
+    q0 q-axis open circuit transient time constant s IV, V.1, VI, VIII
+    17 TÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â²
+    q0 q-axis open circuit subtransient time constant s V.1, V.2, VI, VIII
+    18 M = 2H Mechanical starting time (2 ÃƒÆ’Ã¢â‚¬â€ inertia constant) kWs/kVA all
+    19 D Damping coefficient ÃƒÂ¢Ã‹â€ Ã¢â‚¬â„¢ all
+    ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  20 KÃƒÂÃ¢â‚¬Â° Speed feedback gain gain III, IV,
+    V.1, V.2, VI ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  21 KP Active power feedback gain gain III, IV, V.1, V.2, VI
+    ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  22 ÃƒÅ½Ã‚Â³P Active power ratio at node [0,1] all ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  23 ÃƒÅ½Ã‚Â³Q
+    Reactive power ratio at node [0,1] all ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  24 TAA d-axis additional leakage time
+    constant s V.2, VI, VIII ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  25 S(1.0) First saturation factor - III, IV, V.1, V.2,
+    VI, VIII ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  26 S(1.2) Second saturation factor - III, IV, V.1, V.2, VI, VIII
+    ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  27 nCOI Center of inertia number int all
+    ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  28 u Connection status {0, 1} all
+    */
 
-void loadPSATSynArray(CoreObject* /*parentObject*/,
+    void loadPSATSynArray(CoreObject* /*parentObject*/,
                       const mArray& syn,
                       const std::vector<GridBus*>& busList)
-{
+    {
     using genmodels::GenModel3;
     using genmodels::GenModel4;
     using genmodels::GenModel5;
@@ -810,28 +810,28 @@ void loadPSATSynArray(CoreObject* /*parentObject*/,
             gm->set("xqpp", genData[14] - xl);
         }
     }
-}
+    }
 
-/*
-Table 16.1: Turbine Governor Type I Data Format (Tg.con)
-Column Variable Description Unit
-1 - Generator number int
-2 1 Turbine governor type int
-3 !ref Reference speed pu
-4 R Droop pu/pu
-5 Tmax Maximum turbine output pu
-6 Tmin Minimum turbine output pu
-7 Ts Governor time constant s
-8 Tc Servo time constant s
-9 T3 Transient gain time constant s
-10 T4 Power fraction time constant s
-11 T5 PSfrag replacements Reheat time constant s
-*/
+    /*
+    Table 16.1: Turbine Governor Type I Data Format (Tg.con)
+    Column Variable Description Unit
+    1 - Generator number int
+    2 1 Turbine governor type int
+    3 !ref Reference speed pu
+    4 R Droop pu/pu
+    5 Tmax Maximum turbine output pu
+    6 Tmin Minimum turbine output pu
+    7 Ts Governor time constant s
+    8 Tc Servo time constant s
+    9 T3 Transient gain time constant s
+    10 T4 Power fraction time constant s
+    11 T5 PSfrag replacements Reheat time constant s
+    */
 
-void loadPSATTgArray(CoreObject* parentObject,
+    void loadPSATTgArray(CoreObject* parentObject,
                      const mArray& tgData,
                      const std::vector<GridBus*>& /*busList*/)
-{
+    {
     Governor* gm = nullptr;
     // GridBus *bus1;
     index_t ind1;
@@ -867,12 +867,12 @@ void loadPSATTgArray(CoreObject* parentObject,
         gm->set("t3", govData[8]);
         gm->set("t4", govData[9]);
     }
-}
+    }
 
-void loadPSATExcArray(CoreObject* parentObject,
+    void loadPSATExcArray(CoreObject* parentObject,
                       const mArray& excData,
                       const std::vector<GridBus*>& /*busList*/)
-{
+    {
     Generator* gen;
     Exciter* gm = nullptr;
     index_t ind1;
@@ -905,12 +905,12 @@ void loadPSATExcArray(CoreObject* parentObject,
         gm->set("t3", eData[8]);
         gm->set("t4", eData[9]);
     }
-}
+    }
 
-void loadPsatFaultArray(CoreObject* parentObject,
+    void loadPsatFaultArray(CoreObject* parentObject,
                         const mArray& fault,
                         const std::vector<GridBus*>& busList)
-{
+    {
     auto gds = dynamic_cast<GridSimulation*>(parentObject->getRoot());
     if (gds == nullptr) {  // can't make faults if we don't have access to the simulation
         return;
@@ -945,12 +945,12 @@ void loadPsatFaultArray(CoreObject* parentObject,
             gds->add(std::move(evnt2));
         }
     }
-}
+    }
 
-void loadPsatPmuArray(CoreObject* parentObject,
+    void loadPsatPmuArray(CoreObject* parentObject,
                       const mArray& pmuData,
                       const std::vector<GridBus*>& busList)
-{
+    {
     auto* gds = dynamic_cast<GridSimulation*>(parentObject->getRoot());
     if (gds == nullptr) {  // can't add the sensors if there is no simulation
         return;
@@ -971,12 +971,12 @@ void loadPsatPmuArray(CoreObject* parentObject,
         }
         gds->add(pmu);
     }
-}
+    }
 
-void loadPsatBreakerArray(CoreObject* parentObject,
+    void loadPsatBreakerArray(CoreObject* parentObject,
                           const mArray& breakerData,
                           const std::vector<GridBus*>& /*busList*/)
-{
+    {
     auto* gds = dynamic_cast<GridSimulation*>(parentObject->getRoot());
     if (gds == nullptr) {  // can't make faults if we don't have access to the simulation
         return;
@@ -998,12 +998,12 @@ void loadPsatBreakerArray(CoreObject* parentObject,
         gds->add(std::move(evnt1));
         gds->add(std::move(evnt2));
     }
-}
+    }
 
-void loadPsatMotorArray(CoreObject* /*parentObject*/,
+    void loadPsatMotorArray(CoreObject* /*parentObject*/,
                         const mArray& motorData,
                         const std::vector<GridBus*>& busList)
-{
+    {
     for (auto& mtrline : motorData) {
         auto ind1 = static_cast<index_t>(mtrline[0]);
         GridBus* bus1 = busList[ind1];
@@ -1012,7 +1012,7 @@ void loadPsatMotorArray(CoreObject* /*parentObject*/,
         bus1->add(motor);
         // TODO(phlpt): Add parameters.
     }
-}
+    }
 
 }  // namespace
 }  // namespace griddyn

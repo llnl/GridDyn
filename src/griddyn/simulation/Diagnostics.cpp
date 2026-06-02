@@ -713,16 +713,15 @@ namespace {
                 }
 
                 currentFrame.objectInfo->mSubObjectInfo.resize(childComponents.size());
-                traversalStack.push_back(
-                    {currentFrame.component, currentFrame.objectInfo, true});
+                traversalStack.push_back({currentFrame.component, currentFrame.objectInfo, true});
                 for (std::ptrdiff_t childIndex =
                          static_cast<std::ptrdiff_t>(childComponents.size()) - 1;
                      childIndex >= 0;
                      --childIndex) {
-                    traversalStack.push_back({childComponents[static_cast<size_t>(childIndex)],
-                                              &currentFrame.objectInfo->mSubObjectInfo
-                                                   [static_cast<size_t>(childIndex)],
-                                              false});
+                    traversalStack.push_back(
+                        {childComponents[static_cast<size_t>(childIndex)],
+                         &currentFrame.objectInfo->mSubObjectInfo[static_cast<size_t>(childIndex)],
+                         false});
                 }
                 continue;
             }

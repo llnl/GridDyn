@@ -140,12 +140,11 @@ double ThreePhaseLoad::get(std::string_view param, unit unitType) const
             }
             case 'a': {
                 double angle = getBaseAngle();
-                double phaseAngle = phaseSelector(
-                    param[1],
-                    angle,
-                    angle + (2.0 * kPI / 3.0),
-                    angle + (4.0 * kPI / 3.0),
-                    kNullVal);
+                double phaseAngle = phaseSelector(param[1],
+                                                  angle,
+                                                  angle + (2.0 * kPI / 3.0),
+                                                  angle + (4.0 * kPI / 3.0),
+                                                  kNullVal);
                 return convert(phaseAngle, rad, unitType, systemBasePower, localBaseVoltage);
             }
             default:

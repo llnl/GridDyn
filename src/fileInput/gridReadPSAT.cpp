@@ -853,8 +853,8 @@ namespace {
         if (gds == nullptr) {  // can't add the sensors if there is no simulation
             return;
         }
-    for (index_t pmuIndex = 0; std::cmp_less(pmuIndex, pmuData.size()); ++pmuIndex) {
-        const auto& pmuLine = pmuData[pmuIndex];
+        for (index_t pmuIndex = 0; std::cmp_less(pmuIndex, pmuData.size()); ++pmuIndex) {
+            const auto& pmuLine = pmuData[pmuIndex];
             auto ind = static_cast<index_t>(pmuLine[0]);
             auto* bus = busList[ind];
 

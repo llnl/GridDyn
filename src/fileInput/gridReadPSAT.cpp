@@ -79,13 +79,10 @@ namespace {
     void loadPsatFaultArray(CoreObject* parentObject,
                         const mArray& faultData,
                         const std::vector<GridBus*>& busList);
-    void loadPsatBreakerArray(CoreObject* parentObject,
+void loadPsatBreakerArray(CoreObject* parentObject,
                           const mArray& breakerData,
                           const std::vector<GridBus*>& busList);
-    void loadPsatSupplyArray(CoreObject* parentObject,
-                         const mArray& genCost,
-                         const std::vector<GridBus*>& busList);
-    void loadPsatMotorArray(CoreObject* parentObject,
+void loadPsatMotorArray(CoreObject* parentObject,
                         const mArray& motorData,
                         const std::vector<GridBus*>& busList);
     /** load a PSAT PMU data*/
@@ -109,7 +106,6 @@ namespace {
         //{ "Tg.con",loadPSATTgArray },
         {"Fault.con", loadPsatFaultArray},
         {"Breaker.con", loadPsatBreakerArray},
-        //{ "Supply.con",loadPsatSupplyArray },
         {"Not.con", loadPsatMotorArray},
         {"Pmu.con", loadPsatPmuArray},
     };
@@ -365,61 +361,7 @@ Column Variable Description Unit
 13 u Commitment variable boolean
 14 kTB Tie breaking cost $ / MWh
 */
-#ifdef ENABLE_OPTIMIZATION_LIBRARY
-    void loadPsatSupplyArray(CoreObject* parentObject,
-                         const mArray& genCost,
-                         const std::vector<GridBus*>& busList)
-    {
-    auto gdo = dynamic_cast<gridDynOptimization*>(parentObject->getRoot());
-    if (gdo == nullptr) {
-        return;
-    }
-    for (auto& genLine : genCost) {
-        auto bus = busList[static_cast<size_t>(genLine[0])];
-        auto gen = bus->getGen();
-        if (gen != nullptr) {
-            continue;
-        }
-        auto go = new gridGenOpt(gen);
-        auto oo = gdo->makeOptimizationObjectPath(bus);
-        oo->add(go);
-
-        if (genLine[2] != 0.0) {
-            go->set("forecast", genLine[2], MW);
-        }
-        if (genLine[3] != 0.0) {
-            go->set("pmax", genLine[3], MW);
-        }
-        if (genLine[4] != 0.0) {
-            go->set("pmin", genLine[4], MW);
-        }
-
-        if (genLine[6] > 0.0) {
-            go->set("constantp", genLine[6], currency / hr);
-        }
-        if (genLine[9] > 0.0) {
-            go->set("constantq", genLine[9], currency / hr);
-        }
-        if (genLine[7] > 0.0) {
-            go->set("linearp", genLine[7], currency / MW / hr);
-        }
-        if (genLine[10] > 0.0) {
-            go->set("linearq", genLine[10], currency / MVAR / hr);
-        }
-        if (genLine[8] != 0.0) {
-            go->set("quadraticp", genLine[8], currency / (MW.pow(2)) / hr);
-        }
-        if (genLine[11] != 0.0) {
-            go->set("quadraticq", genLine[11], currency / (MVAR.pow(2)) / hr);
-        }
-        if (genLine[13] != 0.0) {
-            go->set("penalty", genLine[13], currency / MW / hr);
-        }
-    }
-    }
-#endif  // ENABLE_OPTIMIZATION_LIBRARY
-
-    /* Branch data
+/* Branch data
     Column Variable Description Unit
     1 k From Bus int
     2 m To Bus int
@@ -654,16 +596,16 @@ Column Variable Description Unit
     15 m Transformer fixed tap ratio pu / pu
     16 u Connection status{ 0, 1 }
     */
-    void loadPSATPHSArray(CoreObject* parentObject,
+void loadPSATPHSArray(CoreObject* parentObject,
                       const mArray& phs,
                       const std::vector<GridBus*>& busList)
-    {
-    for (auto& phsInfo : phs) {
+{
+    for (const auto& phsInfo : phs) {
         auto ind1 = static_cast<index_t>(phsInfo[0]);
-        auto bus1 = busList[ind1];
+        auto* bus1 = busList[ind1];
         auto ind2 = static_cast<index_t>(phsInfo[1]);
-        auto bus2 = busList[ind2];
-        auto lnk = new links::AdjustableTransformer();
+        auto* bus2 = busList[ind2];
+        auto* lnk = new links::AdjustableTransformer();
 
         lnk->updateBus(bus1, 1);
         lnk->updateBus(bus2, 2);
@@ -722,10 +664,10 @@ Column Variable Description Unit
     ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  28 u Connection status {0, 1} all
     */
 
-    void loadPSATSynArray(CoreObject* /*parentObject*/,
+void loadPSATSynArray(CoreObject* /*parentObject*/,
                       const mArray& syn,
                       const std::vector<GridBus*>& busList)
-    {
+{
     using genmodels::GenModel3;
     using genmodels::GenModel4;
     using genmodels::GenModel5;
@@ -735,10 +677,10 @@ Column Variable Description Unit
     using genmodels::GenModel8;
 
     int index = 1;
-    for (auto genData : syn) {
+    for (const auto& genData : syn) {
         auto ind1 = static_cast<size_t>(genData[0]);
-        auto bus1 = busList[ind1];
-        auto gen = bus1->getGen(0);
+        auto* bus1 = busList[ind1];
+        auto* gen = bus1->getGen(0);
         if (gen == nullptr) {
             continue;
         }
@@ -746,71 +688,73 @@ Column Variable Description Unit
         ++index;
         auto mode = genData[4];
 
-        GenModel* gm = nullptr;
+        GenModel* generatorModel = nullptr;
         if (mode < 2.1) {
             // second order classical model
-            gm = new GenModel();
+            generatorModel = new GenModel();
         } else if (mode < 3.1) {
             // 3rd order model
-            gm = new GenModel3();
+            generatorModel = new GenModel3();
         } else if (mode < 4.1) {
             // 4th order model
-            gm = new GenModel4();
+            generatorModel = new GenModel4();
         } else if (mode < 5.15) {
             // 5th order model type 1
-            gm = new GenModel5();
+            generatorModel = new GenModel5();
         } else if (mode < 5.25) {
             // 5th order model type 2
-            gm = new GenModel5type2();
+            generatorModel = new GenModel5type2();
         } else if (mode < 5.35) {
             // 5th order model type 3
-            gm = new GenModel5type3();
+            generatorModel = new GenModel5type3();
         } else if (mode < 6.05) {
             // 6th order model
-            gm = new GenModel6type2();
+            generatorModel = new GenModel6type2();
         } else if (mode < 8.05) {
             // 8th order model
-            gm = new GenModel8();
+            generatorModel = new GenModel8();
         }
-        if (gm == nullptr) {
+        if (generatorModel == nullptr) {
             std::cout << "genModel " << mode << " not implemented yet\n";
             continue;
         }
-        gm->set("rating", genData[1], units::MW);
+        generatorModel->set("rating", genData[1], units::MW);
         gen->set("basevoltage", genData[2], units::kV);
-        double xl = genData[5];
-        gm->set("xl", genData[5]);
-        gm->set("r", genData[6]);
-        gm->set("xdp", genData[8] - xl);
-        gm->set("h", genData[17] / 2.0);
-        gm->set("d", genData[18], units::puHz);  // the damping coefficient in PSAT is in puHz
+        const double leakageReactance = genData[5];
+        generatorModel->set("xl", genData[5]);
+        generatorModel->set("r", genData[6]);
+        generatorModel->set("xdp", genData[8] - leakageReactance);
+        generatorModel->set("h", genData[17] / 2.0);
+        generatorModel->set("d",
+                            genData[18],
+                            units::puHz);  // the damping coefficient in PSAT is in puHz
         if (mode > 2.1)  // deal with the voltage speed adjustment
         {
             if (genData.size() >= 21) {
-                gm->set("kw", genData[19]);
-                gm->set("kp", genData[20]);
+                generatorModel->set("kw", genData[19]);
+                generatorModel->set("kp", genData[20]);
             }
-            gm->set("xd", genData[7] - xl);
-            gm->set("tdop", genData[10]);
-            gm->set("xq", genData[12] - xl);
+            generatorModel->set("xd", genData[7] - leakageReactance);
+            generatorModel->set("tdop", genData[10]);
+            generatorModel->set("xq", genData[12] - leakageReactance);
         }
         if (mode >= 3.1) {
-            gm->set("xqp", genData[13] - xl);
-            gm->set("tqop", genData[15]);
+            generatorModel->set("xqp", genData[13] - leakageReactance);
+            generatorModel->set("tqop", genData[15]);
         }
         if (mode > 4.9) {
-            gm->set("tqopp", genData[16]);
+            generatorModel->set("tqopp", genData[16]);
         }
         if ((mode == 5.2) || (mode >= 6)) {
             if (genData.size() >= 24) {
-                gm->set("taa", genData[23]);
+                generatorModel->set("taa", genData[23]);
             }
-            gm->set("xdpp", genData[9] - xl);
-            gm->set("tdopp", genData[11]);
-            gm->set("xqpp", genData[14] - xl);
+            generatorModel->set("xdpp", genData[9] - leakageReactance);
+            generatorModel->set("tdopp", genData[11]);
+            generatorModel->set("xqpp", genData[14] - leakageReactance);
         }
     }
-    }
+}
 
     /*
     Table 16.1: Turbine Governor Type I Data Format (Tg.con)
@@ -828,56 +772,15 @@ Column Variable Description Unit
     11 T5 PSfrag replacements Reheat time constant s
     */
 
-    void loadPSATTgArray(CoreObject* parentObject,
-                     const mArray& tgData,
-                     const std::vector<GridBus*>& /*busList*/)
-    {
-    Governor* gm = nullptr;
-    // GridBus *bus1;
-    index_t ind1;
-    double mode;
-    double temp;
-    for (auto govData : tgData) {
-        temp = govData[0];
-        ind1 = static_cast<index_t>(temp);
-
-        auto gen = static_cast<Generator*>(parentObject->findByUserID("gen", ind1));
-        if (gen == nullptr) {
-            continue;
-        }
-        mode = govData[1];
-        if (mode < 1.1) {
-            // second order classical model
-            gm = new Governor();
-        } else if (mode < 2.1) {
-            // 3rd order model
-            gm = new governors::GovernorIeeeSimple();
-        }
-
-        if (gm == nullptr) {
-            std::cout << "governor " << mode << " not implemented yet\n";
-            continue;
-        }
-        gm->set("r", govData[3]);
-        gm->set("pmax", govData[4]);
-        gm->set("pmin", govData[5]);
-
-        gm->set("t1", govData[6]);
-        gm->set("t2", govData[7]);
-        gm->set("t3", govData[8]);
-        gm->set("t4", govData[9]);
-    }
-    }
-
-    void loadPSATExcArray(CoreObject* parentObject,
+void loadPSATExcArray(CoreObject* parentObject,
                       const mArray& excData,
                       const std::vector<GridBus*>& /*busList*/)
-    {
+{
     Generator* gen;
-    Exciter* gm = nullptr;
+    Exciter* exciter = nullptr;
     index_t ind1;
     double mode;
-    for (auto eData : excData) {
+    for (const auto& eData : excData) {
         ind1 = static_cast<index_t>(eData[0]);
 
         gen = static_cast<Generator*>(parentObject->findByUserID("gen", ind1));
@@ -886,49 +789,47 @@ Column Variable Description Unit
         }
 
         mode = eData[1];
-        if (mode < 1.1) {  // second order classical model
-            gm = new Exciter();
-        } else if (mode < 2.1) {  // 3rd order model
-            gm = new Exciter();
+        if (mode < 2.1) {  // second and third order models
+            exciter = new Exciter();
         }
 
-        if (gm == nullptr) {
+        if (exciter == nullptr) {
             std::cout << "exciter " << mode << " not implemented yet\n";
             continue;
         }
-        gm->set("r", eData[3]);
-        gm->set("pmax", eData[4]);
-        gm->set("pmin", eData[5]);
+        exciter->set("r", eData[3]);
+        exciter->set("pmax", eData[4]);
+        exciter->set("pmin", eData[5]);
 
-        gm->set("t1", eData[6]);
-        gm->set("t2", eData[7]);
-        gm->set("t3", eData[8]);
-        gm->set("t4", eData[9]);
+        exciter->set("t1", eData[6]);
+        exciter->set("t2", eData[7]);
+        exciter->set("t3", eData[8]);
+        exciter->set("t4", eData[9]);
     }
-    }
+}
 
-    void loadPsatFaultArray(CoreObject* parentObject,
+void loadPsatFaultArray(CoreObject* parentObject,
                         const mArray& fault,
                         const std::vector<GridBus*>& busList)
-    {
-    auto gds = dynamic_cast<GridSimulation*>(parentObject->getRoot());
+{
+    auto* gds = dynamic_cast<GridSimulation*>(parentObject->getRoot());
     if (gds == nullptr) {  // can't make faults if we don't have access to the simulation
         return;
     }
 
-    for (auto& flt : fault) {
+    for (const auto& flt : fault) {
         auto ind = static_cast<index_t>(flt[0]);
-        auto bus = busList[ind];
+        auto* bus = busList[ind];
 
-        auto ld = new ZipLoad("faultLoad");
-        bus->add(ld);
+        auto* load = new ZipLoad("faultLoad");
+        bus->add(load);
 
         if (flt[6] != 0) {
             auto evnt1 = std::make_shared<Event>(flt[4]);
             auto evnt2 = std::make_shared<Event>(flt[5]);
-            evnt1->setTarget(ld, "r");
+            evnt1->setTarget(load, "r");
             evnt1->setValue(flt[6]);
-            evnt2->setTarget(ld, "r");
+            evnt2->setTarget(load, "r");
             evnt2->setValue(0.0);
             gds->add(std::move(evnt1));
             gds->add(std::move(evnt2));
@@ -937,31 +838,31 @@ Column Variable Description Unit
         if (flt[7] != 0) {
             auto evnt1 = std::make_shared<Event>(flt[4]);
             auto evnt2 = std::make_shared<Event>(flt[5]);
-            evnt1->setTarget(ld, "x");
+            evnt1->setTarget(load, "x");
             evnt1->setValue(flt[7]);
-            evnt2->setTarget(ld, "x");
+            evnt2->setTarget(load, "x");
             evnt2->setValue(0.0);
             gds->add(std::move(evnt1));
             gds->add(std::move(evnt2));
         }
     }
-    }
+}
 
-    void loadPsatPmuArray(CoreObject* parentObject,
+void loadPsatPmuArray(CoreObject* parentObject,
                       const mArray& pmuData,
                       const std::vector<GridBus*>& busList)
-    {
+{
     auto* gds = dynamic_cast<GridSimulation*>(parentObject->getRoot());
     if (gds == nullptr) {  // can't add the sensors if there is no simulation
         return;
     }
-    index_t count = 1;
-    for (auto& pmuLine : pmuData) {
+    for (index_t pmuIndex = 0; pmuIndex < static_cast<index_t>(pmuData.size()); ++pmuIndex) {
+        const auto& pmuLine = pmuData[pmuIndex];
         auto ind = static_cast<index_t>(pmuLine[0]);
-        auto bus = busList[ind];
+        auto* bus = busList[ind];
 
-        auto pmu = new relays::Pmu();
-        pmu->setUserID(count);
+        auto* pmu = new relays::Pmu();
+        pmu->setUserID(pmuIndex + 1);
         pmu->set("samplerate", pmuLine[2]);
         pmu->set("tv", pmuLine[3]);
         pmu->set("ttheta", pmuLine[4]);
@@ -971,19 +872,19 @@ Column Variable Description Unit
         }
         gds->add(pmu);
     }
-    }
+}
 
-    void loadPsatBreakerArray(CoreObject* parentObject,
+void loadPsatBreakerArray(CoreObject* parentObject,
                           const mArray& breakerData,
                           const std::vector<GridBus*>& /*busList*/)
-    {
+{
     auto* gds = dynamic_cast<GridSimulation*>(parentObject->getRoot());
     if (gds == nullptr) {  // can't make faults if we don't have access to the simulation
         return;
     }
-    for (auto& brk : breakerData) {
+    for (const auto& brk : breakerData) {
         auto ind = static_cast<index_t>(brk[0]);
-        auto lnk = static_cast<Link*>(parentObject->findByUserID("link", ind));
+        auto* lnk = static_cast<Link*>(parentObject->findByUserID("link", ind));
         double status = 1.0;
         if (brk[5] < 0.1) {
             lnk->disable();
@@ -998,21 +899,21 @@ Column Variable Description Unit
         gds->add(std::move(evnt1));
         gds->add(std::move(evnt2));
     }
-    }
+}
 
-    void loadPsatMotorArray(CoreObject* /*parentObject*/,
+void loadPsatMotorArray(CoreObject* /*parentObject*/,
                         const mArray& motorData,
                         const std::vector<GridBus*>& busList)
-    {
-    for (auto& mtrline : motorData) {
+{
+    for (const auto& mtrline : motorData) {
         auto ind1 = static_cast<index_t>(mtrline[0]);
         GridBus* bus1 = busList[ind1];
 
-        auto motor = new loads::MotorLoad();
+        auto* motor = new loads::MotorLoad();
         bus1->add(motor);
         // TODO(phlpt): Add parameters.
     }
-    }
+}
 
 }  // namespace
 }  // namespace griddyn

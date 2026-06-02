@@ -29,39 +29,41 @@ std::pair<double, int> checkResid(GridDynSimulation* gds, CoreTime time, const S
 }
 
 std::pair<double, int> checkResid(GridDynSimulation* gds,
-                                  const std::shared_ptr<SolverInterface>& sd)
+                                  const std::shared_ptr<SolverInterface>& solverInterface)
 {
-    return checkResid(gds, gds->getSimulationTime(), sd);
+    return checkResid(gds, gds->getSimulationTime(), solverInterface);
 }
 
 std::pair<double, int>
-    checkResid(GridDynSimulation* gds, CoreTime time, const std::shared_ptr<SolverInterface>& sd)
+    checkResid(GridDynSimulation* gds,
+               CoreTime time,
+               const std::shared_ptr<SolverInterface>& solverInterface)
 {
-    const SolverMode& sMode = sd->getSolverMode();
+    const SolverMode& sMode = solverInterface->getSolverMode();
     std::vector<double> resid;
-    double* dstate_dt = nullptr;
-    auto kSize = sd->size();
+    const double* dstateDt = nullptr;
+    auto kSize = solverInterface->size();
     resid.resize(kSize, 0);
-    double* state = sd->stateData();
+    const double* state = solverInterface->stateData();
     assert(kSize == const_cast<const GridDynSimulation*>(gds)->stateSize(sMode));
     if (!isAlgebraicOnly(sMode)) {
-        dstate_dt = sd->derivData();
+        dstateDt = solverInterface->derivData();
     }
 
-    gds->residualFunction(time, state, dstate_dt, resid.data(), sMode);
-    auto rb = resid.begin();
+    gds->residualFunction(time, state, dstateDt, resid.data(), sMode);
+    auto residIterator = resid.begin();
     std::vector<double> signs(kSize, 0);
     if (isDAE(sMode)) {
         signs.assign(kSize, 1);
         gds->getVariableType(signs.data(), sMode);
     }
-    double* sdata = signs.data();
-    while (rb != resid.end()) {
-        if (*sdata == 1) {
-            *rb = 0.0;
+    const double* signData = signs.data();
+    while (residIterator != resid.end()) {
+        if (*signData == 1) {
+            *residIterator = 0.0;
         }
-        ++sdata;
-        ++rb;
+        ++signData;
+        ++residIterator;
     }
     return gmlc::utilities::absMaxLoc(resid);
 }
@@ -79,21 +81,21 @@ int jacobianCheck(GridDynSimulation* gds,
         return -1;
     }
     int errors = 0;
-    auto sd = gds->getSolverInterface(queryMode);
-    const SolverMode& sMode = sd->getSolverMode();
-    gds->getSolverReady(sd);
-    auto nsize = sd->size();
+    auto solverInterface = gds->getSolverInterface(queryMode);
+    const SolverMode& sMode = solverInterface->getSolverMode();
+    gds->getSolverReady(solverInterface);
+    auto nsize = solverInterface->size();
 
     if (nsize == 0) {
         return 0;
     }
-    double* state = sd->stateData();
-    double* dstate = sd->derivData();
+    double* state = solverInterface->stateData();
+    double* dstate = solverInterface->derivData();
 
-    CoreTime timeCurr = gds->getSimulationTime();
+    const CoreTime timeCurr = gds->getSimulationTime();
     if ((gds->currentProcessState() <= GridDynSimulation::GridState::DYNAMIC_INITIALIZED) &&
         (timeCurr <= gds->getStartTime())) {
-        gds->guessState(timeCurr, state, dstate, sd->getSolverMode());
+        gds->guessState(timeCurr, state, dstate, solverInterface->getSolverMode());
     }
 
     std::vector<double> nstate(nsize);
@@ -103,12 +105,14 @@ int jacobianCheck(GridDynSimulation* gds,
         std::copy(dstate, dstate + nsize, ndstate.data());
     }
 
-    MatrixDataSparse<double> tad, tad2, md;
+    MatrixDataSparse<double> tad;
+    MatrixDataSparse<double> tad2;
+    MatrixDataSparse<double> matrixData;
     tad.reserve(gds->jacSize(sMode));
-    md.reserve(gds->jacSize(sMode));
+    matrixData.reserve(gds->jacSize(sMode));
     tad2.reserve(gds->jacSize(sMode));
-    double delta = 1e-8;
-    double delta2 = 1e-10;
+    const double delta = 1e-8;
+    const double delta2 = 1e-10;
 
     // MatrixDataSparse b2;
     if (jacTol < 0)  // make sure the tolerance is positive
@@ -118,21 +122,22 @@ int jacobianCheck(GridDynSimulation* gds,
 
     std::vector<double> resid(nsize);
     std::vector<double> resid2(nsize);
-    StateData sD(timeCurr, nstate.data(), ndstate.data());
+    StateData stateData(timeCurr, nstate.data(), ndstate.data());
     if (sMode.pairedOffsetIndex != kNullLocation) {
-        gds->fillExtraStateData(sD, sMode);
+        gds->fillExtraStateData(stateData, sMode);
     }
     if (isDifferentialOnly(sMode)) {
-        sD.cj = 0.0;
-        gds->derivative(noInputs, sD, resid.data(), sMode);
-        gds->delayedDerivative(noInputs, sD, resid.data(), sMode);
+        stateData.cj = 0.0;
+        gds->derivative(noInputs, stateData, resid.data(), sMode);
+        gds->delayedDerivative(noInputs, stateData, resid.data(), sMode);
     } else {
-        sD.cj = 100;
-        gds->residual(noInputs, sD, resid.data(), sMode);
-        gds->delayedResidual(noInputs, sD, resid.data(), sMode);
+        stateData.cj = 100;
+        gds->residual(noInputs, stateData, resid.data(), sMode);
+        gds->delayedResidual(noInputs, stateData, resid.data(), sMode);
     }
 
-    gds->jacobianFunction(timeCurr, nstate.data(), ndstate.data(), md, sD.cj, sMode);
+    gds->jacobianFunction(
+        timeCurr, nstate.data(), ndstate.data(), matrixData, stateData.cj, sMode);
 
     stringVec stv;
     if (useStateNames) {
@@ -142,11 +147,11 @@ int jacobianCheck(GridDynSimulation* gds,
     for (index_t kk = 0; kk < nsize; ++kk) {
         nstate[kk] += delta;
         if (isDifferentialOnly(sMode)) {
-            gds->derivative(noInputs, sD, resid2.data(), sMode);
-            gds->delayedDerivative(noInputs, sD, resid2.data(), sMode);
+            gds->derivative(noInputs, stateData, resid2.data(), sMode);
+            gds->delayedDerivative(noInputs, stateData, resid2.data(), sMode);
         } else {
-            gds->residual(noInputs, sD, resid2.data(), sMode);
-            gds->delayedResidual(noInputs, sD, resid2.data(), sMode);
+            gds->residual(noInputs, stateData, resid2.data(), sMode);
+            gds->delayedResidual(noInputs, stateData, resid2.data(), sMode);
         }
 
         // find the changed elements
@@ -158,11 +163,11 @@ int jacobianCheck(GridDynSimulation* gds,
         nstate[kk] -= delta;
         nstate[kk] += delta2;
         if (isDifferentialOnly(sMode)) {
-            gds->derivative(noInputs, sD, resid2.data(), sMode);
-            gds->delayedDerivative(noInputs, sD, resid2.data(), sMode);
+            gds->derivative(noInputs, stateData, resid2.data(), sMode);
+            gds->delayedDerivative(noInputs, stateData, resid2.data(), sMode);
         } else {
-            gds->residual(noInputs, sD, resid2.data(), sMode);
-            gds->delayedResidual(noInputs, sD, resid2.data(), sMode);
+            gds->residual(noInputs, stateData, resid2.data(), sMode);
+            gds->delayedResidual(noInputs, stateData, resid2.data(), sMode);
         }
 
         for (index_t pp = 0; pp < nsize; ++pp) {
@@ -174,37 +179,37 @@ int jacobianCheck(GridDynSimulation* gds,
         // find the Jacobian elements dependent on the derivatives
         if (isDAE(sMode)) {
             ndstate[kk] += delta;
-            gds->residual(noInputs, sD, resid2.data(), sMode);
+            gds->residual(noInputs, stateData, resid2.data(), sMode);
             // find the changed elements
             for (index_t pp = 0; pp < nsize; ++pp) {
                 if (std::abs(resid[pp] - resid2[pp]) > delta * jacTol / 2) {
-                    tad.assign(pp, kk, (resid2[pp] - resid[pp]) / delta * sD.cj);
+                    tad.assign(pp, kk, (resid2[pp] - resid[pp]) / delta * stateData.cj);
                 }
             }
             ndstate[kk] -= delta;
             ndstate[kk] += delta2;
-            gds->residual(noInputs, sD, resid2.data(), sMode);
+            gds->residual(noInputs, stateData, resid2.data(), sMode);
             for (index_t pp = 0; pp < nsize; ++pp) {
                 if (std::abs(resid[pp] - resid2[pp]) > delta2 * jacTol / 2) {
-                    tad2.assign(pp, kk, (resid2[pp] - resid[pp]) / delta2 * sD.cj);
+                    tad2.assign(pp, kk, (resid2[pp] - resid[pp]) / delta2 * stateData.cj);
                 }
             }
             ndstate[kk] -= delta2;
         }
     }
 
-    md.compact();
+    matrixData.compact();
 
     tad.compact();
 
     tad2.compact();
 
-    md.start();
-    for (index_t nn = 0; nn < md.size(); ++nn) {
-        auto el = md.next();
-        index_t rowk = el.row;
-        index_t colk = el.col;
-        double val1 = el.data;
+    matrixData.start();
+    for (index_t nn = 0; nn < matrixData.size(); ++nn) {
+        auto matrixEntry = matrixData.next();
+        index_t rowk = matrixEntry.row;
+        index_t colk = matrixEntry.col;
+        double val1 = matrixEntry.data;
         double val2 = tad.at(rowk, colk);
         double val3 = tad2.at(rowk, colk);
 
@@ -255,12 +260,12 @@ int jacobianCheck(GridDynSimulation* gds,
     tad.start();
 
     for (index_t nn = 0; nn < tad.size(); ++nn) {
-        auto el = tad.next();
-        index_t rowk = el.row;
-        index_t colk = el.col;
+        auto matrixEntry = tad.next();
+        index_t rowk = matrixEntry.row;
+        index_t colk = matrixEntry.col;
 
-        double val1 = md.at(rowk, colk);
-        double val2 = el.data;
+        double val1 = matrixData.at(rowk, colk);
+        double val2 = matrixEntry.data;
         double val3 = tad2.at(rowk, colk);
         if (val1 != 0) {
             continue;
@@ -320,9 +325,9 @@ int residualCheck(GridDynSimulation* gds,
         gds->getStateName(stv, sMode);
     }
     int errors = 0;
-    auto sd = gds->getSolverInterface(sMode);
-    double* state = sd->stateData();
-    auto nsize = static_cast<count_t>(sd->size());
+    auto solverInterface = gds->getSolverInterface(sMode);
+    double* state = solverInterface->stateData();
+    auto nsize = solverInterface->size();
     assert(nsize == const_cast<const GridDynSimulation*>(gds)->stateSize(sMode));
     if (gds->currentProcessState() == GridDynSimulation::GridState::INITIALIZED) {
         // sMode must be power flow or dc power flow to get here
@@ -330,21 +335,21 @@ int residualCheck(GridDynSimulation* gds,
     }
 
     std::vector<double> resid(nsize);
-    StateData sD(time, sd->stateData());
+    StateData stateData(time, solverInterface->stateData());
     if (residTol < 0)  // make sure the tolerance is positive
     {
         residTol = resid_check_tol;
     }
 
-    sD.dstate_dt = (isDAE(sMode)) ? sd->derivData() : nullptr;
+    stateData.dstate_dt = (isDAE(sMode)) ? solverInterface->derivData() : nullptr;
 
-    gds->residual(noInputs, sD, resid.data(), sMode);
+    gds->residual(noInputs, stateData, resid.data(), sMode);
     for (index_t kk = 0; kk < nsize; ++kk) {
         if (std::abs(resid[kk]) > residTol) {
             if (useStateNames) {
                 std::println("non zero resid[{}]({})={:6e}",
                              static_cast<int>(kk),
-                             stv[kk].c_str(),
+                             stv[kk],
                              resid[kk]);
             } else {
                 std::println("non-zeros resid[{}]={:6e}", static_cast<int>(kk), resid[kk]);
@@ -373,15 +378,15 @@ int algebraicCheck(GridDynSimulation* gds,
         gds->getStateName(stv, sMode);
     }
 
-    auto sd = gds->getSolverInterface(sMode);
-    auto state = sd->stateData();
-    auto nsize = static_cast<count_t>(sd->size());
+    auto solverInterface = gds->getSolverInterface(sMode);
+    auto* state = solverInterface->stateData();
+    auto nsize = solverInterface->size();
     assert(nsize == const_cast<const GridDynSimulation*>(gds)->stateSize(sMode));
     if (gds->currentProcessState() == GridDynSimulation::GridState::INITIALIZED) {
         // sMode must be power flow or dc power flow to get here
         gds->guessState(time, state, nullptr, sMode);
     } else {
-        gds->guessState(time, state, sd->derivData(), sMode);
+        gds->guessState(time, state, solverInterface->derivData(), sMode);
     }
     std::vector<double> update(nsize);
 
@@ -389,10 +394,10 @@ int algebraicCheck(GridDynSimulation* gds,
     {
         algTol = resid_check_tol;
     }
-    StateData sD(time, sd->stateData());
-    sD.dstate_dt = (isDAE(sMode)) ? sd->derivData() : nullptr;
+    StateData stateData(time, solverInterface->stateData());
+    stateData.dstate_dt = (isDAE(sMode)) ? solverInterface->derivData() : nullptr;
 
-    gds->algebraicUpdate(noInputs, sD, update.data(), sMode, 1.0);
+    gds->algebraicUpdate(noInputs, stateData, update.data(), sMode, 1.0);
     std::vector<double> vtype(nsize);
 
     gds->getVariableType(vtype.data(), sMode);
@@ -401,18 +406,18 @@ int algebraicCheck(GridDynSimulation* gds,
         if (vtype[kk] > 0.01) {
             continue;
         }
-        if (std::abs(update[kk] - sD.state[kk]) > algTol) {
+        if (std::abs(update[kk] - stateData.state[kk]) > algTol) {
             if (useStateNames) {
                 std::println("mismatching updates[{}]({})={:6e} vs {:6e}",
                              static_cast<int>(kk),
-                             stv[kk].c_str(),
+                             stv[kk],
                              update[kk],
-                             sD.state[kk]);
+                             stateData.state[kk]);
             } else {
                 std::println("mismatching updates[{}]={:6e} vs {:6e}",
                              static_cast<int>(kk),
                              update[kk],
-                             sD.state[kk]);
+                             stateData.state[kk]);
             }
             ++errors;
         }
@@ -438,15 +443,15 @@ int derivativeCheck(GridDynSimulation* gds,
         gds->getStateName(stv, sMode);
     }
     int errors = 0;
-    auto sd = gds->getSolverInterface(sMode);
-    double* state = sd->stateData();
-    auto nsize = static_cast<count_t>(sd->size());
+    auto solverInterface = gds->getSolverInterface(sMode);
+    double* state = solverInterface->stateData();
+    auto nsize = solverInterface->size();
     assert(nsize == const_cast<const GridDynSimulation*>(gds)->stateSize(sMode));
     if (gds->currentProcessState() == GridDynSimulation::GridState::INITIALIZED) {
         // sMode must be power flow or dc power flow to get here
         gds->guessState(time, state, nullptr, sMode);
     } else {
-        gds->guessState(time, state, sd->derivData(), sMode);
+        gds->guessState(time, state, solverInterface->derivData(), sMode);
     }
     std::vector<double> deriv(nsize);
 
@@ -454,9 +459,9 @@ int derivativeCheck(GridDynSimulation* gds,
     {
         derivTol = resid_check_tol;
     }
-    StateData sD(time, sd->stateData(), sd->derivData());
+    const StateData stateData(time, solverInterface->stateData(), solverInterface->derivData());
 
-    gds->derivative(noInputs, sD, deriv.data(), sMode);
+    gds->derivative(noInputs, stateData, deriv.data(), sMode);
     std::vector<double> vtype(nsize);
 
     gds->getVariableType(vtype.data(), sMode);
@@ -464,11 +469,11 @@ int derivativeCheck(GridDynSimulation* gds,
         if (vtype[kk] < 0.1) {
             continue;
         }
-        if (std::abs(deriv[kk] - sD.dstate_dt[kk]) > derivTol) {
+        if (std::abs(deriv[kk] - stateData.dstate_dt[kk]) > derivTol) {
             if (useStateNames) {
                 std::println("mismatching derivative[{}]({})={:6e}",
                              static_cast<int>(kk),
-                             stv[kk].c_str(),
+                             stv[kk],
                              deriv[kk]);
             } else {
                 std::println("mismatching derivative[{}]={:6e}", static_cast<int>(kk), deriv[kk]);
@@ -807,12 +812,12 @@ namespace {
 
 }  // namespace
 
-void jacobianAnalysis(MatrixData<double>& md,
+void jacobianAnalysis(MatrixData<double>& matrixData,
                       GridDynSimulation* gds,
                       const SolverMode& sMode,
                       int level)
 {
-    auto rowCounts = getRowCounts(md);
+    auto rowCounts = getRowCounts(matrixData);
     auto objectInfo = getObjectInformation(gds, sMode, rowCounts);
     printObjCountInfo(objectInfo, 0, level);
 }

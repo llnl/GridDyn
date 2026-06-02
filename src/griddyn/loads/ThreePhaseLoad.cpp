@@ -319,22 +319,22 @@ void ThreePhaseLoad::set(std::string_view param, double val, unit unitType)
                 setQa(newP.imag());
             } break;
             case 'b': {
-                auto vb = std::polar(bus->getVoltage(), getBaseAngle()) * alpha;
-                auto sb = std::complex<double>(Pb, Qb);
-                auto ib = sb / vb;
-                auto newib = std::polar(std::abs(ib), convert(val, unitType, rad));
-                auto newP = newib * vb;
-                setPb(newP.real());
-                setQb(newP.imag());
+                auto voltageB = std::polar(bus->getVoltage(), getBaseAngle()) * alpha;
+                auto powerB = std::complex<double>(Pb, Qb);
+                auto currentB = powerB / voltageB;
+                auto newCurrentB = std::polar(std::abs(currentB), convert(val, unitType, rad));
+                auto newPower = newCurrentB * voltageB;
+                setPb(newPower.real());
+                setQb(newPower.imag());
             } break;
             case 'c': {
-                auto vc = std::polar(bus->getVoltage(), getBaseAngle()) * alpha2;
-                auto sc = std::complex<double>(Pc, Qc);
-                auto ic = sc / vc;
-                auto newic = std::polar(std::abs(ic), convert(val, unitType, rad));
-                auto newP = newic * vc;
-                setPc(newP.real());
-                setQc(newP.imag());
+                auto voltageC = std::polar(bus->getVoltage(), getBaseAngle()) * alpha2;
+                auto powerC = std::complex<double>(Pc, Qc);
+                auto currentC = powerC / voltageC;
+                auto newCurrentC = std::polar(std::abs(currentC), convert(val, unitType, rad));
+                auto newPower = newCurrentC * voltageC;
+                setPc(newPower.real());
+                setQc(newPower.imag());
             } break;
         }
     } else if (param == "multiplier") {
@@ -422,7 +422,7 @@ void ThreePhaseLoad::setQc(double val)
     setQ(Qa + Qb + Qc);
 }
 
-static const std::vector<stringVec> inputNamesStr3phase{
+static const std::vector<stringVec> INPUT_NAMES_STR3PHASE{
     {"voltage_a", "v_a", "volt_a", "vmag_a"},
     {"angle_a", "vangle_a", "angle_a", "ang_a", "vang_a"},
     {"voltage_b", "v_b", "volt_b", "vmag_b"},
@@ -435,12 +435,12 @@ static const std::vector<stringVec> inputNamesStr3phase{
 const std::vector<stringVec>& ThreePhaseLoad::inputNames() const
 {
     if (opFlags[three_phase_input]) {
-        return inputNamesStr3phase;
+        return INPUT_NAMES_STR3PHASE;
     }
     return GridLoad::inputNames();
 }
 
-static const std::vector<stringVec> outputNamesStr3phase{
+static const std::vector<stringVec> OUTPUT_NAMES_STR3PHASE{
     {"p_a", "power_a", "realpower_a", "real_a"},
     {"q_a", "reactive_a", "reactivepower_a"},
     {"p_b", "power_b", "realpower_b", "real_b"},
@@ -452,7 +452,7 @@ static const std::vector<stringVec> outputNamesStr3phase{
 const std::vector<stringVec>& ThreePhaseLoad::outputNames() const
 {
     if (opFlags[three_phase_output]) {
-        return outputNamesStr3phase;
+        return OUTPUT_NAMES_STR3PHASE;
     }
     return GridLoad::outputNames();
 }

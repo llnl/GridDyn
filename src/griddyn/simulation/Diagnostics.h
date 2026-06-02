@@ -69,11 +69,14 @@ int residualCheck(GridDynSimulation* gds,
                   double residTol = resid_check_tol,
                   bool useStateNames = false);
 
-std::pair<double, int> checkResid(GridDynSimulation* gds,
-                                  const std::shared_ptr<SolverInterface>& sd);
+std::pair<double, int> checkResid(
+    GridDynSimulation* gds,
+    const std::shared_ptr<SolverInterface>& solverInterface);
 
 std::pair<double, int>
-    checkResid(GridDynSimulation* gds, CoreTime time, const std::shared_ptr<SolverInterface>& sd);
+    checkResid(GridDynSimulation* gds,
+               CoreTime time,
+               const std::shared_ptr<SolverInterface>& solverInterface);
 
 std::pair<double, int> checkResid(GridDynSimulation* gds, CoreTime time, const SolverMode& sMode);
 
@@ -102,7 +105,7 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
 @param[in] gds the GridDynSimulation object to work with
 @param[in] sMode the solver mode in use
 */
-void jacobianAnalysis(MatrixData<double>& md,
+void jacobianAnalysis(MatrixData<double>& matrixData,
                       GridDynSimulation* gds,
                       const SolverMode& sMode,
                       int level);

@@ -261,8 +261,8 @@ void loadEpc(CoreObject* parentObject,
                 }
                 ++bcount;
                 if (std::cmp_greater(index, busList.size())) {
-                        if (index < 100000000) {
-                            busList.resize(static_cast<std::vector<GridBus*>::size_type>(
+                    if (index < 100000000) {
+                        busList.resize(static_cast<std::vector<GridBus*>::size_type>(
                                            static_cast<std::int64_t>(2) * index),
                                        nullptr);
                     } else {

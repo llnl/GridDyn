@@ -719,10 +719,9 @@ namespace {
                 }
 
                 currentFrame.mObjectInfo->mSubObjectInfo.resize(childComponents.size());
-                traversalStack.push_back(
-                    {.mComponent = currentFrame.mComponent,
-                     .mObjectInfo = currentFrame.mObjectInfo,
-                     .mChildrenQueued = true});
+                traversalStack.push_back({.mComponent = currentFrame.mComponent,
+                                          .mObjectInfo = currentFrame.mObjectInfo,
+                                          .mChildrenQueued = true});
                 for (std::ptrdiff_t childIndex =
                          static_cast<std::ptrdiff_t>(childComponents.size()) - 1;
                      childIndex >= 0;

@@ -34,10 +34,9 @@ std::pair<double, int> checkResid(GridDynSimulation* gds,
     return checkResid(gds, gds->getSimulationTime(), solverInterface);
 }
 
-std::pair<double, int>
-    checkResid(GridDynSimulation* gds,
-               CoreTime time,
-               const std::shared_ptr<SolverInterface>& solverInterface)
+std::pair<double, int> checkResid(GridDynSimulation* gds,
+                                  CoreTime time,
+                                  const std::shared_ptr<SolverInterface>& solverInterface)
 {
     const SolverMode& sMode = solverInterface->getSolverMode();
     std::vector<double> resid;
@@ -136,8 +135,7 @@ int jacobianCheck(GridDynSimulation* gds,
         gds->delayedResidual(noInputs, stateData, resid.data(), sMode);
     }
 
-    gds->jacobianFunction(
-        timeCurr, nstate.data(), ndstate.data(), matrixData, stateData.cj, sMode);
+    gds->jacobianFunction(timeCurr, nstate.data(), ndstate.data(), matrixData, stateData.cj, sMode);
 
     stringVec stv;
     if (useStateNames) {

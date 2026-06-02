@@ -42,73 +42,73 @@ namespace griddyn {
 
 namespace {
     void loadPSATBusArray(CoreObject* parentObject,
-                      double basepower,
-                      const mArray& buses,
-                      const mArray& swingBuses,
-                      const mArray& pvBuses,
-                      const mArray& pqBuses,
-                      const stringVec& busnames,
-                      std::vector<GridBus*>& busList);
+                          double basepower,
+                          const mArray& buses,
+                          const mArray& swingBuses,
+                          const mArray& pvBuses,
+                          const mArray& pqBuses,
+                          const stringVec& busnames,
+                          std::vector<GridBus*>& busList);
     void loadPSATGenArray(CoreObject* parentObject,
-                      const mArray& gens,
-                      const std::vector<GridBus*>& busList);
-    void loadPSATLinkArray(CoreObject* parentObject,
-                       const mArray& links,
-                       const std::vector<GridBus*>& busList);
-    void loadPSATLinkArrayB(CoreObject* parentObject,
-                        const mArray& links,
-                        const std::vector<GridBus*>& busList);
-    void loadPSATShuntArray(CoreObject* parentObject,
-                        const mArray& shunts,
-                        const std::vector<GridBus*>& busList);
-    void loadPSATLTCArray(CoreObject* parentObject,
-                      const mArray& ltcData,
-                      const std::vector<GridBus*>& busList);
-    void loadPSATPHSArray(CoreObject* parentObject,
-                      const mArray& phsData,
-                      const std::vector<GridBus*>& busList);
-    void loadPSATSynArray(CoreObject* parentObject,
-                      const mArray& synData,
-                      const std::vector<GridBus*>& busList);
-    void loadPSATExcArray(CoreObject* parentObject,
-                      const mArray& excData,
-                      const std::vector<GridBus*>& busList);
-    void loadPSATTgArray(CoreObject* parentObject,
-                     const mArray& tgData,
-                     const std::vector<GridBus*>& busList);
-    void loadPsatFaultArray(CoreObject* parentObject,
-                        const mArray& faultData,
-                        const std::vector<GridBus*>& busList);
-void loadPsatBreakerArray(CoreObject* parentObject,
-                          const mArray& breakerData,
+                          const mArray& gens,
                           const std::vector<GridBus*>& busList);
-void loadPsatMotorArray(CoreObject* parentObject,
-                        const mArray& motorData,
-                        const std::vector<GridBus*>& busList);
+    void loadPSATLinkArray(CoreObject* parentObject,
+                           const mArray& links,
+                           const std::vector<GridBus*>& busList);
+    void loadPSATLinkArrayB(CoreObject* parentObject,
+                            const mArray& links,
+                            const std::vector<GridBus*>& busList);
+    void loadPSATShuntArray(CoreObject* parentObject,
+                            const mArray& shunts,
+                            const std::vector<GridBus*>& busList);
+    void loadPSATLTCArray(CoreObject* parentObject,
+                          const mArray& ltcData,
+                          const std::vector<GridBus*>& busList);
+    void loadPSATPHSArray(CoreObject* parentObject,
+                          const mArray& phsData,
+                          const std::vector<GridBus*>& busList);
+    void loadPSATSynArray(CoreObject* parentObject,
+                          const mArray& synData,
+                          const std::vector<GridBus*>& busList);
+    void loadPSATExcArray(CoreObject* parentObject,
+                          const mArray& excData,
+                          const std::vector<GridBus*>& busList);
+    void loadPSATTgArray(CoreObject* parentObject,
+                         const mArray& tgData,
+                         const std::vector<GridBus*>& busList);
+    void loadPsatFaultArray(CoreObject* parentObject,
+                            const mArray& faultData,
+                            const std::vector<GridBus*>& busList);
+    void loadPsatBreakerArray(CoreObject* parentObject,
+                              const mArray& breakerData,
+                              const std::vector<GridBus*>& busList);
+    void loadPsatMotorArray(CoreObject* parentObject,
+                            const mArray& motorData,
+                            const std::vector<GridBus*>& busList);
     /** load a PSAT PMU data*/
     void loadPsatPmuArray(CoreObject* parentObject,
-                      const mArray& pmuData,
-                      const std::vector<GridBus*>& busList);
+                          const mArray& pmuData,
+                          const std::vector<GridBus*>& busList);
     void loadOtherObjectData(CoreObject* parentObject,
-                         const std::string& filetext,
-                         const std::vector<GridBus*>& busList);
+                             const std::string& filetext,
+                             const std::vector<GridBus*>& busList);
     const std::vector<
-    std::pair<std::string, void (*)(CoreObject*, const mArray&, const std::vector<GridBus*>&)>>
-    ARRAY_IDENTIFIERS{
-        {"Shunt.con", loadPSATShuntArray},
-        {"Line.con", loadPSATLinkArray},
-        {"Lines.con", loadPSATLinkArrayB},
-        {"Gen.con", loadPSATGenArray},
-        {"Ltc.con", loadPSATLTCArray},
-        {"Phs.con", loadPSATPHSArray},
-        {"Syn.con", loadPSATSynArray},
-        {"Exc.con", loadPSATExcArray},
-        //{ "Tg.con",loadPSATTgArray },
-        {"Fault.con", loadPsatFaultArray},
-        {"Breaker.con", loadPsatBreakerArray},
-        {"Not.con", loadPsatMotorArray},
-        {"Pmu.con", loadPsatPmuArray},
-    };
+        std::pair<std::string, void (*)(CoreObject*, const mArray&, const std::vector<GridBus*>&)>>
+        ARRAY_IDENTIFIERS{
+            {"Shunt.con", loadPSATShuntArray},
+            {"Line.con", loadPSATLinkArray},
+            {"Lines.con", loadPSATLinkArrayB},
+            {"Gen.con", loadPSATGenArray},
+            {"Ltc.con", loadPSATLTCArray},
+            {"Phs.con", loadPSATPHSArray},
+            {"Syn.con", loadPSATSynArray},
+            {"Exc.con", loadPSATExcArray},
+            //{ "Tg.con",loadPSATTgArray },
+            {"Fault.con", loadPsatFaultArray},
+            {"Breaker.con", loadPsatBreakerArray},
+            {"Not.con", loadPsatMotorArray},
+            {"Pmu.con", loadPsatPmuArray},
+        };
 }  // namespace
 
 void loadPSAT(CoreObject* parentObject,
@@ -202,306 +202,306 @@ void loadPSAT(CoreObject* parentObject,
 namespace {
 
     void loadOtherObjectData(CoreObject* parentObject,
-                         const std::string& filetext,
-                         const std::vector<GridBus*>& busList)
+                             const std::string& filetext,
+                             const std::vector<GridBus*>& busList)
     {
-    mArray objectArrayData;
-    for (const auto& namepair : ARRAY_IDENTIFIERS) {
-        auto arrayStart = filetext.find(namepair.first);
-        if (arrayStart != std::string::npos) {
-            const size_t arrayEquals = filetext.find_first_of('=', arrayStart);
-            readMatlabArray(filetext, arrayEquals + 1, objectArrayData);
-            namepair.second(parentObject, objectArrayData, busList);
+        mArray objectArrayData;
+        for (const auto& namepair : ARRAY_IDENTIFIERS) {
+            auto arrayStart = filetext.find(namepair.first);
+            if (arrayStart != std::string::npos) {
+                const size_t arrayEquals = filetext.find_first_of('=', arrayStart);
+                readMatlabArray(filetext, arrayEquals + 1, objectArrayData);
+                namepair.second(parentObject, objectArrayData, busList);
+            }
         }
-    }
     }
 
     void loadPSATBusArray(CoreObject* parentObject,
-                      double basepower,
-                      const mArray& buses,
-                      const mArray& swingBuses,
-                      const mArray& pvBuses,
-                      const mArray& pqBuses,
-                      const stringVec& busnames,
-                      std::vector<GridBus*>& busList)
+                          double basepower,
+                          const mArray& buses,
+                          const mArray& swingBuses,
+                          const mArray& pvBuses,
+                          const mArray& pqBuses,
+                          const stringVec& busnames,
+                          std::vector<GridBus*>& busList)
     {
-    for (size_t busIndex = 0; busIndex < buses.size(); ++busIndex) {
-        auto ind1 = static_cast<index_t>(buses[busIndex][0]);
-        if (std::cmp_greater_equal(ind1, busList.size())) {
-            busList.resize((ind1 * 2) + 1);
-        }
-        auto* bus = busList[ind1];
-        if (bus == nullptr) {
-            busList[ind1] = new AcBus(busnames[busIndex]);
-            bus = busList[ind1];
-            bus->set("basepower", basepower);
-            bus->setUserID(static_cast<int>(ind1));
-            parentObject->add(bus);
+        for (size_t busIndex = 0; busIndex < buses.size(); ++busIndex) {
+            auto ind1 = static_cast<index_t>(buses[busIndex][0]);
+            if (std::cmp_greater_equal(ind1, busList.size())) {
+                busList.resize((ind1 * 2) + 1);
+            }
+            auto* bus = busList[ind1];
+            if (bus == nullptr) {
+                busList[ind1] = new AcBus(busnames[busIndex]);
+                bus = busList[ind1];
+                bus->set("basepower", basepower);
+                bus->setUserID(static_cast<int>(ind1));
+                parentObject->add(bus);
+            }
+
+            bus->set("basevoltage", buses[busIndex][1]);
+            if (buses[busIndex].size() > 2) {
+                bus->set("voltage", buses[busIndex][2]);
+            }
+            if (buses[busIndex].size() > 3) {
+                bus->set("angle", buses[busIndex][3]);
+            }
         }
 
-        bus->set("basevoltage", buses[busIndex][1]);
-        if (buses[busIndex].size() > 2) {
-            bus->set("voltage", buses[busIndex][2]);
-        }
-        if (buses[busIndex].size() > 3) {
-            bus->set("angle", buses[busIndex][3]);
-        }
-    }
+        for (const auto& swInfo : swingBuses) {
+            auto ind1 = static_cast<size_t>(swInfo[0]);
+            auto* bus = busList[ind1];
+            bus->set("type", "swing");
+            bus->set("vtarget", swInfo[3]);
+            bus->set("atarget", swInfo[4]);
 
-    for (const auto& swInfo : swingBuses) {
-        auto ind1 = static_cast<size_t>(swInfo[0]);
-        auto* bus = busList[ind1];
-        bus->set("type", "swing");
-        bus->set("vtarget", swInfo[3]);
-        bus->set("atarget", swInfo[4]);
+            auto* gen = new Generator();
+            bus->add(gen);
+            if (swInfo.size() >= 7) {
+                gen->set("qmax", swInfo[5]);
+                gen->set("qmin", swInfo[6]);
+            }
+            if (swInfo.size() >= 9) {
+                bus->set("vmax", swInfo[7]);
+                bus->set("vmin", swInfo[8]);
+            }
+            if (swInfo.size() >= 10) {
+                gen->set("p", swInfo[9]);
+            }
+        }
+        for (const auto& pvInfo : pvBuses) {
+            auto ind1 = static_cast<size_t>(pvInfo[0]);
+            auto* bus = busList[ind1];
+            bus->set("type", "PV");
+            bus->set("vtarget", pvInfo[4]);
+            auto* gen = new Generator;
+            bus->add(gen);
+            gen->set("p", pvInfo[3]);
 
-        auto* gen = new Generator();
-        bus->add(gen);
-        if (swInfo.size() >= 7) {
-            gen->set("qmax", swInfo[5]);
-            gen->set("qmin", swInfo[6]);
-        }
-        if (swInfo.size() >= 9) {
-            bus->set("vmax", swInfo[7]);
-            bus->set("vmin", swInfo[8]);
-        }
-        if (swInfo.size() >= 10) {
-            gen->set("p", swInfo[9]);
-        }
-    }
-    for (const auto& pvInfo : pvBuses) {
-        auto ind1 = static_cast<size_t>(pvInfo[0]);
-        auto* bus = busList[ind1];
-        bus->set("type", "PV");
-        bus->set("vtarget", pvInfo[4]);
-        auto* gen = new Generator;
-        bus->add(gen);
-        gen->set("p", pvInfo[3]);
-
-        if (pvInfo.size() >= 7) {
-            gen->set("qmax", pvInfo[5]);
-            gen->set("qmin", pvInfo[6]);
-        }
-        if (pvInfo.size() >= 9) {
-            bus->set("vmax", pvInfo[7]);
-            bus->set("vmin", pvInfo[8]);
-        }
-        if (pvInfo.size() >= 10) {
-        }
-    }
-
-    for (const auto& pqInfo : pqBuses) {
-        auto ind1 = static_cast<size_t>(pqInfo[0]);
-        auto* bus = busList[ind1];
-        const auto activePower = pqInfo[3];
-        const auto reactivePower = pqInfo[4];
-        if ((activePower != 0.0) || (reactivePower != 0.0)) {
-            auto* load = new ZipLoad(activePower, reactivePower);
-            bus->add(load);
+            if (pvInfo.size() >= 7) {
+                gen->set("qmax", pvInfo[5]);
+                gen->set("qmin", pvInfo[6]);
+            }
+            if (pvInfo.size() >= 9) {
+                bus->set("vmax", pvInfo[7]);
+                bus->set("vmin", pvInfo[8]);
+            }
+            if (pvInfo.size() >= 10) {
+            }
         }
 
-        if (pqInfo.size() >= 7) {
-            bus->set("vmax", pqInfo[5]);
-            bus->set("vmin", pqInfo[6]);
+        for (const auto& pqInfo : pqBuses) {
+            auto ind1 = static_cast<size_t>(pqInfo[0]);
+            auto* bus = busList[ind1];
+            const auto activePower = pqInfo[3];
+            const auto reactivePower = pqInfo[4];
+            if ((activePower != 0.0) || (reactivePower != 0.0)) {
+                auto* load = new ZipLoad(activePower, reactivePower);
+                bus->add(load);
+            }
+
+            if (pqInfo.size() >= 7) {
+                bus->set("vmax", pqInfo[5]);
+                bus->set("vmin", pqInfo[6]);
+            }
         }
-    }
     }
 
     void loadPSATGenArray(CoreObject* /*parentObject*/,
-                      const mArray& gens,
-                      const std::vector<GridBus*>& busList)
+                          const mArray& gens,
+                          const std::vector<GridBus*>& busList)
     {
-    using units::MVAR;
-    using units::MW;
+        using units::MVAR;
+        using units::MW;
 
-    for (const auto& genInfo : gens) {
-        auto ind1 = static_cast<size_t>(genInfo[0]);
-        GridBus* bus = busList[ind1];
-        auto* gen = new Generator();
-        bus->add(gen);
-        if (genInfo[1] != 0) {
-            gen->set("p", genInfo[1], MW);
-        }
-        if (genInfo[2] != 0) {
-            gen->set("q", genInfo[2], MVAR);
-        }
-        gen->set("qmax", genInfo[3], MVAR);
-        gen->set("qmin", genInfo[4], MVAR);
-        bus->set("vtarget", genInfo[5]);
-        if (genInfo[6] > 0.0) {
-            gen->set("mbase", genInfo[6], MVAR);
-        }
-        if (genInfo[7] <= 0) {
-            gen->disable();
-        }
-        if (genInfo[8] != 0) {
-            gen->set("pmax", genInfo[8], MW);
-        }
+        for (const auto& genInfo : gens) {
+            auto ind1 = static_cast<size_t>(genInfo[0]);
+            GridBus* bus = busList[ind1];
+            auto* gen = new Generator();
+            bus->add(gen);
+            if (genInfo[1] != 0) {
+                gen->set("p", genInfo[1], MW);
+            }
+            if (genInfo[2] != 0) {
+                gen->set("q", genInfo[2], MVAR);
+            }
+            gen->set("qmax", genInfo[3], MVAR);
+            gen->set("qmin", genInfo[4], MVAR);
+            bus->set("vtarget", genInfo[5]);
+            if (genInfo[6] > 0.0) {
+                gen->set("mbase", genInfo[6], MVAR);
+            }
+            if (genInfo[7] <= 0) {
+                gen->disable();
+            }
+            if (genInfo[8] != 0) {
+                gen->set("pmax", genInfo[8], MW);
+            }
 
-        if (genInfo[9] != 0) {
-            gen->set("pmin", genInfo[9], MW);
+            if (genInfo[9] != 0) {
+                gen->set("pmin", genInfo[9], MW);
+            }
         }
     }
-    }
 
-/*
-Column Variable Description Unit
-1 - Bus number int
-2 Sn Power rating MVA
-3 PS0 Forecasted active power pu
-4 PSmax Maximum power bid pu
-5 PSmin Minimum power bid pu
-6 PS Actual active power bid pu
-7 CP0 Fixed cost(active power) $ / h
-8 CP1 Proportional cost(active power) $ / MWh
-9 CP2 Quadratic cost(active power) $ / MW2h
-10 CQ0 Fixed cost(reactive power) $ / h
-11 CQ1 Proportional cost(reactive power) $ / MVArh
-12 CQ2 Quadratic cost(reactive power) $ / MVAr2h
-13 u Commitment variable boolean
-14 kTB Tie breaking cost $ / MWh
-*/
-/* Branch data
+    /*
     Column Variable Description Unit
-    1 k From Bus int
-    2 m To Bus int
-    3 Sn Power rating MVA
-    4 Vn Voltage rating kV
-    5 fn Frequency rating Hz
-    6 - not used -
-    7 kT Primary and secondary voltage ratio kV/kV
-    8 r Resistance pu
-    9 x Reactance pu
-    10 - not used -
-    y 11 a Fixed tap ratio pu/pu
-    y 12  Fixed phase shift deg
-    y 13 Imax Current limit pu
-    y 14 Pmax Active power limit pu
-    y 15 Smax Apparent power limit pu
+    1 - Bus number int
+    2 Sn Power rating MVA
+    3 PS0 Forecasted active power pu
+    4 PSmax Maximum power bid pu
+    5 PSmin Minimum power bid pu
+    6 PS Actual active power bid pu
+    7 CP0 Fixed cost(active power) $ / h
+    8 CP1 Proportional cost(active power) $ / MWh
+    9 CP2 Quadratic cost(active power) $ / MW2h
+    10 CQ0 Fixed cost(reactive power) $ / h
+    11 CQ1 Proportional cost(reactive power) $ / MVArh
+    12 CQ2 Quadratic cost(reactive power) $ / MVAr2h
+    13 u Commitment variable boolean
+    14 kTB Tie breaking cost $ / MWh
     */
+    /* Branch data
+        Column Variable Description Unit
+        1 k From Bus int
+        2 m To Bus int
+        3 Sn Power rating MVA
+        4 Vn Voltage rating kV
+        5 fn Frequency rating Hz
+        6 - not used -
+        7 kT Primary and secondary voltage ratio kV/kV
+        8 r Resistance pu
+        9 x Reactance pu
+        10 - not used -
+        y 11 a Fixed tap ratio pu/pu
+        y 12  Fixed phase shift deg
+        y 13 Imax Current limit pu
+        y 14 Pmax Active power limit pu
+        y 15 Smax Apparent power limit pu
+        */
 
     void loadPSATLinkArray(CoreObject* parentObject,
-                       const mArray& links,
-                       const std::vector<GridBus*>& busList)
+                           const mArray& links,
+                           const std::vector<GridBus*>& busList)
     {
-    for (const auto& lnkInfo : links) {
-        auto ind1 = static_cast<index_t>(lnkInfo[0]);
-        auto* bus1 = busList[ind1];
+        for (const auto& lnkInfo : links) {
+            auto ind1 = static_cast<index_t>(lnkInfo[0]);
+            auto* bus1 = busList[ind1];
 
-        auto ind2 = static_cast<index_t>(lnkInfo[1]);
-        auto* bus2 = busList[ind2];
-        auto* lnk = new AcLine();
+            auto ind2 = static_cast<index_t>(lnkInfo[1]);
+            auto* bus2 = busList[ind2];
+            auto* lnk = new AcLine();
 
-        lnk->updateBus(bus1, 1);
-        lnk->updateBus(bus2, 2);
-        parentObject->add(lnk);
-        const bool isTransformer = (lnkInfo[6] != 0.0);
+            lnk->updateBus(bus1, 1);
+            lnk->updateBus(bus2, 2);
+            parentObject->add(lnk);
+            const bool isTransformer = (lnkInfo[6] != 0.0);
 
-        if (isTransformer) {
-            lnk->set("r", lnkInfo[7]);
-            lnk->set("x", lnkInfo[8]);
-        } else {
-            const double length = lnkInfo[5];
-            if (length > 0.0) {
-                lnk->set("r", lnkInfo[7] * length);
-                lnk->set("x", lnkInfo[8] * length);
-                lnk->set("b", lnkInfo[9] * length);
-            } else {
+            if (isTransformer) {
                 lnk->set("r", lnkInfo[7]);
                 lnk->set("x", lnkInfo[8]);
-                lnk->set("b", lnkInfo[9]);
+            } else {
+                const double length = lnkInfo[5];
+                if (length > 0.0) {
+                    lnk->set("r", lnkInfo[7] * length);
+                    lnk->set("x", lnkInfo[8] * length);
+                    lnk->set("b", lnkInfo[9] * length);
+                } else {
+                    lnk->set("r", lnkInfo[7]);
+                    lnk->set("x", lnkInfo[8]);
+                    lnk->set("b", lnkInfo[9]);
+                }
             }
-        }
 
-        if (lnkInfo[5] != 0.0) {
-            lnk->set("ratinga", lnkInfo[2], units::MVAR);
-        }
+            if (lnkInfo[5] != 0.0) {
+                lnk->set("ratinga", lnkInfo[2], units::MVAR);
+            }
 
-        if (lnkInfo.size() >= 11) {
-            if (lnkInfo[10] > 0.05)  // just make sure list a tap
-            {
-                lnk->set("tap", lnkInfo[10]);
+            if (lnkInfo.size() >= 11) {
+                if (lnkInfo[10] > 0.05)  // just make sure list a tap
+                {
+                    lnk->set("tap", lnkInfo[10]);
+                }
+            }
+            if (lnkInfo.size() >= 12) {
+                if (lnkInfo[11] != 0) {
+                    lnk->set("tapangle", lnkInfo[11], units::deg);
+                }
             }
         }
-        if (lnkInfo.size() >= 12) {
-            if (lnkInfo[11] != 0) {
-                lnk->set("tapangle", lnkInfo[11], units::deg);
-            }
-        }
-    }
     }
 
     void loadPSATLinkArrayB(CoreObject* parentObject,
-                        const mArray& links,
-                        const std::vector<GridBus*>& busList)
+                            const mArray& links,
+                            const std::vector<GridBus*>& busList)
     {
-    for (const auto& lnkInfo : links) {
-        auto ind1 = static_cast<index_t>(lnkInfo[0]);
-        auto* bus1 = busList[ind1];
-        auto ind2 = static_cast<index_t>(lnkInfo[1]);
-        auto* bus2 = busList[ind2];
-        auto* lnk = new AcLine();
-        lnk->updateBus(bus1, 1);
-        lnk->updateBus(bus2, 2);
-        parentObject->add(lnk);
-        const bool isTransformer = (lnkInfo[6] != 0.0);
+        for (const auto& lnkInfo : links) {
+            auto ind1 = static_cast<index_t>(lnkInfo[0]);
+            auto* bus1 = busList[ind1];
+            auto ind2 = static_cast<index_t>(lnkInfo[1]);
+            auto* bus2 = busList[ind2];
+            auto* lnk = new AcLine();
+            lnk->updateBus(bus1, 1);
+            lnk->updateBus(bus2, 2);
+            parentObject->add(lnk);
+            const bool isTransformer = (lnkInfo[6] != 0.0);
 
-        if (isTransformer) {
-            lnk->set("r", lnkInfo[7]);
-            lnk->set("x", lnkInfo[8]);
-        } else {
-            const double length = lnkInfo[5];
-            lnk->set("r", lnkInfo[7] * length);
-            lnk->set("x", lnkInfo[8] * length);
-            lnk->set("b", lnkInfo[9] * length);
-        }
+            if (isTransformer) {
+                lnk->set("r", lnkInfo[7]);
+                lnk->set("x", lnkInfo[8]);
+            } else {
+                const double length = lnkInfo[5];
+                lnk->set("r", lnkInfo[7] * length);
+                lnk->set("x", lnkInfo[8] * length);
+                lnk->set("b", lnkInfo[9] * length);
+            }
 
-        if (lnkInfo[5] != 0) {
-            lnk->set("ratinga", lnkInfo[2], units::MVAR);
-        }
+            if (lnkInfo[5] != 0) {
+                lnk->set("ratinga", lnkInfo[2], units::MVAR);
+            }
 
-        if (lnkInfo.size() >= 11) {
-            if (lnkInfo[10] > 0.05)  // just make sure list a tap
-            {
-                lnk->set("tap", lnkInfo[10]);
+            if (lnkInfo.size() >= 11) {
+                if (lnkInfo[10] > 0.05)  // just make sure list a tap
+                {
+                    lnk->set("tap", lnkInfo[10]);
+                }
+            }
+            if (lnkInfo.size() >= 12) {
+                if (lnkInfo[11] != 0.0) {
+                    lnk->set("tapangle", lnkInfo[11], units::deg);
+                }
             }
         }
-        if (lnkInfo.size() >= 12) {
-            if (lnkInfo[11] != 0.0) {
-                lnk->set("tapangle", lnkInfo[11], units::deg);
-            }
-        }
-    }
     }
 
     void loadPSATShuntArray(CoreObject* /*parentObject*/,
-                        const mArray& shunts,
-                        const std::vector<GridBus*>& busList)
+                            const mArray& shunts,
+                            const std::vector<GridBus*>& busList)
     {
-    for (const auto& shuntInfo : shunts) {
-        auto ind1 = static_cast<size_t>(shuntInfo[0]);
-        auto* bus1 = busList[ind1];
+        for (const auto& shuntInfo : shunts) {
+            auto ind1 = static_cast<size_t>(shuntInfo[0]);
+            auto* bus1 = busList[ind1];
 
-        auto* load = bus1->getLoad();
-        if (load == nullptr) {
-            load = new ZipLoad();
-            bus1->add(load);
-        }
+            auto* load = bus1->getLoad();
+            if (load == nullptr) {
+                load = new ZipLoad();
+                bus1->add(load);
+            }
 
-        const double conductance = shuntInfo[4];
-        const double susceptance = shuntInfo[5];
-        if (conductance != 0.0) {
-            load->set("yp", conductance);
-        }
-        if (susceptance != 0.0) {
-            load->set("yq", susceptance);
-        }
-        if (shuntInfo.size() > 6) {
-            if (shuntInfo[6] == 0) {
-                load->disable();
+            const double conductance = shuntInfo[4];
+            const double susceptance = shuntInfo[5];
+            if (conductance != 0.0) {
+                load->set("yp", conductance);
+            }
+            if (susceptance != 0.0) {
+                load->set("yq", susceptance);
+            }
+            if (shuntInfo.size() > 6) {
+                if (shuntInfo[6] == 0) {
+                    load->disable();
+                }
             }
         }
-    }
     }
     /*
     Column Variable Description Unit
@@ -528,55 +528,55 @@ Column Variable Description Unit
     17 u Connection status{ 0, 1 }
     */
     void loadPSATLTCArray(CoreObject* parentObject,
-                      const mArray& ltcData,
-                      const std::vector<GridBus*>& busList)
+                          const mArray& ltcData,
+                          const std::vector<GridBus*>& busList)
     {
-    for (const auto& ltcInfo : ltcData) {
-        auto ind1 = static_cast<index_t>(ltcInfo[0]);
-        GridBus* bus1 = busList[ind1];
-        auto ind2 = static_cast<index_t>(ltcInfo[1]);
-        GridBus* bus2 = busList[ind2];
-        auto* lnk = new links::AdjustableTransformer();
+        for (const auto& ltcInfo : ltcData) {
+            auto ind1 = static_cast<index_t>(ltcInfo[0]);
+            GridBus* bus1 = busList[ind1];
+            auto ind2 = static_cast<index_t>(ltcInfo[1]);
+            GridBus* bus2 = busList[ind2];
+            auto* lnk = new links::AdjustableTransformer();
 
-        lnk->updateBus(bus1, 1);
-        lnk->updateBus(bus2, 2);
-        parentObject->add(lnk);
-        lnk->set("r", ltcInfo[13]);
-        lnk->set("x", ltcInfo[12]);
-        lnk->set("mintap", ltcInfo[9]);
-        lnk->set("maxtap", ltcInfo[8]);
-        //    lnk->set("tap", ltcInfo[10]);
-        lnk->set("stepsize", ltcInfo[11]);
-        switch (static_cast<int>(ltcInfo[15])) {
-            case 1:  // secondary voltage
-                lnk->set("mode", "v");
-                lnk->set("vtarget", ltcInfo[11]);
-                break;
-            case 2:  // reactive power
-                lnk->set("mode", "mvar");
-                lnk->set("qtarget", ltcInfo[11]);
-                break;
-            case 3:  // remote control voltage bus
-                lnk->set("mode", "v");
-                lnk->set("vtarget", ltcInfo[11]);
-                lnk->setControlBus(busList[static_cast<index_t>(ltcInfo[14])]);
-                break;
-            default:
-                break;
-        }
-        // check if lnk is enabled
-        if (ltcInfo.size() == 18) {
-            if (ltcInfo[17] < 0.1)  // lnk is disabled
-            {
-                lnk->disconnect();
+            lnk->updateBus(bus1, 1);
+            lnk->updateBus(bus2, 2);
+            parentObject->add(lnk);
+            lnk->set("r", ltcInfo[13]);
+            lnk->set("x", ltcInfo[12]);
+            lnk->set("mintap", ltcInfo[9]);
+            lnk->set("maxtap", ltcInfo[8]);
+            //    lnk->set("tap", ltcInfo[10]);
+            lnk->set("stepsize", ltcInfo[11]);
+            switch (static_cast<int>(ltcInfo[15])) {
+                case 1:  // secondary voltage
+                    lnk->set("mode", "v");
+                    lnk->set("vtarget", ltcInfo[11]);
+                    break;
+                case 2:  // reactive power
+                    lnk->set("mode", "mvar");
+                    lnk->set("qtarget", ltcInfo[11]);
+                    break;
+                case 3:  // remote control voltage bus
+                    lnk->set("mode", "v");
+                    lnk->set("vtarget", ltcInfo[11]);
+                    lnk->setControlBus(busList[static_cast<index_t>(ltcInfo[14])]);
+                    break;
+                default:
+                    break;
             }
-        } else {
-            if (ltcInfo[16] < 0.1)  // lnk is disabled
-            {
-                lnk->disconnect();
+            // check if lnk is enabled
+            if (ltcInfo.size() == 18) {
+                if (ltcInfo[17] < 0.1)  // lnk is disabled
+                {
+                    lnk->disconnect();
+                }
+            } else {
+                if (ltcInfo[16] < 0.1)  // lnk is disabled
+                {
+                    lnk->disconnect();
+                }
             }
         }
-    }
     }
     /*
     1 k Bus number(from) int
@@ -596,35 +596,35 @@ Column Variable Description Unit
     15 m Transformer fixed tap ratio pu / pu
     16 u Connection status{ 0, 1 }
     */
-void loadPSATPHSArray(CoreObject* parentObject,
-                      const mArray& phs,
-                      const std::vector<GridBus*>& busList)
-{
-    for (const auto& phsInfo : phs) {
-        auto ind1 = static_cast<index_t>(phsInfo[0]);
-        auto* bus1 = busList[ind1];
-        auto ind2 = static_cast<index_t>(phsInfo[1]);
-        auto* bus2 = busList[ind2];
-        auto* lnk = new links::AdjustableTransformer();
+    void loadPSATPHSArray(CoreObject* parentObject,
+                          const mArray& phs,
+                          const std::vector<GridBus*>& busList)
+    {
+        for (const auto& phsInfo : phs) {
+            auto ind1 = static_cast<index_t>(phsInfo[0]);
+            auto* bus1 = busList[ind1];
+            auto ind2 = static_cast<index_t>(phsInfo[1]);
+            auto* bus2 = busList[ind2];
+            auto* lnk = new links::AdjustableTransformer();
 
-        lnk->updateBus(bus1, 1);
-        lnk->updateBus(bus2, 2);
-        parentObject->add(lnk);
-        lnk->set("r", phsInfo[10]);
-        lnk->set("x", phsInfo[11]);
-        lnk->set("mintapangle", phsInfo[13]);
-        lnk->set("maxtapangle", phsInfo[12]);
-        lnk->set("tap", phsInfo[14]);
+            lnk->updateBus(bus1, 1);
+            lnk->updateBus(bus2, 2);
+            parentObject->add(lnk);
+            lnk->set("r", phsInfo[10]);
+            lnk->set("x", phsInfo[11]);
+            lnk->set("mintapangle", phsInfo[13]);
+            lnk->set("maxtapangle", phsInfo[12]);
+            lnk->set("tap", phsInfo[14]);
 
-        lnk->set("mode", "mw");
-        lnk->set("ptarget", phsInfo[9]);
-        lnk->set("change", "continuous");
-        // check if lnk is enabled
-        if (phsInfo[15] < 0.1)  // lnk is disabled
-        {
-            lnk->disable();
+            lnk->set("mode", "mw");
+            lnk->set("ptarget", phsInfo[9]);
+            lnk->set("change", "continuous");
+            // check if lnk is enabled
+            if (phsInfo[15] < 0.1)  // lnk is disabled
+            {
+                lnk->disable();
+            }
         }
-    }
     }
     /*
     1 - Bus number int all
@@ -664,97 +664,97 @@ void loadPSATPHSArray(CoreObject* parentObject,
     ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â  28 u Connection status {0, 1} all
     */
 
-void loadPSATSynArray(CoreObject* /*parentObject*/,
-                      const mArray& syn,
-                      const std::vector<GridBus*>& busList)
-{
-    using genmodels::GenModel3;
-    using genmodels::GenModel4;
-    using genmodels::GenModel5;
-    using genmodels::GenModel5type2;
-    using genmodels::GenModel5type3;
-    using genmodels::GenModel6type2;
-    using genmodels::GenModel8;
+    void loadPSATSynArray(CoreObject* /*parentObject*/,
+                          const mArray& syn,
+                          const std::vector<GridBus*>& busList)
+    {
+        using genmodels::GenModel3;
+        using genmodels::GenModel4;
+        using genmodels::GenModel5;
+        using genmodels::GenModel5type2;
+        using genmodels::GenModel5type3;
+        using genmodels::GenModel6type2;
+        using genmodels::GenModel8;
 
-    int index = 1;
-    for (const auto& genData : syn) {
-        auto ind1 = static_cast<size_t>(genData[0]);
-        auto* bus1 = busList[ind1];
-        auto* gen = bus1->getGen(0);
-        if (gen == nullptr) {
-            continue;
-        }
-        gen->setUserID(index);
-        ++index;
-        auto mode = genData[4];
+        int index = 1;
+        for (const auto& genData : syn) {
+            auto ind1 = static_cast<size_t>(genData[0]);
+            auto* bus1 = busList[ind1];
+            auto* gen = bus1->getGen(0);
+            if (gen == nullptr) {
+                continue;
+            }
+            gen->setUserID(index);
+            ++index;
+            auto mode = genData[4];
 
-        GenModel* generatorModel = nullptr;
-        if (mode < 2.1) {
-            // second order classical model
-            generatorModel = new GenModel();
-        } else if (mode < 3.1) {
-            // 3rd order model
-            generatorModel = new GenModel3();
-        } else if (mode < 4.1) {
-            // 4th order model
-            generatorModel = new GenModel4();
-        } else if (mode < 5.15) {
-            // 5th order model type 1
-            generatorModel = new GenModel5();
-        } else if (mode < 5.25) {
-            // 5th order model type 2
-            generatorModel = new GenModel5type2();
-        } else if (mode < 5.35) {
-            // 5th order model type 3
-            generatorModel = new GenModel5type3();
-        } else if (mode < 6.05) {
-            // 6th order model
-            generatorModel = new GenModel6type2();
-        } else if (mode < 8.05) {
-            // 8th order model
-            generatorModel = new GenModel8();
-        }
-        if (generatorModel == nullptr) {
-            std::cout << "genModel " << mode << " not implemented yet\n";
-            continue;
-        }
-        generatorModel->set("rating", genData[1], units::MW);
-        gen->set("basevoltage", genData[2], units::kV);
-        const double leakageReactance = genData[5];
-        generatorModel->set("xl", genData[5]);
-        generatorModel->set("r", genData[6]);
-        generatorModel->set("xdp", genData[8] - leakageReactance);
-        generatorModel->set("h", genData[17] / 2.0);
-        generatorModel->set("d",
-                            genData[18],
-                            units::puHz);  // the damping coefficient in PSAT is in puHz
-        if (mode > 2.1)  // deal with the voltage speed adjustment
-        {
-            if (genData.size() >= 21) {
-                generatorModel->set("kw", genData[19]);
-                generatorModel->set("kp", genData[20]);
+            GenModel* generatorModel = nullptr;
+            if (mode < 2.1) {
+                // second order classical model
+                generatorModel = new GenModel();
+            } else if (mode < 3.1) {
+                // 3rd order model
+                generatorModel = new GenModel3();
+            } else if (mode < 4.1) {
+                // 4th order model
+                generatorModel = new GenModel4();
+            } else if (mode < 5.15) {
+                // 5th order model type 1
+                generatorModel = new GenModel5();
+            } else if (mode < 5.25) {
+                // 5th order model type 2
+                generatorModel = new GenModel5type2();
+            } else if (mode < 5.35) {
+                // 5th order model type 3
+                generatorModel = new GenModel5type3();
+            } else if (mode < 6.05) {
+                // 6th order model
+                generatorModel = new GenModel6type2();
+            } else if (mode < 8.05) {
+                // 8th order model
+                generatorModel = new GenModel8();
             }
-            generatorModel->set("xd", genData[7] - leakageReactance);
-            generatorModel->set("tdop", genData[10]);
-            generatorModel->set("xq", genData[12] - leakageReactance);
-        }
-        if (mode >= 3.1) {
-            generatorModel->set("xqp", genData[13] - leakageReactance);
-            generatorModel->set("tqop", genData[15]);
-        }
-        if (mode > 4.9) {
-            generatorModel->set("tqopp", genData[16]);
-        }
-        if ((mode == 5.2) || (mode >= 6)) {
-            if (genData.size() >= 24) {
-                generatorModel->set("taa", genData[23]);
+            if (generatorModel == nullptr) {
+                std::cout << "genModel " << mode << " not implemented yet\n";
+                continue;
             }
-            generatorModel->set("xdpp", genData[9] - leakageReactance);
-            generatorModel->set("tdopp", genData[11]);
-            generatorModel->set("xqpp", genData[14] - leakageReactance);
+            generatorModel->set("rating", genData[1], units::MW);
+            gen->set("basevoltage", genData[2], units::kV);
+            const double leakageReactance = genData[5];
+            generatorModel->set("xl", genData[5]);
+            generatorModel->set("r", genData[6]);
+            generatorModel->set("xdp", genData[8] - leakageReactance);
+            generatorModel->set("h", genData[17] / 2.0);
+            generatorModel->set("d",
+                                genData[18],
+                                units::puHz);  // the damping coefficient in PSAT is in puHz
+            if (mode > 2.1)  // deal with the voltage speed adjustment
+            {
+                if (genData.size() >= 21) {
+                    generatorModel->set("kw", genData[19]);
+                    generatorModel->set("kp", genData[20]);
+                }
+                generatorModel->set("xd", genData[7] - leakageReactance);
+                generatorModel->set("tdop", genData[10]);
+                generatorModel->set("xq", genData[12] - leakageReactance);
+            }
+            if (mode >= 3.1) {
+                generatorModel->set("xqp", genData[13] - leakageReactance);
+                generatorModel->set("tqop", genData[15]);
+            }
+            if (mode > 4.9) {
+                generatorModel->set("tqopp", genData[16]);
+            }
+            if ((mode == 5.2) || (mode >= 6)) {
+                if (genData.size() >= 24) {
+                    generatorModel->set("taa", genData[23]);
+                }
+                generatorModel->set("xdpp", genData[9] - leakageReactance);
+                generatorModel->set("tdopp", genData[11]);
+                generatorModel->set("xqpp", genData[14] - leakageReactance);
+            }
         }
     }
-}
 
     /*
     Table 16.1: Turbine Governor Type I Data Format (Tg.con)
@@ -772,148 +772,148 @@ void loadPSATSynArray(CoreObject* /*parentObject*/,
     11 T5 PSfrag replacements Reheat time constant s
     */
 
-void loadPSATExcArray(CoreObject* parentObject,
-                      const mArray& excData,
-                      const std::vector<GridBus*>& /*busList*/)
-{
-    Generator* gen;
-    Exciter* exciter = nullptr;
-    index_t ind1;
-    double mode;
-    for (const auto& eData : excData) {
-        ind1 = static_cast<index_t>(eData[0]);
-
-        gen = static_cast<Generator*>(parentObject->findByUserID("gen", ind1));
-        if (gen == nullptr) {
-            continue;
-        }
-
-        mode = eData[1];
-        if (mode < 2.1) {  // second and third order models
-            exciter = new Exciter();
-        }
-
-        if (exciter == nullptr) {
-            std::cout << "exciter " << mode << " not implemented yet\n";
-            continue;
-        }
-        exciter->set("r", eData[3]);
-        exciter->set("pmax", eData[4]);
-        exciter->set("pmin", eData[5]);
-
-        exciter->set("t1", eData[6]);
-        exciter->set("t2", eData[7]);
-        exciter->set("t3", eData[8]);
-        exciter->set("t4", eData[9]);
-    }
-}
-
-void loadPsatFaultArray(CoreObject* parentObject,
-                        const mArray& fault,
-                        const std::vector<GridBus*>& busList)
-{
-    auto* gds = dynamic_cast<GridSimulation*>(parentObject->getRoot());
-    if (gds == nullptr) {  // can't make faults if we don't have access to the simulation
-        return;
-    }
-
-    for (const auto& flt : fault) {
-        auto ind = static_cast<index_t>(flt[0]);
-        auto* bus = busList[ind];
-
-        auto* load = new ZipLoad("faultLoad");
-        bus->add(load);
-
-        if (flt[6] != 0) {
-            auto evnt1 = std::make_shared<Event>(flt[4]);
-            auto evnt2 = std::make_shared<Event>(flt[5]);
-            evnt1->setTarget(load, "r");
-            evnt1->setValue(flt[6]);
-            evnt2->setTarget(load, "r");
-            evnt2->setValue(0.0);
-            gds->add(std::move(evnt1));
-            gds->add(std::move(evnt2));
-        }
-
-        if (flt[7] != 0) {
-            auto evnt1 = std::make_shared<Event>(flt[4]);
-            auto evnt2 = std::make_shared<Event>(flt[5]);
-            evnt1->setTarget(load, "x");
-            evnt1->setValue(flt[7]);
-            evnt2->setTarget(load, "x");
-            evnt2->setValue(0.0);
-            gds->add(std::move(evnt1));
-            gds->add(std::move(evnt2));
-        }
-    }
-}
-
-void loadPsatPmuArray(CoreObject* parentObject,
-                      const mArray& pmuData,
-                      const std::vector<GridBus*>& busList)
-{
-    auto* gds = dynamic_cast<GridSimulation*>(parentObject->getRoot());
-    if (gds == nullptr) {  // can't add the sensors if there is no simulation
-        return;
-    }
-    for (index_t pmuIndex = 0; pmuIndex < static_cast<index_t>(pmuData.size()); ++pmuIndex) {
-        const auto& pmuLine = pmuData[pmuIndex];
-        auto ind = static_cast<index_t>(pmuLine[0]);
-        auto* bus = busList[ind];
-
-        auto* pmu = new relays::Pmu();
-        pmu->setUserID(pmuIndex + 1);
-        pmu->set("samplerate", pmuLine[2]);
-        pmu->set("tv", pmuLine[3]);
-        pmu->set("ttheta", pmuLine[4]);
-        pmu->setSource(bus);
-        if ((pmuLine.size() > 5) && (pmuLine[5] < 0.1)) {
-            pmu->disable();
-        }
-        gds->add(pmu);
-    }
-}
-
-void loadPsatBreakerArray(CoreObject* parentObject,
-                          const mArray& breakerData,
+    void loadPSATExcArray(CoreObject* parentObject,
+                          const mArray& excData,
                           const std::vector<GridBus*>& /*busList*/)
-{
-    auto* gds = dynamic_cast<GridSimulation*>(parentObject->getRoot());
-    if (gds == nullptr) {  // can't make faults if we don't have access to the simulation
-        return;
-    }
-    for (const auto& brk : breakerData) {
-        auto ind = static_cast<index_t>(brk[0]);
-        auto* lnk = static_cast<Link*>(parentObject->findByUserID("link", ind));
-        double status = 1.0;
-        if (brk[5] < 0.1) {
-            lnk->disable();
-            status = 0.0;
+    {
+        Generator* gen;
+        Exciter* exciter = nullptr;
+        index_t ind1;
+        double mode;
+        for (const auto& eData : excData) {
+            ind1 = static_cast<index_t>(eData[0]);
+
+            gen = static_cast<Generator*>(parentObject->findByUserID("gen", ind1));
+            if (gen == nullptr) {
+                continue;
+            }
+
+            mode = eData[1];
+            if (mode < 2.1) {  // second and third order models
+                exciter = new Exciter();
+            }
+
+            if (exciter == nullptr) {
+                std::cout << "exciter " << mode << " not implemented yet\n";
+                continue;
+            }
+            exciter->set("r", eData[3]);
+            exciter->set("pmax", eData[4]);
+            exciter->set("pmin", eData[5]);
+
+            exciter->set("t1", eData[6]);
+            exciter->set("t2", eData[7]);
+            exciter->set("t3", eData[8]);
+            exciter->set("t4", eData[9]);
         }
-        auto evnt1 = std::make_shared<Event>(brk[6]);
-        auto evnt2 = std::make_shared<Event>(brk[7]);
-        evnt1->setTarget(lnk, "enabled");
-        evnt1->setValue((status < 0.1) ? 1.0 : 0.0);
-        evnt2->setTarget(lnk, "enabled");
-        evnt2->setValue(status);
-        gds->add(std::move(evnt1));
-        gds->add(std::move(evnt2));
     }
-}
 
-void loadPsatMotorArray(CoreObject* /*parentObject*/,
-                        const mArray& motorData,
-                        const std::vector<GridBus*>& busList)
-{
-    for (const auto& mtrline : motorData) {
-        auto ind1 = static_cast<index_t>(mtrline[0]);
-        GridBus* bus1 = busList[ind1];
+    void loadPsatFaultArray(CoreObject* parentObject,
+                            const mArray& fault,
+                            const std::vector<GridBus*>& busList)
+    {
+        auto* gds = dynamic_cast<GridSimulation*>(parentObject->getRoot());
+        if (gds == nullptr) {  // can't make faults if we don't have access to the simulation
+            return;
+        }
 
-        auto* motor = new loads::MotorLoad();
-        bus1->add(motor);
-        // TODO(phlpt): Add parameters.
+        for (const auto& flt : fault) {
+            auto ind = static_cast<index_t>(flt[0]);
+            auto* bus = busList[ind];
+
+            auto* load = new ZipLoad("faultLoad");
+            bus->add(load);
+
+            if (flt[6] != 0) {
+                auto evnt1 = std::make_shared<Event>(flt[4]);
+                auto evnt2 = std::make_shared<Event>(flt[5]);
+                evnt1->setTarget(load, "r");
+                evnt1->setValue(flt[6]);
+                evnt2->setTarget(load, "r");
+                evnt2->setValue(0.0);
+                gds->add(std::move(evnt1));
+                gds->add(std::move(evnt2));
+            }
+
+            if (flt[7] != 0) {
+                auto evnt1 = std::make_shared<Event>(flt[4]);
+                auto evnt2 = std::make_shared<Event>(flt[5]);
+                evnt1->setTarget(load, "x");
+                evnt1->setValue(flt[7]);
+                evnt2->setTarget(load, "x");
+                evnt2->setValue(0.0);
+                gds->add(std::move(evnt1));
+                gds->add(std::move(evnt2));
+            }
+        }
     }
-}
+
+    void loadPsatPmuArray(CoreObject* parentObject,
+                          const mArray& pmuData,
+                          const std::vector<GridBus*>& busList)
+    {
+        auto* gds = dynamic_cast<GridSimulation*>(parentObject->getRoot());
+        if (gds == nullptr) {  // can't add the sensors if there is no simulation
+            return;
+        }
+        for (index_t pmuIndex = 0; pmuIndex < static_cast<index_t>(pmuData.size()); ++pmuIndex) {
+            const auto& pmuLine = pmuData[pmuIndex];
+            auto ind = static_cast<index_t>(pmuLine[0]);
+            auto* bus = busList[ind];
+
+            auto* pmu = new relays::Pmu();
+            pmu->setUserID(pmuIndex + 1);
+            pmu->set("samplerate", pmuLine[2]);
+            pmu->set("tv", pmuLine[3]);
+            pmu->set("ttheta", pmuLine[4]);
+            pmu->setSource(bus);
+            if ((pmuLine.size() > 5) && (pmuLine[5] < 0.1)) {
+                pmu->disable();
+            }
+            gds->add(pmu);
+        }
+    }
+
+    void loadPsatBreakerArray(CoreObject* parentObject,
+                              const mArray& breakerData,
+                              const std::vector<GridBus*>& /*busList*/)
+    {
+        auto* gds = dynamic_cast<GridSimulation*>(parentObject->getRoot());
+        if (gds == nullptr) {  // can't make faults if we don't have access to the simulation
+            return;
+        }
+        for (const auto& brk : breakerData) {
+            auto ind = static_cast<index_t>(brk[0]);
+            auto* lnk = static_cast<Link*>(parentObject->findByUserID("link", ind));
+            double status = 1.0;
+            if (brk[5] < 0.1) {
+                lnk->disable();
+                status = 0.0;
+            }
+            auto evnt1 = std::make_shared<Event>(brk[6]);
+            auto evnt2 = std::make_shared<Event>(brk[7]);
+            evnt1->setTarget(lnk, "enabled");
+            evnt1->setValue((status < 0.1) ? 1.0 : 0.0);
+            evnt2->setTarget(lnk, "enabled");
+            evnt2->setValue(status);
+            gds->add(std::move(evnt1));
+            gds->add(std::move(evnt2));
+        }
+    }
+
+    void loadPsatMotorArray(CoreObject* /*parentObject*/,
+                            const mArray& motorData,
+                            const std::vector<GridBus*>& busList)
+    {
+        for (const auto& mtrline : motorData) {
+            auto ind1 = static_cast<index_t>(mtrline[0]);
+            GridBus* bus1 = busList[ind1];
+
+            auto* motor = new loads::MotorLoad();
+            bus1->add(motor);
+            // TODO(phlpt): Add parameters.
+        }
+    }
 
 }  // namespace
 }  // namespace griddyn

@@ -69,14 +69,12 @@ int residualCheck(GridDynSimulation* gds,
                   double residTol = resid_check_tol,
                   bool useStateNames = false);
 
-std::pair<double, int> checkResid(
-    GridDynSimulation* gds,
-    const std::shared_ptr<SolverInterface>& solverInterface);
+std::pair<double, int> checkResid(GridDynSimulation* gds,
+                                  const std::shared_ptr<SolverInterface>& solverInterface);
 
-std::pair<double, int>
-    checkResid(GridDynSimulation* gds,
-               CoreTime time,
-               const std::shared_ptr<SolverInterface>& solverInterface);
+std::pair<double, int> checkResid(GridDynSimulation* gds,
+                                  CoreTime time,
+                                  const std::shared_ptr<SolverInterface>& solverInterface);
 
 std::pair<double, int> checkResid(GridDynSimulation* gds, CoreTime time, const SolverMode& sMode);
 

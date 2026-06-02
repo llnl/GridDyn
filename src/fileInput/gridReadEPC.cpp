@@ -19,6 +19,7 @@
 #include "griddyn/primary/DcBus.h"
 #include "readerHelper.h"
 #include <compare>
+#include <cstdint>
 #include <cstdlib>
 #include <fstream>
 #include <functional>
@@ -260,9 +261,9 @@ void loadEpc(CoreObject* parentObject,
                 }
                 ++bcount;
                 if (std::cmp_greater(index, busList.size())) {
-                    if (index < 100000000) {
-                        busList.resize(static_cast<std::vector<GridBus*>::size_type>(
-                                           static_cast<long long>(2) * index),
+                        if (index < 100000000) {
+                            busList.resize(static_cast<std::vector<GridBus*>::size_type>(
+                                           static_cast<std::int64_t>(2) * index),
                                        nullptr);
                     } else {
                         std::cerr << "Bus index overload " << index << '\n';
@@ -343,7 +344,7 @@ void loadEpc(CoreObject* parentObject,
                     if (std::cmp_greater(index, dcbusList.size())) {
                         if (index < 100000000) {
                             dcbusList.resize(static_cast<std::vector<DcBus*>::size_type>(
-                                                 static_cast<long long>(2) * index),
+                                                 static_cast<std::int64_t>(2) * index),
                                              nullptr);
                         } else {
                             std::cerr << "Bus index overload " << index << '\n';

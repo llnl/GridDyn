@@ -677,61 +677,65 @@ namespace {
                                          const std::vector<int>& rowCount)
     {
         struct TraversalFrame {
-            const GridComponent* component;
-            ObjectCountInfo* objectInfo;
-            bool childrenQueued;
+            const GridComponent* mComponent;
+            ObjectCountInfo* mObjectInfo;
+            bool mChildrenQueued;
         };
 
         ObjectCountInfo rootObjectInfo;
         std::vector<TraversalFrame> traversalStack;
-        traversalStack.push_back({comp, &rootObjectInfo, false});
+        traversalStack.push_back(
+            {.mComponent = comp, .mObjectInfo = &rootObjectInfo, .mChildrenQueued = false});
 
         while (!traversalStack.empty()) {
             auto currentFrame = traversalStack.back();
             traversalStack.pop_back();
 
-            if (!currentFrame.childrenQueued) {
-                currentFrame.objectInfo->mName = currentFrame.component->getName();
-                currentFrame.objectInfo->mTotalStates = currentFrame.component->stateSize(sMode);
+            if (!currentFrame.mChildrenQueued) {
+                currentFrame.mObjectInfo->mName = currentFrame.mComponent->getName();
+                currentFrame.mObjectInfo->mTotalStates = currentFrame.mComponent->stateSize(sMode);
 
-                const auto localStates = getLocalStates(currentFrame.component, sMode);
-                currentFrame.objectInfo->mLocalStates = static_cast<count_t>(localStates.size());
-                currentFrame.objectInfo->mTotalJacListed = currentFrame.component->jacSize(sMode);
+                const auto localStates = getLocalStates(currentFrame.mComponent, sMode);
+                currentFrame.mObjectInfo->mLocalStates = static_cast<count_t>(localStates.size());
+                currentFrame.mObjectInfo->mTotalJacListed = currentFrame.mComponent->jacSize(sMode);
                 for (const auto& stateIndex : localStates) {
-                    currentFrame.objectInfo->mLocalJacActual += rowCount[stateIndex];
+                    currentFrame.mObjectInfo->mLocalJacActual += rowCount[stateIndex];
                 }
 
                 std::vector<const GridComponent*> childComponents;
                 int subObjectIndex = 0;
                 auto* subObject = dynamic_cast<GridComponent*>(
-                    currentFrame.component->getSubObject("subobject", subObjectIndex));
+                    currentFrame.mComponent->getSubObject("subobject", subObjectIndex));
                 while (subObject != nullptr) {
                     childComponents.push_back(subObject);
                     ++subObjectIndex;
                     subObject = dynamic_cast<GridComponent*>(
-                        currentFrame.component->getSubObject("subobject", subObjectIndex));
+                        currentFrame.mComponent->getSubObject("subobject", subObjectIndex));
                 }
 
-                currentFrame.objectInfo->mSubObjectInfo.resize(childComponents.size());
+                currentFrame.mObjectInfo->mSubObjectInfo.resize(childComponents.size());
                 traversalStack.push_back(
-                    {currentFrame.component, currentFrame.objectInfo, true});
+                    {.mComponent = currentFrame.mComponent,
+                     .mObjectInfo = currentFrame.mObjectInfo,
+                     .mChildrenQueued = true});
                 for (std::ptrdiff_t childIndex =
                          static_cast<std::ptrdiff_t>(childComponents.size()) - 1;
                      childIndex >= 0;
                      --childIndex) {
-                    traversalStack.push_back({childComponents[static_cast<size_t>(childIndex)],
-                                              &currentFrame.objectInfo->mSubObjectInfo
-                                                   [static_cast<size_t>(childIndex)],
-                                              false});
+                    traversalStack.push_back(
+                        {.mComponent = childComponents[static_cast<size_t>(childIndex)],
+                         .mObjectInfo = &currentFrame.mObjectInfo
+                                             ->mSubObjectInfo[static_cast<size_t>(childIndex)],
+                         .mChildrenQueued = false});
                 }
                 continue;
             }
 
-            currentFrame.objectInfo->mLocalJacListed = currentFrame.objectInfo->mTotalJacListed;
-            currentFrame.objectInfo->mTotalJacActual = currentFrame.objectInfo->mLocalJacActual;
-            for (const auto& subObjectInfo : currentFrame.objectInfo->mSubObjectInfo) {
-                currentFrame.objectInfo->mLocalJacListed -= subObjectInfo.mTotalJacListed;
-                currentFrame.objectInfo->mTotalJacActual += subObjectInfo.mTotalJacActual;
+            currentFrame.mObjectInfo->mLocalJacListed = currentFrame.mObjectInfo->mTotalJacListed;
+            currentFrame.mObjectInfo->mTotalJacActual = currentFrame.mObjectInfo->mLocalJacActual;
+            for (const auto& subObjectInfo : currentFrame.mObjectInfo->mSubObjectInfo) {
+                currentFrame.mObjectInfo->mLocalJacListed -= subObjectInfo.mTotalJacListed;
+                currentFrame.mObjectInfo->mTotalJacActual += subObjectInfo.mTotalJacActual;
             }
         }
         return rootObjectInfo;
@@ -795,7 +799,7 @@ namespace {
                     currentComponent->getSubObject("subobject", subObjectIndex));
             }
 
-            for (auto* childComponent : std::views::reverse(subObjects)) {
+            for (const auto* childComponent : std::views::reverse(subObjects)) {
                 componentStack.emplace_back(childComponent, inset + "   ");
             }
         }
@@ -803,12 +807,12 @@ namespace {
 
 }  // namespace
 
-void jacobianAnalysis(MatrixData<double>& matrixData,
+void jacobianAnalysis(MatrixData<double>& md,
                       GridDynSimulation* gds,
                       const SolverMode& sMode,
                       int level)
 {
-    auto rowCounts = getRowCounts(matrixData);
+    auto rowCounts = getRowCounts(md);
     auto objectInfo = getObjectInformation(gds, sMode, rowCounts);
     printObjCountInfo(objectInfo, 0, level);
 }

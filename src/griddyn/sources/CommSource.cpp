@@ -16,6 +16,24 @@
 #include <string>
 
 namespace griddyn::sources {
+namespace {
+bool isIgnoredMessageType(griddyn::comms::ControlMessagePayload::ControlMessageType messageType)
+{
+    switch (messageType) {
+        case griddyn::comms::ControlMessagePayload::GET_SCHEDULED:
+        case griddyn::comms::ControlMessagePayload::CANCEL_FAIL:
+        case griddyn::comms::ControlMessagePayload::CANCEL_SUCCESS:
+        case griddyn::comms::ControlMessagePayload::GET_RESULT_MULTIPLE:
+        case griddyn::comms::ControlMessagePayload::CANCEL:
+        case griddyn::comms::ControlMessagePayload::GET_MULTIPLE:
+        case griddyn::comms::ControlMessagePayload::GET_PERIODIC:
+            return true;
+        default:
+            return false;
+    }
+}
+}  // namespace
+
 CommSource::CommSource(const std::string& objName): RampSource(objName)
 {
     enableUpdates();
@@ -116,6 +134,11 @@ void CommSource::receiveMessage(std::uint64_t sourceID, const std::shared_ptr<Co
     if (controlMessage == nullptr) {
         return;
     }
+    if (isIgnoredMessageType(
+            static_cast<griddyn::comms::ControlMessagePayload::ControlMessageType>(
+                message->getMessageType()))) {
+        return;
+    }
 
     std::shared_ptr<CommMessage> reply;
 
@@ -172,15 +195,6 @@ void CommSource::receiveMessage(std::uint64_t sourceID, const std::shared_ptr<Co
                     }
                 }
             }
-            break;
-        case ControlMessagePayload::GET_SCHEDULED:
-        case ControlMessagePayload::CANCEL_FAIL:
-        case ControlMessagePayload::CANCEL_SUCCESS:
-        case ControlMessagePayload::GET_RESULT_MULTIPLE:
-        case ControlMessagePayload::CANCEL:
-            break;
-        case ControlMessagePayload::GET_MULTIPLE:
-        case ControlMessagePayload::GET_PERIODIC:
             break;
         default:
             break;

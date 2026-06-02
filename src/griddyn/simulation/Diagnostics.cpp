@@ -17,6 +17,7 @@
 #include <fstream>
 #include <memory>
 #include <print>
+#include <ranges>
 #include <string>
 #include <utility>
 #include <vector>
@@ -484,10 +485,10 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
                                   count_t pts,
                                   int mode)
 {
-    auto sd = gds->getSolverInterface(sMode);
-    auto ssize = sd->size();
+    auto solverInterface = gds->getSolverInterface(sMode);
+    auto ssize = solverInterface->size();
 
-    double* state = sd->stateData();
+    double* state = solverInterface->stateData();
     std::ofstream bFile(file.c_str(), std::ios::out | std::ios::binary);
 
     std::vector<double> baseState(ssize, 0);
@@ -496,7 +497,6 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
 
     std::copy(state, state + ssize, baseState.begin());
     std::vector<double> vStates(ssize, 0);
-    std::vector<double> nStates(ssize, -kBigNum);
     gds->getVoltageStates(vStates.data(), sMode);
     bFile.write(reinterpret_cast<char*>(&ssize), sizeof(int));
     double inc = 1.51 / static_cast<double>(pts);
@@ -508,29 +508,29 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
     size_t cvs = vsi.size();
     bFile.write(reinterpret_cast<char*>(&cvs), sizeof(size_t));
 
-    auto tempLevel = sd->get("printlevel");
-    sd->set("printLevel", "error");
+    auto tempLevel = solverInterface->get("printlevel");
+    solverInterface->set("printLevel", "error");
 
     switch (mode) {
         case 0:  // sequential all points
         default:
-            for (auto& v : vsi) {
-                state[v] = 1e-12;
+            for (auto& voltageStateIndex : vsi) {
+                state[voltageStateIndex] = 1e-12;
             }
 
             while (state[lstate] < limitVal) {
                 bFile.write(reinterpret_cast<char*>(state), ssize * sizeof(double));
                 std::copy(state, state + ssize, tempState.begin());
-                int retval = sd->calcIC(gds->getSimulationTime(),
-                                        0.001,
-                                        SolverInterface::IcModes::FIXED_DIFF,
-                                        true);
+                const int retval = solverInterface->calcIC(gds->getSimulationTime(),
+                                                           0.001,
+                                                           SolverInterface::IcModes::FIXED_DIFF,
+                                                           true);
                 if (retval < 0) {
                     double rval2 = retval;
                     bFile.write(reinterpret_cast<char*>(&rval2), sizeof(double));
                     std::copy(tempState.begin(), tempState.begin() + ssize, state);
                 } else {
-                    sd->getCurrentData();
+                    solverInterface->getCurrentData();
                     bFile.write(reinterpret_cast<char*>(state), ssize * sizeof(double));
                     std::copy(tempState.begin(), tempState.begin() + ssize, state);
                 }
@@ -560,16 +560,16 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
                 }
                 bFile.write(reinterpret_cast<char*>(state), ssize * sizeof(double));
                 std::copy(state, state + ssize, tempState.begin());
-                int retval = sd->calcIC(gds->getSimulationTime(),
-                                        0.001,
-                                        SolverInterface::IcModes::FIXED_DIFF,
-                                        true);
+                const int retval = solverInterface->calcIC(gds->getSimulationTime(),
+                                                           0.001,
+                                                           SolverInterface::IcModes::FIXED_DIFF,
+                                                           true);
                 if (retval < 0) {
                     double rval2 = retval;
                     bFile.write(reinterpret_cast<char*>(&rval2), sizeof(double));
                     std::copy(tempState.begin(), tempState.begin() + ssize, state);
                 } else {
-                    sd->getCurrentData();
+                    solverInterface->getCurrentData();
                     bFile.write(reinterpret_cast<char*>(state), ssize * sizeof(double));
                     std::copy(tempState.begin(), tempState.begin() + ssize, state);
                 }
@@ -579,21 +579,21 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
         {
             double val = 1e-12;
             while (val < 1.51) {
-                for (auto& v : vsi) {
-                    state[v] = val;
+                for (auto& voltageStateIndex : vsi) {
+                    state[voltageStateIndex] = val;
                 }
                 bFile.write(reinterpret_cast<char*>(state), ssize * sizeof(double));
                 std::copy(state, state + ssize, tempState.begin());
-                int retval = sd->calcIC(gds->getSimulationTime(),
-                                        0.001,
-                                        SolverInterface::IcModes::FIXED_DIFF,
-                                        true);
+                const int retval = solverInterface->calcIC(gds->getSimulationTime(),
+                                                           0.001,
+                                                           SolverInterface::IcModes::FIXED_DIFF,
+                                                           true);
                 if (retval < 0) {
                     double rval2 = retval;
                     bFile.write(reinterpret_cast<char*>(&rval2), sizeof(double));
                     std::copy(tempState.begin(), tempState.begin() + ssize, state);
                 } else {
-                    sd->getCurrentData();
+                    solverInterface->getCurrentData();
                     bFile.write(reinterpret_cast<char*>(state), ssize * sizeof(double));
                     std::copy(tempState.begin(), tempState.begin() + ssize, state);
                 }
@@ -604,122 +604,165 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
         {
             std::vector<std::vector<double>> ptsv{{1, 1, 1}, {0.5, 0.5, 0.5}};
 
-            for (auto& v : ptsv) {
-                for (size_t mm = 0; ((mm < v.size()) && (mm < cvs)); ++mm) {
-                    state[vsi[mm]] = v[mm];
+            for (auto& pointSet : ptsv) {
+                for (size_t mm = 0; ((mm < pointSet.size()) && (mm < cvs)); ++mm) {
+                    state[vsi[mm]] = pointSet[mm];
                 }
                 std::copy(state, state + ssize, tempState.begin());
-                sd->calcIC(gds->getSimulationTime(),
-                           0.001,
-                           SolverInterface::IcModes::FIXED_DIFF,
-                           true);
+                solverInterface->calcIC(gds->getSimulationTime(),
+                                        0.001,
+                                        SolverInterface::IcModes::FIXED_DIFF,
+                                        true);
                 std::copy(tempState.begin(), tempState.begin() + ssize, state);
             }
         } break;
     }
 
-    sd->set("printLevel", tempLevel);
+    solverInterface->set("printLevel", tempLevel);
     std::copy(baseState.begin(), baseState.begin() + ssize, state);
 }
 
 namespace {
 
-    std::vector<int> getRowCounts(MatrixData<double>& md)
+    std::vector<int> getRowCounts(MatrixData<double>& matrixData)
     {
-        std::vector<int> rowcnt(md.rowLimit());
-        auto sz = static_cast<int>(md.size());
-        md.start();
-        int ii = 0;
-        while (ii < sz) {
-            auto el = md.next();
-            ++rowcnt[el.row];
-            ++ii;
+        std::vector<int> rowCounts(matrixData.rowLimit());
+        const auto matrixSize = static_cast<int>(matrixData.size());
+        matrixData.start();
+        int entryIndex = 0;
+        while (entryIndex < matrixSize) {
+            auto matrixEntry = matrixData.next();
+            ++rowCounts[matrixEntry.row];
+            ++entryIndex;
         }
-        return rowcnt;
+        return rowCounts;
     }
 
     std::vector<index_t> getLocalStates(const GridComponent* comp, const SolverMode& sMode)
     {
-        std::vector<index_t> st;
-        auto& off = comp->getOffsets(sMode);
-        st.reserve(static_cast<size_t>(off.local.algSize) + off.local.diffSize + off.local.vSize +
-                   off.local.aSize);
-        for (index_t ii = 0; ii < off.local.algSize; ++ii) {
-            st.push_back(off.algOffset + ii);
+        std::vector<index_t> localStates;
+        const auto& offsets = comp->getOffsets(sMode);
+        localStates.reserve(static_cast<size_t>(offsets.local.algSize) + offsets.local.diffSize +
+                            offsets.local.vSize + offsets.local.aSize);
+        for (index_t stateIndex = 0; stateIndex < offsets.local.algSize; ++stateIndex) {
+            localStates.push_back(offsets.algOffset + stateIndex);
         }
-        for (index_t ii = 0; ii < off.local.diffSize; ++ii) {
-            st.push_back(off.diffOffset + ii);
+        for (index_t stateIndex = 0; stateIndex < offsets.local.diffSize; ++stateIndex) {
+            localStates.push_back(offsets.diffOffset + stateIndex);
         }
-        for (index_t ii = 0; ii < off.local.vSize; ++ii) {
-            st.push_back(off.vOffset + ii);
+        for (index_t stateIndex = 0; stateIndex < offsets.local.vSize; ++stateIndex) {
+            localStates.push_back(offsets.vOffset + stateIndex);
         }
-        for (index_t ii = 0; ii < off.local.aSize; ++ii) {
-            st.push_back(off.aOffset + ii);
+        for (index_t stateIndex = 0; stateIndex < offsets.local.aSize; ++stateIndex) {
+            localStates.push_back(offsets.aOffset + stateIndex);
         }
-        return st;
+        return localStates;
     }
 
     // helper class for aggregating information
-    class objectCountInfo {
+    class ObjectCountInfo {
       public:
-        std::string name;
-        count_t totalStates = 0;
-        count_t localStates = 0;
-        count_t localJacListed = 0;
-        count_t totalJacListed = 0;
-        count_t localJacActual = 0;
-        count_t totalJacActual = 0;
-        std::vector<objectCountInfo> subObjectInfo;
+        std::string mName;
+        count_t mTotalStates = 0;
+        count_t mLocalStates = 0;
+        count_t mLocalJacListed = 0;
+        count_t mTotalJacListed = 0;
+        count_t mLocalJacActual = 0;
+        count_t mTotalJacActual = 0;
+        std::vector<ObjectCountInfo> mSubObjectInfo;
     };
     /** function to get the actual Jacobian information about an object*/
-    objectCountInfo getObjectInformation(const GridComponent* comp,
+    ObjectCountInfo getObjectInformation(const GridComponent* comp,
                                          const SolverMode& sMode,
                                          const std::vector<int>& rowCount)
     {
-        objectCountInfo objI;
-        objI.name = comp->getName();
-        objI.totalStates = comp->stateSize(sMode);
+        struct TraversalFrame {
+            const GridComponent* component;
+            ObjectCountInfo* objectInfo;
+            bool childrenQueued;
+        };
 
-        auto lcStates = getLocalStates(comp, sMode);
-        objI.localStates = static_cast<count_t>(lcStates.size());
-        objI.totalJacListed = comp->jacSize(sMode);
-        for (auto& stateIndex : lcStates) {
-            objI.localJacActual += rowCount[stateIndex];
-        }
+        ObjectCountInfo rootObjectInfo;
+        std::vector<TraversalFrame> traversalStack;
+        traversalStack.push_back({comp, &rootObjectInfo, false});
 
-        auto* subObject = comp->getSubObject("subobject", 0);
-        int subObjectIndex = 0;
-        while (subObject != nullptr) {
-            objI.subObjectInfo.push_back(
-                getObjectInformation(static_cast<GridComponent*>(subObject), sMode, rowCount));
-            ++subObjectIndex;
-            subObject = comp->getSubObject("subobject", subObjectIndex);
+        while (!traversalStack.empty()) {
+            auto currentFrame = traversalStack.back();
+            traversalStack.pop_back();
+
+            if (!currentFrame.childrenQueued) {
+                currentFrame.objectInfo->mName = currentFrame.component->getName();
+                currentFrame.objectInfo->mTotalStates = currentFrame.component->stateSize(sMode);
+
+                const auto localStates = getLocalStates(currentFrame.component, sMode);
+                currentFrame.objectInfo->mLocalStates = static_cast<count_t>(localStates.size());
+                currentFrame.objectInfo->mTotalJacListed = currentFrame.component->jacSize(sMode);
+                for (const auto& stateIndex : localStates) {
+                    currentFrame.objectInfo->mLocalJacActual += rowCount[stateIndex];
+                }
+
+                std::vector<const GridComponent*> childComponents;
+                int subObjectIndex = 0;
+                auto* subObject = dynamic_cast<GridComponent*>(
+                    currentFrame.component->getSubObject("subobject", subObjectIndex));
+                while (subObject != nullptr) {
+                    childComponents.push_back(subObject);
+                    ++subObjectIndex;
+                    subObject = dynamic_cast<GridComponent*>(
+                        currentFrame.component->getSubObject("subobject", subObjectIndex));
+                }
+
+                currentFrame.objectInfo->mSubObjectInfo.resize(childComponents.size());
+                traversalStack.push_back(
+                    {currentFrame.component, currentFrame.objectInfo, true});
+                for (std::ptrdiff_t childIndex =
+                         static_cast<std::ptrdiff_t>(childComponents.size()) - 1;
+                     childIndex >= 0;
+                     --childIndex) {
+                    traversalStack.push_back({childComponents[static_cast<size_t>(childIndex)],
+                                              &currentFrame.objectInfo->mSubObjectInfo
+                                                   [static_cast<size_t>(childIndex)],
+                                              false});
+                }
+                continue;
+            }
+
+            currentFrame.objectInfo->mLocalJacListed = currentFrame.objectInfo->mTotalJacListed;
+            currentFrame.objectInfo->mTotalJacActual = currentFrame.objectInfo->mLocalJacActual;
+            for (const auto& subObjectInfo : currentFrame.objectInfo->mSubObjectInfo) {
+                currentFrame.objectInfo->mLocalJacListed -= subObjectInfo.mTotalJacListed;
+                currentFrame.objectInfo->mTotalJacActual += subObjectInfo.mTotalJacActual;
+            }
         }
-        objI.localJacListed = objI.totalJacListed;
-        objI.totalJacActual = objI.localJacActual;
-        for (auto& sui : objI.subObjectInfo) {
-            objI.localJacListed -= sui.totalJacListed;
-            objI.totalJacActual += sui.totalJacActual;
-        }
-        return objI;
+        return rootObjectInfo;
     }
 
-    void printObjCountInfo(const objectCountInfo& objectInfo, int clevel, int maxLevel)
+    void printObjCountInfo(const ObjectCountInfo& objectInfo, int clevel, int maxLevel)
     {
-        for (int ii = 0; ii < clevel; ++ii) {
-            std::print("  ");
-        }
-        std::println("{}:: st {}({}) list {}({}) NNZ {}({})",
-                     objectInfo.name,
-                     objectInfo.totalStates,
-                     objectInfo.localStates,
-                     objectInfo.totalJacListed,
-                     objectInfo.localJacListed,
-                     objectInfo.totalJacActual,
-                     objectInfo.localJacActual);
-        if (clevel < maxLevel) {
-            for (auto& subObjectInfo : objectInfo.subObjectInfo) {
-                printObjCountInfo(subObjectInfo, clevel + 1, maxLevel);
+        std::vector<std::pair<const ObjectCountInfo*, int>> objectStack;
+        objectStack.emplace_back(&objectInfo, clevel);
+
+        while (!objectStack.empty()) {
+            const auto [currentObjectInfo, currentLevel] = objectStack.back();
+            objectStack.pop_back();
+
+            for (int indentLevel = 0; indentLevel < currentLevel; ++indentLevel) {
+                std::print("  ");
+            }
+            std::println("{}:: st {}({}) list {}({}) NNZ {}({})",
+                         currentObjectInfo->mName,
+                         currentObjectInfo->mTotalStates,
+                         currentObjectInfo->mLocalStates,
+                         currentObjectInfo->mTotalJacListed,
+                         currentObjectInfo->mLocalJacListed,
+                         currentObjectInfo->mTotalJacActual,
+                         currentObjectInfo->mLocalJacActual);
+
+            if (currentLevel < maxLevel) {
+                for (const auto& subObjectInfo :
+                     std::views::reverse(currentObjectInfo->mSubObjectInfo)) {
+                    objectStack.emplace_back(&subObjectInfo, currentLevel + 1);
+                }
             }
         }
     }
@@ -752,21 +795,20 @@ namespace {
                     currentComponent->getSubObject("subobject", subObjectIndex));
             }
 
-            for (auto subObjectIter = subObjects.rbegin(); subObjectIter != subObjects.rend();
-                 ++subObjectIter) {
-                componentStack.emplace_back(*subObjectIter, inset + "   ");
+            for (auto* childComponent : std::views::reverse(subObjects)) {
+                componentStack.emplace_back(childComponent, inset + "   ");
             }
         }
     }
 
 }  // namespace
 
-void jacobianAnalysis(MatrixData<double>& md,
+void jacobianAnalysis(MatrixData<double>& matrixData,
                       GridDynSimulation* gds,
                       const SolverMode& sMode,
                       int level)
 {
-    auto rowCounts = getRowCounts(md);
+    auto rowCounts = getRowCounts(matrixData);
     auto objectInfo = getObjectInformation(gds, sMode, rowCounts);
     printObjCountInfo(objectInfo, 0, level);
 }
@@ -819,24 +861,47 @@ bool checkObjectEquivalence(const CoreObject* obj1, const CoreObject* obj2, bool
         }
         return false;
     }
-    int subObjectIndex = 0;
-    CoreObject* sub1 = obj1->getSubObject("subobject", subObjectIndex);
     bool result = true;
-    while (sub1 != nullptr) {
-        CoreObject* sub2 = obj2->find(sub1->getName());
-        if (sub2 == nullptr) {
-            if (printMessage) {
-                std::println("object 2 ({}) does not have a subobject named {}",
-                             obj1->getName(),
-                             sub1->getName());
+    std::vector<std::pair<const CoreObject*, const CoreObject*>> objectStack;
+    objectStack.emplace_back(obj1, obj2);
+
+    while (!objectStack.empty()) {
+        const auto [currentObject1, currentObject2] = objectStack.back();
+        objectStack.pop_back();
+
+        int subObjectIndex = 0;
+        const CoreObject* subObject1 = currentObject1->getSubObject("subobject", subObjectIndex);
+        while (subObject1 != nullptr) {
+            const CoreObject* subObject2 = currentObject2->find(subObject1->getName());
+            if (subObject2 == nullptr) {
+                if (printMessage) {
+                    std::println("object 2 ({}) does not have a subobject named {}",
+                                 currentObject1->getName(),
+                                 subObject1->getName());
+                }
+                result = false;
+            } else {
+                if (typeid(*subObject1) != typeid(*subObject2)) {
+                    if (printMessage) {
+                        std::println("object 1 name ({}) not matching type of object 2({})",
+                                     subObject1->getName(),
+                                     subObject2->getName());
+                    }
+                    result = false;
+                } else if (subObject1->getName() != subObject2->getName()) {
+                    if (printMessage) {
+                        std::println("object 1 name ({}) not matching object 2({})",
+                                     subObject1->getName(),
+                                     subObject2->getName());
+                    }
+                    result = false;
+                } else {
+                    objectStack.emplace_back(subObject1, subObject2);
+                }
             }
-            continue;
-        }
-        auto res = checkObjectEquivalence(sub1, sub2, printMessage);
-        ++subObjectIndex;
-        sub1 = obj1->getSubObject("subobject", subObjectIndex);
-        if (!res) {
-            result = false;
+
+            ++subObjectIndex;
+            subObject1 = currentObject1->getSubObject("subobject", subObjectIndex);
         }
     }
 

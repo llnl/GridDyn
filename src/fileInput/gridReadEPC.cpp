@@ -321,7 +321,8 @@ void loadEpc(CoreObject* parentObject,
                     epcReadSwitchShunt(load, config, base);
                 });
         } else if ((tokens[0] == "area") || (tokens[0] == "zone") || (tokens[0] == "interface") ||
-                   (tokens[0] == "z")) {
+                   (tokens[0] == "z") || (tokens[0] == "gcd") || (tokens[0] == "owner") ||
+                   (tokens[0] == "transaction") || (tokens[0] == "qtable")) {
             ignoreSection(line, file);
         } else if (tokens[0] == "dc") {
             if (tokens[1] == "bus") {
@@ -368,9 +369,6 @@ void loadEpc(CoreObject* parentObject,
                 });
             } else if (tokens[1] == "converter") {
             }
-        } else if ((tokens[0] == "gcd") || (tokens[0] == "owner") ||
-                   (tokens[0] == "transaction") || (tokens[0] == "qtable")) {
-            ignoreSection(line, file);
         } else if (tokens[0] == "end") {
             break;
         } else {

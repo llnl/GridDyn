@@ -73,9 +73,6 @@ namespace {
     void loadPSATExcArray(CoreObject* parentObject,
                           const mArray& excData,
                           const std::vector<GridBus*>& busList);
-    void loadPSATTgArray(CoreObject* parentObject,
-                         const mArray& tgData,
-                         const std::vector<GridBus*>& busList);
     void loadPsatFaultArray(CoreObject* parentObject,
                             const mArray& faultData,
                             const std::vector<GridBus*>& busList);
@@ -856,8 +853,8 @@ namespace {
         if (gds == nullptr) {  // can't add the sensors if there is no simulation
             return;
         }
-        for (index_t pmuIndex = 0; pmuIndex < static_cast<index_t>(pmuData.size()); ++pmuIndex) {
-            const auto& pmuLine = pmuData[pmuIndex];
+    for (index_t pmuIndex = 0; std::cmp_less(pmuIndex, pmuData.size()); ++pmuIndex) {
+        const auto& pmuLine = pmuData[pmuIndex];
             auto ind = static_cast<index_t>(pmuLine[0]);
             auto* bus = busList[ind];
 

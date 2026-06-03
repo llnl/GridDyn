@@ -1165,8 +1165,8 @@ void AcLine::fastDecoupledCalc()
 
     linkFlows.P1 = -b * constLinkComp.Vmx * linkComp.sinTheta1;
 
-    linkFlows.Q1 = (-((b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1 * linkInfo.v1) +
-        (b * linkComp.Vmx);
+    linkFlows.Q1 =
+        (-((b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1 * linkInfo.v1) + (b * linkComp.Vmx);
 
     linkFlows.P2 = -b * constLinkComp.Vmx * linkComp.sinTheta2;
 
@@ -1185,12 +1185,11 @@ void AcLine::swOpenCalc()
         const double deltaTheta = -(((g + (0.5 * mp_G)) / (b + (0.5 * mp_B))) - (g / b));
 
         const double voltageMagnitude = linkInfo.v1 * voltage2 / tap;
-        linkFlows.P1 =
-            (((g + (0.5 * mp_G)) / (tap * tap)) * linkInfo.v1 * linkInfo.v1) -
+        linkFlows.P1 = (((g + (0.5 * mp_G)) / (tap * tap)) * linkInfo.v1 * linkInfo.v1) -
             (g * voltageMagnitude) - (b * voltageMagnitude * deltaTheta);
 
-        linkFlows.Q1 =
-            (-((b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1 * linkInfo.v1) + (b * voltageMagnitude);
+        linkFlows.Q1 = (-((b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1 * linkInfo.v1) +
+            (b * voltageMagnitude);
     }
     if (opFlags[SWITCH2_OPEN_FLAG]) {
         linkFlows.P2 = 0;
@@ -1230,12 +1229,14 @@ void AcLine::fullDeriv()
     LinkDeriv.dP1dt1 =
         (g * linkComp.Vmx * linkComp.sinTheta1) - (b * linkComp.Vmx * linkComp.cosTheta1);
     LinkDeriv.dP1dv1 = ((2 * (g + (0.5 * mp_G)) / (tap * tap)) * linkInfo.v1) -
-        ((g / tap) * linkInfo.v2 * linkComp.cosTheta1) - ((b / tap) * linkInfo.v2 * linkComp.sinTheta1);
+        ((g / tap) * linkInfo.v2 * linkComp.cosTheta1) -
+        ((b / tap) * linkInfo.v2 * linkComp.sinTheta1);
 
     LinkDeriv.dP2dt2 =
         (g * linkComp.Vmx * linkComp.sinTheta2) - (b * linkComp.Vmx * linkComp.cosTheta2);
     LinkDeriv.dP2dv2 = ((2 * (g + (0.5 * mp_G))) * linkInfo.v2) -
-        ((g / tap) * linkInfo.v1 * linkComp.cosTheta2) - ((b / tap) * linkInfo.v1 * linkComp.sinTheta2);
+        ((g / tap) * linkInfo.v1 * linkComp.cosTheta2) -
+        ((b / tap) * linkInfo.v1 * linkComp.sinTheta2);
 
     // reactive power vs local states
     LinkDeriv.dQ1dt1 =
@@ -1243,9 +1244,11 @@ void AcLine::fullDeriv()
     LinkDeriv.dQ2dt2 =
         (-g * linkComp.Vmx * linkComp.cosTheta2) - (b * linkComp.Vmx * linkComp.sinTheta2);
     LinkDeriv.dQ1dv1 = ((-2 * (b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1) -
-        ((g / tap) * linkInfo.v2 * linkComp.sinTheta1) + ((b / tap) * linkInfo.v2 * linkComp.cosTheta1);
+        ((g / tap) * linkInfo.v2 * linkComp.sinTheta1) +
+        ((b / tap) * linkInfo.v2 * linkComp.cosTheta1);
     LinkDeriv.dQ2dv2 = ((-2 * (b + (0.5 * mp_B))) * linkInfo.v2) -
-        ((g / tap) * linkInfo.v1 * linkComp.sinTheta2) + ((b / tap) * linkInfo.v1 * linkComp.cosTheta2);
+        ((g / tap) * linkInfo.v1 * linkComp.sinTheta2) +
+        ((b / tap) * linkInfo.v1 * linkComp.cosTheta2);
 
     // real power vs remote states
     LinkDeriv.dP1dv2 = -linkInfo.v1 * ((g * linkComp.cosTheta1) + (b * linkComp.sinTheta1)) / tap;
@@ -1522,7 +1525,8 @@ void AcLine::smallAngleSimplifiedDeriv()
     // reactive power vs local states
     LinkDeriv.dQ1dt1 = 0;
     LinkDeriv.dQ2dt2 = 0;
-    LinkDeriv.dQ1dv1 = ((-2 * (b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1) + (btap * linkInfo.v2);
+    LinkDeriv.dQ1dv1 =
+        ((-2 * (b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1) + (btap * linkInfo.v2);
     LinkDeriv.dQ2dv2 = ((-2 * (b + (0.5 * mp_B))) * linkInfo.v2) + (btap * linkInfo.v1);
 
     // real power vs remote states

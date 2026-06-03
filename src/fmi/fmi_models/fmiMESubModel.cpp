@@ -1052,14 +1052,16 @@ void FmiMESubModel::loadOutputJac(int index)
             if (out.refMode >= RefMode::LEVEL4) {
                 dependencyIndex = 0;
                 for (auto stateDepIndex : out.stateDep) {
-                    partialDerivative =
-                        getPartial(out.varIndex, stateInformation[stateDepIndex].varIndex, out.refMode);
+                    partialDerivative = getPartial(out.varIndex,
+                                                   stateInformation[stateDepIndex].varIndex,
+                                                   out.refMode);
                     oEst[out.index]->stateDiff[dependencyIndex] = partialDerivative;
                     ++dependencyIndex;
                 }
                 dependencyIndex = 0;
                 for (auto inputDepIndex : out.inputDep) {
-                    partialDerivative = getPartial(out.varIndex, inputVarIndices[inputDepIndex], out.refMode);
+                    partialDerivative =
+                        getPartial(out.varIndex, inputVarIndices[inputDepIndex], out.refMode);
                     oEst[out.index]->inputDiff[dependencyIndex] = partialDerivative;
                     ++dependencyIndex;
                 }
@@ -1072,7 +1074,8 @@ void FmiMESubModel::loadOutputJac(int index)
                 partialDerivative = getPartial(outputInformation[index].varIndex,
                                                stateInformation[stateDepIndex].varIndex,
                                                outputInformation[index].refMode);
-                oEst[outputInformation[index].index]->stateDiff[dependencyIndex] = partialDerivative;
+                oEst[outputInformation[index].index]->stateDiff[dependencyIndex] =
+                    partialDerivative;
                 ++dependencyIndex;
             }
             dependencyIndex = 0;
@@ -1080,7 +1083,8 @@ void FmiMESubModel::loadOutputJac(int index)
                 partialDerivative = getPartial(outputInformation[index].varIndex,
                                                inputVarIndices[inputDepIndex],
                                                outputInformation[index].refMode);
-                oEst[outputInformation[index].index]->inputDiff[dependencyIndex] = partialDerivative;
+                oEst[outputInformation[index].index]->inputDiff[dependencyIndex] =
+                    partialDerivative;
                 ++dependencyIndex;
             }
         }

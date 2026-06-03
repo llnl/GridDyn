@@ -427,15 +427,17 @@ int AcLine::fixPower(double rPower,
             voltage2 = -((-reactivePower) - ((b * voltage1 * voltage1) / (tap * tap))) * tap /
                 (b * voltage1 * cos(angle));
         } else {
-            voltage1 =
-                std::sqrt((-(reactivePower - ((b * voltage1 * voltage2 / tap) * cos(angle))) * tap * tap) / b);
+            voltage1 = std::sqrt(
+                (-(reactivePower - ((b * voltage1 * voltage2 / tap) * cos(angle))) * tap * tap) /
+                b);
         }
     } else {
         if (fixedTerminal == 2) {
             voltage1 = (-(reactivePower - ((b * voltage2 * voltage2) / (tap * tap))) * tap) /
                 (b * voltage2 * cos(angle));
         } else {
-            voltage2 = std::sqrt((-(reactivePower - ((b * voltage1 * voltage2 / tap) * cos(angle)))) / b);
+            voltage2 =
+                std::sqrt((-(reactivePower - ((b * voltage1 * voltage2 / tap) * cos(angle)))) / b);
         }
     }
     linkInfo.v1 = voltage1;
@@ -472,7 +474,8 @@ int AcLine::fixPower(double rPower,
         if (measureTerminal == fixedTerminal) {
             outputPartialDerivatives(measureTerminal, emptyStateData, matrixData, cLocalSolverMode);
         } else {
-            ioPartialDerivatives(measureTerminal, emptyStateData, matrixData, gALoc, cLocalSolverMode);
+            ioPartialDerivatives(
+                measureTerminal, emptyStateData, matrixData, gALoc, cLocalSolverMode);
         }
         if (measureTerminal == 1) {
             deltaP = realPower - linkFlows.P1;
@@ -556,7 +559,7 @@ int AcLine::fixPower(double rPower,
     }
     if (fixedTerminal == 2) {
         const double newAngle = (measureTerminal == 2) ? (B2->getAngle() - angle + tapAngle) :
-                                                        (angle + B2->getAngle() + tapAngle);
+                                                         (angle + B2->getAngle() + tapAngle);
 
         B1->set("angle", newAngle);
         B1->set("voltage", voltage1);

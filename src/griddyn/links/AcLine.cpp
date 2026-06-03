@@ -1089,12 +1089,12 @@ void AcLine::simplifiedDecoupledCalc()
 
     linkFlows.P1 = -b * constLinkComp.Vmx * linkComp.sinTheta1;
 
-    linkFlows.Q1 = -(b + 0.5 * mp_B) / (tap * tap) * linkInfo.v1 * linkInfo.v1;
+    linkFlows.Q1 = -((b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1 * linkInfo.v1;
     linkFlows.Q1 += b * linkComp.Vmx * constLinkComp.cosTheta1;
 
     linkFlows.P2 = -b * constLinkComp.Vmx * linkComp.sinTheta2;
 
-    linkFlows.Q2 = -(b + 0.5 * mp_B) * linkInfo.v2 * linkInfo.v2;
+    linkFlows.Q2 = -(b + (0.5 * mp_B)) * linkInfo.v2 * linkInfo.v2;
     linkFlows.Q2 += b * linkComp.Vmx * constLinkComp.cosTheta2;
     linkFlows.seqID = linkInfo.seqID;
 }
@@ -1165,11 +1165,12 @@ void AcLine::fastDecoupledCalc()
 
     linkFlows.P1 = -b * constLinkComp.Vmx * linkComp.sinTheta1;
 
-    linkFlows.Q1 = -(b + 0.5 * mp_B) / (tap * tap) * linkInfo.v1 * linkInfo.v1 + b * linkComp.Vmx;
+    linkFlows.Q1 = (-((b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1 * linkInfo.v1) +
+        (b * linkComp.Vmx);
 
     linkFlows.P2 = -b * constLinkComp.Vmx * linkComp.sinTheta2;
 
-    linkFlows.Q2 = -(b + 0.5 * mp_B) * linkInfo.v2 * linkInfo.v2 + b * linkComp.Vmx;
+    linkFlows.Q2 = (-(b + (0.5 * mp_B)) * linkInfo.v2 * linkInfo.v2) + (b * linkComp.Vmx);
 
     linkFlows.seqID = linkInfo.seqID;
 }
@@ -1249,8 +1250,8 @@ void AcLine::fullDeriv()
     // real power vs remote states
     LinkDeriv.dP1dv2 = -linkInfo.v1 * ((g * linkComp.cosTheta1) + (b * linkComp.sinTheta1)) / tap;
     LinkDeriv.dP2dv1 = -linkInfo.v2 * ((g * linkComp.cosTheta2) + (b * linkComp.sinTheta2)) / tap;
-    LinkDeriv.dP1dt2 = -linkComp.Vmx * (g * linkComp.sinTheta1 - b * linkComp.cosTheta1);
-    LinkDeriv.dP2dt1 = -linkComp.Vmx * (g * linkComp.sinTheta2 - b * linkComp.cosTheta2);
+    LinkDeriv.dP1dt2 = -linkComp.Vmx * ((g * linkComp.sinTheta1) - (b * linkComp.cosTheta1));
+    LinkDeriv.dP2dt1 = -linkComp.Vmx * ((g * linkComp.sinTheta2) - (b * linkComp.cosTheta2));
 
     // reactive power vs remote states
 

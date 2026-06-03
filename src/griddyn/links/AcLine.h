@@ -152,7 +152,7 @@ class AcLine: public Link {
     virtual void pFlowObjectInitializeB() override;
     virtual void updateLocalCache() override;
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const StateData& sD,
+                                  const StateData& stateData,
                                   const SolverMode& sMode) override;
 
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
@@ -179,7 +179,7 @@ class AcLine: public Link {
     using Link::ioPartialDerivatives;
     virtual void ioPartialDerivatives(id_type_t busId,
                                       const StateData& sD,
-                                      MatrixData<double>& md,
+                                      MatrixData<double>& matrixData,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
 
@@ -189,7 +189,7 @@ class AcLine: public Link {
                                           const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(id_type_t busId,
                                           const StateData& sD,
-                                          MatrixData<double>& md,
+                                          MatrixData<double>& matrixData,
                                           const SolverMode& sMode) override;
     virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
     virtual double getMaxTransfer() const override;
@@ -201,7 +201,7 @@ class AcLine: public Link {
                           const SolverMode& sMode) override;
 
     virtual ChangeCode rootCheck(const IOdata& inputs,
-                                 const StateData& sD,
+                                 const StateData& stateData,
                                  const SolverMode& sMode,
                                  CheckLevel level) override;
 
@@ -282,7 +282,7 @@ class AcLine: public Link {
     /** @brief load information into the linkInfo structure
     @param[in] sD  the state Data
     @param[in] sMode the corresponding solver Mode*/
-    void loadLinkInfo(const StateData& sD, const SolverMode& sMode);
+    void loadLinkInfo(const StateData& stateData, const SolverMode& sMode);
     /** @brief load the approximation functions in the bizarrely defined array above*/
     void loadApproxFunctions();
 

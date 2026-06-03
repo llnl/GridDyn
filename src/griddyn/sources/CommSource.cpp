@@ -15,20 +15,37 @@
 #include <memory>
 #include <string>
 
-// NOLINTBEGIN
 namespace griddyn::sources {
+namespace {
+    bool isIgnoredMessageType(griddyn::comms::ControlMessagePayload::ControlMessageType messageType)
+    {
+        switch (messageType) {
+            case griddyn::comms::ControlMessagePayload::GET_SCHEDULED:
+            case griddyn::comms::ControlMessagePayload::CANCEL_FAIL:
+            case griddyn::comms::ControlMessagePayload::CANCEL_SUCCESS:
+            case griddyn::comms::ControlMessagePayload::GET_RESULT_MULTIPLE:
+            case griddyn::comms::ControlMessagePayload::CANCEL:
+            case griddyn::comms::ControlMessagePayload::GET_MULTIPLE:
+            case griddyn::comms::ControlMessagePayload::GET_PERIODIC:
+                return true;
+            default:
+                return false;
+        }
+    }
+}  // namespace
+
 CommSource::CommSource(const std::string& objName): RampSource(objName)
 {
     enableUpdates();
 }
 CoreObject* CommSource::clone(CoreObject* obj) const
 {
-    auto cs = cloneBase<CommSource, RampSource>(this, obj);
-    if (cs == nullptr) {
+    auto* commSourceClone = cloneBase<CommSource, RampSource>(this, obj);
+    if (commSourceClone == nullptr) {
         return obj;
     }
-    cs->maxRamp = maxRamp;
-    return cs;
+    commSourceClone->maxRamp = maxRamp;
+    return commSourceClone;
 }
 
 void CommSource::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
@@ -39,7 +56,7 @@ void CommSource::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
     if (commLink) {
         commLink->initialize();
         commLink->registerReceiveCallback(
-            [this](std::uint64_t sourceID, std::shared_ptr<CommMessage> message) {
+            [this](std::uint64_t sourceID, const std::shared_ptr<CommMessage>& message) {
                 receiveMessage(sourceID, message);
             });
     }
@@ -50,9 +67,9 @@ void CommSource::setLevel(double val)
 {
     if (opFlags[USE_RAMP]) {
         if (maxRamp > 0) {
-            double dt = (val - m_output) / maxRamp;
-            if (dt > 0.0001) {
-                nextUpdateTime = prevTime + dt;
+            const double deltaTime = (val - m_output) / maxRamp;
+            if (deltaTime > 0.0001) {
+                nextUpdateTime = prevTime + deltaTime;
                 alert(this, UPDATE_TIME_CHANGE);
                 mp_dOdt = (val > m_output) ? maxRamp : -maxRamp;
             } else {
@@ -108,13 +125,17 @@ void CommSource::updateA(CoreTime time)
 
 using ControlMessagePayload = griddyn::comms::ControlMessagePayload;
 
-void CommSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMessage> message)
+void CommSource::receiveMessage(std::uint64_t sourceID, const std::shared_ptr<CommMessage>& message)
 {
     if (message == nullptr) {
         return;
     }
-    auto m = message->getPayload<ControlMessagePayload>();
-    if (m == nullptr) {
+    auto* controlMessage = message->getPayload<ControlMessagePayload>();
+    if (controlMessage == nullptr) {
+        return;
+    }
+    if (isIgnoredMessageType(static_cast<griddyn::comms::ControlMessagePayload::ControlMessageType>(
+            message->getMessageType()))) {
         return;
     }
 
@@ -122,14 +143,14 @@ void CommSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMess
 
     switch (message->getMessageType()) {
         case ControlMessagePayload::SET:
-            setLevel(m->m_value);
+            setLevel(controlMessage->m_value);
 
             if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
             {
                 reply = std::make_shared<CommMessage>(ControlMessagePayload::SET_SUCCESS);
-                auto payload = reply->getPayload<ControlMessagePayload>();
-                if (payload != nullptr) {
-                    payload->m_actionID = m->m_actionID;
+                auto* replyPayload = reply->getPayload<ControlMessagePayload>();
+                if (replyPayload != nullptr) {
+                    replyPayload->m_actionID = controlMessage->m_actionID;
                     commLink->transmit(sourceID, reply);
                 }
             }
@@ -138,11 +159,11 @@ void CommSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMess
         case ControlMessagePayload::GET: {
             reply = std::make_shared<CommMessage>(ControlMessagePayload::GET_RESULT);
 
-            auto rep = reply->getPayload<ControlMessagePayload>();
-            if (rep != nullptr) {
-                rep->m_field = "level";
-                rep->m_value = m_output;
-                rep->m_time = prevTime;
+            auto* replyPayload = reply->getPayload<ControlMessagePayload>();
+            if (replyPayload != nullptr) {
+                replyPayload->m_field = "level";
+                replyPayload->m_value = m_output;
+                replyPayload->m_time = prevTime;
                 commLink->transmit(sourceID, reply);
             }
         } break;
@@ -151,44 +172,31 @@ void CommSource::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMess
         case ControlMessagePayload::GET_RESULT:
             break;
         case ControlMessagePayload::SET_SCHEDULED:
-            if (m->m_time > prevTime) {
-                double val = m->m_value;
+            if (controlMessage->m_time > prevTime) {
+                const double scheduledValue = controlMessage->m_value;
                 auto fea = std::make_shared<FunctionEventAdapter>(
-                    [this, val]() {
-                        setLevel(val);
+                    [this, scheduledValue]() {
+                        setLevel(scheduledValue);
                         return ChangeCode::PARAMETER_CHANGE;
                     },
-                    m->m_time);
+                    controlMessage->m_time);
                 rootSim->add(fea);
             } else {
-                setLevel(m->m_value);
+                setLevel(controlMessage->m_value);
 
                 if (!opFlags[NO_MESSAGE_REPLY])  // unless told not to respond return with the
                 {
                     auto gres = std::make_shared<CommMessage>(ControlMessagePayload::SET_SUCCESS);
-                    auto payload = gres->getPayload<ControlMessagePayload>();
-                    if (payload != nullptr) {
-                        payload->m_actionID = m->m_actionID;
+                    auto* replyPayload = gres->getPayload<ControlMessagePayload>();
+                    if (replyPayload != nullptr) {
+                        replyPayload->m_actionID = controlMessage->m_actionID;
                         commLink->transmit(sourceID, gres);
                     }
                 }
             }
-            break;
-        case ControlMessagePayload::GET_SCHEDULED:
-        case ControlMessagePayload::CANCEL_FAIL:
-        case ControlMessagePayload::CANCEL_SUCCESS:
-        case ControlMessagePayload::GET_RESULT_MULTIPLE:
-            break;
-        case ControlMessagePayload::CANCEL:
-
-            break;
-        case ControlMessagePayload::GET_MULTIPLE:
-            break;
-        case ControlMessagePayload::GET_PERIODIC:
             break;
         default:
             break;
     }
 }
 }  // namespace griddyn::sources
-// NOLINTEND

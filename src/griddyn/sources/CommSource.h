@@ -45,7 +45,8 @@ namespace sources {
     @param[in] sourceID  the source of the comm message
     @param[in] message the actual message to process
     */
-        virtual void receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMessage> message);
+        virtual void receiveMessage(std::uint64_t sourceID,
+                                    const std::shared_ptr<CommMessage>& message);
     };
 
 }  // namespace sources

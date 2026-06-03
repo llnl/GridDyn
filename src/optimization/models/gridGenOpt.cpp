@@ -35,10 +35,53 @@ namespace {
         const auto result = std::from_chars(begin, end, index);
         return (result.ec == std::errc{}) && (result.ptr == end);
     }
+
+    int getPolynomialOrderLimit(const OptimizationMode& optimizationMode)
+    {
+        switch (optimizationMode.linMode) {
+            case LinearityMode::LINEAR:
+                return 1;
+            case LinearityMode::QUADRATIC:
+                return 2;
+            default:
+                return kBigINT;
+        }
+    }
+
+    double evaluatePolynomialCost(const std::vector<double>& coefficients,
+                                  double value,
+                                  double period,
+                                  int maxOrder)
+    {
+        double cost = 0.0;
+        int coefficientIndex = 0;
+        for (const auto coefficient : coefficients) {
+            cost += coefficient * pow(value, coefficientIndex) * period;
+            ++coefficientIndex;
+            if (coefficientIndex > maxOrder) {
+                break;
+            }
+        }
+        return cost;
+    }
+
+    double evaluatePolynomialDerivative(const std::vector<double>& coefficients,
+                                        double value,
+                                        double period,
+                                        std::size_t maxOrder)
+    {
+        const auto coefficientCount = std::min(coefficients.size(), maxOrder + 1U);
+        double derivative = 0.0;
+        for (std::size_t coefficientIndex = 1; coefficientIndex < coefficientCount;
+             ++coefficientIndex) {
+            derivative += static_cast<double>(coefficientIndex) * coefficients[coefficientIndex] *
+                pow(value, coefficientIndex - 1U) * period;
+        }
+        return derivative;
+    }
 }  // namespace
 
-static OptObjectFactory<GridGenOpt, Generator> opgen("basic", "gen", 0, true);
-// NOLINTBEGIN(readability-identifier-length,misc-const-correctness,readability-isolate-declaration)
+static OptObjectFactory<GridGenOpt, Generator> gOpgen("basic", "gen", 0, true);
 
 GridGenOpt::GridGenOpt(const std::string& objName): GridOptObject(objName), bus(nullptr) {}
 
@@ -91,20 +134,20 @@ void GridGenOpt::dynObjectInitializeA(std::uint32_t /*flags*/)
 
 void GridGenOpt::loadSizes(const OptimizationMode& oMode)
 {
-    auto& oo = offsets.getOffsets(oMode);
-    oo.reset();
+    auto& optimizationOffsets = offsets.getOffsets(oMode);
+    optimizationOffsets.reset();
     switch (oMode.flowMode) {
         case FlowModel::NONE:
         case FlowModel::TRANSPORT:
         case FlowModel::DC:
-            oo.local.genSize = 1;
+            optimizationOffsets.local.genSize = 1;
             break;
         case FlowModel::AC:
-            oo.local.genSize = 1;
-            oo.local.qSize = 1;
+            optimizationOffsets.local.genSize = 1;
+            optimizationOffsets.local.qSize = 1;
             break;
     }
-    oo.localLoad(true);
+    optimizationOffsets.localLoad(true);
 }
 
 void GridGenOpt::setValues(const OptimizationData& /* of */, const OptimizationMode& /*oMode*/) {}
@@ -124,30 +167,31 @@ void GridGenOpt::valueBounds(double time,
                              double lowerLimit[],
                              const OptimizationMode& oMode)
 {
-    auto& oo = offsets.getOffsets(oMode);
-    double Pup, Pdown;
+    auto& optimizationOffsets = offsets.getOffsets(oMode);
+    double pUpper;
+    double pLower;
     if (optFlags.test(LIMIT_OVERRIDE)) {
         if (m_Pmax < kHalfBigNum) {
-            Pup = m_Pmax;
+            pUpper = m_Pmax;
         } else {
-            Pup = gen->getPmax(time);
+            pUpper = gen->getPmax(time);
         }
         if (m_Pmin > -kHalfBigNum) {
-            Pdown = m_Pmin;
+            pLower = m_Pmin;
         } else {
-            Pdown = gen->getPmin(time);
+            pLower = gen->getPmin(time);
         }
     } else {
-        Pup = gen->getPmax(time);
-        Pdown = gen->getPmin(time);
+        pUpper = gen->getPmax(time);
+        pLower = gen->getPmin(time);
     }
-    upperLimit[oo.gOffset] = Pup;
-    lowerLimit[oo.gOffset] = Pdown;
+    upperLimit[optimizationOffsets.gOffset] = pUpper;
+    lowerLimit[optimizationOffsets.gOffset] = pLower;
     if (isAC(oMode)) {
-        double Qup = gen->getQmax(time);
-        double Qdown = gen->getQmin(time);
-        upperLimit[oo.qOffset] = Qup;
-        lowerLimit[oo.qOffset] = Qdown;
+        const double qUpper = gen->getQmax(time);
+        const double qLower = gen->getQmin(time);
+        upperLimit[optimizationOffsets.qOffset] = qUpper;
+        lowerLimit[optimizationOffsets.qOffset] = qLower;
     }
 }
 
@@ -155,14 +199,14 @@ void GridGenOpt::linearObj(const OptimizationData& /* of */,
                            vectData<double>& linObj,
                            const OptimizationMode& oMode)
 {
-    auto& oo = offsets.getOffsets(oMode);
+    auto& optimizationOffsets = offsets.getOffsets(oMode);
     if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
         linObj.assign(0, Pcoeff[0] * oMode.period);
-        linObj.assign(oo.gOffset, Pcoeff[1] * oMode.period);
+        linObj.assign(optimizationOffsets.gOffset, Pcoeff[1] * oMode.period);
         if ((!(Qcoeff.empty())) && (isAC(oMode))) {
             linObj.assign(0, Qcoeff[0] * oMode.period);
-            linObj.assign(oo.qOffset, Qcoeff[1] * oMode.period);
+            linObj.assign(optimizationOffsets.qOffset, Qcoeff[1] * oMode.period);
         }
     }
 }
@@ -171,141 +215,84 @@ void GridGenOpt::quadraticObj(const OptimizationData& /* of */,
                               vectData<double>& quadObj,
                               const OptimizationMode& oMode)
 {
-    auto& oo = offsets.getOffsets(oMode);
+    auto& optimizationOffsets = offsets.getOffsets(oMode);
     if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
         linObj.assign(0, Pcoeff[0] * oMode.period);
-        linObj.assign(oo.gOffset, Pcoeff[1] * oMode.period);
-        if (Pcoeff.size() >= 2) {
-            quadObj.assign(oo.gOffset, Pcoeff[2] * oMode.period);
+        linObj.assign(optimizationOffsets.gOffset, Pcoeff[1] * oMode.period);
+        if (Pcoeff.size() >= 3) {
+            quadObj.assign(optimizationOffsets.gOffset, Pcoeff[2] * oMode.period);
         }
         if ((!(Qcoeff.empty())) && (isAC(oMode))) {
             linObj.assign(0, Qcoeff[0] * oMode.period);
-            linObj.assign(oo.qOffset, Qcoeff[1] * oMode.period);
-            if (Qcoeff.size() >= 2) {
-                quadObj.assign(oo.qOffset, Qcoeff[2] * oMode.period);
+            linObj.assign(optimizationOffsets.qOffset, Qcoeff[1] * oMode.period);
+            if (Qcoeff.size() >= 3) {
+                quadObj.assign(optimizationOffsets.qOffset, Qcoeff[2] * oMode.period);
             }
         }
     }
 }
 
-double GridGenOpt::objValue(const OptimizationData& of, const OptimizationMode& oMode)
+double GridGenOpt::objValue(const OptimizationData& optimizationData, const OptimizationMode& oMode)
 {
     double cost = 0;
-    auto& oo = offsets.getOffsets(oMode);
-    double P = of.val[oo.gOffset];
+    auto& optimizationOffsets = offsets.getOffsets(oMode);
+    const double pValue = optimizationData.val[optimizationOffsets.gOffset];
     if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
-        int kk = 0;
-        int kmax;
-        switch (oMode.linMode) {
-            case LinearityMode::LINEAR:
-                kmax = 1;
-                break;
-            case LinearityMode::QUADRATIC:
-                kmax = 2;
-                break;
-            default:
-                kmax = kBigINT;
-        }
-        for (auto pc : Pcoeff) {
-            cost += pc * pow(P, kk) * oMode.period;
-            ++kk;
-            if (kk > kmax) {
-                break;
-            }
-        }
+        const int orderLimit = getPolynomialOrderLimit(oMode);
+        cost += evaluatePolynomialCost(Pcoeff, pValue, oMode.period, orderLimit);
         if ((!(Qcoeff.empty())) && (isAC(oMode))) {
-            double Q = of.val[oo.qOffset];
-            kk = 0;
-            for (auto pc : Qcoeff) {
-                cost += pc * pow(Q, kk) * oMode.period;
-                ++kk;
-                if (kk > kmax) {
-                    break;
-                }
-            }
+            const double qValue = optimizationData.val[optimizationOffsets.qOffset];
+            cost += evaluatePolynomialCost(Qcoeff, qValue, oMode.period, orderLimit);
         }
     }
     return cost;
 }
 
-void GridGenOpt::gradient(const OptimizationData& of, double deriv[], const OptimizationMode& oMode)
+void GridGenOpt::gradient(const OptimizationData& optimizationData,
+                          double deriv[],
+                          const OptimizationMode& oMode)
 {
-    auto& oo = offsets.getOffsets(oMode);
-    double P = of.val[oo.gOffset];
-    double temp;
+    auto& optimizationOffsets = offsets.getOffsets(oMode);
+    const double pValue = optimizationData.val[optimizationOffsets.gOffset];
     if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
-        size_t kk = 0;
-        size_t kmax;
-        size_t klim;
-        switch (oMode.linMode) {
-            case LinearityMode::LINEAR:
-                kmax = 1;
-                break;
-            case LinearityMode::QUADRATIC:
-                kmax = 2;
-                break;
-            default:
-                kmax = kBigINT;
-        }
-        klim = std::max(kmax, Pcoeff.size());
-        temp = 0;
-        for (kk = 1; kk < klim; ++kk) {
-            temp += static_cast<double>(kk) * Pcoeff[kk] * pow(P, kk - 1) * oMode.period;
-        }
-        deriv[oo.gOffset] = temp;
+        const auto orderLimit = static_cast<std::size_t>(getPolynomialOrderLimit(oMode));
+        deriv[optimizationOffsets.gOffset] =
+            evaluatePolynomialDerivative(Pcoeff, pValue, oMode.period, orderLimit);
         if ((!(Qcoeff.empty())) && (isAC(oMode))) {
-            double Q = of.val[oo.qOffset];
-            klim = std::max(kmax, Qcoeff.size());
-            temp = 0;
-            for (kk = 1; kk < klim; ++kk) {
-                temp += static_cast<double>(kk) * Qcoeff[kk] * pow(Q, kk - 1) * oMode.period;
-            }
-            deriv[oo.qOffset] = temp;
+            const double qValue = optimizationData.val[optimizationOffsets.qOffset];
+            deriv[optimizationOffsets.qOffset] =
+                evaluatePolynomialDerivative(Qcoeff, qValue, oMode.period, orderLimit);
         }
     }
 }
-void GridGenOpt::jacobianElements(const OptimizationData& of,
-                                  MatrixData<double>& md,
+
+void GridGenOpt::jacobianElements(const OptimizationData& optimizationData,
+                                  MatrixData<double>& matrixDataRef,
                                   const OptimizationMode& oMode)
 {
-    auto& oo = offsets.getOffsets(oMode);
-    double P = of.val[oo.gOffset];
-    double temp;
+    auto& optimizationOffsets = offsets.getOffsets(oMode);
+    const double pValue = optimizationData.val[optimizationOffsets.gOffset];
     if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
-        size_t kk = 0;
-        size_t kmax;
-        size_t klim;
-        switch (oMode.linMode) {
-            case LinearityMode::LINEAR:
-                kmax = 1;
-                break;
-            case LinearityMode::QUADRATIC:
-                kmax = 2;
-                break;
-            default:
-                kmax = kBigINT;
-        }
-        klim = std::max(kmax, Pcoeff.size());
-        temp = 0;
-        for (kk = 1; kk < klim; ++kk) {
-            temp += static_cast<double>(kk) * Pcoeff[kk] * pow(P, kk - 1) * oMode.period;
-        }
-        if (temp != 0) {
-            md.assign(oo.gOffset, oo.gOffset, temp);
+        const auto orderLimit = static_cast<std::size_t>(getPolynomialOrderLimit(oMode));
+        const double pDerivative =
+            evaluatePolynomialDerivative(Pcoeff, pValue, oMode.period, orderLimit);
+        if (pDerivative != 0) {
+            matrixDataRef.assign(optimizationOffsets.gOffset,
+                                 optimizationOffsets.gOffset,
+                                 pDerivative);
         }
         if ((!(Qcoeff.empty())) && (isAC(oMode))) {
-            double Q = of.val[oo.qOffset];
-            klim = std::max(kmax, Qcoeff.size());
-            temp = 0;
-            for (kk = 1; kk < klim; ++kk) {
-                temp += static_cast<double>(kk) * Qcoeff[kk] * pow(Q, kk - 1) * oMode.period;
-            }
-            if (temp != 0) {
-                md.assign(oo.qOffset, oo.qOffset, temp);
+            const double qValue = optimizationData.val[optimizationOffsets.qOffset];
+            const double qDerivative =
+                evaluatePolynomialDerivative(Qcoeff, qValue, oMode.period, orderLimit);
+            if (qDerivative != 0) {
+                matrixDataRef.assign(optimizationOffsets.qOffset,
+                                     optimizationOffsets.qOffset,
+                                     qDerivative);
             }
         }
     }
@@ -335,16 +322,16 @@ void GridGenOpt::getObjectiveNames(stringVec& objectiveNames,
                                    const OptimizationMode& oMode,
                                    const std::string& prefix)
 {
-    auto& oo = offsets.getOffsets(oMode);
-    if (objectiveNames.size() <= static_cast<size_t>(oo.gOffset)) {
-        objectiveNames.resize(static_cast<size_t>(oo.gOffset) + 1);
+    auto& optimizationOffsets = offsets.getOffsets(oMode);
+    if (objectiveNames.size() <= static_cast<size_t>(optimizationOffsets.gOffset)) {
+        objectiveNames.resize(static_cast<size_t>(optimizationOffsets.gOffset) + 1);
     }
-    objectiveNames[oo.gOffset] = prefix + getName() + ":PGen";
+    objectiveNames[optimizationOffsets.gOffset] = prefix + getName() + ":PGen";
     if (isAC(oMode)) {
-        if (objectiveNames.size() <= static_cast<size_t>(oo.qOffset)) {
-            objectiveNames.resize(static_cast<size_t>(oo.qOffset) + 1);
+        if (objectiveNames.size() <= static_cast<size_t>(optimizationOffsets.qOffset)) {
+            objectiveNames.resize(static_cast<size_t>(optimizationOffsets.qOffset) + 1);
         }
-        objectiveNames[oo.qOffset] = prefix + getName() + ":QGen";
+        objectiveNames[optimizationOffsets.qOffset] = prefix + getName() + ":QGen";
     }
 }
 
@@ -466,4 +453,3 @@ GridOptObject* GridGenOpt::getArea(index_t index) const
 }
 
 }  // namespace griddyn
-// NOLINTEND(readability-identifier-length,misc-const-correctness,readability-isolate-declaration)

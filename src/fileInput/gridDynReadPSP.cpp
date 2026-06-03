@@ -25,17 +25,18 @@ using gmlc::utilities::stringOps::removeQuotes;
 using gmlc::utilities::stringOps::trim;
 using units::deg;
 
-// NOLINTBEGIN(misc-unused-using-decls,misc-use-internal-linkage,hicpp-multiway-paths-covered,bugprone-switch-missing-default-case,readability-math-missing-parentheses,readability-isolate-declaration,bugprone-unused-local-non-trivial-variable,readability-identifier-length,misc-const-correctness)
-void pspReadBus(GridBus* bus,
-                const std::string& line,
-                double base,
-                const BasicReaderInfo& readerOptions);
-void pspReadBranch(CoreObject* parentObject,
-                   const std::string& line,
-                   const std::string& line2,
-                   double base,
-                   std::vector<GridBus*> busList,
-                   const BasicReaderInfo& readerOptions);
+namespace {
+    void pspReadBus(GridBus* bus,
+                    const std::string& line,
+                    double base,
+                    const BasicReaderInfo& readerOptions);
+    void pspReadBranch(CoreObject* parentObject,
+                       const std::string& line,
+                       const std::string& line2,
+                       double base,
+                       const std::vector<GridBus*>& busList,
+                       const BasicReaderInfo& readerOptions);
+}  // namespace
 
 /*
 The PECO PSAP File Format is fully described in the _PJM Power System
@@ -113,7 +114,7 @@ void loadPsp(CoreObject* parentObject,
                         // trimString(temp);
                         index = std::stoi(temp);
                         if (static_cast<size_t>(index) >= busList.size()) {
-                            busList.resize(2 * index + 1, nullptr);
+                            busList.resize((2 * index) + 1, nullptr);
                         }
                         if (busList[index] == nullptr) {
                             busList[index] = new AcBus();
@@ -176,6 +177,8 @@ void loadPsp(CoreObject* parentObject,
                     }
                 }
             } break;
+            default:
+                break;
         }
     }
     file.close();
@@ -212,288 +215,294 @@ Three default decimal places.
 
 */
 
-void pspReadBus(GridBus* bus,
-                const std::string& line,
-                double base,
-                const BasicReaderInfo& readerOptions)
-{
-    const auto& bri = readerOptions;
-    std::string temp, temp2;
-    GridLoad* ld = nullptr;
-    Generator* gen = nullptr;
-    int code;
-    double p, q;
-    double val;
-    temp = line.substr(9, 12);
-    temp = removeQuotes(temp);
-    if (bri.prefix.empty()) {
-        if (temp.empty()) {
-            temp = line.substr(0, 4);
-            gmlc::utilities::stringOps::trimString(temp);
-            temp = "BUS_" + temp;
-        }
-    } else {
-        if (temp.empty()) {
-            temp = line.substr(0, 4);
-            gmlc::utilities::stringOps::trimString(temp);
-            temp = bri.prefix + "BUS_" + temp;
+namespace {
+    void pspReadBus(GridBus* bus,
+                    const std::string& line,
+                    double base,
+                    const BasicReaderInfo& readerOptions)
+    {
+        const auto& bri = readerOptions;
+        std::string temp;
+        GridLoad* load = nullptr;
+        Generator* gen = nullptr;
+        int code;
+        double pValue;
+        double qValue;
+        double val;
+        temp = line.substr(9, 12);
+        temp = removeQuotes(temp);
+        if (bri.prefix.empty()) {
+            if (temp.empty()) {
+                temp = line.substr(0, 4);
+                gmlc::utilities::stringOps::trimString(temp);
+                temp = "BUS_" + temp;
+            }
         } else {
-            temp = bri.prefix + '_' + temp;
-        }
-    }
-
-    bus->setName(temp);  // set the name
-
-    // get the localBaseVoltage
-    temp = line.substr(18, 3);
-
-    val = numeric_conversion<double>(temp, 0.0);
-
-    if (val > 0.0) {
-        bus->set("basevoltage", val);
-    }
-    // voltage and angle common to all bus types
-    // get the actual voltage
-    temp = line.substr(22, 4);
-    val = numeric_conversion<double>(temp, 0.0);
-    if (val > 0.0) {
-        bus->set("voltage", val / 1000);
-    }
-    // get the angle
-    temp = line.substr(26, 4);
-    val = numeric_conversion<double>(temp, 0.0);
-    if (val != 0.0) {
-        bus->set("angle", val / 180 * kPI);
-    }
-
-    // get the bus type
-    temp = line.substr(7, 1);
-    code = (temp[0] == ' ') ? 0 : numeric_conversion<int>(temp, 0);
-    switch (code) {
-        case 0:  // PQ
-            bus->set("type", "pq");
-
-            break;
-        case 1:  // pv bus
-            bus->set("type", "pv");
-            // get the Qmax and Qmin
-            temp = line.substr(40, 5);
-            p = numeric_conversion<double>(temp, 0.0);
-            temp = line.substr(45, 5);
-            q = numeric_conversion<double>(temp, 0.0);
-            if (p != 0.0) {
-                bus->set("qmin", p / base);
-            }
-            if (q != 0.0) {
-                bus->set("qmax", q / base);
-            }
-            // get the desired voltage
-            temp = line.substr(22, 4);
-            val = numeric_conversion<double>(temp, 0.0);
-            bus->set("vtarget", val / 1000);
-            break;
-        case 2:  // swing bus
-            bus->set("type", "slk");
-            // get the desired voltage
-            temp = line.substr(22, 4);
-            val = numeric_conversion<double>(temp, 0.0);
-            bus->set("vtarget", val / 1000);
-            temp = line.substr(26, 4);
-            val = numeric_conversion<double>(temp, 0.0);
-            if (val != 0) {
-                bus->set("atarget", val, deg);
-            }
-            break;
-    }
-    // load section
-    temp = line.substr(55, 5);
-    p = numeric_conversion<double>(temp, 0.0);
-    temp = line.substr(60, 5);
-    q = numeric_conversion<double>(temp, 0.0);
-
-    if ((p != 0) || (q != 0)) {
-        ld = new ZipLoad(p / base, q / base);
-        bus->add(ld);
-    }
-    // get the shunt impedance
-    temp = trim(line.substr(65, 5));
-    q = numeric_conversion<double>(temp, 0.0);
-    if (q != 0.0) {
-        if (ld == nullptr) {
-            ld = new ZipLoad();
-            bus->add(ld);
-        }
-        ld->set("yq", -q / base);
-    }
-    // get the generation
-    temp = trim(line.substr(30, 5));
-    p = numeric_conversion<double>(temp, 0.0);
-    temp = trim(line.substr(35, 5));
-    q = numeric_conversion<double>(temp, 0.0);
-
-    if ((p != 0.0) || (q != 0.0)) {
-        gen = new Generator();
-        bus->add(gen);
-        gen->set("p", p / base);
-        gen->set("q", q / base);
-        // get the Qmax and Qmin
-        temp = line.substr(40, 5);
-        p = numeric_conversion<double>(temp, 0.0);
-        temp = line.substr(45, 5);
-        q = numeric_conversion<double>(temp, 0.0);
-        if (p != 0.0) {
-            gen->set("qmin", p / base);
-        }
-        if (q != 0.0) {
-            gen->set("qmax", q / base);
-        }
-    } else if (bus->getType() != GridBus::BusType::PQ) {
-        temp = line.substr(40, 5);
-        p = numeric_conversion<double>(temp, 0.0);
-        temp = line.substr(45, 5);
-        q = numeric_conversion<double>(temp, 0.0);
-        if ((p != 0.0) || (q != 0.0)) {
-            gen = new Generator();
-            bus->add(gen);
-            if (p != 0.0) {
-                gen->set("qmin", p / base);
-            }
-            if (q != 0.0) {
-                gen->set("qmax", q / base);
+            if (temp.empty()) {
+                temp = line.substr(0, 4);
+                gmlc::utilities::stringOps::trimString(temp);
+                temp = bri.prefix + "BUS_" + temp;
+            } else {
+                temp = bri.prefix + '_' + temp;
             }
         }
-    }
-}
-/*
-Line Data Card (Code 4 cards)
-=============================
 
-Cols    Data
-1-4     From bus number
-6       Change code (blank in 4 section)
-7       'C' if second card present for same line. Used for transformers.
-9-12    To bus number
-14      Circuit number (blank in 4 section)
-16      'T' or 'F' - GridLoad flow area of bus at this end of line gets losses.
-18-23   Line resistance in percent of base. (NOT per unit.)
-(percent = 100 x per unit) Two default decimal places.
-24-29   Line reactance, in percent. Two default decimal places.
-30-35   Line charging MVAR (total). Three default decimal places.
-36-40   Transformer tap (per unit turns ratio). Three default decimal
-places, 1000 = 1.000.
-41-45   Min tap, for OLTC. Three default decimal places.
-46-50   Max tap, for OLTC. Three default decimal places.
-51-55   Phase shift angle, for OL phase shifter. Two default decimal places.
-56-60   Remote voltage control bus number. Negative if lower tap increases
-voltage of this bus.
-61-64   Normal MVA rating
-65-68   Emergency MVA rating
-69-72   MVA Base. Default value 100 MVA if blank.
+        bus->setName(temp);  // set the name
 
-Second Line Card (follows 'C' in first card)
-============================================
+        // get the localBaseVoltage
+        temp = line.substr(18, 3);
 
-1-17    Same as first card, except no 'C'. Can be left blank.
-35-40   Desired MVAR flow or Min voltage setpoint for OLTC.
-41-45   Min phase shifter degrees. Two default decimal places.
-46-50   Max phase shifter degrees. Two default decimal places.
-51-55   Desired MW flow for phase shifter.
-57-60   Controlled line from bus.
-62-65   Controlled line to bus.
-67-70   Available taps (number of taps)
-71-75   Maximum voltage setpoint. Three default decimal places.
+        val = numeric_conversion<double>(temp, 0.0);
 
-*/
-
-void pspReadBranch(CoreObject* parentObject,
-                   const std::string& line,
-                   const std::string& line2,
-                   double base,
-                   std::vector<GridBus*> busList,
-                   const BasicReaderInfo& readerOptions)
-{
-    const auto& bri = readerOptions;
-    GridBus *bus1, *bus2;
-    Link* lnk;
-    int ind1, ind2;
-    double val;
-    bool istransformer = false;
-    std::string temp = line.substr(0, 4);
-    ind1 = std::stoi(temp);
-    std::string temp2;
-    if (!bri.prefix.empty()) {
-        temp2 = bri.prefix + '_' + temp + "_to_";
-    } else {
-        temp2 = temp + "_to_";
-    }
-
-    temp = line.substr(8, 4);
-    ind2 = std::stoi(temp);
-
-    temp2 = temp2 + temp;
-    bus1 = busList[ind1];
-    bus2 = busList[ind2];
-    if (line[6] == 'C') {
-        istransformer = true;
-        temp = line2.substr(66, 4);
-        gmlc::utilities::stringOps::trimString(temp);
-        if (temp.empty()) {
-            lnk = new AcLine();
-            // lnk->set ("type", "transformer");
-        } else {
-            lnk = new links::AdjustableTransformer();
-
-            int numTaps = std::stoi(temp);
-            lnk->set("steps", static_cast<double>(numTaps));
-            /*TODO add the controls for an adjustable transformer*/
+        if (val > 0.0) {
+            bus->set("basevoltage", val);
         }
-    } else {
-        lnk = new AcLine();
-    }
-    lnk->updateBus(bus1, 1);
-    lnk->updateBus(bus2, 2);
-    // get the circuit number
-    if (line[13] != ' ') {
-        if (line[13] != '1') {
-            temp2.push_back('_');
-            temp2.push_back(line[13]);
-        }
-    }
-    lnk->setName(temp2);
-    addToParentWithRename(lnk, parentObject);
-
-    // skip the load flow area and loss zone and circuit for now
-
-    // get the branch type
-    temp = trim(line.substr(6, 1));
-
-    // get the branch impedance
-    temp = line.substr(17, 6);
-    auto r = numeric_conversion<double>(temp, 0.0);
-    temp = line.substr(23, 6);
-    auto x = numeric_conversion<double>(temp, 0.0);
-
-    lnk->set("r", r / 100.0);
-    lnk->set("x", x / 100.0);
-    // get line capacitance
-    temp = line.substr(29, 6);
-    val = numeric_conversion<double>(temp, 0.0);
-    lnk->set("b", val / base);
-
-    // turns ratio
-    if (istransformer) {
-        temp = line.substr(35, 5);
+        // voltage and angle common to all bus types
+        // get the actual voltage
+        temp = line.substr(22, 4);
         val = numeric_conversion<double>(temp, 0.0);
         if (val > 0.0) {
-            lnk->set("tap", val / 1000.0);
+            bus->set("voltage", val / 1000);
         }
-        // tapAngle
-        val = numeric_conversion(trim(line.substr(50, 5)), 0.0);
+        // get the angle
+        temp = line.substr(26, 4);
+        val = numeric_conversion<double>(temp, 0.0);
         if (val != 0.0) {
-            lnk->set("tapangle", val / 1000.0);
+            bus->set("angle", val / 180 * kPI);
+        }
+
+        // get the bus type
+        temp = line.substr(7, 1);
+        code = (temp[0] == ' ') ? 0 : numeric_conversion<int>(temp, 0);
+        switch (code) {
+            case 0:  // PQ
+                bus->set("type", "pq");
+
+                break;
+            case 1:  // pv bus
+                bus->set("type", "pv");
+                // get the Qmax and Qmin
+                temp = line.substr(40, 5);
+                pValue = numeric_conversion<double>(temp, 0.0);
+                temp = line.substr(45, 5);
+                qValue = numeric_conversion<double>(temp, 0.0);
+                if (pValue != 0.0) {
+                    bus->set("qmin", pValue / base);
+                }
+                if (qValue != 0.0) {
+                    bus->set("qmax", qValue / base);
+                }
+                // get the desired voltage
+                temp = line.substr(22, 4);
+                val = numeric_conversion<double>(temp, 0.0);
+                bus->set("vtarget", val / 1000);
+                break;
+            case 2:  // swing bus
+                bus->set("type", "slk");
+                // get the desired voltage
+                temp = line.substr(22, 4);
+                val = numeric_conversion<double>(temp, 0.0);
+                bus->set("vtarget", val / 1000);
+                temp = line.substr(26, 4);
+                val = numeric_conversion<double>(temp, 0.0);
+                if (val != 0) {
+                    bus->set("atarget", val, deg);
+                }
+                break;
+            default:
+                break;
+        }
+        // load section
+        temp = line.substr(55, 5);
+        pValue = numeric_conversion<double>(temp, 0.0);
+        temp = line.substr(60, 5);
+        qValue = numeric_conversion<double>(temp, 0.0);
+
+        if ((pValue != 0) || (qValue != 0)) {
+            load = new ZipLoad(pValue / base, qValue / base);
+            bus->add(load);
+        }
+        // get the shunt impedance
+        temp = trim(line.substr(65, 5));
+        qValue = numeric_conversion<double>(temp, 0.0);
+        if (qValue != 0.0) {
+            if (load == nullptr) {
+                load = new ZipLoad();
+                bus->add(load);
+            }
+            load->set("yq", -qValue / base);
+        }
+        // get the generation
+        temp = trim(line.substr(30, 5));
+        pValue = numeric_conversion<double>(temp, 0.0);
+        temp = trim(line.substr(35, 5));
+        qValue = numeric_conversion<double>(temp, 0.0);
+
+        if ((pValue != 0.0) || (qValue != 0.0)) {
+            gen = new Generator();
+            bus->add(gen);
+            gen->set("p", pValue / base);
+            gen->set("q", qValue / base);
+            // get the Qmax and Qmin
+            temp = line.substr(40, 5);
+            pValue = numeric_conversion<double>(temp, 0.0);
+            temp = line.substr(45, 5);
+            qValue = numeric_conversion<double>(temp, 0.0);
+            if (pValue != 0.0) {
+                gen->set("qmin", pValue / base);
+            }
+            if (qValue != 0.0) {
+                gen->set("qmax", qValue / base);
+            }
+        } else if (bus->getType() != GridBus::BusType::PQ) {
+            temp = line.substr(40, 5);
+            pValue = numeric_conversion<double>(temp, 0.0);
+            temp = line.substr(45, 5);
+            qValue = numeric_conversion<double>(temp, 0.0);
+            if ((pValue != 0.0) || (qValue != 0.0)) {
+                gen = new Generator();
+                bus->add(gen);
+                if (pValue != 0.0) {
+                    gen->set("qmin", pValue / base);
+                }
+                if (qValue != 0.0) {
+                    gen->set("qmax", qValue / base);
+                }
+            }
         }
     }
-}
+    /*
+    Line Data Card (Code 4 cards)
+    =============================
 
-// NOLINTEND(misc-unused-using-decls,misc-use-internal-linkage,hicpp-multiway-paths-covered,bugprone-switch-missing-default-case,readability-math-missing-parentheses,readability-isolate-declaration,bugprone-unused-local-non-trivial-variable,readability-identifier-length,misc-const-correctness)
+    Cols    Data
+    1-4     From bus number
+    6       Change code (blank in 4 section)
+    7       'C' if second card present for same line. Used for transformers.
+    9-12    To bus number
+    14      Circuit number (blank in 4 section)
+    16      'T' or 'F' - GridLoad flow area of bus at this end of line gets losses.
+    18-23   Line resistance in percent of base. (NOT per unit.)
+    (percent = 100 x per unit) Two default decimal places.
+    24-29   Line reactance, in percent. Two default decimal places.
+    30-35   Line charging MVAR (total). Three default decimal places.
+    36-40   Transformer tap (per unit turns ratio). Three default decimal
+    places, 1000 = 1.000.
+    41-45   Min tap, for OLTC. Three default decimal places.
+    46-50   Max tap, for OLTC. Three default decimal places.
+    51-55   Phase shift angle, for OL phase shifter. Two default decimal places.
+    56-60   Remote voltage control bus number. Negative if lower tap increases
+    voltage of this bus.
+    61-64   Normal MVA rating
+    65-68   Emergency MVA rating
+    69-72   MVA Base. Default value 100 MVA if blank.
+
+    Second Line Card (follows 'C' in first card)
+    ============================================
+
+    1-17    Same as first card, except no 'C'. Can be left blank.
+    35-40   Desired MVAR flow or Min voltage setpoint for OLTC.
+    41-45   Min phase shifter degrees. Two default decimal places.
+    46-50   Max phase shifter degrees. Two default decimal places.
+    51-55   Desired MW flow for phase shifter.
+    57-60   Controlled line from bus.
+    62-65   Controlled line to bus.
+    67-70   Available taps (number of taps)
+    71-75   Maximum voltage setpoint. Three default decimal places.
+
+    */
+
+    void pspReadBranch(CoreObject* parentObject,
+                       const std::string& line,
+                       const std::string& line2,
+                       double base,
+                       const std::vector<GridBus*>& busList,
+                       const BasicReaderInfo& readerOptions)
+    {
+        const auto& bri = readerOptions;
+        GridBus* bus1;
+        GridBus* bus2;
+        Link* lnk;
+        int ind1;
+        int ind2;
+        double val;
+        bool istransformer = false;
+        std::string temp = line.substr(0, 4);
+        ind1 = std::stoi(temp);
+        std::string temp2;
+        if (!bri.prefix.empty()) {
+            temp2 = bri.prefix + '_' + temp + "_to_";
+        } else {
+            temp2 = temp + "_to_";
+        }
+
+        temp = line.substr(8, 4);
+        ind2 = std::stoi(temp);
+
+        temp2 = temp2 + temp;
+        bus1 = busList[ind1];
+        bus2 = busList[ind2];
+        if (line[6] == 'C') {
+            istransformer = true;
+            temp = line2.substr(66, 4);
+            gmlc::utilities::stringOps::trimString(temp);
+            if (temp.empty()) {
+                lnk = new AcLine();
+                // lnk->set ("type", "transformer");
+            } else {
+                lnk = new links::AdjustableTransformer();
+
+                const int numTaps = std::stoi(temp);
+                lnk->set("steps", static_cast<double>(numTaps));
+                /*TODO add the controls for an adjustable transformer*/
+            }
+        } else {
+            lnk = new AcLine();
+        }
+        lnk->updateBus(bus1, 1);
+        lnk->updateBus(bus2, 2);
+        // get the circuit number
+        if (line[13] != ' ') {
+            if (line[13] != '1') {
+                temp2.push_back('_');
+                temp2.push_back(line[13]);
+            }
+        }
+        lnk->setName(temp2);
+        addToParentWithRename(lnk, parentObject);
+
+        // skip the load flow area and loss zone and circuit for now
+
+        // get the branch type
+        temp = trim(line.substr(6, 1));
+
+        // get the branch impedance
+        temp = line.substr(17, 6);
+        const auto resistance = numeric_conversion<double>(temp, 0.0);
+        temp = line.substr(23, 6);
+        const auto reactance = numeric_conversion<double>(temp, 0.0);
+
+        lnk->set("r", resistance / 100.0);
+        lnk->set("x", reactance / 100.0);
+        // get line capacitance
+        temp = line.substr(29, 6);
+        val = numeric_conversion<double>(temp, 0.0);
+        lnk->set("b", val / base);
+
+        // turns ratio
+        if (istransformer) {
+            temp = line.substr(35, 5);
+            val = numeric_conversion<double>(temp, 0.0);
+            if (val > 0.0) {
+                lnk->set("tap", val / 1000.0);
+            }
+            // tapAngle
+            val = numeric_conversion(trim(line.substr(50, 5)), 0.0);
+            if (val != 0.0) {
+                lnk->set("tapangle", val / 1000.0);
+            }
+        }
+    }
+}  // namespace
+
 }  // namespace griddyn

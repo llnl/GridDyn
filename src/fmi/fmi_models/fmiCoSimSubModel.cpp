@@ -20,7 +20,6 @@
 #include <utility>
 
 namespace griddyn::fmi {
-// NOLINTBEGIN(readability-identifier-length,misc-const-correctness)
 
 [[maybe_unused]] static constexpr bool unimplemented = false;
 
@@ -514,7 +513,7 @@ for (kk = 0; kk < m_outputSize; ++kk)
 }
 
 IOdata FmiCoSimSubModel::getOutputs(const IOdata& /*inputs*/,
-                                    const StateData& sD,
+                                    const StateData& stateData,
                                     const SolverMode& sMode) const
 {
     IOdata out(m_outputSize, 0);
@@ -526,8 +525,8 @@ IOdata FmiCoSimSubModel::getOutputs(const IOdata& /*inputs*/,
                   out[0],
                   out[1]);
                   */
-        if ((opFlags[USE_OUTPUT_ESTIMATOR]) && (!sD.empty()) && (!opFlags[FIXED_OUTPUT_INTERVAL]) &&
-            (isDynamic(sMode))) {
+        if ((opFlags[USE_OUTPUT_ESTIMATOR]) && (!stateData.empty()) &&
+            (!opFlags[FIXED_OUTPUT_INTERVAL]) && (isDynamic(sMode))) {
             for (index_t pp = 0; pp < m_outputSize; ++pp) {
                 /*
             if (outputInformation[pp].refMode >= RefMode::LEVEL4)
@@ -551,7 +550,7 @@ double FmiCoSimSubModel::getDoutdt(const IOdata& /*inputs*/,
 }
 
 double FmiCoSimSubModel::getOutput(const IOdata& /*inputs*/,
-                                   const StateData& sD,
+                                   const StateData& stateData,
                                    const SolverMode& sMode,
                                    index_t outputNum) const
 {
@@ -559,8 +558,8 @@ double FmiCoSimSubModel::getOutput(const IOdata& /*inputs*/,
     if (cs->getCurrentMode() >= FmuMode::INITIALIZATION_MODE) {
         // updateInfo(inputs, sD, sMode);
 
-        if ((opFlags[USE_OUTPUT_ESTIMATOR]) && (!sD.empty()) && (!opFlags[FIXED_OUTPUT_INTERVAL]) &&
-            (isDynamic(sMode))) {
+        if ((opFlags[USE_OUTPUT_ESTIMATOR]) && (!stateData.empty()) &&
+            (!opFlags[FIXED_OUTPUT_INTERVAL]) && (isDynamic(sMode))) {
             /*
         if (outputInformation[num].refMode >= RefMode::LEVEL4)
         {
@@ -584,11 +583,11 @@ double FmiCoSimSubModel::getOutput(index_t outputNum) const
 }
 
 void FmiCoSimSubModel::updateLocalCache([[maybe_unused]] const IOdata& inputs,
-                                        [[maybe_unused]] const StateData& sD,
+                                        [[maybe_unused]] const StateData& stateData,
                                         [[maybe_unused]] const SolverMode& sMode)
 {
     static_cast<void>(inputs);
-    static_cast<void>(sD);
+    static_cast<void>(stateData);
     static_cast<void>(sMode);
     /*
 fmi2Boolean eventMode;
@@ -708,5 +707,4 @@ void FmiCoSimSubModel::loadOutputJac(int index)  // NOLINT
     }
 }
 
-// NOLINTEND(readability-identifier-length,misc-const-correctness)
 }  // namespace griddyn::fmi

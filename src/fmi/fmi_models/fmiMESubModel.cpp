@@ -730,7 +730,8 @@ void FmiMESubModel::ioPartialDerivatives(const IOdata& inputs,
             if (variableIndex == inputVarIndices[inputReference]) {
                 matrixData.assign(kk, inputReference, identityValue);
             } else {
-                const double res = getPartial(variableIndex, inputVarIndices[inputReference], kmode);
+                const double res =
+                    getPartial(variableIndex, inputVarIndices[inputReference], kmode);
                 if (res != 0.0) {
                     matrixData.assign(kk, inputReference, res);
                 }
@@ -798,17 +799,16 @@ IOdata FmiMESubModel::getOutputs(const IOdata& inputs,
     if (me->getCurrentMode() >= FmuMode::INITIALIZATION_MODE) {
         // updateInfo(inputs, stateData, sMode);
         me->getOutputs(out.data());
-        // printf("time=%f, out1 =%f, out 2=%f\n", static_cast<double>((!stateData.empty()) ? stateData.time :
-        // prevTime), out[0], out[1]);
+        // printf("time=%f, out1 =%f, out 2=%f\n", static_cast<double>((!stateData.empty()) ?
+        // stateData.time : prevTime), out[0], out[1]);
         if ((opFlags[USE_OUTPUT_ESTIMATOR]) && (!stateData.empty()) &&
-            (!opFlags[FIXED_OUTPUT_INTERVAL]) &&
-            (isDynamic(sMode))) {
+            (!opFlags[FIXED_OUTPUT_INTERVAL]) && (isDynamic(sMode))) {
             for (index_t pp = 0; pp < m_outputSize; ++pp) {
                 if (outputInformation[pp].refMode >= RefMode::LEVEL4) {
-                    const double res = oEst[pp]->estimate(stateData.time,
-                                                          inputs,
-                                                          stateData.state +
-                                                              offsets.getDiffOffset(sMode));
+                    const double res =
+                        oEst[pp]->estimate(stateData.time,
+                                           inputs,
+                                           stateData.state + offsets.getDiffOffset(sMode));
                     out[pp] = res;
                 }
             }
@@ -835,8 +835,7 @@ double FmiMESubModel::getOutput(const IOdata& inputs,
         // updateInfo(inputs, stateData, sMode);
 
         if ((opFlags[USE_OUTPUT_ESTIMATOR]) && (!stateData.empty()) &&
-            (!opFlags[FIXED_OUTPUT_INTERVAL]) &&
-            (isDynamic(sMode))) {
+            (!opFlags[FIXED_OUTPUT_INTERVAL]) && (isDynamic(sMode))) {
             if (outputInformation[outputNum].refMode >= RefMode::LEVEL4) {
                 out = oEst[outputNum]->estimate(stateData.time,
                                                 inputs,

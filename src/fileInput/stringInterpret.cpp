@@ -59,7 +59,8 @@ namespace {
         if ((rlcps == 0) && (rlcp == command.length() - 1)) {
             // just remove outer parenthesis and call again
             val = interpretStringSv(command.substr(1, rlcp - 1), readerInfo);
-        } else if ((addOpBeforeParentheses != std::string::npos) && (addOpBeforeParentheses < rlcps)) {
+        } else if ((addOpBeforeParentheses != std::string::npos) &&
+                   (addOpBeforeParentheses < rlcps)) {
             val = addSubStringBlocks(command, readerInfo, addOpBeforeParentheses);
         } else if ((multOpBeforeParentheses != std::string::npos) &&
                    (multOpBeforeParentheses < rlcps)) {
@@ -78,20 +79,20 @@ namespace {
                 } else {
                     auto cloc = fcallstr.find_first_of(',');
                     if (cloc != std::string::npos) {
-                    auto args = splitlineBracket(fcallstr, ",");
-                    trim(args);
-                    if (args.size() == 2) {
+                        auto args = splitlineBracket(fcallstr, ",");
+                        trim(args);
+                        if (args.size() == 2) {
                             const double value1 = stringBlocktoDouble(args[0], readerInfo);
                             const double value2 = stringBlocktoDouble(args[1], readerInfo);
                             val = interpretFunction(cmdBlock, value1, value2, readerInfo);
-                    } else if (args.size() == 1) {
-                        // if the single argument is a function of multiple arguments
-                        if (cmdBlock == "query") {
-                            val = objectQuery(args[0], readerInfo.getKeyObject());
-                        } else {
+                        } else if (args.size() == 1) {
+                            // if the single argument is a function of multiple arguments
+                            if (cmdBlock == "query") {
+                                val = objectQuery(args[0], readerInfo.getKeyObject());
+                            } else {
                                 const double value1 = stringBlocktoDouble(args[0], readerInfo);
                                 val = interpretFunction(cmdBlock, value1, readerInfo);
-                        }
+                            }
                         } else {
                             std::println(stderr,
                                          "invalid arguments to function {}",

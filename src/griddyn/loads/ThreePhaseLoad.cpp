@@ -64,27 +64,27 @@ void ThreePhaseLoad::setLoad(double level, unit unitType)
     Pa = Pb = Pc = getP() / 3.0;
 }
 
-void ThreePhaseLoad::setLoad(double Plevel, double Qlevel, unit unitType)
+void ThreePhaseLoad::setLoad(double plevel, double qlevel, unit unitType)
 {
-    setP(convert(Plevel, unitType, puMW, systemBasePower));
-    setQ(convert(Qlevel, unitType, puMW, systemBasePower));
+    setP(convert(plevel, unitType, puMW, systemBasePower));
+    setQ(convert(qlevel, unitType, puMW, systemBasePower));
     Pa = Pb = Pc = getP() / 3.0;
     Qa = Qb = Qc = getQ() / 3.0;
 }
 
-static const stringVec locNumStrings{"pa", "pb", "pc", "qa", "qb", "qc"};
+static const stringVec LOC_NUM_STRINGS{"pa", "pb", "pc", "qa", "qb", "qc"};
 
-static const stringVec locStrStrings{};
+static const stringVec LOC_STR_STRINGS{};
 
-static const stringVec flagStrings{"use_abs_angle",
-                                   "ignore_phase",
-                                   "three_phase_inputs",
-                                   "three_phase_outputs"};
+static const stringVec FLAG_STRINGS{"use_abs_angle",
+                                    "ignore_phase",
+                                    "three_phase_inputs",
+                                    "three_phase_outputs"};
 
 void ThreePhaseLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<ThreePhaseLoad, GridLoad>(
-        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
+        this, pstr, LOC_NUM_STRINGS, LOC_STR_STRINGS, FLAG_STRINGS, pstype);
 }
 
 void ThreePhaseLoad::setFlag(std::string_view flag, bool val)
@@ -95,10 +95,10 @@ void ThreePhaseLoad::setFlag(std::string_view flag, bool val)
         opFlags.set(use_abs_angle, val);
     } else if ((flag == "three_phase_inputs") || (flag == "three_phase_input")) {
         opFlags.set(three_phase_input, val);
-        m_inputSize = (val) ? 7 : 3;
+        m_inputSize = val ? 7 : 3;
     } else if ((flag == "three_phase_outputs") || (flag == "three_phase_output")) {
         opFlags.set(three_phase_output, val);
-        m_outputSize = (val) ? 6 : 3;
+        m_outputSize = val ? 6 : 3;
     } else {
         GridLoad::setFlag(flag, val);
     }
@@ -139,12 +139,12 @@ double ThreePhaseLoad::get(std::string_view param, unit unitType) const
                                localBaseVoltage);
             }
             case 'a': {
-                double angle = getBaseAngle();
-                double phaseAngle = phaseSelector(param[1],
-                                                  angle,
-                                                  angle + (2.0 * kPI / 3.0),
-                                                  angle + (4.0 * kPI / 3.0),
-                                                  kNullVal);
+                const double angle = getBaseAngle();
+                const double phaseAngle = phaseSelector(param[1],
+                                                        angle,
+                                                        angle + (2.0 * kPI / 3.0),
+                                                        angle + (4.0 * kPI / 3.0),
+                                                        kNullVal);
                 return convert(phaseAngle, rad, unitType, systemBasePower, localBaseVoltage);
             }
             default:

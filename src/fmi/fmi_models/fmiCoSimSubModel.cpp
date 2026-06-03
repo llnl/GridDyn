@@ -526,8 +526,7 @@ IOdata FmiCoSimSubModel::getOutputs(const IOdata& /*inputs*/,
                   out[1]);
                   */
         if ((opFlags[USE_OUTPUT_ESTIMATOR]) && (!stateData.empty()) &&
-            (!opFlags[FIXED_OUTPUT_INTERVAL]) &&
-            (isDynamic(sMode))) {
+            (!opFlags[FIXED_OUTPUT_INTERVAL]) && (isDynamic(sMode))) {
             for (index_t pp = 0; pp < m_outputSize; ++pp) {
                 /*
             if (outputInformation[pp].refMode >= RefMode::LEVEL4)
@@ -560,8 +559,7 @@ double FmiCoSimSubModel::getOutput(const IOdata& /*inputs*/,
         // updateInfo(inputs, sD, sMode);
 
         if ((opFlags[USE_OUTPUT_ESTIMATOR]) && (!stateData.empty()) &&
-            (!opFlags[FIXED_OUTPUT_INTERVAL]) &&
-            (isDynamic(sMode))) {
+            (!opFlags[FIXED_OUTPUT_INTERVAL]) && (isDynamic(sMode))) {
             /*
         if (outputInformation[num].refMode >= RefMode::LEVEL4)
         {

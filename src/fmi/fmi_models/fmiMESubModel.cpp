@@ -383,8 +383,10 @@ void FmiMESubModel::setState(CoreTime time,
                 if (outputInformation[pp].refMode >= RefMode::LEVEL4) {
                     double val;
                     val = me->getOutput(pp);
-                    const bool reload = oEst[pp]->update(
-                        time, val, inputValues, state + offsets.getDiffOffset(sMode));
+                    const bool reload = oEst[pp]->update(time,
+                                                         val,
+                                                         inputValues,
+                                                         state + offsets.getDiffOffset(sMode));
                     if (reload) {
                         loadOutputJac(static_cast<int>(pp));
                     }

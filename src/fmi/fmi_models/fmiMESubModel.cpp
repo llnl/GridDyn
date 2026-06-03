@@ -1046,46 +1046,45 @@ void FmiMESubModel::probeFMU()
 
 void FmiMESubModel::loadOutputJac(int index)
 {
-    double pd;
-    int ct = 0;
+    double partialDerivative;
+    int dependencyIndex = 0;
     if (index == -1) {
         for (auto& out : outputInformation) {
             if (out.refMode >= RefMode::LEVEL4) {
-                ct = 0;
-                for (auto kk : out.stateDep) {
-                    pd = getPartial(out.varIndex, stateInformation[kk].varIndex, out.refMode);
-                    oEst[out.index]->stateDiff[ct] = pd;
-                    ++ct;
+                dependencyIndex = 0;
+                for (auto stateDepIndex : out.stateDep) {
+                    partialDerivative =
+                        getPartial(out.varIndex, stateInformation[stateDepIndex].varIndex, out.refMode);
+                    oEst[out.index]->stateDiff[dependencyIndex] = partialDerivative;
+                    ++dependencyIndex;
                 }
-                ct = 0;
-                for (auto kk : out.inputDep) {
-                    pd = getPartial(out.varIndex, inputVarIndices[kk], out.refMode);
-                    oEst[out.index]->inputDiff[ct] = pd;
-                    ++ct;
+                dependencyIndex = 0;
+                for (auto inputDepIndex : out.inputDep) {
+                    partialDerivative = getPartial(out.varIndex, inputVarIndices[inputDepIndex], out.refMode);
+                    oEst[out.index]->inputDiff[dependencyIndex] = partialDerivative;
+                    ++dependencyIndex;
                 }
             }
         }
     } else {
         if (outputInformation[index].refMode >= RefMode::LEVEL4) {
-            ct = 0;
-            for (auto kk : outputInformation[index].stateDep) {
-                pd = getPartial(outputInformation[index].varIndex,
-                                stateInformation[kk].varIndex,
-                                outputInformation[index].refMode);
-                oEst[outputInformation[index].index]->stateDiff[ct] = pd;
-                ++ct;
+            dependencyIndex = 0;
+            for (auto stateDepIndex : outputInformation[index].stateDep) {
+                partialDerivative = getPartial(outputInformation[index].varIndex,
+                                               stateInformation[stateDepIndex].varIndex,
+                                               outputInformation[index].refMode);
+                oEst[outputInformation[index].index]->stateDiff[dependencyIndex] = partialDerivative;
+                ++dependencyIndex;
             }
-            ct = 0;
-            for (auto kk : outputInformation[index].inputDep) {
-                pd = getPartial(outputInformation[index].varIndex,
-                                inputVarIndices[kk],
-                                outputInformation[index].refMode);
-                oEst[outputInformation[index].index]->inputDiff[ct] = pd;
-                ++ct;
+            dependencyIndex = 0;
+            for (auto inputDepIndex : outputInformation[index].inputDep) {
+                partialDerivative = getPartial(outputInformation[index].varIndex,
+                                               inputVarIndices[inputDepIndex],
+                                               outputInformation[index].refMode);
+                oEst[outputInformation[index].index]->inputDiff[dependencyIndex] = partialDerivative;
+                ++dependencyIndex;
             }
         }
     }
 }
-
-// NOLINTEND(readability-identifier-length,misc-const-correctness)
 }  // namespace griddyn::fmi

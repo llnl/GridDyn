@@ -39,6 +39,8 @@ namespace {
 
     double objectQuery(string_view command, CoreObject* object);
 
+    // The expression parser intentionally uses recursive descent for nested expressions.
+    // NOLINTBEGIN(misc-no-recursion)
     double interpretStringSv(string_view command, ReaderInfo& readerInfo)
     {
         // check for functions
@@ -270,9 +272,12 @@ namespace {
             return interpretStringSv(block, readerInfo);
         }
     }
+    // NOLINTEND(misc-no-recursion)
 
 }  // namespace
 
+// Declared in readerHelper.h and used across file-input translation units.
+// NOLINTNEXTLINE(misc-use-internal-linkage)
 double interpretString(const std::string& command, ReaderInfo& readerInfo)
 {
     return interpretStringSv(command, readerInfo);

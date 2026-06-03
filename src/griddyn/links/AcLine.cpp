@@ -86,7 +86,7 @@ void AcLine::pFlowObjectInitializeB()
 void AcLine::pFlowCheck(std::vector<Violation>& violationVector)
 {
     Link::pFlowCheck(violationVector);
-    double angle = linkInfo.theta1;
+    const double angle = linkInfo.theta1;
     if (angle < minAngle) {
         Violation violation;
         violation.m_objectName = getName();
@@ -132,10 +132,10 @@ void AcLine::switchChange(int switchNum)
 double AcLine::quickupdateP()
 {
     linkComp.Vmx = linkInfo.v1 * linkInfo.v2 / tap;
-    linkFlows.P1 = (g + 0.5 * mp_G) / (tap * tap) * linkInfo.v1 * linkInfo.v1 -
-        g * linkComp.Vmx * (1 - linkInfo.theta1) - b * linkComp.Vmx * linkInfo.theta1;
-    linkFlows.P2 = (g + 0.5 * mp_G) * linkInfo.v2 * linkInfo.v2 -
-        g * linkComp.Vmx * (1 - linkInfo.theta2) - b * linkComp.Vmx * linkInfo.theta2;
+    linkFlows.P1 = ((g + (0.5 * mp_G)) / (tap * tap) * linkInfo.v1 * linkInfo.v1) -
+        (g * linkComp.Vmx * (1 - linkInfo.theta1)) - (b * linkComp.Vmx * linkInfo.theta1);
+    linkFlows.P2 = ((g + (0.5 * mp_G)) * linkInfo.v2 * linkInfo.v2) -
+        (g * linkComp.Vmx * (1 - linkInfo.theta2)) - (b * linkComp.Vmx * linkInfo.theta2);
     return linkFlows.P1;
 }
 
@@ -348,7 +348,7 @@ int AcLine::fixRealPower(double power,
 {
     Pset = convert(power, unitType, puMW, systemBasePower);
     updateLocalCache();
-    double ang = asin(Pset / b / linkComp.Vmx);
+    const double ang = asin(Pset / b / linkComp.Vmx);
     if (!std::isnormal(ang)) {
         return 0;
     }
@@ -359,10 +359,10 @@ int AcLine::fixRealPower(double power,
         }
         // TODO(PT) automatically figure out appropriate terminal to adjust
     } else if ((fixedTerminal == 1) || (isSameObject(fixedTerminal, B1))) {
-        double newAng = B1->getAngle() - ang - tapAngle;
+        const double newAng = B1->getAngle() - ang - tapAngle;
         B2->set("angle", newAng);
     } else if ((fixedTerminal == 2) || (isSameObject(fixedTerminal, B2))) {
-        double newAng = ang + B2->getAngle() - tapAngle;
+        const double newAng = ang + B2->getAngle() - tapAngle;
         B1->set("angle", newAng);
     } else {
         return 0;
@@ -379,12 +379,12 @@ int AcLine::fixPower(double rPower,
                      id_type_t fixedTerminal,
                      units::unit unitType)
 {
-    double valp = convert(rPower, unitType, puMW, systemBasePower);
-    double valq = convert(qPower, unitType, puMW, systemBasePower);
+    const double realPower = convert(rPower, unitType, puMW, systemBasePower);
+    const double reactivePower = convert(qPower, unitType, puMW, systemBasePower);
     opFlags.set(FIXED_TARGET_POWER);
-    double v1 = B1->getVoltage();
-    double v2 = B2->getVoltage();
-    double ang = 0;
+    double voltage1 = B1->getVoltage();
+    double voltage2 = B2->getVoltage();
+    double angle = 0;
     double atol = 1e-7;
     double vtol = 1e-7;
     int ret = 0;
@@ -421,144 +421,154 @@ int AcLine::fixPower(double rPower,
         logging::warning(this, "invalid fixed terminal identification");
         return ret;
     }
-    ang = asin(-valp / b / (v1 * v2 / tap));
+    angle = asin(-realPower / b / (voltage1 * voltage2 / tap));
     if (measureTerminal == 1) {
         if (fixedTerminal == 1) {
-            v2 = -(-valq - b * v1 * v1 / (tap * tap)) * tap / (b * v1 * cos(ang));
+            voltage2 = -((-reactivePower) - ((b * voltage1 * voltage1) / (tap * tap))) * tap /
+                (b * voltage1 * cos(angle));
         } else {
-            v1 = std::sqrt(-(valq - b * v1 * v2 / tap * cos(ang)) * tap * tap / b);
+            voltage1 =
+                std::sqrt((-(reactivePower - ((b * voltage1 * voltage2 / tap) * cos(angle))) * tap * tap) / b);
         }
     } else {
         if (fixedTerminal == 2) {
-            v1 = -(valq - b * v2 * v2 / (tap * tap)) * tap / (b * v2 * cos(ang));
+            voltage1 = (-(reactivePower - ((b * voltage2 * voltage2) / (tap * tap))) * tap) /
+                (b * voltage2 * cos(angle));
         } else {
-            v2 = std::sqrt(-(valq - b * v1 * v2 / tap * cos(ang)) / b);
+            voltage2 = std::sqrt((-(reactivePower - ((b * voltage1 * voltage2 / tap) * cos(angle)))) / b);
         }
     }
-    linkInfo.v1 = v1;
-    linkInfo.v2 = v2;
-    ang = asin(-valp / b / (v1 * v2 / tap));
+    linkInfo.v1 = voltage1;
+    linkInfo.v2 = voltage2;
+    angle = asin(-realPower / b / (voltage1 * voltage2 / tap));
     if (measureTerminal == 1) {
-        linkInfo.theta1 = ang;
-        linkInfo.theta2 = -ang;
+        linkInfo.theta1 = angle;
+        linkInfo.theta2 = -angle;
     } else {
-        linkInfo.theta1 = -ang;
-        linkInfo.theta2 = ang;
+        linkInfo.theta1 = -angle;
+        linkInfo.theta2 = angle;
     }
     linkComp.Vmx = linkInfo.v1 * linkInfo.v2 / tap;
     DEFAULTPOWERCOMP();
     // basePowerComp ();
     double err = (measureTerminal == 1) ?
-        (std::abs(linkFlows.P1 - valp) + std::abs(linkFlows.Q1 - valq)) :
-        (std::abs(linkFlows.P2 - valp) + std::abs(linkFlows.Q2 - valq));
-    double pErr = err;
+        (std::abs(linkFlows.P1 - realPower) + std::abs(linkFlows.Q1 - reactivePower)) :
+        (std::abs(linkFlows.P2 - realPower) + std::abs(linkFlows.Q2 - reactivePower));
+    double previousError = err;
 
-    MatrixDataCompact<2, 2> md;
-    double dP;
-    double dQ;
-    double dA;
-    double dV;
-    double pvii;
-    double ptii;
-    double qvii;
-    double qtii;
+    MatrixDataCompact<2, 2> matrixData;
+    double deltaP;
+    double deltaQ;
+    double deltaAngle;
+    double deltaVoltage;
+    double pVoltageDerivative;
+    double pAngleDerivative;
+    double qVoltageDerivative;
+    double qAngleDerivative;
     bool aboveTol = ((err > atol) || (err > vtol));
 
     while (aboveTol) {
-        md.clear();
+        matrixData.clear();
         if (measureTerminal == fixedTerminal) {
-            outputPartialDerivatives(measureTerminal, emptyStateData, md, cLocalSolverMode);
+            outputPartialDerivatives(measureTerminal, emptyStateData, matrixData, cLocalSolverMode);
         } else {
-            ioPartialDerivatives(measureTerminal, emptyStateData, md, gALoc, cLocalSolverMode);
+            ioPartialDerivatives(measureTerminal, emptyStateData, matrixData, gALoc, cLocalSolverMode);
         }
         if (measureTerminal == 1) {
-            dP = valp - linkFlows.P1;
-            dQ = valq - linkFlows.Q1;
+            deltaP = realPower - linkFlows.P1;
+            deltaQ = reactivePower - linkFlows.Q1;
         } else {
-            dP = valp - linkFlows.P2;
-            dQ = valq - linkFlows.Q2;
+            deltaP = realPower - linkFlows.P2;
+            deltaQ = reactivePower - linkFlows.Q2;
         }
-        // printf("A dP=%f dQ=%f\n",dP,dQ);
-        pvii = md.at(PoutLocation, voltageInLocation);
-        ptii = md.at(PoutLocation, angleInLocation);
-        qvii = md.at(QoutLocation, voltageInLocation);
-        qtii = md.at(QoutLocation, angleInLocation);
-        double detA = solve2x2(pvii, ptii, qvii, qtii, dP, dQ, dV, dA);
-        if (!(std::isnormal(detA))) {
+        // printf("A dP=%f dQ=%f\n",deltaP,deltaQ);
+        pVoltageDerivative = matrixData.at(PoutLocation, voltageInLocation);
+        pAngleDerivative = matrixData.at(PoutLocation, angleInLocation);
+        qVoltageDerivative = matrixData.at(QoutLocation, voltageInLocation);
+        qAngleDerivative = matrixData.at(QoutLocation, angleInLocation);
+        const double determinant = solve2x2(pVoltageDerivative,
+                                            pAngleDerivative,
+                                            qVoltageDerivative,
+                                            qAngleDerivative,
+                                            deltaP,
+                                            deltaQ,
+                                            deltaVoltage,
+                                            deltaAngle);
+        if (!(std::isnormal(determinant))) {
             break;
         }
 
         if (fixedTerminal == 1) {
-            v2 += dV;
-            linkInfo.v2 = v2;
+            voltage2 += deltaVoltage;
+            linkInfo.v2 = voltage2;
         } else {
-            v1 += dV;
-            linkInfo.v1 = v1;
+            voltage1 += deltaVoltage;
+            linkInfo.v1 = voltage1;
         }
         if (measureTerminal == 1) {
             if (fixedTerminal == 1) {
-                ang -= dA;
+                angle -= deltaAngle;
             } else {
-                ang += dA;
+                angle += deltaAngle;
             }
-            linkInfo.theta1 = ang;
-            linkInfo.theta2 = -ang;
+            linkInfo.theta1 = angle;
+            linkInfo.theta2 = -angle;
         } else {
             if (fixedTerminal == 1) {
-                ang += dA;
+                angle += deltaAngle;
             } else {
-                ang -= dA;
+                angle -= deltaAngle;
             }
-            linkInfo.theta1 = -ang;
-            linkInfo.theta2 = ang;
+            linkInfo.theta1 = -angle;
+            linkInfo.theta2 = angle;
         }
         // update the Vmx term
         linkComp.Vmx = linkInfo.v1 * linkInfo.v2 / tap;
         DEFAULTPOWERCOMP();
         if (measureTerminal == 1) {
-            dP = valp - linkFlows.P1;
-            dQ = valq - linkFlows.Q1;
+            deltaP = realPower - linkFlows.P1;
+            deltaQ = reactivePower - linkFlows.Q1;
         } else {
-            dP = valp - linkFlows.P2;
-            dQ = valq - linkFlows.Q2;
+            deltaP = realPower - linkFlows.P2;
+            deltaQ = reactivePower - linkFlows.Q2;
         }
-        // printf("B dP=%f dQ=%f\n", dP, dQ);
+        // printf("B dP=%f dQ=%f\n", deltaP, deltaQ);
 
-        if ((std::abs(dP) <= atol) && (std::abs(dQ) <= vtol)) {
+        if ((std::abs(deltaP) <= atol) && (std::abs(deltaQ) <= vtol)) {
             aboveTol = false;
         } else {
-            err = std::abs(dP) + std::abs(dQ);
-            if (err >= pErr) {
+            err = std::abs(deltaP) + std::abs(deltaQ);
+            if (err >= previousError) {
                 logging::warning(this, "convergence break increasing");
                 break;
             }
-            pErr = err;
+            previousError = err;
         }
     }
-    if (ang > kPI) {
-        ang -= 2 * kPI;
+    if (angle > kPI) {
+        angle -= 2 * kPI;
     }
-    if (ang < -kPI) {
-        ang += 2 * kPI;
+    if (angle < -kPI) {
+        angle += 2 * kPI;
     }
-    if (std::abs(ang) > kPI / 2) {
+    if (std::abs(angle) > kPI / 2) {
         logging::warning(this, "large angle");
     }
     if (fixedTerminal == 2) {
-        double newAng = (measureTerminal == 2) ? (B2->getAngle() - ang + tapAngle) :
-                                                 (ang + B2->getAngle() + tapAngle);
+        const double newAngle = (measureTerminal == 2) ? (B2->getAngle() - angle + tapAngle) :
+                                                        (angle + B2->getAngle() + tapAngle);
 
-        B1->set("angle", newAng);
-        B1->set("voltage", v1);
+        B1->set("angle", newAngle);
+        B1->set("voltage", voltage1);
         ret = B1->propogatePower(false);
     } else {
-        if (v2 > 1.5) {
+        if (voltage2 > 1.5) {
             logging::warning(this, "high voltage");
         }
-        double newAng = (measureTerminal == 1) ? (B1->getAngle() - ang - tapAngle) :
-                                                 (ang + B1->getAngle() - tapAngle);
-        B2->set("angle", newAng);
-        B2->set("voltage", v2);
+        const double newAngle = (measureTerminal == 1) ? (B1->getAngle() - angle - tapAngle) :
+                                                         (angle + B1->getAngle() - tapAngle);
+        B2->set("angle", newAngle);
+        B2->set("voltage", voltage2);
         ret = B2->propogatePower(false);
     }
 
@@ -1259,7 +1269,7 @@ void AcLine::simplifiedDeriv()
     */
     // real power vs local states
     const double btap = b / tap;
-    double bvmx = b * linkComp.Vmx;
+    const double bvmx = b * linkComp.Vmx;
 
     LinkDeriv.dP1dt1 = -bvmx * linkComp.cosTheta1;
     LinkDeriv.dP1dv1 = -btap * linkInfo.v2 * linkComp.sinTheta1;
@@ -1270,10 +1280,10 @@ void AcLine::simplifiedDeriv()
     // reactive power vs local states
     LinkDeriv.dQ1dt1 = -bvmx * linkComp.sinTheta1;
     LinkDeriv.dQ2dt2 = -bvmx * linkComp.sinTheta2;
-    LinkDeriv.dQ1dv1 =
-        -2 * (b + 0.5 * mp_B) / (tap * tap) * linkInfo.v1 + btap * linkInfo.v2 * linkComp.cosTheta1;
+    LinkDeriv.dQ1dv1 = ((-2 * (b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1) +
+        (btap * linkInfo.v2 * linkComp.cosTheta1);
     LinkDeriv.dQ2dv2 =
-        -2 * (b + 0.5 * mp_B) * linkInfo.v2 + btap * linkInfo.v1 * linkComp.cosTheta2;
+        ((-2 * (b + (0.5 * mp_B))) * linkInfo.v2) + (btap * linkInfo.v1 * linkComp.cosTheta2);
 
     // real power vs remote states
     LinkDeriv.dP1dv2 = -linkInfo.v1 * (btap * linkComp.sinTheta1);
@@ -1311,22 +1321,22 @@ void AcLine::decoupledDeriv()
     */
     // real power vs local states
     LinkDeriv.dP1dt1 =
-        g * constLinkComp.Vmx * linkComp.sinTheta1 - b * constLinkComp.Vmx * linkComp.cosTheta1;
+        (g * constLinkComp.Vmx * linkComp.sinTheta1) - (b * constLinkComp.Vmx * linkComp.cosTheta1);
     LinkDeriv.dP1dv1 = 0;
 
     LinkDeriv.dP2dt2 =
-        g * constLinkComp.Vmx * linkComp.sinTheta2 - b * constLinkComp.Vmx * linkComp.cosTheta2;
+        (g * constLinkComp.Vmx * linkComp.sinTheta2) - (b * constLinkComp.Vmx * linkComp.cosTheta2);
     LinkDeriv.dP2dv2 = 0;
 
     // reactive power vs local states
     LinkDeriv.dQ1dt1 = 0;
     LinkDeriv.dQ2dt2 = 0;
-    LinkDeriv.dQ1dv1 = -2 * (b + 0.5 * mp_B) / (tap * tap) * linkInfo.v1 -
-        g / tap * linkInfo.v2 * constLinkComp.sinTheta1 +
-        b / tap * linkInfo.v2 * constLinkComp.cosTheta1;
-    LinkDeriv.dQ2dv2 = -2 * (b + 0.5 * mp_B) * linkInfo.v2 -
-        g / tap * linkInfo.v1 * constLinkComp.sinTheta2 +
-        b / tap * linkInfo.v1 * constLinkComp.cosTheta2;
+    LinkDeriv.dQ1dv1 = ((-2 * (b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1) -
+        ((g / tap) * linkInfo.v2 * constLinkComp.sinTheta1) +
+        ((b / tap) * linkInfo.v2 * constLinkComp.cosTheta1);
+    LinkDeriv.dQ2dv2 = ((-2 * (b + (0.5 * mp_B))) * linkInfo.v2) -
+        ((g / tap) * linkInfo.v1 * constLinkComp.sinTheta2) +
+        ((b / tap) * linkInfo.v1 * constLinkComp.cosTheta2);
 
     // real power vs remote states
     LinkDeriv.dP1dv2 = 0;
@@ -1337,9 +1347,9 @@ void AcLine::decoupledDeriv()
     // reactive power vs remote states
 
     LinkDeriv.dQ1dv2 =
-        -linkInfo.v1 * (g * constLinkComp.sinTheta1 - b * constLinkComp.cosTheta1) / tap;
+        -linkInfo.v1 * ((g * constLinkComp.sinTheta1) - (b * constLinkComp.cosTheta1)) / tap;
     LinkDeriv.dQ2dv1 =
-        -linkInfo.v2 * (g * constLinkComp.sinTheta2 - b * constLinkComp.cosTheta2) / tap;
+        -linkInfo.v2 * ((g * constLinkComp.sinTheta2) - (b * constLinkComp.cosTheta2)) / tap;
     LinkDeriv.dQ1dt2 = 0;
     LinkDeriv.dQ2dt1 = 0;
     LinkDeriv.seqID = linkInfo.seqID;
@@ -1374,25 +1384,25 @@ void AcLine::smallAngleDeriv()
     linkFlows.seqID = linkInfo.seqID;
     */
     LinkDeriv.dP1dt1 = -b * linkComp.Vmx;
-    LinkDeriv.dP1dv1 = 2 * (g + 0.5 * mp_G) / (tap * tap) * linkInfo.v1 - g / tap * linkInfo.v2 -
-        b / tap * linkInfo.v2 * linkComp.sinTheta1;
+    LinkDeriv.dP1dv1 = ((2 * (g + (0.5 * mp_G)) / (tap * tap)) * linkInfo.v1) -
+        ((g / tap) * linkInfo.v2) - ((b / tap) * linkInfo.v2 * linkComp.sinTheta1);
 
     LinkDeriv.dP2dt2 = -b * linkComp.Vmx * linkComp.cosTheta2;
-    LinkDeriv.dP2dv2 = 2 * (g + 0.5 * mp_G) * linkInfo.v2 - g / tap * linkInfo.v1 -
-        b / tap * linkInfo.v1 * linkComp.sinTheta2;
+    LinkDeriv.dP2dv2 = ((2 * (g + (0.5 * mp_G))) * linkInfo.v2) - ((g / tap) * linkInfo.v1) -
+        ((b / tap) * linkInfo.v1 * linkComp.sinTheta2);
 
     // reactive power vs local states
     LinkDeriv.dQ1dt1 = -g * linkComp.Vmx;
     LinkDeriv.dQ2dt2 = -g * linkComp.Vmx;
-    LinkDeriv.dQ1dv1 = -2 * (b + 0.5 * mp_B) / (tap * tap) * linkInfo.v1 -
-        g / tap * linkInfo.v2 * linkComp.sinTheta1 + b / tap * linkInfo.v2;
+    LinkDeriv.dQ1dv1 = ((-2 * (b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1) -
+        ((g / tap) * linkInfo.v2 * linkComp.sinTheta1) + ((b / tap) * linkInfo.v2);
     LinkDeriv.dQ2dv2 =
         (-2 * (b + (0.5 * mp_B)) * linkInfo.v2) -
         ((g / tap) * linkInfo.v1 * linkComp.sinTheta2) + ((b / tap) * linkInfo.v1);
 
     // real power vs remote states
-    LinkDeriv.dP1dv2 = -linkInfo.v1 * (g + b * linkComp.sinTheta1) / tap;
-    LinkDeriv.dP2dv1 = -linkInfo.v2 * (g + b * linkComp.sinTheta2) / tap;
+    LinkDeriv.dP1dv2 = -linkInfo.v1 * (g + (b * linkComp.sinTheta1)) / tap;
+    LinkDeriv.dP2dv1 = -linkInfo.v2 * (g + (b * linkComp.sinTheta2)) / tap;
     LinkDeriv.dP1dt2 = linkComp.Vmx * (b * linkComp.cosTheta1);
     LinkDeriv.dP2dt1 = linkComp.Vmx * (b * linkComp.cosTheta2);
 

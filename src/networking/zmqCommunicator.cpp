@@ -57,7 +57,7 @@ void ZmqCommunicator::transmit(std::string_view destName,
                                const std::shared_ptr<CommMessage>& message)
 {
     zmq::multipart_t txmsg;
-    if (!flags[noTransmitDest]) {
+    if (!flags[NO_TRANSMIT_DEST]) {
         txmsg.addstr(std::string{destName});
     }
     addHeader(txmsg, message);
@@ -68,7 +68,7 @@ void ZmqCommunicator::transmit(std::string_view destName,
 void ZmqCommunicator::transmit(std::uint64_t destID, const std::shared_ptr<CommMessage>& message)
 {
     zmq::multipart_t txmsg;
-    if (!flags[noTransmitDest]) {
+    if (!flags[NO_TRANSMIT_DEST]) {
         txmsg.addmem(&destID, 8);
     }
     addHeader(txmsg, message);
@@ -79,7 +79,7 @@ void ZmqCommunicator::transmit(std::uint64_t destID, const std::shared_ptr<CommM
 void ZmqCommunicator::addHeader(zmq::multipart_t& msg,
                                 const std::shared_ptr<CommMessage>& /*message*/)
 {
-    if (!flags[noTransmitSource]) {
+    if (!flags[NO_TRANSMIT_SOURCE]) {
         msg.addstr(getName());
     }
 }
@@ -137,7 +137,7 @@ void ZmqCommunicator::initialize()
 
     rxDescriptor.callback = [this](const zmq::multipart_t& msg) { messageHandler(msg); };
     // set up the rx socket reactor
-    if (!flags[transmitOnly]) {
+    if (!flags[TRANSMIT_ONLY]) {
         zmqlib::ZmqReactor::getReactorInstance("", contextName)->addSocket(rxDescriptor);
     }
 
@@ -146,7 +146,7 @@ void ZmqCommunicator::initialize()
 
 void ZmqCommunicator::disconnect()
 {
-    if (!flags[transmitOnly]) {
+    if (!flags[TRANSMIT_ONLY]) {
         zmqlib::ZmqReactor::getReactorInstance("")->closeSocket(getName() + "_rx");
     }
     txSocket = nullptr;
@@ -182,15 +182,15 @@ void ZmqCommunicator::set(std::string_view param, double val)
 void ZmqCommunicator::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "txonly") || (flag == "transmitonly") || (flag == "transmit_only")) {
-        flags.set(transmitOnly, val);
+        flags.set(TRANSMIT_ONLY, val);
     } else if (flag == "transmitsource") {
-        flags.set(noTransmitSource, !val);
+        flags.set(NO_TRANSMIT_SOURCE, !val);
     } else if (flag == "notransmitsource") {
-        flags.set(noTransmitSource, val);
+        flags.set(NO_TRANSMIT_SOURCE, val);
     } else if (flag == "transmitdest") {
-        flags.set(noTransmitDest, !val);
+        flags.set(NO_TRANSMIT_DEST, !val);
     } else if (flag == "notransmitdest") {
-        flags.set(noTransmitDest, val);
+        flags.set(NO_TRANSMIT_DEST, val);
     } else if (flag == "useproxy") {
         flags.set(useRxProxy, val);
         flags.set(useTxProxy, val);

@@ -158,4 +158,3 @@ const std::vector<stringVec>& FmiCoSimLoad3phase::getFmiOutputNames() const
 }
 
 }  // namespace griddyn::fmi
-

@@ -204,4 +204,3 @@ void TxLifeSpan::actionTaken(index_t actionNumber,
 }
 
 }  // namespace griddyn::extra
-

@@ -74,7 +74,8 @@ void ExciterIEEEtype2::residual(const IOdata& inputs,
             rv[1] = esp[1];
         }
     } else {
-        rv[1] = (-es[1] + Ka * Kf * es[2] + Ka * (Vref + vBias - inputs[VOLTAGE_IN_LOCATION])) / Ta -
+        rv[1] =
+            (-es[1] + Ka * Kf * es[2] + Ka * (Vref + vBias - inputs[VOLTAGE_IN_LOCATION])) / Ta -
             esp[1];
     }
     rv[2] = (-es[2] + es[1] / Tf2 - es[3] / Tf2) / Tf - esp[2];

@@ -33,7 +33,7 @@ class GridBlock: public GridSubModel {
     enum ControllerFlags {
         STEP_ONLY = OBJECT_FLAG1,  //!< flag indicating that the block does not have any state
         USE_STATE = OBJECT_FLAG2,  //!< flag indicating that the basic block should not control the
-                                  //!< state before the limiters
+                                   //!< state before the limiters
         HAS_LIMITS = OBJECT_ARMED_FLAG,  //!< flag indicating the block has limits of some kind
         USE_BLOCK_LIMITS = OBJECT_FLAG3,  //!< flag indicating the block has upper and lower limits
         USE_RAMP_LIMITS = OBJECT_FLAG4,  //!< flag indicating the block has ramp limits
@@ -43,10 +43,10 @@ class GridBlock: public GridSubModel {
         USE_DIRECT =
             OBJECT_FLAG6,  //!< flag indicating that the block should just use the input directly
         SIMPLIFIED_MODE = OBJECT_FLAG7,  //!< flag indicating that the block should revert to basic
-                                        //!< block behavior [used
+                                         //!< block behavior [used
         //!< only by derived object]
         ANTI_WINDUP_LIMITS = OBJECT_FLAG8,  //!< flag indicating that the limits should be
-                                          //!< anti-windup [used only by derived objects]
+                                            //!< anti-windup [used only by derived objects]
     };
 
   protected:

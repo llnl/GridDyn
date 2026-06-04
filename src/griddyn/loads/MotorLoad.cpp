@@ -429,7 +429,9 @@ void MotorLoad::ioPartialDerivatives(const IOdata& inputs,
             slip = stateDataValue.state[offsets.getAlgOffset(sMode)];
         }
         const double temp = voltage * slip / ((r1 * r1) + (slip * slip * (x + x1) * (x + x1)));
-        matrixDataValue.assign(POUT_LOCATION, inputLocs[VOLTAGE_IN_LOCATION], scale * (2 * r1 * temp));
+        matrixDataValue.assign(POUT_LOCATION,
+                               inputLocs[VOLTAGE_IN_LOCATION],
+                               scale * (2 * r1 * temp));
         matrixDataValue.assign(QOUT_LOCATION,
                                inputLocs[VOLTAGE_IN_LOCATION],
                                scale * ((2 * voltage / xm) + (2 * slip * (x + x1) * temp)));

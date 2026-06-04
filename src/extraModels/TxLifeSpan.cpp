@@ -48,7 +48,7 @@ void TxLifeSpan::setFlag(std::string_view flag, bool val)
         opFlags.set(USE_IE_CMETHOD, val);
     } else if ((flag == "useieee") || (flag == "ieee")) {
         opFlags.set(USE_IE_CMETHOD, !val);
-    } else if (flag == "no_discconect") {
+    } else if (flag == "no_disconnect") {
         opFlags.set(NO_DISCONNECT, val);
     } else {
         Sensor::setFlag(flag, val);

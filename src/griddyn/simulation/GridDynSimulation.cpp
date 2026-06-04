@@ -975,6 +975,7 @@ static const std::unordered_map<std::string, int>& getFlagControlMap()
         {"dae_initialization_for_partitioned", DAE_INITIALIZATION_FOR_PARTITIONED},
         {"DAE_INITIALIZATION_FOR_PARTITIONED", DAE_INITIALIZATION_FOR_PARTITIONED},
         {"force_powerflow", FORCE_EXTRA_POWERFLOW},
+        {"force_extra_powerflow", FORCE_EXTRA_POWERFLOW},
         {"FORCE_EXTRA_POWERFLOW", FORCE_EXTRA_POWERFLOW},
         {"droop_power_flow", DROOP_POWER_FLOW},
         {"DROOP_POWER_FLOW", DROOP_POWER_FLOW},

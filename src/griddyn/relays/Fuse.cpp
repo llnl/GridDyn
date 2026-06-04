@@ -26,7 +26,6 @@
 #include <string>
 #include <utility>
 
-// NOLINTBEGIN
 namespace griddyn::relays {
 using units::convert;
 using units::puA;
@@ -383,4 +382,3 @@ void Fuse::getStateName(stringVec& stNames,
     }
 }
 }  // namespace griddyn::relays
-// NOLINTEND

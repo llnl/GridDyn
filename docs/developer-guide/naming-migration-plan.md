@@ -68,10 +68,10 @@ The migration should proceed in layers of risk:
 6. Filenames and include cleanup
 7. Interfaces, tests, docs, and final enforcement
 
-This sequencing is important because broad public type renames such as
-`coreObject`, `gridBus`, and `gridSimulation` will cascade across a large part
-of the repository. Those should happen only after lower-risk cleanup reduces the
-ambient noise.
+This sequencing is important because broad public type-family renames such as
+the legacy `coreObject`, `gridBus`, and `gridSimulation` families cascade
+across a large part of the repository. Those should happen only after
+lower-risk cleanup reduces the ambient noise.
 
 ## Progress Tracking
 
@@ -409,13 +409,19 @@ This phase should be split into separate epics. Each epic may take multiple PRs.
 
 ### Epic E: Area And Simulation Types
 
-- [~] Audit all references to `Area`
-- [~] Audit all references to `gridSimulation`
-- [~] Audit all references to `gridDynSimulation`
-- [ ] Rename area and simulation classes plus closely related API surface
-- [ ] Update dependents
-- [ ] Update tests
-- [ ] Remove temporary compatibility shims when safe
+- [x] Audit all references to `Area`
+- [x] Audit all references to `gridSimulation`
+- [x] Audit all references to `gridDynSimulation`
+- [x] Rename area and simulation classes plus closely related API surface
+- [x] Update dependents
+- [x] Update tests
+- [x] Remove temporary compatibility shims when safe
+
+Primary C++ type-family renames in this epic are complete in maintained
+first-party source. Remaining findings in the area and simulation subsystem are
+now dominated by enum constants, member naming, user-surface exports, and other
+non-type cleanup rather than the legacy `Area` / `gridSimulation` /
+`gridDynSimulation` class spellings.
 
 ### Epic F: Solver Types
 
@@ -429,10 +435,16 @@ This phase should be split into separate epics. Each epic may take multiple PRs.
 
 - [x] Audit all references to `commMessage`
 - [x] Audit all references to related communication core types
-- [ ] Rename types and API surface
-- [ ] Update dependents
-- [ ] Update tests
-- [ ] Remove temporary compatibility shims when safe
+- [x] Rename types and API surface
+- [x] Update dependents
+- [x] Update tests
+- [x] Remove temporary compatibility shims when safe
+
+Follow-up plan-alignment sweeps found stale lowercase communication-type
+spellings in the HELICS and FSKIT adapters after the earlier communication
+surface sweep. Those references have now been updated to `CommMessage` and
+`CommunicationsCore`, and no first-party compatibility alias layer remains for
+the legacy `commMessage` / `communicationsCore` spellings.
 
 ## Phase 7: Filenames And Include Paths
 
@@ -488,10 +500,11 @@ names.
   `test/componentTests/testRelays.cpp`,
   which was updated to match the current communication message type before the
   Phase 8 closeout merged.
-- The same sweep found no live communication-core references to
-  `commMessage`, `CommMessage`, `Communicator.h`, `CommMessage.h`,
-  `communicationsCore`, or `commManager` in the first-party interface and
-  support-code surface outside that test file.
+- A later first-party source sweep found stale lowercase communication-core
+  spellings in the HELICS and FSKIT adapters, including `commMessage` and
+  `communicationsCore`. Those references were cleaned up during follow-up plan
+  alignment, leaving no live first-party source references to the legacy
+  `commMessage`, `communicationsCore`, or `commManager` spellings.
 
 ### Phase 8 Closeout
 

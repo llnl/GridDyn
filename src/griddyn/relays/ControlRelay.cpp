@@ -21,7 +21,6 @@
 #include <string>
 #include <utility>
 
-// NOLINTBEGIN
 namespace griddyn::relays {
 ControlRelay::ControlRelay(const std::string& objName): Relay(objName) {}
 
@@ -399,4 +398,3 @@ index_t ControlRelay::getFreeAction()
     return asize;
 }
 }  // namespace griddyn::relays
-// NOLINTEND

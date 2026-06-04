@@ -182,11 +182,11 @@ void HelicsCoordinator::set(const std::string& param, double val, units::unit un
 void HelicsCoordinator::receiveMessage(helics::Endpoint& endpoint, helics::Time messageTime)
 {
     auto payload = endpoint.getMessage()->to_string();
-    std::shared_ptr<griddyn::commMessage> msg;
+    auto msg = std::make_shared<griddyn::CommMessage>();
     msg->from_string(payload);
 
     auto event = std::make_unique<griddyn::FunctionEventAdapter>([this, msg, &endpoint]() {
-        communicationsCore::instance()->send(0, endpoint.getName(), std::move(msg));
+        CommunicationsCore::instance()->send(0, endpoint.getName(), std::move(msg));
         return griddyn::ChangeCode::NO_CHANGE;
     });
 

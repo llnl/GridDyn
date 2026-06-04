@@ -66,7 +66,7 @@ void TcpCommunicator::transmit(std::uint64_t /*destID*/,
     // txmsg.send(*txSocket);
 }
 
-// void TcpCommunicator::addHeader(zmq::multipart_t &msg, std::shared_ptr<commMessage> &
+// void TcpCommunicator::addHeader(zmq::multipart_t &msg, std::shared_ptr<CommMessage> &
 // /*message*/)
 //{
 //    if (!flags[no_transmit_source])
@@ -75,7 +75,7 @@ void TcpCommunicator::transmit(std::uint64_t /*destID*/,
 //    }
 //}
 
-// void TcpCommunicator::addMessageBody(zmq::multipart_t &msg, std::shared_ptr<commMessage>
+// void TcpCommunicator::addMessageBody(zmq::multipart_t &msg, std::shared_ptr<CommMessage>
 // &message)
 //{
 //    msg.addstr(message->toDataString());

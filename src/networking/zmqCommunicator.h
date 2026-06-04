@@ -77,7 +77,7 @@ namespace zmqInterface {
         virtual void messageHandler(const zmq::multipart_t& msg);
         /** add a header to a message*/
         virtual void addHeader(zmq::multipart_t& msg, const std::shared_ptr<CommMessage>& message);
-        /** add the body from a regular commMessage*/
+        /** add the body from a regular CommMessage*/
         virtual void addMessageBody(zmq::multipart_t& msg,
                                     const std::shared_ptr<CommMessage>& message);
     };

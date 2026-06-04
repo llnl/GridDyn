@@ -77,9 +77,9 @@ namespace tcpLib {
         /** handle a zmq message*/
         // virtual void messageHandler(const zmq::multipart_t& msg);
         /** add a header to a message*/
-        // virtual void addHeader(zmq::multipart_t &msg, std::shared_ptr<commMessage> &message);
-        /** add the body from a regular commMessage*/
-        // virtual void addMessageBody(zmq::multipart_t &msg, std::shared_ptr<commMessage>
+        // virtual void addHeader(zmq::multipart_t &msg, std::shared_ptr<CommMessage> &message);
+        /** add the body from a regular CommMessage*/
+        // virtual void addMessageBody(zmq::multipart_t &msg, std::shared_ptr<CommMessage>
         // &message);
     };
 

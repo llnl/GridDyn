@@ -36,7 +36,7 @@ static constexpr double cSmallDiff = 1e-7;
 MotorLoad::MotorLoad(const std::string& objName): GridLoad(objName)
 {
     // default values
-    opFlags.set(has_dyn_states);
+    opFlags.set(HAS_DYN_STATES);
 }
 
 CoreObject* MotorLoad::clone(CoreObject* obj) const
@@ -63,7 +63,7 @@ CoreObject* MotorLoad::clone(CoreObject* obj) const
 void MotorLoad::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     m_state.resize(1);
-    if (opFlags[init_transient]) {
+    if (opFlags[INIT_TRANSIENT]) {
         if (init_slip >= 0) {
             m_state[0] = init_slip;
         } else {
@@ -80,7 +80,7 @@ void MotorLoad::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 
 void MotorLoad::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
-    opFlags.set(has_roots);
+    opFlags.set(HAS_ROOTS);
     GridLoad::dynObjectInitializeA(time0, flags);
 }
 
@@ -90,7 +90,7 @@ void MotorLoad::dynObjectInitializeB(const IOdata& /*inputs*/,
 {
     m_dstate_dt[0] = 0;
 
-    if (opFlags[init_transient]) {
+    if (opFlags[INIT_TRANSIENT]) {
         Pmot = mechPower(m_state[0]);
     } else {
     }
@@ -103,7 +103,7 @@ StateSizes MotorLoad::localStateSizes(const SolverMode& sMode) const
         if (!isAlgebraicOnly(sMode)) {
             stateSizeValues.diffSize = 1;
         }
-    } else if (!opFlags[init_transient]) {
+    } else if (!opFlags[INIT_TRANSIENT]) {
         stateSizeValues.algSize = 1;
     }
     return stateSizeValues;
@@ -116,7 +116,7 @@ count_t MotorLoad::localJacobianCount(const SolverMode& sMode) const
         if (!isAlgebraicOnly(sMode)) {
             localJacSize = 4;
         }
-    } else if (!opFlags[init_transient]) {
+    } else if (!opFlags[INIT_TRANSIENT]) {
         localJacSize = 4;
     }
     return localJacSize;
@@ -126,7 +126,7 @@ std::pair<count_t, count_t> MotorLoad::LocalRootCount(const SolverMode& /*sMode*
 {
     count_t algRoots = 0;
     count_t diffRoots = 0;
-    if ((opFlags[stalled]) && (opFlags[resettable])) {
+    if ((opFlags[STALLED]) && (opFlags[RESETTABLE])) {
         algRoots = 1;
     } else {
         diffRoots = 1;
@@ -212,11 +212,11 @@ void MotorLoad::set(std::string_view param, double val, units::unit unitType)
     }
 
     if (slipCheck) {
-        if (opFlags[stalled]) {
+        if (opFlags[STALLED]) {
             rootCheck(bus->getOutputs(noInputs, emptyStateData, cLocalSolverMode),
                       emptyStateData,
                       cLocalSolverMode,
-                      CheckLevel::reversable_only);
+                      CheckLevel::REVERSABLE_ONLY);
         }
     }
 }
@@ -234,7 +234,7 @@ void MotorLoad::setState(CoreTime time,
         auto offset = offsets.getDiffOffset(sMode);
         m_state[0] = state[offset];
         m_dstate_dt[0] = dstate_dt[offset];
-    } else if (!opFlags[init_transient]) {
+    } else if (!opFlags[INIT_TRANSIENT]) {
         auto offset = offsets.getAlgOffset(sMode);
         m_state[0] = state[offset];
     }
@@ -252,7 +252,7 @@ void MotorLoad::guessState(CoreTime /*time*/,
             state[offset] = m_state[0];
             dstate_dt[offset] = m_dstate_dt[0];
         }
-    } else if (!opFlags[init_transient]) {
+    } else if (!opFlags[INIT_TRANSIENT]) {
         auto offset = offsets.getAlgOffset(sMode);
         state[offset] = m_state[0];
     }
@@ -270,12 +270,12 @@ void MotorLoad::residual(const IOdata& inputs,
             auto offset = offsets.getDiffOffset(sMode);
             resid[offset] -= stateDataValue.dstate_dt[offset];
         }
-    } else if (!opFlags[init_transient]) {
+    } else if (!opFlags[INIT_TRANSIENT]) {
         auto offset = offsets.getAlgOffset(sMode);
         const double slip = stateDataValue.state[offset];
-        resid[offset] = mechPower(slip) - rPower(inputs[voltageInLocation], slip);
+        resid[offset] = mechPower(slip) - rPower(inputs[VOLTAGE_IN_LOCATION], slip);
         // printf("slip=%f mpower=%f, rPower=%f\n", slip, mechPower(slip),
-        // rPower(inputs[voltageInLocation], slip));
+        // rPower(inputs[VOLTAGE_IN_LOCATION], slip));
     }
 }
 
@@ -290,7 +290,7 @@ void MotorLoad::getStateName(stringVec& stNames,
 
         auto offset = offsets.getDiffOffset(sMode);
         stNames[offset] = prefix + getName() + ":slip";
-    } else if (!opFlags[init_transient]) {
+    } else if (!opFlags[INIT_TRANSIENT]) {
         auto offset = offsets.getAlgOffset(sMode);
         stNames[offset] = prefix + getName() + ":slip";
     } else {
@@ -311,10 +311,10 @@ void MotorLoad::derivative(const IOdata& inputs,
 {
     auto offset = offsets.getDiffOffset(sMode);
     const double slip = (!stateDataValue.empty()) ? stateDataValue.state[offset] : m_state[0];
-    const double voltage = inputs[voltageInLocation];
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
 
     deriv[offset] =
-        (opFlags[stalled]) ? 0 : (0.5 / H * (mechPower(slip) - rPower(voltage * Vcontrol, slip)));
+        (opFlags[STALLED]) ? 0 : (0.5 / H * (mechPower(slip) - rPower(voltage * Vcontrol, slip)));
 }
 
 void MotorLoad::jacobianElements(const IOdata& inputs,
@@ -327,12 +327,12 @@ void MotorLoad::jacobianElements(const IOdata& inputs,
         if (hasDifferential(sMode)) {
             auto offset = offsets.getDiffOffset(sMode);
             const double slip = stateDataValue.state[offset];
-            const double voltage = inputs[voltageInLocation];
-            if (opFlags[stalled]) {
+            const double voltage = inputs[VOLTAGE_IN_LOCATION];
+            if (opFlags[STALLED]) {
                 matrixDataValue.assign(offset, offset, -stateDataValue.cj);
             } else {
                 matrixDataValue.assignCheck(offset,
-                                            inputLocs[voltageInLocation],
+                                            inputLocs[VOLTAGE_IN_LOCATION],
                                             -(1.0 / H) *
                                                 (voltage * Vcontrol * Vcontrol * r1 * slip /
                                                  ((r1 * r1) +
@@ -346,10 +346,10 @@ void MotorLoad::jacobianElements(const IOdata& inputs,
                                        ((test2 - test1) / cSmallDiff) - stateDataValue.cj);
             }
         }
-    } else if (!opFlags[init_transient]) {
+    } else if (!opFlags[INIT_TRANSIENT]) {
         const int offset = offsets.getAlgOffset(sMode);
         const double slip = stateDataValue.state[offset];
-        const double voltage = inputs[voltageInLocation];
+        const double voltage = inputs[VOLTAGE_IN_LOCATION];
 
         const double powerAtSlip = rPower(voltage * Vcontrol, slip);
         const double powerAtPerturbedSlip = rPower(voltage * Vcontrol, slip + cSmallDiff);
@@ -358,7 +358,7 @@ void MotorLoad::jacobianElements(const IOdata& inputs,
                                dmechds(slip) - ((powerAtPerturbedSlip - powerAtSlip) / cSmallDiff));
 
         matrixDataValue.assignCheck(offset,
-                                    inputLocs[voltageInLocation],
+                                    inputLocs[VOLTAGE_IN_LOCATION],
                                     -2.0 * powerAtSlip / voltage);
     }
 }
@@ -375,32 +375,32 @@ void MotorLoad::outputPartialDerivatives(const IOdata& inputs,
 
         auto offset = offsets.getDiffOffset(sMode);
         const double slip = stateDataValue.state[offset];
-        const double voltage = inputs[voltageInLocation];
+        const double voltage = inputs[VOLTAGE_IN_LOCATION];
 
-        matrixDataValue.assign(PoutLocation,
+        matrixDataValue.assign(POUT_LOCATION,
                                offset,
                                scale *
                                    (rPower(voltage * Vcontrol, slip + cSmallDiff) -
                                     rPower(voltage * Vcontrol, slip)) /
                                    cSmallDiff);
 
-        matrixDataValue.assign(QoutLocation,
+        matrixDataValue.assign(QOUT_LOCATION,
                                offset,
                                scale *
                                    (qPower(voltage * Vcontrol, slip + cSmallDiff) -
                                     qPower(voltage * Vcontrol, slip)) /
                                    cSmallDiff);
-    } else if (!opFlags[init_transient]) {
+    } else if (!opFlags[INIT_TRANSIENT]) {
         auto offset = offsets.getAlgOffset(sMode);
         const double slip = stateDataValue.state[offset];
-        const double voltage = inputs[voltageInLocation];
-        matrixDataValue.assign(QoutLocation,
+        const double voltage = inputs[VOLTAGE_IN_LOCATION];
+        matrixDataValue.assign(QOUT_LOCATION,
                                offset,
                                scale *
                                    (qPower(voltage * Vcontrol, slip + cSmallDiff) -
                                     qPower(voltage * Vcontrol, slip)) /
                                    cSmallDiff);
-        matrixDataValue.assign(PoutLocation,
+        matrixDataValue.assign(POUT_LOCATION,
                                offset,
                                scale *
                                    (rPower(voltage * Vcontrol, slip + cSmallDiff) -
@@ -419,19 +419,19 @@ void MotorLoad::ioPartialDerivatives(const IOdata& inputs,
                                      const IOlocs& inputLocs,
                                      const SolverMode& sMode)
 {
-    if (inputLocs[voltageInLocation] != kNullLocation) {
+    if (inputLocs[VOLTAGE_IN_LOCATION] != kNullLocation) {
         double slip = m_state[0];
-        const double voltage = inputs[voltageInLocation];
+        const double voltage = inputs[VOLTAGE_IN_LOCATION];
         if (isDynamic(sMode)) {
             auto Loc = offsets.getLocations(stateDataValue, sMode, this);
             slip = Loc.diffStateLoc[0];
-        } else if (!opFlags[init_transient]) {
+        } else if (!opFlags[INIT_TRANSIENT]) {
             slip = stateDataValue.state[offsets.getAlgOffset(sMode)];
         }
         const double temp = voltage * slip / ((r1 * r1) + (slip * slip * (x + x1) * (x + x1)));
-        matrixDataValue.assign(PoutLocation, inputLocs[voltageInLocation], scale * (2 * r1 * temp));
-        matrixDataValue.assign(QoutLocation,
-                               inputLocs[voltageInLocation],
+        matrixDataValue.assign(POUT_LOCATION, inputLocs[VOLTAGE_IN_LOCATION], scale * (2 * r1 * temp));
+        matrixDataValue.assign(QOUT_LOCATION,
+                               inputLocs[VOLTAGE_IN_LOCATION],
                                scale * ((2 * voltage / xm) + (2 * slip * (x + x1) * temp)));
     }
 }
@@ -453,8 +453,8 @@ void MotorLoad::rootTest(const IOdata& inputs,
     auto Loc = offsets.getLocations(stateDataValue, sMode, this);
     const double slip = Loc.diffStateLoc[0];
     const auto rootOffset = offsets.getRootOffset(sMode);
-    if (opFlags[stalled]) {
-        roots[rootOffset] = rPower(inputs[voltageInLocation] * Vcontrol, 1.0) - mechPower(1.0);
+    if (opFlags[STALLED]) {
+        roots[rootOffset] = rPower(inputs[VOLTAGE_IN_LOCATION] * Vcontrol, 1.0) - mechPower(1.0);
     } else {
         roots[rootOffset] = 1.0 - slip;
     }
@@ -468,14 +468,14 @@ void MotorLoad::rootTrigger(CoreTime /*time*/,
     if (rootMask[offsets.getRootOffset(sMode)] == 0) {
         return;
     }
-    if (opFlags[stalled]) {
-        if (inputs[voltageInLocation] > 0.5) {
-            opFlags.reset(stalled);
+    if (opFlags[STALLED]) {
+        if (inputs[VOLTAGE_IN_LOCATION] > 0.5) {
+            opFlags.reset(STALLED);
             alert(this, JAC_COUNT_INCREASE);
             m_state[0] = 1.0 - 1e-7;
         }
     } else {
-        opFlags.set(stalled);
+        opFlags.set(STALLED);
         alert(this, JAC_COUNT_DECREASE);
         m_state[0] = 1.0;
     }
@@ -486,9 +486,9 @@ ChangeCode MotorLoad::rootCheck(const IOdata& inputs,
                                 const SolverMode& /*sMode*/,
                                 CheckLevel /*level*/)
 {
-    if (opFlags[stalled]) {
-        if (rPower(inputs[voltageInLocation] * Vcontrol, 1.0) - mechPower(1.0) > 0) {
-            opFlags.reset(stalled);
+    if (opFlags[STALLED]) {
+        if (rPower(inputs[VOLTAGE_IN_LOCATION] * Vcontrol, 1.0) - mechPower(1.0) > 0) {
+            opFlags.reset(STALLED);
             alert(this, JAC_COUNT_INCREASE);
             return ChangeCode::JACOBIAN_CHANGE;
         }
@@ -517,7 +517,7 @@ double MotorLoad::getRealPower(const IOdata& inputs,
                                const StateData& stateDataValue,
                                const SolverMode& sMode) const
 {
-    const double voltage = inputs[voltageInLocation];
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
 
     double Ptemp;
     if (isDynamic(sMode)) {
@@ -525,7 +525,7 @@ double MotorLoad::getRealPower(const IOdata& inputs,
 
         const double slip = Loc.diffStateLoc[0];
         Ptemp = rPower(voltage * Vcontrol, slip);
-    } else if (opFlags[init_transient]) {
+    } else if (opFlags[INIT_TRANSIENT]) {
         const double slip = m_state[0];
         Ptemp = rPower(voltage * Vcontrol, slip);
     } else {
@@ -541,14 +541,14 @@ double MotorLoad::getReactivePower(const IOdata& inputs,
                                    const StateData& stateDataValue,
                                    const SolverMode& sMode) const
 {
-    const double voltage = inputs[voltageInLocation];
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
     double Qtemp;
     if (isDynamic(sMode)) {
         auto Loc = offsets.getLocations(stateDataValue, sMode, this);
 
         const double slip = Loc.diffStateLoc[0];
         Qtemp = qPower(voltage, slip);
-    } else if (opFlags[init_transient]) {
+    } else if (opFlags[INIT_TRANSIENT]) {
         const double slip = m_state[0];
         Qtemp = qPower(voltage * Vcontrol, slip);
     } else {

@@ -169,9 +169,9 @@ void GenModel4::jacobianElements(const IOdata& inputs,
     auto refAlg = Loc.algOffset;
     auto refDiff = Loc.diffOffset;
     const double* gm = Loc.algStateLoc;
-    double V = inputs[voltageInLocation];
-    auto VLoc = inputLocs[voltageInLocation];
-    auto TLoc = inputLocs[angleInLocation];
+    double V = inputs[VOLTAGE_IN_LOCATION];
+    auto VLoc = inputLocs[VOLTAGE_IN_LOCATION];
+    auto TLoc = inputLocs[ANGLE_IN_LOCATION];
 
     updateLocalCache(inputs, sD, sMode);
 

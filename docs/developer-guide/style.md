@@ -51,7 +51,7 @@ Formatting conventions are primarily enforced through the repository
 6. Variable names:
    local variable names should be `camelCase`
    member variable names should be `mPascalCase`
-   static const members should be `CAPITAL_SNAKE_CASE`
+   static const members should be `camelCase`
    function input names should be `camelCase`
    index variables can be `camelCase` or short forms such as `ii`, `jj`, `kk`
    global variables should be `gPascalCase`

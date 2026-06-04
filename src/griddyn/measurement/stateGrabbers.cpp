@@ -258,15 +258,15 @@ static const std::map<std::string, fstateobjectPair> BUS_FUNCTIONS{
 
 static const std::map<std::string, objJacFunction> BUS_JAC_FUNCTIONS{
   {"voltage", JAC_FUNCTION_SIGNATURE_NO_STATE{
-          matrixDataValue.assignCheckCol (0, static_cast<GridBus *> (obj)->getOutputLoc (sMode, voltageInLocation), 1.0);}},
+          matrixDataValue.assignCheckCol (0, static_cast<GridBus *> (obj)->getOutputLoc (sMode, VOLTAGE_IN_LOCATION), 1.0);}},
   {"angle", JAC_FUNCTION_SIGNATURE_NO_STATE{
-              matrixDataValue.assignCheckCol (0, static_cast<GridBus *> (obj)->getOutputLoc (sMode, angleInLocation), 1.0);}},
+              matrixDataValue.assignCheckCol (0, static_cast<GridBus *> (obj)->getOutputLoc (sMode, ANGLE_IN_LOCATION), 1.0);}},
  { "busangle", JAC_FUNCTION_SIGNATURE_NO_STATE{
-    matrixDataValue.assignCheckCol(0, static_cast<GridBus *> (obj)->getOutputLoc(sMode, angleInLocation), 1.0); } },
+    matrixDataValue.assignCheckCol(0, static_cast<GridBus *> (obj)->getOutputLoc(sMode, ANGLE_IN_LOCATION), 1.0); } },
     { "freq", JAC_FUNCTION_SIGNATURE_NO_STATE{
-    matrixDataValue.assignCheckCol(0, static_cast<GridBus *> (obj)->getOutputLoc(sMode, frequencyInLocation), 1.0); } },
+    matrixDataValue.assignCheckCol(0, static_cast<GridBus *> (obj)->getOutputLoc(sMode, FREQUENCY_IN_LOCATION), 1.0); } },
     { "busfreq", JAC_FUNCTION_SIGNATURE_NO_STATE{
-    matrixDataValue.assignCheckCol(0, static_cast<GridBus *> (obj)->getOutputLoc(sMode, frequencyInLocation), 1.0); } },
+    matrixDataValue.assignCheckCol(0, static_cast<GridBus *> (obj)->getOutputLoc(sMode, FREQUENCY_IN_LOCATION), 1.0); } },
 };
 
 static const std::map<std::string, fstateobjectPair> AREA_FUNCTIONS{
@@ -486,7 +486,7 @@ void StateGrabber::secondaryLoadInfo(std::string_view fld)
                       MatrixData<double>& matrixDataValue,
                       const SolverMode& sMode) {
             MatrixDataTranslate<1, double> translatedMatrix(matrixDataValue);
-            translatedMatrix.setTranslation(PoutLocation, 0);
+            translatedMatrix.setTranslation(POUT_LOCATION, 0);
             static_cast<GridSecondary*>(comp)->outputPartialDerivatives(noInputs,
                                                                         stateDataValue,
                                                                         translatedMatrix,
@@ -505,7 +505,7 @@ void StateGrabber::secondaryLoadInfo(std::string_view fld)
                       MatrixData<double>& matrixDataValue,
                       const SolverMode& sMode) {
             MatrixDataTranslate<1, double> translatedMatrix(matrixDataValue);
-            translatedMatrix.setTranslation(QoutLocation, 0);
+            translatedMatrix.setTranslation(QOUT_LOCATION, 0);
             static_cast<GridSecondary*>(comp)->outputPartialDerivatives(noInputs,
                                                                         stateDataValue,
                                                                         translatedMatrix,

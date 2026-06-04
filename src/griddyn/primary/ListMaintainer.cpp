@@ -53,8 +53,8 @@ void fillList(const SolverMode& sMode,
               const std::vector<GridPrimary*>& possObjs)
 {
     for (auto& obj : possObjs) {
-        if (obj->checkFlag(preEx_requested)) {
-            if (obj->checkFlag(multipart_calculation_capable)) {
+        if (obj->checkFlag(PRE_EX_REQUESTED)) {
+            if (obj->checkFlag(MULTIPART_CALCULATION_CAPABLE)) {
                 partlist.push_back(obj);
                 list.push_back(obj);
             } else if (obj->stateSize(sMode) > 0) {
@@ -71,7 +71,7 @@ void ListMaintainer::makePreList(const std::vector<GridPrimary*>& possObjs)
 {
     preExObjs.clear();
     for (auto& obj : possObjs) {
-        if (obj->checkFlag(preEx_requested)) {
+        if (obj->checkFlag(PRE_EX_REQUESTED)) {
             preExObjs.push_back(obj);
         }
     }

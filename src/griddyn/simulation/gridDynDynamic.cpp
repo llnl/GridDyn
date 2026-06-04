@@ -34,21 +34,21 @@ static IOdata kNullOutputVec;  //!<  this is a purposely created empty vector wh
 // dynamic solver and initial conditions
 int GridDynSimulation::dynInitialize(CoreTime tStart)
 {
-    if (opFlags[dyn_initialized]) {
+    if (opFlags[DYN_INITIALIZED]) {
         offsets.unload(true);
     }
-    const SolverMode& tempSm = (defaultDynamicSolverMethod == DynamicSolverMethods::partitioned) ?
+    const SolverMode& tempSm = (defaultDynamicSolverMethod == DynamicSolverMethods::PARTITIONED) ?
         *defDynDiffMode :
         *defDAEMode;
 
     const int retval = makeReady(GridState::POWERFLOW_COMPLETE, tempSm);
-    if (retval != FUNCTION_EXECUTION_SUCCESS || controlFlags[power_flow_only]) {
+    if (retval != FUNCTION_EXECUTION_SUCCESS || controlFlags[POWER_FLOW_ONLY]) {
         return retval;
     }
 
     auto dynData = getSolverInterface(tempSm);
     const SolverMode& solverModeRef = dynData->getSolverMode();
-    if (defaultDynamicSolverMethod == DynamicSolverMethods::partitioned) {
+    if (defaultDynamicSolverMethod == DynamicSolverMethods::PARTITIONED) {
         defDynDiffMode = &solverModeRef;
     } else {
         defDAEMode = &solverModeRef;
@@ -75,20 +75,20 @@ int GridDynSimulation::dynInitialize(CoreTime tStart)
     // CSW: Need to send in the number of roots to find so that memory
     // can be allocated to for the array indicating indices of roots.
     // do the final Ida initialization
-    if (controlFlags[roots_disabled]) {
+    if (controlFlags[ROOTS_DISABLED]) {
         offsets.local().local.algRoots = 0;
         offsets.local().local.diffRoots = 0;
-        opFlags[has_roots] = false;
-        opFlags[has_alg_roots] = false;
+        opFlags[HAS_ROOTS] = false;
+        opFlags[HAS_ALG_ROOTS] = false;
     } else {
         totalRoots = rootSize(solverModeRef);
         if (totalRoots > 0) {
             setRootOffset(0, solverModeRef);
-            opFlags[has_roots] = true;
-            opFlags[has_alg_roots] = (offsets.getOffsets(solverModeRef).total.algRoots > 0);
+            opFlags[HAS_ROOTS] = true;
+            opFlags[HAS_ALG_ROOTS] = (offsets.getOffsets(solverModeRef).total.algRoots > 0);
         } else {
-            opFlags[has_roots] = false;
-            opFlags[has_alg_roots] = false;
+            opFlags[HAS_ROOTS] = false;
+            opFlags[HAS_ALG_ROOTS] = false;
         }
     }
 
@@ -135,7 +135,7 @@ int GridDynSimulation::runDynamicSolverStep(std::shared_ptr<SolverInterface>& dy
                                             CoreTime& timeActual)
 {
     int retval = FUNCTION_EXECUTION_SUCCESS;
-    if (controlFlags[single_step_mode]) {
+    if (controlFlags[SINGLE_STEP_MODE]) {
         while ((timeActual + tols.timeTol < nextStop) && (retval == FUNCTION_EXECUTION_SUCCESS)) {
             retval = dynData->solve(nextStop, timeActual, SolverInterface::StepMode::SINGLE_STEP);
             if (retval == FUNCTION_EXECUTION_SUCCESS) {
@@ -160,7 +160,7 @@ int GridDynSimulation::runDynamicSolverStep(std::shared_ptr<SolverInterface>& dy
 void GridDynSimulation::setupDynamicDAE()
 {
     if (defDAEMode == nullptr) {
-        setDefaultMode(SolutionModes::dae_mode, getSolverMode("dae"));
+        setDefaultMode(SolutionModes::DAE_MODE, getSolverMode("dae"));
         updateSolver(*defDAEMode);
     }
     const SolverMode& sMode = *defDAEMode;
@@ -360,7 +360,7 @@ int GridDynSimulation::dynamicPartitionedStartupConditions(
 {
     int retval = FUNCTION_EXECUTION_SUCCESS;
     if (pState == GridState::DYNAMIC_INITIALIZED) {
-        if (controlFlags[dae_initialization_for_partitioned]) {
+        if (controlFlags[DAE_INITIALIZATION_FOR_PARTITIONED]) {
             auto daeData = getSolverInterface(*defDAEMode);
             if (!daeData->isInitialized()) {
                 updateSolver(*defDAEMode);
@@ -630,7 +630,7 @@ void GridDynSimulation::handleEarlySolverReturn(int retval,
 {
     ++haltCount;
 
-    if (opFlags[has_roots]) {
+    if (opFlags[HAS_ROOTS]) {
         if (retval == SOLVER_ROOT_FOUND)  // a root was found in IDASolve
         {  // Note that if a root is found, integration halts at the root time which is
             // returned in timeReturn.
@@ -649,10 +649,10 @@ void GridDynSimulation::handleEarlySolverReturn(int retval,
             rootCheck(noInputs,
                       stateDataValue,
                       dynData->getSolverMode(),
-                      CheckLevel::low_voltage_check);
+                      CheckLevel::LOW_VOLTAGE_CHECK);
             // return dynData->calcIC(getSimulationTime(), probeStepTime,
             // SolverInterface::IcModes::FIXED_DIFF, true);
-            opFlags.reset(low_bus_voltage);
+            opFlags.reset(LOW_BUS_VOLTAGE);
 #if JAC_CHECK_ENABLED > 0
             int mmatch = jacobianCheck(this, dynData->getSolverMode());
             if (mmatch > 0) {
@@ -666,16 +666,16 @@ void GridDynSimulation::handleEarlySolverReturn(int retval,
 bool GridDynSimulation::dynamicCheckAndReset(const SolverMode& sMode, ChangeCode change)
 {
     auto dynData = getSolverInterface(sMode);
-    if (opFlags[connectivity_change_flag]) {
+    if (opFlags[CONNECTIVITY_CHANGE_FLAG]) {
         checkNetwork(NetworkCheckType::SIMPLIFIED);
     }
-    if ((opFlags[state_change_flag]) || (change == ChangeCode::STATE_SIZE_CHANGE)) {
+    if ((opFlags[STATE_CHANGE_FLAG]) || (change == ChangeCode::STATE_SIZE_CHANGE)) {
         // we changed object states so we have to do a full reset
         if (checkEventsForDynamicReset(currentTime + probeStepTime, sMode)) {
             return true;
         }
         reInitDyn(sMode);
-    } else if ((opFlags[object_change_flag]) || (change == ChangeCode::OBJECT_CHANGE)) {
+    } else if ((opFlags[OBJECT_CHANGE_FLAG]) || (change == ChangeCode::OBJECT_CHANGE)) {
         // the object count changed
         if (checkEventsForDynamicReset(currentTime + probeStepTime, sMode)) {
             return true;
@@ -686,7 +686,7 @@ bool GridDynSimulation::dynamicCheckAndReset(const SolverMode& sMode, ChangeCode
         } else {
             updateOffsets(sMode);
         }
-    } else if ((opFlags[jacobian_count_change_flag]) || (change == ChangeCode::JACOBIAN_CHANGE)) {
+    } else if ((opFlags[JACOBIAN_COUNT_CHANGE_FLAG]) || (change == ChangeCode::JACOBIAN_CHANGE)) {
         if (checkEventsForDynamicReset(currentTime + probeStepTime, sMode)) {
             return true;
         }
@@ -695,7 +695,7 @@ bool GridDynSimulation::dynamicCheckAndReset(const SolverMode& sMode, ChangeCode
         // Allow for the fact that the new size of Jacobian now also has a different number of
         // non-zeros
         dynData->sparseReInit(SolverInterface::SparseReinitMode::RESIZE);
-    } else if (opFlags[root_change_flag]) {
+    } else if (opFlags[ROOT_CHANGE_FLAG]) {
         handleRootChange(sMode, dynData);
     } else {
         // mode ==0
@@ -712,8 +712,8 @@ int GridDynSimulation::generateDaeDynamicInitialConditions(const SolverMode& sMo
     auto dynData = getSolverInterface(sMode);
     int retval = FUNCTION_EXECUTION_FAILURE;
     // check and deal with voltage Reset
-    if (opFlags[reset_voltage_flag]) {
-        opFlags.reset(reset_voltage_flag);
+    if (opFlags[RESET_VOLTAGE_FLAG]) {
+        opFlags.reset(RESET_VOLTAGE_FLAG);
         faultResetRecovery frr(this, dynData);
         while (frr.hasMoreFixes()) {
             retval = frr.attemptFix();
@@ -725,7 +725,7 @@ int GridDynSimulation::generateDaeDynamicInitialConditions(const SolverMode& sMo
             }
         }
     }
-    if (opFlags[low_bus_voltage]) {
+    if (opFlags[LOW_BUS_VOLTAGE]) {
         const StateData stateDataValue(getSimulationTime(),
                                        dynData->stateData(),
                                        dynData->derivData());
@@ -733,10 +733,10 @@ int GridDynSimulation::generateDaeDynamicInitialConditions(const SolverMode& sMo
         rootCheck(noInputs,
                   stateDataValue,
                   dynData->getSolverMode(),
-                  CheckLevel::low_voltage_check);
+                  CheckLevel::LOW_VOLTAGE_CHECK);
         // return dynData->calcIC(getSimulationTime(), probeStepTime,
         // SolverInterface::IcModes::FIXED_DIFF, true);
-        opFlags.reset(low_bus_voltage);
+        opFlags.reset(LOW_BUS_VOLTAGE);
     }
     // Do the first cut guessState at the solution
     guessState(currentTime, dynData->stateData(), dynData->derivData(), sMode);
@@ -768,7 +768,7 @@ int GridDynSimulation::generateDaeDynamicInitialConditions(const SolverMode& sMo
                  dynData->stateData(),
                  dynData->derivData(),
                  sMode,
-                 ConvergeMode::single_iteration,
+                 ConvergeMode::SINGLE_ITERATION,
                  0.05);
         retval =
             dynData->calcIC(currentTime, probeStepTime, SolverInterface::IcModes::FIXED_DIFF, true);
@@ -803,8 +803,8 @@ int GridDynSimulation::generatePartitionedDynamicInitialConditions(const SolverM
     auto dynDataDiff = getSolverInterface(sModeDiff);
     int retval = FUNCTION_EXECUTION_FAILURE;
     // check and deal with voltage Reset
-    if (opFlags[reset_voltage_flag]) {
-        opFlags.reset(reset_voltage_flag);
+    if (opFlags[RESET_VOLTAGE_FLAG]) {
+        opFlags.reset(RESET_VOLTAGE_FLAG);
         /*faultResetRecovery frr(this, dynData);
         while (frr.hasMoreFixes())
         {
@@ -820,12 +820,12 @@ int GridDynSimulation::generatePartitionedDynamicInitialConditions(const SolverM
         }
         */
     }
-    if (opFlags[low_bus_voltage]) {
+    if (opFlags[LOW_BUS_VOLTAGE]) {
         /*StateData sD(getSimulationTime(), dynData->stateData(), dynData->derivData());
 
-        rootCheck(&sD, dynData->getSolverMode(), CheckLevel::low_voltage_check);
+        rootCheck(&sD, dynData->getSolverMode(), CheckLevel::LOW_VOLTAGE_CHECK);
         //return dynData->calcIC(getSimulationTime(), probeStepTime,
-        SolverInterface::IcModes::FIXED_DIFF, true); opFlags.reset(low_bus_voltage);
+        SolverInterface::IcModes::FIXED_DIFF, true); opFlags.reset(LOW_BUS_VOLTAGE);
         */
     }
     CoreTime tRet;
@@ -838,13 +838,13 @@ int GridDynSimulation::generatePartitionedDynamicInitialConditions(const SolverM
 
 int GridDynSimulation::checkAlgebraicRoots(std::shared_ptr<SolverInterface>& dynData)
 {
-    if (opFlags[has_alg_roots]) {
+    if (opFlags[HAS_ALG_ROOTS]) {
         const SolverMode& sMode = dynData->getSolverMode();
         dynData->getCurrentData();
         setState(currentTime + probeStepTime, dynData->stateData(), dynData->derivData(), sMode);
         updateLocalCache();
         const ChangeCode ret =
-            rootCheck(noInputs, emptyStateData, cLocalSolverMode, CheckLevel::full_check);
+            rootCheck(noInputs, emptyStateData, cLocalSolverMode, CheckLevel::FULL_CHECK);
         handleRootChange(sMode, dynData);
         if (ret > ChangeCode::NON_STATE_CHANGE) {
             dynamicCheckAndReset(sMode, ret);
@@ -859,7 +859,7 @@ int GridDynSimulation::checkAlgebraicRoots(std::shared_ptr<SolverInterface>& dyn
                          dynData->stateData(),
                          dynData->derivData(),
                          sMode,
-                         ConvergeMode::single_iteration,
+                         ConvergeMode::SINGLE_ITERATION,
                          0.05);
                 retval = dynData->calcIC(currentTime,
                                          probeStepTime,
@@ -874,7 +874,7 @@ int GridDynSimulation::checkAlgebraicRoots(std::shared_ptr<SolverInterface>& dyn
 
 int GridDynSimulation::handleStateChange(const SolverMode& sMode)
 {
-    if (opFlags[state_change_flag]) {
+    if (opFlags[STATE_CHANGE_FLAG]) {
         if (checkEventsForDynamicReset(currentTime + probeStepTime, sMode)) {
             return generateDaeDynamicInitialConditions(sMode);
         }
@@ -888,7 +888,7 @@ int GridDynSimulation::handleStateChange(const SolverMode& sMode)
 void GridDynSimulation::handleRootChange(const SolverMode& sMode,
                                          std::shared_ptr<SolverInterface>& dynData)
 {
-    if (opFlags[root_change_flag])  // something with the roots changed
+    if (opFlags[ROOT_CHANGE_FLAG])  // something with the roots changed
     {
         const auto modeRootCount = rootSize(sMode);
         if (std::cmp_not_equal(modeRootCount, dynData->rootsfound.size())) {
@@ -897,7 +897,7 @@ void GridDynSimulation::handleRootChange(const SolverMode& sMode,
                 setRootOffset(0, sMode);
             }
         }
-        opFlags.reset(root_change_flag);
+        opFlags.reset(ROOT_CHANGE_FLAG);
     } else if (rootSize(sMode) > 0) {
         if (offsets.getRootOffset(sMode) == kNullLocation) {
             setRootOffset(0, sMode);
@@ -907,11 +907,11 @@ void GridDynSimulation::handleRootChange(const SolverMode& sMode,
 
 void GridDynSimulation::getConstraints(double consData[], const SolverMode& sMode)
 {
-    // if ((controlFlags[voltage_constraints_flag]) || (opFlags[has_constraints]))
-    if (controlFlags[voltage_constraints_flag]) {
+    // if ((controlFlags[VOLTAGE_CONSTRAINTS_FLAG]) || (opFlags[HAS_CONSTRAINTS]))
+    if (controlFlags[VOLTAGE_CONSTRAINTS_FLAG]) {
         getVoltageStates(consData, sMode);
     }
-    if (opFlags[has_constraints]) {
+    if (opFlags[HAS_CONSTRAINTS]) {
         GridArea::getConstraints(consData, sMode);
     }
 }
@@ -929,24 +929,24 @@ int GridDynSimulation::reInitDyn(const SolverMode& sMode)
 
     // check for objects with roots
     count_t nRoots = 0;
-    if (controlFlags[roots_disabled]) {
+    if (controlFlags[ROOTS_DISABLED]) {
         offsets.local().local.algRoots = 0;
         offsets.local().local.diffRoots = 0;
-        opFlags[has_roots] = false;
-        opFlags[has_alg_roots] = false;
+        opFlags[HAS_ROOTS] = false;
+        opFlags[HAS_ALG_ROOTS] = false;
     } else {
         nRoots = rootSize(sMode);
         if (rootSize(sMode) > 0) {
-            opFlags[has_roots] = true;
+            opFlags[HAS_ROOTS] = true;
             setRootOffset(0, sMode);
-            opFlags[has_alg_roots] = (offsets.local().total.algRoots > 0);
+            opFlags[HAS_ALG_ROOTS] = (offsets.local().total.algRoots > 0);
         } else {
-            opFlags[has_roots] = false;
-            opFlags[has_alg_roots] = false;
+            opFlags[HAS_ROOTS] = false;
+            opFlags[HAS_ALG_ROOTS] = false;
         }
     }
-    if (controlFlags[constraints_disabled]) {
-        opFlags[has_constraints] = false;
+    if (controlFlags[CONSTRAINTS_DISABLED]) {
+        opFlags[HAS_CONSTRAINTS] = false;
     }
 
     // CSW: Need to send in the number of roots to find so that memory
@@ -1127,8 +1127,8 @@ int GridDynSimulation::residualFunction(CoreTime time,
     auto me = std::max_element(resid, resid + stateCount);
     std::println(" max residual at {} = {}", static_cast<int>(me - resid), *me);
 #endif
-    if (opFlags[invalid_state_flag]) {
-        opFlags.reset(invalid_state_flag);
+    if (opFlags[INVALID_STATE_FLAG]) {
+        opFlags.reset(INVALID_STATE_FLAG);
         return 1;
     }
     return 0;

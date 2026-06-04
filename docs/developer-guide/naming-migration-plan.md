@@ -177,7 +177,7 @@ Goal: establish the measurable list of remaining work.
 Goal: make the naming work visible without blocking all development.
 
 - [x] Configure `clang-tidy` naming checks for first-party code paths
-- [ ] Define the final `clang-tidy` naming rule set that matches the GridDyn
+- [x] Define the final `clang-tidy` naming rule set that matches the GridDyn
       style guide and HELICS-aligned target conventions
 - [x] Keep naming enforcement report-only at first
 - [x] Exclude `ThirdParty` and generated code from naming checks
@@ -522,9 +522,9 @@ Completed Phase 8 work covered:
 Goal: make compliance durable.
 
 - [ ] Remove temporary naming suppressions or allowlists
-- [ ] Update `.clang-tidy` so the final naming convention settings match the
+- [x] Update `.clang-tidy` so the final naming convention settings match the
       migrated GridDyn code base
-- [ ] Make naming checks blocking in CI for first-party code
+- [x] Make naming checks blocking in CI for first-party code
 - [ ] Verify zero remaining non-compliant first-party identifiers
 - [ ] Record final completion summary in this document
 

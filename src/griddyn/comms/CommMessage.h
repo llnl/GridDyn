@@ -44,10 +44,10 @@ class CommMessage {
   public:
     /** define the most basic of message types*/
     enum CommMessageType : std::uint32_t {
-        ignoreMessageType = 0,  //!< a message that can be ignored
-        pingMessageType = 1,  //!< a message sending a ping
-        replyMessageType = 2,  //!< a message responding to a ping
-        unknownMessageType = 0xFFFFFFFF,  //!< I don't know what this message means
+        IGNORE_MESSAGE_TYPE = 0,  //!< a message that can be ignored
+        PING_MESSAGE_TYPE = 1,  //!< a message sending a ping
+        REPLY_MESSAGE_TYPE = 2,  //!< a message responding to a ping
+        UNKNOWN_MESSAGE_TYPE = 0xFFFFFFFF,  //!< I don't know what this message means
     };
     enum RelayMessageType : std::uint32_t {
         NO_EVENT = BASE_RELAY_MESSAGE_NUMBER,
@@ -144,7 +144,7 @@ class CommMessage {
     void fromVector(const std::vector<char>& data);
 
   private:
-    std::uint32_t m_messageType = ignoreMessageType;  //!< the actual type of the message
+    std::uint32_t m_messageType = IGNORE_MESSAGE_TYPE;  //!< the actual type of the message
   public:
     std::uint32_t code = 0xFFFFFFFF;
 

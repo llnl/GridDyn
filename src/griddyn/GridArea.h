@@ -35,10 +35,10 @@ class GridArea: public GridPrimary {
   public:
     /** @brief flags for area operations and control*/
     enum AreaFlags {
-        reverse_converge = object_flag1,  //!< flag indicating that the area should do a
+        REVERSE_CONVERGE = OBJECT_FLAG1,  //!< flag indicating that the area should do a
                                           //!< convergence/algebraic loop in reverse
-        direction_oscillate =
-            object_flag2,  //!< flag indicating that the direction of iteration for convergence
+        DIRECTION_OSCILLATE =
+            OBJECT_FLAG2,  //!< flag indicating that the direction of iteration for convergence
         //!< functions should flip every time the function is called
     };
 

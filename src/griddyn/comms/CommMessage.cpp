@@ -39,9 +39,9 @@ namespace {
 
 using gmlc::utilities::numeric_conversion;
 
-REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_IGNORE, "IGNORE", CommMessage::ignoreMessageType);
-REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_PING, "ping", CommMessage::pingMessageType);
-REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_REPLY, "reply", CommMessage::replyMessageType);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_IGNORE, "IGNORE", CommMessage::IGNORE_MESSAGE_TYPE);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_PING, "ping", CommMessage::PING_MESSAGE_TYPE);
+REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_REPLY, "reply", CommMessage::REPLY_MESSAGE_TYPE);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_NO_EVENT, "NO EVENT", CommMessage::NO_EVENT);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_LOCAL_FAULT, "LOCAL FAULT", CommMessage::LOCAL_FAULT_EVENT);
 REGISTER_MESSAGE_TYPE(MESSAGE_TYPE_REMOTE_FAULT, "REMOTE FAULT", CommMessage::REMOTE_FAULT_EVENT);
@@ -209,7 +209,7 @@ void CommMessage::fromByteArray(const char* data, size_t bufferSize)
         load(inputArchive);
     }
     catch (const cereal::Exception&) {
-        m_messageType = unknownMessageType;
+        m_messageType = UNKNOWN_MESSAGE_TYPE;
     }
 }
 
@@ -254,7 +254,7 @@ uint32_t MessageTypeRegistry::getType(std::string_view name) const
         return fnd->second;
     }
     if (name.starts_with("type_")) {
-        std::uint32_t type{CommMessage::unknownMessageType};
+        std::uint32_t type{CommMessage::UNKNOWN_MESSAGE_TYPE};
         const auto typeId = name.substr(5);
         const auto* begin = typeId.data();
         const auto* end = begin + typeId.size();
@@ -263,7 +263,7 @@ uint32_t MessageTypeRegistry::getType(std::string_view name) const
             return type;
         }
     }
-    return CommMessage::unknownMessageType;
+    return CommMessage::UNKNOWN_MESSAGE_TYPE;
 }
 
 std::string MessageTypeRegistry::getTypeString(int32_t type) const

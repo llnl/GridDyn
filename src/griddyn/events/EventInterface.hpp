@@ -11,9 +11,9 @@
 namespace griddyn {
 /** class defining different ways an event can be run*/
 enum class EventExecutionMode {
-    normal = 0,  //!< run immediately
-    delayed = 1,  //!< delay the execution until after normal events have executed
-    two_part_execution = 2,  //!< event has two parts one running with the normal events and one
+    NORMAL = 0,  //!< run immediately
+    DELAYED = 1,  //!< delay the execution until after normal events have executed
+    TWO_PART_EXECUTION = 2,  //!< event has two parts one running with the normal events and one
                              //!< running with the delayed events
 };
 

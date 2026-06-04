@@ -34,7 +34,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
         }
         if (FmiWrapper<FmiMESubModel, BaseObj>::fmisub->isLoaded()) {
             FmiWrapper<FmiMESubModel, BaseObj>::configureFmiIo();
-            SET_CONTROLFLAG(flags, force_constant_pflow_initialization);
+            SET_CONTROLFLAG(flags, FORCE_CONSTANT_PFLOW_INITIALIZATION);
             BaseObj::pFlowObjectInitializeA(time0, flags);
         } else {
             this->disable();
@@ -43,7 +43,7 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
 
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override
     {
-        if (!BaseObj::opFlags[pFlow_initialized]) {  // just to make sure we actually
+        if (!BaseObj::opFlags[POWERFLOW_INITIALIZED]) {  // just to make sure we actually
                                                      // initialized and didn't go directly to
                                                      // the dynamic initialization
             pFlowObjectInitializeA(time0, flags);

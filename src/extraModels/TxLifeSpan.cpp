@@ -45,11 +45,11 @@ CoreObject* TxLifeSpan::clone(CoreObject* obj) const
 void TxLifeSpan::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "useiec") || (flag == "iec")) {
-        opFlags.set(useIECmethod, val);
+        opFlags.set(USE_IE_CMETHOD, val);
     } else if ((flag == "useieee") || (flag == "ieee")) {
-        opFlags.set(useIECmethod, !val);
+        opFlags.set(USE_IE_CMETHOD, !val);
     } else if (flag == "no_discconect") {
-        opFlags.set(no_disconnect, val);
+        opFlags.set(NO_DISCONNECT, val);
     } else {
         Sensor::setFlag(flag, val);
     }
@@ -105,7 +105,7 @@ void TxLifeSpan::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
             updatePeriod = simulationStep;
         }
     }
-    if (!opFlags[dyn_initialized]) {
+    if (!opFlags[DYN_INITIALIZED]) {
         Sensor::setFlag("sampled", true);
         if (inputStrings.empty()) {
             // assume we are connected to a temperature sensor
@@ -114,7 +114,7 @@ void TxLifeSpan::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
         auto* lifeIntegrator = new blocks::IntegralBlock(1.0 / 3600);  // add a gain so the
                                                                        // output is in hours
         Sensor::add(lifeIntegrator);
-        lifeIntegrator->parentSetFlag(separate_processing, true, this);
+        lifeIntegrator->parentSetFlag(SEPARATE_PROCESSING, true, this);
 
         Sensor::set("output0", std::to_string(mInitialLife) + "-block0");
         Sensor::set("output1", "block0");
@@ -146,7 +146,7 @@ void TxLifeSpan::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
             Relay::add(std::shared_ptr<Condition>(std::move(cond)));
 
             setActionTrigger(0, 0);
-            if (!opFlags[no_disconnect]) {
+            if (!opFlags[NO_DISCONNECT]) {
                 setActionTrigger(1, 0);
                 setActionTrigger(2, 0);
             }
@@ -172,7 +172,7 @@ void TxLifeSpan::updateA(CoreTime time)
         return;
     }
     const double temperature = dataSources[0]->grabData();
-    if (!opFlags[useIECmethod]) {
+    if (!opFlags[USE_IE_CMETHOD]) {
         mAgingAccelerationFactor = mAgingFactor *
             exp((mAgingConstant / (mBaseTemp + 273.0)) - (mAgingConstant / (temperature + 273.0)));
     } else {
@@ -204,3 +204,4 @@ void TxLifeSpan::actionTaken(index_t actionNumber,
 }
 
 }  // namespace griddyn::extra
+

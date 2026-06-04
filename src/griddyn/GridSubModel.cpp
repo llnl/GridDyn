@@ -12,7 +12,7 @@
 namespace griddyn {
 GridSubModel::GridSubModel(const std::string& objName): GridComponent(objName)
 {
-    opFlags.set(no_powerflow_operations);
+    opFlags.set(NO_POWERFLOW_OPERATIONS);
     m_outputSize = 1;
 }
 
@@ -61,7 +61,7 @@ void GridSubModel::dynInitializeB(const IOdata& inputs,
             setUpdateTime(prevTime + updatePeriod);
             alert(this, UPDATE_REQUIRED);
         }
-        opFlags.set(dyn_initialized);
+        opFlags.set(DYN_INITIALIZED);
     }
 }
 

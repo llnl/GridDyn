@@ -21,7 +21,7 @@ CoreObject* LongLine::clone(CoreObject* obj) const
         return obj;
     }
     line->segmentationLength = segmentationLength;
-    if (opFlags[pFlow_initialized]) {
+    if (opFlags[POWERFLOW_INITIALIZED]) {
         Subsystem::clone(line);
     }
     return line;
@@ -71,7 +71,7 @@ void LongLine::set(std::string_view param, double val, units::unit unitType)
     } else if (param == "length") {
         length = convert(val, unitType, units::km);
     } else if (param == "fault") {
-        if (opFlags[pFlow_initialized]) {
+        if (opFlags[POWERFLOW_INITIALIZED]) {
             fault = val;
             if (fault > 1.0) {
                 fault = -1;

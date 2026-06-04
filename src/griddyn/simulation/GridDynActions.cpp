@@ -14,16 +14,16 @@
 namespace griddyn {
 using gmlc::utilities::makeLowerCase;
 
-gridDynAction::gridDynAction(GdAction action) noexcept: command(action) {}
+GridDynAction::GridDynAction(GdAction action) noexcept: command(action) {}
 
-gridDynAction::gridDynAction(std::string_view operation)
+GridDynAction::GridDynAction(std::string_view operation)
 {
     process(operation);
 }
 
-void gridDynAction::reset()
+void GridDynAction::reset()
 {
-    command = GdAction::ignore;
+    command = GdAction::IGNORE_ACTION;
     string1.clear();
     string2.clear();
     val_double = kNullVal;
@@ -32,7 +32,7 @@ void gridDynAction::reset()
     val_int2 = -1;
 }
 
-void gridDynAction::process(std::string_view operation)
+void GridDynAction::process(std::string_view operation)
 {
     /* (s) string,  (d) double,  (i) int, (X)* optional, (s|d|i), string or double or int*/
     auto ssep = gmlc::utilities::stringOps::splitline(
@@ -61,11 +61,11 @@ void gridDynAction::process(std::string_view operation)
 
     if (commandToken == "ignore") {
         // ignore XXXXXX
-        command = GdAction::ignore;
+        command = GdAction::IGNORE_ACTION;
     } else if (commandToken == "set") {
         // set parameter(s) value(d)
         if (tokenCount >= 3) {
-            command = GdAction::set;
+            command = GdAction::SET_ACTION;
             string1 = ssep[1];
             val_double = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
             if (val_double == kNullVal) {
@@ -76,7 +76,7 @@ void gridDynAction::process(std::string_view operation)
         }
     } else if (commandToken == "setall") {
         // setall  objecttype(s) parameter(s) value(d)
-        command = GdAction::setall;
+        command = GdAction::SETALL;
         if (tokenCount >= 4) {
             const auto test = gmlc::utilities::numeric_conversion<double>(ssep[3], kNullVal);
             if (test == kNullVal) {
@@ -90,7 +90,7 @@ void gridDynAction::process(std::string_view operation)
         }
     } else if (commandToken == "setsolver") {
         // setsolver mode(s) solver(s|i)
-        command = GdAction::setsolver;
+        command = GdAction::SETSOLVER;
         if (tokenCount >= 3) {
             string1 = ssep[1];
             val_int1 = gmlc::utilities::numeric_conversion<int>(
@@ -104,7 +104,7 @@ void gridDynAction::process(std::string_view operation)
         }
     } else if (commandToken == "print") {
         // print parameter(s) setstring(s)
-        command = GdAction::print;
+        command = GdAction::PRINT;
         if (tokenCount >= 3) {
             string1 = ssep[1];
             string2 = ssep[2];
@@ -113,16 +113,16 @@ void gridDynAction::process(std::string_view operation)
         }
     } else if (commandToken == "powerflow") {
         // powerflow
-        command = GdAction::powerflow;
+        command = GdAction::POWERFLOW;
     } else if (commandToken == "step") {
         // step solutionType*
-        command = GdAction::step;
+        command = GdAction::STEP;
         if (tokenCount > 1) {
             string1 = ssep[1];
         }
     } else if (commandToken == "eventmode") {
         // eventmode tstop*  tstep*
-        command = GdAction::eventmode;
+        command = GdAction::EVENTMODE;
         if (tokenCount > 1) {
             val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
             if (tokenCount > 2) {
@@ -131,20 +131,20 @@ void gridDynAction::process(std::string_view operation)
         }
     } else if (commandToken == "initialize") {
         // initialize
-        command = GdAction::initialize;
+        command = GdAction::INITIALIZE;
     } else if (commandToken == "dynamic") {
         // dynamic "dae"|"part"|"decoupled" stoptime(d)* steptime(d)*
         if (tokenCount == 1) {
-            command = GdAction::dynamicDAE;
+            command = GdAction::DYNAMIC_DAE;
         } else {
             makeLowerCase(ssep[1]);
             if (ssep[1] == "dae") {
-                command = GdAction::dynamicDAE;
+                command = GdAction::DYNAMIC_DAE;
                 if (tokenCount > 2) {
                     val_double = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
                 }
             } else if ((ssep[1] == "part") || (ssep[1] == "partitioned")) {
-                command = GdAction::dynamicPart;
+                command = GdAction::DYNAMIC_PART;
                 if (tokenCount > 2) {
                     val_double = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
                 }
@@ -152,7 +152,7 @@ void gridDynAction::process(std::string_view operation)
                     val_double2 = gmlc::utilities::numeric_conversion<double>(ssep[3], kNullVal);
                 }
             } else if (ssep[1] == "decoupled") {
-                command = GdAction::dynamicDecoupled;
+                command = GdAction::DYNAMIC_DECOUPLED;
                 if (tokenCount > 2) {
                     val_double = gmlc::utilities::numeric_conversion<double>(ssep[2], kNullVal);
                 }
@@ -168,23 +168,23 @@ void gridDynAction::process(std::string_view operation)
                     val_double = test;
                     val_double2 = gmlc::utilities::numeric_conversion<double>(ssep[3], kNullVal);
                 }
-                command = GdAction::dynamicDAE;
+                command = GdAction::DYNAMIC_DAE;
             }
         }
     } else if (commandToken == "dynamicdae") {
         // dynamicdae stoptime(d)*
-        command = GdAction::dynamicDAE;
+        command = GdAction::DYNAMIC_DAE;
 
         if (tokenCount > 1) {
             val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
         }
     } else if (commandToken == "dynamicpart") {
         // dynamicpart stoptime(d)* steptime(d)*
-        command = GdAction::dynamicPart;
+        command = GdAction::DYNAMIC_PART;
         parseStopAndStep();
     } else if (commandToken == "dynamicdecoupled") {
         // dynamicdecoupled stop(d)* step(d)*
-        command = GdAction::dynamicDecoupled;
+        command = GdAction::DYNAMIC_DECOUPLED;
         parseStopAndStep();
     } else if (commandToken == "reset") {
         // reset level(i)
@@ -197,10 +197,10 @@ void gridDynAction::process(std::string_view operation)
         } else {
             val_int1 = 0;
         }
-        command = GdAction::reset;
+        command = GdAction::RESET;
     } else if (commandToken == "iterate") {
         // iterate interval(d)* stoptime(d)*
-        command = GdAction::iterate;
+        command = GdAction::ITERATE;
         if (tokenCount > 1) {
             val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
             if (tokenCount > 2) {
@@ -209,7 +209,7 @@ void gridDynAction::process(std::string_view operation)
         }
     } else if (commandToken == "check") {
         // check
-        command = GdAction::check;
+        command = GdAction::CHECK;
         if (tokenCount > 1) {
             string1 = ssep[1];
             if (tokenCount > 2) {
@@ -227,7 +227,7 @@ void gridDynAction::process(std::string_view operation)
         } else {
             val_double = kNullVal;
         }
-        command = GdAction::run;
+        command = GdAction::RUN;
     } else if (commandToken == "save") {
         // save subject(s) file(s)
         if (tokenCount > 2) {
@@ -236,7 +236,7 @@ void gridDynAction::process(std::string_view operation)
         } else {
             throw(InvalidParameterValue(commandToken));
         }
-        command = GdAction::save;
+        command = GdAction::SAVE;
     } else if (commandToken == "load") {
         // load subject(s) file(s)
         if (tokenCount > 2) {
@@ -245,7 +245,7 @@ void gridDynAction::process(std::string_view operation)
         } else {
             throw(InvalidParameterValue("load"));
         }
-        command = GdAction::load;
+        command = GdAction::LOAD;
     } else if (commandToken == "add") {
         // add addstring(s)
         if (tokenCount > 1) {
@@ -256,10 +256,10 @@ void gridDynAction::process(std::string_view operation)
         } else {
             throw(InvalidParameterValue("add"));
         }
-        command = GdAction::add;
+        command = GdAction::ADD;
     } else if (commandToken == "rollback") {
         // rollback point(s|d)
-        command = GdAction::rollback;
+        command = GdAction::ROLLBACK;
         if (tokenCount > 1) {
             val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
             if (val_double == kNullVal) {
@@ -270,7 +270,7 @@ void gridDynAction::process(std::string_view operation)
         }
     } else if (commandToken == "checkpoint") {
         // checkpoint name(s)
-        command = GdAction::checkpoint;
+        command = GdAction::CHECKPOINT;
         if (tokenCount > 1) {
             val_double = gmlc::utilities::numeric_conversion<double>(ssep[1], kNullVal);
             if (val_double == kNullVal) {
@@ -281,7 +281,7 @@ void gridDynAction::process(std::string_view operation)
         }
     } else if (commandToken == "contingency") {
         // contingency mode|fileName output_file|method start count
-        command = GdAction::contingency;
+        command = GdAction::CONTINGENCY;
         size_t nindex{1};
         if (ssep[1] == "simplified") {
             flag = 1;

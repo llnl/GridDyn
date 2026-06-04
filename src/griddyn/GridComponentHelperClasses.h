@@ -24,155 +24,155 @@ enum OperationFlags {
     // indicator flags 0 -15 are general indicators flags which default false
 
     // typically cascading flags
-    has_constraints = 0,  //!< flag indicating if an object uses constraints
-    has_roots = 1,  //!< flag indicating if an object uses root finding
-    has_alg_roots =
+    HAS_CONSTRAINTS = 0,  //!< flag indicating if an object uses constraints
+    HAS_ROOTS = 1,  //!< flag indicating if an object uses root finding
+    HAS_ALG_ROOTS =
         2,  //!< flag indicated the object has roots dependent on algebraic states and thus must be
     //!< evaluated after a initial condition update
-    has_powerflow_adjustments =
+    HAS_POWERFLOW_ADJUSTMENTS =
         3,  //!< flag indicating if an object has voltage adjustments for power flow
-    preEx_requested = 4,  //!< flag indicating if an object requests pre-execution
-    uses_bus_frequency = 5,  //!< flag indicating if an object uses bus frequency calculation
-    has_pflow_states = 6,  //!< indicator if the object has power flow states if in question
-    has_dyn_states = 7,  //!< indicator if the object has dynamic states if in question
-    has_differential_states = 8,  //!< indicator if the object has differential states
-    not_cloneable = 9,  //!< flag indicating that an object should not be cloned
-    extra_cascading_flag = 10,  //!< reserved for future use
+    PRE_EX_REQUESTED = 4,  //!< flag indicating if an object requests pre-execution
+    USES_BUS_FREQUENCY = 5,  //!< flag indicating if an object uses bus frequency calculation
+    HAS_PFLOW_STATES = 6,  //!< indicator if the object has power flow states if in question
+    HAS_DYN_STATES = 7,  //!< indicator if the object has dynamic states if in question
+    HAS_DIFFERENTIAL_STATES = 8,  //!< indicator if the object has differential states
+    NOT_CLONEABLE = 9,  //!< flag indicating that an object should not be cloned
+    EXTRA_CASCADING_FLAG = 10,  //!< reserved for future use
     // end of typically cascading flags
 
     // for handling remote voltage control capabilities
-    remote_voltage_control =
+    REMOTE_VOLTAGE_CONTROL =
         11,  //!< indicator that the object controls a remote bus voltage at a specific level
-    local_voltage_control =
+    LOCAL_VOLTAGE_CONTROL =
         12,  //!< indicator that the object controls the local bus voltage at a specific level
-    indirect_voltage_control =
+    INDIRECT_VOLTAGE_CONTROL =
         13,  //!< flag indicating the object must use indirect means to control the voltage
-    adjustable_Q =
+    ADJUSTABLE_Q =
         14,  //!< flag indicating that an object has controllable reactive power for power flow
     // for handling remote power control capabilities
-    remote_power_control =
+    REMOTE_POWER_CONTROL =
         15,  //!< indicator that the object controls a remote bus voltage at a specific level
-    local_power_control =
+    LOCAL_POWER_CONTROL =
         16,  //!< indicator that the object controls the local bus voltage at a specific level
-    indirect_power_control =
+    INDIRECT_POWER_CONTROL =
         17,  //!< flag indicating the object must use indirect means to control the voltage
-    adjustable_P = 18,  //!< flag indicating that the object has adjustable power setting and can be
+    ADJUSTABLE_P = 18,  //!< flag indicating that the object has adjustable power setting and can be
                         //!< used by slack
     //! bus for control of angle
 
     // some indicator flags for local objects
-    pFlow_initialized = 19,  //!< indicator that powerFlow initialization has been completed
-    dyn_initialized = 20,  //!<  indicator that dynamic Initialization has been completed
-    object_armed_flag =
+    POWERFLOW_INITIALIZED = 19,  //!< indicator that powerFlow initialization has been completed
+    DYN_INITIALIZED = 20,  //!<  indicator that dynamic Initialization has been completed
+    OBJECT_ARMED_FLAG =
         21,  //!< basically an extra object flag if the object has a trigger mechanism of some sort
-    late_b_initialize =
+    LATE_B_INITIALIZE =
         22,  //!< flag indicating the object would like to be initialized after most other objects
     //! only acknowledged by areas and then only within the area
-    error_flag = 23,  //!< flag indicating the object has an error
+    ERROR_FLAG = 23,  //!< flag indicating the object has an error
 
     // flags  24- 31 indicating some sort of condition change
-    state_change_flag = 24,  //!< flag indicating that the state size or nature has changed
-    object_change_flag = 25,  //!< flag indicating that an object has changed activity state
-    constraint_change_flag = 26,  //!< flag indicating an change in constraint values
-    root_change_flag = 27,  //!< flag indicating a change in the root finding functions
-    jacobian_count_change_flag = 28,  //!< flag indicating a change in the Jacobian count
-    slack_bus_change = 29,  //!< flag indicating a change in the slack bus
-    voltage_control_change = 30,  //!< flag indicating a change in voltage control on a bus
-    connectivity_change_flag = 31,  //!< flag indicating a change in bus connectivity possibly
+    STATE_CHANGE_FLAG = 24,  //!< flag indicating that the state size or nature has changed
+    OBJECT_CHANGE_FLAG = 25,  //!< flag indicating that an object has changed activity state
+    CONSTRAINT_CHANGE_FLAG = 26,  //!< flag indicating an change in constraint values
+    ROOT_CHANGE_FLAG = 27,  //!< flag indicating a change in the root finding functions
+    JACOBIAN_COUNT_CHANGE_FLAG = 28,  //!< flag indicating a change in the Jacobian count
+    SLACK_BUS_CHANGE = 29,  //!< flag indicating a change in the slack bus
+    VOLTAGE_CONTROL_CHANGE = 30,  //!< flag indicating a change in voltage control on a bus
+    CONNECTIVITY_CHANGE_FLAG = 31,  //!< flag indicating a change in bus connectivity possibly
                                     //!< indicating islanding or isolated buses
 
     /*flags 32-44 are intended for local object usage*/
-    object_flag1 = 32,
-    object_flag2 = 33,
-    object_flag3 = 34,
-    object_flag4 = 35,
-    object_flag5 = 36,
-    object_flag6 = 37,
-    object_flag7 = 38,
-    object_flag8 = 39,
-    object_flag9 = 40,
-    object_flag10 = 41,
-    object_flag11 = 42,
-    object_flag12 = 43,
+    OBJECT_FLAG1 = 32,
+    OBJECT_FLAG2 = 33,
+    OBJECT_FLAG3 = 34,
+    OBJECT_FLAG4 = 35,
+    OBJECT_FLAG5 = 36,
+    OBJECT_FLAG6 = 37,
+    OBJECT_FLAG7 = 38,
+    OBJECT_FLAG8 = 39,
+    OBJECT_FLAG9 = 40,
+    OBJECT_FLAG10 = 41,
+    OBJECT_FLAG11 = 42,
+    OBJECT_FLAG12 = 43,
 
     // flags 43 - 45 state control
-    no_powerflow_operations =
+    NO_POWERFLOW_OPERATIONS =
         44,  //!< flag indicating there is not nor will ever there be power flow states or checks
-    no_dynamics = 45,  //!< flag indicating there is not nor will ever there be dynamic states
+    NO_DYNAMICS = 45,  //!< flag indicating there is not nor will ever there be dynamic states
 
-    disable_flag_updates = 46,  // flag to temporarily disable flag updates from the alert function
-    flag_update_required = 47,  //!< flag indicated that a flag update is required
-    pflow_init_required =
+    DISABLE_FLAG_UPDATES = 46,  // flag to temporarily disable flag updates from the alert function
+    FLAG_UPDATE_REQUIRED = 47,  //!< flag indicated that a flag update is required
+    PFLOW_INIT_REQUIRED =
         48,  //!< flag indicating that an object is using pflow initialization for dynamic elements
 
     // Various informative flags that can be used in some situations
-    disconnected = 49,  //!< flag indicating that the object is disconnected
-    differential_output =
+    DISCONNECTED = 49,  //!< flag indicating that the object is DISCONNECTED
+    DIFFERENTIAL_OUTPUT =
         50,  //!< flag that the model has a differential state variable that is the primary output
-    no_gridcomponent_set =
+    NO_GRIDCOMPONENT_SET =
         51,  //!< flag indicating skipping of the GridComponent set function for parent setting
     //! without throwing an error
-    being_deleted = 52,  //!<  flag indicating the object is in the process of being deleted
+    BEING_DELETED = 52,  //!<  flag indicating the object is in the process of being deleted
                          //!<  NOTE::useful for some
     //! large objects with components allocated in larger fashion so we skip over some steps
     //! in object removal
-    separate_processing =
+    SEPARATE_PROCESSING =
         53,  //!< flag indicating that the object math functions will be handled by the parent
     //! object and should be skipped by the GridComponent Model
     /*flags 54-63 are intended for object capabilities*/
 
-    multipart_calculation_capable =
+    MULTIPART_CALCULATION_CAPABLE =
         54,  //!< flag indicating the object is capable of using pre and post execution functions
-    has_subobject_pflow_states =
+    HAS_SUBOBJECT_PFLOW_STATES =
         55,  //!< flag indicating that the object has a subobject with pflow states
-    extra_capability_flag1 = 56,  //!< flag reserved for future use
-    dc_only = 57,  //!< flag indicating the object must be attached to a DC bus
-    dc_capable = 58,  //!< flag indicating the object can be attached to a DC bus
-    dc_terminal2 = 59,  //!< flag indicating the terminal 2 must be a DC bus
-    three_phase_only = 61,  //!< flag indicating the object must be attached to a 3 phase bus
-    three_phase_capable = 62,  //!< flag indicating the object can be attached to a 3 phase bus
-    three_phase_terminal2 =
+    EXTRA_CAPABILITY_FLAG1 = 56,  //!< flag reserved for future use
+    DC_ONLY = 57,  //!< flag indicating the object must be attached to a DC bus
+    DC_CAPABLE = 58,  //!< flag indicating the object can be attached to a DC bus
+    DC_TERMINAL2 = 59,  //!< flag indicating the terminal 2 must be a DC bus
+    THREE_PHASE_ONLY = 61,  //!< flag indicating the object must be attached to a 3 phase bus
+    THREE_PHASE_CAPABLE = 62,  //!< flag indicating the object can be attached to a 3 phase bus
+    THREE_PHASE_TERMINAL2 =
         63,  //!< flag indicating the terminal 2 must be attached to a 3 phase bus
 
 };
 /** alternate names for some of the flags*/
 enum OperationFlagOverloads {
-    sampled_only = no_dynamics,
+    SAMPLED_ONLY = NO_DYNAMICS,
 };
 
 /** @brief enumeration of possible convergence modes
  */
 enum class ConvergeMode {
-    single_iteration,  //!< a single iteration loop
-    voltage_only,  //!< only iterate on the voltage
-    high_error_only,  //!< only iterate on high error states
-    local_iteration,  //!< do a simple iteration to tolerance
-    block_iteration,  //!< do an iteration loop at higher level
-    strong_iteration,  //!< do a stronger iteration to tolerance
-    force_strong_iteration,  //!< no jumping to alternate convergence with strong iteration
-    force_voltage_only,  //!< no jumping to alternate convergence mechanics
+    SINGLE_ITERATION,  //!< a single iteration loop
+    VOLTAGE_ONLY,  //!< only iterate on the voltage
+    HIGH_ERROR_ONLY,  //!< only iterate on high error states
+    LOCAL_ITERATION,  //!< do a simple iteration to tolerance
+    BLOCK_ITERATION,  //!< do an iteration loop at higher level
+    STRONG_ITERATION,  //!< do a stronger iteration to tolerance
+    FORCE_STRONG_ITERATION,  //!< no jumping to alternate convergence with strong iteration
+    FORCE_VOLTAGE_ONLY,  //!< no jumping to alternate convergence mechanics
 };
 
 // for the controlFlags bitset used for initialization and powerFlowAdjustments
 
 /** @brief control flag locations for initialization functions */
 enum InitControlFlags {
-    constraints_disabled = 0,  //!< disable all constraints
-    roots_disabled = 1,  //!< disable all roots
-    unused_control_flag1 = 2,  //!< currently unused
-    no_exciter_limits = 3,  //!< ignore exciter limits
-    no_governor_limits = 4,  //!< ignore governor limits
-    no_limits = 5,  //!< ignore all limits
-    ignore_bus_limits = 6,  //!< ignore bus limits
-    disable_link_adjustments = 7,  //!< disable all link adjustments
-    disable_load_adjustments = 8,  //!< disable all load adjustments
-    auto_bus_disconnect = 9,  //!< disable automatic bus disconnection in exceptional circumstances
-    no_auto_autogen = 10,  //!< disable automatic autogeneration for slk/afix/pv buses
-    all_loads_to_constant_impedence = 11,  //!< convert all loads to constant impedance
-    force_constant_pflow_initialization = 12,  //!< for some objects that initialize through power
+    CONSTRAINTS_DISABLED = 0,  //!< disable all constraints
+    ROOTS_DISABLED = 1,  //!< disable all roots
+    UNUSED_CONTROL_FLAG1 = 2,  //!< currently unused
+    NO_EXCITER_LIMITS = 3,  //!< ignore exciter limits
+    NO_GOVERNOR_LIMITS = 4,  //!< ignore governor limits
+    NO_LIMITS = 5,  //!< ignore all limits
+    IGNORE_BUS_LIMITS = 6,  //!< ignore bus limits
+    DISABLE_LINK_ADJUSTMENTS = 7,  //!< disable all link adjustments
+    DISABLE_LOAD_ADJUSTMENTS = 8,  //!< disable all load adjustments
+    AUTO_BUS_DISCONNECT = 9,  //!< disable automatic bus disconnection in exceptional circumstances
+    NO_AUTO_AUTOGEN = 10,  //!< disable automatic autogeneration for slk/afix/pv buses
+    ALL_LOADS_TO_CONSTANT_IMPEDENCE = 11,  //!< convert all loads to constant impedance
+    FORCE_CONSTANT_PFLOW_INITIALIZATION = 12,  //!< for some objects that initialize through power
                                                //!< flow calculations force it to be constant
-    ignore_saturation = 13,  //!< ignore saturation effects
-    low_voltage_checking = 15,  //!< enable low voltage checking on buses
+    IGNORE_SATURATION = 13,  //!< ignore saturation effects
+    LOW_VOLTAGE_CHECKING = 15,  //!< enable low voltage checking on buses
 };
 
 #define CHECK_CONTROLFLAG(flag, flagName) (((flag) & (1U << flagName)) != 0)
@@ -251,24 +251,24 @@ inline bool anyChangeFlags(std::bitset<64> flags)
  */
 enum class ResetLevels {
     // Normal reset levels
-    minimal = 0,  //!< a minimal reset
-    voltage = 1,  //!< reset the voltage levels
-    angle = 2,  //!< reset the angles
-    voltage_angle = 3,  //!< reset the voltage and the angle
-    full = 4,  //!< do a full reset
+    MINIMAL = 0,  //!< a MINIMAL reset
+    VOLTAGE = 1,  //!< reset the VOLTAGE levels
+    ANGLE = 2,  //!< reset the angles
+    VOLTAGE_ANGLE = 3,  //!< reset the voltage and the angle
+    FULL = 4,  //!< do a FULL reset
     // Low voltage reset levels
-    low_voltage_pflow = -2,  //!< reset low voltage levels on power flow
-    low_voltage_dyn1 = -1,  //!< reset low voltage levels on dynamic simulation
-    low_voltage_dyn2 = -10,  //!< reset low voltage levels on dynamic simulation mode 2
-    low_voltage_dyn0 = -12,  //!< reset low voltage levels on dynamic simulation mode 0
+    LOW_VOLTAGE_PFLOW = -2,  //!< reset low voltage levels on power flow
+    LOW_VOLTAGE_DYN1 = -1,  //!< reset low voltage levels on dynamic simulation
+    LOW_VOLTAGE_DYN2 = -10,  //!< reset low voltage levels on dynamic simulation mode 2
+    LOW_VOLTAGE_DYN0 = -12,  //!< reset low voltage levels on dynamic simulation mode 0
 };
 
 enum class CheckLevel {
-    reversable_only = 0,
-    full_check = 1,
-    low_voltage_check = 3,  //!< check for low voltages
-    complete_state_check = 4,
-    high_angle_trip = 5,  //!< disconnect all lines with phase differential greater than pi/2;
+    REVERSABLE_ONLY = 0,
+    FULL_CHECK = 1,
+    LOW_VOLTAGE_CHECK = 3,  //!< check for low voltages
+    COMPLETE_STATE_CHECK = 4,
+    HIGH_ANGLE_TRIP = 5,  //!< disconnect all lines with phase differential greater than pi/2;
 };
 
 /** @brief helper class for containing sizes to group the data*/

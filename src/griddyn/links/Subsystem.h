@@ -20,7 +20,7 @@ namespace griddyn {
 class Subsystem: public Link {
   public:
     enum SubsystemFlags {
-        DIRECT_CONNECTION = object_flag5,  //!< flag indicating directly connected objects (skipping
+        DIRECT_CONNECTION = OBJECT_FLAG5,  //!< flag indicating directly connected objects (skipping
                                            //!< the terminal link structure)
     };
 
@@ -107,7 +107,7 @@ class Subsystem: public Link {
                           double state[],
                           double dstateDt[],
                           const SolverMode& sMode,
-                          ConvergeMode mode = ConvergeMode::block_iteration,
+                          ConvergeMode mode = ConvergeMode::BLOCK_ITERATION,
                           double tol = 0.01) override;
     virtual void updateLocalCache() override;
     virtual void updateLocalCache(const IOdata& inputs,

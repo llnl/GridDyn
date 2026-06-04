@@ -57,21 +57,21 @@ class GridBus: public GridPrimary {
     /** @brief flags for the buses*/
 
     static std::atomic<count_t> busCount;  //!<  counter for the buses
-    static const int low_voltage_check_flag = object_flag1;
+    static const int LOW_VOLTAGE_CHECK_FLAG = OBJECT_FLAG1;
     // afix is a fixed angle bus for power flow
     /* @brief enumeration to define potential busTypes for power flow*/
     enum class BusType : char {
         PQ = 0,  //!< a bus that defines the real and reactive power calculates V and theta
-        afix = 1,  //!< a bus that defines the angle and reactive power calculates V and P
+        AFIX = 1,  //!< a bus that defines the angle and reactive power calculates V and P
         PV = 2,  //!< a bus that defines P and V computes Q and angle
         SLK = 3  //!< a bus that defines V and theta and computes P & Q
     };
     /* @brief enumeration to define potential busTypes for dynamic calculations*/
     enum class DynBusType : char {
-        normal = 0,  //!< a bus that computes V and theta
-        fixAngle = 1,  //!< a bus that computes V and has a fixed theta
-        fixVoltage = 2,  //!< a bus that has a known voltage and computes theta
-        dynSLK = 3  //!< a dynamic bus that knows both V and theta
+        NORMAL = 0,  //!< a bus that computes V and theta
+        FIX_ANGLE = 1,  //!< a bus that computes V and has a fixed theta
+        FIX_VOLTAGE = 2,  //!< a bus that has a known voltage and computes theta
+        DYN_SLK = 3  //!< a dynamic bus that knows both V and theta
     };
     // network is left as a public parameter since it has no impact on the calculations but is
     // useful for other object to define easily
@@ -79,7 +79,7 @@ class GridBus: public GridPrimary {
   protected:
     BusType type = BusType::PQ;  //!< [BusType] bus type: PV, PQ, or slack/swing
     DynBusType dynType =
-        DynBusType::normal;  //!< dynamic bus type normal, fixAngle, fixVoltage, dynSLK same types
+        DynBusType::NORMAL;  //!< dynamic bus type normal, fixAngle, fixVoltage, dynSLK same types
     //! as for power flow but for dynamic simulations
     // 2 byte gap here
     double angle = 0.0;  //!< [rad]     voltage angle
@@ -144,7 +144,7 @@ class GridBus: public GridPrimary {
     /** @brief  adjust the power levels of the contained adjustable secondary objects
     @param[in] adjustment the amount of the adjustment requested*/
     virtual void generationAdjust(double adjustment);
-    virtual void reset(ResetLevels level = ResetLevels::minimal) override;
+    virtual void reset(ResetLevels level = ResetLevels::MINIMAL) override;
     // dynInitializeB dynamics
   protected:
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
@@ -213,7 +213,7 @@ class GridBus: public GridPrimary {
                           double state[],
                           double dstateDt[],
                           const SolverMode& sMode,
-                          ConvergeMode = ConvergeMode::high_error_only,
+                          ConvergeMode = ConvergeMode::HIGH_ERROR_ONLY,
                           double tol = 0.01) override;
 
     /** @brief  return the last error in the real power*/

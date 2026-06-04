@@ -72,7 +72,7 @@ void ZBreaker::switchMode(index_t /*num*/, bool mode)
 
     opFlags.flip(SWITCH1_OPEN_FLAG);
     opFlags.flip(SWITCH2_OPEN_FLAG);
-    if (opFlags[pFlow_initialized]) {
+    if (opFlags[POWERFLOW_INITIALIZED]) {
         if (linkInfo.v1 < 0.2) {
             alert(this, POTENTIAL_FAULT_CHANGE);
         }

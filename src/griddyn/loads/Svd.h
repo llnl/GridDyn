@@ -16,11 +16,11 @@ class Svd: public RampLoad {
   public:
     /** flags used for Svd operation*/
     enum SvdFlags {
-        continuous_flag = object_flag6,
-        locked_flag = object_flag7,
-        reactive_control_flag = object_flag8,
-        reverse_control_flag = object_flag9,
-        reverse_toggled_flag = object_flag10,  // indicator that the reverse flag has been
+        CONTINUOUS_FLAG = OBJECT_FLAG6,
+        LOCKED_FLAG = OBJECT_FLAG7,
+        REACTIVE_CONTROL_FLAG = OBJECT_FLAG8,
+        REVERSE_CONTROL_FLAG = OBJECT_FLAG9,
+        REVERSE_TOGGLED_FLAG = OBJECT_FLAG10,  // indicator that the reverse flag has been
                                                // toggled so don't try it again
     };
 
@@ -84,7 +84,7 @@ class Svd: public RampLoad {
 
     virtual ChangeCode
         powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level) override;
-    virtual void reset(ResetLevels level = ResetLevels::minimal) override;
+    virtual void reset(ResetLevels level = ResetLevels::MINIMAL) override;
 
     virtual void residual(const IOdata& inputs,
                           const StateData& sD,

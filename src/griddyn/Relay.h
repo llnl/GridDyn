@@ -36,54 +36,54 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
         relayCount;  //!< static counter for the number of relays to generate an id number
     /** @brief enumeration of the relay condition states*/
     enum class ConditionStatus {
-        active,  //!< the relay condition is active
-        triggered,  //!< the relay condition is triggered and waiting a timeout
-        disabled,  //!< the relay condition is disabled and not scanning
+        ACTIVE,  //!< the relay condition is ACTIVE
+        TRIGGERED,  //!< the relay condition is TRIGGERED and waiting a timeout
+        DISABLED,  //!< the relay condition is DISABLED and not scanning
     };
 
   protected:
     /** flags for the relayFlags data*/
     enum RelayFlags {
-        relayFlag0 = 0,
-        relayFlag1 = 1,
-        relayFlag2 = 2,
-        relayFlag3 = 3,
-        relayFlag4 = 4,
-        relayFlag5 = 5,
-        relayFlag6 = 6,
-        relayFlag7 = 7,
-        relayFlag8 = 8,
-        relayFlag9 = 9,
-        relayFlag10 = 10,
-        relayFlag11 = 11,
-        relayFlag12 = 12,
-        relayFlag13 = 13,
-        relayFlag14 = 14,
-        relayFlag15 = 15,
-        relayFlag16 = 16,
-        relayFlag17 = 17,
-        relayFlag18 = 18,
-        relayFlag19 = 19,
-        relayFlag20 = 20,
-        relayFlag21 = 21,
-        relayFlag22 = 22,
-        relayFlag23 = 23,
-        relayFlag24 = 24,
-        relayFlag25 = 25,
-        relayFlag26 = 26,
-        relayFlag27 = 27,
-        relayFlag28 = 28,
-        relayFlag29 = 29,
-        relayFlag30 = 30,
-        relayFlag31 = 31,
+        RELAY_FLAG0 = 0,
+        RELAY_FLAG1 = 1,
+        RELAY_FLAG2 = 2,
+        RELAY_FLAG3 = 3,
+        RELAY_FLAG4 = 4,
+        RELAY_FLAG5 = 5,
+        RELAY_FLAG6 = 6,
+        RELAY_FLAG7 = 7,
+        RELAY_FLAG8 = 8,
+        RELAY_FLAG9 = 9,
+        RELAY_FLAG10 = 10,
+        RELAY_FLAG11 = 11,
+        RELAY_FLAG12 = 12,
+        RELAY_FLAG13 = 13,
+        RELAY_FLAG14 = 14,
+        RELAY_FLAG15 = 15,
+        RELAY_FLAG16 = 16,
+        RELAY_FLAG17 = 17,
+        RELAY_FLAG18 = 18,
+        RELAY_FLAG19 = 19,
+        RELAY_FLAG20 = 20,
+        RELAY_FLAG21 = 21,
+        RELAY_FLAG22 = 22,
+        RELAY_FLAG23 = 23,
+        RELAY_FLAG24 = 24,
+        RELAY_FLAG25 = 25,
+        RELAY_FLAG26 = 26,
+        RELAY_FLAG27 = 27,
+        RELAY_FLAG28 = 28,
+        RELAY_FLAG29 = 29,
+        RELAY_FLAG30 = 30,
+        RELAY_FLAG31 = 31,
 
-        CONTINUOUS_FLAG = object_flag1,  //!< flag indicating the relay has some continuous checks
-        RESETTABLE_FLAG = object_flag2,  //!< flag indicating that the conditions can be reset
-        USE_COMM_LINK = object_flag3,  //!< flag indicating that the relay uses communications
-        POWER_FLOW_CHECKS_FLAG = object_flag4,  //!< flag indicating that the relay should be in
+        CONTINUOUS_FLAG = OBJECT_FLAG1,  //!< flag indicating the relay has some continuous checks
+        RESETTABLE_FLAG = OBJECT_FLAG2,  //!< flag indicating that the conditions can be reset
+        USE_COMM_LINK = OBJECT_FLAG3,  //!< flag indicating that the relay uses communications
+        POWER_FLOW_CHECKS_FLAG = OBJECT_FLAG4,  //!< flag indicating that the relay should be in
                                                 //!< operation during power flow
         EXTRA_RELAY_FLAG =
-            object_flag5,  //!< just defining an extra name for additional relay flags
+            OBJECT_FLAG5,  //!< just defining an extra name for additional relay flags
 
     };
     CoreTime triggerTime = maxTime;  //!< the next time execute
@@ -161,7 +161,7 @@ class Relay: public GridPrimary, ObjectOperatorInterface {
     @param[in] newStatus the updated status of the condition active, triggered, disabled
     */
     void setConditionStatus(index_t conditionNumber,
-                            ConditionStatus newStatus = ConditionStatus::active);
+                            ConditionStatus newStatus = ConditionStatus::ACTIVE);
     /**
     @brief remove an action from service
     @param[in] actionNumber the index of the action to remove from service

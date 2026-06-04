@@ -38,16 +38,16 @@ static ChildTypeFactory<ZipLoad, GridLoad> zlf("load",
                                                "zip");  // set basic to the default
 namespace loads {
     static TypeFactoryArg<SourceLoad, SourceLoad::SourceType>
-        glfp("load", "pulse", SourceLoad::SourceType::pulse);
+        glfp("load", "pulse", SourceLoad::SourceType::PULSE);
     static TypeFactoryArg<SourceLoad, SourceLoad::SourceType>
         cfgsl("load",
               std::to_array<std::string_view>({"sine", "sin", "sinusoidal"}),
-              SourceLoad::SourceType::sine);
+              SourceLoad::SourceType::SINE);
     static ChildTypeFactory<RampLoad, GridLoad> glfr("load", "ramp");
     static TypeFactoryArg<SourceLoad, SourceLoad::SourceType>
         glfrand("load",
                 std::to_array<std::string_view>({"random", "rand"}),
-                SourceLoad::SourceType::random);
+                SourceLoad::SourceType::RANDOM);
     static ChildTypeFactory<FileLoad, GridLoad> glfld("load", "file");
     static ChildTypeFactory<SourceLoad, GridLoad>
         srcld("load", std::to_array<std::string_view>({"src", "source"}));
@@ -98,13 +98,13 @@ void ZipLoad::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 
 void ZipLoad::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t flags)
 {
-    if ((opFlags[convert_to_constant_impedance]) ||
-        CHECK_CONTROLFLAG(flags, all_loads_to_constant_impedence)) {
+    if ((opFlags[CONVERT_TO_CONSTANT_IMPEDANCE]) ||
+        CHECK_CONTROLFLAG(flags, ALL_LOADS_TO_CONSTANT_IMPEDENCE)) {
         double voltage = bus->getVoltage();
         double invVsquared = 1.0 / (voltage * voltage);
         Yp = Yp + P * invVsquared;
         P = 0;
-        if (opFlags[use_power_factor_flag]) {
+        if (opFlags[USE_POWER_FACTOR_FLAG]) {
             Yq = Yq + P * pfq * invVsquared;
             Q = 0;
         } else {
@@ -130,7 +130,7 @@ void ZipLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*
         updateLocalCache(inputs, StateData(time), cLocalSolverMode);
     }
 
-    double voltage = (inputs.empty()) ? (bus->getVoltage()) : inputs[voltageInLocation];
+    double voltage = (inputs.empty()) ? (bus->getVoltage()) : inputs[VOLTAGE_IN_LOCATION];
     Pout = -getRealPower(voltage);
     prevTime = time;
     Qout = -getReactivePower(voltage);
@@ -161,18 +161,18 @@ void ZipLoad::setFlag(std::string_view flag, bool val)
 {
     if (flag == "usepowerfactor") {
         if (val) {
-            if (!(opFlags[use_power_factor_flag])) {
-                opFlags.set(use_power_factor_flag);
+            if (!(opFlags[USE_POWER_FACTOR_FLAG])) {
+                opFlags.set(USE_POWER_FACTOR_FLAG);
                 updatepfq();
             }
         } else {
-            opFlags.reset(use_power_factor_flag);
+            opFlags.reset(USE_POWER_FACTOR_FLAG);
         }
     } else if (flag == "converttoimpedance") {
-        opFlags.set(convert_to_constant_impedance, val);
+        opFlags.set(CONVERT_TO_CONSTANT_IMPEDANCE, val);
     } else if (flag == "no_pqvoltage_limit") {
-        opFlags.set(no_pqvoltage_limit, val);
-        if (opFlags[no_pqvoltage_limit]) {
+        opFlags.set(NO_PQVOLTAGE_LIMIT, val);
+        if (opFlags[NO_PQVOLTAGE_LIMIT]) {
             Vpqmax = 100;
             Vpqmin = -1.0;
         }
@@ -340,7 +340,7 @@ void ZipLoad::set(std::string_view param, double val, unit unitType)
         } else {
             pfq = kBigNum;
         }
-        opFlags.set(use_power_factor_flag);
+        opFlags.set(USE_POWER_FACTOR_FLAG);
     } else if (param == "scale") {
         P *= val;
         Q *= val;
@@ -352,14 +352,14 @@ void ZipLoad::set(std::string_view param, double val, unit unitType)
         checkFaultChange();
     } else if (param == "qratio") {
         pfq = val;
-        opFlags.set(use_power_factor_flag);
+        opFlags.set(USE_POWER_FACTOR_FLAG);
     } else if (param == "vpqmin") {
-        if (!opFlags[no_pqvoltage_limit]) {
+        if (!opFlags[NO_PQVOLTAGE_LIMIT]) {
             Vpqmin = convert(val, unitType, puV, systemBasePower, localBaseVoltage);
             trigVVlow = 1.0 / (Vpqmin * Vpqmin);
         }
     } else if (param == "vpqmax") {
-        if (!opFlags[no_pqvoltage_limit]) {
+        if (!opFlags[NO_PQVOLTAGE_LIMIT]) {
             Vpqmax = convert(val, unitType, puV, systemBasePower, localBaseVoltage);
             trigVVhigh = 1.0 / (Vpqmax * Vpqmax);
         }
@@ -368,7 +368,7 @@ void ZipLoad::set(std::string_view param, double val, unit unitType)
         if (val > 0.1)  // not a flag
         {
             if (Vpqmin < 0.5) {
-                if (!opFlags[no_pqvoltage_limit]) {
+                if (!opFlags[NO_PQVOLTAGE_LIMIT]) {
                     Vpqmin = 0.9;
                     trigVVlow = 1.0 / (Vpqmin * Vpqmin);
                 }
@@ -483,7 +483,7 @@ double ZipLoad::getQval() const
 {
     double val = Q;
 
-    if (opFlags[use_power_factor_flag]) {
+    if (opFlags[USE_POWER_FACTOR_FLAG]) {
         if (pfq < 1000.0) {
             val = P * pfq;
         }
@@ -504,7 +504,7 @@ double ZipLoad::getReactivePower() const
 double
     ZipLoad::getRealPower(const IOdata& inputs, const StateData& sD, const SolverMode& sMode) const
 {
-    double voltage = (inputs.empty()) ? (bus->getVoltage(sD, sMode)) : inputs[voltageInLocation];
+    double voltage = (inputs.empty()) ? (bus->getVoltage(sD, sMode)) : inputs[VOLTAGE_IN_LOCATION];
     return getRealPower(voltage);
 }
 
@@ -512,7 +512,7 @@ double ZipLoad::getReactivePower(const IOdata& inputs,
                                  const StateData& sD,
                                  const SolverMode& sMode) const
 {
-    double voltage = (inputs.empty()) ? (bus->getVoltage(sD, sMode)) : inputs[voltageInLocation];
+    double voltage = (inputs.empty()) ? (bus->getVoltage(sD, sMode)) : inputs[VOLTAGE_IN_LOCATION];
     return getReactivePower(voltage);
 }
 
@@ -564,7 +564,7 @@ void ZipLoad::ioPartialDerivatives(const IOdata& inputs,
     if (sD.time != lastTime) {
         updateLocalCache(inputs, sD, sMode);
     }
-    double voltage = inputs[voltageInLocation];
+    double voltage = inputs[VOLTAGE_IN_LOCATION];
     double tv = 0.0;
     if (voltage < Vpqmin) {
         tv = trigVVlow;
@@ -572,23 +572,23 @@ void ZipLoad::ioPartialDerivatives(const IOdata& inputs,
         tv = trigVVhigh;
     }
 
-    md.assignCheckCol(PoutLocation,
-                      inputLocs[voltageInLocation],
+    md.assignCheckCol(POUT_LOCATION,
+                      inputLocs[VOLTAGE_IN_LOCATION],
                       2.0 * voltage * Yp + Ip + 2.0 * voltage * P * tv);
 
-    if (opFlags[use_power_factor_flag]) {
+    if (opFlags[USE_POWER_FACTOR_FLAG]) {
         if (pfq < 1000.0) {
-            md.assignCheckCol(QoutLocation,
-                              inputLocs[voltageInLocation],
+            md.assignCheckCol(QOUT_LOCATION,
+                              inputLocs[VOLTAGE_IN_LOCATION],
                               2.0 * voltage * Yq + Iq + 2.0 * voltage * P * pfq * tv);
         } else {
-            md.assignCheckCol(QoutLocation,
-                              inputLocs[voltageInLocation],
+            md.assignCheckCol(QOUT_LOCATION,
+                              inputLocs[VOLTAGE_IN_LOCATION],
                               2.0 * voltage * Yq + Iq + 2.0 * voltage * Q * tv);
         }
     } else {
-        md.assignCheckCol(QoutLocation,
-                          inputLocs[voltageInLocation],
+        md.assignCheckCol(QOUT_LOCATION,
+                          inputLocs[VOLTAGE_IN_LOCATION],
                           2.0 * voltage * Yq + Iq + 2.0 * voltage * Q * tv);
     }
 }

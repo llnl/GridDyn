@@ -131,7 +131,7 @@ void Relay::add(std::shared_ptr<Condition> conditionObject)
     actionDelays.resize(conditions.size());  //!< the periods of time in which the condition must be
                                              //!< true for an action to occur
     cStates.resize(conditions.size(),
-                   ConditionStatus::active);  //!< a vector of states for the conditions
+                   ConditionStatus::ACTIVE);  //!< a vector of states for the conditions
     conditionTriggerTimes.resize(
         conditions.size());  //!< the times at which the condition triggered
     multiConditionTriggers.resize(conditions.size());
@@ -211,13 +211,13 @@ void Relay::setConditionStatus(index_t conditionNumber, ConditionStatus newStatu
     }
     cStates[conditionNumber] = newStatus;
     switch (newStatus) {
-        case ConditionStatus::disabled:
+        case ConditionStatus::DISABLED:
             clearCondChecks(conditionNumber);
             break;
-        case ConditionStatus::active:
+        case ConditionStatus::ACTIVE:
             conditions[conditionNumber]->useMargin(false);
             break;
-        case ConditionStatus::triggered:
+        case ConditionStatus::TRIGGERED:
             conditions[conditionNumber]->useMargin(true);
             break;
         default:
@@ -265,7 +265,7 @@ Relay::ConditionStatus Relay::getConditionStatus(index_t conditionNumber)
     if (isValidIndex(conditionNumber, conditions)) {
         return cStates[conditionNumber];
     }
-    return ConditionStatus::disabled;
+    return ConditionStatus::DISABLED;
 }
 
 void Relay::removeAction(index_t actionNumber)
@@ -330,7 +330,7 @@ void Relay::updateCondition(std::shared_ptr<Condition> conditionObject, index_t 
         throw(InvalidParameterValue("conditionNumber"));
     }
     conditions[conditionNumber] = std::move(conditionObject);
-    cStates[conditionNumber] = ConditionStatus::active;
+    cStates[conditionNumber] = ConditionStatus::ACTIVE;
     conditionTriggerTimes[conditionNumber] = negTime;
     updateRootCount(true);
 }
@@ -438,7 +438,7 @@ void Relay::updateA(CoreTime time)
         }
         auto conditionCount = static_cast<index_t>(conditions.size());
         for (index_t kk = 0; kk < conditionCount; ++kk) {
-            if (cStates[kk] == ConditionStatus::active) {
+            if (cStates[kk] == ConditionStatus::ACTIVE) {
                 if (conditions[kk]->checkCondition()) {
                     triggerCondition(kk, time, timeZero);
                 }
@@ -458,7 +458,7 @@ void Relay::updateA(CoreTime time)
         if (time >= m_nextSampleTime) {
             auto conditionCount = static_cast<index_t>(conditions.size());
             for (index_t kk = 0; kk < conditionCount; ++kk) {
-                if (cStates[kk] == ConditionStatus::active) {
+                if (cStates[kk] == ConditionStatus::ACTIVE) {
                     if (conditions[kk]->checkCondition()) {
                         triggerCondition(kk, time, timeZero);
                     }
@@ -516,8 +516,8 @@ void Relay::pFlowObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
     }
     if (opFlags[POWER_FLOW_CHECKS_FLAG]) {
         for (auto& conditionState : cStates) {
-            if (conditionState == ConditionStatus::active) {
-                opFlags.set(has_powerflow_adjustments);
+            if (conditionState == ConditionStatus::ACTIVE) {
+                opFlags.set(HAS_POWERFLOW_ADJUSTMENTS);
                 break;
             }
         }
@@ -542,8 +542,8 @@ void Relay::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     //*update the flag for future power flow check  BUG noticed by Colin Ponce 10/21/16
     if (opFlags[POWER_FLOW_CHECKS_FLAG]) {
         for (auto& conditionState : cStates) {
-            if (conditionState == ConditionStatus::active) {
-                opFlags.set(has_powerflow_adjustments);
+            if (conditionState == ConditionStatus::ACTIVE) {
+                opFlags.set(HAS_POWERFLOW_ADJUSTMENTS);
                 break;
             }
         }
@@ -586,19 +586,19 @@ void Relay::updateRootCount(bool alertChange)
     localRoots = 0;  // reset the local roots
     conditionsWithRoots.clear();
     for (index_t kk = 0; std::cmp_less(kk, cStates.size()); ++kk) {
-        if (cStates[kk] == ConditionStatus::active ||
-            (cStates[kk] == ConditionStatus::triggered && opFlags[RESETTABLE_FLAG])) {
+        if (cStates[kk] == ConditionStatus::ACTIVE ||
+            (cStates[kk] == ConditionStatus::TRIGGERED && opFlags[RESETTABLE_FLAG])) {
             ++localRoots;
             conditionsWithRoots.push_back(kk);
         }
     }
     if (prevRoots != localRoots) {
         if (localRoots > 0) {
-            opFlags.set(has_alg_roots);
-            opFlags.set(has_roots);
+            opFlags.set(HAS_ALG_ROOTS);
+            opFlags.set(HAS_ROOTS);
         } else {
-            opFlags.reset(has_alg_roots);
-            opFlags.reset(has_roots);
+            opFlags.reset(HAS_ALG_ROOTS);
+            opFlags.reset(HAS_ROOTS);
         }
         offsets.rootUnload(true);
         if (alertChange) {
@@ -611,10 +611,10 @@ ChangeCode
     Relay::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t /*flags*/, CheckLevel level)
 {
     ChangeCode ret = ChangeCode::NO_CHANGE;
-    if (level >= CheckLevel::full_check) {
+    if (level >= CheckLevel::FULL_CHECK) {
         auto conditionCount = static_cast<index_t>(conditions.size());
         for (index_t kk = 0; kk < conditionCount; ++kk) {
-            if (cStates[kk] == ConditionStatus::active) {
+            if (cStates[kk] == ConditionStatus::ACTIVE) {
                 if (conditions[kk]->checkCondition()) {
                     ret = std::max(triggerCondition(kk, prevTime, maxTime), ret);
                 }
@@ -646,15 +646,15 @@ void Relay::rootTrigger(CoreTime time,
     // so we need to cache the conditions first to prevent manipulation
     auto checkConditions = conditionsWithRoots;
     for (auto conditionToCheck : checkConditions) {
-        if (cStates[conditionToCheck] == ConditionStatus::active) {
+        if (cStates[conditionToCheck] == ConditionStatus::ACTIVE) {
             if (rootMask[rootOffset] != 0) {
                 triggerCondition(conditionToCheck, time, timeZero);
             }
             ++rootOffset;
-        } else if ((cStates[conditionToCheck] == ConditionStatus::triggered) &&
+        } else if ((cStates[conditionToCheck] == ConditionStatus::TRIGGERED) &&
                    (opFlags[RESETTABLE_FLAG])) {
             if (rootMask[rootOffset] != 0) {
-                cStates[conditionToCheck] = ConditionStatus::active;
+                cStates[conditionToCheck] = ConditionStatus::ACTIVE;
                 conditions[conditionToCheck]->useMargin(false);
                 clearCondChecks(conditionToCheck);
                 conditionCleared(conditionToCheck, time);
@@ -742,7 +742,7 @@ ChangeCode Relay::triggerCondition(index_t conditionNum,
                                    CoreTime minimumDelayTime)
 {
     ChangeCode eventReturn = ChangeCode::NO_CHANGE;
-    cStates[conditionNum] = ConditionStatus::triggered;
+    cStates[conditionNum] = ConditionStatus::TRIGGERED;
     conditions[conditionNum]->useMargin(true);
 
     conditionTriggerTimes[conditionNum] = conditionTriggerTime;
@@ -790,7 +790,7 @@ ChangeCode Relay::multiConditionCheckExecute(index_t conditionNumber,
     for (auto& mct : multiConditionTriggers[conditionNumber]) {
         bool allTriggered = true;
         for (auto& conditionNum : mct.multiConditions) {
-            if (cStates[conditionNum] != ConditionStatus::triggered) {
+            if (cStates[conditionNum] != ConditionStatus::TRIGGERED) {
                 allTriggered = false;
                 break;
             }
@@ -826,7 +826,7 @@ ChangeCode Relay::evaluateCondCheck(condCheckTime& cond, CoreTime checkTime)
                     multiConditionTriggers[cond.conditionNum][cond.actionNum].delayTime;
                 for (auto& conditionNum :
                      multiConditionTriggers[cond.conditionNum][cond.actionNum].multiConditions) {
-                    if (cStates[conditionNum] != ConditionStatus::triggered) {
+                    if (cStates[conditionNum] != ConditionStatus::TRIGGERED) {
                         allTriggered = false;
                         break;
                     }
@@ -846,14 +846,14 @@ ChangeCode Relay::evaluateCondCheck(condCheckTime& cond, CoreTime checkTime)
                 }
             }
         } else {
-            cStates[cond.conditionNum] = ConditionStatus::active;
+            cStates[cond.conditionNum] = ConditionStatus::ACTIVE;
             conditions[cond.conditionNum]->useMargin(false);
 
             conditionCleared(cond.conditionNum, checkTime);
             updateRootCount(true);
         }
     } else {
-        if (cStates[cond.conditionNum] == ConditionStatus::triggered) {
+        if (cStates[cond.conditionNum] == ConditionStatus::TRIGGERED) {
             condChecks.push_back(cond);
         }
     }

@@ -16,8 +16,8 @@ namespace griddyn::loads {
 class FileLoad: public RampLoad {
   public:
     enum FileLoadFlags {
-        use_absolute_time_flag = object_flag7,
-        use_step_change_flag = object_flag8,
+        USE_ABSOLUTE_TIME_FLAG = OBJECT_FLAG7,
+        USE_STEP_CHANGE_FLAG = OBJECT_FLAG8,
     };
 
   protected:

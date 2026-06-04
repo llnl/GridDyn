@@ -105,12 +105,12 @@ class EventTypeAdapter: public EventAdapter {
     {
         m_nextTime = ge->nextTriggerTime();
         switch (ge->executionMode()) {
-            case EventExecutionMode::normal:
+            case EventExecutionMode::NORMAL:
                 break;
-            case EventExecutionMode::two_part_execution:
+            case EventExecutionMode::TWO_PART_EXECUTION:
                 two_part_execute = true;
                 break;
-            case EventExecutionMode::delayed:
+            case EventExecutionMode::DELAYED:
                 two_part_execute = true;
                 partB_only = true;
                 break;
@@ -187,12 +187,12 @@ class EventTypeAdapter<std::shared_ptr<Y>>: public EventAdapter {
     {
         m_nextTime = m_eventObj->nextTriggerTime();
         switch (m_eventObj->executionMode()) {
-            case EventExecutionMode::normal:
+            case EventExecutionMode::NORMAL:
                 break;
-            case EventExecutionMode::two_part_execution:
+            case EventExecutionMode::TWO_PART_EXECUTION:
                 two_part_execute = true;
                 break;
-            case EventExecutionMode::delayed:
+            case EventExecutionMode::DELAYED:
                 two_part_execute = true;
                 partB_only = true;
                 break;

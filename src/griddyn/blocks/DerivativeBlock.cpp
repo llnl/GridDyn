@@ -16,12 +16,12 @@
 namespace griddyn::blocks {
 DerivativeBlock::DerivativeBlock(const std::string& objName): GridBlock(objName)
 {
-    opFlags.set(useState);
+    opFlags.set(USE_STATE);
 }
 DerivativeBlock::DerivativeBlock(double timeConstant, const std::string& objName):
     GridBlock(objName), mT1(timeConstant)
 {
-    opFlags.set(useState);
+    opFlags.set(USE_STATE);
 }
 
 CoreObject* DerivativeBlock::clone(CoreObject* obj) const

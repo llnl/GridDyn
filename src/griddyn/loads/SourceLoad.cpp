@@ -25,8 +25,8 @@ SourceLoad::SourceLoad(SourceType type, const std::string& objName): SourceLoad(
 {
     sType = type;
     // add the sources for P and Q
-    SourceLoad::add(makeSource(p_source));
-    SourceLoad::add(makeSource(q_source));
+    SourceLoad::add(makeSource(P_SOURCE));
+    SourceLoad::add(makeSource(Q_SOURCE));
 }
 
 CoreObject* SourceLoad::clone(CoreObject* obj) const
@@ -40,54 +40,54 @@ CoreObject* SourceLoad::clone(CoreObject* obj) const
 }
 
 static const std::map<std::string_view, int, std::less<>> SOURCE_LOOKUP{
-    {"source", SourceLoad::p_source},
-    {"psource", SourceLoad::p_source},
-    {"p_source", SourceLoad::p_source},
-    {"qsource", SourceLoad::q_source},
-    {"q_source", SourceLoad::q_source},
-    {"resource", SourceLoad::r_source},
-    {"r_source", SourceLoad::r_source},
-    {"xsource", SourceLoad::x_source},
-    {"x_source", SourceLoad::x_source},
-    {"ypsource", SourceLoad::yp_source},
-    {"yp_source", SourceLoad::yp_source},
-    {"yqsource", SourceLoad::yq_source},
-    {"yq_source", SourceLoad::yq_source},
-    {"ipsource", SourceLoad::ip_source},
-    {"ip_source", SourceLoad::ip_source},
-    {"iqsource", SourceLoad::iq_source},
-    {"iq_source", SourceLoad::iq_source},
+    {"source", SourceLoad::P_SOURCE},
+    {"psource", SourceLoad::P_SOURCE},
+    {"p_source", SourceLoad::P_SOURCE},
+    {"qsource", SourceLoad::Q_SOURCE},
+    {"q_source", SourceLoad::Q_SOURCE},
+    {"resource", SourceLoad::R_SOURCE},
+    {"r_source", SourceLoad::R_SOURCE},
+    {"xsource", SourceLoad::X_SOURCE},
+    {"x_source", SourceLoad::X_SOURCE},
+    {"ypsource", SourceLoad::YP_SOURCE},
+    {"yp_source", SourceLoad::YP_SOURCE},
+    {"yqsource", SourceLoad::YQ_SOURCE},
+    {"yq_source", SourceLoad::YQ_SOURCE},
+    {"ipsource", SourceLoad::IP_SOURCE},
+    {"ip_source", SourceLoad::IP_SOURCE},
+    {"iqsource", SourceLoad::IQ_SOURCE},
+    {"iq_source", SourceLoad::IQ_SOURCE},
 };
 
 static const std::map<std::string_view, int, std::less<>> SOURCEKEY_LOOKUP{
-    {"p", SourceLoad::p_source},
-    {"q", SourceLoad::q_source},
-    {"r", SourceLoad::r_source},
-    {"x", SourceLoad::x_source},
-    {"yp", SourceLoad::yp_source},
-    {"zp", SourceLoad::yp_source},
-    {"zr", SourceLoad::yp_source},
-    {"yq", SourceLoad::yq_source},
-    {"zq", SourceLoad::yq_source},
-    {"ip", SourceLoad::ip_source},
-    {"iq", SourceLoad::iq_source},
+    {"p", SourceLoad::P_SOURCE},
+    {"q", SourceLoad::Q_SOURCE},
+    {"r", SourceLoad::R_SOURCE},
+    {"x", SourceLoad::X_SOURCE},
+    {"yp", SourceLoad::YP_SOURCE},
+    {"zp", SourceLoad::YP_SOURCE},
+    {"zr", SourceLoad::YP_SOURCE},
+    {"yq", SourceLoad::YQ_SOURCE},
+    {"zq", SourceLoad::YQ_SOURCE},
+    {"ip", SourceLoad::IP_SOURCE},
+    {"iq", SourceLoad::IQ_SOURCE},
 };
 
 static const std::map<std::string_view, int, std::less<>> SOURCE_MATCH{
-    {"source", SourceLoad::p_source},     {"psource", SourceLoad::p_source},
-    {"p_source", SourceLoad::p_source},   {"qsource", SourceLoad::q_source},
-    {"q_source", SourceLoad::q_source},   {"resource", SourceLoad::r_source},
-    {"r_source", SourceLoad::r_source},   {"xsource", SourceLoad::x_source},
-    {"x_source", SourceLoad::x_source},   {"ypsource", SourceLoad::yp_source},
-    {"yp_source", SourceLoad::yp_source}, {"yqsource", SourceLoad::yq_source},
-    {"yq_source", SourceLoad::yq_source}, {"ipsource", SourceLoad::ip_source},
-    {"ip_source", SourceLoad::ip_source}, {"iqsource", SourceLoad::iq_source},
-    {"iq_source", SourceLoad::iq_source}, {"p", SourceLoad::p_source},
-    {"q", SourceLoad::q_source},          {"r", SourceLoad::r_source},
-    {"x", SourceLoad::x_source},          {"yp", SourceLoad::yp_source},
-    {"zp", SourceLoad::yp_source},        {"zr", SourceLoad::yp_source},
-    {"yq", SourceLoad::yq_source},        {"zq", SourceLoad::yq_source},
-    {"ip", SourceLoad::ip_source},        {"iq", SourceLoad::iq_source},
+    {"source", SourceLoad::P_SOURCE},     {"psource", SourceLoad::P_SOURCE},
+    {"p_source", SourceLoad::P_SOURCE},   {"qsource", SourceLoad::Q_SOURCE},
+    {"q_source", SourceLoad::Q_SOURCE},   {"resource", SourceLoad::R_SOURCE},
+    {"r_source", SourceLoad::R_SOURCE},   {"xsource", SourceLoad::X_SOURCE},
+    {"x_source", SourceLoad::X_SOURCE},   {"ypsource", SourceLoad::YP_SOURCE},
+    {"yp_source", SourceLoad::YP_SOURCE}, {"yqsource", SourceLoad::YQ_SOURCE},
+    {"yq_source", SourceLoad::YQ_SOURCE}, {"ipsource", SourceLoad::IP_SOURCE},
+    {"ip_source", SourceLoad::IP_SOURCE}, {"iqsource", SourceLoad::IQ_SOURCE},
+    {"iq_source", SourceLoad::IQ_SOURCE}, {"p", SourceLoad::P_SOURCE},
+    {"q", SourceLoad::Q_SOURCE},          {"r", SourceLoad::R_SOURCE},
+    {"x", SourceLoad::X_SOURCE},          {"yp", SourceLoad::YP_SOURCE},
+    {"zp", SourceLoad::YP_SOURCE},        {"zr", SourceLoad::YP_SOURCE},
+    {"yq", SourceLoad::YQ_SOURCE},        {"zq", SourceLoad::YQ_SOURCE},
+    {"ip", SourceLoad::IP_SOURCE},        {"iq", SourceLoad::IQ_SOURCE},
 };
 
 void SourceLoad::add(CoreObject* obj)
@@ -255,7 +255,7 @@ void SourceLoad::set(std::string_view param, double val, units::unit unitType)
         if (ind != SOURCE_LOOKUP.end()) {
             const bool canSetSourceLink = (std::cmp_greater(sources.size(), ind->second) &&
                                            (sources[ind->second] != nullptr)) ||
-                (!opFlags[pFlow_initialized]);
+                (!opFlags[POWERFLOW_INITIALIZED]);
             if (canSetSourceLink) {
                 sourceLink[ind->second] = static_cast<int>(val);
             } else {
@@ -313,29 +313,29 @@ void SourceLoad::updateLocalCache(const IOdata& /*inputs*/,
 
 void SourceLoad::getSourceLoads()
 {
-    if (sourceLink[p_source] >= 0) {
-        setP(sources[sourceLink[p_source]]->getOutput());
+    if (sourceLink[P_SOURCE] >= 0) {
+        setP(sources[sourceLink[P_SOURCE]]->getOutput());
     }
-    if (sourceLink[q_source] >= 0) {
-        setQ(sources[sourceLink[q_source]]->getOutput());
+    if (sourceLink[Q_SOURCE] >= 0) {
+        setQ(sources[sourceLink[Q_SOURCE]]->getOutput());
     }
-    if (sourceLink[yp_source] >= 0) {
-        setup(sources[sourceLink[yp_source]]->getOutput());
+    if (sourceLink[YP_SOURCE] >= 0) {
+        setup(sources[sourceLink[YP_SOURCE]]->getOutput());
     }
-    if (sourceLink[yq_source] >= 0) {
-        setYq(sources[sourceLink[yq_source]]->getOutput());
+    if (sourceLink[YQ_SOURCE] >= 0) {
+        setYq(sources[sourceLink[YQ_SOURCE]]->getOutput());
     }
-    if (sourceLink[ip_source] >= 0) {
-        setIp(sources[sourceLink[ip_source]]->getOutput());
+    if (sourceLink[IP_SOURCE] >= 0) {
+        setIp(sources[sourceLink[IP_SOURCE]]->getOutput());
     }
-    if (sourceLink[iq_source] >= 0) {
-        setIq(sources[sourceLink[iq_source]]->getOutput());
+    if (sourceLink[IQ_SOURCE] >= 0) {
+        setIq(sources[sourceLink[IQ_SOURCE]]->getOutput());
     }
-    if (sourceLink[r_source] >= 0) {
-        setr(sources[sourceLink[r_source]]->getOutput());
+    if (sourceLink[R_SOURCE] >= 0) {
+        setr(sources[sourceLink[R_SOURCE]]->getOutput());
     }
-    if (sourceLink[x_source] >= 0) {
-        setx(sources[sourceLink[x_source]]->getOutput());
+    if (sourceLink[X_SOURCE] >= 0) {
+        setx(sources[sourceLink[X_SOURCE]]->getOutput());
     }
 }
 
@@ -343,16 +343,16 @@ Source* SourceLoad::makeSource(SourceLoc loc)
 {
     Source* src = nullptr;
     switch (sType) {
-        case SourceType::pulse:
+        case SourceType::PULSE:
             src = new sources::PulseSource();
             break;
-        case SourceType::random:
+        case SourceType::RANDOM:
             src = new sources::RandomSource();
             break;
-        case SourceType::sine:
+        case SourceType::SINE:
             src = new sources::SineSource();
             break;
-        case SourceType::other:
+        case SourceType::OTHER:
         default:
             return nullptr;
     }

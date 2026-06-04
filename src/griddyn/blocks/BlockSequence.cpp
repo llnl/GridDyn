@@ -19,7 +19,7 @@
 namespace griddyn::blocks {
 BlockSequence::BlockSequence(const std::string& objName): GridBlock(objName)
 {
-    opFlags[useDirect] = true;
+    opFlags[USE_DIRECT] = true;
 }
 CoreObject* BlockSequence::clone(CoreObject* obj) const
 {
@@ -44,9 +44,9 @@ void BlockSequence::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
             blocks[sequenceIndex]->setFlag("differential_input", true);
         }
         blocks[sequenceIndex]->dynInitializeA(time0, flags);
-        diffInput = blocks[sequenceIndex]->checkFlag(differential_output);
+        diffInput = blocks[sequenceIndex]->checkFlag(DIFFERENTIAL_OUTPUT);
     }
-    opFlags[differentialInput] = diffInput;
+    opFlags[DIFFERENTIAL_INPUT] = diffInput;
     GridBlock::dynObjectInitializeA(time0, flags);
     updateFlags();  // update the flags for the subObjects;
 }
@@ -121,7 +121,7 @@ void BlockSequence::updateLocalCache(const IOdata& /*inputs*/,
         const GridBlock* block = blocks[sequence[kk]];
         blockOutputs[kk] = block->getBlockOutput(stateData, sMode);
         blockDoutDt[kk] =
-            (block->checkFlag(differential_output)) ? block->getBlockDoutDt(stateData, sMode) : 0.0;
+            (block->checkFlag(DIFFERENTIAL_OUTPUT)) ? block->getBlockDoutDt(stateData, sMode) : 0.0;
     }
 
     seqID = stateData.seqID;

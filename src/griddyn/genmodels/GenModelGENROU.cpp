@@ -103,14 +103,14 @@ void GenModelGENROU::derivative(const IOdata& inputs,
 {
     auto Loc = offsets.getLocations(sD, deriv, sMode, this);
 
-    // double V = inputs[voltageInLocation];
+    // double V = inputs[VOLTAGE_IN_LOCATION];
     const double* gm = Loc.algStateLoc;
     const double* gmd = Loc.diffStateLoc;
     const double* gmp = Loc.dstateLoc;
 
     //  double *rva = Loc.destLoc;
     double* rvd = Loc.destDiffLoc;
-    //  double angle = gmd[0] - inputs[angleInLocation];
+    //  double angle = gmd[0] - inputs[ANGLE_IN_LOCATION];
     // double Vq = V * cos (angle);
     // double Vd = -V*sin (angle);
 
@@ -203,8 +203,8 @@ void GenModelGENROU::jacobianElements(const IOdata& inputs,
 {
     auto Loc = offsets.getLocations(sD, sMode, this);
 
-    double V = inputs[voltageInLocation];
-    //  double theta = inputs[angleInLocation];
+    double V = inputs[VOLTAGE_IN_LOCATION];
+    //  double theta = inputs[ANGLE_IN_LOCATION];
     const double* gm = Loc.algStateLoc;
     const double* gmd = Loc.diffStateLoc;
     //  const double *gmp = Loc.dstateLoc;
@@ -214,8 +214,8 @@ void GenModelGENROU::jacobianElements(const IOdata& inputs,
     auto refAlg = Loc.algOffset;
     auto refDiff = Loc.diffOffset;
 
-    auto VLoc = inputLocs[voltageInLocation];
-    auto TLoc = inputLocs[angleInLocation];
+    auto VLoc = inputLocs[VOLTAGE_IN_LOCATION];
+    auto TLoc = inputLocs[ANGLE_IN_LOCATION];
 
     // Id Differential
     double D1 = (Xdpp) / (Xdp);

@@ -41,13 +41,13 @@ void GrabberSource::setFlag(std::string_view flag, bool val)
 void GrabberSource::set(std::string_view param, std::string_view val)
 {
     if (param == "field") {
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
             updateField(std::string{val});
         } else {
             field = val;
         }
     } else if (param == "target") {
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
             updateTarget(target);
         } else {
             target = val;

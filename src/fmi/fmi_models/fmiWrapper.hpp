@@ -209,7 +209,7 @@ provided with the default to the regular call
     {
         if (fmisub->isLoaded()) {
             configureFmiIo();
-            SET_CONTROLFLAG(flags, force_constant_pflow_initialization);
+            SET_CONTROLFLAG(flags, FORCE_CONSTANT_PFLOW_INITIALIZATION);
             fmisub->pFlowInitializeA(time0, flags);
             BaseObj::pFlowObjectInitializeA(time0, flags);
         } else {
@@ -273,7 +273,7 @@ provided with the default to the regular call
                 outputNames_specified[num] = val;
             }
         } else {
-            if (!BaseObj::opFlags[pFlow_initialized]) {
+            if (!BaseObj::opFlags[POWERFLOW_INITIALIZED]) {
                 for (auto& istr : this->inputNames()) {
                     int ind = findCloseStringMatch({param2}, istr, string_match_type::close);
                     if (ind >= 0) {

@@ -31,7 +31,7 @@ using gmlc::utilities::ensureSizeAtLeast;
 Sensor::Sensor(const std::string& objName): Relay(objName)
 {
     opFlags.set(CONTINUOUS_FLAG);
-    opFlags.set(late_b_initialize);
+    opFlags.set(LATE_B_INITIALIZE);
 }
 
 CoreObject* Sensor::clone(CoreObject* obj) const
@@ -112,7 +112,7 @@ void Sensor::add(GridBlock* blk)
     }
     ensureSizeAtLeast(blockInputs, filterBlocks.size(), -1);
     addSubObject(blk);
-    blk->parentSetFlag(separate_processing, true, this);
+    blk->parentSetFlag(SEPARATE_PROCESSING, true, this);
 }
 
 void Sensor::add(std::shared_ptr<GrabberSet> grabberSet)
@@ -147,10 +147,10 @@ void Sensor::setFlag(std::string_view flag, bool val)
     if ((flag == "direct_io") || (flag == "direct")) {
         opFlags.set(DIRECT_IO, val);
     } else if (flag == "sampled") {
-        opFlags[sampled_only] = val;
+        opFlags[SAMPLED_ONLY] = val;
         opFlags[CONTINUOUS_FLAG] = !val;
     } else if (flag == "continuous") {
-        opFlags[sampled_only] = !val;
+        opFlags[SAMPLED_ONLY] = !val;
         opFlags[CONTINUOUS_FLAG] = val;
     } else {
         Relay::setFlag(flag, val);
@@ -385,7 +385,7 @@ void Sensor::generateInputGrabbers()
         }
         CoreObject* targetObj = (m_sourceObject != nullptr) ? m_sourceObject : getParent();
 
-        dataSources[ii] = std::make_shared<GrabberSet>(istr, targetObj, opFlags[sampled_only]);
+        dataSources[ii] = std::make_shared<GrabberSet>(istr, targetObj, opFlags[SAMPLED_ONLY]);
     }
 }
 using cm = comms::ControlMessagePayload;
@@ -546,9 +546,9 @@ void Sensor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     }
 
     if (!opFlags[CONTINUOUS_FLAG]) {
-        opFlags.set(sampled_only);
+        opFlags.set(SAMPLED_ONLY);
         for (auto& filterBlock : filterBlocks) {
-            filterBlock->setFlag("sampled_only", true);
+            filterBlock->setFlag("SAMPLED_ONLY", true);
         }
     }
 

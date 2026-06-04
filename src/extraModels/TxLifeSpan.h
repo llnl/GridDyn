@@ -15,8 +15,8 @@ namespace griddyn::extra {
 class TxLifeSpan: public Sensor {
   public:
     enum LifespanModelFlags {
-        useIECmethod = object_flag11,
-        no_disconnect = object_flag12,  //!< flag indicating that the object should create a short
+        USE_IE_CMETHOD =OBJECT_FLAG11,
+        NO_DISCONNECT = OBJECT_FLAG12,  //!< flag indicating that the object should create a short
                                         //!< circuit instead of disconnecting when life reaches 0
     };
 

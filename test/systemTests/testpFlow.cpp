@@ -157,7 +157,7 @@ TEST_F(PowerflowSystemTests, PflowTest30NoShunt)
     EXPECT_EQ(adiff, 0U);
 
     // check that the reset works correctly
-    gds->reset(ResetLevels::voltage_angle);
+    gds->reset(ResetLevels::VOLTAGE_ANGLE);
     gds->getAngle(ang1);
     for (double angleValue : ang1) {
         EXPECT_NEAR(angleValue, 0.0, 1e-6);
@@ -217,7 +217,7 @@ TEST_F(PowerflowSystemTests, PflowTest30NoLimit)
     EXPECT_EQ(adiff, 0U);
 
     // check that the reset works correctly
-    gds->reset(ResetLevels::voltage_angle);
+    gds->reset(ResetLevels::VOLTAGE_ANGLE);
     gds->getAngle(ang1);
     for (double angleValue : ang1) {
         EXPECT_NEAR(angleValue, 0.0, 1e-6);

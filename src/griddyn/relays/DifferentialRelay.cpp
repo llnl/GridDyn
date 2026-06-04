@@ -206,7 +206,7 @@ void DifferentialRelay::receiveMessage(std::uint64_t /*sourceID*/,
             break;
         case CommMessage::BREAKER_OOS_COMMAND:
 
-            setConditionStatus(0, ConditionStatus::disabled);
+            setConditionStatus(0, ConditionStatus::DISABLED);
             break;
         default: {
             assert(false);

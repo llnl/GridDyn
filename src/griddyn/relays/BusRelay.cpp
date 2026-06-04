@@ -58,29 +58,29 @@ void BusRelay::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "cutoutvoltage") || (param == "voltagelimit")) {
         mCutoutVoltage = units::convert(val, unitType, units::puV, systemBasePower, baseVoltage());
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
             setConditionLevel(0, mCutoutVoltage);
         }
     } else if ((param == "cutoutfrequency") || (param == "freqlimit")) {
         mCutoutFrequency = units::convert(val, unitType, units::puHz, systemBaseFrequency);
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
             setConditionLevel(1, mCutoutFrequency);
         }
     } else if (param == "delay") {
         mVoltageDelay = val;
         mFrequencyDelay = val;
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
             setActionTrigger(0, 0, mVoltageDelay);
             setActionTrigger(0, 1, mFrequencyDelay);
         }
     } else if (param == "voltagedelay") {
         mVoltageDelay = val;
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
             setActionTrigger(0, 0, mVoltageDelay);
         }
     } else if (param == "frequencydelay") {
         mFrequencyDelay = val;
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
             setActionTrigger(0, 1, mFrequencyDelay);
         }
     } else {
@@ -100,13 +100,13 @@ void BusRelay::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
     add(std::shared_ptr<Condition>(makeCondition("voltage", "<", mCutoutVoltage, m_sourceObject)));
     setActionTrigger(0, 0, mVoltageDelay);
     if ((mCutoutVoltage > 2.0) || (mCutoutVoltage <= 0)) {
-        setConditionStatus(0, ConditionStatus::disabled);
+        setConditionStatus(0, ConditionStatus::DISABLED);
     }
     add(std::shared_ptr<Condition>(
         makeCondition("frequency", "<", mCutoutFrequency, m_sourceObject)));
     setActionTrigger(0, 1, mFrequencyDelay);
     if ((mCutoutFrequency > 2.0) || (mCutoutFrequency <= 0)) {
-        setConditionStatus(1, ConditionStatus::disabled);
+        setConditionStatus(1, ConditionStatus::DISABLED);
     }
 
     Relay::pFlowObjectInitializeA(time0, flags);

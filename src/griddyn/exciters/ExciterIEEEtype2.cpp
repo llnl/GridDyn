@@ -49,7 +49,7 @@ void ExciterIEEEtype2::dynObjectInitializeB(const IOdata& inputs,
     gs[2] = 0;  // X1
     gs[3] = gs[1];  // X2
 
-    vBias = inputs[voltageInLocation] + gs[1] / Ka - Vref;
+    vBias = inputs[VOLTAGE_IN_LOCATION] + gs[1] / Ka - Vref;
     fieldSet[exciterVsetInLocation] = Vref;
 }
 
@@ -67,14 +67,14 @@ void ExciterIEEEtype2::residual(const IOdata& inputs,
     const double* esp = sD.dstate_dt + offset;
     double* rv = resid + offset;
     rv[0] = (-(Ke + Aex * exp(Bex * es[0])) * es[0] + es[1]) / Te - esp[0];
-    if (opFlags[outsideVoltageLimits]) {
-        if (opFlags[triggerHigh]) {
+    if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
+        if (opFlags[TRIGGER_HIGH]) {
             rv[1] = esp[1];
         } else {
             rv[1] = esp[1];
         }
     } else {
-        rv[1] = (-es[1] + Ka * Kf * es[2] + Ka * (Vref + vBias - inputs[voltageInLocation])) / Ta -
+        rv[1] = (-es[1] + Ka * Kf * es[2] + Ka * (Vref + vBias - inputs[VOLTAGE_IN_LOCATION])) / Ta -
             esp[1];
     }
     rv[2] = (-es[2] + es[1] / Tf2 - es[3] / Tf2) / Tf - esp[2];
@@ -90,10 +90,10 @@ void ExciterIEEEtype2::derivative(const IOdata& inputs,
     const double* es = Loc.diffStateLoc;
     double* d = Loc.destDiffLoc;
     d[0] = (-(Ke + Aex * exp(Bex * es[0])) * es[0] + es[1]) / Te;
-    if (opFlags[outsideVoltageLimits]) {
+    if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         d[1] = 0;
     } else {
-        d[1] = (-es[1] + Ka * Kf * es[2] + Ka * (Vref + vBias - inputs[voltageInLocation])) / Ta;
+        d[1] = (-es[1] + Ka * Kf * es[2] + Ka * (Vref + vBias - inputs[VOLTAGE_IN_LOCATION])) / Ta;
     }
     d[2] = (-es[2] + es[1] / Tf2 - es[3] / Tf2) / Tf;
     d[3] = (-es[3] + es[1]) / Tf2;
@@ -123,7 +123,7 @@ void ExciterIEEEtype2::jacobianElements(const IOdata& /*inputs*/,
     md.assign(refI, refI, temp1);
     md.assign(refI, refI + 1, 1.0 / Te);
 
-    if (opFlags[outsideVoltageLimits]) {
+    if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         md.assign(refI + 1, refI + 1, sD.cj);
     } else {
         // Vr
@@ -161,13 +161,13 @@ void ExciterIEEEtype2::rootTest(const IOdata& inputs,
     int rootOffset = offsets.getRootOffset(sMode);
     const double* es = sD.state + offset;
 
-    if (opFlags[outsideVoltageLimits]) {
+    if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         roots[rootOffset] =
-            Ka * Kf * es[2] + Ka * (Vref + vBias - inputs[voltageInLocation]) - es[1];
+            Ka * Kf * es[2] + Ka * (Vref + vBias - inputs[VOLTAGE_IN_LOCATION]) - es[1];
     } else {
         roots[rootOffset] = std::min(Vrmax - es[1], es[1] - Vrmin) + 0.0001;
         if (es[1] > Vrmax) {
-            opFlags.set(triggerHigh);
+            opFlags.set(TRIGGER_HIGH);
         }
     }
 }
@@ -179,32 +179,32 @@ ChangeCode ExciterIEEEtype2::rootCheck(const IOdata& inputs,
 {
     double* es = m_state.data();
     ChangeCode ret = ChangeCode::NO_CHANGE;
-    if (opFlags[outsideVoltageLimits]) {
-        double test = Ka * Kf * es[2] + Ka * (Vref + vBias - inputs[voltageInLocation]) - es[1];
-        if (opFlags[triggerHigh]) {
+    if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
+        double test = Ka * Kf * es[2] + Ka * (Vref + vBias - inputs[VOLTAGE_IN_LOCATION]) - es[1];
+        if (opFlags[TRIGGER_HIGH]) {
             if (test < 0.0) {
                 ret = ChangeCode::JACOBIAN_CHANGE;
-                opFlags.reset(outsideVoltageLimits);
-                opFlags.reset(triggerHigh);
+                opFlags.reset(OUTSIDE_VOLTAGE_LIMITS);
+                opFlags.reset(TRIGGER_HIGH);
                 alert(this, JAC_COUNT_INCREASE);
             }
         } else {
             if (test > 0.0) {
                 ret = ChangeCode::JACOBIAN_CHANGE;
-                opFlags.reset(outsideVoltageLimits);
+                opFlags.reset(OUTSIDE_VOLTAGE_LIMITS);
                 alert(this, JAC_COUNT_INCREASE);
             }
         }
     } else {
         if (es[1] > Vrmax + 0.0001) {
-            opFlags.set(triggerHigh);
-            opFlags.set(outsideVoltageLimits);
+            opFlags.set(TRIGGER_HIGH);
+            opFlags.set(OUTSIDE_VOLTAGE_LIMITS);
             es[1] = Vrmax;
             ret = ChangeCode::JACOBIAN_CHANGE;
             alert(this, JAC_COUNT_DECREASE);
         } else if (es[1] < Vrmin - 0.0001) {
-            opFlags.reset(triggerHigh);
-            opFlags.set(outsideVoltageLimits);
+            opFlags.reset(TRIGGER_HIGH);
+            opFlags.set(OUTSIDE_VOLTAGE_LIMITS);
             es[1] = Vrmin;
             ret = ChangeCode::JACOBIAN_CHANGE;
             alert(this, JAC_COUNT_DECREASE);

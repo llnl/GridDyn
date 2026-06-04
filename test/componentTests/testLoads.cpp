@@ -191,7 +191,7 @@ TEST_F(LoadTests, RampLoadTest)
 
 TEST_F(LoadTests, RandomLoadTest)
 {
-    ld1 = new SourceLoad(SourceLoad::SourceType::random);
+    ld1 = new SourceLoad(SourceLoad::SourceType::RANDOM);
     auto ldT = static_cast<SourceLoad*>(ld1);
     ASSERT_NE(ldT, nullptr);
     ld1->set("p:trigger_dist", "constant");
@@ -235,7 +235,7 @@ TEST_F(LoadTests, RandomLoadTest)
 
 TEST_F(LoadTests, RandomLoadTest2)
 {
-    ld1 = new SourceLoad(SourceLoad::SourceType::random);
+    ld1 = new SourceLoad(SourceLoad::SourceType::RANDOM);
     auto ldT = static_cast<SourceLoad*>(ld1);
     ASSERT_NE(ldT, nullptr);
     double val;
@@ -267,7 +267,7 @@ TEST_F(LoadTests, RandomLoadTest2)
 
 TEST_F(LoadTests, PulseLoadTest2)
 {
-    ld1 = new SourceLoad(SourceLoad::SourceType::pulse);
+    ld1 = new SourceLoad(SourceLoad::SourceType::PULSE);
     auto ldT = static_cast<SourceLoad*>(ld1);
     ASSERT_NE(ldT, nullptr);
 
@@ -422,9 +422,9 @@ TEST_F(LoadTests, MotorTest3Stall)
     requireStates(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
     gds->run(2.5);
     requireStates(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
-    EXPECT_TRUE(mtld->checkFlag(MotorLoad::stalled));
+    EXPECT_TRUE(mtld->checkFlag(MotorLoad::STALLED));
     gds->run();
-    EXPECT_FALSE(mtld->checkFlag(MotorLoad::stalled));
+    EXPECT_FALSE(mtld->checkFlag(MotorLoad::STALLED));
 }
 
 #ifdef ENABLE_IN_DEVELOPMENT_CASES
@@ -555,7 +555,7 @@ TEST_F(LoadTests, Simple3PhaseLoadTest)
     EXPECT_NEAR(res[1], 0.5, 1e-7);
     EXPECT_NEAR(res[2], 0.4, 1e-7);
 
-    auto res2 = ld3->getRealPower3Phase(PhaseType::pnz);
+    auto res2 = ld3->getRealPower3Phase(PhaseType::PNZ);
     EXPECT_EQ(res2.size(), 3u);
     EXPECT_NEAR(res2[0], 1.9, 1e-5);
 
@@ -565,12 +565,12 @@ TEST_F(LoadTests, Simple3PhaseLoadTest)
     EXPECT_NEAR(res[1], 0.9, 1e-7);
     EXPECT_NEAR(res[2], 0.9, 1e-7);
 
-    res = ld3->getRealPower3Phase(PhaseType::pnz);
+    res = ld3->getRealPower3Phase(PhaseType::PNZ);
     EXPECT_NEAR(res[0], 2.7, 1e-7);
     EXPECT_NEAR(res[1], 0.0, 1e-7);
     EXPECT_NEAR(res[2], 0.0, 1e-7);
 
-    res = ld3->getReactivePower3Phase(PhaseType::pnz);
+    res = ld3->getReactivePower3Phase(PhaseType::PNZ);
     EXPECT_NEAR(res[0], 0.3, 1e-7);
     EXPECT_NEAR(res[1], 0.0, 1e-7);
     EXPECT_NEAR(res[2], 0.0, 1e-7);

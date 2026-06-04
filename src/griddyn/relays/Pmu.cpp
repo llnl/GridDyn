@@ -49,12 +49,12 @@ CoreObject* Pmu::clone(CoreObject* obj) const
 void Pmu::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "transmit") || (flag == "transmitactive") || (flag == "transmit_active")) {
-        opFlags.set(transmitActive, val);
+        opFlags.set(TRANSMIT_ACTIVE, val);
     } else if ((flag == "three_phase") || (flag == "3phase") || (flag == "three_phase_active")) {
-        opFlags.set(threePhaseSet, val);
-        opFlags.set(threePhaseActive, val);
+        opFlags.set(THREE_PHASE_SET, val);
+        opFlags.set(THREE_PHASE_ACTIVE, val);
     } else if ((flag == "current_active") || (flag == "current")) {
-        opFlags.set(currentActive, val);
+        opFlags.set(CURRENT_ACTIVE, val);
     } else {
         Sensor::setFlag(flag, val);
     }
@@ -75,19 +75,19 @@ void Pmu::set(std::string_view param, double val, unit unitType)
 {
     if ((param == "tv") || (param == "voltagedelay")) {
         mVoltageFilterTime = val;
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
         }
     } else if ((param == "ttheta") || (param == "tangle") || (param == "angledelay")) {
         mAngleFilterTime = val;
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
         }
     } else if (param == "trocof") {
         mRocofFilterTime = val;
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
         }
     } else if ((param == "tcurrent") || (param == "tI") || (param == "currentdelay")) {
         mCurrentFilterTime = val;
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
         }
     } else if ((param == "transmitrate") || (param == "rate")) {
         mTransmissionPeriod = (val >= kMin_Res) ? 1.0 / val : kBigNum;
@@ -146,18 +146,18 @@ void Pmu::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     }
     // check for 3 phase sensors
     if (dynamic_cast<GridComponent*>(m_sourceObject) != nullptr) {
-        if (static_cast<GridComponent*>(m_sourceObject)->checkFlag(three_phase_capable)) {
-            if (!opFlags[threePhaseSet]) {
-                opFlags[threePhaseActive] = true;
+        if (static_cast<GridComponent*>(m_sourceObject)->checkFlag(THREE_PHASE_CAPABLE)) {
+            if (!opFlags[THREE_PHASE_SET]) {
+                opFlags[THREE_PHASE_ACTIVE] = true;
             }
         } else {
-            opFlags[threePhaseActive] = false;
+            opFlags[THREE_PHASE_ACTIVE] = false;
         }
     }
 
     if (dynamic_cast<GridBus*>(m_sourceObject) != nullptr) {
         // no way to get current from a bus
-        opFlags[currentActive] = false;
+        opFlags[CURRENT_ACTIVE] = false;
     }
     generateOutputNames();
     createFilterBlocks();
@@ -167,8 +167,8 @@ void Pmu::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 void Pmu::generateOutputNames()
 {
     // 4 different scenarios
-    if (opFlags[threePhaseActive]) {
-        if (opFlags[currentActive]) {
+    if (opFlags[THREE_PHASE_ACTIVE]) {
+        if (opFlags[CURRENT_ACTIVE]) {
             // three phase voltage and current
             outputStrings = {{"voltageA"},
                              {"angleA"},
@@ -196,7 +196,7 @@ void Pmu::generateOutputNames()
                              {"rocof"}};
         }
     } else {
-        if (opFlags[currentActive]) {
+        if (opFlags[CURRENT_ACTIVE]) {
             // single phase voltage and current
             outputStrings = {{"voltage"},
                              {"angle"},
@@ -217,8 +217,8 @@ void Pmu::generateOutputNames()
 void Pmu::createFilterBlocks()
 {
     // 4 different scenarios
-    if (opFlags[threePhaseActive]) {
-        if (opFlags[currentActive]) {  // NOLINT
+    if (opFlags[THREE_PHASE_ACTIVE]) {
+        if (opFlags[CURRENT_ACTIVE]) {  // NOLINT
             // three phase voltage and current
         } else {
             // three phase voltage
@@ -236,7 +236,7 @@ void Pmu::createFilterBlocks()
         set("blockinput1", 1);
         setupOutput(0, "block0");
         setupOutput(1, "block1");
-        if (opFlags[currentActive]) {
+        if (opFlags[CURRENT_ACTIVE]) {
             vBlock = new blocks::DelayBlock(mCurrentFilterTime);
             vBlock->setName("current_real");
             add(vBlock);

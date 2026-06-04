@@ -16,7 +16,7 @@ class DcLink: public Link {
   public:
     /*  enum DcLinkFlags
   {
-    FIXED_TARGET_POWER = object_flag5,
+    FIXED_TARGET_POWER = OBJECT_FLAG5,
   };*/
   protected:
     double Idc = 0;  //!< [puA] storage for DC current

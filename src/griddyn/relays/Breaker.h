@@ -14,12 +14,12 @@ namespace griddyn::relays {
 class Breaker: public Relay {
   public:
     enum BreakerFlags {
-        NONDIRECTIONAL_FLAG = object_flag8,  //!< flag indicating that the detection should not
+        NONDIRECTIONAL_FLAG = OBJECT_FLAG8,  //!< flag indicating that the detection should not
                                              //!< be based on direction
-        OVERLIMIT_FLAG = object_flag9,  //!< flag indicating that the current is over the limit
-        BREAKER_TRIPPED_FLAG = object_flag10,  //!< flag indicating that the breaker has tripped
+        OVERLIMIT_FLAG = OBJECT_FLAG9,  //!< flag indicating that the current is over the limit
+        BREAKER_TRIPPED_FLAG = OBJECT_FLAG10,  //!< flag indicating that the breaker has tripped
         NONLINK_SOURCE_FLAG =
-            object_flag11,  //!< flag indicating that the source is not a transmission line
+            OBJECT_FLAG11,  //!< flag indicating that the source is not a transmission line
     };
 
   protected:

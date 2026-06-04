@@ -35,7 +35,7 @@ CoreObject* RandomSource::clone(CoreObject* obj) const
     src->param2_L = param2_L;
     src->opFlags.reset(TRIGGERED_FLAG);
     src->zbias = zbias;
-    src->opFlags.reset(object_armed_flag);
+    src->opFlags.reset(OBJECT_ARMED_FLAG);
     src->keyTime = keyTime;
     src->timeDistribution = timeDistribution;
     src->valDistribution = valDistribution;
@@ -51,12 +51,12 @@ void RandomSource::set(std::string_view param, std::string_view val)
 {
     if ((param == "trigger_dist") || (param == "time_dist")) {
         timeDistribution = val;
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
             timeGenerator->setDistribution(utilities::getDist(timeDistribution));
         }
     } else if ((param == "size_dist") || (param == "change_dist")) {
         valDistribution = val;
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
             valGenerator->setDistribution(utilities::getDist(valDistribution));
         }
     } else if (param == "seed") {
@@ -69,12 +69,12 @@ void RandomSource::set(std::string_view param, std::string_view val)
 void RandomSource::setFlag(std::string_view flag, bool val)
 {
     /*
-independentFlag=object_flag3,
-INTERPOLATE_FLAG=object_flag4,
-REPEATED_FLAG=object_flag5,
-PROPORTIONAL_FLAG=object_flag6,
-TRIGGERED_FLAG=object_flag7,
-armedFlag=object_flag8,*/
+independentFlag=OBJECT_FLAG3,
+INTERPOLATE_FLAG=OBJECT_FLAG4,
+REPEATED_FLAG=OBJECT_FLAG5,
+PROPORTIONAL_FLAG=OBJECT_FLAG6,
+TRIGGERED_FLAG=OBJECT_FLAG7,
+armedFlag=OBJECT_FLAG8,*/
     if (flag == "interpolate") {
         opFlags.set(INTERPOLATE_FLAG, val);
         if (!val) {
@@ -136,7 +136,7 @@ void RandomSource::set(std::string_view param, double val, units::unit unitType)
 void RandomSource::reset(ResetLevels /*level*/)
 {
     opFlags.reset(TRIGGERED_FLAG);
-    opFlags.reset(object_armed_flag);
+    opFlags.reset(OBJECT_ARMED_FLAG);
     offset = 0.0;
 }
 
@@ -152,7 +152,7 @@ void RandomSource::pFlowObjectInitializeA(CoreTime time0, std::uint32_t /*flags*
         nextStep(triggerTime);
     }
     nextUpdateTime = triggerTime;
-    opFlags.set(object_armed_flag);
+    opFlags.set(OBJECT_ARMED_FLAG);
 }
 
 void RandomSource::updateOutput(CoreTime time)
@@ -184,7 +184,7 @@ void RandomSource::updateA(CoreTime time)
         } else {
             RampSource::clearRamp();
             nextUpdateTime = maxTime;
-            opFlags.set(object_armed_flag, false);
+            opFlags.set(OBJECT_ARMED_FLAG, false);
             prevTime = time;
             keyTime = time;
         }
@@ -197,7 +197,7 @@ void RandomSource::updateA(CoreTime time)
             nextUpdateTime = triggerTime;
         } else {
             nextUpdateTime = maxTime;
-            opFlags.reset(object_armed_flag);
+            opFlags.reset(OBJECT_ARMED_FLAG);
         }
         prevTime = time;
         keyTime = time;
@@ -250,13 +250,13 @@ void RandomSource::timestep(CoreTime time, const IOdata& inputs, const SolverMod
 
 void RandomSource::timeParamUpdate()
 {
-    if (opFlags[dyn_initialized]) {
+    if (opFlags[DYN_INITIALIZED]) {
         timeGenerator->setParameters(param1_t, param2_t);
     }
 }
 void RandomSource::valParamUpdate()
 {
-    if (opFlags[dyn_initialized]) {
+    if (opFlags[DYN_INITIALIZED]) {
         valGenerator->setParameters(param1_L, param2_L);
     }
 }

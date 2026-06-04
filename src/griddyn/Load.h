@@ -18,8 +18,8 @@ class GridLoad: public GridSecondary {
   public:
     /** flags used in the load object*/
     enum LoadFlags {
-        use_power_factor_flag =
-            object_flag1,  //!< flag instructing the load to use a power factor to compute Q
+        USE_POWER_FACTOR_FLAG =
+            OBJECT_FLAG1,  //!< flag instructing the load to use a power factor to compute Q
     };
     static std::atomic<count_t> loadCount;  //!< counter for automatic load id's
   protected:

@@ -92,13 +92,13 @@ void Governor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     if (Wref < 0) {
         Wref = systemBaseFrequency;
     }
-    if (!opFlags[ignoreThrottle]) {
+    if (!opFlags[IGNORE_THROTTLE]) {
         addSubObject(&delay);  // delay block comes first to set the first state as the output
     }
-    if (!opFlags[ignoreFilter]) {
+    if (!opFlags[IGNORE_FILTER]) {
         addSubObject(&cb);
     }
-    if (!opFlags[ignoreDeadband]) {
+    if (!opFlags[IGNORE_DEADBAND]) {
         addSubObject(&dbb);
     }
     GridSubModel::dynObjectInitializeA(time0, flags);
@@ -236,11 +236,11 @@ void Governor::rootTest(const IOdata& /*inputs*/,
                         const SolverMode& sMode)
 {
     IOdata i{cb.getOutput(kNullVec, sD, sMode)};
-    if (dbb.checkFlag(has_roots)) {
+    if (dbb.checkFlag(HAS_ROOTS)) {
         dbb.rootTest(i, sD, roots, sMode);
     }
     // cb should not have roots
-    if (delay.checkFlag(has_roots)) {
+    if (delay.checkFlag(HAS_ROOTS)) {
         delay.rootTest(i, sD, roots, sMode);
     }
 }

@@ -35,45 +35,45 @@ class ParameterSet;
 
 /** additional flags for the controlFlags bitset*/
 enum GridDynFlags {
-    dense_solver = 31,
-    power_adjust_enabled = 32,
-    dcFlow_initialization = 33,
-    parallel_residual_enabled = 34,
-    parallel_jacobian_enabled = 35,
-    parallel_contingency_enabled = 36,
-    mpi_contingency_enabled = 37,
-    first_run_limits_only = 38,
-    no_reset = 39,
-    voltage_constraints_flag = 40,
-    record_on_halt_flag = 41,
-    disable_auto_slack_bus = 42,
-    disable_auto_disconnect = 43,
-    single_step_mode = 44,
-    dc_mode = 45,
-    force_power_flow = 46,
-    power_flow_only = 47,
-    no_powerflow_adjustments = 48,
-    save_power_flow_data = 49,
-    no_powerflow_error_recovery = 50,
-    dae_initialization_for_partitioned = 51,
-    force_extra_powerflow = 52,
-    droop_power_flow = 53,
-    save_power_flow_input_data = 54,
-    power_flow_input_saved = 55,
-    disable_automatic_load_loss = 56,
+    DENSE_SOLVER = 31,
+    POWER_ADJUST_ENABLED = 32,
+    DC_FLOW_INITIALIZATION = 33,
+    PARALLEL_RESIDUAL_ENABLED = 34,
+    PARALLEL_JACOBIAN_ENABLED = 35,
+    PARALLEL_CONTINGENCY_ENABLED = 36,
+    MPI_CONTINGENCY_ENABLED = 37,
+    FIRST_RUN_LIMITS_ONLY = 38,
+    NO_RESET = 39,
+    VOLTAGE_CONSTRAINTS_FLAG = 40,
+    RECORD_ON_HALT_FLAG = 41,
+    DISABLE_AUTO_SLACK_BUS = 42,
+    DISABLE_AUTO_DISCONNECT = 43,
+    SINGLE_STEP_MODE = 44,
+    DC_MODE = 45,
+    FORCE_POWER_FLOW = 46,
+    POWER_FLOW_ONLY = 47,
+    NO_POWERFLOW_ADJUSTMENTS = 48,
+    SAVE_POWER_FLOW_DATA = 49,
+    NO_POWERFLOW_ERROR_RECOVERY = 50,
+    DAE_INITIALIZATION_FOR_PARTITIONED = 51,
+    FORCE_EXTRA_POWERFLOW = 52,
+    DROOP_POWER_FLOW = 53,
+    SAVE_POWER_FLOW_INPUT_DATA = 54,
+    POWER_FLOW_INPUT_SAVED = 55,
+    DISABLE_AUTOMATIC_LOAD_LOSS = 56,
 };
 
 // for the status flags bitset
 
 // extra local flags
 enum GridDynExtraFlags {
-    dcJacComp_flag = object_flag6,
-    reset_voltage_flag = object_flag7,
-    prev_setall_pqvlimit = object_flag8,
-    invalid_state_flag = object_flag9,
-    check_reset_voltage_flag = object_flag10,
-    powerflow_saved = object_flag11,
-    low_bus_voltage = object_flag12,
+    DC_JAC_COMP_FLAG = OBJECT_FLAG6,
+    RESET_VOLTAGE_FLAG = OBJECT_FLAG7,
+    PREV_SETALL_PQVLIMIT = OBJECT_FLAG8,
+    INVALID_STATE_FLAG = OBJECT_FLAG9,
+    CHECK_RESET_VOLTAGE_FLAG = OBJECT_FLAG10,
+    POWERFLOW_SAVED = OBJECT_FLAG11,
+    LOW_BUS_VOLTAGE = OBJECT_FLAG12,
 };
 
 /** @brief helper structure for containing tolerances
@@ -108,20 +108,20 @@ class GridDynSimulation: public GridSimulation {
 
     //!< define an enumeration of the dynamic solver methods
     enum class DynamicSolverMethods {
-        dae,
-        partitioned,
-        decoupled,
+        DAE,
+        PARTITIONED,
+        DECOUPLED,
     };
     /** @brief enumeration of ordering schemes for variables*/
     enum class OffsetOrdering {
-        mixed = 0,  //!< everything is mixed through each other
-        grouped = 1,  //!< all similar variables are grouped together (angles, then voltage, then
+        MIXED = 0,  //!< everything is MIXED through each other
+        GROUPED = 1,  //!< all similar variables are grouped together (angles, then voltage, then
                       //!< algebraic, then
         //! differential)
-        algebraic_grouped = 2,  //!< all the algebraic variables are grouped, then the differential
-        voltage_first = 3,  //!< grouped with the voltage coming first
-        angle_first = 4,  //!< grouped with the angle coming first
-        differential_first = 5,  //!< differential and algebraic grouped with differential first
+        ALGEBRAIC_GROUPED = 2,  //!< all the algebraic variables are grouped, then the differential
+        VOLTAGE_FIRST = 3,  //!< grouped with the voltage coming first
+        ANGLE_FIRST = 4,  //!< grouped with the angle coming first
+        DIFFERENTIAL_FIRST = 5,  //!< differential and algebraic grouped with differential first
 
     };
 
@@ -138,11 +138,11 @@ class GridDynSimulation: public GridSimulation {
         &cDynDiffSolverMode;  //!< link to the default differential solver mode
 
     DynamicSolverMethods defaultDynamicSolverMethod =
-        DynamicSolverMethods::dae;  //!< specifies which dynamic solver method to use if it is not
+        DynamicSolverMethods::DAE;  //!< specifies which dynamic solver method to use if it is not
                                     //!< otherwise
     //! specified.
     OffsetOrdering default_ordering =
-        OffsetOrdering::mixed;  //!< the default_ordering scheme for state variables
+        OffsetOrdering::MIXED;  //!< the default_ordering scheme for state variables
     count_t max_Vadjust_iterations = 30;  //!< maximum number of Voltage adjust iterations
     count_t max_Padjust_iterations = 15;  //!< maximum number of Power adjust iterations
     count_t thread_count = 1;  //!< maximum thread count
@@ -170,7 +170,7 @@ class GridDynSimulation: public GridSimulation {
     std::vector<GridComponent*>
         singleStepObjects;  //!< objects which require a state update after time step
     std::vector<GridBus*> slkBusses;  //!< vector of slack buses to aid in powerFlow adjust
-    std::queue<gridDynAction> actionQueue;  //!< queue for actions for GridDyn to execute
+    std::queue<GridDynAction> actionQueue;  //!< queue for actions for GridDyn to execute
     std::vector<std::shared_ptr<ContinuationSequence>>
         continList;  //!< set of continuation sequences to run
     std::vector<std::function<int()>>
@@ -251,7 +251,7 @@ class GridDynSimulation: public GridSimulation {
      */
     bool hasConstraints() const
     {
-        return ((opFlags[has_constraints]) || (controlFlags[voltage_constraints_flag]));
+        return ((opFlags[HAS_CONSTRAINTS]) || (controlFlags[VOLTAGE_CONSTRAINTS_FLAG]));
     }
 
     /**@brief run the simulation until the specified time
@@ -296,7 +296,7 @@ class GridDynSimulation: public GridSimulation {
     *@param[in] cmd  the command to execute as an action
     @return the return code from the execution (typically 0 upon success)
     */
-    virtual int execute(const gridDynAction& cmd);
+    virtual int execute(const GridDynAction& cmd);
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
@@ -512,14 +512,14 @@ class GridDynSimulation: public GridSimulation {
     /** @brief  add an action to the run queue
     @param[in] newAction the action to add to the queue
     */
-    void add(gridDynAction& newAction);
+    void add(GridDynAction& newAction);
 
     /** @brief enumeration of the solution modes of operation*/
     enum class SolutionModes {
-        powerflow_mode,  //!< mode for power flow solutions
-        dae_mode,  //!< mode for DAE solutions
-        algebraic_mode,  //!< mode for algebraic solutions
-        differential_mode,  //!< mode for differential equation solutions
+        POWERFLOW_MODE,  //!< mode for power flow solutions
+        DAE_MODE,  //!< mode for DAE solutions
+        ALGEBRAIC_MODE,  //!< mode for algebraic solutions
+        DIFFERENTIAL_MODE,  //!< mode for differential equation solutions
     };
 
     /** @brief set the default solver for particular solution types to a specific solver

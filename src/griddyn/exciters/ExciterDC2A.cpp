@@ -59,7 +59,7 @@ void ExciterDC2A::residual(const IOdata& inputs,
                           stateDataValue,
                           resid,
                           sMode);  // use DC1A but overwrite if we are at a limiter
-    if (opFlags[outsideVoltageLimits]) {
+    if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         // DC2A keeps the limiter residual clamped once the voltage-dependent limit is active.
     }
 }
@@ -76,7 +76,7 @@ void ExciterDC2A::derivative(const IOdata& inputs,
                             stateDataValue,
                             deriv,
                             sMode);  // use DC1A but overwrite if we are at a limiter
-    if (opFlags[outsideVoltageLimits]) {
+    if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         auto offset = offsets.getDiffOffset(sMode);
         deriv[offset + 1] = 0;
     }
@@ -100,8 +100,8 @@ void ExciterDC2A::rootTest(const IOdata& inputs,
     auto offset = offsets.getDiffOffset(sMode);
     const int rootOffset = offsets.getRootOffset(sMode);
     const double* exciterState = stateDataValue.state + offset;
-    const double voltage = inputs[voltageInLocation];
-    if (opFlags[outsideVoltageLimits]) {
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
+    if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         roots[rootOffset] =
             ((((Vref - voltage) - ((exciterState[0] * Kf) / Tf)) + exciterState[3]) * Ka * Tc /
              Tb) +
@@ -111,7 +111,7 @@ void ExciterDC2A::rootTest(const IOdata& inputs,
             std::min((Vrmax * voltage) - exciterState[1], exciterState[1] - (Vrmin * voltage)) +
             0.0001;
         if (exciterState[1] > (voltage * Vrmax)) {
-            opFlags.set(triggerHigh);
+            opFlags.set(TRIGGER_HIGH);
         }
     }
 }
@@ -122,37 +122,37 @@ ChangeCode ExciterDC2A::rootCheck(const IOdata& inputs,
                                   CheckLevel /*level*/)
 {
     double* exciterState = m_state.data();
-    const double voltage = inputs[voltageInLocation];
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
     ChangeCode ret = ChangeCode::NO_CHANGE;
-    if (opFlags[outsideVoltageLimits]) {
+    if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         const double test =
             ((((Vref - voltage) - ((exciterState[0] * Kf) / Tf)) + exciterState[3]) * Ka * Tc /
              Tb) +
             ((exciterState[2] * (Tb - Tc) * Ka) / Tb) - exciterState[1];
-        if (opFlags[triggerHigh]) {
+        if (opFlags[TRIGGER_HIGH]) {
             if (test < 0.0) {
                 ret = ChangeCode::JACOBIAN_CHANGE;
-                opFlags.reset(outsideVoltageLimits);
-                opFlags.reset(triggerHigh);
+                opFlags.reset(OUTSIDE_VOLTAGE_LIMITS);
+                opFlags.reset(TRIGGER_HIGH);
                 alert(this, JAC_COUNT_INCREASE);
             }
         } else {
             if (test > 0.0) {
                 ret = ChangeCode::JACOBIAN_CHANGE;
-                opFlags.reset(outsideVoltageLimits);
+                opFlags.reset(OUTSIDE_VOLTAGE_LIMITS);
                 alert(this, JAC_COUNT_INCREASE);
             }
         }
     } else {
         if (exciterState[1] > ((voltage * Vrmax) + 0.0001)) {
-            opFlags.set(triggerHigh);
-            opFlags.set(outsideVoltageLimits);
+            opFlags.set(TRIGGER_HIGH);
+            opFlags.set(OUTSIDE_VOLTAGE_LIMITS);
             exciterState[1] = voltage * Vrmax;
             ret = ChangeCode::JACOBIAN_CHANGE;
             alert(this, JAC_COUNT_DECREASE);
         } else if (exciterState[1] < ((voltage * Vrmin) - 0.0001)) {
-            opFlags.reset(triggerHigh);
-            opFlags.set(outsideVoltageLimits);
+            opFlags.reset(TRIGGER_HIGH);
+            opFlags.set(OUTSIDE_VOLTAGE_LIMITS);
             exciterState[1] = voltage * Vrmin;
             ret = ChangeCode::JACOBIAN_CHANGE;
             alert(this, JAC_COUNT_DECREASE);

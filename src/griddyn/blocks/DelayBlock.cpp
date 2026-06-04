@@ -14,28 +14,28 @@
 namespace griddyn::blocks {
 DelayBlock::DelayBlock(const std::string& objName): GridBlock(objName)
 {
-    opFlags.set(differential_output);
-    opFlags.set(useState);
+    opFlags.set(DIFFERENTIAL_OUTPUT);
+    opFlags.set(USE_STATE);
 }
 
 DelayBlock::DelayBlock(double timeConstant, const std::string& objName):
     GridBlock(objName), mT1(timeConstant)
 {
     if (std::abs(mT1) < kMin_Res) {
-        opFlags.set(simplifiedMode);
+        opFlags.set(SIMPLIFIED_MODE);
     } else {
-        opFlags.set(differential_output);
-        opFlags.set(useState);
+        opFlags.set(DIFFERENTIAL_OUTPUT);
+        opFlags.set(USE_STATE);
     }
 }
 DelayBlock::DelayBlock(double timeConstant, double gainValue, const std::string& objName):
     GridBlock(gainValue, objName), mT1(timeConstant)
 {
     if (std::abs(mT1) < kMin_Res) {
-        opFlags.set(simplifiedMode);
+        opFlags.set(SIMPLIFIED_MODE);
     } else {
-        opFlags.set(differential_output);
-        opFlags.set(useState);
+        opFlags.set(DIFFERENTIAL_OUTPUT);
+        opFlags.set(USE_STATE);
     }
 }
 
@@ -52,10 +52,10 @@ CoreObject* DelayBlock::clone(CoreObject* obj) const
 
 void DelayBlock::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
-    if ((mT1 < kMin_Res) || (opFlags[simplifiedMode])) {
-        opFlags.set(simplifiedMode);
-        opFlags.reset(differential_output);
-        opFlags.reset(useState);
+    if ((mT1 < kMin_Res) || (opFlags[SIMPLIFIED_MODE])) {
+        opFlags.set(SIMPLIFIED_MODE);
+        opFlags.reset(DIFFERENTIAL_OUTPUT);
+        opFlags.reset(USE_STATE);
     }
 
     GridBlock::dynObjectInitializeA(time0, flags);
@@ -75,7 +75,7 @@ void DelayBlock::dynObjectInitializeB(const IOdata& inputs,
 
 double DelayBlock::step(CoreTime time, double inputA)
 {
-    if (opFlags[simplifiedMode]) {
+    if (opFlags[SIMPLIFIED_MODE]) {
         return GridBlock::step(time, inputA);
     }
     const double timeDelta = time - prevTime;
@@ -139,7 +139,7 @@ void DelayBlock::blockJacobianElements(double input,
                                        index_t argLoc,
                                        const SolverMode& sMode)
 {
-    if ((isAlgebraicOnly(sMode)) || (opFlags[simplifiedMode])) {
+    if ((isAlgebraicOnly(sMode)) || (opFlags[SIMPLIFIED_MODE])) {
         GridBlock::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
         return;
     }
@@ -158,8 +158,8 @@ void DelayBlock::set(std::string_view param, double val, units::unit unitType)
 {
     // param = GridDynSimulation::toLower(param);
     if ((param == "t1") || (param == "t")) {
-        if (opFlags[dyn_initialized]) {
-            if (!opFlags[simplifiedMode]) {
+        if (opFlags[DYN_INITIALIZED]) {
+            if (!opFlags[SIMPLIFIED_MODE]) {
                 // parameter doesn't get used in simplified mode
                 if (std::abs(val) < kMin_Res) {
                     throw(InvalidParameterValue(param));

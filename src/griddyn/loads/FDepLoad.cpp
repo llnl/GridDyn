@@ -21,7 +21,7 @@ FDepLoad::FDepLoad(double rP, double qP, const std::string& objName):
 void FDepLoad::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if ((betaP != 0.0) || (betaQ != 0.0)) {
-        opFlags.set(uses_bus_frequency);
+        opFlags.set(USES_BUS_FREQUENCY);
     }
     return ExponentialLoad::dynObjectInitializeA(time0, flags);
 }
@@ -96,7 +96,7 @@ void FDepLoad::set(std::string_view param, double val, units::unit unitType)
         ExponentialLoad::set(param, val, unitType);
     }
     if ((betaP != 0.0) || (betaQ != 0.0)) {
-        opFlags.set(uses_bus_frequency);
+        opFlags.set(USES_BUS_FREQUENCY);
     }
 }
 
@@ -106,25 +106,25 @@ void FDepLoad::ioPartialDerivatives(const IOdata& inputs,
                                     const IOlocs& inputLocs,
                                     const SolverMode& /*sMode*/)
 {
-    const double V = inputs[voltageInLocation];
-    double freq = inputs[frequencyInLocation];
+    const double V = inputs[VOLTAGE_IN_LOCATION];
+    double freq = inputs[FREQUENCY_IN_LOCATION];
     // power vs voltage
-    if (inputLocs[voltageInLocation] != kNullLocation) {
-        md.assign(PoutLocation,
-                  inputLocs[voltageInLocation],
+    if (inputLocs[VOLTAGE_IN_LOCATION] != kNullLocation) {
+        md.assign(POUT_LOCATION,
+                  inputLocs[VOLTAGE_IN_LOCATION],
                   getP() * alphaP * pow(V, alphaP - 1.0) * pow(freq, betaP));
 
         // reactive power vs voltage
-        md.assign(QoutLocation,
-                  inputLocs[voltageInLocation],
+        md.assign(QOUT_LOCATION,
+                  inputLocs[VOLTAGE_IN_LOCATION],
                   getQ() * alphaQ * pow(V, alphaQ - 1.0) * pow(freq, betaQ));
     }
-    if (inputLocs[frequencyInLocation] != kNullLocation) {
-        md.assign(PoutLocation,
-                  inputLocs[frequencyInLocation],
+    if (inputLocs[FREQUENCY_IN_LOCATION] != kNullLocation) {
+        md.assign(POUT_LOCATION,
+                  inputLocs[FREQUENCY_IN_LOCATION],
                   getP() * pow(V, alphaP) * betaP * pow(freq, betaP - 1.0));
-        md.assign(QoutLocation,
-                  inputLocs[frequencyInLocation],
+        md.assign(QOUT_LOCATION,
+                  inputLocs[FREQUENCY_IN_LOCATION],
                   getQ() * pow(V, alphaQ) * betaQ * pow(freq, betaQ - 1.0));
     }
 }
@@ -141,14 +141,14 @@ double FDepLoad::getRealPower(const IOdata& inputs,
                               const StateData& /*sD*/,
                               const SolverMode& /*sMode*/) const
 {
-    return getRealPower(inputs[voltageInLocation], inputs[frequencyInLocation]);
+    return getRealPower(inputs[VOLTAGE_IN_LOCATION], inputs[FREQUENCY_IN_LOCATION]);
 }
 
 double FDepLoad::getReactivePower(const IOdata& inputs,
                                   const StateData& /*sD*/,
                                   const SolverMode& /*sMode*/) const
 {
-    return getReactivePower(inputs[voltageInLocation], inputs[frequencyInLocation]);
+    return getReactivePower(inputs[VOLTAGE_IN_LOCATION], inputs[FREQUENCY_IN_LOCATION]);
 }
 
 double FDepLoad::getRealPower(const double V) const

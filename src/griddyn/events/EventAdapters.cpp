@@ -116,17 +116,17 @@ void FunctionEventAdapter::setfunction(ccode_function_t nfptr)
 void FunctionEventAdapter::setExecutionMode(EventExecutionMode newMode)
 {
     switch (newMode) {
-        case EventExecutionMode::normal:
+        case EventExecutionMode::NORMAL:
 
             two_part_execute = false;
             partB_only = false;
             break;
             /** this one really shouldn't be used as it has no meaning*/
-        case EventExecutionMode::two_part_execution:
+        case EventExecutionMode::TWO_PART_EXECUTION:
             two_part_execute = true;
             partB_only = true;
             break;
-        case EventExecutionMode::delayed:
+        case EventExecutionMode::DELAYED:
             two_part_execute = true;
             partB_only = true;
             break;

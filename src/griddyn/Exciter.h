@@ -26,8 +26,8 @@ inline constexpr int exciterOmegaInLocation = 3;
 class Exciter: public GridSubModel {
   public:
     enum ExciterFlags {
-        outsideVoltageLimits = object_flag3,
-        triggerHigh = object_flag4,
+        OUTSIDE_VOLTAGE_LIMITS = OBJECT_FLAG3,
+        TRIGGER_HIGH = OBJECT_FLAG4,
     };
 
   protected:

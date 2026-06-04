@@ -35,7 +35,7 @@ Source::Source(const std::string& objName, double startVal):
     m_output = startVal;
     m_inputSize = 0;
     m_outputSize = 1;
-    opFlags.set(pflow_init_required);
+    opFlags.set(PFLOW_INIT_REQUIRED);
 }
 
 CoreObject* Source::clone(CoreObject* obj) const

@@ -95,11 +95,11 @@ namespace loads {
         std::vector<int> task_id;  //!< the taskid of the remote task
         std::vector<int> forward_task_id;  //!< task id of the forward task
         enum GridlabdFlags {
-            file_sent_flag = object_flag6,
-            uses_bounds_flag = object_flag7,
-            waiting_flag = object_flag8,
-            dual_mode_flag = object_flag9,
-            linearize_triple = object_flag10,
+            FILE_SENT_FLAG = OBJECT_FLAG6,
+            USES_BOUNDS_FLAG = OBJECT_FLAG7,
+            WAITING_FLAG = OBJECT_FLAG8,
+            DUAL_MODE_FLAG = OBJECT_FLAG9,
+            LINEARIZE_TRIPLE = OBJECT_FLAG10,
         };
 
         CouplingMode pFlowCoupling = CouplingMode::trigger;  //!< the coupling pflow mode

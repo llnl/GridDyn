@@ -22,14 +22,14 @@ using units::puMW;
 using units::unit;
 DcLink::DcLink(const std::string& objName): Link(objName)
 {
-    opFlags.set(dc_only);
+    opFlags.set(DC_ONLY);
     opFlags.set(NETWORK_CONNECTED);
 }
 
 DcLink::DcLink(double resistancePu, double reactancePu, const std::string& objName):
     Link(objName), r(resistancePu), x(reactancePu)
 {
-    opFlags.set(dc_only);
+    opFlags.set(DC_ONLY);
     opFlags.set(NETWORK_CONNECTED);
 }
 
@@ -176,9 +176,9 @@ void DcLink::ioPartialDerivatives(id_type_t busId,
     }
 
     if ((busId == 2) || (busId == B2->getID())) {
-        jacobian.assignCheckCol(PoutLocation, inputLocs[voltageInLocation], -Idc);
+        jacobian.assignCheckCol(POUT_LOCATION, inputLocs[VOLTAGE_IN_LOCATION], -Idc);
     } else {
-        jacobian.assignCheckCol(PoutLocation, inputLocs[voltageInLocation], Idc);
+        jacobian.assignCheckCol(POUT_LOCATION, inputLocs[VOLTAGE_IN_LOCATION], Idc);
     }
 }
 
@@ -210,26 +210,26 @@ void DcLink::outputPartialDerivatives(id_type_t busId,
         if (stateSize(sMode) > 0) {
             auto offset =
                 isDynamic(sMode) ? offsets.getDiffOffset(sMode) : offsets.getAlgOffset(sMode);
-            jacobian.assign(PoutLocation, offset, -linkInfo.v2);
+            jacobian.assign(POUT_LOCATION, offset, -linkInfo.v2);
         } else {
-            const int bus1VoltageOffset = B1->getOutputLoc(sMode, voltageInLocation);
-            jacobian.assignCheckCol(PoutLocation, bus1VoltageOffset, p2v1);
+            const int bus1VoltageOffset = B1->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
+            jacobian.assignCheckCol(POUT_LOCATION, bus1VoltageOffset, p2v1);
         }
     } else {
         if (stateSize(sMode) > 0) {
             auto offset =
                 isDynamic(sMode) ? offsets.getDiffOffset(sMode) : offsets.getAlgOffset(sMode);
-            jacobian.assign(PoutLocation, offset, linkInfo.v1);
+            jacobian.assign(POUT_LOCATION, offset, linkInfo.v1);
         } else {
-            const int bus2VoltageOffset = B2->getOutputLoc(sMode, voltageInLocation);
-            jacobian.assignCheckCol(PoutLocation, bus2VoltageOffset, p1v2);
+            const int bus2VoltageOffset = B2->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
+            jacobian.assignCheckCol(POUT_LOCATION, bus2VoltageOffset, p1v2);
         }
     }
 }
 
 count_t DcLink::outputDependencyCount(index_t num, const SolverMode& /*sMode*/) const
 {
-    return (num == PoutLocation) ? 1 : 0;
+    return (num == POUT_LOCATION) ? 1 : 0;
 }
 
 void DcLink::jacobianElements(const IOdata& /*inputs*/,
@@ -239,8 +239,8 @@ void DcLink::jacobianElements(const IOdata& /*inputs*/,
                               const SolverMode& sMode)
 {
     if (stateSize(sMode) > 0) {
-        const int bus1VoltageOffset = B1->getOutputLoc(sMode, voltageInLocation);
-        const int bus2VoltageOffset = B2->getOutputLoc(sMode, voltageInLocation);
+        const int bus1VoltageOffset = B1->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
+        const int bus2VoltageOffset = B2->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
         updateLocalCache(noInputs, stateData, sMode);
         if (isDynamic(sMode)) {
             auto offset = offsets.getDiffOffset(sMode);

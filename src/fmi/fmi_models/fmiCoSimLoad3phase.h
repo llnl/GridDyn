@@ -17,10 +17,10 @@ class FmiCoSimSubModel;
 class FmiCoSimLoad3phase: public FmiCoSimWrapper<loads::ThreePhaseLoad> {
   public:
     enum ThreePhaseFmiLoadFlags {
-        IGNORE_VOLTAGE_ANGLE = object_flag8,
-        COMPLEX_VOLTAGE = object_flag9,
-        CURRENT_OUTPUT = object_flag10,
-        COMPLEX_CURRENT_OUTPUT = object_flag11,
+        IGNORE_VOLTAGE_ANGLE = OBJECT_FLAG8,
+        COMPLEX_VOLTAGE = OBJECT_FLAG9,
+        CURRENT_OUTPUT = OBJECT_FLAG10,
+        COMPLEX_CURRENT_OUTPUT = OBJECT_FLAG11,
     };
 
   public:

@@ -83,7 +83,7 @@ int dynamicInitialConditionRecovery::lowVoltageCheck()
     sim->rootCheck(noInputs,
                    stateDataValue,
                    solver->getSolverMode(),
-                   CheckLevel::low_voltage_check);
+                   CheckLevel::LOW_VOLTAGE_CHECK);
 
     const int matchCount = jacobianCheck(sim, solver->getSolverMode());
     if (matchCount != 0) {
@@ -103,7 +103,7 @@ int dynamicInitialConditionRecovery::dynamicFix1()
                   solver->stateData(),
                   solver->derivData(),
                   solver->getSolverMode(),
-                  ConvergeMode::block_iteration,
+                  ConvergeMode::BLOCK_ITERATION,
                   3.0);
     return solver->calcIC(sim->getSimulationTime(),
                           sim->probeStepTime,
@@ -118,7 +118,7 @@ int dynamicInitialConditionRecovery::dynamicFix2()
                   solver->stateData(),
                   solver->derivData(),
                   solver->getSolverMode(),
-                  ConvergeMode::block_iteration,
+                  ConvergeMode::BLOCK_ITERATION,
                   3.0);
     std::vector<double> voltages;
     int retval = -10;
@@ -126,14 +126,14 @@ int dynamicInitialConditionRecovery::dynamicFix2()
     if (std::any_of(voltages.begin(), voltages.end(), [](double voltageValue) {
             return (voltageValue < 0.7);
         })) {
-        if (!sim->opFlags[prev_setall_pqvlimit]) {
+        if (!sim->opFlags[PREV_SETALL_PQVLIMIT]) {
             logging::logTo(sim, sim, PrintLevel::DEBUG, "setting all load to PQ at V=0.9");
-            sim->opFlags.set(disable_flag_updates);
+            sim->opFlags.set(DISABLE_FLAG_UPDATES);
             sim->setAll("load", "pqlowvlimit", 0.9);
-            sim->controlFlags.set(voltage_constraints_flag);
-            sim->opFlags.set(prev_setall_pqvlimit);
-            sim->opFlags.reset(reset_voltage_flag);
-            sim->opFlags.reset(disable_flag_updates);
+            sim->controlFlags.set(VOLTAGE_CONSTRAINTS_FLAG);
+            sim->opFlags.set(PREV_SETALL_PQVLIMIT);
+            sim->opFlags.reset(RESET_VOLTAGE_FLAG);
+            sim->opFlags.reset(DISABLE_FLAG_UPDATES);
             sim->updateFlags();
             sim->handleRootChange(solver->getSolverMode(), solver);
             const StateData stateDataValue(sim->getSimulationTime(),
@@ -143,7 +143,7 @@ int dynamicInitialConditionRecovery::dynamicFix2()
             const ChangeCode rootCheckResult = sim->rootCheck(noInputs,
                                                               stateDataValue,
                                                               solver->getSolverMode(),
-                                                              CheckLevel::complete_state_check);
+                                                              CheckLevel::COMPLETE_STATE_CHECK);
             sim->handleRootChange(solver->getSolverMode(), solver);
             if (rootCheckResult > ChangeCode::NO_CHANGE) {
                 if (sim->dynamicCheckAndReset(solver->getSolverMode(), rootCheckResult)) {
@@ -165,7 +165,7 @@ int dynamicInitialConditionRecovery::dynamicFix2()
             const ChangeCode rootCheckResult = sim->rootCheck(noInputs,
                                                               stateDataValue,
                                                               solver->getSolverMode(),
-                                                              CheckLevel::reversable_only);
+                                                              CheckLevel::REVERSABLE_ONLY);
             sim->handleRootChange(solver->getSolverMode(), solver);
             if (rootCheckResult > ChangeCode::NON_STATE_CHANGE) {
                 if (sim->dynamicCheckAndReset(solver->getSolverMode(), rootCheckResult)) {
@@ -190,7 +190,7 @@ int dynamicInitialConditionRecovery::dynamicFix2()
                       solver->stateData(),
                       solver->derivData(),
                       solver->getSolverMode(),
-                      ConvergeMode::block_iteration,
+                      ConvergeMode::BLOCK_ITERATION,
                       0.01);
         retval = solver->calcIC(sim->getSimulationTime(),
                                 sim->probeStepTime,
@@ -252,7 +252,7 @@ int dynamicInitialConditionRecovery::dynamicFix4()
                   solver->stateData(),
                   solver->derivData(),
                   solver->getSolverMode(),
-                  ConvergeMode::block_iteration,
+                  ConvergeMode::BLOCK_ITERATION,
                   0.01);
     const int retval = solver->calcIC(sim->getSimulationTime(),
                                       sim->probeStepTime,
@@ -268,7 +268,7 @@ int dynamicInitialConditionRecovery::dynamicFix5()
                   solver->stateData(),
                   solver->derivData(),
                   solver->getSolverMode(),
-                  ConvergeMode::block_iteration,
+                  ConvergeMode::BLOCK_ITERATION,
                   0.01);
     const int retval = solver->calcIC(sim->getSimulationTime(),
                                       sim->probeStepTime,

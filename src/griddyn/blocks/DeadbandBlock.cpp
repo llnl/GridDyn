@@ -17,12 +17,12 @@
 namespace griddyn::blocks {
 DeadbandBlock::DeadbandBlock(const std::string& objName): GridBlock(objName)
 {
-    opFlags.set(useState);
+    opFlags.set(USE_STATE);
 }
 DeadbandBlock::DeadbandBlock(double deadbandWidth, const std::string& objName):
     GridBlock(objName), mDeadbandHigh(deadbandWidth), mDeadbandLow(-deadbandWidth)
 {
-    opFlags.set(useState);
+    opFlags.set(USE_STATE);
 }
 
 CoreObject* DeadbandBlock::clone(CoreObject* obj) const
@@ -46,9 +46,9 @@ void DeadbandBlock::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     GridBlock::dynObjectInitializeA(time0, flags);
     if (mDeadbandLow < mDeadbandHigh)  // this means it was set to some value
     {
-        opFlags[has_roots] = true;
+        opFlags[HAS_ROOTS] = true;
         offsets.local().local.algRoots++;
-        opFlags.set(has_alg_roots);
+        opFlags.set(HAS_ALG_ROOTS);
         opFlags[USES_DEADBAND] = true;
     }
     if (mResetHigh < -kHalfBigNum)  // this means we are using default
@@ -67,13 +67,13 @@ void DeadbandBlock::dynObjectInitializeB(const IOdata& inputs,
 {
     if (desiredOutput.empty()) {
         m_state[limiter_alg] = mDeadbandLevel;
-        rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::reversable_only);
+        rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY);
         m_state[limiter_alg] = K * computeValue(inputs[0] + bias);
         if (limiter_alg > 0) {
             GridBlock::rootCheck(inputs,
                                  emptyStateData,
                                  cLocalSolverMode,
-                                 CheckLevel::reversable_only);
+                                 CheckLevel::REVERSABLE_ONLY);
         }
     } else {
         fieldSet.resize(1);
@@ -81,7 +81,7 @@ void DeadbandBlock::dynObjectInitializeB(const IOdata& inputs,
             GridBlock::rootCheck(inputs,
                                  emptyStateData,
                                  cLocalSolverMode,
-                                 CheckLevel::reversable_only);
+                                 CheckLevel::REVERSABLE_ONLY);
         }
         mDeadbandState = DeadbandState::NORMAL;
         const double initialValue = m_state[limiter_alg] / K;
@@ -190,7 +190,7 @@ double DeadbandBlock::computeDoutDin(double input) const
 }
 double DeadbandBlock::step(CoreTime time, double input)
 {
-    rootCheck({input}, emptyStateData, cLocalSolverMode, CheckLevel::reversable_only);
+    rootCheck({input}, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY);
     m_state[limiter_alg] = K * computeValue(input + bias);
     if (limiter_alg > 0) {
         GridBlock::step(time, input);
@@ -209,7 +209,7 @@ void DeadbandBlock::blockDerivative(double input,
                                     double deriv[],
                                     const SolverMode& sMode)
 {
-    if (opFlags[differentialInput]) {
+    if (opFlags[DIFFERENTIAL_INPUT]) {
         auto offset = offsets.getDiffOffset(sMode) + limiter_diff;
         const double inputWithBias = input + bias;
         deriv[offset] = K * computeDoutDin(inputWithBias) * didt;
@@ -226,7 +226,7 @@ void DeadbandBlock::blockAlgebraicUpdate(double input,
                                          double update[],
                                          const SolverMode& sMode)
 {
-    if (!opFlags[differentialInput]) {
+    if (!opFlags[DIFFERENTIAL_INPUT]) {
         auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
         const double inputWithBias = input + bias;
         update[offset] = K * computeValue(inputWithBias);
@@ -246,7 +246,7 @@ void DeadbandBlock::blockJacobianElements(double input,
                                           index_t argLoc,
                                           const SolverMode& sMode)
 {
-    if ((!opFlags[differentialInput]) && (hasAlgebraic(sMode))) {
+    if ((!opFlags[DIFFERENTIAL_INPUT]) && (hasAlgebraic(sMode))) {
         auto offset = offsets.getAlgOffset(sMode) + limiter_alg;
         jacobian.assign(offset, offset, -1.0);
         const double dInputOutput = K * computeDoutDin(input + bias);
@@ -257,7 +257,7 @@ void DeadbandBlock::blockJacobianElements(double input,
         if (limiter_alg > 0) {
             GridBlock::blockJacobianElements(input, didt, stateDataRef, jacobian, argLoc, sMode);
         }
-    } else if ((opFlags[differentialInput]) && (hasDifferential(sMode))) {
+    } else if ((opFlags[DIFFERENTIAL_INPUT]) && (hasDifferential(sMode))) {
         auto offset = offsets.getDiffOffset(sMode) + limiter_diff;
         jacobian.assign(offset, offset, -stateDataRef.cj);
         const double dInputOutput = K * computeDoutDin(input + bias);
@@ -498,7 +498,7 @@ ChangeCode DeadbandBlock::rootCheck(const IOdata& inputs,
     }
 
     if (limiter_alg > 0) {
-        auto iret = GridBlock::rootCheck(inputs, stateDataRef, sMode, CheckLevel::reversable_only);
+        auto iret = GridBlock::rootCheck(inputs, stateDataRef, sMode, CheckLevel::REVERSABLE_ONLY);
         ret = std::max(ret, iret);
     }
     return ret;

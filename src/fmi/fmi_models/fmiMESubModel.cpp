@@ -51,9 +51,9 @@ bool FmiMESubModel::isLoaded() const
 void FmiMESubModel::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     // printf("GridDyn Pflow A\n");
-    if (CHECK_CONTROLFLAG(flags, force_constant_pflow_initialization)) {
+    if (CHECK_CONTROLFLAG(flags, FORCE_CONSTANT_PFLOW_INITIALIZATION)) {
         //    printf("GridDyn pflow_init_required\n");
-        opFlags.set(pflow_init_required);
+        opFlags.set(PFLOW_INIT_REQUIRED);
         me->setMode(FmuMode::INITIALIZATION_MODE);
         //    printf("finished setting init mode\n");
     }
@@ -61,13 +61,13 @@ void FmiMESubModel::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 }
 void FmiMESubModel::pFlowObjectInitializeB()
 {
-    if (opFlags[pflow_init_required]) {
+    if (opFlags[PFLOW_INIT_REQUIRED]) {
         // printf("enter continuous time mode\n");
         me->setMode(FmuMode::CONTINUOUS_TIME_MODE);
         // printf("finished setting continuous time mode");
         oEst.resize(m_outputSize);
         probeFMU();
-        opFlags.set(pFlow_initialized);
+        opFlags.set(POWERFLOW_INITIALIZED);
     }
 }
 
@@ -80,9 +80,9 @@ void FmiMESubModel::dynObjectInitializeB(const IOdata& inputs,
                                          const IOdata& /*desiredOutput*/,
                                          IOdata& /*inputSet*/)
 {
-    if (opFlags[pflow_init_required]) {
+    if (opFlags[PFLOW_INIT_REQUIRED]) {
         // printf("GridDyn Dyn B pflowINit required\n");
-        if (opFlags[pFlow_initialized]) {
+        if (opFlags[POWERFLOW_INITIALIZED]) {
             me->getStates(m_state.data());
             me->setTime(prevTime - 0.01);
 
@@ -99,7 +99,7 @@ void FmiMESubModel::dynObjectInitializeB(const IOdata& inputs,
                     }
                 }
             }
-            opFlags.set(dyn_initialized);
+            opFlags.set(DYN_INITIALIZED);
         }
     } else {
         // printf("GridDyn Dyn B pflowInit NOT required\n");
@@ -337,7 +337,7 @@ StateSizes FmiMESubModel::localStateSizes(const SolverMode& sMode) const
     StateSizes stateSizeInfo;
     if (hasDifferential(sMode)) {
         stateSizeInfo.diffSize = m_stateSize;
-    } else if (!isDynamic(sMode) && opFlags[pflow_init_required]) {
+    } else if (!isDynamic(sMode) && opFlags[PFLOW_INIT_REQUIRED]) {
         stateSizeInfo.algSize = m_stateSize;
     }
     return stateSizeInfo;
@@ -346,7 +346,7 @@ StateSizes FmiMESubModel::localStateSizes(const SolverMode& sMode) const
 count_t FmiMESubModel::localJacobianCount(const SolverMode& sMode) const
 {
     count_t jacSize = 0;
-    if (hasDifferential(sMode) || (!isDynamic(sMode) && opFlags[pflow_init_required])) {
+    if (hasDifferential(sMode) || (!isDynamic(sMode) && opFlags[PFLOW_INIT_REQUIRED])) {
         jacSize = m_jacElements;
     }
     return jacSize;
@@ -393,7 +393,7 @@ void FmiMESubModel::setState(CoreTime time,
                 }
             }
         }
-    } else if (!isDynamic(sMode) && (opFlags[pflow_init_required])) {
+    } else if (!isDynamic(sMode) && (opFlags[PFLOW_INIT_REQUIRED])) {
         auto loc = offsets.getAlgOffset(sMode);
         if (m_stateSize > 0) {
             me->setStates(state + loc);
@@ -419,7 +419,7 @@ void FmiMESubModel::guessState(CoreTime /*time*/,
         auto loc = offsets.getDiffOffset(sMode);
         me->getStates(state + loc);
         me->getDerivatives(dstateDt + loc);
-    } else if (!isDynamic(sMode) && (opFlags[pflow_init_required])) {
+    } else if (!isDynamic(sMode) && (opFlags[PFLOW_INIT_REQUIRED])) {
         auto loc = offsets.getAlgOffset(sMode);
         me->getStates(state + loc);
     }
@@ -444,7 +444,7 @@ void FmiMESubModel::getStateName(stringVec& stNames,
                 stNames[loc + kk] = prefix + getName() + ':' + fmistNames[kk];
             }
         }
-    } else if (!isDynamic(sMode) && (opFlags[pflow_init_required])) {
+    } else if (!isDynamic(sMode) && (opFlags[PFLOW_INIT_REQUIRED])) {
         auto loc = offsets.getAlgOffset(sMode);
         if (static_cast<count_t>(stNames.size()) < loc + m_stateSize) {
             stNames.resize(loc + m_stateSize);
@@ -481,7 +481,7 @@ void FmiMESubModel::residual(const IOdata& inputs,
         for (index_t ii = 0; ii < loc.diffSize; ++ii) {
             loc.destDiffLoc[ii] -= loc.dstateLoc[ii];
         }
-    } else if (!isDynamic(sMode) && (opFlags[pflow_init_required])) {
+    } else if (!isDynamic(sMode) && (opFlags[PFLOW_INIT_REQUIRED])) {
         derivative(inputs, stateData, resid, sMode);
     }
 }
@@ -640,7 +640,7 @@ void FmiMESubModel::jacobianElements(const IOdata& inputs,
         }
         */
         }
-    } else if (!isDynamic(sMode) && (opFlags[pflow_init_required])) {
+    } else if (!isDynamic(sMode) && (opFlags[PFLOW_INIT_REQUIRED])) {
         auto loc = offsets.getLocations(stateData, sMode, this);
         updateLocalCache(inputs, stateData, sMode);
         // for all the inputs
@@ -904,14 +904,14 @@ void FmiMESubModel::updateLocalCache(const IOdata& inputs,
 
 void FmiMESubModel::makeSettableState()
 {
-    if (opFlags[dyn_initialized]) {
+    if (opFlags[DYN_INITIALIZED]) {
         prevFmiState = me->getCurrentMode();
         me->setMode(FmuMode::EVENT_MODE);
     }
 }
 void FmiMESubModel::resetState()
 {
-    if (opFlags[dyn_initialized]) {
+    if (opFlags[DYN_INITIALIZED]) {
         if (prevFmiState == me->getCurrentMode()) {
             return;
         }

@@ -50,8 +50,8 @@ bool FmiCoSimSubModel::isLoaded() const
 
 void FmiCoSimSubModel::dynObjectInitializeA(CoreTime time, std::uint32_t flags)
 {
-    if (CHECK_CONTROLFLAG(force_constant_pflow_initialization, flags)) {
-        opFlags.set(pflow_init_required);
+    if (CHECK_CONTROLFLAG(FORCE_CONSTANT_PFLOW_INITIALIZATION, flags)) {
+        opFlags.set(PFLOW_INIT_REQUIRED);
     }
     prevTime = time;
 }
@@ -60,8 +60,8 @@ void FmiCoSimSubModel::dynObjectInitializeB(const IOdata& inputs,
                                             const IOdata& /*desiredOutput*/,
                                             IOdata& /*fieldSet*/)
 {
-    if (opFlags[pflow_init_required]) {
-        if (opFlags[pFlow_initialized]) {
+    if (opFlags[PFLOW_INIT_REQUIRED]) {
+        if (opFlags[POWERFLOW_INITIALIZED]) {
             /*
         cs->getStates(m_state.data());
         cs->setTime(prevTime - 0.01);
@@ -85,7 +85,7 @@ void FmiCoSimSubModel::dynObjectInitializeB(const IOdata& inputs,
 
         }
         */
-            opFlags.set(dyn_initialized);
+            opFlags.set(DYN_INITIALIZED);
         } else {  // in pflow mode
             cs->setMode(FmuMode::INITIALIZATION_MODE);
 
@@ -93,7 +93,7 @@ void FmiCoSimSubModel::dynObjectInitializeB(const IOdata& inputs,
             cs->setMode(FmuMode::CONTINUOUS_TIME_MODE);
             estimators.resize(m_outputSize);
             // probeFMU();
-            opFlags.set(pFlow_initialized);
+            opFlags.set(POWERFLOW_INITIALIZED);
         }
     } else {
         assert(unimplemented);
@@ -119,8 +119,8 @@ void FmiCoSimSubModel::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-static const char PARAM_STRING[] = "params";
-static const char INPUT_STRING[] = "inputs";
+static constexpr char PARAM_STRING[] = "params";
+static constexpr char INPUT_STRING[] = "inputs";
 
 void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
@@ -639,14 +639,14 @@ else if (!inputs.empty())
 
 void FmiCoSimSubModel::makeSettableState()
 {
-    if (opFlags[dyn_initialized]) {
+    if (opFlags[DYN_INITIALIZED]) {
         // prevFmiState = cs->getCurrentMode();
         cs->setMode(FmuMode::EVENT_MODE);
     }
 }
 void FmiCoSimSubModel::resetState()
 {
-    if (opFlags[dyn_initialized]) {
+    if (opFlags[DYN_INITIALIZED]) {
         // if (prevFmiState == cs->getCurrentMode())
         {
             return;

@@ -617,8 +617,8 @@ IOdata Subsystem::getOutputs(id_type_t busId,
     }
     for (index_t kk = 0; kk < m_terminals; ++kk) {
         if ((busId == kk + 1) || (busId == terminalBus[kk]->getID())) {
-            out[PoutLocation] = Pout[kk];
-            out[QoutLocation] = Qout[kk];
+            out[POUT_LOCATION] = Pout[kk];
+            out[QOUT_LOCATION] = Qout[kk];
             break;
         }
     }

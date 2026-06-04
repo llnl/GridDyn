@@ -45,9 +45,9 @@ namespace relays {
     class ControlRelay: public Relay {
       public:
         enum ControlRelayFlags {
-            LINK_TYPE_SOURCE = object_flag9,
-            LINK_TYPE_SINK = object_flag10,
-            NO_MESSAGE_REPLY = object_flag11,
+            LINK_TYPE_SOURCE = OBJECT_FLAG9,
+            LINK_TYPE_SINK = OBJECT_FLAG10,
+            NO_MESSAGE_REPLY = OBJECT_FLAG11,
         };
 
       protected:

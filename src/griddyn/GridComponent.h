@@ -410,9 +410,9 @@ see GridComponent::dynInitializeA for more details
 
   protected:
     enum class SizeCategory {
-        state_size_update,
-        jacobian_size_update,
-        root_size_update,
+        STATE_SIZE_UPDATE,
+        JACOBIAN_SIZE_UPDATE,
+        ROOT_SIZE_UPDATE,
     };
     /** @brief compute the sizes of the subObject and store them in the offsetTables.
     @param sMode the solver mode to use.
@@ -425,7 +425,7 @@ see GridComponent::dynInitializeA for more details
      * reset any internal states to a base level depending on the level
      * @param[in] level  the level of the reset
      */
-    virtual void reset(ResetLevels level = ResetLevels::minimal);
+    virtual void reset(ResetLevels level = ResetLevels::MINIMAL);
 
     /** @brief transfer a computed state to the objects
     @param time -the time the state corresponds to

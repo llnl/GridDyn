@@ -19,8 +19,8 @@ namespace griddyn::fmi {
 FmiCoSimLoad3phase::FmiCoSimLoad3phase(const std::string& objName):
     FmiCoSimWrapper<loads::ThreePhaseLoad>(objName)
 {
-    opFlags.set(three_phase_input);
-    opFlags.set(three_phase_output);
+    opFlags.set(THREE_PHASE_INPUT);
+    opFlags.set(THREE_PHASE_OUTPUT);
 }
 
 CoreObject* FmiCoSimLoad3phase::clone(CoreObject* obj) const
@@ -72,8 +72,8 @@ void FmiCoSimLoad3phase::setState(CoreTime time,
 {
     fmisub->setState(time, state, dstateDt, sMode);
     auto out = fmisub->getOutputs(noInputs, emptyStateData, cLocalSolverMode);
-    setP(out[PoutLocation]);
-    setQ(out[QoutLocation]);
+    setP(out[POUT_LOCATION]);
+    setQ(out[QOUT_LOCATION]);
 }
 
 namespace {
@@ -102,10 +102,10 @@ namespace {
 }  // namespace
 
 /*
-ignore_voltage_angle = object_flag8,
-complex_voltage = object_flag9,
-current_output = object_flag10,
-complex_output = object_flag11,
+ignore_voltage_angle = OBJECT_FLAG8,
+complex_voltage = OBJECT_FLAG9,
+current_output = OBJECT_FLAG10,
+complex_output = OBJECT_FLAG11,
 */
 
 const std::vector<stringVec>& FmiCoSimLoad3phase::getFmiInputNames() const
@@ -158,3 +158,4 @@ const std::vector<stringVec>& FmiCoSimLoad3phase::getFmiOutputNames() const
 }
 
 }  // namespace griddyn::fmi
+

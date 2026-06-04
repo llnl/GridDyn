@@ -21,7 +21,7 @@ namespace griddyn::genmodels {
 GenModelClassical::GenModelClassical(const std::string& objName): GenModel(objName)
 {
     // default values
-    opFlags.set(internalFrequencyCalculation);
+    opFlags.set(INTERNAL_FREQUENCY_CALCULATION);
     Xd = 0.85;
 }
 
@@ -65,8 +65,8 @@ void GenModelClassical::computeInitialAngleAndCurrent(const IOdata& inputs,
                                                       double X1)
 {
     double* gm = m_state.data();
-    double V = inputs[voltageInLocation];
-    double theta = inputs[angleInLocation];
+    double V = inputs[VOLTAGE_IN_LOCATION];
+    double theta = inputs[ANGLE_IN_LOCATION];
     std::complex<double> SS(desiredOutput[0], -desiredOutput[1]);
     std::complex<double> VV = std::polar(V, theta);
     std::complex<double> II = SS / conj(VV);
@@ -91,8 +91,8 @@ void GenModelClassical::updateLocalCache(const IOdata& inputs,
 {
     if (sD.updateRequired(seqId)) {
         auto Loc = offsets.getLocations(sD, sMode, this);
-        double V = inputs[voltageInLocation];
-        double angle = Loc.diffStateLoc[0] - inputs[angleInLocation];
+        double V = inputs[VOLTAGE_IN_LOCATION];
+        double angle = Loc.diffStateLoc[0] - inputs[ANGLE_IN_LOCATION];
         Vq = V * cos(angle);
         Vd = -V * sin(angle);
         seqId = sD.seqID;
@@ -270,8 +270,8 @@ IOdata GenModelClassical::getOutputs(const IOdata& /*inputs*/,
 {
     auto Loc = offsets.getLocations(sD, sMode, this);
     IOdata out(2);
-    out[PoutLocation] = -(Loc.algStateLoc[1] * Vq + Loc.algStateLoc[0] * Vd);
-    out[QoutLocation] = -(Loc.algStateLoc[1] * Vd - Loc.algStateLoc[0] * Vq);
+    out[POUT_LOCATION] = -(Loc.algStateLoc[1] * Vq + Loc.algStateLoc[0] * Vd);
+    out[QOUT_LOCATION] = -(Loc.algStateLoc[1] * Vd - Loc.algStateLoc[0] * Vq);
     return out;
 }
 
@@ -284,16 +284,16 @@ double GenModelClassical::getOutput(const IOdata& inputs,
     double Vqtemp = Vq;
     double Vdtemp = Vd;
     if ((sD.empty()) || (sD.seqID != seqId) || (sD.seqID == 0)) {
-        double V = inputs[voltageInLocation];
-        double angle = Loc.diffStateLoc[0] - inputs[angleInLocation];
+        double V = inputs[VOLTAGE_IN_LOCATION];
+        double angle = Loc.diffStateLoc[0] - inputs[ANGLE_IN_LOCATION];
         Vqtemp = V * cos(angle);
         Vdtemp = -V * sin(angle);
     }
 
-    if (numOut == PoutLocation) {
+    if (numOut == POUT_LOCATION) {
         return -(Loc.algStateLoc[1] * Vqtemp + Loc.algStateLoc[0] * Vdtemp);
     }
-    if (numOut == QoutLocation) {
+    if (numOut == QOUT_LOCATION) {
         return -(Loc.algStateLoc[1] * Vdtemp - Loc.algStateLoc[0] * Vqtemp);
     }
     return kNullVal;
@@ -307,18 +307,18 @@ void GenModelClassical::ioPartialDerivatives(const IOdata& inputs,
 {
     auto Loc = offsets.getLocations(sD, sMode, this);
 
-    double V = inputs[voltageInLocation];
+    double V = inputs[VOLTAGE_IN_LOCATION];
     updateLocalCache(inputs, sD, sMode);
 
     const double* gm = Loc.algStateLoc;
 
-    if (inputLocs[angleInLocation] != kNullLocation) {
-        md.assign(PoutLocation, inputLocs[angleInLocation], gm[1] * Vd - gm[0] * Vq);
-        md.assign(QoutLocation, inputLocs[angleInLocation], -gm[1] * Vq - gm[0] * Vd);
+    if (inputLocs[ANGLE_IN_LOCATION] != kNullLocation) {
+        md.assign(POUT_LOCATION, inputLocs[ANGLE_IN_LOCATION], gm[1] * Vd - gm[0] * Vq);
+        md.assign(QOUT_LOCATION, inputLocs[ANGLE_IN_LOCATION], -gm[1] * Vq - gm[0] * Vd);
     }
-    if (inputLocs[voltageInLocation] != kNullLocation) {
-        md.assign(PoutLocation, inputLocs[voltageInLocation], -gm[1] * Vq / V - gm[0] * Vd / V);
-        md.assign(QoutLocation, inputLocs[voltageInLocation], -gm[1] * Vd / V + gm[0] * Vq / V);
+    if (inputLocs[VOLTAGE_IN_LOCATION] != kNullLocation) {
+        md.assign(POUT_LOCATION, inputLocs[VOLTAGE_IN_LOCATION], -gm[1] * Vq / V - gm[0] * Vd / V);
+        md.assign(QOUT_LOCATION, inputLocs[VOLTAGE_IN_LOCATION], -gm[1] * Vd / V + gm[0] * Vq / V);
     }
 }
 
@@ -333,8 +333,8 @@ void GenModelClassical::jacobianElements(const IOdata& inputs,
     updateLocalCache(inputs, sD, sMode);
 
     const double* gm = Loc.algStateLoc;
-    auto VLoc = inputLocs[voltageInLocation];
-    auto TLoc = inputLocs[angleInLocation];
+    auto VLoc = inputLocs[VOLTAGE_IN_LOCATION];
+    auto TLoc = inputLocs[ANGLE_IN_LOCATION];
     auto refAlg = Loc.algOffset;
     auto refDiff = Loc.diffOffset;
 
@@ -348,8 +348,8 @@ void GenModelClassical::jacobianElements(const IOdata& inputs,
 
         // Q
         if (VLoc != kNullLocation) {
-            md.assign(refAlg, VLoc, Vd / inputs[voltageInLocation]);
-            md.assign(refAlg + 1, VLoc, Vq / inputs[voltageInLocation]);
+            md.assign(refAlg, VLoc, Vd / inputs[VOLTAGE_IN_LOCATION]);
+            md.assign(refAlg + 1, VLoc, Vq / inputs[VOLTAGE_IN_LOCATION]);
         }
 
         md.assign(refAlg, refAlg, Rs);
@@ -412,17 +412,17 @@ void GenModelClassical::outputPartialDerivatives(const IOdata& inputs,
     updateLocalCache(inputs, sD, sMode);
     if (hasAlgebraic(sMode)) {
         // output P
-        md.assign(PoutLocation, refAlg, -Vd);
-        md.assign(PoutLocation, refAlg + 1, -Vq);
+        md.assign(POUT_LOCATION, refAlg, -Vd);
+        md.assign(POUT_LOCATION, refAlg + 1, -Vq);
 
         // output Q
-        md.assign(QoutLocation, refAlg, Vq);
-        md.assign(QoutLocation, refAlg + 1, -Vd);
+        md.assign(QOUT_LOCATION, refAlg, Vq);
+        md.assign(QOUT_LOCATION, refAlg + 1, -Vd);
     }
 
     if (hasDifferential(sMode)) {
-        md.assign(PoutLocation, refDiff, -gm[1] * Vd + gm[0] * Vq);
-        md.assign(QoutLocation, refDiff, gm[1] * Vq + gm[0] * Vd);
+        md.assign(POUT_LOCATION, refDiff, -gm[1] * Vd + gm[0] * Vq);
+        md.assign(QOUT_LOCATION, refDiff, gm[1] * Vq + gm[0] * Vd);
     }
 }
 

@@ -23,10 +23,10 @@ class DcBus: public GridBus {
 
   public:
     enum BusFlags {
-        use_autogen = object_flag2,  //!< indicator if the bus is using an autogen
-        slave_bus = object_flag3,  //!< indicator that the bus is a slave Bus
-        master_bus = object_flag4,  //!< indicator that a bus is a master bus
-        directconnect = object_flag5,  //!< indicator that a bus is direct connected to another bus
+        USE_AUTOGEN = OBJECT_FLAG2,  //!< indicator if the bus is using an autogen
+        SLAVE_BUS = OBJECT_FLAG3,  //!< indicator that the bus is a slave Bus
+        MASTER_BUS = OBJECT_FLAG4,  //!< indicator that a bus is a master bus
+        DIRECTCONNECT = OBJECT_FLAG5,  //!< indicator that a bus is direct connected to another bus
     };
 
   protected:
@@ -35,7 +35,7 @@ class DcBus: public GridBus {
     DcBusControls busController;  //!< pointer to the busController object
     BusType prevType = BusType::PQ;  //!< previous type container if the type automatically changes
     DynBusType prevDynType =
-        DynBusType::normal;  //!< previous type container if the type automatically changes
+        DynBusType::NORMAL;  //!< previous type container if the type automatically changes
     double dVdP = 0.0;  //!< storage for the dVdP terms from all the secondary objects
     MatrixDataTranslate<1> of;
 
@@ -100,7 +100,7 @@ class DcBus: public GridBus {
                           double state[],
                           double dstateDt[],
                           const SolverMode& sMode,
-                          ConvergeMode mode = ConvergeMode::local_iteration,
+                          ConvergeMode mode = ConvergeMode::LOCAL_ITERATION,
                           double tol = 0.01) override;
 
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;

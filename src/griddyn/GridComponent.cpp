@@ -146,7 +146,7 @@ void GridComponent::pFlowInitializeB()
 {
     if (isEnabled()) {
         pFlowObjectInitializeB();
-        opFlags.set(pFlow_initialized);
+        opFlags.set(POWERFLOW_INITIALIZED);
     }
 }
 
@@ -172,7 +172,7 @@ void GridComponent::dynInitializeB(const IOdata& inputs,
             setUpdateTime(prevTime + updatePeriod);
             enableUpdates();
         }
-        opFlags.set(dyn_initialized);
+        opFlags.set(DYN_INITIALIZED);
     }
 }
 
@@ -206,7 +206,7 @@ void GridComponent::dynObjectInitializeB(const IOdata& inputs,
                                          IOdata& fieldSet)
 {
     for (auto& subobj : subObjectList) {
-        if (!subobj->checkFlag(separate_processing)) {
+        if (!subobj->checkFlag(SEPARATE_PROCESSING)) {
             subobj->dynInitializeB(inputs, desiredOutput, fieldSet);
         }
     }
@@ -402,14 +402,14 @@ bool GridComponent::isRootCountLoaded(const SolverMode& sMode) const
 static const auto& userSettableFlags()
 {
     static const std::map<std::string_view, OperationFlags, std::less<>> flags{
-        {"use_bus_frequency", uses_bus_frequency},
-        {"late_b_initialize", late_b_initialize},
-        {"error", error_flag},
-        {"no_gridcomponent_set", no_gridcomponent_set},
-        {"disable_flag_update", disable_flag_updates},
-        {"flag_update_required", flag_update_required},
-        {"pflow_init_required", pflow_init_required},
-        {"sampled_only", no_dynamics},
+        {"use_bus_frequency", USES_BUS_FREQUENCY},
+        {"LATE_B_INITIALIZE", LATE_B_INITIALIZE},
+        {"error", ERROR_FLAG},
+        {"no_gridcomponent_set", NO_GRIDCOMPONENT_SET},
+        {"disable_flag_update", DISABLE_FLAG_UPDATES},
+        {"flag_update_required", FLAG_UPDATE_REQUIRED},
+        {"pflow_init_required", PFLOW_INIT_REQUIRED},
+        {"SAMPLED_ONLY", NO_DYNAMICS},
     };
     return flags;
 }
@@ -422,8 +422,8 @@ void GridComponent::setFlag(std::string_view flag, bool val)
     auto ffind = flags.find(flag);
     if (ffind != flags.end()) {
         opFlags.set(ffind->second, val);
-        if (flag == "sampled_only") {
-            if (opFlags[pFlow_initialized]) {
+        if (flag == "SAMPLED_ONLY") {
+            if (opFlags[POWERFLOW_INITIALIZED]) {
                 offsets.unload();
             }
         }
@@ -453,9 +453,9 @@ void GridComponent::setFlag(std::string_view flag, bool val)
 static const auto& parentSettableFlags()
 {
     static const std::vector<index_t> flags{
-        sampled_only,
-        no_gridcomponent_set,
-        separate_processing,
+        SAMPLED_ONLY,
+        NO_GRIDCOMPONENT_SET,
+        SEPARATE_PROCESSING,
     };
     return flags;
 }
@@ -473,63 +473,64 @@ void GridComponent::parentSetFlag(index_t flagID, bool val, CoreObject* checkPar
 static const auto& flagMap()
 {
     static const std::map<std::string_view, OperationFlags, std::less<>> flags{
-        {"constraints", has_constraints},
-        {"roots", has_roots},
-        {"alg_roots", has_alg_roots},
-        {"voltage_adjustments", has_powerflow_adjustments},
-        {"preex", preEx_requested},
-        {"use_bus_frequency", uses_bus_frequency},
-        {"pflow_states", has_pflow_states},
-        {"dyn_states", has_dyn_states},
-        {"differential_states", has_differential_states},
-        {"not_cloneable", not_cloneable},
-        {"remote_voltage_control", remote_voltage_control},
-        {"local_voltage_control", local_voltage_control},
-        {"indirect_voltage_control", indirect_voltage_control},
-        {"remote_power_control", remote_voltage_control},
-        {"local_power_control", local_power_control},
-        {"indirect_power_control", indirect_power_control},
-        {"pflow_initialized", pFlow_initialized},
-        {"dyn_initialized", dyn_initialized},
-        {"armed", object_armed_flag},
-        {"late_b_initialize", late_b_initialize},
-        {"object_flag1", object_flag1},
-        {"object_flag2", object_flag2},
-        {"object_flag3", object_flag3},
-        {"object_flag4", object_flag4},
-        {"object_flag5", object_flag5},
-        {"object_flag6", object_flag6},
-        {"object_flag7", object_flag7},
-        {"object_flag8", object_flag8},
-        {"object_flag9", object_flag9},
-        {"object_flag10", object_flag10},
-        {"object_flag11", object_flag11},
-        {"object_flag12", object_flag12},
-        {"state_change", state_change_flag},
-        {"object_change", object_change_flag},
-        {"constraint_change", constraint_change_flag},
-        {"root_change", root_change_flag},
-        {"jacobian_count_change", jacobian_count_change_flag},
-        {"slack_bus_change", slack_bus_change},
-        {"voltage_control_change", voltage_control_change},
-        {"error", error_flag},
-        {"connectivity_change", connectivity_change_flag},
-        {"no_powerflow_operations", no_powerflow_operations},
-        {"disconnected", disconnected},
-        {"no_dynamics", no_dynamics},
-        {"sampled_only", no_dynamics},
-        {"disable_flag_update", disable_flag_updates},
-        {"flag_update_required", flag_update_required},
-        {"differential_output", differential_output},
-        {"multipart_calculation_capable", multipart_calculation_capable},
-        {"pflow_init_required", pflow_init_required},
-        {"dc_only", dc_only},
-        {"dc_capable", dc_capable},
-        {"dc_terminal2", dc_terminal2},
-        {"separate_processing", separate_processing},
-        {"three_phase_only", three_phase_only},
-        {"three_phase_capable", three_phase_capable},
-        {"three_phase_terminal2", three_phase_terminal2},
+        {"constraints", HAS_CONSTRAINTS},
+        {"roots", HAS_ROOTS},
+        {"alg_roots", HAS_ALG_ROOTS},
+        {"voltage_adjustments", HAS_POWERFLOW_ADJUSTMENTS},
+        {"preex", PRE_EX_REQUESTED},
+        {"use_bus_frequency", USES_BUS_FREQUENCY},
+        {"pflow_states", HAS_PFLOW_STATES},
+        {"dyn_states", HAS_DYN_STATES},
+        {"differential_states", HAS_DIFFERENTIAL_STATES},
+        {"not_cloneable", NOT_CLONEABLE},
+        {"remote_voltage_control", REMOTE_VOLTAGE_CONTROL},
+        {"local_voltage_control", LOCAL_VOLTAGE_CONTROL},
+        {"indirect_voltage_control", INDIRECT_VOLTAGE_CONTROL},
+        {"remote_power_control", REMOTE_POWER_CONTROL},
+        {"local_power_control", LOCAL_POWER_CONTROL},
+        {"indirect_power_control", INDIRECT_POWER_CONTROL},
+        {"pflow_initialized", POWERFLOW_INITIALIZED},
+        {"powerflow_initialized", POWERFLOW_INITIALIZED},
+        {"dyn_initialized", DYN_INITIALIZED},
+        {"armed", OBJECT_ARMED_FLAG},
+        {"late_b_initialize", LATE_B_INITIALIZE},
+        {"object_flag1", OBJECT_FLAG1},
+        {"object_flag2", OBJECT_FLAG2},
+        {"object_flag3", OBJECT_FLAG3},
+        {"object_flag4", OBJECT_FLAG4},
+        {"object_flag5", OBJECT_FLAG5},
+        {"object_flag6", OBJECT_FLAG6},
+        {"object_flag7", OBJECT_FLAG7},
+        {"object_flag8", OBJECT_FLAG8},
+        {"object_flag9", OBJECT_FLAG9},
+        {"object_flag10", OBJECT_FLAG10},
+        {"object_flag11", OBJECT_FLAG11},
+        {"object_flag12", OBJECT_FLAG12},
+        {"state_change", STATE_CHANGE_FLAG},
+        {"object_change", OBJECT_CHANGE_FLAG},
+        {"constraint_change", CONSTRAINT_CHANGE_FLAG},
+        {"root_change", ROOT_CHANGE_FLAG},
+        {"jacobian_count_change", JACOBIAN_COUNT_CHANGE_FLAG},
+        {"slack_bus_change", static_cast<OperationFlags>(29)},
+        {"voltage_control_change", static_cast<OperationFlags>(30)},
+        {"error", ERROR_FLAG},
+        {"connectivity_change", CONNECTIVITY_CHANGE_FLAG},
+        {"no_powerflow_operations", NO_POWERFLOW_OPERATIONS},
+        {"disconnected", DISCONNECTED},
+        {"no_dynamics", NO_DYNAMICS},
+        {"sampled_only", NO_DYNAMICS},
+        {"disable_flag_update", DISABLE_FLAG_UPDATES},
+        {"flag_update_required", FLAG_UPDATE_REQUIRED},
+        {"differential_output", DIFFERENTIAL_OUTPUT},
+        {"multipart_calculation_capable", MULTIPART_CALCULATION_CAPABLE},
+        {"pflow_init_required", PFLOW_INIT_REQUIRED},
+        {"dc_only", DC_ONLY},
+        {"dc_capable", DC_CAPABLE},
+        {"dc_terminal2", DC_TERMINAL2},
+        {"separate_processing", SEPARATE_PROCESSING},
+        {"three_phase_only", THREE_PHASE_ONLY},
+        {"three_phase_capable", THREE_PHASE_CAPABLE},
+        {"three_phase_terminal2", THREE_PHASE_TERMINAL2},
     };
     return flags;
 }
@@ -554,23 +555,23 @@ bool GridComponent::hasStates(const SolverMode& sMode) const
 }
 bool GridComponent::isArmed() const
 {
-    return opFlags[object_armed_flag];
+    return opFlags[OBJECT_ARMED_FLAG];
 }
 bool GridComponent::isCloneable() const
 {
-    return !opFlags[not_cloneable];
+    return !opFlags[NOT_CLONEABLE];
 }
 bool GridComponent::isConnected() const
 {
-    return !(opFlags[disconnected]);
+    return !(opFlags[DISCONNECTED]);
 }
 void GridComponent::reconnect()
 {
-    opFlags.set(disconnected, false);
+    opFlags.set(DISCONNECTED, false);
 }
 void GridComponent::disconnect()
 {
-    opFlags.set(disconnected);
+    opFlags.set(DISCONNECTED);
 }
 static const stringVec& localNumericStrings()
 {
@@ -592,7 +593,7 @@ void GridComponent::getParameterStrings(stringVec& pstr, ParamStringType pstype)
 
 void GridComponent::set(std::string_view param, std::string_view val)
 {
-    if (opFlags[no_gridcomponent_set]) {
+    if (opFlags[NO_GRIDCOMPONENT_SET]) {
         throw(UnrecognizedParameter(param));
     }
 
@@ -601,13 +602,13 @@ void GridComponent::set(std::string_view param, std::string_view val)
         if ((valueLower == "on") || (valueLower == "in") || (valueLower == "enabled")) {
             if (!isEnabled()) {
                 enable();
-                if ((opFlags[has_pflow_states]) || (opFlags[has_dyn_states])) {
+                if ((opFlags[HAS_PFLOW_STATES]) || (opFlags[HAS_DYN_STATES])) {
                     alert(this, STATE_COUNT_CHANGE);
                 }
             }
         } else if ((valueLower == "off") || (valueLower == "out") || (valueLower == "disabled")) {
             if (isEnabled()) {
-                if ((opFlags[has_pflow_states]) || (opFlags[has_dyn_states])) {
+                if ((opFlags[HAS_PFLOW_STATES]) || (opFlags[HAS_DYN_STATES])) {
                     alert(this, STATE_COUNT_CHANGE);
                 }
                 disable();
@@ -697,7 +698,7 @@ double GridComponent::subObjectGet(std::string_view param, units::unit unitType)
 // NOLINTNEXTLINE(misc-no-recursion)
 void GridComponent::set(std::string_view param, double val, units::unit unitType)
 {
-    if (opFlags[no_gridcomponent_set]) {
+    if (opFlags[NO_GRIDCOMPONENT_SET]) {
         throw(UnrecognizedParameter(param));
     }
 
@@ -705,13 +706,13 @@ void GridComponent::set(std::string_view param, double val, units::unit unitType
         if (val > 0.1) {
             if (!isEnabled()) {
                 enable();
-                if (opFlags[has_dyn_states]) {
+                if (opFlags[HAS_DYN_STATES]) {
                     alert(this, STATE_COUNT_CHANGE);
                 }
             }
         } else {
             if (isEnabled()) {
-                if (opFlags[has_dyn_states]) {
+                if (opFlags[HAS_DYN_STATES]) {
                     alert(this, STATE_COUNT_CHANGE);
                 }
                 disable();
@@ -769,19 +770,19 @@ double GridComponent::get(std::string_view param, units::unit unitType) const
     } else if (param == "basevoltage") {
         out = units::convert(localBaseVoltage, units::kV, unitType);
     } else if (param == "jacsize") {
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
             out = jacSize(cDaeSolverMode);
         } else {
             out = jacSize(cPflowSolverMode);
         }
     } else if (param == "statesize") {
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
             out = stateSize(cDaeSolverMode);
         } else {
             out = stateSize(cPflowSolverMode);
         }
     } else if (param == "algsize") {
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
             out = algSize(cDaeSolverMode);
         } else {
             out = algSize(cPflowSolverMode);
@@ -827,11 +828,11 @@ void GridComponent::addSubObject(GridComponent* comp)
     comp->systemBaseFrequency = systemBaseFrequency;
     comp->systemBasePower = systemBasePower;
     subObjectList.push_back(comp);
-    if (opFlags[pFlow_initialized]) {
+    if (opFlags[POWERFLOW_INITIALIZED]) {
         offsets.unload(true);
         alert(this, OBJECT_COUNT_INCREASE);
-        opFlags[dyn_initialized] = false;
-        opFlags[pFlow_initialized] = false;
+        opFlags[DYN_INITIALIZED] = false;
+        opFlags[POWERFLOW_INITIALIZED] = false;
     }
 }
 
@@ -845,7 +846,7 @@ void GridComponent::removeSubObject(GridComponent* obj)
         if (rmobj != subObjectList.end()) {
             removeReference(*rmobj, this);
             subObjectList.erase(rmobj);
-            if (opFlags[pFlow_initialized]) {
+            if (opFlags[POWERFLOW_INITIALIZED]) {
                 offsets.unload(true);
                 alert(this, OBJECT_COUNT_DECREASE);
             }
@@ -875,11 +876,11 @@ void GridComponent::replaceSubObject(GridComponent* newObj, GridComponent* oldOb
         newObj->systemBaseFrequency = systemBaseFrequency;
         newObj->systemBasePower = systemBasePower;
         *repobj = newObj;
-        if (opFlags[pFlow_initialized]) {
+        if (opFlags[POWERFLOW_INITIALIZED]) {
             offsets.unload(true);
             alert(this, OBJECT_COUNT_CHANGE);
-            opFlags[dyn_initialized] = false;
-            opFlags[pFlow_initialized] = false;
+            opFlags[DYN_INITIALIZED] = false;
+            opFlags[POWERFLOW_INITIALIZED] = false;
         }
     } else {
         addSubObject(newObj);
@@ -908,7 +909,7 @@ ChangeCode
     auto ret = ChangeCode::NO_CHANGE;
 
     for (auto& subobj : subObjectList) {
-        if (!(subobj->checkFlag(has_powerflow_adjustments))) {
+        if (!(subobj->checkFlag(HAS_POWERFLOW_ADJUSTMENTS))) {
             continue;
         }
         const auto iret = subobj->powerFlowAdjust(inputs, flags, level);
@@ -1024,11 +1025,11 @@ void GridComponent::guessState(CoreTime time,
 void GridComponent::setupPFlowFlags()
 {
     auto stateCount = stateSize(cPflowSolverMode);
-    opFlags.set(has_pflow_states, (stateCount > 0));
+    opFlags.set(HAS_PFLOW_STATES, (stateCount > 0));
     // load the subobject pflow states;
     for (auto& sub : subObjectList) {
-        if (sub->checkFlag(has_pflow_states)) {
-            opFlags.set(has_subobject_pflow_states);
+        if (sub->checkFlag(HAS_PFLOW_STATES)) {
+            opFlags.set(HAS_SUBOBJECT_PFLOW_STATES);
             return;
         }
     }
@@ -1038,17 +1039,17 @@ void GridComponent::setupDynFlags()
 {
     auto stateCount = stateSize(cDaeSolverMode);
 
-    opFlags.set(has_dyn_states, (stateCount > 0));
+    opFlags.set(HAS_DYN_STATES, (stateCount > 0));
     const auto& solverOffsetsValue = offsets.getOffsets(cDaeSolverMode);
     if (solverOffsetsValue.total.algRoots > 0) {
-        opFlags.set(has_alg_roots);
-        opFlags.set(has_roots);
+        opFlags.set(HAS_ALG_ROOTS);
+        opFlags.set(HAS_ROOTS);
     } else if (solverOffsetsValue.total.diffRoots > 0) {
-        opFlags.reset(has_alg_roots);
-        opFlags.set(has_roots);
+        opFlags.reset(HAS_ALG_ROOTS);
+        opFlags.set(HAS_ROOTS);
     } else {
-        opFlags.reset(has_alg_roots);
-        opFlags.reset(has_roots);
+        opFlags.reset(HAS_ALG_ROOTS);
+        opFlags.reset(HAS_ROOTS);
     }
 }
 
@@ -1065,14 +1066,14 @@ void GridComponent::loadSizesSub(const SolverMode& sMode, SizeCategory category)
 {
     auto& solverOffsetsValue = offsets.getOffsets(sMode);
     switch (category) {
-        case SizeCategory::state_size_update:
+        case SizeCategory::STATE_SIZE_UPDATE:
             solverOffsetsValue.localStateLoad(false);
             for (auto& sub : subObjectList) {
                 if (sub->isEnabled()) {
                     if (!(sub->isStateCountLoaded(sMode))) {
                         sub->loadStateSizes(sMode);
                     }
-                    if (sub->checkFlag(sampled_only)) {
+                    if (sub->checkFlag(SAMPLED_ONLY)) {
                         continue;
                     }
                     solverOffsetsValue.addStateSizes(sub->offsets.getOffsets(sMode));
@@ -1080,14 +1081,14 @@ void GridComponent::loadSizesSub(const SolverMode& sMode, SizeCategory category)
             }
             solverOffsetsValue.stateLoaded = true;
             break;
-        case SizeCategory::jacobian_size_update:
+        case SizeCategory::JACOBIAN_SIZE_UPDATE:
             solverOffsetsValue.total.jacSize = solverOffsetsValue.local.jacSize;
             for (auto& sub : subObjectList) {
                 if (sub->isEnabled()) {
                     if (!(sub->isJacobianCountLoaded(sMode))) {
                         sub->loadJacobianSizes(sMode);
                     }
-                    if (sub->checkFlag(sampled_only)) {
+                    if (sub->checkFlag(SAMPLED_ONLY)) {
                         continue;
                     }
                     solverOffsetsValue.addJacobianSizes(sub->offsets.getOffsets(sMode));
@@ -1095,7 +1096,7 @@ void GridComponent::loadSizesSub(const SolverMode& sMode, SizeCategory category)
             }
             solverOffsetsValue.jacobianLoaded = true;
             break;
-        case SizeCategory::root_size_update:
+        case SizeCategory::ROOT_SIZE_UPDATE:
             solverOffsetsValue.total.algRoots = solverOffsetsValue.local.algRoots;
             solverOffsetsValue.total.diffRoots = solverOffsetsValue.local.diffRoots;
             for (auto& sub : subObjectList) {
@@ -1103,7 +1104,7 @@ void GridComponent::loadSizesSub(const SolverMode& sMode, SizeCategory category)
                     if (!(sub->isRootCountLoaded(sMode))) {
                         sub->loadRootSizes(sMode);
                     }
-                    if (sub->checkFlag(sampled_only)) {
+                    if (sub->checkFlag(SAMPLED_ONLY)) {
                         continue;
                     }
                     solverOffsetsValue.addRootSizes(sub->offsets.getOffsets(sMode));
@@ -1142,12 +1143,12 @@ void GridComponent::loadStateSizes(const SolverMode& sMode)
         solverOffsetsValue.setLoaded();
         return;
     }
-    if ((!isDynamic(sMode)) && (opFlags[no_powerflow_operations])) {
+    if ((!isDynamic(sMode)) && (opFlags[NO_POWERFLOW_OPERATIONS])) {
         solverOffsetsValue.stateReset();
         solverOffsetsValue.stateLoaded = true;
         return;
     }
-    if ((isDynamic(sMode)) && (opFlags[no_dynamics])) {
+    if ((isDynamic(sMode)) && (opFlags[NO_DYNAMICS])) {
         solverOffsetsValue.stateReset();
         solverOffsetsValue.stateLoaded = true;
     }
@@ -1168,11 +1169,11 @@ void GridComponent::loadStateSizes(const SolverMode& sMode)
         }
     }
 
-    if (opFlags[sampled_only])  // no states
+    if (opFlags[SAMPLED_ONLY])  // no states
     {
         if (sMode == cLocalSolverMode) {
             for (auto& sub : subObjectList) {
-                sub->setFlag("sampled_only");
+                sub->setFlag("SAMPLED_ONLY");
             }
         } else {
             solverOffsetsValue.local.reset();
@@ -1182,7 +1183,7 @@ void GridComponent::loadStateSizes(const SolverMode& sMode)
     if (subObjectList.empty()) {
         solverOffsetsValue.localStateLoad(true);
     } else {
-        loadSizesSub(sMode, SizeCategory::state_size_update);
+        loadSizesSub(sMode, SizeCategory::STATE_SIZE_UPDATE);
     }
 }
 
@@ -1219,16 +1220,16 @@ void GridComponent::loadRootSizes(const SolverMode& sMode)
         solverOffsetsValue.total.diffRoots = solverOffsetsValue.local.diffRoots;
         solverOffsetsValue.rootsLoaded = true;
     } else {
-        loadSizesSub(sMode, SizeCategory::root_size_update);
+        loadSizesSub(sMode, SizeCategory::ROOT_SIZE_UPDATE);
     }
     if ((solverOffsetsValue.total.diffRoots > 0) || (solverOffsetsValue.total.algRoots > 0)) {
-        opFlags.set(has_roots);
+        opFlags.set(HAS_ROOTS);
         if (solverOffsetsValue.total.algRoots > 0) {
-            opFlags.set(has_alg_roots);
+            opFlags.set(HAS_ALG_ROOTS);
         }
     } else {
-        opFlags.reset(has_roots);
-        opFlags.reset(has_alg_roots);
+        opFlags.reset(HAS_ROOTS);
+        opFlags.reset(HAS_ALG_ROOTS);
     }
 }
 
@@ -1260,7 +1261,7 @@ void GridComponent::loadJacobianSizes(const SolverMode& sMode)
         solverOffsetsValue.total.jacSize = solverOffsetsValue.local.jacSize;
         solverOffsetsValue.jacobianLoaded = true;
     } else {
-        loadSizesSub(sMode, SizeCategory::jacobian_size_update);
+        loadSizesSub(sMode, SizeCategory::JACOBIAN_SIZE_UPDATE);
     }
 }
 
@@ -1341,10 +1342,10 @@ void GridComponent::alert(CoreObject* object, int code)
         const auto& flags = alertFlags();
         auto res = flags.find(code);
         if (res != flags.end()) {
-            if (!opFlags[disable_flag_updates]) {
+            if (!opFlags[DISABLE_FLAG_UPDATES]) {
                 updateFlags();
             } else {
-                opFlags.set(flag_update_required);
+                opFlags.set(FLAG_UPDATE_REQUIRED);
             }
             switch (res->second) {
                 case 3:
@@ -1374,7 +1375,7 @@ void GridComponent::alert(CoreObject* object, int code)
 void GridComponent::getConstraints(double constraints[], const SolverMode& sMode)
 {
     for (auto& subobj : subObjectList) {
-        if ((subobj->isEnabled()) && (subobj->checkFlag(has_constraints))) {
+        if ((subobj->isEnabled()) && (subobj->checkFlag(HAS_CONSTRAINTS))) {
             subobj->getConstraints(constraints, sMode);
         }
     }
@@ -1485,7 +1486,7 @@ index_t GridComponent::findIndex(std::string_view field, const SolverMode& sMode
             }
             return kNullLocation;
         }
-        if (!opFlags[dyn_initialized]) {
+        if (!opFlags[DYN_INITIALIZED]) {
             return kNullLocation;
         }
         return kInvalidLocation;
@@ -1499,7 +1500,7 @@ index_t GridComponent::findIndex(std::string_view field, const SolverMode& sMode
             }
             return kNullLocation;
         }
-        if (!opFlags[dyn_initialized]) {
+        if (!opFlags[DYN_INITIALIZED]) {
             return kNullLocation;
         }
         return kInvalidLocation;
@@ -1520,7 +1521,7 @@ index_t GridComponent::findIndex(std::string_view field, const SolverMode& sMode
                 }
                 return kNullLocation;
             }
-            if (!opFlags[dyn_initialized]) {
+            if (!opFlags[DYN_INITIALIZED]) {
                 return kNullLocation;
             }
             return kInvalidLocation;
@@ -1624,13 +1625,13 @@ void GridComponent::updateFlags(bool dynamicsFlags)
             opFlags |= subobj->cascadingFlags();
         }
     }
-    if (opFlags[dyn_initialized] && dynamicsFlags) {
+    if (opFlags[DYN_INITIALIZED] && dynamicsFlags) {
         setupDynFlags();
     } else {
         setupPFlowFlags();
     }
 
-    opFlags.reset(flag_update_required);
+    opFlags.reset(FLAG_UPDATE_REQUIRED);
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
@@ -1693,7 +1694,7 @@ void GridComponent::timestep(CoreTime time, const IOdata& inputs, const SolverMo
 
     for (auto& subobj : subObjectList) {
         if (subobj->currentTime() < time) {
-            if (!subobj->checkFlag(separate_processing)) {
+            if (!subobj->checkFlag(SEPARATE_PROCESSING)) {
                 subobj->timestep(time, inputs, sMode);
             }
         }
@@ -1737,10 +1738,10 @@ void GridComponent::preEx(const IOdata& inputs,
                           const SolverMode& sMode)
 {
     for (auto& subobj : subObjectList) {
-        if (!(subobj->checkFlag(preEx_requested))) {
+        if (!(subobj->checkFlag(PRE_EX_REQUESTED))) {
             continue;
         }
-        if (!subobj->checkFlag(separate_processing)) {
+        if (!subobj->checkFlag(SEPARATE_PROCESSING)) {
             subobj->preEx(inputs, stateDataValue, sMode);
         }
     }
@@ -1753,7 +1754,7 @@ void GridComponent::residual(const IOdata& inputs,
                              const SolverMode& sMode)
 {
     for (auto& sub : subObjectList) {
-        if (!sub->checkFlag(separate_processing)) {
+        if (!sub->checkFlag(SEPARATE_PROCESSING)) {
             if (sub->stateSize(sMode) > 0) {
                 sub->residual(inputs, stateDataValue, resid, sMode);
             }
@@ -1768,7 +1769,7 @@ void GridComponent::derivative(const IOdata& inputs,
                                const SolverMode& sMode)
 {
     for (auto& sub : subObjectList) {
-        if (!sub->checkFlag(separate_processing)) {
+        if (!sub->checkFlag(SEPARATE_PROCESSING)) {
             if (sub->diffSize(sMode) > 0) {
                 sub->derivative(inputs, stateDataValue, deriv, sMode);
             }
@@ -1784,7 +1785,7 @@ void GridComponent::algebraicUpdate(const IOdata& inputs,
                                     double alpha)
 {
     for (auto& sub : subObjectList) {
-        if (!sub->checkFlag(separate_processing)) {
+        if (!sub->checkFlag(SEPARATE_PROCESSING)) {
             if (sub->algSize(sMode) > 0) {
                 sub->algebraicUpdate(inputs, stateDataValue, update, sMode, alpha);
             }
@@ -1800,7 +1801,7 @@ void GridComponent::jacobianElements(const IOdata& inputs,
                                      const SolverMode& sMode)
 {
     for (auto& sub : subObjectList) {
-        if (!sub->checkFlag(separate_processing)) {
+        if (!sub->checkFlag(SEPARATE_PROCESSING)) {
             if (sub->stateSize(sMode) > 0) {
                 sub->jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
             }
@@ -1814,8 +1815,8 @@ void GridComponent::rootTest(const IOdata& inputs,
                              const SolverMode& sMode)
 {
     for (auto& subobj : subObjectList) {
-        if (!subobj->checkFlag(separate_processing)) {
-            if (!(subobj->checkFlag(has_roots))) {
+        if (!subobj->checkFlag(SEPARATE_PROCESSING)) {
+            if (!(subobj->checkFlag(HAS_ROOTS))) {
                 continue;
             }
             subobj->rootTest(inputs, stateDataValue, roots, sMode);
@@ -1830,10 +1831,10 @@ void GridComponent::rootTrigger(CoreTime time,
                                 const SolverMode& sMode)
 {
     for (auto& subobj : subObjectList) {
-        if (!(subobj->checkFlag(has_roots))) {
+        if (!(subobj->checkFlag(HAS_ROOTS))) {
             continue;
         }
-        if (!subobj->checkFlag(separate_processing)) {
+        if (!subobj->checkFlag(SEPARATE_PROCESSING)) {
             subobj->rootTrigger(time, inputs, rootMask, sMode);
         }
     }
@@ -1848,10 +1849,10 @@ ChangeCode GridComponent::rootCheck(const IOdata& inputs,
     auto ret = ChangeCode::NO_CHANGE;
 
     for (auto& subobj : subObjectList) {
-        if (!(subobj->checkFlag(has_roots))) {
+        if (!(subobj->checkFlag(HAS_ROOTS))) {
             continue;
         }
-        if (!subobj->checkFlag(separate_processing)) {
+        if (!subobj->checkFlag(SEPARATE_PROCESSING)) {
             ret = std::max(subobj->rootCheck(inputs, stateDataValue, sMode, level), ret);
         }
     }
@@ -1891,7 +1892,7 @@ double GridComponent::getOutput(const IOdata& /*inputs*/,
         return kNullVal;
     }
     auto locations = offsets.getLocations(stateDataValue, sMode, this);
-    if (opFlags[differential_output]) {
+    if (opFlags[DIFFERENTIAL_OUTPUT]) {
         if (locations.diffSize > outputNum) {
             assert(locations.diffStateLoc != nullptr);
             return locations.diffStateLoc[outputNum];
@@ -1938,7 +1939,7 @@ double GridComponent::getDoutdt(const IOdata& /*inputs*/,
         return kNullVal;
     }
     auto locations = offsets.getLocations(stateDataValue, sMode, this);
-    if (opFlags[differential_output]) {
+    if (opFlags[DIFFERENTIAL_OUTPUT]) {
         assert(locations.dstateLoc != nullptr);
         return locations.dstateLoc[outputNum];
     }
@@ -1959,7 +1960,7 @@ index_t GridComponent::getOutputLoc(const SolverMode& sMode, index_t outputNum) 
         return kNullLocation;
     }
 
-    if (opFlags[differential_output]) {
+    if (opFlags[DIFFERENTIAL_OUTPUT]) {
         if (outputNum < diffSize(sMode)) {
             return offsets.getDiffOffset(sMode) + outputNum;
         }

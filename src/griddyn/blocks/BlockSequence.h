@@ -20,7 +20,7 @@ class BlockSequence: public GridBlock {
   protected:
     enum SequenceFlags {
         DIFFERENTIAL_INPUT_ACTUAL =
-            object_flag11,  //!< flag specifying that the outer input is differential
+            OBJECT_FLAG11,  //!< flag specifying that the outer input is differential
     };
     std::vector<GridBlock*> blocks;  //!< the building blocks in the sequence
     std::vector<int> sequence;  //!< a numerical ordering of the sequence

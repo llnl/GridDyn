@@ -58,7 +58,7 @@ void ExciterIEEEtype1::dynObjectInitializeB(const IOdata& inputs,
     double* gs = m_state.data();
     gs[1] = (Ke + Aex * exp(Bex * gs[0])) * gs[0];  // Vr
     gs[2] = gs[0] * Kf / Tf;  // Rf
-    vBias = inputs[voltageInLocation] + gs[1] / Ka - Vref;
+    vBias = inputs[VOLTAGE_IN_LOCATION] + gs[1] / Ka - Vref;
     fieldSet[1] = Vref;
     m_dstate_dt[0] = 0.0;
     m_dstate_dt[1] = 0.0;
@@ -79,15 +79,15 @@ void ExciterIEEEtype1::residual(const IOdata& inputs,
     const double* esp = sD.dstate_dt + offset;
     double* rv = resid + offset;
     rv[0] = (-(Ke + Aex * exp(Bex * es[0])) * es[0] + es[1]) / Te - esp[0];
-    if (opFlags[outsideVoltageLimits]) {
-        if (opFlags[triggerHigh]) {
+    if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
+        if (opFlags[TRIGGER_HIGH]) {
             rv[1] = esp[1];
         } else {
             rv[1] = esp[1];
         }
     } else {
         rv[1] = (-es[1] + Ka * es[2] - es[0] * Ka * Kf / Tf +
-                 Ka * (Vref + vBias - inputs[voltageInLocation])) /
+                 Ka * (Vref + vBias - inputs[VOLTAGE_IN_LOCATION])) /
                 Ta -
             esp[1];
     }
@@ -113,11 +113,11 @@ void ExciterIEEEtype1::derivative(const IOdata& inputs,
     const double* es = Loc.diffStateLoc;
     auto d = Loc.destDiffLoc;
     d[0] = (-(Ke + Aex * exp(Bex * es[0])) * es[0] + es[1]) / Te;
-    if (opFlags[outsideVoltageLimits]) {
+    if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         d[1] = 0;
     } else {
         d[1] = (-es[1] + Ka * es[2] - es[0] * Ka * Kf / Tf +
-                Ka * (Vref + vBias - inputs[voltageInLocation])) /
+                Ka * (Vref + vBias - inputs[VOLTAGE_IN_LOCATION])) /
             Ta;
     }
     d[2] = (-es[2] + es[0] * Kf / Tf) / Tf;
@@ -143,12 +143,12 @@ void ExciterIEEEtype1::jacobianElements(const IOdata& /*inputs*/,
         -(Ke + Aex * exp(Bex * sD.state[offset]) * (1.0 + Bex * sD.state[offset])) / Te - sD.cj;
     md.assign(offset, offset, temp1);
     md.assign(offset, offset + 1, 1 / Te);
-    if (opFlags[outsideVoltageLimits]) {
+    if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         md.assign(offset + 1, offset + 1, sD.cj);
     } else {
         // Vr
 
-        md.assignCheckCol(offset + 1, inputLocs[voltageInLocation], -Ka / Ta);
+        md.assignCheckCol(offset + 1, inputLocs[VOLTAGE_IN_LOCATION], -Ka / Ta);
         md.assign(offset + 1, offset, -Ka * Kf / (Tf * Ta));
         md.assign(offset + 1, offset + 1, -1.0 / Ta - sD.cj);
         md.assign(offset + 1, offset + 2, Ka / Ta);
@@ -170,15 +170,15 @@ void ExciterIEEEtype1::rootTest(const IOdata& inputs,
     auto rootOffset = offsets.getRootOffset(sMode);
     const double* es = sD.state + offset;
 
-    // printf("t=%f V=%f\n", time, inputs[voltageInLocation]);
+    // printf("t=%f V=%f\n", time, inputs[VOLTAGE_IN_LOCATION]);
 
-    if (opFlags[outsideVoltageLimits]) {
-        roots[rootOffset] = es[2] - es[0] * Kf / Tf + (Vref + vBias - inputs[voltageInLocation]) -
+    if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
+        roots[rootOffset] = es[2] - es[0] * Kf / Tf + (Vref + vBias - inputs[VOLTAGE_IN_LOCATION]) -
             es[1] / Ka + 0.001 * es[1] / Ka / Ta;
     } else {
         roots[rootOffset] = std::min(Vrmax - es[1], es[1] - Vrmin) + 0.00001;
         if (es[1] >= Vrmax) {
-            opFlags.set(triggerHigh);
+            opFlags.set(TRIGGER_HIGH);
         }
     }
 }
@@ -190,41 +190,41 @@ ChangeCode ExciterIEEEtype1::rootCheck(const IOdata& inputs,
 {
     const double* es = m_state.data();
     ChangeCode ret = ChangeCode::NO_CHANGE;
-    if (opFlags[outsideVoltageLimits]) {
+    if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         double test =
-            es[2] - es[0] * Kf / Tf + (Vref + vBias - inputs[voltageInLocation]) - es[1] / Ka;
+            es[2] - es[0] * Kf / Tf + (Vref + vBias - inputs[VOLTAGE_IN_LOCATION]) - es[1] / Ka;
 
-        if (opFlags[triggerHigh]) {
+        if (opFlags[TRIGGER_HIGH]) {
             if (test < -0.001 * es[1] / Ka / Ta) {
                 ret = ChangeCode::JACOBIAN_CHANGE;
 
-                logging::debug(this, "root change V={}", inputs[voltageInLocation]);
-                opFlags.reset(outsideVoltageLimits);
-                opFlags.reset(triggerHigh);
+                logging::debug(this, "root change V={}", inputs[VOLTAGE_IN_LOCATION]);
+                opFlags.reset(OUTSIDE_VOLTAGE_LIMITS);
+                opFlags.reset(TRIGGER_HIGH);
                 alert(this, JAC_COUNT_INCREASE);
             }
         } else {
             if (test > -0.001 * es[1] / Ka / Ta) {
-                logging::debug(this, "root change V={}", inputs[voltageInLocation]);
+                logging::debug(this, "root change V={}", inputs[VOLTAGE_IN_LOCATION]);
                 ret = ChangeCode::JACOBIAN_CHANGE;
-                opFlags.reset(outsideVoltageLimits);
+                opFlags.reset(OUTSIDE_VOLTAGE_LIMITS);
                 alert(this, JAC_COUNT_INCREASE);
             }
         }
     } else {
         if (es[1] > Vrmax + 0.00001) {
-            logging::debug(this, "root toggle V={}", inputs[voltageInLocation]);
-            opFlags.set(triggerHigh);
-            opFlags.set(outsideVoltageLimits);
+            logging::debug(this, "root toggle V={}", inputs[VOLTAGE_IN_LOCATION]);
+            opFlags.set(TRIGGER_HIGH);
+            opFlags.set(OUTSIDE_VOLTAGE_LIMITS);
             m_state[1] = Vrmax;
             m_dstate_dt[1] = 0.0;
             ret = ChangeCode::JACOBIAN_CHANGE;
             alert(this, JAC_COUNT_DECREASE);
         } else if (es[1] < Vrmin - 0.00001) {
-            logging::debug(this, "root toggle V={}", inputs[voltageInLocation]);
+            logging::debug(this, "root toggle V={}", inputs[VOLTAGE_IN_LOCATION]);
 
-            opFlags.reset(triggerHigh);
-            opFlags.set(outsideVoltageLimits);
+            opFlags.reset(TRIGGER_HIGH);
+            opFlags.set(OUTSIDE_VOLTAGE_LIMITS);
             m_state[1] = Vrmin;
             m_dstate_dt[1] = 0.0;
             ret = ChangeCode::JACOBIAN_CHANGE;
@@ -263,14 +263,14 @@ void ExciterIEEEtype1::set(std::string_view param, double val, units::unit unitT
         Bex = val;
     } else if (param == "limiter") {
         if (val > 0.1) {
-            opFlags.set(triggerHigh);
-            opFlags.set(outsideVoltageLimits);
+            opFlags.set(TRIGGER_HIGH);
+            opFlags.set(OUTSIDE_VOLTAGE_LIMITS);
         } else if (val < -0.1) {
-            opFlags.reset(triggerHigh);
-            opFlags.set(outsideVoltageLimits);
+            opFlags.reset(TRIGGER_HIGH);
+            opFlags.set(OUTSIDE_VOLTAGE_LIMITS);
         } else {
-            opFlags.reset(triggerHigh);
-            opFlags.reset(outsideVoltageLimits);
+            opFlags.reset(TRIGGER_HIGH);
+            opFlags.reset(OUTSIDE_VOLTAGE_LIMITS);
         }
     } else {
         Exciter::set(param, val, unitType);

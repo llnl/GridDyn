@@ -15,7 +15,7 @@ class Hvdc: public Subsystem {
   public:
     /** hvdc helper flags*/
     enum HvdcFlags {
-        REVERSE_FLOW = object_flag6,  //!< flag indicating that the flow is reverse standard
+        REVERSE_FLOW = OBJECT_FLAG6,  //!< flag indicating that the flow is reverse standard
     };
 
   protected:

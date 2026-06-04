@@ -61,7 +61,7 @@ CoreObject* GridSecondary::clone(CoreObject* obj) const
 
 void GridSecondary::updateObjectLinkages(CoreObject* newRoot)
 {
-    if (opFlags[pFlow_initialized]) {
+    if (opFlags[POWERFLOW_INITIALIZED]) {
         auto* matchedObject = findMatchingObject(bus, newRoot);
         if (dynamic_cast<GridBus*>(matchedObject) != nullptr) {
             bus = static_cast<GridBus*>(matchedObject);
@@ -103,7 +103,7 @@ void GridSecondary::dynInitializeB(const IOdata& inputs,
             enableUpdates();
             alert(this, UPDATE_REQUIRED);
         }
-        opFlags.set(dyn_initialized);
+        opFlags.set(DYN_INITIALIZED);
     }
 }
 
@@ -115,8 +115,8 @@ void GridSecondary::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
                 continue;
             }
             if (dynamic_cast<GridSubModel*>(subobj) != nullptr) {
-                if ((subobj->checkFlag(pflow_init_required)) ||
-                    (CHECK_CONTROLFLAG(flags, force_constant_pflow_initialization))) {
+                if ((subobj->checkFlag(PFLOW_INIT_REQUIRED)) ||
+                    (CHECK_CONTROLFLAG(flags, FORCE_CONSTANT_PFLOW_INITIALIZATION))) {
                     subobj->pFlowInitializeA(time0, flags);
                 }
             } else {
@@ -181,10 +181,10 @@ double GridSecondary::getOutput(const IOdata& inputs,
                                 const SolverMode& sMode,
                                 index_t outputNum) const
 {
-    if (outputNum == PoutLocation) {
+    if (outputNum == POUT_LOCATION) {
         return getRealPower(inputs, stateDataValue, sMode);
     }
-    if (outputNum == QoutLocation) {
+    if (outputNum == QOUT_LOCATION) {
         return getReactivePower(inputs, stateDataValue, sMode);
     }
     return kNullVal;
@@ -192,10 +192,10 @@ double GridSecondary::getOutput(const IOdata& inputs,
 
 double GridSecondary::getOutput(index_t outputNum) const
 {
-    if (outputNum == PoutLocation) {
+    if (outputNum == POUT_LOCATION) {
         return getRealPower();
     }
-    if (outputNum == QoutLocation) {
+    if (outputNum == QOUT_LOCATION) {
         return getReactivePower();
     }
     return kNullVal;
@@ -206,8 +206,8 @@ IOdata GridSecondary::getOutputs(const IOdata& inputs,
                                  const SolverMode& sMode) const
 {
     IOdata out(2);
-    out[PoutLocation] = getRealPower(inputs, stateDataValue, sMode);
-    out[QoutLocation] = getReactivePower(inputs, stateDataValue, sMode);
+    out[POUT_LOCATION] = getRealPower(inputs, stateDataValue, sMode);
+    out[QOUT_LOCATION] = getReactivePower(inputs, stateDataValue, sMode);
     return out;
 }
 
@@ -217,8 +217,8 @@ IOdata GridSecondary::predictOutputs(CoreTime /*predictionTime*/,
                                      const SolverMode& sMode) const
 {
     IOdata out(2);
-    out[PoutLocation] = getRealPower(inputs, stateDataValue, sMode);
-    out[QoutLocation] = getReactivePower(inputs, stateDataValue, sMode);
+    out[POUT_LOCATION] = getRealPower(inputs, stateDataValue, sMode);
+    out[QOUT_LOCATION] = getReactivePower(inputs, stateDataValue, sMode);
     return out;
 }
 
@@ -235,11 +235,11 @@ const std::vector<stringVec>& GridSecondary::outputNames() const
 units::unit GridSecondary::inputUnits(index_t inputNum) const
 {
     switch (inputNum) {
-        case voltageInLocation:
+        case VOLTAGE_IN_LOCATION:
             return units::puV;
-        case angleInLocation:
+        case ANGLE_IN_LOCATION:
             return units::rad;
-        case frequencyInLocation:
+        case FREQUENCY_IN_LOCATION:
             return units::puHz;
         default:
             return units::defunit;
@@ -249,8 +249,8 @@ units::unit GridSecondary::inputUnits(index_t inputNum) const
 units::unit GridSecondary::outputUnits(index_t outputNum) const
 {
     switch (outputNum) {
-        case PoutLocation:
-        case QoutLocation:
+        case POUT_LOCATION:
+        case QOUT_LOCATION:
             return units::puMW;
 
         default:

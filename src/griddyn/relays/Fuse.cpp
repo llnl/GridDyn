@@ -98,7 +98,7 @@ void Fuse::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     } else {
         add(std::shared_ptr<Condition>(
             makeCondition("sqrt(p^2+q^2)/@bus:v", ">=", limit, m_sourceObject)));
-        opFlags.set(nonlinkSourceFlag);
+        opFlags.set(NONLINK_SOURCE_FLAG);
         ge->setTarget(m_sinkObject, "status");
         ge->setValue(0.0);
         bus = static_cast<GridBus*>(m_sourceObject->find("bus"));
@@ -131,8 +131,8 @@ void Fuse::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 
     add(std::shared_ptr<Condition>(std::move(gc)));
     add(std::shared_ptr<Condition>(std::move(gc2)));
-    setConditionStatus(1, ConditionStatus::disabled);
-    setConditionStatus(2, ConditionStatus::disabled);
+    setConditionStatus(1, ConditionStatus::DISABLED);
+    setConditionStatus(2, ConditionStatus::DISABLED);
 
     cI2T = 0;
 
@@ -156,26 +156,26 @@ void Fuse::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 void Fuse::conditionTriggered(index_t conditionNum, CoreTime /*triggerTime*/)
 {
     if (conditionNum == 2) {
-        assert(opFlags[overlimitFlag]);
+        assert(opFlags[OVERLIMIT_FLAG]);
 
-        setConditionStatus(1, ConditionStatus::disabled);
-        setConditionStatus(2, ConditionStatus::disabled);
-        setConditionStatus(0, ConditionStatus::active);
+        setConditionStatus(1, ConditionStatus::DISABLED);
+        setConditionStatus(2, ConditionStatus::DISABLED);
+        setConditionStatus(0, ConditionStatus::ACTIVE);
         alert(this, JAC_COUNT_DECREASE);
-        opFlags.reset(overlimitFlag);
+        opFlags.reset(OVERLIMIT_FLAG);
         useI2T = false;
     }
 }
 
 ChangeCode Fuse::blowFuse()
 {
-    opFlags.set(overlimitFlag);
-    setConditionStatus(0, ConditionStatus::disabled);
-    setConditionStatus(1, ConditionStatus::disabled);
-    setConditionStatus(2, ConditionStatus::disabled);
+    opFlags.set(OVERLIMIT_FLAG);
+    setConditionStatus(0, ConditionStatus::DISABLED);
+    setConditionStatus(1, ConditionStatus::DISABLED);
+    setConditionStatus(2, ConditionStatus::DISABLED);
     alert(this, FUSE_BLOWN_CURRENT);
     logging::normal(this, "Fuse {} blown on object {}", m_terminal, m_sourceObject->getName());
-    opFlags.set(fuseBlownFlag);
+    opFlags.set(FUSE_BLOWN_FLAG);
     ChangeCode cchange = ChangeCode::NON_STATE_CHANGE;
     if (mp_I2T > 0.0) {
         alert(this, JAC_COUNT_DECREASE);
@@ -190,16 +190,16 @@ ChangeCode Fuse::setupFuseEvaluation()
         return blowFuse();
     }
 
-    opFlags.set(overlimitFlag);
-    setConditionStatus(0, ConditionStatus::disabled);
+    opFlags.set(OVERLIMIT_FLAG);
+    setConditionStatus(0, ConditionStatus::DISABLED);
     double I = getConditionValue(0);
     cI2T = I2Tequation(I) * minBlowTime;
     if (cI2T > mp_I2T) {
         return blowFuse();
     }
 
-    setConditionStatus(1, ConditionStatus::active);
-    setConditionStatus(2, ConditionStatus::active);
+    setConditionStatus(1, ConditionStatus::ACTIVE);
+    setConditionStatus(2, ConditionStatus::ACTIVE);
     alert(this, JAC_COUNT_INCREASE);
     useI2T = true;
     return ChangeCode::JACOBIAN_CHANGE;
@@ -227,7 +227,7 @@ void Fuse::timestep(CoreTime time, const IOdata& /*inputs*/, const SolverMode& /
     if (limit < kBigNum / 2.0) {
         double val = getConditionValue(0);
         if (val > limit) {
-            opFlags.set(fuseBlownFlag);
+            opFlags.set(FUSE_BLOWN_FLAG);
             disable();
             alert(this, FUSE1_BLOWN_CURRENT);
         }
@@ -255,10 +255,10 @@ void Fuse::jacobianElements(const IOdata& /*inputs*/,
     if (useI2T) {
         MatrixDataSparse<double> localJacobian;
         IOdata out;
-        auto voltageOffset = bus->getOutputLoc(sMode, voltageInLocation);
+        auto voltageOffset = bus->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
         auto inputs = bus->getOutputs(noInputs, stateDataRef, sMode);
         auto inputLocs = bus->getOutputLocs(sMode);
-        if (opFlags[nonlinkSourceFlag]) {
+        if (opFlags[NONLINK_SOURCE_FLAG]) {
             auto* gridSecondaryObject = static_cast<GridSecondary*>(m_sourceObject);
             out = gridSecondaryObject->getOutputs(inputs, stateDataRef, sMode);
             gridSecondaryObject->outputPartialDerivatives(inputs,
@@ -280,16 +280,16 @@ void Fuse::jacobianElements(const IOdata& /*inputs*/,
 
         const double voltage = bus->getVoltage(stateDataRef, sMode);
 
-        const double apparentPower = std::hypot(out[PoutLocation], out[QoutLocation]);
+        const double apparentPower = std::hypot(out[POUT_LOCATION], out[QOUT_LOCATION]);
         const double inverseScale = 1.0 / (apparentPower * voltage);
-        const double dIdP = out[PoutLocation] * inverseScale;
-        const double dIdQ = out[QoutLocation] * inverseScale;
-        localJacobian.scaleRow(PoutLocation, dIdP);
-        localJacobian.scaleRow(QoutLocation, dIdQ);
+        const double dIdP = out[POUT_LOCATION] * inverseScale;
+        const double dIdQ = out[QOUT_LOCATION] * inverseScale;
+        localJacobian.scaleRow(POUT_LOCATION, dIdP);
+        localJacobian.scaleRow(QOUT_LOCATION, dIdQ);
 
         auto offset = offsets.getDiffOffset(sMode);
-        localJacobian.translateRow(PoutLocation, offset);
-        localJacobian.translateRow(QoutLocation, offset);
+        localJacobian.translateRow(POUT_LOCATION, offset);
+        localJacobian.translateRow(QOUT_LOCATION, offset);
         localJacobian.assignCheck(offset, voltageOffset, -apparentPower / (voltage * voltage));
 
         localJacobian.scaleRow(offset, 2.0 * currentMagnitude);
@@ -329,7 +329,7 @@ void Fuse::residual(const IOdata& /*inputs*/,
         auto offset = offsets.getDiffOffset(sMode);
         const double* dst = stateDataRef.dstate_dt + offset;
 
-        if (!opFlags[nonlinkSourceFlag]) {
+        if (!opFlags[NONLINK_SOURCE_FLAG]) {
             static_cast<Link*>(m_sourceObject)->updateLocalCache(noInputs, stateDataRef, sMode);
         }
         const double currentMagnitude = getConditionValue(0, stateDataRef, sMode);

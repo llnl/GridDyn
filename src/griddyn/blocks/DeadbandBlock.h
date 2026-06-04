@@ -18,10 +18,10 @@ class DeadbandBlock: public GridBlock {
   public:
     /** @brief flags for the deadband block*/
     enum DeadbandBlockFlags {
-        USES_DEADBAND = object_flag10,  //!< flag indicating the deadband is in use
+        USES_DEADBAND = OBJECT_FLAG10,  //!< flag indicating the deadband is in use
         USES_SHIFTED_OUTPUT =
-            object_flag11,  //!< flag indicating the output should shift for continuity
-        DB_TRIGGER_HIGH = object_flag12,  //!< flag indicating the deadband has been triggered on
+            OBJECT_FLAG11,  //!< flag indicating the output should shift for continuity
+        DB_TRIGGER_HIGH = OBJECT_FLAG12,  //!< flag indicating the deadband has been triggered on
                                           //!< the high side
     };
     /** states for the deadband block*/

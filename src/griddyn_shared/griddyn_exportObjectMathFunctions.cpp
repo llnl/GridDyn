@@ -14,7 +14,7 @@
 #include "utilities/MatrixDataCustomWriteOnly.hpp"
 #include <vector>
 
-using griddyn::dyn_initialized;
+using griddyn::DYN_INITIALIZED;
 using griddyn::emptyStateData;
 using griddyn::GridComponent;
 using griddyn::IOdata;
@@ -131,7 +131,7 @@ void gridDynObjectGuessState(GridDynObject obj,
     if (keyInfo->stateBuffer.empty()) {
         setUpSolverKeyInfo(keyInfo, comp);
     }
-    if (comp->checkFlag(dyn_initialized)) {
+    if (comp->checkFlag(DYN_INITIALIZED)) {
         if (dstate_dt == nullptr) {
             static constexpr char emptyState[] =
                 "given dstate buffer is null for dynamic operation";
@@ -247,7 +247,7 @@ void gridDynObjectDerivative(GridDynObject obj,
         assignError(err, griddyn_error_invalid_object, invalidComponent);
         return;
     }
-    if (!comp->checkFlag(dyn_initialized)) {
+    if (!comp->checkFlag(DYN_INITIALIZED)) {
         static constexpr char notInitialized[] =
             "the object has not been initialized for dynamic operations";
         assignError(err, griddyn_error_object_not_initialized, notInitialized);

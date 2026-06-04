@@ -291,8 +291,8 @@ void DcBus::setState(CoreTime time,
     } else if (hasAlgebraic(sMode)) {
         if (voffset != kNullLocation) {
             if (time > prevTime) {
-                // m_dstate_dt[VOLTAGE_IN_LOCATION] = (state[Voffset] - m_state[VOLTAGE_IN_LOCATION]) /
-                // (time - lastSetTime);
+                // m_dstate_dt[VOLTAGE_IN_LOCATION] = (state[Voffset] -
+                // m_state[VOLTAGE_IN_LOCATION]) / (time - lastSetTime);
             }
             voltage = state[voffset];
         }

@@ -50,9 +50,9 @@ namespace zmqInterface {
         /** enumeration flags for the communicator object*/
         enum ZmqCommFlags {
             NO_TRANSMIT_DEST = 0,  //!< flag indicating whether the communicator should include the
-                                 //!< destination as the first frame
+                                   //!< destination as the first frame
             NO_TRANSMIT_SOURCE = 1,  //!< flag indicating whether the communicator should include
-                                   //!< the source in the transmission
+                                     //!< the source in the transmission
             useTxProxy = 2,  //!< use an internal proxy NOTE:if connection and proxyAddress are
                              //!< false this will convert to true and use the default proxy
             useRxProxy = 3,  //!< use an internal proxy NOTE:if connection and proxyAddress are

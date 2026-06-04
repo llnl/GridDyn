@@ -115,7 +115,8 @@ void GridBlock::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/
         vLimiter = std::make_unique<blocks::ValueLimiter>(Omin, Omax);
         vLimiter->setResetLevel(resetLevel);
     }
-    if ((opFlags[USE_RAMP_LIMITS]) && (opFlags[DIFFERENTIAL_OUTPUT]))  // ramp limits only work with a
+    if ((opFlags[USE_RAMP_LIMITS]) &&
+        (opFlags[DIFFERENTIAL_OUTPUT]))  // ramp limits only work with a
     // differential output state before the
     // limiters
     {
@@ -969,4 +970,3 @@ std::unique_ptr<GridBlock> make_block(const std::string& blockstr)
     return ret;
 }
 }  // namespace griddyn
-

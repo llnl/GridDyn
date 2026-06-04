@@ -49,14 +49,14 @@ namespace tcpLib {
         /** enumeration flags for the communicator object*/
         enum ZmqCommFlags {
             NO_TRANSMIT_DEST = 0,  //!< flag indicating whether the communicator should include the
-                                 //!< destination as the first frame
+                                   //!< destination as the first frame
             NO_TRANSMIT_SOURCE = 1,  //!< flag indicating whether the communicator should include
-                                   //!< the source in the transmission
+                                     //!< the source in the transmission
             USE_TX_PROXY = 2,  //!< use an internal proxy NOTE:if connection and proxyAddress are
-                             //!< false this will
+                               //!< false this will
             //!< convert to true and use the default proxy
             USE_RX_PROXY = 3,  //!< use an internal proxy NOTE:if connection and proxyAddress are
-                             //!< false this will
+                               //!< false this will
             //!< convert to true and use the default proxy
             TX_CONNECTION_SPECIFIED = 4,  //!< indicator that the transmit connection was specified
             RX_CONNECTION_SPECIFIED = 5,  //!< indicator that the receive connection was specified

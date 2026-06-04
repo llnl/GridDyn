@@ -44,8 +44,8 @@ class FmiMEWrapper: public FmiWrapper<FmiMESubModel, BaseObj> {
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override
     {
         if (!BaseObj::opFlags[POWERFLOW_INITIALIZED]) {  // just to make sure we actually
-                                                     // initialized and didn't go directly to
-                                                     // the dynamic initialization
+            // initialized and didn't go directly to
+            // the dynamic initialization
             pFlowObjectInitializeA(time0, flags);
         }
     }

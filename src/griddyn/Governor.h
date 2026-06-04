@@ -27,7 +27,8 @@ class Governor: public GridSubModel {
         IGNORE_FILTER = OBJECT_FLAG3,  //!< indicator that the filter block should be ignored
         IGNORE_THROTTLE = OBJECT_FLAG4,  //!< indicator that the delay block should be ignored
         POWER_LIMITED = OBJECT_FLAG5,  //!< indicator that power level was limited
-        POWER_LIMIT_HIGH = OBJECT_FLAG6,  //!< indicator that the throttle level was at the high limit
+        POWER_LIMIT_HIGH =
+            OBJECT_FLAG6,  //!< indicator that the throttle level was at the high limit
         USES_POWER_LIMITS = OBJECT_FLAG7,  //!< indicator that the governor uses limits
         USES_RAMP_LIMITS = OBJECT_FLAG8,  //!< indicator that the governor had ramp limits
     };

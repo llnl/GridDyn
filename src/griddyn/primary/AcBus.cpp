@@ -408,8 +408,7 @@ void AcBus::unmergeBus(GridBus* mbus)
     if (targetBus == nullptr) {
         return;
     }
-    auto* currentMaster =
-        opFlags[SLAVE_BUS] ? dynamic_cast<AcBus*>(busController.masterBus) : this;
+    auto* currentMaster = opFlags[SLAVE_BUS] ? dynamic_cast<AcBus*>(busController.masterBus) : this;
     auto* targetMaster = targetBus->checkFlag(SLAVE_BUS) ?
         dynamic_cast<AcBus*>(targetBus->busController.masterBus) :
         targetBus;
@@ -1665,7 +1664,9 @@ void AcBus::jacobianElements(const IOdata& inputs,
             matrixDataValue.assignCheckCol(voffset,
                                            aoffset,
                                            partDeriv.at(QOUT_LOCATION, ANGLE_IN_LOCATION));
-            matrixDataValue.assign(voffset, voffset, partDeriv.at(QOUT_LOCATION, VOLTAGE_IN_LOCATION));
+            matrixDataValue.assign(voffset,
+                                   voffset,
+                                   partDeriv.at(QOUT_LOCATION, VOLTAGE_IN_LOCATION));
             if (opFlags[USES_BUS_FREQUENCY]) {
                 matrixDataValue.assignCheckCol(voffset,
                                                outLocs[FREQUENCY_IN_LOCATION],
@@ -1677,7 +1678,9 @@ void AcBus::jacobianElements(const IOdata& inputs,
     }
     if (aoffset != kNullLocation) {
         if (useAngle(sMode)) {
-            matrixDataValue.assign(aoffset, aoffset, partDeriv.at(POUT_LOCATION, ANGLE_IN_LOCATION));
+            matrixDataValue.assign(aoffset,
+                                   aoffset,
+                                   partDeriv.at(POUT_LOCATION, ANGLE_IN_LOCATION));
             matrixDataValue.assignCheckCol(aoffset,
                                            voffset,
                                            partDeriv.at(POUT_LOCATION, VOLTAGE_IN_LOCATION));
@@ -1697,7 +1700,8 @@ void AcBus::jacobianElements(const IOdata& inputs,
     of.setArray(matrixDataValue);
 
     of.setTranslation(POUT_LOCATION, useAngle(sMode) ? outLocs[ANGLE_IN_LOCATION] : kNullLocation);
-    of.setTranslation(QOUT_LOCATION, useVoltage(sMode) ? outLocs[VOLTAGE_IN_LOCATION] : kNullLocation);
+    of.setTranslation(QOUT_LOCATION,
+                      useVoltage(sMode) ? outLocs[VOLTAGE_IN_LOCATION] : kNullLocation);
     if (!isExtended(sMode)) {
         for (auto& gen : attachedGens) {
             if (gen->jacSize(sMode) > 0) {

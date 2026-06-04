@@ -29,7 +29,7 @@ class Generator: public GridSecondary {
     /** @brief flags for controlling operation of the generator*/
     enum GeneratorFlags {
         VARIABLE_GENERATION = OBJECT_FLAG1,  //!< flag indicating that the generator has
-                                            //!< uncontrolled variable generation
+                                             //!< uncontrolled variable generation
         RESERVE_CAPABLE =
             OBJECT_FLAG2,  //!< flag indicating the generator can act as spinning reserve
         AGC_CAPABLE = OBJECT_FLAG3,  //!< flag indicating the generator is capable of agc response
@@ -39,7 +39,7 @@ class Generator: public GridSecondary {
         NO_VOLTAGE_DERATE =
             OBJECT_FLAG5,  //!< flag turning off voltage derating for low voltage power flow
         INDEPENDENT_MACHINE_BASE = OBJECT_FLAG6,  //!< flag indicating that the generator has a
-                                                //!< different machine base than the simulation
+                                                  //!< different machine base than the simulation
         AT_LIMIT = OBJECT_FLAG7,  //!< flag indicating the generator is operating at a limit
         INDIRECT_VOLTAGE_CONTROL_LEVEL =
             OBJECT_FLAG8,  //!< flag indicating that the generator should perform

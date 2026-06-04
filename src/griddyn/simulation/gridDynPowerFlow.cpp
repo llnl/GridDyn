@@ -220,7 +220,7 @@ int GridDynSimulation::powerflow()
 
 void GridDynSimulation::reInitpFlow(const SolverMode& sMode, ChangeCode change)
 {
-    if (opFlags[SLACK_BUS_CHANGE]) {
+    if (opFlags[SLACK_BUS_CHANGE_FLAG]) {
         checkNetwork(NetworkCheckType::FULL);
     } else if (opFlags[CONNECTIVITY_CHANGE_FLAG]) {
         checkNetwork(NetworkCheckType::SIMPLIFIED);

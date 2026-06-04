@@ -76,8 +76,8 @@ enum OperationFlags {
     CONSTRAINT_CHANGE_FLAG = 26,  //!< flag indicating an change in constraint values
     ROOT_CHANGE_FLAG = 27,  //!< flag indicating a change in the root finding functions
     JACOBIAN_COUNT_CHANGE_FLAG = 28,  //!< flag indicating a change in the Jacobian count
-    SLACK_BUS_CHANGE = 29,  //!< flag indicating a change in the slack bus
-    VOLTAGE_CONTROL_CHANGE = 30,  //!< flag indicating a change in voltage control on a bus
+    SLACK_BUS_CHANGE_FLAG = 29,  //!< flag indicating a change in the slack bus
+    VOLTAGE_CONTROL_CHANGE_FLAG = 30,  //!< flag indicating a change in voltage control on a bus
     CONNECTIVITY_CHANGE_FLAG = 31,  //!< flag indicating a change in bus connectivity possibly
                                     //!< indicating islanding or isolated buses
 

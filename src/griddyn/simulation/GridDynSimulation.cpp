@@ -1166,7 +1166,7 @@ static const std::map<int, size_t>& getAlertFlags()
         std::make_pair(CONSTRAINT_COUNT_CHANGE, CONSTRAINT_CHANGE_FLAG),
         std::make_pair(CONSTRAINT_COUNT_INCREASE, CONSTRAINT_CHANGE_FLAG),
         std::make_pair(CONSTRAINT_COUNT_DECREASE, CONSTRAINT_CHANGE_FLAG),
-        std::make_pair(SLACK_BUS_CHANGE, SLACK_BUS_CHANGE),
+        std::make_pair(SLACK_BUS_CHANGE, SLACK_BUS_CHANGE_FLAG),
         std::make_pair(POTENTIAL_FAULT_CHANGE, RESET_VOLTAGE_FLAG),
         std::make_pair(VERY_LOW_VOLTAGE_ALERT, LOW_BUS_VOLTAGE),
         std::make_pair(INVALID_STATE_ALERT, INVALID_STATE_FLAG),

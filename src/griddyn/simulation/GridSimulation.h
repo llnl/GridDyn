@@ -158,9 +158,9 @@ class GridSimulation: public GridArea {
     */
     virtual void add(const std::vector<std::shared_ptr<Event>>& elist);
     /** @brief function to add an event Adapter to the event Queue
-    @param[in] eA the eventAdpater to add
+    @param[in] eventAdapter the eventAdpater to add
     */
-    virtual void add(std::shared_ptr<EventAdapter> eA);
+    virtual void add(std::shared_ptr<EventAdapter> eventAdapter);
 
     // TODO(phlpt): Recheck whether this function is actually needed.
     /** @brief reset all object counters to 0*/

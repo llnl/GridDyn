@@ -290,7 +290,7 @@ void FmiCoSimSubModel::set(std::string_view param, double val, units::unit unitT
 
 double FmiCoSimSubModel::get(std::string_view param, units::unit unitType) const
 {
-    if (param == LOCAL_INTEGRATIONTIME_STRING) {
+    if (param == localIntegrationtimeString) {
         return localIntegrationTime;
     }
     if (cs->isVariable(std::string{param}, FmiVariableType::NUMERIC)) {

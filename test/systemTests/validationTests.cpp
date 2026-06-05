@@ -243,7 +243,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsWithq)
         gds->powerflow();
         auto stop_t = std::chrono::high_resolution_clock::now();
         elapsed_time = stop_t - start_t;
-        printf("%s completed in %f\n", mp.first.c_str(), elapsed_time.count());
+        std::println("{} completed in {:f}", mp.first, elapsed_time.count());
 #    else
         gds->powerflow();
 #    endif
@@ -348,7 +348,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsProblems)
         gds->powerflow();
         auto stop_t = std::chrono::high_resolution_clock::now();
         elapsed_time = stop_t - start_t;
-        printf("%s completed in %f\n", mp.first.c_str(), elapsed_time.count());
+        std::println("{} completed in {:f}", mp.first, elapsed_time.count());
 #    else
         gds->powerflow();
 #    endif
@@ -372,16 +372,16 @@ TEST_F(ValidationTests, MatpowerValidationTestsProblems)
         cnt = gds->getLinkRealPower(flow3, 0, 2);
         cnt = gds->getLinkReactivePower(flow4, 0, 2);
         for (int pp = 0; pp < cnt; ++pp) {
-            printf("%d, %f, %f, %f, %f\n", pp, flow1[pp], flow2[pp], flow3[pp], flow4[pp]);
+            std::println("{}, {:f}, {:f}, {:f}, {:f}", pp, flow1[pp], flow2[pp], flow3[pp], flow4[pp]);
         }
-        printf("------------------------------------------------------\n");
+        std::println("------------------------------------------------------");
         for (size_t pp = 0; pp < ldp.size(); ++pp) {
-            printf("%d, %f, %f, %f, %f \n",
-                   static_cast<int>(pp),
-                   ldp[pp],
-                   ldq[pp],
-                   genp[pp],
-                   genq[pp]);
+            std::println("{}, {:f}, {:f}, {:f}, {:f}",
+                         static_cast<int>(pp),
+                         ldp[pp],
+                         ldq[pp],
+                         genp[pp],
+                         genq[pp]);
         }
         double vdiff = 0;
         double adiff = 0;

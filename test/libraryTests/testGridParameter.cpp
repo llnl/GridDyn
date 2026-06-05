@@ -12,6 +12,4 @@
 #include <string>
 #include <string_view>
 
-static constexpr std::string_view xmlTestDirectory{GRIDDYN_TEST_DIRECTORY "/xml_tests/"};
-
 TEST(GridModelParameterTests, BasicSmokeTest) {}

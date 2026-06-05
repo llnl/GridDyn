@@ -23,7 +23,6 @@
 #include "fmi/fmi_models/fmiMELoad3phase.h"
 #include "griddyn/loads/ApproximatingLoad.h"
 
-static constexpr std::string_view fmi_test_directory = GRIDDYN_TEST_DIRECTORY "/fmi_tests/";
 static constexpr std::string_view fmu_directory = GRIDDYN_TEST_DIRECTORY "/fmi_tests/test_fmus/";
 
 // create a test fixture that makes sure everything gets deleted properly
@@ -109,6 +108,8 @@ TEST_F(FmiTests, TestFmiLoadShared)
 #endif
 
 #if defined _WIN32 && !defined _WIN64
+static constexpr std::string_view fmi_test_directory = GRIDDYN_TEST_DIRECTORY "/fmi_tests/";
+
 TEST_F(FmiTests, Test3phaseFmu)
 {
     std::string fmu = std::string{fmu_directory} + "DUMMY_0CYMDIST.fmu";

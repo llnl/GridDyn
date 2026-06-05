@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 #include <streambuf>
 #include <string>
 
@@ -137,7 +138,9 @@ std::string ExeTestRunner::runCaptureOutput(const std::string& args) const
 
     // printf (" after system call string %s\n", rstr.c_str ());
     std::ifstream t(outFile);
-    std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+    std::ostringstream buffer;
+    buffer << t.rdbuf();
+    std::string str = buffer.str();
     if (out != 0) {
         str.push_back('\n');
         str.append(exeString);

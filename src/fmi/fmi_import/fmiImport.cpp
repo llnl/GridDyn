@@ -426,11 +426,15 @@ void FmiLibrary::loadCoSimFunctions()
 void FmiLibrary::makeCallbackFunctions()
 {
     callbacks = std::make_shared<fmi2CallbackFunctions>(fmi2CallbackFunctions{
-        &loggerFunc, &calloc, &free, nullptr, static_cast<void*>(this)});
+        .logger = &loggerFunc,
+        .allocateMemory = &calloc,
+        .freeMemory = &free,
+        .stepFinished = nullptr,
+        .componentEnvironment = static_cast<void*>(this)});
 }
 
 namespace {
-constexpr std::size_t string_buffer_size = 1000;
+constexpr std::size_t stringBufferSize = 1000;
 }
 
 // NOLINTNEXTLINE(hicpp-vararg,cert-dcl50-cpp,modernize-avoid-variadic-functions)
@@ -441,12 +445,12 @@ void loggerFunc(fmi2ComponentEnvironment /* compEnv */,
                 fmi2String message,
                 ...)
 {
-    std::array<char, string_buffer_size> temp{};
+    std::array<char, stringBufferSize> temp{};
     // FMI defines this callback as a variadic C API, so we must bridge it with va_list here.
     // NOLINTNEXTLINE(hicpp-vararg)
     va_list arglist;
     va_start(arglist, message);  // NOLINT
-    static_cast<void>(std::vsnprintf(temp.data(), string_buffer_size, message, arglist));
+    static_cast<void>(std::vsnprintf(temp.data(), stringBufferSize, message, arglist));
     va_end(arglist);
     std::println("{}", temp.data());  // NOLINT
 }

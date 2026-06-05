@@ -23,8 +23,6 @@
 #include <vector>
 
 class LargeValidationTests: public GridDynSimulationTestFixture, public ::testing::Test {};
-
-constexpr std::string_view validationTestDirectory{GRIDDYN_TEST_DIRECTORY "/validation_tests/"};
 using namespace griddyn;
 
 #ifdef ENABLE_IN_DEVELOPMENT_CASES

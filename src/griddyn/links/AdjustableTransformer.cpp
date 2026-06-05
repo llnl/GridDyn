@@ -33,9 +33,10 @@ using units::puMW;
 using units::rad;
 using units::unit;
 
-static void boundedIncrement(count_t& counter)
+template<class CountType>
+static void boundedIncrement(CountType& counter)
 {
-    if (counter < std::numeric_limits<count_t>::max()) {
+    if (counter < std::numeric_limits<CountType>::max()) {
         ++counter;
     }
 }

@@ -200,9 +200,10 @@ void EventQueue::recheck()
 void EventQueue::remove(std::int64_t eventID)
 {
     const std::scoped_lock lock(queuelock_);
-    auto removePosition = std::remove_if(events.begin(), events.end(), [eventID](const auto& event) {
-        return (eventID == event->eventID);
-    });
+    auto removePosition =
+        std::remove_if(events.begin(), events.end(), [eventID](const auto& event) {
+            return (eventID == event->eventID);
+        });
     events.erase(removePosition, events.end());
 }
 
@@ -229,8 +230,7 @@ void EventQueue::checkDuplicates()
     // this function is a private function and should only be called from inside a locked scope
     auto pred = [](const auto& firstEvent, const auto& secondEvent) -> bool {
         if (typeid(*firstEvent) == typeid(*secondEvent)) {
-            auto* adapterPrimary =
-                dynamic_cast<EventTypeAdapter<CoreObject>*>(firstEvent.get());
+            auto* adapterPrimary = dynamic_cast<EventTypeAdapter<CoreObject>*>(firstEvent.get());
             if (adapterPrimary != nullptr) {
                 auto* adapterSecondary =
                     static_cast<EventTypeAdapter<CoreObject>*>(secondEvent.get());

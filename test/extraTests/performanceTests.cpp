@@ -28,8 +28,8 @@ using namespace gmlc::utilities;
 
 class ExtraPerformanceTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
-static constexpr std::string_view validationTestDirectory{
-    GRIDDYN_TEST_DIRECTORY "/validation_tests/"};
+static constexpr std::string_view validationTestDirectory{GRIDDYN_TEST_DIRECTORY
+                                                          "/validation_tests/"};
 
 static std::string makeValidationTestPath(std::string_view fileName)
 {

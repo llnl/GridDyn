@@ -16,7 +16,7 @@
 
 class SimulationTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
-static constexpr std::string_view validationTestDirectory{
-    GRIDDYN_TEST_DIRECTORY "/validation_tests/"};
+static constexpr std::string_view validationTestDirectory{GRIDDYN_TEST_DIRECTORY
+                                                          "/validation_tests/"};
 
 TEST_F(SimulationTests, SimulationOrderingTests) {}

@@ -12,8 +12,8 @@
 #include <string>
 #include <string_view>
 
-static constexpr std::string_view contingencyTestDirectory{
-    GRIDDYN_TEST_DIRECTORY "/contingency_tests/"};
+static constexpr std::string_view contingencyTestDirectory{GRIDDYN_TEST_DIRECTORY
+                                                           "/contingency_tests/"};
 
 static std::string makeContingencyTestPath(std::string_view fileName)
 {

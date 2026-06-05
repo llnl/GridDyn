@@ -14,8 +14,8 @@ using namespace griddyn;
 /** these test cases test out the contingency capabilities in GridDyn
  */
 
-static constexpr std::string_view contingencyTestDirectory{
-    GRIDDYN_TEST_DIRECTORY "/contingency_tests/"};
+static constexpr std::string_view contingencyTestDirectory{GRIDDYN_TEST_DIRECTORY
+                                                           "/contingency_tests/"};
 
 static std::string makeContingencyTestPath(std::string_view fileName)
 {

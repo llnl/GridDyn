@@ -13,8 +13,8 @@
 #include <string>
 #include <string_view>
 
-static constexpr std::string_view elementReaderTestDirectory{
-    GRIDDYN_TEST_DIRECTORY "/element_reader_tests/"};
+static constexpr std::string_view elementReaderTestDirectory{GRIDDYN_TEST_DIRECTORY
+                                                             "/element_reader_tests/"};
 
 static std::string makeElementReaderTestPath(std::string_view fileName)
 {

@@ -271,10 +271,10 @@ void FmiCoSimSubModel::set(std::string_view param, std::string_view val)
         }
     }
 }
-static const char LOCAL_INTEGRATIONTIME_STRING[] = "localintegrationtime";
+static constexpr char localIntegrationtimeString[] = "localintegrationtime";
 void FmiCoSimSubModel::set(std::string_view param, double val, units::unit unitType)
 {
-    if ((param == "timestep") || (param == LOCAL_INTEGRATIONTIME_STRING)) {
+    if ((param == "timestep") || (param == localIntegrationtimeString)) {
         localIntegrationTime = val;
     } else {
         const bool isparam = cs->isParameter(std::string{param}, FmiVariableType::NUMERIC);
@@ -290,7 +290,7 @@ void FmiCoSimSubModel::set(std::string_view param, double val, units::unit unitT
 
 double FmiCoSimSubModel::get(std::string_view param, units::unit unitType) const
 {
-    if (param == LOCAL_INTEGRATIONTIME_STRING) {
+    if (param == localIntegrationtimeString) {
         return localIntegrationTime;
     }
     if (cs->isVariable(std::string{param}, FmiVariableType::NUMERIC)) {

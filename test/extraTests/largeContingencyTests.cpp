@@ -6,12 +6,19 @@
 
 #include "../gtestHelper.h"
 #include <chrono>
-#include <cstdio>
 #include <filesystem>
 #include <gtest/gtest.h>
+#include <print>
 #include <string>
+#include <string_view>
 
-static const std::string contingency_test_directory(GRIDDYN_TEST_DIRECTORY "/contingency_tests/");
+static constexpr std::string_view contingencyTestDirectory{GRIDDYN_TEST_DIRECTORY
+                                                           "/contingency_tests/"};
+
+static std::string makeContingencyTestPath(std::string_view fileName)
+{
+    return std::string{contingencyTestDirectory} + std::string{fileName};
+}
 
 class LargeContingencyTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
@@ -20,22 +27,22 @@ using namespace griddyn;
 
 TEST_F(LargeContingencyTests, ContingencyN2)
 {
-    std::string fileName = contingency_test_directory + "contingency_test3.xml";
+    std::string fileName = makeContingencyTestPath("contingency_test3.xml");
     gds = readSimXMLFile(fileName);
     gds->set("printlevel", 0);
     auto start_t = std::chrono::high_resolution_clock::now();
     gds->run();
     auto stop_t = std::chrono::high_resolution_clock::now();
     EXPECT_TRUE(exists("contout_N2.csv"));
-    remove("contout_N2.csv");
+    static_cast<void>(remove("contout_N2.csv"));
 
     std::chrono::duration<double> load_time = (stop_t - start_t);
-    printf("contingencies run in %f seconds\n", load_time.count());
+    std::println("contingencies run in {:f} seconds", load_time.count());
 }
 
 TEST_F(LargeContingencyTests, ContingencyBcase)
 {
-    std::string fileName = contingency_test_directory + "contingency_testbig.xml";
+    std::string fileName = makeContingencyTestPath("contingency_testbig.xml");
     gds = readSimXMLFile(fileName);
     gds->set("printlevel", 0);
     auto start_t = std::chrono::high_resolution_clock::now();
@@ -45,5 +52,5 @@ TEST_F(LargeContingencyTests, ContingencyBcase)
     EXPECT_TRUE(exists("contout_N2.csv"));
 
     std::chrono::duration<double> load_time = (stop_t - start_t);
-    printf("contingencies run in %f seconds\n", load_time.count());
+    std::println("contingencies run in {:f} seconds", load_time.count());
 }

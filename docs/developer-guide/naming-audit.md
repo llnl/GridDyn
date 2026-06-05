@@ -8,7 +8,8 @@ called out here, including `gridSimulation`, `gridDynSimulation`, and
 `commMessage`, have since been migrated in maintained first-party source to
 `GridSimulation`, `GridDynSimulation`, and `CommMessage`. Treat the examples
 below as representative of the original baseline rather than the current source
-of truth.
+of truth. The style-guide alignment campaign is complete; this document is kept
+only as context for how the migration started.
 
 ## Highest-Impact Legacy Patterns
 

@@ -16,7 +16,7 @@
 #include <string>
 #include <vector>
 
-static const char nullStr[] = "";
+static constexpr char nullStr[] = "";
 using gmlc::utilities::numeric_conversionComplete;
 
 namespace {

@@ -16,7 +16,7 @@
 #include <sstream>
 #include <string>
 // default initialized empty string
-static const char nullStr[] = "";
+static constexpr char nullStr[] = "";
 
 using gmlc::utilities::numeric_conversionComplete;
 

@@ -10,7 +10,8 @@
 #include "griddyn/gridDynDefinitions.hpp"
 #include <gtest/gtest.h>
 #include <string>
+#include <string_view>
 
-static const std::string xmlTestDirectory(GRIDDYN_TEST_DIRECTORY "/xml_tests/");
+static constexpr std::string_view xmlTestDirectory{GRIDDYN_TEST_DIRECTORY "/xml_tests/"};
 
 TEST(GridModelParameterTests, BasicSmokeTest) {}

@@ -94,15 +94,15 @@ void GridSimulation::add(std::shared_ptr<Event> evnt)
     EvQ->insert(std::move(evnt));
 }
 
-void GridSimulation::add(std::shared_ptr<EventAdapter> eA)
+void GridSimulation::add(std::shared_ptr<EventAdapter> eventAdapter)
 {
-    EvQ->insert(std::move(eA));
+    EvQ->insert(std::move(eventAdapter));
 }
 
 void GridSimulation::add(const std::vector<std::shared_ptr<Event>>& elist)
 {
-    for (const auto& ev : elist) {
-        EvQ->insert(ev);
+    for (const auto& eventObject : elist) {
+        EvQ->insert(eventObject);
     }
 }
 
@@ -277,13 +277,14 @@ void GridSimulation::log(CoreObject* object, PrintLevel level, const std::string
     if (object == nullptr) {
         object = this;
     }
-    std::string cname = '[' +
+    const std::string cname = '[' +
         (isSameObject(object, this) ?
              "sim" :
              (fullObjectName(object) + '(' + std::to_string(object->getUserID()) + ')')) +
         ']';
-    std::string simtime = ((currentTime > negTime) ? '(' + std::to_string(currentTime) + ')' :
-                                                     std::string("(PRESTART)"));
+    const std::string simtime = ((currentTime > negTime) ? '(' + std::to_string(currentTime) +
+                                                               ')' :
+                                                           std::string("(PRESTART)"));
     std::string key;
     if (level == PrintLevel::WARNING) {
         key = "||WARNING||";
@@ -315,10 +316,10 @@ void GridSimulation::log(CoreObject* object, PrintLevel level, const std::string
 
 bool GridSimulation::shouldLog(PrintLevel level) const
 {
-    return !((level > consolePrintLevel) && (level > logPrintLevel));
+    return (level <= consolePrintLevel) || (level <= logPrintLevel);
 }
 
-static const std::map<int, std::string> alertStrings{
+static const std::map<int, std::string> ALERT_STRINGS{
     {TRANSLINE_ANGLE_TRIP, "angle limit trip"},
     {TRANSLINE_LIMIT_TRIP, "transmission line limit trip"},
     {GENERATOR_UNDERFREQUENCY_TRIP, "generator underfrequency trip"},
@@ -377,12 +378,13 @@ void GridSimulation::alert(CoreObject* object, int code)
     } else if (code < MIN_CHANGE_ALERT) {
         alertCount++;
         std::string astr;
-        auto res = alertStrings.find(code);
-        if (res != alertStrings.end()) {
+        auto res = ALERT_STRINGS.find(code);
+        if (res != ALERT_STRINGS.end()) {
             astr = res->second;
             log(object, PrintLevel::SUMMARY, astr);
         } else {
-            std::string message = "Unrecognized alert code (" + std::to_string(code) + ')';
+            const std::string message =
+                "Unrecognized alert code (" + std::to_string(code) + ')';
             log(object, PrintLevel::SUMMARY, message);
         }
     }
@@ -451,6 +453,7 @@ CoreTime GridSimulation::getEventTime(int eventCode) const
     return EvQ->getNextTime(eventCode);
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 CoreObject* findMatchingObject(CoreObject* obj1, GridPrimary* src, GridPrimary* sec)
 {
     if (obj1 == nullptr) {
@@ -480,7 +483,7 @@ CoreObject* findMatchingObject(CoreObject* obj1, GridPrimary* src, GridPrimary* 
         obj2 = getMatchingLink(dynamic_cast<Link*>(obj1), src, sec);
     } else {
         // now we get ugly we are GridSecondary object
-        CoreObject* pobj = findMatchingObject(obj1->getParent(), src, sec);
+        const CoreObject* pobj = findMatchingObject(obj1->getParent(), src, sec);
         if (pobj != nullptr) {  // this is an internal string sequence for this purpose, likely
                                 // won't be documented
             obj2 = pobj->getSubObject("submodelcode", obj1->locIndex);

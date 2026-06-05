@@ -36,16 +36,16 @@ TEST(ZipUtilitiesTests, ZipRoundTrip)
 {
     // make two files with very simple text
     int fileSize1 = 1000000;
-    std::vector<char> a0(fileSize1, '0');
+    std::vector<char> zeroData(fileSize1, '0');
     std::string fileZeros = makeZipTestPath("zeros.txt");
     std::ofstream outZeros(fileZeros);
-    outZeros.write(a0.data(), fileSize1);
+    outZeros.write(zeroData.data(), fileSize1);
     outZeros.close();
     int fileSize2 = 981421;
-    std::vector<char> a1(fileSize2, '1');
+    std::vector<char> oneData(fileSize2, '1');
     std::string fileOnes = makeZipTestPath("ones.txt");
     std::ofstream outOnes(fileOnes);
-    outOnes.write(a1.data(), fileSize2);
+    outOnes.write(oneData.data(), fileSize2);
     outOnes.close();
     // zip them up into a zip file
     auto zipfile = makeZipTestPath("data.zip");

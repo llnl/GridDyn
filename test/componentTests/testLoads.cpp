@@ -110,20 +110,28 @@ TEST_F(LoadTests, BasicLoadTest)
 TEST_F(LoadTests, LoadVoltageSweep)
 {
     ld1 = new ZipLoad(1.0, 0.0);
-    std::vector<double> v;
-    std::vector<double> out;
+    std::vector<double> voltageSamples;
+    std::vector<double> powerSamples;
     ld1->set("vpqmin", 0.75);
     ld1->set("vpqmax", 1.25);
 
-    for (double vt = 0.0; vt <= 1.5; vt += 0.001) {
-        v.push_back(vt);
-        out.push_back(ld1->getRealPower(vt));
+    for (int voltageIndex = 0; voltageIndex <= 1500; ++voltageIndex) {
+        const double voltageTest = static_cast<double>(voltageIndex) * 0.001;
+        voltageSamples.push_back(voltageTest);
+        powerSamples.push_back(ld1->getRealPower(voltageTest));
     }
-    v.push_back(1.5);
-    EXPECT_NEAR(std::abs(out[400] - v[400] * v[400] / (0.75 * 0.75)), 0.0, 0.001);
-    EXPECT_NEAR(std::abs(out[1350] - v[1350] * v[1350] / (1.25 * 1.25)), 0.0, 0.001);
-    EXPECT_NEAR(std::abs(out[800] - 1.0), 0.0, 0.001);
-    EXPECT_NEAR(std::abs(out[1249] - 1.0), 0.0, 0.001);
+    voltageSamples.push_back(1.5);
+    EXPECT_NEAR(
+        std::abs(powerSamples[400] - (voltageSamples[400] * voltageSamples[400] / (0.75 * 0.75))),
+        0.0,
+        0.001);
+    EXPECT_NEAR(std::abs(
+                    powerSamples[1350] -
+                    (voltageSamples[1350] * voltageSamples[1350] / (1.25 * 1.25))),
+                0.0,
+                0.001);
+    EXPECT_NEAR(std::abs(powerSamples[800] - 1.0), 0.0, 0.001);
+    EXPECT_NEAR(std::abs(powerSamples[1249] - 1.0), 0.0, 0.001);
 }
 
 TEST_F(LoadTests, RampLoadTest)
@@ -324,7 +332,7 @@ TEST_F(LoadTests, FileLoadTest1)
 
     ld1->set("file", fileName);
     ldT->set("mode", "interpolate");
-    ld1->pFlowInitializeA(timeZero, 0u);
+    ld1->pFlowInitializeA(timeZero, 0U);
 
     ldT->timestep(1.0, input, cPflowSolverMode);
     val = ld1->getRealPower(1.0);
@@ -352,11 +360,11 @@ TEST_F(LoadTests, FileLoadTest2)
     ldT->set("scaling", 1.0);
     ldT->set("qratio", 0.3);
     gmlc::utilities::TimeSeries<> Tdata(fileName);
-    ldT->pFlowInitializeA(timeZero, 0u);
+    ldT->pFlowInitializeA(timeZero, 0U);
 
     double val = ldT->getRealPower();
     auto tod = Tdata.data()[0];
-    EXPECT_NEAR(val, tod, std::abs(tod) * 1e-6 + 1e-12);
+    EXPECT_NEAR(val, tod, (std::abs(tod) * 1e-6) + 1e-12);
 }
 
 #ifndef GRIDDYN_ENABLE_MPI
@@ -495,19 +503,19 @@ TEST_F(LoadTests, ApproxloadTest1)
     apload.add(ld1);
     apload.pFlowInitializeA(0, 0);
     apload.pFlowInitializeB();
-    auto p = apload.get("p");
-    auto q = apload.get("q");
-    auto yp = apload.get("yp");
-    auto yq = apload.get("yq");
-    auto ip = apload.get("ip");
-    auto iq = apload.get("iq");
+    auto realPower = apload.get("p");
+    auto reactivePower = apload.get("q");
+    auto admittanceReal = apload.get("yp");
+    auto admittanceReactive = apload.get("yq");
+    auto currentReal = apload.get("ip");
+    auto currentReactive = apload.get("iq");
 
-    EXPECT_NEAR(p, 0.4, 0.001);
-    EXPECT_NEAR(q, 0.3, 0.001);
-    EXPECT_NEAR(yp, 0.1, 0.001);
-    EXPECT_NEAR(yq, -0.12, 0.001);
-    EXPECT_NEAR(ip, 0.03, 0.001);
-    EXPECT_NEAR(iq, 0.06, 0.001);
+    EXPECT_NEAR(realPower, 0.4, 0.001);
+    EXPECT_NEAR(reactivePower, 0.3, 0.001);
+    EXPECT_NEAR(admittanceReal, 0.1, 0.001);
+    EXPECT_NEAR(admittanceReactive, -0.12, 0.001);
+    EXPECT_NEAR(currentReal, 0.03, 0.001);
+    EXPECT_NEAR(currentReactive, 0.06, 0.001);
 
     ld1->set("p", 0.5);
     ld1->set("q", -0.1);
@@ -518,19 +526,19 @@ TEST_F(LoadTests, ApproxloadTest1)
 
     apload.updateA(2);
     apload.updateB();
-    p = apload.get("p");
-    q = apload.get("q");
-    yp = apload.get("yp");
-    yq = apload.get("yq");
-    ip = apload.get("ip");
-    iq = apload.get("iq");
+    realPower = apload.get("p");
+    reactivePower = apload.get("q");
+    admittanceReal = apload.get("yp");
+    admittanceReactive = apload.get("yq");
+    currentReal = apload.get("ip");
+    currentReactive = apload.get("iq");
 
-    EXPECT_NEAR(p, 0.5, 0.001);
-    EXPECT_NEAR(q, -0.1, 0.001);
-    EXPECT_NEAR(yp, 0.13, 0.001);
-    EXPECT_NEAR(yq, -0.12, 0.001);
-    EXPECT_NEAR(ip, 0.0, 1e-5);
-    EXPECT_NEAR(iq, 0.23, 0.001);
+    EXPECT_NEAR(realPower, 0.5, 0.001);
+    EXPECT_NEAR(reactivePower, -0.1, 0.001);
+    EXPECT_NEAR(admittanceReal, 0.13, 0.001);
+    EXPECT_NEAR(admittanceReactive, -0.12, 0.001);
+    EXPECT_NEAR(currentReal, 0.0, 1e-5);
+    EXPECT_NEAR(currentReactive, 0.23, 0.001);
     ld1 = nullptr;
 }
 
@@ -541,15 +549,15 @@ TEST_F(LoadTests, Simple3PhaseLoadTest)
     ld3->setPb(1.2);
     ld3->setPc(1.3);
 
-    auto P = ld3->getRealPower();
-    EXPECT_NEAR(P, 3.6, 1e-5);
+    auto totalRealPower = ld3->getRealPower();
+    EXPECT_NEAR(totalRealPower, 3.6, 1e-5);
 
     ld3->setQa(0.1);
     ld3->setQb(0.3);
     ld3->setQc(0.62);
 
-    auto Q = ld3->getReactivePower();
-    EXPECT_NEAR(Q, 1.02, 1e-5);
+    auto totalReactivePower = ld3->getReactivePower();
+    EXPECT_NEAR(totalReactivePower, 1.02, 1e-5);
 
     ld3->setLoad(3.0);
     EXPECT_NEAR(ld3->get("pa"), 1.0, 1e-7);
@@ -557,17 +565,17 @@ TEST_F(LoadTests, Simple3PhaseLoadTest)
     ld3->set("pb", 0.5);
     ld3->set("pc", 0.4);
 
-    P = ld3->getRealPower();
-    EXPECT_NEAR(P, 1.9, 1e-5);
+    totalRealPower = ld3->getRealPower();
+    EXPECT_NEAR(totalRealPower, 1.9, 1e-5);
 
     auto res = ld3->getRealPower3Phase();
-    EXPECT_EQ(res.size(), 3u);
+    EXPECT_EQ(res.size(), 3U);
     EXPECT_NEAR(res[0], 1.0, 1e-7);
     EXPECT_NEAR(res[1], 0.5, 1e-7);
     EXPECT_NEAR(res[2], 0.4, 1e-7);
 
     auto res2 = ld3->getRealPower3Phase(PhaseType::PNZ);
-    EXPECT_EQ(res2.size(), 3u);
+    EXPECT_EQ(res2.size(), 3U);
     EXPECT_NEAR(res2[0], 1.9, 1e-5);
 
     ld3->setLoad(2.7, 0.3);
@@ -594,8 +602,8 @@ TEST_F(LoadTests, Secondary3PhaseLoadTest)
     ld3->setLoad(5.0, 1.0);
 
     ld3->set("imaga", 3.0);
-    auto Pa = ld3->get("pa");
+    auto phaseARealPower = ld3->get("pa");
     ld3->set("imaga", 6.0);
-    auto Pa2 = ld3->get("pa");
-    EXPECT_NEAR(Pa * 2.0, Pa2, 1e-5);
+    auto phaseARealPower2 = ld3->get("pa");
+    EXPECT_NEAR(phaseARealPower * 2.0, phaseARealPower2, 1e-5);
 }

@@ -32,7 +32,7 @@ TEST_F(ContingencyTests, DISABLED_ContingencyTest1)
     gds->set("printlevel", 0);
     gds->run();
     EXPECT_TRUE(exists("contout.csv"));
-    remove("contout.csv");
+    static_cast<void>(remove("contout.csv"));
 }
 
 TEST_F(ContingencyTests, DISABLED_ContingencyTest2)
@@ -46,10 +46,10 @@ TEST_F(ContingencyTests, DISABLED_ContingencyTest2)
     EXPECT_TRUE(exists("contout_bus.csv"));
     EXPECT_TRUE(exists("contout_gen.csv"));
     EXPECT_TRUE(exists("contout_line.csv"));
-    remove("contout_load.csv");
-    remove("contout_bus.csv");
-    remove("contout_gen.csv");
-    remove("contout_line.csv");
+    static_cast<void>(remove("contout_load.csv"));
+    static_cast<void>(remove("contout_bus.csv"));
+    static_cast<void>(remove("contout_gen.csv"));
+    static_cast<void>(remove("contout_line.csv"));
 }
 
 // Testing N-2 contingencies  TODO:: move to testExtra

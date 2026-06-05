@@ -56,7 +56,7 @@ TEST_F(XmlTests, XmlTest1)
 
     Generator* gen = bus->getGen(0);
 
-    if (!(gen)) {
+    if (gen == nullptr) {
         return;
     }
     EXPECT_EQ(gen->getRealPower(), -0.7160);
@@ -82,14 +82,14 @@ TEST_F(XmlTests, XmlTest2)
     ASSERT_NE(bus, nullptr);
     EXPECT_EQ(bus->getType(), GridBus::BusType::PQ);
 
-    GridLoad* ld = bus->getLoad();
-    ASSERT_NE(ld, nullptr);
-    if (!(ld)) {
+    GridLoad* load = bus->getLoad();
+    ASSERT_NE(load, nullptr);
+    if (load == nullptr) {
         return;
     }
-    EXPECT_EQ(ld->getRealPower(), 1.25);
-    EXPECT_EQ(ld->getReactivePower(), 0.5);
-    EXPECT_EQ(ld->getName().compare("load5"), 0);
+    EXPECT_EQ(load->getRealPower(), 1.25);
+    EXPECT_EQ(load->getReactivePower(), 0.5);
+    EXPECT_EQ(load->getName().compare("load5"), 0);
 }
 
 TEST_F(XmlTests, XmlTest3)
@@ -105,36 +105,36 @@ TEST_F(XmlTests, XmlTest3)
     EXPECT_EQ(count, 2);
     // test out link 1
     Link* lnk = gds->getLink(0);
-    if (!(lnk)) {
+    if (lnk == nullptr) {
         return;
     }
 
     GridBus* bus = lnk->getBus(1);
-    if (!(bus)) {
+    if (bus == nullptr) {
         return;
     }
     EXPECT_EQ(bus->getName().compare("bus1"), 0);
 
     bus = lnk->getBus(2);
-    if (!(bus)) {
+    if (bus == nullptr) {
         return;
     }
     EXPECT_EQ(bus->getName().compare("bus4"), 0);
     EXPECT_EQ(lnk->getName().compare("bus1_to_bus4"), 0);
     // test out link2
     lnk = gds->getLink(1);
-    if (!(lnk)) {
+    if (lnk == nullptr) {
         return;
     }
 
     bus = lnk->getBus(1);
-    if (!(bus)) {
+    if (bus == nullptr) {
         return;
     }
     EXPECT_EQ(bus->getName().compare("bus4"), 0);
 
     bus = lnk->getBus(2);
-    if (!(bus)) {
+    if (bus == nullptr) {
         return;
     }
     EXPECT_EQ(bus->getName().compare("bus5"), 0);
@@ -160,7 +160,7 @@ TEST_F(XmlTests, XmlTest4)
     Generator* gen = bus->getGen(0);
     ASSERT_NE(gen, nullptr);
 
-    GenModel* gm = nullptr;
+    GenModel* genModel = nullptr;
     Governor* gov = nullptr;
     Exciter* ext = nullptr;
 
@@ -176,8 +176,8 @@ TEST_F(XmlTests, XmlTest4)
     ASSERT_NE(gov, nullptr);
     obj = gen->find("genmodel");
     ASSERT_NE(obj, nullptr);
-    gm = dynamic_cast<GenModel*>(obj);
-    ASSERT_NE(gm, nullptr);
+    genModel = dynamic_cast<GenModel*>(obj);
+    ASSERT_NE(genModel, nullptr);
 }
 
 TEST_F(XmlTests, XmlTest5)
@@ -189,34 +189,34 @@ TEST_F(XmlTests, XmlTest5)
 
     gds = std::make_unique<GridDynSimulation>();
 
-    ReaderInfo ri;
+    ReaderInfo readerInfo;
 
-    loadFile(gds.get(), fileName, &ri);
+    loadFile(gds.get(), fileName, &readerInfo);
     ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::STARTUP);
     count = gds->getInt("totalbuscount");
     EXPECT_EQ(count, 1);
     EXPECT_EQ(readerConfig::warnCount, 0);
 
-    GenModel* gm = nullptr;
+    GenModel* genModel = nullptr;
     Governor* gov = nullptr;
     Exciter* ext = nullptr;
 
     CoreObject* obj = nullptr;
 
-    obj = ri.findLibraryObject("ex1");
+    obj = readerInfo.findLibraryObject("ex1");
     ASSERT_NE(obj, nullptr);
     ext = dynamic_cast<Exciter*>(obj);
     ASSERT_NE(ext, nullptr);
 
-    obj = ri.findLibraryObject("gov1");
+    obj = readerInfo.findLibraryObject("gov1");
     ASSERT_NE(obj, nullptr);
     gov = dynamic_cast<Governor*>(obj);
     ASSERT_NE(gov, nullptr);
 
-    obj = ri.findLibraryObject("gm1");
+    obj = readerInfo.findLibraryObject("gm1");
     ASSERT_NE(obj, nullptr);
-    gm = dynamic_cast<GenModel*>(obj);
-    ASSERT_NE(gm, nullptr);
+    genModel = dynamic_cast<GenModel*>(obj);
+    ASSERT_NE(genModel, nullptr);
 }
 
 TEST_F(XmlTests, XmlTest6)
@@ -228,9 +228,9 @@ TEST_F(XmlTests, XmlTest6)
 
     gds = std::make_unique<GridDynSimulation>();
 
-    ReaderInfo ri;
+    ReaderInfo readerInfo;
 
-    loadFile(gds.get(), fileName, &ri);
+    loadFile(gds.get(), fileName, &readerInfo);
     ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::STARTUP);
     count = gds->getInt("totalbuscount");
     EXPECT_EQ(count, 1);
@@ -242,14 +242,14 @@ TEST_F(XmlTests, XmlTest6)
 
     Generator* gen = bus->getGen(0);
     ASSERT_NE(gen, nullptr);
-    GenModel* gm = nullptr;
+    GenModel* genModel = nullptr;
 
     CoreObject* obj = nullptr;
 
     obj = gen->find("genmodel");
     ASSERT_NE(obj, nullptr);
-    gm = dynamic_cast<GenModel*>(obj);
-    ASSERT_NE(gm, nullptr);
+    genModel = dynamic_cast<GenModel*>(obj);
+    ASSERT_NE(genModel, nullptr);
 }
 
 TEST_F(XmlTests, XmlTest7)
@@ -271,7 +271,7 @@ TEST_F(XmlTests, XmlTest7)
     Generator* gen = bus->getGen(0);
     ASSERT_NE(gen, nullptr);
 
-    GenModel* gm = nullptr;
+    GenModel* genModel = nullptr;
     Governor* gov = nullptr;
     Exciter* ext = nullptr;
 
@@ -287,8 +287,8 @@ TEST_F(XmlTests, XmlTest7)
     ASSERT_NE(gov, nullptr);
     obj = gen->find("genmodel");
     ASSERT_NE(obj, nullptr);
-    gm = dynamic_cast<GenModel*>(obj);
-    ASSERT_NE(gm, nullptr);
+    genModel = dynamic_cast<GenModel*>(obj);
+    ASSERT_NE(genModel, nullptr);
 }
 
 /**test case for making sure library call work exactly like full specification calls*/
@@ -299,7 +299,7 @@ TEST_F(XmlTests, XmlTestDynLib)
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
     requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
-    std::vector<double> st = gds->getState();
+    std::vector<double> stateValues = gds->getState();
 
     fileName = makeXmlTestPath("test_2m4bDyn_lib.xml");
     gds2 = readSimXMLFile(fileName);
@@ -308,9 +308,9 @@ TEST_F(XmlTests, XmlTestDynLib)
     ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds2->getState();
 
-    auto sdiffs = countDiffs(st, st2, 5e-5);
+    auto sdiffs = countDiffs(stateValues, st2, 5e-5);
 
-    EXPECT_EQ(sdiffs, 0u);
+    EXPECT_EQ(sdiffs, 0U);
 }
 
 /**test case for generators and loads in the main element*/
@@ -321,7 +321,7 @@ TEST_F(XmlTests, XmlTestMainGen)
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
     requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
-    std::vector<double> st = gds->getState();
+    std::vector<double> stateValues = gds->getState();
 
     fileName = makeXmlTestPath("test_2m4bDyn_mgen.xml");
     gds2 = readSimXMLFile(fileName);
@@ -330,9 +330,9 @@ TEST_F(XmlTests, XmlTestMainGen)
     ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds2->getState();
 
-    auto sdiffs = countDiffs(st, st2, 5e-5);
+    auto sdiffs = countDiffs(stateValues, st2, 5e-5);
 
-    EXPECT_EQ(sdiffs, 0u);
+    EXPECT_EQ(sdiffs, 0U);
 }
 
 /**test case for property override and object reloading*/
@@ -343,7 +343,7 @@ TEST_F(XmlTests, XmlTestReload)
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
     requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
-    std::vector<double> st = gds->getState();
+    std::vector<double> stateValues = gds->getState();
 
     fileName = makeXmlTestPath("test_2m4bDyn_rload.xml");
     gds2 = readSimXMLFile(fileName);
@@ -352,9 +352,9 @@ TEST_F(XmlTests, XmlTestReload)
     ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds2->getState();
 
-    auto sdiffs = countDiffs(st, st2, 5e-5);
+    auto sdiffs = countDiffs(stateValues, st2, 5e-5);
 
-    EXPECT_EQ(sdiffs, 0u);
+    EXPECT_EQ(sdiffs, 0U);
 }
 
 /**test case for separate source file*/
@@ -365,7 +365,7 @@ TEST_F(XmlTests, XmlTestSource1)
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
     requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
-    std::vector<double> st = gds->getState();
+    std::vector<double> stateValues = gds->getState();
 
     fileName = makeXmlTestPath("test_2m4bDyn_sep.xml");
     gds2 = readSimXMLFile(fileName);
@@ -374,9 +374,9 @@ TEST_F(XmlTests, XmlTestSource1)
     ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds2->getState();
 
-    auto sdiffs = countDiffs(st, st2, 5e-5);
+    auto sdiffs = countDiffs(stateValues, st2, 5e-5);
 
-    EXPECT_EQ(sdiffs, 0u);
+    EXPECT_EQ(sdiffs, 0U);
 }
 
 TEST_F(XmlTests, XmlTest8)
@@ -387,12 +387,12 @@ TEST_F(XmlTests, XmlTest8)
 
     gds = std::make_unique<GridDynSimulation>();
 
-    ReaderInfo ri;
+    ReaderInfo readerInfo;
 
-    loadFile(gds.get(), fileName, &ri);
+    loadFile(gds.get(), fileName, &readerInfo);
     requireState(GridDynSimulation::GridState::STARTUP);
     EXPECT_EQ(readerConfig::warnCount, 0);
-    EXPECT_EQ(ri.collectors.size(), 1u);
+    EXPECT_EQ(readerInfo.collectors.size(), 1U);
 }
 
 TEST_F(XmlTests, XmlTest9)
@@ -403,7 +403,7 @@ TEST_F(XmlTests, XmlTest9)
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
     requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
-    std::vector<double> st = gds->getState();
+    std::vector<double> stateValues = gds->getState();
 
     fileName = makeXmlTestPath("test_xmltest9.xml");
 
@@ -414,10 +414,10 @@ TEST_F(XmlTests, XmlTest9)
     std::vector<double> st2 = gds2->getState();
 
     // check for equality
-    ASSERT_EQ(st.size(), st2.size());
-    // ASSERT_LT(compare(st, st2), 0.001);
+    ASSERT_EQ(stateValues.size(), st2.size());
+    // ASSERT_LT(compare(stateValues, st2), 0.001);
 
-    double diff = compareVec(st, st2);
+    double diff = compareVec(stateValues, st2);
     EXPECT_LT(diff, 0.01);
 }
 
@@ -484,12 +484,12 @@ TEST_F(XmlTests, TestCustomElement1)
     std::string fileName = makeXmlTestPath("test_custom_element1.xml");
     gds = readSimXMLFile(fileName);
 
-    int bc = gds->getInt("buscount");
-    EXPECT_EQ(bc, 10);
-    std::vector<double> V;
-    gds->getVoltage(V);
-    double mxv = *std::max_element(V.begin(), V.end());
-    double mnv = *std::min_element(V.begin(), V.end());
+    int busCount = gds->getInt("buscount");
+    EXPECT_EQ(busCount, 10);
+    std::vector<double> voltages;
+    gds->getVoltage(voltages);
+    double mxv = *std::max_element(voltages.begin(), voltages.end());
+    double mnv = *std::min_element(voltages.begin(), voltages.end());
     EXPECT_LT(mnv, mxv);
 }
 
@@ -500,12 +500,12 @@ TEST_F(XmlTests, TestCustomElement2)
     std::string fileName = makeXmlTestPath("test_custom_element2.xml");
     gds = readSimXMLFile(fileName);
 
-    int bc = gds->getInt("buscount");
-    EXPECT_EQ(bc, 7);
-    std::vector<double> V;
-    gds->getVoltage(V);
-    double mxv = *std::max_element(V.begin(), V.end());
-    double mnv = *std::min_element(V.begin(), V.end());
+    int busCount = gds->getInt("buscount");
+    EXPECT_EQ(busCount, 7);
+    std::vector<double> voltages;
+    gds->getVoltage(voltages);
+    double mxv = *std::max_element(voltages.begin(), voltages.end());
+    double mnv = *std::min_element(voltages.begin(), voltages.end());
     EXPECT_LT(mnv, mxv);
 }
 

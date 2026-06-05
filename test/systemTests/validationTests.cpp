@@ -7,11 +7,11 @@
 #include "../gtestHelper.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/simulation/GridDynSimulationFileOps.h"
-#include <cstdio>
 #include <gtest/gtest.h>
 #include <iostream>
 #include <map>
 #include <memory>
+#include <print>
 #include <set>
 #include <string>
 #include <string_view>
@@ -36,9 +36,10 @@ static std::string makeValidationTestPath(std::string_view fileName)
 
 using file_pair_t = std::pair<std::string, std::string>;
 
-std::ostream& operator<<(std::ostream& stream, const std::pair<std::string, std::string>& pr)
+std::ostream& operator<<(std::ostream& stream,
+                         const std::pair<std::string, std::string>& pairValue)
 {
-    stream << pr.first;
+    stream << pairValue.first;
     return stream;
 }
 
@@ -74,7 +75,7 @@ class ValidationTests: public GridDynSimulationTestFixture, public ::testing::Te
         gds->powerflow();
         auto stop_t = std::chrono::high_resolution_clock::now();
         elapsed_time = stop_t - start_t;
-        printf("%s completed in %f\n", test_case_pair.first.c_str(), elapsed_time.count());
+        std::println("{} completed in {:f}", test_case_pair.first, elapsed_time.count());
 #else
         gds->powerflow();
 #endif
@@ -113,72 +114,70 @@ class ValidationTests: public GridDynSimulationTestFixture, public ::testing::Te
     }
 };
 
-static const std::vector<file_pair_t> compare_cases{
-    {"case4gs.m", "case4gs_res.m"},
-    {"case5.m", "case5_res.m"},
-    {"case6ww.m", "case6ww_res.m"},
-    {"case9.m", "case9_res.m"},
-    {"case9Q.m", "case9Q_res.m"},
-    {"case9target.m", "case9target_res.m"},
-    {"case14.m", "case14_res.m"},
-    {"case24_ieee_rts.m", "case24_ieee_rts_res.m"},
-    {"case30.m", "case30_res.m"},
-    {"case30pwl.m", "case30pwl_res.m"},
-    {"case30Q.m", "case30Q_res.m"},
-    {"case_ieee30.m", "case_ieee30_res.m"},
-    {"case33bw_res.m",
-     "case33bw_res.m"},  // this one has some equations at the end that we can't read
-    {"case39.m", "case39_res.m"},
-    {"case57.m", "case57_res.m"},
-    {"case89pegase.m", "case89pegase_res.m"},
-    {"case118.m", "case118_res.m"},
-    {"case145.m", "case145_res.m"},
-    {"case_illinois200.m", "case_illinois200_res.m"},
-    {"case300.m", "case300_res.m"},
-    {"case1354pegase.m", "case1354pegase_res.m"},
-    {"case1888rte_res.m", "case1888rte_res.m"},
-    {"case1951rte_res.m", "case1951rte_res.m"},
-    {"case2383wp.m", "case2383wp_res.m"},
-    {"case2736sp.m", "case2736sp_res.m"},
-    {"case2737sop.m", "case2737sop_res.m"},
-    {"case2746wop.m", "case2746wop_res.m"},
-    {"case2746wp.m", "case2746wp_res.m"},
-    {"case2848rte_res.m", "case2848rte_res.m"},
-    {"case2868rte_res.m", "case2868rte_res.m"},
-    {"case2869pegase.m", "case2869pegase_res.m"},
-    {"case3012wp.m", "case3012wp_res.m"},
-    {"case3120sp.m", "case3120sp_res.m"},
-    {"case3375wp.m", "case3375wp_res.m"},
-    {"case6468rte_res.m", "case6468rte_res.m"},
-    {"case6515rte_res.m", "case6515rte_res.m"},
-    {"case9241pegase.m", "case9241pegase_res.m"},
-    {"case13659pegase.m", "case13659pegase_res.m"},
-};
-
 TEST_F(ValidationTests, MatpowerValidationTests)
 {
-    for (const auto& test_case_pair : compare_cases) {
+    const std::vector<file_pair_t> compareCases{
+        {"case4gs.m", "case4gs_res.m"},
+        {"case5.m", "case5_res.m"},
+        {"case6ww.m", "case6ww_res.m"},
+        {"case9.m", "case9_res.m"},
+        {"case9Q.m", "case9Q_res.m"},
+        {"case9target.m", "case9target_res.m"},
+        {"case14.m", "case14_res.m"},
+        {"case24_ieee_rts.m", "case24_ieee_rts_res.m"},
+        {"case30.m", "case30_res.m"},
+        {"case30pwl.m", "case30pwl_res.m"},
+        {"case30Q.m", "case30Q_res.m"},
+        {"case_ieee30.m", "case_ieee30_res.m"},
+        {"case33bw_res.m",
+         "case33bw_res.m"},  // this one has some equations at the end that we can't read
+        {"case39.m", "case39_res.m"},
+        {"case57.m", "case57_res.m"},
+        {"case89pegase.m", "case89pegase_res.m"},
+        {"case118.m", "case118_res.m"},
+        {"case145.m", "case145_res.m"},
+        {"case_illinois200.m", "case_illinois200_res.m"},
+        {"case300.m", "case300_res.m"},
+        {"case1354pegase.m", "case1354pegase_res.m"},
+        {"case1888rte_res.m", "case1888rte_res.m"},
+        {"case1951rte_res.m", "case1951rte_res.m"},
+        {"case2383wp.m", "case2383wp_res.m"},
+        {"case2736sp.m", "case2736sp_res.m"},
+        {"case2737sop.m", "case2737sop_res.m"},
+        {"case2746wop.m", "case2746wop_res.m"},
+        {"case2746wp.m", "case2746wp_res.m"},
+        {"case2848rte_res.m", "case2848rte_res.m"},
+        {"case2868rte_res.m", "case2868rte_res.m"},
+        {"case2869pegase.m", "case2869pegase_res.m"},
+        {"case3012wp.m", "case3012wp_res.m"},
+        {"case3120sp.m", "case3120sp_res.m"},
+        {"case3375wp.m", "case3375wp_res.m"},
+        {"case6468rte_res.m", "case6468rte_res.m"},
+        {"case6515rte_res.m", "case6515rte_res.m"},
+        {"case9241pegase.m", "case9241pegase_res.m"},
+        {"case13659pegase.m", "case13659pegase_res.m"},
+    };
+    for (const auto& test_case_pair : compareCases) {
         SCOPED_TRACE(test_case_pair.first);
         compareMatpowerCase(test_case_pair);
     }
 }
 
-static const std::vector<file_pair_t> compare_cases_gs{
-    {"case4gs.m", "case4gs_res.m"},
-    {"case5.m", "case5_res.m"},
-    {"case6ww.m", "case6ww_res.m"},
-    {"case14.m", "case14_res.m"},
-    {"case24_ieee_rts.m", "case24_ieee_rts_res.m"},
-    {"case30.m", "case30_res.m"},
-    {"case30pwl.m", "case30pwl_res.m"},
-    {"case30Q.m", "case30Q_res.m"},
-    {"case_ieee30.m", "case_ieee30_res.m"},
-    {"case39.m", "case39_res.m"},
-};
-
 TEST_F(ValidationTests, MatpowerValidationTestsGs)
 {
-    for (const auto& test_case_pair : compare_cases_gs) {
+    const std::vector<file_pair_t> compareCasesGs{
+        {"case4gs.m", "case4gs_res.m"},
+        {"case5.m", "case5_res.m"},
+        {"case6ww.m", "case6ww_res.m"},
+        {"case14.m", "case14_res.m"},
+        {"case24_ieee_rts.m", "case24_ieee_rts_res.m"},
+        {"case30.m", "case30_res.m"},
+        {"case30pwl.m", "case30pwl_res.m"},
+        {"case30Q.m", "case30Q_res.m"},
+        {"case_ieee30.m", "case_ieee30_res.m"},
+        {"case39.m", "case39_res.m"},
+    };
+    for (const auto& test_case_pair : compareCasesGs) {
         SCOPED_TRACE(test_case_pair.first);
         compareMatpowerCase(test_case_pair, "gauss-seidel");
     }

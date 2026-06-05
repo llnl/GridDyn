@@ -6,9 +6,9 @@
 
 #include "../gtestHelper.h"
 #include <chrono>
-#include <cstdio>
 #include <filesystem>
 #include <gtest/gtest.h>
+#include <print>
 #include <string>
 #include <string_view>
 
@@ -34,10 +34,10 @@ TEST_F(LargeContingencyTests, ContingencyN2)
     gds->run();
     auto stop_t = std::chrono::high_resolution_clock::now();
     EXPECT_TRUE(exists("contout_N2.csv"));
-    remove("contout_N2.csv");
+    static_cast<void>(remove("contout_N2.csv"));
 
     std::chrono::duration<double> load_time = (stop_t - start_t);
-    printf("contingencies run in %f seconds\n", load_time.count());
+    std::println("contingencies run in {:f} seconds", load_time.count());
 }
 
 TEST_F(LargeContingencyTests, ContingencyBcase)
@@ -52,5 +52,5 @@ TEST_F(LargeContingencyTests, ContingencyBcase)
     EXPECT_TRUE(exists("contout_N2.csv"));
 
     std::chrono::duration<double> load_time = (stop_t - start_t);
-    printf("contingencies run in %f seconds\n", load_time.count());
+    std::println("contingencies run in {:f} seconds", load_time.count());
 }

@@ -425,8 +425,8 @@ void FmiLibrary::loadCoSimFunctions()
 
 void FmiLibrary::makeCallbackFunctions()
 {
-    callbacks = std::make_shared<fmi2CallbackFunctions>(fmi2CallbackFunctions{
-        &loggerFunc, &calloc, &free, nullptr, static_cast<void*>(this)});
+    callbacks = std::make_shared<fmi2CallbackFunctions>(
+        fmi2CallbackFunctions{&loggerFunc, &calloc, &free, nullptr, static_cast<void*>(this)});
 }
 
 namespace {

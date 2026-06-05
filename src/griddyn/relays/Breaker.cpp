@@ -153,8 +153,8 @@ void Breaker::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 
     add(std::move(upperCtiCondition));
     add(std::move(lowerCtiCondition));
-    setConditionStatus(1, ConditionStatus::disabled);
-    setConditionStatus(2, ConditionStatus::disabled);
+    setConditionStatus(1, ConditionStatus::DISABLED);
+    setConditionStatus(2, ConditionStatus::DISABLED);
 
     Relay::dynObjectInitializeA(time0, flags);
 }
@@ -163,7 +163,7 @@ void Breaker::conditionTriggered(index_t conditionNum, CoreTime triggeredTime)
 {
     if (conditionNum == 0) {
         opFlags.set(OVERLIMIT_FLAG);
-        setConditionStatus(0, ConditionStatus::disabled);
+        setConditionStatus(0, ConditionStatus::DISABLED);
         if (mRecloserTap == 0.0) {
             if (mMinClearingTime <= kMin_Res) {
                 tripBreaker(triggeredTime);
@@ -173,8 +173,8 @@ void Breaker::conditionTriggered(index_t conditionNum, CoreTime triggeredTime)
             }
         } else {
             mCti = 0;
-            setConditionStatus(1, ConditionStatus::active);
-            setConditionStatus(2, ConditionStatus::active);
+            setConditionStatus(1, ConditionStatus::ACTIVE);
+            setConditionStatus(2, ConditionStatus::ACTIVE);
             alert(this, JAC_COUNT_INCREASE);
             mUseCti = true;
         }
@@ -184,9 +184,9 @@ void Breaker::conditionTriggered(index_t conditionNum, CoreTime triggeredTime)
     } else if (conditionNum == 2) {
         assert(opFlags[OVERLIMIT_FLAG]);
 
-        setConditionStatus(1, ConditionStatus::disabled);
-        setConditionStatus(2, ConditionStatus::disabled);
-        setConditionStatus(0, ConditionStatus::active);
+        setConditionStatus(1, ConditionStatus::DISABLED);
+        setConditionStatus(2, ConditionStatus::DISABLED);
+        setConditionStatus(0, ConditionStatus::ACTIVE);
         alert(this, JAC_COUNT_DECREASE);
         opFlags.reset(OVERLIMIT_FLAG);
         mUseCti = false;
@@ -205,7 +205,7 @@ void Breaker::updateA(CoreTime time)
                 tripBreaker(time);
             } else {
                 opFlags.reset(OVERLIMIT_FLAG);
-                setConditionStatus(0, ConditionStatus::active);
+                setConditionStatus(0, ConditionStatus::ACTIVE);
             }
         }
     } else {
@@ -253,7 +253,7 @@ void Breaker::jacobianElements(const IOdata& /*inputs*/,
     if (mUseCti) {
         MatrixDataSparse<double> localJacobian;
         IOdata out;
-        auto voltageOffset = mBus->getOutputLoc(sMode, voltageInLocation);
+        auto voltageOffset = mBus->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
         auto inputs = mBus->getOutputs(noInputs, stateDataRef, sMode);
         auto inputLocs = mBus->getOutputLocs(sMode);
         if (opFlags[NONLINK_SOURCE_FLAG]) {
@@ -278,15 +278,15 @@ void Breaker::jacobianElements(const IOdata& /*inputs*/,
 
         const double currentMagnitude = getConditionValue(0, stateDataRef, sMode);
         const double voltage = mBus->getVoltage(stateDataRef, sMode);
-        const double apparentPower = std::hypot(out[PoutLocation], out[QoutLocation]);
+        const double apparentPower = std::hypot(out[POUT_LOCATION], out[QOUT_LOCATION]);
         const double inverseScale = 1.0 / (apparentPower * voltage);
-        const double dIdP = out[PoutLocation] * inverseScale;
-        const double dIdQ = out[QoutLocation] * inverseScale;
+        const double dIdP = out[POUT_LOCATION] * inverseScale;
+        const double dIdQ = out[QOUT_LOCATION] * inverseScale;
 
-        localJacobian.scaleRow(PoutLocation, dIdP);
-        localJacobian.scaleRow(QoutLocation, dIdQ);
-        localJacobian.translateRow(PoutLocation, offset);
-        localJacobian.translateRow(QoutLocation, offset);
+        localJacobian.scaleRow(POUT_LOCATION, dIdP);
+        localJacobian.scaleRow(QOUT_LOCATION, dIdQ);
+        localJacobian.translateRow(POUT_LOCATION, offset);
+        localJacobian.translateRow(QOUT_LOCATION, offset);
 
         localJacobian.assignCheck(offset, voltageOffset, -apparentPower / (voltage * voltage));
         double dRdI;
@@ -435,14 +435,14 @@ void Breaker::resetBreaker(CoreTime time)
             }
         } else {
             mCti = 0;
-            setConditionStatus(1, ConditionStatus::active);
-            setConditionStatus(2, ConditionStatus::active);
+            setConditionStatus(1, ConditionStatus::ACTIVE);
+            setConditionStatus(2, ConditionStatus::ACTIVE);
             alert(this, JAC_COUNT_INCREASE);
             mUseCti = true;
         }
     } else {
         opFlags.reset(OVERLIMIT_FLAG);
-        setConditionStatus(0, ConditionStatus::active);
+        setConditionStatus(0, ConditionStatus::ACTIVE);
         mUseCti = false;
     }
 

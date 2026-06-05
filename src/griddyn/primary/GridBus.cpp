@@ -95,7 +95,7 @@ bool GridBus::checkCapable()
 {
     double remainingCapacity{0.0};
     double excessCapacity{0.0};
-    if (!opFlags[pFlow_initialized]) {
+    if (!opFlags[POWERFLOW_INITIALIZED]) {
         return true;
     }
     for (auto& load : attachedLoads) {
@@ -164,7 +164,7 @@ void addObject(GridBus* bus, X* obj, objVector<X*>& OVector)
         OVector.push_back(obj);
         obj->set("basevoltage", bus->localBaseVoltage);
         bus->addSubObject(obj);
-        if (bus->checkFlag(pFlow_initialized)) {
+        if (bus->checkFlag(POWERFLOW_INITIALIZED)) {
             bus->alert(bus, OBJECT_COUNT_INCREASE);
         }
     } else if (!isSameObject(obj, foundObj)) {
@@ -223,9 +223,9 @@ bool removeObject(X* obj, objVector<X*>& OVector)
     }
     if (isSameObject(obj, OVector[obj->locIndex])) {
         // alert that the states might have changed
-        if (obj->checkFlag(has_dyn_states)) {
+        if (obj->checkFlag(HAS_DYN_STATES)) {
             obj->getParent()->alert(obj->getParent(), STATE_COUNT_DECREASE);
-        } else if (obj->checkFlag(has_pflow_states)) {
+        } else if (obj->checkFlag(HAS_PFLOW_STATES)) {
             obj->getParent()->alert(obj->getParent(), STATE_COUNT_DECREASE);
         }
 
@@ -269,7 +269,7 @@ void GridBus::alert(CoreObject* obj, int code)
         case OBJECT_ID_CHANGE:
             break;
         case POTENTIAL_FAULT_CHANGE:
-            if (opFlags[disconnected]) {
+            if (opFlags[DISCONNECTED]) {
                 reconnect();
             }
             [[fallthrough]];
@@ -302,8 +302,8 @@ void GridBus::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
     for (auto& load : attachedLoads) {
         load->pFlowInitializeA(time0, flags);
     }
-    if (CHECK_CONTROLFLAG(flags, low_voltage_checking)) {
-        opFlags.set(low_voltage_check_flag);
+    if (CHECK_CONTROLFLAG(flags, LOW_VOLTAGE_CHECKING)) {
+        opFlags.set(LOW_VOLTAGE_CHECK_FLAG);
     }
 }
 
@@ -316,7 +316,7 @@ void GridBus::pFlowObjectInitializeB()
         load->pFlowInitializeB();
     }
     m_dstate_dt.resize(3, 0);
-    m_dstate_dt[angleInLocation] = systemBaseFrequency * (freq - 1.0);
+    m_dstate_dt[ANGLE_IN_LOCATION] = systemBaseFrequency * (freq - 1.0);
     m_state = {voltage, angle, freq};
 }
 
@@ -331,7 +331,7 @@ void GridBus::preEx(const IOdata& /*inputs*/,
 
 void GridBus::reset(ResetLevels level)
 {
-    if (opFlags[disconnected]) {
+    if (opFlags[DISCONNECTED]) {
         for (auto& link : attachedLinks) {
             if (link->isConnected()) {
                 reconnect();
@@ -341,12 +341,12 @@ void GridBus::reset(ResetLevels level)
     }
 
     for (auto& gen : attachedGens) {
-        if (gen->checkFlag(has_powerflow_adjustments)) {
+        if (gen->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {
             gen->reset(level);
         }
     }
     for (auto& ld : attachedLoads) {
-        if (ld->checkFlag(has_powerflow_adjustments)) {
+        if (ld->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {
             ld->reset(level);
         }
     }
@@ -357,13 +357,13 @@ ChangeCode GridBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flag
     auto out = ChangeCode::NO_CHANGE;
     IOdata inputs = {voltage, angle, freq};
     for (auto& gen : attachedGens) {
-        if (gen->checkFlag(has_powerflow_adjustments)) {
+        if (gen->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {
             auto pout = gen->powerFlowAdjust(inputs, flags, level);
             out = (std::max)(pout, out);
         }
     }
     for (auto& ld : attachedLoads) {
-        if (ld->checkFlag(has_powerflow_adjustments)) {
+        if (ld->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {
             auto pout = ld->powerFlowAdjust(inputs, flags, level);
             out = (std::max)(pout, out);
         }
@@ -374,8 +374,8 @@ ChangeCode GridBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flag
 // dynInitializeB states for dynamic solution
 void GridBus::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
-    opFlags[preEx_requested] = false;
-    opFlags[has_constraints] = false;
+    opFlags[PRE_EX_REQUESTED] = false;
+    opFlags[HAS_CONSTRAINTS] = false;
     offsets.unload(true);
     for (auto& gen : attachedGens) {
         gen->dynInitializeA(time0, flags);
@@ -392,26 +392,26 @@ void GridBus::dynObjectInitializeB(const IOdata& /*inputs*/,
                                    const IOdata& desiredOutput,
                                    IOdata& fieldSet)
 {
-    if (desiredOutput.size() > voltageInLocation) {
-        if (desiredOutput[voltageInLocation] > 0) {
-            voltage = desiredOutput[voltageInLocation];
+    if (desiredOutput.size() > VOLTAGE_IN_LOCATION) {
+        if (desiredOutput[VOLTAGE_IN_LOCATION] > 0) {
+            voltage = desiredOutput[VOLTAGE_IN_LOCATION];
         }
     }
-    if (desiredOutput.size() > angleInLocation) {
-        if (desiredOutput[angleInLocation] > -kHalfBigNum) {
-            angle = desiredOutput[angleInLocation];
+    if (desiredOutput.size() > ANGLE_IN_LOCATION) {
+        if (desiredOutput[ANGLE_IN_LOCATION] > -kHalfBigNum) {
+            angle = desiredOutput[ANGLE_IN_LOCATION];
         }
     }
-    if (desiredOutput.size() > frequencyInLocation) {
-        if (std::abs(desiredOutput[frequencyInLocation] - 1.0) < 0.5) {
-            freq = desiredOutput[frequencyInLocation];
+    if (desiredOutput.size() > FREQUENCY_IN_LOCATION) {
+        if (std::abs(desiredOutput[FREQUENCY_IN_LOCATION] - 1.0) < 0.5) {
+            freq = desiredOutput[FREQUENCY_IN_LOCATION];
         }
     }
     updateLocalCache();
 
-    m_state[voltageInLocation] = voltage;
-    m_state[angleInLocation] = angle;
-    m_state[frequencyInLocation] = freq;
+    m_state[VOLTAGE_IN_LOCATION] = voltage;
+    m_state[ANGLE_IN_LOCATION] = angle;
+    m_state[FREQUENCY_IN_LOCATION] = freq;
 
     // first get the state size for the internal state ordering
     IOdata inputs{voltage, angle, freq};
@@ -522,7 +522,7 @@ void GridBus::set(std::string_view param, double val, unit unitType)
 {
     if ((param == "voltage") || (param == "vol")) {
         if (voltage < 0.25) {
-            if (opFlags[dyn_initialized]) {
+            if (opFlags[DYN_INITIALIZED]) {
                 alert(this, POTENTIAL_FAULT_CHANGE);
             }
         }
@@ -631,11 +631,11 @@ double GridBus::getOutput(const IOdata& /*inputs*/,
                           index_t outNum) const
 {
     switch (outNum) {
-        case voltageInLocation:
+        case VOLTAGE_IN_LOCATION:
             return getVoltage(stateDataValue, sMode);
-        case angleInLocation:
+        case ANGLE_IN_LOCATION:
             return getAngle(stateDataValue, sMode);
-        case frequencyInLocation:
+        case FREQUENCY_IN_LOCATION:
             return getFreq(stateDataValue, sMode);
         default:
             return kNullVal;
@@ -645,11 +645,11 @@ double GridBus::getOutput(const IOdata& /*inputs*/,
 double GridBus::getOutput(index_t outNum) const
 {
     switch (outNum) {
-        case voltageInLocation:
+        case VOLTAGE_IN_LOCATION:
             return getVoltage();
-        case angleInLocation:
+        case ANGLE_IN_LOCATION:
             return getAngle();
-        case frequencyInLocation:
+        case FREQUENCY_IN_LOCATION:
             return getFreq();
         default:
             return kNullVal;
@@ -823,24 +823,24 @@ int GridBus::propogatePower(bool /*makeSlack*/)
     int adjPSecondary = 0;
     int adjQSecondary = 0;
     for (auto& ld : attachedLoads) {
-        if (ld->checkFlag(adjustable_P)) {
+        if (ld->checkFlag(ADJUSTABLE_P)) {
             ++adjPSecondary;
         } else {
             Pexp += ld->getRealPower();
         }
-        if (ld->checkFlag(adjustable_Q)) {
+        if (ld->checkFlag(ADJUSTABLE_Q)) {
             ++adjQSecondary;
         } else {
             Qexp += ld->getReactivePower();
         }
     }
     for (auto& gen : attachedGens) {
-        if (gen->checkFlag(adjustable_P)) {
+        if (gen->checkFlag(ADJUSTABLE_P)) {
             ++adjPSecondary;
         } else {
             Pexp -= gen->getRealPower();
         }
-        if (gen->checkFlag(adjustable_Q)) {
+        if (gen->checkFlag(ADJUSTABLE_Q)) {
             ++adjQSecondary;
         } else {
             Qexp -= gen->getReactivePower();
@@ -855,11 +855,11 @@ int GridBus::propogatePower(bool /*makeSlack*/)
         if ((adjPSecondary == 1) && (adjQSecondary == 1)) {
             int found = 0;
             for (auto& gen : attachedGens) {
-                if (gen->checkFlag(adjustable_P)) {
+                if (gen->checkFlag(ADJUSTABLE_P)) {
                     gen->set("p", Pexp);
                     ++found;
                 }
-                if (gen->checkFlag(adjustable_Q)) {
+                if (gen->checkFlag(ADJUSTABLE_Q)) {
                     gen->set("q", Qexp);
                     ++found;
                 }
@@ -868,11 +868,11 @@ int GridBus::propogatePower(bool /*makeSlack*/)
                 }
             }
             for (auto& ld : attachedLoads) {
-                if (ld->checkFlag(adjustable_P)) {
+                if (ld->checkFlag(ADJUSTABLE_P)) {
                     ld->set("p", -Pexp);
                     ++found;
                 }
-                if (ld->checkFlag(adjustable_Q)) {
+                if (ld->checkFlag(ADJUSTABLE_Q)) {
                     ld->set("q", -Qexp);
                     ++found;
                 }
@@ -896,7 +896,7 @@ void GridBus::residual(const IOdata& inputs,
                        const SolverMode& sMode)
 {
     updateLocalCache(inputs, stateDataValue, sMode);
-    if ((opFlags[low_voltage_check_flag]) && (outputs[voltageInLocation] < Vtol / 2.0) &&
+    if ((opFlags[LOW_VOLTAGE_CHECK_FLAG]) && (outputs[VOLTAGE_IN_LOCATION] < Vtol / 2.0) &&
         (isConnected())) {
         alert(this, INVALID_STATE_ALERT);
         alert(this, VERY_LOW_VOLTAGE_ALERT);
@@ -1001,11 +1001,11 @@ double GridBus::computeError(const StateData& stateDataValue, const SolverMode& 
 
 void GridBus::disconnect()
 {
-    if (!opFlags[disconnected]) {
-        opFlags.set(disconnected);
-        outLocs[voltageInLocation] = kNullLocation;
-        outLocs[angleInLocation] = kNullLocation;
-        outLocs[frequencyInLocation] = kNullLocation;
+    if (!opFlags[DISCONNECTED]) {
+        opFlags.set(DISCONNECTED);
+        outLocs[VOLTAGE_IN_LOCATION] = kNullLocation;
+        outLocs[ANGLE_IN_LOCATION] = kNullLocation;
+        outLocs[FREQUENCY_IN_LOCATION] = kNullLocation;
         alert(this, JAC_COUNT_DECREASE);
         logging::debug(this, "disconnecting bus");
         voltage = 0.0;
@@ -1018,16 +1018,16 @@ void GridBus::disconnect()
 
 void GridBus::reconnect(GridBus* mapBus)
 {
-    if (opFlags[disconnected]) {
+    if (opFlags[DISCONNECTED]) {
         logging::debug(this, "reconnecting to network");
-        opFlags.reset(disconnected);
+        opFlags.reset(DISCONNECTED);
         alert(this, JAC_COUNT_INCREASE);
         if (mapBus != nullptr) {
             angle = mapBus->angle;
             voltage = mapBus->voltage;
             freq = mapBus->freq;
         } else {
-            reset(ResetLevels::low_voltage_dyn1);
+            reset(ResetLevels::LOW_VOLTAGE_DYN1);
         }
         for (auto& lnk : attachedLinks) {
             lnk->reconnect();
@@ -1042,8 +1042,8 @@ void GridBus::reconnect()
 
 void GridBus::updateFlags(bool dynOnly)
 {
-    opFlags.reset(preEx_requested);
-    opFlags.reset(has_powerflow_adjustments);
+    opFlags.reset(PRE_EX_REQUESTED);
+    opFlags.reset(HAS_POWERFLOW_ADJUSTMENTS);
     GridComponent::updateFlags(dynOnly);
 }
 
@@ -1062,15 +1062,15 @@ void GridBus::updateLocalCache(const IOdata& /*inputs*/,
     if (!isConnected()) {
         return;
     }
-    outputs[voltageInLocation] = getVoltage(stateDataValue, sMode);
-    outputs[angleInLocation] = getAngle(stateDataValue, sMode);
-    outputs[frequencyInLocation] = getFreq(stateDataValue, sMode);
+    outputs[VOLTAGE_IN_LOCATION] = getVoltage(stateDataValue, sMode);
+    outputs[ANGLE_IN_LOCATION] = getAngle(stateDataValue, sMode);
+    outputs[FREQUENCY_IN_LOCATION] = getFreq(stateDataValue, sMode);
 #if DEBUG_KEY_BUS > 0
     if (getID() == DEBUG_KEY_BUS) {
         std::println("{} V={}, A={} voltage={}, angle={} ",
                      DEBUG_KEY_BUS,
-                     outputs[voltageInLocation],
-                     outputs[angleInLocation] * 180.0 / kPI,
+                     outputs[VOLTAGE_IN_LOCATION],
+                     outputs[ANGLE_IN_LOCATION] * 180.0 / kPI,
                      voltage,
                      angle * 180 / kPI);
     }
@@ -1162,8 +1162,8 @@ void GridBus::updateLocalCache()
         }
     }
 
-    if (!opFlags[dyn_initialized]) {
-        if ((type == BusType::SLK) || (type == BusType::afix)) {
+    if (!opFlags[DYN_INITIALIZED]) {
+        if ((type == BusType::SLK) || (type == BusType::AFIX)) {
             S.genP = -(S.loadP + S.linkP);
         }
         if ((type == BusType::SLK) || (type == BusType::PV)) {
@@ -1183,7 +1183,7 @@ void GridBus::updateLocalCache()
 
 double GridBus::getGenerationRealNominal() const
 {
-    if ((type == BusType::SLK) || (type == BusType::afix)) {
+    if ((type == BusType::SLK) || (type == BusType::AFIX)) {
         double general = 0.0;
         for (auto gen : attachedGens) {
             general += gen->getRealPower();
@@ -1431,7 +1431,7 @@ void GridBus::rootTrigger(CoreTime time,
         auto inputs = getOutputs(noInputs, emptyStateData, cLocalSolverMode);
         auto nR = rootsfound[rootFoundIndex];
         for (auto& gen : attachedGens) {
-            if ((gen->checkFlag(has_roots)) && (gen->isEnabled())) {
+            if ((gen->checkFlag(HAS_ROOTS)) && (gen->isEnabled())) {
                 rootCount += gen->rootSize(sMode);
                 if (nR < rootOffset + rootCount) {
                     gen->rootTrigger(time, inputs, rootMask, sMode);
@@ -1446,7 +1446,7 @@ void GridBus::rootTrigger(CoreTime time,
             }
         }
         for (auto& load : attachedLoads) {
-            if ((load->checkFlag(has_roots)) && (load->isEnabled())) {
+            if ((load->checkFlag(HAS_ROOTS)) && (load->isEnabled())) {
                 rootCount += load->rootSize(sMode);
                 if (nR < rootOffset + rootCount) {
                     load->rootTrigger(time, inputs, rootMask, sMode);
@@ -1477,11 +1477,11 @@ const std::vector<stringVec>& GridBus::outputNames() const
 units::unit GridBus::outputUnits(index_t outputNum) const
 {
     switch (outputNum) {
-        case voltageInLocation:
+        case VOLTAGE_IN_LOCATION:
             return units::puV;
-        case angleInLocation:
+        case ANGLE_IN_LOCATION:
             return units::rad;
-        case frequencyInLocation:
+        case FREQUENCY_IN_LOCATION:
             return units::puHz;
         default:
             return units::defunit;

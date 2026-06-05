@@ -19,17 +19,17 @@ using units::unit;
 
 VariableGenerator::VariableGenerator(const std::string& objName): DynamicGenerator(objName)
 {
-    opFlags[variableGeneration] = true;
-    opFlags.reset(adjustable_P);
-    opFlags.reset(local_power_control);
+    opFlags[VARIABLE_GENERATION] = true;
+    opFlags.reset(ADJUSTABLE_P);
+    opFlags.reset(LOCAL_POWER_CONTROL);
 }
 
 VariableGenerator::VariableGenerator(DynModel dynModel, const std::string& objName):
     DynamicGenerator(dynModel, objName)
 {
-    opFlags[variableGeneration] = true;
-    opFlags.reset(adjustable_P);
-    opFlags.reset(local_power_control);
+    opFlags[VARIABLE_GENERATION] = true;
+    opFlags.reset(ADJUSTABLE_P);
+    opFlags.reset(LOCAL_POWER_CONTROL);
 }
 
 CoreObject* VariableGenerator::clone(CoreObject* obj) const

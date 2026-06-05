@@ -96,7 +96,7 @@ void ThreeWindingTransformer::set(std::string_view param, double val, units::uni
     } else if (param == "length") {
         length = convert(val, unitType, units::km);
     } else if (param == "fault") {
-        if (opFlags[pFlow_initialized]) {
+        if (opFlags[POWERFLOW_INITIALIZED]) {
             fault = val;
             if (fault > 1.0) {
                 fault = -1;

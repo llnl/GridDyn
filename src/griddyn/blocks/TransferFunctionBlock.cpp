@@ -20,7 +20,7 @@ TransferFunctionBlock::TransferFunctionBlock(const std::string& objName):
     GridBlock(objName), a(2, 1), b(2, 0)
 {
     b[0] = 1;
-    opFlags.set(useState);
+    opFlags.set(USE_STATE);
 }
 
 TransferFunctionBlock::TransferFunctionBlock(int order): a(order + 1, 1), b(order + 1, 0)
@@ -31,7 +31,7 @@ TransferFunctionBlock::TransferFunctionBlock(int order): a(order + 1, 1), b(orde
     } else {
         b[0] = 1;
     }
-    opFlags.set(useState);
+    opFlags.set(USE_STATE);
 }
 
 TransferFunctionBlock::TransferFunctionBlock(std::vector<double> acoef):
@@ -43,7 +43,7 @@ TransferFunctionBlock::TransferFunctionBlock(std::vector<double> acoef):
     } else {
         b[0] = 1;
     }
-    opFlags.set(useState);
+    opFlags.set(USE_STATE);
 }
 
 TransferFunctionBlock::TransferFunctionBlock(std::vector<double> acoef, std::vector<double> bcoef):
@@ -53,7 +53,7 @@ TransferFunctionBlock::TransferFunctionBlock(std::vector<double> acoef, std::vec
         a.push_back(1.0);
     }
     b.resize(a.size(), 0);
-    opFlags.set(useState);
+    opFlags.set(USE_STATE);
 }
 
 CoreObject* TransferFunctionBlock::clone(CoreObject* obj) const
@@ -71,7 +71,7 @@ CoreObject* TransferFunctionBlock::clone(CoreObject* obj) const
 void TransferFunctionBlock::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (b.back() == 0) {
-        opFlags[differential_output] = true;
+        opFlags[DIFFERENTIAL_OUTPUT] = true;
         extraOutputState = false;
     } else {
         extraOutputState = true;
@@ -93,11 +93,11 @@ void TransferFunctionBlock::dynObjectInitializeB(const IOdata& inputs,
         //    m_state[2] = (1.0 - m_T2 / m_T1) * (inputs[0] + bias);
         m_state[1] = (inputs[0] + bias);
         m_state[0] = m_state[1] * K;
-        if (opFlags[hasLimits]) {
+        if (opFlags[HAS_LIMITS]) {
             GridBlock::rootCheck(inputs,
                                  emptyStateData,
                                  cLocalSolverMode,
-                                 CheckLevel::reversable_only);
+                                 CheckLevel::REVERSABLE_ONLY);
             m_state[0] = gmlc::utilities::valLimit(m_state[0], Omin, Omax);
         }
         fieldSet[0] = m_state[0];
@@ -141,7 +141,7 @@ void TransferFunctionBlock::blockDerivative(double input,
     // auto Aoffset = offsets.getAlgOffset (sMode);
     // deriv[offset + limiter_diff] = K*(input + bias - sD.state[Aoffset +
     // limiter_alg]) / m_T1;
-    if (opFlags[useRampLimits]) {
+    if (opFlags[USE_RAMP_LIMITS]) {
         GridBlock::blockDerivative(input, didt, stateDataValue, deriv, sMode);
     }
 }
@@ -201,7 +201,7 @@ double TransferFunctionBlock::step(CoreTime time, double inputA)
     // m_state[1] = m_state[2] + m_T2 / m_T1 * (input);
 
     prevInput = input;
-    if (opFlags[hasLimits]) {
+    if (opFlags[HAS_LIMITS]) {
         out = GridBlock::step(time, input);
     } else {
         out = K * m_state[1];

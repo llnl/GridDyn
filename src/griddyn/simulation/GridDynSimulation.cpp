@@ -49,7 +49,7 @@ GridDynSimulation::GridDynSimulation(const std::string& objName):
 {
 // defaults
 #ifndef GRIDDYN_ENABLE_KLU
-    controlFlags.set(dense_solver);
+    controlFlags.set(DENSE_SOLVER);
 #endif
 }
 
@@ -247,7 +247,7 @@ int GridDynSimulation::checkNetwork(NetworkCheckType checkType)
                 if (bus->checkCapable()) {
                     bus->Network = 0;
                     const auto BusType = bus->getType();
-                    if ((BusType == GridBus::BusType::SLK) || (BusType == GridBus::BusType::afix)) {
+                    if ((BusType == GridBus::BusType::SLK) || (BusType == GridBus::BusType::AFIX)) {
                         slkBusses.push_back(bus);
                     }
                 } else {
@@ -301,7 +301,7 @@ int GridDynSimulation::checkNetwork(NetworkCheckType checkType)
                     }
                     if (networkBus->getType() == GridBus::BusType::PV) {
                         pvFound = true;
-                    } else if (networkBus->getType() == GridBus::BusType::afix) {
+                    } else if (networkBus->getType() == GridBus::BusType::AFIX) {
                         afixFound = true;
                     }
                     if (afixFound && pvFound) {
@@ -314,8 +314,8 @@ int GridDynSimulation::checkNetwork(NetworkCheckType checkType)
         }
         // now we go into a loop to make a new slack bus
         if (!slackFound) {
-            if (controlFlags[disable_auto_slack_bus]) {
-                if (controlFlags[disable_auto_disconnect]) {
+            if (controlFlags[DISABLE_AUTO_SLACK_BUS]) {
+                if (controlFlags[DISABLE_AUTO_DISCONNECT]) {
                     logging::error(this, "no SLK bus found in network {}", nn);
                     for (auto& networkBus : bnetwork) {
                         if (networkBus->Network == nn) {
@@ -352,7 +352,7 @@ int GridDynSimulation::checkNetwork(NetworkCheckType checkType)
                 if (maxCapBus != nullptr) {
                     maxCapBus->set("type", "slk");
                 } else {
-                    if (controlFlags[disable_auto_disconnect]) {
+                    if (controlFlags[DISABLE_AUTO_DISCONNECT]) {
                         logging::error(this, "no SLK bus or PV bus found in network {}", nn);
                         for (auto& networkBus : bnetwork) {
                             if (networkBus->Network == nn) {
@@ -405,7 +405,7 @@ double GridDynSimulation::getState(index_t offset, const SolverMode& sMode) cons
             case GridState::DYNAMIC_INITIALIZED:
             case GridState::DYNAMIC_COMPLETE:
             case GridState::DYNAMIC_PARTIAL:
-                if (defaultDynamicSolverMethod == DynamicSolverMethods::dae) {
+                if (defaultDynamicSolverMethod == DynamicSolverMethods::DAE) {
                     nMode = *defDAEMode;
                 } else {
                     nMode = *defDynAlgMode;
@@ -440,7 +440,7 @@ std::vector<double> GridDynSimulation::getState(const SolverMode& sMode) const
             case GridState::DYNAMIC_INITIALIZED:
             case GridState::DYNAMIC_COMPLETE:
             case GridState::DYNAMIC_PARTIAL:
-                if (defaultDynamicSolverMethod == DynamicSolverMethods::dae) {
+                if (defaultDynamicSolverMethod == DynamicSolverMethods::DAE) {
                     nMode = *defDAEMode;
                 } else {
                     nMode = *defDynAlgMode;
@@ -477,12 +477,12 @@ void GridDynSimulation::setupOffsets(const SolverMode& sMode, OffsetOrdering off
 {
     SolverOffsets offsetValues;
     switch (offsetOrdering) {
-        case OffsetOrdering::mixed:
+        case OffsetOrdering::MIXED:
         default:
             offsetValues.algOffset = 0;
             break;
-        case OffsetOrdering::grouped:
-        case OffsetOrdering::voltage_first:
+        case OffsetOrdering::GROUPED:
+        case OffsetOrdering::VOLTAGE_FIRST:
             offsetValues.vOffset = 0;
             offsetValues.aOffset = voltageStateCount(sMode);
             offsetValues.algOffset = offsetValues.aOffset + angleStateCount(sMode);
@@ -490,13 +490,13 @@ void GridDynSimulation::setupOffsets(const SolverMode& sMode, OffsetOrdering off
                 offsetValues.diffOffset = totalAlgSize(sMode);
             }
             break;
-        case OffsetOrdering::algebraic_grouped:
+        case OffsetOrdering::ALGEBRAIC_GROUPED:
             offsetValues.algOffset = 0;
             if (hasDifferential(sMode)) {
                 offsetValues.diffOffset = totalAlgSize(sMode);
             }
             break;
-        case OffsetOrdering::angle_first:
+        case OffsetOrdering::ANGLE_FIRST:
             offsetValues.aOffset = 0;
             offsetValues.vOffset = angleStateCount(sMode);
             offsetValues.algOffset = offsetValues.aOffset + voltageStateCount(sMode);
@@ -504,7 +504,7 @@ void GridDynSimulation::setupOffsets(const SolverMode& sMode, OffsetOrdering off
                 offsetValues.diffOffset = totalAlgSize(sMode);
             }
             break;
-        case OffsetOrdering::differential_first:
+        case OffsetOrdering::DIFFERENTIAL_FIRST:
             offsetValues.diffOffset = 0;
             offsetValues.algOffset = diffSize(sMode);
             break;
@@ -521,8 +521,8 @@ int GridDynSimulation::run(CoreTime tEnd)
     if (tEnd == negTime) {
         tEnd = stopTime;
     }
-    gridDynAction gda;
-    gda.command = gridDynAction::GdAction::run;
+    GridDynAction gda;
+    gda.command = GridDynAction::GdAction::RUN;
     gda.val_double = tEnd;
     return execute(gda);
 }
@@ -532,26 +532,26 @@ void GridDynSimulation::add(std::string_view actionString)
     actionQueue.emplace(std::string{actionString});
 }
 
-void GridDynSimulation::add(gridDynAction& newAction)
+void GridDynSimulation::add(GridDynAction& newAction)
 {
     actionQueue.push(newAction);
 }
 
 int GridDynSimulation::execute(std::string_view cmd)
 {
-    const gridDynAction gda(std::string{cmd});
+    const GridDynAction gda(std::string{cmd});
     return execute(gda);
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-int GridDynSimulation::execute(const gridDynAction& cmd)
+int GridDynSimulation::execute(const GridDynAction& cmd)
 {
     int out = FUNCTION_EXECUTION_SUCCESS;
     switch (cmd.command) {
-        case gridDynAction::GdAction::ignore:
+        case GridDynAction::GdAction::IGNORE_ACTION:
         default:
             break;
-        case gridDynAction::GdAction::set: {
+        case GridDynAction::GdAction::SET_ACTION: {
             ObjectInfo objectInfo(cmd.string1, this);
             if (cmd.val_double == kNullVal) {
                 objectInfo.mObject->set(objectInfo.mField, cmd.string2);
@@ -559,18 +559,18 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
                 objectInfo.mObject->set(objectInfo.mField, cmd.val_double, objectInfo.mUnitType);
             }
         } break;
-        case gridDynAction::GdAction::setall:
+        case GridDynAction::GdAction::SETALL:
             setAll(cmd.string1, cmd.string2, cmd.val_double);
             break;
-        case gridDynAction::GdAction::setsolver:
+        case GridDynAction::GdAction::SETSOLVER:
             solverSet(cmd.string1, cmd.string2, cmd.val_double);
             break;
-        case gridDynAction::GdAction::print:
+        case GridDynAction::GdAction::PRINT:
             break;
-        case gridDynAction::GdAction::powerflow:
+        case GridDynAction::GdAction::POWERFLOW:
             out = powerflow();
             break;
-        case gridDynAction::GdAction::check:
+        case GridDynAction::GdAction::CHECK:
             if (cmd.string1 == "powerflow") {
                 std::vector<Violation> violations;
                 pFlowCheck(violations);
@@ -593,7 +593,7 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
                 }
             }
             break;
-        case gridDynAction::GdAction::contingency: {
+        case GridDynAction::GdAction::CONTINGENCY: {
             auto info = emptyExtraInfo;
 
             if (cmd.flag == 1) {
@@ -609,10 +609,10 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
         }
 
         break;
-        case gridDynAction::GdAction::continuation:
+        case GridDynAction::GdAction::CONTINUATION:
             out = FUNCTION_EXECUTION_FAILURE;
             break;
-        case gridDynAction::GdAction::initialize: {
+        case GridDynAction::GdAction::INITIALIZE: {
             const CoreTime startTimeValue =
                 (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : startTime;
 
@@ -630,14 +630,14 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
                 }
             }
         } break;
-        case gridDynAction::GdAction::iterate: {
+        case GridDynAction::GdAction::ITERATE: {
             const CoreTime timeStepValue =
                 (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stepTime;
             const CoreTime endTimeValue =
                 (cmd.val_double2 != kNullVal) ? CoreTime(cmd.val_double2) : stopTime;
             out = eventDrivenPowerflow(endTimeValue, timeStepValue);
         } break;
-        case gridDynAction::GdAction::eventmode: {
+        case GridDynAction::GdAction::EVENTMODE: {
             const CoreTime endTimeValue =
                 (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stopTime;
             if (cmd.val_double2 != kNullVal) {
@@ -649,7 +649,7 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
         }
 
         break;
-        case gridDynAction::GdAction::dynamicDAE: {
+        case GridDynAction::GdAction::DYNAMIC_DAE: {
             const CoreTime endTimeValue =
                 (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stopTime;
             if (pState < GridState::DYNAMIC_INITIALIZED) {
@@ -665,7 +665,7 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
             }
             out = dynamicDAE(endTimeValue);
         } break;
-        case gridDynAction::GdAction::dynamicPart: {
+        case GridDynAction::GdAction::DYNAMIC_PART: {
             const double endTimeValue =
                 (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stopTime;
             const double timeStepValue =
@@ -683,7 +683,7 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
             }
             out = dynamicPartitioned(endTimeValue, timeStepValue);
         } break;
-        case gridDynAction::GdAction::dynamicDecoupled: {
+        case GridDynAction::GdAction::DYNAMIC_DECOUPLED: {
             const double endTimeValue =
                 (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stopTime;
             const double timeStepValue =
@@ -697,7 +697,7 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
 
             out = dynamicDecoupled(endTimeValue, timeStepValue);
         } break;
-        case gridDynAction::GdAction::step: {
+        case GridDynAction::GdAction::STEP: {
             const CoreTime timeStepValue =
                 (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stepTime;
             CoreTime timeActual =
@@ -715,11 +715,11 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
             }
             out = step(timeStepValue, timeActual);
         } break;
-        case gridDynAction::GdAction::run:
+        case GridDynAction::GdAction::RUN:
             if (actionQueue.empty()) {
                 const CoreTime endTimeValue =
                     (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stopTime;
-                if (controlFlags[power_flow_only]) {
+                if (controlFlags[POWER_FLOW_ONLY]) {
                     out = powerflow();
                 } else {
                     if (pState < GridState::DYNAMIC_INITIALIZED) {
@@ -731,14 +731,14 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
 
                     if (hasDynamics()) {
                         switch (defaultDynamicSolverMethod) {
-                            case DynamicSolverMethods::dae:
+                            case DynamicSolverMethods::DAE:
                             default:
                                 out = dynamicDAE(endTimeValue);
                                 break;
-                            case DynamicSolverMethods::partitioned:
+                            case DynamicSolverMethods::PARTITIONED:
                                 out = dynamicPartitioned(endTimeValue, stepTime);
                                 break;
-                            case DynamicSolverMethods::decoupled:
+                            case DynamicSolverMethods::DECOUPLED:
                                 out = dynamicDecoupled(endTimeValue, stepTime);
                                 break;
                         }
@@ -762,14 +762,14 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
                 }
             }
             break;
-        case gridDynAction::GdAction::reset:
+        case GridDynAction::GdAction::RESET:
             if (cmd.val_int1 >= 0) {
                 reset(static_cast<ResetLevels>(cmd.val_int1));
             } else {
-                reset(ResetLevels::minimal);
+                reset(ResetLevels::MINIMAL);
             }
             break;
-        case gridDynAction::GdAction::save:
+        case GridDynAction::GdAction::SAVE:
             if (cmd.string1 == "recorder") {
                 saveRecorders();
             } else if (cmd.string1 == "state") {
@@ -783,13 +783,13 @@ int GridDynSimulation::execute(const gridDynAction& cmd)
             } else if ((cmd.string1 == "voltage") || (cmd.string1 == "jacstate")) {
             }
             break;
-        case gridDynAction::GdAction::load:
+        case GridDynAction::GdAction::LOAD:
             if ((cmd.string1 == "state") || (cmd.string1 == "powerflow")) {
             }
             break;
-        case gridDynAction::GdAction::add:
-        case gridDynAction::GdAction::rollback:
-        case gridDynAction::GdAction::checkpoint:
+        case GridDynAction::GdAction::ADD:
+        case GridDynAction::GdAction::ROLLBACK:
+        case GridDynAction::GdAction::CHECKPOINT:
             break;
     }
     return out;
@@ -812,18 +812,18 @@ void GridDynSimulation::set(std::string_view param, std::string_view val)
 {
     if (param == "powerflowfile") {
         powerFlowFile = val;
-        controlFlags.set(save_power_flow_data);
+        controlFlags.set(SAVE_POWER_FLOW_DATA);
     } else if (param == "powerflowinputfile") {
         powerFlowInputFile = val;
-        controlFlags.set(save_power_flow_input_data);
+        controlFlags.set(SAVE_POWER_FLOW_INPUT_DATA);
     } else if (param == "defpowerflow") {
-        setDefaultMode(SolutionModes::powerflow_mode, getSolverMode(std::string{val}));
+        setDefaultMode(SolutionModes::POWERFLOW_MODE, getSolverMode(std::string{val}));
     } else if (param == "defdae") {
-        setDefaultMode(SolutionModes::dae_mode, getSolverMode(std::string{val}));
+        setDefaultMode(SolutionModes::DAE_MODE, getSolverMode(std::string{val}));
     } else if (param == "defdynalg") {
-        setDefaultMode(SolutionModes::algebraic_mode, getSolverMode(std::string{val}));
+        setDefaultMode(SolutionModes::ALGEBRAIC_MODE, getSolverMode(std::string{val}));
     } else if (param == "defdyndiff") {
-        setDefaultMode(SolutionModes::differential_mode, getSolverMode(std::string{val}));
+        setDefaultMode(SolutionModes::DIFFERENTIAL_MODE, getSolverMode(std::string{val}));
     } else if (param == "action") {
         auto actions = gmlc::utilities::stringOps::splitline(val, ';');
         gmlc::utilities::stringOps::trim(actions);
@@ -833,28 +833,28 @@ void GridDynSimulation::set(std::string_view param, std::string_view val)
     } else if (param == "ordering") {
         auto order = gmlc::utilities::convertToLowerCase(val);
         if (order == "mixed") {
-            default_ordering = OffsetOrdering::mixed;
+            default_ordering = OffsetOrdering::MIXED;
         } else if (order == "grouped") {
-            default_ordering = OffsetOrdering::grouped;
+            default_ordering = OffsetOrdering::GROUPED;
         } else if (order == "algebraic_grouped") {
-            default_ordering = OffsetOrdering::algebraic_grouped;
+            default_ordering = OffsetOrdering::ALGEBRAIC_GROUPED;
         } else if (order == "voltage_first") {
-            default_ordering = OffsetOrdering::voltage_first;
+            default_ordering = OffsetOrdering::VOLTAGE_FIRST;
         } else if (order == "angle_first") {
-            default_ordering = OffsetOrdering::angle_first;
+            default_ordering = OffsetOrdering::ANGLE_FIRST;
         } else if (order == "differential_first") {
-            default_ordering = OffsetOrdering::differential_first;
+            default_ordering = OffsetOrdering::DIFFERENTIAL_FIRST;
         } else {
             throw(InvalidParameterValue(val));
         }
     } else if (param == "dynamicsolvermethod") {
         auto method = gmlc::utilities::convertToLowerCase(val);
         if (method == "dae") {
-            defaultDynamicSolverMethod = DynamicSolverMethods::dae;
+            defaultDynamicSolverMethod = DynamicSolverMethods::DAE;
         } else if (method == "partitioned") {
-            defaultDynamicSolverMethod = DynamicSolverMethods::partitioned;
+            defaultDynamicSolverMethod = DynamicSolverMethods::PARTITIONED;
         } else if (method == "decoupled") {
-            defaultDynamicSolverMethod = DynamicSolverMethods::decoupled;
+            defaultDynamicSolverMethod = DynamicSolverMethods::DECOUPLED;
         } else {
             throw(InvalidParameterValue(val));
         }
@@ -882,9 +882,9 @@ void GridDynSimulation::setDefaultMode(SolutionModes mode, const SolverMode& sMo
         add(solverData);
     }
     switch (mode) {
-        case SolutionModes::powerflow_mode:
+        case SolutionModes::POWERFLOW_MODE:
             if (isAlgebraicOnly(sMode)) {
-                if (opFlags[pFlow_initialized]) {
+                if (opFlags[POWERFLOW_INITIALIZED]) {
                     if (solverData->isInitialized()) {
                         reInitpFlow(solverData->getSolverMode());
                     }
@@ -895,9 +895,9 @@ void GridDynSimulation::setDefaultMode(SolutionModes mode, const SolverMode& sMo
                 throw(InvalidParameterValue("mode"));
             }
             break;
-        case SolutionModes::dae_mode:
+        case SolutionModes::DAE_MODE:
             if (isDAE(sMode)) {
-                if (opFlags[dyn_initialized]) {
+                if (opFlags[DYN_INITIALIZED]) {
                     if (solverData->isInitialized()) {
                         reInitDyn(solverData->getSolverMode());
                     }
@@ -908,9 +908,9 @@ void GridDynSimulation::setDefaultMode(SolutionModes mode, const SolverMode& sMo
                 throw(InvalidParameterValue("mode"));
             }
             break;
-        case SolutionModes::algebraic_mode:
+        case SolutionModes::ALGEBRAIC_MODE:
             if (isAlgebraicOnly(sMode)) {
-                if (opFlags[dyn_initialized]) {
+                if (opFlags[DYN_INITIALIZED]) {
                     if (solverData->isInitialized()) {
                         reInitDyn(solverData->getSolverMode());
                     }
@@ -921,9 +921,9 @@ void GridDynSimulation::setDefaultMode(SolutionModes mode, const SolverMode& sMo
                 throw(InvalidParameterValue("mode"));
             }
             break;
-        case SolutionModes::differential_mode:
+        case SolutionModes::DIFFERENTIAL_MODE:
             if (isDifferentialOnly(sMode)) {
-                if (opFlags[dyn_initialized]) {
+                if (opFlags[DYN_INITIALIZED]) {
                     if (solverData->isInitialized()) {
                         reInitDyn(solverData->getSolverMode());
                     }
@@ -942,31 +942,43 @@ void GridDynSimulation::setDefaultMode(SolutionModes mode, const SolverMode& sMo
 static const std::unordered_map<std::string, int>& getFlagControlMap()
 {
     static const std::unordered_map<std::string, int> flagControlMap{
-        {"autoallocate", power_adjust_enabled},
-        {"power_adjust", power_adjust_enabled},
-        {"sparse", -dense_solver},
-        {"dense", dense_solver},
-        {"no_auto_autogen", no_auto_autogen},
-        {"auto_bus_disconnect", auto_bus_disconnect},
-        {"roots_disabled", roots_disabled},
-        {"voltageconstraints", voltage_constraints_flag},
-        {"record_on_halt", record_on_halt_flag},
-        {"constraints_disabled", constraints_disabled},
-        {"dc_mode", dc_mode},
-        {"dcFlow_initialization", dcFlow_initialization},
-        {"no_link_adjustments", disable_link_adjustments},
-        {"disable_link_adjustments", disable_link_adjustments},
-        {"ignore_bus_limits", ignore_bus_limits},
-        {"powerflow_only", power_flow_only},
-        {"no_powerflow_adjustments", no_powerflow_adjustments},
-        {"savepowerflow", save_power_flow_data},
-        {"savepowerflowinput", save_power_flow_input_data},
-        {"low_voltage_check", low_voltage_checking},
-        {"no_powerflow_error_recovery", no_powerflow_error_recovery},
-        {"dae_initialization_for_partitioned", dae_initialization_for_partitioned},
-        {"force_powerflow", force_extra_powerflow},
-        {"force_extra_powerflow", force_extra_powerflow},
-        {"droop_power_flow", droop_power_flow},
+        {"autoallocate", POWER_ADJUST_ENABLED},
+        {"power_adjust", POWER_ADJUST_ENABLED},
+        {"sparse", -DENSE_SOLVER},
+        {"dense", DENSE_SOLVER},
+        {"no_auto_autogen", NO_AUTO_AUTOGEN},
+        {"NO_AUTO_AUTOGEN", NO_AUTO_AUTOGEN},
+        {"auto_bus_disconnect", AUTO_BUS_DISCONNECT},
+        {"AUTO_BUS_DISCONNECT", AUTO_BUS_DISCONNECT},
+        {"roots_disabled", ROOTS_DISABLED},
+        {"ROOTS_DISABLED", ROOTS_DISABLED},
+        {"voltageconstraints", VOLTAGE_CONSTRAINTS_FLAG},
+        {"record_on_halt", RECORD_ON_HALT_FLAG},
+        {"constraints_disabled", CONSTRAINTS_DISABLED},
+        {"CONSTRAINTS_DISABLED", CONSTRAINTS_DISABLED},
+        {"dc_mode", DC_MODE},
+        {"DC_MODE", DC_MODE},
+        {"dcFlow_initialization", DC_FLOW_INITIALIZATION},
+        {"DC_FLOW_INITIALIZATION", DC_FLOW_INITIALIZATION},
+        {"no_link_adjustments", DISABLE_LINK_ADJUSTMENTS},
+        {"DISABLE_LINK_ADJUSTMENTS", DISABLE_LINK_ADJUSTMENTS},
+        {"ignore_bus_limits", IGNORE_BUS_LIMITS},
+        {"IGNORE_BUS_LIMITS", IGNORE_BUS_LIMITS},
+        {"powerflow_only", POWER_FLOW_ONLY},
+        {"no_powerflow_adjustments", NO_POWERFLOW_ADJUSTMENTS},
+        {"NO_POWERFLOW_ADJUSTMENTS", NO_POWERFLOW_ADJUSTMENTS},
+        {"savepowerflow", SAVE_POWER_FLOW_DATA},
+        {"savepowerflowinput", SAVE_POWER_FLOW_INPUT_DATA},
+        {"low_voltage_check", LOW_VOLTAGE_CHECKING},
+        {"no_powerflow_error_recovery", NO_POWERFLOW_ERROR_RECOVERY},
+        {"NO_POWERFLOW_ERROR_RECOVERY", NO_POWERFLOW_ERROR_RECOVERY},
+        {"dae_initialization_for_partitioned", DAE_INITIALIZATION_FOR_PARTITIONED},
+        {"DAE_INITIALIZATION_FOR_PARTITIONED", DAE_INITIALIZATION_FOR_PARTITIONED},
+        {"force_powerflow", FORCE_EXTRA_POWERFLOW},
+        {"force_extra_powerflow", FORCE_EXTRA_POWERFLOW},
+        {"FORCE_EXTRA_POWERFLOW", FORCE_EXTRA_POWERFLOW},
+        {"droop_power_flow", DROOP_POWER_FLOW},
+        {"DROOP_POWER_FLOW", DROOP_POWER_FLOW},
     };
     return flagControlMap;
 }
@@ -982,12 +994,12 @@ void GridDynSimulation::setFlag(std::string_view flag, bool val)
             controlFlags.set(-flagIter->second, !val);
         }
     } else if (flag == "threads") {
-        /*parallel_residual_enabled = 7,
-                        parallel_jacobian_enabled = 8,
-                        parallel_contingency_enabled = 9,*/
-        controlFlags.set(parallel_residual_enabled, val);
-        controlFlags.set(parallel_contingency_enabled, val);
-        controlFlags.set(parallel_jacobian_enabled, val);
+        /*PARALLEL_RESIDUAL_ENABLED = 7,
+                        PARALLEL_JACOBIAN_ENABLED = 8,
+                        PARALLEL_CONTINGENCY_ENABLED = 9,*/
+        controlFlags.set(PARALLEL_RESIDUAL_ENABLED, val);
+        controlFlags.set(PARALLEL_CONTINGENCY_ENABLED, val);
+        controlFlags.set(PARALLEL_JACOBIAN_ENABLED, val);
         // TODO(phlpt): Add some more option controls here.
     } else {
         GridSimulation::setFlag(flag, val);
@@ -1015,13 +1027,13 @@ void GridDynSimulation::set(std::string_view param, double val, units::unit unit
     } else if (param == "maxpoweradjustiterations") {
         max_Padjust_iterations = static_cast<count_t>(val);
     } else if (param == "defpowerflow") {
-        setDefaultMode(SolutionModes::powerflow_mode, getSolverMode(static_cast<index_t>(val)));
+        setDefaultMode(SolutionModes::POWERFLOW_MODE, getSolverMode(static_cast<index_t>(val)));
     } else if (param == "defdae") {
-        setDefaultMode(SolutionModes::dae_mode, getSolverMode(static_cast<index_t>(val)));
+        setDefaultMode(SolutionModes::DAE_MODE, getSolverMode(static_cast<index_t>(val)));
     } else if (param == "defdynalg") {
-        setDefaultMode(SolutionModes::algebraic_mode, getSolverMode(static_cast<index_t>(val)));
+        setDefaultMode(SolutionModes::ALGEBRAIC_MODE, getSolverMode(static_cast<index_t>(val)));
     } else if (param == "defdyndiff") {
-        setDefaultMode(SolutionModes::differential_mode, getSolverMode(static_cast<index_t>(val)));
+        setDefaultMode(SolutionModes::DIFFERENTIAL_MODE, getSolverMode(static_cast<index_t>(val)));
     } else if (param == "maxvoltageadjustiterations") {
         max_Vadjust_iterations = static_cast<count_t>(val);
     } else {
@@ -1139,26 +1151,26 @@ double GridDynSimulation::get(std::string_view param, units::unit unitType) cons
 static const std::map<int, size_t>& getAlertFlags()
 {
     static const std::map<int, size_t> alertFlags{
-        std::make_pair(STATE_COUNT_CHANGE, state_change_flag),
-        std::make_pair(STATE_COUNT_INCREASE, state_change_flag),
-        std::make_pair(STATE_COUNT_DECREASE, state_change_flag),
-        std::make_pair(ROOT_COUNT_CHANGE, root_change_flag),
-        std::make_pair(ROOT_COUNT_INCREASE, root_change_flag),
-        std::make_pair(ROOT_COUNT_DECREASE, root_change_flag),
-        std::make_pair(JAC_COUNT_CHANGE, jacobian_count_change_flag),
-        std::make_pair(JAC_COUNT_DECREASE, jacobian_count_change_flag),
-        std::make_pair(JAC_COUNT_INCREASE, jacobian_count_change_flag),
-        std::make_pair(OBJECT_COUNT_CHANGE, object_change_flag),
-        std::make_pair(OBJECT_COUNT_INCREASE, object_change_flag),
-        std::make_pair(OBJECT_COUNT_DECREASE, object_change_flag),
-        std::make_pair(CONSTRAINT_COUNT_CHANGE, constraint_change_flag),
-        std::make_pair(CONSTRAINT_COUNT_INCREASE, constraint_change_flag),
-        std::make_pair(CONSTRAINT_COUNT_DECREASE, constraint_change_flag),
-        std::make_pair(SLACK_BUS_CHANGE, slack_bus_change),
-        std::make_pair(POTENTIAL_FAULT_CHANGE, reset_voltage_flag),
-        std::make_pair(VERY_LOW_VOLTAGE_ALERT, low_bus_voltage),
-        std::make_pair(INVALID_STATE_ALERT, invalid_state_flag),
-        std::make_pair(CONNECTIVITY_CHANGE, connectivity_change_flag),
+        std::make_pair(STATE_COUNT_CHANGE, STATE_CHANGE_FLAG),
+        std::make_pair(STATE_COUNT_INCREASE, STATE_CHANGE_FLAG),
+        std::make_pair(STATE_COUNT_DECREASE, STATE_CHANGE_FLAG),
+        std::make_pair(ROOT_COUNT_CHANGE, ROOT_CHANGE_FLAG),
+        std::make_pair(ROOT_COUNT_INCREASE, ROOT_CHANGE_FLAG),
+        std::make_pair(ROOT_COUNT_DECREASE, ROOT_CHANGE_FLAG),
+        std::make_pair(JAC_COUNT_CHANGE, JACOBIAN_COUNT_CHANGE_FLAG),
+        std::make_pair(JAC_COUNT_DECREASE, JACOBIAN_COUNT_CHANGE_FLAG),
+        std::make_pair(JAC_COUNT_INCREASE, JACOBIAN_COUNT_CHANGE_FLAG),
+        std::make_pair(OBJECT_COUNT_CHANGE, OBJECT_CHANGE_FLAG),
+        std::make_pair(OBJECT_COUNT_INCREASE, OBJECT_CHANGE_FLAG),
+        std::make_pair(OBJECT_COUNT_DECREASE, OBJECT_CHANGE_FLAG),
+        std::make_pair(CONSTRAINT_COUNT_CHANGE, CONSTRAINT_CHANGE_FLAG),
+        std::make_pair(CONSTRAINT_COUNT_INCREASE, CONSTRAINT_CHANGE_FLAG),
+        std::make_pair(CONSTRAINT_COUNT_DECREASE, CONSTRAINT_CHANGE_FLAG),
+        std::make_pair(SLACK_BUS_CHANGE, SLACK_BUS_CHANGE_FLAG),
+        std::make_pair(POTENTIAL_FAULT_CHANGE, RESET_VOLTAGE_FLAG),
+        std::make_pair(VERY_LOW_VOLTAGE_ALERT, LOW_BUS_VOLTAGE),
+        std::make_pair(INVALID_STATE_ALERT, INVALID_STATE_FLAG),
+        std::make_pair(CONNECTIVITY_CHANGE, CONNECTIVITY_CHANGE_FLAG),
 
     };
     return alertFlags;
@@ -1178,7 +1190,7 @@ void GridDynSimulation::alert(CoreObject* object, int code)
 
         GridArea::alert(object, code);
     } else if (code == SINGLE_STEP_REQUIRED) {
-        controlFlags.set(single_step_mode);
+        controlFlags.set(SINGLE_STEP_MODE);
         if (dynamic_cast<GridComponent*>(object) != nullptr) {
             singleStepObjects.push_back(static_cast<GridComponent*>(object));
         }
@@ -1225,8 +1237,8 @@ int GridDynSimulation::makeReady(GridState desiredState, const SolverMode& sMode
     if (desiredState != pState) {
         switch (desiredState) {
             case GridState::INITIALIZED:
-                if (!controlFlags[no_reset]) {
-                    reset(ResetLevels::minimal);
+                if (!controlFlags[NO_RESET]) {
+                    reset(ResetLevels::MINIMAL);
                 }
                 reInitpFlow(sMode);
                 break;
@@ -1404,11 +1416,11 @@ SolverMode GridDynSimulation::getCurrentMode(const SolverMode& sMode) const
         case GridState::DYNAMIC_COMPLETE:
         case GridState::DYNAMIC_PARTIAL:
             switch (defaultDynamicSolverMethod) {
-                case DynamicSolverMethods::dae:
+                case DynamicSolverMethods::DAE:
                     return *defDAEMode;
-                case DynamicSolverMethods::partitioned:
+                case DynamicSolverMethods::PARTITIONED:
                     return *defDynAlgMode;
-                case DynamicSolverMethods::decoupled:
+                case DynamicSolverMethods::DECOUPLED:
                     return cLocalSolverMode;
                 default:
                     return *defDAEMode;
@@ -1520,7 +1532,7 @@ std::shared_ptr<SolverInterface> GridDynSimulation::updateSolver(const SolverMod
 
     auto solverData = solverInterfaces[kIndex];
     assert(solverData);
-    if (controlFlags[dense_solver]) {
+    if (controlFlags[DENSE_SOLVER]) {
         solverData->set("dense", 1.0);
     }
     solverData->set("tolerance", tols.rtol);

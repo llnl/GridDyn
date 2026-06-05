@@ -3,6 +3,13 @@
 This is a first-pass inventory of prominent naming patterns in GridDyn that do
 not match the project style guide adapted from HELICS.
 
+This audit is historical baseline material. Several foundational examples
+called out here, including `gridSimulation`, `gridDynSimulation`, and
+`commMessage`, have since been migrated in maintained first-party source to
+`GridSimulation`, `GridDynSimulation`, and `CommMessage`. Treat the examples
+below as representative of the original baseline rather than the current source
+of truth.
+
 ## Highest-Impact Legacy Patterns
 
 1. Many core class names are lower camel case or lower case instead of

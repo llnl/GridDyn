@@ -66,7 +66,7 @@ void TcpCommunicator::transmit(std::uint64_t /*destID*/,
     // txmsg.send(*txSocket);
 }
 
-// void TcpCommunicator::addHeader(zmq::multipart_t &msg, std::shared_ptr<commMessage> &
+// void TcpCommunicator::addHeader(zmq::multipart_t &msg, std::shared_ptr<CommMessage> &
 // /*message*/)
 //{
 //    if (!flags[no_transmit_source])
@@ -75,7 +75,7 @@ void TcpCommunicator::transmit(std::uint64_t /*destID*/,
 //    }
 //}
 
-// void TcpCommunicator::addMessageBody(zmq::multipart_t &msg, std::shared_ptr<commMessage>
+// void TcpCommunicator::addMessageBody(zmq::multipart_t &msg, std::shared_ptr<CommMessage>
 // &message)
 //{
 //    msg.addstr(message->toDataString());
@@ -88,7 +88,7 @@ void TcpCommunicator::initialize()
 
 void TcpCommunicator::disconnect()
 {
-    if (!flags[transmitOnly]) {
+    if (!flags[TRANSMIT_ONLY]) {
         //    ZmqReactor::getReactorInstance("")->closeSocket(getName() + "_rx");
     }
     // txSocket = nullptr;
@@ -119,22 +119,22 @@ void TcpCommunicator::set(std::string_view param, double val)
 void TcpCommunicator::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "txonly") || (flag == "transmitonly") || (flag == "transmit_only")) {
-        flags.set(transmitOnly, val);
+        flags.set(TRANSMIT_ONLY, val);
     } else if (flag == "transmitsource") {
-        flags.set(noTransmitSource, !val);
+        flags.set(NO_TRANSMIT_SOURCE, !val);
     } else if (flag == "notransmitsource") {
-        flags.set(noTransmitSource, val);
+        flags.set(NO_TRANSMIT_SOURCE, val);
     } else if (flag == "transmitdest") {
-        flags.set(noTransmitDest, !val);
+        flags.set(NO_TRANSMIT_DEST, !val);
     } else if (flag == "notransmitdest") {
-        flags.set(noTransmitDest, val);
+        flags.set(NO_TRANSMIT_DEST, val);
     } else if (flag == "useproxy") {
-        flags.set(useRxProxy, val);
-        flags.set(useTxProxy, val);
+        flags.set(USE_RX_PROXY, val);
+        flags.set(USE_TX_PROXY, val);
     } else if (flag == "usetxproxy") {
-        flags.set(useTxProxy, val);
+        flags.set(USE_TX_PROXY, val);
     } else if (flag == "userxproxy") {
-        flags.set(useRxProxy, val);
+        flags.set(USE_RX_PROXY, val);
     } else {
         Communicator::setFlag(flag, val);
     }

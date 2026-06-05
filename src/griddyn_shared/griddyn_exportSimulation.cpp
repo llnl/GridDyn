@@ -23,7 +23,7 @@ using griddyn::compiler;
 using griddyn::CoreTime;
 using griddyn::ExecutionFailure;
 using griddyn::FileOperationError;
-using griddyn::gridDynAction;
+using griddyn::GridDynAction;
 using griddyn::GriddynRunner;
 using griddyn::InvalidParameterValue;
 using griddyn::kNullVal;
@@ -245,8 +245,8 @@ void GridDynSimulationAddCommand(GridDynSimulation sim, const char* command, Gri
         assignError(err, griddyn_error_invalid_object, invalidSimulation);
         return;
     }
-    gridDynAction action(command);
-    if (action.command != gridDynAction::GdAction::invalid) {
+    GridDynAction action(command);
+    if (action.command != GridDynAction::GdAction::INVALID) {
         runner->getSim()->add(action);
         return;
     }

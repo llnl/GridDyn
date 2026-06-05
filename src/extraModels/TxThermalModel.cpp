@@ -60,11 +60,11 @@ CoreObject* TxThermalModel::clone(CoreObject* obj) const
 void TxThermalModel::setFlag(std::string_view flag, bool val)
 {
     if (flag == "auto") {
-        opFlags.set(auto_parameter_load, val);
+        opFlags.set(AUTO_PARAMETER_LOAD, val);
     } else if (flag == "parameter_updates") {
-        opFlags.set(enable_parameter_updates, val);
+        opFlags.set(ENABLE_PARAMETER_UPDATES, val);
     } else if (flag == "enable_alarms") {
-        opFlags.set(enable_alarms, val);
+        opFlags.set(ENABLE_ALARMS, val);
     } else {
         Sensor::setFlag(flag, val);
     }
@@ -75,7 +75,7 @@ void TxThermalModel::set(std::string_view param, std::string_view val)
     if ((param == "txtype") || (param == "cooling")) {
         const auto normalizedValue = gmlc::utilities::convertToLowerCase(val);
         if (normalizedValue == "auto") {
-            opFlags.set(auto_parameter_load);
+            opFlags.set(AUTO_PARAMETER_LOAD);
         } else if (normalizedValue == "oa") {
             mRatedHotSpotRise = 25.0;
             mRatedTopOilRise = 55.0;
@@ -138,31 +138,31 @@ void TxThermalModel::set(std::string_view param, double val, units::unit unitTyp
         mWindingTimeConstant = units::convert(val, unitType, units::second);
     } else if ((param == "alarmtemp") || (param == "alarmtemp1")) {
         mAlarmTemp1 = units::convert(val, unitType, units::degC);
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
             getCondition(0)->setConditionRHS(mAlarmTemp1);
             setConditionStatus(0,
-                               (mAlarmTemp1 > 0.1) ? ConditionStatus::active :
-                                                     ConditionStatus::disabled);
+                               (mAlarmTemp1 > 0.1) ? ConditionStatus::ACTIVE :
+                                                     ConditionStatus::DISABLED);
         }
     } else if (param == "alarmtemp2") {
         mAlarmTemp2 = units::convert(val, unitType, units::degC);
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
             getCondition(1)->setConditionRHS(mAlarmTemp2);
             setConditionStatus(1,
-                               (mAlarmTemp2 > 0.1) ? ConditionStatus::active :
-                                                     ConditionStatus::disabled);
+                               (mAlarmTemp2 > 0.1) ? ConditionStatus::ACTIVE :
+                                                     ConditionStatus::DISABLED);
         }
     } else if (param == "cutouttemp") {
         mCutoutTemp = units::convert(val, unitType, units::degC);
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
             getCondition(2)->setConditionRHS(mCutoutTemp);
             setConditionStatus(2,
-                               (mCutoutTemp > 0.1) ? ConditionStatus::active :
-                                                     ConditionStatus::disabled);
+                               (mCutoutTemp > 0.1) ? ConditionStatus::ACTIVE :
+                                                     ConditionStatus::DISABLED);
         }
     } else if (param == "alarmdelay") {
         mAlarmDelay = units::convert(val, unitType, units::second);
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
             setActionTrigger(0, 0, mAlarmDelay);
             setActionTrigger(1, 1, mAlarmDelay);
             setActionTrigger(2, 2, mAlarmDelay);
@@ -211,7 +211,7 @@ void TxThermalModel::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 
     mRating = m_sourceObject->get("rating");
     const double basePower = m_sourceObject->get("basepower");
-    if (opFlags[auto_parameter_load]) {
+    if (opFlags[AUTO_PARAMETER_LOAD]) {
         if (mRating * basePower < 2.5) {
             set("cooling", "oa");
         } else if (mRating * basePower < 10) {
@@ -235,7 +235,7 @@ void TxThermalModel::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     mRadiationConstant = mRatedLoss / mRatedTopOilRise;  // compute the radiation constant
     mThermalCapacity =
         mOilTimeConstant * mRatedLoss / mRatedTopOilRise;  // compute the thermal mass constant
-    if (!opFlags[dyn_initialized]) {
+    if (!opFlags[DYN_INITIALIZED]) {
         Sensor::setFlag("sampled", true);
         Sensor::set("input0", "current");
         Sensor::set("input1", "loss");
@@ -246,8 +246,8 @@ void TxThermalModel::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 
         Sensor::add(topOilDelayBlock);
         Sensor::add(windingDelayBlock);
-        topOilDelayBlock->parentSetFlag(separate_processing, true, this);
-        windingDelayBlock->parentSetFlag(separate_processing, true, this);
+        topOilDelayBlock->parentSetFlag(SEPARATE_PROCESSING, true, this);
+        windingDelayBlock->parentSetFlag(SEPARATE_PROCESSING, true, this);
         auto ambientGrabber = std::make_shared<CustomGrabber>();
         ambientGrabber->setGrabberFunction("ambient", [this](CoreObject* /*unused*/) -> double {
             return mAmbientTemp;
@@ -292,13 +292,13 @@ void TxThermalModel::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
         setActionTrigger(3, 2, mAlarmDelay);
 
         if (mAlarmTemp1 <= 0.1) {
-            setConditionStatus(0, ConditionStatus::disabled);
+            setConditionStatus(0, ConditionStatus::DISABLED);
         }
         if (mAlarmTemp2 <= 0.1) {
-            setConditionStatus(1, ConditionStatus::disabled);
+            setConditionStatus(1, ConditionStatus::DISABLED);
         }
         if (mCutoutTemp <= 0.1) {
-            setConditionStatus(2, ConditionStatus::disabled);
+            setConditionStatus(2, ConditionStatus::DISABLED);
         }
     }
     Sensor::dynObjectInitializeA(time0, flags);

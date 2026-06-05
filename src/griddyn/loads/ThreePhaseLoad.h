@@ -13,8 +13,8 @@ namespace griddyn {
 class GridBus;
 namespace loads {
     enum class PhaseType {
-        abc,
-        pnz,
+        ABC,
+        PNZ,
     };
     /** Three phase load is a base object for supporting 3-phase constant power loads includes a few
 conversions to positive sequence values.
@@ -22,9 +22,9 @@ conversions to positive sequence values.
     class ThreePhaseLoad: public GridLoad {
       public:
         enum ThreePhaseLoadFlags {
-            use_abs_angle = object_flag5,
-            three_phase_output = object_flag6,
-            three_phase_input = object_flag7,
+            USE_ABS_ANGLE = OBJECT_FLAG5,
+            THREE_PHASE_OUTPUT = OBJECT_FLAG6,
+            THREE_PHASE_INPUT = OBJECT_FLAG7,
         };
 
       private:
@@ -71,22 +71,22 @@ conversions to positive sequence values.
         virtual IOdata getRealPower3Phase(const IOdata& inputs,
                                           const StateData& sD,
                                           const SolverMode& sMode,
-                                          PhaseType type = PhaseType::abc) const;
+                                          PhaseType type = PhaseType::ABC) const;
         virtual IOdata getReactivePower3Phase(const IOdata& inputs,
                                               const StateData& sD,
                                               const SolverMode& sMode,
-                                              PhaseType type = PhaseType::abc) const;
+                                              PhaseType type = PhaseType::ABC) const;
         /** get the 3 phase real output power that based on the given voltage
     @param[in] V the bus voltage
     @return the real power consumed by the load*/
-        virtual IOdata getRealPower3Phase(const IOdata& V, PhaseType type = PhaseType::abc) const;
+        virtual IOdata getRealPower3Phase(const IOdata& V, PhaseType type = PhaseType::ABC) const;
         /** get the 3 phase reactive output power that based on the given voltage
     @param[in] V the bus voltage
     @return the reactive power consumed by the load*/
         virtual IOdata getReactivePower3Phase(const IOdata& V,
-                                              PhaseType type = PhaseType::abc) const;
-        virtual IOdata getRealPower3Phase(PhaseType type = PhaseType::abc) const;
-        virtual IOdata getReactivePower3Phase(PhaseType type = PhaseType::abc) const;
+                                              PhaseType type = PhaseType::ABC) const;
+        virtual IOdata getRealPower3Phase(PhaseType type = PhaseType::ABC) const;
+        virtual IOdata getReactivePower3Phase(PhaseType type = PhaseType::ABC) const;
 
         void setPa(double val);
         void setPb(double val);

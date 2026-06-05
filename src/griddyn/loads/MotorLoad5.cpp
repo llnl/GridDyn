@@ -47,13 +47,13 @@ void MotorLoad5::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 
     scale = mBase / systemBasePower;
     m_state.resize(7, 0);
-    if (opFlags[init_transient]) {
+    if (opFlags[INIT_TRANSIENT]) {
         m_state[2] = init_slip;
     } else if (Pmot > -kHalfBigNum) {
         m_state[2] = computeSlip(Pmot);
     } else {
         m_state[2] = 1.0;
-        opFlags.set(init_transient);
+        opFlags.set(INIT_TRANSIENT);
     }
     // NOLINTNEXTLINE
     GridLoad::pFlowObjectInitializeA(time0, flags);
@@ -132,7 +132,7 @@ void MotorLoad5::dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& /*desiredOutput*/,
                                       IOdata& /*fieldSet*/)
 {
-    if (opFlags[init_transient]) {
+    if (opFlags[INIT_TRANSIENT]) {
         derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
     }
 }
@@ -160,7 +160,7 @@ count_t MotorLoad5::localJacobianCount(const SolverMode& sMode) const
             localJacSize += 27;
         }
     } else {
-        if (opFlags[init_transient]) {
+        if (opFlags[INIT_TRANSIENT]) {
             localJacSize = 31;
         } else {
             localJacSize = 35;
@@ -198,8 +198,8 @@ void MotorLoad5::residual(const IOdata& inputs,
     if (isDynamic(sMode)) {
         auto Loc = offsets.getLocations(sD, resid, sMode, this);
 
-        double voltage = inputs[voltageInLocation];
-        double theta = inputs[angleInLocation];
+        double voltage = inputs[VOLTAGE_IN_LOCATION];
+        double theta = inputs[ANGLE_IN_LOCATION];
         const double* gm = Loc.algStateLoc;
         const double* gmd = Loc.diffStateLoc;
         const double* gmp = Loc.dstateLoc;
@@ -229,8 +229,8 @@ void MotorLoad5::residual(const IOdata& inputs,
         rvd[4] -= gmp[4];
     } else {
         auto offset = offsets.getAlgOffset(sMode);
-        double voltage = inputs[voltageInLocation];
-        double theta = inputs[angleInLocation];
+        double voltage = inputs[VOLTAGE_IN_LOCATION];
+        double theta = inputs[ANGLE_IN_LOCATION];
 
         const double* gm = sD.state + offset;
         double* rv = resid + offset;
@@ -246,7 +246,7 @@ void MotorLoad5::residual(const IOdata& inputs,
         double slip = gm[slipA];
         // printf("angle=%f, slip=%f\n", theta, slip);
         // slip
-        if (opFlags[init_transient]) {
+        if (opFlags[INIT_TRANSIENT]) {
             rv[slipA] = slip - m_state[slipA];
         } else {
             double Te = gm[erppA] * gm[irA] + gm[emppA] * gm[imA];
@@ -309,8 +309,8 @@ void MotorLoad5::timestep(CoreTime time, const IOdata& inputs, const SolverMode&
 void MotorLoad5::updateCurrents(const IOdata& inputs, const StateData& sD, const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, const_cast<double*>(sD.state), sMode, this);
-    double voltage = inputs[voltageInLocation];
-    double theta = inputs[angleInLocation];
+    double voltage = inputs[VOLTAGE_IN_LOCATION];
+    double theta = inputs[ANGLE_IN_LOCATION];
 
     double vr = -voltage * Vcontrol * sin(theta);
     double vm = voltage * Vcontrol * cos(theta);
@@ -343,7 +343,7 @@ void MotorLoad5::derivative(const IOdata& /*inputs*/,
     }
 
     // slip
-    if (opFlags[stalled]) {
+    if (opFlags[STALLED]) {
         dv[slipD] = 0;
     } else {
         double Te = dst[erppD] * ast[irA] + dst[emppD] * ast[imA];
@@ -388,10 +388,10 @@ void MotorLoad5::jacobianElements(const IOdata& inputs,
         cj = 0;
     }
 
-    double voltage = inputs[voltageInLocation];
-    double theta = inputs[angleInLocation];
-    auto VLoc = inputLocs[voltageInLocation];
-    auto TLoc = inputLocs[angleInLocation];
+    double voltage = inputs[VOLTAGE_IN_LOCATION];
+    double theta = inputs[ANGLE_IN_LOCATION];
+    auto VLoc = inputLocs[VOLTAGE_IN_LOCATION];
+    auto TLoc = inputLocs[ANGLE_IN_LOCATION];
 
     double Vr = -voltage * Vcontrol * sin(theta);
     double Vm = voltage * Vcontrol * cos(theta);
@@ -427,7 +427,7 @@ void MotorLoad5::jacobianElements(const IOdata& inputs,
     md.assign(refAlg + 1, refDiff + 3, -1);
 
     double slip = dst[0];
-    if ((isDynamic(sMode)) || (!opFlags[init_transient])) {
+    if ((isDynamic(sMode)) || (!opFlags[INIT_TRANSIENT])) {
         /*
     // slip
     double Te = dst[1] * ast[0] + dst[2] * ast[1];
@@ -435,7 +435,7 @@ void MotorLoad5::jacobianElements(const IOdata& inputs,
 
     */
         // slip
-        if (opFlags[stalled]) {
+        if (opFlags[STALLED]) {
             md.assign(refDiff, refDiff, -cj);
         } else {
             md.assign(refDiff, refDiff, dmechds(slip) / (2 * H) - cj);
@@ -519,7 +519,7 @@ void MotorLoad5::rootTest(const IOdata& /*inputs*/,
 {
     auto Loc = offsets.getLocations(sD, sMode, this);
     auto ro = offsets.getRootOffset(sMode);
-    if (opFlags[stalled]) {
+    if (opFlags[STALLED]) {
         double Te = Loc.diffStateLoc[erppD] * Loc.algStateLoc[irA] +
             Loc.diffStateLoc[emppD] * Loc.algStateLoc[imA];
         roots[ro] = Te - mechPower(1.0);
@@ -537,14 +537,14 @@ void MotorLoad5::rootTrigger(CoreTime /*time*/,
     if (rootMask[offsets.getRootOffset(sMode)] == 0) {
         return;
     }
-    if (opFlags[stalled]) {
-        if (inputs[voltageInLocation] > 0.5) {
-            opFlags.reset(stalled);
+    if (opFlags[STALLED]) {
+        if (inputs[VOLTAGE_IN_LOCATION] > 0.5) {
+            opFlags.reset(STALLED);
             alert(this, JAC_COUNT_INCREASE);
             m_state[slipA] = 1.0 - 1e-7;
         }
     } else {
-        opFlags.set(stalled);
+        opFlags.set(STALLED);
         alert(this, JAC_COUNT_DECREASE);
         m_state[slipA] = 1.0;
     }
@@ -555,12 +555,12 @@ ChangeCode MotorLoad5::rootCheck(const IOdata& /*inputs*/,
                                  const SolverMode& sMode,
                                  CheckLevel /*level*/)
 {
-    if (opFlags[stalled]) {
+    if (opFlags[STALLED]) {
         auto Loc = offsets.getLocations(sD, sMode, this);
         double Te = Loc.diffStateLoc[erppD] * Loc.algStateLoc[irA] +
             Loc.diffStateLoc[emppD] * Loc.algStateLoc[imA];
         if (Te - mechPower(1.0) > 0) {
-            opFlags.reset(stalled);
+            opFlags.reset(STALLED);
             alert(this, JAC_COUNT_INCREASE);
             return ChangeCode::JACOBIAN_CHANGE;
         }

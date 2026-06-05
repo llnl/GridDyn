@@ -73,8 +73,8 @@ void FmiMELoad3phase::setState(CoreTime time,
 {
     fmisub->setState(time, state, dstateDt, sMode);
     auto out = fmisub->getOutputs(noInputs, emptyStateData, cLocalSolverMode);
-    setP(out[PoutLocation]);
-    setQ(out[QoutLocation]);
+    setP(out[POUT_LOCATION]);
+    setQ(out[QOUT_LOCATION]);
 }
 
 void FmiMELoad3phase::updateLocalCache(const IOdata& inputs,

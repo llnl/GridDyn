@@ -28,7 +28,7 @@ using units::unit;
 Svd::Svd(const std::string& objName): RampLoad(objName) {}
 Svd::Svd(double rP, double rQ, const std::string& objName): RampLoad(rP, rQ, objName)
 {
-    opFlags.set(adjustable_Q);
+    opFlags.set(ADJUSTABLE_Q);
 }
 
 Svd::~Svd() = default;
@@ -84,13 +84,13 @@ int Svd::checkSetting(double level)
     if (level == 0.0) {
         return 0;
     }
-    if (opFlags[continuous_flag]) {
+    if (opFlags[CONTINUOUS_FLAG]) {
         return ((level >= Qlow) && (level <= Qhigh)) ? 1 : -1;
     }
 
     int setting = 0;
     double totalQ = Qlow;
-    if (!opFlags[reverse_control_flag]) {
+    if (!opFlags[REVERSE_CONTROL_FLAG]) {
         auto block = Cblocks.begin();
         while (std::abs(totalQ) < std::abs(level)) {
             for (int kk = 0; kk < (*block).first; ++kk) {
@@ -122,13 +122,13 @@ int Svd::checkSetting(double level)
         }
     }
     if (std::abs(totalQ) > std::abs(level)) {
-        if (opFlags[reverse_toggled_flag]) {
-            opFlags.flip(reverse_control_flag);
-            opFlags.reset(reverse_toggled_flag);
+        if (opFlags[REVERSE_TOGGLED_FLAG]) {
+            opFlags.flip(REVERSE_CONTROL_FLAG);
+            opFlags.reset(REVERSE_TOGGLED_FLAG);
             logging::warning(this, "unable to match requested level");
         } else {
-            opFlags.flip(reverse_control_flag);
-            opFlags.set(reverse_toggled_flag);
+            opFlags.flip(REVERSE_CONTROL_FLAG);
+            opFlags.set(REVERSE_TOGGLED_FLAG);
             return checkSetting(level);
         }
     }
@@ -145,7 +145,7 @@ void Svd::updateSetting(int step)
         setYq(Qhigh);
     } else {
         double qlevel = Qlow;
-        if (opFlags[reverse_control_flag]) {
+        if (opFlags[REVERSE_CONTROL_FLAG]) {
             auto block = Cblocks.begin();
             int scount = 0;
 
@@ -178,14 +178,14 @@ void Svd::updateSetting(int step)
 
 void Svd::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
-    if (opFlags[continuous_flag]) {
-        if (!opFlags[locked_flag]) {
-            opFlags.set(has_pflow_states);
-            opFlags.set(has_powerflow_adjustments);
+    if (opFlags[CONTINUOUS_FLAG]) {
+        if (!opFlags[LOCKED_FLAG]) {
+            opFlags.set(HAS_PFLOW_STATES);
+            opFlags.set(HAS_POWERFLOW_ADJUSTMENTS);
         }
     } else {
-        if (!opFlags[locked_flag]) {
-            opFlags.set(has_powerflow_adjustments);
+        if (!opFlags[LOCKED_FLAG]) {
+            opFlags.set(HAS_POWERFLOW_ADJUSTMENTS);
         }
     }
     return ZipLoad::pFlowObjectInitializeA(time0, flags);
@@ -239,19 +239,19 @@ void Svd::set(std::string_view param, std::string_view val)
     } else if (param == "mode") {
         auto v2 = convertToLowerCase(val);
         if ((v2 == "manual") || (v2 == "locked")) {
-            opFlags.set(locked_flag);
+            opFlags.set(LOCKED_FLAG);
         }
         if ((v2 == "cont") || (v2 == "continuous")) {
-            opFlags.set(continuous_flag, true);
-            opFlags.reset(locked_flag);
+            opFlags.set(CONTINUOUS_FLAG, true);
+            opFlags.reset(LOCKED_FLAG);
         } else if ((v2 == "stepped") || (v2 == "discrete")) {
-            opFlags.reset(continuous_flag);
-            opFlags.reset(locked_flag);
+            opFlags.reset(CONTINUOUS_FLAG);
+            opFlags.reset(LOCKED_FLAG);
         }
     } else if (param == "control") {
         auto v2 = convertToLowerCase(val);
         if (v2 == "reactive") {
-            opFlags.set(reactive_control_flag, true);
+            opFlags.set(REACTIVE_CONTROL_FLAG, true);
         }
     } else {
         ZipLoad::set(param, val);

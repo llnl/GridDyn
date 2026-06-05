@@ -14,37 +14,37 @@ namespace griddyn {
 
 /** @brief class to define action and parameters for GridDyn operations
  */
-class gridDynAction {
+class GridDynAction {
   public:
     /** @brief the list of possible actions
      */
     enum class GdAction {
-        ignore,  //!< null action
-        set,  //!< set a parameter
-        setsolver,  //!< set a parameter in the solver
-        setall,  //!< set a parameter in all the models of a particular type
-        print,  //!< print a variable
-        initialize,  //!< initialize the models
-        powerflow,  //!< run a power flow
-        reset,  //!< reset the models
-        iterate,  //!< perform an iterative power flow
-        eventmode,  //!< run in event Mode
-        dynamicDAE,  //!< do a dynamic calculation using the DAE solver
-        dynamicPart,  //!< do a dynamic calculation using the partitioned solver
-        dynamicDecoupled,  //!< do a dynamic calculation using the decoupled mode
-        step,  //!< perform a single step operation
-        run,  //!< run the script or the model based on stored parameters
-        save,  //!< save the results
-        check,  //!< check the current results in various ways
-        load,  //!< load a state into the simulation
-        add,  //!< add a model to the simulation
-        rollback,  //!< rollback the simulation to a particular time point
-        checkpoint,  //!< checkpoint the complete system state
-        contingency,  //!< perform a contingency analysis
-        continuation,  //!< perform a continuation analysis
-        invalid  //!< invalid command
+        IGNORE_ACTION,  //!< null action
+        SET_ACTION,  //!< SET a parameter
+        SETSOLVER,  //!< set a parameter in the solver
+        SETALL,  //!< set a parameter in all the models of a particular type
+        PRINT,  //!< PRINT a variable
+        INITIALIZE,  //!< INITIALIZE the models
+        POWERFLOW,  //!< run a power flow
+        RESET,  //!< RESET the models
+        ITERATE,  //!< perform an iterative power flow
+        EVENTMODE,  //!< run in event Mode
+        DYNAMIC_DAE,  //!< do a dynamic calculation using the DAE solver
+        DYNAMIC_PART,  //!< do a dynamic calculation using the partitioned solver
+        DYNAMIC_DECOUPLED,  //!< do a dynamic calculation using the decoupled mode
+        STEP,  //!< perform a single STEP operation
+        RUN,  //!< RUN the script or the model based on stored parameters
+        SAVE,  //!< SAVE the results
+        CHECK,  //!< CHECK the current results in various ways
+        LOAD,  //!< LOAD a state into the simulation
+        ADD,  //!< ADD a model to the simulation
+        ROLLBACK,  //!< ROLLBACK the simulation to a particular time point
+        CHECKPOINT,  //!< CHECKPOINT the complete system state
+        CONTINGENCY,  //!< perform a CONTINGENCY analysis
+        CONTINUATION,  //!< perform a CONTINUATION analysis
+        INVALID  //!< INVALID command
     };
-    GdAction command = GdAction::ignore;  //!< the command to execute
+    GdAction command = GdAction::IGNORE_ACTION;  //!< the command to execute
     std::string string1;  //!< string parameter 1 of the action
     std::string string2;  //!< string parameter 2 of the action
     int val_int1{-1};  //!< integer parameter of action
@@ -54,14 +54,14 @@ class gridDynAction {
     double val_double2{kNullVal};  //!< double parameter 2 of the action
 
     /** @brief constructor*/
-    gridDynAction() = default;
+    GridDynAction() = default;
     /** @brief constructor taking a command
     @param[in] action command
     */
-    /*IMPLICIT*/ gridDynAction(GdAction action) noexcept;
+    /*IMPLICIT*/ GridDynAction(GdAction action) noexcept;
     /** @brief constructor with action string
     @param[in] operation  a string containing the information for a specific action*/
-    /*IMPLICIT*/ gridDynAction(std::string_view operation);
+    /*IMPLICIT*/ GridDynAction(std::string_view operation);
 
     /** @brief fill an actions parameters based on a string
     @param[in] operation  a string containing the information for a specific action*/

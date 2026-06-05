@@ -99,7 +99,7 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
                                   int mode = 0);
 
 /** @brief print out the structure and count of the Jacobian entries and counts
-@param[in] md the matrix data object to analyze
+@param[in] matrixData the matrix data object to analyze
 @param[in] gds the GridDynSimulation object to work with
 @param[in] sMode the solver mode in use
 */

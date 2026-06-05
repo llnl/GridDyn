@@ -40,7 +40,7 @@ int GridDynSimulation::powerflow()
     }
     // load the vectors
     // operate in a loop then check then repeat
-    bool hasPowerAdjustments = controlFlags[power_adjust_enabled];
+    bool hasPowerAdjustments = controlFlags[POWER_ADJUST_ENABLED];
 
     std::vector<double> slkBusBase(slkBusses.size());
 
@@ -65,10 +65,10 @@ int GridDynSimulation::powerflow()
             ChangeCode AdjustmentChanges = ChangeCode::NO_CHANGE;
             do {
                 guessState(currentTime, pFlowData->stateData(), nullptr, solverModeRef);
-                if ((controlFlags[save_power_flow_input_data] &&
-                     !controlFlags[power_flow_input_saved])) {
+                if ((controlFlags[SAVE_POWER_FLOW_INPUT_DATA] &&
+                     !controlFlags[POWER_FLOW_INPUT_SAVED])) {
                     savePowerFlow(this, powerFlowInputFile);
-                    controlFlags[power_flow_input_saved] = true;
+                    controlFlags[POWER_FLOW_INPUT_SAVED] = true;
                 }
                 // solve
                 CoreTime returnTime = currentTime;
@@ -77,7 +77,7 @@ int GridDynSimulation::powerflow()
                 if (retval < 0) {
                     logging::warning(this, "solver error return code:{}", retval);
 
-                    if (controlFlags[no_powerflow_error_recovery]) {
+                    if (controlFlags[NO_POWERFLOW_ERROR_RECOVERY]) {
                         logging::error(this,
                                        "unable to solve power flow ||{}",
                                        pFlowData->getLastErrorString());
@@ -97,7 +97,7 @@ int GridDynSimulation::powerflow()
                             }
                             continue;
                         }
-                        if (!controlFlags[disable_automatic_load_loss]) {
+                        if (!controlFlags[DISABLE_AUTOMATIC_LOAD_LOSS]) {
                             ++rebalance_count;
                             if (rebalance_count < 3) {
                                 const int rebalanceStatus = rebalanceLoadGen();
@@ -139,22 +139,22 @@ int GridDynSimulation::powerflow()
                     break;
                 }
 
-                if (!controlFlags[no_powerflow_adjustments]) {
+                if (!controlFlags[NO_POWERFLOW_ADJUSTMENTS]) {
                     // check the solution if voltage limits are not ignored
 
                     if (pState == GridState::INITIALIZED) {
-                        if (controlFlags[first_run_limits_only]) {
+                        if (controlFlags[FIRST_RUN_LIMITS_ONLY]) {
                             AdjustmentChanges =
-                                powerFlowAdjust(noInputs, 0, CheckLevel::reversable_only);
+                                powerFlowAdjust(noInputs, 0, CheckLevel::REVERSABLE_ONLY);
                         } else {
                             AdjustmentChanges = powerFlowAdjust(noInputs,
                                                                 lower_flags(controlFlags),
-                                                                CheckLevel::reversable_only);
+                                                                CheckLevel::REVERSABLE_ONLY);
                         }
                     } else {
                         AdjustmentChanges = powerFlowAdjust(noInputs,
                                                             lower_flags(controlFlags),
-                                                            CheckLevel::reversable_only);
+                                                            CheckLevel::REVERSABLE_ONLY);
                     }
 
                     if (AdjustmentChanges > ChangeCode::NON_STATE_CHANGE) {
@@ -165,7 +165,7 @@ int GridDynSimulation::powerflow()
                         // changes
                         AdjustmentChanges = powerFlowAdjust(noInputs,
                                                             lower_flags(controlFlags),
-                                                            CheckLevel::full_check);
+                                                            CheckLevel::FULL_CHECK);
                         if (AdjustmentChanges > ChangeCode::NO_CHANGE) {
                             checkNetwork(NetworkCheckType::SIMPLIFIED);
                             if (AdjustmentChanges == ChangeCode::STATE_SIZE_CHANGE) {
@@ -178,13 +178,13 @@ int GridDynSimulation::powerflow()
                 }
             } while ((retval < 0) || (AdjustmentChanges != ChangeCode::NO_CHANGE));
 
-            if (controlFlags[power_adjust_enabled]) {
+            if (controlFlags[POWER_ADJUST_ENABLED]) {
                 hasPowerAdjustments = loadBalance(prevPower, slkBusBase);
                 if (hasPowerAdjustments) {
-                    if (!controlFlags[no_reset]) {
-                        reset(ResetLevels::minimal);
+                    if (!controlFlags[NO_RESET]) {
+                        reset(ResetLevels::MINIMAL);
                     }
-                    if (opFlags[state_change_flag]) {
+                    if (opFlags[STATE_CHANGE_FLAG]) {
                         reInitpFlow(solverModeRef);
                     }
                 }
@@ -207,9 +207,9 @@ int GridDynSimulation::powerflow()
     }
 
     if (pState == GridState::INITIALIZED) {
-        if ((controlFlags[save_power_flow_data]) && (!opFlags[powerflow_saved])) {
+        if ((controlFlags[SAVE_POWER_FLOW_DATA]) && (!opFlags[POWERFLOW_SAVED])) {
             savePowerFlow(this, powerFlowFile);
-            opFlags[powerflow_saved] = true;
+            opFlags[POWERFLOW_SAVED] = true;
         }
     }
     // store the results to the buses
@@ -220,25 +220,25 @@ int GridDynSimulation::powerflow()
 
 void GridDynSimulation::reInitpFlow(const SolverMode& sMode, ChangeCode change)
 {
-    if (opFlags[slack_bus_change]) {
+    if (opFlags[SLACK_BUS_CHANGE_FLAG]) {
         checkNetwork(NetworkCheckType::FULL);
-    } else if (opFlags[connectivity_change_flag]) {
+    } else if (opFlags[CONNECTIVITY_CHANGE_FLAG]) {
         checkNetwork(NetworkCheckType::SIMPLIFIED);
     }
-    if (opFlags[reset_voltage_flag]) {
-        reset(ResetLevels::full);
-        opFlags.reset(reset_voltage_flag);
+    if (opFlags[RESET_VOLTAGE_FLAG]) {
+        reset(ResetLevels::FULL);
+        opFlags.reset(RESET_VOLTAGE_FLAG);
     }
 
     try {
         auto pFlowData = getSolverInterface(sMode);
-        if ((opFlags[state_change_flag]) || (change == ChangeCode::STATE_SIZE_CHANGE)) {
+        if ((opFlags[STATE_CHANGE_FLAG]) || (change == ChangeCode::STATE_SIZE_CHANGE)) {
             updateOffsets(sMode);
             auto ssize = stateSize(sMode);
             pFlowData->allocate(ssize);
             pFlowData->initialize(currentTime);
             pState = GridState::INITIALIZED;
-        } else if ((opFlags[object_change_flag]) || (change == ChangeCode::OBJECT_CHANGE)) {
+        } else if ((opFlags[OBJECT_CHANGE_FLAG]) || (change == ChangeCode::OBJECT_CHANGE)) {
             if (pState >
                 GridState::POWERFLOW_COMPLETE) {  // we have to reset for the dynamic computation
                 auto ssize = stateSize(sMode);
@@ -250,7 +250,7 @@ void GridDynSimulation::reInitpFlow(const SolverMode& sMode, ChangeCode change)
                 }
             }
             pFlowData->setMaxNonZeros(jacSize(sMode));
-            if (!controlFlags[dense_solver]) {
+            if (!controlFlags[DENSE_SOLVER]) {
                 pFlowData->sparseReInit(SolverInterface::SparseReinitMode::RESIZE);
             }
         } else {
@@ -264,7 +264,7 @@ void GridDynSimulation::reInitpFlow(const SolverMode& sMode, ChangeCode change)
                     pState = GridState::INITIALIZED;
                 }
             }
-            if ((!controlFlags[dense_solver]) && (opFlags[jacobian_count_change_flag])) {
+            if ((!controlFlags[DENSE_SOLVER]) && (opFlags[JACOBIAN_COUNT_CHANGE_FLAG])) {
                 pFlowData->sparseReInit(SolverInterface::SparseReinitMode::RESIZE);
             }
         }
@@ -436,7 +436,7 @@ int GridDynSimulation::eventDrivenPowerflow(CoreTime t_end, CoreTime t_step)
     if (t_step == negTime) {
         t_step = stepTime;
     }
-    if (!opFlags[dyn_initialized]) {
+    if (!opFlags[DYN_INITIALIZED]) {
         dynInitialize(currentTime);
     }
     auto ret = EvQ->executeEvents(currentTime);
@@ -446,7 +446,7 @@ int GridDynSimulation::eventDrivenPowerflow(CoreTime t_end, CoreTime t_step)
             return powerflowResult;
         }
     } else if (t_end == currentTime) {
-        if (controlFlags[force_extra_powerflow]) {
+        if (controlFlags[FORCE_EXTRA_POWERFLOW]) {
             const int powerflowResult = powerflow();
             if (powerflowResult != FUNCTION_EXECUTION_SUCCESS) {
                 return powerflowResult;
@@ -465,7 +465,7 @@ int GridDynSimulation::eventDrivenPowerflow(CoreTime t_end, CoreTime t_step)
         // execute any events
         ret = EvQ->executeEventsAonly(currentTime);
         // run the power flow
-        if ((ret >= ChangeCode::PARAMETER_CHANGE) || (controlFlags[force_power_flow]) ||
+        if ((ret >= ChangeCode::PARAMETER_CHANGE) || (controlFlags[FORCE_POWER_FLOW]) ||
             (EvQ->getNullEventTime() >= getSimulationTime() + t_step)) {
             const int powerflowResult = powerflow();
             powerflow_executed = true;

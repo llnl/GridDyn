@@ -126,7 +126,7 @@ void GenModel5type3::jacobianElements(const IOdata& inputs,
     // md.assign (arrayIndex, RowIndex, ColIndex, value) const
     auto Loc = offsets.getLocations(sD, sMode, this);
 
-    double V = inputs[voltageInLocation];
+    double V = inputs[VOLTAGE_IN_LOCATION];
     const double* gm = Loc.algStateLoc;
     const double* gmd = Loc.diffStateLoc;
     // const double *gmp = Loc.dstateLoc;
@@ -136,8 +136,8 @@ void GenModel5type3::jacobianElements(const IOdata& inputs,
     auto refAlg = Loc.algOffset;
     auto refDiff = Loc.diffOffset;
 
-    auto VLoc = inputLocs[voltageInLocation];
-    auto TLoc = inputLocs[angleInLocation];
+    auto VLoc = inputLocs[VOLTAGE_IN_LOCATION];
+    auto TLoc = inputLocs[ANGLE_IN_LOCATION];
 
     // P
     if (hasAlgebraic(sMode)) {

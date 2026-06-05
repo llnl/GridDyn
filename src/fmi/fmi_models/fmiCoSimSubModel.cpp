@@ -50,8 +50,8 @@ bool FmiCoSimSubModel::isLoaded() const
 
 void FmiCoSimSubModel::dynObjectInitializeA(CoreTime time, std::uint32_t flags)
 {
-    if (CHECK_CONTROLFLAG(force_constant_pflow_initialization, flags)) {
-        opFlags.set(pflow_init_required);
+    if (CHECK_CONTROLFLAG(FORCE_CONSTANT_PFLOW_INITIALIZATION, flags)) {
+        opFlags.set(PFLOW_INIT_REQUIRED);
     }
     prevTime = time;
 }
@@ -60,8 +60,8 @@ void FmiCoSimSubModel::dynObjectInitializeB(const IOdata& inputs,
                                             const IOdata& /*desiredOutput*/,
                                             IOdata& /*fieldSet*/)
 {
-    if (opFlags[pflow_init_required]) {
-        if (opFlags[pFlow_initialized]) {
+    if (opFlags[PFLOW_INIT_REQUIRED]) {
+        if (opFlags[POWERFLOW_INITIALIZED]) {
             /*
         cs->getStates(m_state.data());
         cs->setTime(prevTime - 0.01);
@@ -85,7 +85,7 @@ void FmiCoSimSubModel::dynObjectInitializeB(const IOdata& inputs,
 
         }
         */
-            opFlags.set(dyn_initialized);
+            opFlags.set(DYN_INITIALIZED);
         } else {  // in pflow mode
             cs->setMode(FmuMode::INITIALIZATION_MODE);
 
@@ -93,7 +93,7 @@ void FmiCoSimSubModel::dynObjectInitializeB(const IOdata& inputs,
             cs->setMode(FmuMode::CONTINUOUS_TIME_MODE);
             estimators.resize(m_outputSize);
             // probeFMU();
-            opFlags.set(pFlow_initialized);
+            opFlags.set(POWERFLOW_INITIALIZED);
         }
     } else {
         assert(unimplemented);
@@ -119,8 +119,8 @@ void FmiCoSimSubModel::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-static const char PARAM_STRING[] = "params";
-static const char INPUT_STRING[] = "inputs";
+static constexpr char paramString[] = "params";
+static constexpr char inputString[] = "inputs";
 
 void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
@@ -129,8 +129,8 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
     auto vcnt = info->getCounts("variables");
     switch (pstype) {
         case ParamStringType::ALL:
-            pstr.reserve(pstr.size() + info->getCounts(PARAM_STRING) +
-                         info->getCounts(INPUT_STRING) - m_inputSize);
+            pstr.reserve(pstr.size() + info->getCounts(paramString) + info->getCounts(inputString) -
+                         m_inputSize);
 
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (info->getVariableInformation(kk).type == FmiVariableType::STRING) {
@@ -155,8 +155,7 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
             GridSubModel::getParameterStrings(pstr, ParamStringType::STR);
             break;
         case ParamStringType::LOCAL_NUM:
-            pstr.reserve(info->getCounts(PARAM_STRING) + info->getCounts(INPUT_STRING) -
-                         m_inputSize);
+            pstr.reserve(info->getCounts(paramString) + info->getCounts(inputString) - m_inputSize);
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInformation(kk),
@@ -167,8 +166,7 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
             }
             break;
         case ParamStringType::LOCAL_STR:
-            pstr.reserve(info->getCounts(PARAM_STRING) + info->getCounts(INPUT_STRING) -
-                         m_inputSize);
+            pstr.reserve(info->getCounts(paramString) + info->getCounts(inputString) - m_inputSize);
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInformation(kk),
@@ -179,8 +177,7 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
             }
             break;
         case ParamStringType::LOCAL_FLAGS:
-            pstr.reserve(info->getCounts(PARAM_STRING) + info->getCounts(INPUT_STRING) -
-                         m_inputSize);
+            pstr.reserve(info->getCounts(paramString) + info->getCounts(inputString) - m_inputSize);
             pstr.resize(0);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInformation(kk),
@@ -191,8 +188,8 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
             }
             break;
         case ParamStringType::NUMERIC:
-            pstr.reserve(pstr.size() + info->getCounts(PARAM_STRING) +
-                         info->getCounts(INPUT_STRING) - m_inputSize);
+            pstr.reserve(pstr.size() + info->getCounts(paramString) + info->getCounts(inputString) -
+                         m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInformation(kk),
                               FmiVariableType::NUMERIC,
@@ -203,8 +200,8 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
             GridSubModel::getParameterStrings(pstr, ParamStringType::NUMERIC);
             break;
         case ParamStringType::STR:
-            pstr.reserve(pstr.size() + info->getCounts(PARAM_STRING) +
-                         info->getCounts(INPUT_STRING) - m_inputSize);
+            pstr.reserve(pstr.size() + info->getCounts(paramString) + info->getCounts(inputString) -
+                         m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInformation(kk),
                               FmiVariableType::STRING,
@@ -215,8 +212,8 @@ void FmiCoSimSubModel::getParameterStrings(stringVec& pstr, ParamStringType psty
             GridSubModel::getParameterStrings(pstr, ParamStringType::STR);
             break;
         case ParamStringType::FLAGS:
-            pstr.reserve(pstr.size() + info->getCounts(PARAM_STRING) +
-                         info->getCounts(INPUT_STRING) - m_inputSize);
+            pstr.reserve(pstr.size() + info->getCounts(paramString) + info->getCounts(inputString) -
+                         m_inputSize);
             for (int kk = 0; kk < vcnt; ++kk) {
                 if (checkType(info->getVariableInformation(kk),
                               FmiVariableType::BOOLEAN,
@@ -257,7 +254,7 @@ void FmiCoSimSubModel::set(std::string_view param, std::string_view val)
         trim(ssep);
         cs->setOutputVariables(ssep);
         m_outputSize = cs->outputSize();
-    } else if (param == INPUT_STRING) {
+    } else if (param == inputString) {
         auto ssep = splitline(val);
         trim(ssep);
         cs->setInputVariables(ssep);
@@ -639,14 +636,14 @@ else if (!inputs.empty())
 
 void FmiCoSimSubModel::makeSettableState()
 {
-    if (opFlags[dyn_initialized]) {
+    if (opFlags[DYN_INITIALIZED]) {
         // prevFmiState = cs->getCurrentMode();
         cs->setMode(FmuMode::EVENT_MODE);
     }
 }
 void FmiCoSimSubModel::resetState()
 {
-    if (opFlags[dyn_initialized]) {
+    if (opFlags[DYN_INITIALIZED]) {
         // if (prevFmiState == cs->getCurrentMode())
         {
             return;

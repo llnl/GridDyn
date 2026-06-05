@@ -33,7 +33,7 @@ void FmiMELoad::updateLocalCache(const IOdata& inputs,
                                  const SolverMode& sMode)
 {
     auto inputVector = inputs;
-    const auto voltageComplex = std::polar(inputs[voltageInLocation], inputs[angleInLocation]);
+    const auto voltageComplex = std::polar(inputs[VOLTAGE_IN_LOCATION], inputs[ANGLE_IN_LOCATION]);
     if (opFlags[COMPLEX_VOLTAGE]) {
         inputVector[0] = voltageComplex.real();
         inputVector[1] = voltageComplex.imag();
@@ -45,8 +45,8 @@ void FmiMELoad::updateLocalCache(const IOdata& inputs,
     // V[5], I[0], I[1], I[2], I[3], I[4], I[5]);
 
     auto translatedOutput = translateOutput(res, inputs);
-    setP(translatedOutput[PoutLocation]);
-    setQ(translatedOutput[QoutLocation]);
+    setP(translatedOutput[POUT_LOCATION]);
+    setQ(translatedOutput[QOUT_LOCATION]);
 }
 
 void FmiMELoad::set(std::string_view param, std::string_view val)
@@ -74,34 +74,34 @@ void FmiMELoad::setState(CoreTime time,
 
     const IOdata voltageState = {bus->getVoltage(state, sMode), bus->getAngle(state, sMode)};
     auto translatedOutput = translateOutput(out, voltageState);
-    setP(translatedOutput[PoutLocation]);
-    setQ(translatedOutput[QoutLocation]);
+    setP(translatedOutput[POUT_LOCATION]);
+    setQ(translatedOutput[QOUT_LOCATION]);
 }
 
 IOdata FmiMELoad::translateOutput(const IOdata& fmiOutput, const IOdata& busV)
 {
-    auto busVoltage = std::complex<double>(busV[voltageInLocation], busV[angleInLocation]);
+    auto busVoltage = std::complex<double>(busV[VOLTAGE_IN_LOCATION], busV[ANGLE_IN_LOCATION]);
     IOdata powers(2);
     if (opFlags[CURRENT_OUTPUT]) {
         if (opFlags[COMPLEX_OUTPUT]) {
             auto currentValue = std::complex<double>(fmiOutput[0], fmiOutput[1]);
             auto actualPower = busVoltage * std::conj(currentValue);
-            powers[PoutLocation] = actualPower.real();
-            powers[QoutLocation] = actualPower.imag();
+            powers[POUT_LOCATION] = actualPower.real();
+            powers[QOUT_LOCATION] = actualPower.imag();
         } else {
             auto currentValue = std::polar(fmiOutput[0], fmiOutput[1] * kPI / 180.0);
             auto actualPower = busVoltage * std::conj(currentValue);
-            powers[PoutLocation] = actualPower.real();
-            powers[QoutLocation] = actualPower.imag();
+            powers[POUT_LOCATION] = actualPower.real();
+            powers[QOUT_LOCATION] = actualPower.imag();
         }
     } else {
         if (opFlags[COMPLEX_OUTPUT]) {
-            powers[PoutLocation] = fmiOutput[PoutLocation];
-            powers[QoutLocation] = fmiOutput[QoutLocation];
+            powers[POUT_LOCATION] = fmiOutput[POUT_LOCATION];
+            powers[QOUT_LOCATION] = fmiOutput[QOUT_LOCATION];
         } else {
             auto power = std::polar(fmiOutput[0], fmiOutput[1]);
-            powers[PoutLocation] = power.real();
-            powers[QoutLocation] = power.imag();
+            powers[POUT_LOCATION] = power.real();
+            powers[QOUT_LOCATION] = power.imag();
         }
     }
     return powers;

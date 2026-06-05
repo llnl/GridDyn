@@ -34,9 +34,9 @@ ThreePhaseLoad::ThreePhaseLoad(double realPower, double reactivePower, const std
 
 void ThreePhaseLoad::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
-    if (bus->checkFlag(three_phase_only)) {
-        opFlags[three_phase_input] = true;
-        opFlags[three_phase_output] = true;
+    if (bus->checkFlag(THREE_PHASE_ONLY)) {
+        opFlags[THREE_PHASE_INPUT] = true;
+        opFlags[THREE_PHASE_OUTPUT] = true;
     }
 
     GridLoad::pFlowObjectInitializeA(time0, flags);
@@ -90,14 +90,14 @@ void ThreePhaseLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype
 void ThreePhaseLoad::setFlag(std::string_view flag, bool val)
 {
     if ((flag == "ignore_phase") || (flag == "ignorevoltagephase")) {
-        opFlags.set(use_abs_angle, !val);
+        opFlags.set(USE_ABS_ANGLE, !val);
     } else if (flag == "use_abs_angle") {
-        opFlags.set(use_abs_angle, val);
+        opFlags.set(USE_ABS_ANGLE, val);
     } else if ((flag == "three_phase_inputs") || (flag == "three_phase_input")) {
-        opFlags.set(three_phase_input, val);
+        opFlags.set(THREE_PHASE_INPUT, val);
         m_inputSize = val ? 7 : 3;
     } else if ((flag == "three_phase_outputs") || (flag == "three_phase_output")) {
-        opFlags.set(three_phase_output, val);
+        opFlags.set(THREE_PHASE_OUTPUT, val);
         m_outputSize = val ? 6 : 3;
     } else {
         GridLoad::setFlag(flag, val);
@@ -114,7 +114,7 @@ void ThreePhaseLoad::set(std::string_view param, std::string_view val)
 
 double ThreePhaseLoad::getBaseAngle() const
 {
-    return (opFlags[use_abs_angle]) ? bus->getAngle() : 0.0;
+    return (opFlags[USE_ABS_ANGLE]) ? bus->getAngle() : 0.0;
 }
 
 double ThreePhaseLoad::get(std::string_view param, unit unitType) const
@@ -398,20 +398,20 @@ IOdata ThreePhaseLoad::getReactivePower3Phase(const IOdata& /*V*/, PhaseType typ
 IOdata ThreePhaseLoad::getRealPower3Phase(PhaseType type) const
 {
     switch (type) {
-        case PhaseType::abc:
+        case PhaseType::ABC:
         default:
             return {Pa, Pb, Pc};
-        case PhaseType::pnz:
+        case PhaseType::PNZ:
             return abcToPnzR<IOdata>({Pa, Pb, Pc}, {Qa, Qb, Qc});
     }
 }
 IOdata ThreePhaseLoad::getReactivePower3Phase(PhaseType type) const
 {
     switch (type) {
-        case PhaseType::abc:
+        case PhaseType::ABC:
         default:
             return {Qa, Qb, Qc};
-        case PhaseType::pnz:
+        case PhaseType::PNZ:
             return abcToPnzI<IOdata>({Pa, Pb, Pc}, {Qa, Qb, Qc});
     }
 }
@@ -459,7 +459,7 @@ static const std::vector<stringVec> INPUT_NAMES_STR3PHASE{
 
 const std::vector<stringVec>& ThreePhaseLoad::inputNames() const
 {
-    if (opFlags[three_phase_input]) {
+    if (opFlags[THREE_PHASE_INPUT]) {
         return INPUT_NAMES_STR3PHASE;
     }
     return GridLoad::inputNames();
@@ -476,7 +476,7 @@ static const std::vector<stringVec> OUTPUT_NAMES_STR3PHASE{
 
 const std::vector<stringVec>& ThreePhaseLoad::outputNames() const
 {
-    if (opFlags[three_phase_output]) {
+    if (opFlags[THREE_PHASE_OUTPUT]) {
         return OUTPUT_NAMES_STR3PHASE;
     }
     return GridLoad::outputNames();

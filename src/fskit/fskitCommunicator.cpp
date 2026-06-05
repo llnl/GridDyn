@@ -71,7 +71,7 @@ void FskitCommunicator::ProcessEventMessage(const fskit::EventMessage& eventMess
     std::string payload;
     eventMessage.Unpack(payload);
 
-    std::shared_ptr<griddyn::commMessage> message;
+    auto message = std::make_shared<griddyn::CommMessage>();
     message->fromDataString(payload);
 
     // using lambda capture to move the message to the lambda
@@ -86,18 +86,18 @@ void FskitCommunicator::ProcessEventMessage(const fskit::EventMessage& eventMess
 }
 
 void FskitCommunicator::transmit(const std::string& /*destName*/,
-                                 std::shared_ptr<griddyn::commMessage> message)
+                                 const std::shared_ptr<griddyn::CommMessage>& message)
 {
     doTransmit(message);
 }
 
 void FskitCommunicator::transmit(std::uint64_t /*destID*/,
-                                 std::shared_ptr<griddyn::commMessage> message)
+                                 const std::shared_ptr<griddyn::CommMessage>& message)
 {
     doTransmit(message);
 }
 
-void FskitCommunicator::doTransmit(std::shared_ptr<griddyn::commMessage> message)
+void FskitCommunicator::doTransmit(const std::shared_ptr<griddyn::CommMessage>& message)
 {
     std::shared_ptr<fskit::GrantedTimeWindowScheduler> scheduler(
         GridDynFederatedScheduler::getScheduler());

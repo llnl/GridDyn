@@ -94,14 +94,14 @@ void GenModel::dynObjectInitializeB(const IOdata& inputs,
                                     const IOdata& desiredOutput,
                                     IOdata& fieldSet)
 {
-    if (inputs[voltageInLocation] > 0.85) {
-        fieldSet[genModelPmechInLocation] = desiredOutput[PoutLocation];  // Pmt
-        fieldSet[genModelEftInLocation] = desiredOutput[QoutLocation] / Xd;
+    if (inputs[VOLTAGE_IN_LOCATION] > 0.85) {
+        fieldSet[genModelPmechInLocation] = desiredOutput[POUT_LOCATION];  // Pmt
+        fieldSet[genModelEftInLocation] = desiredOutput[QOUT_LOCATION] / Xd;
     } else {
         fieldSet[genModelPmechInLocation] =
-            desiredOutput[PoutLocation] / inputs[voltageInLocation] * 0.85;  // Pmt
+            desiredOutput[POUT_LOCATION] / inputs[VOLTAGE_IN_LOCATION] * 0.85;  // Pmt
         fieldSet[genModelEftInLocation] =
-            desiredOutput[QoutLocation] / Xd / inputs[voltageInLocation] * 0.85;
+            desiredOutput[QOUT_LOCATION] / Xd / inputs[VOLTAGE_IN_LOCATION] * 0.85;
     }
 
     bus = static_cast<GridBus*>(find("bus"));
@@ -116,7 +116,7 @@ double GenModel::getFreq(const StateData& stateDataValue,
     // there is no inertia in this gen model so it can't compute a frequency and
     // must use the bus frequency
     if (freqOffset != nullptr) {
-        *freqOffset = bus->getOutputLoc(sMode, frequencyInLocation);
+        *freqOffset = bus->getOutputLoc(sMode, FREQUENCY_IN_LOCATION);
     }
     return bus->getFreq(stateDataValue, sMode);
 }
@@ -142,14 +142,14 @@ IOdata GenModel::getOutputs(const IOdata& inputs,
                             const SolverMode& /*sMode*/) const
 {
     IOdata out(2);
-    const double voltage = inputs[voltageInLocation];
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
     const double exciterField = inputs[genModelEftInLocation];
     if (voltage > 0.85) {
-        out[PoutLocation] = -inputs[genModelPmechInLocation];
-        out[QoutLocation] = -exciterField * Xd;
+        out[POUT_LOCATION] = -inputs[genModelPmechInLocation];
+        out[QOUT_LOCATION] = -exciterField * Xd;
     } else {
-        out[PoutLocation] = -inputs[genModelPmechInLocation] * voltage / 0.85;
-        out[QoutLocation] = -exciterField * Xd * voltage / 0.85;
+        out[POUT_LOCATION] = -inputs[genModelPmechInLocation] * voltage / 0.85;
+        out[QOUT_LOCATION] = -exciterField * Xd * voltage / 0.85;
     }
 
     return out;
@@ -160,20 +160,20 @@ double GenModel::getOutput(const IOdata& inputs,
                            const SolverMode& /*sMode*/,
                            index_t outNum) const
 {
-    const double voltage = inputs[voltageInLocation];
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
     const double exciterField = inputs[genModelEftInLocation];
     if (voltage > 0.85) {
-        if (outNum == PoutLocation) {
+        if (outNum == POUT_LOCATION) {
             return -inputs[genModelPmechInLocation];
         }
-        if (outNum == QoutLocation) {
+        if (outNum == QOUT_LOCATION) {
             return -exciterField * Xd;
         }
     } else {
-        if (outNum == PoutLocation) {
+        if (outNum == POUT_LOCATION) {
             return -inputs[genModelPmechInLocation] * voltage / 0.85;
         }
-        if (outNum == QoutLocation) {
+        if (outNum == QOUT_LOCATION) {
             return -exciterField * Xd * voltage / 0.85;
         }
     }
@@ -191,32 +191,32 @@ void GenModel::ioPartialDerivatives(const IOdata& inputs,
                                     const IOlocs& inputLocs,
                                     const SolverMode& /*sMode*/)
 {
-    const double voltage = inputs[voltageInLocation];
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
 
     if (voltage > 0.85) {
-        matrixDataValue.assignCheckCol(QoutLocation, inputLocs[genModelEftInLocation], -Xd);
+        matrixDataValue.assignCheckCol(QOUT_LOCATION, inputLocs[genModelEftInLocation], -Xd);
 
-        if (inputLocs[voltageInLocation] != kNullLocation) {
-            matrixDataValue.assign(PoutLocation, inputLocs[voltageInLocation], 0);
-            matrixDataValue.assign(QoutLocation, inputLocs[voltageInLocation], 0);
+        if (inputLocs[VOLTAGE_IN_LOCATION] != kNullLocation) {
+            matrixDataValue.assign(POUT_LOCATION, inputLocs[VOLTAGE_IN_LOCATION], 0);
+            matrixDataValue.assign(QOUT_LOCATION, inputLocs[VOLTAGE_IN_LOCATION], 0);
         }
-        matrixDataValue.assignCheckCol(PoutLocation, inputLocs[genModelPmechInLocation], -1.0);
+        matrixDataValue.assignCheckCol(POUT_LOCATION, inputLocs[genModelPmechInLocation], -1.0);
     } else {
         const double factor = voltage / 0.85;
-        matrixDataValue.assignCheckCol(QoutLocation,
+        matrixDataValue.assignCheckCol(QOUT_LOCATION,
                                        inputLocs[genModelEftInLocation],
                                        -Xd * factor);
 
-        if (inputLocs[voltageInLocation] != kNullLocation) {
+        if (inputLocs[VOLTAGE_IN_LOCATION] != kNullLocation) {
             const double exciterField = inputs[genModelEftInLocation];
-            matrixDataValue.assign(PoutLocation,
-                                   inputLocs[voltageInLocation],
+            matrixDataValue.assign(POUT_LOCATION,
+                                   inputLocs[VOLTAGE_IN_LOCATION],
                                    -inputs[genModelPmechInLocation] / 0.85);
-            matrixDataValue.assign(QoutLocation,
-                                   inputLocs[voltageInLocation],
+            matrixDataValue.assign(QOUT_LOCATION,
+                                   inputLocs[VOLTAGE_IN_LOCATION],
                                    -exciterField * Xd / 0.85);
         }
-        matrixDataValue.assignCheckCol(PoutLocation, inputLocs[genModelPmechInLocation], -factor);
+        matrixDataValue.assignCheckCol(POUT_LOCATION, inputLocs[genModelPmechInLocation], -factor);
     }
 }
 

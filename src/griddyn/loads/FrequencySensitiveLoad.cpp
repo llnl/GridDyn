@@ -51,7 +51,7 @@ void FrequencySensitiveLoad::dynObjectInitializeA(CoreTime time0, std::uint32_t 
 void FrequencySensitiveLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     subLoad->timestep(time, inputs, sMode);
-    double freq = (inputs.size() > 2) ? inputs[frequencyInLocation] : 1.0;
+    double freq = (inputs.size() > 2) ? inputs[FREQUENCY_IN_LOCATION] : 1.0;
 
     updateOutputs(freq);
 }
@@ -122,8 +122,8 @@ void FrequencySensitiveLoad::updateLocalCache(const IOdata& inputs,
                                               const SolverMode& sMode)
 {
     subLoad->updateLocalCache(inputs, sD, sMode);
-    double freq = (inputs.size() >= frequencyInLocation) ? inputs[frequencyInLocation] :
-                                                           bus->getFreq(sD, sMode);
+    double freq = (inputs.size() >= FREQUENCY_IN_LOCATION) ? inputs[FREQUENCY_IN_LOCATION] :
+                                                             bus->getFreq(sD, sMode);
     updateOutputs(freq);
 }
 
@@ -152,8 +152,8 @@ double FrequencySensitiveLoad::getRealPower(const IOdata& inputs,
                                             const SolverMode& sMode) const
 {
     double Pr = subLoad->getRealPower(inputs, sD, sMode);
-    double freq = (inputs.size() >= frequencyInLocation) ? inputs[frequencyInLocation] :
-                                                           bus->getFreq(sD, sMode);
+    double freq = (inputs.size() >= FREQUENCY_IN_LOCATION) ? inputs[FREQUENCY_IN_LOCATION] :
+                                                             bus->getFreq(sD, sMode);
     return Pr + Pr * (freq - 1.0) * M;
 }
 
@@ -162,8 +162,8 @@ double FrequencySensitiveLoad::getReactivePower(const IOdata& inputs,
                                                 const SolverMode& sMode) const
 {
     double Qr = subLoad->getReactivePower(inputs, sD, sMode);
-    double freq = (inputs.size() >= frequencyInLocation) ? inputs[frequencyInLocation] :
-                                                           bus->getFreq(sD, sMode);
+    double freq = (inputs.size() >= FREQUENCY_IN_LOCATION) ? inputs[FREQUENCY_IN_LOCATION] :
+                                                             bus->getFreq(sD, sMode);
     return Qr + Qr * (freq - 1.0) * M;
 }
 

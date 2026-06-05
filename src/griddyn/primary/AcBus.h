@@ -36,25 +36,25 @@ class AcBus: public GridBus {
   public:
     /** @brief flags for the buses*/
     enum BusFlags {
-        use_autogen = object_flag2,  //!< indicator if the bus is using an autogen
-        slave_bus = object_flag3,  //!< indicator that the bus is a slave Bus
-        master_bus = object_flag4,  //!< indicator that a bus is a master bus
-        directconnect = object_flag5,  //!< indicator that a bus is direct connected to another bus
-        identical_PQ_control_objects =
-            object_flag6,  //!< indicator that the P and Q control are the same units
-        compute_frequency =
-            object_flag7,  //!< indicator that the bus should compute the frequency value
-        ignore_angle =
-            object_flag8,  //!< indicator that the bus should ignore the angle in update functions
-        prev_low_voltage_alert =
-            object_flag9,  //!< indicator that the bus has triggered a low voltage alert
+        USE_AUTOGEN = OBJECT_FLAG2,  //!< indicator if the bus is using an autogen
+        SLAVE_BUS = OBJECT_FLAG3,  //!< indicator that the bus is a slave Bus
+        MASTER_BUS = OBJECT_FLAG4,  //!< indicator that a bus is a master bus
+        DIRECTCONNECT = OBJECT_FLAG5,  //!< indicator that a bus is direct connected to another bus
+        IDENTICAL_PQ_CONTROL_OBJECTS =
+            OBJECT_FLAG6,  //!< indicator that the P and Q control are the same units
+        COMPUTE_FREQUENCY =
+            OBJECT_FLAG7,  //!< indicator that the bus should compute the frequency value
+        IGNORE_ANGLE =
+            OBJECT_FLAG8,  //!< indicator that the bus should ignore the angle in update functions
+        PREV_LOW_VOLTAGE_ALERT =
+            OBJECT_FLAG9,  //!< indicator that the bus has triggered a low voltage alert
     };
 
   protected:
     count_t oCount = 0;  //!< counter for updates
     BusType prevType = BusType::PQ;  //!< previous type container if the type automatically changes
     DynBusType prevDynType =
-        DynBusType::normal;  //!< previous type container if the type automatically changes
+        DynBusType::NORMAL;  //!< previous type container if the type automatically changes
     MatrixDataCompact<2, 3> partDeriv;  //!< structure containing the partial derivatives
     model_parameter aTarget = 0.0;  //!< an angle Target(for SLK and afix bus types)
     model_parameter vTarget = 1.0;  //!< a target voltage
@@ -122,7 +122,7 @@ class AcBus: public GridBus {
     @param[in] adjustment the amount of the adjustment requested*/
     virtual void generationAdjust(double adjustment) override;
     virtual void pFlowCheck(std::vector<Violation>& violations) override;
-    virtual void reset(ResetLevels level = ResetLevels::minimal) override;
+    virtual void reset(ResetLevels level = ResetLevels::MINIMAL) override;
     // dynInitializeB dynamics
   protected:
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
@@ -189,7 +189,7 @@ class AcBus: public GridBus {
                           double state[],
                           double dstateDt[],
                           const SolverMode& sMode,
-                          ConvergeMode mode = ConvergeMode::high_error_only,
+                          ConvergeMode mode = ConvergeMode::HIGH_ERROR_ONLY,
                           double tol = 0.01) override;
     /** @brief  try to shift the local states to something more valid
       called when the current states do not make a consistent condition,  calling converge will

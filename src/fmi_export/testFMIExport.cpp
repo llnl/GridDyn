@@ -36,10 +36,11 @@ class FmiExportTests: public GridDynSimulationTestFixture, public ::testing::Tes
 void generateFmu(const std::string& target, const std::string& inputFile)
 {
     auto builder = std::make_unique<griddyn::fmi::FmuBuilder>();
+    griddyn::ReaderInfo readerInformation;
+    griddyn::loadFmiExportReaderInfoDefinitions(readerInformation);
+    griddyn::loadFile(builder->getSim().get(), inputFile, &readerInformation, "xml");
 
-    builder->InitializeFromString("--buildfmu=\"" + target + "\" \"" + inputFile + "\"");
-
-    builder->makeFmu();
+    builder->makeFmu(target);
 
     EXPECT_TRUE(std::filesystem::exists(target));
 }

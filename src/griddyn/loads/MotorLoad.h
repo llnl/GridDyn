@@ -18,10 +18,10 @@ class MotorLoad: public GridLoad {
   public:
     /** @brief motor load flags*/
     enum MotorLoadFlags {
-        init_transient =
-            object_flag8,  //!< flag indicating that the motor starts with a load transient
-        stalled = object_flag9,  //!< flag indicating that the motor is stalled
-        resettable = object_flag10,  //!< flag indicating that the motor can be reset once stalled
+        INIT_TRANSIENT =
+            OBJECT_FLAG8,  //!< flag indicating that the motor starts with a load transient
+        STALLED = OBJECT_FLAG9,  //!< flag indicating that the motor is STALLED
+        RESETTABLE = OBJECT_FLAG10,  //!< flag indicating that the motor can be reset once stalled
     };
 
   protected:

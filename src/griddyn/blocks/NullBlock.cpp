@@ -13,9 +13,9 @@
 namespace griddyn::blocks {
 NullBlock::NullBlock(const std::string& objName): GridBlock(objName)
 {
-    opFlags[useDirect] = true;
-    opFlags[no_powerflow_operations] = true;
-    opFlags[no_dynamics] = true;
+    opFlags[USE_DIRECT] = true;
+    opFlags[NO_POWERFLOW_OPERATIONS] = true;
+    opFlags[NO_DYNAMICS] = true;
 }
 
 CoreObject* NullBlock::clone(CoreObject* obj) const
@@ -37,7 +37,7 @@ void NullBlock::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/
     lcinfo.local.diffSize = 0;
     lcinfo.local.algSize = 0;
 
-    if (opFlags[differentialInput]) {
+    if (opFlags[DIFFERENTIAL_INPUT]) {
         m_inputSize = 2;
     }
 }
@@ -74,19 +74,19 @@ double NullBlock::getBlockOutput(const StateData& stateDataValue,
                                  const SolverMode& solverModeValue) const
 {
     auto locations = offsets.getLocations(stateDataValue, solverModeValue, this);
-    return opFlags[differential_output] ? *locations.diffStateLoc : *locations.algStateLoc;
+    return opFlags[DIFFERENTIAL_OUTPUT] ? *locations.diffStateLoc : *locations.algStateLoc;
 }
 
 double NullBlock::getBlockOutput() const
 {
-    auto offset = opFlags[differential_output] ? (offsets.getDiffOffset(cLocalSolverMode)) : 0;
+    auto offset = opFlags[DIFFERENTIAL_OUTPUT] ? (offsets.getDiffOffset(cLocalSolverMode)) : 0;
     return m_state[offset];
 }
 
 double NullBlock::getBlockDoutDt(const StateData& stateDataValue,
                                  const SolverMode& solverModeValue) const
 {
-    if (opFlags[differential_output]) {
+    if (opFlags[DIFFERENTIAL_OUTPUT]) {
         auto locations = offsets.getLocations(stateDataValue, solverModeValue, this);
         return *locations.dstateLoc;
     }
@@ -155,8 +155,8 @@ void NullBlock::rootTrigger(CoreTime /*time*/,
 void NullBlock::setFlag(std::string_view flag, bool val)
 {
     if (flag == "differential_input") {
-        opFlags[differentialInput] = val;
-        opFlags[differential_output] = val;
+        opFlags[DIFFERENTIAL_INPUT] = val;
+        opFlags[DIFFERENTIAL_OUTPUT] = val;
     } else {
         GridSubModel::setFlag(flag, val);
     }

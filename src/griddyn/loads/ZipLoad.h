@@ -17,8 +17,8 @@ Z-constant impedance, I-constant current, P- constant Power
 class ZipLoad: public GridLoad {
   public:
     enum LoadFlags {
-        convert_to_constant_impedance = object_flag2,
-        no_pqvoltage_limit = object_flag3,
+        CONVERT_TO_CONSTANT_IMPEDANCE = OBJECT_FLAG2,
+        NO_PQVOLTAGE_LIMIT = OBJECT_FLAG3,
     };
 
   private:

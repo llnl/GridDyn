@@ -90,12 +90,12 @@ void LoadRelay::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     if (mCutoutVoltage < 2.0) {
         setActionTrigger(0, 0, mVoltageDelay);
     } else {
-        setConditionStatus(0, ConditionStatus::disabled);
+        setConditionStatus(0, ConditionStatus::DISABLED);
     }
     if (mCutoutFrequency < 2.0) {
         setActionTrigger(0, 1, mFrequencyDelay);
     } else {
-        setConditionStatus(1, ConditionStatus::disabled);
+        setConditionStatus(1, ConditionStatus::DISABLED);
     }
 
     Relay::dynObjectInitializeA(time0, flags);
@@ -130,7 +130,7 @@ commLink->transmit (commDestName, static_cast<int> (P.GetMessageType ()), P.size
 }
 for (size_t kk = conditionNum + 1; kk < m_zones; ++kk)
 {
-setConditionStatus (kk, ConditionStatus::disabled);
+setConditionStatus (kk, ConditionStatus::DISABLED);
 }
 if (conditionNum < m_condition_level)
 {
@@ -186,7 +186,7 @@ void LoadRelay::conditionCleared(index_t conditionNum, CoreTime /*triggerTime*/)
     (void)conditionNum;
     /*for (size_t kk = 0; kk < m_zones; ++kk)
 {
-if (cStates[kk] == ConditionStatus::active)
+if (cStates[kk] == ConditionStatus::ACTIVE)
 {
 m_condition_level = kk + 1;
 }

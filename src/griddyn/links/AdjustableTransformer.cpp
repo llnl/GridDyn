@@ -106,7 +106,7 @@ void AdjustableTransformer::set(std::string_view param, std::string_view val)
 
         if ((cmstr == "mw") || (cmstr == "power")) {
             cMode = ControlMode::MW_CONTROL;
-            opFlags.set(adjustable_P);
+            opFlags.set(ADJUSTABLE_P);
         } else if ((cmstr == "mvar") || (cmstr == "reactive")) {
             cMode = ControlMode::MVAR_CONTROL;
         } else if ((cmstr == "v") || (cmstr == "voltage")) {
@@ -435,11 +435,11 @@ void AdjustableTransformer::pFlowObjectInitializeA(CoreTime time0, std::uint32_t
             }
         }
         if ((opFlags[CONTINUOUS_FLAG]) && (!opFlags[NO_PFLOW_ADJUSTMENTS])) {
-            opFlags.set(has_pflow_states);
-            opFlags.set(has_powerflow_adjustments);
+            opFlags.set(HAS_PFLOW_STATES);
+            opFlags.set(HAS_POWERFLOW_ADJUSTMENTS);
         } else {
-            opFlags[has_powerflow_adjustments] = !opFlags[NO_PFLOW_ADJUSTMENTS];
-            opFlags.reset(has_pflow_states);
+            opFlags[HAS_POWERFLOW_ADJUSTMENTS] = !opFlags[NO_PFLOW_ADJUSTMENTS];
+            opFlags.reset(HAS_PFLOW_STATES);
         }
         if (cMode == ControlMode::VOLTAGE_CONTROL) {
             if (Vtarget < Vmin) {
@@ -455,8 +455,8 @@ void AdjustableTransformer::pFlowObjectInitializeA(CoreTime time0, std::uint32_t
             }
         }
     } else {
-        opFlags.reset(has_pflow_states);
-        opFlags.reset(has_powerflow_adjustments);
+        opFlags.reset(HAS_PFLOW_STATES);
+        opFlags.reset(HAS_POWERFLOW_ADJUSTMENTS);
     }
     adjCount = 0;
     oCount = 0;
@@ -544,7 +544,7 @@ void AdjustableTransformer::getStateName(stringVec& stNames,
 
 void AdjustableTransformer::reset(ResetLevels level)
 {
-    if (level == ResetLevels::full) {
+    if (level == ResetLevels::FULL) {
         adjCount = 0;
         oCount = 0;
         switch (cMode) {
@@ -617,7 +617,7 @@ ChangeCode AdjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                                                   std::uint32_t flags,
                                                   CheckLevel /*level*/)
 {
-    if (CHECK_CONTROLFLAG(flags, disable_link_adjustments)) {
+    if (CHECK_CONTROLFLAG(flags, DISABLE_LINK_ADJUSTMENTS)) {
         return ChangeCode::NO_CHANGE;
     }
     auto ret = ChangeCode::NO_CHANGE;
@@ -632,7 +632,7 @@ ChangeCode AdjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
             }
             if (tapAngle > maxTapAngle) {
                 tapAngle = maxTapAngle;
-                opFlags.reset(has_pflow_states);
+                opFlags.reset(HAS_PFLOW_STATES);
                 alert(this, JAC_COUNT_DECREASE);
                 return ChangeCode::JACOBIAN_CHANGE;
             }
@@ -775,13 +775,13 @@ void AdjustableTransformer::guessState(CoreTime /*time*/,
                                        const SolverMode& sMode)
 {
     auto offset = offsets.getAlgOffset(sMode);
-    if ((!(isDynamic(sMode))) && (opFlags[has_pflow_states])) {
+    if ((!(isDynamic(sMode))) && (opFlags[HAS_PFLOW_STATES])) {
         if (cMode == ControlMode::MW_CONTROL) {
             state[offset] = tapAngle0;
         } else {
             state[offset] = tap0;
         }
-    } else if ((isDynamic(sMode)) && (opFlags[has_dyn_states])) {
+    } else if ((isDynamic(sMode)) && (opFlags[HAS_DYN_STATES])) {
         auto dOffset = offsets.getDiffOffset(sMode);
         dstateDt[dOffset] = 0;
         // TODO(PT): guessState dynamic states
@@ -794,14 +794,14 @@ void AdjustableTransformer::ioPartialDerivatives(id_type_t busId,
                                                  const IOlocs& inputLocs,
                                                  const SolverMode& sMode)
 {
-    if ((!(isDynamic(sMode))) && (opFlags[has_pflow_states])) {
+    if ((!(isDynamic(sMode))) && (opFlags[HAS_PFLOW_STATES])) {
         auto offset = offsets.getAlgOffset(sMode);
         if (cMode == ControlMode::MW_CONTROL) {
             tapAngle = stateData.state[offset];
         } else {
             tap = stateData.state[offset];
         }
-    } else if ((isDynamic(sMode)) && (opFlags[has_dyn_states])) {
+    } else if ((isDynamic(sMode)) && (opFlags[HAS_DYN_STATES])) {
     }
     AcLine::ioPartialDerivatives(busId, stateData, matrixDataRef, inputLocs, sMode);
 }
@@ -812,7 +812,7 @@ void AdjustableTransformer::outputPartialDerivatives(const IOdata& inputs,
                                                      const SolverMode& sMode)
 {
     // if the terminal is not specified assume there are 4 outputs
-    if ((!(isDynamic(sMode))) && (opFlags[has_pflow_states])) {
+    if ((!(isDynamic(sMode))) && (opFlags[HAS_PFLOW_STATES])) {
         auto offset = offsets.getAlgOffset(sMode);
         MatrixDataTranslate<2> mtrans(matrixDataRef);
         mtrans.setTranslation(0, 2);
@@ -826,7 +826,7 @@ void AdjustableTransformer::outputPartialDerivatives(const IOdata& inputs,
             tapPartial(1, stateData, matrixDataRef, sMode);
             tapPartial(2, stateData, mtrans, sMode);
         }
-    } else if ((isDynamic(sMode)) && (opFlags[has_dyn_states])) {
+    } else if ((isDynamic(sMode)) && (opFlags[HAS_DYN_STATES])) {
     }
     AcLine::outputPartialDerivatives(inputs, stateData, matrixDataRef, sMode);
 }
@@ -836,7 +836,7 @@ void AdjustableTransformer::outputPartialDerivatives(id_type_t busId,
                                                      MatrixData<double>& matrixDataRef,
                                                      const SolverMode& sMode)
 {
-    if ((!(isDynamic(sMode))) && (opFlags[has_pflow_states])) {
+    if ((!(isDynamic(sMode))) && (opFlags[HAS_PFLOW_STATES])) {
         auto offset = offsets.getAlgOffset(sMode);
         if (cMode == ControlMode::MW_CONTROL) {
             tapAngle = stateData.state[offset];
@@ -845,7 +845,7 @@ void AdjustableTransformer::outputPartialDerivatives(id_type_t busId,
             tap = stateData.state[offset];
             tapPartial(static_cast<index_t>(busId), stateData, matrixDataRef, sMode);
         }
-    } else if ((isDynamic(sMode)) && (opFlags[has_dyn_states])) {
+    } else if ((isDynamic(sMode)) && (opFlags[HAS_DYN_STATES])) {
     }
     AcLine::outputPartialDerivatives(busId, stateData, matrixDataRef, sMode);
 }
@@ -856,7 +856,7 @@ void AdjustableTransformer::jacobianElements(const IOdata& /*inputs*/,
                                              const IOlocs& /*inputLocs*/,
                                              const SolverMode& sMode)
 {
-    if ((!(isDynamic(sMode))) && (opFlags[has_pflow_states])) {
+    if ((!(isDynamic(sMode))) && (opFlags[HAS_PFLOW_STATES])) {
         auto offset = offsets.getAlgOffset(sMode);
         if (cMode == ControlMode::MW_CONTROL) {
             tapAngle = stateData.state[offset];
@@ -870,13 +870,13 @@ void AdjustableTransformer::jacobianElements(const IOdata& /*inputs*/,
                 MWJac(stateData, matrixDataRef, sMode);
             } else if (cMode == ControlMode::VOLTAGE_CONTROL) {
                 matrixDataRef.assignCheckCol(offset,
-                                             controlBus->getOutputLoc(sMode, voltageInLocation),
+                                             controlBus->getOutputLoc(sMode, VOLTAGE_IN_LOCATION),
                                              1);
             } else if (cMode == ControlMode::MVAR_CONTROL) {
                 MVarJac(stateData, matrixDataRef, sMode);
             }
         }
-    } else if ((isDynamic(sMode)) && (opFlags[has_dyn_states])) {
+    } else if ((isDynamic(sMode)) && (opFlags[HAS_DYN_STATES])) {
     }
 }
 
@@ -888,7 +888,7 @@ void AdjustableTransformer::residual(const IOdata& /*inputs*/,
     double voltage1;
 
     auto offset = offsets.getAlgOffset(sMode);
-    if ((!(isDynamic(sMode))) && (opFlags[has_pflow_states])) {
+    if ((!(isDynamic(sMode))) && (opFlags[HAS_PFLOW_STATES])) {
         switch (cMode) {
             case ControlMode::VOLTAGE_CONTROL:
                 if (opFlags[AT_LIMIT]) {
@@ -932,7 +932,7 @@ void AdjustableTransformer::residual(const IOdata& /*inputs*/,
             default:
                 assert(false);
         }
-    } else if (isDynamic(sMode) && (opFlags[has_dyn_states])) {
+    } else if (isDynamic(sMode) && (opFlags[HAS_DYN_STATES])) {
     }
 }
 
@@ -942,7 +942,7 @@ void AdjustableTransformer::setState(CoreTime time,
                                      const SolverMode& sMode)
 {
     auto offset = offsets.getAlgOffset(sMode);
-    if ((!(isDynamic(sMode))) && (opFlags[has_pflow_states])) {
+    if ((!(isDynamic(sMode))) && (opFlags[HAS_PFLOW_STATES])) {
         if (cMode == ControlMode::MW_CONTROL) {
             tapAngle = state[offset];
             if (tapAngle < maxTapAngle && tapAngle > minTapAngle) {
@@ -954,7 +954,7 @@ void AdjustableTransformer::setState(CoreTime time,
                 tap0 = tap;
             }
         }
-    } else if ((isDynamic(sMode)) && (opFlags[has_dyn_states])) {
+    } else if ((isDynamic(sMode)) && (opFlags[HAS_DYN_STATES])) {
     }
     AcLine::setState(time, state, dstateDt, sMode);
 }
@@ -972,7 +972,7 @@ void AdjustableTransformer::updateLocalCache(const IOdata& inputs,
                                              const StateData& stateData,
                                              const SolverMode& sMode)
 {
-    if ((!(isDynamic(sMode))) && (opFlags[has_pflow_states])) {
+    if ((!(isDynamic(sMode))) && (opFlags[HAS_PFLOW_STATES])) {
         auto offset = offsets.getAlgOffset(sMode);
         if (cMode == ControlMode::MW_CONTROL) {
             tapAngle = stateData.state[offset];
@@ -980,7 +980,7 @@ void AdjustableTransformer::updateLocalCache(const IOdata& inputs,
             tap = stateData.state[offset];
         }
         AcLine::updateLocalCache(inputs, stateData, sMode);
-    } else if ((isDynamic(sMode)) && (opFlags[has_dyn_states])) {
+    } else if ((isDynamic(sMode)) && (opFlags[HAS_DYN_STATES])) {
     } else {
         AcLine::updateLocalCache(inputs, stateData, sMode);
     }
@@ -988,7 +988,7 @@ void AdjustableTransformer::updateLocalCache(const IOdata& inputs,
 
 count_t AdjustableTransformer::outputDependencyCount(index_t /*num*/, const SolverMode& sMode) const
 {
-    if ((!(isDynamic(sMode))) && (opFlags[has_pflow_states])) {
+    if ((!(isDynamic(sMode))) && (opFlags[HAS_PFLOW_STATES])) {
         return 3;
     }
     return 2;
@@ -1079,17 +1079,17 @@ void AdjustableTransformer::tapAnglePartial(index_t busId,
     if ((busId == 2) || (busId == B2->getID())) {
         // dP2/dta
         double temp = (tvg * sinTheta2) - (tvb * cosTheta2);
-        matrixDataRef.assign(PoutLocation, offset, temp);
+        matrixDataRef.assign(POUT_LOCATION, offset, temp);
         // dQ2/dta
         temp = (-tvg * cosTheta2) - (tvb * sinTheta2);
-        matrixDataRef.assign(QoutLocation, offset, temp);
+        matrixDataRef.assign(QOUT_LOCATION, offset, temp);
     } else {
         // dP1/dta
         double temp = (-tvg * sinTheta1) + (tvb * cosTheta1);
-        matrixDataRef.assign(PoutLocation, offset, temp);
+        matrixDataRef.assign(POUT_LOCATION, offset, temp);
         // dQ1/dta
         temp = (tvg * cosTheta1) - (tvb * sinTheta1);
-        matrixDataRef.assign(QoutLocation, offset, temp);
+        matrixDataRef.assign(QOUT_LOCATION, offset, temp);
     }
 }
 
@@ -1126,19 +1126,19 @@ void AdjustableTransformer::tapPartial(index_t busId,
     if ((busId == 2) || (busId == B2->getID())) {
         // dP2/dtap
         double temp = ((tvg / tap) * cosTheta2) + ((tvb / tap) * sinTheta2);
-        matrixDataRef.assign(PoutLocation, offset, temp);
+        matrixDataRef.assign(POUT_LOCATION, offset, temp);
         // dQ2/dtap
         temp = ((-tvg / tap) * sinTheta2) - ((tvb / tap) * cosTheta2);
-        matrixDataRef.assign(QoutLocation, offset, temp);
+        matrixDataRef.assign(QOUT_LOCATION, offset, temp);
     } else {
         // dP1/dtap
         double temp =
             (-realPower1 / tap) - (((g + (0.5 * mp_G)) / (tap * tap * tap)) * voltage1 * voltage1);
-        matrixDataRef.assign(PoutLocation, offset, temp);
+        matrixDataRef.assign(POUT_LOCATION, offset, temp);
         // dQ1/dtap
         temp = (-reactivePower1 / tap) +
             (((b + (0.5 * mp_B)) / (tap * tap * tap)) * voltage1 * voltage1);
-        matrixDataRef.assign(QoutLocation, offset, temp);
+        matrixDataRef.assign(QOUT_LOCATION, offset, temp);
     }
 }
 
@@ -1160,10 +1160,10 @@ void AdjustableTransformer::MWJac(const StateData& /*sD*/,
     const double tvb = b / tap * voltage1 * voltage2;
 
     auto offset = offsets.getAlgOffset(sMode);
-    const int bus1AngleOffset = B1->getOutputLoc(sMode, angleInLocation);
-    const int bus2AngleOffset = B2->getOutputLoc(sMode, angleInLocation);
-    const int bus1VoltageOffset = B1->getOutputLoc(sMode, voltageInLocation);
-    const int bus2VoltageOffset = B2->getOutputLoc(sMode, voltageInLocation);
+    const int bus1AngleOffset = B1->getOutputLoc(sMode, ANGLE_IN_LOCATION);
+    const int bus2AngleOffset = B2->getOutputLoc(sMode, ANGLE_IN_LOCATION);
+    const int bus1VoltageOffset = B1->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
+    const int bus2VoltageOffset = B2->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
 
     // compute the DP1/dta
     double temp = (-tvg * sinTheta1) + (tvb * cosTheta1);
@@ -1206,10 +1206,10 @@ void AdjustableTransformer::MVarJac(const StateData& /*sD*/,
     const double tvb = b / tap * voltage1 * voltage2;
 
     auto offset = offsets.getAlgOffset(sMode);
-    const int bus1AngleOffset = B1->getOutputLoc(sMode, angleInLocation);
-    const int bus2AngleOffset = B2->getOutputLoc(sMode, angleInLocation);
-    const int bus1VoltageOffset = B1->getOutputLoc(sMode, voltageInLocation);
-    const int bus2VoltageOffset = B2->getOutputLoc(sMode, voltageInLocation);
+    const int bus1AngleOffset = B1->getOutputLoc(sMode, ANGLE_IN_LOCATION);
+    const int bus2AngleOffset = B2->getOutputLoc(sMode, ANGLE_IN_LOCATION);
+    const int bus1VoltageOffset = B1->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
+    const int bus2VoltageOffset = B2->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
     /*
 double P1 = (g + 0.5 * mp_G) / (tap * tap) * v1 * v1;
 P1 -= tvg * cosTheta1;

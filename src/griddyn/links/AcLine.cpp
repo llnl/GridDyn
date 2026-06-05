@@ -485,10 +485,10 @@ int AcLine::fixPower(double rPower,
             deltaQ = reactivePower - linkFlows.Q2;
         }
         // printf("A dP=%f dQ=%f\n",deltaP,deltaQ);
-        pVoltageDerivative = matrixData.at(PoutLocation, voltageInLocation);
-        pAngleDerivative = matrixData.at(PoutLocation, angleInLocation);
-        qVoltageDerivative = matrixData.at(QoutLocation, voltageInLocation);
-        qAngleDerivative = matrixData.at(QoutLocation, angleInLocation);
+        pVoltageDerivative = matrixData.at(POUT_LOCATION, VOLTAGE_IN_LOCATION);
+        pAngleDerivative = matrixData.at(POUT_LOCATION, ANGLE_IN_LOCATION);
+        qVoltageDerivative = matrixData.at(QOUT_LOCATION, VOLTAGE_IN_LOCATION);
+        qAngleDerivative = matrixData.at(QOUT_LOCATION, ANGLE_IN_LOCATION);
         const double determinant = solve2x2(pVoltageDerivative,
                                             pAngleDerivative,
                                             qVoltageDerivative,
@@ -606,30 +606,30 @@ void AcLine::ioPartialDerivatives(id_type_t busId,
             swOpenDeriv();
         }
     }
-    auto voltageLoc = inputLocs[voltageInLocation];
-    auto angleLoc = inputLocs[angleInLocation];
+    auto voltageLoc = inputLocs[VOLTAGE_IN_LOCATION];
+    auto angleLoc = inputLocs[ANGLE_IN_LOCATION];
 
     if ((busId == 2) || (busId == B2->getID())) {
         if (!opFlags[SWITCH2_OPEN_FLAG]) {
             if (voltageLoc != kNullLocation) {
-                matrixData.assign(PoutLocation, voltageLoc, LinkDeriv.dP2dv2);
-                matrixData.assign(QoutLocation, voltageLoc, LinkDeriv.dQ2dv2);
+                matrixData.assign(POUT_LOCATION, voltageLoc, LinkDeriv.dP2dv2);
+                matrixData.assign(QOUT_LOCATION, voltageLoc, LinkDeriv.dQ2dv2);
             }
             if (angleLoc != kNullLocation) {
-                matrixData.assign(PoutLocation, angleLoc, LinkDeriv.dP2dt2);
-                matrixData.assign(QoutLocation, angleLoc, LinkDeriv.dQ2dt2);
+                matrixData.assign(POUT_LOCATION, angleLoc, LinkDeriv.dP2dt2);
+                matrixData.assign(QOUT_LOCATION, angleLoc, LinkDeriv.dQ2dt2);
             }
         }
     } else {
         if (!opFlags[SWITCH1_OPEN_FLAG]) {
             if (voltageLoc != kNullLocation) {
-                matrixData.assign(PoutLocation, voltageLoc, LinkDeriv.dP1dv1);
-                matrixData.assign(QoutLocation, voltageLoc, LinkDeriv.dQ1dv1);
+                matrixData.assign(POUT_LOCATION, voltageLoc, LinkDeriv.dP1dv1);
+                matrixData.assign(QOUT_LOCATION, voltageLoc, LinkDeriv.dQ1dv1);
             }
             if (angleLoc != kNullLocation) {
-                matrixData.assign(PoutLocation, angleLoc, LinkDeriv.dP1dt1);
+                matrixData.assign(POUT_LOCATION, angleLoc, LinkDeriv.dP1dt1);
 
-                matrixData.assign(QoutLocation, angleLoc, LinkDeriv.dQ1dt1);
+                matrixData.assign(QOUT_LOCATION, angleLoc, LinkDeriv.dQ1dt1);
             }
         }
     }
@@ -661,41 +661,41 @@ void AcLine::outputPartialDerivatives(id_type_t busId,
         DERIVCOMP();
     }
 
-    index_t b1Voffset = voltageInLocation;
-    index_t b2Voffset = voltageInLocation;
-    index_t b1Aoffset = angleInLocation;
-    index_t b2Aoffset = angleInLocation;
+    index_t b1Voffset = VOLTAGE_IN_LOCATION;
+    index_t b2Voffset = VOLTAGE_IN_LOCATION;
+    index_t b1Aoffset = ANGLE_IN_LOCATION;
+    index_t b2Aoffset = ANGLE_IN_LOCATION;
 
     if (!isLocal(sMode)) {
-        b1Voffset = B1->getOutputLoc(sMode, voltageInLocation);
-        b2Voffset = B2->getOutputLoc(sMode, voltageInLocation);
-        b1Aoffset = B1->getOutputLoc(sMode, angleInLocation);
-        b2Aoffset = B2->getOutputLoc(sMode, angleInLocation);
+        b1Voffset = B1->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
+        b2Voffset = B2->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
+        b1Aoffset = B1->getOutputLoc(sMode, ANGLE_IN_LOCATION);
+        b2Aoffset = B2->getOutputLoc(sMode, ANGLE_IN_LOCATION);
     }
 
     if ((busId == 2) || (busId == B2->getID())) {
         if (b1Voffset != kNullLocation) {
-            matrixData.assign(PoutLocation, b1Voffset, LinkDeriv.dP2dv1);
+            matrixData.assign(POUT_LOCATION, b1Voffset, LinkDeriv.dP2dv1);
             // reactive power vs Voltage
-            matrixData.assign(QoutLocation, b1Voffset, LinkDeriv.dQ2dv1);
+            matrixData.assign(QOUT_LOCATION, b1Voffset, LinkDeriv.dQ2dv1);
         }
         if (b1Aoffset != kNullLocation) {
             // power vs angle
-            matrixData.assign(PoutLocation, b1Aoffset, LinkDeriv.dP2dt1);
+            matrixData.assign(POUT_LOCATION, b1Aoffset, LinkDeriv.dP2dt1);
             // reactive power vs Angle
-            matrixData.assign(QoutLocation, b1Aoffset, LinkDeriv.dQ2dt1);
+            matrixData.assign(QOUT_LOCATION, b1Aoffset, LinkDeriv.dQ2dt1);
         }
     } else {
         if (b2Voffset != kNullLocation) {
-            matrixData.assign(PoutLocation, b2Voffset, LinkDeriv.dP1dv2);
+            matrixData.assign(POUT_LOCATION, b2Voffset, LinkDeriv.dP1dv2);
             // reactive power vs Voltage
-            matrixData.assign(QoutLocation, b2Voffset, LinkDeriv.dQ1dv2);
+            matrixData.assign(QOUT_LOCATION, b2Voffset, LinkDeriv.dQ1dv2);
         }
         if (b2Aoffset != kNullLocation) {
             // power vs angle
-            matrixData.assign(PoutLocation, b2Aoffset, LinkDeriv.dP1dt2);
+            matrixData.assign(POUT_LOCATION, b2Aoffset, LinkDeriv.dP1dt2);
             // reactive power vs Angle
-            matrixData.assign(QoutLocation, b2Aoffset, LinkDeriv.dQ1dt2);
+            matrixData.assign(QOUT_LOCATION, b2Aoffset, LinkDeriv.dQ1dt2);
         }
     }
 }
@@ -792,7 +792,7 @@ double AcLine::getAngle(const double state[], const SolverMode& sMode) const
 ChangeCode
     AcLine::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t /*flags*/, CheckLevel level)
 {
-    if ((level == CheckLevel::high_angle_trip) && (isConnected())) {
+    if ((level == CheckLevel::HIGH_ANGLE_TRIP) && (isConnected())) {
         if (std::abs(linkInfo.theta1) > ((kPI / 2.0) + 0.01)) {
             disconnect();
             return ChangeCode::JACOBIAN_CHANGE;
@@ -807,7 +807,7 @@ ChangeCode AcLine::rootCheck(const IOdata& /*inputs*/,
                              CheckLevel level)
 {
     auto ret = ChangeCode::NO_CHANGE;
-    if (level == CheckLevel::complete_state_check) {
+    if (level == CheckLevel::COMPLETE_STATE_CHECK) {
         updateLocalCache(noInputs, stateData, sMode);
         if (std::abs(linkInfo.theta1) > maxAngle) {
             logging::warning(this, "max angle 1 exceeded");

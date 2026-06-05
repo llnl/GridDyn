@@ -14,8 +14,8 @@
 namespace griddyn::blocks {
 PidBlock::PidBlock(const std::string& objName): GridBlock(objName), no_D(extra_bool)
 {
-    opFlags.set(useState);
-    opFlags.set(differential_output);
+    opFlags.set(USE_STATE);
+    opFlags.set(DIFFERENTIAL_OUTPUT);
     no_D = true;
 }
 
@@ -26,8 +26,8 @@ PidBlock::PidBlock(double proportionalGain,
     GridBlock(objName), m_P(proportionalGain), m_I(integralGain), m_D(derivativeGain),
     no_D(extra_bool)
 {
-    opFlags.set(useState);
-    opFlags.set(differential_output);
+    opFlags.set(USE_STATE);
+    opFlags.set(DIFFERENTIAL_OUTPUT);
     no_D = (derivativeGain == 0.0);
 }
 
@@ -135,7 +135,7 @@ void PidBlock::blockJacobianElements(double input,
         //  Loc.destDiffLoc[limiter_diff] = (K*(m_P*(input + bias) +
         //  Loc.dstateLoc[limiter_diff + 1] + Loc.diffStateLoc[limiter_diff + 2]) -
         //  Loc.diffStateLoc[limiter_diff]) / m_Td;
-        if (opFlags[hasLimits]) {
+        if (opFlags[HAS_LIMITS]) {
             GridBlock::blockJacobianElements(
                 input, didt, stateDataValue, matrixDataValue, argLoc, sMode);
         }
@@ -204,7 +204,7 @@ double PidBlock::step(CoreTime time, double inputA)
     }
     prevInput = inputValue;
 
-    if (opFlags[hasLimits]) {
+    if (opFlags[HAS_LIMITS]) {
         GridBlock::step(time, inputValue);
     } else {
         prevTime = time;

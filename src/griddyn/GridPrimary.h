@@ -20,14 +20,14 @@ class Relay;
 // const strings and arrays so isn't worth it as I don't see a good reason for it to need to change
 /** @brief locations for secondary input parameters (aka bus output locations)*/
 enum SecondaryInputLocations {
-    voltageInLocation = 0,
-    angleInLocation = 1,
-    frequencyInLocation = 2,
+    VOLTAGE_IN_LOCATION = 0,
+    ANGLE_IN_LOCATION = 1,
+    FREQUENCY_IN_LOCATION = 2,
 };
 /** @brief locations grid secondary output locations*/
 enum SecondaryOutputLocations {
-    PoutLocation = 0,
-    QoutLocation = 1,
+    POUT_LOCATION = 0,
+    QOUT_LOCATION = 1,
 };
 
 /** @brief base class for top level simulation objects including GridBus, Link, gridRelays, and
@@ -134,7 +134,7 @@ class GridPrimary: public GridComponent {
                           double state[],
                           double dstateDt[],
                           const SolverMode& sMode,
-                          ConvergeMode mode = ConvergeMode::high_error_only,
+                          ConvergeMode mode = ConvergeMode::HIGH_ERROR_ONLY,
                           double tol = 0.01);
 
     /** @brief do a check on the power flow results

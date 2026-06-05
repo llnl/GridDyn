@@ -21,7 +21,6 @@
 #include <string>
 #include <utility>
 
-// NOLINTBEGIN
 namespace griddyn::relays {
 ControlRelay::ControlRelay(const std::string& objName): Relay(objName) {}
 
@@ -322,7 +321,7 @@ ChangeCode ControlRelay::executeAction(index_t actionNum)
 void ControlRelay::updateObject(CoreObject* obj, ObjectUpdateMode mode)
 {
     Relay::updateObject(obj, mode);
-    if (opFlags[dyn_initialized]) {
+    if (opFlags[DYN_INITIALIZED]) {
         rootSim = dynamic_cast<GridSimulation*>(getRoot());
 
         if (dynamic_cast<Link*>(m_sourceObject) != nullptr) {
@@ -351,7 +350,7 @@ std::unique_ptr<FunctionEventAdapter>
     auto fea = std::make_unique<FunctionEventAdapter>([act, this]() { return executeAction(act); },
                                                       eventTime);
     /** this is so the get event triggers last*/
-    fea->setExecutionMode(EventExecutionMode::delayed);
+    fea->setExecutionMode(EventExecutionMode::DELAYED);
     return fea;
 }
 
@@ -399,4 +398,3 @@ index_t ControlRelay::getFreeAction()
     return asize;
 }
 }  // namespace griddyn::relays
-// NOLINTEND

@@ -54,16 +54,16 @@ void ExponentialLoad::ioPartialDerivatives(const IOdata& inputs,
                                            const IOlocs& inputLocs,
                                            const SolverMode& /*sMode*/)
 {
-    const double V = inputs[voltageInLocation];
+    const double V = inputs[VOLTAGE_IN_LOCATION];
     // power vs voltage
-    if (inputLocs[voltageInLocation] != kNullLocation) {
-        md.assign(PoutLocation,
-                  inputLocs[voltageInLocation],
+    if (inputLocs[VOLTAGE_IN_LOCATION] != kNullLocation) {
+        md.assign(POUT_LOCATION,
+                  inputLocs[VOLTAGE_IN_LOCATION],
                   getP() * alphaP * pow(V, alphaP - 1.0));
 
         // reactive power vs voltage
-        md.assign(QoutLocation,
-                  inputLocs[voltageInLocation],
+        md.assign(QOUT_LOCATION,
+                  inputLocs[VOLTAGE_IN_LOCATION],
                   getQ() * alphaQ * pow(V, alphaQ - 1.0));
     }
 }
@@ -80,14 +80,14 @@ double ExponentialLoad::getRealPower(const IOdata& inputs,
                                      const StateData& /*sD*/,
                                      const SolverMode& /*sMode*/) const
 {
-    return getRealPower(inputs[voltageInLocation]);
+    return getRealPower(inputs[VOLTAGE_IN_LOCATION]);
 }
 
 double ExponentialLoad::getReactivePower(const IOdata& inputs,
                                          const StateData& /*sD*/,
                                          const SolverMode& /*sMode*/) const
 {
-    return getReactivePower(inputs[voltageInLocation]);
+    return getReactivePower(inputs[VOLTAGE_IN_LOCATION]);
 }
 
 double ExponentialLoad::getRealPower(const double V) const

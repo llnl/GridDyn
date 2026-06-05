@@ -13,6 +13,10 @@
 #include <string>
 #include <vector>
 
+#ifdef _MSC_VER
+#    include <crtdbg.h>
+#endif
+
 using namespace griddyn;
 
 namespace {
@@ -33,6 +37,10 @@ class GridDynGlobalEnvironment final: public ::testing::Environment {
 GridDynSimulationTestFixture::GridDynSimulationTestFixture()
 {
     readerConfig::setPrintMode(0);
+#ifdef _MSC_VER
+    _CrtSetReportMode(_CRT_ASSERT, _CRTDBG_MODE_FILE);
+    _CrtSetReportFile(_CRT_ASSERT, _CRTDBG_FILE_STDERR);
+#endif
 }
 
 GridDynSimulationTestFixture::~GridDynSimulationTestFixture() = default;

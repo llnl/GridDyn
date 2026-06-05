@@ -39,13 +39,13 @@ int faultResetRecovery::attemptFix()
                 retval = faultResetFix1();
                 break;
             case 2:
-                retval = faultResetFix2(ResetLevels::low_voltage_dyn0);
+                retval = faultResetFix2(ResetLevels::LOW_VOLTAGE_DYN0);
                 break;
             case 3:
-                retval = faultResetFix2(ResetLevels::low_voltage_dyn1);
+                retval = faultResetFix2(ResetLevels::LOW_VOLTAGE_DYN1);
                 break;
             case 4:
-                retval = faultResetFix2(ResetLevels::low_voltage_dyn2);
+                retval = faultResetFix2(ResetLevels::LOW_VOLTAGE_DYN2);
                 break;
             case 5:
                 retval = faultResetFix3();
@@ -86,7 +86,7 @@ int faultResetRecovery::faultResetFix1()
 {
     int retval = -101;
 
-    sim->reset(ResetLevels::low_voltage_dyn0);
+    sim->reset(ResetLevels::LOW_VOLTAGE_DYN0);
 
     if ((retval = sim->handleStateChange(solver->getSolverMode())) != HANDLER_NO_RETURN) {
         return retval;
@@ -128,7 +128,7 @@ int faultResetRecovery::faultResetFix2(ResetLevels rlevel)
                       solver->stateData(),
                       solver->derivData(),
                       solver->getSolverMode(),
-                      ConvergeMode::voltage_only,
+                      ConvergeMode::VOLTAGE_ONLY,
                       0.05);
         // std::vector<double> cVolts;
         // sim->getVoltage(cVolts, solver->stateData(), solver->getSolverMode());
@@ -176,7 +176,7 @@ int faultResetRecovery::faultResetFix3()
                           solver->stateData(),
                           solver->derivData(),
                           solver->getSolverMode(),
-                          ConvergeMode::block_iteration,
+                          ConvergeMode::BLOCK_ITERATION,
                           0.1);
             // dynData->printStates(true);
             retval = solver->calcIC(sim->getSimulationTime(),

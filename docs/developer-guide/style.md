@@ -11,7 +11,7 @@ Formatting conventions are primarily enforced through the repository
 1. All free functions should be `camelCase`
 
    ```cpp
-   std::shared_ptr<gridDynSimulation> makeSimulation(const std::string& fileName);
+   std::shared_ptr<GridDynSimulation> makeSimulation(const std::string& fileName);
    ```
 
    Exception: when the functionality intentionally matches a standard library
@@ -20,7 +20,7 @@ Formatting conventions are primarily enforced through the repository
 2. All classes should be `PascalCase`
 
    ```cpp
-   class GridSimulation: public Area
+   class GridSimulation: public GridArea
    {
    public:
        GridSimulation();
@@ -51,7 +51,7 @@ Formatting conventions are primarily enforced through the repository
 6. Variable names:
    local variable names should be `camelCase`
    member variable names should be `mPascalCase`
-   static const members should be `CAPITAL_SNAKE_CASE`
+   static const members should be `camelCase`
    function input names should be `camelCase`
    index variables can be `camelCase` or short forms such as `ii`, `jj`, `kk`
    global variables should be `gPascalCase`

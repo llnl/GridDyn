@@ -27,7 +27,7 @@ echo "$FILES"
 filecount=$(echo "$FILES" | grep -c -E '\.(cpp|cc|cxx|c)$' || true)
 echo "Total changed: $filecount"
 tidyerr=0
-if ((filecount > 0 && filecount <= 20)); then
+if ((filecount > 0 && filecount <= 25)); then
     echo "====Configure CMake===="
     mkdir build && cd build || exit
     cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DGRIDDYN_BUILD_C_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_FMI_EXPORT=ON -DGRIDDYN_ENABLE_NETWORKING_LIBRARY=ON -DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=ON -DGRIDDYN_ENABLE_TCP=ON -DGRIDDYN_ENABLE_DIME=ON -DGRIDDYN_ENABLE_ZMQ=ON ..

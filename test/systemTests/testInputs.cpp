@@ -124,7 +124,7 @@ TEST_F(InputTests, DISABLED_TestPowerFlowInputs)
         }
 
         if (mp.first == "ieee300.cdf") {
-            gds->reset(ResetLevels::voltage_angle);
+            gds->reset(ResetLevels::VOLTAGE_ANGLE);
 
             for (int ii = 0; ii < 300; ++ii) {
                 GridBus* bus = gds->getBus(ii);
@@ -137,15 +137,15 @@ TEST_F(InputTests, DISABLED_TestPowerFlowInputs)
                 Link* lnk = gds->getLink(ii);
                 if (dynamic_cast<links::AdjustableTransformer*>(lnk)) {
                     cnt++;
-                    if ((cnt >= 2) & (cnt <= 3)) {
-                        lnk->reset(ResetLevels::full);
+                    if ((cnt >= 2) && (cnt <= 3)) {
+                        lnk->reset(ResetLevels::FULL);
                         lnk->set("center", "target");
                         break;
                     }
                 }
             }
         } else {
-            gds->reset(ResetLevels::full);
+            gds->reset(ResetLevels::FULL);
         }
 
         gds->powerflow();

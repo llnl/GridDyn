@@ -19,26 +19,26 @@ eventually will replace most of the shaped loads*/
     class SourceLoad: public ZipLoad {
       public:
         enum SourceLoc {
-            p_source = 0,
-            q_source = 1,
-            yp_source = 2,
-            yq_source = 3,
-            ip_source = 4,
-            iq_source = 5,
-            r_source = 6,
-            x_source = 7,
+            P_SOURCE = 0,
+            Q_SOURCE = 1,
+            YP_SOURCE = 2,
+            YQ_SOURCE = 3,
+            IP_SOURCE = 4,
+            IQ_SOURCE = 5,
+            R_SOURCE = 6,
+            X_SOURCE = 7,
         };
         enum class SourceType {
-            other,
-            pulse,
-            sine,
-            random,
+            OTHER,
+            PULSE,
+            SINE,
+            RANDOM,
         };
 
       private:
         std::vector<Source*> sources;
         std::array<int, 8> sourceLink;  // source lookups for the values
-        SourceType sType = SourceType::other;
+        SourceType sType = SourceType::OTHER;
 
       public:
         explicit SourceLoad(const std::string& objName = "sourceLoad_$");

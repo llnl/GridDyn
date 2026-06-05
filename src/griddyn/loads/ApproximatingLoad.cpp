@@ -65,7 +65,7 @@ void ApproximatingLoad::pFlowObjectInitializeA(CoreTime time0, std::uint32_t fla
 {
     m_lastCallTime = time0;
 
-    opFlags[preEx_requested] = true;
+    opFlags[PRE_EX_REQUESTED] = true;
     RampLoad::pFlowObjectInitializeA(time0, flags);
     updateA(time0);
 }
@@ -80,23 +80,23 @@ void ApproximatingLoad::dynObjectInitializeA(CoreTime time0, std::uint32_t flags
 {
     switch (dynCoupling) {
         case CouplingMode::none:
-            opFlags.reset(preEx_requested);
+            opFlags.reset(PRE_EX_REQUESTED);
             offsets.local().local.algRoots = 0;
             break;
         case CouplingMode::interval:
-            opFlags.reset(preEx_requested);
+            opFlags.reset(PRE_EX_REQUESTED);
 
             break;
         case CouplingMode::trigger:
-            opFlags.reset(preEx_requested);
+            opFlags.reset(PRE_EX_REQUESTED);
             offsets.local().local.algRoots = 1;
             break;
 
         case CouplingMode::full:
-            opFlags.set(preEx_requested);
+            opFlags.set(PRE_EX_REQUESTED);
             break;
     }
-    if (opFlags[dual_mode_flag]) {
+    if (opFlags[DUAL_MODE_FLAG]) {
     }
     RampLoad::dynObjectInitializeA(time0, flags);
 }
@@ -105,14 +105,14 @@ void ApproximatingLoad::dynObjectInitializeB(const IOdata& /*inputs*/,
                                              const IOdata& /*desiredOutput*/,
                                              IOdata& /*fieldSet*/)
 {
-    if (opFlags[dual_mode_flag]) {
+    if (opFlags[DUAL_MODE_FLAG]) {
     }
 }
 
 void ApproximatingLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
-    const double voltage = inputs[voltageInLocation];
-    const double angle = inputs[angleInLocation];
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
+    const double angle = inputs[ANGLE_IN_LOCATION];
     if (subLoad != nullptr) {
         subLoad->timestep(time, inputs, sMode);
     }
@@ -134,8 +134,8 @@ void ApproximatingLoad::updateA(CoreTime time)
     const double voltage = bus->getVoltage();
     const double angle = bus->getAngle();
     IOdata inputs(2);
-    inputs[voltageInLocation] = voltage;
-    inputs[angleInLocation] = angle;
+    inputs[VOLTAGE_IN_LOCATION] = voltage;
+    inputs[ANGLE_IN_LOCATION] = angle;
 
     if (subLoad != nullptr) {
         if (subLoad->currentTime() < time) {
@@ -240,7 +240,7 @@ void ApproximatingLoad::preEx(const IOdata& inputs,
         return;
     }
     lastSeqID = stateDataValue.seqID;
-    const double voltage = inputs[voltageInLocation];
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
 
     CouplingMode mode;
     if (!isDynamic(sMode)) {
@@ -277,7 +277,7 @@ void ApproximatingLoad::updateLocalCache(const IOdata& inputs,
                                          const StateData& stateDataValue,
                                          const SolverMode& sMode)
 {
-    if (opFlags[waiting_flag]) {
+    if (opFlags[WAITING_FLAG]) {
         updateB();
     }
     RampLoad::updateLocalCache(inputs, stateDataValue, sMode);
@@ -294,7 +294,7 @@ std::vector<std::tuple<double, double, double>>
 
     IOdata cinputs(inputs.begin(), inputs.end());
     for (const auto& voltage : voltages) {
-        cinputs[voltageInLocation] = voltage;
+        cinputs[VOLTAGE_IN_LOCATION] = voltage;
         subLoad->updateLocalCache(cinputs, emptyStateData, cLocalSolverMode);
         auto realPowerSub = subLoad->getRealPower(cinputs, emptyStateData, cLocalSolverMode);
         auto reactivePowerSub =
@@ -307,36 +307,36 @@ std::vector<std::tuple<double, double, double>>
 void ApproximatingLoad::run1ApproxA(CoreTime /*time*/, const IOdata& inputs)
 {
     using gmlc::containers::make_workBlock;
-    assert(!opFlags[waiting_flag]);  // this should not happen;
+    assert(!opFlags[WAITING_FLAG]);  // this should not happen;
 
     // auto dt = time - m_lastCallTime;
 
     std::vector<double> voltages;
-    voltages.push_back(inputs[voltageInLocation]);
+    voltages.push_back(inputs[VOLTAGE_IN_LOCATION]);
     const std::vector<double> inputBuffer(inputs.begin(), inputs.end());
     auto workBlock = make_workBlock(
         [inputBuffer, voltages, this]() { return getLoadValues(inputBuffer, voltages); });
     vres = workBlock->get_future();
     getGlobalWorkQueue()->addWorkBlock(std::move(workBlock));
-    opFlags.set(waiting_flag);
+    opFlags.set(WAITING_FLAG);
 }
 
 std::vector<double> ApproximatingLoad::run1ApproxB()
 {
     auto res = vres.get();
-    opFlags.reset(waiting_flag);
+    opFlags.reset(WAITING_FLAG);
     return {std::get<1>(res[0]), std::get<2>(res[0])};
 }
 
 void ApproximatingLoad::run2ApproxA(CoreTime /*time*/, const IOdata& inputs)
 {
     using gmlc::containers::make_workBlock;
-    assert(!opFlags[waiting_flag]);  // this should not happen;
+    assert(!opFlags[WAITING_FLAG]);  // this should not happen;
 
     // auto dt = time - m_lastCallTime;
 
     std::vector<double> voltages;
-    const double voltage = inputs[voltageInLocation];
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
     voltages.push_back(voltage);
     const double ratio1 = (voltage + spread) / voltage;
     voltages.push_back(voltage * ratio1);
@@ -345,14 +345,14 @@ void ApproximatingLoad::run2ApproxA(CoreTime /*time*/, const IOdata& inputs)
         [inputBuffer, voltages, this]() { return getLoadValues(inputBuffer, voltages); });
     vres = workBlock->get_future();
     getGlobalWorkQueue()->addWorkBlock(std::move(workBlock));
-    opFlags.set(waiting_flag);
+    opFlags.set(WAITING_FLAG);
 }
 
 std::vector<double> ApproximatingLoad::run2ApproxB()
 {
-    assert(opFlags[waiting_flag]);  // this should not happen;
+    assert(opFlags[WAITING_FLAG]);  // this should not happen;
     auto res = vres.get();
-    opFlags.reset(waiting_flag);
+    opFlags.reset(WAITING_FLAG);
     const double voltage1 = std::get<0>(res[0]);
     const double realPower1 = std::get<1>(res[0]);
     const double reactivePower1 = std::get<2>(res[0]);
@@ -370,12 +370,12 @@ std::vector<double> ApproximatingLoad::run2ApproxB()
 void ApproximatingLoad::run3ApproxA(CoreTime /*time*/, const IOdata& inputs)
 {
     using gmlc::containers::make_workBlock;
-    assert(!opFlags[waiting_flag]);  // this should not happen;
+    assert(!opFlags[WAITING_FLAG]);  // this should not happen;
 
     // auto dt = time - m_lastCallTime;
 
     std::vector<double> voltages;
-    const double voltage = inputs[voltageInLocation];
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
 
     double ratio1 = (voltage - spread) / voltage;
     voltages.push_back(voltage * ratio1);
@@ -387,14 +387,14 @@ void ApproximatingLoad::run3ApproxA(CoreTime /*time*/, const IOdata& inputs)
         [inputBuffer, voltages, this]() { return getLoadValues(inputBuffer, voltages); });
     vres = workBlock->get_future();
     getGlobalWorkQueue()->addWorkBlock(std::move(workBlock));
-    opFlags.set(waiting_flag);
+    opFlags.set(WAITING_FLAG);
 }
 
 std::vector<double> ApproximatingLoad::run3ApproxB()
 {
-    assert(opFlags[waiting_flag]);  // this should not happen;
+    assert(opFlags[WAITING_FLAG]);  // this should not happen;
     auto res = vres.get();
-    opFlags.reset(waiting_flag);
+    opFlags.reset(WAITING_FLAG);
     const double voltage1 = std::get<0>(res[0]);
     const double realPower1 = std::get<1>(res[0]);
     const double reactivePower1 = std::get<2>(res[0]);
@@ -424,7 +424,7 @@ Yq = LV[5];
 
     double linearTerm1 = (realPower2 - realPower1) / (voltage2 - voltage1);
     double linearTerm2 = (realPower3 - realPower1) / (voltage3 - voltage1);
-    if ((opFlags[linearize_triple]) ||
+    if ((opFlags[LINEARIZE_TRIPLE]) ||
         (std::abs(linearTerm1 - linearTerm2) < 0.0001))  // we are pretty well linear here
     {
         retP[4] = 0;
@@ -447,7 +447,7 @@ Yq = LV[5];
 
     linearTerm1 = (reactivePower2 - reactivePower1) / (voltage2 - voltage1);
     linearTerm2 = (reactivePower3 - reactivePower1) / (voltage3 - voltage1);
-    if ((opFlags[linearize_triple]) ||
+    if ((opFlags[LINEARIZE_TRIPLE]) ||
         (std::abs(linearTerm1 - linearTerm2) < 0.0001))  // we are pretty well linear here
     {
         retP[1] = reactivePower1 - ((voltage1 * (linearTerm1 + linearTerm2)) / 2.0);
@@ -480,7 +480,7 @@ void ApproximatingLoad::set(std::string_view param, std::string_view val)
             cDetail = CouplingDetail::triple;
         } else if ((valueLower == "lineartriple") || (valueLower == "linear3")) {
             cDetail = CouplingDetail::triple;
-            opFlags.set(linearize_triple);
+            opFlags.set(LINEARIZE_TRIPLE);
         } else if ((valueLower == "single") || (valueLower == "low") ||
                    (valueLower == "constant") || (valueLower == "1")) {
             cDetail = CouplingDetail::single;
@@ -525,7 +525,7 @@ void ApproximatingLoad::set(std::string_view param, double val, units::unit unit
             throw(InvalidParameterValue(param));
         }
     } else if ((param == "bounds") || (param == "usebounds")) {
-        opFlags.set(uses_bounds_flag, (val > 0));
+        opFlags.set(USES_BOUNDS_FLAG, (val > 0));
     } else if ((param == "mult") || (param == "multiplier")) {
         m_mult = val;
     } else if (param == "detail") {
@@ -535,14 +535,14 @@ void ApproximatingLoad::set(std::string_view param, double val, units::unit unit
             cDetail = CouplingDetail::VDep;
         } else if (val < 2.75) {
             cDetail = CouplingDetail::triple;
-            opFlags.set(linearize_triple);
+            opFlags.set(LINEARIZE_TRIPLE);
         } else if (val >= 2.75) {
             cDetail = CouplingDetail::triple;
         }
     } else if ((param == "dual") || (param == "dualmode")) {
-        opFlags.set(dual_mode_flag, (val > 0.0));
+        opFlags.set(DUAL_MODE_FLAG, (val > 0.0));
     } else if (param == "lineartriple") {
-        opFlags.set(linearize_triple, (val > 0.0));
+        opFlags.set(LINEARIZE_TRIPLE, (val > 0.0));
     } else {
         ZipLoad::set(param, val, unitType);
     }
@@ -556,7 +556,7 @@ void ApproximatingLoad::rootTest(const IOdata& inputs,
                                  const SolverMode& sMode)
 {
     const int rootOffset = offsets.getRootOffset(sMode);
-    const double voltage = inputs[voltageInLocation];
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
     roots[rootOffset] = (spread * triggerBound) - std::abs(voltage - Vprev);
 
     // printf("time=%f root =%12.10f\n", time,roots[rootOffset]);
@@ -579,7 +579,7 @@ ChangeCode ApproximatingLoad::rootCheck(const IOdata& inputs,
                                         const SolverMode& /*sMode*/,
                                         CheckLevel /*level*/)
 {
-    const double voltage = inputs[voltageInLocation];
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
     if (std::abs(voltage - Vprev) > (spread * triggerBound)) {
         updateA((stateDataValue.empty()) ? (stateDataValue.time) : prevTime);
         updateB();

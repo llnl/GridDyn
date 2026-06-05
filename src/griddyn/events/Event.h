@@ -90,7 +90,7 @@ class Event: public HelperObject, public EventInterface, public ObjectOperatorIn
 
     virtual CoreTime nextTriggerTime() const override { return triggerTime; }
     virtual bool isArmed() const override { return armed; }
-    EventExecutionMode executionMode() const override { return EventExecutionMode::normal; }
+    EventExecutionMode executionMode() const override { return EventExecutionMode::NORMAL; }
     bool initNeeded() const { return initRequired; }
     virtual void set(std::string_view param, double val) override;
     virtual void set(std::string_view param, std::string_view val) override;

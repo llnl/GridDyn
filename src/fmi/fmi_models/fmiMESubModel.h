@@ -26,10 +26,10 @@ class OutputEstimator;
 class FmiMESubModel: public GridSubModel {
   public:
     enum FmiSubModelFlags {
-        USE_OUTPUT_ESTIMATOR = object_flag2,
-        FIXED_OUTPUT_INTERVAL = object_flag3,
-        REPROBE_FLAG = object_flag4,
-        HAS_DERIVATIVE_FUNCTION = object_flag5,
+        USE_OUTPUT_ESTIMATOR = OBJECT_FLAG2,
+        FIXED_OUTPUT_INTERVAL = OBJECT_FLAG3,
+        REPROBE_FLAG = OBJECT_FLAG4,
+        HAS_DERIVATIVE_FUNCTION = OBJECT_FLAG5,
     };
 
   protected:

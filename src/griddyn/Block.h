@@ -31,22 +31,22 @@ class GridBlock: public GridSubModel {
     /** @brief flags common for all control blocks
      */
     enum ControllerFlags {
-        stepOnly = object_flag1,  //!< flag indicating that the block does not have any state
-        useState = object_flag2,  //!< flag indicating that the basic block should not control the
-                                  //!< state before the limiters
-        hasLimits = object_armed_flag,  //!< flag indicating the block has limits of some kind
-        useBlockLimits = object_flag3,  //!< flag indicating the block has upper and lower limits
-        useRampLimits = object_flag4,  //!< flag indicating the block has ramp limits
+        STEP_ONLY = OBJECT_FLAG1,  //!< flag indicating that the block does not have any state
+        USE_STATE = OBJECT_FLAG2,  //!< flag indicating that the basic block should not control the
+                                   //!< state before the limiters
+        HAS_LIMITS = OBJECT_ARMED_FLAG,  //!< flag indicating the block has limits of some kind
+        USE_BLOCK_LIMITS = OBJECT_FLAG3,  //!< flag indicating the block has upper and lower limits
+        USE_RAMP_LIMITS = OBJECT_FLAG4,  //!< flag indicating the block has ramp limits
 
-        differentialInput =
-            object_flag5,  //!< flag indicating that the input is a differential state
-        useDirect =
-            object_flag6,  //!< flag indicating that the block should just use the input directly
-        simplifiedMode = object_flag7,  //!< flag indicating that the block should revert to basic
-                                        //!< block behavior [used
+        DIFFERENTIAL_INPUT =
+            OBJECT_FLAG5,  //!< flag indicating that the input is a differential state
+        USE_DIRECT =
+            OBJECT_FLAG6,  //!< flag indicating that the block should just use the input directly
+        SIMPLIFIED_MODE = OBJECT_FLAG7,  //!< flag indicating that the block should revert to basic
+                                         //!< block behavior [used
         //!< only by derived object]
-        antiWindupLimits = object_flag8,  //!< flag indicating that the limits should be
-                                          //!< anti-windup [used only by derived objects]
+        ANTI_WINDUP_LIMITS = OBJECT_FLAG8,  //!< flag indicating that the limits should be
+                                            //!< anti-windup [used only by derived objects]
     };
 
   protected:

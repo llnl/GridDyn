@@ -105,7 +105,7 @@ class Collector: public HelperObject, public EventInterface, public ObjectOperat
     CoreTime nextTriggerTime() const override { return mTriggerTime; }
     EventExecutionMode executionMode() const override
     {
-        return (mDelayProcess) ? EventExecutionMode::delayed : EventExecutionMode::normal;
+        return (mDelayProcess) ? EventExecutionMode::DELAYED : EventExecutionMode::NORMAL;
     }
 
     virtual void add(std::shared_ptr<GridGrabber> ggb, int requestedColumn = -1);

@@ -22,14 +22,14 @@ infiniteBus::infiniteBus(const std::string& objName): GridBus(objName)
 {
     // default values
     type = BusType::SLK;
-    dynType = DynBusType::dynSLK;
+    dynType = DynBusType::DYN_SLK;
 }
 
 infiniteBus::infiniteBus(double startVoltage, double startAngle, const std::string& objName):
     GridBus(startVoltage, startAngle, objName)
 {
     type = BusType::SLK;
-    dynType = DynBusType::dynSLK;
+    dynType = DynBusType::DYN_SLK;
 }
 
 CoreObject* infiniteBus::clone(CoreObject* obj) const

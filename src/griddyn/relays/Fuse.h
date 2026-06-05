@@ -17,9 +17,9 @@ class Fuse: public Relay {
   public:
     /** flags for fuses*/
     enum FuseFlags {
-        overlimitFlag = object_flag10,  //!< flag indicating the current is over the limit
-        fuseBlownFlag = object_flag11,  //!< flag indicting the fuse was blown
-        nonlinkSourceFlag = object_flag12,  //!< flag indicating the source is a not a link
+        OVERLIMIT_FLAG = OBJECT_FLAG10,  //!< flag indicating the current is over the limit
+        FUSE_BLOWN_FLAG = OBJECT_FLAG11,  //!< flag indicting the fuse was blown
+        NONLINK_SOURCE_FLAG = OBJECT_FLAG12,  //!< flag indicating the source is a not a link
     };
 
   protected:
@@ -68,7 +68,7 @@ class Fuse: public Relay {
                           double state[],
                           double dstateDt[],
                           const SolverMode& sMode,
-                          ConvergeMode = ConvergeMode::high_error_only,
+                          ConvergeMode = ConvergeMode::HIGH_ERROR_ONLY,
                           double tol = 0.01) override;
     virtual StateSizes localStateSizes(const SolverMode& sMode) const override;
 

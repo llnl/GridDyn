@@ -36,13 +36,13 @@ void MotorLoad3::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
     T0p = (x1 + xm) / (systemBaseFrequency * r1);
     scale = mBase / systemBasePower;
     m_state.resize(5, 0);
-    if (opFlags[init_transient]) {
+    if (opFlags[INIT_TRANSIENT]) {
         m_state[2] = init_slip;
     } else if (Pmot > -kHalfBigNum) {
         m_state[2] = computeSlip(Pmot / scale);
     } else {
         m_state[2] = 1.0;
-        opFlags.set(init_transient);
+        opFlags.set(INIT_TRANSIENT);
     }
 
     GridLoad::pFlowObjectInitializeA(time0, flags);  // NOLINT
@@ -107,7 +107,7 @@ void MotorLoad3::dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& /*desiredOutput*/,
                                       IOdata& /*fieldSet*/)
 {
-    if (opFlags[init_transient]) {
+    if (opFlags[INIT_TRANSIENT]) {
         derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
     }
 }
@@ -135,7 +135,7 @@ count_t MotorLoad3::localJacobianCount(const SolverMode& sMode) const
             localJacSize += 15;
         }
     } else {
-        if (opFlags[init_transient]) {
+        if (opFlags[INIT_TRANSIENT]) {
             localJacSize = 19;
         } else {
             localJacSize = 23;
@@ -189,8 +189,8 @@ void MotorLoad3::residual(const IOdata& inputs,
     if (isDynamic(sMode)) {
         auto Loc = offsets.getLocations(sD, resid, sMode, this);
 
-        double voltage = inputs[voltageInLocation];
-        double theta = inputs[angleInLocation];
+        double voltage = inputs[VOLTAGE_IN_LOCATION];
+        double theta = inputs[ANGLE_IN_LOCATION];
         const double* gm = Loc.algStateLoc;
         const double* gmd = Loc.diffStateLoc;
         const double* gmp = Loc.dstateLoc;
@@ -222,8 +222,8 @@ void MotorLoad3::residual(const IOdata& inputs,
         // ir=%f, im=%f, r1=%e, r2=%e\n",sD.time,voltage,gm[0],gm[1],rva[0],rva[1]);
     } else {
         auto offset = offsets.getAlgOffset(sMode);
-        const double voltage = inputs[voltageInLocation];
-        double theta = inputs[angleInLocation];
+        const double voltage = inputs[VOLTAGE_IN_LOCATION];
+        double theta = inputs[ANGLE_IN_LOCATION];
 
         const double* gm = sD.state + offset;
         double* rv = resid + offset;
@@ -239,7 +239,7 @@ void MotorLoad3::residual(const IOdata& inputs,
         double slip = gm[2];
         // printf("angle=%f, slip=%f\n",theta,slip);
         // slip
-        if (opFlags[init_transient]) {
+        if (opFlags[INIT_TRANSIENT]) {
             rv[2] = slip - m_state[2];
         } else {
             double Te = gm[3] * gm[0] + gm[4] * gm[1];
@@ -292,8 +292,8 @@ void MotorLoad3::timestep(CoreTime time, const IOdata& inputs, const SolverMode&
 void MotorLoad3::updateCurrents(const IOdata& inputs, const StateData& sD, const SolverMode& sMode)
 {
     auto Loc = offsets.getLocations(sD, const_cast<double*>(sD.state), sMode, this);
-    double voltage = inputs[voltageInLocation];
-    double theta = inputs[angleInLocation];
+    double voltage = inputs[VOLTAGE_IN_LOCATION];
+    double theta = inputs[ANGLE_IN_LOCATION];
 
     double vr = -voltage * Vcontrol * sin(theta);
     double vm = voltage * Vcontrol * cos(theta);
@@ -326,7 +326,7 @@ void MotorLoad3::derivative(const IOdata& /*inputs*/,
     //}
 
     // slip
-    if (opFlags[stalled]) {
+    if (opFlags[STALLED]) {
         dv[0] = 0;
     } else {
         double Te = dst[1] * ast[0] + dst[2] * ast[1];
@@ -365,10 +365,10 @@ void MotorLoad3::jacobianElements(const IOdata& inputs,
         cj = 0;
     }
 
-    double voltage = inputs[voltageInLocation];
-    double theta = inputs[angleInLocation];
-    auto VLoc = inputLocs[voltageInLocation];
-    auto TLoc = inputLocs[angleInLocation];
+    double voltage = inputs[VOLTAGE_IN_LOCATION];
+    double theta = inputs[ANGLE_IN_LOCATION];
+    auto VLoc = inputLocs[VOLTAGE_IN_LOCATION];
+    auto TLoc = inputLocs[ANGLE_IN_LOCATION];
 
     double Vr = -voltage * Vcontrol * sin(theta);
     double Vm = voltage * Vcontrol * cos(theta);
@@ -404,7 +404,7 @@ void MotorLoad3::jacobianElements(const IOdata& inputs,
     md.assign(refAlg + 1, refDiff + 1, -1.0);
 
     double slip = dst[0];
-    if ((isDynamic(sMode)) || (!opFlags[init_transient])) {
+    if ((isDynamic(sMode)) || (!opFlags[INIT_TRANSIENT])) {
         /*
     // slip
     double Te = dst[1] * ast[0] + dst[2] * ast[1];
@@ -412,7 +412,7 @@ void MotorLoad3::jacobianElements(const IOdata& inputs,
 
     */
         // slip
-        if (opFlags[stalled]) {
+        if (opFlags[STALLED]) {
             md.assign(refDiff, refDiff, -cj);
         } else {
             md.assign(refDiff, refDiff, dmechds(slip) / (2.0 * H) - cj);
@@ -447,8 +447,8 @@ void MotorLoad3::outputPartialDerivatives(const IOdata& inputs,
                                           const SolverMode& sMode)
 {
     auto refAlg = offsets.getAlgOffset(sMode);
-    double voltage = inputs[voltageInLocation];
-    double theta = inputs[angleInLocation];
+    double voltage = inputs[VOLTAGE_IN_LOCATION];
+    double theta = inputs[ANGLE_IN_LOCATION];
 
     double vr = -voltage * Vcontrol * sin(theta);
     double vm = voltage * Vcontrol * cos(theta);
@@ -456,13 +456,13 @@ void MotorLoad3::outputPartialDerivatives(const IOdata& inputs,
     // vr*m_state[0] + vm*m_state[1];
 
     // output P
-    md.assign(PoutLocation, refAlg, vr * scale);
-    md.assign(PoutLocation, refAlg + 1, vm * scale);
+    md.assign(POUT_LOCATION, refAlg, vr * scale);
+    md.assign(POUT_LOCATION, refAlg + 1, vm * scale);
 
     // vm*m_state[0] - vr*m_state[1];
     // output Q
-    md.assign(QoutLocation, refAlg, vm * scale);
-    md.assign(QoutLocation, refAlg + 1, -vr * scale);
+    md.assign(QOUT_LOCATION, refAlg, vm * scale);
+    md.assign(QOUT_LOCATION, refAlg + 1, -vr * scale);
 }
 
 count_t MotorLoad3::outputDependencyCount(index_t /*num*/, const SolverMode& /*sMode*/) const
@@ -477,8 +477,8 @@ void MotorLoad3::ioPartialDerivatives(const IOdata& inputs,
 {
     auto Loc = offsets.getLocations(sD, sMode, this);
 
-    double voltage = inputs[voltageInLocation];
-    double angle = inputs[angleInLocation];
+    double voltage = inputs[VOLTAGE_IN_LOCATION];
+    double angle = inputs[ANGLE_IN_LOCATION];
 
     double vr = -voltage * Vcontrol * sin(angle);
     double vm = voltage * Vcontrol * cos(angle);
@@ -491,13 +491,13 @@ void MotorLoad3::ioPartialDerivatives(const IOdata& inputs,
     // P=vr*m_state[0] + vm*m_state[1];
 
     // Q=vm*m_state[0] - vr*m_state[1];
-    md.assignCheckCol(PoutLocation, inputLocs[angleInLocation], -ir * vm + vr * im);
-    md.assignCheckCol(PoutLocation,
-                      inputLocs[voltageInLocation],
+    md.assignCheckCol(POUT_LOCATION, inputLocs[ANGLE_IN_LOCATION], -ir * vm + vr * im);
+    md.assignCheckCol(POUT_LOCATION,
+                      inputLocs[VOLTAGE_IN_LOCATION],
                       ir * vr / voltage + vm * im / voltage);
-    md.assignCheckCol(QoutLocation, inputLocs[angleInLocation], vr * ir + vm * im);
-    md.assignCheckCol(QoutLocation,
-                      inputLocs[voltageInLocation],
+    md.assignCheckCol(QOUT_LOCATION, inputLocs[ANGLE_IN_LOCATION], vr * ir + vm * im);
+    md.assignCheckCol(QOUT_LOCATION,
+                      inputLocs[VOLTAGE_IN_LOCATION],
                       vm * ir / voltage - vr * im / voltage);
 }
 
@@ -549,7 +549,7 @@ void MotorLoad3::rootTest(const IOdata& /*inputs*/,
 {
     auto Loc = offsets.getLocations(sD, sMode, this);
     auto ro = offsets.getRootOffset(sMode);
-    if (opFlags[stalled]) {
+    if (opFlags[STALLED]) {
         double Te =
             Loc.diffStateLoc[1] * Loc.algStateLoc[0] + Loc.diffStateLoc[2] * Loc.algStateLoc[1];
         roots[ro] = Te - mechPower(1.0);
@@ -569,16 +569,16 @@ void MotorLoad3::rootTrigger(CoreTime /*time*/,
     if (rootMask[offsets.getRootOffset(sMode)] == 0) {
         return;
     }
-    if (opFlags[stalled]) {
-        if (inputs[voltageInLocation] > 0.5) {
-            opFlags.reset(stalled);
+    if (opFlags[STALLED]) {
+        if (inputs[VOLTAGE_IN_LOCATION] > 0.5) {
+            opFlags.reset(STALLED);
             alert(this, JAC_COUNT_INCREASE);
             m_state[2] = 1.0 - 1e-7;
         }
     } else {
-        opFlags.set(stalled);
+        opFlags.set(STALLED);
         alert(this, JAC_COUNT_DECREASE);
-        if (inputs[voltageInLocation] < 0.25) {
+        if (inputs[VOLTAGE_IN_LOCATION] < 0.25) {
             alert(this, POTENTIAL_FAULT_CHANGE);
         }
         m_state[2] = 1.0;
@@ -590,12 +590,12 @@ ChangeCode MotorLoad3::rootCheck(const IOdata& /*inputs*/,
                                  const SolverMode& sMode,
                                  CheckLevel /*level*/)
 {
-    if (opFlags[stalled]) {
+    if (opFlags[STALLED]) {
         auto Loc = offsets.getLocations(sD, sMode, this);
         const double Te =
             Loc.diffStateLoc[1] * Loc.algStateLoc[0] + Loc.diffStateLoc[2] * Loc.algStateLoc[1];
         if (Te - mechPower(1.0) > 0) {
-            opFlags.reset(stalled);
+            opFlags.reset(STALLED);
             alert(this, JAC_COUNT_INCREASE);
             return ChangeCode::JACOBIAN_CHANGE;
         }
@@ -628,8 +628,8 @@ double MotorLoad3::getRealPower(const IOdata& inputs,
                                 const StateData& sD,
                                 const SolverMode& sMode) const
 {
-    const double voltage = inputs[voltageInLocation];
-    double angle = inputs[angleInLocation];
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
+    double angle = inputs[ANGLE_IN_LOCATION];
 
     double Vr = -voltage * Vcontrol * sin(angle);
     double Vm = voltage * Vcontrol * cos(angle);
@@ -646,8 +646,8 @@ double MotorLoad3::getReactivePower(const IOdata& inputs,
                                     const StateData& sD,
                                     const SolverMode& sMode) const
 {
-    const double voltage = inputs[voltageInLocation];
-    double angle = inputs[angleInLocation];
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
+    double angle = inputs[ANGLE_IN_LOCATION];
 
     double Vr = -voltage * Vcontrol * sin(angle);
     double Vm = voltage * Vcontrol * cos(angle);

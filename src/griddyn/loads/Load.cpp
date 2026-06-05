@@ -81,12 +81,12 @@ void GridLoad::setFlag(std::string_view flag, bool val)
 {
     if (flag == "usepowerfactor") {
         if (val) {
-            if (!(opFlags[use_power_factor_flag])) {
-                opFlags.set(use_power_factor_flag);
+            if (!(opFlags[USE_POWER_FACTOR_FLAG])) {
+                opFlags.set(USE_POWER_FACTOR_FLAG);
                 updatepfq();
             }
         } else {
-            opFlags.reset(use_power_factor_flag);
+            opFlags.reset(USE_POWER_FACTOR_FLAG);
         }
     } else {
         GridSecondary::setFlag(flag, val);
@@ -190,10 +190,10 @@ void GridLoad::set(std::string_view param, double val, unit unitType)
         } else {
             pfq = kBigNum;
         }
-        opFlags.set(use_power_factor_flag);
+        opFlags.set(USE_POWER_FACTOR_FLAG);
     } else if (param == "qratio") {
         pfq = val;
-        opFlags.set(use_power_factor_flag);
+        opFlags.set(USE_POWER_FACTOR_FLAG);
     } else {
         GridSecondary::set(param, val, unitType);
     }
@@ -215,14 +215,14 @@ void GridLoad::setQ(double newQ)
 
 void GridLoad::updatepfq()
 {
-    if (opFlags[use_power_factor_flag]) {
+    if (opFlags[USE_POWER_FACTOR_FLAG]) {
         pfq = (P == 0.0) ? kBigNum : Q / P;
     }
 }
 
 void GridLoad::checkpfq()
 {
-    if (opFlags[use_power_factor_flag]) {
+    if (opFlags[USE_POWER_FACTOR_FLAG]) {
         if (pfq > 1000.0)  // if the pfq is screwy, recalculate, otherwise leave it the same.
         {
             if (P != 0.0) {
@@ -234,7 +234,7 @@ void GridLoad::checkpfq()
 
 void GridLoad::checkFaultChange()
 {
-    if ((opFlags[pFlow_initialized]) && (bus->getVoltage() < 0.05)) {
+    if ((opFlags[POWERFLOW_INITIALIZED]) && (bus->getVoltage() < 0.05)) {
         alert(this, POTENTIAL_FAULT_CHANGE);
     }
 }

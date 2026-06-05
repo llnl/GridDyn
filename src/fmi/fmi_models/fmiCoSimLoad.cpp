@@ -31,13 +31,13 @@ void FmiCoSimLoad::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (fmisub->isLoaded()) {
         configureFmiIo();
-        SET_CONTROLFLAG(flags, force_constant_pflow_initialization);
+        SET_CONTROLFLAG(flags, FORCE_CONSTANT_PFLOW_INITIALIZATION);
         fmisub->dynInitializeA(time0, flags);
         // ZipLoad::pFlowObjectInitializeA(time0, flags);
         auto inputs = bus->getOutputs(noInputs, emptyStateData, cLocalSolverMode);
         IOdata outset;
         fmisub->dynInitializeB(inputs, outset, outset);
-        opFlags.set(pFlow_initialized);
+        opFlags.set(POWERFLOW_INITIALIZED);
     } else {
         disable();
     }
@@ -62,8 +62,8 @@ void FmiCoSimLoad::setState(CoreTime time,
 {
     fmisub->setState(time, state, dstateDt, sMode);
     auto out = fmisub->getOutputs(noInputs, emptyStateData, cLocalSolverMode);
-    setP(out[PoutLocation]);
-    setQ(out[QoutLocation]);
+    setP(out[POUT_LOCATION]);
+    setQ(out[QOUT_LOCATION]);
 }
 
 }  // namespace griddyn::fmi

@@ -29,10 +29,10 @@ class HelicsCommunicator:
     virtual ~HelicsCommunicator() = default;
 
     virtual void transmit(const std::string& destName,
-                          std::shared_ptr<griddyn::commMessage> message) override;
+                          const std::shared_ptr<griddyn::CommMessage>& message) override;
 
     virtual void transmit(std::uint64_t destID,
-                          std::shared_ptr<griddyn::commMessage> message) override;
+                          const std::shared_ptr<griddyn::CommMessage>& message) override;
 
     virtual void initialize() override;  //!< XXX: Must be called by client
     virtual void disconnect() override;

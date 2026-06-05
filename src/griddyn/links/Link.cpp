@@ -227,7 +227,7 @@ void Link::switchMode(index_t num, bool mode)
 
         opFlags.flip(SWITCH2_OPEN_FLAG);
 
-        if (opFlags[pFlow_initialized]) {
+        if (opFlags[POWERFLOW_INITIALIZED]) {
             logging::debug(this,
                            "Switch2 changed||state ={}, link status ={}",
                            (opFlags[SWITCH2_OPEN_FLAG]) ? "OPEN" : "CLOSED",
@@ -253,7 +253,7 @@ void Link::switchMode(index_t num, bool mode)
         }
         opFlags.flip(SWITCH1_OPEN_FLAG);
 
-        if (opFlags[pFlow_initialized]) {
+        if (opFlags[POWERFLOW_INITIALIZED]) {
             logging::debug(this,
                            "Switch1 changed||state ={}, link status ={}",
                            (opFlags[SWITCH1_OPEN_FLAG]) ? "OPEN" : "CLOSED",
@@ -319,12 +319,12 @@ void Link::reconnect()
         updateLocalCache();
     }
 
-    if (B1->checkFlag(disconnected)) {
-        if (!(B2->checkFlag(disconnected))) {
+    if (B1->checkFlag(DISCONNECTED)) {
+        if (!(B2->checkFlag(DISCONNECTED))) {
             B1->reconnect(B2);
             updateLocalCache();
         }
-    } else if (B2->checkFlag(disconnected)) {
+    } else if (B2->checkFlag(DISCONNECTED)) {
         B2->reconnect(B1);
         updateLocalCache();
     }
@@ -511,9 +511,9 @@ IOdata Link::getOutputs(id_type_t busId, const StateData& /*sD*/, const SolverMo
     IOdata out{0.0, 0.0};
 
     if (isBus2(busId, B2)) {
-        out[PoutLocation] = Pset;
+        out[POUT_LOCATION] = Pset;
     } else {
-        out[PoutLocation] = Pset - (std::abs(Pset) * lossFraction);
+        out[POUT_LOCATION] = Pset - (std::abs(Pset) * lossFraction);
     }
     return out;
 }
@@ -523,7 +523,7 @@ void Link::disable()
     if (!isEnabled()) {
         return;
     }
-    if ((opFlags[has_pflow_states]) || (opFlags[has_dyn_states])) {
+    if ((opFlags[HAS_PFLOW_STATES]) || (opFlags[HAS_DYN_STATES])) {
         alert(this, STATE_COUNT_CHANGE);
     } else {
         alert(this, JAC_COUNT_CHANGE);

@@ -45,9 +45,9 @@ void GenModelInverter::dynObjectInitializeB(const IOdata& inputs,
                                             IOdata& fieldSet)
 {
     double* genModelState = m_state.data();
-    const double voltage = inputs[voltageInLocation];
-    const std::complex<double> outCurrent(desiredOutput[PoutLocation] / voltage,
-                                          -desiredOutput[QoutLocation] / voltage);
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
+    const std::complex<double> outCurrent(desiredOutput[POUT_LOCATION] / voltage,
+                                          -desiredOutput[QOUT_LOCATION] / voltage);
     const auto impedance = std::complex<double>(Rs, Xd);
     const auto internalVoltage = impedance * outCurrent + voltage;
 
@@ -64,7 +64,7 @@ void GenModelInverter::dynObjectInitializeB(const IOdata& inputs,
         loss = voltageLoss1 + voltageLoss2 + voltageLoss3;
     }
 
-    fieldSet[genModelPmechInLocation] = desiredOutput[PoutLocation] + loss;  // Pmt
+    fieldSet[genModelPmechInLocation] = desiredOutput[POUT_LOCATION] + loss;  // Pmt
 
     bus = static_cast<GridBus*>(find("bus"));
 }
@@ -80,7 +80,7 @@ void GenModelInverter::algebraicUpdate(const IOdata& inputs,
     // double angle = std::atan2(g, b);
 
     const double mechanicalPower = inputs[genModelPmechInLocation];
-    if (opFlags[atAngleLimits]) {
+    if (opFlags[AT_ANGLE_LIMITS]) {
         if (mechanicalPower > 0) {
             update[offset] = maxAngle;
         } else {
@@ -88,7 +88,7 @@ void GenModelInverter::algebraicUpdate(const IOdata& inputs,
         }
     } else {
         // Get the exciter field
-        const double voltage = inputs[voltageInLocation];
+        const double voltage = inputs[VOLTAGE_IN_LOCATION];
         const double exciterField = inputs[genModelEftInLocation] + 1.0;
         if (Rs != 0.0) {
             const double impedanceMagnitude = std::hypot(2.0 * g, b);
@@ -128,7 +128,7 @@ void GenModelInverter::residual(const IOdata& inputs,
     const double angle = *Loc.algStateLoc;
     // printf("time=%f, angle=%f\n", sD.time, angle);
     const double mechanicalPower = inputs[genModelPmechInLocation];
-    if (opFlags[atAngleLimits]) {
+    if (opFlags[AT_ANGLE_LIMITS]) {
         if (mechanicalPower > 0) {
             Loc.destLoc[0] = maxAngle - angle;
         } else {
@@ -138,7 +138,7 @@ void GenModelInverter::residual(const IOdata& inputs,
         // Get the exciter field
         const double exciterField = inputs[genModelEftInLocation] + 1.0;
 
-        const double voltage = inputs[voltageInLocation];
+        const double voltage = inputs[VOLTAGE_IN_LOCATION];
 
         const double powerNoResistance = exciterField * voltage * b * sin(angle);
         if (Rs != 0.0) {
@@ -161,7 +161,7 @@ double GenModelInverter::getFreq(const StateData& stateDataValue,
     // there is no inertia in this gen model so it can't compute a frequency and
     // must use the bus frequency
     if (freqOffset != nullptr) {
-        *freqOffset = bus->getOutputLoc(sMode, frequencyInLocation);
+        *freqOffset = bus->getOutputLoc(sMode, FREQUENCY_IN_LOCATION);
     }
     return bus->getFreq(stateDataValue, sMode);
 }
@@ -185,13 +185,13 @@ IOdata GenModelInverter::getOutputs(const IOdata& inputs,
     auto Loc = offsets.getLocations(stateDataValue, sMode, this);
 
     IOdata out(2);
-    const double voltage = inputs[voltageInLocation];
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
     const double exciterField = inputs[genModelEftInLocation] + 1.0;
     const double cosineAngle = cos(Loc.algStateLoc[0]);
     const double sineAngle = sin(Loc.algStateLoc[0]);
 
-    out[PoutLocation] = realPowerCompute(voltage, exciterField, cosineAngle, sineAngle);
-    out[QoutLocation] = reactivePowerCompute(voltage, exciterField, cosineAngle, sineAngle);
+    out[POUT_LOCATION] = realPowerCompute(voltage, exciterField, cosineAngle, sineAngle);
+    out[QOUT_LOCATION] = reactivePowerCompute(voltage, exciterField, cosineAngle, sineAngle);
 
     return out;
 }
@@ -222,13 +222,13 @@ double GenModelInverter::getOutput(const IOdata& inputs,
     auto Loc = offsets.getLocations(stateDataValue, sMode, this);
     const double cosineAngle = cos(Loc.algStateLoc[0]);
     const double sineAngle = sin(Loc.algStateLoc[0]);
-    const double voltage = inputs[voltageInLocation];
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
     const double exciterField = inputs[genModelEftInLocation] + 1.0;
 
-    if (outNum == PoutLocation) {
+    if (outNum == POUT_LOCATION) {
         return realPowerCompute(voltage, exciterField, cosineAngle, sineAngle);
     }
-    if (outNum == QoutLocation) {
+    if (outNum == QOUT_LOCATION) {
         return reactivePowerCompute(voltage, exciterField, cosineAngle, sineAngle);
     }
     return kNullVal;
@@ -242,31 +242,31 @@ void GenModelInverter::ioPartialDerivatives(const IOdata& inputs,
 {
     auto Loc = offsets.getLocations(stateDataValue, sMode, this);
 
-    const double voltage = inputs[voltageInLocation];
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
 
     const double cosineAngle = cos(Loc.algStateLoc[0]);
     const double sineAngle = sin(Loc.algStateLoc[0]);
 
-    // out[PoutLocation] = V*V*g - V*g*Eft*cAng - V*Eft*b*sAng;
-    // out[QoutLocation] = V*V*b - V*Eft*b*cAng + V*Eft*g*sAng;
+    // out[POUT_LOCATION] = V*V*g - V*g*Eft*cAng - V*Eft*b*sAng;
+    // out[QOUT_LOCATION] = V*V*b - V*Eft*b*cAng + V*Eft*g*sAng;
 
     if (inputLocs[genModelEftInLocation] != kNullLocation) {
-        matrixDataValue.assign(PoutLocation,
+        matrixDataValue.assign(POUT_LOCATION,
                                inputLocs[genModelEftInLocation],
                                (-voltage * g * cosineAngle) - (voltage * b * sineAngle));
-        matrixDataValue.assign(QoutLocation,
+        matrixDataValue.assign(QOUT_LOCATION,
                                inputLocs[genModelEftInLocation],
                                (-voltage * b * cosineAngle) + (voltage * g * sineAngle));
     }
 
-    if (inputLocs[voltageInLocation] != kNullLocation) {
+    if (inputLocs[VOLTAGE_IN_LOCATION] != kNullLocation) {
         const double exciterField = inputs[genModelEftInLocation] + 1.0;
-        matrixDataValue.assign(PoutLocation,
-                               inputLocs[voltageInLocation],
+        matrixDataValue.assign(POUT_LOCATION,
+                               inputLocs[VOLTAGE_IN_LOCATION],
                                (2.0 * voltage * g) - (g * exciterField * cosineAngle) -
                                    (exciterField * b * sineAngle));
-        matrixDataValue.assign(QoutLocation,
-                               inputLocs[voltageInLocation],
+        matrixDataValue.assign(QOUT_LOCATION,
+                               inputLocs[VOLTAGE_IN_LOCATION],
                                (2.0 * voltage * b) - (exciterField * b * cosineAngle) +
                                    (voltage * exciterField * g * sineAngle));
     }
@@ -283,10 +283,10 @@ void GenModelInverter::jacobianElements(const IOdata& inputs,
     }
     auto Loc = offsets.getLocations(stateDataValue, sMode, this);
     auto offset = Loc.algOffset;
-    if (opFlags[atAngleLimits]) {
+    if (opFlags[AT_ANGLE_LIMITS]) {
         matrixDataValue.assign(offset, offset, -1.0);
     } else {
-        const double voltage = inputs[voltageInLocation];
+        const double voltage = inputs[VOLTAGE_IN_LOCATION];
         const double exciterField = inputs[genModelEftInLocation] + 1.0;
         const double cosineAngle = cos(Loc.algStateLoc[0]);
         const double sineAngle = sin(Loc.algStateLoc[0]);
@@ -306,7 +306,7 @@ void GenModelInverter::jacobianElements(const IOdata& inputs,
                                            (2.0 * voltage * g * cosineAngle) -
                                            (voltage * b * sineAngle));
         matrixDataValue.assignCheckCol(offset,
-                                       inputLocs[voltageInLocation],
+                                       inputLocs[VOLTAGE_IN_LOCATION],
                                        (-2.0 * voltage * g) -
                                            (2.0 * exciterField * g * cosineAngle) -
                                            (exciterField * b * sineAngle));
@@ -323,19 +323,19 @@ void GenModelInverter::outputPartialDerivatives(const IOdata& inputs,
     }
     auto Loc = offsets.getLocations(stateDataValue, sMode, this);
 
-    const double voltage = inputs[voltageInLocation];
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
     const double exciterField = inputs[genModelEftInLocation] + 1.0;
     const double cosineAngle = cos(Loc.algStateLoc[0]);
     const double sineAngle = sin(Loc.algStateLoc[0]);
 
-    // out[PoutLocation] = V*V*g - V*g*Eft*cAng - V*Eft*b*sAng;
-    // out[QoutLocation] = V*V*b - V*Eft*b*cAng + V*Eft*g*sAng;
+    // out[POUT_LOCATION] = V*V*g - V*g*Eft*cAng - V*Eft*b*sAng;
+    // out[QOUT_LOCATION] = V*V*b - V*Eft*b*cAng + V*Eft*g*sAng;
 
-    matrixDataValue.assign(PoutLocation,
+    matrixDataValue.assign(POUT_LOCATION,
                            Loc.algOffset,
                            (voltage * g * exciterField * sineAngle) -
                                (voltage * exciterField * b * cosineAngle));
-    matrixDataValue.assign(QoutLocation,
+    matrixDataValue.assign(QOUT_LOCATION,
                            Loc.algOffset,
                            (voltage * exciterField * b * sineAngle) +
                                (voltage * exciterField * g * cosineAngle));
@@ -406,16 +406,16 @@ void GenModelInverter::rootTest(const IOdata& inputs,
         auto rootOffset = offsets.getRootOffset(sMode);
         auto stateOffset = offsets.getAlgOffset(sMode);
         const double angle = stateDataValue.state[stateOffset];
-        if (opFlags[atAngleLimits]) {
+        if (opFlags[AT_ANGLE_LIMITS]) {
             if (inputs[genModelPmechInLocation] > 0) {
                 const double pmax = -realPowerCompute(inputs[genModelEftInLocation],
-                                                      inputs[voltageInLocation],
+                                                      inputs[VOLTAGE_IN_LOCATION],
                                                       cos(maxAngle),
                                                       sin(maxAngle));
                 roots[rootOffset] = inputs[genModelPmechInLocation] + 0.0001 - pmax;
             } else {
                 const double pmin = -realPowerCompute(inputs[genModelEftInLocation],
-                                                      inputs[voltageInLocation],
+                                                      inputs[VOLTAGE_IN_LOCATION],
                                                       cos(minAngle),
                                                       sin(minAngle));
                 roots[rootOffset] = pmin - inputs[genModelPmechInLocation] + 0.0001;
@@ -434,12 +434,12 @@ void GenModelInverter::rootTrigger(CoreTime /*time*/,
     if (rootSize(sMode) > 0) {
         auto rootOffset = offsets.getRootOffset(sMode);
         if (rootMask[rootOffset] > 0) {
-            if (opFlags[atAngleLimits]) {
-                opFlags.reset(atAngleLimits);
+            if (opFlags[AT_ANGLE_LIMITS]) {
+                opFlags.reset(AT_ANGLE_LIMITS);
                 logging::debug(this, "reset angle limit");
                 algebraicUpdate(inputs, emptyStateData, m_state.data(), sMode, 1.0);
             } else {
-                opFlags.set(atAngleLimits);
+                opFlags.set(AT_ANGLE_LIMITS);
                 logging::debug(this, "angle at limits");
                 if (inputs[genModelPmechInLocation] > 0) {
                     m_state[0] = maxAngle;
@@ -459,25 +459,25 @@ ChangeCode GenModelInverter::rootCheck(const IOdata& inputs,
     if (rootSize(sMode) > 0) {
         auto Loc = offsets.getLocations(stateDataValue, sMode, this);
         const double angle = Loc.algStateLoc[0];
-        if (opFlags[atAngleLimits]) {
+        if (opFlags[AT_ANGLE_LIMITS]) {
             if (inputs[genModelPmechInLocation] > 0) {
                 const double pmax = -realPowerCompute(inputs[genModelEftInLocation],
-                                                      inputs[voltageInLocation],
+                                                      inputs[VOLTAGE_IN_LOCATION],
                                                       cos(maxAngle),
                                                       sin(maxAngle));
                 if (inputs[genModelPmechInLocation] - pmax < -0.0001) {
-                    opFlags.reset(atAngleLimits);
+                    opFlags.reset(AT_ANGLE_LIMITS);
                     logging::debug(this, "reset angle limit-from root check");
                     algebraicUpdate(inputs, emptyStateData, m_state.data(), sMode, 1.0);
                     return ChangeCode::JACOBIAN_CHANGE;
                 }
             } else {
                 const double pmin = -realPowerCompute(inputs[genModelEftInLocation],
-                                                      inputs[voltageInLocation],
+                                                      inputs[VOLTAGE_IN_LOCATION],
                                                       cos(minAngle),
                                                       sin(minAngle));
                 if (pmin - inputs[genModelPmechInLocation] < -0.0001) {
-                    opFlags.reset(atAngleLimits);
+                    opFlags.reset(AT_ANGLE_LIMITS);
                     logging::debug(this, "reset angle limit- from root check");
                     algebraicUpdate(inputs, emptyStateData, m_state.data(), sMode, 1.0);
                     return ChangeCode::JACOBIAN_CHANGE;
@@ -486,7 +486,7 @@ ChangeCode GenModelInverter::rootCheck(const IOdata& inputs,
         } else {
             auto remAngle = std::min(angle - minAngle, maxAngle - angle);
             if (remAngle < 0.0000001) {
-                opFlags.set(atAngleLimits);
+                opFlags.set(AT_ANGLE_LIMITS);
                 logging::debug(this, "angle at limit from check");
                 if (inputs[genModelPmechInLocation] > 0) {
                     m_state[0] = maxAngle;

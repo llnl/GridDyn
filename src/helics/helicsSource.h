@@ -17,8 +17,8 @@ class HelicsSource: public sources::RampSource {
   public:
     enum HelicsSourceFlags {
         USE_RAMP = object_flag8,
-        predictiveRamp = object_flag9,
-        initialQuery = object_flag10,
+        PREDICTIVE_RAMP = object_flag9,
+        INITIAL_QUERY = object_flag10,
     };
 
   protected:

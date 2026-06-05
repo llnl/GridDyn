@@ -217,7 +217,7 @@ void AggregateLoad::set(std::string_view param, std::string_view val)
             }
             fraction[nn + 1] = fval[nn];
         }
-        if (opFlags[pFlow_initialized]) {
+        if (opFlags[POWERFLOW_INITIALIZED]) {
             for (size_t nn = 0; nn < subLoads.size(); ++nn) {
                 subLoads[nn]->set("p", getP() * fraction[nn]);
                 subLoads[nn]->set("q", getQ() * fraction[nn]);
@@ -251,7 +251,7 @@ void AggregateLoad::set(std::string_view param, double val, units::unit unitType
     } else {
         ZipLoad::set(param, val, unitType);
     }
-    if ((reallocate) && (opFlags[pFlow_initialized])) {
+    if ((reallocate) && (opFlags[POWERFLOW_INITIALIZED])) {
         for (size_t nn = 0; nn < subLoads.size(); ++nn) {
             subLoads[nn]->set("p", getP() * fraction[nn]);
             subLoads[nn]->set("q", getQ() * fraction[nn]);

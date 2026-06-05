@@ -216,7 +216,7 @@ void ZonalRelay::actionTaken(index_t actionNum,
         }
     }
     for (index_t kk = conditionNum + 1; kk < mZoneCount; ++kk) {
-        setConditionStatus(kk, ConditionStatus::disabled);
+        setConditionStatus(kk, ConditionStatus::DISABLED);
     }
     mConditionLevel = std::min(conditionNum, mConditionLevel);
 }
@@ -246,7 +246,7 @@ void ZonalRelay::conditionCleared(index_t conditionNum, CoreTime /*triggerTime*/
 {
     logging::normal(this, "condition {} cleared terminal {}", conditionNum, m_terminal);
     for (index_t kk = 0; kk < mZoneCount; ++kk) {
-        if (getConditionStatus(kk) == ConditionStatus::active) {
+        if (getConditionStatus(kk) == ConditionStatus::ACTIVE) {
             mConditionLevel = kk + 1;
         } else {
             return;
@@ -276,7 +276,7 @@ void ZonalRelay::receiveMessage(std::uint64_t /*sourceID*/, std::shared_ptr<Comm
             break;
         case CommMessage::BREAKER_OOS_COMMAND:
             for (index_t kk = 0; kk < mZoneCount; ++kk) {
-                setConditionStatus(kk, ConditionStatus::disabled);
+                setConditionStatus(kk, ConditionStatus::DISABLED);
             }
             break;
         default: {

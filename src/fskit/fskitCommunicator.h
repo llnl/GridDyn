@@ -37,15 +37,15 @@ class FskitCommunicator: public griddyn::Communicator, public fskit::LogicalProc
     virtual ~FskitCommunicator() = default;
 
     virtual void transmit(const std::string& destName,
-                          std::shared_ptr<griddyn::commMessage> message) override;
+                          const std::shared_ptr<griddyn::CommMessage>& message) override;
 
     virtual void transmit(std::uint64_t destID,
-                          std::shared_ptr<griddyn::commMessage> message) override;
+                          const std::shared_ptr<griddyn::CommMessage>& message) override;
 
     void ProcessEventMessage(const fskit::EventMessage& eventMessage);
     virtual void initialize() override;  //!< XXX: Must be called by client
     virtual void disconnect() override;
 
   private:
-    void doTransmit(std::shared_ptr<griddyn::commMessage> message);
+    void doTransmit(const std::shared_ptr<griddyn::CommMessage>& message);
 };

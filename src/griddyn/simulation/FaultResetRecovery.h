@@ -25,8 +25,8 @@ class faultResetRecovery {
     /** @brief enumeration describing possible return options
      */
     enum class RecoveryReturnCodes {
-        more_options,
-        out_of_options,
+        MORE_OPTIONS,
+        OUT_OF_OPTIONS,
     };
 
     /** @brief constructor

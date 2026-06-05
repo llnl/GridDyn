@@ -40,7 +40,7 @@ GridSimulation::GridSimulation(const std::string& objName):
 GridSimulation::~GridSimulation()
 {
     opFlags.set(
-        being_deleted);  // set this flag to handle some unusual circumstances with extra objects
+        BEING_DELETED);  // set this flag to handle some unusual circumstances with extra objects
 }
 
 CoreObject* GridSimulation::clone(CoreObject* obj) const

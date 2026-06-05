@@ -24,15 +24,15 @@ class Sensor: public Relay {
     /** @brief sensor flags controlling operation
      */
     enum SensorFlags {
-        DIRECT_IO = object_flag6,  //!< indication that the sensor is directly listing all inputs as
+        DIRECT_IO = OBJECT_FLAG6,  //!< indication that the sensor is directly listing all inputs as
                                    //!< outputs with
         //!< no processing
-        LINK_TYPE_SOURCE = object_flag7,  //!< indication that the source is a link
-        LINK_TYPE_SINK = object_flag8,  //!< indicator that the sink is a link object
+        LINK_TYPE_SOURCE = OBJECT_FLAG7,  //!< indication that the source is a link
+        LINK_TYPE_SINK = OBJECT_FLAG8,  //!< indicator that the sink is a link object
         NO_MESSAGE_REPLY =
-            object_flag9,  //!< indicator that the sensor should not send message replies
+            OBJECT_FLAG9,  //!< indicator that the sensor should not send message replies
         FORCE_CONTINUOUS =
-            object_flag10,  //!< force continuous operation even if the underlying data sources are
+            OBJECT_FLAG10,  //!< force continuous operation even if the underlying data sources are
         //!< not continuously available
     };
     /** @brief define the possible operation modes for a processing sequence*/

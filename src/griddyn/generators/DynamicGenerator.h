@@ -27,16 +27,16 @@ power system stabilizer. as well as control for the power set point and voltage 
 class DynamicGenerator: public Generator {
   public:
     enum class DynModel {
-        invalid,
-        simple,
-        dc,
-        transient,
-        detailed,
+        INVALID,
+        SIMPLE,
+        DC,
+        TRANSIENT,
+        DETAILED,
         MODEL_ONLY,
-        typical,
-        subtransient,
-        renewable,
-        none,
+        TYPICAL,
+        SUBTRANSIENT,
+        RENEWABLE,
+        NONE,
     };
 
     /** @brief enum indicating subModel locations in the subObject structure*/

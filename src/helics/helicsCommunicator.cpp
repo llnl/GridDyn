@@ -57,7 +57,7 @@ void HelicsCommunicator::initialize()
 void HelicsCommunicator::disconnect() {}
 
 void HelicsCommunicator::transmit(const std::string& destName,
-                                  std::shared_ptr<griddyn::commMessage> message)
+                                  const std::shared_ptr<griddyn::CommMessage>& message)
 {
     auto mdata = message->to_string();
     if (destName.empty()) {
@@ -68,7 +68,7 @@ void HelicsCommunicator::transmit(const std::string& destName,
 }
 
 void HelicsCommunicator::transmit(std::uint64_t /*destID*/,
-                                  std::shared_ptr<griddyn::commMessage> message)
+                                  const std::shared_ptr<griddyn::CommMessage>& message)
 {
     auto mdata = message->to_string();
     coord->sendMessage(index, mdata.data(), static_cast<count_t>(mdata.size()));

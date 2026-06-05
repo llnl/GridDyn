@@ -26,14 +26,15 @@ class GenModel: public GridSubModel {
      */
     enum GenModelFlags {
 
-        useSaturationFlag =
-            object_flag2,  //!< flag indicating that the simulation should use a saturation model
-        useSpeedFieldAdjustment = object_flag3,  //!< flag indicating that the simulation should
-                                                 //!< use a speed field adjustment
-        useFrequencyImpedanceCorrection = object_flag4,  //!< flag indicating that the model should
-                                                         //!< use frequency impedance corrections
-        internalFrequencyCalculation = object_flag5,
-        atAngleLimits = object_flag6,
+        USE_SATURATION_FLAG =
+            OBJECT_FLAG2,  //!< flag indicating that the simulation should use a saturation model
+        USE_SPEED_FIELD_ADJUSTMENT = OBJECT_FLAG3,  //!< flag indicating that the simulation should
+                                                    //!< use a speed field adjustment
+        USE_FREQUENCY_IMPEDANCE_CORRECTION =
+            OBJECT_FLAG4,  //!< flag indicating that the model should
+                           //!< use frequency impedance corrections
+        INTERNAL_FREQUENCY_CALCULATION = OBJECT_FLAG5,
+        AT_ANGLE_LIMITS = OBJECT_FLAG6,
     };
 
   protected:

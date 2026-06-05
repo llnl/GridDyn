@@ -32,11 +32,11 @@ class AdjustableTransformer: public AcLine {
     /** @brief  flags for
      */
     enum AdjustableFlags {
-        CONTINUOUS_FLAG = object_flag5,  //!< flag indicating continuous adjustments
-        USE_TARGET_MODE = object_flag6,  //!< flag indicating target mode
-        AT_LIMIT = object_flag7,  //!< flag indicating the adjustments are at their limit
-        NO_PFLOW_ADJUSTMENTS = object_flag8,  //!< flag turning off all automatic adjustments
-        USE_LOOKUP_TABLE = object_flag9,  //!< flag indicating use of an impedance lookup table
+        CONTINUOUS_FLAG = OBJECT_FLAG5,  //!< flag indicating continuous adjustments
+        USE_TARGET_MODE = OBJECT_FLAG6,  //!< flag indicating target mode
+        AT_LIMIT = OBJECT_FLAG7,  //!< flag indicating the adjustments are at their limit
+        NO_PFLOW_ADJUSTMENTS = OBJECT_FLAG8,  //!< flag turning off all automatic adjustments
+        USE_LOOKUP_TABLE = OBJECT_FLAG9,  //!< flag indicating use of an impedance lookup table
     };
 
   protected:

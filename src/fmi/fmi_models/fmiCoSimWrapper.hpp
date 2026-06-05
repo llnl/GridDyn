@@ -29,7 +29,7 @@ class FmiCoSimWrapper: public FmiWrapper<FmiCoSimSubModel, BaseObj> {
     {
         if (FmiWrapper<FmiCoSimSubModel, BaseObj>::fmisub->isLoaded()) {
             FmiWrapper<FmiCoSimSubModel, BaseObj>::configureFmiIo();
-            SET_CONTROLFLAG(flags, force_constant_pflow_initialization);
+            SET_CONTROLFLAG(flags, FORCE_CONSTANT_PFLOW_INITIALIZATION);
 
             BaseObj::pFlowObjectInitializeA(time0, flags);
 

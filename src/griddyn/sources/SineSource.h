@@ -14,7 +14,7 @@ namespace griddyn::sources {
  */
 class SineSource: public PulseSource {
   public:
-    static const char pulsedFlag = object_flag4;  //!< indicator that the source should be pulsed
+    static const char pulsedFlag = OBJECT_FLAG4;  //!< indicator that the source should be pulsed
   protected:
     model_parameter frequency = 0.0;  //!<[Hz] frequency of an oscillation
     model_parameter phase = 0.0;  //!<[rad]  the offset angle

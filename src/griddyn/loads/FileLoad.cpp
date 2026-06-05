@@ -86,7 +86,7 @@ void FileLoad::updateA(CoreTime time)
         }
         double val = schedLoad.data(pp, currIndex) * scaleFactor;
         if (currIndex < count - 1) {
-            diffrate = (opFlags[use_step_change_flag]) ?
+            diffrate = (opFlags[USE_STEP_CHANGE_FLAG]) ?
                 0.0 :
                 (schedLoad.data(pp, currIndex + 1) * scaleFactor - val) / dt;
         } else {
@@ -145,7 +145,7 @@ void FileLoad::updateA(CoreTime time)
         }
     }
     lastTime = prevTime;
-    if (!opFlags[use_step_change_flag]) {
+    if (!opFlags[USE_STEP_CHANGE_FLAG]) {
         RampLoad::updateLocalCache(noInputs, StateData(time), cLocalSolverMode);
     }
     lastUpdateTime = time;
@@ -164,13 +164,13 @@ void FileLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& s
 void FileLoad::setFlag(std::string_view flag, bool val)
 {
     if (flag == "absolute") {
-        opFlags.set(use_absolute_time_flag, val);
+        opFlags.set(USE_ABSOLUTE_TIME_FLAG, val);
     } else if (flag == "relative") {
-        opFlags.set(use_absolute_time_flag, !val);
+        opFlags.set(USE_ABSOLUTE_TIME_FLAG, !val);
     } else if (flag == "step") {
-        opFlags.set(use_step_change_flag, val);
+        opFlags.set(USE_STEP_CHANGE_FLAG, val);
     } else if (flag == "interpolate") {
-        opFlags.set(use_step_change_flag, !val);
+        opFlags.set(USE_STEP_CHANGE_FLAG, !val);
     } else {
         ZipLoad::setFlag(flag, val);
     }
@@ -204,7 +204,7 @@ void FileLoad::set(std::string_view param, std::string_view val)
 {
     if ((param == "fileName") || (param == "file")) {
         fileName_ = val;
-        if (opFlags[pFlow_initialized]) {
+        if (opFlags[POWERFLOW_INITIALIZED]) {
             count = 0;
             currIndex = 0;
             count = loadFile();

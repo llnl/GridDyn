@@ -19,7 +19,7 @@ class FunctionBlock: public GridBlock {
     //!< flags for function block
     enum FunctionBlockFlags {
         USES_CONSTANT_ARG =
-            object_flag10,  //!< flag indicating that the function should use a constant
+            OBJECT_FLAG10,  //!< flag indicating that the function should use a constant
                             //!< argument for the second argument of functions
     };
 

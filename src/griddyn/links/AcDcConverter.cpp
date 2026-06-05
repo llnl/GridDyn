@@ -69,9 +69,9 @@ AcDcConverter::AcDcConverter(const std::string& objName): Link(objName)
 void AcDcConverter::buildSubsystem()
 {
     tap = kBigNum;
-    opFlags.set(dc_capable);
-    opFlags.set(adjustable_P);
-    opFlags.set(adjustable_Q);
+    opFlags.set(DC_CAPABLE);
+    opFlags.set(ADJUSTABLE_P);
+    opFlags.set(ADJUSTABLE_Q);
     firingAngleControl =
         makeOwningPtr<blocks::PidBlock>(-dirMult * mp_Kp, -dirMult * mp_Ki, 0, "angleControl");
     addSubObject(firingAngleControl.get());
@@ -188,7 +188,7 @@ void AcDcConverter::set(std::string_view param, double val, unit unitType)
         Pset = (Pset < 0) ? dirMult * Pset : Pset;
         opFlags.set(FIXED_TARGET_POWER);
         controlMode = ControlMode::POWER;
-        if (opFlags[dyn_initialized]) {
+        if (opFlags[DYN_INITIALIZED]) {
             tap = linkInfo.v2 * linkInfo.v1 / Pset;
         }
     } else if ((param == "tapi") || (param == "mi") || (param == "tap")) {
@@ -306,7 +306,7 @@ void AcDcConverter::ioPartialDerivatives(id_type_t busId,
     if (!(isEnabled())) {
         return;
     }
-    if (inputLocs[voltageInLocation] == kNullLocation) {
+    if (inputLocs[VOLTAGE_IN_LOCATION] == kNullLocation) {
         return;
     }
     updateLocalCache(noInputs, stateDataValue, sMode);
@@ -319,12 +319,12 @@ double sr = k3sq2*linkInfo.v1*Idc;
 
 linkInfo.Q1 = -std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
 */
-    const index_t vLoc = inputLocs[voltageInLocation];
+    const index_t vLoc = inputLocs[VOLTAGE_IN_LOCATION];
     if (isDynamic(sMode)) {
         if (busId == B2->getID()) {
-            matrixDataValue.assign(PoutLocation, vLoc, -dirMult * Idc);
+            matrixDataValue.assign(POUT_LOCATION, vLoc, -dirMult * Idc);
         } else {
-            matrixDataValue.assign(QoutLocation,
+            matrixDataValue.assign(QOUT_LOCATION,
                                    vLoc,
                                    -Idc * k3sq2sq * linkInfo.v1 /
                                        std::sqrt((k3sq2sq * linkInfo.v1 * linkInfo.v1) -
@@ -342,18 +342,18 @@ linkInfo.Q1 = -std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
     */
         if (busId == B2->getID()) {
             if (!opFlags[FIXED_TARGET_POWER]) {
-                matrixDataValue.assign(PoutLocation, vLoc, dirMult * linkInfo.v1 / tap);
+                matrixDataValue.assign(POUT_LOCATION, vLoc, dirMult * linkInfo.v1 / tap);
             }
         } else {
             const double temp =
                 std::sqrt((k3sq2sq * linkInfo.v1 * linkInfo.v1) - (linkInfo.v2 * linkInfo.v2));
             if (opFlags[FIXED_TARGET_POWER]) {
-                matrixDataValue.assign(QoutLocation,
+                matrixDataValue.assign(QOUT_LOCATION,
                                        vLoc,
                                        -k3sq2sq * Pset * linkInfo.v1 / (linkInfo.v2 * temp));
             } else {
-                matrixDataValue.assign(PoutLocation, vLoc, -dirMult * linkInfo.v2 / tap);
-                matrixDataValue.assign(QoutLocation,
+                matrixDataValue.assign(POUT_LOCATION, vLoc, -dirMult * linkInfo.v2 / tap);
+                matrixDataValue.assign(QOUT_LOCATION,
                                        vLoc,
                                        ((-1.0 / tap) * temp) -
                                            ((linkInfo.v1 * linkInfo.v1 / (tap * temp)) * k3sq2sq));
@@ -380,9 +380,9 @@ void AcDcConverter::outputPartialDerivatives(const IOdata& /*inputs*/,
 
     linkInfo.Q1 = -std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
     */
-        matrixDataValue.assign(PoutLocation, algOffset, dirMult * linkInfo.v2);
-        matrixDataValue.assign(QoutLocation, algOffset, linkFlows.Q1 / Idc);
-        matrixDataValue.assign(PoutLocation + 2, algOffset, -dirMult * linkInfo.v2);
+        matrixDataValue.assign(POUT_LOCATION, algOffset, dirMult * linkInfo.v2);
+        matrixDataValue.assign(QOUT_LOCATION, algOffset, linkFlows.Q1 / Idc);
+        matrixDataValue.assign(POUT_LOCATION + 2, algOffset, -dirMult * linkInfo.v2);
     }
 }
 void AcDcConverter::outputPartialDerivatives(id_type_t busId,
@@ -396,8 +396,8 @@ void AcDcConverter::outputPartialDerivatives(id_type_t busId,
     updateLocalCache(noInputs, stateDataValue, sMode);
 
     // int mode = B1->getMode(sMode) * 4 + B2->getMode(sMode);
-    auto bus1VoltageOffset = B1->getOutputLoc(sMode, voltageInLocation);
-    auto bus2VoltageOffset = B2->getOutputLoc(sMode, voltageInLocation);
+    auto bus1VoltageOffset = B1->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
+    auto bus2VoltageOffset = B2->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
 
     auto algOffset = offsets.getAlgOffset(sMode);
 
@@ -412,17 +412,17 @@ void AcDcConverter::outputPartialDerivatives(id_type_t busId,
       linkInfo.Q1 = -std::sqrt(sr*sr - linkInfo.P1*linkInfo.P1);
       */
         if (busId == B2->getID()) {
-            matrixDataValue.assign(PoutLocation, algOffset, -dirMult * linkInfo.v2);
+            matrixDataValue.assign(POUT_LOCATION, algOffset, -dirMult * linkInfo.v2);
         } else {
-            matrixDataValue.assignCheckCol(PoutLocation, bus2VoltageOffset, dirMult * Idc);
-            matrixDataValue.assign(PoutLocation, algOffset, dirMult * linkInfo.v2);
-            matrixDataValue.assignCheckCol(QoutLocation,
+            matrixDataValue.assignCheckCol(POUT_LOCATION, bus2VoltageOffset, dirMult * Idc);
+            matrixDataValue.assign(POUT_LOCATION, algOffset, dirMult * linkInfo.v2);
+            matrixDataValue.assignCheckCol(QOUT_LOCATION,
                                            bus2VoltageOffset,
                                            Idc * linkInfo.v2 /
                                                std::sqrt(
                                                    ((k3sq2 * k3sq2) * linkInfo.v1 * linkInfo.v1) -
                                                    (linkInfo.v2 * linkInfo.v2)));
-            matrixDataValue.assign(QoutLocation, algOffset, linkFlows.Q1 / Idc);
+            matrixDataValue.assign(QOUT_LOCATION, algOffset, linkFlows.Q1 / Idc);
         }
     } else {
         /*
@@ -436,7 +436,7 @@ void AcDcConverter::outputPartialDerivatives(id_type_t busId,
     */
         if (busId == B2->getID()) {
             if (!opFlags[FIXED_TARGET_POWER]) {
-                matrixDataValue.assignCheckCol(PoutLocation,
+                matrixDataValue.assignCheckCol(POUT_LOCATION,
                                                bus1VoltageOffset,
                                                dirMult * linkInfo.v2 / tap);
             }
@@ -445,16 +445,16 @@ void AcDcConverter::outputPartialDerivatives(id_type_t busId,
                 const double temp =
                     std::sqrt((k3sq2sq * linkInfo.v1 * linkInfo.v1) - (linkInfo.v2 * linkInfo.v2));
                 if (opFlags[FIXED_TARGET_POWER]) {
-                    matrixDataValue.assignCheckCol(QoutLocation,
+                    matrixDataValue.assignCheckCol(QOUT_LOCATION,
                                                    bus2VoltageOffset,
                                                    (Pset / temp) +
                                                        ((Pset * temp) /
                                                         (linkInfo.v2 * linkInfo.v2)));
                 } else {
-                    matrixDataValue.assignCheckCol(PoutLocation,
+                    matrixDataValue.assignCheckCol(POUT_LOCATION,
                                                    bus2VoltageOffset,
                                                    -dirMult * linkInfo.v1 / tap);
-                    matrixDataValue.assignCheckCol(QoutLocation,
+                    matrixDataValue.assignCheckCol(QOUT_LOCATION,
                                                    bus2VoltageOffset,
                                                    (linkInfo.v1 / tap) * linkInfo.v2 / temp);
                 }
@@ -475,9 +475,9 @@ void AcDcConverter::jacobianElements(const IOdata& /*inputs*/,
                                      const SolverMode& sMode)
 {
     auto bus1Locs = B1->getOutputLocs(sMode);
-    auto bus1VoltageOffset = bus1Locs[voltageInLocation];
+    auto bus1VoltageOffset = bus1Locs[VOLTAGE_IN_LOCATION];
     auto bus2Locs = B2->getOutputLocs(sMode);
-    auto bus2VoltageOffset = bus2Locs[voltageInLocation];
+    auto bus2VoltageOffset = bus2Locs[VOLTAGE_IN_LOCATION];
     updateLocalCache(noInputs, stateDataValue, sMode);
     if (isDynamic(sMode)) {
         auto loc = offsets.getLocations(stateDataValue, sMode, this);

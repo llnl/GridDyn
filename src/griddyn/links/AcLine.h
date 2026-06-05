@@ -54,7 +54,7 @@ class AcLine: public Link {
   public:
     enum AcLineFlags {
         // indicator that the angle slipped past 90 degree on a test
-        ANGLE_SLIP_ON_TEST = object_flag10,
+        ANGLE_SLIP_ON_TEST = OBJECT_FLAG10,
     };
 
   protected:
@@ -280,7 +280,7 @@ class AcLine: public Link {
     /** @brief load information into the linkInfo structure*/
     void loadLinkInfo();
     /** @brief load information into the linkInfo structure
-    @param[in] sD  the state Data
+    @param[in] stateData  the state Data
     @param[in] sMode the corresponding solver Mode*/
     void loadLinkInfo(const StateData& stateData, const SolverMode& sMode);
     /** @brief load the approximation functions in the bizarrely defined array above*/

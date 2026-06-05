@@ -48,7 +48,7 @@ GridArea::GridArea(const std::string& objName): GridPrimary(objName)
     // default values
     setUserID(++areaCounter);
     updateName();
-    opFlags.set(multipart_calculation_capable);
+    opFlags.set(MULTIPART_CALCULATION_CAPABLE);
     obList = std::make_unique<CoreObjectList>();
     opObjectLists = std::make_unique<ListMaintainer>();
 }
@@ -188,7 +188,7 @@ void addObject(GridArea* area, X* obj, std::vector<X*>& objVector)
         obj->set("basefreq", area->systemBaseFrequency);
         area->primaryObjects.push_back(obj);
         obj->locIndex2 = static_cast<index_t>(area->primaryObjects.size()) - 1;
-        if (area->checkFlag(pFlow_initialized)) {
+        if (area->checkFlag(POWERFLOW_INITIALIZED)) {
             area->alert(area, OBJECT_COUNT_INCREASE);
         }
     }
@@ -241,7 +241,7 @@ void GridArea::remove(CoreObject* obj)
     }
 
     objectHolder[obj->locIndex]->setParent(nullptr);
-    if (opFlags[being_deleted]) {
+    if (opFlags[BEING_DELETED]) {
         objectHolder[obj->locIndex] = nullptr;
     } else {
         objectHolder.erase(objectHolder.begin() + obj->locIndex);
@@ -262,10 +262,10 @@ void removeObject(GridArea* area, X* obj, std::vector<X*>& objVector)
     }
 
     objVector[obj->locIndex]->setParent(nullptr);
-    if (area->opFlags[being_deleted]) {
+    if (area->opFlags[BEING_DELETED]) {
         objVector[obj->locIndex] = nullptr;
     } else {
-        if (area->checkFlag(pFlow_initialized)) {
+        if (area->checkFlag(POWERFLOW_INITIALIZED)) {
             area->alert(area, OBJECT_COUNT_DECREASE);
         }
         objVector.erase(objVector.begin() + obj->locIndex);
@@ -582,7 +582,7 @@ void GridArea::pFlowObjectInitializeB()
     // links need to be initialized first so the initial power flow can be computed through the
     // buses
     for (auto* link : m_Links) {
-        if (link->checkFlag(late_b_initialize)) {
+        if (link->checkFlag(LATE_B_INITIALIZE)) {
             lateBObjects.push_back(link);
         } else {
             link->pFlowInitializeB();
@@ -590,21 +590,21 @@ void GridArea::pFlowObjectInitializeB()
     }
 
     for (auto* area : m_GridAreas) {
-        if (area->checkFlag(late_b_initialize)) {
+        if (area->checkFlag(LATE_B_INITIALIZE)) {
             lateBObjects.push_back(area);
         } else {
             area->pFlowInitializeB();
         }
     }
     for (auto* bus : m_Buses) {
-        if (bus->checkFlag(late_b_initialize)) {
+        if (bus->checkFlag(LATE_B_INITIALIZE)) {
             lateBObjects.push_back(bus);
         } else {
             bus->pFlowInitializeB();
         }
     }
     for (auto* rel : m_Relays) {
-        if (rel->checkFlag(late_b_initialize)) {
+        if (rel->checkFlag(LATE_B_INITIALIZE)) {
             lateBObjects.push_back(rel);
         } else {
             rel->pFlowInitializeB();
@@ -672,10 +672,10 @@ void GridArea::updateLocalCache(const IOdata& inputs,
 ChangeCode GridArea::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level)
 {
     auto ret = ChangeCode::NO_CHANGE;
-    opFlags.set(disable_flag_updates);  // this is so the adjustment object list can't get reset in
+    opFlags.set(DISABLE_FLAG_UPDATES);  // this is so the adjustment object list can't get reset in
                                         // the middle of
     // this computation
-    if (level < CheckLevel::low_voltage_check) {
+    if (level < CheckLevel::LOW_VOLTAGE_CHECK) {
         for (auto* obj : pFlowAdjustObjects) {
             auto iret = obj->powerFlowAdjust(inputs, flags, level);
             if (iret > ret) {
@@ -693,8 +693,8 @@ ChangeCode GridArea::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, 
         }
     }
     // unset the lock
-    opFlags.reset(disable_flag_updates);
-    if (opFlags[flag_update_required]) {
+    opFlags.reset(DISABLE_FLAG_UPDATES);
+    if (opFlags[FLAG_UPDATE_REQUIRED]) {
         updateFlags();
     }
     return ret;
@@ -726,7 +726,7 @@ void GridArea::dynObjectInitializeB(const IOdata& inputs,
 
     for (auto* link : m_Links) {
         if (link->isEnabled()) {
-            if (link->checkFlag(late_b_initialize)) {
+            if (link->checkFlag(LATE_B_INITIALIZE)) {
                 lateBObjects.push_back(link);
             } else {
                 link->dynInitializeB(inputs, desiredOutput, fieldSet);
@@ -735,7 +735,7 @@ void GridArea::dynObjectInitializeB(const IOdata& inputs,
     }
     for (auto* area : m_GridAreas) {
         if (area->isEnabled()) {
-            if (area->checkFlag(late_b_initialize)) {
+            if (area->checkFlag(LATE_B_INITIALIZE)) {
                 lateBObjects.push_back(area);
             } else {
                 area->dynInitializeB(inputs, desiredOutput, fieldSet);
@@ -745,7 +745,7 @@ void GridArea::dynObjectInitializeB(const IOdata& inputs,
     double pmx = 0;
     for (auto* bus : m_Buses) {
         if (bus->isEnabled()) {
-            if (bus->checkFlag(late_b_initialize)) {
+            if (bus->checkFlag(LATE_B_INITIALIZE)) {
                 lateBObjects.push_back(bus);
             } else {
                 bus->dynInitializeB(inputs, desiredOutput, fieldSet);
@@ -759,7 +759,7 @@ void GridArea::dynObjectInitializeB(const IOdata& inputs,
     }
     for (auto* rel : m_Relays) {
         if (rel->isEnabled()) {
-            if (rel->checkFlag(late_b_initialize)) {
+            if (rel->checkFlag(LATE_B_INITIALIZE)) {
                 lateBObjects.push_back(rel);
             } else {
                 rel->dynInitializeB(inputs, desiredOutput, fieldSet);
@@ -783,7 +783,7 @@ void GridArea::converge(CoreTime time,
                         ConvergeMode mode,
                         double tol)
 {
-    if (opFlags[reverse_converge]) {
+    if (opFlags[REVERSE_CONVERGE]) {
         auto ra = opObjectLists->rbegin(sMode);
         auto rend = opObjectLists->rend(sMode);
         while (ra != rend) {
@@ -799,17 +799,17 @@ void GridArea::converge(CoreTime time,
         }
     }
     // Toggle the reverse indicator every time
-    if (opFlags[direction_oscillate]) {
-        opFlags.flip(reverse_converge);
+    if (opFlags[DIRECTION_OSCILLATE]) {
+        opFlags.flip(REVERSE_CONVERGE);
     }
 }
 
 void GridArea::setFlag(std::string_view flag, bool val)
 {
     if (flag == "reverse_converge") {
-        opFlags.set(reverse_converge, val);
+        opFlags.set(REVERSE_CONVERGE, val);
     } else if (flag == "direction_oscillate") {
-        opFlags.set(direction_oscillate, val);
+        opFlags.set(DIRECTION_OSCILLATE, val);
     } else {
         GridPrimary::setFlag(flag, val);
     }
@@ -1438,8 +1438,8 @@ ChangeCode GridArea::rootCheck(const IOdata& inputs,
 {
     ChangeCode ret = ChangeCode::NO_CHANGE;
     // root checks can trigger flag updates disable and just do the update once
-    opFlags.set(disable_flag_updates);
-    if (level >= CheckLevel::low_voltage_check) {
+    opFlags.set(DISABLE_FLAG_UPDATES);
+    if (level >= CheckLevel::LOW_VOLTAGE_CHECK) {
         for (auto* obj : primaryObjects) {
             if (obj->isEnabled()) {
                 auto iret = obj->rootCheck(inputs, stateDataValue, sMode, level);
@@ -1450,7 +1450,7 @@ ChangeCode GridArea::rootCheck(const IOdata& inputs,
         }
     } else {
         for (auto* ro : rootObjects) {
-            if (ro->checkFlag(has_alg_roots)) {
+            if (ro->checkFlag(HAS_ALG_ROOTS)) {
                 auto iret = ro->rootCheck(inputs, stateDataValue, sMode, level);
                 if (iret > ret) {
                     ret = iret;
@@ -1458,8 +1458,8 @@ ChangeCode GridArea::rootCheck(const IOdata& inputs,
             }
         }
     }
-    opFlags.reset(disable_flag_updates);
-    if (opFlags[flag_update_required]) {
+    opFlags.reset(DISABLE_FLAG_UPDATES);
+    if (opFlags[FLAG_UPDATE_REQUIRED]) {
         updateFlags();
     }
     return ret;
@@ -1478,7 +1478,7 @@ void GridArea::rootTrigger(CoreTime time,
     auto currentRootObject = rootObjects.begin();
     auto obend = rootObjects.end();
     auto ors = (*currentRootObject)->rootSize(sMode);
-    opFlags.set(disable_flag_updates);  // root triggers can cause a flag change and the flag update
+    opFlags.set(DISABLE_FLAG_UPDATES);  // root triggers can cause a flag change and the flag update
                                         // currently
     // checks the root object
     // TODO(PT) ::May be wise at some point to revisit the combination of the flags and root object
@@ -1502,10 +1502,10 @@ void GridArea::rootTrigger(CoreTime time,
         }
         ors = (*currentRootObject)->rootSize(sMode);
     }
-    opFlags.reset(disable_flag_updates);
-    if (opFlags[flag_update_required]) {
+    opFlags.reset(DISABLE_FLAG_UPDATES);
+    if (opFlags[FLAG_UPDATE_REQUIRED]) {
         updateFlags();
-        opFlags.reset(flag_update_required);
+        opFlags.reset(FLAG_UPDATE_REQUIRED);
     }
 }
 
@@ -1553,7 +1553,7 @@ void GridArea::getVoltageStates(double vStates[], const SolverMode& sMode) const
     }
     for (auto* bus : m_Buses) {
         if (bus->isEnabled()) {
-            Voffset = bus->getOutputLoc(sMode, voltageInLocation);
+            Voffset = bus->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
             if (Voffset != kNullLocation) {
                 vStates[Voffset] = 2.0;
             }
@@ -1583,7 +1583,7 @@ void GridArea::getAngleStates(double aStates[], const SolverMode& sMode) const
     }
     for (auto* bus : m_Buses) {
         if (bus->isEnabled()) {
-            Aoffset = bus->getOutputLoc(sMode, angleInLocation);
+            Aoffset = bus->getOutputLoc(sMode, ANGLE_IN_LOCATION);
             if (Aoffset != kNullLocation) {
                 aStates[Aoffset] = 1.0;
             }
@@ -1710,7 +1710,7 @@ void GridArea::updateFlags(bool /*dynOnly*/)
     for (auto* obj : primaryObjects) {
         if (obj->isEnabled()) {
             opFlags |= obj->cascadingFlags();
-            if (obj->checkFlag(has_powerflow_adjustments)) {
+            if (obj->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {
                 pFlowAdjustObjects.push_back(obj);
             }
         }
@@ -1822,7 +1822,7 @@ void GridArea::loadStateSizes(const SolverMode& sMode)
             if (!(sub->isStateCountLoaded(sMode))) {
                 sub->loadStateSizes(sMode);
             }
-            if (sub->checkFlag(sampled_only)) {
+            if (sub->checkFlag(SAMPLED_ONLY)) {
                 continue;
             }
             so.addStateSizes(sub->getOffsets(sMode));
@@ -1863,7 +1863,7 @@ void GridArea::loadRootSizes(const SolverMode& sMode)
         if (!(obj->isRootCountLoaded(sMode))) {
             obj->loadRootSizes(sMode);
         }
-        if (obj->checkFlag(has_roots)) {
+        if (obj->checkFlag(HAS_ROOTS)) {
             rootObjects.push_back(obj);
         }
         so.addRootSizes(obj->getOffsets(sMode));

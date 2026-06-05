@@ -52,11 +52,11 @@ class Link: public GridPrimary {
     // it can be edited as it does not impact link operations just for user convenience
     /** @brief define some basic flag locations for Link*/
     enum GridLinkFlags {
-        SWITCH1_OPEN_FLAG = object_flag1,  //!<  switch for the from bus
-        SWITCH2_OPEN_FLAG = object_flag2,  //!< switch for the to bus
-        FIXED_TARGET_POWER = object_flag3,  //!< flag indicating if the power flow was fixed
+        SWITCH1_OPEN_FLAG = OBJECT_FLAG1,  //!<  switch for the from bus
+        SWITCH2_OPEN_FLAG = OBJECT_FLAG2,  //!< switch for the to bus
+        FIXED_TARGET_POWER = OBJECT_FLAG3,  //!< flag indicating if the power flow was fixed
         NETWORK_CONNECTED =
-            object_flag4,  //!< indicates if a link ties the buses together in connected network
+            OBJECT_FLAG4,  //!< indicates if a link ties the buses together in connected network
 
     };
 

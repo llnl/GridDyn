@@ -377,6 +377,9 @@ include(addBoost)
 
 target_link_libraries(griddyn_base INTERFACE Boost::boost)
 target_link_libraries(griddyn_base INTERFACE compile_flags_target)
+target_compile_options(
+    griddyn_base INTERFACE $<$<COMPILE_LANG_AND_ID:CXX,GNU>:-Wstrict-overflow=2>
+)
 target_compile_definitions(griddyn_base INTERFACE BOOST_SYSTEM_NO_LIB BOOST_ERROR_CODE_HEADER_ONLY)
 
 set(GRIDDYN_BOOST_VERSION_LEVEL ${BOOST_VERSION_LEVEL})

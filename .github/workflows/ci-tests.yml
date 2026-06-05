@@ -28,10 +28,12 @@ jobs:
             c_compiler: gcc-14
             cxx_compiler: g++-14
             extra_packages: ""
+            cxx_flags: ""
           - name: Clang 18
             c_compiler: clang-18
             cxx_compiler: clang++-18
             extra_packages: "libomp-18-dev"
+            cxx_flags: "-Werror"
 
     steps:
     - uses: actions/checkout@v6
@@ -58,6 +60,7 @@ jobs:
         -DCMAKE_BUILD_TYPE=Release
         -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
         -DCMAKE_CXX_COMPILER=${{ matrix.cxx_compiler }}
+        -DCMAKE_CXX_FLAGS=${{ matrix.cxx_flags }}
         -DBUILD_TESTING=ON
         -DGRIDDYN_BUILD_TESTS=ON
         -DGRIDDYN_ENABLE_FMI=OFF

@@ -180,7 +180,14 @@ ChangeCode EventQueue::executeEventsBonly()
         }
     }
     partB_list.clear();
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wstrict-overflow"
+#endif
     std::stable_sort(events.begin(), events.end(), compareEventAdapters);
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic pop
+#endif
     return ret;
 }
 
@@ -190,7 +197,14 @@ void EventQueue::recheck()
     for (auto& ev : events) {
         ev->updateTime();
     }
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wstrict-overflow"
+#endif
     std::stable_sort(events.begin(), events.end(), compareEventAdapters);
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic pop
+#endif
 }
 
 void EventQueue::remove(std::int64_t eventID)
@@ -210,7 +224,14 @@ count_t EventQueue::size() const
 void EventQueue::sort()
 {
     std::lock_guard<std::mutex> lock(queuelock_);
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wstrict-overflow"
+#endif
     std::stable_sort(events.begin(), events.end(), compareEventAdapters);
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic pop
+#endif
 }
 
 void EventQueue::checkDuplicates()

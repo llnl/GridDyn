@@ -85,4 +85,11 @@ class ControlMessagePayload: public CommPayload {
 
 }  // namespace griddyn::comms
 
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wnull-dereference"
+#endif
 CEREAL_REGISTER_TYPE(griddyn::comms::ControlMessagePayload)
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic pop
+#endif

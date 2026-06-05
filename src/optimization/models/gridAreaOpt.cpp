@@ -750,6 +750,7 @@ double GridAreaOpt::get(std::string_view param, units::unit unitType) const
     return (ival != kNullLocation) ? static_cast<double>(ival) : fval;
 }
 
+/*
 static GridAreaOpt* getMatchingGridArea(GridAreaOpt* area,
                                         GridOptObject* src,
                                         GridOptObject* sec)
@@ -783,6 +784,7 @@ static GridAreaOpt* getMatchingGridArea(GridAreaOpt* area,
     }
     return static_cast<GridAreaOpt*>(par->getGridArea(lkind[0]));
 }
+*/
 
 }  // namespace griddyn
 // NOLINTEND(misc-no-recursion,bugprone-branch-clone)

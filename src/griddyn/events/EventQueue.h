@@ -51,7 +51,14 @@ class EventQueue {
         auto evID = newEvent->eventID;
         std::lock_guard<std::mutex> lock(queuelock_);
         events.push_back(std::move(newEvent));
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wstrict-overflow"
+#endif
         std::sort(events.begin(), events.end(), compareEventAdapters);
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic pop
+#endif
         checkDuplicates();
         return evID;
     }

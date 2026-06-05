@@ -139,14 +139,12 @@ TEST_F(ExtraPerformanceTests, PerformanceTestsScalingPflow)
             std::println("slack bus gen p={:f}, gen q ={:f}",
                          bus->getGenerationReal(),
                          bus->getGenerationReactive());
-            outfile << gsize << ", " << gsize * gsize << ", " << stateSize << ", " << nnz
-                    << ", ";
+            outfile << gsize << ", " << gsize * gsize << ", " << stateSize << ", " << nnz << ", ";
             outfile << rcount << ", " << jcount << ", ";
             outfile << load_time.count() << ", " << pflow_time.count();
             auto solverInterface = gds->getSolverInterface("powerflow");
             outfile << ", " << solverInterface->get("kintime") << ", "
-                    << solverInterface->get("residtime") << ", "
-                    << solverInterface->get("jactime");
+                    << solverInterface->get("residtime") << ", " << solverInterface->get("jactime");
             outfile << ", " << solverInterface->get("jac1time") << ", "
                     << solverInterface->get("kin1time") << "\n";
             std::vector<double> voltages;

@@ -121,13 +121,12 @@ TEST_F(LoadTests, LoadVoltageSweep)
         powerSamples.push_back(ld1->getRealPower(voltageTest));
     }
     voltageSamples.push_back(1.5);
-    EXPECT_NEAR(
-        std::abs(powerSamples[400] - (voltageSamples[400] * voltageSamples[400] / (0.75 * 0.75))),
-        0.0,
-        0.001);
-    EXPECT_NEAR(std::abs(
-                    powerSamples[1350] -
-                    (voltageSamples[1350] * voltageSamples[1350] / (1.25 * 1.25))),
+    EXPECT_NEAR(std::abs(powerSamples[400] -
+                         (voltageSamples[400] * voltageSamples[400] / (0.75 * 0.75))),
+                0.0,
+                0.001);
+    EXPECT_NEAR(std::abs(powerSamples[1350] -
+                         (voltageSamples[1350] * voltageSamples[1350] / (1.25 * 1.25))),
                 0.0,
                 0.001);
     EXPECT_NEAR(std::abs(powerSamples[800] - 1.0), 0.0, 0.001);

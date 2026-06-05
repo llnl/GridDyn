@@ -36,8 +36,7 @@ static std::string makeValidationTestPath(std::string_view fileName)
 
 using file_pair_t = std::pair<std::string, std::string>;
 
-std::ostream& operator<<(std::ostream& stream,
-                         const std::pair<std::string, std::string>& pairValue)
+std::ostream& operator<<(std::ostream& stream, const std::pair<std::string, std::string>& pairValue)
 {
     stream << pairValue.first;
     return stream;

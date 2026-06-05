@@ -170,7 +170,7 @@ std::unique_ptr<Fmi2ModelExchangeObject>
                                           fmi2ModelExchange,
                                           information->getString("guid").c_str(),
                                           (R"raw(file:///)raw" + resourceDir.string()).c_str(),
-                                          reinterpret_cast<fmi2CallbackFunctions*>(callbacks.get()),
+                                          callbacks.get(),
                                           fmi2False,
                                           fmi2False);
         auto meobj = std::make_unique<Fmi2ModelExchangeObject>(comp,
@@ -198,7 +198,7 @@ std::unique_ptr<Fmi2CoSimObject> FmiLibrary::createCoSimulationInstance(const st
                                           fmi2CoSimulation,
                                           information->getString("guid").c_str(),
                                           (R"raw(file:///)raw" + resourceDir.string()).c_str(),
-                                          reinterpret_cast<fmi2CallbackFunctions*>(callbacks.get()),
+                                          callbacks.get(),
                                           fmi2False,
                                           fmi2False);
         auto csobj =
@@ -425,11 +425,8 @@ void FmiLibrary::loadCoSimFunctions()
 
 void FmiLibrary::makeCallbackFunctions()
 {
-    callbacks = std::make_shared<fmi2CallbackFunctions_nc>();
-    callbacks->allocateMemory = &calloc;
-    callbacks->freeMemory = &free;
-    callbacks->logger = &loggerFunc;
-    callbacks->componentEnvironment = static_cast<void*>(this);
+    callbacks = std::make_shared<fmi2CallbackFunctions>(fmi2CallbackFunctions{
+        &loggerFunc, &calloc, &free, nullptr, static_cast<void*>(this)});
 }
 
 namespace {

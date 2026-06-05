@@ -20,6 +20,7 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <queue>
 #include <string>
 #include <vector>
@@ -31,6 +32,14 @@ using units::convert;
 using units::puMW;
 using units::rad;
 using units::unit;
+
+static void boundedIncrement(count_t& counter)
+{
+    if (counter < std::numeric_limits<count_t>::max()) {
+        ++counter;
+    }
+}
+
 AdjustableTransformer::AdjustableTransformer(const std::string& objName): AcLine(objName) {}
 AdjustableTransformer::AdjustableTransformer(double resistance,
                                              double reactance,
@@ -646,7 +655,7 @@ ChangeCode AdjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                 }
                 if (adjCount > 0) {
                     if (signn(prevAdjust) != 1) {
-                        oCount++;
+                        boundedIncrement(oCount);
                         if (oCount > 5) {
                             const double currentUpperDeviation = linkFlows.P1 - Pmax;
                             const double previousLowerDeviation = Pmin - prevValue;
@@ -666,7 +675,7 @@ ChangeCode AdjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                 }
                 if (adjCount > 0) {
                     if (signn(prevAdjust) != -1) {
-                        oCount++;
+                        boundedIncrement(oCount);
                         if (oCount > 5) {
                             const double previousUpperDeviation = prevValue - Pmax;
                             const double currentLowerDeviation = Pmin - linkFlows.P1;
@@ -725,7 +734,7 @@ ChangeCode AdjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                 }
                 if (adjCount > 0) {
                     if (signn(prevAdjust) != 1) {
-                        oCount++;
+                        boundedIncrement(oCount);
                         if (oCount > 5) {
                             const double previousUpperDeviation = prevValue - Qmax;
                             const double currentLowerDeviation = Qmin - linkFlows.Q2;
@@ -745,7 +754,7 @@ ChangeCode AdjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
                 }
                 if (adjCount > 0) {
                     if (signn(prevAdjust) != -1) {
-                        oCount++;
+                        boundedIncrement(oCount);
                         if (oCount > 5) {
                             const double currentUpperDeviation = linkFlows.Q2 - Qmax;
                             const double previousLowerDeviation = Qmin - prevValue;
@@ -764,7 +773,7 @@ ChangeCode AdjustableTransformer::powerFlowAdjust(const IOdata& /*inputs*/,
         }
     }
     if (ret > ChangeCode::NO_CHANGE) {
-        adjCount++;
+        boundedIncrement(adjCount);
     }
     return ret;
 }
@@ -1255,7 +1264,7 @@ ChangeCode AdjustableTransformer::voltageControlAdjust()
             ret = ChangeCode::PARAMETER_CHANGE;
             if (adjCount > 0) {
                 if (signn(prevAdjust) != signn(tapStep)) {
-                    oCount++;
+                    boundedIncrement(oCount);
                     if (oCount > 5) {
                         ret = ChangeCode::NO_CHANGE;
                     }
@@ -1269,7 +1278,7 @@ ChangeCode AdjustableTransformer::voltageControlAdjust()
             ret = ChangeCode::PARAMETER_CHANGE;
             if (adjCount > 0) {
                 if (signn(prevAdjust) != signn(reverseTapStep)) {
-                    oCount++;
+                    boundedIncrement(oCount);
                     // we are giving the Vmin priority here so it will always err on protecting
                     // the low voltage side if it can. if it is oscillating and goes over Vmax
                     // it will end in a state that leaves it there.
@@ -1316,7 +1325,7 @@ ChangeCode AdjustableTransformer::voltageControlAdjust()
             if (adjCount > 0) {
                 const double netAdjust = prevAdjust + shift;
                 if (std::abs(netAdjust) < stepSize / 2.0) {
-                    oCount++;
+                    boundedIncrement(oCount);
                     if (oCount > 3) {
                         if (voltage > prevValue) {
                             ret = ChangeCode::NO_CHANGE;

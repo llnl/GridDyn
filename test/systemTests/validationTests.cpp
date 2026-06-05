@@ -371,7 +371,8 @@ TEST_F(ValidationTests, MatpowerValidationTestsProblems)
         cnt = gds->getLinkRealPower(flow3, 0, 2);
         cnt = gds->getLinkReactivePower(flow4, 0, 2);
         for (int pp = 0; pp < cnt; ++pp) {
-            std::println("{}, {:f}, {:f}, {:f}, {:f}", pp, flow1[pp], flow2[pp], flow3[pp], flow4[pp]);
+            std::println(
+                "{}, {:f}, {:f}, {:f}, {:f}", pp, flow1[pp], flow2[pp], flow3[pp], flow4[pp]);
         }
         std::println("------------------------------------------------------");
         for (size_t pp = 0; pp < ldp.size(); ++pp) {

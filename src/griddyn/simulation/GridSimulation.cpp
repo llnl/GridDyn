@@ -282,8 +282,7 @@ void GridSimulation::log(CoreObject* object, PrintLevel level, const std::string
              "sim" :
              (fullObjectName(object) + '(' + std::to_string(object->getUserID()) + ')')) +
         ']';
-    const std::string simtime = ((currentTime > negTime) ? '(' + std::to_string(currentTime) +
-                                                               ')' :
+    const std::string simtime = ((currentTime > negTime) ? '(' + std::to_string(currentTime) + ')' :
                                                            std::string("(PRESTART)"));
     std::string key;
     if (level == PrintLevel::WARNING) {
@@ -383,8 +382,7 @@ void GridSimulation::alert(CoreObject* object, int code)
             astr = res->second;
             log(object, PrintLevel::SUMMARY, astr);
         } else {
-            const std::string message =
-                "Unrecognized alert code (" + std::to_string(code) + ')';
+            const std::string message = "Unrecognized alert code (" + std::to_string(code) + ')';
             log(object, PrintLevel::SUMMARY, message);
         }
     }

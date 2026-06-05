@@ -26,7 +26,7 @@
 namespace griddyn {
 using units::unit;
 
-static OptObjectFactory<GridAreaOpt, GridArea> opa("basic", "area");
+static OptObjectFactory<GridAreaOpt, GridArea> gOpa("basic", "area");
 // NOLINTBEGIN(misc-no-recursion,bugprone-branch-clone)
 
 GridAreaOpt::GridAreaOpt(const std::string& objName): GridOptObject(objName) {}
@@ -750,7 +750,9 @@ double GridAreaOpt::get(std::string_view param, units::unit unitType) const
     return (ival != kNullLocation) ? static_cast<double>(ival) : fval;
 }
 
-GridAreaOpt* getMatchingGridArea(GridAreaOpt* area, GridOptObject* src, GridOptObject* sec)
+static GridAreaOpt* getMatchingGridArea(GridAreaOpt* area,
+                                        GridOptObject* src,
+                                        GridOptObject* sec)
 {
     if (area->isRoot()) {
         return nullptr;

@@ -425,12 +425,12 @@ void FmiLibrary::loadCoSimFunctions()
 
 void FmiLibrary::makeCallbackFunctions()
 {
-    callbacks = std::make_shared<fmi2CallbackFunctions>(fmi2CallbackFunctions{
-        .logger = &loggerFunc,
-        .allocateMemory = &calloc,
-        .freeMemory = &free,
-        .stepFinished = nullptr,
-        .componentEnvironment = static_cast<void*>(this)});
+    callbacks = std::make_shared<fmi2CallbackFunctions>(
+        fmi2CallbackFunctions{.logger = &loggerFunc,
+                              .allocateMemory = &calloc,
+                              .freeMemory = &free,
+                              .stepFinished = nullptr,
+                              .componentEnvironment = static_cast<void*>(this)});
 }
 
 namespace {

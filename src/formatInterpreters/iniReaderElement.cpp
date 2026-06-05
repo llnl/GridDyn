@@ -53,7 +53,7 @@ void IniReaderElement::clear()
     mCurrentSection.clear();
 }
 
-static const char invalidString[] = ";";
+static constexpr char invalidString[] = ";";
 
 bool IniReaderElement::isValid() const
 {

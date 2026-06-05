@@ -145,7 +145,7 @@ void GridSimulation::saveRecorders()
     }
 }
 
-static const char consoleprint[] = "consoleprintlevel";
+static constexpr char consoleprint[] = "consoleprintlevel";
 void GridSimulation::set(std::string_view param, std::string_view val)
 {
     std::string temp;

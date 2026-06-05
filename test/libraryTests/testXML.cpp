@@ -17,13 +17,19 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 // test case for CoreObject object
 
 #include "../gtestHelper.h"
 
-static const std::string xmlTestDirectory(GRIDDYN_TEST_DIRECTORY "/xml_tests/");
+static constexpr std::string_view xmlTestDirectory{GRIDDYN_TEST_DIRECTORY "/xml_tests/"};
+
+static std::string makeXmlTestPath(std::string_view fileName)
+{
+    return std::string{xmlTestDirectory} + std::string{fileName};
+}
 // create a test fixture that makes sure everything gets deleted properly
 
 class XmlTests: public GridDynSimulationTestFixture, public ::testing::Test {};
@@ -34,7 +40,7 @@ using namespace gmlc::utilities;
 TEST_F(XmlTests, XmlTest1)
 {
     // test the loading of a single bus
-    std::string fileName = xmlTestDirectory + "test_xmltest1.xml";
+    std::string fileName = makeXmlTestPath("test_xmltest1.xml");
     gds = readSimXMLFile(fileName);
     ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::STARTUP);
     int count = gds->getInt("totalbuscount");
@@ -61,7 +67,7 @@ TEST_F(XmlTests, XmlTest2)
 {
     // test the loading of 3 buses one of each type
 
-    std::string fileName = xmlTestDirectory + "test_xmltest2.xml";
+    std::string fileName = makeXmlTestPath("test_xmltest2.xml");
     gds = readSimXMLFile(fileName);
     ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::STARTUP);
     int count = gds->getInt("totalbuscount");
@@ -89,7 +95,7 @@ TEST_F(XmlTests, XmlTest2)
 TEST_F(XmlTests, XmlTest3)
 {
     // testt the loading of links
-    std::string fileName = xmlTestDirectory + "test_xmltest3.xml";
+    std::string fileName = makeXmlTestPath("test_xmltest3.xml");
     gds = readSimXMLFile(fileName);
     ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::STARTUP);
     int count = gds->getInt("totalbuscount");
@@ -139,7 +145,7 @@ TEST_F(XmlTests, XmlTest4)
     // test the loading of a dynamic generator
     int count;
 
-    std::string fileName = xmlTestDirectory + "test_xmltest4.xml";
+    std::string fileName = makeXmlTestPath("test_xmltest4.xml");
 
     gds = readSimXMLFile(fileName);
     ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::STARTUP);
@@ -179,7 +185,7 @@ TEST_F(XmlTests, XmlTest5)
     // test the loading of a library
     int count;
 
-    std::string fileName = xmlTestDirectory + "test_xmltest5.xml";
+    std::string fileName = makeXmlTestPath("test_xmltest5.xml");
 
     gds = std::make_unique<GridDynSimulation>();
 
@@ -218,7 +224,7 @@ TEST_F(XmlTests, XmlTest6)
     // test the loading of a reference object
     int count;
 
-    std::string fileName = xmlTestDirectory + "test_xmltest6.xml";
+    std::string fileName = makeXmlTestPath("test_xmltest6.xml");
 
     gds = std::make_unique<GridDynSimulation>();
 
@@ -251,7 +257,7 @@ TEST_F(XmlTests, XmlTest7)
     // test the loading of generator submodels
     int count;
 
-    std::string fileName = xmlTestDirectory + "test_xmltest7.xml";
+    std::string fileName = makeXmlTestPath("test_xmltest7.xml");
     gds = readSimXMLFile(fileName);
     ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::STARTUP);
     count = gds->getInt("totalbuscount");
@@ -288,14 +294,14 @@ TEST_F(XmlTests, XmlTest7)
 /**test case for making sure library call work exactly like full specification calls*/
 TEST_F(XmlTests, XmlTestDynLib)
 {
-    std::string fileName = xmlTestDirectory + "test_2m4bDyn.xml";
+    std::string fileName = makeXmlTestPath("test_2m4bDyn.xml");
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
     requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
     std::vector<double> st = gds->getState();
 
-    fileName = xmlTestDirectory + "test_2m4bDyn_lib.xml";
+    fileName = makeXmlTestPath("test_2m4bDyn_lib.xml");
     gds2 = readSimXMLFile(fileName);
     gds2->consolePrintLevel = PrintLevel::NO_PRINT;
     gds2->run();
@@ -310,14 +316,14 @@ TEST_F(XmlTests, XmlTestDynLib)
 /**test case for generators and loads in the main element*/
 TEST_F(XmlTests, XmlTestMainGen)
 {
-    std::string fileName = xmlTestDirectory + "test_2m4bDyn.xml";
+    std::string fileName = makeXmlTestPath("test_2m4bDyn.xml");
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
     requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
     std::vector<double> st = gds->getState();
 
-    fileName = xmlTestDirectory + "test_2m4bDyn_mgen.xml";
+    fileName = makeXmlTestPath("test_2m4bDyn_mgen.xml");
     gds2 = readSimXMLFile(fileName);
     gds2->consolePrintLevel = PrintLevel::NO_PRINT;
     gds2->run();
@@ -332,14 +338,14 @@ TEST_F(XmlTests, XmlTestMainGen)
 /**test case for property override and object reloading*/
 TEST_F(XmlTests, XmlTestReload)
 {
-    std::string fileName = xmlTestDirectory + "test_2m4bDyn.xml";
+    std::string fileName = makeXmlTestPath("test_2m4bDyn.xml");
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
     requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
     std::vector<double> st = gds->getState();
 
-    fileName = xmlTestDirectory + "test_2m4bDyn_rload.xml";
+    fileName = makeXmlTestPath("test_2m4bDyn_rload.xml");
     gds2 = readSimXMLFile(fileName);
     gds2->consolePrintLevel = PrintLevel::NO_PRINT;
     gds2->run();
@@ -354,14 +360,14 @@ TEST_F(XmlTests, XmlTestReload)
 /**test case for separate source file*/
 TEST_F(XmlTests, XmlTestSource1)
 {
-    std::string fileName = xmlTestDirectory + "test_2m4bDyn.xml";
+    std::string fileName = makeXmlTestPath("test_2m4bDyn.xml");
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
     requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
     std::vector<double> st = gds->getState();
 
-    fileName = xmlTestDirectory + "test_2m4bDyn_sep.xml";
+    fileName = makeXmlTestPath("test_2m4bDyn_sep.xml");
     gds2 = readSimXMLFile(fileName);
     gds2->consolePrintLevel = PrintLevel::NO_PRINT;
     gds2->run();
@@ -377,7 +383,7 @@ TEST_F(XmlTests, XmlTest8)
 {
     // test the loading of a Recorder
 
-    std::string fileName = xmlTestDirectory + "test_xmltest8.xml";
+    std::string fileName = makeXmlTestPath("test_xmltest8.xml");
 
     gds = std::make_unique<GridDynSimulation>();
 
@@ -392,14 +398,14 @@ TEST_F(XmlTests, XmlTest8)
 TEST_F(XmlTests, XmlTest9)
 {
     // test the define functionality
-    std::string fileName = xmlTestDirectory + "test_2m4bDyn.xml";
+    std::string fileName = makeXmlTestPath("test_2m4bDyn.xml");
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->run();
     requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
     std::vector<double> st = gds->getState();
 
-    fileName = xmlTestDirectory + "test_xmltest9.xml";
+    fileName = makeXmlTestPath("test_xmltest9.xml");
 
     gds2 = readSimXMLFile(fileName);
     gds2->consolePrintLevel = PrintLevel::NO_PRINT;
@@ -418,7 +424,7 @@ TEST_F(XmlTests, XmlTest9)
 TEST_F(XmlTests, TestBadXml)
 {
     // test the define functionality
-    std::string fileName = xmlTestDirectory + "test_bad_xml.xml";
+    std::string fileName = makeXmlTestPath("test_bad_xml.xml");
     gds = readSimXMLFile(fileName);
     ASSERT_EQ(gds, nullptr);
     std::cout << "NOTE: this was supposed to have a failed file load to check error recovery\n";
@@ -427,7 +433,7 @@ TEST_F(XmlTests, TestBadXml)
 TEST_F(XmlTests, TestFunctionConstants)
 {
     // test the define functionality
-    std::string fileName = xmlTestDirectory + "test_function_constant.xml";
+    std::string fileName = makeXmlTestPath("test_function_constant.xml");
     gds = readSimXMLFile(fileName);
 
     GridBus* bus = gds->getBus(0);
@@ -445,7 +451,7 @@ TEST_F(XmlTests, TestFunctionConstants)
 TEST_F(XmlTests, TestParamSpecs)
 {
     // test the define functionality
-    std::string fileName = xmlTestDirectory + "test_param_setting.xml";
+    std::string fileName = makeXmlTestPath("test_param_setting.xml");
     gds = readSimXMLFile(fileName);
 
     auto bus = gds->getBus(0);
@@ -475,7 +481,7 @@ TEST_F(XmlTests, TestParamSpecs)
 TEST_F(XmlTests, TestCustomElement1)
 {
     // test the define functionality
-    std::string fileName = xmlTestDirectory + "test_custom_element1.xml";
+    std::string fileName = makeXmlTestPath("test_custom_element1.xml");
     gds = readSimXMLFile(fileName);
 
     int bc = gds->getInt("buscount");
@@ -491,7 +497,7 @@ TEST_F(XmlTests, TestCustomElement1)
 TEST_F(XmlTests, TestCustomElement2)
 {
     // test the define functionality
-    std::string fileName = xmlTestDirectory + "test_custom_element2.xml";
+    std::string fileName = makeXmlTestPath("test_custom_element2.xml");
     gds = readSimXMLFile(fileName);
 
     int bc = gds->getInt("buscount");
@@ -507,7 +513,7 @@ TEST_F(XmlTests, TestCustomElement2)
 TEST_F(XmlTests, TestQueryIf)
 {
     // test the define functionality
-    std::string fileName = xmlTestDirectory + "test_query_if.xml";
+    std::string fileName = makeXmlTestPath("test_query_if.xml");
     gds = readSimXMLFile(fileName);
 
     auto bus = gds->getBus(0);

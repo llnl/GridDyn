@@ -10,8 +10,15 @@
 #include <filesystem>
 #include <gtest/gtest.h>
 #include <string>
+#include <string_view>
 
-static const std::string contingency_test_directory(GRIDDYN_TEST_DIRECTORY "/contingency_tests/");
+static constexpr std::string_view contingencyTestDirectory{
+    GRIDDYN_TEST_DIRECTORY "/contingency_tests/"};
+
+static std::string makeContingencyTestPath(std::string_view fileName)
+{
+    return std::string{contingencyTestDirectory} + std::string{fileName};
+}
 
 class LargeContingencyTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
@@ -20,7 +27,7 @@ using namespace griddyn;
 
 TEST_F(LargeContingencyTests, ContingencyN2)
 {
-    std::string fileName = contingency_test_directory + "contingency_test3.xml";
+    std::string fileName = makeContingencyTestPath("contingency_test3.xml");
     gds = readSimXMLFile(fileName);
     gds->set("printlevel", 0);
     auto start_t = std::chrono::high_resolution_clock::now();
@@ -35,7 +42,7 @@ TEST_F(LargeContingencyTests, ContingencyN2)
 
 TEST_F(LargeContingencyTests, ContingencyBcase)
 {
-    std::string fileName = contingency_test_directory + "contingency_testbig.xml";
+    std::string fileName = makeContingencyTestPath("contingency_testbig.xml");
     gds = readSimXMLFile(fileName);
     gds->set("printlevel", 0);
     auto start_t = std::chrono::high_resolution_clock::now();

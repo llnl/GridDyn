@@ -12,14 +12,20 @@
 #include <fstream>
 #include <gtest/gtest.h>
 #include <string>
+#include <string_view>
 #include <vector>
 
-static const std::string zip_test_directory(GRIDDYN_TEST_DIRECTORY "/zip_tests/");
+static constexpr std::string_view zipTestDirectory{GRIDDYN_TEST_DIRECTORY "/zip_tests/"};
+
+static std::string makeZipTestPath(std::string_view fileName)
+{
+    return std::string{zipTestDirectory} + std::string{fileName};
+}
 
 TEST(ZipUtilitiesTests, Unzip)
 {
-    std::string file = zip_test_directory + "Rectifier.fmu";
-    std::string directory = zip_test_directory + "Rectifier";
+    std::string file = makeZipTestPath("Rectifier.fmu");
+    std::string directory = makeZipTestPath("Rectifier");
     int status = utilities::unzip(file, directory);
     EXPECT_EQ(status, 0);
     ASSERT_TRUE(std::filesystem::exists(directory));
@@ -31,18 +37,18 @@ TEST(ZipUtilitiesTests, ZipRoundTrip)
     // make two files with very simple text
     int fileSize1 = 1000000;
     std::vector<char> a0(fileSize1, '0');
-    std::string fileZeros = zip_test_directory + "zeros.txt";
+    std::string fileZeros = makeZipTestPath("zeros.txt");
     std::ofstream outZeros(fileZeros);
     outZeros.write(a0.data(), fileSize1);
     outZeros.close();
     int fileSize2 = 981421;
     std::vector<char> a1(fileSize2, '1');
-    std::string fileOnes = zip_test_directory + "ones.txt";
+    std::string fileOnes = makeZipTestPath("ones.txt");
     std::ofstream outOnes(fileOnes);
     outOnes.write(a1.data(), fileSize2);
     outOnes.close();
     // zip them up into a zip file
-    auto zipfile = zip_test_directory + "data.zip";
+    auto zipfile = makeZipTestPath("data.zip");
     auto status = utilities::zip(zipfile, std::vector<std::string>{fileZeros, fileOnes});
     EXPECT_EQ(status, 0);
     ASSERT_TRUE(std::filesystem::exists(zipfile));
@@ -59,7 +65,7 @@ TEST(ZipUtilitiesTests, ZipRoundTrip)
     std::filesystem::remove(fileZeros);
     std::filesystem::remove(fileOnes);
     // extract them and recheck sizes
-    status = utilities::unzip(zipfile, zip_test_directory);
+    status = utilities::unzip(zipfile, std::string{zipTestDirectory});
     EXPECT_EQ(status, 0);
     ASSERT_TRUE(std::filesystem::exists(fileZeros));
     ASSERT_TRUE(std::filesystem::exists(fileOnes));

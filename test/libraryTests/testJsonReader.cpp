@@ -11,18 +11,24 @@
 #include <gtest/gtest.h>
 #include <iostream>
 #include <string>
+#include <string_view>
 
-static const std::string elementReaderTestDirectory(GRIDDYN_TEST_DIRECTORY
-                                                    "/element_reader_tests/");
+static constexpr std::string_view elementReaderTestDirectory{
+    GRIDDYN_TEST_DIRECTORY "/element_reader_tests/"};
+
+static std::string makeElementReaderTestPath(std::string_view fileName)
+{
+    return std::string{elementReaderTestDirectory} + std::string{fileName};
+}
 
 TEST(JsonElementReaderTests, JsonElementReaderTest1)
 {
     JsonReaderElement reader;
-    ASSERT_TRUE(reader.loadFile(elementReaderTestDirectory + "json_test1.json"));
+    ASSERT_TRUE(reader.loadFile(makeElementReaderTestPath("json_test1.json")));
     EXPECT_TRUE(reader.isValid());
     auto firstChild = reader.clone();
     ASSERT_NE(firstChild, nullptr);
-    EXPECT_EQ(firstChild->getName(), elementReaderTestDirectory + "json_test1.json");
+    EXPECT_EQ(firstChild->getName(), makeElementReaderTestPath("json_test1.json"));
 
     auto sibling = firstChild->nextSibling();
     EXPECT_FALSE(sibling->isValid());
@@ -60,18 +66,18 @@ TEST(JsonElementReaderTests, JsonElementReaderTest1)
     firstChild->moveToNextSibling();
     EXPECT_FALSE(firstChild->isValid());
     firstChild->moveToParent();
-    EXPECT_EQ(firstChild->getName(), elementReaderTestDirectory + "json_test1.json");
+    EXPECT_EQ(firstChild->getName(), makeElementReaderTestPath("json_test1.json"));
 }
 
 TEST(JsonElementReaderTests, JsonElementReaderTest2)
 {
     JsonReaderElement reader;
     // test a bad file
-    reader.loadFile(elementReaderTestDirectory + "xmlElementReader_missing_file.xml");
+    reader.loadFile(makeElementReaderTestPath("xmlElementReader_missing_file.xml"));
     std::cout
         << "NOTE:: this should have a message about a missing file >>testing bad file input\n";
     EXPECT_FALSE(reader.isValid());
-    reader.loadFile(elementReaderTestDirectory + "json_test2.json");
+    reader.loadFile(makeElementReaderTestPath("json_test2.json"));
     EXPECT_TRUE(reader.isValid());
     auto firstChild = reader.clone();
 
@@ -122,11 +128,11 @@ TEST(JsonElementReaderTests, JsonElementReaderTest2)
 
 TEST(JsonElementReaderTests, JsonElementReaderTest3)
 {
-    JsonReaderElement reader(elementReaderTestDirectory + "xmlElementReader_test2.xml");
+    JsonReaderElement reader(makeElementReaderTestPath("xmlElementReader_test2.xml"));
     std::cout
         << "NOTE:: this should have a message indicating format error >>testing bad file input\n";
     EXPECT_FALSE(reader.isValid());
-    reader.loadFile(elementReaderTestDirectory + "json_test3.json");
+    reader.loadFile(makeElementReaderTestPath("json_test3.json"));
     EXPECT_TRUE(reader.isValid());
     // test traversal using move commands
     auto main = reader.clone();

@@ -11,8 +11,14 @@
 #include "griddyn/gridDynDefinitions.hpp"
 #include <gtest/gtest.h>
 #include <string>
+#include <string_view>
 
-static const std::string xmlTestDirectory(GRIDDYN_TEST_DIRECTORY "/xml_tests/");
+static constexpr std::string_view xmlTestDirectory{GRIDDYN_TEST_DIRECTORY "/xml_tests/"};
+
+static std::string makeXmlTestPath(std::string_view fileName)
+{
+    return std::string{xmlTestDirectory} + std::string{fileName};
+}
 using namespace griddyn;
 
 TEST(ReaderInfoTests, Defines)
@@ -90,14 +96,14 @@ TEST(ReaderInfoTests, DefinitionScope)
 TEST(ReaderInfoTests, Directories)
 {
     ReaderInfo r1;
-    r1.addDirectory(xmlTestDirectory);
+    r1.addDirectory(std::string{xmlTestDirectory});
 
     std::string test1 = "test_xmltest1.xml";
 
     auto res = r1.checkFileParam(test1, false);
 
     EXPECT_TRUE(res);
-    EXPECT_EQ(test1, xmlTestDirectory + "test_xmltest1.xml");
+    EXPECT_EQ(test1, makeXmlTestPath("test_xmltest1.xml"));
 
     ReaderInfo r2;
     r2.addDirectory(GRIDDYN_TEST_DIRECTORY);
@@ -107,12 +113,12 @@ TEST(ReaderInfoTests, Directories)
     EXPECT_TRUE((testfile == (std::string(GRIDDYN_TEST_DIRECTORY) + "\\location_testFile.txt")) ||
                 (testfile == (std::string(GRIDDYN_TEST_DIRECTORY) + "/location_testFile.txt")));
     r2.newScope();
-    r2.addDirectory(xmlTestDirectory);
+    r2.addDirectory(std::string{xmlTestDirectory});
     // this file is in 2 locations to ensure the recent directory takes precedence
     testfile = "location_testFile.txt";
 
     res = r2.checkFileParam(testfile, false);
-    EXPECT_EQ(testfile, (xmlTestDirectory + "location_testFile.txt"));
+    EXPECT_EQ(testfile, makeXmlTestPath("location_testFile.txt"));
     r2.closeScope();
     testfile = "location_testFile.txt";
 

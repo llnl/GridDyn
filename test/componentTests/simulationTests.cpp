@@ -11,10 +11,12 @@
 #include <iostream>
 #include <set>
 #include <string>
+#include <string_view>
 #include <utility>
 
 class SimulationTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
-static const std::string validationTestDirectory(GRIDDYN_TEST_DIRECTORY "/validation_tests/");
+static constexpr std::string_view validationTestDirectory{
+    GRIDDYN_TEST_DIRECTORY "/validation_tests/"};
 
 TEST_F(SimulationTests, SimulationOrderingTests) {}

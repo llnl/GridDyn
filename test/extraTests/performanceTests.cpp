@@ -19,6 +19,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -27,7 +28,13 @@ using namespace gmlc::utilities;
 
 class ExtraPerformanceTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
-static const std::string validationTestDirectory(GRIDDYN_TEST_DIRECTORY "/validation_tests/");
+static constexpr std::string_view validationTestDirectory{
+    GRIDDYN_TEST_DIRECTORY "/validation_tests/"};
+
+static std::string makeValidationTestPath(std::string_view fileName)
+{
+    return std::string{validationTestDirectory} + std::string{fileName};
+}
 
 TEST_F(ExtraPerformanceTests, PerformanceTests1)
 {
@@ -41,7 +48,7 @@ TEST_F(ExtraPerformanceTests, PerformanceTests1)
         if (mp.length() > 25) {
             fileName = mp;
         } else {
-            fileName = validationTestDirectory + mp;
+            fileName = makeValidationTestPath(mp);
         }
         for (int kk = 0; kk < 10; ++kk) {
             gds = std::make_unique<GridDynSimulation>();

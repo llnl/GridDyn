@@ -14,6 +14,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -23,7 +24,13 @@
 #    include <chrono>
 #endif
 
-static const std::string validationTestDirectory(GRIDDYN_TEST_DIRECTORY "/validation_tests/");
+static constexpr std::string_view validationTestDirectory{
+    GRIDDYN_TEST_DIRECTORY "/validation_tests/"};
+
+static std::string makeValidationTestPath(std::string_view fileName)
+{
+    return std::string{validationTestDirectory} + std::string{fileName};
+}
 
 #define INPUT_TEST_DIRECTORY (GRIDDYN_TEST_DIRECTORY "/input_tests/")
 
@@ -53,7 +60,7 @@ class ValidationTests: public GridDynSimulationTestFixture, public ::testing::Te
 
         gds = std::make_unique<GridDynSimulation>();
         gds->set("consoleprintlevel", "summary");
-        auto fileName = validationTestDirectory + test_case_pair.first;
+        auto fileName = makeValidationTestPath(test_case_pair.first);
 
         loadFile(gds, fileName);
         gds->sourceFile = test_case_pair.first;
@@ -83,7 +90,7 @@ class ValidationTests: public GridDynSimulationTestFixture, public ::testing::Te
         ang1.resize(cnt);
         gds2 = std::make_unique<GridDynSimulation>();
 
-        fileName = validationTestDirectory + test_case_pair.second;
+        fileName = makeValidationTestPath(test_case_pair.second);
         gds2->set("consoleprintlevel", "summary");
         loadFile(gds2, fileName);
         ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::GridState::STARTUP);
@@ -227,7 +234,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsWithq)
         if (mp.first.length() > 25) {
             fileName = mp.first;
         } else {
-            fileName = validationTestDirectory + mp.first;
+            fileName = makeValidationTestPath(mp.first);
         }
 
         loadFile(gds, fileName);
@@ -261,7 +268,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsWithq)
         if (mp.second.length() > 25) {
             fileName = mp.second;
         } else {
-            fileName = validationTestDirectory + mp.second;
+            fileName = makeValidationTestPath(mp.second);
         }
         gds2->set("consoleprintlevel", PrintLevel::SUMMARY);
         loadFile(gds2, fileName);
@@ -331,7 +338,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsProblems)
         if (mp.first.length() > 25) {
             fileName = mp.first;
         } else {
-            fileName = validationTestDirectory + mp.first;
+            fileName = makeValidationTestPath(mp.first);
         }
 
         loadFile(gds, fileName);
@@ -387,7 +394,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsProblems)
         if (mp.second.length() > 25) {
             fileName = mp.second;
         } else {
-            fileName = validationTestDirectory + mp.second;
+            fileName = makeValidationTestPath(mp.second);
         }
         gds2->set("consoleprintlevel", "summary");
         loadFile(gds2, fileName);

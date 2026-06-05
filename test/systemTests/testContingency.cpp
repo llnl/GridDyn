@@ -8,19 +8,26 @@
 #include <filesystem>
 #include <gtest/gtest.h>
 #include <string>
+#include <string_view>
 
 using namespace griddyn;
 /** these test cases test out the contingency capabilities in GridDyn
  */
 
-static const std::string contingency_test_directory(GRIDDYN_TEST_DIRECTORY "/contingency_tests/");
+static constexpr std::string_view contingencyTestDirectory{
+    GRIDDYN_TEST_DIRECTORY "/contingency_tests/"};
+
+static std::string makeContingencyTestPath(std::string_view fileName)
+{
+    return std::string{contingencyTestDirectory} + std::string{fileName};
+}
 
 class ContingencyTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 using namespace std::filesystem;
 TEST_F(ContingencyTests, DISABLED_ContingencyTest1)
 {
-    std::string fileName = contingency_test_directory + "contingency_test1.xml";
+    std::string fileName = makeContingencyTestPath("contingency_test1.xml");
     gds = readSimXMLFile(fileName);
     gds->set("printlevel", 0);
     gds->run();
@@ -30,7 +37,7 @@ TEST_F(ContingencyTests, DISABLED_ContingencyTest1)
 
 TEST_F(ContingencyTests, DISABLED_ContingencyTest2)
 {
-    std::string fileName = contingency_test_directory + "contingency_test2.xml";
+    std::string fileName = makeContingencyTestPath("contingency_test2.xml");
     gds = readSimXMLFile(fileName);
     gds->set("printlevel", 0);
     gds->run();
@@ -49,7 +56,7 @@ TEST_F(ContingencyTests, DISABLED_ContingencyTest2)
 /*
 TEST_F(ContingencyTests, ContingencyTest3)
 {
-    std::string fileName = contingency_test_directory + "contingency_test3.xml";
+    std::string fileName = makeContingencyTestPath("contingency_test3.xml");
     gds = readSimXMLFile(fileName);
     gds->set("printlevel", 0);
     gds->run();

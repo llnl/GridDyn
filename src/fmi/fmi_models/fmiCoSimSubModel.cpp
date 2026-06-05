@@ -271,7 +271,7 @@ void FmiCoSimSubModel::set(std::string_view param, std::string_view val)
         }
     }
 }
-static const char LOCAL_INTEGRATIONTIME_STRING[] = "localintegrationtime";
+static constexpr char LOCAL_INTEGRATIONTIME_STRING[] = "localintegrationtime";
 void FmiCoSimSubModel::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "timestep") || (param == LOCAL_INTEGRATIONTIME_STRING)) {

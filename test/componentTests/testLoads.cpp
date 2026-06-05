@@ -20,13 +20,24 @@
 #include <gtest/gtest.h>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 using namespace griddyn;
 using namespace griddyn::loads;
 
-static const std::string load_test_directory(GRIDDYN_TEST_DIRECTORY "/load_tests/");
-static const std::string gridlabd_test_directory(GRIDDYN_TEST_DIRECTORY "/gridlabD_tests/");
+static constexpr std::string_view loadTestDirectory{GRIDDYN_TEST_DIRECTORY "/load_tests/"};
+static constexpr std::string_view gridlabdTestDirectory{GRIDDYN_TEST_DIRECTORY "/gridlabD_tests/"};
+
+static std::string makeLoadTestPath(std::string_view fileName)
+{
+    return std::string{loadTestDirectory} + std::string{fileName};
+}
+
+static std::string makeGridlabdTestPath(std::string_view fileName)
+{
+    return std::string{gridlabdTestDirectory} + std::string{fileName};
+}
 
 class LoadTests: public GridLoadTestFixture, public ::testing::Test {};
 
@@ -293,7 +304,7 @@ TEST_F(LoadTests, FileLoadTest1)
     ld1 = new FileLoad();
     auto ldT = static_cast<FileLoad*>(ld1);
     ASSERT_NE(ldT, nullptr);
-    std::string fileName = load_test_directory + "FileLoadInfo.bin";
+    std::string fileName = makeLoadTestPath("FileLoadInfo.bin");
     ld1->set("file", fileName);
     ldT->setFlag("step");
 
@@ -333,7 +344,7 @@ TEST_F(LoadTests, FileLoadTest1)
 
 TEST_F(LoadTests, FileLoadTest2)
 {
-    std::string fileName = load_test_directory + "testLoad.bin";
+    std::string fileName = makeLoadTestPath("testLoad.bin");
     ld1 = new FileLoad("fload", fileName);
     auto ldT = static_cast<FileLoad*>(ld1);
     ASSERT_NE(ldT, nullptr);
@@ -351,7 +362,7 @@ TEST_F(LoadTests, FileLoadTest2)
 #ifndef GRIDDYN_ENABLE_MPI
 TEST_F(LoadTests, GridDynLoadTest1)
 {
-    std::string fileName = gridlabd_test_directory + "IEEE_13_mod.xml";
+    std::string fileName = makeGridlabdTestPath("IEEE_13_mod.xml");
 
     auto gds = readSimXMLFile(fileName);
 
@@ -367,7 +378,7 @@ TEST_F(LoadTests, GridDynLoadTest1)
 
 TEST_F(LoadTests, MotorTest1)
 {
-    std::string fileName = load_test_directory + "motorload_test1.xml";
+    std::string fileName = makeLoadTestPath("motorload_test1.xml");
 
     auto gds = readSimXMLFile(fileName);
 
@@ -386,7 +397,7 @@ TEST_F(LoadTests, MotorTest1)
 
 TEST_F(LoadTests, MotorTest3)
 {
-    std::string fileName = load_test_directory + "motorload_test3.xml";
+    std::string fileName = makeLoadTestPath("motorload_test3.xml");
 
     auto gds = readSimXMLFile(fileName);
 
@@ -406,7 +417,7 @@ TEST_F(LoadTests, MotorTest3)
 
 TEST_F(LoadTests, MotorTest3Stall)
 {
-    std::string fileName = load_test_directory + "motorload_test3_stall.xml";
+    std::string fileName = makeLoadTestPath("motorload_test3_stall.xml");
 
     auto gds = readSimXMLFile(fileName);
 
@@ -453,7 +464,7 @@ TEST_F(LoadTests, MotorTest5)
 
 TEST_F(LoadTests, FdepTest)
 {
-    std::string fileName = load_test_directory + "fdepLoad.xml";
+    std::string fileName = makeLoadTestPath("fdepLoad.xml");
     readerConfig::setPrintMode(0);
     auto gds = readSimXMLFile(fileName);
 

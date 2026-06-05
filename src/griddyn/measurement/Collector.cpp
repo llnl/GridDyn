@@ -241,8 +241,7 @@ count_t Collector::grabData(double* outputData, index_t outputCount)
             const auto valueCount = static_cast<index_t>(vals.size());
             const auto copyCount = std::min(remaining, valueCount);
             std::copy_n(vals.begin(), copyCount, outputData + column);
-            const auto nextCount =
-                (copyCount >= remaining) ?
+            const auto nextCount = (copyCount >= remaining) ?
                 outputLimit :
                 static_cast<count_t>(column) + static_cast<count_t>(copyCount);
             currentCount = std::max(currentCount, nextCount);

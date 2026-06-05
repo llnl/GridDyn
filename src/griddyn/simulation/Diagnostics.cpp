@@ -724,8 +724,7 @@ namespace {
                     const auto childIndex = childCount - 1;
                     traversalStack.push_back(
                         {.mComponent = childComponents[childIndex],
-                         .mObjectInfo =
-                             &currentFrame.mObjectInfo->mSubObjectInfo[childIndex],
+                         .mObjectInfo = &currentFrame.mObjectInfo->mSubObjectInfo[childIndex],
                          .mChildrenQueued = false});
                 }
                 continue;

@@ -111,7 +111,7 @@ class EventQueue {
     /** @brief clone the entire queue to a different queue
   @param eq the eventQueue to copy the data into
   */
-    virtual void cloneTo(EventQueue* eq) const;
+    virtual void cloneTo(EventQueue* eventQueue) const;
     /** @brief map all objects used in the events to a new root object
      */
     virtual void mapObjectsOnto(CoreObject* newRootObject);

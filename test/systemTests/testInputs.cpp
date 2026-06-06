@@ -101,9 +101,8 @@ TEST_F(InputTests, TestPowerFlowInputs)
                           << " vs. " << v2 << "::" << v1 - v2 << '\n';
             };
 
-        auto vdiff =
-            (matchStoredSolution) ? countDiffsCallback(volts1, volts2, 0.0008, vfunc) :
-                                    countDiffs(volts1, volts2, 0.0008);
+        auto vdiff = (matchStoredSolution) ? countDiffsCallback(volts1, volts2, 0.0008, vfunc) :
+                                             countDiffs(volts1, volts2, 0.0008);
 
         std::function<void(size_t, double, double)> afunc =
             [=](size_t index, double v1, double v2) {
@@ -111,9 +110,8 @@ TEST_F(InputTests, TestPowerFlowInputs)
                           << "::" << v1 * 180.0 / kPI << " vs. " << v2 * 180.0 / kPI
                           << "::" << (v1 - v2) * 180.0 / kPI << '\n';
             };
-        auto adiff =
-            (matchStoredSolution) ? countDiffsCallback(ang1, ang2, 0.0009, afunc) :
-                                    countDiffs(ang1, ang2, 0.0009);
+        auto adiff = (matchStoredSolution) ? countDiffsCallback(ang1, ang2, 0.0009, afunc) :
+                                             countDiffs(ang1, ang2, 0.0009);
 
         std::function<void(size_t, double, double)> Pfunc =
             [=](size_t index, double v1, double v2) {

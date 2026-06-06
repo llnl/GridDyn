@@ -21,15 +21,6 @@ namespace dll {
 }
 }  // namespace boost
 
-/** an editable version of the fmi callback structure */
-typedef struct {
-    fmi2CallbackLogger logger;
-    fmi2CallbackAllocateMemory allocateMemory;
-    fmi2CallbackFreeMemory freeMemory;
-    fmi2StepFinished stepFinished;
-    fmi2ComponentEnvironment componentEnvironment;
-} fmi2CallbackFunctions_nc;
-
 /**container class that do not require an fmi2Component*/
 class FmiBaseFunctions {
   public:
@@ -194,7 +185,7 @@ class FmiLibrary {
         information;  //!< an object containing information derived from the FMU XML file
 
     std::shared_ptr<boost::dll::shared_library> lib;
-    std::shared_ptr<fmi2CallbackFunctions_nc> callbacks;
+    std::shared_ptr<fmi2CallbackFunctions> callbacks;
     FmiBaseFunctions baseFunctions;
     std::shared_ptr<FmiCommonFunctions> commonFunctions;
     std::shared_ptr<FmiModelExchangeFunctions> ModelExchangeFunctions;

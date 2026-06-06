@@ -26,7 +26,7 @@
 namespace griddyn {
 using units::unit;
 
-static OptObjectFactory<GridAreaOpt, GridArea> opa("basic", "area");
+static OptObjectFactory<GridAreaOpt, GridArea> gOpa("basic", "area");
 // NOLINTBEGIN(misc-no-recursion,bugprone-branch-clone)
 
 GridAreaOpt::GridAreaOpt(const std::string& objName): GridOptObject(objName) {}
@@ -489,19 +489,19 @@ void GridAreaOpt::add(GridRelayOpt* relay)
 void GridAreaOpt::remove(GridBusOpt* bus)
 {
     if (busList[bus->locIndex]->getID() == bus->getID()) {
+        const auto removedIndex = static_cast<size_t>(bus->locIndex);
         busList[bus->locIndex]->setParent(nullptr);
         busList.erase(busList.begin() + bus->locIndex);
-        for (auto kk = bus->locIndex; std::cmp_less(kk, busList.size()); ++kk) {
-            busList[kk]->locIndex = kk;
+        for (size_t kk = removedIndex; kk < busList.size(); ++kk) {
+            busList[kk]->locIndex = static_cast<index_t>(kk);
         }
         auto oLb = objectList.begin();
         auto oLe = objectList.end();
         auto bid = bus->getID();
-        while (oLb != oLe) {
+        if (oLb != oLe) {
             if ((*oLb)->getID() == bid) {
                 objectList.erase(oLb);
             }
-            break;
         }
     }
 }
@@ -510,20 +510,20 @@ void GridAreaOpt::remove(GridBusOpt* bus)
 void GridAreaOpt::remove(GridLinkOpt* lnk)
 {
     if (linkList[lnk->locIndex]->getID() == lnk->getID()) {
+        const auto removedIndex = static_cast<size_t>(lnk->locIndex);
         linkList[lnk->locIndex]->setParent(nullptr);
         linkList.erase(linkList.begin() + lnk->locIndex);
 
-        for (auto kk = lnk->locIndex; std::cmp_less(kk, linkList.size()); ++kk) {
-            linkList[kk]->locIndex = kk;
+        for (size_t kk = removedIndex; kk < linkList.size(); ++kk) {
+            linkList[kk]->locIndex = static_cast<index_t>(kk);
         }
         auto oLb = objectList.begin();
         auto oLe = objectList.end();
         auto lid = lnk->getID();
-        while (oLb != oLe) {
+        if (oLb != oLe) {
             if ((*oLb)->getID() == lid) {
                 objectList.erase(oLb);
             }
-            break;
         }
     }
 }
@@ -532,19 +532,19 @@ void GridAreaOpt::remove(GridLinkOpt* lnk)
 void GridAreaOpt::remove(GridAreaOpt* areaObj)
 {
     if (areaList[areaObj->locIndex]->getID() == areaObj->getID()) {
+        const auto removedIndex = static_cast<size_t>(areaObj->locIndex);
         areaList[areaObj->locIndex]->setParent(nullptr);
         areaList.erase(areaList.begin() + areaObj->locIndex);
-        for (auto kk = areaObj->locIndex; std::cmp_less(kk, areaList.size()); ++kk) {
-            areaList[kk]->locIndex = kk;
+        for (size_t kk = removedIndex; kk < areaList.size(); ++kk) {
+            areaList[kk]->locIndex = static_cast<index_t>(kk);
         }
         auto oLb = objectList.begin();
         auto oLe = objectList.end();
         auto aid = areaObj->getID();
-        while (oLb != oLe) {
+        if (oLb != oLe) {
             if ((*oLb)->getID() == aid) {
                 objectList.erase(oLb);
             }
-            break;
         }
     }
 }
@@ -553,19 +553,19 @@ void GridAreaOpt::remove(GridAreaOpt* areaObj)
 void GridAreaOpt::remove(GridRelayOpt* relay)
 {
     if (relayList[relay->locIndex]->getID() == relay->getID()) {
+        const auto removedIndex = static_cast<size_t>(relay->locIndex);
         relayList[relay->locIndex]->setParent(nullptr);
         relayList.erase(relayList.begin() + relay->locIndex);
-        for (auto kk = relay->locIndex; std::cmp_less(kk, relayList.size()); ++kk) {
-            relayList[kk]->locIndex = kk;
+        for (size_t kk = removedIndex; kk < relayList.size(); ++kk) {
+            relayList[kk]->locIndex = static_cast<index_t>(kk);
         }
         auto oLb = objectList.begin();
         auto oLe = objectList.end();
         auto rid = relay->getID();
-        while (oLb != oLe) {
+        if (oLb != oLe) {
             if ((*oLb)->getID() == rid) {
                 objectList.erase(oLb);
             }
-            break;
         }
     }
 }
@@ -750,7 +750,10 @@ double GridAreaOpt::get(std::string_view param, units::unit unitType) const
     return (ival != kNullLocation) ? static_cast<double>(ival) : fval;
 }
 
-GridAreaOpt* getMatchingGridArea(GridAreaOpt* area, GridOptObject* src, GridOptObject* sec)
+/*
+static GridAreaOpt* getMatchingGridArea(GridAreaOpt* area,
+                                        GridOptObject* src,
+                                        GridOptObject* sec)
 {
     if (area->isRoot()) {
         return nullptr;
@@ -781,6 +784,7 @@ GridAreaOpt* getMatchingGridArea(GridAreaOpt* area, GridOptObject* src, GridOptO
     }
     return static_cast<GridAreaOpt*>(par->getGridArea(lkind[0]));
 }
+*/
 
 }  // namespace griddyn
 // NOLINTEND(misc-no-recursion,bugprone-branch-clone)

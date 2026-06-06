@@ -23,6 +23,7 @@
 #include <cassert>
 #include <cmath>
 #include <iostream>
+#include <limits>
 #include <memory>
 #include <string>
 #include <utility>
@@ -42,6 +43,14 @@ using units::s;
 using units::unit;
 
 namespace {
+    template<class T>
+    void boundedIncrement(T& value)
+    {
+        if (value < std::numeric_limits<T>::max()) {
+            ++value;
+        }
+    }
+
     double checkVoltageDelta(double voltageDelta,
                              double currentVoltage,
                              double dropFraction = 0.75,
@@ -372,13 +381,21 @@ void AcBus::mergeBus(GridBus* mbus)
     }
 
     auto* sourceRoot = this;
-    while (sourceRoot->opFlags[SLAVE_BUS]) {
-        sourceRoot = dynamic_cast<AcBus*>(sourceRoot->busController.masterBus);
+    while ((sourceRoot != nullptr) && sourceRoot->opFlags[SLAVE_BUS]) {
+        auto* nextRoot = dynamic_cast<AcBus*>(sourceRoot->busController.masterBus);
+        if (nextRoot == nullptr) {
+            return;
+        }
+        sourceRoot = nextRoot;
     }
 
     auto* targetRoot = targetBus;
-    while (targetRoot->opFlags[SLAVE_BUS]) {
-        targetRoot = dynamic_cast<AcBus*>(targetRoot->busController.masterBus);
+    while ((targetRoot != nullptr) && targetRoot->opFlags[SLAVE_BUS]) {
+        auto* nextRoot = dynamic_cast<AcBus*>(targetRoot->busController.masterBus);
+        if (nextRoot == nullptr) {
+            return;
+        }
+        targetRoot = nextRoot;
     }
 
     if ((sourceRoot == nullptr) || (targetRoot == nullptr) || (sourceRoot == targetRoot)) {
@@ -2039,9 +2056,10 @@ bool AcBus::convergeStrongIteration(const StateData& stateDataValue,
             break;
         }
         err = computeError(stateDataValue, sMode);
-        if (++iteration > 10) {
+        if (iteration >= 10) {
             break;
         }
+        boundedIncrement(iteration);
     }
     return false;
 }
@@ -2098,7 +2116,7 @@ bool AcBus::convergeVoltageOnly(const StateData& stateDataValue,
                 if (forceVoltageUp || (iteration == 1)) {
                     voltageDelta = -0.1;
                     forceVoltageUp = true;
-                    ++forceCount;
+                    boundedIncrement(forceCount);
                     if (forceCount < 8) {
                         iteration = (iteration > 5) ? 5 : iteration;
                     }
@@ -2155,8 +2173,10 @@ bool AcBus::convergeVoltageOnly(const StateData& stateDataValue,
                                      1.0);
             }
         }
-        if (++iteration > 10) {
+        if (iteration >= 10) {
             notConverged = false;
+        } else {
+            boundedIncrement(iteration);
         }
     }
 

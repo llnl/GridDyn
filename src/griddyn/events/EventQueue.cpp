@@ -30,10 +30,10 @@ CoreTime EventQueue::getNextTime() const
 
 CoreTime EventQueue::getNextTime(int eventCode) const
 {
-    std::lock_guard<std::mutex> lock(queuelock_);
-    for (auto& ev : events) {
-        if (ev->eventCode() == eventCode) {
-            return ev->m_nextTime;
+    const std::scoped_lock lock(queuelock_);
+    for (const auto& event : events) {
+        if (event->eventCode() == eventCode) {
+            return event->m_nextTime;
         }
     }
     return maxTime;
@@ -55,28 +55,28 @@ CoreTime EventQueue::getNullEventTime() const
 
 std::unique_ptr<EventQueue> EventQueue::clone() const
 {
-    auto eq = std::make_unique<EventQueue>();
-    EventQueue::cloneTo(eq.get());
-    return eq;
+    auto eventQueue = std::make_unique<EventQueue>();
+    EventQueue::cloneTo(eventQueue.get());
+    return eventQueue;
 }
 
-void EventQueue::cloneTo(EventQueue* eQ) const
+void EventQueue::cloneTo(EventQueue* eventQueue) const
 {
-    nullEvent->cloneTo(eQ->nullEvent.get());
-    for (auto& ev : events) {
-        if (ev == nullEvent)  // we dealt with the nullEvent already
+    nullEvent->cloneTo(eventQueue->nullEvent.get());
+    for (const auto& event : events) {
+        if (event == nullEvent)  // we dealt with the nullEvent already
         {
             continue;
         }
-        eQ->insert(ev->clone());
+        eventQueue->insert(event->clone());
     }
-    eQ->timeTols = timeTols;
+    eventQueue->timeTols = timeTols;
 }
 
 void EventQueue::mapObjectsOnto(CoreObject* newRootObject)
 {
-    for (auto& ev : events) {
-        ev->updateObject(newRootObject, ObjectUpdateMode::MATCH);
+    for (const auto& event : events) {
+        event->updateObject(newRootObject, ObjectUpdateMode::MATCH);
     }
 }
 
@@ -91,13 +91,9 @@ ChangeCode EventQueue::executeEvents(CoreTime cTime)
         ret = executeEventsBonly();
     }
     eret = executeEventsAonly(cTime);
-    if (eret > ret) {
-        ret = eret;
-    }
+    ret = std::max(eret, ret);
     eret = executeEventsBonly();
-    if (eret > ret) {
-        ret = eret;
-    }
+    ret = std::max(eret, ret);
 
     return ret;
 }
@@ -110,9 +106,9 @@ ChangeCode EventQueue::executeEventsAonly(CoreTime cTime)
     auto ret = ChangeCode::NO_CHANGE;
     auto eret = ChangeCode::NO_CHANGE;
 
-    bool remove_events = false;
+    bool removeEvents = false;
 
-    std::lock_guard<std::mutex> lock(queuelock_);
+    const std::scoped_lock lock(queuelock_);
 
     auto nextEvent = events.begin();
     auto currentEvent = nextEvent;
@@ -123,11 +119,9 @@ ChangeCode EventQueue::executeEventsAonly(CoreTime cTime)
         if ((*currentEvent)->two_part_execute) {
             if ((*currentEvent)->partB_turn) {
                 eret = (*currentEvent)->execute((*currentEvent)->m_nextTime);
-                if (eret > ret) {
-                    ret = eret;
-                }
+                ret = std::max(eret, ret);
                 if ((*currentEvent)->m_remove_event) {
-                    remove_events = true;
+                    removeEvents = true;
                 }
                 (*currentEvent)->partB_turn = false;
             } else {
@@ -145,11 +139,9 @@ ChangeCode EventQueue::executeEventsAonly(CoreTime cTime)
             }
         } else {
             eret = (*currentEvent)->execute((*currentEvent)->m_nextTime);
-            if (eret > ret) {
-                ret = eret;
-            }
+            ret = std::max(eret, ret);
             if ((*currentEvent)->m_remove_event) {
-                remove_events = true;
+                removeEvents = true;
             }
         }
 
@@ -157,12 +149,12 @@ ChangeCode EventQueue::executeEventsAonly(CoreTime cTime)
             break;
         }
     }
-    if (remove_events) {
-        auto it = std::remove_if(events.begin(), nextEvent, [](auto& evnt) {
-            return evnt->m_remove_event;
+    if (removeEvents) {
+        auto removePosition = std::remove_if(events.begin(), nextEvent, [](auto& event) {
+            return event->m_remove_event;
         });
-        if (it != nextEvent) {
-            events.erase(it, nextEvent);
+        if (removePosition != nextEvent) {
+            events.erase(removePosition, nextEvent);
         }
     }
     return ret;
@@ -172,34 +164,47 @@ ChangeCode EventQueue::executeEventsBonly()
 {
     auto ret = ChangeCode::NO_CHANGE;
     auto eret = ChangeCode::NO_CHANGE;
-    std::lock_guard<std::mutex> lock(queuelock_);
+    const std::scoped_lock lock(queuelock_);
     for (auto& currentEvent : partB_list) {
         eret = currentEvent->execute(currentEvent->m_nextTime);
-        if (eret > ret) {
-            ret = eret;
-        }
+        ret = std::max(eret, ret);
     }
     partB_list.clear();
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wstrict-overflow"
+#endif
     std::stable_sort(events.begin(), events.end(), compareEventAdapters);
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic pop
+#endif
     return ret;
 }
 
 void EventQueue::recheck()
 {
-    std::lock_guard<std::mutex> lock(queuelock_);
-    for (auto& ev : events) {
-        ev->updateTime();
+    const std::scoped_lock lock(queuelock_);
+    for (auto& event : events) {
+        event->updateTime();
     }
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wstrict-overflow"
+#endif
     std::stable_sort(events.begin(), events.end(), compareEventAdapters);
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic pop
+#endif
 }
 
 void EventQueue::remove(std::int64_t eventID)
 {
-    std::lock_guard<std::mutex> lock(queuelock_);
-    auto rm = std::remove_if(events.begin(), events.end(), [eventID](const auto& evnt) {
-        return (eventID == evnt->eventID);
-    });
-    events.erase(rm, events.end());
+    const std::scoped_lock lock(queuelock_);
+    auto removePosition =
+        std::remove_if(events.begin(), events.end(), [eventID](const auto& event) {
+            return (eventID == event->eventID);
+        });
+    events.erase(removePosition, events.end());
 }
 
 count_t EventQueue::size() const
@@ -209,19 +214,27 @@ count_t EventQueue::size() const
 
 void EventQueue::sort()
 {
-    std::lock_guard<std::mutex> lock(queuelock_);
+    const std::scoped_lock lock(queuelock_);
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wstrict-overflow"
+#endif
     std::stable_sort(events.begin(), events.end(), compareEventAdapters);
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic pop
+#endif
 }
 
 void EventQueue::checkDuplicates()
 {  // checking for duplicated CoreObject updates which could potentially be bad
     // this function is a private function and should only be called from inside a locked scope
-    auto pred = [](const auto& a, const auto& b) -> bool {
-        if (typeid(*a) == typeid(*b)) {
-            auto ap = dynamic_cast<EventTypeAdapter<CoreObject>*>(a.get());
-            if (ap != nullptr) {
-                auto bp = static_cast<EventTypeAdapter<CoreObject>*>(b.get());
-                if (isSameObject(ap->getTarget(), bp->getTarget())) {
+    auto pred = [](const auto& firstEvent, const auto& secondEvent) -> bool {
+        if (typeid(*firstEvent) == typeid(*secondEvent)) {
+            auto* adapterPrimary = dynamic_cast<EventTypeAdapter<CoreObject>*>(firstEvent.get());
+            if (adapterPrimary != nullptr) {
+                auto* adapterSecondary =
+                    static_cast<EventTypeAdapter<CoreObject>*>(secondEvent.get());
+                if (isSameObject(adapterPrimary->getTarget(), adapterSecondary->getTarget())) {
                     return true;
                 }
             }
@@ -236,12 +249,12 @@ void EventQueue::checkDuplicates()
 
 void EventQueue::getEventObjects(std::vector<CoreObject*>& objV) const
 {
-    for (auto& ev : events) {
-        ev->getObjects(objV);
+    for (const auto& event : events) {
+        event->getObjects(objV);
     }
     std::stable_sort(objV.begin(), objV.end());
-    auto eq = std::unique(objV.begin(), objV.end());
-    objV.erase(eq, objV.end());
+    auto uniqueEnd = std::unique(objV.begin(), objV.end());
+    objV.erase(uniqueEnd, objV.end());
 }
 
 void EventQueue::set(std::string_view param, double val)

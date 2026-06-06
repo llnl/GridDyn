@@ -51,7 +51,14 @@ class EventQueue {
         auto evID = newEvent->eventID;
         std::lock_guard<std::mutex> lock(queuelock_);
         events.push_back(std::move(newEvent));
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wstrict-overflow"
+#endif
         std::sort(events.begin(), events.end(), compareEventAdapters);
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic pop
+#endif
         checkDuplicates();
         return evID;
     }
@@ -102,9 +109,9 @@ class EventQueue {
     virtual std::unique_ptr<EventQueue> clone() const;
 
     /** @brief clone the entire queue to a different queue
-  @param eq the eventQueue to copy the data into
+  @param eventQueue the eventQueue to copy the data into
   */
-    virtual void cloneTo(EventQueue* eq) const;
+    virtual void cloneTo(EventQueue* eventQueue) const;
     /** @brief map all objects used in the events to a new root object
      */
     virtual void mapObjectsOnto(CoreObject* newRootObject);

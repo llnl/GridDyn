@@ -720,14 +720,11 @@ namespace {
                 traversalStack.push_back({.mComponent = currentFrame.mComponent,
                                           .mObjectInfo = currentFrame.mObjectInfo,
                                           .mChildrenQueued = true});
-                for (std::ptrdiff_t childIndex =
-                         static_cast<std::ptrdiff_t>(childComponents.size()) - 1;
-                     childIndex >= 0;
-                     --childIndex) {
+                for (size_t childCount = childComponents.size(); childCount > 0; --childCount) {
+                    const auto childIndex = childCount - 1;
                     traversalStack.push_back(
-                        {.mComponent = childComponents[static_cast<size_t>(childIndex)],
-                         .mObjectInfo = &currentFrame.mObjectInfo
-                                             ->mSubObjectInfo[static_cast<size_t>(childIndex)],
+                        {.mComponent = childComponents[childIndex],
+                         .mObjectInfo = &currentFrame.mObjectInfo->mSubObjectInfo[childIndex],
                          .mChildrenQueued = false});
                 }
                 continue;

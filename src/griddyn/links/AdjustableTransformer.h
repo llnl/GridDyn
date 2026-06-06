@@ -81,8 +81,8 @@ class AdjustableTransformer: public AcLine {
     std::string controlName;  //!< the control bus and number setting are not fully determined
                               //!< until initialization
     //!< so this stores information from the startup phase
-    count_t adjCount = 0;
-    count_t oCount = 0;
+    size_t adjCount = 0;
+    size_t oCount = 0;
     double prevAdjust = 0.0;
     double prevValue = 0.0;
     // double baseValue;

@@ -9,6 +9,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <sstream>
 #include <streambuf>
 #include <string>
 
@@ -25,7 +26,7 @@ ExeTestRunner::ExeTestRunner(const std::string& baseLocation, const std::string&
     ++counter;
     buildOutFile();
     active = findFileLocation(baseLocation, target);
-    if (!(system(nullptr))) {
+    if (system(nullptr) == 0) {
         active = false;
     }
 }
@@ -40,7 +41,7 @@ ExeTestRunner::ExeTestRunner(const std::string& baseLocation,
     if (!active) {
         active = findFileLocation(baseLocation2, target);
     }
-    if (!(system(nullptr))) {
+    if (system(nullptr) == 0) {
         active = false;
     }
 }
@@ -123,6 +124,7 @@ int ExeTestRunner::run(const std::string& args) const
         return -101;
     }
     std::string rstr = exeString + " " + args;
+    // NOLINTNEXTLINE(bugprone-command-processor,cert-env33-c)
     return system(rstr.c_str());
 }
 
@@ -133,11 +135,14 @@ std::string ExeTestRunner::runCaptureOutput(const std::string& args) const
     }
     std::string rstr = exeString + " " + args + " > " + outFile;
     // printf ("string %s\n", rstr.c_str ());
+    // NOLINTNEXTLINE(bugprone-command-processor,cert-env33-c)
     auto out = system(rstr.c_str());
 
     // printf (" after system call string %s\n", rstr.c_str ());
-    std::ifstream t(outFile);
-    std::string str((std::istreambuf_iterator<char>(t)), std::istreambuf_iterator<char>());
+    std::ifstream outputStream(outFile);
+    std::ostringstream buffer;
+    buffer << outputStream.rdbuf();
+    std::string str = buffer.str();
     if (out != 0) {
         str.push_back('\n');
         str.append(exeString);
@@ -146,6 +151,6 @@ std::string ExeTestRunner::runCaptureOutput(const std::string& args) const
         str.push_back('\n');
     }
 
-    remove(outFile.c_str());
+    static_cast<void>(remove(outFile.c_str()));
     return str;
 }

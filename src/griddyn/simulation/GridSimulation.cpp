@@ -19,6 +19,7 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/logger.h"
+#include <limits>
 #include <map>
 #include <memory>
 #include <string>
@@ -26,6 +27,14 @@
 #include <vector>
 
 namespace griddyn {
+template<class CountType>
+static void boundedIncrement(CountType& value)
+{
+    if (value < std::numeric_limits<CountType>::max()) {
+        ++value;
+    }
+}
+
 GridSimulation::GridSimulation(const std::string& objName):
     GridArea(objName), simulationTime(timeZero)
 {
@@ -287,10 +296,10 @@ void GridSimulation::log(CoreObject* object, PrintLevel level, const std::string
     std::string key;
     if (level == PrintLevel::WARNING) {
         key = "||WARNING||";
-        ++warnCount;
+        boundedIncrement(warnCount);
     } else if (level == PrintLevel::ERROR) {
         key = "||ERROR||";
-        ++errorCount;
+        boundedIncrement(errorCount);
     }
     // drop the preliminary information in a certain circumstance
     if (level == PrintLevel::SUMMARY) {
@@ -375,7 +384,7 @@ void GridSimulation::alert(CoreObject* object, int code)
                 break;
         }
     } else if (code < MIN_CHANGE_ALERT) {
-        alertCount++;
+        boundedIncrement(alertCount);
         std::string astr;
         auto res = ALERT_STRINGS.find(code);
         if (res != ALERT_STRINGS.end()) {
@@ -397,7 +406,8 @@ double GridSimulation::get(std::string_view param, units::unit unitType) const
     } else if (param == "alertcount") {
         ival = alertCount;
     } else if (param == "eventcount") {
-        ival = EvQ->size() - 1;
+        const auto eventCount = EvQ->size();
+        ival = (eventCount > 0) ? (eventCount - 1) : 0;
     } else if (param == "warncount") {
         ival = warnCount;
     } else if (param == "errorcount") {

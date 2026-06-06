@@ -54,6 +54,13 @@ class MatrixDataFilter: public MatrixDataContainer<ValueT> {
     {
         rowFilter.reserve(rowFilter.size() + rows.size());
         rowFilter.insert(rowFilter.end(), rows.begin(), rows.end());
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wstrict-overflow"
+#endif
         std::sort(rowFilter.begin(), rowFilter.end());
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic pop
+#endif
     }
 };

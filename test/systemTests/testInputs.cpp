@@ -10,12 +10,12 @@
 #include "griddyn/Link.h"
 #include "griddyn/links/AdjustableTransformer.h"
 #include <array>
-#include <cstdio>
 #include <filesystem>
 #include <functional>
 #include <gtest/gtest.h>
 #include <map>
 #include <memory>
+#include <print>
 #include <string>
 #include <utility>
 #include <vector>
@@ -90,7 +90,7 @@ TEST_F(InputTests, TestPowerFlowInputs)
 
         gds->powerflow();
         if (gds->currentProcessState() != GridDynSimulation::GridState::POWERFLOW_COMPLETE) {
-            std::printf("%s did not complete power flow calculation\n", fileName.c_str());
+            std::println("{} did not complete power flow calculation", fileName);
         }
         requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
@@ -100,13 +100,12 @@ TEST_F(InputTests, TestPowerFlowInputs)
         gds->getBusGenerationReactive(reactiveGenerationSolved);
         std::function<void(size_t, double, double)> voltageDiffPrinter =
             [=](size_t index, double value1, double value2) {
-                std::printf("%.*s Voltage difference bus %zu::%.12g vs. %.12g::%.12g\n",
-                            static_cast<int>(inputCase.fileName.size()),
-                            inputCase.fileName.data(),
-                            index + 1,
-                            value1,
-                            value2,
-                            value1 - value2);
+                std::println("{} Voltage difference bus {}::{:.12g} vs. {:.12g}::{:.12g}",
+                             inputCase.fileName,
+                             index + 1,
+                             value1,
+                             value2,
+                             value1 - value2);
             };
 
         auto vdiff = matchStoredSolution ?
@@ -115,13 +114,12 @@ TEST_F(InputTests, TestPowerFlowInputs)
 
         std::function<void(size_t, double, double)> angleDiffPrinter =
             [=](size_t index, double value1, double value2) {
-                std::printf("%.*s Angle difference bus %zu::%.12g vs. %.12g::%.12g\n",
-                            static_cast<int>(inputCase.fileName.size()),
-                            inputCase.fileName.data(),
-                            index + 1,
-                            value1 * 180.0 / kPI,
-                            value2 * 180.0 / kPI,
-                            (value1 - value2) * 180.0 / kPI);
+                std::println("{} Angle difference bus {}::{:.12g} vs. {:.12g}::{:.12g}",
+                             inputCase.fileName,
+                             index + 1,
+                             value1 * 180.0 / kPI,
+                             value2 * 180.0 / kPI,
+                             (value1 - value2) * 180.0 / kPI);
             };
         auto adiff = matchStoredSolution ?
             countDiffsCallback(ang1, ang2, 0.0009, angleDiffPrinter) :
@@ -129,12 +127,11 @@ TEST_F(InputTests, TestPowerFlowInputs)
 
         std::function<void(size_t, double, double)> realPowerDiffPrinter =
             [=](size_t index, double value1, double value2) {
-                std::printf("%.*s Power difference-- bus %zu::%.12g vs. %.12g\n",
-                            static_cast<int>(inputCase.fileName.size()),
-                            inputCase.fileName.data(),
-                            index + 1,
-                            value1,
-                            value2);
+                std::println("{} Power difference-- bus {}::{:.12g} vs. {:.12g}",
+                             inputCase.fileName,
+                             index + 1,
+                             value1,
+                             value2);
             };
         auto pdiff = countDiffsIfValidCallback(realGenerationInitial,
                                                realGenerationSolved,
@@ -142,13 +139,12 @@ TEST_F(InputTests, TestPowerFlowInputs)
                                                realPowerDiffPrinter);
         std::function<void(size_t, double, double)> reactivePowerDiffPrinter =
             [=](size_t index, double value1, double value2) {
-                std::printf("%.*s Q difference-- bus %zu::%.12g vs. %.12g::%.12g\n",
-                            static_cast<int>(inputCase.fileName.size()),
-                            inputCase.fileName.data(),
-                            index + 1,
-                            value1,
-                            value2,
-                            value1 - value1);
+                std::println("{} Q difference-- bus {}::{:.12g} vs. {:.12g}::{:.12g}",
+                             inputCase.fileName,
+                             index + 1,
+                             value1,
+                             value2,
+                             value1 - value1);
             };
         auto qdiff = countDiffsIfValidCallback(reactiveGenerationInitial,
                                                reactiveGenerationSolved,
@@ -161,10 +157,10 @@ TEST_F(InputTests, TestPowerFlowInputs)
         EXPECT_EQ(pdiff, 0U);
         EXPECT_EQ(qdiff, 0U);
         if (qdiff > 0) {
-            std::printf("%.12g vs %.12g diff %.12g\n",
-                        sum(reactiveGenerationInitial),
-                        sum(reactiveGenerationSolved),
-                        sum(reactiveGenerationInitial) - sum(reactiveGenerationSolved));
+            std::println("{:.12g} vs {:.12g} diff {:.12g}",
+                         sum(reactiveGenerationInitial),
+                         sum(reactiveGenerationSolved),
+                         sum(reactiveGenerationInitial) - sum(reactiveGenerationSolved));
         }
 
         if (inputCase.fileName == "ieee300.cdf") {
@@ -194,7 +190,7 @@ TEST_F(InputTests, TestPowerFlowInputs)
 
         gds->powerflow();
         if (gds->currentProcessState() != GridDynSimulation::GridState::POWERFLOW_COMPLETE) {
-            std::printf("%s did not complete power flow calculation 2\n", fileName.c_str());
+            std::println("{} did not complete power flow calculation 2", fileName);
         }
         requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
@@ -289,27 +285,24 @@ static void runCompareCase(GridDynSimulationTestFixture& fixture, const CompareC
 
         for (size_t kk = 0; kk < volts1.size(); ++kk) {
             if (std::abs(volts1[kk] - volts2[kk]) > 0.0008) {
-                std::printf("%.*s vs. %.*s Voltage difference bus %zu::%.12g vs. %.12g\n",
-                            static_cast<int>(compareCase.fileNames[0].size()),
-                            compareCase.fileNames[0].data(),
-                            static_cast<int>(compareFileName.size()),
-                            compareFileName.data(),
-                            kk + 1,
-                            volts1[kk],
-                            volts2[kk]);
+                std::println("{} vs. {} Voltage difference bus {}::{:.12g} vs. {:.12g}",
+                             compareCase.fileNames[0],
+                             compareFileName,
+                             kk + 1,
+                             volts1[kk],
+                             volts2[kk]);
                 vdiff++;
             }
 
             if (std::abs(ang1[kk] - ang2[kk]) > 0.0009) {
-                std::printf("%.*s vs. %.*s Angle difference-- bus %zu::%.12g vs. %.12g::%.12g deg\n",
-                            static_cast<int>(compareCase.fileNames[0].size()),
-                            compareCase.fileNames[0].data(),
-                            static_cast<int>(compareFileName.size()),
-                            compareFileName.data(),
-                            kk + 1,
-                            ang1[kk] * 180.0 / kPI,
-                            ang2[kk] * 180.0 / kPI,
-                            std::abs(ang1[kk] - ang2[kk]) * 180.0 / kPI);
+                std::println(
+                    "{} vs. {} Angle difference-- bus {}::{:.12g} vs. {:.12g}::{:.12g} deg",
+                    compareCase.fileNames[0],
+                    compareFileName,
+                    kk + 1,
+                    ang1[kk] * 180.0 / kPI,
+                    ang2[kk] * 180.0 / kPI,
+                    std::abs(ang1[kk] - ang2[kk]) * 180.0 / kPI);
                 adiff++;
             }
         }

@@ -49,7 +49,6 @@ using units::pu;
 using units::puMW;
 
 namespace {
-
     void epcReadBus(GridBus* bus, string_view line, double base, const BasicReaderInfo& bri);
     void epcReadDCBus(DcBus* bus, string_view line, double base, const BasicReaderInfo& bri);
     void epcReadLoad(ZipLoad* load, string_view line, double base);
@@ -218,6 +217,9 @@ void loadEpc(CoreObject* parentObject,
     std::string line;  // line storage
     while (nextLine(file, line)) {
         auto tokens = split(line, " \t");
+        if (tokens.empty()) {
+            continue;
+        }
         gmlc::utilities::string_viewOps::trimString(tokens[0]);
         if (tokens[0] == "title") {
             std::string title;
@@ -316,9 +318,9 @@ void loadEpc(CoreObject* parentObject,
                 line, file, "shunt", busList, [base](ZipLoad* load, string_view config) {
                     epcReadFixedShunt(load, config, base);
                 });
-        } else if (tokens[0] == "Svd") {
+        } else if (tokens[0] == "svd") {
             processSectionObject<loads::Svd>(
-                line, file, "Svd", busList, [base](loads::Svd* load, string_view config) {
+                line, file, "svd", busList, [base](loads::Svd* load, string_view config) {
                     epcReadSwitchShunt(load, config, base);
                 });
         } else if ((tokens[0] == "area") || (tokens[0] == "zone") || (tokens[0] == "interface") ||
@@ -326,6 +328,10 @@ void loadEpc(CoreObject* parentObject,
                    (tokens[0] == "transaction") || (tokens[0] == "qtable")) {
             ignoreSection(line, file);
         } else if (tokens[0] == "dc") {
+            if (tokens.size() < 2) {
+                std::cerr << "invalid dc section header\n";
+                continue;
+            }
             if (tokens[1] == "bus") {
                 cnt = getSectionCount(line);
 
@@ -414,9 +420,13 @@ namespace {
     double epcReadSolutionParamters(CoreObject* parentObject, string_view line)
     {
         auto tokens = split(line, " ", delimiter_compression::on);
+        if (tokens.size() < 2) {
+            std::cerr << "invalid solution parameter line\n";
+            return 0.0;
+        }
         auto val = numeric_conversion<double>(tokens[1], 0.0);
         if ((tokens[0] == "tap") || (tokens[0] == "phas") || (tokens[0] == "area") ||
-            (tokens[0] == "Svd") || (tokens[0] == "dctap") || (tokens[0] == "gcd") ||
+            (tokens[0] == "svd") || (tokens[0] == "dctap") || (tokens[0] == "gcd") ||
             (tokens[0] == "jump")) {
         } else if (tokens[0] == "toler") {
             parentObject->set("tolerance", val);

@@ -121,8 +121,8 @@ namespace {
                 } else {
                     cnt = 0;
                 }
+            }
         }
-    }
         return cnt;
     }
 

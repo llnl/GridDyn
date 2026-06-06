@@ -110,7 +110,7 @@ TEST_F(InputTests, TestPowerFlowInputs)
 
         auto vdiff = matchStoredSolution ?
             countDiffsCallback(volts1, volts2, 0.0008, voltageDiffPrinter) :
-                                  countDiffs(volts1, volts2, 0.0008);
+            countDiffs(volts1, volts2, 0.0008);
 
         std::function<void(size_t, double, double)> angleDiffPrinter =
             [=](size_t index, double value1, double value2) {
@@ -123,7 +123,7 @@ TEST_F(InputTests, TestPowerFlowInputs)
             };
         auto adiff = matchStoredSolution ?
             countDiffsCallback(ang1, ang2, 0.0009, angleDiffPrinter) :
-                                    countDiffs(ang1, ang2, 0.0009);
+            countDiffs(ang1, ang2, 0.0009);
 
         std::function<void(size_t, double, double)> realPowerDiffPrinter =
             [=](size_t index, double value1, double value2) {
@@ -216,7 +216,8 @@ static constexpr std::array<CompareCase, 5> COMPARE_CASES{{
     {.fileNames = {{"ieee14_act.cdf", "IEEE 14 bus.epc", "IEEE 14 bus.raw"}}, .fileCount = 3},
     {.fileNames = {{"ieee118_act.cdf", "ieee118.psp", "IEEE 118 Bus.EPC"}}, .fileCount = 3},
     {.fileNames = {{"IEEE39.raw", "ieee39_v29.raw", ""}}, .fileCount = 2},
-    {.fileNames = {{"powerflowWECC179_v30.raw", "powerflowWECC179_v31.raw", "powerflowWECC179_v32.raw"}},
+    {.fileNames =
+         {{"powerflowWECC179_v30.raw", "powerflowWECC179_v31.raw", "powerflowWECC179_v32.raw"}},
      .fileCount = 3},
     {.fileNames = {{"ieee30_no_limit.cdf", "testCSV.xml", ""}}, .fileCount = 2},
 }};

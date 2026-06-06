@@ -10,6 +10,7 @@
 #include "griddyn/GridBus.h"
 #include "griddyn/links/AdjustableTransformer.h"
 #include <array>
+#include <cstdio>
 #include <filesystem>
 #include <functional>
 #include <gtest/gtest.h>
@@ -33,13 +34,13 @@ struct PowerFlowInputCase {
 };
 
 static constexpr std::array<PowerFlowInputCase, 7> BASE_CDF_CASES{{
-    {"ieee14_act.cdf", {{14, 20}}},
-    {"ieee30_act.cdf", {{30, 41}}},
-    {"ieee57_act.cdf", {{57, 80}}},
-    {"ieee118_act.cdf", {{118, 186}}},
-    {"ieee300.cdf", {{300, 411}}},
-    {"IEEE39.raw", {{39, 46}}},
-    {INPUT_TEST_DIRECTORY "testCSV5k.xml", {{5000, 6279}}},
+    {.fileName = "ieee14_act.cdf", .expectedCounts = {{14, 20}}},
+    {.fileName = "ieee30_act.cdf", .expectedCounts = {{30, 41}}},
+    {.fileName = "ieee57_act.cdf", .expectedCounts = {{57, 80}}},
+    {.fileName = "ieee118_act.cdf", .expectedCounts = {{118, 186}}},
+    {.fileName = "ieee300.cdf", .expectedCounts = {{300, 411}}},
+    {.fileName = "IEEE39.raw", .expectedCounts = {{39, 46}}},
+    {.fileName = INPUT_TEST_DIRECTORY "testCSV5k.xml", .expectedCounts = {{5000, 6279}}},
 }};
 
 static bool shouldMatchStoredPowerFlowSolution(std::string_view caseName)
@@ -89,7 +90,7 @@ TEST_F(InputTests, TestPowerFlowInputs)
 
         gds->powerflow();
         if (gds->currentProcessState() != GridDynSimulation::GridState::POWERFLOW_COMPLETE) {
-            std::cout << fileName << " did not complete power flow calculation" << '\n';
+            std::printf("%s did not complete power flow calculation\n", fileName.c_str());
         }
         requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
@@ -99,8 +100,13 @@ TEST_F(InputTests, TestPowerFlowInputs)
         gds->getBusGenerationReactive(reactiveGenerationSolved);
         std::function<void(size_t, double, double)> voltageDiffPrinter =
             [=](size_t index, double value1, double value2) {
-                std::cout << inputCase.fileName << " Voltage difference bus " << index + 1 << "::"
-                          << value1 << " vs. " << value2 << "::" << value1 - value2 << '\n';
+                std::printf("%.*s Voltage difference bus %zu::%.12g vs. %.12g::%.12g\n",
+                            static_cast<int>(inputCase.fileName.size()),
+                            inputCase.fileName.data(),
+                            index + 1,
+                            value1,
+                            value2,
+                            value1 - value2);
             };
 
         auto vdiff =
@@ -109,9 +115,13 @@ TEST_F(InputTests, TestPowerFlowInputs)
 
         std::function<void(size_t, double, double)> angleDiffPrinter =
             [=](size_t index, double value1, double value2) {
-                std::cout << inputCase.fileName << " Angle difference bus " << index + 1
-                          << "::" << value1 * 180.0 / kPI << " vs. " << value2 * 180.0 / kPI
-                          << "::" << (value1 - value2) * 180.0 / kPI << '\n';
+                std::printf("%.*s Angle difference bus %zu::%.12g vs. %.12g::%.12g\n",
+                            static_cast<int>(inputCase.fileName.size()),
+                            inputCase.fileName.data(),
+                            index + 1,
+                            value1 * 180.0 / kPI,
+                            value2 * 180.0 / kPI,
+                            (value1 - value2) * 180.0 / kPI);
             };
         auto adiff =
             matchStoredSolution ? countDiffsCallback(ang1, ang2, 0.0009, angleDiffPrinter) :
@@ -119,15 +129,24 @@ TEST_F(InputTests, TestPowerFlowInputs)
 
         std::function<void(size_t, double, double)> realPowerDiffPrinter =
             [=](size_t index, double value1, double value2) {
-                std::cout << inputCase.fileName << " Power difference-- bus " << index + 1
-                          << "::" << value1 << " vs. " << value2 << '\n';
+                std::printf("%.*s Power difference-- bus %zu::%.12g vs. %.12g\n",
+                            static_cast<int>(inputCase.fileName.size()),
+                            inputCase.fileName.data(),
+                            index + 1,
+                            value1,
+                            value2);
             };
         auto pdiff =
             countDiffsIfValidCallback(realGenerationInitial, realGenerationSolved, 0.01, realPowerDiffPrinter);
         std::function<void(size_t, double, double)> reactivePowerDiffPrinter =
             [=](size_t index, double value1, double value2) {
-                std::cout << inputCase.fileName << " Q difference-- bus " << index + 1 << "::"
-                          << value1 << " vs. " << value2 << "::" << value1 - value1 << '\n';
+                std::printf("%.*s Q difference-- bus %zu::%.12g vs. %.12g::%.12g\n",
+                            static_cast<int>(inputCase.fileName.size()),
+                            inputCase.fileName.data(),
+                            index + 1,
+                            value1,
+                            value2,
+                            value1 - value1);
             };
         auto qdiff = countDiffsIfValidCallback(
             reactiveGenerationInitial, reactiveGenerationSolved, 0.01, reactivePowerDiffPrinter);
@@ -138,9 +157,10 @@ TEST_F(InputTests, TestPowerFlowInputs)
         EXPECT_EQ(pdiff, 0U);
         EXPECT_EQ(qdiff, 0U);
         if (qdiff > 0) {
-            std::cout << sum(reactiveGenerationInitial) << " vs " << sum(reactiveGenerationSolved)
-                      << " diff "
-                      << sum(reactiveGenerationInitial) - sum(reactiveGenerationSolved) << '\n';
+            std::printf("%.12g vs %.12g diff %.12g\n",
+                        sum(reactiveGenerationInitial),
+                        sum(reactiveGenerationSolved),
+                        sum(reactiveGenerationInitial) - sum(reactiveGenerationSolved));
         }
 
         if (inputCase.fileName == "ieee300.cdf") {
@@ -170,7 +190,7 @@ TEST_F(InputTests, TestPowerFlowInputs)
 
         gds->powerflow();
         if (gds->currentProcessState() != GridDynSimulation::GridState::POWERFLOW_COMPLETE) {
-            std::cout << fileName << " did not complete power flow calculation 2" << '\n';
+            std::printf("%s did not complete power flow calculation 2\n", fileName.c_str());
         }
         requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
@@ -193,11 +213,12 @@ struct CompareCase {
 };
 
 static constexpr std::array<CompareCase, 5> COMPARE_CASES{{
-    {{{"ieee14_act.cdf", "IEEE 14 bus.epc", "IEEE 14 bus.raw"}}, 3},
-    {{{"ieee118_act.cdf", "ieee118.psp", "IEEE 118 Bus.EPC"}}, 3},
-    {{{"IEEE39.raw", "ieee39_v29.raw", ""}}, 2},
-    {{{"powerflowWECC179_v30.raw", "powerflowWECC179_v31.raw", "powerflowWECC179_v32.raw"}}, 3},
-    {{{"ieee30_no_limit.cdf", "testCSV.xml", ""}}, 2},
+    {.fileNames = {{"ieee14_act.cdf", "IEEE 14 bus.epc", "IEEE 14 bus.raw"}}, .fileCount = 3},
+    {.fileNames = {{"ieee118_act.cdf", "ieee118.psp", "IEEE 118 Bus.EPC"}}, .fileCount = 3},
+    {.fileNames = {{"IEEE39.raw", "ieee39_v29.raw", ""}}, .fileCount = 2},
+    {.fileNames = {{"powerflowWECC179_v30.raw", "powerflowWECC179_v31.raw", "powerflowWECC179_v32.raw"}},
+     .fileCount = 3},
+    {.fileNames = {{"ieee30_no_limit.cdf", "testCSV.xml", ""}}, .fileCount = 2},
 }};
 
 static void runCompareCase(GridDynSimulationTestFixture& fixture, const CompareCase& compareCase)
@@ -263,18 +284,27 @@ static void runCompareCase(GridDynSimulationTestFixture& fixture, const CompareC
 
         for (size_t kk = 0; kk < volts1.size(); ++kk) {
             if (std::abs(volts1[kk] - volts2[kk]) > 0.0008) {
-                std::cout << compareCase.fileNames[0] << " vs. " << compareFileName
-                          << " Voltage difference bus " << kk + 1
-                          << "::" << volts1[kk] << " vs. " << volts2[kk] << '\n';
+                std::printf("%.*s vs. %.*s Voltage difference bus %zu::%.12g vs. %.12g\n",
+                            static_cast<int>(compareCase.fileNames[0].size()),
+                            compareCase.fileNames[0].data(),
+                            static_cast<int>(compareFileName.size()),
+                            compareFileName.data(),
+                            kk + 1,
+                            volts1[kk],
+                            volts2[kk]);
                 vdiff++;
             }
 
             if (std::abs(ang1[kk] - ang2[kk]) > 0.0009) {
-                std::cout << compareCase.fileNames[0] << " vs. " << compareFileName
-                          << " Angle difference-- bus " << kk + 1 << "::"
-                          << ang1[kk] * 180.0 / kPI << " vs. " << ang2[kk] * 180.0 / kPI
-                          << "::" << std::abs(ang1[kk] - ang2[kk]) * 180.0 / kPI << " deg"
-                          << '\n';
+                std::printf("%.*s vs. %.*s Angle difference-- bus %zu::%.12g vs. %.12g::%.12g deg\n",
+                            static_cast<int>(compareCase.fileNames[0].size()),
+                            compareCase.fileNames[0].data(),
+                            static_cast<int>(compareFileName.size()),
+                            compareFileName.data(),
+                            kk + 1,
+                            ang1[kk] * 180.0 / kPI,
+                            ang2[kk] * 180.0 / kPI,
+                            std::abs(ang1[kk] - ang2[kk]) * 180.0 / kPI);
                 adiff++;
             }
         }
@@ -296,11 +326,12 @@ struct ExecutionCase {
 };
 
 static constexpr std::array<ExecutionCase, 3> EXECUTION_CASES{{
-    {MATLAB_TEST_DIRECTORY "case4gs.m", {{0, 4, 4, 0}}},
+    {.fileName = MATLAB_TEST_DIRECTORY "case4gs.m", .expectedValues = {{0, 4, 4, 0}}},
     // { std::string(MATLAB_TEST_DIRECTORY "d_003.m"), { { 0, 3, 3, 0 } } },
     // { std::string(INPUT_TEST_DIRECTORY "test_mat_dyn.xml"), { { 1, 9, 9, 2 } } },
-    {INPUT_TEST_DIRECTORY "test_2m4bDyn_inputchange.xml", {{1, 0, 0, 0}}},
-    {INPUT_TEST_DIRECTORY "testIEEE39dynamic.xml", {{1, 39, 0, 0}}},
+    {.fileName = INPUT_TEST_DIRECTORY "test_2m4bDyn_inputchange.xml",
+     .expectedValues = {{1, 0, 0, 0}}},
+    {.fileName = INPUT_TEST_DIRECTORY "testIEEE39dynamic.xml", .expectedValues = {{1, 39, 0, 0}}},
     //  { std::string(INPUT_TEST_DIRECTORY "testIEEE39dynamic_relay.xml"), { { 1, 39, 0, 0 } } },
     //{ std::string(INPUT_TEST_DIRECTORY "180busdyn_test.xml"),{ { 1, 179, 0, 1 } } },
 }};

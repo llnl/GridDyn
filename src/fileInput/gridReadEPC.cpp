@@ -741,11 +741,11 @@ namespace {
 
         load->setName(prefix);
 
-        int offset = 2;
-        while ((offset < static_cast<int>(vectorSize)) && (strvec[offset] != ":")) {
+        size_t offset = 2;
+        while ((offset < vectorSize) && (strvec[offset] != ":")) {
             ++offset;
         }
-        if ((offset >= static_cast<int>(vectorSize)) || (offset + 8 >= static_cast<int>(vectorSize))) {
+        if ((offset >= vectorSize) || (offset + 8 >= vectorSize)) {
             std::cerr << "invalid epc svd field layout\n";
             return;
         }

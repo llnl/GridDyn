@@ -109,7 +109,7 @@ class EventQueue {
     virtual std::unique_ptr<EventQueue> clone() const;
 
     /** @brief clone the entire queue to a different queue
-  @param eq the eventQueue to copy the data into
+  @param eventQueue the eventQueue to copy the data into
   */
     virtual void cloneTo(EventQueue* eventQueue) const;
     /** @brief map all objects used in the events to a new root object

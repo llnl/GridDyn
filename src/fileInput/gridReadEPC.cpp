@@ -121,8 +121,8 @@ namespace {
                 } else {
                     cnt = 0;
                 }
+            }
         }
-    }
         return cnt;
     }
 
@@ -745,7 +745,8 @@ namespace {
         while ((offset < static_cast<int>(vectorSize)) && (strvec[offset] != ":")) {
             ++offset;
         }
-        if ((offset >= static_cast<int>(vectorSize)) || (offset + 8 >= static_cast<int>(vectorSize))) {
+        if ((offset >= static_cast<int>(vectorSize)) ||
+            (offset + 8 >= static_cast<int>(vectorSize))) {
             std::cerr << "invalid epc svd field layout\n";
             return;
         }

@@ -6,8 +6,8 @@
 
 #include "../gtestHelper.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "griddyn/Link.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/Link.h"
 #include "griddyn/links/AdjustableTransformer.h"
 #include <array>
 #include <filesystem>
@@ -99,13 +99,13 @@ TEST_F(InputTests, TestPowerFlowInputs)
         gds->getBusGenerationReactive(reactiveGenerationSolved);
         std::function<void(size_t, double, double)> voltageDiffPrinter =
             [=](size_t index, double value1, double value2) {
-                std::cout << inputCase.fileName << " Voltage difference bus " << index + 1 << "::"
-                          << value1 << " vs. " << value2 << "::" << value1 - value2 << '\n';
+                std::cout << inputCase.fileName << " Voltage difference bus " << index + 1
+                          << "::" << value1 << " vs. " << value2 << "::" << value1 - value2 << '\n';
             };
 
-        auto vdiff =
-            matchStoredSolution ? countDiffsCallback(volts1, volts2, 0.0008, voltageDiffPrinter) :
-                                  countDiffs(volts1, volts2, 0.0008);
+        auto vdiff = matchStoredSolution ?
+            countDiffsCallback(volts1, volts2, 0.0008, voltageDiffPrinter) :
+            countDiffs(volts1, volts2, 0.0008);
 
         std::function<void(size_t, double, double)> angleDiffPrinter =
             [=](size_t index, double value1, double value2) {
@@ -113,24 +113,28 @@ TEST_F(InputTests, TestPowerFlowInputs)
                           << "::" << value1 * 180.0 / kPI << " vs. " << value2 * 180.0 / kPI
                           << "::" << (value1 - value2) * 180.0 / kPI << '\n';
             };
-        auto adiff =
-            matchStoredSolution ? countDiffsCallback(ang1, ang2, 0.0009, angleDiffPrinter) :
-                                    countDiffs(ang1, ang2, 0.0009);
+        auto adiff = matchStoredSolution ?
+            countDiffsCallback(ang1, ang2, 0.0009, angleDiffPrinter) :
+            countDiffs(ang1, ang2, 0.0009);
 
         std::function<void(size_t, double, double)> realPowerDiffPrinter =
             [=](size_t index, double value1, double value2) {
                 std::cout << inputCase.fileName << " Power difference-- bus " << index + 1
                           << "::" << value1 << " vs. " << value2 << '\n';
             };
-        auto pdiff =
-            countDiffsIfValidCallback(realGenerationInitial, realGenerationSolved, 0.01, realPowerDiffPrinter);
+        auto pdiff = countDiffsIfValidCallback(realGenerationInitial,
+                                               realGenerationSolved,
+                                               0.01,
+                                               realPowerDiffPrinter);
         std::function<void(size_t, double, double)> reactivePowerDiffPrinter =
             [=](size_t index, double value1, double value2) {
-                std::cout << inputCase.fileName << " Q difference-- bus " << index + 1 << "::"
-                          << value1 << " vs. " << value2 << "::" << value1 - value1 << '\n';
+                std::cout << inputCase.fileName << " Q difference-- bus " << index + 1
+                          << "::" << value1 << " vs. " << value2 << "::" << value1 - value1 << '\n';
             };
-        auto qdiff = countDiffsIfValidCallback(
-            reactiveGenerationInitial, reactiveGenerationSolved, 0.01, reactivePowerDiffPrinter);
+        auto qdiff = countDiffsIfValidCallback(reactiveGenerationInitial,
+                                               reactiveGenerationSolved,
+                                               0.01,
+                                               reactivePowerDiffPrinter);
         if (matchStoredSolution) {
             EXPECT_EQ(vdiff, 0U);
             EXPECT_EQ(adiff, 0U);
@@ -139,8 +143,8 @@ TEST_F(InputTests, TestPowerFlowInputs)
         EXPECT_EQ(qdiff, 0U);
         if (qdiff > 0) {
             std::cout << sum(reactiveGenerationInitial) << " vs " << sum(reactiveGenerationSolved)
-                      << " diff "
-                      << sum(reactiveGenerationInitial) - sum(reactiveGenerationSolved) << '\n';
+                      << " diff " << sum(reactiveGenerationInitial) - sum(reactiveGenerationSolved)
+                      << '\n';
         }
 
         if (inputCase.fileName == "ieee300.cdf") {
@@ -252,7 +256,8 @@ static void runCompareCase(GridDynSimulationTestFixture& fixture, const CompareC
 
         fixture.gds2->powerflow();
 
-        ASSERT_EQ(fixture.gds2->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE)
+        ASSERT_EQ(fixture.gds2->currentProcessState(),
+                  GridDynSimulation::GridState::POWERFLOW_COMPLETE)
             << secondFileName << " failed to complete";
 
         fixture.gds2->getVoltage(volts2);
@@ -264,17 +269,16 @@ static void runCompareCase(GridDynSimulationTestFixture& fixture, const CompareC
         for (size_t kk = 0; kk < volts1.size(); ++kk) {
             if (std::abs(volts1[kk] - volts2[kk]) > 0.0008) {
                 std::cout << compareCase.fileNames[0] << " vs. " << compareFileName
-                          << " Voltage difference bus " << kk + 1
-                          << "::" << volts1[kk] << " vs. " << volts2[kk] << '\n';
+                          << " Voltage difference bus " << kk + 1 << "::" << volts1[kk] << " vs. "
+                          << volts2[kk] << '\n';
                 vdiff++;
             }
 
             if (std::abs(ang1[kk] - ang2[kk]) > 0.0009) {
                 std::cout << compareCase.fileNames[0] << " vs. " << compareFileName
-                          << " Angle difference-- bus " << kk + 1 << "::"
-                          << ang1[kk] * 180.0 / kPI << " vs. " << ang2[kk] * 180.0 / kPI
-                          << "::" << std::abs(ang1[kk] - ang2[kk]) * 180.0 / kPI << " deg"
-                          << '\n';
+                          << " Angle difference-- bus " << kk + 1 << "::" << ang1[kk] * 180.0 / kPI
+                          << " vs. " << ang2[kk] * 180.0 / kPI
+                          << "::" << std::abs(ang1[kk] - ang2[kk]) * 180.0 / kPI << " deg" << '\n';
                 adiff++;
             }
         }

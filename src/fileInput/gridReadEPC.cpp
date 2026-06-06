@@ -78,6 +78,9 @@ namespace {
         bool ret = true;
         while (ret) {
             if (std::getline(file, line)) {
+                if (line.empty()) {
+                    continue;
+                }
                 if (line[0] == '#')  // ignore comment lines
                 {
                     continue;
@@ -111,8 +114,15 @@ namespace {
         int cnt = -1;
         if (bbegin != std::string_view::npos) {
             auto bend = line.find_first_of(']', bbegin);
-            cnt = numeric_conversion<int>(line.substr(bbegin + 1, (bend - bbegin - 1)), 0);
+            if ((bend != std::string_view::npos) && (bend > bbegin + 1)) {
+                const auto countText = trim(line.substr(bbegin + 1, bend - bbegin - 1));
+                if (!countText.empty()) {
+                    cnt = numeric_conversion<int>(countText, 0);
+                } else {
+                    cnt = 0;
+                }
         }
+    }
         return cnt;
     }
 
@@ -151,7 +161,9 @@ namespace {
             cnt = kBigINT;
         }
         while (bcount < cnt) {
-            nextLine(file, line);
+            if (!nextLine(file, line)) {
+                break;
+            }
             const int index = getLineIndex(line);
             if (index < 0) {
             }
@@ -174,7 +186,9 @@ namespace {
             cnt = kBigINT;
         }
         while (bcount < cnt) {
-            nextLine(file, line);
+            if (!nextLine(file, line)) {
+                break;
+            }
             const int index = getLineIndex(line);
             if (index < 0) {
             }
@@ -224,6 +238,9 @@ void loadEpc(CoreObject* parentObject,
         if (tokens[0] == "title") {
             std::string title;
             while (std::getline(file, temp1)) {
+                if (temp1.empty()) {
+                    continue;
+                }
                 if (temp1[0] == '!') {
                     break;
                 }
@@ -238,6 +255,9 @@ void loadEpc(CoreObject* parentObject,
         } else if (tokens[0] == "comments") {
             std::string comments;
             while (std::getline(file, temp1)) {
+                if (temp1.empty()) {
+                    continue;
+                }
                 if (temp1[0] == '!') {
                     break;
                 }
@@ -286,14 +306,18 @@ void loadEpc(CoreObject* parentObject,
                 }
             }
         } else if (tokens[0] == "solution") {
-            nextLine(file, line);
-            while (line[0] != '!') {
+            if (!nextLine(file, line)) {
+                break;
+            }
+            while (!line.empty() && (line[0] != '!')) {
                 if (line.starts_with("sbase")) {
                     base = epcReadSolutionParamters(parentObject, line);
                 } else {
                     epcReadSolutionParamters(parentObject, line);
                 }
-                nextLine(file, line);
+                if (!nextLine(file, line)) {
+                    break;
+                }
             }
         } else if (tokens[0] == "branch") {
             processSection(line, file, [&](string_view config) {
@@ -328,6 +352,10 @@ void loadEpc(CoreObject* parentObject,
                    (tokens[0] == "transaction") || (tokens[0] == "qtable")) {
             ignoreSection(line, file);
         } else if (tokens[0] == "dc") {
+            if (tokens.size() > 1) {
+                std::cerr << ' ' << tokens[1];
+            }
+            std::cerr << '\n';
             if (tokens.size() < 2) {
                 std::cerr << "invalid dc section header\n";
                 continue;
@@ -443,6 +471,10 @@ namespace {
     {
         auto strvec =
             splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
+        if (strvec.size() < 11) {
+            std::cerr << "invalid epc bus record\n";
+            return;
+        }
         // get the bus name
         auto temp = strvec[0];
         std::string temp2 = std::string{trim(removeQuotes(strvec[1]))};
@@ -521,6 +553,10 @@ namespace {
     {
         auto strvec =
             splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
+        if (strvec.size() < 8) {
+            std::cerr << "invalid epc dc bus record\n";
+            return;
+        }
         // get the bus name
         auto temp = strvec[0];
         std::string temp2 = std::string{trim(removeQuotes(strvec[1]))};
@@ -586,6 +622,10 @@ namespace {
     {
         auto strvec =
             splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
+        if (strvec.size() < 12) {
+            std::cerr << "invalid epc load record\n";
+            return;
+        }
 
         // get the load index and name
         std::string prefix = load->getParent()->getName() + "_Load";
@@ -644,6 +684,10 @@ namespace {
     {
         auto strvec =
             splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
+        if (strvec.size() < 15) {
+            std::cerr << "invalid epc shunt record\n";
+            return;
+        }
 
         // get the load index and name
         std::string prefix = load->getParent()->getName() + "_Shunt";
@@ -683,6 +727,10 @@ namespace {
     {
         auto strvec = splitlineBracket(line, " ", default_bracket_chars, delimiter_compression::on);
         const auto vectorSize = strvec.size();
+        if (vectorSize < 11) {
+            std::cerr << "invalid epc svd record\n";
+            return;
+        }
         // get the load index and name
         const std::string prefix = load->getParent()->getName() + "_svd";
 
@@ -694,8 +742,12 @@ namespace {
         load->setName(prefix);
 
         int offset = 2;
-        while (strvec[offset] != ":") {
+        while ((offset < static_cast<int>(vectorSize)) && (strvec[offset] != ":")) {
             ++offset;
+        }
+        if ((offset >= static_cast<int>(vectorSize)) || (offset + 8 >= static_cast<int>(vectorSize))) {
+            std::cerr << "invalid epc svd field layout\n";
+            return;
         }
         // get the status
         const int status = toIntSimple(strvec[offset + 1]);
@@ -805,6 +857,10 @@ namespace {
     {
         auto strvec =
             splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
+        if (strvec.size() < 24) {
+            std::cerr << "invalid epc generator record\n";
+            return;
+        }
 
         // get the gen index and name
         std::string prefix = gen->getParent()->getName() + "_Gen";
@@ -887,9 +943,10 @@ namespace {
             temp = std::string{trim(svec[3])};
         }
         temp2 = temp2 + temp;
-        if (trim(svec[7]) != "1") {
+        const auto circuitId = trim(svec[7]);
+        if (!circuitId.empty() && (circuitId != "1")) {
             temp2.push_back('_');
-            temp2.push_back(trim(svec[7])[0]);
+            temp2.push_back(circuitId[0]);
         }
         return temp2;
     }
@@ -909,6 +966,10 @@ namespace {
     {
         auto strvec =
             splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
+        if (strvec.size() < 19) {
+            std::cerr << "invalid epc branch record\n";
+            return;
+        }
 
         // get the name of the from bus
 
@@ -988,6 +1049,10 @@ namespace {
     {
         auto strvec =
             splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
+        if (strvec.size() < 19) {
+            std::cerr << "invalid epc dc branch record\n";
+            return;
+        }
 
         // get the name of the from bus
 
@@ -1067,6 +1132,10 @@ namespace {
 
         auto strvec =
             splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
+        if (strvec.size() < 46) {
+            std::cerr << "invalid epc transformer record\n";
+            return;
+        }
         // get the name of the from bus
 
         auto ind1 = numeric_conversion<int>(strvec[0], 0);

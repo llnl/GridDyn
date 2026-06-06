@@ -6,15 +6,13 @@
 
 #include "../gtestHelper.h"
 #include "gmlc/utilities/vectorOps.hpp"
+#include "griddyn/Link.h"
 #include "griddyn/GridBus.h"
-#include "griddyn/links/AcLine.h"
 #include "griddyn/links/AdjustableTransformer.h"
 #include <array>
-#include <cstdio>
 #include <filesystem>
 #include <functional>
 #include <gtest/gtest.h>
-#include <iostream>
 #include <map>
 #include <memory>
 #include <string>
@@ -29,15 +27,20 @@ using namespace gmlc::utilities;
 
 class InputTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
-static const std::vector<std::pair<std::string, std::array<int, 2>>> baseCDFcase{
+struct PowerFlowInputCase {
+    std::string_view fileName;
+    std::array<int, 2> expectedCounts;
+};
+
+static constexpr std::array<PowerFlowInputCase, 7> BASE_CDF_CASES{{
     {"ieee14_act.cdf", {{14, 20}}},
     {"ieee30_act.cdf", {{30, 41}}},
     {"ieee57_act.cdf", {{57, 80}}},
     {"ieee118_act.cdf", {{118, 186}}},
     {"ieee300.cdf", {{300, 411}}},
     {"IEEE39.raw", {{39, 46}}},
-    {std::string(INPUT_TEST_DIRECTORY "testCSV5k.xml"), {{5000, 6279}}},
-};
+    {INPUT_TEST_DIRECTORY "testCSV5k.xml", {{5000, 6279}}},
+}};
 
 static bool shouldMatchStoredPowerFlowSolution(std::string_view caseName)
 {
@@ -48,42 +51,41 @@ static bool shouldMatchStoredPowerFlowSolution(std::string_view caseName)
 
 TEST_F(InputTests, TestPowerFlowInputs)
 {
-    for (size_t caseIndex = 0; caseIndex < baseCDFcase.size(); ++caseIndex) {
+    for (const auto& inputCase : BASE_CDF_CASES) {
         std::vector<double> volts1;
         std::vector<double> ang1;
         std::vector<double> volts2;
         std::vector<double> ang2;
-        std::vector<double> P1;
-        std::vector<double> P2;
-        std::vector<double> Q1;
-        std::vector<double> Q2;
+        std::vector<double> realGenerationInitial;
+        std::vector<double> realGenerationSolved;
+        std::vector<double> reactiveGenerationInitial;
+        std::vector<double> reactiveGenerationSolved;
 
-        auto mp = baseCDFcase[caseIndex];
-        const bool matchStoredSolution = shouldMatchStoredPowerFlowSolution(mp.first);
+        const bool matchStoredSolution = shouldMatchStoredPowerFlowSolution(inputCase.fileName);
 
-        SCOPED_TRACE(mp.first);
+        SCOPED_TRACE(inputCase.fileName);
         gds = std::make_unique<GridDynSimulation>();
         std::string fileName;
-        if (mp.first.length() > 25) {
-            fileName = mp.first;
+        if (inputCase.fileName.length() > 25) {
+            fileName = std::string{inputCase.fileName};
         } else {
-            fileName = std::string(IEEE_TEST_DIRECTORY) + mp.first;
+            fileName = std::string(IEEE_TEST_DIRECTORY) + std::string{inputCase.fileName};
         }
 
         loadFile(gds, fileName);
         requireState(GridDynSimulation::GridState::STARTUP);
         int count = gds->getInt("totalbuscount");
-        EXPECT_EQ(count, mp.second[0]);
+        EXPECT_EQ(count, inputCase.expectedCounts[0]);
         count = gds->getInt("totallinkcount");
-        EXPECT_EQ(count, mp.second[1]);
-        auto ct = gds->getVoltage(volts1);
+        EXPECT_EQ(count, inputCase.expectedCounts[1]);
+        auto voltageCount = gds->getVoltage(volts1);
         gds->getAngle(ang1);
-        EXPECT_EQ(ct, static_cast<count_t>(ang1.size()));
+        EXPECT_EQ(voltageCount, static_cast<count_t>(ang1.size()));
         gds->pFlowInitialize();
         requireState(GridDynSimulation::GridState::INITIALIZED);
         gds->updateLocalCache();
-        gds->getBusGenerationReal(P1);
-        gds->getBusGenerationReactive(Q1);
+        gds->getBusGenerationReal(realGenerationInitial);
+        gds->getBusGenerationReactive(reactiveGenerationInitial);
 
         gds->powerflow();
         if (gds->currentProcessState() != GridDynSimulation::GridState::POWERFLOW_COMPLETE) {
@@ -93,67 +95,71 @@ TEST_F(InputTests, TestPowerFlowInputs)
 
         gds->getVoltage(volts2);
         gds->getAngle(ang2);
-        gds->getBusGenerationReal(P2);
-        gds->getBusGenerationReactive(Q2);
-        std::function<void(size_t, double, double)> vfunc =
-            [=](size_t index, double v1, double v2) {
-                std::cout << mp.first << " Voltage difference bus " << index + 1 << "::" << v1
-                          << " vs. " << v2 << "::" << v1 - v2 << '\n';
+        gds->getBusGenerationReal(realGenerationSolved);
+        gds->getBusGenerationReactive(reactiveGenerationSolved);
+        std::function<void(size_t, double, double)> voltageDiffPrinter =
+            [=](size_t index, double value1, double value2) {
+                std::cout << inputCase.fileName << " Voltage difference bus " << index + 1 << "::"
+                          << value1 << " vs. " << value2 << "::" << value1 - value2 << '\n';
             };
 
         auto vdiff =
-            (matchStoredSolution) ? countDiffsCallback(volts1, volts2, 0.0008, vfunc) :
-                                    countDiffs(volts1, volts2, 0.0008);
+            matchStoredSolution ? countDiffsCallback(volts1, volts2, 0.0008, voltageDiffPrinter) :
+                                  countDiffs(volts1, volts2, 0.0008);
 
-        std::function<void(size_t, double, double)> afunc =
-            [=](size_t index, double v1, double v2) {
-                std::cout << mp.first << " Angle difference bus " << index + 1
-                          << "::" << v1 * 180.0 / kPI << " vs. " << v2 * 180.0 / kPI
-                          << "::" << (v1 - v2) * 180.0 / kPI << '\n';
+        std::function<void(size_t, double, double)> angleDiffPrinter =
+            [=](size_t index, double value1, double value2) {
+                std::cout << inputCase.fileName << " Angle difference bus " << index + 1
+                          << "::" << value1 * 180.0 / kPI << " vs. " << value2 * 180.0 / kPI
+                          << "::" << (value1 - value2) * 180.0 / kPI << '\n';
             };
         auto adiff =
-            (matchStoredSolution) ? countDiffsCallback(ang1, ang2, 0.0009, afunc) :
+            matchStoredSolution ? countDiffsCallback(ang1, ang2, 0.0009, angleDiffPrinter) :
                                     countDiffs(ang1, ang2, 0.0009);
 
-        std::function<void(size_t, double, double)> Pfunc =
-            [=](size_t index, double v1, double v2) {
-                std::cout << mp.first << " Power difference-- bus " << index + 1 << "::" << v1
-                          << " vs. " << v2 << '\n';
+        std::function<void(size_t, double, double)> realPowerDiffPrinter =
+            [=](size_t index, double value1, double value2) {
+                std::cout << inputCase.fileName << " Power difference-- bus " << index + 1
+                          << "::" << value1 << " vs. " << value2 << '\n';
             };
-        auto pdiff = countDiffsIfValidCallback(P1, P2, 0.01, Pfunc);
-        std::function<void(size_t, double, double)> Qfunc =
-            [=](size_t index, double v1, double v2) {
-                std::cout << mp.first << " Q difference-- bus " << index + 1 << "::" << v1
-                          << " vs. " << v2 << "::" << v1 - v1 << '\n';
+        auto pdiff =
+            countDiffsIfValidCallback(realGenerationInitial, realGenerationSolved, 0.01, realPowerDiffPrinter);
+        std::function<void(size_t, double, double)> reactivePowerDiffPrinter =
+            [=](size_t index, double value1, double value2) {
+                std::cout << inputCase.fileName << " Q difference-- bus " << index + 1 << "::"
+                          << value1 << " vs. " << value2 << "::" << value1 - value1 << '\n';
             };
-        auto qdiff = countDiffsIfValidCallback(Q1, Q2, 0.01, Qfunc);
+        auto qdiff = countDiffsIfValidCallback(
+            reactiveGenerationInitial, reactiveGenerationSolved, 0.01, reactivePowerDiffPrinter);
         if (matchStoredSolution) {
-            EXPECT_EQ(vdiff, 0u);
-            EXPECT_EQ(adiff, 0u);
+            EXPECT_EQ(vdiff, 0U);
+            EXPECT_EQ(adiff, 0U);
         }
-        EXPECT_EQ(pdiff, 0u);
-        EXPECT_EQ(qdiff, 0u);
+        EXPECT_EQ(pdiff, 0U);
+        EXPECT_EQ(qdiff, 0U);
         if (qdiff > 0) {
-            printf("%f vs %f diff %f\n", sum(Q1), sum(Q2), sum(Q1) - sum(Q2));
+            std::cout << sum(reactiveGenerationInitial) << " vs " << sum(reactiveGenerationSolved)
+                      << " diff "
+                      << sum(reactiveGenerationInitial) - sum(reactiveGenerationSolved) << '\n';
         }
 
-        if (mp.first == "ieee300.cdf") {
+        if (inputCase.fileName == "ieee300.cdf") {
             gds->reset(ResetLevels::VOLTAGE_ANGLE);
 
-            for (int ii = 0; ii < 300; ++ii) {
-                GridBus* bus = gds->getBus(ii);
+            for (int busIndex = 0; busIndex < 300; ++busIndex) {
+                GridBus* bus = gds->getBus(busIndex);
                 if (bus->getType() == GridBus::BusType::PQ) {
                     bus->set("voltage", 1.0);
                 }
             }
-            int cnt = 0;
-            for (int ii = 0; ii < 411; ++ii) {
-                Link* lnk = gds->getLink(ii);
-                if (dynamic_cast<links::AdjustableTransformer*>(lnk)) {
-                    cnt++;
-                    if ((cnt >= 2) && (cnt <= 3)) {
-                        lnk->reset(ResetLevels::FULL);
-                        lnk->set("center", "target");
+            int adjustableTransformerCount = 0;
+            for (int linkIndex = 0; linkIndex < 411; ++linkIndex) {
+                Link* link = gds->getLink(linkIndex);
+                if (dynamic_cast<links::AdjustableTransformer*>(link) != nullptr) {
+                    adjustableTransformerCount++;
+                    if ((adjustableTransformerCount >= 2) && (adjustableTransformerCount <= 3)) {
+                        link->reset(ResetLevels::FULL);
+                        link->set("center", "target");
                         break;
                     }
                 }
@@ -170,153 +176,163 @@ TEST_F(InputTests, TestPowerFlowInputs)
 
         gds->getVoltage(volts1);
         gds->getAngle(ang1);
-        gds->getBusGenerationReal(P2);
-        gds->getBusGenerationReactive(Q2);
+        gds->getBusGenerationReal(realGenerationSolved);
+        gds->getBusGenerationReactive(reactiveGenerationSolved);
 
         vdiff = countDiffs(volts1, volts2, 0.0005);
         adiff = countDiffs(ang1, ang2, 0.0009);
 
-        EXPECT_EQ(vdiff, 0u);
-        EXPECT_EQ(adiff, 0u);
+        EXPECT_EQ(vdiff, 0U);
+        EXPECT_EQ(adiff, 0U);
     }
 }
 
-// if more checks are added the data::xrange(X) must be changed as well
-
-static const std::vector<griddyn::stringVec> compareCases{
-    {"ieee118_act.cdf", "ieee118.psp", "IEEE 118 Bus.EPC"},
-    {"ieee14_act.cdf", "IEEE 14 bus.epc", "IEEE 14 bus.raw"},
-    {"IEEE39.raw", "ieee39_v29.raw"},
-    {"powerflowWECC179_v30.raw", "powerflowWECC179_v31.raw", "powerflowWECC179_v32.raw"},
-    {"ieee30_no_limit.cdf", "testCSV.xml"},
-    // {"powerflowWECC1.raw","WECC179_powerflow.m"},
+struct CompareCase {
+    std::array<std::string_view, 3> fileNames;
+    size_t fileCount;
 };
 
-TEST_F(InputTests, DISABLED_CompareCases)
+static constexpr std::array<CompareCase, 5> COMPARE_CASES{{
+    {{{"ieee14_act.cdf", "IEEE 14 bus.epc", "IEEE 14 bus.raw"}}, 3},
+    {{{"ieee118_act.cdf", "ieee118.psp", "IEEE 118 Bus.EPC"}}, 3},
+    {{{"IEEE39.raw", "ieee39_v29.raw", ""}}, 2},
+    {{{"powerflowWECC179_v30.raw", "powerflowWECC179_v31.raw", "powerflowWECC179_v32.raw"}}, 3},
+    {{{"ieee30_no_limit.cdf", "testCSV.xml", ""}}, 2},
+}};
+
+static void runCompareCase(GridDynSimulationTestFixture& fixture, const CompareCase& compareCase)
 {
-    for (size_t caseIndex = 0; caseIndex < compareCases.size(); ++caseIndex) {
-        std::vector<double> volts1;
-        std::vector<double> ang1;
-        std::vector<double> volts2;
-        std::vector<double> ang2;
+    std::vector<double> volts1;
+    std::vector<double> ang1;
+    std::vector<double> volts2;
+    std::vector<double> ang2;
 
-        gds = std::make_unique<GridDynSimulation>();
+    fixture.gds = std::make_unique<GridDynSimulation>();
 
-        auto caseSet = compareCases[caseIndex];
-        SCOPED_TRACE(caseSet[0]);
-        std::string fileName = std::string(IEEE_TEST_DIRECTORY) + caseSet[0];
-        if (!std::filesystem::exists(fileName)) {
-            fileName = std::string(INPUT_TEST_DIRECTORY) + caseSet[0];
+    SCOPED_TRACE(compareCase.fileNames[0]);
+    std::string fileName = std::string(IEEE_TEST_DIRECTORY) + std::string{compareCase.fileNames[0]};
+    if (!std::filesystem::exists(fileName)) {
+        fileName = std::string(INPUT_TEST_DIRECTORY) + std::string{compareCase.fileNames[0]};
+    }
+    loadFile(fixture.gds, fileName);
+
+    int bcount = fixture.gds->getInt("totalbuscount");
+    int lcount = fixture.gds->getInt("totallinkcount");
+
+    fixture.gds->powerflow();
+
+    fixture.gds->getVoltage(volts1);
+    fixture.gds->getAngle(ang1);
+
+    for (size_t caseFileIndex = 1; caseFileIndex < compareCase.fileCount; ++caseFileIndex) {
+        std::string secondFileName = std::string{compareCase.fileNames[caseFileIndex]};
+        const auto& compareFileName = compareCase.fileNames[caseFileIndex];
+        fixture.gds2 = std::make_unique<GridDynSimulation>();
+        if (secondFileName.size() < 25) {
+            secondFileName = std::string(IEEE_TEST_DIRECTORY) + std::string{compareFileName};
+            if (!std::filesystem::exists(secondFileName)) {
+                secondFileName = std::string(INPUT_TEST_DIRECTORY) + std::string{compareFileName};
+            }
         }
-        loadFile(gds, fileName);
 
-        int bcount = gds->getInt("totalbuscount");
-        int lcount = gds->getInt("totallinkcount");
+        loadFile(fixture.gds2, secondFileName);
 
-        gds->powerflow();
-
-        gds->getVoltage(volts1);
-        gds->getAngle(ang1);
-
-        for (size_t ns = 1; ns < caseSet.size(); ++ns) {
-            std::string fname2 = caseSet[ns];
-            std::string nf = caseSet[ns];
-            gds2 = std::make_unique<GridDynSimulation>();
-            if (fname2.size() < 25) {
-                fname2 = std::string(IEEE_TEST_DIRECTORY) + nf;
-                if (!std::filesystem::exists(fname2)) {
-                    fname2 = std::string(INPUT_TEST_DIRECTORY) + nf;
-                }
+        int count = fixture.gds2->getInt("totalbuscount");
+        EXPECT_EQ(count, bcount);
+        for (index_t busIndex = 0; busIndex < count; ++busIndex) {
+            auto* compareBusObject = fixture.gds2->getBus(busIndex);
+            auto* referenceBusObject = fixture.gds->getBus(busIndex);
+            auto busesMatch = compareBus(compareBusObject, referenceBusObject, false);
+            if (!busesMatch) {
             }
-
-            loadFile(gds2, fname2);
-
-            int count = gds2->getInt("totalbuscount");
-            EXPECT_EQ(count, bcount);
-            for (index_t kk = 0; kk < count; ++kk) {
-                auto b2 = gds2->getBus(kk);
-                auto b1 = gds->getBus(kk);
-                auto cmp = compareBus(b2, b1, false);
-                if (cmp == false) {
-                }
-                b2->setVoltageAngle(volts1[kk], ang1[kk]);
-            }
-            count = gds2->getInt("totallinkcount");
-            EXPECT_EQ(count, lcount);
-
-            gds2->powerflow();
-
-            ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE)
-                << fname2 << " failed to complete";
-
-            gds2->getVoltage(volts2);
-            gds2->getAngle(ang2);
-
-            int vdiff = 0;
-            int adiff = 0;
-
-            for (size_t kk = 0; kk < volts1.size(); ++kk) {
-                if (std::abs(volts1[kk] - volts2[kk]) > 0.0008) {
-                    std::cout << caseSet[0] << " vs. " << nf << " Voltage difference bus " << kk + 1
-                              << "::" << volts1[kk] << " vs. " << volts2[kk] << '\n';
-                    vdiff++;
-                }
-
-                if (std::abs(ang1[kk] - ang2[kk]) > 0.0009) {
-                    std::cout << caseSet[0] << " vs. " << nf << " Angle difference-- bus " << kk + 1
-                              << "::" << ang1[kk] * 180.0 / kPI << " vs. " << ang2[kk] * 180.0 / kPI
-                              << "::" << std::abs(ang1[kk] - ang2[kk]) * 180.0 / kPI << " deg"
-                              << '\n';
-                    adiff++;
-                }
-            }
-            EXPECT_EQ(vdiff, 0);
-            EXPECT_EQ(adiff, 0);
+            compareBusObject->setVoltageAngle(volts1[busIndex], ang1[busIndex]);
         }
+        count = fixture.gds2->getInt("totallinkcount");
+        EXPECT_EQ(count, lcount);
+
+        fixture.gds2->powerflow();
+
+        ASSERT_EQ(fixture.gds2->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE)
+            << secondFileName << " failed to complete";
+
+        fixture.gds2->getVoltage(volts2);
+        fixture.gds2->getAngle(ang2);
+
+        int vdiff = 0;
+        int adiff = 0;
+
+        for (size_t kk = 0; kk < volts1.size(); ++kk) {
+            if (std::abs(volts1[kk] - volts2[kk]) > 0.0008) {
+                std::cout << compareCase.fileNames[0] << " vs. " << compareFileName
+                          << " Voltage difference bus " << kk + 1
+                          << "::" << volts1[kk] << " vs. " << volts2[kk] << '\n';
+                vdiff++;
+            }
+
+            if (std::abs(ang1[kk] - ang2[kk]) > 0.0009) {
+                std::cout << compareCase.fileNames[0] << " vs. " << compareFileName
+                          << " Angle difference-- bus " << kk + 1 << "::"
+                          << ang1[kk] * 180.0 / kPI << " vs. " << ang2[kk] * 180.0 / kPI
+                          << "::" << std::abs(ang1[kk] - ang2[kk]) * 180.0 / kPI << " deg"
+                          << '\n';
+                adiff++;
+            }
+        }
+        EXPECT_EQ(vdiff, 0);
+        EXPECT_EQ(adiff, 0);
     }
 }
 
-/* format { fileName , {buscount, linkcount, eventcount, 0=powerflow 1=dynamic}}*/
+TEST_F(InputTests, CompareCases)
+{
+    for (const auto& compareCase : COMPARE_CASES) {
+        runCompareCase(*this, compareCase);
+    }
+}
 
-static const std::vector<std::pair<std::string, std::array<int, 4>>> executionCases{
-    {std::string(MATLAB_TEST_DIRECTORY "case4gs.m"), {{0, 4, 4, 0}}},
+struct ExecutionCase {
+    std::string_view fileName;
+    std::array<int, 4> expectedValues;
+};
+
+static constexpr std::array<ExecutionCase, 3> EXECUTION_CASES{{
+    {MATLAB_TEST_DIRECTORY "case4gs.m", {{0, 4, 4, 0}}},
     // { std::string(MATLAB_TEST_DIRECTORY "d_003.m"), { { 0, 3, 3, 0 } } },
     // { std::string(INPUT_TEST_DIRECTORY "test_mat_dyn.xml"), { { 1, 9, 9, 2 } } },
-    {std::string(INPUT_TEST_DIRECTORY "test_2m4bDyn_inputchange.xml"), {{1, 0, 0, 0}}},
-    {std::string(INPUT_TEST_DIRECTORY "testIEEE39dynamic.xml"), {{1, 39, 0, 0}}},
+    {INPUT_TEST_DIRECTORY "test_2m4bDyn_inputchange.xml", {{1, 0, 0, 0}}},
+    {INPUT_TEST_DIRECTORY "testIEEE39dynamic.xml", {{1, 39, 0, 0}}},
     //  { std::string(INPUT_TEST_DIRECTORY "testIEEE39dynamic_relay.xml"), { { 1, 39, 0, 0 } } },
     //{ std::string(INPUT_TEST_DIRECTORY "180busdyn_test.xml"),{ { 1, 179, 0, 1 } } },
-};
+}};
 
 TEST_F(InputTests, InputExecTest)
 {
-    for (size_t caseIndex = 0; caseIndex < executionCases.size(); ++caseIndex) {
+    for (const auto& executionCase : EXECUTION_CASES) {
         int count;
-        auto mp = executionCases[caseIndex];
-        auto fileName = mp.first;
+        const auto fileName = executionCase.fileName;
         SCOPED_TRACE(fileName);
 
         gds = std::make_unique<GridDynSimulation>();
 
-        loadFile(gds, fileName);
+        loadFile(gds, std::string{fileName});
         requireState(GridDynSimulation::GridState::STARTUP);
 
-        if (mp.second[1] > 0) {
+        if (executionCase.expectedValues[1] > 0) {
             count = gds->getInt("totalbuscount");
-            EXPECT_EQ(count, mp.second[1]);
+            EXPECT_EQ(count, executionCase.expectedValues[1]);
         }
-        if (mp.second[2] > 0) {
+        if (executionCase.expectedValues[2] > 0) {
             count = gds->getInt("totallinkcount");
-            EXPECT_EQ(count, mp.second[2]);
+            EXPECT_EQ(count, executionCase.expectedValues[2]);
         }
-        if (mp.second[3] > 0) {
+        if (executionCase.expectedValues[3] > 0) {
             count = gds->getInt("eventcount");
-            EXPECT_EQ(count, mp.second[3]);
+            EXPECT_EQ(count, executionCase.expectedValues[3]);
         }
-        if (mp.second[0] == 0) {
+        if (executionCase.expectedValues[0] == 0) {
             gds->powerflow();
             requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
-        } else if (mp.second[0] == 1) {
+        } else if (executionCase.expectedValues[0] == 1) {
             gds->run();
             requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
         }

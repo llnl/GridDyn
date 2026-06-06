@@ -181,7 +181,7 @@ void loadRaw(CoreObject* parentObject,
         //    &(opt.basefreq));
 
         auto strvec = splitlineQuotes(line);
-        if (strvec.size() == 6) {
+        if (strvec.size() >= 6) {
             readerOptionsCopy.base = numeric_conversion<double>(strvec[1], 100.0);
             readerOptionsCopy.version = numeric_conversion<int>(strvec[2], 0);
             readerOptionsCopy.basefreq = numeric_conversion<double>(strvec[5], 60.0);
@@ -536,8 +536,7 @@ static void rawReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& o
         voltageMagnitude = numeric_conversion<double>(strvec[7], 0.0);
         bus->set("zone", voltageMagnitude);
 
-        voltageMagnitude = numeric_conversion<double>(strvec[8], 0.0);
-        voltageAngle = numeric_conversion<double>(strvec[9], 0.0);
+        voltageAngle = numeric_conversion<double>(strvec[8], 0.0);
         // load the fixed shunt data
         const auto realAdmittance = numeric_conversion<double>(strvec[4], 0.0);
         const auto reactiveAdmittance = numeric_conversion<double>(strvec[5], 0.0);

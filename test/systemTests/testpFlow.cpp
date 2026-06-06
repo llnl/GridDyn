@@ -300,7 +300,7 @@ TEST_F(PowerflowSystemTests, PflowTestDcflow)
 }
 
 // iterated power flow test case
-TEST_F(PowerflowSystemTests, DISABLED_TestIteratedPflow)
+TEST_F(PowerflowSystemTests, TestIteratedPflow)
 {
     std::string fileName = std::string(pFlow_test_directory) + "iterated_test_case.xml";
     gds = readSimXMLFile(fileName);

@@ -25,7 +25,7 @@ static std::string makeContingencyTestPath(std::string_view fileName)
 class ContingencyTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 using namespace std::filesystem;
-TEST_F(ContingencyTests, DISABLED_ContingencyTest1)
+TEST_F(ContingencyTests, ContingencyTest1)
 {
     std::string fileName = makeContingencyTestPath("contingency_test1.xml");
     gds = readSimXMLFile(fileName);
@@ -35,7 +35,7 @@ TEST_F(ContingencyTests, DISABLED_ContingencyTest1)
     static_cast<void>(remove("contout.csv"));
 }
 
-TEST_F(ContingencyTests, DISABLED_ContingencyTest2)
+TEST_F(ContingencyTests, ContingencyTest2)
 {
     std::string fileName = makeContingencyTestPath("contingency_test2.xml");
     gds = readSimXMLFile(fileName);

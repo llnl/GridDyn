@@ -6,8 +6,8 @@
 
 #include "../gtestHelper.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include "griddyn/Link.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/Link.h"
 #include "griddyn/links/AdjustableTransformer.h"
 #include <array>
 #include <cstdio>
@@ -109,8 +109,8 @@ TEST_F(InputTests, TestPowerFlowInputs)
                             value1 - value2);
             };
 
-        auto vdiff =
-            matchStoredSolution ? countDiffsCallback(volts1, volts2, 0.0008, voltageDiffPrinter) :
+        auto vdiff = matchStoredSolution ?
+            countDiffsCallback(volts1, volts2, 0.0008, voltageDiffPrinter) :
                                   countDiffs(volts1, volts2, 0.0008);
 
         std::function<void(size_t, double, double)> angleDiffPrinter =
@@ -123,8 +123,8 @@ TEST_F(InputTests, TestPowerFlowInputs)
                             value2 * 180.0 / kPI,
                             (value1 - value2) * 180.0 / kPI);
             };
-        auto adiff =
-            matchStoredSolution ? countDiffsCallback(ang1, ang2, 0.0009, angleDiffPrinter) :
+        auto adiff = matchStoredSolution ?
+            countDiffsCallback(ang1, ang2, 0.0009, angleDiffPrinter) :
                                     countDiffs(ang1, ang2, 0.0009);
 
         std::function<void(size_t, double, double)> realPowerDiffPrinter =
@@ -136,8 +136,10 @@ TEST_F(InputTests, TestPowerFlowInputs)
                             value1,
                             value2);
             };
-        auto pdiff =
-            countDiffsIfValidCallback(realGenerationInitial, realGenerationSolved, 0.01, realPowerDiffPrinter);
+        auto pdiff = countDiffsIfValidCallback(realGenerationInitial,
+                                               realGenerationSolved,
+                                               0.01,
+                                               realPowerDiffPrinter);
         std::function<void(size_t, double, double)> reactivePowerDiffPrinter =
             [=](size_t index, double value1, double value2) {
                 std::printf("%.*s Q difference-- bus %zu::%.12g vs. %.12g::%.12g\n",
@@ -148,8 +150,10 @@ TEST_F(InputTests, TestPowerFlowInputs)
                             value2,
                             value1 - value1);
             };
-        auto qdiff = countDiffsIfValidCallback(
-            reactiveGenerationInitial, reactiveGenerationSolved, 0.01, reactivePowerDiffPrinter);
+        auto qdiff = countDiffsIfValidCallback(reactiveGenerationInitial,
+                                               reactiveGenerationSolved,
+                                               0.01,
+                                               reactivePowerDiffPrinter);
         if (matchStoredSolution) {
             EXPECT_EQ(vdiff, 0U);
             EXPECT_EQ(adiff, 0U);
@@ -273,7 +277,8 @@ static void runCompareCase(GridDynSimulationTestFixture& fixture, const CompareC
 
         fixture.gds2->powerflow();
 
-        ASSERT_EQ(fixture.gds2->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE)
+        ASSERT_EQ(fixture.gds2->currentProcessState(),
+                  GridDynSimulation::GridState::POWERFLOW_COMPLETE)
             << secondFileName << " failed to complete";
 
         fixture.gds2->getVoltage(volts2);

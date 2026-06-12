@@ -627,6 +627,39 @@ void dynamicSolverConvergenceTest(GridDynSimulation* gds,
 
 namespace {
 
+    void appendStateRange(std::vector<index_t>& localStates, index_t offset, index_t count)
+    {
+        auto stateRange = std::views::iota(index_t{0}, count) |
+            std::views::transform([offset](index_t stateIndex) { return offset + stateIndex; });
+        std::ranges::copy(stateRange, std::back_inserter(localStates));
+    }
+
+    std::vector<const GridComponent*> getSubComponents(const GridComponent* comp)
+    {
+        std::vector<const GridComponent*> subComponents;
+        int subObjectIndex = 0;
+        auto* subObject = dynamic_cast<GridComponent*>(comp->getSubObject("subobject", subObjectIndex));
+        while (subObject != nullptr) {
+            subComponents.push_back(subObject);
+            ++subObjectIndex;
+            subObject = dynamic_cast<GridComponent*>(comp->getSubObject("subobject", subObjectIndex));
+        }
+        return subComponents;
+    }
+
+    std::vector<const CoreObject*> getSubObjects(const CoreObject* obj)
+    {
+        std::vector<const CoreObject*> subObjects;
+        int subObjectIndex = 0;
+        auto* subObject = obj->getSubObject("subobject", subObjectIndex);
+        while (subObject != nullptr) {
+            subObjects.push_back(subObject);
+            ++subObjectIndex;
+            subObject = obj->getSubObject("subobject", subObjectIndex);
+        }
+        return subObjects;
+    }
+
     std::vector<int> getRowCounts(MatrixData<double>& matrixData)
     {
         std::vector<int> rowCounts(matrixData.rowLimit());
@@ -647,18 +680,10 @@ namespace {
         const auto& offsets = comp->getOffsets(sMode);
         localStates.reserve(static_cast<size_t>(offsets.local.algSize) + offsets.local.diffSize +
                             offsets.local.vSize + offsets.local.aSize);
-        for (index_t stateIndex = 0; stateIndex < offsets.local.algSize; ++stateIndex) {
-            localStates.push_back(offsets.algOffset + stateIndex);
-        }
-        for (index_t stateIndex = 0; stateIndex < offsets.local.diffSize; ++stateIndex) {
-            localStates.push_back(offsets.diffOffset + stateIndex);
-        }
-        for (index_t stateIndex = 0; stateIndex < offsets.local.vSize; ++stateIndex) {
-            localStates.push_back(offsets.vOffset + stateIndex);
-        }
-        for (index_t stateIndex = 0; stateIndex < offsets.local.aSize; ++stateIndex) {
-            localStates.push_back(offsets.aOffset + stateIndex);
-        }
+        appendStateRange(localStates, offsets.algOffset, offsets.local.algSize);
+        appendStateRange(localStates, offsets.diffOffset, offsets.local.diffSize);
+        appendStateRange(localStates, offsets.vOffset, offsets.local.vSize);
+        appendStateRange(localStates, offsets.aOffset, offsets.local.aSize);
         return localStates;
     }
 
@@ -705,17 +730,7 @@ namespace {
                     currentFrame.mObjectInfo->mLocalJacActual += rowCount[stateIndex];
                 }
 
-                std::vector<const GridComponent*> childComponents;
-                int subObjectIndex = 0;
-                auto* subObject = dynamic_cast<GridComponent*>(
-                    currentFrame.mComponent->getSubObject("subobject", subObjectIndex));
-                while (subObject != nullptr) {
-                    childComponents.push_back(subObject);
-                    ++subObjectIndex;
-                    subObject = dynamic_cast<GridComponent*>(
-                        currentFrame.mComponent->getSubObject("subobject", subObjectIndex));
-                }
-
+                auto childComponents = getSubComponents(currentFrame.mComponent);
                 currentFrame.mObjectInfo->mSubObjectInfo.resize(childComponents.size());
                 traversalStack.push_back({.mComponent = currentFrame.mComponent,
                                           .mObjectInfo = currentFrame.mObjectInfo,
@@ -787,17 +802,7 @@ namespace {
                          currentComponent->diffSize(sMode),
                          offsets.local.totalSize());
 
-            int subObjectIndex = 0;
-            std::vector<const GridComponent*> subObjects;
-            auto* subObject = dynamic_cast<GridComponent*>(
-                currentComponent->getSubObject("subobject", subObjectIndex));
-            while (subObject != nullptr) {
-                subObjects.push_back(subObject);
-                ++subObjectIndex;
-                subObject = dynamic_cast<GridComponent*>(
-                    currentComponent->getSubObject("subobject", subObjectIndex));
-            }
-
+            auto subObjects = getSubComponents(currentComponent);
             for (const auto* childComponent : std::views::reverse(subObjects)) {
                 componentStack.emplace_back(childComponent, inset + "   ");
             }
@@ -872,9 +877,7 @@ bool checkObjectEquivalence(const CoreObject* obj1, const CoreObject* obj2, bool
         const auto [currentObject1, currentObject2] = objectStack.back();
         objectStack.pop_back();
 
-        int subObjectIndex = 0;
-        const CoreObject* subObject1 = currentObject1->getSubObject("subobject", subObjectIndex);
-        while (subObject1 != nullptr) {
+        for (const auto* subObject1 : getSubObjects(currentObject1)) {
             const CoreObject* subObject2 = currentObject2->find(subObject1->getName());
             if (subObject2 == nullptr) {
                 if (printMessage) {
@@ -902,9 +905,6 @@ bool checkObjectEquivalence(const CoreObject* obj1, const CoreObject* obj2, bool
                     objectStack.emplace_back(subObject1, subObject2);
                 }
             }
-
-            ++subObjectIndex;
-            subObject1 = currentObject1->getSubObject("subobject", subObjectIndex);
         }
     }
 

@@ -638,11 +638,13 @@ namespace {
     {
         std::vector<const GridComponent*> subComponents;
         int subObjectIndex = 0;
-        auto* subObject = dynamic_cast<GridComponent*>(comp->getSubObject("subobject", subObjectIndex));
+        auto* subObject =
+            dynamic_cast<GridComponent*>(comp->getSubObject("subobject", subObjectIndex));
         while (subObject != nullptr) {
             subComponents.push_back(subObject);
             ++subObjectIndex;
-            subObject = dynamic_cast<GridComponent*>(comp->getSubObject("subobject", subObjectIndex));
+            subObject =
+                dynamic_cast<GridComponent*>(comp->getSubObject("subobject", subObjectIndex));
         }
         return subComponents;
     }

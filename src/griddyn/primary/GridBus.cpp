@@ -694,8 +694,7 @@ double GridBus::getFreq(const StateData& /*stateDataValue*/, const SolverMode& /
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-bool GridBus::directPath(GridComponent* target,
-                         GridComponent* source)
+bool GridBus::directPath(GridComponent* target, GridComponent* source)
 {
     auto tid = target->getID();
     if (isSameObject(tid, this)) {
@@ -741,9 +740,7 @@ bool GridBus::directPath(GridComponent* target,
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-std::vector<GridComponent*>
-    GridBus::getDirectPath(GridComponent* target,
-                           GridComponent* source)
+std::vector<GridComponent*> GridBus::getDirectPath(GridComponent* target, GridComponent* source)
 {
     std::vector<GridComponent*> opath{source};
 

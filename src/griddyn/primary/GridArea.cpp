@@ -1472,7 +1472,7 @@ void GridArea::rootTrigger(CoreTime time,
                            const std::vector<int>& rootMask,
                            const SolverMode& sMode)
 {
-    auto rf = vecFindne(rootMask, 0);
+    auto rootFlags = vecFindne(rootMask, 0);
     size_t cloc = 0;
     const size_t rootSizeCount = rootSize(sMode);
     const size_t rootOffset = offsets.getRootOffset(sMode);
@@ -1485,7 +1485,7 @@ void GridArea::rootTrigger(CoreTime time,
     // checks the root object
     // TODO(PT) ::May be wise at some point to revisit the combination of the flags and root object
     // checking
-    for (auto rootCode : rf) {
+    for (auto rootCode : rootFlags) {
         if (rootCode < rootOffset + cloc) {
             continue;
         }
@@ -1878,27 +1878,27 @@ void GridArea::loadJacobianSizes(const SolverMode& sMode)
     if (isJacobianCountLoaded(sMode)) {
         return;
     }
-    auto& so = offsets.getOffsets(sMode);
+    auto& solverOffsets = offsets.getOffsets(sMode);
     if (!isEnabled()) {
-        so.reset();
-        so.setLoaded();
+        solverOffsets.reset();
+        solverOffsets.setLoaded();
         return;
     }
 
     if (!isLocal(sMode))  // don't reset if it is the local offsets
     {
-        so.jacobianCountReset();
+        solverOffsets.jacobianCountReset();
     }
     auto selfJacCount = localJacobianCount(sMode);
-    if (!(so.jacobianLoaded)) {
-        so.local.jacSize = selfJacCount;
+    if (!(solverOffsets.jacobianLoaded)) {
+        solverOffsets.local.jacSize = selfJacCount;
     }
 
     for (auto& obj : primaryObjects) {
         if (!(obj->isJacobianCountLoaded(sMode))) {
             obj->loadJacobianSizes(sMode);
         }
-        so.addJacobianSizes(obj->getOffsets(sMode));
+        solverOffsets.addJacobianSizes(obj->getOffsets(sMode));
     }
 }
 

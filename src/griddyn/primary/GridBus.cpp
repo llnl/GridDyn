@@ -1383,7 +1383,7 @@ double GridBus::get(std::string_view param, unit unitType) const
             val += ld->get(param, unitType);
         }
     } else {
-        auto fptr = getObjectFunction(this, std::string{param});
+        auto fptr = getObjectFunction(this, param);
         if (fptr.first) {
             CoreObject* tobj = const_cast<GridBus*>(this);
             val =

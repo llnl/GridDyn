@@ -248,7 +248,7 @@ void MessageTypeRegistry::registerType(std::string_view name, std::uint32_t type
 
 uint32_t MessageTypeRegistry::getType(std::string_view name) const
 {
-    auto fnd = typeMapA.find(std::string{name});
+    auto fnd = typeMapA.find(name);
 
     if (fnd != typeMapA.end()) {
         return fnd->second;
@@ -304,7 +304,7 @@ void CorePayloadFactory::registerFactory(PayloadFactory* messageFactory)
 
 PayloadFactory* CorePayloadFactory::getFactory(std::string_view factoryName)
 {
-    auto mfind = m_factoryMap.find(std::string{factoryName});
+    auto mfind = m_factoryMap.find(factoryName);
     if (mfind != m_factoryMap.end()) {
         return mfind->second;
     }
@@ -340,7 +340,7 @@ std::vector<std::string> CorePayloadFactory::getPayloadTypeNames()
 
 std::shared_ptr<CommPayload> CorePayloadFactory::createPayload(std::string_view messageType)
 {
-    auto mfind = m_factoryMap.find(std::string{messageType});
+    auto mfind = m_factoryMap.find(messageType);
     if (mfind != m_factoryMap.end()) {
         auto obj = mfind->second->makePayload();
         return obj;
@@ -351,7 +351,7 @@ std::shared_ptr<CommPayload> CorePayloadFactory::createPayload(std::string_view 
 std::shared_ptr<CommPayload> CorePayloadFactory::createPayload(std::string_view messageType,
                                                                std::uint32_t type)
 {
-    auto mfind = m_factoryMap.find(std::string{messageType});
+    auto mfind = m_factoryMap.find(messageType);
     if (mfind != m_factoryMap.end()) {
         auto obj = mfind->second->makePayload();
         return obj;
@@ -382,7 +382,7 @@ std::shared_ptr<CommPayload> CorePayloadFactory::createPayload(std::uint32_t typ
 
 bool CorePayloadFactory::isValidMessage(std::string_view messageType)
 {
-    auto mfind = m_factoryMap.find(std::string{messageType});
+    auto mfind = m_factoryMap.find(messageType);
     return (mfind != m_factoryMap.end());
 }
 

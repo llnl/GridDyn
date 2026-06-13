@@ -900,8 +900,8 @@ double GridArea::get(std::string_view param, unit unitType) const
         }
     } else if (param == "subobjectcount") {
         vali = primaryObjects.size();
-    } else if (auto fptr = getObjectFunction(this, std::string{param}).first) {
-        auto unit = getObjectFunction(this, std::string{param}).second;
+    } else if (auto fptr = getObjectFunction(this, param).first) {
+        auto unit = getObjectFunction(this, param).second;
         CoreObject* tobj = const_cast<GridArea*>(this);
         val = convert(fptr(tobj), unit, unitType);
     } else {

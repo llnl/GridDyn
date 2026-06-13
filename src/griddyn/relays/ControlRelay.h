@@ -8,6 +8,7 @@
 
 #include "../Link.h"  //some special features for links
 #include "../Relay.h"
+#include <functional>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -19,6 +20,15 @@ class CommMessage;
 namespace comms {
     class ControlMessagePayload;
 }
+
+struct ControlRelayStringHash {
+    using is_transparent = void;
+
+    std::size_t operator()(std::string_view value) const noexcept
+    {
+        return std::hash<std::string_view>{}(value);
+    }
+};
 
 class GridSimulation;
 class FunctionEventAdapter;
@@ -62,7 +72,10 @@ namespace relays {
         GridSimulation* rootSim = nullptr;  //!< pointer to the root object
         std::vector<std::unique_ptr<GridGrabber>>
             measurement_points_;  //!< vector of grabbers defining measurement points
-        std::unordered_map<std::string, index_t>
+        std::unordered_map<std::string,
+                           index_t,
+                           ControlRelayStringHash,
+                           std::equal_to<>>
             pointNames_;  //!< vector of names for the pointlist;
       private:
         std::string m_terminal_key;  //!< string related to the terminal

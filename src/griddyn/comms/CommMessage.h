@@ -12,6 +12,7 @@
 #include <cereal/types/vector.hpp>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -22,6 +23,15 @@
 // #include <cereal/archives/json.hpp>
 
 namespace griddyn {
+struct CommMessageStringHash {
+    using is_transparent = void;
+
+    std::size_t operator()(std::string_view value) const noexcept
+    {
+        return std::hash<std::string_view>{}(value);
+    }
+};
+
 class CommPayload {
   public:
     virtual ~CommPayload() = default;
@@ -240,7 +250,8 @@ class MessageTypeRegistry {
     /** private constructor defined in a singleton class*/
     MessageTypeRegistry() = default;
 
-    std::unordered_map<std::string, uint32_t> typeMapA;  //!< the map of the strings and types
+    std::unordered_map<std::string, uint32_t, CommMessageStringHash, std::equal_to<>>
+        typeMapA;  //!< the map of the strings and types
     std::unordered_map<uint32_t, std::string> typeMapB;  //!< the map of the strings and types
 };
 
@@ -284,7 +295,8 @@ class PayloadFactory {
 
 // TODO(phlpt): Merge with the coreTypeFactory and related templates if the extra message-specific
 // functions required create a high level object factory for the coreMessageFactory class
-typedef std::unordered_map<std::string, PayloadFactory*> mfMap;
+typedef std::unordered_map<std::string, PayloadFactory*, CommMessageStringHash, std::equal_to<>>
+    mfMap;
 /** core message factory class for building messages of a specified type
  */
 class CorePayloadFactory {

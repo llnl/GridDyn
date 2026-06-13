@@ -121,8 +121,8 @@ double GridLoad::get(std::string_view param, unit unitType) const
 
     if (param == "pf") {
         val = pfq;
-    } else if (auto fptr = getObjectFunction(this, std::string{param}).first) {
-        auto unit = getObjectFunction(this, std::string{param}).second;
+    } else if (auto fptr = getObjectFunction(this, param).first) {
+        auto unit = getObjectFunction(this, param).second;
         CoreObject* tobj = const_cast<GridLoad*>(this);
         val = convert(fptr(tobj), unit, unitType, systemBasePower, localBaseVoltage);
     } else {

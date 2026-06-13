@@ -77,7 +77,7 @@ double ControlRelay::getMeasurement(std::string_view pointName) const
 
 index_t ControlRelay::findMeasurement(std::string_view pointName) const
 {
-    auto fnd = pointNames_.find(std::string{pointName});
+    auto fnd = pointNames_.find(pointName);
     return (fnd != pointNames_.end()) ? fnd->second : kNullLocation;
 }
 /*

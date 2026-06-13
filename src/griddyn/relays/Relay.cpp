@@ -385,7 +385,7 @@ void Relay::set(std::string_view param, double val, units::unit unitType)
 
 double Relay::get(std::string_view param, units::unit unitType) const
 {
-    auto fptr = getObjectFunction(this, std::string{param});
+    auto fptr = getObjectFunction(this, param);
     if (fptr.first) {
         CoreObject* tobj = const_cast<Relay*>(this);
         return convert(fptr.first(tobj), fptr.second, unitType, systemBasePower);

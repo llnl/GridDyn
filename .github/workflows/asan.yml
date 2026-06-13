@@ -34,6 +34,12 @@ jobs:
       - name: Mark workspace as safe for git
         run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
 
+      - name: Install SuiteSparse build dependencies
+        shell: bash
+        run: |
+          apt-get update
+          apt-get install -y libblas-dev liblapack-dev
+
       - name: Configure
         shell: bash
         run: >

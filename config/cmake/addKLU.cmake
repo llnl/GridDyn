@@ -33,7 +33,7 @@ cmake_dependent_advanced_option(
     "NOT ${PROJECT_NAME}_USE_SYSTEM_SUITESPARSE_ONLY" OFF
 )
 
-set(SuiteSparseNameSpace Suitesparse)
+set(SuiteSparseNameSpace SuiteSparse)
 
 cmake_dependent_advanced_option(
     ${PROJECT_NAME}_USE_SUITESPARSE_STATIC_LIBRARY "use the suitesparse static library" OFF

@@ -23,7 +23,9 @@ endforeach()
 
 # Fall back to imported namespaces when available.
 if(NOT _griddyn_klu_link_targets)
-    foreach(_klu_tgt IN ITEMS Suitesparse::klu Suitesparse::btf Suitesparse::amd
+    foreach(_klu_tgt IN ITEMS SuiteSparse::klu SuiteSparse::btf SuiteSparse::amd
+                              SuiteSparse::colamd SuiteSparse::suitesparseconfig
+                              Suitesparse::klu Suitesparse::btf Suitesparse::amd
                               Suitesparse::colamd Suitesparse::suitesparseconfig
     )
         if(TARGET ${_klu_tgt})

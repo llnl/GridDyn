@@ -522,7 +522,7 @@ if(GRIDDYN_ENABLE_KLU)
     if(GRIDDYN_SUITESPARSE_LOCAL_BUILD)
         target_link_libraries(griddyn PUBLIC klu)
     else()
-        target_link_libraries(griddyn PUBLIC Suitesparse::klu)
+        target_link_libraries(griddyn PUBLIC SuiteSparse::klu)
     endif()
 
 endif(GRIDDYN_ENABLE_KLU)

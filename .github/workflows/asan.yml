@@ -21,7 +21,7 @@ jobs:
     name: ASan
     runs-on: ubuntu-latest
     container:
-      image: helics/buildenv:sanitizers-19
+      image: helics/buildenv:sanitizers-22
     env:
       ASAN_OPTIONS: detect_leaks=0
       LSAN_OPTIONS: verbosity=1:log_threads=1

@@ -115,7 +115,7 @@ class GridBus: public GridPrimary {
     // add components
     virtual void add(CoreObject* obj) override;
     /** @brief  add a GridLoad object*/
-    virtual void add(GridLoad* ld);
+    virtual void add(GridLoad* loadObject);
     /** @brief  add a gridGenerator object*/
     virtual void add(Generator* gen);
     /** @brief  add a Link object*/
@@ -124,7 +124,7 @@ class GridBus: public GridPrimary {
     // remove components
     virtual void remove(CoreObject* obj) override;
     /** @brief  remove a GridLoad object*/
-    virtual void remove(GridLoad* ld);
+    virtual void remove(GridLoad* loadObject);
     /** @brief  remove a Generator object*/
     virtual void remove(Generator* gen);
     /** @brief  remove a Link object*/

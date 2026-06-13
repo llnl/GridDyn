@@ -33,18 +33,17 @@
 
 namespace griddyn {
 std::atomic<count_t> GridBus::busCount(0);
-static TypeFactory<GridBus> gbf("bus", std::to_array<std::string_view>({"basic"}));
+static TypeFactory<GridBus> gBf("bus", std::to_array<std::string_view>({"basic"}));
 static ChildTypeFactory<AcBus, GridBus>
-    gbfac("bus",
+    gBfac("bus",
           std::to_array<std::string_view>({"ac", "pq", "pv", "slk", "slack", "afix", "ref"}),
           "ac");
-static ChildTypeFactory<DcBus, GridBus> gbfdc("bus",
+static ChildTypeFactory<DcBus, GridBus> gBfdc("bus",
                                               std::to_array<std::string_view>({"dc", "hvdc"}));
 static ChildTypeFactory<infiniteBus, GridBus>
-    igbc("bus", std::to_array<std::string_view>({"inf", "infinite"}));
+    gIgbc("bus", std::to_array<std::string_view>({"inf", "infinite"}));
 
 using units::convert;
-using units::defunit;
 using units::kV;
 using units::puHz;
 using units::puMW;
@@ -73,7 +72,7 @@ GridBus::GridBus(double voltageStart, double angleStart, const std::string& objN
 
 CoreObject* GridBus::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBaseFactory<GridBus, GridPrimary>(this, obj, &gbf);
+    auto* nobj = cloneBaseFactory<GridBus, GridPrimary>(this, obj, &gBf);
     if (nobj == nullptr) {
         return obj;
     }
@@ -545,8 +544,8 @@ void GridBus::set(std::string_view param, double val, unit unitType)
         for (auto& gen : attachedGens) {
             gen->set("basevoltage", val);
         }
-        for (auto& ld : attachedLoads) {
-            ld->set("basevoltage", val);
+        for (auto& load : attachedLoads) {
+            load->set("basevoltage", val);
         }
     } else if ((param == "p") || (param == "gen p")) {
         S.genP = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
@@ -951,7 +950,8 @@ double GridBus::lastError() const
     return std::abs(S.sumP()) + std::abs(S.sumQ());
 }
 
-#if 0
+/*
+Legacy helper candidates kept here for reference while this logic stays disabled.
 static inline double dVcheck(double deltaVoltage,
                              double currentVoltage,
                              double deltaRiseFrac = 0.75,
@@ -965,14 +965,15 @@ static inline double dVcheck(double deltaVoltage,
     return deltaVoltage;
 }
 
-static inline double dAcheck(double deltaTheta, double /*currA*/, double maxChange = kPI / 8.0)
+static inline double dAcheck(double deltaTheta, double currA, double maxChange = kPI / 8.0)
 {
+    static_cast<void>(currA);
     if (std::abs(deltaTheta) > maxChange) {
         deltaTheta = std::copysign(maxChange, deltaTheta);
     }
     return deltaTheta;
 }
-#endif
+*/
 
 void GridBus::voltageUpdate(const StateData& /*stateDataValue*/,
                             double /*update*/[],

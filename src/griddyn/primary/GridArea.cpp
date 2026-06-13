@@ -491,8 +491,7 @@ void GridArea::setAll(std::string_view type,
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-CoreObject* GridArea::findByUserID(std::string_view typeName,
-                                   index_t searchID) const
+CoreObject* GridArea::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if ((typeName == "area") && (searchID == getUserID())) {
         return const_cast<GridArea*>(this);
@@ -924,9 +923,7 @@ double GridArea::get(std::string_view param, unit unitType) const
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-void GridArea::timestep(CoreTime time,
-                        const IOdata& inputs,
-                        const SolverMode& sMode)
+void GridArea::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     // update the tie lines first
     for (auto* linkObject : m_Links) {
@@ -953,8 +950,7 @@ void GridArea::timestep(CoreTime time,
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-count_t GridArea::getBusVector(std::vector<GridBus*>& busVector,
-                               index_t start) const
+count_t GridArea::getBusVector(std::vector<GridBus*>& busVector, index_t start) const
 {
     auto cnt = static_cast<count_t>(m_Buses.size());
     if (cnt > 0) {
@@ -968,8 +964,7 @@ count_t GridArea::getBusVector(std::vector<GridBus*>& busVector,
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-count_t GridArea::getLinkVector(std::vector<Link*>& linkVector,
-                                index_t start) const
+count_t GridArea::getLinkVector(std::vector<Link*>& linkVector, index_t start) const
 {
     auto cnt = static_cast<count_t>(m_Links.size());
     if (cnt > 0) {
@@ -983,8 +978,7 @@ count_t GridArea::getLinkVector(std::vector<Link*>& linkVector,
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-count_t GridArea::getVoltage(std::vector<double>& voltages,
-                             index_t start) const
+count_t GridArea::getVoltage(std::vector<double>& voltages, index_t start) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1022,8 +1016,7 @@ count_t GridArea::getVoltage(std::vector<double>& voltages,
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-count_t GridArea::getAngle(std::vector<double>& angles,
-                           index_t start) const
+count_t GridArea::getAngle(std::vector<double>& angles, index_t start) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1058,8 +1051,7 @@ count_t GridArea::getAngle(std::vector<double>& angles,
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-count_t GridArea::getFreq(std::vector<double>& frequencies,
-                          index_t start) const
+count_t GridArea::getFreq(std::vector<double>& frequencies, index_t start) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1097,9 +1089,7 @@ index_t start) const
 */
 
 // NOLINTNEXTLINE(misc-no-recursion)
-count_t GridArea::getLinkRealPower(std::vector<double>& powers,
-                                   index_t start,
-                                   int busNumber) const
+count_t GridArea::getLinkRealPower(std::vector<double>& powers, index_t start, int busNumber) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1116,9 +1106,8 @@ count_t GridArea::getLinkRealPower(std::vector<double>& powers,
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-count_t GridArea::getLinkReactivePower(std::vector<double>& powers,
-                                       index_t start,
-                                       int busNumber) const
+count_t
+    GridArea::getLinkReactivePower(std::vector<double>& powers, index_t start, int busNumber) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1134,8 +1123,7 @@ count_t GridArea::getLinkReactivePower(std::vector<double>& powers,
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-count_t GridArea::getBusGenerationReal(std::vector<double>& powers,
-                                       index_t start) const
+count_t GridArea::getBusGenerationReal(std::vector<double>& powers, index_t start) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1152,8 +1140,7 @@ count_t GridArea::getBusGenerationReal(std::vector<double>& powers,
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-count_t GridArea::getBusGenerationReactive(std::vector<double>& powers,
-                                           index_t start) const
+count_t GridArea::getBusGenerationReactive(std::vector<double>& powers, index_t start) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1169,8 +1156,7 @@ count_t GridArea::getBusGenerationReactive(std::vector<double>& powers,
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-count_t GridArea::getBusLoadReal(std::vector<double>& powers,
-                                 index_t start) const
+count_t GridArea::getBusLoadReal(std::vector<double>& powers, index_t start) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1186,8 +1172,7 @@ count_t GridArea::getBusLoadReal(std::vector<double>& powers,
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-count_t GridArea::getBusLoadReactive(std::vector<double>& powers,
-                                     index_t start) const
+count_t GridArea::getBusLoadReactive(std::vector<double>& powers, index_t start) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1203,8 +1188,7 @@ count_t GridArea::getBusLoadReactive(std::vector<double>& powers,
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)
-count_t GridArea::getLinkLoss(std::vector<double>& losses,
-                              index_t start) const
+count_t GridArea::getLinkLoss(std::vector<double>& losses, index_t start) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {

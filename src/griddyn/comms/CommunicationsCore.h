@@ -27,11 +27,9 @@ struct CommunicationsCoreStringHash {
     }
 };
 
-typedef std::unordered_map<std::string,
-                           Communicator*,
-                           CommunicationsCoreStringHash,
-                           std::equal_to<>>
-    commMapString;
+typedef std::
+    unordered_map<std::string, Communicator*, CommunicationsCoreStringHash, std::equal_to<>>
+        commMapString;
 typedef std::unordered_map<std::uint64_t, Communicator*> commMapID;
 
 #define SEND_SUCCESS (0)

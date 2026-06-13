@@ -147,15 +147,14 @@ void ControlRelay::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMe
                     auto fea = generateSetEvent(prevTime, sourceID, messagePayload);
                     fea->execute(prevTime);  // just execute the event immediately
                 } else {
-                    auto fea =
-                        generateSetEvent(prevTime + actionDelay, sourceID, messagePayload);
+                    auto fea = generateSetEvent(prevTime + actionDelay, sourceID, messagePayload);
                     rootSim->add(std::shared_ptr<EventAdapter>(std::move(fea)));
                 }
             } else {
                 auto gres = std::make_shared<CommMessage>(cm::SET_SCHEDULED);
-                gres->getPayload<cm>()->m_actionID =
-                    (messagePayload->m_actionID > 0) ? messagePayload->m_actionID :
-                                                       instructionCounter;
+                gres->getPayload<cm>()->m_actionID = (messagePayload->m_actionID > 0) ?
+                    messagePayload->m_actionID :
+                    instructionCounter;
 
                 commLink->transmit(sourceID, gres);
                 // make the event
@@ -170,17 +169,16 @@ void ControlRelay::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMe
                     auto fea = generateGetEvent(prevTime, sourceID, messagePayload);
                     fea->execute(prevTime);  // just execute the event immediately
                 } else {
-                    auto fea =
-                        generateGetEvent(messagePayload->m_time + measureDelay,
-                                         sourceID,
-                                         messagePayload);
+                    auto fea = generateGetEvent(messagePayload->m_time + measureDelay,
+                                                sourceID,
+                                                messagePayload);
                     rootSim->add(std::shared_ptr<EventAdapter>(std::move(fea)));
                 }
             } else {
                 auto gres = std::make_shared<CommMessage>(cm::SET_SCHEDULED);
-                gres->getPayload<cm>()->m_actionID =
-                    (messagePayload->m_actionID > 0) ? messagePayload->m_actionID :
-                                                       instructionCounter;
+                gres->getPayload<cm>()->m_actionID = (messagePayload->m_actionID > 0) ?
+                    messagePayload->m_actionID :
+                    instructionCounter;
                 commLink->transmit(sourceID, gres);
                 auto fea = generateGetEvent(messagePayload->m_time, sourceID, messagePayload);
                 rootSim->add(std::shared_ptr<EventAdapter>(std::move(fea)));
@@ -204,7 +202,7 @@ void ControlRelay::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMe
             if (actnum != kNullLocation) {
                 if ((!actions[actnum].executed) &&
                     (actions[actnum].triggerTime >
-                    actionDelay)) {  // can only cancel actions that have not executed and are
+                     actionDelay)) {  // can only cancel actions that have not executed and are
                                       // not closer than the actionDelay
                     actions[actnum].executed = true;
                     auto gres = std::make_shared<CommMessage>(cm::CANCEL_SUCCESS);

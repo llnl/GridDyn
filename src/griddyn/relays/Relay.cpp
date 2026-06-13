@@ -490,7 +490,7 @@ void Relay::pFlowObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
                 commLink->initialize();
                 commLink->registerReceiveCallback(
                     [this](std::uint64_t sourceID, std::shared_ptr<CommMessage> message) {
-                        receiveMessage(sourceID, message);
+                        receiveMessage(sourceID, std::move(message));
                     });
             }
             catch (const std::invalid_argument&) {
@@ -500,7 +500,7 @@ void Relay::pFlowObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
                     commLink->initialize();
                     commLink->registerReceiveCallback(
                         [this](std::uint64_t sourceID, std::shared_ptr<CommMessage> message) {
-                            receiveMessage(sourceID, message);
+                            receiveMessage(sourceID, std::move(message));
                         });
                 }
                 catch (const std::invalid_argument&) {

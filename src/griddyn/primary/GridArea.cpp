@@ -41,7 +41,7 @@ using units::unit;
 std::atomic<count_t> GridArea::areaCounter{0};
 
 static TypeFactory<GridArea>
-    gf("area", std::to_array<std::string_view>({"basic", "simple"}), "basic");
+    gAreaFactory("area", std::to_array<std::string_view>({"basic", "simple"}), "basic");
 
 GridArea::GridArea(const std::string& objName): GridPrimary(objName)
 {
@@ -53,7 +53,7 @@ GridArea::GridArea(const std::string& objName): GridPrimary(objName)
     opObjectLists = std::make_unique<ListMaintainer>();
 }
 
-CoreObject* GridArea::clone(CoreObject* obj) const
+CoreObject* GridArea::clone(CoreObject* obj) const  // NOLINT(misc-no-recursion)
 {
     auto* area = cloneBase<GridArea, GridPrimary>(this, obj);
     if (area == nullptr) {
@@ -65,8 +65,8 @@ CoreObject* GridArea::clone(CoreObject* obj) const
     // clone all the areas
     for (size_t kk = 0; kk < m_GridAreas.size(); kk++) {
         if (kk >= area->m_GridAreas.size()) {
-            auto* gA = static_cast<GridArea*>(m_GridAreas[kk]->clone());
-            area->add(gA);
+            auto* gridArea = static_cast<GridArea*>(m_GridAreas[kk]->clone());
+            area->add(gridArea);
         } else {
             m_GridAreas[kk]->clone(area->m_GridAreas[kk]);
         }
@@ -148,16 +148,20 @@ void GridArea::add(CoreObject* obj)
         return;
     }
     if (dynamic_cast<GridBus*>(obj) != nullptr) {
-        return add(static_cast<GridBus*>(obj));
+        add(static_cast<GridBus*>(obj));
+        return;
     }
     if (dynamic_cast<Link*>(obj) != nullptr) {
-        return add(static_cast<Link*>(obj));
+        add(static_cast<Link*>(obj));
+        return;
     }
     if (dynamic_cast<GridArea*>(obj) != nullptr) {
-        return add(static_cast<GridArea*>(obj));
+        add(static_cast<GridArea*>(obj));
+        return;
     }
     if (dynamic_cast<Relay*>(obj) != nullptr) {
-        return add(static_cast<Relay*>(obj));
+        add(static_cast<Relay*>(obj));
+        return;
     }
 
     obj->addOwningReference();
@@ -223,16 +227,20 @@ void GridArea::remove(CoreObject* obj)
         return;
     }
     if (dynamic_cast<GridBus*>(obj) != nullptr) {
-        return remove(static_cast<GridBus*>(obj));
+        remove(static_cast<GridBus*>(obj));
+        return;
     }
     if (dynamic_cast<Link*>(obj) != nullptr) {
-        return remove(static_cast<Link*>(obj));
+        remove(static_cast<Link*>(obj));
+        return;
     }
     if (dynamic_cast<GridArea*>(obj) != nullptr) {
-        return remove(static_cast<GridArea*>(obj));
+        remove(static_cast<GridArea*>(obj));
+        return;
     }
     if (dynamic_cast<Relay*>(obj) != nullptr) {
-        return remove(static_cast<Relay*>(obj));
+        remove(static_cast<Relay*>(obj));
+        return;
     }
     // try removing from the objectHolder List
     if ((!isValidIndex(obj->locIndex, objectHolder)) ||
@@ -246,7 +254,7 @@ void GridArea::remove(CoreObject* obj)
     } else {
         objectHolder.erase(objectHolder.begin() + obj->locIndex);
         // now shift the indices
-        for (auto kk = obj->locIndex; kk < static_cast<index_t>(objectHolder.size()); ++kk) {
+        for (auto kk = obj->locIndex; std::cmp_less(kk, objectHolder.size()); ++kk) {
             objectHolder[kk]->locIndex = kk;
         }
         obList->remove(obj);
@@ -325,46 +333,46 @@ void GridArea::alert(CoreObject* obj, int code)
     }
 }
 
-GridBus* GridArea::getBus(index_t x) const
+GridBus* GridArea::getBus(index_t index) const
 {
-    return (isValidIndex(x, m_Buses)) ? m_Buses[x] : nullptr;
+    return (isValidIndex(index, m_Buses)) ? m_Buses[index] : nullptr;
 }
 
-Link* GridArea::getLink(index_t x) const
+Link* GridArea::getLink(index_t index) const
 {
-    return (isValidIndex(x, m_Links)) ? m_Links[x] : nullptr;
+    return (isValidIndex(index, m_Links)) ? m_Links[index] : nullptr;
 }
 
-GridArea* GridArea::getArea(index_t x) const
+GridArea* GridArea::getArea(index_t index) const
 {
-    return (isValidIndex(x, m_GridAreas)) ? m_GridAreas[x] : nullptr;
+    return (isValidIndex(index, m_GridAreas)) ? m_GridAreas[index] : nullptr;
 }
 
-GridArea* GridArea::getGridArea(index_t x) const
+GridArea* GridArea::getGridArea(index_t index) const
 {
-    return getArea(x);
+    return getArea(index);
 }
 
-Relay* GridArea::getRelay(index_t x) const
+Relay* GridArea::getRelay(index_t index) const
 {
-    return (isValidIndex(x, m_Relays)) ? m_Relays[x] : nullptr;
+    return (isValidIndex(index, m_Relays)) ? m_Relays[index] : nullptr;
 }
 
-Generator* GridArea::getGen(index_t x)
+Generator* GridArea::getGen(index_t index)  // NOLINT(misc-no-recursion)
 {
     for (auto* a : m_GridAreas) {
         auto tcnt = static_cast<count_t>(a->get("gencount"));
-        if (x < tcnt) {
-            return (a->getGen(x));
+        if (index < tcnt) {
+            return (a->getGen(index));
         }
-        x = x - tcnt;
+        index = index - tcnt;
     }
     for (auto* b : m_Buses) {
         count_t tcnt = static_cast<count_t>(b->get("gencount"));
-        if (x < tcnt) {
-            return b->getGen(x);
+        if (index < tcnt) {
+            return b->getGen(index);
         }
-        x = x - tcnt;
+        index = index - tcnt;
     }
     return nullptr;
 }

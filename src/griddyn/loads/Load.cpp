@@ -26,8 +26,8 @@ GridLoad::GridLoad(const std::string& objName): GridSecondary(objName)
 {
     constructionHelper();
 }
-GridLoad::GridLoad(double rP, double rQ, const std::string& objName):
-    GridSecondary(objName), P(rP), Q(rQ)
+GridLoad::GridLoad(double realPower, double reactivePower, const std::string& objName):
+    GridSecondary(objName), P(realPower), Q(reactivePower)
 {
     constructionHelper();
 }
@@ -41,7 +41,7 @@ void GridLoad::constructionHelper()
 
 CoreObject* GridLoad::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<GridLoad, GridSecondary>(this, obj);
+    auto* nobj = cloneBase<GridLoad, GridSecondary>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -57,24 +57,24 @@ void GridLoad::setLoad(double level, unit unitType)
     setP(convert(level, unitType, puMW, systemBasePower));
 }
 
-void GridLoad::setLoad(double Plevel, double Qlevel, unit unitType)
+void GridLoad::setLoad(double plevel, double qlevel, unit unitType)
 {
-    setP(convert(Plevel, unitType, puMW, systemBasePower));
-    setQ(convert(Qlevel, unitType, puMW, systemBasePower));
+    setP(convert(plevel, unitType, puMW, systemBasePower));
+    setQ(convert(qlevel, unitType, puMW, systemBasePower));
 }
 
-static const stringVec locNumStrings{"p", "q", "pf"};
+static const stringVec LOC_NUM_STRINGS{"p", "q", "pf"};
 
-static const stringVec locStrStrings{
+static const stringVec LOC_STR_STRINGS{
 
 };
 
-static const stringVec flagStrings{"usepowerfactor"};
+static const stringVec FLAG_STRINGS{"usepowerfactor"};
 
 void GridLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<GridLoad, GridComponent>(
-        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
+        this, pstr, LOC_NUM_STRINGS, LOC_STR_STRINGS, FLAG_STRINGS, pstype);
 }
 
 void GridLoad::setFlag(std::string_view flag, bool val)
@@ -183,7 +183,7 @@ void GridLoad::set(std::string_view param, double val, unit unitType)
     } else if ((param == "pf") || (param == "powerfactor")) {
         if (val != 0.0) {
             if (std::abs(val) <= 1.0) {
-                pfq = std::sqrt(1.0 - val * val) / val;
+                pfq = std::sqrt(1.0 - (val * val)) / val;
             } else {
                 pfq = 0.0;
             }

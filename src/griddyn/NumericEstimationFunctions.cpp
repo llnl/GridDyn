@@ -23,35 +23,22 @@ namespace {
 
 // work in progress
 void numericJacobianCalculation(GridComponent* /* comp */,
-                                const IOdata& inputs,
-                                const StateData& sD,
-                                MatrixData<double>& md,
+                                const IOdata& /*inputs*/,
+                                const StateData& stateData,
+                                MatrixData<double>& matrixData,
                                 const IOlocs& /*inputLocs*/,
                                 const SolverMode& /*sMode*/)
 {
     std::vector<double> test;
     [[maybe_unused]] std::vector<double> testState;
-    [[maybe_unused]] double* stateTest = sD.scratch2;
-    if (!sD.hasScratch()) {
-        auto ns = md.rowLimit();
-        if (ns != kCountMax) {
-            test.resize(ns);
-            testState.resize(ns);
+    [[maybe_unused]] const double* stateTest = stateData.scratch2;
+    if (!stateData.hasScratch()) {
+        auto stateCount = matrixData.rowLimit();
+        if (stateCount != kCountMax) {
+            test.resize(stateCount);
+            testState.resize(stateCount);
         }
         stateTest = testState.data();
-    }
-
-    [[maybe_unused]] IOdata testInputs = inputs;
-}
-
-void copyObjectLocalState(GridComponent* comp,
-                          const double state[],
-                          double newState[],
-                          const SolverMode& sMode)
-{
-    auto sts = getObjectLocalStateIndices(comp, sMode);
-    for (auto st : sts) {
-        newState[st] = state[st];
     }
 }
 

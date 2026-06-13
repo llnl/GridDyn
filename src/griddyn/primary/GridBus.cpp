@@ -1131,9 +1131,9 @@ void busPowers::reset()
 
 bool busPowers::needsUpdate(const StateData& stateDataValue) const
 {
-    bool empty = stateDataValue.empty();
-    bool zeroSeqID = stateDataValue.seqID == 0;
-    bool differentSeqID = stateDataValue.seqID != seqID;
+    const bool empty = stateDataValue.empty();
+    const bool zeroSeqID = stateDataValue.seqID == 0;
+    const bool differentSeqID = stateDataValue.seqID != seqID;
     return (empty || zeroSeqID || differentSeqID);
 }
 
@@ -1185,7 +1185,7 @@ double GridBus::getGenerationRealNominal() const
 {
     if ((type == BusType::SLK) || (type == BusType::AFIX)) {
         double general = 0.0;
-        for (auto gen : attachedGens) {
+        for (auto* gen : attachedGens) {
             general += gen->getRealPower();
         }
         return general;
@@ -1197,7 +1197,7 @@ double GridBus::getGenerationReactiveNominal() const
 {
     if ((type == BusType::SLK) || (type == BusType::PV)) {
         double genreactive = 0.0;
-        for (auto gen : attachedGens) {
+        for (auto* gen : attachedGens) {
             genreactive += gen->getReactivePower();
         }
         return genreactive;
@@ -1228,17 +1228,17 @@ double GridBus::getSched() const
 {
     return 0.0;
 }
-Link* GridBus::findLink(GridBus* bs) const
+Link* GridBus::findLink(GridBus* bus) const
 {
     Link* lnk = nullptr;
 
-    for (auto lnk2 : attachedLinks) {
-        if (isSameObject(lnk2->getBus(1), bs)) {
-            lnk = lnk2;
+    for (auto* attachedLink : attachedLinks) {
+        if (isSameObject(attachedLink->getBus(1), bus)) {
+            lnk = attachedLink;
             break;
         }
-        if (isSameObject(lnk2->getBus(2), bs)) {
-            lnk = lnk2;
+        if (isSameObject(attachedLink->getBus(2), bus)) {
+            lnk = attachedLink;
             break;
         }
     }
@@ -1255,17 +1255,17 @@ CoreObject* GridBus::find(std::string_view objName) const
         return getParent()->find(objName);
     }
     // finding links by naming the opposite end
-    auto fnd_Ex = objName.find_first_of('!');
-    if (fnd_Ex != std::string::npos) {
-        if (fnd_Ex == 4) {
-            if (objName.compare(0, 4, "link") == 0) {
-                auto bobj = getParent()->find(objName.substr(fnd_Ex + 1));
-                if (bobj != nullptr) {
-                    for (auto& lnk : attachedLinks) {
-                        if (isSameObject(bobj, lnk->getBus(1))) {
+    const auto fndEx = objName.find_first_of('!');
+    if (fndEx != std::string::npos) {
+        if (fndEx == 4) {
+            if (objName.starts_with("link")) {
+                auto* busObject = getParent()->find(objName.substr(fndEx + 1));
+                if (busObject != nullptr) {
+                    for (const auto& lnk : attachedLinks) {
+                        if (isSameObject(busObject, lnk->getBus(1))) {
                             return lnk;
                         }
-                        if (isSameObject(bobj, lnk->getBus(2))) {
+                        if (isSameObject(busObject, lnk->getBus(2))) {
                             return lnk;
                         }
                     }
@@ -1295,19 +1295,19 @@ CoreObject* GridBus::getSubObject(std::string_view typeName, index_t num) const
 CoreObject* GridBus::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if (typeName == "load") {
-        for (auto& LD : attachedLoads) {
-            if (LD->getUserID() == searchID) {
-                return LD;
+        for (const auto& loadObject : attachedLoads) {
+            if (loadObject->getUserID() == searchID) {
+                return loadObject;
             }
         }
     } else if ((typeName == "gen") || (typeName == "generator")) {
-        for (auto& gen : attachedGens) {
+        for (const auto& gen : attachedGens) {
             if (gen->getUserID() == searchID) {
                 return gen;
             }
         }
     } else if (typeName == "link") {
-        for (auto& link : attachedLinks) {
+        for (const auto& link : attachedLinks) {
             if (link->getUserID() == searchID) {
                 return link;
             }
@@ -1316,19 +1316,19 @@ CoreObject* GridBus::findByUserID(std::string_view typeName, index_t searchID) c
     return GridComponent::findByUserID(typeName, searchID);
 }
 
-Link* GridBus::getLink(index_t x) const
+Link* GridBus::getLink(index_t index) const
 {
-    return (isValidIndex(x, attachedLinks)) ? attachedLinks[x] : nullptr;
+    return (isValidIndex(index, attachedLinks)) ? attachedLinks[index] : nullptr;
 }
 
-GridLoad* GridBus::getLoad(index_t x) const
+GridLoad* GridBus::getLoad(index_t index) const
 {
-    return (isValidIndex(x, attachedLoads)) ? attachedLoads[x] : nullptr;
+    return (isValidIndex(index, attachedLoads)) ? attachedLoads[index] : nullptr;
 }
 
-Generator* GridBus::getGen(index_t x) const
+Generator* GridBus::getGen(index_t index) const
 {
-    return (isValidIndex(x, attachedGens)) ? attachedGens[x] : nullptr;
+    return (isValidIndex(index, attachedGens)) ? attachedGens[index] : nullptr;
 }
 
 void GridBus::mergeBus(GridBus* /*bus*/) {}
@@ -1379,8 +1379,8 @@ double GridBus::get(std::string_view param, unit unitType) const
     } else if ((param == "p") || (param == "q") || (param == "yp") || (param == "yq") ||
                (param == "ip") || (param == "iq")) {
         val = 0.0;
-        for (const auto& ld : attachedLoads) {
-            val += ld->get(param, unitType);
+        for (const auto& loadObject : attachedLoads) {
+            val += loadObject->get(param, unitType);
         }
     } else {
         auto fptr = getObjectFunction(this, param);
@@ -1419,7 +1419,7 @@ void GridBus::rootTrigger(CoreTime time,
                           const SolverMode& sMode)
 {
     size_t rootCount = 0;
-    int rootOffset = offsets.getRootOffset(sMode);
+    const int rootOffset = offsets.getRootOffset(sMode);
 
     auto rootsfound = gmlc::utilities::vecFindne(rootMask,
                                                  0,
@@ -1429,41 +1429,41 @@ void GridBus::rootTrigger(CoreTime time,
     if (!rootsfound.empty()) {
         size_t rootFoundIndex = 0;
         auto inputs = getOutputs(noInputs, emptyStateData, cLocalSolverMode);
-        auto nR = rootsfound[rootFoundIndex];
+        auto nextRoot = rootsfound[rootFoundIndex];
         for (auto& gen : attachedGens) {
             if ((gen->checkFlag(HAS_ROOTS)) && (gen->isEnabled())) {
                 rootCount += gen->rootSize(sMode);
-                if (nR < rootOffset + rootCount) {
+                if (nextRoot < rootOffset + rootCount) {
                     gen->rootTrigger(time, inputs, rootMask, sMode);
                     do {
                         ++rootFoundIndex;
                         if (rootFoundIndex >= rootsfound.size()) {
                             return;
                         }
-                        nR = rootsfound[rootFoundIndex];
-                    } while (nR < rootOffset + rootCount);
+                        nextRoot = rootsfound[rootFoundIndex];
+                    } while (nextRoot < rootOffset + rootCount);
                 }
             }
         }
         for (auto& load : attachedLoads) {
             if ((load->checkFlag(HAS_ROOTS)) && (load->isEnabled())) {
                 rootCount += load->rootSize(sMode);
-                if (nR < rootOffset + rootCount) {
+                if (nextRoot < rootOffset + rootCount) {
                     load->rootTrigger(time, inputs, rootMask, sMode);
                     do {
                         ++rootFoundIndex;
                         if (rootFoundIndex >= rootsfound.size()) {
                             return;
                         }
-                        nR = rootsfound[rootFoundIndex];
-                    } while (nR < rootOffset + rootCount);
+                        nextRoot = rootsfound[rootFoundIndex];
+                    } while (nextRoot < rootOffset + rootCount);
                 }
             }
         }
     }
 }
 
-static const std::vector<stringVec> outputNamesStr{
+static const std::vector<stringVec> OUTPUT_NAMES_STR{
     {"voltage", "v", "volt"},
     {"angle", "theta", "ang", "a"},
     {"frequency", "freq", "f", "omega"},
@@ -1471,7 +1471,7 @@ static const std::vector<stringVec> outputNamesStr{
 
 const std::vector<stringVec>& GridBus::outputNames() const
 {
-    return outputNamesStr;
+    return OUTPUT_NAMES_STR;
 }
 
 units::unit GridBus::outputUnits(index_t outputNum) const

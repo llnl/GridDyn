@@ -1,0 +1,55 @@
+name: Address Sanitizer
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: asan-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  asan:
+    name: ASan
+    runs-on: ubuntu-latest
+    container:
+      image: helics/buildenv:sanitizers-19
+    env:
+      ASAN_OPTIONS: detect_leaks=0
+      LSAN_OPTIONS: verbosity=1:log_threads=1
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Mark workspace as safe for git
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
+      - name: Configure
+        shell: bash
+        run: >
+          cmake -S . -B build
+          -C "${GITHUB_WORKSPACE}/scripts/asan-cache.cmake"
+          -DCMAKE_C_COMPILER=clang
+          -DCMAKE_CXX_COMPILER=clang++
+          -DBUILD_TESTING=ON
+          -DGRIDDYN_BUILD_TESTS=ON
+          -DGRIDDYN_ENABLE_FMI=OFF
+          -DGRIDDYN_ENABLE_HELICS_EXECUTABLE=OFF
+
+      - name: Build
+        shell: bash
+        run: cmake --build build --parallel 4
+
+      - name: Run ASan tests
+        shell: bash
+        run: ctest --test-dir build --output-on-failure -L Continuous

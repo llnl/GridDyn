@@ -138,30 +138,33 @@ void GridBus::disable()
 
 void GridBus::add(CoreObject* obj)
 {
-    auto ld = dynamic_cast<GridLoad*>(obj);
-    if (ld != nullptr) {
-        return add(ld);
+    auto* loadObject = dynamic_cast<GridLoad*>(obj);
+    if (loadObject != nullptr) {
+        add(loadObject);
+        return;
     }
 
-    auto gen = dynamic_cast<Generator*>(obj);
+    auto* gen = dynamic_cast<Generator*>(obj);
     if (gen != nullptr) {
-        return add(gen);
+        add(gen);
+        return;
     }
 
-    auto lnk = dynamic_cast<Link*>(obj);
+    auto* lnk = dynamic_cast<Link*>(obj);
     if (lnk != nullptr) {
-        return add(lnk);
+        add(lnk);
+        return;
     }
     throw(UnrecognizedObjectException(this));
 }
 
 template<class X>
-void addObject(GridBus* bus, X* obj, objVector<X*>& OVector)
+void addObject(GridBus* bus, X* obj, objVector<X*>& oVector)
 {
-    CoreObject* foundObj = bus->find(obj->getName());
+    const CoreObject* foundObj = bus->find(obj->getName());
     if (foundObj == nullptr) {
-        obj->locIndex = static_cast<index_t>(OVector.size());
-        OVector.push_back(obj);
+        obj->locIndex = static_cast<index_t>(oVector.size());
+        oVector.push_back(obj);
         obj->set("basevoltage", bus->localBaseVoltage);
         bus->addSubObject(obj);
         if (bus->checkFlag(POWERFLOW_INITIALIZED)) {
@@ -173,9 +176,9 @@ void addObject(GridBus* bus, X* obj, objVector<X*>& OVector)
 }
 
 // add load
-void GridBus::add(GridLoad* ld)
+void GridBus::add(GridLoad* loadObject)
 {
-    addObject(this, ld, attachedLoads);
+    addObject(this, loadObject, attachedLoads);
 }
 
 // add generator
@@ -197,49 +200,50 @@ void GridBus::add(Link* lnk)
 
 void GridBus::remove(CoreObject* obj)
 {
-    auto ld = dynamic_cast<GridLoad*>(obj);
-    if (ld != nullptr) {
-        return (remove(ld));
+    auto* loadObject = dynamic_cast<GridLoad*>(obj);
+    if (loadObject != nullptr) {
+        remove(loadObject);
+        return;
     }
 
-    auto gen = dynamic_cast<Generator*>(obj);
+    auto* gen = dynamic_cast<Generator*>(obj);
     if (gen != nullptr) {
-        return (remove(gen));
+        remove(gen);
+        return;
     }
 
-    auto lnk = dynamic_cast<Link*>(obj);
+    auto* lnk = dynamic_cast<Link*>(obj);
     if (lnk != nullptr) {
-        return (remove(lnk));
+        remove(lnk);
+        return;
     }
 
     throw(UnrecognizedObjectException(this));
 }
 
 template<class X>
-bool removeObject(X* obj, objVector<X*>& OVector)
+static bool removeObject(X* obj, objVector<X*>& oVector)
 {
-    if (!isValidIndex(obj->locIndex, OVector)) {
+    if (!isValidIndex(obj->locIndex, oVector)) {
         return false;
     }
-    if (isSameObject(obj, OVector[obj->locIndex])) {
+    if (isSameObject(obj, oVector[obj->locIndex])) {
         // alert that the states might have changed
-        if (obj->checkFlag(HAS_DYN_STATES)) {
-            obj->getParent()->alert(obj->getParent(), STATE_COUNT_DECREASE);
-        } else if (obj->checkFlag(HAS_PFLOW_STATES)) {
+        if (obj->checkFlag(HAS_DYN_STATES) || obj->checkFlag(HAS_PFLOW_STATES)) {
             obj->getParent()->alert(obj->getParent(), STATE_COUNT_DECREASE);
         }
 
-        OVector.erase(OVector.begin() + obj->locIndex);
+        oVector.erase(oVector.begin() + obj->locIndex);
         return true;
     }
     return false;
 }
 
 // remove load
-void GridBus::remove(GridLoad* ld)
+void GridBus::remove(GridLoad* loadObject)
 {
-    if (removeObject(ld, attachedLoads)) {
-        GridComponent::remove(ld);
+    if (removeObject(loadObject, attachedLoads)) {
+        GridComponent::remove(loadObject);
     }
 }
 
@@ -254,15 +258,15 @@ void GridBus::remove(Generator* gen)
 // remove link
 void GridBus::remove(Link* lnk)
 {
-    auto lnkR = std::find_if(attachedLinks.begin(), attachedLinks.end(), [lnk](auto& lk) {
-        return isSameObject(lk, lnk);
+    auto lnkR = std::find_if(attachedLinks.begin(), attachedLinks.end(), [lnk](auto& linkObject) {
+        return isSameObject(linkObject, lnk);
     });
     if (lnkR != attachedLinks.end()) {
         attachedLinks.erase(lnkR);
     }
 }
 
-void GridBus::alert(CoreObject* obj, int code)
+void GridBus::alert(CoreObject* obj, int code)  // NOLINT(misc-no-recursion)
 {
     switch (code) {
         case OBJECT_NAME_CHANGE:
@@ -329,7 +333,7 @@ void GridBus::preEx(const IOdata& /*inputs*/,
 }
 // function to reset the bus type and voltage
 
-void GridBus::reset(ResetLevels level)
+void GridBus::reset(ResetLevels level)  // NOLINT(misc-no-recursion)
 {
     if (opFlags[DISCONNECTED]) {
         for (auto& link : attachedLinks) {
@@ -345,9 +349,9 @@ void GridBus::reset(ResetLevels level)
             gen->reset(level);
         }
     }
-    for (auto& ld : attachedLoads) {
-        if (ld->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {
-            ld->reset(level);
+    for (auto& load : attachedLoads) {
+        if (load->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {
+            load->reset(level);
         }
     }
 }
@@ -355,16 +359,16 @@ void GridBus::reset(ResetLevels level)
 ChangeCode GridBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, CheckLevel level)
 {
     auto out = ChangeCode::NO_CHANGE;
-    IOdata inputs = {voltage, angle, freq};
+    const IOdata inputs = {voltage, angle, freq};
     for (auto& gen : attachedGens) {
         if (gen->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {
             auto pout = gen->powerFlowAdjust(inputs, flags, level);
             out = (std::max)(pout, out);
         }
     }
-    for (auto& ld : attachedLoads) {
-        if (ld->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {
-            auto pout = ld->powerFlowAdjust(inputs, flags, level);
+    for (auto& load : attachedLoads) {
+        if (load->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {
+            auto pout = load->powerFlowAdjust(inputs, flags, level);
             out = (std::max)(pout, out);
         }
     }
@@ -414,15 +418,15 @@ void GridBus::dynObjectInitializeB(const IOdata& /*inputs*/,
     m_state[FREQUENCY_IN_LOCATION] = freq;
 
     // first get the state size for the internal state ordering
-    IOdata inputs{voltage, angle, freq};
+    const IOdata inputs{voltage, angle, freq};
     fieldSet = inputs;
 
-    IOdata pc;
+    IOdata powerCommands;
     for (auto& gen : attachedGens) {
-        gen->dynInitializeB(inputs, noInputs, pc);
+        gen->dynInitializeB(inputs, noInputs, powerCommands);
     }
     for (auto& load : attachedLoads) {
-        load->dynInitializeB(inputs, noInputs, pc);
+        load->dynInitializeB(inputs, noInputs, powerCommands);
     }
     // TODO(phlpt): Actually use the pc outputs.
 }
@@ -449,16 +453,16 @@ void GridBus::setAll(std::string_view objtype,
                 gen->set(param, val, unitType);
             }
             catch (const UnrecognizedParameter&) {
-                // we ignore this exception in this function
+                continue;
             }
         }
     } else if (objtype == "load") {
-        for (auto& ld : attachedLoads) {
+        for (auto& load : attachedLoads) {
             try {
-                ld->set(param, val, unitType);
+                load->set(param, val, unitType);
             }
             catch (const UnrecognizedParameter&) {
-                // we ignore this exception in this function
+                continue;
             }
         }
     } else if (objtype == "secondary") {
@@ -467,15 +471,15 @@ void GridBus::setAll(std::string_view objtype,
                 gen->set(param, val, unitType);
             }
             catch (const UnrecognizedParameter&) {
-                // we ignore this exception in this function
+                continue;
             }
         }
-        for (auto& ld : attachedLoads) {
+        for (auto& load : attachedLoads) {
             try {
-                ld->set(param, val, unitType);
+                load->set(param, val, unitType);
             }
             catch (const UnrecognizedParameter&) {
-                // we ignore this exception in this function
+                continue;
             }
         }
     }
@@ -942,6 +946,7 @@ double GridBus::lastError() const
     return std::abs(S.sumP()) + std::abs(S.sumQ());
 }
 
+#if 0
 static inline double dVcheck(double deltaVoltage,
                              double currentVoltage,
                              double deltaRiseFrac = 0.75,
@@ -962,6 +967,7 @@ static inline double dAcheck(double deltaTheta, double /*currA*/, double maxChan
     }
     return deltaTheta;
 }
+#endif
 
 void GridBus::voltageUpdate(const StateData& /*stateDataValue*/,
                             double /*update*/[],

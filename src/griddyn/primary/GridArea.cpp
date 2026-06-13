@@ -900,7 +900,7 @@ double GridArea::get(std::string_view param, unit unitType) const  // NOLINT(mis
         val += m_Relays.size();
     } else if ((param == "gencount") || (param == "loadcount")) {
         for (auto* obj : primaryObjects) {
-            double objCount = obj->get(param);
+            const double objCount = obj->get(param);
             val += (objCount != kNullVal ? objCount : 0.0);
         }
     } else if (param == "subobjectcount") {
@@ -915,17 +915,19 @@ double GridArea::get(std::string_view param, unit unitType) const  // NOLINT(mis
     return (vali != 0) ? (static_cast<double>(vali)) : val;
 }
 
-void GridArea::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
+void GridArea::timestep(CoreTime time,
+                        const IOdata& inputs,
+                        const SolverMode& sMode)  // NOLINT(misc-no-recursion)
 {
     // update the tie lines first
-    for (auto* gL : m_Links) {
-        if (gL->isEnabled()) {
-            gL->timestep(time, inputs, sMode);
+    for (auto* linkObject : m_Links) {
+        if (linkObject->isEnabled()) {
+            linkObject->timestep(time, inputs, sMode);
         }
     }
-    for (auto* gA : m_GridAreas) {
-        if (gA->isEnabled()) {
-            gA->timestep(time, inputs, sMode);
+    for (auto* areaObject : m_GridAreas) {
+        if (areaObject->isEnabled()) {
+            areaObject->timestep(time, inputs, sMode);
         }
     }
     for (auto* bus : m_Buses) {
@@ -941,7 +943,8 @@ void GridArea::timestep(CoreTime time, const IOdata& inputs, const SolverMode& s
     prevTime = time;
 }
 
-count_t GridArea::getBusVector(std::vector<GridBus*>& busVector, index_t start) const
+count_t GridArea::getBusVector(std::vector<GridBus*>& busVector,
+                               index_t start) const  // NOLINT(misc-no-recursion)
 {
     auto cnt = static_cast<count_t>(m_Buses.size());
     if (cnt > 0) {
@@ -954,7 +957,8 @@ count_t GridArea::getBusVector(std::vector<GridBus*>& busVector, index_t start) 
     return cnt;
 }
 
-count_t GridArea::getLinkVector(std::vector<Link*>& linkVector, index_t start) const
+count_t GridArea::getLinkVector(std::vector<Link*>& linkVector,
+                                index_t start) const  // NOLINT(misc-no-recursion)
 {
     auto cnt = static_cast<count_t>(m_Links.size());
     if (cnt > 0) {
@@ -967,7 +971,8 @@ count_t GridArea::getLinkVector(std::vector<Link*>& linkVector, index_t start) c
     return cnt;
 }
 
-count_t GridArea::getVoltage(std::vector<double>& voltages, index_t start) const
+count_t GridArea::getVoltage(std::vector<double>& voltages,
+                             index_t start) const  // NOLINT(misc-no-recursion)
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -986,7 +991,7 @@ count_t GridArea::getVoltage(std::vector<double>& voltages, index_t start) const
 count_t GridArea::getVoltage(std::vector<double>& voltages,
                              const double state[],
                              const SolverMode& sMode,
-                             index_t start) const
+                             index_t start) const  // NOLINT(misc-no-recursion)
 {
     count_t cnt = 0;
 
@@ -1003,7 +1008,8 @@ count_t GridArea::getVoltage(std::vector<double>& voltages,
     return cnt;
 }
 
-count_t GridArea::getAngle(std::vector<double>& angles, index_t start) const
+count_t GridArea::getAngle(std::vector<double>& angles,
+                           index_t start) const  // NOLINT(misc-no-recursion)
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1021,7 +1027,7 @@ count_t GridArea::getAngle(std::vector<double>& angles, index_t start) const
 count_t GridArea::getAngle(std::vector<double>& angles,
                            const double state[],
                            const SolverMode& sMode,
-                           index_t start) const
+                           index_t start) const  // NOLINT(misc-no-recursion)
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1036,7 +1042,8 @@ count_t GridArea::getAngle(std::vector<double>& angles,
     return cnt;
 }
 
-count_t GridArea::getFreq(std::vector<double>& frequencies, index_t start) const
+count_t GridArea::getFreq(std::vector<double>& frequencies,
+                          index_t start) const  // NOLINT(misc-no-recursion)
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1073,39 +1080,44 @@ index_t start) const
 }
 */
 
-count_t GridArea::getLinkRealPower(std::vector<double>& powers, index_t start, int busNumber) const
+count_t GridArea::getLinkRealPower(std::vector<double>& powers,
+                                   index_t start,
+                                   int busNumber) const  // NOLINT(misc-no-recursion)
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
         cnt += area->getLinkRealPower(powers, start + cnt, busNumber);
     }
-    auto Lsize = static_cast<index_t>(m_Links.size());
-    ensureSizeAtLeast(powers, start + Lsize);
+    auto lsize = static_cast<index_t>(m_Links.size());
+    ensureSizeAtLeast(powers, start + lsize);
 
-    for (index_t kk = 0; kk < Lsize; ++kk) {
+    for (index_t kk = 0; kk < lsize; ++kk) {
         powers[start + cnt + kk] = m_Links[kk]->getRealPower(busNumber);
     }
-    cnt += Lsize;
+    cnt += lsize;
     return cnt;
 }
 
 count_t
-    GridArea::getLinkReactivePower(std::vector<double>& powers, index_t start, int busNumber) const
+    GridArea::getLinkReactivePower(std::vector<double>& powers,
+                                   index_t start,
+                                   int busNumber) const  // NOLINT(misc-no-recursion)
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
         cnt += area->getLinkReactivePower(powers, start + cnt, busNumber);
     }
-    auto Lsize = static_cast<index_t>(m_Links.size());
-    ensureSizeAtLeast(powers, start + Lsize);
-    for (index_t kk = 0; kk < Lsize; ++kk) {
+    auto lsize = static_cast<index_t>(m_Links.size());
+    ensureSizeAtLeast(powers, start + lsize);
+    for (index_t kk = 0; kk < lsize; ++kk) {
         powers[start + cnt + kk] = m_Links[kk]->getReactivePower(busNumber);
     }
-    cnt += Lsize;
+    cnt += lsize;
     return cnt;
 }
 
-count_t GridArea::getBusGenerationReal(std::vector<double>& powers, index_t start) const
+count_t GridArea::getBusGenerationReal(std::vector<double>& powers,
+                                       index_t start) const  // NOLINT(misc-no-recursion)
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1121,7 +1133,8 @@ count_t GridArea::getBusGenerationReal(std::vector<double>& powers, index_t star
     return cnt;
 }
 
-count_t GridArea::getBusGenerationReactive(std::vector<double>& powers, index_t start) const
+count_t GridArea::getBusGenerationReactive(std::vector<double>& powers,
+                                           index_t start) const  // NOLINT(misc-no-recursion)
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1136,7 +1149,8 @@ count_t GridArea::getBusGenerationReactive(std::vector<double>& powers, index_t 
     return cnt;
 }
 
-count_t GridArea::getBusLoadReal(std::vector<double>& powers, index_t start) const
+count_t GridArea::getBusLoadReal(std::vector<double>& powers,
+                                 index_t start) const  // NOLINT(misc-no-recursion)
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1151,7 +1165,8 @@ count_t GridArea::getBusLoadReal(std::vector<double>& powers, index_t start) con
     return cnt;
 }
 
-count_t GridArea::getBusLoadReactive(std::vector<double>& powers, index_t start) const
+count_t GridArea::getBusLoadReactive(std::vector<double>& powers,
+                                     index_t start) const  // NOLINT(misc-no-recursion)
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1166,7 +1181,8 @@ count_t GridArea::getBusLoadReactive(std::vector<double>& powers, index_t start)
     return cnt;
 }
 
-count_t GridArea::getLinkLoss(std::vector<double>& losses, index_t start) const
+count_t GridArea::getLinkLoss(std::vector<double>& losses,
+                              index_t start) const  // NOLINT(misc-no-recursion)
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1174,12 +1190,12 @@ count_t GridArea::getLinkLoss(std::vector<double>& losses, index_t start) const
             cnt += area->getLinkLoss(losses, start + cnt);
         }
     }
-    auto Lsize = static_cast<index_t>(m_Links.size());
-    ensureSizeAtLeast(losses, start + Lsize);
-    for (index_t kk = 0; kk < Lsize; ++kk) {
+    auto lsize = static_cast<index_t>(m_Links.size());
+    ensureSizeAtLeast(losses, start + lsize);
+    for (index_t kk = 0; kk < lsize; ++kk) {
         losses[cnt + kk] = m_Links[kk]->getLoss();
     }
-    return cnt + Lsize;
+    return cnt + lsize;
 }
 
 count_t GridArea::getBusName(stringVec& names, index_t start) const
@@ -1205,14 +1221,14 @@ count_t GridArea::getLinkName(stringVec& names, index_t start) const
     for (auto* area : m_GridAreas) {
         cnt += area->getLinkName(names, static_cast<std::size_t>(start) + cnt);
     }
-    auto Lsize = static_cast<index_t>(m_Links.size());
-    ensureSizeAtLeast(names, static_cast<std::size_t>(start) + Lsize);
+    auto lsize = static_cast<index_t>(m_Links.size());
+    ensureSizeAtLeast(names, static_cast<std::size_t>(start) + lsize);
     auto nmloc = names.begin() + start + cnt;
     for (auto* link : m_Links) {
         *nmloc = link->getName();
         ++nmloc;
     }
-    cnt += Lsize;
+    cnt += lsize;
     return cnt;
 }
 
@@ -1222,8 +1238,8 @@ count_t GridArea::getLinkBus(stringVec& names, index_t start, int busNumber) con
     for (auto* area : m_GridAreas) {
         cnt += area->getLinkBus(names, start + cnt, busNumber);
     }
-    auto Lsize = static_cast<index_t>(m_Links.size());
-    ensureSizeAtLeast(names, static_cast<std::size_t>(start) + Lsize);
+    auto lsize = static_cast<index_t>(m_Links.size());
+    ensureSizeAtLeast(names, static_cast<std::size_t>(start) + lsize);
     auto nmloc = names.begin() + start + cnt;
     for (auto* link : m_Links) {
         auto* bus = link->getBus(busNumber);
@@ -1234,7 +1250,7 @@ count_t GridArea::getLinkBus(stringVec& names, index_t start, int busNumber) con
         ++nmloc;
     }
 
-    cnt += Lsize;
+    cnt += lsize;
     return cnt;
 }
 

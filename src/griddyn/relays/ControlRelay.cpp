@@ -185,7 +185,6 @@ void ControlRelay::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMe
             }
             break;
         case cm::GET_MULTIPLE:
-            break;
         case cm::GET_RESULT_MULTIPLE:
         case cm::SET_SUCCESS:
         case cm::SET_FAIL:

@@ -185,7 +185,6 @@ void ControlRelay::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMe
             }
             break;
         case cm::GET_MULTIPLE:
-        case cm::GET_PERIODIC:
             break;
         case cm::GET_RESULT_MULTIPLE:
         case cm::SET_SUCCESS:
@@ -193,6 +192,7 @@ void ControlRelay::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMe
         case cm::GET_RESULT:
         case cm::SET_SCHEDULED:
         case cm::GET_SCHEDULED:
+        case cm::GET_PERIODIC:
         case cm::CANCEL_FAIL:
         case cm::CANCEL_SUCCESS:
             break;

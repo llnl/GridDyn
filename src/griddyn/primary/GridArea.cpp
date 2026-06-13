@@ -360,24 +360,24 @@ Relay* GridArea::getRelay(index_t index) const
 
 Generator* GridArea::getGen(index_t index)  // NOLINT(misc-no-recursion)
 {
-    for (auto* a : m_GridAreas) {
-        auto tcnt = static_cast<count_t>(a->get("gencount"));
+    for (auto* areaObject : m_GridAreas) {
+        const auto tcnt = static_cast<count_t>(areaObject->get("gencount"));
         if (index < tcnt) {
-            return (a->getGen(index));
+            return (areaObject->getGen(index));
         }
         index = index - tcnt;
     }
-    for (auto* b : m_Buses) {
-        count_t tcnt = static_cast<count_t>(b->get("gencount"));
+    for (auto* busObject : m_Buses) {
+        const auto tcnt = static_cast<count_t>(busObject->get("gencount"));
         if (index < tcnt) {
-            return b->getGen(index);
+            return busObject->getGen(index);
         }
         index = index - tcnt;
     }
     return nullptr;
 }
 
-CoreObject* GridArea::find(std::string_view objName) const
+CoreObject* GridArea::find(std::string_view objName) const  // NOLINT(misc-no-recursion)
 {
     CoreObject* obj = obList->find(objName);
     if (obj == nullptr) {
@@ -422,7 +422,7 @@ CoreObject* GridArea::getSubObject(std::string_view typeName, index_t num) const
 void GridArea::setAll(std::string_view type,
                       std::string_view param,
                       double val,
-                      units::unit unitType)
+                      units::unit unitType)  // NOLINT(misc-no-recursion)
 {
     if (type == "all") {
         set(param, val, unitType);
@@ -434,7 +434,7 @@ void GridArea::setAll(std::string_view type,
                 obj->set(param, val, unitType);
             }
             catch (const UnrecognizedParameter&) {
-                // we ignore this exception in this function
+                continue;
             }
         }
     }
@@ -443,7 +443,7 @@ void GridArea::setAll(std::string_view type,
             set(param, val, unitType);
         }
         catch (const UnrecognizedParameter&) {
-            // we ignore this exception in this function
+            static_cast<void>(0);
         }
         for (auto& area : m_GridAreas) {
             area->setAll(type, param, val, unitType);
@@ -454,7 +454,7 @@ void GridArea::setAll(std::string_view type,
                 bus->set(param, val, unitType);
             }
             catch (const UnrecognizedParameter&) {
-                // we ignore this exception in this function
+                continue;
             }
         }
     } else if (type == "link") {
@@ -463,7 +463,7 @@ void GridArea::setAll(std::string_view type,
                 lnk->set(param, val, unitType);
             }
             catch (const UnrecognizedParameter&) {
-                // we ignore this exception in this function
+                continue;
             }
         }
     } else if (type == "relay") {
@@ -472,7 +472,7 @@ void GridArea::setAll(std::string_view type,
                 rel->set(param, val, unitType);
             }
             catch (const UnrecognizedParameter&) {
-                // we ignore this exception in this function
+                continue;
             }
         }
     } else if ((type == "gen") || (type == "load") || (type == "generator") ||
@@ -486,7 +486,8 @@ void GridArea::setAll(std::string_view type,
     }
 }
 
-CoreObject* GridArea::findByUserID(std::string_view typeName, index_t searchID) const
+CoreObject* GridArea::findByUserID(std::string_view typeName,
+                                   index_t searchID) const  // NOLINT(misc-no-recursion)
 {
     if ((typeName == "area") && (searchID == getUserID())) {
         return const_cast<GridArea*>(this);
@@ -519,34 +520,34 @@ CoreObject* GridArea::findByUserID(std::string_view typeName, index_t searchID) 
         return nullptr;
     }
     if (typeName == "bus") {
-        for (auto* po : possObjs) {
-            if (isValidIndex(po->locIndex, m_Buses)) {
-                if (isSameObject(po, m_Buses[po->locIndex])) {
-                    return po;
+        for (auto* possibleObject : possObjs) {
+            if (isValidIndex(possibleObject->locIndex, m_Buses)) {
+                if (isSameObject(possibleObject, m_Buses[possibleObject->locIndex])) {
+                    return possibleObject;
                 }
             }
         }
     } else if (typeName == "link") {
-        for (auto* po : possObjs) {
-            if (isValidIndex(po->locIndex, m_Links)) {
-                if (isSameObject(po, m_Links[po->locIndex])) {
-                    return po;
+        for (auto* possibleObject : possObjs) {
+            if (isValidIndex(possibleObject->locIndex, m_Links)) {
+                if (isSameObject(possibleObject, m_Links[possibleObject->locIndex])) {
+                    return possibleObject;
                 }
             }
         }
     } else if (typeName == "area") {
-        for (auto* po : possObjs) {
-            if (isValidIndex(po->locIndex, m_GridAreas)) {
-                if (isSameObject(po, m_GridAreas[po->locIndex])) {
-                    return po;
+        for (auto* possibleObject : possObjs) {
+            if (isValidIndex(possibleObject->locIndex, m_GridAreas)) {
+                if (isSameObject(possibleObject, m_GridAreas[possibleObject->locIndex])) {
+                    return possibleObject;
                 }
             }
         }
     } else if (typeName == "relay") {
-        for (auto* po : possObjs) {
-            if (isValidIndex(po->locIndex, m_Relays)) {
-                if (isSameObject(po, m_Relays[po->locIndex])) {
-                    return po;
+        for (auto* possibleObject : possObjs) {
+            if (isValidIndex(possibleObject->locIndex, m_Relays)) {
+                if (isSameObject(possibleObject, m_Relays[possibleObject->locIndex])) {
+                    return possibleObject;
                 }
             }
         }
@@ -625,7 +626,7 @@ void GridArea::pFlowObjectInitializeB()
     opObjectLists->makePreList(primaryObjects);
 }
 
-void GridArea::updateLocalCache()
+void GridArea::updateLocalCache()  // NOLINT(misc-no-recursion)
 {
     // links should come first
     for (auto* link : m_Links) {
@@ -652,7 +653,7 @@ void GridArea::updateLocalCache()
 
 void GridArea::updateLocalCache(const IOdata& inputs,
                                 const StateData& stateDataValue,
-                                const SolverMode& sMode)
+                                const SolverMode& sMode)  // NOLINT(misc-no-recursion)
 {
     // links should come first
     for (auto* link : m_Links) {
@@ -686,17 +687,13 @@ ChangeCode GridArea::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, 
     if (level < CheckLevel::LOW_VOLTAGE_CHECK) {
         for (auto* obj : pFlowAdjustObjects) {
             auto iret = obj->powerFlowAdjust(inputs, flags, level);
-            if (iret > ret) {
-                ret = iret;
-            }
+            ret = std::max(iret, ret);
         }
     } else {
         for (auto* obj : primaryObjects) {
             if (obj->isEnabled()) {
                 auto iret = obj->powerFlowAdjust(inputs, flags, level);
-                if (iret > ret) {
-                    ret = iret;
-                }
+                ret = std::max(iret, ret);
             }
         }
     }
@@ -708,10 +705,10 @@ ChangeCode GridArea::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, 
     return ret;
 }
 
-void GridArea::pFlowCheck(std::vector<Violation>& Violation_vector)
+void GridArea::pFlowCheck(std::vector<Violation>& violationVector)
 {
     for (auto* obj : primaryObjects) {
-        obj->pFlowCheck(Violation_vector);
+        obj->pFlowCheck(violationVector);
     }
 }
 
@@ -757,7 +754,7 @@ void GridArea::dynObjectInitializeB(const IOdata& inputs,
                 lateBObjects.push_back(bus);
             } else {
                 bus->dynInitializeB(inputs, desiredOutput, fieldSet);
-                double bmx = bus->getMaxGenReal();
+                const double bmx = bus->getMaxGenReal();
                 if (bmx > pmx) {
                     pmx = bmx;
                     masterBus = bus->locIndex;
@@ -792,18 +789,18 @@ void GridArea::converge(CoreTime time,
                         double tol)
 {
     if (opFlags[REVERSE_CONVERGE]) {
-        auto ra = opObjectLists->rbegin(sMode);
+        auto reverseIter = opObjectLists->rbegin(sMode);
         auto rend = opObjectLists->rend(sMode);
-        while (ra != rend) {
-            (*ra)->converge(time, state, dstateDt, sMode, mode, tol);
-            ++ra;
+        while (reverseIter != rend) {
+            (*reverseIter)->converge(time, state, dstateDt, sMode, mode, tol);
+            ++reverseIter;
         }
     } else {
-        auto fa = opObjectLists->begin(sMode);
+        auto forwardIter = opObjectLists->begin(sMode);
         auto fend = opObjectLists->end(sMode);
-        while (fa != fend) {
-            (*fa)->converge(time, state, dstateDt, sMode, mode, tol);
-            ++fa;
+        while (forwardIter != fend) {
+            (*forwardIter)->converge(time, state, dstateDt, sMode, mode, tol);
+            ++forwardIter;
         }
     }
     // Toggle the reverse indicator every time
@@ -829,14 +826,14 @@ void GridArea::set(std::string_view param, std::string_view val)
     GridPrimary::set(param, val);
 }
 
-static stringVec locNumStrings{};
-static const stringVec locStrStrings{};
-static const stringVec flagStrings{};
+static stringVec gLocNumStrings{};
+static const stringVec LOC_STR_STRINGS{};
+static const stringVec FLAG_STRINGS{};
 
 void GridArea::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<GridArea, GridComponent>(
-        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
+        this, pstr, gLocNumStrings, LOC_STR_STRINGS, FLAG_STRINGS, pstype);
 }
 
 void GridArea::set(std::string_view param, double val, unit unitType)
@@ -860,7 +857,7 @@ void GridArea::set(std::string_view param, double val, unit unitType)
     }
 }
 
-double GridArea::get(std::string_view param, unit unitType) const
+double GridArea::get(std::string_view param, unit unitType) const  // NOLINT(misc-no-recursion)
 {
     double val = 0.0;
     size_t vali = 0;
@@ -873,32 +870,32 @@ double GridArea::get(std::string_view param, unit unitType) const
     } else if (param == "relaycount") {
         vali = m_Relays.size();
     } else if (param == "totalbuscount") {
-        for (auto* gA : m_GridAreas) {
-            val += gA->get(param);
+        for (auto* gridArea : m_GridAreas) {
+            val += gridArea->get(param);
         }
-        for (auto* gA : m_Links) {
-            val += gA->get("buscount");
+        for (auto* linkObject : m_Links) {
+            val += linkObject->get("buscount");
         }
         val += static_cast<double>(m_Buses.size());
     } else if (param == "totallinkcount") {
-        for (auto* gA : m_GridAreas) {
-            val += gA->get(param);
+        for (auto* gridArea : m_GridAreas) {
+            val += gridArea->get(param);
         }
-        for (auto* gA : m_Links) {
-            val += gA->get("linkcount");
+        for (auto* linkObject : m_Links) {
+            val += linkObject->get("linkcount");
         }
         // links should return 1 from getting link count so don't need to add the links size again.
     } else if (param == "totalareacount") {
-        for (auto* gA : m_GridAreas) {
-            val += gA->get(param);
+        for (auto* gridArea : m_GridAreas) {
+            val += gridArea->get(param);
         }
         val += m_GridAreas.size();
     } else if (param == "totalrelaycount") {
-        for (auto* gA : m_GridAreas) {
-            val += gA->get(param);
+        for (auto* gridArea : m_GridAreas) {
+            val += gridArea->get(param);
         }
-        for (auto* gA : m_Links) {
-            val += gA->get("relaycount");
+        for (auto* linkObject : m_Links) {
+            val += linkObject->get("relaycount");
         }
         val += m_Relays.size();
     } else if ((param == "gencount") || (param == "loadcount")) {

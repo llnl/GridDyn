@@ -481,15 +481,16 @@ void GridBus::setAll(std::string_view objtype,
     }
 }
 
-static const stringVec locNumStrings{"voltage", "angle", "basevoltage", "p", "q", "g", "b", "zone"};
-static const stringVec locStrStrings{"status"};
+static const stringVec LOC_NUM_STRINGS{
+    "voltage", "angle", "basevoltage", "p", "q", "g", "b", "zone"};
+static const stringVec LOC_STR_STRINGS{"status"};
 
-static const stringVec flagStrings{"connected"};
+static const stringVec FLAG_STRINGS{"connected"};
 
 void GridBus::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<GridBus, GridComponent>(
-        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
+        this, pstr, LOC_NUM_STRINGS, LOC_STR_STRINGS, FLAG_STRINGS, pstype);
 }
 
 void GridBus::setFlag(std::string_view flag, bool val)
@@ -574,8 +575,8 @@ void GridBus::set(std::string_view param, double val, unit unitType)
                 return;
             }
         }
-        std::string b{param.back()};
-        attachedLoads[0]->set(b, val, unitType);
+        const std::string loadKey{param.back()};
+        attachedLoads[0]->set(loadKey, val, unitType);
     } else if ((param == "shunt b") || (param == "b")) {
         if (attachedLoads.empty()) {
             if (val != 0.0) {
@@ -608,11 +609,11 @@ IOdata GridBus::getOutputs(const IOdata& /*inputs*/,
                                                                 getFreq(stateDataValue, sMode)};
 }
 
-static const IOlocs noLocs{kNullLocation, kNullLocation, kNullLocation};
+static const IOlocs NO_LOCS{kNullLocation, kNullLocation, kNullLocation};
 
 IOlocs GridBus::getOutputLocs(const SolverMode& /*sMode*/) const
 {
-    return noLocs;
+    return NO_LOCS;
 }
 
 const IOdata& GridBus::getOutputsRef() const
@@ -622,7 +623,7 @@ const IOdata& GridBus::getOutputsRef() const
 
 const IOlocs& GridBus::getOutputLocsRef() const
 {
-    return noLocs;
+    return NO_LOCS;
 }
 
 double GridBus::getOutput(const IOdata& /*inputs*/,
@@ -686,7 +687,8 @@ double GridBus::getFreq(const StateData& /*stateDataValue*/, const SolverMode& /
     return freq;
 }
 
-bool GridBus::directPath(GridComponent* target, GridComponent* source)
+bool GridBus::directPath(GridComponent* target,
+                         GridComponent* source)  // NOLINT(misc-no-recursion)
 {
     auto tid = target->getID();
     if (isSameObject(tid, this)) {
@@ -697,8 +699,8 @@ bool GridBus::directPath(GridComponent* target, GridComponent* source)
             return true;
         }
     }
-    for (auto& ld : attachedLoads) {
-        if (isSameObject(tid, ld)) {
+    for (auto& load : attachedLoads) {
+        if (isSameObject(tid, load)) {
             return true;
         }
     }
@@ -731,7 +733,9 @@ bool GridBus::directPath(GridComponent* target, GridComponent* source)
     return false;
 }
 
-std::vector<GridComponent*> GridBus::getDirectPath(GridComponent* target, GridComponent* source)
+std::vector<GridComponent*> GridBus::getDirectPath(
+    GridComponent* target,
+    GridComponent* source)  // NOLINT(misc-no-recursion)
 {
     std::vector<GridComponent*> opath{source};
 
@@ -746,8 +750,8 @@ std::vector<GridComponent*> GridBus::getDirectPath(GridComponent* target, GridCo
             return opath;
         }
     }
-    for (auto& ld : attachedLoads) {
-        if (isSameObject(tid, ld)) {
+    for (auto& load : attachedLoads) {
+        if (isSameObject(tid, load)) {
             opath.push_back(target);
             return opath;
         }
@@ -783,8 +787,8 @@ std::vector<GridComponent*> GridBus::getDirectPath(GridComponent* target, GridCo
                 return npath;
             }
 
-            for (auto& pp : npath) {
-                opath.push_back(pp);
+            for (auto& pathComponent : npath) {
+                opath.push_back(pathComponent);
             }
             return opath;
         }
@@ -793,8 +797,8 @@ std::vector<GridComponent*> GridBus::getDirectPath(GridComponent* target, GridCo
             return npath;
         }
 
-        for (auto& pp : npath) {
-            opath.push_back(pp);
+        for (auto& pathComponent : npath) {
+            opath.push_back(pathComponent);
         }
         return opath;
     }
@@ -803,52 +807,52 @@ std::vector<GridComponent*> GridBus::getDirectPath(GridComponent* target, GridCo
 
 int GridBus::propogatePower(bool /*makeSlack*/)
 {
-    int unfixed_lines = 0;
-    Link* unfixed_line = nullptr;
-    double Pexp = 0;
-    double Qexp = 0;
+    int unfixedLines = 0;
+    Link* unfixedLine = nullptr;
+    double pexp = 0;
+    double qexp = 0;
     for (auto& lnk : attachedLinks) {
         if (lnk->checkFlag(Link::FIXED_TARGET_POWER)) {
-            Pexp += lnk->getRealPower(getID());
-            Qexp += lnk->getReactivePower(getID());
+            pexp += lnk->getRealPower(getID());
+            qexp += lnk->getReactivePower(getID());
             continue;
         }
-        ++unfixed_lines;
-        unfixed_line = lnk;
+        ++unfixedLines;
+        unfixedLine = lnk;
     }
-    if (unfixed_lines > 1) {
+    if (unfixedLines > 1) {
         return 0;
     }
 
     int adjPSecondary = 0;
     int adjQSecondary = 0;
-    for (auto& ld : attachedLoads) {
-        if (ld->checkFlag(ADJUSTABLE_P)) {
+    for (auto& load : attachedLoads) {
+        if (load->checkFlag(ADJUSTABLE_P)) {
             ++adjPSecondary;
         } else {
-            Pexp += ld->getRealPower();
+            pexp += load->getRealPower();
         }
-        if (ld->checkFlag(ADJUSTABLE_Q)) {
+        if (load->checkFlag(ADJUSTABLE_Q)) {
             ++adjQSecondary;
         } else {
-            Qexp += ld->getReactivePower();
+            qexp += load->getReactivePower();
         }
     }
     for (auto& gen : attachedGens) {
         if (gen->checkFlag(ADJUSTABLE_P)) {
             ++adjPSecondary;
         } else {
-            Pexp -= gen->getRealPower();
+            pexp -= gen->getRealPower();
         }
         if (gen->checkFlag(ADJUSTABLE_Q)) {
             ++adjQSecondary;
         } else {
-            Qexp -= gen->getReactivePower();
+            qexp -= gen->getReactivePower();
         }
     }
-    if (unfixed_lines == 1) {
+    if (unfixedLines == 1) {
         if ((adjPSecondary == 0) && (adjQSecondary == 0)) {
-            unfixed_line->fixPower(-Pexp, -Qexp, getID(), getID());
+            unfixedLine->fixPower(-pexp, -qexp, getID(), getID());
         }
     } else {
         // no lines so adjust the generators and load
@@ -856,24 +860,24 @@ int GridBus::propogatePower(bool /*makeSlack*/)
             int found = 0;
             for (auto& gen : attachedGens) {
                 if (gen->checkFlag(ADJUSTABLE_P)) {
-                    gen->set("p", Pexp);
+                    gen->set("p", pexp);
                     ++found;
                 }
                 if (gen->checkFlag(ADJUSTABLE_Q)) {
-                    gen->set("q", Qexp);
+                    gen->set("q", qexp);
                     ++found;
                 }
                 if (found == 2) {
                     return 1;
                 }
             }
-            for (auto& ld : attachedLoads) {
-                if (ld->checkFlag(ADJUSTABLE_P)) {
-                    ld->set("p", -Pexp);
+            for (auto& load : attachedLoads) {
+                if (load->checkFlag(ADJUSTABLE_P)) {
+                    load->set("p", -pexp);
                     ++found;
                 }
-                if (ld->checkFlag(ADJUSTABLE_Q)) {
-                    ld->set("q", -Qexp);
+                if (load->checkFlag(ADJUSTABLE_Q)) {
+                    load->set("q", -qexp);
                     ++found;
                 }
                 if (found == 2) {
@@ -915,7 +919,7 @@ void GridBus::derivative(const IOdata& inputs,
     GridComponent::derivative(outputs, stateDataValue, deriv, sMode);
 }
 
-static const IOlocs kNullLocations{kNullLocation, kNullLocation, kNullLocation};
+static const IOlocs K_NULL_LOCATIONS{kNullLocation, kNullLocation, kNullLocation};
 
 // Jacobian
 void GridBus::jacobianElements(const IOdata& inputs,
@@ -929,7 +933,7 @@ void GridBus::jacobianElements(const IOdata& inputs,
 
     // printf("t=%f,id=%d, dpdt=%f, dpdv=%f, dqdt=%f, dqdv=%f\n", time, id, Ptii, Pvii, Qvii, Qtii);
 
-    const IOlocs& coutLocs = (hasAlgebraic(sMode)) ? outLocs : kNullLocations;
+    const IOlocs& coutLocs = (hasAlgebraic(sMode)) ? outLocs : K_NULL_LOCATIONS;
     GridComponent::jacobianElements(outputs, stateDataValue, matrixDataValue, coutLocs, sMode);
 }
 
@@ -938,26 +942,25 @@ double GridBus::lastError() const
     return std::abs(S.sumP()) + std::abs(S.sumQ());
 }
 
-inline double
-    dVcheck(double dV, double currV, double drFrac = 0.75, double mxRise = 0.2, double cRcheck = 0)
+static inline double dVcheck(double deltaVoltage,
+                             double currentVoltage,
+                             double deltaRiseFrac = 0.75,
+                             double maxRise = 0.2,
+                             double currentRiseCheck = 0)
 {
-    if (currV - dV > cRcheck) {
-        if (dV < -mxRise) {
-            dV = -mxRise;
-        }
+    if (currentVoltage - deltaVoltage > currentRiseCheck) {
+        deltaVoltage = std::max(deltaVoltage, -maxRise);
     }
-    if (dV > drFrac * currV) {
-        dV = drFrac * currV;
-    }
-    return dV;
+    deltaVoltage = std::min(deltaVoltage, deltaRiseFrac * currentVoltage);
+    return deltaVoltage;
 }
 
-inline double dAcheck(double dT, double /*currA*/, double mxch = kPI / 8.0)
+static inline double dAcheck(double deltaTheta, double /*currA*/, double maxChange = kPI / 8.0)
 {
-    if (std::abs(dT) > mxch) {
-        dT = std::copysign(mxch, dT);
+    if (std::abs(deltaTheta) > maxChange) {
+        deltaTheta = std::copysign(maxChange, deltaTheta);
     }
-    return dT;
+    return deltaTheta;
 }
 
 void GridBus::voltageUpdate(const StateData& /*stateDataValue*/,
@@ -994,7 +997,7 @@ double GridBus::computeError(const StateData& stateDataValue, const SolverMode& 
 {
     updateLocalCache(noInputs, stateDataValue, sMode);
 
-    double err = std::abs(S.sumP()) + std::abs(S.sumQ());
+    const double err = std::abs(S.sumP()) + std::abs(S.sumQ());
 
     return err;
 }
@@ -1016,7 +1019,7 @@ void GridBus::disconnect()
     }
 }
 
-void GridBus::reconnect(GridBus* mapBus)
+void GridBus::reconnect(GridBus* mapBus)  // NOLINT(misc-no-recursion)
 {
     if (opFlags[DISCONNECTED]) {
         logging::debug(this, "reconnecting to network");
@@ -1035,7 +1038,7 @@ void GridBus::reconnect(GridBus* mapBus)
     }
 }
 
-void GridBus::reconnect()
+void GridBus::reconnect()  // NOLINT(misc-no-recursion)
 {
     reconnect(nullptr);
 }
@@ -1047,7 +1050,7 @@ void GridBus::updateFlags(bool dynOnly)
     GridComponent::updateFlags(dynOnly);
 }
 
-static const IOlocs inLoc{0, 1, 2};
+static const IOlocs IN_LOC{0, 1, 2};
 
 #define DEBUG_KEY_BUS 0
 // computed power at bus
@@ -1099,11 +1102,11 @@ void GridBus::updateLocalCache(const IOdata& /*inputs*/,
         return;
     }
 
-    for (auto& ld : attachedLoads) {
-        if (ld->isConnected() && ld->isEnabled()) {
-            ld->updateLocalCache(outputs, stateDataValue, sMode);
-            S.loadP += ld->getRealPower(outputs, stateDataValue, sMode);
-            S.loadQ += ld->getReactivePower(outputs, stateDataValue, sMode);
+    for (auto& load : attachedLoads) {
+        if (load->isConnected() && load->isEnabled()) {
+            load->updateLocalCache(outputs, stateDataValue, sMode);
+            S.loadP += load->getRealPower(outputs, stateDataValue, sMode);
+            S.loadQ += load->getReactivePower(outputs, stateDataValue, sMode);
         }
     }
 
@@ -1634,7 +1637,7 @@ GridBus* getMatchingBus(GridBus* bus, const GridPrimary* src, GridPrimary* sec)
         return sec->getBus(bus->locIndex);
     }
 
-    auto par = dynamic_cast<GridPrimary*>(bus->getParent());
+    auto* par = dynamic_cast<GridPrimary*>(bus->getParent());
     if (par == nullptr) {
         return nullptr;
     }

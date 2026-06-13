@@ -24,8 +24,8 @@ and other internal states
 given object
 @param[in] comp the object to compute the partial derivatives for
 @param[in] inputs the inputs for the secondary object
-* @param[in] sD the current state data for the simulation
-* @param[out] md  the array to store the information in
+* @param[in] stateData the current state data for the simulation
+* @param[out] matrixData the array to store the information in
 * @param[in] inputLocs the vector of input argument locations
 * @param[in] sMode the operations mode
 **/

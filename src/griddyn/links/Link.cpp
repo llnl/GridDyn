@@ -406,7 +406,7 @@ double Link::get(std::string_view param, unit unitType) const
     } else if (param == "circuit") {
         val = circuitNum;
     } else {
-        auto fptr = getObjectFunction(this, std::string{param});
+        auto fptr = getObjectFunction(this, param);
         if (fptr.first) {
             CoreObject* tobj = const_cast<Link*>(this);
             val = convert(fptr.first(tobj), fptr.second, unitType, systemBasePower);

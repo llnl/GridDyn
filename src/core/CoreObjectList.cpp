@@ -74,7 +74,7 @@ bool CoreObjectList::insert(CoreObject* obj, bool replace)
 
 CoreObject* CoreObjectList::find(std::string_view objName) const
 {
-    auto foundObject = m_idsByName.find(std::string{objName});
+    auto foundObject = m_idsByName.find(objName);
     if (foundObject != m_idsByName.end()) {
         auto objectIndex = m_objectsById.find(foundObject->second);
         if (objectIndex != m_objectsById.end()) {
@@ -115,7 +115,7 @@ bool CoreObjectList::remove(CoreObject* obj)
 
 bool CoreObjectList::remove(std::string_view objName)
 {
-    auto foundObject = m_idsByName.find(std::string{objName});
+    auto foundObject = m_idsByName.find(objName);
     if (foundObject == m_idsByName.end()) {
         return false;
     }

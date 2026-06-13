@@ -54,7 +54,7 @@ int CommunicationsCore::send(std::uint64_t source,
                              std::string_view dest,
                              const std::shared_ptr<CommMessage>& message)
 {
-    auto res = mStringMap.find(std::string{dest});
+    auto res = mStringMap.find(dest);
     if (res != mStringMap.end()) {
         res->second->receive(source, dest, message);
         return SEND_SUCCESS;
@@ -76,7 +76,7 @@ int CommunicationsCore::send(std::uint64_t source,
 
 std::uint64_t CommunicationsCore::lookup(std::string_view commName) const
 {
-    auto res = mStringMap.find(std::string{commName});
+    auto res = mStringMap.find(commName);
     return (res != mStringMap.end()) ? res->second->getID() : 0;
 }
 std::string CommunicationsCore::lookup(std::uint64_t did) const

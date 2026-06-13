@@ -29,25 +29,25 @@ class GridSubModel;
 
 using fobjectPair = std::pair<std::function<double(CoreObject*)>, units::unit>;
 
-fobjectPair getObjectFunction(const GridComponent* comp, const std::string& field);
-fobjectPair getObjectFunction(const GridBus* bus, const std::string& field);
-fobjectPair getObjectFunction(const GridLoad* loadObject, const std::string& field);
-fobjectPair getObjectFunction(const Link* lnk, const std::string& field);
-fobjectPair getObjectFunction(const Generator* gen, const std::string& field);
-fobjectPair getObjectFunction(const GridArea* area, const std::string& field);
-fobjectPair getObjectFunction(const Relay* rel, const std::string& field);
-fobjectPair getObjectFunction(const GridSubModel* sub, const std::string& field);
+fobjectPair getObjectFunction(const GridComponent* comp, std::string_view field);
+fobjectPair getObjectFunction(const GridBus* bus, std::string_view field);
+fobjectPair getObjectFunction(const GridLoad* loadObject, std::string_view field);
+fobjectPair getObjectFunction(const Link* lnk, std::string_view field);
+fobjectPair getObjectFunction(const Generator* gen, std::string_view field);
+fobjectPair getObjectFunction(const GridArea* area, std::string_view field);
+fobjectPair getObjectFunction(const Relay* rel, std::string_view field);
+fobjectPair getObjectFunction(const GridSubModel* sub, std::string_view field);
 
 using fvecPair = std::pair<std::function<void(CoreObject*, std::vector<double>&)>, units::unit>;
 
-fvecPair getObjectVectorFunction(const GridComponent* comp, const std::string& field);
+fvecPair getObjectVectorFunction(const GridComponent* comp, std::string_view field);
 
-fvecPair getObjectVectorFunction(const GridArea* area, const std::string& field);
+fvecPair getObjectVectorFunction(const GridArea* area, std::string_view field);
 
 using descVecFunc = std::function<void(CoreObject*, stringVec&)>;
 
-descVecFunc getObjectVectorDescFunction(const GridComponent* comp, const std::string& field);
-descVecFunc getObjectVectorDescFunction(const GridArea* area, const std::string& field);
+descVecFunc getObjectVectorDescFunction(const GridComponent* comp, std::string_view field);
+descVecFunc getObjectVectorDescFunction(const GridArea* area, std::string_view field);
 
 const char objEmptyString[] = "";
 
@@ -86,20 +86,19 @@ class ObjectGrabber: public GridGrabber {
     void updateField(std::string_view fld) override
     {
         field = fld;
-        const std::string fldString{fld};
-        auto fret = getObjectFunction(mTypedObject, fldString);
+        auto fret = getObjectFunction(mTypedObject, fld);
         if (fret.first) {
             mGrabberFunction = fret.first;
             inputUnits = fret.second;
             loaded = checkIfLoaded();
             return;
         }
-        auto fvecret = getObjectVectorFunction(mTypedObject, fldString);
+        auto fvecret = getObjectVectorFunction(mTypedObject, fld);
         if (fvecret.first) {
             mVectorGrabberFunction = fvecret.first;
             inputUnits = fvecret.second;
             vectorGrab = true;
-            mVectorDescriptionFunction = getObjectVectorDescFunction(mTypedObject, fldString);
+            mVectorDescriptionFunction = getObjectVectorDescFunction(mTypedObject, fld);
             loaded = checkIfLoaded();
             return;
         }

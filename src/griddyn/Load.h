@@ -30,10 +30,10 @@ class GridLoad: public GridSecondary {
     /** constructor which takes the object name*/
     explicit GridLoad(const std::string& objName = "load_$");
     /** alternate constructor taking p and q values in addition to the name
-    @param[in] rP the real power consumption of the load
-    @param[in] rQ the reactive power consumption of the load
+    @param[in] realPower the real power consumption of the load
+    @param[in] reactivePower the reactive power consumption of the load
     @objName the name of the load object*/
-    GridLoad(double rP, double rQ, const std::string& objName = "load_$");
+    GridLoad(double realPower, double reactivePower, const std::string& objName = "load_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
@@ -53,11 +53,11 @@ class GridLoad: public GridSecondary {
       */
     virtual void setLoad(double level, units::unit unitType = units::defunit);
     /** set the real and reactive output power with the specified units
-    @param[in] Plevel the real power output setting
-    @param[in] Qlevel the reactive power output setting
+    @param[in] plevel the real power output setting
+    @param[in] qlevel the reactive power output setting
     @param[in] unitType the units on the real power
     */
-    virtual void setLoad(double Plevel, double Qlevel, units::unit unitType = units::defunit);
+    virtual void setLoad(double plevel, double qlevel, units::unit unitType = units::defunit);
 
     virtual double getRealPower(const IOdata& inputs,
                                 const StateData& sD,

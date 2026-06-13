@@ -339,8 +339,8 @@ double Generator::get(std::string_view param, unit unitType) const
         ret = convert(getQmax(), puMW, unitType, systemBasePower, localBaseVoltage);
     } else if (param == "qmin") {
         ret = convert(getQmin(), puMW, unitType, systemBasePower, localBaseVoltage);
-    } else if (auto fptr = getObjectFunction(this, std::string{param}).first) {
-        auto unit = getObjectFunction(this, std::string{param}).second;
+    } else if (auto fptr = getObjectFunction(this, param).first) {
+        auto unit = getObjectFunction(this, param).second;
         CoreObject* tobj = const_cast<Generator*>(this);
         ret = convert(fptr(tobj), unit, unitType, systemBasePower, localBaseVoltage);
     } else {

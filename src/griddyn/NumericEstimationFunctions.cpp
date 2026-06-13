@@ -8,40 +8,37 @@
 
 #include "GridComponent.h"
 #include "utilities/MatrixData.hpp"
+#include <ranges>
 #include <vector>
 
 namespace griddyn {
+namespace {
+    void appendStateRange(std::vector<index_t>& states, index_t offset, index_t count)
+    {
+        auto stateRange = std::views::iota(index_t{0}, count) |
+            std::views::transform([offset](index_t stateIndex) { return offset + stateIndex; });
+        std::ranges::copy(stateRange, std::back_inserter(states));
+    }
+}  // namespace
+
 // work in progress
 void numericJacobianCalculation(GridComponent* /* comp */,
-                                const IOdata& inputs,
-                                const StateData& sD,
-                                MatrixData<double>& md,
+                                const IOdata& /*inputs*/,
+                                const StateData& stateData,
+                                MatrixData<double>& matrixData,
                                 const IOlocs& /*inputLocs*/,
                                 const SolverMode& /*sMode*/)
 {
     std::vector<double> test;
     [[maybe_unused]] std::vector<double> testState;
-    [[maybe_unused]] double* stateTest = sD.scratch2;
-    if (!sD.hasScratch()) {
-        auto ns = md.rowLimit();
-        if (ns != kCountMax) {
-            test.resize(ns);
-            testState.resize(ns);
+    [[maybe_unused]] const double* stateTest = stateData.scratch2;
+    if (!stateData.hasScratch()) {
+        auto stateCount = matrixData.rowLimit();
+        if (stateCount != kCountMax) {
+            test.resize(stateCount);
+            testState.resize(stateCount);
         }
         stateTest = testState.data();
-    }
-
-    [[maybe_unused]] IOdata testInputs = inputs;
-}
-
-void copyObjectLocalState(GridComponent* comp,
-                          const double state[],
-                          double newState[],
-                          const SolverMode& sMode)
-{
-    auto sts = getObjectLocalStateIndices(comp, sMode);
-    for (auto st : sts) {
-        newState[st] = state[st];
     }
 }
 
@@ -49,29 +46,15 @@ std::vector<index_t> getObjectLocalStateIndices(const GridComponent* comp, const
 {
     std::vector<index_t> states;
     const auto& offsets = comp->getOffsets(sMode);
+    states.reserve(static_cast<size_t>(offsets.local.vSize) + offsets.local.aSize +
+                   offsets.local.algSize + offsets.local.diffSize);
     if (hasAlgebraic(sMode)) {
-        if (offsets.local.vSize > 0) {
-            for (index_t ii = 0; ii < offsets.local.vSize; ++ii) {
-                states.push_back(offsets.vOffset + ii);
-            }
-        }
-        if (offsets.local.aSize > 0) {
-            for (index_t ii = 0; ii < offsets.local.aSize; ++ii) {
-                states.push_back(offsets.aOffset + ii);
-            }
-        }
-        if (offsets.local.algSize > 0) {
-            for (index_t ii = 0; ii < offsets.local.algSize; ++ii) {
-                states.push_back(offsets.algOffset + ii);
-            }
-        }
+        appendStateRange(states, offsets.vOffset, offsets.local.vSize);
+        appendStateRange(states, offsets.aOffset, offsets.local.aSize);
+        appendStateRange(states, offsets.algOffset, offsets.local.algSize);
     }
     if (hasDifferential(sMode)) {
-        if (offsets.local.diffSize > 0) {
-            for (index_t ii = 0; ii < offsets.local.diffSize; ++ii) {
-                states.push_back(offsets.diffOffset + ii);
-            }
-        }
+        appendStateRange(states, offsets.diffOffset, offsets.local.diffSize);
     }
     return states;
 }

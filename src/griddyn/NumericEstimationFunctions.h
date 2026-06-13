@@ -24,30 +24,18 @@ and other internal states
 given object
 @param[in] comp the object to compute the partial derivatives for
 @param[in] inputs the inputs for the secondary object
-* @param[in] sD the current state data for the simulation
-* @param[out] md  the array to store the information in
+* @param[in] stateData the current state data for the simulation
+* @param[out] matrixData the array to store the information in
 * @param[in] inputLocs the vector of input argument locations
 * @param[in] sMode the operations mode
 **/
 
 void numericJacobianCalculation(GridComponent* comp,
                                 const IOdata& inputs,
-                                const StateData& sD,
-                                MatrixData<double>& md,
+                                const StateData& stateData,
+                                MatrixData<double>& matrixData,
                                 const IOlocs& inputLocs,
                                 const SolverMode& sMode);
-
-/**
-@brief function to copy the local state of an object from one data to another
-@param[in] comp  the object to copy the state for
-@param[in] state the current state vector
-@param[out] newstate the location to copy the state information
-@param[in] sMode the solver mode corresponding to the state
-*/
-void copyObjectLocalState(const GridComponent* comp,
-                          const double state[],
-                          double newstate[],
-                          const SolverMode& sMode);
 
 /** @brief get a vector of all the local state locations of an object
 @param[in] comp  the object get all the state locations

@@ -26,7 +26,7 @@ ControlRelay::ControlRelay(const std::string& objName): Relay(objName) {}
 
 CoreObject* ControlRelay::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<ControlRelay, Relay>(this, obj);
+    auto* nobj = cloneBase<ControlRelay, Relay>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -49,10 +49,13 @@ void ControlRelay::setFlag(std::string_view flag, bool val)
 
 void ControlRelay::addMeasurement(std::string_view measure)
 {
-    auto vals = makeGrabbers(measure,
-                             (m_sourceObject != nullptr)   ? m_sourceObject :
-                                 (m_sinkObject != nullptr) ? m_sinkObject :
-                                                             getParent());
+    CoreObject* targetObject = getParent();
+    if (m_sourceObject != nullptr) {
+        targetObject = m_sourceObject;
+    } else if (m_sinkObject != nullptr) {
+        targetObject = m_sinkObject;
+    }
+    auto vals = makeGrabbers(measure, targetObject);
 
     for (auto& ggb : vals) {
         pointNames_.emplace(gmlc::utilities::convertToLowerCase(ggb->getDesc()),
@@ -77,7 +80,7 @@ double ControlRelay::getMeasurement(std::string_view pointName) const
 
 index_t ControlRelay::findMeasurement(std::string_view pointName) const
 {
-    auto fnd = pointNames_.find(std::string{pointName});
+    auto fnd = pointNames_.find(pointName);
     return (fnd != pointNames_.end()) ? fnd->second : kNullLocation;
 }
 /*
@@ -127,79 +130,73 @@ void ControlRelay::actionTaken(index_t actionNum,
                                CoreTime /*actionTime*/)
 {
     logging::normal(this, "condition {}-> action {} taken", conditionNum, actionNum);
-    (void)(actionNum);
-    (void)(conditionNum);
 }
 
 using cm = griddyn::comms::ControlMessagePayload;
 
 void ControlRelay::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMessage> message)
 {
-    auto m = message->getPayload<cm>();
+    auto* messagePayload = message->getPayload<cm>();
     index_t actnum;
     ++instructionCounter;
 
     switch (message->getMessageType()) {
         case cm::SET:
-            if (m->m_time <= prevTime + kSmallTime) {
+            if (messagePayload->m_time <= prevTime + kSmallTime) {
                 if (actionDelay <= kSmallTime) {
-                    auto fea = generateSetEvent(prevTime, sourceID, m);
+                    auto fea = generateSetEvent(prevTime, sourceID, messagePayload);
                     fea->execute(prevTime);  // just execute the event immediately
                 } else {
-                    auto fea = generateSetEvent(prevTime + actionDelay, sourceID, m);
+                    auto fea = generateSetEvent(prevTime + actionDelay, sourceID, messagePayload);
                     rootSim->add(std::shared_ptr<EventAdapter>(std::move(fea)));
                 }
             } else {
                 auto gres = std::make_shared<CommMessage>(cm::SET_SCHEDULED);
-                gres->getPayload<cm>()->m_actionID =
-                    (m->m_actionID > 0) ? m->m_actionID : instructionCounter;
+                gres->getPayload<cm>()->m_actionID = (messagePayload->m_actionID > 0) ?
+                    messagePayload->m_actionID :
+                    instructionCounter;
 
-                commLink->transmit(sourceID, std::move(gres));
+                commLink->transmit(sourceID, gres);
                 // make the event
-                auto fea = generateSetEvent(m->m_time, sourceID, m);
+                auto fea = generateSetEvent(messagePayload->m_time, sourceID, messagePayload);
                 rootSim->add(std::shared_ptr<EventAdapter>(std::move(fea)));
             }
             break;
         case cm::GET:
-            if (m->m_time <= prevTime + kSmallTime) {
+            if (messagePayload->m_time <= prevTime + kSmallTime) {
                 if (measureDelay <= kSmallTime) {
                     // just generate the action and execute it
-                    auto fea = generateGetEvent(prevTime, sourceID, m);
+                    auto fea = generateGetEvent(prevTime, sourceID, messagePayload);
                     fea->execute(prevTime);  // just execute the event immediately
                 } else {
-                    auto fea = generateGetEvent(m->m_time + measureDelay, sourceID, m);
+                    auto fea = generateGetEvent(messagePayload->m_time + measureDelay,
+                                                sourceID,
+                                                messagePayload);
                     rootSim->add(std::shared_ptr<EventAdapter>(std::move(fea)));
                 }
             } else {
                 auto gres = std::make_shared<CommMessage>(cm::SET_SCHEDULED);
-                gres->getPayload<cm>()->m_actionID =
-                    (m->m_actionID > 0) ? m->m_actionID : instructionCounter;
-                commLink->transmit(sourceID, std::move(gres));
-                auto fea = generateGetEvent(m->m_time, sourceID, m);
+                gres->getPayload<cm>()->m_actionID = (messagePayload->m_actionID > 0) ?
+                    messagePayload->m_actionID :
+                    instructionCounter;
+                commLink->transmit(sourceID, gres);
+                auto fea = generateGetEvent(messagePayload->m_time, sourceID, messagePayload);
                 rootSim->add(std::shared_ptr<EventAdapter>(std::move(fea)));
             }
             break;
         case cm::GET_MULTIPLE:
-            if (m->m_time <= prevTime + kSmallTime) {
-                if (measureDelay <= kSmallTime) {
-                } else {
-                }
-            } else {
-            }
-            break;
-        case cm::GET_PERIODIC:
-            break;
         case cm::GET_RESULT_MULTIPLE:
         case cm::SET_SUCCESS:
         case cm::SET_FAIL:
         case cm::GET_RESULT:
         case cm::SET_SCHEDULED:
         case cm::GET_SCHEDULED:
+        case cm::GET_PERIODIC:
         case cm::CANCEL_FAIL:
         case cm::CANCEL_SUCCESS:
             break;
         case cm::CANCEL:
-            actnum = findAction(m->m_actionID);
+            actnum = findAction(messagePayload->m_actionID);
 
             if (actnum != kNullLocation) {
                 if ((!actions[actnum].executed) &&
@@ -208,18 +205,20 @@ void ControlRelay::receiveMessage(std::uint64_t sourceID, std::shared_ptr<CommMe
                                       // not closer than the actionDelay
                     actions[actnum].executed = true;
                     auto gres = std::make_shared<CommMessage>(cm::CANCEL_SUCCESS);
-                    gres->getPayload<cm>()->m_actionID = m->m_actionID;
-                    commLink->transmit(sourceID, std::move(gres));
+                    gres->getPayload<cm>()->m_actionID = messagePayload->m_actionID;
+                    commLink->transmit(sourceID, gres);
                 } else {
                     auto gres = std::make_shared<CommMessage>(cm::CANCEL_FAIL);
-                    gres->getPayload<cm>()->m_actionID = m->m_actionID;
-                    commLink->transmit(sourceID, std::move(gres));
+                    gres->getPayload<cm>()->m_actionID = messagePayload->m_actionID;
+                    commLink->transmit(sourceID, gres);
                 }
             } else {
                 auto gres = std::make_shared<CommMessage>(cm::CANCEL_FAIL);
-                gres->getPayload<cm>()->m_actionID = m->m_actionID;
-                commLink->transmit(sourceID, std::move(gres));
+                gres->getPayload<cm>()->m_actionID = messagePayload->m_actionID;
+                commLink->transmit(sourceID, gres);
             }
+            break;
+        default:
             break;
     }
 }
@@ -274,11 +273,11 @@ ChangeCode ControlRelay::executeAction(index_t actionNum)
                 }
             }
             auto gres = std::make_shared<CommMessage>(cm::GET_RESULT);
-            auto ptr = gres->getPayload<cm>();
-            ptr->m_field = cact.field;
-            ptr->m_value = val;
-            ptr->m_time = prevTime;
-            commLink->transmit(cact.sourceID, std::shared_ptr<CommMessage>(std::move(gres)));
+            auto* payload = gres->getPayload<cm>();
+            payload->m_field = cact.field;
+            payload->m_value = val;
+            payload->m_time = prevTime;
+            commLink->transmit(cact.sourceID, gres);
             return ChangeCode::NO_CHANGE;
         }
 
@@ -301,7 +300,7 @@ ChangeCode ControlRelay::executeAction(index_t actionNum)
             {
                 auto gres = std::make_shared<CommMessage>(cm::SET_SUCCESS);
                 gres->getPayload<cm>()->m_actionID = cact.actionID;
-                commLink->transmit(cact.sourceID, std::move(gres));
+                commLink->transmit(cact.sourceID, gres);
             }
             return ChangeCode::PARAMETER_CHANGE;
         }
@@ -310,7 +309,7 @@ ChangeCode ControlRelay::executeAction(index_t actionNum)
             {
                 auto gres = std::make_shared<CommMessage>(cm::SET_FAIL);
                 gres->getPayload<cm>()->m_actionID = cact.actionID;
-                commLink->transmit(cact.sourceID, std::shared_ptr<CommMessage>(std::move(gres)));
+                commLink->transmit(cact.sourceID, gres);
             }
             return ChangeCode::EXECUTION_FAILURE;
         }

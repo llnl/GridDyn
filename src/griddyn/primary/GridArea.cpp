@@ -28,6 +28,8 @@
 #include <vector>
 
 namespace griddyn {
+// The GridArea object graph is traversed recursively throughout this file by design.
+// NOLINTBEGIN(misc-no-recursion)
 using gmlc::utilities::ensureSizeAtLeast;
 using gmlc::utilities::vecFindne;
 using units::convert;
@@ -41,7 +43,7 @@ using units::unit;
 std::atomic<count_t> GridArea::areaCounter{0};
 
 static TypeFactory<GridArea>
-    gf("area", std::to_array<std::string_view>({"basic", "simple"}), "basic");
+    gAreaFactory("area", std::to_array<std::string_view>({"basic", "simple"}), "basic");
 
 GridArea::GridArea(const std::string& objName): GridPrimary(objName)
 {
@@ -65,8 +67,8 @@ CoreObject* GridArea::clone(CoreObject* obj) const
     // clone all the areas
     for (size_t kk = 0; kk < m_GridAreas.size(); kk++) {
         if (kk >= area->m_GridAreas.size()) {
-            auto* gA = static_cast<GridArea*>(m_GridAreas[kk]->clone());
-            area->add(gA);
+            auto* gridArea = static_cast<GridArea*>(m_GridAreas[kk]->clone());
+            area->add(gridArea);
         } else {
             m_GridAreas[kk]->clone(area->m_GridAreas[kk]);
         }
@@ -148,16 +150,20 @@ void GridArea::add(CoreObject* obj)
         return;
     }
     if (dynamic_cast<GridBus*>(obj) != nullptr) {
-        return add(static_cast<GridBus*>(obj));
+        add(static_cast<GridBus*>(obj));
+        return;
     }
     if (dynamic_cast<Link*>(obj) != nullptr) {
-        return add(static_cast<Link*>(obj));
+        add(static_cast<Link*>(obj));
+        return;
     }
     if (dynamic_cast<GridArea*>(obj) != nullptr) {
-        return add(static_cast<GridArea*>(obj));
+        add(static_cast<GridArea*>(obj));
+        return;
     }
     if (dynamic_cast<Relay*>(obj) != nullptr) {
-        return add(static_cast<Relay*>(obj));
+        add(static_cast<Relay*>(obj));
+        return;
     }
 
     obj->addOwningReference();
@@ -223,16 +229,20 @@ void GridArea::remove(CoreObject* obj)
         return;
     }
     if (dynamic_cast<GridBus*>(obj) != nullptr) {
-        return remove(static_cast<GridBus*>(obj));
+        remove(static_cast<GridBus*>(obj));
+        return;
     }
     if (dynamic_cast<Link*>(obj) != nullptr) {
-        return remove(static_cast<Link*>(obj));
+        remove(static_cast<Link*>(obj));
+        return;
     }
     if (dynamic_cast<GridArea*>(obj) != nullptr) {
-        return remove(static_cast<GridArea*>(obj));
+        remove(static_cast<GridArea*>(obj));
+        return;
     }
     if (dynamic_cast<Relay*>(obj) != nullptr) {
-        return remove(static_cast<Relay*>(obj));
+        remove(static_cast<Relay*>(obj));
+        return;
     }
     // try removing from the objectHolder List
     if ((!isValidIndex(obj->locIndex, objectHolder)) ||
@@ -246,7 +256,7 @@ void GridArea::remove(CoreObject* obj)
     } else {
         objectHolder.erase(objectHolder.begin() + obj->locIndex);
         // now shift the indices
-        for (auto kk = obj->locIndex; kk < static_cast<index_t>(objectHolder.size()); ++kk) {
+        for (auto kk = obj->locIndex; std::cmp_less(kk, objectHolder.size()); ++kk) {
             objectHolder[kk]->locIndex = kk;
         }
         obList->remove(obj);
@@ -325,46 +335,46 @@ void GridArea::alert(CoreObject* obj, int code)
     }
 }
 
-GridBus* GridArea::getBus(index_t x) const
+GridBus* GridArea::getBus(index_t index) const
 {
-    return (isValidIndex(x, m_Buses)) ? m_Buses[x] : nullptr;
+    return (isValidIndex(index, m_Buses)) ? m_Buses[index] : nullptr;
 }
 
-Link* GridArea::getLink(index_t x) const
+Link* GridArea::getLink(index_t index) const
 {
-    return (isValidIndex(x, m_Links)) ? m_Links[x] : nullptr;
+    return (isValidIndex(index, m_Links)) ? m_Links[index] : nullptr;
 }
 
-GridArea* GridArea::getArea(index_t x) const
+GridArea* GridArea::getArea(index_t index) const
 {
-    return (isValidIndex(x, m_GridAreas)) ? m_GridAreas[x] : nullptr;
+    return (isValidIndex(index, m_GridAreas)) ? m_GridAreas[index] : nullptr;
 }
 
-GridArea* GridArea::getGridArea(index_t x) const
+GridArea* GridArea::getGridArea(index_t index) const
 {
-    return getArea(x);
+    return getArea(index);
 }
 
-Relay* GridArea::getRelay(index_t x) const
+Relay* GridArea::getRelay(index_t index) const
 {
-    return (isValidIndex(x, m_Relays)) ? m_Relays[x] : nullptr;
+    return (isValidIndex(index, m_Relays)) ? m_Relays[index] : nullptr;
 }
 
-Generator* GridArea::getGen(index_t x)
+Generator* GridArea::getGen(index_t index)
 {
-    for (auto* a : m_GridAreas) {
-        auto tcnt = static_cast<count_t>(a->get("gencount"));
-        if (x < tcnt) {
-            return (a->getGen(x));
+    for (auto* areaObject : m_GridAreas) {
+        const auto tcnt = static_cast<count_t>(areaObject->get("gencount"));
+        if (index < tcnt) {
+            return (areaObject->getGen(index));
         }
-        x = x - tcnt;
+        index = index - tcnt;
     }
-    for (auto* b : m_Buses) {
-        count_t tcnt = static_cast<count_t>(b->get("gencount"));
-        if (x < tcnt) {
-            return b->getGen(x);
+    for (auto* busObject : m_Buses) {
+        const auto tcnt = static_cast<count_t>(busObject->get("gencount"));
+        if (index < tcnt) {
+            return busObject->getGen(index);
         }
-        x = x - tcnt;
+        index = index - tcnt;
     }
     return nullptr;
 }
@@ -426,7 +436,7 @@ void GridArea::setAll(std::string_view type,
                 obj->set(param, val, unitType);
             }
             catch (const UnrecognizedParameter&) {
-                // we ignore this exception in this function
+                continue;
             }
         }
     }
@@ -435,7 +445,7 @@ void GridArea::setAll(std::string_view type,
             set(param, val, unitType);
         }
         catch (const UnrecognizedParameter&) {
-            // we ignore this exception in this function
+            static_cast<void>(0);
         }
         for (auto& area : m_GridAreas) {
             area->setAll(type, param, val, unitType);
@@ -446,7 +456,7 @@ void GridArea::setAll(std::string_view type,
                 bus->set(param, val, unitType);
             }
             catch (const UnrecognizedParameter&) {
-                // we ignore this exception in this function
+                continue;
             }
         }
     } else if (type == "link") {
@@ -455,7 +465,7 @@ void GridArea::setAll(std::string_view type,
                 lnk->set(param, val, unitType);
             }
             catch (const UnrecognizedParameter&) {
-                // we ignore this exception in this function
+                continue;
             }
         }
     } else if (type == "relay") {
@@ -464,7 +474,7 @@ void GridArea::setAll(std::string_view type,
                 rel->set(param, val, unitType);
             }
             catch (const UnrecognizedParameter&) {
-                // we ignore this exception in this function
+                continue;
             }
         }
     } else if ((type == "gen") || (type == "load") || (type == "generator") ||
@@ -511,34 +521,34 @@ CoreObject* GridArea::findByUserID(std::string_view typeName, index_t searchID) 
         return nullptr;
     }
     if (typeName == "bus") {
-        for (auto* po : possObjs) {
-            if (isValidIndex(po->locIndex, m_Buses)) {
-                if (isSameObject(po, m_Buses[po->locIndex])) {
-                    return po;
+        for (auto* possibleObject : possObjs) {
+            if (isValidIndex(possibleObject->locIndex, m_Buses)) {
+                if (isSameObject(possibleObject, m_Buses[possibleObject->locIndex])) {
+                    return possibleObject;
                 }
             }
         }
     } else if (typeName == "link") {
-        for (auto* po : possObjs) {
-            if (isValidIndex(po->locIndex, m_Links)) {
-                if (isSameObject(po, m_Links[po->locIndex])) {
-                    return po;
+        for (auto* possibleObject : possObjs) {
+            if (isValidIndex(possibleObject->locIndex, m_Links)) {
+                if (isSameObject(possibleObject, m_Links[possibleObject->locIndex])) {
+                    return possibleObject;
                 }
             }
         }
     } else if (typeName == "area") {
-        for (auto* po : possObjs) {
-            if (isValidIndex(po->locIndex, m_GridAreas)) {
-                if (isSameObject(po, m_GridAreas[po->locIndex])) {
-                    return po;
+        for (auto* possibleObject : possObjs) {
+            if (isValidIndex(possibleObject->locIndex, m_GridAreas)) {
+                if (isSameObject(possibleObject, m_GridAreas[possibleObject->locIndex])) {
+                    return possibleObject;
                 }
             }
         }
     } else if (typeName == "relay") {
-        for (auto* po : possObjs) {
-            if (isValidIndex(po->locIndex, m_Relays)) {
-                if (isSameObject(po, m_Relays[po->locIndex])) {
-                    return po;
+        for (auto* possibleObject : possObjs) {
+            if (isValidIndex(possibleObject->locIndex, m_Relays)) {
+                if (isSameObject(possibleObject, m_Relays[possibleObject->locIndex])) {
+                    return possibleObject;
                 }
             }
         }
@@ -678,17 +688,13 @@ ChangeCode GridArea::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, 
     if (level < CheckLevel::LOW_VOLTAGE_CHECK) {
         for (auto* obj : pFlowAdjustObjects) {
             auto iret = obj->powerFlowAdjust(inputs, flags, level);
-            if (iret > ret) {
-                ret = iret;
-            }
+            ret = std::max(iret, ret);
         }
     } else {
         for (auto* obj : primaryObjects) {
             if (obj->isEnabled()) {
                 auto iret = obj->powerFlowAdjust(inputs, flags, level);
-                if (iret > ret) {
-                    ret = iret;
-                }
+                ret = std::max(iret, ret);
             }
         }
     }
@@ -700,10 +706,10 @@ ChangeCode GridArea::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, 
     return ret;
 }
 
-void GridArea::pFlowCheck(std::vector<Violation>& Violation_vector)
+void GridArea::pFlowCheck(std::vector<Violation>& violationVector)
 {
     for (auto* obj : primaryObjects) {
-        obj->pFlowCheck(Violation_vector);
+        obj->pFlowCheck(violationVector);
     }
 }
 
@@ -749,7 +755,7 @@ void GridArea::dynObjectInitializeB(const IOdata& inputs,
                 lateBObjects.push_back(bus);
             } else {
                 bus->dynInitializeB(inputs, desiredOutput, fieldSet);
-                double bmx = bus->getMaxGenReal();
+                const double bmx = bus->getMaxGenReal();
                 if (bmx > pmx) {
                     pmx = bmx;
                     masterBus = bus->locIndex;
@@ -784,18 +790,18 @@ void GridArea::converge(CoreTime time,
                         double tol)
 {
     if (opFlags[REVERSE_CONVERGE]) {
-        auto ra = opObjectLists->rbegin(sMode);
+        auto reverseIter = opObjectLists->rbegin(sMode);
         auto rend = opObjectLists->rend(sMode);
-        while (ra != rend) {
-            (*ra)->converge(time, state, dstateDt, sMode, mode, tol);
-            ++ra;
+        while (reverseIter != rend) {
+            (*reverseIter)->converge(time, state, dstateDt, sMode, mode, tol);
+            ++reverseIter;
         }
     } else {
-        auto fa = opObjectLists->begin(sMode);
+        auto forwardIter = opObjectLists->begin(sMode);
         auto fend = opObjectLists->end(sMode);
-        while (fa != fend) {
-            (*fa)->converge(time, state, dstateDt, sMode, mode, tol);
-            ++fa;
+        while (forwardIter != fend) {
+            (*forwardIter)->converge(time, state, dstateDt, sMode, mode, tol);
+            ++forwardIter;
         }
     }
     // Toggle the reverse indicator every time
@@ -821,14 +827,14 @@ void GridArea::set(std::string_view param, std::string_view val)
     GridPrimary::set(param, val);
 }
 
-static stringVec locNumStrings{};
-static const stringVec locStrStrings{};
-static const stringVec flagStrings{};
+static stringVec gLocNumStrings{};
+static const stringVec LOC_STR_STRINGS{};
+static const stringVec FLAG_STRINGS{};
 
 void GridArea::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<GridArea, GridComponent>(
-        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
+        this, pstr, gLocNumStrings, LOC_STR_STRINGS, FLAG_STRINGS, pstype);
 }
 
 void GridArea::set(std::string_view param, double val, unit unitType)
@@ -865,43 +871,43 @@ double GridArea::get(std::string_view param, unit unitType) const
     } else if (param == "relaycount") {
         vali = m_Relays.size();
     } else if (param == "totalbuscount") {
-        for (auto* gA : m_GridAreas) {
-            val += gA->get(param);
+        for (auto* gridArea : m_GridAreas) {
+            val += gridArea->get(param);
         }
-        for (auto* gA : m_Links) {
-            val += gA->get("buscount");
+        for (auto* linkObject : m_Links) {
+            val += linkObject->get("buscount");
         }
         val += static_cast<double>(m_Buses.size());
     } else if (param == "totallinkcount") {
-        for (auto* gA : m_GridAreas) {
-            val += gA->get(param);
+        for (auto* gridArea : m_GridAreas) {
+            val += gridArea->get(param);
         }
-        for (auto* gA : m_Links) {
-            val += gA->get("linkcount");
+        for (auto* linkObject : m_Links) {
+            val += linkObject->get("linkcount");
         }
         // links should return 1 from getting link count so don't need to add the links size again.
     } else if (param == "totalareacount") {
-        for (auto* gA : m_GridAreas) {
-            val += gA->get(param);
+        for (auto* gridArea : m_GridAreas) {
+            val += gridArea->get(param);
         }
         val += m_GridAreas.size();
     } else if (param == "totalrelaycount") {
-        for (auto* gA : m_GridAreas) {
-            val += gA->get(param);
+        for (auto* gridArea : m_GridAreas) {
+            val += gridArea->get(param);
         }
-        for (auto* gA : m_Links) {
-            val += gA->get("relaycount");
+        for (auto* linkObject : m_Links) {
+            val += linkObject->get("relaycount");
         }
         val += m_Relays.size();
     } else if ((param == "gencount") || (param == "loadcount")) {
         for (auto* obj : primaryObjects) {
-            double objCount = obj->get(param);
+            const double objCount = obj->get(param);
             val += (objCount != kNullVal ? objCount : 0.0);
         }
     } else if (param == "subobjectcount") {
         vali = primaryObjects.size();
-    } else if (auto fptr = getObjectFunction(this, std::string{param}).first) {
-        auto unit = getObjectFunction(this, std::string{param}).second;
+    } else if (auto fptr = getObjectFunction(this, param).first) {
+        auto unit = getObjectFunction(this, param).second;
         CoreObject* tobj = const_cast<GridArea*>(this);
         val = convert(fptr(tobj), unit, unitType);
     } else {
@@ -913,14 +919,14 @@ double GridArea::get(std::string_view param, unit unitType) const
 void GridArea::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     // update the tie lines first
-    for (auto* gL : m_Links) {
-        if (gL->isEnabled()) {
-            gL->timestep(time, inputs, sMode);
+    for (auto* linkObject : m_Links) {
+        if (linkObject->isEnabled()) {
+            linkObject->timestep(time, inputs, sMode);
         }
     }
-    for (auto* gA : m_GridAreas) {
-        if (gA->isEnabled()) {
-            gA->timestep(time, inputs, sMode);
+    for (auto* areaObject : m_GridAreas) {
+        if (areaObject->isEnabled()) {
+            areaObject->timestep(time, inputs, sMode);
         }
     }
     for (auto* bus : m_Buses) {
@@ -1074,13 +1080,13 @@ count_t GridArea::getLinkRealPower(std::vector<double>& powers, index_t start, i
     for (auto* area : m_GridAreas) {
         cnt += area->getLinkRealPower(powers, start + cnt, busNumber);
     }
-    auto Lsize = static_cast<index_t>(m_Links.size());
-    ensureSizeAtLeast(powers, start + Lsize);
+    auto lsize = static_cast<index_t>(m_Links.size());
+    ensureSizeAtLeast(powers, start + lsize);
 
-    for (index_t kk = 0; kk < Lsize; ++kk) {
+    for (index_t kk = 0; kk < lsize; ++kk) {
         powers[start + cnt + kk] = m_Links[kk]->getRealPower(busNumber);
     }
-    cnt += Lsize;
+    cnt += lsize;
     return cnt;
 }
 
@@ -1091,12 +1097,12 @@ count_t
     for (auto* area : m_GridAreas) {
         cnt += area->getLinkReactivePower(powers, start + cnt, busNumber);
     }
-    auto Lsize = static_cast<index_t>(m_Links.size());
-    ensureSizeAtLeast(powers, start + Lsize);
-    for (index_t kk = 0; kk < Lsize; ++kk) {
+    auto lsize = static_cast<index_t>(m_Links.size());
+    ensureSizeAtLeast(powers, start + lsize);
+    for (index_t kk = 0; kk < lsize; ++kk) {
         powers[start + cnt + kk] = m_Links[kk]->getReactivePower(busNumber);
     }
-    cnt += Lsize;
+    cnt += lsize;
     return cnt;
 }
 
@@ -1169,12 +1175,12 @@ count_t GridArea::getLinkLoss(std::vector<double>& losses, index_t start) const
             cnt += area->getLinkLoss(losses, start + cnt);
         }
     }
-    auto Lsize = static_cast<index_t>(m_Links.size());
-    ensureSizeAtLeast(losses, start + Lsize);
-    for (index_t kk = 0; kk < Lsize; ++kk) {
+    auto lsize = static_cast<index_t>(m_Links.size());
+    ensureSizeAtLeast(losses, start + lsize);
+    for (index_t kk = 0; kk < lsize; ++kk) {
         losses[cnt + kk] = m_Links[kk]->getLoss();
     }
-    return cnt + Lsize;
+    return cnt + lsize;
 }
 
 count_t GridArea::getBusName(stringVec& names, index_t start) const
@@ -1200,14 +1206,14 @@ count_t GridArea::getLinkName(stringVec& names, index_t start) const
     for (auto* area : m_GridAreas) {
         cnt += area->getLinkName(names, static_cast<std::size_t>(start) + cnt);
     }
-    auto Lsize = static_cast<index_t>(m_Links.size());
-    ensureSizeAtLeast(names, static_cast<std::size_t>(start) + Lsize);
+    auto lsize = static_cast<index_t>(m_Links.size());
+    ensureSizeAtLeast(names, static_cast<std::size_t>(start) + lsize);
     auto nmloc = names.begin() + start + cnt;
     for (auto* link : m_Links) {
         *nmloc = link->getName();
         ++nmloc;
     }
-    cnt += Lsize;
+    cnt += lsize;
     return cnt;
 }
 
@@ -1217,8 +1223,8 @@ count_t GridArea::getLinkBus(stringVec& names, index_t start, int busNumber) con
     for (auto* area : m_GridAreas) {
         cnt += area->getLinkBus(names, start + cnt, busNumber);
     }
-    auto Lsize = static_cast<index_t>(m_Links.size());
-    ensureSizeAtLeast(names, static_cast<std::size_t>(start) + Lsize);
+    auto lsize = static_cast<index_t>(m_Links.size());
+    ensureSizeAtLeast(names, static_cast<std::size_t>(start) + lsize);
     auto nmloc = names.begin() + start + cnt;
     for (auto* link : m_Links) {
         auto* bus = link->getBus(busNumber);
@@ -1229,7 +1235,7 @@ count_t GridArea::getLinkBus(stringVec& names, index_t start, int busNumber) con
         ++nmloc;
     }
 
-    cnt += Lsize;
+    cnt += lsize;
     return cnt;
 }
 
@@ -1340,42 +1346,42 @@ double GridArea::getLoadReactive() const
 
 double GridArea::getAvgAngle() const
 {
-    double a = 0.0;
+    double avgAngle = 0.0;
     double cnt = 0.0;
     for (auto* bus : m_Buses) {
         if (bus->hasInertialAngle()) {
-            a += bus->getAngle();
+            avgAngle += bus->getAngle();
             cnt += 1.0;
         }
     }
-    return (a / cnt);
+    return (avgAngle / cnt);
 }
 
 double GridArea::getAvgAngle(const StateData& stateDataValue, const SolverMode& sMode) const
 {
-    double a = 0.0;
+    double avgAngle = 0.0;
     double cnt = 0.0;
     for (auto* bus : m_Buses) {
         if (bus->hasInertialAngle()) {
-            a += bus->getAngle(stateDataValue, sMode);
+            avgAngle += bus->getAngle(stateDataValue, sMode);
             cnt += 1.0;
         }
     }
 
-    return (a / cnt);
+    return (avgAngle / cnt);
 }
 
 double GridArea::getAvgFreq() const
 {
-    double a = 0.0;
+    double avgFreq = 0.0;
     double cnt = 0.0;
     for (auto* bus : m_Buses) {
         if (bus->hasInertialAngle()) {
-            a += bus->getFreq();
+            avgFreq += bus->getFreq();
             cnt += 1.0;
         }
     }
-    return (a / cnt);
+    return (avgFreq / cnt);
 }
 
 // -------------------- Power Flow --------------------
@@ -1394,11 +1400,11 @@ void GridArea::guessState(CoreTime time, double state[], double dstateDt[], cons
 
 void GridArea::getVariableType(double sdata[], const SolverMode& sMode)
 {
-    auto ra = opObjectLists->begin(sMode);
+    auto rootAdapter = opObjectLists->begin(sMode);
     auto rend = opObjectLists->end(sMode);
-    while (ra != rend) {
-        (*ra)->getVariableType(sdata, sMode);
-        ++ra;
+    while (rootAdapter != rend) {
+        (*rootAdapter)->getVariableType(sdata, sMode);
+        ++rootAdapter;
     }
 
     // next do any internal area states
@@ -1406,11 +1412,11 @@ void GridArea::getVariableType(double sdata[], const SolverMode& sMode)
 
 void GridArea::getTols(double tols[], const SolverMode& sMode)
 {
-    auto ra = opObjectLists->begin(sMode);
+    auto rootAdapter = opObjectLists->begin(sMode);
     auto rend = opObjectLists->end(sMode);
-    while (ra != rend) {
-        (*ra)->getTols(tols, sMode);
-        ++ra;
+    while (rootAdapter != rend) {
+        (*rootAdapter)->getTols(tols, sMode);
+        ++rootAdapter;
     }
     // next do any internal area states
 }
@@ -1421,8 +1427,8 @@ void GridArea::rootTest(const IOdata& inputs,
                         double roots[],
                         const SolverMode& sMode)
 {
-    for (auto* ro : rootObjects) {
-        ro->rootTest(inputs, stateDataValue, roots, sMode);
+    for (auto* rootObject : rootObjects) {
+        rootObject->rootTest(inputs, stateDataValue, roots, sMode);
     }
 #ifdef DEBUG_PRINT
     for (size_t kk = 0; kk < rootSize(sMode); ++kk) {
@@ -1443,18 +1449,14 @@ ChangeCode GridArea::rootCheck(const IOdata& inputs,
         for (auto* obj : primaryObjects) {
             if (obj->isEnabled()) {
                 auto iret = obj->rootCheck(inputs, stateDataValue, sMode, level);
-                if (iret > ret) {
-                    ret = iret;
-                }
+                ret = std::max(iret, ret);
             }
         }
     } else {
-        for (auto* ro : rootObjects) {
-            if (ro->checkFlag(HAS_ALG_ROOTS)) {
-                auto iret = ro->rootCheck(inputs, stateDataValue, sMode, level);
-                if (iret > ret) {
-                    ret = iret;
-                }
+        for (auto* rootObject : rootObjects) {
+            if (rootObject->checkFlag(HAS_ALG_ROOTS)) {
+                auto iret = rootObject->rootCheck(inputs, stateDataValue, sMode, level);
+                ret = std::max(iret, ret);
             }
         }
     }
@@ -1470,10 +1472,10 @@ void GridArea::rootTrigger(CoreTime time,
                            const std::vector<int>& rootMask,
                            const SolverMode& sMode)
 {
-    auto RF = vecFindne(rootMask, 0);
+    auto rootFlags = vecFindne(rootMask, 0);
     size_t cloc = 0;
-    size_t rs = rootSize(sMode);
-    size_t rootOffset = offsets.getRootOffset(sMode);
+    const size_t rootSizeCount = rootSize(sMode);
+    const size_t rootOffset = offsets.getRootOffset(sMode);
 
     auto currentRootObject = rootObjects.begin();
     auto obend = rootObjects.end();
@@ -1483,14 +1485,14 @@ void GridArea::rootTrigger(CoreTime time,
     // checks the root object
     // TODO(PT) ::May be wise at some point to revisit the combination of the flags and root object
     // checking
-    for (auto rc : RF) {
-        if (rc < rootOffset + cloc) {
+    for (auto rootCode : rootFlags) {
+        if (rootCode < rootOffset + cloc) {
             continue;
         }
-        if (rc >= rootOffset + rs) {
+        if (rootCode >= rootOffset + rootSizeCount) {
             break;
         }
-        while (rc >= rootOffset + cloc + ors) {
+        while (rootCode >= rootOffset + cloc + ors) {
             cloc += ors;
             ++currentRootObject;
             ors = (*currentRootObject)->rootSize(sMode);
@@ -1545,7 +1547,7 @@ void GridArea::setState(CoreTime time,
 void GridArea::getVoltageStates(double vStates[], const SolverMode& sMode) const
 
 {
-    index_t Voffset;
+    index_t voffset;
     for (auto* area : m_GridAreas) {
         if (area->isEnabled()) {
             area->getVoltageStates(vStates, sMode);
@@ -1553,9 +1555,9 @@ void GridArea::getVoltageStates(double vStates[], const SolverMode& sMode) const
     }
     for (auto* bus : m_Buses) {
         if (bus->isEnabled()) {
-            Voffset = bus->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
-            if (Voffset != kNullLocation) {
-                vStates[Voffset] = 2.0;
+            voffset = bus->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
+            if (voffset != kNullLocation) {
+                vStates[voffset] = 2.0;
             }
         }
     }
@@ -1563,9 +1565,9 @@ void GridArea::getVoltageStates(double vStates[], const SolverMode& sMode) const
         if (link->isEnabled()) {
             if (link->voltageStateCount(sMode) > 0) {
                 const auto& linkOffsets = link->getOffsets(sMode);
-                Voffset = linkOffsets.vOffset;
+                voffset = linkOffsets.vOffset;
                 for (index_t kk = 0; kk < link->voltageStateCount(sMode); kk++) {
-                    vStates[Voffset + kk] = 2.0;
+                    vStates[voffset + kk] = 2.0;
                 }
             }
         }
@@ -1575,7 +1577,7 @@ void GridArea::getVoltageStates(double vStates[], const SolverMode& sMode) const
 void GridArea::getAngleStates(double aStates[], const SolverMode& sMode) const
 
 {
-    index_t Aoffset;
+    index_t aoffset;
     for (auto* area : m_GridAreas) {
         if (area->isEnabled()) {
             area->getAngleStates(aStates, sMode);
@@ -1583,9 +1585,9 @@ void GridArea::getAngleStates(double aStates[], const SolverMode& sMode) const
     }
     for (auto* bus : m_Buses) {
         if (bus->isEnabled()) {
-            Aoffset = bus->getOutputLoc(sMode, ANGLE_IN_LOCATION);
-            if (Aoffset != kNullLocation) {
-                aStates[Aoffset] = 1.0;
+            aoffset = bus->getOutputLoc(sMode, ANGLE_IN_LOCATION);
+            if (aoffset != kNullLocation) {
+                aStates[aoffset] = 1.0;
             }
         }
     }
@@ -1593,9 +1595,9 @@ void GridArea::getAngleStates(double aStates[], const SolverMode& sMode) const
         if (link->isEnabled()) {
             if (link->angleStateCount(sMode) > 0) {
                 const auto& linkOffsets = link->getOffsets(sMode);
-                Aoffset = linkOffsets.aOffset;
+                aoffset = linkOffsets.aOffset;
                 for (index_t kk = 0; kk < link->voltageStateCount(sMode); kk++) {
-                    aStates[Aoffset + kk] = 1.0;
+                    aStates[aoffset + kk] = 1.0;
                 }
             }
         }
@@ -1723,12 +1725,12 @@ void GridArea::setOffsets(const SolverOffsets& newOffsets, const SolverMode& sMo
         loadStateSizes(sMode);
     }
     offsets.setOffsets(newOffsets, sMode);
-    SolverOffsets no(newOffsets);
-    no.localIncrement(offsets.getOffsets(sMode));
+    SolverOffsets nextOffsets(newOffsets);
+    nextOffsets.localIncrement(offsets.getOffsets(sMode));
 
     for (auto* obj : primaryObjects) {
-        obj->setOffsets(no, sMode);
-        no.increment(obj->getOffsets(sMode));
+        obj->setOffsets(nextOffsets, sMode);
+        nextOffsets.increment(obj->getOffsets(sMode));
     }
 }
 
@@ -1747,11 +1749,11 @@ void GridArea::setOffset(index_t offset, const SolverMode& sMode)
 void GridArea::setRootOffset(index_t rootOffset, const SolverMode& sMode)
 {
     offsets.setRootOffset(rootOffset, sMode);
-    const auto& so = offsets.getOffsets(sMode);
-    auto nR = so.local.algRoots + so.local.diffRoots;
-    for (auto* ro : rootObjects) {
-        ro->setRootOffset(rootOffset + nR, sMode);
-        nR += ro->rootSize(sMode);
+    const auto& solverOffsets = offsets.getOffsets(sMode);
+    auto newRootOffset = solverOffsets.local.algRoots + solverOffsets.local.diffRoots;
+    for (auto* rootObject : rootObjects) {
+        rootObject->setRootOffset(rootOffset + newRootOffset, sMode);
+        newRootOffset += rootObject->rootSize(sMode);
     }
 }
 
@@ -1786,8 +1788,8 @@ count_t GridArea::localJacobianCount(const SolverMode& /*sMode*/) const
 
 std::pair<count_t, count_t> GridArea::LocalRootCount(const SolverMode& /*sMode*/) const
 {
-    const auto& lc = offsets.local().local;
-    return std::make_pair(lc.algRoots, lc.diffRoots);
+    const auto& localCounts = offsets.local().local;
+    return std::make_pair(localCounts.algRoots, localCounts.diffRoots);
 }
 
 void GridArea::loadStateSizes(const SolverMode& sMode)
@@ -1795,28 +1797,28 @@ void GridArea::loadStateSizes(const SolverMode& sMode)
     if (isStateCountLoaded(sMode)) {
         return;
     }
-    auto& so = offsets.getOffsets(sMode);
+    auto& solverOffsets = offsets.getOffsets(sMode);
     if (!isEnabled()) {
-        so.reset();
-        so.setLoaded();
+        solverOffsets.reset();
+        solverOffsets.setLoaded();
         return;
     }
 
     if (!isLocal(sMode))  // don't reset if it is the local offsets
     {
-        so.stateReset();
+        solverOffsets.stateReset();
     }
     auto selfSizes = localStateSizes(sMode);
     if (hasAlgebraic(sMode)) {
-        so.local.aSize = selfSizes.aSize;
-        so.local.vSize = selfSizes.vSize;
-        so.local.algSize = selfSizes.algSize;
+        solverOffsets.local.aSize = selfSizes.aSize;
+        solverOffsets.local.vSize = selfSizes.vSize;
+        solverOffsets.local.algSize = selfSizes.algSize;
     }
     if (hasDifferential(sMode)) {
-        so.local.diffSize = selfSizes.diffSize;
+        solverOffsets.local.diffSize = selfSizes.diffSize;
     }
 
-    so.localStateLoad(false);
+    solverOffsets.localStateLoad(false);
     for (auto& sub : primaryObjects) {
         if (sub->isEnabled()) {
             if (!(sub->isStateCountLoaded(sMode))) {
@@ -1825,10 +1827,10 @@ void GridArea::loadStateSizes(const SolverMode& sMode)
             if (sub->checkFlag(SAMPLED_ONLY)) {
                 continue;
             }
-            so.addStateSizes(sub->getOffsets(sMode));
+            solverOffsets.addStateSizes(sub->getOffsets(sMode));
         }
     }
-    so.stateLoaded = true;
+    solverOffsets.stateLoaded = true;
     opObjectLists->makeList(sMode, primaryObjects);
 }
 
@@ -1837,26 +1839,26 @@ void GridArea::loadRootSizes(const SolverMode& sMode)
     if (isRootCountLoaded(sMode)) {
         return;
     }
-    auto& so = offsets.getOffsets(sMode);
+    auto& solverOffsets = offsets.getOffsets(sMode);
     if (!isEnabled()) {
-        so.reset();
-        so.setLoaded();
+        solverOffsets.reset();
+        solverOffsets.setLoaded();
         return;
     }
     if (!isDynamic(sMode)) {
-        so.rootCountReset();
-        so.rootsLoaded = true;
+        solverOffsets.rootCountReset();
+        solverOffsets.rootsLoaded = true;
         return;
     }
 
     if (!isLocal(sMode))  // don't reset if it is the local offsets
     {
-        so.rootCountReset();
+        solverOffsets.rootCountReset();
     }
     auto selfSizes = LocalRootCount(sMode);
-    if (!(so.rootsLoaded)) {
-        so.local.algRoots = selfSizes.first;
-        so.local.diffRoots = selfSizes.second;
+    if (!(solverOffsets.rootsLoaded)) {
+        solverOffsets.local.algRoots = selfSizes.first;
+        solverOffsets.local.diffRoots = selfSizes.second;
     }
     rootObjects.clear();
     for (auto& obj : primaryObjects) {
@@ -1866,9 +1868,9 @@ void GridArea::loadRootSizes(const SolverMode& sMode)
         if (obj->checkFlag(HAS_ROOTS)) {
             rootObjects.push_back(obj);
         }
-        so.addRootSizes(obj->getOffsets(sMode));
+        solverOffsets.addRootSizes(obj->getOffsets(sMode));
     }
-    so.rootsLoaded = true;
+    solverOffsets.rootsLoaded = true;
 }
 
 void GridArea::loadJacobianSizes(const SolverMode& sMode)
@@ -1876,27 +1878,27 @@ void GridArea::loadJacobianSizes(const SolverMode& sMode)
     if (isJacobianCountLoaded(sMode)) {
         return;
     }
-    auto& so = offsets.getOffsets(sMode);
+    auto& solverOffsets = offsets.getOffsets(sMode);
     if (!isEnabled()) {
-        so.reset();
-        so.setLoaded();
+        solverOffsets.reset();
+        solverOffsets.setLoaded();
         return;
     }
 
     if (!isLocal(sMode))  // don't reset if it is the local offsets
     {
-        so.jacobianCountReset();
+        solverOffsets.jacobianCountReset();
     }
     auto selfJacCount = localJacobianCount(sMode);
-    if (!(so.jacobianLoaded)) {
-        so.local.jacSize = selfJacCount;
+    if (!(solverOffsets.jacobianLoaded)) {
+        solverOffsets.local.jacSize = selfJacCount;
     }
 
     for (auto& obj : primaryObjects) {
         if (!(obj->isJacobianCountLoaded(sMode))) {
             obj->loadJacobianSizes(sMode);
         }
-        so.addJacobianSizes(obj->getOffsets(sMode));
+        solverOffsets.addJacobianSizes(obj->getOffsets(sMode));
     }
 }
 
@@ -1933,4 +1935,5 @@ GridArea* getMatchingGridArea(GridArea* area, GridPrimary* src, GridPrimary* sec
     return par->getGridArea(lkind[0]);
 }
 
+// NOLINTEND(misc-no-recursion)
 }  // namespace griddyn

@@ -21,6 +21,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/griddyn-config.h"
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdio>
@@ -32,18 +33,17 @@
 
 namespace griddyn {
 std::atomic<count_t> GridBus::busCount(0);
-static TypeFactory<GridBus> gbf("bus", std::to_array<std::string_view>({"basic"}));
+static TypeFactory<GridBus> gBf("bus", std::to_array<std::string_view>({"basic"}));
 static ChildTypeFactory<AcBus, GridBus>
-    gbfac("bus",
+    gBfac("bus",
           std::to_array<std::string_view>({"ac", "pq", "pv", "slk", "slack", "afix", "ref"}),
           "ac");
-static ChildTypeFactory<DcBus, GridBus> gbfdc("bus",
+static ChildTypeFactory<DcBus, GridBus> gBfdc("bus",
                                               std::to_array<std::string_view>({"dc", "hvdc"}));
 static ChildTypeFactory<infiniteBus, GridBus>
-    igbc("bus", std::to_array<std::string_view>({"inf", "infinite"}));
+    gIgbc("bus", std::to_array<std::string_view>({"inf", "infinite"}));
 
 using units::convert;
-using units::defunit;
 using units::kV;
 using units::puHz;
 using units::puMW;
@@ -72,7 +72,7 @@ GridBus::GridBus(double voltageStart, double angleStart, const std::string& objN
 
 CoreObject* GridBus::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBaseFactory<GridBus, GridPrimary>(this, obj, &gbf);
+    auto* nobj = cloneBaseFactory<GridBus, GridPrimary>(this, obj, &gBf);
     if (nobj == nullptr) {
         return obj;
     }
@@ -138,30 +138,33 @@ void GridBus::disable()
 
 void GridBus::add(CoreObject* obj)
 {
-    auto ld = dynamic_cast<GridLoad*>(obj);
-    if (ld != nullptr) {
-        return add(ld);
+    auto* loadObject = dynamic_cast<GridLoad*>(obj);
+    if (loadObject != nullptr) {
+        add(loadObject);
+        return;
     }
 
-    auto gen = dynamic_cast<Generator*>(obj);
+    auto* gen = dynamic_cast<Generator*>(obj);
     if (gen != nullptr) {
-        return add(gen);
+        add(gen);
+        return;
     }
 
-    auto lnk = dynamic_cast<Link*>(obj);
+    auto* lnk = dynamic_cast<Link*>(obj);
     if (lnk != nullptr) {
-        return add(lnk);
+        add(lnk);
+        return;
     }
     throw(UnrecognizedObjectException(this));
 }
 
 template<class X>
-void addObject(GridBus* bus, X* obj, objVector<X*>& OVector)
+void addObject(GridBus* bus, X* obj, objVector<X*>& oVector)
 {
-    CoreObject* foundObj = bus->find(obj->getName());
+    const CoreObject* foundObj = bus->find(obj->getName());
     if (foundObj == nullptr) {
-        obj->locIndex = static_cast<index_t>(OVector.size());
-        OVector.push_back(obj);
+        obj->locIndex = static_cast<index_t>(oVector.size());
+        oVector.push_back(obj);
         obj->set("basevoltage", bus->localBaseVoltage);
         bus->addSubObject(obj);
         if (bus->checkFlag(POWERFLOW_INITIALIZED)) {
@@ -173,9 +176,9 @@ void addObject(GridBus* bus, X* obj, objVector<X*>& OVector)
 }
 
 // add load
-void GridBus::add(GridLoad* ld)
+void GridBus::add(GridLoad* loadObject)
 {
-    addObject(this, ld, attachedLoads);
+    addObject(this, loadObject, attachedLoads);
 }
 
 // add generator
@@ -197,49 +200,50 @@ void GridBus::add(Link* lnk)
 
 void GridBus::remove(CoreObject* obj)
 {
-    auto ld = dynamic_cast<GridLoad*>(obj);
-    if (ld != nullptr) {
-        return (remove(ld));
+    auto* loadObject = dynamic_cast<GridLoad*>(obj);
+    if (loadObject != nullptr) {
+        remove(loadObject);
+        return;
     }
 
-    auto gen = dynamic_cast<Generator*>(obj);
+    auto* gen = dynamic_cast<Generator*>(obj);
     if (gen != nullptr) {
-        return (remove(gen));
+        remove(gen);
+        return;
     }
 
-    auto lnk = dynamic_cast<Link*>(obj);
+    auto* lnk = dynamic_cast<Link*>(obj);
     if (lnk != nullptr) {
-        return (remove(lnk));
+        remove(lnk);
+        return;
     }
 
     throw(UnrecognizedObjectException(this));
 }
 
 template<class X>
-bool removeObject(X* obj, objVector<X*>& OVector)
+static bool removeObject(X* obj, objVector<X*>& oVector)
 {
-    if (!isValidIndex(obj->locIndex, OVector)) {
+    if (!isValidIndex(obj->locIndex, oVector)) {
         return false;
     }
-    if (isSameObject(obj, OVector[obj->locIndex])) {
+    if (isSameObject(obj, oVector[obj->locIndex])) {
         // alert that the states might have changed
-        if (obj->checkFlag(HAS_DYN_STATES)) {
-            obj->getParent()->alert(obj->getParent(), STATE_COUNT_DECREASE);
-        } else if (obj->checkFlag(HAS_PFLOW_STATES)) {
+        if (obj->checkFlag(HAS_DYN_STATES) || obj->checkFlag(HAS_PFLOW_STATES)) {
             obj->getParent()->alert(obj->getParent(), STATE_COUNT_DECREASE);
         }
 
-        OVector.erase(OVector.begin() + obj->locIndex);
+        oVector.erase(oVector.begin() + obj->locIndex);
         return true;
     }
     return false;
 }
 
 // remove load
-void GridBus::remove(GridLoad* ld)
+void GridBus::remove(GridLoad* loadObject)
 {
-    if (removeObject(ld, attachedLoads)) {
-        GridComponent::remove(ld);
+    if (removeObject(loadObject, attachedLoads)) {
+        GridComponent::remove(loadObject);
     }
 }
 
@@ -254,14 +258,15 @@ void GridBus::remove(Generator* gen)
 // remove link
 void GridBus::remove(Link* lnk)
 {
-    auto lnkR = std::find_if(attachedLinks.begin(), attachedLinks.end(), [lnk](auto& lk) {
-        return isSameObject(lk, lnk);
+    auto lnkR = std::find_if(attachedLinks.begin(), attachedLinks.end(), [lnk](auto& linkObject) {
+        return isSameObject(linkObject, lnk);
     });
     if (lnkR != attachedLinks.end()) {
         attachedLinks.erase(lnkR);
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void GridBus::alert(CoreObject* obj, int code)
 {
     switch (code) {
@@ -329,6 +334,7 @@ void GridBus::preEx(const IOdata& /*inputs*/,
 }
 // function to reset the bus type and voltage
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void GridBus::reset(ResetLevels level)
 {
     if (opFlags[DISCONNECTED]) {
@@ -345,9 +351,9 @@ void GridBus::reset(ResetLevels level)
             gen->reset(level);
         }
     }
-    for (auto& ld : attachedLoads) {
-        if (ld->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {
-            ld->reset(level);
+    for (auto& load : attachedLoads) {
+        if (load->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {
+            load->reset(level);
         }
     }
 }
@@ -355,16 +361,16 @@ void GridBus::reset(ResetLevels level)
 ChangeCode GridBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, CheckLevel level)
 {
     auto out = ChangeCode::NO_CHANGE;
-    IOdata inputs = {voltage, angle, freq};
+    const IOdata inputs = {voltage, angle, freq};
     for (auto& gen : attachedGens) {
         if (gen->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {
             auto pout = gen->powerFlowAdjust(inputs, flags, level);
             out = (std::max)(pout, out);
         }
     }
-    for (auto& ld : attachedLoads) {
-        if (ld->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {
-            auto pout = ld->powerFlowAdjust(inputs, flags, level);
+    for (auto& load : attachedLoads) {
+        if (load->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {
+            auto pout = load->powerFlowAdjust(inputs, flags, level);
             out = (std::max)(pout, out);
         }
     }
@@ -414,15 +420,15 @@ void GridBus::dynObjectInitializeB(const IOdata& /*inputs*/,
     m_state[FREQUENCY_IN_LOCATION] = freq;
 
     // first get the state size for the internal state ordering
-    IOdata inputs{voltage, angle, freq};
+    const IOdata inputs{voltage, angle, freq};
     fieldSet = inputs;
 
-    IOdata pc;
+    IOdata powerCommands;
     for (auto& gen : attachedGens) {
-        gen->dynInitializeB(inputs, noInputs, pc);
+        gen->dynInitializeB(inputs, noInputs, powerCommands);
     }
     for (auto& load : attachedLoads) {
-        load->dynInitializeB(inputs, noInputs, pc);
+        load->dynInitializeB(inputs, noInputs, powerCommands);
     }
     // TODO(phlpt): Actually use the pc outputs.
 }
@@ -449,16 +455,16 @@ void GridBus::setAll(std::string_view objtype,
                 gen->set(param, val, unitType);
             }
             catch (const UnrecognizedParameter&) {
-                // we ignore this exception in this function
+                continue;
             }
         }
     } else if (objtype == "load") {
-        for (auto& ld : attachedLoads) {
+        for (auto& load : attachedLoads) {
             try {
-                ld->set(param, val, unitType);
+                load->set(param, val, unitType);
             }
             catch (const UnrecognizedParameter&) {
-                // we ignore this exception in this function
+                continue;
             }
         }
     } else if (objtype == "secondary") {
@@ -467,29 +473,30 @@ void GridBus::setAll(std::string_view objtype,
                 gen->set(param, val, unitType);
             }
             catch (const UnrecognizedParameter&) {
-                // we ignore this exception in this function
+                continue;
             }
         }
-        for (auto& ld : attachedLoads) {
+        for (auto& load : attachedLoads) {
             try {
-                ld->set(param, val, unitType);
+                load->set(param, val, unitType);
             }
             catch (const UnrecognizedParameter&) {
-                // we ignore this exception in this function
+                continue;
             }
         }
     }
 }
 
-static const stringVec locNumStrings{"voltage", "angle", "basevoltage", "p", "q", "g", "b", "zone"};
-static const stringVec locStrStrings{"status"};
+static const stringVec
+    LOC_NUM_STRINGS{"voltage", "angle", "basevoltage", "p", "q", "g", "b", "zone"};
+static const stringVec LOC_STR_STRINGS{"status"};
 
-static const stringVec flagStrings{"connected"};
+static const stringVec FLAG_STRINGS{"connected"};
 
 void GridBus::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<GridBus, GridComponent>(
-        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
+        this, pstr, LOC_NUM_STRINGS, LOC_STR_STRINGS, FLAG_STRINGS, pstype);
 }
 
 void GridBus::setFlag(std::string_view flag, bool val)
@@ -537,8 +544,8 @@ void GridBus::set(std::string_view param, double val, unit unitType)
         for (auto& gen : attachedGens) {
             gen->set("basevoltage", val);
         }
-        for (auto& ld : attachedLoads) {
-            ld->set("basevoltage", val);
+        for (auto& load : attachedLoads) {
+            load->set("basevoltage", val);
         }
     } else if ((param == "p") || (param == "gen p")) {
         S.genP = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
@@ -574,8 +581,8 @@ void GridBus::set(std::string_view param, double val, unit unitType)
                 return;
             }
         }
-        std::string b{param.back()};
-        attachedLoads[0]->set(b, val, unitType);
+        const std::string loadKey{param.back()};
+        attachedLoads[0]->set(loadKey, val, unitType);
     } else if ((param == "shunt b") || (param == "b")) {
         if (attachedLoads.empty()) {
             if (val != 0.0) {
@@ -608,11 +615,11 @@ IOdata GridBus::getOutputs(const IOdata& /*inputs*/,
                                                                 getFreq(stateDataValue, sMode)};
 }
 
-static const IOlocs noLocs{kNullLocation, kNullLocation, kNullLocation};
+static const IOlocs NO_LOCS{kNullLocation, kNullLocation, kNullLocation};
 
 IOlocs GridBus::getOutputLocs(const SolverMode& /*sMode*/) const
 {
-    return noLocs;
+    return NO_LOCS;
 }
 
 const IOdata& GridBus::getOutputsRef() const
@@ -622,7 +629,7 @@ const IOdata& GridBus::getOutputsRef() const
 
 const IOlocs& GridBus::getOutputLocsRef() const
 {
-    return noLocs;
+    return NO_LOCS;
 }
 
 double GridBus::getOutput(const IOdata& /*inputs*/,
@@ -686,6 +693,7 @@ double GridBus::getFreq(const StateData& /*stateDataValue*/, const SolverMode& /
     return freq;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 bool GridBus::directPath(GridComponent* target, GridComponent* source)
 {
     auto tid = target->getID();
@@ -697,8 +705,8 @@ bool GridBus::directPath(GridComponent* target, GridComponent* source)
             return true;
         }
     }
-    for (auto& ld : attachedLoads) {
-        if (isSameObject(tid, ld)) {
+    for (auto& load : attachedLoads) {
+        if (isSameObject(tid, load)) {
             return true;
         }
     }
@@ -731,6 +739,7 @@ bool GridBus::directPath(GridComponent* target, GridComponent* source)
     return false;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 std::vector<GridComponent*> GridBus::getDirectPath(GridComponent* target, GridComponent* source)
 {
     std::vector<GridComponent*> opath{source};
@@ -746,8 +755,8 @@ std::vector<GridComponent*> GridBus::getDirectPath(GridComponent* target, GridCo
             return opath;
         }
     }
-    for (auto& ld : attachedLoads) {
-        if (isSameObject(tid, ld)) {
+    for (auto& load : attachedLoads) {
+        if (isSameObject(tid, load)) {
             opath.push_back(target);
             return opath;
         }
@@ -783,8 +792,8 @@ std::vector<GridComponent*> GridBus::getDirectPath(GridComponent* target, GridCo
                 return npath;
             }
 
-            for (auto& pp : npath) {
-                opath.push_back(pp);
+            for (auto& pathComponent : npath) {
+                opath.push_back(pathComponent);
             }
             return opath;
         }
@@ -793,8 +802,8 @@ std::vector<GridComponent*> GridBus::getDirectPath(GridComponent* target, GridCo
             return npath;
         }
 
-        for (auto& pp : npath) {
-            opath.push_back(pp);
+        for (auto& pathComponent : npath) {
+            opath.push_back(pathComponent);
         }
         return opath;
     }
@@ -803,52 +812,52 @@ std::vector<GridComponent*> GridBus::getDirectPath(GridComponent* target, GridCo
 
 int GridBus::propogatePower(bool /*makeSlack*/)
 {
-    int unfixed_lines = 0;
-    Link* unfixed_line = nullptr;
-    double Pexp = 0;
-    double Qexp = 0;
+    int unfixedLines = 0;
+    Link* unfixedLine = nullptr;
+    double pexp = 0;
+    double qexp = 0;
     for (auto& lnk : attachedLinks) {
         if (lnk->checkFlag(Link::FIXED_TARGET_POWER)) {
-            Pexp += lnk->getRealPower(getID());
-            Qexp += lnk->getReactivePower(getID());
+            pexp += lnk->getRealPower(getID());
+            qexp += lnk->getReactivePower(getID());
             continue;
         }
-        ++unfixed_lines;
-        unfixed_line = lnk;
+        ++unfixedLines;
+        unfixedLine = lnk;
     }
-    if (unfixed_lines > 1) {
+    if (unfixedLines > 1) {
         return 0;
     }
 
     int adjPSecondary = 0;
     int adjQSecondary = 0;
-    for (auto& ld : attachedLoads) {
-        if (ld->checkFlag(ADJUSTABLE_P)) {
+    for (auto& load : attachedLoads) {
+        if (load->checkFlag(ADJUSTABLE_P)) {
             ++adjPSecondary;
         } else {
-            Pexp += ld->getRealPower();
+            pexp += load->getRealPower();
         }
-        if (ld->checkFlag(ADJUSTABLE_Q)) {
+        if (load->checkFlag(ADJUSTABLE_Q)) {
             ++adjQSecondary;
         } else {
-            Qexp += ld->getReactivePower();
+            qexp += load->getReactivePower();
         }
     }
     for (auto& gen : attachedGens) {
         if (gen->checkFlag(ADJUSTABLE_P)) {
             ++adjPSecondary;
         } else {
-            Pexp -= gen->getRealPower();
+            pexp -= gen->getRealPower();
         }
         if (gen->checkFlag(ADJUSTABLE_Q)) {
             ++adjQSecondary;
         } else {
-            Qexp -= gen->getReactivePower();
+            qexp -= gen->getReactivePower();
         }
     }
-    if (unfixed_lines == 1) {
+    if (unfixedLines == 1) {
         if ((adjPSecondary == 0) && (adjQSecondary == 0)) {
-            unfixed_line->fixPower(-Pexp, -Qexp, getID(), getID());
+            unfixedLine->fixPower(-pexp, -qexp, getID(), getID());
         }
     } else {
         // no lines so adjust the generators and load
@@ -856,24 +865,24 @@ int GridBus::propogatePower(bool /*makeSlack*/)
             int found = 0;
             for (auto& gen : attachedGens) {
                 if (gen->checkFlag(ADJUSTABLE_P)) {
-                    gen->set("p", Pexp);
+                    gen->set("p", pexp);
                     ++found;
                 }
                 if (gen->checkFlag(ADJUSTABLE_Q)) {
-                    gen->set("q", Qexp);
+                    gen->set("q", qexp);
                     ++found;
                 }
                 if (found == 2) {
                     return 1;
                 }
             }
-            for (auto& ld : attachedLoads) {
-                if (ld->checkFlag(ADJUSTABLE_P)) {
-                    ld->set("p", -Pexp);
+            for (auto& load : attachedLoads) {
+                if (load->checkFlag(ADJUSTABLE_P)) {
+                    load->set("p", -pexp);
                     ++found;
                 }
-                if (ld->checkFlag(ADJUSTABLE_Q)) {
-                    ld->set("q", -Qexp);
+                if (load->checkFlag(ADJUSTABLE_Q)) {
+                    load->set("q", -qexp);
                     ++found;
                 }
                 if (found == 2) {
@@ -915,7 +924,7 @@ void GridBus::derivative(const IOdata& inputs,
     GridComponent::derivative(outputs, stateDataValue, deriv, sMode);
 }
 
-static const IOlocs kNullLocations{kNullLocation, kNullLocation, kNullLocation};
+static const IOlocs K_NULL_LOCATIONS{kNullLocation, kNullLocation, kNullLocation};
 
 // Jacobian
 void GridBus::jacobianElements(const IOdata& inputs,
@@ -929,7 +938,7 @@ void GridBus::jacobianElements(const IOdata& inputs,
 
     // printf("t=%f,id=%d, dpdt=%f, dpdv=%f, dqdt=%f, dqdv=%f\n", time, id, Ptii, Pvii, Qvii, Qtii);
 
-    const IOlocs& coutLocs = (hasAlgebraic(sMode)) ? outLocs : kNullLocations;
+    const IOlocs& coutLocs = (hasAlgebraic(sMode)) ? outLocs : K_NULL_LOCATIONS;
     GridComponent::jacobianElements(outputs, stateDataValue, matrixDataValue, coutLocs, sMode);
 }
 
@@ -938,27 +947,30 @@ double GridBus::lastError() const
     return std::abs(S.sumP()) + std::abs(S.sumQ());
 }
 
-inline double
-    dVcheck(double dV, double currV, double drFrac = 0.75, double mxRise = 0.2, double cRcheck = 0)
+/*
+Legacy helper candidates kept here for reference while this logic stays disabled.
+static inline double dVcheck(double deltaVoltage,
+                             double currentVoltage,
+                             double deltaRiseFrac = 0.75,
+                             double maxRise = 0.2,
+                             double currentRiseCheck = 0)
 {
-    if (currV - dV > cRcheck) {
-        if (dV < -mxRise) {
-            dV = -mxRise;
-        }
+    if (currentVoltage - deltaVoltage > currentRiseCheck) {
+        deltaVoltage = std::max(deltaVoltage, -maxRise);
     }
-    if (dV > drFrac * currV) {
-        dV = drFrac * currV;
-    }
-    return dV;
+    deltaVoltage = std::min(deltaVoltage, deltaRiseFrac * currentVoltage);
+    return deltaVoltage;
 }
 
-inline double dAcheck(double dT, double /*currA*/, double mxch = kPI / 8.0)
+static inline double dAcheck(double deltaTheta, double currA, double maxChange = kPI / 8.0)
 {
-    if (std::abs(dT) > mxch) {
-        dT = std::copysign(mxch, dT);
+    static_cast<void>(currA);
+    if (std::abs(deltaTheta) > maxChange) {
+        deltaTheta = std::copysign(maxChange, deltaTheta);
     }
-    return dT;
+    return deltaTheta;
 }
+*/
 
 void GridBus::voltageUpdate(const StateData& /*stateDataValue*/,
                             double /*update*/[],
@@ -994,7 +1006,7 @@ double GridBus::computeError(const StateData& stateDataValue, const SolverMode& 
 {
     updateLocalCache(noInputs, stateDataValue, sMode);
 
-    double err = std::abs(S.sumP()) + std::abs(S.sumQ());
+    const double err = std::abs(S.sumP()) + std::abs(S.sumQ());
 
     return err;
 }
@@ -1016,6 +1028,7 @@ void GridBus::disconnect()
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void GridBus::reconnect(GridBus* mapBus)
 {
     if (opFlags[DISCONNECTED]) {
@@ -1035,6 +1048,7 @@ void GridBus::reconnect(GridBus* mapBus)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void GridBus::reconnect()
 {
     reconnect(nullptr);
@@ -1047,7 +1061,7 @@ void GridBus::updateFlags(bool dynOnly)
     GridComponent::updateFlags(dynOnly);
 }
 
-static const IOlocs inLoc{0, 1, 2};
+static const IOlocs IN_LOC{0, 1, 2};
 
 #define DEBUG_KEY_BUS 0
 // computed power at bus
@@ -1099,11 +1113,11 @@ void GridBus::updateLocalCache(const IOdata& /*inputs*/,
         return;
     }
 
-    for (auto& ld : attachedLoads) {
-        if (ld->isConnected() && ld->isEnabled()) {
-            ld->updateLocalCache(outputs, stateDataValue, sMode);
-            S.loadP += ld->getRealPower(outputs, stateDataValue, sMode);
-            S.loadQ += ld->getReactivePower(outputs, stateDataValue, sMode);
+    for (auto& load : attachedLoads) {
+        if (load->isConnected() && load->isEnabled()) {
+            load->updateLocalCache(outputs, stateDataValue, sMode);
+            S.loadP += load->getRealPower(outputs, stateDataValue, sMode);
+            S.loadQ += load->getReactivePower(outputs, stateDataValue, sMode);
         }
     }
 
@@ -1131,9 +1145,9 @@ void busPowers::reset()
 
 bool busPowers::needsUpdate(const StateData& stateDataValue) const
 {
-    bool empty = stateDataValue.empty();
-    bool zeroSeqID = stateDataValue.seqID == 0;
-    bool differentSeqID = stateDataValue.seqID != seqID;
+    const bool empty = stateDataValue.empty();
+    const bool zeroSeqID = stateDataValue.seqID == 0;
+    const bool differentSeqID = stateDataValue.seqID != seqID;
     return (empty || zeroSeqID || differentSeqID);
 }
 
@@ -1185,7 +1199,7 @@ double GridBus::getGenerationRealNominal() const
 {
     if ((type == BusType::SLK) || (type == BusType::AFIX)) {
         double general = 0.0;
-        for (auto gen : attachedGens) {
+        for (auto* gen : attachedGens) {
             general += gen->getRealPower();
         }
         return general;
@@ -1197,7 +1211,7 @@ double GridBus::getGenerationReactiveNominal() const
 {
     if ((type == BusType::SLK) || (type == BusType::PV)) {
         double genreactive = 0.0;
-        for (auto gen : attachedGens) {
+        for (auto* gen : attachedGens) {
             genreactive += gen->getReactivePower();
         }
         return genreactive;
@@ -1228,17 +1242,17 @@ double GridBus::getSched() const
 {
     return 0.0;
 }
-Link* GridBus::findLink(GridBus* bs) const
+Link* GridBus::findLink(GridBus* bus) const
 {
     Link* lnk = nullptr;
 
-    for (auto lnk2 : attachedLinks) {
-        if (isSameObject(lnk2->getBus(1), bs)) {
-            lnk = lnk2;
+    for (auto* attachedLink : attachedLinks) {
+        if (isSameObject(attachedLink->getBus(1), bus)) {
+            lnk = attachedLink;
             break;
         }
-        if (isSameObject(lnk2->getBus(2), bs)) {
-            lnk = lnk2;
+        if (isSameObject(attachedLink->getBus(2), bus)) {
+            lnk = attachedLink;
             break;
         }
     }
@@ -1255,17 +1269,17 @@ CoreObject* GridBus::find(std::string_view objName) const
         return getParent()->find(objName);
     }
     // finding links by naming the opposite end
-    auto fnd_Ex = objName.find_first_of('!');
-    if (fnd_Ex != std::string::npos) {
-        if (fnd_Ex == 4) {
-            if (objName.compare(0, 4, "link") == 0) {
-                auto bobj = getParent()->find(objName.substr(fnd_Ex + 1));
-                if (bobj != nullptr) {
-                    for (auto& lnk : attachedLinks) {
-                        if (isSameObject(bobj, lnk->getBus(1))) {
+    const auto fndEx = objName.find_first_of('!');
+    if (fndEx != std::string::npos) {
+        if (fndEx == 4) {
+            if (objName.starts_with("link")) {
+                auto* busObject = getParent()->find(objName.substr(fndEx + 1));
+                if (busObject != nullptr) {
+                    for (const auto& lnk : attachedLinks) {
+                        if (isSameObject(busObject, lnk->getBus(1))) {
                             return lnk;
                         }
-                        if (isSameObject(bobj, lnk->getBus(2))) {
+                        if (isSameObject(busObject, lnk->getBus(2))) {
                             return lnk;
                         }
                     }
@@ -1295,19 +1309,19 @@ CoreObject* GridBus::getSubObject(std::string_view typeName, index_t num) const
 CoreObject* GridBus::findByUserID(std::string_view typeName, index_t searchID) const
 {
     if (typeName == "load") {
-        for (auto& LD : attachedLoads) {
-            if (LD->getUserID() == searchID) {
-                return LD;
+        for (const auto& loadObject : attachedLoads) {
+            if (loadObject->getUserID() == searchID) {
+                return loadObject;
             }
         }
     } else if ((typeName == "gen") || (typeName == "generator")) {
-        for (auto& gen : attachedGens) {
+        for (const auto& gen : attachedGens) {
             if (gen->getUserID() == searchID) {
                 return gen;
             }
         }
     } else if (typeName == "link") {
-        for (auto& link : attachedLinks) {
+        for (const auto& link : attachedLinks) {
             if (link->getUserID() == searchID) {
                 return link;
             }
@@ -1316,19 +1330,19 @@ CoreObject* GridBus::findByUserID(std::string_view typeName, index_t searchID) c
     return GridComponent::findByUserID(typeName, searchID);
 }
 
-Link* GridBus::getLink(index_t x) const
+Link* GridBus::getLink(index_t index) const
 {
-    return (isValidIndex(x, attachedLinks)) ? attachedLinks[x] : nullptr;
+    return (isValidIndex(index, attachedLinks)) ? attachedLinks[index] : nullptr;
 }
 
-GridLoad* GridBus::getLoad(index_t x) const
+GridLoad* GridBus::getLoad(index_t index) const
 {
-    return (isValidIndex(x, attachedLoads)) ? attachedLoads[x] : nullptr;
+    return (isValidIndex(index, attachedLoads)) ? attachedLoads[index] : nullptr;
 }
 
-Generator* GridBus::getGen(index_t x) const
+Generator* GridBus::getGen(index_t index) const
 {
-    return (isValidIndex(x, attachedGens)) ? attachedGens[x] : nullptr;
+    return (isValidIndex(index, attachedGens)) ? attachedGens[index] : nullptr;
 }
 
 void GridBus::mergeBus(GridBus* /*bus*/) {}
@@ -1379,11 +1393,11 @@ double GridBus::get(std::string_view param, unit unitType) const
     } else if ((param == "p") || (param == "q") || (param == "yp") || (param == "yq") ||
                (param == "ip") || (param == "iq")) {
         val = 0.0;
-        for (const auto& ld : attachedLoads) {
-            val += ld->get(param, unitType);
+        for (const auto& loadObject : attachedLoads) {
+            val += loadObject->get(param, unitType);
         }
     } else {
-        auto fptr = getObjectFunction(this, std::string{param});
+        auto fptr = getObjectFunction(this, param);
         if (fptr.first) {
             CoreObject* tobj = const_cast<GridBus*>(this);
             val =
@@ -1419,7 +1433,7 @@ void GridBus::rootTrigger(CoreTime time,
                           const SolverMode& sMode)
 {
     size_t rootCount = 0;
-    int rootOffset = offsets.getRootOffset(sMode);
+    const int rootOffset = offsets.getRootOffset(sMode);
 
     auto rootsfound = gmlc::utilities::vecFindne(rootMask,
                                                  0,
@@ -1429,41 +1443,41 @@ void GridBus::rootTrigger(CoreTime time,
     if (!rootsfound.empty()) {
         size_t rootFoundIndex = 0;
         auto inputs = getOutputs(noInputs, emptyStateData, cLocalSolverMode);
-        auto nR = rootsfound[rootFoundIndex];
+        auto nextRoot = rootsfound[rootFoundIndex];
         for (auto& gen : attachedGens) {
             if ((gen->checkFlag(HAS_ROOTS)) && (gen->isEnabled())) {
                 rootCount += gen->rootSize(sMode);
-                if (nR < rootOffset + rootCount) {
+                if (nextRoot < rootOffset + rootCount) {
                     gen->rootTrigger(time, inputs, rootMask, sMode);
                     do {
                         ++rootFoundIndex;
                         if (rootFoundIndex >= rootsfound.size()) {
                             return;
                         }
-                        nR = rootsfound[rootFoundIndex];
-                    } while (nR < rootOffset + rootCount);
+                        nextRoot = rootsfound[rootFoundIndex];
+                    } while (nextRoot < rootOffset + rootCount);
                 }
             }
         }
         for (auto& load : attachedLoads) {
             if ((load->checkFlag(HAS_ROOTS)) && (load->isEnabled())) {
                 rootCount += load->rootSize(sMode);
-                if (nR < rootOffset + rootCount) {
+                if (nextRoot < rootOffset + rootCount) {
                     load->rootTrigger(time, inputs, rootMask, sMode);
                     do {
                         ++rootFoundIndex;
                         if (rootFoundIndex >= rootsfound.size()) {
                             return;
                         }
-                        nR = rootsfound[rootFoundIndex];
-                    } while (nR < rootOffset + rootCount);
+                        nextRoot = rootsfound[rootFoundIndex];
+                    } while (nextRoot < rootOffset + rootCount);
                 }
             }
         }
     }
 }
 
-static const std::vector<stringVec> outputNamesStr{
+static const std::vector<stringVec> OUTPUT_NAMES_STR{
     {"voltage", "v", "volt"},
     {"angle", "theta", "ang", "a"},
     {"frequency", "freq", "f", "omega"},
@@ -1471,7 +1485,7 @@ static const std::vector<stringVec> outputNamesStr{
 
 const std::vector<stringVec>& GridBus::outputNames() const
 {
-    return outputNamesStr;
+    return OUTPUT_NAMES_STR;
 }
 
 units::unit GridBus::outputUnits(index_t outputNum) const
@@ -1634,7 +1648,7 @@ GridBus* getMatchingBus(GridBus* bus, const GridPrimary* src, GridPrimary* sec)
         return sec->getBus(bus->locIndex);
     }
 
-    auto par = dynamic_cast<GridPrimary*>(bus->getParent());
+    auto* par = dynamic_cast<GridPrimary*>(bus->getParent());
     if (par == nullptr) {
         return nullptr;
     }

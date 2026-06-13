@@ -21,6 +21,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/griddyn-config.h"
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstdio>
@@ -266,7 +267,8 @@ void GridBus::remove(Link* lnk)
     }
 }
 
-void GridBus::alert(CoreObject* obj, int code)  // NOLINT(misc-no-recursion)
+// NOLINTNEXTLINE(misc-no-recursion)
+void GridBus::alert(CoreObject* obj, int code)
 {
     switch (code) {
         case OBJECT_NAME_CHANGE:
@@ -333,7 +335,8 @@ void GridBus::preEx(const IOdata& /*inputs*/,
 }
 // function to reset the bus type and voltage
 
-void GridBus::reset(ResetLevels level)  // NOLINT(misc-no-recursion)
+// NOLINTNEXTLINE(misc-no-recursion)
+void GridBus::reset(ResetLevels level)
 {
     if (opFlags[DISCONNECTED]) {
         for (auto& link : attachedLinks) {
@@ -691,8 +694,9 @@ double GridBus::getFreq(const StateData& /*stateDataValue*/, const SolverMode& /
     return freq;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 bool GridBus::directPath(GridComponent* target,
-                         GridComponent* source)  // NOLINT(misc-no-recursion)
+                         GridComponent* source)
 {
     auto tid = target->getID();
     if (isSameObject(tid, this)) {
@@ -737,9 +741,10 @@ bool GridBus::directPath(GridComponent* target,
     return false;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 std::vector<GridComponent*>
     GridBus::getDirectPath(GridComponent* target,
-                           GridComponent* source)  // NOLINT(misc-no-recursion)
+                           GridComponent* source)
 {
     std::vector<GridComponent*> opath{source};
 
@@ -1025,7 +1030,8 @@ void GridBus::disconnect()
     }
 }
 
-void GridBus::reconnect(GridBus* mapBus)  // NOLINT(misc-no-recursion)
+// NOLINTNEXTLINE(misc-no-recursion)
+void GridBus::reconnect(GridBus* mapBus)
 {
     if (opFlags[DISCONNECTED]) {
         logging::debug(this, "reconnecting to network");
@@ -1044,7 +1050,8 @@ void GridBus::reconnect(GridBus* mapBus)  // NOLINT(misc-no-recursion)
     }
 }
 
-void GridBus::reconnect()  // NOLINT(misc-no-recursion)
+// NOLINTNEXTLINE(misc-no-recursion)
+void GridBus::reconnect()
 {
     reconnect(nullptr);
 }

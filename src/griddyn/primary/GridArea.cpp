@@ -53,7 +53,8 @@ GridArea::GridArea(const std::string& objName): GridPrimary(objName)
     opObjectLists = std::make_unique<ListMaintainer>();
 }
 
-CoreObject* GridArea::clone(CoreObject* obj) const  // NOLINT(misc-no-recursion)
+// NOLINTNEXTLINE(misc-no-recursion)
+CoreObject* GridArea::clone(CoreObject* obj) const
 {
     auto* area = cloneBase<GridArea, GridPrimary>(this, obj);
     if (area == nullptr) {
@@ -358,7 +359,8 @@ Relay* GridArea::getRelay(index_t index) const
     return (isValidIndex(index, m_Relays)) ? m_Relays[index] : nullptr;
 }
 
-Generator* GridArea::getGen(index_t index)  // NOLINT(misc-no-recursion)
+// NOLINTNEXTLINE(misc-no-recursion)
+Generator* GridArea::getGen(index_t index)
 {
     for (auto* areaObject : m_GridAreas) {
         const auto tcnt = static_cast<count_t>(areaObject->get("gencount"));
@@ -377,7 +379,8 @@ Generator* GridArea::getGen(index_t index)  // NOLINT(misc-no-recursion)
     return nullptr;
 }
 
-CoreObject* GridArea::find(std::string_view objName) const  // NOLINT(misc-no-recursion)
+// NOLINTNEXTLINE(misc-no-recursion)
+CoreObject* GridArea::find(std::string_view objName) const
 {
     CoreObject* obj = obList->find(objName);
     if (obj == nullptr) {
@@ -419,10 +422,11 @@ CoreObject* GridArea::getSubObject(std::string_view typeName, index_t num) const
     return nullptr;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void GridArea::setAll(std::string_view type,
                       std::string_view param,
                       double val,
-                      units::unit unitType)  // NOLINT(misc-no-recursion)
+                      units::unit unitType)
 {
     if (type == "all") {
         set(param, val, unitType);
@@ -486,8 +490,9 @@ void GridArea::setAll(std::string_view type,
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 CoreObject* GridArea::findByUserID(std::string_view typeName,
-                                   index_t searchID) const  // NOLINT(misc-no-recursion)
+                                   index_t searchID) const
 {
     if ((typeName == "area") && (searchID == getUserID())) {
         return const_cast<GridArea*>(this);
@@ -626,7 +631,8 @@ void GridArea::pFlowObjectInitializeB()
     opObjectLists->makePreList(primaryObjects);
 }
 
-void GridArea::updateLocalCache()  // NOLINT(misc-no-recursion)
+// NOLINTNEXTLINE(misc-no-recursion)
+void GridArea::updateLocalCache()
 {
     // links should come first
     for (auto* link : m_Links) {
@@ -651,9 +657,10 @@ void GridArea::updateLocalCache()  // NOLINT(misc-no-recursion)
     }
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void GridArea::updateLocalCache(const IOdata& inputs,
                                 const StateData& stateDataValue,
-                                const SolverMode& sMode)  // NOLINT(misc-no-recursion)
+                                const SolverMode& sMode)
 {
     // links should come first
     for (auto* link : m_Links) {
@@ -857,7 +864,8 @@ void GridArea::set(std::string_view param, double val, unit unitType)
     }
 }
 
-double GridArea::get(std::string_view param, unit unitType) const  // NOLINT(misc-no-recursion)
+// NOLINTNEXTLINE(misc-no-recursion)
+double GridArea::get(std::string_view param, unit unitType) const
 {
     double val = 0.0;
     size_t vali = 0;
@@ -915,9 +923,10 @@ double GridArea::get(std::string_view param, unit unitType) const  // NOLINT(mis
     return (vali != 0) ? (static_cast<double>(vali)) : val;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 void GridArea::timestep(CoreTime time,
                         const IOdata& inputs,
-                        const SolverMode& sMode)  // NOLINT(misc-no-recursion)
+                        const SolverMode& sMode)
 {
     // update the tie lines first
     for (auto* linkObject : m_Links) {
@@ -943,8 +952,9 @@ void GridArea::timestep(CoreTime time,
     prevTime = time;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 count_t GridArea::getBusVector(std::vector<GridBus*>& busVector,
-                               index_t start) const  // NOLINT(misc-no-recursion)
+                               index_t start) const
 {
     auto cnt = static_cast<count_t>(m_Buses.size());
     if (cnt > 0) {
@@ -957,8 +967,9 @@ count_t GridArea::getBusVector(std::vector<GridBus*>& busVector,
     return cnt;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 count_t GridArea::getLinkVector(std::vector<Link*>& linkVector,
-                                index_t start) const  // NOLINT(misc-no-recursion)
+                                index_t start) const
 {
     auto cnt = static_cast<count_t>(m_Links.size());
     if (cnt > 0) {
@@ -971,8 +982,9 @@ count_t GridArea::getLinkVector(std::vector<Link*>& linkVector,
     return cnt;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 count_t GridArea::getVoltage(std::vector<double>& voltages,
-                             index_t start) const  // NOLINT(misc-no-recursion)
+                             index_t start) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -988,10 +1000,11 @@ count_t GridArea::getVoltage(std::vector<double>& voltages,
     return cnt;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 count_t GridArea::getVoltage(std::vector<double>& voltages,
                              const double state[],
                              const SolverMode& sMode,
-                             index_t start) const  // NOLINT(misc-no-recursion)
+                             index_t start) const
 {
     count_t cnt = 0;
 
@@ -1008,8 +1021,9 @@ count_t GridArea::getVoltage(std::vector<double>& voltages,
     return cnt;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 count_t GridArea::getAngle(std::vector<double>& angles,
-                           index_t start) const  // NOLINT(misc-no-recursion)
+                           index_t start) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1024,10 +1038,11 @@ count_t GridArea::getAngle(std::vector<double>& angles,
     return cnt;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 count_t GridArea::getAngle(std::vector<double>& angles,
                            const double state[],
                            const SolverMode& sMode,
-                           index_t start) const  // NOLINT(misc-no-recursion)
+                           index_t start) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1042,8 +1057,9 @@ count_t GridArea::getAngle(std::vector<double>& angles,
     return cnt;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 count_t GridArea::getFreq(std::vector<double>& frequencies,
-                          index_t start) const  // NOLINT(misc-no-recursion)
+                          index_t start) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1080,9 +1096,10 @@ index_t start) const
 }
 */
 
+// NOLINTNEXTLINE(misc-no-recursion)
 count_t GridArea::getLinkRealPower(std::vector<double>& powers,
                                    index_t start,
-                                   int busNumber) const  // NOLINT(misc-no-recursion)
+                                   int busNumber) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1098,9 +1115,10 @@ count_t GridArea::getLinkRealPower(std::vector<double>& powers,
     return cnt;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 count_t GridArea::getLinkReactivePower(std::vector<double>& powers,
                                        index_t start,
-                                       int busNumber) const  // NOLINT(misc-no-recursion)
+                                       int busNumber) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1115,8 +1133,9 @@ count_t GridArea::getLinkReactivePower(std::vector<double>& powers,
     return cnt;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 count_t GridArea::getBusGenerationReal(std::vector<double>& powers,
-                                       index_t start) const  // NOLINT(misc-no-recursion)
+                                       index_t start) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1132,8 +1151,9 @@ count_t GridArea::getBusGenerationReal(std::vector<double>& powers,
     return cnt;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 count_t GridArea::getBusGenerationReactive(std::vector<double>& powers,
-                                           index_t start) const  // NOLINT(misc-no-recursion)
+                                           index_t start) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1148,8 +1168,9 @@ count_t GridArea::getBusGenerationReactive(std::vector<double>& powers,
     return cnt;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 count_t GridArea::getBusLoadReal(std::vector<double>& powers,
-                                 index_t start) const  // NOLINT(misc-no-recursion)
+                                 index_t start) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1164,8 +1185,9 @@ count_t GridArea::getBusLoadReal(std::vector<double>& powers,
     return cnt;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 count_t GridArea::getBusLoadReactive(std::vector<double>& powers,
-                                     index_t start) const  // NOLINT(misc-no-recursion)
+                                     index_t start) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {
@@ -1180,8 +1202,9 @@ count_t GridArea::getBusLoadReactive(std::vector<double>& powers,
     return cnt;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion)
 count_t GridArea::getLinkLoss(std::vector<double>& losses,
-                              index_t start) const  // NOLINT(misc-no-recursion)
+                              index_t start) const
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {

@@ -481,8 +481,8 @@ void GridBus::setAll(std::string_view objtype,
     }
 }
 
-static const stringVec LOC_NUM_STRINGS{
-    "voltage", "angle", "basevoltage", "p", "q", "g", "b", "zone"};
+static const stringVec
+    LOC_NUM_STRINGS{"voltage", "angle", "basevoltage", "p", "q", "g", "b", "zone"};
 static const stringVec LOC_STR_STRINGS{"status"};
 
 static const stringVec FLAG_STRINGS{"connected"};
@@ -733,9 +733,9 @@ bool GridBus::directPath(GridComponent* target,
     return false;
 }
 
-std::vector<GridComponent*> GridBus::getDirectPath(
-    GridComponent* target,
-    GridComponent* source)  // NOLINT(misc-no-recursion)
+std::vector<GridComponent*>
+    GridBus::getDirectPath(GridComponent* target,
+                           GridComponent* source)  // NOLINT(misc-no-recursion)
 {
     std::vector<GridComponent*> opath{source};
 

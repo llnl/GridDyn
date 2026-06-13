@@ -35,7 +35,7 @@ jobs:
         shell: bash
         run: |
           apt-get update
-          apt-get install -y libblas-dev liblapack-dev
+          apt-get install -y libblas-dev liblapack-dev libunwind-dev
 
       - name: Configure
         shell: bash

@@ -1098,10 +1098,9 @@ count_t GridArea::getLinkRealPower(std::vector<double>& powers,
     return cnt;
 }
 
-count_t
-    GridArea::getLinkReactivePower(std::vector<double>& powers,
-                                   index_t start,
-                                   int busNumber) const  // NOLINT(misc-no-recursion)
+count_t GridArea::getLinkReactivePower(std::vector<double>& powers,
+                                       index_t start,
+                                       int busNumber) const  // NOLINT(misc-no-recursion)
 {
     count_t cnt = 0;
     for (auto* area : m_GridAreas) {

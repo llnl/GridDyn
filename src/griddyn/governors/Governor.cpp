@@ -147,8 +147,11 @@ void Governor::residual(const IOdata& inputs,
 {
     cb.blockResidual(inputs[govOmegaInLocation], 0, stateData, resid, sMode);
     dbb.blockResidual(cb.getBlockOutput(stateData, sMode), 0, stateData, resid, sMode);
-    delay.blockResidual(
-        dbb.getBlockOutput(stateData, sMode) + inputs[govpSetInLocation], 0, stateData, resid, sMode);
+    delay.blockResidual(dbb.getBlockOutput(stateData, sMode) + inputs[govpSetInLocation],
+                        0,
+                        stateData,
+                        resid,
+                        sMode);
 }
 
 void Governor::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
@@ -166,8 +169,8 @@ void Governor::derivative(const IOdata& inputs,
 {
     IOdata blockInput{inputs[govOmegaInLocation]};  // deadband doesn't have any derivatives
     cb.derivative(blockInput, stateData, deriv, sMode);
-    blockInput[0] =
-        dbb.getOutput(blockInput, stateData, sMode) + inputs[govpSetInLocation];  // gain from deadband +Pset
+    blockInput[0] = dbb.getOutput(blockInput, stateData, sMode) +
+        inputs[govpSetInLocation];  // gain from deadband +Pset
     delay.derivative(blockInput, stateData, deriv, sMode);
 }
 

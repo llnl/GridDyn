@@ -1,0 +1,5 @@
+# Ignore known MemorySanitizer noise from bundled third-party KLU teardown.
+# This lets the MSan workflow continue far enough to report issues in GridDyn
+# code instead of stopping immediately in SuiteSparse internals.
+src:*/ThirdParty/suitesparse-cmake/SuiteSparse/KLU/*
+fun:KLU_free_numeric

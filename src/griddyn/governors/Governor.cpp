@@ -361,7 +361,7 @@ double Governor::get(std::string_view param, units::unit unitType) const
     } else if ((param == "deadband") || (param == "deadbandhigh")) {
         out = convert(deadbandHigh, puHz, unitType, systemBaseFrequency);
     } else if (param == "deadbandlow") {
-        out = convert(deadbandHigh, puHz, unitType, systemBaseFrequency);
+        out = convert(deadbandLow, puHz, unitType, systemBaseFrequency);
     } else {
         out = GridSubModel::get(param, unitType);
     }

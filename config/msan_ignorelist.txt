@@ -3,3 +3,9 @@
 # code instead of stopping immediately in SuiteSparse internals.
 src:*/ThirdParty/suitesparse-cmake/SuiteSparse/KLU/*
 fun:KLU_free_numeric
+
+# Ignore known MemorySanitizer noise from bundled Minizip extraction internals.
+# GridDyn exercises these via zipUtilities, but the current report is entirely
+# within third-party decompression code rather than GridDyn-owned logic.
+src:*/ThirdParty/Minizip/*
+fun:unzReadCurrentFile

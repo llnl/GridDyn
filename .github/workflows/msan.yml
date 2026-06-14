@@ -36,8 +36,17 @@ jobs:
         run: |
           apt-get update
           apt-get install -y libblas-dev liblapack-dev libunwind-dev
-          if [ ! -e /root/develop/libcxx_msan/lib/libunwind.so.1 ] && [ -e /usr/lib/x86_64-linux-gnu/libunwind.so.8 ]; then
-            ln -s /usr/lib/x86_64-linux-gnu/libunwind.so.8 /root/develop/libcxx_msan/lib/libunwind.so.1
+
+      - name: Prepare MSan runtime libraries
+        shell: bash
+        run: |
+          libunwind_path="$(ldconfig -p | awk '/libunwind\.so/ { print $NF; exit }')"
+          if [ -z "${libunwind_path}" ]; then
+            echo "Unable to locate a libunwind shared library"
+            exit 1
+          fi
+          if [ ! -e /root/develop/libcxx_msan/lib/libunwind.so.1 ]; then
+            ln -s "${libunwind_path}" /root/develop/libcxx_msan/lib/libunwind.so.1
           fi
 
       - name: Configure
@@ -60,4 +69,4 @@ jobs:
 
       - name: Run MSan tests
         shell: bash
-        run: ctest --test-dir build --output-on-failure -L Continuous
+        run: LD_LIBRARY_PATH="/root/develop/libcxx_msan/lib:/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}" ctest --test-dir build --output-on-failure -L Continuous

@@ -19,7 +19,7 @@ namespace sources {
         std::unique_ptr<GrabberSet> gset;  //!< the GrabberSet to get the data
         std::string field;  //!< the field to grab
         std::string target;  //!< the name of the target
-        model_parameter multiplier;  //!< a multiplier on the grabber value
+        model_parameter multiplier = 1.0;  //!< a multiplier on the grabber value
       public:
         GrabberSource(const std::string& objName = "grabbersource_#");
         ~GrabberSource();

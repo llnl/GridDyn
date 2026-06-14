@@ -83,8 +83,14 @@ CoreObject* Governor::clone(CoreObject* obj) const
     return gov;
 }
 
-// destructor
-Governor::~Governor() = default;
+// Embedded blocks are stack members, so detach them from the generic subobject list
+// before base-class teardown walks that list.
+Governor::~Governor()
+{
+    removeSubObject(&delay);
+    removeSubObject(&cb);
+    removeSubObject(&dbb);
+}
 
 void Governor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {

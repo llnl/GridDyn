@@ -3,6 +3,11 @@ set -euo pipefail
 
 ROOT_DIR=$(pwd)
 
+is_third_party_file() {
+    local source_file="$1"
+    [[ "$source_file" == ThirdParty/* ]]
+}
+
 append_include_args() {
     local raw_paths="$1"
     local split_paths
@@ -24,7 +29,13 @@ FILES_URL="$(jq -r '.pull_request._links.self.href' "$GITHUB_EVENT_PATH")/files"
 FILES=$(curl -s -X GET -G "$FILES_URL" | jq -r '.[] | .filename')
 echo "====Files Changed in PR===="
 echo "$FILES"
-filecount=$(echo "$FILES" | grep -c -E '\.(cpp|cc|cxx|c)$' || true)
+filecount=$(
+    while read -r line; do
+        if [[ "$line" =~ \.(cpp|cc|cxx|c)$ ]] && ! is_third_party_file "$line"; then
+            echo "$line"
+        fi
+    done <<<"$FILES" | grep -c .
+)
 echo "Total changed: $filecount"
 tidyerr=0
 if ((filecount > 0 && filecount <= 25)); then
@@ -57,6 +68,10 @@ if ((filecount > 0 && filecount <= 25)); then
     fi
     while read -r line; do
         if echo "$line" | grep -E '\.(cpp|cc|cxx|c)$'; then
+            if is_third_party_file "$line"; then
+                echo "skipping ${line}: third-party source"
+                continue
+            fi
             source_file="${ROOT_DIR}/${line}"
             if ! file_in_compile_db "$source_file"; then
                 echo "skipping ${line}: not present in compilation database"

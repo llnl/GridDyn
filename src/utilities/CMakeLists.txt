@@ -64,9 +64,15 @@ endif()
 
 if(griddyn_minizip_use_bundled_zlib)
     set(ZLIB_BUILD_MINIZIP ON CACHE BOOL "Use the in-tree zlib build for Minizip" FORCE)
-    set(ZLIB_MINIZIP_BUILD_SHARED OFF CACHE BOOL "Disable shared Minizip when building from bundled zlib" FORCE)
-    set(ZLIB_MINIZIP_BUILD_STATIC ON CACHE BOOL "Enable static Minizip when building from bundled zlib" FORCE)
-    set(ZLIB_MINIZIP_INSTALL OFF CACHE BOOL "Disable Minizip install rules for bundled builds" FORCE)
+    set(ZLIB_MINIZIP_BUILD_SHARED OFF
+        CACHE BOOL "Disable shared Minizip when building from bundled zlib" FORCE
+    )
+    set(ZLIB_MINIZIP_BUILD_STATIC ON
+        CACHE BOOL "Enable static Minizip when building from bundled zlib" FORCE
+    )
+    set(ZLIB_MINIZIP_INSTALL OFF CACHE BOOL "Disable Minizip install rules for bundled builds"
+                                       FORCE
+    )
 endif()
 
 add_subdirectory(

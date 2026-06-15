@@ -9,3 +9,5 @@ fun:KLU_free_numeric
 # within third-party decompression code rather than GridDyn-owned logic.
 src:*/ThirdParty/Minizip/*
 fun:unzReadCurrentFile
+fun:zip64FlushWriteBuffer
+fun:zipCloseFileInZipRaw64

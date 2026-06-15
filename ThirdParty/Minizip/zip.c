@@ -1392,6 +1392,7 @@ extern int ZEXPORT zipOpenNewFileInZip4_64(zipFile file, const char* filename, c
     zi->ci.encrypt = 0;
     zi->ci.stream_initialised = 0;
     zi->ci.pos_in_buffered_data = 0;
+    memset(zi->ci.buffered_data, 0, sizeof(zi->ci.buffered_data));
     zi->ci.raw = raw;
     zi->ci.pos_local_header = ZTELL64(zi->z_filefunc,zi->filestream);
 

@@ -16,25 +16,25 @@
 
 namespace griddyn {
 // Create the component factories for the various governors
-static TypeFactory<Governor> gfgov1("governor",
+static TypeFactory<Governor> gFgov1("governor",
                                     std::to_array<std::string_view>({"simple", "fast"}));
 namespace governors {
     static ChildTypeFactory<GovernorIeeeSimple, Governor>
-        gfgovsi("governor", std::to_array<std::string_view>({"basic", "ieeesimple"}), "basic");
+        gFgovsi("governor", std::to_array<std::string_view>({"basic", "ieeesimple"}), "basic");
 
     static ChildTypeFactory<GovernorReheat, Governor>
-        gfgovrh("governor", std::to_array<std::string_view>({"reheat"}));
+        gFgovrh("governor", std::to_array<std::string_view>({"reheat"}));
     static ChildTypeFactory<GovernorHydro, Governor>
-        gfgov2("governor", std::to_array<std::string_view>({"ieeehydro", "hydro"}));
+        gFgov2("governor", std::to_array<std::string_view>({"ieeehydro", "hydro"}));
 
     static ChildTypeFactory<GovernorSteamNR, Governor>
-        gfgov3("governor", std::to_array<std::string_view>({"ieeesteamnr", "steamnr"}));
+        gFgov3("governor", std::to_array<std::string_view>({"ieeesteamnr", "steamnr"}));
 
     static ChildTypeFactory<GovernorSteamTCSR, Governor>
-        gfgov4("governor", std::to_array<std::string_view>({"ieeesteamtcsr", "steamtcsr"}));
+        gFgov4("governor", std::to_array<std::string_view>({"ieeesteamtcsr", "steamtcsr"}));
 
     static ChildTypeFactory<GovernorTgov1, Governor>
-        gfgov5("governor", std::to_array<std::string_view>({"tgov1"}));
+        gFgov5("governor", std::to_array<std::string_view>({"tgov1"}));
 
 }  // namespace governors
 using units::convert;
@@ -83,8 +83,14 @@ CoreObject* Governor::clone(CoreObject* obj) const
     return gov;
 }
 
-// destructor
-Governor::~Governor() = default;
+// Embedded blocks are stack members, so detach them from the generic subobject list
+// before base-class teardown walks that list.
+Governor::~Governor()
+{
+    removeSubObject(&delay);
+    removeSubObject(&cb);
+    removeSubObject(&dbb);
+}
 
 void Governor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
@@ -104,7 +110,7 @@ void Governor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     GridSubModel::dynObjectInitializeA(time0, flags);
 }
 // initial conditions
-static IOdata kNullVec;
+static IOdata gKNullVec;
 
 void Governor::dynObjectInitializeB(const IOdata& inputs,
                                     const IOdata& desiredOutput,
@@ -112,37 +118,40 @@ void Governor::dynObjectInitializeB(const IOdata& inputs,
 {
     if (desiredOutput.empty()) {
         fieldSet[0] = inputs[govOmegaInLocation];
-        cb.dynInitializeB(fieldSet, kNullVec, fieldSet);
-        dbb.dynInitializeB(fieldSet, kNullVec, fieldSet);
-        double omP = fieldSet[0];
+        cb.dynInitializeB(fieldSet, gKNullVec, fieldSet);
+        dbb.dynInitializeB(fieldSet, gKNullVec, fieldSet);
+        const double omegaPower = fieldSet[0];
 
-        fieldSet[0] = Pset + omP;
-        delay.dynInitializeB(fieldSet, kNullVec, fieldSet);
-        fieldSet[0] = Pset + omP;
+        fieldSet[0] = Pset + omegaPower;
+        delay.dynInitializeB(fieldSet, gKNullVec, fieldSet);
+        fieldSet[0] = Pset + omegaPower;
     } else {
-        double P = desiredOutput[0];
+        const double power = desiredOutput[0];
         fieldSet[0] = inputs[govOmegaInLocation];
-        cb.dynInitializeB(fieldSet, kNullVec, fieldSet);
-        dbb.dynInitializeB(fieldSet, kNullVec, fieldSet);
-        double omP = fieldSet[0];
+        cb.dynInitializeB(fieldSet, gKNullVec, fieldSet);
+        dbb.dynInitializeB(fieldSet, gKNullVec, fieldSet);
+        const double omegaPower = fieldSet[0];
 
-        fieldSet[0] = P;
-        delay.dynInitializeB(kNullVec, fieldSet, fieldSet);
+        fieldSet[0] = power;
+        delay.dynInitializeB(gKNullVec, fieldSet, fieldSet);
         fieldSet.resize(2);
-        fieldSet[1] = Pset = P - omP;
+        fieldSet[1] = Pset = power - omegaPower;
     }
 }
 
 // residual
 void Governor::residual(const IOdata& inputs,
-                        const StateData& sD,
+                        const StateData& stateData,
                         double resid[],
                         const SolverMode& sMode)
 {
-    cb.blockResidual(inputs[govOmegaInLocation], 0, sD, resid, sMode);
-    dbb.blockResidual(cb.getBlockOutput(sD, sMode), 0, sD, resid, sMode);
-    delay.blockResidual(
-        dbb.getBlockOutput(sD, sMode) + inputs[govpSetInLocation], 0, sD, resid, sMode);
+    cb.blockResidual(inputs[govOmegaInLocation], 0, stateData, resid, sMode);
+    dbb.blockResidual(cb.getBlockOutput(stateData, sMode), 0, stateData, resid, sMode);
+    delay.blockResidual(dbb.getBlockOutput(stateData, sMode) + inputs[govpSetInLocation],
+                        0,
+                        stateData,
+                        resid,
+                        sMode);
 }
 
 void Governor::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
@@ -154,51 +163,53 @@ void Governor::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /
 }
 
 void Governor::derivative(const IOdata& inputs,
-                          const StateData& sD,
+                          const StateData& stateData,
                           double deriv[],
                           const SolverMode& sMode)
 {
-    IOdata i{inputs[govOmegaInLocation]};  // deadband doesn't have any derivatives
-    cb.derivative(i, sD, deriv, sMode);
-    i[0] = dbb.getOutput(i, sD, sMode) + inputs[govpSetInLocation];  // gain from deadband +Pset
-    delay.derivative(i, sD, deriv, sMode);
+    IOdata blockInput{inputs[govOmegaInLocation]};  // deadband doesn't have any derivatives
+    cb.derivative(blockInput, stateData, deriv, sMode);
+    blockInput[0] = dbb.getOutput(blockInput, stateData, sMode) +
+        inputs[govpSetInLocation];  // gain from deadband +Pset
+    delay.derivative(blockInput, stateData, deriv, sMode);
 }
 
 void Governor::jacobianElements(const IOdata& inputs,
-                                const StateData& sD,
-                                MatrixData<double>& md,
+                                const StateData& stateData,
+                                MatrixData<double>& matrixData,
                                 const IOlocs& inputLocs,
                                 const SolverMode& sMode)
 {
     cb.blockJacobianElements(
-        inputs[govOmegaInLocation], 0, sD, md, inputLocs[govOmegaInLocation], sMode);
+        inputs[govOmegaInLocation], 0, stateData, matrixData, inputLocs[govOmegaInLocation], sMode);
 
-    MatrixDataSparse<double> kp;
-    index_t wloc = cb.getOutputLoc(sMode);
-    double out = cb.getOutput(kNullVec, sD, sMode);
-    dbb.blockJacobianElements(out, 0, sD, md, wloc, sMode);
+    MatrixDataSparse<double> delayJacobian;
+    index_t frequencyLoc = cb.getOutputLoc(sMode);
+    double output = cb.getOutput(gKNullVec, stateData, sMode);
+    dbb.blockJacobianElements(output, 0, stateData, matrixData, frequencyLoc, sMode);
 
-    out = dbb.getOutput(kNullVec, sD, sMode);
-    wloc = dbb.getOutputLoc(sMode);
-    delay.blockJacobianElements(out + inputs[govpSetInLocation], 0, sD, kp, 0, sMode);
+    output = dbb.getOutput(gKNullVec, stateData, sMode);
+    frequencyLoc = dbb.getOutputLoc(sMode);
+    delay.blockJacobianElements(
+        output + inputs[govpSetInLocation], 0, stateData, delayJacobian, 0, sMode);
 
     if (inputLocs[govpSetInLocation] != kNullLocation) {
-        for (index_t pp = 0; pp < kp.size(); ++pp) {
-            auto el = kp.element(pp);
-            if (el.col == 0) {
-                md.assign(el.row, wloc, el.data);
+        for (index_t pp = 0; pp < delayJacobian.size(); ++pp) {
+            const auto element = delayJacobian.element(pp);
+            if (element.col == 0) {
+                matrixData.assign(element.row, frequencyLoc, element.data);
             } else {
-                md.assign(el.row, el.col, el.data);
+                matrixData.assign(element.row, element.col, element.data);
             }
         }
     } else {
-        for (index_t pp = 0; pp < kp.size(); ++pp) {
-            auto el = kp.element(pp);
-            if (el.col == 0) {
-                md.assign(el.row, wloc, el.data);
-                md.assign(el.row, inputLocs[govpSetInLocation], el.data);
+        for (index_t pp = 0; pp < delayJacobian.size(); ++pp) {
+            const auto element = delayJacobian.element(pp);
+            if (element.col == 0) {
+                matrixData.assign(element.row, frequencyLoc, element.data);
+                matrixData.assign(element.row, inputLocs[govpSetInLocation], element.data);
             } else {
-                md.assign(el.row, el.col, el.data);
+                matrixData.assign(element.row, element.col, element.data);
             }
         }
     }
@@ -231,17 +242,17 @@ void Governor::jacobianElements(const IOdata& inputs,
 }
 
 void Governor::rootTest(const IOdata& /*inputs*/,
-                        const StateData& sD,
+                        const StateData& stateData,
                         double roots[],
                         const SolverMode& sMode)
 {
-    IOdata i{cb.getOutput(kNullVec, sD, sMode)};
+    const IOdata blockInput{cb.getOutput(gKNullVec, stateData, sMode)};
     if (dbb.checkFlag(HAS_ROOTS)) {
-        dbb.rootTest(i, sD, roots, sMode);
+        dbb.rootTest(blockInput, stateData, roots, sMode);
     }
     // cb should not have roots
     if (delay.checkFlag(HAS_ROOTS)) {
-        delay.rootTest(i, sD, roots, sMode);
+        delay.rootTest(blockInput, stateData, roots, sMode);
     }
 }
 
@@ -350,35 +361,33 @@ double Governor::get(std::string_view param, units::unit unitType) const
         out = convert(Pmax, puMW, unitType, systemBasePower);
     } else if (param == "pmin") {
         out = convert(Pmin, puMW, unitType, systemBasePower);
-    } else if (param == "deadband") {
-        out = convert(deadbandHigh, puHz, unitType, systemBaseFrequency);
-    } else if (param == "deadbandhigh") {
+    } else if ((param == "deadband") || (param == "deadbandhigh")) {
         out = convert(deadbandHigh, puHz, unitType, systemBaseFrequency);
     } else if (param == "deadbandlow") {
-        out = convert(deadbandHigh, puHz, unitType, systemBaseFrequency);
+        out = convert(deadbandLow, puHz, unitType, systemBaseFrequency);
     } else {
         out = GridSubModel::get(param, unitType);
     }
     return out;
 }
 
-static const std::vector<stringVec> inputNamesStr{
+static const std::vector<stringVec> INPUT_NAMES_STR{
     {"omega", "frequency", "w", "f"},
     {"pset", "setpoint", "power"},
 };
 
 const std::vector<stringVec>& Governor::inputNames() const
 {
-    return inputNamesStr;
+    return INPUT_NAMES_STR;
 }
 
-static const std::vector<stringVec> outputNamesStr{
+static const std::vector<stringVec> OUTPUT_NAMES_STR{
     {"pmech", "power", "output", "p"},
 };
 
 const std::vector<stringVec>& Governor::outputNames() const
 {
-    return outputNamesStr;
+    return OUTPUT_NAMES_STR;
 }
 
 }  // namespace griddyn

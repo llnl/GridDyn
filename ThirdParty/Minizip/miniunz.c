@@ -322,7 +322,7 @@ static int do_extract_currentfile(unzFile uf, const int* popt_extract_without_pa
     }
 
     size_buf = WRITEBUFFERSIZE;
-    buf = (void*)malloc(size_buf);
+    buf = (void*)calloc(size_buf, 1);
     if (buf==NULL)
     {
         printf("Error allocating memory\n");

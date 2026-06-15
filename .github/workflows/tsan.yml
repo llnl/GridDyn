@@ -1,0 +1,75 @@
+name: Thread Sanitizer
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tsan-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tsan:
+    name: TSan
+    runs-on: ubuntu-latest
+    container:
+      image: helics/buildenv:sanitizers-22
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Mark workspace as safe for git
+        run: git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
+      - name: Install SuiteSparse build dependencies
+        shell: bash
+        run: |
+          apt-get update
+          apt-get install -y libblas-dev liblapack-dev libunwind-dev
+
+      - name: Prepare TSan runtime libraries
+        shell: bash
+        run: |
+          libunwind_path="$(ldconfig -p | awk '/libunwind\.so/ { print $NF; exit }')"
+          if [ -z "${libunwind_path}" ]; then
+            echo "Unable to locate a libunwind shared library"
+            exit 1
+          fi
+          if [ ! -e /root/develop/libcxx_tsan/lib/libunwind.so.1 ]; then
+            ln -s "${libunwind_path}" /root/develop/libcxx_tsan/lib/libunwind.so.1
+          fi
+
+      - name: Configure
+        shell: bash
+        run: >
+          cmake -S . -B build
+          -DCMAKE_C_COMPILER=clang
+          -DCMAKE_CXX_COMPILER=clang++
+          -DCMAKE_C_FLAGS="-fsanitize=thread -fno-omit-frame-pointer -g -O1"
+          -DCMAKE_CXX_FLAGS="-fsanitize=thread -nostdinc++ -nostdlib++ -L/root/develop/libcxx_tsan/lib -lc++ -lc++abi -I/root/develop/libcxx_tsan/include -I/root/develop/libcxx_tsan/include/c++/v1 -Wno-unused-command-line-argument -Wno-reserved-identifier -Wno-reserved-macro-identifier -fno-omit-frame-pointer -g -O1 -Wl,-rpath=/root/develop/libcxx_tsan/lib"
+          -DBUILD_TESTING=ON
+          -DGRIDDYN_BUILD_TESTS=ON
+          -DGRIDDYN_SUITESPARSE_FORCE_SUBPROJECT=ON
+          -DGRIDDYN_ENABLE_FMI=OFF
+          -DGRIDDYN_ENABLE_HELICS_EXECUTABLE=OFF
+
+      - name: Build
+        shell: bash
+        run: cmake --build build --parallel 4
+
+      - name: Run TSan tests
+        shell: bash
+        run: >
+          LD_LIBRARY_PATH="/root/develop/libcxx_tsan/lib:/usr/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}"
+          TSAN_OPTIONS="second_deadlock_stack=1 suppressions=${GITHUB_WORKSPACE}/config/tsan_suppression.txt history_size=4"
+          ctest --test-dir build --output-on-failure -L Continuous

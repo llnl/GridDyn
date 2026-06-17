@@ -7,6 +7,7 @@
 #pragma once
 
 #include "CoreObject.h"
+#include <span>
 #include <type_traits>
 namespace griddyn {
 /**
@@ -55,9 +56,9 @@ A* cloneBase(const A* originalObject, CoreObject* obj)
 template<class A, class B>
 void getParamString(const A* cobj,
                     stringVec& pstr,
-                    const stringVec& numStr,
-                    const stringVec& strStr,
-                    const stringVec& flagStr,
+                    std::span<const std::string_view> numStr,
+                    std::span<const std::string_view> strStr,
+                    std::span<const std::string_view> flagStr,
                     ParamStringType pstype)
 {
     static_assert(std::is_base_of<B, A>::value,
@@ -77,13 +78,13 @@ void getParamString(const A* cobj,
             cobj->B::getParameterStrings(pstr, ParamStringType::STR);
             break;
         case ParamStringType::LOCAL_NUM:
-            pstr = numStr;
+            pstr.assign(numStr.begin(), numStr.end());
             break;
         case ParamStringType::LOCAL_STR:
-            pstr = strStr;
+            pstr.assign(strStr.begin(), strStr.end());
             break;
         case ParamStringType::LOCAL_FLAGS:
-            pstr = flagStr;
+            pstr.assign(flagStr.begin(), flagStr.end());
             break;
         case ParamStringType::NUMERIC:
             pstr.reserve(pstr.size() + numStr.size());

@@ -20,6 +20,7 @@
 // #include "MatrixDataSparse.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -998,20 +999,15 @@ void AcBus::timestep(CoreTime time, const IOdata& /*inputs*/, const SolverMode& 
     prevTime = time;
 }
 
-static const stringVec LOC_NUM_STRINGS{
-    "vtarget",
-    "atarget",
-    "p",
-    "q",
-};
-static const stringVec LOC_STR_STRINGS{"pflowtype", "dyntype"};
+static constexpr auto locNumStrings =
+    std::array<std::string_view, 4>{"vtarget", "atarget", "p", "q"};
+static constexpr auto locStrStrings = std::array<std::string_view, 2>{"pflowtype", "dyntype"};
 
-static const stringVec FLAG_STRINGS{"use_frequency"};
+static constexpr auto flagStrings = std::array<std::string_view, 1>{"use_frequency"};
 
 void AcBus::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
-    getParamString<AcBus, GridBus>(
-        this, pstr, LOC_NUM_STRINGS, LOC_STR_STRINGS, FLAG_STRINGS, pstype);
+    getParamString<AcBus, GridBus>(this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
 void AcBus::setFlag(std::string_view flag, bool val)

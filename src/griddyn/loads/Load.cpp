@@ -11,6 +11,7 @@
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "utilities/MatrixData.hpp"
+#include <array>
 #include <cmath>
 #include <complex>
 #include <iostream>
@@ -63,18 +64,16 @@ void GridLoad::setLoad(double plevel, double qlevel, unit unitType)
     setQ(convert(qlevel, unitType, puMW, systemBasePower));
 }
 
-static const stringVec LOC_NUM_STRINGS{"p", "q", "pf"};
+static constexpr auto locNumStrings = std::array<std::string_view, 3>{"p", "q", "pf"};
 
-static const stringVec LOC_STR_STRINGS{
+static constexpr std::array<std::string_view, 0> locStrStrings{};
 
-};
-
-static const stringVec FLAG_STRINGS{"usepowerfactor"};
+static constexpr auto flagStrings = std::array<std::string_view, 1>{"usepowerfactor"};
 
 void GridLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<GridLoad, GridComponent>(
-        this, pstr, LOC_NUM_STRINGS, LOC_STR_STRINGS, FLAG_STRINGS, pstype);
+        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
 void GridLoad::setFlag(std::string_view flag, bool val)

@@ -18,6 +18,7 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "utilities/MatrixData.hpp"
+#include <array>
 #include <cmath>
 #include <complex>
 #include <iostream>
@@ -32,40 +33,47 @@ using units::puV;
 using units::unit;
 
 // setup the load object factories
-static TypeFactory<GridLoad> glf("load", std::to_array<std::string_view>({"simple", "constant"}));
-static ChildTypeFactory<ZipLoad, GridLoad> zlf("load",
-                                               std::to_array<std::string_view>({"basic", "zip"}),
-                                               "zip");  // set basic to the default
+static TypeFactory<GridLoad> gLoadFactory("load",
+                                          std::to_array<std::string_view>({"simple", "constant"}));
+static ChildTypeFactory<ZipLoad, GridLoad>
+    gZipLoadFactory("load",
+                    std::to_array<std::string_view>({"basic", "zip"}),
+                    "zip");  // set basic to the default
 namespace loads {
     static TypeFactoryArg<SourceLoad, SourceLoad::SourceType>
-        glfp("load", "pulse", SourceLoad::SourceType::PULSE);
+        gPulseLoadFactory("load", "pulse", SourceLoad::SourceType::PULSE);
     static TypeFactoryArg<SourceLoad, SourceLoad::SourceType>
-        cfgsl("load",
-              std::to_array<std::string_view>({"sine", "sin", "sinusoidal"}),
-              SourceLoad::SourceType::SINE);
-    static ChildTypeFactory<RampLoad, GridLoad> glfr("load", "ramp");
+        gSineLoadFactory("load",
+                         std::to_array<std::string_view>({"sine", "sin", "sinusoidal"}),
+                         SourceLoad::SourceType::SINE);
+    static ChildTypeFactory<RampLoad, GridLoad> gRampLoadFactory("load", "ramp");
     static TypeFactoryArg<SourceLoad, SourceLoad::SourceType>
-        glfrand("load",
-                std::to_array<std::string_view>({"random", "rand"}),
-                SourceLoad::SourceType::RANDOM);
-    static ChildTypeFactory<FileLoad, GridLoad> glfld("load", "file");
+        gRandomLoadFactory("load",
+                           std::to_array<std::string_view>({"random", "rand"}),
+                           SourceLoad::SourceType::RANDOM);
+    static ChildTypeFactory<FileLoad, GridLoad> gFileLoadFactory("load", "file");
     static ChildTypeFactory<SourceLoad, GridLoad>
-        srcld("load", std::to_array<std::string_view>({"src", "source"}));
+        gSourceLoadFactory("load", std::to_array<std::string_view>({"src", "source"}));
     static ChildTypeFactory<ExponentialLoad, GridLoad>
-        glexp("load", std::to_array<std::string_view>({"exponential", "exp"}));
-    static ChildTypeFactory<FDepLoad, GridLoad> glfd("load", "fdep");
+        gExponentialLoadFactory("load", std::to_array<std::string_view>({"exponential", "exp"}));
+    static ChildTypeFactory<FDepLoad, GridLoad> gFrequencyDependentLoadFactory("load", "fdep");
     static ChildTypeFactory<ThreePhaseLoad, GridLoad>
-        gl3("load", std::to_array<std::string_view>({"3phase", "3p", "threephase"}));
+        gThreePhaseLoadFactory("load",
+                               std::to_array<std::string_view>({"3phase", "3p", "threephase"}));
 
     static ChildTypeFactory<ApproximatingLoad, GridLoad>
-        apld("load", std::to_array<std::string_view>({"approx", "approximating"}));
+        gApproximatingLoadFactory("load",
+                                  std::to_array<std::string_view>({"approx", "approximating"}));
 }  // namespace loads
 
 ZipLoad::ZipLoad(const std::string& objName): GridLoad(objName) {}
-ZipLoad::ZipLoad(double rP, double rQ, const std::string& objName): GridLoad(rP, rQ, objName) {}
+ZipLoad::ZipLoad(double realPower, double reactivePower, const std::string& objName):
+    GridLoad(realPower, reactivePower, objName)
+{
+}
 CoreObject* ZipLoad::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBaseFactory<ZipLoad, GridLoad>(this, obj, &zlf);
+    auto* nobj = cloneBaseFactory<ZipLoad, GridLoad>(this, obj, &gZipLoadFactory);
     if (nobj == nullptr) {
         return obj;
     }
@@ -100,15 +108,15 @@ void ZipLoad::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t flags)
 {
     if ((opFlags[CONVERT_TO_CONSTANT_IMPEDANCE]) ||
         CHECK_CONTROLFLAG(flags, ALL_LOADS_TO_CONSTANT_IMPEDENCE)) {
-        double voltage = bus->getVoltage();
-        double invVsquared = 1.0 / (voltage * voltage);
-        Yp = Yp + P * invVsquared;
+        const double voltage = bus->getVoltage();
+        const double invVsquared = 1.0 / (voltage * voltage);
+        Yp = Yp + (P * invVsquared);
         P = 0;
         if (opFlags[USE_POWER_FACTOR_FLAG]) {
-            Yq = Yq + P * pfq * invVsquared;
+            Yq = Yq + (P * pfq * invVsquared);
             Q = 0;
         } else {
-            Yq = Yq + Q * invVsquared;
+            Yq = Yq + (Q * invVsquared);
             Q = 0;
         }
     }
@@ -130,7 +138,7 @@ void ZipLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*
         updateLocalCache(inputs, StateData(time), cLocalSolverMode);
     }
 
-    double voltage = (inputs.empty()) ? (bus->getVoltage()) : inputs[VOLTAGE_IN_LOCATION];
+    const double voltage = (inputs.empty()) ? (bus->getVoltage()) : inputs[VOLTAGE_IN_LOCATION];
     Pout = -getRealPower(voltage);
     prevTime = time;
     Qout = -getReactivePower(voltage);
@@ -142,14 +150,14 @@ void ZipLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*
 #endif
 }
 
-static const stringVec
-    locNumStrings{"yp", "yq", "ip", "iq", "x", "r", "h", "m", "vpqmin", "vpqmax"};
+static constexpr auto locNumStrings =
+    std::array<std::string_view,
+               10>{"yp", "yq", "ip", "iq", "x", "r", "h", "m", "vpqmin", "vpqmax"};
 
-static const stringVec locStrStrings{
+static constexpr std::array<std::string_view, 0> locStrStrings{};
 
-};
-
-static const stringVec flagStrings{"converttoimpedance", "no_pqvoltage_limit"};
+static constexpr auto flagStrings =
+    std::array<std::string_view, 2>{"converttoimpedance", "no_pqvoltage_limit"};
 
 void ZipLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
@@ -333,7 +341,7 @@ void ZipLoad::set(std::string_view param, double val, unit unitType)
     } else if ((param == "pf") || (param == "powerfactor")) {
         if (val != 0.0) {
             if (std::abs(val) <= 1.0) {
-                pfq = std::sqrt(1.0 - val * val) / val;
+                pfq = std::sqrt(1.0 - (val * val)) / val;
             } else {
                 pfq = 0.0;
             }
@@ -412,10 +420,10 @@ void ZipLoad::setr(double newr)
         Yp = 0.0;
         return;
     }
-    std::complex<double> z(newr, getx());
-    auto y = std::conj(1.0 / z);
-    Yp = y.real();
-    Yq = y.imag();
+    const std::complex<double> impedance(newr, getx());
+    const auto admittance = std::conj(1.0 / impedance);
+    Yp = admittance.real();
+    Yq = admittance.imag();
     checkFaultChange();
 }
 void ZipLoad::setx(double newx)
@@ -424,10 +432,10 @@ void ZipLoad::setx(double newx)
         Yq = 0.0;
         return;
     }
-    std::complex<double> z(getr(), -newx);
-    auto y = 1.0 / z;
-    Yp = y.real();
-    Yq = y.imag();
+    const std::complex<double> impedance(getr(), -newx);
+    const auto admittance = 1.0 / impedance;
+    Yp = admittance.real();
+    Yq = admittance.imag();
     checkFaultChange();
 }
 
@@ -436,10 +444,10 @@ double ZipLoad::getr() const
     if (Yp == 0.0) {
         return 0.0;
     }
-    std::complex<double> y(Yp, Yq);
-    auto z = 1.0 / y;  // I would take a conjugate but it doesn't matter since we are only returning
-                       // the real part
-    return z.real();
+    const std::complex<double> admittance(Yp, Yq);
+    const auto impedance = 1.0 / admittance;  // I would take a conjugate but it doesn't matter
+                                              // since we are only returning the real part
+    return impedance.real();
 }
 
 double ZipLoad::getx() const
@@ -447,25 +455,25 @@ double ZipLoad::getx() const
     if (Yq == 0.0) {
         return 0.0;
     }
-    std::complex<double> y(Yp, Yq);
-    auto z = std::conj(1.0 / y);
-    return z.imag();
+    const std::complex<double> admittance(Yp, Yq);
+    const auto impedance = std::conj(1.0 / admittance);
+    return impedance.imag();
 }
 
 void ZipLoad::updateLocalCache(const IOdata& /*inputs*/,
-                               const StateData& sD,
+                               const StateData& stateData,
                                const SolverMode& /*sMode*/)
 {
-    lastTime = sD.time;
+    lastTime = stateData.time;
 }
 
 void ZipLoad::setState(CoreTime time,
                        const double state[],
-                       const double dstate_dt[],
+                       const double dstateDt[],
                        const SolverMode& sMode)
 {
-    StateData sD(time, state, dstate_dt);
-    updateLocalCache(noInputs, sD, sMode);
+    const StateData stateData(time, state, dstateDt);
+    updateLocalCache(noInputs, stateData, sMode);
     prevTime = time;
 }
 
@@ -501,18 +509,21 @@ double ZipLoad::getReactivePower() const
     return getReactivePower(bus->getVoltage());
 }
 
-double
-    ZipLoad::getRealPower(const IOdata& inputs, const StateData& sD, const SolverMode& sMode) const
+double ZipLoad::getRealPower(const IOdata& inputs,
+                             const StateData& stateData,
+                             const SolverMode& sMode) const
 {
-    double voltage = (inputs.empty()) ? (bus->getVoltage(sD, sMode)) : inputs[VOLTAGE_IN_LOCATION];
+    const double voltage =
+        (inputs.empty()) ? (bus->getVoltage(stateData, sMode)) : inputs[VOLTAGE_IN_LOCATION];
     return getRealPower(voltage);
 }
 
 double ZipLoad::getReactivePower(const IOdata& inputs,
-                                 const StateData& sD,
+                                 const StateData& stateData,
                                  const SolverMode& sMode) const
 {
-    double voltage = (inputs.empty()) ? (bus->getVoltage(sD, sMode)) : inputs[VOLTAGE_IN_LOCATION];
+    const double voltage =
+        (inputs.empty()) ? (bus->getVoltage(stateData, sMode)) : inputs[VOLTAGE_IN_LOCATION];
     return getReactivePower(voltage);
 }
 
@@ -522,7 +533,7 @@ double ZipLoad::getRealPower(const double voltage) const
         return 0.0;
     }
     double val = voltageAdjustment(P, voltage);
-    val += voltage * (voltage * Yp + Ip);
+    val += voltage * ((voltage * Yp) + Ip);
 
     return val;
 }
@@ -534,20 +545,20 @@ double ZipLoad::getReactivePower(double voltage) const
     }
     double val = voltageAdjustment(getQval(), voltage);
 
-    val += voltage * (voltage * Yq + Iq);
+    val += voltage * ((voltage * Yq) + Iq);
     return val;
 }
 
 void ZipLoad::outputPartialDerivatives(const IOdata& inputs,
-                                       const StateData& sD,
-                                       MatrixData<double>& md,
+                                       const StateData& stateData,
+                                       MatrixData<double>& matrixData,
                                        const SolverMode& sMode)
 {
     if (inputs.empty())  // we only have output derivatives if the input arguments are not counted
     {
-        auto argsBus = bus->getOutputs(noInputs, sD, sMode);
+        auto argsBus = bus->getOutputs(noInputs, stateData, sMode);
         auto inputLocs = bus->getOutputLocs(sMode);
-        ioPartialDerivatives(argsBus, sD, md, inputLocs, sMode);
+        ioPartialDerivatives(argsBus, stateData, matrixData, inputLocs, sMode);
     }
 }
 
@@ -556,40 +567,42 @@ count_t ZipLoad::outputDependencyCount(index_t /*num*/, const SolverMode& /*sMod
     return 0;
 }
 void ZipLoad::ioPartialDerivatives(const IOdata& inputs,
-                                   const StateData& sD,
-                                   MatrixData<double>& md,
+                                   const StateData& stateData,
+                                   MatrixData<double>& matrixData,
                                    const IOlocs& inputLocs,
                                    const SolverMode& sMode)
 {
-    if (sD.time != lastTime) {
-        updateLocalCache(inputs, sD, sMode);
+    if (stateData.time != lastTime) {
+        updateLocalCache(inputs, stateData, sMode);
     }
-    double voltage = inputs[VOLTAGE_IN_LOCATION];
-    double tv = 0.0;
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
+    double voltageScale = 0.0;
     if (voltage < Vpqmin) {
-        tv = trigVVlow;
+        voltageScale = trigVVlow;
     } else if (voltage > Vpqmax) {
-        tv = trigVVhigh;
+        voltageScale = trigVVhigh;
     }
 
-    md.assignCheckCol(POUT_LOCATION,
-                      inputLocs[VOLTAGE_IN_LOCATION],
-                      2.0 * voltage * Yp + Ip + 2.0 * voltage * P * tv);
+    matrixData.assignCheckCol(POUT_LOCATION,
+                              inputLocs[VOLTAGE_IN_LOCATION],
+                              (2.0 * voltage * Yp) + Ip + (2.0 * voltage * P * voltageScale));
 
     if (opFlags[USE_POWER_FACTOR_FLAG]) {
         if (pfq < 1000.0) {
-            md.assignCheckCol(QOUT_LOCATION,
-                              inputLocs[VOLTAGE_IN_LOCATION],
-                              2.0 * voltage * Yq + Iq + 2.0 * voltage * P * pfq * tv);
+            matrixData.assignCheckCol(QOUT_LOCATION,
+                                      inputLocs[VOLTAGE_IN_LOCATION],
+                                      (2.0 * voltage * Yq) + Iq +
+                                          (2.0 * voltage * P * pfq * voltageScale));
         } else {
-            md.assignCheckCol(QOUT_LOCATION,
-                              inputLocs[VOLTAGE_IN_LOCATION],
-                              2.0 * voltage * Yq + Iq + 2.0 * voltage * Q * tv);
+            matrixData.assignCheckCol(QOUT_LOCATION,
+                                      inputLocs[VOLTAGE_IN_LOCATION],
+                                      (2.0 * voltage * Yq) + Iq +
+                                          (2.0 * voltage * Q * voltageScale));
         }
     } else {
-        md.assignCheckCol(QOUT_LOCATION,
-                          inputLocs[VOLTAGE_IN_LOCATION],
-                          2.0 * voltage * Yq + Iq + 2.0 * voltage * Q * tv);
+        matrixData.assignCheckCol(QOUT_LOCATION,
+                                  inputLocs[VOLTAGE_IN_LOCATION],
+                                  (2.0 * voltage * Yq) + Iq + (2.0 * voltage * Q * voltageScale));
     }
 }
 

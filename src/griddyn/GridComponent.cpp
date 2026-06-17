@@ -13,6 +13,7 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <format>
 #include <functional>
@@ -573,22 +574,17 @@ void GridComponent::disconnect()
 {
     opFlags.set(DISCONNECTED);
 }
-static const stringVec& localNumericStrings()
-{
-    static const stringVec strings{"status", "basefrequency", "basepower"};
-    return strings;
-}
+static constexpr auto localNumericStrings =
+    std::array<std::string_view, 3>{"status", "basefrequency", "basepower"};
 
-static const stringVec& localStringStrings()
-{
-    static const stringVec strings{"status"};
-    return strings;
-}
+static constexpr auto localStringStrings = std::array<std::string_view, 1>{"status"};
+
+static constexpr std::array<std::string_view, 0> localFlagStrings{};
 
 void GridComponent::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<GridComponent, CoreObject>(
-        this, pstr, localNumericStrings(), localStringStrings(), {}, pstype);
+        this, pstr, localNumericStrings, localStringStrings, localFlagStrings, pstype);
 }
 
 void GridComponent::set(std::string_view param, std::string_view val)

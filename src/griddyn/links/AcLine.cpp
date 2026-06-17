@@ -17,6 +17,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixDataCompact.hpp"
+#include <array>
 #include <cmath>
 #include <complex>
 #include <cstring>
@@ -155,23 +156,23 @@ void AcLine::timestep(const CoreTime time, const IOdata& /*inputs*/, const Solve
 
 void AcLine::checkMerge() {}
 
-static const stringVec LOC_NUM_STRINGS{"r",
-                                       "x",
-                                       "link",
-                                       "b",
-                                       "g",
-                                       "tap",
-                                       "tapangle",
-                                       "switch1",
-                                       "switch2",
-                                       "fault",
-                                       "p"};
-static const stringVec LOC_STR_STRINGS{"from", "to"};
-static const stringVec FLAG_STRINGS{};
+static constexpr auto locNumStrings = std::array<std::string_view, 11>{"r",
+                                                                       "x",
+                                                                       "link",
+                                                                       "b",
+                                                                       "g",
+                                                                       "tap",
+                                                                       "tapangle",
+                                                                       "switch1",
+                                                                       "switch2",
+                                                                       "fault",
+                                                                       "p"};
+static constexpr auto locStrStrings = std::array<std::string_view, 2>{"from", "to"};
+static constexpr std::array<std::string_view, 0> flagStrings{};
 void AcLine::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<AcLine, GridComponent>(
-        this, pstr, LOC_NUM_STRINGS, LOC_STR_STRINGS, FLAG_STRINGS, pstype);
+        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
 // set properties

@@ -82,15 +82,9 @@ jobs:
           path: build/coverage.info
 
       - name: Upload to Codecov
-        if: ${{ secrets.CODECOV_TOKEN != '' }}
         uses: codecov/codecov-action@v6
         with:
           files: build/coverage.info
           fail_ci_if_error: true
           functionalities: fixes
           token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Note missing Codecov token
-        if: ${{ secrets.CODECOV_TOKEN == '' }}
-        shell: bash
-        run: echo "CODECOV_TOKEN is not configured yet; coverage upload was skipped."

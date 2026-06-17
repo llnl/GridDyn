@@ -43,7 +43,7 @@ class ZipLoad: public GridLoad {
         1.0 / (1.3 * 1.3);  //!< constant for conversion of PQ loads to constant impedance loads
   public:
     explicit ZipLoad(const std::string& objName = "zip_$");
-    ZipLoad(double rP, double rQ, const std::string& objName = "zip_$");
+    ZipLoad(double realPower, double reactivePower, const std::string& objName = "zip_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
@@ -62,30 +62,30 @@ class ZipLoad: public GridLoad {
                        units::unit unitType = units::defunit) const override;
 
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const StateData& sD,
+                                  const StateData& stateData,
                                   const SolverMode& sMode) override;
 
     virtual void setState(CoreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const SolverMode& sMode) override;
 
     virtual void ioPartialDerivatives(const IOdata& inputs,
-                                      const StateData& sD,
-                                      MatrixData<double>& md,
+                                      const StateData& stateData,
+                                      MatrixData<double>& matrixData,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(const IOdata& inputs,
-                                          const StateData& sD,
-                                          MatrixData<double>& md,
+                                          const StateData& stateData,
+                                          MatrixData<double>& matrixData,
                                           const SolverMode& sMode) override;
     virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
 
     virtual double getRealPower(const IOdata& inputs,
-                                const StateData& sD,
+                                const StateData& stateData,
                                 const SolverMode& sMode) const override;
     virtual double getReactivePower(const IOdata& inputs,
-                                    const StateData& sD,
+                                    const StateData& stateData,
                                     const SolverMode& sMode) const override;
     virtual double getRealPower(double V) const override;
     virtual double getReactivePower(double V) const override;

@@ -45,13 +45,13 @@ class FrequencySensitiveLoad: public GridLoad {
                        units::unit unitType = units::defunit) const override;
 
     virtual void updateLocalCache(const IOdata& inputs,
-                                  const StateData& sD,
+                                  const StateData& stateData,
                                   const SolverMode& sMode) override;
     /** update the actual outputs with a frequency related calculation*/
     virtual void updateOutputs(double frequency);
     virtual void setState(CoreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const SolverMode& sMode) override;
 
     virtual void ioPartialDerivatives(const IOdata& inputs,
@@ -60,16 +60,16 @@ class FrequencySensitiveLoad: public GridLoad {
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
     virtual void outputPartialDerivatives(const IOdata& inputs,
-                                          const StateData& sD,
-                                          MatrixData<double>& md,
+                                          const StateData& stateData,
+                                          MatrixData<double>& matrixData,
                                           const SolverMode& sMode) override;
     virtual count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
 
     virtual double getRealPower(const IOdata& inputs,
-                                const StateData& sD,
+                                const StateData& stateData,
                                 const SolverMode& sMode) const override;
     virtual double getReactivePower(const IOdata& inputs,
-                                    const StateData& sD,
+                                    const StateData& stateData,
                                     const SolverMode& sMode) const override;
     virtual double getRealPower(double V) const override;
     virtual double getReactivePower(double V) const override;

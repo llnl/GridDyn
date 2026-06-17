@@ -147,9 +147,8 @@ void FrequencySensitiveLoad::updateLocalCache(const IOdata& inputs,
     if (subLoad != nullptr) {
         subLoad->updateLocalCache(inputs, stateData, sMode);
     }
-    const double freq = (inputs.size() >= FREQUENCY_IN_LOCATION) ?
-        inputs[FREQUENCY_IN_LOCATION] :
-        bus->getFreq(stateData, sMode);
+    const double freq = (inputs.size() >= FREQUENCY_IN_LOCATION) ? inputs[FREQUENCY_IN_LOCATION] :
+                                                                   bus->getFreq(stateData, sMode);
     updateOutputs(freq);
 }
 
@@ -183,9 +182,8 @@ double FrequencySensitiveLoad::getRealPower(const IOdata& inputs,
         return GridLoad::getRealPower(inputs, stateData, sMode);
     }
     const double realPower = subLoad->getRealPower(inputs, stateData, sMode);
-    const double freq = (inputs.size() >= FREQUENCY_IN_LOCATION) ?
-        inputs[FREQUENCY_IN_LOCATION] :
-        bus->getFreq(stateData, sMode);
+    const double freq = (inputs.size() >= FREQUENCY_IN_LOCATION) ? inputs[FREQUENCY_IN_LOCATION] :
+                                                                   bus->getFreq(stateData, sMode);
     return realPower + (realPower * (freq - 1.0) * M);
 }
 
@@ -197,9 +195,8 @@ double FrequencySensitiveLoad::getReactivePower(const IOdata& inputs,
         return GridLoad::getReactivePower(inputs, stateData, sMode);
     }
     const double reactivePower = subLoad->getReactivePower(inputs, stateData, sMode);
-    const double freq = (inputs.size() >= FREQUENCY_IN_LOCATION) ?
-        inputs[FREQUENCY_IN_LOCATION] :
-        bus->getFreq(stateData, sMode);
+    const double freq = (inputs.size() >= FREQUENCY_IN_LOCATION) ? inputs[FREQUENCY_IN_LOCATION] :
+                                                                   bus->getFreq(stateData, sMode);
     return reactivePower + (reactivePower * (freq - 1.0) * M);
 }
 

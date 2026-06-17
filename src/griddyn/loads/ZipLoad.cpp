@@ -33,22 +33,24 @@ using units::puV;
 using units::unit;
 
 // setup the load object factories
-static TypeFactory<GridLoad> gLoadFactory(
-    "load", std::to_array<std::string_view>({"simple", "constant"}));
-static ChildTypeFactory<ZipLoad, GridLoad> gZipLoadFactory(
-    "load", std::to_array<std::string_view>({"basic", "zip"}), "zip");  // set basic to the default
+static TypeFactory<GridLoad> gLoadFactory("load",
+                                          std::to_array<std::string_view>({"simple", "constant"}));
+static ChildTypeFactory<ZipLoad, GridLoad>
+    gZipLoadFactory("load",
+                    std::to_array<std::string_view>({"basic", "zip"}),
+                    "zip");  // set basic to the default
 namespace loads {
     static TypeFactoryArg<SourceLoad, SourceLoad::SourceType>
         gPulseLoadFactory("load", "pulse", SourceLoad::SourceType::PULSE);
     static TypeFactoryArg<SourceLoad, SourceLoad::SourceType>
-        gSineLoadFactory(
-            "load", std::to_array<std::string_view>({"sine", "sin", "sinusoidal"}),
-            SourceLoad::SourceType::SINE);
+        gSineLoadFactory("load",
+                         std::to_array<std::string_view>({"sine", "sin", "sinusoidal"}),
+                         SourceLoad::SourceType::SINE);
     static ChildTypeFactory<RampLoad, GridLoad> gRampLoadFactory("load", "ramp");
     static TypeFactoryArg<SourceLoad, SourceLoad::SourceType>
-        gRandomLoadFactory(
-            "load", std::to_array<std::string_view>({"random", "rand"}),
-            SourceLoad::SourceType::RANDOM);
+        gRandomLoadFactory("load",
+                           std::to_array<std::string_view>({"random", "rand"}),
+                           SourceLoad::SourceType::RANDOM);
     static ChildTypeFactory<FileLoad, GridLoad> gFileLoadFactory("load", "file");
     static ChildTypeFactory<SourceLoad, GridLoad>
         gSourceLoadFactory("load", std::to_array<std::string_view>({"src", "source"}));
@@ -56,12 +58,12 @@ namespace loads {
         gExponentialLoadFactory("load", std::to_array<std::string_view>({"exponential", "exp"}));
     static ChildTypeFactory<FDepLoad, GridLoad> gFrequencyDependentLoadFactory("load", "fdep");
     static ChildTypeFactory<ThreePhaseLoad, GridLoad>
-        gThreePhaseLoadFactory(
-            "load", std::to_array<std::string_view>({"3phase", "3p", "threephase"}));
+        gThreePhaseLoadFactory("load",
+                               std::to_array<std::string_view>({"3phase", "3p", "threephase"}));
 
     static ChildTypeFactory<ApproximatingLoad, GridLoad>
-        gApproximatingLoadFactory(
-            "load", std::to_array<std::string_view>({"approx", "approximating"}));
+        gApproximatingLoadFactory("load",
+                                  std::to_array<std::string_view>({"approx", "approximating"}));
 }  // namespace loads
 
 ZipLoad::ZipLoad(const std::string& objName): GridLoad(objName) {}
@@ -443,9 +445,8 @@ double ZipLoad::getr() const
         return 0.0;
     }
     const std::complex<double> admittance(Yp, Yq);
-    const auto impedance =
-        1.0 / admittance;  // I would take a conjugate but it doesn't matter since we are only returning
-                       // the real part
+    const auto impedance = 1.0 / admittance;  // I would take a conjugate but it doesn't matter
+                                              // since we are only returning the real part
     return impedance.real();
 }
 
@@ -601,8 +602,7 @@ void ZipLoad::ioPartialDerivatives(const IOdata& inputs,
     } else {
         matrixData.assignCheckCol(QOUT_LOCATION,
                                   inputLocs[VOLTAGE_IN_LOCATION],
-                                  (2.0 * voltage * Yq) + Iq +
-                                      (2.0 * voltage * Q * voltageScale));
+                                  (2.0 * voltage * Yq) + Iq + (2.0 * voltage * Q * voltageScale));
     }
 }
 

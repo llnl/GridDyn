@@ -21,7 +21,10 @@ class FrequencySensitiveLoad: public GridLoad {
   protected:
     model_parameter M = 0.0;  //!< load droop factor
     model_parameter H = 0.0;  //!< load inertia used in computing dPdf
-    GridLoad* subLoad;  //!< pointer to the subload type
+    // TODO(Design): This wrapper is not fully wired up yet. The ownership and lifecycle of
+    // subLoad, along with how this class should behave before a wrapped load is attached,
+    // needs to be defined and implemented consistently.
+    GridLoad* subLoad = nullptr;  //!< pointer to the subload type
   public:
     explicit FrequencySensitiveLoad(const std::string& objName = "load_$");
 

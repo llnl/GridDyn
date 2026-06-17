@@ -24,7 +24,7 @@ FrequencySensitiveLoad::FrequencySensitiveLoad(const std::string& objName): Grid
 
 CoreObject* FrequencySensitiveLoad::clone(CoreObject* obj) const
 {
-    auto nobj = cloneBase<FrequencySensitiveLoad, GridLoad>(this, obj);
+    auto* nobj = cloneBase<FrequencySensitiveLoad, GridLoad>(this, obj);
     if (nobj == nullptr) {
         return obj;
     }
@@ -40,8 +40,10 @@ CoreObject* FrequencySensitiveLoad::clone(CoreObject* obj) const
 void FrequencySensitiveLoad::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     GridLoad::pFlowObjectInitializeA(time0, flags);
-    auto Psched = subLoad->getRealPower();
-    dPdf = -H / 30.0 * Psched;
+    if (subLoad != nullptr) {
+        const auto psched = subLoad->getRealPower();
+        dPdf = -H / 30.0 * psched;
+    }
 }
 
 void FrequencySensitiveLoad::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
@@ -51,14 +53,22 @@ void FrequencySensitiveLoad::dynObjectInitializeA(CoreTime time0, std::uint32_t 
 
 void FrequencySensitiveLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
-    subLoad->timestep(time, inputs, sMode);
-    double freq = (inputs.size() > 2) ? inputs[FREQUENCY_IN_LOCATION] : 1.0;
+    if (subLoad != nullptr) {
+        subLoad->timestep(time, inputs, sMode);
+    }
+    const double freq = (inputs.size() > 2) ? inputs[FREQUENCY_IN_LOCATION] : 1.0;
 
     updateOutputs(freq);
 }
 
 void FrequencySensitiveLoad::updateOutputs(double frequency)
 {
+    if (subLoad == nullptr) {
+        Pout = GridLoad::getRealPower();
+        Qout = GridLoad::getReactivePower();
+        return;
+    }
+
     Pout = subLoad->getRealPower();
     Pout += Pout * (frequency - 1.0) * M;
     Qout = subLoad->getReactivePower();
@@ -79,7 +89,11 @@ void FrequencySensitiveLoad::getParameterStrings(stringVec& pstr, ParamStringTyp
 
 void FrequencySensitiveLoad::setFlag(std::string_view flag, bool val)
 {
-    subLoad->setFlag(flag, val);
+    if (subLoad != nullptr) {
+        subLoad->setFlag(flag, val);
+    } else {
+        GridLoad::setFlag(flag, val);
+    }
 }
 
 // set properties
@@ -87,7 +101,11 @@ void FrequencySensitiveLoad::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
     } else {
-        subLoad->set(param, val);
+        if (subLoad != nullptr) {
+            subLoad->set(param, val);
+        } else {
+            GridLoad::set(param, val);
+        }
     }
 }
 
@@ -102,7 +120,7 @@ double FrequencySensitiveLoad::get(std::string_view param, unit unitType) const
     if (param == "m") {
         return M;
     }
-    return subLoad->get(param, unitType);
+    return (subLoad != nullptr) ? subLoad->get(param, unitType) : GridLoad::get(param, unitType);
 }
 
 void FrequencySensitiveLoad::set(std::string_view param, double val, unit unitType)
@@ -114,26 +132,35 @@ void FrequencySensitiveLoad::set(std::string_view param, double val, unit unitTy
     } else if (param == "m") {
         M = val;
     } else {
-        subLoad->set(param, val, unitType);
+        if (subLoad != nullptr) {
+            subLoad->set(param, val, unitType);
+        } else {
+            GridLoad::set(param, val, unitType);
+        }
     }
 }
 
 void FrequencySensitiveLoad::updateLocalCache(const IOdata& inputs,
-                                              const StateData& sD,
+                                              const StateData& stateData,
                                               const SolverMode& sMode)
 {
-    subLoad->updateLocalCache(inputs, sD, sMode);
-    double freq = (inputs.size() >= FREQUENCY_IN_LOCATION) ? inputs[FREQUENCY_IN_LOCATION] :
-                                                             bus->getFreq(sD, sMode);
+    if (subLoad != nullptr) {
+        subLoad->updateLocalCache(inputs, stateData, sMode);
+    }
+    const double freq = (inputs.size() >= FREQUENCY_IN_LOCATION) ?
+        inputs[FREQUENCY_IN_LOCATION] :
+        bus->getFreq(stateData, sMode);
     updateOutputs(freq);
 }
 
 void FrequencySensitiveLoad::setState(CoreTime time,
                                       const double state[],
-                                      const double dstate_dt[],
+                                      const double dstateDt[],
                                       const SolverMode& sMode)
 {
-    subLoad->setState(time, state, dstate_dt, sMode);
+    if (subLoad != nullptr) {
+        subLoad->setState(time, state, dstateDt, sMode);
+    }
     updateOutputs(bus->getFreq());
     prevTime = time;
 }
@@ -149,55 +176,69 @@ double FrequencySensitiveLoad::getReactivePower() const
 }
 
 double FrequencySensitiveLoad::getRealPower(const IOdata& inputs,
-                                            const StateData& sD,
+                                            const StateData& stateData,
                                             const SolverMode& sMode) const
 {
-    double Pr = subLoad->getRealPower(inputs, sD, sMode);
-    double freq = (inputs.size() >= FREQUENCY_IN_LOCATION) ? inputs[FREQUENCY_IN_LOCATION] :
-                                                             bus->getFreq(sD, sMode);
-    return Pr + Pr * (freq - 1.0) * M;
+    if (subLoad == nullptr) {
+        return GridLoad::getRealPower(inputs, stateData, sMode);
+    }
+    const double realPower = subLoad->getRealPower(inputs, stateData, sMode);
+    const double freq = (inputs.size() >= FREQUENCY_IN_LOCATION) ?
+        inputs[FREQUENCY_IN_LOCATION] :
+        bus->getFreq(stateData, sMode);
+    return realPower + (realPower * (freq - 1.0) * M);
 }
 
 double FrequencySensitiveLoad::getReactivePower(const IOdata& inputs,
-                                                const StateData& sD,
+                                                const StateData& stateData,
                                                 const SolverMode& sMode) const
 {
-    double Qr = subLoad->getReactivePower(inputs, sD, sMode);
-    double freq = (inputs.size() >= FREQUENCY_IN_LOCATION) ? inputs[FREQUENCY_IN_LOCATION] :
-                                                             bus->getFreq(sD, sMode);
-    return Qr + Qr * (freq - 1.0) * M;
+    if (subLoad == nullptr) {
+        return GridLoad::getReactivePower(inputs, stateData, sMode);
+    }
+    const double reactivePower = subLoad->getReactivePower(inputs, stateData, sMode);
+    const double freq = (inputs.size() >= FREQUENCY_IN_LOCATION) ?
+        inputs[FREQUENCY_IN_LOCATION] :
+        bus->getFreq(stateData, sMode);
+    return reactivePower + (reactivePower * (freq - 1.0) * M);
 }
 
 double FrequencySensitiveLoad::getRealPower(double voltage) const
 {
-    double Pr = subLoad->getRealPower(voltage);
-    double freq = bus->getFreq();
-    return Pr + Pr * (freq - 1.0) * M;
+    if (subLoad == nullptr) {
+        return GridLoad::getRealPower(voltage);
+    }
+    const double realPower = subLoad->getRealPower(voltage);
+    const double freq = bus->getFreq();
+    return realPower + (realPower * (freq - 1.0) * M);
 }
 
 double FrequencySensitiveLoad::getReactivePower(double voltage) const
 {
-    double Qr = subLoad->getReactivePower(voltage);
-    double freq = bus->getFreq();
-    return Qr + Qr * (freq - 1.0) * M;
+    if (subLoad == nullptr) {
+        return GridLoad::getReactivePower(voltage);
+    }
+    const double reactivePower = subLoad->getReactivePower(voltage);
+    const double freq = bus->getFreq();
+    return reactivePower + (reactivePower * (freq - 1.0) * M);
 }
 
 void FrequencySensitiveLoad::outputPartialDerivatives(const IOdata& inputs,
-                                                      const StateData& sD,
-                                                      MatrixData<double>& md,
+                                                      const StateData& stateData,
+                                                      MatrixData<double>& matrixData,
                                                       const SolverMode& sMode)
 {
     if (inputs.empty())  // we only have output derivatives if the input arguments are not counted
     {
-        auto argsBus = bus->getOutputs(noInputs, sD, sMode);
+        auto argsBus = bus->getOutputs(noInputs, stateData, sMode);
         auto inputLocs = bus->getOutputLocs(sMode);
-        ioPartialDerivatives(argsBus, sD, md, inputLocs, sMode);
+        ioPartialDerivatives(argsBus, stateData, matrixData, inputLocs, sMode);
     }
 }
 
 count_t FrequencySensitiveLoad::outputDependencyCount(index_t num, const SolverMode& sMode) const
 {
-    return subLoad->outputDependencyCount(num, sMode);
+    return (subLoad != nullptr) ? subLoad->outputDependencyCount(num, sMode) : 0;
 }
 
 void FrequencySensitiveLoad::ioPartialDerivatives(const IOdata& /*inputs*/,

@@ -21,6 +21,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/griddyn-config.h"
+#include <array>
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -487,16 +488,18 @@ void GridBus::setAll(std::string_view objtype,
     }
 }
 
-static const stringVec
-    LOC_NUM_STRINGS{"voltage", "angle", "basevoltage", "p", "q", "g", "b", "zone"};
-static const stringVec LOC_STR_STRINGS{"status"};
+static constexpr auto locNumStrings = std::array<std::string_view, 8>{
+    "voltage", "angle", "basevoltage", "p", "q", "g", "b", "zone"};
+static constexpr auto locStrStrings =
+    std::array<std::string_view, 1>{"status"};
 
-static const stringVec FLAG_STRINGS{"connected"};
+static constexpr auto flagStrings =
+    std::array<std::string_view, 1>{"connected"};
 
 void GridBus::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<GridBus, GridComponent>(
-        this, pstr, LOC_NUM_STRINGS, LOC_STR_STRINGS, FLAG_STRINGS, pstype);
+        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
 void GridBus::setFlag(std::string_view flag, bool val)

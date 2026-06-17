@@ -14,6 +14,7 @@
 #include "../events/EventQueue.h"
 #include "../measurement/Condition.h"
 #include "core/CoreObjectTemplates.hpp"
+#include <array>
 #include <memory>
 #include <string>
 #include <utility>
@@ -67,10 +68,12 @@ void DifferentialRelay::set(std::string_view param, std::string_view val)
 
 void DifferentialRelay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
-    const stringVec numericParameterStrings{"delay", "max_difference", "reset_margin", "minlevel"};
-    const stringVec stringParameterStrings{};
+    static constexpr auto numericParameterStrings = std::array<std::string_view, 4>{
+        "delay", "max_difference", "reset_margin", "minlevel"};
+    static constexpr std::array<std::string_view, 0> stringParameterStrings{};
+    static constexpr std::array<std::string_view, 0> flagStrings{};
     getParamString<DifferentialRelay, Relay>(
-        this, pstr, numericParameterStrings, stringParameterStrings, {}, pstype);
+        this, pstr, numericParameterStrings, stringParameterStrings, flagStrings, pstype);
 }
 
 void DifferentialRelay::set(std::string_view param, double val, units::unit unitType)

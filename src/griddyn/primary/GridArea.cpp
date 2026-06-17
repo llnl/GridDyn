@@ -19,6 +19,7 @@
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/vectorOps.hpp"
+#include <array>
 #include <algorithm>
 #include <cstdio>
 #include <memory>
@@ -827,14 +828,14 @@ void GridArea::set(std::string_view param, std::string_view val)
     GridPrimary::set(param, val);
 }
 
-static stringVec gLocNumStrings{};
-static const stringVec LOC_STR_STRINGS{};
-static const stringVec FLAG_STRINGS{};
+static constexpr std::array<std::string_view, 0> locNumStrings{};
+static constexpr std::array<std::string_view, 0> locStrStrings{};
+static constexpr std::array<std::string_view, 0> flagStrings{};
 
 void GridArea::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<GridArea, GridComponent>(
-        this, pstr, gLocNumStrings, LOC_STR_STRINGS, FLAG_STRINGS, pstype);
+        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
 void GridArea::set(std::string_view param, double val, unit unitType)

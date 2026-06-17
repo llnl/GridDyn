@@ -18,6 +18,7 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "utilities/MatrixData.hpp"
+#include <array>
 #include <cmath>
 #include <complex>
 #include <iostream>
@@ -142,14 +143,13 @@ void ZipLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*
 #endif
 }
 
-static const stringVec
-    locNumStrings{"yp", "yq", "ip", "iq", "x", "r", "h", "m", "vpqmin", "vpqmax"};
+static constexpr auto locNumStrings = std::array<std::string_view, 10>{
+    "yp", "yq", "ip", "iq", "x", "r", "h", "m", "vpqmin", "vpqmax"};
 
-static const stringVec locStrStrings{
+static constexpr std::array<std::string_view, 0> locStrStrings{};
 
-};
-
-static const stringVec flagStrings{"converttoimpedance", "no_pqvoltage_limit"};
+static constexpr auto flagStrings =
+    std::array<std::string_view, 2>{"converttoimpedance", "no_pqvoltage_limit"};
 
 void ZipLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {

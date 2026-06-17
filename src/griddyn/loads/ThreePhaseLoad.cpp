@@ -10,6 +10,7 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "utilities/MatrixData.hpp"
 #include "utilities/ThreePhaseFunctions.h"
+#include <array>
 #include <cmath>
 #include <complex>
 #include <iostream>
@@ -72,19 +73,18 @@ void ThreePhaseLoad::setLoad(double plevel, double qlevel, unit unitType)
     Qa = Qb = Qc = getQ() / 3.0;
 }
 
-static const stringVec LOC_NUM_STRINGS{"pa", "pb", "pc", "qa", "qb", "qc"};
+static constexpr auto locNumStrings =
+    std::array<std::string_view, 6>{"pa", "pb", "pc", "qa", "qb", "qc"};
 
-static const stringVec LOC_STR_STRINGS{};
+static constexpr std::array<std::string_view, 0> locStrStrings{};
 
-static const stringVec FLAG_STRINGS{"use_abs_angle",
-                                    "ignore_phase",
-                                    "three_phase_inputs",
-                                    "three_phase_outputs"};
+static constexpr auto flagStrings = std::array<std::string_view, 4>{
+    "use_abs_angle", "ignore_phase", "three_phase_inputs", "three_phase_outputs"};
 
 void ThreePhaseLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<ThreePhaseLoad, GridLoad>(
-        this, pstr, LOC_NUM_STRINGS, LOC_STR_STRINGS, FLAG_STRINGS, pstype);
+        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
 void ThreePhaseLoad::setFlag(std::string_view flag, bool val)

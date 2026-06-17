@@ -53,6 +53,7 @@ set(utilities_headers
 
 add_library(utilities STATIC ${utilities_sources} ${utilities_headers})
 set(SKIP_INSTALL_LIBRARIES ON)
+set(ZLIB_BUILD_MINIZIP OFF CACHE BOOL "Disable zlib contrib minizip in griddyn builds" FORCE)
 add_subdirectory(
     ${PROJECT_SOURCE_DIR}/ThirdParty/Zlib/zlib-1.3.2 ${PROJECT_BINARY_DIR}/Zlib EXCLUDE_FROM_ALL
 )
@@ -63,16 +64,17 @@ if(WIN32 OR CMAKE_C_FLAGS MATCHES "(^| )-fsanitize=" OR CMAKE_CXX_FLAGS MATCHES 
 endif()
 
 if(griddyn_minizip_use_bundled_zlib)
-    set(ZLIB_BUILD_MINIZIP ON CACHE BOOL "Use the in-tree zlib build for Minizip" FORCE)
-    set(ZLIB_MINIZIP_BUILD_SHARED OFF
-        CACHE BOOL "Disable shared Minizip when building from bundled zlib" FORCE
+    set(GRIDDYN_MINIZIP_USE_EXISTING_ZLIB_TARGETS ON)
+    set(MINIZIP_BUILD_SHARED OFF CACHE BOOL "Disable shared Minizip when building from bundled zlib"
+                                    FORCE
     )
-    set(ZLIB_MINIZIP_BUILD_STATIC ON
-        CACHE BOOL "Enable static Minizip when building from bundled zlib" FORCE
+    set(MINIZIP_BUILD_STATIC ON CACHE BOOL "Enable static Minizip when building from bundled zlib"
+                                    FORCE
     )
-    set(ZLIB_MINIZIP_INSTALL OFF CACHE BOOL "Disable Minizip install rules for bundled builds"
-                                       FORCE
+    set(MINIZIP_BUILD_TESTING OFF
+        CACHE BOOL "Disable Minizip tests when building from bundled zlib" FORCE
     )
+    set(MINIZIP_INSTALL OFF CACHE BOOL "Disable Minizip install rules for bundled builds" FORCE)
 endif()
 
 add_subdirectory(

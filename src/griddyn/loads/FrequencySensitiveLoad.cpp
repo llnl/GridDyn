@@ -11,6 +11,7 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "utilities/MatrixData.hpp"
+#include <array>
 #include <cmath>
 #include <complex>
 #include <iostream>
@@ -64,11 +65,12 @@ void FrequencySensitiveLoad::updateOutputs(double frequency)
     Qout += Qout * (frequency - 1.0) * M;
 }
 
-static const stringVec locNumStrings{"h", "m"};
+static constexpr auto locNumStrings =
+    std::array<std::string_view, 2>{"h", "m"};
 
-static const stringVec locStrStrings{};
+static constexpr std::array<std::string_view, 0> locStrStrings{};
 
-static const stringVec flagStrings{};
+static constexpr std::array<std::string_view, 0> flagStrings{};
 
 void FrequencySensitiveLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {

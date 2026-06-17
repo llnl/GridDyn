@@ -1,0 +1,96 @@
+name: Coverage
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: coverage-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-26.04
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake \
+            ninja-build \
+            lcov \
+            libsuitesparse-dev \
+            libboost-dev
+
+      - name: Configure
+        shell: bash
+        run: >
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Coverage
+          -DCMAKE_C_COMPILER=gcc-15
+          -DCMAKE_CXX_COMPILER=g++-15
+          -DBUILD_TESTING=ON
+          -DGRIDDYN_BUILD_TESTS=ON
+          -DGRIDDYN_ENABLE_CODE_COVERAGE_TEST=ON
+          -DGRIDDYN_ENABLE_FMI=OFF
+          -DGRIDDYN_ENABLE_HELICS_EXECUTABLE=OFF
+
+      - name: Build
+        shell: bash
+        run: cmake --build build --parallel
+
+      - name: Run continuous tests
+        shell: bash
+        run: ctest --test-dir build --output-on-failure -L Continuous
+
+      - name: Prepare coverage report
+        shell: bash
+        working-directory: build
+        run: |
+          lcov --ignore-errors gcov,mismatch --capture --directory . --output-file coverage.info
+          lcov \
+            --remove coverage.info \
+            '/usr/*' \
+            '*/test/*' \
+            '*/tests/*' \
+            '*/ThirdParty/*' \
+            '*/examples/*' \
+            '*/swig/*' \
+            --output-file coverage.info
+          lcov --list coverage.info
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: build/coverage.info
+
+      - name: Upload to Codecov
+        if: ${{ secrets.CODECOV_TOKEN != '' }}
+        uses: codecov/codecov-action@v6
+        with:
+          files: build/coverage.info
+          fail_ci_if_error: true
+          functionalities: fixes
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Note missing Codecov token
+        if: ${{ secrets.CODECOV_TOKEN == '' }}
+        shell: bash
+        run: echo "CODECOV_TOKEN is not configured yet; coverage upload was skipped."

@@ -12,8 +12,8 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
-#include <array>
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <format>
 #include <functional>
@@ -577,8 +577,7 @@ void GridComponent::disconnect()
 static constexpr auto localNumericStrings =
     std::array<std::string_view, 3>{"status", "basefrequency", "basepower"};
 
-static constexpr auto localStringStrings =
-    std::array<std::string_view, 1>{"status"};
+static constexpr auto localStringStrings = std::array<std::string_view, 1>{"status"};
 
 static constexpr std::array<std::string_view, 0> localFlagStrings{};
 

@@ -19,8 +19,8 @@
 #include "gmlc/utilities/vectorOps.hpp"
 // #include "MatrixDataSparse.hpp"
 #include "gmlc/utilities/stringOps.h"
-#include <array>
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -1001,16 +1001,13 @@ void AcBus::timestep(CoreTime time, const IOdata& /*inputs*/, const SolverMode& 
 
 static constexpr auto locNumStrings =
     std::array<std::string_view, 4>{"vtarget", "atarget", "p", "q"};
-static constexpr auto locStrStrings =
-    std::array<std::string_view, 2>{"pflowtype", "dyntype"};
+static constexpr auto locStrStrings = std::array<std::string_view, 2>{"pflowtype", "dyntype"};
 
-static constexpr auto flagStrings =
-    std::array<std::string_view, 1>{"use_frequency"};
+static constexpr auto flagStrings = std::array<std::string_view, 1>{"use_frequency"};
 
 void AcBus::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
-    getParamString<AcBus, GridBus>(
-        this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
+    getParamString<AcBus, GridBus>(this, pstr, locNumStrings, locStrStrings, flagStrings, pstype);
 }
 
 void AcBus::setFlag(std::string_view flag, bool val)

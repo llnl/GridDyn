@@ -68,8 +68,8 @@ void DifferentialRelay::set(std::string_view param, std::string_view val)
 
 void DifferentialRelay::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
-    static constexpr auto numericParameterStrings = std::array<std::string_view, 4>{
-        "delay", "max_difference", "reset_margin", "minlevel"};
+    static constexpr auto numericParameterStrings =
+        std::array<std::string_view, 4>{"delay", "max_difference", "reset_margin", "minlevel"};
     static constexpr std::array<std::string_view, 0> stringParameterStrings{};
     static constexpr std::array<std::string_view, 0> flagStrings{};
     getParamString<DifferentialRelay, Relay>(

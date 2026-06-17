@@ -64,13 +64,11 @@ void GridLoad::setLoad(double plevel, double qlevel, unit unitType)
     setQ(convert(qlevel, unitType, puMW, systemBasePower));
 }
 
-static constexpr auto locNumStrings =
-    std::array<std::string_view, 3>{"p", "q", "pf"};
+static constexpr auto locNumStrings = std::array<std::string_view, 3>{"p", "q", "pf"};
 
 static constexpr std::array<std::string_view, 0> locStrStrings{};
 
-static constexpr auto flagStrings =
-    std::array<std::string_view, 1>{"usepowerfactor"};
+static constexpr auto flagStrings = std::array<std::string_view, 1>{"usepowerfactor"};
 
 void GridLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {

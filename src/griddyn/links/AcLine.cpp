@@ -157,18 +157,17 @@ void AcLine::timestep(const CoreTime time, const IOdata& /*inputs*/, const Solve
 void AcLine::checkMerge() {}
 
 static constexpr auto locNumStrings = std::array<std::string_view, 11>{"r",
-                                                                        "x",
-                                                                        "link",
-                                                                        "b",
-                                                                        "g",
-                                                                        "tap",
-                                                                        "tapangle",
-                                                                        "switch1",
-                                                                        "switch2",
-                                                                        "fault",
-                                                                        "p"};
-static constexpr auto locStrStrings =
-    std::array<std::string_view, 2>{"from", "to"};
+                                                                       "x",
+                                                                       "link",
+                                                                       "b",
+                                                                       "g",
+                                                                       "tap",
+                                                                       "tapangle",
+                                                                       "switch1",
+                                                                       "switch2",
+                                                                       "fault",
+                                                                       "p"};
+static constexpr auto locStrStrings = std::array<std::string_view, 2>{"from", "to"};
 static constexpr std::array<std::string_view, 0> flagStrings{};
 void AcLine::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {

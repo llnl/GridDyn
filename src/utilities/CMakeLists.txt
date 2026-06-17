@@ -65,11 +65,11 @@ endif()
 
 if(griddyn_minizip_use_bundled_zlib)
     set(GRIDDYN_MINIZIP_USE_EXISTING_ZLIB_TARGETS ON)
-    set(MINIZIP_BUILD_SHARED OFF CACHE BOOL "Disable shared Minizip when building from bundled zlib"
-                                    FORCE
+    set(MINIZIP_BUILD_SHARED OFF
+        CACHE BOOL "Disable shared Minizip when building from bundled zlib" FORCE
     )
     set(MINIZIP_BUILD_STATIC ON CACHE BOOL "Enable static Minizip when building from bundled zlib"
-                                    FORCE
+                                      FORCE
     )
     set(MINIZIP_BUILD_TESTING OFF
         CACHE BOOL "Disable Minizip tests when building from bundled zlib" FORCE

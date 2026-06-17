@@ -19,8 +19,8 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixDataCompact.hpp"
-#include <array>
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <complex>
 #include <cstdio>
@@ -180,8 +180,7 @@ void Link::timestep(const CoreTime time, const IOdata& /*inputs*/, const SolverM
 
 static constexpr auto locNumStrings =
     std::array<std::string_view, 4>{"loss", "switch1", "switch2", "p"};
-static constexpr auto locStrStrings =
-    std::array<std::string_view, 2>{"from", "to"};
+static constexpr auto locStrStrings = std::array<std::string_view, 2>{"from", "to"};
 static constexpr std::array<std::string_view, 0> flagStrings{};
 void Link::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {

@@ -143,8 +143,9 @@ void ZipLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*
 #endif
 }
 
-static constexpr auto locNumStrings = std::array<std::string_view, 10>{
-    "yp", "yq", "ip", "iq", "x", "r", "h", "m", "vpqmin", "vpqmax"};
+static constexpr auto locNumStrings =
+    std::array<std::string_view,
+               10>{"yp", "yq", "ip", "iq", "x", "r", "h", "m", "vpqmin", "vpqmax"};
 
 static constexpr std::array<std::string_view, 0> locStrStrings{};
 

@@ -19,8 +19,8 @@
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
 #include "gmlc/utilities/vectorOps.hpp"
-#include <array>
 #include <algorithm>
+#include <array>
 #include <cstdio>
 #include <memory>
 #include <print>

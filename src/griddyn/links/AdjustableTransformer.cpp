@@ -16,8 +16,8 @@
 #include "griddyn/griddyn-config.h"
 #include "utilities/MatrixData.hpp"
 #include "utilities/MatrixDataTranslate.hpp"
-#include <array>
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <iostream>
@@ -84,27 +84,26 @@ CoreObject* AdjustableTransformer::clone(CoreObject* obj) const
 }
 
 static constexpr auto locNumStrings = std::array<std::string_view, 18>{"vmin",
-                                                                        "vmax",
-                                                                        "vtarget",
-                                                                        "pmin",
-                                                                        "pmax",
-                                                                        "ptarget",
-                                                                        "qmin",
-                                                                        "qmax",
-                                                                        "qtarget",
-                                                                        "direction",
-                                                                        "mintap",
-                                                                        "maxtap",
-                                                                        "mintapangle",
-                                                                        "maxtapangle",
-                                                                        "stepsize",
-                                                                        "nsteps",
-                                                                        "dtapdt",
-                                                                        "dtapadt"};
+                                                                       "vmax",
+                                                                       "vtarget",
+                                                                       "pmin",
+                                                                       "pmax",
+                                                                       "ptarget",
+                                                                       "qmin",
+                                                                       "qmax",
+                                                                       "qtarget",
+                                                                       "direction",
+                                                                       "mintap",
+                                                                       "maxtap",
+                                                                       "mintapangle",
+                                                                       "maxtapangle",
+                                                                       "stepsize",
+                                                                       "nsteps",
+                                                                       "dtapdt",
+                                                                       "dtapadt"};
 static constexpr auto locStrStrings =
     std::array<std::string_view, 3>{"controlmode", "changemode", "centermode"};
-static constexpr auto flagStrings =
-    std::array<std::string_view, 1>{"no_pflow_adjustments"};
+static constexpr auto flagStrings = std::array<std::string_view, 1>{"no_pflow_adjustments"};
 void AdjustableTransformer::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {
     getParamString<AdjustableTransformer, AcLine>(

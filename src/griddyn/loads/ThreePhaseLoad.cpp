@@ -78,8 +78,10 @@ static constexpr auto locNumStrings =
 
 static constexpr std::array<std::string_view, 0> locStrStrings{};
 
-static constexpr auto flagStrings = std::array<std::string_view, 4>{
-    "use_abs_angle", "ignore_phase", "three_phase_inputs", "three_phase_outputs"};
+static constexpr auto flagStrings = std::array<std::string_view, 4>{"use_abs_angle",
+                                                                    "ignore_phase",
+                                                                    "three_phase_inputs",
+                                                                    "three_phase_outputs"};
 
 void ThreePhaseLoad::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
 {

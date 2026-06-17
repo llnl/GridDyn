@@ -65,8 +65,7 @@ void FrequencySensitiveLoad::updateOutputs(double frequency)
     Qout += Qout * (frequency - 1.0) * M;
 }
 
-static constexpr auto locNumStrings =
-    std::array<std::string_view, 2>{"h", "m"};
+static constexpr auto locNumStrings = std::array<std::string_view, 2>{"h", "m"};
 
 static constexpr std::array<std::string_view, 0> locStrStrings{};
 

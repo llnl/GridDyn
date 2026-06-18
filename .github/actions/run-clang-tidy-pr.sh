@@ -25,8 +25,23 @@ file_in_compile_db() {
         build/compile_commands.json >/dev/null
 }
 
-FILES_URL="$(jq -r '.pull_request._links.self.href' "$GITHUB_EVENT_PATH")/files"
-FILES=$(curl -s -X GET -G "$FILES_URL" | jq -r '.[] | .filename')
+FILES="$(jq -r '.pull_request.files[]?.filename // empty' "$GITHUB_EVENT_PATH")"
+
+if [[ -z "$FILES" ]]; then
+    PR_NUMBER="$(jq -r '.pull_request.number // empty' "$GITHUB_EVENT_PATH")"
+    REPO_NAME="$(jq -r '.repository.full_name // empty' "$GITHUB_EVENT_PATH")"
+    if [[ -n "$PR_NUMBER" && -n "$REPO_NAME" ]]; then
+        FILES_URL="https://api.github.com/repos/${REPO_NAME}/pulls/${PR_NUMBER}/files?per_page=100"
+        CURL_ARGS=(-fsSL -H "Accept: application/vnd.github+json" -H "X-GitHub-Api-Version: 2022-11-28")
+        if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+            CURL_ARGS+=(-H "Authorization: Bearer ${GITHUB_TOKEN}")
+        fi
+        FILES=$(curl "${CURL_ARGS[@]}" \
+            "$FILES_URL" | jq -r '.[] | .filename')
+    fi
+fi
+
+FILES="${FILES%$'\n'}"
 echo "====Files Changed in PR===="
 echo "$FILES"
 filecount=$(
@@ -34,7 +49,7 @@ filecount=$(
         if [[ "$line" =~ \.(cpp|cc|cxx|c)$ ]] && ! is_third_party_file "$line"; then
             echo "$line"
         fi
-    done <<<"$FILES" | grep -c .
+    done <<<"$FILES" | awk 'END { print NR }'
 )
 echo "Total changed: $filecount"
 tidyerr=0
@@ -88,5 +103,7 @@ if ((filecount > 0 && filecount <= 25)); then
             fi
         fi
     done <<<"$FILES"
+else
+    echo "No first-party C/C++ source files changed; skipping clang-tidy."
 fi
 exit $tidyerr

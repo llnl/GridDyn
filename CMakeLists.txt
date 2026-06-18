@@ -385,30 +385,24 @@ set(GRIDDYN_BOOST_VERSION_LEVEL ${BOOST_VERSION_LEVEL})
 # ------------------------------------------------------------
 # add coverage target
 # ------------------------------------------------------------
-if(GRIDDYN_ENABLE_CODE_COVERAGE_TEST)
-    if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
-        include(CodeCoverage)
+if(CMAKE_BUILD_TYPE STREQUAL "Coverage")
+    include(CodeCoverage)
+endif()
 
-        set(COVERAGE_EXCLUDES
-            'usr/*'
-            'dependencies/*'
-            'ThirdParty/*'
-            'test/*'
-            'tests/*'
-            'swig/*'
-            'examples/*'
-        )
-        setup_target_for_coverage(
-            NAME
-            griddyn_coverage # New target name
-            EXECUTABLE
-            ctest
-            -R
-            testShared # Executable in PROJECT_BINARY_DIR
-        )
-    else()
+if(GRIDDYN_ENABLE_CODE_COVERAGE_TEST)
+    if(NOT CMAKE_BUILD_TYPE STREQUAL "Coverage")
         message(FATAL_ERROR "CMAKE_BUILD_TYPE must be set to Coverage for testing code coverage")
     endif()
+
+    set(COVERAGE_EXCLUDES 'usr/*' 'ThirdParty/*' 'test/*' 'interfaces/*' 'examples/*')
+    setup_target_for_coverage(
+        NAME
+        griddyn_coverage # New target name
+        EXECUTABLE
+        ctest
+        -L
+        Continuous
+    )
 endif(GRIDDYN_ENABLE_CODE_COVERAGE_TEST)
 
 set(CONFIGURE_TARGET_LOCATION ${GRIDDYN_BINARY_DIR}/griddyn_generated_includes/griddyn/)

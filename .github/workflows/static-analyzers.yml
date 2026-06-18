@@ -33,4 +33,6 @@ jobs:
         submodules: recursive
     - name: Run clang-tidy on changed files
       shell: bash
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
       run: ./.github/actions/run-clang-tidy-pr.sh

@@ -208,8 +208,9 @@ std::string ReaderInfo::checkDefines(const std::string& input)
                 const double val = interpretString(temp, *this);
                 if (!std::isnan(val)) {
                     if (std::abs(trunc(val) - val) < 1e-9) {
-                        out.replace(
-                            pos1, pos2 - pos1 + 1, std::format("{}", static_cast<int>(val)));
+                        out.replace(pos1,
+                                    pos2 - pos1 + 1,
+                                    std::format("{}", static_cast<int>(val)));
                     } else {
                         out.replace(pos1, pos2 - pos1 + 1, std::format("{:.15g}", val));
                     }

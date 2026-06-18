@@ -20,6 +20,7 @@ jobs:
   coverage:
     name: Coverage
     runs-on: ubuntu-26.04
+    timeout-minutes: 45
 
     steps:
       - uses: actions/checkout@v6
@@ -48,7 +49,6 @@ jobs:
           -DBUILD_TESTING=ON
           -DGRIDDYN_BUILD_TESTS=ON
           -DGRIDDYN_ENABLE_CODE_COVERAGE_TEST=ON
-          -DGRIDDYN_ENABLE_FMI=OFF
           -DGRIDDYN_ENABLE_HELICS_EXECUTABLE=OFF
 
       - name: Build
@@ -81,15 +81,17 @@ jobs:
           lcov --list coverage.info
 
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
+          if-no-files-found: error
           name: coverage-report
           path: build/coverage.info
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v6
         with:
+          disable_search: true
           files: build/coverage.info
           fail_ci_if_error: true
-          functionalities: fixes
+          name: coverage-gcc15-ubuntu2604
           token: ${{ secrets.CODECOV_TOKEN }}

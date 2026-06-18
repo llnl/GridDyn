@@ -394,13 +394,7 @@ if(GRIDDYN_ENABLE_CODE_COVERAGE_TEST)
         message(FATAL_ERROR "CMAKE_BUILD_TYPE must be set to Coverage for testing code coverage")
     endif()
 
-    set(COVERAGE_EXCLUDES
-        'usr/*'
-        'ThirdParty/*'
-        'test/*'
-        'interfaces/*'
-        'examples/*'
-    )
+    set(COVERAGE_EXCLUDES 'usr/*' 'ThirdParty/*' 'test/*' 'interfaces/*' 'examples/*')
     setup_target_for_coverage(
         NAME
         griddyn_coverage # New target name

@@ -63,9 +63,15 @@ jobs:
         shell: bash
         working-directory: build
         run: |
-          lcov --ignore-errors gcov,mismatch --capture --directory . --output-file coverage.info
+          lcov \
+            --rc geninfo_unexecuted_blocks=1 \
+            --ignore-errors gcov,mismatch,inconsistent \
+            --capture \
+            --directory . \
+            --output-file coverage.info
           lcov \
             --remove coverage.info \
+            --ignore-errors inconsistent \
             '/usr/*' \
             '*/test/*' \
             '*/tests/*' \

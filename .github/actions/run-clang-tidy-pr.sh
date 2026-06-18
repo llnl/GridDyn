@@ -34,7 +34,7 @@ filecount=$(
         if [[ "$line" =~ \.(cpp|cc|cxx|c)$ ]] && ! is_third_party_file "$line"; then
             echo "$line"
         fi
-    done <<<"$FILES" | grep -c .
+    done <<<"$FILES" | awk 'END { print NR }'
 )
 echo "Total changed: $filecount"
 tidyerr=0
@@ -88,5 +88,7 @@ if ((filecount > 0 && filecount <= 25)); then
             fi
         fi
     done <<<"$FILES"
+else
+    echo "No first-party C/C++ source files changed; skipping clang-tidy."
 fi
 exit $tidyerr

@@ -396,11 +396,9 @@ if(GRIDDYN_ENABLE_CODE_COVERAGE_TEST)
 
     set(COVERAGE_EXCLUDES
         'usr/*'
-        'dependencies/*'
         'ThirdParty/*'
         'test/*'
-        'tests/*'
-        'swig/*'
+        'interfaces/*'
         'examples/*'
     )
     setup_target_for_coverage(

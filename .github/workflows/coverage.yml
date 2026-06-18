@@ -71,13 +71,12 @@ jobs:
             --output-file coverage.info
           lcov \
             --remove coverage.info \
-            --ignore-errors inconsistent \
+            --ignore-errors inconsistent,unused \
             '/usr/*' \
             '*/test/*' \
-            '*/tests/*' \
             '*/ThirdParty/*' \
             '*/examples/*' \
-            '*/swig/*' \
+            '*/interfaces/*' \
             --output-file coverage.info
           lcov --list coverage.info
 

@@ -15,6 +15,7 @@
 #include <cmath>
 #include <ctime>
 #include <filesystem>
+#include <format>
 #include <iomanip>
 #include <iostream>
 #include <memory>
@@ -207,18 +208,11 @@ std::string ReaderInfo::checkDefines(const std::string& input)
                 const double val = interpretString(temp, *this);
                 if (!std::isnan(val)) {
                     if (std::abs(trunc(val) - val) < 1e-9) {
-                        // out = out.substr (0, pos1) + std::to_string (static_cast<int> (val)) +
-                        // out.substr (pos2 + 1);
-                        out.replace(pos1, pos2 - pos1 + 1, std::to_string(static_cast<int>(val)));
+                        out.replace(pos1,
+                                    pos2 - pos1 + 1,
+                                    std::format("{}", static_cast<int>(val)));
                     } else {
-                        // out = out.substr (0, pos1) + std::to_string (val) + out.substr (pos2 +
-                        // 1);
-                        auto str = std::to_string(val);
-                        while (str.back() == '0')  // remove trailing zeros
-                        {
-                            str.pop_back();
-                        }
-                        out.replace(pos1, pos2 - pos1 + 1, str);
+                        out.replace(pos1, pos2 - pos1 + 1, std::format("{:.15g}", val));
                     }
                     rep = true;
                     break;  // break out of inner loop

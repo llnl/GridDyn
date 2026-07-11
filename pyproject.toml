@@ -1,0 +1,33 @@
+[build-system]
+requires = ["scikit-build-core >=0.10", "nanobind >=2.5.0"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "griddyn"
+version = "0.0.0"
+description = "Python bindings for GridDyn"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "BSD-3-Clause"
+license-files = ["LICENSE", "NOTICE"]
+authors = [
+    { name = "GridDyn contributors" },
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering",
+]
+
+[tool.scikit-build]
+minimum-version = "build-system.requires"
+build-dir = "build/{wheel_tag}"
+build.targets = ["griddyn_python_core"]
+cmake.version = ">=3.26.1"
+cmake.args = [
+    "-DGRIDDYN_BUILD_PYTHON_LIBRARY=ON",
+    "-DGRIDDYN_BUILD_PYTHON_INTERFACE=OFF",
+    "-DGRIDDYN_BUILD_TESTS=OFF",
+    "-DGRIDDYN_ENABLE_FMI=OFF",
+    "-DGRIDDYN_ENABLE_HELICS_EXECUTABLE=OFF",
+]
+

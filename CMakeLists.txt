@@ -175,6 +175,8 @@ option(GRIDDYN_ENABLE_FMI_EXPORT "Enable construction of a binary fmi shared lib
 
 option(GRIDDYN_BUILD_PYTHON_INTERFACE "Build Python extension" OFF)
 
+option(GRIDDYN_BUILD_PYTHON_LIBRARY "Build nanobind Python library" OFF)
+
 option(GRIDDYN_BUILD_MATLAB_INTERFACE "Build Matlab Extension" OFF)
 
 option(GRIDDYN_BUILD_OCTAVE_INTERFACE "Build Octave extension (very experimental)" OFF)
@@ -296,6 +298,7 @@ if(INTERFACE_BUILD
    OR GRIDDYN_BUILD_CXX_SHARED_LIBRARY
    OR GRIDDYN_BUILD_C_SHARED_LIBRARY
    OR GRIDDYN_ENABLE_FMI_EXPORT
+   OR GRIDDYN_BUILD_PYTHON_LIBRARY
 )
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
@@ -794,6 +797,10 @@ endif()
 # ------------------------------------------------------------
 if(INTERFACE_BUILD)
     add_subdirectory(interfaces)
+endif()
+
+if(GRIDDYN_BUILD_PYTHON_LIBRARY)
+    add_subdirectory(python)
 endif()
 
 # TODO make a cpack file, put this there

@@ -11,4 +11,5 @@ This documentation site is being rebuilt in-repo. For now, it provides a minimal
 overview
 building
 status
+python-nanobind-migration-plan
 ```

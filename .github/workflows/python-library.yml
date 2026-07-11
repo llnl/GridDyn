@@ -1,0 +1,80 @@
+name: Python Library
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: python-library-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-wheel:
+    name: Build Python wheel
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake \
+            ninja-build \
+            libsuitesparse-dev \
+            libboost-dev \
+            gcc-14 \
+            g++-14
+          python -m pip install --upgrade pip
+          python -m pip install build
+
+      - name: Build wheel
+        shell: bash
+        env:
+          CMAKE_ARGS: >-
+            -DCMAKE_C_COMPILER=gcc-14
+            -DCMAKE_CXX_COMPILER=g++-14
+            -DCMAKE_BUILD_TYPE=Release
+        run: python -m build --wheel
+
+      - name: Install built wheel
+        shell: bash
+        run: python -m pip install dist/*.whl
+
+      - name: Smoke test
+        shell: bash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import griddyn as gd
+
+          sim = gd.Simulation(name="ci-smoke")
+          assert sim.name == "ci-smoke"
+          assert sim.time == 0.0
+          assert issubclass(gd.FileLoadError, gd.GridDynError)
+
+          try:
+              sim.load(Path("does-not-exist.grid"))
+          except gd.FileLoadError:
+              pass
+          else:
+              raise AssertionError("missing file did not raise FileLoadError")
+          PY
+

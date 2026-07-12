@@ -4,18 +4,16 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <nanobind/nanobind.h>
-#include <nanobind/stl/string.h>
-#include <nanobind/stl/vector.h>
-
 #include "core/CoreExceptions.h"
 #include "fileInput/fileInput.h"
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/gridDynVersion.hpp"
 #include "runner/gridDynRunner.h"
-
 #include <filesystem>
 #include <memory>
+#include <nanobind/nanobind.h>
+#include <nanobind/stl/string.h>
+#include <nanobind/stl/vector.h>
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -124,8 +122,7 @@ class PySimulation {
         }
 
         nb::gil_scoped_release release;
-        const auto result =
-            runner_->Initialize(static_cast<int>(argv.size()), argv.data(), false);
+        const auto result = runner_->Initialize(static_cast<int>(argv.size()), argv.data(), false);
         if (result < 0) {
             throw ExecutionError("simulation initialization failed");
         }
@@ -284,10 +281,8 @@ NB_MODULE(_core, mod)
         .def("reset", &PySimulation::reset)
         .def_prop_rw("name", &PySimulation::name, &PySimulation::setName)
         .def_prop_ro("time", &PySimulation::time)
-        .def(
-            "__repr__",
-            [](const PySimulation& sim) {
-                return "<griddyn.Simulation name='" + sim.name() + "' time=" +
-                    std::to_string(sim.time()) + ">";
-            });
+        .def("__repr__", [](const PySimulation& sim) {
+            return "<griddyn.Simulation name='" + sim.name() +
+                "' time=" + std::to_string(sim.time()) + ">";
+        });
 }

@@ -58,6 +58,20 @@ jobs:
         shell: bash
         run: python -m pip install dist/*.whl
 
+      - name: Check extension dependencies
+        shell: bash
+        run: |
+          python - <<'PY'
+          import subprocess
+          import griddyn._core as core
+
+          extension = core.__file__
+          dependencies = subprocess.check_output(["ldd", extension], text=True)
+          print(dependencies)
+          if "minizip" in dependencies.lower():
+              raise SystemExit("Python extension must not depend on shared minizip")
+          PY
+
       - name: Smoke test
         shell: bash
         run: |
@@ -77,4 +91,3 @@ jobs:
           else:
               raise AssertionError("missing file did not raise FileLoadError")
           PY
-

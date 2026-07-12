@@ -65,14 +65,9 @@ set(griddyn_minizip_use_bundled_zlib ON)
 
 if(griddyn_minizip_use_bundled_zlib)
     set(GRIDDYN_MINIZIP_USE_EXISTING_ZLIB_TARGETS ON)
-    set(MINIZIP_BUILD_SHARED OFF
-        CACHE BOOL "Disable shared Minizip in griddyn builds" FORCE
-    )
-    set(MINIZIP_BUILD_STATIC ON CACHE BOOL "Enable static Minizip in griddyn builds" FORCE
-    )
-    set(MINIZIP_BUILD_TESTING OFF
-        CACHE BOOL "Disable Minizip tests in griddyn builds" FORCE
-    )
+    set(MINIZIP_BUILD_SHARED OFF CACHE BOOL "Disable shared Minizip in griddyn builds" FORCE)
+    set(MINIZIP_BUILD_STATIC ON CACHE BOOL "Enable static Minizip in griddyn builds" FORCE)
+    set(MINIZIP_BUILD_TESTING OFF CACHE BOOL "Disable Minizip tests in griddyn builds" FORCE)
     set(MINIZIP_INSTALL OFF CACHE BOOL "Disable Minizip install rules for griddyn builds" FORCE)
 endif()
 

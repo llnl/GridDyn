@@ -53,5 +53,5 @@ add_custom_command(
             "${CMAKE_CURRENT_BINARY_DIR}/griddyn/py.typed"
 )
 
-install(TARGETS griddyn_python_core LIBRARY DESTINATION griddyn)
-install(FILES griddyn/__init__.py griddyn/py.typed DESTINATION griddyn)
+install(TARGETS griddyn_python_core LIBRARY DESTINATION griddyn COMPONENT python)
+install(FILES griddyn/__init__.py griddyn/py.typed DESTINATION griddyn COMPONENT python)

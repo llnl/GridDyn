@@ -22,6 +22,7 @@ classifiers = [
 minimum-version = "build-system.requires"
 build-dir = "build/{wheel_tag}"
 build.targets = ["griddyn_python_core"]
+install.components = ["python"]
 cmake.version = ">=3.26.1"
 cmake.args = [
     "-DGRIDDYN_BUILD_PYTHON_LIBRARY=ON",
@@ -30,4 +31,3 @@ cmake.args = [
     "-DGRIDDYN_ENABLE_FMI=OFF",
     "-DGRIDDYN_ENABLE_HELICS_EXECUTABLE=OFF",
 ]
-

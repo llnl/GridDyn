@@ -19,7 +19,7 @@ concurrency:
 jobs:
   build-wheel:
     name: Build Python wheel
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
 
     steps:
       - uses: actions/checkout@v6
@@ -40,17 +40,17 @@ jobs:
             ninja-build \
             libsuitesparse-dev \
             libboost-dev \
-            gcc-14 \
-            g++-14
+            gcc-15 \
+            g++-15
           python -m pip install --upgrade pip
-          python -m pip install build
+          python -m pip install build pytest
 
       - name: Build wheel
         shell: bash
         env:
           CMAKE_ARGS: >-
-            -DCMAKE_C_COMPILER=gcc-14
-            -DCMAKE_CXX_COMPILER=g++-14
+            -DCMAKE_C_COMPILER=gcc-15
+            -DCMAKE_CXX_COMPILER=g++-15
             -DCMAKE_BUILD_TYPE=Release
         run: python -m build --wheel
 
@@ -72,22 +72,6 @@ jobs:
               raise SystemExit("Python extension must not depend on shared minizip")
           PY
 
-      - name: Smoke test
+      - name: Run Python tests
         shell: bash
-        run: |
-          python - <<'PY'
-          from pathlib import Path
-          import griddyn as gd
-
-          sim = gd.Simulation(name="ci-smoke")
-          assert sim.name == "ci-smoke"
-          assert sim.time == 0.0
-          assert issubclass(gd.FileLoadError, gd.GridDynError)
-
-          try:
-              sim.load(Path("does-not-exist.grid"))
-          except gd.FileLoadError:
-              pass
-          else:
-              raise AssertionError("missing file did not raise FileLoadError")
-          PY
+        run: python -m pytest python/tests

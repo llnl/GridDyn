@@ -16,7 +16,6 @@
 #include <nanobind/stl/vector.h>
 #include <stdexcept>
 #include <string>
-#include <string_view>
 #include <vector>
 
 namespace nb = nanobind;
@@ -174,7 +173,7 @@ class PySimulation {
 
     std::string name() const { return simulation()->getName(); }
 
-    void setName(std::string_view name) { simulation()->setName(name); }
+    void setName(const std::string& name) { simulation()->setName(name); }
 
   private:
     static std::string pathToString(const nb::object& path)

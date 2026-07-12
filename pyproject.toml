@@ -30,4 +30,3 @@ cmake.args = [
     "-DGRIDDYN_ENABLE_FMI=OFF",
     "-DGRIDDYN_ENABLE_HELICS_EXECUTABLE=OFF",
 ]
-

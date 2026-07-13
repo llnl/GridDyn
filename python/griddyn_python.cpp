@@ -61,7 +61,7 @@ class ExecutionError: public GridDynError {
 };
 
 std::shared_ptr<griddyn::GridDynSimulation>
-simulationFromRunner(const std::shared_ptr<griddyn::GriddynRunner>& runner)
+    simulationFromRunner(const std::shared_ptr<griddyn::GriddynRunner>& runner)
 {
     auto sim = runner->getSim();
     if (!sim) {
@@ -157,7 +157,8 @@ class PySimulation {
         runner_ = std::make_shared<griddyn::GriddynRunner>(std::move(sim));
     }
 
-    static PySimulation fromFile(const nb::object& path, std::string format = "", std::string name = "")
+    static PySimulation
+        fromFile(const nb::object& path, std::string format = "", std::string name = "")
     {
         PySimulation sim(std::move(name));
         sim.load(path, std::move(format));

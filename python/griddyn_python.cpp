@@ -60,6 +60,82 @@ class ExecutionError: public GridDynError {
     using GridDynError::GridDynError;
 };
 
+std::shared_ptr<griddyn::GridDynSimulation>
+simulationFromRunner(const std::shared_ptr<griddyn::GriddynRunner>& runner)
+{
+    auto sim = runner->getSim();
+    if (!sim) {
+        throw InvalidObjectError("simulation is not available");
+    }
+    return sim;
+}
+
+class PyPowerFlowRoutine {
+  public:
+    explicit PyPowerFlowRoutine(std::shared_ptr<griddyn::GriddynRunner> runner):
+        runner_(std::move(runner))
+    {
+    }
+
+    void run()
+    {
+        auto sim = simulationFromRunner(runner_);
+        nb::gil_scoped_release release;
+        const auto result = sim->powerflow();
+        if (result < 0) {
+            throw SolveError("powerflow failed");
+        }
+    }
+
+  private:
+    std::shared_ptr<griddyn::GriddynRunner> runner_;
+};
+
+class PyTimeDomainRoutine {
+  public:
+    explicit PyTimeDomainRoutine(std::shared_ptr<griddyn::GriddynRunner> runner):
+        runner_(std::move(runner))
+    {
+    }
+
+    void initialize()
+    {
+        nb::gil_scoped_release release;
+        runner_->simInitialize();
+    }
+
+    double run()
+    {
+        nb::gil_scoped_release release;
+        return static_cast<double>(runner_->Run());
+    }
+
+    double runUntil(double time)
+    {
+        auto sim = simulationFromRunner(runner_);
+        nb::gil_scoped_release release;
+        const auto result = sim->run(griddyn::CoreTime(time));
+        if (result < 0) {
+            throw SolveError("simulation run failed");
+        }
+        return static_cast<double>(sim->getSimulationTime());
+    }
+
+    double step(double time)
+    {
+        nb::gil_scoped_release release;
+        return static_cast<double>(runner_->Step(griddyn::CoreTime(time)));
+    }
+
+    double time() const
+    {
+        return static_cast<double>(simulationFromRunner(runner_)->getSimulationTime());
+    }
+
+  private:
+    std::shared_ptr<griddyn::GriddynRunner> runner_;
+};
+
 std::string withObjectContext(const griddyn::CoreObjectException& exc)
 {
     auto who = exc.who();
@@ -81,7 +157,14 @@ class PySimulation {
         runner_ = std::make_shared<griddyn::GriddynRunner>(std::move(sim));
     }
 
-    void load(const nb::object& path, std::string format = "")
+    static PySimulation fromFile(const nb::object& path, std::string format = "", std::string name = "")
+    {
+        PySimulation sim(std::move(name));
+        sim.load(path, std::move(format));
+        return sim;
+    }
+
+    PySimulation& load(const nb::object& path, std::string format = "")
     {
         auto filePath = pathToString(path);
         if (!std::filesystem::exists(filePath)) {
@@ -90,6 +173,7 @@ class PySimulation {
         auto sim = simulation();
         nb::gil_scoped_release release;
         griddyn::loadFile(sim.get(), filePath, nullptr, std::move(format));
+        return *this;
     }
 
     void initialize()
@@ -175,6 +259,10 @@ class PySimulation {
 
     void setName(const std::string& name) { simulation()->setName(name); }
 
+    PyPowerFlowRoutine powerFlowRoutine() const { return PyPowerFlowRoutine(runner_); }
+
+    PyTimeDomainRoutine timeDomainRoutine() const { return PyTimeDomainRoutine(runner_); }
+
   private:
     static std::string pathToString(const nb::object& path)
     {
@@ -184,11 +272,7 @@ class PySimulation {
 
     std::shared_ptr<griddyn::GridDynSimulation> simulation() const
     {
-        auto sim = runner_->getSim();
-        if (!sim) {
-            throw InvalidObjectError("simulation is not available");
-        }
-        return sim;
+        return simulationFromRunner(runner_);
     }
 
     std::shared_ptr<griddyn::GriddynRunner> runner_;
@@ -265,8 +349,25 @@ NB_MODULE(_core, mod)
 
     nb::register_exception_translator(&translateGridDynException);
 
+    nb::class_<PyPowerFlowRoutine>(mod, "PowerFlowRoutine")
+        .def("run", &PyPowerFlowRoutine::run)
+        .def("__repr__", [](const PyPowerFlowRoutine&) { return "<griddyn.PowerFlowRoutine>"; });
+
+    nb::class_<PyTimeDomainRoutine>(mod, "TimeDomainRoutine")
+        .def("initialize", &PyTimeDomainRoutine::initialize)
+        .def("init", &PyTimeDomainRoutine::initialize)
+        .def("run", &PyTimeDomainRoutine::run)
+        .def("run_until", &PyTimeDomainRoutine::runUntil, "time"_a)
+        .def("run_to", &PyTimeDomainRoutine::runUntil, "time"_a)
+        .def("step", &PyTimeDomainRoutine::step, "time"_a)
+        .def_prop_ro("time", &PyTimeDomainRoutine::time)
+        .def("__repr__", [](const PyTimeDomainRoutine& routine) {
+            return "<griddyn.TimeDomainRoutine time=" + std::to_string(routine.time()) + ">";
+        });
+
     nb::class_<PySimulation>(mod, "Simulation")
         .def(nb::init<std::string, std::string>(), "name"_a = "", "type"_a = "default")
+        .def_static("from_file", &PySimulation::fromFile, "path"_a, "format"_a = "", "name"_a = "")
         .def("load", &PySimulation::load, "path"_a, "format"_a = "")
         .def("load_file", &PySimulation::load, "path"_a, "format"_a = "")
         .def("initialize", &PySimulation::initialize)
@@ -280,6 +381,10 @@ NB_MODULE(_core, mod)
         .def("reset", &PySimulation::reset)
         .def_prop_rw("name", &PySimulation::name, &PySimulation::setName)
         .def_prop_ro("time", &PySimulation::time)
+        .def_prop_ro("PFlow", &PySimulation::powerFlowRoutine)
+        .def_prop_ro("pflow", &PySimulation::powerFlowRoutine)
+        .def_prop_ro("TDS", &PySimulation::timeDomainRoutine)
+        .def_prop_ro("tds", &PySimulation::timeDomainRoutine)
         .def("__repr__", [](const PySimulation& sim) {
             return "<griddyn.Simulation name='" + sim.name() +
                 "' time=" + std::to_string(sim.time()) + ">";

@@ -54,34 +54,28 @@ set(utilities_headers
 add_library(utilities STATIC ${utilities_sources} ${utilities_headers})
 set(SKIP_INSTALL_LIBRARIES ON)
 set(ZLIB_BUILD_MINIZIP OFF CACHE BOOL "Disable zlib contrib minizip in griddyn builds" FORCE)
+set(ZLIB_BUILD_SHARED OFF CACHE BOOL "Disable shared zlib in griddyn builds" FORCE)
+set(ZLIB_BUILD_STATIC ON CACHE BOOL "Enable static zlib in griddyn builds" FORCE)
+set(ZLIB_INSTALL OFF CACHE BOOL "Disable zlib install rules for griddyn builds" FORCE)
 add_subdirectory(
     ${PROJECT_SOURCE_DIR}/ThirdParty/Zlib/zlib-1.3.2 ${PROJECT_BINARY_DIR}/Zlib EXCLUDE_FROM_ALL
 )
 
-set(griddyn_minizip_use_bundled_zlib OFF)
-if(WIN32 OR CMAKE_C_FLAGS MATCHES "(^| )-fsanitize=" OR CMAKE_CXX_FLAGS MATCHES "(^| )-fsanitize=")
-    set(griddyn_minizip_use_bundled_zlib ON)
-endif()
+set(griddyn_minizip_use_bundled_zlib ON)
 
 if(griddyn_minizip_use_bundled_zlib)
     set(GRIDDYN_MINIZIP_USE_EXISTING_ZLIB_TARGETS ON)
-    set(MINIZIP_BUILD_SHARED OFF
-        CACHE BOOL "Disable shared Minizip when building from bundled zlib" FORCE
-    )
-    set(MINIZIP_BUILD_STATIC ON CACHE BOOL "Enable static Minizip when building from bundled zlib"
-                                      FORCE
-    )
-    set(MINIZIP_BUILD_TESTING OFF
-        CACHE BOOL "Disable Minizip tests when building from bundled zlib" FORCE
-    )
-    set(MINIZIP_INSTALL OFF CACHE BOOL "Disable Minizip install rules for bundled builds" FORCE)
+    set(MINIZIP_BUILD_SHARED OFF CACHE BOOL "Disable shared Minizip in griddyn builds" FORCE)
+    set(MINIZIP_BUILD_STATIC ON CACHE BOOL "Enable static Minizip in griddyn builds" FORCE)
+    set(MINIZIP_BUILD_TESTING OFF CACHE BOOL "Disable Minizip tests in griddyn builds" FORCE)
+    set(MINIZIP_INSTALL OFF CACHE BOOL "Disable Minizip install rules for griddyn builds" FORCE)
 endif()
 
 add_subdirectory(
     ${PROJECT_SOURCE_DIR}/ThirdParty/Minizip ${PROJECT_BINARY_DIR}/Minizip EXCLUDE_FROM_ALL
 )
 
-if(griddyn_minizip_use_bundled_zlib AND TARGET ZLIB::ZLIBSTATIC)
+if(TARGET ZLIB::ZLIBSTATIC)
     set(GRIDDYN_ZLIB_TARGET ZLIB::ZLIBSTATIC)
 elseif(TARGET ZLIB::ZLIB)
     set(GRIDDYN_ZLIB_TARGET ZLIB::ZLIB)
@@ -91,15 +85,17 @@ else()
     set(GRIDDYN_ZLIB_TARGET zlib::zlib)
 endif()
 
-if(TARGET MINIZIP::minizip)
+if(TARGET MINIZIP::minizipstatic)
+    set(GRIDDYN_MINIZIP_TARGET MINIZIP::minizipstatic)
+elseif(TARGET MINIZIP::minizip)
     set(GRIDDYN_MINIZIP_TARGET MINIZIP::minizip)
 elseif(TARGET MINIZIP::minizipstatic)
     set(GRIDDYN_MINIZIP_TARGET MINIZIP::minizipstatic)
 else()
-    if(TARGET minizip::minizip)
-        set(GRIDDYN_MINIZIP_TARGET minizip::minizip)
-    else()
+    if(TARGET minizip::minizipstatic)
         set(GRIDDYN_MINIZIP_TARGET minizip::minizipstatic)
+    else()
+        set(GRIDDYN_MINIZIP_TARGET minizip::minizip)
     endif()
 endif()
 

@@ -8,8 +8,8 @@
 #include "fileInput/fileInput.h"
 #include "griddyn/Generator.h"
 #include "griddyn/GridArea.h"
-#include "griddyn/GridDynSimulation.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/GridDynSimulation.h"
 #include "griddyn/Link.h"
 #include "griddyn/Load.h"
 #include "griddyn/Relay.h"
@@ -219,7 +219,9 @@ nb::object dataframeFromDicts(const nb::list& rows)
     return pandas.attr("DataFrame")(rows);
 }
 
-void setObjectParameter(griddyn::CoreObject* object, const std::string& field, const nb::object& value)
+void setObjectParameter(griddyn::CoreObject* object,
+                        const std::string& field,
+                        const nb::object& value)
 {
     if (object == nullptr) {
         throw InvalidObjectError("object is not available");
@@ -246,8 +248,7 @@ class PyModel {
   public:
     PyModel(std::shared_ptr<griddyn::GriddynRunner> runner,
             griddyn::CoreObject* object,
-            std::string type):
-        runner_(std::move(runner)), object_(object), type_(std::move(type))
+            std::string type): runner_(std::move(runner)), object_(object), type_(std::move(type))
     {
     }
 
@@ -263,7 +264,10 @@ class PyModel {
         return *this;
     }
     std::string getString(const std::string& field) const { return object_->getString(field); }
-    nb::object find(const std::string& name) const { return modelFromObject(runner_, object_->find(name)); }
+    nb::object find(const std::string& name) const
+    {
+        return modelFromObject(runner_, object_->find(name));
+    }
 
     nb::dict asDict() const
     {
@@ -307,7 +311,10 @@ class PyBus {
         return *this;
     }
     std::string getString(const std::string& field) const { return bus_->getString(field); }
-    nb::object find(const std::string& name) const { return modelFromObject(runner_, bus_->find(name)); }
+    nb::object find(const std::string& name) const
+    {
+        return modelFromObject(runner_, bus_->find(name));
+    }
 
     nb::dict asDict() const
     {
@@ -387,8 +394,7 @@ class PyLoad {
   public:
     PyLoad(std::shared_ptr<griddyn::GriddynRunner> runner,
            griddyn::GridBus* bus,
-           griddyn::GridLoad* load):
-        runner_(std::move(runner)), bus_(bus), load_(load)
+           griddyn::GridLoad* load): runner_(std::move(runner)), bus_(bus), load_(load)
     {
     }
 
@@ -657,7 +663,8 @@ nb::list namesFromItems(const std::vector<Item>& items)
 }
 
 template<class Item>
-std::size_t findItemByName(const std::vector<Item>& items, const std::string& name, const char* typeName)
+std::size_t
+    findItemByName(const std::vector<Item>& items, const std::string& name, const char* typeName)
 {
     for (std::size_t index = 0; index < items.size(); ++index) {
         if (objectName(items[index]) == name) {
@@ -667,8 +674,9 @@ std::size_t findItemByName(const std::vector<Item>& items, const std::string& na
     throw nb::key_error((std::string(typeName) + " not found: " + name).c_str());
 }
 
-std::size_t findSecondaryByName(
-    const std::vector<SecondaryWithBus>& items, const std::string& name, const char* typeName)
+std::size_t findSecondaryByName(const std::vector<SecondaryWithBus>& items,
+                                const std::string& name,
+                                const char* typeName)
 {
     for (std::size_t index = 0; index < items.size(); ++index) {
         if (objectName(items[index].object) == name) {
@@ -1406,26 +1414,27 @@ NB_MODULE(_core, mod)
                 " a=" + std::to_string(bus.angle()) + ">";
         });
 
-    auto generatorClass = nb::class_<PyGenerator>(mod, "Generator")
-        .def_prop_ro("name", &PyGenerator::name)
-        .def_prop_ro("type", &PyGenerator::type)
-        .def_prop_ro("uid", &PyGenerator::userId)
-        .def_prop_ro("bus", &PyGenerator::bus)
-        .def_prop_ro("p", &PyGenerator::p)
-        .def_prop_ro("q", &PyGenerator::q)
-        .def_prop_ro("pset", &PyGenerator::pset)
-        .def_prop_ro("pmax", &PyGenerator::pmax)
-        .def_prop_ro("pmin", &PyGenerator::pmin)
-        .def_prop_ro("qmax", &PyGenerator::qmax)
-        .def_prop_ro("qmin", &PyGenerator::qmin)
-        .def("get", &PyGenerator::get, "field"_a)
-        .def("set", &PyGenerator::set, "field"_a, "value"_a, nb::rv_policy::reference_internal)
-        .def("get_string", &PyGenerator::getString, "field"_a)
-        .def("as_dict", &PyGenerator::asDict)
-        .def("__repr__", [](const PyGenerator& gen) {
-            return "<griddyn.Generator name='" + gen.name() + "' bus='" + gen.bus() +
-                "' p=" + std::to_string(gen.p()) + " q=" + std::to_string(gen.q()) + ">";
-        });
+    auto generatorClass =
+        nb::class_<PyGenerator>(mod, "Generator")
+            .def_prop_ro("name", &PyGenerator::name)
+            .def_prop_ro("type", &PyGenerator::type)
+            .def_prop_ro("uid", &PyGenerator::userId)
+            .def_prop_ro("bus", &PyGenerator::bus)
+            .def_prop_ro("p", &PyGenerator::p)
+            .def_prop_ro("q", &PyGenerator::q)
+            .def_prop_ro("pset", &PyGenerator::pset)
+            .def_prop_ro("pmax", &PyGenerator::pmax)
+            .def_prop_ro("pmin", &PyGenerator::pmin)
+            .def_prop_ro("qmax", &PyGenerator::qmax)
+            .def_prop_ro("qmin", &PyGenerator::qmin)
+            .def("get", &PyGenerator::get, "field"_a)
+            .def("set", &PyGenerator::set, "field"_a, "value"_a, nb::rv_policy::reference_internal)
+            .def("get_string", &PyGenerator::getString, "field"_a)
+            .def("as_dict", &PyGenerator::asDict)
+            .def("__repr__", [](const PyGenerator& gen) {
+                return "<griddyn.Generator name='" + gen.name() + "' bus='" + gen.bus() +
+                    "' p=" + std::to_string(gen.p()) + " q=" + std::to_string(gen.q()) + ">";
+            });
     mod.attr("Gen") = generatorClass;
 
     nb::class_<PyLoad>(mod, "Load")
@@ -1461,8 +1470,8 @@ NB_MODULE(_core, mod)
         .def("get_string", &PyLink::getString, "field"_a)
         .def("as_dict", &PyLink::asDict)
         .def("__repr__", [](const PyLink& link) {
-            return "<griddyn.Link name='" + link.name() + "' bus1='" + link.bus1() +
-                "' bus2='" + link.bus2() + "'>";
+            return "<griddyn.Link name='" + link.name() + "' bus1='" + link.bus1() + "' bus2='" +
+                link.bus2() + "'>";
         });
 
     nb::class_<PyArea>(mod, "Area")
@@ -1490,9 +1499,9 @@ NB_MODULE(_core, mod)
         .def("find", &PyArea::find, "name"_a)
         .def("as_dict", &PyArea::asDict)
         .def("__repr__", [](const PyArea& area) {
-            return "<griddyn.Area name='" + area.name() + "' buses=" +
-                std::to_string(area.busCount()) + " links=" + std::to_string(area.linkCount()) +
-                ">";
+            return "<griddyn.Area name='" + area.name() +
+                "' buses=" + std::to_string(area.busCount()) +
+                " links=" + std::to_string(area.linkCount()) + ">";
         });
 
     nb::class_<PyRelay>(mod, "Relay")
@@ -1504,9 +1513,8 @@ NB_MODULE(_core, mod)
         .def("set", &PyRelay::set, "field"_a, "value"_a, nb::rv_policy::reference_internal)
         .def("get_string", &PyRelay::getString, "field"_a)
         .def("as_dict", &PyRelay::asDict)
-        .def("__repr__", [](const PyRelay& relay) {
-            return "<griddyn.Relay name='" + relay.name() + "'>";
-        });
+        .def("__repr__",
+             [](const PyRelay& relay) { return "<griddyn.Relay name='" + relay.name() + "'>"; });
 
     nb::class_<PySensor>(mod, "Sensor")
         .def_prop_ro("name", &PySensor::name)
@@ -1534,17 +1542,18 @@ NB_MODULE(_core, mod)
             return "<griddyn.BusCollection size=" + std::to_string(buses.size()) + ">";
         });
 
-    auto generatorCollectionClass = nb::class_<PyGeneratorCollection>(mod, "GeneratorCollection")
-        .def("__len__", &PyGeneratorCollection::size)
-        .def("__getitem__", &PyGeneratorCollection::getItem, "key"_a)
-        .def_prop_ro("names", &PyGeneratorCollection::names)
-        .def("as_dicts", &PyGeneratorCollection::asDicts)
-        .def("to_list", &PyGeneratorCollection::asDicts)
-        .def("as_dataframe", &PyGeneratorCollection::asDataFrame)
-        .def("to_dataframe", &PyGeneratorCollection::asDataFrame)
-        .def("__repr__", [](const PyGeneratorCollection& gens) {
-            return "<griddyn.GeneratorCollection size=" + std::to_string(gens.size()) + ">";
-        });
+    auto generatorCollectionClass =
+        nb::class_<PyGeneratorCollection>(mod, "GeneratorCollection")
+            .def("__len__", &PyGeneratorCollection::size)
+            .def("__getitem__", &PyGeneratorCollection::getItem, "key"_a)
+            .def_prop_ro("names", &PyGeneratorCollection::names)
+            .def("as_dicts", &PyGeneratorCollection::asDicts)
+            .def("to_list", &PyGeneratorCollection::asDicts)
+            .def("as_dataframe", &PyGeneratorCollection::asDataFrame)
+            .def("to_dataframe", &PyGeneratorCollection::asDataFrame)
+            .def("__repr__", [](const PyGeneratorCollection& gens) {
+                return "<griddyn.GeneratorCollection size=" + std::to_string(gens.size()) + ">";
+            });
     mod.attr("GenCollection") = generatorCollectionClass;
 
     nb::class_<PyLoadCollection>(mod, "LoadCollection")

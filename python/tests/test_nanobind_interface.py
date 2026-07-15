@@ -123,9 +123,7 @@ def test_powerflow_collections_expose_results():
     assert sim.links["bus1_to_bus2"].bus1 == "bus1"
     assert sim.links[0].bus2 == "bus2"
     assert math.isfinite(sim.Link[0].p1)
-    assert {"name", "bus1", "bus2", "p1", "q1", "p2", "q2", "loss"} <= set(
-        sim.Link.as_dicts()[0]
-    )
+    assert {"name", "bus1", "bus2", "p1", "q1", "p2", "q2", "loss"} <= set(sim.Link.as_dicts()[0])
 
 
 def test_model_collections_are_available():

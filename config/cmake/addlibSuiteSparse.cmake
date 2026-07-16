@@ -54,9 +54,10 @@ else()
     set(klu_primary_target klu)
 endif()
 
-if(NOT ${PROJECT_NAME}_USE_SUITESPARSE_STATIC_LIBRARY)
-    set_target_properties(${klu_primary_target} PROPERTIES PUBLIC_HEADER "")
-    #[[ if(NOT CMAKE_VERSION VERSION_LESS "3.13")
+if(${PROJECT_NAME}_BUILD_CXX_SHARED_LIBRARY)
+    if(NOT ${PROJECT_NAME}_USE_SUITESPARSE_STATIC_LIBRARY)
+        set_target_properties(${klu_primary_target} PROPERTIES PUBLIC_HEADER "")
+        #[[ if(NOT CMAKE_VERSION VERSION_LESS "3.13")
             install(
                 TARGETS ${klu_primary_target}
                 RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -95,4 +96,5 @@ if(NOT ${PROJECT_NAME}_USE_SUITESPARSE_STATIC_LIBRARY)
             )
         endif()
 ]]
+    endif()
 endif()

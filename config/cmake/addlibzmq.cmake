@@ -117,27 +117,29 @@ else()
     set(zmq_target_output "libzmq")
 endif()
 
-if(NOT ${PROJECT_NAME}_USE_ZMQ_STATIC_LIBRARY AND NOT ${PROJECT_NAME}_SKIP_ZMQ_INSTALL)
-    set_target_properties(${zmq_target_output} PROPERTIES PUBLIC_HEADER "")
-    install(
-        TARGETS ${zmq_target_output}
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        FRAMEWORK DESTINATION "Library/Frameworks"
-    )
-    if(MSVC AND NOT EMBEDDED_DEBUG_INFO AND NOT ${PROJECT_NAME}_BINARY_ONLY_INSTALL)
+if(${PROJECT_NAME}_BUILD_CXX_SHARED_LIBRARY)
+    if(NOT ${PROJECT_NAME}_USE_ZMQ_STATIC_LIBRARY AND NOT ${PROJECT_NAME}_SKIP_ZMQ_INSTALL)
+        set_target_properties(${zmq_target_output} PROPERTIES PUBLIC_HEADER "")
         install(
-            FILES $<TARGET_PDB_FILE:${zmq_target_output}>
-            DESTINATION ${CMAKE_INSTALL_BINDIR}
-            OPTIONAL
-            COMPONENT libs
+            TARGETS ${zmq_target_output}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            FRAMEWORK DESTINATION "Library/Frameworks"
         )
-    endif()
-    if(MSVC AND NOT ${PROJECT_NAME}_BINARY_ONLY_INSTALL)
-        install(FILES $<TARGET_LINKER_FILE:${zmq_target_output}>
-                DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT libs
-        )
-    endif()
+        if(MSVC AND NOT EMBEDDED_DEBUG_INFO AND NOT ${PROJECT_NAME}_BINARY_ONLY_INSTALL)
+            install(
+                FILES $<TARGET_PDB_FILE:${zmq_target_output}>
+                DESTINATION ${CMAKE_INSTALL_BINDIR}
+                OPTIONAL
+                COMPONENT libs
+            )
+        endif()
+        if(MSVC AND NOT ${PROJECT_NAME}_BINARY_ONLY_INSTALL)
+            install(FILES $<TARGET_LINKER_FILE:${zmq_target_output}>
+                    DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT libs
+            )
+        endif()
 
+    endif()
 endif()

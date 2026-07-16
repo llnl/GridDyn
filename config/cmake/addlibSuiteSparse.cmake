@@ -54,8 +54,7 @@ else()
     set(klu_primary_target klu)
 endif()
 
-if(${PROJECT_NAME}_BUILD_CXX_SHARED_LIB OR NOT ${PROJECT_NAME}_DISABLE_C_SHARED_LIB)
-
+if(${PROJECT_NAME}_BUILD_CXX_SHARED_LIBRARY)
     if(NOT ${PROJECT_NAME}_USE_SUITESPARSE_STATIC_LIBRARY)
         set_target_properties(${klu_primary_target} PROPERTIES PUBLIC_HEADER "")
         #[[ if(NOT CMAKE_VERSION VERSION_LESS "3.13")
@@ -98,5 +97,4 @@ if(${PROJECT_NAME}_BUILD_CXX_SHARED_LIB OR NOT ${PROJECT_NAME}_DISABLE_C_SHARED_
         endif()
 ]]
     endif()
-
 endif()

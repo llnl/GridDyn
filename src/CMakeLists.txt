@@ -95,13 +95,6 @@ if(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY)
 endif(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY)
 
 # ------------------------------------------------------------
-# Enable compilation of the griddyn shared library?
-# ------------------------------------------------------------
-if(GRIDDYN_BUILD_C_SHARED_LIBRARY)
-    add_subdirectory(griddyn_shared)
-endif(GRIDDYN_BUILD_C_SHARED_LIBRARY)
-
-# ------------------------------------------------------------
 # Generate libraryLoader.cpp
 #
 # Do this last, it depends on parameters set in other folder CMakeLists

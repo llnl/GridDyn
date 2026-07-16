@@ -6,10 +6,10 @@ simulation API. It is intended to stay current as the work progresses.
 
 ## Summary
 
-GridDyn currently exposes Python through SWIG wrappers over the C API in
-`interfaces/python`. The new direction is to build a Pythonic interface with
+GridDyn previously exposed Python through SWIG wrappers over the C API in
+`interfaces/python`. The replacement is a Pythonic interface built with
 nanobind that calls GridDyn C++ directly. The C API and SWIG-generated wrappers
-should not be part of the new Python implementation.
+are no longer part of the maintained Python implementation.
 
 The first milestone is deliberately narrow: expose the simulation object and the
 minimum surface needed to load, initialize, solve, and run a GridDyn model from
@@ -41,8 +41,8 @@ access can follow after the simulation workflow is stable.
 
 ## Current State
 
-The existing Python interface is generated from `interfaces/griddyn.i` and
-`interfaces/python/griddynPython.i`. It exposes the C API from
+The retired Python interface was generated from `interfaces/griddyn.i` and
+`interfaces/python/griddynPython.i`. It exposed the C API from
 `src/griddyn_shared/griddyn_export.h` and
 `src/griddyn_shared/griddyn_export_advanced.h`.
 
@@ -238,58 +238,26 @@ Use the `rtunits` Python package as the local model:
 - CMake-driven extension build
 - package-local compiled extension
 
-Likely CMake options:
+Python library CMake option:
 
 ```cmake
 GRIDDYN_BUILD_PYTHON_LIBRARY=ON
-GRIDDYN_BUILD_SWIG_INTERFACE=OFF
 ```
-
-The current `GRIDDYN_BUILD_PYTHON_INTERFACE` name is ambiguous because it points
-to the SWIG interface today. As the new work lands, the CMake option names
-should make the distinction clear:
-
-- `GRIDDYN_BUILD_PYTHON_LIBRARY` for the nanobind package
-- `GRIDDYN_BUILD_SWIG_INTERFACES` or similar for the legacy SWIG bindings
 
 The nanobind target should link to internal C++ targets needed by
 `GriddynRunner` and `GridDynSimulation`, not to `griddyn_shared_lib`.
 
-## SWIG Deprecation And Removal
+## SWIG Removal
 
-There are currently no known users relying on the SWIG bindings. That means
-SWIG can likely be removed sooner rather than carried through a long
-compatibility period.
+The SWIG-generated language interfaces have been removed. Do not add new SWIG
+typemaps, generated files, or SWIG-based language interfaces. If Matlab or
+another language needs support later, prefer a command-line, file-based, or
+purpose-built interface rather than reviving SWIG.
 
-Proposed policy:
+## C API Removal
 
-1. Do not add new SWIG typemaps, generated files, or SWIG-based language
-   interfaces.
-2. Add deprecation messaging to the SWIG CMake path once the nanobind
-   `Simulation` API can load and run a model.
-3. Disable SWIG Python builds by default as soon as the nanobind package covers
-   the basic simulation workflow.
-4. Remove SWIG Python sources after a short transition period if no users
-   appear.
-5. Remove Matlab/Octave/Java SWIG paths unless a concrete user need appears.
-6. If Matlab support is needed later, prefer a command-line, file-based, or
-   purpose-built interface rather than reviving SWIG.
-
-## C API Removal Direction
-
-The nanobind migration should not depend on the C API. Once the Python package
-and any other required workflows no longer need it, the C API can be retired.
-
-Removal should be a separate cleanup phase because the C API currently packages
-several useful concepts:
-
-- opaque object handles
-- centralized exception-to-error-code translation
-- shared-library export boundaries
-- raw-array math and solver access
-
-Those concepts should either disappear from the public surface or be replaced
-by clearer C++/Python mechanisms before the C API is deleted.
+The nanobind migration does not depend on the C API. The old C shared-library
+target and its export headers have been removed from the maintained build.
 
 ## Future API Phases
 
@@ -367,7 +335,7 @@ publish to TestPyPI or PyPI until the Python API is more complete.
 
 ## Working Checklist
 
-- [ ] Choose final package location.
+- [x] Choose final package location.
 - [x] Add `pyproject.toml` for scikit-build-core.
 - [x] Add nanobind CMake discovery and extension target.
 - [x] Add `griddyn` Python package directory.
@@ -378,6 +346,5 @@ publish to TestPyPI or PyPI until the Python API is more complete.
 - [x] Add CI wheel build and smoke test without package-index publishing.
 - [ ] Add load and powerflow smoke test.
 - [ ] Add documentation for the first Python API.
-- [ ] Add SWIG deprecation messaging.
-- [ ] Disable SWIG Python by default once the nanobind smoke tests pass.
-- [ ] Decide whether to remove Matlab/Octave/Java SWIG build paths.
+- [x] Remove SWIG interface sources and CMake build paths.
+- [x] Remove the C shared-library target.

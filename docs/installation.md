@@ -48,11 +48,8 @@ GridDyn uses C++11 extensively and will make use of some C++14 features in the n
 - **ENABLE_TESTS** enable building of the testSuites
 - **ENABLE_MULTITHREADING** not used at preset but will eventually enable threaded execution in some models
 - **ENABLE_EXTRA_COMPILER_WARNINGS** enable more compiler warnings (full list in config/cmake/compiler_flags.cmake)
-- **BUILD_PYTHON_INTERFACE** enable the python swig interface
-- **BUILD_MATLAB_INTERFACE** enable the matlab swig interface
-- **BUILD_OCTAVE_INTERFACE** enable the octave swig interface
-- **BUILD_JAVA_INTERFACE** enable the java swig interface
-- **BUILD_CXX_SHARED_LIB** build `libgriddyn_shared_lib.so`, the c++ interface
+- **GRIDDYN_BUILD_PYTHON_LIBRARY** build the nanobind Python package
+- **GRIDDYN_BUILD_CXX_SHARED_LIBRARY** build the GridDyn C++ shared library
 - **ENABLE_CODE_COVERAGE_TEST** enable code coverage tools
 - **ENABLE_PLUGINS** build libpluginLibrary
 - **ENABLE_EXTRA_SOLVERS** enable additional solvers (including braid, paradae)

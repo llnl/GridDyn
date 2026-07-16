@@ -173,15 +173,7 @@ option(GRIDDYN_ENABLE_FMI_EXPORT "Enable construction of a binary fmi shared lib
        OFF
 )
 
-option(GRIDDYN_BUILD_PYTHON_INTERFACE "Build Python extension" OFF)
-
 option(GRIDDYN_BUILD_PYTHON_LIBRARY "Build nanobind Python library" OFF)
-
-option(GRIDDYN_BUILD_MATLAB_INTERFACE "Build Matlab Extension" OFF)
-
-option(GRIDDYN_BUILD_OCTAVE_INTERFACE "Build Octave extension (very experimental)" OFF)
-
-option(GRIDDYN_BUILD_JAVA_INTERFACE "Build Java extension" OFF)
 
 option(GRIDDYN_ENABLE_CODE_COVERAGE_TEST "Build a target for testing code coverage" OFF)
 
@@ -266,40 +258,15 @@ if(NOT DEFINED BUILD_SHARED_LIBS)
 endif()
 
 if(BUILD_SHARED_LIBS)
-    set(GRIDDYN_BUILD_C_SHARED_LIBRARY ON)
     set(GRIDDYN_BUILD_CXX_SHARED_LIBRARY ON)
     set(old_build_shared ON)
     # we need this to prevent submodules from building shared libs
     set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
 else()
-    option(GRIDDYN_BUILD_C_SHARED_LIBRARY OFF
-           "Enable construction of GridDyn binary C based shared library"
-    )
     option(GRIDDYN_BUILD_CXX_SHARED_LIBRARY OFF "Build the GridDyn C++ shared library")
 endif()
 
-if(GRIDDYN_BUILD_PYTHON_INTERFACE
-   OR GRIDDYN_BUILD_MATLAB_INTERFACE
-   OR GRIDDYN_BUILD_JAVA_INTERFACE
-   OR GRIDDYN_BUILD_OCTAVE_INTERFACE
-)
-    set(INTERFACE_BUILD ON)
-    hide_variable(BUILD_GRIDDYN_C_SHARED_LIBRARY)
-    show_variable(
-        DISABLE_SWIG BOOL "Disable the use of swig to generate interface code and use repo code"
-        OFF
-    )
-else()
-    set(INTERFACE_BUILD OFF)
-    hide_variable(DISABLE_SWIG)
-endif()
-
-if(INTERFACE_BUILD
-   OR GRIDDYN_BUILD_CXX_SHARED_LIBRARY
-   OR GRIDDYN_BUILD_C_SHARED_LIBRARY
-   OR GRIDDYN_ENABLE_FMI_EXPORT
-   OR GRIDDYN_BUILD_PYTHON_LIBRARY
-)
+if(GRIDDYN_BUILD_CXX_SHARED_LIBRARY OR GRIDDYN_ENABLE_FMI_EXPORT OR GRIDDYN_BUILD_PYTHON_LIBRARY)
     set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 endif()
 
@@ -735,9 +702,6 @@ endif(GRIDDYN_ENABLE_CLANG_TOOLS)
 if(GRIDDYN_BUILD_TESTS AND BUILD_TESTING)
     # message(STATUS "otcf:${optional_component_test_files}")
     add_subdirectory(test)
-    if(GRIDDYN_BUILD_C_SHARED_LIBRARY)
-        add_subdirectory(test/testSharedLibrary)
-    endif()
     enable_testing()
     # add_test(NAME gridDynTest COMMAND testCore)
 endif()
@@ -783,20 +747,6 @@ if(GRIDDYN_BUILD_TESTS AND BUILD_TESTING)
     )
     set_property(TEST Example179BusDynamicTest PROPERTY LABELS Quick Continuous Nightly)
 
-    if(GRIDDYN_BUILD_C_SHARED_LIBRARY)
-        add_test(NAME testSharedLibrary COMMAND shared_library_tests)
-        set_property(TEST testSharedLibrary PROPERTY LABELS Nightly Release)
-
-        add_test(NAME testSharedLibraryQuick COMMAND shared_library_tests --run_test=@quick)
-        set_property(TEST testSharedLibraryQuick PROPERTY LABELS Quick Continuous Valgrind)
-    endif()
-endif()
-
-# ------------------------------------------------------------
-# swig interface builds
-# ------------------------------------------------------------
-if(INTERFACE_BUILD)
-    add_subdirectory(interfaces)
 endif()
 
 if(GRIDDYN_BUILD_PYTHON_LIBRARY)

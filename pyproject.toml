@@ -26,7 +26,6 @@ install.components = ["python"]
 cmake.version = ">=3.26.1"
 cmake.args = [
     "-DGRIDDYN_BUILD_PYTHON_LIBRARY=ON",
-    "-DGRIDDYN_BUILD_PYTHON_INTERFACE=OFF",
     "-DGRIDDYN_BUILD_TESTS=OFF",
     "-DGRIDDYN_ENABLE_FMI=OFF",
     "-DGRIDDYN_ENABLE_HELICS_EXECUTABLE=OFF",

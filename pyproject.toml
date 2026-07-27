@@ -4,25 +4,57 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "griddyn"
-version = "0.0.0"
+version = "0.11.1"
 description = "Python bindings for GridDyn"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.13"
 license = "BSD-3-Clause"
 license-files = ["LICENSE", "NOTICE"]
 authors = [
-    { name = "GridDyn contributors" },
+    { name = "Philip Top", email = "top1@llnl.gov" },
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
     "Topic :: Scientific/Engineering",
+    "Development Status :: 4 - Beta",
+]
+keywords = [
+    "power systems",
+    "simulation",
+    "grid dynamics",
+    "power flow",
+    "co-simulation",
+    "science",
+    "python",
 ]
 
+[project.urls]
+Homepage = "https://github.com/LLNL/GridDyn"
+Repository = "https://github.com/LLNL/GridDyn"
+Issues = "https://github.com/LLNL/GridDyn/issues"
+Changelog = "https://github.com/LLNL/GridDyn/blob/main/CHANGELOG.md"
+
+[project.optional-dependencies]
+test = ["pytest"]
+
 [tool.scikit-build]
+# Protect the configuration against future changes in scikit-build-core
 minimum-version = "build-system.requires"
+
+# Setuptools-style build caching in a local directory
 build-dir = "build/{wheel_tag}"
+
+# The build targets to use when building the project. Empty builds the default target.
 build.targets = ["griddyn_python_core"]
+
+# The components to install. If empty, all default components are installed.
 install.components = ["python"]
+
+# Build stable ABI wheels for CPython 3.13+
+wheel.py-api = "cp313"
+
 cmake.version = ">=3.26.1"
 cmake.args = [
     "-DGRIDDYN_BUILD_PYTHON_LIBRARY=ON",
@@ -30,3 +62,16 @@ cmake.args = [
     "-DGRIDDYN_ENABLE_FMI=OFF",
     "-DGRIDDYN_ENABLE_HELICS_EXECUTABLE=OFF",
 ]
+
+[tool.cibuildwheel]
+# Necessary to see build output from the actual compilation
+build-verbosity = 1
+skip = "pp311-macosx_arm64"
+
+# Run pytest to ensure that the package was correctly built
+test-command = "pytest {project}/python/tests"
+test-requires = "pytest"
+
+# Needed for C++23 support and consistency with rtunits macOS wheels.
+[tool.cibuildwheel.macos.environment]
+MACOSX_DEPLOYMENT_TARGET = "11.0"

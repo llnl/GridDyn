@@ -1,5 +1,5 @@
 find_package(
-    Python 3.10 REQUIRED COMPONENTS Interpreter Development.Module
+    Python 3.13 REQUIRED COMPONENTS Interpreter Development.Module
     OPTIONAL_COMPONENTS Development.SABIModule
 )
 
@@ -18,7 +18,7 @@ endif()
 
 find_package(nanobind CONFIG REQUIRED)
 
-nanobind_add_module(griddyn_python_core NB_STATIC griddyn_python.cpp)
+nanobind_add_module(griddyn_python_core NB_STATIC STABLE_ABI griddyn_python.cpp)
 
 set(griddyn_python_warning_options
     $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang>:-Wno-strict-aliasing -Wno-shadow>

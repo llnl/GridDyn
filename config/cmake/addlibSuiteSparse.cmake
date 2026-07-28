@@ -21,6 +21,9 @@ else()
     set(suitesparse_shared_build ON)
 endif()
 
+set(BUILD_SHARED_LIBS ${suitesparse_shared_build} CACHE BOOL "" FORCE)
+set(BUILD_STATIC_LIBS ${suitesparse_static_build} CACHE BOOL "" FORCE)
+
 set(suitesparse_SOURCE_DIR "${PROJECT_SOURCE_DIR}/ThirdParty/suitesparse-cmake")
 set(suitesparse_BINARY_DIR "${PROJECT_BINARY_DIR}/ThirdParty/suitesparse-cmake")
 

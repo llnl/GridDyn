@@ -225,7 +225,6 @@ set(SUNDIALS_LIBRARIES
     sundials_sunlinsolspgmr_obj_static
     sundials_sunlinsolsptfqmr_static
     sundials_sunlinsolsptfqmr_obj_static
-    sundials_sunlinsolklu_obj_static
     sundials_sunmatrixband_static
     sundials_sunmatrixdense_static
     sundials_sunmatrixsparse_obj_static
@@ -278,7 +277,9 @@ if(TARGET sundials_nvecopenmp_static)
 endif()
 
 if(TARGET sundials_sunlinsolklu_static)
-    target_link_libraries(sundials_all INTERFACE sundials_sunlinsolklu_static)
+    target_link_libraries(
+        sundials_all INTERFACE sundials_sunlinsolklu_obj_static sundials_sunlinsolklu_static
+    )
 endif()
 
 if(MSVC AND TARGET sundials_cvode_static)

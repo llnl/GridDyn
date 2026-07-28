@@ -88,14 +88,14 @@ MACOSX_DEPLOYMENT_TARGET = "14.0"
 before-all = """
 set -eux
 if command -v yum >/dev/null 2>&1; then
-    yum install -y openblas-devel lapack-devel
+    yum install -y blas-devel lapack-devel
 elif command -v dnf >/dev/null 2>&1; then
-    dnf install -y openblas-devel lapack-devel
+    dnf install -y blas-devel lapack-devel
 elif command -v microdnf >/dev/null 2>&1; then
-    microdnf install -y openblas-devel lapack-devel
+    microdnf install -y blas-devel lapack-devel
 elif command -v apt-get >/dev/null 2>&1; then
     apt-get update
-    apt-get install -y libopenblas-dev liblapack-dev
+    apt-get install -y libblas-dev liblapack-dev
 fi
 """
 

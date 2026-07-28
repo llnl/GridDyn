@@ -119,11 +119,6 @@ jobs:
       env:
         BOOST_VERSION: "1.88.0"
       run: |
-        if [[ "${RUNNER_OS}" == "macOS" ]]; then
-          brew list openblas >/dev/null 2>&1 || brew install openblas
-          export OPENBLAS_PREFIX="$(brew --prefix openblas)"
-        fi
-
         python - <<'PY'
         import os
         import tarfile
@@ -153,14 +148,8 @@ jobs:
             f"BOOST_ROOT={cibw_boost_root} "
             f"BOOST_INSTALL_PATH={cibw_boost_root}"
         )
-        if os.environ["RUNNER_OS"] == "Linux":
-            cibw_environment += " CMAKE_ARGS=-DWITH_OPENBLAS=ON"
         if os.environ["RUNNER_OS"] == "macOS":
             cibw_environment += " MACOSX_DEPLOYMENT_TARGET=14.0"
-            cibw_environment += " CMAKE_ARGS=-DWITH_OPENBLAS=ON"
-            openblas_prefix = os.environ.get("OPENBLAS_PREFIX")
-            if openblas_prefix:
-                cibw_environment += f" CMAKE_PREFIX_PATH={openblas_prefix}"
 
         with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
             env.write(f"BOOST_ROOT={host_boost_root}\n")

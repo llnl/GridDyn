@@ -144,14 +144,17 @@ jobs:
         else:
             cibw_boost_root = host_boost_root
 
+        cibw_environment = (
+            f"BOOST_ROOT={cibw_boost_root} "
+            f"BOOST_INSTALL_PATH={cibw_boost_root}"
+        )
+        if os.environ["RUNNER_OS"] == "macOS":
+            cibw_environment += " MACOSX_DEPLOYMENT_TARGET=14.0"
+
         with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
             env.write(f"BOOST_ROOT={host_boost_root}\n")
             env.write(f"BOOST_INSTALL_PATH={host_boost_root}\n")
-            env.write(
-                "CIBW_ENVIRONMENT="
-                f"BOOST_ROOT={cibw_boost_root} "
-                f"BOOST_INSTALL_PATH={cibw_boost_root}\n"
-            )
+            env.write(f"CIBW_ENVIRONMENT={cibw_environment}\n")
         PY
     - uses: pypa/cibuildwheel@v3.4
 

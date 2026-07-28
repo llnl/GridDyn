@@ -153,8 +153,11 @@ jobs:
             f"BOOST_ROOT={cibw_boost_root} "
             f"BOOST_INSTALL_PATH={cibw_boost_root}"
         )
+        if os.environ["RUNNER_OS"] == "Linux":
+            cibw_environment += " CMAKE_ARGS=-DWITH_OPENBLAS=ON"
         if os.environ["RUNNER_OS"] == "macOS":
             cibw_environment += " MACOSX_DEPLOYMENT_TARGET=14.0"
+            cibw_environment += " CMAKE_ARGS=-DWITH_OPENBLAS=ON"
             openblas_prefix = os.environ.get("OPENBLAS_PREFIX")
             if openblas_prefix:
                 cibw_environment += f" CMAKE_PREFIX_PATH={openblas_prefix}"

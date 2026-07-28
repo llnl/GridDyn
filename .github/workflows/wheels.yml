@@ -1,0 +1,213 @@
+name: Wheels
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+     - main
+    tags:
+     - v*.*.*
+
+permissions:
+  contents: read
+
+jobs:
+  check_version:
+    name: Check Python version
+    runs-on: ubuntu-latest
+    outputs:
+      should_build: ${{ steps.version.outputs.should_build }}
+      version: ${{ steps.version.outputs.version }}
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+
+    - name: Check whether the Python package version changed
+      id: version
+      shell: bash
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        REF: ${{ github.ref }}
+        BEFORE_SHA: ${{ github.event.before }}
+      run: |
+        python - <<'PY'
+        import os
+        import subprocess
+        import tomllib
+
+        with open("pyproject.toml", "rb") as config:
+            current_version = tomllib.load(config)["project"]["version"]
+
+        should_build = False
+        previous_version = None
+        before_sha = os.environ.get("BEFORE_SHA", "")
+
+        if os.environ["EVENT_NAME"] == "workflow_dispatch":
+            should_build = True
+        elif os.environ["REF"].startswith("refs/tags/"):
+            should_build = True
+        elif os.environ["EVENT_NAME"] == "push" and os.environ["REF"] == "refs/heads/main":
+            if before_sha and set(before_sha) != {"0"}:
+                try:
+                    previous_pyproject = subprocess.check_output(
+                        ["git", "show", f"{before_sha}:pyproject.toml"],
+                        text=True,
+                    )
+                    previous_version = tomllib.loads(previous_pyproject)["project"]["version"]
+                    should_build = current_version != previous_version
+                except subprocess.CalledProcessError:
+                    should_build = True
+            else:
+                should_build = True
+
+        print(f"current version: {current_version}")
+        if previous_version is not None:
+            print(f"previous version: {previous_version}")
+        print(f"should build: {should_build}")
+
+        with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as output:
+            output.write(f"version={current_version}\n")
+            output.write(f"should_build={str(should_build).lower()}\n")
+        PY
+
+  build_sdist:
+    name: Build SDist
+    needs: check_version
+    if: needs.check_version.outputs.should_build == 'true'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        submodules: true
+
+    - name: Build SDist
+      run: pipx run build --sdist
+
+    - name: Check metadata
+      run: pipx run twine check dist/*
+
+    - uses: actions/upload-artifact@v7
+      with:
+        name: dist-sdist
+        path: dist/*.tar.gz
+
+
+  build_wheels:
+    name: Wheels on ${{ matrix.os }}
+    needs: check_version
+    if: needs.check_version.outputs.should_build == 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-14, windows-latest]
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        submodules: true
+
+    - uses: pypa/cibuildwheel@v3.4
+
+    - name: Verify clean directory
+      run: git diff --exit-code
+      shell: bash
+
+    - name: Upload wheels
+      uses: actions/upload-artifact@v7
+      with:
+        path: wheelhouse/*.whl
+        name: dist-${{ matrix.os }}
+
+  publish-to-testpypi:
+    name: Upload if release
+    needs: [check_version, build_wheels, build_sdist]
+    if: >-
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      needs.check_version.outputs.should_build == 'true'
+    runs-on: ubuntu-latest
+    #if: github.event_name == 'release' && github.event.action == 'published'
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/griddyn
+    permissions:
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
+    steps:
+    - uses: actions/setup-python@v6
+    - uses: actions/download-artifact@v8
+      with:
+        pattern: dist-*
+        merge-multiple: true
+        path: dist/
+
+    - uses: pypa/gh-action-pypi-publish@release/v1
+      with:
+        verbose: true
+        repository-url: https://test.pypi.org/legacy/
+  publish-to-pypi:
+    name: >-
+      Publish Python distribution to PyPI
+    if: startsWith(github.ref, 'refs/tags/')  # only publish to PyPI on tag pushes
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/griddyn
+    permissions:
+      id-token: write  # IMPORTANT: mandatory for trusted publishing
+
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v8
+      with:
+        pattern: dist-*
+        merge-multiple: true
+        path: dist/
+    - name: Publish distribution to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    name: >-
+      Sign the Python distribution with Sigstore
+      and upload them to GitHub Release
+    needs:
+    - publish-to-pypi
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write  # IMPORTANT: mandatory for making GitHub Releases
+      id-token: write  # IMPORTANT: mandatory for sigstore
+
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v8
+      with:
+        pattern: dist-*
+        merge-multiple: true
+        path: dist/
+    - name: Sign the dists with Sigstore
+      uses: sigstore/gh-action-sigstore-python@v3.3.0
+      with:
+        inputs: >-
+          ./dist/*.tar.gz
+          ./dist/*.whl
+    - name: Create GitHub Release
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: >-
+        gh release create
+        '${{ github.ref_name }}'
+        --repo '${{ github.repository }}'
+        --notes ""
+    - name: Upload artifact signatures to GitHub Release
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      # Upload to GitHub Release using the `gh` CLI.
+      # `dist/` contains the built packages, and the
+      # sigstore-produced signatures and certificates.
+      run: >-
+        gh release upload
+        '${{ github.ref_name }}' dist/**
+        --repo '${{ github.repository }}'

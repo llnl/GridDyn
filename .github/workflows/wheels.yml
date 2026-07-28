@@ -2,6 +2,7 @@ name: Wheels
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
     branches:
      - main
@@ -43,7 +44,7 @@ jobs:
         previous_version = None
         before_sha = os.environ.get("BEFORE_SHA", "")
 
-        if os.environ["EVENT_NAME"] == "workflow_dispatch":
+        if os.environ["EVENT_NAME"] in {"workflow_dispatch", "pull_request"}:
             should_build = True
         elif os.environ["REF"].startswith("refs/tags/"):
             should_build = True
@@ -107,6 +108,50 @@ jobs:
     - uses: actions/checkout@v6
       with:
         submodules: true
+
+    - uses: actions/setup-python@v6
+      with:
+        python-version: "3.13"
+
+    - name: Install Boost headers
+      shell: bash
+      env:
+        BOOST_VERSION: "1.88.0"
+      run: |
+        python - <<'PY'
+        import os
+        import tarfile
+        import urllib.request
+        from pathlib import Path
+
+        version = os.environ["BOOST_VERSION"]
+        archive_name = f"boost_{version.replace('.', '_')}.tar.gz"
+        boost_dir_name = archive_name.removesuffix(".tar.gz")
+        boost_root = Path(".boost") / boost_dir_name
+
+        if not boost_root.exists():
+            url = f"https://archives.boost.io/release/{version}/source/{archive_name}"
+            archive_path = Path(".boost") / archive_name
+            archive_path.parent.mkdir(exist_ok=True)
+            urllib.request.urlretrieve(url, archive_path)
+            with tarfile.open(archive_path, "r:gz") as archive:
+                archive.extractall(archive_path.parent)
+
+        host_boost_root = boost_root.resolve().as_posix()
+        if os.environ["RUNNER_OS"] == "Linux":
+            cibw_boost_root = f"/project/.boost/{boost_dir_name}"
+        else:
+            cibw_boost_root = host_boost_root
+
+        with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env:
+            env.write(f"BOOST_ROOT={host_boost_root}\n")
+            env.write(f"BOOST_INSTALL_PATH={host_boost_root}\n")
+            env.write(
+                "CIBW_ENVIRONMENT="
+                f"BOOST_ROOT={cibw_boost_root} "
+                f"BOOST_INSTALL_PATH={cibw_boost_root}\n"
+            )
+        PY
 
     - uses: pypa/cibuildwheel@v3.4
 

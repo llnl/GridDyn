@@ -2,6 +2,7 @@ name: Wheels
 
 on:
   workflow_dispatch:
+
   pull_request:
   push:
     branches:
@@ -152,7 +153,6 @@ jobs:
                 f"BOOST_INSTALL_PATH={cibw_boost_root}\n"
             )
         PY
-
     - uses: pypa/cibuildwheel@v3.4
 
     - name: Verify clean directory

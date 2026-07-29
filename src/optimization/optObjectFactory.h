@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "core/CoreOwningPtr.hpp"
 #include "gridOptObjects.h"
 #include <functional>
 #include <map>
@@ -139,7 +140,14 @@ class OptObjectFactory: public OptFactory {
 
   private:
     bool mUseBlock = false;
-    GridOptObjectHolder<Ntype, gdType>* mObjectHolder = nullptr;
+    CoreOwningPtr<GridOptObjectHolder<Ntype, gdType>> mObjectHolder;
+
+    void attachHolderToRoot(CoreObject* root)
+    {
+        if ((root != nullptr) && mObjectHolder && (mObjectHolder->getParent() != root)) {
+            root->add(mObjectHolder.get());
+        }
+    }
 
   public:
     OptObjectFactory(std::string_view component,
@@ -232,9 +240,26 @@ class OptObjectFactory: public OptFactory {
 
     virtual void prepObjects(count_t count, CoreObject* obj) override
     {
+        if ((count == 0) || (obj == nullptr)) {
+            mUseBlock = false;
+            return;
+        }
+
         auto root = obj->getRoot();
-        mObjectHolder = new GridOptObjectHolder<Ntype, gdType>(count);
-        root->add(mObjectHolder);
+        if (root == nullptr) {
+            mUseBlock = false;
+            mObjectHolder = nullptr;
+            return;
+        }
+
+        if (mObjectHolder && (mObjectHolder->remaining() >= count)) {
+            attachHolderToRoot(root);
+            mUseBlock = true;
+            return;
+        }
+
+        mObjectHolder = makeOwningPtr<GridOptObjectHolder<Ntype, gdType>>(count);
+        attachHolderToRoot(root);
         mUseBlock = true;
     }
     virtual count_t remainingPrepped() const override

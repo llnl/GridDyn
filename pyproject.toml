@@ -74,6 +74,7 @@ build-verbosity = 1
 skip = [
     "pp311-macosx_arm64",
     "*-win32",
+    "*-musllinux_*",
 ]
 
 # Run pytest to ensure that the package was correctly built

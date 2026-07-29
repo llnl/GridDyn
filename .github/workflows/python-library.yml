@@ -52,6 +52,7 @@ jobs:
             -DCMAKE_C_COMPILER=gcc-15
             -DCMAKE_CXX_COMPILER=g++-15
             -DCMAKE_BUILD_TYPE=Release
+            -DGRIDDYN_ENABLE_OPENMP=OFF
         run: python -m build --wheel
 
       - name: Install built wheel

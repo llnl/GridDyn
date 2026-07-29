@@ -9,7 +9,7 @@ If you would like to contribute to the HELICS project see [CONTRIBUTING](CONTRIB
 - [Steve Smith](https://github.com/smithsg84)
 - [Philip Top](https://github.com/phlptp)
 - [Denis Nadeau](https://github.com/dnadeau4)
-- [Cory McNeish]()
+- [Cory McNeish](<>)
 
 ## Used Libraries or Code
 

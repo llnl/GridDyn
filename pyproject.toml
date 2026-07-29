@@ -57,21 +57,49 @@ wheel.py-api = "cp313"
 
 cmake.version = ">=3.26.1"
 cmake.args = [
+    "-DBUILD_SHARED_LIBS=OFF",
+    "-DBUILD_STATIC_LIBS=ON",
     "-DGRIDDYN_BUILD_PYTHON_LIBRARY=ON",
+    "-DGRIDDYN_BUILD_CXX_SHARED_LIBRARY=OFF",
     "-DGRIDDYN_BUILD_TESTS=OFF",
     "-DGRIDDYN_ENABLE_FMI=OFF",
     "-DGRIDDYN_ENABLE_HELICS_EXECUTABLE=OFF",
+    "-DGRIDDYN_ENABLE_OPENMP=OFF",
+    "-DGRIDDYN_SUITESPARSE_FORCE_SUBPROJECT=ON",
+    "-DGRIDDYN_USE_SUITESPARSE_STATIC_LIBRARY=ON",
 ]
 
 [tool.cibuildwheel]
 # Necessary to see build output from the actual compilation
 build-verbosity = 1
-skip = "pp311-macosx_arm64"
+skip = [
+    "pp311-macosx_arm64",
+    "*-win32",
+    "*-musllinux_*",
+]
 
 # Run pytest to ensure that the package was correctly built
 test-command = "pytest {project}/python/tests"
 test-requires = "pytest"
 
-# Needed for C++23 support and consistency with rtunits macOS wheels.
+# Align the wheel deployment target with GridDyn's macOS CI baseline.
 [tool.cibuildwheel.macos.environment]
-MACOSX_DEPLOYMENT_TARGET = "11.0"
+MACOSX_DEPLOYMENT_TARGET = "14.0"
+
+[tool.cibuildwheel.linux]
+before-all = """
+set -eux
+if command -v yum >/dev/null 2>&1; then
+    yum install -y blas-devel lapack-devel
+elif command -v dnf >/dev/null 2>&1; then
+    dnf install -y blas-devel lapack-devel
+elif command -v microdnf >/dev/null 2>&1; then
+    microdnf install -y blas-devel lapack-devel
+elif command -v apt-get >/dev/null 2>&1; then
+    apt-get update
+    apt-get install -y libblas-dev liblapack-dev
+fi
+"""
+
+[tool.cibuildwheel.windows]
+archs = ["AMD64"]

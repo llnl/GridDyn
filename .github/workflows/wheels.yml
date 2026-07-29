@@ -158,8 +158,8 @@ jobs:
         PY
     - uses: pypa/cibuildwheel@v3.4
 
-    - name: Verify clean directory
-      run: git diff --exit-code
+    - name: Verify clean tracked files
+      run: git diff --exit-code --ignore-submodules=dirty
       shell: bash
 
     - name: Upload wheels

@@ -404,22 +404,12 @@ int sundialsJac(sunrealtype time,
         if (sd->flags[USE_MASK_FLAG]) {
             MatrixDataFilter<double> filterAd(*(a1));
             filterAd.addFilter(sd->maskElements);
-            sd->m_gds->jacobianFunction(time,
-                                        stateData,
-                                        dstateData,
-                                        filterAd,
-                                        cj,
-                                        sd->mode);
+            sd->m_gds->jacobianFunction(time, stateData, dstateData, filterAd, cj, sd->mode);
             for (auto& v : sd->maskElements) {
                 a1->assign(v, v, 1.0);
             }
         } else {
-            sd->m_gds->jacobianFunction(time,
-                                        stateData,
-                                        dstateData,
-                                        *a1,
-                                        cj,
-                                        sd->mode);
+            sd->m_gds->jacobianFunction(time, stateData, dstateData, *a1, cj, sd->mode);
         }
 
         ++sd->jacCallCount;
@@ -445,22 +435,12 @@ int sundialsJac(sunrealtype time,
         if (sd->flags[USE_MASK_FLAG]) {
             MatrixDataFilter<double> filterAd(*a1);
             filterAd.addFilter(sd->maskElements);
-            sd->m_gds->jacobianFunction(time,
-                                        stateData,
-                                        dstateData,
-                                        filterAd,
-                                        cj,
-                                        sd->mode);
+            sd->m_gds->jacobianFunction(time, stateData, dstateData, filterAd, cj, sd->mode);
             for (auto& v : sd->maskElements) {
                 a1->assign(v, v, 1.0);
             }
         } else {
-            sd->m_gds->jacobianFunction(time,
-                                        stateData,
-                                        dstateData,
-                                        *a1,
-                                        cj,
-                                        sd->mode);
+            sd->m_gds->jacobianFunction(time, stateData, dstateData, *a1, cj, sd->mode);
         }
 
         sd->jacCallCount++;

@@ -40,7 +40,7 @@ class GridObjectHolder: public CoreObject {
     ~GridObjectHolder()
     {
         for (auto& so : objArray) {
-            if (so.getParent()) {
+            if ((so.getParent() != nullptr) && (so.getParent()->getID() > 0)) {
                 so.getParent()->remove(&so);
             }
         }
@@ -87,29 +87,40 @@ class ObjectPrepper {
     ObjectPrepper(count_t objCount, CoreObject* example) { prepObjects(objCount, example); }
     void prepObjects(count_t objCount, CoreObject* example)
     {
-        auto root = example->getRoot();
-        useBlock = true;
-        if ((obptr) && (root != nullptr)) {
-            if (obptr->getParent() != root) {
-                root->add(obptr.get());
-            }
+        if ((objCount == 0) || (example == nullptr)) {
+            useBlock = false;
+            return;
         }
-        if (remaining() < objCount) {
-            if ((obptr) && (obptr->remaining() > 0)) {
-                targetprepped = objCount - obptr->remaining();
-            } else {
-                obptr = makeOwningPtr<GridObjectHolder<Ntype>>(targetprepped);
-                if (root != nullptr) {
-                    if (!obptr) {
-                        root->log(root, PrintLevel::WARNING, "unable to create container object");
-                        useBlock = false;
-                    } else {
-                        root->add(obptr.get());
-                    }
-                } else {
-                    useBlock = false;
-                }
-            }
+
+        auto root = example->getRoot();
+        if (root == nullptr) {
+            useBlock = false;
+            return;
+        }
+
+        useBlock = true;
+        if ((obptr) && (obptr->getParent() != root)) {
+            root->add(obptr.get());
+        }
+
+        const auto availableObjects = remaining();
+        if (availableObjects >= objCount) {
+            return;
+        }
+
+        const auto objectDeficit = objCount - availableObjects;
+        if ((obptr) && (obptr->remaining() > 0)) {
+            targetprepped = objectDeficit;
+            return;
+        }
+
+        targetprepped = 0;
+        obptr = makeOwningPtr<GridObjectHolder<Ntype>>(objectDeficit);
+        if (!obptr) {
+            root->log(root, PrintLevel::WARNING, "unable to create container object");
+            useBlock = false;
+        } else {
+            root->add(obptr.get());
         }
     }
     Ntype* getNewObject(std::string_view objName = {})

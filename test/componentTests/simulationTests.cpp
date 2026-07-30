@@ -5,14 +5,175 @@
  */
 
 #include "../gtestHelper.h"
+#include "core/CoreOwningPtr.hpp"
+#include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
+#include "griddyn/griddyn-config.h"
+#include <algorithm>
 #include <cstdio>
 #include <gtest/gtest.h>
 #include <iostream>
 #include <set>
 #include <string>
 #include <utility>
+#include <vector>
+
+#ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
+#    include "optimization/optObjectFactory.h"
+#endif
 
 class SimulationTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
 TEST_F(SimulationTests, SimulationOrderingTests) {}
+
+namespace {
+class CountingRootObject: public griddyn::CoreObject {
+  public:
+    int addCount = 0;
+    std::vector<griddyn::CoreObject*> addedObjects;
+
+    void add(griddyn::CoreObject* obj) override
+    {
+        if (obj == nullptr) {
+            return;
+        }
+
+        ++addCount;
+        obj->addOwningReference();
+        obj->setParent(this);
+        addedObjects.push_back(obj);
+    }
+
+    void remove(griddyn::CoreObject* obj) override
+    {
+        const auto foundObject = std::find(addedObjects.begin(), addedObjects.end(), obj);
+        if (foundObject == addedObjects.end()) {
+            return;
+        }
+
+        griddyn::removeReference(*foundObject, this);
+        addedObjects.erase(foundObject);
+    }
+
+    ~CountingRootObject() override
+    {
+        for (auto* obj : addedObjects) {
+            griddyn::removeReference(obj, this);
+        }
+    }
+};
+
+class FactoryTestGridObject: public griddyn::CoreObject {
+  public:
+    FactoryTestGridObject() = default;
+    explicit FactoryTestGridObject(const std::string& objectName): CoreObject(objectName) {}
+};
+}  // namespace
+
+TEST(CoreFactoryTests, PrepObjectsIgnoresInvalidRequests)
+{
+    CountingRootObject root;
+    griddyn::TypeFactory<FactoryTestGridObject> factory("core-factory-prep-invalid-test", "object");
+
+    factory.prepObjects(0, &root);
+    EXPECT_EQ(root.addCount, 0);
+    EXPECT_EQ(factory.remainingPrepped(), 0U);
+
+    factory.prepObjects(2, nullptr);
+    EXPECT_EQ(root.addCount, 0);
+    EXPECT_EQ(factory.remainingPrepped(), 0U);
+}
+
+TEST(CoreFactoryTests, PrepObjectsCreatesNonEmptyHolderOnce)
+{
+    CountingRootObject root;
+    griddyn::TypeFactory<FactoryTestGridObject> factory("core-factory-prep-test", "object");
+
+    factory.prepObjects(3, &root);
+    EXPECT_EQ(root.addCount, 1);
+    EXPECT_EQ(factory.remainingPrepped(), 3U);
+
+    factory.prepObjects(2, &root);
+    EXPECT_EQ(root.addCount, 1);
+    EXPECT_EQ(factory.remainingPrepped(), 3U);
+
+    griddyn::CoreOwningPtr<FactoryTestGridObject> object{factory.makeTypeObject()};
+    ASSERT_TRUE(static_cast<bool>(object));
+    EXPECT_EQ(factory.remainingPrepped(), 2U);
+
+    factory.prepObjects(2, &root);
+    EXPECT_EQ(root.addCount, 1);
+    EXPECT_EQ(factory.remainingPrepped(), 2U);
+
+    factory.prepObjects(5, &root);
+    EXPECT_EQ(root.addCount, 1);
+    EXPECT_EQ(factory.remainingPrepped(), 5U);
+
+    std::vector<griddyn::CoreOwningPtr<FactoryTestGridObject>> objects;
+    objects.emplace_back(factory.makeTypeObject());
+    objects.emplace_back(factory.makeTypeObject());
+    EXPECT_EQ(root.addCount, 1);
+    EXPECT_EQ(factory.remainingPrepped(), 3U);
+
+    objects.emplace_back(factory.makeTypeObject());
+    EXPECT_EQ(root.addCount, 2);
+    EXPECT_EQ(factory.remainingPrepped(), 2U);
+}
+
+#ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
+namespace {
+class FactoryTestOptObject: public griddyn::GridOptObject {
+  public:
+    FactoryTestOptObject() = default;
+    explicit FactoryTestOptObject(griddyn::CoreObject* obj): sourceObject(obj) {}
+
+    griddyn::CoreObject* sourceObject = nullptr;
+
+    void add(griddyn::CoreObject* obj) override { sourceObject = obj; }
+};
+}  // namespace
+
+TEST(OptimizationFactoryTests, PrepObjectsReusesAttachedHolder)
+{
+    CountingRootObject root;
+    FactoryTestGridObject gridObject;
+    griddyn::OptObjectFactory<FactoryTestOptObject, FactoryTestGridObject> factory(
+        "factory-prep-test", "object");
+
+    factory.prepObjects(3, &root);
+    EXPECT_EQ(root.addCount, 1);
+    EXPECT_EQ(factory.remainingPrepped(), 3U);
+
+    factory.prepObjects(2, &root);
+    EXPECT_EQ(root.addCount, 1);
+    EXPECT_EQ(factory.remainingPrepped(), 3U);
+
+    griddyn::CoreOwningPtr<FactoryTestOptObject> optObject{factory.makeTypeObject(&gridObject)};
+    ASSERT_TRUE(static_cast<bool>(optObject));
+    EXPECT_EQ(optObject->sourceObject, &gridObject);
+    EXPECT_EQ(factory.remainingPrepped(), 2U);
+
+    factory.prepObjects(2, &root);
+    EXPECT_EQ(root.addCount, 1);
+    EXPECT_EQ(factory.remainingPrepped(), 2U);
+
+    factory.prepObjects(3, &root);
+    EXPECT_EQ(root.addCount, 2);
+    EXPECT_EQ(factory.remainingPrepped(), 3U);
+}
+
+TEST(OptimizationFactoryTests, PrepObjectsIgnoresInvalidRequests)
+{
+    CountingRootObject root;
+    griddyn::OptObjectFactory<FactoryTestOptObject, FactoryTestGridObject> factory(
+        "factory-prep-invalid-test", "object");
+
+    factory.prepObjects(0, &root);
+    EXPECT_EQ(root.addCount, 0);
+    EXPECT_EQ(factory.remainingPrepped(), 0U);
+
+    factory.prepObjects(2, nullptr);
+    EXPECT_EQ(root.addCount, 0);
+    EXPECT_EQ(factory.remainingPrepped(), 0U);
+}
+#endif

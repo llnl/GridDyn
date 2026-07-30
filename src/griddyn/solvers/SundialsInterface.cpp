@@ -392,6 +392,8 @@ int sundialsJac(sunrealtype time,
                 N_Vector /*tmp2*/)
 {
     auto sd = reinterpret_cast<SundialsInterface*>(userData);
+    auto* stateData = nvecdata(sd->use_omp, state);
+    auto* dstateData = nvecdata(sd->use_omp, dstateDt);
 
     if (matrixNeedsSetup(sd->jacCallCount, j)) {
         auto a1 = makeSparseMatrix(sd->svsize, sd->maxNNZ);
@@ -403,8 +405,8 @@ int sundialsJac(sunrealtype time,
             MatrixDataFilter<double> filterAd(*(a1));
             filterAd.addFilter(sd->maskElements);
             sd->m_gds->jacobianFunction(time,
-                                        nvecdata(sd->use_omp, state),
-                                        nvecdata(sd->use_omp, dstateDt),
+                                        stateData,
+                                        dstateData,
                                         filterAd,
                                         cj,
                                         sd->mode);
@@ -413,8 +415,8 @@ int sundialsJac(sunrealtype time,
             }
         } else {
             sd->m_gds->jacobianFunction(time,
-                                        nvecdata(sd->use_omp, state),
-                                        nvecdata(sd->use_omp, dstateDt),
+                                        stateData,
+                                        dstateData,
                                         *a1,
                                         cj,
                                         sd->mode);
@@ -444,8 +446,8 @@ int sundialsJac(sunrealtype time,
             MatrixDataFilter<double> filterAd(*a1);
             filterAd.addFilter(sd->maskElements);
             sd->m_gds->jacobianFunction(time,
-                                        nvecdata(sd->use_omp, state),
-                                        nvecdata(sd->use_omp, dstateDt),
+                                        stateData,
+                                        dstateData,
                                         filterAd,
                                         cj,
                                         sd->mode);
@@ -454,8 +456,8 @@ int sundialsJac(sunrealtype time,
             }
         } else {
             sd->m_gds->jacobianFunction(time,
-                                        nvecdata(sd->use_omp, state),
-                                        nvecdata(sd->use_omp, dstateDt),
+                                        stateData,
+                                        dstateData,
                                         *a1,
                                         cj,
                                         sd->mode);

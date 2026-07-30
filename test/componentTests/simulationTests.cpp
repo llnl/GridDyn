@@ -5,6 +5,7 @@
  */
 
 #include "../gtestHelper.h"
+#include "core/CoreOwningPtr.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/griddyn-config.h"
@@ -96,8 +97,8 @@ TEST(CoreFactoryTests, PrepObjectsCreatesNonEmptyHolderOnce)
     EXPECT_EQ(root.addCount, 1);
     EXPECT_EQ(factory.remainingPrepped(), 3U);
 
-    auto* object = factory.makeTypeObject();
-    ASSERT_NE(object, nullptr);
+    griddyn::CoreOwningPtr<FactoryTestGridObject> object{factory.makeTypeObject()};
+    ASSERT_TRUE(static_cast<bool>(object));
     EXPECT_EQ(factory.remainingPrepped(), 2U);
 
     factory.prepObjects(2, &root);
@@ -108,12 +109,13 @@ TEST(CoreFactoryTests, PrepObjectsCreatesNonEmptyHolderOnce)
     EXPECT_EQ(root.addCount, 1);
     EXPECT_EQ(factory.remainingPrepped(), 5U);
 
-    factory.makeTypeObject();
-    factory.makeTypeObject();
+    std::vector<griddyn::CoreOwningPtr<FactoryTestGridObject>> objects;
+    objects.emplace_back(factory.makeTypeObject());
+    objects.emplace_back(factory.makeTypeObject());
     EXPECT_EQ(root.addCount, 1);
     EXPECT_EQ(factory.remainingPrepped(), 3U);
 
-    factory.makeTypeObject();
+    objects.emplace_back(factory.makeTypeObject());
     EXPECT_EQ(root.addCount, 2);
     EXPECT_EQ(factory.remainingPrepped(), 2U);
 }
@@ -123,7 +125,7 @@ namespace {
 class FactoryTestOptObject: public griddyn::GridOptObject {
   public:
     FactoryTestOptObject() = default;
-    explicit FactoryTestOptObject(griddyn::CoreObject* obj) { add(obj); }
+    explicit FactoryTestOptObject(griddyn::CoreObject* obj): sourceObject(obj) {}
 
     griddyn::CoreObject* sourceObject = nullptr;
 
@@ -146,8 +148,8 @@ TEST(OptimizationFactoryTests, PrepObjectsReusesAttachedHolder)
     EXPECT_EQ(root.addCount, 1);
     EXPECT_EQ(factory.remainingPrepped(), 3U);
 
-    auto* optObject = factory.makeTypeObject(&gridObject);
-    ASSERT_NE(optObject, nullptr);
+    griddyn::CoreOwningPtr<FactoryTestOptObject> optObject{factory.makeTypeObject(&gridObject)};
+    ASSERT_TRUE(static_cast<bool>(optObject));
     EXPECT_EQ(optObject->sourceObject, &gridObject);
     EXPECT_EQ(factory.remainingPrepped(), 2U);
 

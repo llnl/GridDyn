@@ -92,17 +92,10 @@ SundialsInterface::~SundialsInterface()
     if (types != nullptr) {
         NVECTOR_DESTROY(use_omp, types);
     }
-    if (flags[INITIALIZED_FLAG]) {
-        if (m_sundialsInfoFile != nullptr) {
-            static_cast<void>(fclose(m_sundialsInfoFile));
-        }
-        if (LS != nullptr) {
-            SUNLinSolFree(LS);
-        }
-        if (J != nullptr) {
-            SUNMatDestroy(J);
-        }
+    if (m_sundialsInfoFile != nullptr) {
+        static_cast<void>(fclose(m_sundialsInfoFile));
     }
+    freeLinearSolver();
     if (sunctx != nullptr) {
         SUNContext_Free(&sunctx);
     }
@@ -143,6 +136,7 @@ void SundialsInterface::allocate(count_t stateCount, count_t /*numRoots*/)
     [[maybe_unused]] bool prevOmp = use_omp;  // looks unused if OPENMP is not available
     use_omp = flags[USE_OMP_FLAG];
     flags.reset(INITIALIZED_FLAG);
+    freeLinearSolver();
     if (state != nullptr) {
         NVECTOR_DESTROY(prevOmp, state);
     }
@@ -243,6 +237,18 @@ void SundialsInterface::registerErrorHandler()
     }
     int retval = SUNContext_PushErrHandler(sunctx, sundialsErrorHandlerFunc, this);
     checkFlag(&retval, "SUNContext_PushErrHandler", 1);
+}
+
+void SundialsInterface::freeLinearSolver()
+{
+    if (LS != nullptr) {
+        SUNLinSolFree(LS);
+        LS = nullptr;
+    }
+    if (J != nullptr) {
+        SUNMatDestroy(J);
+        J = nullptr;
+    }
 }
 
 void SundialsInterface::kluReInit(SparseReinitMode sparseReInitModes)

@@ -305,6 +305,7 @@ void CvodeInterface::initialize(CoreTime time0)
     retval = CVodeSetMaxNumSteps(solverMem, max_iterations);
     checkFlag(&retval, "CVodeSetMaxNumSteps", 1);
 
+    freeLinearSolver();
 #ifdef GRIDDYN_ENABLE_KLU
     if (flags[DENSE_FLAG]) {
         J = SUNDenseMatrix(svsize, svsize, sunctx);

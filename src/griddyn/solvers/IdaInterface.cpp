@@ -286,6 +286,8 @@ void IdaInterface::initialize(CoreTime t0)
 
     retval = IDASetMaxNumSteps(solverMem, max_iterations);
     checkFlag(&retval, "IDASetMaxNumSteps", 1);
+
+    freeLinearSolver();
 #ifdef GRIDDYN_ENABLE_KLU
     if (flags[DENSE_FLAG]) {
         J = SUNDenseMatrix(svsize, svsize, sunctx);

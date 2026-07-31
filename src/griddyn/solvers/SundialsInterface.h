@@ -128,6 +128,7 @@ class SundialsInterface: public SolverInterface {
   protected:
     void kluReInit(SparseReinitMode sparseReinitMode);
     void registerErrorHandler();
+    void freeLinearSolver();
 };
 
 int sundialsJac(sunrealtype time,

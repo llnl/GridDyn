@@ -96,6 +96,7 @@ void KinsolInterface::allocate(count_t stateCount, count_t /*numRoots*/)
     if (solverMem != nullptr) {
         KINFree(&(solverMem));
     }
+    freeLinearSolver();
     solverMem = KINCreate(sunctx);
     checkFlag(solverMem, "KINCreate", 0);
 
@@ -172,40 +173,42 @@ void KinsolInterface::initialize(CoreTime /*t0*/)
     retval = KINSetNoInitSetup(solverMem, SUNTRUE);
     checkFlag(&retval, "KINSetNoInitSetup", 1);
 
-    retval = KINInit(solverMem, kinsolFunc, state);
+    if (!flags[INITIALIZED_FLAG]) {
+        retval = KINInit(solverMem, kinsolFunc, state);
 
-    checkFlag(&retval, "KINInit", 1);
+        checkFlag(&retval, "KINInit", 1);
 
 #ifdef GRIDDYN_ENABLE_KLU
-    if (flags[DENSE_FLAG]) {
+        if (flags[DENSE_FLAG]) {
+            J = SUNDenseMatrix(svsize, svsize, sunctx);
+            checkFlag(J, "SUNDenseMatrix", 0);
+            /* Create KLU solver object */
+            LS = SUNLinSol_Dense(state, J, sunctx);
+            checkFlag(LS, "SUNLinSol_Dense", 0);
+        } else {
+            /* Create sparse SUNMatrix */
+            J = SUNSparseMatrix(svsize, svsize, maxNNZ, CSR_MAT, sunctx);
+            checkFlag(J, "SUNSparseMatrix", 0);
+
+            /* Create KLU solver object */
+            LS = SUNLinSol_KLU(state, J, sunctx);
+            checkFlag(LS, "SUNLinSol_KLU", 0);
+
+            retval = SUNLinSol_KLUSetOrdering(LS, 0);
+            checkFlag(&retval, "SUNLinSol_KLUSetOrdering", 1);
+        }
+#else
         J = SUNDenseMatrix(svsize, svsize, sunctx);
-        checkFlag(J, "SUNDenseMatrix", 0);
+        checkFlag(J, "SUNSparseMatrix", 0);
         /* Create KLU solver object */
         LS = SUNLinSol_Dense(state, J, sunctx);
         checkFlag(LS, "SUNLinSol_Dense", 0);
-    } else {
-        /* Create sparse SUNMatrix */
-        J = SUNSparseMatrix(svsize, svsize, maxNNZ, CSR_MAT, sunctx);
-        checkFlag(J, "SUNSparseMatrix", 0);
-
-        /* Create KLU solver object */
-        LS = SUNLinSol_KLU(state, J, sunctx);
-        checkFlag(LS, "SUNLinSol_KLU", 0);
-
-        retval = SUNLinSol_KLUSetOrdering(LS, 0);
-        checkFlag(&retval, "SUNLinSol_KLUSetOrdering", 1);
-    }
-#else
-    J = SUNDenseMatrix(svsize, svsize, sunctx);
-    checkFlag(J, "SUNSparseMatrix", 0);
-    /* Create KLU solver object */
-    LS = SUNLinSol_Dense(state, J, sunctx);
-    checkFlag(LS, "SUNLinSol_Dense", 0);
 #endif
 
-    retval = KINSetLinearSolver(solverMem, LS, J);
+        retval = KINSetLinearSolver(solverMem, LS, J);
 
-    checkFlag(&retval, "KINSetLinearSolver", 1);
+        checkFlag(&retval, "KINSetLinearSolver", 1);
+    }
 
     retval = KINSetJacFn(solverMem, kinsolJac);
     checkFlag(&retval, "KINSetJacFn", 1);

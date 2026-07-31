@@ -325,6 +325,7 @@ void ArkodeInterface::initialize(CoreTime time0)
     retval = ARKodeSetMaxNumSteps(solverMem, max_iterations);
     checkFlag(&retval, "ARKodeSetMaxNumSteps", 1);
 
+    freeLinearSolver();
 #ifdef ENABLE_KLU
     if (flags[DENSE_FLAG]) {
         J = SUNDenseMatrix(svsize, svsize);

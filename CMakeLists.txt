@@ -11,7 +11,7 @@
 cmake_minimum_required(VERSION 3.28)
 cmake_policy(VERSION 3.28)
 
-project(GRIDDYN VERSION 0.11.0)
+project(GRIDDYN VERSION 0.11.2)
 
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
     message(FATAL_ERROR "GridDyn requires a 64-bit target platform")

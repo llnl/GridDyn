@@ -189,7 +189,7 @@ TEST_F(ExciterTests, BasicStabilityTest4)
     verifyStabilityCase(*this, fileName, parameters, 0.98, 1.02, 0.97, 1.02, {"dc1a", "sexs"});
 }
 
-#ifdef LOAD_CVODE
+#ifdef GRIDDYN_ENABLE_CVODE
 TEST_F(ExciterTests, ExciterTest2AlgDiffTests)
 {
     static const std::map<std::string, std::vector<std::pair<std::string, double>>> parameters{

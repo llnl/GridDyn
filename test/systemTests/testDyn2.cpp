@@ -90,7 +90,7 @@ TEST_F(DynamicSystemTests2, DynTestPulseLoadChange2)
     simpleRunTestXML(fileName);
 }
 
-#ifdef LOAD_CVODE
+#ifdef GRIDDYN_ENABLE_CVODE
 TEST_F(DynamicSystemTests2, DynTestSinLoadChangePartCvode)
 {  // using cvode
     std::string fileName = std::string(DYN2_TEST_DIRECTORY "test_sineLoad_partitioned1.xml");
@@ -104,7 +104,7 @@ TEST_F(DynamicSystemTests2, DynTestSinLoadChangePartBasicOde)
     simpleRunTestXML(fileName);
 }
 
-#ifdef LOAD_ARKODE
+#ifdef GRIDDYN_ENABLE_ARKODE
 TEST_F(DynamicSystemTests2, DynTestSinLoadChangePartArkode)
 {  // using arkode
     std::string fileName = std::string(DYN2_TEST_DIRECTORY "test_sineLoad_partitioned3.xml");

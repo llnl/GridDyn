@@ -108,7 +108,7 @@ TEST_F(GenModelTests, ModelTest2WithR)
     }
 }
 
-#ifdef LOAD_CVODE
+#ifdef GRIDDYN_ENABLE_CVODE
 TEST_F(GenModelTests, ModelTest2AlgDiffTests)
 {
     std::string fileName = std::string(GENMODEL_TEST_DIRECTORY "test_model1.xml");

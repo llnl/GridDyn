@@ -309,7 +309,7 @@ TEST_P(BlockCompareTests, CompareBlockTest)
 
 INSTANTIATE_TEST_SUITE_P(AllBlocks, BlockCompareTests, ::testing::Range(0, 11));
 
-#ifdef LOAD_CVODE
+#ifdef GRIDDYN_ENABLE_CVODE
 /** test the control block if they can handle a differential only Jacobian and an algebraic only
  * Jacobian
  */

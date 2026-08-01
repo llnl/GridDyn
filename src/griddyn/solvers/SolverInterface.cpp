@@ -64,7 +64,7 @@ static ChildClassFactoryArg<solvers::BasicSolver, SolverInterface, solvers::Basi
     gBasicFactoryG(stringVec{"basic", "gauss"}, solvers::BasicSolver::Mode::gauss);
 static ChildClassFactoryArg<solvers::BasicSolver, SolverInterface, solvers::BasicSolver::Mode>
     gBasicFactoryGs(stringVec{"gs", "gauss-seidel"}, solvers::BasicSolver::Mode::gauss_seidel);
-#ifdef GRIDYN_ENABLE_CVODE
+#ifdef GRIDDYN_ENABLE_CVODE
 static ChildClassFactory<solvers::BasicOdeSolver, SolverInterface>
     gBasicOdeFactory(stringVec{"basicode", "euler"});
 #else

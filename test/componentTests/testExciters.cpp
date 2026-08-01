@@ -206,7 +206,7 @@ TEST_F(ExciterTests, ExciterTest2AlgDiffTests)
 
     // exclist.insert(exclist.begin(), "none");
     for (auto& excname : exclist) {
-        if (excname.compare(0, 3, "fmi") == 0) {
+        if (excname.starts_with("fmi")) {
             continue;
         }
         gds = readSimXMLFile(fileName);
@@ -218,8 +218,8 @@ TEST_F(ExciterTests, ExciterTest2AlgDiffTests)
         auto fnd = parameters.find(excname);
 
         if (fnd != parameters.end()) {
-            for (auto& pp : fnd->second) {
-                obj->set(pp.first, pp.second);
+            for (auto& parameterValue : fnd->second) {
+                obj->set(parameterValue.first, parameterValue.second);
             }
         }
 
@@ -253,7 +253,7 @@ TEST_F(ExciterTests, ExciterAlgDiffJacobianTests)
 
     // exclist.insert(exclist.begin(), "none");
     for (auto& excname : exclist) {
-        if (excname.compare(0, 3, "fmi") == 0) {
+        if (excname.starts_with("fmi")) {
             continue;
         }
         gds = readSimXMLFile(fileName);
@@ -265,8 +265,8 @@ TEST_F(ExciterTests, ExciterAlgDiffJacobianTests)
         auto fnd = parameters.find(excname);
 
         if (fnd != parameters.end()) {
-            for (auto& pp : fnd->second) {
-                obj->set(pp.first, pp.second);
+            for (auto& parameterValue : fnd->second) {
+                obj->set(parameterValue.first, parameterValue.second);
             }
         }
 

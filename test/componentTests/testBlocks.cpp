@@ -47,11 +47,8 @@ TEST_F(BlockTests, TestGainBlock)
     TimeSeriesMulti<> ts3;
     ts3.loadBinaryFile(recname);
     ASSERT_GE(ts3.size(), 15U);
-    EXPECT_NEAR(
-        ts3.data(0, 5) * 5, ts3.data(1, 5), (std::abs(ts3.data(1, 5)) * 1e-8) + 1e-12);
-    EXPECT_NEAR(ts3.data(0, 15) * 5,
-                ts3.data(1, 15),
-                (std::abs(ts3.data(1, 15)) * 1e-8) + 1e-12);
+    EXPECT_NEAR(ts3.data(0, 5) * 5, ts3.data(1, 5), (std::abs(ts3.data(1, 5)) * 1e-8) + 1e-12);
+    EXPECT_NEAR(ts3.data(0, 15) * 5, ts3.data(1, 15), (std::abs(ts3.data(1, 15)) * 1e-8) + 1e-12);
     int ret = remove(recname.c_str());
 
     EXPECT_EQ(ret, 0);
@@ -69,8 +66,7 @@ TEST_F(BlockTests, BlockTest2)
     std::string recname = std::string(BLOCK_TEST_DIRECTORY "blocktest.dat");
     TimeSeriesMulti<> ts3(recname);
 
-    EXPECT_NEAR(
-        ts3.data(0, 5) * 5, ts3.data(1, 5), (std::abs(ts3.data(1, 5)) * 1e-5) + 1e-12);
+    EXPECT_NEAR(ts3.data(0, 5) * 5, ts3.data(1, 5), (std::abs(ts3.data(1, 5)) * 1e-5) + 1e-12);
     EXPECT_NEAR(ts3.data(0, 280) * 5,
                 ts3.data(1, 280),
                 (std::abs(ts3.data(1, 280)) * 1e-5) + 1e-12);
@@ -119,9 +115,7 @@ TEST_F(BlockTests, BlockTest4)
     for (pointIndex = 0; std::cmp_less(pointIndex, ts3.size()); ++pointIndex) {
         initialValue += 100 * ts3.data(0, pointIndex) * 0.01;
     }
-    EXPECT_NEAR(ts3.data(1, pointIndex - 1),
-                initialValue,
-                (std::abs(initialValue) * 1e-2) + 1e-12);
+    EXPECT_NEAR(ts3.data(1, pointIndex - 1), initialValue, (std::abs(initialValue) * 1e-2) + 1e-12);
     int ret = remove(recname.c_str());
 
     EXPECT_EQ(ret, 0);
@@ -239,7 +233,7 @@ std::vector<blockdescpair> makeBlockParameterMap()
 }
 
 std::map<std::string, std::vector<std::pair<std::string, std::string>>>
-makeStringBlockParameterMap()
+    makeStringBlockParameterMap()
 {
     return {
         {"function", {std::make_pair("func", "sin")}},

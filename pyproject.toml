@@ -106,7 +106,6 @@ cmake.args = [
 # Necessary to see build output from the actual compilation
 build-verbosity = 1
 skip = [
-    "pp311-macosx_arm64",
     "*-win32",
     "*-musllinux_*",
 ]

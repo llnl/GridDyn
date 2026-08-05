@@ -30,16 +30,16 @@ TEST_F(GenModelTests, ModelTest1)
     EXPECT_EQ(retval, 0);
     requireState(GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
 
-    std::vector<double> st = gds->getState();
+    std::vector<double> initialState = gds->getState();
     runResidualCheck(gds, cDaeSolverMode);
     // gds->saveJacobian(std::string(GENMODEL_TEST_DIRECTORY "mjac5.bin"));
     gds->run();
     requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
-    std::vector<double> st2 = gds->getState();
+    std::vector<double> finalState = gds->getState();
 
-    auto cdiff = gmlc::utilities::countDiffs(st, st2, 0.001, 0.01);
+    auto cdiff = gmlc::utilities::countDiffs(initialState, finalState, 0.001, 0.01);
 
-    EXPECT_EQ(cdiff, 0u);
+    EXPECT_EQ(cdiff, 0U);
 }
 
 TEST_F(GenModelTests, ModelTest2)
@@ -51,7 +51,7 @@ TEST_F(GenModelTests, ModelTest2)
 
     for (auto& gname : genlist) {
         // skip any fmi model
-        if (gname.compare(0, 3, "fmi") == 0) {
+        if (gname.starts_with("fmi")) {
             continue;
         }
         gds = readSimXMLFile(fileName);
@@ -85,7 +85,7 @@ TEST_F(GenModelTests, ModelTest2WithR)
     auto genlist = cof->getTypeNames("genmodel");
 
     for (auto& gname : genlist) {
-        if (gname.compare(0, 3, "fmi") == 0) {
+        if (gname.starts_with("fmi")) {
             continue;
         }
         gds = readSimXMLFile(fileName);
@@ -108,7 +108,7 @@ TEST_F(GenModelTests, ModelTest2WithR)
     }
 }
 
-#ifdef LOAD_CVODE
+#ifdef GRIDDYN_ENABLE_CVODE
 TEST_F(GenModelTests, ModelTest2AlgDiffTests)
 {
     std::string fileName = std::string(GENMODEL_TEST_DIRECTORY "test_model1.xml");
@@ -118,7 +118,7 @@ TEST_F(GenModelTests, ModelTest2AlgDiffTests)
     auto genlist = cof->getTypeNames("genmodel");
 
     for (auto& gname : genlist) {
-        if (gname.compare(0, 3, "fmi") == 0) {
+        if (gname.starts_with("fmi")) {
             continue;
         }
         gds = readSimXMLFile(fileName);

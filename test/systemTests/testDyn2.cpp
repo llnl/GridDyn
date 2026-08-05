@@ -32,24 +32,24 @@ TEST_F(DynamicSystemTests2, DynTestSimpleEvent)
     EXPECT_EQ(retval, 0);
     ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
 
-    std::vector<double> st = gds->getState();
+    std::vector<double> initialState = gds->getState();
 
-    EXPECT_EQ(st.size(), 30u);
+    EXPECT_EQ(initialState.size(), 30U);
 
     gds->run();
     ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
-    std::vector<double> st2 = gds->getState();
+    std::vector<double> finalState = gds->getState();
 
-    auto diff = gmlc::utilities::countDiffsIgnoreCommon(st, st2, 0.02);
+    auto diff = gmlc::utilities::countDiffsIgnoreCommon(initialState, finalState, 0.02);
     // check for stability
-    EXPECT_EQ(diff, 0u);
+    EXPECT_EQ(diff, 0U);
 }
 
 TEST_F(DynamicSystemTests2, DynTestSimpleChunked)
 {
     std::string fileName = std::string(DYN2_TEST_DIRECTORY "test_2m4bDyn.xml");
     simpleRunTestXML(fileName);
-    std::vector<double> st = gds->getState();
+    std::vector<double> initialState = gds->getState();
 
     fileName = std::string(DYN2_TEST_DIRECTORY "test_2m4bDyn.xml");
     gds2 = readSimXMLFile(fileName);
@@ -59,9 +59,9 @@ TEST_F(DynamicSystemTests2, DynTestSimpleChunked)
     gds2->run(7.65896);
     gds2->run();
     ASSERT_EQ(gds2->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
-    std::vector<double> st2 = gds2->getState();
+    std::vector<double> chunkedState = gds2->getState();
 
-    auto diff = gmlc::utilities::countDiffsIgnoreCommon(st, st2, 0.0001);
+    auto diff = gmlc::utilities::countDiffsIgnoreCommon(initialState, chunkedState, 0.0001);
 
     EXPECT_EQ(diff, 0);
 }
@@ -90,7 +90,7 @@ TEST_F(DynamicSystemTests2, DynTestPulseLoadChange2)
     simpleRunTestXML(fileName);
 }
 
-#ifdef LOAD_CVODE
+#ifdef GRIDDYN_ENABLE_CVODE
 TEST_F(DynamicSystemTests2, DynTestSinLoadChangePartCvode)
 {  // using cvode
     std::string fileName = std::string(DYN2_TEST_DIRECTORY "test_sineLoad_partitioned1.xml");
@@ -104,7 +104,7 @@ TEST_F(DynamicSystemTests2, DynTestSinLoadChangePartBasicOde)
     simpleRunTestXML(fileName);
 }
 
-#ifdef LOAD_ARKODE
+#ifdef GRIDDYN_ENABLE_ARKODE
 TEST_F(DynamicSystemTests2, DynTestSinLoadChangePartArkode)
 {  // using arkode
     std::string fileName = std::string(DYN2_TEST_DIRECTORY "test_sineLoad_partitioned3.xml");
@@ -116,7 +116,7 @@ TEST_F(DynamicSystemTests2, DynTestSinLoadChangePartArkode)
 // now check if all the different solvers all produce the same results
 TEST_F(DynamicSystemTests2, DynTestCompareOde)
 {
-    std::string fileName = std::string(DYN2_TEST_DIRECTORY "test_sineLoadChange.xml");
+    SUCCEED();
 }
 
 #ifdef ENABLE_EXPERIMENTAL_TEST_CASES

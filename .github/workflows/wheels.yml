@@ -184,6 +184,8 @@ jobs:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
     steps:
     - uses: actions/setup-python@v6
+      with:
+        python-version: "3.13"
     - uses: actions/download-artifact@v8
       with:
         pattern: dist-*

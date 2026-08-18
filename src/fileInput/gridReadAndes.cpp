@@ -210,7 +210,7 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
             }
             auto* branch = new links::DcLink(objectName(record, section));
             branch->set("model", model);
-            branch->set("andes_current_balance", true);
+            branch->set("andes_current_balance", 1.0);
             setIfPresent(branch, record, "R", "r");
             setIfPresent(branch, record, "L", "l");
             setIfPresent(branch, record, "C", "c");
@@ -227,14 +227,14 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
 
     if (document.contains("VSCShunt") && document["VSCShunt"].is_array()) {
         for (const auto& record : document["VSCShunt"]) {
-            const auto ac = acBuses.find(indexKey(record, "bus"));
-            const auto dc = dcBuses.find(indexKey(record, "node1"));
+            const auto acBus = acBuses.find(indexKey(record, "bus"));
+            const auto dcBus = dcBuses.find(indexKey(record, "node1"));
             const auto dcReference = dcBuses.find(indexKey(record, "node2"));
-            if ((ac == acBuses.end()) || (dc == dcBuses.end()) || (dcReference == dcBuses.end())) {
+            if ((acBus == acBuses.end()) || (dcBus == dcBuses.end()) || (dcReference == dcBuses.end())) {
                 continue;
             }
             auto* converter = new links::VSCShunt(objectName(record, "VSCShunt"));
-            converter->set("andes_current_balance", true);
+            converter->set("andes_current_balance", 1.0);
             // In Andes, rsh and xsh are impedance parameters (z=True).  They
             // are converted to the AC bus base using (VSC Vn / Bus Vn)^2.
             // GridDyn stores the values directly on the bus base, so carry
@@ -265,8 +265,8 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
             setIfPresent(converter, record, "vshmax", "vshmax");
             setIfPresent(converter, record, "vshmin", "vshmin");
             setIfPresent(converter, record, "Ishmax", "ishmax");
-            converter->updateBus(ac->second, 1);
-            converter->updateBus(dc->second, 2);
+            converter->updateBus(acBus->second, 1);
+            converter->updateBus(dcBus->second, 2);
             converter->updateBus(dcReference->second, 3);
             parentObject->add(converter);
         }

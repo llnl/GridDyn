@@ -14,9 +14,11 @@
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/primary/DcBus.h"
 #include <array>
+#include <cstddef>
 #include <fstream>
 #include <gtest/gtest.h>
 #include <iostream>
+#include <memory>
 #include <nlohmann/json.hpp>
 #include <string>
 #include <string_view>
@@ -244,7 +246,7 @@ TEST(AndesVSCShuntTests, MatchesAndesPqReferencePoint)
     converter->set("control", 0.0);  // ANDES PQ mode
     converter->set("p0", -0.1);
     converter->set("q0", 0.0);
-    converter->set("andes_current_balance", true);
+    converter->set("andes_current_balance", 1.0);
     converter->updateBus(acBus, 1);
     converter->updateBus(dcBus, 2);
     converter->updateBus(dcReference, 3);
@@ -289,7 +291,7 @@ TEST(AndesVSCShuntTests, MatchesKundurVsc2OperatingPoint)
     converter->set("control", 0.0);  // Andes VSC_2, PQ mode
     converter->set("p0", -0.1);
     converter->set("q0", 0.0);
-    converter->set("andes_current_balance", true);
+    converter->set("andes_current_balance", 1.0);
     converter->updateBus(acBus, 1);
     converter->updateBus(dcBus, 2);
     converter->updateBus(dcReference, 3);
@@ -318,7 +320,7 @@ TEST(AndesPowerFlowTests, MatchesCapturedKundurVscReference)
     griddyn::loadFile(simulation.get(), makeAndesTestPath("andes_kundur_vsc_pflow.json"));
     ASSERT_EQ(simulation->powerflow(), 0);
 
-    for (index_t index = 0; index < reference.at("bus_voltage").size(); ++index) {
+    for (std::size_t index = 0; index < reference.at("bus_voltage").size(); ++index) {
         auto* bus =
             dynamic_cast<griddyn::AcBus*>(simulation->find("Bus_" + std::to_string(index + 1)));
         ASSERT_NE(bus, nullptr);
@@ -326,7 +328,7 @@ TEST(AndesPowerFlowTests, MatchesCapturedKundurVscReference)
         EXPECT_NEAR(bus->get("angle"), reference["bus_angle"][index].get<double>(), tolerance);
     }
 
-    for (index_t index = 0; index < reference.at("node_voltage").size(); ++index) {
+    for (std::size_t index = 0; index < reference.at("node_voltage").size(); ++index) {
         auto* node =
             dynamic_cast<griddyn::DcBus*>(simulation->find("Node_" + std::to_string(index)));
         ASSERT_NE(node, nullptr);
@@ -365,7 +367,7 @@ TEST(AndesPowerFlowTests, MatchesCapturedTwoBusReference)
     ASSERT_EQ(simulation->powerflow(), 0);
 
     const std::array<std::string, 2> busNames{"slack_bus", "load_bus"};
-    for (index_t index = 0; index < busNames.size(); ++index) {
+    for (std::size_t index = 0; index < busNames.size(); ++index) {
         auto* bus = dynamic_cast<griddyn::AcBus*>(simulation->find(busNames[index]));
         ASSERT_NE(bus, nullptr);
         EXPECT_NEAR(bus->get("voltage"), reference["bus_voltage"][index].get<double>(), tolerance);
@@ -391,7 +393,7 @@ TEST(AndesPowerFlowTests, MatchesCapturedVscResistorReference)
     EXPECT_NEAR(acBus->get("angle"), reference["bus_angle"][0].get<double>(), tolerance);
 
     const std::array<std::string, 2> nodeNames{"dc_ground", "dc_node"};
-    for (index_t index = 0; index < nodeNames.size(); ++index) {
+    for (std::size_t index = 0; index < nodeNames.size(); ++index) {
         auto* node = dynamic_cast<griddyn::DcBus*>(simulation->find(nodeNames[index]));
         ASSERT_NE(node, nullptr);
         EXPECT_NEAR(node->get("voltage"),

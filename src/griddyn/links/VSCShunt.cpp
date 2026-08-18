@@ -12,6 +12,8 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <cmath>
+#include <queue>
+#include <string>
 
 namespace griddyn::links {
 using units::unit;
@@ -472,9 +474,13 @@ double VSCShunt::getRealPower(id_type_t busId) const
 {
     if ((busId == 3) || ((dcReference != nullptr) && (busId == dcReference->getID()))) {
         const auto difference = dcVoltageDifference();
-        return (std::abs(difference) < 1e-12) ? 0.0 :
-            currentBalance                    ? pdc / difference :
-                             pdc * static_cast<GridBus*>(dcReference)->getVoltage() / difference;
+        if (std::abs(difference) < 1e-12) {
+            return 0.0;
+        }
+        if (currentBalance) {
+            return pdc / difference;
+        }
+        return pdc * static_cast<GridBus*>(dcReference)->getVoltage() / difference;
     }
     return AcDcConverter::getRealPower(busId);
 }

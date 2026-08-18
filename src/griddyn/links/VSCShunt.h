@@ -7,6 +7,8 @@
 #pragma once
 
 #include "AcDcConverter.h"
+#include <queue>
+#include <string>
 
 namespace griddyn {
 class DcBus;

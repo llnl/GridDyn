@@ -14,6 +14,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <cmath>
+#include <cstdint>
 #include <cstring>
 #include <string>
 
@@ -173,10 +174,12 @@ void DcLink::pFlowObjectInitializeB()
 
 void DcLink::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
-    const auto differentialCount =
-        (topology == Topology::RLC_PARALLEL || topology == Topology::RLC_SERIES) ?
-        2U :
-        ((hasCapacitor() || (x != 0.0)) ? 1U : 0U);
+    std::uint32_t differentialCount = 0U;
+    if (topology == Topology::RLC_PARALLEL || topology == Topology::RLC_SERIES) {
+        differentialCount = 2U;
+    } else if (hasCapacitor() || (x != 0.0)) {
+        differentialCount = 1U;
+    }
     m_dstate_dt.assign(differentialCount, 0.0);
     m_state.assign(differentialCount, 0.0);
     updateLocalCache();
@@ -242,11 +245,7 @@ void DcLink::ioPartialDerivatives(id_type_t busId,
         if (stateSize(sMode) > 0) {
             return;
         }
-        if ((busId == 2) || (busId == B2->getID())) {
-            jacobian.assignCheckCol(POUT_LOCATION, inputLocs[VOLTAGE_IN_LOCATION], 1.0 / r);
-        } else {
-            jacobian.assignCheckCol(POUT_LOCATION, inputLocs[VOLTAGE_IN_LOCATION], 1.0 / r);
-        }
+        jacobian.assignCheckCol(POUT_LOCATION, inputLocs[VOLTAGE_IN_LOCATION], 1.0 / r);
         return;
     }
     if ((busId == 2) || (busId == B2->getID())) {
@@ -399,28 +398,31 @@ void DcLink::residual(const IOdata& inputs,
         const auto firstDiffOffset = offsets.getDiffOffset(sMode);
         const auto capacitorOffset = firstDiffOffset +
             ((topology == Topology::RLC_PARALLEL || topology == Topology::RLC_SERIES) ? 1 : 0);
-        const auto vC = stateData.state[capacitorOffset];
+        const auto capacitorVoltage = stateData.state[capacitorOffset];
         const auto current = stateData.state[currentOffset];
-        resid[currentOffset] = vC - (linkInfo.v1 - linkInfo.v2);
+        resid[currentOffset] = capacitorVoltage - (linkInfo.v1 - linkInfo.v2);
 
         if (topology == Topology::C) {
-            resid[capacitorOffset] = -current / c - stateData.dstate_dt[capacitorOffset];
+            resid[capacitorOffset] = (-current / c) - stateData.dstate_dt[capacitorOffset];
         } else if (topology == Topology::RC_PARALLEL) {
-            resid[capacitorOffset] = -(current - vC / r) / c - stateData.dstate_dt[capacitorOffset];
-        } else if (topology == Topology::RLC_PARALLEL) {
-            const auto iL = stateData.state[firstDiffOffset];
-            resid[firstDiffOffset] = vC / x - stateData.dstate_dt[firstDiffOffset];
             resid[capacitorOffset] =
-                -(current - vC / r - iL) / c - stateData.dstate_dt[capacitorOffset];
+                (-(current - (capacitorVoltage / r)) / c) - stateData.dstate_dt[capacitorOffset];
+        } else if (topology == Topology::RLC_PARALLEL) {
+            const auto inductorCurrent = stateData.state[firstDiffOffset];
+            resid[firstDiffOffset] = (capacitorVoltage / x) - stateData.dstate_dt[firstDiffOffset];
+            resid[capacitorOffset] =
+                (-(current - (capacitorVoltage / r) - inductorCurrent) / c) -
+                stateData.dstate_dt[capacitorOffset];
         } else if (topology == Topology::RC_SERIES) {
             resid[currentOffset] -= r * current;
-            resid[capacitorOffset] = -current / c - stateData.dstate_dt[capacitorOffset];
+            resid[capacitorOffset] = (-current / c) - stateData.dstate_dt[capacitorOffset];
         } else {
-            const auto iL = stateData.state[firstDiffOffset];
-            resid[currentOffset] = -iL - current;
-            resid[firstDiffOffset] = (linkInfo.v1 - linkInfo.v2 - r * iL - vC) / x -
+            const auto inductorCurrent = stateData.state[firstDiffOffset];
+            resid[currentOffset] = -inductorCurrent - current;
+            resid[firstDiffOffset] =
+                ((linkInfo.v1 - linkInfo.v2 - (r * inductorCurrent) - capacitorVoltage) / x) -
                 stateData.dstate_dt[firstDiffOffset];
-            resid[capacitorOffset] = iL / c - stateData.dstate_dt[capacitorOffset];
+            resid[capacitorOffset] = (inductorCurrent / c) - stateData.dstate_dt[capacitorOffset];
         }
     } else if (stateSize(sMode) > 0) {
         updateLocalCache(inputs, stateData, sMode);

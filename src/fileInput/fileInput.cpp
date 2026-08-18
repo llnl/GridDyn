@@ -154,13 +154,13 @@ void loadFile(std::unique_ptr<GridDynSimulation>& gds,
 }
 
 std::unique_ptr<GridDynSimulation> readSimXMLFile(const std::string& fileName,
-                                                  ReaderInfo* ReaderInfoPtr)
+                                                  ReaderInfo* readerInfoPtr)
 {
     if (!std::filesystem::exists(fileName)) {
         return nullptr;
     }
     return std::unique_ptr<GridDynSimulation>(static_cast<GridDynSimulation*>(
-        loadElementFile<XmlReaderElement>(nullptr, fileName, ReaderInfoPtr)));
+        loadElementFile<XmlReaderElement>(nullptr, fileName, readerInfoPtr)));
 }
 
 void loadFile(CoreObject* parentObject,

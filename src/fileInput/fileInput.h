@@ -74,7 +74,7 @@ enum ReaderFlags {
 };
 
 std::unique_ptr<GridDynSimulation> readSimXMLFile(const std::string& fileName,
-                                                  ReaderInfo* ReaderInfoPtr = nullptr);
+                                                  ReaderInfo* readerInfoPtr = nullptr);
 
 void addFlags(BasicReaderInfo& bri, const std::string& flags);
 

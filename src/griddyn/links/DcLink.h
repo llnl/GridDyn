@@ -31,6 +31,7 @@ class DcLink: public Link {
     bool hasCapacitor() const;
     bool isOpenInPowerFlow() const;
     count_t currentStateOffset(const SolverMode& sMode) const;
+
   public:
     DcLink(const std::string& objName = "dclink_$");
     DcLink(double resistancePu, double reactancePu, const std::string& objName = "dclink_$");

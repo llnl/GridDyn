@@ -26,42 +26,45 @@
 
 namespace griddyn {
 namespace {
-using Json = nlohmann::json;
+    using Json = nlohmann::json;
 
-std::string indexKey(const Json& record, std::string_view field = "idx")
-{
-    if (!record.contains(field) || record[field].is_null()) {
-        return {};
+    std::string indexKey(const Json& record, std::string_view field = "idx")
+    {
+        if (!record.contains(field) || record[field].is_null()) {
+            return {};
+        }
+        if (record[field].is_string()) {
+            return record[field].get<std::string>();
+        }
+        return record[field].dump();
     }
-    if (record[field].is_string()) {
-        return record[field].get<std::string>();
-    }
-    return record[field].dump();
-}
 
-std::string objectName(const Json& record, std::string_view fallback)
-{
-    if (record.contains("name") && record["name"].is_string() && !record["name"].empty()) {
-        return record["name"].get<std::string>();
+    std::string objectName(const Json& record, std::string_view fallback)
+    {
+        if (record.contains("name") && record["name"].is_string() && !record["name"].empty()) {
+            return record["name"].get<std::string>();
+        }
+        return std::string{fallback} + "_" + indexKey(record);
     }
-    return std::string{fallback} + "_" + indexKey(record);
-}
 
-double number(const Json& record, std::string_view field, double defaultValue = 0.0)
-{
-    if (!record.contains(field) || record[field].is_null()) {
-        return defaultValue;
+    double number(const Json& record, std::string_view field, double defaultValue = 0.0)
+    {
+        if (!record.contains(field) || record[field].is_null()) {
+            return defaultValue;
+        }
+        return record[field].get<double>();
     }
-    return record[field].get<double>();
-}
 
-template<class Object>
-void setIfPresent(Object* object, const Json& record, std::string_view source, std::string_view target)
-{
-    if (record.contains(source) && !record[source].is_null()) {
-        object->set(target, number(record, source));
+    template<class Object>
+    void setIfPresent(Object* object,
+                      const Json& record,
+                      std::string_view source,
+                      std::string_view target)
+    {
+        if (record.contains(source) && !record[source].is_null()) {
+            object->set(target, number(record, source));
+        }
     }
-}
 }  // namespace
 
 bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
@@ -110,8 +113,8 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
             if (bus == acBuses.end()) {
                 continue;
             }
-            auto* load = new ZipLoad(number(record, "p0"), number(record, "q0"),
-                                     objectName(record, "PQ"));
+            auto* load =
+                new ZipLoad(number(record, "p0"), number(record, "q0"), objectName(record, "PQ"));
             bus->second->add(load);
         }
     }
@@ -186,8 +189,14 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
     }
 
     const std::array<std::pair<std::string_view, std::string_view>, 8> branchModels{{
-        {"R", "r"}, {"L", "l"}, {"C", "c"}, {"RLs", "rls"},
-        {"RCp", "rcp"}, {"RLCp", "rlcp"}, {"RCs", "rcs"}, {"RLCs", "rlcs"},
+        {"R", "r"},
+        {"L", "l"},
+        {"C", "c"},
+        {"RLs", "rls"},
+        {"RCp", "rcp"},
+        {"RLCp", "rlcp"},
+        {"RCs", "rcs"},
+        {"RLCs", "rlcs"},
     }};
     for (const auto& [section, model] : branchModels) {
         if (!document.contains(section) || !document[section].is_array()) {
@@ -233,8 +242,8 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
             const auto baseVoltage = acBaseVoltages.find(indexKey(record, "bus"));
             const auto busVn = (baseVoltage != acBaseVoltages.end()) ? baseVoltage->second : 0.0;
             const auto vscVn = number(record, "Vn", busVn);
-            const auto impedanceScale = (busVn > 0.0 && vscVn > 0.0) ?
-                std::pow(vscVn / busVn, 2) : 1.0;
+            const auto impedanceScale =
+                (busVn > 0.0 && vscVn > 0.0) ? std::pow(vscVn / busVn, 2) : 1.0;
             if (record.contains("rsh") && !record["rsh"].is_null()) {
                 converter->set("r", number(record, "rsh") * impedanceScale);
             }

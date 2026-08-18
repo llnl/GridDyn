@@ -42,6 +42,7 @@ set(formattedfileInput_sources
     gridReadPSAT.cpp
     readMatDyn.cpp
     gridDynReadCSV.cpp
+    gridReadAndes.cpp
     readMatlabData.cpp
     loadGDZ.cpp
 )

@@ -1,0 +1,10 @@
+{
+  "source": "ANDES pflow: andes_vsc_resistor_pflow.json (single worker)",
+  "tolerance": 1e-6,
+  "bus_voltage": [1.0],
+  "bus_angle": [0.0],
+  "node_voltage": [1.2999924473942318e-20, 0.9998700013499972],
+  "vsc_psh": [0.1],
+  "vsc_qsh": [0.02],
+  "vsc_pdc": [0.0999740002686917]
+}

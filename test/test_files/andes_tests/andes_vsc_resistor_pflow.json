@@ -1,0 +1,27 @@
+{
+  "Bus": [{ "idx": 1, "name": "ac_slack", "Vn": 230.0, "v0": 1.0, "a0": 0.0 }],
+  "Slack": [{ "idx": 1, "bus": 1, "p0": 0.0, "q0": 0.0, "v0": 1.0, "a0": 0.0 }],
+  "Node": [
+    { "idx": 0, "name": "dc_ground", "Vdcn": 100.0, "v0": 0.0 },
+    { "idx": 1, "name": "dc_node", "Vdcn": 100.0, "v0": 1.0 }
+  ],
+  "Ground": [{ "idx": 0, "node": 0, "voltage": 0.0 }],
+  "R": [{ "idx": 1, "name": "dc_resistor", "node1": 1, "node2": 0, "R": 10.0 }],
+  "VSCShunt": [
+    {
+      "idx": 1,
+      "name": "vsc",
+      "bus": 1,
+      "node1": 1,
+      "node2": 0,
+      "Vn": 230.0,
+      "rsh": 0.0025,
+      "xsh": 0.06,
+      "control": 0.0,
+      "v0": 1.0,
+      "p0": 0.1,
+      "q0": 0.02,
+      "vdc0": 1.0
+    }
+  ]
+}

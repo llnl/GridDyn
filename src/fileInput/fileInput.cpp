@@ -11,6 +11,7 @@
 #include "formatInterpreters/jsonReaderElement.h"
 #include "formatInterpreters/yamlReaderElement.h"
 #include "gmlc/utilities/stringOps.h"
+#include "gridReadAndes.h"
 #include "griddyn/GridDynSimulation.h"
 #include "readElement.h"
 #include "readElementFile.h"
@@ -153,13 +154,13 @@ void loadFile(std::unique_ptr<GridDynSimulation>& gds,
 }
 
 std::unique_ptr<GridDynSimulation> readSimXMLFile(const std::string& fileName,
-                                                  ReaderInfo* ReaderInfoPtr)
+                                                  ReaderInfo* readerInfoPtr)
 {
     if (!std::filesystem::exists(fileName)) {
         return nullptr;
     }
     return std::unique_ptr<GridDynSimulation>(static_cast<GridDynSimulation*>(
-        loadElementFile<XmlReaderElement>(nullptr, fileName, ReaderInfoPtr)));
+        loadElementFile<XmlReaderElement>(nullptr, fileName, readerInfoPtr)));
 }
 
 void loadFile(CoreObject* parentObject,
@@ -201,7 +202,9 @@ void loadFile(CoreObject* parentObject,
     } else if (ext == "epc") {
         loadEpc(parentObject, fileName, *readerInf);
     } else if (ext == "json") {
-        loadElementFile<JsonReaderElement>(parentObject, fileName, readerInf);
+        if (!loadAndesJson(parentObject, fileName)) {
+            loadElementFile<JsonReaderElement>(parentObject, fileName, readerInf);
+        }
     } else if ((ext == "yaml") || (ext == "yml")) {
         loadElementFile<YamlReaderElement>(parentObject, fileName, readerInf);
     } else if (ext == "gdz") {  // gridDyn Zipped file

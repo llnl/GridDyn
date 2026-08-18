@@ -9,6 +9,7 @@
 #include "../measurement/ObjectGrabbers.h"
 #include "../simulation/Contingency.h"
 #include "AcDcConverter.h"
+#include "VSCShunt.h"
 #include "AcLine.h"
 #include "AdjustableTransformer.h"
 #include "DcLink.h"
@@ -62,6 +63,8 @@ namespace links {
                AcDcConverter::Mode::INVERTER);
     static ChildTypeFactory<AcDcConverter, Link>
         gAcdc("link", std::to_array<std::string_view>({"acdc", "acdcconverter", "dcconverter"}));
+    static ChildTypeFactory<VSCShunt, Link>
+        gVscShunt("link", std::to_array<std::string_view>({"vscshunt", "vsc_shunt"}));
 }  // namespace links
 std::atomic<count_t> Link::linkCount(0);
 // helper defines to have things make more sense

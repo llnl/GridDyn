@@ -10,6 +10,7 @@
 #include "formatInterpreters/XmlReaderElement.h"
 #include "formatInterpreters/jsonReaderElement.h"
 #include "formatInterpreters/yamlReaderElement.h"
+#include "gridReadAndes.h"
 #include "gmlc/utilities/stringOps.h"
 #include "griddyn/GridDynSimulation.h"
 #include "readElement.h"
@@ -201,7 +202,9 @@ void loadFile(CoreObject* parentObject,
     } else if (ext == "epc") {
         loadEpc(parentObject, fileName, *readerInf);
     } else if (ext == "json") {
-        loadElementFile<JsonReaderElement>(parentObject, fileName, readerInf);
+        if (!loadAndesJson(parentObject, fileName)) {
+            loadElementFile<JsonReaderElement>(parentObject, fileName, readerInf);
+        }
     } else if ((ext == "yaml") || (ext == "yml")) {
         loadElementFile<YamlReaderElement>(parentObject, fileName, readerInf);
     } else if (ext == "gdz") {  // gridDyn Zipped file

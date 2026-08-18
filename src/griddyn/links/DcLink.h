@@ -14,6 +14,8 @@ namespace griddyn::links {
  */
 class DcLink: public Link {
   public:
+    /** DC branch topologies compatible with the ANDES dc.rlc models. */
+    enum class Topology { RL, C, RC_PARALLEL, RLC_PARALLEL, RC_SERIES, RLC_SERIES };
     /*  enum DcLinkFlags
   {
     FIXED_TARGET_POWER = OBJECT_FLAG5,
@@ -22,6 +24,13 @@ class DcLink: public Link {
     double Idc = 0;  //!< [puA] storage for DC current
     double r = 0;  //!< [puOhm]  the dc resistance
     double x = 0.0001;  //!< [puOhm]  the dc inductance
+    double c = 0.0;  //!< [puF]  the dc capacitance
+    Topology topology = Topology::RL;
+    bool currentBalance = false;  //!< use ANDES' nodal-current convention
+
+    bool hasCapacitor() const;
+    bool isOpenInPowerFlow() const;
+    count_t currentStateOffset(const SolverMode& sMode) const;
   public:
     DcLink(const std::string& objName = "dclink_$");
     DcLink(double resistancePu, double reactancePu, const std::string& objName = "dclink_$");

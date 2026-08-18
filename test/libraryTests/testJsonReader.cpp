@@ -7,9 +7,17 @@
 // test case for CoreObject object
 
 #include "../gtestHelper.h"
+#include "fileInput/fileInput.h"
 #include "formatInterpreters/jsonReaderElement.h"
+#include "griddyn/links/DcLink.h"
+#include "griddyn/links/VSCShunt.h"
+#include "griddyn/primary/AcBus.h"
+#include "griddyn/primary/DcBus.h"
 #include <gtest/gtest.h>
+#include <array>
+#include <fstream>
 #include <iostream>
+#include <nlohmann/json.hpp>
 #include <string>
 #include <string_view>
 
@@ -192,4 +200,195 @@ TEST(JsonElementReaderTests, JsonElementReaderTest4)
     main->restore();
     EXPECT_EQ(main->getName(), "main_element");
     */
+}
+
+TEST(AndesDcReaderTests, ImportsAllAndesDcComponents)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeElementReaderTestPath("andes_dc_components.json"));
+
+    EXPECT_NE(dynamic_cast<griddyn::DcBus*>(simulation->find("ground_node")), nullptr);
+    EXPECT_NE(dynamic_cast<griddyn::DcBus*>(simulation->find("node1")), nullptr);
+    for (const auto* name : {"r", "l", "c", "rls", "rcp", "rlcp", "rcs", "rlcs"}) {
+        EXPECT_NE(dynamic_cast<griddyn::links::DcLink*>(simulation->find(name)), nullptr) << name;
+    }
+    auto* vsc = dynamic_cast<griddyn::links::VSCShunt*>(simulation->find("vsc"));
+    ASSERT_NE(vsc, nullptr);
+    EXPECT_EQ(vsc->terminalCount(), 3U);
+    ASSERT_NE(vsc->getBus(3), nullptr);
+    EXPECT_EQ(vsc->getBus(3)->getName(), "ground_node");
+}
+
+TEST(AndesVSCShuntTests, MatchesAndesPqReferencePoint)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    auto* acBus = new griddyn::AcBus("ac");
+    acBus->set("type", "swing");
+    acBus->set("voltage", 1.0);
+    acBus->set("angle", 0.0);
+    auto* dcBus = new griddyn::DcBus("dc_positive");
+    dcBus->set("type", "swing");
+    dcBus->set("voltage", 1.0);
+    auto* dcReference = new griddyn::DcBus("dc_reference");
+    dcReference->set("type", "swing");
+    dcReference->set("voltage", 0.0);
+    auto* converter = new griddyn::links::VSCShunt("vsc");
+    converter->set("r", 0.0025);
+    converter->set("x", 0.06);
+    converter->set("control", 0.0);  // ANDES PQ mode
+    converter->set("p0", -0.1);
+    converter->set("q0", 0.0);
+    converter->set("andes_current_balance", true);
+    converter->updateBus(acBus, 1);
+    converter->updateBus(dcBus, 2);
+    converter->updateBus(dcReference, 3);
+    simulation->add(acBus);
+    simulation->add(dcBus);
+    simulation->add(dcReference);
+    simulation->add(converter);
+
+    EXPECT_EQ(simulation->powerflow(), 0);
+    // ANDES VSCShunt with rsh=0.0025, xsh=0.06, p0=-0.1 and q0=0
+    // yields pdc=-0.100025 at Vdc=1.  The DC terminals see -pdc/Vdc
+    // and pdc/Vdc, respectively.  These reference values are evaluated
+    // from Andes' solved VSCShunt equations.
+    EXPECT_NEAR(converter->getRealPower(2), 0.100025, 1e-7);
+    EXPECT_NEAR(converter->getRealPower(3), -0.100025, 1e-7);
+    EXPECT_NEAR(converter->getRealPower(1), 0.1, 1e-9);
+    EXPECT_NEAR(converter->getReactivePower(1), 0.0, 1e-9);
+}
+
+TEST(AndesVSCShuntTests, MatchesKundurVsc2OperatingPoint)
+{
+    // Boundary values and expected current were obtained from a one-worker
+    // Andes PFlow run of andes/cases/kundur/kundur_vsc.json.  Pinning the
+    // external AC and DC voltages makes this a component-level comparison
+    // while the AC network importer is still being completed.
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    auto* acBus = new griddyn::AcBus("ac");
+    acBus->set("type", "swing");
+    acBus->set("voltage", 0.968718231728735);
+    acBus->set("angle", 0.2893279182804385);
+    auto* dcBus = new griddyn::DcBus("dc_positive");
+    dcBus->set("type", "swing");
+    dcBus->set("voltage", 0.9989989369366359);
+    auto* dcReference = new griddyn::DcBus("dc_reference");
+    dcReference->set("type", "swing");
+    dcReference->set("voltage", 0.0);
+    auto* converter = new griddyn::links::VSCShunt("vsc");
+    // Andes scales z=True parameters from VSC_2's 110 kV base to the
+    // 230 kV AC-bus base before evaluating its VSC equations.
+    converter->set("r", 0.0005718336483931947);
+    converter->set("x", 0.013724007561436672);
+    converter->set("control", 0.0);  // Andes VSC_2, PQ mode
+    converter->set("p0", -0.1);
+    converter->set("q0", 0.0);
+    converter->set("andes_current_balance", true);
+    converter->updateBus(acBus, 1);
+    converter->updateBus(dcBus, 2);
+    converter->updateBus(dcReference, 3);
+    simulation->add(acBus);
+    simulation->add(dcBus);
+    simulation->add(dcReference);
+    simulation->add(converter);
+
+    ASSERT_EQ(simulation->powerflow(), 0);
+    // Andes: pdc=-0.10000609361072836, so -pdc / Vdc = 0.100106309...
+    EXPECT_NEAR(converter->getRealPower(2), 0.100106309, 1e-7);
+    EXPECT_NEAR(converter->getRealPower(3), -0.100106309, 1e-7);
+    EXPECT_NEAR(converter->getRealPower(1), 0.1, 1e-9);
+    EXPECT_NEAR(converter->getReactivePower(1), 0.0, 1e-9);
+}
+
+TEST(AndesPowerFlowTests, MatchesCapturedKundurVscReference)
+{
+    std::ifstream input(makeElementReaderTestPath("andes_kundur_vsc_pflow_reference.json"));
+    ASSERT_TRUE(input.is_open());
+    nlohmann::json reference;
+    input >> reference;
+    const auto tolerance = reference.at("tolerance").get<double>();
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeElementReaderTestPath("andes_kundur_vsc_pflow.json"));
+    ASSERT_EQ(simulation->powerflow(), 0);
+
+    for (index_t index = 0; index < reference.at("bus_voltage").size(); ++index) {
+        auto* bus = dynamic_cast<griddyn::AcBus*>(simulation->find("Bus_" + std::to_string(index + 1)));
+        ASSERT_NE(bus, nullptr);
+        EXPECT_NEAR(bus->get("voltage"), reference["bus_voltage"][index].get<double>(), tolerance);
+        EXPECT_NEAR(bus->get("angle"), reference["bus_angle"][index].get<double>(), tolerance);
+    }
+
+    for (index_t index = 0; index < reference.at("node_voltage").size(); ++index) {
+        auto* node = dynamic_cast<griddyn::DcBus*>(simulation->find("Node_" + std::to_string(index)));
+        ASSERT_NE(node, nullptr);
+        EXPECT_NEAR(node->get("voltage"), reference["node_voltage"][index].get<double>(), tolerance);
+    }
+
+    for (index_t index = 0; index < 2; ++index) {
+        auto* converter = dynamic_cast<griddyn::links::VSCShunt*>(
+            simulation->find("VSC_" + std::to_string(index + 1)));
+        ASSERT_NE(converter, nullptr);
+        EXPECT_NEAR(converter->getRealPower(1), -reference["vsc_psh"][index].get<double>(), tolerance);
+        EXPECT_NEAR(converter->getReactivePower(1), -reference["vsc_qsh"][index].get<double>(), tolerance);
+        const auto dcVoltage = reference["node_voltage"][index + 1].get<double>();
+        EXPECT_NEAR(converter->getRealPower(2),
+                    -reference["vsc_pdc"][index].get<double>() / dcVoltage,
+                    tolerance);
+    }
+}
+
+TEST(AndesPowerFlowTests, MatchesCapturedTwoBusReference)
+{
+    std::ifstream input(makeElementReaderTestPath("andes_two_bus_pflow_reference.json"));
+    ASSERT_TRUE(input.is_open());
+    nlohmann::json reference;
+    input >> reference;
+    const auto tolerance = reference.at("tolerance").get<double>();
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeElementReaderTestPath("andes_two_bus_pflow.json"));
+    ASSERT_EQ(simulation->powerflow(), 0);
+
+    const std::array<std::string, 2> busNames{"slack_bus", "load_bus"};
+    for (index_t index = 0; index < busNames.size(); ++index) {
+        auto* bus = dynamic_cast<griddyn::AcBus*>(simulation->find(busNames[index]));
+        ASSERT_NE(bus, nullptr);
+        EXPECT_NEAR(bus->get("voltage"), reference["bus_voltage"][index].get<double>(), tolerance);
+        EXPECT_NEAR(bus->get("angle"), reference["bus_angle"][index].get<double>(), tolerance);
+    }
+}
+
+TEST(AndesPowerFlowTests, MatchesCapturedVscResistorReference)
+{
+    std::ifstream input(makeElementReaderTestPath("andes_vsc_resistor_pflow_reference.json"));
+    ASSERT_TRUE(input.is_open());
+    nlohmann::json reference;
+    input >> reference;
+    const auto tolerance = reference.at("tolerance").get<double>();
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeElementReaderTestPath("andes_vsc_resistor_pflow.json"));
+    ASSERT_EQ(simulation->powerflow(), 0);
+
+    auto* acBus = dynamic_cast<griddyn::AcBus*>(simulation->find("ac_slack"));
+    ASSERT_NE(acBus, nullptr);
+    EXPECT_NEAR(acBus->get("voltage"), reference["bus_voltage"][0].get<double>(), tolerance);
+    EXPECT_NEAR(acBus->get("angle"), reference["bus_angle"][0].get<double>(), tolerance);
+
+    const std::array<std::string, 2> nodeNames{"dc_ground", "dc_node"};
+    for (index_t index = 0; index < nodeNames.size(); ++index) {
+        auto* node = dynamic_cast<griddyn::DcBus*>(simulation->find(nodeNames[index]));
+        ASSERT_NE(node, nullptr);
+        EXPECT_NEAR(node->get("voltage"), reference["node_voltage"][index].get<double>(), tolerance);
+    }
+
+    auto* converter = dynamic_cast<griddyn::links::VSCShunt*>(simulation->find("vsc"));
+    ASSERT_NE(converter, nullptr);
+    EXPECT_NEAR(converter->getRealPower(1), -reference["vsc_psh"][0].get<double>(), tolerance);
+    EXPECT_NEAR(converter->getReactivePower(1), -reference["vsc_qsh"][0].get<double>(), tolerance);
+    const auto dcVoltage = reference["node_voltage"][1].get<double>();
+    EXPECT_NEAR(converter->getRealPower(2),
+                -reference["vsc_pdc"][0].get<double>() / dcVoltage,
+                tolerance);
 }

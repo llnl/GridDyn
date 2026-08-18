@@ -80,7 +80,7 @@ it also needs native-input mapping, initialization, and a trajectory test.
 ## Numerical-regression policy
 
 - Keep minimized ANDES-derived input cases and captured reference results in
-  `test/test_files/element_reader_tests/`.
+  `test/test_files/andes_tests/`.
 - The regular C++ tests must not execute ANDES.  Refresh a reference only by
   running the documented ANDES case deliberately and reviewing the diff.
 - Each reference file stores its tolerance.  Start with `1e-6` p.u. for

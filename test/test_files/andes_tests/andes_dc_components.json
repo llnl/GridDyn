@@ -1,0 +1,18 @@
+{
+  "Bus": [{"idx": 1, "name": "ac1", "Vn": 230.0, "v0": 1.0, "a0": 0.0}],
+  "Node": [
+    {"idx": 0, "name": "ground_node", "Vdcn": 100.0, "Idcn": 1.0, "v0": 0.0},
+    {"idx": 1, "name": "node1", "Vdcn": 100.0, "Idcn": 1.0, "v0": 1.0},
+    {"idx": 2, "name": "node2", "Vdcn": 100.0, "Idcn": 1.0, "v0": 1.0}
+  ],
+  "Ground": [{"idx": 0, "name": "ground", "node": 0, "voltage": 0.0}],
+  "R": [{"idx": 1, "name": "r", "node1": 1, "node2": 2, "R": 0.01}],
+  "L": [{"idx": 1, "name": "l", "node1": 1, "node2": 2, "L": 0.001}],
+  "C": [{"idx": 1, "name": "c", "node1": 1, "node2": 2, "C": 0.001}],
+  "RLs": [{"idx": 1, "name": "rls", "node1": 1, "node2": 2, "R": 0.01, "L": 0.001}],
+  "RCp": [{"idx": 1, "name": "rcp", "node1": 1, "node2": 2, "R": 0.01, "C": 0.001}],
+  "RLCp": [{"idx": 1, "name": "rlcp", "node1": 1, "node2": 2, "R": 0.01, "L": 0.001, "C": 0.001}],
+  "RCs": [{"idx": 1, "name": "rcs", "node1": 1, "node2": 2, "R": 0.01, "C": 0.001}],
+  "RLCs": [{"idx": 1, "name": "rlcs", "node1": 1, "node2": 2, "R": 0.01, "L": 0.001, "C": 0.001}],
+  "VSCShunt": [{"idx": 1, "name": "vsc", "bus": 1, "node1": 1, "node2": 0, "rsh": 0.0025, "xsh": 0.06, "p0": 0.1, "Ishmax": 2.0}]
+}

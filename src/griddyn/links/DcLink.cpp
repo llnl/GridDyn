@@ -410,8 +410,7 @@ void DcLink::residual(const IOdata& inputs,
         } else if (topology == Topology::RLC_PARALLEL) {
             const auto inductorCurrent = stateData.state[firstDiffOffset];
             resid[firstDiffOffset] = (capacitorVoltage / x) - stateData.dstate_dt[firstDiffOffset];
-            resid[capacitorOffset] =
-                (-(current - (capacitorVoltage / r) - inductorCurrent) / c) -
+            resid[capacitorOffset] = (-(current - (capacitorVoltage / r) - inductorCurrent) / c) -
                 stateData.dstate_dt[capacitorOffset];
         } else if (topology == Topology::RC_SERIES) {
             resid[currentOffset] -= r * current;

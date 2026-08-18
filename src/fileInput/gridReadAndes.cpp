@@ -230,7 +230,8 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
             const auto acBus = acBuses.find(indexKey(record, "bus"));
             const auto dcBus = dcBuses.find(indexKey(record, "node1"));
             const auto dcReference = dcBuses.find(indexKey(record, "node2"));
-            if ((acBus == acBuses.end()) || (dcBus == dcBuses.end()) || (dcReference == dcBuses.end())) {
+            if ((acBus == acBuses.end()) || (dcBus == dcBuses.end()) ||
+                (dcReference == dcBuses.end())) {
                 continue;
             }
             auto* converter = new links::VSCShunt(objectName(record, "VSCShunt"));

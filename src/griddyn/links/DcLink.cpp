@@ -11,8 +11,8 @@
 #include "../primary/DcBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
-#include "gmlc/utilities/vectorOps.hpp"
 #include "gmlc/utilities/stringOps.h"
+#include "gmlc/utilities/vectorOps.hpp"
 #include <cmath>
 #include <cstring>
 #include <string>
@@ -129,8 +129,8 @@ void DcLink::set(std::string_view param, std::string_view val)
         }
     } else if ((param == "andes_current_balance") || (param == "current_balance")) {
         const auto mode = gmlc::utilities::convertToLowerCase(val);
-        currentBalance = (mode == "true") || (mode == "1") || (mode == "current") ||
-            (mode == "andes");
+        currentBalance =
+            (mode == "true") || (mode == "1") || (mode == "current") || (mode == "andes");
     } else {
         Link::set(param, val);
     }
@@ -173,8 +173,8 @@ void DcLink::pFlowObjectInitializeB()
 
 void DcLink::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
-    const auto differentialCount = (topology == Topology::RLC_PARALLEL ||
-                                    topology == Topology::RLC_SERIES) ?
+    const auto differentialCount =
+        (topology == Topology::RLC_PARALLEL || topology == Topology::RLC_SERIES) ?
         2U :
         ((hasCapacitor() || (x != 0.0)) ? 1U : 0U);
     m_dstate_dt.assign(differentialCount, 0.0);
@@ -195,10 +195,9 @@ StateSizes DcLink::localStateSizes(const SolverMode& sMode) const
     if (isDynamic(sMode)) {
         if (hasCapacitor()) {
             if (!isAlgebraicOnly(sMode)) {
-                localSS.diffSize = (topology == Topology::RLC_PARALLEL ||
-                                    topology == Topology::RLC_SERIES) ?
-                    2 :
-                    1;
+                localSS.diffSize =
+                    (topology == Topology::RLC_PARALLEL || topology == Topology::RLC_SERIES) ? 2 :
+                                                                                               1;
             }
             localSS.algSize = 1;
         } else if ((x != 0.0) && !isAlgebraicOnly(sMode)) {
@@ -215,7 +214,8 @@ count_t DcLink::localJacobianCount(const SolverMode& sMode) const
     count_t jacCount = 0;
     if (isDynamic(sMode)) {
         if (hasCapacitor()) {
-            const auto diff = (topology == Topology::RLC_PARALLEL || topology == Topology::RLC_SERIES) ? 2 : 1;
+            const auto diff =
+                (topology == Topology::RLC_PARALLEL || topology == Topology::RLC_SERIES) ? 2 : 1;
             jacCount = static_cast<count_t>(4 + (2 * diff));
         } else if ((x != 0.0) && !isAlgebraicOnly(sMode)) {
             jacCount = 3;
@@ -410,8 +410,8 @@ void DcLink::residual(const IOdata& inputs,
         } else if (topology == Topology::RLC_PARALLEL) {
             const auto iL = stateData.state[firstDiffOffset];
             resid[firstDiffOffset] = vC / x - stateData.dstate_dt[firstDiffOffset];
-            resid[capacitorOffset] = -(current - vC / r - iL) / c -
-                stateData.dstate_dt[capacitorOffset];
+            resid[capacitorOffset] =
+                -(current - vC / r - iL) / c - stateData.dstate_dt[capacitorOffset];
         } else if (topology == Topology::RC_SERIES) {
             resid[currentOffset] -= r * current;
             resid[capacitorOffset] = -current / c - stateData.dstate_dt[capacitorOffset];
@@ -447,8 +447,8 @@ void DcLink::setState(CoreTime time,
 {
     if (hasCapacitor() && isDynamic(sMode)) {
         const auto firstDiffOffset = offsets.getDiffOffset(sMode);
-        const auto differentialCount = (topology == Topology::RLC_PARALLEL ||
-                                        topology == Topology::RLC_SERIES) ? 2U : 1U;
+        const auto differentialCount =
+            (topology == Topology::RLC_PARALLEL || topology == Topology::RLC_SERIES) ? 2U : 1U;
         for (unsigned int ii = 0; ii < differentialCount; ++ii) {
             m_state[ii] = state[firstDiffOffset + ii];
             m_dstate_dt[ii] = dstateDt[firstDiffOffset + ii];

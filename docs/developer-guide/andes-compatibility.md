@@ -7,7 +7,7 @@ its importer mapping and a numerical regression test are both present.
 ## Status terms
 
 | Status | Meaning |
-| --- | --- |
+| ------------------ | -------------------------------------------------------------------------------------------- |
 | Implemented | GridDyn model, ANDES importer mapping, and a numerical test exist. |
 | Partial | A GridDyn analogue exists, but the mapping, controls, or numerical validation is incomplete. |
 | Planned | No implementation work has started. |
@@ -17,7 +17,7 @@ its importer mapping and a numerical regression test are both present.
 ## Power-flow model mapping
 
 | ANDES model(s) | GridDyn mapping | Status | Notes |
-| --- | --- | --- | --- |
+| -------------------------------------------------- | -------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Bus` | `AcBus` | Implemented | Base voltage, initial voltage, and angle are imported. |
 | `PQ` | `ZipLoad` | Implemented | Constant-power portion is imported. |
 | `PV`, `Slack` | `AcBus` plus `Generator` | Implemented | Active-power and voltage targets are imported. |
@@ -40,7 +40,7 @@ matching model states, initialization, events, limits, and trajectories; not
 only the final power-flow point.
 
 | Work item | Status | Completion evidence |
-| --- | --- | --- |
+| ---------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------- |
 | DC `L`/`C`/combined branch dynamics | Planned | ANDES and GridDyn trajectories from the same initialized DC case. |
 | `VSCShunt` controls, losses, limits, and droop | Partial | Core algebraic controls are present; loss coefficients and limit enforcement need model and trajectory tests. |
 | Motors (`Motor3`/`Motor5`) | Planned | State-name/initialization mapping plus disturbance trajectory comparisons. |
@@ -57,7 +57,7 @@ model is not compatible merely because a similarly named GridDyn model exists:
 it also needs native-input mapping, initialization, and a trajectory test.
 
 | ANDES model(s) | GridDyn mapping / next action | Status |
-| --- | --- | --- |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | --------- |
 | `GENCLS` | `GenModelClassical`; parameter and trajectory comparison required. | Partial |
 | `GENROU` | `GenModelGENROU`; PSS/e DYR reader has a mapping, but native ANDES mapping and numerical validation are absent. | Partial |
 | `TGOV1` | GridDyn governor; PSS/e DYR reader has a mapping, but native ANDES mapping and numerical validation are absent. | Partial |
@@ -92,7 +92,7 @@ it also needs native-input mapping, initialization, and a trajectory test.
 ## Current reference cases
 
 | Case | Coverage |
-| --- | --- |
+| -------------------------- | ----------------------------------------------------------------------- |
 | `andes_kundur_vsc_pflow` | 10-bus AC network, DC resistor, PQ/VQ VSC controls, and AC/DC coupling. |
 | `andes_two_bus_pflow` | Minimal AC Slack/PQ/Line power flow. |
 | `andes_vsc_resistor_pflow` | Minimal AC/DC `VSCShunt` plus DC resistance power flow. |

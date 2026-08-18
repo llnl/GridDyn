@@ -13,9 +13,9 @@
 #include "griddyn/links/VSCShunt.h"
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/primary/DcBus.h"
-#include <gtest/gtest.h>
 #include <array>
 #include <fstream>
+#include <gtest/gtest.h>
 #include <iostream>
 #include <nlohmann/json.hpp>
 #include <string>
@@ -319,24 +319,32 @@ TEST(AndesPowerFlowTests, MatchesCapturedKundurVscReference)
     ASSERT_EQ(simulation->powerflow(), 0);
 
     for (index_t index = 0; index < reference.at("bus_voltage").size(); ++index) {
-        auto* bus = dynamic_cast<griddyn::AcBus*>(simulation->find("Bus_" + std::to_string(index + 1)));
+        auto* bus =
+            dynamic_cast<griddyn::AcBus*>(simulation->find("Bus_" + std::to_string(index + 1)));
         ASSERT_NE(bus, nullptr);
         EXPECT_NEAR(bus->get("voltage"), reference["bus_voltage"][index].get<double>(), tolerance);
         EXPECT_NEAR(bus->get("angle"), reference["bus_angle"][index].get<double>(), tolerance);
     }
 
     for (index_t index = 0; index < reference.at("node_voltage").size(); ++index) {
-        auto* node = dynamic_cast<griddyn::DcBus*>(simulation->find("Node_" + std::to_string(index)));
+        auto* node =
+            dynamic_cast<griddyn::DcBus*>(simulation->find("Node_" + std::to_string(index)));
         ASSERT_NE(node, nullptr);
-        EXPECT_NEAR(node->get("voltage"), reference["node_voltage"][index].get<double>(), tolerance);
+        EXPECT_NEAR(node->get("voltage"),
+                    reference["node_voltage"][index].get<double>(),
+                    tolerance);
     }
 
     for (index_t index = 0; index < 2; ++index) {
         auto* converter = dynamic_cast<griddyn::links::VSCShunt*>(
             simulation->find("VSC_" + std::to_string(index + 1)));
         ASSERT_NE(converter, nullptr);
-        EXPECT_NEAR(converter->getRealPower(1), -reference["vsc_psh"][index].get<double>(), tolerance);
-        EXPECT_NEAR(converter->getReactivePower(1), -reference["vsc_qsh"][index].get<double>(), tolerance);
+        EXPECT_NEAR(converter->getRealPower(1),
+                    -reference["vsc_psh"][index].get<double>(),
+                    tolerance);
+        EXPECT_NEAR(converter->getReactivePower(1),
+                    -reference["vsc_qsh"][index].get<double>(),
+                    tolerance);
         const auto dcVoltage = reference["node_voltage"][index + 1].get<double>();
         EXPECT_NEAR(converter->getRealPower(2),
                     -reference["vsc_pdc"][index].get<double>() / dcVoltage,
@@ -386,7 +394,9 @@ TEST(AndesPowerFlowTests, MatchesCapturedVscResistorReference)
     for (index_t index = 0; index < nodeNames.size(); ++index) {
         auto* node = dynamic_cast<griddyn::DcBus*>(simulation->find(nodeNames[index]));
         ASSERT_NE(node, nullptr);
-        EXPECT_NEAR(node->get("voltage"), reference["node_voltage"][index].get<double>(), tolerance);
+        EXPECT_NEAR(node->get("voltage"),
+                    reference["node_voltage"][index].get<double>(),
+                    tolerance);
     }
 
     auto* converter = dynamic_cast<griddyn::links::VSCShunt*>(simulation->find("vsc"));

@@ -17,12 +17,12 @@ namespace griddyn::links {
 using units::unit;
 
 namespace {
-constexpr index_t ashIndex = 0;
-constexpr index_t vshIndex = 1;
-constexpr index_t pshIndex = 2;
-constexpr index_t qshIndex = 3;
-constexpr index_t pdcIndex = 4;
-}
+    constexpr index_t ashIndex = 0;
+    constexpr index_t vshIndex = 1;
+    constexpr index_t pshIndex = 2;
+    constexpr index_t qshIndex = 3;
+    constexpr index_t pdcIndex = 4;
+}  // namespace
 
 VSCShunt::VSCShunt(const std::string& objName): AcDcConverter(objName) {}
 
@@ -235,8 +235,8 @@ void VSCShunt::updateLocalCache()
 }
 
 void VSCShunt::updateLocalCache(const IOdata& /*inputs*/,
-                                 const StateData& stateDataValue,
-                                 const SolverMode& sMode)
+                                const StateData& stateDataValue,
+                                const SolverMode& sMode)
 {
     if (!isEnabled() || !isConnected() || !stateDataValue.updateRequired(linkInfo.seqID)) {
         return;
@@ -265,8 +265,8 @@ void VSCShunt::ioPartialDerivatives(id_type_t busId,
         return;
     }
     updateLocalCache(noInputs, stateDataValue, sMode);
-    const auto difference = B2->getVoltage(stateDataValue, sMode) -
-        dcReference->getVoltage(stateDataValue, sMode);
+    const auto difference =
+        B2->getVoltage(stateDataValue, sMode) - dcReference->getVoltage(stateDataValue, sMode);
     if (std::abs(difference) < 1e-12) {
         return;
     }
@@ -280,9 +280,8 @@ void VSCShunt::ioPartialDerivatives(id_type_t busId,
     } else if (busId == dcReference->getID()) {
         matrixDataValue.assign(POUT_LOCATION,
                                inputLocs[VOLTAGE_IN_LOCATION],
-                               currentBalance ?
-                                   pdc / (difference * difference) :
-                                   pdc * B2->getVoltage(stateDataValue, sMode) /
+                               currentBalance ? pdc / (difference * difference) :
+                                                pdc * B2->getVoltage(stateDataValue, sMode) /
                                        (difference * difference));
     }
 }
@@ -302,21 +301,23 @@ void VSCShunt::outputPartialDerivatives(id_type_t busId,
         matrixDataValue.assign(QOUT_LOCATION, offset + qshIndex, -1.0);
         return;
     }
-    const auto difference = B2->getVoltage(stateDataValue, sMode) -
-        dcReference->getVoltage(stateDataValue, sMode);
+    const auto difference =
+        B2->getVoltage(stateDataValue, sMode) - dcReference->getVoltage(stateDataValue, sMode);
     if (std::abs(difference) < 1e-12) {
         return;
     }
     if (busId == B2->getID()) {
         matrixDataValue.assign(POUT_LOCATION,
                                offset + pdcIndex,
-                               currentBalance ? -1.0 / difference :
-                                                -B2->getVoltage(stateDataValue, sMode) / difference);
+                               currentBalance ?
+                                   -1.0 / difference :
+                                   -B2->getVoltage(stateDataValue, sMode) / difference);
     } else if (busId == dcReference->getID()) {
         matrixDataValue.assign(POUT_LOCATION,
                                offset + pdcIndex,
-                               currentBalance ? 1.0 / difference :
-                                                dcReference->getVoltage(stateDataValue, sMode) / difference);
+                               currentBalance ?
+                                   1.0 / difference :
+                                   dcReference->getVoltage(stateDataValue, sMode) / difference);
     }
 }
 
@@ -349,8 +350,8 @@ void VSCShunt::jacobianElements(const IOdata& /*inputs*/,
                                    busVoltage,
                                    (2.0 * conductance * voltage) - (conductance * vsh * cosine) -
                                        (susceptance * vsh * sine));
-    const auto dpdAngle = (conductance * voltage * vsh * sine) -
-        (susceptance * voltage * vsh * cosine);
+    const auto dpdAngle =
+        (conductance * voltage * vsh * sine) - (susceptance * voltage * vsh * cosine);
     matrixDataValue.assignCheckCol(offset + ashIndex, busAngle, dpdAngle);
     matrixDataValue.assign(offset + ashIndex, offset + ashIndex, -dpdAngle);
     matrixDataValue.assign(offset + ashIndex,
@@ -360,11 +361,10 @@ void VSCShunt::jacobianElements(const IOdata& /*inputs*/,
 
     matrixDataValue.assignCheckCol(offset + vshIndex,
                                    busVoltage,
-                                   (-2.0 * susceptance * voltage) -
-                                       (conductance * vsh * sine) +
+                                   (-2.0 * susceptance * voltage) - (conductance * vsh * sine) +
                                        (susceptance * vsh * cosine));
-    const auto dqdAngle = (-conductance * voltage * vsh * cosine) -
-        (susceptance * voltage * vsh * sine);
+    const auto dqdAngle =
+        (-conductance * voltage * vsh * cosine) - (susceptance * voltage * vsh * sine);
     matrixDataValue.assignCheckCol(offset + vshIndex, busAngle, dqdAngle);
     matrixDataValue.assign(offset + vshIndex, offset + ashIndex, -dqdAngle);
     matrixDataValue.assign(offset + vshIndex,
@@ -387,8 +387,8 @@ void VSCShunt::jacobianElements(const IOdata& /*inputs*/,
     matrixDataValue.assignCheckCol(offset + pdcIndex,
                                    busVoltage,
                                    (-conductance * vsh * cosine) + (susceptance * vsh * sine));
-    const auto dpdcAngle = (conductance * voltage * vsh * sine) +
-        (susceptance * voltage * vsh * cosine);
+    const auto dpdcAngle =
+        (conductance * voltage * vsh * sine) + (susceptance * voltage * vsh * cosine);
     matrixDataValue.assignCheckCol(offset + pdcIndex, busAngle, dpdcAngle);
     matrixDataValue.assign(offset + pdcIndex, offset + ashIndex, -dpdcAngle);
     matrixDataValue.assign(offset + pdcIndex,
@@ -412,21 +412,19 @@ void VSCShunt::residual(const IOdata& inputs,
     const auto denominator = (r * r) + (x * x);
     const auto conductance = r / denominator;
     const auto susceptance = -x / denominator;
-    const auto dcDifference = B2->getVoltage(stateDataValue, sMode) -
-        dcReference->getVoltage(stateDataValue, sMode);
+    const auto dcDifference =
+        B2->getVoltage(stateDataValue, sMode) - dcReference->getVoltage(stateDataValue, sMode);
 
     resid[offset + ashIndex] = (conductance * voltage * voltage) -
         (conductance * voltage * vsh * cosine) - (susceptance * voltage * vsh * sine) - psh;
     resid[offset + vshIndex] = (-susceptance * voltage * voltage) -
         (conductance * voltage * vsh * sine) + (susceptance * voltage * vsh * cosine) - qsh;
-    resid[offset + pshIndex] = ((control == Control::PQ) || (control == Control::PV)) ?
-        (p0 - psh) :
-        (dcDifference - vdc0);
-    resid[offset + qshIndex] = ((control == Control::PQ) || (control == Control::VQ)) ?
-        (q0 - qsh) :
-        (v0 - voltage);
-    resid[offset + pdcIndex] = (conductance * vsh * vsh) -
-        (conductance * voltage * vsh * cosine) + (susceptance * voltage * vsh * sine) + pdc;
+    resid[offset + pshIndex] =
+        ((control == Control::PQ) || (control == Control::PV)) ? (p0 - psh) : (dcDifference - vdc0);
+    resid[offset + qshIndex] =
+        ((control == Control::PQ) || (control == Control::VQ)) ? (q0 - qsh) : (v0 - voltage);
+    resid[offset + pdcIndex] = (conductance * vsh * vsh) - (conductance * voltage * vsh * cosine) +
+        (susceptance * voltage * vsh * sine) + pdc;
 }
 
 void VSCShunt::setState(CoreTime time,
@@ -474,9 +472,8 @@ double VSCShunt::getRealPower(id_type_t busId) const
 {
     if ((busId == 3) || ((dcReference != nullptr) && (busId == dcReference->getID()))) {
         const auto difference = dcVoltageDifference();
-        return (std::abs(difference) < 1e-12) ?
-            0.0 :
-            currentBalance ? pdc / difference :
+        return (std::abs(difference) < 1e-12) ? 0.0 :
+            currentBalance                    ? pdc / difference :
                              pdc * static_cast<GridBus*>(dcReference)->getVoltage() / difference;
     }
     return AcDcConverter::getRealPower(busId);

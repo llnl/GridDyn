@@ -13,6 +13,7 @@
 #include "griddyn/links/AcLine.h"
 #include "griddyn/links/DcLink.h"
 #include "griddyn/links/VSCShunt.h"
+#include "griddyn/links/ZBreaker.h"
 #include "griddyn/loads/ZipLoad.h"
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/primary/DcBus.h"
@@ -118,6 +119,38 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
             bus->second->add(load);
         }
     }
+    if (document.contains("Shunt") && document["Shunt"].is_array()) {
+        const auto parentBasePower = parentObject->get("basepower");
+        const auto systemBasePower = (parentBasePower > 0.0) ? parentBasePower : 100.0;
+        for (const auto& record : document["Shunt"]) {
+            const auto busIndex = indexKey(record, "bus");
+            const auto bus = acBuses.find(busIndex);
+            const auto baseVoltage = acBaseVoltages.find(busIndex);
+            if ((bus == acBuses.end()) || (baseVoltage == acBaseVoltages.end())) {
+                continue;
+            }
+
+            // ANDES marks g and b as y=True parameters. Convert from the
+            // device base to the system/bus base using Zb/Zn, then map the
+            // ANDES injection convention P=g*V^2, Q=-b*V^2 to ZipLoad.
+            const auto deviceBasePower = number(record, "Sn", 100.0);
+            const auto deviceBaseVoltage = number(record, "Vn", 110.0);
+            const auto busBaseVoltage = baseVoltage->second;
+            const auto admittanceScale =
+                (deviceBasePower > 0.0 && deviceBaseVoltage > 0.0 && busBaseVoltage > 0.0) ?
+                (deviceBasePower / systemBasePower) *
+                    std::pow(busBaseVoltage / deviceBaseVoltage, 2) :
+                1.0;
+
+            auto* shunt = new ZipLoad(objectName(record, "Shunt"));
+            shunt->set("yp", number(record, "g") * admittanceScale);
+            shunt->set("yq", -number(record, "b") * admittanceScale);
+            if (number(record, "u", 1.0) == 0.0) {
+                shunt->disable();
+            }
+            bus->second->add(shunt);
+        }
+    }
     if (document.contains("PV") && document["PV"].is_array()) {
         for (const auto& record : document["PV"]) {
             const auto bus = acBuses.find(indexKey(record, "bus"));
@@ -165,6 +198,22 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
                 line->disable();
             }
             parentObject->add(line);
+        }
+    }
+    if (document.contains("Jumper") && document["Jumper"].is_array()) {
+        for (const auto& record : document["Jumper"]) {
+            const auto first = acBuses.find(indexKey(record, "bus1"));
+            const auto second = acBuses.find(indexKey(record, "bus2"));
+            if ((first == acBuses.end()) || (second == acBuses.end())) {
+                continue;
+            }
+            auto* jumper = new links::ZBreaker(objectName(record, "Jumper"));
+            jumper->updateBus(first->second, 1);
+            jumper->updateBus(second->second, 2);
+            if (number(record, "u", 1.0) == 0.0) {
+                jumper->disable();
+            }
+            parentObject->add(jumper);
         }
     }
 

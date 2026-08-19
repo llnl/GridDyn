@@ -11,6 +11,8 @@
 #include "formatInterpreters/jsonReaderElement.h"
 #include "griddyn/links/DcLink.h"
 #include "griddyn/links/VSCShunt.h"
+#include "griddyn/links/ZBreaker.h"
+#include "griddyn/loads/ZipLoad.h"
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/primary/DcBus.h"
 #include <array>
@@ -373,6 +375,72 @@ TEST(AndesPowerFlowTests, MatchesCapturedTwoBusReference)
         EXPECT_NEAR(bus->get("voltage"), reference["bus_voltage"][index].get<double>(), tolerance);
         EXPECT_NEAR(bus->get("angle"), reference["bus_angle"][index].get<double>(), tolerance);
     }
+}
+
+TEST(AndesPowerFlowTests, MatchesCapturedShuntReference)
+{
+    std::ifstream input(makeAndesTestPath("andes_shunt_pflow_reference.json"));
+    ASSERT_TRUE(input.is_open());
+    nlohmann::json reference;
+    input >> reference;
+    const auto tolerance = reference.at("tolerance").get<double>();
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("andes_shunt_pflow.json"));
+    ASSERT_EQ(simulation->powerflow(), 0);
+
+    const std::array<std::string, 2> busNames{"slack_bus", "shunt_bus"};
+    for (std::size_t index = 0; index < busNames.size(); ++index) {
+        auto* bus = dynamic_cast<griddyn::AcBus*>(simulation->find(busNames[index]));
+        ASSERT_NE(bus, nullptr);
+        EXPECT_NEAR(bus->get("voltage"), reference["bus_voltage"][index].get<double>(), tolerance);
+        EXPECT_NEAR(bus->get("angle"), reference["bus_angle"][index].get<double>(), tolerance);
+    }
+
+    auto* shunt = dynamic_cast<griddyn::ZipLoad*>(simulation->find("shunt_bus::fixed_shunt"));
+    ASSERT_NE(shunt, nullptr);
+    EXPECT_NEAR(shunt->get("yp"), reference["shunt_yp"].get<double>(), tolerance);
+    EXPECT_NEAR(shunt->get("yq"), reference["shunt_yq"].get<double>(), tolerance);
+    EXPECT_NEAR(shunt->getRealPower(), reference["shunt_p"].get<double>(), tolerance);
+    EXPECT_NEAR(shunt->getReactivePower(), reference["shunt_q"].get<double>(), tolerance);
+}
+
+TEST(AndesPowerFlowTests, MatchesCapturedJumperReference)
+{
+    std::ifstream input(makeAndesTestPath("andes_jumper_pflow_reference.json"));
+    ASSERT_TRUE(input.is_open());
+    nlohmann::json reference;
+    input >> reference;
+    const auto tolerance = reference.at("tolerance").get<double>();
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("andes_jumper_pflow.json"));
+    ASSERT_EQ(simulation->powerflow(), 0);
+
+    const std::array<std::string, 3> busNames{"slack_bus", "jumper_bus", "load_bus"};
+    for (std::size_t index = 0; index < busNames.size(); ++index) {
+        auto* bus = dynamic_cast<griddyn::AcBus*>(simulation->find(busNames[index]));
+        ASSERT_NE(bus, nullptr);
+        EXPECT_NEAR(bus->get("voltage"), reference["bus_voltage"][index].get<double>(), tolerance);
+        EXPECT_NEAR(bus->get("angle"), reference["bus_angle"][index].get<double>(), tolerance);
+    }
+
+    auto* active = dynamic_cast<griddyn::links::ZBreaker*>(simulation->find("active_jumper"));
+    ASSERT_NE(active, nullptr);
+    EXPECT_TRUE(active->isEnabled());
+    ASSERT_NE(active->getBus(1), nullptr);
+    ASSERT_NE(active->getBus(2), nullptr);
+    EXPECT_EQ(active->getBus(1)->getName(), "slack_bus");
+    EXPECT_EQ(active->getBus(2)->getName(), "jumper_bus");
+    EXPECT_NEAR(active->getBus(1)->get("voltage"), active->getBus(2)->get("voltage"), tolerance);
+    EXPECT_NEAR(active->getBus(1)->get("angle"), active->getBus(2)->get("angle"), tolerance);
+
+    auto* inactive = dynamic_cast<griddyn::links::ZBreaker*>(simulation->find("inactive_jumper"));
+    ASSERT_NE(inactive, nullptr);
+    EXPECT_FALSE(inactive->isEnabled());
+    EXPECT_GT(std::abs(reference["bus_voltage"][0].get<double>() -
+                       reference["bus_voltage"][2].get<double>()),
+              tolerance);
 }
 
 TEST(AndesPowerFlowTests, MatchesCapturedVscResistorReference)

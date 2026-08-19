@@ -1,0 +1,10 @@
+{
+  "source": "ANDES pflow: andes_shunt_pflow.json (single worker)",
+  "tolerance": 1e-6,
+  "bus_voltage": [1.000000000002938, 0.9776771355574213],
+  "bus_angle": [2.7532649205730654e-13, -0.08482362610684113],
+  "shunt_yp": 0.04,
+  "shunt_yq": -0.2,
+  "shunt_p": 0.03823410325567057,
+  "shunt_q": -0.19117051627835288
+}

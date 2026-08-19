@@ -1,0 +1,30 @@
+{
+  "Bus": [
+    { "idx": 1, "name": "slack_bus", "Vn": 230.0, "v0": 1.0, "a0": 0.0 },
+    { "idx": 2, "name": "jumper_bus", "Vn": 230.0, "v0": 1.0, "a0": 0.0 },
+    { "idx": 3, "name": "load_bus", "Vn": 230.0, "v0": 0.98, "a0": -0.1 }
+  ],
+  "Slack": [
+    { "idx": 1, "bus": 1, "p0": 0.0, "q0": 0.0, "v0": 1.0, "a0": 0.0 }
+  ],
+  "PQ": [
+    { "idx": "PQ_1", "bus": 3, "p0": 1.0, "q0": 0.3 }
+  ],
+  "Line": [
+    {
+      "idx": "Line_1",
+      "bus1": 2,
+      "bus2": 3,
+      "Vn1": 230.0,
+      "Vn2": 230.0,
+      "r": 0.01,
+      "x": 0.1,
+      "b": 0.02
+    }
+  ],
+  "Jumper": [
+    { "idx": "Jumper_1", "name": "active_jumper", "bus1": 1, "bus2": 2, "u": 1 },
+    { "idx": "Jumper_2", "name": "inactive_jumper", "bus1": 1, "bus2": 3, "u": 0 }
+  ],
+  "Node": []
+}

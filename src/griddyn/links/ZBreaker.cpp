@@ -133,12 +133,16 @@ void ZBreaker::merge()
 {
     B1->mergeBus(B2);
     merged = true;
+    B1->alert(this, STATE_COUNT_CHANGE);
+    B2->alert(this, STATE_COUNT_CHANGE);
 }
 
 void ZBreaker::unmerge()
 {
     B1->unmergeBus(B2);
     merged = false;
+    B1->alert(this, STATE_COUNT_CHANGE);
+    B2->alert(this, STATE_COUNT_CHANGE);
 }
 
 int ZBreaker::fixRealPower(double /*power*/,

@@ -9,15 +9,38 @@
 #include <functional>
 #include <string>
 namespace utilities {
-/** @brief class implementing a saturation model
- *@details 4 mathematical models are available including: quadratic, scaled_quadratic, exponential,
- *and linear
+/** @brief Class implementing several saturation characteristics.
+ *
+ * @details Saturation points supplied with setParam(double, double) are the
+ * values at inputs 1.0 and 1.2. The cutoff-scaled-quadratic characteristic is
+ * the form used by PSS/E synchronous-machine models such as GENROU:
+ * \f[
+ * S(x)=\begin{cases}
+ * 0,&x<A,\\
+ * B(x-A)^2/x,&x\ge A.
+ * \end{cases}
+ * \f]
+ * Non-positive saturation points disable the characteristic. This supports
+ * the common \f$S(1.0)=0\f$ convention without producing invalid coefficients.
  */
 class Saturation {
   public:
     /** @brief enumeration of saturation types
      */
-    enum class SaturationType { NONE, QUADRATIC, SCALED_QUADRATIC, EXPONENTIAL, LINEAR };
+    enum class SaturationType {
+        NONE,
+        QUADRATIC,
+        SCALED_QUADRATIC,
+        CUTOFF_SCALED_QUADRATIC,
+        EXPONENTIAL,
+        LINEAR
+    };
+
+    /** Saturation value and its derivative at the same input point. */
+    struct Evaluation {
+        double value;
+        double derivative;
+    };
 
   private:
     double s10 = 0.0;  //!< s10 parameter
@@ -37,6 +60,11 @@ class Saturation {
     /** construct from string naming saturation type
      *@param[in] satType a string containing the type of the saturation*/
     explicit Saturation(const std::string& satType);
+    Saturation(const Saturation& other);
+    Saturation(Saturation&& other) noexcept;
+    Saturation& operator=(const Saturation& other);
+    Saturation& operator=(Saturation&& other) noexcept;
+    ~Saturation() = default;
     /** set the S10 and S12 parameter
      *@details sets the parameters of the saturation function previously specified at the point 1.0
      *and 1.2 The values input should correspond to the reduction in values so 0.0 for no saturation
@@ -71,9 +99,14 @@ class Saturation {
     double compute(double val) const;
     /** @brief compute the derivative of the saturation with respect to the input value
      * @param[in] val input value
-     * @return the derivative of the saturation level with respect to the trustees
+     * @return the derivative of the saturation level with respect to the input
      */
     double deriv(double val) const;
+    /** @brief Compute the saturation value and derivative together.
+     * @param[in] val input value
+     * @return saturation value and derivative evaluated on the same characteristic
+     */
+    Evaluation evaluate(double val) const;
     /** @brief compute the inverse value given a saturation level
      *@details values below 0.00001 return 0.5 so there is no numeric instability
      *@param[in] val the saturation level

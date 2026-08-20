@@ -18,8 +18,44 @@ Saturation::Saturation(SaturationType sT): type(sT)
 Saturation::Saturation(const std::string& satType): type(SaturationType::NONE)
 {
     setType(satType);
+}
+
+Saturation::Saturation(const Saturation& other):
+    s10(other.s10), s12(other.s12), A(other.A), B(other.B), type(other.type)
+{
     loadFunctions();
-    computeParam();
+}
+
+Saturation::Saturation(Saturation&& other) noexcept:
+    s10(other.s10), s12(other.s12), A(other.A), B(other.B), type(other.type)
+{
+    loadFunctions();
+}
+
+Saturation& Saturation::operator=(const Saturation& other)
+{
+    if (this != &other) {
+        s10 = other.s10;
+        s12 = other.s12;
+        A = other.A;
+        B = other.B;
+        type = other.type;
+        loadFunctions();
+    }
+    return *this;
+}
+
+Saturation& Saturation::operator=(Saturation&& other) noexcept
+{
+    if (this != &other) {
+        s10 = other.s10;
+        s12 = other.s12;
+        A = other.A;
+        B = other.B;
+        type = other.type;
+        loadFunctions();
+    }
+    return *this;
 }
 
 void Saturation::setType(const std::string& stype)
@@ -30,6 +66,8 @@ void Saturation::setType(const std::string& stype)
         type = SaturationType::QUADRATIC;
     } else if (stype == "scaled_quadratic") {
         type = SaturationType::SCALED_QUADRATIC;
+    } else if ((stype == "cutoff_scaled_quadratic") || (stype == "clamped_scaled_quadratic")) {
+        type = SaturationType::CUTOFF_SCALED_QUADRATIC;
     } else if (stype == "exponential") {
         type = SaturationType::EXPONENTIAL;
     } else if (stype == "linear") {
@@ -54,10 +92,23 @@ void Saturation::setParam(double V1, double S1, double V2, double S2)
             A = -(V2 * ssv - V1) / (V1 - ssv);
             B = S1 / ((V1 - A) * (V1 - A));
         } break;
-        case SaturationType::SCALED_QUADRATIC: {
+        case SaturationType::SCALED_QUADRATIC:
+        case SaturationType::CUTOFF_SCALED_QUADRATIC: {
+            if ((V1 <= 0.0) || (V2 <= 0.0) || (S1 <= 0.0) || (S2 <= 0.0)) {
+                A = 0.0;
+                B = 0.0;
+                break;
+            }
             double ssv = sqrt((S1 * V1) / (S2 * V2));
-            A = -(V2 * ssv - V1) / (V1 - ssv);
-            B = S1 / ((V1 - A) * (V1 - A));
+            const double fitDenominator = V1 - ssv;
+            if (std::abs(fitDenominator) < 1e-12) {
+                A = 0.0;
+                B = 0.0;
+                break;
+            }
+            A = -(V2 * ssv - V1) / fitDenominator;
+            const double distance = V1 - A;
+            B = (std::abs(distance) < 1e-12) ? 0.0 : S1 / (distance * distance);
         } break;
         case SaturationType::EXPONENTIAL:
             A = log(S1 / S2) / log(V1 / V2);
@@ -100,9 +151,13 @@ double Saturation::deriv(double val) const
 {
     return derivFunc(val);
 }
+Saturation::Evaluation Saturation::evaluate(double val) const
+{
+    return {satFunc(val), derivFunc(val)};
+}
 double Saturation::inv(double val) const
 {
-    if (val < 0.00001) {
+    if ((val < 0.00001) || (B == 0.0)) {
         return 0.5;
     }
     double ret = 0.5;
@@ -110,9 +165,10 @@ double Saturation::inv(double val) const
         case SaturationType::QUADRATIC:
             ret = sqrt(val / B) + A;
             break;
-        case SaturationType::SCALED_QUADRATIC: {
+        case SaturationType::SCALED_QUADRATIC:
+        case SaturationType::CUTOFF_SCALED_QUADRATIC: {
             double temp = (2 * A + val / B);
-            ret = (temp + sqrt(temp - 4 * A * A)) / 2;
+            ret = (temp + sqrt(temp * temp - 4 * A * A)) / 2;
             break;
         }
         case SaturationType::EXPONENTIAL:
@@ -132,24 +188,54 @@ void Saturation::computeParam()
 {
     switch (type) {
         case SaturationType::QUADRATIC: {
+            if ((s10 <= 0.0) || (s12 <= 0.0)) {
+                A = 0.0;
+                B = 0.0;
+                break;
+            }
             double ssv = sqrt(s10 / s12);
-            A = -(1.2 * ssv - 1.0) / (1.0 - ssv);
-            B = s10 / ((1.0 - A) * (1.0 - A));
+            const double fitDenominator = 1.0 - ssv;
+            if (std::abs(fitDenominator) < 1e-12) {
+                A = 0.0;
+                B = 0.0;
+                break;
+            }
+            A = -(1.2 * ssv - 1.0) / fitDenominator;
+            const double distance = 1.0 - A;
+            B = (std::abs(distance) < 1e-12) ? 0.0 : s10 / (distance * distance);
             break;
         }
-        case SaturationType::SCALED_QUADRATIC: {
+        case SaturationType::SCALED_QUADRATIC:
+        case SaturationType::CUTOFF_SCALED_QUADRATIC: {
+            if ((s10 <= 0.0) || (s12 <= 0.0)) {
+                A = 0.0;
+                B = 0.0;
+                break;
+            }
             double ssv = sqrt((s10 * 1.0) / (s12 * 1.2));
-            A = -(1.2 * ssv - 1.0) / (1.0 - ssv);
-            B = s10 / ((1.0 - A) * (1.0 - A));
+            const double fitDenominator = 1.0 - ssv;
+            if (std::abs(fitDenominator) < 1e-12) {
+                A = 0.0;
+                B = 0.0;
+                break;
+            }
+            A = -(1.2 * ssv - 1.0) / fitDenominator;
+            const double distance = 1.0 - A;
+            B = (std::abs(distance) < 1e-12) ? 0.0 : s10 / (distance * distance);
             break;
         }
         case SaturationType::EXPONENTIAL:
-            A = -log(s10 / s12) / log(1.2);
-            B = s10;
+            if ((s10 <= 0.0) || (s12 <= 0.0)) {
+                A = 0.0;
+                B = 0.0;
+            } else {
+                A = -log(s10 / s12) / log(1.2);
+                B = s10;
+            }
             break;
         case SaturationType::LINEAR:
             B = (s12 - s10) / 0.2;
-            A = 1.0 - s10 / B;
+            A = (std::abs(B) < 1e-12) ? 0.0 : 1.0 - s10 / B;
             break;
         case SaturationType::NONE:
         default:
@@ -167,15 +253,36 @@ void Saturation::loadFunctions()
             derivFunc = [this](double val) { return (2 * B * (val - A)); };
             break;
         case SaturationType::SCALED_QUADRATIC:
-            satFunc = [this](double val) { return (B * (val - A) * (val - A) / val); };
+            satFunc = [this](double val) {
+                return ((B == 0.0) || (val == 0.0)) ? 0.0 : (B * (val - A) * (val - A) / val);
+            };
             derivFunc = [this](double val) {
+                if ((B == 0.0) || (val == 0.0)) {
+                    return 0.0;
+                }
                 double v1 = (val - A);
                 return (B * (2 * val * v1 - v1 * v1) / (val * val));
             };
             break;
+        case SaturationType::CUTOFF_SCALED_QUADRATIC:
+            satFunc = [this](double val) {
+                if ((B == 0.0) || (val <= 0.0) || (val < A)) {
+                    return 0.0;
+                }
+                const double distance = val - A;
+                return B * distance * distance / val;
+            };
+            derivFunc = [this](double val) {
+                if ((B == 0.0) || (val <= 0.0) || (val < A)) {
+                    return 0.0;
+                }
+                const double distance = val - A;
+                return B * distance * (val + A) / (val * val);
+            };
+            break;
         case SaturationType::EXPONENTIAL:
-            satFunc = [this](double val) { return (B * pow(val, A)); };
-            derivFunc = [this](double val) { return (A * B * pow(val, A - 1)); };
+            satFunc = [this](double val) { return (B == 0.0) ? 0.0 : (B * pow(val, A)); };
+            derivFunc = [this](double val) { return (B == 0.0) ? 0.0 : (A * B * pow(val, A - 1)); };
             break;
         case SaturationType::LINEAR:
             satFunc = [this](double val) { return (val <= A) ? 0 : (B * (val - A)); };

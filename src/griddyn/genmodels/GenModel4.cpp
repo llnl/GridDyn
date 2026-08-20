@@ -24,6 +24,7 @@ CoreObject* GenModel4::clone(CoreObject* obj) const
     gd->Tqop = Tqop;
     gd->S10 = S10;
     gd->S12 = S12;
+    gd->sat = sat;
     return gd;
 }
 

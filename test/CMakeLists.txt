@@ -45,10 +45,7 @@ set(file_reader_gtest_sources
     libraryTests/testGridDynRunner.cpp
 )
 
-set(andes_compatibility_gtest_sources
-    gtestHelperFunctions.cpp
-    andesTests/testAndesDyrReader.cpp
-)
+set(andes_compatibility_gtest_sources gtestHelperFunctions.cpp andesTests/testAndesDyrReader.cpp)
 
 set(network_component_gtest_sources
     gtestHelperFunctions.cpp componentTests/testLoads.cpp componentTests/testdcLinks.cpp

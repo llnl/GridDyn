@@ -100,8 +100,8 @@ void Saturation::setParam(double firstInput,
         } break;
         case SaturationType::SCALED_QUADRATIC:
         case SaturationType::CUTOFF_SCALED_QUADRATIC: {
-            if ((firstInput <= 0.0) || (secondInput <= 0.0) ||
-                (firstSaturation <= 0.0) || (secondSaturation <= 0.0)) {
+            if ((firstInput <= 0.0) || (secondInput <= 0.0) || (firstSaturation <= 0.0) ||
+                (secondSaturation <= 0.0)) {
                 A = 0.0;
                 B = 0.0;
                 break;
@@ -116,9 +116,7 @@ void Saturation::setParam(double firstInput,
             }
             A = -(secondInput * ssv - firstInput) / fitDenominator;
             const double distance = firstInput - A;
-            B = (std::abs(distance) < 1e-12) ?
-                0.0 :
-                firstSaturation / (distance * distance);
+            B = (std::abs(distance) < 1e-12) ? 0.0 : firstSaturation / (distance * distance);
         } break;
         case SaturationType::EXPONENTIAL:
             A = log(firstSaturation / secondSaturation) / log(firstInput / secondInput);

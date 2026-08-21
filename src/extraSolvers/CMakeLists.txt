@@ -133,12 +133,6 @@ set(GRIDDYN_ENABLE_BRAID_SOLVER OFF)
 
 if(BUILD_PARADAE_SOLVERS OR BUILD_BRAID_SOLVER)
     find_package(LAPACKE QUIET)
-    if(NOT LAPACKE_FOUND)
-        message(
-            WARNING
-                "PARADAE and Braid solvers require LAPACKE; extra solver support will be limited"
-        )
-    endif()
 endif()
 
 if(BUILD_PARADAE_SOLVERS AND LAPACKE_FOUND)

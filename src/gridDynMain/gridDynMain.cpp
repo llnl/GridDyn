@@ -12,6 +12,7 @@
 #include "runner/gridDynRunner.h"
 #include <cstdint>
 #include <format>
+#include <iostream>
 #include <memory>
 #include <string>
 #ifdef ENABLE_HELICS_EXECUTABLE
@@ -203,7 +204,8 @@ int main(int argc, char* argv[])
 
         return 0;
     }
-    catch (const std::exception&) {
+    catch (const std::exception& error) {
+        std::cerr << "GridDyn execution failed: " << error.what() << '\n';
         return -5;
     }
 }

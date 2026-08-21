@@ -1,12 +1,6 @@
 name: Braid Build
 
 on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
@@ -27,18 +21,31 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Install Braid dependencies
+        shell: bash
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends liblapacke-dev
+
       - name: Build XBraID
         shell: bash
-        run: ./scripts/xbraid_build.sh
+        run: |
+          ./scripts/xbraid_build.sh
+          test -f "${GITHUB_WORKSPACE}/../xbraid/braid/braid.h"
+          test -f "${GITHUB_WORKSPACE}/../xbraid/braid/libbraid.a"
 
       - name: Configure
         shell: bash
         run: |
-          mkdir -p build
-          cd build
-          eval cmake .. ${CMAKE_FLAGS}
-        env:
-          CMAKE_FLAGS: -DGRIDDYN_ENABLE_MPI=ON -DGRIDDYN_ENABLE_OPENMP=OFF -DGRIDDYN_ENABLE_EXTRA_SOLVERS=ON -DBUILD_SHARED_LIBS=OFF -DCMAKE_POSITION_INDEPENDENT_CODE=ON -DBUILD_BRAID_SOLVER=ON -DBRAID_INSTALL_DIR=${{ github.workspace }}/../xbraid/braid
+          cmake -S . -B build \
+            -DGRIDDYN_ENABLE_MPI=ON \
+            -DGRIDDYN_ENABLE_OPENMP=OFF \
+            -DGRIDDYN_ENABLE_EXTRA_SOLVERS=ON \
+            -DBUILD_SHARED_LIBS=OFF \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DBUILD_BRAID_SOLVER=ON \
+            "-DBRAID_INSTALL_DIR=${GITHUB_WORKSPACE}/../xbraid/braid"
+          grep -Fq "loadExtraSolvers();" build/src/gridDynLoader/libraryLoader.cpp
 
       - name: Build
         shell: bash

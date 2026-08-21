@@ -92,7 +92,10 @@ namespace {
         auto params = gmlc::utilities::str2vector(tokens, kNullVal);
 
         auto cof = CoreObjectFactory::instance();
-        auto* genModel = static_cast<GenModel*>(cof->createObject("genmodel", "6"));
+        auto* genModel = static_cast<GenModel*>(cof->createObject("genmodel", "genrou"));
+        // Attach first so the RAW source resistance/reactance is transferred to
+        // the model before the DYR machine parameters replace the source Xd.
+        gen->add(genModel);
         genModel->set("tdop", params[3]);
         genModel->set("tdopp", params[4]);
         genModel->set("tqop", params[5]);
@@ -108,8 +111,6 @@ namespace {
         genModel->set("xl", params[14]);
         genModel->set("s1", params[15]);
         genModel->set("s12", params[16]);
-
-        gen->add(genModel);
     }
 
     void loadESDC1A(CoreObject* parentObject, stringVec& tokens)

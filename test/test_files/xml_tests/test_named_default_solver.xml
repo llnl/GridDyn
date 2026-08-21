@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Verify that a named solver is available when a default solver is interpreted. -->
+<griddyn name="named_default_solver_test" version="0.0.1">
+  <solver name="basic"/>
+  <defpowerflow>basic</defpowerflow>
+</griddyn>

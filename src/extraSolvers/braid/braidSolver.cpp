@@ -30,7 +30,6 @@
 #include <string>
 
 namespace griddyn::braid {
-using griddyn::paradae::BackwardDiff;
 using griddyn::paradae::BDF;
 using griddyn::paradae::Equation;
 using griddyn::paradae::EquationGridDyn;

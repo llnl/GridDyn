@@ -31,6 +31,7 @@ set(library_gtest_sources
     libraryTests/testMatrixData.cpp
     libraryTests/testZipUtilities.cpp
     libraryTests/testOperatingBounds.cpp
+    libraryTests/testSaturation.cpp
     libraryTests/testValuePredictors.cpp
 )
 
@@ -38,11 +39,14 @@ set(file_reader_gtest_sources
     gtestHelperFunctions.cpp
     libraryTests/testReaderInfo.cpp
     libraryTests/testExampleReaders.cpp
+    libraryTests/testSolverReader.cpp
     libraryTests/testXML.cpp
     libraryTests/testJsonReader.cpp
     libraryTests/testElementReaders.cpp
     libraryTests/testGridDynRunner.cpp
 )
+
+set(andes_compatibility_gtest_sources gtestHelperFunctions.cpp andesTests/testAndesDyrReader.cpp)
 
 set(network_component_gtest_sources
     gtestHelperFunctions.cpp componentTests/testLoads.cpp componentTests/testdcLinks.cpp
@@ -152,6 +156,7 @@ target_compile_definitions(
 add_executable(ExtraTests ${extra_gtest_sources} ${gtestMain_headers})
 add_executable(LibraryTests ${library_gtest_sources} ${gtestMain_headers})
 add_executable(FileReaderTests ${file_reader_gtest_sources} ${gtestMain_headers})
+add_executable(AndesCompatibilityTests ${andes_compatibility_gtest_sources} ${gtestMain_headers})
 add_executable(NetworkComponentTests ${network_component_gtest_sources} ${gtestMain_headers})
 add_executable(GeneratorComponentTests ${generator_component_gtest_sources} ${gtestMain_headers})
 add_executable(EventComponentTests ${event_component_gtest_sources} ${gtestMain_headers})
@@ -167,6 +172,7 @@ add_executable(OptionalComponentTests ${optional_component_gtest_sources} ${gtes
 target_link_libraries(ExtraTests PRIVATE fileInput griddyn_gtest_base)
 target_link_libraries(LibraryTests PRIVATE fileInput griddyn_gtest_base)
 target_link_libraries(FileReaderTests PRIVATE fileInput griddyn_gtest_base)
+target_link_libraries(AndesCompatibilityTests PRIVATE fileInput griddyn_gtest_base)
 target_link_libraries(
     NetworkComponentTests PRIVATE griddyn_optional fileInput griddyn_gtest_base
                                   ${optional_component_test_linkages}
@@ -194,6 +200,7 @@ target_link_libraries(
 add_gtest(LibraryTests)
 add_gtest(ExtraTests)
 add_gtest(FileReaderTests)
+add_gtest(AndesCompatibilityTests)
 add_gtest(NetworkComponentTests)
 add_gtest(GeneratorComponentTests)
 add_gtest(EventComponentTests)
@@ -207,6 +214,7 @@ set_target_properties(
     LibraryTests
     ExtraTests
     FileReaderTests
+    AndesCompatibilityTests
     NetworkComponentTests
     GeneratorComponentTests
     EventComponentTests
@@ -221,6 +229,7 @@ set_target_properties(
 set_tests_properties(LibraryTests PROPERTIES LABELS "Quick;Continuous")
 set_tests_properties(ExtraTests PROPERTIES LABELS "Nightly")
 set_tests_properties(FileReaderTests PROPERTIES LABELS "Quick;Continuous")
+set_tests_properties(AndesCompatibilityTests PROPERTIES LABELS "Quick;Continuous")
 set_tests_properties(NetworkComponentTests PROPERTIES LABELS "Quick;Continuous")
 set_tests_properties(GeneratorComponentTests PROPERTIES LABELS "Quick;Continuous")
 set_tests_properties(EventComponentTests PROPERTIES LABELS "Quick;Continuous")
@@ -236,6 +245,7 @@ install(DIRECTORY DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
 install(TARGETS ExtraTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
 install(TARGETS LibraryTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
 install(TARGETS FileReaderTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
+install(TARGETS AndesCompatibilityTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
 install(TARGETS NetworkComponentTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
 install(TARGETS GeneratorComponentTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
 install(TARGETS EventComponentTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)

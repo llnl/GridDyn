@@ -65,13 +65,8 @@ if(LAPACKE_FOUND)
 endif()
 
 # ##################################################################################################
-# First search for headers
-find_path(
-    LAPACKE_CBLAS_INCLUDE_DIR
-    NAMES cblas.h
-    PATHS ${LAPACKE_SEARCH_PATHS}
-    PATH_SUFFIXES include include/lapack
-)
+# First search for headers. GridDyn uses the LAPACKE API directly and does not require a separately
+# installed CBLAS header or library.
 find_path(
     LAPACKE_LAPACKE_INCLUDE_DIR
     NAMES lapacke.h
@@ -88,24 +83,8 @@ find_library(
     PATHS ${LAPACKE_SEARCH_PATHS}
     PATH_SUFFIXES ${PATH_SUFFIXES_LIST}
 )
-find_library(
-    CBLAS_LIB
-    NAMES cblas
-    PATHS ${LAPACKE_SEARCH_PATHS}
-    PATH_SUFFIXES ${PATH_SUFFIXES_LIST}
-)
-find_library(
-    LAPACK_LIB
-    NAMES lapack
-    PATHS ${LAPACKE_SEARCH_PATHS}
-    PATH_SUFFIXES ${PATH_SUFFIXES_LIST}
-)
-find_library(
-    BLAS_LIB
-    NAMES blas
-    PATHS ${LAPACKE_SEARCH_PATHS}
-    PATH_SUFFIXES ${PATH_SUFFIXES_LIST}
-)
+find_package(LAPACK QUIET)
+find_package(BLAS QUIET)
 
 # TODO: Get version components
 # ------------------------------------------------------------------------
@@ -134,32 +113,18 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(
     LAPACKE
     FOUND_VAR LAPACKE_FOUND
-    REQUIRED_VARS
-        LAPACKE_CBLAS_INCLUDE_DIR
-        LAPACKE_LAPACKE_INCLUDE_DIR
-        LAPACKE_LIB
-        LAPACK_LIB
-        CBLAS_LIB
-        BLAS_LIB
+    REQUIRED_VARS LAPACKE_LAPACKE_INCLUDE_DIR LAPACKE_LIB LAPACK_FOUND BLAS_FOUND
     VERSION_VAR LAPACKE_VERSION_STRING
 )
 
 if(LAPACKE_FOUND)
-    set(LAPACKE_INCLUDE_DIRS ${LAPACKE_CBLAS_INCLUDE_DIR} ${LAPACKE_CBLAS_INCLUDE_DIR})
-    list(REMOVE_DUPLICATES LAPACKE_INCLUDE_DIRS)
+    set(LAPACKE_INCLUDE_DIRS ${LAPACKE_LAPACKE_INCLUDE_DIR})
     if("${CMAKE_C_COMPILER_ID}" MATCHES ".*Clang.*" OR "${CMAKE_C_COMPILER_ID}" MATCHES ".*GNU.*"
        OR "${CMAKE_C_COMPILER_ID}" MATCHES ".*Intel.*"
     ) # NOT MSVC
         set(MATH_LIB m)
     endif()
-    list(
-        APPEND
-        LAPACKE_LIBRARIES
-        ${LAPACKE_LIB}
-        ${LAPACK_LIB}
-        ${BLAS_LIB}
-        ${CBLAS_LIB}
-    )
+    list(APPEND LAPACKE_LIBRARIES ${LAPACKE_LIB} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
     # Check for a common combination, and find required gfortran support libraries
 
     if(1)

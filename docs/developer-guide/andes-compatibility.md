@@ -64,27 +64,27 @@ GridDyn's current DYR reader recognizes only `GENROU`, `ESDC1A`, `EXDC2`,
 `TGOV1`, and `SEXS`. Recognition alone is not compatibility: the existing
 adapters still have attachment, parameter, equation, and validation gaps.
 
-| PSS/e DYR record(s) | ANDES destination | Existing GridDyn candidate | Current compatibility and required action |
-| ------------------- | ----------------- | -------------------------- | ----------------------------------------- |
-| `GENCLS` | `GENCLS` | `GenModelClassical` | **Partial.** Add a DYR adapter, verify machine/system-base conversion, initialization, and rotor trajectory. |
-| `GENSAL` | `GENROU` | No verified exact equivalent | **Planned.** ANDES explicitly marks this as an approximation and fills GENROU q-axis values from d-axis data. Decide whether compatibility mode should reproduce that conversion before considering a distinct salient-pole model. |
-| `GENROU` | `GENROU` | Registered `GenModelGENROU`; DYR uses the dedicated model | **Partial.** The adapter and dedicated model match all eight initialized machine states, field voltage, and mechanical power for five IEEE 14-bus machines, including quadratic saturation. Exact alphanumeric machine-ID lookup, arbitrary machine-base cases, native ANDES import, and disturbed-trajectory validation remain. |
-| `IEEEVC` | `IEEEVC` | None | **No direct analogue.** Add a voltage-compensator input to the exciter path, including `rc`/`xc` terminal-current compensation. |
-| `SEXS` | `SEXS` | `ExciterSEXS` | **Partial.** The adapter exists; verify lead-lag convention, limits, initialization, and trajectories. |
-| `ESDC1A` | `ESDC1A` | `ExciterDC1A` / `ExciterIEEEtype1` | **Partial.** The current adapter ignores `TR`, switch behavior, and `E1`/`SE1`/`E2`/`SE2`; its fallback to type 1 when `TB` is zero must be compared with ANDES. |
-| `EXDC2` | `EXDC2` | `ExciterDC2A` | **Partial.** The adapter exists but ignores `TR`, switch behavior, and saturation points. Confirm whether `DC2A` equations exactly represent ANDES `EXDC2`. |
-| `IEEET1`, `IEEET3`, `ESDC2A` | Same named ANDES models | `ExciterIEEEtype1`, `ExciterIEEEtype2`, and `ExciterDC2A` are only candidates | **Planned.** Perform equation and limiter audits before selecting an analogue; similar names are insufficient. |
-| `ESST1A`, `ESAC1A`, `AC8B`, `EXAC1`, `EXAC2`, `EXAC4`, `IEEEX1`, `EXST1`, `ESST3A`, `ESST4B` | Same named ANDES models | None exact | **No direct analogue.** Implement model-specific exciter blocks and DYR schemas, then add initialization and trajectory tests. |
-| `ESAC6A`, `SCRX`, `EXPIC1` | `SEXS` | `ExciterSEXS` | **Planned compatibility approximations.** ANDES marks these conversions as TODO/approximate and currently discards most source parameters. Reproduce this only as an explicit compatibility mode and emit a diagnostic; do not describe it as exact model support. |
-| `TGOV1` | `TGOV1` | `GovernorTgov1` | **Partial.** The adapter exists, but currently reads `T2`, `T3`, and `Dt` from the wrong token positions. Correct the schema and then audit limits, initialization, and trajectories. |
-| `HYGOV` | `HYGOV` | `GovernorHydro` is a candidate | **Planned.** Compare equations, water-column dynamics, gate/rate limits, and parameter units before mapping it. |
-| `IEESGO`, `IEEEG1` | Same named ANDES models | `GovernorReheat` and steam-governor classes are only candidates | **Planned.** No exact equivalence has been established; audit block diagrams before choosing reuse versus new models. |
-| `GAST` | `GAST` | None exact | **No direct analogue.** Add a gas-turbine governor implementation and DYR adapter. |
-| `GGOV1` | `TGOV1` | `GovernorTgov1` | **Planned compatibility approximation.** ANDES currently retains only `R` when converting this record. If reproduced, emit a diagnostic and keep exact GGOV1 support as a separate task. |
-| `IEEEST`, `ST2CUT` | Same named ANDES models | Base `Stabilizer` only | **No direct analogue.** The base class is not a usable PSS implementation; add the two models and their generator/exciter signal connections. |
-| `REGCA1`, `REECA1`, `REECB1`, `REPCA1` | Same named ANDES models | `GenModelInverter` is not equivalent | **No direct analogue.** Add the coordinated renewable generator, electrical-control, and plant-control chain rather than flattening these records into the generic inverter. |
-| `WTDTA1`, `WTARA1`, `WTPTA1`, `WTTQA1` | Same named ANDES models | None | **No direct analogue.** Add drive-train, aerodynamic, pitch, and torque-control submodels with their shared interfaces. |
-| `Toggle`, `Fault` | ANDES event models | GridDyn event/action and fault mechanisms | **Partial conceptually.** Define DYR record schemas and translate target resolution, timing, status changes, and fault clearing semantics; no adapter exists. |
+| PSS/e DYR record(s)                                                                          | ANDES destination       | Existing GridDyn candidate                                                    | Current compatibility and required action                                                                                                                                                                                                                                                                                        |
+| -------------------------------------------------------------------------------------------- | ----------------------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GENCLS`                                                                                     | `GENCLS`                | `GenModelClassical`                                                           | **Partial.** Add a DYR adapter, verify machine/system-base conversion, initialization, and rotor trajectory.                                                                                                                                                                                                                     |
+| `GENSAL`                                                                                     | `GENROU`                | No verified exact equivalent                                                  | **Planned.** ANDES explicitly marks this as an approximation and fills GENROU q-axis values from d-axis data. Decide whether compatibility mode should reproduce that conversion before considering a distinct salient-pole model.                                                                                               |
+| `GENROU`                                                                                     | `GENROU`                | Registered `GenModelGENROU`; DYR uses the dedicated model                     | **Partial.** The adapter and dedicated model match all eight initialized machine states, field voltage, and mechanical power for five IEEE 14-bus machines, including quadratic saturation. Exact alphanumeric machine-ID lookup, arbitrary machine-base cases, native ANDES import, and disturbed-trajectory validation remain. |
+| `IEEEVC`                                                                                     | `IEEEVC`                | None                                                                          | **No direct analogue.** Add a voltage-compensator input to the exciter path, including `rc`/`xc` terminal-current compensation.                                                                                                                                                                                                  |
+| `SEXS`                                                                                       | `SEXS`                  | `ExciterSEXS`                                                                 | **Partial.** The adapter exists; verify lead-lag convention, limits, initialization, and trajectories.                                                                                                                                                                                                                           |
+| `ESDC1A`                                                                                     | `ESDC1A`                | `ExciterDC1A` / `ExciterIEEEtype1`                                            | **Partial.** The current adapter ignores `TR`, switch behavior, and `E1`/`SE1`/`E2`/`SE2`; its fallback to type 1 when `TB` is zero must be compared with ANDES.                                                                                                                                                                 |
+| `EXDC2`                                                                                      | `EXDC2`                 | `ExciterDC2A`                                                                 | **Partial.** The adapter exists but ignores `TR`, switch behavior, and saturation points. Confirm whether `DC2A` equations exactly represent ANDES `EXDC2`.                                                                                                                                                                      |
+| `IEEET1`, `IEEET3`, `ESDC2A`                                                                 | Same named ANDES models | `ExciterIEEEtype1`, `ExciterIEEEtype2`, and `ExciterDC2A` are only candidates | **Planned.** Perform equation and limiter audits before selecting an analogue; similar names are insufficient.                                                                                                                                                                                                                   |
+| `ESST1A`, `ESAC1A`, `AC8B`, `EXAC1`, `EXAC2`, `EXAC4`, `IEEEX1`, `EXST1`, `ESST3A`, `ESST4B` | Same named ANDES models | None exact                                                                    | **No direct analogue.** Implement model-specific exciter blocks and DYR schemas, then add initialization and trajectory tests.                                                                                                                                                                                                   |
+| `ESAC6A`, `SCRX`, `EXPIC1`                                                                   | `SEXS`                  | `ExciterSEXS`                                                                 | **Planned compatibility approximations.** ANDES marks these conversions as TODO/approximate and currently discards most source parameters. Reproduce this only as an explicit compatibility mode and emit a diagnostic; do not describe it as exact model support.                                                               |
+| `TGOV1`                                                                                      | `TGOV1`                 | `GovernorTgov1`                                                               | **Partial.** The adapter exists, but currently reads `T2`, `T3`, and `Dt` from the wrong token positions. Correct the schema and then audit limits, initialization, and trajectories.                                                                                                                                            |
+| `HYGOV`                                                                                      | `HYGOV`                 | `GovernorHydro` is a candidate                                                | **Planned.** Compare equations, water-column dynamics, gate/rate limits, and parameter units before mapping it.                                                                                                                                                                                                                  |
+| `IEESGO`, `IEEEG1`                                                                           | Same named ANDES models | `GovernorReheat` and steam-governor classes are only candidates               | **Planned.** No exact equivalence has been established; audit block diagrams before choosing reuse versus new models.                                                                                                                                                                                                            |
+| `GAST`                                                                                       | `GAST`                  | None exact                                                                    | **No direct analogue.** Add a gas-turbine governor implementation and DYR adapter.                                                                                                                                                                                                                                               |
+| `GGOV1`                                                                                      | `TGOV1`                 | `GovernorTgov1`                                                               | **Planned compatibility approximation.** ANDES currently retains only `R` when converting this record. If reproduced, emit a diagnostic and keep exact GGOV1 support as a separate task.                                                                                                                                         |
+| `IEEEST`, `ST2CUT`                                                                           | Same named ANDES models | Base `Stabilizer` only                                                        | **No direct analogue.** The base class is not a usable PSS implementation; add the two models and their generator/exciter signal connections.                                                                                                                                                                                    |
+| `REGCA1`, `REECA1`, `REECB1`, `REPCA1`                                                       | Same named ANDES models | `GenModelInverter` is not equivalent                                          | **No direct analogue.** Add the coordinated renewable generator, electrical-control, and plant-control chain rather than flattening these records into the generic inverter.                                                                                                                                                     |
+| `WTDTA1`, `WTARA1`, `WTPTA1`, `WTTQA1`                                                       | Same named ANDES models | None                                                                          | **No direct analogue.** Add drive-train, aerodynamic, pitch, and torque-control submodels with their shared interfaces.                                                                                                                                                                                                          |
+| `Toggle`, `Fault`                                                                            | ANDES event models      | GridDyn event/action and fault mechanisms                                     | **Partial conceptually.** Define DYR record schemas and translate target resolution, timing, status changes, and fault clearing semantics; no adapter exists.                                                                                                                                                                    |
 
 ### DYR reader infrastructure plan
 
@@ -157,24 +157,24 @@ The target run is a converged power flow followed by dynamic initialization,
 an equilibrium interval, opening `Line_1` at 1.0 seconds, reclosing it at 1.1
 seconds, and continuing through 2.0 seconds. The five controller chains are:
 
-| Generator bus | Machine | Exciter | Governor | Stabilizer |
-| ------------- | ------- | ------- | -------- | ---------- |
-| 1 | `GENROU` | `ESST3A` | `TGOV1` | `ST2CUT` |
-| 2 | `GENROU` | `EXST1` | `IEEEG1` | `ST2CUT` |
-| 3 | `GENROU` | `ESST3A` | `IEEEG1` | `IEEEST` |
-| 6 | `GENROU` | `ESST3A` | `TGOV1` | none |
-| 8 | `GENROU` | `ESST3A` | `TGOV1` | none |
+| Generator bus | Machine  | Exciter  | Governor | Stabilizer |
+| ------------- | -------- | -------- | -------- | ---------- |
+| 1             | `GENROU` | `ESST3A` | `TGOV1`  | `ST2CUT`   |
+| 2             | `GENROU` | `EXST1`  | `IEEEG1` | `ST2CUT`   |
+| 3             | `GENROU` | `ESST3A` | `IEEEG1` | `IEEEST`   |
+| 6             | `GENROU` | `ESST3A` | `TGOV1`  | none       |
+| 8             | `GENROU` | `ESST3A` | `TGOV1`  | none       |
 
 ### PR status and dependency order
 
-| PR | Deliverable | Status | Depends on |
-| -- | ----------- | ------ | ---------- |
-| 1 | Complete GENROU equations, saturation utility, DYR mapping, and five-machine initialization reference | Current changes; treat as complete after merge | none |
-| 2 | Robust RAW/DYR identity and base handling, IEEE 14 power-flow parity, and a controller-free GENROU trajectory | Planned | PR 1 |
-| 3 | Generator/controller signal plumbing, PSS-to-exciter routing, and validated `TGOV1` | Planned | PR 2 |
-| 4 | Complete `ESST3A` and `EXST1` models plus DYR adapters | Planned | PR 3 |
-| 5 | Complete `IEEEG1`, `ST2CUT`, and `IEEEST` models plus DYR adapters | Planned | PR 4 |
-| 6 | DYR `Toggle`, complete IEEE 14 initialization/equilibrium, and the two-second trajectory regression | Planned | PR 5 |
+| PR  | Deliverable                                                                                                   | Status                                         | Depends on |
+| --- | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | ---------- |
+| 1   | Complete GENROU equations, saturation utility, DYR mapping, and five-machine initialization reference         | Current changes; treat as complete after merge | none       |
+| 2   | Robust RAW/DYR identity and base handling, IEEE 14 power-flow parity, and a controller-free GENROU trajectory | Planned                                        | PR 1       |
+| 3   | Generator/controller signal plumbing, PSS-to-exciter routing, and validated `TGOV1`                           | Planned                                        | PR 2       |
+| 4   | Complete `ESST3A` and `EXST1` models plus DYR adapters                                                        | Planned                                        | PR 3       |
+| 5   | Complete `IEEEG1`, `ST2CUT`, and `IEEEST` models plus DYR adapters                                            | Planned                                        | PR 4       |
+| 6   | DYR `Toggle`, complete IEEE 14 initialization/equilibrium, and the two-second trajectory regression           | Planned                                        | PR 5       |
 
 PRs must merge in this order. Each PR must pass without relying on production
 code from a later PR. Minimized fixtures and test-only probe models are
@@ -486,18 +486,18 @@ cmd /v:on /c "set PATH=& set Path=& ""C:\Program Files\CMake\bin\cmake.exe"" --b
 
 ### Parameter contract
 
-| PSS/e GENROU value | ANDES value | Intended GridDyn value / note |
-| ------------------ | ----------- | ----------------------------- |
-| `Td10`, `Td20` | `Td10`, `Td20` | `Tdop`, `Tdopp` |
-| `Tq10`, `Tq20` | `Tq10`, `Tq20` | `Tqop`, `Tqopp` |
-| `H` | `M = 2 H` | Store `H`; the perturbed derivative reference verifies equivalence to ANDES's `M` convention. |
-| `D` | `D` | `D`; the perturbed derivative reference verifies the speed-deviation convention on the machine base. |
-| `Xd`, `Xq` | `xd`, `xq` | `Xd`, `Xq` on the machine base. |
-| `Xd1`, `Xq1` | `xd1`, `xq1` | `Xdp`, `Xqp` on the machine base. |
-| `Xd2` | `xd2`, and `xq2 = xd2` | `Xdpp = Xqpp = Xd2`; this is the PSS/e GENROU single-subtransient-reactance convention. |
-| `Xl` | `xl` | `Xl`; use it in the same gamma-factor formulation as ANDES, not as an extra reactance added twice. |
-| `S10`, `S12` | `S10`, `S12` | Fit and apply the same quadratic saturation characteristic used by ANDES. |
-| Not in DYR record | `ra`, `Sn`, `Vn`, static generator link | Obtain stator resistance, machine MVA base, rated voltage, and machine identity from the paired RAW generator. |
+| PSS/e GENROU value | ANDES value                             | Intended GridDyn value / note                                                                                  |
+| ------------------ | --------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `Td10`, `Td20`     | `Td10`, `Td20`                          | `Tdop`, `Tdopp`                                                                                                |
+| `Tq10`, `Tq20`     | `Tq10`, `Tq20`                          | `Tqop`, `Tqopp`                                                                                                |
+| `H`                | `M = 2 H`                               | Store `H`; the perturbed derivative reference verifies equivalence to ANDES's `M` convention.                  |
+| `D`                | `D`                                     | `D`; the perturbed derivative reference verifies the speed-deviation convention on the machine base.           |
+| `Xd`, `Xq`         | `xd`, `xq`                              | `Xd`, `Xq` on the machine base.                                                                                |
+| `Xd1`, `Xq1`       | `xd1`, `xq1`                            | `Xdp`, `Xqp` on the machine base.                                                                              |
+| `Xd2`              | `xd2`, and `xq2 = xd2`                  | `Xdpp = Xqpp = Xd2`; this is the PSS/e GENROU single-subtransient-reactance convention.                        |
+| `Xl`               | `xl`                                    | `Xl`; use it in the same gamma-factor formulation as ANDES, not as an extra reactance added twice.             |
+| `S10`, `S12`       | `S10`, `S12`                            | Fit and apply the same quadratic saturation characteristic used by ANDES.                                      |
+| Not in DYR record  | `ra`, `Sn`, `Vn`, static generator link | Obtain stator resistance, machine MVA base, rated voltage, and machine identity from the paired RAW generator. |
 
 ### GENROU implementation status
 
@@ -525,24 +525,24 @@ records the lower-level GENROU work already completed or assigned to PR 2.
 
 ### Expected GridDyn implementation touchpoints
 
-| Area | Expected files / change |
-| ---- | ----------------------- |
-| Canonical machine model | **Done:** `src/griddyn/genmodels/GenModelGENROU.{h,cpp}` is complete at the equation/initialization level and `genrou` is registered in `src/griddyn/genmodels/GenModel.cpp`; generic model `6` remains unchanged. |
-| DYR parsing and attachment | **Partial:** GENROU creates the dedicated model and applies parameters in the correct RAW/DYR order. Refactor `src/fileInput/gridDynReadDYR.cpp` into schema-backed adapters and add exact bus-plus-machine-ID lookup support. |
-| Native ANDES import | Extend the ANDES JSON reader's dynamic-object dispatch to build the same registered machine/controller classes and control connections used by DYR adapters. |
-| Model tests | **Mostly done:** focused equation, Jacobian, initialization, saturation, invalid-parameter, and factory tests are present; add a disturbed-trajectory reference and clone regression as the model is integrated. |
-| Reader tests | **Partial:** `test/andesTests/testAndesDyrReader.cpp` is a dedicated RAW/DYR GENROU attachment and initialization test. Add parser edge cases and disturbed trajectories as support expands. |
-| Numerical references | **Partial:** the IEEE 14-bus RAW input, minimized GENROU DYR input, and captured ANDES initialization reference are stored under `test/test_files/andes_tests/` and run without importing ANDES. Add time-series references next. |
+| Area                       | Expected files / change                                                                                                                                                                                                           |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Canonical machine model    | **Done:** `src/griddyn/genmodels/GenModelGENROU.{h,cpp}` is complete at the equation/initialization level and `genrou` is registered in `src/griddyn/genmodels/GenModel.cpp`; generic model `6` remains unchanged.                |
+| DYR parsing and attachment | **Partial:** GENROU creates the dedicated model and applies parameters in the correct RAW/DYR order. Refactor `src/fileInput/gridDynReadDYR.cpp` into schema-backed adapters and add exact bus-plus-machine-ID lookup support.    |
+| Native ANDES import        | Extend the ANDES JSON reader's dynamic-object dispatch to build the same registered machine/controller classes and control connections used by DYR adapters.                                                                      |
+| Model tests                | **Mostly done:** focused equation, Jacobian, initialization, saturation, invalid-parameter, and factory tests are present; add a disturbed-trajectory reference and clone regression as the model is integrated.                  |
+| Reader tests               | **Partial:** `test/andesTests/testAndesDyrReader.cpp` is a dedicated RAW/DYR GENROU attachment and initialization test. Add parser edge cases and disturbed trajectories as support expands.                                      |
+| Numerical references       | **Partial:** the IEEE 14-bus RAW input, minimized GENROU DYR input, and captured ANDES initialization reference are stored under `test/test_files/andes_tests/` and run without importing ANDES. Add time-series references next. |
 
 ### Planned GENROU reference cases
 
-| Case | Purpose | Required comparisons |
-| ---- | ------- | -------------------- |
-| Single-machine/infinite-bus `GENROU` | Isolate machine equations and bases. | Initial `delta`, `omega`, d/q currents, transient and subtransient states, field voltage, mechanical/electrical power, terminal P/Q. |
-| Same case with nonzero `S10`/`S12` | Exercise saturation independently. | Air-gap flux, saturation output, field-current term, and resulting trajectory. |
-| `GENROU` + `TGOV1` | Add mechanical control after machine parity. | Speed, valve/governor states, mechanical power, and limiter activity after a small load step. |
-| `GENROU` + `SEXS`, then `ESDC1A`/`EXDC2` | Add excitation controls one at a time. | Terminal voltage, field voltage, exciter states, reactive power, and limiter activity after a voltage-reference step. |
-| Multi-machine RAW/DYR case | Verify identity, bases, and network coupling. | Correct model attachment plus selected machine angles, speeds, bus voltages, P/Q, and relative-angle trajectories through a cleared disturbance. |
+| Case                                     | Purpose                                       | Required comparisons                                                                                                                             |
+| ---------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Single-machine/infinite-bus `GENROU`     | Isolate machine equations and bases.          | Initial `delta`, `omega`, d/q currents, transient and subtransient states, field voltage, mechanical/electrical power, terminal P/Q.             |
+| Same case with nonzero `S10`/`S12`       | Exercise saturation independently.            | Air-gap flux, saturation output, field-current term, and resulting trajectory.                                                                   |
+| `GENROU` + `TGOV1`                       | Add mechanical control after machine parity.  | Speed, valve/governor states, mechanical power, and limiter activity after a small load step.                                                    |
+| `GENROU` + `SEXS`, then `ESDC1A`/`EXDC2` | Add excitation controls one at a time.        | Terminal voltage, field voltage, exciter states, reactive power, and limiter activity after a voltage-reference step.                            |
+| Multi-machine RAW/DYR case               | Verify identity, bases, and network coupling. | Correct model attachment plus selected machine angles, speeds, bus voltages, P/Q, and relative-angle trajectories through a cleared disturbance. |
 
 ## Dynamic-model inventory
 
@@ -552,27 +552,27 @@ can be split and checked off as soon as models in the same family diverge. A
 model is not compatible merely because a similarly named GridDyn model exists:
 it also needs native-input mapping, initialization, and a trajectory test.
 
-| ANDES model(s)                                                                                                                                         | GridDyn mapping / next action                                                                                     | Status    |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- | --------- |
-| `GENCLS`                                                                                                                                               | `GenModelClassical`; parameter and trajectory comparison required.                                                | Partial   |
-| `GENROU`                                                                                                                                               | `GenModelGENROU` equations, DYR mapping, and five-machine initialization match ANDES references; fix exact machine identity/base handling, native ANDES import, and trajectory parity. | Partial   |
-| `TGOV1`                                                                                                                                                | `GovernorTgov1`; correct the DYR token mapping, then audit equations, limits, initialization, and trajectories.    | Partial   |
-| `EXDC2`                                                                                                                                                | `ExciterDC2A` candidate; add omitted transducer/switch/saturation behavior and prove equation equivalence.         | Partial   |
-| `ZIP`, `FLoad`                                                                                                                                         | GridDyn static/dynamic load models; identify exact parameter and frequency-response equivalence.                  | Partial   |
-| `Motor3`, `Motor5`                                                                                                                                     | `MotorLoad3`, `MotorLoad5`; parameter mapping and trajectory comparisons required.                                | Partial   |
-| `ACE`, `ACEc`, `COI`                                                                                                                                   | Map area-control and center-of-inertia services.                                                                  | Untriaged |
-| `PLBVFU1`, `IEEEVC`                                                                                                                                    | No direct voltage-compensator/playback analogue; define exciter input and playback interfaces.                    | No direct analogue |
-| `TG2`, `TGOV1DB`, `TGOV1N`, `TGOV1NDB`, `IEEEG1`, `IEESGO`, `GAST`, `HYGOV`, `HYGOVDB`, `HYGOV4`                                                       | Existing hydro/reheat/steam classes are candidates only; each needs an equation audit or a new model.             | Planned   |
-| `SHAFT5`                                                                                                                                               | Multi-mass shaft model; map states and mechanical interfaces.                                                     | Untriaged |
-| `ESDC1A`, `ESDC2A`, `SEXS`, `IEEET1`, `IEEET3`                                                                                                       | Existing DC/IEEE/SEXS exciters are candidates; complete model-specific audits and DYR/native mappings.            | Partial   |
-| `IEEEX1`, `EXST1`, `ESST3A`, `EXAC1`, `EXAC2`, `EXAC4`, `ESST4B`, `AC8B`, `ESAC1A`, `ESST1A`, `ESAC5A`                                               | No exact named GridDyn implementations; implement individually rather than mapping by family name.                | No direct analogue |
-| `IEEEST`, `ST2CUT`                                                                                                                                     | Base `Stabilizer` is not a functional equivalent; implement both models and signal connections.                   | No direct analogue |
-| `BusFreq`, `BusROCOF`, `PMU`, `PLL1`, `PLL2`, `FreqDiv`                                                                                                | Measurement and frequency-estimation models.                                                                      | Untriaged |
-| `REGCA1`, `REGCP1`, `REECA1`, `REECA1E`, `REECA1G`, `REECB1`, `REPCA1`, `REGCV1`, `REGCV2`, `REGF1`, `REGF2`, `REGF3`                                  | Generic `GenModelInverter` is insufficient; add composable generator, electrical, plant, and frequency controls.  | No direct analogue |
-| `WTDTA1`, `WTDS`, `WTARA1`, `WTPTA1`, `WTTQA1`, `WTARV1`                                                                                               | Add wind-turbine drive-train, aerodynamic, pitch, torque, and renewable-voltage submodels and interfaces.         | No direct analogue |
-| `PVD1`, `ESD1`, `EV1`, `EV2`, `DGPRCT1`, `DGPRCTExt`                                                                                                   | Distributed energy-resource and protection models.                                                                | Untriaged |
-| `Fault`, `Alter`, `TimeSeries`, `Toggle`                                                                                                               | Event/action semantics and time-series input mapping.                                                             | Untriaged |
-| `Summary`, `Output`                                                                                                                                    | Reporting configuration; define output-channel mapping after model compatibility.                                 | Untriaged |
+| ANDES model(s)                                                                                                        | GridDyn mapping / next action                                                                                                                                                          | Status             |
+| --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
+| `GENCLS`                                                                                                              | `GenModelClassical`; parameter and trajectory comparison required.                                                                                                                     | Partial            |
+| `GENROU`                                                                                                              | `GenModelGENROU` equations, DYR mapping, and five-machine initialization match ANDES references; fix exact machine identity/base handling, native ANDES import, and trajectory parity. | Partial            |
+| `TGOV1`                                                                                                               | `GovernorTgov1`; correct the DYR token mapping, then audit equations, limits, initialization, and trajectories.                                                                        | Partial            |
+| `EXDC2`                                                                                                               | `ExciterDC2A` candidate; add omitted transducer/switch/saturation behavior and prove equation equivalence.                                                                             | Partial            |
+| `ZIP`, `FLoad`                                                                                                        | GridDyn static/dynamic load models; identify exact parameter and frequency-response equivalence.                                                                                       | Partial            |
+| `Motor3`, `Motor5`                                                                                                    | `MotorLoad3`, `MotorLoad5`; parameter mapping and trajectory comparisons required.                                                                                                     | Partial            |
+| `ACE`, `ACEc`, `COI`                                                                                                  | Map area-control and center-of-inertia services.                                                                                                                                       | Untriaged          |
+| `PLBVFU1`, `IEEEVC`                                                                                                   | No direct voltage-compensator/playback analogue; define exciter input and playback interfaces.                                                                                         | No direct analogue |
+| `TG2`, `TGOV1DB`, `TGOV1N`, `TGOV1NDB`, `IEEEG1`, `IEESGO`, `GAST`, `HYGOV`, `HYGOVDB`, `HYGOV4`                      | Existing hydro/reheat/steam classes are candidates only; each needs an equation audit or a new model.                                                                                  | Planned            |
+| `SHAFT5`                                                                                                              | Multi-mass shaft model; map states and mechanical interfaces.                                                                                                                          | Untriaged          |
+| `ESDC1A`, `ESDC2A`, `SEXS`, `IEEET1`, `IEEET3`                                                                        | Existing DC/IEEE/SEXS exciters are candidates; complete model-specific audits and DYR/native mappings.                                                                                 | Partial            |
+| `IEEEX1`, `EXST1`, `ESST3A`, `EXAC1`, `EXAC2`, `EXAC4`, `ESST4B`, `AC8B`, `ESAC1A`, `ESST1A`, `ESAC5A`                | No exact named GridDyn implementations; implement individually rather than mapping by family name.                                                                                     | No direct analogue |
+| `IEEEST`, `ST2CUT`                                                                                                    | Base `Stabilizer` is not a functional equivalent; implement both models and signal connections.                                                                                        | No direct analogue |
+| `BusFreq`, `BusROCOF`, `PMU`, `PLL1`, `PLL2`, `FreqDiv`                                                               | Measurement and frequency-estimation models.                                                                                                                                           | Untriaged          |
+| `REGCA1`, `REGCP1`, `REECA1`, `REECA1E`, `REECA1G`, `REECB1`, `REPCA1`, `REGCV1`, `REGCV2`, `REGF1`, `REGF2`, `REGF3` | Generic `GenModelInverter` is insufficient; add composable generator, electrical, plant, and frequency controls.                                                                       | No direct analogue |
+| `WTDTA1`, `WTDS`, `WTARA1`, `WTPTA1`, `WTTQA1`, `WTARV1`                                                              | Add wind-turbine drive-train, aerodynamic, pitch, torque, and renewable-voltage submodels and interfaces.                                                                              | No direct analogue |
+| `PVD1`, `ESD1`, `EV1`, `EV2`, `DGPRCT1`, `DGPRCTExt`                                                                  | Distributed energy-resource and protection models.                                                                                                                                     | Untriaged          |
+| `Fault`, `Alter`, `TimeSeries`, `Toggle`                                                                              | Event/action semantics and time-series input mapping.                                                                                                                                  | Untriaged          |
+| `Summary`, `Output`                                                                                                   | Reporting configuration; define output-channel mapping after model compatibility.                                                                                                      | Untriaged          |
 
 ## Numerical-regression policy
 
@@ -605,11 +605,11 @@ wrong model attachment, or a different post-event equilibrium.
 
 ## Current reference cases
 
-| Case                       | Coverage                                                                |
-| -------------------------- | ----------------------------------------------------------------------- |
-| `andes_kundur_vsc_pflow`   | 10-bus AC network, DC resistor, PQ/VQ VSC controls, and AC/DC coupling. |
-| `andes_two_bus_pflow`      | Minimal AC Slack/PQ/Line power flow.                                    |
-| `andes_shunt_pflow`        | Fixed conductance/susceptance shunt with non-system `Sn`/`Vn` bases.    |
-| `andes_jumper_pflow`       | Active and inactive zero-impedance jumpers in a loaded AC network.      |
-| `andes_vsc_resistor_pflow` | Minimal AC/DC `VSCShunt` plus DC resistance power flow.                 |
+| Case                       | Coverage                                                                 |
+| -------------------------- | ------------------------------------------------------------------------ |
+| `andes_kundur_vsc_pflow`   | 10-bus AC network, DC resistor, PQ/VQ VSC controls, and AC/DC coupling.  |
+| `andes_two_bus_pflow`      | Minimal AC Slack/PQ/Line power flow.                                     |
+| `andes_shunt_pflow`        | Fixed conductance/susceptance shunt with non-system `Sn`/`Vn` bases.     |
+| `andes_jumper_pflow`       | Active and inactive zero-impedance jumpers in a loaded AC network.       |
+| `andes_vsc_resistor_pflow` | Minimal AC/DC `VSCShunt` plus DC resistance power flow.                  |
 | `andes_ieee14_genrou`      | Five PSS/e DYR GENROU attachments and initialized machine states/inputs. |

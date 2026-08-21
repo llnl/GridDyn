@@ -137,10 +137,10 @@ namespace griddyn::genmodels {
  *
  * @par Equation sources
  * - <a
- * href="https://github.com/CURENT/andes/blob/eda5163c9ee8d19945a1dd5d1771fec5da608c27/andes/models/synchronous/genrou.py">ANDES
+ * href="https://github.com/CURRENT/andes/blob/eda5163c9ee8d19945a1dd5d1771fec5da608c27/andes/models/synchronous/genrou.py">ANDES
  * v2.0 GENROU equations and initialization</a>
  * - <a
- * href="https://github.com/CURENT/andes/blob/eda5163c9ee8d19945a1dd5d1771fec5da608c27/andes/models/synchronous/genbase.py">ANDES
+ * href="https://github.com/CURRENT/andes/blob/eda5163c9ee8d19945a1dd5d1771fec5da608c27/andes/models/synchronous/genbase.py">ANDES
  * v2.0 synchronous-generator base equations</a>
  * - <a
  * href="https://github.com/OpenIPSL/OpenIPSL/blob/master/OpenIPSL/Electrical/Machines/PSSE/GENROU.mo">OpenIPSL

@@ -17,6 +17,10 @@
 #include <string>
 
 namespace griddyn::genmodels {
+// The implementation mirrors the published equations, whose conventional
+// grouping is clearer than the extra precedence-only parentheses requested by
+// this clang-tidy check.
+// NOLINTBEGIN(readability-math-missing-parentheses)
 namespace {
     /** Coefficients used to eliminate ANDES's auxiliary flux algebraic states.
      *
@@ -25,28 +29,32 @@ namespace {
      * without changing the machine equations documented on GenModelGENROU.
      */
     struct GenrouCoefficients {
-        double gd1;
-        double gq1;
-        double gd2;
-        double gq2;
-        double gqd;
+        double mGd1;
+        double mGq1;
+        double mGd2;
+        double mGq2;
+        double mGqd;
     };
 
-    GenrouCoefficients computeCoefficients(double xd,
-                                           double xq,
-                                           double xdp,
-                                           double xqp,
-                                           double xdpp,
-                                           double xqpp,
-                                           double xl)
+    GenrouCoefficients computeCoefficients(double directAxisReactance,
+                                           double quadratureAxisReactance,
+                                           double directAxisTransientReactance,
+                                           double quadratureAxisTransientReactance,
+                                           double directAxisSubtransientReactance,
+                                           double quadratureAxisSubtransientReactance,
+                                           double leakageReactance)
     {
-        const double xdDifference = xdp - xl;
-        const double xqDifference = xqp - xl;
-        return {(xdpp - xl) / xdDifference,
-                (xqpp - xl) / xqDifference,
-                (xdp - xdpp) / (xdDifference * xdDifference),
-                (xqp - xqpp) / (xqDifference * xqDifference),
-                (xq - xl) / (xd - xl)};
+        const double xdDifference = directAxisTransientReactance - leakageReactance;
+        const double xqDifference = quadratureAxisTransientReactance - leakageReactance;
+        return {.mGd1 = (directAxisSubtransientReactance - leakageReactance) / xdDifference,
+                .mGq1 = (quadratureAxisSubtransientReactance - leakageReactance) / xqDifference,
+                .mGd2 = (directAxisTransientReactance - directAxisSubtransientReactance) /
+                    (xdDifference * xdDifference),
+                .mGq2 = (quadratureAxisTransientReactance -
+                          quadratureAxisSubtransientReactance) /
+                    (xqDifference * xqDifference),
+                .mGqd = (quadratureAxisReactance - leakageReactance) /
+                    (directAxisReactance - leakageReactance)};
     }
 
 }  // namespace
@@ -65,18 +73,33 @@ GenModelGENROU::GenModelGENROU(const std::string& objName): GenModel5(objName)
 
 CoreObject* GenModelGENROU::clone(CoreObject* obj) const
 {
-    auto* gd = cloneBase<GenModelGENROU, GenModel5>(this, obj);
-    if (gd == nullptr) {
+    auto* genrouClone = cloneBase<GenModelGENROU, GenModel5>(this, obj);
+    if (genrouClone == nullptr) {
         return obj;
     }
-    return gd;
+    genrouClone->sat = sat;
+    return genrouClone;
 }
 
 void GenModelGENROU::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
+    constexpr double minimumReactanceDifference = 1e-9;
     if ((H <= 0.0) || (Tdop <= 0.0) || (Tdopp <= 0.0) || (Tqop <= 0.0) || (Tqopp <= 0.0) ||
-        (Xd <= Xdp) || (Xdp < Xdpp) || (Xdpp < Xl) || (Xq <= Xqp) || (Xqp < Xqpp) || (Xqpp < Xl)) {
+        (Xd <= Xdp) || (Xdp < Xdpp) || (Xq <= Xqp) || (Xqp < Xqpp) ||
+        (std::abs(Xdp - Xl) <= minimumReactanceDifference) ||
+        (std::abs(Xqp - Xl) <= minimumReactanceDifference) ||
+        (std::abs(Xd - Xl) <= minimumReactanceDifference)) {
         throw InvalidParameterValue("GENROU reactances, inertia, or time constants");
+    }
+
+    // ANDES reports xl > xd2 as an initialization warning but continues to
+    // solve the model. Preserve that behavior for compatible PSS/E data; the
+    // gamma coefficients remain well-defined unless a denominator above is
+    // singular.
+    if ((Xl > Xdpp) || (Xl > Xqpp)) {
+        logging::warning(this,
+                         "GENROU leakage reactance exceeds a subtransient reactance; "
+                         "continuing with the supplied parameters");
     }
 
     offsets.local().local.diffSize = 6;
@@ -108,7 +131,7 @@ void GenModelGENROU::dynObjectInitializeB(const IOdata& inputs,
     const double fluxCurrentAngle = std::arg(subtransientFlux) - std::arg(terminalCurrent);
     const double angleNumerator = currentMagnitude * (Xqpp - Xq) * std::cos(fluxCurrentAngle);
     const double angleDenominator = currentMagnitude * (Xqpp - Xq) * std::sin(fluxCurrentAngle) -
-        fluxMagnitude * (1.0 + saturation * coefficients.gqd);
+        fluxMagnitude * (1.0 + saturation * coefficients.mGqd);
     const double rotorAngle =
         std::atan(angleNumerator / angleDenominator) + std::arg(subtransientFlux);
 
@@ -116,66 +139,79 @@ void GenModelGENROU::dynObjectInitializeB(const IOdata& inputs,
     const std::complex<double> fluxDq = subtransientFlux * dqRotation;
     const std::complex<double> currentDq = std::conj(terminalCurrent * dqRotation);
     const double andesId = std::imag(currentDq);
-    const double iq = std::real(currentDq);
+    const double quadratureCurrent = std::real(currentDq);
     const double idCurrent = -andesId;
     const double psi2d = std::real(fluxDq);
     const double psi2q = std::imag(fluxDq);  // negative of the ANDES q-axis flux convention
 
-    double* gm = m_state.data();
-    gm[0] = idCurrent;
-    gm[1] = iq;
-    gm[2] = rotorAngle;
-    gm[3] = 1.0;
+    double* state = m_state.data();
+    state[0] = idCurrent;
+    state[1] = quadratureCurrent;
+    state[2] = rotorAngle;
+    state[3] = 1.0;
 
     Vd = -voltageMagnitude * std::sin(rotorAngle - voltageAngle);
     Vq = voltageMagnitude * std::cos(rotorAngle - voltageAngle);
 
     const double fieldVoltage = (1.0 + saturation) * psi2d + (Xd - Xdpp) * andesId;
-    gm[4] = -(Xq - Xqp) * iq - saturation * coefficients.gqd * psi2q;
-    gm[5] = (Xd - Xdp) * idCurrent - saturation * psi2d + fieldVoltage;
-    gm[6] = -(Xq - Xl) * iq - saturation * coefficients.gqd * psi2q;
-    gm[7] = (Xd - Xl) * idCurrent - saturation * psi2d + fieldVoltage;
+    state[4] =
+        -(Xq - Xqp) * quadratureCurrent - saturation * coefficients.mGqd * psi2q;
+    state[5] = (Xd - Xdp) * idCurrent - saturation * psi2d + fieldVoltage;
+    state[6] = -(Xq - Xl) * quadratureCurrent - saturation * coefficients.mGqd * psi2q;
+    state[7] = (Xd - Xl) * idCurrent - saturation * psi2d + fieldVoltage;
 
-    const double mechanicalPower = (Vd + Rs * idCurrent) * idCurrent + (Vq + Rs * iq) * iq;
+    const double mechanicalPower = (Vd + Rs * idCurrent) * idCurrent +
+        (Vq + Rs * quadratureCurrent) * quadratureCurrent;
     fieldSet[genModelEftInLocation] = fieldVoltage;
     fieldSet[genModelPmechInLocation] = mechanicalPower;
 }
 
 void GenModelGENROU::algebraicUpdate(const IOdata& inputs,
-                                     const StateData& sD,
+                                     const StateData& stateData,
                                      double update[],
                                      const SolverMode& sMode,
                                      double /*alpha*/)
 {
-    auto Loc = offsets.getLocations(sD, update, sMode, this);
-    updateLocalCache(inputs, sD, sMode);
+    auto locations = offsets.getLocations(stateData, update, sMode, this);
+    updateLocalCache(inputs, stateData, sMode);
     const auto coefficients = computeCoefficients(Xd, Xq, Xdp, Xqp, Xdpp, Xqpp, Xl);
     const double psi2q =
-        coefficients.gq1 * Loc.diffStateLoc[2] + (1.0 - coefficients.gq1) * Loc.diffStateLoc[4];
+        coefficients.mGq1 * locations.diffStateLoc[2] +
+        (1.0 - coefficients.mGq1) * locations.diffStateLoc[4];
     const double psi2d =
-        coefficients.gd1 * Loc.diffStateLoc[3] + (1.0 - coefficients.gd1) * Loc.diffStateLoc[5];
+        coefficients.mGd1 * locations.diffStateLoc[3] +
+        (1.0 - coefficients.mGd1) * locations.diffStateLoc[5];
 
     gmlc::utilities::solve2x2(
-        Rs, Xqpp, -Xdpp, Rs, psi2q - Vd, psi2d - Vq, Loc.destLoc[0], Loc.destLoc[1]);
-    m_output = -(Loc.destLoc[1] * Vq + Loc.destLoc[0] * Vd);
+        Rs,
+        Xqpp,
+        -Xdpp,
+        Rs,
+        psi2q - Vd,
+        psi2d - Vq,
+        locations.destLoc[0],
+        locations.destLoc[1]);
+    m_output = -(locations.destLoc[1] * Vq + locations.destLoc[0] * Vd);
 }
 
 void GenModelGENROU::derivative(const IOdata& inputs,
-                                const StateData& sD,
+                                const StateData& stateData,
                                 double deriv[],
                                 const SolverMode& sMode)
 {
     if (isAlgebraicOnly(sMode)) {
         return;
     }
-    auto Loc = offsets.getLocations(sD, deriv, sMode, this);
-    const double* alg = Loc.algStateLoc;
-    const double* state = Loc.diffStateLoc;
-    double* dstate = Loc.destDiffLoc;
+    auto locations = offsets.getLocations(stateData, deriv, sMode, this);
+    const double* alg = locations.algStateLoc;
+    const double* state = locations.diffStateLoc;
+    double* dstate = locations.destDiffLoc;
     const auto coefficients = computeCoefficients(Xd, Xq, Xdp, Xqp, Xdpp, Xqpp, Xl);
 
-    const double psi2q = coefficients.gq1 * state[2] + (1.0 - coefficients.gq1) * state[4];
-    const double psi2d = coefficients.gd1 * state[3] + (1.0 - coefficients.gd1) * state[5];
+    const double psi2q =
+        coefficients.mGq1 * state[2] + (1.0 - coefficients.mGq1) * state[4];
+    const double psi2d =
+        coefficients.mGd1 * state[3] + (1.0 - coefficients.mGd1) * state[5];
     const double fluxMagnitude = std::hypot(psi2d, psi2q);
     const double saturation = sat.compute(fluxMagnitude);
 
@@ -187,12 +223,14 @@ void GenModelGENROU::derivative(const IOdata& inputs,
     dstate[1] = 0.5 * (mechanicalPower - electricalTorque - D * (state[1] - 1.0)) / H;
     dstate[2] =
         (-state[2] -
-         (Xq - Xqp) * (coefficients.gq2 * (state[2] - state[4]) + coefficients.gq1 * alg[1]) -
-         saturation * coefficients.gqd * psi2q) /
+         (Xq - Xqp) *
+             (coefficients.mGq2 * (state[2] - state[4]) + coefficients.mGq1 * alg[1]) -
+         saturation * coefficients.mGqd * psi2q) /
         Tqop;
     dstate[3] =
         (fieldVoltage - state[3] +
-         (Xd - Xdp) * (coefficients.gd1 * alg[0] + coefficients.gd2 * (state[5] - state[3])) -
+         (Xd - Xdp) *
+             (coefficients.mGd1 * alg[0] + coefficients.mGd2 * (state[5] - state[3])) -
          saturation * psi2d) /
         Tdop;
     dstate[4] = (-state[4] + state[2] - (Xqp - Xl) * alg[1]) / Tqopp;
@@ -200,27 +238,29 @@ void GenModelGENROU::derivative(const IOdata& inputs,
 }
 
 void GenModelGENROU::residual(const IOdata& inputs,
-                              const StateData& sD,
+                              const StateData& stateData,
                               double resid[],
                               const SolverMode& sMode)
 {
-    auto Loc = offsets.getLocations(sD, resid, sMode, this);
-    const double* alg = Loc.algStateLoc;
-    const double* state = Loc.diffStateLoc;
-    const double* dstate = Loc.dstateLoc;
-    double* algResidual = Loc.destLoc;
-    double* stateResidual = Loc.destDiffLoc;
-    updateLocalCache(inputs, sD, sMode);
+    auto locations = offsets.getLocations(stateData, resid, sMode, this);
+    const double* alg = locations.algStateLoc;
+    const double* state = locations.diffStateLoc;
+    const double* dstate = locations.dstateLoc;
+    double* algResidual = locations.destLoc;
+    double* stateResidual = locations.destDiffLoc;
+    updateLocalCache(inputs, stateData, sMode);
 
     const auto coefficients = computeCoefficients(Xd, Xq, Xdp, Xqp, Xdpp, Xqpp, Xl);
     if (hasAlgebraic(sMode)) {
-        const double psi2q = coefficients.gq1 * state[2] + (1.0 - coefficients.gq1) * state[4];
-        const double psi2d = coefficients.gd1 * state[3] + (1.0 - coefficients.gd1) * state[5];
+        const double psi2q =
+            coefficients.mGq1 * state[2] + (1.0 - coefficients.mGq1) * state[4];
+        const double psi2d =
+            coefficients.mGd1 * state[3] + (1.0 - coefficients.mGd1) * state[5];
         algResidual[0] = Vd + Rs * alg[0] + Xqpp * alg[1] - psi2q;
         algResidual[1] = Vq + Rs * alg[1] - Xdpp * alg[0] - psi2d;
     }
     if (hasDifferential(sMode)) {
-        derivative(inputs, sD, resid, sMode);
+        derivative(inputs, stateData, resid, sMode);
         for (index_t index = 0; index < 6; ++index) {
             stateResidual[index] -= dstate[index];
         }
@@ -228,72 +268,81 @@ void GenModelGENROU::residual(const IOdata& inputs,
 }
 
 void GenModelGENROU::jacobianElements(const IOdata& inputs,
-                                      const StateData& sD,
-                                      MatrixData<double>& md,
+                                      const StateData& stateData,
+                                      MatrixData<double>& matrixData,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode)
 {
-    auto Loc = offsets.getLocations(sD, sMode, this);
-    const double* alg = Loc.algStateLoc;
-    const double* state = Loc.diffStateLoc;
-    const auto refAlg = Loc.algOffset;
-    const auto refDiff = Loc.diffOffset;
+    auto locations = offsets.getLocations(stateData, sMode, this);
+    const double* alg = locations.algStateLoc;
+    const double* state = locations.diffStateLoc;
+    const auto refAlg = locations.algOffset;
+    const auto refDiff = locations.diffOffset;
     const auto voltageLoc = inputLocs[VOLTAGE_IN_LOCATION];
     const auto angleLoc = inputLocs[ANGLE_IN_LOCATION];
-    updateLocalCache(inputs, sD, sMode);
+    updateLocalCache(inputs, stateData, sMode);
 
     const auto coefficients = computeCoefficients(Xd, Xq, Xdp, Xqp, Xdpp, Xqpp, Xl);
     if (hasAlgebraic(sMode)) {
         if (angleLoc != kNullLocation) {
-            md.assign(refAlg, angleLoc, Vq);
-            md.assign(refAlg + 1, angleLoc, -Vd);
+            matrixData.assign(refAlg, angleLoc, Vq);
+            matrixData.assign(refAlg + 1, angleLoc, -Vd);
         }
         if (voltageLoc != kNullLocation) {
-            md.assign(refAlg, voltageLoc, Vd / inputs[VOLTAGE_IN_LOCATION]);
-            md.assign(refAlg + 1, voltageLoc, Vq / inputs[VOLTAGE_IN_LOCATION]);
+            matrixData.assign(refAlg, voltageLoc, Vd / inputs[VOLTAGE_IN_LOCATION]);
+            matrixData.assign(refAlg + 1, voltageLoc, Vq / inputs[VOLTAGE_IN_LOCATION]);
         }
-        md.assign(refAlg, refAlg, Rs);
-        md.assign(refAlg, refAlg + 1, Xqpp);
-        md.assign(refAlg + 1, refAlg, -Xdpp);
-        md.assign(refAlg + 1, refAlg + 1, Rs);
+        matrixData.assign(refAlg, refAlg, Rs);
+        matrixData.assign(refAlg, refAlg + 1, Xqpp);
+        matrixData.assign(refAlg + 1, refAlg, -Xdpp);
+        matrixData.assign(refAlg + 1, refAlg + 1, Rs);
 
         if (isAlgebraicOnly(sMode)) {
             return;
         }
-        md.assign(refAlg, refDiff, -Vq);
-        md.assign(refAlg, refDiff + 2, -coefficients.gq1);
-        md.assign(refAlg, refDiff + 4, -(1.0 - coefficients.gq1));
-        md.assign(refAlg + 1, refDiff, Vd);
-        md.assign(refAlg + 1, refDiff + 3, -coefficients.gd1);
-        md.assign(refAlg + 1, refDiff + 5, -(1.0 - coefficients.gd1));
+        matrixData.assign(refAlg, refDiff, -Vq);
+        matrixData.assign(refAlg, refDiff + 2, -coefficients.mGq1);
+        matrixData.assign(refAlg, refDiff + 4, -(1.0 - coefficients.mGq1));
+        matrixData.assign(refAlg + 1, refDiff, Vd);
+        matrixData.assign(refAlg + 1, refDiff + 3, -coefficients.mGd1);
+        matrixData.assign(refAlg + 1, refDiff + 5, -(1.0 - coefficients.mGd1));
     }
 
     if (!hasDifferential(sMode)) {
         return;
     }
 
-    md.assign(refDiff, refDiff, -sD.cj);
-    md.assign(refDiff, refDiff + 1, systemBaseFrequency);
+    matrixData.assign(refDiff, refDiff, -stateData.cj);
+    matrixData.assign(refDiff, refDiff + 1, systemBaseFrequency);
 
     const double inverseTwoH = 0.5 / H;
     if (hasAlgebraic(sMode)) {
-        md.assign(refDiff + 1, refAlg, -inverseTwoH * (Vd + 2.0 * Rs * alg[0]));
-        md.assign(refDiff + 1, refAlg + 1, -inverseTwoH * (Vq + 2.0 * Rs * alg[1]));
+        matrixData.assign(refDiff + 1, refAlg, -inverseTwoH * (Vd + 2.0 * Rs * alg[0]));
+        matrixData.assign(refDiff + 1,
+                          refAlg + 1,
+                          -inverseTwoH * (Vq + 2.0 * Rs * alg[1]));
     }
-    md.assign(refDiff + 1, refDiff, inverseTwoH * (Vq * alg[0] - Vd * alg[1]));
-    md.assign(refDiff + 1, refDiff + 1, -inverseTwoH * D - sD.cj);
-    md.assignCheckCol(refDiff + 1, inputLocs[genModelPmechInLocation], inverseTwoH);
+    matrixData.assign(refDiff + 1, refDiff, inverseTwoH * (Vq * alg[0] - Vd * alg[1]));
+    matrixData.assign(refDiff + 1, refDiff + 1, -inverseTwoH * D - stateData.cj);
+    matrixData.assignCheckCol(refDiff + 1,
+                              inputLocs[genModelPmechInLocation],
+                              inverseTwoH);
     if (angleLoc != kNullLocation) {
-        md.assign(refDiff + 1, angleLoc, -inverseTwoH * (Vq * alg[0] - Vd * alg[1]));
+        matrixData.assign(refDiff + 1,
+                          angleLoc,
+                          -inverseTwoH * (Vq * alg[0] - Vd * alg[1]));
     }
     if (voltageLoc != kNullLocation) {
-        md.assign(refDiff + 1,
-                  voltageLoc,
-                  -inverseTwoH * (Vd * alg[0] + Vq * alg[1]) / inputs[VOLTAGE_IN_LOCATION]);
+        matrixData.assign(refDiff + 1,
+                          voltageLoc,
+                          -inverseTwoH * (Vd * alg[0] + Vq * alg[1]) /
+                              inputs[VOLTAGE_IN_LOCATION]);
     }
 
-    const double psi2q = coefficients.gq1 * state[2] + (1.0 - coefficients.gq1) * state[4];
-    const double psi2d = coefficients.gd1 * state[3] + (1.0 - coefficients.gd1) * state[5];
+    const double psi2q =
+        coefficients.mGq1 * state[2] + (1.0 - coefficients.mGq1) * state[4];
+    const double psi2d =
+        coefficients.mGd1 * state[3] + (1.0 - coefficients.mGd1) * state[5];
     const double fluxMagnitude = std::hypot(psi2d, psi2q);
     const auto saturation = sat.evaluate(fluxMagnitude);
     double dSaturationD = 0.0;
@@ -302,46 +351,70 @@ void GenModelGENROU::jacobianElements(const IOdata& inputs,
         dSaturationD = saturation.derivative * psi2d / fluxMagnitude;
         dSaturationQ = saturation.derivative * psi2q / fluxMagnitude;
     }
-    const double dQSatD = coefficients.gqd * psi2q * dSaturationD;
-    const double dQSatQ = coefficients.gqd * (saturation.value + psi2q * dSaturationQ);
+    const double dQSatD = coefficients.mGqd * psi2q * dSaturationD;
+    const double dQSatQ = coefficients.mGqd * (saturation.value + psi2q * dSaturationQ);
     const double dDSatD = saturation.value + psi2d * dSaturationD;
     const double dDSatQ = psi2d * dSaturationQ;
 
     if (hasAlgebraic(sMode)) {
-        md.assign(refDiff + 2, refAlg + 1, -(Xq - Xqp) * coefficients.gq1 / Tqop);
+        matrixData.assign(refDiff + 2,
+                          refAlg + 1,
+                          -(Xq - Xqp) * coefficients.mGq1 / Tqop);
     }
-    md.assign(refDiff + 2,
-              refDiff + 2,
-              (-1.0 - (Xq - Xqp) * coefficients.gq2 - dQSatQ * coefficients.gq1) / Tqop - sD.cj);
-    md.assign(refDiff + 2,
-              refDiff + 4,
-              ((Xq - Xqp) * coefficients.gq2 - dQSatQ * (1.0 - coefficients.gq1)) / Tqop);
-    md.assign(refDiff + 2, refDiff + 3, -dQSatD * coefficients.gd1 / Tqop);
-    md.assign(refDiff + 2, refDiff + 5, -dQSatD * (1.0 - coefficients.gd1) / Tqop);
+    matrixData.assign(refDiff + 2,
+                      refDiff + 2,
+                      (-1.0 - (Xq - Xqp) * coefficients.mGq2 -
+                       dQSatQ * coefficients.mGq1) /
+                              Tqop -
+                          stateData.cj);
+    matrixData.assign(refDiff + 2,
+                      refDiff + 4,
+                      ((Xq - Xqp) * coefficients.mGq2 -
+                       dQSatQ * (1.0 - coefficients.mGq1)) /
+                          Tqop);
+    matrixData.assign(refDiff + 2,
+                      refDiff + 3,
+                      -dQSatD * coefficients.mGd1 / Tqop);
+    matrixData.assign(refDiff + 2,
+                      refDiff + 5,
+                      -dQSatD * (1.0 - coefficients.mGd1) / Tqop);
 
     if (hasAlgebraic(sMode)) {
-        md.assign(refDiff + 3, refAlg, (Xd - Xdp) * coefficients.gd1 / Tdop);
+        matrixData.assign(refDiff + 3,
+                          refAlg,
+                          (Xd - Xdp) * coefficients.mGd1 / Tdop);
     }
-    md.assign(refDiff + 3,
-              refDiff + 3,
-              (-1.0 - (Xd - Xdp) * coefficients.gd2 - dDSatD * coefficients.gd1) / Tdop - sD.cj);
-    md.assign(refDiff + 3,
-              refDiff + 5,
-              ((Xd - Xdp) * coefficients.gd2 - dDSatD * (1.0 - coefficients.gd1)) / Tdop);
-    md.assign(refDiff + 3, refDiff + 2, -dDSatQ * coefficients.gq1 / Tdop);
-    md.assign(refDiff + 3, refDiff + 4, -dDSatQ * (1.0 - coefficients.gq1) / Tdop);
-    md.assignCheckCol(refDiff + 3, inputLocs[genModelEftInLocation], 1.0 / Tdop);
+    matrixData.assign(refDiff + 3,
+                      refDiff + 3,
+                      (-1.0 - (Xd - Xdp) * coefficients.mGd2 -
+                       dDSatD * coefficients.mGd1) /
+                              Tdop -
+                          stateData.cj);
+    matrixData.assign(refDiff + 3,
+                      refDiff + 5,
+                      ((Xd - Xdp) * coefficients.mGd2 -
+                       dDSatD * (1.0 - coefficients.mGd1)) /
+                          Tdop);
+    matrixData.assign(refDiff + 3,
+                      refDiff + 2,
+                      -dDSatQ * coefficients.mGq1 / Tdop);
+    matrixData.assign(refDiff + 3,
+                      refDiff + 4,
+                      -dDSatQ * (1.0 - coefficients.mGq1) / Tdop);
+    matrixData.assignCheckCol(refDiff + 3,
+                              inputLocs[genModelEftInLocation],
+                              1.0 / Tdop);
 
     if (hasAlgebraic(sMode)) {
-        md.assign(refDiff + 4, refAlg + 1, -(Xqp - Xl) / Tqopp);
+        matrixData.assign(refDiff + 4, refAlg + 1, -(Xqp - Xl) / Tqopp);
     }
-    md.assign(refDiff + 4, refDiff + 2, 1.0 / Tqopp);
-    md.assign(refDiff + 4, refDiff + 4, -1.0 / Tqopp - sD.cj);
+    matrixData.assign(refDiff + 4, refDiff + 2, 1.0 / Tqopp);
+    matrixData.assign(refDiff + 4, refDiff + 4, -1.0 / Tqopp - stateData.cj);
     if (hasAlgebraic(sMode)) {
-        md.assign(refDiff + 5, refAlg, (Xdp - Xl) / Tdopp);
+        matrixData.assign(refDiff + 5, refAlg, (Xdp - Xl) / Tdopp);
     }
-    md.assign(refDiff + 5, refDiff + 3, 1.0 / Tdopp);
-    md.assign(refDiff + 5, refDiff + 5, -1.0 / Tdopp - sD.cj);
+    matrixData.assign(refDiff + 5, refDiff + 3, 1.0 / Tdopp);
+    matrixData.assign(refDiff + 5, refDiff + 5, -1.0 / Tdopp - stateData.cj);
 }
 
 void GenModelGENROU::set(std::string_view param, std::string_view val)
@@ -365,10 +438,12 @@ void GenModelGENROU::set(std::string_view param, double val, units::unit unitTyp
     }
 }
 
-static const stringVec genModelGenrouNames{"id", "iq", "delta", "freq", "e1d", "e1q", "e2q", "e2d"};
+static const stringVec GEN_MODEL_GENROU_NAMES{
+    "id", "iq", "delta", "freq", "e1d", "e1q", "e2q", "e2d"};
 
 stringVec GenModelGENROU::localStateNames() const
 {
-    return genModelGenrouNames;
+    return GEN_MODEL_GENROU_NAMES;
 }
+// NOLINTEND(readability-math-missing-parentheses)
 }  // namespace griddyn::genmodels

@@ -9,7 +9,10 @@
 #include <string>
 
 namespace utilities {
-Saturation::Saturation(SaturationType sT): type(sT)
+// These functions implement standard fitted curves. Conventional arithmetic
+// grouping is kept to make the equations recognizable.
+// NOLINTBEGIN(readability-math-missing-parentheses)
+Saturation::Saturation(SaturationType saturationType): type(saturationType)
 {
     loadFunctions();
     computeParam();
@@ -77,46 +80,53 @@ void Saturation::setType(const std::string& stype)
     computeParam();
 }
 
-void Saturation::setParam(double S1, double S2)
+void Saturation::setParam(double saturationAtOne, double saturationAtOnePointTwo)
 {
-    s10 = S1;
-    s12 = S2;
+    s10 = saturationAtOne;
+    s12 = saturationAtOnePointTwo;
     computeParam();
 }
 
-void Saturation::setParam(double V1, double S1, double V2, double S2)
+void Saturation::setParam(double firstInput,
+                          double firstSaturation,
+                          double secondInput,
+                          double secondSaturation)
 {
     switch (type) {
         case SaturationType::QUADRATIC: {
-            double ssv = sqrt(S1 / S2);
-            A = -(V2 * ssv - V1) / (V1 - ssv);
-            B = S1 / ((V1 - A) * (V1 - A));
+            const double ssv = sqrt(firstSaturation / secondSaturation);
+            A = -(secondInput * ssv - firstInput) / (firstInput - ssv);
+            B = firstSaturation / ((firstInput - A) * (firstInput - A));
         } break;
         case SaturationType::SCALED_QUADRATIC:
         case SaturationType::CUTOFF_SCALED_QUADRATIC: {
-            if ((V1 <= 0.0) || (V2 <= 0.0) || (S1 <= 0.0) || (S2 <= 0.0)) {
+            if ((firstInput <= 0.0) || (secondInput <= 0.0) ||
+                (firstSaturation <= 0.0) || (secondSaturation <= 0.0)) {
                 A = 0.0;
                 B = 0.0;
                 break;
             }
-            double ssv = sqrt((S1 * V1) / (S2 * V2));
-            const double fitDenominator = V1 - ssv;
+            const double ssv =
+                sqrt((firstSaturation * firstInput) / (secondSaturation * secondInput));
+            const double fitDenominator = firstInput - ssv;
             if (std::abs(fitDenominator) < 1e-12) {
                 A = 0.0;
                 B = 0.0;
                 break;
             }
-            A = -(V2 * ssv - V1) / fitDenominator;
-            const double distance = V1 - A;
-            B = (std::abs(distance) < 1e-12) ? 0.0 : S1 / (distance * distance);
+            A = -(secondInput * ssv - firstInput) / fitDenominator;
+            const double distance = firstInput - A;
+            B = (std::abs(distance) < 1e-12) ?
+                0.0 :
+                firstSaturation / (distance * distance);
         } break;
         case SaturationType::EXPONENTIAL:
-            A = log(S1 / S2) / log(V1 / V2);
-            B = S1 / (pow(V1, A));
+            A = log(firstSaturation / secondSaturation) / log(firstInput / secondInput);
+            B = firstSaturation / (pow(firstInput, A));
             break;
         case SaturationType::LINEAR:
-            B = (S2 - S1) / (V2 - V1);
-            A = V1 - S1 / B;
+            B = (secondSaturation - firstSaturation) / (secondInput - firstInput);
+            A = firstInput - firstSaturation / B;
             break;
         case SaturationType::NONE:
         default:
@@ -128,9 +138,9 @@ void Saturation::setParam(double V1, double S1, double V2, double S2)
     s12 = compute(1.2);
 }
 
-void Saturation::setType(SaturationType sT)
+void Saturation::setType(SaturationType saturationType)
 {
-    type = sT;
+    type = saturationType;
     loadFunctions();
     computeParam();
 }
@@ -153,7 +163,7 @@ double Saturation::deriv(double val) const
 }
 Saturation::Evaluation Saturation::evaluate(double val) const
 {
-    return {satFunc(val), derivFunc(val)};
+    return {.value = satFunc(val), .derivative = derivFunc(val)};
 }
 double Saturation::inv(double val) const
 {
@@ -167,7 +177,7 @@ double Saturation::inv(double val) const
             break;
         case SaturationType::SCALED_QUADRATIC:
         case SaturationType::CUTOFF_SCALED_QUADRATIC: {
-            double temp = (2 * A + val / B);
+            const double temp = (2 * A + val / B);
             ret = (temp + sqrt(temp * temp - 4 * A * A)) / 2;
             break;
         }
@@ -193,7 +203,7 @@ void Saturation::computeParam()
                 B = 0.0;
                 break;
             }
-            double ssv = sqrt(s10 / s12);
+            const double ssv = sqrt(s10 / s12);
             const double fitDenominator = 1.0 - ssv;
             if (std::abs(fitDenominator) < 1e-12) {
                 A = 0.0;
@@ -212,7 +222,7 @@ void Saturation::computeParam()
                 B = 0.0;
                 break;
             }
-            double ssv = sqrt((s10 * 1.0) / (s12 * 1.2));
+            const double ssv = sqrt((s10 * 1.0) / (s12 * 1.2));
             const double fitDenominator = 1.0 - ssv;
             if (std::abs(fitDenominator) < 1e-12) {
                 A = 0.0;
@@ -260,8 +270,8 @@ void Saturation::loadFunctions()
                 if ((B == 0.0) || (val == 0.0)) {
                     return 0.0;
                 }
-                double v1 = (val - A);
-                return (B * (2 * val * v1 - v1 * v1) / (val * val));
+                const double distance = (val - A);
+                return (B * (2 * val * distance - distance * distance) / (val * val));
             };
             break;
         case SaturationType::CUTOFF_SCALED_QUADRATIC:
@@ -296,4 +306,5 @@ void Saturation::loadFunctions()
     }
 }
 
+// NOLINTEND(readability-math-missing-parentheses)
 }  // namespace utilities

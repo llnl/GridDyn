@@ -156,6 +156,12 @@ namespace griddyn::genmodels {
  * @note PSS/E requires the GENROU d- and q-axis subtransient reactances to be
  * equal. The class retains separate \c Xdpp and \c Xqpp storage to fit the
  * GridDyn architecture; the \c xpp setter assigns both values.
+ *
+ * @note ANDES warns when leakage reactance \f$x_l\f$ exceeds subtransient
+ * reactance \f$x''_d\f$ but continues initialization. GridDyn follows that
+ * compatibility behavior because the equations remain defined. Parameter
+ * sets that make \f$x'_d-x_l\f$, \f$x'_q-x_l\f$, or \f$x_d-x_l\f$ singular are
+ * rejected.
  */
 class GenModelGENROU: public GenModel5 {
   protected:

@@ -96,6 +96,30 @@ TEST_F(GenModelTests, GenrouRejectsInvalidParameters)
     EXPECT_THROW(model.dynInitializeA(0.0, 0), InvalidParameterValue);
 }
 
+TEST_F(GenModelTests, GenrouAcceptsAndesLeakageReactanceWarningRange)
+{
+    genmodels::GenModelGENROU model;
+    configureKundurGenrou(model, 0.0, 1.0);
+
+    // The IEEE 39-bus DYR case uses xl > xpp. ANDES warns about this input
+    // relationship but initializes the machine because its equations remain
+    // well-defined.
+    model.set("xl", 0.35);
+    model.set("xdpp", 0.2);
+    model.set("xqpp", 0.2);
+
+    EXPECT_NO_THROW(model.dynInitializeA(0.0, 0));
+}
+
+TEST_F(GenModelTests, GenrouRejectsSingularReactanceCoefficient)
+{
+    genmodels::GenModelGENROU model;
+    configureKundurGenrou(model, 0.0, 1.0);
+    model.set("xl", 0.3);
+
+    EXPECT_THROW(model.dynInitializeA(0.0, 0), InvalidParameterValue);
+}
+
 TEST_F(GenModelTests, GenrouAndesInitialization)
 {
     // Captured from ANDES kundur_full initialization. ANDES Id, e1d, and e2q
@@ -124,6 +148,8 @@ TEST_F(GenModelTests, GenrouAndesSaturatedInitialization)
                                1.0,
                                -0.46150083698625766,
                                0.8928705752592525,
+                               // Captured ANDES state, not an approximation of ln(2).
+                               // NOLINTNEXTLINE(modernize-use-std-numbers)
                                -0.6927156250354218,
                                0.7328991561827378},
                               2.015401860073227,

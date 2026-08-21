@@ -54,9 +54,9 @@ class Saturation {
   public:
     /** construction saturation from saturation type
      * @details constructor is converting type
-     * @param[in] sT saturation Type
+     * @param[in] saturationType saturation type
      */
-    explicit Saturation(SaturationType sT = SaturationType::SCALED_QUADRATIC);
+    explicit Saturation(SaturationType saturationType = SaturationType::SCALED_QUADRATIC);
     /** construct from string naming saturation type
      *@param[in] satType a string containing the type of the saturation*/
     explicit Saturation(const std::string& satType);
@@ -68,21 +68,24 @@ class Saturation {
     /** set the S10 and S12 parameter
      *@details sets the parameters of the saturation function previously specified at the point 1.0
      *and 1.2 The values input should correspond to the reduction in values so 0.0 for no saturation
-     *@param[in] S1  the value reduction at 1.0
-     *@param[in] S2 the value reduction at 1.2
+     *@param[in] saturationAtOne the value reduction at 1.0
+     *@param[in] saturationAtOnePointTwo the value reduction at 1.2
      */
-    void setParam(double S1, double S2);
+    void setParam(double saturationAtOne, double saturationAtOnePointTwo);
     /** @brief define the saturation function by specifying the reduction at two points
      *@details sets the parameters of the saturation function previously specified at the points V1
      *and V2 The values input should correspond to the reduction in values so 0.0 for no saturation
-     *@param[in] V1 the point along the saturation curve that S1 is given
-     *@param[in] S1  the value reduction at V1
-     *@param[in] V2 the point along the saturation curve from which S2 is given
-     *@param[in] S2 the value reduction at V2
+     *@param[in] firstInput the point along the saturation curve for the first value
+     *@param[in] firstSaturation the value reduction at firstInput
+     *@param[in] secondInput the point along the saturation curve for the second value
+     *@param[in] secondSaturation the value reduction at secondInput
      */
-    void setParam(double V1, double S1, double V2, double S2);
+    void setParam(double firstInput,
+                  double firstSaturation,
+                  double secondInput,
+                  double secondSaturation);
     /** update the saturation type function by enumeration*/
-    void setType(SaturationType sT);
+    void setType(SaturationType saturationType);
     /** update the saturation function by a string*/
     void setType(const std::string& stype);
     /** get the saturation function type by enumeration*/

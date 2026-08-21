@@ -37,38 +37,38 @@ namespace {
     }
 }  // namespace
 
-static TypeFactory<GenModel> genModelFactory("genmodel",
-                                             std::to_array<std::string_view>({"trivial"}));
+static TypeFactory<GenModel> gGenModelFactory("genmodel",
+                                              std::to_array<std::string_view>({"trivial"}));
 static ChildTypeFactory<griddyn::genmodels::GenModelInverter, GenModel>
-    inverterGenModelFactory("genmodel", std::to_array<std::string_view>({"inverter"}));
-static ChildTypeFactory<griddyn::genmodels::GenModelClassical, GenModel> classicalGenModelFactory(
+    gInverterGenModelFactory("genmodel", std::to_array<std::string_view>({"inverter"}));
+static ChildTypeFactory<griddyn::genmodels::GenModelClassical, GenModel> gClassicalGenModelFactory(
     "genmodel",
     std::to_array<std::string_view>(
         {"basic", "2", "second", "secondorder", "classic", "classical", "II"}));
 static ChildTypeFactory<griddyn::genmodels::GenModel3, GenModel>
-    thirdOrderGenModelFactory("genmodel",
-                              std::to_array<std::string_view>({"3", "third", "thirdorder", "III"}));
-static ChildTypeFactory<griddyn::genmodels::GenModel4, GenModel> fourthOrderGenModelFactory(
+    gThirdOrderGenModelFactory("genmodel",
+                               std::to_array<std::string_view>({"3", "third", "thirdorder", "III"}));
+static ChildTypeFactory<griddyn::genmodels::GenModel4, GenModel> gFourthOrderGenModelFactory(
     "genmodel",
     std::to_array<std::string_view>({"4", "fourth", "fourthorder", "IV", "grdc"}),
     "4");
-static ChildTypeFactory<griddyn::genmodels::GenModel5, GenModel> fifthOrderGenModelFactory(
+static ChildTypeFactory<griddyn::genmodels::GenModel5, GenModel> gFifthOrderGenModelFactory(
     "genmodel",
     std::to_array<std::string_view>({"5", "fifth", "fifthorder", "5.1", "Vtype1", "V"}));
 static ChildTypeFactory<griddyn::genmodels::GenModel5type2, GenModel>
-    fifthOrderGenModelType2Factory(
+    gFifthOrderGenModelType2Factory(
         "genmodel",
         std::to_array<std::string_view>({"5.2", "fifthtype2", "fifthordertype2", "Vtype2"}));
 static ChildTypeFactory<griddyn::genmodels::GenModel6, GenModel>
-    sixthOrderGenModelFactory("genmodel",
-                              std::to_array<std::string_view>({"6", "six", "sixthorder", "VI"}));
+    gSixthOrderGenModelFactory("genmodel",
+                               std::to_array<std::string_view>({"6", "six", "sixthorder", "VI"}));
 static ChildTypeFactory<griddyn::genmodels::GenModel6type2, GenModel>
-    sixthOrderGenModelType2Factory(
+    gSixthOrderGenModelType2Factory(
         "genmodel",
         std::to_array<std::string_view>({"6.2", "sixtype2", "sixthordertype2", "VItype2", "VI.2"}));
 static ChildTypeFactory<griddyn::genmodels::GenModelGENROU, GenModel>
-    genrouModelFactory("genmodel", std::to_array<std::string_view>({"genrou"}));
-static ChildTypeFactory<griddyn::genmodels::GenModel8, GenModel> eighthOrderGenModelFactory(
+    gGenrouModelFactory("genmodel", std::to_array<std::string_view>({"genrou"}));
+static ChildTypeFactory<griddyn::genmodels::GenModel8, GenModel> gEighthOrderGenModelFactory(
     "genmodel",
     std::to_array<std::string_view>({"8", "eight", "eighthorder", "VIII"}));
 

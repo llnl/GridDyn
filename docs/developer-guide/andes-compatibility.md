@@ -468,8 +468,11 @@ cmd /v:on /c "set PATH=& set Path=& ""C:\Program Files\CMake\bin\cmake.exe"" --b
   `kundur/kundur_full.json` case. A perturbed-state test compares all six
   differential equations against direct ANDES-equation reference values.
   Residual, derivative, algebraic, and Jacobian finite-difference checks
-  exercise the saturated model, and invalid reactance ordering is rejected
-  during initialization.
+  exercise the saturated model. Invalid transient/subtransient ordering and
+  singular gamma-coefficient denominators are rejected during initialization.
+  As in ANDES, leakage reactance above subtransient reactance produces a
+  warning but remains runnable; this is required by the bundled IEEE 39-bus
+  DYR case.
 - The DYR reader creates the registered `GenModelGENROU` and applies the DYR
   machine parameters after attachment so RAW stator data is retained without
   allowing the RAW source reactance to overwrite `Xd`. A dedicated

@@ -17,7 +17,7 @@ TEST(SaturationTests, CutoffScaledQuadraticReferencePoints)
     saturation.setParam(0.1, 0.3);
 
     const double ratio = std::sqrt(0.1 / (1.2 * 0.3));
-    const double saturationStart = (1.0 - 1.2 * ratio) / (1.0 - ratio);
+    const double saturationStart = (1.0 - (1.2 * ratio)) / (1.0 - ratio);
 
     EXPECT_DOUBLE_EQ(saturation.compute(0.5 * saturationStart), 0.0);
     EXPECT_DOUBLE_EQ(saturation.deriv(0.5 * saturationStart), 0.0);

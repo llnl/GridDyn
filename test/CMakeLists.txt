@@ -39,6 +39,7 @@ set(file_reader_gtest_sources
     gtestHelperFunctions.cpp
     libraryTests/testReaderInfo.cpp
     libraryTests/testExampleReaders.cpp
+    libraryTests/testSolverReader.cpp
     libraryTests/testXML.cpp
     libraryTests/testJsonReader.cpp
     libraryTests/testElementReaders.cpp

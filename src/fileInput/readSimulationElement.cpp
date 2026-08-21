@@ -15,7 +15,7 @@ namespace griddyn {
 using readerConfig::defMatchType;
 
 namespace {
-    void loadDefaultObjectTranslations(ReaderInfo& ReaderInformation);
+    void loadDefaultObjectTranslations(ReaderInfo& readerInformation);
 
     const IgnoreListType& simIgnoreFields()
     {
@@ -31,24 +31,24 @@ static constexpr char libstring[] = "library";
 // CoreObject * readSimXMLFile(const std::string &fileName, CoreObject *gco, const std::string
 // prefix, ReaderInfo *ri) const
 GridSimulation* readSimulationElement(std::shared_ptr<ReaderElement>& element,
-                                      ReaderInfo& ReaderInformation,
+                                      ReaderInfo& readerInformation,
                                       CoreObject* searchObject,
                                       GridSimulation* simulationObject)
 {
     // pointers
     const bool isMaster = isMasterObject(searchObject, simulationObject);
 
-    auto riScope = ReaderInformation.newScope();
+    auto riScope = readerInformation.newScope();
 
-    loadDefines(element, ReaderInformation);
-    loadDirectories(element, ReaderInformation);
+    loadDefines(element, readerInformation);
+    loadDirectories(element, readerInformation);
     if (isMaster) {
-        loadDefaultObjectTranslations(ReaderInformation);
+        loadDefaultObjectTranslations(readerInformation);
     }
-    loadTranslations(element, ReaderInformation);
-    loadCustomSections(element, ReaderInformation);
+    loadTranslations(element, readerInformation);
+    loadCustomSections(element, readerInformation);
     GridSimulation* simulation = elementReaderSetup(
-        element, simulationObject, "simulation", ReaderInformation, searchObject);
+        element, simulationObject, "simulation", readerInformation, searchObject);
 
     // load the simulation name and id
     const std::string simulationName = getElementField(element, "name", defMatchType);
@@ -60,16 +60,16 @@ GridSimulation* readSimulationElement(std::shared_ptr<ReaderElement>& element,
     if (!versionString.empty()) {
         simulation->set("version", versionString);
     }
-    setIndex(element, simulation, ReaderInformation);
+    setIndex(element, simulation, readerInformation);
     // load any other attributes
     objSetAttributes(
-        simulation, element, simulation->getName(), ReaderInformation, simIgnoreFields());
+        simulation, element, simulation->getName(), readerInformation, simIgnoreFields());
 
     if (isMaster) {
         const std::string basePowerText = getElementField(element, "basepower", defMatchType);
         if (!basePowerText.empty()) {
-            const double basePowerValue = interpretString(basePowerText, ReaderInformation);
-            ReaderInformation.base = basePowerValue;
+            const double basePowerValue = interpretString(basePowerText, readerInformation);
+            readerInformation.base = basePowerValue;
             simulation->set("basepower", basePowerValue);
         }
     }
@@ -77,29 +77,31 @@ GridSimulation* readSimulationElement(std::shared_ptr<ReaderElement>& element,
     if (element->hasElement(libstring)) {
         element->moveToFirstChild(libstring);
         while (element->isValid()) {
-            readLibraryElement(element, ReaderInformation);
+            readLibraryElement(element, readerInformation);
             element->moveToNextSibling(libstring);
         }
         element->moveToParent();
     }
 
-    readImports(element, ReaderInformation, simulation, false);
+    readImports(element, readerInformation, simulation, false);
 
     // load all other objects besides bus and area
-    loadSubObjects(element, ReaderInformation, simulation);
+    loadSubObjects(element, readerInformation, simulation);
 
-    paramLoopElement(
-        simulation, element, simulation->getName(), ReaderInformation, simIgnoreFields());
-
-    // read imports marked final
-    readImports(element, ReaderInformation, simulation, true);
-
+    // Solvers must be registered before simulation parameters are applied because
+    // defdae, defpowerflow, defdynalg, and defdyndiff can refer to them by name.
     element->moveToFirstChild("solver");
     while (element->isValid()) {
-        loadSolverElement(element, ReaderInformation, dynamic_cast<GridDynSimulation*>(simulation));
+        loadSolverElement(element, readerInformation, dynamic_cast<GridDynSimulation*>(simulation));
         element->moveToNextSibling("solver");
     }
     element->moveToParent();
+
+    paramLoopElement(
+        simulation, element, simulation->getName(), readerInformation, simIgnoreFields());
+
+    // read imports marked final
+    readImports(element, readerInformation, simulation, true);
 
     if (isMaster) {
         const int busCount = simulation->getInt("totalbuscount");
@@ -108,15 +110,15 @@ GridSimulation* readSimulationElement(std::shared_ptr<ReaderElement>& element,
         LEVELPRINT(READER_NORMAL_PRINT, "loaded Power simulation " << simulation->getName());
         LEVELPRINT(READER_SUMMARY_PRINT, "Summary: " << busCount << " buses Loaded ");
         LEVELPRINT(READER_SUMMARY_PRINT, "Summary: " << linkCount << " links Loaded ");
-        if (!ReaderInformation.collectors.empty()) {
+        if (!readerInformation.collectors.empty()) {
             LEVELPRINT(READER_SUMMARY_PRINT,
-                       "Summary: " << ReaderInformation.collectors.size() << " collectors Loaded ");
+                       "Summary: " << readerInformation.collectors.size() << " collectors Loaded ");
         }
-        if (!ReaderInformation.events.empty()) {
+        if (!readerInformation.events.empty()) {
             LEVELPRINT(READER_SUMMARY_PRINT,
-                       "Summary: " << ReaderInformation.events.size() << " events Loaded ");
+                       "Summary: " << readerInformation.events.size() << " events Loaded ");
         }
-        for (auto& col : ReaderInformation.collectors) {
+        for (auto& col : readerInformation.collectors) {
             auto* owner = col->getOwner();
             if (owner != nullptr) {
                 try {
@@ -133,37 +135,37 @@ GridSimulation* readSimulationElement(std::shared_ptr<ReaderElement>& element,
             }
         }
         // add the events
-        simulation->add(ReaderInformation.events);
+        simulation->add(readerInformation.events);
     }
 
-    ReaderInformation.closeScope(riScope);
+    readerInformation.closeScope(riScope);
 
     return simulation;
 }
 
 namespace {
-    void loadDefaultObjectTranslations(ReaderInfo& ReaderInformation)
+    void loadDefaultObjectTranslations(ReaderInfo& readerInformation)
     {
-        ReaderInformation.addTranslate("fuse", "relay");
-        ReaderInformation.addTranslate("breaker", "relay");
-        ReaderInformation.addTranslate("sensor", "relay");
-        ReaderInformation.addTranslate("control", "relay");
-        ReaderInformation.addTranslate("pmu", "relay");
-        ReaderInformation.addTranslate("controlblock", "block");
-        ReaderInformation.addTranslate("model", "genmodel");
-        ReaderInformation.addTranslate("gen", "generator");
-        ReaderInformation.addTranslate("transformer", "link");
-        ReaderInformation.addTranslate("line", "link");
-        ReaderInformation.addTranslate("tie", "link");
-        ReaderInformation.addTranslate("subsystem", "link");
-        ReaderInformation.addTranslate("busmodify", "bus");
-        ReaderInformation.addTranslate("areamodify", "area");
-        ReaderInformation.addTranslate("linkmodify", "link");
-        ReaderInformation.addTranslate("gov", "governor");
-        ReaderInformation.addTranslate("recorder", "collector");
-        ReaderInformation.addTranslate("player", "event");
-        ReaderInformation.addTranslate("scenario", "event");
-        ReaderInformation.addTranslate("loop", "array");
+        readerInformation.addTranslate("fuse", "relay");
+        readerInformation.addTranslate("breaker", "relay");
+        readerInformation.addTranslate("sensor", "relay");
+        readerInformation.addTranslate("control", "relay");
+        readerInformation.addTranslate("pmu", "relay");
+        readerInformation.addTranslate("controlblock", "block");
+        readerInformation.addTranslate("model", "genmodel");
+        readerInformation.addTranslate("gen", "generator");
+        readerInformation.addTranslate("transformer", "link");
+        readerInformation.addTranslate("line", "link");
+        readerInformation.addTranslate("tie", "link");
+        readerInformation.addTranslate("subsystem", "link");
+        readerInformation.addTranslate("busmodify", "bus");
+        readerInformation.addTranslate("areamodify", "area");
+        readerInformation.addTranslate("linkmodify", "link");
+        readerInformation.addTranslate("gov", "governor");
+        readerInformation.addTranslate("recorder", "collector");
+        readerInformation.addTranslate("player", "event");
+        readerInformation.addTranslate("scenario", "event");
+        readerInformation.addTranslate("loop", "array");
     }
 
     bool isMasterObject(const CoreObject* searchObject, const GridSimulation* simulationObject)

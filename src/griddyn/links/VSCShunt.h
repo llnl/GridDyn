@@ -77,11 +77,13 @@ namespace links {
         void updateLocalCache(const IOdata& inputs,
                               const StateData& stateDataValue,
                               const SolverMode& sMode) override;
+        using AcDcConverter::ioPartialDerivatives;
         void ioPartialDerivatives(id_type_t busId,
                                   const StateData& stateDataValue,
                                   MatrixData<double>& matrixDataValue,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
+        using AcDcConverter::outputPartialDerivatives;
         void outputPartialDerivatives(id_type_t busId,
                                       const StateData& stateDataValue,
                                       MatrixData<double>& matrixDataValue,

@@ -136,13 +136,17 @@ namespace griddyn::genmodels {
  * power, torque, or rotor motion.
  *
  * @par Equation sources
- * - <a href="https://github.com/CURRENT/andes/blob/eda5163c9ee8d19945a1dd5d1771fec5da608c27/andes/models/synchronous/genrou.py">
+ * - <a
+ * href="https://github.com/CURRENT/andes/blob/eda5163c9ee8d19945a1dd5d1771fec5da608c27/andes/models/synchronous/genrou.py">
  *   ANDES v2.0 GENROU equations and initialization</a>
- * - <a href="https://github.com/CURRENT/andes/blob/eda5163c9ee8d19945a1dd5d1771fec5da608c27/andes/models/synchronous/genbase.py">
+ * - <a
+ * href="https://github.com/CURRENT/andes/blob/eda5163c9ee8d19945a1dd5d1771fec5da608c27/andes/models/synchronous/genbase.py">
  *   ANDES v2.0 synchronous-generator base equations</a>
- * - <a href="https://github.com/OpenIPSL/OpenIPSL/blob/master/OpenIPSL/Electrical/Machines/PSSE/GENROU.mo">
+ * - <a
+ * href="https://github.com/OpenIPSL/OpenIPSL/blob/master/OpenIPSL/Electrical/Machines/PSSE/GENROU.mo">
  *   OpenIPSL PSS/E GENROU initialization reference</a>
- * - <a href="https://docs.andes.app/en/v1.8.10/_examples/verification/andes-ieee14-verification.html">
+ * - <a
+ * href="https://docs.andes.app/en/v1.8.10/_examples/verification/andes-ieee14-verification.html">
  *   ANDES GENROU verification against PSS/E, OpenIPSL, and TSAT</a>
  * - H. Cui, F. Li, and K. Tomsovic, "Hybrid Symbolic-Numeric Framework for
  *   Power System Modeling and Analysis," IEEE Transactions on Power Systems,

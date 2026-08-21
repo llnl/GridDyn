@@ -17,6 +17,7 @@
 using std::cout;
 using std::endl;
 using std::ostringstream;
+using std::pair;
 using std::printf;
 using std::string;
 

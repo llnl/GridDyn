@@ -21,13 +21,21 @@
 #endif
 
 using griddyn::paradae::BackwardDiff;
+using griddyn::paradae::BDF;
 using griddyn::paradae::DATA_Struct;
 using griddyn::paradae::ODE;
+using griddyn::paradae::ODEProblem;
 using griddyn::paradae::PVector;
 using griddyn::paradae::RCODE;
 using griddyn::paradae::Real;
 using griddyn::paradae::SMultiVector;
 using griddyn::paradae::SVector;
+using griddyn::paradae::WARN_ROOT;
+using griddyn::paradae::iVan_2;
+using griddyn::paradae::iVan_3;
+using griddyn::paradae::iVan_4;
+using griddyn::paradae::iVan_5;
+using griddyn::paradae::iVan_6;
 using std::abort;
 using std::abs;
 using std::ceil;

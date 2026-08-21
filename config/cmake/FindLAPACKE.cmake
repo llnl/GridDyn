@@ -65,8 +65,8 @@ if(LAPACKE_FOUND)
 endif()
 
 # ##################################################################################################
-# First search for headers. GridDyn uses the LAPACKE API directly and does not require a
-# separately installed CBLAS header or library.
+# First search for headers. GridDyn uses the LAPACKE API directly and does not require a separately
+# installed CBLAS header or library.
 find_path(
     LAPACKE_LAPACKE_INCLUDE_DIR
     NAMES lapacke.h
@@ -113,11 +113,7 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(
     LAPACKE
     FOUND_VAR LAPACKE_FOUND
-    REQUIRED_VARS
-        LAPACKE_LAPACKE_INCLUDE_DIR
-        LAPACKE_LIB
-        LAPACK_FOUND
-        BLAS_FOUND
+    REQUIRED_VARS LAPACKE_LAPACKE_INCLUDE_DIR LAPACKE_LIB LAPACK_FOUND BLAS_FOUND
     VERSION_VAR LAPACKE_VERSION_STRING
 )
 
@@ -128,13 +124,7 @@ if(LAPACKE_FOUND)
     ) # NOT MSVC
         set(MATH_LIB m)
     endif()
-    list(
-        APPEND
-        LAPACKE_LIBRARIES
-        ${LAPACKE_LIB}
-        ${LAPACK_LIBRARIES}
-        ${BLAS_LIBRARIES}
-    )
+    list(APPEND LAPACKE_LIBRARIES ${LAPACKE_LIB} ${LAPACK_LIBRARIES} ${BLAS_LIBRARIES})
     # Check for a common combination, and find required gfortran support libraries
 
     if(1)

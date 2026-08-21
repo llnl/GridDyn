@@ -152,11 +152,14 @@ endif()
 if(BUILD_BRAID_SOLVER)
     find_package(Braid QUIET)
     if(NOT GRIDDYN_ENABLE_MPI)
-        message(WARNING "Braid requires MPI support; skipping Braid solver")
+        message(FATAL_ERROR "Braid was requested but GRIDDYN_ENABLE_MPI is OFF")
     elseif(NOT BRAID_FOUND)
-        message(WARNING "Braid solver requested but Braid was not found; skipping Braid solver")
+        message(
+            FATAL_ERROR
+                "Braid was requested but was not found; set BRAID_INSTALL_DIR to the directory containing braid.h and libbraid"
+        )
     elseif(NOT LAPACKE_FOUND)
-        message(WARNING "Braid solver requested but LAPACKE was not found; skipping Braid solver")
+        message(FATAL_ERROR "Braid was requested but LAPACKE was not found")
     else()
         if(NOT GRIDDYN_ENABLE_PARADAE_SOLVERS)
             list(APPEND extra_solver_sources ${paradae_sources})

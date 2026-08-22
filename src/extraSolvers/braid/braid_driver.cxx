@@ -55,7 +55,8 @@ using std::setprecision;
 _braid_App_struct::_braid_App_struct(ODEProblem* ode_):
     ode(ode_), nb_multisteps(ode->GetTI()->GetType() == BDF ? ode->GetTI()->GetOrder() : 1),
     size_x(ode->GetEq()->GetM()), size_state(ode->GetEq()->GetNState()), prevlvl(-1),
-    alloc_data(size_x, nb_multisteps, ode->GetEq()->GetNURoots(), size_state), solution_tfinal(nullptr)
+    alloc_data(size_x, nb_multisteps, ode->GetEq()->GetNURoots(), size_state),
+    solution_tfinal(nullptr)
 {
 }
 
@@ -932,10 +933,7 @@ int braidBufPack(braid_App app, braid_Vector u, void* buffer, braid_BufferStatus
     return 0;
 }
 
-int braidBufUnpack(braid_App app,
-                   void* buffer,
-                   braid_Vector* u_ptr,
-                   braid_BufferStatus /*bstatus*/)
+int braidBufUnpack(braid_App app, void* buffer, braid_Vector* u_ptr, braid_BufferStatus /*bstatus*/)
 {
     Real* dbuffer = (Real*)buffer;
     my_Vector* u = new my_Vector;

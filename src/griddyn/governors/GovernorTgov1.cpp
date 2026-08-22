@@ -8,6 +8,7 @@
 
 #include "../Generator.h"
 #include "../GridBus.h"
+#include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -45,6 +46,16 @@ CoreObject* GovernorTgov1::clone(CoreObject* obj) const
 
 // destructor
 GovernorTgov1::~GovernorTgov1() = default;
+
+void GovernorTgov1::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
+{
+    // ANDES TGOV1 uses a positive speed-regulation gain and two first-order
+    // lags.  Zero or negative values make the differential equations singular.
+    if ((K <= 0.0) || (T1 <= 0.0) || (T3 <= 0.0) || (Pmax < Pmin)) {
+        throw InvalidParameterValue("TGOV1 R, T1, T3, or valve limits");
+    }
+    GovernorIeeeSimple::dynObjectInitializeA(time0, flags);
+}
 
 // initial conditions
 void GovernorTgov1::dynObjectInitializeB(const IOdata& /*inputs*/,
@@ -150,8 +161,8 @@ if (opFlags.test (uses_deadband))
 
     if (opFlags[POWER_LIMITED]) {
         md.assign(refI + 1, refI + 1, -sD.cj);
-        md.assign(refI, refI, 1 / T3);
-        md.assign(refI, refI + 1, -1 / T3 - sD.cj);
+        md.assign(refI, refI, -1 / T3 - sD.cj);
+        md.assign(refI, refI + 1, 1 / T3);
     } else {
         md.assignCheckCol(refI + 1, inputLocs[govpSetInLocation], 1 / T1);
         md.assign(refI + 1, refI + 1, -1 / T1 - sD.cj);
@@ -194,9 +205,7 @@ void GovernorTgov1::rootTest(const IOdata& inputs,
             roots[rootOffset] = (-Pmech + inputs[govpSetInLocation] + K * (omega - 1.0)) / T1;
         } else {
             roots[rootOffset] = std::min(Pmax - Pmech, Pmech - Pmin);
-            if (Pmech > Pmax) {
-                opFlags.set(POWER_LIMIT_HIGH);
-            }
+            opFlags.set(POWER_LIMIT_HIGH, Pmech > Pmax);
         }
         ++rootOffset;
     }
@@ -247,7 +256,7 @@ index_t GovernorTgov1::findIndex(std::string_view field, const SolverMode& sMode
     } else if (field == "v1") {
         ret = offsets.getDiffOffset(sMode);
     } else if (field == "v2") {
-        ret = offsets.getAlgOffset(sMode);
+        ret = offsets.getDiffOffset(sMode);
         ret = (ret != kNullLocation) ? ret + 1 : ret;
     }
     return ret;
@@ -267,5 +276,13 @@ void GovernorTgov1::set(std::string_view param, double val, unit unitType)
     } else {
         GovernorIeeeSimple::set(param, val, unitType);
     }
+}
+
+double GovernorTgov1::get(std::string_view param, unit unitType) const
+{
+    if (param == "dt") {
+        return Dt;
+    }
+    return GovernorIeeeSimple::get(param, unitType);
 }
 }  // namespace griddyn::governors

@@ -17,7 +17,6 @@ namespace griddyn::governors {
 class GovernorIeeeSimple: public Governor {
   public:
   protected:
-    double T3;  //!< [s]    servo motor time constant
     double Pup;  //!< [pu] upper ramp limit
     double Pdown;  //!< [pu] lower ramp limit
   public:

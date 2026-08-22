@@ -11,6 +11,17 @@
 #include <vector>
 
 namespace griddyn::governors {
+/**
+ * @brief PSS/e TGOV1 turbine governor.
+ *
+ * The valve state follows \f$\dot v=(-v+P_{ref}-\Delta\omega/R)/T_1\f$,
+ * with the PSS/e VMIN/VMAX limits.  The turbine output is the lead-lag
+ * \f$(1+sT_2)/(1+sT_3)\f$ response of the valve state, minus
+ * \f$D_t\Delta\omega\f$.
+ *
+ * These equations match ANDES v2.0.0
+ * `andes/models/governor/tgov1.py`, TGOV1Model.
+ */
 class GovernorTgov1: public GovernorIeeeSimple {
   public:
   protected:
@@ -19,6 +30,7 @@ class GovernorTgov1: public GovernorIeeeSimple {
     explicit GovernorTgov1(const std::string& objName = "govTgov1_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual ~GovernorTgov1();
+    virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void dynObjectInitializeB(const IOdata& inputs,
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
@@ -26,6 +38,8 @@ class GovernorTgov1: public GovernorIeeeSimple {
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
+    virtual double get(std::string_view param,
+                       units::unit unitType = units::defunit) const override;
     virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
     virtual void residual(const IOdata& inputs,

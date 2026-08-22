@@ -76,7 +76,7 @@ adapters still have attachment, parameter, equation, and validation gaps.
 | `IEEET1`, `IEEET3`, `ESDC2A`                                                                 | Same named ANDES models | `ExciterIEEEtype1`, `ExciterIEEEtype2`, and `ExciterDC2A` are only candidates | **Planned.** Perform equation and limiter audits before selecting an analogue; similar names are insufficient.                                                                                                                                                                                                                   |
 | `ESST1A`, `ESAC1A`, `AC8B`, `EXAC1`, `EXAC2`, `EXAC4`, `IEEEX1`, `EXST1`, `ESST3A`, `ESST4B` | Same named ANDES models | None exact                                                                    | **No direct analogue.** Implement model-specific exciter blocks and DYR schemas, then add initialization and trajectory tests.                                                                                                                                                                                                   |
 | `ESAC6A`, `SCRX`, `EXPIC1`                                                                   | `SEXS`                  | `ExciterSEXS`                                                                 | **Planned compatibility approximations.** ANDES marks these conversions as TODO/approximate and currently discards most source parameters. Reproduce this only as an explicit compatibility mode and emit a diagnostic; do not describe it as exact model support.                                                               |
-| `TGOV1`                                                                                      | `TGOV1`                 | `GovernorTgov1`                                                               | **Partial.** The adapter exists, but currently reads `T2`, `T3`, and `Dt` from the wrong token positions. Correct the schema and then audit limits, initialization, and trajectories.                                                                                                                                            |
+| `TGOV1`                                                                                      | `TGOV1`                 | `GovernorTgov1`                                                               | **Implemented.** Matches the ANDES v2.0.0 equations and PSS/e schema `R, T1, VMAX, VMIN, T2, T3, Dt`; DYR attachment, initialization, limiter, analytic-Jacobian, and isolated speed-step trajectory regressions are covered.                                                                                                    |
 | `HYGOV`                                                                                      | `HYGOV`                 | `GovernorHydro` is a candidate                                                | **Planned.** Compare equations, water-column dynamics, gate/rate limits, and parameter units before mapping it.                                                                                                                                                                                                                  |
 | `IEESGO`, `IEEEG1`                                                                           | Same named ANDES models | `GovernorReheat` and steam-governor classes are only candidates               | **Planned.** No exact equivalence has been established; audit block diagrams before choosing reuse versus new models.                                                                                                                                                                                                            |
 | `GAST`                                                                                       | `GAST`                  | None exact                                                                    | **No direct analogue.** Add a gas-turbine governor implementation and DYR adapter.                                                                                                                                                                                                                                               |
@@ -280,11 +280,11 @@ Required production work:
 - Define selectable stabilizer inputs and route the stabilizer output `Vss`
   into the exciter reference summing junction. The current code initializes a
   PSS but does not use its output in `generateSubModelInputs`.
-- Correct `TGOV1` DYR mapping. The schema is `R, T1, VMAX, VMIN, T2, T3, Dt`;
-  the existing adapter incorrectly takes `T2` from the `VMIN` position.
-- Audit `GovernorTgov1` droop, damping, limit/root behavior, initialization,
-  units, and machine-base conversion against ANDES rather than assuming the
-  class name establishes equivalence.
+- Complete `TGOV1` DYR mapping. The schema `R, T1, VMAX, VMIN, T2, T3, Dt`
+  is mapped in that order, with three-record attachment coverage.
+- Complete the `GovernorTgov1` audit against ANDES v2.0.0: droop, damping,
+  limiting/root behavior, initialization, and machine-base operation are
+  verified; limiter equations and the analytic Jacobian are covered.
 
 Independent tests:
 
@@ -293,8 +293,9 @@ Independent tests:
 - A test stabilizer produces a known `Vss`; verify it changes the exciter
   summing input and ultimately GENROU field voltage with the correct Jacobian.
 - DYR parameter/attachment tests for all three IEEE 14 `TGOV1` records.
-- Isolated TGOV1 initialization, limit transitions, and speed/load-step
-  trajectory against ANDES, followed by a GENROU+TGOV1 equilibrium test.
+- Isolated TGOV1 initialization, limit transitions, and speed-step trajectory
+  against the ANDES equations, plus a GENROU+TGOV1 initialization/Jacobian
+  integration test.
 
 Likely touchpoints include `GenModel`, `GenModelGENROU`, `DynamicGenerator`,
 `Exciter`, `Stabilizer`, `GovernorTgov1`, the DYR adapters, and component plus
@@ -556,7 +557,7 @@ it also needs native-input mapping, initialization, and a trajectory test.
 | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ |
 | `GENCLS`                                                                                                              | `GenModelClassical`; parameter and trajectory comparison required.                                                                                                                     | Partial            |
 | `GENROU`                                                                                                              | `GenModelGENROU` equations, DYR mapping, and five-machine initialization match ANDES references; fix exact machine identity/base handling, native ANDES import, and trajectory parity. | Partial            |
-| `TGOV1`                                                                                                               | `GovernorTgov1`; correct the DYR token mapping, then audit equations, limits, initialization, and trajectories.                                                                        | Partial            |
+| `TGOV1`                                                                                                               | `GovernorTgov1`; ANDES-equation, DYR-order, limiter, initialization, Jacobian, and isolated trajectory regressions are complete.                                                       | Implemented        |
 | `EXDC2`                                                                                                               | `ExciterDC2A` candidate; add omitted transducer/switch/saturation behavior and prove equation equivalence.                                                                             | Partial            |
 | `ZIP`, `FLoad`                                                                                                        | GridDyn static/dynamic load models; identify exact parameter and frequency-response equivalence.                                                                                       | Partial            |
 | `Motor3`, `Motor5`                                                                                                    | `MotorLoad3`, `MotorLoad5`; parameter mapping and trajectory comparisons required.                                                                                                     | Partial            |

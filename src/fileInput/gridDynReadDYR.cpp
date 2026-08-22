@@ -208,15 +208,16 @@ namespace {
 
         auto cof = CoreObjectFactory::instance();
         auto* governorModel = static_cast<Governor*>(cof->createObject("governor", "tgov1"));
-        // TODO(phlpt): TR not implemented yet; no voltage compensation implemented.
-        // governorModel->set("tr", params[3]);
+        // PSS/e TGOV1 order after the machine identifier is
+        // R, T1, VMAX, VMIN, T2, T3, Dt.  This matches ANDES's
+        // psse-dyr.yaml conversion schema.
         governorModel->set("r", params[3]);
         governorModel->set("t1", params[4]);
         governorModel->set("pmax", params[5]);
         governorModel->set("pmin", params[6]);
-        governorModel->set("t2", params[6]);
-        governorModel->set("t3", params[7]);
-        governorModel->set("dt", params[8]);
+        governorModel->set("t2", params[7]);
+        governorModel->set("t3", params[8]);
+        governorModel->set("dt", params[9]);
 
         gen->add(governorModel);
     }

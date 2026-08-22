@@ -10,6 +10,7 @@
 #include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/genmodels/GenModelGENROU.h"
+#include "griddyn/governors/GovernorTgov1.h"
 #include <cstddef>
 #include <fstream>
 #include <gtest/gtest.h>
@@ -77,5 +78,66 @@ TEST(AndesDyrReaderTests, LoadsGenrouAndMatchesIeee14Initialization)
                     reference["mechanical_power"][index].get<double>(),
                     tolerance)
             << "GENROU mechanical power at bus " << busId;
+    }
+}
+
+TEST(AndesDyrReaderTests, MapsTgov1ParametersInAndesDyrOrder)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_tgov1.dyr"));
+
+    struct Tgov1Parameters {
+        index_t busId;
+        double r;
+        double t1;
+        double pmax;
+        double pmin;
+        double t2;
+        double t3;
+        double dt;
+    };
+    constexpr Tgov1Parameters expected[]{{.busId = 1,
+                                          .r = 0.05,
+                                          .t1 = 0.05,
+                                          .pmax = 1.05,
+                                          .pmin = 0.3,
+                                          .t2 = 1.0,
+                                          .t3 = 2.1,
+                                          .dt = 0.0},
+                                         {.busId = 6,
+                                          .r = 0.04,
+                                          .t1 = 0.06,
+                                          .pmax = 1.10,
+                                          .pmin = 0.25,
+                                          .t2 = 1.2,
+                                          .t3 = 2.3,
+                                          .dt = 0.02},
+                                         {.busId = 8,
+                                          .r = 0.03,
+                                          .t1 = 0.07,
+                                          .pmax = 1.15,
+                                          .pmin = 0.2,
+                                          .t2 = 1.4,
+                                          .t3 = 2.5,
+                                          .dt = 0.04}};
+
+    for (const auto& entry : expected) {
+        auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", entry.busId));
+        ASSERT_NE(bus, nullptr) << "bus " << entry.busId;
+        auto* generator = bus->getGen(0);
+        ASSERT_NE(generator, nullptr) << "generator at bus " << entry.busId;
+        auto* governor =
+            dynamic_cast<griddyn::governors::GovernorTgov1*>(generator->find("governor"));
+        ASSERT_NE(governor, nullptr) << "TGOV1 at bus " << entry.busId;
+
+        EXPECT_DOUBLE_EQ(governor->get("r"), entry.r);
+        EXPECT_DOUBLE_EQ(governor->get("t1"), entry.t1);
+        EXPECT_DOUBLE_EQ(governor->get("pmax"), entry.pmax);
+        EXPECT_DOUBLE_EQ(governor->get("pmin"), entry.pmin);
+        EXPECT_DOUBLE_EQ(governor->get("t2"), entry.t2);
+        EXPECT_DOUBLE_EQ(governor->get("t3"), entry.t3);
+        EXPECT_DOUBLE_EQ(governor->get("dt"), entry.dt);
     }
 }

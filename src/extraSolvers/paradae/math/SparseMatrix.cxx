@@ -405,7 +405,7 @@ void SparseMatrix::Factorize()
     if (!isfacto) {
         void* symbolic;
         double Info[UMFPACK_INFO];
-#if REAL == 1
+#if defined(REAL) && REAL == 1
         cerr << "UMFPACK does not support single precision" << endl;
         abort();
 #else
@@ -437,7 +437,7 @@ void SparseMatrix::Solve(Vector& b, bool transpose) const
     }
 #endif
     if (!isrankdef) {
-#if REAL == 1
+#if defined(REAL) && REAL == 1
         cerr << "UMFPACK does not support single precision" << endl;
         abort();
 #else
@@ -515,7 +515,7 @@ void SparseMatrix::SetIJV(int m_, int nnz_, int* ival, int* jval, Real* vval)
     rowptr[m] = nnz;
 }
 
-int SparseMatrix::GetRowIndex(int idx_nnz) const
+int SparseMatrix::GetRowIndex([[maybe_unused]] int idx_nnz) const
 {
 #ifdef CHECK_MEM_OP
     if (idx_nnz >= nnz) {

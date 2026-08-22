@@ -11,7 +11,7 @@
 namespace griddyn::paradae {
 class SBlockTriMatrix: public DBlockTriMatrix {
   private:
-    void operator=(const SBlockTriMatrix& mat) {};
+    void operator=(const SBlockTriMatrix& /*mat*/) {};
 
   public:
     SBlockTriMatrix(): DBlockTriMatrix() {};

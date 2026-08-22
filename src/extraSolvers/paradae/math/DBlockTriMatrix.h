@@ -20,7 +20,7 @@ class DBlockTriMatrix: public VirtualMatrix {
     bool isdense;
 
   private:
-    void operator=(const DBlockTriMatrix& mat) {};
+    void operator=(const DBlockTriMatrix& /*mat*/) {};
 
   public:
     DBlockTriMatrix(): VirtualMatrix(), diag(NULL), data(NULL) {};

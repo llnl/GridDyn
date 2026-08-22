@@ -83,8 +83,15 @@ CoreObject* GenModelGENROU::clone(CoreObject* obj) const
 void GenModelGENROU::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
     constexpr double minimumReactanceDifference = 1e-9;
+    // PSS/E GENROU data conventionally uses a zero q-axis transient time
+    // constant when Xq equals Xqp.  Keep the associated state well-defined
+    // using the same short time constant fallback as the legacy model.
+    if ((Tqop == 0.0) && (std::abs(Xq - Xqp) <= minimumReactanceDifference)) {
+        Tqop = 0.01;
+    }
+
     if ((H <= 0.0) || (Tdop <= 0.0) || (Tdopp <= 0.0) || (Tqop <= 0.0) || (Tqopp <= 0.0) ||
-        (Xd <= Xdp) || (Xdp < Xdpp) || (Xq <= Xqp) || (Xqp < Xqpp) ||
+        (Xd <= Xdp) || (Xdp < Xdpp) || (Xq < Xqp) || (Xqp < Xqpp) ||
         (std::abs(Xdp - Xl) <= minimumReactanceDifference) ||
         (std::abs(Xqp - Xl) <= minimumReactanceDifference) ||
         (std::abs(Xd - Xl) <= minimumReactanceDifference)) {

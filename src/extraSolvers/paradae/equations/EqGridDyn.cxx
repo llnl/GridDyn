@@ -62,9 +62,9 @@ EquationGridDyn::EquationGridDyn(Real t0_,
     roots = RootManager(discontinuities.size(), static_cast<int>(rootsfound.size()), 0, 1e-10);
     roots.n_sactive = discontinuities.size();
     roots.n_uactive = static_cast<int>(rootsfound.size());
-    for (int i = 0; i < discontinuities.size(); i++) {
-        roots.is_active(i) = 1;
-        roots.t_sroot(i) = discontinuities[i];
+    for (std::size_t i = 0; i < discontinuities.size(); ++i) {
+        roots.is_active(static_cast<int>(i)) = 1;
+        roots.t_sroot(static_cast<int>(i)) = discontinuities[i];
     }
     for (int i = 0; i < roots.n_uactive; ++i) {
         roots.is_active(roots.n_sroots + i) = 1;
@@ -84,7 +84,7 @@ EquationGridDyn::EquationGridDyn(Real t0_,
 void EquationGridDyn::function(const Real t,
                                const Vector& y,
                                const Vector& dy,
-                               const Vector& state,
+                               const Vector& /*state*/,
                                Vector& Fydy)
 {
     nb_calls++;
@@ -95,7 +95,7 @@ void EquationGridDyn::function(const Real t,
 void EquationGridDyn::jacobian_ypcdy(const Real t,
                                      const Vector& y,
                                      const Vector& dy,
-                                     const Vector& state,
+                                     const Vector& /*state*/,
                                      const Real cj,
                                      Matrix& J)
 {
@@ -114,7 +114,7 @@ void EquationGridDyn::jacobian_ypcdy(const Real t,
     //}
 }
 
-void EquationGridDyn::init(const Real t, Vector& y)
+void EquationGridDyn::init(const Real /*t*/, Vector& y)
 {
     y.CopyData(y0);
 }
@@ -122,7 +122,7 @@ void EquationGridDyn::init(const Real t, Vector& y)
 void EquationGridDyn::root_functions(const Real t,
                                      const Vector& y,
                                      const Vector& dy,
-                                     const Vector& state,
+                                     const Vector& /*state*/,
                                      Vector& rv)
 {
     gds->rootFindingFunction(t, y.GetData(), dy.GetData(), rv.GetData(), *mode);

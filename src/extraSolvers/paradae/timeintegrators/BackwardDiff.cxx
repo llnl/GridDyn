@@ -82,7 +82,7 @@ string BackwardDiff::GetName()
     return s.str();
 }
 
-RCODE BackwardDiff::AdvanceStep(DATA_Struct& val, int iter_ref)
+RCODE BackwardDiff::AdvanceStep(DATA_Struct& val, int /*iter_ref*/)
 {
     nb_steps_done++;
     pstate = val.sprev;
@@ -269,8 +269,8 @@ void BackwardDiff::SetOrder(int type)
 // Coefficients for fixed-step
 void BackwardDiff::ComputeBDFCoeff_FS(Real tn,
                                       const SMultiVector& tprev,
-                                      const SMultiVector& xprev,
-                                      const Vector& dxprev)
+                                      const SMultiVector& /*xprev*/,
+                                      const Vector& /*dxprev*/)
 {
     int q = GetOrder();
 
@@ -290,8 +290,8 @@ void BackwardDiff::ComputeBDFCoeff_FS(Real tn,
 // Coefficients for variable-step
 void BackwardDiff::ComputeBDFCoeff_VS(Real tn,
                                       const SMultiVector& tprev,
-                                      const SMultiVector& xprev,
-                                      const Vector& dxprev)
+                                      const SMultiVector& /*xprev*/,
+                                      const Vector& /*dxprev*/)
 {
     int q = GetOrder();
     SVector allh(q);

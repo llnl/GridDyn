@@ -30,7 +30,10 @@ class Solver_App_RK: public Solver_App {
     virtual Real FxNorm(const Vector& fx) const;
     virtual Real XNorm(const Vector& dx, const Vector& x, Real tol_) const;
     virtual Real FxNorm(const Vector& fx, Real tol_) const;
-    virtual void EvaluateFunAndJac(const Vector& allK, Vector& gx, bool require_jac, bool factorize)
+    virtual void EvaluateFunAndJac(const Vector& /*allK*/,
+                                   Vector& /*gx*/,
+                                   bool /*require_jac*/,
+                                   bool /*factorize*/)
     {
         abort();
     };

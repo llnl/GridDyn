@@ -20,6 +20,7 @@ class PMultiVector: public PVector {
     PMultiVector(): PVector(), nx(1), ns(0) {};
     PMultiVector(const SMultiVector& v);
     PMultiVector(const Vector& v, int ns_, int nx_);
+    PMultiVector(const PMultiVector&) = default;
     virtual ~PMultiVector() {};
     PMultiVector& operator=(const SMultiVector& v);
     PMultiVector& operator=(const PMultiVector& v);

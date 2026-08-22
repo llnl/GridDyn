@@ -21,7 +21,7 @@ class DenseMatrix: public Matrix {
     lapack_int* f_ipiv;
 
   private:
-    void operator=(const DenseMatrix& mat) {};
+    void operator=(const DenseMatrix& /*mat*/) {};
 
   public:
     DenseMatrix(): Matrix(), data(NULL), f_data(NULL), f_ipiv(NULL) {};

@@ -96,6 +96,26 @@ TEST_F(GenModelTests, GenrouRejectsInvalidParameters)
     EXPECT_THROW(model.dynInitializeA(0.0, 0), InvalidParameterValue);
 }
 
+TEST_F(GenModelTests, GenrouAcceptsZeroQuadratureTransientTimeConstant)
+{
+    genmodels::GenModelGENROU model;
+    configureKundurGenrou(model, 0.0, 1.0);
+
+    // PSS/E represents the absent q-axis transient reactance with Xq == Xqp
+    // and Tqop == 0.  Initialization replaces the zero time constant with a
+    // short compatibility value so the retained state remains well-defined.
+    model.set("xq", 0.55);
+    model.set("tqop", 0.0);
+
+    EXPECT_NO_THROW(model.dynInitializeA(0.0, 0));
+
+    IOdata inputs(4, 0.0);
+    inputs[VOLTAGE_IN_LOCATION] = 1.0;
+    IOdata desiredOutput(2, 0.0);
+    IOdata fieldSet(4, 0.0);
+    EXPECT_NO_THROW(model.dynInitializeB(inputs, desiredOutput, fieldSet));
+}
+
 TEST_F(GenModelTests, GenrouAcceptsAndesLeakageReactanceWarningRange)
 {
     genmodels::GenModelGENROU model;

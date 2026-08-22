@@ -17,10 +17,10 @@ void Equation_ODE::function(const Real t,
     Fydy.AXPBY(-1.0, 1.0, dy);
 }
 
-void Equation_ODE::jacobian_dy(const Real t,
+void Equation_ODE::jacobian_dy(const Real /*t*/,
                                const Vector& y,
-                               const Vector& dy,
-                               const Vector& state,
+                               const Vector& /*dy*/,
+                               const Vector& /*state*/,
                                Matrix& J,
                                bool add)
 {
@@ -36,7 +36,7 @@ void Equation_ODE::jacobian_dy(const Real t,
 
 void Equation_ODE::jacobian_y(const Real t,
                               const Vector& y,
-                              const Vector& dy,
+                              const Vector& /*dy*/,
                               const Vector& state,
                               Matrix& J,
                               bool add)

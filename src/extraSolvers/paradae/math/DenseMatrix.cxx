@@ -250,7 +250,7 @@ void DenseMatrix::Factorize()
         m_lap = m;
         n_lap = m;
         lda_lap = m;
-#if REAL == 1
+#if defined(REAL) && REAL == 1
         flag = LAPACKE_sgetrf(LAPACK_ROW_MAJOR, m_lap, n_lap, f_data, lda_lap, f_ipiv);
 #else
         flag = LAPACKE_dgetrf(LAPACK_ROW_MAJOR, m_lap, n_lap, f_data, lda_lap, f_ipiv);
@@ -287,7 +287,7 @@ void DenseMatrix::Solve(Vector& b, bool transpose) const
         n_lap = m;
         lda_lap = m;
 
-#if REAL == 1
+#if defined(REAL) && REAL == 1
         LAPACKE_sgetrs(
             LAPACK_ROW_MAJOR, char_transpose, n_lap, 1, f_data, lda_lap, f_ipiv, b.GetData(), 1);
 #else
@@ -307,7 +307,7 @@ void DenseMatrix::Solve(Vector& b, bool transpose) const
         double rcond = -1;
         double* s = new double[m];
 
-#if REAL == 1
+#if defined(REAL) && REAL == 1
         LAPACKE_sgelsd(LAPACK_ROW_MAJOR,
                        m_lap,
                        n_lap,

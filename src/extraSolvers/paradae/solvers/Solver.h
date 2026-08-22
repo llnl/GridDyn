@@ -18,9 +18,9 @@ class Solver_App {
     virtual ~Solver_App() {};
     virtual void
         EvaluateFunAndJac(const Vector& x, Vector& fx, bool require_jac, bool factorize) = 0;
-    virtual Real XNorm(const Vector& dx, const Vector& x) const { return dx.Norm2() / tol; };
+    virtual Real XNorm(const Vector& dx, const Vector& /*x*/) const { return dx.Norm2() / tol; };
     virtual Real FxNorm(const Vector& fx) const { return XNorm(fx, SVector(fx.GetM(), 0)); };
-    virtual Real XNorm(const Vector& dx, const Vector& x, Real tol_) const
+    virtual Real XNorm(const Vector& dx, const Vector& /*x*/, Real tol_) const
     {
         return dx.Norm2() / tol_;
     };

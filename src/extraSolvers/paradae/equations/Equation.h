@@ -41,10 +41,10 @@ class RootManager {
     Real tol;  // Root finding tolerance
 
     RootManager():
-        n_sroots(0), n_uroots(0), n_sactive(0), n_uactive(0), n_state(0), is_active(0), dir_root(0),
+        n_sroots(0), n_uroots(0), n_uactive(0), n_sactive(0), n_state(0), is_active(0), dir_root(0),
         t_sroot(0), iroot(0), tol(0) {};
     RootManager(int n_sr, int n_ur, int n_st, Real tol_):
-        n_sroots(n_sr), n_uroots(n_ur), n_sactive(0), n_uactive(0), n_state(n_st),
+        n_sroots(n_sr), n_uroots(n_ur), n_uactive(0), n_sactive(0), n_state(n_st),
         is_active(n_sr + n_ur), dir_root(n_ur), t_sroot(n_sr), iroot(n_sr + n_ur), tol(tol_) {};
     inline bool HasSRoots() const { return n_sactive > 0; };
     inline bool HasURoots() const { return n_uactive > 0; };
@@ -100,17 +100,19 @@ class Equation {
     virtual TypeEquation GetTypeEq() = 0;
     virtual std::string GetName() { return name; };
     // The root functions, implements g(x)=0
-    virtual void root_functions(const Real t,
-                                const Vector& y,
-                                const Vector& dy,
-                                const Vector& state,
-                                Vector& rv) {};
+    virtual void root_functions(const Real /*t*/,
+                                const Vector& /*y*/,
+                                const Vector& /*dy*/,
+                                const Vector& /*state*/,
+                                Vector& /*rv*/) {};
     // Change the state depending on which root is found (should be private?)
-    virtual void root_crossings(const Vector& iroot, Vector& state) {};
-    virtual void root_action(const Real troot, Vector& yroot, Vector& dyroot, const Vector& iroot) {
-    };
+    virtual void root_crossings(const Vector& /*iroot*/, Vector& /*state*/) {};
+    virtual void root_action(const Real /*troot*/,
+                             Vector& /*yroot*/,
+                             Vector& /*dyroot*/,
+                             const Vector& /*iroot*/) {};
     // initialize the state
-    virtual void root_init_state(const Real t, Vector& state) {};
+    virtual void root_init_state(const Real /*t*/, Vector& /*state*/) {};
     // Check if a root has been crossed. If so, estimate the time t and change the state.
     bool CheckAllRoots(IPoly& P, Real tlo, Vector& glo, Real& thi, Vector& ghi, Vector& state);
     // Check if a unscheduled root has been crossed. If so, estimate the time t.

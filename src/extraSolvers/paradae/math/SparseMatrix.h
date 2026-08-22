@@ -19,7 +19,7 @@ class SparseMatrix: public Matrix {
     Real& InsertVal(int i, int j, Real val);
 
   private:
-    void operator=(const SparseMatrix& mat) {};
+    void operator=(const SparseMatrix& /*mat*/) {};
 
   public:
     SparseMatrix(): Matrix(), nnz(0), rowptr(NULL), col(NULL), data(NULL), numeric(NULL) {};

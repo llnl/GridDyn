@@ -30,13 +30,13 @@ Solver_App_RK* RungeKutta_DIRK::BuildSolverApp(Real t, Real dt, const Vector& x0
     return new Solver_App_DIRK(rtol, atol, t + dt, dt, x0, this);
 }
 
-Solver_App_DIRK::Solver_App_DIRK(Real rtol,
-                                 const Vector& atol,
+Solver_App_DIRK::Solver_App_DIRK(Real rtol_,
+                                 const Vector& atol_,
                                  Real tn_,
                                  Real dt_,
                                  const Vector& x0_,
                                  RungeKutta_Implicit* rk_):
-    Solver_App_IRK(rtol, atol, tn_, dt_, x0_, rk_)
+    Solver_App_IRK(rtol_, atol_, tn_, dt_, x0_, rk_)
 {
 }
 

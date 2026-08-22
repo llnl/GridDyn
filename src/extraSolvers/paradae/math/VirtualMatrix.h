@@ -60,7 +60,7 @@ std::ostream& operator<<(std::ostream& output, const VirtualMatrix& mat);
 
 class Matrix: public VirtualMatrix {
   private:
-    void operator=(const Matrix& mat) {};
+    void operator=(const Matrix& /*mat*/) {};
 
   public:
     Matrix(): VirtualMatrix() {};

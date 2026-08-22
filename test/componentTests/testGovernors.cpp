@@ -5,12 +5,12 @@
  */
 
 #include "../gtestHelper.h"
-#include "core/ObjectFactory.hpp"
 #include "core/CoreExceptions.h"
+#include "core/ObjectFactory.hpp"
 #include "griddyn/Generator.h"
 #include "griddyn/governors/GovernorTgov1.h"
-#include "utilities/MatrixDataSparse.hpp"
 #include "griddyn/simulation/Diagnostics.h"
+#include "utilities/MatrixDataSparse.hpp"
 #include <cmath>
 #include <cstdio>
 #include <gtest/gtest.h>

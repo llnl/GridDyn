@@ -43,21 +43,21 @@ class GovernorTgov1: public GovernorIeeeSimple {
     virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
     virtual void residual(const IOdata& inputs,
-                          const StateData& sD,
+                          const StateData& stateData,
                           double resid[],
                           const SolverMode& sMode) override;
     virtual void derivative(const IOdata& inputs,
-                            const StateData& sD,
+                            const StateData& stateData,
                             double deriv[],
                             const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
-                                  const StateData& sD,
-                                  MatrixData<double>& md,
+                                  const StateData& stateData,
+                                  MatrixData<double>& matrixData,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void rootTest(const IOdata& inputs,
-                          const StateData& sD,
+                          const StateData& stateData,
                           double roots[],
                           const SolverMode& sMode) override;
     virtual void rootTrigger(CoreTime time,

@@ -32,7 +32,10 @@ void RungeKutta_SDIRK::SetDenseMatrix(bool dense_mat_)
     }
 }
 
-bool RungeKutta_SDIRK::SolveInnerSteps(Real t, Real used_dt, const Vector& x0, SMultiVector& allK)
+bool RungeKutta_SDIRK::SolveInnerSteps(Real /*t*/,
+                                       Real /*used_dt*/,
+                                       const Vector& x0,
+                                       SMultiVector& allK)
 {
     bool success = true;
     PVector Ki, Kim1;
@@ -75,13 +78,13 @@ Solver_App_RK* RungeKutta_SDIRK::BuildSolverApp(Real t, Real dt, const Vector& x
     return new Solver_App_SDIRK(rtol, atol, t + dt, dt, x0, this);
 }
 
-Solver_App_SDIRK::Solver_App_SDIRK(Real rtol,
-                                   const Vector& atol,
+Solver_App_SDIRK::Solver_App_SDIRK(Real rtol_,
+                                   const Vector& atol_,
                                    Real tn_,
                                    Real dt_,
                                    const Vector& x0_,
                                    RungeKutta_Implicit* rk_):
-    Solver_App_IRK(rtol, atol, tn_, dt_, x0_, rk_)
+    Solver_App_IRK(rtol_, atol_, tn_, dt_, x0_, rk_)
 {
     current_step = 0;
     b.Resize(x0_.GetM());

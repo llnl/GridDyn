@@ -24,7 +24,10 @@ using std::string;
 namespace griddyn::paradae {
 
 template<typename T>
-void export_param(int mpi_rank, string key, T value, T default_value)
+void export_param([[maybe_unused]] int mpi_rank,
+                  [[maybe_unused]] string key,
+                  [[maybe_unused]] T value,
+                  [[maybe_unused]] T default_value)
 {
 #ifdef EXPORT_PARAM
     if (mpi_rank == 0) {

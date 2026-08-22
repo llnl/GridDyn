@@ -154,7 +154,7 @@ void IVander::Derivate(DenseMatrix& M) const
 }
 
 void IVander::Interp(const SMultiVector& xn,
-                     const Vector& dx,
+                     const Vector& /*dx*/,
                      SMultiVector& new_xn,
                      Vector& new_dx,
                      Real dt,

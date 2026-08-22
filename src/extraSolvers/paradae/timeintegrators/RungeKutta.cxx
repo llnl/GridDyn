@@ -37,7 +37,7 @@ void RungeKutta::show()
     cout << "###################" << endl;
 }
 
-RCODE RungeKutta::AdvanceStep(DATA_Struct& val, int iter_ref)
+RCODE RungeKutta::AdvanceStep(DATA_Struct& val, int /*iter_ref*/)
 {
     nb_steps_done++;
     PVector x0;
@@ -106,7 +106,7 @@ bool RungeKutta::EstimateNextStepSize(const Vector& x0,
     return success;
 }
 
-Solver_App_RK* RungeKutta::BuildSolverApp(Real t, Real dt, const Vector& x0)
+Solver_App_RK* RungeKutta::BuildSolverApp(Real /*t*/, Real /*dt*/, const Vector& x0)
 {
     return new Solver_App_RK(rtol, atol, x0, this);
 }

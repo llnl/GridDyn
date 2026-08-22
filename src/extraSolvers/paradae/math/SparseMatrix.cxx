@@ -515,7 +515,7 @@ void SparseMatrix::SetIJV(int m_, int nnz_, int* ival, int* jval, Real* vval)
     rowptr[m] = nnz;
 }
 
-int SparseMatrix::GetRowIndex(int idx_nnz) const
+int SparseMatrix::GetRowIndex([[maybe_unused]] int idx_nnz) const
 {
 #ifdef CHECK_MEM_OP
     if (idx_nnz >= nnz) {

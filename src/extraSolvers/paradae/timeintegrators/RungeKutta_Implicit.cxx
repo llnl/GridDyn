@@ -51,9 +51,9 @@ Solver_App_RK* RungeKutta_Implicit::BuildSolverApp(Real t, Real dt, const Vector
     return new Solver_App_IRK(rtol, atol, t + dt, dt, x0, this);
 }
 
-bool RungeKutta_Implicit::SolveInnerSteps(Real t,
-                                          Real used_dt,
-                                          const Vector& x0,
+bool RungeKutta_Implicit::SolveInnerSteps(Real /*t*/,
+                                          Real /*used_dt*/,
+                                          const Vector& /*x0*/,
                                           SMultiVector& allK)
 {
     bool success = true;

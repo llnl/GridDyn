@@ -21,6 +21,7 @@
 #include "gmlc/containers/mapOps.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
+#include "utilities/MatrixDataCustomWriteOnly.hpp"
 #include "utilities/MatrixDataScale.hpp"
 #include <algorithm>
 #include <functional>
@@ -76,23 +77,37 @@ CoreObject* DynamicGenerator::clone(CoreObject* obj) const
     return gen;
 }
 namespace {
+    constexpr index_t machineSignalLocationBase =
+        kInvalidLocation - static_cast<index_t>(machineControllerSignalCount) - 1;
+
+    index_t machineSignalLocation(index_t signalIndex)
+    {
+        return machineSignalLocationBase + signalIndex;
+    }
+
+    void copyMachineSignals(const IOdata& machineSignals, IOdata& exciterInputs)
+    {
+        for (index_t signalIndex = 0; signalIndex < machineControllerSignalCount; ++signalIndex) {
+            exciterInputs[exciterMachineSignalBase + signalIndex] = machineSignals[signalIndex];
+        }
+    }
+
     const auto& getDynModelFromStringMap()
     {
-        static const std::
-            map<std::string_view, DynamicGenerator::DynModel, std::less<std::string_view>>
-                dynModelFromStringMap{
-                    {"typical", DynamicGenerator::DynModel::TYPICAL},
-                    {"simple", DynamicGenerator::DynModel::SIMPLE},
-                    {"model_only", DynamicGenerator::DynModel::MODEL_ONLY},
-                    {"modelonly", DynamicGenerator::DynModel::MODEL_ONLY},
-                    {"transient", DynamicGenerator::DynModel::TRANSIENT},
-                    {"subtransient", DynamicGenerator::DynModel::SUBTRANSIENT},
-                    {"detailed", DynamicGenerator::DynModel::DETAILED},
-                    {"none", DynamicGenerator::DynModel::NONE},
-                    {"dc", DynamicGenerator::DynModel::DC},
-                    {"renewable", DynamicGenerator::DynModel::RENEWABLE},
-                    {"variable", DynamicGenerator::DynModel::RENEWABLE},
-                };
+        static const std::map<std::string_view, DynamicGenerator::DynModel, std::less<>>
+            dynModelFromStringMap{
+                {"typical", DynamicGenerator::DynModel::TYPICAL},
+                {"simple", DynamicGenerator::DynModel::SIMPLE},
+                {"model_only", DynamicGenerator::DynModel::MODEL_ONLY},
+                {"modelonly", DynamicGenerator::DynModel::MODEL_ONLY},
+                {"transient", DynamicGenerator::DynModel::TRANSIENT},
+                {"subtransient", DynamicGenerator::DynModel::SUBTRANSIENT},
+                {"detailed", DynamicGenerator::DynModel::DETAILED},
+                {"none", DynamicGenerator::DynModel::NONE},
+                {"dc", DynamicGenerator::DynModel::DC},
+                {"renewable", DynamicGenerator::DynModel::RENEWABLE},
+                {"variable", DynamicGenerator::DynModel::RENEWABLE},
+            };
         return dynModelFromStringMap;
     }
 }  // namespace
@@ -268,12 +283,20 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
     }
 
     if ((ext != nullptr) && (ext->isEnabled())) {
-        modelInputs[VOLTAGE_IN_LOCATION] = voltage;
-        modelInputs[ANGLE_IN_LOCATION] = theta;
-        modelInputs[exciterPmechInLocation] = m_Pmech;
+        IOdata exciterInputs(exciterInputCount, 0.0);
+        exciterInputs[exciterVoltageInLocation] = voltage;
+        exciterInputs[exciterVsetInLocation] = 1.0;
+        exciterInputs[exciterPmechInLocation] = m_Pmech;
+        exciterInputs[exciterOmegaInLocation] = 1.0;
+        modelInputs[genModelPmechInLocation] = m_Pmech;
+        modelInputs[genModelEftInLocation] = m_Eft;
+        copyMachineSignals(genModel->getMachineControllerSignals(modelInputs,
+                                                                 emptyStateData,
+                                                                 cLocalSolverMode),
+                           exciterInputs);
 
         localDesiredOutput[0] = m_Eft;
-        ext->dynInitializeB(modelInputs, localDesiredOutput, computedFieldSet);
+        ext->dynInitializeB(exciterInputs, localDesiredOutput, computedFieldSet);
 
         //    ext->guessState (prevTime, m_state.data (), m_dstate_dt.data (), cLocalbSolverMode);
         // Vset=inputSetup[1];
@@ -499,15 +522,29 @@ void DynamicGenerator::timestep(CoreTime time, const IOdata& inputs, const Solve
             m_Pmech = gov->getOutput();
         }
 
-        if ((ext != nullptr) && (ext->isEnabled())) {
-            ext->timestep(time,
-                          {inputs[VOLTAGE_IN_LOCATION], inputs[ANGLE_IN_LOCATION], m_Pmech, omega},
-                          sMode);
-            m_Eft = ext->getOutput();
-        }
-
         if ((pss != nullptr) && (pss->isEnabled())) {
             pss->timestep(time, inputs, sMode);
+        }
+
+        if ((ext != nullptr) && (ext->isEnabled())) {
+            const IOdata genModelInputs{inputs[VOLTAGE_IN_LOCATION],
+                                        inputs[ANGLE_IN_LOCATION],
+                                        m_Eft,
+                                        m_Pmech};
+            IOdata exciterInputs(exciterInputCount, 0.0);
+            exciterInputs[exciterVoltageInLocation] = inputs[VOLTAGE_IN_LOCATION];
+            exciterInputs[exciterVsetInLocation] = 1.0;
+            exciterInputs[exciterPmechInLocation] = m_Pmech;
+            exciterInputs[exciterOmegaInLocation] = omega;
+            copyMachineSignals(genModel->getMachineControllerSignals(genModelInputs,
+                                                                     emptyStateData,
+                                                                     cLocalSolverMode),
+                               exciterInputs);
+            if ((pss != nullptr) && (pss->isEnabled()) && (pss->numOutputs() > 0)) {
+                exciterInputs[exciterVssInLocation] = pss->getOutput();
+            }
+            ext->timestep(time, exciterInputs, sMode);
+            m_Eft = ext->getOutput();
         }
         // compute the residuals
 
@@ -859,9 +896,45 @@ void DynamicGenerator::jacobianElements(const IOdata& inputs,
     updateLocalCache(inputs, stateDataValue, sMode);
     generateSubModelInputLocs(inputLocs, stateDataValue, sMode);
 
+    auto machineSignalInputLocations = subInputLocs.genModelInputLocsInternal;
+    machineSignalInputLocations[VOLTAGE_IN_LOCATION] =
+        subInputLocs.genModelInputLocsExternal[VOLTAGE_IN_LOCATION];
+    machineSignalInputLocations[ANGLE_IN_LOCATION] =
+        subInputLocs.genModelInputLocsExternal[ANGLE_IN_LOCATION];
+    const auto machineSignalDerivatives =
+        genModel->getMachineControllerSignalDerivatives(subInputs.inputs[GEN_MODEL_LOC],
+                                                        stateDataValue,
+                                                        machineSignalInputLocations,
+                                                        sMode);
+
     // compute the Jacobian
     for (auto* sub : getSubObjects()) {
         if (sub->isEnabled()) {
+            if ((sub == ext) && (ext->numInputs() > exciterMachineSignalBase)) {
+                MatrixDataCustomWriteOnly<double> translatedMatrix;
+                translatedMatrix.setFunction(
+                    [&matrixDataValue,
+                     &machineSignalDerivatives](index_t row, index_t column, double value) {
+                        if ((column >= machineSignalLocationBase) &&
+                            (column < machineSignalLocationBase +
+                                 static_cast<index_t>(machineControllerSignalCount))) {
+                            const index_t signalIndex = column - machineSignalLocationBase;
+                            for (const auto& derivative : machineSignalDerivatives[signalIndex]) {
+                                matrixDataValue.assign(row,
+                                                       derivative.location,
+                                                       value * derivative.value);
+                            }
+                            return;
+                        }
+                        matrixDataValue.assign(row, column, value);
+                    });
+                sub->jacobianElements(subInputs.inputs[sub->locIndex],
+                                      stateDataValue,
+                                      translatedMatrix,
+                                      subInputLocs.inputLocs[sub->locIndex],
+                                      sMode);
+                continue;
+            }
             sub->jacobianElements(subInputs.inputs[sub->locIndex],
                                   stateDataValue,
                                   matrixDataValue,
@@ -994,7 +1067,7 @@ double DynamicGenerator::getAngle(const StateData& stateDataValue,
 DynamicGenerator::SubModelInputs::SubModelInputs(): inputs(6)
 {
     inputs[GEN_MODEL_LOC].resize(4);
-    inputs[EXCITER_LOC].resize(3);
+    inputs[EXCITER_LOC].resize(exciterInputCount);
     inputs[GOVERNOR_LOC].resize(3);
 }
 
@@ -1002,7 +1075,7 @@ DynamicGenerator::SubModelInputLocs::SubModelInputLocs():
     genModelInputLocsInternal(4), genModelInputLocsExternal(4), inputLocs(6)
 {
     inputLocs[GEN_MODEL_LOC].resize(4);
-    inputLocs[EXCITER_LOC].resize(3);
+    inputLocs[EXCITER_LOC].resize(exciterInputCount);
     inputLocs[GOVERNOR_LOC].resize(3);
 
     genModelInputLocsExternal[genModelEftInLocation] = kNullLocation;
@@ -1045,6 +1118,8 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
             subInputs.inputs[ISOC_CONTROL_LOC][0] = genModel->getFreq(stateDataValue, sMode) - 1.0;
         }
     }
+    subInputs.inputs[EXCITER_LOC][exciterOmegaInLocation] =
+        subInputs.inputs[GOVERNOR_LOC][govOmegaInLocation];
 
     const double scale = systemBasePower / machineBasePower;
     double pcontrol = pSetControlUpdate(inputs, stateDataValue, sMode);
@@ -1052,13 +1127,6 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
 
     subInputs.inputs[GOVERNOR_LOC][govpSetInLocation] = pcontrol * scale;
 
-    subInputs.inputs[EXCITER_LOC][exciterVsetInLocation] =
-        vSetControlUpdate(inputs, stateDataValue, sMode);
-    double eft = m_Eft;
-    if ((ext != nullptr) && (ext->isEnabled())) {
-        eft = ext->getOutput(subInputs.inputs[EXCITER_LOC], stateDataValue, sMode, 0);
-    }
-    subInputs.inputs[GEN_MODEL_LOC][genModelEftInLocation] = eft;
     double pmech = pcontrol * scale;
     if ((gov != nullptr) && (gov->isEnabled())) {
         pmech = gov->getOutput(subInputs.inputs[GOVERNOR_LOC], stateDataValue, sMode, 0);
@@ -1067,6 +1135,23 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
         pmech = 0.0;
     }
     subInputs.inputs[GEN_MODEL_LOC][genModelPmechInLocation] = pmech;
+    subInputs.inputs[EXCITER_LOC][exciterPmechInLocation] = pmech;
+    subInputs.inputs[EXCITER_LOC][exciterVsetInLocation] =
+        vSetControlUpdate(inputs, stateDataValue, sMode);
+    copyMachineSignals(genModel->getMachineControllerSignals(subInputs.inputs[GEN_MODEL_LOC],
+                                                             stateDataValue,
+                                                             sMode),
+                       subInputs.inputs[EXCITER_LOC]);
+    subInputs.inputs[EXCITER_LOC][exciterVssInLocation] = 0.0;
+    if ((pss != nullptr) && (pss->isEnabled()) && (pss->numOutputs() > 0)) {
+        subInputs.inputs[EXCITER_LOC][exciterVssInLocation] =
+            pss->getOutput(subInputs.inputs[PSS_LOC], stateDataValue, sMode);
+    }
+    double eft = m_Eft;
+    if ((ext != nullptr) && (ext->isEnabled())) {
+        eft = ext->getOutput(subInputs.inputs[EXCITER_LOC], stateDataValue, sMode, 0);
+    }
+    subInputs.inputs[GEN_MODEL_LOC][genModelEftInLocation] = eft;
 
     if (!stateDataValue.empty()) {
         subInputs.seqID = stateDataValue.seqID;
@@ -1090,6 +1175,17 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
         subInputLocs.inputLocs[EXCITER_LOC][exciterVoltageInLocation] =
             inputLocs[VOLTAGE_IN_LOCATION];
         subInputLocs.inputLocs[EXCITER_LOC][exciterVsetInLocation] = vSetLocation(sMode);
+        if (ext->numInputs() > exciterMachineSignalBase) {
+            for (index_t signalIndex = 0; signalIndex < machineControllerSignalCount;
+                 ++signalIndex) {
+                subInputLocs.inputLocs[EXCITER_LOC][exciterMachineSignalBase + signalIndex] =
+                    machineSignalLocation(signalIndex);
+            }
+            subInputLocs.inputLocs[EXCITER_LOC][exciterVssInLocation] =
+                ((pss != nullptr) && (pss->isEnabled()) && (pss->numOutputs() > 0)) ?
+                pss->getOutputLoc(sMode, 0) :
+                kNullLocation;
+        }
         subInputLocs.inputLocs[GEN_MODEL_LOC][genModelEftInLocation] = ext->getOutputLoc(sMode, 0);
     } else {
         subInputLocs.inputLocs[GEN_MODEL_LOC][genModelEftInLocation] = kNullLocation;
@@ -1118,6 +1214,8 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
         subInputLocs.inputLocs[ISOC_CONTROL_LOC][0] =
             subInputLocs.inputLocs[GOVERNOR_LOC][govOmegaInLocation];
     }
+    // Input locations differ between solver modes even when the state sequence
+    // ID is unchanged, so leave subInputLocs uncached and recompute them.
     subInputs.seqID = stateDataValue.seqID;
 }
 

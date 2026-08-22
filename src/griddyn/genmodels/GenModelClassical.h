@@ -87,6 +87,14 @@ class GenModelClassical: public GenModel {
     virtual double getAngle(const StateData& sD,
                             const SolverMode& sMode,
                             index_t* angleOffset = nullptr) const override;
+    IOdata getMachineControllerSignals(const IOdata& inputs,
+                                       const StateData& stateDataValue,
+                                       const SolverMode& sMode) const override;
+    MachineSignalDerivativeData
+        getMachineControllerSignalDerivatives(const IOdata& inputs,
+                                              const StateData& stateDataValue,
+                                              const IOlocs& inputLocs,
+                                              const SolverMode& sMode) const override;
     virtual void updateLocalCache(const IOdata& inputs,
                                   const StateData& sD,
                                   const SolverMode& sMode) override;

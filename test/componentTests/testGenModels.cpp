@@ -219,6 +219,46 @@ TEST_F(GenModelTests, GenrouAndesPerturbedDerivatives)
     }
 }
 
+TEST_F(GenModelTests, GenrouExposesAndesControllerSignals)
+{
+    const std::string fileName = std::string(GENMODEL_TEST_DIRECTORY "test_model1.xml");
+    gds = readSimXMLFile(fileName);
+    Generator* gen = gds->getGen(0);
+    ASSERT_NE(gen, nullptr);
+    auto* model = new genmodels::GenModelGENROU();
+    configureKundurGenrou(*model, 0.0, 1.0);
+    gen->add(model);
+    ASSERT_EQ(gds->dynInitialize(), 0);
+
+    // GridDyn state order is [Id, Iq, delta, omega, e1d, e1q, e2q, e2d].
+    std::vector<double> state = gds->getState(cDaeSolverMode);
+    const auto& modelOffsets = model->getOffsets(cDaeSolverMode);
+    state[modelOffsets.algOffset] = -0.65;
+    state[modelOffsets.algOffset + 1] = 0.5;
+    state[modelOffsets.diffOffset] = 1.4;
+    state[modelOffsets.diffOffset + 1] = 1.002;
+    state[modelOffsets.diffOffset + 2] = -0.45;
+    state[modelOffsets.diffOffset + 3] = 0.9;
+    state[modelOffsets.diffOffset + 4] = -0.70;
+    state[modelOffsets.diffOffset + 5] = 0.75;
+    const StateData stateData(0.0, state.data(), nullptr, 9001);
+    const IOdata inputs{1.01, 0.57, 2.0, 0.82};
+    const auto signals = model->getMachineControllerSignals(inputs, stateData, cDaeSolverMode);
+
+    EXPECT_DOUBLE_EQ(signals[static_cast<index_t>(MachineControllerSignal::ID)], -0.65);
+    EXPECT_DOUBLE_EQ(signals[static_cast<index_t>(MachineControllerSignal::IQ)], 0.5);
+    EXPECT_NEAR(signals[static_cast<index_t>(MachineControllerSignal::VD)],
+                -0.7453106848210623,
+                1e-13);
+    EXPECT_NEAR(signals[static_cast<index_t>(MachineControllerSignal::VQ)],
+                0.6816245176719798,
+                1e-13);
+    EXPECT_NEAR(signals[static_cast<index_t>(MachineControllerSignal::ELECTRICAL_TORQUE)],
+                0.8252642039696805,
+                1e-13);
+    EXPECT_NEAR(signals[static_cast<index_t>(MachineControllerSignal::XADIFD)], 1.8671875, 1e-13);
+}
+
 TEST_F(GenModelTests, GenrouSaturatedEquationChecks)
 {
     std::string fileName = std::string(GENMODEL_TEST_DIRECTORY "test_model1.xml");

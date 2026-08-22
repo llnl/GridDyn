@@ -10,6 +10,7 @@
 #include "fileInput/fileInput.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Generator.h"
+#include "griddyn/exciters/ExciterESST3A.h"
 #include "solvers/SolverMode.hpp"
 #include <gtest/gtest.h>
 #include <map>
@@ -82,7 +83,7 @@ void verifyStabilityCase(ExciterTests& fixture,
     const auto exciterList = factory->getTypeNames("exciter");
 
     for (const auto& exciterName : exciterList) {
-        if (exciterName.starts_with("fmi")) {
+        if (exciterName.starts_with("fmi") || (exciterName == "esst3a")) {
             continue;
         }
         if (std::find(skippedExcters.begin(), skippedExcters.end(), exciterName) !=
@@ -141,6 +142,101 @@ TEST_F(ExciterTests, RootExciterTest)
     // check for stability
     const auto diff = gmlc::utilities::countDiffs(initialState, finalState, 0.0001);
     EXPECT_EQ(diff, 0U);
+}
+
+TEST(ExciterModelTests, Esst3aMatchesAndesPerturbedEquations)
+{
+    exciters::ExciterESST3A exciter;
+    exciter.set("tr", 0.02);
+    exciter.set("vimax", 0.2);
+    exciter.set("vimin", -0.2);
+    exciter.set("km", 8.0);
+    exciter.set("tc", 1.0);
+    exciter.set("tb", 5.0);
+    exciter.set("ka", 20.0);
+    exciter.set("ta", 0.1);
+    exciter.set("vrmax", 99.0);
+    exciter.set("vrmin", -99.0);
+    exciter.set("kg", 1.0);
+    exciter.set("kp", 3.67);
+    exciter.set("ki", 0.435);
+    exciter.set("vbmax", 5.48);
+    exciter.set("kc", 0.01);
+    exciter.set("xl", 0.0098);
+    exciter.set("vgmax", 3.86);
+    exciter.set("thetap", 3.33);
+    exciter.set("tm", 0.4);
+    exciter.set("vmmax", 99.0);
+    exciter.set("vmmin", 0.0);
+    exciter.dynInitializeA(0.0, 0);
+
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.01;
+    inputs[exciterIdInLocation] = -0.65;
+    inputs[exciterIqInLocation] = 0.5;
+    inputs[exciterVdInLocation] = -0.3;
+    inputs[exciterVqInLocation] = 0.95;
+    inputs[exciterXadIfdInLocation] = 1.1;
+    IOdata desiredOutput{2.0};
+    IOdata fieldSet(4, 0.0);
+    exciter.dynInitializeB(inputs, desiredOutput, fieldSet);
+
+    // Perturbed values use the state order [Efd, Vmeas, LL, VR, VM].
+    std::vector<double> state{2.1, 1.02, 0.08, 2.0, 0.55};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    std::vector<double> derivative(state.size(), 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+
+    // Direct evaluation of ANDES ESST3AModel with GridDyn's documented dq
+    // sign conversion at the potential-source input.
+    EXPECT_NEAR(derivative[1], -1.0, 1e-12);
+    EXPECT_NEAR(derivative[2], 0.00264112443871697, 1e-12);
+    EXPECT_NEAR(derivative[3], -3.47177511225661, 1e-12);
+    EXPECT_NEAR(derivative[4], -3.375, 1e-12);
+
+    std::vector<double> residual(state.size(), 0.0);
+    exciter.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    EXPECT_NEAR(residual[0], 0.0446694541104898, 1e-12);
+}
+
+TEST_F(ExciterTests, Esst3aSupportsSynchronousGeneratorFamilies)
+{
+    const std::string fileName =
+        std::string(GRIDDYN_TEST_DIRECTORY "/genmodel_tests/test_model1.xml");
+    const std::vector<std::string> generatorModels{
+        "basic", "3", "4", "5", "5.2", "5.3", "6", "6.2", "8"};
+    auto factory = CoreObjectFactory::instance();
+
+    for (const auto& modelName : generatorModels) {
+        gds = readSimXMLFile(fileName);
+        auto* generator = gds->getGen(0);
+        ASSERT_NE(generator, nullptr);
+
+        auto* generatorModel = factory->createObject("genmodel", modelName);
+        ASSERT_NE(generatorModel, nullptr) << "Generator model " << modelName;
+        generator->add(generatorModel);
+
+        auto* exciter = factory->createObject("exciter", "esst3a");
+        ASSERT_NE(exciter, nullptr);
+        // Broad limits keep this compatibility test focused on signal
+        // availability and coupling rather than model-specific limiter data.
+        exciter->set("vimin", -2.0);
+        exciter->set("vimax", 2.0);
+        exciter->set("vrmin", -20.0);
+        exciter->set("vrmax", 20.0);
+        exciter->set("vmmin", 0.0);
+        exciter->set("vmmax", 20.0);
+        exciter->set("vbmax", 20.0);
+        generator->add(exciter);
+
+        ASSERT_EQ(gds->dynInitialize(), 0) << "Generator model " << modelName;
+        EXPECT_EQ(runResidualCheck(gds, cDaeSolverMode, false), 0)
+            << "Generator model " << modelName;
+        EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode, false), 0)
+            << "Generator model " << modelName;
+    }
 }
 
 TEST_F(ExciterTests, BasicStabilityTest1)
@@ -206,7 +302,7 @@ TEST_F(ExciterTests, ExciterTest2AlgDiffTests)
 
     // exclist.insert(exclist.begin(), "none");
     for (auto& excname : exclist) {
-        if (excname.starts_with("fmi")) {
+        if (excname.starts_with("fmi") || (excname == "esst3a")) {
             continue;
         }
         gds = readSimXMLFile(fileName);
@@ -253,7 +349,7 @@ TEST_F(ExciterTests, ExciterAlgDiffJacobianTests)
 
     // exclist.insert(exclist.begin(), "none");
     for (auto& excname : exclist) {
-        if (excname.starts_with("fmi")) {
+        if (excname.starts_with("fmi") || (excname == "esst3a")) {
             continue;
         }
         gds = readSimXMLFile(fileName);

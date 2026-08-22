@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "ControllerSignals.h"
 #include "GridSubModel.h"
 #include <string>
 #include <vector>
@@ -79,6 +80,22 @@ class GenModel: public GridSubModel {
     virtual double getAngle(const StateData& stateDataValue,
                             const SolverMode& sMode,
                             index_t* angleOffset = nullptr) const;
+
+    /** Return controller-facing machine signals in the convention documented
+     * by MachineControllerSignal. Unsupported models return kNullVal entries.
+     */
+    virtual IOdata getMachineControllerSignals(const IOdata& inputs,
+                                               const StateData& stateDataValue,
+                                               const SolverMode& sMode) const;
+
+    /** Return sparse derivatives of each controller-facing machine signal.
+     * Locations refer to the containing simulation's state/input vector.
+     */
+    virtual MachineSignalDerivativeData
+        getMachineControllerSignalDerivatives(const IOdata& inputs,
+                                              const StateData& stateDataValue,
+                                              const IOlocs& inputLocs,
+                                              const SolverMode& sMode) const;
 
     virtual const std::vector<stringVec>& inputNames() const override;
     virtual const std::vector<stringVec>& outputNames() const override;

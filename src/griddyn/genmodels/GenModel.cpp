@@ -135,6 +135,23 @@ double GenModel::getAngle(const StateData& /*stateDataValue*/,
     return kNullVal;
 }
 
+IOdata GenModel::getMachineControllerSignals(const IOdata& /*inputs*/,
+                                             const StateData& /*stateDataValue*/,
+                                             const SolverMode& /*sMode*/) const
+{
+    const IOdata signals(machineControllerSignalCount, kNullVal);
+    return signals;
+}
+
+MachineSignalDerivativeData
+    GenModel::getMachineControllerSignalDerivatives(const IOdata& /*inputs*/,
+                                                    const StateData& /*stateDataValue*/,
+                                                    const IOlocs& /*inputLocs*/,
+                                                    const SolverMode& /*sMode*/) const
+{
+    return {};
+}
+
 count_t GenModel::outputDependencyCount(index_t /*num*/, const SolverMode& /*sMode*/) const
 {
     return 0;

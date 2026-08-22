@@ -24,6 +24,7 @@ namespace griddyn {
 namespace {
     void loadGENROU(CoreObject* parentObject, stringVec& tokens);
     void loadESDC1A(CoreObject* parentObject, stringVec& tokens);
+    void loadESST3A(CoreObject* parentObject, stringVec& tokens);
     void loadTGOV1(CoreObject* parentObject, stringVec& tokens);
     void loadEXDC2(CoreObject* parentObject, stringVec& tokens);
     void loadSEXS(CoreObject* parentObject, stringVec& tokens);
@@ -69,6 +70,8 @@ void loadDyr(CoreObject* parentObject,
             loadGENROU(parentObject, lineTokens);
         } else if (type == "'ESDC1A'") {
             loadESDC1A(parentObject, lineTokens);
+        } else if (type == "'ESST3A'") {
+            loadESST3A(parentObject, lineTokens);
         } else if (type == "'EXDC2'") {
             loadEXDC2(parentObject, lineTokens);
         } else if (type == "'TGOV1'") {
@@ -144,6 +147,42 @@ namespace {
         exciterModel->set("kf", params[12]);
         exciterModel->set("tf", params[13]);
         // TODO(phlpt): Compute the saturation coefficients to translate appropriately.
+
+        gen->add(exciterModel);
+    }
+
+    void loadESST3A(CoreObject* parentObject, stringVec& tokens)
+    {
+        const int busId = std::stoi(tokens[0]);
+        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+        const int genId = std::stoi(tokens[2]);
+        auto* gen = bus->getGen(genId - 1);
+
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto cof = CoreObjectFactory::instance();
+        auto* exciterModel = static_cast<Exciter*>(cof->createObject("exciter", "esst3a"));
+        // PSS/E order matches the ANDES psse-dyr.yaml ESST3A schema.
+        exciterModel->set("tr", params[3]);
+        exciterModel->set("vimax", params[4]);
+        exciterModel->set("vimin", params[5]);
+        exciterModel->set("km", params[6]);
+        exciterModel->set("tc", params[7]);
+        exciterModel->set("tb", params[8]);
+        exciterModel->set("ka", params[9]);
+        exciterModel->set("ta", params[10]);
+        exciterModel->set("vrmax", params[11]);
+        exciterModel->set("vrmin", params[12]);
+        exciterModel->set("kg", params[13]);
+        exciterModel->set("kp", params[14]);
+        exciterModel->set("ki", params[15]);
+        exciterModel->set("vbmax", params[16]);
+        exciterModel->set("kc", params[17]);
+        exciterModel->set("xl", params[18]);
+        exciterModel->set("vgmax", params[19]);
+        exciterModel->set("thetap", params[20]);
+        exciterModel->set("tm", params[21]);
+        exciterModel->set("vmmax", params[22]);
+        exciterModel->set("vmmin", params[23]);
 
         gen->add(exciterModel);
     }

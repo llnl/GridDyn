@@ -70,72 +70,69 @@ void GovernorTgov1::dynObjectInitializeB(const IOdata& /*inputs*/,
 
 // residual
 void GovernorTgov1::residual(const IOdata& inputs,
-                             const StateData& sD,
+                             const StateData& stateData,
                              double resid[],
                              const SolverMode& sMode)
 {
-    // double omega = getControlFrequency (inputs);
-    double omega = inputs[govOmegaInLocation];
-    auto Loc = offsets.getLocations(sD, resid, sMode, this);
-    Loc.destLoc[0] = Loc.algStateLoc[0] - Loc.diffStateLoc[0] + Dt * (omega - 1.0);
+    const double omega = inputs[govOmegaInLocation];
+    const auto loc = offsets.getLocations(stateData, resid, sMode, this);
+    loc.destLoc[0] = loc.algStateLoc[0] - loc.diffStateLoc[0] + (Dt * (omega - 1.0));
 
     if (isAlgebraicOnly(sMode)) {
         return;
     }
 
-    derivative(inputs, sD, resid, sMode);
+    derivative(inputs, stateData, resid, sMode);
 
-    Loc.destDiffLoc[0] -= Loc.dstateLoc[0];
-    Loc.destDiffLoc[1] -= Loc.dstateLoc[1];
+    loc.destDiffLoc[0] -= loc.dstateLoc[0];
+    loc.destDiffLoc[1] -= loc.dstateLoc[1];
 }
 
 void GovernorTgov1::derivative(const IOdata& inputs,
-                               const StateData& sD,
+                               const StateData& stateData,
                                double deriv[],
                                const SolverMode& sMode)
 {
-    auto Loc = offsets.getLocations(sD, deriv, sMode, this);
+    const auto loc = offsets.getLocations(stateData, deriv, sMode, this);
 
-    const double* gs = Loc.diffStateLoc;
-    // double omega = getControlFrequency (inputs);
-    double omega = inputs[govOmegaInLocation];
+    const double* governorState = loc.diffStateLoc;
+    const double omega = inputs[govOmegaInLocation];
 
     if (opFlags[POWER_LIMITED]) {
-        Loc.destDiffLoc[1] = 0.0;
+        loc.destDiffLoc[1] = 0.0;
     } else {
-        Loc.destDiffLoc[1] = (-gs[1] + inputs[govpSetInLocation] - K * (omega - 1.0)) / T1;
-        // logging::warning(this, "gov set ={}", K * (omega - 1.0));
+        loc.destDiffLoc[1] =
+            (-governorState[1] + inputs[govpSetInLocation] - (K * (omega - 1.0))) / T1;
     }
 
-    Loc.destDiffLoc[0] = (Loc.diffStateLoc[1] - Loc.diffStateLoc[0] - T2 * Loc.destDiffLoc[1]) / T3;
+    loc.destDiffLoc[0] =
+        (loc.diffStateLoc[1] - loc.diffStateLoc[0] - (T2 * loc.destDiffLoc[1])) / T3;
 }
 
 void GovernorTgov1::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     GovernorTgov1::derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
-    double dt = time - prevTime;
-    m_state[1] += dt * m_dstate_dt[1];
-    m_state[2] += dt * m_dstate_dt[2];
-    // double omega = getControlFrequency (inputs);
-    double omega = inputs[govOmegaInLocation];
-    m_state[0] = m_state[1] - Dt * (omega - 1.0);
+    const double timeStep = time - prevTime;
+    m_state[1] += timeStep * m_dstate_dt[1];
+    m_state[2] += timeStep * m_dstate_dt[2];
+    const double omega = inputs[govOmegaInLocation];
+    m_state[0] = m_state[1] - (Dt * (omega - 1.0));
 
     prevTime = time;
 }
 
 void GovernorTgov1::jacobianElements(const IOdata& /*inputs*/,
-                                     const StateData& sD,
-                                     MatrixData<double>& md,
+                                     const StateData& stateData,
+                                     MatrixData<double>& matrixData,
                                      const IOlocs& inputLocs,
                                      const SolverMode& sMode)
 {
-    auto Loc = offsets.getLocations(sD, nullptr, sMode, this);
+    const auto loc = offsets.getLocations(stateData, nullptr, sMode, this);
 
-    int refI = Loc.diffOffset;
-    // use the md.assign Macro defined in basicDefs
-    // md.assign(arrayIndex, RowIndex, ColIndex, value)
+    const int referenceIndex = loc.diffOffset;
+    // Use the matrixData.assign macro defined in basicDefs.
 
-    bool linkOmega = (inputLocs[govOmegaInLocation] != kNullLocation);
+    const bool linkOmega = (inputLocs[govOmegaInLocation] != kNullLocation);
 
     /*
 if (opFlags.test (uses_deadband))
@@ -146,45 +143,39 @@ if (opFlags.test (uses_deadband))
       }
   }
       */
-    // Loc.destLoc[0] = Loc.algStateLoc[0] - Loc.diffStateLoc[0] + Dt*(omega -
-    // Wref) / systemBaseFrequency;
     // Pm
     if (linkOmega) {
-        md.assign(Loc.algOffset, inputLocs[govOmegaInLocation], Dt);
+        matrixData.assign(loc.algOffset, inputLocs[govOmegaInLocation], Dt);
     }
 
-    md.assign(Loc.algOffset, Loc.algOffset, 1);
+    matrixData.assign(loc.algOffset, loc.algOffset, 1);
     if (isAlgebraicOnly(sMode)) {
         return;
     }
-    md.assign(Loc.algOffset, refI, -1);
+    matrixData.assign(loc.algOffset, referenceIndex, -1);
 
     if (opFlags[POWER_LIMITED]) {
-        md.assign(refI + 1, refI + 1, -sD.cj);
-        md.assign(refI, refI, -1 / T3 - sD.cj);
-        md.assign(refI, refI + 1, 1 / T3);
+        matrixData.assign(referenceIndex + 1, referenceIndex + 1, -stateData.cj);
+        matrixData.assign(referenceIndex, referenceIndex, -(1 / T3) - stateData.cj);
+        matrixData.assign(referenceIndex, referenceIndex + 1, 1 / T3);
     } else {
-        md.assignCheckCol(refI + 1, inputLocs[govpSetInLocation], 1 / T1);
-        md.assign(refI + 1, refI + 1, -1 / T1 - sD.cj);
+        matrixData.assignCheckCol(referenceIndex + 1, inputLocs[govpSetInLocation], 1 / T1);
+        matrixData.assign(referenceIndex + 1, referenceIndex + 1, -(1 / T1) - stateData.cj);
         if (linkOmega) {
-            md.assign(refI + 1, inputLocs[govOmegaInLocation], -K / (T1));
+            matrixData.assign(referenceIndex + 1, inputLocs[govOmegaInLocation], -K / T1);
         }
 
-        md.assign(refI, refI + 1, (1 + T2 / T1) / T3);
-        md.assignCheckCol(refI, inputLocs[govpSetInLocation], -T2 / T1 / T3);
+        matrixData.assign(referenceIndex, referenceIndex + 1, (1 + (T2 / T1)) / T3);
+        matrixData.assignCheckCol(referenceIndex, inputLocs[govpSetInLocation], -T2 / T1 / T3);
         if (linkOmega) {
-            md.assign(refI, inputLocs[govOmegaInLocation], K * T2 / (T1) / T3);
+            matrixData.assign(referenceIndex, inputLocs[govOmegaInLocation], K * T2 / T1 / T3);
         }
-        md.assign(refI, refI, -1 / T3 - sD.cj);
+        matrixData.assign(referenceIndex, referenceIndex, -(1 / T3) - stateData.cj);
     }
-
-    // Loc.destDiffLoc[0] = (Loc.diffStateLoc[1] - Loc.diffStateLoc[0] - T2 *
-    // (-gs[1] + inputs[govpSetInLocation] -
-    // K * (omega - Wref) / systemBaseFrequency) / T1) / T3;
 }
 
 void GovernorTgov1::rootTest(const IOdata& inputs,
-                             const StateData& sD,
+                             const StateData& stateData,
                              double roots[],
                              const SolverMode& sMode)
 {
@@ -195,17 +186,16 @@ void GovernorTgov1::rootTest(const IOdata& inputs,
      ++rootOffset;
    }*/
     if (opFlags[USES_POWER_LIMITS]) {
-        auto Loc = offsets.getLocations(sD, nullptr, sMode, this);
+        const auto loc = offsets.getLocations(stateData, nullptr, sMode, this);
 
-        double Pmech = Loc.diffStateLoc[1];
+        const double pmech = loc.diffStateLoc[1];
 
         if (opFlags[POWER_LIMITED]) {
-            // double omega = getControlFrequency (inputs);
-            double omega = inputs[govOmegaInLocation];
-            roots[rootOffset] = (-Pmech + inputs[govpSetInLocation] + K * (omega - 1.0)) / T1;
+            const double omega = inputs[govOmegaInLocation];
+            roots[rootOffset] = (-pmech + inputs[govpSetInLocation] + (K * (omega - 1.0))) / T1;
         } else {
-            roots[rootOffset] = std::min(Pmax - Pmech, Pmech - Pmin);
-            opFlags.set(POWER_LIMIT_HIGH, Pmech > Pmax);
+            roots[rootOffset] = std::min(Pmax - pmech, pmech - Pmin);
+            opFlags.set(POWER_LIMIT_HIGH, pmech > Pmax);
         }
         ++rootOffset;
     }

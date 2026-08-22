@@ -98,9 +98,30 @@ TEST(AndesDyrReaderTests, MapsTgov1ParametersInAndesDyrOrder)
         double t3;
         double dt;
     };
-    constexpr Tgov1Parameters expected[]{{1, 0.05, 0.05, 1.05, 0.3, 1.0, 2.1, 0.0},
-                                         {6, 0.04, 0.06, 1.10, 0.25, 1.2, 2.3, 0.02},
-                                         {8, 0.03, 0.07, 1.15, 0.2, 1.4, 2.5, 0.04}};
+    constexpr Tgov1Parameters expected[]{{.busId = 1,
+                                          .r = 0.05,
+                                          .t1 = 0.05,
+                                          .pmax = 1.05,
+                                          .pmin = 0.3,
+                                          .t2 = 1.0,
+                                          .t3 = 2.1,
+                                          .dt = 0.0},
+                                         {.busId = 6,
+                                          .r = 0.04,
+                                          .t1 = 0.06,
+                                          .pmax = 1.10,
+                                          .pmin = 0.25,
+                                          .t2 = 1.2,
+                                          .t3 = 2.3,
+                                          .dt = 0.02},
+                                         {.busId = 8,
+                                          .r = 0.03,
+                                          .t1 = 0.07,
+                                          .pmax = 1.15,
+                                          .pmin = 0.2,
+                                          .t2 = 1.4,
+                                          .t3 = 2.5,
+                                          .dt = 0.04}};
 
     for (const auto& entry : expected) {
         auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", entry.busId));

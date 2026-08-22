@@ -5,15 +5,15 @@
  */
 
 #include "../gtestHelper.h"
-#include "core/ObjectFactory.hpp"
 #include "core/CoreExceptions.h"
+#include "core/ObjectFactory.hpp"
 #include "griddyn/Generator.h"
 #include "griddyn/governors/GovernorTgov1.h"
-#include "utilities/MatrixDataSparse.hpp"
 #include "griddyn/simulation/Diagnostics.h"
+#include "utilities/MatrixDataSparse.hpp"
 #include <cmath>
-#include <cstdio>
 #include <gtest/gtest.h>
+#include <print>
 #include <string>
 #include <vector>
 // test case for CoreObject object
@@ -112,7 +112,7 @@ TEST(GovernorModelTests, Tgov1AppliesValveLimitsAndRejectsSingularParameters)
     MatrixDataSparse<double> jacobian;
     IOlocs inputLocs{3, 4};
     governor.jacobianElements(inputs, emptyStateData, jacobian, inputLocs, cLocalSolverMode);
-    EXPECT_NEAR(jacobian.at(1, 1), -1.0 / 2.1 - 1.0, 1e-14);
+    EXPECT_NEAR(jacobian.at(1, 1), -(1.0 / 2.1) - 1.0, 1e-14);
     EXPECT_NEAR(jacobian.at(1, 2), 1.0 / 2.1, 1e-14);
     EXPECT_DOUBLE_EQ(jacobian.at(2, 2), -1.0);
 
@@ -163,9 +163,9 @@ TEST_F(GovernorTests, GovStabilityTest)
 {
     std::string fileName = std::string(GOVERNOR_TEST_DIRECTORY "test_gov_stability.xml");
 
-    gds->resetObjectCounters();
+    GridDynSimulation::resetObjectCounters();
     gds = readSimXMLFile(fileName);
-    Generator* gen = static_cast<Generator*>(gds->findByUserID("gen", 2));
+    auto* gen = static_cast<Generator*>(gds->findByUserID("gen", 2));
     ASSERT_NE(gen, nullptr);
 
     auto cof = CoreObjectFactory::instance();
@@ -184,19 +184,20 @@ TEST_F(GovernorTests, GovStabilityTest)
 
     gds->run(400.0);
     requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
-    std::vector<double> st = gds->getState();
+    const std::vector<double> state = gds->getState();
     gds->run(500.0);
     gds->saveRecorders();
-    std::vector<double> st2 = gds->getState();
+    const std::vector<double> finalState = gds->getState();
 
     // check for stability
-    ASSERT_EQ(st.size(), st2.size());
+    ASSERT_EQ(state.size(), finalState.size());
     int ncnt = 0;
-    double a0 = st2[0];
-    for (size_t kk = 0; kk < st.size(); ++kk) {
-        if (std::abs(st[kk] - st2[kk]) > 0.0001) {
-            if (std::abs(st[kk] - st2[kk] + a0) > 0.005 * ((std::max)(st[kk], st2[kk]))) {
-                printf("state[%zd] orig=%f new=%f\n", kk, st[kk], st2[kk]);
+    const double referenceAngle = finalState[0];
+    for (size_t kk = 0; kk < state.size(); ++kk) {
+        if (std::abs(state[kk] - finalState[kk]) > 0.0001) {
+            if (std::abs(state[kk] - finalState[kk] + referenceAngle) >
+                0.005 * ((std::max)(state[kk], finalState[kk]))) {
+                std::println("state[{}] orig={:f} new={:f}", kk, state[kk], finalState[kk]);
                 ncnt++;
             }
         }
@@ -208,9 +209,9 @@ TEST_F(GovernorTests, Tgov1AnalyticJacobianMatchesFiniteDifferences)
 {
     std::string fileName = std::string(GOVERNOR_TEST_DIRECTORY "test_gov_stability.xml");
 
-    gds->resetObjectCounters();
+    GridDynSimulation::resetObjectCounters();
     gds = readSimXMLFile(fileName);
-    Generator* gen = static_cast<Generator*>(gds->findByUserID("gen", 2));
+    auto* gen = static_cast<Generator*>(gds->findByUserID("gen", 2));
     ASSERT_NE(gen, nullptr);
 
     auto* governor = new governors::GovernorTgov1();

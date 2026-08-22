@@ -40,7 +40,7 @@ SBlockTriMatrix::SBlockTriMatrix(int m_, int s_, bool isdense_)
     }
 }
 
-SBlockTriMatrix::SBlockTriMatrix(const SBlockTriMatrix& mat)
+SBlockTriMatrix::SBlockTriMatrix(const SBlockTriMatrix& mat): DBlockTriMatrix()
 {
     m = mat.m;
     isfacto = mat.isfacto;

@@ -254,13 +254,13 @@ void braidSolver::set(std::string_view param, double val)
 int braidSolver::runBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int Ngridpoints)
 {
     TimeIntegrator* TI = ode->GetTI();
-    Equation* equation = ode->GetEq();
+    Equation* odeEquation = ode->GetEq();
     BdfStrat bdf_strat = NO_BDF;
     int lowered_by_level = 1;
     int min_order = 1;
 
-    Real t0 = equation->GetT0();
-    Real Tmax = equation->GetTmax();
+    Real t0 = odeEquation->GetT0();
+    Real Tmax = odeEquation->GetTmax();
     int Nsteps = Ngridpoints - 1;
     int braid_Nsteps = Nsteps;
     Real udt = (Tmax - t0) / Nsteps;
@@ -274,8 +274,8 @@ int braidSolver::runBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int
         Tmax += udt * toadd;
         Nsteps += toadd;
 
-        equation->SetTmax(Tmax);
-        equation->SetNsteps(Nsteps);
+        odeEquation->SetTmax(Tmax);
+        odeEquation->SetNsteps(Nsteps);
         braid_Nsteps = (Nsteps) / TI->GetNbSteps();
         if (toadd > 0) {
             Real* new_timegrid = new Real[Nsteps + 1];
@@ -456,7 +456,7 @@ int braidSolver::runBraid(ODEProblem* ode, MapParam* param, Real*& timegrid, int
     return 0;
 }
 
-int braidSolver::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
+int braidSolver::solve(CoreTime tStop, CoreTime& tReturn, StepMode /*stepMode*/)
 {
     int mpi_rank;
     MPI_Comm comm = MPI_COMM_WORLD;
@@ -507,7 +507,10 @@ int braidSolver::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-int braidSolver::calcIC(CoreTime t0, CoreTime tstep0, IcModes mode, bool constraints)
+int braidSolver::calcIC(CoreTime /*t0*/,
+                        CoreTime /*tstep0*/,
+                        IcModes /*mode*/,
+                        bool /*constraints*/)
 {
     return 0;
 }

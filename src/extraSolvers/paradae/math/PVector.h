@@ -13,6 +13,7 @@ class PVector: public Vector {
   public:
     PVector(): Vector() {};
     PVector(const Vector& v);
+    PVector(const PVector&) = default;
     virtual ~PVector() {};
     PVector& operator=(const Vector& v);
     PVector& operator=(const PVector& v);

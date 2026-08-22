@@ -55,8 +55,7 @@ using std::setprecision;
 _braid_App_struct::_braid_App_struct(ODEProblem* ode_):
     ode(ode_), nb_multisteps(ode->GetTI()->GetType() == BDF ? ode->GetTI()->GetOrder() : 1),
     size_x(ode->GetEq()->GetM()), size_state(ode->GetEq()->GetNState()), prevlvl(-1),
-    solution_tfinal(nullptr),
-    alloc_data(size_x, nb_multisteps, ode->GetEq()->GetNURoots(), size_state)
+    alloc_data(size_x, nb_multisteps, ode->GetEq()->GetNURoots(), size_state), solution_tfinal(nullptr)
 {
 }
 
@@ -126,7 +125,7 @@ namespace griddyn::braid {
 
 void braidStepOnOnePoint(braid_App app,
                          braid_Vector ustop,
-                         braid_Vector fstop,
+                         braid_Vector /*fstop*/,
                          braid_Vector u,
                          braid_StepStatus status,
                          int level)
@@ -213,7 +212,7 @@ void braidStepOnOnePoint(braid_App app,
 
 void braidStepOnAllPoints(braid_App app,
                           braid_Vector ustop,
-                          braid_Vector fstop,
+                          braid_Vector /*fstop*/,
                           braid_Vector u,
                           braid_StepStatus status,
                           int level)
@@ -766,7 +765,7 @@ int braidInitShell(braid_App app, Real t, braid_Vector* u_ptr)
     return 0;
 }
 
-int braidClone(braid_App app, braid_Vector u, braid_Vector* v_ptr)
+int braidClone(braid_App /*app*/, braid_Vector u, braid_Vector* v_ptr)
 {
     my_Vector* v = new my_Vector;
 
@@ -780,7 +779,7 @@ int braidClone(braid_App app, braid_Vector u, braid_Vector* v_ptr)
     return 0;
 }
 
-int braidCloneShell(braid_App app, braid_Vector u, braid_Vector* v_ptr)
+int braidCloneShell(braid_App /*app*/, braid_Vector u, braid_Vector* v_ptr)
 {
     my_Vector* v = new my_Vector;
 
@@ -792,26 +791,26 @@ int braidCloneShell(braid_App app, braid_Vector u, braid_Vector* v_ptr)
     return 0;
 }
 
-int braidFreeShell(braid_App app, braid_Vector u)
+int braidFreeShell(braid_App /*app*/, braid_Vector u)
 {
     u->xprev.Free();
     u->dxprev.Free();
     return 0;
 }
 
-int braidFree(braid_App app, braid_Vector u)
+int braidFree(braid_App /*app*/, braid_Vector u)
 {
     delete u;
     return 0;
 }
 
-int braidPropagateShell(braid_App app, braid_Vector x, braid_Vector y)
+int braidPropagateShell(braid_App /*app*/, braid_Vector x, braid_Vector y)
 {
     y->state = x->state;
     return 0;
 }
 
-int braidSum(braid_App app, Real alpha, braid_Vector x, Real beta, braid_Vector y)
+int braidSum(braid_App /*app*/, Real alpha, braid_Vector x, Real beta, braid_Vector y)
 {
     y->xprev.AXPBY(alpha, beta, x->xprev);
     y->dxprev.AXPBY(alpha, beta, x->dxprev);
@@ -933,7 +932,10 @@ int braidBufPack(braid_App app, braid_Vector u, void* buffer, braid_BufferStatus
     return 0;
 }
 
-int braidBufUnpack(braid_App app, void* buffer, braid_Vector* u_ptr, braid_BufferStatus bstatus)
+int braidBufUnpack(braid_App app,
+                   void* buffer,
+                   braid_Vector* u_ptr,
+                   braid_BufferStatus /*bstatus*/)
 {
     Real* dbuffer = (Real*)buffer;
     my_Vector* u = new my_Vector;

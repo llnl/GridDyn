@@ -23,7 +23,7 @@ SMultiVector::SMultiVector(int ns_, int nx_, Real fill_):
 #endif
 }
 
-SMultiVector::SMultiVector(const SMultiVector& mv): nx(mv.nx), ns(mv.ns)
+SMultiVector::SMultiVector(const SMultiVector& mv): SVector(), nx(mv.nx), ns(mv.ns)
 {
 #ifdef CHECK_MEM_OP
     if (nx <= 0) {

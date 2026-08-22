@@ -62,9 +62,9 @@ EquationGridDyn::EquationGridDyn(Real t0_,
     roots = RootManager(discontinuities.size(), static_cast<int>(rootsfound.size()), 0, 1e-10);
     roots.n_sactive = discontinuities.size();
     roots.n_uactive = static_cast<int>(rootsfound.size());
-    for (int i = 0; i < discontinuities.size(); i++) {
-        roots.is_active(i) = 1;
-        roots.t_sroot(i) = discontinuities[i];
+    for (std::size_t i = 0; i < discontinuities.size(); ++i) {
+        roots.is_active(static_cast<int>(i)) = 1;
+        roots.t_sroot(static_cast<int>(i)) = discontinuities[i];
     }
     for (int i = 0; i < roots.n_uactive; ++i) {
         roots.is_active(roots.n_sroots + i) = 1;

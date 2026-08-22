@@ -110,8 +110,7 @@ class Equation {
     virtual void root_action(const Real /*troot*/,
                              Vector& /*yroot*/,
                              Vector& /*dyroot*/,
-                             const Vector& /*iroot*/) {
-    };
+                             const Vector& /*iroot*/) {};
     // initialize the state
     virtual void root_init_state(const Real /*t*/, Vector& /*state*/) {};
     // Check if a root has been crossed. If so, estimate the time t and change the state.

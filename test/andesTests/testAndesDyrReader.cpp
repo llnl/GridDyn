@@ -10,6 +10,7 @@
 #include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/exciters/ExciterESST3A.h"
+#include "griddyn/exciters/ExciterEXST1.h"
 #include "griddyn/genmodels/GenModelGENROU.h"
 #include "griddyn/governors/GovernorTgov1.h"
 #include <cstddef>
@@ -180,6 +181,40 @@ TEST(AndesDyrReaderTests, LoadsEsst3aWithGenrouSignals)
         EXPECT_DOUBLE_EQ(exciter->get("vmmax"), 99.0);
         EXPECT_DOUBLE_EQ(exciter->get("vmmin"), 0.0);
     }
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(AndesDyrReaderTests, MapsExst1ParametersAndCouplesToGenrou)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_exst1.dyr"));
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = bus->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    ASSERT_NE(dynamic_cast<griddyn::genmodels::GenModelGENROU*>(generator->find("genmodel")),
+              nullptr);
+    auto* exciter = dynamic_cast<griddyn::exciters::ExciterEXST1*>(generator->find("exciter"));
+    ASSERT_NE(exciter, nullptr);
+
+    EXPECT_DOUBLE_EQ(exciter->get("tr"), 0.031);
+    EXPECT_DOUBLE_EQ(exciter->get("vimax"), 0.41);
+    EXPECT_DOUBLE_EQ(exciter->get("vimin"), -0.37);
+    EXPECT_DOUBLE_EQ(exciter->get("tc"), 0.12);
+    EXPECT_DOUBLE_EQ(exciter->get("tb"), 0.23);
+    EXPECT_DOUBLE_EQ(exciter->get("ka"), 41.0);
+    EXPECT_DOUBLE_EQ(exciter->get("ta"), 0.034);
+    EXPECT_DOUBLE_EQ(exciter->get("vrmax"), 7.2);
+    EXPECT_DOUBLE_EQ(exciter->get("vrmin"), -4.3);
+    EXPECT_DOUBLE_EQ(exciter->get("kc"), 0.17);
+    EXPECT_DOUBLE_EQ(exciter->get("kf"), 0.08);
+    EXPECT_DOUBLE_EQ(exciter->get("tf"), 1.3);
 
     ASSERT_EQ(simulation->dynInitialize(), 0);
     EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);

@@ -75,7 +75,8 @@ adapters still have attachment, parameter, equation, and validation gaps.
 | `EXDC2`                                                                            | `EXDC2`                 | `ExciterDC2A`                                                                 | **Partial.** The adapter exists but ignores `TR`, switch behavior, and saturation points. Confirm whether `DC2A` equations exactly represent ANDES `EXDC2`.                                                                                                                                                                      |
 | `IEEET1`, `IEEET3`, `ESDC2A`                                                       | Same named ANDES models | `ExciterIEEEtype1`, `ExciterIEEEtype2`, and `ExciterDC2A` are only candidates | **Planned.** Perform equation and limiter audits before selecting an analogue; similar names are insufficient.                                                                                                                                                                                                                   |
 | `ESST3A`                                                                           | `ESST3A`                | `ExciterESST3A`                                                               | **Implemented.** Exact PSS/e field mapping, ANDES-equation initialization, residual, and Jacobian coverage with GENROU; reduced-order synchronous generators use the documented controller-signal approximations.                                                                                                                |
-| `ESST1A`, `ESAC1A`, `AC8B`, `EXAC1`, `EXAC2`, `EXAC4`, `IEEEX1`, `EXST1`, `ESST4B` | Same named ANDES models | None exact                                                                    | **No direct analogue.** Implement model-specific exciter blocks and DYR schemas, then add initialization and trajectory tests.                                                                                                                                                                                                   |
+| `EXST1`                                                                            | `EXST1`                 | `ExciterEXST1`                                                                | **Implemented.** PSS/e field order, captured initialization and perturbed-equation values, corrected regulator-output limiter/root tests, analytic-Jacobian finite-difference checks, and GENROU attachment are covered. The documented limiter-selector divergence from frozen ANDES is intentional. Zero `TR`, `TB`, or `TA` records and a captured disturbed trajectory remain unsupported. |
+| `ESST1A`, `ESAC1A`, `AC8B`, `EXAC1`, `EXAC2`, `EXAC4`, `IEEEX1`, `ESST4B`          | Same named ANDES models | None exact                                                                    | **No direct analogue.** Implement model-specific exciter blocks and DYR schemas, then add initialization and trajectory tests.                                                                                                                                                                                                   |
 | `ESAC6A`, `SCRX`, `EXPIC1`                                                         | `SEXS`                  | `ExciterSEXS`                                                                 | **Planned compatibility approximations.** ANDES marks these conversions as TODO/approximate and currently discards most source parameters. Reproduce this only as an explicit compatibility mode and emit a diagnostic; do not describe it as exact model support.                                                               |
 | `TGOV1`                                                                            | `TGOV1`                 | `GovernorTgov1`                                                               | **Implemented.** Matches the ANDES v2.0.0 equations and PSS/e schema `R, T1, VMAX, VMIN, T2, T3, Dt`; DYR attachment, initialization, limiter, analytic-Jacobian, and isolated speed-step trajectory regressions are covered.                                                                                                    |
 | `HYGOV`                                                                            | `HYGOV`                 | `GovernorHydro` is a candidate                                                | **Planned.** Compare equations, water-column dynamics, gate/rate limits, and parameter units before mapping it.                                                                                                                                                                                                                  |
@@ -173,7 +174,7 @@ seconds, and continuing through 2.0 seconds. The five controller chains are:
 | 1   | Complete GENROU equations, saturation utility, DYR mapping, and five-machine initialization reference         | Current changes; treat as complete after merge | none       |
 | 2   | Robust RAW/DYR identity and base handling, IEEE 14 power-flow parity, and a controller-free GENROU trajectory | Planned                                        | PR 1       |
 | 3   | Generator/controller signal plumbing, PSS-to-exciter routing, and validated `TGOV1`                           | Implemented                                    | PR 2       |
-| 4   | Complete `ESST3A` and `EXST1` models plus DYR adapters                                                        | ESST3A implemented; EXST1 planned              | PR 3       |
+| 4   | Complete `ESST3A` and `EXST1` models plus DYR adapters                                                        | Models/adapters implemented; trajectories open | PR 3       |
 | 5   | Complete `IEEEG1`, `ST2CUT`, and `IEEEST` models plus DYR adapters                                            | Planned                                        | PR 4       |
 | 6   | DYR `Toggle`, complete IEEE 14 initialization/equilibrium, and the two-second trajectory regression           | Planned                                        | PR 5       |
 
@@ -335,8 +336,11 @@ Jacobian path.
 
 ### PR 4: ESST3A and EXST1 excitation systems
 
-Fresh-context task statement: implement the two excitation-system models used
-by all five IEEE 14 generators, using the PR 3 signal contract and exact ANDES
+`ESST3A` is merged and complete. The remaining PR 4 work is `EXST1`; retain
+the ESST3A requirements below as the completion record for the merged model.
+
+Fresh-context task statement: implement the remaining excitation-system model
+used by the IEEE 14 generators, using the PR 3 signal contract and exact ANDES
 equations.
 
 `ESST3A` must include its voltage transducer, terminal-current compensation,
@@ -370,6 +374,51 @@ component tests. Do not add IEEEG1 or stabilizer implementations in this PR.
 Merge gate: all five IEEE 14 generators can attach and initialize the correct
 exciter type in a controller subset case, and both minimized trajectories
 match ANDES within declared tolerances.
+
+#### EXST1 implementation and parameter contract
+
+`ExciterEXST1` follows ANDES 2.0.0
+`andes/models/exciter/exst1.py` except for the output-limiter selector
+documented below. The DYR adapter follows the frozen `psse-dyr.yaml` order
+exactly:
+
+| DYR position after `BUS, ID` | ANDES / GridDyn parameter |
+| ----------------------------: | ------------------------- |
+| 1                             | `TR` / `tr`               |
+| 2, 3                          | `VIMAX`, `VIMIN`           |
+| 4, 5                          | `TC`, `TB`                 |
+| 6, 7                          | `KA`, `TA`                 |
+| 8, 9                          | `VRMAX`, `VRMIN`           |
+| 10, 11, 12                    | `KC`, `KF`, `TF`           |
+
+The output-limiter selector intentionally differs from frozen ANDES 2.0.0.
+ANDES passes `WF_y` to its output `HardLimiter` but applies the resulting
+flags to `LR_y`. This can leave `LR_y` outside `VRMIN`/`VRMAX` without
+limiting it, or clamp it because an unrelated washout excursion crossed a
+bound. The published PSS/E EXST1 block diagram places these limits around the
+regulator output, so GridDyn selects the output-limiter branch from `LR_y`.
+The input and output limiters remain hard algebraic limiters and do not freeze
+a differential state, so EXST1 has no anti-windup approximation. Both limiter
+surfaces are exposed as roots. The terminal-voltage scaling shown on some
+published EXST1 output-limit diagrams remains unresolved; GridDyn retains the
+frozen ANDES bounds `VRMAX - KC * XadIfd` and `VRMIN - KC * XadIfd` pending
+future cross-model trajectory comparisons.
+
+All synchronous-machine families accepted by the PR 3 controller-signal
+contract can use EXST1. GENROU supplies the exact `XadIfd`; reduced-order
+synchronous machines retain the already documented `XadIfd` proxy. Models
+that return no physical/defined `XadIfd` signal are rejected at
+initialization. No additional generator approximation was added for EXST1.
+
+Current unsupported cases are nonpositive `TR`, `TB`, or `TA`. ANDES can
+represent a zero-time-constant block as an algebraic/bypass equation, whereas
+this GridDyn class currently validates those three time constants as strictly
+positive. `TF` is also strictly positive, matching the frozen ANDES parameter
+constraint. A minimized DYR mapping fixture, captured IEEE 14 initialization,
+perturbed equations, corrected regulator-output limiter roots, clone/factory
+checks, synchronous-family coupling, and finite-difference Jacobian checks are
+complete. A captured disturbed GENROU+EXST1 trajectory and native ANDES
+JSON/XLSX construction are still open and are not claimed by this change.
 
 ### PR 5: IEEEG1, ST2CUT, and IEEEST
 
@@ -598,7 +647,8 @@ it also needs native-input mapping, initialization, and a trajectory test.
 | `SHAFT5`                                                                                                              | Multi-mass shaft model; map states and mechanical interfaces.                                                                                                                          | Untriaged          |
 | `ESDC1A`, `ESDC2A`, `SEXS`, `IEEET1`, `IEEET3`                                                                        | Existing DC/IEEE/SEXS exciters are candidates; complete model-specific audits and DYR/native mappings.                                                                                 | Partial            |
 | `ESST3A`                                                                                                              | `ExciterESST3A`; exact GENROU path plus documented reduced-order synchronous-machine signal approximations.                                                                            | Implemented        |
-| `IEEEX1`, `EXST1`, `EXAC1`, `EXAC2`, `EXAC4`, `ESST4B`, `AC8B`, `ESAC1A`, `ESST1A`, `ESAC5A`                          | No exact named GridDyn implementations; implement individually rather than mapping by family name.                                                                                     | No direct analogue |
+| `EXST1`                                                                                                               | `ExciterEXST1`; positive-time-constant equations and DYR mapping, with the documented corrected regulator-output limiter; zero-time-constant blocks, native import, and a captured trajectory remain. | Implemented        |
+| `IEEEX1`, `EXAC1`, `EXAC2`, `EXAC4`, `ESST4B`, `AC8B`, `ESAC1A`, `ESST1A`, `ESAC5A`                                   | No exact named GridDyn implementations; implement individually rather than mapping by family name.                                                                                     | No direct analogue |
 | `IEEEST`, `ST2CUT`                                                                                                    | Base `Stabilizer` is not a functional equivalent; implement both models and signal connections.                                                                                        | No direct analogue |
 | `BusFreq`, `BusROCOF`, `PMU`, `PLL1`, `PLL2`, `FreqDiv`                                                               | Measurement and frequency-estimation models.                                                                                                                                           | Untriaged          |
 | `REGCA1`, `REGCP1`, `REECA1`, `REECA1E`, `REECA1G`, `REECB1`, `REPCA1`, `REGCV1`, `REGCV2`, `REGF1`, `REGF2`, `REGF3` | Generic `GenModelInverter` is insufficient; add composable generator, electrical, plant, and frequency controls.                                                                       | No direct analogue |

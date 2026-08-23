@@ -64,7 +64,7 @@ void GovernorIeeeG1::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*
     index_t nextState = 0;
     leadLagState = (T1 > 0.0) ? nextState++ : kInvalidLocation;
     valveState = nextState++;
-    for (index_t stage = 0; std::cmp_less(stage,turbineTime.size()); ++stage) {
+    for (index_t stage = 0; std::cmp_less(stage, turbineTime.size()); ++stage) {
         turbineState[stage] = (turbineTime[stage] > 0.0) ? nextState++ : kInvalidLocation;
     }
 
@@ -199,7 +199,7 @@ std::array<double, 4> GovernorIeeeG1::turbineOutputs(const double diffState[]) c
 {
     std::array<double, 4> output{};
     double input = diffState[valveState];
-    for (index_t stage = 0; std::cmp_less(stage,output.size()); ++stage) {
+    for (index_t stage = 0; std::cmp_less(stage, output.size()); ++stage) {
         output[stage] =
             (turbineState[stage] != kInvalidLocation) ? diffState[turbineState[stage]] : input;
         input = output[stage];
@@ -278,7 +278,7 @@ void GovernorIeeeG1::derivative(const IOdata& inputs,
         (valveLimitStatus(inputs, state) == 0) ? limitedValveRate(inputs, state) : 0.0;
 
     double input = state[valveState];
-    for (index_t stage = 0; std::cmp_less(stage,turbineState.size()); ++stage) {
+    for (index_t stage = 0; std::cmp_less(stage, turbineState.size()); ++stage) {
         if (turbineState[stage] != kInvalidLocation) {
             stateDerivative[turbineState[stage]] =
                 (input - state[turbineState[stage]]) / turbineTime[stage];
@@ -315,7 +315,7 @@ void GovernorIeeeG1::jacobianElements(const IOdata& inputs,
 
     std::array<index_t, 4> stageSource{};
     index_t source = valveState;
-    for (index_t stage = 0; std::cmp_less(stage,stageSource.size()); ++stage) {
+    for (index_t stage = 0; std::cmp_less(stage, stageSource.size()); ++stage) {
         if (turbineState[stage] != kInvalidLocation) {
             source = turbineState[stage];
         }

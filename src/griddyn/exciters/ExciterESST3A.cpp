@@ -334,7 +334,8 @@ void ExciterESST3A::jacobianElements(const IOdata& inputs,
                                                              exciterVdInLocation,
                                                              exciterVqInLocation,
                                                              exciterXadIfdInLocation};
-        for (index_t index = 0; index < rectifierInputLocations.size(); ++index) {
+        for (index_t index = 0; index < static_cast<index_t>(rectifierInputLocations.size());
+             ++index) {
             matrixData.assignCheckCol(refAlg,
                                       inputLocs[rectifierInputLocations[index]],
                                       state[fieldRegulatorState] * rectifier.mDerivatives[index]);

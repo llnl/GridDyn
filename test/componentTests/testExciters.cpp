@@ -159,7 +159,7 @@ TEST(ExciterModelTests, Esst3aMatchesAndesPerturbedEquations)
     exciter.set("vrmin", -99.0);
     exciter.set("kg", 1.0);
     exciter.set("kp", 3.67);
-    exciter.set("ki", 0.435);
+    exciter.set("ki", 435.0 / 1000.0);
     exciter.set("vbmax", 5.48);
     exciter.set("kc", 0.01);
     exciter.set("xl", 0.0098);

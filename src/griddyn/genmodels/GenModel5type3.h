@@ -36,6 +36,14 @@ class GenModel5type3: public GenModel3 {
                                   MatrixData<double>& md,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
+    IOdata getMachineControllerSignals(const IOdata& inputs,
+                                       const StateData& stateDataValue,
+                                       const SolverMode& sMode) const override;
+    MachineSignalDerivativeData
+        getMachineControllerSignalDerivatives(const IOdata& inputs,
+                                              const StateData& stateDataValue,
+                                              const IOlocs& inputLocs,
+                                              const SolverMode& sMode) const override;
 };
 
 }  // namespace griddyn::genmodels

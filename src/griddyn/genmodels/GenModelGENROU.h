@@ -173,6 +173,15 @@ class GenModelGENROU: public GenModel5 {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
+    virtual IOdata getMachineControllerSignals(const IOdata& inputs,
+                                               const StateData& stateDataValue,
+                                               const SolverMode& sMode) const override;
+    virtual MachineSignalDerivativeData
+        getMachineControllerSignalDerivatives(const IOdata& inputs,
+                                              const StateData& stateDataValue,
+                                              const IOlocs& inputLocs,
+                                              const SolverMode& sMode) const override;
+
     virtual stringVec localStateNames() const override;
     // dynamics
     virtual void residual(const IOdata& inputs,

@@ -12,6 +12,7 @@
 #include "../gridDynDefinitions.hpp"
 #include "ExciterDC1A.h"
 #include "ExciterDC2A.h"
+#include "ExciterESST3A.h"
 #include "ExciterIEEEtype1.h"
 #include "ExciterIEEEtype2.h"
 #include "ExciterSEXS.h"
@@ -33,6 +34,7 @@ namespace exciters {
         // setup the object factories
         static ChildTypeFactory<ExciterDC1A, Exciter> gfeDc1a("exciter", "dc1a");  // NOLINT
         static ChildTypeFactory<ExciterDC2A, Exciter> gfeDc2a("exciter", "dc2a");  // NOLINT
+        static ChildTypeFactory<ExciterESST3A, Exciter> gfeEsst3a("exciter", "esst3a");  // NOLINT
         static ChildTypeFactory<ExciterIEEEtype1, Exciter> gfeType1("exciter", "type1");  // NOLINT
         static TypeFactory<Exciter> gfeDefault(  // NOLINT
             "exciter",
@@ -278,6 +280,13 @@ const std::vector<stringVec>& Exciter::inputNames() const
         {"vset", "setpoint", "voltageset"},
         {"pmech", "power", "mechanicalpower"},
         {"omega", "frequency", "w", "f"},
+        {"id", "directaxiscurrent"},
+        {"iq", "quadratureaxiscurrent"},
+        {"vd", "directaxisvoltage"},
+        {"vq", "quadratureaxisvoltage"},
+        {"te", "electricaltorque"},
+        {"xadifd", "fieldcurrent"},
+        {"vss", "stabilizersignal"},
     };
     return inputNamesStr;
 }

@@ -8,6 +8,7 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 set(genmodel_headers
+    ControllerSignals.h
     GenModel.h
     genmodels/GenModelClassical.h
     genmodels/GenModel3.h
@@ -25,6 +26,7 @@ set(genmodel_headers
 
 set(genmodel_sources
     ${genmodel_headers}
+    genmodels/GeneratorControllerSignals.cpp
     genmodels/GenModel.cpp
     genmodels/GenModelClassical.cpp
     genmodels/GenModel3.cpp
@@ -81,6 +83,7 @@ set(exciter_headers
     Stabilizer.h
     exciters/ExciterDC1A.h
     exciters/ExciterDC2A.h
+    exciters/ExciterESST3A.h
     exciters/ExciterIEEEtype1.h
     exciters/ExciterIEEEtype2.h
     exciters/ExciterSEXS.h
@@ -91,6 +94,7 @@ set(exciter_sources
     exciters/Exciter.cpp
     exciters/ExciterDC1A.cpp
     exciters/ExciterDC2A.cpp
+    exciters/ExciterESST3A.cpp
     exciters/ExciterIEEEtype1.cpp
     exciters/ExciterIEEEtype2.cpp
     exciters/ExciterSEXS.cpp

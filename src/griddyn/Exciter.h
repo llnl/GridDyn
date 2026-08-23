@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include "ControllerSignals.h"
 #include "GridSubModel.h"
 #include "units/units_decl.hpp"
 #include <string>
@@ -20,6 +21,21 @@ inline constexpr int exciterVoltageInLocation = 0;
 inline constexpr int exciterVsetInLocation = 1;
 inline constexpr int exciterPmechInLocation = 2;
 inline constexpr int exciterOmegaInLocation = 3;
+inline constexpr int exciterMachineSignalBase = 4;
+inline constexpr int exciterIdInLocation =
+    exciterMachineSignalBase + static_cast<int>(MachineControllerSignal::ID);
+inline constexpr int exciterIqInLocation =
+    exciterMachineSignalBase + static_cast<int>(MachineControllerSignal::IQ);
+inline constexpr int exciterVdInLocation =
+    exciterMachineSignalBase + static_cast<int>(MachineControllerSignal::VD);
+inline constexpr int exciterVqInLocation =
+    exciterMachineSignalBase + static_cast<int>(MachineControllerSignal::VQ);
+inline constexpr int exciterElectricalTorqueInLocation =
+    exciterMachineSignalBase + static_cast<int>(MachineControllerSignal::ELECTRICAL_TORQUE);
+inline constexpr int exciterXadIfdInLocation =
+    exciterMachineSignalBase + static_cast<int>(MachineControllerSignal::XADIFD);
+inline constexpr int exciterVssInLocation = exciterMachineSignalBase + machineControllerSignalCount;
+inline constexpr count_t exciterInputCount = exciterVssInLocation + 1;
 
 /** class defining the interface for an exciter as well a trivial implementation of such
  */

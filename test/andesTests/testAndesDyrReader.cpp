@@ -9,6 +9,7 @@
 #include "griddyn/Generator.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
+#include "griddyn/exciters/ExciterESST3A.h"
 #include "griddyn/genmodels/GenModelGENROU.h"
 #include "griddyn/governors/GovernorTgov1.h"
 #include <cstddef>
@@ -140,4 +141,47 @@ TEST(AndesDyrReaderTests, MapsTgov1ParametersInAndesDyrOrder)
         EXPECT_DOUBLE_EQ(governor->get("t3"), entry.t3);
         EXPECT_DOUBLE_EQ(governor->get("dt"), entry.dt);
     }
+}
+
+TEST(AndesDyrReaderTests, LoadsEsst3aWithGenrouSignals)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_esst3a.dyr"));
+
+    for (const index_t busId : {1, 3, 6, 8}) {
+        auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", busId));
+        ASSERT_NE(bus, nullptr) << "bus " << busId;
+        auto* generator = bus->getGen(0);
+        ASSERT_NE(generator, nullptr) << "generator at bus " << busId;
+        auto* exciter = dynamic_cast<griddyn::exciters::ExciterESST3A*>(generator->find("exciter"));
+        ASSERT_NE(exciter, nullptr) << "ESST3A at bus " << busId;
+
+        EXPECT_DOUBLE_EQ(exciter->get("tr"), 0.02);
+        EXPECT_DOUBLE_EQ(exciter->get("vimax"), 0.2);
+        EXPECT_DOUBLE_EQ(exciter->get("vimin"), -0.2);
+        EXPECT_DOUBLE_EQ(exciter->get("km"), 8.0);
+        EXPECT_DOUBLE_EQ(exciter->get("tc"), 1.0);
+        EXPECT_DOUBLE_EQ(exciter->get("tb"), 5.0);
+        EXPECT_DOUBLE_EQ(exciter->get("ka"), 20.0);
+        EXPECT_DOUBLE_EQ(exciter->get("ta"), 0.0);
+        EXPECT_DOUBLE_EQ(exciter->get("vrmax"), 99.0);
+        EXPECT_DOUBLE_EQ(exciter->get("vrmin"), -99.0);
+        EXPECT_DOUBLE_EQ(exciter->get("kg"), 1.0);
+        EXPECT_DOUBLE_EQ(exciter->get("kp"), 3.67);
+        EXPECT_DOUBLE_EQ(exciter->get("ki"), 0.435);
+        EXPECT_DOUBLE_EQ(exciter->get("vbmax"), 5.48);
+        EXPECT_DOUBLE_EQ(exciter->get("kc"), 0.01);
+        EXPECT_DOUBLE_EQ(exciter->get("xl"), 0.0098);
+        EXPECT_DOUBLE_EQ(exciter->get("vgmax"), 3.86);
+        EXPECT_DOUBLE_EQ(exciter->get("thetap"), 3.33);
+        EXPECT_DOUBLE_EQ(exciter->get("tm"), 0.4);
+        EXPECT_DOUBLE_EQ(exciter->get("vmmax"), 99.0);
+        EXPECT_DOUBLE_EQ(exciter->get("vmmin"), 0.0);
+    }
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }

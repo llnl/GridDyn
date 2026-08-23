@@ -376,6 +376,129 @@ void GenModelGENROU::jacobianElements(const IOdata& inputs,
     matrixData.assign(refDiff + 5, refDiff + 5, -1.0 / Tdopp - stateData.cj);
 }
 
+IOdata GenModelGENROU::getMachineControllerSignals(const IOdata& inputs,
+                                                   const StateData& stateDataValue,
+                                                   const SolverMode& sMode) const
+{
+    const auto locations = offsets.getLocations(stateDataValue, sMode, this);
+    const double* alg = locations.algStateLoc;
+    const double* state = locations.diffStateLoc;
+    const auto coefficients = computeCoefficients(Xd, Xq, Xdp, Xqp, Xdpp, Xqpp, Xl);
+
+    const double angleDifference = state[0] - inputs[ANGLE_IN_LOCATION];
+    const double directVoltage = -inputs[VOLTAGE_IN_LOCATION] * std::sin(angleDifference);
+    const double quadratureVoltage = inputs[VOLTAGE_IN_LOCATION] * std::cos(angleDifference);
+    const double psi2q = coefficients.mGq1 * state[2] + (1.0 - coefficients.mGq1) * state[4];
+    const double psi2d = coefficients.mGd1 * state[3] + (1.0 - coefficients.mGd1) * state[5];
+    const double saturation = sat.compute(std::hypot(psi2d, psi2q));
+    const double electricalTorque =
+        (directVoltage + Rs * alg[0]) * alg[0] + (quadratureVoltage + Rs * alg[1]) * alg[1];
+    const double xadIfd = state[3] +
+        (Xd - Xdp) *
+            (-coefficients.mGd1 * alg[0] - coefficients.mGd2 * state[5] +
+             coefficients.mGd2 * state[3]) +
+        saturation * psi2d;
+
+    IOdata signals(machineControllerSignalCount, kNullVal);
+    signals[static_cast<index_t>(MachineControllerSignal::ID)] = alg[0];
+    signals[static_cast<index_t>(MachineControllerSignal::IQ)] = alg[1];
+    signals[static_cast<index_t>(MachineControllerSignal::VD)] = directVoltage;
+    signals[static_cast<index_t>(MachineControllerSignal::VQ)] = quadratureVoltage;
+    signals[static_cast<index_t>(MachineControllerSignal::ELECTRICAL_TORQUE)] = electricalTorque;
+    signals[static_cast<index_t>(MachineControllerSignal::XADIFD)] = xadIfd;
+    return signals;
+}
+
+MachineSignalDerivativeData
+    GenModelGENROU::getMachineControllerSignalDerivatives(const IOdata& inputs,
+                                                          const StateData& stateDataValue,
+                                                          const IOlocs& inputLocs,
+                                                          const SolverMode& sMode) const
+{
+    const auto locations = offsets.getLocations(stateDataValue, sMode, this);
+    const double* alg = locations.algStateLoc;
+    const double* state = locations.diffStateLoc;
+    const auto refAlg = locations.algOffset;
+    const auto refDiff = locations.diffOffset;
+    const auto coefficients = computeCoefficients(Xd, Xq, Xdp, Xqp, Xdpp, Xqpp, Xl);
+
+    MachineSignalDerivativeData derivatives;
+    const auto addDerivative =
+        [&derivatives](MachineControllerSignal signal, index_t location, double value) {
+            if ((location != kNullLocation) && (location != kInvalidLocation) && (value != 0.0)) {
+                derivatives[static_cast<index_t>(signal)].push_back(
+                    {.location = location, .value = value});
+            }
+        };
+
+    addDerivative(MachineControllerSignal::ID, refAlg, 1.0);
+    addDerivative(MachineControllerSignal::IQ, refAlg + 1, 1.0);
+
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
+    const double angleDifference = state[0] - inputs[ANGLE_IN_LOCATION];
+    const double directVoltage = -voltage * std::sin(angleDifference);
+    const double quadratureVoltage = voltage * std::cos(angleDifference);
+    const double inverseVoltage = (voltage != 0.0) ? 1.0 / voltage : 0.0;
+    const index_t voltageLoc = inputLocs[VOLTAGE_IN_LOCATION];
+    const index_t angleLoc = inputLocs[ANGLE_IN_LOCATION];
+
+    addDerivative(MachineControllerSignal::VD, voltageLoc, directVoltage * inverseVoltage);
+    addDerivative(MachineControllerSignal::VD, angleLoc, quadratureVoltage);
+    addDerivative(MachineControllerSignal::VD, refDiff, -quadratureVoltage);
+    addDerivative(MachineControllerSignal::VQ, voltageLoc, quadratureVoltage * inverseVoltage);
+    addDerivative(MachineControllerSignal::VQ, angleLoc, -directVoltage);
+    addDerivative(MachineControllerSignal::VQ, refDiff, directVoltage);
+
+    addDerivative(MachineControllerSignal::ELECTRICAL_TORQUE,
+                  refAlg,
+                  directVoltage + 2.0 * Rs * alg[0]);
+    addDerivative(MachineControllerSignal::ELECTRICAL_TORQUE,
+                  refAlg + 1,
+                  quadratureVoltage + 2.0 * Rs * alg[1]);
+    addDerivative(MachineControllerSignal::ELECTRICAL_TORQUE,
+                  voltageLoc,
+                  (directVoltage * alg[0] + quadratureVoltage * alg[1]) * inverseVoltage);
+    addDerivative(MachineControllerSignal::ELECTRICAL_TORQUE,
+                  angleLoc,
+                  quadratureVoltage * alg[0] - directVoltage * alg[1]);
+    addDerivative(MachineControllerSignal::ELECTRICAL_TORQUE,
+                  refDiff,
+                  -quadratureVoltage * alg[0] + directVoltage * alg[1]);
+
+    const double psi2q = coefficients.mGq1 * state[2] + (1.0 - coefficients.mGq1) * state[4];
+    const double psi2d = coefficients.mGd1 * state[3] + (1.0 - coefficients.mGd1) * state[5];
+    const double fluxMagnitude = std::hypot(psi2d, psi2q);
+    const auto saturation = sat.evaluate(fluxMagnitude);
+    double dSaturationD = 0.0;
+    double dSaturationQ = 0.0;
+    if (fluxMagnitude > 0.0) {
+        dSaturationD = saturation.derivative * psi2d / fluxMagnitude;
+        dSaturationQ = saturation.derivative * psi2q / fluxMagnitude;
+    }
+    const double dSaturationTermD = saturation.value + psi2d * dSaturationD;
+    const double dSaturationTermQ = psi2d * dSaturationQ;
+    const double reactanceDifference = Xd - Xdp;
+
+    addDerivative(MachineControllerSignal::XADIFD,
+                  refAlg,
+                  -reactanceDifference * coefficients.mGd1);
+    addDerivative(MachineControllerSignal::XADIFD,
+                  refDiff + 2,
+                  dSaturationTermQ * coefficients.mGq1);
+    addDerivative(MachineControllerSignal::XADIFD,
+                  refDiff + 3,
+                  1.0 + reactanceDifference * coefficients.mGd2 +
+                      dSaturationTermD * coefficients.mGd1);
+    addDerivative(MachineControllerSignal::XADIFD,
+                  refDiff + 4,
+                  dSaturationTermQ * (1.0 - coefficients.mGq1));
+    addDerivative(MachineControllerSignal::XADIFD,
+                  refDiff + 5,
+                  -reactanceDifference * coefficients.mGd2 +
+                      dSaturationTermD * (1.0 - coefficients.mGd1));
+    return derivatives;
+}
+
 void GenModelGENROU::set(std::string_view param, std::string_view val)
 {
     GenModel5::set(param, val);

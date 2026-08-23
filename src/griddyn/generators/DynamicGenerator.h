@@ -58,6 +58,10 @@ class DynamicGenerator: public Generator {
     Source* pSetControl = nullptr;  //!< source for throttle control
     Source* vSetControl = nullptr;  //!< source for voltage level control
     IsocController* isoc = nullptr;  //!< pointer to a isochronous controller
+    GridSubModel* mechanicalPowerSource = nullptr;  //!< optional non-owning Pmech source
+    index_t mechanicalPowerOutput = 0;  //!< selected output on the Pmech source
+    std::string mechanicalPowerSourceName;  //!< clone/configuration path for the Pmech source
+    bool mechanicalPowerSourceExplicit = false;  //!< use the source instead of the local governor
     // const double *m_stateTemp = nullptr;                       //!< temporary state
     // vector(assumed not writable) const double *m_dstate_dt_Temp = nullptr;                   //!<
     // a temporary deriv vector;
@@ -103,6 +107,17 @@ class DynamicGenerator: public Generator {
     @param[in] obj submodel to add
     @throw unrecognizedObjectError is object is not valid*/
     virtual void add(GridSubModel* obj) override;
+
+    /** Connect this machine's single mechanical-power input to a submodel output.
+    The source remains owned and evaluated by its normal parent. */
+    void setMechanicalPowerSource(GridSubModel* source, index_t outputIndex = 0);
+    /** Store a source path for resolution after the complete object tree is available. */
+    void setMechanicalPowerSource(std::string_view sourceName, index_t outputIndex = 0);
+    /** Restore the conventional local-governor-output-zero connection. */
+    void clearMechanicalPowerSource();
+    GridSubModel* getMechanicalPowerSource() const;
+    index_t getMechanicalPowerOutput() const;
+    bool hasExplicitMechanicalPowerSource() const;
 
     virtual void algebraicUpdate(const IOdata& inputs,
                                  const StateData& stateDataValue,
@@ -212,6 +227,8 @@ class DynamicGenerator: public Generator {
                                            const SolverMode& sMode);
 
     GridSubModel* replaceModel(GridSubModel* newObject, GridSubModel* oldObject, index_t newIndex);
+
+    void resolveMechanicalPowerSource();
 
     void buildDynModel(DynModel dynModel);
 };

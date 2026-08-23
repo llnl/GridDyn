@@ -11,7 +11,9 @@
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/exciters/ExciterESST3A.h"
 #include "griddyn/exciters/ExciterEXST1.h"
+#include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/genmodels/GenModelGENROU.h"
+#include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorTgov1.h"
 #include <cstddef>
 #include <fstream>
@@ -20,6 +22,7 @@
 #include <nlohmann/json.hpp>
 #include <string>
 #include <string_view>
+#include <utility>
 
 namespace {
 constexpr std::string_view andesTestDirectory{GRIDDYN_TEST_DIRECTORY "/andes_tests/"};
@@ -142,6 +145,60 @@ TEST(AndesDyrReaderTests, MapsTgov1ParametersInAndesDyrOrder)
         EXPECT_DOUBLE_EQ(governor->get("t3"), entry.t3);
         EXPECT_DOUBLE_EQ(governor->get("dt"), entry.dt);
     }
+}
+
+TEST(AndesDyrReaderTests, MapsIeeeG1ParametersInFrozenAndesDyrOrder)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_ieeeg1.dyr"));
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* governor = dynamic_cast<griddyn::governors::GovernorIeeeG1*>(generator->find("governor"));
+    ASSERT_NE(governor, nullptr);
+
+    const std::pair<std::string_view, double> expected[]{
+        {"k", 18.0},   {"t1", 0.12},   {"t2", 0.03},   {"t3", 0.22}, {"uo", 0.42},
+        {"uc", -0.31}, {"pmax", 1.25}, {"pmin", 0.15}, {"t4", 0.14}, {"k1", 0.20},
+        {"k2", 0.0},   {"t5", 0.25},   {"k3", 0.30},   {"k4", 0.0},  {"t6", 0.36},
+        {"k5", 0.10},  {"k6", 0.0},    {"t7", 0.47},   {"k7", 0.40}, {"k8", 0.0}};
+    for (const auto& parameter : expected) {
+        EXPECT_DOUBLE_EQ(governor->get(parameter.first), parameter.second) << parameter.first;
+    }
+    EXPECT_EQ(generator->getMechanicalPowerSource(), governor);
+    EXPECT_EQ(generator->getMechanicalPowerOutput(), griddyn::governors::GovernorIeeeG1::hpOutput);
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(AndesDyrReaderTests, ConnectsIeeeG1LowPressureOutputToSecondGenerator)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_ieeeg1_cross.dyr"));
+
+    auto* primaryBus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    auto* secondaryBus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+    ASSERT_NE(primaryBus, nullptr);
+    ASSERT_NE(secondaryBus, nullptr);
+    auto* primary = dynamic_cast<griddyn::DynamicGenerator*>(primaryBus->getGen(0));
+    auto* secondary = dynamic_cast<griddyn::DynamicGenerator*>(secondaryBus->getGen(0));
+    ASSERT_NE(primary, nullptr);
+    ASSERT_NE(secondary, nullptr);
+    auto* governor = dynamic_cast<griddyn::governors::GovernorIeeeG1*>(primary->find("governor"));
+    ASSERT_NE(governor, nullptr);
+
+    EXPECT_EQ(primary->getMechanicalPowerSource(), governor);
+    EXPECT_EQ(primary->getMechanicalPowerOutput(), griddyn::governors::GovernorIeeeG1::hpOutput);
+    EXPECT_EQ(secondary->getMechanicalPowerSource(), governor);
+    EXPECT_EQ(secondary->getMechanicalPowerOutput(), griddyn::governors::GovernorIeeeG1::lpOutput);
 }
 
 TEST(AndesDyrReaderTests, LoadsEsst3aWithGenrouSignals)

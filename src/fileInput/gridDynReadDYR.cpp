@@ -5,6 +5,7 @@
  */
 
 #include "ReaderInfo.h"
+#include "core/CoreExceptions.h"
 #include "core/CoreObject.h"
 #include "core/ObjectFactory.hpp"
 #include "core/coreDefinitions.hpp"
@@ -16,8 +17,12 @@
 #include "griddyn/Generator.h"
 #include "griddyn/Governor.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/generators/DynamicGenerator.h"
+#include "griddyn/governors/GovernorIeeeG1.h"
+#include <cmath>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <string>
 
 namespace griddyn {
@@ -27,6 +32,7 @@ namespace {
     void loadESST3A(CoreObject* parentObject, stringVec& tokens);
     void loadEXST1(CoreObject* parentObject, stringVec& tokens);
     void loadTGOV1(CoreObject* parentObject, stringVec& tokens);
+    void loadIEEEG1(CoreObject* parentObject, stringVec& tokens);
     void loadEXDC2(CoreObject* parentObject, stringVec& tokens);
     void loadSEXS(CoreObject* parentObject, stringVec& tokens);
 }  // namespace
@@ -79,6 +85,8 @@ void loadDyr(CoreObject* parentObject,
             loadEXDC2(parentObject, lineTokens);
         } else if (type == "'TGOV1'") {
             loadTGOV1(parentObject, lineTokens);
+        } else if (type == "'IEEEG1'") {
+            loadIEEEG1(parentObject, lineTokens);
         } else if (type == "'SEXS'") {
             loadSEXS(parentObject, lineTokens);
         } else {
@@ -290,6 +298,85 @@ namespace {
         governorModel->set("dt", params[9]);
 
         gen->add(governorModel);
+    }
+
+    void loadIEEEG1(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 25U) {
+            throw InvalidParameterValue("IEEEG1 DYR record must contain 25 fields");
+        }
+        const int busId = std::stoi(tokens[0]);
+        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+        const int genId = std::stoi(tokens[2]);
+        if ((bus == nullptr) || (genId <= 0)) {
+            throw InvalidParameterValue("IEEEG1 primary generator identity");
+        }
+        auto* primary = dynamic_cast<DynamicGenerator*>(bus->getGen(genId - 1));
+        if (primary == nullptr) {
+            throw InvalidParameterValue("IEEEG1 requires a dynamic primary generator");
+        }
+
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        const int secondBusId = static_cast<int>(params[3]);
+        DynamicGenerator* secondary = nullptr;
+        if (secondBusId != 0) {
+            const auto* secondBus =
+                dynamic_cast<GridBus*>(parentObject->findByUserID("bus", secondBusId));
+            const int secondGenId = static_cast<int>(params[4]);
+            if ((secondBus == nullptr) || (secondGenId <= 0)) {
+                throw InvalidParameterValue("IEEEG1 secondary generator identity");
+            }
+            secondary = dynamic_cast<DynamicGenerator*>(secondBus->getGen(secondGenId - 1));
+            if ((secondary == nullptr) || (secondary == primary)) {
+                throw InvalidParameterValue(
+                    "IEEEG1 requires a distinct dynamic secondary generator");
+            }
+        } else {
+            constexpr double zeroTolerance = 1e-12;
+            if ((std::abs(params[15]) > zeroTolerance) || (std::abs(params[18]) > zeroTolerance) ||
+                (std::abs(params[21]) > zeroTolerance) || (std::abs(params[24]) > zeroTolerance)) {
+                throw InvalidParameterValue(
+                    "single-generator IEEEG1 requires K2, K4, K6, and K8 to be zero");
+            }
+        }
+
+        auto cof = CoreObjectFactory::instance();
+        std::unique_ptr<governors::GovernorIeeeG1> governor(
+            dynamic_cast<governors::GovernorIeeeG1*>(cof->createObject("governor", "ieeeg1")));
+        if (governor == nullptr) {
+            throw InvalidParameterValue("IEEEG1 factory registration");
+        }
+
+        // Exact frozen ANDES psse-dyr.yaml order after BUS and ID:
+        // BUS2, ID2, K, T1, T2, T3, UO, UC, PMAX, PMIN,
+        // T4, K1, K2, T5, K3, K4, T6, K5, K6, T7, K7, K8.
+        governor->set("k", params[5]);
+        governor->set("t1", params[6]);
+        governor->set("t2", params[7]);
+        governor->set("t3", params[8]);
+        governor->set("uo", params[9]);
+        governor->set("uc", params[10]);
+        governor->set("pmax", params[11]);
+        governor->set("pmin", params[12]);
+        governor->set("t4", params[13]);
+        governor->set("k1", params[14]);
+        governor->set("k2", params[15]);
+        governor->set("t5", params[16]);
+        governor->set("k3", params[17]);
+        governor->set("k4", params[18]);
+        governor->set("t6", params[19]);
+        governor->set("k5", params[20]);
+        governor->set("k6", params[21]);
+        governor->set("t7", params[22]);
+        governor->set("k7", params[23]);
+        governor->set("k8", params[24]);
+
+        auto* governorPointer = governor.release();
+        primary->add(governorPointer);
+        if (secondary != nullptr) {
+            secondary->setMechanicalPowerSource(governorPointer,
+                                                governors::GovernorIeeeG1::lpOutput);
+        }
     }
 }  // namespace
 

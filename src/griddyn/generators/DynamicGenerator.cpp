@@ -74,6 +74,11 @@ CoreObject* DynamicGenerator::clone(CoreObject* obj) const
     if (gen == nullptr) {
         return obj;
     }
+    gen->mechanicalPowerSourceExplicit = mechanicalPowerSourceExplicit;
+    gen->mechanicalPowerOutput = mechanicalPowerOutput;
+    gen->mechanicalPowerSourceName = mechanicalPowerSourceName;
+    gen->mechanicalPowerSource =
+        (mechanicalPowerSourceExplicit && (mechanicalPowerSource == gov)) ? gen->gov : nullptr;
     return gen;
 }
 namespace {
@@ -224,6 +229,7 @@ void DynamicGenerator::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     if (genModel == nullptr) {
         add(new GenModel());
     }
+    resolveMechanicalPowerSource();
     if (gov != nullptr) {
         if (!genModel->checkFlag(GenModel::GenModelFlags::INTERNAL_FREQUENCY_CALCULATION)) {
             opFlags.set(USES_BUS_FREQUENCY);
@@ -278,6 +284,10 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
     //  genModel->guessState (prevTime, m_state.data (), m_dstate_dt.data (), cLocalbSolverMode);
 
     Pset = m_Pmech / scale;
+    if (mechanicalPowerSourceExplicit && (mechanicalPowerSource != nullptr) &&
+        (mechanicalPowerSource != gov)) {
+        mechanicalPowerSource->setOutputInitializationTarget(mechanicalPowerOutput, m_Pmech);
+    }
     if (isoc != nullptr) {
         Pset -= isoc->getOutput();
     }
@@ -426,7 +436,12 @@ void DynamicGenerator::add(GridSubModel* obj)
             obj->set("xs", m_Xs);
         }
     } else if (dynamic_cast<Governor*>(obj) != nullptr) {
+        const bool reconnectExplicitSource =
+            mechanicalPowerSourceExplicit && (mechanicalPowerSource == gov);
         gov = static_cast<Governor*>(replaceModel(obj, gov, GOVERNOR_LOC));
+        if (reconnectExplicitSource) {
+            setMechanicalPowerSource(gov, mechanicalPowerOutput);
+        }
         // mesh up the Pmax and Pmin giving priority to the new gov
         const double govpmax = gov->get("pmax");
         const double govpmin = gov->get("pmin");
@@ -462,6 +477,85 @@ void DynamicGenerator::add(GridSubModel* obj)
     }
 }
 
+void DynamicGenerator::setMechanicalPowerSource(GridSubModel* source, index_t outputIndex)
+{
+    if (source == nullptr) {
+        clearMechanicalPowerSource();
+        return;
+    }
+    if ((outputIndex < 0) || (outputIndex >= source->numOutputs())) {
+        throw InvalidParameterValue("mechanical power output");
+    }
+
+    mechanicalPowerSource = source;
+    mechanicalPowerOutput = outputIndex;
+    mechanicalPowerSourceExplicit = true;
+    mechanicalPowerSourceName =
+        (source->getParent() != nullptr) ? fullObjectName(source) : source->getName();
+    subInputs.seqID = 0;
+    subInputLocs.seqID = 0;
+}
+
+void DynamicGenerator::setMechanicalPowerSource(std::string_view sourceName, index_t outputIndex)
+{
+    if ((sourceName.empty()) || (sourceName == "default") || (sourceName == "local")) {
+        clearMechanicalPowerSource();
+        return;
+    }
+    if (outputIndex < 0) {
+        throw InvalidParameterValue("mechanical power output");
+    }
+
+    mechanicalPowerSource = nullptr;
+    mechanicalPowerOutput = outputIndex;
+    mechanicalPowerSourceExplicit = true;
+    mechanicalPowerSourceName = sourceName;
+    subInputs.seqID = 0;
+    subInputLocs.seqID = 0;
+}
+
+void DynamicGenerator::clearMechanicalPowerSource()
+{
+    mechanicalPowerSource = nullptr;
+    mechanicalPowerOutput = 0;
+    mechanicalPowerSourceName.clear();
+    mechanicalPowerSourceExplicit = false;
+    subInputs.seqID = 0;
+    subInputLocs.seqID = 0;
+}
+
+GridSubModel* DynamicGenerator::getMechanicalPowerSource() const
+{
+    return mechanicalPowerSourceExplicit ? mechanicalPowerSource : gov;
+}
+
+index_t DynamicGenerator::getMechanicalPowerOutput() const
+{
+    return mechanicalPowerSourceExplicit ? mechanicalPowerOutput : 0;
+}
+
+bool DynamicGenerator::hasExplicitMechanicalPowerSource() const
+{
+    return mechanicalPowerSourceExplicit;
+}
+
+void DynamicGenerator::resolveMechanicalPowerSource()
+{
+    if (!mechanicalPowerSourceExplicit || (mechanicalPowerSource != nullptr)) {
+        return;
+    }
+
+    auto* source =
+        dynamic_cast<GridSubModel*>(locateObject(mechanicalPowerSourceName, getRoot(), false));
+    if (source == nullptr) {
+        throw InvalidParameterValue("mechanical power source '" + mechanicalPowerSourceName + "'");
+    }
+    if (mechanicalPowerOutput >= source->numOutputs()) {
+        throw InvalidParameterValue("mechanical power output");
+    }
+    mechanicalPowerSource = source;
+}
+
 GridSubModel* DynamicGenerator::replaceModel(GridSubModel* newObject,
                                              GridSubModel* oldObject,
                                              index_t newIndex)
@@ -485,6 +579,9 @@ void DynamicGenerator::set(std::string_view param, std::string_view val)
             throw(InvalidParameterValue(val));
         }
         buildDynModel(dmodel);
+    } else if ((param == "mechanical_power_source") || (param == "mechanicalpowersource") ||
+               (param == "pmech_source") || (param == "pmechsource")) {
+        setMechanicalPowerSource(val, mechanicalPowerOutput);
     } else {
         try {
             Generator::set(param, val);
@@ -519,7 +616,10 @@ void DynamicGenerator::timestep(CoreTime time, const IOdata& inputs, const Solve
 
         if ((gov != nullptr) && (gov->isEnabled())) {
             gov->timestep(time, {omega, Pset / scale}, sMode);
-            m_Pmech = gov->getOutput();
+        }
+        auto* pmechSource = getMechanicalPowerSource();
+        if ((pmechSource != nullptr) && (pmechSource->isEnabled())) {
+            m_Pmech = pmechSource->getOutput(getMechanicalPowerOutput());
         }
 
         if ((pss != nullptr) && (pss->isEnabled())) {
@@ -670,6 +770,19 @@ void DynamicGenerator::set(std::string_view param, double val, unit unitType)
         }
     } else if (param == "eft") {
         m_Eft = val;
+    } else if ((param == "mechanical_power_output") || (param == "mechanicalpoweroutput") ||
+               (param == "pmech_output") || (param == "pmechoutput")) {
+        const auto outputIndex = static_cast<index_t>(val);
+        if ((val < 0.0) || (static_cast<double>(outputIndex) != val)) {
+            throw InvalidParameterValue("mechanical power output");
+        }
+        if ((mechanicalPowerSource != nullptr) &&
+            (outputIndex >= mechanicalPowerSource->numOutputs())) {
+            throw InvalidParameterValue("mechanical power output");
+        }
+        mechanicalPowerOutput = outputIndex;
+        subInputs.seqID = 0;
+        subInputLocs.seqID = 0;
     } else if (param == "vref") {
         if (ext != nullptr) {
             ext->set(param, val, unitType);
@@ -1128,8 +1241,11 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
     subInputs.inputs[GOVERNOR_LOC][govpSetInLocation] = pcontrol * scale;
 
     double pmech = pcontrol * scale;
-    if ((gov != nullptr) && (gov->isEnabled())) {
-        pmech = gov->getOutput(subInputs.inputs[GOVERNOR_LOC], stateDataValue, sMode, 0);
+    auto* pmechSource = getMechanicalPowerSource();
+    if ((pmechSource != nullptr) && (pmechSource->isEnabled())) {
+        const auto& sourceInputs = (pmechSource == gov) ? subInputs.inputs[GOVERNOR_LOC] : noInputs;
+        pmech =
+            pmechSource->getOutput(sourceInputs, stateDataValue, sMode, getMechanicalPowerOutput());
     }
     if (std::abs(pmech) > 1e25) {
         pmech = 0.0;
@@ -1202,8 +1318,12 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
             subInputLocs.inputLocs[GOVERNOR_LOC][govOmegaInLocation] = floc;
         }
         subInputLocs.inputLocs[GOVERNOR_LOC][govpSetInLocation] = pSetLocation(sMode);
+    }
+
+    auto* pmechSource = getMechanicalPowerSource();
+    if ((pmechSource != nullptr) && (pmechSource->isEnabled())) {
         subInputLocs.inputLocs[GEN_MODEL_LOC][genModelPmechInLocation] =
-            gov->getOutputLoc(sMode, 0);
+            pmechSource->getOutputLoc(sMode, getMechanicalPowerOutput());
     } else {
         subInputLocs.inputLocs[GEN_MODEL_LOC][genModelPmechInLocation] = pSetLocation(sMode);
     }

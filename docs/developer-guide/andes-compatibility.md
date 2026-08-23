@@ -80,7 +80,8 @@ adapters still have attachment, parameter, equation, and validation gaps.
 | `ESAC6A`, `SCRX`, `EXPIC1`                                                | `SEXS`                  | `ExciterSEXS`                                                                 | **Planned compatibility approximations.** ANDES marks these conversions as TODO/approximate and currently discards most source parameters. Reproduce this only as an explicit compatibility mode and emit a diagnostic; do not describe it as exact model support.                                                                                                                             |
 | `TGOV1`                                                                   | `TGOV1`                 | `GovernorTgov1`                                                               | **Implemented.** Matches the ANDES v2.0.0 equations and PSS/e schema `R, T1, VMAX, VMIN, T2, T3, Dt`; DYR attachment, initialization, limiter, analytic-Jacobian, and isolated speed-step trajectory regressions are covered.                                                                                                                                                                  |
 | `HYGOV`                                                                   | `HYGOV`                 | `GovernorHydro` is a candidate                                                | **Planned.** Compare equations, water-column dynamics, gate/rate limits, and parameter units before mapping it.                                                                                                                                                                                                                                                                                |
-| `IEESGO`, `IEEEG1`                                                        | Same named ANDES models | `GovernorReheat` and steam-governor classes are only candidates               | **Planned.** No exact equivalence has been established; audit block diagrams before choosing reuse versus new models.                                                                                                                                                                                                                                                                          |
+| `IEESGO`                                                                  | `IEESGO`                | `GovernorReheat` and steam-governor classes are only candidates               | **Planned.** No exact equivalence has been established; audit block diagrams before choosing reuse versus a new model.                                                                                                                                                                                                                                                                          |
+| `IEEEG1`                                                                  | `IEEEG1`                | `GovernorIeeeG1`                                                              | **Implemented.** Frozen-ANDES equations and DYR order, initialization and perturbed equations, valve rate/position limits, analytic Jacobian, one- and two-machine attachment, and mixed synchronous-machine coupling are covered. Native ANDES import, alphanumeric DYR IDs, unequal machine bases, and a captured disturbed trajectory remain open.                                                                                                           |
 | `GAST`                                                                    | `GAST`                  | None exact                                                                    | **No direct analogue.** Add a gas-turbine governor implementation and DYR adapter.                                                                                                                                                                                                                                                                                                             |
 | `GGOV1`                                                                   | `TGOV1`                 | `GovernorTgov1`                                                               | **Planned compatibility approximation.** ANDES currently retains only `R` when converting this record. If reproduced, emit a diagnostic and keep exact GGOV1 support as a separate task.                                                                                                                                                                                                       |
 | `IEEEST`, `ST2CUT`                                                        | Same named ANDES models | Base `Stabilizer` only                                                        | **No direct analogue.** The base class is not a usable PSS implementation; add the two models and their generator/exciter signal connections.                                                                                                                                                                                                                                                  |
@@ -175,7 +176,7 @@ seconds, and continuing through 2.0 seconds. The five controller chains are:
 | 2   | Robust RAW/DYR identity and base handling, IEEE 14 power-flow parity, and a controller-free GENROU trajectory | Planned                                        | PR 1       |
 | 3   | Generator/controller signal plumbing, PSS-to-exciter routing, and validated `TGOV1`                           | Implemented                                    | PR 2       |
 | 4   | Complete `ESST3A` and `EXST1` models plus DYR adapters                                                        | Models/adapters implemented; trajectories open | PR 3       |
-| 5   | Complete `IEEEG1`, `ST2CUT`, and `IEEEST` models plus DYR adapters                                            | Planned                                        | PR 4       |
+| 5   | Complete `IEEEG1`, `ST2CUT`, and `IEEEST` models plus DYR adapters                                            | `IEEEG1` implemented; stabilizers planned      | PR 4       |
 | 6   | DYR `Toggle`, complete IEEE 14 initialization/equilibrium, and the two-second trajectory regression           | Planned                                        | PR 5       |
 
 PRs must merge in this order. Each PR must pass without relying on production
@@ -437,6 +438,34 @@ Required models:
 - `IEEEST`, used at bus 3: implement selectable input, second-order filters,
   two lead-lag stages, gain, washout/lag, output limiting, and voltage gating.
 
+#### IEEEG1 implementation and parameter contract
+
+`GovernorIeeeG1` follows frozen ANDES v2.0.0
+`andes/models/governor/ieeeg1.py`. Its DYR adapter uses the exact frozen
+`psse-dyr.yaml` order `BUS, ID, BUS2, ID2, K, T1, T2, T3, UO, UC, PMAX,
+PMIN, T4, K1, K2, T5, K3, K4, T6, K5, K6, T7, K7, K8`. The eight power
+coefficients are normalized by their sum, as in ANDES. `T1=0` and zero
+turbine-stage time constants are exact algebraic bypasses and do not allocate
+unnecessary differential states.
+
+The valve rate is limited to `[UC, UO]`; valve-position anti-windup holds at
+`[PMIN, PMAX]` only while requested motion points farther into the active
+limit. No equation discrepancy from frozen ANDES is known. ANDES marks
+governor scheduling as unsupported, so GridDyn likewise holds the initialized
+reference and does not claim a dynamic `paux`/dispatch input.
+
+With `BUS2=0`, the adapter uses the high-pressure output on the primary
+generator and requires `K2`, `K4`, `K6`, and `K8` to be zero. With a second
+machine, the governor remains owned and evaluated once by the primary
+generator, while the generic indexed mechanical-power connection routes its
+low-pressure output to the secondary. The secondary may use a different
+synchronous-generator model class and may retain an unrelated local governor;
+the explicit mechanical source selects which output drives its machine.
+`GenModel4` plus `GenModel6` is covered. Exact two-machine operation currently
+requires equal machine MBASE values; base conversion for unequal machines,
+alphanumeric DYR machine IDs, native ANDES input, and a captured disturbed
+trajectory remain open.
+
 Do not map `IEEEG1` to `GovernorReheat` or either stabilizer to the base
 `Stabilizer` unless an equation-by-equation audit proves exact equivalence.
 The actual IEEE 14 `ST2CUT` records use rotor-speed input, while its `IEEEST`
@@ -643,7 +672,8 @@ it also needs native-input mapping, initialization, and a trajectory test.
 | `Motor3`, `Motor5`                                                                                                    | `MotorLoad3`, `MotorLoad5`; parameter mapping and trajectory comparisons required.                                                                                                                    | Partial            |
 | `ACE`, `ACEc`, `COI`                                                                                                  | Map area-control and center-of-inertia services.                                                                                                                                                      | Untriaged          |
 | `PLBVFU1`, `IEEEVC`                                                                                                   | No direct voltage-compensator/playback analogue; define exciter input and playback interfaces.                                                                                                        | No direct analogue |
-| `TG2`, `TGOV1DB`, `TGOV1N`, `TGOV1NDB`, `IEEEG1`, `IEESGO`, `GAST`, `HYGOV`, `HYGOVDB`, `HYGOV4`                      | Existing hydro/reheat/steam classes are candidates only; each needs an equation audit or a new model.                                                                                                 | Planned            |
+| `IEEEG1`                                                                                                              | `GovernorIeeeG1`; frozen equations, limits, DYR mapping, one-/two-machine connections, initialization, and Jacobian checks are complete; unequal MBASE, native import, and disturbed trajectory remain. | Implemented        |
+| `TG2`, `TGOV1DB`, `TGOV1N`, `TGOV1NDB`, `IEESGO`, `GAST`, `HYGOV`, `HYGOVDB`, `HYGOV4`                               | Existing hydro/reheat/steam classes are candidates only; each needs an equation audit or a new model.                                                                                                 | Planned            |
 | `SHAFT5`                                                                                                              | Multi-mass shaft model; map states and mechanical interfaces.                                                                                                                                         | Untriaged          |
 | `ESDC1A`, `ESDC2A`, `SEXS`, `IEEET1`, `IEEET3`                                                                        | Existing DC/IEEE/SEXS exciters are candidates; complete model-specific audits and DYR/native mappings.                                                                                                | Partial            |
 | `ESST3A`                                                                                                              | `ExciterESST3A`; exact GENROU path plus documented reduced-order synchronous-machine signal approximations.                                                                                           | Implemented        |

@@ -65,6 +65,11 @@ void GridSubModel::dynInitializeB(const IOdata& inputs,
     }
 }
 
+bool GridSubModel::setOutputInitializationTarget(index_t /*outputIndex*/, double /*target*/)
+{
+    return false;
+}
+
 double GridSubModel::get(std::string_view param, units::unit unitType) const
 {
     auto fptr = getObjectFunction(this, param);

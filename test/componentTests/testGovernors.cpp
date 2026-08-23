@@ -7,11 +7,17 @@
 #include "../gtestHelper.h"
 #include "core/ObjectFactory.hpp"
 #include "griddyn/Generator.h"
+#include "griddyn/GridBus.h"
+#include "griddyn/generators/DynamicGenerator.h"
+#include "griddyn/genmodels/GenModel6.h"
+#include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorTgov1.h"
 #include "griddyn/simulation/Diagnostics.h"
 #include "utilities/MatrixDataSparse.hpp"
+#include <array>
 #include <cmath>
 #include <gtest/gtest.h>
+#include <memory>
 #include <print>
 #include <string>
 #include <vector>
@@ -34,7 +40,135 @@ void configureTgov1(governors::GovernorTgov1& governor)
     governor.set("t3", 2.1);
     governor.set("dt", 0.1);
 }
+
+void configureIeeeG1(governors::GovernorIeeeG1& governor)
+{
+    governor.set("k", 20.0);
+    governor.set("t1", 0.2);
+    governor.set("t2", 0.05);
+    governor.set("t3", 0.1);
+    governor.set("uo", 0.3);
+    governor.set("uc", -0.25);
+    governor.set("pmax", 1.2);
+    governor.set("pmin", 0.1);
+    governor.set("t4", 0.4);
+    governor.set("k1", 0.3);
+    governor.set("k2", 0.1);
+    governor.set("t5", 0.0);
+    governor.set("k3", 0.2);
+    governor.set("k4", 0.1);
+    governor.set("t6", 0.5);
+    governor.set("k5", 0.1);
+    governor.set("k6", 0.05);
+    governor.set("t7", 0.2);
+    governor.set("k7", 0.1);
+    governor.set("k8", 0.05);
+}
 }  // namespace
+
+TEST(GovernorModelTests, IeeeG1MatchesAndesInitializationAndPerturbedEquations)
+{
+    governors::GovernorIeeeG1 governor;
+    configureIeeeG1(governor);
+    governor.dynInitializeA(0.0, 0);
+    governor.setOutputInitializationTarget(governors::GovernorIeeeG1::lpOutput, 0.3);
+
+    IOdata inputs{1.0, 0.7};
+    IOdata desiredOutput{0.7};
+    IOdata fieldSet(2, 0.0);
+    governor.dynInitializeB(inputs, desiredOutput, fieldSet);
+
+    // Frozen ANDES initializes the lead-lag state to zero and the valve and
+    // all non-bypassed turbine stages to tm0 + tm02. T5=0 is an exact bypass.
+    const auto& initialized = governor.getStates();
+    const std::vector<double> expectedInitial{0.7, 0.3, 0.0, 1.0, 1.0, 1.0, 1.0};
+    ASSERT_EQ(initialized.size(), expectedInitial.size());
+    for (std::size_t index = 0; index < expectedInitial.size(); ++index) {
+        EXPECT_NEAR(initialized[index], expectedInitial[index], 1e-14) << index;
+    }
+    EXPECT_DOUBLE_EQ(fieldSet[govpSetInLocation], 1.0);
+
+    // Local order is [PHP, PLP, LL_x, valve, L4, L6, L7]. These references
+    // are a direct evaluation of frozen ANDES IEEEG1 away from equilibrium.
+    std::vector<double> state{0.69, 0.31, 0.02, 0.90, 0.85, 0.80, 0.75};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    governor.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    inputs[govOmegaInLocation] = 0.99;
+
+    std::vector<double> derivative(state.size(), 0.0);
+    governor.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[2], -0.05, 1e-14);
+    EXPECT_NEAR(derivative[3], 0.30, 1e-14);
+    EXPECT_NEAR(derivative[4], 0.125, 1e-14);
+    EXPECT_NEAR(derivative[5], 0.10, 1e-14);
+    EXPECT_NEAR(derivative[6], 0.25, 1e-14);
+
+    std::vector<double> residual(state.size(), 0.0);
+    governor.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    EXPECT_NEAR(residual[0], -0.11, 1e-14);
+    EXPECT_NEAR(residual[1], -0.0625, 1e-14);
+    for (std::size_t index = 2; index < state.size(); ++index) {
+        EXPECT_NEAR(residual[index], derivative[index], 1e-14) << index;
+    }
+}
+
+TEST(GovernorModelTests, IeeeG1RateAndAntiWindupLimitTransitions)
+{
+    governors::GovernorIeeeG1 governor;
+    configureIeeeG1(governor);
+    governor.dynInitializeA(0.0, 0);
+    governor.setRootOffset(0, cLocalSolverMode);
+    governor.setOutputInitializationTarget(governors::GovernorIeeeG1::lpOutput, 0.3);
+
+    // A 10% underspeed drives the valve rate upward at Pmax, so the
+    // non-windup limiter must hold the valve state.
+    IOdata inputs{0.90, 0.7};
+    IOdata fieldSet(2, 0.0);
+    governor.dynInitializeB(inputs, {0.7}, fieldSet);
+
+    std::vector<double> state{0.7, 0.3, 0.0, 1.2, 1.0, 1.0, 1.0};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    governor.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+
+    std::array<double, 2> roots{};
+    governor.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(roots[1], 0.0);
+    governor.rootTrigger(0.0, inputs, {1, 1}, cLocalSolverMode);
+
+    std::vector<double> derivative(state.size(), 0.0);
+    governor.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(derivative[3], 0.0);
+
+    inputs[govOmegaInLocation] = 1.10;
+    governor.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
+    EXPECT_LT(roots[1], 0.0);
+    governor.rootTrigger(0.0, inputs, {1, 1}, cLocalSolverMode);
+    governor.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(derivative[3], -0.25);
+}
+
+TEST(GovernorModelTests, IeeeG1FactoryCloneAndParameterValidation)
+{
+    auto factory = CoreObjectFactory::instance();
+    std::unique_ptr<CoreObject> object(factory->createObject("governor", "ieeeg1"));
+    auto* governor = dynamic_cast<governors::GovernorIeeeG1*>(object.get());
+    ASSERT_NE(governor, nullptr);
+    configureIeeeG1(*governor);
+
+    std::unique_ptr<CoreObject> clonedObject(governor->clone());
+    auto* clone = dynamic_cast<governors::GovernorIeeeG1*>(clonedObject.get());
+    ASSERT_NE(clone, nullptr);
+    EXPECT_DOUBLE_EQ(clone->get("uo"), 0.3);
+    EXPECT_DOUBLE_EQ(clone->get("t7"), 0.2);
+    EXPECT_DOUBLE_EQ(clone->get("k8"), 0.05);
+
+    EXPECT_ANY_THROW(governor->set("t3", 0.0));
+    EXPECT_ANY_THROW(governor->set("uo", -0.1));
+    EXPECT_ANY_THROW(governor->set("uc", 0.1));
+    EXPECT_ANY_THROW(governor->set("k4", -0.1));
+    governor->set("pmax", 0.05);
+    EXPECT_ANY_THROW(governor->dynInitializeA(0.0, 0));
+}
 
 TEST(GovernorModelTests, Tgov1MatchesAndesInitializationAndPerturbedEquations)
 {
@@ -222,5 +356,70 @@ TEST_F(GovernorTests, Tgov1AnalyticJacobianMatchesFiniteDifferences)
     gen->add(governor);
 
     ASSERT_EQ(gds->dynInitialize(), 0);
+    EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode), 0);
+}
+
+TEST_F(GovernorTests, IeeeG1AnalyticJacobianMatchesFiniteDifferences)
+{
+    const std::string fileName = std::string(GOVERNOR_TEST_DIRECTORY "test_gov_stability.xml");
+
+    GridDynSimulation::resetObjectCounters();
+    gds = readSimXMLFile(fileName);
+    auto* generator = dynamic_cast<DynamicGenerator*>(gds->findByUserID("gen", 2));
+    ASSERT_NE(generator, nullptr);
+
+    auto* governor = new governors::GovernorIeeeG1();
+    configureIeeeG1(*governor);
+    governor->set("pmax", 2.0);
+    governor->set("pmin", 0.0);
+    for (const auto* coefficient : {"k2", "k4", "k6", "k8"}) {
+        governor->set(coefficient, 0.0);
+    }
+    generator->add(governor);
+
+    ASSERT_EQ(gds->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(gds, cDaeSolverMode), 0);
+    EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode), 0);
+}
+
+TEST_F(GovernorTests, IeeeG1CouplesMixedGeneratorModelsExactlyOnce)
+{
+    const std::string fileName = std::string(GOVERNOR_TEST_DIRECTORY "test_gov_stability.xml");
+
+    GridDynSimulation::resetObjectCounters();
+    gds = readSimXMLFile(fileName);
+    auto* primary = dynamic_cast<DynamicGenerator*>(gds->findByUserID("gen", 1));
+    auto* secondary = dynamic_cast<DynamicGenerator*>(gds->findByUserID("gen", 2));
+    ASSERT_NE(primary, nullptr);
+    ASSERT_NE(secondary, nullptr);
+
+    // The lossless fixture dispatches 0.3 pu from gen1 and 1.2 pu from gen2.
+    // Use different synchronous-machine classes to verify that the shared
+    // governor connection is independent of the generator-model type.
+    secondary->add(new genmodels::GenModel6());
+    auto* unusedLocalGovernor = new governors::GovernorTgov1();
+    configureTgov1(*unusedLocalGovernor);
+    unusedLocalGovernor->set("pmax", 2.0);
+    unusedLocalGovernor->set("pmin", 0.0);
+    secondary->add(unusedLocalGovernor);
+    auto* governor = new governors::GovernorIeeeG1("cross_compound_ieeeg1");
+    configureIeeeG1(*governor);
+    governor->set("pmax", 2.0);
+    governor->set("pmin", 0.0);
+    for (const auto* coefficient : {"k1", "k2", "k3", "k4", "k5", "k6", "k7", "k8"}) {
+        governor->set(coefficient, 0.0);
+    }
+    governor->set("k1", 0.2);
+    governor->set("k2", 0.8);
+    primary->add(governor);
+    secondary->setMechanicalPowerSource(governor, governors::GovernorIeeeG1::lpOutput);
+
+    ASSERT_EQ(gds->dynInitialize(), 0);
+    EXPECT_EQ(primary->getMechanicalPowerSource(), governor);
+    EXPECT_EQ(primary->getMechanicalPowerOutput(), governors::GovernorIeeeG1::hpOutput);
+    EXPECT_EQ(secondary->getMechanicalPowerSource(), governor);
+    EXPECT_EQ(secondary->getMechanicalPowerOutput(), governors::GovernorIeeeG1::lpOutput);
+    EXPECT_EQ(secondary->find("governor"), unusedLocalGovernor);
+    EXPECT_EQ(runResidualCheck(gds, cDaeSolverMode), 0);
     EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode), 0);
 }

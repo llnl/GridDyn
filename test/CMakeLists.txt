@@ -89,7 +89,9 @@ if(GRIDDYN_ENABLE_HELICS_EXECUTABLE)
     list(APPEND optional_component_gtest_sources ../src/helics/test/helicsTest.cpp)
     list(APPEND optional_component_gtest_sources exeTestHelper.cpp)
 endif()
-if(GRIDDYN_ENABLE_FMI_EXPORT)
+# The export test loads the generated FMU through the FMI import wrapper, so it
+# requires both the exporter and the optional FMI import library.
+if(GRIDDYN_ENABLE_FMI_EXPORT AND GRIDDYN_ENABLE_FMI)
     list(APPEND optional_component_gtest_sources ../src/fmi_export/testFMIExport.cpp)
 endif()
 

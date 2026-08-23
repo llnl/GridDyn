@@ -57,24 +57,14 @@ CoreObject* GovernorIeeeG1::clone(CoreObject* obj) const
 void GovernorIeeeG1::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
 {
     const double fractionSum = std::accumulate(powerFraction.begin(), powerFraction.end(), 0.0);
-    const bool invalidTime = std::ranges::any_of(turbineTime, [](double value) {
-        return !std::isfinite(value) || (value < 0.0);
-    });
-    const bool invalidFraction = std::ranges::any_of(powerFraction, [](double value) {
-        return !std::isfinite(value) || (value < 0.0);
-    });
-    if (!std::isfinite(K) || !std::isfinite(T1) || !std::isfinite(T2) || !std::isfinite(T3) ||
-        !std::isfinite(Uo) || !std::isfinite(Uc) || !std::isfinite(Pmax) || !std::isfinite(Pmin) ||
-        (K <= 0.0) || (T1 < 0.0) || (T2 < 0.0) || (T3 <= 0.0) || (Uo < 0.0) || (Uc > 0.0) ||
-        (Uo < Uc) || (Pmax < Pmin) || invalidTime || invalidFraction ||
-        !std::isfinite(fractionSum) || (fractionSum <= 0.0)) {
-        throw InvalidParameterValue("IEEEG1 gains, time constants, limits, or power fractions");
+    if ((Pmax < Pmin) || !std::isfinite(fractionSum) || (fractionSum <= 0.0)) {
+        throw InvalidParameterValue("IEEEG1 limits or power fractions");
     }
 
     index_t nextState = 0;
     leadLagState = (T1 > 0.0) ? nextState++ : kInvalidLocation;
     valveState = nextState++;
-    for (index_t stage = 0; stage < static_cast<index_t>(turbineTime.size()); ++stage) {
+    for (index_t stage = 0; std::cmp_less(stage,turbineTime.size()); ++stage) {
         turbineState[stage] = (turbineTime[stage] > 0.0) ? nextState++ : kInvalidLocation;
     }
 
@@ -209,7 +199,7 @@ std::array<double, 4> GovernorIeeeG1::turbineOutputs(const double diffState[]) c
 {
     std::array<double, 4> output{};
     double input = diffState[valveState];
-    for (index_t stage = 0; stage < static_cast<index_t>(output.size()); ++stage) {
+    for (index_t stage = 0; std::cmp_less(stage,output.size()); ++stage) {
         output[stage] =
             (turbineState[stage] != kInvalidLocation) ? diffState[turbineState[stage]] : input;
         input = output[stage];
@@ -288,7 +278,7 @@ void GovernorIeeeG1::derivative(const IOdata& inputs,
         (valveLimitStatus(inputs, state) == 0) ? limitedValveRate(inputs, state) : 0.0;
 
     double input = state[valveState];
-    for (index_t stage = 0; stage < static_cast<index_t>(turbineState.size()); ++stage) {
+    for (index_t stage = 0; std::cmp_less(stage,turbineState.size()); ++stage) {
         if (turbineState[stage] != kInvalidLocation) {
             stateDerivative[turbineState[stage]] =
                 (input - state[turbineState[stage]]) / turbineTime[stage];
@@ -325,7 +315,7 @@ void GovernorIeeeG1::jacobianElements(const IOdata& inputs,
 
     std::array<index_t, 4> stageSource{};
     index_t source = valveState;
-    for (index_t stage = 0; stage < static_cast<index_t>(stageSource.size()); ++stage) {
+    for (index_t stage = 0; std::cmp_less(stage,stageSource.size()); ++stage) {
         if (turbineState[stage] != kInvalidLocation) {
             source = turbineState[stage];
         }

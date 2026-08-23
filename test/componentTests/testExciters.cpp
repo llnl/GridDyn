@@ -338,8 +338,26 @@ TEST(ExciterModelTests, Exst1FactoryCloneAndParameterValidation)
     EXPECT_DOUBLE_EQ(clonedExciter->get("kf"), 0.27);
 
     exciters::ExciterEXST1 invalidExciter;
-    invalidExciter.set("tf", 0.0);
+    EXPECT_ANY_THROW(invalidExciter.set("tf", 0.0));
+    EXPECT_DOUBLE_EQ(invalidExciter.get("tf"), 1.0);
+
+    // Limit ordering is intentionally checked only after all sequential
+    // parameter assignments have completed.
+    invalidExciter.set("vimax", -0.2);
+    invalidExciter.set("vimin", -0.1);
     EXPECT_ANY_THROW(invalidExciter.dynInitializeA(0.0, 0));
+}
+
+TEST(ExciterModelTests, Esst3aValidatesIndividualParametersInSetters)
+{
+    exciters::ExciterESST3A exciter;
+    EXPECT_ANY_THROW(exciter.set("km", 0.0));
+    EXPECT_GT(exciter.get("km"), 0.0);
+
+    // Cross-parameter ordering remains a final model validation.
+    exciter.set("vmmax", -0.2);
+    exciter.set("vmmin", -0.1);
+    EXPECT_ANY_THROW(exciter.dynInitializeA(0.0, 0));
 }
 
 TEST_F(ExciterTests, Esst3aSupportsSynchronousGeneratorFamilies)

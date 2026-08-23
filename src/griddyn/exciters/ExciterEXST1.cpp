@@ -54,8 +54,11 @@ CoreObject* ExciterEXST1::clone(CoreObject* obj) const
 
 void ExciterEXST1::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
-    if ((Tr <= 0.0) || (Tb <= 0.0) || (Ta <= 0.0) || (Tf <= 0.0) || (Ka <= 0.0) ||
-        (Vimax < Vimin) || (Vrmax < Vrmin)) {
+    if (!std::isfinite(Tr) || !std::isfinite(Vimax) || !std::isfinite(Vimin) ||
+        !std::isfinite(Tc) || !std::isfinite(Tb) || !std::isfinite(Ka) || !std::isfinite(Ta) ||
+        !std::isfinite(Vrmax) || !std::isfinite(Vrmin) || !std::isfinite(Kc) ||
+        !std::isfinite(Kf) || !std::isfinite(Tf) || (Tr <= 0.0) || (Tb <= 0.0) || (Ta <= 0.0) ||
+        (Tf <= 0.0) || (Ka <= 0.0) || (Vimax < Vimin) || (Vrmax < Vrmin)) {
         throw InvalidParameterValue("EXST1 gains, time constants, or limits");
     }
     offsets.local().local.algSize = 1;
@@ -368,20 +371,64 @@ void ExciterEXST1::set(std::string_view param, std::string_view val)
 void ExciterEXST1::set(std::string_view param, double val, units::unit unitType)
 {
     if (param == "tr") {
+        if (!std::isfinite(val) || (val <= 0.0)) {
+            throw InvalidParameterValue("EXST1 TR must be positive and finite");
+        }
         Tr = val;
     } else if (param == "vimax") {
+        if (!std::isfinite(val)) {
+            throw InvalidParameterValue("EXST1 VIMAX must be finite");
+        }
         Vimax = val;
     } else if (param == "vimin") {
+        if (!std::isfinite(val)) {
+            throw InvalidParameterValue("EXST1 VIMIN must be finite");
+        }
         Vimin = val;
     } else if (param == "tc") {
+        if (!std::isfinite(val)) {
+            throw InvalidParameterValue("EXST1 TC must be finite");
+        }
         Tc = val;
     } else if (param == "tb") {
+        if (!std::isfinite(val) || (val <= 0.0)) {
+            throw InvalidParameterValue("EXST1 TB must be positive and finite");
+        }
         Tb = val;
+    } else if (param == "ka") {
+        if (!std::isfinite(val) || (val <= 0.0)) {
+            throw InvalidParameterValue("EXST1 KA must be positive and finite");
+        }
+        Ka = val;
+    } else if (param == "ta") {
+        if (!std::isfinite(val) || (val <= 0.0)) {
+            throw InvalidParameterValue("EXST1 TA must be positive and finite");
+        }
+        Ta = val;
+    } else if ((param == "vrmax") || (param == "urmax")) {
+        if (!std::isfinite(val)) {
+            throw InvalidParameterValue("EXST1 VRMAX must be finite");
+        }
+        Vrmax = val;
+    } else if ((param == "vrmin") || (param == "urmin")) {
+        if (!std::isfinite(val)) {
+            throw InvalidParameterValue("EXST1 VRMIN must be finite");
+        }
+        Vrmin = val;
     } else if (param == "kc") {
+        if (!std::isfinite(val)) {
+            throw InvalidParameterValue("EXST1 KC must be finite");
+        }
         Kc = val;
     } else if (param == "kf") {
+        if (!std::isfinite(val)) {
+            throw InvalidParameterValue("EXST1 KF must be finite");
+        }
         Kf = val;
     } else if (param == "tf") {
+        if (!std::isfinite(val) || (val <= 0.0)) {
+            throw InvalidParameterValue("EXST1 TF must be positive and finite");
+        }
         Tf = val;
     } else {
         Exciter::set(param, val, unitType);

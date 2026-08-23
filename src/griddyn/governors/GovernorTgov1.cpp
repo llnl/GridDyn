@@ -12,6 +12,7 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -51,7 +52,9 @@ void GovernorTgov1::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     // ANDES TGOV1 uses a positive speed-regulation gain and two first-order
     // lags.  Zero or negative values make the differential equations singular.
-    if ((K <= 0.0) || (T1 <= 0.0) || (T3 <= 0.0) || (Pmax < Pmin)) {
+    if (!std::isfinite(K) || !std::isfinite(T1) || !std::isfinite(T2) || !std::isfinite(T3) ||
+        !std::isfinite(Dt) || !std::isfinite(Pmax) || !std::isfinite(Pmin) || (K <= 0.0) ||
+        (T1 <= 0.0) || (T3 <= 0.0) || (Pmax < Pmin)) {
         throw InvalidParameterValue("TGOV1 R, T1, T3, or valve limits");
     }
     GovernorIeeeSimple::dynObjectInitializeA(time0, flags);
@@ -260,9 +263,41 @@ void GovernorTgov1::set(std::string_view param, std::string_view val)
 
 void GovernorTgov1::set(std::string_view param, double val, unit unitType)
 {
-    // param   = GridDynSimulation::toLower(param);
     if (param == "dt") {
+        if (!std::isfinite(val)) {
+            throw InvalidParameterValue("TGOV1 Dt must be finite");
+        }
         Dt = val;
+    } else if ((param == "k") || (param == "droop")) {
+        if (!std::isfinite(val) || (val <= 0.0)) {
+            throw InvalidParameterValue("TGOV1 gain must be positive and finite");
+        }
+        GovernorIeeeSimple::set(param, val, unitType);
+    } else if (param == "r") {
+        if (!std::isfinite(val) || (val <= 0.0)) {
+            throw InvalidParameterValue("TGOV1 R must be positive and finite");
+        }
+        GovernorIeeeSimple::set(param, val, unitType);
+    } else if (param == "t1") {
+        if (!std::isfinite(val) || (val <= 0.0)) {
+            throw InvalidParameterValue("TGOV1 T1 must be positive and finite");
+        }
+        GovernorIeeeSimple::set(param, val, unitType);
+    } else if (param == "t2") {
+        if (!std::isfinite(val)) {
+            throw InvalidParameterValue("TGOV1 T2 must be finite");
+        }
+        GovernorIeeeSimple::set(param, val, unitType);
+    } else if (param == "t3") {
+        if (!std::isfinite(val) || (val <= 0.0)) {
+            throw InvalidParameterValue("TGOV1 T3 must be positive and finite");
+        }
+        GovernorIeeeSimple::set(param, val, unitType);
+    } else if ((param == "pmax") || (param == "pmin")) {
+        if (!std::isfinite(val)) {
+            throw InvalidParameterValue("TGOV1 valve limit must be finite");
+        }
+        GovernorIeeeSimple::set(param, val, unitType);
     } else {
         GovernorIeeeSimple::set(param, val, unitType);
     }

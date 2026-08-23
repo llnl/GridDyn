@@ -84,6 +84,7 @@ set(exciter_headers
     exciters/ExciterDC1A.h
     exciters/ExciterDC2A.h
     exciters/ExciterESST3A.h
+    exciters/ExciterEXST1.h
     exciters/ExciterIEEEtype1.h
     exciters/ExciterIEEEtype2.h
     exciters/ExciterSEXS.h
@@ -95,6 +96,7 @@ set(exciter_sources
     exciters/ExciterDC1A.cpp
     exciters/ExciterDC2A.cpp
     exciters/ExciterESST3A.cpp
+    exciters/ExciterEXST1.cpp
     exciters/ExciterIEEEtype1.cpp
     exciters/ExciterIEEEtype2.cpp
     exciters/ExciterSEXS.cpp

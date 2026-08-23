@@ -5,7 +5,6 @@
  */
 
 #include "../gtestHelper.h"
-#include "core/CoreExceptions.h"
 #include "core/ObjectFactory.hpp"
 #include "griddyn/Generator.h"
 #include "griddyn/governors/GovernorTgov1.h"
@@ -118,8 +117,12 @@ TEST(GovernorModelTests, Tgov1AppliesValveLimitsAndRejectsSingularParameters)
 
     governors::GovernorTgov1 invalidGovernor;
     configureTgov1(invalidGovernor);
-    invalidGovernor.set("t1", 0.0);
-    EXPECT_THROW(invalidGovernor.dynInitializeA(0.0, 0), InvalidParameterValue);
+    EXPECT_ANY_THROW(invalidGovernor.set("t1", 0.0));
+    EXPECT_DOUBLE_EQ(invalidGovernor.get("t1"), 0.05);
+
+    // Valve-limit ordering is deferred until the complete record is loaded.
+    invalidGovernor.set("pmax", 0.2);
+    EXPECT_ANY_THROW(invalidGovernor.dynInitializeA(0.0, 0));
 }
 
 TEST(GovernorModelTests, Tgov1SpeedStepTrajectoryMatchesAndesEquations)

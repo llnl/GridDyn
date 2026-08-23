@@ -11,9 +11,11 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Generator.h"
 #include "griddyn/exciters/ExciterESST3A.h"
+#include "griddyn/exciters/ExciterEXST1.h"
 #include "solvers/SolverMode.hpp"
 #include <gtest/gtest.h>
 #include <map>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -83,7 +85,8 @@ void verifyStabilityCase(ExciterTests& fixture,
     const auto exciterList = factory->getTypeNames("exciter");
 
     for (const auto& exciterName : exciterList) {
-        if (exciterName.starts_with("fmi") || (exciterName == "esst3a")) {
+        if (exciterName.starts_with("fmi") || (exciterName == "esst3a") ||
+            (exciterName == "exst1")) {
             continue;
         }
         if (std::find(skippedExcters.begin(), skippedExcters.end(), exciterName) !=
@@ -201,6 +204,162 @@ TEST(ExciterModelTests, Esst3aMatchesAndesPerturbedEquations)
     EXPECT_NEAR(residual[0], 0.0446694541104898, 1e-12);
 }
 
+TEST(ExciterModelTests, Exst1MatchesAndesInitializationAndPerturbedEquations)
+{
+    exciters::ExciterEXST1 exciter;
+    exciter.set("tr", 0.031);
+    exciter.set("vimax", 0.41);
+    exciter.set("vimin", -0.37);
+    exciter.set("tc", 0.12);
+    exciter.set("tb", 0.23);
+    exciter.set("ka", 41.0);
+    exciter.set("ta", 0.034);
+    exciter.set("vrmax", 7.2);
+    exciter.set("vrmin", -4.3);
+    exciter.set("kc", 0.17);
+    exciter.set("kf", 0.08);
+    exciter.set("tf", 1.3);
+    exciter.dynInitializeA(0.0, 0);
+
+    // The operating point is the EXST1 at bus 2 in the frozen ANDES 2.0.0
+    // IEEE 14-bus case. Only the controller parameters are made nontrivial
+    // here so every perturbed block equation is independently observable.
+    constexpr double andesTerminalVoltage = 1.0300000000000578;
+    constexpr double andesFieldVoltage = 1.9709041251739947;
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = andesTerminalVoltage;
+    inputs[exciterVsetInLocation] = 1.0;
+    inputs[exciterXadIfdInLocation] = andesFieldVoltage;
+    IOdata desiredOutput{andesFieldVoltage};
+    IOdata fieldSet(4, 0.0);
+    exciter.dynInitializeB(inputs, desiredOutput, fieldSet);
+
+    const auto& initializedState = exciter.getStates();
+    ASSERT_EQ(initializedState.size(), 5U);
+    EXPECT_NEAR(initializedState[0], andesFieldVoltage, 1e-12);
+    EXPECT_NEAR(initializedState[1], andesTerminalVoltage, 1e-12);
+    EXPECT_NEAR(initializedState[2], andesFieldVoltage / 41.0, 1e-12);
+    EXPECT_NEAR(initializedState[3], andesFieldVoltage, 1e-12);
+    EXPECT_NEAR(initializedState[4], andesFieldVoltage, 1e-12);
+
+    // State order is [Efd, LG_y, LL_x, LR_y, WF_x]. These captured values
+    // come from direct evaluation of the frozen ANDES EXST1 block equations.
+    std::vector<double> state{2.1, 1.01, 0.035, 2.2, 2.0};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    inputs[exciterVoltageInLocation] = 1.02;
+    inputs[exciterVsetInLocation] = 1.01;
+    inputs[exciterVssInLocation] = 0.015;
+    inputs[exciterXadIfdInLocation] = 1.4;
+
+    std::vector<double> derivative(state.size(), 0.0);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[1], 0.3225806451612906, 1e-12);
+    EXPECT_NEAR(derivative[2], 0.19897017397253203, 1e-12);
+    EXPECT_NEAR(derivative[3], 6.292154586613461, 1e-12);
+    EXPECT_NEAR(derivative[4], 0.15384615384615397, 1e-12);
+
+    std::vector<double> residual(state.size(), 0.0);
+    exciter.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    EXPECT_NEAR(residual[0], 0.1, 1e-12);
+}
+
+TEST(ExciterModelTests, Exst1HardLimitersAndRootsUseRegulatorOutput)
+{
+    exciters::ExciterEXST1 exciter;
+    exciter.set("tr", 0.02);
+    exciter.set("vimin", -0.1);
+    exciter.set("vimax", 0.1);
+    exciter.set("tc", 0.05);
+    exciter.set("tb", 0.2);
+    exciter.set("ka", 20.0);
+    exciter.set("ta", 0.05);
+    exciter.set("vrmin", -0.5);
+    exciter.set("vrmax", 0.5);
+    exciter.set("kc", 0.1);
+    exciter.set("kf", 1.0);
+    exciter.set("tf", 1.0);
+    exciter.dynInitializeA(0.0, 0);
+    exciter.setRootOffset(0, cLocalSolverMode);
+
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.0;
+    inputs[exciterXadIfdInLocation] = 0.0;
+    IOdata fieldSet(4, 0.0);
+    exciter.dynInitializeB(inputs, {0.25}, fieldSet);
+
+    // LR_y exceeds the upper field bound while WF_y is zero. This is the
+    // intentional divergence from frozen ANDES, which tests WF_y instead.
+    // EXST1 hard limiters do not freeze any differential state.
+    std::vector<double> state{1.0, 1.0, 0.0, 2.0, 2.0};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+
+    std::vector<double> residual(state.size(), 0.0);
+    exciter.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    EXPECT_NEAR(residual[0], -0.5, 1e-12);
+
+    std::vector<double> roots(2, 0.0);
+    exciter.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
+    EXPECT_GT(roots[0], 0.0);
+    EXPECT_LT(roots[1], 0.0);
+
+    // A washout excursion still activates the input limiter, but must not
+    // activate the output limiter while LR_y remains inside its bounds.
+    state = {0.25, 1.0, 0.0, 0.25, -1.75};
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    std::vector<double> derivative(state.size(), 0.0);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[2], -0.5, 1e-12);
+    exciter.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    EXPECT_NEAR(residual[0], 0.0, 1e-12);
+    exciter.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
+    EXPECT_LT(roots[0], 0.0);
+    EXPECT_GT(roots[1], 0.0);
+
+    state = {0.25, 1.0, 0.0, 0.25, 0.25};
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    exciter.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
+    EXPECT_GT(roots[0], 0.0);
+    EXPECT_GT(roots[1], 0.0);
+}
+
+TEST(ExciterModelTests, Exst1FactoryCloneAndParameterValidation)
+{
+    auto factory = CoreObjectFactory::instance();
+    std::unique_ptr<CoreObject> object(factory->createObject("exciter", "exst1"));
+    auto* exciter = dynamic_cast<exciters::ExciterEXST1*>(object.get());
+    ASSERT_NE(exciter, nullptr);
+    exciter->set("kf", 0.27);
+    std::unique_ptr<CoreObject> cloned(exciter->clone());
+    auto* clonedExciter = dynamic_cast<exciters::ExciterEXST1*>(cloned.get());
+    ASSERT_NE(clonedExciter, nullptr);
+    EXPECT_DOUBLE_EQ(clonedExciter->get("kf"), 0.27);
+
+    exciters::ExciterEXST1 invalidExciter;
+    EXPECT_ANY_THROW(invalidExciter.set("tf", 0.0));
+    EXPECT_DOUBLE_EQ(invalidExciter.get("tf"), 1.0);
+
+    // Limit ordering is intentionally checked only after all sequential
+    // parameter assignments have completed.
+    invalidExciter.set("vimax", -0.2);
+    invalidExciter.set("vimin", -0.1);
+    EXPECT_ANY_THROW(invalidExciter.dynInitializeA(0.0, 0));
+}
+
+TEST(ExciterModelTests, Esst3aValidatesIndividualParametersInSetters)
+{
+    exciters::ExciterESST3A exciter;
+    EXPECT_ANY_THROW(exciter.set("km", 0.0));
+    EXPECT_GT(exciter.get("km"), 0.0);
+
+    // Cross-parameter ordering remains a final model validation.
+    exciter.set("vmmax", -0.2);
+    exciter.set("vmmin", -0.1);
+    EXPECT_ANY_THROW(exciter.dynInitializeA(0.0, 0));
+}
+
 TEST_F(ExciterTests, Esst3aSupportsSynchronousGeneratorFamilies)
 {
     const std::string fileName =
@@ -229,6 +388,39 @@ TEST_F(ExciterTests, Esst3aSupportsSynchronousGeneratorFamilies)
         exciter->set("vmmin", 0.0);
         exciter->set("vmmax", 20.0);
         exciter->set("vbmax", 20.0);
+        generator->add(exciter);
+
+        ASSERT_EQ(gds->dynInitialize(), 0) << "Generator model " << modelName;
+        EXPECT_EQ(runResidualCheck(gds, cDaeSolverMode, false), 0)
+            << "Generator model " << modelName;
+        EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode, false), 0)
+            << "Generator model " << modelName;
+    }
+}
+
+TEST_F(ExciterTests, Exst1CouplesToSynchronousGeneratorFamiliesAndHasAnalyticJacobian)
+{
+    const std::string fileName =
+        std::string(GRIDDYN_TEST_DIRECTORY "/genmodel_tests/test_model1.xml");
+    const std::vector<std::string> generatorModels{
+        "basic", "3", "4", "5", "5.2", "5.3", "6", "6.2", "8", "genrou"};
+    auto factory = CoreObjectFactory::instance();
+
+    for (const auto& modelName : generatorModels) {
+        gds = readSimXMLFile(fileName);
+        auto* generator = gds->getGen(0);
+        ASSERT_NE(generator, nullptr);
+
+        auto* generatorModel = factory->createObject("genmodel", modelName);
+        ASSERT_NE(generatorModel, nullptr) << "Generator model " << modelName;
+        generator->add(generatorModel);
+
+        auto* exciter = factory->createObject("exciter", "exst1");
+        ASSERT_NE(exciter, nullptr);
+        exciter->set("vimin", -2.0);
+        exciter->set("vimax", 2.0);
+        exciter->set("vrmin", -20.0);
+        exciter->set("vrmax", 20.0);
         generator->add(exciter);
 
         ASSERT_EQ(gds->dynInitialize(), 0) << "Generator model " << modelName;
@@ -302,7 +494,7 @@ TEST_F(ExciterTests, ExciterTest2AlgDiffTests)
 
     // exclist.insert(exclist.begin(), "none");
     for (auto& excname : exclist) {
-        if (excname.starts_with("fmi") || (excname == "esst3a")) {
+        if (excname.starts_with("fmi") || (excname == "esst3a") || (excname == "exst1")) {
             continue;
         }
         gds = readSimXMLFile(fileName);
@@ -349,7 +541,7 @@ TEST_F(ExciterTests, ExciterAlgDiffJacobianTests)
 
     // exclist.insert(exclist.begin(), "none");
     for (auto& excname : exclist) {
-        if (excname.starts_with("fmi") || (excname == "esst3a")) {
+        if (excname.starts_with("fmi") || (excname == "esst3a") || (excname == "exst1")) {
             continue;
         }
         gds = readSimXMLFile(fileName);

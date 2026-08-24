@@ -7,6 +7,7 @@
 #pragma once
 
 #include "griddyn/governors/GovernorHydro.h"
+#include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorReheat.h"
 #include "griddyn/governors/GovernorSteamTCSR.h"
 #include "griddyn/governors/GovernorTgov1.h"

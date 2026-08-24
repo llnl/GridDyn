@@ -36,6 +36,14 @@ class GridSubModel: public GridComponent {
                                 const IOdata& desiredOutput,
                                 IOdata& fieldSet) override final;
 
+    /** Supply an initialization target for one output of a shared submodel.
+     *
+     * Most submodels do not need this hook and return false. Multi-output
+     * controllers such as IEEEG1 use it to collect the initialized mechanical
+     * powers of generators which consume outputs owned by another generator.
+     */
+    virtual bool setOutputInitializationTarget(index_t outputIndex, double target);
+
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 };

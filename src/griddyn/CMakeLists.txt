@@ -107,6 +107,7 @@ set(gov_headers
     Governor.h
     governors/GovernorTypes.h
     governors/GovernorHydro.h
+    governors/GovernorIeeeG1.h
     governors/GovernorIeeeSimple.h
     governors/GovernorReheat.h
     governors/GovernorSteamNR.h
@@ -118,6 +119,7 @@ set(gov_sources
     ${gov_headers}
     governors/Governor.cpp
     governors/GovernorHydro.cpp
+    governors/GovernorIeeeG1.cpp
     governors/GovernorIeeeSimple.cpp
     governors/GovernorReheat.cpp
     governors/GovernorSteamNR.cpp

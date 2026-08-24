@@ -18,6 +18,7 @@
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorTgov1.h"
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstddef>
 #include <fstream>
@@ -37,7 +38,8 @@ std::string makeAndesTestPath(std::string_view fileName)
     return std::string{andesTestDirectory} + std::string{fileName};
 }
 
-std::vector<double> runLoadStepCase(const std::vector<std::string_view>& dyrFiles)
+std::vector<double> runLoadStepCase(const std::vector<std::string_view>& dyrFiles,
+                                    double loadStep = 0.5)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
     griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
@@ -57,7 +59,7 @@ std::vector<double> runLoadStepCase(const std::vector<std::string_view>& dyrFile
     if (!event->isArmed()) {
         return {};
     }
-    event->setValue(initialLoad + 0.5);
+    event->setValue(initialLoad + loadStep);
     simulation->add(event);
 
     EXPECT_EQ(simulation->dynInitialize(), 0);
@@ -390,6 +392,19 @@ TEST(AndesDynamicTests, CombinedControllersRespondToLoadStep)
     EXPECT_FALSE(finalState.empty());
 }
 
+TEST(AndesDynamicTests, CombinedControllersSurviveLargeLoadStep)
+{
+    const auto finalState = runLoadStepCase(
+        {"ieee14_tgov1.dyr", "ieee14_ieeeg1.dyr", "ieee14_esst3a.dyr", "ieee14_exst1.dyr"}, 2.0);
+    EXPECT_FALSE(finalState.empty());
+}
+
+TEST(AndesDynamicTests, ExciterControllersSurviveLargeLoadStep)
+{
+    const auto finalState = runLoadStepCase({"ieee14_esst3a.dyr", "ieee14_exst1.dyr"}, 2.0);
+    EXPECT_FALSE(finalState.empty());
+}
+
 TEST(AndesDynamicTests, Tgov1TrajectoryMatchesAndesReference)
 {
     std::ifstream input(makeAndesTestPath("andes_ieee14_tgov1_trajectory_reference.json"));
@@ -438,6 +453,62 @@ TEST(AndesDynamicTests, Tgov1TrajectoryMatchesAndesReference)
                         omegaTolerance)
                 << "time=" << times[timeIndex].get<double>()
                 << " bus=" << busIds[generatorIndex].get<index_t>();
+        }
+    }
+}
+
+TEST(AndesDynamicTests, Tgov1DownwardTrajectoryMatchesAndesReference)
+{
+    // ANDES 2.0.0 reference: TGOV1_1.pref0 is changed from its initialized
+    // value to 0.6 at t=1.0 s.  This exercises the opposite direction of the
+    // controller step while retaining the same shared RAW/DYR case.
+    constexpr std::array<double, 5> times{0.0, 0.5, 1.0, 1.5, 2.0};
+    constexpr std::array<std::array<double, 5>, 5> expectedOmega{{
+        {{1.0, 1.0, 1.0, 1.0, 1.0}},
+        {{1.0, 1.0, 1.0, 1.0, 1.0}},
+        {{1.0, 1.0, 1.0, 1.0, 1.0}},
+        {{0.9989737769949087,
+          0.9989924996844121,
+          0.9990010011199155,
+          0.9991283354866937,
+          0.99922546403493}},
+        {{0.9978834683434779,
+          0.9981224543226336,
+          0.9981346723285689,
+          0.9982087092060992,
+          0.9982448696384979}},
+    }};
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_tgov1.dyr"));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto event = std::make_shared<griddyn::Event>(1.0);
+    ASSERT_TRUE(event->setTarget(generator, "pset"));
+    event->setValue(0.6);
+    simulation->add(event);
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+
+    for (std::size_t timeIndex = 0; timeIndex < times.size(); ++timeIndex) {
+        ASSERT_EQ(simulation->run(times[timeIndex]), 0);
+        for (std::size_t generatorIndex = 0; generatorIndex < expectedOmega[timeIndex].size();
+             ++generatorIndex) {
+            auto* sampleBus = dynamic_cast<griddyn::GridBus*>(
+                simulation->findByUserID("bus",
+                                         std::array<index_t, 5>{1, 2, 3, 6, 8}[generatorIndex]));
+            ASSERT_NE(sampleBus, nullptr);
+            auto* sampleGenerator = dynamic_cast<griddyn::DynamicGenerator*>(sampleBus->getGen(0));
+            ASSERT_NE(sampleGenerator, nullptr);
+            auto* genModel = dynamic_cast<griddyn::genmodels::GenModelGENROU*>(
+                sampleGenerator->find("genmodel"));
+            ASSERT_NE(genModel, nullptr);
+            ASSERT_GT(genModel->getStates().size(), 3U);
+            EXPECT_NEAR(genModel->getStates()[3], expectedOmega[timeIndex][generatorIndex], 0.005)
+                << "time=" << times[timeIndex] << " generator=" << generatorIndex;
         }
     }
 }

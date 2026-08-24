@@ -9,12 +9,16 @@
 #include "griddyn/Generator.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
+#include "griddyn/GridSubModel.h"
+#include "griddyn/events/Event.h"
 #include "griddyn/exciters/ExciterESST3A.h"
 #include "griddyn/exciters/ExciterEXST1.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/genmodels/GenModelGENROU.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorTgov1.h"
+#include <algorithm>
+#include <cmath>
 #include <cstddef>
 #include <fstream>
 #include <gtest/gtest.h>
@@ -23,6 +27,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 namespace {
 constexpr std::string_view andesTestDirectory{GRIDDYN_TEST_DIRECTORY "/andes_tests/"};
@@ -30,6 +35,82 @@ constexpr std::string_view andesTestDirectory{GRIDDYN_TEST_DIRECTORY "/andes_tes
 std::string makeAndesTestPath(std::string_view fileName)
 {
     return std::string{andesTestDirectory} + std::string{fileName};
+}
+
+std::vector<double> runLoadStepCase(const std::vector<std::string_view>& dyrFiles)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+    for (const auto dyrFile : dyrFiles) {
+        griddyn::loadFile(simulation.get(), makeAndesTestPath(dyrFile));
+    }
+
+    auto* load = simulation->findByUserID("load", 2);
+    EXPECT_NE(load, nullptr);
+    if (load == nullptr) {
+        return {};
+    }
+    const double initialLoad = load->get("p");
+    auto event = std::make_shared<griddyn::Event>(0.5);
+    EXPECT_TRUE(event->setTarget(load, "p"));
+    if (!event->isArmed()) {
+        return {};
+    }
+    event->setValue(initialLoad + 0.5);
+    simulation->add(event);
+
+    EXPECT_EQ(simulation->dynInitialize(), 0);
+    const auto initialState = simulation->getState();
+    EXPECT_FALSE(initialState.empty());
+    std::vector<std::pair<griddyn::GridSubModel*, std::vector<double>>> controllerStates;
+    for (const auto busId : {1, 2, 3, 6, 8}) {
+        auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", busId));
+        if (bus == nullptr) {
+            continue;
+        }
+        auto* generator = bus->getGen(0);
+        if (generator == nullptr) {
+            continue;
+        }
+        for (const auto controllerName : {"governor", "exciter"}) {
+            auto* controller =
+                dynamic_cast<griddyn::GridSubModel*>(generator->find(controllerName));
+            if (controller != nullptr) {
+                controllerStates.emplace_back(controller, controller->getStates());
+            }
+        }
+    }
+    EXPECT_FALSE(controllerStates.empty());
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    simulation->run(2.0);
+    EXPECT_EQ(simulation->getSimulationTime(), 2.0);
+
+    const auto finalState = simulation->getState();
+    EXPECT_EQ(finalState.size(), initialState.size());
+    double maximumChange = 0.0;
+    for (std::size_t index = 0; index < finalState.size(); ++index) {
+        EXPECT_TRUE(std::isfinite(finalState[index]));
+        maximumChange =
+            (std::max)(maximumChange, std::abs(finalState[index] - initialState[index]));
+    }
+    EXPECT_GT(maximumChange, 1.0e-7);
+    double maximumControllerChange = 0.0;
+    for (const auto& [controller, initialControllerState] : controllerStates) {
+        const auto& finalControllerState = controller->getStates();
+        EXPECT_EQ(finalControllerState.size(), initialControllerState.size());
+        if (finalControllerState.size() != initialControllerState.size()) {
+            continue;
+        }
+        for (std::size_t index = 0; index < finalControllerState.size(); ++index) {
+            EXPECT_TRUE(std::isfinite(finalControllerState[index]));
+            maximumControllerChange =
+                (std::max)(maximumControllerChange,
+                           std::abs(finalControllerState[index] - initialControllerState[index]));
+        }
+    }
+    EXPECT_GT(maximumControllerChange, 1.0e-9);
+    return finalState;
 }
 }  // namespace
 
@@ -276,4 +357,87 @@ TEST(AndesDyrReaderTests, MapsExst1ParametersAndCouplesToGenrou)
     ASSERT_EQ(simulation->dynInitialize(), 0);
     EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(AndesDynamicTests, Tgov1RespondsToLoadStep)
+{
+    const auto finalState = runLoadStepCase({"ieee14_tgov1.dyr"});
+    EXPECT_FALSE(finalState.empty());
+}
+
+TEST(AndesDynamicTests, IeeeG1RespondsToLoadStep)
+{
+    const auto finalState = runLoadStepCase({"ieee14_ieeeg1.dyr"});
+    EXPECT_FALSE(finalState.empty());
+}
+
+TEST(AndesDynamicTests, Esst3aRespondsToLoadStep)
+{
+    const auto finalState = runLoadStepCase({"ieee14_esst3a.dyr"});
+    EXPECT_FALSE(finalState.empty());
+}
+
+TEST(AndesDynamicTests, Exst1RespondsToLoadStep)
+{
+    const auto finalState = runLoadStepCase({"ieee14_exst1.dyr"});
+    EXPECT_FALSE(finalState.empty());
+}
+
+TEST(AndesDynamicTests, CombinedControllersRespondToLoadStep)
+{
+    const auto finalState = runLoadStepCase(
+        {"ieee14_tgov1.dyr", "ieee14_ieeeg1.dyr", "ieee14_esst3a.dyr", "ieee14_exst1.dyr"});
+    EXPECT_FALSE(finalState.empty());
+}
+
+TEST(AndesDynamicTests, Tgov1TrajectoryMatchesAndesReference)
+{
+    std::ifstream input(makeAndesTestPath("andes_ieee14_tgov1_trajectory_reference.json"));
+    ASSERT_TRUE(input.is_open());
+    nlohmann::json reference;
+    input >> reference;
+
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_tgov1.dyr"));
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto event = std::make_shared<griddyn::Event>(1.0);
+    ASSERT_TRUE(event->setTarget(generator, "pset"));
+    event->setValue(0.8);
+    simulation->add(event);
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    const auto& times = reference["times"];
+    const auto& busIds = reference["generator_bus_ids"];
+    const auto& expectedOmega = reference["genrou_omega"];
+    const auto omegaTolerance = reference["omega_absolute_tolerance"].get<double>();
+    ASSERT_EQ(times.size(), expectedOmega.size());
+
+    for (std::size_t timeIndex = 0; timeIndex < times.size(); ++timeIndex) {
+        simulation->run(times[timeIndex].get<double>());
+        for (std::size_t generatorIndex = 0; generatorIndex < busIds.size(); ++generatorIndex) {
+            auto* sampleBus = dynamic_cast<griddyn::GridBus*>(
+                simulation->findByUserID("bus", busIds[generatorIndex].get<index_t>()));
+            ASSERT_NE(sampleBus, nullptr);
+            auto* sampleGenerator = dynamic_cast<griddyn::DynamicGenerator*>(sampleBus->getGen(0));
+            ASSERT_NE(sampleGenerator, nullptr);
+            auto* genModel = dynamic_cast<griddyn::genmodels::GenModelGENROU*>(
+                sampleGenerator->find("genmodel"));
+            ASSERT_NE(genModel, nullptr);
+            const auto& states = genModel->getStates();
+            // GENROU stores its two algebraic currents before the differential
+            // states; omega is therefore local state index 3.
+            ASSERT_GT(states.size(), 3U);
+            EXPECT_NEAR(states[3],
+                        expectedOmega[timeIndex][generatorIndex].get<double>(),
+                        omegaTolerance)
+                << "time=" << times[timeIndex].get<double>()
+                << " bus=" << busIds[generatorIndex].get<index_t>();
+        }
+    }
 }

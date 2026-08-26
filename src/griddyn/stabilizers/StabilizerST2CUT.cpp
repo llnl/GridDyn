@@ -124,7 +124,7 @@ void StabilizerST2CUT::dynObjectInitializeB(const IOdata& inputs,
     state[leadLag2State] = 0.0;
     state[leadLag3State] = 0.0;
     std::fill(m_dstate_dt.begin(), m_dstate_dt.end(), 0.0);
-    updateFlags(inputs, state);
+    updateLimitFlags(inputs, state);
 }
 
 double StabilizerST2CUT::selectedInput(const IOdata& inputs, int mode) const
@@ -189,7 +189,7 @@ double StabilizerST2CUT::output(const IOdata& inputs, const double state[]) cons
     return std::clamp(unlimitedOutput(state), Lsmin, Lsmax);
 }
 
-bool StabilizerST2CUT::updateFlags(const IOdata& inputs, const double state[])
+bool StabilizerST2CUT::updateLimitFlags(const IOdata& inputs, const double state[])
 {
     const int outputStatus = outputLimitStatus(state);
     const bool gated = !voltageEnabled(inputs);
@@ -237,8 +237,8 @@ void StabilizerST2CUT::derivative(const IOdata& inputs,
     const double output1 = leadLagOutput(washout, state[leadLag1State], T5, T6);
     const double output2 = leadLagOutput(output1, state[leadLag2State], T7, T8);
 
-    stateDerivative[transducer1State] = (K1 * input1 - state[transducer1State]) / T1;
-    stateDerivative[transducer2State] = (K2 * input2 - state[transducer2State]) / T2;
+    stateDerivative[transducer1State] = ((K1 * input1) - state[transducer1State]) / T1;
+    stateDerivative[transducer2State] = ((K2 * input2) - state[transducer2State]) / T2;
     stateDerivative[washoutState] = (summedInput - state[washoutState]) / T4;
     stateDerivative[leadLag1State] = (washout - state[leadLag1State]) / T6;
     stateDerivative[leadLag2State] = (output1 - state[leadLag2State]) / T8;
@@ -366,7 +366,7 @@ void StabilizerST2CUT::timestep(CoreTime time, const IOdata& inputs, const Solve
         state[index] += timeStep * stateDerivative[index];
     }
     m_state[0] = output(inputs, state);
-    updateFlags(inputs, state);
+    updateLimitFlags(inputs, state);
     prevTime = time;
 }
 
@@ -394,7 +394,7 @@ void StabilizerST2CUT::rootTrigger(CoreTime /*time*/,
         (rootMask[rootOffset + 2] == 0) && (rootMask[rootOffset + 3] == 0)) {
         return;
     }
-    if (updateFlags(inputs, m_state.data() + 1)) {
+    if (updateLimitFlags(inputs, m_state.data() + 1)) {
         alert(this, JAC_COUNT_CHANGE);
     }
 }
@@ -404,7 +404,7 @@ ChangeCode StabilizerST2CUT::rootCheck(const IOdata& inputs,
                                        const SolverMode& /*sMode*/,
                                        CheckLevel /*level*/)
 {
-    if (updateFlags(inputs, m_state.data() + 1)) {
+    if (updateLimitFlags(inputs, m_state.data() + 1)) {
         alert(this, JAC_COUNT_CHANGE);
         return ChangeCode::JACOBIAN_CHANGE;
     }

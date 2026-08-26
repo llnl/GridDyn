@@ -11,6 +11,7 @@
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
 #include <gtest/gtest.h>
 #include <memory>
+#include <string>
 #include <vector>
 
 using namespace griddyn;

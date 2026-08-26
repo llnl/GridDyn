@@ -13,9 +13,10 @@
 #include "core/ObjectFactoryTemplates.hpp"
 #include <cmath>
 #include <string>
+#include <vector>
 
 namespace griddyn {
-static const TypeFactory<Stabilizer> gStabilizerFactory("pss",
+static const TypeFactory<Stabilizer> STABILIZER_FACTORY("pss",
                                                         std::to_array<std::string_view>({"basic"}));
 static ChildTypeFactory<stabilizers::StabilizerST2CUT, Stabilizer>
     gSt2cutFactory("pss", std::to_array<std::string_view>({"st2cut"}));

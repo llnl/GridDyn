@@ -14,11 +14,66 @@ namespace griddyn::stabilizers {
 /**
  * @brief PSS/E ST2CUT dual-input power-system stabilizer.
  *
- * This is the frozen ANDES 2.0.0 `andes/models/pss/st2cut.py` realization:
- * two transducer lags, their sum, a washout (or lag when T3 is zero), and
- * three lead-lag stages feeding the LSMIN/LSMAX output limiter.  The result
- * is gated to zero when terminal voltage is outside VCL/VCU plus the
- * initialized terminal-voltage reference.
+ * This is the frozen ANDES v2.0.0 realization in
+ * `andes/models/pss/st2cut.py`, using the PSS/E DYR field order declared in
+ * `andes/io/psse-dyr.yaml`. It implements two transducer lags, their sum, a
+ * washout (or lag when @f$T_3=0@f$), three lead-lag stages, the
+ * @f$[LSMIN,LSMAX]@f$ output limiter, and the initialized-voltage-relative
+ * @f$[VCL,VCU]@f$ output gate.
+ *
+ * Let @f$u_1,u_2@f$ be the selected measurement signals; @f$x_1,x_2@f$ the
+ * transducer states; @f$x_w@f$ the washout/lag state; and
+ * @f$x_5,x_7,x_9@f$ the three lead-lag lag states. The local differential
+ * equations are
+ *
+ * @f[
+ * T_1\dot{x}_1=K_1u_1-x_1,\qquad T_2\dot{x}_2=K_2u_2-x_2,\qquad
+ * T_4\dot{x}_w=x_1+x_2-x_w.
+ * @f]
+ *
+ * The washout-or-lag output is
+ *
+ * @f[
+ * w=\begin{cases}
+ * \dfrac{T_3}{T_4}(x_1+x_2-x_w), & T_3>0,\\
+ * x_w, & T_3=0,
+ * \end{cases}
+ * @f]
+ *
+ * and each lead-lag block @f$(T_a,T_b,x,y)@f$ obeys
+ *
+ * @f[
+ * T_b\dot{x}=u-x,\qquad y=x+\dfrac{T_a}{T_b}(u-x).
+ * @f]
+ *
+ * The three blocks are cascaded as
+ * @f$(w,T_5,T_6,x_5,y_5)@f$, @f$(y_5,T_7,T_8,x_7,y_7)@f$, and
+ * @f$(y_7,T_9,T_{10},x_9,y_9)@f$. Finally, with initialized terminal-voltage
+ * reference @f$V_{t0}@f$,
+ *
+ * @f[
+ * V_{SS}=\begin{cases}
+ * \operatorname{limit}_{[LSMIN,LSMAX]}(y_9), &
+ * V_{t0}+VCL\leq V_t\leq V_{t0}+VCU,\\
+ * 0, & \text{otherwise}.
+ * \end{cases}
+ * @f]
+ *
+ * Initialization sets @f$x_1=K_1u_1@f$, @f$x_2=K_2u_2@f$,
+ * @f$x_w=x_1+x_2@f$, and the three lead-lag states and @f$V_{SS}@f$ to zero,
+ * so the washout path contributes no steady-state stabilizing signal.
+ *
+ * @par References
+ * - ANDES v2.0.0, `andes/models/pss/st2cut.py` (equations and initialization).
+ * - ANDES v2.0.0, `andes/io/psse-dyr.yaml` (DYR schema and field order).
+ * - Siemens PTI, <em>PSS/E Model Library</em>, ST2CUT model (published PSS/E
+ *   block-model source).
+ *
+ * The DYR adapter maps the exact fields
+ * `BUS, ID, MODE, BUSR, MODE2, BUSR2, K1, K2, T1, T2, T3, T4, T5, T6, T7,
+ * T8, T9, T10, LSMAX, LSMIN, VCU, VCL`. Following ANDES, a zero `VCU` or
+ * `VCL` is expanded to `+999` or `-999`, respectively, to disable that side
+ * of the voltage gate.
  *
  * The GridDyn PSS signal contract exposes rotor speed, terminal voltage,
  * mechanical power, and electrical power.  It therefore supports local
@@ -27,6 +82,14 @@ namespace griddyn::stabilizers {
  * (BusFreq) and 6 (voltage derivative), and nonzero remote BUSR/BUSR2,
  * require cross-bus measurement routing that GridDyn does not yet provide;
  * they are rejected at initialization rather than silently approximated.
+ * In particular, MODE 1 is @f$\omega-1@f$, MODE 3 is electrical power,
+ * MODE 4 is @f$P_m-P_{m0}@f$, and MODE 5 is terminal voltage. MODE 0 supplies
+ * zero to its transducer.
+ *
+ * The implementation requires positive @f$T_1,T_2,T_4,T_6,T_8,T_{10}@f$.
+ * Nonnegative @f$T_3,T_5,T_7,T_9@f$ are accepted; @f$T_3=0@f$ selects the
+ * documented lag form above. Other zero-denominator block bypasses are not
+ * implemented and are rejected during parameter validation.
  */
 class StabilizerST2CUT: public Stabilizer {
   public:
@@ -110,7 +173,7 @@ class StabilizerST2CUT: public Stabilizer {
     bool voltageEnabled(const IOdata& inputs) const;
     double output(const IOdata& inputs, const double state[]) const;
     int outputLimitStatus(const double state[]) const;
-    bool updateFlags(const IOdata& inputs, const double state[]);
+    bool updateLimitFlags(const IOdata& inputs, const double state[]);
     static bool supportedMode(int mode);
 };
 }  // namespace griddyn::stabilizers

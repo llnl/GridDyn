@@ -8,6 +8,7 @@
 
 #include "../Generator.h"
 #include "../GridBus.h"
+#include "StabilizerIEEEST.h"
 #include "StabilizerST2CUT.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
@@ -20,6 +21,8 @@ static const TypeFactory<Stabilizer> STABILIZER_FACTORY("pss",
                                                         std::to_array<std::string_view>({"basic"}));
 static ChildTypeFactory<stabilizers::StabilizerST2CUT, Stabilizer>
     gSt2cutFactory("pss", std::to_array<std::string_view>({"st2cut"}));
+static ChildTypeFactory<stabilizers::StabilizerIEEEST, Stabilizer>
+    gIeeestFactory("pss", std::to_array<std::string_view>({"ieeest"}));
 
 Stabilizer::Stabilizer(const std::string& objName):
     GridSubModel(objName), mp_Tw(0.0), mp_Teps(0.0), mp_Kw(0.0), mp_Kp(0.0), mp_Kv(0.0),

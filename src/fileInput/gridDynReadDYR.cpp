@@ -20,6 +20,7 @@
 #include "griddyn/Stabilizer.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
+#include "griddyn/stabilizers/StabilizerIEEEST.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
 #include <cmath>
 #include <fstream>
@@ -35,6 +36,7 @@ namespace {
     void loadEXST1(CoreObject* parentObject, stringVec& tokens);
     void loadTGOV1(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEG1(CoreObject* parentObject, stringVec& tokens);
+    void loadIEEEST(CoreObject* parentObject, stringVec& tokens);
     void loadST2CUT(CoreObject* parentObject, stringVec& tokens);
     void loadEXDC2(CoreObject* parentObject, stringVec& tokens);
     void loadSEXS(CoreObject* parentObject, stringVec& tokens);
@@ -90,6 +92,8 @@ void loadDyr(CoreObject* parentObject,
             loadTGOV1(parentObject, lineTokens);
         } else if (type == "'IEEEG1'") {
             loadIEEEG1(parentObject, lineTokens);
+        } else if (type == "'IEEEST'") {
+            loadIEEEST(parentObject, lineTokens);
         } else if (type == "'ST2CUT'") {
             loadST2CUT(parentObject, lineTokens);
         } else if (type == "'SEXS'") {
@@ -392,6 +396,9 @@ namespace {
         const int busId = std::stoi(tokens[0]);
         const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
         const int genId = std::stoi(tokens[2]);
+        if ((bus == nullptr) || (genId <= 0)) {
+            throw InvalidParameterValue("ST2CUT generator identity");
+        }
         auto* generator = dynamic_cast<DynamicGenerator*>(bus->getGen(genId - 1));
         if (generator == nullptr) {
             throw InvalidParameterValue("ST2CUT requires a dynamic generator");
@@ -422,6 +429,49 @@ namespace {
         stabilizer->set("lsmin", params[20]);
         stabilizer->set("vcu", params[21]);
         stabilizer->set("vcl", params[22]);
+        generator->add(stabilizer);
+    }
+
+    void loadIEEEST(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 22U) {
+            throw InvalidParameterValue("IEEEST DYR record must contain 22 fields");
+        }
+        const int busId = std::stoi(tokens[0]);
+        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+        const int genId = std::stoi(tokens[2]);
+        if ((bus == nullptr) || (genId <= 0)) {
+            throw InvalidParameterValue("IEEEST generator identity");
+        }
+        auto* generator = dynamic_cast<DynamicGenerator*>(bus->getGen(genId - 1));
+        if (generator == nullptr) {
+            throw InvalidParameterValue("IEEEST requires a dynamic generator");
+        }
+
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* stabilizer = new stabilizers::StabilizerIEEEST();
+        // Exact frozen ANDES psse-dyr.yaml order after BUS and ID:
+        // MODE, BUSR, A1, A2, A3, A4, A5, A6, T1, T2, T3, T4,
+        // T5, T6, KS, LSMAX, LSMIN, VCU, VCL.
+        stabilizer->set("mode", params[3]);
+        stabilizer->set("busr", params[4]);
+        stabilizer->set("a1", params[5]);
+        stabilizer->set("a2", params[6]);
+        stabilizer->set("a3", params[7]);
+        stabilizer->set("a4", params[8]);
+        stabilizer->set("a5", params[9]);
+        stabilizer->set("a6", params[10]);
+        stabilizer->set("t1", params[11]);
+        stabilizer->set("t2", params[12]);
+        stabilizer->set("t3", params[13]);
+        stabilizer->set("t4", params[14]);
+        stabilizer->set("t5", params[15]);
+        stabilizer->set("t6", params[16]);
+        stabilizer->set("ks", params[17]);
+        stabilizer->set("lsmax", params[18]);
+        stabilizer->set("lsmin", params[19]);
+        stabilizer->set("vcu", params[20]);
+        stabilizer->set("vcl", params[21]);
         generator->add(stabilizer);
     }
 }  // namespace

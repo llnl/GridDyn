@@ -84,7 +84,8 @@ adapters still have attachment, parameter, equation, and validation gaps.
 | `IEEEG1`                                                                  | `IEEEG1`                | `GovernorIeeeG1`                                                              | **Implemented.** Frozen-ANDES equations and DYR order, initialization and perturbed equations, valve rate/position limits, analytic Jacobian, one- and two-machine attachment, and mixed synchronous-machine coupling are covered. Native ANDES import, alphanumeric DYR IDs, unequal machine bases, and a captured disturbed trajectory remain open.                                          |
 | `GAST`                                                                    | `GAST`                  | None exact                                                                    | **No direct analogue.** Add a gas-turbine governor implementation and DYR adapter.                                                                                                                                                                                                                                                                                                             |
 | `GGOV1`                                                                   | `TGOV1`                 | `GovernorTgov1`                                                               | **Planned compatibility approximation.** ANDES currently retains only `R` when converting this record. If reproduced, emit a diagnostic and keep exact GGOV1 support as a separate task.                                                                                                                                                                                                       |
-| `IEEEST`, `ST2CUT`                                                        | Same named ANDES models | Base `Stabilizer` only                                                        | **No direct analogue.** The base class is not a usable PSS implementation; add the two models and their generator/exciter signal connections.                                                                                                                                                                                                                                                  |
+| `ST2CUT`                                                                  | `ST2CUT`                | `StabilizerST2CUT`                                                            | **Partial.** Exact frozen-ANDES local modes 0/1/3/4/5, dual transducers, washout/lag, three lead-lag stages, output limits, voltage gating, DYR mapping, generator/exciter coupling, and dynamic load-step coverage are implemented. Remote `BUSR` inputs and ANDES modes 2/6 require cross-bus/frequency-derivative measurement routing and are rejected rather than approximated.            |
+| `IEEEST`                                                                  | `IEEEST`                | Base `Stabilizer` only                                                        | **No direct analogue.** The base class is not a usable PSS implementation; add the model and its generator/exciter signal connections.                                                                                                                                                                                                                                                         |
 | `REGCA1`, `REECA1`, `REECB1`, `REPCA1`                                    | Same named ANDES models | `GenModelInverter` is not equivalent                                          | **No direct analogue.** Add the coordinated renewable generator, electrical-control, and plant-control chain rather than flattening these records into the generic inverter.                                                                                                                                                                                                                   |
 | `WTDTA1`, `WTARA1`, `WTPTA1`, `WTTQA1`                                    | Same named ANDES models | None                                                                          | **No direct analogue.** Add drive-train, aerodynamic, pitch, and torque-control submodels with their shared interfaces.                                                                                                                                                                                                                                                                        |
 | `Toggle`, `Fault`                                                         | ANDES event models      | GridDyn event/action and fault mechanisms                                     | **Partial conceptually.** Define DYR record schemas and translate target resolution, timing, status changes, and fault clearing semantics; no adapter exists.                                                                                                                                                                                                                                  |
@@ -170,14 +171,14 @@ seconds, and continuing through 2.0 seconds. The five controller chains are:
 
 ### PR status and dependency order
 
-| PR  | Deliverable                                                                                                   | Status                                         | Depends on |
-| --- | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------- | ---------- |
-| 1   | Complete GENROU equations, saturation utility, DYR mapping, and five-machine initialization reference         | Current changes; treat as complete after merge | none       |
-| 2   | Robust RAW/DYR identity and base handling, IEEE 14 power-flow parity, and a controller-free GENROU trajectory | Planned                                        | PR 1       |
-| 3   | Generator/controller signal plumbing, PSS-to-exciter routing, and validated `TGOV1`                           | Implemented                                    | PR 2       |
-| 4   | Complete `ESST3A` and `EXST1` models plus DYR adapters                                                        | Models/adapters implemented; trajectories open | PR 3       |
-| 5   | Complete `IEEEG1`, `ST2CUT`, and `IEEEST` models plus DYR adapters                                            | `IEEEG1` implemented; stabilizers planned      | PR 4       |
-| 6   | DYR `Toggle`, complete IEEE 14 initialization/equilibrium, and the two-second trajectory regression           | Planned                                        | PR 5       |
+| PR  | Deliverable                                                                                                   | Status                                                   | Depends on |
+| --- | ------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- | ---------- |
+| 1   | Complete GENROU equations, saturation utility, DYR mapping, and five-machine initialization reference         | Current changes; treat as complete after merge           | none       |
+| 2   | Robust RAW/DYR identity and base handling, IEEE 14 power-flow parity, and a controller-free GENROU trajectory | Planned                                                  | PR 1       |
+| 3   | Generator/controller signal plumbing, PSS-to-exciter routing, and validated `TGOV1`                           | Implemented                                              | PR 2       |
+| 4   | Complete `ESST3A` and `EXST1` models plus DYR adapters                                                        | Models/adapters implemented; trajectories open           | PR 3       |
+| 5   | Complete `IEEEG1`, `ST2CUT`, and `IEEEST` models plus DYR adapters                                            | `IEEEG1` implemented; `ST2CUT` partial; `IEEEST` planned | PR 4       |
+| 6   | DYR `Toggle`, complete IEEE 14 initialization/equilibrium, and the two-second trajectory regression           | Planned                                                  | PR 5       |
 
 PRs must merge in this order. Each PR must pass without relying on production
 code from a later PR. Minimized fixtures and test-only probe models are
@@ -478,6 +479,33 @@ full DYR schema, Doxygen equations and sources, initialization and perturbed
 equations, Jacobian, limit/root transitions, and a minimized coupled ANDES
 trajectory. Add explicit remote-bus and machine/system-base tests where the
 schema permits them.
+
+#### ST2CUT implementation and parameter contract
+
+`StabilizerST2CUT` follows frozen ANDES v2.0.0
+`andes/models/pss/st2cut.py`; its DYR adapter uses the exact frozen
+`psse-dyr.yaml` order `BUS, ID, MODE, BUSR, MODE2, BUSR2, K1, K2, T1, T2,
+T3, T4, T5, T6, T7, T8, T9, T10, LSMAX, LSMIN, VCU, VCL`. The two input
+transducers feed the ANDES washout-or-lag block, three lead-lag blocks, the
+`[LSMIN, LSMAX]` output limiter, and the initialized-voltage-relative
+`[VCL, VCU]` output gate. As in ANDES, zero `VCU`/`VCL` is mapped to
+`+999`/`-999` for an effectively disabled voltage gate.
+
+GridDyn currently provides local rotor speed, terminal voltage, mechanical
+power, and electrical power. Therefore local modes 0, 1, 3, 4, and 5 are
+implemented and tested. ANDES mode 2 (remote bus-frequency), mode 6 (terminal
+voltage derivative), and nonzero `BUSR`/`BUSR2` need a generic cross-bus
+measurement-routing interface that GridDyn does not yet have; these records
+are rejected at parsing/initialization rather than silently using a local
+signal. `T3=0` uses the exact ANDES lag form. The nonzero lag denominators
+`T1`, `T2`, `T4`, `T6`, `T8`, and `T10` are required; zero-denominator block
+bypasses remain unsupported.
+
+Focused tests cover DYR mapping, initialization and perturbed equations,
+analytic-Jacobian finite differences, limiter and voltage-gate root
+transitions, GENROU plus exciter coupling, and a load-step dynamic run whose
+ST2CUT states must evolve. A captured ANDES trajectory and support for the
+remote/derivative measurement modes remain open.
 
 Merge gate: a no-event IEEE 14 controller subset loads all five governors and
 all three stabilizers with no unsupported-record diagnostics; each controller

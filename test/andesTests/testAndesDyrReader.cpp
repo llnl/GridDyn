@@ -17,6 +17,7 @@
 #include "griddyn/genmodels/GenModelGENROU.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorTgov1.h"
+#include "griddyn/stabilizers/StabilizerST2CUT.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -27,6 +28,7 @@
 #include <nlohmann/json.hpp>
 #include <string>
 #include <string_view>
+#include <tuple>
 #include <utility>
 #include <vector>
 
@@ -75,7 +77,7 @@ std::vector<double> runLoadStepCase(const std::vector<std::string_view>& dyrFile
         if (generator == nullptr) {
             continue;
         }
-        for (const auto controllerName : {"governor", "exciter"}) {
+        for (const auto controllerName : {"governor", "exciter", "pss"}) {
             auto* controller =
                 dynamic_cast<griddyn::GridSubModel*>(generator->find(controllerName));
             if (controller != nullptr) {
@@ -361,6 +363,34 @@ TEST(AndesDyrReaderTests, MapsExst1ParametersAndCouplesToGenrou)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
+TEST(AndesDyrReaderTests, MapsSt2cutParametersAndCouplesToExciters)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_esst3a.dyr"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_exst1.dyr"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_st2cut.dyr"));
+
+    for (const auto& [busId, expectedK1, expectedLsmax] :
+         {std::tuple{1, 1.2, 0.05}, std::tuple{2, 1.1, 0.06}}) {
+        auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", busId));
+        ASSERT_NE(bus, nullptr);
+        auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+        ASSERT_NE(generator, nullptr);
+        auto* stabilizer =
+            dynamic_cast<griddyn::stabilizers::StabilizerST2CUT*>(generator->find("pss"));
+        ASSERT_NE(stabilizer, nullptr);
+        EXPECT_DOUBLE_EQ(stabilizer->get("mode"), 1.0);
+        EXPECT_DOUBLE_EQ(stabilizer->get("mode2"), 0.0);
+        EXPECT_DOUBLE_EQ(stabilizer->get("k1"), expectedK1);
+        EXPECT_DOUBLE_EQ(stabilizer->get("lsmax"), expectedLsmax);
+    }
+    EXPECT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
 TEST(AndesDynamicTests, Tgov1RespondsToLoadStep)
 {
     const auto finalState = runLoadStepCase({"ieee14_tgov1.dyr"});
@@ -382,6 +412,13 @@ TEST(AndesDynamicTests, Esst3aRespondsToLoadStep)
 TEST(AndesDynamicTests, Exst1RespondsToLoadStep)
 {
     const auto finalState = runLoadStepCase({"ieee14_exst1.dyr"});
+    EXPECT_FALSE(finalState.empty());
+}
+
+TEST(AndesDynamicTests, St2cutRespondsToLoadStep)
+{
+    const auto finalState =
+        runLoadStepCase({"ieee14_esst3a.dyr", "ieee14_exst1.dyr", "ieee14_st2cut.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 

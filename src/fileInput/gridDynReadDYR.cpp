@@ -17,8 +17,10 @@
 #include "griddyn/Generator.h"
 #include "griddyn/Governor.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/Stabilizer.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
+#include "griddyn/stabilizers/StabilizerST2CUT.h"
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -33,6 +35,7 @@ namespace {
     void loadEXST1(CoreObject* parentObject, stringVec& tokens);
     void loadTGOV1(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEG1(CoreObject* parentObject, stringVec& tokens);
+    void loadST2CUT(CoreObject* parentObject, stringVec& tokens);
     void loadEXDC2(CoreObject* parentObject, stringVec& tokens);
     void loadSEXS(CoreObject* parentObject, stringVec& tokens);
 }  // namespace
@@ -87,6 +90,8 @@ void loadDyr(CoreObject* parentObject,
             loadTGOV1(parentObject, lineTokens);
         } else if (type == "'IEEEG1'") {
             loadIEEEG1(parentObject, lineTokens);
+        } else if (type == "'ST2CUT'") {
+            loadST2CUT(parentObject, lineTokens);
         } else if (type == "'SEXS'") {
             loadSEXS(parentObject, lineTokens);
         } else {
@@ -377,6 +382,47 @@ namespace {
             secondary->setMechanicalPowerSource(governorPointer,
                                                 governors::GovernorIeeeG1::lpOutput);
         }
+    }
+
+    void loadST2CUT(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 23U) {
+            throw InvalidParameterValue("ST2CUT DYR record must contain 23 fields");
+        }
+        const int busId = std::stoi(tokens[0]);
+        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+        const int genId = std::stoi(tokens[2]);
+        auto* generator = dynamic_cast<DynamicGenerator*>(bus->getGen(genId - 1));
+        if (generator == nullptr) {
+            throw InvalidParameterValue("ST2CUT requires a dynamic generator");
+        }
+
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* stabilizer = new stabilizers::StabilizerST2CUT();
+        // Exact frozen ANDES psse-dyr.yaml order after BUS and ID:
+        // MODE, BUSR, MODE2, BUSR2, K1, K2, T1, T2, T3, T4,
+        // T5, T6, T7, T8, T9, T10, LSMAX, LSMIN, VCU, VCL.
+        stabilizer->set("mode", params[3]);
+        stabilizer->set("busr", params[4]);
+        stabilizer->set("mode2", params[5]);
+        stabilizer->set("busr2", params[6]);
+        stabilizer->set("k1", params[7]);
+        stabilizer->set("k2", params[8]);
+        stabilizer->set("t1", params[9]);
+        stabilizer->set("t2", params[10]);
+        stabilizer->set("t3", params[11]);
+        stabilizer->set("t4", params[12]);
+        stabilizer->set("t5", params[13]);
+        stabilizer->set("t6", params[14]);
+        stabilizer->set("t7", params[15]);
+        stabilizer->set("t8", params[16]);
+        stabilizer->set("t9", params[17]);
+        stabilizer->set("t10", params[18]);
+        stabilizer->set("lsmax", params[19]);
+        stabilizer->set("lsmin", params[20]);
+        stabilizer->set("vcu", params[21]);
+        stabilizer->set("vcl", params[22]);
+        generator->add(stabilizer);
     }
 }  // namespace
 

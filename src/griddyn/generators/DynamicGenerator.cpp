@@ -97,6 +97,19 @@ namespace {
         }
     }
 
+    void copyPssInputs(const IOdata& machineSignals,
+                       double omega,
+                       double voltage,
+                       double mechanicalPower,
+                       IOdata& pssInputs)
+    {
+        pssInputs[pssOmegaInLocation] = omega;
+        pssInputs[pssVoltageInLocation] = voltage;
+        pssInputs[pssPmechInLocation] = mechanicalPower;
+        pssInputs[pssElectricalPowerInLocation] =
+            machineSignals[static_cast<index_t>(MachineControllerSignal::ELECTRICAL_TORQUE)];
+    }
+
     const auto& getDynModelFromStringMap()
     {
         static const std::map<std::string_view, DynamicGenerator::DynModel, std::less<>>
@@ -325,17 +338,23 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
     }
 
     if ((pss != nullptr) && (pss->isEnabled())) {
-        modelInputs[0] = systemBaseFrequency;
-        modelInputs[1] = kNullVal;
+        IOdata pssInputs(pssInputCount, 0.0);
+        pssInputs[pssOmegaInLocation] = 1.0;
+        pssInputs[pssVoltageInLocation] = voltage;
+        pssInputs[pssPmechInLocation] = m_Pmech;
+        pssInputs[pssElectricalPowerInLocation] = m_Pmech;
         localDesiredOutput[0] = 0;
-        pss->dynInitializeB(modelInputs, desiredOutput, computedFieldSet);
+        pss->dynInitializeB(pssInputs, localDesiredOutput, computedFieldSet);
         //    pss->guessState (prevTime, m_state.data (), m_dstate_dt.data (), cLocalbSolverMode);
     }
 
     modelInputs.resize(0);
     localDesiredOutput.resize(0);
     for (auto* sub : getSubObjects()) {
-        if (sub->locIndex < 4) {
+        // The machine, exciter, governor, and PSS above require their own
+        // controller input contracts.  Do not initialize them again through
+        // the generic empty-input path.
+        if (sub->locIndex <= PSS_LOC) {
             continue;
         }
         if (sub->isEnabled()) {
@@ -623,7 +642,19 @@ void DynamicGenerator::timestep(CoreTime time, const IOdata& inputs, const Solve
         }
 
         if ((pss != nullptr) && (pss->isEnabled())) {
-            pss->timestep(time, inputs, sMode);
+            const IOdata genModelInputs{inputs[VOLTAGE_IN_LOCATION],
+                                        inputs[ANGLE_IN_LOCATION],
+                                        m_Eft,
+                                        m_Pmech};
+            IOdata pssInputs(pssInputCount, 0.0);
+            copyPssInputs(genModel->getMachineControllerSignals(genModelInputs,
+                                                                emptyStateData,
+                                                                cLocalSolverMode),
+                          omega,
+                          inputs[VOLTAGE_IN_LOCATION],
+                          m_Pmech,
+                          pssInputs);
+            pss->timestep(time, pssInputs, sMode);
         }
 
         if ((ext != nullptr) && (ext->isEnabled())) {
@@ -1023,7 +1054,7 @@ void DynamicGenerator::jacobianElements(const IOdata& inputs,
     // compute the Jacobian
     for (auto* sub : getSubObjects()) {
         if (sub->isEnabled()) {
-            if ((sub == ext) && (ext->numInputs() > exciterMachineSignalBase)) {
+            if (((sub == ext) && (ext->numInputs() > exciterMachineSignalBase)) || (sub == pss)) {
                 MatrixDataCustomWriteOnly<double> translatedMatrix;
                 translatedMatrix.setFunction(
                     [&matrixDataValue,
@@ -1182,6 +1213,7 @@ DynamicGenerator::SubModelInputs::SubModelInputs(): inputs(6)
     inputs[GEN_MODEL_LOC].resize(4);
     inputs[EXCITER_LOC].resize(exciterInputCount);
     inputs[GOVERNOR_LOC].resize(3);
+    inputs[PSS_LOC].resize(pssInputCount);
 }
 
 DynamicGenerator::SubModelInputLocs::SubModelInputLocs():
@@ -1190,6 +1222,7 @@ DynamicGenerator::SubModelInputLocs::SubModelInputLocs():
     inputLocs[GEN_MODEL_LOC].resize(4);
     inputLocs[EXCITER_LOC].resize(exciterInputCount);
     inputLocs[GOVERNOR_LOC].resize(3);
+    inputLocs[PSS_LOC].resize(pssInputCount);
 
     genModelInputLocsExternal[genModelEftInLocation] = kNullLocation;
     genModelInputLocsExternal[genModelPmechInLocation] = kNullLocation;
@@ -1254,10 +1287,18 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
     subInputs.inputs[EXCITER_LOC][exciterPmechInLocation] = pmech;
     subInputs.inputs[EXCITER_LOC][exciterVsetInLocation] =
         vSetControlUpdate(inputs, stateDataValue, sMode);
-    copyMachineSignals(genModel->getMachineControllerSignals(subInputs.inputs[GEN_MODEL_LOC],
-                                                             stateDataValue,
-                                                             sMode),
-                       subInputs.inputs[EXCITER_LOC]);
+    const auto machineSignals =
+        genModel->getMachineControllerSignals(subInputs.inputs[GEN_MODEL_LOC],
+                                              stateDataValue,
+                                              sMode);
+    copyMachineSignals(machineSignals, subInputs.inputs[EXCITER_LOC]);
+    if ((pss != nullptr) && (pss->isEnabled())) {
+        copyPssInputs(machineSignals,
+                      subInputs.inputs[GOVERNOR_LOC][govOmegaInLocation],
+                      subInputs.inputs[EXCITER_LOC][exciterVoltageInLocation],
+                      pmech,
+                      subInputs.inputs[PSS_LOC]);
+    }
     subInputs.inputs[EXCITER_LOC][exciterVssInLocation] = 0.0;
     if ((pss != nullptr) && (pss->isEnabled()) && (pss->numOutputs() > 0)) {
         subInputs.inputs[EXCITER_LOC][exciterVssInLocation] =
@@ -1329,6 +1370,17 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
     }
     subInputLocs.genModelInputLocsInternal[genModelPmechInLocation] =
         subInputLocs.inputLocs[GEN_MODEL_LOC][genModelPmechInLocation];
+
+    if ((pss != nullptr) && (pss->isEnabled())) {
+        index_t omegaLocation;
+        genModel->getFreq(stateDataValue, sMode, &omegaLocation);
+        subInputLocs.inputLocs[PSS_LOC][pssOmegaInLocation] = omegaLocation;
+        subInputLocs.inputLocs[PSS_LOC][pssVoltageInLocation] = inputLocs[VOLTAGE_IN_LOCATION];
+        subInputLocs.inputLocs[PSS_LOC][pssPmechInLocation] =
+            subInputLocs.inputLocs[GEN_MODEL_LOC][genModelPmechInLocation];
+        subInputLocs.inputLocs[PSS_LOC][pssElectricalPowerInLocation] =
+            machineSignalLocation(static_cast<index_t>(MachineControllerSignal::ELECTRICAL_TORQUE));
+    }
 
     if (isoc != nullptr) {
         subInputLocs.inputLocs[ISOC_CONTROL_LOC][0] =

@@ -57,6 +57,7 @@ set(generator_component_gtest_sources
     gtestHelperFunctions.cpp
     componentTests/testBlocks.cpp
     componentTests/testGovernors.cpp
+    componentTests/testStabilizers.cpp
     componentTests/testGenerators.cpp
     componentTests/testGenModels.cpp
     componentTests/testExciters.cpp

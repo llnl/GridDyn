@@ -81,6 +81,7 @@ set(gridSource_sources
 set(exciter_headers
     Exciter.h
     Stabilizer.h
+    stabilizers/StabilizerST2CUT.h
     exciters/ExciterDC1A.h
     exciters/ExciterDC2A.h
     exciters/ExciterESST3A.h
@@ -101,6 +102,7 @@ set(exciter_sources
     exciters/ExciterIEEEtype2.cpp
     exciters/ExciterSEXS.cpp
     stabilizers/Stabilizer.cpp
+    stabilizers/StabilizerST2CUT.cpp
 )
 
 set(gov_headers

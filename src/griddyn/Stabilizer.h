@@ -8,8 +8,15 @@
 
 #include "GridSubModel.h"
 #include <string>
+#include <vector>
 
 namespace griddyn {
+inline constexpr int pssOmegaInLocation = 0;
+inline constexpr int pssVoltageInLocation = 1;
+inline constexpr int pssPmechInLocation = 2;
+inline constexpr int pssElectricalPowerInLocation = 3;
+inline constexpr count_t pssInputCount = 4;
+
 class Stabilizer: public GridSubModel {
   public:
   protected:
@@ -47,6 +54,9 @@ class Stabilizer: public GridSubModel {
                             const StateData& sD,
                             double deriv[],
                             const SolverMode& sMode) override;
+
+    virtual const std::vector<stringVec>& inputNames() const override;
+    virtual const std::vector<stringVec>& outputNames() const override;
 
     virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 };

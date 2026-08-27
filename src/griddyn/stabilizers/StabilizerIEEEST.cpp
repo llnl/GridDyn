@@ -13,6 +13,7 @@
 #include <array>
 #include <cmath>
 #include <string>
+#include <vector>
 
 namespace griddyn::stabilizers {
 namespace {
@@ -102,7 +103,7 @@ void StabilizerIEEEST::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*
     offsets.local().local.algSize = 1;
     offsets.local().local.diffSize = stateCount;
     offsets.local().local.algRoots = 4;
-    offsets.local().local.jacSize = 8 * stateCount + 8;
+    offsets.local().local.jacSize = (8 * stateCount) + 8;
 }
 
 void StabilizerIEEEST::dynObjectInitializeB(const IOdata& inputs,

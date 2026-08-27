@@ -17,6 +17,7 @@
 #include "griddyn/genmodels/GenModelGENROU.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorTgov1.h"
+#include "griddyn/stabilizers/StabilizerIEEEST.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
 #include <algorithm>
 #include <array>
@@ -391,6 +392,51 @@ TEST(AndesDyrReaderTests, MapsSt2cutParametersAndCouplesToExciters)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
+TEST(AndesDyrReaderTests, MapsIeeestParametersAndCouplesToExciter)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_esst3a.dyr"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_ieeest.dyr"));
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 3));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    ASSERT_NE(dynamic_cast<griddyn::exciters::ExciterESST3A*>(generator->find("exciter")), nullptr);
+    auto* stabilizer =
+        dynamic_cast<griddyn::stabilizers::StabilizerIEEEST*>(generator->find("pss"));
+    ASSERT_NE(stabilizer, nullptr);
+
+    const std::pair<std::string_view, double> expected[]{{"mode", 3.0},
+                                                         {"busr", 0.0},
+                                                         {"a1", 0.0},
+                                                         {"a2", 0.0},
+                                                         {"a3", 0.0},
+                                                         {"a4", 0.0},
+                                                         {"a5", 0.0},
+                                                         {"a6", 0.0},
+                                                         {"t1", 0.0},
+                                                         {"t2", 0.0},
+                                                         {"t3", 0.0},
+                                                         {"t4", 0.75},
+                                                         {"t5", 1.0},
+                                                         {"t6", 4.2},
+                                                         {"ks", -2.0},
+                                                         {"lsmax", 0.1},
+                                                         {"lsmin", -0.1},
+                                                         {"vcu", 999.0},
+                                                         {"vcl", -999.0}};
+    for (const auto& parameter : expected) {
+        EXPECT_DOUBLE_EQ(stabilizer->get(parameter.first), parameter.second) << parameter.first;
+    }
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
 TEST(AndesDynamicTests, Tgov1RespondsToLoadStep)
 {
     const auto finalState = runLoadStepCase({"ieee14_tgov1.dyr"});
@@ -419,6 +465,13 @@ TEST(AndesDynamicTests, St2cutRespondsToLoadStep)
 {
     const auto finalState =
         runLoadStepCase({"ieee14_esst3a.dyr", "ieee14_exst1.dyr", "ieee14_st2cut.dyr"});
+    EXPECT_FALSE(finalState.empty());
+}
+
+TEST(AndesDynamicTests, IeeestRespondsToLoadStep)
+{
+    const auto finalState =
+        runLoadStepCase({"ieee14_esst3a.dyr", "ieee14_exst1.dyr", "ieee14_ieeest.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 

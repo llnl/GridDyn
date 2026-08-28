@@ -76,7 +76,8 @@ adapters still have attachment, parameter, equation, and validation gaps.
 | `IEEET1`, `IEEET3`, `ESDC2A`                                              | Same named ANDES models | `ExciterIEEEtype1`, `ExciterIEEEtype2`, and `ExciterDC2A` are only candidates | **Planned.** Perform equation and limiter audits before selecting an analogue; similar names are insufficient.                                                                                                                                                                                                                                                                                 |
 | `ESST3A`                                                                  | `ESST3A`                | `ExciterESST3A`                                                               | **Implemented.** Exact PSS/e field mapping, ANDES-equation initialization, residual, and Jacobian coverage with GENROU; reduced-order synchronous generators use the documented controller-signal approximations.                                                                                                                                                                              |
 | `EXST1`                                                                   | `EXST1`                 | `ExciterEXST1`                                                                | **Implemented.** PSS/e field order, captured initialization and perturbed-equation values, corrected regulator-output limiter/root tests, analytic-Jacobian finite-difference checks, and GENROU attachment are covered. The documented limiter-selector divergence from frozen ANDES is intentional. Zero `TR`, `TB`, or `TA` records and a captured disturbed trajectory remain unsupported. |
-| `ESST1A`, `ESAC1A`, `AC8B`, `EXAC1`, `EXAC2`, `EXAC4`, `IEEEX1`, `ESST4B` | Same named ANDES models | None exact                                                                    | **No direct analogue.** Implement model-specific exciter blocks and DYR schemas, then add initialization and trajectory tests.                                                                                                                                                                                                                                                                 |
+| `EXAC1`, `EXAC2`, `EXAC4`                                                   | Same named ANDES models | `ExciterEXAC1`, `ExciterEXAC2`, `ExciterEXAC4`                               | **Implemented.** Exact PSS/e DYR field mapping, initialization, residual/Jacobian, limiter/root, GENROU attachment, and IEEE-14 load-step coverage are present. EXAC1/EXAC2 intentionally use the sensed-voltage transducer output instead of the disconnected frozen-ANDES path documented below. Positive `TR`, `TB`, `TA`, `TE` (where applicable), and `TF` are required; zero-time algebraic bypass records remain unsupported. |
+| `ESST1A`, `ESAC1A`, `AC8B`, `IEEEX1`, `ESST4B`                              | Same named ANDES models | None exact                                                                    | **No direct analogue.** Implement model-specific exciter blocks and DYR schemas, then add initialization and trajectory tests.                                                                                                                                                                                                                                                                 |
 | `ESAC6A`, `SCRX`, `EXPIC1`                                                | `SEXS`                  | `ExciterSEXS`                                                                 | **Planned compatibility approximations.** ANDES marks these conversions as TODO/approximate and currently discards most source parameters. Reproduce this only as an explicit compatibility mode and emit a diagnostic; do not describe it as exact model support.                                                                                                                             |
 | `TGOV1`                                                                   | `TGOV1`                 | `GovernorTgov1`                                                               | **Implemented.** Matches the ANDES v2.0.0 equations and PSS/e schema `R, T1, VMAX, VMIN, T2, T3, Dt`; DYR attachment, initialization, limiter, analytic-Jacobian, and isolated speed-step trajectory regressions are covered.                                                                                                                                                                  |
 | `HYGOV`                                                                   | `HYGOV`                 | `GovernorHydro` is a candidate                                                | **Planned.** Compare equations, water-column dynamics, gate/rate limits, and parameter units before mapping it.                                                                                                                                                                                                                                                                                |
@@ -89,6 +90,68 @@ adapters still have attachment, parameter, equation, and validation gaps.
 | `REGCA1`, `REECA1`, `REECB1`, `REPCA1`                                    | Same named ANDES models | `GenModelInverter` is not equivalent                                          | **No direct analogue.** Add the coordinated renewable generator, electrical-control, and plant-control chain rather than flattening these records into the generic inverter.                                                                                                                                                                                                                   |
 | `WTDTA1`, `WTARA1`, `WTPTA1`, `WTTQA1`                                    | Same named ANDES models | None                                                                          | **No direct analogue.** Add drive-train, aerodynamic, pitch, and torque-control submodels with their shared interfaces.                                                                                                                                                                                                                                                                        |
 | `Toggle`, `Fault`                                                         | ANDES event models      | GridDyn event/action and fault mechanisms                                     | **Partial conceptually.** Define DYR record schemas and translate target resolution, timing, status changes, and fault clearing semantics; no adapter exists.                                                                                                                                                                                                                                  |
+
+### EXAC1 and EXAC2 voltage-transducer compatibility decision
+
+The frozen ANDES v2.0.0 `EXAC1Model` constructs the voltage-transducer lag
+`LG = Lag(v, TR)`, but its regulator-input equation uses raw terminal voltage
+`v` rather than `LG_y`. Consequently `TR` creates an unconsumed state and has
+no effect on the frozen ANDES EXAC1 response. `EXAC2Model` derives from the
+same implementation and inherits this behavior. This appears inconsistent
+with the PSS/E/IEEE AC1 block diagram, where the sensed terminal voltage is
+the transducer output.
+
+GridDyn will implement the physically intended connection for both models:
+
+@f[
+T_R\dot V_m=V_t-V_m,\qquad V_i=V_{ref}-V_m-V_F.
+@f]
+
+`ExciterEXAC1` and `ExciterEXAC2` Doxygen comments and tests name this
+intentional difference. When `TR` is nonzero, tests derived solely from frozen
+ANDES values must be adjusted or separately labeled; PSS/E or a second
+independent implementation is required to validate the corrected trajectory.
+This is a documented compatibility correction, not a claim that ANDES
+behavior is exact.
+
+#### Copy-ready ANDES issue draft: EXAC1/EXAC2 `TR` transducer is disconnected
+
+```text
+Title: EXAC1 and EXAC2 do not apply the TR voltage-transducer output
+
+In ANDES v2.0.0, `andes/models/exciter/exac1.py` creates the EXAC1 voltage
+transducer as
+
+    self.LG = Lag(self.v, T=self.TR, K=1, info='Voltage transducer')
+
+but the regulator summing input is defined using raw terminal voltage:
+
+    self.vi.e_str = 'ue * (-v + vref - WF_y - vi)'
+
+`LG_y` is not referenced by the EXAC1 regulator path. Therefore changing TR
+adds an unconsumed lag state but does not change the EXAC1 response. EXAC2
+inherits EXAC1Model, so it has the same issue.
+
+Expected AC1/PSS/E block-diagram connection:
+
+    TR * d(LG_y)/dt = v - LG_y
+    vi = vref - LG_y - WF_y
+
+Suggested minimal correction:
+
+    self.vi.e_str = 'ue * (-LG_y + vref - WF_y - vi)'
+    self.vi.v_str = '-LG_y + vref'
+
+Suggested regression: run two otherwise identical EXAC1 cases with TR = 0
+and TR > 0 after a terminal-voltage or reference-voltage step. Before the
+fix, their regulator trajectories are identical apart from the unused LG
+state; after the fix, the nonzero-TR case should show the expected sensing
+delay. Repeat the same regression for EXAC2.
+
+This report concerns the regulator sensing path only. It does not propose a
+change to EXAC1/EXAC2 saturation, FEX, field-current feedback, or limiter
+equations.
+```
 
 ### DYR reader infrastructure plan
 

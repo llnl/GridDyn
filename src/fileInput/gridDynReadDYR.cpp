@@ -34,6 +34,9 @@ namespace {
     void loadESDC1A(CoreObject* parentObject, stringVec& tokens);
     void loadESST3A(CoreObject* parentObject, stringVec& tokens);
     void loadEXST1(CoreObject* parentObject, stringVec& tokens);
+    void loadEXAC1(CoreObject* parentObject, stringVec& tokens);
+    void loadEXAC2(CoreObject* parentObject, stringVec& tokens);
+    void loadEXAC4(CoreObject* parentObject, stringVec& tokens);
     void loadTGOV1(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEG1(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEST(CoreObject* parentObject, stringVec& tokens);
@@ -86,6 +89,12 @@ void loadDyr(CoreObject* parentObject,
             loadESST3A(parentObject, lineTokens);
         } else if (type == "'EXST1'") {
             loadEXST1(parentObject, lineTokens);
+        } else if (type == "'EXAC1'") {
+            loadEXAC1(parentObject, lineTokens);
+        } else if (type == "'EXAC2'") {
+            loadEXAC2(parentObject, lineTokens);
+        } else if (type == "'EXAC4'") {
+            loadEXAC4(parentObject, lineTokens);
         } else if (type == "'EXDC2'") {
             loadEXDC2(parentObject, lineTokens);
         } else if (type == "'TGOV1'") {
@@ -233,6 +242,96 @@ namespace {
         exciterModel->set("tf", params[14]);
 
         gen->add(exciterModel);
+    }
+
+    void loadEXAC1(CoreObject* parentObject, stringVec& tokens)
+    {
+        const int busId = std::stoi(tokens[0]);
+        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+        auto* gen = bus->getGen(std::stoi(tokens[2]) - 1);
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* exciter =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "exac1"));
+        // Exact ANDES psse-dyr.yaml order: TR, TB, TC, KA, TA, VRMAX,
+        // VRMIN, TE, KF, TF, KC, KD, KE, E1, SE1, E2, SE2.
+        exciter->set("tr", params[3]);
+        exciter->set("tb", params[4]);
+        exciter->set("tc", params[5]);
+        exciter->set("ka", params[6]);
+        exciter->set("ta", params[7]);
+        exciter->set("vrmax", params[8]);
+        exciter->set("vrmin", params[9]);
+        exciter->set("te", params[10]);
+        exciter->set("kf", params[11]);
+        exciter->set("tf", params[12]);
+        exciter->set("kc", params[13]);
+        exciter->set("kd", params[14]);
+        exciter->set("ke", params[15]);
+        exciter->set("e1", params[16]);
+        exciter->set("se1", params[17]);
+        exciter->set("e2", params[18]);
+        exciter->set("se2", params[19]);
+        gen->add(exciter);
+    }
+
+    void loadEXAC2(CoreObject* parentObject, stringVec& tokens)
+    {
+        const int busId = std::stoi(tokens[0]);
+        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+        auto* gen = bus->getGen(std::stoi(tokens[2]) - 1);
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* exciter =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "exac2"));
+        // Exact ANDES psse-dyr.yaml order: TR, TB, TC, KA, TA, VAMAX,
+        // VAMIN, KB, VRMAX, VRMIN, TE, KL, KH, KF, TF, KC, KD, KE, VLR,
+        // E1, SE1, E2, SE2.
+        exciter->set("tr", params[3]);
+        exciter->set("tb", params[4]);
+        exciter->set("tc", params[5]);
+        exciter->set("ka", params[6]);
+        exciter->set("ta", params[7]);
+        exciter->set("vamax", params[8]);
+        exciter->set("vamin", params[9]);
+        exciter->set("kb", params[10]);
+        exciter->set("vrmax", params[11]);
+        exciter->set("vrmin", params[12]);
+        exciter->set("te", params[13]);
+        exciter->set("kl", params[14]);
+        exciter->set("kh", params[15]);
+        exciter->set("kf", params[16]);
+        exciter->set("tf", params[17]);
+        exciter->set("kc", params[18]);
+        exciter->set("kd", params[19]);
+        exciter->set("ke", params[20]);
+        exciter->set("vlr", params[21]);
+        exciter->set("e1", params[22]);
+        exciter->set("se1", params[23]);
+        exciter->set("e2", params[24]);
+        exciter->set("se2", params[25]);
+        gen->add(exciter);
+    }
+
+    void loadEXAC4(CoreObject* parentObject, stringVec& tokens)
+    {
+        const int busId = std::stoi(tokens[0]);
+        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+        auto* gen = bus->getGen(std::stoi(tokens[2]) - 1);
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* exciter =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "exac4"));
+        // Exact ANDES psse-dyr.yaml order: TR, VIMAX, VIMIN, TC, TB, KA,
+        // TA, VRMAX, VRMIN, KC.
+        exciter->set("tr", params[3]);
+        exciter->set("vimax", params[4]);
+        exciter->set("vimin", params[5]);
+        exciter->set("tc", params[6]);
+        exciter->set("tb", params[7]);
+        exciter->set("ka", params[8]);
+        exciter->set("ta", params[9]);
+        exciter->set("vrmax", params[10]);
+        exciter->set("vrmin", params[11]);
+        exciter->set("kc", params[12]);
+        gen->add(exciter);
     }
 
     void loadEXDC2(CoreObject* parentObject, stringVec& tokens)

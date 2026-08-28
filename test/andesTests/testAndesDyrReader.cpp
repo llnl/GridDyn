@@ -12,6 +12,9 @@
 #include "griddyn/GridSubModel.h"
 #include "griddyn/events/Event.h"
 #include "griddyn/exciters/ExciterESST3A.h"
+#include "griddyn/exciters/ExciterEXAC1.h"
+#include "griddyn/exciters/ExciterEXAC2.h"
+#include "griddyn/exciters/ExciterEXAC4.h"
 #include "griddyn/exciters/ExciterEXST1.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/genmodels/GenModelGENROU.h"
@@ -364,6 +367,35 @@ TEST(AndesDyrReaderTests, MapsExst1ParametersAndCouplesToGenrou)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
+TEST(AndesDyrReaderTests, MapsExacParameterRecordsAndCouplesToGenrou)
+{
+    const std::array<std::pair<std::string_view, std::string_view>, 3> records{{
+        {"ieee14_exac1.dyr", "exac1"},
+        {"ieee14_exac2.dyr", "exac2"},
+        {"ieee14_exac4.dyr", "exac4"},
+    }};
+    for (const auto& [record, model] : records) {
+        auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+        griddyn::loadFile(simulation.get(), makeAndesTestPath(record));
+        auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+        ASSERT_NE(bus, nullptr);
+        auto* generator = bus->getGen(0);
+        ASSERT_NE(generator, nullptr);
+        auto* exciter = dynamic_cast<griddyn::Exciter*>(generator->find("exciter"));
+        ASSERT_NE(exciter, nullptr);
+        EXPECT_DOUBLE_EQ(exciter->get("tr"), 0.031) << model;
+        EXPECT_DOUBLE_EQ(exciter->get("ka"), 41.0) << model;
+        EXPECT_DOUBLE_EQ(exciter->get("ta"), 0.034) << model;
+        EXPECT_DOUBLE_EQ(exciter->get("vrmax"), 7.2) << model;
+        EXPECT_DOUBLE_EQ(exciter->get("vrmin"), -4.3) << model;
+        ASSERT_EQ(simulation->dynInitialize(), 0) << model;
+        EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0) << model;
+        EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0) << model;
+    }
+}
+
 TEST(AndesDyrReaderTests, MapsSt2cutParametersAndCouplesToExciters)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
@@ -459,6 +491,14 @@ TEST(AndesDynamicTests, Exst1RespondsToLoadStep)
 {
     const auto finalState = runLoadStepCase({"ieee14_exst1.dyr"});
     EXPECT_FALSE(finalState.empty());
+}
+
+TEST(AndesDynamicTests, ExacExcitersRespondToLoadStep)
+{
+    for (const auto record : {"ieee14_exac1.dyr", "ieee14_exac2.dyr", "ieee14_exac4.dyr"}) {
+        const auto finalState = runLoadStepCase({record});
+        EXPECT_FALSE(finalState.empty()) << record;
+    }
 }
 
 TEST(AndesDynamicTests, St2cutRespondsToLoadStep)

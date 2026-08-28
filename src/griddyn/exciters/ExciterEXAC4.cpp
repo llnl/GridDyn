@@ -34,7 +34,9 @@ ExciterEXAC4::ExciterEXAC4(const std::string& objName): Exciter(objName)
 CoreObject* ExciterEXAC4::clone(CoreObject* obj) const
 {
     auto* clone = cloneBase<ExciterEXAC4, Exciter>(this, obj);
-    if (clone == nullptr) return obj;
+    if (clone == nullptr) {
+        return obj;
+    }
     clone->Tr = Tr;
     clone->Vimax = Vimax;
     clone->Vimin = Vimin;
@@ -100,21 +102,31 @@ double ExciterEXAC4::limitedInput(const double state[]) const
 int ExciterEXAC4::inputLimitStatus(const double state[]) const
 {
     const double value = unlimitedInput(state);
-    return (value >= Vimax) ? 1 : ((value <= Vimin) ? -1 : 0);
+    if (value >= Vimax) {
+        return 1;
+    }
+    return (value <= Vimin) ? -1 : 0;
 }
 int ExciterEXAC4::outputLimitStatus(const IOdata& inputs, const double state[]) const
 {
     const double value = state[regulatorState];
     const double upper = Vrmax - Kc * inputs[exciterXadIfdInLocation];
     const double lower = Vrmin - Kc * inputs[exciterXadIfdInLocation];
-    return (value >= upper) ? 1 : ((value <= lower) ? -1 : 0);
+    if (value >= upper) {
+        return 1;
+    }
+    return (value <= lower) ? -1 : 0;
 }
 double ExciterEXAC4::fieldVoltage(const IOdata& inputs, const double state[]) const
 {
     const int status = outputLimitStatus(inputs, state);
-    return (status > 0) ?
-        Vrmax - Kc * inputs[exciterXadIfdInLocation] :
-        ((status < 0) ? Vrmin - Kc * inputs[exciterXadIfdInLocation] : state[regulatorState]);
+    if (status > 0) {
+        return Vrmax - Kc * inputs[exciterXadIfdInLocation];
+    }
+    if (status < 0) {
+        return Vrmin - Kc * inputs[exciterXadIfdInLocation];
+    }
+    return state[regulatorState];
 }
 bool ExciterEXAC4::updateLimitFlags(const IOdata& inputs, const double state[])
 {
@@ -136,13 +148,15 @@ void ExciterEXAC4::residual(const IOdata& inputs,
                             const SolverMode& sMode)
 {
     const auto locations = offsets.getLocations(stateData, resid, sMode, this);
-    if (hasAlgebraic(sMode))
+    if (hasAlgebraic(sMode)) {
         locations.destLoc[0] =
             fieldVoltage(inputs, locations.diffStateLoc) - locations.algStateLoc[0];
+    }
     if (hasDifferential(sMode)) {
         derivative(inputs, stateData, resid, sMode);
-        for (index_t ii = 0; ii < locations.diffSize; ++ii)
+        for (index_t ii = 0; ii < locations.diffSize; ++ii) {
             locations.destDiffLoc[ii] -= locations.dstateLoc[ii];
+        }
     }
 }
 
@@ -151,7 +165,9 @@ void ExciterEXAC4::derivative(const IOdata& inputs,
                               double deriv[],
                               const SolverMode& sMode)
 {
-    if (!hasDifferential(sMode)) return;
+    if (!hasDifferential(sMode)) {
+        return;
+    }
     const auto locations = offsets.getLocations(stateData, deriv, sMode, this);
     const double* state = locations.diffStateLoc;
     double* derivativeValues = locations.destDiffLoc;
@@ -175,12 +191,15 @@ void ExciterEXAC4::jacobianElements(const IOdata& inputs,
     const double* state = locations.diffStateLoc;
     if (hasAlgebraic(sMode)) {
         matrixData.assign(alg, alg, -1.0);
-        if (outputLimitStatus(inputs, state) == 0)
+        if (outputLimitStatus(inputs, state) == 0) {
             matrixData.assign(alg, diff + regulatorState, 1.0);
-        else
+        } else {
             matrixData.assignCheckCol(alg, inputLocs[exciterXadIfdInLocation], -Kc);
+        }
     }
-    if (!hasDifferential(sMode)) return;
+    if (!hasDifferential(sMode)) {
+        return;
+    }
     matrixData.assign(diff + voltageMeasurementState,
                       diff + voltageMeasurementState,
                       -1.0 / Tr - stateData.cj);
@@ -190,21 +209,25 @@ void ExciterEXAC4::jacobianElements(const IOdata& inputs,
     const bool limited = inputLimitStatus(state) != 0;
     const double ratio = Tc / Tb;
     matrixData.assign(diff + leadLagState, diff + leadLagState, -1.0 / Tb - stateData.cj);
-    if (!limited) matrixData.assign(diff + leadLagState, diff + voltageMeasurementState, -1.0 / Tb);
+    if (!limited) {
+        matrixData.assign(diff + leadLagState, diff + voltageMeasurementState, -1.0 / Tb);
+    }
     matrixData.assign(diff + regulatorState, diff + leadLagState, Ka * (1.0 - ratio) / Ta);
     matrixData.assign(diff + regulatorState, diff + regulatorState, -1.0 / Ta - stateData.cj);
-    if (!limited)
+    if (!limited) {
         matrixData.assign(diff + regulatorState, diff + voltageMeasurementState, -Ka * ratio / Ta);
+    }
 }
 
 void ExciterEXAC4::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
-    const double dt = time - prevTime;
+    const double timeStep = time - prevTime;
     double* state = m_state.data() + 1;
     const double* derivativeValues = m_dstate_dt.data() + 1;
-    for (index_t ii = 0; ii < 3; ++ii)
-        state[ii] += dt * derivativeValues[ii];
+    for (index_t ii = 0; ii < 3; ++ii) {
+        state[ii] += timeStep * derivativeValues[ii];
+    }
     m_state[0] = fieldVoltage(inputs, state);
     updateLimitFlags(inputs, state);
     prevTime = time;
@@ -231,8 +254,9 @@ void ExciterEXAC4::rootTrigger(CoreTime /*time*/,
 {
     const index_t root = offsets.getRootOffset(sMode);
     if (((rootMask[root] != 0) || (rootMask[root + 1] != 0)) &&
-        updateLimitFlags(inputs, m_state.data() + 1))
+        updateLimitFlags(inputs, m_state.data() + 1)) {
         alert(this, JAC_COUNT_CHANGE);
+    }
 }
 ChangeCode ExciterEXAC4::rootCheck(const IOdata& inputs,
                                    const StateData& /*stateData*/,
@@ -252,16 +276,19 @@ void ExciterEXAC4::set(std::string_view param, std::string_view val)
 void ExciterEXAC4::set(std::string_view param, double val, units::unit unitType)
 {
     const auto finite = [val](const char* label) {
-        if (!std::isfinite(val))
+        if (!std::isfinite(val)) {
             throw InvalidParameterValue(std::string("EXAC4 ") + label + " must be finite");
+        }
     };
     if (param == "tr") {
-        if (!std::isfinite(val) || (val <= 0.0))
+        if (!std::isfinite(val) || (val <= 0.0)) {
             throw InvalidParameterValue("EXAC4 TR must be positive and finite");
+        }
         Tr = val;
     } else if (param == "tb") {
-        if (!std::isfinite(val) || (val <= 0.0))
+        if (!std::isfinite(val) || (val <= 0.0)) {
             throw InvalidParameterValue("EXAC4 TB must be positive and finite");
+        }
         Tb = val;
     } else if (param == "tc") {
         finite("TC");
@@ -275,21 +302,42 @@ void ExciterEXAC4::set(std::string_view param, double val, units::unit unitType)
     } else if (param == "kc") {
         finite("KC");
         Kc = val;
-    } else
+    } else {
         Exciter::set(param, val, unitType);
+    }
 }
 double ExciterEXAC4::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "ka") return Ka;
-    if (param == "ta") return Ta;
-    if ((param == "vrmax") || (param == "urmax")) return Vrmax;
-    if ((param == "vrmin") || (param == "urmin")) return Vrmin;
-    if (param == "tr") return Tr;
-    if (param == "tb") return Tb;
-    if (param == "tc") return Tc;
-    if (param == "vimax") return Vimax;
-    if (param == "vimin") return Vimin;
-    if (param == "kc") return Kc;
+    if (param == "ka") {
+        return Ka;
+    }
+    if (param == "ta") {
+        return Ta;
+    }
+    if ((param == "vrmax") || (param == "urmax")) {
+        return Vrmax;
+    }
+    if ((param == "vrmin") || (param == "urmin")) {
+        return Vrmin;
+    }
+    if (param == "tr") {
+        return Tr;
+    }
+    if (param == "tb") {
+        return Tb;
+    }
+    if (param == "tc") {
+        return Tc;
+    }
+    if (param == "vimax") {
+        return Vimax;
+    }
+    if (param == "vimin") {
+        return Vimin;
+    }
+    if (param == "kc") {
+        return Kc;
+    }
     return Exciter::get(param, unitType);
 }
 stringVec ExciterEXAC4::localStateNames() const
@@ -298,11 +346,19 @@ stringVec ExciterEXAC4::localStateNames() const
 }
 index_t ExciterEXAC4::findIndex(std::string_view field, const SolverMode& sMode) const
 {
-    if ((field == "efd") || (field == "field")) return offsets.getAlgOffset(sMode);
+    if ((field == "efd") || (field == "field")) {
+        return offsets.getAlgOffset(sMode);
+    }
     const index_t offset = offsets.getDiffOffset(sMode);
-    if (field == "vmeas") return offset + voltageMeasurementState;
-    if ((field == "ll") || (field == "leadlag")) return offset + leadLagState;
-    if ((field == "vr") || (field == "regulator")) return offset + regulatorState;
+    if (field == "vmeas") {
+        return offset + voltageMeasurementState;
+    }
+    if ((field == "ll") || (field == "leadlag")) {
+        return offset + leadLagState;
+    }
+    if ((field == "vr") || (field == "regulator")) {
+        return offset + regulatorState;
+    }
     return kInvalidLocation;
 }
 // NOLINTEND(readability-math-missing-parentheses)

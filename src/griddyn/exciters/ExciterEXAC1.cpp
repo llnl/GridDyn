@@ -25,29 +25,36 @@ namespace {
     constexpr index_t exciterState = 3;
     constexpr index_t washoutState = 4;
     constexpr double limitTolerance = 1e-7;
+    // These decimal values are the specified PSS/E FEX curve coefficients,
+    // not approximations of unrelated mathematical constants.
+    constexpr double lowCurrentSlope = 0.577;  // NOLINT(modernize-use-std-numbers)
+    constexpr double highCurrentSlope = 1.732;  // NOLINT(modernize-use-std-numbers)
 
     struct RectifierEvaluation {
-        double factor;
-        double derivative;
+        double mFactor;
+        double mDerivative;
     };
 
     RectifierEvaluation rectifier(double normalizedCurrent)
     {
         if (normalizedCurrent <= 0.0) {
-            return {1.0, 0.0};
+            return {.mFactor = 1.0, .mDerivative = 0.0};
         }
         if (normalizedCurrent <= 0.433) {
-            return {1.0 - 0.577 * normalizedCurrent, -0.577};
+            return {.mFactor = 1.0 - lowCurrentSlope * normalizedCurrent,
+                    .mDerivative = -lowCurrentSlope};
         }
         if (normalizedCurrent <= 0.75) {
             const double factor =
                 std::sqrt(std::max(0.0, 0.75 - normalizedCurrent * normalizedCurrent));
-            return {factor, (factor > 0.0) ? -normalizedCurrent / factor : 0.0};
+            return {.mFactor = factor,
+                    .mDerivative = (factor > 0.0) ? -normalizedCurrent / factor : 0.0};
         }
         if (normalizedCurrent <= 1.0) {
-            return {1.732 * (1.0 - normalizedCurrent), -1.732};
+            return {.mFactor = highCurrentSlope * (1.0 - normalizedCurrent),
+                    .mDerivative = -highCurrentSlope};
         }
-        return {0.0, 0.0};
+        return {.mFactor = 0.0, .mDerivative = 0.0};
     }
 }  // namespace
 
@@ -127,28 +134,30 @@ void ExciterEXAC1::dynObjectInitializeB(const IOdata& inputs,
         throw InvalidParameterValue("EXAC1 initial field voltage");
     }
     const double fieldVoltage = desiredOutput[0];
-    double ve = std::max(0.01, std::abs(fieldVoltage));
+    double exciterVoltage = std::max(0.01, std::abs(fieldVoltage));
     for (int count = 0; count < 20; ++count) {
-        const double current = ((Kc != 0.0) && (ve != 0.0)) ? Kc * fieldCurrent / ve : 0.0;
+        const double current =
+            ((Kc != 0.0) && (exciterVoltage != 0.0)) ? Kc * fieldCurrent / exciterVoltage : 0.0;
         const auto fex = rectifier(current);
-        const double mismatch = ve * fex.factor - fieldVoltage;
-        const double slope = fex.factor - fex.derivative * current;
+        const double mismatch = exciterVoltage * fex.mFactor - fieldVoltage;
+        const double slope = fex.mFactor - fex.mDerivative * current;
         if (std::abs(slope) < 1e-12) {
             break;
         }
-        ve = std::max(1e-8, ve - mismatch / slope);
+        exciterVoltage = std::max(1e-8, exciterVoltage - mismatch / slope);
         if (std::abs(mismatch) < 1e-12) {
             break;
         }
     }
-    const double finalCurrent = ((Kc != 0.0) && (ve != 0.0)) ? Kc * fieldCurrent / ve : 0.0;
-    if (std::abs(ve * rectifier(finalCurrent).factor - fieldVoltage) > 1e-7) {
+    const double finalCurrent =
+        ((Kc != 0.0) && (exciterVoltage != 0.0)) ? Kc * fieldCurrent / exciterVoltage : 0.0;
+    if (std::abs(exciterVoltage * rectifier(finalCurrent).mFactor - fieldVoltage) > 1e-7) {
         throw InvalidParameterValue(
             "EXAC1 initial field voltage is incompatible with rectifier loading");
     }
     double* state = m_state.data() + 1;
     state[voltageMeasurementState] = voltage;
-    state[exciterState] = ve;
+    state[exciterState] = exciterVoltage;
     state[washoutState] = vfe(inputs, state);
     state[regulatorState] = initialRegulatorState(state[washoutState]);
     if ((state[regulatorState] < regulatorLowerLimit() - limitTolerance) ||
@@ -176,12 +185,15 @@ double ExciterEXAC1::vfe(const IOdata& inputs, const double state[]) const
     return (Kd == 0.0) ? fieldFeedback : fieldFeedback + Kd * inputs[exciterXadIfdInLocation];
 }
 
-double ExciterEXAC1::rectifierFactor(const IOdata& inputs, double ve) const
+double ExciterEXAC1::rectifierFactor(const IOdata& inputs, double exciterVoltage) const
 {
     if (Kc == 0.0) {
         return 1.0;
     }
-    return rectifier((ve != 0.0) ? Kc * inputs[exciterXadIfdInLocation] / ve : 0.0).factor;
+    return rectifier((exciterVoltage != 0.0) ?
+                         Kc * inputs[exciterXadIfdInLocation] / exciterVoltage :
+                         0.0)
+        .mFactor;
 }
 
 double ExciterEXAC1::fieldVoltage(const IOdata& inputs, const double state[]) const
@@ -211,11 +223,12 @@ double ExciterEXAC1::referenceOffset(double vfeValue) const
     return vfeValue / Ka;
 }
 void ExciterEXAC1::regulatorTargetDerivatives(const IOdata& /*inputs*/,
-                                              const double[] /*state*/,
+                                              const double state[],
                                               double& regulatorDerivative,
                                               double& exciterDerivative,
                                               double& fieldCurrentDerivative) const
 {
+    static_cast<void>(state);
     regulatorDerivative = 1.0;
     exciterDerivative = 0.0;
     fieldCurrentDerivative = 0.0;
@@ -295,22 +308,23 @@ void ExciterEXAC1::jacobianElements(const IOdata& inputs,
     const index_t algOffset = locations.algOffset;
     const index_t diffOffset = locations.diffOffset;
     const double* state = locations.diffStateLoc;
-    const double ve = state[exciterState];
-    const double normalizedCurrent = (ve != 0.0) ? Kc * inputs[exciterXadIfdInLocation] / ve : 0.0;
+    const double exciterVoltage = state[exciterState];
+    const double normalizedCurrent =
+        (exciterVoltage != 0.0) ? Kc * inputs[exciterXadIfdInLocation] / exciterVoltage : 0.0;
     const auto fex = rectifier(normalizedCurrent);
     if (hasAlgebraic(sMode)) {
         matrixData.assign(algOffset, algOffset, -1.0);
         matrixData.assign(algOffset,
                           diffOffset + exciterState,
-                          fex.factor - fex.derivative * normalizedCurrent);
+                          fex.mFactor - fex.mDerivative * normalizedCurrent);
         matrixData.assignCheckCol(algOffset,
                                   inputLocs[exciterXadIfdInLocation],
-                                  fex.derivative * Kc);
+                                  fex.mDerivative * Kc);
     }
     if (!hasDifferential(sMode)) {
         return;
     }
-    const double saturationSlope = Ke + saturation.deriv(ve);
+    const double saturationSlope = Ke + saturation.deriv(exciterVoltage);
     const double feedbackGain = Kf / Tf;
     const double leadRatio = Tc / Tb;
     const double regulatorDerivative =
@@ -510,23 +524,57 @@ void ExciterEXAC1::set(std::string_view param, double val, units::unit unitType)
 
 double ExciterEXAC1::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "ka") return Ka;
-    if (param == "ta") return Ta;
-    if ((param == "vrmax") || (param == "urmax")) return Vrmax;
-    if ((param == "vrmin") || (param == "urmin")) return Vrmin;
-    if (param == "tr") return Tr;
-    if (param == "tb") return Tb;
-    if (param == "tc") return Tc;
-    if (param == "te") return Te;
-    if (param == "tf") return Tf;
-    if (param == "kf") return Kf;
-    if (param == "kc") return Kc;
-    if (param == "kd") return Kd;
-    if (param == "ke") return Ke;
-    if (param == "e1") return E1;
-    if (param == "se1") return Se1;
-    if (param == "e2") return E2;
-    if (param == "se2") return Se2;
+    if (param == "ka") {
+        return Ka;
+    }
+    if (param == "ta") {
+        return Ta;
+    }
+    if ((param == "vrmax") || (param == "urmax")) {
+        return Vrmax;
+    }
+    if ((param == "vrmin") || (param == "urmin")) {
+        return Vrmin;
+    }
+    if (param == "tr") {
+        return Tr;
+    }
+    if (param == "tb") {
+        return Tb;
+    }
+    if (param == "tc") {
+        return Tc;
+    }
+    if (param == "te") {
+        return Te;
+    }
+    if (param == "tf") {
+        return Tf;
+    }
+    if (param == "kf") {
+        return Kf;
+    }
+    if (param == "kc") {
+        return Kc;
+    }
+    if (param == "kd") {
+        return Kd;
+    }
+    if (param == "ke") {
+        return Ke;
+    }
+    if (param == "e1") {
+        return E1;
+    }
+    if (param == "se1") {
+        return Se1;
+    }
+    if (param == "e2") {
+        return E2;
+    }
+    if (param == "se2") {
+        return Se2;
+    }
     return Exciter::get(param, unitType);
 }
 
@@ -537,13 +585,25 @@ stringVec ExciterEXAC1::localStateNames() const
 
 index_t ExciterEXAC1::findIndex(std::string_view field, const SolverMode& sMode) const
 {
-    if ((field == "efd") || (field == "field")) return offsets.getAlgOffset(sMode);
+    if ((field == "efd") || (field == "field")) {
+        return offsets.getAlgOffset(sMode);
+    }
     const index_t offset = offsets.getDiffOffset(sMode);
-    if (field == "vmeas") return offset + voltageMeasurementState;
-    if ((field == "ll") || (field == "leadlag")) return offset + leadLagState;
-    if ((field == "va") || (field == "regulator")) return offset + regulatorState;
-    if ((field == "ve") || (field == "exciter")) return offset + exciterState;
-    if ((field == "wf") || (field == "washout")) return offset + washoutState;
+    if (field == "vmeas") {
+        return offset + voltageMeasurementState;
+    }
+    if ((field == "ll") || (field == "leadlag")) {
+        return offset + leadLagState;
+    }
+    if ((field == "va") || (field == "regulator")) {
+        return offset + regulatorState;
+    }
+    if ((field == "ve") || (field == "exciter")) {
+        return offset + exciterState;
+    }
+    if ((field == "wf") || (field == "washout")) {
+        return offset + washoutState;
+    }
     return kInvalidLocation;
 }
 // NOLINTEND(readability-math-missing-parentheses)

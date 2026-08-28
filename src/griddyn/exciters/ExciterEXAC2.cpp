@@ -13,6 +13,13 @@
 #include <string>
 
 namespace griddyn::exciters {
+namespace {
+    // These decimal values are the specified PSS/E FEX curve coefficients,
+    // not approximations of unrelated mathematical constants.
+    constexpr double lowCurrentSlope = 0.577;  // NOLINT(modernize-use-std-numbers)
+    constexpr double highCurrentSlope = 1.732;  // NOLINT(modernize-use-std-numbers)
+}  // namespace
+
 ExciterEXAC2::ExciterEXAC2(const std::string& objName): ExciterEXAC1(objName) {}
 
 CoreObject* ExciterEXAC2::clone(CoreObject* obj) const
@@ -49,36 +56,37 @@ void ExciterEXAC2::dynObjectInitializeB(const IOdata& inputs,
     // VLR0 is a PostInitService in ANDES: it is calculated once from the
     // initialized field-feedback voltage and remains constant thereafter.
     const double fieldVoltage = desiredOutput.empty() ? 0.0 : desiredOutput[0];
-    double ve = std::max(1e-8, std::abs(fieldVoltage));
+    double exciterVoltage = std::max(1e-8, std::abs(fieldVoltage));
     const double fieldCurrent = inputs[exciterXadIfdInLocation];
     for (int count = 0; count < 20; ++count) {
-        const double normalized = (Kc != 0.0) ? Kc * fieldCurrent / ve : 0.0;
+        const double normalized = (Kc != 0.0) ? Kc * fieldCurrent / exciterVoltage : 0.0;
         double factor = 1.0;
         double slope = 0.0;
         if ((normalized > 0.0) && (normalized <= 0.433)) {
-            factor = 1.0 - 0.577 * normalized;
-            slope = -0.577;
+            factor = 1.0 - (lowCurrentSlope * normalized);
+            slope = -lowCurrentSlope;
         } else if ((normalized > 0.433) && (normalized <= 0.75)) {
-            factor = std::sqrt(std::max(0.0, 0.75 - normalized * normalized));
+            factor = std::sqrt(std::max(0.0, 0.75 - (normalized * normalized)));
             slope = (factor > 0.0) ? -normalized / factor : 0.0;
         } else if ((normalized > 0.75) && (normalized <= 1.0)) {
-            factor = 1.732 * (1.0 - normalized);
-            slope = -1.732;
+            factor = highCurrentSlope * (1.0 - normalized);
+            slope = -highCurrentSlope;
         } else if (normalized > 1.0) {
             factor = 0.0;
         }
-        const double error = ve * factor - fieldVoltage;
-        const double derivative = factor - slope * normalized;
+        const double error = (exciterVoltage * factor) - fieldVoltage;
+        const double derivative = factor - (slope * normalized);
         if (std::abs(derivative) < 1e-12) {
             break;
         }
-        ve = std::max(1e-8, ve - error / derivative);
+        exciterVoltage = std::max(1e-8, exciterVoltage - (error / derivative));
         if (std::abs(error) < 1e-12) {
             break;
         }
     }
-    const double feedback = Ke * ve + saturation(ve) + ((Kd == 0.0) ? 0.0 : Kd * fieldCurrent);
-    vlr0 = std::max(Vlr, feedback + feedback / (Kl * Kb));
+    const double feedback = (Ke * exciterVoltage) + saturation(exciterVoltage) +
+        ((Kd == 0.0) ? 0.0 : Kd * fieldCurrent);
+    vlr0 = std::max(Vlr, feedback + (feedback / (Kl * Kb)));
     ExciterEXAC1::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
 }
 
@@ -104,15 +112,17 @@ void ExciterEXAC2::set(std::string_view param, double val, units::unit unitType)
         finite("VLR");
         Vlr = val;
     } else if (param == "kl") {
-        if (!std::isfinite(val) || (val <= 0.0))
+        if (!std::isfinite(val) || (val <= 0.0)) {
             throw InvalidParameterValue("EXAC2 KL must be positive and finite");
+        }
         Kl = val;
     } else if (param == "kh") {
         finite("KH");
         Kh = val;
     } else if (param == "kb") {
-        if (!std::isfinite(val) || (val <= 0.0))
+        if (!std::isfinite(val) || (val <= 0.0)) {
             throw InvalidParameterValue("EXAC2 KB must be positive and finite");
+        }
         Kb = val;
     } else {
         ExciterEXAC1::set(param, val, unitType);
@@ -121,19 +131,31 @@ void ExciterEXAC2::set(std::string_view param, double val, units::unit unitType)
 
 double ExciterEXAC2::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "vamax") return Vamax;
-    if (param == "vamin") return Vamin;
-    if (param == "vlr") return Vlr;
-    if (param == "kl") return Kl;
-    if (param == "kh") return Kh;
-    if (param == "kb") return Kb;
+    if (param == "vamax") {
+        return Vamax;
+    }
+    if (param == "vamin") {
+        return Vamin;
+    }
+    if (param == "vlr") {
+        return Vlr;
+    }
+    if (param == "kl") {
+        return Kl;
+    }
+    if (param == "kh") {
+        return Kh;
+    }
+    if (param == "kb") {
+        return Kb;
+    }
     return ExciterEXAC1::get(param, unitType);
 }
 
 double ExciterEXAC2::regulatorTarget(const IOdata& inputs, const double state[]) const
 {
     const double feedback = vfe(inputs, state);
-    const double highGate = state[2] - Kh * feedback;
+    const double highGate = state[2] - (Kh * feedback);
     const double lowGate = Kl * (vlr0 - feedback);
     return std::clamp(Kb * std::min(highGate, lowGate),
                       static_cast<double>(Vrmin),
@@ -150,11 +172,11 @@ double ExciterEXAC2::regulatorLowerLimit() const
 }
 double ExciterEXAC2::initialRegulatorState(double vfeValue) const
 {
-    return vfeValue * Kl + vfeValue / Kb;
+    return (vfeValue * Kl) + (vfeValue / Kb);
 }
 double ExciterEXAC2::referenceOffset(double vfeValue) const
 {
-    return (vfeValue * Kl + vfeValue / Kb) / Ka;
+    return ((vfeValue * Kl) + (vfeValue / Kb)) / Ka;
 }
 
 void ExciterEXAC2::regulatorTargetDerivatives(const IOdata& inputs,
@@ -165,7 +187,7 @@ void ExciterEXAC2::regulatorTargetDerivatives(const IOdata& inputs,
 {
     const double feedbackSlope = Ke + saturation.deriv(state[3]);
     const double feedback = vfe(inputs, state);
-    const double highGate = state[2] - Kh * feedback;
+    const double highGate = state[2] - (Kh * feedback);
     const double lowGate = Kl * (vlr0 - feedback);
     const double unbounded = Kb * std::min(highGate, lowGate);
     regulatorDerivative = 0.0;

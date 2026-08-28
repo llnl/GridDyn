@@ -7,6 +7,7 @@
 #pragma once
 
 #include "ExciterEXAC1.h"
+#include <string>
 
 namespace griddyn::exciters {
 /** PSS/E EXAC2 excitation system.

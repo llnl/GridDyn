@@ -113,7 +113,7 @@ class ExciterEXAC1: public Exciter {
                                             double& fieldCurrentDerivative) const;
     double referenceInput(const IOdata& inputs) const;
     double vfe(const IOdata& inputs, const double state[]) const;
-    double rectifierFactor(const IOdata& inputs, double ve) const;
+    double rectifierFactor(const IOdata& inputs, double exciterVoltage) const;
     double fieldVoltage(const IOdata& inputs, const double state[]) const;
     int regulatorLimitStatus(const double state[]) const;
     bool updateLimitFlags(const double state[]);

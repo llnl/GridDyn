@@ -16,6 +16,7 @@
 #include <cmath>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace griddyn::blocks {
 LutBlock::LutBlock(const std::string& objName): GridBlock(objName)

@@ -11,6 +11,7 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
+#include <string>
 
 namespace griddyn::blocks {
 LeadLagBlock::LeadLagBlock(const std::string& objName): GridBlock(objName)

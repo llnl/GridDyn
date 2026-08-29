@@ -11,10 +11,19 @@
 #include <vector>
 
 namespace griddyn::blocks {
-/** @brief class implementing a sequence of blocks as a single block
-A block is defined as a single input single output subModel.  This object takes any number of blocks
-in a sequence and processes them in the appropriate fashion.
-*/
+/**
+ * @brief Ordered serial composition of one or more GridBlock instances.
+ *
+ * For blocks @f$B_0,\ldots,B_n@f$, this composite evaluates
+ * @f$y=B_n(\ldots B_1(B_0(u+b))\ldots)@f$.  It propagates output derivatives,
+ * residuals, analytic Jacobians, roots, and root triggers through the same
+ * ordering.  States remain owned by the child blocks; this class only supplies
+ * the single-input/single-output composition and local-step scheduling.
+ *
+ * `differential_input` causes the first child to receive an input derivative.
+ * BlockSequence is a composite container, not an independently factory-loaded
+ * elementary block.
+ */
 class BlockSequence: public GridBlock {
   public:
   protected:

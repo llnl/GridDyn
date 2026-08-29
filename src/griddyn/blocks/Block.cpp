@@ -22,6 +22,8 @@ static const TypeFactory<GridBlock>
     BLOCK_FACTORY("block", std::to_array<std::string_view>({"basic", "gain"}), "basic");
 static const ChildTypeFactory<blocks::ControlBlock, GridBlock> CONTROL_BLOCK_FACTORY("block",
                                                                                      "control");
+static const ChildTypeFactory<blocks::LeadLagBlock, GridBlock>
+    LEAD_LAG_BLOCK_FACTORY("block", std::to_array<std::string_view>({"leadlag", "lead_lag"}));
 static const ChildTypeFactory<blocks::DeadbandBlock, GridBlock>
     DEADBAND_BLOCK_FACTORY("block", std::to_array<std::string_view>({"deadband", "db"}));
 static const ChildTypeFactory<blocks::DelayBlock, GridBlock>
@@ -40,6 +42,10 @@ static const ChildTypeFactory<blocks::FilteredDerivativeBlock, GridBlock>
     FILTERED_DERIVATIVE_BLOCK_FACTORY(
         "block",
         std::to_array<std::string_view>({"fder", "filtered_deriv", "filtered_derivative"}));
+static const ChildTypeFactory<blocks::TransferFunctionBlock, GridBlock>
+    TRANSFER_FUNCTION_BLOCK_FACTORY(
+        "block",
+        std::to_array<std::string_view>({"transfer_function", "transferfunction", "tf"}));
 
 GridBlock::GridBlock(const std::string& objName): GridSubModel(objName)
 {

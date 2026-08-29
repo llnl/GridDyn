@@ -11,22 +11,35 @@
 #include <vector>
 
 namespace griddyn::blocks {
-/** @brief class implementing a generic transfer unction
-block implementing \f$H(S)=\frac{K(b_0+b_1 s +/hdots +b_n s^n}{a_0+a_1 s +/hdots +a_n s^n}\f$
-it then converts it to observable canonical form as state space matrices for implementation as part
-the solver
-
-*/
+/**
+ * @brief Proper single-input, single-output continuous-time transfer-function block.
+ *
+ * The coefficients are in ascending powers of @f$s@f$:
+ * @f[
+ *   G(s) = K\frac{b_0 + b_1s + \ldots + b_ns^n}
+ *                    {a_0 + a_1s + \ldots + a_ns^n}.
+ * @f]
+ * The numerator is zero-padded to the denominator order, so the block accepts a
+ * strictly proper transfer function as well as one with direct feedthrough.  An
+ * improper transfer function is rejected at initialization.
+ *
+ * For a denominator of order @f$n@f$, GridDyn uses the controllable companion
+ * realization @f$\dot{x}_i=x_{i+1}@f$ for @f$i<n-1@f$ and
+ * @f$\dot{x}_{n-1}=u-\sum_{i=0}^{n-1}(a_i/a_n)x_i@f$.  With
+ * @f$d=b_n/a_n@f$, the unbounded output is
+ * @f$y=K[d u+\sum_{i=0}^{n-1}(b_i/a_n-d a_i/a_n)x_i]@f$.
+ * This realization gives an analytic Jacobian and makes the output an
+ * algebraic state, including when @f$d=0@f$.
+ *
+ * A configured GridBlock output limiter clamps the exposed output while the
+ * companion states continue to evolve.  Rate limits are intentionally not
+ * applied because the exposed transfer-function output is algebraic.
+ */
 class TransferFunctionBlock: public GridBlock {
   public:
   protected:
-    std::vector<double> a;  //!< lower time constant
-    std::vector<double> b;  //!< upper time constant
-  private:
-    // double rescale = 1;                   //!< containing the original $a_n$ for rescaling if
-    // coefficients are changed later
-    bool extraOutputState = false;  //!< flag indicating that there is an extra state
-                                    //!< computation at the end due to direct dependence of B;
+    std::vector<double> a;  //!< denominator coefficients, ascending powers of s
+    std::vector<double> b;  //!< numerator coefficients, ascending powers of s
   public:
     /** constructor to add in the order of the transfer function
 @param[in] order  the order of the transfer function
@@ -63,6 +76,10 @@ are 0
                                  const StateData& stateDataValue,
                                  double deriv[],
                                  const SolverMode& sMode) override;
+    virtual void blockAlgebraicUpdate(double input,
+                                      const StateData& stateDataValue,
+                                      double update[],
+                                      const SolverMode& sMode) override;
     virtual void blockResidual(double input,
                                double didt,
                                const StateData& stateDataValue,
@@ -76,7 +93,22 @@ are 0
                                        index_t argLoc,
                                        const SolverMode& sMode) override;
     virtual double step(CoreTime time, double inputA) override;
-    // virtual void setTime(CoreTime time){prevTime=time;};
     virtual stringVec localStateNames() const override;
+
+    /**
+     * @brief Evaluate the unbounded transfer function for state owned by a parent controller.
+     *
+     * This permits a composite controller to reuse the same companion realization
+     * while retaining ownership of its aggregate solver state and nonlinear limits.
+     */
+    [[nodiscard]] double externalStateOutput(double input, const double state[]) const;
+    /** @brief Evaluate companion-state derivatives for state owned by a parent controller. */
+    void externalStateDerivative(double input, const double state[], double derivative[]) const;
+
+  private:
+    [[nodiscard]] index_t order() const;
+    void validateCoefficients();
+    [[nodiscard]] double rawOutput(double input, const double state[]) const;
+    void stateDerivative(double input, const double state[], double derivative[]) const;
 };
 }  // namespace griddyn::blocks

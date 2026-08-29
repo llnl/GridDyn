@@ -18,6 +18,7 @@
 #include "FunctionBlock.h"
 #include "IntegralBlock.h"
 #include "LutBlock.h"
+#include "LeadLagBlock.h"
 #include "NullBlock.h"
 #include "PidBlock.h"
 #include "TransferFunctionBlock.h"

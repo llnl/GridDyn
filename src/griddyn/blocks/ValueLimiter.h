@@ -9,12 +9,19 @@
 #include <limits>
 
 namespace griddyn::blocks {
-/** class that clamps a value between an upper and lower limit and maintains state of whether it
- * is clamping or not
+/**
+ * @brief Stateful hard value limiter used by GridBlock output limits.
+ *
+ * For requested value @f$v@f$, the static clamp is
+ * @f$\hat v=\min(\max(v,v_{min}),v_{max})@f$.  @ref clampOutput evaluates
+ * that relation without state.  The stateful @ref output, @ref deriv, and
+ * @ref DoutDin methods retain the active side of the limit so a DAE Jacobian
+ * has zero gain and zero derivative while clamped.  `resetLevel` provides the
+ * release hysteresis used by root handling.
  */
 class ValueLimiter {
   private:
-    double minVal = std::numeric_limits<double>::min();  //!< Minimum value
+    double minVal = std::numeric_limits<double>::lowest();  //!< Minimum value
     double maxVal = std::numeric_limits<double>::max();  //!< maximum value
     double resetLevel = 0;  //!< the amount the value has to go above or below a min or max to
                             //!< be considered reset

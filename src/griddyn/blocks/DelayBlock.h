@@ -6,31 +6,57 @@
 
 #pragma once
 
+/**
+ * @file DelayBlock.h
+ * @brief First-order lag (measurement or transport-delay approximation) block.
+ */
+
 #include "../Block.h"
 #include <string>
 
 namespace griddyn::blocks {
-/** @brief class implementing a delay block
-block implementing \f$H(S)=\frac{K}{1+T_1 s}\f$
-if the time constant is very small it reverts to the basic block
-*/
+/**
+ * @brief First-order lag block.
+ *
+ * This block realizes the proper transfer function
+ * @f[
+ *     H(s)=\frac{K}{1+T_1s}.
+ * @f]
+ * For input @f$u@f$, GridBlock bias @f$b@f$, and differential output state
+ * @f$y@f$, the DAE residual, derivative, and analytic Jacobian use
+ * @f[
+ *     T_1\dot y=K(u+b)-y.
+ * @f]
+ * Thus it is the existing GridDyn first-order lag/transducer primitive; it
+ * does not include a lead numerator time constant.  At an equilibrium,
+ * @f$y=K(u+b)@f$, so desired-output initialization back-solves this relation.
+ *
+ * Parameters `t1` and `t` set @f$T_1@f$; inherited `k`/`gain`, `bias`, and
+ * output-limit parameters retain their GridBlock meanings.  A time constant
+ * below the GridDyn numerical-resolution threshold selects the historical
+ * simplified gain mode.  The solver path continues to use the equation above;
+ * the separate @ref step path uses the legacy local integration routine and is
+ * therefore not an exact sampled-data discretization.
+ */
 class DelayBlock: public GridBlock {
   public:
   protected:
-    model_parameter mT1 = 0.1;  //!< the time constant
+    model_parameter mT1 = 0.1;  //!< Lag denominator time constant @f$T_1@f$.
   public:
-    //!< default constructor
+    /** @brief Construct a unity-gain lag with @f$T_1=0.1@f$. */
     explicit DelayBlock(const std::string& objName = "delayBlock_#");
-    /** alternate constructor to add in the time constant
-@param[in] timeConstant  the time constant
-@param[in] objName the name of the block
-*/
+    /**
+     * @brief Construct a unity-gain lag.
+     * @param[in] timeConstant Lag time constant @f$T_1@f$.
+     * @param[in] objName Name of the block.
+     */
     DelayBlock(double timeConstant, const std::string& objName = "delayBlock_#");
-    /** alternate constructor to add in the time constant
-@param[in] timeConstant  the time constant
-@param[in] gainValue the block gain
-@param[in] objName the name of the object
-*/
+    /**
+     * @brief Construct a lag with explicit gain.
+     * @param[in] timeConstant Lag time constant @f$T_1@f$.
+     * @param[in] gainValue Steady-state gain @f$K@f$.
+     * @param[in] objName Name of the block.
+     */
     DelayBlock(double timeConstant, double gainValue, const std::string& objName = "delayBlock_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 

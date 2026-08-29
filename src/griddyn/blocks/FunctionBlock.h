@@ -11,9 +11,17 @@
 #include <string>
 
 namespace griddyn::blocks {
-/** @brief class implementing a function operation on the input
-a wide assortment of functions are available including trig, logs, and other common math
-operations*/
+/**
+ * @brief Algebraic wrapper around a supported unary or binary math function.
+ *
+ * Unary functions evaluate @f$y=K f(G(u+b))@f$.  Binary functions evaluate
+ * @f$y=K f(G(u+b),a)@f$, where `arg` supplies the constant second argument.
+ * `function` and `func` select the function; an unknown name throws
+ * InvalidParameterValue rather than leaving a null callable.  The analytic
+ * Jacobian is available for supported unary functions.  Binary functions use
+ * the function interpreter's two-argument behavior and should be selected
+ * only when its derivative contract is suitable for the containing model.
+ */
 class FunctionBlock: public GridBlock {
   public:
     //!< flags for function block

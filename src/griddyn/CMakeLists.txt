@@ -168,6 +168,7 @@ set(block_sources
     blocks/DerivativeBlock.cpp
     blocks/FunctionBlock.cpp
     blocks/LutBlock.cpp
+    blocks/LeadLagBlock.cpp
     blocks/TransferFunctionBlock.cpp
     blocks/FilteredDerivativeBlock.cpp
     blocks/BlockSequence.cpp

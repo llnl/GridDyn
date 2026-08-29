@@ -10,9 +10,16 @@
 #include <string>
 
 namespace griddyn::blocks {
-/** @brief class implementing an integral block
-computes the integral of the input
-*/
+/**
+ * @brief Differential integrator with optional GridBlock limits.
+ *
+ * For output state @f$y@f$, the governing equation is
+ * @f$\dot y=K(u+b)@f$.  `iv`/`initial_value` specifies the state used when
+ * no desired output is supplied; `t` is accepted as an inverse gain, setting
+ * @f$K=1/t@f$.  Inherited value and ramp limits use GridBlock's root and
+ * anti-windup behavior.  The local stepping path uses trapezoidal input
+ * integration.
+ */
 class IntegralBlock: public GridBlock {
   public:
   protected:

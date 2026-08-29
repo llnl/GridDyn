@@ -8,12 +8,19 @@
 
 #include <limits>
 namespace griddyn::blocks {
-/** class that limits the rate of change of a value between an upper and lower limit and
- * maintains state of whether it is clamping or not
+/**
+ * @brief Stateful rate limiter used by dynamic control blocks.
+ *
+ * For requested rate @f$r@f$, the limiting law is
+ * @f$\hat r=\min(\max(r,r_{min}),r_{max})@f$.  Unlike the stateless
+ * @ref clampOutputRamp helper, @ref output and @ref deriv retain engagement
+ * state.  While engaged their input derivative is zero, providing the Jacobian
+ * behavior needed for root-based anti-windup.  `resetLevel` supplies the
+ * hysteresis margin used before a held limiter releases.
  */
 class RampLimiter {
   private:
-    double minRamp = std::numeric_limits<double>::min();  //!< the minimum ramp
+    double minRamp = std::numeric_limits<double>::lowest();  //!< the minimum ramp
     double maxRamp = std::numeric_limits<double>::max();  //!< the maximum ramp to allow
     double resetLevel =
         0.0;  //!< the level by which an input ramp has to be below the limits to reset

@@ -11,7 +11,13 @@
 #include <vector>
 
 namespace griddyn::blocks {
-/** @brief class defining a null block  meaning input==output
+/**
+ * @brief Identity/pass-through block with no solver states or roots.
+ *
+ * The block implements @f$y=u@f$ and, when configured with a differential
+ * input, passes its input derivative through as well.  It deliberately has no
+ * GridBlock gain, bias, limiter, power-flow, or dynamic operations.  It is a
+ * programmatic composition helper and is intentionally not factory-registered.
  */
 class NullBlock final: public GridBlock {
   public:

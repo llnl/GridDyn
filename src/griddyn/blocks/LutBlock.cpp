@@ -198,10 +198,10 @@ LutBlock::LookupResult LutBlock::evaluate(double input) const
 {
     validateTable(lut);
     if (lut.size() == 1 || input <= lut.front().first) {
-        return {lut.front().second, 0.0};
+        return {.value = lut.front().second, .slope = 0.0};
     }
     if (input >= lut.back().first) {
-        return {lut.back().second, 0.0};
+        return {.value = lut.back().second, .slope = 0.0};
     }
 
     const auto upper =
@@ -210,7 +210,7 @@ LutBlock::LookupResult LutBlock::evaluate(double input) const
         });
     const auto lower = std::prev(upper);
     const double slope = (upper->second - lower->second) / (upper->first - lower->first);
-    return {lower->second + ((input - lower->first) * slope), slope};
+    return {.value = lower->second + ((input - lower->first) * slope), .slope = slope};
 }
 
 double LutBlock::inverseValue(double value) const

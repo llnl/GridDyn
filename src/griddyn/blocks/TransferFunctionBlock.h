@@ -90,9 +90,9 @@ are 0
                                        double didt,
                                        const StateData& stateDataValue,
                                        MatrixData<double>& matrixDataValue,
-                                       index_t argLoc,
+                                       index_t inputLocation,
                                        const SolverMode& sMode) override;
-    virtual double step(CoreTime time, double inputA) override;
+    virtual double step(CoreTime time, double inputValue) override;
     virtual stringVec localStateNames() const override;
 
     /**

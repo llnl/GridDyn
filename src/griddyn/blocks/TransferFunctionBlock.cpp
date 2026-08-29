@@ -289,7 +289,7 @@ void TransferFunctionBlock::blockJacobianElements(double /*input*/,
                 for (index_t column = 0; column < stateCount; ++column) {
                     matrixData.assign(row,
                                       locations.diffOffset + column,
-                                      -a[column] / denominatorScale -
+                                      (-a[column] / denominatorScale) -
                                           ((column == index) ? stateData.cj : 0.0));
                 }
                 matrixData.assignCheckCol(row, inputLocation, 1.0);
@@ -334,7 +334,13 @@ double TransferFunctionBlock::step(CoreTime time, double inputValue)
     const double timeStep = time - prevTime;
     if ((stateCount > 0) && (timeStep > 0.0)) {
         const double halfStep = timeStep / 2.0;
-        std::vector<double> systemMatrix(stateCount * stateCount, 0.0);
+        const auto matrixIndex = [stateCount](index_t row, index_t column) {
+            return (static_cast<size_t>(row) * static_cast<size_t>(stateCount)) +
+                static_cast<size_t>(column);
+        };
+        std::vector<double> systemMatrix(static_cast<size_t>(stateCount) *
+                                             static_cast<size_t>(stateCount),
+                                         0.0);
         std::vector<double> rightHandSide(stateCount, 0.0);
         const double denominatorScale = a.back();
         for (index_t row = 0; row < stateCount; ++row) {
@@ -349,7 +355,7 @@ double TransferFunctionBlock::step(CoreTime time, double inputValue)
                 }
                 systemValue -= halfStep * systemEntry;
                 rightHandSide[row] += halfStep * systemEntry * m_state[stateStart + column];
-                systemMatrix[row * stateCount + column] = systemValue;
+                systemMatrix[matrixIndex(row, column)] = systemValue;
             }
             if (row + 1 == stateCount) {
                 rightHandSide[row] += halfStep * (prevInput + input);
@@ -358,27 +364,27 @@ double TransferFunctionBlock::step(CoreTime time, double inputValue)
         for (index_t pivot = 0; pivot < stateCount; ++pivot) {
             index_t pivotRow = pivot;
             for (index_t row = pivot + 1; row < stateCount; ++row) {
-                if (std::abs(systemMatrix[row * stateCount + pivot]) >
-                    std::abs(systemMatrix[pivotRow * stateCount + pivot])) {
+                if (std::abs(systemMatrix[matrixIndex(row, pivot)]) >
+                    std::abs(systemMatrix[matrixIndex(pivotRow, pivot)])) {
                     pivotRow = row;
                 }
             }
-            if (std::abs(systemMatrix[pivotRow * stateCount + pivot]) < kMin_Res) {
+            if (std::abs(systemMatrix[matrixIndex(pivotRow, pivot)]) < kMin_Res) {
                 throw InvalidParameterValue("singular transfer-function timestep matrix");
             }
             if (pivotRow != pivot) {
                 for (index_t column = pivot; column < stateCount; ++column) {
-                    std::swap(systemMatrix[pivot * stateCount + column],
-                              systemMatrix[pivotRow * stateCount + column]);
+                    std::swap(systemMatrix[matrixIndex(pivot, column)],
+                              systemMatrix[matrixIndex(pivotRow, column)]);
                 }
                 std::swap(rightHandSide[pivot], rightHandSide[pivotRow]);
             }
-            const double pivotValue = systemMatrix[pivot * stateCount + pivot];
+            const double pivotValue = systemMatrix[matrixIndex(pivot, pivot)];
             for (index_t row = pivot + 1; row < stateCount; ++row) {
-                const double scale = systemMatrix[row * stateCount + pivot] / pivotValue;
+                const double scale = systemMatrix[matrixIndex(row, pivot)] / pivotValue;
                 for (index_t column = pivot; column < stateCount; ++column) {
-                    systemMatrix[row * stateCount + column] -=
-                        scale * systemMatrix[pivot * stateCount + column];
+                    systemMatrix[matrixIndex(row, column)] -=
+                        scale * systemMatrix[matrixIndex(pivot, column)];
                 }
                 rightHandSide[row] -= scale * rightHandSide[pivot];
             }
@@ -386,9 +392,9 @@ double TransferFunctionBlock::step(CoreTime time, double inputValue)
         for (index_t row = stateCount; row-- > 0;) {
             double value = rightHandSide[row];
             for (index_t column = row + 1; column < stateCount; ++column) {
-                value -= systemMatrix[row * stateCount + column] * m_state[stateStart + column];
+                value -= systemMatrix[matrixIndex(row, column)] * m_state[stateStart + column];
             }
-            m_state[stateStart + row] = value / systemMatrix[row * stateCount + row];
+            m_state[stateStart + row] = value / systemMatrix[matrixIndex(row, row)];
         }
     }
     m_state[rawOutputIndex] = rawOutput(input, m_state.data() + stateStart);

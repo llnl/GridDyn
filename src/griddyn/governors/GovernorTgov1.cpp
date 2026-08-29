@@ -13,6 +13,7 @@
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
+#include <string>
 #include <vector>
 
 namespace griddyn::governors {

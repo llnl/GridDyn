@@ -105,13 +105,17 @@ class LeadLagKernel {
     {
         return (input - outputState + (Ta * inputDerivative)) / Tb;
     }
-    /** @return @f$\partial y/\partial u@f$. */
+    /** @brief Return the output partial derivative with respect to input, @f$\partial y/\partial
+     * u@f$. */
     [[nodiscard]] double outputInputJacobian() const { return K * Ta / Tb; }
-    /** @return @f$\partial y/\partial x@f$. */
+    /** @brief Return the output partial derivative with respect to lag state, @f$\partial
+     * y/\partial x@f$. */
     [[nodiscard]] double outputStateJacobian() const { return K * (1.0 - (Ta / Tb)); }
-    /** @return @f$\partial\dot{x}/\partial u@f$. */
+    /** @brief Return the lag-state derivative partial with respect to input,
+     * @f$\partial\dot{x}/\partial u@f$. */
     [[nodiscard]] double derivativeInputJacobian() const { return 1.0 / Tb; }
-    /** @return @f$\partial\dot{x}/\partial x@f$. */
+    /** @brief Return the lag-state derivative partial with respect to state,
+     * @f$\partial\dot{x}/\partial x@f$. */
     [[nodiscard]] double derivativeStateJacobian() const { return -1.0 / Tb; }
     /** @return the coefficient of @f$\dot u@f$ in the output-state realization. */
     [[nodiscard]] double outputStateInputDerivativeJacobian() const { return Ta / Tb; }

@@ -6,6 +6,7 @@
 
 #include "FunctionBlock.h"
 
+#include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
@@ -161,9 +162,7 @@ void FunctionBlock::setFunction(const std::string& functionName)
         mBinaryFunctionPtr = binaryFunctionPtr;
         opFlags.set(USES_CONSTANT_ARG);
     } else {
-        mFunctionPtr = nullptr;
-        mDerivativeFunctionPtr = nullptr;
-        mBinaryFunctionPtr = nullptr;
+        throw InvalidParameterValue("unknown function block function: " + functionName);
     }
 }
 

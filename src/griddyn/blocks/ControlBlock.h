@@ -10,11 +10,18 @@
 #include <string>
 
 namespace griddyn::blocks {
-/** @brief class implementing a control block
-block implementing \f$H(S)=\frac{K(1+T_2 s}{1+T_1 s}\f$
-default is \f$T_2 =0\f$ for behavior equivalent to a delay block
-if T1 is 0 it behaves like the basic block
-*/
+/**
+ * @brief Legacy first-order lead--lag GridBlock.
+ *
+ * This predates @ref LeadLagBlock and implements
+ * @f$H(s)=K(1+T_2s)/(1+T_1s)@f$.  It owns an intermediate differential
+ * state and exposes an algebraic output.  `t1` is the denominator time
+ * constant and `t2` is the numerator time constant; `t2=0` gives the
+ * first-order lag form.  Inherited GridBlock gain, bias, and limiter settings
+ * apply.  New controller code should prefer @ref LeadLagBlock, whose equation,
+ * initialization contract, and zero-order-hold stepping are documented and
+ * tested explicitly.
+ */
 class ControlBlock: public GridBlock {
   public:
   protected:

@@ -17,6 +17,7 @@
 #include "FilteredDerivativeBlock.h"
 #include "FunctionBlock.h"
 #include "IntegralBlock.h"
+#include "LeadLagBlock.h"
 #include "LutBlock.h"
 #include "NullBlock.h"
 #include "PidBlock.h"

@@ -11,9 +11,22 @@
 #include <vector>
 
 namespace griddyn::blocks {
-/** @brief class implementing a deadband system
-TOBE added
-*/
+/**
+ * @brief Stateful deadband, with optional continuous transition ramps.
+ *
+ * For biased input @f$x=u+b@f$, the normal deadband output is the configured
+ * `level` while @f$x\in[low,high]@f$ and is @f$x@f$ outside that interval.
+ * With the `shifted` flag, the outside branches are offset to meet `level`
+ * continuously at the bounds.  `ramp`, `rampup`, and `rampdown` introduce
+ * linear transition regions instead.  The exposed output is @f$K f(x)@f$ and
+ * inherited GridBlock limits may further clamp it.
+ *
+ * Root events transition among NORMAL, OUTSIDE, SHIFTED, and the two ramp
+ * states.  `reset`, `resethigh`, and `resetlow` provide hysteresis; this is
+ * important for preventing event chatter near a boundary.  `db`/`deadband`
+ * sets symmetric bounds around `level`; `high` and `low` set individual
+ * boundaries.
+ */
 class DeadbandBlock: public GridBlock {
   public:
     /** @brief flags for the deadband block*/

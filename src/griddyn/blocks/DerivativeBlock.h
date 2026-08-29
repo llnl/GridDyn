@@ -10,10 +10,16 @@
 #include <string>
 
 namespace griddyn::blocks {
-/** @brief class implementing a derivative
-block implementing \f$H(S)=\frac{K s}{1+T_1 s}\f$
-if the time constant is very small it reverts to the basic block
-*/
+/**
+ * @brief First-order filtered differentiator.
+ *
+ * The block realizes @f$H(s)=Ks/(1+T_1s)@f$ through a filtered input state
+ * @f$z@f$: @f$T_1\dot z=K(u+b)-z@f$ and exposed output @f$y=\dot z@f$.
+ * Thus its DC output is zero and a constant input initializes the derivative
+ * to zero.  `t1` or `t` sets @f$T_1@f$; inherited `k`/`gain`, `bias`, and
+ * output limits retain their GridBlock meanings.  The solver uses the
+ * analytic residual/Jacobian; local stepping uses the legacy integration path.
+ */
 class DerivativeBlock: public GridBlock {
   protected:
     model_parameter mT1 = 0.1;  //!< delay time constant for the derivative filtering operation

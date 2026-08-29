@@ -5,10 +5,13 @@
  */
 
 #include "../gtestHelper.h"
+#include "core/CoreExceptions.h"
 #include "core/ObjectFactory.hpp"
 #include "gmlc/utilities/TimeSeriesMulti.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Relay.h"
+#include "griddyn/blocks/RampLimiter.h"
+#include "griddyn/blocks/ValueLimiter.h"
 #include "griddyn/blocks/blockLibrary.h"
 #include "griddyn/simulation/Diagnostics.h"
 #include <cstdio>
@@ -209,6 +212,124 @@ TEST_F(BlockTests, DeadbandBlockTest)
     EXPECT_EQ(ret, 0);
 }
 
+TEST_F(BlockTests, TransferFunctionInitializationAndStep)
+{
+    // G(s) = 1 / (1 + s).  The companion state equals the output because
+    // the numerator has no direct feedthrough.
+    TransferFunctionBlock block({1.0, 1.0}, {1.0});
+    block.dynInitializeA(0.0, 0U);
+    IOdata fieldSet;
+    block.dynInitializeB({2.0}, {}, fieldSet);
+    EXPECT_NEAR(fieldSet[0], 2.0, 1e-12);
+    EXPECT_NEAR(block.getBlockOutput(), 2.0, 1e-12);
+
+    // The local stepping path uses an implicit trapezoidal update and treats
+    // successive inputs as a linear interpolation.  The input therefore
+    // ramps from 2 to 0 over this first 0.01 s interval.
+    const double output = block.step(0.01, 0.0);
+    EXPECT_NEAR(output, 2.0 / 1.005, 1e-12);
+
+    // Desired-output initialization back-solves through the finite DC gain.
+    TransferFunctionBlock initializedBlock({2.0, 1.0}, {4.0});
+    initializedBlock.dynInitializeA(0.0, 0U);
+    initializedBlock.dynInitializeB({}, {3.0}, fieldSet);
+    EXPECT_NEAR(fieldSet[0], 1.5, 1e-12);
+    EXPECT_NEAR(initializedBlock.getBlockOutput(), 3.0, 1e-12);
+}
+
+TEST_F(BlockTests, TransferFunctionOutputLimitAndParameterValidation)
+{
+    TransferFunctionBlock limitedBlock({1.0, 1.0}, {1.0});
+    limitedBlock.set("max", 0.5);
+    limitedBlock.set("min", -0.5);
+    limitedBlock.dynInitializeA(0.0, 0U);
+    IOdata fieldSet;
+    limitedBlock.dynInitializeB({2.0}, {}, fieldSet);
+    EXPECT_NEAR(limitedBlock.getBlockOutput(), 0.5, 1e-12);
+    // The output limiter releases when the unbounded companion output returns
+    // within range; it does not freeze the transfer-function state.
+    EXPECT_NEAR(limitedBlock.step(10.0, 0.0), 1.0 / 3.0, 1e-12);
+
+    TransferFunctionBlock invalidBlock;
+    EXPECT_THROW(invalidBlock.set("b", "1,2,3"), InvalidParameterValue);
+    invalidBlock.set("a", "1,0");
+    EXPECT_THROW(invalidBlock.dynInitializeA(0.0, 0U), InvalidParameterValue);
+}
+
+TEST_F(BlockTests, LeadLagKernelAndBlock)
+{
+    // G(s) = 2(1 + 0.5s)/(1 + 2s).  The equilibrium state equals the input.
+    LeadLagKernel kernel(0.5, 2.0, 2.0);
+    EXPECT_TRUE(kernel.isValid());
+    EXPECT_NEAR(kernel.output(3.0, 1.0), 3.0, 1e-12);
+    EXPECT_NEAR(kernel.derivative(3.0, 1.0), 1.0, 1e-12);
+    EXPECT_NEAR(kernel.outputInputJacobian(), 0.5, 1e-12);
+    EXPECT_NEAR(kernel.outputStateJacobian(), 1.5, 1e-12);
+
+    LeadLagBlock block(2.0, 0.5, 2.0);
+    block.dynInitializeA(0.0, 0U);
+    IOdata fieldSet;
+    block.dynInitializeB({3.0}, {}, fieldSet);
+    EXPECT_NEAR(fieldSet[0], 6.0, 1e-12);
+    EXPECT_NEAR(block.getBlockOutput(), 6.0, 1e-12);
+
+    // The lag state has the exact zero-order-hold response in the local-step path.
+    EXPECT_NEAR(block.step(2.0, 1.0), 2.0 + (3.0 / std::exp(1.0)), 1e-12);
+
+    LeadLagBlock invalidBlock;
+    EXPECT_THROW(invalidBlock.set("tb", 0.0), InvalidParameterValue);
+}
+
+TEST_F(BlockTests, LutBlockInterpolationInitializationAndLimits)
+{
+    LutBlock block;
+    block.set("lut", "0,0;1,2;2,2");
+    EXPECT_NEAR(block.computeValue(-1.0), 0.0, 1e-12);
+    EXPECT_NEAR(block.computeValue(0.5), 1.0, 1e-12);
+    EXPECT_NEAR(block.computeValue(1.5), 2.0, 1e-12);
+    EXPECT_NEAR(block.computeValue(3.0), 2.0, 1e-12);
+
+    block.dynInitializeA(0.0, 0U);
+    IOdata fieldSet;
+    block.dynInitializeB({0.5}, {}, fieldSet);
+    EXPECT_NEAR(fieldSet[0], 1.0, 1e-12);
+    EXPECT_NEAR(block.getBlockOutput(), 1.0, 1e-12);
+
+    LutBlock initializedBlock;
+    initializedBlock.set("lut", "0,0;1,2;2,4");
+    initializedBlock.dynInitializeA(0.0, 0U);
+    initializedBlock.dynInitializeB({}, {3.0}, fieldSet);
+    EXPECT_NEAR(fieldSet[0], 1.5, 1e-12);
+    EXPECT_NEAR(initializedBlock.getBlockOutput(), 3.0, 1e-12);
+
+    LutBlock invalidBlock;
+    EXPECT_THROW(invalidBlock.set("lut", "0,0,1"), InvalidParameterValue);
+    EXPECT_THROW(invalidBlock.set("lut", "0,0;0,1"), InvalidParameterValue);
+}
+
+TEST_F(BlockTests, FunctionBlockRejectsUnknownFunction)
+{
+    EXPECT_THROW(FunctionBlock("not_a_function"), InvalidParameterValue);
+
+    FunctionBlock block("sin");
+    EXPECT_THROW(block.set("func", "not_a_function"), InvalidParameterValue);
+    block.dynInitializeA(0.0, 0U);
+    IOdata fieldSet;
+    block.dynInitializeB({0.5}, {}, fieldSet);
+    EXPECT_NEAR(block.getBlockOutput(), std::sin(0.5), 1e-12);
+}
+
+TEST_F(BlockTests, DefaultLimitersDoNotClampNegativeValues)
+{
+    ValueLimiter valueLimiter;
+    EXPECT_NEAR(valueLimiter.clampOutput(-1.0), -1.0, 1e-12);
+    valueLimiter.changeLimitActivation(-1.0);
+    EXPECT_FALSE(valueLimiter.isActive());
+
+    RampLimiter rampLimiter;
+    EXPECT_NEAR(rampLimiter.clampOutputRamp(-1.0), -1.0, 1e-12);
+}
+
 using blockdescpair = std::pair<std::string, std::vector<std::pair<std::string, double>>>;
 
 std::vector<blockdescpair> makeBlockParameterMap()
@@ -227,8 +348,11 @@ std::vector<blockdescpair> makeBlockParameterMap()
           std::make_pair("d", 0.28),
           std::make_pair("t", 0.2)}},
         {"control", {std::make_pair("t1", 0.2), std::make_pair("t2", 0.1)}},
+        {"leadlag", {std::make_pair("tb", 0.2), std::make_pair("ta", 0.1)}},
         {"function", {std::make_pair("gain", kPI), std::make_pair("bias", -0.05)}},
         {"func", {std::make_pair("arg", 2.35)}},
+        {"tf", {}},
+        {"lut", {}},
     };
 }
 
@@ -239,6 +363,8 @@ std::map<std::string, std::vector<std::pair<std::string, std::string>>>
         {"function", {std::make_pair("func", "sin")}},
         {"func", {std::make_pair("func", "pow")}},
         {"db", {std::make_pair("flags", "shifted")}},
+        {"tf", {{"a", "1,3,2"}, {"b", "1"}}},
+        {"lut", {{"lut", "-1,-2;1,2;2,3"}}},
     };
 }
 
@@ -321,7 +447,7 @@ TEST_P(BlockCompareTests, CompareBlockTest)
     EXPECT_EQ(ret, 0);
 }
 
-INSTANTIATE_TEST_SUITE_P(AllBlocks, BlockCompareTests, ::testing::Range(0, 11));
+INSTANTIATE_TEST_SUITE_P(AllBlocks, BlockCompareTests, ::testing::Range(0, 14));
 
 #ifdef GRIDDYN_ENABLE_CVODE
 /** test the control block if they can handle a differential only Jacobian and an algebraic only

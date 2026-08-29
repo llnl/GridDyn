@@ -8,20 +8,45 @@
 
 #include "../Block.h"
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace griddyn::blocks {
-/** @brief lookup table block*/
+/**
+ * @brief Static piecewise-linear lookup-table block.
+ *
+ * Given strictly increasing abscissas @f$x_i@f$ and tabulated values @f$y_i@f$,
+ * this block evaluates
+ * @f[
+ *   y = K f(u + b),
+ * @f]
+ * where @f$f@f$ is linear on each interval @f$[x_i,x_{i+1}]@f$ and is held
+ * at the nearest endpoint outside the table domain.  Its analytic input
+ * Jacobian is @f$K (y_{i+1}-y_i)/(x_{i+1}-x_i)@f$ in an interval and zero
+ * in either endpoint-held region.
+ *
+ * The table may be set with @c lut (replacing all points), @c element
+ * (appending points), or @c file.  A desired-output initialization is
+ * available only for a monotonic table with a finite nonzero gain, since a
+ * non-monotonic table does not have an unambiguous inverse.
+ */
 class LutBlock: public GridBlock {
   public:
   private:
     std::vector<std::pair<double, double>> lut;  //!< the lookup table
-    double b = 0;  //!< the intercept of the interpolation function of the current lookup section
-    double m = 0;  //!< the slope of the interpolation function of the current lookup section
-    double vlower = -kBigNum;  //!< the lower value of the current lookup table section
-    double vupper = kBigNum;  //!< the upper value of the current lookup table section
-    int lindex = -1;  //!< the index of the current lookup table section
-    // NOTE: extra 4 bytes here
+
+    struct LookupResult {
+        double value;
+        double slope;
+    };
+
+    /** @brief Check that a table can be evaluated without ambiguity or division by zero. */
+    static void validateTable(const std::vector<std::pair<double, double>>& table);
+    /** @brief Evaluate the table and its local derivative without mutable solver-side caching. */
+    [[nodiscard]] LookupResult evaluate(double input) const;
+    /** @brief Return the input that produces a table value for monotonic-table initialization. */
+    [[nodiscard]] double inverseValue(double value) const;
+
   public:
     explicit LutBlock(const std::string& objName = "lutBlock_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
@@ -48,6 +73,7 @@ class LutBlock: public GridBlock {
                                        const SolverMode& sMode) override;
     virtual double step(CoreTime time, double input) override;
     // virtual void setTime(CoreTime time){prevTime=time;};
-    double computeValue(double input);
+    /** @brief Return the endpoint-clamped, piecewise-linear table value. */
+    [[nodiscard]] double computeValue(double input) const;
 };
 }  // namespace griddyn::blocks

@@ -57,6 +57,10 @@ void GovernorTgov1::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
         (T1 <= 0.0) || (T3 <= 0.0) || (Pmax < Pmin)) {
         throw InvalidParameterValue("TGOV1 R, T1, T3, or valve limits");
     }
+    // ANDES exposes the turbine output as its state and uses
+    // T3 * pmdot = valve - pm - T2 * valvedot.  This is the output-state
+    // realization of (1 - T2 s)/(1 + T3 s), hence the negative lead time.
+    turbineTransfer.setParameters(-T2, T3);
     GovernorIeeeSimple::dynObjectInitializeA(time0, flags);
 }
 
@@ -108,8 +112,9 @@ void GovernorTgov1::derivative(const IOdata& inputs,
             (-governorState[1] + inputs[govpSetInLocation] - (K * (omega - 1.0))) / T1;
     }
 
-    loc.destDiffLoc[0] =
-        (loc.diffStateLoc[1] - loc.diffStateLoc[0] - (T2 * loc.destDiffLoc[1])) / T3;
+    loc.destDiffLoc[0] = turbineTransfer.outputStateDerivative(governorState[1],
+                                                               governorState[0],
+                                                               loc.destDiffLoc[1]);
 }
 
 void GovernorTgov1::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
@@ -159,8 +164,12 @@ if (opFlags.test (uses_deadband))
 
     if (opFlags[POWER_LIMITED]) {
         matrixData.assign(referenceIndex + 1, referenceIndex + 1, -stateData.cj);
-        matrixData.assign(referenceIndex, referenceIndex, -(1 / T3) - stateData.cj);
-        matrixData.assign(referenceIndex, referenceIndex + 1, 1 / T3);
+        matrixData.assign(referenceIndex,
+                          referenceIndex,
+                          turbineTransfer.derivativeStateJacobian() - stateData.cj);
+        matrixData.assign(referenceIndex,
+                          referenceIndex + 1,
+                          turbineTransfer.derivativeInputJacobian());
     } else {
         matrixData.assignCheckCol(referenceIndex + 1, inputLocs[govpSetInLocation], 1 / T1);
         matrixData.assign(referenceIndex + 1, referenceIndex + 1, -(1 / T1) - stateData.cj);
@@ -168,12 +177,21 @@ if (opFlags.test (uses_deadband))
             matrixData.assign(referenceIndex + 1, inputLocs[govOmegaInLocation], -K / T1);
         }
 
-        matrixData.assign(referenceIndex, referenceIndex + 1, (1 + (T2 / T1)) / T3);
-        matrixData.assignCheckCol(referenceIndex, inputLocs[govpSetInLocation], -T2 / T1 / T3);
+        matrixData.assign(referenceIndex,
+                          referenceIndex + 1,
+                          turbineTransfer.derivativeInputJacobian() -
+                              (turbineTransfer.outputStateInputDerivativeJacobian() / T1));
+        matrixData.assignCheckCol(referenceIndex,
+                                  inputLocs[govpSetInLocation],
+                                  turbineTransfer.outputStateInputDerivativeJacobian() / T1);
         if (linkOmega) {
-            matrixData.assign(referenceIndex, inputLocs[govOmegaInLocation], K * T2 / T1 / T3);
+            matrixData.assign(referenceIndex,
+                              inputLocs[govOmegaInLocation],
+                              -K * turbineTransfer.outputStateInputDerivativeJacobian() / T1);
         }
-        matrixData.assign(referenceIndex, referenceIndex, -(1 / T3) - stateData.cj);
+        matrixData.assign(referenceIndex,
+                          referenceIndex,
+                          turbineTransfer.derivativeStateJacobian() - stateData.cj);
     }
 }
 

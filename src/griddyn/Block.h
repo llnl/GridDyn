@@ -17,15 +17,20 @@ namespace blocks {
     class RampLimiter;
 }  // namespace blocks
 
-/** @brief class implementing basic control system block
- the basic block class takes a single input X  the output is then \f$K*(X+bias)\f$
-optionally implementing limiters Omax and Omin  the limiters have a reset level specified by
-resetLevel once the object is initialized the determination of whether to use the ramps is fixed and
-cannot be changed unless the object is reinitialized directly
-
-the blocks take 1 or 2 inputs the first being the single input,  if the differential input is set
-then the second argument is the time derivative of the input
-*/
+/**
+ * @brief Common single-input/single-output base for dynamic control blocks.
+ *
+ * In its basic algebraic form GridBlock evaluates @f$y=K(u+b)@f$.  Derived
+ * blocks select whether they own an algebraic or differential output/state,
+ * then override the residual, derivative, and analytic Jacobian as needed.
+ * The optional second input is @f$\dot u@f$ when `differential_input` is set.
+ *
+ * Inherited output limits apply a @ref blocks::ValueLimiter; inherited ramp
+ * limits apply a @ref blocks::RampLimiter to a differential output.  Both use
+ * root-triggered engagement and `resetlevel` hysteresis.  State layout and
+ * whether limits are active are fixed during dynamic initialization, so limit
+ * flags must be changed before reinitializing the block.
+ */
 class GridBlock: public GridSubModel {
   public:
     /** @brief flags common for all control blocks

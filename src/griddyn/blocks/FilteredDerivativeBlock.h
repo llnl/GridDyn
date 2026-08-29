@@ -10,10 +10,16 @@
 #include <string>
 
 namespace griddyn::blocks {
-/** @brief class implementing a derivative
-block implementing \f$H(S)=\frac{K s}{1+T_1 s} \frac{1}{1+T_2 s}\f$
-
-*/
+/**
+ * @brief Two-stage filtered differentiator.
+ *
+ * This block realizes @f$H(s)=Ks/[(1+T_1s)(1+T_2s)]@f$.  Its first state is
+ * the output of @f$T_1\dot z=K(u+b)-z@f$; the exposed output follows
+ * @f$T_2\dot y=\dot z-y@f$.  Consequently a constant input has zero
+ * steady-state output.  `t1` sets the pre-derivative filter and `t2` the
+ * output filter.  Inherited output/ramp limits act on the exposed differential
+ * output and use normal GridBlock root handling.
+ */
 class FilteredDerivativeBlock: public GridBlock {
   protected:
     model_parameter mT1 = 0.1;  //!< delay time constant for the derivative filtering operation

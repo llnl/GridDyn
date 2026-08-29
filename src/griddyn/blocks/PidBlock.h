@@ -10,9 +10,17 @@
 #include <string>
 
 namespace griddyn::blocks {
-/** @brief class implementing a PID controller
-the derivative operator has a prefilter operation on it with a time constant T1 and the output has a
-delay of Td*/
+/**
+ * @brief Filtered PID controller with a first-order output stage.
+ *
+ * With error @f$e=u+b@f$, integral state @f$i@f$, derivative-filter state
+ * @f$d@f$, and output state @f$y@f$, the model uses
+ * @f[\dot i=I e,\qquad T_1\dot d=D e-d,\qquad
+ * T_d\dot y=K(Pe+\dot d+i)-y.\f]
+ * The derivative path is omitted when `d` is zero.  Parameters `p`, `i`,
+ * `d`, `t1`, `td`, and `iv`/`initial_value` set the displayed quantities;
+ * inherited GridBlock limits apply to the output state.
+ */
 class PidBlock: public GridBlock {
   public:
   protected:

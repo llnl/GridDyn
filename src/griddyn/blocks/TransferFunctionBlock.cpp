@@ -334,7 +334,9 @@ double TransferFunctionBlock::step(CoreTime time, double inputValue)
     const double timeStep = time - prevTime;
     if ((stateCount > 0) && (timeStep > 0.0)) {
         const double halfStep = timeStep / 2.0;
-        std::vector<double> systemMatrix(static_cast<size_t>(stateCount) * static_cast<size_t>(stateCount), 0.0);
+        std::vector<double> systemMatrix(static_cast<size_t>(stateCount) *
+                                             static_cast<size_t>(stateCount),
+                                         0.0);
         std::vector<double> rightHandSide(stateCount, 0.0);
         const double denominatorScale = a.back();
         for (index_t row = 0; row < stateCount; ++row) {

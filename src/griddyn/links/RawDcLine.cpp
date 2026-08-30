@@ -10,6 +10,7 @@
 #include "utilities/MatrixDataCompact.hpp"
 
 #include <cmath>
+#include <string>
 
 namespace griddyn::links {
 using units::convert;

@@ -7,6 +7,7 @@
 #pragma once
 
 #include "../Link.h"
+#include <string>
 
 namespace griddyn::links {
 

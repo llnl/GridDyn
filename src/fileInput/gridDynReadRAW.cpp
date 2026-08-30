@@ -330,6 +330,50 @@ static GridBus* findBus(std::vector<GridBus*>& busList, const std::string& line)
     return busList[index];
 }
 
+static void readRawBusSection(CoreObject* parentObject,
+                              std::ifstream& file,
+                              std::string& line,
+                              std::vector<GridBus*>& busList,
+                              BasicReaderInfo& opt)
+{
+    while (checkNextLine(file, line)) {
+        const auto pos = line.find_first_of(',');
+        const auto index = numeric_conversion<index_t>(line.substr(0, pos), 0);
+
+        if (std::cmp_greater_equal(index, busList.size())) {
+            if (index < 100000000) {
+                busList.resize((2 * index) + 1, nullptr);
+            } else {
+                std::cerr << "Bus index overload " << index << '\n';
+            }
+        }
+        if (busList[index] == nullptr) {
+            busList[index] = gBusfactory->makeTypeObject();
+            busList[index]->set("basepower", opt.base);
+            busList[index]->setUserID(index);
+
+            rawReadBus(busList[index], line, opt);
+            auto* tobj = parentObject->find(busList[index]->getName());
+            if (tobj == nullptr) {
+                parentObject->add(busList[index]);
+            } else {
+                const auto prevName = busList[index]->getName();
+                busList[index]->setName(prevName + '_' +
+                                        std::to_string(busList[index]->getInt("basevoltage")));
+                try {
+                    parentObject->add(busList[index]);
+                }
+                catch (const ObjectAddFailure&) {
+                    busList[index]->setName(prevName);
+                    addToParentWithRename(busList[index], parentObject);
+                }
+            }
+        } else {
+            std::cerr << "Invalid bus code " << index << '\n';
+        }
+    }
+}
+
 void loadRaw(CoreObject* parentObject,
              const std::string& fileName,
              const BasicReaderInfo& readerOptions)
@@ -344,7 +388,6 @@ void loadRaw(CoreObject* parentObject,
     GridLoad* loadObject;
     Generator* gen;
     GridBus* bus;
-    index_t index;
     size_t pos;
 
     /*load up the factories*/
@@ -416,51 +459,8 @@ void loadRaw(CoreObject* parentObject,
     temp1 = temp1 + '\n' + line;
     // set the case description
     parentObject->setDescription(temp1);
-    // get the bus data section
-    // bus data doesn't have a header but it is always first
-    bool moreData = true;
-    while (moreData) {
-        if (checkNextLine(file, line)) {
-            // get the index
-            pos = line.find_first_of(',');
-            temp1 = line.substr(0, pos);
-            index = numeric_conversion<index_t>(temp1, 0);
-
-            if (std::cmp_greater_equal(index, busList.size())) {
-                if (index < 100000000) {
-                    busList.resize((2 * index) + 1, nullptr);
-                } else {
-                    std::cerr << "Bus index overload " << index << '\n';
-                }
-            }
-            if (busList[index] == nullptr) {
-                busList[index] = gBusfactory->makeTypeObject();
-                busList[index]->set("basepower", opt.base);
-                busList[index]->setUserID(index);
-
-                rawReadBus(busList[index], line, opt);
-                auto* tobj = parentObject->find(busList[index]->getName());
-                if (tobj == nullptr) {
-                    parentObject->add(busList[index]);
-                } else {
-                    auto prevName = busList[index]->getName();
-                    busList[index]->setName(prevName + '_' +
-                                            std::to_string(busList[index]->getInt("basevoltage")));
-                    try {
-                        parentObject->add(busList[index]);
-                    }
-                    catch (const ObjectAddFailure&) {
-                        busList[index]->setName(prevName);
-                        addToParentWithRename(busList[index], parentObject);
-                    }
-                }
-            } else {
-                std::cerr << "Invalid bus code " << index << '\n';
-            }
-        } else {
-            moreData = false;
-        }
-    }
+    // Bus data does not have a header but is always the first section.
+    readRawBusSection(parentObject, file, line, busList, opt);
 
     stringVec txlines;
     txlines.resize(5);
@@ -472,7 +472,7 @@ void loadRaw(CoreObject* parentObject,
 
     while (moreSections) {
         const SectionType currSection = findSectionType(line);
-        moreData = true;
+        bool moreData = true;
         switch (currSection) {
             case SectionType::LOAD:
                 while (moreData) {

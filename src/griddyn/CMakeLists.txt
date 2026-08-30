@@ -220,6 +220,7 @@ set(load_sources
 
 set(link_headers
     links/DcLink.h
+    links/RawDcLine.h
     links/AcDcConverter.h
     links/VSCShunt.h
     links/AdjustableTransformer.h
@@ -237,6 +238,7 @@ set(link_sources
     links/Link.cpp
     links/AdjustableTransformer.cpp
     links/DcLink.cpp
+    links/RawDcLine.cpp
     links/AcDcConverter.cpp
     links/VSCShunt.cpp
     links/Subsystem.cpp

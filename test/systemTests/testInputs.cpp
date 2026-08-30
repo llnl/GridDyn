@@ -9,6 +9,7 @@
 #include "griddyn/GridBus.h"
 #include "griddyn/Link.h"
 #include "griddyn/links/AdjustableTransformer.h"
+#include "griddyn/links/RawDcLine.h"
 #include <array>
 #include <filesystem>
 #include <functional>
@@ -205,6 +206,45 @@ TEST_F(InputTests, TestPowerFlowInputs)
         EXPECT_EQ(vdiff, 0U);
         EXPECT_EQ(adiff, 0U);
     }
+}
+
+TEST_F(InputTests, PssERawDcComponentsImportAsScheduledLinks)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    ASSERT_NO_THROW(loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "psse_dc_components.raw"));
+
+    EXPECT_EQ(gds->getInt("totalbuscount"), 2);
+    // One AC branch plus the two PSS/E DC records.  The imported records use
+    // the scheduled-link compatibility model and do not replace GridDyn's
+    // native DcLink, AcDcConverter, or Hvdc models.
+    ASSERT_EQ(gds->getInt("totallinkcount"), 3);
+    auto* twoTerminal = dynamic_cast<links::RawDcLine*>(gds->getLink(1));
+    auto* vsc = dynamic_cast<links::RawDcLine*>(gds->getLink(2));
+    ASSERT_NE(twoTerminal, nullptr);
+    ASSERT_NE(vsc, nullptr);
+
+    // Match PowerModels' RAW conversion: a mode-1 two-terminal record imports
+    // SETVL as a lossless scheduled transport power, while a VSC record starts
+    // at zero active power and carries its affine loss slope.  Bus 2 is PQ, so
+    // the first DC terminal adds PowerModels' q variable and voltage equality.
+    EXPECT_NEAR(twoTerminal->get("pset", units::MW), 5.0, 1e-9);
+    EXPECT_NEAR(twoTerminal->get("lossfraction"), 0.0, 1e-12);
+    EXPECT_NEAR(vsc->get("pset", units::MW), 0.0, 1e-12);
+    EXPECT_NEAR(vsc->get("lossfraction"), 0.003, 1e-12);
+    EXPECT_EQ(twoTerminal->get("to_voltage_control"), 1.0);
+    EXPECT_EQ(vsc->get("to_voltage_control"), 0.0);
+
+    gds->powerflow();
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
+    // Reference: PowerModels.solve_ac_pf(..., Ipopt.Optimizer) on this RAW
+    // input gives vm=1.0 and va=-0.025284658 rad at bus 2.  Both RAW DC
+    // records touch that bus, so their individual q variables are degenerate
+    // in PowerModels; compare their terminal total instead.
+    EXPECT_NEAR(gds->getBus(1)->getVoltage(), 1.0, 1e-8);
+    EXPECT_NEAR(gds->getBus(1)->getAngle(), -0.025284658, 1e-8);
+    EXPECT_NEAR(twoTerminal->getReactivePower(2) + vsc->getReactivePower(2),
+                -0.0781963933423,
+                1e-7);
 }
 
 struct CompareCase {

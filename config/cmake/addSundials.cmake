@@ -146,6 +146,20 @@ set(SUNDIALS_TEST_ENABLE_UNIT_TESTS OFF CACHE INTERNAL "")
 set(SUNDIALS_TEST_ENABLE_DIFF_OUTPUT OFF CACHE INTERNAL "")
 set(SUNDIALS_TEST_ANSWER_DIR "" CACHE INTERNAL "")
 
+# SUNDIALS defaults this Podman-specific argument even when it discovers and
+# uses Docker.  Docker rejects --tls-verify, so clear the optional container
+# arguments before SUNDIALS creates its local-CI helper targets.  GridDyn does
+# not use those targets for its normal build or test flow.
+set(SUNDIALS_TEST_CONTAINER_RUN_EXTRA_ARGS
+    ""
+    CACHE STRING "Extra arguments to pass to Docker/Podman for SUNDIALS local CI targets" FORCE
+)
+
+option(GRIDDYN_ENABLE_SUNDIALS_LOCAL_CI
+       "Include SUNDIALS Docker/Podman local-CI helper targets in the Visual Studio solution build"
+       OFF
+)
+
 if(${PROJECT_NAME}_ENABLE_OPENMP_SUNDIALS)
     set(SUNDIALS_ENABLE_OPENMP ON CACHE INTERNAL "")
 endif()
@@ -165,6 +179,32 @@ if(NOT MSVC)
 endif()
 
 add_subdirectory("${sundials_SOURCE_DIR}" "${sundials_BINARY_DIR}")
+
+# SUNDIALS creates these developer-only targets whenever Docker or Podman is
+# discovered.  They are not part of GridDyn's test suite and must not start a
+# container as a side effect of Visual Studio's Build Solution command.
+if(NOT GRIDDYN_ENABLE_SUNDIALS_LOCAL_CI)
+    string(TOLOWER "${SUNDIALS_PRECISION}" _griddyn_sundials_precision)
+    foreach(_griddyn_sundials_local_ci_target
+            setup_local_ci
+            test_local_ci
+            setup_local_ci_${SUNDIALS_INDEX_SIZE}_${_griddyn_sundials_precision}
+            test_local_ci_${SUNDIALS_INDEX_SIZE}_${_griddyn_sundials_precision}
+    )
+        if(TARGET ${_griddyn_sundials_local_ci_target})
+            set_property(
+                TARGET ${_griddyn_sundials_local_ci_target}
+                PROPERTY EXCLUDE_FROM_DEFAULT_BUILD TRUE
+            )
+            set_property(
+                TARGET ${_griddyn_sundials_local_ci_target}
+                PROPERTY EXCLUDE_FROM_ALL TRUE
+            )
+        endif()
+    endforeach()
+    unset(_griddyn_sundials_precision)
+    unset(_griddyn_sundials_local_ci_target)
+endif()
 
 if(NOT MSVC)
     set(CMAKE_C_FLAGS "${_griddyn_saved_c_flags}")

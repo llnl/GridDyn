@@ -146,12 +146,10 @@ set(SUNDIALS_TEST_ENABLE_UNIT_TESTS OFF CACHE INTERNAL "")
 set(SUNDIALS_TEST_ENABLE_DIFF_OUTPUT OFF CACHE INTERNAL "")
 set(SUNDIALS_TEST_ANSWER_DIR "" CACHE INTERNAL "")
 
-# SUNDIALS defaults this Podman-specific argument even when it discovers and
-# uses Docker.  Docker rejects --tls-verify, so clear the optional container
-# arguments before SUNDIALS creates its local-CI helper targets.  GridDyn does
-# not use those targets for its normal build or test flow.
-set(SUNDIALS_TEST_CONTAINER_RUN_EXTRA_ARGS
-    ""
+# SUNDIALS defaults this Podman-specific argument even when it discovers and uses Docker.  Docker
+# rejects --tls-verify, so clear the optional container arguments before SUNDIALS creates its
+# local-CI helper targets.  GridDyn does not use those targets for its normal build or test flow.
+set(SUNDIALS_TEST_CONTAINER_RUN_EXTRA_ARGS ""
     CACHE STRING "Extra arguments to pass to Docker/Podman for SUNDIALS local CI targets" FORCE
 )
 
@@ -180,26 +178,22 @@ endif()
 
 add_subdirectory("${sundials_SOURCE_DIR}" "${sundials_BINARY_DIR}")
 
-# SUNDIALS creates these developer-only targets whenever Docker or Podman is
-# discovered.  They are not part of GridDyn's test suite and must not start a
-# container as a side effect of Visual Studio's Build Solution command.
+# SUNDIALS creates these developer-only targets whenever Docker or Podman is discovered.  They are
+# not part of GridDyn's test suite and must not start a container as a side effect of Visual
+# Studio's Build Solution command.
 if(NOT GRIDDYN_ENABLE_SUNDIALS_LOCAL_CI)
     string(TOLOWER "${SUNDIALS_PRECISION}" _griddyn_sundials_precision)
     foreach(_griddyn_sundials_local_ci_target
-            setup_local_ci
-            test_local_ci
+            setup_local_ci test_local_ci
             setup_local_ci_${SUNDIALS_INDEX_SIZE}_${_griddyn_sundials_precision}
             test_local_ci_${SUNDIALS_INDEX_SIZE}_${_griddyn_sundials_precision}
     )
         if(TARGET ${_griddyn_sundials_local_ci_target})
             set_property(
-                TARGET ${_griddyn_sundials_local_ci_target}
-                PROPERTY EXCLUDE_FROM_DEFAULT_BUILD TRUE
+                TARGET ${_griddyn_sundials_local_ci_target} PROPERTY EXCLUDE_FROM_DEFAULT_BUILD
+                                                                     TRUE
             )
-            set_property(
-                TARGET ${_griddyn_sundials_local_ci_target}
-                PROPERTY EXCLUDE_FROM_ALL TRUE
-            )
+            set_property(TARGET ${_griddyn_sundials_local_ci_target} PROPERTY EXCLUDE_FROM_ALL TRUE)
         endif()
     endforeach()
     unset(_griddyn_sundials_precision)

@@ -8,7 +8,6 @@
 
 #include "../GridBus.h"
 #include "utilities/MatrixDataCompact.hpp"
-
 #include <cmath>
 #include <string>
 
@@ -87,8 +86,8 @@ StateSizes RawDcLine::localStateSizes(const SolverMode& sMode) const
 {
     StateSizes sizes;
     if (hasAlgebraic(sMode) && isConnected()) {
-        sizes.algSize = static_cast<count_t>(controlFromVoltage) +
-            static_cast<count_t>(controlToVoltage);
+        sizes.algSize =
+            static_cast<count_t>(controlFromVoltage) + static_cast<count_t>(controlToVoltage);
     }
     return sizes;
 }

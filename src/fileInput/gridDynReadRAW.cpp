@@ -15,7 +15,6 @@
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/Link.h"
 #include "griddyn/Load.h"
-#include "griddyn/primary/AcBus.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/links/AdjustableTransformer.h"
 #include "griddyn/links/RawDcLine.h"
@@ -686,21 +685,21 @@ static double rawDcField(const stringVector& record, size_t index);
  * and converter models.
  */
 static links::RawDcLine* addRawDcCompatibilityLink(CoreObject* parentObject,
-                                                    GridBus* fromBus,
-                                                    GridBus* toBus,
-                                                    index_t sequence,
-                                                    double scheduledPower,
-                                                    double lossFraction,
-                                                    double rating,
-                                                    bool enabled,
-                                                    double fromVoltageTarget,
-                                                    double toVoltageTarget,
-                                                    bool controlFromVoltage,
-                                                    bool controlToVoltage,
-                                                    const std::string& description)
+                                                   GridBus* fromBus,
+                                                   GridBus* toBus,
+                                                   index_t sequence,
+                                                   double scheduledPower,
+                                                   double lossFraction,
+                                                   double rating,
+                                                   bool enabled,
+                                                   double fromVoltageTarget,
+                                                   double toVoltageTarget,
+                                                   bool controlFromVoltage,
+                                                   bool controlToVoltage,
+                                                   const std::string& description)
 {
-    auto* link = new links::RawDcLine(parentObject->getName() + "_psse_dc_" +
-                                      std::to_string(sequence));
+    auto* link =
+        new links::RawDcLine(parentObject->getName() + "_psse_dc_" + std::to_string(sequence));
     link->setDescription(description);
     link->updateBus(fromBus, 1);
     link->updateBus(toBus, 2);
@@ -802,11 +801,10 @@ static void rawReadTwoTerminalDc(CoreObject* parentObject,
         toVoltageTarget,
         rawDcUseVoltageControl(fromBus, fromBusNumber, voltageControlledBuses),
         rawDcUseVoltageControl(toBus, toBusNumber, voltageControlledBuses),
-        "PSS/E RAW two-terminal DC compatibility import; name='" + name + "', MDC=" +
-            std::to_string(mdc) + ", RDC=" + std::to_string(resistance) + ", SETVL=" +
-            std::to_string(setvl) + ", VSCHD=" + std::to_string(vschd) + ", qminf=" +
-            std::to_string(fromQmin) + ", qmaxf=0, qmint=" + std::to_string(toQmin) +
-            ", qmaxt=0");
+        "PSS/E RAW two-terminal DC compatibility import; name='" + name +
+            "', MDC=" + std::to_string(mdc) + ", RDC=" + std::to_string(resistance) +
+            ", SETVL=" + std::to_string(setvl) + ", VSCHD=" + std::to_string(vschd) + ", qminf=" +
+            std::to_string(fromQmin) + ", qmaxf=0, qmint=" + std::to_string(toQmin) + ", qmaxt=0");
 }
 
 static double rawDcField(const stringVector& record, size_t index)
@@ -856,21 +854,16 @@ static void rawReadVscDc(CoreObject* parentObject,
     const auto toType = numeric_conversion<int>(toConverter[1], 0);
     const auto name = std::string(trim(removeQuotes(header[0])));
     const auto resistance = numeric_conversion<double>(header[2], 0.0);
-    const auto loss0 =
-        (rawDcField(fromConverter, 5) + rawDcField(toConverter, 5) + rawDcField(fromConverter, 7) +
-         rawDcField(toConverter, 7)) *
+    const auto loss0 = (rawDcField(fromConverter, 5) + rawDcField(toConverter, 5) +
+                        rawDcField(fromConverter, 7) + rawDcField(toConverter, 7)) *
         1e-3;
     const auto loss1 = (rawDcField(fromConverter, 6) + rawDcField(toConverter, 6)) * 1e-3;
     const auto rating =
         std::max(rawVscTransferLimit(fromConverter), rawVscTransferLimit(toConverter));
     const auto fromVoltageTarget =
-        (rawDcField(fromConverter, 2) == 1.0) ?
-        rawDcField(fromConverter, 4) :
-        1.0;
+        (rawDcField(fromConverter, 2) == 1.0) ? rawDcField(fromConverter, 4) : 1.0;
     const auto toVoltageTarget =
-        (rawDcField(toConverter, 2) == 1.0) ?
-        rawDcField(toConverter, 4) :
-        1.0;
+        (rawDcField(toConverter, 2) == 1.0) ? rawDcField(toConverter, 4) : 1.0;
 
     // PowerModels initializes VSC RAW dclines at zero active and reactive flow.
     // Retain its loss and limit data in the description while preserving that
@@ -889,13 +882,13 @@ static void rawReadVscDc(CoreObject* parentObject,
         toVoltageTarget,
         rawDcUseVoltageControl(fromBus, fromBusNumber, voltageControlledBuses),
         rawDcUseVoltageControl(toBus, toBusNumber, voltageControlledBuses),
-        "PSS/E RAW VSC DC compatibility import; name='" + name + "', MDC=" +
-            std::to_string(mdc) + ", RDC=" + std::to_string(resistance) + ", loss0=" +
-            std::to_string(loss0) + ", loss1=" + std::to_string(loss1) + ", qminf=" +
-            std::to_string(rawDcField(fromConverter, 12)) + ", qmaxf=" +
-            std::to_string(rawDcField(fromConverter, 11)) + ", qmint=" +
-            std::to_string(rawDcField(toConverter, 12)) + ", qmaxt=" +
-            std::to_string(rawDcField(toConverter, 11)));
+        "PSS/E RAW VSC DC compatibility import; name='" + name + "', MDC=" + std::to_string(mdc) +
+            ", RDC=" + std::to_string(resistance) + ", loss0=" + std::to_string(loss0) +
+            ", loss1=" + std::to_string(loss1) +
+            ", qminf=" + std::to_string(rawDcField(fromConverter, 12)) +
+            ", qmaxf=" + std::to_string(rawDcField(fromConverter, 11)) +
+            ", qmint=" + std::to_string(rawDcField(toConverter, 12)) +
+            ", qmaxt=" + std::to_string(rawDcField(toConverter, 11)));
 }
 
 static int getPSSversion(const std::string& line)

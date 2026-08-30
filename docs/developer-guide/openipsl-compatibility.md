@@ -35,10 +35,39 @@ No row is currently *validated against OpenIPSL*. Existing ANDES/PSSE DYR refere
 | Order | Deliverable | Why it comes first |
 | --- | --- | --- |
 | 1 | P0 synchronous-machine and basic-control reference suite | Establishes conventions for bases, dq signs, initialization, limits, and event comparison. |
-| 2 | P1 PSS/e machine, governor, exciter, and induction-motor gaps | Extends conventional-transmission dynamic studies without changing GridDyn's network abstraction. |
-| 3 | P1 WECC renewable foundation: `REGCA1` + `REECA1/REECB1` + `REPCA1` | A composable inverter/current-limit/plant-control interface enables the highest-value modern generation models. |
-| 4 | P2 specialized controls, FACTS, wind/PV detail, and dynamic load behavior | Builds on the validated controller and converter interfaces. |
+| 2 | P1 synthetic-case conventional gaps: `GGOV1`, `ESST4B`, `GENSAL`, `HYGOV`, `IEEET1`, and `SCRX` | These source-backed models account for 26,519 missing records across the supplied ACTIVSg and Texas7k cases. |
+| 3 | P1 renewable foundation and Type-3 wind bundle | `REGCA1` + `REECA1/REECB1` + `REPCA1` is needed by the synthetic cases; `WT3G1`/`WT3E1`/`WT3P1`/`WT3T1` must be treated as one coupled system. |
+| 4 | P2 source gaps and specialized controls | Implement exact `EXPIC1` and `ESAC6A` only after the P1 cases; no exact implementation was found in the assessed OpenIPSL, ANDES, or PowerDynamics sources. |
 | 5 | P3 three-phase, mono/tri, and VSD models | Requires an unbalanced multi-conductor network and is not a direct extension of GridDyn's present positive-sequence dynamic path. |
+
+## Synthetic-case demand overlay
+
+The P1/P2 ordering above is adjusted using the dynamic-model inventories in
+[the ACTIVSg plan](activsg-dyr-compatibility-plan.md) and the Texas7k demand
+section of [the ANDES roadmap](andes-compatibility.md). Counts below are the
+sum of the five ACTIVSg cases and Texas7k, where a Texas7k record exists. An
+external source means an equation-level model is available for audit or port;
+it does **not** mean that GridDyn support is complete or that similarly named
+models are interchangeable.
+
+| Demand group | Synthetic-case records | Exact external source(s) | Revised priority / action |
+| --- | ---: | --- | --- |
+| `GGOV1` | 6,977 | OpenIPSL; PowerDynamics (experimental); ANDES inventory | **P1.** Port from the OpenIPSL equations; use PowerDynamics only as a design aid because its `GGOV1` reference documents known issues. |
+| `ESST4B` | 5,949 | OpenIPSL; PowerDynamics | **P1.** Port and validate with the existing PowerDynamics/OpenIPSL reference path. |
+| `GENSAL` + `HYGOV` | 4,312 + 4,351 | OpenIPSL; PowerDynamics; ANDES inventory | **P1.** Implement the salient-pole machine before attaching the hydro governor. |
+| `IEEET1` + `SCRX` | 3,105 + 1,825 | OpenIPSL; PowerDynamics; ANDES inventory | **P1.** Audit the existing GridDyn Type-1 candidate, then add `SCRX` as a distinct exciter. |
+| `REGCA1` + `REECA1` + `REPCA1` | 1,374 + 1,367 + 174 | OpenIPSL; ANDES inventory | **P1.** Deliver the converter, electrical control, and plant-control chain together. |
+| Type-3 wind: `WT3G1` + `WT3E1` + `WT3P1` + `WT3T1` | 695 each | `WT3G1`/`WT3E1`: OpenIPSL; `WT3P1`/`WT3T1`: no exact source found | **P1.** Do not ship a partial Type-3 mapping; port or derive the missing pitch/turbine equations as part of the same system. |
+| Texas WECC wind: `WTARA1`, `WTTQA1`, `WTPTA1` | 121 + 121 + 105 | ANDES inventory only | **P2.** Use the ANDES equations as the starting reference after the P1 renewable interface is in place. |
+| `EXPIC1` + `ESAC6A` | 1,156 + 813 | No exact source found | **P2 source gap.** ANDES's `SEXS` conversions are documented approximations; obtain or derive exact equations before implementing. |
+| `ESAC1A` + `ESDC2A` + `GAST` | 718 + 397 + 30 | OpenIPSL (`ESAC1A`/`ESDC2A`/`GAST`); ANDES inventory for `ESDC2A`/`GAST` | **P2.** Port only after the shared exciter/governor interfaces are proven by P1 work. |
+| `USRBUS`/`USRMDL` (`PLNTBU1`, `REAX3BU1`, `REAX4BU1`) | 21 Texas7k records | None; vendor/user-written models | **Blocked external dependency.** DYR parameters are insufficient; obtain the compiled-model equations or an approved equivalent. |
+
+The models with no exact source across the assessed libraries are therefore
+`EXPIC1`, `ESAC6A`, `WT3P1`, and `WT3T1`, plus the Texas7k user-written model
+records. `WT3P1` and `WT3T1` are P1 despite that gap because the synthetic
+cases require the complete Type-3 wind system; `EXPIC1` and `ESAC6A` remain P2
+because their demand is lower and no exact equation source is presently known.
 
 ## 1. Synchronous machines and induction motors
 
@@ -64,7 +93,8 @@ No row is currently *validated against OpenIPSL*. Existing ANDES/PSSE DYR refere
 | `Controls.PSSE.ES.IEEET1`, `IEEET2` | `ExciterIEEEtype1`, `ExciterIEEEtype2` | **P1 — Existing candidates** | GridDyn's generic class names need model-specific equation and limiter audits. |
 | `Controls.CGMES.ES.ExcSEXS` | `ExciterSEXS` | **P1 — Existing candidate** | Validate the CGMES signal and parameter conventions separately from the PSS/e wrapper. |
 | `Controls.PSSE.ES.AC7B`, `AC8B`, `DC4B`, `ESST1A`, `ESST2A`, `ESST4B`, `ESAC1A`, `ESAC2A` | No exact models | **P1 — New models** | Prioritize the models required by target PSS/e cases. They require explicit limiter/root treatment and a reusable exciter block library. |
-| `Controls.PSSE.ES.IEEEX1`, `SCRX`, `ST5B`, `URST5T`, `EXNI`, `EXBAS`, `ESURRY` | No exact models | **P2 — New models** | Add after the common AC/DC exciter blocks are established. |
+| `Controls.PSSE.ES.IEEEX1`, `SCRX`, `ST5B`, `URST5T`, `EXNI`, `EXBAS`, `ESURRY` | No exact models | **P2, except `SCRX` P1 — New models** | `SCRX` is a P1 synthetic-case gap with an OpenIPSL/PowerDynamics reference; add the other models after the common AC/DC exciter blocks are established. |
+| PSS/e `EXPIC1`, `ESAC6A` | No exact model in OpenIPSL, ANDES, or PowerDynamics | **P2 — Source gaps** | Do not use ANDES's documented approximate `SEXS` conversion as exact support. Obtain or derive the model equations before porting. |
 | `Controls.PSSE.OEL.OEL`, `Controls.PSSE.UEL.MNLEX2`, `Controls.PSSE.COMP.IEEEVC` | No exact analogue | **P1 — Structural extension** | Add field-current/under-excitation and terminal-current-compensation input paths to the exciter interface; then port the model-specific limits. |
 | PSAT `AVRTypeI/II/III`, `OEL`, `FieldCurrent`; Simulink excitation/OEL blocks | Existing exciters are only candidates | **P2 — Existing candidates / new blocks** | Treat the PSAT and Simulink families as separate equations, not aliases of PSS/e names. |
 
@@ -76,7 +106,7 @@ No row is currently *validated against OpenIPSL*. Existing ANDES/PSSE DYR refere
 | `Controls.PSSE.TG.IEEEG1` | `GovernorIeeeG1` | **P0 — Existing candidate** | Compare lead/lag ordering, turbine fractions, rate/position limits, and multi-machine attachment. |
 | `Controls.PSSE.PSS.IEEEST` | `StabilizerIEEEST` | **P0 — Existing candidate** | Test zero-time-constant bypasses, filters, lead-lag states, and output limits. |
 | `Controls.PSSE.TG.HYGOV`, `IEESGO` | `GovernorHydro`, `GovernorReheat` are candidates | **P1 — Existing candidates** | Perform an equation, water-column/reheat, limit, and parameter-unit audit before reuse. |
-| `Controls.PSSE.TG.GAST`, `GGOV1`, `GGOV1DU`, `DEGOV`, `IEEEG2`, `WEHGOV`, `WPIDHY`, `WSIEG1` | No exact models | **P1/P2 — New models** | Start with `GAST` and `GGOV1` (**P1**) if common PSS/e cases require them. The remaining engine/wind/hydro variants are **P2** after reusable governor limit and mode-selector blocks exist. |
+| `Controls.PSSE.TG.GAST`, `GGOV1`, `GGOV1DU`, `DEGOV`, `IEEEG2`, `WEHGOV`, `WPIDHY`, `WSIEG1` | No exact models | **`GGOV1` P1; remainder P2 — New models** | `GGOV1` is the largest synthetic-case gap (6,977 records) and has OpenIPSL/experimental-PowerDynamics references. `GAST` and the remaining engine/wind/hydro variants are P2 after reusable governor limit and mode-selector blocks exist. |
 | `Controls.PSSE.TG.ConstantPower`; PSAT `TGTypeI–VI`; CGMES `GovHydroIEEE0`; Simulink TG blocks | Basic/reheat/hydro classes are candidates | **P2 — Existing candidates / new models** | Establish whether a GridDyn governor can expose the reference and mechanical-power ports required by each family. |
 | `Controls.PSSE.PSS.PSS2A`, `PSS2B`, `IEE2ST`, `STAB2A`, `STAB3`, `STABNI`, `STBSVC` | No exact model | **P2 — New models** | Add dual/remote measurement inputs, filters, mode selection, and signal routing. |
 | PSAT `PSSTypeI/II/III`; Simulink PSS; `DisabledPSS` | `StabilizerIEEEST` / `StabilizerST2CUT` are only candidates | **P2 — Existing candidates / new blocks** | Keep the source-family semantics explicit. `DisabledPSS` is mainly a plant-assembly behavior. |
@@ -93,7 +123,7 @@ This is the principal new high-value OpenIPSL family. GridDyn's `GenModelInverte
 | `Renewables.PSSE.Wind`, `PV`, `BESS` | No exact model | **P1 — Structural extension** | Compose `REGCA1` + `REEC*` + `REPCA1` into attachable plant templates. BESS additionally needs energy/state-of-charge semantics before it is a complete storage model. |
 | `Renewables.PSSE.WindDriveTrain.WTDTA1` | No exact model | **P2 — New model** | Add after the renewable plant electrical interface; model shaft/torsional states and mechanical-power connection. |
 | `Renewables.PSSE.AddOnBlocks.IrradianceToPower` | `FileLoad`-like signal sources only | **P2 — Structural extension** | Define time-series/irradiance input policy and clipping before adding PV availability behavior. |
-| `Wind.PSSE.WT3G*`, `WT4G*`; PSAT type-3; GE type-3 | No exact model | **P2 — New model families** | Port only after the generic renewable controller foundation. Prefer mapping each vendor/standard block to the reusable components instead of a monolithic generator class. |
+| `Wind.PSSE.WT3G*`, `WT4G*`; PSAT type-3; GE type-3 | No exact model | **Type-3 PSS/e system P1; remainder P2 — New model families** | `WT3G1`/`WT3E1`/`WT3P1`/`WT3T1` are required by ACTIVSg and must be implemented as one coupled P1 system after the renewable controller foundation. Keep other vendor/standard families P2 and map them to reusable components rather than a monolithic generator class. |
 | PSAT constant-PQ PV; PowerFactory WECC `PVD1`; PowerFactory DIgSILENT PV plant/array/control models | No exact model | **P2 — New model families** | Use as validation/extension targets after the `REGC/REEC/REPCA` path. Detailed PV-array/DC-link models may be outside phasor-time-domain scope. |
 | `VSD.Generic.AC2DCandDC2AC`, `VoltsHertzController` | No exact model | **P3 — Structural extension** | Cross-domain power-electronics models require a justified phasor/DC coupling contract and may be better isolated through FMI first. |
 

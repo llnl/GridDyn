@@ -108,20 +108,32 @@ is required before accepting the power flow or initializing the DYR.
 
 ## Implementation order
 
+The cross-case source availability and P1/P2 ranking is maintained in the
+[OpenIPSL dynamic-model assessment](openipsl-compatibility.md#synthetic-case-demand-overlay).
+That overlay distinguishes models that can be ported from an inspected
+OpenIPSL/ANDES/PowerDynamics implementation from source gaps that require
+equations before implementation.
+
 1. **Power-flow prerequisites:** resolve the remaining ACTIVSg2000
    control-device parity difference, add grouped PSS/E remote-voltage
    regulation, and investigate the ACTIVSg25k RAW-versus-MATPOWER source-state
    mismatch. ACTIVSg10k RAW/EPC three-winding topology is validated.
-2. **Machine and governor coverage:** implement `GENSAL`, `GGOV1`, `HYGOV`,
-   and `GAST`. These cover 15,151 unsupported records and unblock many of
-   their attached excitation/control models.
-3. **Largest synchronous-excitation gap:** implement `ESST4B`, `IEEET1`,
-   `SCRX`, and `EXPIC1` (11,578 records).
-4. **Renewable generation:** implement and validate `REGCA1` plus `REECA1`,
-   then the coupled `WT3G1`/`WT3E1`/`WT3P1`/`WT3T1` Type-3 system (5,150
-   records).
-5. **Remaining excitation families:** `ESDC2A`, `ESAC6A`, and `ESAC1A`
-   (1,919 records).
+2. **P1 conventional machine/governor foundation:** implement `GENSAL`,
+   `HYGOV`, and `GGOV1`. These high-demand models have external equation
+   sources; `GGOV1` is the largest missing family and its PowerDynamics port
+   is experimental, so use OpenIPSL as the equation authority.
+3. **P1 synchronous excitation:** implement `ESST4B`, `IEEET1`, and `SCRX`
+   from the available OpenIPSL/PowerDynamics references. Defer `EXPIC1` to P2
+   because no exact source was found; ANDES's `SEXS` conversion is only an
+   approximation.
+4. **P1 renewable generation:** implement and validate `REGCA1` plus
+   `REECA1` (and `REPCA1` for Texas7k), then the coupled
+   `WT3G1`/`WT3E1`/`WT3P1`/`WT3T1` Type-3 system. The latter two models have
+   no exact external source and must be derived or obtained as part of the
+   complete system, not silently omitted.
+5. **P2 remaining excitation/source gaps:** `ESDC2A` and `ESAC1A` have
+   OpenIPSL references; `ESAC6A` requires an exact equation source before a
+   port. Add `EXPIC1` only after its exact behavior is obtained.
 6. **Reader and validation hardening:** table-driven DYR dispatch, strict
    unknown-model diagnostics, exact bus-plus-machine-ID resolution, minimized
    fixtures, and whole-case trajectory regressions.

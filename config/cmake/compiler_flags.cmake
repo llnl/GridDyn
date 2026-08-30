@@ -129,7 +129,14 @@ if(MSVC)
     add_compile_options(/EHsc /MP /utf-8)
     target_compile_options(build_flags_target INTERFACE /EHsc /utf-8)
 
-    target_link_options(compile_flags_target INTERFACE /debug:fastlink /incremental)
+    # VS 2026 (MSVC 19.50+) removed /DEBUG:FASTLINK.  Newer linkers select
+    # full debug information when /DEBUG is enabled, while /INCREMENTAL
+    # remains supported.
+    if(MSVC_VERSION LESS 1950)
+        target_link_options(compile_flags_target INTERFACE /debug:fastlink /incremental)
+    else()
+        target_link_options(compile_flags_target INTERFACE /incremental)
+    endif()
     if(${PROJECT_NAME}_ENABLE_EXTRA_COMPILER_WARNINGS)
         target_compile_options(compile_flags_target INTERFACE /W4 /sdl /wd4244)
     endif(${PROJECT_NAME}_ENABLE_EXTRA_COMPILER_WARNINGS)

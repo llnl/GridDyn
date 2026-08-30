@@ -42,6 +42,7 @@ class Subsystem: public Link {
     Subsystem(count_t terminals, const std::string& objName = "subsystem_$");
 
     Subsystem(const std::string& objName = "subsystem_$");
+    ~Subsystem() override;
     /** @brief the destructor*/
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     // add components

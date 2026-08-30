@@ -69,10 +69,11 @@ namespace {
         if (tap >= points.back().first) {
             return points.back().second;
         }
-        const auto upper = std::lower_bound(
-            points.begin(), points.end(), tap, [](const auto& point, double value) {
-                return point.first < value;
-            });
+        const auto upper =
+            std::lower_bound(points.begin(),
+                             points.end(),
+                             tap,
+                             [](const auto& point, double value) { return point.first < value; });
         const auto lower = std::prev(upper);
         const auto fraction = (tap - lower->first) / (upper->first - lower->first);
         return lower->second + fraction * (upper->second - lower->second);
@@ -96,20 +97,20 @@ namespace {
                          const BasicReaderInfo& bri);
     std::string generateLineName(const string_viewVector& svec, const std::string& prefix);
     void epcReadThreeWindingTX(CoreObject* parentObject,
-                                const string_viewVector& fields,
-                                double base,
-                                std::vector<GridBus*>& busList,
-                                const BasicReaderInfo& bri,
-                                const ImpedanceCorrectionTables& correctionTables)
+                               const string_viewVector& fields,
+                               double base,
+                               std::vector<GridBus*>& busList,
+                               const BasicReaderInfo& bri,
+                               const ImpedanceCorrectionTables& correctionTables)
     {
         // EPC represents a three-winding transformer with an explicit
         // intermediate (star) bus.  Retain that bus rather than adding a
         // second artificial star point, and convert its three pairwise
         // leakage impedances into the three star legs.
         const std::array<int, 4> busNumbers{numeric_conversion<int>(fields[0], 0),
-                                             numeric_conversion<int>(fields[3], 0),
-                                             numeric_conversion<int>(fields[14], 0),
-                                             numeric_conversion<int>(fields[17], 0)};
+                                            numeric_conversion<int>(fields[3], 0),
+                                            numeric_conversion<int>(fields[14], 0),
+                                            numeric_conversion<int>(fields[17], 0)};
         for (const auto busNumber : busNumbers) {
             if ((busNumber <= 0) ||
                 std::cmp_greater_equal(static_cast<size_t>(busNumber), busList.size()) ||
@@ -128,14 +129,17 @@ namespace {
         const auto x13 = numeric_conversion<double>(fields[26], 0.0) * scale;
         const auto r23 = numeric_conversion<double>(fields[27], 0.0) * scale;
         const auto x23 = numeric_conversion<double>(fields[28], 0.0) * scale;
-        std::array<double, 3> resistance{
-            (r12 + r13 - r23) / 2.0, (r12 + r23 - r13) / 2.0, (r13 + r23 - r12) / 2.0};
-        std::array<double, 3> reactance{
-            (x12 + x13 - x23) / 2.0, (x12 + x23 - x13) / 2.0, (x13 + x23 - x12) / 2.0};
-        const auto baseName = generateLineName(
-            fields, (bri.prefix.empty()) ? "TX3_" : (bri.prefix + "_TX3_"));
-        const std::array<GridBus*, 3> exterior{
-            busList[busNumbers[0] - 1], busList[busNumbers[1] - 1], busList[busNumbers[3] - 1]};
+        std::array<double, 3> resistance{(r12 + r13 - r23) / 2.0,
+                                         (r12 + r23 - r13) / 2.0,
+                                         (r13 + r23 - r12) / 2.0};
+        std::array<double, 3> reactance{(x12 + x13 - x23) / 2.0,
+                                        (x12 + x23 - x13) / 2.0,
+                                        (x13 + x23 - x12) / 2.0};
+        const auto baseName =
+            generateLineName(fields, (bri.prefix.empty()) ? "TX3_" : (bri.prefix + "_TX3_"));
+        const std::array<GridBus*, 3> exterior{busList[busNumbers[0] - 1],
+                                               busList[busNumbers[1] - 1],
+                                               busList[busNumbers[3] - 1]};
         auto* starBus = busList[busNumbers[2] - 1];
         const std::array<double, 3> ratings{numeric_conversion<double>(fields[35], 0.0),
                                             numeric_conversion<double>(fields[78], 0.0),
@@ -145,28 +149,26 @@ namespace {
         // the nominal-to-terminal-base conversion.  These are normally identical,
         // but the ACTIVSg10k Glasgow transformer has a 345-kV winding nominal on a
         // 138-kV terminal and therefore stores 0.4 in EPC for a 1.0 per-unit tap.
-        const std::array<double, 3> terminalBaseKv{
-            numeric_conversion<double>(fields[2], 0.0),
-            numeric_conversion<double>(fields[5], 0.0),
-            numeric_conversion<double>(fields[19], 0.0)};
-        const std::array<double, 3> windingNominalKv{
-            numeric_conversion<double>(fields[29], 0.0),
-            numeric_conversion<double>(fields[30], 0.0),
-            numeric_conversion<double>(fields[31], 0.0)};
+        const std::array<double, 3> terminalBaseKv{numeric_conversion<double>(fields[2], 0.0),
+                                                   numeric_conversion<double>(fields[5], 0.0),
+                                                   numeric_conversion<double>(fields[19], 0.0)};
+        const std::array<double, 3> windingNominalKv{numeric_conversion<double>(fields[29], 0.0),
+                                                     numeric_conversion<double>(fields[30], 0.0),
+                                                     numeric_conversion<double>(fields[31], 0.0)};
         std::array<double, 3> taps{numeric_conversion<double>(fields[45], 1.0),
-                                    numeric_conversion<double>(fields[46], 1.0),
-                                    numeric_conversion<double>(fields[47], 1.0)};
+                                   numeric_conversion<double>(fields[46], 1.0),
+                                   numeric_conversion<double>(fields[47], 1.0)};
         for (size_t kk = 0; kk < taps.size(); ++kk) {
             if ((terminalBaseKv[kk] > 0.0) && (windingNominalKv[kk] > 0.0)) {
                 taps[kk] *= windingNominalKv[kk] / terminalBaseKv[kk];
             }
         }
-        const std::array<double, 3> tapAngles{
-            numeric_conversion<double>(fields[32], 0.0),
-            numeric_conversion<double>(fields[33], 0.0),
-            numeric_conversion<double>(fields[34], 0.0)};
-        const auto impedanceCorrection = correctionFactor(
-            correctionTables, numeric_conversion<int>(fields[13], 0), tapAngles[0]);
+        const std::array<double, 3> tapAngles{numeric_conversion<double>(fields[32], 0.0),
+                                              numeric_conversion<double>(fields[33], 0.0),
+                                              numeric_conversion<double>(fields[34], 0.0)};
+        const auto impedanceCorrection = correctionFactor(correctionTables,
+                                                          numeric_conversion<int>(fields[13], 0),
+                                                          tapAngles[0]);
         resistance[0] *= impedanceCorrection;
         reactance[0] *= impedanceCorrection;
 
@@ -496,8 +498,7 @@ void loadEpc(CoreObject* parentObject,
             });
         } else if (tokens[0] == "transformer") {
             processSection(line, file, [&](string_view config) {
-                epcReadTX(
-                    parentObject, config, base, busList, bri, impedanceCorrectionTables);
+                epcReadTX(parentObject, config, base, busList, bri, impedanceCorrectionTables);
             });
         } else if (tokens[0] == "generator") {
             processSectionObject<Generator>(
@@ -521,8 +522,8 @@ void loadEpc(CoreObject* parentObject,
                 });
         } else if ((tokens[0] == "area") || (tokens[0] == "zone") || (tokens[0] == "interface") ||
                    (tokens[0] == "substation") || (tokens[0] == "ba") || (tokens[0] == "z") ||
-                   (tokens[0] == "gcd") || (tokens[0] == "owner") ||
-                   (tokens[0] == "transaction") || (tokens[0] == "qtable")) {
+                   (tokens[0] == "gcd") || (tokens[0] == "owner") || (tokens[0] == "transaction") ||
+                   (tokens[0] == "qtable")) {
             ignoreSection(line, file);
         } else if (tokens[0] == "dc") {
             if (tokens.size() > 1) {
@@ -1323,8 +1324,7 @@ namespace {
             return;
         }
         if ((strvec.size() > 81) && (numeric_conversion<int>(strvec[17], 0) != 0)) {
-            epcReadThreeWindingTX(
-                parentObject, strvec, base, busList, bri, correctionTables);
+            epcReadThreeWindingTX(parentObject, strvec, base, busList, bri, correctionTables);
             return;
         }
         // get the name of the from bus
@@ -1398,8 +1398,7 @@ namespace {
         const auto secondaryTerminalKv = numeric_conversion<double>(strvec[5], 0.0);
         const auto primaryNominalKv = numeric_conversion<double>(strvec[29], 0.0);
         const auto secondaryNominalKv = numeric_conversion<double>(strvec[30], 0.0);
-        const auto primaryVoltageScale =
-            ((primaryTerminalKv > 0.0) && (primaryNominalKv > 0.0)) ?
+        const auto primaryVoltageScale = ((primaryTerminalKv > 0.0) && (primaryNominalKv > 0.0)) ?
             primaryNominalKv / primaryTerminalKv :
             1.0;
         const auto secondaryVoltageScale =
@@ -1413,11 +1412,11 @@ namespace {
         // EPC stores the series impedance on the secondary winding's nominal
         // voltage and transformer MVA bases.  Refer it to the connected bus and
         // system bases used by GridDyn.
-        const auto impedanceScale =
-            secondaryVoltageScale * secondaryVoltageScale * base / tbase;
-        const auto impedanceCorrection = correctionFactor(correctionTables,
-                                                          numeric_conversion<int>(strvec[13], 0),
-                                                          numeric_conversion<double>(strvec[32], 0.0));
+        const auto impedanceScale = secondaryVoltageScale * secondaryVoltageScale * base / tbase;
+        const auto impedanceCorrection =
+            correctionFactor(correctionTables,
+                             numeric_conversion<int>(strvec[13], 0),
+                             numeric_conversion<double>(strvec[32], 0.0));
         lnk->set("r", resistance * impedanceScale * impedanceCorrection);
         lnk->set("x", reactance * impedanceScale * impedanceCorrection);
 

@@ -6,8 +6,8 @@
 
 #include "../gtestHelper.h"
 #include "fileInput/readerHelper.h"
-#include "griddyn/links/AdjustableTransformer.h"
 #include "griddyn/links/AcLine.h"
+#include "griddyn/links/AdjustableTransformer.h"
 #include "units/units.hpp"
 #include <array>
 #include <cmath>
@@ -64,8 +64,8 @@ namespace {
         gds = std::make_unique<GridDynSimulation>();
         loadFile(gds.get(), fileName);
 
-        auto* transformer = dynamic_cast<links::AdjustableTransformer*>(
-            gds->find("padjtx_FROM BUS_to_TO BUS"));
+        auto* transformer =
+            dynamic_cast<links::AdjustableTransformer*>(gds->find("padjtx_FROM BUS_to_TO BUS"));
         ASSERT_NE(transformer, nullptr);
         EXPECT_NEAR(transformer->getTap(), 1.0, 1.0e-12);
         EXPECT_NEAR(transformer->getTapAngle(),

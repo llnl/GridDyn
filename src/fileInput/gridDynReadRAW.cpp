@@ -65,8 +65,8 @@ static double correctionFactor(const ImpedanceCorrectionTables& tables, int tabl
     if (tap >= points.back().first) {
         return points.back().second;
     }
-    const auto upper = std::lower_bound(
-        points.begin(), points.end(), tap, [](const auto& point, double value) {
+    const auto upper =
+        std::lower_bound(points.begin(), points.end(), tap, [](const auto& point, double value) {
             return point.first < value;
         });
     const auto lower = std::prev(upper);
@@ -82,8 +82,7 @@ static ImpedanceCorrectionTables readImpedanceCorrectionTables(const std::string
     bool inCorrectionSection = false;
     while (std::getline(file, line)) {
         if (!inCorrectionSection) {
-            inCorrectionSection =
-                line.find("BEGIN IMPEDANCE CORRECTION DATA") != std::string::npos;
+            inCorrectionSection = line.find("BEGIN IMPEDANCE CORRECTION DATA") != std::string::npos;
             continue;
         }
         trimString(line);
@@ -155,25 +154,23 @@ static void rawReadThreeWindingTransformer(CoreObject* parentObject,
     auto* starBus = new AcBus(name + "_star");
     starBus->set("basepower", opt.base);
     starBus->set("basevoltage", 1.0, units::kV);
-    starBus->setVoltageAngle(
-        numeric_conversion<double>(impedance[9], 1.0),
-        units::convert(numeric_conversion<double>(impedance[10], 0.0), deg, units::rad));
+    starBus->setVoltageAngle(numeric_conversion<double>(impedance[9], 1.0),
+                             units::convert(numeric_conversion<double>(impedance[10], 0.0),
+                                            deg,
+                                            units::rad));
     addToParentWithRename(starBus, parentObject);
 
     // PSS/E stores the three pairwise leakage impedances.  Convert their
     // equivalent delta into the star legs used by ThreeWindingTransformer.
-    std::array<double, 3> resistance{
-        numeric_conversion<double>(impedance[0], 0.0),
-        numeric_conversion<double>(impedance[3], 0.0),
-        numeric_conversion<double>(impedance[6], 0.0)};
-    std::array<double, 3> reactance{
-        numeric_conversion<double>(impedance[1], 0.0),
-        numeric_conversion<double>(impedance[4], 0.0),
-        numeric_conversion<double>(impedance[7], 0.0)};
-    const std::array<double, 3> windingBase{
-        numeric_conversion<double>(impedance[2], opt.base),
-        numeric_conversion<double>(impedance[5], opt.base),
-        numeric_conversion<double>(impedance[8], opt.base)};
+    std::array<double, 3> resistance{numeric_conversion<double>(impedance[0], 0.0),
+                                     numeric_conversion<double>(impedance[3], 0.0),
+                                     numeric_conversion<double>(impedance[6], 0.0)};
+    std::array<double, 3> reactance{numeric_conversion<double>(impedance[1], 0.0),
+                                    numeric_conversion<double>(impedance[4], 0.0),
+                                    numeric_conversion<double>(impedance[7], 0.0)};
+    const std::array<double, 3> windingBase{numeric_conversion<double>(impedance[2], opt.base),
+                                            numeric_conversion<double>(impedance[5], opt.base),
+                                            numeric_conversion<double>(impedance[8], opt.base)};
     const auto impedanceCode = numeric_conversion<int>(header[5], 1);
     for (size_t ii = 0; ii < 3; ++ii) {
         if (impedanceCode == 2) {
@@ -185,30 +182,28 @@ static void rawReadThreeWindingTransformer(CoreObject* parentObject,
             // CZ=3 uses load loss in W and impedance magnitude on winding base.
             if (windingBase[ii] > 0.0) {
                 resistance[ii] /= windingBase[ii] * 1.0e6;
-                reactance[ii] =
-                    std::sqrt(std::max(reactance[ii] * reactance[ii] - resistance[ii] * resistance[ii],
-                                       0.0));
+                reactance[ii] = std::sqrt(
+                    std::max(reactance[ii] * reactance[ii] - resistance[ii] * resistance[ii], 0.0));
                 resistance[ii] *= opt.base / windingBase[ii];
                 reactance[ii] *= opt.base / windingBase[ii];
             }
         }
     }
-    std::array<double, 3> starResistance{
-        (resistance[0] + resistance[2] - resistance[1]) / 2.0,
-        (resistance[0] + resistance[1] - resistance[2]) / 2.0,
-        (resistance[1] + resistance[2] - resistance[0]) / 2.0};
-    std::array<double, 3> starReactance{
-        (reactance[0] + reactance[2] - reactance[1]) / 2.0,
-        (reactance[0] + reactance[1] - reactance[2]) / 2.0,
-        (reactance[1] + reactance[2] - reactance[0]) / 2.0};
-    const auto impedanceCorrection = correctionFactor(
-        correctionTables,
-        numeric_conversion<int>(windings[0][13], 0),
-        numeric_conversion<double>(windings[0][2], 0.0));
+    std::array<double, 3> starResistance{(resistance[0] + resistance[2] - resistance[1]) / 2.0,
+                                         (resistance[0] + resistance[1] - resistance[2]) / 2.0,
+                                         (resistance[1] + resistance[2] - resistance[0]) / 2.0};
+    std::array<double, 3> starReactance{(reactance[0] + reactance[2] - reactance[1]) / 2.0,
+                                        (reactance[0] + reactance[1] - reactance[2]) / 2.0,
+                                        (reactance[1] + reactance[2] - reactance[0]) / 2.0};
+    const auto impedanceCorrection =
+        correctionFactor(correctionTables,
+                         numeric_conversion<int>(windings[0][13], 0),
+                         numeric_conversion<double>(windings[0][2], 0.0));
     starResistance[0] *= impedanceCorrection;
     starReactance[0] *= impedanceCorrection;
-    const std::array<GridBus*, 3> exterior{
-        busList[busNumber1], busList[busNumber2], busList[busNumber3]};
+    const std::array<GridBus*, 3> exterior{busList[busNumber1],
+                                           busList[busNumber2],
+                                           busList[busNumber3]};
 
     const auto tapCode = numeric_conversion<int>(header[4], 1);
     for (size_t ii = 0; ii < 3; ++ii) {
@@ -1275,14 +1270,13 @@ static int rawReadTxV33(CoreObject* parentObject,
     if (ind3 != 0) {
         tline = 5;
         strvec5 = splitline(txlines[4]);
-        rawReadThreeWindingTransformer(
-            parentObject,
-            strvec,
-            strvec2,
-            {strvec3, strvec4, strvec5},
-            busList,
-            opt,
-            correctionTables);
+        rawReadThreeWindingTransformer(parentObject,
+                                       strvec,
+                                       strvec2,
+                                       {strvec3, strvec4, strvec5},
+                                       busList,
+                                       opt,
+                                       correctionTables);
         return tline;
     }
 
@@ -1354,10 +1348,9 @@ static int rawReadTxV33(CoreObject* parentObject,
 
     auto resistance = numeric_conversion<double>(strvec2[0], 0.0);
     auto reactance = numeric_conversion<double>(strvec2[1], 0.0);
-    const auto impedanceCorrection = correctionFactor(
-        correctionTables,
-        numeric_conversion<int>(strvec3[13], 0),
-        numeric_conversion<double>(strvec3[2], 0.0));
+    const auto impedanceCorrection = correctionFactor(correctionTables,
+                                                      numeric_conversion<int>(strvec3[13], 0),
+                                                      numeric_conversion<double>(strvec3[2], 0.0));
     resistance *= impedanceCorrection;
     reactance *= impedanceCorrection;
 
@@ -1533,14 +1526,13 @@ static int rawReadTX(CoreObject* parentObject,
     if (ind3 != 0) {
         tline = 5;
         strvec5 = splitline(txlines[4]);
-        rawReadThreeWindingTransformer(
-            parentObject,
-            strvec,
-            strvec2,
-            {strvec3, strvec4, strvec5},
-            busList,
-            opt,
-            correctionTables);
+        rawReadThreeWindingTransformer(parentObject,
+                                       strvec,
+                                       strvec2,
+                                       {strvec3, strvec4, strvec5},
+                                       busList,
+                                       opt,
+                                       correctionTables);
         return tline;
     }
 
@@ -1601,10 +1593,9 @@ static int rawReadTX(CoreObject* parentObject,
 
     auto resistance = numeric_conversion<double>(strvec2[0], 0.0);
     auto reactance = numeric_conversion<double>(strvec2[1], 0.0);
-    const auto impedanceCorrection = correctionFactor(
-        correctionTables,
-        numeric_conversion<int>(strvec3[13], 0),
-        numeric_conversion<double>(strvec3[2], 0.0));
+    const auto impedanceCorrection = correctionFactor(correctionTables,
+                                                      numeric_conversion<int>(strvec3[13], 0),
+                                                      numeric_conversion<double>(strvec3[2], 0.0));
     resistance *= impedanceCorrection;
     reactance *= impedanceCorrection;
 

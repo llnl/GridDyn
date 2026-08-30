@@ -18,6 +18,8 @@
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/primary/DcBus.h"
 #include "readerHelper.h"
+#include <algorithm>
+#include <array>
 #include <compare>
 #include <cstdint>
 #include <cstdlib>
@@ -26,6 +28,8 @@
 #include <iostream>
 #include <string>
 #include <string_view>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace griddyn {
@@ -49,6 +53,31 @@ using units::pu;
 using units::puMW;
 
 namespace {
+    using ImpedanceCorrectionTable = std::vector<std::pair<double, double>>;
+    using ImpedanceCorrectionTables = std::unordered_map<int, ImpedanceCorrectionTable>;
+
+    double correctionFactor(const ImpedanceCorrectionTables& tables, int tableId, double tap)
+    {
+        const auto table = tables.find(tableId);
+        if ((tableId == 0) || (table == tables.end()) || table->second.empty()) {
+            return 1.0;
+        }
+        const auto& points = table->second;
+        if (tap <= points.front().first) {
+            return points.front().second;
+        }
+        if (tap >= points.back().first) {
+            return points.back().second;
+        }
+        const auto upper = std::lower_bound(
+            points.begin(), points.end(), tap, [](const auto& point, double value) {
+                return point.first < value;
+            });
+        const auto lower = std::prev(upper);
+        const auto fraction = (tap - lower->first) / (upper->first - lower->first);
+        return lower->second + fraction * (upper->second - lower->second);
+    }
+
     void epcReadBus(GridBus* bus, string_view line, double base, const BasicReaderInfo& bri);
     void epcReadDCBus(DcBus* bus, string_view line, double base, const BasicReaderInfo& bri);
     void epcReadLoad(ZipLoad* load, string_view line, double base);
@@ -65,11 +94,111 @@ namespace {
                          double base,
                          std::vector<DcBus*>& dcbusList,
                          const BasicReaderInfo& bri);
+    std::string generateLineName(const string_viewVector& svec, const std::string& prefix);
+    void epcReadThreeWindingTX(CoreObject* parentObject,
+                                const string_viewVector& fields,
+                                double base,
+                                std::vector<GridBus*>& busList,
+                                const BasicReaderInfo& bri,
+                                const ImpedanceCorrectionTables& correctionTables)
+    {
+        // EPC represents a three-winding transformer with an explicit
+        // intermediate (star) bus.  Retain that bus rather than adding a
+        // second artificial star point, and convert its three pairwise
+        // leakage impedances into the three star legs.
+        const std::array<int, 4> busNumbers{numeric_conversion<int>(fields[0], 0),
+                                             numeric_conversion<int>(fields[3], 0),
+                                             numeric_conversion<int>(fields[14], 0),
+                                             numeric_conversion<int>(fields[17], 0)};
+        for (const auto busNumber : busNumbers) {
+            if ((busNumber <= 0) ||
+                std::cmp_greater_equal(static_cast<size_t>(busNumber), busList.size()) ||
+                (busList[busNumber - 1] == nullptr)) {
+                std::cerr << "invalid EPC three-winding transformer bus\n";
+                return;
+            }
+        }
+
+        const auto status = numeric_conversion<int>(fields[8], 1);
+        const auto baseMva = numeric_conversion<double>(fields[22], base);
+        const auto scale = (baseMva > 0.0) ? base / baseMva : 1.0;
+        const auto r12 = numeric_conversion<double>(fields[23], 0.0) * scale;
+        const auto x12 = numeric_conversion<double>(fields[24], 0.0) * scale;
+        const auto r13 = numeric_conversion<double>(fields[25], 0.0) * scale;
+        const auto x13 = numeric_conversion<double>(fields[26], 0.0) * scale;
+        const auto r23 = numeric_conversion<double>(fields[27], 0.0) * scale;
+        const auto x23 = numeric_conversion<double>(fields[28], 0.0) * scale;
+        std::array<double, 3> resistance{
+            (r12 + r13 - r23) / 2.0, (r12 + r23 - r13) / 2.0, (r13 + r23 - r12) / 2.0};
+        std::array<double, 3> reactance{
+            (x12 + x13 - x23) / 2.0, (x12 + x23 - x13) / 2.0, (x13 + x23 - x12) / 2.0};
+        const auto baseName = generateLineName(
+            fields, (bri.prefix.empty()) ? "TX3_" : (bri.prefix + "_TX3_"));
+        const std::array<GridBus*, 3> exterior{
+            busList[busNumbers[0] - 1], busList[busNumbers[1] - 1], busList[busNumbers[3] - 1]};
+        auto* starBus = busList[busNumbers[2] - 1];
+        const std::array<double, 3> ratings{numeric_conversion<double>(fields[35], 0.0),
+                                            numeric_conversion<double>(fields[78], 0.0),
+                                            numeric_conversion<double>(fields[81], 0.0)};
+        // EPC winding taps are relative to the winding nominal voltage.  GridDyn's
+        // AcLine tap is on the connected buses' per-unit voltage bases, so include
+        // the nominal-to-terminal-base conversion.  These are normally identical,
+        // but the ACTIVSg10k Glasgow transformer has a 345-kV winding nominal on a
+        // 138-kV terminal and therefore stores 0.4 in EPC for a 1.0 per-unit tap.
+        const std::array<double, 3> terminalBaseKv{
+            numeric_conversion<double>(fields[2], 0.0),
+            numeric_conversion<double>(fields[5], 0.0),
+            numeric_conversion<double>(fields[19], 0.0)};
+        const std::array<double, 3> windingNominalKv{
+            numeric_conversion<double>(fields[29], 0.0),
+            numeric_conversion<double>(fields[30], 0.0),
+            numeric_conversion<double>(fields[31], 0.0)};
+        std::array<double, 3> taps{numeric_conversion<double>(fields[45], 1.0),
+                                    numeric_conversion<double>(fields[46], 1.0),
+                                    numeric_conversion<double>(fields[47], 1.0)};
+        for (size_t kk = 0; kk < taps.size(); ++kk) {
+            if ((terminalBaseKv[kk] > 0.0) && (windingNominalKv[kk] > 0.0)) {
+                taps[kk] *= windingNominalKv[kk] / terminalBaseKv[kk];
+            }
+        }
+        const std::array<double, 3> tapAngles{
+            numeric_conversion<double>(fields[32], 0.0),
+            numeric_conversion<double>(fields[33], 0.0),
+            numeric_conversion<double>(fields[34], 0.0)};
+        const auto impedanceCorrection = correctionFactor(
+            correctionTables, numeric_conversion<int>(fields[13], 0), tapAngles[0]);
+        resistance[0] *= impedanceCorrection;
+        reactance[0] *= impedanceCorrection;
+
+        for (size_t kk = 0; kk < exterior.size(); ++kk) {
+            auto* leg = new AcLine(baseName + "_w" + std::to_string(kk + 1));
+            leg->set("basepower", base);
+            leg->updateBus(exterior[kk], 1);
+            leg->updateBus(starBus, 2);
+            leg->set("r", resistance[kk]);
+            leg->set("x", reactance[kk]);
+            if (taps[kk] != 0.0) {
+                leg->set("tap", taps[kk]);
+            }
+            if (tapAngles[kk] != 0.0) {
+                leg->set("tapangle", tapAngles[kk], deg);
+            }
+            if (ratings[kk] != 0.0) {
+                leg->set("ratinga", ratings[kk], MW);
+            }
+            if (status == 0) {
+                leg->disable();
+            }
+            addToParentWithRename(leg, parentObject);
+        }
+    }
+
     void epcReadTX(CoreObject* parentObject,
                    string_view line,
                    double base,
                    std::vector<GridBus*>& busList,
-                   const BasicReaderInfo& bri);
+                   const BasicReaderInfo& bri,
+                   const ImpedanceCorrectionTables& correctionTables);
 
     double epcReadSolutionParamters(CoreObject* parentObject, string_view line);
 
@@ -124,6 +253,47 @@ namespace {
             }
         }
         return cnt;
+    }
+
+    ImpedanceCorrectionTables readImpedanceCorrectionTables(const std::string& fileName)
+    {
+        ImpedanceCorrectionTables tables;
+        std::ifstream file(fileName, std::ios::in);
+        std::string line;
+        while (nextLine(file, line)) {
+            if (!line.starts_with("z table data")) {
+                continue;
+            }
+            const auto count = getSectionCount(line);
+            for (int ii = 0; ii < count; ++ii) {
+                if (!nextLine(file, line)) {
+                    return tables;
+                }
+                const auto fields =
+                    splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
+                if (fields.size() < 5) {
+                    continue;
+                }
+                const auto tableId = numeric_conversion<int>(fields[0], 0);
+                ImpedanceCorrectionTable points;
+                // EPC stores id, name, status, followed by tap/factor pairs.
+                // Unused fixed-width slots are padded with 1.0/1.0; stop when
+                // those values break the ascending tap sequence.
+                for (size_t jj = 3; jj + 1 < fields.size(); jj += 2) {
+                    const auto tap = numeric_conversion<double>(fields[jj], 0.0);
+                    const auto factor = numeric_conversion<double>(fields[jj + 1], 1.0);
+                    if (!points.empty() && (tap <= points.back().first)) {
+                        break;
+                    }
+                    points.emplace_back(tap, factor);
+                }
+                if ((tableId != 0) && !points.empty()) {
+                    tables.emplace(tableId, std::move(points));
+                }
+            }
+            break;
+        }
+        return tables;
     }
 
     int getLineIndex(string_view line)
@@ -214,6 +384,7 @@ void loadEpc(CoreObject* parentObject,
              const BasicReaderInfo& readerOptions)
 {
     const auto& bri = readerOptions;
+    const auto impedanceCorrectionTables = readImpedanceCorrectionTables(fileName);
     std::ifstream file(fileName.c_str(), std::ios::in);
 
     std::string temp1;  // temporary storage for substrings
@@ -325,7 +496,8 @@ void loadEpc(CoreObject* parentObject,
             });
         } else if (tokens[0] == "transformer") {
             processSection(line, file, [&](string_view config) {
-                epcReadTX(parentObject, config, base, busList, bri);
+                epcReadTX(
+                    parentObject, config, base, busList, bri, impedanceCorrectionTables);
             });
         } else if (tokens[0] == "generator") {
             processSectionObject<Generator>(
@@ -348,7 +520,8 @@ void loadEpc(CoreObject* parentObject,
                     epcReadSwitchShunt(load, config, base);
                 });
         } else if ((tokens[0] == "area") || (tokens[0] == "zone") || (tokens[0] == "interface") ||
-                   (tokens[0] == "z") || (tokens[0] == "gcd") || (tokens[0] == "owner") ||
+                   (tokens[0] == "substation") || (tokens[0] == "ba") || (tokens[0] == "z") ||
+                   (tokens[0] == "gcd") || (tokens[0] == "owner") ||
                    (tokens[0] == "transaction") || (tokens[0] == "qtable")) {
             ignoreSection(line, file);
         } else if (tokens[0] == "dc") {
@@ -500,7 +673,16 @@ namespace {
             bus->set("basevoltage", baseVoltage);
         }
 
-        auto type = numeric_conversion<int>(strvec[3], 1);
+        // Newer PowerWorld EPC exports include an owner/status pair between
+        // base kV and the ':' data separator.  The established layout begins
+        // directly with the bus type.  Select the common fields relative to
+        // that separator so both layouts parse identically.
+        size_t dataOffset = 3;
+        if (strvec.size() > 12 && trim(removeQuotes(strvec[3])).empty()) {
+            dataOffset = 5;
+        }
+
+        auto type = numeric_conversion<int>(strvec[dataOffset], 1);
 
         switch (type) {
             case 1:
@@ -521,12 +703,12 @@ namespace {
         // skip the load flow area and loss zone for now
         // skip the owner information
         // get the voltage and angle specifications
-        auto voltageMagnitude = numeric_conversion<double>(strvec[4], 0.0);
+        auto voltageMagnitude = numeric_conversion<double>(strvec[dataOffset + 1], 0.0);
         if (voltageMagnitude != 0) {
             bus->set("vtarget", voltageMagnitude);
         }
-        voltageMagnitude = numeric_conversion<double>(strvec[5], 0.0);
-        auto voltageAngle = numeric_conversion<double>(strvec[6], 0.0);
+        voltageMagnitude = numeric_conversion<double>(strvec[dataOffset + 2], 0.0);
+        auto voltageAngle = numeric_conversion<double>(strvec[dataOffset + 3], 0.0);
         if (voltageAngle != 0) {
             bus->set("angle", voltageAngle, deg);
         }
@@ -535,12 +717,12 @@ namespace {
         }
 
         // auto area = numeric_conversion<int>(strvec[7], 0);
-        auto zone = numeric_conversion<int>(strvec[8], 0);
+        auto zone = numeric_conversion<int>(strvec[dataOffset + 5], 0);
         if (zone != 0) {
             bus->set("zone", static_cast<double>(zone));
         }
-        voltageMagnitude = numeric_conversion<double>(strvec[9], 0.0);
-        voltageAngle = numeric_conversion<double>(strvec[10], 0.0);
+        voltageMagnitude = numeric_conversion<double>(strvec[dataOffset + 6], 0.0);
+        voltageAngle = numeric_conversion<double>(strvec[dataOffset + 7], 0.0);
         if (voltageAngle != 0) {
             bus->set("vmin", voltageAngle);
         }
@@ -839,9 +1021,15 @@ namespace {
             }
         }
         // set the initial value
-        auto initVal = numeric_conversion<double>(strvec[offset + 8], 0.0);
+        // The SVD fields after the ':' include conductance followed by the
+        // initial susceptance.  The old offset read conductance, leaving all
+        // capacitive shunts at zero.
+        auto initVal = numeric_conversion<double>(strvec[offset + 9], 0.0);
 
-        load->set("yq", -initVal, pu);
+        // For a manual shunt, preserve the EPC's initial susceptance directly.
+        // Svd::set("yq", ...) interprets the value as a requested block setting;
+        // that is not valid when the record has no block table.
+        load->ZipLoad::set("yq", -initVal, pu);
     }
     // #generator data  [XXX]    id   ------------long_id_------------    st ---no--     reg_name
     // prf qrf
@@ -900,12 +1088,9 @@ namespace {
         // get the Qmax and Qmin
         activePower = numeric_conversion<double>(strvec[17], 0.0);
         reactivePower = numeric_conversion<double>(strvec[18], 0.0);
-        if (activePower != 0.0) {
-            gen->set("qmax", activePower, MVAR);
-        }
-        if (reactivePower != 0.0) {
-            gen->set("qmin", reactivePower, MVAR);
-        }
+        // Zero is an explicit reactive limit, not an omitted value.
+        gen->set("qmax", activePower, MVAR);
+        gen->set("qmin", reactivePower, MVAR);
         // get the machine base
         auto machineBase = numeric_conversion<double>(strvec[19], 0.0);
         gen->set("mbase", machineBase);
@@ -1122,7 +1307,8 @@ namespace {
                    string_view line,
                    double base,
                    std::vector<GridBus*>& busList,
-                   const BasicReaderInfo& bri)
+                   const BasicReaderInfo& bri,
+                   const ImpedanceCorrectionTables& correctionTables)
     {
         Link* lnk;
         int code;
@@ -1134,6 +1320,11 @@ namespace {
             splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
         if (strvec.size() < 46) {
             std::cerr << "invalid epc transformer record\n";
+            return;
+        }
+        if ((strvec.size() > 81) && (numeric_conversion<int>(strvec[17], 0) != 0)) {
+            epcReadThreeWindingTX(
+                parentObject, strvec, base, busList, bri, correctionTables);
             return;
         }
         // get the name of the from bus
@@ -1148,8 +1339,12 @@ namespace {
         // check the circuit identifier
 
         auto name = generateLineName(strvec, (bri.prefix.empty()) ? "TX_" : (bri.prefix + "_TX_"));
+        // Fields after the ':' separator begin with status followed by the
+        // transformer type.  Using the status here turns every in-service
+        // regulating transformer into a fixed line.
         code = numeric_conversion<int>(strvec[9], 1);
         switch (code) {
+            case 0:
             case 1:
             case 11:
                 code = 1;
@@ -1190,19 +1385,41 @@ namespace {
 
         addToParentWithRename(lnk, parentObject);
         // get the branch parameters
-        status = toIntSimple(strvec[9]);
+        status = toIntSimple(strvec[8]);
         if (status == 0) {
             lnk->disable();
         }
 
-        double tbase = base;
-        tbase = numeric_conversion<double>(strvec[22], 0.0);
+        auto tbase = numeric_conversion<double>(strvec[22], base);
+        if (tbase <= 0.0) {
+            tbase = base;
+        }
+        const auto primaryTerminalKv = numeric_conversion<double>(strvec[2], 0.0);
+        const auto secondaryTerminalKv = numeric_conversion<double>(strvec[5], 0.0);
+        const auto primaryNominalKv = numeric_conversion<double>(strvec[29], 0.0);
+        const auto secondaryNominalKv = numeric_conversion<double>(strvec[30], 0.0);
+        const auto primaryVoltageScale =
+            ((primaryTerminalKv > 0.0) && (primaryNominalKv > 0.0)) ?
+            primaryNominalKv / primaryTerminalKv :
+            1.0;
+        const auto secondaryVoltageScale =
+            ((secondaryTerminalKv > 0.0) && (secondaryNominalKv > 0.0)) ?
+            secondaryNominalKv / secondaryTerminalKv :
+            1.0;
         // primary and secondary winding resistance
         auto resistance = numeric_conversion<double>(strvec[23], 0.0);
         auto reactance = numeric_conversion<double>(strvec[24], 0.0);
 
-        lnk->set("r", resistance * tbase / base);
-        lnk->set("x", reactance * tbase / base);
+        // EPC stores the series impedance on the secondary winding's nominal
+        // voltage and transformer MVA bases.  Refer it to the connected bus and
+        // system bases used by GridDyn.
+        const auto impedanceScale =
+            secondaryVoltageScale * secondaryVoltageScale * base / tbase;
+        const auto impedanceCorrection = correctionFactor(correctionTables,
+                                                          numeric_conversion<int>(strvec[13], 0),
+                                                          numeric_conversion<double>(strvec[32], 0.0));
+        lnk->set("r", resistance * impedanceScale * impedanceCorrection);
+        lnk->set("x", reactance * impedanceScale * impedanceCorrection);
 
         // skip the load flow area and loss zone and circuit for now
 
@@ -1225,7 +1442,9 @@ namespace {
 
         val = numeric_conversion<double>(strvec[45], 0.0);
         if (val != 0) {
-            lnk->set("tap", val);
+            // Convert EPC's winding-voltage ratio to a ratio on the connected
+            // buses' per-unit voltage bases.
+            lnk->set("tap", val * primaryVoltageScale / secondaryVoltageScale);
         }
         val = numeric_conversion<double>(strvec[32], 0.0);
         if (val != 0) {

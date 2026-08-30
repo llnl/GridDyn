@@ -116,13 +116,21 @@ void readMatlabArray(const std::string& text, size_t start, mArray& matlabArray)
 
     std::vector<double> rowValues;
     size_t dataStart = 0;
-    size_t delimiterPos = arrayData.find_first_of("];");
+    size_t delimiterPos = arrayData.find_first_of(";]\r\n");
     while (delimiterPos != std::string_view::npos) {
         auto line = arrayData.substr(dataStart, delimiterPos - dataStart);
         gmlc::utilities::string_viewOps::trimString(line);
+        // MATLAB permits a newline to end a matrix row.  A newline following
+        // an ellipsis is a line continuation, so retain it in the current row
+        // and let the token loop discard the ellipsis below.
+        if (((arrayData[delimiterPos] == '\r') || (arrayData[delimiterPos] == '\n')) &&
+            (line.size() >= 3) && (line.substr(line.size() - 3) == "...")) {
+            delimiterPos = arrayData.find_first_of(";]\r\n", delimiterPos + 1);
+            continue;
+        }
         if (line.empty()) {
             dataStart = delimiterPos + 1;
-            delimiterPos = arrayData.find_first_of(";]", dataStart);
+            delimiterPos = arrayData.find_first_of(";]\r\n", dataStart);
             continue;
         }
         auto tokens = gmlc::utilities::stringOps::splitline(
@@ -145,7 +153,7 @@ void readMatlabArray(const std::string& text, size_t start, mArray& matlabArray)
         rowValues.resize(tokens.size() - offset);
         matlabArray.push_back(rowValues);
         dataStart = delimiterPos + 1;
-        delimiterPos = arrayData.find_first_of(";]", dataStart);
+        delimiterPos = arrayData.find_first_of(";]\r\n", dataStart);
     }
 }
 

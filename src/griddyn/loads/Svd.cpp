@@ -265,8 +265,7 @@ void Svd::set(std::string_view param, double val, unit unitType)
         Qhigh = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
     } else if (param == "qmin") {
         Qmin = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
-    }
-    if (param == "qmax") {
+    } else if (param == "qmax") {
         Qmax = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
     } else if (param == "vmax") {
         Vmax = convert(val, unitType, puV, systemBasePower, localBaseVoltage);

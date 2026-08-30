@@ -10,8 +10,8 @@
 #include "griddyn/links/AdjustableTransformer.h"
 #include "units/units.hpp"
 #include <array>
-#include <cstddef>
 #include <cmath>
+#include <cstddef>
 #include <gtest/gtest.h>
 #include <memory>
 #include <string>
@@ -95,8 +95,7 @@ namespace {
             {0.030, 0.300, 1.00, 0.0},
         }};
         for (std::size_t ii = 0; ii < expected.size(); ++ii) {
-            const auto* leg =
-                dynamic_cast<const AcLine*>(gds->getLink(static_cast<index_t>(ii)));
+            const auto* leg = dynamic_cast<const AcLine*>(gds->getLink(static_cast<index_t>(ii)));
             ASSERT_NE(leg, nullptr);
             EXPECT_NEAR(leg->get("r"), expected[ii][0], 1.0e-12);
             EXPECT_NEAR(leg->get("x"), expected[ii][1], 1.0e-12);

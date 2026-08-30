@@ -10,6 +10,8 @@
 #include "griddyn/GridBus.h"
 #include "griddyn/events/Event.h"
 #include "griddyn/links/AcLine.h"
+#include "griddyn/links/ThreeWindingTransformer.h"
+#include "griddyn/primary/AcBus.h"
 #include "griddyn/simulation/Diagnostics.h"
 #include <gtest/gtest.h>
 #include <memory>
@@ -40,6 +42,37 @@ TEST_F(LinkTests, LinkTest1Simple)
 
     EXPECT_TRUE(
         std::all_of(voltages.begin(), voltages.end(), [](double value) { return (value > 0.95); }));
+}
+
+TEST_F(LinkTests, ThreeWindingTransformerSolves)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    auto* source = new AcBus("source");
+    auto* loadA = new AcBus("load_a");
+    auto* loadB = new AcBus("load_b");
+    source->set("type", "slk");
+    source->set("p", 0.8);
+    loadA->set("load p", 0.4);
+    loadA->set("load q", 0.1);
+    loadB->set("load p", 0.3);
+    loadB->set("load q", 0.08);
+    gds->add(source);
+    gds->add(loadA);
+    gds->add(loadB);
+
+    auto* transformer = new links::ThreeWindingTransformer("three_winding");
+    transformer->updateBus(source, 1);
+    transformer->updateBus(loadA, 2);
+    transformer->updateBus(loadB, 3);
+    transformer->setWindingImpedance(1, 0.005, 0.08);
+    transformer->setWindingImpedance(2, 0.005, 0.08);
+    transformer->setWindingImpedance(3, 0.005, 0.08);
+    gds->add(transformer);
+
+    gds->powerflow();
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
+    EXPECT_TRUE(loadA->isConnected());
+    EXPECT_TRUE(loadB->isConnected());
 }
 
 TEST_F(LinkTests, LinkTestSwitches)

@@ -44,8 +44,8 @@ std::string makeAndesTestPath(std::string_view fileName)
     return std::string{andesTestDirectory} + std::string{fileName};
 }
 
-std::vector<double> runLoadStepCase(const std::vector<std::string_view>& dyrFiles,
-                                    double loadStep = 0.5)
+std::vector<double> runGeneratorSetpointStepCase(const std::vector<std::string_view>& dyrFiles,
+                                                 double setpoint = 0.8)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
     griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
@@ -54,18 +54,22 @@ std::vector<double> runLoadStepCase(const std::vector<std::string_view>& dyrFile
         griddyn::loadFile(simulation.get(), makeAndesTestPath(dyrFile));
     }
 
-    auto* load = simulation->findByUserID("load", 2);
-    EXPECT_NE(load, nullptr);
-    if (load == nullptr) {
+    auto* targetBus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    EXPECT_NE(targetBus, nullptr);
+    if (targetBus == nullptr) {
         return {};
     }
-    const double initialLoad = load->get("p");
+    auto* targetGenerator = dynamic_cast<griddyn::DynamicGenerator*>(targetBus->getGen(0));
+    EXPECT_NE(targetGenerator, nullptr);
+    if (targetGenerator == nullptr) {
+        return {};
+    }
     auto event = std::make_shared<griddyn::Event>(0.5);
-    EXPECT_TRUE(event->setTarget(load, "p"));
+    EXPECT_TRUE(event->setTarget(targetGenerator, "pset"));
     if (!event->isArmed()) {
         return {};
     }
-    event->setValue(initialLoad + loadStep);
+    event->setValue(setpoint);
     simulation->add(event);
 
     EXPECT_EQ(simulation->dynInitialize(), 0);
@@ -93,6 +97,7 @@ std::vector<double> runLoadStepCase(const std::vector<std::string_view>& dyrFile
     EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
     simulation->run(2.0);
     EXPECT_EQ(simulation->getSimulationTime(), 2.0);
+    EXPECT_FALSE(event->isArmed());
 
     const auto finalState = simulation->getState();
     EXPECT_EQ(finalState.size(), initialState.size());
@@ -469,69 +474,70 @@ TEST(AndesDyrReaderTests, MapsIeeestParametersAndCouplesToExciter)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
-TEST(AndesDynamicTests, Tgov1RespondsToLoadStep)
+TEST(AndesDynamicTests, Tgov1RespondsToGeneratorSetpointStep)
 {
-    const auto finalState = runLoadStepCase({"ieee14_tgov1.dyr"});
+    const auto finalState = runGeneratorSetpointStepCase({"ieee14_tgov1.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, IeeeG1RespondsToLoadStep)
+TEST(AndesDynamicTests, IeeeG1RespondsToGeneratorSetpointStep)
 {
-    const auto finalState = runLoadStepCase({"ieee14_ieeeg1.dyr"});
+    const auto finalState = runGeneratorSetpointStepCase({"ieee14_ieeeg1.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, Esst3aRespondsToLoadStep)
+TEST(AndesDynamicTests, Esst3aRespondsToGeneratorSetpointStep)
 {
-    const auto finalState = runLoadStepCase({"ieee14_esst3a.dyr"});
+    const auto finalState = runGeneratorSetpointStepCase({"ieee14_esst3a.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, Exst1RespondsToLoadStep)
+TEST(AndesDynamicTests, Exst1RespondsToGeneratorSetpointStep)
 {
-    const auto finalState = runLoadStepCase({"ieee14_exst1.dyr"});
+    const auto finalState = runGeneratorSetpointStepCase({"ieee14_exst1.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, ExacExcitersRespondToLoadStep)
+TEST(AndesDynamicTests, ExacExcitersRespondToGeneratorSetpointStep)
 {
     for (const auto record : {"ieee14_exac1.dyr", "ieee14_exac2.dyr", "ieee14_exac4.dyr"}) {
-        const auto finalState = runLoadStepCase({record});
+        const auto finalState = runGeneratorSetpointStepCase({record});
         EXPECT_FALSE(finalState.empty()) << record;
     }
 }
 
-TEST(AndesDynamicTests, St2cutRespondsToLoadStep)
+TEST(AndesDynamicTests, St2cutRespondsToGeneratorSetpointStep)
 {
-    const auto finalState =
-        runLoadStepCase({"ieee14_esst3a.dyr", "ieee14_exst1.dyr", "ieee14_st2cut.dyr"});
+    const auto finalState = runGeneratorSetpointStepCase(
+        {"ieee14_esst3a.dyr", "ieee14_exst1.dyr", "ieee14_st2cut.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, IeeestRespondsToLoadStep)
+TEST(AndesDynamicTests, IeeestRespondsToGeneratorSetpointStep)
 {
-    const auto finalState =
-        runLoadStepCase({"ieee14_esst3a.dyr", "ieee14_exst1.dyr", "ieee14_ieeest.dyr"});
+    const auto finalState = runGeneratorSetpointStepCase(
+        {"ieee14_esst3a.dyr", "ieee14_exst1.dyr", "ieee14_ieeest.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, CombinedControllersRespondToLoadStep)
+TEST(AndesDynamicTests, CombinedControllersRespondToGeneratorSetpointStep)
 {
-    const auto finalState = runLoadStepCase(
+    const auto finalState = runGeneratorSetpointStepCase(
         {"ieee14_tgov1.dyr", "ieee14_ieeeg1.dyr", "ieee14_esst3a.dyr", "ieee14_exst1.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, CombinedControllersSurviveLargeLoadStep)
+TEST(AndesDynamicTests, CombinedControllersRemainStableWithElevatedGeneratorSetpoint)
 {
-    const auto finalState = runLoadStepCase(
-        {"ieee14_tgov1.dyr", "ieee14_ieeeg1.dyr", "ieee14_esst3a.dyr", "ieee14_exst1.dyr"}, 2.0);
+    const auto finalState = runGeneratorSetpointStepCase(
+        {"ieee14_tgov1.dyr", "ieee14_ieeeg1.dyr", "ieee14_esst3a.dyr", "ieee14_exst1.dyr"}, 0.9);
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, ExciterControllersSurviveLargeLoadStep)
+TEST(AndesDynamicTests, ExciterControllersRemainStableWithElevatedGeneratorSetpoint)
 {
-    const auto finalState = runLoadStepCase({"ieee14_esst3a.dyr", "ieee14_exst1.dyr"}, 2.0);
+    const auto finalState =
+        runGeneratorSetpointStepCase({"ieee14_esst3a.dyr", "ieee14_exst1.dyr"}, 0.9);
     EXPECT_FALSE(finalState.empty());
 }
 

@@ -266,7 +266,10 @@ namespace {
                     gen->set("rampq", genLine[19], MW / s);
                 }
                 if (genLine[20] != 0) {
-                    gen->set("apf", genLine[20]);
+                    // MATPOWER APF is its area participation factor.  GridDyn
+                    // exposes the equivalent generator property as
+                    // "participation"; "apf" is not a GridDyn parameter.
+                    gen->set("participation", genLine[20]);
                 }
             }
         }

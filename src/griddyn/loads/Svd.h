@@ -42,7 +42,7 @@ class Svd: public RampLoad {
 
   public:
     Svd(const std::string& objName = "svd_$");
-    Svd(double rP, double rQ, const std::string& objName = "svd_$");
+    Svd(double realPower, double reactivePower, const std::string& objName = "svd_$");
     virtual ~Svd();
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
@@ -55,7 +55,7 @@ class Svd: public RampLoad {
                                       IOdata& fieldSet) override;
     virtual void setLoad(double level, units::unit unitType = units::defunit) override;
     virtual void
-        setLoad(double Plevel, double Qlevel, units::unit unitType = units::defunit) override;
+        setLoad(double plevel, double qlevel, units::unit unitType = units::defunit) override;
     virtual void setState(CoreTime time,
                           const double state[],
                           const double dstate_dt[],
@@ -77,10 +77,10 @@ class Svd: public RampLoad {
 
     /** add a reactive block to the controller
 @param[in] steps the number of steps in the block
-@param[in] Qstep  the size of each step
-@param[in] unitType  the units of Qstep
+@param[in] qstep  the size of each step
+@param[in] unitType  the units of qstep
 */
-    void addBlock(int steps, double Qstep, units::unit unitType = units::defunit);
+    void addBlock(int steps, double qstep, units::unit unitType = units::defunit);
 
     virtual ChangeCode
         powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level) override;

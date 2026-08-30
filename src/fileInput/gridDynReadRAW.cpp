@@ -18,6 +18,7 @@
 #include "griddyn/links/AdjustableTransformer.h"
 #include "griddyn/links/ThreeWindingTransformer.h"
 #include "griddyn/loads/Svd.h"
+#include "griddyn/primary/AcBus.h"
 #include "readerHelper.h"
 #include <algorithm>
 #include <array>
@@ -31,6 +32,7 @@
 #include <iostream>
 #include <string>
 #include <string_view>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -47,6 +49,66 @@ using units::deg;
 using units::MVAR;
 using units::MW;
 
+using ImpedanceCorrectionTable = std::vector<std::pair<double, double>>;
+using ImpedanceCorrectionTables = std::unordered_map<int, ImpedanceCorrectionTable>;
+
+static double correctionFactor(const ImpedanceCorrectionTables& tables, int tableId, double tap)
+{
+    const auto table = tables.find(tableId);
+    if ((tableId == 0) || (table == tables.end()) || table->second.empty()) {
+        return 1.0;
+    }
+    const auto& points = table->second;
+    if (tap <= points.front().first) {
+        return points.front().second;
+    }
+    if (tap >= points.back().first) {
+        return points.back().second;
+    }
+    const auto upper =
+        std::lower_bound(points.begin(), points.end(), tap, [](const auto& point, double value) {
+            return point.first < value;
+        });
+    const auto lower = std::prev(upper);
+    const auto fraction = (tap - lower->first) / (upper->first - lower->first);
+    return lower->second + (fraction * (upper->second - lower->second));
+}
+
+static ImpedanceCorrectionTables readImpedanceCorrectionTables(const std::string& fileName)
+{
+    ImpedanceCorrectionTables tables;
+    std::ifstream file(fileName, std::ios::in);
+    std::string line;
+    bool inCorrectionSection = false;
+    while (std::getline(file, line)) {
+        if (!inCorrectionSection) {
+            inCorrectionSection = line.contains("BEGIN IMPEDANCE CORRECTION DATA");
+            continue;
+        }
+        trimString(line);
+        if (line.empty()) {
+            continue;
+        }
+        if (line[0] == '0') {
+            break;
+        }
+        const auto fields = splitline(line);
+        if (fields.size() < 3) {
+            continue;
+        }
+        const auto tableId = numeric_conversion<int>(fields[0], 0);
+        ImpedanceCorrectionTable points;
+        for (size_t ii = 1; ii + 1 < fields.size(); ii += 2) {
+            points.emplace_back(numeric_conversion<double>(fields[ii], 0.0),
+                                numeric_conversion<double>(fields[ii + 1], 1.0));
+        }
+        if ((tableId != 0) && !points.empty()) {
+            tables.emplace(tableId, std::move(points));
+        }
+    }
+    return tables;
+}
+
 static int getPSSversion(const std::string& line);
 static void rawReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& opt);
 static void rawReadLoad(GridLoad* loadObject, const std::string& line, BasicReaderInfo& opt);
@@ -59,11 +121,134 @@ static void rawReadBranch(CoreObject* parentObject,
 static int rawReadTX(CoreObject* parentObject,
                      stringVec& txlines,
                      std::vector<GridBus*>& busList,
-                     BasicReaderInfo& opt);
+                     BasicReaderInfo& opt,
+                     const ImpedanceCorrectionTables& correctionTables);
+static void rawReadThreeWindingTransformer(CoreObject* parentObject,
+                                           const stringVec& header,
+                                           const stringVec& impedance,
+                                           const std::array<stringVec, 3>& windings,
+                                           std::vector<GridBus*>& busList,
+                                           BasicReaderInfo& opt,
+                                           const ImpedanceCorrectionTables& correctionTables)
+{
+    const auto busNumber1 = numeric_conversion<int>(header[0], 0);
+    const auto busNumber2 = numeric_conversion<int>(header[1], 0);
+    const auto busNumber3 = numeric_conversion<int>(header[2], 0);
+    if ((busNumber1 <= 0) || (busNumber2 <= 0) || (busNumber3 <= 0) ||
+        (std::cmp_greater_equal(static_cast<size_t>(busNumber1), busList.size())) ||
+        (std::cmp_greater_equal(static_cast<size_t>(busNumber2), busList.size())) ||
+        (std::cmp_greater_equal(static_cast<size_t>(busNumber3), busList.size()) ||
+         (busList[busNumber1] == nullptr) || (busList[busNumber2] == nullptr) ||
+         (busList[busNumber3] == nullptr))) {
+        throw std::runtime_error("invalid three-winding transformer bus");
+    }
+
+    const auto circuit = trim(removeQuotes(header[3]));
+    auto name = std::string{"tx3_"} + std::to_string(busNumber1) + '_' +
+        std::to_string(busNumber2) + '_' + std::to_string(busNumber3) + '_' + circuit;
+    // Some RAW section readers present the final transformer record twice.
+    // Avoid adding a duplicate parallel three-leg network for that replay.
+    if (parentObject->find(name + "_w1-2") != nullptr) {
+        return;
+    }
+    auto* starBus = new AcBus(name + "_star");
+    starBus->set("basepower", opt.base);
+    starBus->set("basevoltage", 1.0, units::kV);
+    starBus->setVoltageAngle(numeric_conversion<double>(impedance[9], 1.0),
+                             units::convert(numeric_conversion<double>(impedance[10], 0.0),
+                                            deg,
+                                            units::rad));
+    addToParentWithRename(starBus, parentObject);
+
+    // PSS/E stores the three pairwise leakage impedances.  Convert their
+    // equivalent delta into the star legs used by ThreeWindingTransformer.
+    std::array<double, 3> resistance{numeric_conversion<double>(impedance[0], 0.0),
+                                     numeric_conversion<double>(impedance[3], 0.0),
+                                     numeric_conversion<double>(impedance[6], 0.0)};
+    std::array<double, 3> reactance{numeric_conversion<double>(impedance[1], 0.0),
+                                    numeric_conversion<double>(impedance[4], 0.0),
+                                    numeric_conversion<double>(impedance[7], 0.0)};
+    const std::array<double, 3> windingBase{numeric_conversion<double>(impedance[2], opt.base),
+                                            numeric_conversion<double>(impedance[5], opt.base),
+                                            numeric_conversion<double>(impedance[8], opt.base)};
+    const auto impedanceCode = numeric_conversion<int>(header[5], 1);
+    for (size_t ii = 0; ii < 3; ++ii) {
+        if (impedanceCode == 2) {
+            if (windingBase[ii] > 0.0) {
+                resistance[ii] *= opt.base / windingBase[ii];
+                reactance[ii] *= opt.base / windingBase[ii];
+            }
+        } else if (impedanceCode == 3) {
+            // CZ=3 uses load loss in W and impedance magnitude on winding base.
+            if (windingBase[ii] > 0.0) {
+                resistance[ii] /= windingBase[ii] * 1.0e6;
+                reactance[ii] = std::sqrt(
+                    std::max((reactance[ii] * reactance[ii]) - (resistance[ii] * resistance[ii]),
+                             0.0));
+                resistance[ii] *= opt.base / windingBase[ii];
+                reactance[ii] *= opt.base / windingBase[ii];
+            }
+        }
+    }
+    std::array<double, 3> starResistance{(resistance[0] + resistance[2] - resistance[1]) / 2.0,
+                                         (resistance[0] + resistance[1] - resistance[2]) / 2.0,
+                                         (resistance[1] + resistance[2] - resistance[0]) / 2.0};
+    std::array<double, 3> starReactance{(reactance[0] + reactance[2] - reactance[1]) / 2.0,
+                                        (reactance[0] + reactance[1] - reactance[2]) / 2.0,
+                                        (reactance[1] + reactance[2] - reactance[0]) / 2.0};
+    const auto impedanceCorrection =
+        correctionFactor(correctionTables,
+                         numeric_conversion<int>(windings[0][13], 0),
+                         numeric_conversion<double>(windings[0][2], 0.0));
+    starResistance[0] *= impedanceCorrection;
+    starReactance[0] *= impedanceCorrection;
+    const std::array<GridBus*, 3> exterior{busList[busNumber1],
+                                           busList[busNumber2],
+                                           busList[busNumber3]};
+
+    const auto tapCode = numeric_conversion<int>(header[4], 1);
+    for (size_t ii = 0; ii < 3; ++ii) {
+        // CW=1 is the normal PSS/E per-unit WINDV form.  For the other
+        // variants preserve the supplied normalized value; their uncommon
+        // voltage-base conversion requires a dedicated validation fixture.
+        auto tap = numeric_conversion<double>(windings[ii][0], 1.0);
+        if (tap == 0.0) {
+            tap = 1.0;
+        }
+        if (tapCode != 1) {
+            std::cerr << "three-winding transformer uses CW=" << tapCode
+                      << "; treating WINDV as a normalized fixed tap\n";
+        }
+        auto* leg = new AcLine(name + "_w" + std::to_string(ii + 1));
+        leg->set("basepower", opt.base);
+        leg->updateBus(exterior[ii], 1);
+        leg->updateBus(starBus, 2);
+        leg->set("r", starResistance[ii]);
+        leg->set("x", starReactance[ii]);
+        leg->set("tap", tap);
+        leg->set("tapangle", numeric_conversion<double>(windings[ii][2], 0.0), deg);
+        leg->set("ratinga", numeric_conversion<double>(windings[ii][3], 0.0), MW);
+        leg->set("ratingb", numeric_conversion<double>(windings[ii][4], 0.0), MW);
+        leg->set("ratingc", numeric_conversion<double>(windings[ii][5], 0.0), MW);
+        if ((ii == 0) && (numeric_conversion<int>(header[6], 1) == 1)) {
+            leg->set("g", numeric_conversion<double>(header[7], 0.0));
+            leg->set("b", numeric_conversion<double>(header[8], 0.0));
+        }
+        if (numeric_conversion<int>(header[11], 1) == 0) {
+            leg->disable();
+        }
+        addToParentWithRename(leg, parentObject);
+    }
+    if (numeric_conversion<int>(header[6], 1) != 1) {
+        std::cerr << "three-winding transformer magnetizing code is not fully supported\n";
+    }
+}
+
 static int rawReadTxV33(CoreObject* parentObject,
                         stringVec& txlines,
                         std::vector<GridBus*>& busList,
-                        BasicReaderInfo& opt);
+                        BasicReaderInfo& opt,
+                        const ImpedanceCorrectionTables& correctionTables);
 
 static void rawReadSwitchedShunt(CoreObject* parentObject,
                                  const std::string& line,
@@ -132,6 +317,7 @@ void loadRaw(CoreObject* parentObject,
              const std::string& fileName,
              const BasicReaderInfo& readerOptions)
 {
+    const auto impedanceCorrectionTables = readImpedanceCorrectionTables(fileName);
     std::ifstream file(fileName.c_str(), std::ios::in);
     std::string line;  // line storage
     std::string temp1;  // temporary storage for substrings
@@ -374,9 +560,11 @@ void loadRaw(CoreObject* parentObject,
                         std::getline(file, txlines[4]);
                     }
                     if (opt.version >= 33) {
-                        tline = rawReadTxV33(parentObject, txlines, busList, opt);
+                        tline = rawReadTxV33(
+                            parentObject, txlines, busList, opt, impedanceCorrectionTables);
                     } else {
-                        tline = rawReadTX(parentObject, txlines, busList, opt);
+                        tline = rawReadTX(
+                            parentObject, txlines, busList, opt, impedanceCorrectionTables);
                     }
                 }
                 break;
@@ -556,6 +744,11 @@ static void rawReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& o
         bus->set("angle", voltageAngle, deg);
     }
     if (voltageMagnitude != 0) {
+        // Preserve the solved RAW bus voltage as the local control target.
+        // This mirrors the EPC reader and prevents a remote generator's VS
+        // value from overwriting the terminal voltage while generators are
+        // read sequentially.
+        bus->set("vtarget", voltageMagnitude);
         bus->set("voltage", voltageMagnitude);
     }
 }
@@ -670,36 +863,31 @@ static void rawReadGen(Generator* gen, const std::string& line, BasicReaderInfo&
     if (reactivePower != 0.0) {
         gen->set("q", reactivePower, MVAR);
     }
+    // PT and PB are the generator's real-power capability limits.  EPC
+    // imports the corresponding fields; leaving them at +/-infinity in RAW
+    // gives slack and recovery adjustments an unbounded participation range.
+    const auto pmax = numeric_conversion<double>(strvec[16], 0.0);
+    const auto pmin = numeric_conversion<double>(strvec[17], 0.0);
+    gen->set("pmax", pmax, MW);
+    gen->set("pmin", pmin, MW);
     // get the Qmax and Qmin
     auto qmax = numeric_conversion<double>(strvec[4], 0.0);
     auto qmin = numeric_conversion<double>(strvec[5], 0.0);
-    if (qmax != 0.0) {
-        gen->set("qmax", qmax, MW);
-    }
-    if (qmin != 0.0) {
+    // Preserve a one-sided zero limit, but treat a zero/zero pair as omitted
+    // limits.  IEEE and legacy PSS/E exports use that pair for an unconstrained
+    // swing generator; applying it literally would force the unit to Q = 0.
+    if ((qmax != 0.0) || (qmin != 0.0)) {
+        gen->set("qmax", qmax, MVAR);
         gen->set("qmin", qmin, MVAR);
     }
-    auto vtarget = numeric_conversion<double>(strvec[6], 0.0);
-    if (vtarget > 0) {
-        const double voltageParent = gen->getParent()->get("vtarget");
-        if (std::abs(voltageParent - vtarget) > 0.0001) {
-            gen->set("vtarget", vtarget);
-            // for raw files the bus doesn't necessarily set a control point it comes from the
-            // generator, so we have to set it here.
-            if (!opt.checkFlag(NO_GENERATOR_BUS_VOLTAGE_RESET)) {
-                gen->getParent()->set("vtarget", vtarget);
-                gen->getParent()->set("voltage", vtarget);
-            }
-        } else {
-            gen->set("vtarget", voltageParent);
-        }
-    }
-    auto rbus = numeric_conversion<int>(strvec[7], 0);
-
+    const auto rbus = numeric_conversion<int>(strvec[7], 0);
     if (rbus != 0) {
-        auto* remoteBus =
-            static_cast<GridBus*>(gen->getParent()->getParent()->findByUserID("bus", rbus));
-        gen->add(remoteBus);
+        // PSS/E IREG remote voltage regulation requires coordinated reactive
+        // participation among every generator controlling the same bus.  The
+        // present Generator remote-control path registers each unit as an
+        // independent constraint.  The bus record already preserved the
+        // supplied voltage as its local target, so leave VS/IREG unapplied for
+        // this fixed-control MATPOWER/EPC-equivalent power-flow model.
     }
 
     auto resistance = numeric_conversion<double>(strvec[9], 0.0);
@@ -1046,7 +1234,8 @@ static void rawReadTXadj(CoreObject* parentObject,
 static int rawReadTxV33(CoreObject* parentObject,
                         stringVec& txlines,
                         std::vector<GridBus*>& busList,
-                        BasicReaderInfo& opt)
+                        BasicReaderInfo& opt,
+                        const ImpedanceCorrectionTables& correctionTables)
 {
     /* version 33
     # """
@@ -1084,15 +1273,21 @@ static int rawReadTxV33(CoreObject* parentObject,
     if (ind3 != 0) {
         tline = 5;
         strvec5 = splitline(txlines[4]);
-        // TODO(phlpt): Handle three-way transformers.
-        std::cout << "3 winding transformers not supported at this time\n";
+        rawReadThreeWindingTransformer(parentObject,
+                                       strvec,
+                                       strvec2,
+                                       {strvec3, strvec4, strvec5},
+                                       busList,
+                                       opt,
+                                       correctionTables);
         return tline;
     }
 
     auto* bus1 = busList[ind1];
     auto* bus2 = busList[ind2];
     const int code = gmlc::utilities::numConv<int>(strvec3[6]);
-    switch (abs(code)) {
+    const int controlCode = std::abs(code);
+    switch (controlCode) {
         case 0:
         default:
             lnk = gLinkfactory->makeDirectObject(name);
@@ -1156,6 +1351,11 @@ static int rawReadTxV33(CoreObject* parentObject,
 
     auto resistance = numeric_conversion<double>(strvec2[0], 0.0);
     auto reactance = numeric_conversion<double>(strvec2[1], 0.0);
+    const auto impedanceCorrection = correctionFactor(correctionTables,
+                                                      numeric_conversion<int>(strvec3[13], 0),
+                                                      numeric_conversion<double>(strvec3[2], 0.0));
+    resistance *= impedanceCorrection;
+    reactance *= impedanceCorrection;
 
     auto vn1 = numeric_conversion<double>(strvec3[1], 0.0);
     auto vn2 = numeric_conversion<double>(strvec4[1], 0.0);
@@ -1232,7 +1432,7 @@ static int rawReadTxV33(CoreObject* parentObject,
     }
     // now get the stuff for the adjustable transformers
     // SGS set this for adjustable transformers....is this correct?
-    if (abs(code) > 0) {
+    if (controlCode > 0) {
         auto cbus = numeric_conversion<int>(strvec3[7], 0);
         if (cbus != 0) {
             if (abs(cbus) == ind1) {
@@ -1268,7 +1468,7 @@ static int rawReadTxV33(CoreObject* parentObject,
         resistance = numeric_conversion<double>(strvec3[8], 0.0);
         reactance = numeric_conversion<double>(strvec3[9], 0.0);
 
-        if (code == 3) {
+        if (controlCode == 3) {
             lnk->set("maxtapangle", resistance, deg);
             lnk->set("mintapangle", reactance, deg);
         } else {
@@ -1284,10 +1484,10 @@ static int rawReadTxV33(CoreObject* parentObject,
         resistance = numeric_conversion<double>(strvec3[10], 0.0);
         reactance = numeric_conversion<double>(strvec3[11], 0.0);
 
-        if (code == 3) {
+        if (controlCode == 3) {
             lnk->set("pmax", resistance, MW);
             lnk->set("pmin", reactance, MW);
-        } else if (code == 2) {
+        } else if (controlCode == 2) {
             lnk->set("qmax", resistance, MVAR);
             lnk->set("qmin", reactance, MVAR);
         } else {
@@ -1295,7 +1495,7 @@ static int rawReadTxV33(CoreObject* parentObject,
             lnk->set("vmin", reactance);
         }
         resistance = numeric_conversion<double>(strvec3[12], 0.0);
-        if (code != 3) {
+        if (controlCode != 3) {
             lnk->set("nsteps", resistance);
         }
     }
@@ -1305,7 +1505,8 @@ static int rawReadTxV33(CoreObject* parentObject,
 static int rawReadTX(CoreObject* parentObject,
                      stringVec& txlines,
                      std::vector<GridBus*>& busList,
-                     BasicReaderInfo& opt)
+                     BasicReaderInfo& opt,
+                     const ImpedanceCorrectionTables& correctionTables)
 {
     // GridBus *bus3;
     AcLine* lnk = nullptr;
@@ -1328,15 +1529,21 @@ static int rawReadTX(CoreObject* parentObject,
     if (ind3 != 0) {
         tline = 5;
         strvec5 = splitline(txlines[4]);
-        // TODO(phlpt): Handle three-way transformers.
-        std::cout << "3 winding transformers not supported at this time\n";
+        rawReadThreeWindingTransformer(parentObject,
+                                       strvec,
+                                       strvec2,
+                                       {strvec3, strvec4, strvec5},
+                                       busList,
+                                       opt,
+                                       correctionTables);
         return tline;
     }
 
     auto* bus1 = busList[ind1];
     auto* bus2 = busList[ind2];
     const int code = gmlc::utilities::numConv<int>(strvec3[6]);
-    switch (abs(code)) {
+    const int controlCode = std::abs(code);
+    switch (controlCode) {
         case 0:
         default:
             lnk = gLinkfactory->makeDirectObject(name);
@@ -1389,6 +1596,11 @@ static int rawReadTX(CoreObject* parentObject,
 
     auto resistance = numeric_conversion<double>(strvec2[0], 0.0);
     auto reactance = numeric_conversion<double>(strvec2[1], 0.0);
+    const auto impedanceCorrection = correctionFactor(correctionTables,
+                                                      numeric_conversion<int>(strvec3[13], 0),
+                                                      numeric_conversion<double>(strvec3[2], 0.0));
+    resistance *= impedanceCorrection;
+    reactance *= impedanceCorrection;
 
     lnk->set("r", resistance);
     lnk->set("x", reactance);
@@ -1412,7 +1624,7 @@ static int rawReadTX(CoreObject* parentObject,
     }
     // now get the stuff for the adjustable transformers
     // SGS set this for adjustable transformers....is this correct?
-    if (abs(code) > 0) {
+    if (controlCode > 0) {
         auto cbus = numeric_conversion<int>(strvec3[7], 0);
         if (cbus != 0) {
             /*if (abs(cbus) == ind1)
@@ -1433,7 +1645,7 @@ static int rawReadTX(CoreObject* parentObject,
         resistance = numeric_conversion<double>(strvec3[8], 0.0);
         reactance = numeric_conversion<double>(strvec3[9], 0.0);
 
-        if (code == 3) {
+        if (controlCode == 3) {
             lnk->set("maxtapangle", resistance, deg);
             lnk->set("mintapangle", reactance, deg);
         } else {
@@ -1447,10 +1659,10 @@ static int rawReadTX(CoreObject* parentObject,
             resistance = numeric_conversion<double>(strvec3[10], 0.0);
             reactance = numeric_conversion<double>(strvec3[11], 0.0);
         }
-        if (code == 3) {
+        if (controlCode == 3) {
             lnk->set("pmax", resistance, MW);
             lnk->set("pmin", reactance, MW);
-        } else if (code == 2) {
+        } else if (controlCode == 2) {
             lnk->set("qmax", resistance, MVAR);
             lnk->set("qmin", reactance, MVAR);
         } else {
@@ -1458,7 +1670,7 @@ static int rawReadTX(CoreObject* parentObject,
             lnk->set("vmin", reactance);
         }
         resistance = numeric_conversion<double>(strvec3[12], 0.0);
-        if (code != 3) {
+        if (controlCode != 3) {
             lnk->set("nsteps", resistance);
         }
     }
@@ -1587,7 +1799,10 @@ static void rawReadSwitchedShunt(CoreObject* parentObject,
     // set the initial value
     auto initVal = numeric_conversion<double>(strvec[start], 0.0);
 
-    loadObject->set("yq", -initVal, MVAR);
+    // BINIT is the present shunt susceptance, not a request to change the
+    // discrete/continuous SVD setting.  Set it directly so voltage-controlled
+    // records retain their PowerWorld/PSS/E initial reactive injection.
+    loadObject->ZipLoad::set("yq", -initVal, MVAR);
 }
 
 }  // namespace griddyn

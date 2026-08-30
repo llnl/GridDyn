@@ -56,6 +56,15 @@ Subsystem::Subsystem(count_t terminals, const std::string& objName): Link(objNam
                              // in GridComponent.
 }
 
+Subsystem::~Subsystem()
+{
+    // subarea is an embedded member. Detach it before member destruction so
+    // GridComponent's destructor does not dereference it after its lifetime ends.
+    // Suppress normal object-change notification during teardown.
+    opFlags[POWERFLOW_INITIALIZED] = false;
+    removeSubObject(&subarea);
+}
+
 CoreObject* Subsystem::clone(CoreObject* obj) const
 {
     auto* sub = cloneBase<Subsystem, Link>(this, obj);

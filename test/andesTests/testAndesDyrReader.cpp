@@ -508,15 +508,15 @@ TEST(AndesDynamicTests, ExacExcitersRespondToGeneratorSetpointStep)
 
 TEST(AndesDynamicTests, St2cutRespondsToGeneratorSetpointStep)
 {
-    const auto finalState =
-        runGeneratorSetpointStepCase({"ieee14_esst3a.dyr", "ieee14_exst1.dyr", "ieee14_st2cut.dyr"});
+    const auto finalState = runGeneratorSetpointStepCase(
+        {"ieee14_esst3a.dyr", "ieee14_exst1.dyr", "ieee14_st2cut.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 
 TEST(AndesDynamicTests, IeeestRespondsToGeneratorSetpointStep)
 {
-    const auto finalState =
-        runGeneratorSetpointStepCase({"ieee14_esst3a.dyr", "ieee14_exst1.dyr", "ieee14_ieeest.dyr"});
+    const auto finalState = runGeneratorSetpointStepCase(
+        {"ieee14_esst3a.dyr", "ieee14_exst1.dyr", "ieee14_ieeest.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 

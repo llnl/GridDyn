@@ -12,14 +12,16 @@
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <cmath>
+#include <queue>
 #include <string>
+#include <utility>
 
 namespace griddyn::links {
 static TypeFactory<ThreeWindingTransformer>
-    threeWindingTransformerFactory("link",
-                                   std::to_array<std::string_view>({"three winding transformer",
-                                                                    "threewindingtransformer",
-                                                                    "threewinding"}));
+    gThreeWindingTransformerFactory("link",
+                                    std::to_array<std::string_view>({"three winding transformer",
+                                                                     "threewindingtransformer",
+                                                                     "threewinding"}));
 
 ThreeWindingTransformer::ThreeWindingTransformer(const std::string& objName): Subsystem(objName)
 {
@@ -50,7 +52,7 @@ ThreeWindingTransformer::ThreeWindingTransformer(const std::string& objName): Su
 
 AcLine* ThreeWindingTransformer::windingLeg(index_t winding) const
 {
-    if ((winding < 1) || (winding > windingLegs.size())) {
+    if ((winding < 1) || std::cmp_greater(winding, windingLegs.size())) {
         throw InvalidParameterValue("three-winding transformer winding");
     }
     return windingLegs[winding - 1];

@@ -71,7 +71,7 @@ static double correctionFactor(const ImpedanceCorrectionTables& tables, int tabl
         });
     const auto lower = std::prev(upper);
     const auto fraction = (tap - lower->first) / (upper->first - lower->first);
-    return lower->second + fraction * (upper->second - lower->second);
+    return lower->second + (fraction * (upper->second - lower->second));
 }
 
 static ImpedanceCorrectionTables readImpedanceCorrectionTables(const std::string& fileName)
@@ -82,7 +82,7 @@ static ImpedanceCorrectionTables readImpedanceCorrectionTables(const std::string
     bool inCorrectionSection = false;
     while (std::getline(file, line)) {
         if (!inCorrectionSection) {
-            inCorrectionSection = line.find("BEGIN IMPEDANCE CORRECTION DATA") != std::string::npos;
+            inCorrectionSection = line.contains("BEGIN IMPEDANCE CORRECTION DATA");
             continue;
         }
         trimString(line);
@@ -183,7 +183,8 @@ static void rawReadThreeWindingTransformer(CoreObject* parentObject,
             if (windingBase[ii] > 0.0) {
                 resistance[ii] /= windingBase[ii] * 1.0e6;
                 reactance[ii] = std::sqrt(
-                    std::max(reactance[ii] * reactance[ii] - resistance[ii] * resistance[ii], 0.0));
+                    std::max((reactance[ii] * reactance[ii]) - (resistance[ii] * resistance[ii]),
+                             0.0));
                 resistance[ii] *= opt.base / windingBase[ii];
                 reactance[ii] *= opt.base / windingBase[ii];
             }
@@ -872,11 +873,13 @@ static void rawReadGen(Generator* gen, const std::string& line, BasicReaderInfo&
     // get the Qmax and Qmin
     auto qmax = numeric_conversion<double>(strvec[4], 0.0);
     auto qmin = numeric_conversion<double>(strvec[5], 0.0);
-    // A zero reactive limit is meaningful: it forces a generator operating at
-    // that limit to behave as a PQ injection.  Dropping it leaves the bus as
-    // PV and can produce a materially different PSS/E power-flow solution.
-    gen->set("qmax", qmax, MVAR);
-    gen->set("qmin", qmin, MVAR);
+    // Preserve a one-sided zero limit, but treat a zero/zero pair as omitted
+    // limits.  IEEE and legacy PSS/E exports use that pair for an unconstrained
+    // swing generator; applying it literally would force the unit to Q = 0.
+    if ((qmax != 0.0) || (qmin != 0.0)) {
+        gen->set("qmax", qmax, MVAR);
+        gen->set("qmin", qmin, MVAR);
+    }
     const auto rbus = numeric_conversion<int>(strvec[7], 0);
     if (rbus != 0) {
         // PSS/E IREG remote voltage regulation requires coordinated reactive

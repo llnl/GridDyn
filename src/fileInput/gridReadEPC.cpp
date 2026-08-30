@@ -76,7 +76,7 @@ namespace {
                              [](const auto& point, double value) { return point.first < value; });
         const auto lower = std::prev(upper);
         const auto fraction = (tap - lower->first) / (upper->first - lower->first);
-        return lower->second + fraction * (upper->second - lower->second);
+        return lower->second + (fraction * (upper->second - lower->second));
     }
 
     void epcReadBus(GridBus* bus, string_view line, double base, const BasicReaderInfo& bri);
@@ -1089,9 +1089,14 @@ namespace {
         // get the Qmax and Qmin
         activePower = numeric_conversion<double>(strvec[17], 0.0);
         reactivePower = numeric_conversion<double>(strvec[18], 0.0);
-        // Zero is an explicit reactive limit, not an omitted value.
-        gen->set("qmax", activePower, MVAR);
-        gen->set("qmin", reactivePower, MVAR);
+        // Preserve a one-sided zero limit, but treat a zero/zero pair as
+        // omitted limits.  IEEE and legacy EPC exports use that pair for an
+        // unconstrained swing generator; applying it literally would force
+        // the unit to Q = 0.
+        if ((activePower != 0.0) || (reactivePower != 0.0)) {
+            gen->set("qmax", activePower, MVAR);
+            gen->set("qmin", reactivePower, MVAR);
+        }
         // get the machine base
         auto machineBase = numeric_conversion<double>(strvec[19], 0.0);
         gen->set("mbase", machineBase);

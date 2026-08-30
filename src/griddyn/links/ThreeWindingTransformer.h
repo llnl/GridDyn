@@ -10,6 +10,7 @@
 #include "AcLine.h"
 #include "Subsystem.h"
 #include <array>
+#include <queue>
 #include <string>
 
 namespace griddyn::links {

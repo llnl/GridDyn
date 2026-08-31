@@ -401,6 +401,27 @@ TEST(AndesDyrReaderTests, MapsExacParameterRecordsAndCouplesToGenrou)
     }
 }
 
+TEST(AndesDyrReaderTests, LoadsExac1WithZeroTr)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_exac1_tr0.dyr"));
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = bus->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    auto* exciter =
+        dynamic_cast<griddyn::exciters::ExciterEXAC1*>(generator->find("exciter"));
+    ASSERT_NE(exciter, nullptr);
+    EXPECT_DOUBLE_EQ(exciter->get("tr"), 0.0);
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(exciter->getStates().size(), 5U);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
 TEST(AndesDyrReaderTests, MapsSt2cutParametersAndCouplesToExciters)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();

@@ -1,0 +1,11 @@
+title
+empty PowerWorld injection-group sections
+!
+solution parameters
+sbase 100.0000    system mva base
+!
+bus data  [1]
+      1 "Test bus" 230.0000 :  0 1.00000 1.000000 0.00000 1 1 1.1000 0.9000
+injgroup data  [0]
+injgrpelem data  [0]
+end

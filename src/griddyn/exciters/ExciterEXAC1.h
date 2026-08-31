@@ -29,7 +29,9 @@ namespace griddyn::exciters {
  * where @f$v_i=V_{ref}-v_m-K_F(v_{FE}-x_F)/T_F@f$,
  * @f$v_{FE}=K_Ev_E+S_E(v_E)+K_DX_{ad}I_{fd}@f$, and
  * @f$E_{fd}=v_EF_{EX}(K_CX_{ad}I_{fd}/v_E)@f$.  The regulator state has an
- * anti-windup limiter @f$[V_{RMIN},V_{RMAX}]@f$.
+ * anti-windup limiter @f$[V_{RMIN},V_{RMAX}]@f$.  When @f$T_R=0@f$, the
+ * transducer is bypassed: @f$v_m=V_t@f$ and no measured-voltage state is
+ * allocated.
  *
  * Frozen ANDES constructs the @f$T_R@f$ transducer but subtracts raw terminal
  * voltage from the regulator input.  GridDyn intentionally uses @f$v_m@f$ as

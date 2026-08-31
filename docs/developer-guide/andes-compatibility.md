@@ -816,16 +816,30 @@ it also needs native-input mapping, initialization, and a trajectory test.
 ### Texas7k dynamic-model demand
 
 `C:\Users\phlpt\Downloads\Texas7k_20210804_Plus2023\Texas7k_20210804.dyr`
-was inspected statically and was not loaded or run. It has 2,705 records in
-24 model families. The current DYR reader recognizes 807 records (`GENROU`,
-`IEEEST`, `EXAC2`, `IEEEG1`, `ESDC1A`, and `EXAC1`); 1,898 records require
-additional support.
+has 2,705 records in 24 model families. The current DYR reader recognizes 807
+records (`GENROU`, `IEEEST`, `EXAC2`, `IEEEG1`, `ESDC1A`, and `EXAC1`); 1,898
+records require additional support.
 
 The largest missing demands are `GGOV1` (475), `ESST4B` (343), and the coupled
 renewable groups: `REGCA1` (189), `REECA1` (182), `REPCA1` (174), `WTARA1`
 (121), `WTTQA1` (121), and `WTPTA1` (105). The remaining missing records are
 `EXPIC1` (86), `GENSAL` (22), `HYGOV` (22), `IEEET1` (19), `USRMDL` (15),
 `SCRX` (9), `USRBUS` (6), and three each of `ESAC1A`, `ESAC6A`, and `ESDC2A`.
+
+A paired `RAW` plus `DYR` import was attempted on the unmodified base files.
+The reader correctly identifies the unsupported families, but it is not yet a
+strict loader: it prints an unknown-model line and continues. The first
+`EXAC1` record (`BUS=111208`, machine ID `1`) and the other two `EXAC1`
+records use `TR=0`. GridDyn now treats this as the specified bypassed
+measurement/transducer lag: it uses terminal voltage directly and omits the
+transducer differential state. The zero-`TR` path is covered by a DYR-loaded
+IEEE-14 regression with residual and Jacobian checks. `EXAC2` remains
+positive-`TR` only because its specialized equations still assume the
+five-state layout.
+
+Full Texas7k dynamics still requires the 1,898 unsupported records; this
+change only removes the former EXAC1 `TR=0` initialization blocker and makes
+no end-to-end Texas7k trajectory claim.
 
 ### Texas7k RAW support required
 
@@ -834,6 +848,33 @@ generators, 7,173 branches, 1,967 two-winding transformers, 205 fixed shunts,
 and 429 switched shunts. Its transformer records use only `CW=1`, `CZ=1`,
 `CM=1`, and `COD=0`; no three-winding transformer support is required for that
 base case.
+
+### Texas7k base-case execution results
+
+The unmodified `Texas7k_20210804.RAW`, `.m`, and `.EPC` files each complete a
+GridDyn Debug power-flow run. RAW and EPC load 6,717 buses, 9,140 links, 731
+generators, and 5,729 load objects. The MATPOWER reader loads the same buses,
+links, and generators but aggregates its demand into 4,648 load objects. The
+maximum reported bus residuals are:
+
+| Input | Maximum active residual (MW) | Maximum reactive residual (MVAr) |
+| ----- | ---------------------------: | --------------------------------: |
+| RAW | 0 | 0.00472 |
+| MATPOWER `.m` | 0 | 0.51257 |
+| PowerWorld EPC | 0.00005 | 0.00822 |
+
+RAW and MATPOWER retain all 6,717 common bus IDs; their exported solved states
+differ by at most `0.00005` pu in voltage magnitude and `0.0022` degrees in
+angle at the report precision. The EPC reader assigns sequential internal bus
+IDs, but preserves source record order. Matching all 6,717 EPC records to RAW
+records by that order gives a maximum voltage difference of `0.000004` pu and
+a maximum angle difference of `0.0001` degrees. This correct pairing is needed
+because PSS/E's 12-character bus-name limit produces duplicate truncated names
+in RAW; GridDyn disambiguates those names differently from the EPC reader.
+The previous name-only comparison therefore paired 12 duplicate names to the
+wrong buses and falsely reported a `0.029486` pu state difference. The EPC
+reader also reports nonfatal unsupported `injgroup` and `injgrpelem` metadata
+tokens.
 
 The 2022 and 2030 files are PSS/E v35. Before they can be safely loaded, the
 RAW reader needs to skip `@!` field-header comments and implement v35 schemas
@@ -862,6 +903,18 @@ unsupported. The highest-demand missing models are `GGOV1` (3,419), `ESST4B`
 (3,187), `GENSAL` (2,306), `HYGOV` (2,306), `IEEET1` (1,907), and `SCRX`
 (1,053). The coupled renewable requirement is `REGCA1` and `REECA1` (571 each)
 plus `WT3G1`, `WT3E1`, `WT3P1`, and `WT3T1` (576 each).
+
+For an executable full-dynamics reference, treat the DYR as plant assemblies,
+not independent records: `GENSAL` and `HYGOV` must be available together;
+`REGCA1` and `REECA1` must be available together; and all four `WT3*` models
+must be available together. `GGOV1` must retain its selectable governor and
+turbine modes and must not be replaced with `TGOV1`. The complete remaining
+unsupported set is `GGOV1`, `ESST4B`, `GENSAL`, `HYGOV`, `IEEET1`, `SCRX`,
+`ESAC6A`, `WT3P1`, `WT3T1`, `WT3E1`, `WT3G1`, `REGCA1`, `REECA1`, `EXPIC1`,
+`ESAC1A`, and `ESDC2A`; reject a full DYR run until all are supported rather
+than silently dropping a controller. The companion `.PWB`, `.aux`, `.pwd`,
+and `.EPC` files are PowerWorld references, while the GridDyn import/validation
+pair is `ACTIVSg70k.RAW` plus `ACTIVSg70k_dynamics.dyr`.
 
 `ACTIVSg70k.RAW` is PSS/E v33 and contains 67,900 terminal buses, 71,352
 ordinary branches, 10,555 two-winding transformers, and 2,100 three-winding

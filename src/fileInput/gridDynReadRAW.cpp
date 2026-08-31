@@ -13,9 +13,11 @@
 #include "griddyn/Generator.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
+#include "griddyn/Link.h"
 #include "griddyn/Load.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/links/AdjustableTransformer.h"
+#include "griddyn/links/RawDcLine.h"
 #include "griddyn/links/ThreeWindingTransformer.h"
 #include "griddyn/loads/Svd.h"
 #include "griddyn/primary/AcBus.h"
@@ -33,6 +35,7 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -259,6 +262,17 @@ static void rawReadTXadj(CoreObject* parentObject,
                          std::vector<GridBus*>& busList,
                          BasicReaderInfo& opt);
 
+static void rawReadTwoTerminalDc(CoreObject* parentObject,
+                                 const std::array<std::string, 3>& records,
+                                 const std::vector<GridBus*>& busList,
+                                 index_t sequence,
+                                 std::unordered_set<int>& voltageControlledBuses);
+static void rawReadVscDc(CoreObject* parentObject,
+                         const std::array<std::string, 3>& records,
+                         const std::vector<GridBus*>& busList,
+                         index_t sequence,
+                         std::unordered_set<int>& voltageControlledBuses);
+
 // static int rawReadDCLine(CoreObject* parentObject,
 //                          stringVec& txlines,
 //                          std::vector<GridBus*>& busList,
@@ -274,7 +288,9 @@ namespace {
         GENERATOR,
         TX,
         SWITCHED_SHUNT,
-        TXADJ
+        TXADJ,
+        TWO_TERMINAL_DC,
+        VSC_DC
     };
 }  // namespace
 
@@ -313,6 +329,50 @@ static GridBus* findBus(std::vector<GridBus*>& busList, const std::string& line)
     return busList[index];
 }
 
+static void readRawBusSection(CoreObject* parentObject,
+                              std::ifstream& file,
+                              std::string& line,
+                              std::vector<GridBus*>& busList,
+                              BasicReaderInfo& opt)
+{
+    while (checkNextLine(file, line)) {
+        const auto pos = line.find_first_of(',');
+        const auto index = numeric_conversion<index_t>(line.substr(0, pos), 0);
+
+        if (std::cmp_greater_equal(index, busList.size())) {
+            if (index < 100000000) {
+                busList.resize((2 * index) + 1, nullptr);
+            } else {
+                std::cerr << "Bus index overload " << index << '\n';
+            }
+        }
+        if (busList[index] == nullptr) {
+            busList[index] = gBusfactory->makeTypeObject();
+            busList[index]->set("basepower", opt.base);
+            busList[index]->setUserID(index);
+
+            rawReadBus(busList[index], line, opt);
+            auto* tobj = parentObject->find(busList[index]->getName());
+            if (tobj == nullptr) {
+                parentObject->add(busList[index]);
+            } else {
+                const auto prevName = busList[index]->getName();
+                busList[index]->setName(prevName + '_' +
+                                        std::to_string(busList[index]->getInt("basevoltage")));
+                try {
+                    parentObject->add(busList[index]);
+                }
+                catch (const ObjectAddFailure&) {
+                    busList[index]->setName(prevName);
+                    addToParentWithRename(busList[index], parentObject);
+                }
+            }
+        } else {
+            std::cerr << "Invalid bus code " << index << '\n';
+        }
+    }
+}
+
 void loadRaw(CoreObject* parentObject,
              const std::string& fileName,
              const BasicReaderInfo& readerOptions)
@@ -327,7 +387,6 @@ void loadRaw(CoreObject* parentObject,
     GridLoad* loadObject;
     Generator* gen;
     GridBus* bus;
-    index_t index;
     size_t pos;
 
     /*load up the factories*/
@@ -399,61 +458,20 @@ void loadRaw(CoreObject* parentObject,
     temp1 = temp1 + '\n' + line;
     // set the case description
     parentObject->setDescription(temp1);
-    // get the bus data section
-    // bus data doesn't have a header but it is always first
-    bool moreData = true;
-    while (moreData) {
-        if (checkNextLine(file, line)) {
-            // get the index
-            pos = line.find_first_of(',');
-            temp1 = line.substr(0, pos);
-            index = numeric_conversion<index_t>(temp1, 0);
-
-            if (std::cmp_greater_equal(index, busList.size())) {
-                if (index < 100000000) {
-                    busList.resize((2 * index) + 1, nullptr);
-                } else {
-                    std::cerr << "Bus index overload " << index << '\n';
-                }
-            }
-            if (busList[index] == nullptr) {
-                busList[index] = gBusfactory->makeTypeObject();
-                busList[index]->set("basepower", opt.base);
-                busList[index]->setUserID(index);
-
-                rawReadBus(busList[index], line, opt);
-                auto* tobj = parentObject->find(busList[index]->getName());
-                if (tobj == nullptr) {
-                    parentObject->add(busList[index]);
-                } else {
-                    auto prevName = busList[index]->getName();
-                    busList[index]->setName(prevName + '_' +
-                                            std::to_string(busList[index]->getInt("basevoltage")));
-                    try {
-                        parentObject->add(busList[index]);
-                    }
-                    catch (const ObjectAddFailure&) {
-                        busList[index]->setName(prevName);
-                        addToParentWithRename(busList[index], parentObject);
-                    }
-                }
-            } else {
-                std::cerr << "Invalid bus code " << index << '\n';
-            }
-        } else {
-            moreData = false;
-        }
-    }
+    // Bus data does not have a header but is always the first section.
+    readRawBusSection(parentObject, file, line, busList, opt);
 
     stringVec txlines;
     txlines.resize(5);
     int tline = 5;
+    index_t dcLineSequence = 0;
+    std::unordered_set<int> dcVoltageControlledBuses;
 
     bool moreSections = true;
 
     while (moreSections) {
         const SectionType currSection = findSectionType(line);
-        moreData = true;
+        bool moreData = true;
         switch (currSection) {
             case SectionType::LOAD:
                 while (moreData) {
@@ -559,12 +577,71 @@ void loadRaw(CoreObject* parentObject,
                         std::getline(file, txlines[3]);
                         std::getline(file, txlines[4]);
                     }
+                    if (!moreData) {
+                        break;
+                    }
                     if (opt.version >= 33) {
                         tline = rawReadTxV33(
                             parentObject, txlines, busList, opt, impedanceCorrectionTables);
                     } else {
                         tline = rawReadTX(
                             parentObject, txlines, busList, opt, impedanceCorrectionTables);
+                    }
+                }
+                break;
+            case SectionType::TWO_TERMINAL_DC:
+                while (moreData) {
+                    if (checkNextLine(file, line)) {
+                        std::array<std::string, 3> records{line, {}, {}};
+                        if (!std::getline(file, records[1]) || !std::getline(file, records[2])) {
+                            std::cerr << "Incomplete two-terminal DC record\n";
+                            moreData = false;
+                            moreSections = false;
+                            continue;
+                        }
+                        trimString(records[1]);
+                        trimString(records[2]);
+                        if (records[1].empty() || records[2].empty() || records[1][0] == '0' ||
+                            records[2][0] == '0') {
+                            std::cerr << "Incomplete two-terminal DC record\n";
+                            moreData = false;
+                            continue;
+                        }
+                        rawReadTwoTerminalDc(parentObject,
+                                             records,
+                                             busList,
+                                             ++dcLineSequence,
+                                             dcVoltageControlledBuses);
+                    } else {
+                        moreData = false;
+                    }
+                }
+                break;
+            case SectionType::VSC_DC:
+                while (moreData) {
+                    if (checkNextLine(file, line)) {
+                        std::array<std::string, 3> records{line, {}, {}};
+                        if (!std::getline(file, records[1]) || !std::getline(file, records[2])) {
+                            std::cerr << "Incomplete VSC DC record\n";
+                            moreData = false;
+                            moreSections = false;
+                            continue;
+                        }
+                        trimString(records[1]);
+                        trimString(records[2]);
+                        if (records[1].empty() || records[2].empty() || records[1][0] == '0' ||
+                            records[2][0] == '0') {
+                            std::cerr << "Incomplete VSC DC record\n";
+                            moreData = false;
+                            continue;
+                        }
+                        rawReadVscDc(parentObject,
+                                     records,
+                                     busList,
+                                     ++dcLineSequence,
+                                     dcVoltageControlledBuses);
+                    } else {
+                        moreData = false;
                     }
                 }
                 break;
@@ -587,6 +664,231 @@ void loadRaw(CoreObject* parentObject,
     }
 
     file.close();
+}
+
+static GridBus* rawDcLookupBus(const std::vector<GridBus*>& busList, int busNumber)
+{
+    if ((busNumber <= 0) || std::cmp_greater_equal(busNumber, busList.size()) ||
+        busList[busNumber] == nullptr) {
+        return nullptr;
+    }
+    return busList[busNumber];
+}
+
+static double rawDcField(const stringVector& record, size_t index);
+
+/**
+ * Add the simple, AC-terminal DC-line representation used by PowerModels for
+ * PSS/E RAW imports.  RawDcLine represents the scheduled active transfer and
+ * PowerModels-style terminal reactive/voltage equations, rather than a
+ * physical DC network or converter.  This preserves the existing physical DC
+ * and converter models.
+ */
+static links::RawDcLine* addRawDcCompatibilityLink(CoreObject* parentObject,
+                                                   GridBus* fromBus,
+                                                   GridBus* toBus,
+                                                   index_t sequence,
+                                                   double scheduledPower,
+                                                   double lossFraction,
+                                                   double rating,
+                                                   bool enabled,
+                                                   double fromVoltageTarget,
+                                                   double toVoltageTarget,
+                                                   bool controlFromVoltage,
+                                                   bool controlToVoltage,
+                                                   const std::string& description)
+{
+    auto* link =
+        new links::RawDcLine(parentObject->getName() + "_psse_dc_" + std::to_string(sequence));
+    link->setDescription(description);
+    link->updateBus(fromBus, 1);
+    link->updateBus(toBus, 2);
+    try {
+        parentObject->add(link);
+    }
+    catch (const ObjectAddFailure&) {
+        addToParentWithRename(link, parentObject);
+    }
+
+    link->set("pset", scheduledPower, MW);
+    link->set("lossfraction", lossFraction);
+    link->set("from_vtarget", fromVoltageTarget);
+    link->set("to_vtarget", toVoltageTarget);
+    link->set("from_voltage_control", controlFromVoltage ? 1.0 : 0.0);
+    link->set("to_voltage_control", controlToVoltage ? 1.0 : 0.0);
+    if (rating > 0.0) {
+        link->set("rating", rating, MW);
+    }
+    if (!enabled) {
+        // Keep an out-of-service DC record from contributing to either AC
+        // terminal without allowing Link::disable() to cascade to a bus.
+        link->switchMode(1, true);
+        link->switchMode(2, true);
+    }
+    return link;
+}
+
+static bool rawDcUseVoltageControl(GridBus* bus,
+                                   int busNumber,
+                                   std::unordered_set<int>& voltageControlledBuses)
+{
+    auto* acBus = dynamic_cast<AcBus*>(bus);
+    if ((acBus == nullptr) ||
+        (acBus->getMode(cPflowSolverMode) != static_cast<int>(GridBus::BusType::PQ))) {
+        return false;
+    }
+    // PowerModels adds a voltage equality for every dcline terminal.  The
+    // equations are redundant if several RAW DC records share a PQ bus.  Keep
+    // one controller and retain the other terminal's specified q=0 start
+    // value, producing a nonsingular GridDyn system with the same voltage.
+    return voltageControlledBuses.insert(busNumber).second;
+}
+
+static void rawReadTwoTerminalDc(CoreObject* parentObject,
+                                 const std::array<std::string, 3>& records,
+                                 const std::vector<GridBus*>& busList,
+                                 index_t sequence,
+                                 std::unordered_set<int>& voltageControlledBuses)
+{
+    const auto header = splitlineQuotes(records[0]);
+    const auto rectifier = splitline(records[1]);
+    const auto inverter = splitline(records[2]);
+    if ((header.size() < 5) || rectifier.empty() || inverter.empty()) {
+        std::cerr << "Invalid two-terminal DC record\n";
+        return;
+    }
+
+    const auto mdc = numeric_conversion<int>(header[1], 0);
+    const auto setvl = numeric_conversion<double>(header[3], 0.0);
+    const auto vschd = numeric_conversion<double>(header[4], 0.0);
+    double powerDemand = 0.0;
+    if (mdc == 1) {
+        powerDemand = std::abs(setvl);
+    } else if (mdc == 2) {
+        if (vschd == 0.0) {
+            std::cerr << "Two-terminal DC current-control record has zero VSCHD\n";
+        } else {
+            // Match PowerModels' PSS/E RAW dcline conversion exactly.
+            powerDemand = std::abs(setvl / vschd / 1000.0);
+        }
+    }
+
+    const auto fromBusNumber = numeric_conversion<int>(rectifier[0], 0);
+    const auto toBusNumber = numeric_conversion<int>(inverter[0], 0);
+    auto* fromBus = rawDcLookupBus(busList, fromBusNumber);
+    auto* toBus = rawDcLookupBus(busList, toBusNumber);
+    if ((fromBus == nullptr) || (toBus == nullptr)) {
+        std::cerr << "Invalid AC bus in two-terminal DC record\n";
+        return;
+    }
+
+    const auto name = std::string(trim(removeQuotes(header[0])));
+    const auto resistance = numeric_conversion<double>(header[2], 0.0);
+    const auto fromVoltageTarget = fromBus->getVoltage();
+    const auto toVoltageTarget = toBus->getVoltage();
+    const auto fromQmin = -powerDemand * std::cos(rawDcField(rectifier, 3) * kPI / 180.0);
+    const auto toQmin = -powerDemand * std::cos(rawDcField(inverter, 3) * kPI / 180.0);
+    addRawDcCompatibilityLink(
+        parentObject,
+        fromBus,
+        toBus,
+        sequence,
+        powerDemand,
+        0.0,
+        powerDemand,
+        mdc != 0,
+        fromVoltageTarget,
+        toVoltageTarget,
+        rawDcUseVoltageControl(fromBus, fromBusNumber, voltageControlledBuses),
+        rawDcUseVoltageControl(toBus, toBusNumber, voltageControlledBuses),
+        "PSS/E RAW two-terminal DC compatibility import; name='" + name +
+            "', MDC=" + std::to_string(mdc) + ", RDC=" + std::to_string(resistance) +
+            ", SETVL=" + std::to_string(setvl) + ", VSCHD=" + std::to_string(vschd) + ", qminf=" +
+            std::to_string(fromQmin) + ", qmaxf=0, qmint=" + std::to_string(toQmin) + ", qmaxt=0");
+}
+
+static double rawDcField(const stringVector& record, size_t index)
+{
+    return (index < record.size()) ? numeric_conversion<double>(record[index], 0.0) : 0.0;
+}
+
+static double rawVscTransferLimit(const stringVector& converter)
+{
+    // PSS/E VSC converter fields: SMAX, IMAX, PWF, MAXQ, MINQ start at 8.
+    if (converter.size() < 13) {
+        return 0.0;
+    }
+    const auto smax = rawDcField(converter, 8);
+    const auto imax = rawDcField(converter, 9);
+    if ((smax == 0.0) && (imax == 0.0)) {
+        return std::max(std::abs(rawDcField(converter, 11)), std::abs(rawDcField(converter, 12)));
+    }
+    return std::min(imax, smax);
+}
+
+static void rawReadVscDc(CoreObject* parentObject,
+                         const std::array<std::string, 3>& records,
+                         const std::vector<GridBus*>& busList,
+                         index_t sequence,
+                         std::unordered_set<int>& voltageControlledBuses)
+{
+    const auto header = splitlineQuotes(records[0]);
+    const auto fromConverter = splitline(records[1]);
+    const auto toConverter = splitline(records[2]);
+    if ((header.size() < 3) || (fromConverter.size() < 2) || (toConverter.size() < 2)) {
+        std::cerr << "Invalid VSC DC record\n";
+        return;
+    }
+
+    const auto fromBusNumber = numeric_conversion<int>(fromConverter[0], 0);
+    const auto toBusNumber = numeric_conversion<int>(toConverter[0], 0);
+    auto* fromBus = rawDcLookupBus(busList, fromBusNumber);
+    auto* toBus = rawDcLookupBus(busList, toBusNumber);
+    if ((fromBus == nullptr) || (toBus == nullptr)) {
+        std::cerr << "Invalid AC bus in VSC DC record\n";
+        return;
+    }
+
+    const auto mdc = numeric_conversion<int>(header[1], 0);
+    const auto fromType = numeric_conversion<int>(fromConverter[1], 0);
+    const auto toType = numeric_conversion<int>(toConverter[1], 0);
+    const auto name = std::string(trim(removeQuotes(header[0])));
+    const auto resistance = numeric_conversion<double>(header[2], 0.0);
+    const auto loss0 = (rawDcField(fromConverter, 5) + rawDcField(toConverter, 5) +
+                        rawDcField(fromConverter, 7) + rawDcField(toConverter, 7)) *
+        1e-3;
+    const auto loss1 = (rawDcField(fromConverter, 6) + rawDcField(toConverter, 6)) * 1e-3;
+    const auto rating =
+        std::max(rawVscTransferLimit(fromConverter), rawVscTransferLimit(toConverter));
+    const auto fromVoltageTarget =
+        (rawDcField(fromConverter, 2) == 1.0) ? rawDcField(fromConverter, 4) : 1.0;
+    const auto toVoltageTarget =
+        (rawDcField(toConverter, 2) == 1.0) ? rawDcField(toConverter, 4) : 1.0;
+
+    // PowerModels initializes VSC RAW dclines at zero active and reactive flow.
+    // Retain its loss and limit data in the description while preserving that
+    // solvable, scheduled-link behavior.  GridDyn's physical VSC models stay
+    // available for native DC-network inputs.
+    addRawDcCompatibilityLink(
+        parentObject,
+        fromBus,
+        toBus,
+        sequence,
+        0.0,
+        loss1,
+        rating,
+        (mdc != 0) && (fromType != 0) && (toType != 0),
+        fromVoltageTarget,
+        toVoltageTarget,
+        rawDcUseVoltageControl(fromBus, fromBusNumber, voltageControlledBuses),
+        rawDcUseVoltageControl(toBus, toBusNumber, voltageControlledBuses),
+        "PSS/E RAW VSC DC compatibility import; name='" + name + "', MDC=" + std::to_string(mdc) +
+            ", RDC=" + std::to_string(resistance) + ", loss0=" + std::to_string(loss0) +
+            ", loss1=" + std::to_string(loss1) +
+            ", qminf=" + std::to_string(rawDcField(fromConverter, 12)) +
+            ", qmaxf=" + std::to_string(rawDcField(fromConverter, 11)) +
+            ", qmint=" + std::to_string(rawDcField(toConverter, 12)) +
+            ", qmaxt=" + std::to_string(rawDcField(toConverter, 11)));
 }
 
 static int getPSSversion(const std::string& line)
@@ -618,11 +920,14 @@ static int getPSSversion(const std::string& line)
     return ver;
 }
 
-static constexpr std::array<std::pair<std::string_view, SectionType>, 17> sectionNames{{
+static constexpr std::array<std::pair<std::string_view, SectionType>, 20> sectionNames{{
     {"BEGIN FIXED SHUNT", SectionType::FIXED_SHUNT},
     {"BEGIN SWITCHED SHUNT DATA", SectionType::SWITCHED_SHUNT},
     {"BEGIN AREA INTERCHANGE DATA", SectionType::UNKNOWN},
-    {"BEGIN TWO-TERMINAL DC LINE DATA", SectionType::UNKNOWN},
+    {"BEGIN TWO-TERMINAL DC LINE DATA", SectionType::TWO_TERMINAL_DC},
+    {"BEGIN TWO-TERMINAL DC DATA", SectionType::TWO_TERMINAL_DC},
+    {"BEGIN VOLTAGE SOURCE CONVERTER DATA", SectionType::VSC_DC},
+    {"BEGIN VSC DC LINE DATA", SectionType::VSC_DC},
     {"BEGIN TRANSFORMER IMPEDANCE CORRECTION DATA", SectionType::UNKNOWN},
     {"BEGIN IMPEDANCE CORRECTION DATA", SectionType::UNKNOWN},
     {"BEGIN MULTI-TERMINAL DC LINE DATA", SectionType::UNKNOWN},

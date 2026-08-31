@@ -20,9 +20,8 @@
 namespace griddyn::genmodels {
 GenModelClassical::GenModelClassical(const std::string& objName): GenModel(objName)
 {
-    // default values
     opFlags.set(INTERNAL_FREQUENCY_CALCULATION);
-    Xd = 0.85;
+    Xd = 0.2;
 }
 
 CoreObject* GenModelClassical::clone(CoreObject* obj) const
@@ -33,15 +32,18 @@ CoreObject* GenModelClassical::clone(CoreObject* obj) const
     }
     gd->H = H;
     gd->D = D;
-    gd->mp_Kw = mp_Kw;  //!< speed gain for a simple pss
     return gd;
 }
 
 void GenModelClassical::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
+    if (!std::isfinite(H) || !std::isfinite(D) || !std::isfinite(Rs) || !std::isfinite(Xd) ||
+        (H < 0.0) || (Xd <= 0.0)) {
+        throw InvalidParameterValue("GENCLS inertia, damping, or impedance");
+    }
     offsets.local().local.diffSize = 2;
     offsets.local().local.algSize = 2;
-    offsets.local().local.jacSize = 18;
+    offsets.local().local.jacSize = 17;
 }
 
 // initial conditions
@@ -51,12 +53,11 @@ void GenModelClassical::dynObjectInitializeB(const IOdata& inputs,
 {
     computeInitialAngleAndCurrent(inputs, desiredOutput, Rs, Xd);
     double* gm = m_state.data();
-    double Eft = Vq + Rs * gm[1] - Xd * gm[0];
-    // record Pm = Pset
-    // this should be close to P from above
-    // preset the inputs that should be initialized
-    fieldSet[2] = Eft;
-    fieldSet[3] = Eft * gm[1];
+    const double internalVoltage = Vq + Rs * gm[1] - Xd * gm[0];
+    // Pm includes stator copper loss, matching the ANDES air-gap torque
+    // initialization. It reduces to terminal active power when Rs is zero.
+    fieldSet[genModelEftInLocation] = internalVoltage;
+    fieldSet[genModelPmechInLocation] = internalVoltage * gm[1];
 }
 
 void GenModelClassical::computeInitialAngleAndCurrent(const IOdata& inputs,
@@ -136,42 +137,23 @@ void GenModelClassical::residual(const IOdata& inputs,
     double* rva = Loc.destLoc;
     double* rvd = Loc.destDiffLoc;
 
-    // Get the exciter field
-    double Eft = inputs[genModelEftInLocation];
-    double Pmt = inputs[genModelPmechInLocation];
-
-    /*
-rva[0] = Vd + Rs * gm[0] + (Xqp)* gm[1] - gmd[2];
-rva[1] = Vq + Rs * gm[1] - (Xdp)* gm[0] - gmd[3];
-
-if (isAlgebraicOnly(sMode))
-{
-        return;
-}
-// delta
-rvd[0] = systemBaseFrequency * (gmd[1] - 1.0) - gmp[0];
-// Edp and Eqp
-rvd[2] = (-gmd[2] - (Xq - Xqp) * gm[1]) / Tqop - gmp[2];
-rvd[3] = (-gmd[3] + (Xd - Xdp) * gm[0] + Eft) / Tdop - gmp[3];
-
-// omega
-double Pe = gmd[2] * gm[0] + gmd[3] * gm[1] + (Xdp - Xqp) * gm[0] * gm[1];
-rvd[1] = 0.5  * (Pmt - Pe - D * (gmd[1] - 1.0)) / H - gmp[1];
-*/
-    // Id and Iq
+    const double internalVoltage = inputs[genModelEftInLocation];
+    const double mechanicalPower = inputs[genModelPmechInLocation];
 
     if (hasAlgebraic(sMode)) {
         rva[0] = Vd + Rs * gm[0] + Xd * gm[1];
-        rva[1] = Vq + Rs * gm[1] - Xd * gm[0] - Eft - mp_Kw * (gmd[1] - 1.0);
+        rva[1] = Vq + Rs * gm[1] - Xd * gm[0] - internalVoltage;
     }
 
     if (hasDifferential(sMode)) {
-        // delta
-        rvd[0] = systemBaseFrequency * (gmd[1] - 1.0) - gmp[0];
-
-        // omega
-        double Pe = (Eft + mp_Kw * (gmd[1] - 1.0)) * gm[1];
-        rvd[1] = 0.5 * (Pmt - Pe - D * (gmd[1] - 1.0)) / H - gmp[1];
+        if (H > 0.0) {
+            rvd[0] = systemBaseFrequency * (gmd[1] - 1.0) - gmp[0];
+            const double electricalPower = internalVoltage * gm[1];
+            rvd[1] = (mechanicalPower - electricalPower - D * (gmd[1] - 1.0)) / (2.0 * H) - gmp[1];
+        } else {
+            rvd[0] = -gmp[0];
+            rvd[1] = -gmp[1];
+        }
     }
 }
 
@@ -182,20 +164,16 @@ void GenModelClassical::derivative(const IOdata& inputs,
 {
     auto Loc = offsets.getLocations(sD, deriv, sMode, this);
     double* dv = Loc.destDiffLoc;
-    // Get the exciter field
-    double Eft = inputs[genModelEftInLocation];
-    double Pmt = inputs[genModelPmechInLocation];
-
-    double omega = Loc.diffStateLoc[1] - 1.0;
-    // Id and Iq
-
-    // delta
-    dv[0] = systemBaseFrequency * omega;
-    // Edp and Eqp
-
-    // omega
-    double Pe = (Eft + mp_Kw * omega) * Loc.algStateLoc[1];
-    dv[1] = 0.5 * (Pmt - Pe - D * omega) / H;
+    if (H > 0.0) {
+        const double speedDeviation = Loc.diffStateLoc[1] - 1.0;
+        const double electricalPower = inputs[genModelEftInLocation] * Loc.algStateLoc[1];
+        dv[0] = systemBaseFrequency * speedDeviation;
+        dv[1] =
+            (inputs[genModelPmechInLocation] - electricalPower - D * speedDeviation) / (2.0 * H);
+    } else {
+        dv[0] = 0.0;
+        dv[1] = 0.0;
+    }
 }
 
 double GenModelClassical::getFreq(const StateData& sD,
@@ -339,7 +317,7 @@ void GenModelClassical::jacobianElements(const IOdata& inputs,
     auto refDiff = Loc.diffOffset;
 
     // rva[0] = Vd + Rs * gm[0] + Xd * gm[1];
-    // rva[1] = Vq + Rs * gm[1] - Xd* gm[0] - Eft-mp_Kp*(gmd[1]-1.0);
+    // rva[1] = Vq + Rs * gm[1] - Xd * gm[0] - Eft;
     if (hasAlgebraic(sMode)) {
         if (TLoc != kNullLocation) {
             md.assign(refAlg, TLoc, Vq);
@@ -363,39 +341,26 @@ void GenModelClassical::jacobianElements(const IOdata& inputs,
             return;
         }
         md.assign(refAlg, refDiff, -Vq);
-
-        md.assign(refAlg + 1, refDiff + 1, -mp_Kw);
-
-        // Iq Differential
         md.assign(refAlg + 1, refDiff, Vd);
     }
-    // Id and Iq
-    /*
-rv[0] = Vd + Rs*gm[0] + (Xdp - Xl)*gm[1];
-rv[1] = Vq + Rs*gm[1] - (Xdp - Xl)*gm[0];
-*/
-    // Id Differential
 
-    // md.assignCheckCol (refAlg + 1, inputLocs[genModelEftInLocation], -1.0);
-    // delta
-    md.assign(refDiff, refDiff, -sD.cj);
-    md.assign(refDiff, refDiff + 1, systemBaseFrequency);
-    // omega
-
-    double Eft = inputs[genModelEftInLocation];
-    // double Pe = (Eft+mp_Kp*(gmd[1] - 1.0))*gm[1];
-
-    double kVal = -0.5 / H;
-
-    // md.assign (refDiff + 1, refAlg, -0.5  * (Xd - Xdp) * gm[1] / H);
-    if (hasAlgebraic(sMode)) {
-        md.assign(refDiff + 1, refAlg + 1, kVal * (Eft + mp_Kw * (Loc.diffStateLoc[1] - 1.0)));
+    if (hasDifferential(sMode)) {
+        md.assign(refDiff, refDiff, -sD.cj);
+        if (H > 0.0) {
+            md.assign(refDiff, refDiff + 1, systemBaseFrequency);
+            const double inverseInertia = 0.5 / H;
+            if (hasAlgebraic(sMode)) {
+                md.assign(refDiff + 1, refAlg + 1, -inverseInertia * inputs[genModelEftInLocation]);
+            }
+            md.assign(refDiff + 1, refDiff + 1, -inverseInertia * D - sD.cj);
+            md.assignCheckCol(refDiff + 1, inputLocs[genModelPmechInLocation], inverseInertia);
+            md.assignCheckCol(refDiff + 1,
+                              inputLocs[genModelEftInLocation],
+                              -inverseInertia * gm[1]);
+        } else {
+            md.assign(refDiff + 1, refDiff + 1, -sD.cj);
+        }
     }
-    md.assign(refDiff + 1, refDiff + 1, kVal * (D + mp_Kw * gm[1]) - sD.cj);
-
-    md.assignCheckCol(refDiff + 1, inputLocs[genModelPmechInLocation], -kVal);  // governor: Pm
-    md.assignCheckCol(refDiff + 1, inputLocs[genModelEftInLocation],
-                      kVal * gm[1]);  // exciter: Ef
 }
 
 void GenModelClassical::outputPartialDerivatives(const IOdata& inputs,
@@ -469,10 +434,38 @@ void GenModelClassical::set(std::string_view param, double val, units::unit unit
     }
 
     if (param == "kw") {
-        mp_Kw = val;
+        // Retained as an accepted legacy/PSAT parameter. GENCLS has no
+        // voltage-speed feedback term; damping belongs only in the swing
+        // equation.
+        return;
+    } else if ((param == "xd1") || (param == "xdp")) {
+        Xd = val;
+    } else if (param == "ra") {
+        Rs = val;
     } else {
         GenModel::set(param, val, unitType);
     }
+}
+
+double GenModelClassical::get(std::string_view param, units::unit unitType) const
+{
+    if (param == "h") {
+        return H;
+    }
+    if (param == "m") {
+        return 2.0 * H;
+    }
+    if (param == "d") {
+        return units::convert(D, units::puHz, unitType, systemBaseFrequency);
+    }
+    if ((param == "x") || (param == "xd") || (param == "xs") || (param == "xd1") ||
+        (param == "xdp")) {
+        return Xd;
+    }
+    if ((param == "r") || (param == "rs") || (param == "ra")) {
+        return Rs;
+    }
+    return GenModel::get(param, unitType);
 }
 
 }  // namespace griddyn::genmodels

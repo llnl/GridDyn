@@ -9,6 +9,7 @@
 #include "core/ObjectFactory.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Generator.h"
+#include "griddyn/genmodels/GenModelClassical.h"
 #include "griddyn/genmodels/GenModelGENROU.h"
 #include <cmath>
 #include <gtest/gtest.h>
@@ -77,6 +78,129 @@ void checkGenrouInitialization(const std::vector<double>& expectedState,
 }  // namespace
 
 class GenModelTests: public GridDynSimulationTestFixture, public ::testing::Test {};
+
+TEST_F(GenModelTests, GenclsFactoryRegistration)
+{
+    auto cof = CoreObjectFactory::instance();
+    std::unique_ptr<CoreObject> object(cof->createObject("genmodel", "gencls"));
+    ASSERT_NE(object, nullptr);
+    EXPECT_NE(dynamic_cast<genmodels::GenModelClassical*>(object.get()), nullptr);
+}
+
+TEST_F(GenModelTests, GenclsAndesInitialization)
+{
+    genmodels::GenModelClassical model;
+    model.set("h", 3.0);
+    model.set("d", 1.0);
+    model.set("ra", 0.01);
+    model.set("xd1", 0.23);
+    model.dynInitializeA(0.0, 0);
+
+    // This operating point is evaluated with the initialization equations in
+    // ANDES GENCLS. GridDyn's Id sign is opposite to ANDES; Iq and delta have
+    // the same signs.
+    IOdata inputs(4, 0.0);
+    inputs[VOLTAGE_IN_LOCATION] = 1.02;
+    inputs[ANGLE_IN_LOCATION] = 0.1;
+    IOdata desiredOutput(2, 0.0);
+    desiredOutput[POUT_LOCATION] = 0.8;
+    desiredOutput[QOUT_LOCATION] = 0.2;
+    IOdata fieldSet(4, 0.0);
+    model.dynInitializeB(inputs, desiredOutput, fieldSet);
+
+    const std::vector<double> expectedState{-0.32208726118340464,
+                                            0.7415217916050773,
+                                            0.26479303757424744,
+                                            1.0};
+    ASSERT_EQ(model.getStates().size(), expectedState.size());
+    for (std::size_t index = 0; index < expectedState.size(); ++index) {
+        EXPECT_NEAR(model.getStates()[index], expectedState[index], 1e-12)
+            << "state index " << index;
+    }
+    EXPECT_NEAR(fieldSet[genModelEftInLocation], 1.08767666283497, 1e-12);
+    EXPECT_NEAR(fieldSet[genModelPmechInLocation], 0.8065359477124185, 1e-12);
+}
+
+TEST_F(GenModelTests, GenclsEquationChecks)
+{
+    const std::string fileName = std::string(GENMODEL_TEST_DIRECTORY "test_model1.xml");
+    gds = readSimXMLFile(fileName);
+    Generator* gen = gds->getGen(0);
+    ASSERT_NE(gen, nullptr);
+    auto* model = new genmodels::GenModelClassical();
+    gen->add(model);
+    model->set("h", 3.0);
+    model->set("d", 1.0);
+    model->set("r", 0.01);
+    model->set("x", 0.23);
+
+    ASSERT_EQ(gds->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(gds, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runDerivativeCheck(gds, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runAlgebraicCheck(gds, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode, false), 0);
+}
+
+TEST_F(GenModelTests, GenclsAndesPerturbedSwingEquation)
+{
+    genmodels::GenModelClassical model;
+    model.set("h", 3.0);
+    model.set("d", 1.0);
+    model.set("r", 0.01);
+    model.set("x", 0.23);
+    model.dynInitializeA(0.0, 0);
+
+    IOdata inputs{1.02, 0.1, 0.0, 0.0};
+    IOdata desiredOutput{0.8, 0.2};
+    IOdata fieldSet(4, 0.0);
+    model.dynInitializeB(inputs, desiredOutput, fieldSet);
+
+    std::vector<double> state{-0.3, 0.75, 0.3, 1.01};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    model.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    inputs[genModelEftInLocation] = fieldSet[genModelEftInLocation];
+    inputs[genModelPmechInLocation] = 0.9;
+    model.derivative(inputs, emptyStateData, stateDerivative.data(), cLocalSolverMode);
+
+    EXPECT_NEAR(stateDerivative[2], 3.7699111843077517, 1e-12);
+    EXPECT_NEAR(stateDerivative[3], 0.012373750478962074, 1e-12);
+}
+
+TEST_F(GenModelTests, GenclsZeroInertiaIsInfiniteBus)
+{
+    genmodels::GenModelClassical model;
+    model.set("h", 0.0);
+    model.set("d", 1.0);
+    model.set("r", 0.0);
+    model.set("x", 0.2);
+    model.dynInitializeA(0.0, 0);
+
+    IOdata inputs(4, 0.0);
+    inputs[VOLTAGE_IN_LOCATION] = 1.0;
+    IOdata desiredOutput(2, 0.0);
+    desiredOutput[POUT_LOCATION] = 0.8;
+    desiredOutput[QOUT_LOCATION] = 0.1;
+    IOdata fieldSet(4, 0.0);
+    model.dynInitializeB(inputs, desiredOutput, fieldSet);
+    inputs[genModelEftInLocation] = fieldSet[genModelEftInLocation];
+    inputs[genModelPmechInLocation] = fieldSet[genModelPmechInLocation] + 0.5;
+
+    std::vector<double> derivative(model.getStates().size(), 1.0);
+    model.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(derivative[2], 0.0);
+    EXPECT_DOUBLE_EQ(derivative[3], 0.0);
+}
+
+TEST_F(GenModelTests, GenclsRejectsInvalidParameters)
+{
+    genmodels::GenModelClassical model;
+    model.set("h", -1.0);
+    EXPECT_THROW(model.dynInitializeA(0.0, 0), InvalidParameterValue);
+
+    model.set("h", 1.0);
+    model.set("x", 0.0);
+    EXPECT_THROW(model.dynInitializeA(0.0, 0), InvalidParameterValue);
+}
 
 TEST_F(GenModelTests, GenrouFactoryRegistration)
 {

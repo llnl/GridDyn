@@ -105,13 +105,13 @@ artifacts are useful cross-tool references, but are not substitutes for the
 RAW/DYR import. The DYR is a complete plant assembly, so a run must attach
 every record for a machine ID before initializing the case.
 
-| Dynamic assembly | DYR families required together | Records | Execution consequence |
-| ---------------- | ------------------------------ | ------: | --------------------- |
-| Round-rotor conventional plants | `GENROU`, exciter, governor, and optional `IEEEST` | 6,937 `GENROU` records | The machine and the six currently recognized controller families need full initialization and trajectory validation; missing controller records cannot be dropped. |
-| Salient-pole hydro plants | `GENSAL` + `HYGOV` + exciter + optional `IEEEST` | 2,306 `GENSAL` and 2,306 `HYGOV` records | Blocked until both the machine and hydro-governor equations, bases, limits, and controller interfaces are implemented. |
-| General-governor plants | `GENROU` + `GGOV1` + exciter + optional `IEEEST` | 3,419 `GGOV1` records | Blocked until exact selectable governor/turbine modes are supported; `TGOV1` is not an acceptable replacement. |
-| Renewable converter plants | `REGCA1` + `REECA1` | 571 of each | Blocked until the converter and electrical controller initialize and enforce their current-limit ordering as a pair. |
-| Type-3 wind plants | `WT3G1` + `WT3E1` + `WT3P1` + `WT3T1` | 576 of each | Blocked until the complete generator, electrical, pitch, and turbine assembly is available; no individual `WT3*` record may be omitted. |
+| Dynamic assembly                | DYR families required together                     |                                  Records | Execution consequence                                                                                                                                              |
+| ------------------------------- | -------------------------------------------------- | ---------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Round-rotor conventional plants | `GENROU`, exciter, governor, and optional `IEEEST` |                   6,937 `GENROU` records | The machine and the six currently recognized controller families need full initialization and trajectory validation; missing controller records cannot be dropped. |
+| Salient-pole hydro plants       | `GENSAL` + `HYGOV` + exciter + optional `IEEEST`   | 2,306 `GENSAL` and 2,306 `HYGOV` records | Blocked until both the machine and hydro-governor equations, bases, limits, and controller interfaces are implemented.                                             |
+| General-governor plants         | `GENROU` + `GGOV1` + exciter + optional `IEEEST`   |                    3,419 `GGOV1` records | Blocked until exact selectable governor/turbine modes are supported; `TGOV1` is not an acceptable replacement.                                                     |
+| Renewable converter plants      | `REGCA1` + `REECA1`                                |                              571 of each | Blocked until the converter and electrical controller initialize and enforce their current-limit ordering as a pair.                                               |
+| Type-3 wind plants              | `WT3G1` + `WT3E1` + `WT3P1` + `WT3T1`              |                              576 of each | Blocked until the complete generator, electrical, pitch, and turbine assembly is available; no individual `WT3*` record may be omitted.                            |
 
 Accordingly, GridDyn may use the RAW alone for static power-flow work once
 large-scale topology validation is complete, but it must reject a requested

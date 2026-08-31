@@ -251,7 +251,8 @@ TEST_F(InputTests, EpcEmptyInjectionGroupsAreIgnoredSilently)
 {
     gds = std::make_unique<GridDynSimulation>();
     testing::internal::CaptureStderr();
-    ASSERT_NO_THROW(loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "epc_empty_injection_groups.epc"));
+    ASSERT_NO_THROW(
+        loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "epc_empty_injection_groups.epc"));
     const auto diagnostics = testing::internal::GetCapturedStderr();
 
     EXPECT_EQ(gds->getInt("totalbuscount"), 1);

@@ -857,11 +857,11 @@ generators, and 5,729 load objects. The MATPOWER reader loads the same buses,
 links, and generators but aggregates its demand into 4,648 load objects. The
 maximum reported bus residuals are:
 
-| Input | Maximum active residual (MW) | Maximum reactive residual (MVAr) |
-| ----- | ---------------------------: | --------------------------------: |
-| RAW | 0 | 0.00472 |
-| MATPOWER `.m` | 0 | 0.51257 |
-| PowerWorld EPC | 0.00005 | 0.00822 |
+| Input          | Maximum active residual (MW) | Maximum reactive residual (MVAr) |
+| -------------- | ---------------------------: | -------------------------------: |
+| RAW            |                            0 |                          0.00472 |
+| MATPOWER `.m`  |                            0 |                          0.51257 |
+| PowerWorld EPC |                      0.00005 |                          0.00822 |
 
 RAW and MATPOWER retain all 6,717 common bus IDs; their exported solved states
 differ by at most `0.00005` pu in voltage magnitude and `0.0022` degrees in

@@ -301,11 +301,11 @@ void ExciterEXAC1::derivative(const IOdata& inputs,
     const auto regulatorIndex = stateIndex(regulatorState, hasVoltageTransducer);
     const auto exciterIndex = stateIndex(exciterState, hasVoltageTransducer);
     const auto washoutIndex = stateIndex(washoutState, hasVoltageTransducer);
-    const double measuredVoltage = hasVoltageTransducer ? state[voltageMeasurementState] :
-                                                        inputs[exciterVoltageInLocation];
+    const double measuredVoltage =
+        hasVoltageTransducer ? state[voltageMeasurementState] : inputs[exciterVoltageInLocation];
     const double fieldFeedback = vfe(inputs, state);
-    const double input = referenceInput(inputs) - measuredVoltage -
-        Kf * (fieldFeedback - state[washoutIndex]) / Tf;
+    const double input =
+        referenceInput(inputs) - measuredVoltage - Kf * (fieldFeedback - state[washoutIndex]) / Tf;
     const double leadOutput = state[leadLagIndex] + Tc * (input - state[leadLagIndex]) / Tb;
     const double regulatorDerivative = (Ka * leadOutput - state[regulatorIndex]) / Ta;
     const int status = regulatorLimitStatus(state);
@@ -356,8 +356,8 @@ void ExciterEXAC1::jacobianElements(const IOdata& inputs,
     const double saturationSlope = Ke + saturation.deriv(exciterVoltage);
     const double feedbackGain = Kf / Tf;
     const double leadRatio = Tc / Tb;
-    const double measuredVoltage = hasVoltageTransducer ? state[voltageMeasurementState] :
-                                                        inputs[exciterVoltageInLocation];
+    const double measuredVoltage =
+        hasVoltageTransducer ? state[voltageMeasurementState] : inputs[exciterVoltageInLocation];
     const double regulatorDerivative =
         (Ka *
              (state[leadLagIndex] +
@@ -378,7 +378,9 @@ void ExciterEXAC1::jacobianElements(const IOdata& inputs,
         matrixData.assignCheckCol(diffOffset + voltageMeasurementState,
                                   inputLocs[exciterVoltageInLocation],
                                   1.0 / Tr);
-        matrixData.assign(diffOffset + leadLagIndex, diffOffset + voltageMeasurementState, -1.0 / Tb);
+        matrixData.assign(diffOffset + leadLagIndex,
+                          diffOffset + voltageMeasurementState,
+                          -1.0 / Tb);
     } else {
         matrixData.assignCheckCol(diffOffset + leadLagIndex,
                                   inputLocs[exciterVoltageInLocation],
@@ -475,8 +477,7 @@ void ExciterEXAC1::rootTest(const IOdata& /*inputs*/,
 {
     const auto locations = offsets.getLocations(stateData, sMode, this);
     const index_t rootOffset = offsets.getRootOffset(sMode);
-    const double regulator =
-        locations.diffStateLoc[stateIndex(regulatorState, Tr > 0.0)];
+    const double regulator = locations.diffStateLoc[stateIndex(regulatorState, Tr > 0.0)];
     roots[rootOffset] =
         std::min(regulatorUpperLimit() - regulator, regulator - regulatorLowerLimit());
 }

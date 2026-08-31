@@ -412,8 +412,7 @@ TEST(AndesDyrReaderTests, LoadsExac1WithZeroTr)
     ASSERT_NE(bus, nullptr);
     auto* generator = bus->getGen(0);
     ASSERT_NE(generator, nullptr);
-    auto* exciter =
-        dynamic_cast<griddyn::exciters::ExciterEXAC1*>(generator->find("exciter"));
+    auto* exciter = dynamic_cast<griddyn::exciters::ExciterEXAC1*>(generator->find("exciter"));
     ASSERT_NE(exciter, nullptr);
     EXPECT_DOUBLE_EQ(exciter->get("tr"), 0.0);
     ASSERT_EQ(simulation->dynInitialize(), 0);

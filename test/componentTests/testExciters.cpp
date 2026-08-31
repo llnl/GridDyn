@@ -350,8 +350,7 @@ TEST(ExciterModelTests, Exac1ZeroTrBypassesVoltageMeasurementState)
     IOdata fieldSet(4, 0.0);
     exciter.dynInitializeB(inputs, {0.4}, fieldSet);
     EXPECT_EQ(exciter.getStates().size(), 5U);
-    EXPECT_EQ(exciter.localStateNames(),
-              (stringVec{"efd", "ll", "va", "ve", "wf"}));
+    EXPECT_EQ(exciter.localStateNames(), (stringVec{"efd", "ll", "va", "ve", "wf"}));
     EXPECT_EQ(exciter.findIndex("vmeas", cLocalSolverMode), kInvalidLocation);
 
     std::vector<double> state{0.4, 0.1, 0.3, 1.1, 1.0};

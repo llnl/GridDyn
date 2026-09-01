@@ -47,6 +47,17 @@ The combined reactive power from the two RAW DC terminals at bus 2 is also
 checked at `-0.0781963933423` pu. The regression is
 `InputTests.PssERawDcComponentsImportAsScheduledLinks`.
 
+## SyntheticUSA scale target
+
+`C:\Users\phlpt\Downloads\SyntheticUSA\SyntheticUSA.RAW` is a PSS/E v33
+static case with nine nonempty two-terminal DC links and no VSC, multi-terminal
+DC, FACTS, multi-section-line, or GNE records. It is a system-scale integration
+target for this compatibility layer rather than a physical-DC validation case:
+the RAW also contains 79,600 terminal buses, 2,400 three-winding transformers,
+four impedance-correction tables, and 4,065 switched shunts. See the
+[SyntheticUSA compatibility assessment](syntheticusa-compatibility.md) for
+the complete import inventory and the power-flow comparison criteria.
+
 ## Known differences and follow-up work
 
 | Topic                                 | Current behavior                                                                                                                                                                                                                                                                             | Required follow-up                                                                                                                     |

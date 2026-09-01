@@ -525,6 +525,16 @@ void loadEpc(CoreObject* parentObject,
                    (tokens[0] == "gcd") || (tokens[0] == "owner") || (tokens[0] == "transaction") ||
                    (tokens[0] == "qtable")) {
             ignoreSection(line, file);
+        } else if ((tokens[0] == "injgroup") || (tokens[0] == "injgrpelem")) {
+            // PowerWorld injection-group definitions and memberships are
+            // organizational/dispatch metadata. Empty sections are common in
+            // EPC exports and carry no electrical data, so accept them
+            // silently. Preserve a diagnostic when an actual group definition
+            // or membership would be discarded.
+            if (getSectionCount(line) != 0) {
+                std::cerr << "unsupported nonempty EPC section " << tokens[0] << '\n';
+            }
+            ignoreSection(line, file);
         } else if (tokens[0] == "dc") {
             if (tokens.size() > 1) {
                 std::cerr << ' ' << tokens[1];

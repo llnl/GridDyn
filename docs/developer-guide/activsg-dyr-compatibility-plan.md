@@ -97,6 +97,30 @@ large-case initialization and trajectory validation. The coupled renewable deman
 `SCRX` (1,053), `EXPIC1` (569), `ESAC6A` (583), `ESAC1A` (546), and `ESDC2A`
 (104) complete the missing inventory.
 
+#### Full-dynamics execution boundary
+
+The package contains both PowerWorld (`.PWB`, `.aux`, `.pwd`, and `.EPC`) and
+PSS/E (`.RAW` and `.dyr`) representations. GridDyn's reference import path is
+the paired `ACTIVSg70k.RAW` and `ACTIVSg70k_dynamics.dyr` files; the PowerWorld
+artifacts are useful cross-tool references, but are not substitutes for the
+RAW/DYR import. The DYR is a complete plant assembly, so a run must attach
+every record for a machine ID before initializing the case.
+
+| Dynamic assembly                | DYR families required together                     |                                  Records | Execution consequence                                                                                                                                              |
+| ------------------------------- | -------------------------------------------------- | ---------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Round-rotor conventional plants | `GENROU`, exciter, governor, and optional `IEEEST` |                   6,937 `GENROU` records | The machine and the six currently recognized controller families need full initialization and trajectory validation; missing controller records cannot be dropped. |
+| Salient-pole hydro plants       | `GENSAL` + `HYGOV` + exciter + optional `IEEEST`   | 2,306 `GENSAL` and 2,306 `HYGOV` records | Blocked until both the machine and hydro-governor equations, bases, limits, and controller interfaces are implemented.                                             |
+| General-governor plants         | `GENROU` + `GGOV1` + exciter + optional `IEEEST`   |                    3,419 `GGOV1` records | Blocked until exact selectable governor/turbine modes are supported; `TGOV1` is not an acceptable replacement.                                                     |
+| Renewable converter plants      | `REGCA1` + `REECA1`                                |                              571 of each | Blocked until the converter and electrical controller initialize and enforce their current-limit ordering as a pair.                                               |
+| Type-3 wind plants              | `WT3G1` + `WT3E1` + `WT3P1` + `WT3T1`              |                              576 of each | Blocked until the complete generator, electrical, pitch, and turbine assembly is available; no individual `WT3*` record may be omitted.                            |
+
+Accordingly, GridDyn may use the RAW alone for static power-flow work once
+large-scale topology validation is complete, but it must reject a requested
+full 70k DYR run until all 16 currently unsupported families are implemented:
+`GGOV1`, `ESST4B`, `GENSAL`, `HYGOV`, `IEEET1`, `SCRX`, `ESAC6A`, `WT3P1`,
+`WT3T1`, `WT3E1`, `WT3G1`, `REGCA1`, `REECA1`, `EXPIC1`, `ESAC1A`, and
+`ESDC2A`. A strict diagnostic is preferable to a partial dynamic simulation.
+
 The supplied RAW is PSS/E v33. It has 67,900 terminal buses, 71,352 branches,
 10,555 two-winding transformers, and 2,100 three-winding transformers. Its
 delta-to-star expansion yields the 70,000 buses and 88,207 branches in the

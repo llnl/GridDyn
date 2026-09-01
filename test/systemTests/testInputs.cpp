@@ -247,6 +247,19 @@ TEST_F(InputTests, PssERawDcComponentsImportAsScheduledLinks)
                 1e-7);
 }
 
+TEST_F(InputTests, EpcEmptyInjectionGroupsAreIgnoredSilently)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    testing::internal::CaptureStderr();
+    ASSERT_NO_THROW(
+        loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "epc_empty_injection_groups.epc"));
+    const auto diagnostics = testing::internal::GetCapturedStderr();
+
+    EXPECT_EQ(gds->getInt("totalbuscount"), 1);
+    EXPECT_EQ(gds->getInt("totallinkcount"), 0);
+    EXPECT_TRUE(diagnostics.empty()) << diagnostics;
+}
+
 struct CompareCase {
     std::array<std::string_view, 3> fileNames;
     size_t fileCount;

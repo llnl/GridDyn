@@ -112,7 +112,7 @@ void GovernorHygov::dynObjectInitializeB(const IOdata& /*inputs*/,
     fieldSet[govpSetInLocation] = Pset;
 }
 
-double GovernorHygov::speedDeviation(const IOdata& inputs) const
+double GovernorHygov::speedDeviation(const IOdata& inputs)
 {
     return inputs[govOmegaInLocation] - 1.0;
 }
@@ -134,7 +134,7 @@ double GovernorHygov::temporaryDroopLeadOutput(const IOdata& inputs, const doubl
         (temporaryDroop * Tr);
 }
 
-double GovernorHygov::regularizedGate(const double diffState[]) const
+double GovernorHygov::regularizedGate(const double diffState[])
 {
     // H = (Q/G)^2 is physically singular at G = 0. Continuous HYGOV
     // trajectories initialized with nonzero G and nonnegative gate commands do
@@ -357,13 +357,19 @@ void GovernorHygov::rootTest(const IOdata& inputs,
     const double* state = locations.diffStateLoc;
     const index_t rootOffset = offsets.getRootOffset(sMode);
     const double rate = unlimitedGateRate(inputs, state);
-    roots[rootOffset] = opFlags[GATE_RATE_LIMITED] ?
-        (opFlags[GATE_RATE_LIMIT_HIGH] ? VELM - rate : rate + VELM) :
-        std::min(VELM - rate, rate + VELM);
+    if (opFlags[GATE_RATE_LIMITED]) {
+        roots[rootOffset] = opFlags[GATE_RATE_LIMIT_HIGH] ? VELM - rate : rate + VELM;
+    } else {
+        roots[rootOffset] = std::min(VELM - rate, rate + VELM);
+    }
     const double limitedRateValue = limitedGateRate(inputs, state);
-    roots[rootOffset + 1] = opFlags[GATE_POSITION_LIMITED] ?
-        (opFlags[GATE_POSITION_LIMIT_HIGH] ? limitedRateValue : -limitedRateValue) :
-        std::min(Pmax - state[gatePositionState], state[gatePositionState] - Pmin);
+    if (opFlags[GATE_POSITION_LIMITED]) {
+        roots[rootOffset + 1] =
+            opFlags[GATE_POSITION_LIMIT_HIGH] ? limitedRateValue : -limitedRateValue;
+    } else {
+        roots[rootOffset + 1] =
+            std::min(Pmax - state[gatePositionState], state[gatePositionState] - Pmin);
+    }
 }
 
 void GovernorHygov::rootTrigger(CoreTime /*time*/,

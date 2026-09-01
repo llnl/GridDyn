@@ -171,7 +171,7 @@ void GovernorHydro::jacobianElements(const IOdata& inputs,
 
     matrixData.assign(diffOffset + gateLagState,
                       diffOffset + gateLagState,
-                      -1.0 / T3 - stateData.cj);
+                      (-1.0 / T3) - stateData.cj);
     matrixData.assign(diffOffset + gateLagState,
                       diffOffset + leadLagState,
                       governorLeadLag.outputStateJacobian() / T3);
@@ -191,7 +191,7 @@ void GovernorHydro::jacobianElements(const IOdata& inputs,
         matrixData.assign(diffOffset + waterwayState,
                           diffOffset + gateLagState,
                           -waterway.derivativeInputJacobian() +
-                              waterway.outputStateInputDerivativeJacobian() / T3);
+                              (waterway.outputStateInputDerivativeJacobian() / T3));
         matrixData.assign(diffOffset + waterwayState,
                           diffOffset + leadLagState,
                           -waterway.outputStateInputDerivativeJacobian() *

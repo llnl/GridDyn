@@ -229,7 +229,7 @@ TEST(AndesDyrReaderTests, LoadsAndesKundurGenclsCase)
     griddyn::loadFile(simulation.get(), makeAndesTestPath("andes_kundur_gencls.dyr"));
 
     constexpr std::array<double, 4> expectedInertia{13.0, 13.0, 12.35, 12.35};
-    for (index_t index = 0; index < static_cast<index_t>(expectedInertia.size()); ++index) {
+    for (index_t index = 0; std::cmp_less(index, expectedInertia.size()); ++index) {
         const auto busId = index + 1;
         auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", busId));
         ASSERT_NE(bus, nullptr) << "bus " << busId;

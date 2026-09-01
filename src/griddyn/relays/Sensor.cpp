@@ -870,11 +870,7 @@ void Sensor::outputPartialDerivatives(const IOdata& /*inputs*/,
                                                                     sMode);
                 break;
             case OutputMode::PROCESSED:
-                // out[pp] = outGrabbers[pp]->grabData(sD, sMode);
-                break;
             case OutputMode::DIRECT:
-                // out[pp] = dataSources[outputs[pp]]->grabData();
-                break;
             default:
                 // out[pp] = kNullVal;
                 break;

@@ -107,11 +107,11 @@ class GovernorHygov: public Governor {
     index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
 
   private:
-    double speedDeviation(const IOdata& inputs) const;
+    static double speedDeviation(const IOdata& inputs);
     double governorError(const IOdata& inputs, const double diffState[]) const;
     double filterDerivative(const IOdata& inputs, const double diffState[]) const;
     double temporaryDroopLeadOutput(const IOdata& inputs, const double diffState[]) const;
-    double regularizedGate(const double diffState[]) const;
+    static double regularizedGate(const double diffState[]);
     double turbineHead(const double diffState[]) const;
     double mechanicalPower(const IOdata& inputs, const double diffState[]) const;
     double unlimitedGateRate(const IOdata& inputs, const double diffState[]) const;

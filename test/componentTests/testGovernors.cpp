@@ -144,15 +144,15 @@ TEST(GovernorModelTests, HygovMatchesOpenIpslInitializationAndPerturbedEquations
     IOdata fieldSet(2, 0.0);
     governor.dynInitializeB(inputs, {0.4}, fieldSet);
 
-    const double q0 = 0.4 / 1.2 + 0.08;
+    const double initialFlow = (0.4 / 1.2) + 0.08;
     const auto& initialized = governor.getStates();
     ASSERT_EQ(initialized.size(), 5U);
     EXPECT_DOUBLE_EQ(initialized[0], 0.4);
     EXPECT_DOUBLE_EQ(initialized[1], 0.0);
-    EXPECT_NEAR(initialized[2], q0, 1e-14);
-    EXPECT_NEAR(initialized[3], q0, 1e-14);
-    EXPECT_NEAR(initialized[4], q0, 1e-14);
-    EXPECT_NEAR(fieldSet[govpSetInLocation], 0.05 * q0, 1e-14);
+    EXPECT_NEAR(initialized[2], initialFlow, 1e-14);
+    EXPECT_NEAR(initialized[3], initialFlow, 1e-14);
+    EXPECT_NEAR(initialized[4], initialFlow, 1e-14);
+    EXPECT_NEAR(fieldSet[govpSetInLocation], 0.05 * initialFlow, 1e-14);
 
     std::vector<double> state{0.42, 0.02, 0.40, 0.41, 0.42};
     std::vector<double> stateDerivative(state.size(), 0.0);
@@ -161,10 +161,10 @@ TEST(GovernorModelTests, HygovMatchesOpenIpslInitializationAndPerturbedEquations
     inputs[govpSetInLocation] = fieldSet[govpSetInLocation];
 
     const double governorError =
-        fieldSet[govpSetInLocation] - (inputs[govOmegaInLocation] - 1.0) - 0.05 * state[2];
+        fieldSet[govpSetInLocation] - (inputs[govOmegaInLocation] - 1.0) - (0.05 * state[2]);
     const double filterDerivative = (governorError - state[1]) / 0.05;
     const double gateRate =
-        std::clamp((5.0 * filterDerivative + state[1]) / (0.3 * 5.0), -0.2, 0.2);
+        std::clamp(((5.0 * filterDerivative) + state[1]) / (0.3 * 5.0), -0.2, 0.2);
     const double head = (state[4] / state[3]) * (state[4] / state[3]);
 
     std::vector<double> derivative(state.size(), 0.0);
@@ -177,7 +177,8 @@ TEST(GovernorModelTests, HygovMatchesOpenIpslInitializationAndPerturbedEquations
     std::vector<double> residual(state.size(), 0.0);
     governor.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
     const double pmech =
-        1.2 * head * (state[4] - 0.08) - 0.2 * (inputs[govOmegaInLocation] - 1.0) * state[3];
+        (1.2 * head * (state[4] - 0.08)) -
+        (0.2 * (inputs[govOmegaInLocation] - 1.0) * state[3]);
     EXPECT_NEAR(residual[0], pmech - state[0], 1e-14);
 }
 

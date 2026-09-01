@@ -18,6 +18,9 @@
 #include <string>
 
 namespace griddyn::genmodels {
+// GENCLS follows standard dq-machine notation and the compact state aliases
+// used throughout this established model implementation.
+// NOLINTBEGIN(readability-identifier-length)
 GenModelClassical::GenModelClassical(const std::string& objName): GenModel(objName)
 {
     opFlags.set(INTERNAL_FREQUENCY_CALCULATION);
@@ -141,15 +144,16 @@ void GenModelClassical::residual(const IOdata& inputs,
     const double mechanicalPower = inputs[genModelPmechInLocation];
 
     if (hasAlgebraic(sMode)) {
-        rva[0] = Vd + Rs * gm[0] + Xd * gm[1];
-        rva[1] = Vq + Rs * gm[1] - Xd * gm[0] - internalVoltage;
+        rva[0] = Vd + (Rs * gm[0]) + (Xd * gm[1]);
+        rva[1] = Vq + (Rs * gm[1]) - (Xd * gm[0]) - internalVoltage;
     }
 
     if (hasDifferential(sMode)) {
         if (H > 0.0) {
-            rvd[0] = systemBaseFrequency * (gmd[1] - 1.0) - gmp[0];
+            rvd[0] = (systemBaseFrequency * (gmd[1] - 1.0)) - gmp[0];
             const double electricalPower = internalVoltage * gm[1];
-            rvd[1] = (mechanicalPower - electricalPower - D * (gmd[1] - 1.0)) / (2.0 * H) - gmp[1];
+            rvd[1] =
+                ((mechanicalPower - electricalPower - (D * (gmd[1] - 1.0))) / (2.0 * H)) - gmp[1];
         } else {
             rvd[0] = -gmp[0];
             rvd[1] = -gmp[1];
@@ -169,7 +173,7 @@ void GenModelClassical::derivative(const IOdata& inputs,
         const double electricalPower = inputs[genModelEftInLocation] * loc.algStateLoc[1];
         dv[0] = systemBaseFrequency * speedDeviation;
         dv[1] =
-            (inputs[genModelPmechInLocation] - electricalPower - D * speedDeviation) / (2.0 * H);
+            (inputs[genModelPmechInLocation] - electricalPower - (D * speedDeviation)) / (2.0 * H);
     } else {
         dv[0] = 0.0;
         dv[1] = 0.0;
@@ -474,3 +478,4 @@ double GenModelClassical::get(std::string_view param, units::unit unitType) cons
 }
 
 }  // namespace griddyn::genmodels
+// NOLINTEND(readability-identifier-length)

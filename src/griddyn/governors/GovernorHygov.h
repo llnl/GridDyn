@@ -112,7 +112,7 @@ class GovernorHygov: public Governor {
     double filterDerivative(const IOdata& inputs, const double diffState[]) const;
     double temporaryDroopLeadOutput(const IOdata& inputs, const double diffState[]) const;
     static double regularizedGate(const double diffState[]);
-    double turbineHead(const double diffState[]) const;
+    static double turbineHead(const double diffState[]);
     double mechanicalPower(const IOdata& inputs, const double diffState[]) const;
     double unlimitedGateRate(const IOdata& inputs, const double diffState[]) const;
     double limitedGateRate(const IOdata& inputs, const double diffState[]) const;

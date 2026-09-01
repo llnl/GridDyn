@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <cmath>
 #include <string>
+#include <vector>
 
 namespace griddyn::governors {
 // The equations below mirror the published block diagram. Extra precedence
@@ -148,7 +149,7 @@ double GovernorHygov::regularizedGate(const double diffState[])
     return std::copysign(minimumGate, gate);
 }
 
-double GovernorHygov::turbineHead(const double diffState[]) const
+double GovernorHygov::turbineHead(const double diffState[])
 {
     const double gate = regularizedGate(diffState);
     const double ratio = diffState[flowState] / gate;

@@ -253,9 +253,10 @@ ChangeCode ControlRelay::executeAction(index_t actionNum)
     if (!isValidIndex(actionNum, actions)) {
         return ChangeCode::NOT_TRIGGERED;
     }
-    auto cact = actions[actionNum];
+    auto& cact = actions[actionNum];
     if (!cact.executed) {
         cact.executed = true;
+        cact.executionTime = prevTime;
 
         if (cact.measureAction) {
             auto findLoc = findMeasurement(cact.field);
@@ -336,15 +337,17 @@ std::unique_ptr<FunctionEventAdapter>
     ControlRelay::generateGetEvent(CoreTime eventTime, std::uint64_t sourceID, cm* message)
 {
     auto act = getFreeAction();
-    actions[act].actionID = (message->m_actionID > 0) ? message->m_actionID : instructionCounter;
-    actions[act].executed = false;
-    actions[act].measureAction = true;
-    actions[act].sourceID = sourceID;
-    actions[act].triggerTime = eventTime;
+    auto& action = actions[act];
+    action = {};
+    action.actionID = (message->m_actionID > 0) ? message->m_actionID : instructionCounter;
+    action.executed = false;
+    action.measureAction = true;
+    action.sourceID = sourceID;
+    action.triggerTime = eventTime;
     gmlc::utilities::makeLowerCase(message->m_field);
-    actions[act].field = message->m_field;
+    action.field = message->m_field;
     if (!(message->m_units.empty())) {
-        actions[act].unitType = units::unit_cast_from_string(message->m_units);
+        action.unitType = units::unit_cast_from_string(message->m_units);
     }
     auto fea = std::make_unique<FunctionEventAdapter>([act, this]() { return executeAction(act); },
                                                       eventTime);
@@ -357,17 +360,19 @@ std::unique_ptr<FunctionEventAdapter>
     ControlRelay::generateSetEvent(CoreTime eventTime, std::uint64_t sourceID, cm* message)
 {
     auto act = getFreeAction();
-    actions[act].actionID = (message->m_actionID > 0) ? message->m_actionID : instructionCounter;
-    actions[act].executed = false;
-    actions[act].measureAction = false;
-    actions[act].sourceID = sourceID;
-    actions[act].triggerTime = eventTime;
+    auto& action = actions[act];
+    action = {};
+    action.actionID = (message->m_actionID > 0) ? message->m_actionID : instructionCounter;
+    action.executed = false;
+    action.measureAction = false;
+    action.sourceID = sourceID;
+    action.triggerTime = eventTime;
     gmlc::utilities::makeLowerCase(message->m_field);
-    actions[act].field = message->m_field;
-    actions[act].val = message->m_value;
+    action.field = message->m_field;
+    action.val = message->m_value;
 
     if (!message->m_units.empty()) {
-        actions[act].unitType = units::unit_cast_from_string(message->m_units);
+        action.unitType = units::unit_cast_from_string(message->m_units);
     }
 
     auto fea = std::make_unique<FunctionEventAdapter>([act, this]() { return executeAction(act); },
@@ -387,7 +392,7 @@ index_t ControlRelay::getFreeAction()
 {
     auto asize = static_cast<index_t>(actions.size());
     for (index_t act = 0; act < asize; ++act) {
-        if (!actions[act].executed) {
+        if (actions[act].executed) {
             return act;
         }
     }

@@ -17,8 +17,8 @@ namespace griddyn::governors {
 class GovernorIeeeSimple: public Governor {
   public:
   protected:
-    double Pup;  //!< [pu] upper ramp limit
-    double Pdown;  //!< [pu] lower ramp limit
+    double Pup = kBigNum;  //!< [pu] upper ramp limit
+    double Pdown = kBigNum;  //!< [pu] lower ramp limit
   public:
     explicit GovernorIeeeSimple(const std::string& objName = "govIeeeSimple_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;

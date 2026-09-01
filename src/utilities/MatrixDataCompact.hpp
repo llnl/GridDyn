@@ -16,7 +16,7 @@ lookup and possibly lots of duplicate entries
 template<count_t R, count_t C, class ValueT = double>
 class MatrixDataCompact: public MatrixData<ValueT> {
   private:
-    std::array<ValueT, R * C> dVec;  //!< the array containing the data
+    std::array<ValueT, R * C> dVec{};  //!< the array containing the data
     index_t Rctr = 0;
     index_t Cctr = 0;
 

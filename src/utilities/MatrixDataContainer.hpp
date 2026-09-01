@@ -16,7 +16,7 @@ uses a pointer so it can be reassigned later
 template<class ValueT = double>
 class MatrixDataContainer: public MatrixData<ValueT> {
   public:
-    MatrixData<ValueT>* md;  //!< the matrix this class contains
+    MatrixData<ValueT>* md = nullptr;  //!< the matrix this class contains
   public:
     MatrixDataContainer() = default;
     /** @brief constructor

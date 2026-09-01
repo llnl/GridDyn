@@ -626,6 +626,7 @@ void Sensor::dynObjectInitializeB(const IOdata& inputs,
                     }
                 }
                 ++ocount;
+                break;
             case OutputMode::PROCESSED:
             default:
                 break;

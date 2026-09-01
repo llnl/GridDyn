@@ -54,7 +54,7 @@ const char objEmptyString[] = "";
 template<class X>
 class ObjectGrabber: public GridGrabber {
   protected:
-    X* mTypedObject;  //!< a class specific object pointer
+    X* mTypedObject = nullptr;  //!< a class specific object pointer
   public:
     ObjectGrabber(std::string_view fld = objEmptyString, X* newObj = nullptr)
     {
@@ -121,7 +121,7 @@ class ObjectGrabber: public GridGrabber {
 template<class X>
 class ObjectOffsetGrabber: public GridGrabber {
   protected:
-    X* mTypedObject;
+    X* mTypedObject = nullptr;
     index_t mOffset = kInvalidLocation;
 
   public:

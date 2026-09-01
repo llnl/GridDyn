@@ -44,7 +44,7 @@ static ChildTypeFactory<griddyn::genmodels::GenModelInverter, GenModel>
 static ChildTypeFactory<griddyn::genmodels::GenModelClassical, GenModel> gClassicalGenModelFactory(
     "genmodel",
     std::to_array<std::string_view>(
-        {"basic", "2", "second", "secondorder", "classic", "classical", "II"}));
+        {"basic", "2", "second", "secondorder", "classic", "classical", "gencls", "II"}));
 static ChildTypeFactory<griddyn::genmodels::GenModel3, GenModel> gThirdOrderGenModelFactory(
     "genmodel",
     std::to_array<std::string_view>({"3", "third", "thirdorder", "III"}));

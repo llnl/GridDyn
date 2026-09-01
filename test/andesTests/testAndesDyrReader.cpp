@@ -17,7 +17,9 @@
 #include "griddyn/exciters/ExciterEXAC4.h"
 #include "griddyn/exciters/ExciterEXST1.h"
 #include "griddyn/generators/DynamicGenerator.h"
+#include "griddyn/genmodels/GenModelClassical.h"
 #include "griddyn/genmodels/GenModelGENROU.h"
+#include "griddyn/governors/GovernorHygov.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorTgov1.h"
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
@@ -180,6 +182,67 @@ TEST(AndesDyrReaderTests, LoadsGenrouAndMatchesIeee14Initialization)
     }
 }
 
+TEST(AndesDyrReaderTests, LoadsGenclsInPsseAndesFieldOrder)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_gencls.dyr"));
+
+    struct GenclsParameters {
+        index_t busId;
+        double h;
+        double d;
+    };
+    constexpr GenclsParameters expected[]{{.busId = 1, .h = 2.8756, .d = 1.0},
+                                          {.busId = 2, .h = 3.0, .d = 2.0},
+                                          {.busId = 3, .h = 4.0, .d = 0.0},
+                                          {.busId = 6, .h = 5.0, .d = 0.5},
+                                          {.busId = 8, .h = 0.0, .d = 0.0}};
+
+    for (const auto& entry : expected) {
+        auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", entry.busId));
+        ASSERT_NE(bus, nullptr) << "bus " << entry.busId;
+        auto* generator = bus->getGen(0);
+        ASSERT_NE(generator, nullptr) << "generator at bus " << entry.busId;
+        auto* model =
+            dynamic_cast<griddyn::genmodels::GenModelClassical*>(generator->find("genmodel"));
+        ASSERT_NE(model, nullptr) << "GENCLS at bus " << entry.busId;
+        EXPECT_DOUBLE_EQ(model->get("h"), entry.h);
+        EXPECT_DOUBLE_EQ(model->get("m"), 2.0 * entry.h);
+        EXPECT_DOUBLE_EQ(model->get("d"), entry.d);
+    }
+
+    auto* bus1 = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus1, nullptr);
+    auto* model =
+        dynamic_cast<griddyn::genmodels::GenModelClassical*>(bus1->getGen(0)->find("genmodel"));
+    ASSERT_NE(model, nullptr);
+    // GENCLS obtains R_a and x'd from the PSS/E RAW ZSOURCE fields.
+    EXPECT_DOUBLE_EQ(model->get("r"), 0.0);
+    EXPECT_DOUBLE_EQ(model->get("x"), 0.23);
+}
+
+TEST(AndesDyrReaderTests, LoadsAndesKundurGenclsCase)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("andes_kundur_vsc_pflow.json"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("andes_kundur_gencls.dyr"));
+
+    constexpr std::array<double, 4> expectedInertia{13.0, 13.0, 12.35, 12.35};
+    for (index_t index = 0; std::cmp_less(index, expectedInertia.size()); ++index) {
+        const auto busId = index + 1;
+        auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", busId));
+        ASSERT_NE(bus, nullptr) << "bus " << busId;
+        auto* generator = bus->getGen(0);
+        ASSERT_NE(generator, nullptr) << "generator at bus " << busId;
+        auto* model =
+            dynamic_cast<griddyn::genmodels::GenModelClassical*>(generator->find("genmodel"));
+        ASSERT_NE(model, nullptr) << "GENCLS at bus " << busId;
+        EXPECT_DOUBLE_EQ(model->get("h"), expectedInertia[index]);
+        EXPECT_DOUBLE_EQ(model->get("d"), 0.0);
+    }
+}
+
 TEST(AndesDyrReaderTests, MapsTgov1ParametersInAndesDyrOrder)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
@@ -239,6 +302,41 @@ TEST(AndesDyrReaderTests, MapsTgov1ParametersInAndesDyrOrder)
         EXPECT_DOUBLE_EQ(governor->get("t3"), entry.t3);
         EXPECT_DOUBLE_EQ(governor->get("dt"), entry.dt);
     }
+}
+
+TEST(AndesDyrReaderTests, MapsHygovParametersInAndesDyrOrder)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_hygov.dyr"));
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = bus->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    auto* governor = dynamic_cast<griddyn::governors::GovernorHygov*>(generator->find("governor"));
+    ASSERT_NE(governor, nullptr);
+
+    const std::pair<std::string_view, double> expected[]{{"r", 0.05},
+                                                         {"temporarydroop", 0.3},
+                                                         {"tr", 5.0},
+                                                         {"tf", 0.05},
+                                                         {"tg", 0.5},
+                                                         {"velm", 0.02},
+                                                         {"gmax", 0.9},
+                                                         {"gmin", 0.0},
+                                                         {"tw", 1.25},
+                                                         {"at", 1.2},
+                                                         {"dturb", 0.2},
+                                                         {"qnl", 0.08}};
+    for (const auto& parameter : expected) {
+        EXPECT_DOUBLE_EQ(governor->get(parameter.first), parameter.second) << parameter.first;
+    }
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
 TEST(AndesDyrReaderTests, MapsIeeeG1ParametersInFrozenAndesDyrOrder)

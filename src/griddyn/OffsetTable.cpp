@@ -127,7 +127,7 @@ index_t OffsetTable::maxIndex(const SolverMode& sMode) const
     if (!isValidIndex(sMode.offsetIndex)) {
         return 0;
     }
-    const auto offsetInfo = offsetContainer[sMode.offsetIndex];
+    const auto& offsetInfo = offsetContainer[sMode.offsetIndex];
     index_t maxUsedIndex = 0;
     if (isDynamic(sMode)) {
         if (offsetInfo.total.diffSize > 0) {

@@ -13,7 +13,7 @@ namespace griddyn::governors {
 class GovernorSteamNR: public GovernorIeeeSimple {
   public:
   protected:
-    model_parameter Tch;  //!< [s] steam reheat chest time constant
+    model_parameter Tch = 0.0;  //!< [s] steam reheat chest time constant
   public:
     GovernorSteamNR(const std::string& objName = "govSteamNR_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;

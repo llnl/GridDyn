@@ -32,8 +32,7 @@ RectifierData computeRectifierData(const IOdata& inputs,
     const double quadratureVoltage = inputs[exciterVqInLocation];
     const double realPart = (-kpcReal * directVoltage) - (kpcImag * quadratureVoltage) +
         (impedanceImag * directCurrent) - (impedanceReal * quadratureCurrent);
-    const double imaginaryPart =
-        (-kpcImag * directVoltage) + (kpcReal * quadratureVoltage) -
+    const double imaginaryPart = (-kpcImag * directVoltage) + (kpcReal * quadratureVoltage) -
         (impedanceReal * directCurrent) - (impedanceImag * quadratureCurrent);
     const double sourceVoltage = std::hypot(realPart, imaginaryPart);
     std::array<double, 5> sourceDerivatives{};
@@ -42,10 +41,8 @@ RectifierData computeRectifierData(const IOdata& inputs,
             ((realPart * impedanceImag) - (imaginaryPart * impedanceReal)) / sourceVoltage;
         sourceDerivatives[1] =
             ((-realPart * impedanceReal) - (imaginaryPart * impedanceImag)) / sourceVoltage;
-        sourceDerivatives[2] = ((-realPart * kpcReal) - (imaginaryPart * kpcImag)) /
-            sourceVoltage;
-        sourceDerivatives[3] = ((-realPart * kpcImag) + (imaginaryPart * kpcReal)) /
-            sourceVoltage;
+        sourceDerivatives[2] = ((-realPart * kpcReal) - (imaginaryPart * kpcImag)) / sourceVoltage;
+        sourceDerivatives[3] = ((-realPart * kpcImag) + (imaginaryPart * kpcReal)) / sourceVoltage;
     }
     const double normalizedCurrent = (sourceVoltage > 0.0) ?
         commutatingFactor * inputs[exciterXadIfdInLocation] / sourceVoltage :

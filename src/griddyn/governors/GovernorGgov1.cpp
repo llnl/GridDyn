@@ -207,12 +207,11 @@ GovernorGgov1::Signals GovernorGgov1::evaluate(const IOdata& inputs, const doubl
         for (int iteration = 0; iteration < 60; ++iteration) {
             const double request = 0.5 * (lower + upper);
             const auto [unusedError, normalRequest] = evaluateNormalRequest(request);
-            const double selected =
-                std::clamp(std::min({normalRequest,
-                                     signals.mTemperatureRequest,
-                                     signals.mAccelerationRequest}),
-                           static_cast<double>(Pmin),
-                           static_cast<double>(Pmax));
+            const double selected = std::clamp(std::min({normalRequest,
+                                                         signals.mTemperatureRequest,
+                                                         signals.mAccelerationRequest}),
+                                               static_cast<double>(Pmin),
+                                               static_cast<double>(Pmax));
             if (request < selected) {
                 lower = request;
             } else {
@@ -247,12 +246,10 @@ GovernorGgov1::Signals GovernorGgov1::evaluate(const IOdata& inputs, const doubl
         state[turbineState] + (Tc / Tb) * (signals.mTurbineInput - state[turbineState]);
     const double speedFactor = (Dm < 0.0) ? std::pow(omega, Dm) : 1.0;
     signals.mTemperatureInput = signals.mFuelFlow * speedFactor;
-    signals.mTemperatureLeadOutput =
-        state[temperatureLeadState] +
+    signals.mTemperatureLeadOutput = state[temperatureLeadState] +
         (Tsa / Tsb) * (signals.mTemperatureInput - state[temperatureLeadState]);
-    signals.mMechanicalPower =
-        (Dm >= 0.0) ? signals.mTurbineOutput - Dm * signals.mSpeedDeviation :
-                      signals.mTurbineOutput;
+    signals.mMechanicalPower = (Dm >= 0.0) ? signals.mTurbineOutput - Dm * signals.mSpeedDeviation :
+                                             signals.mTurbineOutput;
     return signals;
 }
 
@@ -297,8 +294,7 @@ void GovernorGgov1::derivative(const IOdata& inputs,
     double rate = std::clamp((signals.mFuelRequest - signals.mValve) / Tact,
                              static_cast<double>(Rclose),
                              static_cast<double>(Ropen));
-    if (((signals.mValve >= Pmax) && (rate > 0.0)) ||
-        ((signals.mValve <= Pmin) && (rate < 0.0))) {
+    if (((signals.mValve >= Pmax) && (rate > 0.0)) || ((signals.mValve <= Pmin) && (rate < 0.0))) {
         rate = 0.0;
     }
     stateDerivative[valveState] = rate;
@@ -307,8 +303,7 @@ void GovernorGgov1::derivative(const IOdata& inputs,
         (signals.mTemperatureInput - state[temperatureLeadState]) / Tsb;
     stateDerivative[temperatureState] =
         (signals.mTemperatureLeadOutput - state[temperatureState]) / Tfload;
-    stateDerivative[loadIntegralState] =
-        Kiload * (Ldref / Kturb + Wfnl - state[temperatureState]);
+    stateDerivative[loadIntegralState] = Kiload * (Ldref / Kturb + Wfnl - state[temperatureState]);
     stateDerivative[accelerationState] =
         (signals.mSpeedDeviation - state[accelerationState]) / TaAccel;
 }
@@ -347,8 +342,7 @@ void GovernorGgov1::jacobianElements(const IOdata& inputs,
                           (Tc / Tb) * Kturb * fuelDvalve);
         matrixData.assignCheckCol(algebraicRow,
                                   inputLocs[govOmegaInLocation],
-                                  (Tc / Tb) * Kturb * fuelDomega -
-                                      ((Dm >= 0.0) ? Dm : 0.0));
+                                  (Tc / Tb) * Kturb * fuelDomega - ((Dm >= 0.0) ? Dm : 0.0));
     }
     if (!hasDifferential(sMode)) {
         return;
@@ -393,9 +387,9 @@ void GovernorGgov1::jacobianElements(const IOdata& inputs,
         1.0;
     const double eIntegral =
         ((Rselect == -2) && normalRequestActive) ? -R * eSlope * implicitScale : 0.0;
-    const double eDerivative =
-        ((Rselect == -2) && normalRequestActive) ? R * eSlope * derivativeGain * implicitScale :
-                                                    0.0;
+    const double eDerivative = ((Rselect == -2) && normalRequestActive) ?
+        R * eSlope * derivativeGain * implicitScale :
+        0.0;
     eSlope *= implicitScale;
     const double errorOmegaDerivative = -eSlope;
     const double errorResetDerivative = eSlope;
@@ -464,10 +458,8 @@ void GovernorGgov1::jacobianElements(const IOdata& inputs,
         requestValveDerivative = 1.0;
         requestAccelerationDerivative = Ka * accelerationStep / TaAccel;
     }
-    const double minRequest =
-        std::min({signals.mNormalRequest,
-                  signals.mTemperatureRequest,
-                  signals.mAccelerationRequest});
+    const double minRequest = std::min(
+        {signals.mNormalRequest, signals.mTemperatureRequest, signals.mAccelerationRequest});
     if ((minRequest <= Pmin) || (minRequest >= Pmax)) {
         requestOmegaDerivative = requestResetDerivative = requestPowerDerivative = 0.0;
         requestValveDerivative = requestIntegralDerivative = requestFilterDerivative = 0.0;

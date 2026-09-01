@@ -27,8 +27,7 @@ IOdata GenModelClassical::getMachineControllerSignals(const IOdata& inputs,
     const double electricalPower =
         (directVoltage * algebraicState[0]) + (quadratureVoltage * algebraicState[1]);
     const double electricalTorque = electricalPower +
-        (Rs * ((algebraicState[0] * algebraicState[0]) +
-               (algebraicState[1] * algebraicState[1])));
+        (Rs * ((algebraicState[0] * algebraicState[0]) + (algebraicState[1] * algebraicState[1])));
 
     IOdata signals(machineControllerSignalCount, kNullVal);
     signals[static_cast<index_t>(MachineControllerSignal::ID)] = algebraicState[0];

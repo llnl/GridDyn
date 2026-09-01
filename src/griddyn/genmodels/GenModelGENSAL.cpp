@@ -118,9 +118,8 @@ void GenModelGENSAL::dynObjectInitializeB(const IOdata& inputs,
     Vd = -voltage * std::sin(rotorAngle - angle);
     Vq = voltage * std::cos(rotorAngle - angle);
     fieldSet[genModelEftInLocation] = efd;
-    fieldSet[genModelPmechInLocation] =
-        (Vd + Rs * directCurrent) * directCurrent + (Vq + Rs * quadratureCurrent) *
-            quadratureCurrent;
+    fieldSet[genModelPmechInLocation] = (Vd + Rs * directCurrent) * directCurrent +
+        (Vq + Rs * quadratureCurrent) * quadratureCurrent;
 }
 
 void GenModelGENSAL::algebraicUpdate(const IOdata& inputs,
@@ -153,8 +152,8 @@ void GenModelGENSAL::derivative(const IOdata& inputs,
     const auto coeff = coefficients(Xd, Xdp, Xdpp, Xl);
     const double epq = state[2];
     const double psikd = state[3];
-    const double xadIfd = coeff.mK1d * (epq - psikd + (Xdp - Xl) * alg[0]) -
-        (Xd - Xdp) * alg[0] + (1.0 + sat.compute(epq)) * epq;
+    const double xadIfd = coeff.mK1d * (epq - psikd + (Xdp - Xl) * alg[0]) - (Xd - Xdp) * alg[0] +
+        (1.0 + sat.compute(epq)) * epq;
     const double torque = (Vd + Rs * alg[0]) * alg[0] + (Vq + Rs * alg[1]) * alg[1];
     dst[0] = systemBaseFrequency * (state[1] - 1.0);
     dst[1] = (inputs[genModelPmechInLocation] - torque - D * (state[1] - 1.0)) / (2.0 * H);
@@ -172,8 +171,7 @@ void GenModelGENSAL::residual(const IOdata& inputs,
     updateLocalCache(inputs, stateData, sMode);
     const auto coeff = coefficients(Xd, Xdp, Xdpp, Xl);
     if (hasAlgebraic(sMode)) {
-        const double psi2d =
-            coeff.mK3d * loc.diffStateLoc[2] + coeff.mK4d * loc.diffStateLoc[3];
+        const double psi2d = coeff.mK3d * loc.diffStateLoc[2] + coeff.mK4d * loc.diffStateLoc[3];
         loc.destLoc[0] =
             Vd + Rs * loc.algStateLoc[0] + Xqpp * loc.algStateLoc[1] - loc.diffStateLoc[4];
         loc.destLoc[1] = Vq + Rs * loc.algStateLoc[1] - Xdpp * loc.algStateLoc[0] - psi2d;
@@ -258,26 +256,18 @@ void GenModelGENSAL::jacobianElements(const IOdata& inputs,
     if (hasAlgebraic(sMode)) {
         matrixData.assign(differentialRow + 2, algebraicRow, -dXadId / Tdop);
     }
-    matrixData.assign(differentialRow + 2,
-                      differentialRow + 2,
-                      -dXadEpq / Tdop - stateData.cj);
+    matrixData.assign(differentialRow + 2, differentialRow + 2, -dXadEpq / Tdop - stateData.cj);
     matrixData.assign(differentialRow + 2, differentialRow + 3, coeff.mK1d / Tdop);
-    matrixData.assignCheckCol(differentialRow + 2,
-                              inputLocs[genModelEftInLocation],
-                              1.0 / Tdop);
+    matrixData.assignCheckCol(differentialRow + 2, inputLocs[genModelEftInLocation], 1.0 / Tdop);
     if (hasAlgebraic(sMode)) {
         matrixData.assign(differentialRow + 3, algebraicRow, (Xdp - Xl) / Tdopp);
     }
     matrixData.assign(differentialRow + 3, differentialRow + 2, 1.0 / Tdopp);
-    matrixData.assign(differentialRow + 3,
-                      differentialRow + 3,
-                      -1.0 / Tdopp - stateData.cj);
+    matrixData.assign(differentialRow + 3, differentialRow + 3, -1.0 / Tdopp - stateData.cj);
     if (hasAlgebraic(sMode)) {
         matrixData.assign(differentialRow + 4, algebraicRow + 1, -(Xq - Xqpp) / Tqopp);
     }
-    matrixData.assign(differentialRow + 4,
-                      differentialRow + 4,
-                      -1.0 / Tqopp - stateData.cj);
+    matrixData.assign(differentialRow + 4, differentialRow + 4, -1.0 / Tqopp - stateData.cj);
 }
 
 IOdata GenModelGENSAL::getMachineControllerSignals(const IOdata& inputs,
@@ -342,7 +332,10 @@ MachineSignalDerivativeData
                         inputLocs[ANGLE_IN_LOCATION],
                         -directVoltage);
     addSignalDerivative(data, MachineControllerSignal::VQ, differentialRow, directVoltage);
-    addSignalDerivative(data, MachineControllerSignal::ELECTRICAL_POWER, algebraicRow, directVoltage);
+    addSignalDerivative(data,
+                        MachineControllerSignal::ELECTRICAL_POWER,
+                        algebraicRow,
+                        directVoltage);
     addSignalDerivative(data,
                         MachineControllerSignal::ELECTRICAL_POWER,
                         algebraicRow + 1,

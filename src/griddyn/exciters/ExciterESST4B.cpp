@@ -126,9 +126,10 @@ void ExciterESST4B::residual(const IOdata& inputs,
     auto loc = offsets.getLocations(stateData, resid, sMode, this);
     if (hasAlgebraic(sMode)) {
         const double innerError = loc.diffStateLoc[regulatorLagState] - Kg * loc.algStateLoc[0];
-        const double innerOutput = std::clamp(Kpm * innerError + loc.diffStateLoc[innerIntegralState],
-                                              static_cast<double>(Vmmin),
-                                              static_cast<double>(Vmmax));
+        const double innerOutput =
+            std::clamp(Kpm * innerError + loc.diffStateLoc[innerIntegralState],
+                       static_cast<double>(Vmmin),
+                       static_cast<double>(Vmmax));
         loc.destLoc[0] = rectifierVoltage(inputs) * innerOutput - loc.algStateLoc[0];
     }
     if (hasDifferential(sMode)) {
@@ -193,7 +194,9 @@ void ExciterESST4B::jacobianElements(const IOdata& inputs,
             matrixData.assign(algebraicRow,
                               differentialRow + regulatorLagState,
                               rectifier.voltage * Kpm);
-            matrixData.assign(algebraicRow, differentialRow + innerIntegralState, rectifier.voltage);
+            matrixData.assign(algebraicRow,
+                              differentialRow + innerIntegralState,
+                              rectifier.voltage);
         }
         const std::array<index_t, 5> signalIndices{exciterIdInLocation,
                                                    exciterIqInLocation,

@@ -177,8 +177,7 @@ TEST(GovernorModelTests, HygovMatchesOpenIpslInitializationAndPerturbedEquations
     std::vector<double> residual(state.size(), 0.0);
     governor.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
     const double pmech =
-        (1.2 * head * (state[4] - 0.08)) -
-        (0.2 * (inputs[govOmegaInLocation] - 1.0) * state[3]);
+        (1.2 * head * (state[4] - 0.08)) - (0.2 * (inputs[govOmegaInLocation] - 1.0) * state[3]);
     EXPECT_NEAR(residual[0], pmech - state[0], 1e-14);
 }
 

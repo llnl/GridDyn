@@ -16,19 +16,19 @@ imported topology and solved state.
 
 ## Static inventory
 
-| Item | Source count | GridDyn requirement |
-| ---- | -----------: | ------------------- |
-| Terminal buses | 79,600 | Standard PSS/E v33 bus import. |
-| Loads | 44,430 | Standard ZIP/load import and bus attachment. |
-| Fixed shunts | 916 | Fixed-shunt import. |
-| Generators | 13,419 | Standard generator, reactive-limit, and voltage-control import. |
-| AC branches | 83,425 | Standard branch import. |
-| Two-winding transformers | 13,496 | Transformer impedance, rating, tap, phase shift, and control import. |
-| Three-winding transformers | 2,400 | Delta-to-star expansion into three transformer legs. |
-| Areas / zones / owners | 76 / 28 / 1 | Metadata or transfer-control preservation where applicable; not new AC elements. |
-| Two-terminal DC links | 9 | Existing `RawDcLine` compatibility import; validate scheduled transfer and terminal reactive treatment. |
-| Impedance-correction tables | 4 | Existing interpolation support, including all referenced transformer table IDs. |
-| Switched shunts | 4,065 | Existing v33 switched-shunt parsing, block expansion, control mode, and initial `BINIT` treatment. |
+| Item                        | Source count | GridDyn requirement                                                                                     |
+| --------------------------- | -----------: | ------------------------------------------------------------------------------------------------------- |
+| Terminal buses              |       79,600 | Standard PSS/E v33 bus import.                                                                          |
+| Loads                       |       44,430 | Standard ZIP/load import and bus attachment.                                                            |
+| Fixed shunts                |          916 | Fixed-shunt import.                                                                                     |
+| Generators                  |       13,419 | Standard generator, reactive-limit, and voltage-control import.                                         |
+| AC branches                 |       83,425 | Standard branch import.                                                                                 |
+| Two-winding transformers    |       13,496 | Transformer impedance, rating, tap, phase shift, and control import.                                    |
+| Three-winding transformers  |        2,400 | Delta-to-star expansion into three transformer legs.                                                    |
+| Areas / zones / owners      |  76 / 28 / 1 | Metadata or transfer-control preservation where applicable; not new AC elements.                        |
+| Two-terminal DC links       |            9 | Existing `RawDcLine` compatibility import; validate scheduled transfer and terminal reactive treatment. |
+| Impedance-correction tables |            4 | Existing interpolation support, including all referenced transformer table IDs.                         |
+| Switched shunts             |        4,065 | Existing v33 switched-shunt parsing, block expansion, control mode, and initial `BINIT` treatment.      |
 
 The RAW therefore contains 79,600 terminal buses and 83,425 ordinary AC
 branches. Adding 13,496 two-winding transformer links and three legs for each

@@ -55,7 +55,7 @@ void GenModelClassical::dynObjectInitializeB(const IOdata& inputs,
                                              IOdata& fieldSet)
 {
     computeInitialAngleAndCurrent(inputs, desiredOutput, Rs, Xd);
-    double* gm = m_state.data();
+    const double* gm = m_state.data();
     const double internalVoltage = Vq + (Rs * gm[1]) - (Xd * gm[0]);
     // Pm includes stator copper loss, matching the ANDES air-gap torque
     // initialization. It reduces to terminal active power when Rs is zero.

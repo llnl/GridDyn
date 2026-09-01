@@ -1,6 +1,6 @@
 # PowerDynamics.jl dynamic-model assessment
 
-This document identifies dynamic models implemented by the local [PowerDynamics.jl](https://github.com/JuliaEnergy/PowerDynamics.jl) project that GridDyn does not currently implement as a model-specific C++ class. It complements the [OpenIPSL assessment](openipsl-compatibility.md): several PowerDynamics models are explicit Julia ports of OpenIPSL PSS/e models, so PowerDynamics supplies implementation and regression-test evidence rather than a separate physical-model family.
+This document identifies dynamic models implemented by the local [PowerDynamics.jl](https://github.com/JuliaEnergy/PowerDynamics.jl) project that GridDyn lacks, plus recently implemented GridDyn models for which PowerDynamics can supply external validation. It complements the [OpenIPSL assessment](openipsl-compatibility.md): several PowerDynamics models are explicit Julia ports of OpenIPSL PSS/e models, so PowerDynamics supplies implementation and regression-test evidence rather than a separate physical-model family.
 
 ## Scope and evidence
 
@@ -19,7 +19,7 @@ That is strong source material, but it is not GridDyn validation. A C++ port sti
 | **P2 — targeted extension**         | Useful but specialized, experimental, or dependent on a P0/P1 design decision.                                                              |
 | **P3 — different simulation scope** | The model retains fast electromagnetic/filter states or needs structural changes beyond GridDyn's present positive-sequence dynamic path.   |
 
-## Models GridDyn does not have exactly
+## Model gaps and recently implemented validation targets
 
 ### 1. Synchronous machines
 
@@ -40,7 +40,6 @@ That is strong source material, but it is not GridDyn validation. A C++ port sti
 | `PSSE_ESST1A`                                         | No exact static exciter                                   | **P0**            | OpenIPSL-tested model with limiter, rectifier-loading, and feedback behavior; a useful common PSS/e exciter target.                                                                                                    |
 | `PSSE_ESST4B`                                         | `ExciterESST4B`                                           | **Validation**    | Native equations and DYR/Jacobian coverage are implemented; use the OpenIPSL-tested Julia path for an external trajectory. UEL/OEL routing remains open. |
 | `PSSE_GGOV1_EXPERIMENTAL`                             | `GovernorGgov1`                                           | **Validation**    | Native GGOV1 is implemented and independently equation-audited. PowerDynamics remains secondary evidence because its model is experimental and its reference documents known issues. |
-| `PSSE_HYGOV`                                          | `GovernorHydro` is a candidate, not exact support         | **P1 validation** | PowerDynamics has an OpenIPSL comparison. Use it to decide whether GridDyn's hydro model can be corrected/validated or a dedicated `HYGOV` is needed.                                                                  |
 | `PSSE_IEEET1`                                         | `ExciterIEEEtype1` is a candidate                         | **P1 validation** | The PowerDynamics/OpenIPSL test is a concrete starting point for proving or rejecting equivalence.                                                                                                                     |
 | `AVRFixed`, `AVRTypeI`, `GovFixed`, `TurbineGovTypeI` | Existing GridDyn AVR/governor classes are only candidates | **P2**            | Simple reusable controls; audit equations and ports before mapping by generic type name.                                                                                                                               |
 
@@ -68,18 +67,19 @@ That is strong source material, but it is not GridDyn validation. A C++ port sti
 
 These PowerDynamics models should not be counted as clear GridDyn gaps. Their value is the available Julia/OpenIPSL formulation and tests.
 
-| PowerDynamics model(s)                                                                           | GridDyn candidate                                         | Recommended action                                                                            |
-| ------------------------------------------------------------------------------------------------ | --------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `PSSE_GENCLS`, `PSSE_GENROU`, `ClassicalMachine`                                                 | `GenModelClassical`, `GenModelGENROU`                     | Add/compare against captured references before changing C++ equations.                        |
-| `PSSE_EXST1`, `PSSE_IEEEST`, `PSSE_IEEEG1`                                                       | `ExciterEXST1`, `StabilizerIEEEST`, `GovernorIeeeG1`      | Reuse PowerDynamics' tested Modelica cases to obtain another independent reference path.      |
-| `TGOV1`                                                                                          | `GovernorTgov1`                                           | Validate instead of porting.                                                                  |
-| `PQLoad`, `ZIPLoad`, `VoltageDependentLoad`, `ConstantYLoad`, `ConstantCurrentLoad`, `PSSE_Load` | `ZipLoad`, `ExponentialLoad`, `SourceLoad` are candidates | Audit the voltage/current and low-voltage semantics; GridDyn has related static-load classes. |
-| `PiLine`, `Breaker`, `StaticShunt`                                                               | `AcLine`, `ZBreaker`, fixed-admittance `ZipLoad`          | Treat as power-flow/event and base-conversion validation cases.                               |
+| PowerDynamics model(s)                                                                           | GridDyn candidate                                         | Recommended action                                                                                                 |
+| ------------------------------------------------------------------------------------------------ | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `PSSE_GENCLS`, `PSSE_GENROU`, `ClassicalMachine`                                                 | `GenModelClassical`, `GenModelGENROU`                     | GENCLS has corrected standard equations, DYR/RAW mapping, initialization, and Jacobian tests; capture PowerDynamics/OpenIPSL trajectories for both machines before further equation changes. |
+| `PSSE_HYGOV`                                                                                     | `GovernorHygov`                                           | Native equations and DYR mapping are implemented; capture the PowerDynamics/OpenIPSL trajectory for direct parity. |
+| `PSSE_EXST1`, `PSSE_IEEEST`, `PSSE_IEEEG1`                                                       | `ExciterEXST1`, `StabilizerIEEEST`, `GovernorIeeeG1`      | Reuse PowerDynamics' tested Modelica cases to obtain another independent reference path.                           |
+| `TGOV1`                                                                                          | `GovernorTgov1`                                           | Validate instead of porting.                                                                                       |
+| `PQLoad`, `ZIPLoad`, `VoltageDependentLoad`, `ConstantYLoad`, `ConstantCurrentLoad`, `PSSE_Load` | `ZipLoad`, `ExponentialLoad`, `SourceLoad` are candidates | Audit the voltage/current and low-voltage semantics; GridDyn has related static-load classes.                      |
+| `PiLine`, `Breaker`, `StaticShunt`                                                               | `AcLine`, `ZBreaker`, fixed-admittance `ZipLoad`          | Treat as power-flow/event and base-conversion validation cases.                                                    |
 
 ## Recommended sequence
 
-1. Use PowerDynamics' OpenIPSL-tested source and test structures to capture external trajectories for the implemented `GENSAL` and `ESST4B`, then create GridDyn P0 references for `GENROE`, `GENSAE`, `SCRX`, and `ESST1A`.
-2. Audit and resolve the existing GridDyn candidates for `HYGOV` and `IEEET1`; do not create duplicates before the equation comparison.
+1. Use PowerDynamics' OpenIPSL-tested source and test structures to capture external trajectories for the implemented `GENCLS`, `GENSAL`, and `ESST4B`, then create GridDyn P0 references for `GENROE`, `GENSAE`, `SCRX`, and `ESST1A`.
+2. Capture the registered PowerDynamics/OpenIPSL `HYGOV` reference for the implemented `GovernorHygov`, and audit the existing GridDyn candidate for `IEEET1`.
 3. Decide whether GridDyn will support positive-sequence converter control as a first-class model family. If so, implement the P1 `IdealDroopInverter`/PLL/controller interface and align it with the OpenIPSL `REGCA1`/`REEC*`/`REPCA1` plan.
 4. Add `DynamicSeriesRLBranch` only with a clear solver and initialization design for AC current states. Keep dynamic shunts and dq filter models scoped to the same decision.
 5. Use PowerDynamics' `GGOV1` only as a secondary comparison for the native implementation until its documented reference issues are independently resolved.

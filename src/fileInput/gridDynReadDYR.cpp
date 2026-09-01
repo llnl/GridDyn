@@ -19,6 +19,7 @@
 #include "griddyn/GridBus.h"
 #include "griddyn/Stabilizer.h"
 #include "griddyn/generators/DynamicGenerator.h"
+#include "griddyn/governors/GovernorHygov.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
@@ -31,6 +32,7 @@
 
 namespace griddyn {
 namespace {
+    void loadGENCLS(CoreObject* parentObject, stringVec& tokens);
     void loadGENROU(CoreObject* parentObject, stringVec& tokens);
     void loadGENSAL(CoreObject* parentObject, stringVec& tokens);
     void loadESDC1A(CoreObject* parentObject, stringVec& tokens);
@@ -41,6 +43,7 @@ namespace {
     void loadEXAC2(CoreObject* parentObject, stringVec& tokens);
     void loadEXAC4(CoreObject* parentObject, stringVec& tokens);
     void loadTGOV1(CoreObject* parentObject, stringVec& tokens);
+    void loadHYGOV(CoreObject* parentObject, stringVec& tokens);
     void loadGGOV1(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEG1(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEST(CoreObject* parentObject, stringVec& tokens);
@@ -85,7 +88,9 @@ void loadDyr(CoreObject* parentObject,
         }
         auto type = lineTokens[1];
         gmlc::utilities::stringOps::trimString(type);
-        if (type == "'GENROU'") {
+        if (type == "'GENCLS'") {
+            loadGENCLS(parentObject, lineTokens);
+        } else if (type == "'GENROU'") {
             loadGENROU(parentObject, lineTokens);
         } else if (type == "'GENSAL'") {
             loadGENSAL(parentObject, lineTokens);
@@ -107,6 +112,8 @@ void loadDyr(CoreObject* parentObject,
             loadEXDC2(parentObject, lineTokens);
         } else if (type == "'TGOV1'") {
             loadTGOV1(parentObject, lineTokens);
+        } else if (type == "'HYGOV'") {
+            loadHYGOV(parentObject, lineTokens);
         } else if (type == "'GGOV1'") {
             loadGGOV1(parentObject, lineTokens);
         } else if (type == "'IEEEG1'") {
@@ -124,6 +131,39 @@ void loadDyr(CoreObject* parentObject,
 }
 
 namespace {
+    void loadGENCLS(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() < 5) {
+            throw InvalidParameterValue("GENCLS DYR record");
+        }
+
+        const int busId = std::stoi(tokens[0]);
+        auto* bus = dynamic_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+        if (bus == nullptr) {
+            throw InvalidParameterValue("GENCLS bus");
+        }
+
+        auto generatorId = gmlc::utilities::stringOps::removeQuotes(tokens[2]);
+        gmlc::utilities::stringOps::trimString(generatorId);
+        auto* gen = dynamic_cast<Generator*>(bus->find(bus->getName() + "_Gen_" + generatorId));
+        if (gen == nullptr) {
+            const int generatorIndex = std::stoi(generatorId) - 1;
+            gen = bus->getGen(generatorIndex);
+        }
+        if (gen == nullptr) {
+            throw InvalidParameterValue("GENCLS generator");
+        }
+
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* genModel = static_cast<GenModel*>(
+            CoreObjectFactory::instance()->createObject("genmodel", "gencls"));
+        // The RAW generator supplies ra and x'd. Attach before applying the
+        // two GENCLS DYR parameters so DynamicGenerator transfers ZSOURCE.
+        gen->add(genModel);
+        genModel->set("h", params[3]);
+        genModel->set("d", params[4]);
+    }
+
     void loadGENROU(CoreObject* parentObject, stringVec& tokens)
     {
         const int busId = std::stoi(tokens[0]);
@@ -488,6 +528,49 @@ namespace {
         governorModel->set("dt", params[9]);
 
         gen->add(governorModel);
+    }
+
+    void loadHYGOV(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 15U) {
+            throw InvalidParameterValue("HYGOV DYR record must contain 15 fields");
+        }
+        const int busId = std::stoi(tokens[0]);
+        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+        const int genId = std::stoi(tokens[2]);
+        if ((bus == nullptr) || (genId <= 0)) {
+            throw InvalidParameterValue("HYGOV generator identity");
+        }
+        auto* gen = bus->getGen(genId - 1);
+        if (gen == nullptr) {
+            throw InvalidParameterValue("HYGOV requires an existing generator");
+        }
+
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto cof = CoreObjectFactory::instance();
+        std::unique_ptr<governors::GovernorHygov> governor(
+            dynamic_cast<governors::GovernorHygov*>(cof->createObject("governor", "hygov")));
+        if (governor == nullptr) {
+            throw InvalidParameterValue("HYGOV factory registration");
+        }
+
+        // PSS/e HYGOV order after the machine identifier is
+        // R, r, Tr, Tf, Tg, VELM, GMAX, GMIN, Tw, At, Dturb, qNL.
+        // This matches ANDES's psse-dyr.yaml conversion schema.
+        governor->set("r", params[3]);
+        governor->set("temporarydroop", params[4]);
+        governor->set("tr", params[5]);
+        governor->set("tf", params[6]);
+        governor->set("tg", params[7]);
+        governor->set("velm", params[8]);
+        governor->set("gmax", params[9]);
+        governor->set("gmin", params[10]);
+        governor->set("tw", params[11]);
+        governor->set("at", params[12]);
+        governor->set("dturb", params[13]);
+        governor->set("qnl", params[14]);
+
+        gen->add(governor.release());
     }
 
     void loadGGOV1(CoreObject* parentObject, stringVec& tokens)

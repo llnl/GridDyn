@@ -38,15 +38,15 @@ enum class ChangeCode;
 namespace relays {
     /**helper class for delayed execution of set functions*/
     struct DelayedControlAction {
-        std::uint64_t sourceID;  //!< the id of the source
-        std::uint64_t actionID;  //!< the id of the action itself
+        std::uint64_t sourceID = 0;  //!< the id of the source
+        std::uint64_t actionID = 0;  //!< the id of the action itself
         std::string field;  //!< the field to act upon
-        CoreTime triggerTime;  //!< the time the delayed action should be triggered
-        CoreTime executionTime;  //!< the time it was executed
-        double val;  //!< the value associated with the change
+        CoreTime triggerTime = timeZero;  //!< the time the delayed action should be triggered
+        CoreTime executionTime = timeZero;  //!< the time it was executed
+        double val = 0.0;  //!< the value associated with the change
         units::unit unitType = units::defunit;  //!< the units associated with the action
-        bool executed;  //!< flag indicating the action is executed
-        bool measureAction;  //!< flag indicating the action is a measurement event
+        bool executed = true;  //!< flag indicating the action is executed
+        bool measureAction = false;  //!< flag indicating the action is a measurement event
     };
 
     /** @brief relay with control functionality  i.e. the ability to control an object through a

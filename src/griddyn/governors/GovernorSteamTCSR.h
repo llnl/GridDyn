@@ -13,11 +13,11 @@ namespace griddyn::governors {
 class GovernorSteamTCSR: public GovernorSteamNR {
   public:
   protected:
-    model_parameter Trh;  //!< [s] steam reheat chest time constant
-    model_parameter Tco;  //!< [s] steam reheat chest time constant
-    model_parameter Fch;  //!< [s] steam reheat chest time constant
-    model_parameter Fip;  //!< [s] steam reheat chest time constant
-    model_parameter Flp;  //!< [s] steam reheat chest time constant
+    model_parameter Trh = 0.0;  //!< [s] steam reheat chest time constant
+    model_parameter Tco = 0.0;  //!< [s] steam reheat chest time constant
+    model_parameter Fch = 0.0;  //!< [s] steam reheat chest time constant
+    model_parameter Fip = 0.0;  //!< [s] steam reheat chest time constant
+    model_parameter Flp = 0.0;  //!< [s] steam reheat chest time constant
   public:
     GovernorSteamTCSR(const std::string& objName = "govSteamTCSR_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;

@@ -380,6 +380,7 @@ void GridSimulation::alert(CoreObject* object, int code)
             case OBJECT_ID_CHANGE:
             case OBJECT_IS_SEARCHABLE:
                 GridArea::alert(object, code);
+                break;
             default:
                 break;
         }

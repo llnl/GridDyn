@@ -43,7 +43,7 @@ void ExciterEXAC2::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (!std::isfinite(Vamax) || !std::isfinite(Vamin) || !std::isfinite(Vlr) ||
         !std::isfinite(Kl) || !std::isfinite(Kh) || !std::isfinite(Kb) || (Kb <= 0.0) ||
-        (Kl <= 0.0) || (Vamax < Vamin)) {
+        (Kl <= 0.0) || (Vamax < Vamin) || (Tr <= 0.0)) {
         throw InvalidParameterValue("EXAC2 gains or limits");
     }
     ExciterEXAC1::dynObjectInitializeA(time0, flags);

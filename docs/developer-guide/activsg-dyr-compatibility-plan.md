@@ -17,8 +17,8 @@ The source cases remain outside the repository:
 | ACTIVSg25k  | `C:\Users\phlpt\Downloads\ACTIVSg25k\ACTIVSg25k.RAW`   | `C:\Users\phlpt\Downloads\ACTIVSg25k\ACTIVSg25k.dyr`            |      18,108 |
 | ACTIVSg70k  | `C:\Users\phlpt\Downloads\ACTIVSg70k\ACTIVSg70k.RAW`   | `C:\Users\phlpt\Downloads\ACTIVSg70k\ACTIVSg70k_dynamics.dyr`   |      40,418 |
 
-The five files contain 67,941 DYR records. 50,541 records use models the
-current DYR reader recognizes; 17,400 records use models that still need
+The five files contain 67,941 DYR records. 54,870 records use models the
+current DYR reader recognizes; 13,071 records use models that still need
 support. Recognition is not dynamic validation: a model is complete only
 after import, initialization, limits, and disturbed trajectories agree with
 an external reference.
@@ -47,7 +47,7 @@ an external reference.
 | `GGOV1`     |          0 |         367 |        974 |      1,742 |      3,419 |  6,502 | **Reader/model implemented.** Equation, initialization, DYR-order, coupling, residual, and analytic-Jacobian tests exist. Nonzero `TENG` is rejected. |
 | `ESST4B`    |          0 |         278 |        745 |      1,396 |      3,187 |  5,606 | **Reader/model implemented.** Exact DYR mapping and GENSAL-coupled residual/Jacobian tests exist; external UEL/OEL inputs remain unrouted. |
 | `GENSAL`    |          0 |          25 |        715 |      1,244 |      2,306 |  4,290 | **Reader/model implemented.** Salient-pole equations, quadratic saturation, initialization, controller signals, and Jacobians are covered. |
-| `HYGOV`     |         39 |          25 |        715 |      1,244 |      2,306 |  4,329 | **Missing.** Audit `GovernorHydro`; add dedicated HYGOV if not equation-compatible.                                    |
+| `HYGOV`     |         39 |          25 |        715 |      1,244 |      2,306 |  4,329 | Dedicated `GovernorHygov` and DYR mapping implemented; validate case initialization, limits, and trajectories.         |
 | `SCRX`      |          0 |           5 |        312 |        446 |      1,053 |  1,816 | **Missing.** Add static controlled-rectifier exciter.                                                                  |
 | `IEEET1`    |          0 |          23 |        214 |        942 |      1,907 |  3,086 | **Missing.** Add/audit IEEE Type 1 exciter.                                                                            |
 | `EXPIC1`    |          0 |          61 |        153 |        287 |        569 |  1,070 | **Missing.** Add the excitation controller/interface behavior.                                                         |
@@ -70,31 +70,57 @@ authoritative ACTIVSg demand inventory.
 ### ACTIVSg25k static DYR assessment
 
 `ACTIVSg25k.dyr` was inspected as text only and was not loaded or run. It has
-18,108 records in 22 model families. The current DYR dispatch recognizes nine
+18,108 records in 22 model families. The current DYR dispatch recognizes ten
 of the families used by this file (`GENROU`, `IEEEST`, `IEEEG1`, `ESDC1A`,
-`EXAC1`, `EXAC2`, `GGOV1`, `ESST4B`, and `GENSAL`), accounting for 12,947
-records. The other 5,161 records cannot yet be represented faithfully.
+`EXAC1`, `EXAC2`, `GGOV1`, `ESST4B`, `GENSAL`, and `HYGOV`), accounting for
+14,191 records. The other 3,917 records cannot yet be represented faithfully.
 
-The largest remaining conventional dependencies are `HYGOV`, `IEEET1`, and
-`SCRX`, followed by the renewable groups. `REECA1` and `REGCA1` must be
-initialized and validated together; the four `WT3*` models are likewise one Type-3 wind-turbine system,
-not four independent optional models. Existing recognition is only parser
-coverage: every supported family still needs case-configuration,
-initialization, limiter, and disturbance-trajectory validation.
+The largest remaining conventional dependencies are `IEEET1` and `SCRX`,
+followed by the renewable groups. `REECA1` and `REGCA1` must be initialized and
+validated together; the four `WT3*` models are likewise one Type-3 wind-turbine
+system, not four independent optional models. Existing recognition is not by
+itself case validation: every supported family still needs applicable
+case-configuration, initialization, limiter, and disturbance-trajectory
+coverage.
 
 ### ACTIVSg70k static DYR and RAW assessment
 
 `ACTIVSg70k_dynamics.dyr` was inspected as text only and was not loaded or run.
 It has 40,418 records in 22 model families. The current DYR dispatch recognizes
-29,904 records in nine families (`GENROU`, `IEEEST`, `IEEEG1`, `ESDC1A`,
-`EXAC1`, `EXAC2`, `GGOV1`, `ESST4B`, and `GENSAL`); 10,514 records remain
-unsupported.
+32,210 records in ten families (`GENROU`, `IEEEST`, `IEEEG1`, `ESDC1A`,
+`EXAC1`, `EXAC2`, `GGOV1`, `ESST4B`, `GENSAL`, and `HYGOV`); 8,208 records
+remain unsupported.
 
-The primary conventional gaps are `HYGOV` (2,306), `IEEET1` (1,907), and
-`SCRX` (1,053). The coupled renewable demand is
-`REGCA1` plus `REECA1` (571 each) and all four Type-3 wind models (576 each).
-`EXPIC1` (569), `ESAC6A` (583), `ESAC1A` (546), and `ESDC2A`
-(104) complete the missing inventory.
+The primary conventional gaps are `IEEET1` (1,907) and `SCRX` (1,053).
+`GENSAL`, `HYGOV`, `GGOV1`, and `ESST4B` are recognized and have focused model
+and reader tests, but still need large-case initialization and trajectory
+validation. The coupled renewable demand is `REGCA1` plus `REECA1` (571 each)
+and all four Type-3 wind models (576 each). `EXPIC1` (569), `ESAC6A` (583),
+`ESAC1A` (546), and `ESDC2A` (104) complete the missing inventory.
+
+#### Full-dynamics execution boundary
+
+The package contains both PowerWorld (`.PWB`, `.aux`, `.pwd`, and `.EPC`) and
+PSS/E (`.RAW` and `.dyr`) representations. GridDyn's reference import path is
+the paired `ACTIVSg70k.RAW` and `ACTIVSg70k_dynamics.dyr` files; the PowerWorld
+artifacts are useful cross-tool references, but are not substitutes for the
+RAW/DYR import. The DYR is a complete plant assembly, so a run must attach
+every record for a machine ID before initializing the case.
+
+| Dynamic assembly                | DYR families required together                     |                                  Records | Execution consequence                                                                                                                                              |
+| ------------------------------- | -------------------------------------------------- | ---------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Round-rotor conventional plants | `GENROU`, exciter, governor, and optional `IEEEST` |                   6,937 `GENROU` records | The machine and the six currently recognized controller families need full initialization and trajectory validation; missing controller records cannot be dropped. |
+| Salient-pole hydro plants       | `GENSAL` + `HYGOV` + exciter + optional `IEEEST`   | 2,306 `GENSAL` and 2,306 `HYGOV` records | Native machine and governor models are implemented; validate whole-plant initialization, bases, limits, controller interfaces, and disturbed trajectories.        |
+| General-governor plants         | `GENROU` + `GGOV1` + exciter + optional `IEEEST`   |                    3,419 `GGOV1` records | Native selectable governor/turbine modes are implemented; validate case parameter combinations and reject nonzero `TENG` until transport delay is added.           |
+| Renewable converter plants      | `REGCA1` + `REECA1`                                |                              571 of each | Blocked until the converter and electrical controller initialize and enforce their current-limit ordering as a pair.                                               |
+| Type-3 wind plants              | `WT3G1` + `WT3E1` + `WT3P1` + `WT3T1`              |                              576 of each | Blocked until the complete generator, electrical, pitch, and turbine assembly is available; no individual `WT3*` record may be omitted.                            |
+
+Accordingly, GridDyn may use the RAW alone for static power-flow work once
+large-scale topology validation is complete, but it must reject a requested
+full 70k DYR run until all 12 currently unsupported families are implemented:
+`IEEET1`, `SCRX`, `ESAC6A`, `WT3P1`, `WT3T1`, `WT3E1`, `WT3G1`, `REGCA1`,
+`REECA1`, `EXPIC1`, `ESAC1A`, and `ESDC2A`. A strict diagnostic is preferable
+to a partial dynamic simulation.
 
 The supplied RAW is PSS/E v33. It has 67,900 terminal buses, 71,352 branches,
 10,555 two-winding transformers, and 2,100 three-winding transformers. Its
@@ -118,9 +144,10 @@ equations before implementation.
    control-device parity difference, add grouped PSS/E remote-voltage
    regulation, and investigate the ACTIVSg25k RAW-versus-MATPOWER source-state
    mismatch. ACTIVSg10k RAW/EPC three-winding topology is validated.
-2. **P1 conventional machine/governor foundation:** `GENSAL` and `GGOV1` are
-   implemented; implement `HYGOV` next and add captured external trajectories
-   for all three. GGOV1 deliberately rejects nonzero `TENG` transport delay.
+2. **P1 conventional machine/governor validation:** `GENSAL`, `GGOV1`, and
+   `HYGOV` are implemented; add captured external trajectories and whole-case
+   initialization coverage for all three. GGOV1 deliberately rejects nonzero
+   `TENG` transport delay.
 3. **P1 synchronous excitation:** `ESST4B` is implemented; implement `IEEET1`
    and `SCRX`
    from the available OpenIPSL/PowerDynamics references. Defer `EXPIC1` to P2

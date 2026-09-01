@@ -10,17 +10,45 @@
 #include <string>
 
 namespace griddyn::genmodels {
+/**
+ * @brief PSS/E GENCLS classical synchronous-machine model.
+ *
+ * The model represents a constant internal emf behind the transient
+ * reactance and retains only rotor angle and per-unit speed as differential
+ * states.  GridDyn's established dq convention gives the stator equations
+ *
+ * \f[
+ * 0=V_d+r_a I_d+x'_d I_q, \qquad
+ * 0=V_q+r_a I_q-x'_d I_d-E_q.
+ * \f]
+ *
+ * Electrical air-gap power is \f$P_e=E_q I_q\f$ and the swing equations are
+ *
+ * \f[
+ * \dot\delta=\omega_b(\omega-1), \qquad
+ * \dot\omega=\frac{P_m-P_e-D(\omega-1)}{2H}.
+ * \f]
+ *
+ * A zero inertia follows the PSS/E/OpenIPSL infinite-bus convention: rotor
+ * angle and speed remain fixed at their initialized values.  The DYR record
+ * supplies H and D; armature resistance and transient reactance come from the
+ * associated RAW generator record.
+ *
+ * Equation references:
+ * - ANDES GENCLS and GENBase implementations in
+ *   `andes/models/synchronous/gencls.py` and `genbase.py`.
+ * - OpenIPSL `Electrical.Machines.PSSE.GENCLS`.
+ */
 class GenModelClassical: public GenModel {
   public:
     /** @brief set of flags used by genModels for variations in computation
      */
 
   protected:
-    double H = 5.0;  //!< [pu] inertial constant
-    double D = 0.04;  //!< [pu] damping
+    double H = 5.0;  //!< [s] inertia constant
+    double D = 0.0;  //!< [pu torque / pu speed] damping
     double Vd = 0;  //!< the computed d axis voltage
     double Vq = 0;  //!< the computed q axis voltage
-    double mp_Kw = 13.0;  //!< speed gain for the damping system
     count_t seqId = 0;  //!< the sequence Id the voltages were computed for
   public:
     //!< @brief default constructor
@@ -35,6 +63,8 @@ class GenModelClassical: public GenModel {
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
+    virtual double get(std::string_view param,
+                       units::unit unitType = units::defunit) const override;
 
     virtual stringVec localStateNames() const override;
     // dynamics

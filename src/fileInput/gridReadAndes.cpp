@@ -10,6 +10,7 @@
 #include "griddyn/Generator.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/Link.h"
+#include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/links/DcLink.h"
 #include "griddyn/links/VSCShunt.h"
@@ -97,6 +98,11 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
     if (document.contains("Bus") && document["Bus"].is_array()) {
         for (const auto& record : document["Bus"]) {
             auto* bus = new AcBus(objectName(record, "Bus"));
+            if (record.contains("idx") && record["idx"].is_number_integer()) {
+                // Preserve the ANDES bus index used by PSS/E DYR records.
+                // Dynamic-model readers resolve their target buses by user ID.
+                bus->setUserID(record["idx"].get<index_t>());
+            }
             setIfPresent(bus, record, "Vn", "basevoltage");
             setIfPresent(bus, record, "v0", "voltage");
             setIfPresent(bus, record, "a0", "angle");
@@ -159,7 +165,7 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
             }
             bus->second->set("type", "pv");
             setIfPresent(bus->second, record, "v0", "vtarget");
-            auto* generator = new Generator(objectName(record, "PV"));
+            auto* generator = new DynamicGenerator(objectName(record, "PV"));
             generator->set("p", number(record, "p0"));
             bus->second->add(generator);
         }
@@ -173,7 +179,7 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
             bus->second->set("type", "swing");
             setIfPresent(bus->second, record, "v0", "vtarget");
             setIfPresent(bus->second, record, "a0", "atarget");
-            auto* generator = new Generator(objectName(record, "Slack"));
+            auto* generator = new DynamicGenerator(objectName(record, "Slack"));
             generator->set("p", number(record, "p0"));
             generator->set("q", number(record, "q0"));
             bus->second->add(generator);

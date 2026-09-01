@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../Governor.h"
+#include <string>
 
 namespace griddyn::governors {
 /** GE/PSS/E GGOV1 general-purpose turbine governor.

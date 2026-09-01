@@ -7,6 +7,7 @@
 #pragma once
 
 #include "GenModel5.h"
+#include <string>
 
 namespace griddyn::genmodels {
 /** PSS/E GENSAL salient-pole synchronous-machine model.

@@ -6,6 +6,7 @@
 #pragma once
 
 #include "../Exciter.h"
+#include <string>
 
 namespace griddyn::exciters {
 /** IEEE/PSS/E ESST4B potential-source controlled-rectifier exciter.

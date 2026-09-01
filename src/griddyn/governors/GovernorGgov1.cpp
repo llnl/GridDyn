@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <string>
 
 namespace griddyn::governors {
 // NOLINTBEGIN(readability-math-missing-parentheses)
@@ -40,19 +41,19 @@ namespace {
 }  // namespace
 
 struct GovernorGgov1::Signals {
-    double speedDeviation;
-    double limitedError;
-    double normalRequest;
-    double temperatureRequest;
-    double accelerationRequest;
-    double fuelRequest;
-    double valve;
-    double fuelFlow;
-    double turbineInput;
-    double turbineOutput;
-    double temperatureInput;
-    double temperatureLeadOutput;
-    double mechanicalPower;
+    double mSpeedDeviation;
+    double mLimitedError;
+    double mNormalRequest;
+    double mTemperatureRequest;
+    double mAccelerationRequest;
+    double mFuelRequest;
+    double mValve;
+    double mFuelFlow;
+    double mTurbineInput;
+    double mTurbineOutput;
+    double mTemperatureInput;
+    double mTemperatureLeadOutput;
+    double mMechanicalPower;
 };
 
 GovernorGgov1::GovernorGgov1(const std::string& objName): Governor(objName)
@@ -128,7 +129,7 @@ void GovernorGgov1::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/
         throw InvalidParameterValue("GGOV1 selectors, gains, time constants, or limits");
     }
     if (std::abs(Teng) > 1e-9) {
-        // TODO: Support TENG with a reusable transport-delay/history component.
+        // TODO(phlpt): Support TENG with a reusable transport-delay/history component.
         // Do not substitute a first-order lag: that changes the GGOV1 diesel-engine dynamics.
         throw InvalidParameterValue("GGOV1 TENG transport delay is not supported");
     }
@@ -147,47 +148,55 @@ void GovernorGgov1::dynObjectInitializeB(const IOdata& inputs,
         throw InvalidParameterValue("GGOV1 initial power");
     }
     const double power = desiredOutput[0];
-    const double pe = inputs[govElectricalPowerInLocation];
+    const double electricalPower = inputs[govElectricalPowerInLocation];
     const double fuel = power / Kturb + Wfnl;
     if ((fuel < Pmin - 1e-7) || (fuel > Pmax + 1e-7)) {
         throw InvalidParameterValue("GGOV1 initial valve position outside limits");
     }
-    double* x = m_state.data() + 1;
-    x[peState] = pe;
-    x[resetState] = 0.0;
-    x[integralState] = fuel;
-    x[derivativeState] = 0.0;
-    x[valveState] = fuel;
-    x[turbineState] = power;
-    x[temperatureLeadState] = fuel;
-    x[temperatureState] = fuel;
-    x[loadIntegralState] = fuel;
-    x[accelerationState] = 0.0;
-    const double feedback =
-        (Rselect == 1) ? pe : (((Rselect == -1) || (Rselect == -2)) ? fuel : 0.0);
+    double* state = m_state.data() + 1;
+    state[peState] = electricalPower;
+    state[resetState] = 0.0;
+    state[integralState] = fuel;
+    state[derivativeState] = 0.0;
+    state[valveState] = fuel;
+    state[turbineState] = power;
+    state[temperatureLeadState] = fuel;
+    state[temperatureState] = fuel;
+    state[loadIntegralState] = fuel;
+    state[accelerationState] = 0.0;
+    double feedback = 0.0;
+    if (Rselect == 1) {
+        feedback = electricalPower;
+    } else if ((Rselect == -1) || (Rselect == -2)) {
+        feedback = fuel;
+    }
     powerReference = R * feedback;
-    Pset = pe;
+    Pset = electricalPower;
     m_state[0] = power;
     fieldSet[govpSetInLocation] = Pset;
     std::fill(m_dstate_dt.begin(), m_dstate_dt.end(), 0.0);
 }
 
-GovernorGgov1::Signals GovernorGgov1::evaluate(const IOdata& inputs, const double x[]) const
+GovernorGgov1::Signals GovernorGgov1::evaluate(const IOdata& inputs, const double state[]) const
 {
-    Signals s{};
+    Signals signals{};
     const double omega = inputs[govOmegaInLocation];
-    s.speedDeviation = omega - 1.0;
-    const double temperatureError = Ldref / Kturb + Wfnl - x[temperatureState];
-    s.temperatureRequest = std::min(1.0, x[loadIntegralState] + Kpload * temperatureError);
-    const double acceleration = (s.speedDeviation - x[accelerationState]) / TaAccel;
-    s.accelerationRequest = x[valveState] + Ka * accelerationStep * (Aset - acceleration);
-    const auto evaluateNormalRequest = [this, &s, x](double feedback) {
+    signals.mSpeedDeviation = omega - 1.0;
+    const double temperatureError = Ldref / Kturb + Wfnl - state[temperatureState];
+    signals.mTemperatureRequest =
+        std::min(1.0, state[loadIntegralState] + Kpload * temperatureError);
+    const double acceleration = (signals.mSpeedDeviation - state[accelerationState]) / TaAccel;
+    signals.mAccelerationRequest =
+        state[valveState] + Ka * accelerationStep * (Aset - acceleration);
+    const auto evaluateNormalRequest = [this, &signals, state](double feedback) {
         const double error =
-            deadZone(-s.speedDeviation + powerReference + x[resetState] - R * feedback, db);
+            deadZone(-signals.mSpeedDeviation + powerReference + state[resetState] - R * feedback,
+                     db);
         const double limitedError =
             std::clamp(error, static_cast<double>(minerr), static_cast<double>(maxerr));
-        const double derivativeOutput = Kdgov * (limitedError - x[derivativeState]) / Tdgov;
-        return std::pair{limitedError, Kpgov * limitedError + x[integralState] + derivativeOutput};
+        const double derivativeOutput = Kdgov * (limitedError - state[derivativeState]) / Tdgov;
+        return std::pair{limitedError,
+                         Kpgov * limitedError + state[integralState] + derivativeOutput};
     };
     if (Rselect == -2) {
         // OpenIPSL feeds the post-selector, position-limited request GOVOUT1
@@ -199,7 +208,9 @@ GovernorGgov1::Signals GovernorGgov1::evaluate(const IOdata& inputs, const doubl
             const double request = 0.5 * (lower + upper);
             const auto [unusedError, normalRequest] = evaluateNormalRequest(request);
             const double selected =
-                std::clamp(std::min({normalRequest, s.temperatureRequest, s.accelerationRequest}),
+                std::clamp(std::min({normalRequest,
+                                     signals.mTemperatureRequest,
+                                     signals.mAccelerationRequest}),
                            static_cast<double>(Pmin),
                            static_cast<double>(Pmax));
             if (request < selected) {
@@ -208,31 +219,41 @@ GovernorGgov1::Signals GovernorGgov1::evaluate(const IOdata& inputs, const doubl
                 upper = request;
             }
         }
-        s.fuelRequest = 0.5 * (lower + upper);
-        const auto [limitedError, normalRequest] = evaluateNormalRequest(s.fuelRequest);
-        s.limitedError = limitedError;
-        s.normalRequest = normalRequest;
+        signals.mFuelRequest = 0.5 * (lower + upper);
+        const auto [limitedError, normalRequest] = evaluateNormalRequest(signals.mFuelRequest);
+        signals.mLimitedError = limitedError;
+        signals.mNormalRequest = normalRequest;
     } else {
-        const double feedback =
-            (Rselect == 1) ? x[peState] : ((Rselect == -1) ? x[valveState] : 0.0);
+        double feedback = 0.0;
+        if (Rselect == 1) {
+            feedback = state[peState];
+        } else if (Rselect == -1) {
+            feedback = state[valveState];
+        }
         const auto [limitedError, normalRequest] = evaluateNormalRequest(feedback);
-        s.limitedError = limitedError;
-        s.normalRequest = normalRequest;
-        s.fuelRequest =
-            std::clamp(std::min({s.normalRequest, s.temperatureRequest, s.accelerationRequest}),
-                       static_cast<double>(Pmin),
-                       static_cast<double>(Pmax));
+        signals.mLimitedError = limitedError;
+        signals.mNormalRequest = normalRequest;
+        signals.mFuelRequest = std::clamp(std::min({signals.mNormalRequest,
+                                                    signals.mTemperatureRequest,
+                                                    signals.mAccelerationRequest}),
+                                          static_cast<double>(Pmin),
+                                          static_cast<double>(Pmax));
     }
-    s.valve = std::clamp(x[valveState], static_cast<double>(Pmin), static_cast<double>(Pmax));
-    s.fuelFlow = (fuelFlag == 1) ? omega * s.valve : s.valve;
-    s.turbineInput = Kturb * (s.fuelFlow - Wfnl);
-    s.turbineOutput = x[turbineState] + (Tc / Tb) * (s.turbineInput - x[turbineState]);
+    signals.mValve =
+        std::clamp(state[valveState], static_cast<double>(Pmin), static_cast<double>(Pmax));
+    signals.mFuelFlow = (fuelFlag == 1) ? omega * signals.mValve : signals.mValve;
+    signals.mTurbineInput = Kturb * (signals.mFuelFlow - Wfnl);
+    signals.mTurbineOutput =
+        state[turbineState] + (Tc / Tb) * (signals.mTurbineInput - state[turbineState]);
     const double speedFactor = (Dm < 0.0) ? std::pow(omega, Dm) : 1.0;
-    s.temperatureInput = s.fuelFlow * speedFactor;
-    s.temperatureLeadOutput =
-        x[temperatureLeadState] + (Tsa / Tsb) * (s.temperatureInput - x[temperatureLeadState]);
-    s.mechanicalPower = (Dm >= 0.0) ? s.turbineOutput - Dm * s.speedDeviation : s.turbineOutput;
-    return s;
+    signals.mTemperatureInput = signals.mFuelFlow * speedFactor;
+    signals.mTemperatureLeadOutput =
+        state[temperatureLeadState] +
+        (Tsa / Tsb) * (signals.mTemperatureInput - state[temperatureLeadState]);
+    signals.mMechanicalPower =
+        (Dm >= 0.0) ? signals.mTurbineOutput - Dm * signals.mSpeedDeviation :
+                      signals.mTurbineOutput;
+    return signals;
 }
 
 void GovernorGgov1::residual(const IOdata& inputs,
@@ -242,7 +263,7 @@ void GovernorGgov1::residual(const IOdata& inputs,
 {
     auto loc = offsets.getLocations(stateData, resid, sMode, this);
     if (hasAlgebraic(sMode)) {
-        loc.destLoc[0] = evaluate(inputs, loc.diffStateLoc).mechanicalPower - loc.algStateLoc[0];
+        loc.destLoc[0] = evaluate(inputs, loc.diffStateLoc).mMechanicalPower - loc.algStateLoc[0];
     }
     if (hasDifferential(sMode)) {
         derivative(inputs, stateData, resid, sMode);
@@ -261,30 +282,35 @@ void GovernorGgov1::derivative(const IOdata& inputs,
         return;
     }
     auto loc = offsets.getLocations(stateData, deriv, sMode, this);
-    const double* x = loc.diffStateLoc;
-    double* dx = loc.destDiffLoc;
-    const auto s = evaluate(inputs, x);
-    dx[peState] = (inputs[govElectricalPowerInLocation] - x[peState]) / Tpelec;
-    const double resetDrive = Kimw * (inputs[govpSetInLocation] - x[peState]);
+    const double* state = loc.diffStateLoc;
+    double* stateDerivative = loc.destDiffLoc;
+    const auto signals = evaluate(inputs, state);
+    stateDerivative[peState] = (inputs[govElectricalPowerInLocation] - state[peState]) / Tpelec;
+    const double resetDrive = Kimw * (inputs[govpSetInLocation] - state[peState]);
     const double resetLimit = 1.1 * std::abs(R);
-    dx[resetState] = (((x[resetState] >= resetLimit) && (resetDrive > 0.0)) ||
-                      ((x[resetState] <= -resetLimit) && (resetDrive < 0.0))) ?
+    stateDerivative[resetState] = (((state[resetState] >= resetLimit) && (resetDrive > 0.0)) ||
+                                   ((state[resetState] <= -resetLimit) && (resetDrive < 0.0))) ?
         0.0 :
         resetDrive;
-    dx[integralState] = Kigov * s.limitedError;
-    dx[derivativeState] = (s.limitedError - x[derivativeState]) / Tdgov;
-    double rate = std::clamp((s.fuelRequest - s.valve) / Tact,
+    stateDerivative[integralState] = Kigov * signals.mLimitedError;
+    stateDerivative[derivativeState] = (signals.mLimitedError - state[derivativeState]) / Tdgov;
+    double rate = std::clamp((signals.mFuelRequest - signals.mValve) / Tact,
                              static_cast<double>(Rclose),
                              static_cast<double>(Ropen));
-    if (((s.valve >= Pmax) && (rate > 0.0)) || ((s.valve <= Pmin) && (rate < 0.0))) {
+    if (((signals.mValve >= Pmax) && (rate > 0.0)) ||
+        ((signals.mValve <= Pmin) && (rate < 0.0))) {
         rate = 0.0;
     }
-    dx[valveState] = rate;
-    dx[turbineState] = (s.turbineInput - x[turbineState]) / Tb;
-    dx[temperatureLeadState] = (s.temperatureInput - x[temperatureLeadState]) / Tsb;
-    dx[temperatureState] = (s.temperatureLeadOutput - x[temperatureState]) / Tfload;
-    dx[loadIntegralState] = Kiload * (Ldref / Kturb + Wfnl - x[temperatureState]);
-    dx[accelerationState] = (s.speedDeviation - x[accelerationState]) / TaAccel;
+    stateDerivative[valveState] = rate;
+    stateDerivative[turbineState] = (signals.mTurbineInput - state[turbineState]) / Tb;
+    stateDerivative[temperatureLeadState] =
+        (signals.mTemperatureInput - state[temperatureLeadState]) / Tsb;
+    stateDerivative[temperatureState] =
+        (signals.mTemperatureLeadOutput - state[temperatureState]) / Tfload;
+    stateDerivative[loadIntegralState] =
+        Kiload * (Ldref / Kturb + Wfnl - state[temperatureState]);
+    stateDerivative[accelerationState] =
+        (signals.mSpeedDeviation - state[accelerationState]) / TaAccel;
 }
 
 void GovernorGgov1::algebraicUpdate(const IOdata& inputs,
@@ -295,275 +321,448 @@ void GovernorGgov1::algebraicUpdate(const IOdata& inputs,
 {
     auto loc = offsets.getLocations(stateData, update, sMode, this);
     if (hasAlgebraic(sMode)) {
-        loc.destLoc[0] = evaluate(inputs, loc.diffStateLoc).mechanicalPower;
+        loc.destLoc[0] = evaluate(inputs, loc.diffStateLoc).mMechanicalPower;
     }
 }
 
 void GovernorGgov1::jacobianElements(const IOdata& inputs,
                                      const StateData& stateData,
-                                     MatrixData<double>& md,
+                                     MatrixData<double>& matrixData,
                                      const IOlocs& inputLocs,
                                      const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, sMode, this);
-    const auto ra = loc.algOffset;
-    const auto rd = loc.diffOffset;
-    const double* x = loc.diffStateLoc;
-    const auto s = evaluate(inputs, x);
+    const auto algebraicRow = loc.algOffset;
+    const auto differentialRow = loc.diffOffset;
+    const double* state = loc.diffStateLoc;
+    const auto signals = evaluate(inputs, state);
     const double omega = inputs[govOmegaInLocation];
-    const double fuelDomega = (fuelFlag == 1) ? s.valve : 0.0;
+    const double fuelDomega = (fuelFlag == 1) ? signals.mValve : 0.0;
     const double fuelDvalve = (fuelFlag == 1) ? omega : 1.0;
     if (hasAlgebraic(sMode)) {
-        md.assign(ra, ra, -1.0);
-        md.assign(ra, rd + turbineState, 1.0 - Tc / Tb);
-        md.assign(ra, rd + valveState, (Tc / Tb) * Kturb * fuelDvalve);
-        md.assignCheckCol(ra,
-                          inputLocs[govOmegaInLocation],
-                          (Tc / Tb) * Kturb * fuelDomega - ((Dm >= 0.0) ? Dm : 0.0));
+        matrixData.assign(algebraicRow, algebraicRow, -1.0);
+        matrixData.assign(algebraicRow, differentialRow + turbineState, 1.0 - Tc / Tb);
+        matrixData.assign(algebraicRow,
+                          differentialRow + valveState,
+                          (Tc / Tb) * Kturb * fuelDvalve);
+        matrixData.assignCheckCol(algebraicRow,
+                                  inputLocs[govOmegaInLocation],
+                                  (Tc / Tb) * Kturb * fuelDomega -
+                                      ((Dm >= 0.0) ? Dm : 0.0));
     }
     if (!hasDifferential(sMode)) {
         return;
     }
-    md.assign(rd + peState, rd + peState, -1.0 / Tpelec - stateData.cj);
-    md.assignCheckCol(rd + peState, inputLocs[govElectricalPowerInLocation], 1.0 / Tpelec);
-    md.assign(rd + resetState, rd + resetState, -stateData.cj);
-    const double resetDrive = Kimw * (inputs[govpSetInLocation] - x[peState]);
+    matrixData.assign(differentialRow + peState,
+                      differentialRow + peState,
+                      -1.0 / Tpelec - stateData.cj);
+    matrixData.assignCheckCol(differentialRow + peState,
+                              inputLocs[govElectricalPowerInLocation],
+                              1.0 / Tpelec);
+    matrixData.assign(differentialRow + resetState, differentialRow + resetState, -stateData.cj);
+    const double resetDrive = Kimw * (inputs[govpSetInLocation] - state[peState]);
     const double resetLimit = 1.1 * std::abs(R);
-    const bool resetBlocked = ((x[resetState] >= resetLimit) && (resetDrive > 0.0)) ||
-        ((x[resetState] <= -resetLimit) && (resetDrive < 0.0));
+    const bool resetBlocked = ((state[resetState] >= resetLimit) && (resetDrive > 0.0)) ||
+        ((state[resetState] <= -resetLimit) && (resetDrive < 0.0));
     if (!resetBlocked) {
-        md.assign(rd + resetState, rd + peState, -Kimw);
-        md.assignCheckCol(rd + resetState, inputLocs[govpSetInLocation], Kimw);
+        matrixData.assign(differentialRow + resetState, differentialRow + peState, -Kimw);
+        matrixData.assignCheckCol(differentialRow + resetState, inputLocs[govpSetInLocation], Kimw);
     }
 
-    const double feedback = (Rselect == 1) ?
-        x[peState] :
-        ((Rselect == -1) ? x[valveState] : ((Rselect == -2) ? s.fuelRequest : 0.0));
-    const double rawError = -s.speedDeviation + powerReference + x[resetState] - R * feedback;
+    double feedback = 0.0;
+    if (Rselect == 1) {
+        feedback = state[peState];
+    } else if (Rselect == -1) {
+        feedback = state[valveState];
+    } else if (Rselect == -2) {
+        feedback = signals.mFuelRequest;
+    }
+    const double rawError =
+        -signals.mSpeedDeviation + powerReference + state[resetState] - R * feedback;
     double eSlope = (db == 0.0) || (rawError > db) || (rawError < -db) ? 1.0 : 0.0;
-    const double dz = deadZone(rawError, db);
-    if ((dz <= minerr) || (dz >= maxerr)) {
+    const double deadZoneValue = deadZone(rawError, db);
+    if ((deadZoneValue <= minerr) || (deadZoneValue >= maxerr)) {
         eSlope = 0.0;
     }
-    const double kd = Kdgov / Tdgov;
-    const bool normalRequestActive = (s.normalRequest < s.temperatureRequest) &&
-        (s.normalRequest < s.accelerationRequest) && (s.normalRequest > Pmin) &&
-        (s.normalRequest < Pmax);
-    const double implicitScale =
-        ((Rselect == -2) && normalRequestActive) ? 1.0 / (1.0 + (Kpgov + kd) * R * eSlope) : 1.0;
+    const double derivativeGain = Kdgov / Tdgov;
+    const bool normalRequestActive = (signals.mNormalRequest < signals.mTemperatureRequest) &&
+        (signals.mNormalRequest < signals.mAccelerationRequest) &&
+        (signals.mNormalRequest > Pmin) && (signals.mNormalRequest < Pmax);
+    const double implicitScale = ((Rselect == -2) && normalRequestActive) ?
+        1.0 / (1.0 + (Kpgov + derivativeGain) * R * eSlope) :
+        1.0;
     const double eIntegral =
         ((Rselect == -2) && normalRequestActive) ? -R * eSlope * implicitScale : 0.0;
     const double eDerivative =
-        ((Rselect == -2) && normalRequestActive) ? R * eSlope * kd * implicitScale : 0.0;
+        ((Rselect == -2) && normalRequestActive) ? R * eSlope * derivativeGain * implicitScale :
+                                                    0.0;
     eSlope *= implicitScale;
-    const double ew = -eSlope;
-    const double er = eSlope;
-    const double ep = (Rselect == 1) ? -R * eSlope : 0.0;
-    const double ev = (Rselect == -1) ? -R * eSlope : 0.0;
-    md.assign(rd + integralState, rd + integralState, Kigov * eIntegral - stateData.cj);
-    md.assign(rd + integralState, rd + derivativeState, Kigov * eDerivative);
-    md.assignCheckCol(rd + integralState, inputLocs[govOmegaInLocation], Kigov * ew);
-    md.assign(rd + integralState, rd + resetState, Kigov * er);
-    md.assign(rd + integralState, rd + peState, Kigov * ep);
-    md.assign(rd + integralState, rd + valveState, Kigov * ev);
-    md.assign(rd + derivativeState, rd + integralState, eIntegral / Tdgov);
-    md.assign(rd + derivativeState,
-              rd + derivativeState,
-              (eDerivative - 1.0) / Tdgov - stateData.cj);
-    md.assignCheckCol(rd + derivativeState, inputLocs[govOmegaInLocation], ew / Tdgov);
-    md.assign(rd + derivativeState, rd + resetState, er / Tdgov);
-    md.assign(rd + derivativeState, rd + peState, ep / Tdgov);
-    md.assign(rd + derivativeState, rd + valveState, ev / Tdgov);
+    const double errorOmegaDerivative = -eSlope;
+    const double errorResetDerivative = eSlope;
+    const double errorPowerDerivative = (Rselect == 1) ? -R * eSlope : 0.0;
+    const double errorValveDerivative = (Rselect == -1) ? -R * eSlope : 0.0;
+    matrixData.assign(differentialRow + integralState,
+                      differentialRow + integralState,
+                      Kigov * eIntegral - stateData.cj);
+    matrixData.assign(differentialRow + integralState,
+                      differentialRow + derivativeState,
+                      Kigov * eDerivative);
+    matrixData.assignCheckCol(differentialRow + integralState,
+                              inputLocs[govOmegaInLocation],
+                              Kigov * errorOmegaDerivative);
+    matrixData.assign(differentialRow + integralState,
+                      differentialRow + resetState,
+                      Kigov * errorResetDerivative);
+    matrixData.assign(differentialRow + integralState,
+                      differentialRow + peState,
+                      Kigov * errorPowerDerivative);
+    matrixData.assign(differentialRow + integralState,
+                      differentialRow + valveState,
+                      Kigov * errorValveDerivative);
+    matrixData.assign(differentialRow + derivativeState,
+                      differentialRow + integralState,
+                      eIntegral / Tdgov);
+    matrixData.assign(differentialRow + derivativeState,
+                      differentialRow + derivativeState,
+                      (eDerivative - 1.0) / Tdgov - stateData.cj);
+    matrixData.assignCheckCol(differentialRow + derivativeState,
+                              inputLocs[govOmegaInLocation],
+                              errorOmegaDerivative / Tdgov);
+    matrixData.assign(differentialRow + derivativeState,
+                      differentialRow + resetState,
+                      errorResetDerivative / Tdgov);
+    matrixData.assign(differentialRow + derivativeState,
+                      differentialRow + peState,
+                      errorPowerDerivative / Tdgov);
+    matrixData.assign(differentialRow + derivativeState,
+                      differentialRow + valveState,
+                      errorValveDerivative / Tdgov);
 
     // Active-branch derivative of the low-value selector.
-    double qw = (Kpgov + kd) * ew;
-    double qr = (Kpgov + kd) * er;
-    double qp = (Kpgov + kd) * ep;
-    double qv = (Kpgov + kd) * ev;
-    double qi = 1.0 + (Kpgov + kd) * eIntegral;
-    double qd = -kd + (Kpgov + kd) * eDerivative;
-    double qt = 0.0;
-    double ql = 0.0;
-    double qa = 0.0;
-    if ((s.temperatureRequest <= s.normalRequest) &&
-        (s.temperatureRequest <= s.accelerationRequest)) {
-        qw = qr = qp = qv = qi = qd = 0.0;
-        if (x[loadIntegralState] + Kpload * (Ldref / Kturb + Wfnl - x[temperatureState]) < 1.0) {
-            qt = -Kpload;
-            ql = 1.0;
+    double requestOmegaDerivative = (Kpgov + derivativeGain) * errorOmegaDerivative;
+    double requestResetDerivative = (Kpgov + derivativeGain) * errorResetDerivative;
+    double requestPowerDerivative = (Kpgov + derivativeGain) * errorPowerDerivative;
+    double requestValveDerivative = (Kpgov + derivativeGain) * errorValveDerivative;
+    double requestIntegralDerivative = 1.0 + (Kpgov + derivativeGain) * eIntegral;
+    double requestFilterDerivative = -derivativeGain + (Kpgov + derivativeGain) * eDerivative;
+    double requestTemperatureDerivative = 0.0;
+    double requestLoadDerivative = 0.0;
+    double requestAccelerationDerivative = 0.0;
+    if ((signals.mTemperatureRequest <= signals.mNormalRequest) &&
+        (signals.mTemperatureRequest <= signals.mAccelerationRequest)) {
+        requestOmegaDerivative = requestResetDerivative = requestPowerDerivative = 0.0;
+        requestValveDerivative = requestIntegralDerivative = requestFilterDerivative = 0.0;
+        if (state[loadIntegralState] + Kpload * (Ldref / Kturb + Wfnl - state[temperatureState]) <
+            1.0) {
+            requestTemperatureDerivative = -Kpload;
+            requestLoadDerivative = 1.0;
         }
-    } else if (s.accelerationRequest <= s.normalRequest) {
-        qw = -Ka * accelerationStep / TaAccel;
-        qr = qp = qi = qd = 0.0;
-        qv = 1.0;
-        qa = Ka * accelerationStep / TaAccel;
+    } else if (signals.mAccelerationRequest <= signals.mNormalRequest) {
+        requestOmegaDerivative = -Ka * accelerationStep / TaAccel;
+        requestResetDerivative = requestPowerDerivative = requestIntegralDerivative = 0.0;
+        requestFilterDerivative = 0.0;
+        requestValveDerivative = 1.0;
+        requestAccelerationDerivative = Ka * accelerationStep / TaAccel;
     }
     const double minRequest =
-        std::min({s.normalRequest, s.temperatureRequest, s.accelerationRequest});
+        std::min({signals.mNormalRequest,
+                  signals.mTemperatureRequest,
+                  signals.mAccelerationRequest});
     if ((minRequest <= Pmin) || (minRequest >= Pmax)) {
-        qw = qr = qp = qv = qi = qd = qt = ql = qa = 0.0;
+        requestOmegaDerivative = requestResetDerivative = requestPowerDerivative = 0.0;
+        requestValveDerivative = requestIntegralDerivative = requestFilterDerivative = 0.0;
+        requestTemperatureDerivative = requestLoadDerivative = requestAccelerationDerivative = 0.0;
     }
-    const double unlimitedRate = (s.fuelRequest - s.valve) / Tact;
+    const double unlimitedRate = (signals.mFuelRequest - signals.mValve) / Tact;
     const bool valveBlocked = (unlimitedRate <= Rclose) || (unlimitedRate >= Ropen) ||
-        ((s.valve >= Pmax) && (unlimitedRate > 0.0)) ||
-        ((s.valve <= Pmin) && (unlimitedRate < 0.0));
+        ((signals.mValve >= Pmax) && (unlimitedRate > 0.0)) ||
+        ((signals.mValve <= Pmin) && (unlimitedRate < 0.0));
     if (valveBlocked) {
-        md.assign(rd + valveState, rd + valveState, -stateData.cj);
+        matrixData.assign(differentialRow + valveState,
+                          differentialRow + valveState,
+                          -stateData.cj);
     } else {
-        md.assignCheckCol(rd + valveState, inputLocs[govOmegaInLocation], qw / Tact);
-        md.assign(rd + valveState, rd + resetState, qr / Tact);
-        md.assign(rd + valveState, rd + peState, qp / Tact);
-        md.assign(rd + valveState, rd + valveState, (qv - 1.0) / Tact - stateData.cj);
-        md.assign(rd + valveState, rd + integralState, qi / Tact);
-        md.assign(rd + valveState, rd + derivativeState, qd / Tact);
-        md.assign(rd + valveState, rd + temperatureState, qt / Tact);
-        md.assign(rd + valveState, rd + loadIntegralState, ql / Tact);
-        md.assign(rd + valveState, rd + accelerationState, qa / Tact);
+        matrixData.assignCheckCol(differentialRow + valveState,
+                                  inputLocs[govOmegaInLocation],
+                                  requestOmegaDerivative / Tact);
+        matrixData.assign(differentialRow + valveState,
+                          differentialRow + resetState,
+                          requestResetDerivative / Tact);
+        matrixData.assign(differentialRow + valveState,
+                          differentialRow + peState,
+                          requestPowerDerivative / Tact);
+        matrixData.assign(differentialRow + valveState,
+                          differentialRow + valveState,
+                          (requestValveDerivative - 1.0) / Tact - stateData.cj);
+        matrixData.assign(differentialRow + valveState,
+                          differentialRow + integralState,
+                          requestIntegralDerivative / Tact);
+        matrixData.assign(differentialRow + valveState,
+                          differentialRow + derivativeState,
+                          requestFilterDerivative / Tact);
+        matrixData.assign(differentialRow + valveState,
+                          differentialRow + temperatureState,
+                          requestTemperatureDerivative / Tact);
+        matrixData.assign(differentialRow + valveState,
+                          differentialRow + loadIntegralState,
+                          requestLoadDerivative / Tact);
+        matrixData.assign(differentialRow + valveState,
+                          differentialRow + accelerationState,
+                          requestAccelerationDerivative / Tact);
     }
-    md.assign(rd + turbineState, rd + turbineState, -1.0 / Tb - stateData.cj);
-    md.assign(rd + turbineState, rd + valveState, Kturb * fuelDvalve / Tb);
-    md.assignCheckCol(rd + turbineState, inputLocs[govOmegaInLocation], Kturb * fuelDomega / Tb);
-    const double sf = (Dm < 0.0) ? std::pow(omega, Dm) : 1.0;
-    const double tempDv = fuelDvalve * sf;
-    double tempDw = fuelDomega * sf;
+    matrixData.assign(differentialRow + turbineState,
+                      differentialRow + turbineState,
+                      -1.0 / Tb - stateData.cj);
+    matrixData.assign(differentialRow + turbineState,
+                      differentialRow + valveState,
+                      Kturb * fuelDvalve / Tb);
+    matrixData.assignCheckCol(differentialRow + turbineState,
+                              inputLocs[govOmegaInLocation],
+                              Kturb * fuelDomega / Tb);
+    const double speedFactor = (Dm < 0.0) ? std::pow(omega, Dm) : 1.0;
+    const double temperatureValveDerivative = fuelDvalve * speedFactor;
+    double temperatureOmegaDerivative = fuelDomega * speedFactor;
     if (Dm < 0.0) {
-        tempDw += s.fuelFlow * Dm * std::pow(omega, Dm - 1.0);
+        temperatureOmegaDerivative += signals.mFuelFlow * Dm * std::pow(omega, Dm - 1.0);
     }
-    md.assign(rd + temperatureLeadState, rd + temperatureLeadState, -1.0 / Tsb - stateData.cj);
-    md.assign(rd + temperatureLeadState, rd + valveState, tempDv / Tsb);
-    md.assignCheckCol(rd + temperatureLeadState, inputLocs[govOmegaInLocation], tempDw / Tsb);
-    md.assign(rd + temperatureState, rd + temperatureState, -1.0 / Tfload - stateData.cj);
-    md.assign(rd + temperatureState, rd + temperatureLeadState, (1.0 - Tsa / Tsb) / Tfload);
-    md.assign(rd + temperatureState, rd + valveState, (Tsa / Tsb) * tempDv / Tfload);
-    md.assignCheckCol(rd + temperatureState,
-                      inputLocs[govOmegaInLocation],
-                      (Tsa / Tsb) * tempDw / Tfload);
-    md.assign(rd + loadIntegralState, rd + loadIntegralState, -stateData.cj);
-    md.assign(rd + loadIntegralState, rd + temperatureState, -Kiload);
-    md.assign(rd + accelerationState, rd + accelerationState, -1.0 / TaAccel - stateData.cj);
-    md.assignCheckCol(rd + accelerationState, inputLocs[govOmegaInLocation], 1.0 / TaAccel);
+    matrixData.assign(differentialRow + temperatureLeadState,
+                      differentialRow + temperatureLeadState,
+                      -1.0 / Tsb - stateData.cj);
+    matrixData.assign(differentialRow + temperatureLeadState,
+                      differentialRow + valveState,
+                      temperatureValveDerivative / Tsb);
+    matrixData.assignCheckCol(differentialRow + temperatureLeadState,
+                              inputLocs[govOmegaInLocation],
+                              temperatureOmegaDerivative / Tsb);
+    matrixData.assign(differentialRow + temperatureState,
+                      differentialRow + temperatureState,
+                      -1.0 / Tfload - stateData.cj);
+    matrixData.assign(differentialRow + temperatureState,
+                      differentialRow + temperatureLeadState,
+                      (1.0 - Tsa / Tsb) / Tfload);
+    matrixData.assign(differentialRow + temperatureState,
+                      differentialRow + valveState,
+                      (Tsa / Tsb) * temperatureValveDerivative / Tfload);
+    matrixData.assignCheckCol(differentialRow + temperatureState,
+                              inputLocs[govOmegaInLocation],
+                              (Tsa / Tsb) * temperatureOmegaDerivative / Tfload);
+    matrixData.assign(differentialRow + loadIntegralState,
+                      differentialRow + loadIntegralState,
+                      -stateData.cj);
+    matrixData.assign(differentialRow + loadIntegralState,
+                      differentialRow + temperatureState,
+                      -Kiload);
+    matrixData.assign(differentialRow + accelerationState,
+                      differentialRow + accelerationState,
+                      -1.0 / TaAccel - stateData.cj);
+    matrixData.assignCheckCol(differentialRow + accelerationState,
+                              inputLocs[govOmegaInLocation],
+                              1.0 / TaAccel);
 }
 
 void GovernorGgov1::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
-    const double dt = time - prevTime;
+    const double timeStep = time - prevTime;
     for (index_t ii = 0; ii < 10; ++ii) {
-        m_state[ii + 1] += dt * m_dstate_dt[ii + 1];
+        m_state[ii + 1] += timeStep * m_dstate_dt[ii + 1];
     }
     m_state[valveState + 1] =
         std::clamp(m_state[valveState + 1], static_cast<double>(Pmin), static_cast<double>(Pmax));
-    m_state[0] = evaluate(inputs, m_state.data() + 1).mechanicalPower;
+    m_state[0] = evaluate(inputs, m_state.data() + 1).mMechanicalPower;
     prevTime = time;
 }
 
-void GovernorGgov1::set(std::string_view p, std::string_view v)
+void GovernorGgov1::set(std::string_view param, std::string_view value)
 {
-    Governor::set(p, v);
+    Governor::set(param, value);
 }
 
-void GovernorGgov1::set(std::string_view p, double v, units::unit unitType)
+void GovernorGgov1::set(std::string_view param, double value, units::unit unitType)
 {
-    if (p == "rselect") {
-        Rselect = static_cast<int>(v);
-    } else if ((p == "fswitch") || (p == "flag")) {
-        fuelFlag = static_cast<int>(v);
-    } else if (p == "r") {
-        R = v;
-    } else if ((p == "tpelec") || (p == "t_pelec")) {
-        Tpelec = v;
-    } else if (p == "maxerr") {
-        maxerr = v;
-    } else if (p == "minerr") {
-        minerr = v;
-    } else if (p == "kpgov") {
-        Kpgov = v;
-    } else if (p == "kigov") {
-        Kigov = v;
-    } else if (p == "kdgov") {
-        Kdgov = v;
-    } else if (p == "tdgov") {
-        Tdgov = v;
-    } else if ((p == "vmax") || (p == "pmax")) {
-        Pmax = v;
-    } else if ((p == "vmin") || (p == "pmin")) {
-        Pmin = v;
-    } else if (p == "tact") {
-        Tact = v;
-    } else if (p == "kturb") {
-        Kturb = v;
-    } else if (p == "wfnl") {
-        Wfnl = v;
-    } else if (p == "tb") {
-        Tb = v;
-    } else if (p == "tc") {
-        Tc = v;
-    } else if (p == "teng") {
-        Teng = v;
-    } else if (p == "tfload") {
-        Tfload = v;
-    } else if (p == "kpload") {
-        Kpload = v;
-    } else if (p == "kiload") {
-        Kiload = v;
-    } else if (p == "ldref") {
-        Ldref = v;
-    } else if (p == "dm") {
-        Dm = v;
-    } else if (p == "ropen") {
-        Ropen = v;
-    } else if (p == "rclose") {
-        Rclose = v;
-    } else if (p == "kimw") {
-        Kimw = v;
-    } else if (p == "aset") {
-        Aset = v;
-    } else if (p == "ka") {
-        Ka = v;
-    } else if (p == "ta") {
-        TaAccel = v;
-    } else if (p == "trate") {
-        Trate = v;
-    } else if (p == "db") {
-        db = v;
-    } else if (p == "tsa") {
-        Tsa = v;
-    } else if (p == "tsb") {
-        Tsb = v;
-    } else if (p == "rup") {
-        Rup = v;
-    } else if (p == "rdown") {
-        Rdown = v;
+    if (param == "rselect") {
+        Rselect = static_cast<int>(value);
+    } else if ((param == "fswitch") || (param == "flag")) {
+        fuelFlag = static_cast<int>(value);
+    } else if (param == "r") {
+        R = value;
+    } else if ((param == "tpelec") || (param == "t_pelec")) {
+        Tpelec = value;
+    } else if (param == "maxerr") {
+        maxerr = value;
+    } else if (param == "minerr") {
+        minerr = value;
+    } else if (param == "kpgov") {
+        Kpgov = value;
+    } else if (param == "kigov") {
+        Kigov = value;
+    } else if (param == "kdgov") {
+        Kdgov = value;
+    } else if (param == "tdgov") {
+        Tdgov = value;
+    } else if ((param == "vmax") || (param == "pmax")) {
+        Pmax = value;
+    } else if ((param == "vmin") || (param == "pmin")) {
+        Pmin = value;
+    } else if (param == "tact") {
+        Tact = value;
+    } else if (param == "kturb") {
+        Kturb = value;
+    } else if (param == "wfnl") {
+        Wfnl = value;
+    } else if (param == "tb") {
+        Tb = value;
+    } else if (param == "tc") {
+        Tc = value;
+    } else if (param == "teng") {
+        Teng = value;
+    } else if (param == "tfload") {
+        Tfload = value;
+    } else if (param == "kpload") {
+        Kpload = value;
+    } else if (param == "kiload") {
+        Kiload = value;
+    } else if (param == "ldref") {
+        Ldref = value;
+    } else if (param == "dm") {
+        Dm = value;
+    } else if (param == "ropen") {
+        Ropen = value;
+    } else if (param == "rclose") {
+        Rclose = value;
+    } else if (param == "kimw") {
+        Kimw = value;
+    } else if (param == "aset") {
+        Aset = value;
+    } else if (param == "ka") {
+        Ka = value;
+    } else if (param == "ta") {
+        TaAccel = value;
+    } else if (param == "trate") {
+        Trate = value;
+    } else if (param == "db") {
+        db = value;
+    } else if (param == "tsa") {
+        Tsa = value;
+    } else if (param == "tsb") {
+        Tsb = value;
+    } else if (param == "rup") {
+        Rup = value;
+    } else if (param == "rdown") {
+        Rdown = value;
     } else {
-        Governor::set(p, v, unitType);
+        Governor::set(param, value, unitType);
     }
 }
 
-double GovernorGgov1::get(std::string_view p, units::unit unitType) const
+double GovernorGgov1::get(std::string_view param, units::unit unitType) const
 {
-#define GET_VALUE(name, member)                                                                    \
-    if (p == name) {                                                                               \
-        return member;                                                                             \
+    if (param == "rselect") {
+        return Rselect;
     }
-    GET_VALUE("rselect", Rselect)
-    GET_VALUE("fswitch", fuelFlag)
-    GET_VALUE("r", R)
-    GET_VALUE("tpelec", Tpelec) GET_VALUE("maxerr", maxerr) GET_VALUE("minerr", minerr)
-        GET_VALUE("kpgov", Kpgov) GET_VALUE("kigov", Kigov) GET_VALUE("kdgov", Kdgov)
-            GET_VALUE("tdgov", Tdgov) GET_VALUE("vmax", Pmax) GET_VALUE("vmin", Pmin)
-                GET_VALUE("tact", Tact) GET_VALUE("kturb", Kturb) GET_VALUE("wfnl", Wfnl)
-                    GET_VALUE("tb", Tb) GET_VALUE("tc", Tc) GET_VALUE("teng", Teng)
-                        GET_VALUE("tfload", Tfload) GET_VALUE("kpload", Kpload)
-                            GET_VALUE("kiload", Kiload) GET_VALUE("ldref", Ldref)
-                                GET_VALUE("dm", Dm) GET_VALUE("ropen", Ropen)
-                                    GET_VALUE("rclose", Rclose) GET_VALUE("kimw", Kimw)
-                                        GET_VALUE("aset", Aset) GET_VALUE("ka", Ka)
-                                            GET_VALUE("ta", TaAccel) GET_VALUE("trate", Trate)
-                                                GET_VALUE("db", db) GET_VALUE("tsa", Tsa)
-                                                    GET_VALUE("tsb", Tsb) GET_VALUE("rup", Rup)
-                                                        GET_VALUE("rdown", Rdown)
-#undef GET_VALUE
-                                                            return Governor::get(p, unitType);
+    if (param == "fswitch") {
+        return fuelFlag;
+    }
+    if (param == "r") {
+        return R;
+    }
+    if (param == "tpelec") {
+        return Tpelec;
+    }
+    if (param == "maxerr") {
+        return maxerr;
+    }
+    if (param == "minerr") {
+        return minerr;
+    }
+    if (param == "kpgov") {
+        return Kpgov;
+    }
+    if (param == "kigov") {
+        return Kigov;
+    }
+    if (param == "kdgov") {
+        return Kdgov;
+    }
+    if (param == "tdgov") {
+        return Tdgov;
+    }
+    if (param == "vmax") {
+        return Pmax;
+    }
+    if (param == "vmin") {
+        return Pmin;
+    }
+    if (param == "tact") {
+        return Tact;
+    }
+    if (param == "kturb") {
+        return Kturb;
+    }
+    if (param == "wfnl") {
+        return Wfnl;
+    }
+    if (param == "tb") {
+        return Tb;
+    }
+    if (param == "tc") {
+        return Tc;
+    }
+    if (param == "teng") {
+        return Teng;
+    }
+    if (param == "tfload") {
+        return Tfload;
+    }
+    if (param == "kpload") {
+        return Kpload;
+    }
+    if (param == "kiload") {
+        return Kiload;
+    }
+    if (param == "ldref") {
+        return Ldref;
+    }
+    if (param == "dm") {
+        return Dm;
+    }
+    if (param == "ropen") {
+        return Ropen;
+    }
+    if (param == "rclose") {
+        return Rclose;
+    }
+    if (param == "kimw") {
+        return Kimw;
+    }
+    if (param == "aset") {
+        return Aset;
+    }
+    if (param == "ka") {
+        return Ka;
+    }
+    if (param == "ta") {
+        return TaAccel;
+    }
+    if (param == "trate") {
+        return Trate;
+    }
+    if (param == "db") {
+        return db;
+    }
+    if (param == "tsa") {
+        return Tsa;
+    }
+    if (param == "tsb") {
+        return Tsb;
+    }
+    if (param == "rup") {
+        return Rup;
+    }
+    if (param == "rdown") {
+        return Rdown;
+    }
+    return Governor::get(param, unitType);
 }
 
 stringVec GovernorGgov1::localStateNames() const

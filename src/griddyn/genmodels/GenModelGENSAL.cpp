@@ -14,22 +14,27 @@
 #include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <complex>
+#include <string>
 
 namespace griddyn::genmodels {
 // NOLINTBEGIN(readability-math-missing-parentheses)
 namespace {
     struct GensalCoefficients {
-        double k1d;
-        double k3d;
-        double k4d;
+        double mK1d;
+        double mK3d;
+        double mK4d;
     };
 
-    GensalCoefficients coefficients(double xd, double xdp, double xdpp, double xl)
+    GensalCoefficients coefficients(double directReactance,
+                                    double directTransientReactance,
+                                    double directSubtransientReactance,
+                                    double leakageReactance)
     {
-        const double denominator = xdp - xl;
-        return {.k1d = (xdp - xdpp) * (xd - xdp) / (denominator * denominator),
-                .k3d = (xdpp - xl) / denominator,
-                .k4d = (xdp - xdpp) / denominator};
+        const double denominator = directTransientReactance - leakageReactance;
+        return {.mK1d = (directTransientReactance - directSubtransientReactance) *
+                    (directReactance - directTransientReactance) / (denominator * denominator),
+                .mK3d = (directSubtransientReactance - leakageReactance) / denominator,
+                .mK4d = (directTransientReactance - directSubtransientReactance) / denominator};
     }
 
     void addSignalDerivative(MachineSignalDerivativeData& data,
@@ -94,17 +99,17 @@ void GenModelGENSAL::dynObjectInitializeB(const IOdata& inputs,
     const std::complex<double> currentDq = std::conj(terminalCurrent * rotation);
     const std::complex<double> fluxDq = subtransientFlux * rotation;
     const double directCurrent = -std::imag(currentDq);
-    const double iq = std::real(currentDq);
+    const double quadratureCurrent = std::real(currentDq);
     const double psi2d = std::real(fluxDq);
     const double psi2q = std::imag(fluxDq);
     const auto coeff = coefficients(Xd, Xdp, Xdpp, Xl);
     const double epq = psi2d - (Xdp - Xdpp) * directCurrent;
-    const double psikd = (psi2d - coeff.k3d * epq) / coeff.k4d;
+    const double psikd = (psi2d - coeff.mK3d * epq) / coeff.mK4d;
     const double saturation = sat.compute(epq);
     const double efd = (1.0 + saturation) * epq - (Xd - Xdp) * directCurrent;
 
     m_state[0] = directCurrent;
-    m_state[1] = iq;
+    m_state[1] = quadratureCurrent;
     m_state[2] = rotorAngle;
     m_state[3] = 1.0;
     m_state[4] = epq;
@@ -114,7 +119,8 @@ void GenModelGENSAL::dynObjectInitializeB(const IOdata& inputs,
     Vq = voltage * std::cos(rotorAngle - angle);
     fieldSet[genModelEftInLocation] = efd;
     fieldSet[genModelPmechInLocation] =
-        (Vd + Rs * directCurrent) * directCurrent + (Vq + Rs * iq) * iq;
+        (Vd + Rs * directCurrent) * directCurrent + (Vq + Rs * quadratureCurrent) *
+            quadratureCurrent;
 }
 
 void GenModelGENSAL::algebraicUpdate(const IOdata& inputs,
@@ -126,7 +132,7 @@ void GenModelGENSAL::algebraicUpdate(const IOdata& inputs,
     auto loc = offsets.getLocations(stateData, update, sMode, this);
     updateLocalCache(inputs, stateData, sMode);
     const auto coeff = coefficients(Xd, Xdp, Xdpp, Xl);
-    const double psi2d = coeff.k3d * loc.diffStateLoc[2] + coeff.k4d * loc.diffStateLoc[3];
+    const double psi2d = coeff.mK3d * loc.diffStateLoc[2] + coeff.mK4d * loc.diffStateLoc[3];
     gmlc::utilities::solve2x2(
         Rs, Xqpp, -Xdpp, Rs, loc.diffStateLoc[4] - Vd, psi2d - Vq, loc.destLoc[0], loc.destLoc[1]);
     m_output = -(loc.destLoc[0] * Vd + loc.destLoc[1] * Vq);
@@ -147,8 +153,8 @@ void GenModelGENSAL::derivative(const IOdata& inputs,
     const auto coeff = coefficients(Xd, Xdp, Xdpp, Xl);
     const double epq = state[2];
     const double psikd = state[3];
-    const double xadIfd = coeff.k1d * (epq - psikd + (Xdp - Xl) * alg[0]) - (Xd - Xdp) * alg[0] +
-        (1.0 + sat.compute(epq)) * epq;
+    const double xadIfd = coeff.mK1d * (epq - psikd + (Xdp - Xl) * alg[0]) -
+        (Xd - Xdp) * alg[0] + (1.0 + sat.compute(epq)) * epq;
     const double torque = (Vd + Rs * alg[0]) * alg[0] + (Vq + Rs * alg[1]) * alg[1];
     dst[0] = systemBaseFrequency * (state[1] - 1.0);
     dst[1] = (inputs[genModelPmechInLocation] - torque - D * (state[1] - 1.0)) / (2.0 * H);
@@ -166,7 +172,8 @@ void GenModelGENSAL::residual(const IOdata& inputs,
     updateLocalCache(inputs, stateData, sMode);
     const auto coeff = coefficients(Xd, Xdp, Xdpp, Xl);
     if (hasAlgebraic(sMode)) {
-        const double psi2d = coeff.k3d * loc.diffStateLoc[2] + coeff.k4d * loc.diffStateLoc[3];
+        const double psi2d =
+            coeff.mK3d * loc.diffStateLoc[2] + coeff.mK4d * loc.diffStateLoc[3];
         loc.destLoc[0] =
             Vd + Rs * loc.algStateLoc[0] + Xqpp * loc.algStateLoc[1] - loc.diffStateLoc[4];
         loc.destLoc[1] = Vq + Rs * loc.algStateLoc[1] - Xdpp * loc.algStateLoc[0] - psi2d;
@@ -186,72 +193,91 @@ void GenModelGENSAL::jacobianElements(const IOdata& inputs,
                                       const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, sMode, this);
-    const auto ra = loc.algOffset;
-    const auto rd = loc.diffOffset;
+    const auto algebraicRow = loc.algOffset;
+    const auto differentialRow = loc.diffOffset;
     const double* alg = loc.algStateLoc;
     const double* state = loc.diffStateLoc;
     const auto coeff = coefficients(Xd, Xdp, Xdpp, Xl);
     updateLocalCache(inputs, stateData, sMode);
     if (hasAlgebraic(sMode)) {
-        matrixData.assign(ra, ra, Rs);
-        matrixData.assign(ra, ra + 1, Xqpp);
-        matrixData.assign(ra + 1, ra, -Xdpp);
-        matrixData.assign(ra + 1, ra + 1, Rs);
-        matrixData.assignCheckCol(ra,
+        matrixData.assign(algebraicRow, algebraicRow, Rs);
+        matrixData.assign(algebraicRow, algebraicRow + 1, Xqpp);
+        matrixData.assign(algebraicRow + 1, algebraicRow, -Xdpp);
+        matrixData.assign(algebraicRow + 1, algebraicRow + 1, Rs);
+        matrixData.assignCheckCol(algebraicRow,
                                   inputLocs[VOLTAGE_IN_LOCATION],
                                   Vd / inputs[VOLTAGE_IN_LOCATION]);
-        matrixData.assignCheckCol(ra + 1,
+        matrixData.assignCheckCol(algebraicRow + 1,
                                   inputLocs[VOLTAGE_IN_LOCATION],
                                   Vq / inputs[VOLTAGE_IN_LOCATION]);
-        matrixData.assignCheckCol(ra, inputLocs[ANGLE_IN_LOCATION], Vq);
-        matrixData.assignCheckCol(ra + 1, inputLocs[ANGLE_IN_LOCATION], -Vd);
+        matrixData.assignCheckCol(algebraicRow, inputLocs[ANGLE_IN_LOCATION], Vq);
+        matrixData.assignCheckCol(algebraicRow + 1, inputLocs[ANGLE_IN_LOCATION], -Vd);
         if (!isAlgebraicOnly(sMode)) {
-            matrixData.assign(ra, rd, -Vq);
-            matrixData.assign(ra, rd + 4, -1.0);
-            matrixData.assign(ra + 1, rd, Vd);
-            matrixData.assign(ra + 1, rd + 2, -coeff.k3d);
-            matrixData.assign(ra + 1, rd + 3, -coeff.k4d);
+            matrixData.assign(algebraicRow, differentialRow, -Vq);
+            matrixData.assign(algebraicRow, differentialRow + 4, -1.0);
+            matrixData.assign(algebraicRow + 1, differentialRow, Vd);
+            matrixData.assign(algebraicRow + 1, differentialRow + 2, -coeff.mK3d);
+            matrixData.assign(algebraicRow + 1, differentialRow + 3, -coeff.mK4d);
         }
     }
     if (!hasDifferential(sMode)) {
         return;
     }
-    matrixData.assign(rd, rd, -stateData.cj);
-    matrixData.assign(rd, rd + 1, systemBaseFrequency);
-    const double ih = 1.0 / (2.0 * H);
+    matrixData.assign(differentialRow, differentialRow, -stateData.cj);
+    matrixData.assign(differentialRow, differentialRow + 1, systemBaseFrequency);
+    const double inverseInertiaFactor = 1.0 / (2.0 * H);
     if (hasAlgebraic(sMode)) {
-        matrixData.assign(rd + 1, ra, -ih * (Vd + 2.0 * Rs * alg[0]));
-        matrixData.assign(rd + 1, ra + 1, -ih * (Vq + 2.0 * Rs * alg[1]));
+        matrixData.assign(differentialRow + 1,
+                          algebraicRow,
+                          -inverseInertiaFactor * (Vd + 2.0 * Rs * alg[0]));
+        matrixData.assign(differentialRow + 1,
+                          algebraicRow + 1,
+                          -inverseInertiaFactor * (Vq + 2.0 * Rs * alg[1]));
     }
-    matrixData.assign(rd + 1, rd, ih * (Vq * alg[0] - Vd * alg[1]));
-    matrixData.assign(rd + 1, rd + 1, -D * ih - stateData.cj);
-    matrixData.assignCheckCol(rd + 1, inputLocs[genModelPmechInLocation], ih);
-    matrixData.assignCheckCol(rd + 1,
+    matrixData.assign(differentialRow + 1,
+                      differentialRow,
+                      inverseInertiaFactor * (Vq * alg[0] - Vd * alg[1]));
+    matrixData.assign(differentialRow + 1,
+                      differentialRow + 1,
+                      -D * inverseInertiaFactor - stateData.cj);
+    matrixData.assignCheckCol(differentialRow + 1,
+                              inputLocs[genModelPmechInLocation],
+                              inverseInertiaFactor);
+    matrixData.assignCheckCol(differentialRow + 1,
                               inputLocs[ANGLE_IN_LOCATION],
-                              -ih * (Vq * alg[0] - Vd * alg[1]));
-    matrixData.assignCheckCol(rd + 1,
+                              -inverseInertiaFactor * (Vq * alg[0] - Vd * alg[1]));
+    matrixData.assignCheckCol(differentialRow + 1,
                               inputLocs[VOLTAGE_IN_LOCATION],
-                              -ih * (Vd * alg[0] + Vq * alg[1]) / inputs[VOLTAGE_IN_LOCATION]);
+                              -inverseInertiaFactor * (Vd * alg[0] + Vq * alg[1]) /
+                                  inputs[VOLTAGE_IN_LOCATION]);
 
     const auto saturation = sat.evaluate(state[2]);
     const double dSatEpq = 1.0 + saturation.value + state[2] * saturation.derivative;
-    const double dXadId = coeff.k1d * (Xdp - Xl) - (Xd - Xdp);
-    const double dXadEpq = coeff.k1d + dSatEpq;
+    const double dXadId = coeff.mK1d * (Xdp - Xl) - (Xd - Xdp);
+    const double dXadEpq = coeff.mK1d + dSatEpq;
     if (hasAlgebraic(sMode)) {
-        matrixData.assign(rd + 2, ra, -dXadId / Tdop);
+        matrixData.assign(differentialRow + 2, algebraicRow, -dXadId / Tdop);
     }
-    matrixData.assign(rd + 2, rd + 2, -dXadEpq / Tdop - stateData.cj);
-    matrixData.assign(rd + 2, rd + 3, coeff.k1d / Tdop);
-    matrixData.assignCheckCol(rd + 2, inputLocs[genModelEftInLocation], 1.0 / Tdop);
+    matrixData.assign(differentialRow + 2,
+                      differentialRow + 2,
+                      -dXadEpq / Tdop - stateData.cj);
+    matrixData.assign(differentialRow + 2, differentialRow + 3, coeff.mK1d / Tdop);
+    matrixData.assignCheckCol(differentialRow + 2,
+                              inputLocs[genModelEftInLocation],
+                              1.0 / Tdop);
     if (hasAlgebraic(sMode)) {
-        matrixData.assign(rd + 3, ra, (Xdp - Xl) / Tdopp);
+        matrixData.assign(differentialRow + 3, algebraicRow, (Xdp - Xl) / Tdopp);
     }
-    matrixData.assign(rd + 3, rd + 2, 1.0 / Tdopp);
-    matrixData.assign(rd + 3, rd + 3, -1.0 / Tdopp - stateData.cj);
+    matrixData.assign(differentialRow + 3, differentialRow + 2, 1.0 / Tdopp);
+    matrixData.assign(differentialRow + 3,
+                      differentialRow + 3,
+                      -1.0 / Tdopp - stateData.cj);
     if (hasAlgebraic(sMode)) {
-        matrixData.assign(rd + 4, ra + 1, -(Xq - Xqpp) / Tqopp);
+        matrixData.assign(differentialRow + 4, algebraicRow + 1, -(Xq - Xqpp) / Tqopp);
     }
-    matrixData.assign(rd + 4, rd + 4, -1.0 / Tqopp - stateData.cj);
+    matrixData.assign(differentialRow + 4,
+                      differentialRow + 4,
+                      -1.0 / Tqopp - stateData.cj);
 }
 
 IOdata GenModelGENSAL::getMachineControllerSignals(const IOdata& inputs,
@@ -260,23 +286,23 @@ IOdata GenModelGENSAL::getMachineControllerSignals(const IOdata& inputs,
 {
     const auto loc = offsets.getLocations(stateData, sMode, this);
     const double angle = loc.diffStateLoc[0] - inputs[ANGLE_IN_LOCATION];
-    const double vd = -inputs[VOLTAGE_IN_LOCATION] * std::sin(angle);
-    const double vq = inputs[VOLTAGE_IN_LOCATION] * std::cos(angle);
+    const double directVoltage = -inputs[VOLTAGE_IN_LOCATION] * std::sin(angle);
+    const double quadratureVoltage = inputs[VOLTAGE_IN_LOCATION] * std::cos(angle);
     const auto coeff = coefficients(Xd, Xdp, Xdpp, Xl);
     const double epq = loc.diffStateLoc[2];
     const double xadIfd =
-        coeff.k1d * (epq - loc.diffStateLoc[3] + (Xdp - Xl) * loc.algStateLoc[0]) -
+        coeff.mK1d * (epq - loc.diffStateLoc[3] + (Xdp - Xl) * loc.algStateLoc[0]) -
         (Xd - Xdp) * loc.algStateLoc[0] + (1.0 + sat.compute(epq)) * epq;
     IOdata signals(machineControllerSignalCount, kNullVal);
     signals[static_cast<index_t>(MachineControllerSignal::ID)] = loc.algStateLoc[0];
     signals[static_cast<index_t>(MachineControllerSignal::IQ)] = loc.algStateLoc[1];
-    signals[static_cast<index_t>(MachineControllerSignal::VD)] = vd;
-    signals[static_cast<index_t>(MachineControllerSignal::VQ)] = vq;
+    signals[static_cast<index_t>(MachineControllerSignal::VD)] = directVoltage;
+    signals[static_cast<index_t>(MachineControllerSignal::VQ)] = quadratureVoltage;
     signals[static_cast<index_t>(MachineControllerSignal::ELECTRICAL_POWER)] =
-        vd * loc.algStateLoc[0] + vq * loc.algStateLoc[1];
+        directVoltage * loc.algStateLoc[0] + quadratureVoltage * loc.algStateLoc[1];
     signals[static_cast<index_t>(MachineControllerSignal::ELECTRICAL_TORQUE)] =
-        (vd + Rs * loc.algStateLoc[0]) * loc.algStateLoc[0] +
-        (vq + Rs * loc.algStateLoc[1]) * loc.algStateLoc[1];
+        (directVoltage + Rs * loc.algStateLoc[0]) * loc.algStateLoc[0] +
+        (quadratureVoltage + Rs * loc.algStateLoc[1]) * loc.algStateLoc[1];
     signals[static_cast<index_t>(MachineControllerSignal::XADIFD)] = xadIfd;
     return signals;
 }
@@ -288,74 +314,91 @@ MachineSignalDerivativeData
                                                           const SolverMode& sMode) const
 {
     const auto loc = offsets.getLocations(stateData, sMode, this);
-    const auto ra = loc.algOffset;
-    const auto rd = loc.diffOffset;
+    const auto algebraicRow = loc.algOffset;
+    const auto differentialRow = loc.diffOffset;
     const double voltage = inputs[VOLTAGE_IN_LOCATION];
     const double angle = loc.diffStateLoc[0] - inputs[ANGLE_IN_LOCATION];
-    const double vd = -voltage * std::sin(angle);
-    const double vq = voltage * std::cos(angle);
+    const double directVoltage = -voltage * std::sin(angle);
+    const double quadratureVoltage = voltage * std::cos(angle);
     const double inverseVoltage = (voltage != 0.0) ? 1.0 / voltage : 0.0;
     MachineSignalDerivativeData data;
-    addSignalDerivative(data, MachineControllerSignal::ID, ra, 1.0);
-    addSignalDerivative(data, MachineControllerSignal::IQ, ra + 1, 1.0);
+    addSignalDerivative(data, MachineControllerSignal::ID, algebraicRow, 1.0);
+    addSignalDerivative(data, MachineControllerSignal::IQ, algebraicRow + 1, 1.0);
     addSignalDerivative(data,
                         MachineControllerSignal::VD,
                         inputLocs[VOLTAGE_IN_LOCATION],
-                        vd * inverseVoltage);
-    addSignalDerivative(data, MachineControllerSignal::VD, inputLocs[ANGLE_IN_LOCATION], vq);
-    addSignalDerivative(data, MachineControllerSignal::VD, rd, -vq);
+                        directVoltage * inverseVoltage);
+    addSignalDerivative(data,
+                        MachineControllerSignal::VD,
+                        inputLocs[ANGLE_IN_LOCATION],
+                        quadratureVoltage);
+    addSignalDerivative(data, MachineControllerSignal::VD, differentialRow, -quadratureVoltage);
     addSignalDerivative(data,
                         MachineControllerSignal::VQ,
                         inputLocs[VOLTAGE_IN_LOCATION],
-                        vq * inverseVoltage);
-    addSignalDerivative(data, MachineControllerSignal::VQ, inputLocs[ANGLE_IN_LOCATION], -vd);
-    addSignalDerivative(data, MachineControllerSignal::VQ, rd, vd);
-    addSignalDerivative(data, MachineControllerSignal::ELECTRICAL_POWER, ra, vd);
-    addSignalDerivative(data, MachineControllerSignal::ELECTRICAL_POWER, ra + 1, vq);
+                        quadratureVoltage * inverseVoltage);
+    addSignalDerivative(data,
+                        MachineControllerSignal::VQ,
+                        inputLocs[ANGLE_IN_LOCATION],
+                        -directVoltage);
+    addSignalDerivative(data, MachineControllerSignal::VQ, differentialRow, directVoltage);
+    addSignalDerivative(data, MachineControllerSignal::ELECTRICAL_POWER, algebraicRow, directVoltage);
+    addSignalDerivative(data,
+                        MachineControllerSignal::ELECTRICAL_POWER,
+                        algebraicRow + 1,
+                        quadratureVoltage);
     addSignalDerivative(data,
                         MachineControllerSignal::ELECTRICAL_POWER,
                         inputLocs[VOLTAGE_IN_LOCATION],
-                        (vd * loc.algStateLoc[0] + vq * loc.algStateLoc[1]) * inverseVoltage);
+                        (directVoltage * loc.algStateLoc[0] +
+                         quadratureVoltage * loc.algStateLoc[1]) *
+                            inverseVoltage);
     addSignalDerivative(data,
                         MachineControllerSignal::ELECTRICAL_POWER,
                         inputLocs[ANGLE_IN_LOCATION],
-                        vq * loc.algStateLoc[0] - vd * loc.algStateLoc[1]);
+                        quadratureVoltage * loc.algStateLoc[0] -
+                            directVoltage * loc.algStateLoc[1]);
     addSignalDerivative(data,
                         MachineControllerSignal::ELECTRICAL_POWER,
-                        rd,
-                        -vq * loc.algStateLoc[0] + vd * loc.algStateLoc[1]);
+                        differentialRow,
+                        -quadratureVoltage * loc.algStateLoc[0] +
+                            directVoltage * loc.algStateLoc[1]);
     addSignalDerivative(data,
                         MachineControllerSignal::ELECTRICAL_TORQUE,
-                        ra,
-                        vd + 2.0 * Rs * loc.algStateLoc[0]);
+                        algebraicRow,
+                        directVoltage + 2.0 * Rs * loc.algStateLoc[0]);
     addSignalDerivative(data,
                         MachineControllerSignal::ELECTRICAL_TORQUE,
-                        ra + 1,
-                        vq + 2.0 * Rs * loc.algStateLoc[1]);
+                        algebraicRow + 1,
+                        quadratureVoltage + 2.0 * Rs * loc.algStateLoc[1]);
     addSignalDerivative(data,
                         MachineControllerSignal::ELECTRICAL_TORQUE,
                         inputLocs[VOLTAGE_IN_LOCATION],
-                        (vd * loc.algStateLoc[0] + vq * loc.algStateLoc[1]) * inverseVoltage);
+                        (directVoltage * loc.algStateLoc[0] +
+                         quadratureVoltage * loc.algStateLoc[1]) *
+                            inverseVoltage);
     addSignalDerivative(data,
                         MachineControllerSignal::ELECTRICAL_TORQUE,
                         inputLocs[ANGLE_IN_LOCATION],
-                        vq * loc.algStateLoc[0] - vd * loc.algStateLoc[1]);
+                        quadratureVoltage * loc.algStateLoc[0] -
+                            directVoltage * loc.algStateLoc[1]);
     addSignalDerivative(data,
                         MachineControllerSignal::ELECTRICAL_TORQUE,
-                        rd,
-                        -vq * loc.algStateLoc[0] + vd * loc.algStateLoc[1]);
+                        differentialRow,
+                        -quadratureVoltage * loc.algStateLoc[0] +
+                            directVoltage * loc.algStateLoc[1]);
     const auto coeff = coefficients(Xd, Xdp, Xdpp, Xl);
     const auto saturation = sat.evaluate(loc.diffStateLoc[2]);
     addSignalDerivative(data,
                         MachineControllerSignal::XADIFD,
-                        ra,
-                        coeff.k1d * (Xdp - Xl) - (Xd - Xdp));
+                        algebraicRow,
+                        coeff.mK1d * (Xdp - Xl) - (Xd - Xdp));
     addSignalDerivative(data,
                         MachineControllerSignal::XADIFD,
-                        rd + 2,
-                        coeff.k1d + 1.0 + saturation.value +
+                        differentialRow + 2,
+                        coeff.mK1d + 1.0 + saturation.value +
                             loc.diffStateLoc[2] * saturation.derivative);
-    addSignalDerivative(data, MachineControllerSignal::XADIFD, rd + 3, -coeff.k1d);
+    addSignalDerivative(data, MachineControllerSignal::XADIFD, differentialRow + 3, -coeff.mK1d);
     return data;
 }
 

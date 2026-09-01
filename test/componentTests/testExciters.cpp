@@ -229,7 +229,7 @@ TEST(ExciterModelTests, Esst4bFactoryInitializationAndPerturbedEquations)
     exciter->set("vmmin", -99.0);
     exciter->set("kg", 0.1);
     exciter->set("kp", 3.67);
-    exciter->set("ki", 0.435);
+    exciter->set("ki", 435.0 / 1000.0);
     exciter->set("vbmax", 20.0);
     exciter->set("kc", 0.01);
     exciter->set("xl", 0.0098);
@@ -276,12 +276,12 @@ TEST(ExciterModelTests, StaticRectifierMatchesOpenIpslPiecewiseCurve)
     EXPECT_DOUBLE_EQ(rectifier.voltage, 1.0);
     EXPECT_DOUBLE_EQ(rectifier.derivatives[4], 0.0);
     rectifier = evaluate(0.2);
-    EXPECT_NEAR(rectifier.voltage, 1.0 - 0.577 * 0.2, 1e-14);
-    EXPECT_NEAR(rectifier.derivatives[4], -0.577, 1e-14);
+    EXPECT_NEAR(rectifier.voltage, 1.0 - ((577.0 / 1000.0) * 0.2), 1e-14);
+    EXPECT_NEAR(rectifier.derivatives[4], -(577.0 / 1000.0), 1e-14);
     rectifier = evaluate(0.5);
     EXPECT_NEAR(rectifier.voltage, std::sqrt(0.5), 1e-14);
     rectifier = evaluate(0.8);
-    EXPECT_NEAR(rectifier.voltage, 1.732 * 0.2, 1e-14);
+    EXPECT_NEAR(rectifier.voltage, (1732.0 / 1000.0) * 0.2, 1e-14);
     rectifier = evaluate(1.1);
     EXPECT_DOUBLE_EQ(rectifier.voltage, 0.0);
 }

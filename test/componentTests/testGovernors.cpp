@@ -5,11 +5,13 @@
  */
 
 #include "../gtestHelper.h"
+#include "core/CoreExceptions.h"
 #include "core/ObjectFactory.hpp"
 #include "griddyn/Generator.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/genmodels/GenModel6.h"
+#include "griddyn/governors/GovernorGgov1.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorTgov1.h"
 #include "griddyn/simulation/Diagnostics.h"
@@ -110,6 +112,66 @@ TEST(GovernorModelTests, IeeeG1MatchesAndesInitializationAndPerturbedEquations)
     for (std::size_t index = 2; index < state.size(); ++index) {
         EXPECT_NEAR(residual[index], derivative[index], 1e-14) << index;
     }
+}
+
+TEST(GovernorModelTests, Ggov1FactoryEquilibriumAndDelayValidation)
+{
+    auto factory = CoreObjectFactory::instance();
+    std::unique_ptr<CoreObject> object(factory->createObject("governor", "ggov1"));
+    auto* governor = dynamic_cast<governors::GovernorGgov1*>(object.get());
+    ASSERT_NE(governor, nullptr);
+    governor->set("rselect", 1.0);
+    governor->set("fswitch", 0.0);
+    governor->set("vmax", 2.0);
+    governor->set("vmin", 0.0);
+    governor->set("ldref", 0.8);
+    governor->dynInitializeA(0.0, 0);
+    IOdata inputs{1.0, 0.8, 0.8};
+    IOdata fieldSet(3, 0.0);
+    governor->dynInitializeB(inputs, {0.8}, fieldSet);
+    std::vector<double> residual(governor->getStates().size(), 0.0);
+    governor->residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    for (double value : residual) {
+        EXPECT_NEAR(value, 0.0, 1e-12);
+    }
+    EXPECT_DOUBLE_EQ(fieldSet[govpSetInLocation], 0.8);
+    std::unique_ptr<CoreObject> cloned(governor->clone());
+    ASSERT_NE(dynamic_cast<governors::GovernorGgov1*>(cloned.get()), nullptr);
+
+    governors::GovernorGgov1 delayed;
+    delayed.set("teng", 0.25);
+    EXPECT_THROW(delayed.dynInitializeA(0.0, 0), InvalidParameterValue);
+}
+
+TEST_F(GovernorTests, Ggov1CouplesElectricalPowerAndHasAnalyticJacobian)
+{
+    gds = readSimXMLFile(std::string(GOVERNOR_TEST_DIRECTORY "test_gov_stability.xml"));
+    auto* generator = dynamic_cast<DynamicGenerator*>(gds->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* machine = generator->find("genmodel");
+    ASSERT_NE(machine, nullptr);
+    // A nonzero stator resistance distinguishes the GGOV1 terminal-power
+    // input from the machine's air-gap electrical-torque signal.
+    machine->set("r", 0.02);
+    auto* governor = new governors::GovernorGgov1();
+    governor->set("vmax", 2.0);
+    governor->set("vmin", 0.0);
+    governor->set("kturb", 2.0);
+    governor->set("ldref", 1.2);
+    governor->set("kiload", 0.0);
+    governor->set("fswitch", 0.0);
+    governor->set("rselect", -2.0);
+    generator->add(governor);
+    ASSERT_EQ(gds->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(gds, cDaeSolverMode, false), 0);
+    // Move the temperature limiter away from its initialization tie with the
+    // normal governor branch before checking the piecewise analytic Jacobian.
+    auto state = gds->getState(cDaeSolverMode);
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    const auto& offsets = governor->getOffsets(cDaeSolverMode);
+    state[offsets.diffOffset + 8] += 0.1;
+    gds->setState(0.0, state.data(), stateDerivative.data(), cDaeSolverMode);
+    EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode, false), 0);
 }
 
 TEST(GovernorModelTests, IeeeG1RateAndAntiWindupLimitTransitions)

@@ -19,6 +19,7 @@ set(genmodel_headers
     genmodels/GenModel6.h
     genmodels/GenModel6type2.h
     genmodels/GenModelGENROU.h
+    genmodels/GenModelGENSAL.h
     genmodels/GenModel8.h
     genmodels/GenModelInverter.h
     genmodels/otherGenModels.h
@@ -37,6 +38,7 @@ set(genmodel_sources
     genmodels/GenModel6.cpp
     genmodels/GenModel6type2.cpp
     genmodels/GenModelGENROU.cpp
+    genmodels/GenModelGENSAL.cpp
     genmodels/GenModel8.cpp
     genmodels/GenModelInverter.cpp
 )
@@ -86,6 +88,8 @@ set(exciter_headers
     exciters/ExciterDC1A.h
     exciters/ExciterDC2A.h
     exciters/ExciterESST3A.h
+    exciters/ExciterESST4B.h
+    exciters/StaticExciterRectifier.h
     exciters/ExciterEXAC1.h
     exciters/ExciterEXAC2.h
     exciters/ExciterEXAC4.h
@@ -101,6 +105,8 @@ set(exciter_sources
     exciters/ExciterDC1A.cpp
     exciters/ExciterDC2A.cpp
     exciters/ExciterESST3A.cpp
+    exciters/ExciterESST4B.cpp
+    exciters/StaticExciterRectifier.cpp
     exciters/ExciterEXAC1.cpp
     exciters/ExciterEXAC2.cpp
     exciters/ExciterEXAC4.cpp
@@ -117,6 +123,7 @@ set(gov_headers
     Governor.h
     governors/GovernorTypes.h
     governors/GovernorHydro.h
+    governors/GovernorGgov1.h
     governors/GovernorIeeeG1.h
     governors/GovernorIeeeSimple.h
     governors/GovernorReheat.h
@@ -129,6 +136,7 @@ set(gov_sources
     ${gov_headers}
     governors/Governor.cpp
     governors/GovernorHydro.cpp
+    governors/GovernorGgov1.cpp
     governors/GovernorIeeeG1.cpp
     governors/GovernorIeeeSimple.cpp
     governors/GovernorReheat.cpp

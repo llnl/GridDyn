@@ -325,8 +325,12 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
         // Vset=inputSetup[1];
     }
     if ((gov != nullptr) && (gov->isEnabled())) {
-        modelInputs[govOmegaInLocation] = systemBaseFrequency;
+        const auto governorSignals =
+            genModel->getMachineControllerSignals(modelInputs, emptyStateData, cLocalSolverMode);
+        modelInputs[govOmegaInLocation] = 1.0;
         modelInputs[govpSetInLocation] = kNullVal;
+        modelInputs[govElectricalPowerInLocation] =
+            governorSignals[static_cast<index_t>(MachineControllerSignal::ELECTRICAL_POWER)];
 
         localDesiredOutput[0] = Pset * scale;
         if (isoc != nullptr) {
@@ -634,7 +638,20 @@ void DynamicGenerator::timestep(CoreTime time, const IOdata& inputs, const Solve
         const double omega = genModel->getFreq(emptyStateData, cLocalSolverMode);
 
         if ((gov != nullptr) && (gov->isEnabled())) {
-            gov->timestep(time, {omega, Pset / scale}, sMode);
+            const IOdata governorMachineInputs{inputs[VOLTAGE_IN_LOCATION],
+                                               inputs[ANGLE_IN_LOCATION],
+                                               m_Eft,
+                                               m_Pmech};
+            const auto governorSignals =
+                genModel->getMachineControllerSignals(governorMachineInputs,
+                                                      emptyStateData,
+                                                      cLocalSolverMode);
+            gov->timestep(
+                time,
+                {omega,
+                 Pset / scale,
+                 governorSignals[static_cast<index_t>(MachineControllerSignal::ELECTRICAL_POWER)]},
+                sMode);
         }
         auto* pmechSource = getMechanicalPowerSource();
         if ((pmechSource != nullptr) && (pmechSource->isEnabled())) {
@@ -1054,7 +1071,8 @@ void DynamicGenerator::jacobianElements(const IOdata& inputs,
     // compute the Jacobian
     for (auto* sub : getSubObjects()) {
         if (sub->isEnabled()) {
-            if (((sub == ext) && (ext->numInputs() > exciterMachineSignalBase)) || (sub == pss)) {
+            if (((sub == ext) && (ext->numInputs() > exciterMachineSignalBase)) || (sub == pss) ||
+                ((sub == gov) && (gov->numInputs() > govElectricalPowerInLocation))) {
                 MatrixDataCustomWriteOnly<double> translatedMatrix;
                 translatedMatrix.setFunction(
                     [&matrixDataValue,
@@ -1291,6 +1309,8 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
         genModel->getMachineControllerSignals(subInputs.inputs[GEN_MODEL_LOC],
                                               stateDataValue,
                                               sMode);
+    subInputs.inputs[GOVERNOR_LOC][govElectricalPowerInLocation] =
+        machineSignals[static_cast<index_t>(MachineControllerSignal::ELECTRICAL_POWER)];
     copyMachineSignals(machineSignals, subInputs.inputs[EXCITER_LOC]);
     if ((pss != nullptr) && (pss->isEnabled())) {
         copyPssInputs(machineSignals,
@@ -1359,6 +1379,8 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
             subInputLocs.inputLocs[GOVERNOR_LOC][govOmegaInLocation] = floc;
         }
         subInputLocs.inputLocs[GOVERNOR_LOC][govpSetInLocation] = pSetLocation(sMode);
+        subInputLocs.inputLocs[GOVERNOR_LOC][govElectricalPowerInLocation] =
+            machineSignalLocation(static_cast<index_t>(MachineControllerSignal::ELECTRICAL_POWER));
     }
 
     auto* pmechSource = getMechanicalPowerSource();

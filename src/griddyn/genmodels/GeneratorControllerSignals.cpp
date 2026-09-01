@@ -24,15 +24,17 @@ IOdata GenModelClassical::getMachineControllerSignals(const IOdata& inputs,
     const double angleDifference = locations.diffStateLoc[0] - inputs[ANGLE_IN_LOCATION];
     const double directVoltage = -inputs[VOLTAGE_IN_LOCATION] * std::sin(angleDifference);
     const double quadratureVoltage = inputs[VOLTAGE_IN_LOCATION] * std::cos(angleDifference);
-    const double electricalTorque =
-        ((directVoltage + (Rs * algebraicState[0])) * algebraicState[0]) +
-        ((quadratureVoltage + (Rs * algebraicState[1])) * algebraicState[1]);
+    const double electricalPower =
+        directVoltage * algebraicState[0] + quadratureVoltage * algebraicState[1];
+    const double electricalTorque = electricalPower +
+        Rs * (algebraicState[0] * algebraicState[0] + algebraicState[1] * algebraicState[1]);
 
     IOdata signals(machineControllerSignalCount, kNullVal);
     signals[static_cast<index_t>(MachineControllerSignal::ID)] = algebraicState[0];
     signals[static_cast<index_t>(MachineControllerSignal::IQ)] = algebraicState[1];
     signals[static_cast<index_t>(MachineControllerSignal::VD)] = directVoltage;
     signals[static_cast<index_t>(MachineControllerSignal::VQ)] = quadratureVoltage;
+    signals[static_cast<index_t>(MachineControllerSignal::ELECTRICAL_POWER)] = electricalPower;
     signals[static_cast<index_t>(MachineControllerSignal::ELECTRICAL_TORQUE)] = electricalTorque;
     // The classical model has no explicit field-winding state. Its excitation
     // voltage is the closest coupled per-unit proxy for field current.
@@ -77,6 +79,20 @@ MachineSignalDerivativeData
     addDerivative(MachineControllerSignal::VQ, voltageLocation, cosineAngle);
     addDerivative(MachineControllerSignal::VQ, angleLocation, -directVoltage);
     addDerivative(MachineControllerSignal::VQ, differentialOffset, directVoltage);
+
+    addDerivative(MachineControllerSignal::ELECTRICAL_POWER, algebraicOffset, directVoltage);
+    addDerivative(MachineControllerSignal::ELECTRICAL_POWER,
+                  algebraicOffset + 1,
+                  quadratureVoltage);
+    addDerivative(MachineControllerSignal::ELECTRICAL_POWER,
+                  voltageLocation,
+                  (-sineAngle * algebraicState[0]) + (cosineAngle * algebraicState[1]));
+    addDerivative(MachineControllerSignal::ELECTRICAL_POWER,
+                  angleLocation,
+                  (quadratureVoltage * algebraicState[0]) - (directVoltage * algebraicState[1]));
+    addDerivative(MachineControllerSignal::ELECTRICAL_POWER,
+                  differentialOffset,
+                  (-quadratureVoltage * algebraicState[0]) + (directVoltage * algebraicState[1]));
 
     addDerivative(MachineControllerSignal::ELECTRICAL_TORQUE,
                   algebraicOffset,

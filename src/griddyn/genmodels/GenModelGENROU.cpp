@@ -391,8 +391,8 @@ IOdata GenModelGENROU::getMachineControllerSignals(const IOdata& inputs,
     const double psi2q = coefficients.mGq1 * state[2] + (1.0 - coefficients.mGq1) * state[4];
     const double psi2d = coefficients.mGd1 * state[3] + (1.0 - coefficients.mGd1) * state[5];
     const double saturation = sat.compute(std::hypot(psi2d, psi2q));
-    const double electricalTorque =
-        (directVoltage + Rs * alg[0]) * alg[0] + (quadratureVoltage + Rs * alg[1]) * alg[1];
+    const double electricalPower = directVoltage * alg[0] + quadratureVoltage * alg[1];
+    const double electricalTorque = electricalPower + Rs * (alg[0] * alg[0] + alg[1] * alg[1]);
     const double xadIfd = state[3] +
         (Xd - Xdp) *
             (-coefficients.mGd1 * alg[0] - coefficients.mGd2 * state[5] +
@@ -404,6 +404,7 @@ IOdata GenModelGENROU::getMachineControllerSignals(const IOdata& inputs,
     signals[static_cast<index_t>(MachineControllerSignal::IQ)] = alg[1];
     signals[static_cast<index_t>(MachineControllerSignal::VD)] = directVoltage;
     signals[static_cast<index_t>(MachineControllerSignal::VQ)] = quadratureVoltage;
+    signals[static_cast<index_t>(MachineControllerSignal::ELECTRICAL_POWER)] = electricalPower;
     signals[static_cast<index_t>(MachineControllerSignal::ELECTRICAL_TORQUE)] = electricalTorque;
     signals[static_cast<index_t>(MachineControllerSignal::XADIFD)] = xadIfd;
     return signals;
@@ -448,6 +449,18 @@ MachineSignalDerivativeData
     addDerivative(MachineControllerSignal::VQ, voltageLoc, quadratureVoltage * inverseVoltage);
     addDerivative(MachineControllerSignal::VQ, angleLoc, -directVoltage);
     addDerivative(MachineControllerSignal::VQ, refDiff, directVoltage);
+
+    addDerivative(MachineControllerSignal::ELECTRICAL_POWER, refAlg, directVoltage);
+    addDerivative(MachineControllerSignal::ELECTRICAL_POWER, refAlg + 1, quadratureVoltage);
+    addDerivative(MachineControllerSignal::ELECTRICAL_POWER,
+                  voltageLoc,
+                  (directVoltage * alg[0] + quadratureVoltage * alg[1]) * inverseVoltage);
+    addDerivative(MachineControllerSignal::ELECTRICAL_POWER,
+                  angleLoc,
+                  quadratureVoltage * alg[0] - directVoltage * alg[1]);
+    addDerivative(MachineControllerSignal::ELECTRICAL_POWER,
+                  refDiff,
+                  -quadratureVoltage * alg[0] + directVoltage * alg[1]);
 
     addDerivative(MachineControllerSignal::ELECTRICAL_TORQUE,
                   refAlg,

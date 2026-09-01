@@ -22,6 +22,7 @@
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
+#include <array>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -31,13 +32,16 @@
 namespace griddyn {
 namespace {
     void loadGENROU(CoreObject* parentObject, stringVec& tokens);
+    void loadGENSAL(CoreObject* parentObject, stringVec& tokens);
     void loadESDC1A(CoreObject* parentObject, stringVec& tokens);
     void loadESST3A(CoreObject* parentObject, stringVec& tokens);
+    void loadESST4B(CoreObject* parentObject, stringVec& tokens);
     void loadEXST1(CoreObject* parentObject, stringVec& tokens);
     void loadEXAC1(CoreObject* parentObject, stringVec& tokens);
     void loadEXAC2(CoreObject* parentObject, stringVec& tokens);
     void loadEXAC4(CoreObject* parentObject, stringVec& tokens);
     void loadTGOV1(CoreObject* parentObject, stringVec& tokens);
+    void loadGGOV1(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEG1(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEST(CoreObject* parentObject, stringVec& tokens);
     void loadST2CUT(CoreObject* parentObject, stringVec& tokens);
@@ -83,10 +87,14 @@ void loadDyr(CoreObject* parentObject,
         gmlc::utilities::stringOps::trimString(type);
         if (type == "'GENROU'") {
             loadGENROU(parentObject, lineTokens);
+        } else if (type == "'GENSAL'") {
+            loadGENSAL(parentObject, lineTokens);
         } else if (type == "'ESDC1A'") {
             loadESDC1A(parentObject, lineTokens);
         } else if (type == "'ESST3A'") {
             loadESST3A(parentObject, lineTokens);
+        } else if (type == "'ESST4B'") {
+            loadESST4B(parentObject, lineTokens);
         } else if (type == "'EXST1'") {
             loadEXST1(parentObject, lineTokens);
         } else if (type == "'EXAC1'") {
@@ -99,6 +107,8 @@ void loadDyr(CoreObject* parentObject,
             loadEXDC2(parentObject, lineTokens);
         } else if (type == "'TGOV1'") {
             loadTGOV1(parentObject, lineTokens);
+        } else if (type == "'GGOV1'") {
+            loadGGOV1(parentObject, lineTokens);
         } else if (type == "'IEEEG1'") {
             loadIEEEG1(parentObject, lineTokens);
         } else if (type == "'IEEEST'") {
@@ -143,6 +153,40 @@ namespace {
         genModel->set("xl", params[14]);
         genModel->set("s1", params[15]);
         genModel->set("s12", params[16]);
+    }
+
+    void loadGENSAL(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 15U) {
+            throw InvalidParameterValue("GENSAL DYR record must contain 15 fields");
+        }
+        const int busId = std::stoi(tokens[0]);
+        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+        const int genId = std::stoi(tokens[2]);
+        if ((bus == nullptr) || (genId <= 0)) {
+            throw InvalidParameterValue("GENSAL generator identity");
+        }
+        auto* gen = bus->getGen(genId - 1);
+        if (gen == nullptr) {
+            throw InvalidParameterValue("GENSAL generator identity");
+        }
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* model = static_cast<GenModel*>(
+            CoreObjectFactory::instance()->createObject("genmodel", "gensal"));
+        // Attach before replacing the RAW source reactance, as for GENROU.
+        gen->add(model);
+        model->set("tdop", params[3]);
+        model->set("tdopp", params[4]);
+        model->set("tqopp", params[5]);
+        model->set("h", params[6]);
+        model->set("d", params[7]);
+        model->set("xd", params[8]);
+        model->set("xq", params[9]);
+        model->set("xdp", params[10]);
+        model->set("xpp", params[11]);
+        model->set("xl", params[12]);
+        model->set("s10", params[13]);
+        model->set("s12", params[14]);
     }
 
     void loadESDC1A(CoreObject* parentObject, stringVec& tokens)
@@ -214,6 +258,44 @@ namespace {
         exciterModel->set("vmmin", params[23]);
 
         gen->add(exciterModel);
+    }
+
+    void loadESST4B(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 20U) {
+            throw InvalidParameterValue("ESST4B DYR record must contain 20 fields");
+        }
+        const int busId = std::stoi(tokens[0]);
+        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+        const int genId = std::stoi(tokens[2]);
+        if ((bus == nullptr) || (genId <= 0)) {
+            throw InvalidParameterValue("ESST4B generator identity");
+        }
+        auto* gen = bus->getGen(genId - 1);
+        if (gen == nullptr) {
+            throw InvalidParameterValue("ESST4B generator identity");
+        }
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* model =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "esst4b"));
+        model->set("tr", params[3]);
+        model->set("kpr", params[4]);
+        model->set("kir", params[5]);
+        model->set("vrmax", params[6]);
+        model->set("vrmin", params[7]);
+        model->set("ta", params[8]);
+        model->set("kpm", params[9]);
+        model->set("kim", params[10]);
+        model->set("vmmax", params[11]);
+        model->set("vmmin", params[12]);
+        model->set("kg", params[13]);
+        model->set("kp", params[14]);
+        model->set("ki", params[15]);
+        model->set("vbmax", params[16]);
+        model->set("kc", params[17]);
+        model->set("xl", params[18]);
+        model->set("thetap", params[19]);
+        gen->add(model);
     }
 
     void loadEXST1(CoreObject* parentObject, stringVec& tokens)
@@ -406,6 +488,36 @@ namespace {
         governorModel->set("dt", params[9]);
 
         gen->add(governorModel);
+    }
+
+    void loadGGOV1(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 38U) {
+            throw InvalidParameterValue("GGOV1 DYR record must contain 38 fields");
+        }
+        const int busId = std::stoi(tokens[0]);
+        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+        const int genId = std::stoi(tokens[2]);
+        if ((bus == nullptr) || (genId <= 0)) {
+            throw InvalidParameterValue("GGOV1 generator identity");
+        }
+        auto* gen = bus->getGen(genId - 1);
+        if (gen == nullptr) {
+            throw InvalidParameterValue("GGOV1 generator identity");
+        }
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* model = static_cast<Governor*>(
+            CoreObjectFactory::instance()->createObject("governor", "ggov1"));
+        static constexpr std::array<std::string_view, 35> names{
+            "rselect", "fswitch", "r",     "tpelec", "maxerr", "minerr", "kpgov",
+            "kigov",   "kdgov",   "tdgov", "vmax",   "vmin",   "tact",   "kturb",
+            "wfnl",    "tb",      "tc",    "teng",   "tfload", "kpload", "kiload",
+            "ldref",   "dm",      "ropen", "rclose", "kimw",   "aset",   "ka",
+            "ta",      "trate",   "db",    "tsa",    "tsb",    "rup",    "rdown"};
+        for (std::size_t ii = 0; ii < names.size(); ++ii) {
+            model->set(names[ii], params[ii + 3]);
+        }
+        gen->add(model);
     }
 
     void loadIEEEG1(CoreObject* parentObject, stringVec& tokens)

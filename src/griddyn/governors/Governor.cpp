@@ -38,6 +38,8 @@ namespace governors {
 
     static ChildTypeFactory<GovernorIeeeG1, Governor>
         gFgov6("governor", std::to_array<std::string_view>({"ieeeg1"}));
+    static ChildTypeFactory<GovernorGgov1, Governor>
+        gFgov7("governor", std::to_array<std::string_view>({"ggov1"}));
 
 }  // namespace governors
 using units::convert;
@@ -377,6 +379,7 @@ double Governor::get(std::string_view param, units::unit unitType) const
 static const std::vector<stringVec> INPUT_NAMES_STR{
     {"omega", "frequency", "w", "f"},
     {"pset", "setpoint", "power"},
+    {"pelec", "electricalpower", "electricaltorque"},
 };
 
 const std::vector<stringVec>& Governor::inputNames() const

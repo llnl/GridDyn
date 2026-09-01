@@ -326,6 +326,46 @@ TEST(ExciterModelTests, Exac1InitializesCorrectedTransducerAndAntiWindup)
     EXPECT_LT(roots[0], 0.0);
 }
 
+TEST(ExciterModelTests, Exac1ZeroTrBypassesVoltageMeasurementState)
+{
+    exciters::ExciterEXAC1 exciter;
+    exciter.set("tr", 0.0);
+    exciter.set("tb", 0.2);
+    exciter.set("tc", 0.05);
+    exciter.set("ka", 10.0);
+    exciter.set("ta", 0.1);
+    exciter.set("te", 0.5);
+    exciter.set("kf", 0.1);
+    exciter.set("tf", 1.0);
+    exciter.set("kc", 0.0);
+    exciter.set("kd", 0.0);
+    exciter.set("ke", 1.0);
+    exciter.set("vrmax", 5.0);
+    exciter.set("vrmin", -5.0);
+    exciter.dynInitializeA(0.0, 0);
+
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.0;
+    IOdata fieldSet(4, 0.0);
+    exciter.dynInitializeB(inputs, {0.4}, fieldSet);
+    EXPECT_EQ(exciter.getStates().size(), 5U);
+    EXPECT_EQ(exciter.localStateNames(), (stringVec{"efd", "ll", "va", "ve", "wf"}));
+    EXPECT_EQ(exciter.findIndex("vmeas", cLocalSolverMode), kInvalidLocation);
+
+    std::vector<double> state{0.4, 0.1, 0.3, 1.1, 1.0};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    inputs[exciterVoltageInLocation] = 1.05;
+    inputs[exciterVsetInLocation] = 1.02;
+    std::vector<double> derivative(state.size(), 0.0);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[1], -0.5, 1e-12);
+    EXPECT_NEAR(derivative[2], 4.5, 1e-12);
+    EXPECT_NEAR(derivative[3], -1.6, 1e-12);
+    EXPECT_NEAR(derivative[4], 0.1, 1e-12);
+}
+
 TEST(ExciterModelTests, Exac4HardLimitsAndFactoryClone)
 {
     auto factory = CoreObjectFactory::instance();

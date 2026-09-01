@@ -315,14 +315,21 @@ TEST(AndesDyrReaderTests, MapsHygovParametersInAndesDyrOrder)
     ASSERT_NE(bus, nullptr);
     auto* generator = bus->getGen(0);
     ASSERT_NE(generator, nullptr);
-    auto* governor =
-        dynamic_cast<griddyn::governors::GovernorHygov*>(generator->find("governor"));
+    auto* governor = dynamic_cast<griddyn::governors::GovernorHygov*>(generator->find("governor"));
     ASSERT_NE(governor, nullptr);
 
-    const std::pair<std::string_view, double> expected[]{
-        {"r", 0.05},   {"temporarydroop", 0.3}, {"tr", 5.0},   {"tf", 0.05},
-        {"tg", 0.5},   {"velm", 0.02},          {"gmax", 0.9},  {"gmin", 0.0},
-        {"tw", 1.25},  {"at", 1.2},             {"dturb", 0.2}, {"qnl", 0.08}};
+    const std::pair<std::string_view, double> expected[]{{"r", 0.05},
+                                                         {"temporarydroop", 0.3},
+                                                         {"tr", 5.0},
+                                                         {"tf", 0.05},
+                                                         {"tg", 0.5},
+                                                         {"velm", 0.02},
+                                                         {"gmax", 0.9},
+                                                         {"gmin", 0.0},
+                                                         {"tw", 1.25},
+                                                         {"at", 1.2},
+                                                         {"dturb", 0.2},
+                                                         {"qnl", 0.08}};
     for (const auto& parameter : expected) {
         EXPECT_DOUBLE_EQ(governor->get(parameter.first), parameter.second) << parameter.first;
     }

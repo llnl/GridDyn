@@ -67,14 +67,14 @@ That is strong source material, but it is not GridDyn validation. A C++ port sti
 
 These PowerDynamics models should not be counted as clear GridDyn gaps. Their value is the available Julia/OpenIPSL formulation and tests.
 
-| PowerDynamics model(s)                                                                           | GridDyn candidate                                         | Recommended action                                                                            |
-| ------------------------------------------------------------------------------------------------ | --------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `PSSE_GENCLS`, `PSSE_GENROU`, `ClassicalMachine`                                                 | `GenModelClassical`, `GenModelGENROU`                     | Add/compare against captured references before changing C++ equations.                        |
+| PowerDynamics model(s)                                                                           | GridDyn candidate                                         | Recommended action                                                                                                 |
+| ------------------------------------------------------------------------------------------------ | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `PSSE_GENCLS`, `PSSE_GENROU`, `ClassicalMachine`                                                 | `GenModelClassical`, `GenModelGENROU`                     | Add/compare against captured references before changing C++ equations.                                             |
 | `PSSE_HYGOV`                                                                                     | `GovernorHygov`                                           | Native equations and DYR mapping are implemented; capture the PowerDynamics/OpenIPSL trajectory for direct parity. |
-| `PSSE_EXST1`, `PSSE_IEEEST`, `PSSE_IEEEG1`                                                       | `ExciterEXST1`, `StabilizerIEEEST`, `GovernorIeeeG1`      | Reuse PowerDynamics' tested Modelica cases to obtain another independent reference path.      |
-| `TGOV1`                                                                                          | `GovernorTgov1`                                           | Validate instead of porting.                                                                  |
-| `PQLoad`, `ZIPLoad`, `VoltageDependentLoad`, `ConstantYLoad`, `ConstantCurrentLoad`, `PSSE_Load` | `ZipLoad`, `ExponentialLoad`, `SourceLoad` are candidates | Audit the voltage/current and low-voltage semantics; GridDyn has related static-load classes. |
-| `PiLine`, `Breaker`, `StaticShunt`                                                               | `AcLine`, `ZBreaker`, fixed-admittance `ZipLoad`          | Treat as power-flow/event and base-conversion validation cases.                               |
+| `PSSE_EXST1`, `PSSE_IEEEST`, `PSSE_IEEEG1`                                                       | `ExciterEXST1`, `StabilizerIEEEST`, `GovernorIeeeG1`      | Reuse PowerDynamics' tested Modelica cases to obtain another independent reference path.                           |
+| `TGOV1`                                                                                          | `GovernorTgov1`                                           | Validate instead of porting.                                                                                       |
+| `PQLoad`, `ZIPLoad`, `VoltageDependentLoad`, `ConstantYLoad`, `ConstantCurrentLoad`, `PSSE_Load` | `ZipLoad`, `ExponentialLoad`, `SourceLoad` are candidates | Audit the voltage/current and low-voltage semantics; GridDyn has related static-load classes.                      |
+| `PiLine`, `Breaker`, `StaticShunt`                                                               | `AcLine`, `ZBreaker`, fixed-admittance `ZipLoad`          | Treat as power-flow/event and base-conversion validation cases.                                                    |
 
 ## Recommended sequence
 

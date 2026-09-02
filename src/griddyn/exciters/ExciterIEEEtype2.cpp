@@ -72,10 +72,9 @@ void ExciterIEEEtype2::residual(const IOdata& inputs,
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         residualValues[1] = stateDerivative[1];
     } else {
-        residualValues[1] =
-            ((-exciterState[1] + (Ka * Kf * exciterState[2]) +
-              (Ka * (Vref + vBias - inputs[VOLTAGE_IN_LOCATION]))) /
-             Ta) -
+        residualValues[1] = ((-exciterState[1] + (Ka * Kf * exciterState[2]) +
+                              (Ka * (Vref + vBias - inputs[VOLTAGE_IN_LOCATION]))) /
+                             Ta) -
             stateDerivative[1];
     }
     residualValues[2] =
@@ -97,13 +96,11 @@ void ExciterIEEEtype2::derivative(const IOdata& inputs,
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         derivatives[1] = 0;
     } else {
-        derivatives[1] =
-            (-exciterState[1] + (Ka * Kf * exciterState[2]) +
-             (Ka * (Vref + vBias - inputs[VOLTAGE_IN_LOCATION]))) /
+        derivatives[1] = (-exciterState[1] + (Ka * Kf * exciterState[2]) +
+                          (Ka * (Vref + vBias - inputs[VOLTAGE_IN_LOCATION]))) /
             Ta;
     }
-    derivatives[2] =
-        (-exciterState[2] + (exciterState[1] / Tf2) - (exciterState[3] / Tf2)) / Tf;
+    derivatives[2] = (-exciterState[2] + (exciterState[1] / Tf2) - (exciterState[3] / Tf2)) / Tf;
     derivatives[3] = (-exciterState[3] + exciterState[1]) / Tf2;
 }
 
@@ -127,7 +124,8 @@ void ExciterIEEEtype2::jacobianElements(const IOdata& /*inputs*/,
 
     // Ef
     const double fieldVoltageSlope =
-        (-(Ke + (Aex * exp(Bex * stateData.state[offset]) * (1.0 + (Bex * stateData.state[offset])))) /
+        (-(Ke +
+           (Aex * exp(Bex * stateData.state[offset]) * (1.0 + (Bex * stateData.state[offset])))) /
          Te) -
         stateData.cj;
     matrixData.assign(refIndex, refIndex, fieldVoltageSlope);

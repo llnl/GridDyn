@@ -278,8 +278,8 @@ namespace {
         const int genId = std::stoi(tokens[2]);
         auto* gen = bus->getGen(genId - 1);
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
-        auto* exciterModel = static_cast<Exciter*>(
-            CoreObjectFactory::instance()->createObject("exciter", "esdc2a"));
+        auto* exciterModel =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "esdc2a"));
         exciterModel->set("tr", params[3]);
         exciterModel->set("ka", params[4]);
         exciterModel->set("ta", params[5]);
@@ -308,8 +308,8 @@ namespace {
         const int genId = std::stoi(tokens[2]);
         auto* gen = bus->getGen(genId - 1);
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
-        auto* exciterModel = static_cast<Exciter*>(
-            CoreObjectFactory::instance()->createObject("exciter", "ieeet1"));
+        auto* exciterModel =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "ieeet1"));
         exciterModel->set("tr", params[3]);
         exciterModel->set("ka", params[4]);
         exciterModel->set("ta", params[5]);

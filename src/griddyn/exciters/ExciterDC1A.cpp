@@ -108,8 +108,7 @@ void ExciterDC1A::derivative(const IOdata& inputs,
     const double* exciterState = loc.diffStateLoc;
     double* derivatives = loc.destDiffLoc;
     const double voltage = measuredVoltage(inputs, exciterState);
-    derivatives[0] =
-        (-saturationFeedback(exciterState[0]) + exciterState[1]) / Te;
+    derivatives[0] = (-saturationFeedback(exciterState[0]) + exciterState[1]) / Te;
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         derivatives[1] = 0;
     } else {
@@ -148,8 +147,8 @@ void ExciterDC1A::jacobianElements(const IOdata& inputs,
     // md.assign(arrayIndex, RowIndex, ColIndex, value)
 
     // Ef
-    const double temp1 = (-saturationDerivative(stateDataValue.state[offset]) / Te) -
-        stateDataValue.cj;
+    const double temp1 =
+        (-saturationDerivative(stateDataValue.state[offset]) / Te) - stateDataValue.cj;
     matrixDataValue.assign(refI, refI, temp1);
     matrixDataValue.assign(refI, refI + 1, 1.0 / Te);
 
@@ -216,9 +215,8 @@ void ExciterDC1A::rootTest(const IOdata& inputs,
     const int rootOffset = offsets.getRootOffset(sMode);
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         root[rootOffset] =
-            ((((Vref + vBias - voltage) - ((exciterState[0] * Kf) / Tf)) +
-              exciterState[3]) *
-             Ka * Tc / Tb) +
+            ((((Vref + vBias - voltage) - ((exciterState[0] * Kf) / Tf)) + exciterState[3]) * Ka *
+             Tc / Tb) +
             ((exciterState[2] * (Tb - Tc) * Ka) / Tb) - exciterState[1];
     } else {
         root[rootOffset] =
@@ -239,8 +237,7 @@ ChangeCode ExciterDC1A::rootCheck(const IOdata& inputs,
     double test;
     ChangeCode ret = ChangeCode::NO_CHANGE;
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
-        test = ((((Vref + vBias - voltage) - ((exciterState[0] * Kf) / Tf)) +
-                 exciterState[3]) *
+        test = ((((Vref + vBias - voltage) - ((exciterState[0] * Kf) / Tf)) + exciterState[3]) *
                 Ka * Tc / Tb) +
             ((exciterState[2] * (Tb - Tc) * Ka) / Tb) - exciterState[1];
         if (opFlags[TRIGGER_HIGH]) {

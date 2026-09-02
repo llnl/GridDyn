@@ -17,8 +17,8 @@ The source cases remain outside the repository:
 | ACTIVSg25k  | `C:\Users\phlpt\Downloads\ACTIVSg25k\ACTIVSg25k.RAW`   | `C:\Users\phlpt\Downloads\ACTIVSg25k\ACTIVSg25k.dyr`            |      18,108 |
 | ACTIVSg70k  | `C:\Users\phlpt\Downloads\ACTIVSg70k\ACTIVSg70k.RAW`   | `C:\Users\phlpt\Downloads\ACTIVSg70k\ACTIVSg70k_dynamics.dyr`   |      40,418 |
 
-The five files contain 67,941 DYR records. 38,472 records use models the
-current DYR reader recognizes; 29,469 records use models that still need
+The five files contain 67,941 DYR records. 54,870 records use models the
+current DYR reader recognizes; 13,071 records use models that still need
 support. Recognition is not dynamic validation: a model is complete only
 after import, initialization, limits, and disturbed trajectories agree with
 an external reference.
@@ -35,33 +35,33 @@ an external reference.
 
 ## Dynamic-model inventory
 
-| PSS/E model | ACTIVSg500 | ACTIVSg2000 | ACTIVSg10k | ACTIVSg25k | ACTIVSg70k |  Total | Current status / required work                                                                                         |
-| ----------- | ---------: | ----------: | ---------: | ---------: | ---------: | -----: | ---------------------------------------------------------------------------------------------------------------------- |
-| `GENROU`    |         90 |         410 |      1,136 |      2,857 |      6,937 | 11,430 | Reader supported; continue initialization and trajectory validation.                                                   |
-| `SEXS`      |         90 |           0 |          0 |          0 |          0 |     90 | Reader supported; validate case configurations.                                                                        |
-| `TGOV1`     |         21 |           0 |          0 |          0 |          0 |     21 | Reader supported; validate case configurations.                                                                        |
-| `IEEEST`    |          2 |         434 |      1,851 |      4,101 |      9,243 | 15,631 | Reader supported for local-input configurations; validate variants used.                                               |
-| `IEEEG1`    |          0 |          43 |        162 |      1,115 |      3,518 |  4,838 | Reader supported; validate case configurations.                                                                        |
-| `ESDC1A`    |          0 |          12 |        163 |        123 |        427 |    725 | Reader supported; validate case configurations.                                                                        |
-| `EXAC2`     |          0 |          38 |        106 |        239 |        486 |    869 | Reader supported; validate case configurations.                                                                        |
-| `GGOV1`     |          0 |         367 |        974 |      1,742 |      3,419 |  6,502 | **Missing.** Add an exact general turbine/governor; do not silently substitute `TGOV1`.                                |
-| `ESST4B`    |          0 |         278 |        745 |      1,396 |      3,187 |  5,606 | **Missing.** Add static-exciter equations, DYR schema, initialization, and limits.                                     |
-| `GENSAL`    |          0 |          25 |        715 |      1,244 |      2,306 |  4,290 | **Missing.** Add/audit a salient-pole machine before attaching its controllers.                                        |
-| `HYGOV`     |         39 |          25 |        715 |      1,244 |      2,306 |  4,329 | Dedicated `GovernorHygov` and DYR mapping implemented; validate case initialization, limits, and trajectories.         |
-| `SCRX`      |          0 |           5 |        312 |        446 |      1,053 |  1,816 | **Missing.** Add static controlled-rectifier exciter.                                                                  |
-| `IEEET1`    |          0 |          23 |        214 |        942 |      1,907 |  3,086 | **Missing.** Add/audit IEEE Type 1 exciter.                                                                            |
-| `EXPIC1`    |          0 |          61 |        153 |        287 |        569 |  1,070 | **Missing.** Add the excitation controller/interface behavior.                                                         |
-| `ESDC2A`    |          0 |           1 |         87 |        202 |        104 |    394 | **Missing.** Add/audit DC2A exciter.                                                                                   |
-| `ESAC6A`    |          0 |           7 |         26 |        194 |        583 |    810 | **Missing.** Add AC6A exciter.                                                                                         |
-| `EXAC1`     |          0 |           6 |         22 |        130 |        381 |    539 | Reader supported; validate case configurations.                                                                        |
-| `ESAC1A`    |          0 |           4 |         23 |        142 |        546 |    715 | **Missing.** Add AC1A exciter.                                                                                         |
-| `GAST`      |         30 |           0 |          0 |          0 |          0 |     30 | **Missing.** Add a dedicated gas-turbine governor; do not substitute `TGOV1`.                                          |
-| `REECA1`    |          0 |           0 |          0 |        614 |        571 |  1,185 | **Missing.** Add renewable electrical control; implement and validate it with the associated `REGCA1` converter model. |
-| `REGCA1`    |          0 |           0 |          0 |        614 |        571 |  1,185 | **Missing.** Add the renewable converter model; do not import it independently from `REECA1`.                          |
-| `WT3E1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind electrical-control subsystem.                                                         |
-| `WT3G1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind generator/drivetrain subsystem.                                                       |
-| `WT3P1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind pitch-control subsystem.                                                              |
-| `WT3T1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind turbine subsystem.                                                                    |
+| PSS/E model | ACTIVSg500 | ACTIVSg2000 | ACTIVSg10k | ACTIVSg25k | ACTIVSg70k |  Total | Current status / required work                                                                                                                        |
+| ----------- | ---------: | ----------: | ---------: | ---------: | ---------: | -----: | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GENROU`    |         90 |         410 |      1,136 |      2,857 |      6,937 | 11,430 | Reader supported; continue initialization and trajectory validation.                                                                                  |
+| `SEXS`      |         90 |           0 |          0 |          0 |          0 |     90 | Reader supported; validate case configurations.                                                                                                       |
+| `TGOV1`     |         21 |           0 |          0 |          0 |          0 |     21 | Reader supported; validate case configurations.                                                                                                       |
+| `IEEEST`    |          2 |         434 |      1,851 |      4,101 |      9,243 | 15,631 | Reader supported for local-input configurations; validate variants used.                                                                              |
+| `IEEEG1`    |          0 |          43 |        162 |      1,115 |      3,518 |  4,838 | Reader supported; validate case configurations.                                                                                                       |
+| `ESDC1A`    |          0 |          12 |        163 |        123 |        427 |    725 | Reader supported; validate case configurations.                                                                                                       |
+| `EXAC2`     |          0 |          38 |        106 |        239 |        486 |    869 | Reader supported; validate case configurations.                                                                                                       |
+| `GGOV1`     |          0 |         367 |        974 |      1,742 |      3,419 |  6,502 | **Reader/model implemented.** Equation, initialization, DYR-order, coupling, residual, and analytic-Jacobian tests exist. Nonzero `TENG` is rejected. |
+| `ESST4B`    |          0 |         278 |        745 |      1,396 |      3,187 |  5,606 | **Reader/model implemented.** Exact DYR mapping and GENSAL-coupled residual/Jacobian tests exist; external UEL/OEL inputs remain unrouted.            |
+| `GENSAL`    |          0 |          25 |        715 |      1,244 |      2,306 |  4,290 | **Reader/model implemented.** Salient-pole equations, quadratic saturation, initialization, controller signals, and Jacobians are covered.            |
+| `HYGOV`     |         39 |          25 |        715 |      1,244 |      2,306 |  4,329 | Dedicated `GovernorHygov` and DYR mapping implemented; validate case initialization, limits, and trajectories.                                        |
+| `SCRX`      |          0 |           5 |        312 |        446 |      1,053 |  1,816 | **Missing.** Add static controlled-rectifier exciter.                                                                                                 |
+| `IEEET1`    |          0 |          23 |        214 |        942 |      1,907 |  3,086 | **Missing.** Add/audit IEEE Type 1 exciter.                                                                                                           |
+| `EXPIC1`    |          0 |          61 |        153 |        287 |        569 |  1,070 | **Missing.** Add the excitation controller/interface behavior.                                                                                        |
+| `ESDC2A`    |          0 |           1 |         87 |        202 |        104 |    394 | **Missing.** Add/audit DC2A exciter.                                                                                                                  |
+| `ESAC6A`    |          0 |           7 |         26 |        194 |        583 |    810 | **Missing.** Add AC6A exciter.                                                                                                                        |
+| `EXAC1`     |          0 |           6 |         22 |        130 |        381 |    539 | Reader supported; validate case configurations.                                                                                                       |
+| `ESAC1A`    |          0 |           4 |         23 |        142 |        546 |    715 | **Missing.** Add AC1A exciter.                                                                                                                        |
+| `GAST`      |         30 |           0 |          0 |          0 |          0 |     30 | **Missing.** Add a dedicated gas-turbine governor; do not substitute `TGOV1`.                                                                         |
+| `REECA1`    |          0 |           0 |          0 |        614 |        571 |  1,185 | **Missing.** Add renewable electrical control; implement and validate it with the associated `REGCA1` converter model.                                |
+| `REGCA1`    |          0 |           0 |          0 |        614 |        571 |  1,185 | **Missing.** Add the renewable converter model; do not import it independently from `REECA1`.                                                         |
+| `WT3E1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind electrical-control subsystem.                                                                                        |
+| `WT3G1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind generator/drivetrain subsystem.                                                                                      |
+| `WT3P1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind pitch-control subsystem.                                                                                             |
+| `WT3T1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind turbine subsystem.                                                                                                   |
 
 The broader model-by-model mapping is maintained in the
 [ANDES compatibility roadmap](andes-compatibility.md); this table is the
@@ -70,32 +70,33 @@ authoritative ACTIVSg demand inventory.
 ### ACTIVSg25k static DYR assessment
 
 `ACTIVSg25k.dyr` was inspected as text only and was not loaded or run. It has
-18,108 records in 22 model families. The current DYR dispatch recognizes seven
+18,108 records in 22 model families. The current DYR dispatch recognizes ten
 of the families used by this file (`GENROU`, `IEEEST`, `IEEEG1`, `ESDC1A`,
-`EXAC1`, `EXAC2`, and `HYGOV`), accounting for 9,809 records. The other 8,299 records
-cannot yet be represented faithfully.
+`EXAC1`, `EXAC2`, `GGOV1`, `ESST4B`, `GENSAL`, and `HYGOV`), accounting for
+14,191 records. The other 3,917 records cannot yet be represented faithfully.
 
-The largest immediate dependencies are the `GENSAL` machine and its remaining
-controller families (`ESST4B` and `IEEET1`), the general governor `GGOV1`, and
-the renewable groups. `REECA1` and `REGCA1` must be initialized and validated
-together; the four `WT3*` models are likewise one Type-3 wind-turbine system,
-not four independent optional models. Existing recognition is only parser
-coverage: every supported family still needs case-configuration,
-initialization, limiter, and disturbance-trajectory validation.
+The largest remaining conventional dependencies are `IEEET1` and `SCRX`,
+followed by the renewable groups. `REECA1` and `REGCA1` must be initialized and
+validated together; the four `WT3*` models are likewise one Type-3 wind-turbine
+system, not four independent optional models. Existing recognition is not by
+itself case validation: every supported family still needs applicable
+case-configuration, initialization, limiter, and disturbance-trajectory
+coverage.
 
 ### ACTIVSg70k static DYR and RAW assessment
 
 `ACTIVSg70k_dynamics.dyr` was inspected as text only and was not loaded or run.
 It has 40,418 records in 22 model families. The current DYR dispatch recognizes
-23,298 records in seven families (`GENROU`, `IEEEST`, `IEEEG1`, `ESDC1A`,
-`EXAC1`, `EXAC2`, and `HYGOV`); 17,120 records remain unsupported.
+32,210 records in ten families (`GENROU`, `IEEEST`, `IEEEG1`, `ESDC1A`,
+`EXAC1`, `EXAC2`, `GGOV1`, `ESST4B`, `GENSAL`, and `HYGOV`); 8,208 records
+remain unsupported.
 
-The primary gaps are `GGOV1` (3,419), `ESST4B` (3,187), `GENSAL` (2,306),
-and `IEEET1` (1,907). `HYGOV` (2,306) is recognized but still needs
-large-case initialization and trajectory validation. The coupled renewable demand is
-`REGCA1` plus `REECA1` (571 each) and all four Type-3 wind models (576 each).
-`SCRX` (1,053), `EXPIC1` (569), `ESAC6A` (583), `ESAC1A` (546), and `ESDC2A`
-(104) complete the missing inventory.
+The primary conventional gaps are `IEEET1` (1,907) and `SCRX` (1,053).
+`GENSAL`, `HYGOV`, `GGOV1`, and `ESST4B` are recognized and have focused model
+and reader tests, but still need large-case initialization and trajectory
+validation. The coupled renewable demand is `REGCA1` plus `REECA1` (571 each)
+and all four Type-3 wind models (576 each). `EXPIC1` (569), `ESAC6A` (583),
+`ESAC1A` (546), and `ESDC2A` (104) complete the missing inventory.
 
 #### Full-dynamics execution boundary
 
@@ -109,17 +110,17 @@ every record for a machine ID before initializing the case.
 | Dynamic assembly                | DYR families required together                     |                                  Records | Execution consequence                                                                                                                                              |
 | ------------------------------- | -------------------------------------------------- | ---------------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Round-rotor conventional plants | `GENROU`, exciter, governor, and optional `IEEEST` |                   6,937 `GENROU` records | The machine and the six currently recognized controller families need full initialization and trajectory validation; missing controller records cannot be dropped. |
-| Salient-pole hydro plants       | `GENSAL` + `HYGOV` + exciter + optional `IEEEST`   | 2,306 `GENSAL` and 2,306 `HYGOV` records | Blocked until both the machine and hydro-governor equations, bases, limits, and controller interfaces are implemented.                                             |
-| General-governor plants         | `GENROU` + `GGOV1` + exciter + optional `IEEEST`   |                    3,419 `GGOV1` records | Blocked until exact selectable governor/turbine modes are supported; `TGOV1` is not an acceptable replacement.                                                     |
+| Salient-pole hydro plants       | `GENSAL` + `HYGOV` + exciter + optional `IEEEST`   | 2,306 `GENSAL` and 2,306 `HYGOV` records | Native machine and governor models are implemented; validate whole-plant initialization, bases, limits, controller interfaces, and disturbed trajectories.         |
+| General-governor plants         | `GENROU` + `GGOV1` + exciter + optional `IEEEST`   |                    3,419 `GGOV1` records | Native selectable governor/turbine modes are implemented; validate case parameter combinations and reject nonzero `TENG` until transport delay is added.           |
 | Renewable converter plants      | `REGCA1` + `REECA1`                                |                              571 of each | Blocked until the converter and electrical controller initialize and enforce their current-limit ordering as a pair.                                               |
 | Type-3 wind plants              | `WT3G1` + `WT3E1` + `WT3P1` + `WT3T1`              |                              576 of each | Blocked until the complete generator, electrical, pitch, and turbine assembly is available; no individual `WT3*` record may be omitted.                            |
 
 Accordingly, GridDyn may use the RAW alone for static power-flow work once
 large-scale topology validation is complete, but it must reject a requested
-full 70k DYR run until all 16 currently unsupported families are implemented:
-`GGOV1`, `ESST4B`, `GENSAL`, `HYGOV`, `IEEET1`, `SCRX`, `ESAC6A`, `WT3P1`,
-`WT3T1`, `WT3E1`, `WT3G1`, `REGCA1`, `REECA1`, `EXPIC1`, `ESAC1A`, and
-`ESDC2A`. A strict diagnostic is preferable to a partial dynamic simulation.
+full 70k DYR run until all 12 currently unsupported families are implemented:
+`IEEET1`, `SCRX`, `ESAC6A`, `WT3P1`, `WT3T1`, `WT3E1`, `WT3G1`, `REGCA1`,
+`REECA1`, `EXPIC1`, `ESAC1A`, and `ESDC2A`. A strict diagnostic is preferable
+to a partial dynamic simulation.
 
 The supplied RAW is PSS/E v33. It has 67,900 terminal buses, 71,352 branches,
 10,555 two-winding transformers, and 2,100 three-winding transformers. Its
@@ -143,11 +144,12 @@ equations before implementation.
    control-device parity difference, add grouped PSS/E remote-voltage
    regulation, and investigate the ACTIVSg25k RAW-versus-MATPOWER source-state
    mismatch. ACTIVSg10k RAW/EPC three-winding topology is validated.
-2. **P1 conventional machine/governor foundation:** implement `GENSAL` and
-   `GGOV1`, then validate the implemented `HYGOV` on the `GENSAL` synthetic-case
-   attachments. `GGOV1` is the largest missing family and its PowerDynamics
-   port is experimental, so use OpenIPSL as the equation authority.
-3. **P1 synchronous excitation:** implement `ESST4B`, `IEEET1`, and `SCRX`
+2. **P1 conventional machine/governor validation:** `GENSAL`, `GGOV1`, and
+   `HYGOV` are implemented; add captured external trajectories and whole-case
+   initialization coverage for all three. GGOV1 deliberately rejects nonzero
+   `TENG` transport delay.
+3. **P1 synchronous excitation:** `ESST4B` is implemented; implement `IEEET1`
+   and `SCRX`
    from the available OpenIPSL/PowerDynamics references. Defer `EXPIC1` to P2
    because no exact source was found; ANDES's `SEXS` conversion is only an
    approximation.

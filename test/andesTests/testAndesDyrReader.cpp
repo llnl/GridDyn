@@ -12,6 +12,7 @@
 #include "griddyn/GridSubModel.h"
 #include "griddyn/events/Event.h"
 #include "griddyn/exciters/ExciterESST3A.h"
+#include "griddyn/exciters/ExciterESST4B.h"
 #include "griddyn/exciters/ExciterEXAC1.h"
 #include "griddyn/exciters/ExciterEXAC2.h"
 #include "griddyn/exciters/ExciterEXAC4.h"
@@ -19,6 +20,8 @@
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/genmodels/GenModelClassical.h"
 #include "griddyn/genmodels/GenModelGENROU.h"
+#include "griddyn/genmodels/GenModelGENSAL.h"
+#include "griddyn/governors/GovernorGgov1.h"
 #include "griddyn/governors/GovernorHygov.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorTgov1.h"
@@ -241,6 +244,108 @@ TEST(AndesDyrReaderTests, LoadsAndesKundurGenclsCase)
         EXPECT_DOUBLE_EQ(model->get("h"), expectedInertia[index]);
         EXPECT_DOUBLE_EQ(model->get("d"), 0.0);
     }
+}
+
+TEST(AndesDyrReaderTests, MapsGensalParametersInPsseDyrOrder)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_gensal.dyr"));
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = bus->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    auto* model = dynamic_cast<griddyn::genmodels::GenModelGENSAL*>(generator->find("genmodel"));
+    ASSERT_NE(model, nullptr);
+    const std::pair<std::string_view, double> expected[]{{"tdop", 5.1},
+                                                         {"tdopp", 0.052},
+                                                         {"tqopp", 0.103},
+                                                         {"h", 4.4},
+                                                         {"d", 0.04},
+                                                         {"xd", 1.41},
+                                                         {"xq", 1.35},
+                                                         {"xdp", 0.30},
+                                                         {"xdpp", 0.20},
+                                                         {"xqpp", 0.20},
+                                                         {"xl", 0.12},
+                                                         {"s10", 0.10},
+                                                         {"s12", 0.50}};
+    for (const auto& [name, value] : expected) {
+        EXPECT_DOUBLE_EQ(model->get(name), value) << name;
+    }
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(AndesDyrReaderTests, MapsEsst4bParametersAndCouplesToGensal)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_gensal.dyr"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_esst4b.dyr"));
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = bus->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    auto* exciter = dynamic_cast<griddyn::exciters::ExciterESST4B*>(generator->find("exciter"));
+    ASSERT_NE(exciter, nullptr);
+    const std::pair<std::string_view, double> expected[]{{"tr", 0.021},
+                                                         {"kpr", 10.2},
+                                                         {"kir", 2.3},
+                                                         {"vrmax", 99.0},
+                                                         {"vrmin", -99.0},
+                                                         {"ta", 0.104},
+                                                         {"kpm", 2.5},
+                                                         {"kim", 3.6},
+                                                         {"vmmax", 99.0},
+                                                         {"vmmin", -99.0},
+                                                         {"kg", 0.107},
+                                                         {"kp", 3.68},
+                                                         {"ki", 0.439},
+                                                         {"vbmax", 20.0},
+                                                         {"kc", 0.011},
+                                                         {"xl", 0.0099},
+                                                         {"thetap", 3.34}};
+    for (const auto& [name, value] : expected) {
+        EXPECT_DOUBLE_EQ(exciter->get(name), value) << name;
+    }
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(AndesDyrReaderTests, MapsGgov1ParametersInPsseDyrOrder)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_ggov1.dyr"));
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = bus->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    auto* governor = dynamic_cast<griddyn::governors::GovernorGgov1*>(generator->find("governor"));
+    ASSERT_NE(governor, nullptr);
+    const std::pair<std::string_view, double> expected[]{
+        {"rselect", 1.0},  {"fswitch", 0.0}, {"r", 0.041},   {"tpelec", 0.22}, {"maxerr", 0.08},
+        {"minerr", -0.07}, {"kpgov", 9.3},   {"kigov", 1.7}, {"kdgov", 0.12},  {"tdgov", 0.31},
+        {"vmax", 2.0},     {"vmin", 0.1},    {"tact", 0.42}, {"kturb", 1.5},   {"wfnl", 0.2},
+        {"tb", 0.13},      {"tc", 0.02},     {"teng", 0.0},  {"tfload", 3.2},  {"kpload", 2.1},
+        {"kiload", 0.68},  {"ldref", 0.4},   {"dm", 0.03},   {"ropen", 0.15},  {"rclose", -0.16},
+        {"kimw", 0.04},    {"aset", 0.11},   {"ka", 10.2},   {"ta", 0.12},     {"trate", 45.0},
+        {"db", 0.001},     {"tsa", 4.1},     {"tsb", 5.2},   {"rup", 98.0},    {"rdown", -97.0}};
+    for (const auto& [name, value] : expected) {
+        EXPECT_DOUBLE_EQ(governor->get(name), value) << name;
+    }
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
 TEST(AndesDyrReaderTests, MapsTgov1ParametersInAndesDyrOrder)

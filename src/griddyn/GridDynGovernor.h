@@ -15,6 +15,7 @@
 namespace griddyn {
 inline constexpr int govOmegaInLocation = 0;
 inline constexpr int govpSetInLocation = 1;
+inline constexpr int govElectricalPowerInLocation = 2;
 /** @brief class defining the interface for a governor
  the governor class is a really basic governor it includes two time constants
 and takes as input the frequency and power setting*/

@@ -11,6 +11,7 @@
 #include "griddyn/Generator.h"
 #include "griddyn/genmodels/GenModelClassical.h"
 #include "griddyn/genmodels/GenModelGENROU.h"
+#include "griddyn/genmodels/GenModelGENSAL.h"
 #include <cmath>
 #include <gtest/gtest.h>
 #include <memory>
@@ -210,6 +211,66 @@ TEST_F(GenModelTests, GenrouFactoryRegistration)
     EXPECT_NE(dynamic_cast<genmodels::GenModelGENROU*>(object.get()), nullptr);
 }
 
+TEST_F(GenModelTests, GensalFactoryInitializationAndEquations)
+{
+    auto factory = CoreObjectFactory::instance();
+    std::unique_ptr<CoreObject> object(factory->createObject("genmodel", "gensal"));
+    auto* model = dynamic_cast<genmodels::GenModelGENSAL*>(object.get());
+    ASSERT_NE(model, nullptr);
+    model->set("h", 4.0);
+    model->set("d", 0.0);
+    model->set("r", 0.0);
+    model->set("xl", 0.12);
+    model->set("xd", 1.41);
+    model->set("xq", 1.35);
+    model->set("xdp", 0.30);
+    model->set("xpp", 0.20);
+    model->set("tdop", 5.0);
+    model->set("tdopp", 0.05);
+    model->set("tqopp", 0.10);
+    model->set("s10", 0.1);
+    model->set("s12", 0.5);
+    model->dynInitializeA(0.0, 0);
+
+    IOdata inputs{1.0, 0.070620673811798, 0.0, 0.0};
+    IOdata desiredOutput{0.8, 0.2};
+    IOdata fieldSet(4, 0.0);
+    model->dynInitializeB(inputs, desiredOutput, fieldSet);
+    inputs[genModelEftInLocation] = fieldSet[genModelEftInLocation];
+    inputs[genModelPmechInLocation] = fieldSet[genModelPmechInLocation];
+    std::vector<double> residual(model->getStates().size(), 0.0);
+    model->residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    for (double value : residual) {
+        EXPECT_NEAR(value, 0.0, 2e-10);
+    }
+
+    std::unique_ptr<CoreObject> cloned(model->clone());
+    ASSERT_NE(dynamic_cast<genmodels::GenModelGENSAL*>(cloned.get()), nullptr);
+}
+
+TEST_F(GenModelTests, GensalAnalyticJacobianMatchesFiniteDifferences)
+{
+    gds = readSimXMLFile(std::string(GENMODEL_TEST_DIRECTORY "test_model1.xml"));
+    auto* generator = gds->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    auto* model = new genmodels::GenModelGENSAL();
+    model->set("h", 4.0);
+    model->set("xl", 0.12);
+    model->set("xd", 1.41);
+    model->set("xq", 1.35);
+    model->set("xdp", 0.30);
+    model->set("xpp", 0.20);
+    model->set("tdop", 5.0);
+    model->set("tdopp", 0.05);
+    model->set("tqopp", 0.10);
+    model->set("s10", 0.1);
+    model->set("s12", 0.5);
+    generator->add(model);
+    ASSERT_EQ(gds->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(gds, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode, false), 0);
+}
+
 TEST_F(GenModelTests, GenrouRejectsInvalidParameters)
 {
     genmodels::GenModelGENROU model;
@@ -351,6 +412,7 @@ TEST_F(GenModelTests, GenrouExposesAndesControllerSignals)
     ASSERT_NE(gen, nullptr);
     auto* model = new genmodels::GenModelGENROU();
     configureKundurGenrou(*model, 0.0, 1.0);
+    model->set("r", 0.02);
     gen->add(model);
     ASSERT_EQ(gds->dynInitialize(), 0);
 
@@ -377,8 +439,11 @@ TEST_F(GenModelTests, GenrouExposesAndesControllerSignals)
     EXPECT_NEAR(signals[static_cast<index_t>(MachineControllerSignal::VQ)],
                 0.6816245176719798,
                 1e-13);
-    EXPECT_NEAR(signals[static_cast<index_t>(MachineControllerSignal::ELECTRICAL_TORQUE)],
+    EXPECT_NEAR(signals[static_cast<index_t>(MachineControllerSignal::ELECTRICAL_POWER)],
                 0.8252642039696805,
+                1e-13);
+    EXPECT_NEAR(signals[static_cast<index_t>(MachineControllerSignal::ELECTRICAL_TORQUE)],
+                0.8387142039696805,
                 1e-13);
     EXPECT_NEAR(signals[static_cast<index_t>(MachineControllerSignal::XADIFD)], 1.8671875, 1e-13);
 }

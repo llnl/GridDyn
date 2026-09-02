@@ -30,6 +30,8 @@ inline constexpr int exciterVdInLocation =
     exciterMachineSignalBase + static_cast<int>(MachineControllerSignal::VD);
 inline constexpr int exciterVqInLocation =
     exciterMachineSignalBase + static_cast<int>(MachineControllerSignal::VQ);
+inline constexpr int exciterElectricalPowerInLocation =
+    exciterMachineSignalBase + static_cast<int>(MachineControllerSignal::ELECTRICAL_POWER);
 inline constexpr int exciterElectricalTorqueInLocation =
     exciterMachineSignalBase + static_cast<int>(MachineControllerSignal::ELECTRICAL_TORQUE);
 inline constexpr int exciterXadIfdInLocation =

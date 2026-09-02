@@ -15,8 +15,9 @@ namespace griddyn {
  *
  * Values use the generator model's machine base and GridDyn's established dq
  * convention.  For GENROU, positive Id and Vd are the negatives of the ANDES
- * Id and vd convention; Iq and Vq have the same sign.  XadIfd and electrical
- * torque are scalar machine-base per-unit quantities. GENROU supplies its
+ * Id and vd convention; Iq and Vq have the same sign. Terminal electrical
+ * power, air-gap electrical torque, and XadIfd are scalar machine-base
+ * per-unit quantities. GENROU supplies its
  * full-order XadIfd equation. Reduced-order synchronous models use their
  * transient q-axis state where available; the classical model uses excitation
  * voltage as a coupled field-current proxy because it has no field-winding
@@ -27,6 +28,7 @@ enum class MachineControllerSignal : index_t {
     IQ,
     VD,
     VQ,
+    ELECTRICAL_POWER,
     ELECTRICAL_TORQUE,
     XADIFD,
     COUNT,

@@ -11,10 +11,14 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Generator.h"
 #include "griddyn/exciters/ExciterESST3A.h"
+#include "griddyn/exciters/ExciterESST4B.h"
 #include "griddyn/exciters/ExciterEXAC1.h"
 #include "griddyn/exciters/ExciterEXAC4.h"
 #include "griddyn/exciters/ExciterEXST1.h"
+#include "griddyn/exciters/StaticExciterRectifier.h"
+#include "griddyn/genmodels/GenModelGENSAL.h"
 #include "solvers/SolverMode.hpp"
+#include <cmath>
 #include <gtest/gtest.h>
 #include <map>
 #include <memory>
@@ -88,8 +92,8 @@ void verifyStabilityCase(ExciterTests& fixture,
 
     for (const auto& exciterName : exciterList) {
         if (exciterName.starts_with("fmi") || (exciterName == "esst3a") ||
-            (exciterName == "exst1") || (exciterName == "exac1") || (exciterName == "exac2") ||
-            (exciterName == "exac4")) {
+            (exciterName == "esst4b") || (exciterName == "exst1") || (exciterName == "exac1") ||
+            (exciterName == "exac2") || (exciterName == "exac4")) {
             continue;
         }
         if (std::find(skippedExcters.begin(), skippedExcters.end(), exciterName) !=
@@ -205,6 +209,150 @@ TEST(ExciterModelTests, Esst3aMatchesAndesPerturbedEquations)
     std::vector<double> residual(state.size(), 0.0);
     exciter.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
     EXPECT_NEAR(residual[0], 0.0446694541104898, 1e-12);
+}
+
+TEST(ExciterModelTests, Esst4bFactoryInitializationAndPerturbedEquations)
+{
+    auto factory = CoreObjectFactory::instance();
+    std::unique_ptr<CoreObject> object(factory->createObject("exciter", "esst4b"));
+    auto* exciter = dynamic_cast<exciters::ExciterESST4B*>(object.get());
+    ASSERT_NE(exciter, nullptr);
+    exciter->set("tr", 0.02);
+    exciter->set("kpr", 10.0);
+    exciter->set("kir", 2.0);
+    exciter->set("vrmax", 99.0);
+    exciter->set("vrmin", -99.0);
+    exciter->set("ta", 0.1);
+    exciter->set("kpm", 2.0);
+    exciter->set("kim", 3.0);
+    exciter->set("vmmax", 99.0);
+    exciter->set("vmmin", -99.0);
+    exciter->set("kg", 0.1);
+    exciter->set("kp", 3.67);
+    exciter->set("ki", 435.0 / 1000.0);
+    exciter->set("vbmax", 20.0);
+    exciter->set("kc", 0.01);
+    exciter->set("xl", 0.0098);
+    exciter->set("thetap", 3.33);
+    exciter->dynInitializeA(0.0, 0);
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.01;
+    inputs[exciterIdInLocation] = -0.65;
+    inputs[exciterIqInLocation] = 0.5;
+    inputs[exciterVdInLocation] = -0.3;
+    inputs[exciterVqInLocation] = 0.95;
+    inputs[exciterXadIfdInLocation] = 1.1;
+    IOdata fieldSet(4, 0.0);
+    exciter->dynInitializeB(inputs, {2.0}, fieldSet);
+
+    std::vector<double> state{2.1, 1.02, 0.5, 0.4, 0.3};
+    std::vector<double> dstate(state.size(), 0.0);
+    exciter->setState(0.0, state.data(), dstate.data(), cLocalSolverMode);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVssInLocation] = 0.01;
+    std::vector<double> derivative(state.size(), 0.0);
+    exciter->derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[1], -1.0, 1e-12);
+    EXPECT_NEAR(derivative[2], 0.0, 1e-12);
+    EXPECT_NEAR(derivative[3], 1.0, 1e-12);
+    EXPECT_NEAR(derivative[4], 0.57, 1e-12);
+
+    std::unique_ptr<CoreObject> cloned(exciter->clone());
+    auto* clone = dynamic_cast<exciters::ExciterESST4B*>(cloned.get());
+    ASSERT_NE(clone, nullptr);
+    EXPECT_DOUBLE_EQ(clone->get("kpr"), 10.0);
+}
+
+TEST(ExciterModelTests, StaticRectifierMatchesOpenIpslPiecewiseCurve)
+{
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVqInLocation] = 1.0;
+    const auto evaluate = [&inputs](double normalizedCurrent) {
+        inputs[exciterXadIfdInLocation] = normalizedCurrent;
+        return exciters::detail::computeRectifierData(inputs, 1.0, 0.0, 1.0, 0.0, 0.0, 10.0);
+    };
+
+    auto rectifier = evaluate(0.0);
+    EXPECT_DOUBLE_EQ(rectifier.voltage, 1.0);
+    EXPECT_DOUBLE_EQ(rectifier.derivatives[4], 0.0);
+    rectifier = evaluate(0.2);
+    EXPECT_NEAR(rectifier.voltage, 1.0 - ((577.0 / 1000.0) * 0.2), 1e-14);
+    EXPECT_NEAR(rectifier.derivatives[4], -(577.0 / 1000.0), 1e-14);
+    rectifier = evaluate(0.5);
+    EXPECT_NEAR(rectifier.voltage, std::sqrt(0.5), 1e-14);
+    rectifier = evaluate(0.8);
+    EXPECT_NEAR(rectifier.voltage, (1732.0 / 1000.0) * 0.2, 1e-14);
+    rectifier = evaluate(1.1);
+    EXPECT_DOUBLE_EQ(rectifier.voltage, 0.0);
+}
+
+TEST_F(ExciterTests, Esst4bWithGenrouHasConsistentResidualAndJacobian)
+{
+    gds = readSimXMLFile(std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability.xml"));
+    auto* generator = gds->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    auto* machine = new genmodels::GenModelGENSAL();
+    machine->set("h", 4.0);
+    machine->set("xl", 0.12);
+    machine->set("xd", 1.41);
+    machine->set("xq", 1.35);
+    machine->set("xdp", 0.30);
+    machine->set("xpp", 0.20);
+    machine->set("tdop", 5.0);
+    machine->set("tdopp", 0.05);
+    machine->set("tqopp", 0.10);
+    generator->add(machine);
+    auto* exciter = new exciters::ExciterESST4B();
+    exciter->set("vrmax", 99.0);
+    exciter->set("vrmin", -99.0);
+    exciter->set("vmmax", 99.0);
+    exciter->set("vmmin", -99.0);
+    generator->add(exciter);
+    ASSERT_EQ(gds->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(gds, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode, false), 0);
+}
+
+TEST(ExciterModelTests, Esst4bUsesOpenIpslBoundedIntegratorStates)
+{
+    exciters::ExciterESST4B exciter;
+    exciter.set("tr", 0.1);
+    exciter.set("kpr", 10.0);
+    exciter.set("kir", 2.0);
+    exciter.set("vrmax", 1.0);
+    exciter.set("vrmin", -1.0);
+    exciter.set("ta", 0.1);
+    exciter.set("kpm", 2.0);
+    exciter.set("kim", 3.0);
+    exciter.set("vmmax", 1.0);
+    exciter.set("vmmin", -1.0);
+    exciter.set("kg", 0.1);
+    exciter.dynInitializeA(0.0, 0);
+
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVqInLocation] = 1.0;
+    IOdata fieldSet(4, 0.0);
+    exciter.dynInitializeB(inputs, {1.0}, fieldSet);
+    inputs[exciterVoltageInLocation] = 0.99;
+    // State order is [Efd, Vmeas, xR, VA, xM]. At the positive integrator
+    // bounds, outward error must be blocked even though neither total PI
+    // output has reached its own output limit.
+    std::vector<double> state{1.0, 0.99, 0.1, 0.2, 0.5};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    std::vector<double> derivative(state.size(), 0.0);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(derivative[2], 0.0);
+    EXPECT_DOUBLE_EQ(derivative[4], 0.0);
+
+    // An inward error releases both bounded integrators.
+    state[1] = 1.01;
+    state[3] = 0.0;
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[2], -0.02, 1e-14);
+    EXPECT_NEAR(derivative[4], -0.3, 1e-14);
 }
 
 TEST(ExciterModelTests, Exst1MatchesAndesInitializationAndPerturbedEquations)
@@ -635,7 +783,8 @@ TEST_F(ExciterTests, ExciterTest2AlgDiffTests)
     // exclist.insert(exclist.begin(), "none");
     for (auto& excname : exclist) {
         if (excname.starts_with("fmi") || (excname == "esst3a") || (excname == "exst1") ||
-            (excname == "exac1") || (excname == "exac2") || (excname == "exac4")) {
+            (excname == "esst4b") || (excname == "exac1") || (excname == "exac2") ||
+            (excname == "exac4")) {
             continue;
         }
         gds = readSimXMLFile(fileName);
@@ -683,7 +832,8 @@ TEST_F(ExciterTests, ExciterAlgDiffJacobianTests)
     // exclist.insert(exclist.begin(), "none");
     for (auto& excname : exclist) {
         if (excname.starts_with("fmi") || (excname == "esst3a") || (excname == "exst1") ||
-            (excname == "exac1") || (excname == "exac2") || (excname == "exac4")) {
+            (excname == "esst4b") || (excname == "exac1") || (excname == "exac2") ||
+            (excname == "exac4")) {
             continue;
         }
         gds = readSimXMLFile(fileName);

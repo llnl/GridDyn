@@ -17,6 +17,9 @@
 #include "griddyn/exciters/ExciterEXAC2.h"
 #include "griddyn/exciters/ExciterEXAC4.h"
 #include "griddyn/exciters/ExciterEXST1.h"
+#include "griddyn/exciters/ExciterDC1A.h"
+#include "griddyn/exciters/ExciterDC2A.h"
+#include "griddyn/exciters/ExciterIEEEtype1.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/genmodels/GenModelClassical.h"
 #include "griddyn/genmodels/GenModelGENROU.h"
@@ -278,6 +281,36 @@ TEST(AndesDyrReaderTests, MapsGensalParametersInPsseDyrOrder)
     ASSERT_EQ(simulation->dynInitialize(), 0);
     EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(AndesDyrReaderTests, MapsCanonicalDcAndTypeOneExciters)
+{
+    const std::array<std::pair<std::string_view, std::string_view>, 4> records{{
+        {"ieee14_esdc1a.dyr", "esdc1a"},
+        {"ieee14_esdc2a.dyr", "esdc2a"},
+        {"ieee14_exdc2.dyr", "exdc2"},
+        {"ieee14_ieeet1.dyr", "ieeet1"},
+    }};
+    for (const auto& [record, expectedName] : records) {
+        auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+        griddyn::loadFile(simulation.get(), makeAndesTestPath(record));
+        auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+        ASSERT_NE(bus, nullptr);
+        auto* generator = bus->getGen(0);
+        ASSERT_NE(generator, nullptr);
+        auto* exciter = generator->find("exciter");
+        ASSERT_NE(exciter, nullptr) << record;
+        if (expectedName == "esdc1a") {
+            EXPECT_NE(dynamic_cast<griddyn::exciters::ExciterDC1A*>(exciter), nullptr);
+        } else if (expectedName == "ieeet1") {
+            EXPECT_NE(dynamic_cast<griddyn::exciters::ExciterIEEEtype1*>(exciter), nullptr);
+        } else {
+            EXPECT_NE(dynamic_cast<griddyn::exciters::ExciterDC2A*>(exciter), nullptr);
+        }
+        EXPECT_DOUBLE_EQ(exciter->get("tr"), 0.1);
+        EXPECT_DOUBLE_EQ(exciter->get("se2"), 0.2);
+    }
 }
 
 TEST(AndesDyrReaderTests, MapsEsst4bParametersAndCouplesToGensal)

@@ -12,8 +12,10 @@ namespace utilities {
 /** @brief Class implementing several saturation characteristics.
  *
  * @details Saturation points supplied with setParam(double, double) are the
- * values at inputs 1.0 and 1.2. The cutoff-scaled-quadratic characteristic is
- * the form used by PSS/E synchronous-machine models such as GENROU:
+ * values at inputs 1.0 and 1.2. The cutoff-quadratic characteristic is the
+ * form used by ANDES ExcQuadSat exciter models. The cutoff-scaled-quadratic
+ * characteristic is the form used by PSS/E synchronous-machine models such
+ * as GENROU:
  * \f[
  * S(x)=\begin{cases}
  * 0,&x<A,\\
@@ -30,6 +32,7 @@ class Saturation {
     enum class SaturationType {
         NONE,
         QUADRATIC,
+        CUTOFF_QUADRATIC,
         SCALED_QUADRATIC,
         CUTOFF_SCALED_QUADRATIC,
         EXPONENTIAL,

@@ -67,5 +67,6 @@ class ExciterDC1A: public ExciterIEEEtype1 {
                                int refLoc,
                                double cj,
                                MatrixData<double>& matrixDataValue);
+    double measuredVoltage(const IOdata& inputs, const double state[]) const;
 };
 }  // namespace griddyn::exciters

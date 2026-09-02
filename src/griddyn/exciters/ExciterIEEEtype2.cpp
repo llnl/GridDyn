@@ -15,7 +15,12 @@
 #include <string>
 
 namespace griddyn::exciters {
-ExciterIEEEtype2::ExciterIEEEtype2(const std::string& objName): ExciterIEEEtype1(objName) {}
+ExciterIEEEtype2::ExciterIEEEtype2(const std::string& objName): ExciterIEEEtype1(objName)
+{
+    // Type 2 retains its legacy four-state formulation.
+    Tr = 0.0;
+    Ka = 20;
+}
 
 // cloning function
 CoreObject* ExciterIEEEtype2::clone(CoreObject* obj) const

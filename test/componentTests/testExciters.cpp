@@ -15,9 +15,13 @@
 #include "griddyn/exciters/ExciterEXAC1.h"
 #include "griddyn/exciters/ExciterEXAC4.h"
 #include "griddyn/exciters/ExciterEXST1.h"
+#include "griddyn/exciters/ExciterDC1A.h"
+#include "griddyn/exciters/ExciterDC2A.h"
+#include "griddyn/exciters/ExciterIEEEtype1.h"
 #include "griddyn/exciters/StaticExciterRectifier.h"
 #include "griddyn/genmodels/GenModelGENSAL.h"
 #include "solvers/SolverMode.hpp"
+#include <array>
 #include <cmath>
 #include <gtest/gtest.h>
 #include <map>
@@ -472,6 +476,62 @@ TEST(ExciterModelTests, Exac1InitializesCorrectedTransducerAndAntiWindup)
     std::vector<double> roots(1, 0.0);
     exciter.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
     EXPECT_LT(roots[0], 0.0);
+}
+
+TEST(ExciterModelTests, Ieeet1UsesAndesTransducerAndQuadraticSaturation)
+{
+    exciters::ExciterIEEEtype1 exciter;
+    exciter.set("tr", 0.1);
+    exciter.set("ka", 10.0);
+    exciter.set("ta", 0.1);
+    exciter.set("te", 0.5);
+    exciter.set("kf", 0.1);
+    exciter.set("tf", 1.0);
+    exciter.set("ke", 1.0);
+    exciter.set("e1", 1.0);
+    exciter.set("se1", 0.1);
+    exciter.set("e2", 2.0);
+    exciter.set("se2", 0.2);
+    exciter.set("vrmax", 5.0);
+    exciter.set("vrmin", -5.0);
+    exciter.dynInitializeA(0.0, 0);
+
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.0;
+    IOdata fieldSet(2, 0.0);
+    exciter.dynInitializeB(inputs, {0.4}, fieldSet);
+    ASSERT_EQ(exciter.getStates().size(), 4U);
+    EXPECT_DOUBLE_EQ(exciter.getStates()[3], 1.0);
+
+    std::vector<double> state{0.7, 1.0, 0.05, 0.98};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    std::vector<double> derivative(state.size(), 0.0);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    // ANDES ExcQuadSat gives S_e=0.1 E_fd^2 for these two points.
+    EXPECT_NEAR(derivative[0], 0.502, 1e-12);
+    EXPECT_NEAR(derivative[1], -5.84, 1e-12);
+    EXPECT_NEAR(derivative[3], 0.2, 1e-12);
+}
+
+TEST(ExciterModelTests, CanonicalDcExciterFactoriesSupportVoltageTransducers)
+{
+    auto factory = CoreObjectFactory::instance();
+    const std::array<std::string, 3> names{"esdc1a", "esdc2a", "exdc2"};
+    for (const auto& name : names) {
+        std::unique_ptr<CoreObject> object(factory->createObject("exciter", name));
+        ASSERT_NE(object, nullptr) << name;
+        object->set("tr", 0.1);
+        object->set("e1", 1.0);
+        object->set("se1", 0.1);
+        object->set("e2", 2.0);
+        object->set("se2", 0.2);
+        auto* exciter = dynamic_cast<Exciter*>(object.get());
+        ASSERT_NE(exciter, nullptr);
+        exciter->dynInitializeA(0.0, 0);
+        EXPECT_EQ(exciter->localStateNames().back(), "vmeas");
+    }
 }
 
 TEST(ExciterModelTests, Exac1ZeroTrBypassesVoltageMeasurementState)

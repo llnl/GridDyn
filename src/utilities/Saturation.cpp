@@ -67,6 +67,8 @@ void Saturation::setType(const std::string& stype)
         type = SaturationType::NONE;
     } else if (stype == "quadratic") {
         type = SaturationType::QUADRATIC;
+    } else if (stype == "cutoff_quadratic") {
+        type = SaturationType::CUTOFF_QUADRATIC;
     } else if (stype == "scaled_quadratic") {
         type = SaturationType::SCALED_QUADRATIC;
     } else if ((stype == "cutoff_scaled_quadratic") || (stype == "clamped_scaled_quadratic")) {
@@ -97,6 +99,24 @@ void Saturation::setParam(double firstInput,
             const double ssv = sqrt(firstSaturation / secondSaturation);
             A = -(secondInput * ssv - firstInput) / (firstInput - ssv);
             B = firstSaturation / ((firstInput - A) * (firstInput - A));
+        } break;
+        case SaturationType::CUTOFF_QUADRATIC: {
+            if ((firstInput < 0.0) || (secondInput <= 0.0) || (firstSaturation < 0.0) ||
+                (secondSaturation <= 0.0)) {
+                A = 0.0;
+                B = 0.0;
+                break;
+            }
+            const double ratio = sqrt(firstSaturation / secondSaturation);
+            const double fitDenominator = 1.0 - ratio;
+            if (std::abs(fitDenominator) < 1e-12) {
+                A = 0.0;
+                B = 0.0;
+                break;
+            }
+            A = (firstInput - ratio * secondInput) / fitDenominator;
+            const double distance = secondInput - A;
+            B = (std::abs(distance) < 1e-12) ? 0.0 : secondSaturation / (distance * distance);
         } break;
         case SaturationType::SCALED_QUADRATIC:
         case SaturationType::CUTOFF_SCALED_QUADRATIC: {
@@ -171,6 +191,7 @@ double Saturation::inv(double val) const
     double ret = 0.5;
     switch (type) {
         case SaturationType::QUADRATIC:
+        case SaturationType::CUTOFF_QUADRATIC:
             ret = sqrt(val / B) + A;
             break;
         case SaturationType::SCALED_QUADRATIC:
@@ -211,6 +232,24 @@ void Saturation::computeParam()
             A = -(1.2 * ssv - 1.0) / fitDenominator;
             const double distance = 1.0 - A;
             B = (std::abs(distance) < 1e-12) ? 0.0 : s10 / (distance * distance);
+            break;
+        }
+        case SaturationType::CUTOFF_QUADRATIC: {
+            if ((s10 <= 0.0) || (s12 <= 0.0)) {
+                A = 0.0;
+                B = 0.0;
+                break;
+            }
+            const double ratio = sqrt(s10 / s12);
+            const double fitDenominator = 1.0 - ratio;
+            if (std::abs(fitDenominator) < 1e-12) {
+                A = 0.0;
+                B = 0.0;
+                break;
+            }
+            A = (1.0 - 1.2 * ratio) / fitDenominator;
+            const double distance = 1.2 - A;
+            B = (std::abs(distance) < 1e-12) ? 0.0 : s12 / (distance * distance);
             break;
         }
         case SaturationType::SCALED_QUADRATIC:
@@ -259,6 +298,14 @@ void Saturation::loadFunctions()
         case SaturationType::QUADRATIC:
             satFunc = [this](double val) { return (B * (val - A) * (val - A)); };
             derivFunc = [this](double val) { return (2 * B * (val - A)); };
+            break;
+        case SaturationType::CUTOFF_QUADRATIC:
+            satFunc = [this](double val) {
+                return ((B == 0.0) || (val < A)) ? 0.0 : (B * (val - A) * (val - A));
+            };
+            derivFunc = [this](double val) {
+                return ((B == 0.0) || (val < A)) ? 0.0 : (2 * B * (val - A));
+            };
             break;
         case SaturationType::SCALED_QUADRATIC:
             satFunc = [this](double val) {

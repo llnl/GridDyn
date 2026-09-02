@@ -120,8 +120,7 @@ void ExciterIEEEtype1::derivative(const IOdata& inputs,
         derivatives[1] = 0;
     } else {
         derivatives[1] =
-            (-state[1] + Ka * state[2] - state[0] * Ka * Kf / Tf +
-             Ka * (Vref + vBias - voltage)) /
+            (-state[1] + Ka * state[2] - state[0] * Ka * Kf / Tf + Ka * (Vref + vBias - voltage)) /
             Ta;
     }
     derivatives[2] = (-state[2] + state[0] * Kf / Tf) / Tf;

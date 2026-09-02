@@ -29,6 +29,7 @@ class ExciterIEEEtype1: public Exciter {
     // saturation path. IEEET1 and the DC models use the two-point curve above.
     model_parameter Aex = 0.0;
     model_parameter Bex = 0.0;
+
   public:
     explicit ExciterIEEEtype1(const std::string& objName = "exciterIEEEtype1_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
@@ -40,7 +41,8 @@ class ExciterIEEEtype1: public Exciter {
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-    virtual double get(std::string_view param, units::unit unitType = units::defunit) const override;
+    virtual double get(std::string_view param,
+                       units::unit unitType = units::defunit) const override;
 
     virtual stringVec localStateNames() const override;
 

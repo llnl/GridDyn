@@ -49,7 +49,7 @@ namespace exciters {
         static ChildTypeFactory<ExciterEXAC4, Exciter> gfeExac4("exciter", "exac4");  // NOLINT
         static ChildTypeFactory<ExciterEXST1, Exciter> gfeExst1("exciter", "exst1");  // NOLINT
         static ChildTypeFactory<ExciterIEEEtype1, Exciter> gfeType1("exciter", "type1");  // NOLINT
-        static ChildTypeFactory<ExciterIEEEtype1, Exciter> gfeIeeet1("exciter", "ieeet1");  // NOLINT
+        ChildTypeFactory<ExciterIEEEtype1, Exciter> gFeIeeet1("exciter", "ieeet1");  // NOLINT
         static TypeFactory<Exciter> gfeDefault(  // NOLINT
             "exciter",
             stringVec{"basic", "fast"},

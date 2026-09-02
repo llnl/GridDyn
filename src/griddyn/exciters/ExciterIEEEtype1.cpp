@@ -19,11 +19,8 @@ namespace griddyn::exciters {
 ExciterIEEEtype1::ExciterIEEEtype1(const std::string& objName): Exciter(objName)
 {
     // default values that are different from inherited default values
-    Ka = 5;
+    Ka = 20;
     Ta = 0.04;
-    Kf = 0.1;
-    Vrmax = 7.3;
-    Vrmin = -7.3;
 
     limitState = 1;
 }
@@ -66,28 +63,28 @@ void ExciterIEEEtype1::dynObjectInitializeB(const IOdata& inputs,
     Exciter::dynObjectInitializeB(inputs,
                                   desiredOutput,
                                   fieldSet);  // this will dynInitializeB the field state if need be
-    double* gs = m_state.data();
-    gs[1] = saturationFeedback(gs[0]);  // Vr
-    gs[2] = gs[0] * Kf / Tf;  // Rf
+    double* stateValues = m_state.data();
+    stateValues[1] = saturationFeedback(stateValues[0]);  // Vr
+    stateValues[2] = (stateValues[0] * Kf) / Tf;  // Rf
     if (Tr > 0.0) {
-        gs[3] = inputs[VOLTAGE_IN_LOCATION];
+        stateValues[3] = inputs[VOLTAGE_IN_LOCATION];
     }
-    vBias = inputs[VOLTAGE_IN_LOCATION] + gs[1] / Ka - Vref;
+    vBias = inputs[VOLTAGE_IN_LOCATION] + (stateValues[1] / Ka) - Vref;
     fieldSet[1] = Vref;
     std::fill(m_dstate_dt.begin(), m_dstate_dt.end(), 0.0);
 }
 
 // residual
 void ExciterIEEEtype1::residual(const IOdata& inputs,
-                                const StateData& sD,
+                                const StateData& stateData,
                                 double resid[],
                                 const SolverMode& sMode)
 {
     if (!hasDifferential(sMode)) {
         return;
     }
-    derivative(inputs, sD, resid, sMode);
-    const auto locations = offsets.getLocations(sD, resid, sMode, this);
+    derivative(inputs, stateData, resid, sMode);
+    const auto locations = offsets.getLocations(stateData, resid, sMode, this);
     for (index_t state = 0; state < locations.diffSize; ++state) {
         locations.destDiffLoc[state] -= locations.dstateLoc[state];
     }
@@ -96,22 +93,22 @@ void ExciterIEEEtype1::residual(const IOdata& inputs,
 void ExciterIEEEtype1::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
-    double dt = time - prevTime;  // convert from a CoreTime
-    m_state[0] += dt * m_dstate_dt[0];
-    m_state[1] += dt * m_dstate_dt[1];
-    m_state[2] += dt * m_dstate_dt[2];
+    const double timeStep = time - prevTime;  // convert from a CoreTime
+    m_state[0] += timeStep * m_dstate_dt[0];
+    m_state[1] += timeStep * m_dstate_dt[1];
+    m_state[2] += timeStep * m_dstate_dt[2];
     if (Tr > 0.0) {
-        m_state[3] += dt * m_dstate_dt[3];
+        m_state[3] += timeStep * m_dstate_dt[3];
     }
     prevTime = time;
 }
 
 void ExciterIEEEtype1::derivative(const IOdata& inputs,
-                                  const StateData& sD,
+                                  const StateData& stateData,
                                   double deriv[],
                                   const SolverMode& sMode)
 {
-    auto locations = offsets.getLocations(sD, deriv, sMode, this);
+    auto locations = offsets.getLocations(stateData, deriv, sMode, this);
     const double* state = locations.diffStateLoc;
     double* derivatives = locations.destDiffLoc;
     const double voltage = measuredVoltage(inputs, state);
@@ -120,11 +117,11 @@ void ExciterIEEEtype1::derivative(const IOdata& inputs,
         derivatives[1] = 0;
     } else {
         derivatives[1] =
-            (-state[1] + Ka * state[2] - state[0] * Ka * Kf / Tf +
-             Ka * (Vref + vBias - voltage)) /
+            (-state[1] + (Ka * state[2]) - ((state[0] * Ka * Kf) / Tf) +
+             (Ka * (Vref + vBias - voltage))) /
             Ta;
     }
-    derivatives[2] = (-state[2] + state[0] * Kf / Tf) / Tf;
+    derivatives[2] = (-state[2] + ((state[0] * Kf) / Tf)) / Tf;
     if (Tr > 0.0) {
         derivatives[3] = (inputs[VOLTAGE_IN_LOCATION] - state[3]) / Tr;
     }
@@ -132,57 +129,61 @@ void ExciterIEEEtype1::derivative(const IOdata& inputs,
 
 // Jacobian
 void ExciterIEEEtype1::jacobianElements(const IOdata& /*inputs*/,
-                                        const StateData& sD,
-                                        MatrixData<double>& md,
+                                        const StateData& stateData,
+                                        MatrixData<double>& matrixData,
                                         const IOlocs& inputLocs,
                                         const SolverMode& sMode)
 {
     if (!hasDifferential(sMode)) {
         return;
     }
-    auto offset = offsets.getDiffOffset(sMode);
+    const auto offset = offsets.getDiffOffset(sMode);
 
-    md.assign(offset, offset, -saturationDerivative(sD.state[offset]) / Te - sD.cj);
-    md.assign(offset, offset + 1, 1.0 / Te);
+    matrixData.assign(offset,
+                      offset,
+                      (-(saturationDerivative(stateData.state[offset]) / Te)) - stateData.cj);
+    matrixData.assign(offset, offset + 1, 1.0 / Te);
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
-        md.assign(offset + 1, offset + 1, sD.cj);
+        matrixData.assign(offset + 1, offset + 1, stateData.cj);
     } else {
-        md.assign(offset + 1, offset, -Ka * Kf / (Tf * Ta));
-        md.assign(offset + 1, offset + 1, -1.0 / Ta - sD.cj);
-        md.assign(offset + 1, offset + 2, Ka / Ta);
+        matrixData.assign(offset + 1, offset, (-Ka * Kf) / (Tf * Ta));
+        matrixData.assign(offset + 1, offset + 1, (-1.0 / Ta) - stateData.cj);
+        matrixData.assign(offset + 1, offset + 2, Ka / Ta);
         if (Tr > 0.0) {
-            md.assign(offset + 1, offset + 3, -Ka / Ta);
+            matrixData.assign(offset + 1, offset + 3, -Ka / Ta);
         } else {
-            md.assignCheckCol(offset + 1, inputLocs[VOLTAGE_IN_LOCATION], -Ka / Ta);
+            matrixData.assignCheckCol(offset + 1, inputLocs[VOLTAGE_IN_LOCATION], -Ka / Ta);
         }
     }
 
     // Rf
-    md.assign(offset + 2, offset, Kf / (Tf * Tf));
-    md.assign(offset + 2, offset + 2, -1.0 / Tf - sD.cj);
+    matrixData.assign(offset + 2, offset, Kf / (Tf * Tf));
+    matrixData.assign(offset + 2, offset + 2, (-1.0 / Tf) - stateData.cj);
     if (Tr > 0.0) {
-        md.assign(offset + 3, offset + 3, -1.0 / Tr - sD.cj);
-        md.assignCheckCol(offset + 3, inputLocs[VOLTAGE_IN_LOCATION], 1.0 / Tr);
+        matrixData.assign(offset + 3, offset + 3, (-1.0 / Tr) - stateData.cj);
+        matrixData.assignCheckCol(offset + 3, inputLocs[VOLTAGE_IN_LOCATION], 1.0 / Tr);
     }
 }
 
 void ExciterIEEEtype1::rootTest(const IOdata& inputs,
-                                const StateData& sD,
+                                const StateData& stateData,
                                 double roots[],
                                 const SolverMode& sMode)
 {
-    auto offset = offsets.getDiffOffset(sMode);
-    auto rootOffset = offsets.getRootOffset(sMode);
-    const double* es = sD.state + offset;
+    const auto offset = offsets.getDiffOffset(sMode);
+    const auto rootOffset = offsets.getRootOffset(sMode);
+    const double* exciterState = stateData.state + offset;
 
     // printf("t=%f V=%f\n", time, inputs[VOLTAGE_IN_LOCATION]);
 
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
-        roots[rootOffset] = es[2] - es[0] * Kf / Tf + (Vref + vBias - measuredVoltage(inputs, es)) -
-            es[1] / Ka + 0.001 * es[1] / Ka / Ta;
+        roots[rootOffset] = exciterState[2] - ((exciterState[0] * Kf) / Tf) +
+            (Vref + vBias - measuredVoltage(inputs, exciterState)) - (exciterState[1] / Ka) +
+            ((0.001 * exciterState[1]) / (Ka * Ta));
     } else {
-        roots[rootOffset] = std::min(regulatorUpperLimit() - es[1], es[1] - Vrmin) + 0.00001;
-        if (es[1] >= regulatorUpperLimit()) {
+        roots[rootOffset] =
+            std::min(regulatorUpperLimit() - exciterState[1], exciterState[1] - Vrmin) + 0.00001;
+        if (exciterState[1] >= regulatorUpperLimit()) {
             opFlags.set(TRIGGER_HIGH);
         }
     }
@@ -193,14 +194,14 @@ ChangeCode ExciterIEEEtype1::rootCheck(const IOdata& inputs,
                                        const SolverMode& /*sMode*/,
                                        CheckLevel /*level*/)
 {
-    const double* es = m_state.data();
+    const double* exciterState = m_state.data();
     ChangeCode ret = ChangeCode::NO_CHANGE;
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
-        double test =
-            es[2] - es[0] * Kf / Tf + (Vref + vBias - measuredVoltage(inputs, es)) - es[1] / Ka;
+        const double test = exciterState[2] - ((exciterState[0] * Kf) / Tf) +
+            (Vref + vBias - measuredVoltage(inputs, exciterState)) - (exciterState[1] / Ka);
 
         if (opFlags[TRIGGER_HIGH]) {
-            if (test < -0.001 * es[1] / Ka / Ta) {
+            if (test < ((-0.001 * exciterState[1]) / (Ka * Ta))) {
                 ret = ChangeCode::JACOBIAN_CHANGE;
 
                 logging::debug(this, "root change V={}", inputs[VOLTAGE_IN_LOCATION]);
@@ -209,7 +210,7 @@ ChangeCode ExciterIEEEtype1::rootCheck(const IOdata& inputs,
                 alert(this, JAC_COUNT_INCREASE);
             }
         } else {
-            if (test > -0.001 * es[1] / Ka / Ta) {
+            if (test > ((-0.001 * exciterState[1]) / (Ka * Ta))) {
                 logging::debug(this, "root change V={}", inputs[VOLTAGE_IN_LOCATION]);
                 ret = ChangeCode::JACOBIAN_CHANGE;
                 opFlags.reset(OUTSIDE_VOLTAGE_LIMITS);
@@ -217,7 +218,7 @@ ChangeCode ExciterIEEEtype1::rootCheck(const IOdata& inputs,
             }
         }
     } else {
-        if (es[1] > regulatorUpperLimit() + 0.00001) {
+        if (exciterState[1] > regulatorUpperLimit() + 0.00001) {
             logging::debug(this, "root toggle V={}", inputs[VOLTAGE_IN_LOCATION]);
             opFlags.set(TRIGGER_HIGH);
             opFlags.set(OUTSIDE_VOLTAGE_LIMITS);
@@ -225,7 +226,7 @@ ChangeCode ExciterIEEEtype1::rootCheck(const IOdata& inputs,
             m_dstate_dt[1] = 0.0;
             ret = ChangeCode::JACOBIAN_CHANGE;
             alert(this, JAC_COUNT_DECREASE);
-        } else if (es[1] < Vrmin - 0.00001) {
+        } else if (exciterState[1] < Vrmin - 0.00001) {
             logging::debug(this, "root toggle V={}", inputs[VOLTAGE_IN_LOCATION]);
 
             opFlags.reset(TRIGGER_HIGH);
@@ -246,7 +247,7 @@ stringVec ExciterIEEEtype1::localStateNames() const
 }
 void ExciterIEEEtype1::set(std::string_view param, std::string_view val)
 {
-    return Exciter::set(param, val);
+    Exciter::set(param, val);
 }
 
 // set parameters
@@ -316,7 +317,7 @@ void ExciterIEEEtype1::configureSaturation()
         saturation.setType(utilities::Saturation::SaturationType::NONE);
         return;
     }
-    if ((E1 < 0.0) || (E2 <= 0.0) || (Se1 < 0.0) || (Se2 <= 0.0)) {
+    if ((E1 < 0.0) || (E2 <= 0.0) || (Se1 < 0.0) || (Se2 < 0.0)) {
         throw InvalidParameterValue("IEEE Type 1 saturation points");
     }
     saturation.setType(utilities::Saturation::SaturationType::CUTOFF_QUADRATIC);
@@ -325,7 +326,7 @@ void ExciterIEEEtype1::configureSaturation()
 
 double ExciterIEEEtype1::saturationFeedback(double fieldVoltage) const
 {
-    return Ke * fieldVoltage + saturation(fieldVoltage);
+    return (Ke * fieldVoltage) + saturation(fieldVoltage);
 }
 
 double ExciterIEEEtype1::saturationDerivative(double fieldVoltage) const

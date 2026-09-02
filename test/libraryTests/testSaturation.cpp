@@ -39,7 +39,7 @@ TEST(SaturationTests, CutoffQuadraticMatchesAndesExciterSaturation)
     saturation.setParam(3.0, 0.3, 4.0, 0.8);
 
     const double ratio = std::sqrt(0.3 / 0.8);
-    const double saturationStart = (3.0 - 4.0 * ratio) / (1.0 - ratio);
+    const double saturationStart = (3.0 - (4.0 * ratio)) / (1.0 - ratio);
     EXPECT_DOUBLE_EQ(saturation.compute(0.5 * saturationStart), 0.0);
     EXPECT_DOUBLE_EQ(saturation.deriv(0.5 * saturationStart), 0.0);
     EXPECT_NEAR(saturation.compute(3.0), 0.3, 1e-14);

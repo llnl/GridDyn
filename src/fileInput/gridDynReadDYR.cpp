@@ -246,8 +246,9 @@ namespace {
         auto* gen = bus->getGen(genId - 1);
 
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        const auto modelName = (params[6] > 0.0) ? "esdc1a" : "ieeet1";
         auto* exciterModel = static_cast<Exciter*>(
-            CoreObjectFactory::instance()->createObject("exciter", "esdc1a"));
+            CoreObjectFactory::instance()->createObject("exciter", modelName));
         exciterModel->set("tr", params[3]);
         exciterModel->set("ka", params[4]);
         exciterModel->set("ta", params[5]);

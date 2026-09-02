@@ -285,8 +285,9 @@ TEST(AndesDyrReaderTests, MapsGensalParametersInPsseDyrOrder)
 
 TEST(AndesDyrReaderTests, MapsCanonicalDcAndTypeOneExciters)
 {
-    const std::array<std::pair<std::string_view, std::string_view>, 4> records{{
+    const std::array<std::pair<std::string_view, std::string_view>, 5> records{{
         {"ieee14_esdc1a.dyr", "esdc1a"},
+        {"ieee14_esdc1a_no_tb.dyr", "ieeet1"},
         {"ieee14_esdc2a.dyr", "esdc2a"},
         {"ieee14_exdc2.dyr", "exdc2"},
         {"ieee14_ieeet1.dyr", "ieeet1"},

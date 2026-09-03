@@ -36,6 +36,8 @@ namespace {
     void loadGENROU(CoreObject* parentObject, stringVec& tokens);
     void loadGENSAL(CoreObject* parentObject, stringVec& tokens);
     void loadESDC1A(CoreObject* parentObject, stringVec& tokens);
+    void loadESDC2A(CoreObject* parentObject, stringVec& tokens);
+    void loadIEEET1(CoreObject* parentObject, stringVec& tokens);
     void loadESST3A(CoreObject* parentObject, stringVec& tokens);
     void loadESST4B(CoreObject* parentObject, stringVec& tokens);
     void loadEXST1(CoreObject* parentObject, stringVec& tokens);
@@ -96,6 +98,10 @@ void loadDyr(CoreObject* parentObject,
             loadGENSAL(parentObject, lineTokens);
         } else if (type == "'ESDC1A'") {
             loadESDC1A(parentObject, lineTokens);
+        } else if (type == "'ESDC2A'") {
+            loadESDC2A(parentObject, lineTokens);
+        } else if (type == "'IEEET1'") {
+            loadIEEET1(parentObject, lineTokens);
         } else if (type == "'ESST3A'") {
             loadESST3A(parentObject, lineTokens);
         } else if (type == "'ESST4B'") {
@@ -231,25 +237,23 @@ namespace {
 
     void loadESDC1A(CoreObject* parentObject, stringVec& tokens)
     {
+        if (tokens.size() != 19U) {
+            throw InvalidParameterValue("ESDC1A DYR record must contain 19 fields");
+        }
         const int busId = std::stoi(tokens[0]);
         const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
         const int genId = std::stoi(tokens[2]);
         auto* gen = bus->getGen(genId - 1);
 
-        auto params = gmlc::utilities::str2vector(tokens, kNullVal);
-        Exciter* exciterModel;
-        auto cof = CoreObjectFactory::instance();
-        if (params[6] > 0.0)  // dc1a model must have tb>0 otherwise revert to type1
-        {
-            exciterModel = static_cast<Exciter*>(cof->createObject("exciter", "dc1a"));
-        } else {
-            exciterModel = static_cast<Exciter*>(cof->createObject("exciter", "type1"));
-        }
-        // TODO(phlpt): TR not implemented yet; no voltage compensation implemented.
-        // exciterModel->set("tr", params[3]);
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        const bool hasLeadLag = params[6] > 0.0;
+        const auto* const modelName = hasLeadLag ? "esdc1a" : "ieeet1";
+        auto* exciterModel = static_cast<Exciter*>(
+            CoreObjectFactory::instance()->createObject("exciter", modelName));
+        exciterModel->set("tr", params[3]);
         exciterModel->set("ka", params[4]);
         exciterModel->set("ta", params[5]);
-        if (params[6] > 0) {
+        if (hasLeadLag) {
             exciterModel->set("tb", params[6]);
             exciterModel->set("tc", params[7]);
         }
@@ -259,8 +263,69 @@ namespace {
         exciterModel->set("te", params[11]);
         exciterModel->set("kf", params[12]);
         exciterModel->set("tf", params[13]);
-        // TODO(phlpt): Compute the saturation coefficients to translate appropriately.
+        exciterModel->set("e1", params[15]);
+        exciterModel->set("se1", params[16]);
+        exciterModel->set("e2", params[17]);
+        exciterModel->set("se2", params[18]);
 
+        gen->add(exciterModel);
+    }
+
+    void loadESDC2A(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 19U) {
+            throw InvalidParameterValue("ESDC2A DYR record must contain 19 fields");
+        }
+        const int busId = std::stoi(tokens[0]);
+        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+        const int genId = std::stoi(tokens[2]);
+        auto* gen = bus->getGen(genId - 1);
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* exciterModel =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "esdc2a"));
+        exciterModel->set("tr", params[3]);
+        exciterModel->set("ka", params[4]);
+        exciterModel->set("ta", params[5]);
+        exciterModel->set("tb", params[6]);
+        exciterModel->set("tc", params[7]);
+        exciterModel->set("vrmax", params[8]);
+        exciterModel->set("vrmin", params[9]);
+        exciterModel->set("ke", params[10]);
+        exciterModel->set("te", params[11]);
+        exciterModel->set("kf", params[12]);
+        exciterModel->set("tf", params[13]);
+        exciterModel->set("e1", params[15]);
+        exciterModel->set("se1", params[16]);
+        exciterModel->set("e2", params[17]);
+        exciterModel->set("se2", params[18]);
+        gen->add(exciterModel);
+    }
+
+    void loadIEEET1(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 17U) {
+            throw InvalidParameterValue("IEEET1 DYR record must contain 17 fields");
+        }
+        const int busId = std::stoi(tokens[0]);
+        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+        const int genId = std::stoi(tokens[2]);
+        auto* gen = bus->getGen(genId - 1);
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* exciterModel =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "ieeet1"));
+        exciterModel->set("tr", params[3]);
+        exciterModel->set("ka", params[4]);
+        exciterModel->set("ta", params[5]);
+        exciterModel->set("vrmax", params[6]);
+        exciterModel->set("vrmin", params[7]);
+        exciterModel->set("ke", params[8]);
+        exciterModel->set("te", params[9]);
+        exciterModel->set("kf", params[10]);
+        exciterModel->set("tf", params[11]);
+        exciterModel->set("e1", params[13]);
+        exciterModel->set("se1", params[14]);
+        exciterModel->set("e2", params[15]);
+        exciterModel->set("se2", params[16]);
         gen->add(exciterModel);
     }
 
@@ -458,6 +523,9 @@ namespace {
 
     void loadEXDC2(CoreObject* parentObject, stringVec& tokens)
     {
+        if (tokens.size() != 19U) {
+            throw InvalidParameterValue("EXDC2 DYR record must contain 19 fields");
+        }
         const int busId = std::stoi(tokens[0]);
         const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
         const int genId = std::stoi(tokens[2]);
@@ -466,9 +534,8 @@ namespace {
         auto params = gmlc::utilities::str2vector(tokens, kNullVal);
 
         auto cof = CoreObjectFactory::instance();
-        auto* exciterModel = static_cast<Exciter*>(cof->createObject("exciter", "dc2a"));
-        // TODO(phlpt): TR not implemented yet; no voltage compensation implemented.
-        // exciterModel->set("tr", params[3]);
+        auto* exciterModel = static_cast<Exciter*>(cof->createObject("exciter", "exdc2"));
+        exciterModel->set("tr", params[3]);
         exciterModel->set("ka", params[4]);
         exciterModel->set("ta", params[5]);
         exciterModel->set("tb", params[6]);
@@ -479,7 +546,10 @@ namespace {
         exciterModel->set("te", params[11]);
         exciterModel->set("kf", params[12]);
         exciterModel->set("tf", params[13]);
-        // TODO(phlpt): Compute the saturation coefficients to translate appropriately.
+        exciterModel->set("e1", params[15]);
+        exciterModel->set("se1", params[16]);
+        exciterModel->set("e2", params[17]);
+        exciterModel->set("se2", params[18]);
 
         gen->add(exciterModel);
     }

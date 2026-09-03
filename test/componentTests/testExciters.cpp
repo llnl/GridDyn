@@ -10,14 +10,18 @@
 #include "fileInput/fileInput.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Generator.h"
+#include "griddyn/exciters/ExciterDC1A.h"
+#include "griddyn/exciters/ExciterDC2A.h"
 #include "griddyn/exciters/ExciterESST3A.h"
 #include "griddyn/exciters/ExciterESST4B.h"
 #include "griddyn/exciters/ExciterEXAC1.h"
 #include "griddyn/exciters/ExciterEXAC4.h"
 #include "griddyn/exciters/ExciterEXST1.h"
+#include "griddyn/exciters/ExciterIEEEtype1.h"
 #include "griddyn/exciters/StaticExciterRectifier.h"
 #include "griddyn/genmodels/GenModelGENSAL.h"
 #include "solvers/SolverMode.hpp"
+#include <array>
 #include <cmath>
 #include <gtest/gtest.h>
 #include <map>
@@ -127,6 +131,35 @@ void verifyStabilityCase(ExciterTests& fixture,
             << "Exciter " << exciterName;
         EXPECT_TRUE((voltages[1] > minVoltage1) && (voltages[1] < maxVoltage1))
             << "Exciter " << exciterName;
+    }
+}
+
+void verifyDefaultPsseSaturation(Exciter& exciter,
+                                 const std::array<std::pair<double, double>, 2>& saturationPoints)
+{
+    EXPECT_DOUBLE_EQ(exciter.get("e1"), saturationPoints[0].first);
+    EXPECT_DOUBLE_EQ(exciter.get("se1"), saturationPoints[0].second);
+    EXPECT_DOUBLE_EQ(exciter.get("e2"), saturationPoints[1].first);
+    EXPECT_DOUBLE_EQ(exciter.get("se2"), saturationPoints[1].second);
+    exciter.set("te", 1.0);
+    exciter.dynInitializeA(0.0, 0);
+
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    IOdata fieldSet(4, 0.0);
+    exciter.dynInitializeB(inputs, {1.0}, fieldSet);
+    std::vector<double> state(4, 0.0);
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    std::vector<double> derivative(state.size(), 0.0);
+    const auto expectFieldDerivative = [&](double fieldVoltage, double expectedDerivative) {
+        state[0] = fieldVoltage;
+        exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+        exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+        EXPECT_NEAR(derivative[0], expectedDerivative, 1e-12);
+    };
+    expectFieldDerivative(1.0, -1.0);
+    for (const auto& [fieldVoltage, saturationFactor] : saturationPoints) {
+        expectFieldDerivative(fieldVoltage, -fieldVoltage * (1.0 + saturationFactor));
     }
 }
 
@@ -474,6 +507,71 @@ TEST(ExciterModelTests, Exac1InitializesCorrectedTransducerAndAntiWindup)
     EXPECT_LT(roots[0], 0.0);
 }
 
+TEST(ExciterModelTests, Ieeet1UsesAndesTransducerAndQuadraticSaturation)
+{
+    exciters::ExciterIEEEtype1 exciter;
+    exciter.set("tr", 0.1);
+    exciter.set("ka", 10.0);
+    exciter.set("ta", 0.1);
+    exciter.set("te", 0.5);
+    exciter.set("kf", 0.1);
+    exciter.set("tf", 1.0);
+    exciter.set("ke", 1.0);
+    exciter.set("e1", 1.0);
+    exciter.set("se1", 0.1);
+    exciter.set("e2", 2.0);
+    exciter.set("se2", 0.2);
+    exciter.set("vrmax", 5.0);
+    exciter.set("vrmin", -5.0);
+    exciter.dynInitializeA(0.0, 0);
+
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.0;
+    IOdata fieldSet(2, 0.0);
+    exciter.dynInitializeB(inputs, {0.4}, fieldSet);
+    ASSERT_EQ(exciter.getStates().size(), 4U);
+    EXPECT_DOUBLE_EQ(exciter.getStates()[3], 1.0);
+
+    std::vector<double> state{0.7, 1.0, 0.05, 0.98};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    std::vector<double> derivative(state.size(), 0.0);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    // ANDES ExcQuadSat gives S_e=0.1 E_fd^2 for these two points.
+    EXPECT_NEAR(derivative[0], 0.502, 1e-12);
+    EXPECT_NEAR(derivative[1], -5.84, 1e-12);
+    EXPECT_NEAR(derivative[3], 0.2, 1e-12);
+}
+
+TEST(ExciterModelTests, CanonicalDcExciterFactoriesSupportVoltageTransducers)
+{
+    auto factory = CoreObjectFactory::instance();
+    const std::array<std::string, 3> names{"esdc1a", "esdc2a", "exdc2"};
+    for (const auto& name : names) {
+        std::unique_ptr<CoreObject> object(factory->createObject("exciter", name));
+        ASSERT_NE(object, nullptr) << name;
+        object->set("tr", 0.1);
+        object->set("e1", 1.0);
+        object->set("se1", 0.1);
+        object->set("e2", 2.0);
+        object->set("se2", 0.2);
+        auto* exciter = dynamic_cast<Exciter*>(object.get());
+        ASSERT_NE(exciter, nullptr);
+        exciter->dynInitializeA(0.0, 0);
+        EXPECT_EQ(exciter->localStateNames().back(), "vmeas");
+    }
+}
+
+TEST(ExciterModelTests, DcExciterDefaultsUsePsseTwoPointSaturation)
+{
+    exciters::ExciterDC1A dc1a;
+    verifyDefaultPsseSaturation(dc1a, {{{2.3, 0.1}, {3.1, 0.33}}});
+
+    exciters::ExciterDC2A dc2a;
+    verifyDefaultPsseSaturation(dc2a, {{{2.29, 0.117}, {3.05, 0.279}}});
+}
+
 TEST(ExciterModelTests, Exac1ZeroTrBypassesVoltageMeasurementState)
 {
     exciters::ExciterEXAC1 exciter;
@@ -725,6 +823,9 @@ TEST_F(ExciterTests, BasicStabilityTest1)
         {"basic", {{"ta", 0.2}, {"ka", 11.0}}},
         {"dc1a", {{"ta", 0.1}, {"ka", 6.0}}},
         {"dc2a", {{"ta", 0.1}, {"ka", 6.0}}},
+        {"esdc1a", {{"ta", 0.1}, {"ka", 6.0}}},
+        {"esdc2a", {{"ta", 0.1}, {"ka", 6.0}}},
+        {"exdc2", {{"ta", 0.1}, {"ka", 6.0}}},
     };
 
     const std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability.xml");
@@ -737,6 +838,9 @@ TEST_F(ExciterTests, BasicStabilityTest2)
         {"basic", {{"ta", 0.2}, {"ka", 11.0}}},
         {"dc1a", {{"ta", 0.1}, {"ka", 6.0}}},
         {"dc2a", {{"ta", 0.1}, {"ka", 6.0}}},
+        {"esdc1a", {{"ta", 0.1}, {"ka", 6.0}}},
+        {"esdc2a", {{"ta", 0.1}, {"ka", 6.0}}},
+        {"exdc2", {{"ta", 0.1}, {"ka", 6.0}}},
     };
 
     const std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability2.xml");
@@ -748,10 +852,14 @@ TEST_F(ExciterTests, BasicStabilityTest3)
     static const exciter_parameter_map parameters{
         {"dc1a", {{"ta", 0.1}, {"ka", 6.0}}},
         {"dc2a", {{"ta", 0.3}, {"ka", 6.0}}},
+        {"esdc1a", {{"ta", 0.1}, {"ka", 6.0}}},
+        {"esdc2a", {{"ta", 0.3}, {"ka", 6.0}}},
+        {"exdc2", {{"ta", 0.3}, {"ka", 6.0}}},
     };
 
     const std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability3.xml");
-    verifyStabilityCase(*this, fileName, parameters, 0.98, 1.02, 0.97, 1.02, {"dc1a", "sexs"});
+    verifyStabilityCase(
+        *this, fileName, parameters, 0.98, 1.02, 0.97, 1.02, {"dc1a", "esdc1a", "sexs"});
 }
 
 TEST_F(ExciterTests, BasicStabilityTest4)
@@ -759,10 +867,14 @@ TEST_F(ExciterTests, BasicStabilityTest4)
     static const exciter_parameter_map parameters{
         {"dc1a", {{"ta", 0.1}, {"ka", 6.0}}},
         {"dc2a", {{"ta", 0.3}, {"ka", 6.0}}},
+        {"esdc1a", {{"ta", 0.1}, {"ka", 6.0}}},
+        {"esdc2a", {{"ta", 0.3}, {"ka", 6.0}}},
+        {"exdc2", {{"ta", 0.3}, {"ka", 6.0}}},
     };
 
     const std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability4.xml");
-    verifyStabilityCase(*this, fileName, parameters, 0.98, 1.02, 0.97, 1.02, {"dc1a", "sexs"});
+    verifyStabilityCase(
+        *this, fileName, parameters, 0.98, 1.02, 0.97, 1.02, {"dc1a", "esdc1a", "sexs"});
 }
 
 #ifdef GRIDDYN_ENABLE_CVODE

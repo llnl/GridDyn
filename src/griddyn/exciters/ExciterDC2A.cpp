@@ -29,8 +29,12 @@ ExciterDC2A::ExciterDC2A(const std::string& objName): ExciterDC1A(objName)
     Tf = 0.675;
     Tc = 0;
     Tb = 1.0;  // can't be zero
-    Aex = 0.0085;  // (3.05,0.279) and (2.29,0.117)
-    Bex = 1.1435;
+    // PSS/E-form saturation points derived from the historic GridDyn
+    // exponential fit's calibration points.
+    E1 = 2.29;
+    Se1 = 0.117;
+    E2 = 3.05;
+    Se2 = 0.279;
     Vrmin = -4.9;
     Vrmax = 4.95;
     offsets.local().local.jacSize = 15;
@@ -100,17 +104,17 @@ void ExciterDC2A::rootTest(const IOdata& inputs,
     auto offset = offsets.getDiffOffset(sMode);
     const int rootOffset = offsets.getRootOffset(sMode);
     const double* exciterState = stateDataValue.state + offset;
-    const double voltage = inputs[VOLTAGE_IN_LOCATION];
+    const double voltage = measuredVoltage(inputs, exciterState);
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         roots[rootOffset] =
-            ((((Vref - voltage) - ((exciterState[0] * Kf) / Tf)) + exciterState[3]) * Ka * Tc /
-             Tb) +
+            ((((Vref + vBias - voltage) - ((exciterState[0] * Kf) / Tf)) + exciterState[3]) * Ka *
+             Tc / Tb) +
             ((exciterState[2] * (Tb - Tc) * Ka) / Tb) - exciterState[1];
     } else {
-        roots[rootOffset] =
-            std::min((Vrmax * voltage) - exciterState[1], exciterState[1] - (Vrmin * voltage)) +
+        roots[rootOffset] = std::min((regulatorUpperLimit() * voltage) - exciterState[1],
+                                     exciterState[1] - (Vrmin * voltage)) +
             0.0001;
-        if (exciterState[1] > (voltage * Vrmax)) {
+        if (exciterState[1] > (voltage * regulatorUpperLimit())) {
             opFlags.set(TRIGGER_HIGH);
         }
     }
@@ -122,12 +126,12 @@ ChangeCode ExciterDC2A::rootCheck(const IOdata& inputs,
                                   CheckLevel /*level*/)
 {
     double* exciterState = m_state.data();
-    const double voltage = inputs[VOLTAGE_IN_LOCATION];
+    const double voltage = measuredVoltage(inputs, exciterState);
     ChangeCode ret = ChangeCode::NO_CHANGE;
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         const double test =
-            ((((Vref - voltage) - ((exciterState[0] * Kf) / Tf)) + exciterState[3]) * Ka * Tc /
-             Tb) +
+            ((((Vref + vBias - voltage) - ((exciterState[0] * Kf) / Tf)) + exciterState[3]) * Ka *
+             Tc / Tb) +
             ((exciterState[2] * (Tb - Tc) * Ka) / Tb) - exciterState[1];
         if (opFlags[TRIGGER_HIGH]) {
             if (test < 0.0) {
@@ -144,10 +148,10 @@ ChangeCode ExciterDC2A::rootCheck(const IOdata& inputs,
             }
         }
     } else {
-        if (exciterState[1] > ((voltage * Vrmax) + 0.0001)) {
+        if (exciterState[1] > ((voltage * regulatorUpperLimit()) + 0.0001)) {
             opFlags.set(TRIGGER_HIGH);
             opFlags.set(OUTSIDE_VOLTAGE_LIMITS);
-            exciterState[1] = voltage * Vrmax;
+            exciterState[1] = voltage * regulatorUpperLimit();
             ret = ChangeCode::JACOBIAN_CHANGE;
             alert(this, JAC_COUNT_DECREASE);
         } else if (exciterState[1] < ((voltage * Vrmin) - 0.0001)) {

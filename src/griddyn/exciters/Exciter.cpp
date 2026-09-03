@@ -39,6 +39,9 @@ namespace exciters {
         // setup the object factories
         static ChildTypeFactory<ExciterDC1A, Exciter> gfeDc1a("exciter", "dc1a");  // NOLINT
         static ChildTypeFactory<ExciterDC2A, Exciter> gfeDc2a("exciter", "dc2a");  // NOLINT
+        static ChildTypeFactory<ExciterDC1A, Exciter> gfeEsdc1a("exciter", "esdc1a");  // NOLINT
+        static ChildTypeFactory<ExciterDC2A, Exciter> gfeEsdc2a("exciter", "esdc2a");  // NOLINT
+        static ChildTypeFactory<ExciterDC2A, Exciter> gfeExdc2("exciter", "exdc2");  // NOLINT
         static ChildTypeFactory<ExciterESST3A, Exciter> gfeEsst3a("exciter", "esst3a");  // NOLINT
         static ChildTypeFactory<ExciterESST4B, Exciter> gfeEsst4b("exciter", "esst4b");  // NOLINT
         static ChildTypeFactory<ExciterEXAC1, Exciter> gfeExac1("exciter", "exac1");  // NOLINT
@@ -46,6 +49,7 @@ namespace exciters {
         static ChildTypeFactory<ExciterEXAC4, Exciter> gfeExac4("exciter", "exac4");  // NOLINT
         static ChildTypeFactory<ExciterEXST1, Exciter> gfeExst1("exciter", "exst1");  // NOLINT
         static ChildTypeFactory<ExciterIEEEtype1, Exciter> gfeType1("exciter", "type1");  // NOLINT
+        ChildTypeFactory<ExciterIEEEtype1, Exciter> gFeIeeet1("exciter", "ieeet1");  // NOLINT
         static TypeFactory<Exciter> gfeDefault(  // NOLINT
             "exciter",
             stringVec{"basic", "fast"},

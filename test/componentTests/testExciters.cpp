@@ -5,6 +5,7 @@
  */
 
 #include "../gtestHelper.h"
+#include "core/CoreExceptions.h"
 #include "core/ObjectFactory.hpp"
 #include "core/coreDefinitions.hpp"
 #include "fileInput/fileInput.h"
@@ -16,6 +17,7 @@
 #include "griddyn/exciters/ExciterESST4B.h"
 #include "griddyn/exciters/ExciterEXAC1.h"
 #include "griddyn/exciters/ExciterEXAC4.h"
+#include "griddyn/exciters/ExciterEXPIC1.h"
 #include "griddyn/exciters/ExciterEXST1.h"
 #include "griddyn/exciters/ExciterIEEEtype1.h"
 #include "griddyn/exciters/StaticExciterRectifier.h"
@@ -97,7 +99,7 @@ void verifyStabilityCase(ExciterTests& fixture,
     for (const auto& exciterName : exciterList) {
         if (exciterName.starts_with("fmi") || (exciterName == "esst3a") ||
             (exciterName == "esst4b") || (exciterName == "exst1") || (exciterName == "exac1") ||
-            (exciterName == "exac2") || (exciterName == "exac4")) {
+            (exciterName == "exac2") || (exciterName == "exac4") || (exciterName == "expic1")) {
             continue;
         }
         if (std::find(skippedExcters.begin(), skippedExcters.end(), exciterName) !=
@@ -505,6 +507,179 @@ TEST(ExciterModelTests, Exac1InitializesCorrectedTransducerAndAntiWindup)
     std::vector<double> roots(1, 0.0);
     exciter.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
     EXPECT_LT(roots[0], 0.0);
+}
+
+TEST(ExciterModelTests, Expic1MatchesGridKitPerturbedEquations)
+{
+    exciters::ExciterEXPIC1 exciter;
+    exciter.set("tr", 0.1);
+    exciter.set("ka", 20.0);
+    exciter.set("ta1", 0.02);
+    exciter.set("vr1", 4.0);
+    exciter.set("vr2", -3.0);
+    exciter.set("ta2", 0.2);
+    exciter.set("ta3", 0.03);
+    exciter.set("ta4", 0.4);
+    exciter.set("vrmax", 5.0);
+    exciter.set("vrmin", -5.0);
+    exciter.set("kf", 0.1);
+    exciter.set("tf1", 0.5);
+    exciter.set("tf2", 0.6);
+    exciter.set("efdmax", 5.0);
+    exciter.set("efdmin", -4.0);
+    exciter.set("ke", 1.0);
+    exciter.set("te", 0.5);
+    exciter.dynInitializeA(0.0, 0);
+
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.0;
+    IOdata fieldSet(2, 0.0);
+    exciter.dynInitializeB(inputs, {0.8}, fieldSet);
+    EXPECT_EQ(exciter.localStateNames(), (stringVec{"efd", "et", "xa", "vr1", "vr", "vf1", "vf"}));
+    const auto& initialized = exciter.getStates();
+    ASSERT_EQ(initialized.size(), 7U);
+    EXPECT_DOUBLE_EQ(initialized[0], 0.8);
+    EXPECT_DOUBLE_EQ(initialized[1], 1.0);
+    EXPECT_DOUBLE_EQ(initialized[2], 0.8);
+    EXPECT_DOUBLE_EQ(initialized[3], 0.8);
+    EXPECT_DOUBLE_EQ(initialized[4], 0.8);
+    EXPECT_DOUBLE_EQ(initialized[5], 0.8);
+    EXPECT_DOUBLE_EQ(initialized[6], 0.0);
+
+    // Local state order is [Efd, ET, xA, xR1, VR, VF1, VF].  These values
+    // directly evaluate the PI, cascaded-filter, and feedback equations in
+    // the GridKit EXPIC1 block diagram away from equilibrium.
+    std::vector<double> state{0.9, 0.98, 0.7, 0.6, 0.5, 0.4, 0.03};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    inputs[exciterVoltageInLocation] = 1.02;
+    inputs[exciterVsetInLocation] = 1.01;
+    inputs[exciterVssInLocation] = 0.02;
+
+    std::vector<double> derivative(state.size(), 0.0);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[0], -0.8, 1e-12);
+    EXPECT_NEAR(derivative[1], 0.4, 1e-12);
+    EXPECT_NEAR(derivative[2], 0.4, 1e-12);
+    EXPECT_NEAR(derivative[3], 0.54, 1e-12);
+    EXPECT_NEAR(derivative[4], 0.2905, 1e-12);
+    EXPECT_NEAR(derivative[5], 0.2, 1e-12);
+    EXPECT_NEAR(derivative[6], -1.0 / 60.0, 1e-12);
+
+    std::vector<double> residual(state.size(), 0.0);
+    exciter.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    for (std::size_t index = 0; index < state.size(); ++index) {
+        EXPECT_NEAR(residual[index], derivative[index], 1e-12) << index;
+    }
+}
+
+TEST(ExciterModelTests, Expic1UsesRawSaturationCoefficients)
+{
+    exciters::ExciterEXPIC1 exciter;
+    exciter.set("ke", 0.0);
+    exciter.set("te", 1.0);
+    exciter.set("e1", 1.0);
+    exciter.set("se1", 0.1);
+    exciter.set("e2", 2.0);
+    exciter.set("se2", 0.4);
+    exciter.dynInitializeA(0.0, 0);
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.0;
+    IOdata fieldSet(2, 0.0);
+    exciter.dynInitializeB(inputs, {0.5}, fieldSet);
+
+    std::vector<double> state{2.0, 0.0};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    std::vector<double> derivative(state.size(), 0.0);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    // S_E(2)=0.4, hence -(K_E+S_E)E_fd = -0.8. Fitting E*S_E as
+    // the saturation data would incorrectly produce -1.6 here.
+    EXPECT_NEAR(derivative[0], -0.8, 1e-12);
+}
+
+TEST(ExciterModelTests, Expic1AppliesFinalRegulatorLimitToFieldAndFeedback)
+{
+    exciters::ExciterEXPIC1 exciter;
+    exciter.set("ka", 20.0);
+    exciter.set("ta2", 0.2);
+    exciter.set("ta3", 0.03);
+    exciter.set("ta4", 0.4);
+    exciter.set("vrmax", 0.5);
+    exciter.set("vrmin", -0.5);
+    exciter.set("kf", 0.1);
+    exciter.set("tf1", 0.5);
+    exciter.set("tf2", 0.6);
+    exciter.set("ke", 1.0);
+    exciter.set("te", 0.5);
+    exciter.dynInitializeA(0.0, 0);
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.0;
+    IOdata fieldSet(2, 0.0);
+    exciter.dynInitializeB(inputs, {0.4}, fieldSet);
+
+    std::vector<double> state{0.4, 0.4, 0.4, 0.8, 0.4, 0.0};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    std::vector<double> derivative(state.size(), 0.0);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[0], 0.2, 1e-12);
+    EXPECT_NEAR(derivative[4], 0.2, 1e-12);
+
+    state[1] = 4.1;
+    inputs[exciterVsetInLocation] = 1.1;
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(derivative[1], 0.0);
+    inputs[exciterVsetInLocation] = 0.9;
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_LT(derivative[1], 0.0);
+}
+
+TEST(ExciterModelTests, Expic1SupportsDocumentedBypassesAndValidation)
+{
+    exciters::ExciterEXPIC1 exciter;
+    exciter.set("te", 0.0);
+    exciter.dynInitializeA(0.0, 0);
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.0;
+    IOdata fieldSet(2, 0.0);
+    exciter.dynInitializeB(inputs, {0.4}, fieldSet);
+    EXPECT_EQ(exciter.localStateNames(), (stringVec{"efd", "xa"}));
+    EXPECT_EQ(exciter.findIndex("et", cLocalSolverMode), kInvalidLocation);
+    EXPECT_EQ(exciter.findIndex("vf", cLocalSolverMode), kInvalidLocation);
+
+    std::vector<double> state{0.5, 0.6};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    std::vector<double> residual(state.size(), 0.0);
+    exciter.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    EXPECT_NEAR(residual[0], 0.1, 1e-12);
+    EXPECT_DOUBLE_EQ(residual[1], 0.0);
+
+    auto factory = CoreObjectFactory::instance();
+    std::unique_ptr<CoreObject> object(factory->createObject("exciter", "expic1"));
+    auto* factoryExciter = dynamic_cast<exciters::ExciterEXPIC1*>(object.get());
+    ASSERT_NE(factoryExciter, nullptr);
+    EXPECT_DOUBLE_EQ(factoryExciter->get("ka"), 1.0);
+    EXPECT_DOUBLE_EQ(factoryExciter->get("vrmax"), 1.0);
+    EXPECT_DOUBLE_EQ(factoryExciter->get("vrmin"), -1.0);
+    factoryExciter->set("kf", 0.27);
+    std::unique_ptr<CoreObject> cloneObject(factoryExciter->clone());
+    auto* clone = dynamic_cast<exciters::ExciterEXPIC1*>(cloneObject.get());
+    ASSERT_NE(clone, nullptr);
+    EXPECT_DOUBLE_EQ(clone->get("kf"), 0.27);
+
+    exciters::ExciterEXPIC1 partialRegulator;
+    partialRegulator.set("ta2", 0.2);
+    EXPECT_THROW(partialRegulator.dynInitializeA(0.0, 0), InvalidParameterValue);
+    exciters::ExciterEXPIC1 partialFeedback;
+    partialFeedback.set("kf", 0.1);
+    EXPECT_THROW(partialFeedback.dynInitializeA(0.0, 0), InvalidParameterValue);
 }
 
 TEST(ExciterModelTests, Ieeet1UsesAndesTransducerAndQuadraticSaturation)

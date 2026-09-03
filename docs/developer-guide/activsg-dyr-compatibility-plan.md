@@ -50,12 +50,12 @@ an external reference.
 | `HYGOV`     |         39 |          25 |        715 |      1,244 |      2,306 |  4,329 | Dedicated `GovernorHygov` and DYR mapping implemented; validate case initialization, limits, and trajectories.                                        |
 | `SCRX`      |          0 |           5 |        312 |        446 |      1,053 |  1,816 | **Missing.** Add static controlled-rectifier exciter.                                                                                                 |
 | `IEEET1`    |          0 |          23 |        214 |        942 |      1,907 |  3,086 | **Missing.** Add/audit IEEE Type 1 exciter.                                                                                                           |
-| `EXPIC1`    |          0 |          61 |        153 |        287 |        569 |  1,070 | **Missing.** Add the excitation controller/interface behavior.                                                                                        |
+| `EXPIC1`    |          0 |          61 |        153 |        287 |        569 |  1,070 | **Implemented; external trajectory open.** GridKit-specified equations, exact DYR schema, full block tests, and whole-case residual/Jacobian coverage are present. |
 | `ESDC2A`    |          0 |           1 |         87 |        202 |        104 |    394 | **Missing.** Add/audit DC2A exciter.                                                                                                                  |
 | `ESAC6A`    |          0 |           7 |         26 |        194 |        583 |    810 | **Missing.** Add AC6A exciter.                                                                                                                        |
 | `EXAC1`     |          0 |           6 |         22 |        130 |        381 |    539 | Reader supported; validate case configurations.                                                                                                       |
 | `ESAC1A`    |          0 |           4 |         23 |        142 |        546 |    715 | **Missing.** Add AC1A exciter.                                                                                                                        |
-| `GAST`      |         30 |           0 |          0 |          0 |          0 |     30 | **Missing.** Add a dedicated gas-turbine governor; do not substitute `TGOV1`.                                                                         |
+| `GAST`      |         30 |           0 |          0 |          0 |          0 |     30 | **Implemented; external trajectory open.** OpenIPSL/ANDES/GridKit equations, DYR mapping, initialization, selector/limit, and Jacobian tests are present. |
 | `REECA1`    |          0 |           0 |          0 |        614 |        571 |  1,185 | **Missing.** Add renewable electrical control; implement and validate it with the associated `REGCA1` converter model.                                |
 | `REGCA1`    |          0 |           0 |          0 |        614 |        571 |  1,185 | **Missing.** Add the renewable converter model; do not import it independently from `REECA1`.                                                         |
 | `WT3E1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind electrical-control subsystem.                                                                                        |
@@ -66,6 +66,27 @@ an external reference.
 The broader model-by-model mapping is maintained in the
 [ANDES compatibility roadmap](andes-compatibility.md); this table is the
 authoritative ACTIVSg demand inventory.
+
+### GridKit equation and case overlay
+
+GridKit at `C:\data\Documents\codeProjects\GridKit` commit `de7bea18`
+provides a second C++-oriented source of model equations and JSON validation
+artifacts. It materially improves the source position for `GAST` and
+`EXPIC1`: GridKit implements `GASTPTI` and supplies ACTIVSg500/WECC240 case
+paths, while its EXPIC1 documentation contains the complete PI, filter,
+feedback, source/rectifier, saturation, and initialization equations.
+
+| GridKit artifact | Models/case coverage | How GridDyn should use it |
+| --- | --- | --- |
+| Native model sources | `GENROU`, `GENSAL`, `GASTPTI`, `HYGOV`, `TGOV1`, `IEEET1`, `ESDC1A`, `SEXS-PTI`, `IEEEST`, `REGCA`, `REECB`, `REPCA` | Compare model equations and, where the interfaces align, capture initialization and trajectory references. |
+| Documented but not GridKit-native models | `EXPIC1`, `SCRX`, `ESAC6A`, `ESDC2A`, `ESST4B`, `EXAC1`, `EXAC2`, `EXDC1`, `GGOV1`, `IEEEG1`, `PSS1A` | Use as equation specifications only; do not claim GridKit trajectory validation until a runnable implementation/case is present. |
+| Self-contained regression examples | Two-bus `IEEET1`, `TGOV1`, and `GENSAL`, with `.case.json`, `.solver.json`, and `.ref.csv` | Port as small GridDyn trajectory fixtures before relying on a large-case comparison. |
+| Large JSON cases | ACTIVSg200, ACTIVSg500, ACTIVSg10k, and WECC240 | ACTIVSg500 has supplied validation traces; WECC240 additionally exercises GAST/HYGOV/TGOV1 plus `REGCA`/`REECB`/`REPCA`. |
+
+The local GridKit ACTIVSg2000 directory is **not** a runnable dynamic input:
+it contains its README and image only, and the README lists EXPIC1 among its
+unimplemented models. Therefore the final ACTIVSg2000 integration remains
+dependent on the separate RAW/DYR delivery; GridKit cannot substitute for it.
 
 ### ACTIVSg25k static DYR assessment
 
@@ -148,22 +169,25 @@ equations before implementation.
    `HYGOV` are implemented; add captured external trajectories and whole-case
    initialization coverage for all three. GGOV1 deliberately rejects nonzero
    `TENG` transport delay.
-3. **P1 synchronous excitation:** `ESST4B` is implemented; implement `IEEET1`
-   and `SCRX`
-   from the available OpenIPSL/PowerDynamics references. Defer `EXPIC1` to P2
-   because no exact source was found; ANDES's `SEXS` conversion is only an
-   approximation.
+3. **P1 synchronous excitation:** `ESST4B` and `IEEET1` are implemented;
+   implement `SCRX` from the available OpenIPSL/PowerDynamics references.
+   `EXPIC1` is also implemented from the GridKit equation specification;
+   ANDES's `SEXS` conversion remains only an approximation.
 4. **P1 renewable generation:** implement and validate `REGCA1` plus
    `REECA1` (and `REPCA1` for Texas7k), then the coupled
    `WT3G1`/`WT3E1`/`WT3P1`/`WT3T1` Type-3 system. The latter two models have
    no exact external source and must be derived or obtained as part of the
    complete system, not silently omitted.
 5. **P2 remaining excitation/source gaps:** `ESDC2A` and `ESAC1A` have
-   OpenIPSL references; `ESAC6A` requires an exact equation source before a
-   port. Add `EXPIC1` only after its exact behavior is obtained.
+   OpenIPSL references; GridKit documents `ESAC6A`, but an implementation and
+   external validation case are still required. Capture an independent
+   EXPIC1 trajectory while adding the remaining models.
 6. **Reader and validation hardening:** table-driven DYR dispatch, strict
    unknown-model diagnostics, exact bus-plus-machine-ID resolution, minimized
-   fixtures, and whole-case trajectory regressions.
+   fixtures, and whole-case trajectory regressions. Add dedicated
+   representative-parameter stability cases for `EXPIC1` and `GAST`, including
+   EXPIC1 limiter/rectifier behavior and GAST temperature-selector and valve
+   anti-windup transitions.
 
 ## Guardrails and acceptance criteria
 

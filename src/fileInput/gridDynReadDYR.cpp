@@ -40,6 +40,7 @@ namespace {
     void loadIEEET1(CoreObject* parentObject, stringVec& tokens);
     void loadESST3A(CoreObject* parentObject, stringVec& tokens);
     void loadESST4B(CoreObject* parentObject, stringVec& tokens);
+    void loadEXPIC1(CoreObject* parentObject, stringVec& tokens);
     void loadEXST1(CoreObject* parentObject, stringVec& tokens);
     void loadEXAC1(CoreObject* parentObject, stringVec& tokens);
     void loadEXAC2(CoreObject* parentObject, stringVec& tokens);
@@ -47,6 +48,7 @@ namespace {
     void loadTGOV1(CoreObject* parentObject, stringVec& tokens);
     void loadHYGOV(CoreObject* parentObject, stringVec& tokens);
     void loadGGOV1(CoreObject* parentObject, stringVec& tokens);
+    void loadGAST(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEG1(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEST(CoreObject* parentObject, stringVec& tokens);
     void loadST2CUT(CoreObject* parentObject, stringVec& tokens);
@@ -106,6 +108,8 @@ void loadDyr(CoreObject* parentObject,
             loadESST3A(parentObject, lineTokens);
         } else if (type == "'ESST4B'") {
             loadESST4B(parentObject, lineTokens);
+        } else if (type == "'EXPIC1'") {
+            loadEXPIC1(parentObject, lineTokens);
         } else if (type == "'EXST1'") {
             loadEXST1(parentObject, lineTokens);
         } else if (type == "'EXAC1'") {
@@ -122,6 +126,8 @@ void loadDyr(CoreObject* parentObject,
             loadHYGOV(parentObject, lineTokens);
         } else if (type == "'GGOV1'") {
             loadGGOV1(parentObject, lineTokens);
+        } else if (type == "'GAST'") {
+            loadGAST(parentObject, lineTokens);
         } else if (type == "'IEEEG1'") {
             loadIEEEG1(parentObject, lineTokens);
         } else if (type == "'IEEEST'") {
@@ -403,6 +409,34 @@ namespace {
         gen->add(model);
     }
 
+    void loadEXPIC1(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 27U) {
+            throw InvalidParameterValue("EXPIC1 DYR record must contain 27 fields");
+        }
+        const int busId = std::stoi(tokens[0]);
+        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+        const int genId = std::stoi(tokens[2]);
+        if ((bus == nullptr) || (genId <= 0)) {
+            throw InvalidParameterValue("EXPIC1 generator identity");
+        }
+        auto* gen = bus->getGen(genId - 1);
+        if (gen == nullptr) {
+            throw InvalidParameterValue("EXPIC1 requires an existing generator");
+        }
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* model = static_cast<Exciter*>(
+            CoreObjectFactory::instance()->createObject("exciter", "expic1"));
+        static constexpr std::array<std::string_view, 24> names{
+            "tr", "ka", "ta1", "vr1", "vr2", "ta2", "ta3", "ta4", "vrmax", "vrmin",
+            "kf", "tf1", "tf2", "efdmax", "efdmin", "ke", "te", "e1", "se1", "e2",
+            "se2", "kp", "ki", "kc"};
+        for (std::size_t ii = 0; ii < names.size(); ++ii) {
+            model->set(names[ii], params[ii + 3]);
+        }
+        gen->add(model);
+    }
+
     void loadEXST1(CoreObject* parentObject, stringVec& tokens)
     {
         const int busId = std::stoi(tokens[0]);
@@ -667,6 +701,32 @@ namespace {
             "wfnl",    "tb",      "tc",    "teng",   "tfload", "kpload", "kiload",
             "ldref",   "dm",      "ropen", "rclose", "kimw",   "aset",   "ka",
             "ta",      "trate",   "db",    "tsa",    "tsb",    "rup",    "rdown"};
+        for (std::size_t ii = 0; ii < names.size(); ++ii) {
+            model->set(names[ii], params[ii + 3]);
+        }
+        gen->add(model);
+    }
+
+    void loadGAST(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 12U) {
+            throw InvalidParameterValue("GAST DYR record must contain 12 fields");
+        }
+        const int busId = std::stoi(tokens[0]);
+        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+        const int genId = std::stoi(tokens[2]);
+        if ((bus == nullptr) || (genId <= 0)) {
+            throw InvalidParameterValue("GAST generator identity");
+        }
+        auto* gen = bus->getGen(genId - 1);
+        if (gen == nullptr) {
+            throw InvalidParameterValue("GAST requires an existing generator");
+        }
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* model = static_cast<Governor*>(
+            CoreObjectFactory::instance()->createObject("governor", "gast"));
+        static constexpr std::array<std::string_view, 9> names{
+            "r", "t1", "t2", "t3", "at", "kt", "vmax", "vmin", "dt"};
         for (std::size_t ii = 0; ii < names.size(); ++ii) {
             model->set(names[ii], params[ii + 3]);
         }

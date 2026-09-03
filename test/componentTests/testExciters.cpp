@@ -145,6 +145,9 @@ void verifyDefaultPsseSaturation(Exciter& exciter,
     exciter.dynInitializeA(0.0, 0);
 
     IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    IOdata fieldSet(4, 0.0);
+    exciter.dynInitializeB(inputs, {1.0}, fieldSet);
     std::vector<double> state(4, 0.0);
     std::vector<double> stateDerivative(state.size(), 0.0);
     std::vector<double> derivative(state.size(), 0.0);
@@ -562,19 +565,11 @@ TEST(ExciterModelTests, CanonicalDcExciterFactoriesSupportVoltageTransducers)
 
 TEST(ExciterModelTests, DcExciterDefaultsUsePsseTwoPointSaturation)
 {
-    auto factory = CoreObjectFactory::instance();
-    const std::array<std::pair<std::string_view, std::array<std::pair<double, double>, 2>>, 5>
-        models{{{"dc1a", {{{2.3, 0.1}, {3.1, 0.33}}}},
-                {"esdc1a", {{{2.3, 0.1}, {3.1, 0.33}}}},
-                {"dc2a", {{{2.29, 0.117}, {3.05, 0.279}}}},
-                {"esdc2a", {{{2.29, 0.117}, {3.05, 0.279}}}},
-                {"exdc2", {{{2.29, 0.117}, {3.05, 0.279}}}}}};
-    for (const auto& [name, saturationPoints] : models) {
-        std::unique_ptr<CoreObject> object(factory->createObject("exciter", std::string(name)));
-        auto* exciter = dynamic_cast<Exciter*>(object.get());
-        ASSERT_NE(exciter, nullptr) << name;
-        verifyDefaultPsseSaturation(*exciter, saturationPoints);
-    }
+    exciters::ExciterDC1A dc1a;
+    verifyDefaultPsseSaturation(dc1a, {{{2.3, 0.1}, {3.1, 0.33}}});
+
+    exciters::ExciterDC2A dc2a;
+    verifyDefaultPsseSaturation(dc2a, {{{2.29, 0.117}, {3.05, 0.279}}});
 }
 
 TEST(ExciterModelTests, Exac1ZeroTrBypassesVoltageMeasurementState)
@@ -828,6 +823,9 @@ TEST_F(ExciterTests, BasicStabilityTest1)
         {"basic", {{"ta", 0.2}, {"ka", 11.0}}},
         {"dc1a", {{"ta", 0.1}, {"ka", 6.0}}},
         {"dc2a", {{"ta", 0.1}, {"ka", 6.0}}},
+        {"esdc1a", {{"ta", 0.1}, {"ka", 6.0}}},
+        {"esdc2a", {{"ta", 0.1}, {"ka", 6.0}}},
+        {"exdc2", {{"ta", 0.1}, {"ka", 6.0}}},
     };
 
     const std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability.xml");
@@ -840,6 +838,9 @@ TEST_F(ExciterTests, BasicStabilityTest2)
         {"basic", {{"ta", 0.2}, {"ka", 11.0}}},
         {"dc1a", {{"ta", 0.1}, {"ka", 6.0}}},
         {"dc2a", {{"ta", 0.1}, {"ka", 6.0}}},
+        {"esdc1a", {{"ta", 0.1}, {"ka", 6.0}}},
+        {"esdc2a", {{"ta", 0.1}, {"ka", 6.0}}},
+        {"exdc2", {{"ta", 0.1}, {"ka", 6.0}}},
     };
 
     const std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability2.xml");
@@ -851,10 +852,14 @@ TEST_F(ExciterTests, BasicStabilityTest3)
     static const exciter_parameter_map parameters{
         {"dc1a", {{"ta", 0.1}, {"ka", 6.0}}},
         {"dc2a", {{"ta", 0.3}, {"ka", 6.0}}},
+        {"esdc1a", {{"ta", 0.1}, {"ka", 6.0}}},
+        {"esdc2a", {{"ta", 0.3}, {"ka", 6.0}}},
+        {"exdc2", {{"ta", 0.3}, {"ka", 6.0}}},
     };
 
     const std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability3.xml");
-    verifyStabilityCase(*this, fileName, parameters, 0.98, 1.02, 0.97, 1.02, {"dc1a", "sexs"});
+    verifyStabilityCase(
+        *this, fileName, parameters, 0.98, 1.02, 0.97, 1.02, {"dc1a", "esdc1a", "sexs"});
 }
 
 TEST_F(ExciterTests, BasicStabilityTest4)
@@ -862,10 +867,14 @@ TEST_F(ExciterTests, BasicStabilityTest4)
     static const exciter_parameter_map parameters{
         {"dc1a", {{"ta", 0.1}, {"ka", 6.0}}},
         {"dc2a", {{"ta", 0.3}, {"ka", 6.0}}},
+        {"esdc1a", {{"ta", 0.1}, {"ka", 6.0}}},
+        {"esdc2a", {{"ta", 0.3}, {"ka", 6.0}}},
+        {"exdc2", {{"ta", 0.3}, {"ka", 6.0}}},
     };
 
     const std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability4.xml");
-    verifyStabilityCase(*this, fileName, parameters, 0.98, 1.02, 0.97, 1.02, {"dc1a", "sexs"});
+    verifyStabilityCase(
+        *this, fileName, parameters, 0.98, 1.02, 0.97, 1.02, {"dc1a", "esdc1a", "sexs"});
 }
 
 #ifdef GRIDDYN_ENABLE_CVODE

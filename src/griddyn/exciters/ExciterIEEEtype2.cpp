@@ -67,7 +67,7 @@ void ExciterIEEEtype2::residual(const IOdata& inputs,
     const double* stateDerivative = stateData.dstate_dt + offset;
     double* residualValues = resid + offset;
     residualValues[0] =
-        ((-(Ke + (Aex * exp(Bex * exciterState[0]))) * exciterState[0] + exciterState[1]) / Te) -
+        (((-(Ke + (Aex * exp(Bex * exciterState[0]))) * exciterState[0]) + exciterState[1]) / Te) -
         stateDerivative[0];
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         residualValues[1] = stateDerivative[1];
@@ -92,7 +92,7 @@ void ExciterIEEEtype2::derivative(const IOdata& inputs,
     const double* exciterState = locations.diffStateLoc;
     double* derivatives = locations.destDiffLoc;
     derivatives[0] =
-        (-(Ke + (Aex * exp(Bex * exciterState[0]))) * exciterState[0] + exciterState[1]) / Te;
+        ((-(Ke + (Aex * exp(Bex * exciterState[0]))) * exciterState[0]) + exciterState[1]) / Te;
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         derivatives[1] = 0;
     } else {
@@ -154,11 +154,11 @@ void ExciterIEEEtype2::jacobianElements(const IOdata& /*inputs*/,
     // printf("%f\n",sD.cj);
 }
 
-const stringVec kIeeeType2Fields{"ef", "vr", "x1", "x2"};
+const stringVec K_IEEE_TYPE2_FIELDS{"ef", "vr", "x1", "x2"};
 
 stringVec ExciterIEEEtype2::localStateNames() const
 {
-    return kIeeeType2Fields;
+    return K_IEEE_TYPE2_FIELDS;
 }
 void ExciterIEEEtype2::rootTest(const IOdata& inputs,
                                 const StateData& stateData,

@@ -22,10 +22,13 @@ ExciterDC1A::ExciterDC1A(const std::string& objName): ExciterIEEEtype1(objName)
     Te = .46;
     Kf = .1;
     Tf = 1.0;
-    E1 = 0.0;
-    Se1 = 0.0;
-    E2 = 0.0;
-    Se2 = 0.0;
+    // PSS/E-form saturation points derived from the historic GridDyn
+    // exponential fit's calibration points.
+    E1 = 2.3;
+    Se1 = 0.1;
+    E2 = 3.1;
+    Se2 = 0.33;
+    hasTwoPointSaturationParameters = true;
     Vrmin = -.9;
     Vrmax = 1;
 }

@@ -246,14 +246,17 @@ namespace {
         auto* gen = bus->getGen(genId - 1);
 
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
-        const auto modelName = (params[6] > 0.0) ? "esdc1a" : "ieeet1";
+        const bool hasLeadLag = params[6] > 0.0;
+        const auto* const modelName = hasLeadLag ? "esdc1a" : "ieeet1";
         auto* exciterModel = static_cast<Exciter*>(
             CoreObjectFactory::instance()->createObject("exciter", modelName));
         exciterModel->set("tr", params[3]);
         exciterModel->set("ka", params[4]);
         exciterModel->set("ta", params[5]);
-        exciterModel->set("tb", params[6]);
-        exciterModel->set("tc", params[7]);
+        if (hasLeadLag) {
+            exciterModel->set("tb", params[6]);
+            exciterModel->set("tc", params[7]);
+        }
         exciterModel->set("vrmax", params[8]);
         exciterModel->set("vrmin", params[9]);
         exciterModel->set("ke", params[10]);

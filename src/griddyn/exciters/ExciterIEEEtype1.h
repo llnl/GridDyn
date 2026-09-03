@@ -29,6 +29,10 @@ class ExciterIEEEtype1: public Exciter {
     // saturation path. IEEET1 and the DC models use the two-point curve above.
     model_parameter Aex = 0.0;
     model_parameter Bex = 0.0;
+    // A model with explicit E1/SE1/E2/SE2 values uses the PSS/E/ANDES
+    // two-point saturation curve. Otherwise, Aex/Bex retains compatibility
+    // with older configurations that supplied an exponential saturation fit.
+    bool hasTwoPointSaturationParameters = false;
 
   public:
     explicit ExciterIEEEtype1(const std::string& objName = "exciterIEEEtype1_#");
@@ -48,22 +52,22 @@ class ExciterIEEEtype1: public Exciter {
 
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     virtual void residual(const IOdata& inputs,
-                          const StateData& sD,
+                          const StateData& stateData,
                           double resid[],
                           const SolverMode& sMode) override;
     virtual void derivative(const IOdata& inputs,
-                            const StateData& sD,
+                            const StateData& stateData,
                             double deriv[],
                             const SolverMode& sMode) override;
     // only called if the genModel is not present
     virtual void jacobianElements(const IOdata& inputs,
-                                  const StateData& sD,
-                                  MatrixData<double>& md,
+                                  const StateData& stateData,
+                                  MatrixData<double>& matrixData,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
 
     virtual void rootTest(const IOdata& inputs,
-                          const StateData& sD,
+                          const StateData& stateData,
                           double roots[],
                           const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,

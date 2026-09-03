@@ -29,6 +29,12 @@ ExciterDC2A::ExciterDC2A(const std::string& objName): ExciterDC1A(objName)
     Tf = 0.675;
     Tc = 0;
     Tb = 1.0;  // can't be zero
+    // PSS/E-form saturation points derived from the historic GridDyn
+    // exponential fit's calibration points.
+    E1 = 2.29;
+    Se1 = 0.117;
+    E2 = 3.05;
+    Se2 = 0.279;
     Vrmin = -4.9;
     Vrmax = 4.95;
     offsets.local().local.jacSize = 15;

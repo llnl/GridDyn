@@ -44,6 +44,7 @@ CoreObject* ExciterIEEEtype1::clone(CoreObject* obj) const
     gdE->saturation = saturation;
     gdE->Aex = Aex;
     gdE->Bex = Bex;
+    gdE->hasTwoPointSaturationParameters = hasTwoPointSaturationParameters;
     return gdE;
 }
 
@@ -264,12 +265,16 @@ void ExciterIEEEtype1::set(std::string_view param, double val, units::unit unitT
         Tr = val;
     } else if (param == "e1") {
         E1 = val;
+        hasTwoPointSaturationParameters = true;
     } else if (param == "se1") {
         Se1 = val;
+        hasTwoPointSaturationParameters = true;
     } else if (param == "e2") {
         E2 = val;
+        hasTwoPointSaturationParameters = true;
     } else if (param == "se2") {
         Se2 = val;
+        hasTwoPointSaturationParameters = true;
     } else if (param == "aex") {
         Aex = val;
     } else if (param == "bex") {
@@ -312,6 +317,9 @@ double ExciterIEEEtype1::get(std::string_view param, units::unit unitType) const
 
 void ExciterIEEEtype1::configureSaturation()
 {
+    if (!hasTwoPointSaturationParameters) {
+        return;
+    }
     if (Se2 == 0.0) {
         saturation.setType(utilities::Saturation::SaturationType::NONE);
         return;
@@ -325,11 +333,17 @@ void ExciterIEEEtype1::configureSaturation()
 
 double ExciterIEEEtype1::saturationFeedback(double fieldVoltage) const
 {
+    if (!hasTwoPointSaturationParameters) {
+        return (Ke + (Aex * std::exp(Bex * fieldVoltage))) * fieldVoltage;
+    }
     return (Ke * fieldVoltage) + saturation(fieldVoltage);
 }
 
 double ExciterIEEEtype1::saturationDerivative(double fieldVoltage) const
 {
+    if (!hasTwoPointSaturationParameters) {
+        return Ke + (Aex * std::exp(Bex * fieldVoltage) * (1.0 + (Bex * fieldVoltage)));
+    }
     return Ke + saturation.deriv(fieldVoltage);
 }
 

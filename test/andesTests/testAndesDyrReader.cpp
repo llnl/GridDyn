@@ -309,8 +309,11 @@ TEST(AndesDyrReaderTests, MapsCanonicalDcAndTypeOneExciters)
         } else {
             EXPECT_NE(dynamic_cast<griddyn::exciters::ExciterDC2A*>(exciter), nullptr);
         }
-        EXPECT_DOUBLE_EQ(exciter->get("tr"), 0.1);
-        EXPECT_DOUBLE_EQ(exciter->get("se2"), 0.2);
+        const std::array<std::pair<std::string_view, double>, 5> expectedParameters{
+            {{"tr", 0.1}, {"e1", 1.0}, {"se1", 0.1}, {"e2", 2.0}, {"se2", 0.2}}};
+        for (const auto& [parameter, value] : expectedParameters) {
+            EXPECT_DOUBLE_EQ(exciter->get(parameter), value) << record << ' ' << parameter;
+        }
     }
 }
 

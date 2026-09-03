@@ -9,6 +9,7 @@
 #include "../Exciter.h"
 #include "utilities/Saturation.h"
 #include <array>
+#include <string>
 
 namespace griddyn::exciters {
 /** PSS/E EXPIC1 proportional/integral excitation system.

@@ -12,6 +12,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <string>
 
 namespace griddyn::governors {
 namespace {
@@ -86,16 +87,16 @@ void GovernorGast::dynObjectInitializeB(const IOdata& inputs,
     }
     const double initialPower = desiredOutput[pmechState];
     const double speedDeviation = inputs[govOmegaInLocation] - 1.0;
-    const double initialFlow = initialPower + Dt * speedDeviation;
+    const double initialFlow = initialPower + (Dt * speedDeviation);
     if (!std::isfinite(initialFlow)) {
         throw InvalidParameterValue("GAST initial fuel flow");
     }
-    const double initialTemperatureRequest = AT + KT * (AT - initialFlow);
+    const double initialTemperatureRequest = AT + (KT * (AT - initialFlow));
     if (!std::isfinite(initialTemperatureRequest) ||
         (initialTemperatureRequest < initialFlow - 1e-9)) {
         throw InvalidParameterValue("GAST initial operating point is temperature limited");
     }
-    Pset = initialFlow + speedDeviation / R;
+    Pset = initialFlow + (speedDeviation / R);
     // Match the GridKit and ANDES anti-windup realization: an initial point
     // outside the entered response limits is retained and may move only back
     // toward the entered range. This avoids an initialization discontinuity.
@@ -117,7 +118,7 @@ double GovernorGast::speedDroopRequest(const IOdata& inputs) const
 
 double GovernorGast::temperatureRequest(const double state[]) const
 {
-    return AT + KT * (AT - state[temperatureState]);
+    return AT + (KT * (AT - state[temperatureState]));
 }
 
 double GovernorGast::valveDerivative(const IOdata& inputs, const double state[]) const
@@ -133,7 +134,7 @@ double GovernorGast::valveDerivative(const IOdata& inputs, const double state[])
 
 double GovernorGast::mechanicalPower(const IOdata& inputs, const double state[]) const
 {
-    return state[turbineState] - Dt * (inputs[govOmegaInLocation] - 1.0);
+    return state[turbineState] - (Dt * (inputs[govOmegaInLocation] - 1.0));
 }
 
 void GovernorGast::residual(const IOdata& inputs,
@@ -210,7 +211,9 @@ void GovernorGast::jacobianElements(const IOdata& inputs,
         ((state[valveState] >= responseMaximum) || (state[valveState] <= responseMinimum))) {
         matrixData.assign(diff + valveState, diff + valveState, -stateData.cj);
     } else {
-        matrixData.assign(diff + valveState, diff + valveState, -1.0 / effectiveT1 - stateData.cj);
+        matrixData.assign(diff + valveState,
+                          diff + valveState,
+                          (-1.0 / effectiveT1) - stateData.cj);
         if (normal <= temperature) {
             matrixData.assignCheckCol(diff + valveState,
                                       inputLocs[govpSetInLocation],
@@ -225,24 +228,28 @@ void GovernorGast::jacobianElements(const IOdata& inputs,
         }
     }
     matrixData.assign(diff + turbineState, diff + valveState, 1.0 / effectiveT2);
-    matrixData.assign(diff + turbineState, diff + turbineState, -1.0 / effectiveT2 - stateData.cj);
+    matrixData.assign(diff + turbineState,
+                      diff + turbineState,
+                      (-1.0 / effectiveT2) - stateData.cj);
     matrixData.assign(diff + temperatureState, diff + turbineState, 1.0 / effectiveT3);
     matrixData.assign(diff + temperatureState,
                       diff + temperatureState,
-                      -1.0 / effectiveT3 - stateData.cj);
+                      (-1.0 / effectiveT3) - stateData.cj);
 }
 
 void GovernorGast::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
-    const double dt = time - prevTime;
+    const double timeStep = time - prevTime;
     const index_t diffOffset = offsets.getDiffOffset(cLocalSolverMode);
     m_state[diffOffset + valveState] =
-        std::clamp(m_state[diffOffset + valveState] + dt * m_dstate_dt[diffOffset + valveState],
+        std::clamp(m_state[diffOffset + valveState] +
+                       (timeStep * m_dstate_dt[diffOffset + valveState]),
                    responseMinimum,
                    responseMaximum);
-    m_state[diffOffset + turbineState] += dt * m_dstate_dt[diffOffset + turbineState];
-    m_state[diffOffset + temperatureState] += dt * m_dstate_dt[diffOffset + temperatureState];
+    m_state[diffOffset + turbineState] += (timeStep * m_dstate_dt[diffOffset + turbineState]);
+    m_state[diffOffset + temperatureState] +=
+        (timeStep * m_dstate_dt[diffOffset + temperatureState]);
     m_state[0] = mechanicalPower(inputs, m_state.data() + 1);
     prevTime = time;
 }

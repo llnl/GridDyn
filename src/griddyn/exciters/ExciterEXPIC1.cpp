@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <string>
 
 namespace griddyn::exciters {
@@ -24,41 +25,41 @@ namespace {
     constexpr index_t maximumStates = 7;
 
     struct Signal {
-        double value = 0.0;
-        std::array<double, maximumStates> state{};
-        std::array<double, exciterInputCount> input{};
+        double mValue = 0.0;
+        std::array<double, maximumStates> mState{};
+        std::array<double, exciterInputCount> mInput{};
     };
 
     Signal constantSignal(double value)
     {
         Signal signal;
-        signal.value = value;
+        signal.mValue = value;
         return signal;
     }
 
     Signal stateSignal(double value, index_t index)
     {
         auto signal = constantSignal(value);
-        signal.state[index] = 1.0;
+        signal.mState[index] = 1.0;
         return signal;
     }
 
     Signal inputSignal(const IOdata& inputs, index_t index)
     {
         auto signal = constantSignal(inputs[index]);
-        signal.input[index] = 1.0;
+        signal.mInput[index] = 1.0;
         return signal;
     }
 
     Signal addSignals(const Signal& left, const Signal& right)
     {
         Signal result;
-        result.value = left.value + right.value;
+        result.mValue = left.mValue + right.mValue;
         for (index_t index = 0; index < maximumStates; ++index) {
-            result.state[index] = left.state[index] + right.state[index];
+            result.mState[index] = left.mState[index] + right.mState[index];
         }
         for (index_t index = 0; index < exciterInputCount; ++index) {
-            result.input[index] = left.input[index] + right.input[index];
+            result.mInput[index] = left.mInput[index] + right.mInput[index];
         }
         return result;
     }
@@ -66,12 +67,12 @@ namespace {
     Signal scale(const Signal& signal, double factor)
     {
         Signal result;
-        result.value = factor * signal.value;
+        result.mValue = factor * signal.mValue;
         for (index_t index = 0; index < maximumStates; ++index) {
-            result.state[index] = factor * signal.state[index];
+            result.mState[index] = factor * signal.mState[index];
         }
         for (index_t index = 0; index < exciterInputCount; ++index) {
-            result.input[index] = factor * signal.input[index];
+            result.mInput[index] = factor * signal.mInput[index];
         }
         return result;
     }
@@ -84,22 +85,24 @@ namespace {
     Signal multiply(const Signal& left, const Signal& right)
     {
         Signal result;
-        result.value = left.value * right.value;
+        result.mValue = left.mValue * right.mValue;
         for (index_t index = 0; index < maximumStates; ++index) {
-            result.state[index] = left.state[index] * right.value + left.value * right.state[index];
+            result.mState[index] =
+                left.mState[index] * right.mValue + left.mValue * right.mState[index];
         }
         for (index_t index = 0; index < exciterInputCount; ++index) {
-            result.input[index] = left.input[index] * right.value + left.value * right.input[index];
+            result.mInput[index] =
+                left.mInput[index] * right.mValue + left.mValue * right.mInput[index];
         }
         return result;
     }
 
     Signal clampSignal(const Signal& signal, double lower, double upper)
     {
-        if (signal.value <= lower) {
+        if (signal.mValue <= lower) {
             return constantSignal(lower);
         }
-        if (signal.value >= upper) {
+        if (signal.mValue >= upper) {
             return constantSignal(upper);
         }
         return signal;
@@ -248,16 +251,16 @@ ExciterEXPIC1::ModelEvaluation ExciterEXPIC1::evaluateModel(const IOdata& inputs
     const Signal error = subtract(subtract(reference, measuredVoltage), feedback);
     const Signal piIntegrator = stateSignal(state[layout.piIntegrator], layout.piIntegrator);
     const Signal vaUnlimited = addSignals(piIntegrator, scale(error, Ka * Ta1));
-    const Signal va = clampSignal(vaUnlimited, Vr2, Vr1);
+    const Signal regulatorOutput = clampSignal(vaUnlimited, Vr2, Vr1);
     const Signal piRateUnlimited = scale(error, Ka);
-    const bool piBlocked = ((vaUnlimited.value >= Vr1) && (piRateUnlimited.value > 0.0)) ||
-        ((vaUnlimited.value <= Vr2) && (piRateUnlimited.value < 0.0));
+    const bool piBlocked = ((vaUnlimited.mValue >= Vr1) && (piRateUnlimited.mValue > 0.0)) ||
+        ((vaUnlimited.mValue <= Vr2) && (piRateUnlimited.mValue < 0.0));
     rates[layout.piIntegrator] = piBlocked ? constantSignal(0.0) : piRateUnlimited;
 
-    Signal rawRegulator = va;
+    Signal rawRegulator = regulatorOutput;
     if (hasRegulatorFilter()) {
         const Signal regulatorOne = stateSignal(state[layout.regulatorOne], layout.regulatorOne);
-        rates[layout.regulatorOne] = scale(subtract(va, regulatorOne), 1.0 / Ta2);
+        rates[layout.regulatorOne] = scale(subtract(regulatorOutput, regulatorOne), 1.0 / Ta2);
         const Signal regulator = stateSignal(state[layout.regulator], layout.regulator);
         const Signal regulatorTarget =
             addSignals(regulatorOne, scale(rates[layout.regulatorOne], Ta3));
@@ -282,35 +285,35 @@ ExciterEXPIC1::ModelEvaluation ExciterEXPIC1::evaluateModel(const IOdata& inputs
     Signal source = constantSignal(1.0);
     if ((Kp != 0.0) || (Ki != 0.0)) {
         const auto sourceData = detail::computeRectifierData(inputs, Kp, Ki, Kc, 0.0, 0.0, kBigNum);
-        source.value = sourceData.voltage;
+        source.mValue = sourceData.voltage;
         const std::array<index_t, 5> sourceInputs{exciterIdInLocation,
                                                   exciterIqInLocation,
                                                   exciterVdInLocation,
                                                   exciterVqInLocation,
                                                   exciterXadIfdInLocation};
-        for (index_t index = 0; index < sourceInputs.size(); ++index) {
-            source.input[sourceInputs[index]] = sourceData.derivatives[index];
+        for (std::size_t index = 0; index < sourceInputs.size(); ++index) {
+            source.mInput[sourceInputs[index]] = sourceData.derivatives[index];
         }
     }
     const Signal exciterInput = clampSignal(multiply(source, limitedRegulator), Efdmin, Efdmax);
     if (Te > 0.0) {
         const Signal efd = stateSignal(state[layout.efd], layout.efd);
-        Signal fieldFeedback = scale(efd, Ke + saturation(efd.value));
-        fieldFeedback.state[layout.efd] =
-            Ke + saturation(efd.value) + efd.value * saturation.deriv(efd.value);
+        Signal fieldFeedback = scale(efd, Ke + saturation(efd.mValue));
+        fieldFeedback.mState[layout.efd] =
+            Ke + saturation(efd.mValue) + efd.mValue * saturation.deriv(efd.mValue);
         rates[layout.efd] = scale(subtract(exciterInput, fieldFeedback), 1.0 / Te);
-        evaluation.fieldOutput = efd.value;
+        evaluation.fieldOutput = efd.mValue;
         evaluation.fieldStateDerivatives[layout.efd] = 1.0;
     } else {
-        evaluation.fieldOutput = exciterInput.value;
-        evaluation.fieldStateDerivatives = exciterInput.state;
-        evaluation.fieldInputDerivatives = exciterInput.input;
+        evaluation.fieldOutput = exciterInput.mValue;
+        evaluation.fieldStateDerivatives = exciterInput.mState;
+        evaluation.fieldInputDerivatives = exciterInput.mInput;
     }
 
     for (index_t row = 0; row < layout.count; ++row) {
-        evaluation.rates[row] = rates[row].value;
-        evaluation.rateStateDerivatives[row] = rates[row].state;
-        evaluation.rateInputDerivatives[row] = rates[row].input;
+        evaluation.rates[row] = rates[row].mValue;
+        evaluation.rateStateDerivatives[row] = rates[row].mState;
+        evaluation.rateInputDerivatives[row] = rates[row].mInput;
     }
     return evaluation;
 }
@@ -502,7 +505,7 @@ stringVec ExciterEXPIC1::localStateNames() const
 {
     const auto layout = stateLayout();
     stringVec names;
-    names.reserve(static_cast<std::size_t>(layout.count + ((Te == 0.0) ? 1 : 0)));
+    names.reserve(static_cast<std::size_t>(layout.count) + ((Te == 0.0) ? 1U : 0U));
     if (Te == 0.0) {
         names.emplace_back("efd");
     }

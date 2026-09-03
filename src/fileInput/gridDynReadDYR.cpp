@@ -425,12 +425,14 @@ namespace {
             throw InvalidParameterValue("EXPIC1 requires an existing generator");
         }
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
-        auto* model = static_cast<Exciter*>(
-            CoreObjectFactory::instance()->createObject("exciter", "expic1"));
-        static constexpr std::array<std::string_view, 24> names{
-            "tr", "ka", "ta1", "vr1", "vr2", "ta2", "ta3", "ta4", "vrmax", "vrmin",
-            "kf", "tf1", "tf2", "efdmax", "efdmin", "ke", "te", "e1", "se1", "e2",
-            "se2", "kp", "ki", "kc"};
+        auto* model =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "expic1"));
+        static constexpr std::array<std::string_view, 24> names{"tr",    "ka",     "ta1",    "vr1",
+                                                                "vr2",   "ta2",    "ta3",    "ta4",
+                                                                "vrmax", "vrmin",  "kf",     "tf1",
+                                                                "tf2",   "efdmax", "efdmin", "ke",
+                                                                "te",    "e1",     "se1",    "e2",
+                                                                "se2",   "kp",     "ki",     "kc"};
         for (std::size_t ii = 0; ii < names.size(); ++ii) {
             model->set(names[ii], params[ii + 3]);
         }
@@ -723,8 +725,8 @@ namespace {
             throw InvalidParameterValue("GAST requires an existing generator");
         }
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
-        auto* model = static_cast<Governor*>(
-            CoreObjectFactory::instance()->createObject("governor", "gast"));
+        auto* model =
+            static_cast<Governor*>(CoreObjectFactory::instance()->createObject("governor", "gast"));
         static constexpr std::array<std::string_view, 9> names{
             "r", "t1", "t2", "t3", "at", "kt", "vmax", "vmin", "dt"};
         for (std::size_t ii = 0; ii < names.size(); ++ii) {

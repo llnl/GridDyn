@@ -9,6 +9,14 @@
 #include <array>
 
 namespace griddyn::exciters::detail {
+/** PSS/E AC-exciter rectifier-loading factor and slope with respect to normalized current. */
+struct RectifierFactorData {
+    double factor;
+    double derivative;
+};
+
+RectifierFactorData computeRectifierFactor(double normalizedCurrent);
+
 /** Potential-source and commutating-reactance result shared by ESST3A/ESST4B. */
 struct RectifierData {
     double voltage;

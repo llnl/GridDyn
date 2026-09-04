@@ -25,6 +25,7 @@
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
 #include <array>
+#include <charconv>
 #include <cmath>
 #include <fstream>
 #include <iostream>
@@ -42,6 +43,8 @@ namespace {
     void loadESST3A(CoreObject* parentObject, stringVec& tokens);
     void loadESST4B(CoreObject* parentObject, stringVec& tokens);
     void loadEXPIC1(CoreObject* parentObject, stringVec& tokens);
+    void loadSCRX(CoreObject* parentObject, stringVec& tokens);
+    void loadESAC6A(CoreObject* parentObject, stringVec& tokens);
     void loadEXST1(CoreObject* parentObject, stringVec& tokens);
     void loadEXAC1(CoreObject* parentObject, stringVec& tokens);
     void loadESAC1A(CoreObject* parentObject, stringVec& tokens);
@@ -84,8 +87,11 @@ void loadDyr(CoreObject* parentObject,
                 break;
             }
         }
-        auto lineTokens = gmlc::utilities::stringOps::splitline(
-            line, " \t\n,", gmlc::utilities::stringOps::delimiter_compression::on);
+        auto lineTokens = gmlc::utilities::stringOps::splitlineQuotes(
+            line,
+            " \t\n,",
+            gmlc::utilities::stringOps::default_quote_chars,
+            gmlc::utilities::stringOps::delimiter_compression::on);
         // get rid of the '/' at the end of the last string
         auto lstr = lineTokens.back();
         lineTokens.pop_back();
@@ -113,6 +119,10 @@ void loadDyr(CoreObject* parentObject,
             loadESST4B(parentObject, lineTokens);
         } else if (type == "'EXPIC1'") {
             loadEXPIC1(parentObject, lineTokens);
+        } else if (type == "'SCRX'") {
+            loadSCRX(parentObject, lineTokens);
+        } else if (type == "'ESAC6A'") {
+            loadESAC6A(parentObject, lineTokens);
         } else if (type == "'EXST1'") {
             loadEXST1(parentObject, lineTokens);
         } else if (type == "'EXAC1'") {
@@ -150,28 +160,66 @@ void loadDyr(CoreObject* parentObject,
 }
 
 namespace {
+    Generator* findDyrGenerator(CoreObject* parentObject,
+                                std::string_view busToken,
+                                std::string_view generatorToken)
+    {
+        int busId = 0;
+        const auto busResult =
+            std::from_chars(busToken.data(), busToken.data() + busToken.size(), busId);
+        if ((busResult.ec != std::errc{}) || (busResult.ptr != busToken.data() + busToken.size())) {
+            return nullptr;
+        }
+        auto* bus = dynamic_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+        if (bus == nullptr) {
+            return nullptr;
+        }
+
+        auto generatorId = gmlc::utilities::stringOps::removeQuotes(std::string{generatorToken});
+        gmlc::utilities::stringOps::trimString(generatorId);
+        if (generatorId.empty()) {
+            return nullptr;
+        }
+
+        auto* generator =
+            dynamic_cast<Generator*>(bus->find(bus->getName() + "_Gen_" + generatorId));
+        if (generator != nullptr) {
+            return generator;
+        }
+
+        // Older GridDyn DYR inputs treated a numeric machine ID as a one-based
+        // generator position. Preserve that behavior only as a fallback when
+        // no generator with the actual PSS/E machine ID exists.
+        int generatorNumber = 0;
+        const auto idResult = std::from_chars(generatorId.data(),
+                                              generatorId.data() + generatorId.size(),
+                                              generatorNumber);
+        if ((idResult.ec != std::errc{}) ||
+            (idResult.ptr != generatorId.data() + generatorId.size()) || (generatorNumber <= 0)) {
+            return nullptr;
+        }
+        return bus->getGen(static_cast<index_t>(generatorNumber - 1));
+    }
+
+    Generator* requireDyrGenerator(CoreObject* parentObject,
+                                   const stringVec& tokens,
+                                   std::string_view modelName)
+    {
+        auto* generator = findDyrGenerator(parentObject, tokens[0], tokens[2]);
+        if (generator == nullptr) {
+            throw InvalidParameterValue(std::string{modelName} +
+                                        " requires an existing generator matching its bus and ID");
+        }
+        return generator;
+    }
+
     void loadGENCLS(CoreObject* parentObject, stringVec& tokens)
     {
         if (tokens.size() < 5) {
             throw InvalidParameterValue("GENCLS DYR record");
         }
 
-        const int busId = std::stoi(tokens[0]);
-        auto* bus = dynamic_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        if (bus == nullptr) {
-            throw InvalidParameterValue("GENCLS bus");
-        }
-
-        auto generatorId = gmlc::utilities::stringOps::removeQuotes(tokens[2]);
-        gmlc::utilities::stringOps::trimString(generatorId);
-        auto* gen = dynamic_cast<Generator*>(bus->find(bus->getName() + "_Gen_" + generatorId));
-        if (gen == nullptr) {
-            const int generatorIndex = std::stoi(generatorId) - 1;
-            gen = bus->getGen(generatorIndex);
-        }
-        if (gen == nullptr) {
-            throw InvalidParameterValue("GENCLS generator");
-        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "GENCLS");
 
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         auto* genModel = static_cast<GenModel*>(
@@ -185,10 +233,7 @@ namespace {
 
     void loadGENROU(CoreObject* parentObject, stringVec& tokens)
     {
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        const int genId = std::stoi(tokens[2]);
-        auto* gen = bus->getGen(genId - 1);
+        auto* gen = requireDyrGenerator(parentObject, tokens, "GENROU");
 
         auto params = gmlc::utilities::str2vector(tokens, kNullVal);
 
@@ -219,16 +264,7 @@ namespace {
         if (tokens.size() != 15U) {
             throw InvalidParameterValue("GENSAL DYR record must contain 15 fields");
         }
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        const int genId = std::stoi(tokens[2]);
-        if ((bus == nullptr) || (genId <= 0)) {
-            throw InvalidParameterValue("GENSAL generator identity");
-        }
-        auto* gen = bus->getGen(genId - 1);
-        if (gen == nullptr) {
-            throw InvalidParameterValue("GENSAL generator identity");
-        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "GENSAL");
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         auto* model = static_cast<GenModel*>(
             CoreObjectFactory::instance()->createObject("genmodel", "gensal"));
@@ -253,10 +289,7 @@ namespace {
         if (tokens.size() != 19U) {
             throw InvalidParameterValue("ESDC1A DYR record must contain 19 fields");
         }
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        const int genId = std::stoi(tokens[2]);
-        auto* gen = bus->getGen(genId - 1);
+        auto* gen = requireDyrGenerator(parentObject, tokens, "ESDC1A");
 
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         const bool hasLeadLag = params[6] > 0.0;
@@ -289,10 +322,7 @@ namespace {
         if (tokens.size() != 19U) {
             throw InvalidParameterValue("ESDC2A DYR record must contain 19 fields");
         }
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        const int genId = std::stoi(tokens[2]);
-        auto* gen = bus->getGen(genId - 1);
+        auto* gen = requireDyrGenerator(parentObject, tokens, "ESDC2A");
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         // PSS/E does not implement the ESDC2A Switch selector.  Reject a
         // nonzero value rather than silently importing a different model.
@@ -324,10 +354,7 @@ namespace {
         if (tokens.size() != 17U) {
             throw InvalidParameterValue("IEEET1 DYR record must contain 17 fields");
         }
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        const int genId = std::stoi(tokens[2]);
-        auto* gen = bus->getGen(genId - 1);
+        auto* gen = requireDyrGenerator(parentObject, tokens, "IEEET1");
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         auto* exciterModel =
             static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "ieeet1"));
@@ -349,10 +376,7 @@ namespace {
 
     void loadESST3A(CoreObject* parentObject, stringVec& tokens)
     {
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        const int genId = std::stoi(tokens[2]);
-        auto* gen = bus->getGen(genId - 1);
+        auto* gen = requireDyrGenerator(parentObject, tokens, "ESST3A");
 
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         auto cof = CoreObjectFactory::instance();
@@ -388,16 +412,7 @@ namespace {
         if (tokens.size() != 20U) {
             throw InvalidParameterValue("ESST4B DYR record must contain 20 fields");
         }
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        const int genId = std::stoi(tokens[2]);
-        if ((bus == nullptr) || (genId <= 0)) {
-            throw InvalidParameterValue("ESST4B generator identity");
-        }
-        auto* gen = bus->getGen(genId - 1);
-        if (gen == nullptr) {
-            throw InvalidParameterValue("ESST4B generator identity");
-        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "ESST4B");
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         auto* model =
             static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "esst4b"));
@@ -426,16 +441,7 @@ namespace {
         if (tokens.size() != 27U) {
             throw InvalidParameterValue("EXPIC1 DYR record must contain 27 fields");
         }
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        const int genId = std::stoi(tokens[2]);
-        if ((bus == nullptr) || (genId <= 0)) {
-            throw InvalidParameterValue("EXPIC1 generator identity");
-        }
-        auto* gen = bus->getGen(genId - 1);
-        if (gen == nullptr) {
-            throw InvalidParameterValue("EXPIC1 requires an existing generator");
-        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "EXPIC1");
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         auto* model =
             static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "expic1"));
@@ -451,12 +457,49 @@ namespace {
         gen->add(model);
     }
 
+    void loadSCRX(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 11U) {
+            throw InvalidParameterValue("SCRX DYR record must contain 11 fields");
+        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "SCRX");
+
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* model =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "scrx"));
+        static constexpr std::array<std::string_view, 8> names{
+            "tatb", "tb", "k", "te", "emin", "emax", "cswitch", "rcrfd"};
+        for (std::size_t ii = 0; ii < names.size(); ++ii) {
+            model->set(names[ii], params[ii + 3]);
+        }
+        gen->add(model);
+    }
+
+    void loadESAC6A(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 26U) {
+            throw InvalidParameterValue("ESAC6A DYR record must contain 26 fields");
+        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "ESAC6A");
+
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* model =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "esac6a"));
+        static constexpr std::array<std::string_view, 23> names{"tr",    "ka",    "ta",    "tk",
+                                                                "tb",    "tc",    "vamax", "vamin",
+                                                                "vrmax", "vrmin", "te",    "vfelim",
+                                                                "kh",    "vhmax", "th",    "tj",
+                                                                "kc",    "kd",    "ke",    "e1",
+                                                                "se1",   "e2",    "se2"};
+        for (std::size_t ii = 0; ii < names.size(); ++ii) {
+            model->set(names[ii], params[ii + 3]);
+        }
+        gen->add(model);
+    }
+
     void loadEXST1(CoreObject* parentObject, stringVec& tokens)
     {
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        const int genId = std::stoi(tokens[2]);
-        auto* gen = bus->getGen(genId - 1);
+        auto* gen = requireDyrGenerator(parentObject, tokens, "EXST1");
 
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         auto cof = CoreObjectFactory::instance();
@@ -481,9 +524,7 @@ namespace {
 
     void loadEXAC1(CoreObject* parentObject, stringVec& tokens)
     {
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        auto* gen = bus->getGen(std::stoi(tokens[2]) - 1);
+        auto* gen = requireDyrGenerator(parentObject, tokens, "EXAC1");
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         auto* exciter =
             static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "exac1"));
@@ -516,16 +557,7 @@ namespace {
         if (tokens.size() != 22U) {
             throw InvalidParameterValue("ESAC1A DYR record must contain 22 fields");
         }
-        const int busId = std::stoi(tokens[0]);
-        const int genId = std::stoi(tokens[2]);
-        const auto* bus = dynamic_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        if ((bus == nullptr) || (genId <= 0)) {
-            throw InvalidParameterValue("ESAC1A generator identity");
-        }
-        auto* gen = bus->getGen(genId - 1);
-        if (gen == nullptr) {
-            throw InvalidParameterValue("ESAC1A requires an existing generator");
-        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "ESAC1A");
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         auto* exciter =
             static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "esac1a"));
@@ -556,9 +588,7 @@ namespace {
 
     void loadEXAC2(CoreObject* parentObject, stringVec& tokens)
     {
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        auto* gen = bus->getGen(std::stoi(tokens[2]) - 1);
+        auto* gen = requireDyrGenerator(parentObject, tokens, "EXAC2");
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         auto* exciter =
             static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "exac2"));
@@ -593,9 +623,7 @@ namespace {
 
     void loadEXAC4(CoreObject* parentObject, stringVec& tokens)
     {
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        auto* gen = bus->getGen(std::stoi(tokens[2]) - 1);
+        auto* gen = requireDyrGenerator(parentObject, tokens, "EXAC4");
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         auto* exciter =
             static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "exac4"));
@@ -619,10 +647,7 @@ namespace {
         if (tokens.size() != 19U) {
             throw InvalidParameterValue("EXDC2 DYR record must contain 19 fields");
         }
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        const int genId = std::stoi(tokens[2]);
-        auto* gen = bus->getGen(genId - 1);
+        auto* gen = requireDyrGenerator(parentObject, tokens, "EXDC2");
 
         auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         // EXDC2 uses the same DC2A schema as ESDC2A, including the PSS/E
@@ -654,10 +679,7 @@ namespace {
 
     void loadSEXS(CoreObject* parentObject, stringVec& tokens)
     {
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        const int genId = std::stoi(tokens[2]);
-        auto* gen = bus->getGen(genId - 1);
+        auto* gen = requireDyrGenerator(parentObject, tokens, "SEXS");
 
         auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         auto cof = CoreObjectFactory::instance();
@@ -675,10 +697,7 @@ namespace {
     }
     void loadTGOV1(CoreObject* parentObject, stringVec& tokens)
     {
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        const int genId = std::stoi(tokens[2]);
-        auto* gen = bus->getGen(genId - 1);
+        auto* gen = requireDyrGenerator(parentObject, tokens, "TGOV1");
 
         auto params = gmlc::utilities::str2vector(tokens, kNullVal);
 
@@ -703,16 +722,7 @@ namespace {
         if (tokens.size() != 15U) {
             throw InvalidParameterValue("HYGOV DYR record must contain 15 fields");
         }
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        const int genId = std::stoi(tokens[2]);
-        if ((bus == nullptr) || (genId <= 0)) {
-            throw InvalidParameterValue("HYGOV generator identity");
-        }
-        auto* gen = bus->getGen(genId - 1);
-        if (gen == nullptr) {
-            throw InvalidParameterValue("HYGOV requires an existing generator");
-        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "HYGOV");
 
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         auto cof = CoreObjectFactory::instance();
@@ -746,16 +756,7 @@ namespace {
         if (tokens.size() != 38U) {
             throw InvalidParameterValue("GGOV1 DYR record must contain 38 fields");
         }
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        const int genId = std::stoi(tokens[2]);
-        if ((bus == nullptr) || (genId <= 0)) {
-            throw InvalidParameterValue("GGOV1 generator identity");
-        }
-        auto* gen = bus->getGen(genId - 1);
-        if (gen == nullptr) {
-            throw InvalidParameterValue("GGOV1 generator identity");
-        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "GGOV1");
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         auto* model = static_cast<Governor*>(
             CoreObjectFactory::instance()->createObject("governor", "ggov1"));
@@ -776,16 +777,7 @@ namespace {
         if (tokens.size() != 12U) {
             throw InvalidParameterValue("GAST DYR record must contain 12 fields");
         }
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        const int genId = std::stoi(tokens[2]);
-        if ((bus == nullptr) || (genId <= 0)) {
-            throw InvalidParameterValue("GAST generator identity");
-        }
-        auto* gen = bus->getGen(genId - 1);
-        if (gen == nullptr) {
-            throw InvalidParameterValue("GAST requires an existing generator");
-        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "GAST");
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         auto* model =
             static_cast<Governor*>(CoreObjectFactory::instance()->createObject("governor", "gast"));
@@ -802,28 +794,18 @@ namespace {
         if (tokens.size() != 25U) {
             throw InvalidParameterValue("IEEEG1 DYR record must contain 25 fields");
         }
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        const int genId = std::stoi(tokens[2]);
-        if ((bus == nullptr) || (genId <= 0)) {
-            throw InvalidParameterValue("IEEEG1 primary generator identity");
-        }
-        auto* primary = dynamic_cast<DynamicGenerator*>(bus->getGen(genId - 1));
+        auto* primary =
+            dynamic_cast<DynamicGenerator*>(requireDyrGenerator(parentObject, tokens, "IEEEG1"));
         if (primary == nullptr) {
             throw InvalidParameterValue("IEEEG1 requires a dynamic primary generator");
         }
 
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
-        const int secondBusId = static_cast<int>(params[3]);
+        const int secondBusId = std::stoi(tokens[3]);
         DynamicGenerator* secondary = nullptr;
         if (secondBusId != 0) {
-            const auto* secondBus =
-                dynamic_cast<GridBus*>(parentObject->findByUserID("bus", secondBusId));
-            const int secondGenId = static_cast<int>(params[4]);
-            if ((secondBus == nullptr) || (secondGenId <= 0)) {
-                throw InvalidParameterValue("IEEEG1 secondary generator identity");
-            }
-            secondary = dynamic_cast<DynamicGenerator*>(secondBus->getGen(secondGenId - 1));
+            secondary = dynamic_cast<DynamicGenerator*>(
+                findDyrGenerator(parentObject, tokens[3], tokens[4]));
             if ((secondary == nullptr) || (secondary == primary)) {
                 throw InvalidParameterValue(
                     "IEEEG1 requires a distinct dynamic secondary generator");
@@ -882,16 +864,7 @@ namespace {
         if (tokens.size() != 14U) {
             throw InvalidParameterValue("IEESGO DYR record must contain 14 fields");
         }
-        const int busId = std::stoi(tokens[0]);
-        const int genId = std::stoi(tokens[2]);
-        const auto* bus = dynamic_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        if ((bus == nullptr) || (genId <= 0)) {
-            throw InvalidParameterValue("IEESGO generator identity");
-        }
-        auto* gen = bus->getGen(genId - 1);
-        if (gen == nullptr) {
-            throw InvalidParameterValue("IEESGO requires an existing generator");
-        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "IEESGO");
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         std::unique_ptr<governors::GovernorReheat> governor(
             dynamic_cast<governors::GovernorReheat*>(
@@ -912,13 +885,8 @@ namespace {
         if (tokens.size() != 23U) {
             throw InvalidParameterValue("ST2CUT DYR record must contain 23 fields");
         }
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        const int genId = std::stoi(tokens[2]);
-        if ((bus == nullptr) || (genId <= 0)) {
-            throw InvalidParameterValue("ST2CUT generator identity");
-        }
-        auto* generator = dynamic_cast<DynamicGenerator*>(bus->getGen(genId - 1));
+        auto* generator =
+            dynamic_cast<DynamicGenerator*>(requireDyrGenerator(parentObject, tokens, "ST2CUT"));
         if (generator == nullptr) {
             throw InvalidParameterValue("ST2CUT requires a dynamic generator");
         }
@@ -956,13 +924,8 @@ namespace {
         if (tokens.size() != 22U) {
             throw InvalidParameterValue("IEEEST DYR record must contain 22 fields");
         }
-        const int busId = std::stoi(tokens[0]);
-        const auto* bus = static_cast<GridBus*>(parentObject->findByUserID("bus", busId));
-        const int genId = std::stoi(tokens[2]);
-        if ((bus == nullptr) || (genId <= 0)) {
-            throw InvalidParameterValue("IEEEST generator identity");
-        }
-        auto* generator = dynamic_cast<DynamicGenerator*>(bus->getGen(genId - 1));
+        auto* generator =
+            dynamic_cast<DynamicGenerator*>(requireDyrGenerator(parentObject, tokens, "IEEEST"));
         if (generator == nullptr) {
             throw InvalidParameterValue("IEEEST requires a dynamic generator");
         }

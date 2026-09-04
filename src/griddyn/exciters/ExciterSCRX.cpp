@@ -87,12 +87,12 @@ namespace {
         Signal result;
         result.value = left.value * right.value;
         for (index_t index = 0; index < scrxMaximumStates; ++index) {
-            result.state[index] = (left.state[index] * right.value) +
-                (left.value * right.state[index]);
+            result.state[index] =
+                (left.state[index] * right.value) + (left.value * right.state[index]);
         }
         for (index_t index = 0; index < exciterInputCount; ++index) {
-            result.input[index] = (left.input[index] * right.value) +
-                (left.value * right.input[index]);
+            result.input[index] =
+                (left.input[index] * right.value) + (left.value * right.input[index]);
         }
         return result;
     }

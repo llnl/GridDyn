@@ -94,8 +94,8 @@ void GovernorSteamTCSR::residual(const IOdata& inputs,
     const auto locations = offsets.getLocations(stateData, resid, sMode, this);
     if (hasAlgebraic(sMode)) {
         const auto* state = locations.diffStateLoc;
-        locations.destLoc[outputState] = Fch * state[chestState] + Fip * state[reheatState] +
-            Flp * state[crossoverState] - locations.algStateLoc[outputState];
+        locations.destLoc[outputState] = (Fch * state[chestState]) + (Fip * state[reheatState]) +
+            (Flp * state[crossoverState]) - locations.algStateLoc[outputState];
     }
     if (!hasDifferential(sMode)) {
         return;
@@ -119,10 +119,10 @@ void GovernorSteamTCSR::derivative(const IOdata& inputs,
     auto* dst = locations.destDiffLoc;
     const double speedDeviation = inputs[govOmegaInLocation] - Wref;
     const double unrestrictedRate = (inputs[govpSetInLocation] - state[valveState] -
-                                     K * state[filterState] - K * T2 * speedDeviation / T1) /
+                                     (K * state[filterState]) - ((K * T2 * speedDeviation) / T1)) /
         T3;
     dst[valveState] = opFlags[POWER_LIMITED] ? 0.0 : std::clamp(unrestrictedRate, Pdown, Pup);
-    dst[filterState] = (-state[filterState] + (1.0 - T2 / T1) * speedDeviation) / T1;
+    dst[filterState] = (-state[filterState] + ((1.0 - (T2 / T1)) * speedDeviation)) / T1;
     dst[chestState] = (state[valveState] - state[chestState]) / Tch;
     dst[reheatState] = (state[chestState] - state[reheatState]) / Trh;
     dst[crossoverState] = (state[reheatState] - state[crossoverState]) / Tco;
@@ -150,13 +150,13 @@ void GovernorSteamTCSR::jacobianElements(const IOdata& inputs,
     const auto* state = locations.diffStateLoc;
     const double speedDeviation = inputs[govOmegaInLocation] - Wref;
     const double unrestrictedRate = (inputs[govpSetInLocation] - state[valveState] -
-                                     K * state[filterState] - K * T2 * speedDeviation / T1) /
+                                     (K * state[filterState]) - ((K * T2 * speedDeviation) / T1)) /
         T3;
     const bool rateLimited =
         opFlags[POWER_LIMITED] || (unrestrictedRate <= Pdown) || (unrestrictedRate >= Pup);
     matrixData.assign(diff + valveState,
                       diff + valveState,
-                      rateLimited ? -stateData.cj : -1.0 / T3 - stateData.cj);
+                      rateLimited ? -stateData.cj : ((-1.0 / T3) - stateData.cj));
     if (!rateLimited) {
         matrixData.assign(diff + valveState, diff + filterState, -K / T3);
         matrixData.assignCheckCol(diff + valveState, inputLocs[govpSetInLocation], 1.0 / T3);
@@ -164,16 +164,16 @@ void GovernorSteamTCSR::jacobianElements(const IOdata& inputs,
                                   inputLocs[govOmegaInLocation],
                                   -K * T2 / (T1 * T3));
     }
-    matrixData.assign(diff + filterState, diff + filterState, -1.0 / T1 - stateData.cj);
+    matrixData.assign(diff + filterState, diff + filterState, (-1.0 / T1) - stateData.cj);
     matrixData.assignCheckCol(diff + filterState,
                               inputLocs[govOmegaInLocation],
                               (T1 - T2) / (T1 * T1));
     matrixData.assign(diff + chestState, diff + valveState, 1.0 / Tch);
-    matrixData.assign(diff + chestState, diff + chestState, -1.0 / Tch - stateData.cj);
+    matrixData.assign(diff + chestState, diff + chestState, (-1.0 / Tch) - stateData.cj);
     matrixData.assign(diff + reheatState, diff + chestState, 1.0 / Trh);
-    matrixData.assign(diff + reheatState, diff + reheatState, -1.0 / Trh - stateData.cj);
+    matrixData.assign(diff + reheatState, diff + reheatState, (-1.0 / Trh) - stateData.cj);
     matrixData.assign(diff + crossoverState, diff + reheatState, 1.0 / Tco);
-    matrixData.assign(diff + crossoverState, diff + crossoverState, -1.0 / Tco - stateData.cj);
+    matrixData.assign(diff + crossoverState, diff + crossoverState, (-1.0 / Tco) - stateData.cj);
 }
 
 index_t GovernorSteamTCSR::findIndex(std::string_view field, const SolverMode& sMode) const

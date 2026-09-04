@@ -86,92 +86,98 @@ void GovernorReheat::dynObjectInitializeB(const IOdata& /*inputs*/,
 
 // residual
 void GovernorReheat::residual(const IOdata& inputs,
-                              const StateData& sD,
+                              const StateData& stateData,
                               double resid[],
                               const SolverMode& sMode)
 {
-    const auto loc = offsets.getLocations(sD, resid, sMode, this);
+    const auto loc = offsets.getLocations(stateData, resid, sMode, this);
     const auto* state = loc.diffStateLoc;
     loc.destLoc[0] =
-        loc.algStateLoc[0] - ((1.0 - K2) * state[2] + (1.0 - K3) * state[3] + state[4]);
+        loc.algStateLoc[0] - (((1.0 - K2) * state[2]) + ((1.0 - K3) * state[3]) + state[4]);
     if (isAlgebraicOnly(sMode)) {
         return;
     }
-    derivative(inputs, sD, resid, sMode);
+    derivative(inputs, stateData, resid, sMode);
     for (index_t ii = 0; ii < 5; ++ii) {
         loc.destDiffLoc[ii] -= loc.dstateLoc[ii];
     }
 }
 
 void GovernorReheat::derivative(const IOdata& inputs,
-                                const StateData& sD,
+                                const StateData& stateData,
                                 double deriv[],
                                 const SolverMode& sMode)
 {
-    const auto loc = offsets.getLocations(sD, deriv, sMode, this);
+    const auto loc = offsets.getLocations(stateData, deriv, sMode, this);
     const auto* state = loc.diffStateLoc;
     const double controllerInput =
-        inputs[govpSetInLocation] + K * (Wref - inputs[govOmegaInLocation]);
+        inputs[govpSetInLocation] + (K * (Wref - inputs[govOmegaInLocation]));
     loc.destDiffLoc[0] = (controllerInput - state[0]) / T1;
     loc.destDiffLoc[1] = (state[0] - state[1]) / T3;
-    const double valve = std::clamp((T2 / T3) * state[0] + (1.0 - T2 / T3) * state[1], Pmin, Pmax);
+    const double valve =
+        std::clamp(((T2 / T3) * state[0]) + ((1.0 - (T2 / T3)) * state[1]), Pmin, Pmax);
     loc.destDiffLoc[2] = (valve - state[2]) / T4;
-    loc.destDiffLoc[3] = (K2 * state[2] - state[3]) / T5;
-    loc.destDiffLoc[4] = (K3 * state[3] - state[4]) / T6;
+    loc.destDiffLoc[3] = ((K2 * state[2]) - state[3]) / T5;
+    loc.destDiffLoc[4] = ((K3 * state[3]) - state[4]) / T6;
 }
 
 void GovernorReheat::jacobianElements(const IOdata& /*inputs*/,
-                                      const StateData& sD,
-                                      MatrixData<double>& md,
+                                      const StateData& stateData,
+                                      MatrixData<double>& matrixData,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode)
 {
-    const auto loc = offsets.getLocations(sD, nullptr, sMode, this);
+    const auto loc = offsets.getLocations(stateData, nullptr, sMode, this);
     const index_t diff = loc.diffOffset;
-    md.assign(loc.algOffset, loc.algOffset, 1.0);
+    matrixData.assign(loc.algOffset, loc.algOffset, 1.0);
     if (isAlgebraicOnly(sMode)) {
         return;
     }
-    md.assign(loc.algOffset, diff + 2, -(1.0 - K2));
-    md.assign(loc.algOffset, diff + 3, -(1.0 - K3));
-    md.assign(loc.algOffset, diff + 4, -1.0);
-    md.assignCheckCol(diff, inputLocs[govpSetInLocation], 1.0 / T1);
+    matrixData.assign(loc.algOffset, diff + 2, -(1.0 - K2));
+    matrixData.assign(loc.algOffset, diff + 3, -(1.0 - K3));
+    matrixData.assign(loc.algOffset, diff + 4, -1.0);
+    matrixData.assignCheckCol(diff, inputLocs[govpSetInLocation], 1.0 / T1);
     if (inputLocs[govOmegaInLocation] != kNullLocation) {
-        md.assign(diff, inputLocs[govOmegaInLocation], -K / T1);
+        matrixData.assign(diff, inputLocs[govOmegaInLocation], -K / T1);
     }
-    md.assign(diff, diff, -1.0 / T1 - sD.cj);
-    md.assign(diff + 1, diff, 1.0 / T3);
-    md.assign(diff + 1, diff + 1, -1.0 / T3 - sD.cj);
+    matrixData.assign(diff, diff, (-1.0 / T1) - stateData.cj);
+    matrixData.assign(diff + 1, diff, 1.0 / T3);
+    matrixData.assign(diff + 1, diff + 1, (-1.0 / T3) - stateData.cj);
     const auto* state = loc.diffStateLoc;
-    const double unlimitedValve = (T2 / T3) * state[0] + (1.0 - T2 / T3) * state[1];
+    const double unlimitedValve = ((T2 / T3) * state[0]) + ((1.0 - (T2 / T3)) * state[1]);
     if ((unlimitedValve > Pmin) && (unlimitedValve < Pmax)) {
-        md.assign(diff + 2, diff, T2 / (T3 * T4));
-        md.assign(diff + 2, diff + 1, (1.0 - T2 / T3) / T4);
+        matrixData.assign(diff + 2, diff, T2 / (T3 * T4));
+        matrixData.assign(diff + 2, diff + 1, (1.0 - (T2 / T3)) / T4);
     }
-    md.assign(diff + 2, diff + 2, -1.0 / T4 - sD.cj);
-    md.assign(diff + 3, diff + 2, K2 / T5);
-    md.assign(diff + 3, diff + 3, -1.0 / T5 - sD.cj);
-    md.assign(diff + 4, diff + 3, K3 / T6);
-    md.assign(diff + 4, diff + 4, -1.0 / T6 - sD.cj);
+    matrixData.assign(diff + 2, diff + 2, (-1.0 / T4) - stateData.cj);
+    matrixData.assign(diff + 3, diff + 2, K2 / T5);
+    matrixData.assign(diff + 3, diff + 3, (-1.0 / T5) - stateData.cj);
+    matrixData.assign(diff + 4, diff + 3, K3 / T6);
+    matrixData.assign(diff + 4, diff + 4, (-1.0 / T6) - stateData.cj);
 }
 
 index_t GovernorReheat::findIndex(std::string_view field, const SolverMode& sMode) const
 {
-    index_t ret = kInvalidLocation;
     if ((field == "pm") || (field == "pmech")) {
-        ret = offsets.getAlgOffset(sMode);
-    } else if (field == "filter") {
-        ret = offsets.getDiffOffset(sMode);
-    } else if (field == "governor") {
-        ret = offsets.getDiffOffset(sMode) + 1;
-    } else if (field == "steamchest") {
-        ret = offsets.getDiffOffset(sMode) + 2;
-    } else if (field == "reheater") {
-        ret = offsets.getDiffOffset(sMode) + 3;
-    } else if (field == "crossover") {
-        ret = offsets.getDiffOffset(sMode) + 4;
+        return offsets.getAlgOffset(sMode);
     }
-    return ret;
+    const index_t differentialOffset = offsets.getDiffOffset(sMode);
+    if (field == "filter") {
+        return differentialOffset;
+    }
+    if (field == "governor") {
+        return differentialOffset + 1;
+    }
+    if (field == "steamchest") {
+        return differentialOffset + 2;
+    }
+    if (field == "reheater") {
+        return differentialOffset + 3;
+    }
+    if (field == "crossover") {
+        return differentialOffset + 4;
+    }
+    return kInvalidLocation;
 }
 
 // set parameters

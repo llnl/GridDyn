@@ -175,8 +175,7 @@ namespace {
             return nullptr;
         }
 
-        auto generatorId =
-            gmlc::utilities::stringOps::removeQuotes(std::string{generatorToken});
+        auto generatorId = gmlc::utilities::stringOps::removeQuotes(std::string{generatorToken});
         gmlc::utilities::stringOps::trimString(generatorId);
         if (generatorId.empty()) {
             return nullptr;
@@ -196,8 +195,7 @@ namespace {
                                               generatorId.data() + generatorId.size(),
                                               generatorNumber);
         if ((idResult.ec != std::errc{}) ||
-            (idResult.ptr != generatorId.data() + generatorId.size()) ||
-            (generatorNumber <= 0)) {
+            (idResult.ptr != generatorId.data() + generatorId.size()) || (generatorNumber <= 0)) {
             return nullptr;
         }
         return bus->getGen(static_cast<index_t>(generatorNumber - 1));
@@ -485,12 +483,14 @@ namespace {
         auto* gen = requireDyrGenerator(parentObject, tokens, "ESAC6A");
 
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
-        auto* model = static_cast<Exciter*>(
-            CoreObjectFactory::instance()->createObject("exciter", "esac6a"));
-        static constexpr std::array<std::string_view, 23> names{
-            "tr",     "ka",    "ta",    "tk", "tb", "tc",  "vamax", "vamin",
-            "vrmax",  "vrmin", "te",    "vfelim", "kh", "vhmax", "th", "tj",
-            "kc",     "kd",    "ke",    "e1", "se1", "e2", "se2"};
+        auto* model =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "esac6a"));
+        static constexpr std::array<std::string_view, 23> names{"tr",    "ka",    "ta",    "tk",
+                                                                "tb",    "tc",    "vamax", "vamin",
+                                                                "vrmax", "vrmin", "te",    "vfelim",
+                                                                "kh",    "vhmax", "th",    "tj",
+                                                                "kc",    "kd",    "ke",    "e1",
+                                                                "se1",   "e2",    "se2"};
         for (std::size_t ii = 0; ii < names.size(); ++ii) {
             model->set(names[ii], params[ii + 3]);
         }
@@ -885,8 +885,8 @@ namespace {
         if (tokens.size() != 23U) {
             throw InvalidParameterValue("ST2CUT DYR record must contain 23 fields");
         }
-        auto* generator = dynamic_cast<DynamicGenerator*>(
-            requireDyrGenerator(parentObject, tokens, "ST2CUT"));
+        auto* generator =
+            dynamic_cast<DynamicGenerator*>(requireDyrGenerator(parentObject, tokens, "ST2CUT"));
         if (generator == nullptr) {
             throw InvalidParameterValue("ST2CUT requires a dynamic generator");
         }
@@ -924,8 +924,8 @@ namespace {
         if (tokens.size() != 22U) {
             throw InvalidParameterValue("IEEEST DYR record must contain 22 fields");
         }
-        auto* generator = dynamic_cast<DynamicGenerator*>(
-            requireDyrGenerator(parentObject, tokens, "IEEEST"));
+        auto* generator =
+            dynamic_cast<DynamicGenerator*>(requireDyrGenerator(parentObject, tokens, "IEEEST"));
         if (generator == nullptr) {
             throw InvalidParameterValue("IEEEST requires a dynamic generator");
         }

@@ -82,12 +82,10 @@ namespace {
         Signal result;
         result.value = left.value * right.value;
         for (index_t index = 0; index < scrxMaximumStates; ++index) {
-            result.state[index] =
-                left.state[index] * right.value + left.value * right.state[index];
+            result.state[index] = left.state[index] * right.value + left.value * right.state[index];
         }
         for (index_t index = 0; index < exciterInputCount; ++index) {
-            result.input[index] =
-                left.input[index] * right.value + left.value * right.input[index];
+            result.input[index] = left.input[index] * right.value + left.value * right.input[index];
         }
         return result;
     }
@@ -141,11 +139,11 @@ ExciterSCRX::StateLayout ExciterSCRX::stateLayout() const
 void ExciterSCRX::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
 {
     const std::array<double, 7> parameters{TaOverTb, Tb, Ka, Te, Vrmin, Vrmax, rCrFd};
-    if (std::any_of(parameters.begin(), parameters.end(), [](double value) {
-            return !std::isfinite(value);
-        }) ||
-        (TaOverTb < 0.0) || (Tb < 0.0) || (Te < 0.0) || (Ka == 0.0) ||
-        (Vrmin > Vrmax) || ((Tb == 0.0) && (TaOverTb != 0.0))) {
+    if (std::any_of(parameters.begin(),
+                    parameters.end(),
+                    [](double value) { return !std::isfinite(value); }) ||
+        (TaOverTb < 0.0) || (Tb < 0.0) || (Te < 0.0) || (Ka == 0.0) || (Vrmin > Vrmax) ||
+        ((Tb == 0.0) && (TaOverTb != 0.0))) {
         throw InvalidParameterValue("SCRX gains, time constants, limits, or selector data");
     }
     const auto layout = stateLayout();
@@ -164,8 +162,8 @@ ExciterSCRX::ModelEvaluation ExciterSCRX::evaluateModel(const IOdata& inputs,
     ModelEvaluation evaluation;
     std::array<Signal, maximumStates> rates{};
 
-    Signal reference = addSignals(constantSignal(Vref + vBias - 1.0),
-                                  inputSignal(inputs, exciterVsetInLocation));
+    Signal reference =
+        addSignals(constantSignal(Vref + vBias - 1.0), inputSignal(inputs, exciterVsetInLocation));
     reference = addSignals(reference, inputSignal(inputs, exciterVssInLocation));
     const Signal error = subtract(reference, inputSignal(inputs, exciterVoltageInLocation));
 
@@ -251,7 +249,8 @@ void ExciterSCRX::dynObjectInitializeB(const IOdata& inputs,
     const auto initialized = evaluateModel(inputs, state);
     if (!std::isfinite(initialized.fieldOutput) ||
         (std::abs(initialized.fieldOutput - desiredOutput[0]) > 1e-7) ||
-        std::any_of(initialized.rates.begin(), initialized.rates.begin() + layout.count,
+        std::any_of(initialized.rates.begin(),
+                    initialized.rates.begin() + layout.count,
                     [](double value) { return std::abs(value) > 1e-7; })) {
         throw InvalidParameterValue("SCRX initial equations are inconsistent");
     }
@@ -335,9 +334,7 @@ void ExciterSCRX::jacobianElements(const IOdata& inputs,
                 value -= stateData.cj;
             }
             if (value != 0.0) {
-                matrixData.assign(locations.diffOffset + row,
-                                  locations.diffOffset + column,
-                                  value);
+                matrixData.assign(locations.diffOffset + row, locations.diffOffset + column, value);
             }
         }
         for (index_t input = 0; input < exciterInputCount; ++input) {
@@ -359,10 +356,9 @@ void ExciterSCRX::timestep(CoreTime time, const IOdata& inputs, const SolverMode
         m_state[index + 1] += timeStep * m_dstate_dt[index + 1];
     }
     if (layout.amplifier != kInvalidLocation) {
-        m_state[layout.amplifier + 1] =
-            std::clamp(m_state[layout.amplifier + 1],
-                       static_cast<double>(Vrmin),
-                       static_cast<double>(Vrmax));
+        m_state[layout.amplifier + 1] = std::clamp(m_state[layout.amplifier + 1],
+                                                   static_cast<double>(Vrmin),
+                                                   static_cast<double>(Vrmax));
     }
     m_state[0] = evaluateModel(inputs, m_state.data() + 1).fieldOutput;
     updateLimitFlags(inputs, m_state.data() + 1);
@@ -444,9 +440,8 @@ ChangeCode ExciterSCRX::rootCheck(const IOdata& inputs,
         return ChangeCode::NO_CHANGE;
     }
     double* state = m_state.data() + 1;
-    state[layout.amplifier] = std::clamp(state[layout.amplifier],
-                                         static_cast<double>(Vrmin),
-                                         static_cast<double>(Vrmax));
+    state[layout.amplifier] =
+        std::clamp(state[layout.amplifier], static_cast<double>(Vrmin), static_cast<double>(Vrmax));
     if (updateLimitFlags(inputs, state)) {
         alert(this, JAC_COUNT_CHANGE);
         return ChangeCode::JACOBIAN_CHANGE;
@@ -474,9 +469,8 @@ index_t ExciterSCRX::findIndex(std::string_view field, const SolverMode& sMode) 
     }
     const auto layout = stateLayout();
     if ((field == "xll") || (field == "leadlag")) {
-        return (layout.leadLag == kInvalidLocation) ?
-            kInvalidLocation :
-            offsets.getDiffOffset(sMode) + layout.leadLag;
+        return (layout.leadLag == kInvalidLocation) ? kInvalidLocation :
+                                                      offsets.getDiffOffset(sMode) + layout.leadLag;
     }
     if ((field == "efdpre") || (field == "amplifier")) {
         return (layout.amplifier == kInvalidLocation) ?

@@ -173,10 +173,9 @@ double ExciterEXAC1::rectifierFactor(const IOdata& inputs, double exciterVoltage
     if (Kc == 0.0) {
         return 1.0;
     }
-    return detail::computeRectifierFactor(
-               (exciterVoltage != 0.0) ?
-                   Kc * inputs[exciterXadIfdInLocation] / exciterVoltage :
-                   0.0)
+    return detail::computeRectifierFactor((exciterVoltage != 0.0) ? Kc *
+                                                  inputs[exciterXadIfdInLocation] / exciterVoltage :
+                                                                    0.0)
         .factor;
 }
 

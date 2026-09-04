@@ -13,8 +13,8 @@
 #include "griddyn/events/Event.h"
 #include "griddyn/exciters/ExciterDC1A.h"
 #include "griddyn/exciters/ExciterDC2A.h"
-#include "griddyn/exciters/ExciterESAC6A.h"
 #include "griddyn/exciters/ExciterESAC1A.h"
+#include "griddyn/exciters/ExciterESAC6A.h"
 #include "griddyn/exciters/ExciterESST3A.h"
 #include "griddyn/exciters/ExciterESST4B.h"
 #include "griddyn/exciters/ExciterEXAC1.h"
@@ -358,29 +358,12 @@ TEST(AndesDyrReaderTests, MapsEsac6aParametersInPsseDyrOrder)
     ASSERT_NE(generator, nullptr);
     auto* exciter = dynamic_cast<griddyn::exciters::ExciterESAC6A*>(generator->find("exciter"));
     ASSERT_NE(exciter, nullptr);
-    const std::pair<std::string_view, double> expected[]{{"tr", 0.05},
-                                                         {"ka", 20.0},
-                                                         {"ta", 0.1},
-                                                         {"tk", 0.02},
-                                                         {"tb", 0.4},
-                                                         {"tc", 0.1},
-                                                         {"vamax", 100.0},
-                                                         {"vamin", -100.0},
-                                                         {"vrmax", 100.0},
-                                                         {"vrmin", -100.0},
-                                                         {"te", 0.5},
-                                                         {"vfelim", 0.0},
-                                                         {"kh", 0.1},
-                                                         {"vhmax", 100.0},
-                                                         {"th", 0.5},
-                                                         {"tj", 0.1},
-                                                         {"kc", 0.0},
-                                                         {"kd", 0.0},
-                                                         {"ke", 1.0},
-                                                         {"e1", 0.0},
-                                                         {"se1", 0.0},
-                                                         {"e2", 1.0},
-                                                         {"se2", 0.0}};
+    const std::pair<std::string_view, double> expected[]{
+        {"tr", 0.05}, {"ka", 20.0},     {"ta", 0.1},       {"tk", 0.02},     {"tb", 0.4},
+        {"tc", 0.1},  {"vamax", 100.0}, {"vamin", -100.0}, {"vrmax", 100.0}, {"vrmin", -100.0},
+        {"te", 0.5},  {"vfelim", 0.0},  {"kh", 0.1},       {"vhmax", 100.0}, {"th", 0.5},
+        {"tj", 0.1},  {"kc", 0.0},      {"kd", 0.0},       {"ke", 1.0},      {"e1", 0.0},
+        {"se1", 0.0}, {"e2", 1.0},      {"se2", 0.0}};
     for (const auto& [name, value] : expected) {
         EXPECT_DOUBLE_EQ(exciter->get(name), value) << name;
     }
@@ -727,12 +710,11 @@ TEST(AndesDyrReaderTests, ResolvesAlphanumericMachineIdsAcrossModelFamilies)
     ASSERT_NE(generator, nullptr);
     generator->setName(bus->getName() + "_Gen_G1");
 
-    EXPECT_NO_THROW(griddyn::loadFile(
-        simulation.get(), makeAndesTestPath("ieee14_alphanumeric_ids.dyr")));
+    EXPECT_NO_THROW(
+        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_alphanumeric_ids.dyr")));
     EXPECT_NE(dynamic_cast<griddyn::genmodels::GenModelGENROU*>(generator->find("genmodel")),
               nullptr);
-    EXPECT_NE(dynamic_cast<griddyn::exciters::ExciterSCRX*>(generator->find("exciter")),
-              nullptr);
+    EXPECT_NE(dynamic_cast<griddyn::exciters::ExciterSCRX*>(generator->find("exciter")), nullptr);
     EXPECT_NE(dynamic_cast<griddyn::governors::GovernorTgov1*>(generator->find("governor")),
               nullptr);
     EXPECT_NE(dynamic_cast<griddyn::stabilizers::StabilizerST2CUT*>(generator->find("pss")),
@@ -755,8 +737,7 @@ TEST(AndesDyrReaderTests, PrefersExactNumericMachineIdOverLegacyPosition)
 
     griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_scrx.dyr"));
     EXPECT_EQ(firstGenerator->find("exciter"), nullptr);
-    EXPECT_NE(dynamic_cast<griddyn::exciters::ExciterSCRX*>(
-                  exactIdGenerator->find("exciter")),
+    EXPECT_NE(dynamic_cast<griddyn::exciters::ExciterSCRX*>(exactIdGenerator->find("exciter")),
               nullptr);
 }
 
@@ -771,8 +752,7 @@ TEST(AndesDyrReaderTests, RetainsLegacyNumericMachinePositionFallback)
     generator->setName(bus->getName() + "_Gen_G1");
 
     griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_scrx.dyr"));
-    EXPECT_NE(dynamic_cast<griddyn::exciters::ExciterSCRX*>(generator->find("exciter")),
-              nullptr);
+    EXPECT_NE(dynamic_cast<griddyn::exciters::ExciterSCRX*>(generator->find("exciter")), nullptr);
 }
 
 TEST(AndesDyrReaderTests, ResolvesAlphanumericIeeeG1PrimaryAndSecondaryIds)
@@ -790,10 +770,9 @@ TEST(AndesDyrReaderTests, ResolvesAlphanumericIeeeG1PrimaryAndSecondaryIds)
     primary->setName(primaryBus->getName() + "_Gen_P1");
     secondary->setName(secondaryBus->getName() + "_Gen_S1");
 
-    EXPECT_NO_THROW(griddyn::loadFile(
-        simulation.get(), makeAndesTestPath("ieee14_ieeeg1_alphanumeric_ids.dyr")));
-    auto* governor =
-        dynamic_cast<griddyn::governors::GovernorIeeeG1*>(primary->find("governor"));
+    EXPECT_NO_THROW(griddyn::loadFile(simulation.get(),
+                                      makeAndesTestPath("ieee14_ieeeg1_alphanumeric_ids.dyr")));
+    auto* governor = dynamic_cast<griddyn::governors::GovernorIeeeG1*>(primary->find("governor"));
     ASSERT_NE(governor, nullptr);
     EXPECT_EQ(primary->getMechanicalPowerSource(), governor);
     EXPECT_EQ(secondary->getMechanicalPowerSource(), governor);

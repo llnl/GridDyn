@@ -24,8 +24,7 @@ RectifierFactorData computeRectifierFactor(double normalizedCurrent)
     if (normalizedCurrent < 0.75) {
         const double factor =
             std::sqrt(std::max(0.0, 0.75 - (normalizedCurrent * normalizedCurrent)));
-        return {.factor = factor,
-                .derivative = (factor > 0.0) ? -normalizedCurrent / factor : 0.0};
+        return {.factor = factor, .derivative = (factor > 0.0) ? -normalizedCurrent / factor : 0.0};
     }
     if (normalizedCurrent <= 1.0) {
         return {.factor = highCurrentSlope * (1.0 - normalizedCurrent),

@@ -85,12 +85,10 @@ namespace {
         Signal result;
         result.value = left.value * right.value;
         for (index_t index = 0; index < esac6aMaximumStates; ++index) {
-            result.state[index] =
-                left.state[index] * right.value + left.value * right.state[index];
+            result.state[index] = left.state[index] * right.value + left.value * right.state[index];
         }
         for (index_t index = 0; index < exciterInputCount; ++index) {
-            result.input[index] =
-                left.input[index] * right.value + left.value * right.input[index];
+            result.input[index] = left.input[index] * right.value + left.value * right.input[index];
         }
         return result;
     }
@@ -215,20 +213,19 @@ ExciterESAC6A::StateLayout ExciterESAC6A::stateLayout() const
 
 void ExciterESAC6A::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
 {
-    const std::array<double, 23> parameters{Tr,    Ka,    Ta,    Tk,    Tb,    Tc,
-                                             Vamax, Vamin, Vrmax, Vrmin, Te,    Vfelim,
-                                             Kh,    Vhmax, Th,    Tj,    Kc,    Kd,
-                                             Ke,    E1,    Se1,   E2,    Se2};
+    const std::array<double, 23> parameters{Tr,    Ka,    Ta, Tk,     Tb,  Tc,    Vamax, Vamin,
+                                            Vrmax, Vrmin, Te, Vfelim, Kh,  Vhmax, Th,    Tj,
+                                            Kc,    Kd,    Ke, E1,     Se1, E2,    Se2};
     const bool disabledSaturation = (Se1 == 0.0) && (Se2 == 0.0);
-    const bool invalidSaturation = !disabledSaturation &&
-        ((E1 <= 0.0) || (E2 <= E1) || (Se1 <= 0.0) || (Se2 <= 0.0));
-    if (std::any_of(parameters.begin(), parameters.end(), [](double value) {
-            return !std::isfinite(value);
-        }) ||
-        (Ka <= 0.0) || (Tr < 0.0) || (Ta <= 0.0) || (Tk < 0.0) || (Tb < 0.0) ||
-        (Tc < 0.0) || (Te <= 0.0) || (Th < 0.0) || (Tj < 0.0) || (Vamin > Vamax) ||
-        (Vrmin > Vrmax) || (Vhmax < 0.0) || ((Tb == 0.0) && (Tc != 0.0)) ||
-        ((Th == 0.0) && (Tj != 0.0)) || invalidSaturation) {
+    const bool invalidSaturation =
+        !disabledSaturation && ((E1 <= 0.0) || (E2 <= E1) || (Se1 <= 0.0) || (Se2 <= 0.0));
+    if (std::any_of(parameters.begin(),
+                    parameters.end(),
+                    [](double value) { return !std::isfinite(value); }) ||
+        (Ka <= 0.0) || (Tr < 0.0) || (Ta <= 0.0) || (Tk < 0.0) || (Tb < 0.0) || (Tc < 0.0) ||
+        (Te <= 0.0) || (Th < 0.0) || (Tj < 0.0) || (Vamin > Vamax) || (Vrmin > Vrmax) ||
+        (Vhmax < 0.0) || ((Tb == 0.0) && (Tc != 0.0)) || ((Th == 0.0) && (Tj != 0.0)) ||
+        invalidSaturation) {
         throw InvalidParameterValue("ESAC6A gains, time constants, limits, or saturation points");
     }
 
@@ -238,8 +235,7 @@ void ExciterESAC6A::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/
     if (!disabledSaturation) {
         saturation.setParam(E1, Se1, E2, Se2);
         if (!std::isfinite(saturation(E1)) || !std::isfinite(saturation(E2)) ||
-            (std::abs(saturation(E1) - Se1) > 1e-10) ||
-            (std::abs(saturation(E2) - Se2) > 1e-10)) {
+            (std::abs(saturation(E1) - Se1) > 1e-10) || (std::abs(saturation(E2) - Se2) > 1e-10)) {
             throw InvalidParameterValue("ESAC6A saturation fit");
         }
     }
@@ -266,14 +262,14 @@ ExciterESAC6A::ModelEvaluation ExciterESAC6A::evaluateModel(const IOdata& inputs
         applyFunction(exciterVoltage, saturationData.value, saturationData.derivative);
     Signal fieldFeedback =
         multiply(addSignals(constantSignal(Ke), saturationSignal), exciterVoltage);
-    fieldFeedback = addSignals(fieldFeedback,
-                               scale(inputSignal(inputs, exciterXadIfdInLocation), Kd));
+    fieldFeedback =
+        addSignals(fieldFeedback, scale(inputSignal(inputs, exciterXadIfdInLocation), Kd));
 
     const Signal measuredVoltage = (Tr > 0.0) ?
         stateSignal(state[layout.sensedVoltage], layout.sensedVoltage) :
         inputSignal(inputs, exciterVoltageInLocation);
-    Signal reference = addSignals(constantSignal(Vref + vBias - 1.0),
-                                  inputSignal(inputs, exciterVsetInLocation));
+    Signal reference =
+        addSignals(constantSignal(Vref + vBias - 1.0), inputSignal(inputs, exciterVsetInLocation));
     reference = addSignals(reference, inputSignal(inputs, exciterVssInLocation));
     const Signal error = subtract(reference, measuredVoltage);
 
@@ -284,38 +280,32 @@ ExciterESAC6A::ModelEvaluation ExciterESAC6A::evaluateModel(const IOdata& inputs
     }
 
     const Signal regulatorState = stateSignal(state[layout.regulator], layout.regulator);
-    rates[layout.regulator] =
-        scale(subtract(scale(error, Ka), regulatorState), 1.0 / Ta);
+    rates[layout.regulator] = scale(subtract(scale(error, Ka), regulatorState), 1.0 / Ta);
     const Signal regulatorOutput =
         clamp(addSignals(regulatorState, scale(rates[layout.regulator], Tk)), Vamin, Vamax);
 
     Signal leadLagOutput = regulatorOutput;
     if (Tb > 0.0) {
         const Signal leadLagState = stateSignal(state[layout.leadLag], layout.leadLag);
-        rates[layout.leadLag] =
-            scale(subtract(regulatorOutput, leadLagState), 1.0 / Tb);
+        rates[layout.leadLag] = scale(subtract(regulatorOutput, leadLagState), 1.0 / Tb);
         leadLagOutput = addSignals(leadLagState, scale(rates[layout.leadLag], Tc));
     }
 
-    const Signal feedbackLimiterInput =
-        scale(subtract(fieldFeedback, constantSignal(Vfelim)), Kh);
+    const Signal feedbackLimiterInput = scale(subtract(fieldFeedback, constantSignal(Vfelim)), Kh);
     const Signal limitedFeedback = clamp(feedbackLimiterInput, 0.0, Vhmax);
     Signal feedbackOutput = limitedFeedback;
     if (Th > 0.0) {
         const Signal feedbackState = stateSignal(state[layout.feedback], layout.feedback);
-        rates[layout.feedback] =
-            scale(subtract(limitedFeedback, feedbackState), 1.0 / Th);
+        rates[layout.feedback] = scale(subtract(limitedFeedback, feedbackState), 1.0 / Th);
         feedbackOutput = addSignals(feedbackState, scale(rates[layout.feedback], Tj));
     }
     const Signal terminalVoltage = inputSignal(inputs, exciterVoltageInLocation);
     const Signal voltageRegulator = clamp(subtract(leadLagOutput, feedbackOutput),
                                           scale(terminalVoltage, Vrmin),
                                           scale(terminalVoltage, Vrmax));
-    const Signal rawExciterRate =
-        scale(subtract(voltageRegulator, fieldFeedback), 1.0 / Te);
+    const Signal rawExciterRate = scale(subtract(voltageRegulator, fieldFeedback), 1.0 / Te);
     evaluation.exciterLimitDrive = rawExciterRate.value;
-    rates[layout.exciter] =
-        ((exciterVoltage.value <= 0.0) && (rawExciterRate.value < 0.0)) ?
+    rates[layout.exciter] = ((exciterVoltage.value <= 0.0) && (rawExciterRate.value < 0.0)) ?
         constantSignal(0.0) :
         rawExciterRate;
 
@@ -324,8 +314,8 @@ ExciterESAC6A::ModelEvaluation ExciterESAC6A::evaluateModel(const IOdata& inputs
     const auto rectifierData = detail::computeRectifierFactor(normalizedCurrent.value);
     const Signal rectifier =
         applyFunction(normalizedCurrent, rectifierData.factor, rectifierData.derivative);
-    const Signal speed = speedMultiplier ? inputSignal(inputs, exciterOmegaInLocation) :
-                                           constantSignal(1.0);
+    const Signal speed =
+        speedMultiplier ? inputSignal(inputs, exciterOmegaInLocation) : constantSignal(1.0);
     const Signal fieldOutput = multiply(multiply(speed, rectifier), exciterVoltage);
 
     evaluation.fieldOutput = fieldOutput.value;
@@ -361,8 +351,7 @@ void ExciterESAC6A::dynObjectInitializeB(const IOdata& inputs,
     const double fieldVoltage = desiredOutput[0];
     double exciterVoltage = std::max(0.01, std::abs(fieldVoltage / speed));
     for (int count = 0; count < 20; ++count) {
-        const double normalizedCurrent =
-            (Kc != 0.0) ? Kc * fieldCurrent / exciterVoltage : 0.0;
+        const double normalizedCurrent = (Kc != 0.0) ? Kc * fieldCurrent / exciterVoltage : 0.0;
         const auto rectifier = detail::computeRectifierFactor(normalizedCurrent);
         const double mismatch = speed * rectifier.factor * exciterVoltage - fieldVoltage;
         const double slope = speed * (rectifier.factor - rectifier.derivative * normalizedCurrent);
@@ -374,12 +363,11 @@ void ExciterESAC6A::dynObjectInitializeB(const IOdata& inputs,
             break;
         }
     }
-    const double normalizedCurrent =
-        (Kc != 0.0) ? Kc * fieldCurrent / exciterVoltage : 0.0;
-    if (std::abs(speed * detail::computeRectifierFactor(normalizedCurrent).factor *
-                     exciterVoltage -
+    const double normalizedCurrent = (Kc != 0.0) ? Kc * fieldCurrent / exciterVoltage : 0.0;
+    if (std::abs(speed * detail::computeRectifierFactor(normalizedCurrent).factor * exciterVoltage -
                  fieldVoltage) > 1e-7) {
-        throw InvalidParameterValue("ESAC6A initial field voltage is incompatible with rectifier loading");
+        throw InvalidParameterValue(
+            "ESAC6A initial field voltage is incompatible with rectifier loading");
     }
 
     if (exciterVoltage <= 0.0) {
@@ -394,8 +382,7 @@ void ExciterESAC6A::dynObjectInitializeB(const IOdata& inputs,
     const double regulatorLower = inputs[exciterVoltageInLocation] * Vrmin;
     const double regulatorUpper = inputs[exciterVoltageInLocation] * Vrmax;
     if ((leadLagOutput < Vamin - 1e-7) || (leadLagOutput > Vamax + 1e-7) ||
-        (voltageRegulator < regulatorLower - 1e-7) ||
-        (voltageRegulator > regulatorUpper + 1e-7)) {
+        (voltageRegulator < regulatorLower - 1e-7) || (voltageRegulator > regulatorUpper + 1e-7)) {
         throw InvalidParameterValue("ESAC6A initial regulator output outside limits");
     }
 
@@ -424,8 +411,11 @@ void ExciterESAC6A::dynObjectInitializeB(const IOdata& inputs,
     const auto initialized = evaluateModel(inputs, state);
     if (!std::isfinite(initialized.fieldOutput) ||
         (std::abs(initialized.fieldOutput - fieldVoltage) > 1e-7) ||
-        std::any_of(initialized.rates.begin(), initialized.rates.begin() + layout.count,
-                    [](double value) { return !std::isfinite(value) || (std::abs(value) > 1e-7); })) {
+        std::any_of(initialized.rates.begin(),
+                    initialized.rates.begin() + layout.count,
+                    [](double value) {
+                        return !std::isfinite(value) || (std::abs(value) > 1e-7);
+                    })) {
         throw InvalidParameterValue("ESAC6A initial equations are inconsistent");
     }
     updateExciterLimitFlag(inputs, state);
@@ -508,9 +498,7 @@ void ExciterESAC6A::jacobianElements(const IOdata& inputs,
                 value -= stateData.cj;
             }
             if (value != 0.0) {
-                matrixData.assign(locations.diffOffset + row,
-                                  locations.diffOffset + column,
-                                  value);
+                matrixData.assign(locations.diffOffset + row, locations.diffOffset + column, value);
             }
         }
         for (index_t input = 0; input < exciterInputCount; ++input) {
@@ -540,8 +528,8 @@ void ExciterESAC6A::timestep(CoreTime time, const IOdata& inputs, const SolverMo
 bool ExciterESAC6A::updateExciterLimitFlag(const IOdata& inputs, const double state[])
 {
     const auto layout = stateLayout();
-    const bool limited = (state[layout.exciter] <= 0.0) &&
-        (evaluateModel(inputs, state).exciterLimitDrive <= 0.0);
+    const bool limited =
+        (state[layout.exciter] <= 0.0) && (evaluateModel(inputs, state).exciterLimitDrive <= 0.0);
     const bool changed = opFlags[EXCITER_AT_LOWER_LIMIT] != limited;
     opFlags.set(EXCITER_AT_LOWER_LIMIT, limited);
     return changed;
@@ -633,9 +621,8 @@ index_t ExciterESAC6A::findIndex(std::string_view field, const SolverMode& sMode
     } else if ((field == "vf") || (field == "feedback")) {
         localIndex = layout.feedback;
     }
-    return (localIndex == kInvalidLocation) ?
-        kInvalidLocation :
-        offsets.getDiffOffset(sMode) + localIndex;
+    return (localIndex == kInvalidLocation) ? kInvalidLocation :
+                                              offsets.getDiffOffset(sMode) + localIndex;
 }
 
 void ExciterESAC6A::set(std::string_view param, std::string_view val)
@@ -714,30 +701,78 @@ void ExciterESAC6A::set(std::string_view param, double val, units::unit unitType
 
 double ExciterESAC6A::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "tr") { return Tr; }
-    if (param == "ka") { return Ka; }
-    if (param == "ta") { return Ta; }
-    if (param == "tk") { return Tk; }
-    if (param == "tb") { return Tb; }
-    if (param == "tc") { return Tc; }
-    if (param == "vamax") { return Vamax; }
-    if (param == "vamin") { return Vamin; }
-    if (param == "vrmax") { return Vrmax; }
-    if (param == "vrmin") { return Vrmin; }
-    if (param == "te") { return Te; }
-    if (param == "vfelim") { return Vfelim; }
-    if (param == "kh") { return Kh; }
-    if (param == "vhmax") { return Vhmax; }
-    if (param == "th") { return Th; }
-    if (param == "tj") { return Tj; }
-    if (param == "kc") { return Kc; }
-    if (param == "kd") { return Kd; }
-    if (param == "ke") { return Ke; }
-    if (param == "e1") { return E1; }
-    if (param == "se1") { return Se1; }
-    if (param == "e2") { return E2; }
-    if (param == "se2") { return Se2; }
-    if (param == "spdmlt") { return speedMultiplier ? 1.0 : 0.0; }
+    if (param == "tr") {
+        return Tr;
+    }
+    if (param == "ka") {
+        return Ka;
+    }
+    if (param == "ta") {
+        return Ta;
+    }
+    if (param == "tk") {
+        return Tk;
+    }
+    if (param == "tb") {
+        return Tb;
+    }
+    if (param == "tc") {
+        return Tc;
+    }
+    if (param == "vamax") {
+        return Vamax;
+    }
+    if (param == "vamin") {
+        return Vamin;
+    }
+    if (param == "vrmax") {
+        return Vrmax;
+    }
+    if (param == "vrmin") {
+        return Vrmin;
+    }
+    if (param == "te") {
+        return Te;
+    }
+    if (param == "vfelim") {
+        return Vfelim;
+    }
+    if (param == "kh") {
+        return Kh;
+    }
+    if (param == "vhmax") {
+        return Vhmax;
+    }
+    if (param == "th") {
+        return Th;
+    }
+    if (param == "tj") {
+        return Tj;
+    }
+    if (param == "kc") {
+        return Kc;
+    }
+    if (param == "kd") {
+        return Kd;
+    }
+    if (param == "ke") {
+        return Ke;
+    }
+    if (param == "e1") {
+        return E1;
+    }
+    if (param == "se1") {
+        return Se1;
+    }
+    if (param == "e2") {
+        return E2;
+    }
+    if (param == "se2") {
+        return Se2;
+    }
+    if (param == "spdmlt") {
+        return speedMultiplier ? 1.0 : 0.0;
+    }
     return Exciter::get(param, unitType);
 }
 // NOLINTEND(readability-math-missing-parentheses)

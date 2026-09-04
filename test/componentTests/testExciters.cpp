@@ -102,8 +102,7 @@ void verifyStabilityCase(ExciterTests& fixture,
         if (exciterName.starts_with("fmi") || (exciterName == "esst3a") ||
             (exciterName == "esst4b") || (exciterName == "exst1") || (exciterName == "exac1") ||
             (exciterName == "esac1a") || (exciterName == "exac2") || (exciterName == "exac4") ||
-            (exciterName == "expic1") || (exciterName == "scrx") ||
-            (exciterName == "esac6a")) {
+            (exciterName == "expic1") || (exciterName == "scrx") || (exciterName == "esac6a")) {
             continue;
         }
         if (std::find(skippedExcters.begin(), skippedExcters.end(), exciterName) !=

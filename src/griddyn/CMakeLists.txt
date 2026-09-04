@@ -89,6 +89,7 @@ set(exciter_headers
     exciters/ExciterDC2A.h
     exciters/ExciterESST3A.h
     exciters/ExciterESST4B.h
+    exciters/ExciterEXPIC1.h
     exciters/StaticExciterRectifier.h
     exciters/ExciterEXAC1.h
     exciters/ExciterEXAC2.h
@@ -106,6 +107,7 @@ set(exciter_sources
     exciters/ExciterDC2A.cpp
     exciters/ExciterESST3A.cpp
     exciters/ExciterESST4B.cpp
+    exciters/ExciterEXPIC1.cpp
     exciters/StaticExciterRectifier.cpp
     exciters/ExciterEXAC1.cpp
     exciters/ExciterEXAC2.cpp
@@ -125,6 +127,7 @@ set(gov_headers
     governors/GovernorHydro.h
     governors/GovernorHygov.h
     governors/GovernorGgov1.h
+    governors/GovernorGast.h
     governors/GovernorIeeeG1.h
     governors/GovernorIeeeSimple.h
     governors/GovernorReheat.h
@@ -139,6 +142,7 @@ set(gov_sources
     governors/GovernorHydro.cpp
     governors/GovernorHygov.cpp
     governors/GovernorGgov1.cpp
+    governors/GovernorGast.cpp
     governors/GovernorIeeeG1.cpp
     governors/GovernorIeeeSimple.cpp
     governors/GovernorReheat.cpp

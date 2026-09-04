@@ -18,12 +18,14 @@
 #include "griddyn/exciters/ExciterEXAC1.h"
 #include "griddyn/exciters/ExciterEXAC2.h"
 #include "griddyn/exciters/ExciterEXAC4.h"
+#include "griddyn/exciters/ExciterEXPIC1.h"
 #include "griddyn/exciters/ExciterEXST1.h"
 #include "griddyn/exciters/ExciterIEEEtype1.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/genmodels/GenModelClassical.h"
 #include "griddyn/genmodels/GenModelGENROU.h"
 #include "griddyn/genmodels/GenModelGENSAL.h"
+#include "griddyn/governors/GovernorGast.h"
 #include "griddyn/governors/GovernorGgov1.h"
 #include "griddyn/governors/GovernorHygov.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
@@ -283,6 +285,32 @@ TEST(AndesDyrReaderTests, MapsGensalParametersInPsseDyrOrder)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
+TEST(AndesDyrReaderTests, MapsExpic1ParametersInPsseDyrOrder)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_expic1.dyr"));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = bus->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    auto* exciter = dynamic_cast<griddyn::exciters::ExciterEXPIC1*>(generator->find("exciter"));
+    ASSERT_NE(exciter, nullptr);
+    const std::pair<std::string_view, double> expected[]{
+        {"tr", 0.1},  {"ka", 20.0},  {"ta1", 0.02}, {"vr1", 4.0},    {"vr2", -3.0},
+        {"ta2", 0.2}, {"ta3", 0.03}, {"ta4", 0.4},  {"vrmax", 5.0},  {"vrmin", -5.0},
+        {"kf", 0.1},  {"tf1", 0.5},  {"tf2", 0.6},  {"efdmax", 5.0}, {"efdmin", -4.0},
+        {"ke", 1.0},  {"te", 0.5},   {"e1", 0.0},   {"se1", 0.0},    {"e2", 1.0},
+        {"se2", 0.0}, {"kp", 1.0},   {"ki", 0.1},   {"kc", 0.05}};
+    for (const auto& [name, value] : expected) {
+        EXPECT_DOUBLE_EQ(exciter->get(name), value) << name;
+    }
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
 TEST(AndesDyrReaderTests, MapsCanonicalDcAndTypeOneExciters)
 {
     const std::array<std::pair<std::string_view, std::string_view>, 5> records{{
@@ -351,6 +379,36 @@ TEST(AndesDyrReaderTests, MapsEsst4bParametersAndCouplesToGensal)
         EXPECT_DOUBLE_EQ(exciter->get(name), value) << name;
     }
 
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(AndesDyrReaderTests, MapsGastParametersInPsseDyrOrder)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_gast.dyr"));
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = bus->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    auto* governor = dynamic_cast<griddyn::governors::GovernorGast*>(generator->find("governor"));
+    ASSERT_NE(governor, nullptr);
+    const std::pair<std::string_view, double> expected[]{{"r", 0.051},
+                                                         {"t1", 0.41},
+                                                         {"t2", 0.12},
+                                                         {"t3", 3.2},
+                                                         {"at", 1.21},
+                                                         {"kt", 2.3},
+                                                         {"vmax", 1.4},
+                                                         {"vmin", -0.04},
+                                                         {"dt", 0.031}};
+    for (const auto& [name, value] : expected) {
+        EXPECT_DOUBLE_EQ(governor->get(name), value) << name;
+    }
     ASSERT_EQ(simulation->dynInitialize(), 0);
     EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);

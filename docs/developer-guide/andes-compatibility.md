@@ -79,18 +79,132 @@ adapters still have attachment, parameter, equation, and validation gaps.
 | `EXAC1`, `EXAC2`, `EXAC4`              | Same named ANDES models | `ExciterEXAC1`, `ExciterEXAC2`, `ExciterEXAC4`                                | **Implemented.** Exact PSS/e DYR field mapping, initialization, residual/Jacobian, limiter/root, GENROU attachment, and IEEE-14 load-step coverage are present. EXAC1/EXAC2 intentionally use the sensed-voltage transducer output instead of the disconnected frozen-ANDES path documented below. EXAC1 supports the specified zero-`TR` transducer bypass; EXAC2 still requires positive `TR`, and other zero-time algebraic bypasses remain model-specific work. |
 | `ESST4B`                               | `ESST4B`                | `ExciterESST4B`                                                               | **Implemented natively.** Exact DYR mapping, native PI/lag/rectifier equations, bounded-integrator limits, initialization, GENSAL coupling, and analytic Jacobians are covered. External UEL/OEL routing and a captured trajectory remain.                                                                                                                                                                                                                          |
 | `ESST1A`, `ESAC1A`, `AC8B`, `IEEEX1`   | Same named ANDES models | None exact                                                                    | **No direct analogue.** Implement model-specific exciter blocks and DYR schemas, then add initialization and trajectory tests.                                                                                                                                                                                                                                                                                                                                      |
-| `ESAC6A`, `SCRX`, `EXPIC1`             | `SEXS`                  | `ExciterSEXS`                                                                 | **Planned compatibility approximations.** ANDES marks these conversions as TODO/approximate and currently discards most source parameters. Reproduce this only as an explicit compatibility mode and emit a diagnostic; do not describe it as exact model support.                                                                                                                                                                                                  |
+| `ESAC6A`, `SCRX`                       | `SEXS`                  | `ExciterSEXS`                                                                 | **Planned compatibility approximations only.** ANDES marks these conversions as TODO/approximate and currently discards most source parameters. GridKit supplies model documentation for both, but no runnable implementation.                                                                                                                                                                                                                                      |
+| `EXPIC1`                               | `SEXS`                  | `ExciterEXPIC1`                                                               | **Implemented; external trajectory open.** Native equations, bypasses, limits, initialization, residuals, source/rectifier Jacobians, and exact DYR mapping are tested against the GridKit specification. ANDES's SEXS conversion is not an equation reference.                                                                                                                                                                                                     |
 | `TGOV1`                                | `TGOV1`                 | `GovernorTgov1`                                                               | **Implemented.** Matches the ANDES v2.0.0 equations and PSS/e schema `R, T1, VMAX, VMIN, T2, T3, Dt`; DYR attachment, initialization, limiter, analytic-Jacobian, and isolated speed-step trajectory regressions are covered.                                                                                                                                                                                                                                       |
 | `HYGOV`                                | `HYGOV`                 | `GovernorHygov`                                                               | **Implemented.** Exact PSS/e DYR order, OpenIPSL/PowerDynamics temporary-droop lead, gate velocity/position limits, servo, nonlinear water-column equations, initialization, residual, and analytic-Jacobian coverage are present. ANDES deliberately ignores the input lead-lag, so direct ANDES trajectories are not an equation-parity reference for nonzero `Tr`; capture an OpenIPSL/PowerDynamics trajectory.                                                 |
 | `IEESGO`                               | `IEESGO`                | `GovernorReheat` and steam-governor classes are only candidates               | **Planned.** No exact equivalence has been established; audit block diagrams before choosing reuse versus a new model.                                                                                                                                                                                                                                                                                                                                              |
 | `IEEEG1`                               | `IEEEG1`                | `GovernorIeeeG1`                                                              | **Implemented.** Frozen-ANDES equations and DYR order, initialization and perturbed equations, valve rate/position limits, analytic Jacobian, one- and two-machine attachment, and mixed synchronous-machine coupling are covered. Native ANDES import, alphanumeric DYR IDs, unequal machine bases, and a captured disturbed trajectory remain open.                                                                                                               |
-| `GAST`                                 | `GAST`                  | None exact                                                                    | **No direct analogue.** Add a gas-turbine governor implementation and DYR adapter.                                                                                                                                                                                                                                                                                                                                                                                  |
+| `GAST`                                 | `GAST`                  | `GovernorGast`                                                                | **Implemented; external trajectory open.** Native low-value temperature gate, limited valve, turbine/temperature lags, damping-aware initialization, time-constant floors, residual/Jacobian checks, and DYR mapping follow OpenIPSL, ANDES, and GridKit `GASTPTI`.                                                                                                                                                                                                 |
 | `GGOV1`                                | `TGOV1`                 | `GovernorGgov1`                                                               | **Implemented natively.** GridDyn reads the original PSS/e GGOV1 record rather than reproducing ANDES's lossy TGOV1 conversion. Selectable droop, PID, limits, valve/turbine/temperature paths, initialization, machine-power coupling, and Jacobians are covered; nonzero `TENG` remains unsupported.                                                                                                                                                              |
 | `ST2CUT`                               | `ST2CUT`                | `StabilizerST2CUT`                                                            | **Partial.** Exact frozen-ANDES local modes 0/1/3/4/5, dual transducers, washout/lag, three lead-lag stages, output limits, voltage gating, DYR mapping, generator/exciter coupling, and dynamic load-step coverage are implemented. Remote `BUSR` inputs and ANDES modes 2/6 require cross-bus/frequency-derivative measurement routing and are rejected rather than approximated.                                                                                 |
 | `IEEEST`                               | `IEEEST`                | `StabilizerIEEEST`                                                            | **Partial.** Exact frozen-ANDES local modes 0/1/3/4/5, filter/lead-lag/washout zero-bypass semantics, output limits, voltage gate, DYR mapping, and GENROU/exciter coupling are implemented. Modes 2/6 and nonzero `BUSR` require unavailable cross-bus/frequency-derivative measurement routing and are rejected rather than approximated. A captured ANDES trajectory remains open.                                                                               |
 | `REGCA1`, `REECA1`, `REECB1`, `REPCA1` | Same named ANDES models | `GenModelInverter` is not equivalent                                          | **No direct analogue.** Add the coordinated renewable generator, electrical-control, and plant-control chain rather than flattening these records into the generic inverter.                                                                                                                                                                                                                                                                                        |
 | `WTDTA1`, `WTARA1`, `WTPTA1`, `WTTQA1` | Same named ANDES models | None                                                                          | **No direct analogue.** Add drive-train, aerodynamic, pitch, and torque-control submodels with their shared interfaces.                                                                                                                                                                                                                                                                                                                                             |
 | `Toggle`, `Fault`                      | ANDES event models      | GridDyn event/action and fault mechanisms                                     | **Partial conceptually.** Define DYR record schemas and translate target resolution, timing, status changes, and fault clearing semantics; no adapter exists.                                                                                                                                                                                                                                                                                                       |
+
+### GAST equation and initialization contract
+
+`GovernorGast` uses the common hard low-value-selector realization found in
+OpenIPSL and ANDES, with GridKit `GASTPTI` as an independent C++ and
+initialization reference. With GridDyn's absolute-speed input
+`dw = omega - 1`, the implemented equations are:
+
+@f[
+V_D=P_{ref}-\frac{dw}{R},\qquad
+V_T=A_T+K_T(A_T-x_T),\qquad V=\min(V_D,V_T),
+@f]
+
+@f[
+\dot x_V=\frac{V-x_V}{T_1},\qquad
+\dot x_F=\frac{x_V-x_F}{T_2},\qquad
+\dot x_T=\frac{x_F-x_T}{T_3},\qquad
+P_m=x_F-D_{turb}dw.
+@f]
+
+The valve equation uses directional anti-windup at its response bounds. An
+initial flow outside the entered `VMIN`/`VMAX` range expands the corresponding
+response bound to the initial value, as GridKit does explicitly and as ANDES's
+state anti-windup permits; this prevents an artificial initialization jump but
+allows motion back toward the entered range. Accepted zero time constants use
+GridKit's 1 ms evaluation floor. Initialization includes turbine damping:
+
+@f[
+x_{F0}=P_{m0}+D_{turb}(\omega_0-1),\qquad
+x_{V0}=x_{T0}=x_{F0},\qquad
+P_{ref,0}=x_{F0}+\frac{\omega_0-1}{R}.
+@f]
+
+The start is rejected if the temperature selector cannot reproduce this
+operating point. GridKit's optional `TRATE` base conversion is not part of the
+PSS/e GAST record; GridDyn uses the machine/system-base handling already
+provided by `DynamicGenerator`. PowerDynamics has only a GAST checklist entry
+in the reviewed local source and therefore is not an equation reference.
+
+### EXPIC1 equation and compatibility decisions
+
+GridKit's EXPIC1 README and source block diagram are the equation authority.
+OpenIPSL has no EXPIC1 model, and ANDES maps the record approximately to SEXS;
+neither is used as an equation oracle. GridDyn nevertheless follows ANDES's
+24-field PSS/e DYR schema exactly.
+
+The PI block `KA(1+s TA1)/s` is realized with integral state `xA`:
+
+@f[
+e_V=V_{ref}+V_S-E_T-V_F,\qquad
+V_A=\operatorname{clamp}(x_A+K_AT_{A1}e_V,V_{R2},V_{R1}),
+\qquad \dot x_A=\operatorname{antiwindup}(x_A,K_Ae_V).
+@f]
+
+The regulator and feedback paths are:
+
+@f[
+T_{A2}\dot x_{R1}=V_A-x_{R1},\qquad
+T_{A4}\dot V_R=x_{R1}+T_{A3}\dot x_{R1}-V_R,
+@f]
+
+@f[
+\bar V_R=\operatorname{clamp}(V_R,V_{RMIN},V_{RMAX}),\qquad
+T_{F1}\dot V_{F1}=\bar V_R-V_{F1},\qquad
+T_{F2}\dot V_F=K_F\dot V_{F1}-V_F.
+@f]
+
+The shared static-exciter rectifier computes the GridKit source multiplier
+`VB` from terminal dq voltage/current and field current using GridDyn's sign
+convention. Both its value and analytic input derivatives feed EXPIC1. The
+field equation is:
+
+@f[
+E_0=\operatorname{clamp}(V_B\bar V_R,E_{fd}^{min},E_{fd}^{max}),\qquad
+T_E\dot E_{fd}=E_0-(K_E+S_E(E_{fd}))E_{fd}.
+@f]
+
+`SE1` and `SE2` fit the coefficient `SE(E)` itself; multiplying the points by
+their field voltages before fitting would apply the field factor twice. At a
+steady PI operating point `eV=0` and `xA=VA`. This follows the transfer
+function and block diagram; the GridKit README's initialization line
+`eV0=VA0/KA` conflicts with its own differential equation and is not used.
+The current GridDyn exciter interface provides the voltage-reference and PSS
+signals but no separate UEL/OEL inputs, so those two optional GridKit diagram
+terms are zero. Its voltage input is likewise the compensated-voltage signal
+available from `DynamicGenerator` rather than a separate compensator model.
+
+The supported exact reductions are `TR=0` (direct terminal-voltage sensing),
+`TA2=TA3=TA4=0` (regulator-filter bypass), `KF=0` (feedback path omitted), and
+`TE=0` (the source-diagram algebraic output `Efd=E0`). Partially degenerate
+regulator filters and nonzero `KF` with a zero feedback time constant are
+rejected instead of silently changing the model order. Component tests cover
+the full perturbed equations, saturation, both regulator limits, bypasses,
+factories/cloning, and validation. The IEEE-14 DYR integration test covers
+initialization, residuals, and analytic Jacobians with nonzero `KP`, `KI`, and
+`KC`. An independent external trajectory remains the outstanding validation
+item. PowerDynamics contains no applicable EXPIC1 implementation in the
+reviewed local source.
+
+#### Follow-up stability-test TODO
+
+- Add dedicated disturbed-trajectory cases for `ExciterEXPIC1` and
+  `GovernorGast` using representative DYR parameters rather than the generic
+  controller defaults.
+- Exercise EXPIC1 PI and final-regulator limits, saturation, source/rectifier
+  loading, and the documented zero-time bypass configurations over time.
+- Exercise GAST speed-droop/temperature-selector transitions, valve
+  anti-windup in both directions, damping, and initialized flow outside the
+  entered response limits.
+- Compare at least one trajectory for each model against an independently run
+  GridKit, OpenIPSL, or PSS/e case where an exact model is available. GridKit
+  is the preferred EXPIC1 specification source; OpenIPSL, ANDES, and GridKit
+  are applicable GAST references.
 
 ### EXAC1 and EXAC2 voltage-transducer compatibility decision
 
@@ -784,37 +898,39 @@ can be split and checked off as soon as models in the same family diverge. A
 model is not compatible merely because a similarly named GridDyn model exists:
 it also needs native-input mapping, initialization, and a trajectory test.
 
-| ANDES model(s)                                                                                                        | GridDyn mapping / next action                                                                                                                                                                                           | Status              |
-| --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| `GENCLS`                                                                                                              | `GenModelClassical`; corrected standard equations, DYR/RAW parameter transfer, initialization, reader, residual, and Jacobian tests are present. A captured external trajectory remains.                                | Implemented         |
-| `GENROU`                                                                                                              | `GenModelGENROU` equations, DYR mapping, and five-machine initialization match ANDES references; fix exact machine identity/base handling, native ANDES import, and trajectory parity.                                  | Partial             |
-| `GENSAL`                                                                                                              | `GenModelGENSAL`; native salient-pole equations, quadratic saturation, exact DYR mapping, initialization, controller interfaces, and analytic Jacobians are covered. A captured external trajectory remains.            | Implemented         |
-| `TGOV1`                                                                                                               | `GovernorTgov1`; ANDES-equation, DYR-order, limiter, initialization, Jacobian, and isolated trajectory regressions are complete, including a captured IEEE 14 GENROU+TGOV1 `Alter(pref0)` trajectory.                   | Implemented         |
-| `EXDC2`                                                                                                               | `ExciterDC2A` candidate; add omitted transducer/switch/saturation behavior and prove equation equivalence.                                                                                                              | Partial             |
-| `ZIP`, `FLoad`                                                                                                        | GridDyn static/dynamic load models; identify exact parameter and frequency-response equivalence.                                                                                                                        | Partial             |
-| `Motor3`, `Motor5`                                                                                                    | `MotorLoad3`, `MotorLoad5`; parameter mapping and trajectory comparisons required.                                                                                                                                      | Partial             |
-| `ACE`, `ACEc`, `COI`                                                                                                  | Map area-control and center-of-inertia services.                                                                                                                                                                        | Untriaged           |
-| `PLBVFU1`, `IEEEVC`                                                                                                   | No direct voltage-compensator/playback analogue; define exciter input and playback interfaces.                                                                                                                          | No direct analogue  |
-| `IEEEG1`                                                                                                              | `GovernorIeeeG1`; frozen equations, limits, DYR mapping, one-/two-machine connections, initialization, and Jacobian checks are complete; unequal MBASE, native import, and disturbed trajectory remain.                 | Implemented         |
-| `HYGOV`                                                                                                               | `GovernorHygov`; exact DYR order, temporary-droop lead, gate limits, servo, nonlinear water column, initialization, residual, and Jacobian coverage are present. An external trajectory remains.                        | Implemented         |
-| `TG2`, `TGOV1DB`, `TGOV1N`, `TGOV1NDB`, `IEESGO`, `GAST`, `HYGOVDB`, `HYGOV4`                                         | Existing hydro/reheat/steam classes are candidates only; each needs an equation audit or a new model.                                                                                                                   | Planned             |
-| `GGOV1`                                                                                                               | `GovernorGgov1`; all PSS/e fields are mapped and the native controller/turbine equations, limits, initialization, machine-power signal, and Jacobians are covered. Nonzero `TENG` remains unsupported.                  | Implemented         |
-| `SHAFT5`                                                                                                              | Multi-mass shaft model; map states and mechanical interfaces.                                                                                                                                                           | Untriaged           |
-| `ESDC1A`, `ESDC2A`, `SEXS`, `IEEET1`, `IEEET3`                                                                        | Existing DC/IEEE/SEXS exciters are candidates; complete model-specific audits and DYR/native mappings.                                                                                                                  | Partial             |
-| `ESST3A`                                                                                                              | `ExciterESST3A`; exact GENROU path plus documented reduced-order synchronous-machine signal approximations.                                                                                                             | Implemented         |
-| `EXST1`                                                                                                               | `ExciterEXST1`; positive-time-constant equations and DYR mapping, with the documented corrected regulator-output limiter; zero-time-constant blocks, native import, and a captured trajectory remain.                   | Implemented         |
-| `ESST4B`                                                                                                              | `ExciterESST4B`; exact DYR mapping, native equations, initialization, GENSAL coupling, and analytic Jacobians are covered. External UEL/OEL routing and a captured trajectory remain.                                   | Implemented         |
-| `IEEEX1`, `EXAC1`, `EXAC2`, `EXAC4`, `AC8B`, `ESAC1A`, `ESST1A`, `ESAC5A`                                             | Implement missing models individually rather than mapping by family name; note that EXAC1/2/4 already have native implementations described above.                                                                      | Mixed               |
-| `EXPIC1`, `SCRX`, `ESAC6A`                                                                                            | No exact excitation-controller implementations or DYR adapters. Add model-specific limit, initialization, and saturation behavior rather than substituting a similarly named exciter.                                   | No direct analogue  |
-| `ST2CUT`                                                                                                              | `StabilizerST2CUT`; local input modes, exact filters, limits, DYR mapping, and dynamic load-step coverage are implemented. Remote/frequency-derivative measurements and captured ANDES trajectories remain.             | Partial             |
-| `IEEEST`                                                                                                              | `StabilizerIEEEST`; local input modes, exact ANDES zero-bypass filters, limits, DYR mapping, and dynamic load-step coverage are implemented. Remote/frequency-derivative measurements and captured trajectories remain. | Partial             |
-| `BusFreq`, `BusROCOF`, `PMU`, `PLL1`, `PLL2`, `FreqDiv`                                                               | Measurement and frequency-estimation models.                                                                                                                                                                            | Untriaged           |
-| `REGCA1`, `REGCP1`, `REECA1`, `REECA1E`, `REECA1G`, `REECB1`, `REPCA1`, `REGCV1`, `REGCV2`, `REGF1`, `REGF2`, `REGF3` | Generic `GenModelInverter` is insufficient; add composable generator, electrical, plant, and frequency controls.                                                                                                        | No direct analogue  |
-| `WTDTA1`, `WTDS`, `WTARA1`, `WTPTA1`, `WTTQA1`, `WTARV1`                                                              | Add wind-turbine drive-train, aerodynamic, pitch, torque, and renewable-voltage submodels and interfaces.                                                                                                               | No direct analogue  |
-| `USRBUS`, `USRMDL`                                                                                                    | PSS/E user-written model records require the supplied compiled-model equations or equivalent documentation. The Texas7k records reference `PLNTBU1`, `REAX3BU1`, and `REAX4BU1`; DYR parameters alone are insufficient. | External dependency |
-| `PVD1`, `ESD1`, `EV1`, `EV2`, `DGPRCT1`, `DGPRCTExt`                                                                  | Distributed energy-resource and protection models.                                                                                                                                                                      | Untriaged           |
-| `Fault`, `Alter`, `TimeSeries`, `Toggle`                                                                              | Event/action semantics and time-series input mapping.                                                                                                                                                                   | Untriaged           |
-| `Summary`, `Output`                                                                                                   | Reporting configuration; define output-channel mapping after model compatibility.                                                                                                                                       | Untriaged           |
+| ANDES model(s)                                                                                                        | GridDyn mapping / next action                                                                                                                                                                                           | Status                                |
+| --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| `GENCLS`                                                                                                              | `GenModelClassical`; corrected standard equations, DYR/RAW parameter transfer, initialization, reader, residual, and Jacobian tests are present. A captured external trajectory remains.                                | Implemented                           |
+| `GENROU`                                                                                                              | `GenModelGENROU` equations, DYR mapping, and five-machine initialization match ANDES references; fix exact machine identity/base handling, native ANDES import, and trajectory parity.                                  | Partial                               |
+| `GENSAL`                                                                                                              | `GenModelGENSAL`; native salient-pole equations, quadratic saturation, exact DYR mapping, initialization, controller interfaces, and analytic Jacobians are covered. A captured external trajectory remains.            | Implemented                           |
+| `TGOV1`                                                                                                               | `GovernorTgov1`; ANDES-equation, DYR-order, limiter, initialization, Jacobian, and isolated trajectory regressions are complete, including a captured IEEE 14 GENROU+TGOV1 `Alter(pref0)` trajectory.                   | Implemented                           |
+| `EXDC2`                                                                                                               | `ExciterDC2A` candidate; add omitted transducer/switch/saturation behavior and prove equation equivalence.                                                                                                              | Partial                               |
+| `ZIP`, `FLoad`                                                                                                        | GridDyn static/dynamic load models; identify exact parameter and frequency-response equivalence.                                                                                                                        | Partial                               |
+| `Motor3`, `Motor5`                                                                                                    | `MotorLoad3`, `MotorLoad5`; parameter mapping and trajectory comparisons required.                                                                                                                                      | Partial                               |
+| `ACE`, `ACEc`, `COI`                                                                                                  | Map area-control and center-of-inertia services.                                                                                                                                                                        | Untriaged                             |
+| `PLBVFU1`, `IEEEVC`                                                                                                   | No direct voltage-compensator/playback analogue; define exciter input and playback interfaces.                                                                                                                          | No direct analogue                    |
+| `IEEEG1`                                                                                                              | `GovernorIeeeG1`; frozen equations, limits, DYR mapping, one-/two-machine connections, initialization, and Jacobian checks are complete; unequal MBASE, native import, and disturbed trajectory remain.                 | Implemented                           |
+| `HYGOV`                                                                                                               | `GovernorHygov`; exact DYR order, temporary-droop lead, gate limits, servo, nonlinear water column, initialization, residual, and Jacobian coverage are present. An external trajectory remains.                        | Implemented                           |
+| `TG2`, `TGOV1DB`, `TGOV1N`, `TGOV1NDB`, `IEESGO`, `HYGOVDB`, `HYGOV4`                                                 | Existing hydro/reheat/steam classes are candidates only; each needs an equation audit or a new model.                                                                                                                   | Planned                               |
+| `GAST`                                                                                                                | `GovernorGast`; native equations, initialization, selector/limit behavior, DYR mapping, and Jacobians are covered. Capture a GridKit/independent disturbed trajectory.                                                  | Implemented; external trajectory open |
+| `GGOV1`                                                                                                               | `GovernorGgov1`; all PSS/e fields are mapped and the native controller/turbine equations, limits, initialization, machine-power signal, and Jacobians are covered. Nonzero `TENG` remains unsupported.                  | Implemented                           |
+| `SHAFT5`                                                                                                              | Multi-mass shaft model; map states and mechanical interfaces.                                                                                                                                                           | Untriaged                             |
+| `ESDC1A`, `ESDC2A`, `SEXS`, `IEEET1`, `IEEET3`                                                                        | Existing DC/IEEE/SEXS exciters are candidates; complete model-specific audits and DYR/native mappings.                                                                                                                  | Partial                               |
+| `ESST3A`                                                                                                              | `ExciterESST3A`; exact GENROU path plus documented reduced-order synchronous-machine signal approximations.                                                                                                             | Implemented                           |
+| `EXST1`                                                                                                               | `ExciterEXST1`; positive-time-constant equations and DYR mapping, with the documented corrected regulator-output limiter; zero-time-constant blocks, native import, and a captured trajectory remain.                   | Implemented                           |
+| `ESST4B`                                                                                                              | `ExciterESST4B`; exact DYR mapping, native equations, initialization, GENSAL coupling, and analytic Jacobians are covered. External UEL/OEL routing and a captured trajectory remain.                                   | Implemented                           |
+| `IEEEX1`, `EXAC1`, `EXAC2`, `EXAC4`, `AC8B`, `ESAC1A`, `ESST1A`, `ESAC5A`                                             | Implement missing models individually rather than mapping by family name; note that EXAC1/2/4 already have native implementations described above.                                                                      | Mixed                                 |
+| `EXPIC1`                                                                                                              | `ExciterEXPIC1`; native GridKit-specified PI/filter/feedback/source/rectifier equations, DYR adapter, whole-case initialization, and Jacobians are covered. Capture an independent external trajectory.                 | Implemented; external trajectory open |
+| `SCRX`, `ESAC6A`                                                                                                      | GridKit supplies model documentation; no GridDyn implementation or DYR adapter yet. Add model-specific limit, initialization, and saturation behavior rather than substituting a similarly named exciter.               | Source-backed                         |
+| `ST2CUT`                                                                                                              | `StabilizerST2CUT`; local input modes, exact filters, limits, DYR mapping, and dynamic load-step coverage are implemented. Remote/frequency-derivative measurements and captured ANDES trajectories remain.             | Partial                               |
+| `IEEEST`                                                                                                              | `StabilizerIEEEST`; local input modes, exact ANDES zero-bypass filters, limits, DYR mapping, and dynamic load-step coverage are implemented. Remote/frequency-derivative measurements and captured trajectories remain. | Partial                               |
+| `BusFreq`, `BusROCOF`, `PMU`, `PLL1`, `PLL2`, `FreqDiv`                                                               | Measurement and frequency-estimation models.                                                                                                                                                                            | Untriaged                             |
+| `REGCA1`, `REGCP1`, `REECA1`, `REECA1E`, `REECA1G`, `REECB1`, `REPCA1`, `REGCV1`, `REGCV2`, `REGF1`, `REGF2`, `REGF3` | Generic `GenModelInverter` is insufficient; add composable generator, electrical, plant, and frequency controls.                                                                                                        | No direct analogue                    |
+| `WTDTA1`, `WTDS`, `WTARA1`, `WTPTA1`, `WTTQA1`, `WTARV1`                                                              | Add wind-turbine drive-train, aerodynamic, pitch, torque, and renewable-voltage submodels and interfaces.                                                                                                               | No direct analogue                    |
+| `USRBUS`, `USRMDL`                                                                                                    | PSS/E user-written model records require the supplied compiled-model equations or equivalent documentation. The Texas7k records reference `PLNTBU1`, `REAX3BU1`, and `REAX4BU1`; DYR parameters alone are insufficient. | External dependency                   |
+| `PVD1`, `ESD1`, `EV1`, `EV2`, `DGPRCT1`, `DGPRCTExt`                                                                  | Distributed energy-resource and protection models.                                                                                                                                                                      | Untriaged                             |
+| `Fault`, `Alter`, `TimeSeries`, `Toggle`                                                                              | Event/action semantics and time-series input mapping.                                                                                                                                                                   | Untriaged                             |
+| `Summary`, `Output`                                                                                                   | Reporting configuration; define output-channel mapping after model compatibility.                                                                                                                                       | Untriaged                             |
 
 ### Texas7k dynamic-model demand
 

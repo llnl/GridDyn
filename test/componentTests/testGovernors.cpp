@@ -11,6 +11,7 @@
 #include "griddyn/GridBus.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/genmodels/GenModel6.h"
+#include "griddyn/governors/GovernorGast.h"
 #include "griddyn/governors/GovernorGgov1.h"
 #include "griddyn/governors/GovernorHydro.h"
 #include "griddyn/governors/GovernorHygov.h"
@@ -96,7 +97,173 @@ void configureHygov(governors::GovernorHygov& governor)
     governor.set("dturb", 0.2);
     governor.set("qnl", 0.08);
 }
+
+void configureGast(governors::GovernorGast& governor)
+{
+    governor.set("r", 0.05);
+    governor.set("t1", 0.4);
+    governor.set("t2", 0.1);
+    governor.set("t3", 3.0);
+    governor.set("at", 1.2);
+    governor.set("kt", 2.0);
+    governor.set("vmax", 1.5);
+    governor.set("vmin", -0.05);
+    governor.set("dt", 0.1);
+}
 }  // namespace
+
+TEST(GovernorModelTests, GastMatchesOpenIpslAndesEquations)
+{
+    governors::GovernorGast governor;
+    configureGast(governor);
+    governor.dynInitializeA(0.0, 0);
+    IOdata inputs{1.0, 0.0, 0.0};
+    IOdata fieldSet(2, 0.0);
+    governor.dynInitializeB(inputs, {0.8}, fieldSet);
+
+    const auto& initialized = governor.getStates();
+    ASSERT_EQ(initialized.size(), 4U);
+    EXPECT_DOUBLE_EQ(initialized[0], 0.8);
+    EXPECT_DOUBLE_EQ(initialized[1], 0.8);
+    EXPECT_DOUBLE_EQ(initialized[2], 0.8);
+    EXPECT_DOUBLE_EQ(initialized[3], 0.8);
+    EXPECT_DOUBLE_EQ(fieldSet[govpSetInLocation], 0.8);
+
+    std::vector<double> state{0.82, 0.80, 0.77, 0.75};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    governor.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    inputs[govOmegaInLocation] = 0.99;
+    inputs[govpSetInLocation] = 0.8;
+    std::vector<double> derivative(state.size(), 0.0);
+    governor.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    // The speed-droop request is 1.0 while the temperature limit is 2.1,
+    // so the low-value gate selects the droop path.
+    EXPECT_NEAR(derivative[1], 0.5, 1e-14);
+    EXPECT_NEAR(derivative[2], 0.30, 1e-14);
+    EXPECT_NEAR(derivative[3], 0.006666666666666667, 1e-14);
+
+    std::vector<double> residual(state.size(), 0.0);
+    governor.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    EXPECT_NEAR(residual[0], -0.049, 1e-14);
+    EXPECT_NEAR(residual[1], 0.5, 1e-14);
+    EXPECT_NEAR(residual[2], 0.30, 1e-14);
+    EXPECT_NEAR(residual[3], 0.006666666666666667, 1e-14);
+}
+
+TEST(GovernorModelTests, GastTemperatureSelectorAndValveAntiwindup)
+{
+    governors::GovernorGast governor;
+    configureGast(governor);
+    governor.dynInitializeA(0.0, 0);
+    IOdata inputs{1.0, 0.8, 0.0};
+    IOdata fieldSet(2, 0.0);
+    governor.dynInitializeB(inputs, {0.8}, fieldSet);
+
+    // V_D=1.0 and V_T=0.8, so the temperature branch drives the valve down.
+    inputs[govOmegaInLocation] = 0.99;
+    std::vector<double> state{0.8, 0.9, 0.9, 1.4};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    governor.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    std::vector<double> derivative(state.size(), 0.0);
+    governor.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[1], -0.25, 1e-14);
+
+    // At the upper response limit an outward request is blocked, while an
+    // inward request remains active.
+    state[1] = 1.5;
+    state[3] = 0.0;
+    inputs[govOmegaInLocation] = 0.95;
+    governor.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    governor.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(derivative[1], 0.0);
+    inputs[govOmegaInLocation] = 1.02;
+    governor.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_LT(derivative[1], 0.0);
+}
+
+TEST(GovernorModelTests, GastInitializationIncludesDampingAndRetainsInitialFlow)
+{
+    governors::GovernorGast governor;
+    configureGast(governor);
+    governor.set("vmax", 0.7);
+    governor.dynInitializeA(0.0, 0);
+    IOdata inputs{1.01, 0.0, 0.0};
+    IOdata fieldSet(2, 0.0);
+    governor.dynInitializeB(inputs, {0.8}, fieldSet);
+
+    const double initialFlow = 0.801;
+    const auto& initialized = governor.getStates();
+    ASSERT_EQ(initialized.size(), 4U);
+    EXPECT_DOUBLE_EQ(initialized[0], 0.8);
+    EXPECT_NEAR(initialized[1], initialFlow, 1e-14);
+    EXPECT_NEAR(initialized[2], initialFlow, 1e-14);
+    EXPECT_NEAR(initialized[3], initialFlow, 1e-14);
+    EXPECT_NEAR(fieldSet[govpSetInLocation], 1.001, 1e-14);
+
+    inputs[govpSetInLocation] = fieldSet[govpSetInLocation];
+    std::vector<double> residual(initialized.size(), 0.0);
+    governor.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    for (double value : residual) {
+        EXPECT_NEAR(value, 0.0, 1e-12);
+    }
+
+    // The response bound is extended to the initial flow. An outward request
+    // is blocked but an inward request can return the state toward VMAX.
+    inputs[govOmegaInLocation] = 1.0;
+    inputs[govpSetInLocation] = 0.9;
+    std::vector<double> derivative(initialized.size(), 0.0);
+    governor.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(derivative[1], 0.0);
+    inputs[govpSetInLocation] = 0.6;
+    governor.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_LT(derivative[1], 0.0);
+}
+
+TEST(GovernorModelTests, GastCanonicalDefaultsFactoryCloneAndTimeFloor)
+{
+    auto factory = CoreObjectFactory::instance();
+    std::unique_ptr<CoreObject> object(factory->createObject("governor", "gast"));
+    auto* governor = dynamic_cast<governors::GovernorGast*>(object.get());
+    ASSERT_NE(governor, nullptr);
+    EXPECT_DOUBLE_EQ(governor->get("r"), 0.05);
+    EXPECT_DOUBLE_EQ(governor->get("t1"), 0.4);
+    EXPECT_DOUBLE_EQ(governor->get("t2"), 0.1);
+    EXPECT_DOUBLE_EQ(governor->get("t3"), 3.0);
+    EXPECT_DOUBLE_EQ(governor->get("at"), 1.0);
+    EXPECT_DOUBLE_EQ(governor->get("kt"), 2.0);
+    EXPECT_DOUBLE_EQ(governor->get("vmax"), 1.0);
+    EXPECT_DOUBLE_EQ(governor->get("vmin"), 0.0);
+
+    governor->set("t1", 0.0);
+    governor->set("t2", 0.0);
+    governor->set("t3", 0.0);
+    governor->dynInitializeA(0.0, 0);
+    IOdata inputs{1.0, 0.5, 0.0};
+    IOdata fieldSet(2, 0.0);
+    governor->dynInitializeB(inputs, {0.5}, fieldSet);
+    std::vector<double> state{0.5, 0.4, 0.3, 0.2};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    governor->setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    std::vector<double> derivative(state.size(), 0.0);
+    governor->derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[1], 100.0, 1e-10);
+    EXPECT_NEAR(derivative[2], 100.0, 1e-10);
+    EXPECT_NEAR(derivative[3], 100.0, 1e-10);
+    governor->timestep(0.001, inputs, cLocalSolverMode);
+    EXPECT_NEAR(governor->getStates()[1], 0.5, 1e-12);
+
+    std::unique_ptr<CoreObject> cloneObject(governor->clone());
+    auto* clone = dynamic_cast<governors::GovernorGast*>(cloneObject.get());
+    ASSERT_NE(clone, nullptr);
+    EXPECT_DOUBLE_EQ(clone->get("t1"), 0.0);
+
+    governors::GovernorGast temperatureLimited;
+    temperatureLimited.set("at", 0.5);
+    temperatureLimited.set("kt", 2.0);
+    temperatureLimited.dynInitializeA(0.0, 0);
+    EXPECT_THROW(temperatureLimited.dynInitializeB({1.0, 0.0, 0.0}, {0.8}, fieldSet),
+                 InvalidParameterValue);
+}
 
 TEST(GovernorModelTests, HydroMatchesCgmesSimpleHydroEquations)
 {

@@ -719,10 +719,11 @@ TEST(AndesDyrReaderTests, MapsExst1ParametersAndCouplesToGenrou)
 
 TEST(AndesDyrReaderTests, MapsExacParameterRecordsAndCouplesToGenrou)
 {
-    const std::array<std::pair<std::string_view, std::string_view>, 3> records{{
+    const std::array<std::pair<std::string_view, std::string_view>, 4> records{{
         {"ieee14_exac1.dyr", "exac1"},
         {"ieee14_exac2.dyr", "exac2"},
         {"ieee14_exac4.dyr", "exac4"},
+        {"ieee14_esac1a_genrou.dyr", "esac1a"},
     }};
     for (const auto& [record, model] : records) {
         auto simulation = std::make_unique<griddyn::GridDynSimulation>();
@@ -865,7 +866,8 @@ TEST(AndesDynamicTests, Exst1RespondsToGeneratorSetpointStep)
 
 TEST(AndesDynamicTests, ExacExcitersRespondToGeneratorSetpointStep)
 {
-    for (const auto record : {"ieee14_exac1.dyr", "ieee14_exac2.dyr", "ieee14_exac4.dyr"}) {
+    for (const auto record :
+         {"ieee14_exac1.dyr", "ieee14_exac2.dyr", "ieee14_exac4.dyr", "ieee14_esac1a_genrou.dyr"}) {
         const auto finalState = runGeneratorSetpointStepCase({record});
         EXPECT_FALSE(finalState.empty()) << record;
     }

@@ -9,6 +9,7 @@
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include <cmath>
+#include <string>
 
 namespace griddyn::exciters {
 ExciterESAC1A::ExciterESAC1A(const std::string& objName): ExciterEXAC1(objName) {}

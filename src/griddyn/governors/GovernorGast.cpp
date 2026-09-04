@@ -113,7 +113,7 @@ void GovernorGast::dynObjectInitializeB(const IOdata& inputs,
 
 double GovernorGast::speedDroopRequest(const IOdata& inputs) const
 {
-    return inputs[govpSetInLocation] - (inputs[govOmegaInLocation] - 1.0) / R;
+    return inputs[govpSetInLocation] - ((inputs[govOmegaInLocation] - 1.0) / R);
 }
 
 double GovernorGast::temperatureRequest(const double state[]) const

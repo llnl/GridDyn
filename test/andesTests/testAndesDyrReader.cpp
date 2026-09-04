@@ -29,6 +29,7 @@
 #include "griddyn/governors/GovernorGgov1.h"
 #include "griddyn/governors/GovernorHygov.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
+#include "griddyn/governors/GovernorReheat.h"
 #include "griddyn/governors/GovernorTgov1.h"
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
@@ -502,6 +503,40 @@ TEST(AndesDyrReaderTests, MapsTgov1ParametersInAndesDyrOrder)
         EXPECT_DOUBLE_EQ(governor->get("t3"), entry.t3);
         EXPECT_DOUBLE_EQ(governor->get("dt"), entry.dt);
     }
+}
+
+TEST(AndesDyrReaderTests, MapsIeesgoParametersAndInitializes)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_ieesgo.dyr"));
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = bus->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    auto* governor = dynamic_cast<griddyn::governors::GovernorReheat*>(generator->find("governor"));
+    ASSERT_NE(governor, nullptr);
+
+    const std::pair<std::string_view, double> expected[]{{"t1", 0.12},
+                                                         {"t2", 0.03},
+                                                         {"t3", 0.22},
+                                                         {"t4", 0.40},
+                                                         {"t5", 7.0},
+                                                         {"t6", 0.35},
+                                                         {"k1", 20.0},
+                                                         {"k2", 0.71},
+                                                         {"k3", 0.425},
+                                                         {"pmax", 1.5},
+                                                         {"pmin", 0.1}};
+    for (const auto& [name, value] : expected) {
+        EXPECT_DOUBLE_EQ(governor->get(name), value) << name;
+    }
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
 TEST(AndesDyrReaderTests, MapsHygovParametersInAndesDyrOrder)

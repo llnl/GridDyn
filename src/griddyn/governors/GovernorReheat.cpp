@@ -6,11 +6,11 @@
 
 #include "GovernorReheat.h"
 
-#include "../Generator.h"
-#include "../GridBus.h"
+#include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
-#include "core/ObjectFactory.hpp"
 #include "utilities/MatrixData.hpp"
+#include <algorithm>
+#include <cmath>
 #include <string>
 
 namespace griddyn::governors {
@@ -18,16 +18,22 @@ using units::unit;
 
 GovernorReheat::GovernorReheat(const std::string& objName): Governor(objName)
 {
-    // default values
+    // IEEE Standard Governor / PSS/E IEESGO defaults.
     K = 16.667;
     T1 = 0.1;
-    T2 = 0.45;
-    T3 = 0.05;
-    T4 = 12.0;
-    T5 = 50.0;
+    T2 = 0.0;
+    T3 = 0.1;
+    // Generator governor-speed inputs are in per unit, unlike the legacy
+    // generic Governor default (which stores a rad/s frequency reference).
+    Wref = 1.0;
     offsets.local().local.algSize = 1;
-    offsets.local().local.diffSize = 3;
-    offsets.local().local.jacSize = 12;
+    offsets.local().local.diffSize = 5;
+    offsets.local().local.jacSize = 18;
+    // This realization owns all IEESGO states and does not use Governor's
+    // generic filter, deadband, or throttle sub-blocks.
+    opFlags.set(IGNORE_DEADBAND);
+    opFlags.set(IGNORE_FILTER);
+    opFlags.set(IGNORE_THROTTLE);
 }
 
 CoreObject* GovernorReheat::clone(CoreObject* obj) const
@@ -37,9 +43,11 @@ CoreObject* GovernorReheat::clone(CoreObject* obj) const
         return obj;
     }
 
-    gov->T3 = T3;
     gov->T4 = T4;
     gov->T5 = T5;
+    gov->T6 = T6;
+    gov->K2 = K2;
+    gov->K3 = K3;
 
     return gov;
 }
@@ -47,157 +55,129 @@ CoreObject* GovernorReheat::clone(CoreObject* obj) const
 // destructor
 GovernorReheat::~GovernorReheat() = default;
 
+void GovernorReheat::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
+{
+    if (!std::isfinite(K) || !std::isfinite(T1) || !std::isfinite(T2) || !std::isfinite(T3) ||
+        !std::isfinite(T4) || !std::isfinite(T5) || !std::isfinite(T6) || !std::isfinite(K2) ||
+        !std::isfinite(K3) || !std::isfinite(Pmax) || !std::isfinite(Pmin) || (K <= 0.0) ||
+        (T1 <= 0.0) || (T3 <= 0.0) || (T4 <= 0.0) || (T5 <= 0.0) || (T6 <= 0.0) || (K2 < 0.0) ||
+        (K2 > 1.0) || (K3 < 0.0) || (K3 > 1.0) || (Pmax < Pmin)) {
+        throw InvalidParameterValue("IEESGO parameters");
+    }
+    Governor::dynObjectInitializeA(time0, flags);
+}
+
 // initial conditions
-void GovernorReheat::dynObjectInitializeB(const IOdata& inputs,
+void GovernorReheat::dynObjectInitializeB(const IOdata& /*inputs*/,
                                           const IOdata& desiredOutput,
                                           IOdata& fieldSet)
 {
-    if (Wref < 0) {
-        Wref = systemBaseFrequency;
-    }
-
-    double P = desiredOutput[0];
-    // double omega = getControlFrequency (inputs);
-    double omega = inputs[govOmegaInLocation];
-    if (P > Pmax) {
-        P = Pmax;
-    } else if (P < Pmin) {
-        P = Pmin;
-    }
-    m_state[3] = P;
-    m_state[2] = (1.0 - T3 / T2) * P;
-    m_state[1] = (1.0 - T4 / T5) * (m_state[2] + T3 / T2 * m_state[3]);
-    m_state[0] = P;
+    const double power = std::clamp(desiredOutput[0], Pmin, Pmax);
+    m_state[0] = power;
+    m_state[1] = power;
+    m_state[2] = power;
+    m_state[3] = power;
+    m_state[4] = K2 * power;
+    m_state[5] = K3 * K2 * power;
 
     fieldSet.resize(2);
-    fieldSet[1] = P - K * (Wref - omega);  // Pset
+    fieldSet[govpSetInLocation] = power;
 }
 
 // residual
 void GovernorReheat::residual(const IOdata& inputs,
-                              const StateData& sD,
+                              const StateData& stateData,
                               double resid[],
                               const SolverMode& sMode)
 {
-    auto offset = offsets.getAlgOffset(sMode);
-    const double* gsp = sD.dstate_dt + offset;
+    const auto loc = offsets.getLocations(stateData, resid, sMode, this);
+    const auto* state = loc.diffStateLoc;
+    loc.destLoc[0] =
+        loc.algStateLoc[0] - (((1.0 - K2) * state[2]) + ((1.0 - K3) * state[3]) + state[4]);
     if (isAlgebraicOnly(sMode)) {
-        gsp = sD.dstate_dt + offsets.getAlgOffset(SolverMode(4));
-        resid[offset + 0] = gsp[1] + T4 / T5 * (gsp[2] + T3 / T2 * gsp[3]) - sD.state[offset];
         return;
     }
-    const double* gs = sD.state + offset;
-
-    // double omega = getControlFrequency (inputs);
-    double omega = inputs[govOmegaInLocation];
-
-    double Tin = inputs[govpSetInLocation] + K * (Wref - omega);
-    if (Tin > Pmax) {
-        Tin = Pmax;
-    } else if (Tin < Pmin) {
-        Tin = Pmin;
+    derivative(inputs, stateData, resid, sMode);
+    for (index_t ii = 0; ii < 5; ++ii) {
+        loc.destDiffLoc[ii] -= loc.dstateLoc[ii];
     }
-    resid[offset + 3] = (Tin - gs[3]) / T1 - gsp[3];
-    resid[offset + 2] = ((1 - T3 / T2) * gs[3] - gs[2]) / T2 - gsp[2];
-    resid[offset + 1] = ((1.0 - T4 / T5) * (gs[2] + T3 / T2 * gs[3]) - gs[1]) / T5 - gsp[1];
-    resid[offset + 0] = gs[1] + T4 / T5 * (gs[2] + T3 / T2 * gs[3]) - gs[0];
 }
 
 void GovernorReheat::derivative(const IOdata& inputs,
-                                const StateData& sD,
+                                const StateData& stateData,
                                 double deriv[],
                                 const SolverMode& sMode)
 {
-    auto offset = offsets.getAlgOffset(sMode);
-    const double* gs = sD.state + offset;
-    // double omega = getControlFrequency (inputs);
-    double omega = inputs[govOmegaInLocation];
-    double Tin = inputs[govpSetInLocation] + K * (Wref - omega);
-    if (Tin > Pmax) {
-        Tin = Pmax;
-    } else if (Tin < Pmin) {
-        Tin = Pmin;
-    }
-    deriv[offset + 3] = (Tin - gs[3]) / T1;
-    deriv[offset + 2] = ((1 - T3 / T2) * gs[3] - gs[2]) / T2;
-    deriv[offset + 1] = ((1.0 - T4 / T5) * (gs[2] + T3 / T2 * gs[3]) - gs[1]) / T5;
+    const auto loc = offsets.getLocations(stateData, deriv, sMode, this);
+    const auto* state = loc.diffStateLoc;
+    const double controllerInput =
+        inputs[govpSetInLocation] + (K * (Wref - inputs[govOmegaInLocation]));
+    loc.destDiffLoc[0] = (controllerInput - state[0]) / T1;
+    loc.destDiffLoc[1] = (state[0] - state[1]) / T3;
+    const double valve =
+        std::clamp(((T2 / T3) * state[0]) + ((1.0 - (T2 / T3)) * state[1]), Pmin, Pmax);
+    loc.destDiffLoc[2] = (valve - state[2]) / T4;
+    loc.destDiffLoc[3] = ((K2 * state[2]) - state[3]) / T5;
+    loc.destDiffLoc[4] = ((K3 * state[3]) - state[4]) / T6;
 }
 
-void GovernorReheat::jacobianElements(const IOdata& inputs,
-                                      const StateData& sD,
-                                      MatrixData<double>& md,
+void GovernorReheat::jacobianElements(const IOdata& /*inputs*/,
+                                      const StateData& stateData,
+                                      MatrixData<double>& matrixData,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode)
 {
-    auto offset = offsets.getAlgOffset(sMode);
+    const auto loc = offsets.getLocations(stateData, nullptr, sMode, this);
+    const index_t diff = loc.diffOffset;
+    matrixData.assign(loc.algOffset, loc.algOffset, 1.0);
     if (isAlgebraicOnly(sMode)) {
-        md.assign(offset, offset, -1);
         return;
     }
-
-    // double omega = getControlFrequency (inputs);
-    double omega = inputs[govOmegaInLocation];
-    bool limitTin = false;
-    double Tin = inputs[govpSetInLocation] + K * (Wref - omega);
-    if (Tin > Pmax) {
-        Tin = Pmax;
-        limitTin = true;
-    } else if (Tin < Pmin) {
-        Tin = Pmin;
-        limitTin = true;
+    matrixData.assign(loc.algOffset, diff + 2, -(1.0 - K2));
+    matrixData.assign(loc.algOffset, diff + 3, -(1.0 - K3));
+    matrixData.assign(loc.algOffset, diff + 4, -1.0);
+    matrixData.assignCheckCol(diff, inputLocs[govpSetInLocation], 1.0 / T1);
+    if (inputLocs[govOmegaInLocation] != kNullLocation) {
+        matrixData.assign(diff, inputLocs[govOmegaInLocation], -K / T1);
     }
-    int refI = offset;
-    // use the md.assign Macro defined in basicDefs
-    // md.assign(arrayIndex, RowIndex, ColIndex, value)
-    bool linkOmega = (inputLocs[govOmegaInLocation] != kNullLocation);
-
-    /* if (opFlags.test (uses_deadband))
-   {
-     if (!opFlags.test (outside_deadband))
-       {
-         linkOmega = false;
-       }
-   }
-       */
-    if (limitTin) {
-        md.assign(refI + 3, refI + 3, -1.0 / T1 - sD.cj);
-    } else {
-        if (linkOmega) {
-            md.assign(refI + 3, inputLocs[govOmegaInLocation], K / T1);
-        }
-        if (inputLocs[govpSetInLocation] != kNullLocation) {
-            md.assign(refI + 3, inputLocs[govpSetInLocation], 1.0 / T1);
-        }
-        md.assign(refI + 3, refI + 3, -1.0 / T1 - sD.cj);
+    matrixData.assign(diff, diff, (-1.0 / T1) - stateData.cj);
+    matrixData.assign(diff + 1, diff, 1.0 / T3);
+    matrixData.assign(diff + 1, diff + 1, (-1.0 / T3) - stateData.cj);
+    const auto* state = loc.diffStateLoc;
+    const double unlimitedValve = ((T2 / T3) * state[0]) + ((1.0 - (T2 / T3)) * state[1]);
+    if ((unlimitedValve > Pmin) && (unlimitedValve < Pmax)) {
+        matrixData.assign(diff + 2, diff, T2 / (T3 * T4));
+        matrixData.assign(diff + 2, diff + 1, (1.0 - (T2 / T3)) / T4);
     }
-    // tg2
-
-    md.assign(refI + 2, refI + 3, (1.0 - T3 / T2) * 1.0 / T2);
-    md.assign(refI + 2, refI + 2, -1.0 / T2 - sD.cj);
-    // Tg3
-    md.assign(refI + 1, refI + 2, (1.0 - T4 / T5) / T5);
-    md.assign(refI + 1, refI + 3, ((1.0 - T4 / T5) * T3 / T2) / T5);
-    md.assign(refI + 1, refI + 1, -1.0 / T5 - sD.cj);
-    // Tout
-    md.assign(refI, refI, -1);
-    md.assign(refI, refI + 1, 1);
-    md.assign(refI, refI + 2, T4 / T5);
-    md.assign(refI, refI + 3, T4 / T5 * (T3 / T2));
+    matrixData.assign(diff + 2, diff + 2, (-1.0 / T4) - stateData.cj);
+    matrixData.assign(diff + 3, diff + 2, K2 / T5);
+    matrixData.assign(diff + 3, diff + 3, (-1.0 / T5) - stateData.cj);
+    matrixData.assign(diff + 4, diff + 3, K3 / T6);
+    matrixData.assign(diff + 4, diff + 4, (-1.0 / T6) - stateData.cj);
 }
 
-index_t GovernorReheat::findIndex(std::string_view field, const SolverMode& /*sMode*/) const
+index_t GovernorReheat::findIndex(std::string_view field, const SolverMode& sMode) const
 {
-    index_t ret = kInvalidLocation;
-    if (field == "pm") {
-        ret = 0;
-    } else if (field == "tg1") {
-        ret = 3;
-    } else if (field == "tg2") {
-        ret = 2;
-    } else if (field == "tg3") {
-        ret = 1;
+    if ((field == "pm") || (field == "pmech")) {
+        return offsets.getAlgOffset(sMode);
     }
-    return ret;
+    const index_t differentialOffset = offsets.getDiffOffset(sMode);
+    if (field == "filter") {
+        return differentialOffset;
+    }
+    if (field == "governor") {
+        return differentialOffset + 1;
+    }
+    if (field == "steamchest") {
+        return differentialOffset + 2;
+    }
+    if (field == "reheater") {
+        return differentialOffset + 3;
+    }
+    if (field == "crossover") {
+        return differentialOffset + 4;
+    }
+    return kInvalidLocation;
 }
 
 // set parameters
@@ -208,19 +188,52 @@ void GovernorReheat::set(std::string_view param, std::string_view val)
 
 void GovernorReheat::set(std::string_view param, double val, unit unitType)
 {
-    // param   = GridDynSimulation::toLower(param);
-    if ((param == "ts") || (param == "t1")) {
-        T1 = val;
-    } else if ((param == "tc") || (param == "t2")) {
-        T2 = val;
-    } else if (param == "t3") {
-        T3 = val;
-    } else if (param == "t4") {
-        T4 = val;
-    } else if (param == "t5") {
-        T5 = val;
+    if ((param == "t1") || (param == "t2") || (param == "t3") || (param == "t4") ||
+        (param == "t5") || (param == "t6") || (param == "k1") || (param == "k2") ||
+        (param == "k3") || (param == "pmax") || (param == "pmin")) {
+        if (!std::isfinite(val)) {
+            throw InvalidParameterValue("IEESGO parameter must be finite");
+        }
+        if (param == "k1") {
+            K = val;
+        } else if (param == "k2") {
+            K2 = val;
+        } else if (param == "k3") {
+            K3 = val;
+        } else if (param == "t4") {
+            T4 = val;
+        } else if (param == "t5") {
+            T5 = val;
+        } else if (param == "t6") {
+            T6 = val;
+        } else {
+            Governor::set(param, val, unitType);
+        }
     } else {
         Governor::set(param, val, unitType);
     }
+}
+
+double GovernorReheat::get(std::string_view param, unit unitType) const
+{
+    if (param == "k1") {
+        return K;
+    }
+    if (param == "k2") {
+        return K2;
+    }
+    if (param == "k3") {
+        return K3;
+    }
+    if (param == "t4") {
+        return T4;
+    }
+    if (param == "t5") {
+        return T5;
+    }
+    if (param == "t6") {
+        return T6;
+    }
+    return Governor::get(param, unitType);
 }
 }  // namespace griddyn::governors

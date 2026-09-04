@@ -16,6 +16,8 @@
 #include "griddyn/governors/GovernorHydro.h"
 #include "griddyn/governors/GovernorHygov.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
+#include "griddyn/governors/GovernorSteamNR.h"
+#include "griddyn/governors/GovernorSteamTCSR.h"
 #include "griddyn/governors/GovernorTgov1.h"
 #include "griddyn/simulation/Diagnostics.h"
 #include "utilities/MatrixDataSparse.hpp"
@@ -110,7 +112,92 @@ void configureGast(governors::GovernorGast& governor)
     governor.set("vmin", -0.05);
     governor.set("dt", 0.1);
 }
+
+void configureSteam(governors::GovernorSteamNR& governor)
+{
+    governor.set("k", 10.0);
+    governor.set("t1", 0.5);
+    governor.set("t2", 0.1);
+    governor.set("t3", 1.0);
+    governor.set("tch", 1.2);
+    governor.set("pup", 1.2);
+    governor.set("pdown", -1.2);
+    governor.set("pmax", 2.0);
+    governor.set("pmin", 0.0);
+}
 }  // namespace
+
+TEST(GovernorModelTests, SteamNrInitializesAndImplementsSteamChestDynamics)
+{
+    governors::GovernorSteamNR governor;
+    configureSteam(governor);
+    EXPECT_DOUBLE_EQ(governor.get("tch"), 1.2);
+    governor.dynInitializeA(0.0, 0);
+    IOdata inputs{1.0, 0.8};
+    IOdata fieldSet(2, 0.0);
+    governor.dynInitializeB(inputs, {0.8}, fieldSet);
+
+    const auto& initialized = governor.getStates();
+    ASSERT_EQ(initialized.size(), 4U);
+    EXPECT_DOUBLE_EQ(initialized[0], 0.8);
+    EXPECT_DOUBLE_EQ(initialized[1], 0.8);
+    EXPECT_DOUBLE_EQ(initialized[2], 0.0);
+    EXPECT_DOUBLE_EQ(initialized[3], 0.8);
+    EXPECT_DOUBLE_EQ(fieldSet[govpSetInLocation], 0.8);
+
+    std::vector<double> residual(initialized.size(), 0.0);
+    governor.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    for (double value : residual) {
+        EXPECT_NEAR(value, 0.0, 1e-14);
+    }
+
+    inputs[govOmegaInLocation] = 0.99;
+    inputs[govpSetInLocation] = 0.9;
+    std::vector<double> derivative(initialized.size(), 0.0);
+    governor.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[1], 0.12, 1e-14);
+    EXPECT_NEAR(derivative[2], -0.016, 1e-14);
+    EXPECT_NEAR(derivative[3], 0.0, 1e-14);
+}
+
+TEST(GovernorModelTests, SteamTcsrInitializesAndWeightsThreeSteamStages)
+{
+    governors::GovernorSteamTCSR governor;
+    configureSteam(governor);
+    governor.set("trh", 1.2);
+    governor.set("tco", 1.2);
+    governor.set("fch", 0.2);
+    governor.set("fip", 0.3);
+    governor.set("flp", 0.5);
+    EXPECT_DOUBLE_EQ(governor.get("trh"), 1.2);
+    EXPECT_DOUBLE_EQ(governor.get("tco"), 1.2);
+    EXPECT_DOUBLE_EQ(governor.get("fch"), 0.2);
+    EXPECT_DOUBLE_EQ(governor.get("fip"), 0.3);
+    EXPECT_DOUBLE_EQ(governor.get("flp"), 0.5);
+    governor.dynInitializeA(0.0, 0);
+    IOdata inputs{1.0, 0.8};
+    IOdata fieldSet(2, 0.0);
+    governor.dynInitializeB(inputs, {0.8}, fieldSet);
+
+    const auto& initialized = governor.getStates();
+    ASSERT_EQ(initialized.size(), 6U);
+    EXPECT_DOUBLE_EQ(initialized[0], 0.8);
+    EXPECT_DOUBLE_EQ(initialized[1], 0.8);
+    EXPECT_DOUBLE_EQ(initialized[2], 0.0);
+    EXPECT_DOUBLE_EQ(initialized[3], 0.8);
+    EXPECT_DOUBLE_EQ(initialized[4], 0.8);
+    EXPECT_DOUBLE_EQ(initialized[5], 0.8);
+
+    std::vector<double> state{0.8, 0.9, 0.0, 0.6, 0.7, 0.8};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    governor.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    std::vector<double> residual(state.size(), 0.0);
+    governor.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    EXPECT_NEAR(residual[0], -0.07, 1e-14);
+    EXPECT_NEAR(residual[3], 0.25, 1e-14);
+    EXPECT_NEAR(residual[4], -1.0 / 12.0, 1e-14);
+    EXPECT_NEAR(residual[5], -1.0 / 12.0, 1e-14);
+}
 
 TEST(GovernorModelTests, GastMatchesOpenIpslAndesEquations)
 {

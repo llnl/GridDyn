@@ -13,6 +13,7 @@
 #include "ExciterDC1A.h"
 #include "ExciterDC2A.h"
 #include "ExciterESAC1A.h"
+#include "ExciterESAC6A.h"
 #include "ExciterESST3A.h"
 #include "ExciterESST4B.h"
 #include "ExciterEXAC1.h"
@@ -23,6 +24,7 @@
 #include "ExciterIEEEtype1.h"
 #include "ExciterIEEEtype2.h"
 #include "ExciterSEXS.h"
+#include "ExciterSCRX.h"
 #include "core/CoreObject.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
@@ -49,6 +51,7 @@ namespace exciters {
         static ChildTypeFactory<ExciterEXPIC1, Exciter> gfeExpic1("exciter", "expic1");  // NOLINT
         static ChildTypeFactory<ExciterEXAC1, Exciter> gfeExac1("exciter", "exac1");  // NOLINT
         static ChildTypeFactory<ExciterESAC1A, Exciter> gfeEsac1a("exciter", "esac1a");  // NOLINT
+        static ChildTypeFactory<ExciterESAC6A, Exciter> gfeEsac6a("exciter", "esac6a");  // NOLINT
         static ChildTypeFactory<ExciterEXAC2, Exciter> gfeExac2("exciter", "exac2");  // NOLINT
         static ChildTypeFactory<ExciterEXAC4, Exciter> gfeExac4("exciter", "exac4");  // NOLINT
         static ChildTypeFactory<ExciterEXST1, Exciter> gfeExst1("exciter", "exst1");  // NOLINT
@@ -60,6 +63,7 @@ namespace exciters {
             "type1");  // setup type 1 as the default
         static ChildTypeFactory<ExciterIEEEtype2, Exciter> gfeType2("exciter", "type2");  // NOLINT
         static ChildTypeFactory<ExciterSEXS, Exciter> gfeSexs("exciter", "sexs");  // NOLINT
+        static ChildTypeFactory<ExciterSCRX, Exciter> gfeScrx("exciter", "scrx");  // NOLINT
     }  // namespace
 }  // namespace exciters
 

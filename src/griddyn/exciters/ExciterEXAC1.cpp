@@ -6,6 +6,7 @@
 
 #include "ExciterEXAC1.h"
 
+#include "StaticExciterRectifier.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "utilities/MatrixData.hpp"
@@ -25,38 +26,6 @@ namespace {
     constexpr index_t exciterState = 3;
     constexpr index_t washoutState = 4;
     constexpr double limitTolerance = 1e-7;
-    // These decimal values are the specified PSS/E FEX curve coefficients,
-    // not approximations of unrelated mathematical constants.
-    constexpr double lowCurrentSlope = 0.577;  // NOLINT(modernize-use-std-numbers)
-    constexpr double highCurrentSlope = 1.732;  // NOLINT(modernize-use-std-numbers)
-
-    struct RectifierEvaluation {
-        double mFactor;
-        double mDerivative;
-    };
-
-    RectifierEvaluation rectifier(double normalizedCurrent)
-    {
-        if (normalizedCurrent <= 0.0) {
-            return {.mFactor = 1.0, .mDerivative = 0.0};
-        }
-        if (normalizedCurrent <= 0.433) {
-            return {.mFactor = 1.0 - lowCurrentSlope * normalizedCurrent,
-                    .mDerivative = -lowCurrentSlope};
-        }
-        if (normalizedCurrent <= 0.75) {
-            const double factor =
-                std::sqrt(std::max(0.0, 0.75 - normalizedCurrent * normalizedCurrent));
-            return {.mFactor = factor,
-                    .mDerivative = (factor > 0.0) ? -normalizedCurrent / factor : 0.0};
-        }
-        if (normalizedCurrent <= 1.0) {
-            return {.mFactor = highCurrentSlope * (1.0 - normalizedCurrent),
-                    .mDerivative = -highCurrentSlope};
-        }
-        return {.mFactor = 0.0, .mDerivative = 0.0};
-    }
-
     index_t stateIndex(index_t fullIndex, bool hasVoltageTransducer)
     {
         return hasVoltageTransducer ? fullIndex : fullIndex - 1;
@@ -144,9 +113,9 @@ void ExciterEXAC1::dynObjectInitializeB(const IOdata& inputs,
     for (int count = 0; count < 20; ++count) {
         const double current =
             ((Kc != 0.0) && (exciterVoltage != 0.0)) ? Kc * fieldCurrent / exciterVoltage : 0.0;
-        const auto fex = rectifier(current);
-        const double mismatch = exciterVoltage * fex.mFactor - fieldVoltage;
-        const double slope = fex.mFactor - fex.mDerivative * current;
+        const auto fex = detail::computeRectifierFactor(current);
+        const double mismatch = exciterVoltage * fex.factor - fieldVoltage;
+        const double slope = fex.factor - fex.derivative * current;
         if (std::abs(slope) < 1e-12) {
             break;
         }
@@ -157,7 +126,8 @@ void ExciterEXAC1::dynObjectInitializeB(const IOdata& inputs,
     }
     const double finalCurrent =
         ((Kc != 0.0) && (exciterVoltage != 0.0)) ? Kc * fieldCurrent / exciterVoltage : 0.0;
-    if (std::abs(exciterVoltage * rectifier(finalCurrent).mFactor - fieldVoltage) > 1e-7) {
+    if (std::abs(exciterVoltage * detail::computeRectifierFactor(finalCurrent).factor -
+                 fieldVoltage) > 1e-7) {
         throw InvalidParameterValue(
             "EXAC1 initial field voltage is incompatible with rectifier loading");
     }
@@ -203,10 +173,11 @@ double ExciterEXAC1::rectifierFactor(const IOdata& inputs, double exciterVoltage
     if (Kc == 0.0) {
         return 1.0;
     }
-    return rectifier((exciterVoltage != 0.0) ?
-                         Kc * inputs[exciterXadIfdInLocation] / exciterVoltage :
-                         0.0)
-        .mFactor;
+    return detail::computeRectifierFactor(
+               (exciterVoltage != 0.0) ?
+                   Kc * inputs[exciterXadIfdInLocation] / exciterVoltage :
+                   0.0)
+        .factor;
 }
 
 double ExciterEXAC1::fieldVoltage(const IOdata& inputs, const double state[]) const
@@ -340,15 +311,15 @@ void ExciterEXAC1::jacobianElements(const IOdata& inputs,
     const double exciterVoltage = state[exciterIndex];
     const double normalizedCurrent =
         (exciterVoltage != 0.0) ? Kc * inputs[exciterXadIfdInLocation] / exciterVoltage : 0.0;
-    const auto fex = rectifier(normalizedCurrent);
+    const auto fex = detail::computeRectifierFactor(normalizedCurrent);
     if (hasAlgebraic(sMode)) {
         matrixData.assign(algOffset, algOffset, -1.0);
         matrixData.assign(algOffset,
                           diffOffset + exciterIndex,
-                          fex.mFactor - fex.mDerivative * normalizedCurrent);
+                          fex.factor - fex.derivative * normalizedCurrent);
         matrixData.assignCheckCol(algOffset,
                                   inputLocs[exciterXadIfdInLocation],
-                                  fex.mDerivative * Kc);
+                                  fex.derivative * Kc);
     }
     if (!hasDifferential(sMode)) {
         return;

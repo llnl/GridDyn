@@ -10,6 +10,30 @@
 #include <numbers>
 
 namespace griddyn::exciters::detail {
+RectifierFactorData computeRectifierFactor(double normalizedCurrent)
+{
+    constexpr double lowCurrentSlope = 577.0 / 1000.0;
+    constexpr double highCurrentSlope = 1732.0 / 1000.0;
+    if (normalizedCurrent <= 0.0) {
+        return {.factor = 1.0, .derivative = 0.0};
+    }
+    if (normalizedCurrent <= 0.433) {
+        return {.factor = 1.0 - (lowCurrentSlope * normalizedCurrent),
+                .derivative = -lowCurrentSlope};
+    }
+    if (normalizedCurrent < 0.75) {
+        const double factor =
+            std::sqrt(std::max(0.0, 0.75 - (normalizedCurrent * normalizedCurrent)));
+        return {.factor = factor,
+                .derivative = (factor > 0.0) ? -normalizedCurrent / factor : 0.0};
+    }
+    if (normalizedCurrent <= 1.0) {
+        return {.factor = highCurrentSlope * (1.0 - normalizedCurrent),
+                .derivative = -highCurrentSlope};
+    }
+    return {.factor = 0.0, .derivative = 0.0};
+}
+
 RectifierData computeRectifierData(const IOdata& inputs,
                                    double potentialGain,
                                    double currentGain,
@@ -18,8 +42,6 @@ RectifierData computeRectifierData(const IOdata& inputs,
                                    double thetaDegrees,
                                    double maximumVoltage)
 {
-    constexpr double lowCurrentSlope = 577.0 / 1000.0;
-    constexpr double highCurrentSlope = 1732.0 / 1000.0;
     const double theta = thetaDegrees * std::numbers::pi_v<double> / 180.0;
     const double kpcReal = potentialGain * std::cos(theta);
     const double kpcImag = potentialGain * std::sin(theta);
@@ -47,20 +69,9 @@ RectifierData computeRectifierData(const IOdata& inputs,
     const double normalizedCurrent = (sourceVoltage > 0.0) ?
         commutatingFactor * inputs[exciterXadIfdInLocation] / sourceVoltage :
         0.0;
-    double factor = 0.0;
-    double factorDerivative = 0.0;
-    if (normalizedCurrent <= 0.0) {
-        factor = 1.0;
-    } else if (normalizedCurrent <= 0.433) {
-        factor = 1.0 - (lowCurrentSlope * normalizedCurrent);
-        factorDerivative = -lowCurrentSlope;
-    } else if (normalizedCurrent < 0.75) {
-        factor = std::sqrt(std::max(0.0, 0.75 - (normalizedCurrent * normalizedCurrent)));
-        factorDerivative = (factor > 0.0) ? -normalizedCurrent / factor : 0.0;
-    } else if (normalizedCurrent <= 1.0) {
-        factor = highCurrentSlope * (1.0 - normalizedCurrent);
-        factorDerivative = -highCurrentSlope;
-    }
+    const auto rectifier = computeRectifierFactor(normalizedCurrent);
+    const double factor = rectifier.factor;
+    const double factorDerivative = rectifier.derivative;
     const double unlimitedVoltage = sourceVoltage * factor;
     RectifierData result{.voltage = std::min(unlimitedVoltage, maximumVoltage), .derivatives = {}};
     if (unlimitedVoltage < maximumVoltage) {

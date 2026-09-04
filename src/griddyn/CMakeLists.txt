@@ -93,12 +93,14 @@ set(exciter_headers
     exciters/StaticExciterRectifier.h
     exciters/ExciterEXAC1.h
     exciters/ExciterESAC1A.h
+    exciters/ExciterESAC6A.h
     exciters/ExciterEXAC2.h
     exciters/ExciterEXAC4.h
     exciters/ExciterEXST1.h
     exciters/ExciterIEEEtype1.h
     exciters/ExciterIEEEtype2.h
     exciters/ExciterSEXS.h
+    exciters/ExciterSCRX.h
 )
 
 set(exciter_sources
@@ -112,12 +114,14 @@ set(exciter_sources
     exciters/StaticExciterRectifier.cpp
     exciters/ExciterEXAC1.cpp
     exciters/ExciterESAC1A.cpp
+    exciters/ExciterESAC6A.cpp
     exciters/ExciterEXAC2.cpp
     exciters/ExciterEXAC4.cpp
     exciters/ExciterEXST1.cpp
     exciters/ExciterIEEEtype1.cpp
     exciters/ExciterIEEEtype2.cpp
     exciters/ExciterSEXS.cpp
+    exciters/ExciterSCRX.cpp
     stabilizers/Stabilizer.cpp
     stabilizers/StabilizerIEEEST.cpp
     stabilizers/StabilizerST2CUT.cpp

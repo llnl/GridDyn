@@ -92,6 +92,7 @@ set(exciter_headers
     exciters/ExciterEXPIC1.h
     exciters/StaticExciterRectifier.h
     exciters/ExciterEXAC1.h
+    exciters/ExciterESAC1A.h
     exciters/ExciterEXAC2.h
     exciters/ExciterEXAC4.h
     exciters/ExciterEXST1.h
@@ -110,6 +111,7 @@ set(exciter_sources
     exciters/ExciterEXPIC1.cpp
     exciters/StaticExciterRectifier.cpp
     exciters/ExciterEXAC1.cpp
+    exciters/ExciterESAC1A.cpp
     exciters/ExciterEXAC2.cpp
     exciters/ExciterEXAC4.cpp
     exciters/ExciterEXST1.cpp

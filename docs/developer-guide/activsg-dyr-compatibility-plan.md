@@ -51,10 +51,10 @@ an external reference.
 | `SCRX`      |          0 |           5 |        312 |        446 |      1,053 |  1,816 | **Missing.** Add static controlled-rectifier exciter.                                                                                                                  |
 | `IEEET1`    |          0 |          23 |        214 |        942 |      1,907 |  3,086 | **Implemented; external trajectory open.** Native IEEE Type 1 model and exact DYR mapping are available; validate representative case configurations and trajectories. |
 | `EXPIC1`    |          0 |          61 |        153 |        287 |        569 |  1,070 | **Implemented; external trajectory open.** GridKit-specified equations, exact DYR schema, full block tests, and whole-case residual/Jacobian coverage are present.     |
-| `ESDC2A`    |          0 |           1 |         87 |        202 |        104 |    394 | **Partial.** Dedicated model and DYR mapping are available; complete equation, limiter, and trajectory audits.                                                         |
+| `ESDC2A`    |          0 |           1 |         87 |        202 |        104 |    394 | **Implemented and merged; external trajectory pending.** Shares DC2A/EXDC2 equations and DYR schema; nonzero unsupported `Switch` is rejected. |
 | `ESAC6A`    |          0 |           7 |         26 |        194 |        583 |    810 | **Missing.** Add AC6A exciter.                                                                                                                                         |
 | `EXAC1`     |          0 |           6 |         22 |        130 |        381 |    539 | Reader supported; validate case configurations.                                                                                                                        |
-| `ESAC1A`    |          0 |           4 |         23 |        142 |        546 |    715 | **Missing.** Add AC1A exciter.                                                                                                                                         |
+| `ESAC1A`    |          0 |           4 |         23 |        142 |        546 |    715 | **Implemented and merged; external trajectory pending.** Dedicated AC1A DYR mapping and control-element limits reuse the AC-exciter core; UEL/OEL routing remains open. |
 | `GAST`      |         30 |           0 |          0 |          0 |          0 |     30 | **Implemented; external trajectory open.** OpenIPSL/ANDES/GridKit equations, DYR mapping, initialization, selector/limit, and Jacobian tests are present.              |
 | `REECA1`    |          0 |           0 |          0 |        614 |        571 |  1,185 | **Missing.** Add renewable electrical control; implement and validate it with the associated `REGCA1` converter model.                                                 |
 | `REGCA1`    |          0 |           0 |          0 |        614 |        571 |  1,185 | **Missing.** Add the renewable converter model; do not import it independently from `REECA1`.                                                                          |
@@ -91,11 +91,11 @@ dependent on the separate RAW/DYR delivery; GridKit cannot substitute for it.
 ### ACTIVSg25k static DYR assessment
 
 `ACTIVSg25k.dyr` was inspected as text only and was not loaded or run. It has
-18,108 records in 22 model families. The current DYR dispatch recognizes 13
+18,108 records in 22 model families. The current DYR dispatch recognizes 14
 of the families used by this file (`GENROU`, `IEEEST`, `IEEEG1`, `ESDC1A`,
-`ESDC2A`, `EXAC1`, `EXAC2`, `GGOV1`, `ESST4B`, `GENSAL`, `HYGOV`, `IEEET1`,
-and `EXPIC1`), accounting for
-15,622 records. The other 2,486 records cannot yet be represented faithfully.
+`ESDC2A`, `EXAC1`, `EXAC2`, `ESAC1A`, `GGOV1`, `ESST4B`, `GENSAL`, `HYGOV`,
+`IEEET1`, and `EXPIC1`), accounting for
+15,764 records. The other 2,344 records cannot yet be represented faithfully.
 
 The largest remaining conventional dependency is `SCRX`, followed by the
 renewable groups. `REECA1` and `REGCA1` must be initialized and
@@ -109,17 +109,17 @@ coverage.
 
 `ACTIVSg70k_dynamics.dyr` was inspected as text only and was not loaded or run.
 It has 40,418 records in 22 model families. The current DYR dispatch recognizes
-34,790 records in 13 families (`GENROU`, `IEEEST`, `IEEEG1`, `ESDC1A`,
-`ESDC2A`, `EXAC1`, `EXAC2`, `GGOV1`, `ESST4B`, `GENSAL`, `HYGOV`, `IEEET1`,
-and `EXPIC1`); 5,628 records
+35,336 records in 14 families (`GENROU`, `IEEEST`, `IEEEG1`, `ESDC1A`,
+`ESDC2A`, `EXAC1`, `EXAC2`, `ESAC1A`, `GGOV1`, `ESST4B`, `GENSAL`, `HYGOV`,
+`IEEET1`, and `EXPIC1`); 5,082 records
 remain unsupported.
 
 The primary conventional gap is `SCRX` (1,053).
 `GENSAL`, `HYGOV`, `GGOV1`, and `ESST4B` are recognized and have focused model
 and reader tests, but still need large-case initialization and trajectory
 validation. The coupled renewable demand is `REGCA1` plus `REECA1` (571 each)
-and all four Type-3 wind models (576 each). `ESAC6A` (583) and `ESAC1A`
-(546) complete the missing conventional-exciter inventory.
+and all four Type-3 wind models (576 each). `ESAC6A` (583) is the remaining
+conventional-exciter implementation gap.
 
 #### Full-dynamics execution boundary
 
@@ -140,9 +140,9 @@ every record for a machine ID before initializing the case.
 
 Accordingly, GridDyn may use the RAW alone for static power-flow work once
 large-scale topology validation is complete, but it must reject a requested
-full 70k DYR run until all nine currently unsupported families are implemented:
-`SCRX`, `ESAC6A`, `WT3P1`, `WT3T1`, `WT3E1`, `WT3G1`, `REGCA1`, `REECA1`,
-and `ESAC1A`. A strict diagnostic is preferable
+full 70k DYR run until all eight currently unsupported families are implemented:
+`SCRX`, `ESAC6A`, `WT3P1`, `WT3T1`, `WT3E1`, `WT3G1`, `REGCA1`, and `REECA1`.
+A strict diagnostic is preferable
 to a partial dynamic simulation.
 
 The supplied RAW is PSS/E v33. It has 67,900 terminal buses, 71,352 branches,
@@ -167,10 +167,10 @@ equations before implementation.
    control-device parity difference, add grouped PSS/E remote-voltage
    regulation, and investigate the ACTIVSg25k RAW-versus-MATPOWER source-state
    mismatch. ACTIVSg10k RAW/EPC three-winding topology is validated.
-2. **P1 conventional machine/governor validation:** `GENSAL`, `GGOV1`, and
-   `HYGOV` are implemented; add captured external trajectories and whole-case
-   initialization coverage for all three. GGOV1 deliberately rejects nonzero
-   `TENG` transport delay.
+2. **P1 conventional machine/governor validation:** `GENSAL`, `GGOV1`,
+   `HYGOV`, and the merged `IEESGO` realization are implemented; add captured
+   external trajectories and whole-case initialization coverage. GGOV1
+   deliberately rejects nonzero `TENG` transport delay.
 3. **P1 synchronous excitation:** `ESST4B` and `IEEET1` are implemented;
    implement `SCRX` from the available OpenIPSL/PowerDynamics references.
    `EXPIC1` is also implemented from the GridKit equation specification;
@@ -180,10 +180,11 @@ equations before implementation.
    `WT3G1`/`WT3E1`/`WT3P1`/`WT3T1` Type-3 system. The latter two models have
    no exact external source and must be derived or obtained as part of the
    complete system, not silently omitted.
-5. **P2 remaining excitation/source gaps:** `ESDC2A` and `ESAC1A` have
-   OpenIPSL references; GridKit documents `ESAC6A`, but an implementation and
-   external validation case are still required. Capture an independent
-   EXPIC1 trajectory while adding the remaining models.
+5. **P2 remaining excitation/source gaps:** `ESDC2A` and `ESAC1A` are merged;
+   capture their OpenIPSL trajectories and add UEL/OEL routing for AC1A. GridKit
+   documents `ESAC6A`, but an implementation and external validation case are
+   still required. Capture an independent EXPIC1 trajectory while adding the
+   remaining models.
 6. **Reader and validation hardening:** table-driven DYR dispatch, strict
    unknown-model diagnostics, exact bus-plus-machine-ID resolution, minimized
    fixtures, and whole-case trajectory regressions. Add dedicated

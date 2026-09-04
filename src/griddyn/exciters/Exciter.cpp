@@ -12,6 +12,7 @@
 #include "../gridDynDefinitions.hpp"
 #include "ExciterDC1A.h"
 #include "ExciterDC2A.h"
+#include "ExciterESAC1A.h"
 #include "ExciterESST3A.h"
 #include "ExciterESST4B.h"
 #include "ExciterEXAC1.h"
@@ -47,6 +48,7 @@ namespace exciters {
         static ChildTypeFactory<ExciterESST4B, Exciter> gfeEsst4b("exciter", "esst4b");  // NOLINT
         static ChildTypeFactory<ExciterEXPIC1, Exciter> gfeExpic1("exciter", "expic1");  // NOLINT
         static ChildTypeFactory<ExciterEXAC1, Exciter> gfeExac1("exciter", "exac1");  // NOLINT
+        static ChildTypeFactory<ExciterESAC1A, Exciter> gfeEsac1a("exciter", "esac1a");  // NOLINT
         static ChildTypeFactory<ExciterEXAC2, Exciter> gfeExac2("exciter", "exac2");  // NOLINT
         static ChildTypeFactory<ExciterEXAC4, Exciter> gfeExac4("exciter", "exac4");  // NOLINT
         static ChildTypeFactory<ExciterEXST1, Exciter> gfeExst1("exciter", "exst1");  // NOLINT

@@ -73,7 +73,8 @@ adapters still have attachment, parameter, equation, and validation gaps.
 | `SEXS`                                 | `SEXS`                  | `ExciterSEXS`                                                                 | **Partial.** The adapter exists; verify lead-lag convention, limits, initialization, and trajectories.                                                                                                                                                                                                                                                                                                                                                              |
 | `ESDC1A`                               | `ESDC1A`                | `ExciterDC1A` / `ExciterIEEEtype1`                                            | **Partial.** The current adapter ignores `TR`, switch behavior, and `E1`/`SE1`/`E2`/`SE2`; its fallback to type 1 when `TB` is zero must be compared with ANDES.                                                                                                                                                                                                                                                                                                    |
 | `EXDC2`                                | `EXDC2`                 | `ExciterDC2A`                                                                 | **Partial.** The adapter exists but ignores `TR`, switch behavior, and saturation points. Confirm whether `DC2A` equations exactly represent ANDES `EXDC2`.                                                                                                                                                                                                                                                                                                         |
-| `IEEET1`, `IEEET3`, `ESDC2A`           | Same named ANDES models | `ExciterIEEEtype1`, `ExciterIEEEtype2`, and `ExciterDC2A` are only candidates | **Planned.** Perform equation and limiter audits before selecting an analogue; similar names are insufficient.                                                                                                                                                                                                                                                                                                                                                      |
+| `IEEET1`                               | `IEEET1`                | `ExciterIEEEtype1`                                                             | **Implemented; external trajectory open.** The dedicated factory and exact PSS/e DYR mapping are available; retain case-level initialization and trajectory validation as follow-up work.                                                                                                                                                                                                                                                                             |
+| `IEEET3`, `ESDC2A`                     | Same named ANDES models | `ExciterIEEEtype2` and `ExciterDC2A` are candidates                           | **Partial.** `ESDC2A` has a dedicated DYR adapter; complete equation, limiter, and trajectory audits before claiming full compatibility.                                                                                                                                                                                                                                                                                                                           |
 | `ESST3A`                               | `ESST3A`                | `ExciterESST3A`                                                               | **Implemented.** Exact PSS/e field mapping, ANDES-equation initialization, residual, and Jacobian coverage with GENROU; reduced-order synchronous generators use the documented controller-signal approximations.                                                                                                                                                                                                                                                   |
 | `EXST1`                                | `EXST1`                 | `ExciterEXST1`                                                                | **Implemented.** PSS/e field order, captured initialization and perturbed-equation values, corrected regulator-output limiter/root tests, analytic-Jacobian finite-difference checks, and GENROU attachment are covered. The documented limiter-selector divergence from frozen ANDES is intentional. Zero `TR`, `TB`, or `TA` records and a captured disturbed trajectory remain unsupported.                                                                      |
 | `EXAC1`, `EXAC2`, `EXAC4`              | Same named ANDES models | `ExciterEXAC1`, `ExciterEXAC2`, `ExciterEXAC4`                                | **Implemented.** Exact PSS/e DYR field mapping, initialization, residual/Jacobian, limiter/root, GENROU attachment, and IEEE-14 load-step coverage are present. EXAC1/EXAC2 intentionally use the sensed-voltage transducer output instead of the disconnected frozen-ANDES path documented below. EXAC1 supports the specified zero-`TR` transducer bypass; EXAC2 still requires positive `TR`, and other zero-time algebraic bypasses remain model-specific work. |
@@ -83,7 +84,7 @@ adapters still have attachment, parameter, equation, and validation gaps.
 | `EXPIC1`                               | `SEXS`                  | `ExciterEXPIC1`                                                               | **Implemented; external trajectory open.** Native equations, bypasses, limits, initialization, residuals, source/rectifier Jacobians, and exact DYR mapping are tested against the GridKit specification. ANDES's SEXS conversion is not an equation reference.                                                                                                                                                                                                     |
 | `TGOV1`                                | `TGOV1`                 | `GovernorTgov1`                                                               | **Implemented.** Matches the ANDES v2.0.0 equations and PSS/e schema `R, T1, VMAX, VMIN, T2, T3, Dt`; DYR attachment, initialization, limiter, analytic-Jacobian, and isolated speed-step trajectory regressions are covered.                                                                                                                                                                                                                                       |
 | `HYGOV`                                | `HYGOV`                 | `GovernorHygov`                                                               | **Implemented.** Exact PSS/e DYR order, OpenIPSL/PowerDynamics temporary-droop lead, gate velocity/position limits, servo, nonlinear water-column equations, initialization, residual, and analytic-Jacobian coverage are present. ANDES deliberately ignores the input lead-lag, so direct ANDES trajectories are not an equation-parity reference for nonzero `Tr`; capture an OpenIPSL/PowerDynamics trajectory.                                                 |
-| `IEESGO`                               | `IEESGO`                | `GovernorReheat` and steam-governor classes are only candidates               | **Planned.** No exact equivalence has been established; audit block diagrams before choosing reuse versus a new model.                                                                                                                                                                                                                                                                                                                                              |
+| `IEESGO`                               | `IEESGO`                | `GovernorReheat`                                                               | **Implemented; external trajectory pending.** The five-state IEEE/PSS/e realization includes controller and governor lead-lag dynamics, the valve limiter, steam-chest/reheater/crossover stages, and the K2/K3 output fractions. The DYR reader maps all 11 parameters; initialization, residual, and Jacobian coverage are present. |
 | `IEEEG1`                               | `IEEEG1`                | `GovernorIeeeG1`                                                              | **Implemented.** Frozen-ANDES equations and DYR order, initialization and perturbed equations, valve rate/position limits, analytic Jacobian, one- and two-machine attachment, and mixed synchronous-machine coupling are covered. Native ANDES import, alphanumeric DYR IDs, unequal machine bases, and a captured disturbed trajectory remain open.                                                                                                               |
 | `GAST`                                 | `GAST`                  | `GovernorGast`                                                                | **Implemented; external trajectory open.** Native low-value temperature gate, limited valve, turbine/temperature lags, damping-aware initialization, time-constant floors, residual/Jacobian checks, and DYR mapping follow OpenIPSL, ANDES, and GridKit `GASTPTI`.                                                                                                                                                                                                 |
 | `GGOV1`                                | `TGOV1`                 | `GovernorGgov1`                                                               | **Implemented natively.** GridDyn reads the original PSS/e GGOV1 record rather than reproducing ANDES's lossy TGOV1 conversion. Selectable droop, PID, limits, valve/turbine/temperature paths, initialization, machine-power coupling, and Jacobians are covered; nonzero `TENG` remains unsupported.                                                                                                                                                              |
@@ -936,16 +937,16 @@ it also needs native-input mapping, initialization, and a trajectory test.
 
 `C:\Users\phlpt\Downloads\Texas7k_20210804_Plus2023\Texas7k_20210804.dyr`
 was inspected statically and was not loaded or run. It has 2,705 records in
-24 model families. The current DYR reader recognizes 1,669 records (`GENROU`,
-`IEEEST`, `EXAC2`, `IEEEG1`, `ESDC1A`, `EXAC1`, `GGOV1`, `ESST4B`, `GENSAL`,
-and `HYGOV`); 1,036 records require
+24 model families. The current DYR reader recognizes 1,777 records (`GENROU`,
+`IEEEST`, `EXAC2`, `IEEEG1`, `ESDC1A`, `ESDC2A`, `EXAC1`, `GGOV1`, `ESST4B`,
+`GENSAL`, `HYGOV`, `IEEET1`, and `EXPIC1`); 928 records require
 additional support.
 
 The largest missing demands are the coupled renewable groups: `REGCA1` (189),
 `REECA1` (182), `REPCA1` (174), `WTARA1`
 (121), `WTTQA1` (121), and `WTPTA1` (105). The remaining missing records are
-`EXPIC1` (86), `IEEET1` (19), `USRMDL` (15),
-`SCRX` (9), `USRBUS` (6), and three each of `ESAC1A`, `ESAC6A`, and `ESDC2A`.
+`USRMDL` (15), `SCRX` (9), `USRBUS` (6), and three each of `ESAC1A` and
+`ESAC6A`.
 
 A paired `RAW` plus `DYR` import was attempted on the unmodified base files.
 The reader correctly identifies the unsupported families, but it is not yet a
@@ -958,7 +959,7 @@ IEEE-14 regression with residual and Jacobian checks. `EXAC2` remains
 positive-`TR` only because its specialized equations still assume the
 five-state layout.
 
-Full Texas7k dynamics still requires support for the 1,036 unsupported records.
+Full Texas7k dynamics still requires support for the 928 unsupported records.
 The merged model and EXAC1 bypass work reduces the recognized-model gap but
 makes no end-to-end Texas7k trajectory claim.
 
@@ -1018,10 +1019,10 @@ ordinary AC-network elements.
 
 `C:\Users\phlpt\Downloads\ACTIVSg70k\ACTIVSg70k_dynamics.dyr` was inspected
 statically and was not loaded or run. It has 40,418 records in 22 model
-families. The current DYR dispatch recognizes 32,210 records in `GENROU`,
-`IEEEST`, `IEEEG1`, `ESDC1A`, `EXAC1`, `EXAC2`, `GGOV1`, `ESST4B`, `GENSAL`,
-and `HYGOV`; 8,208 records remain unsupported. The highest-demand missing
-models are `IEEET1` (1,907) and `SCRX` (1,053). The coupled renewable
+families. The current DYR dispatch recognizes 34,790 records in `GENROU`,
+`IEEEST`, `IEEEG1`, `ESDC1A`, `ESDC2A`, `EXAC1`, `EXAC2`, `GGOV1`, `ESST4B`,
+`GENSAL`, `HYGOV`, `IEEET1`, and `EXPIC1`; 5,628 records remain unsupported.
+The highest-demand missing model is `SCRX` (1,053). The coupled renewable
 requirement is `REGCA1` and `REECA1` (571 each)
 plus `WT3G1`, `WT3E1`, `WT3P1`, and `WT3T1` (576 each).
 
@@ -1030,8 +1031,8 @@ not independent records: `GENSAL` and `HYGOV` must be available together;
 `REGCA1` and `REECA1` must be available together; and all four `WT3*` models
 must be available together. `GGOV1` must retain its selectable governor and
 turbine modes and must not be replaced with `TGOV1`. The complete remaining
-unsupported set is `IEEET1`, `SCRX`, `ESAC6A`, `WT3P1`, `WT3T1`, `WT3E1`,
-`WT3G1`, `REGCA1`, `REECA1`, `EXPIC1`, `ESAC1A`, and `ESDC2A`; reject a full
+unsupported set is `SCRX`, `ESAC6A`, `WT3P1`, `WT3T1`, `WT3E1`, `WT3G1`,
+`REGCA1`, `REECA1`, and `ESAC1A`; reject a full
 DYR run until all are supported rather
 than silently dropping a controller. The companion `.PWB`, `.aux`, `.pwd`,
 and `.EPC` files are PowerWorld references, while the GridDyn import/validation

@@ -21,6 +21,7 @@
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/governors/GovernorHygov.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
+#include "griddyn/governors/GovernorReheat.h"
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
 #include <array>
@@ -50,6 +51,7 @@ namespace {
     void loadGGOV1(CoreObject* parentObject, stringVec& tokens);
     void loadGAST(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEG1(CoreObject* parentObject, stringVec& tokens);
+    void loadIEESGO(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEST(CoreObject* parentObject, stringVec& tokens);
     void loadST2CUT(CoreObject* parentObject, stringVec& tokens);
     void loadEXDC2(CoreObject* parentObject, stringVec& tokens);
@@ -130,6 +132,8 @@ void loadDyr(CoreObject* parentObject,
             loadGAST(parentObject, lineTokens);
         } else if (type == "'IEEEG1'") {
             loadIEEEG1(parentObject, lineTokens);
+        } else if (type == "'IEESGO'") {
+            loadIEESGO(parentObject, lineTokens);
         } else if (type == "'IEEEST'") {
             loadIEEEST(parentObject, lineTokens);
         } else if (type == "'ST2CUT'") {
@@ -812,6 +816,37 @@ namespace {
             secondary->setMechanicalPowerSource(governorPointer,
                                                 governors::GovernorIeeeG1::lpOutput);
         }
+    }
+
+    void loadIEESGO(CoreObject* parentObject, stringVec& tokens)
+    {
+        // BUS, 'IEESGO', ID, T1, T2, T3, T4, T5, T6, K1, K2, K3, PMAX, PMIN /
+        if (tokens.size() != 14U) {
+            throw InvalidParameterValue("IEESGO DYR record must contain 14 fields");
+        }
+        const int busId = std::stoi(tokens[0]);
+        const int genId = std::stoi(tokens[2]);
+        const auto* bus = dynamic_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+        if ((bus == nullptr) || (genId <= 0)) {
+            throw InvalidParameterValue("IEESGO generator identity");
+        }
+        auto* gen = bus->getGen(genId - 1);
+        if (gen == nullptr) {
+            throw InvalidParameterValue("IEESGO requires an existing generator");
+        }
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        std::unique_ptr<governors::GovernorReheat> governor(
+            dynamic_cast<governors::GovernorReheat*>(
+                CoreObjectFactory::instance()->createObject("governor", "ieesgo")));
+        if (governor == nullptr) {
+            throw InvalidParameterValue("IEESGO factory registration");
+        }
+        static constexpr std::array<std::string_view, 11> names{
+            "t1", "t2", "t3", "t4", "t5", "t6", "k1", "k2", "k3", "pmax", "pmin"};
+        for (std::size_t ii = 0; ii < names.size(); ++ii) {
+            governor->set(names[ii], params[ii + 3]);
+        }
+        gen->add(governor.release());
     }
 
     void loadST2CUT(CoreObject* parentObject, stringVec& tokens)

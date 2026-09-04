@@ -6,148 +6,202 @@
 
 #include "GovernorSteamNR.h"
 
-#include "../Generator.h"
-#include "../GridBus.h"
+#include "core/CoreExceptions.h"
+#include "core/CoreObjectTemplates.hpp"
 #include "utilities/MatrixData.hpp"
+#include <algorithm>
+#include <cmath>
 #include <string>
 
 namespace griddyn::governors {
+namespace {
+    constexpr index_t outputState = 0;
+    constexpr index_t valveState = 0;
+    constexpr index_t filterState = 1;
+    constexpr index_t chestState = 2;
+}  // namespace
+
 GovernorSteamNR::GovernorSteamNR(const std::string& objName): GovernorIeeeSimple(objName)
 {
-    // default values
-    K = 0;
-    T1 = 0;
-    T2 = 0;
-    T3 = 0;
-    Pup = kBigNum;
-    Pdown = kBigNum;
-    Pmax = kBigNum;
-    Pmin = 0;
-    Pset = 0;
-    offsets.local().local.diffSize = 2;
-    offsets.local().local.jacSize = 5;
+    // IEEE 1973 non-reheat steam-turbine governor realization.
+    K = 10.0;
+    T1 = 0.5;
+    T2 = 0.1;
+    T3 = 1.0;
+    Tch = 1.2;
+    Pup = 1.2;
+    Pdown = 0.0;
+    Pmax = 10.0;
+    Pmin = 0.0;
+    Wref = 1.0;
+    offsets.local().local.algSize = 1;
+    offsets.local().local.diffSize = 3;
+    offsets.local().local.jacSize = 10;
 }
 
 CoreObject* GovernorSteamNR::clone(CoreObject* obj) const
 {
-    GovernorSteamNR* gov;
-    if (obj == nullptr) {
-        gov = new GovernorSteamNR();
-    } else {
-        gov = dynamic_cast<GovernorSteamNR*>(obj);
-        if (gov == nullptr) {
-            CoreObject::clone(obj);
-            return obj;
-        }
+    auto* gov = cloneBase<GovernorSteamNR, GovernorIeeeSimple>(this, obj);
+    if (gov == nullptr) {
+        return obj;
     }
-    CoreObject::clone(gov);
-    gov->K = K;
-    gov->T1 = T1;
-    gov->T2 = T2;
-    gov->T3 = T3;
-    gov->Pup = Pup;
-    gov->Pdown = Pdown;
-    gov->Pmax = Pmax;
-    gov->Pmin = Pmin;
-    gov->Pset = Pset;
+    gov->Tch = Tch;
     return gov;
 }
 
-// destructor
 GovernorSteamNR::~GovernorSteamNR() = default;
 
-// initial conditions
-void GovernorSteamNR::dynObjectInitializeB(const IOdata& /*inputs*/,
-                                           const IOdata& desiredOutput,
-                                           IOdata& /*inputSet*/)
+void GovernorSteamNR::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
-    auto offset = offsets.getAlgOffset(cLocalSolverMode);
-    m_state[offset + 1] = 0;
-    m_state[offset + offset] = desiredOutput[0];
-
-    Pset = static_cast<Generator*>(getParent())->getPset();
+    if (!std::isfinite(K) || !std::isfinite(T1) || !std::isfinite(T2) || !std::isfinite(T3) ||
+        !std::isfinite(Tch) || !std::isfinite(Pup) || !std::isfinite(Pdown) ||
+        !std::isfinite(Pmax) || !std::isfinite(Pmin) || (T1 <= 0.0) || (T3 <= 0.0) ||
+        (Tch <= 0.0) || (Pup < Pdown) || (Pmax < Pmin)) {
+        throw InvalidParameterValue("SteamNR governor parameters");
+    }
+    GovernorIeeeSimple::dynObjectInitializeA(time0, flags);
 }
 
-// residual
-void GovernorSteamNR::residual(const IOdata& /*inputs*/,
-                               const StateData& /*sD*/,
+void GovernorSteamNR::dynObjectInitializeB(const IOdata& /*inputs*/,
+                                           const IOdata& desiredOutput,
+                                           IOdata& fieldSet)
+{
+    if (desiredOutput.empty() || !std::isfinite(desiredOutput[outputState])) {
+        throw InvalidParameterValue("SteamNR governor initial output");
+    }
+    const double power = desiredOutput[outputState];
+    if ((power < Pmin) || (power > Pmax)) {
+        throw InvalidParameterValue("SteamNR initial valve outside limits");
+    }
+    const auto algOffset = offsets.getAlgOffset(cLocalSolverMode);
+    const auto diffOffset = offsets.getDiffOffset(cLocalSolverMode);
+    m_state[algOffset + outputState] = power;
+    m_state[diffOffset + valveState] = power;
+    m_state[diffOffset + filterState] = 0.0;
+    m_state[diffOffset + chestState] = power;
+    Pset = power;
+    fieldSet.resize(2);
+    fieldSet[govpSetInLocation] = power;
+}
+
+void GovernorSteamNR::residual(const IOdata& inputs,
+                               const StateData& stateData,
                                double resid[],
                                const SolverMode& sMode)
 {
-    auto offset = offsets.getAlgOffset(sMode);
-    resid[offset] = 0;
-    resid[offset + 1] = 0;
-}
-
-void GovernorSteamNR::jacobianElements(const IOdata& /*inputs*/,
-                                       const StateData& sD,
-                                       MatrixData<double>& md,
-                                       const IOlocs& /*inputLocs*/,
-                                       const SolverMode& sMode)
-{
-    if (isAlgebraicOnly(sMode)) {
+    const auto locations = offsets.getLocations(stateData, resid, sMode, this);
+    if (hasAlgebraic(sMode)) {
+        locations.destLoc[outputState] =
+            locations.diffStateLoc[chestState] - locations.algStateLoc[outputState];
+    }
+    if (!hasDifferential(sMode)) {
         return;
     }
-    auto offset = offsets.getAlgOffset(sMode);
-    int refI = offset;
-    // use the md.assign Macro defined in basicDefs
-    // md.assign(arrayIndex, RowIndex, ColIndex, value)
-    int omegaLoc = -1;
-
-    // Pm
-    if (omegaLoc >= 0) {
-        md.assign(refI, omegaLoc, -K * T2 / (T1 * T3));
+    derivative(inputs, stateData, resid, sMode);
+    for (index_t state = 0; state < locations.diffSize; ++state) {
+        locations.destDiffLoc[state] -= locations.dstateLoc[state];
     }
-    md.assign(refI, refI, -1 / T3 - sD.cj);
-    md.assign(refI, refI + 1, -K / T3);
-    // X
-    if (omegaLoc >= 0) {
-        md.assign(refI + 1, omegaLoc, (T1 - T2) / (T1 * T1));
-    }
-
-    md.assign(refI + 1, refI + 1, -1 / T1 - sD.cj);
 }
 
-index_t GovernorSteamNR::findIndex(std::string_view field, const SolverMode& /*sMode*/) const
+void GovernorSteamNR::derivative(const IOdata& inputs,
+                                 const StateData& stateData,
+                                 double deriv[],
+                                 const SolverMode& sMode)
 {
-    index_t ret = kInvalidLocation;
-    if (field == "pm") {
-        ret = 0;
-    } else if (field == "x") {
-        ret = 1;
+    if (!hasDifferential(sMode)) {
+        return;
     }
-    return ret;
+    const auto locations = offsets.getLocations(stateData, deriv, sMode, this);
+    const auto* state = locations.diffStateLoc;
+    auto* dst = locations.destDiffLoc;
+    const double speedDeviation = inputs[govOmegaInLocation] - Wref;
+    const double unrestrictedRate = (inputs[govpSetInLocation] - state[valveState] -
+                                     K * state[filterState] - K * T2 * speedDeviation / T1) /
+        T3;
+    dst[valveState] = opFlags[POWER_LIMITED] ? 0.0 : std::clamp(unrestrictedRate, Pdown, Pup);
+    dst[filterState] = (-state[filterState] + (1.0 - T2 / T1) * speedDeviation) / T1;
+    dst[chestState] = (state[valveState] - state[chestState]) / Tch;
 }
 
-// set parameters
+void GovernorSteamNR::jacobianElements(const IOdata& inputs,
+                                       const StateData& stateData,
+                                       MatrixData<double>& matrixData,
+                                       const IOlocs& inputLocs,
+                                       const SolverMode& sMode)
+{
+    const auto locations = offsets.getLocations(stateData, sMode, this);
+    const auto diff = locations.diffOffset;
+    if (hasAlgebraic(sMode)) {
+        matrixData.assign(locations.algOffset + outputState,
+                          locations.algOffset + outputState,
+                          -1.0);
+        matrixData.assign(locations.algOffset + outputState, diff + chestState, 1.0);
+    }
+    if (!hasDifferential(sMode)) {
+        return;
+    }
+    const auto* state = locations.diffStateLoc;
+    const double speedDeviation = inputs[govOmegaInLocation] - Wref;
+    const double unrestrictedRate = (inputs[govpSetInLocation] - state[valveState] -
+                                     K * state[filterState] - K * T2 * speedDeviation / T1) /
+        T3;
+    const bool rateLimited =
+        opFlags[POWER_LIMITED] || (unrestrictedRate <= Pdown) || (unrestrictedRate >= Pup);
+    matrixData.assign(diff + valveState,
+                      diff + valveState,
+                      rateLimited ? -stateData.cj : -1.0 / T3 - stateData.cj);
+    if (!rateLimited) {
+        matrixData.assign(diff + valveState, diff + filterState, -K / T3);
+        matrixData.assignCheckCol(diff + valveState, inputLocs[govpSetInLocation], 1.0 / T3);
+        matrixData.assignCheckCol(diff + valveState,
+                                  inputLocs[govOmegaInLocation],
+                                  -K * T2 / (T1 * T3));
+    }
+    matrixData.assign(diff + filterState, diff + filterState, -1.0 / T1 - stateData.cj);
+    matrixData.assignCheckCol(diff + filterState,
+                              inputLocs[govOmegaInLocation],
+                              (T1 - T2) / (T1 * T1));
+    matrixData.assign(diff + chestState, diff + valveState, 1.0 / Tch);
+    matrixData.assign(diff + chestState, diff + chestState, -1.0 / Tch - stateData.cj);
+}
+
+index_t GovernorSteamNR::findIndex(std::string_view field, const SolverMode& sMode) const
+{
+    if ((field == "pm") || (field == "pmech")) {
+        return offsets.getAlgOffset(sMode) + outputState;
+    }
+    if ((field == "valve") || (field == "integrator")) {
+        return offsets.getDiffOffset(sMode) + valveState;
+    }
+    if ((field == "filter") || (field == "x")) {
+        return offsets.getDiffOffset(sMode) + filterState;
+    }
+    if ((field == "steamchest") || (field == "chest")) {
+        return offsets.getDiffOffset(sMode) + chestState;
+    }
+    return kInvalidLocation;
+}
+
 void GovernorSteamNR::set(std::string_view param, std::string_view val)
 {
-    CoreObject::set(param, val);
+    GovernorIeeeSimple::set(param, val);
 }
 
 void GovernorSteamNR::set(std::string_view param, double val, units::unit unitType)
 {
-    // param   = GridDynSimulation::toLower(param);
-
-    if (param == "k") {
-        K = val;
-    } else if (param == "t1") {
-        T1 = val;
-    } else if (param == "t2") {
-        T2 = val;
-    } else if (param == "t3") {
-        T3 = val;
-    } else if (param == "pup") {
-        Pup = val;
-    } else if (param == "pdown") {
-        Pdown = val;
-    } else if (param == "pmax") {
-        Pmax = val;
-    } else if (param == "pmin") {
-        Pmin = val;
+    if ((param == "tch") || (param == "t4")) {
+        Tch = val;
     } else {
-        Governor::set(param, val, unitType);
+        GovernorIeeeSimple::set(param, val, unitType);
     }
+}
+
+double GovernorSteamNR::get(std::string_view param, units::unit unitType) const
+{
+    if ((param == "tch") || (param == "t4")) {
+        return Tch;
+    }
+    return GovernorIeeeSimple::get(param, unitType);
 }
 
 }  // namespace griddyn::governors

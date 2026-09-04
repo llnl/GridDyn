@@ -29,8 +29,8 @@
 #include "griddyn/governors/GovernorGgov1.h"
 #include "griddyn/governors/GovernorHygov.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
-#include "griddyn/governors/GovernorTgov1.h"
 #include "griddyn/governors/GovernorReheat.h"
+#include "griddyn/governors/GovernorTgov1.h"
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
 #include <algorithm>

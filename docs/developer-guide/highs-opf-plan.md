@@ -3,15 +3,15 @@
 ## Purpose
 
 This note records the initial direction for making GridDyn's existing
-optimization library useful for power-system optimization.  It is deliberately
-a planning baseline, not a design specification.  The first deliverable is a
+optimization library useful for power-system optimization. It is deliberately
+a planning baseline, not a design specification. The first deliverable is a
 reliable, cross-platform **DC optimal power flow (DC-OPF)** implementation;
 AC-OPF and discrete optimization are follow-on work.
 
 ## Why begin with HiGHS
 
 [HiGHS](https://highs.dev/) is an open-source, MIT-licensed C++ solver for
-large sparse LP, QP, and MIP problems.  It is a strong first backend because:
+large sparse LP, QP, and MIP problems. It is a strong first backend because:
 
 - DC-OPF is naturally an LP or convex QP: power balance and line-flow limits
   are linear, while the existing polynomial generator-cost representation can
@@ -21,25 +21,25 @@ large sparse LP, QP, and MIP problems.  It is a strong first backend because:
 - It is CMake-friendly and supports Windows, macOS, and Linux, making it a
   realistic candidate for GridDyn's native builds and Python wheel builds.
 - A DC-OPF provides immediate value: economic dispatch, constrained flows,
-  generator limit enforcement, and dual prices/LMPs.  It establishes the
+  generator limit enforcement, and dual prices/LMPs. It establishes the
   optimization-object and result-reporting interfaces needed by future work.
 - The first solver integration avoids the nonlinear sparse-linear-algebra and
   packaging complexity of AC-OPF solvers such as Ipopt.
 
-HiGHS is not an AC nonlinear solver.  Its MIP capability may later help with
+HiGHS is not an AC nonlinear solver. Its MIP capability may later help with
 discrete scheduling decisions, but unit commitment, switching, and
 mixed-integer AC optimization are explicitly outside the first scope.
 
 ## Current starting point
 
 The optional `optimization` static library is enabled by
-`GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY`.  It already contains useful model-side
+`GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY`. It already contains useful model-side
 concepts: optimization objects for buses, generators, links, loads, and areas;
 variable and constraint allocation; and generator cost/bound data.
 
-It does **not** yet contain a solver backend.  `OptimizerInterface::solve()`
+It does **not** yet contain a solver backend. `OptimizerInterface::solve()`
 returns an unimplemented status, and `makeOptimizer()` creates only the basic
-placeholder for `FlowModel::NONE`; DC and AC modes have no optimizer.  The
+placeholder for `FlowModel::NONE`; DC and AC modes have no optimizer. The
 first implementation should preserve this separation: GridDyn describes the
 network model, while a HiGHS adapter performs solver-specific matrix assembly
 and calls.
@@ -49,15 +49,15 @@ and calls.
 The first end-to-end problem should use a fixed, connected AC network under
 the standard DC approximation.
 
-| Include | Defer |
-| --- | --- |
-| Generator active-power variables, limits, and linear/quadratic costs | AC voltage magnitude and reactive-power optimization |
-| One reference-bus angle and bus-angle variables | Generator PV/slack switching behavior |
-| Nodal active-power balance | Controllable transformer taps, phase shifters, and switched shunts |
-| In-service branch DC flow and thermal limits | Losses, contingencies, topology switching, and integer commitments |
-| Objective value, dispatch, flows, constraint status, and dual prices | AC-OPF, security-constrained OPF, and multi-period scheduling |
+| Include                                                              | Defer                                                              |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Generator active-power variables, limits, and linear/quadratic costs | AC voltage magnitude and reactive-power optimization               |
+| One reference-bus angle and bus-angle variables                      | Generator PV/slack switching behavior                              |
+| Nodal active-power balance                                           | Controllable transformer taps, phase shifters, and switched shunts |
+| In-service branch DC flow and thermal limits                         | Losses, contingencies, topology switching, and integer commitments |
+| Objective value, dispatch, flows, constraint status, and dual prices | AC-OPF, security-constrained OPF, and multi-period scheduling      |
 
-The input network must first solve in GridDyn's existing power-flow path.  A
+The input network must first solve in GridDyn's existing power-flow path. A
 clearly reported unsupported condition is preferable to silently applying a
 different approximation.
 
@@ -81,7 +81,7 @@ Define the supported DC-OPF semantics before binding to a solver:
 
 Complete or adapt the existing optimization objects so they consistently
 allocate variables, bounds, objective coefficients, and sparse constraint
-entries for the initial scope.  Build a solver-independent intermediate model
+entries for the initial scope. Build a solver-independent intermediate model
 (columns, row bounds, sparse matrix, linear cost, optional quadratic cost), so
 tests can inspect it without requiring HiGHS.
 
@@ -92,7 +92,7 @@ features and invalid/infeasible input.
 
 Add a narrowly scoped CMake option, such as
 `GRIDDYN_ENABLE_HIGHS_OPTIMIZATION`, which is only meaningful when the
-optimization library is enabled.  Support a system-installed package first;
+optimization library is enabled. Support a system-installed package first;
 evaluate vendoring, FetchContent, or package-manager acquisition separately.
 
 Implement a `HighsOptimizer` derived from `OptimizerInterface` that translates
@@ -102,19 +102,19 @@ Keep HiGHS headers and types out of general GridDyn model headers.
 
 ### 4. Connect results to normal GridDyn use
 
-Provide a deliberate result-application policy.  Initially, expose the
+Provide a deliberate result-application policy. Initially, expose the
 optimal point as an optimization result and allow explicit application to
 generator setpoints; do not silently overwrite a solved power-flow case.
 
 After applying an optimal dispatch, run the existing AC power flow as a
-feasibility and reporting check.  The DC optimum will not in general exactly
+feasibility and reporting check. The DC optimum will not in general exactly
 match the AC solution because it omits voltage and reactive constraints.
 
 ### 5. Validate, package, and document
 
 Test the model algebra independently, then solve small cases with known
-answers.  Compare larger MATPOWER-imported cases against MATPOWER DC-OPF for
-objective, dispatch, branch flow, and LMP tolerance.  Use the existing
+answers. Compare larger MATPOWER-imported cases against MATPOWER DC-OPF for
+objective, dispatch, branch flow, and LMP tolerance. Use the existing
 cross-platform CI and Python-wheel workflow to verify Windows/MSVC, macOS,
 and Linux packaging.
 
@@ -132,20 +132,20 @@ tolerances, status meanings, and a small C++/Python example.
 4. **Distribution:** optional dependency configuration and tested native and
    Python-wheel builds on all supported platforms.
 5. **Extensions:** multi-period/commitment experiments using HiGHS MIP, or a
-   separate Ipopt backend for continuous AC-OPF.  These should not delay the
+   separate Ipopt backend for continuous AC-OPF. These should not delay the
    stable DC-OPF baseline.
 
 ## Decision points to revisit
 
 - Whether HiGHS is obtained from an installed package, a pinned source
-  dependency, or a vendored copy.  Reproducible CI and wheel builds matter more
+  dependency, or a vendored copy. Reproducible CI and wheel builds matter more
   than minimizing initial CMake work.
 - Whether quadratic generator costs are required in the first public release
   or are introduced immediately after the LP baseline.
 - How closely branch ratings and transformer behavior should match the existing
   RAW, EPC, and MATPOWER reader semantics.
 - The intended Python API: direct optimization objects versus a compact
-  `solve_opf()` result object.  It should expose solver status and diagnostics,
+  `solve_opf()` result object. It should expose solver status and diagnostics,
   not only a vector of values.
 - Licensing and distribution review for the selected HiGHS build configuration
   and any transitive numerical-library dependencies.
@@ -153,6 +153,6 @@ tolerances, status meanings, and a small C++/Python example.
 ## Non-goals for this plan
 
 This plan does not claim AC feasibility from a DC-OPF result, replace GridDyn's
-power-flow solver, or select a long-term mixed-integer nonlinear solver.  It
+power-flow solver, or select a long-term mixed-integer nonlinear solver. It
 creates a clean, tested route from the existing optimization abstractions to a
 useful first operational capability.

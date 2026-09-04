@@ -21,7 +21,7 @@ records but routes them to `SEXS`, losing model-specific dynamics and limits.
 
 ### PSS/E record and interface
 
-```
+```text
 BUS, ID, TATB, TB, K, TE, EMIN, EMAX, CSWITCH, RCRFD
 ```
 
@@ -103,7 +103,7 @@ and must satisfy `Efd0 = -RCRFD*Ifd0`.
 
 ### PSS/E record and interface
 
-```
+```text
 BUS, ID, TR, KA, TA, TK, TB, TC, VAMAX, VAMIN, VRMAX, VRMIN,
 TE, VFELIM, KH, VHMAX, TH, TJ, KC, KD, KE, E1, SE1, E2, SE2
 ```

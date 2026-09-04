@@ -15,6 +15,7 @@
 #include <array>
 #include <cmath>
 #include <string>
+#include <vector>
 
 namespace griddyn::exciters {
 // The expressions intentionally retain the grouping in the GridKit AC6A diagram.
@@ -22,11 +23,15 @@ namespace griddyn::exciters {
 namespace {
     constexpr index_t esac6aMaximumStates = 5;
 
+    // Signal is an internal algebraic-differentiation carrier; lowercase field
+    // names match the mathematical notation used throughout this implementation.
+    // NOLINTBEGIN(readability-identifier-naming)
     struct Signal {
         double value = 0.0;
         std::array<double, esac6aMaximumStates> state{};
         std::array<double, exciterInputCount> input{};
     };
+    // NOLINTEND(readability-identifier-naming)
 
     Signal constantSignal(double value)
     {

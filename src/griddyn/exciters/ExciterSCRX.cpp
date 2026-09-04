@@ -14,16 +14,21 @@
 #include <array>
 #include <cmath>
 #include <string>
+#include <vector>
 
 namespace griddyn::exciters {
 namespace {
     constexpr index_t scrxMaximumStates = 2;
 
+    // Signal is an internal algebraic-differentiation carrier; lowercase field
+    // names match the mathematical notation used throughout this implementation.
+    // NOLINTBEGIN(readability-identifier-naming)
     struct Signal {
         double value = 0.0;
         std::array<double, scrxMaximumStates> state{};
         std::array<double, exciterInputCount> input{};
     };
+    // NOLINTEND(readability-identifier-naming)
 
     Signal constantSignal(double value)
     {
@@ -82,10 +87,12 @@ namespace {
         Signal result;
         result.value = left.value * right.value;
         for (index_t index = 0; index < scrxMaximumStates; ++index) {
-            result.state[index] = left.state[index] * right.value + left.value * right.state[index];
+            result.state[index] = (left.state[index] * right.value) +
+                (left.value * right.state[index]);
         }
         for (index_t index = 0; index < exciterInputCount; ++index) {
-            result.input[index] = left.input[index] * right.value + left.value * right.input[index];
+            result.input[index] = (left.input[index] * right.value) +
+                (left.value * right.input[index]);
         }
         return result;
     }
@@ -373,9 +380,12 @@ bool ExciterSCRX::updateLimitFlags(const IOdata& inputs, const double state[])
     }
     const double amplifier = state[layout.amplifier];
     const double drive = evaluateModel(inputs, state).amplifierLimitDrive;
-    const int status = ((amplifier >= Vrmax) && (drive >= 0.0)) ?
-        1 :
-        (((amplifier <= Vrmin) && (drive <= 0.0)) ? -1 : 0);
+    int status = 0;
+    if ((amplifier >= Vrmax) && (drive >= 0.0)) {
+        status = 1;
+    } else if ((amplifier <= Vrmin) && (drive <= 0.0)) {
+        status = -1;
+    }
     const bool changed = (opFlags[AMPLIFIER_LIMITED] != (status != 0)) ||
         (opFlags[AMPLIFIER_LIMIT_HIGH] != (status > 0));
     opFlags.set(AMPLIFIER_LIMITED, status != 0);

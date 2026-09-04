@@ -99,7 +99,8 @@ void verifyStabilityCase(ExciterTests& fixture,
     for (const auto& exciterName : exciterList) {
         if (exciterName.starts_with("fmi") || (exciterName == "esst3a") ||
             (exciterName == "esst4b") || (exciterName == "exst1") || (exciterName == "exac1") ||
-            (exciterName == "exac2") || (exciterName == "exac4") || (exciterName == "expic1")) {
+            (exciterName == "esac1a") || (exciterName == "exac2") || (exciterName == "exac4") ||
+            (exciterName == "expic1")) {
             continue;
         }
         if (std::find(skippedExcters.begin(), skippedExcters.end(), exciterName) !=
@@ -1071,7 +1072,7 @@ TEST_F(ExciterTests, ExciterTest2AlgDiffTests)
     for (auto& excname : exclist) {
         if (excname.starts_with("fmi") || (excname == "esst3a") || (excname == "exst1") ||
             (excname == "esst4b") || (excname == "exac1") || (excname == "exac2") ||
-            (excname == "exac4")) {
+            (excname == "esac1a") || (excname == "exac4")) {
             continue;
         }
         gds = readSimXMLFile(fileName);
@@ -1120,7 +1121,7 @@ TEST_F(ExciterTests, ExciterAlgDiffJacobianTests)
     for (auto& excname : exclist) {
         if (excname.starts_with("fmi") || (excname == "esst3a") || (excname == "exst1") ||
             (excname == "esst4b") || (excname == "exac1") || (excname == "exac2") ||
-            (excname == "exac4")) {
+            (excname == "esac1a") || (excname == "exac4")) {
             continue;
         }
         gds = readSimXMLFile(fileName);

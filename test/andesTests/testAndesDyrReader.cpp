@@ -13,6 +13,7 @@
 #include "griddyn/events/Event.h"
 #include "griddyn/exciters/ExciterDC1A.h"
 #include "griddyn/exciters/ExciterDC2A.h"
+#include "griddyn/exciters/ExciterESAC1A.h"
 #include "griddyn/exciters/ExciterESST3A.h"
 #include "griddyn/exciters/ExciterESST4B.h"
 #include "griddyn/exciters/ExciterEXAC1.h"
@@ -314,12 +315,13 @@ TEST(AndesDyrReaderTests, MapsExpic1ParametersInPsseDyrOrder)
 
 TEST(AndesDyrReaderTests, MapsCanonicalDcAndTypeOneExciters)
 {
-    const std::array<std::pair<std::string_view, std::string_view>, 5> records{{
+    const std::array<std::pair<std::string_view, std::string_view>, 6> records{{
         {"ieee14_esdc1a.dyr", "esdc1a"},
         {"ieee14_esdc1a_no_tb.dyr", "ieeet1"},
         {"ieee14_esdc2a.dyr", "esdc2a"},
         {"ieee14_exdc2.dyr", "exdc2"},
         {"ieee14_ieeet1.dyr", "ieeet1"},
+        {"ieee14_esac1a.dyr", "esac1a"},
     }};
     for (const auto& [record, expectedName] : records) {
         auto simulation = std::make_unique<griddyn::GridDynSimulation>();
@@ -335,13 +337,23 @@ TEST(AndesDyrReaderTests, MapsCanonicalDcAndTypeOneExciters)
             EXPECT_NE(dynamic_cast<griddyn::exciters::ExciterDC1A*>(exciter), nullptr);
         } else if (expectedName == "ieeet1") {
             EXPECT_NE(dynamic_cast<griddyn::exciters::ExciterIEEEtype1*>(exciter), nullptr);
+        } else if (expectedName == "esac1a") {
+            EXPECT_NE(dynamic_cast<griddyn::exciters::ExciterESAC1A*>(exciter), nullptr);
         } else {
             EXPECT_NE(dynamic_cast<griddyn::exciters::ExciterDC2A*>(exciter), nullptr);
         }
         const std::array<std::pair<std::string_view, double>, 5> expectedParameters{
             {{"tr", 0.1}, {"e1", 1.0}, {"se1", 0.1}, {"e2", 2.0}, {"se2", 0.2}}};
         for (const auto& [parameter, value] : expectedParameters) {
-            EXPECT_DOUBLE_EQ(exciter->get(parameter), value) << record << ' ' << parameter;
+            if (expectedName != "esac1a") {
+                EXPECT_DOUBLE_EQ(exciter->get(parameter), value) << record << ' ' << parameter;
+            }
+        }
+        if (expectedName == "esac1a") {
+            EXPECT_DOUBLE_EQ(exciter->get("vamax"), 6.0);
+            EXPECT_DOUBLE_EQ(exciter->get("vamin"), -5.0);
+            EXPECT_DOUBLE_EQ(exciter->get("kc"), 0.2);
+            EXPECT_DOUBLE_EQ(exciter->get("kd"), 0.3);
         }
     }
 }
@@ -707,10 +719,11 @@ TEST(AndesDyrReaderTests, MapsExst1ParametersAndCouplesToGenrou)
 
 TEST(AndesDyrReaderTests, MapsExacParameterRecordsAndCouplesToGenrou)
 {
-    const std::array<std::pair<std::string_view, std::string_view>, 3> records{{
+    const std::array<std::pair<std::string_view, std::string_view>, 4> records{{
         {"ieee14_exac1.dyr", "exac1"},
         {"ieee14_exac2.dyr", "exac2"},
         {"ieee14_exac4.dyr", "exac4"},
+        {"ieee14_esac1a_genrou.dyr", "esac1a"},
     }};
     for (const auto& [record, model] : records) {
         auto simulation = std::make_unique<griddyn::GridDynSimulation>();
@@ -853,7 +866,8 @@ TEST(AndesDynamicTests, Exst1RespondsToGeneratorSetpointStep)
 
 TEST(AndesDynamicTests, ExacExcitersRespondToGeneratorSetpointStep)
 {
-    for (const auto record : {"ieee14_exac1.dyr", "ieee14_exac2.dyr", "ieee14_exac4.dyr"}) {
+    for (const auto record :
+         {"ieee14_exac1.dyr", "ieee14_exac2.dyr", "ieee14_exac4.dyr", "ieee14_esac1a_genrou.dyr"}) {
         const auto finalState = runGeneratorSetpointStepCase({record});
         EXPECT_FALSE(finalState.empty()) << record;
     }

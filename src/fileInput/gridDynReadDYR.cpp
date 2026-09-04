@@ -44,6 +44,7 @@ namespace {
     void loadEXPIC1(CoreObject* parentObject, stringVec& tokens);
     void loadEXST1(CoreObject* parentObject, stringVec& tokens);
     void loadEXAC1(CoreObject* parentObject, stringVec& tokens);
+    void loadESAC1A(CoreObject* parentObject, stringVec& tokens);
     void loadEXAC2(CoreObject* parentObject, stringVec& tokens);
     void loadEXAC4(CoreObject* parentObject, stringVec& tokens);
     void loadTGOV1(CoreObject* parentObject, stringVec& tokens);
@@ -116,6 +117,8 @@ void loadDyr(CoreObject* parentObject,
             loadEXST1(parentObject, lineTokens);
         } else if (type == "'EXAC1'") {
             loadEXAC1(parentObject, lineTokens);
+        } else if (type == "'ESAC1A'") {
+            loadESAC1A(parentObject, lineTokens);
         } else if (type == "'EXAC2'") {
             loadEXAC2(parentObject, lineTokens);
         } else if (type == "'EXAC4'") {
@@ -291,6 +294,11 @@ namespace {
         const int genId = std::stoi(tokens[2]);
         auto* gen = bus->getGen(genId - 1);
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        // PSS/E does not implement the ESDC2A Switch selector.  Reject a
+        // nonzero value rather than silently importing a different model.
+        if (params[14] != 0.0) {
+            throw InvalidParameterValue("ESDC2A nonzero Switch is unsupported");
+        }
         auto* exciterModel =
             static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "esdc2a"));
         exciterModel->set("tr", params[3]);
@@ -501,6 +509,51 @@ namespace {
         gen->add(exciter);
     }
 
+    void loadESAC1A(CoreObject* parentObject, stringVec& tokens)
+    {
+        // BUS, 'ESAC1A', ID, TR, TB, TC, VAMAX, VAMIN, KA, TA, VRMAX,
+        // VRMIN, TE, E1, SE1, E2, SE2, KC, KD, KE, KF, TF /
+        if (tokens.size() != 22U) {
+            throw InvalidParameterValue("ESAC1A DYR record must contain 22 fields");
+        }
+        const int busId = std::stoi(tokens[0]);
+        const int genId = std::stoi(tokens[2]);
+        const auto* bus = dynamic_cast<GridBus*>(parentObject->findByUserID("bus", busId));
+        if ((bus == nullptr) || (genId <= 0)) {
+            throw InvalidParameterValue("ESAC1A generator identity");
+        }
+        auto* gen = bus->getGen(genId - 1);
+        if (gen == nullptr) {
+            throw InvalidParameterValue("ESAC1A requires an existing generator");
+        }
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* exciter =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "esac1a"));
+        static constexpr std::array<std::string_view, 19> names{"tr",
+                                                                "tb",
+                                                                "tc",
+                                                                "vamax",
+                                                                "vamin",
+                                                                "ka",
+                                                                "ta",
+                                                                "vrmax",
+                                                                "vrmin",
+                                                                "te",
+                                                                "e1",
+                                                                "se1",
+                                                                "e2",
+                                                                "se2",
+                                                                "kc",
+                                                                "kd",
+                                                                "ke",
+                                                                "kf",
+                                                                "tf"};
+        for (std::size_t index = 0; index < names.size(); ++index) {
+            exciter->set(names[index], params[index + 3]);
+        }
+        gen->add(exciter);
+    }
+
     void loadEXAC2(CoreObject* parentObject, stringVec& tokens)
     {
         const int busId = std::stoi(tokens[0]);
@@ -572,6 +625,11 @@ namespace {
         auto* gen = bus->getGen(genId - 1);
 
         auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        // EXDC2 uses the same DC2A schema as ESDC2A, including the PSS/E
+        // Switch field, which PSS/E does not implement.
+        if (params[14] != 0.0) {
+            throw InvalidParameterValue("EXDC2 nonzero Switch is unsupported");
+        }
 
         auto cof = CoreObjectFactory::instance();
         auto* exciterModel = static_cast<Exciter*>(cof->createObject("exciter", "exdc2"));

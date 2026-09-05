@@ -58,7 +58,7 @@ class ValidationTests: public GridDynSimulationTestFixture, public ::testing::Te
         std::chrono::duration<double> elapsed_time;
 #endif
 
-        gds2.reset();
+        gds2 = nullptr;
         gds = std::make_unique<GridDynSimulation>();
         gds->set("consoleprintlevel", "summary");
         auto fileName = makeValidationTestPath(test_case_pair.first);
@@ -75,7 +75,7 @@ class ValidationTests: public GridDynSimulationTestFixture, public ::testing::Te
         gds->powerflow();
         auto stop_t = std::chrono::high_resolution_clock::now();
         elapsed_time = stop_t - start_t;
-        std::cout << test_case_pair.first << " completed in " << elapsed_time.count() << '\n';
+        std::println("{} completed in {:f}", test_case_pair.first, elapsed_time.count());
 #else
         gds->powerflow();
 #endif
@@ -243,7 +243,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsWithq)
         gds->powerflow();
         auto stop_t = std::chrono::high_resolution_clock::now();
         elapsed_time = stop_t - start_t;
-        std::cout << mp.first << " completed in " << elapsed_time.count() << '\n';
+        std::println("{} completed in {:f}", mp.first, elapsed_time.count());
 #    else
         gds->powerflow();
 #    endif
@@ -348,7 +348,7 @@ TEST_F(ValidationTests, MatpowerValidationTestsProblems)
         gds->powerflow();
         auto stop_t = std::chrono::high_resolution_clock::now();
         elapsed_time = stop_t - start_t;
-        std::cout << mp.first << " completed in " << elapsed_time.count() << '\n';
+        std::println("{} completed in {:f}", mp.first, elapsed_time.count());
 #    else
         gds->powerflow();
 #    endif

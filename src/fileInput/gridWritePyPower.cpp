@@ -10,16 +10,18 @@
 #include "griddyn/links/AcLine.h"
 #include "griddyn/loads/ZipLoad.h"
 #include <cctype>
+#include <cstdint>
 #include <cmath>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <string>
 #include <unordered_map>
 #include <vector>
 
 namespace griddyn {
 namespace {
-    enum class CaseFormat { PYPOWER, MATPOWER };
+    enum class CaseFormat : std::uint8_t { PYPOWER, MATPOWER };
 
     const char* formatName(CaseFormat format)
     {
@@ -81,7 +83,7 @@ namespace {
         std::vector<const GridBus*> buses;
         std::unordered_map<const GridBus*, index_t> busNumbers;
         for (index_t index = 1; index <= busCount; ++index) {
-            auto* bus = dynamic_cast<const GridBus*>(parentObject->findByUserID("bus", index));
+            const auto* bus = dynamic_cast<const GridBus*>(parentObject->findByUserID("bus", index));
             if (bus == nullptr) {
                 warning("bus slot " + std::to_string(index) + " is not an AC bus and was omitted");
                 continue;
@@ -102,12 +104,12 @@ namespace {
 
         std::string functionName = std::filesystem::path(fileName).stem().string();
         for (char& character : functionName) {
-            if (!std::isalnum(static_cast<unsigned char>(character)) && character != '_') {
+            if (std::isalnum(static_cast<unsigned char>(character)) == 0 && character != '_') {
                 character = '_';
             }
         }
         if (functionName.empty() ||
-            std::isdigit(static_cast<unsigned char>(functionName.front()))) {
+            std::isdigit(static_cast<unsigned char>(functionName.front())) != 0) {
             functionName.insert(0, "case_");
         }
         const double basePower = parentObject->get("basepower", units::MW);
@@ -121,18 +123,21 @@ namespace {
             output << "mpc.version = '2';\nmpc.baseMVA = " << basePower << ";\n\nmpc.bus = [\n";
         }
         for (const auto* bus : buses) {
-            double pd = 0.0, qd = 0.0, gs = 0.0, bs = 0.0;
+            double activePowerDemand = 0.0;
+            double reactivePowerDemand = 0.0;
+            double shuntConductance = 0.0;
+            double shuntSusceptance = 0.0;
             const auto loadCount = static_cast<index_t>(bus->get("loadcount"));
             for (index_t loadIndex = 0; loadIndex < loadCount; ++loadIndex) {
                 auto* load = bus->getLoad(loadIndex);
                 if (load == nullptr) {
                     continue;
                 }
-                pd += load->get("p", units::MW);
-                qd += load->get("q", units::MVAR);
+                activePowerDemand += load->get("p", units::MW);
+                reactivePowerDemand += load->get("q", units::MVAR);
                 if (const auto* zip = dynamic_cast<const ZipLoad*>(load)) {
-                    gs += zip->get("yp", units::MW);
-                    bs -= zip->get("yq", units::MVAR);
+                    shuntConductance += zip->get("yp", units::MW);
+                    shuntSusceptance -= zip->get("yq", units::MVAR);
                     if (std::abs(zip->get("ip", units::MW)) > 1e-12 ||
                         std::abs(zip->get("iq", units::MVAR)) > 1e-12) {
                         warning(zip->getName() +
@@ -159,10 +164,10 @@ namespace {
             }
             row({static_cast<double>(busNumbers.at(bus)),
                  static_cast<double>(type),
-                 pd,
-                 qd,
-                 gs,
-                 bs,
+                 activePowerDemand,
+                 reactivePowerDemand,
+                 shuntConductance,
+                 shuntSusceptance,
                  1.0,
                  bus->get("voltage"),
                  bus->get("angle", units::deg),
@@ -202,13 +207,13 @@ namespace {
                                                      "];\n\nmpc.branch = [\n");
         const auto linkCount = static_cast<index_t>(parentObject->get("totallinkcount"));
         for (index_t linkIndex = 1; linkIndex <= linkCount; ++linkIndex) {
-            auto* link = dynamic_cast<const Link*>(parentObject->findByUserID("link", linkIndex));
+            const auto* link = dynamic_cast<const Link*>(parentObject->findByUserID("link", linkIndex));
             if (link == nullptr) {
                 continue;
             }
             const auto* acLine = dynamic_cast<const AcLine*>(link);
-            const auto bus1 = link->getBus(1);
-            const auto bus2 = link->getBus(2);
+            auto* const bus1 = link->getBus(1);
+            auto* const bus2 = link->getBus(2);
             if (acLine == nullptr || bus1 == nullptr || bus2 == nullptr ||
                 !busNumbers.contains(bus1) || !busNumbers.contains(bus2)) {
                 warning(link->getName() +

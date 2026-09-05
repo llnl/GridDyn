@@ -6,6 +6,8 @@
 
 #include "BusControls.h"
 
+#include <algorithm>
+
 #include "../GridSecondary.h"
 #include "../Link.h"
 #include "AcBus.h"
@@ -16,47 +18,37 @@ BusControls::BusControls(AcBus* busToControl): controlledBus(busToControl) {}
 
 bool BusControls::hasVoltageAdjustments(id_type_t sid) const
 {
-    for (auto& adj : vControlObjects) {
-        if (sid == adj->getID()) {
-            return true;
-        }
-    }
-    for (auto& adj : proxyVControlObject) {
-        if (sid == adj->getID()) {
-            return true;
-        }
-    }
-    return false;
+    return std::ranges::any_of(vControlObjects, [sid](const auto* adjustment) {
+               return sid == adjustment->getID();
+           }) ||
+        std::ranges::any_of(proxyVControlObject, [sid](const auto* adjustment) {
+            return sid == adjustment->getID();
+        });
 }
 
 bool BusControls::hasPowerAdjustments(id_type_t sid) const
 {
-    for (auto& adj : pControlObjects) {
-        if (sid == adj->getID()) {
-            return true;
-        }
-    }
-    for (auto& adj : proxyPControlObject) {
-        if (sid == adj->getID()) {
-            return true;
-        }
-    }
-    return false;
+    return std::ranges::any_of(pControlObjects, [sid](const auto* adjustment) {
+               return sid == adjustment->getID();
+           }) ||
+        std::ranges::any_of(proxyPControlObject, [sid](const auto* adjustment) {
+            return sid == adjustment->getID();
+        });
 }
 
 double BusControls::getAdjustableCapacityUp(CoreTime time) const
 {
     double cap = 0.0;
 
-    for (auto& adj : pControlObjects) {
-        cap += adj->getAdjustableCapacityUp(time);
+    for (const auto* adjustment : pControlObjects) {
+        cap += adjustment->getAdjustableCapacityUp(time);
     }
     // TODO(phlpt): Links do not have this function yet.
     /*
     for (auto &adj : pControlLinks)
     {
 
-        //cap += adj->getAdjustableCapacityUp(time);
+        //cap += adjustment->getAdjustableCapacityUp(time);
     }
     */
     return cap;
@@ -66,14 +58,14 @@ double BusControls::getAdjustableCapacityDown(CoreTime time) const
 {
     double cap = 0.0;
 
-    for (auto& adj : pControlObjects) {
-        cap += adj->getAdjustableCapacityDown(time);
+    for (const auto* adjustment : pControlObjects) {
+        cap += adjustment->getAdjustableCapacityDown(time);
     }
     // TODO(phlpt): Links do not have this function yet.
     /*
     for (auto &adj : pControlLinks)
     {
-        cap += adj->getAdjustableCapacityDown(time);
+        cap += adjustment->getAdjustableCapacityDown(time);
     }
     */
     return cap;
@@ -185,16 +177,16 @@ using gmlc::utilities::sum;
 
 void BusControls::updateVoltageControls()
 {
-    double vfsum = sum(vcfrac) + sum(vclinkFrac);
+    const double voltageFractionSum = sum(vcfrac) + sum(vclinkFrac);
     proxyVControlObject.clear();
-    bool non_direct_remote = false;
+    bool nonDirectRemote = false;
     GridComponent* vco;
     Qmax = 0;
     Qmin = 0;
     for (size_t kk = 0; kk < vcfrac.size(); ++kk) {
         vco = vControlObjects[kk];
-        if (vfsum != 1.0) {
-            vcfrac[kk] /= vfsum;
+        if (voltageFractionSum != 1.0) {
+            vcfrac[kk] /= voltageFractionSum;
             vco->set("vcontrolfrac", vcfrac[kk]);
         }
         Qmax += vco->get("qmax");
@@ -208,25 +200,25 @@ void BusControls::updateVoltageControls()
                     proxyVControlObject.push_back(static_cast<Link*>(opath.back()));
                 }
             } else {
-                non_direct_remote = true;
+                nonDirectRemote = true;
             }
         }
     }
 
     for (size_t kk = 0; kk < vclinkFrac.size(); ++kk) {
         vco = vControlLinks[kk];
-        if (vfsum != 1.0) {
-            vclinkFrac[kk] /= vfsum;
+        if (voltageFractionSum != 1.0) {
+            vclinkFrac[kk] /= voltageFractionSum;
             vco->set("vcontrolfrac", vclinkFrac[kk]);
         }
         Qmax += vco->get("qmax");
         Qmin += vco->get("qmin");
         if (vco->checkFlag(REMOTE_VOLTAGE_CONTROL)) {
-            non_direct_remote = true;
+            nonDirectRemote = true;
         }
     }
 
-    if (non_direct_remote) {
+    if (nonDirectRemote) {
         for (auto& vcobj : vControlObjects) {
             vcobj->setFlag("indirect_voltage_control", true);
         }
@@ -257,16 +249,16 @@ void BusControls::updateVoltageControlLimits()
 
 void BusControls::updatePowerControls()
 {
-    double pfsum = sum(pcfrac) + sum(pclinkFrac);
+    const double powerFractionSum = sum(pcfrac) + sum(pclinkFrac);
     proxyPControlObject.clear();
     GridComponent* pco;
-    auto pcount = pcfrac.size() + pclinkFrac.size();
+    const auto powerControlCount = pcfrac.size() + pclinkFrac.size();
     Pmax = 0;
     Pmin = 0;
     for (size_t kk = 0; kk < pcfrac.size(); ++kk) {
         pco = pControlObjects[kk];
-        if ((pfsum > 1.0) && (pcount > 1)) {
-            pcfrac[kk] /= pfsum;
+        if ((powerFractionSum > 1.0) && (powerControlCount > 1)) {
+            pcfrac[kk] /= powerFractionSum;
             pco->set("participation", pcfrac[kk]);
         }
         Pmax += pco->get("pmax");
@@ -290,8 +282,8 @@ void BusControls::updatePowerControls()
     }
     for (size_t kk = 0; kk < pclinkFrac.size(); ++kk) {
         pco = pControlLinks[kk];
-        if (pfsum != 1.0) {
-            pclinkFrac[kk] /= pfsum;
+        if (powerFractionSum != 1.0) {
+            pclinkFrac[kk] /= powerFractionSum;
             pco->set("participation", pclinkFrac[kk]);
         }
         Pmax += pco->get("pmax");
@@ -301,8 +293,8 @@ void BusControls::updatePowerControls()
         }
     }
     // override bus participation with generator participation
-    if ((pcount == 1) && (pfsum != 1.0) && (controlledBus->get("participation") == 1.0)) {
-        controlledBus->set("participation", pfsum);
+    if ((powerControlCount == 1) && (powerFractionSum != 1.0) && (controlledBus->get("participation") == 1.0)) {
+        controlledBus->set("participation", powerFractionSum);
     }
     // check if the v and p controls are identical
     controlledBus->opFlags.set(AcBus::BusFlags::IDENTICAL_PQ_CONTROL_OBJECTS,
@@ -343,6 +335,7 @@ bool BusControls::checkIdenticalControls()
     return true;
 }
 
+// NOLINTNEXTLINE(misc-no-recursion): bus ownership determines the recursive merge target.
 void BusControls::mergeBus(AcBus* mbus)
 {
     // bus with the lowest ID is the master
@@ -362,9 +355,9 @@ void BusControls::mergeBus(AcBus* mbus)
                 mbus->busController.masterBus = controlledBus;
                 mbus->opFlags.set(AcBus::BusFlags::SLAVE_BUS);
                 slaveBusses.push_back(mbus);
-                for (auto sb : mbus->busController.slaveBusses) {
-                    slaveBusses.push_back(sb);
-                    sb->busController.masterBus = controlledBus;
+                for (auto* slaveBus : mbus->busController.slaveBusses) {
+                    slaveBusses.push_back(slaveBus);
+                    slaveBus->busController.masterBus = controlledBus;
                 }
                 mbus->busController.slaveBusses.clear();
             }
@@ -386,9 +379,9 @@ void BusControls::mergeBus(AcBus* mbus)
                 } else {
                     masterBus = mbus;
                     mbus->busController.slaveBusses.push_back(controlledBus);
-                    for (auto sb : slaveBusses) {
-                        mbus->busController.slaveBusses.push_back(sb);
-                        sb->busController.masterBus = mbus;
+                    for (auto* slaveBus : slaveBusses) {
+                        mbus->busController.slaveBusses.push_back(slaveBus);
+                        slaveBus->busController.masterBus = mbus;
                     }
                     slaveBusses.clear();
                 }
@@ -410,8 +403,8 @@ void BusControls::unmergeBus(AcBus* mbus)
     } else {  // in the masterbus
         if ((mbus->checkFlag(AcBus::BusFlags::SLAVE_BUS)) &&
             (isSameObject(controlledBus, mbus->busController.masterBus))) {
-            for (auto& eb : slaveBusses) {
-                eb->opFlags.reset(AcBus::BusFlags::SLAVE_BUS);
+            for (auto* slaveBus : slaveBusses) {
+                slaveBus->opFlags.reset(AcBus::BusFlags::SLAVE_BUS);
             }
             checkMerge();
             mbus->checkMerge();
@@ -419,7 +412,7 @@ void BusControls::unmergeBus(AcBus* mbus)
     }
 }
 
-void BusControls::checkMerge()
+void BusControls::checkMerge() const
 {
     if (!controlledBus->isEnabled()) {
         return;
@@ -427,8 +420,8 @@ void BusControls::checkMerge()
     if (controlledBus->checkFlag(AcBus::BusFlags::DIRECTCONNECT)) {
         directBus->mergeBus(controlledBus);
     }
-    for (auto& lnk : controlledBus->attachedLinks) {
-        lnk->checkMerge();
+    for (auto* const link : controlledBus->attachedLinks) {
+        link->checkMerge();
     }
 }
 

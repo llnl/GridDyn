@@ -92,7 +92,7 @@ class BusControls {
 
     void mergeBus(AcBus* mbus);
     void unmergeBus(AcBus* mbus);
-    void checkMerge();
+    void checkMerge() const;
 };
 
 }  // namespace griddyn

@@ -264,12 +264,12 @@ void GriddynRunner::Finalize()
     GhostSwingBusManager::instance()->endSimulation();
 }
 
-int GriddynRunner::loadCommandArgument(ReaderInfo& ReaderInformation, bool allowUnrecognized)
+int GriddynRunner::loadCommandArgument(ReaderInfo& readerInformation, bool allowUnrecognized)
 {
     m_startTime = std::chrono::high_resolution_clock::now();
-    auto app = generateBaseCommandLineParser(ReaderInformation);
+    auto app = generateBaseCommandLineParser(readerInformation);
     app->allow_extras(allowUnrecognized);
-    auto subApp = generateLocalCommandLineParser(ReaderInformation);
+    auto subApp = generateLocalCommandLineParser(readerInformation);
     if (subApp) {
         app->add_subcommand(std::move(subApp));
     }

@@ -122,6 +122,11 @@ bool savePyPowerCase(const CoreObject* parentObject,
                      const std::string& fileName,
                      stringVec* warnings = nullptr);
 
+/** Export a static AC network as a MATPOWER version-2 case. */
+bool saveMatPowerCase(const CoreObject* parentObject,
+                      const std::string& fileName,
+                      stringVec* warnings = nullptr);
+
 void loadCsv(CoreObject* parentObject,
              const std::string& fileName,
              ReaderInfo& readerInformation,

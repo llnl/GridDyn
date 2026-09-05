@@ -132,3 +132,23 @@ TEST(ExampleReaderTests, ExportPyPowerRoundTrip)
     EXPECT_EQ(imported->getInt("loadcount"), original->getInt("loadcount"));
     std::filesystem::remove(exported);
 }
+TEST(ExampleReaderTests, ExportMatPowerRoundTrip)
+{
+    const auto source = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "matlab_test_files" / "case9.m";
+    const auto exported = std::filesystem::temp_directory_path() / "griddyn_matpower_roundtrip.m";
+    auto original = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(original, source.string());
+    griddyn::stringVec warnings;
+    ASSERT_TRUE(griddyn::saveMatPowerCase(original.get(), exported.string(), &warnings));
+    EXPECT_TRUE(warnings.empty());
+    auto imported = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(imported, exported.string());
+    EXPECT_EQ(imported->getInt("totalbuscount"), original->getInt("totalbuscount"));
+    EXPECT_EQ(imported->getInt("totallinkcount"), original->getInt("totallinkcount"));
+    EXPECT_EQ(imported->getInt("gencount"), original->getInt("gencount"));
+    EXPECT_EQ(imported->getInt("loadcount"), original->getInt("loadcount"));
+    ASSERT_EQ(imported->pFlowInitialize(), 0);
+    EXPECT_EQ(imported->powerflow(), 0);
+    EXPECT_EQ(imported->currentProcessState(), griddyn::GridDynSimulation::GridState::POWERFLOW_COMPLETE);
+    std::filesystem::remove(exported);
+}

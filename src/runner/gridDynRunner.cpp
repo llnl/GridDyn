@@ -15,9 +15,12 @@
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/events/Event.h"
 #include "griddyn/measurement/Recorder.h"
+#include "griddyn/GridBus.h"
 #include "griddyn/simulation/GridDynSimulationFileOps.h"
 #include "utilities/GlobalWorkQueue.hpp"
+#include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <cstdio>
 #include <iomanip>
 #include <iostream>
@@ -162,6 +165,15 @@ CoreTime GriddynRunner::Run()
         const std::string error =
             "GridDyn failed to run retval = " + std::to_string(returnValue);
         throw(ExecutionFailure(m_gds.get(), error));
+    }
+
+    std::vector<GridBus*> buses;
+    m_gds->getBusVector(buses);
+    const auto invalidVoltage = std::find_if(buses.begin(), buses.end(), [](const GridBus* bus) {
+        return !std::isfinite(bus->getVoltage()) || !std::isfinite(bus->getAngle());
+    });
+    if (invalidVoltage != buses.end()) {
+        throw(ExecutionFailure(m_gds.get(), "GridDyn produced a non-finite power-flow state"));
     }
     return m_gds->getSimulationTime();
 }

@@ -587,6 +587,10 @@ void loadEpc(CoreObject* parentObject,
                     epcReadDCBranch(parentObject, config, base, dcbusList, bri);
                 });
             } else if (tokens[1] == "converter") {
+                if (getSectionCount(line) != 0) {
+                    std::cerr << "unsupported nonempty EPC dc converter section\n";
+                }
+                ignoreSection(line, file);
             }
         } else if (tokens[0] == "end") {
             break;

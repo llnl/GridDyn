@@ -104,7 +104,8 @@ TEST(ExampleReaderTests, LoadDynamicImportExampleWithoutRunningDynamics)
 TEST(ExampleReaderTests, LoadPyPowerCase)
 {
     auto gds = std::make_unique<griddyn::GridDynSimulation>();
-    const auto filePath = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "pypower_tests" / "case2.py";
+    const auto filePath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "pypower_tests" / "case2.py";
 
     ASSERT_TRUE(std::filesystem::exists(filePath));
     griddyn::loadFile(gds, filePath.string());
@@ -117,7 +118,8 @@ TEST(ExampleReaderTests, LoadPyPowerCase)
 
 TEST(ExampleReaderTests, ExportPyPowerRoundTrip)
 {
-    const auto source = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "matlab_test_files" / "case9.m";
+    const auto source =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "matlab_test_files" / "case9.m";
     const auto exported = std::filesystem::temp_directory_path() / "griddyn_pypower_roundtrip.py";
     auto original = std::make_unique<griddyn::GridDynSimulation>();
     griddyn::loadFile(original, source.string());

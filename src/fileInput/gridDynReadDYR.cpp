@@ -34,6 +34,22 @@
 
 namespace griddyn {
 namespace {
+    bool isDyrCommentLine(const std::string& line)
+    {
+        return line.starts_with("/*") || line.starts_with("//");
+    }
+
+    std::string normalizeDyrModelType(std::string type)
+    {
+        gmlc::utilities::stringOps::trimString(type);
+        if ((type.size() >= 2) && (type.front() == '\'') && (type.back() == '\'')) {
+            auto modelName = type.substr(1, type.size() - 2);
+            gmlc::utilities::stringOps::trimString(modelName);
+            type = '\'' + modelName + '\'';
+        }
+        return type;
+    }
+
     void loadGENCLS(CoreObject* parentObject, stringVec& tokens);
     void loadGENROU(CoreObject* parentObject, stringVec& tokens);
     void loadGENSAL(CoreObject* parentObject, stringVec& tokens);
@@ -79,9 +95,15 @@ void loadDyr(CoreObject* parentObject,
         if (line.empty()) {
             continue;
         }
+        if (isDyrCommentLine(line)) {
+            continue;
+        }
         while (line.back() != '/') {
             if (std::getline(file, continuedLine)) {
                 gmlc::utilities::stringOps::trimString(continuedLine);
+                if (continuedLine.empty() || isDyrCommentLine(continuedLine)) {
+                    continue;
+                }
                 line += ' ' + continuedLine;
             } else {
                 break;
@@ -99,8 +121,10 @@ void loadDyr(CoreObject* parentObject,
         if (!lstr.empty()) {
             lineTokens.push_back(lstr);
         }
-        auto type = lineTokens[1];
-        gmlc::utilities::stringOps::trimString(type);
+        if (lineTokens.size() < 2) {
+            continue;
+        }
+        auto type = normalizeDyrModelType(lineTokens[1]);
         if (type == "'GENCLS'") {
             loadGENCLS(parentObject, lineTokens);
         } else if (type == "'GENROU'") {

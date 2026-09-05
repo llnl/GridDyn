@@ -105,7 +105,7 @@ void RawDcLine::updateLocalCache()
     }
     Link::updateLocalCache();
     linkFlows.P1 = Pset;
-    linkFlows.P2 = Pset - (std::abs(Pset) * lossFraction);
+    linkFlows.P2 = -Pset * (1.0 - lossFraction);
     linkFlows.Q1 = fromReactivePower;
     linkFlows.Q2 = toReactivePower;
 }
@@ -127,7 +127,7 @@ void RawDcLine::updateLocalCache(const IOdata& /*inputs*/,
         toReactivePower = stateDataValue.state[toOffset];
     }
     linkFlows.P1 = Pset;
-    linkFlows.P2 = Pset - (std::abs(Pset) * lossFraction);
+    linkFlows.P2 = -Pset * (1.0 - lossFraction);
     linkFlows.Q1 = fromReactivePower;
     linkFlows.Q2 = toReactivePower;
 }

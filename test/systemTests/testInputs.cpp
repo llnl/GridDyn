@@ -236,15 +236,61 @@ TEST_F(InputTests, PssERawDcComponentsImportAsScheduledLinks)
 
     gds->powerflow();
     requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
-    // Reference: PowerModels.solve_ac_pf(..., Ipopt.Optimizer) on this RAW
-    // input gives vm=1.0 and va=-0.025284658 rad at bus 2.  Both RAW DC
-    // records touch that bus, so their individual q variables are degenerate
-    // in PowerModels; compare their terminal total instead.
+    // The scheduled DC transfer withdraws 5 MW at bus 1 and delivers 5 MW at
+    // bus 2.  Both RAW DC records touch bus 2, so compare their terminal Q total.
+    EXPECT_NEAR(twoTerminal->getRealPower(1), 0.05, 1e-10);
+    EXPECT_NEAR(twoTerminal->getRealPower(2), -0.05, 1e-10);
     EXPECT_NEAR(gds->getBus(1)->getVoltage(), 1.0, 1e-8);
-    EXPECT_NEAR(gds->getBus(1)->getAngle(), -0.025284658, 1e-8);
+    EXPECT_NEAR(gds->getBus(1)->getAngle(), -0.015162075122, 1e-8);
     EXPECT_NEAR(twoTerminal->getReactivePower(2) + vsc->getReactivePower(2),
-                -0.0781963933423,
+                -0.0661494198609,
                 1e-7);
+}
+
+TEST_F(InputTests, PssERawVscTerminalModes)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    ASSERT_NO_THROW(
+        loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "psse_vsc_terminal_modes.raw"));
+
+    ASSERT_EQ(gds->getInt("totallinkcount"), 3);
+    auto* vsc = dynamic_cast<links::RawDcLine*>(gds->getLink(2));
+    ASSERT_NE(vsc, nullptr);
+    EXPECT_EQ(vsc->get("from_voltage_control"), 0.0);
+    EXPECT_EQ(vsc->get("to_voltage_control"), 1.0);
+
+    EXPECT_EQ(gds->powerflow(), 0);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
+    EXPECT_NEAR(gds->getBus(2)->getVoltage(), 0.99, 1e-8);
+}
+
+TEST_F(InputTests, PssERawGeneratorStepUpTransformerImport)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    ASSERT_NO_THROW(loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_generator_step_up.raw"));
+
+    EXPECT_EQ(gds->getInt("totalbuscount"), 2);
+    EXPECT_EQ(gds->getInt("totallinkcount"), 1);
+    EXPECT_EQ(gds->getInt("gencount"), 1);
+    ASSERT_EQ(gds->powerflow(), 0);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
+
+    auto* controlledBus = gds->getBus(0);
+    ASSERT_NE(controlledBus, nullptr);
+    EXPECT_EQ(controlledBus->getName(), "NORTH");
+    EXPECT_NEAR(controlledBus->get("qmin"), -6.5, 1e-10);
+    EXPECT_NEAR(controlledBus->get("qmax"), 7.0, 1e-10);
+}
+
+TEST_F(InputTests, PssERawUnsupportedTransformerControlCodeImportsFixed)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    ASSERT_NO_THROW(
+        loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_transformer_cod4_fixed.raw"));
+
+    EXPECT_EQ(gds->getInt("totalbuscount"), 2);
+    ASSERT_EQ(gds->getInt("totallinkcount"), 1);
+    EXPECT_EQ(dynamic_cast<links::AdjustableTransformer*>(gds->getLink(0)), nullptr);
 }
 
 TEST_F(InputTests, EpcEmptyInjectionGroupsAreIgnoredSilently)

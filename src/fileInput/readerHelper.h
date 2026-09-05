@@ -52,6 +52,9 @@ void loadMatPower(CoreObject* parentObject,
                   const std::string& fileText,
                   const std::string& baseName,
                   const BasicReaderInfo& readerOptions);
+void loadPyPower(CoreObject* parentObject,
+                 const std::string& fileName,
+                 const BasicReaderInfo& readerOptions);
 void loadMatDyn(CoreObject* parentObject, const std::string& fileText, const BasicReaderInfo& bri);
 void loadMatDynEvent(CoreObject* parentObject,
                      const std::string& fileText,

@@ -73,3 +73,6 @@ not a convergence or numerical-parity result. Profile the large-case
 initialization/solve path and complete a controlled rerun that captures the
 final solver status and comparison values before adopting the case as a
 regression reference.
+
+Current static-run follow-ups are maintained in
+[Power-flow validation follow-ups](powerflow-validation-followups.md).

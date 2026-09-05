@@ -2081,6 +2081,15 @@ bool AcBus::convergeVoltageOnly(const StateData& stateDataValue,
     while (notConverged) {
         if (iteration > 1) {
             voltageValue = useVoltageState ? state[voltageOffset] : voltage;
+            // A previous local update can drive the state to zero between
+            // iterations. Keep the same positive-voltage invariant enforced
+            // at the start of converge() before limiting the next correction.
+            if (voltageValue <= 0.0) {
+                voltageValue = std::abs(voltageValue - 0.001);
+                if (useVoltageState) {
+                    state[voltageOffset] = voltageValue;
+                }
+            }
             if ((voltageValue > vTarget * 1.1) && (mode != ConvergeMode::FORCE_VOLTAGE_ONLY)) {
                 mode = ConvergeMode::FORCE_STRONG_ITERATION;
                 return true;
@@ -2554,6 +2563,16 @@ void AcBus::updateFlags(bool /*dynOnly*/)
         if ((busController.Pmin > -kHalfBigNum) || (busController.Pmax < kHalfBigNum)) {
             opFlags[HAS_POWERFLOW_ADJUSTMENTS] = true;
         }
+    }
+}
+
+void AcBus::updateControlLimits()
+{
+    if ((type == BusType::PV) || (type == BusType::SLK)) {
+        busController.updateVoltageControlLimits();
+    }
+    if ((type == BusType::AFIX) || (type == BusType::SLK)) {
+        busController.updatePowerControlLimits();
     }
 }
 

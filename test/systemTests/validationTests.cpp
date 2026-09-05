@@ -58,6 +58,7 @@ class ValidationTests: public GridDynSimulationTestFixture, public ::testing::Te
         std::chrono::duration<double> elapsed_time;
 #endif
 
+        gds2 = nullptr;
         gds = std::make_unique<GridDynSimulation>();
         gds->set("consoleprintlevel", "summary");
         auto fileName = makeValidationTestPath(test_case_pair.first);

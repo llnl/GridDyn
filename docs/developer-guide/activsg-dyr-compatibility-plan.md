@@ -33,6 +33,28 @@ an external reference.
 | ACTIVSg25k  | `case_ACTIVSg25k.m` provides a 25,000-bus solved state      | Solves: 25,000 buses / 32,230 links; stays within 0.000101 pu V and 0.000124 rad of the RAW-supplied terminal-bus state | Not assessed                                                              | RAW and MATPOWER source states differ by up to 0.07851 pu V / 0.02221 rad on 24,250 common terminal buses, so cross-format parity is not yet established.     |
 | ACTIVSg70k  | `case_ACTIVSg70k.m` provides 70,000 buses / 88,207 branches | Not run; source RAW expands to the same 70,000 buses / 88,207 links                                                     | Not assessed                                                              | PSS/E v33 with 2,100 three-winding transformers. No nonempty DC/FACTS sections were found; validate large-scale convergence and state parity before dynamics. |
 
+### MATPOWER generator step-up-transformer limitation
+
+The standard MATPOWER `mpc.gen` table does not carry the PSS/E RAW generator
+step-up-transformer fields `RT`, `XT`, or `GTAP`. When `RT` or `XT` is
+nonzero, the RAW reader models that impedance as a generator-side AC link and
+generated bus; a MATPOWER import cannot reconstruct that portion of the
+network.
+
+Consequently, corresponding RAW and MATPOWER cases can both load, converge,
+and retain identical supplied bus voltages, but converge to different solved
+operating points. This was observed in ACTIVSg10k: the supplied terminal-bus
+states agree to about `1e-7` pu/rad, whereas the solved RAW/MATPOWER states
+differ by as much as `0.02324` pu in voltage magnitude and `0.00226` rad in
+angle. For example, the generator at bus 30342 has nonzero RAW `RT` and its
+MATPOWER record has no equivalent field.
+
+Use RAW (and a format that preserves the equivalent generator transformer)
+when exact network-model parity is required. Do not use a standard MATPOWER
+export as an exact solution-equivalence reference for a case that has
+generator step-up impedances unless those impedances have been represented
+consistently in both models.
+
 ## Dynamic-model inventory
 
 | PSS/E model | ACTIVSg500 | ACTIVSg2000 | ACTIVSg10k | ACTIVSg25k | ACTIVSg70k |  Total | Current status / required work                                                                                                                                          |

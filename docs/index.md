@@ -11,5 +11,6 @@ This documentation site is being rebuilt in-repo. For now, it provides a minimal
 overview
 building
 status
+developer-guide/powerflow-validation-followups
 python-nanobind-migration-plan
 ```

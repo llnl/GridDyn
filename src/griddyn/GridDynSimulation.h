@@ -281,10 +281,10 @@ class GridDynSimulation: public GridSimulation {
 
     /**@brief run powerFlow in event driven mode,  evaluate the power flow at every given event or
     iteration time
-    @param[in] t_end the stopping time for the simulation
-    @param[in] t_step  the step size (the maximum time between powerFlow evaluation is t_step
+    @param[in] tEnd the stopping time for the simulation
+    @param[in] tStep  the step size (the maximum time between powerFlow evaluation is tStep
     @return int indicating success (0) or failure (non-zero)*/
-    virtual int eventDrivenPowerflow(CoreTime t_end = negTime, CoreTime t_step = negTime);
+    virtual int eventDrivenPowerflow(CoreTime tEnd = negTime, CoreTime tStep = negTime);
 
     /** @brief execute a specific command
     *@param[in] cmd  the command to execute

@@ -267,8 +267,7 @@ TEST_F(InputTests, PssERawVscTerminalModes)
 TEST_F(InputTests, PssERawGeneratorStepUpTransformerImport)
 {
     gds = std::make_unique<GridDynSimulation>();
-    ASSERT_NO_THROW(
-        loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_generator_step_up.raw"));
+    ASSERT_NO_THROW(loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_generator_step_up.raw"));
 
     EXPECT_EQ(gds->getInt("totalbuscount"), 2);
     EXPECT_EQ(gds->getInt("totallinkcount"), 1);

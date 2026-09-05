@@ -947,8 +947,7 @@ static void rawReadVscDc(CoreObject* parentObject,
         (mdc != 0) && (fromType != 0) && (toType != 0),
         fromVoltageTarget,
         toVoltageTarget,
-        (fromMode == 1) &&
-            rawDcUseVoltageControl(fromBus, fromBusNumber, voltageControlledBuses),
+        (fromMode == 1) && rawDcUseVoltageControl(fromBus, fromBusNumber, voltageControlledBuses),
         (toMode == 1) && rawDcUseVoltageControl(toBus, toBusNumber, voltageControlledBuses),
         "PSS/E RAW VSC DC compatibility import; name='" + name + "', MDC=" + std::to_string(mdc) +
             ", RDC=" + std::to_string(resistance) + ", loss0=" + std::to_string(loss0) +
@@ -1914,8 +1913,7 @@ static int rawReadTxV33(CoreObject* parentObject,
     } else if (controlCode > 0 && !fixedV35Control) {
         parentObject->log(parentObject,
                           PrintLevel::WARNING,
-                          "unsupported transformer control code " +
-                              std::to_string(controlCode) +
+                          "unsupported transformer control code " + std::to_string(controlCode) +
                               "; importing transformer as fixed");
     }
     return tline;
@@ -2033,15 +2031,13 @@ static int rawReadTX(CoreObject* parentObject,
     if ((impedanceCode == 2) || (impedanceCode == 3)) {
         if ((impedanceCode == 3) && (windingBase > 0.0)) {
             resistance /= windingBase * 1.0e6;
-            reactance = std::sqrt(
-                std::max(reactance * reactance - resistance * resistance, 0.0));
+            reactance = std::sqrt(std::max(reactance * reactance - resistance * resistance, 0.0));
         }
         if (windingBase > 0.0) {
             const auto voltageScale = (nominalVoltage1 > 0.0 && busBaseVoltage1 > 0.0) ?
                 nominalVoltage1 / busBaseVoltage1 :
                 1.0;
-            const auto impedanceScale =
-                opt.base / windingBase * voltageScale * voltageScale;
+            const auto impedanceScale = opt.base / windingBase * voltageScale * voltageScale;
             resistance *= impedanceScale;
             reactance *= impedanceScale;
         }
@@ -2080,9 +2076,8 @@ static int rawReadTX(CoreObject* parentObject,
     tap /= windingVoltage2;
     if ((windingCode == 2) && (busBaseVoltage1 > 0.0) && (busBaseVoltage2 > 0.0)) {
         tap *= busBaseVoltage2 / busBaseVoltage1;
-    } else if ((windingCode == 3) && (nominalVoltage1 > 0.0) &&
-               (nominalVoltage2 > 0.0) && (busBaseVoltage1 > 0.0) &&
-               (busBaseVoltage2 > 0.0)) {
+    } else if ((windingCode == 3) && (nominalVoltage1 > 0.0) && (nominalVoltage2 > 0.0) &&
+               (busBaseVoltage1 > 0.0) && (busBaseVoltage2 > 0.0)) {
         tap *= nominalVoltage1 / nominalVoltage2 * busBaseVoltage2 / busBaseVoltage1;
     }
     if (tap != 0.0) {
@@ -2116,8 +2111,7 @@ static int rawReadTX(CoreObject* parentObject,
             if ((windingCode == 2) && (busBaseVoltage1 > 0.0)) {
                 resistance /= busBaseVoltage1;
                 reactance /= busBaseVoltage1;
-            } else if ((windingCode == 3) && (nominalVoltage1 > 0.0) &&
-                       (busBaseVoltage1 > 0.0)) {
+            } else if ((windingCode == 3) && (nominalVoltage1 > 0.0) && (busBaseVoltage1 > 0.0)) {
                 resistance *= nominalVoltage1 / busBaseVoltage1;
                 reactance *= nominalVoltage1 / busBaseVoltage1;
             }
@@ -2148,8 +2142,7 @@ static int rawReadTX(CoreObject* parentObject,
     } else if (controlCode > 0) {
         parentObject->log(parentObject,
                           PrintLevel::WARNING,
-                          "unsupported transformer control code " +
-                              std::to_string(controlCode) +
+                          "unsupported transformer control code " + std::to_string(controlCode) +
                               "; importing transformer as fixed");
     }
     return tline;

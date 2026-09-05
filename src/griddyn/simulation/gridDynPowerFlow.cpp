@@ -6,9 +6,9 @@
 
 #include "../GridBus.h"
 #include "../GridDynSimulation.h"
-#include "../primary/AcBus.h"
 #include "../events/Event.h"
 #include "../events/EventQueue.h"
+#include "../primary/AcBus.h"
 #include "../simulation/Diagnostics.h"
 #include "../solvers/SolverInterface.h"
 #include "Continuation.h"

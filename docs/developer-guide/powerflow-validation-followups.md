@@ -8,11 +8,11 @@ convergence result.
 
 ### Texas 7k synthetic grid
 
-| Input | Status | Follow-up |
-| --- | --- | --- |
-| `Modified_Versions\\Texas7k_20220923.RAW` (PSS/E v35) | Solves in 0.059 seconds after v35 table and switched-shunt parsing fixes. It imports 6,717 buses, 9,140 links, 731 generators, and 5,729 loads. | Phase-shifter comparison is resolved; retain as a v35 regression candidate. |
-| `Texas7k_20210804.EPC` | Import completes, then power flow continues consuming CPU without a solver result. | Diagnose the post-import power-flow hang and compare EPC controls/topology with the MATPOWER model. |
-| `Texas7k_20210804.m` | Solves: 6,717 buses, 9,140 links, 731 generators, and 4,648 loads. | Baseline for the comparisons above. |
+| Input                                                 | Status                                                                                                                                          | Follow-up                                                                                           |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `Modified_Versions\\Texas7k_20220923.RAW` (PSS/E v35) | Solves in 0.059 seconds after v35 table and switched-shunt parsing fixes. It imports 6,717 buses, 9,140 links, 731 generators, and 5,729 loads. | Phase-shifter comparison is resolved; retain as a v35 regression candidate.                         |
+| `Texas7k_20210804.EPC`                                | Import completes, then power flow continues consuming CPU without a solver result.                                                              | Diagnose the post-import power-flow hang and compare EPC controls/topology with the MATPOWER model. |
+| `Texas7k_20210804.m`                                  | Solves: 6,717 buses, 9,140 links, 731 generators, and 4,648 loads.                                                                              | Baseline for the comparisons above.                                                                 |
 
 The v35 RAW support now handles system-wide data, `@!` cards, generator
 `NREG`, branch field offsets, and transformer winding offsets. Remaining
@@ -36,9 +36,9 @@ matching the MATPOWER initialization).
 
 ### Florida 42 GW case
 
-| Input | Status | Follow-up |
-| --- | --- | --- |
-| Florida RAW | Solves with recovery disabled in 33.19 seconds: 5,658 buses, 9,078 links, 474 generators, and 4,272 loads. | Baseline. |
+| Input            | Status                                                                                                                       | Follow-up                                                                                                      |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Florida RAW      | Solves with recovery disabled in 33.19 seconds: 5,658 buses, 9,078 links, 474 generators, and 4,272 loads.                   | Baseline.                                                                                                      |
 | Florida MATPOWER | Imports and begins power flow, but no solver result or post-solve topology summary was emitted after 97 seconds of CPU time. | Compare the imported MATPOWER network and controls with the successful RAW case, then add bounded diagnostics. |
 
 ### SyntheticUSA case

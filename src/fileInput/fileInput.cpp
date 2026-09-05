@@ -197,6 +197,8 @@ void loadFile(CoreObject* parentObject,
     } else if (ext == "uct") {
     } else if (ext == "m" || ext == "matlab") {
         loadMatlabFile(parentObject, fileName, *readerInf);
+    } else if (ext == "py") {
+        loadPyPower(parentObject, fileName, *readerInf);
     } else if (ext == "psp") {
         loadPsp(parentObject, fileName, *readerInf);
     } else if (ext == "epc") {

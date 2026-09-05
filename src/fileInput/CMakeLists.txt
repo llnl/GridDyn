@@ -39,6 +39,8 @@ set(formattedfileInput_sources
     gridDynReadPTI.cpp
     gridReadEPC.cpp
     gridReadMatPower.cpp
+    gridReadPyPower.cpp
+    gridWritePyPower.cpp
     gridReadPSAT.cpp
     readMatDyn.cpp
     gridDynReadCSV.cpp

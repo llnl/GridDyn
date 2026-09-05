@@ -6,34 +6,33 @@
 
 #include "BusControls.h"
 
-#include <algorithm>
-
 #include "../GridSecondary.h"
 #include "../Link.h"
 #include "AcBus.h"
 #include "gmlc/utilities/vectorOps.hpp"
+#include <algorithm>
 
 namespace griddyn {
 BusControls::BusControls(AcBus* busToControl): controlledBus(busToControl) {}
 
 bool BusControls::hasVoltageAdjustments(id_type_t sid) const
 {
-    return std::ranges::any_of(vControlObjects, [sid](const auto* adjustment) {
-               return sid == adjustment->getID();
-           }) ||
-        std::ranges::any_of(proxyVControlObject, [sid](const auto* adjustment) {
-            return sid == adjustment->getID();
-        });
+    return std::ranges::any_of(vControlObjects,
+                               [sid](const auto* adjustment) {
+                                   return sid == adjustment->getID();
+                               }) ||
+        std::ranges::any_of(proxyVControlObject,
+                            [sid](const auto* adjustment) { return sid == adjustment->getID(); });
 }
 
 bool BusControls::hasPowerAdjustments(id_type_t sid) const
 {
-    return std::ranges::any_of(pControlObjects, [sid](const auto* adjustment) {
-               return sid == adjustment->getID();
-           }) ||
-        std::ranges::any_of(proxyPControlObject, [sid](const auto* adjustment) {
-            return sid == adjustment->getID();
-        });
+    return std::ranges::any_of(pControlObjects,
+                               [sid](const auto* adjustment) {
+                                   return sid == adjustment->getID();
+                               }) ||
+        std::ranges::any_of(proxyPControlObject,
+                            [sid](const auto* adjustment) { return sid == adjustment->getID(); });
 }
 
 double BusControls::getAdjustableCapacityUp(CoreTime time) const
@@ -293,7 +292,8 @@ void BusControls::updatePowerControls()
         }
     }
     // override bus participation with generator participation
-    if ((powerControlCount == 1) && (powerFractionSum != 1.0) && (controlledBus->get("participation") == 1.0)) {
+    if ((powerControlCount == 1) && (powerFractionSum != 1.0) &&
+        (controlledBus->get("participation") == 1.0)) {
         controlledBus->set("participation", powerFractionSum);
     }
     // check if the v and p controls are identical

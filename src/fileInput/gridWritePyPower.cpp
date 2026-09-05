@@ -10,8 +10,8 @@
 #include "griddyn/links/AcLine.h"
 #include "griddyn/loads/ZipLoad.h"
 #include <cctype>
-#include <cstdint>
 #include <cmath>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -83,7 +83,8 @@ namespace {
         std::vector<const GridBus*> buses;
         std::unordered_map<const GridBus*, index_t> busNumbers;
         for (index_t index = 1; index <= busCount; ++index) {
-            const auto* bus = dynamic_cast<const GridBus*>(parentObject->findByUserID("bus", index));
+            const auto* bus =
+                dynamic_cast<const GridBus*>(parentObject->findByUserID("bus", index));
             if (bus == nullptr) {
                 warning("bus slot " + std::to_string(index) + " is not an AC bus and was omitted");
                 continue;
@@ -207,7 +208,8 @@ namespace {
                                                      "];\n\nmpc.branch = [\n");
         const auto linkCount = static_cast<index_t>(parentObject->get("totallinkcount"));
         for (index_t linkIndex = 1; linkIndex <= linkCount; ++linkIndex) {
-            const auto* link = dynamic_cast<const Link*>(parentObject->findByUserID("link", linkIndex));
+            const auto* link =
+                dynamic_cast<const Link*>(parentObject->findByUserID("link", linkIndex));
             if (link == nullptr) {
                 continue;
             }

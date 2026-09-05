@@ -2022,9 +2022,8 @@ static int rawReadTX(CoreObject* parentObject,
 
     const auto windingCode = numeric_conversion<int>(strvec[4], 1);
     const auto impedanceCode = numeric_conversion<int>(strvec[5], 1);
-    const auto windingBase = (strvec2.size() > 2U) ?
-        numeric_conversion<double>(strvec2[2], opt.base) :
-        opt.base;
+    const auto windingBase =
+        (strvec2.size() > 2U) ? numeric_conversion<double>(strvec2[2], opt.base) : opt.base;
     const auto nominalVoltage1 = numeric_conversion<double>(strvec3[1], 0.0);
     const auto nominalVoltage2 = numeric_conversion<double>(strvec4[1], 0.0);
     const auto busBaseVoltage1 = bus1->get("basevoltage");
@@ -2033,7 +2032,8 @@ static int rawReadTX(CoreObject* parentObject,
     if ((impedanceCode == 2) || (impedanceCode == 3)) {
         if ((impedanceCode == 3) && (windingBase > 0.0)) {
             resistance /= windingBase * 1.0e6;
-            reactance = std::sqrt(std::max((reactance * reactance) - (resistance * resistance), 0.0));
+            reactance =
+                std::sqrt(std::max((reactance * reactance) - (resistance * resistance), 0.0));
         }
         if (windingBase > 0.0) {
             const auto voltageScale = (nominalVoltage1 > 0.0 && busBaseVoltage1 > 0.0) ?

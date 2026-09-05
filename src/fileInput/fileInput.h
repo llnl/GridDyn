@@ -117,6 +117,11 @@ void loadMatlabFile(CoreObject* parentObject,
                     const std::string& fileName,
                     const BasicReaderInfo& readerOptions = defInfo);
 
+/** Export a static AC network as a PYPOWER version-2 Python case. */
+bool savePyPowerCase(const CoreObject* parentObject,
+                     const std::string& fileName,
+                     stringVec* warnings = nullptr);
+
 void loadCsv(CoreObject* parentObject,
              const std::string& fileName,
              ReaderInfo& readerInformation,

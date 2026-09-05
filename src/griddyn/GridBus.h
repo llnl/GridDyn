@@ -161,6 +161,8 @@ class GridBus: public GridPrimary {
     virtual void reconnect(GridBus* mapBus);
     virtual void reconnect() override;
     // parameter set functions
+    /** Return the static power-flow bus type. */
+    int getBusType() const { return static_cast<int>(type); }
     virtual void setAll(std::string_view objtype,
                         std::string_view param,
                         double val,

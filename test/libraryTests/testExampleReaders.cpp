@@ -136,7 +136,8 @@ TEST(ExampleReaderTests, ExportPyPowerRoundTrip)
 }
 TEST(ExampleReaderTests, ExportMatPowerRoundTrip)
 {
-    const auto source = std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "matlab_test_files" / "case9.m";
+    const auto source =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "matlab_test_files" / "case9.m";
     const auto exported = std::filesystem::temp_directory_path() / "griddyn_matpower_roundtrip.m";
     auto original = std::make_unique<griddyn::GridDynSimulation>();
     griddyn::loadFile(original, source.string());
@@ -151,6 +152,7 @@ TEST(ExampleReaderTests, ExportMatPowerRoundTrip)
     EXPECT_EQ(imported->getInt("loadcount"), original->getInt("loadcount"));
     ASSERT_EQ(imported->pFlowInitialize(), 0);
     EXPECT_EQ(imported->powerflow(), 0);
-    EXPECT_EQ(imported->currentProcessState(), griddyn::GridDynSimulation::GridState::POWERFLOW_COMPLETE);
+    EXPECT_EQ(imported->currentProcessState(),
+              griddyn::GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     std::filesystem::remove(exported);
 }

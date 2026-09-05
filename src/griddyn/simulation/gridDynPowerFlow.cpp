@@ -6,6 +6,7 @@
 
 #include "../GridBus.h"
 #include "../GridDynSimulation.h"
+#include "../primary/AcBus.h"
 #include "../events/Event.h"
 #include "../events/EventQueue.h"
 #include "../simulation/Diagnostics.h"
@@ -309,6 +310,17 @@ int GridDynSimulation::pFlowInitialize(CoreTime time0)
     linkCount = getInt("totallinkcount");
     currentTime = time0;
     pFlowInitializeA(time0, lower_flags(controlFlags));
+    // A controller can live on a bus initialized later than the bus it
+    // regulates (notably a generator behind an explicit step-up impedance).
+    // Refresh aggregate limits after every phase-A registration is complete.
+    std::vector<GridBus*> buses;
+    getBusVector(buses);
+    for (auto* bus : buses) {
+        auto* acBus = dynamic_cast<AcBus*>(bus);
+        if (acBus != nullptr) {
+            acBus->updateControlLimits();
+        }
+    }
     auto ssize = stateSize(solverModeRef);
     pFlowData->allocate(ssize);
 

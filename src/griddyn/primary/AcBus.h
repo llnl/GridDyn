@@ -351,6 +351,9 @@ class AcBus: public GridBus {
     virtual bool useVoltage(const SolverMode& sMode) const;
 
     virtual void updateFlags(bool dynOnly = false) override;
+
+    /** @brief refresh aggregate controller limits after all controls have registered. */
+    void updateControlLimits();
     // for registering and removing power control objects
 
     /** @brief  register an object for voltage control on a bus*/

@@ -84,6 +84,9 @@ class BusControls {
     void updateVoltageControls();
     /** @brief  update the values used in power control*/
     void updatePowerControls();
+    /** @brief update aggregate limits without changing controller topology. */
+    void updateVoltageControlLimits();
+    void updatePowerControlLimits();
 
     bool checkIdenticalControls();
 

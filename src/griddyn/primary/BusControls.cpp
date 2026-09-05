@@ -131,7 +131,7 @@ void BusControls::addVoltageControlObject(GridComponent* comp, bool update)
         return;
     }
     if (update) {
-        updatePowerControls();
+        updateVoltageControls();
     }
 }
 
@@ -241,6 +241,20 @@ void BusControls::updateVoltageControls()
                                checkIdenticalControls());
 }
 
+void BusControls::updateVoltageControlLimits()
+{
+    Qmax = 0.0;
+    Qmin = 0.0;
+    for (const auto* control : vControlObjects) {
+        Qmax += control->get("qmax");
+        Qmin += control->get("qmin");
+    }
+    for (const auto* control : vControlLinks) {
+        Qmax += control->get("qmax");
+        Qmin += control->get("qmin");
+    }
+}
+
 void BusControls::updatePowerControls()
 {
     double pfsum = sum(pcfrac) + sum(pclinkFrac);
@@ -293,6 +307,20 @@ void BusControls::updatePowerControls()
     // check if the v and p controls are identical
     controlledBus->opFlags.set(AcBus::BusFlags::IDENTICAL_PQ_CONTROL_OBJECTS,
                                checkIdenticalControls());
+}
+
+void BusControls::updatePowerControlLimits()
+{
+    Pmax = 0.0;
+    Pmin = 0.0;
+    for (const auto* control : pControlObjects) {
+        Pmax += control->get("pmax");
+        Pmin += control->get("pmin");
+    }
+    for (const auto* control : pControlLinks) {
+        Pmax += control->get("pmax");
+        Pmin += control->get("pmin");
+    }
 }
 
 bool BusControls::checkIdenticalControls()

@@ -194,6 +194,20 @@ TEST(AndesDyrReaderTests, LoadsGenrouAndMatchesIeee14Initialization)
     }
 }
 
+TEST(AndesDyrReaderTests, SkipsDyrHeaderCommentsBeforeRecordAccumulation)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou_with_comments.dyr"));
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = bus->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    auto* model = dynamic_cast<griddyn::genmodels::GenModelGENROU*>(generator->find("genmodel"));
+    ASSERT_NE(model, nullptr);
+}
+
 TEST(AndesDyrReaderTests, LoadsGenclsInPsseAndesFieldOrder)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
@@ -858,10 +872,11 @@ TEST(AndesDyrReaderTests, MapsExst1ParametersAndCouplesToGenrou)
 
 TEST(AndesDyrReaderTests, MapsExacParameterRecordsAndCouplesToGenrou)
 {
-    const std::array<std::pair<std::string_view, std::string_view>, 4> records{{
+    const std::array<std::pair<std::string_view, std::string_view>, 5> records{{
         {"ieee14_exac1.dyr", "exac1"},
         {"ieee14_exac2.dyr", "exac2"},
         {"ieee14_exac4.dyr", "exac4"},
+        {"ieee14_exac4_spaced_name.dyr", "exac4 with whitespace in model name"},
         {"ieee14_esac1a_genrou.dyr", "esac1a"},
     }};
     for (const auto& [record, model] : records) {

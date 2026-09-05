@@ -2566,6 +2566,16 @@ void AcBus::updateFlags(bool /*dynOnly*/)
     }
 }
 
+void AcBus::updateControlLimits()
+{
+    if ((type == BusType::PV) || (type == BusType::SLK)) {
+        busController.updateVoltageControlLimits();
+    }
+    if ((type == BusType::AFIX) || (type == BusType::SLK)) {
+        busController.updatePowerControlLimits();
+    }
+}
+
 static const IOlocs IN_LOC{0, 1, 2};
 
 void AcBus::computeDerivatives(const StateData& stateDataValue, const SolverMode& sMode)

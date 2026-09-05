@@ -126,9 +126,9 @@ static ImpedanceCorrectionTables readImpedanceCorrectionTables(const std::string
         }
     }
     for (auto& [tableId, points] : tables) {
-        std::sort(points.begin(),
-                  points.end(),
-                  [](const auto& left, const auto& right) { return left.first < right.first; });
+        std::sort(points.begin(), points.end(), [](const auto& left, const auto& right) {
+            return left.first < right.first;
+        });
     }
     return tables;
 }
@@ -1278,7 +1278,8 @@ static void rawReadGen(Generator* gen, const std::string& line, BasicReaderInfo&
                 nBus->setName(oBus->getName() + '_' + gen->getName() + "_TXBUS");
             }
             // get the tap ratio
-            const auto tapRatio = numeric_conversion<double>(strvec[13 + generatorFieldOffset], 0.0);
+            const auto tapRatio =
+                numeric_conversion<double>(strvec[13 + generatorFieldOffset], 0.0);
             lnk->set("tap", tapRatio);
             // match the voltage and angle of the other bus
             nBus->setVoltageAngle(oBus->getVoltage() * tapRatio, oBus->getAngle());
@@ -1719,9 +1720,10 @@ static int rawReadTxV33(CoreObject* parentObject,
 
     auto resistance = numeric_conversion<double>(strvec2[0], 0.0);
     auto reactance = numeric_conversion<double>(strvec2[1], 0.0);
-    const auto impedanceCorrection = correctionFactor(correctionTables,
-                                                      numeric_conversion<int>(strvec3[13 + windingTailOffset], 0),
-                                                      numeric_conversion<double>(strvec3[2], 0.0));
+    const auto impedanceCorrection =
+        correctionFactor(correctionTables,
+                         numeric_conversion<int>(strvec3[13 + windingTailOffset], 0),
+                         numeric_conversion<double>(strvec3[2], 0.0));
     resistance *= impedanceCorrection;
     reactance *= impedanceCorrection;
 

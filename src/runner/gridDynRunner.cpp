@@ -12,10 +12,10 @@
 #include "coupling/GhostSwingBusManager.h"
 #include "fileInput/fileInput.h"
 #include "gmlc/utilities/stringOps.h"
+#include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/events/Event.h"
 #include "griddyn/measurement/Recorder.h"
-#include "griddyn/GridBus.h"
 #include "griddyn/simulation/GridDynSimulationFileOps.h"
 #include "utilities/GlobalWorkQueue.hpp"
 #include <algorithm>
@@ -162,8 +162,7 @@ CoreTime GriddynRunner::Run()
                PrintLevel::SUMMARY,
                m_gds->getName() + " executed in " + std::to_string(elapsedT.count()) + " seconds");
     if (returnValue != FUNCTION_EXECUTION_SUCCESS) {
-        const std::string error =
-            "GridDyn failed to run retval = " + std::to_string(returnValue);
+        const std::string error = "GridDyn failed to run retval = " + std::to_string(returnValue);
         throw(ExecutionFailure(m_gds.get(), error));
     }
 

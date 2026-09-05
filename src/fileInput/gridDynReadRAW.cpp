@@ -2013,10 +2013,15 @@ static void rawReadSwitchedShunt(CoreObject* parentObject,
 
     auto mode = numeric_conversion<int>(strvec[1], 0);
     int shift = 0;
+    bool inService = true;
     // TODO(phlpt): Verify this logic; it may not be totally correct right now.
     // VERSION 32 has some ambiguity in the interpretation
     if (opt.version >= 32) {
         shift = 2;
+        // In PSS/E v32+, ADJM and STAT follow MODSW. An out-of-service
+        // switched shunt must retain its BINIT value but must not participate
+        // in voltage/reactive-power control.
+        inService = (numeric_conversion<int>(strvec[3], 1) != 0);
     }
     auto high = numeric_conversion<double>(strvec[2 + shift], 0.0);
     auto low = numeric_conversion<double>(strvec[3 + shift], 0.0);
@@ -2108,6 +2113,9 @@ static void rawReadSwitchedShunt(CoreObject* parentObject,
     // discrete/continuous SVD setting.  Set it directly so voltage-controlled
     // records retain their PowerWorld/PSS/E initial reactive injection.
     loadObject->ZipLoad::set("yq", -initVal, MVAR);
+    if (!inService) {
+        loadObject->disable();
+    }
 }
 
 }  // namespace griddyn

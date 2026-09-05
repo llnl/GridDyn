@@ -152,12 +152,17 @@ CoreTime GriddynRunner::Run()
     }
 
     m_startTime = std::chrono::high_resolution_clock::now();
-    m_gds->run();
+    const int returnValue = m_gds->run();
     m_stopTime = std::chrono::high_resolution_clock::now();
     const std::chrono::duration<double> elapsedT = m_stopTime - m_startTime;
     m_gds->log(m_gds.get(),
                PrintLevel::SUMMARY,
                m_gds->getName() + " executed in " + std::to_string(elapsedT.count()) + " seconds");
+    if (returnValue != FUNCTION_EXECUTION_SUCCESS) {
+        const std::string error =
+            "GridDyn failed to run retval = " + std::to_string(returnValue);
+        throw(ExecutionFailure(m_gds.get(), error));
+    }
     return m_gds->getSimulationTime();
 }
 

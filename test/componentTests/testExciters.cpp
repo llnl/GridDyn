@@ -20,8 +20,8 @@
 #include "griddyn/exciters/ExciterEXAC4.h"
 #include "griddyn/exciters/ExciterEXPIC1.h"
 #include "griddyn/exciters/ExciterEXST1.h"
-#include "griddyn/exciters/ExciterIEEEtype1.h"
 #include "griddyn/exciters/ExciterIEEEX1.h"
+#include "griddyn/exciters/ExciterIEEEtype1.h"
 #include "griddyn/exciters/ExciterSCRX.h"
 #include "griddyn/exciters/StaticExciterRectifier.h"
 #include "griddyn/genmodels/GenModelGENSAL.h"
@@ -1079,8 +1079,7 @@ TEST(ExciterModelTests, Ieeex1MatchesReferenceBlockEquations)
     const double ratio = std::sqrt(0.1 / 0.8);
     const double saturationThreshold = (1.0 - ratio * 2.0) / (1.0 - ratio);
     const double saturationGain = 0.8 / std::pow(2.0 - saturationThreshold, 2);
-    const double saturationFeedback =
-        saturationGain * std::pow(0.7 - saturationThreshold, 2);
+    const double saturationFeedback = saturationGain * std::pow(0.7 - saturationThreshold, 2);
     EXPECT_NEAR(derivative[0], (1.0 - 0.7 - saturationFeedback) / 0.5, 1e-12);
     EXPECT_NEAR(derivative[1], -3.0, 1e-12);
     EXPECT_NEAR(derivative[2], 0.02, 1e-12);
@@ -1089,8 +1088,7 @@ TEST(ExciterModelTests, Ieeex1MatchesReferenceBlockEquations)
     exciters::ExciterIEEEX1 leadLagExciter;
     configureIeeex1(leadLagExciter, 0.2, 0.05);
     leadLagExciter.dynInitializeA(0.0, 0);
-    EXPECT_EQ(leadLagExciter.localStateNames(),
-              (stringVec{"ef", "vr", "x", "rf", "vmeas"}));
+    EXPECT_EQ(leadLagExciter.localStateNames(), (stringVec{"ef", "vr", "x", "rf", "vmeas"}));
     leadLagExciter.dynInitializeB(inputs, {0.4}, fieldSet);
     state = {0.7, 1.0, 0.03, 0.05, 0.98};
     stateDerivative.assign(state.size(), 0.0);
@@ -1142,11 +1140,9 @@ TEST(ExciterModelTests, Ieeex1UsesTerminalVoltageLimitsAndConsistentHoldJacobian
     std::vector<double> state{0.4, 1.1, 0.04, 0.8};
     std::vector<double> stateDerivative(state.size(), 0.0);
     exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
-    EXPECT_EQ(exciter.rootCheck(inputs,
-                                emptyStateData,
-                                cLocalSolverMode,
-                                CheckLevel::REVERSABLE_ONLY),
-              ChangeCode::JACOBIAN_CHANGE);
+    EXPECT_EQ(
+        exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
     EXPECT_DOUBLE_EQ(exciter.getStates()[1], 1.0);
 
     std::vector<double> derivative(state.size(), 0.0);
@@ -1162,30 +1158,24 @@ TEST(ExciterModelTests, Ieeex1UsesTerminalVoltageLimitsAndConsistentHoldJacobian
     // A negative unconstrained regulator drive releases the upper limit.
     state = {0.4, 1.0, 0.04, 1.2};
     exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
-    EXPECT_EQ(exciter.rootCheck(inputs,
-                                emptyStateData,
-                                cLocalSolverMode,
-                                CheckLevel::REVERSABLE_ONLY),
-              ChangeCode::JACOBIAN_CHANGE);
+    EXPECT_EQ(
+        exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
     exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
     EXPECT_LT(derivative[1], 0.0);
 
     // Exercise the symmetric lower-bound entry and inward release.
     state = {0.4, -1.1, 0.04, 1.2};
     exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
-    EXPECT_EQ(exciter.rootCheck(inputs,
-                                emptyStateData,
-                                cLocalSolverMode,
-                                CheckLevel::REVERSABLE_ONLY),
-              ChangeCode::JACOBIAN_CHANGE);
+    EXPECT_EQ(
+        exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
     EXPECT_DOUBLE_EQ(exciter.getStates()[1], -1.0);
     state = {0.4, -1.0, 0.04, 0.8};
     exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
-    EXPECT_EQ(exciter.rootCheck(inputs,
-                                emptyStateData,
-                                cLocalSolverMode,
-                                CheckLevel::REVERSABLE_ONLY),
-              ChangeCode::JACOBIAN_CHANGE);
+    EXPECT_EQ(
+        exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
     exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
     EXPECT_GT(derivative[1], 0.0);
 }

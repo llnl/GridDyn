@@ -43,16 +43,15 @@ double ExciterIEEEX1::regulatorDrive(const IOdata& inputs, const double state[])
     const index_t feedbackState = hasLeadLag() ? 3 : 2;
     const double voltageError =
         Vref + vBias - measuredVoltage - (state[0] * Kf / Tf) + state[feedbackState];
-    const double leadLagOutput = hasLeadLag() ?
-        (Tc * voltageError + (Tb - Tc) * state[2]) / Tb :
-        voltageError;
+    const double leadLagOutput =
+        hasLeadLag() ? (Tc * voltageError + (Tb - Tc) * state[2]) / Tb : voltageError;
     return Ka * leadLagOutput - state[1];
 }
 
 void ExciterIEEEX1::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
-    if ((Ka == 0.0) || (Ta <= 0.0) || (Te <= 0.0) || (Tf <= 0.0) || (Tr < 0.0) ||
-        (Tb < 0.0) || (Tc < 0.0) || (Vrmin > Vrmax)) {
+    if ((Ka == 0.0) || (Ta <= 0.0) || (Te <= 0.0) || (Tf <= 0.0) || (Tr < 0.0) || (Tb < 0.0) ||
+        (Tc < 0.0) || (Vrmin > Vrmax)) {
         throw InvalidParameterValue("IEEEX1 gains, limits, or time constants");
     }
     if (hasLeadLag()) {
@@ -66,8 +65,8 @@ void ExciterIEEEX1::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 }
 
 void ExciterIEEEX1::dynObjectInitializeB(const IOdata& inputs,
-                                          const IOdata& desiredOutput,
-                                          IOdata& fieldSet)
+                                         const IOdata& desiredOutput,
+                                         IOdata& fieldSet)
 {
     if (hasLeadLag()) {
         ExciterDC2A::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
@@ -77,9 +76,9 @@ void ExciterIEEEX1::dynObjectInitializeB(const IOdata& inputs,
 }
 
 void ExciterIEEEX1::residual(const IOdata& inputs,
-                              const StateData& stateData,
-                              double resid[],
-                              const SolverMode& sMode)
+                             const StateData& stateData,
+                             double resid[],
+                             const SolverMode& sMode)
 {
     if (hasLeadLag()) {
         ExciterDC2A::residual(inputs, stateData, resid, sMode);
@@ -96,9 +95,9 @@ void ExciterIEEEX1::residual(const IOdata& inputs,
 }
 
 void ExciterIEEEX1::derivative(const IOdata& inputs,
-                                const StateData& stateData,
-                                double deriv[],
-                                const SolverMode& sMode)
+                               const StateData& stateData,
+                               double deriv[],
+                               const SolverMode& sMode)
 {
     if (hasLeadLag()) {
         ExciterDC2A::derivative(inputs, stateData, deriv, sMode);
@@ -108,17 +107,14 @@ void ExciterIEEEX1::derivative(const IOdata& inputs,
     const double* state = locations.diffStateLoc;
     double* derivatives = locations.destDiffLoc;
     derivatives[0] = (-saturationFeedback(state[0]) + state[1]) / Te;
-    derivatives[1] =
-        opFlags[OUTSIDE_VOLTAGE_LIMITS] ? 0.0 : regulatorDrive(inputs, state) / Ta;
+    derivatives[1] = opFlags[OUTSIDE_VOLTAGE_LIMITS] ? 0.0 : regulatorDrive(inputs, state) / Ta;
     derivatives[2] = (-state[2] + ((state[0] * Kf) / Tf)) / Tf;
     if (Tr > 0.0) {
         derivatives[3] = (inputs[VOLTAGE_IN_LOCATION] - state[3]) / Tr;
     }
 }
 
-void ExciterIEEEX1::timestep(CoreTime time,
-                             const IOdata& inputs,
-                             const SolverMode& /*sMode*/)
+void ExciterIEEEX1::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
     derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
     const double timeStep = time - prevTime;
@@ -130,10 +126,10 @@ void ExciterIEEEX1::timestep(CoreTime time,
 }
 
 void ExciterIEEEX1::jacobianElements(const IOdata& inputs,
-                                      const StateData& stateData,
-                                      MatrixData<double>& matrixData,
-                                      const IOlocs& inputLocs,
-                                      const SolverMode& sMode)
+                                     const StateData& stateData,
+                                     MatrixData<double>& matrixData,
+                                     const IOlocs& inputLocs,
+                                     const SolverMode& sMode)
 {
     if (hasLeadLag()) {
         ExciterDC2A::jacobianElements(inputs, stateData, matrixData, inputLocs, sMode);
@@ -146,9 +142,7 @@ void ExciterIEEEX1::jacobianElements(const IOdata& inputs,
     const double* state = locations.diffStateLoc;
     const auto offset = offsets.getDiffOffset(sMode);
     const auto voltageLoc = inputLocs[VOLTAGE_IN_LOCATION];
-    matrixData.assign(offset,
-                      offset,
-                      (-saturationDerivative(state[0]) / Te) - stateData.cj);
+    matrixData.assign(offset, offset, (-saturationDerivative(state[0]) / Te) - stateData.cj);
     matrixData.assign(offset, offset + 1, 1.0 / Te);
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         matrixData.assign(offset + 1, offset + 1, -stateData.cj);
@@ -183,9 +177,9 @@ void ExciterIEEEX1::limitJacobian(double /*voltage*/,
 }
 
 void ExciterIEEEX1::rootTest(const IOdata& inputs,
-                              const StateData& stateData,
-                              double roots[],
-                              const SolverMode& sMode)
+                             const StateData& stateData,
+                             double roots[],
+                             const SolverMode& sMode)
 {
     const auto locations = offsets.getLocations(stateData, sMode, this);
     const auto rootOffset = offsets.getRootOffset(sMode);
@@ -204,9 +198,9 @@ void ExciterIEEEX1::rootTest(const IOdata& inputs,
 }
 
 ChangeCode ExciterIEEEX1::rootCheck(const IOdata& inputs,
-                                     const StateData& stateData,
-                                     const SolverMode& sMode,
-                                     CheckLevel level)
+                                    const StateData& stateData,
+                                    const SolverMode& sMode,
+                                    CheckLevel level)
 {
     (void)stateData;
     (void)sMode;
@@ -215,8 +209,7 @@ ChangeCode ExciterIEEEX1::rootCheck(const IOdata& inputs,
     const double terminalVoltage = inputs[VOLTAGE_IN_LOCATION];
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         const double drive = regulatorDrive(inputs, state);
-        if ((opFlags[TRIGGER_HIGH] && (drive < 0.0)) ||
-            (!opFlags[TRIGGER_HIGH] && (drive > 0.0))) {
+        if ((opFlags[TRIGGER_HIGH] && (drive < 0.0)) || (!opFlags[TRIGGER_HIGH] && (drive > 0.0))) {
             opFlags.reset(OUTSIDE_VOLTAGE_LIMITS);
             opFlags.reset(TRIGGER_HIGH);
             alert(this, JAC_COUNT_INCREASE);

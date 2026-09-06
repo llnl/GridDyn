@@ -80,8 +80,7 @@ class ExciterIEEEX1 final: public ExciterDC2A {
                          const StateData& stateData,
                          const SolverMode& sMode,
                          CheckLevel level) override;
-    double get(std::string_view param,
-               units::unit unitType = units::defunit) const override;
+    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     stringVec localStateNames() const override;
 
   private:

@@ -20,11 +20,13 @@
 #include "griddyn/exciters/ExciterEXAC4.h"
 #include "griddyn/exciters/ExciterEXPIC1.h"
 #include "griddyn/exciters/ExciterEXST1.h"
+#include "griddyn/exciters/ExciterIEEEX1.h"
 #include "griddyn/exciters/ExciterIEEEtype1.h"
 #include "griddyn/exciters/ExciterSCRX.h"
 #include "griddyn/exciters/StaticExciterRectifier.h"
 #include "griddyn/genmodels/GenModelGENSAL.h"
 #include "solvers/SolverMode.hpp"
+#include "utilities/MatrixDataSparse.hpp"
 #include <array>
 #include <cmath>
 #include <gtest/gtest.h>
@@ -1025,6 +1027,178 @@ TEST(ExciterModelTests, Ieeet1UsesAndesTransducerAndQuadraticSaturation)
     EXPECT_NEAR(derivative[3], 0.2, 1e-12);
 }
 
+void configureIeeex1(exciters::ExciterIEEEX1& exciter,
+                     double leadLagDenominatorTime,
+                     double leadLagNumeratorTime)
+{
+    exciter.set("tr", 0.1);
+    exciter.set("ka", 10.0);
+    exciter.set("ta", 0.2);
+    exciter.set("tb", leadLagDenominatorTime);
+    exciter.set("tc", leadLagNumeratorTime);
+    exciter.set("vrmax", 2.0);
+    exciter.set("vrmin", -2.0);
+    exciter.set("ke", 1.0);
+    exciter.set("te", 0.5);
+    exciter.set("kf", 0.1);
+    exciter.set("tf", 1.0);
+    exciter.set("e1", 1.0);
+    exciter.set("se1", 0.1);
+    exciter.set("e2", 2.0);
+    exciter.set("se2", 0.4);
+}
+
+TEST(ExciterModelTests, Ieeex1MatchesReferenceBlockEquations)
+{
+    auto factory = CoreObjectFactory::instance();
+    std::unique_ptr<CoreObject> object(factory->createObject("exciter", "ieeex1"));
+    auto* exciter = dynamic_cast<exciters::ExciterIEEEX1*>(object.get());
+    ASSERT_NE(exciter, nullptr);
+    // ANDES LeadLag(zero_out=true) bypasses when TB <= 0, even if TC is
+    // nonzero. This is the common direct path in the NPCC PSS/E records.
+    configureIeeex1(*exciter, 0.0, 0.7);
+    exciter->dynInitializeA(0.0, 0);
+    EXPECT_EQ(exciter->localStateNames(), (stringVec{"ef", "vr", "rf", "vmeas"}));
+
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    IOdata fieldSet(4, 0.0);
+    exciter->dynInitializeB(inputs, {0.4}, fieldSet);
+    ASSERT_EQ(exciter->getStates().size(), 4U);
+    EXPECT_NEAR(exciter->getStates()[0], 0.4, 1e-14);
+    EXPECT_NEAR(exciter->getStates()[1], 0.4, 1e-14);
+    EXPECT_NEAR(exciter->getStates()[2], 0.04, 1e-14);
+    EXPECT_NEAR(exciter->getStates()[3], 1.0, 1e-14);
+
+    std::vector<double> state{0.7, 1.0, 0.05, 0.98};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    exciter->setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    std::vector<double> derivative(state.size(), 0.0);
+    exciter->derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+
+    // Independent evaluation of ExcQuadSat using the two absolute feedback
+    // points E1*SE1=0.1 and E2*SE2=0.8.
+    const double ratio = std::sqrt(0.1 / 0.8);
+    const double saturationThreshold = (1.0 - (ratio * 2.0)) / (1.0 - ratio);
+    const double saturationGain = 0.8 / std::pow(2.0 - saturationThreshold, 2);
+    const double saturationFeedback = saturationGain * std::pow(0.7 - saturationThreshold, 2);
+    EXPECT_NEAR(derivative[0], (1.0 - 0.7 - saturationFeedback) / 0.5, 1e-12);
+    EXPECT_NEAR(derivative[1], -3.0, 1e-12);
+    EXPECT_NEAR(derivative[2], 0.02, 1e-12);
+    EXPECT_NEAR(derivative[3], 0.2, 1e-12);
+
+    exciters::ExciterIEEEX1 leadLagExciter;
+    configureIeeex1(leadLagExciter, 0.2, 0.05);
+    leadLagExciter.dynInitializeA(0.0, 0);
+    EXPECT_EQ(leadLagExciter.localStateNames(), (stringVec{"ef", "vr", "x", "rf", "vmeas"}));
+    leadLagExciter.dynInitializeB(inputs, {0.4}, fieldSet);
+    state = {0.7, 1.0, 0.03, 0.05, 0.98};
+    stateDerivative.assign(state.size(), 0.0);
+    leadLagExciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    derivative.assign(state.size(), 0.0);
+    leadLagExciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[0], (1.0 - 0.7 - saturationFeedback) / 0.5, 1e-12);
+    EXPECT_NEAR(derivative[1], -3.375, 1e-12);
+    EXPECT_NEAR(derivative[2], 0.05, 1e-12);
+    EXPECT_NEAR(derivative[3], 0.02, 1e-12);
+    EXPECT_NEAR(derivative[4], 0.2, 1e-12);
+
+    StateData jacobianState(0.0, state.data(), stateDerivative.data());
+    jacobianState.cj = 1.0;
+    MatrixDataSparse<double> leadLagJacobian;
+    IOlocs leadLagInputLocs(exciterInputCount, kNullLocation);
+    leadLagInputLocs[exciterVoltageInLocation] = 10;
+    leadLagExciter.jacobianElements(
+        inputs, jacobianState, leadLagJacobian, leadLagInputLocs, cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(leadLagJacobian.at(1, 0), -1.25);
+    EXPECT_DOUBLE_EQ(leadLagJacobian.at(1, 1), -6.0);
+    EXPECT_DOUBLE_EQ(leadLagJacobian.at(1, 2), 37.5);
+    EXPECT_DOUBLE_EQ(leadLagJacobian.at(1, 3), 12.5);
+    EXPECT_DOUBLE_EQ(leadLagJacobian.at(1, 4), -12.5);
+    EXPECT_DOUBLE_EQ(leadLagJacobian.at(2, 0), -0.5);
+    EXPECT_DOUBLE_EQ(leadLagJacobian.at(2, 2), -6.0);
+    EXPECT_DOUBLE_EQ(leadLagJacobian.at(2, 3), 5.0);
+    EXPECT_DOUBLE_EQ(leadLagJacobian.at(2, 4), -5.0);
+    EXPECT_DOUBLE_EQ(leadLagJacobian.at(3, 0), 0.1);
+    EXPECT_DOUBLE_EQ(leadLagJacobian.at(3, 3), -2.0);
+    EXPECT_DOUBLE_EQ(leadLagJacobian.at(4, 4), -11.0);
+    EXPECT_DOUBLE_EQ(leadLagJacobian.at(4, 10), 10.0);
+}
+
+TEST(ExciterModelTests, Ieeex1UsesTerminalVoltageLimitsAndConsistentHoldJacobian)
+{
+    exciters::ExciterIEEEX1 exciter;
+    configureIeeex1(exciter, 0.0, 0.0);
+    exciter.dynInitializeA(0.0, 0);
+    exciter.setRootOffset(0, cLocalSolverMode);
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    IOdata fieldSet(4, 0.0);
+    exciter.dynInitializeB(inputs, {0.4}, fieldSet);
+
+    // The sensed-voltage state is 0.8, but the IEEEX1 limiter equation uses
+    // instantaneous VT=0.5, giving bounds +/-1.0 rather than +/-1.6.
+    inputs[exciterVoltageInLocation] = 0.5;
+    std::vector<double> state{0.4, 1.1, 0.04, 0.8};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    EXPECT_EQ(
+        exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
+    EXPECT_DOUBLE_EQ(exciter.getStates()[1], 1.0);
+
+    std::vector<double> derivative(state.size(), 0.0);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(derivative[1], 0.0);
+    MatrixDataSparse<double> jacobian;
+    IOlocs inputLocs(exciterInputCount, kNullLocation);
+    inputLocs[exciterVoltageInLocation] = 10;
+    exciter.jacobianElements(inputs, emptyStateData, jacobian, inputLocs, cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(jacobian.at(1, 1), -1.0);
+    EXPECT_DOUBLE_EQ(jacobian.at(1, 10), 0.0);
+
+    // A negative unconstrained regulator drive releases the upper limit.
+    state = {0.4, 1.0, 0.04, 1.2};
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    EXPECT_EQ(
+        exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_LT(derivative[1], 0.0);
+
+    // Exercise the symmetric lower-bound entry and inward release.
+    state = {0.4, -1.1, 0.04, 1.2};
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    EXPECT_EQ(
+        exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
+    EXPECT_DOUBLE_EQ(exciter.getStates()[1], -1.0);
+    state = {0.4, -1.0, 0.04, 0.8};
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    EXPECT_EQ(
+        exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_GT(derivative[1], 0.0);
+}
+
+TEST(ExciterModelTests, Ieeex1RejectsSingularParameters)
+{
+    for (const auto& [parameter, value] :
+         std::vector<std::pair<std::string, double>>{{"ka", 0.0},
+                                                     {"ta", 0.0},
+                                                     {"te", 0.0},
+                                                     {"tf", 0.0},
+                                                     {"tr", -0.1},
+                                                     {"tb", -0.1},
+                                                     {"tc", -0.1}}) {
+        exciters::ExciterIEEEX1 invalid;
+        configureIeeex1(invalid, 0.0, 0.0);
+        invalid.set(parameter, value);
+        EXPECT_THROW(invalid.dynInitializeA(0.0, 0), InvalidParameterValue) << parameter;
+    }
+}
+
 TEST(ExciterModelTests, CanonicalDcExciterFactoriesSupportVoltageTransducers)
 {
     auto factory = CoreObjectFactory::instance();
@@ -1307,6 +1481,7 @@ TEST_F(ExciterTests, BasicStabilityTest1)
         {"esdc1a", {{"ta", 0.1}, {"ka", 6.0}}},
         {"esdc2a", {{"ta", 0.1}, {"ka", 6.0}}},
         {"exdc2", {{"ta", 0.1}, {"ka", 6.0}}},
+        {"ieeex1", {{"ta", 0.1}, {"ka", 6.0}}},
     };
 
     const std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability.xml");
@@ -1322,6 +1497,7 @@ TEST_F(ExciterTests, BasicStabilityTest2)
         {"esdc1a", {{"ta", 0.1}, {"ka", 6.0}}},
         {"esdc2a", {{"ta", 0.1}, {"ka", 6.0}}},
         {"exdc2", {{"ta", 0.1}, {"ka", 6.0}}},
+        {"ieeex1", {{"ta", 0.1}, {"ka", 6.0}}},
     };
 
     const std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability2.xml");
@@ -1336,6 +1512,7 @@ TEST_F(ExciterTests, BasicStabilityTest3)
         {"esdc1a", {{"ta", 0.1}, {"ka", 6.0}}},
         {"esdc2a", {{"ta", 0.3}, {"ka", 6.0}}},
         {"exdc2", {{"ta", 0.3}, {"ka", 6.0}}},
+        {"ieeex1", {{"ta", 0.3}, {"ka", 6.0}}},
     };
 
     const std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability3.xml");
@@ -1351,6 +1528,7 @@ TEST_F(ExciterTests, BasicStabilityTest4)
         {"esdc1a", {{"ta", 0.1}, {"ka", 6.0}}},
         {"esdc2a", {{"ta", 0.3}, {"ka", 6.0}}},
         {"exdc2", {{"ta", 0.3}, {"ka", 6.0}}},
+        {"ieeex1", {{"ta", 0.3}, {"ka", 6.0}}},
     };
 
     const std::string fileName = std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability4.xml");

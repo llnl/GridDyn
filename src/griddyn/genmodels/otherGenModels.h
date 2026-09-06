@@ -9,6 +9,7 @@
 #include "GenModel5type3.h"
 #include "GenModel6type2.h"
 #include "GenModel8.h"
+#include "GenModelGENROE.h"
 #include "GenModelGENROU.h"
 #include "GenModelGENSAL.h"
 #include "GenModelInverter.h"

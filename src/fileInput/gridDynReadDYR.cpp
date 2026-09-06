@@ -52,10 +52,12 @@ namespace {
 
     void loadGENCLS(CoreObject* parentObject, stringVec& tokens);
     void loadGENROU(CoreObject* parentObject, stringVec& tokens);
+    void loadGENROE(CoreObject* parentObject, stringVec& tokens);
     void loadGENSAL(CoreObject* parentObject, stringVec& tokens);
     void loadESDC1A(CoreObject* parentObject, stringVec& tokens);
     void loadESDC2A(CoreObject* parentObject, stringVec& tokens);
     void loadIEEET1(CoreObject* parentObject, stringVec& tokens);
+    void loadIEEEX1(CoreObject* parentObject, stringVec& tokens);
     void loadESST3A(CoreObject* parentObject, stringVec& tokens);
     void loadESST4B(CoreObject* parentObject, stringVec& tokens);
     void loadEXPIC1(CoreObject* parentObject, stringVec& tokens);
@@ -129,6 +131,8 @@ void loadDyr(CoreObject* parentObject,
             loadGENCLS(parentObject, lineTokens);
         } else if (type == "'GENROU'") {
             loadGENROU(parentObject, lineTokens);
+        } else if (type == "'GENROE'") {
+            loadGENROE(parentObject, lineTokens);
         } else if (type == "'GENSAL'") {
             loadGENSAL(parentObject, lineTokens);
         } else if (type == "'ESDC1A'") {
@@ -137,6 +141,8 @@ void loadDyr(CoreObject* parentObject,
             loadESDC2A(parentObject, lineTokens);
         } else if (type == "'IEEET1'") {
             loadIEEET1(parentObject, lineTokens);
+        } else if (type == "'IEEEX1'") {
+            loadIEEEX1(parentObject, lineTokens);
         } else if (type == "'ESST3A'") {
             loadESST3A(parentObject, lineTokens);
         } else if (type == "'ESST4B'") {
@@ -283,6 +289,34 @@ namespace {
         genModel->set("s12", params[16]);
     }
 
+    void loadGENROE(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 17U) {
+            throw InvalidParameterValue("GENROE DYR record must contain 17 fields");
+        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "GENROE");
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* genModel = static_cast<GenModel*>(
+            CoreObjectFactory::instance()->createObject("genmodel", "genroe"));
+        // As with GENROU, attach first so the RAW ZSOURCE resistance is retained.
+        gen->add(genModel);
+        genModel->set("tdop", params[3]);
+        genModel->set("tdopp", params[4]);
+        genModel->set("tqop", params[5]);
+        genModel->set("tqopp", params[6]);
+        genModel->set("h", params[7]);
+        genModel->set("d", params[8]);
+        genModel->set("xd", params[9]);
+        genModel->set("xq", params[10]);
+        genModel->set("xdp", params[11]);
+        genModel->set("xqp", params[12]);
+        genModel->set("xdpp", params[13]);
+        genModel->set("xqpp", params[13]);
+        genModel->set("xl", params[14]);
+        genModel->set("s10", params[15]);
+        genModel->set("s12", params[16]);
+    }
+
     void loadGENSAL(CoreObject* parentObject, stringVec& tokens)
     {
         if (tokens.size() != 15U) {
@@ -395,6 +429,38 @@ namespace {
         exciterModel->set("se1", params[14]);
         exciterModel->set("e2", params[15]);
         exciterModel->set("se2", params[16]);
+        gen->add(exciterModel);
+    }
+
+    void loadIEEEX1(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 19U) {
+            throw InvalidParameterValue("IEEEX1 DYR record must contain 19 fields");
+        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "IEEEX1");
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        // PSS/E does not implement the IEEEX1 Switch selector.  Reject an
+        // unverified branch instead of silently importing a different model.
+        if (params[14] != 0.0) {
+            throw InvalidParameterValue("IEEEX1 nonzero Switch is unsupported");
+        }
+        auto* exciterModel =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "ieeex1"));
+        exciterModel->set("tr", params[3]);
+        exciterModel->set("ka", params[4]);
+        exciterModel->set("ta", params[5]);
+        exciterModel->set("tb", params[6]);
+        exciterModel->set("tc", params[7]);
+        exciterModel->set("vrmax", params[8]);
+        exciterModel->set("vrmin", params[9]);
+        exciterModel->set("ke", params[10]);
+        exciterModel->set("te", params[11]);
+        exciterModel->set("kf", params[12]);
+        exciterModel->set("tf", params[13]);
+        exciterModel->set("e1", params[15]);
+        exciterModel->set("se1", params[16]);
+        exciterModel->set("e2", params[17]);
+        exciterModel->set("se2", params[18]);
         gen->add(exciterModel);
     }
 

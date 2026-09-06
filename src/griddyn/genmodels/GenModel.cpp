@@ -68,6 +68,8 @@ static ChildTypeFactory<griddyn::genmodels::GenModel6type2, GenModel>
         std::to_array<std::string_view>({"6.2", "sixtype2", "sixthordertype2", "VItype2", "VI.2"}));
 static ChildTypeFactory<griddyn::genmodels::GenModelGENROU, GenModel>
     gGenrouModelFactory("genmodel", std::to_array<std::string_view>({"genrou"}));
+static ChildTypeFactory<griddyn::genmodels::GenModelGENROE, GenModel>
+    gGenroeModelFactory("genmodel", std::to_array<std::string_view>({"genroe"}));
 static ChildTypeFactory<griddyn::genmodels::GenModelGENSAL, GenModel>
     gGensalModelFactory("genmodel", std::to_array<std::string_view>({"gensal"}));
 static ChildTypeFactory<griddyn::genmodels::GenModel8, GenModel> gEighthOrderGenModelFactory(

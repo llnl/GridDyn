@@ -21,6 +21,7 @@
 #include "ExciterEXAC4.h"
 #include "ExciterEXPIC1.h"
 #include "ExciterEXST1.h"
+#include "ExciterIEEEX1.h"
 #include "ExciterIEEEtype1.h"
 #include "ExciterIEEEtype2.h"
 #include "ExciterSCRX.h"
@@ -57,6 +58,7 @@ namespace exciters {
         static ChildTypeFactory<ExciterEXST1, Exciter> gfeExst1("exciter", "exst1");  // NOLINT
         static ChildTypeFactory<ExciterIEEEtype1, Exciter> gfeType1("exciter", "type1");  // NOLINT
         ChildTypeFactory<ExciterIEEEtype1, Exciter> gFeIeeet1("exciter", "ieeet1");  // NOLINT
+        ChildTypeFactory<ExciterIEEEX1, Exciter> gFeIeeex1("exciter", "ieeex1");  // NOLINT
         static TypeFactory<Exciter> gfeDefault(  // NOLINT
             "exciter",
             stringVec{"basic", "fast"},

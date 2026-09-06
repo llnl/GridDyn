@@ -13,6 +13,7 @@
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
+#include <string>
 
 namespace griddyn::exciters {
 ExciterIEEEX1::ExciterIEEEX1(const std::string& objName): ExciterDC2A(objName) {}

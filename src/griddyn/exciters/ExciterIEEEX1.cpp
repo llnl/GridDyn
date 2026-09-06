@@ -43,9 +43,8 @@ double ExciterIEEEX1::regulatorDrive(const IOdata& inputs, const double state[])
     const index_t feedbackState = hasLeadLag() ? 3 : 2;
     const double voltageError =
         Vref + vBias - measuredVoltage - (state[0] * Kf / Tf) + state[feedbackState];
-    const double leadLagOutput = hasLeadLag() ?
-        ((Tc * voltageError) + ((Tb - Tc) * state[2])) / Tb :
-        voltageError;
+    const double leadLagOutput =
+        hasLeadLag() ? ((Tc * voltageError) + ((Tb - Tc) * state[2])) / Tb : voltageError;
     return (Ka * leadLagOutput) - state[1];
 }
 

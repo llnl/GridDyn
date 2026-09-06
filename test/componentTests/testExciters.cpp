@@ -1027,13 +1027,15 @@ TEST(ExciterModelTests, Ieeet1UsesAndesTransducerAndQuadraticSaturation)
     EXPECT_NEAR(derivative[3], 0.2, 1e-12);
 }
 
-void configureIeeex1(exciters::ExciterIEEEX1& exciter, double tb, double tc)
+void configureIeeex1(exciters::ExciterIEEEX1& exciter,
+                     double leadLagDenominatorTime,
+                     double leadLagNumeratorTime)
 {
     exciter.set("tr", 0.1);
     exciter.set("ka", 10.0);
     exciter.set("ta", 0.2);
-    exciter.set("tb", tb);
-    exciter.set("tc", tc);
+    exciter.set("tb", leadLagDenominatorTime);
+    exciter.set("tc", leadLagNumeratorTime);
     exciter.set("vrmax", 2.0);
     exciter.set("vrmin", -2.0);
     exciter.set("ke", 1.0);
@@ -1077,7 +1079,7 @@ TEST(ExciterModelTests, Ieeex1MatchesReferenceBlockEquations)
     // Independent evaluation of ExcQuadSat using the two absolute feedback
     // points E1*SE1=0.1 and E2*SE2=0.8.
     const double ratio = std::sqrt(0.1 / 0.8);
-    const double saturationThreshold = (1.0 - ratio * 2.0) / (1.0 - ratio);
+    const double saturationThreshold = (1.0 - (ratio * 2.0)) / (1.0 - ratio);
     const double saturationGain = 0.8 / std::pow(2.0 - saturationThreshold, 2);
     const double saturationFeedback =
         saturationGain * std::pow(0.7 - saturationThreshold, 2);

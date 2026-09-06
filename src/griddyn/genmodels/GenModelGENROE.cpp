@@ -8,6 +8,7 @@
 
 #include "core/CoreObjectTemplates.hpp"
 #include "utilities/Saturation.h"
+#include <string>
 
 namespace griddyn::genmodels {
 GenModelGENROE::GenModelGENROE(const std::string& objName): GenModelGENROU(objName)

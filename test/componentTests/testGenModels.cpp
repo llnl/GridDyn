@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 // test case for CoreObject object
 

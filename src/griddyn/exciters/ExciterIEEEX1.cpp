@@ -44,9 +44,9 @@ double ExciterIEEEX1::regulatorDrive(const IOdata& inputs, const double state[])
     const double voltageError =
         Vref + vBias - measuredVoltage - (state[0] * Kf / Tf) + state[feedbackState];
     const double leadLagOutput = hasLeadLag() ?
-        (Tc * voltageError + (Tb - Tc) * state[2]) / Tb :
+        ((Tc * voltageError) + ((Tb - Tc) * state[2])) / Tb :
         voltageError;
-    return Ka * leadLagOutput - state[1];
+    return (Ka * leadLagOutput) - state[1];
 }
 
 void ExciterIEEEX1::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
@@ -122,7 +122,10 @@ void ExciterIEEEX1::timestep(CoreTime time,
 {
     derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
     const double timeStep = time - prevTime;
-    const index_t stateCount = hasLeadLag() ? ((Tr > 0.0) ? 5 : 4) : ((Tr > 0.0) ? 4 : 3);
+    index_t stateCount = hasLeadLag() ? 4 : 3;
+    if (Tr > 0.0) {
+        ++stateCount;
+    }
     for (index_t state = 0; state < stateCount; ++state) {
         m_state[state] += timeStep * m_dstate_dt[state];
     }

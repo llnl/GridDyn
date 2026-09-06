@@ -7,6 +7,12 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ## [unreleased]
 
+- Added native PSS/E `GENROE` and `IEEEX1` dynamic models with exact DYR-reader
+  mappings, initialization/residual/Jacobian coverage, and component tests.
+  `GENROE` uses its exponential saturation curve, while `IEEEX1` supports both
+  the zero-`TB` direct path and the lead-lag path. Independent external
+  trajectory comparisons remain follow-up validation work.
+
 Major changes in cmake and build system
 addition of Braid solvers
 upgrade to sundials 3.1

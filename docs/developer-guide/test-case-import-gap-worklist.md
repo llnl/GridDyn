@@ -20,6 +20,11 @@ smoke runs on 2026-09-05.
 
 Resolved during this audit:
 
+- PSS/E `GENROE` and `IEEEX1` are no longer unsupported DYR records. Native
+  models, exact field mappings, initialization/residual/Jacobian checks, and
+  reader/component tests are now present. The historical corpus counts below
+  remain the pre-integration scan; representative whole-case and independent
+  external-trajectory validation are still follow-up work.
 - RAW generator step-up transformer import no longer belongs on the active
   worklist. It was isolated from
   `interpss\psse\v30\42bus_3winding_from_PSSE_V30.raw` to the fifth generator

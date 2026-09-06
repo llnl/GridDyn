@@ -11,6 +11,7 @@
 #include "griddyn/Generator.h"
 #include "griddyn/genmodels/GenModelClassical.h"
 #include "griddyn/genmodels/GenModelGENROU.h"
+#include "griddyn/genmodels/GenModelGENROE.h"
 #include "griddyn/genmodels/GenModelGENSAL.h"
 #include <cmath>
 #include <gtest/gtest.h>
@@ -86,6 +87,70 @@ TEST_F(GenModelTests, GenclsFactoryRegistration)
     std::unique_ptr<CoreObject> object(cof->createObject("genmodel", "gencls"));
     ASSERT_NE(object, nullptr);
     EXPECT_NE(dynamic_cast<genmodels::GenModelClassical*>(object.get()), nullptr);
+}
+
+TEST_F(GenModelTests, GenroeFactoryCloneAndExponentialSaturation)
+{
+    auto factory = CoreObjectFactory::instance();
+    std::unique_ptr<CoreObject> object(factory->createObject("genmodel", "genroe"));
+    auto* genroe = dynamic_cast<genmodels::GenModelGENROE*>(object.get());
+    ASSERT_NE(genroe, nullptr);
+    configureKundurGenrou(*genroe, 0.10, 0.50);
+    genroe->dynInitializeA(0.0, 0);
+
+    // GENROE fits S(psi)=B psi^A, unlike GENROU's cutoff-scaled quadratic
+    // curve.  Their steady-state field-voltage requirements therefore differ
+    // at this nonsaturation-point operating condition while the electrical
+    // state realization remains the same.
+    genmodels::GenModelGENROU genrou;
+    configureKundurGenrou(genrou, 0.10, 0.50);
+    genrou.dynInitializeA(0.0, 0);
+    IOdata initializationInputs{1.0, 0.0, 0.0, 0.0};
+    IOdata initializationOutput{0.8, 0.2};
+    IOdata genroeFieldSet(4, 0.0);
+    IOdata genrouFieldSet(4, 0.0);
+    genroe->dynInitializeB(initializationInputs, initializationOutput, genroeFieldSet);
+    genrou.dynInitializeB(initializationInputs, initializationOutput, genrouFieldSet);
+    EXPECT_NE(genroeFieldSet[genModelEftInLocation], genrouFieldSet[genModelEftInLocation]);
+
+    std::unique_ptr<CoreObject> cloneObject(genroe->clone());
+    auto* clone = dynamic_cast<genmodels::GenModelGENROE*>(cloneObject.get());
+    ASSERT_NE(clone, nullptr);
+    EXPECT_DOUBLE_EQ(clone->get("s10"), 0.10);
+    EXPECT_DOUBLE_EQ(clone->get("s12"), 0.50);
+}
+
+TEST_F(GenModelTests, GenroeExponentialSaturationMatchesPublishedCurve)
+{
+    const auto initializeAtVoltage = [](double voltage) {
+        genmodels::GenModelGENROE model;
+        configureKundurGenrou(model, 0.10, 0.50);
+        model.dynInitializeA(0.0, 0);
+        IOdata inputs{voltage, 0.0, 0.0, 0.0};
+        IOdata desiredOutput{0.0, 0.0};
+        IOdata fieldSet(4, 0.0);
+        model.dynInitializeB(inputs, desiredOutput, fieldSet);
+        return std::make_pair(model.getStates(), fieldSet[genModelEftInLocation]);
+    };
+
+    // At no load, |psi''|=VT and Efd=VT*(1+S_e(VT)). These values therefore
+    // check both calibration points without reaching into model internals.
+    const auto [statesAtOne, fieldAtOne] = initializeAtVoltage(1.0);
+    const auto [statesAtOnePointTwo, fieldAtOnePointTwo] = initializeAtVoltage(1.2);
+    EXPECT_NEAR(fieldAtOne, 1.1, 1e-13);
+    EXPECT_NEAR(fieldAtOnePointTwo, 1.8, 1e-13);
+    ASSERT_EQ(statesAtOne.size(), 8U);
+    EXPECT_NEAR(statesAtOne[0], 0.0, 1e-13);
+    EXPECT_NEAR(statesAtOne[1], 0.0, 1e-13);
+    EXPECT_NEAR(statesAtOne[2], 0.0, 1e-13);
+    EXPECT_NEAR(statesAtOne[3], 1.0, 1e-13);
+
+    const double exponent = std::log(0.50 / 0.10) / std::log(1.2);
+    const double expectedSaturation = 0.10 * std::pow(1.1, exponent);
+    const auto [statesAtIntermediate, fieldAtIntermediate] = initializeAtVoltage(1.1);
+    (void)statesAtOnePointTwo;
+    (void)statesAtIntermediate;
+    EXPECT_NEAR(fieldAtIntermediate, 1.1 * (1.0 + expectedSaturation), 1e-13);
 }
 
 TEST_F(GenModelTests, GenclsAndesInitialization)
@@ -456,6 +521,24 @@ TEST_F(GenModelTests, GenrouSaturatedEquationChecks)
     Generator* gen = gds->getGen(0);
     ASSERT_NE(gen, nullptr);
     auto* model = new genmodels::GenModelGENROU();
+    configureKundurGenrou(*model, 0.1, 0.3);
+    gen->add(model);
+
+    ASSERT_EQ(gds->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(gds, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runDerivativeCheck(gds, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runAlgebraicCheck(gds, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode, false), 0);
+}
+
+TEST_F(GenModelTests, GenroeSaturatedEquationAndJacobianChecks)
+{
+    const std::string fileName = std::string(GENMODEL_TEST_DIRECTORY "test_model1.xml");
+    gds = readSimXMLFile(fileName);
+
+    Generator* gen = gds->getGen(0);
+    ASSERT_NE(gen, nullptr);
+    auto* model = new genmodels::GenModelGENROE();
     configureKundurGenrou(*model, 0.1, 0.3);
     gen->add(model);
 

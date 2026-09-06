@@ -218,10 +218,8 @@ are currently printed as `unknown object type ...` and skipped.
 
 | Count | Model    |
 | ----: | -------- |
-|   592 | `IEEEX1` |
 |   229 | `DISTR1` |
 |   109 | `IEELBL` |
-|    98 | `GENROE` |
 |    88 | `ESST1A` |
 |    75 | `IEEET2` |
 |    66 | `COMP`   |
@@ -260,7 +258,7 @@ are currently printed as `unknown object type ...` and skipped.
 
 | Planning group                                 | Models                                                                                                                                                                                                                                                                                                                | Source position                                                                                                                                                                                                        | Suggested action                                                                                                |
 | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| First wave: high-count and source-backed       | `IEEEX1`, `GENROE`, `ESST1A`, `IEEET2`, `IEEET3`, `IEEEG2`, `IEEEVC`, `GENSAE`, `CSVGN1`                                                                                                                                                                                                                              | Exact equations found in OpenIPSL, PowerDynamics, or ANDES.                                                                                                                                                            | Port/audit exact models; add DYR schema, initialization, limits, and disturbed-trajectory tests.                |
+| First wave: high-count and source-backed       | `ESST1A`, `IEEET2`, `IEEET3`, `IEEEG2`, `IEEEVC`, `GENSAE`, `CSVGN1`                                                                                                                                                                                                                                                  | Exact equations found in OpenIPSL, PowerDynamics, or ANDES. `IEEEX1` and `GENROE` are now implemented and require only external trajectories. | Port/audit exact models; add DYR schema, initialization, limits, and disturbed-trajectory tests.                |
 | Second wave: source-backed but more structural | `IEE2ST`, `PSS2A`, `STAB3`, `MNLEX2`, `WPIDHY`, `ESAC2A`, `ESAC5A`                                                                                                                                                                                                                                                    | Exact equations found, but require stabilizer, UEL/OEL, compensator, hydro-governor, or exciter-interface work.                                                                                                        | Implement after the core machine/exciter/governor path is stable.                                               |
 | Archaeology / external documentation needed    | `DISTR1`, `IEELBL`, `COMP`, `EXAC3`, `EXST3`, `IEEEX4`, `IEEEX2`, `TIOCR1`, `CGEN1`, `IEEET4`, `IEEET5`, `GAST2A`, `CRCMGV`, `STAB1`, `EXST2`, `TGOV3`, `OEX12T`, `IEET1A`, `IEET5A`, `IEELAL`, `IEEEX3`, `WESGOV`, `ESAC3A`, `TGOV2`, `PTIST3`, `EXAC1A`, `IEEX2A`, `PTIST1`, `BBSEX1`, `EXST2A`, `HYGOV2`, `SYSANG` | No exact local OpenIPSL/GridKit/PowerDynamics/ANDES source found. Several `interpss\psse\v30\Bus200` records look like protection, distribution, or legacy relay/control data rather than ordinary generator controls. | Obtain PSS/E/InterPSS/vendor documentation, or choose explicit unsupported diagnostics/approved approximations. |
 | Blocked external dependency                    | `USRMDL`                                                                                                                                                                                                                                                                                                              | User-written model; DYR parameters alone are insufficient.                                                                                                                                                             | Obtain compiled-model equations/source or an approved replacement before implementation.                        |
@@ -269,10 +267,10 @@ are currently printed as `unknown object type ...` and skipped.
 
 | Model    | Source found                        | Notes                                                                                       |
 | -------- | ----------------------------------- | ------------------------------------------------------------------------------------------- |
-| `GENROE` | OpenIPSL + PowerDynamics.jl         | PowerDynamics has OpenIPSL validation tests; do not alias to quadratic-saturation `GENROU`. |
+| `GENROE` | OpenIPSL + PowerDynamics.jl         | **Implemented; external trajectory pending.** Dedicated exponential saturation; do not alias to quadratic-saturation `GENROU`. |
 | `GENSAE` | OpenIPSL + PowerDynamics.jl         | PowerDynamics has OpenIPSL validation tests; do not alias to quadratic-saturation `GENSAL`. |
 | `ESST1A` | OpenIPSL + PowerDynamics.jl + ANDES | Common static exciter with multiple source paths.                                           |
-| `IEEEX1` | OpenIPSL + ANDES                    | Highest-count source-backed missing model in this corpus.                                   |
+| `IEEEX1` | OpenIPSL + ANDES                    | **Implemented; external trajectory pending.** Formerly the highest-count source-backed gap. |
 | `IEEET2` | OpenIPSL                            | Exact OpenIPSL model exists.                                                                |
 | `IEEET3` | ANDES                               | Exact ANDES implementation exists.                                                          |
 | `IEEEG2` | OpenIPSL                            | Exact OpenIPSL governor model exists.                                                       |
@@ -548,8 +546,8 @@ These were quick import checks, not full validation tests.
 | `illinois200\Illinois200.RAW` + `illinois200\Illinois200_dynamics.dyr`           | exit 0, no unknown model output                                          |
 | `sim3-griddyn-config\powerflowWECC.raw` + `sim3-griddyn-config\dynamicsWECC.dyr` | exit 0, no unknown model output                                          |
 | `brazil7Gen\PSSE\Brazilian_7_bus_Equiv_Model.RAW` + `.dyr`                       | exit 0, skips 5 `GENSAE` records                                         |
-| `3mach-inf_bus\PSSE\ThreeMIB_Benchmark_System.RAW` + `.dyr`                      | exit 0, skips `GENSAE` / `GENROE` records                                |
-| `TwoAreaSystem\*\Benchmark_4ger_33_2015.RAW` + `.dyr`                            | exit 0, skips `GENROE` / `ESST1A` records                                |
+| `3mach-inf_bus\PSSE\ThreeMIB_Benchmark_System.RAW` + `.dyr`                      | Historical run skipped `GENSAE` / `GENROE`; rerun to validate the new GENROE loader          |
+| `TwoAreaSystem\*\Benchmark_4ger_33_2015.RAW` + `.dyr`                            | Historical run skipped `GENROE` / `ESST1A`; rerun to validate the new GENROE loader          |
 | `Austrailian14bus\LF_Case01-06_R4_S\AU14GenModel.RAW` + `.dyr`                   | exit -5, `EXAC1 TB must be positive and finite`                          |
 | `interpss\psse\v30\Bus200\200busV29-peak.raw` + `200bus-gen-0805.dyr`            | exit -5, `ESST3A requires an existing generator matching its bus and ID` |
 | `interpss\psse\v30\42bus_3winding_from_PSSE_V30.raw`                             | exit 0, 49 buses and 63 links; default power flow converged              |

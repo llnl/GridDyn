@@ -172,6 +172,8 @@ class GenModelGENROU: public GenModel5 {
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
+    virtual double get(std::string_view param,
+                       units::unit unitType = units::defunit) const override;
 
     virtual IOdata getMachineControllerSignals(const IOdata& inputs,
                                                const StateData& stateDataValue,

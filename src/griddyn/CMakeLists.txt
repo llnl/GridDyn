@@ -19,6 +19,7 @@ set(genmodel_headers
     genmodels/GenModel6.h
     genmodels/GenModel6type2.h
     genmodels/GenModelGENROU.h
+    genmodels/GenModelGENROE.h
     genmodels/GenModelGENSAL.h
     genmodels/GenModel8.h
     genmodels/GenModelInverter.h
@@ -38,6 +39,7 @@ set(genmodel_sources
     genmodels/GenModel6.cpp
     genmodels/GenModel6type2.cpp
     genmodels/GenModelGENROU.cpp
+    genmodels/GenModelGENROE.cpp
     genmodels/GenModelGENSAL.cpp
     genmodels/GenModel8.cpp
     genmodels/GenModelInverter.cpp
@@ -99,6 +101,7 @@ set(exciter_headers
     exciters/ExciterEXST1.h
     exciters/ExciterIEEEtype1.h
     exciters/ExciterIEEEtype2.h
+    exciters/ExciterIEEEX1.h
     exciters/ExciterSEXS.h
     exciters/ExciterSCRX.h
 )
@@ -120,6 +123,7 @@ set(exciter_sources
     exciters/ExciterEXST1.cpp
     exciters/ExciterIEEEtype1.cpp
     exciters/ExciterIEEEtype2.cpp
+    exciters/ExciterIEEEX1.cpp
     exciters/ExciterSEXS.cpp
     exciters/ExciterSCRX.cpp
     stabilizers/Stabilizer.cpp

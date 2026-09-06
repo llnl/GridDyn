@@ -5,6 +5,7 @@
  */
 
 #include "../gtestHelper.h"
+#include "core/CoreExceptions.h"
 #include "fileInput/fileInput.h"
 #include "griddyn/Generator.h"
 #include "griddyn/GridBus.h"
@@ -23,10 +24,12 @@
 #include "griddyn/exciters/ExciterEXPIC1.h"
 #include "griddyn/exciters/ExciterEXST1.h"
 #include "griddyn/exciters/ExciterIEEEtype1.h"
+#include "griddyn/exciters/ExciterIEEEX1.h"
 #include "griddyn/exciters/ExciterSCRX.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/genmodels/GenModelClassical.h"
 #include "griddyn/genmodels/GenModelGENROU.h"
+#include "griddyn/genmodels/GenModelGENROE.h"
 #include "griddyn/genmodels/GenModelGENSAL.h"
 #include "griddyn/governors/GovernorGast.h"
 #include "griddyn/governors/GovernorGgov1.h"
@@ -301,6 +304,91 @@ TEST(AndesDyrReaderTests, MapsGensalParametersInPsseDyrOrder)
     ASSERT_EQ(simulation->dynInitialize(), 0);
     EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(AndesDyrReaderTests, MapsGenroeAndIeeex1ParametersInPsseDyrOrder)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genroe_ieeex1.dyr"));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = bus->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    auto* machine =
+        dynamic_cast<griddyn::genmodels::GenModelGENROE*>(generator->find("genmodel"));
+    auto* exciter = dynamic_cast<griddyn::exciters::ExciterIEEEX1*>(generator->find("exciter"));
+    ASSERT_NE(machine, nullptr);
+    ASSERT_NE(exciter, nullptr);
+    const std::pair<std::string_view, double> expectedMachine[]{{"tdop", 6.0},
+                                                                {"tdopp", 0.03},
+                                                                {"tqop", 0.50},
+                                                                {"tqopp", 0.05},
+                                                                {"h", 4.0},
+                                                                {"d", 0.0},
+                                                                {"xd", 1.80},
+                                                                {"xq", 1.70},
+                                                                {"xdp", 0.30},
+                                                                {"xqp", 0.55},
+                                                                {"xdpp", 0.25},
+                                                                {"xqpp", 0.25},
+                                                                {"xl", 0.06},
+                                                                {"s10", 0.10},
+                                                                {"s12", 0.50}};
+    for (const auto& [name, value] : expectedMachine) {
+        EXPECT_DOUBLE_EQ(machine->get(name), value) << name;
+    }
+    const std::pair<std::string_view, double> expectedExciter[]{{"tr", 0.02},
+                                                                {"ka", 50.0},
+                                                                {"ta", 0.05},
+                                                                {"tb", 0.0},
+                                                                {"tc", 0.0},
+                                                                {"vrmax", 5.0},
+                                                                {"vrmin", -5.0},
+                                                                {"ke", 1.0},
+                                                                {"te", 0.50},
+                                                                {"kf", 0.05},
+                                                                {"tf", 1.0},
+                                                                {"switch", 0.0},
+                                                                {"e1", 2.0},
+                                                                {"se1", 0.03},
+                                                                {"e2", 5.0},
+                                                                {"se2", 0.50}};
+    for (const auto& [name, value] : expectedExciter) {
+        EXPECT_DOUBLE_EQ(exciter->get(name), value) << name;
+    }
+}
+
+TEST(AndesDyrReaderTests, InitializesGenroeAndIeeex1WithConsistentEquations)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genroe_ieeex1.dyr"));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = bus->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    auto* machine =
+        dynamic_cast<griddyn::genmodels::GenModelGENROE*>(generator->find("genmodel"));
+    auto* exciter = dynamic_cast<griddyn::exciters::ExciterIEEEX1*>(generator->find("exciter"));
+    ASSERT_NE(machine, nullptr);
+    ASSERT_NE(exciter, nullptr);
+    EXPECT_EQ(exciter->localStateNames(), (griddyn::stringVec{"ef", "vr", "rf", "vmeas"}));
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(AndesDyrReaderTests, RejectsMalformedGenroeAndUnsupportedIeeex1Switch)
+{
+    for (const auto record : {"ieee14_genroe_bad_fields.dyr",
+                              "ieee14_ieeex1_nonzero_switch.dyr"}) {
+        auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+        EXPECT_THROW(griddyn::loadFile(simulation.get(), makeAndesTestPath(record)),
+                     griddyn::InvalidParameterValue)
+            << record;
+    }
 }
 
 TEST(AndesDyrReaderTests, MapsExpic1ParametersInPsseDyrOrder)

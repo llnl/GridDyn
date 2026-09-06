@@ -533,6 +533,59 @@ void GenModelGENROU::set(std::string_view param, double val, units::unit unitTyp
     }
 }
 
+double GenModelGENROU::get(std::string_view param, units::unit unitType) const
+{
+    if (param == "h") {
+        return H;
+    }
+    if (param == "d") {
+        return D;
+    }
+    if ((param == "r") || (param == "rs") || (param == "ra")) {
+        return Rs;
+    }
+    if (param == "xl") {
+        return Xl;
+    }
+    if (param == "xd") {
+        return Xd;
+    }
+    if (param == "xq") {
+        return Xq;
+    }
+    if (param == "xdp") {
+        return Xdp;
+    }
+    if (param == "xqp") {
+        return Xqp;
+    }
+    if ((param == "xdpp") || (param == "xpp")) {
+        return Xdpp;
+    }
+    if (param == "xqpp") {
+        return Xqpp;
+    }
+    if ((param == "tdop") || (param == "td0p")) {
+        return Tdop;
+    }
+    if ((param == "tdopp") || (param == "td0pp")) {
+        return Tdopp;
+    }
+    if ((param == "tqop") || (param == "tq0p")) {
+        return Tqop;
+    }
+    if ((param == "tqopp") || (param == "tq0pp")) {
+        return Tqopp;
+    }
+    if ((param == "s1") || (param == "s10")) {
+        return S10;
+    }
+    if (param == "s12") {
+        return S12;
+    }
+    return GenModel5::get(param, unitType);
+}
+
 static const stringVec
     GEN_MODEL_GENROU_NAMES{"id", "iq", "delta", "freq", "e1d", "e1q", "e2q", "e2d"};
 

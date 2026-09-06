@@ -94,7 +94,19 @@ void GenModelGENSAL::dynObjectInitializeB(const IOdata& inputs,
         terminalVoltage + std::complex<double>(Rs, Xdpp) * terminalCurrent;
     const std::complex<double> epqp =
         subtransientFlux + std::complex<double>(0.0, Xq - Xdpp) * terminalCurrent;
-    const double rotorAngle = std::arg(epqp);
+    double rotorAngle = std::arg(epqp);
+    if (usesExponentialSaturation()) {
+        // GENSAE initializes its rotor angle from the saturated air-gap flux,
+        // rather than the GENSAL unsaturated q-axis internal voltage.
+        const double airGapFluxMagnitude = std::abs(subtransientFlux);
+        const double saturation = sat.compute(airGapFluxMagnitude);
+        const double a = airGapFluxMagnitude * (1.0 + (saturation * (Xq - Xl) / (Xd - Xl)));
+        const double b = std::abs(terminalCurrent) * (Xdpp - Xq);
+        const double fluxCurrentAngle = std::arg(subtransientFlux) - std::arg(terminalCurrent);
+        rotorAngle =
+            std::atan((b * std::cos(fluxCurrentAngle)) / ((b * std::sin(fluxCurrentAngle)) - a)) +
+            std::arg(subtransientFlux);
+    }
     const std::complex<double> rotation = std::polar(1.0, -rotorAngle);
     const std::complex<double> currentDq = std::conj(terminalCurrent * rotation);
     const std::complex<double> fluxDq = subtransientFlux * rotation;
@@ -105,8 +117,11 @@ void GenModelGENSAL::dynObjectInitializeB(const IOdata& inputs,
     const auto coeff = coefficients(Xd, Xdp, Xdpp, Xl);
     const double epq = psi2d - (Xdp - Xdpp) * directCurrent;
     const double psikd = (psi2d - coeff.mK3d * epq) / coeff.mK4d;
-    const double saturation = sat.compute(epq);
-    const double efd = (1.0 + saturation) * epq - (Xd - Xdp) * directCurrent;
+    const double saturation =
+        sat.compute(usesExponentialSaturation() ? std::hypot(psi2d, psi2q) : epq);
+    const double efd = usesExponentialSaturation() ?
+        epq - (Xd - Xdp) * directCurrent + (saturation * psi2d) :
+        (1.0 + saturation) * epq - (Xd - Xdp) * directCurrent;
 
     m_state[0] = directCurrent;
     m_state[1] = quadratureCurrent;
@@ -152,14 +167,19 @@ void GenModelGENSAL::derivative(const IOdata& inputs,
     const auto coeff = coefficients(Xd, Xdp, Xdpp, Xl);
     const double epq = state[2];
     const double psikd = state[3];
+    const double psi2d = coeff.mK3d * epq + coeff.mK4d * psikd;
+    const double saturationInput = usesExponentialSaturation() ? std::hypot(psi2d, state[4]) : epq;
+    const double saturation = sat.compute(saturationInput);
     const double xadIfd = coeff.mK1d * (epq - psikd + (Xdp - Xl) * alg[0]) - (Xd - Xdp) * alg[0] +
-        (1.0 + sat.compute(epq)) * epq;
+        (usesExponentialSaturation() ? epq + (saturation * psi2d) : (1.0 + saturation) * epq);
     const double torque = (Vd + Rs * alg[0]) * alg[0] + (Vq + Rs * alg[1]) * alg[1];
     dst[0] = systemBaseFrequency * (state[1] - 1.0);
     dst[1] = (inputs[genModelPmechInLocation] - torque - D * (state[1] - 1.0)) / (2.0 * H);
     dst[2] = (inputs[genModelEftInLocation] - xadIfd) / Tdop;
     dst[3] = (epq - psikd + (Xdp - Xl) * alg[0]) / Tdopp;
-    dst[4] = (-state[4] - (Xq - Xqpp) * alg[1]) / Tqopp;
+    const double qAxisSaturation =
+        usesExponentialSaturation() ? state[4] * ((Xq - Xl) / (Xd - Xl)) * saturation : 0.0;
+    dst[4] = (-state[4] - (Xq - Xqpp) * alg[1] - qAxisSaturation) / Tqopp;
 }
 
 void GenModelGENSAL::residual(const IOdata& inputs,
@@ -249,15 +269,32 @@ void GenModelGENSAL::jacobianElements(const IOdata& inputs,
                               -inverseInertiaFactor * (Vd * alg[0] + Vq * alg[1]) /
                                   inputs[VOLTAGE_IN_LOCATION]);
 
-    const auto saturation = sat.evaluate(state[2]);
-    const double dSatEpq = 1.0 + saturation.value + state[2] * saturation.derivative;
+    const double psi2d = coeff.mK3d * state[2] + coeff.mK4d * state[3];
+    const double saturationInput =
+        usesExponentialSaturation() ? std::hypot(psi2d, state[4]) : state[2];
+    const auto saturation = sat.evaluate(saturationInput);
+    const double saturationDerivativeOverFlux =
+        (saturationInput > 0.0) ? saturation.derivative / saturationInput : 0.0;
+    const double dSaturationDirect = usesExponentialSaturation() ?
+        saturation.value + ((psi2d * psi2d) * saturationDerivativeOverFlux) :
+        1.0 + saturation.value + state[2] * saturation.derivative;
+    const double dSaturationQuadrature =
+        usesExponentialSaturation() ? psi2d * state[4] * saturationDerivativeOverFlux : 0.0;
     const double dXadId = coeff.mK1d * (Xdp - Xl) - (Xd - Xdp);
-    const double dXadEpq = coeff.mK1d + dSatEpq;
+    const double dXadEpq = coeff.mK1d + (usesExponentialSaturation() ? 1.0 : 0.0) +
+        dSaturationDirect * (usesExponentialSaturation() ? coeff.mK3d : 1.0);
     if (hasAlgebraic(sMode)) {
         matrixData.assign(differentialRow + 2, algebraicRow, -dXadId / Tdop);
     }
     matrixData.assign(differentialRow + 2, differentialRow + 2, -dXadEpq / Tdop - stateData.cj);
-    matrixData.assign(differentialRow + 2, differentialRow + 3, coeff.mK1d / Tdop);
+    matrixData.assign(differentialRow + 2,
+                      differentialRow + 3,
+                      (usesExponentialSaturation() ? coeff.mK1d - (dSaturationDirect * coeff.mK4d) :
+                                                     coeff.mK1d) /
+                          Tdop);
+    if (usesExponentialSaturation()) {
+        matrixData.assign(differentialRow + 2, differentialRow + 4, -dSaturationQuadrature / Tdop);
+    }
     matrixData.assignCheckCol(differentialRow + 2, inputLocs[genModelEftInLocation], 1.0 / Tdop);
     if (hasAlgebraic(sMode)) {
         matrixData.assign(differentialRow + 3, algebraicRow, (Xdp - Xl) / Tdopp);
@@ -267,7 +304,29 @@ void GenModelGENSAL::jacobianElements(const IOdata& inputs,
     if (hasAlgebraic(sMode)) {
         matrixData.assign(differentialRow + 4, algebraicRow + 1, -(Xq - Xqpp) / Tqopp);
     }
-    matrixData.assign(differentialRow + 4, differentialRow + 4, -1.0 / Tqopp - stateData.cj);
+    if (usesExponentialSaturation()) {
+        const double qSaturationFactor = (Xq - Xl) / (Xd - Xl);
+        matrixData.assign(differentialRow + 4,
+                          differentialRow + 2,
+                          -(qSaturationFactor * state[4] * saturationDerivativeOverFlux * psi2d *
+                            coeff.mK3d) /
+                              Tqopp);
+        matrixData.assign(differentialRow + 4,
+                          differentialRow + 3,
+                          -(qSaturationFactor * state[4] * saturationDerivativeOverFlux * psi2d *
+                            coeff.mK4d) /
+                              Tqopp);
+        matrixData.assign(differentialRow + 4,
+                          differentialRow + 4,
+                          (-1.0 -
+                           qSaturationFactor *
+                               (saturation.value +
+                                state[4] * state[4] * saturationDerivativeOverFlux)) /
+                                  Tqopp -
+                              stateData.cj);
+    } else {
+        matrixData.assign(differentialRow + 4, differentialRow + 4, -1.0 / Tqopp - stateData.cj);
+    }
 }
 
 IOdata GenModelGENSAL::getMachineControllerSignals(const IOdata& inputs,
@@ -280,9 +339,13 @@ IOdata GenModelGENSAL::getMachineControllerSignals(const IOdata& inputs,
     const double quadratureVoltage = inputs[VOLTAGE_IN_LOCATION] * std::cos(angle);
     const auto coeff = coefficients(Xd, Xdp, Xdpp, Xl);
     const double epq = loc.diffStateLoc[2];
+    const double psi2d = coeff.mK3d * epq + coeff.mK4d * loc.diffStateLoc[3];
+    const double saturation =
+        sat.compute(usesExponentialSaturation() ? std::hypot(psi2d, loc.diffStateLoc[4]) : epq);
     const double xadIfd =
         coeff.mK1d * (epq - loc.diffStateLoc[3] + (Xdp - Xl) * loc.algStateLoc[0]) -
-        (Xd - Xdp) * loc.algStateLoc[0] + (1.0 + sat.compute(epq)) * epq;
+        (Xd - Xdp) * loc.algStateLoc[0] +
+        (usesExponentialSaturation() ? epq + saturation * psi2d : (1.0 + saturation) * epq);
     IOdata signals(machineControllerSignalCount, kNullVal);
     signals[static_cast<index_t>(MachineControllerSignal::ID)] = loc.algStateLoc[0];
     signals[static_cast<index_t>(MachineControllerSignal::IQ)] = loc.algStateLoc[1];
@@ -381,17 +444,38 @@ MachineSignalDerivativeData
                         -quadratureVoltage * loc.algStateLoc[0] +
                             directVoltage * loc.algStateLoc[1]);
     const auto coeff = coefficients(Xd, Xdp, Xdpp, Xl);
-    const auto saturation = sat.evaluate(loc.diffStateLoc[2]);
+    const double psi2d = coeff.mK3d * loc.diffStateLoc[2] + coeff.mK4d * loc.diffStateLoc[3];
+    const double saturationInput =
+        usesExponentialSaturation() ? std::hypot(psi2d, loc.diffStateLoc[4]) : loc.diffStateLoc[2];
+    const auto saturation = sat.evaluate(saturationInput);
+    const double saturationDerivativeOverFlux =
+        (saturationInput > 0.0) ? saturation.derivative / saturationInput : 0.0;
     addSignalDerivative(data,
                         MachineControllerSignal::XADIFD,
                         algebraicRow,
                         coeff.mK1d * (Xdp - Xl) - (Xd - Xdp));
+    addSignalDerivative(
+        data,
+        MachineControllerSignal::XADIFD,
+        differentialRow + 2,
+        usesExponentialSaturation() ?
+            1.0 + coeff.mK1d +
+                coeff.mK3d * (saturation.value + psi2d * psi2d * saturationDerivativeOverFlux) :
+            coeff.mK1d + 1.0 + saturation.value + loc.diffStateLoc[2] * saturation.derivative);
     addSignalDerivative(data,
                         MachineControllerSignal::XADIFD,
-                        differentialRow + 2,
-                        coeff.mK1d + 1.0 + saturation.value +
-                            loc.diffStateLoc[2] * saturation.derivative);
-    addSignalDerivative(data, MachineControllerSignal::XADIFD, differentialRow + 3, -coeff.mK1d);
+                        differentialRow + 3,
+                        usesExponentialSaturation() ? -coeff.mK1d +
+                                coeff.mK4d *
+                                    (saturation.value +
+                                     psi2d * psi2d * saturationDerivativeOverFlux) :
+                                                      -coeff.mK1d);
+    if (usesExponentialSaturation()) {
+        addSignalDerivative(data,
+                            MachineControllerSignal::XADIFD,
+                            differentialRow + 4,
+                            psi2d * loc.diffStateLoc[4] * saturationDerivativeOverFlux);
+    }
     return data;
 }
 
@@ -466,6 +550,11 @@ double GenModelGENSAL::get(std::string_view param, units::unit unitType) const
 stringVec GenModelGENSAL::localStateNames() const
 {
     return {"id", "iq", "delta", "freq", "epq", "psikd", "psi2q"};
+}
+
+bool GenModelGENSAL::usesExponentialSaturation() const
+{
+    return false;
 }
 // NOLINTEND(readability-math-missing-parentheses)
 }  // namespace griddyn::genmodels

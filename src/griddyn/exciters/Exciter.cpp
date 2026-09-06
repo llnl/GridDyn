@@ -14,6 +14,7 @@
 #include "ExciterDC2A.h"
 #include "ExciterESAC1A.h"
 #include "ExciterESAC6A.h"
+#include "ExciterESST1A.h"
 #include "ExciterESST3A.h"
 #include "ExciterESST4B.h"
 #include "ExciterEXAC1.h"
@@ -36,6 +37,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace griddyn {
@@ -47,6 +49,7 @@ namespace exciters {
         static ChildTypeFactory<ExciterDC1A, Exciter> gfeEsdc1a("exciter", "esdc1a");  // NOLINT
         static ChildTypeFactory<ExciterDC2A, Exciter> gfeEsdc2a("exciter", "esdc2a");  // NOLINT
         static ChildTypeFactory<ExciterDC2A, Exciter> gfeExdc2("exciter", "exdc2");  // NOLINT
+        static ChildTypeFactory<ExciterESST1A, Exciter> gfeEsst1a("exciter", "esst1a");  // NOLINT
         static ChildTypeFactory<ExciterESST3A, Exciter> gfeEsst3a("exciter", "esst3a");  // NOLINT
         static ChildTypeFactory<ExciterESST4B, Exciter> gfeEsst4b("exciter", "esst4b");  // NOLINT
         static ChildTypeFactory<ExciterEXPIC1, Exciter> gfeExpic1("exciter", "expic1");  // NOLINT

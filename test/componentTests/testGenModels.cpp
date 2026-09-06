@@ -12,6 +12,7 @@
 #include "griddyn/genmodels/GenModelClassical.h"
 #include "griddyn/genmodels/GenModelGENROE.h"
 #include "griddyn/genmodels/GenModelGENROU.h"
+#include "griddyn/genmodels/GenModelGENSAE.h"
 #include "griddyn/genmodels/GenModelGENSAL.h"
 #include <cmath>
 #include <gtest/gtest.h>
@@ -152,6 +153,46 @@ TEST_F(GenModelTests, GenroeExponentialSaturationMatchesPublishedCurve)
     (void)statesAtOnePointTwo;
     (void)statesAtIntermediate;
     EXPECT_NEAR(fieldAtIntermediate, 1.1 * (1.0 + expectedSaturation), 1e-13);
+}
+
+TEST_F(GenModelTests, GensaeFactoryInitializationAndExponentialFluxSaturation)
+{
+    auto factory = CoreObjectFactory::instance();
+    std::unique_ptr<CoreObject> object(factory->createObject("genmodel", "gensae"));
+    auto* model = dynamic_cast<genmodels::GenModelGENSAE*>(object.get());
+    ASSERT_NE(model, nullptr);
+    model->set("h", 4.28);
+    model->set("d", 0.0);
+    model->set("r", 0.0);
+    model->set("xl", 0.12);
+    model->set("xd", 1.84);
+    model->set("xq", 1.75);
+    model->set("xdp", 0.41);
+    model->set("xpp", 0.2);
+    model->set("tdop", 5.0);
+    model->set("tdopp", 0.07);
+    model->set("tqopp", 0.09);
+    model->set("s10", 0.11);
+    model->set("s12", 0.39);
+    model->dynInitializeA(0.0, 0);
+
+    IOdata inputs{1.0, 0.0, 0.0, 0.0};
+    IOdata fieldSet(4, 0.0);
+    model->dynInitializeB(inputs, {0.0, 0.0}, fieldSet);
+    ASSERT_EQ(model->getStates().size(), 7U);
+    // At no load the air-gap flux is one pu. GENSAE therefore uses S10,
+    // rather than GENSAL's saturation of E'q, and needs Efd=1+S10.
+    EXPECT_NEAR(fieldSet[genModelEftInLocation], 1.11, 1e-13);
+    EXPECT_NEAR(model->getStates()[0], 0.0, 1e-13);
+    EXPECT_NEAR(model->getStates()[1], 0.0, 1e-13);
+    EXPECT_NEAR(model->getStates()[2], 0.0, 1e-13);
+    EXPECT_NEAR(model->getStates()[3], 1.0, 1e-13);
+
+    std::unique_ptr<CoreObject> cloneObject(model->clone());
+    auto* clone = dynamic_cast<genmodels::GenModelGENSAE*>(cloneObject.get());
+    ASSERT_NE(clone, nullptr);
+    EXPECT_DOUBLE_EQ(clone->get("s10"), 0.11);
+    EXPECT_DOUBLE_EQ(clone->get("s12"), 0.39);
 }
 
 TEST_F(GenModelTests, GenclsAndesInitialization)
@@ -541,6 +582,35 @@ TEST_F(GenModelTests, GenroeSaturatedEquationAndJacobianChecks)
     ASSERT_NE(gen, nullptr);
     auto* model = new genmodels::GenModelGENROE();
     configureKundurGenrou(*model, 0.1, 0.3);
+    gen->add(model);
+
+    ASSERT_EQ(gds->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(gds, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runDerivativeCheck(gds, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runAlgebraicCheck(gds, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode, false), 0);
+}
+
+TEST_F(GenModelTests, GensaeSaturatedEquationAndJacobianChecks)
+{
+    const std::string fileName = std::string(GENMODEL_TEST_DIRECTORY "test_model1.xml");
+    gds = readSimXMLFile(fileName);
+    Generator* gen = gds->getGen(0);
+    ASSERT_NE(gen, nullptr);
+    auto* model = new genmodels::GenModelGENSAE();
+    model->set("h", 4.28);
+    model->set("d", 0.0);
+    model->set("r", 0.0);
+    model->set("xl", 0.12);
+    model->set("xd", 1.84);
+    model->set("xq", 1.75);
+    model->set("xdp", 0.41);
+    model->set("xpp", 0.2);
+    model->set("tdop", 5.0);
+    model->set("tdopp", 0.07);
+    model->set("tqopp", 0.09);
+    model->set("s10", 0.11);
+    model->set("s12", 0.39);
     gen->add(model);
 
     ASSERT_EQ(gds->dynInitialize(), 0);

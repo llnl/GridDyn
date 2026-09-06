@@ -7,7 +7,9 @@
 #pragma once
 
 #include "GenModel5.h"
+#include <cstdint>
 #include <string>
+#include <string_view>
 
 namespace griddyn::genmodels {
 /** PSS/E GENSAL salient-pole synchronous-machine model.
@@ -40,7 +42,7 @@ namespace griddyn::genmodels {
  *
  * @see OpenIPSL.Electrical.Machines.PSSE.GENSAL
  */
-class GenModelGENSAL final: public GenModel5 {
+class GenModelGENSAL: public GenModel5 {
   public:
     explicit GenModelGENSAL(const std::string& objName = "gensal_#");
     CoreObject* clone(CoreObject* obj = nullptr) const override;
@@ -78,5 +80,9 @@ class GenModelGENSAL final: public GenModel5 {
                                               const StateData& stateData,
                                               const IOlocs& inputLocs,
                                               const SolverMode& sMode) const override;
+
+  protected:
+    /** Selects the GENSAE flux-magnitude saturation realization. */
+    virtual bool usesExponentialSaturation() const;
 };
 }  // namespace griddyn::genmodels

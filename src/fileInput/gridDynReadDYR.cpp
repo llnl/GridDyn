@@ -27,10 +27,12 @@
 #include <array>
 #include <charconv>
 #include <cmath>
+#include <cstddef>
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>
+#include <string_view>
 
 namespace griddyn {
 namespace {
@@ -53,11 +55,13 @@ namespace {
     void loadGENCLS(CoreObject* parentObject, stringVec& tokens);
     void loadGENROU(CoreObject* parentObject, stringVec& tokens);
     void loadGENROE(CoreObject* parentObject, stringVec& tokens);
+    void loadGENSAE(CoreObject* parentObject, stringVec& tokens);
     void loadGENSAL(CoreObject* parentObject, stringVec& tokens);
     void loadESDC1A(CoreObject* parentObject, stringVec& tokens);
     void loadESDC2A(CoreObject* parentObject, stringVec& tokens);
     void loadIEEET1(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEX1(CoreObject* parentObject, stringVec& tokens);
+    void loadESST1A(CoreObject* parentObject, stringVec& tokens);
     void loadESST3A(CoreObject* parentObject, stringVec& tokens);
     void loadESST4B(CoreObject* parentObject, stringVec& tokens);
     void loadEXPIC1(CoreObject* parentObject, stringVec& tokens);
@@ -133,6 +137,8 @@ void loadDyr(CoreObject* parentObject,
             loadGENROU(parentObject, lineTokens);
         } else if (type == "'GENROE'") {
             loadGENROE(parentObject, lineTokens);
+        } else if (type == "'GENSAE'") {
+            loadGENSAE(parentObject, lineTokens);
         } else if (type == "'GENSAL'") {
             loadGENSAL(parentObject, lineTokens);
         } else if (type == "'ESDC1A'") {
@@ -143,6 +149,8 @@ void loadDyr(CoreObject* parentObject,
             loadIEEET1(parentObject, lineTokens);
         } else if (type == "'IEEEX1'") {
             loadIEEEX1(parentObject, lineTokens);
+        } else if (type == "'ESST1A'") {
+            loadESST1A(parentObject, lineTokens);
         } else if (type == "'ESST3A'") {
             loadESST3A(parentObject, lineTokens);
         } else if (type == "'ESST4B'") {
@@ -317,6 +325,32 @@ namespace {
         genModel->set("s12", params[16]);
     }
 
+    void loadGENSAE(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 15U) {
+            throw InvalidParameterValue("GENSAE DYR record must contain 15 fields");
+        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "GENSAE");
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* model = static_cast<GenModel*>(
+            CoreObjectFactory::instance()->createObject("genmodel", "gensae"));
+        // The salient-pole records use the same DYR order as GENSAL. Attach
+        // before replacing Xd so the RAW source resistance is preserved.
+        gen->add(model);
+        model->set("tdop", params[3]);
+        model->set("tdopp", params[4]);
+        model->set("tqopp", params[5]);
+        model->set("h", params[6]);
+        model->set("d", params[7]);
+        model->set("xd", params[8]);
+        model->set("xq", params[9]);
+        model->set("xdp", params[10]);
+        model->set("xpp", params[11]);
+        model->set("xl", params[12]);
+        model->set("s10", params[13]);
+        model->set("s12", params[14]);
+    }
+
     void loadGENSAL(CoreObject* parentObject, stringVec& tokens)
     {
         if (tokens.size() != 15U) {
@@ -462,6 +496,41 @@ namespace {
         exciterModel->set("e2", params[17]);
         exciterModel->set("se2", params[18]);
         gen->add(exciterModel);
+    }
+
+    void loadESST1A(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 23U) {
+            throw InvalidParameterValue("ESST1A DYR record must contain 23 fields");
+        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "ESST1A");
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* model =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "esst1a"));
+        // PSS/E order follows the ANDES psse-dyr.yaml schema. UEL and VOS
+        // are selectors, not continuous signals; the standard vss interface
+        // provides the selected VOS source.
+        model->set("uel", params[3]);
+        model->set("vos", params[4]);
+        model->set("tr", params[5]);
+        model->set("vimax", params[6]);
+        model->set("vimin", params[7]);
+        model->set("tb", params[8]);
+        model->set("tc", params[9]);
+        model->set("tb1", params[10]);
+        model->set("tc1", params[11]);
+        model->set("vamax", params[12]);
+        model->set("vamin", params[13]);
+        model->set("ka", params[14]);
+        model->set("ta", params[15]);
+        model->set("ilr", params[16]);
+        model->set("klr", params[17]);
+        model->set("vrmax", params[18]);
+        model->set("vrmin", params[19]);
+        model->set("kf", params[20]);
+        model->set("tf", params[21]);
+        model->set("kc", params[22]);
+        gen->add(model);
     }
 
     void loadESST3A(CoreObject* parentObject, stringVec& tokens)

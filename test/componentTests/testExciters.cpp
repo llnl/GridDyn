@@ -14,6 +14,7 @@
 #include "griddyn/exciters/ExciterDC1A.h"
 #include "griddyn/exciters/ExciterDC2A.h"
 #include "griddyn/exciters/ExciterESAC6A.h"
+#include "griddyn/exciters/ExciterESST1A.h"
 #include "griddyn/exciters/ExciterESST3A.h"
 #include "griddyn/exciters/ExciterESST4B.h"
 #include "griddyn/exciters/ExciterEXAC1.h"
@@ -24,6 +25,7 @@
 #include "griddyn/exciters/ExciterIEEEtype1.h"
 #include "griddyn/exciters/ExciterSCRX.h"
 #include "griddyn/exciters/StaticExciterRectifier.h"
+#include "griddyn/genmodels/GenModelGENSAE.h"
 #include "griddyn/genmodels/GenModelGENSAL.h"
 #include "solvers/SolverMode.hpp"
 #include "utilities/MatrixDataSparse.hpp"
@@ -101,10 +103,11 @@ void verifyStabilityCase(ExciterTests& fixture,
     const auto exciterList = factory->getTypeNames("exciter");
 
     for (const auto& exciterName : exciterList) {
-        if (exciterName.starts_with("fmi") || (exciterName == "esst3a") ||
-            (exciterName == "esst4b") || (exciterName == "exst1") || (exciterName == "exac1") ||
-            (exciterName == "esac1a") || (exciterName == "exac2") || (exciterName == "exac4") ||
-            (exciterName == "expic1") || (exciterName == "scrx") || (exciterName == "esac6a")) {
+        if (exciterName.starts_with("fmi") || (exciterName == "esst1a") ||
+            (exciterName == "esst3a") || (exciterName == "esst4b") || (exciterName == "exst1") ||
+            (exciterName == "exac1") || (exciterName == "esac1a") || (exciterName == "exac2") ||
+            (exciterName == "exac4") || (exciterName == "expic1") || (exciterName == "scrx") ||
+            (exciterName == "esac6a")) {
             continue;
         }
         if (std::find(skippedExcters.begin(), skippedExcters.end(), exciterName) !=
@@ -350,6 +353,49 @@ TEST_F(ExciterTests, Esst4bWithGenrouHasConsistentResidualAndJacobian)
     generator->add(exciter);
     ASSERT_EQ(gds->dynInitialize(), 0);
     EXPECT_EQ(runResidualCheck(gds, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode, false), 0);
+}
+
+TEST_F(ExciterTests, Esst1aWithGensaeHasConsistentResidualAndJacobian)
+{
+    gds = readSimXMLFile(std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability.xml"));
+    auto* generator = gds->getGen(0);
+    ASSERT_NE(generator, nullptr);
+
+    auto* machine = new genmodels::GenModelGENSAE();
+    machine->set("h", 4.28);
+    machine->set("xl", 0.12);
+    machine->set("xd", 1.84);
+    machine->set("xq", 1.75);
+    machine->set("xdp", 0.41);
+    machine->set("xpp", 0.20);
+    machine->set("tdop", 5.0);
+    machine->set("tdopp", 0.07);
+    machine->set("tqopp", 0.09);
+    machine->set("s10", 0.11);
+    machine->set("s12", 0.39);
+    generator->add(machine);
+
+    auto* exciter = new exciters::ExciterESST1A();
+    exciter->set("tr", 0.1);
+    exciter->set("tb", 0.2);
+    exciter->set("tc", 0.05);
+    exciter->set("tb1", 0.1);
+    exciter->set("tc1", 0.02);
+    exciter->set("ka", 20.0);
+    exciter->set("ta", 0.25);
+    exciter->set("vimax", 2.0);
+    exciter->set("vimin", -2.0);
+    exciter->set("vamax", 20.0);
+    exciter->set("vamin", -20.0);
+    exciter->set("vrmax", 20.0);
+    exciter->set("vrmin", -20.0);
+    generator->add(exciter);
+
+    ASSERT_EQ(gds->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(gds, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runDerivativeCheck(gds, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runAlgebraicCheck(gds, cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode, false), 0);
 }
 
@@ -1197,6 +1243,125 @@ TEST(ExciterModelTests, Ieeex1RejectsSingularParameters)
         invalid.set(parameter, value);
         EXPECT_THROW(invalid.dynInitializeA(0.0, 0), InvalidParameterValue) << parameter;
     }
+}
+
+TEST(ExciterModelTests, Esst1aMatchesStaticExciterBlockEquations)
+{
+    auto factory = CoreObjectFactory::instance();
+    std::unique_ptr<CoreObject> object(factory->createObject("exciter", "esst1a"));
+    auto* exciter = dynamic_cast<exciters::ExciterESST1A*>(object.get());
+    ASSERT_NE(exciter, nullptr);
+    exciter->set("tr", 0.1);
+    exciter->set("vimax", 0.3);
+    exciter->set("vimin", -0.3);
+    exciter->set("tb", 0.2);
+    exciter->set("tc", 0.05);
+    exciter->set("tb1", 0.1);
+    exciter->set("tc1", 0.02);
+    exciter->set("ka", 20.0);
+    exciter->set("ta", 0.25);
+    exciter->set("vamax", 2.0);
+    exciter->set("vamin", -2.0);
+    exciter->set("ilr", 0.3);
+    exciter->set("klr", 2.0);
+    exciter->set("vrmax", 5.0);
+    exciter->set("vrmin", -5.0);
+    exciter->set("kf", 0.1);
+    exciter->set("tf", 0.5);
+    exciter->set("kc", 0.2);
+    exciter->set("uel", 1.0);
+    exciter->set("vos", 1.0);
+    exciter->dynInitializeA(0.0, 0);
+    EXPECT_EQ(exciter->localStateNames(), (stringVec{"efd", "vmeas", "ll1", "ll2", "va", "rf"}));
+
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.0;
+    inputs[exciterXadIfdInLocation] = 0.2;
+    IOdata fieldSet(4, 0.0);
+    exciter->dynInitializeB(inputs, {0.4}, fieldSet);
+    ASSERT_EQ(exciter->getStates().size(), 6U);
+    EXPECT_NEAR(exciter->getStates()[0], 0.4, 1e-13);
+    EXPECT_NEAR(exciter->getStates()[1], 1.0, 1e-13);
+    EXPECT_NEAR(exciter->getStates()[2], 0.02, 1e-13);
+    EXPECT_NEAR(exciter->getStates()[3], 0.02, 1e-13);
+    EXPECT_NEAR(exciter->getStates()[4], 0.4, 1e-13);
+    EXPECT_NEAR(exciter->getStates()[5], 0.08, 1e-13);
+
+    inputs[exciterXadIfdInLocation] = 0.5;
+    inputs[exciterVssInLocation] = 0.1;
+    std::vector<double> state{0.4, 0.98, 0.05, 0.03, 0.7, 0.1};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    exciter->setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    std::vector<double> derivative(state.size(), 0.0);
+    exciter->derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+
+    // Independent evaluation of the documented ESST1A blocks. The current
+    // limiter is 2*(0.5-0.3)=0.4 and V_U=0.7-0.4=0.3.
+    EXPECT_NEAR(derivative[1], 0.2, 1e-13);
+    EXPECT_NEAR(derivative[2], 0.65, 1e-13);
+    EXPECT_NEAR(derivative[3], 0.525, 1e-13);
+    EXPECT_NEAR(derivative[4], 0.44, 1e-13);
+    EXPECT_NEAR(derivative[5], -0.08, 1e-13);
+
+    inputs[exciterVsetInLocation] = 1.1;
+    exciter->derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[4], 0.84, 1e-13);
+
+    std::unique_ptr<CoreObject> cloneObject(exciter->clone());
+    auto* clone = dynamic_cast<exciters::ExciterESST1A*>(cloneObject.get());
+    ASSERT_NE(clone, nullptr);
+    EXPECT_DOUBLE_EQ(clone->get("tb1"), 0.1);
+    EXPECT_DOUBLE_EQ(clone->get("vos"), 1.0);
+}
+
+TEST(ExciterModelTests, Esst1aSupportsBypassesAndRejectsUnavailableUelRoutes)
+{
+    exciters::ExciterESST1A bypass;
+    bypass.set("tr", 0.0);
+    bypass.set("tb", 0.0);
+    bypass.set("tc", 0.5);
+    bypass.set("tb1", 0.0);
+    bypass.set("tc1", 0.3);
+    EXPECT_NO_THROW(bypass.dynInitializeA(0.0, 0));
+
+    exciters::ExciterESST1A unavailableUel;
+    unavailableUel.set("uel", 2.0);
+    EXPECT_THROW(unavailableUel.dynInitializeA(0.0, 0), InvalidParameterValue);
+}
+
+TEST(ExciterModelTests, Esst1aAmplifierAntiWindupEntersAndReleasesLimits)
+{
+    exciters::ExciterESST1A exciter;
+    exciter.set("vamax", 1.0);
+    exciter.set("vamin", -1.0);
+    exciter.dynInitializeA(0.0, 0);
+
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.0;
+    IOdata fieldSet(4, 0.0);
+    exciter.dynInitializeB(inputs, {0.4}, fieldSet);
+
+    std::vector<double> state{0.4, 1.0, 0.0, 0.0, 1.1, 0.033};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    inputs[exciterVsetInLocation] = 1.1;
+    EXPECT_EQ(
+        exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
+    EXPECT_DOUBLE_EQ(exciter.getStates()[4], 1.0);
+
+    std::vector<double> derivative(state.size(), 0.0);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(derivative[4], 0.0);
+
+    inputs[exciterVsetInLocation] = 0.9;
+    EXPECT_EQ(
+        exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_LT(derivative[4], 0.0);
 }
 
 TEST(ExciterModelTests, CanonicalDcExciterFactoriesSupportVoltageTransducers)

@@ -23,13 +23,13 @@
 #include "griddyn/exciters/ExciterEXAC4.h"
 #include "griddyn/exciters/ExciterEXPIC1.h"
 #include "griddyn/exciters/ExciterEXST1.h"
-#include "griddyn/exciters/ExciterIEEEtype1.h"
 #include "griddyn/exciters/ExciterIEEEX1.h"
+#include "griddyn/exciters/ExciterIEEEtype1.h"
 #include "griddyn/exciters/ExciterSCRX.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/genmodels/GenModelClassical.h"
-#include "griddyn/genmodels/GenModelGENROU.h"
 #include "griddyn/genmodels/GenModelGENROE.h"
+#include "griddyn/genmodels/GenModelGENROU.h"
 #include "griddyn/genmodels/GenModelGENSAL.h"
 #include "griddyn/governors/GovernorGast.h"
 #include "griddyn/governors/GovernorGgov1.h"
@@ -315,8 +315,7 @@ TEST(AndesDyrReaderTests, MapsGenroeAndIeeex1ParametersInPsseDyrOrder)
     ASSERT_NE(bus, nullptr);
     auto* generator = bus->getGen(0);
     ASSERT_NE(generator, nullptr);
-    auto* machine =
-        dynamic_cast<griddyn::genmodels::GenModelGENROE*>(generator->find("genmodel"));
+    auto* machine = dynamic_cast<griddyn::genmodels::GenModelGENROE*>(generator->find("genmodel"));
     auto* exciter = dynamic_cast<griddyn::exciters::ExciterIEEEX1*>(generator->find("exciter"));
     ASSERT_NE(machine, nullptr);
     ASSERT_NE(exciter, nullptr);
@@ -368,8 +367,7 @@ TEST(AndesDyrReaderTests, InitializesGenroeAndIeeex1WithConsistentEquations)
     ASSERT_NE(bus, nullptr);
     auto* generator = bus->getGen(0);
     ASSERT_NE(generator, nullptr);
-    auto* machine =
-        dynamic_cast<griddyn::genmodels::GenModelGENROE*>(generator->find("genmodel"));
+    auto* machine = dynamic_cast<griddyn::genmodels::GenModelGENROE*>(generator->find("genmodel"));
     auto* exciter = dynamic_cast<griddyn::exciters::ExciterIEEEX1*>(generator->find("exciter"));
     ASSERT_NE(machine, nullptr);
     ASSERT_NE(exciter, nullptr);
@@ -381,8 +379,7 @@ TEST(AndesDyrReaderTests, InitializesGenroeAndIeeex1WithConsistentEquations)
 
 TEST(AndesDyrReaderTests, RejectsMalformedGenroeAndUnsupportedIeeex1Switch)
 {
-    for (const auto record : {"ieee14_genroe_bad_fields.dyr",
-                              "ieee14_ieeex1_nonzero_switch.dyr"}) {
+    for (const auto record : {"ieee14_genroe_bad_fields.dyr", "ieee14_ieeex1_nonzero_switch.dyr"}) {
         auto simulation = std::make_unique<griddyn::GridDynSimulation>();
         griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
         EXPECT_THROW(griddyn::loadFile(simulation.get(), makeAndesTestPath(record)),

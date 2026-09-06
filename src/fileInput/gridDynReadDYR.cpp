@@ -444,8 +444,8 @@ namespace {
         if (params[14] != 0.0) {
             throw InvalidParameterValue("IEEEX1 nonzero Switch is unsupported");
         }
-        auto* exciterModel = static_cast<Exciter*>(
-            CoreObjectFactory::instance()->createObject("exciter", "ieeex1"));
+        auto* exciterModel =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "ieeex1"));
         exciterModel->set("tr", params[3]);
         exciterModel->set("ka", params[4]);
         exciterModel->set("ta", params[5]);

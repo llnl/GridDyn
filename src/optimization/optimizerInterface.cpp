@@ -8,9 +8,9 @@
 
 #include "core/CoreExceptions.h"
 #include "core/FactoryTemplates.hpp"
+#include "gmlc/utilities/stringConversion.h"
 #include "gridDynOpt.h"
 #include "gridOptObjects.h"
-#include "gmlc/utilities/stringConversion.h"
 #include <algorithm>
 #include <iostream>
 #include <map>
@@ -22,7 +22,9 @@ namespace griddyn {
 static ChildClassFactory<BasicOptimizer, OptimizerInterface>
     basicFac(stringVec{"basic", "pricestack"});
 
-OptimizerInterface::OptimizerInterface(std::string_view optName): HelperObject(std::string{optName}) {}
+OptimizerInterface::OptimizerInterface(std::string_view optName): HelperObject(std::string{optName})
+{
+}
 
 OptimizerInterface::OptimizerInterface(GridDynOptimization* gdo, const OptimizationMode& oMode):
     HelperObject("optim"), mode(oMode), mGridDynOptimization(gdo)
@@ -102,11 +104,8 @@ void OptimizerInterface::sparseReInit()
 
 OptimizationData OptimizerInterface::makeOptimizationData(double time)
 {
-    OptimizationData optimizationData(time,
-                                      values.data(),
-                                      ++mEvaluationCount,
-                                      mVariableCount,
-                                      mConstraintCount);
+    OptimizationData optimizationData(
+        time, values.data(), ++mEvaluationCount, mVariableCount, mConstraintCount);
     optimizationData.multiplier = multipliers.data();
     optimizationData.scratch1 = scratch1.data();
     optimizationData.scratch2 = scratch2.data();
@@ -116,11 +115,8 @@ OptimizationData OptimizerInterface::makeOptimizationData(double time)
 OptimizationData OptimizerInterface::makeOptimizationData(double time,
                                                           const double candidateValues[])
 {
-    OptimizationData optimizationData(time,
-                                      candidateValues,
-                                      ++mEvaluationCount,
-                                      mVariableCount,
-                                      mConstraintCount);
+    OptimizationData optimizationData(
+        time, candidateValues, ++mEvaluationCount, mVariableCount, mConstraintCount);
     optimizationData.multiplier = multipliers.data();
     optimizationData.scratch1 = scratch1.data();
     optimizationData.scratch2 = scratch2.data();
@@ -179,8 +175,9 @@ int OptimizerInterface::loadLinearObjective(double time, const double candidateV
         return FUNCTION_EXECUTION_FAILURE;
     }
     linearObjective.reset();
-    const auto optimizationData = (candidateValues == nullptr) ? makeOptimizationData(time) :
-                                                                makeOptimizationData(time, candidateValues);
+    const auto optimizationData = (candidateValues == nullptr) ?
+        makeOptimizationData(time) :
+        makeOptimizationData(time, candidateValues);
     root->linearObj(optimizationData, linearObjective, mode);
     return FUNCTION_EXECUTION_SUCCESS;
 }
@@ -193,8 +190,9 @@ int OptimizerInterface::loadQuadraticObjective(double time, const double candida
     }
     linearObjective.reset();
     quadraticObjective.reset();
-    const auto optimizationData = (candidateValues == nullptr) ? makeOptimizationData(time) :
-                                                                makeOptimizationData(time, candidateValues);
+    const auto optimizationData = (candidateValues == nullptr) ?
+        makeOptimizationData(time) :
+        makeOptimizationData(time, candidateValues);
     root->quadraticObj(optimizationData, linearObjective, quadraticObjective, mode);
     return FUNCTION_EXECUTION_SUCCESS;
 }
@@ -208,8 +206,9 @@ int OptimizerInterface::loadLinearConstraints(double time, const double candidat
     std::fill(constraintLowerBounds.begin(), constraintLowerBounds.end(), 0.0);
     std::fill(constraintUpperBounds.begin(), constraintUpperBounds.end(), 0.0);
     linearConstraints.clear();
-    const auto optimizationData = (candidateValues == nullptr) ? makeOptimizationData(time) :
-                                                                makeOptimizationData(time, candidateValues);
+    const auto optimizationData = (candidateValues == nullptr) ?
+        makeOptimizationData(time) :
+        makeOptimizationData(time, candidateValues);
     root->getConstraints(optimizationData,
                          linearConstraints,
                          constraintUpperBounds.data(),
@@ -225,8 +224,9 @@ double OptimizerInterface::objectiveFunction(double time, const double candidate
         return kNullVal;
     }
     ++mObjectiveCallCount;
-    const auto optimizationData = (candidateValues == nullptr) ? makeOptimizationData(time) :
-                                                                makeOptimizationData(time, candidateValues);
+    const auto optimizationData = (candidateValues == nullptr) ?
+        makeOptimizationData(time) :
+        makeOptimizationData(time, candidateValues);
     return root->objValue(optimizationData, mode);
 }
 
@@ -238,8 +238,9 @@ int OptimizerInterface::gradientFunction(double time, const double candidateValu
     }
     ++mGradientCallCount;
     std::fill(grad, grad + mVariableCount, 0.0);
-    const auto optimizationData = (candidateValues == nullptr) ? makeOptimizationData(time) :
-                                                                makeOptimizationData(time, candidateValues);
+    const auto optimizationData = (candidateValues == nullptr) ?
+        makeOptimizationData(time) :
+        makeOptimizationData(time, candidateValues);
     root->gradient(optimizationData, grad, mode);
     return FUNCTION_EXECUTION_SUCCESS;
 }
@@ -254,8 +255,9 @@ int OptimizerInterface::constraintFunction(double time,
     }
     ++mConstraintCallCount;
     std::fill(constraints, constraints + mConstraintCount, 0.0);
-    const auto optimizationData = (candidateValues == nullptr) ? makeOptimizationData(time) :
-                                                                makeOptimizationData(time, candidateValues);
+    const auto optimizationData = (candidateValues == nullptr) ?
+        makeOptimizationData(time) :
+        makeOptimizationData(time, candidateValues);
     root->constraintValue(optimizationData, constraints, mode);
     return FUNCTION_EXECUTION_SUCCESS;
 }
@@ -270,14 +272,15 @@ int OptimizerInterface::constraintJacobianFunction(double time,
     }
     ++mJacobianCallCount;
     matrixDataRef.clear();
-    const auto optimizationData = (candidateValues == nullptr) ? makeOptimizationData(time) :
-                                                                makeOptimizationData(time, candidateValues);
+    const auto optimizationData = (candidateValues == nullptr) ?
+        makeOptimizationData(time) :
+        makeOptimizationData(time, candidateValues);
     root->constraintJacobianElements(optimizationData, matrixDataRef, mode);
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-MatrixDataSparse<double>& OptimizerInterface::constraintJacobianFunction(double time,
-                                                                         const double candidateValues[])
+MatrixDataSparse<double>&
+    OptimizerInterface::constraintJacobianFunction(double time, const double candidateValues[])
 {
     constraintJacobianFunction(time, candidateValues, constraintJacobian);
     return constraintJacobian;
@@ -320,14 +323,12 @@ double OptimizerInterface::get(std::string_view param) const
         return static_cast<double>(mVariableCount);
     }
     if (param == "integer_variables") {
-        return static_cast<double>(std::count(variableType.begin(),
-                                             variableType.end(),
-                                             INTEGER_OBJECTIVE_VARIABLE));
+        return static_cast<double>(
+            std::count(variableType.begin(), variableType.end(), INTEGER_OBJECTIVE_VARIABLE));
     }
     if (param == "binary_variables") {
-        return static_cast<double>(std::count(variableType.begin(),
-                                             variableType.end(),
-                                             BINARY_OBJECTIVE_VARIABLE));
+        return static_cast<double>(
+            std::count(variableType.begin(), variableType.end(), BINARY_OBJECTIVE_VARIABLE));
     }
     if ((param == "constraints") || (param == "constraint_count")) {
         return static_cast<double>(mConstraintCount);
@@ -454,10 +455,11 @@ void OptimizerInterface::logSolverStats(int logLevel, bool /*iconly*/) const
 {
     if (logLevel > 0) {
         std::cout << "Optimizer " << getName() << ": variables=" << mVariableCount
-                  << ", constraints=" << mConstraintCount << ", objective calls="
-                  << mObjectiveCallCount << ", gradient calls=" << mGradientCallCount
-                  << ", constraint calls=" << mConstraintCallCount << ", jacobian calls="
-                  << mJacobianCallCount << '\n';
+                  << ", constraints=" << mConstraintCount
+                  << ", objective calls=" << mObjectiveCallCount
+                  << ", gradient calls=" << mGradientCallCount
+                  << ", constraint calls=" << mConstraintCallCount
+                  << ", jacobian calls=" << mJacobianCallCount << '\n';
     }
 }
 
@@ -479,17 +481,15 @@ int OptimizerInterface::check_flag(void* flagvalue,
         if (*errflag < 0) {
             if (printError) {
                 logMessage(1,
-                           std::string{funcname} + " failed with flag = " +
-                               std::to_string(*errflag));
+                           std::string{funcname} +
+                               " failed with flag = " + std::to_string(*errflag));
             }
             return (1);
         }
     } else if (opt == 2 && flagvalue == nullptr) {
         // Check if function returned nullptr pointer - no memory allocated
         if (printError) {
-            logMessage(1,
-                       std::string{funcname} +
-                           " failed MEMORY_ERROR- returned nullptr pointer");
+            logMessage(1, std::string{funcname} + " failed MEMORY_ERROR- returned nullptr pointer");
         }
         return (1);
     }
@@ -506,14 +506,18 @@ void OptimizerInterface::logMessage(int errorCode, std::string_view message)
         lastErrorCode = errorCode;
         lastErrorString = message;
         if ((printLevel == OptimizerPrintLevel::ERROR_LOG) && (mGridDynOptimization != nullptr)) {
-            logging::logTo(mGridDynOptimization, mGridDynOptimization, PrintLevel::WARNING, message);
+            logging::logTo(mGridDynOptimization,
+                           mGridDynOptimization,
+                           PrintLevel::WARNING,
+                           message);
         }
     }
 }
 
 GridOptObject* OptimizerInterface::rootOptimizationObject() const
 {
-    return (mGridDynOptimization != nullptr) ? mGridDynOptimization->getOptimizationObject() : nullptr;
+    return (mGridDynOptimization != nullptr) ? mGridDynOptimization->getOptimizationObject() :
+                                               nullptr;
 }
 
 BasicOptimizer::BasicOptimizer(std::string_view optName): OptimizerInterface(optName) {}

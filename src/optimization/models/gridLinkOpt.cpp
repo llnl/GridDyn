@@ -12,8 +12,8 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "gridAreaOpt.h"
 #include "gridBusOpt.h"
-#include "griddyn/Link.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/Link.h"
 #include "utilities/MatrixData.hpp"
 #include "utilities/vectData.hpp"
 #include <cmath>
@@ -71,32 +71,32 @@ CoreObject* GridLinkOpt::sourceObject() const
 }
 
 namespace {
-GridBusOpt* findBusAdapter(GridOptObject* parent, const GridBus* sourceBus)
-{
-    if (sourceBus == nullptr) {
+    GridBusOpt* findBusAdapter(GridOptObject* parent, const GridBus* sourceBus)
+    {
+        if (sourceBus == nullptr) {
+            return nullptr;
+        }
+        for (index_t index = 0;; ++index) {
+            auto* busAdapter = dynamic_cast<GridBusOpt*>(parent->getBus(index));
+            if (busAdapter == nullptr) {
+                break;
+            }
+            if (busAdapter->sourceBus() == sourceBus) {
+                return busAdapter;
+            }
+        }
+        for (index_t index = 0;; ++index) {
+            auto* areaAdapter = parent->getArea(index);
+            if (areaAdapter == nullptr) {
+                break;
+            }
+            auto* busAdapter = findBusAdapter(areaAdapter, sourceBus);
+            if (busAdapter != nullptr) {
+                return busAdapter;
+            }
+        }
         return nullptr;
     }
-    for (index_t index = 0;; ++index) {
-        auto* busAdapter = dynamic_cast<GridBusOpt*>(parent->getBus(index));
-        if (busAdapter == nullptr) {
-            break;
-        }
-        if (busAdapter->sourceBus() == sourceBus) {
-            return busAdapter;
-        }
-    }
-    for (index_t index = 0;; ++index) {
-        auto* areaAdapter = parent->getArea(index);
-        if (areaAdapter == nullptr) {
-            break;
-        }
-        auto* busAdapter = findBusAdapter(areaAdapter, sourceBus);
-        if (busAdapter != nullptr) {
-            return busAdapter;
-        }
-    }
-    return nullptr;
-}
 }  // namespace
 
 void GridLinkOpt::dynObjectInitializeA(std::uint32_t /*flags*/)
@@ -111,8 +111,12 @@ void GridLinkOpt::dynObjectInitializeA(std::uint32_t /*flags*/)
     // need not be unique in every input format, so neither is a safe key here.
     B1 = findBusAdapter(parentOpt, bus1);
     B2 = findBusAdapter(parentOpt, bus2);
-    if (B1 != nullptr) { B1->add(this); }
-    if (B2 != nullptr) { B2->add(this); }
+    if (B1 != nullptr) {
+        B1->add(this);
+    }
+    if (B2 != nullptr) {
+        B2->add(this);
+    }
 }
 
 void GridLinkOpt::loadSizes(const OptimizationMode& oMode)
@@ -333,13 +337,18 @@ double GridLinkOpt::dcPowerFlow(const GridBusOpt* sourceBus,
         return 0.0;
     }
     const auto reactance = link->get("x");
-    if (std::abs(reactance) < 1e-12) { return 0.0; }
+    if (std::abs(reactance) < 1e-12) {
+        return 0.0;
+    }
     const auto* otherBus = (sourceBus == B1) ? B2 : ((sourceBus == B2) ? B1 : nullptr);
-    if (otherBus == nullptr) { return 0.0; }
+    if (otherBus == nullptr) {
+        return 0.0;
+    }
     const auto& sourceOffsets = sourceBus->offsets.getOffsets(oMode);
     const auto& otherOffsets = otherBus->offsets.getOffsets(oMode);
     return (optimizationData.val[sourceOffsets.aOffset] -
-            optimizationData.val[otherOffsets.aOffset]) / reactance;
+            optimizationData.val[otherOffsets.aOffset]) /
+        reactance;
 }
 
 void GridLinkOpt::dcPowerFlowJacobian(const GridBusOpt* sourceBus,
@@ -352,13 +361,21 @@ void GridLinkOpt::dcPowerFlowJacobian(const GridBusOpt* sourceBus,
         return;
     }
     const auto reactance = link->get("x");
-    if (std::abs(reactance) < 1e-12) { return; }
+    if (std::abs(reactance) < 1e-12) {
+        return;
+    }
     const auto* otherBus = (sourceBus == B1) ? B2 : ((sourceBus == B2) ? B1 : nullptr);
-    if (otherBus == nullptr) { return; }
+    if (otherBus == nullptr) {
+        return;
+    }
     // The bus balance subtracts P_ij = (theta_i - theta_j) / x.
     // Hence d(balance)/d(theta_i) = -1/x and d(balance)/d(theta_j) = +1/x.
-    matrixDataRef.assign(constraintRow, sourceBus->offsets.getOffsets(oMode).aOffset, -1.0 / reactance);
-    matrixDataRef.assign(constraintRow, otherBus->offsets.getOffsets(oMode).aOffset, 1.0 / reactance);
+    matrixDataRef.assign(constraintRow,
+                         sourceBus->offsets.getOffsets(oMode).aOffset,
+                         -1.0 / reactance);
+    matrixDataRef.assign(constraintRow,
+                         otherBus->offsets.getOffsets(oMode).aOffset,
+                         1.0 / reactance);
 }
 
 double GridLinkOpt::get(std::string_view param, units::unit unitType) const

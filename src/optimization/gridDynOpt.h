@@ -108,6 +108,7 @@ class GridDynOptimization: public GridDynSimulation {
     {
         mOptimizerData[oMode.offsetIndex]->initializeJacArray(ssize);
     }
+
   public:
     // void dynInitializeObjects(double initTime, double absInitTime);
 

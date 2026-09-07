@@ -16,8 +16,8 @@
 #include "gridLinkOpt.h"
 #include "gridLoadOpt.h"
 #include "griddyn/Generator.h"
-#include "griddyn/Load.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/Load.h"
 #include "griddyn/loads/ZipLoad.h"
 #include "utilities/MatrixData.hpp"
 #include "utilities/vectData.hpp"
@@ -34,11 +34,12 @@ static OptObjectFactory<GridBusOpt, GridBus> opbus("basic", "bus");
 using units::unit;
 
 namespace {
-bool hasFixedAngle(const GridBus* bus)
-{
-    return (bus != nullptr) &&
-        ((bus->getType() == GridBus::BusType::SLK) || (bus->getType() == GridBus::BusType::AFIX));
-}
+    bool hasFixedAngle(const GridBus* bus)
+    {
+        return (bus != nullptr) &&
+            ((bus->getType() == GridBus::BusType::SLK) ||
+             (bus->getType() == GridBus::BusType::AFIX));
+    }
 }  // namespace
 
 GridBusOpt::GridBusOpt(const std::string& objName): GridOptObject(objName) {}
@@ -104,11 +105,16 @@ void GridBusOpt::dynObjectInitializeA(std::uint32_t flags)
     if (bus != nullptr) {
         auto factory = CoreOptObjectFactory::instance();
         for (index_t index = 0; auto* sourceGenerator = bus->getGen(index); ++index) {
-            const auto found = std::any_of(genList.cbegin(), genList.cend(), [sourceGenerator](const auto* genObject) {
-                return genObject->sourceGenerator() == sourceGenerator;
-            });
+            const auto found =
+                std::any_of(genList.cbegin(),
+                            genList.cend(),
+                            [sourceGenerator](const auto* genObject) {
+                                return genObject->sourceGenerator() == sourceGenerator;
+                            });
             if (!found) {
-                if (auto* genObject = dynamic_cast<GridGenOpt*>(factory->createObject(sourceGenerator)); genObject != nullptr) {
+                if (auto* genObject =
+                        dynamic_cast<GridGenOpt*>(factory->createObject(sourceGenerator));
+                    genObject != nullptr) {
                     add(genObject);
                 }
             }
@@ -167,10 +173,12 @@ void GridBusOpt::guessState(double time, double val[], const OptimizationMode& o
 {
     if ((bus != nullptr) && (val != nullptr)) {
         const auto& optimizationOffsets = offsets.getOffsets(oMode);
-        if ((optimizationOffsets.aOffset != kNullLocation) && (optimizationOffsets.local.aSize > 0)) {
+        if ((optimizationOffsets.aOffset != kNullLocation) &&
+            (optimizationOffsets.local.aSize > 0)) {
             val[optimizationOffsets.aOffset] = bus->getAngle();
         }
-        if ((optimizationOffsets.vOffset != kNullLocation) && (optimizationOffsets.local.vSize > 0)) {
+        if ((optimizationOffsets.vOffset != kNullLocation) &&
+            (optimizationOffsets.local.vSize > 0)) {
             val[optimizationOffsets.vOffset] = bus->getVoltage();
         }
     }
@@ -348,8 +356,10 @@ void GridBusOpt::constraintJacobianElements(const OptimizationData& optimization
             matrixDataRef.assign(busOffsets.constraintOffset + 1, busOffsets.aOffset, 1.0);
         }
         for (const auto* linkObject : linkList) {
-            linkObject->dcPowerFlowJacobian(
-                this, busOffsets.constraintOffset, matrixDataRef, oMode);
+            linkObject->dcPowerFlowJacobian(this,
+                                            busOffsets.constraintOffset,
+                                            matrixDataRef,
+                                            oMode);
         }
     }
     for (auto* loadObject : loadList) {

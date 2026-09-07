@@ -139,8 +139,6 @@ class GridBusOpt: public GridOptObject {
     {
         return static_cast<GridOptObject*>(getParent());
     }
-
-
 };
 
 // bool compareBus (GridBus *bus1, GridBus *bus2, bool cmpLink = false,bool printDiff = false);

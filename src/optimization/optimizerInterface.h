@@ -132,12 +132,13 @@ class OptimizerInterface: public HelperObject {
     virtual int loadLinearConstraints(double time, const double candidateValues[] = nullptr);
     virtual double objectiveFunction(double time, const double candidateValues[] = nullptr);
     virtual int gradientFunction(double time, const double candidateValues[], double grad[]);
-    virtual int constraintFunction(double time, const double candidateValues[], double constraints[]);
+    virtual int
+        constraintFunction(double time, const double candidateValues[], double constraints[]);
     virtual int constraintJacobianFunction(double time,
                                            const double candidateValues[],
                                            MatrixData<double>& matrixDataRef);
-    virtual MatrixDataSparse<double>& constraintJacobianFunction(double time,
-                                                                 const double candidateValues[] = nullptr);
+    virtual MatrixDataSparse<double>&
+        constraintJacobianFunction(double time, const double candidateValues[] = nullptr);
 
     virtual double get(std::string_view param) const override;
     virtual void set(std::string_view param, std::string_view val) override;

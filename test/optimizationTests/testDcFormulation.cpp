@@ -5,17 +5,14 @@
  */
 
 #include "../gtestHelper.h"
-
+#include "griddyn/Generator.h"
+#include "griddyn/GridBus.h"
 #include "optimization/gridDynOpt.h"
 #include "optimization/models/gridBusOpt.h"
 #include "optimization/models/gridGenOpt.h"
 #include "optimization/models/gridLinkOpt.h"
 #include "optimization/optHelperClasses.h"
 #include "optimization/optimizerInterface.h"
-
-#include "griddyn/Generator.h"
-#include "griddyn/GridBus.h"
-
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
@@ -28,8 +25,7 @@ namespace {
 
 std::filesystem::path makePyPowerCasePath(std::string_view fileName)
 {
-    return std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "pypower_tests" /
-        std::string{fileName};
+    return std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "pypower_tests" / std::string{fileName};
 }
 
 std::filesystem::path makeMatPowerCasePath(std::string_view fileName)
@@ -182,13 +178,15 @@ TEST(OptimizationDcFormulationTests, TwoBusDcModelHasBusOwnedBalanceRows)
     EXPECT_EQ(bus1Offsets.constraintOffset, 0);
     EXPECT_EQ(bus2Offsets.constraintOffset, 2);
 
-    std::vector<index_t> usedObjectiveOffsets{
-        bus1Offsets.aOffset, bus2Offsets.aOffset, generatorOffsets.gOffset};
+    std::vector<index_t> usedObjectiveOffsets{bus1Offsets.aOffset,
+                                              bus2Offsets.aOffset,
+                                              generatorOffsets.gOffset};
     std::sort(usedObjectiveOffsets.begin(), usedObjectiveOffsets.end());
     EXPECT_EQ(usedObjectiveOffsets, (std::vector<index_t>{0, 1, 2}));
 
-    std::vector<index_t> usedConstraintOffsets{
-        bus1Offsets.constraintOffset, bus1Offsets.constraintOffset + 1, bus2Offsets.constraintOffset};
+    std::vector<index_t> usedConstraintOffsets{bus1Offsets.constraintOffset,
+                                               bus1Offsets.constraintOffset + 1,
+                                               bus2Offsets.constraintOffset};
     std::sort(usedConstraintOffsets.begin(), usedConstraintOffsets.end());
     EXPECT_EQ(usedConstraintOffsets, (std::vector<index_t>{0, 1, 2}));
 
@@ -232,8 +230,9 @@ TEST(OptimizationDcFormulationTests, TwoBusDcFlatLayoutIsZeroBasedAndContiguous)
 
     // Flat layout follows the simulation object traversal: child objective
     // variables are placed first, then the bus-local network angle variables.
-    std::vector<index_t> usedObjectiveOffsets{
-        bus1Offsets.aOffset, bus2Offsets.aOffset, generatorOffsets.gOffset};
+    std::vector<index_t> usedObjectiveOffsets{bus1Offsets.aOffset,
+                                              bus2Offsets.aOffset,
+                                              generatorOffsets.gOffset};
     std::sort(usedObjectiveOffsets.begin(), usedObjectiveOffsets.end());
     EXPECT_EQ(usedObjectiveOffsets, (std::vector<index_t>{0, 1, 2}));
 }
@@ -324,9 +323,7 @@ TEST(OptimizationDcFormulationTests, OptimizerInterfaceDrivesTwoBusDcCallbacks)
 
     EXPECT_EQ(optimizer.loadVariableBounds(0.0), FUNCTION_EXECUTION_SUCCESS);
     EXPECT_EQ(optimizer.loadQuadraticObjective(0.0), FUNCTION_EXECUTION_SUCCESS);
-    EXPECT_EQ(optimizer.constraintFunction(0.0,
-                                           optimizer.val_data(),
-                                           optimizer.constraint_data()),
+    EXPECT_EQ(optimizer.constraintFunction(0.0, optimizer.val_data(), optimizer.constraint_data()),
               FUNCTION_EXECUTION_SUCCESS);
 
     EXPECT_NEAR(optimizer.constraintValues[bus1Offsets.constraintOffset], 0.0, 1e-12);
@@ -334,9 +331,7 @@ TEST(OptimizationDcFormulationTests, OptimizerInterfaceDrivesTwoBusDcCallbacks)
     EXPECT_NEAR(optimizer.constraintValues[bus2Offsets.constraintOffset], 0.0, 1e-12);
     EXPECT_NEAR(optimizer.objectiveFunction(0.0, optimizer.val_data()), 75.0, 1e-12);
 
-    ASSERT_EQ(optimizer.gradientFunction(0.0,
-                                         optimizer.val_data(),
-                                         optimizer.gradientData()),
+    ASSERT_EQ(optimizer.gradientFunction(0.0, optimizer.val_data(), optimizer.gradientData()),
               FUNCTION_EXECUTION_SUCCESS);
     EXPECT_NEAR(optimizer.gradient[generatorOffsets.gOffset], 200.0, 1e-12);
 
@@ -393,7 +388,9 @@ TEST(OptimizationDcFormulationTests, OptimizerInterfaceInitializationLoadsProble
     const auto& generatorOffsets = generator->offsets.getOffsets(mode);
     EXPECT_NEAR(optimizer.values[bus1Offsets.aOffset], physicalBus1->getAngle(), 1e-12);
     EXPECT_NEAR(optimizer.values[bus2Offsets.aOffset], physicalBus2->getAngle(), 1e-12);
-    EXPECT_NEAR(optimizer.values[generatorOffsets.gOffset], physicalGenerator->getRealPower(), 1e-12);
+    EXPECT_NEAR(optimizer.values[generatorOffsets.gOffset],
+                physicalGenerator->getRealPower(),
+                1e-12);
     EXPECT_NEAR(optimizer.tolerances[generatorOffsets.gOffset], 1e-7, 1e-15);
     EXPECT_EQ(optimizer.variableType[generatorOffsets.gOffset], CONTINUOUS_OBJECTIVE_VARIABLE);
 }
@@ -450,12 +447,11 @@ TEST(OptimizationDcFormulationTests, TwoBusIntegratedBasicOptimizerDryRunBeforeS
     const auto& bus2Offsets = bus2->offsets.getOffsets(mode);
     const auto& generatorOffsets = generator->offsets.getOffsets(mode);
 
-    SCOPED_TRACE(::testing::Message{}
-                 << "bus1 angle offset=" << bus1Offsets.aOffset
-                 << ", bus2 angle offset=" << bus2Offsets.aOffset
-                 << ", generator offset=" << generatorOffsets.gOffset
-                 << ", physical pmin=" << physicalGenerator->getPmin()
-                 << ", physical pmax=" << physicalGenerator->getPmax());
+    SCOPED_TRACE(::testing::Message{} << "bus1 angle offset=" << bus1Offsets.aOffset
+                                      << ", bus2 angle offset=" << bus2Offsets.aOffset
+                                      << ", generator offset=" << generatorOffsets.gOffset
+                                      << ", physical pmin=" << physicalGenerator->getPmin()
+                                      << ", physical pmax=" << physicalGenerator->getPmax());
     ASSERT_LT(generatorOffsets.gOffset, optimizer->lowerBounds.size());
 
     EXPECT_NEAR(optimizer->lowerBounds[generatorOffsets.gOffset], 0.0, 1e-12);
@@ -473,9 +469,7 @@ TEST(OptimizationDcFormulationTests, TwoBusIntegratedBasicOptimizerDryRunBeforeS
                                             optimizer->val_data(),
                                             optimizer->constraint_data()),
               FUNCTION_EXECUTION_SUCCESS);
-    EXPECT_EQ(optimizer->gradientFunction(0.0,
-                                          optimizer->val_data(),
-                                          optimizer->gradientData()),
+    EXPECT_EQ(optimizer->gradientFunction(0.0, optimizer->val_data(), optimizer->gradientData()),
               FUNCTION_EXECUTION_SUCCESS);
     auto& jacobian = optimizer->constraintJacobianFunction(0.0, optimizer->val_data());
     EXPECT_GT(jacobian.size(), 0);
@@ -488,8 +482,8 @@ TEST(OptimizationDcFormulationTests, TwoBusIntegratedBasicOptimizerDryRunBeforeS
     optimizer->values[bus1Offsets.aOffset] = 0.0;
     optimizer->values[bus2Offsets.aOffset] = -0.05;
     ASSERT_EQ(optimizer->constraintFunction(0.0,
-                                           optimizer->val_data(),
-                                           optimizer->constraint_data()),
+                                            optimizer->val_data(),
+                                            optimizer->constraint_data()),
               FUNCTION_EXECUTION_SUCCESS);
     EXPECT_NEAR(optimizer->constraintValues[bus1Offsets.constraintOffset], 0.0, 1e-12);
     EXPECT_NEAR(optimizer->constraintValues[bus1Offsets.constraintOffset + 1], 0.0, 1e-12);
@@ -549,9 +543,7 @@ TEST(OptimizationDcFormulationTests, Case9IntegratedBasicOptimizerDryRunBeforeSo
                                             optimizer->val_data(),
                                             optimizer->constraint_data()),
               FUNCTION_EXECUTION_SUCCESS);
-    EXPECT_EQ(optimizer->gradientFunction(0.0,
-                                          optimizer->val_data(),
-                                          optimizer->gradientData()),
+    EXPECT_EQ(optimizer->gradientFunction(0.0, optimizer->val_data(), optimizer->gradientData()),
               FUNCTION_EXECUTION_SUCCESS);
     auto& jacobian = optimizer->constraintJacobianFunction(0.0, optimizer->val_data());
     EXPECT_GT(jacobian.size(), 0);

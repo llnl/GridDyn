@@ -56,11 +56,11 @@ the standard DC approximation.
 
 | Include                                                              | Defer                                                              |
 | -------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| Generator active-power variables, limits, and linear/quadratic costs       | AC voltage magnitude and reactive-power optimization               |
-| Angle rows for every active `SLK`/`AFIX` bus and bus-angle variables       | Generator PV/slack switching behavior                              |
-| Nodal active-power balance                                                 | Controllable transformer taps and switched shunts                  |
-| In-service branch flow, fixed taps/shifts, and thermal limits              | Losses, contingencies, topology switching, and integer commitments |
-| Objective value, dispatch, flows, constraint status, and dual prices       | AC-OPF, security-constrained OPF, and multi-period scheduling      |
+| Generator active-power variables, limits, and linear/quadratic costs | AC voltage magnitude and reactive-power optimization               |
+| Angle rows for every active `SLK`/`AFIX` bus and bus-angle variables | Generator PV/slack switching behavior                              |
+| Nodal active-power balance                                           | Controllable transformer taps and switched shunts                  |
+| In-service branch flow, fixed taps/shifts, and thermal limits        | Losses, contingencies, topology switching, and integer commitments |
+| Objective value, dispatch, flows, constraint status, and dual prices | AC-OPF, security-constrained OPF, and multi-period scheduling      |
 
 The input network must be structurally valid through GridDyn's existing
 power-flow initialization path. A solved power-flow state is a useful initial

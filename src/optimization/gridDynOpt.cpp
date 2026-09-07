@@ -28,73 +28,74 @@ static TypeFactory<GridDynOptimization>
     gfo("simulation", std::to_array<std::string_view>({"optimization", "optim"}));
 
 namespace {
-GridOptObject* findOptimizationObjectBySource(GridOptObject* root, const CoreObject* sourceObject)
-{
-    if ((root == nullptr) || (sourceObject == nullptr)) {
+    GridOptObject* findOptimizationObjectBySource(GridOptObject* root,
+                                                  const CoreObject* sourceObject)
+    {
+        if ((root == nullptr) || (sourceObject == nullptr)) {
+            return nullptr;
+        }
+        if (root->sourceObject() == sourceObject) {
+            return root;
+        }
+        if (auto* area = dynamic_cast<GridAreaOpt*>(root); area != nullptr) {
+            for (index_t index = 0;; ++index) {
+                auto* found = findOptimizationObjectBySource(area->getArea(index), sourceObject);
+                if (found != nullptr) {
+                    return found;
+                }
+                if (area->getArea(index) == nullptr) {
+                    break;
+                }
+            }
+            for (index_t index = 0;; ++index) {
+                auto* found = findOptimizationObjectBySource(area->getBus(index), sourceObject);
+                if (found != nullptr) {
+                    return found;
+                }
+                if (area->getBus(index) == nullptr) {
+                    break;
+                }
+            }
+            for (index_t index = 0;; ++index) {
+                auto* found = findOptimizationObjectBySource(area->getLink(index), sourceObject);
+                if (found != nullptr) {
+                    return found;
+                }
+                if (area->getLink(index) == nullptr) {
+                    break;
+                }
+            }
+            for (index_t index = 0;; ++index) {
+                auto* found = findOptimizationObjectBySource(area->getRelay(index), sourceObject);
+                if (found != nullptr) {
+                    return found;
+                }
+                if (area->getRelay(index) == nullptr) {
+                    break;
+                }
+            }
+        } else if (auto* bus = dynamic_cast<GridBusOpt*>(root); bus != nullptr) {
+            for (index_t index = 0;; ++index) {
+                auto* found = findOptimizationObjectBySource(bus->getGen(index), sourceObject);
+                if (found != nullptr) {
+                    return found;
+                }
+                if (bus->getGen(index) == nullptr) {
+                    break;
+                }
+            }
+            for (index_t index = 0;; ++index) {
+                auto* found = findOptimizationObjectBySource(bus->getLoad(index), sourceObject);
+                if (found != nullptr) {
+                    return found;
+                }
+                if (bus->getLoad(index) == nullptr) {
+                    break;
+                }
+            }
+        }
         return nullptr;
     }
-    if (root->sourceObject() == sourceObject) {
-        return root;
-    }
-    if (auto* area = dynamic_cast<GridAreaOpt*>(root); area != nullptr) {
-        for (index_t index = 0;; ++index) {
-            auto* found = findOptimizationObjectBySource(area->getArea(index), sourceObject);
-            if (found != nullptr) {
-                return found;
-            }
-            if (area->getArea(index) == nullptr) {
-                break;
-            }
-        }
-        for (index_t index = 0;; ++index) {
-            auto* found = findOptimizationObjectBySource(area->getBus(index), sourceObject);
-            if (found != nullptr) {
-                return found;
-            }
-            if (area->getBus(index) == nullptr) {
-                break;
-            }
-        }
-        for (index_t index = 0;; ++index) {
-            auto* found = findOptimizationObjectBySource(area->getLink(index), sourceObject);
-            if (found != nullptr) {
-                return found;
-            }
-            if (area->getLink(index) == nullptr) {
-                break;
-            }
-        }
-        for (index_t index = 0;; ++index) {
-            auto* found = findOptimizationObjectBySource(area->getRelay(index), sourceObject);
-            if (found != nullptr) {
-                return found;
-            }
-            if (area->getRelay(index) == nullptr) {
-                break;
-            }
-        }
-    } else if (auto* bus = dynamic_cast<GridBusOpt*>(root); bus != nullptr) {
-        for (index_t index = 0;; ++index) {
-            auto* found = findOptimizationObjectBySource(bus->getGen(index), sourceObject);
-            if (found != nullptr) {
-                return found;
-            }
-            if (bus->getGen(index) == nullptr) {
-                break;
-            }
-        }
-        for (index_t index = 0;; ++index) {
-            auto* found = findOptimizationObjectBySource(bus->getLoad(index), sourceObject);
-            if (found != nullptr) {
-                return found;
-            }
-            if (bus->getLoad(index) == nullptr) {
-                break;
-            }
-        }
-    }
-    return nullptr;
-}
 }  // namespace
 
 GridDynOptimization::GridDynOptimization(const std::string& simName):
@@ -120,8 +121,8 @@ CoreObject* GridDynOptimization::clone(CoreObject* obj) const
 }
 
 void GridDynOptimization::initializeOptimizationModel(const OptimizationMode& oMode,
-                                                       int setupMode,
-                                                       std::uint32_t flags)
+                                                      int setupMode,
+                                                      std::uint32_t flags)
 {
     // Keep the optimizer lifecycle parallel to GridDyn power-flow setup: first
     // traverse the physical hierarchy to construct and bind component models,

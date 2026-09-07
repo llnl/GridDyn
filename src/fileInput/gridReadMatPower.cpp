@@ -22,9 +22,9 @@
 #endif
 
 #include "gmlc/utilities/stringConversion.h"
+#include <algorithm>
 #include <compare>
 #include <cstdlib>
-#include <algorithm>
 #include <string>
 #include <vector>
 

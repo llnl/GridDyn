@@ -111,7 +111,6 @@ count_t GridLoadOpt::constraintSize(const OptimizationMode& oMode)
 
 void GridLoadOpt::dynObjectInitializeA(std::uint32_t /*flags*/) {}
 
-
 void GridLoadOpt::setValues(const OptimizationData& /*of*/, const OptimizationMode& /*oMode*/) {}
 // for saving the state
 void GridLoadOpt::guessState(double /*time*/, double /*val*/[], const OptimizationMode& /*oMode*/)

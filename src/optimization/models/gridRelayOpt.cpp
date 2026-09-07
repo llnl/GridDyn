@@ -57,6 +57,11 @@ CoreObject* GridRelayOpt::clone(CoreObject* obj) const
     return nobj;
 }
 
+CoreObject* GridRelayOpt::sourceObject() const
+{
+    return relay;
+}
+
 void GridRelayOpt::add(CoreObject* obj)
 {
     if (dynamic_cast<Relay*>(obj) != nullptr) {

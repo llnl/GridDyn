@@ -112,6 +112,11 @@ CoreObject* GridGenOpt::clone(CoreObject* obj) const
     return nobj;
 }
 
+CoreObject* GridGenOpt::sourceObject() const
+{
+    return gen;
+}
+
 void GridGenOpt::add(CoreObject* obj)
 {
     if (dynamic_cast<Generator*>(obj) != nullptr) {

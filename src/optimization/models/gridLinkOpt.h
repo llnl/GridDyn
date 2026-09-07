@@ -38,6 +38,7 @@ class GridLinkOpt: public GridOptObject {
     ~GridLinkOpt();
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    CoreObject* sourceObject() const override;
     // add components
     virtual void add(CoreObject* obj) override;
 

@@ -122,6 +122,10 @@ set(dynamic_system_gtest_sources
     systemTests/faultTests.cpp
 )
 
+if(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY)
+    set(optimization_gtest_sources gtestHelperFunctions.cpp optimizationTests/testDcFormulation.cpp)
+endif()
+
 add_library(griddyn_gtest_base INTERFACE)
 target_link_libraries(griddyn_gtest_base INTERFACE griddyn_base)
 target_include_directories(
@@ -171,6 +175,9 @@ add_executable(
     ExecutableSystemTests ${executable_system_gtest_sources} gtestHelper.h exeTestHelper.h
 )
 add_executable(OptionalComponentTests ${optional_component_gtest_sources} ${gtestMain_headers})
+if(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY)
+    add_executable(OptimizationTests ${optimization_gtest_sources} ${gtestMain_headers})
+endif()
 
 target_link_libraries(ExtraTests PRIVATE fileInput griddyn_gtest_base)
 target_link_libraries(LibraryTests PRIVATE fileInput griddyn_gtest_base)
@@ -200,6 +207,9 @@ target_link_libraries(
     OptionalComponentTests PRIVATE griddyn_optional fileInput griddyn_gtest_base
                                    ${optional_component_test_linkages}
 )
+if(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY)
+    target_link_libraries(OptimizationTests PRIVATE optimization fileInput griddyn_gtest_base)
+endif()
 add_gtest(LibraryTests)
 add_gtest(ExtraTests)
 add_gtest(FileReaderTests)
@@ -213,6 +223,9 @@ add_gtest(WorkflowSystemTests)
 add_gtest(DynamicSystemTests)
 add_gtest(ExecutableSystemTests)
 add_gtest(OptionalComponentTests)
+if(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY)
+    add_gtest(OptimizationTests)
+endif()
 set_target_properties(
     LibraryTests
     ExtraTests
@@ -229,6 +242,9 @@ set_target_properties(
     OptionalComponentTests
     PROPERTIES FOLDER tests
 )
+if(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY)
+    set_target_properties(OptimizationTests PROPERTIES FOLDER tests)
+endif()
 set_tests_properties(LibraryTests PROPERTIES LABELS "Quick;Continuous")
 set_tests_properties(ExtraTests PROPERTIES LABELS "Nightly")
 set_tests_properties(FileReaderTests PROPERTIES LABELS "Quick;Continuous")
@@ -242,6 +258,9 @@ set_tests_properties(WorkflowSystemTests PROPERTIES LABELS "Quick;Continuous")
 set_tests_properties(DynamicSystemTests PROPERTIES LABELS "Quick;Continuous")
 set_tests_properties(ExecutableSystemTests PROPERTIES LABELS "Quick;Continuous")
 set_tests_properties(OptionalComponentTests PROPERTIES LABELS "Quick;Continuous")
+if(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY)
+    set_tests_properties(OptimizationTests PROPERTIES LABELS "Quick;Continuous")
+endif()
 
 # message(${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 install(DIRECTORY DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
@@ -258,4 +277,7 @@ install(TARGETS WorkflowSystemTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/
 install(TARGETS DynamicSystemTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
 install(TARGETS ExecutableSystemTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
 install(TARGETS OptionalComponentTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
+if(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY)
+    install(TARGETS OptimizationTests RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)
+endif()
 install(FILES ${KEY_LIBRARY_FILES} DESTINATION ${CMAKE_INSTALL_BINDIR}/test/)

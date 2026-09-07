@@ -65,6 +65,11 @@ CoreObject* GridLinkOpt::clone(CoreObject* obj) const
     return nobj;
 }
 
+CoreObject* GridLinkOpt::sourceObject() const
+{
+    return link;
+}
+
 namespace {
 GridBusOpt* findBusAdapter(GridOptObject* parent, const GridBus* sourceBus)
 {
@@ -123,7 +128,7 @@ void GridLinkOpt::loadSizes(const OptimizationMode& oMode)
             break;
         case FlowModel::DC:
             offsetData.local.contSize = 0;
-            offsetData.local.constraintsSize = 1;
+            offsetData.local.constraintsSize = 0;
             break;
         case FlowModel::AC:
             offsetData.local.contSize = 0;

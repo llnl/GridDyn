@@ -8,6 +8,11 @@ a planning baseline, not a design specification. The first deliverable is a
 reliable, cross-platform **DC optimal power flow (DC-OPF)** implementation;
 AC-OPF and discrete optimization are follow-on work.
 
+The preceding model ownership, distributed assembly, initialization,
+native-solver, and verification work is defined in
+[`optimizer-work-plan.md`](optimizer-work-plan.md). This document covers the
+HiGHS-specific continuation.
+
 ## Why begin with HiGHS
 
 [HiGHS](https://highs.dev/) is an open-source, MIT-licensed C++ solver for
@@ -51,15 +56,17 @@ the standard DC approximation.
 
 | Include                                                              | Defer                                                              |
 | -------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| Generator active-power variables, limits, and linear/quadratic costs | AC voltage magnitude and reactive-power optimization               |
-| One reference-bus angle and bus-angle variables                      | Generator PV/slack switching behavior                              |
-| Nodal active-power balance                                           | Controllable transformer taps, phase shifters, and switched shunts |
-| In-service branch DC flow and thermal limits                         | Losses, contingencies, topology switching, and integer commitments |
-| Objective value, dispatch, flows, constraint status, and dual prices | AC-OPF, security-constrained OPF, and multi-period scheduling      |
+| Generator active-power variables, limits, and linear/quadratic costs       | AC voltage magnitude and reactive-power optimization               |
+| Angle rows for every active `SLK`/`AFIX` bus and bus-angle variables       | Generator PV/slack switching behavior                              |
+| Nodal active-power balance                                                 | Controllable transformer taps and switched shunts                  |
+| In-service branch flow, fixed taps/shifts, and thermal limits              | Losses, contingencies, topology switching, and integer commitments |
+| Objective value, dispatch, flows, constraint status, and dual prices       | AC-OPF, security-constrained OPF, and multi-period scheduling      |
 
-The input network must first solve in GridDyn's existing power-flow path. A
-clearly reported unsupported condition is preferable to silently applying a
-different approximation.
+The input network must be structurally valid through GridDyn's existing
+power-flow initialization path. A solved power-flow state is a useful initial
+seed and post-optimization AC check, not a hidden mathematical prerequisite
+for assembling DC-OPF. A clearly reported unsupported condition is preferable
+to silently applying a different approximation.
 
 ## Major work chunks
 

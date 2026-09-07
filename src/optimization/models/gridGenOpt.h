@@ -39,6 +39,7 @@ class GridGenOpt: public GridOptObject {
     GridGenOpt(CoreObject* obj, const std::string& objName = "");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    CoreObject* sourceObject() const override;
     // add components
 
     virtual void add(CoreObject* obj) override;

@@ -40,6 +40,7 @@ class GridBusOpt: public GridOptObject {
     ~GridBusOpt();
 
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    CoreObject* sourceObject() const override;
     // add components
     void add(CoreObject* obj) override;
     void add(GridLoadOpt* loadObject);

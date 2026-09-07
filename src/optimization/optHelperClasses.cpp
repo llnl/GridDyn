@@ -53,19 +53,19 @@ void OptimizationOffsets::increment()
     if (vOffset != kNullLocation) {
         vOffset += total.vSize;
     } else {
-        contExtra = total.vSize;
+        contExtra += total.vSize;
     }
 
     if (gOffset != kNullLocation) {
         gOffset += total.genSize;
     } else {
-        contExtra = total.genSize;
+        contExtra += total.genSize;
     }
 
     if (qOffset != kNullLocation) {
         qOffset += total.qSize;
     } else {
-        contExtra = total.qSize;
+        contExtra += total.qSize;
     }
     contOffset += total.contSize + contExtra;
 
@@ -89,19 +89,19 @@ void OptimizationOffsets::increment(const OptimizationOffsets& offsets)
     if (vOffset != kNullLocation) {
         vOffset += offsets.total.vSize;
     } else {
-        continuousExtra = offsets.total.vSize;
+        continuousExtra += offsets.total.vSize;
     }
 
     if (gOffset != kNullLocation) {
         gOffset += offsets.total.genSize;
     } else {
-        continuousExtra = offsets.total.genSize;
+        continuousExtra += offsets.total.genSize;
     }
 
     if (qOffset != kNullLocation) {
         qOffset += offsets.total.qSize;
     } else {
-        continuousExtra = offsets.total.qSize;
+        continuousExtra += offsets.total.qSize;
     }
     contOffset += offsets.total.contSize + continuousExtra;
 
@@ -161,33 +161,53 @@ void OptimizationOffsets::localLoad(bool finishedLoading)
 
 void OptimizationOffsets::setOffsets(const OptimizationOffsets& newOffsets)
 {
-    aOffset = newOffsets.aOffset;
-    vOffset = newOffsets.vOffset;
-    gOffset = newOffsets.gOffset;
-    qOffset = newOffsets.qOffset;
-    contOffset = newOffsets.contOffset;
-    intOffset = newOffsets.intOffset;
+    contOffset = (newOffsets.contOffset != kNullLocation) ? newOffsets.contOffset : 0;
 
     constraintOffset = newOffsets.constraintOffset;
 
-    if (aOffset == kNullLocation) {
-        aOffset = contOffset;
-        contOffset += total.aSize;
+    if (total.aSize > 0) {
+        aOffset = newOffsets.aOffset;
+        if (aOffset == kNullLocation) {
+            aOffset = contOffset;
+            contOffset += total.aSize;
+        }
+    } else {
+        aOffset = kNullLocation;
     }
-    if (vOffset == kNullLocation) {
-        vOffset = contOffset;
-        contOffset += total.vSize;
+    if (total.vSize > 0) {
+        vOffset = newOffsets.vOffset;
+        if (vOffset == kNullLocation) {
+            vOffset = contOffset;
+            contOffset += total.vSize;
+        }
+    } else {
+        vOffset = kNullLocation;
     }
-    if (gOffset == kNullLocation) {
-        gOffset = contOffset;
-        contOffset += total.genSize;
+    if (total.genSize > 0) {
+        gOffset = newOffsets.gOffset;
+        if (gOffset == kNullLocation) {
+            gOffset = contOffset;
+            contOffset += total.genSize;
+        }
+    } else {
+        gOffset = kNullLocation;
     }
-    if (qOffset == kNullLocation) {
-        qOffset = contOffset;
-        contOffset += total.qSize;
+    if (total.qSize > 0) {
+        qOffset = newOffsets.qOffset;
+        if (qOffset == kNullLocation) {
+            qOffset = contOffset;
+            contOffset += total.qSize;
+        }
+    } else {
+        qOffset = kNullLocation;
     }
-    if (intOffset == kNullLocation) {
-        intOffset = contOffset + total.contSize;
+    if (total.intSize > 0) {
+        intOffset = newOffsets.intOffset;
+        if (intOffset == kNullLocation) {
+            intOffset = contOffset + total.contSize;
+        }
+    } else {
+        intOffset = kNullLocation;
     }
 }
 
@@ -199,6 +219,21 @@ void OptimizationOffsets::setOffset(index_t newOffset)
     qOffset = gOffset + total.genSize;
     contOffset = qOffset + total.qSize;
     intOffset = contOffset + total.contSize;
+    if (total.aSize == 0) {
+        aOffset = kNullLocation;
+    }
+    if (total.vSize == 0) {
+        vOffset = kNullLocation;
+    }
+    if (total.genSize == 0) {
+        gOffset = kNullLocation;
+    }
+    if (total.qSize == 0) {
+        qOffset = kNullLocation;
+    }
+    if (total.intSize == 0) {
+        intOffset = kNullLocation;
+    }
 }
 using gmlc::utilities::ensureSizeAtLeast;
 

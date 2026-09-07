@@ -57,6 +57,11 @@ CoreObject* GridLoadOpt::clone(CoreObject* obj) const
     return nobj;
 }
 
+CoreObject* GridLoadOpt::sourceObject() const
+{
+    return load;
+}
+
 void GridLoadOpt::add(CoreObject* obj)
 {
     if (dynamic_cast<ZipLoad*>(obj) != nullptr) {

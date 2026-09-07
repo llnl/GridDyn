@@ -90,6 +90,11 @@ CoreObject* GridBusOpt::clone(CoreObject* obj) const
     return nobj;
 }
 
+CoreObject* GridBusOpt::sourceObject() const
+{
+    return bus;
+}
+
 void GridBusOpt::dynObjectInitializeA(std::uint32_t flags)
 {
     // Passive electrical demand is evaluated directly from the physical bus.

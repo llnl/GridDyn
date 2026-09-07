@@ -39,6 +39,7 @@ class GridAreaOpt: public GridOptObject {
     ~GridAreaOpt();
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    CoreObject* sourceObject() const override;
     // add components
 
     void add(CoreObject* obj) override;

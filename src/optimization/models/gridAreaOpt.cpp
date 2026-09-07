@@ -92,6 +92,11 @@ CoreObject* GridAreaOpt::clone(CoreObject* obj) const
     return nobj;
 }
 
+CoreObject* GridAreaOpt::sourceObject() const
+{
+    return area;
+}
+
 void GridAreaOpt::dynObjectInitializeA(std::uint32_t flags)
 {
     // first do a check to make sure all gridDyn areas are represented by gridDynOpt GridArea
@@ -109,7 +114,7 @@ void GridAreaOpt::dynObjectInitializeA(std::uint32_t flags)
     while (areaObj != nullptr) {
         found = false;
         for (auto* existingGridArea : areaList) {
-            if (areaObj->getID() == existingGridArea->getID()) {
+            if (existingGridArea->sourceObject() == areaObj) {
                 found = true;
                 break;
             }
@@ -132,7 +137,7 @@ void GridAreaOpt::dynObjectInitializeA(std::uint32_t flags)
     while (busObject != nullptr) {
         found = false;
         for (auto* existingBus : busList) {
-            if (isSameObject(busObject, existingBus)) {
+            if (existingBus->sourceObject() == busObject) {
                 found = true;
                 break;
             }
@@ -155,7 +160,7 @@ void GridAreaOpt::dynObjectInitializeA(std::uint32_t flags)
     while (linkObject != nullptr) {
         found = false;
         for (auto* existingLink : linkList) {
-            if (isSameObject(linkObject, existingLink)) {
+            if (existingLink->sourceObject() == linkObject) {
                 found = true;
                 break;
             }

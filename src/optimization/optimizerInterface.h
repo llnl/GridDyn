@@ -235,9 +235,8 @@ class NativeOptimizer: public OptimizerInterface {
 std::shared_ptr<OptimizerInterface> makeOptimizer(GridDynOptimization* gdo,
                                                   const OptimizationMode& oMode);
 
-std::shared_ptr<OptimizerInterface> makeOptimizer(GridDynOptimization* gdo,
-                                                  const OptimizationMode& oMode,
-                                                  std::string_view type);
+std::shared_ptr<OptimizerInterface>
+    makeOptimizer(GridDynOptimization* gdo, const OptimizationMode& oMode, std::string_view type);
 
 std::shared_ptr<OptimizerInterface> makeOptimizer(std::string_view type);
 

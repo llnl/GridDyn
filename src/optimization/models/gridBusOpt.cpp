@@ -36,7 +36,7 @@ using units::unit;
 namespace {
     bool hasFixedAngle(const GridBus* bus)
     {
-    return (bus != nullptr) &&
+        return (bus != nullptr) &&
             ((bus->getType() == GridBus::BusType::SLK) ||
              (bus->getType() == GridBus::BusType::AFIX));
     }
@@ -113,8 +113,8 @@ void GridBusOpt::dynObjectInitializeA(std::uint32_t flags)
                 std::any_of(genList.cbegin(),
                             genList.cend(),
                             [sourceGenerator](const auto* genObject) {
-                return genObject->sourceGenerator() == sourceGenerator;
-            });
+                                return genObject->sourceGenerator() == sourceGenerator;
+                            });
             if (!found) {
                 if (auto* genObject =
                         dynamic_cast<GridGenOpt*>(factory->createObject(sourceGenerator));

@@ -71,33 +71,33 @@ CoreObject* GridLinkOpt::sourceObject() const
 }
 
 namespace {
-// Endpoint lookup follows nested optimization areas recursively.
-// NOLINTNEXTLINE(misc-no-recursion)
-GridBusOpt* findBusAdapter(GridOptObject* parent, const GridBus* sourceBus)
-{
-    if (sourceBus == nullptr) {
+    // Endpoint lookup follows nested optimization areas recursively.
+    // NOLINTNEXTLINE(misc-no-recursion)
+    GridBusOpt* findBusAdapter(GridOptObject* parent, const GridBus* sourceBus)
+    {
+        if (sourceBus == nullptr) {
+            return nullptr;
+        }
+        for (index_t index = 0;; ++index) {
+            auto* busAdapter = dynamic_cast<GridBusOpt*>(parent->getBus(index));
+            if (busAdapter == nullptr) {
+                break;
+            }
+            if (busAdapter->sourceBus() == sourceBus) {
+                return busAdapter;
+            }
+        }
+        for (index_t index = 0;; ++index) {
+            auto* areaAdapter = parent->getArea(index);
+            if (areaAdapter == nullptr) {
+                break;
+            }
+            auto* busAdapter = findBusAdapter(areaAdapter, sourceBus);
+            if (busAdapter != nullptr) {
+                return busAdapter;
+            }
+        }
         return nullptr;
-    }
-    for (index_t index = 0;; ++index) {
-        auto* busAdapter = dynamic_cast<GridBusOpt*>(parent->getBus(index));
-        if (busAdapter == nullptr) {
-            break;
-        }
-        if (busAdapter->sourceBus() == sourceBus) {
-            return busAdapter;
-        }
-    }
-    for (index_t index = 0;; ++index) {
-        auto* areaAdapter = parent->getArea(index);
-        if (areaAdapter == nullptr) {
-            break;
-        }
-        auto* busAdapter = findBusAdapter(areaAdapter, sourceBus);
-        if (busAdapter != nullptr) {
-            return busAdapter;
-        }
-    }
-    return nullptr;
     }
 }  // namespace
 

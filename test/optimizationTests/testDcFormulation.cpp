@@ -21,6 +21,7 @@
 #include <filesystem>
 #include <gtest/gtest.h>
 #include <memory>
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -46,7 +47,11 @@ std::filesystem::path makeValidationCasePath(std::string_view fileName)
 
 griddyn::OptimizationMode makeDcMode(griddyn::LinearityMode linearity)
 {
-    return griddyn::OptimizationMode{griddyn::FlowModel::DC, linearity, 0, 1, 1.0};
+    return griddyn::OptimizationMode{.flowMode = griddyn::FlowModel::DC,
+                                     .linMode = linearity,
+                                     .offsetIndex = 0,
+                                     .numPeriods = 1,
+                                     .period = 1.0};
 }
 
 void expectFinite(const std::vector<double>& values)
@@ -123,6 +128,89 @@ TEST(OptimizationDcFormulationTests, OptimizationDataViewsOptimizerOwnedStorage)
     EXPECT_EQ(candidateData.val[2], 4.0);
     EXPECT_EQ(candidateData.valueSize, 3);
     EXPECT_EQ(candidateData.constraintSize, 2);
+}
+
+TEST(OptimizationDcFormulationTests, EconomicDispatchOptimizerFactorySelection)
+{
+    auto directOptimizer = griddyn::makeOptimizer("dispatch");
+    ASSERT_NE(directOptimizer, nullptr);
+    EXPECT_NE(dynamic_cast<griddyn::EconomicDispatchOptimizer*>(directOptimizer.get()), nullptr);
+
+    auto aliasOptimizer = griddyn::makeOptimizer("pricestack");
+    ASSERT_NE(aliasOptimizer, nullptr);
+    EXPECT_NE(dynamic_cast<griddyn::EconomicDispatchOptimizer*>(aliasOptimizer.get()), nullptr);
+
+    auto gds = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath = makePyPowerCasePath("case2.py");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds.get(), filePath.string());
+
+    const auto mode = makeDcMode(griddyn::LinearityMode::QUADRATIC);
+    gds->set("optimizer", "dispatch");
+    gds->initializeOptimizationModel(mode);
+
+    auto optimizer = gds->getOptimizerInterface(mode);
+    ASSERT_NE(optimizer, nullptr);
+    EXPECT_NE(dynamic_cast<griddyn::EconomicDispatchOptimizer*>(optimizer.get()), nullptr);
+}
+
+TEST(OptimizationDcFormulationTests, NativeOptimizerFactorySelectionAndProblemAssembly)
+{
+    auto directOptimizer = griddyn::makeOptimizer("native");
+    ASSERT_NE(directOptimizer, nullptr);
+    EXPECT_NE(dynamic_cast<griddyn::NativeOptimizer*>(directOptimizer.get()), nullptr);
+
+    auto aliasOptimizer = griddyn::makeOptimizer("nativeqp");
+    ASSERT_NE(aliasOptimizer, nullptr);
+    EXPECT_NE(dynamic_cast<griddyn::NativeOptimizer*>(aliasOptimizer.get()), nullptr);
+
+    auto gds = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath = makePyPowerCasePath("case2.py");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds.get(), filePath.string());
+
+    const auto mode = makeDcMode(griddyn::LinearityMode::QUADRATIC);
+    gds->set("optimizer", "native");
+    gds->initializeOptimizationModel(mode);
+
+    auto* root = gds->getOptimizationObject();
+    ASSERT_NE(root, nullptr);
+    auto configuredOptimizer = gds->getOptimizerInterface(mode);
+    ASSERT_NE(configuredOptimizer, nullptr);
+    EXPECT_NE(dynamic_cast<griddyn::NativeOptimizer*>(configuredOptimizer.get()), nullptr);
+
+    griddyn::NativeOptimizer optimizer(gds.get(), mode);
+    ASSERT_EQ(optimizer.allocate(root->objSize(mode), root->constraintSize(mode)),
+              FUNCTION_EXECUTION_SUCCESS);
+    optimizer.setMaxNonZeros(root->objSize(mode) * root->constraintSize(mode));
+    optimizer.initialize(0.0);
+    ASSERT_TRUE(optimizer.isInitialized());
+    EXPECT_TRUE(optimizer.getFlag("dense"));
+
+    EXPECT_EQ(optimizer.prepareProblemData(0.0), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(optimizer.get("problem_loaded"), 1.0);
+    EXPECT_EQ(optimizer.get("native_solver"), 1.0);
+    EXPECT_EQ(optimizer.size(), 3);
+    EXPECT_EQ(optimizer.constraintCount(), 3);
+    EXPECT_EQ(optimizer.linearObjective.points(), 2);
+    EXPECT_EQ(optimizer.quadraticObjective.points(), 1);
+    EXPECT_EQ(optimizer.constraintLowerBounds.size(), 3U);
+    EXPECT_EQ(optimizer.constraintUpperBounds.size(), 3U);
+    EXPECT_GT(optimizer.constraintJacobian.size(), 0);
+    expectFinite(optimizer.values);
+    expectFinite(optimizer.lowerBounds);
+    expectFinite(optimizer.upperBounds);
+    expectFinite(optimizer.constraintValues);
+    expectFinite(optimizer.gradient);
+
+    double returnTime = -1.0;
+    EXPECT_EQ(optimizer.solve(0.0, returnTime), FUNCTION_EXECUTION_FAILURE);
+    EXPECT_EQ(returnTime, 0.0);
+    EXPECT_EQ(optimizer.get("problem_loaded"), 1.0);
+    EXPECT_NE(optimizer.getLastErrorString().find("solve math is not implemented"),
+              std::string::npos);
 }
 
 TEST(OptimizationDcFormulationTests, TwoBusDcModelHasBusOwnedBalanceRows)
@@ -494,6 +582,58 @@ TEST(OptimizationDcFormulationTests, TwoBusIntegratedBasicOptimizerDryRunBeforeS
     EXPECT_NEAR(optimizer->constraintValues[bus1Offsets.constraintOffset], 0.0, 1e-12);
     EXPECT_NEAR(optimizer->constraintValues[bus1Offsets.constraintOffset + 1], 0.0, 1e-12);
     EXPECT_NEAR(optimizer->constraintValues[bus2Offsets.constraintOffset], 0.0, 1e-12);
+}
+
+TEST(OptimizationDcFormulationTests, TwoBusEconomicDispatchOptimizerRunsProblemSequence)
+{
+    auto gds = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath = makePyPowerCasePath("case2.py");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds.get(), filePath.string());
+
+    const auto mode = makeDcMode(griddyn::LinearityMode::QUADRATIC);
+    gds->set("optimizer", "dispatch");
+    gds->initializeOptimizationModel(mode);
+
+    auto* root = gds->getOptimizationObject();
+    ASSERT_NE(root, nullptr);
+    auto optimizer = gds->getOptimizerInterface(mode);
+    ASSERT_NE(optimizer, nullptr);
+    optimizer->setMaxNonZeros(root->objSize(mode) * root->constraintSize(mode));
+    optimizer->initialize(0.0);
+
+    ASSERT_TRUE(optimizer->isInitialized());
+    auto* bus1 = dynamic_cast<griddyn::GridBusOpt*>(root->findByUserID("bus", 1));
+    ASSERT_NE(bus1, nullptr);
+    auto* generator = dynamic_cast<griddyn::GridGenOpt*>(bus1->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* physicalGenerator = dynamic_cast<griddyn::Generator*>(generator->sourceObject());
+    ASSERT_NE(physicalGenerator, nullptr);
+    const auto& generatorOffsets = generator->offsets.getOffsets(mode);
+
+    physicalGenerator->set("p", -0.25);
+    physicalGenerator->set("pset", 0.25);
+
+    double returnTime = -1.0;
+    ASSERT_EQ(optimizer->solve(0.0, returnTime), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(returnTime, 0.0);
+    EXPECT_NEAR(optimizer->get("dispatch_imbalance"), 0.0, 1e-12);
+    EXPECT_NEAR(optimizer->values[generatorOffsets.gOffset], 0.5, 1e-12);
+    EXPECT_NEAR(physicalGenerator->getRealPower(), 0.25, 1e-12);
+    EXPECT_NEAR(physicalGenerator->getPset(), 0.25, 1e-12);
+
+    EXPECT_EQ(optimizer->writeBack(), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_NEAR(physicalGenerator->getRealPower(), 0.5, 1e-12);
+    EXPECT_NEAR(physicalGenerator->getPset(), 0.5, 1e-12);
+
+    EXPECT_NEAR(optimizer->objectiveFunction(0.0, optimizer->val_data()), 75.0, 1e-12);
+    EXPECT_EQ(optimizer->constraintFunction(0.0,
+                                            optimizer->val_data(),
+                                            optimizer->constraint_data()),
+              FUNCTION_EXECUTION_SUCCESS);
+    expectFinite(optimizer->constraintValues);
+    expectFinite(optimizer->gradient);
 }
 
 TEST(OptimizationDcFormulationTests, Case9IntegratedBasicOptimizerDryRunBeforeSolve)

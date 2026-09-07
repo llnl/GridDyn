@@ -156,7 +156,34 @@ void GridGenOpt::loadSizes(const OptimizationMode& oMode)
     optimizationOffsets.localLoad(true);
 }
 
-void GridGenOpt::setValues(const OptimizationData& /* of */, const OptimizationMode& /*oMode*/) {}
+void GridGenOpt::setValues(const OptimizationData& optimizationData, const OptimizationMode& oMode)
+{
+    if ((gen == nullptr) || optimizationData.empty()) {
+        return;
+    }
+
+    const auto& optimizationOffsets = offsets.getOffsets(oMode);
+    if ((optimizationOffsets.gOffset != kNullLocation) &&
+        ((optimizationData.valueSize == 0) ||
+         (optimizationOffsets.gOffset < optimizationData.valueSize))) {
+        const double realPowerTarget = optimizationData.val[optimizationOffsets.gOffset];
+        // Committing an OPF solution updates both the present generator output
+        // and its target set point.  This mirrors a static power-flow commit
+        // while keeping the explicit write-back stage available for future
+        // scheduler/time-marching dispatch policies.  Optimizer Pg is positive
+        // generation; Generator::getRealPower() uses the GridDyn output sign
+        // convention and returns -P, so the direct physical output value is
+        // stored with the opposite sign.
+        gen->set("p", -realPowerTarget);
+        gen->set("pset", realPowerTarget);
+    }
+
+    if (isAC(oMode) && (optimizationOffsets.qOffset != kNullLocation) &&
+        ((optimizationData.valueSize == 0) ||
+         (optimizationOffsets.qOffset < optimizationData.valueSize))) {
+        gen->set("q", -optimizationData.val[optimizationOffsets.qOffset]);
+    }
+}
 
 // for saving the state
 void GridGenOpt::guessState(double /*time*/, double val[], const OptimizationMode& oMode)

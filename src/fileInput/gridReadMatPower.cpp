@@ -295,51 +295,51 @@ COST                    5 parameters defining total cost function f(p) begin in 
 #ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
     void loadGenCostArray(CoreObject* parentObject, mArray& genCost, int gencount)
     {
-        auto gdo = dynamic_cast<GridDynOptimization*>(parentObject->getRoot());
+        auto* gdo = dynamic_cast<GridDynOptimization*>(parentObject->getRoot());
         if (gdo == nullptr)  // return if the core object doesn't support optimization
         {
             return;
         }
 
-        GridGenOpt* go;
-        GridOptObject* oo;
+        GridGenOpt* generatorOpt;
+        GridOptObject* optimizationObject;
         CoreObject* obj;
         int mode = 0;
         int numc = 0;
-        int q = 0;
+        int piecewiseModel = 0;
         std::vector<double> coeff;
 
-        auto genOptFactory = dynamic_cast<OptObjectFactory<GridGenOpt, Generator>*>(
+        auto* genOptFactory = dynamic_cast<OptObjectFactory<GridGenOpt, Generator>*>(
             CoreOptObjectFactory::instance()->getFactory("basic")->getFactory("gen"));
         genOptFactory->prepObjects(static_cast<count_t>(genCost.size()), parentObject);
 
         std::vector<GridGenOpt*> genOptList(gencount);
 
-        int kk = 1;
+        int generatorIndex = 1;
         for (auto& genLine : genCost) {
-            if (kk > gencount) {
-                q = 1;
-                go = genOptList[kk - gencount - 1];
+            if (generatorIndex > gencount) {
+                piecewiseModel = 1;
+                generatorOpt = genOptList[generatorIndex - gencount - 1];
             } else {
-                obj = parentObject->findByUserID("gen", kk);
+                obj = parentObject->findByUserID("gen", generatorIndex);
                 if (obj == nullptr) {
                     continue;
                 }
-                go = genOptFactory->makeTypeObject(obj);
-                genOptList[kk - 1] = go;
-                q = 0;
-                oo = gdo->makeOptimizationObjectPath(obj->getParent());
-                oo->add(go);
+                generatorOpt = genOptFactory->makeTypeObject(obj);
+                genOptList[generatorIndex - 1] = generatorOpt;
+                piecewiseModel = 0;
+                optimizationObject = gdo->makeOptimizationObjectPath(obj->getParent());
+                optimizationObject->add(generatorOpt);
             }
 
-            ++kk;
+            ++generatorIndex;
             mode = static_cast<int>(genLine[0]);
             numc = static_cast<int>(genLine[3]);
             coeff.resize(numc);
             for (int ii = 0; ii < numc; ii++) {
                 coeff[ii] = genLine[4 + ii];
             }
-            go->loadMatPowerCostCoeff(coeff, q, mode);
+            generatorOpt->loadMatPowerCostCoeff(coeff, piecewiseModel, mode);
         }
     }
 #else

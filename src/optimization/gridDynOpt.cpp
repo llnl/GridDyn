@@ -25,9 +25,11 @@
 
 namespace griddyn {
 static TypeFactory<GridDynOptimization>
-    gfo("simulation", std::to_array<std::string_view>({"optimization", "optim"}));
+    gFo("simulation", std::to_array<std::string_view>({"optimization", "optim"}));
 
 namespace {
+// The optimizer hierarchy mirrors the recursive GridDyn object hierarchy.
+// NOLINTNEXTLINE(misc-no-recursion)
 GridOptObject* findOptimizationObjectBySource(GridOptObject* root, const CoreObject* sourceObject)
 {
     if ((root == nullptr) || (sourceObject == nullptr)) {
@@ -203,6 +205,13 @@ void GridDynOptimization::set(std::string_view param, std::string_view val)
             mDefaultOptMode = val;
             optFactory->setDefaultType(val);
         }
+    } else if ((param == "optimizer") || (param == "optimizer_type") ||
+               (param == "optimizersolver")) {
+        if (makeOptimizer(val) != nullptr) {
+            mDefaultOptimizerType = std::string{val};
+        } else {
+            logging::warning(this, "unknown optimizer type {}", val);
+        }
     } else if (param == "optimization_mode") {
         /*default_solution,
     dcflow_only, powerflow_only, iterated_powerflow, contingency_powerflow,
@@ -322,12 +331,31 @@ GridOptObject* GridDynOptimization::makeOptimizationObjectPath(CoreObject* obj)
     return nullptr;
 }
 
+std::shared_ptr<OptimizerInterface>
+    GridDynOptimization::getOptimizerInterface(const OptimizationMode& oMode)
+{
+    if (!isValidIndex(oMode.offsetIndex, mOptimizerData) ||
+        (mOptimizerData[oMode.offsetIndex] == nullptr)) {
+        updateOptimizer(oMode);
+    }
+    return mOptimizerData[oMode.offsetIndex];
+}
+
+std::shared_ptr<const OptimizerInterface>
+    GridDynOptimization::getOptimizerInterface(const OptimizationMode& oMode) const
+{
+    if (!isValidIndex(oMode.offsetIndex, mOptimizerData)) {
+        return nullptr;
+    }
+    return mOptimizerData[oMode.offsetIndex];
+}
+
 OptimizerInterface* GridDynOptimization::updateOptimizer(const OptimizationMode& oMode)
 {
     if (!isValidIndex(oMode.offsetIndex, mOptimizerData)) {
         mOptimizerData.resize(oMode.offsetIndex + 1);
     }
-    mOptimizerData[oMode.offsetIndex] = makeOptimizer(this, oMode);
+    mOptimizerData[oMode.offsetIndex] = makeOptimizer(this, oMode, mDefaultOptimizerType);
     OptimizerInterface* optimizer = mOptimizerData[oMode.offsetIndex].get();
     if (optimizer != nullptr) {
         optimizer->allocate(mGridAreaOpt->objSize(oMode), mGridAreaOpt->constraintSize(oMode));

@@ -243,13 +243,13 @@ OptimizationOffsets& OptimizationOffsetTable::getOffsets(const OptimizationMode&
     return offsetContainer[oMode.offsetIndex];
 }
 
-static const OptimizationOffsets nullOffsets;
+static const OptimizationOffsets NULL_OFFSETS;
 
 const OptimizationOffsets& OptimizationOffsetTable::getOffsets(const OptimizationMode& oMode) const
 {
     return std::cmp_less(oMode.offsetIndex, offsetContainer.size()) ?
         offsetContainer[oMode.offsetIndex] :
-        nullOffsets;
+        NULL_OFFSETS;
 }
 
 void OptimizationOffsetTable::setOffsets(const OptimizationOffsets& newOffsets,

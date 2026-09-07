@@ -116,7 +116,7 @@ class OptimizerInterface: public HelperObject {
     virtual const double* multiplierData() const { return multipliers.data(); }
 
     virtual int allocate(count_t variableCount, count_t constraintCount = 0);
-    virtual void initialize(double t0);
+    virtual void initialize(double initTime);
     virtual void sparseReInit();
     virtual void dynObjectInitializeA(double /*t0*/) {}
 
@@ -130,6 +130,19 @@ class OptimizerInterface: public HelperObject {
     virtual int loadLinearObjective(double time, const double candidateValues[] = nullptr);
     virtual int loadQuadraticObjective(double time, const double candidateValues[] = nullptr);
     virtual int loadLinearConstraints(double time, const double candidateValues[] = nullptr);
+    /** @brief write the current optimizer solution vector back into the source power-system model
+     *
+     * This is an explicit commit stage rather than a side effect of solve().
+     * The separation lets callers inspect candidate optimizer results before
+     * changing the physical GridDyn model, and provides a single hook for later
+     * scheduler/time-marching dispatch integration.
+     *
+     * @param time the time associated with the solution commit; if omitted the
+     * most recent optimizer solve/initialization time is used.
+     * @return FUNCTION_EXECUTION_SUCCESS on success.
+     */
+    virtual int writeBack(double time = kNullVal);
+    virtual int applySolution(double time = kNullVal) { return writeBack(time); }
     virtual double objectiveFunction(double time, const double candidateValues[] = nullptr);
     virtual int gradientFunction(double time, const double candidateValues[], double grad[]);
     virtual int constraintFunction(double time, const double candidateValues[], double constraints[]);
@@ -180,11 +193,50 @@ class BasicOptimizer: public OptimizerInterface {
     BasicOptimizer(GridDynOptimization* gdo, const OptimizationMode& oMode);
 
     int allocate(count_t variableCount, count_t constraintCount = 0) override;
-    void dynObjectInitializeA(double t0) override;
+    void dynObjectInitializeA(double initTime) override;
+};
+
+class EconomicDispatchOptimizer: public OptimizerInterface {
+  private:
+    double dispatchImbalance = 0.0;
+
+  public:
+    explicit EconomicDispatchOptimizer(std::string_view optName = "dispatch");
+
+    EconomicDispatchOptimizer(GridDynOptimization* gdo, const OptimizationMode& oMode);
+
+    int solve(double tStop, double& tReturn) override;
+    double get(std::string_view param) const override;
+};
+
+class NativeOptimizer: public OptimizerInterface {
+  private:
+    bool mProblemDataLoaded = false;
+
+  public:
+    explicit NativeOptimizer(std::string_view optName = "native");
+
+    NativeOptimizer(GridDynOptimization* gdo, const OptimizationMode& oMode);
+
+    /** @brief assemble the current optimization problem into optimizer-owned storage
+     *
+     * This is the setup stage for the compact built-in solver.  It deliberately
+     * stops before numerical solve math: the native optimizer should consume
+     * the same distributed objective, bound, constraint, residual, gradient,
+     * and Jacobian callbacks as external solvers.
+     */
+    virtual int prepareProblemData(double time);
+
+    int solve(double tStop, double& tReturn) override;
+    double get(std::string_view param) const override;
 };
 
 std::shared_ptr<OptimizerInterface> makeOptimizer(GridDynOptimization* gdo,
                                                   const OptimizationMode& oMode);
+
+std::shared_ptr<OptimizerInterface> makeOptimizer(GridDynOptimization* gdo,
+                                                  const OptimizationMode& oMode,
+                                                  std::string_view type);
 
 std::shared_ptr<OptimizerInterface> makeOptimizer(std::string_view type);
 

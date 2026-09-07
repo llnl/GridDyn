@@ -21,7 +21,7 @@
 #include <utility>
 
 namespace griddyn {
-static OptObjectFactory<GridLinkOpt, Link> opLink("basic", "link");
+static OptObjectFactory<GridLinkOpt, Link> gOpLink("basic", "link");
 // NOLINTBEGIN(bugprone-branch-clone)
 
 using units::unit;
@@ -71,6 +71,8 @@ CoreObject* GridLinkOpt::sourceObject() const
 }
 
 namespace {
+// Endpoint lookup follows nested optimization areas recursively.
+// NOLINTNEXTLINE(misc-no-recursion)
 GridBusOpt* findBusAdapter(GridOptObject* parent, const GridBus* sourceBus)
 {
     if (sourceBus == nullptr) {
@@ -334,7 +336,10 @@ double GridLinkOpt::dcPowerFlow(const GridBusOpt* sourceBus,
     }
     const auto reactance = link->get("x");
     if (std::abs(reactance) < 1e-12) { return 0.0; }
-    const auto* otherBus = (sourceBus == B1) ? B2 : ((sourceBus == B2) ? B1 : nullptr);
+    auto* otherBus = (sourceBus == B1) ? B2 : nullptr;
+    if ((otherBus == nullptr) && (sourceBus == B2)) {
+        otherBus = B1;
+    }
     if (otherBus == nullptr) { return 0.0; }
     const auto& sourceOffsets = sourceBus->offsets.getOffsets(oMode);
     const auto& otherOffsets = otherBus->offsets.getOffsets(oMode);
@@ -353,7 +358,10 @@ void GridLinkOpt::dcPowerFlowJacobian(const GridBusOpt* sourceBus,
     }
     const auto reactance = link->get("x");
     if (std::abs(reactance) < 1e-12) { return; }
-    const auto* otherBus = (sourceBus == B1) ? B2 : ((sourceBus == B2) ? B1 : nullptr);
+    auto* otherBus = (sourceBus == B1) ? B2 : nullptr;
+    if ((otherBus == nullptr) && (sourceBus == B2)) {
+        otherBus = B1;
+    }
     if (otherBus == nullptr) { return; }
     // The bus balance subtracts P_ij = (theta_i - theta_j) / x.
     // Hence d(balance)/d(theta_i) = -1/x and d(balance)/d(theta_j) = +1/x.

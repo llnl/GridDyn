@@ -48,6 +48,7 @@ class GridDynOptimization: public GridDynSimulation {
     std::vector<std::shared_ptr<OptimizerInterface>> mOptimizerData;
     GridAreaOpt* mGridAreaOpt = nullptr;
     std::string mDefaultOptMode;
+    std::string mDefaultOptimizerType = "basic";
     // ---------------solution mode-------------
     // total thread count
 
@@ -86,6 +87,9 @@ class GridDynOptimization: public GridDynSimulation {
     */
     virtual GridOptObject* getOptimizationObject(CoreObject* obj = nullptr);
     virtual GridOptObject* makeOptimizationObjectPath(CoreObject* obj);
+    std::shared_ptr<OptimizerInterface> getOptimizerInterface(const OptimizationMode& oMode);
+    std::shared_ptr<const OptimizerInterface>
+        getOptimizerInterface(const OptimizationMode& oMode) const;
 
   protected:
     OptimizerInterface* updateOptimizer(const OptimizationMode& oMode);

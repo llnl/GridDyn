@@ -28,7 +28,7 @@
 #include <vector>
 
 namespace griddyn {
-static OptObjectFactory<GridBusOpt, GridBus> opbus("basic", "bus");
+static OptObjectFactory<GridBusOpt, GridBus> gOpbus("basic", "bus");
 // NOLINTBEGIN(bugprone-branch-clone)
 
 using units::unit;
@@ -103,7 +103,11 @@ void GridBusOpt::dynObjectInitializeA(std::uint32_t flags)
     // optimization behavior.
     if (bus != nullptr) {
         auto factory = CoreOptObjectFactory::instance();
-        for (index_t index = 0; auto* sourceGenerator = bus->getGen(index); ++index) {
+        for (index_t index = 0;; ++index) {
+            auto* sourceGenerator = bus->getGen(index);
+            if (sourceGenerator == nullptr) {
+                break;
+            }
             const auto found = std::any_of(genList.cbegin(), genList.cend(), [sourceGenerator](const auto* genObject) {
                 return genObject->sourceGenerator() == sourceGenerator;
             });
@@ -321,7 +325,11 @@ void GridBusOpt::addActivePowerBalance(const OptimizationData& optimizationData,
     // DC nodal balance is r_i = sum(P_g,i) - P_d,i - sum(P_ij), where
     // P_ij = (theta_i - theta_j) / x_ij is positive when it leaves this bus.
     balance = 0.0;
-    for (index_t index = 0; auto* sourceLoad = bus->getLoad(index); ++index) {
+    for (index_t index = 0;; ++index) {
+        auto* sourceLoad = bus->getLoad(index);
+        if (sourceLoad == nullptr) {
+            break;
+        }
         balance -= sourceLoad->getRealPower();
     }
     for (const auto* generator : genList) {

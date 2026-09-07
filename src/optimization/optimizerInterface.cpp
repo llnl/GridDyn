@@ -12,6 +12,8 @@
 #include "gridOptObjects.h"
 #include "gmlc/utilities/stringConversion.h"
 #include <algorithm>
+#include <cmath>
+#include <functional>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -20,7 +22,39 @@
 
 namespace griddyn {
 static ChildClassFactory<BasicOptimizer, OptimizerInterface>
-    basicFac(stringVec{"basic", "pricestack"});
+    gBasicFac(stringVec{"basic"});
+static ChildClassFactory<EconomicDispatchOptimizer, OptimizerInterface>
+    gDispatchFac(stringVec{"dispatch", "stack", "pricestack", "economic"});
+static ChildClassFactory<NativeOptimizer, OptimizerInterface>
+    gNativeFac(stringVec{"native", "compact", "dense", "nativeqp", "qp"});
+
+namespace {
+constexpr double kFiniteBoundLimit = kBigNum * 0.5;
+
+struct DispatchVariable {
+    index_t index = kNullLocation;
+    double lower = 0.0;
+    double upper = 0.0;
+    double linearCost = 0.0;
+    double quadraticCost = 0.0;
+};
+
+double finiteLower(double value)
+{
+    return (std::isfinite(value) && (value > -kFiniteBoundLimit)) ? value : 0.0;
+}
+
+double finiteUpper(double value)
+{
+    return (std::isfinite(value) && (value < kFiniteBoundLimit)) ? value : kBigNum;
+}
+
+double marginalCostAtLower(const DispatchVariable& dispatchVariable)
+{
+    return dispatchVariable.linearCost +
+        2.0 * dispatchVariable.quadraticCost * dispatchVariable.lower;
+}
+}  // namespace
 
 OptimizerInterface::OptimizerInterface(std::string_view optName): HelperObject(std::string{optName}) {}
 
@@ -73,7 +107,7 @@ int OptimizerInterface::allocate(count_t variableCount, count_t constraintCount)
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
-void OptimizerInterface::initialize(double t0)
+void OptimizerInterface::initialize(double initTime)
 {
     auto* root = rootOptimizationObject();
     if ((root != nullptr) && !mAllocated) {
@@ -83,13 +117,13 @@ void OptimizerInterface::initialize(double t0)
         logMessage(FUNCTION_EXECUTION_FAILURE, "optimizer initialize called before allocation");
         return;
     }
-    loadInitialGuess(t0);
-    loadVariableBounds(t0);
+    loadInitialGuess(initTime);
+    loadVariableBounds(initTime);
     loadVariableTypes();
     loadTolerances();
-    loadQuadraticObjective(t0);
-    loadLinearConstraints(t0);
-    solveTime = t0;
+    loadQuadraticObjective(initTime);
+    loadLinearConstraints(initTime);
+    solveTime = initTime;
     mInitialized = true;
     flags.set(OPT_INITIALIZED_FLAG, true);
 }
@@ -215,6 +249,18 @@ int OptimizerInterface::loadLinearConstraints(double time, const double candidat
                          constraintUpperBounds.data(),
                          constraintLowerBounds.data(),
                          mode);
+    return FUNCTION_EXECUTION_SUCCESS;
+}
+
+int OptimizerInterface::writeBack(double time)
+{
+    auto* root = rootOptimizationObject();
+    if ((root == nullptr) || !mAllocated || values.empty()) {
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+    const double commitTime = (time != kNullVal) ? time : solveTime;
+    const auto optimizationData = makeOptimizationData(commitTime);
+    root->setValues(optimizationData, mode);
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
@@ -471,7 +517,7 @@ int OptimizerInterface::check_flag(void* flagvalue,
         if (printError) {
             logMessage(1, std::string{funcname} + " failed - returned nullptr pointer");
         }
-        return (1);
+        return 1;
     }
     if (opt == 1) {
         // Check if flag < 0
@@ -482,7 +528,7 @@ int OptimizerInterface::check_flag(void* flagvalue,
                            std::string{funcname} + " failed with flag = " +
                                std::to_string(*errflag));
             }
-            return (1);
+            return 1;
         }
     } else if (opt == 2 && flagvalue == nullptr) {
         // Check if function returned nullptr pointer - no memory allocated
@@ -491,7 +537,7 @@ int OptimizerInterface::check_flag(void* flagvalue,
                        std::string{funcname} +
                            " failed MEMORY_ERROR- returned nullptr pointer");
         }
-        return (1);
+        return 1;
     }
     return 0;
 }
@@ -538,20 +584,239 @@ void BasicOptimizer::dynObjectInitializeA(double /*t0*/)
     // return FUNCTION_EXECUTION_SUCCESS;
 }
 
+EconomicDispatchOptimizer::EconomicDispatchOptimizer(std::string_view optName):
+    OptimizerInterface(optName)
+{
+}
+
+EconomicDispatchOptimizer::EconomicDispatchOptimizer(GridDynOptimization* gdo,
+                                                     const OptimizationMode& oMode):
+    OptimizerInterface(gdo, oMode)
+{
+}
+
+int EconomicDispatchOptimizer::solve(double tStop, double& tReturn)
+{
+    if (!mInitialized) {
+        initialize(tStop);
+    }
+    if (!mInitialized) {
+        logMessage(FUNCTION_EXECUTION_FAILURE, "economic dispatch optimizer is not initialized");
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+
+    loadQuadraticObjective(tStop);
+    linearObjective.sortIndex();
+    linearObjective.compact();
+    quadraticObjective.sortIndex();
+    quadraticObjective.compact();
+
+    constraintJacobian.clear();
+    constraintJacobianFunction(tStop, values.data(), constraintJacobian);
+    constraintJacobian.sortIndex();
+    constraintJacobian.compact();
+
+    std::vector<bool> hasConstraintParticipation(values.size(), false);
+    for (const auto& element : constraintJacobian) {
+        if ((element.col >= 0) && (element.col < static_cast<index_t>(hasConstraintParticipation.size())) &&
+            (std::abs(element.data) > 0.0)) {
+            hasConstraintParticipation[static_cast<std::size_t>(element.col)] = true;
+        }
+    }
+
+    std::vector<DispatchVariable> dispatchVariables;
+    dispatchVariables.reserve(values.size());
+    for (index_t variableIndex = 0; variableIndex < static_cast<index_t>(values.size()); ++variableIndex) {
+        const double lower = finiteLower(lowerBounds[variableIndex]);
+        const double upper = finiteUpper(upperBounds[variableIndex]);
+        if ((upper <= lower) || !hasConstraintParticipation[static_cast<std::size_t>(variableIndex)]) {
+            continue;
+        }
+        const double linearCost = linearObjective.at(variableIndex);
+        const double quadraticCost = quadraticObjective.at(variableIndex);
+        if ((linearCost == 0.0) && (quadraticCost == 0.0)) {
+            continue;
+        }
+        dispatchVariables.push_back({variableIndex, lower, upper, linearCost, quadraticCost});
+    }
+
+    if (dispatchVariables.empty()) {
+        logMessage(FUNCTION_EXECUTION_FAILURE, "economic dispatch found no bounded costed dispatch variables");
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+
+    auto candidateValues = values;
+    for (const auto& dispatchVariable : dispatchVariables) {
+        candidateValues[dispatchVariable.index] = dispatchVariable.lower;
+    }
+
+    if (constraintFunction(tStop, candidateValues.data(), constraintValues.data()) !=
+        FUNCTION_EXECUTION_SUCCESS) {
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+
+    double requiredAdditionalDispatch = 0.0;
+    for (index_t constraintIndex = 0;
+         constraintIndex < static_cast<index_t>(constraintValues.size());
+         ++constraintIndex) {
+        if (std::abs(constraintUpperBounds[constraintIndex] - constraintLowerBounds[constraintIndex]) <=
+            rtol) {
+            requiredAdditionalDispatch -= constraintValues[constraintIndex];
+        }
+    }
+
+    if (requiredAdditionalDispatch < -rtol) {
+        dispatchImbalance = requiredAdditionalDispatch;
+        logMessage(FUNCTION_EXECUTION_FAILURE,
+                   "economic dispatch minimum generation exceeds estimated demand");
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+
+    std::sort(dispatchVariables.begin(),
+              dispatchVariables.end(),
+              [](const DispatchVariable& variableA, const DispatchVariable& variableB) {
+                  return marginalCostAtLower(variableA) < marginalCostAtLower(variableB);
+              });
+
+    for (const auto& dispatchVariable : dispatchVariables) {
+        if (requiredAdditionalDispatch <= rtol) {
+            break;
+        }
+        const double availableDispatch = dispatchVariable.upper - dispatchVariable.lower;
+        const double dispatchChange = (std::min)(availableDispatch, requiredAdditionalDispatch);
+        candidateValues[dispatchVariable.index] += dispatchChange;
+        requiredAdditionalDispatch -= dispatchChange;
+    }
+
+    dispatchImbalance = requiredAdditionalDispatch;
+    if (requiredAdditionalDispatch > rtol) {
+        logMessage(FUNCTION_EXECUTION_FAILURE,
+                   "economic dispatch could not meet demand within generator bounds");
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+
+    values = std::move(candidateValues);
+    constraintFunction(tStop, values.data(), constraintValues.data());
+    std::fill(gradient.begin(), gradient.end(), 0.0);
+    gradientFunction(tStop, values.data(), gradient.data());
+    solveTime = tStop;
+    tReturn = tStop;
+    lastErrorCode = FUNCTION_EXECUTION_SUCCESS;
+    lastErrorString.clear();
+    return FUNCTION_EXECUTION_SUCCESS;
+}
+
+double EconomicDispatchOptimizer::get(std::string_view param) const
+{
+    if ((param == "dispatch_imbalance") || (param == "imbalance")) {
+        return dispatchImbalance;
+    }
+    return OptimizerInterface::get(param);
+}
+
+NativeOptimizer::NativeOptimizer(std::string_view optName): OptimizerInterface(optName)
+{
+    setFlag("dense", true);
+}
+
+NativeOptimizer::NativeOptimizer(GridDynOptimization* gdo, const OptimizationMode& oMode):
+    OptimizerInterface(gdo, oMode)
+{
+    setFlag("dense", true);
+}
+
+int NativeOptimizer::prepareProblemData(double time)
+{
+    if (!mInitialized) {
+        initialize(time);
+    }
+    if (!mInitialized) {
+        logMessage(FUNCTION_EXECUTION_FAILURE, "native optimizer is not initialized");
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+
+    if (loadVariableBounds(time) != FUNCTION_EXECUTION_SUCCESS) {
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+    if (loadVariableTypes() != FUNCTION_EXECUTION_SUCCESS) {
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+    if (loadTolerances() != FUNCTION_EXECUTION_SUCCESS) {
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+    if (loadQuadraticObjective(time) != FUNCTION_EXECUTION_SUCCESS) {
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+    linearObjective.sortIndex();
+    linearObjective.compact();
+    quadraticObjective.sortIndex();
+    quadraticObjective.compact();
+
+    if (loadLinearConstraints(time) != FUNCTION_EXECUTION_SUCCESS) {
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+    linearConstraints.sortIndex();
+    linearConstraints.compact();
+
+    if (constraintFunction(time, values.data(), constraintValues.data()) !=
+        FUNCTION_EXECUTION_SUCCESS) {
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+    if (gradientFunction(time, values.data(), gradient.data()) != FUNCTION_EXECUTION_SUCCESS) {
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+
+    constraintJacobian.clear();
+    if (constraintJacobianFunction(time, values.data(), constraintJacobian) !=
+        FUNCTION_EXECUTION_SUCCESS) {
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+    constraintJacobian.sortIndex();
+    constraintJacobian.compact();
+
+    solveTime = time;
+    mProblemDataLoaded = true;
+    return FUNCTION_EXECUTION_SUCCESS;
+}
+
+int NativeOptimizer::solve(double tStop, double& tReturn)
+{
+    if (prepareProblemData(tStop) != FUNCTION_EXECUTION_SUCCESS) {
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+    tReturn = tStop;
+    logMessage(FUNCTION_EXECUTION_FAILURE,
+               "native optimizer problem assembly is implemented; solve math is not implemented");
+    return FUNCTION_EXECUTION_FAILURE;
+}
+
+double NativeOptimizer::get(std::string_view param) const
+{
+    if ((param == "problem_loaded") || (param == "problem_assembled")) {
+        return mProblemDataLoaded ? 1.0 : 0.0;
+    }
+    if ((param == "native_solver") || (param == "native")) {
+        return 1.0;
+    }
+    return OptimizerInterface::get(param);
+}
+
 std::shared_ptr<OptimizerInterface> makeOptimizer(GridDynOptimization* gdo,
                                                   const OptimizationMode& oMode)
 {
-    std::shared_ptr<OptimizerInterface> of;
-    switch (oMode.flowMode) {
-        case FlowModel::NONE:
-        default:
-        case FlowModel::TRANSPORT:
-        case FlowModel::DC:
-        case FlowModel::AC:
-            of = std::make_shared<BasicOptimizer>(gdo, oMode);
-            break;
+    return makeOptimizer(gdo, oMode, "basic");
+}
+
+std::shared_ptr<OptimizerInterface> makeOptimizer(GridDynOptimization* gdo,
+                                                  const OptimizationMode& oMode,
+                                                  std::string_view type)
+{
+    auto optimizer = makeOptimizer(type);
+    if (optimizer == nullptr) {
+        optimizer = std::make_shared<BasicOptimizer>();
     }
-    return of;
+    optimizer->setOptimizationData(gdo, oMode);
+    return optimizer;
 }
 
 std::shared_ptr<OptimizerInterface> makeOptimizer(std::string_view type)

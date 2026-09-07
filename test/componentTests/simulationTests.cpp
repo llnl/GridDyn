@@ -129,7 +129,7 @@ class FactoryTestOptObject: public griddyn::GridOptObject {
 
     griddyn::CoreObject* source = nullptr;
 
-    griddyn::CoreObject* sourceObject() const override { return source; }
+    [[nodiscard]] griddyn::CoreObject* sourceObject() const override { return source; }
 
     void add(griddyn::CoreObject* obj) override { source = obj; }
 };

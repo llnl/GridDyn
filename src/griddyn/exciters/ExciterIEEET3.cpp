@@ -148,8 +148,9 @@ ExciterIEEET3::Evaluation
         rates[regulatorState] = scaleSignal(regulatorDrive, 1.0 / Ta);
     }
     const Signal vbRaw = addSignals(regulator, v40);
-    const Signal vb = clampSignal(vbRaw, 0.0, Vbmax);
-    const Signal fieldDrive = subtractSignals(vb, scaleSignal(fieldStateSignal, Ke));
+    const Signal boundedSourceVoltage = clampSignal(vbRaw, 0.0, Vbmax);
+    const Signal fieldDrive =
+        subtractSignals(boundedSourceVoltage, scaleSignal(fieldStateSignal, Ke));
     rates[fieldState] = scaleSignal(fieldDrive, 1.0 / Te);
     const Signal algebraicResidual =
         subtractSignals(fieldStateSignal, algebraicSignal<stateCount>(fieldVoltage));

@@ -185,6 +185,7 @@ void expectExciterJacobian(Exciter& exciter,
                            double tolerance = 2e-5)
 {
     constexpr double step = 1e-6;
+    const index_t stateCount = static_cast<index_t>(state.size());
     ASSERT_EQ(exciter.stateSize(cDaeSolverMode), state.size());
     exciter.setOffset(0, cDaeSolverMode);
     std::vector<double> stateDerivative(state.size(), 0.0);
@@ -207,14 +208,14 @@ void expectExciterJacobian(Exciter& exciter,
         exciter.residual(trialInputs, trialData, residual.data(), cDaeSolverMode);
         return residual;
     };
-    for (index_t column = 0; column < state.size(); ++column) {
+    for (index_t column = 0; column < stateCount; ++column) {
         auto plus = state;
         auto minus = state;
         plus[column] += step;
         minus[column] -= step;
         const auto plusResidual = residualAt(inputs, plus);
         const auto minusResidual = residualAt(inputs, minus);
-        for (index_t row = 0; row < state.size(); ++row) {
+        for (index_t row = 0; row < stateCount; ++row) {
             const double numerical = (plusResidual[row] - minusResidual[row]) / (2.0 * step);
             EXPECT_NEAR(jacobian.at(row, column), numerical, tolerance)
                 << "state row " << row << " column " << column;
@@ -227,7 +228,7 @@ void expectExciterJacobian(Exciter& exciter,
         minus[column] -= step;
         const auto plusResidual = residualAt(plus, state);
         const auto minusResidual = residualAt(minus, state);
-        for (index_t row = 0; row < state.size(); ++row) {
+        for (index_t row = 0; row < stateCount; ++row) {
             const double numerical = (plusResidual[row] - minusResidual[row]) / (2.0 * step);
             EXPECT_NEAR(jacobian.at(row, inputColumnBase + column), numerical, tolerance)
                 << "input row " << row << " column " << column;

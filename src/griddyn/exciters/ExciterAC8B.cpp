@@ -27,6 +27,11 @@ namespace {
     constexpr index_t regulatorState = 3;
     constexpr index_t exciterVoltageState = 4;
     constexpr double initializationTolerance = 1e-7;
+    // PSS/E's legacy rectifier initialization uses rounded reciprocal-sqrt(3)
+    // and sqrt(3) constants.  These intentionally remain model constants rather
+    // than std::numbers::egamma or std::numbers::sqrt3.
+    constexpr double rectifierReciprocalSqrtThree = 0.577;
+    constexpr double rectifierSqrtThree = 1.732;
 
     bool finiteMachineSignal(double value)
     {
@@ -104,13 +109,13 @@ double ExciterAC8B::solveExciterVoltage(double fieldVoltage, double fieldCurrent
         std::sqrt(((fieldVoltage * fieldVoltage) + (loading * loading)) / 0.75);
     const double middleSign = (fieldVoltage != 0.0) ? fieldVoltage : loading;
     const std::array<double, 5> candidates{fieldVoltage,
-                                           fieldVoltage + (0.577 * loading),
+                                           fieldVoltage + (rectifierReciprocalSqrtThree * loading),
                                            std::copysign(middleMagnitude, middleSign),
-                                           (fieldVoltage / 1.732) + loading,
+                                           (fieldVoltage / rectifierSqrtThree) + loading,
                                            loading};
     double bestVoltage = candidates.front();
     double bestMismatch = std::numeric_limits<double>::infinity();
-    for (double candidate : candidates) {
+    for (const double candidate : candidates) {
         const double normalizedCurrent = (std::abs(candidate) > 1e-14) ? loading / candidate : 0.0;
         const double output = candidate * detail::computeRectifierFactor(normalizedCurrent).factor;
         const double mismatch = std::abs(output - fieldVoltage);

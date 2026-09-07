@@ -440,7 +440,8 @@ void GridGenOpt::set(std::string_view param, double val, units::unit unitType)
         if (Pcoeff.size() < 3) {
             Pcoeff.resize(3);
         }
-        Pcoeff[2] = convert(val, unitType, currency / (puMW.pow(2)) / hr, gen->getRoot()->get("basepower"));
+        Pcoeff[2] =
+            convert(val, unitType, currency / (puMW.pow(2)) / hr, gen->getRoot()->get("basepower"));
     } else if (param == "constantq") {
         if (Qcoeff.empty()) {
             Qcoeff.resize(1);
@@ -455,9 +456,11 @@ void GridGenOpt::set(std::string_view param, double val, units::unit unitType)
         if (Qcoeff.size() < 3) {
             Qcoeff.resize(3);
         }
-        Qcoeff[2] = convert(val, unitType, currency / (puMW.pow(2)) / hr, gen->getRoot()->get("basepower"));
+        Qcoeff[2] =
+            convert(val, unitType, currency / (puMW.pow(2)) / hr, gen->getRoot()->get("basepower"));
     } else if ((param == "penalty_cost") || (param == "penalty")) {
-        m_penaltyCost = convert(val, unitType, currency / puMW / hr, gen->getRoot()->get("basepower"));
+        m_penaltyCost =
+            convert(val, unitType, currency / puMW / hr, gen->getRoot()->get("basepower"));
     } else if ((param == "pmax") || (param == "pmin")) {
         if (gen != nullptr) {
             gen->set(param, val, unitType);

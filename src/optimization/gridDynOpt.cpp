@@ -96,7 +96,7 @@ GridOptObject* findOptimizationObjectBySource(GridOptObject* root, const CoreObj
         }
     }
     return nullptr;
-}
+    }
 }  // namespace
 
 GridDynOptimization::GridDynOptimization(const std::string& simName):

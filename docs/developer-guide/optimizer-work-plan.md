@@ -34,16 +34,16 @@ DC branch semantics, safe cost handling, guesses, and lifecycle allocation.
 
 ### One authoritative owner for each datum
 
-| Information | Owner | Optimizer treatment |
-| --- | --- | --- |
-| Topology and in-service status | Physical model | Read through a non-owning source reference |
-| Fixed demand and passive injections | Physical bus and children | Evaluate at the bus; create no passive `GridLoadOpt` |
-| Branch `x`, fixed tap/shift, rating, and angle limits | Physical link | Read for current assembly/evaluation |
-| Bus type and specified angle | Physical bus | Add a row for every active `SLK`/`AFIX` bus |
-| Generator dispatch, capability limits, and status | Physical generator | Use for guesses, bounds, and participation |
-| Generator costs and purely economic data | `GridGenOpt` | Own and evaluate in the optimization layer |
-| Offsets, sparse structure, and buffers | Assembled problem | Derive; never make a second network model |
-| Primal/dual result and diagnostics | Optimization result | Apply only through an explicit commit |
+| Information                                           | Owner                     | Optimizer treatment                                  |
+| ----------------------------------------------------- | ------------------------- | ---------------------------------------------------- |
+| Topology and in-service status                        | Physical model            | Read through a non-owning source reference           |
+| Fixed demand and passive injections                   | Physical bus and children | Evaluate at the bus; create no passive `GridLoadOpt` |
+| Branch `x`, fixed tap/shift, rating, and angle limits | Physical link             | Read for current assembly/evaluation                 |
+| Bus type and specified angle                          | Physical bus              | Add a row for every active `SLK`/`AFIX` bus          |
+| Generator dispatch, capability limits, and status     | Physical generator        | Use for guesses, bounds, and participation           |
+| Generator costs and purely economic data              | `GridGenOpt`              | Own and evaluate in the optimization layer           |
+| Offsets, sparse structure, and buffers                | Assembled problem         | Derive; never make a second network model            |
+| Primal/dual result and diagnostics                    | Optimization result       | Apply only through an explicit commit                |
 
 Data needed by power flow, dynamics, and optimization belongs to the physical
 model. An optimization object may cache derived numerical data only with an
@@ -114,12 +114,12 @@ optimizer-owned; capability and network limits come from the physical model.
 
 ## Ordered work packages
 
-| Milestone | Packages | Result |
-| --- | --- | --- |
-| A. Assembly foundation | 1-5 | A unique, active, correctly indexed, solver-neutral problem |
-| B. Complete DC model | 6-8 | Verified DC equations, economics, and public initialization |
-| C. Native solution | 9 | Small DC-OPF cases solved with KKT diagnostics |
-| D. Equivalence and extension | 10-11 | MATPOWER/PYPOWER agreement and a proven backend/AC seam |
+| Milestone                    | Packages | Result                                                      |
+| ---------------------------- | -------- | ----------------------------------------------------------- |
+| A. Assembly foundation       | 1-5      | A unique, active, correctly indexed, solver-neutral problem |
+| B. Complete DC model         | 6-8      | Verified DC equations, economics, and public initialization |
+| C. Native solution           | 9        | Small DC-OPF cases solved with KKT diagnostics              |
+| D. Equivalence and extension | 10-11    | MATPOWER/PYPOWER agreement and a proven backend/AC seam     |
 
 Milestone A is the next implementation chunk. Solver work begins only after
 its structural exit gates pass; Milestone B then completes the numerical model

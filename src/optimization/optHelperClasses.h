@@ -264,10 +264,7 @@ class OptimizationData {
                      count_t sequence = 0,
                      index_t variableCount = 0,
                      index_t constraintCount = 0):
-        time(evalTime),
-        seqID(sequence),
-        valueSize(variableCount),
-        constraintSize(constraintCount),
+        time(evalTime), seqID(sequence), valueSize(variableCount), constraintSize(constraintCount),
         val(values)
     {
     }

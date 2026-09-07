@@ -34,6 +34,7 @@ class GridGenOpt: public GridOptObject {
     double m_penaltyCost = 0;
     double m_fuelCost = -1;
     double m_forecast = -kBigNum;
+
   public:
     GridGenOpt(const std::string& objName = "");
     GridGenOpt(CoreObject* obj, const std::string& objName = "");

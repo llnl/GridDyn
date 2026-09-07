@@ -353,12 +353,11 @@ void ExciterESST1A::jacobianElements(const IOdata& inputs,
                           diffRow + voltageMeasurementState,
                           Ka * leadTwoInputGain * leadOneInputGain * inputMeasuredStateDerivative /
                               Ta);
-        matrixData.assign(diffRow + amplifierState,
-                          diffRow + amplifierState,
-                          ((-1.0 / Ta) - stateData.cj) +
-                              ((Ka * leadTwoInputGain * leadOneInputGain *
-                                inputAmplifierDerivative) /
-                               Ta));
+        matrixData.assign(
+            diffRow + amplifierState,
+            diffRow + amplifierState,
+            ((-1.0 / Ta) - stateData.cj) +
+                ((Ka * leadTwoInputGain * leadOneInputGain * inputAmplifierDerivative) / Ta));
         matrixData.assign(diffRow + amplifierState,
                           diffRow + feedbackState,
                           Ka * leadTwoInputGain * leadOneInputGain * inputFeedbackDerivative / Ta);
@@ -382,9 +381,7 @@ void ExciterESST1A::jacobianElements(const IOdata& inputs,
         }
     }
 
-    matrixData.assign(diffRow + feedbackState,
-                      diffRow + feedbackState,
-                      (-1.0 / Tf) - stateData.cj);
+    matrixData.assign(diffRow + feedbackState, diffRow + feedbackState, (-1.0 / Tf) - stateData.cj);
     matrixData.assign(diffRow + feedbackState, diffRow + amplifierState, Kf / (Tf * Tf));
     matrixData.assignCheckCol(diffRow + feedbackState,
                               fieldCurrentLoc,

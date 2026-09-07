@@ -16,6 +16,7 @@
 #include "griddyn/exciters/ExciterDC2A.h"
 #include "griddyn/exciters/ExciterESAC1A.h"
 #include "griddyn/exciters/ExciterESAC6A.h"
+#include "griddyn/exciters/ExciterESST1A.h"
 #include "griddyn/exciters/ExciterESST3A.h"
 #include "griddyn/exciters/ExciterESST4B.h"
 #include "griddyn/exciters/ExciterEXAC1.h"
@@ -30,6 +31,7 @@
 #include "griddyn/genmodels/GenModelClassical.h"
 #include "griddyn/genmodels/GenModelGENROE.h"
 #include "griddyn/genmodels/GenModelGENROU.h"
+#include "griddyn/genmodels/GenModelGENSAE.h"
 #include "griddyn/genmodels/GenModelGENSAL.h"
 #include "griddyn/governors/GovernorGast.h"
 #include "griddyn/governors/GovernorGgov1.h"
@@ -386,6 +388,36 @@ TEST(AndesDyrReaderTests, RejectsMalformedGenroeAndUnsupportedIeeex1Switch)
                      griddyn::InvalidParameterValue)
             << record;
     }
+}
+
+TEST(AndesDyrReaderTests, MapsGensaeAndEsst1aParametersInPsseDyrOrder)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_gensae_esst1a.dyr"));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = bus->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    auto* machine = dynamic_cast<griddyn::genmodels::GenModelGENSAE*>(generator->find("genmodel"));
+    auto* exciter = dynamic_cast<griddyn::exciters::ExciterESST1A*>(generator->find("exciter"));
+    ASSERT_NE(machine, nullptr);
+    ASSERT_NE(exciter, nullptr);
+    EXPECT_DOUBLE_EQ(machine->get("tdop"), 5.0);
+    EXPECT_DOUBLE_EQ(machine->get("tdopp"), 0.07);
+    EXPECT_DOUBLE_EQ(machine->get("tqopp"), 0.09);
+    EXPECT_DOUBLE_EQ(machine->get("s10"), 0.11);
+    EXPECT_DOUBLE_EQ(machine->get("s12"), 0.39);
+    EXPECT_DOUBLE_EQ(exciter->get("uel"), 1.0);
+    EXPECT_DOUBLE_EQ(exciter->get("vos"), 1.0);
+    EXPECT_DOUBLE_EQ(exciter->get("tb1"), 0.10);
+    EXPECT_DOUBLE_EQ(exciter->get("tc1"), 0.02);
+    EXPECT_DOUBLE_EQ(exciter->get("ilr"), 0.3);
+    EXPECT_DOUBLE_EQ(exciter->get("klr"), 2.0);
+    EXPECT_DOUBLE_EQ(exciter->get("kc"), 0.2);
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
 TEST(AndesDyrReaderTests, MapsExpic1ParametersInPsseDyrOrder)

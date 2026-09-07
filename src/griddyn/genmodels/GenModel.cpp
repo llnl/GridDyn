@@ -12,7 +12,9 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "otherGenModels.h"
 #include "utilities/MatrixData.hpp"
+#include <array>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace griddyn {
@@ -70,6 +72,8 @@ static ChildTypeFactory<griddyn::genmodels::GenModelGENROU, GenModel>
     gGenrouModelFactory("genmodel", std::to_array<std::string_view>({"genrou"}));
 static ChildTypeFactory<griddyn::genmodels::GenModelGENROE, GenModel>
     gGenroeModelFactory("genmodel", std::to_array<std::string_view>({"genroe"}));
+static ChildTypeFactory<griddyn::genmodels::GenModelGENSAE, GenModel>
+    gGensaeModelFactory("genmodel", std::to_array<std::string_view>({"gensae"}));
 static ChildTypeFactory<griddyn::genmodels::GenModelGENSAL, GenModel>
     gGensalModelFactory("genmodel", std::to_array<std::string_view>({"gensal"}));
 static ChildTypeFactory<griddyn::genmodels::GenModel8, GenModel> gEighthOrderGenModelFactory(

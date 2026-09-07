@@ -11,5 +11,6 @@
 #include "GenModel8.h"
 #include "GenModelGENROE.h"
 #include "GenModelGENROU.h"
+#include "GenModelGENSAE.h"
 #include "GenModelGENSAL.h"
 #include "GenModelInverter.h"

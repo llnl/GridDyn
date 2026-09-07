@@ -185,7 +185,7 @@ void expectExciterJacobian(Exciter& exciter,
                            double tolerance = 2e-5)
 {
     constexpr double step = 1e-6;
-    const index_t stateCount = static_cast<index_t>(state.size());
+    const auto stateCount = static_cast<index_t>(state.size());
     ASSERT_EQ(exciter.stateSize(cDaeSolverMode), state.size());
     exciter.setOffset(0, cDaeSolverMode);
     std::vector<double> stateDerivative(state.size(), 0.0);

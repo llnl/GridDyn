@@ -63,4 +63,5 @@ fmus
 /.pre-commit-cache-2/
 .pre-commit-cache
 .vs
+.julia
 output

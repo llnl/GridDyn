@@ -79,6 +79,11 @@ namespace {
         }
         return derivative;
     }
+
+    double coefficientOrZero(const std::vector<double>& coefficients, std::size_t index)
+    {
+        return (index < coefficients.size()) ? coefficients[index] : 0.0;
+    }
 }  // namespace
 
 static OptObjectFactory<GridGenOpt, Generator> gOpgen("basic", "gen", 0, true);
@@ -154,12 +159,39 @@ void GridGenOpt::loadSizes(const OptimizationMode& oMode)
 void GridGenOpt::setValues(const OptimizationData& /* of */, const OptimizationMode& /*oMode*/) {}
 
 // for saving the state
-void GridGenOpt::guessState(double /*time*/, double /*val*/[], const OptimizationMode& /*oMode*/)
+void GridGenOpt::guessState(double /*time*/, double val[], const OptimizationMode& oMode)
 {
-    // OptimizationOffsets *oo = offsets.getOffsets (oMode);
+    if ((gen == nullptr) || (val == nullptr)) {
+        return;
+    }
+    auto& optimizationOffsets = offsets.getOffsets(oMode);
+    if (optimizationOffsets.gOffset != kNullLocation) {
+        // Seed OPF from the current physical dispatch.  The optimization
+        // variable remains owned by the optimizer; the generator is only the
+        // single source for the initial operating point.
+        val[optimizationOffsets.gOffset] = gen->getRealPower();
+    }
+    if (isAC(oMode) && (optimizationOffsets.qOffset != kNullLocation)) {
+        const double qGuess = gen->get("q");
+        if (qGuess != kNullVal) {
+            val[optimizationOffsets.qOffset] = qGuess;
+        }
+    }
 }
 
-void GridGenOpt::getVariableType(double /*sdata*/[], const OptimizationMode& /* oMode */) {}
+void GridGenOpt::getVariableType(double sdata[], const OptimizationMode& oMode)
+{
+    if (sdata == nullptr) {
+        return;
+    }
+    auto& optimizationOffsets = offsets.getOffsets(oMode);
+    if ((oMode.allowInteger) && (optimizationOffsets.intOffset != kNullLocation)) {
+        for (index_t variableIndex = 0; variableIndex < optimizationOffsets.local.intSize;
+             ++variableIndex) {
+            sdata[optimizationOffsets.intOffset + variableIndex] = INTEGER_OBJECTIVE_VARIABLE;
+        }
+    }
+}
 
 void GridGenOpt::getTols(double /*tols*/[], const OptimizationMode& /* oMode */) {}
 
@@ -191,11 +223,11 @@ void GridGenOpt::linearObj(const OptimizationData& /* of */,
     auto& optimizationOffsets = offsets.getOffsets(oMode);
     if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
-        linObj.assign(0, Pcoeff[0] * oMode.period);
-        linObj.assign(optimizationOffsets.gOffset, Pcoeff[1] * oMode.period);
+        linObj.assign(0, coefficientOrZero(Pcoeff, 0) * oMode.period);
+        linObj.assign(optimizationOffsets.gOffset, coefficientOrZero(Pcoeff, 1) * oMode.period);
         if ((!(Qcoeff.empty())) && (isAC(oMode))) {
-            linObj.assign(0, Qcoeff[0] * oMode.period);
-            linObj.assign(optimizationOffsets.qOffset, Qcoeff[1] * oMode.period);
+            linObj.assign(0, coefficientOrZero(Qcoeff, 0) * oMode.period);
+            linObj.assign(optimizationOffsets.qOffset, coefficientOrZero(Qcoeff, 1) * oMode.period);
         }
     }
 }
@@ -207,14 +239,14 @@ void GridGenOpt::quadraticObj(const OptimizationData& /* of */,
     auto& optimizationOffsets = offsets.getOffsets(oMode);
     if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
-        linObj.assign(0, Pcoeff[0] * oMode.period);
-        linObj.assign(optimizationOffsets.gOffset, Pcoeff[1] * oMode.period);
+        linObj.assign(0, coefficientOrZero(Pcoeff, 0) * oMode.period);
+        linObj.assign(optimizationOffsets.gOffset, coefficientOrZero(Pcoeff, 1) * oMode.period);
         if (Pcoeff.size() >= 3) {
             quadObj.assign(optimizationOffsets.gOffset, Pcoeff[2] * oMode.period);
         }
         if ((!(Qcoeff.empty())) && (isAC(oMode))) {
-            linObj.assign(0, Qcoeff[0] * oMode.period);
-            linObj.assign(optimizationOffsets.qOffset, Qcoeff[1] * oMode.period);
+            linObj.assign(0, coefficientOrZero(Qcoeff, 0) * oMode.period);
+            linObj.assign(optimizationOffsets.qOffset, coefficientOrZero(Qcoeff, 1) * oMode.period);
             if (Qcoeff.size() >= 3) {
                 quadObj.assign(optimizationOffsets.qOffset, Qcoeff[2] * oMode.period);
             }

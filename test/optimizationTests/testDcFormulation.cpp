@@ -11,8 +11,13 @@
 #include "optimization/models/gridGenOpt.h"
 #include "optimization/models/gridLinkOpt.h"
 #include "optimization/optHelperClasses.h"
+#include "optimization/optimizerInterface.h"
+
+#include "griddyn/Generator.h"
+#include "griddyn/GridBus.h"
 
 #include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <gtest/gtest.h>
 #include <memory>
@@ -27,9 +32,28 @@ std::filesystem::path makePyPowerCasePath(std::string_view fileName)
         std::string{fileName};
 }
 
+std::filesystem::path makeMatPowerCasePath(std::string_view fileName)
+{
+    return std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "matlab_test_files" /
+        std::string{fileName};
+}
+
+std::filesystem::path makeValidationCasePath(std::string_view fileName)
+{
+    return std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "validation_tests" /
+        std::string{fileName};
+}
+
 griddyn::OptimizationMode makeDcMode(griddyn::LinearityMode linearity)
 {
     return griddyn::OptimizationMode{griddyn::FlowModel::DC, linearity, 0, 1, 1.0};
+}
+
+void expectFinite(const std::vector<double>& values)
+{
+    for (const auto value : values) {
+        EXPECT_TRUE(std::isfinite(value));
+    }
 }
 
 }  // namespace
@@ -56,6 +80,49 @@ TEST(OptimizationDcFormulationTests, LoadPyPowerGeneratorCost)
 
     // case2.py specifies 0.01 * Pg^2 + Pg.
     EXPECT_DOUBLE_EQ(generatorOpt->objValue(optimizationData, mode), 11.0);
+}
+
+TEST(OptimizationDcFormulationTests, OptimizationDataViewsOptimizerOwnedStorage)
+{
+    const auto mode = makeDcMode(griddyn::LinearityMode::LINEAR);
+    griddyn::BasicOptimizer optimizer("basic");
+    optimizer.setOptimizationData(nullptr, mode);
+
+    ASSERT_EQ(optimizer.allocate(3, 2), FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(optimizer.getSize(), 3);
+    ASSERT_EQ(optimizer.constraintSize(), 2);
+    EXPECT_EQ(optimizer.size(), 3);
+    EXPECT_EQ(optimizer.constraintCount(), 2);
+    ASSERT_EQ(optimizer.values.size(), 3U);
+    ASSERT_EQ(optimizer.constraintValues.size(), 2U);
+    EXPECT_TRUE(optimizer.getFlag("allocated"));
+    EXPECT_FALSE(optimizer.getFlag("initialized"));
+    optimizer.setFlag("sparse", true);
+    EXPECT_TRUE(optimizer.getFlag("sparse"));
+    EXPECT_FALSE(optimizer.getFlag("dense"));
+    optimizer.setFlag("dense", true);
+    EXPECT_TRUE(optimizer.getFlag("dense"));
+    EXPECT_FALSE(optimizer.getFlag("sparse"));
+
+    optimizer.values[0] = 1.0;
+    auto optimizationData = optimizer.makeOptimizationData(4.0);
+
+    EXPECT_EQ(optimizationData.time, 4.0);
+    EXPECT_EQ(optimizationData.valueSize, 3);
+    EXPECT_EQ(optimizationData.constraintSize, 2);
+    EXPECT_EQ(optimizationData.val, optimizer.val_data());
+    EXPECT_EQ(optimizationData.val[0], 1.0);
+    EXPECT_NE(optimizationData.scratch1, nullptr);
+    EXPECT_NE(optimizationData.scratch2, nullptr);
+    EXPECT_TRUE(optimizationData.hasScratch());
+    EXPECT_FALSE(optimizationData.empty());
+
+    const double candidateValues[] = {2.0, 3.0, 4.0};
+    auto candidateData = optimizer.makeOptimizationData(5.0, candidateValues);
+    EXPECT_EQ(candidateData.val, candidateValues);
+    EXPECT_EQ(candidateData.val[2], 4.0);
+    EXPECT_EQ(candidateData.valueSize, 3);
+    EXPECT_EQ(candidateData.constraintSize, 2);
 }
 
 TEST(OptimizationDcFormulationTests, TwoBusDcModelHasBusOwnedBalanceRows)
@@ -217,4 +284,278 @@ TEST(OptimizationDcFormulationTests, TwoBusDcBranchSourceAndFlow)
     root->constraintValue(data, residuals.data(), mode);
     EXPECT_NEAR(residuals[bus1Offsets.constraintOffset], 0.0, 1e-12);
     EXPECT_NEAR(residuals[bus2Offsets.constraintOffset], 0.0, 1e-12);
+}
+
+TEST(OptimizationDcFormulationTests, OptimizerInterfaceDrivesTwoBusDcCallbacks)
+{
+    auto gds = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath = makePyPowerCasePath("case2.py");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds.get(), filePath.string());
+
+    const auto mode = makeDcMode(griddyn::LinearityMode::QUADRATIC);
+    gds->initializeOptimizationModel(mode);
+
+    auto* root = gds->getOptimizationObject();
+    ASSERT_NE(root, nullptr);
+    auto* bus1 = dynamic_cast<griddyn::GridBusOpt*>(root->findByUserID("bus", 1));
+    auto* bus2 = dynamic_cast<griddyn::GridBusOpt*>(root->findByUserID("bus", 2));
+    ASSERT_NE(bus1, nullptr);
+    ASSERT_NE(bus2, nullptr);
+    auto* generator = dynamic_cast<griddyn::GridGenOpt*>(bus1->getGen(0));
+    ASSERT_NE(generator, nullptr);
+
+    const auto& bus1Offsets = bus1->offsets.getOffsets(mode);
+    const auto& bus2Offsets = bus2->offsets.getOffsets(mode);
+    const auto& generatorOffsets = generator->offsets.getOffsets(mode);
+
+    griddyn::BasicOptimizer optimizer("basic");
+    optimizer.setOptimizationData(gds.get(), mode);
+    ASSERT_EQ(optimizer.allocate(root->objSize(mode), root->constraintSize(mode)),
+              FUNCTION_EXECUTION_SUCCESS);
+
+    ASSERT_LT(bus1Offsets.aOffset, optimizer.values.size());
+    ASSERT_LT(bus2Offsets.aOffset, optimizer.values.size());
+    ASSERT_LT(generatorOffsets.gOffset, optimizer.values.size());
+    optimizer.values[generatorOffsets.gOffset] = 0.5;
+    optimizer.values[bus1Offsets.aOffset] = 0.0;
+    optimizer.values[bus2Offsets.aOffset] = -0.05;
+
+    EXPECT_EQ(optimizer.loadVariableBounds(0.0), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(optimizer.loadQuadraticObjective(0.0), FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(optimizer.constraintFunction(0.0,
+                                           optimizer.val_data(),
+                                           optimizer.constraint_data()),
+              FUNCTION_EXECUTION_SUCCESS);
+
+    EXPECT_NEAR(optimizer.constraintValues[bus1Offsets.constraintOffset], 0.0, 1e-12);
+    EXPECT_NEAR(optimizer.constraintValues[bus1Offsets.constraintOffset + 1], 0.0, 1e-12);
+    EXPECT_NEAR(optimizer.constraintValues[bus2Offsets.constraintOffset], 0.0, 1e-12);
+    EXPECT_NEAR(optimizer.objectiveFunction(0.0, optimizer.val_data()), 75.0, 1e-12);
+
+    ASSERT_EQ(optimizer.gradientFunction(0.0,
+                                         optimizer.val_data(),
+                                         optimizer.gradientData()),
+              FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_NEAR(optimizer.gradient[generatorOffsets.gOffset], 200.0, 1e-12);
+
+    auto& jacobian = optimizer.constraintJacobianFunction(0.0, optimizer.val_data());
+    EXPECT_NEAR(jacobian.at(bus1Offsets.constraintOffset, generatorOffsets.gOffset), 1.0, 1e-12);
+    EXPECT_NEAR(jacobian.at(bus1Offsets.constraintOffset, bus1Offsets.aOffset), -10.0, 1e-12);
+    EXPECT_NEAR(jacobian.at(bus1Offsets.constraintOffset, bus2Offsets.aOffset), 10.0, 1e-12);
+    EXPECT_NEAR(jacobian.at(bus1Offsets.constraintOffset + 1, bus1Offsets.aOffset), 1.0, 1e-12);
+    EXPECT_NEAR(jacobian.at(bus2Offsets.constraintOffset, bus1Offsets.aOffset), 10.0, 1e-12);
+    EXPECT_NEAR(jacobian.at(bus2Offsets.constraintOffset, bus2Offsets.aOffset), -10.0, 1e-12);
+}
+
+TEST(OptimizationDcFormulationTests, OptimizerInterfaceInitializationLoadsProblemData)
+{
+    auto gds = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath = makePyPowerCasePath("case2.py");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds.get(), filePath.string());
+
+    const auto mode = makeDcMode(griddyn::LinearityMode::QUADRATIC);
+    gds->initializeOptimizationModel(mode);
+
+    auto* root = gds->getOptimizationObject();
+    ASSERT_NE(root, nullptr);
+    auto* bus1 = dynamic_cast<griddyn::GridBusOpt*>(root->findByUserID("bus", 1));
+    auto* bus2 = dynamic_cast<griddyn::GridBusOpt*>(root->findByUserID("bus", 2));
+    ASSERT_NE(bus1, nullptr);
+    ASSERT_NE(bus2, nullptr);
+    auto* generator = dynamic_cast<griddyn::GridGenOpt*>(bus1->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* physicalBus1 = dynamic_cast<griddyn::GridBus*>(bus1->sourceObject());
+    auto* physicalBus2 = dynamic_cast<griddyn::GridBus*>(bus2->sourceObject());
+    auto* physicalGenerator = dynamic_cast<griddyn::Generator*>(generator->sourceObject());
+    ASSERT_NE(physicalBus1, nullptr);
+    ASSERT_NE(physicalBus2, nullptr);
+    ASSERT_NE(physicalGenerator, nullptr);
+
+    griddyn::BasicOptimizer optimizer("basic");
+    optimizer.setOptimizationData(gds.get(), mode);
+    ASSERT_EQ(optimizer.allocate(root->objSize(mode), root->constraintSize(mode)),
+              FUNCTION_EXECUTION_SUCCESS);
+    optimizer.set("rtol", 1e-7);
+    optimizer.initialize(0.0);
+
+    EXPECT_TRUE(optimizer.isInitialized());
+    EXPECT_EQ(optimizer.variableType.size(), optimizer.values.size());
+    EXPECT_EQ(optimizer.tolerances.size(), optimizer.values.size());
+    EXPECT_EQ(optimizer.get("integer_variables"), 0.0);
+    EXPECT_EQ(optimizer.get("binary_variables"), 0.0);
+
+    const auto& bus1Offsets = bus1->offsets.getOffsets(mode);
+    const auto& bus2Offsets = bus2->offsets.getOffsets(mode);
+    const auto& generatorOffsets = generator->offsets.getOffsets(mode);
+    EXPECT_NEAR(optimizer.values[bus1Offsets.aOffset], physicalBus1->getAngle(), 1e-12);
+    EXPECT_NEAR(optimizer.values[bus2Offsets.aOffset], physicalBus2->getAngle(), 1e-12);
+    EXPECT_NEAR(optimizer.values[generatorOffsets.gOffset], physicalGenerator->getRealPower(), 1e-12);
+    EXPECT_NEAR(optimizer.tolerances[generatorOffsets.gOffset], 1e-7, 1e-15);
+    EXPECT_EQ(optimizer.variableType[generatorOffsets.gOffset], CONTINUOUS_OBJECTIVE_VARIABLE);
+}
+
+TEST(OptimizationDcFormulationTests, TwoBusIntegratedBasicOptimizerDryRunBeforeSolve)
+{
+    auto gds = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath = makePyPowerCasePath("case2.py");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds.get(), filePath.string());
+
+    const auto mode = makeDcMode(griddyn::LinearityMode::QUADRATIC);
+    gds->initializeOptimizationModel(mode);
+
+    auto* root = gds->getOptimizationObject();
+    ASSERT_NE(root, nullptr);
+    ASSERT_EQ(root->objSize(mode), 3);
+    ASSERT_EQ(root->constraintSize(mode), 3);
+
+    auto optimizer = griddyn::makeOptimizer(gds.get(), mode);
+    ASSERT_NE(optimizer, nullptr);
+    optimizer->setName("dcopf-dry-run");
+    ASSERT_EQ(optimizer->allocate(root->objSize(mode), root->constraintSize(mode)),
+              FUNCTION_EXECUTION_SUCCESS);
+    optimizer->setMaxNonZeros(root->objSize(mode) * root->constraintSize(mode));
+    optimizer->initialize(0.0);
+
+    ASSERT_TRUE(optimizer->isInitialized());
+    EXPECT_EQ(optimizer->size(), 3);
+    EXPECT_EQ(optimizer->constraintCount(), 3);
+    EXPECT_EQ(optimizer->values.size(), 3U);
+    EXPECT_EQ(optimizer->lowerBounds.size(), 3U);
+    EXPECT_EQ(optimizer->upperBounds.size(), 3U);
+    EXPECT_EQ(optimizer->constraintValues.size(), 3U);
+    EXPECT_EQ(optimizer->constraintLowerBounds.size(), 3U);
+    EXPECT_EQ(optimizer->constraintUpperBounds.size(), 3U);
+    EXPECT_EQ(optimizer->gradient.size(), 3U);
+    EXPECT_EQ(optimizer->variableType.size(), 3U);
+    EXPECT_EQ(optimizer->tolerances.size(), 3U);
+    EXPECT_EQ(optimizer->multipliers.size(), 3U);
+    EXPECT_EQ(optimizer->linearObjective.points(), 2);
+    EXPECT_EQ(optimizer->quadraticObjective.points(), 1);
+
+    auto* bus1 = dynamic_cast<griddyn::GridBusOpt*>(root->findByUserID("bus", 1));
+    auto* bus2 = dynamic_cast<griddyn::GridBusOpt*>(root->findByUserID("bus", 2));
+    ASSERT_NE(bus1, nullptr);
+    ASSERT_NE(bus2, nullptr);
+    auto* generator = dynamic_cast<griddyn::GridGenOpt*>(bus1->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* physicalGenerator = dynamic_cast<griddyn::Generator*>(generator->sourceObject());
+    ASSERT_NE(physicalGenerator, nullptr);
+    const auto& bus1Offsets = bus1->offsets.getOffsets(mode);
+    const auto& bus2Offsets = bus2->offsets.getOffsets(mode);
+    const auto& generatorOffsets = generator->offsets.getOffsets(mode);
+
+    SCOPED_TRACE(::testing::Message{}
+                 << "bus1 angle offset=" << bus1Offsets.aOffset
+                 << ", bus2 angle offset=" << bus2Offsets.aOffset
+                 << ", generator offset=" << generatorOffsets.gOffset
+                 << ", physical pmin=" << physicalGenerator->getPmin()
+                 << ", physical pmax=" << physicalGenerator->getPmax());
+    ASSERT_LT(generatorOffsets.gOffset, optimizer->lowerBounds.size());
+
+    EXPECT_NEAR(optimizer->lowerBounds[generatorOffsets.gOffset], 0.0, 1e-12);
+    EXPECT_NEAR(optimizer->upperBounds[generatorOffsets.gOffset], 1.5, 1e-12);
+    EXPECT_EQ(optimizer->variableType[bus1Offsets.aOffset], CONTINUOUS_OBJECTIVE_VARIABLE);
+    EXPECT_EQ(optimizer->variableType[bus2Offsets.aOffset], CONTINUOUS_OBJECTIVE_VARIABLE);
+    EXPECT_EQ(optimizer->variableType[generatorOffsets.gOffset], CONTINUOUS_OBJECTIVE_VARIABLE);
+
+    expectFinite(optimizer->values);
+    expectFinite(optimizer->lowerBounds);
+    expectFinite(optimizer->upperBounds);
+    expectFinite(optimizer->tolerances);
+
+    EXPECT_EQ(optimizer->constraintFunction(0.0,
+                                            optimizer->val_data(),
+                                            optimizer->constraint_data()),
+              FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(optimizer->gradientFunction(0.0,
+                                          optimizer->val_data(),
+                                          optimizer->gradientData()),
+              FUNCTION_EXECUTION_SUCCESS);
+    auto& jacobian = optimizer->constraintJacobianFunction(0.0, optimizer->val_data());
+    EXPECT_GT(jacobian.size(), 0);
+    expectFinite(optimizer->constraintValues);
+    expectFinite(optimizer->gradient);
+
+    // The dry-run stage proves the problem can be fully specified and evaluated.
+    // Feasibility and optimality are intentionally left for the actual solver.
+    optimizer->values[generatorOffsets.gOffset] = 0.5;
+    optimizer->values[bus1Offsets.aOffset] = 0.0;
+    optimizer->values[bus2Offsets.aOffset] = -0.05;
+    ASSERT_EQ(optimizer->constraintFunction(0.0,
+                                           optimizer->val_data(),
+                                           optimizer->constraint_data()),
+              FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_NEAR(optimizer->constraintValues[bus1Offsets.constraintOffset], 0.0, 1e-12);
+    EXPECT_NEAR(optimizer->constraintValues[bus1Offsets.constraintOffset + 1], 0.0, 1e-12);
+    EXPECT_NEAR(optimizer->constraintValues[bus2Offsets.constraintOffset], 0.0, 1e-12);
+}
+
+TEST(OptimizationDcFormulationTests, Case9IntegratedBasicOptimizerDryRunBeforeSolve)
+{
+    auto gds = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath = makeValidationCasePath("case9.m");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds.get(), filePath.string());
+
+    const auto mode = makeDcMode(griddyn::LinearityMode::QUADRATIC);
+    gds->initializeOptimizationModel(mode);
+
+    auto* root = gds->getOptimizationObject();
+    ASSERT_NE(root, nullptr);
+    EXPECT_EQ(root->aSize(mode), 9);
+    EXPECT_EQ(root->genSize(mode), 3);
+    EXPECT_EQ(root->objSize(mode), 12);
+    EXPECT_EQ(root->constraintSize(mode), 10);
+
+    auto optimizer = griddyn::makeOptimizer(gds.get(), mode);
+    ASSERT_NE(optimizer, nullptr);
+    ASSERT_EQ(optimizer->allocate(root->objSize(mode), root->constraintSize(mode)),
+              FUNCTION_EXECUTION_SUCCESS);
+    optimizer->setMaxNonZeros(root->objSize(mode) * root->constraintSize(mode));
+    optimizer->initialize(0.0);
+
+    EXPECT_TRUE(optimizer->isInitialized());
+    EXPECT_EQ(optimizer->size(), 12);
+    EXPECT_EQ(optimizer->constraintCount(), 10);
+    EXPECT_EQ(optimizer->values.size(), 12U);
+    EXPECT_EQ(optimizer->lowerBounds.size(), 12U);
+    EXPECT_EQ(optimizer->upperBounds.size(), 12U);
+    EXPECT_EQ(optimizer->constraintValues.size(), 10U);
+    EXPECT_EQ(optimizer->constraintLowerBounds.size(), 10U);
+    EXPECT_EQ(optimizer->constraintUpperBounds.size(), 10U);
+    EXPECT_EQ(optimizer->gradient.size(), 12U);
+    EXPECT_EQ(optimizer->variableType.size(), 12U);
+    EXPECT_EQ(optimizer->tolerances.size(), 12U);
+    EXPECT_EQ(optimizer->multipliers.size(), 10U);
+    EXPECT_EQ(optimizer->linearObjective.points(), 6);
+    EXPECT_EQ(optimizer->quadraticObjective.points(), 3);
+    EXPECT_EQ(optimizer->get("integer_variables"), 0.0);
+    EXPECT_EQ(optimizer->get("binary_variables"), 0.0);
+
+    expectFinite(optimizer->values);
+    expectFinite(optimizer->lowerBounds);
+    expectFinite(optimizer->upperBounds);
+    expectFinite(optimizer->tolerances);
+
+    EXPECT_TRUE(std::isfinite(optimizer->objectiveFunction(0.0, optimizer->val_data())));
+    EXPECT_EQ(optimizer->constraintFunction(0.0,
+                                            optimizer->val_data(),
+                                            optimizer->constraint_data()),
+              FUNCTION_EXECUTION_SUCCESS);
+    EXPECT_EQ(optimizer->gradientFunction(0.0,
+                                          optimizer->val_data(),
+                                          optimizer->gradientData()),
+              FUNCTION_EXECUTION_SUCCESS);
+    auto& jacobian = optimizer->constraintJacobianFunction(0.0, optimizer->val_data());
+    EXPECT_GT(jacobian.size(), 0);
+    EXPECT_TRUE(std::isfinite(optimizer->objectiveFunction(0.0, optimizer->val_data())));
+    expectFinite(optimizer->constraintValues);
+    expectFinite(optimizer->gradient);
 }

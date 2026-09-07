@@ -165,6 +165,15 @@ void GridBusOpt::setValues(const OptimizationData& optimizationData, const Optim
 // for saving the state
 void GridBusOpt::guessState(double time, double val[], const OptimizationMode& oMode)
 {
+    if ((bus != nullptr) && (val != nullptr)) {
+        const auto& optimizationOffsets = offsets.getOffsets(oMode);
+        if ((optimizationOffsets.aOffset != kNullLocation) && (optimizationOffsets.local.aSize > 0)) {
+            val[optimizationOffsets.aOffset] = bus->getAngle();
+        }
+        if ((optimizationOffsets.vOffset != kNullLocation) && (optimizationOffsets.local.vSize > 0)) {
+            val[optimizationOffsets.vOffset] = bus->getVoltage();
+        }
+    }
     for (auto* loadObject : loadList) {
         loadObject->guessState(time, val, oMode);
     }
@@ -395,6 +404,17 @@ void GridBusOpt::setOffsets(const OptimizationOffsets& newOffsets, const Optimiz
 
 void GridBusOpt::setOffset(index_t offset, index_t constraintOffset, const OptimizationMode& oMode)
 {
+    auto& offsetData = offsets.getOffsets(oMode);
+    if (!offsetData.loaded) {
+        loadSizes(oMode);
+    }
+    offsets.setOffset(offset, oMode);
+    offsets.setConstraintOffset(constraintOffset, oMode);
+
+    offset += offsetData.local.aSize + offsetData.local.vSize + offsetData.local.genSize +
+        offsetData.local.qSize + offsetData.local.contSize + offsetData.local.intSize;
+    constraintOffset += offsetData.local.constraintsSize;
+
     for (auto* loadObject : loadList) {
         loadObject->setOffset(offset, constraintOffset, oMode);
         constraintOffset += loadObject->constraintSize(oMode);
@@ -405,9 +425,6 @@ void GridBusOpt::setOffset(index_t offset, index_t constraintOffset, const Optim
         constraintOffset += genObject->constraintSize(oMode);
         offset += genObject->objSize(oMode);
     }
-
-    offsets.setConstraintOffset(constraintOffset, oMode);
-    offsets.setOffset(offset, oMode);
 }
 
 // destructor
@@ -458,6 +475,8 @@ void GridBusOpt::add(GridLoadOpt* loadObject)
 {
     const CoreObject* obj = find(loadObject->getName());
     if (obj == nullptr) {
+        // The bus owns optimization children just as GridBus owns its loads.
+        loadObject->addOwningReference();
         loadObject->locIndex = static_cast<index_t>(loadList.size());
         loadList.push_back(loadObject);
         loadObject->setParent(this);
@@ -471,6 +490,8 @@ void GridBusOpt::add(GridGenOpt* gen)
 {
     const CoreObject* obj = find(gen->getName());
     if (obj == nullptr) {
+        // The bus owns optimization children just as GridBus owns its generators.
+        gen->addOwningReference();
         gen->locIndex = static_cast<index_t>(genList.size());
         genList.push_back(gen);
         gen->setParent(this);

@@ -324,8 +324,14 @@ GridOptObject* GridDynOptimization::makeOptimizationObjectPath(CoreObject* obj)
 
 OptimizerInterface* GridDynOptimization::updateOptimizer(const OptimizationMode& oMode)
 {
+    if (!isValidIndex(oMode.offsetIndex, mOptimizerData)) {
+        mOptimizerData.resize(oMode.offsetIndex + 1);
+    }
     mOptimizerData[oMode.offsetIndex] = makeOptimizer(this, oMode);
     OptimizerInterface* optimizer = mOptimizerData[oMode.offsetIndex].get();
+    if (optimizer != nullptr) {
+        optimizer->allocate(mGridAreaOpt->objSize(oMode), mGridAreaOpt->constraintSize(oMode));
+    }
 
     return optimizer;
 }

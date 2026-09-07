@@ -355,13 +355,22 @@ void GridAreaOpt::setOffsets(const OptimizationOffsets& newOffsets, const Optimi
 
 void GridAreaOpt::setOffset(index_t offset, index_t constraintOffset, const OptimizationMode& oMode)
 {
+    auto& offsetData = offsets.getOffsets(oMode);
+    if (!offsetData.loaded) {
+        loadSizes(oMode);
+    }
+    offsets.setOffset(offset, oMode);
+    offsets.setConstraintOffset(constraintOffset, oMode);
+
+    offset += offsetData.local.aSize + offsetData.local.vSize + offsetData.local.genSize +
+        offsetData.local.qSize + offsetData.local.contSize + offsetData.local.intSize;
+    constraintOffset += offsetData.local.constraintsSize;
+
     for (auto* childObject : objectList) {
         childObject->setOffset(offset, constraintOffset, oMode);
         constraintOffset += childObject->constraintSize(oMode);
         offset += childObject->objSize(oMode);
     }
-    offsets.setConstraintOffset(constraintOffset, oMode);
-    offsets.setOffset(offset, oMode);
 }
 void GridAreaOpt::add(CoreObject* obj)
 {
@@ -429,6 +438,8 @@ void GridAreaOpt::remove(CoreObject* obj)
 void GridAreaOpt::add(GridBusOpt* bus)
 {
     if (!isMember(bus)) {
+        // The area is the owning parent, matching GridArea::add().
+        bus->addOwningReference();
         busList.push_back(bus);
         bus->setParent(this);
         bus->locIndex = static_cast<index_t>(busList.size()) - 1;
@@ -440,6 +451,8 @@ void GridAreaOpt::add(GridBusOpt* bus)
 void GridAreaOpt::add(GridAreaOpt* areaObj)
 {
     if (!isMember(areaObj)) {
+        // The area is the owning parent, matching GridArea::add().
+        areaObj->addOwningReference();
         areaList.push_back(areaObj);
         areaObj->setParent(this);
         areaObj->locIndex = static_cast<index_t>(areaList.size()) - 1;
@@ -452,6 +465,8 @@ void GridAreaOpt::add(GridAreaOpt* areaObj)
 void GridAreaOpt::add(GridLinkOpt* lnk)
 {
     if (!isMember(lnk)) {
+        // Links are owned by the area; bus endpoint lists remain non-owning.
+        lnk->addOwningReference();
         linkList.push_back(lnk);
         lnk->setParent(this);
         lnk->locIndex = static_cast<index_t>(linkList.size()) - 1;
@@ -464,6 +479,8 @@ void GridAreaOpt::add(GridLinkOpt* lnk)
 void GridAreaOpt::add(GridRelayOpt* relay)
 {
     if (!isMember(relay)) {
+        // The area is the owning parent, matching GridArea::add().
+        relay->addOwningReference();
         relayList.push_back(relay);
         relay->setParent(this);
         relay->locIndex = static_cast<index_t>(relayList.size()) - 1;

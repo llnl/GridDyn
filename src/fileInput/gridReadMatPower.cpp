@@ -237,13 +237,12 @@ namespace {
                 }
             }
 
-            if (genLine[8] != 0.0) {
-                gen->set("pmax", genLine[8], MW);
-            }
-
-            if (genLine[9] != 0) {
-                gen->set("pmin", genLine[9], MW);
-            }
+            // MATPOWER/PYPOWER PMAX and PMIN are optimization limits, and
+            // zero is a meaningful bound.  Preserve the loaded matrix values
+            // in the physical Generator so OPF adapters read the same single
+            // source of truth as power-flow and dynamics controls.
+            gen->set("pmax", genLine[8], MW);
+            gen->set("pmin", genLine[9], MW);
 
             if (genLine.size() >= 21) {
                 if ((genLine[10] != 0) && (genLine[11] != 0)) {

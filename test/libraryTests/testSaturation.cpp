@@ -51,6 +51,19 @@ TEST(SaturationTests, CutoffQuadraticMatchesAndesExciterSaturation)
     EXPECT_NEAR(saturation.compute(2.0), 0.4, 1e-14);
 }
 
+TEST(SaturationTests, CutoffScaledQuadraticMatchesArbitraryReferencePoints)
+{
+    Saturation saturation(Saturation::SaturationType::CUTOFF_SCALED_QUADRATIC);
+    saturation.setParam(6.3, 0.44, 4.725, 0.075);
+
+    EXPECT_NEAR(saturation.compute(6.3), 0.44, 1e-13);
+    EXPECT_NEAR(saturation.compute(4.725), 0.075, 1e-13);
+    const double step = 1e-6;
+    const double finiteDifference =
+        (saturation.compute(5.4 + step) - saturation.compute(5.4 - step)) / (2.0 * step);
+    EXPECT_NEAR(saturation.deriv(5.4), finiteDifference, 1e-9);
+}
+
 TEST(SaturationTests, DisabledCharacteristicIsFinite)
 {
     Saturation saturation(Saturation::SaturationType::CUTOFF_SCALED_QUADRATIC);

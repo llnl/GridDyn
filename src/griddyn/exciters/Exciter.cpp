@@ -10,11 +10,14 @@
 #include "../GridComponentHelperClasses.h"
 #include "../GridPrimary.h"
 #include "../gridDynDefinitions.hpp"
+#include "ExciterAC7B.h"
+#include "ExciterAC8B.h"
 #include "ExciterDC1A.h"
 #include "ExciterDC2A.h"
 #include "ExciterESAC1A.h"
 #include "ExciterESAC6A.h"
 #include "ExciterESST1A.h"
+#include "ExciterESST2A.h"
 #include "ExciterESST3A.h"
 #include "ExciterESST4B.h"
 #include "ExciterEXAC1.h"
@@ -22,6 +25,7 @@
 #include "ExciterEXAC4.h"
 #include "ExciterEXPIC1.h"
 #include "ExciterEXST1.h"
+#include "ExciterIEEET3.h"
 #include "ExciterIEEEX1.h"
 #include "ExciterIEEEtype1.h"
 #include "ExciterIEEEtype2.h"
@@ -49,7 +53,10 @@ namespace exciters {
         static ChildTypeFactory<ExciterDC1A, Exciter> gfeEsdc1a("exciter", "esdc1a");  // NOLINT
         static ChildTypeFactory<ExciterDC2A, Exciter> gfeEsdc2a("exciter", "esdc2a");  // NOLINT
         static ChildTypeFactory<ExciterDC2A, Exciter> gfeExdc2("exciter", "exdc2");  // NOLINT
+        static ChildTypeFactory<ExciterAC7B, Exciter> gfeAc7b("exciter", "ac7b");  // NOLINT
+        static ChildTypeFactory<ExciterAC8B, Exciter> gfeAc8b("exciter", "ac8b");  // NOLINT
         static ChildTypeFactory<ExciterESST1A, Exciter> gfeEsst1a("exciter", "esst1a");  // NOLINT
+        static ChildTypeFactory<ExciterESST2A, Exciter> gfeEsst2a("exciter", "esst2a");  // NOLINT
         static ChildTypeFactory<ExciterESST3A, Exciter> gfeEsst3a("exciter", "esst3a");  // NOLINT
         static ChildTypeFactory<ExciterESST4B, Exciter> gfeEsst4b("exciter", "esst4b");  // NOLINT
         static ChildTypeFactory<ExciterEXPIC1, Exciter> gfeExpic1("exciter", "expic1");  // NOLINT
@@ -61,6 +68,7 @@ namespace exciters {
         static ChildTypeFactory<ExciterEXST1, Exciter> gfeExst1("exciter", "exst1");  // NOLINT
         static ChildTypeFactory<ExciterIEEEtype1, Exciter> gfeType1("exciter", "type1");  // NOLINT
         ChildTypeFactory<ExciterIEEEtype1, Exciter> gFeIeeet1("exciter", "ieeet1");  // NOLINT
+        ChildTypeFactory<ExciterIEEET3, Exciter> gFeIeeet3("exciter", "ieeet3");  // NOLINT
         ChildTypeFactory<ExciterIEEEX1, Exciter> gFeIeeex1("exciter", "ieeex1");  // NOLINT
         static TypeFactory<Exciter> gfeDefault(  // NOLINT
             "exciter",

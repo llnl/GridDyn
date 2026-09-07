@@ -12,11 +12,14 @@
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/GridSubModel.h"
 #include "griddyn/events/Event.h"
+#include "griddyn/exciters/ExciterAC7B.h"
+#include "griddyn/exciters/ExciterAC8B.h"
 #include "griddyn/exciters/ExciterDC1A.h"
 #include "griddyn/exciters/ExciterDC2A.h"
 #include "griddyn/exciters/ExciterESAC1A.h"
 #include "griddyn/exciters/ExciterESAC6A.h"
 #include "griddyn/exciters/ExciterESST1A.h"
+#include "griddyn/exciters/ExciterESST2A.h"
 #include "griddyn/exciters/ExciterESST3A.h"
 #include "griddyn/exciters/ExciterESST4B.h"
 #include "griddyn/exciters/ExciterEXAC1.h"
@@ -24,6 +27,7 @@
 #include "griddyn/exciters/ExciterEXAC4.h"
 #include "griddyn/exciters/ExciterEXPIC1.h"
 #include "griddyn/exciters/ExciterEXST1.h"
+#include "griddyn/exciters/ExciterIEEET3.h"
 #include "griddyn/exciters/ExciterIEEEX1.h"
 #include "griddyn/exciters/ExciterIEEEtype1.h"
 #include "griddyn/exciters/ExciterSCRX.h"
@@ -418,6 +422,116 @@ TEST(AndesDyrReaderTests, MapsGensaeAndEsst1aParametersInPsseDyrOrder)
     ASSERT_EQ(simulation->dynInitialize(), 0);
     EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(AndesDyrReaderTests, MapsNewExciterFocusedChunkInDyrOrder)
+{
+    {
+        auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_ieeet3.dyr"));
+        auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+        ASSERT_NE(bus, nullptr);
+        auto* exciter =
+            dynamic_cast<griddyn::exciters::ExciterIEEET3*>(bus->getGen(0)->find("exciter"));
+        ASSERT_NE(exciter, nullptr);
+        const std::pair<std::string_view, double> expected[]{{"tr", 0.011},
+                                                             {"ka", 5.1},
+                                                             {"ta", 0.041},
+                                                             {"vrmax", 20.1},
+                                                             {"vrmin", -20.2},
+                                                             {"vbmax", 18.3},
+                                                             {"ke", 1.04},
+                                                             {"te", 1.05},
+                                                             {"kf", 0.106},
+                                                             {"tf", 1.07},
+                                                             {"kp", 4.08},
+                                                             {"ki", 0.109}};
+        for (const auto& [name, value] : expected) {
+            EXPECT_DOUBLE_EQ(exciter->get(name), value) << name;
+        }
+        ASSERT_EQ(simulation->dynInitialize(), 0);
+        EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+        EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    }
+    {
+        auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_ac8b.dyr"));
+        auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+        ASSERT_NE(bus, nullptr);
+        auto* exciter =
+            dynamic_cast<griddyn::exciters::ExciterAC8B*>(bus->getGen(0)->find("exciter"));
+        ASSERT_NE(exciter, nullptr);
+        const std::pair<std::string_view, double> expected[]{
+            {"tr", 0.011},   {"kpr", 10.1},    {"kir", 11.2},   {"kdr", 12.3},    {"tdr", 0.24},
+            {"vpmax", 99.5}, {"vpmin", -99.6}, {"vrmax", 99.7}, {"vrmin", -99.8}, {"vfemax", 99.9},
+            {"vemin", -9.1}, {"ta", 0.42},     {"ka", 40.3},    {"te", 0.84},     {"kc", 0.015},
+            {"kd", 0.016},   {"ke", 1.07},     {"e1", 3.8},     {"se1", 0.18},    {"e2", 2.6},
+            {"se2", 0.05}};
+        for (const auto& [name, value] : expected) {
+            EXPECT_DOUBLE_EQ(exciter->get(name), value) << name;
+        }
+        ASSERT_EQ(simulation->dynInitialize(), 0);
+        EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+        EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    }
+    {
+        auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_ac7b.dyr"));
+        auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+        ASSERT_NE(bus, nullptr);
+        auto* exciter =
+            dynamic_cast<griddyn::exciters::ExciterAC7B*>(bus->getGen(0)->find("exciter"));
+        ASSERT_NE(exciter, nullptr);
+        const std::pair<std::string_view, double> expected[]{
+            {"tr", 0.011},    {"kpr", 4.1},     {"kir", 4.2},     {"kdr", 0.13}, {"tdr", 0.14},
+            {"vrmax", 20.1},  {"vrmin", -20.2}, {"kpa", 2.1},     {"kia", 1.1},  {"vamax", 20.3},
+            {"vamin", -20.4}, {"kp", 1.2},      {"kl", 0.3},      {"te", 1.3},   {"kc", 0.01},
+            {"kd", 0.02},     {"ke", 1.01},     {"kf1", 0.2},     {"kf2", 0.03}, {"kf3", 0.04},
+            {"tf3", 0.5},     {"vemin", -5.1},  {"vfemax", 20.5}, {"e1", 3.1},   {"se1", 0.1},
+            {"e2", 2.1},      {"se2", 0.02}};
+        for (const auto& [name, value] : expected) {
+            EXPECT_DOUBLE_EQ(exciter->get(name), value) << name;
+        }
+        ASSERT_EQ(simulation->dynInitialize(), 0);
+        EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+        EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    }
+    {
+        auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_esst2a.dyr"));
+        auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+        ASSERT_NE(bus, nullptr);
+        auto* exciter =
+            dynamic_cast<griddyn::exciters::ExciterESST2A*>(bus->getGen(0)->find("exciter"));
+        ASSERT_NE(exciter, nullptr);
+        const std::pair<std::string_view, double> expected[]{{"tr", 0.011},
+                                                             {"ka", 40.2},
+                                                             {"ta", 0.053},
+                                                             {"vrmax", 99.4},
+                                                             {"vrmin", -99.5},
+                                                             {"kp", 0.71},
+                                                             {"ki", 1.02},
+                                                             {"kc", 0.033},
+                                                             {"kf", 0.054},
+                                                             {"tf", 0.75},
+                                                             {"ke", 1.06},
+                                                             {"te", 0.57},
+                                                             {"efdmax", 9.8}};
+        for (const auto& [name, value] : expected) {
+            EXPECT_DOUBLE_EQ(exciter->get(name), value) << name;
+        }
+        ASSERT_EQ(simulation->dynInitialize(), 0);
+        EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+        EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    }
 }
 
 TEST(AndesDyrReaderTests, MapsExpic1ParametersInPsseDyrOrder)

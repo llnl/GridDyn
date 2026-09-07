@@ -60,8 +60,12 @@ namespace {
     void loadESDC1A(CoreObject* parentObject, stringVec& tokens);
     void loadESDC2A(CoreObject* parentObject, stringVec& tokens);
     void loadIEEET1(CoreObject* parentObject, stringVec& tokens);
+    void loadIEEET3(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEX1(CoreObject* parentObject, stringVec& tokens);
+    void loadAC7B(CoreObject* parentObject, stringVec& tokens);
+    void loadAC8B(CoreObject* parentObject, stringVec& tokens);
     void loadESST1A(CoreObject* parentObject, stringVec& tokens);
+    void loadESST2A(CoreObject* parentObject, stringVec& tokens);
     void loadESST3A(CoreObject* parentObject, stringVec& tokens);
     void loadESST4B(CoreObject* parentObject, stringVec& tokens);
     void loadEXPIC1(CoreObject* parentObject, stringVec& tokens);
@@ -147,10 +151,18 @@ void loadDyr(CoreObject* parentObject,
             loadESDC2A(parentObject, lineTokens);
         } else if (type == "'IEEET1'") {
             loadIEEET1(parentObject, lineTokens);
+        } else if (type == "'IEEET3'") {
+            loadIEEET3(parentObject, lineTokens);
         } else if (type == "'IEEEX1'") {
             loadIEEEX1(parentObject, lineTokens);
+        } else if (type == "'AC7B'") {
+            loadAC7B(parentObject, lineTokens);
+        } else if (type == "'AC8B'") {
+            loadAC8B(parentObject, lineTokens);
         } else if (type == "'ESST1A'") {
             loadESST1A(parentObject, lineTokens);
+        } else if (type == "'ESST2A'") {
+            loadESST2A(parentObject, lineTokens);
         } else if (type == "'ESST3A'") {
             loadESST3A(parentObject, lineTokens);
         } else if (type == "'ESST4B'") {
@@ -466,6 +478,24 @@ namespace {
         gen->add(exciterModel);
     }
 
+    void loadIEEET3(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 15U) {
+            throw InvalidParameterValue("IEEET3 DYR record must contain 15 fields");
+        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "IEEET3");
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* model =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "ieeet3"));
+        // PSS/E order verified against the ANDES psse-dyr.yaml IEEET3 schema.
+        static constexpr std::array<std::string_view, 12> names{
+            "tr", "ka", "ta", "vrmax", "vrmin", "vbmax", "ke", "te", "kf", "tf", "kp", "ki"};
+        for (std::size_t index = 0; index < names.size(); ++index) {
+            model->set(names[index], params[index + 3]);
+        }
+        gen->add(model);
+    }
+
     void loadIEEEX1(CoreObject* parentObject, stringVec& tokens)
     {
         if (tokens.size() != 19U) {
@@ -496,6 +526,54 @@ namespace {
         exciterModel->set("e2", params[17]);
         exciterModel->set("se2", params[18]);
         gen->add(exciterModel);
+    }
+
+    void loadAC7B(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 30U) {
+            throw InvalidParameterValue("AC7B DYR record must contain 30 fields");
+        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "AC7B");
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* model =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "ac7b"));
+        // AC7B uses the 27-parameter order of the IEEE/OpenIPSL block:
+        // TR, KPR, KIR, KDR, TDR, VRMAX, VRMIN, KPA, KIA, VAMAX, VAMIN,
+        // KP, KL, TE, KC, KD, KE, KF1, KF2, KF3, TF3, VEMIN, VFEMAX,
+        // E1, SE1, E2, SE2.
+        static constexpr std::array<std::string_view, 27> names{"tr",  "kpr",   "kir",    "kdr",
+                                                                "tdr", "vrmax", "vrmin",  "kpa",
+                                                                "kia", "vamax", "vamin",  "kp",
+                                                                "kl",  "te",    "kc",     "kd",
+                                                                "ke",  "kf1",   "kf2",    "kf3",
+                                                                "tf3", "vemin", "vfemax", "e1",
+                                                                "se1", "e2",    "se2"};
+        for (std::size_t index = 0; index < names.size(); ++index) {
+            model->set(names[index], params[index + 3]);
+        }
+        gen->add(model);
+    }
+
+    void loadAC8B(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 24U) {
+            throw InvalidParameterValue("AC8B DYR record must contain 24 fields");
+        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "AC8B");
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* model =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "ac8b"));
+        // Exact ANDES psse-dyr.yaml order.
+        static constexpr std::array<std::string_view, 21> names{"tr",    "kpr",    "kir",   "kdr",
+                                                                "tdr",   "vpmax",  "vpmin", "vrmax",
+                                                                "vrmin", "vfemax", "vemin", "ta",
+                                                                "ka",    "te",     "kc",    "kd",
+                                                                "ke",    "e1",     "se1",   "e2",
+                                                                "se2"};
+        for (std::size_t index = 0; index < names.size(); ++index) {
+            model->set(names[index], params[index + 3]);
+        }
+        gen->add(model);
     }
 
     void loadESST1A(CoreObject* parentObject, stringVec& tokens)
@@ -530,6 +608,25 @@ namespace {
         model->set("kf", params[20]);
         model->set("tf", params[21]);
         model->set("kc", params[22]);
+        gen->add(model);
+    }
+
+    void loadESST2A(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 16U) {
+            throw InvalidParameterValue("ESST2A DYR record must contain 16 fields");
+        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "ESST2A");
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* model =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "esst2a"));
+        // GridDyn's compact 13-parameter layout for the OpenIPSL ESST2A core.
+        // Separate VUEL/VOEL selector fields are intentionally not accepted.
+        static constexpr std::array<std::string_view, 13> names{
+            "tr", "ka", "ta", "vrmax", "vrmin", "kp", "ki", "kc", "kf", "tf", "ke", "te", "efdmax"};
+        for (std::size_t index = 0; index < names.size(); ++index) {
+            model->set(names[index], params[index + 3]);
+        }
         gen->add(model);
     }
 

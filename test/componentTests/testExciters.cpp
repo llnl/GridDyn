@@ -11,16 +11,20 @@
 #include "fileInput/fileInput.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Generator.h"
+#include "griddyn/exciters/ExciterAC7B.h"
+#include "griddyn/exciters/ExciterAC8B.h"
 #include "griddyn/exciters/ExciterDC1A.h"
 #include "griddyn/exciters/ExciterDC2A.h"
 #include "griddyn/exciters/ExciterESAC6A.h"
 #include "griddyn/exciters/ExciterESST1A.h"
+#include "griddyn/exciters/ExciterESST2A.h"
 #include "griddyn/exciters/ExciterESST3A.h"
 #include "griddyn/exciters/ExciterESST4B.h"
 #include "griddyn/exciters/ExciterEXAC1.h"
 #include "griddyn/exciters/ExciterEXAC4.h"
 #include "griddyn/exciters/ExciterEXPIC1.h"
 #include "griddyn/exciters/ExciterEXST1.h"
+#include "griddyn/exciters/ExciterIEEET3.h"
 #include "griddyn/exciters/ExciterIEEEX1.h"
 #include "griddyn/exciters/ExciterIEEEtype1.h"
 #include "griddyn/exciters/ExciterSCRX.h"
@@ -29,6 +33,7 @@
 #include "griddyn/genmodels/GenModelGENSAL.h"
 #include "solvers/SolverMode.hpp"
 #include "utilities/MatrixDataSparse.hpp"
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <gtest/gtest.h>
@@ -107,7 +112,8 @@ void verifyStabilityCase(ExciterTests& fixture,
             (exciterName == "esst3a") || (exciterName == "esst4b") || (exciterName == "exst1") ||
             (exciterName == "exac1") || (exciterName == "esac1a") || (exciterName == "exac2") ||
             (exciterName == "exac4") || (exciterName == "expic1") || (exciterName == "scrx") ||
-            (exciterName == "esac6a")) {
+            (exciterName == "esac6a") || (exciterName == "ac7b") || (exciterName == "ac8b") ||
+            (exciterName == "ieeet3") || (exciterName == "esst2a")) {
             continue;
         }
         if (std::find(skippedExcters.begin(), skippedExcters.end(), exciterName) !=
@@ -170,6 +176,62 @@ void verifyDefaultPsseSaturation(Exciter& exciter,
     expectFieldDerivative(1.0, -1.0);
     for (const auto& [fieldVoltage, saturationFactor] : saturationPoints) {
         expectFieldDerivative(fieldVoltage, -fieldVoltage * (1.0 + saturationFactor));
+    }
+}
+
+void expectExciterJacobian(Exciter& exciter,
+                           const IOdata& inputs,
+                           const std::vector<double>& state,
+                           double tolerance = 2e-5)
+{
+    constexpr double step = 1e-6;
+    ASSERT_EQ(exciter.stateSize(cDaeSolverMode), state.size());
+    exciter.setOffset(0, cDaeSolverMode);
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    StateData stateData(0.0, state.data(), stateDerivative.data());
+    stateData.stateSize = static_cast<count_t>(state.size());
+    stateData.cj = 0.0;
+    MatrixDataSparse<double> jacobian;
+    IOlocs inputLocs(exciterInputCount, kNullLocation);
+    constexpr index_t inputColumnBase = 20;
+    for (index_t index = 0; index < exciterInputCount; ++index) {
+        inputLocs[index] = inputColumnBase + index;
+    }
+    exciter.jacobianElements(inputs, stateData, jacobian, inputLocs, cDaeSolverMode);
+
+    const auto residualAt = [&exciter, &stateDerivative](const IOdata& trialInputs,
+                                                         const std::vector<double>& trialState) {
+        StateData trialData(0.0, trialState.data(), stateDerivative.data());
+        trialData.stateSize = static_cast<count_t>(trialState.size());
+        std::vector<double> residual(trialState.size(), 0.0);
+        exciter.residual(trialInputs, trialData, residual.data(), cDaeSolverMode);
+        return residual;
+    };
+    for (index_t column = 0; column < state.size(); ++column) {
+        auto plus = state;
+        auto minus = state;
+        plus[column] += step;
+        minus[column] -= step;
+        const auto plusResidual = residualAt(inputs, plus);
+        const auto minusResidual = residualAt(inputs, minus);
+        for (index_t row = 0; row < state.size(); ++row) {
+            const double numerical = (plusResidual[row] - minusResidual[row]) / (2.0 * step);
+            EXPECT_NEAR(jacobian.at(row, column), numerical, tolerance)
+                << "state row " << row << " column " << column;
+        }
+    }
+    for (index_t column = 0; column < exciterInputCount; ++column) {
+        auto plus = inputs;
+        auto minus = inputs;
+        plus[column] += step;
+        minus[column] -= step;
+        const auto plusResidual = residualAt(plus, state);
+        const auto minusResidual = residualAt(minus, state);
+        for (index_t row = 0; row < state.size(); ++row) {
+            const double numerical = (plusResidual[row] - minusResidual[row]) / (2.0 * step);
+            EXPECT_NEAR(jacobian.at(row, inputColumnBase + column), numerical, tolerance)
+                << "input row " << row << " column " << column;
+        }
     }
 }
 
@@ -1637,6 +1699,337 @@ TEST_F(ExciterTests, Exst1CouplesToSynchronousGeneratorFamiliesAndHasAnalyticJac
     }
 }
 
+TEST(ExciterModelTests, Ac8bMatchesPidAndRotatingExciterEquations)
+{
+    auto factory = CoreObjectFactory::instance();
+    std::unique_ptr<CoreObject> object(factory->createObject("exciter", "ac8b"));
+    auto* exciter = dynamic_cast<exciters::ExciterAC8B*>(object.get());
+    ASSERT_NE(exciter, nullptr);
+    exciter->set("tr", 0.1);
+    exciter->set("kpr", 2.0);
+    exciter->set("kir", 0.5);
+    exciter->set("kdr", 0.1);
+    exciter->set("tdr", 0.2);
+    exciter->set("vpmax", 10.0);
+    exciter->set("vpmin", -10.0);
+    exciter->set("vrmax", 10.0);
+    exciter->set("vrmin", -10.0);
+    exciter->set("vfemax", 10.0);
+    exciter->set("vemin", -1.0);
+    exciter->set("ka", 3.0);
+    exciter->set("ta", 0.4);
+    exciter->set("te", 0.5);
+    exciter->set("kc", 0.0);
+    exciter->set("kd", 0.0);
+    exciter->set("ke", 1.0);
+    exciter->set("e1", 0.0);
+    exciter->set("se1", 0.0);
+    exciter->set("e2", 1.0);
+    exciter->set("se2", 0.0);
+    exciter->dynInitializeA(0.0, 0);
+    EXPECT_EQ(exciter->localStateNames(),
+              (stringVec{"efd", "vmeas", "pidint", "pidder", "vr", "ve"}));
+
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.02;
+    inputs[exciterVssInLocation] = 0.01;
+    IOdata initializationInputs = inputs;
+    initializationInputs[exciterVoltageInLocation] = 1.03;
+    IOdata fieldSet(4, 0.0);
+    exciter->dynInitializeB(initializationInputs, {0.18}, fieldSet);
+    std::vector<double> state{0.75, 0.95, 0.1, 0.8, 0.7, 0.8};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    exciter->setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    std::vector<double> derivative(state.size(), 0.0);
+    exciter->derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[1], 0.5, 1e-12);
+    EXPECT_NEAR(derivative[2], 0.04, 1e-12);
+    EXPECT_NEAR(derivative[3], -3.6, 1e-12);
+    EXPECT_NEAR(derivative[4], -2.5, 1e-12);
+    EXPECT_NEAR(derivative[5], -0.2, 1e-12);
+
+    std::vector<double> residual(state.size(), 0.0);
+    exciter->residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    EXPECT_NEAR(residual[0], 0.05, 1e-12);
+}
+
+TEST(ExciterModelTests, Ac7bMatchesNestedRegulatorEquations)
+{
+    exciters::ExciterAC7B exciter;
+    exciter.set("tr", 0.1);
+    exciter.set("kpr", 2.0);
+    exciter.set("kir", 0.5);
+    exciter.set("kdr", 0.0);
+    exciter.set("tdr", 0.0);
+    exciter.set("vrmax", 10.0);
+    exciter.set("vrmin", -10.0);
+    exciter.set("kpa", 3.0);
+    exciter.set("kia", 0.5);
+    exciter.set("vamax", 10.0);
+    exciter.set("vamin", -10.0);
+    exciter.set("kp", 2.0);
+    exciter.set("kl", 10.0);
+    exciter.set("te", 0.5);
+    exciter.set("kc", 0.0);
+    exciter.set("kd", 0.0);
+    exciter.set("ke", 1.0);
+    exciter.set("kf1", 0.2);
+    exciter.set("kf2", 0.3);
+    exciter.set("kf3", 0.0);
+    exciter.set("tf3", 0.0);
+    exciter.set("vfemax", 1.0);
+    exciter.set("vemin", -10.0);
+    exciter.set("e1", 0.0);
+    exciter.set("se1", 0.0);
+    exciter.set("e2", 1.0);
+    exciter.set("se2", 0.0);
+    exciter.dynInitializeA(0.0, 0);
+
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.02;
+    inputs[exciterVssInLocation] = 0.01;
+    IOdata initializationInputs = inputs;
+    initializationInputs[exciterVoltageInLocation] = 1.03;
+    IOdata fieldSet(4, 0.0);
+    exciter.dynInitializeB(initializationInputs, {0.8}, fieldSet);
+    std::vector<double> state{0.8, 0.95, 0.1, 0.08, 0.2, 0.8, 0.8};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    std::vector<double> derivative(state.size(), 0.0);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[1], 0.5, 1e-12);
+    EXPECT_NEAR(derivative[2], 0.04, 1e-12);
+    EXPECT_NEAR(derivative[3], 0.0, 1e-12);
+    EXPECT_NEAR(derivative[4], -0.07, 1e-12);
+    EXPECT_NEAR(derivative[5], 0.0, 1e-12);
+    EXPECT_NEAR(derivative[6], -2.48, 1e-12);
+
+    // VEMIN/VFEMAX constrain the VE integrator state, not I_C.  A large
+    // inner-PI output therefore remains present in the differential drive.
+    state[4] = 2.0;
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[6], 4.72, 1e-12);
+}
+
+TEST(ExciterModelTests, Ac8bUsesScaledSaturationAndFullPidAntiWindup)
+{
+    exciters::ExciterAC8B exciter;
+    exciter.set("tr", 0.1);
+    exciter.set("kpr", 2.0);
+    exciter.set("kir", 0.5);
+    exciter.set("kdr", 0.0);
+    exciter.set("tdr", 0.0);
+    exciter.set("vpmax", 0.2);
+    exciter.set("vpmin", -0.2);
+    exciter.set("vrmax", 10.0);
+    exciter.set("vrmin", -10.0);
+    exciter.set("vfemax", 10.0);
+    exciter.set("vemin", -10.0);
+    exciter.set("ka", 1.0);
+    exciter.set("ta", 0.4);
+    exciter.set("te", 0.5);
+    exciter.set("kc", 0.0);
+    exciter.set("kd", 0.0);
+    exciter.set("ke", 1.0);
+    exciter.set("e1", 2.0);
+    exciter.set("se1", 0.1);
+    exciter.set("e2", 3.0);
+    exciter.set("se2", 0.3);
+    exciter.dynInitializeA(0.0, 0);
+
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.0;
+    IOdata fieldSet(4, 0.0);
+    exciter.dynInitializeB(inputs, {0.1}, fieldSet);
+
+    // The nonlinear equation uses S_E(V_E), not E*S_E(V_E), inside the gain.
+    std::vector<double> state{0.1, 1.0, 0.0, 0.0, 0.7, 2.5};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    std::vector<double> derivative(state.size(), 0.0);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    const double ratio = std::sqrt((0.1 * 2.0) / (0.3 * 3.0));
+    const double cutoff = (2.0 - (ratio * 3.0)) / (1.0 - ratio);
+    const double coefficient = 0.1 * 2.0 / std::pow(2.0 - cutoff, 2.0);
+    const double saturation = coefficient * std::pow(2.5 - cutoff, 2.0) / 2.5;
+    EXPECT_NEAR(derivative[5], (0.7 - ((1.0 + saturation) * 2.5)) / 0.5, 1e-12);
+
+    // The integral state is inside +/-0.2, but the complete PID output is
+    // saturated. The outward integral drive must be held.
+    inputs[exciterVsetInLocation] = 2.0;
+    state = {0.1, 1.0, 0.0, 0.0, 0.0, 0.1};
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    EXPECT_EQ(
+        exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(derivative[2], 0.0);
+    inputs[exciterVsetInLocation] = 0.0;
+    EXPECT_EQ(
+        exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_LT(derivative[2], 0.0);
+}
+
+TEST(ExciterModelTests, Ieeet3AndEsst2aMatchStaticSourceEquations)
+{
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.02;
+    inputs[exciterVssInLocation] = 0.01;
+    IOdata fieldSet(4, 0.0);
+
+    exciters::ExciterIEEET3 ieeet3;
+    ieeet3.set("tr", 0.1);
+    ieeet3.set("ka", 5.0);
+    ieeet3.set("ta", 0.2);
+    ieeet3.set("vrmax", 10.0);
+    ieeet3.set("vrmin", -10.0);
+    ieeet3.set("vbmax", 10.0);
+    ieeet3.set("ke", 1.0);
+    ieeet3.set("te", 0.5);
+    ieeet3.set("kf", 0.1);
+    ieeet3.set("tf", 0.5);
+    ieeet3.set("kp", 0.0);
+    ieeet3.set("ki", 0.0);
+    ieeet3.dynInitializeA(0.0, 0);
+    ieeet3.dynInitializeB(inputs, {0.15}, fieldSet);
+    std::vector<double> state{0.8, 0.95, 0.1, 0.7, 0.8};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    ieeet3.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    std::vector<double> derivative(state.size(), 0.0);
+    ieeet3.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[1], 0.5, 1e-12);
+    EXPECT_NEAR(derivative[2], 1.0, 1e-12);
+    EXPECT_NEAR(derivative[3], 0.2, 1e-12);
+    EXPECT_NEAR(derivative[4], -1.4, 1e-12);
+
+    exciters::ExciterESST2A esst2a;
+    esst2a.set("tr", 0.1);
+    esst2a.set("ka", 5.0);
+    esst2a.set("ta", 0.2);
+    esst2a.set("vrmax", 10.0);
+    esst2a.set("vrmin", -10.0);
+    esst2a.set("kp", 0.0);
+    esst2a.set("ki", 0.0);
+    esst2a.set("kf", 0.1);
+    esst2a.set("tf", 0.5);
+    esst2a.set("ke", 1.0);
+    esst2a.set("te", 0.5);
+    esst2a.set("efdmax", 10.0);
+    esst2a.dynInitializeA(0.0, 0);
+    esst2a.dynInitializeB(inputs, {0.15}, fieldSet);
+    state = {0.8, 0.95, 0.8, 0.7, 0.8};
+    esst2a.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    derivative.assign(state.size(), 0.0);
+    esst2a.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[1], 0.5, 1e-12);
+    EXPECT_NEAR(derivative[2], -2.5, 1e-12);
+    EXPECT_NEAR(derivative[3], 0.2, 1e-12);
+    EXPECT_NEAR(derivative[4], 0.0, 1e-12);
+}
+
+TEST(ExciterModelTests, Ieeet3AndEsst2aProjectAndReleaseDynamicLimits)
+{
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.0;
+    IOdata fieldSet(4, 0.0);
+    std::vector<double> stateDerivative(5, 0.0);
+    std::vector<double> derivative(5, 0.0);
+
+    exciters::ExciterIEEET3 ieeet3;
+    ieeet3.set("vrmax", 1.0);
+    ieeet3.set("vrmin", -1.0);
+    ieeet3.set("kp", 0.0);
+    ieeet3.set("ki", 0.0);
+    ieeet3.dynInitializeA(0.0, 0);
+    ieeet3.dynInitializeB(inputs, {0.1}, fieldSet);
+    inputs[exciterVsetInLocation] = 2.0;
+    std::vector<double> state{0.1, 1.0, 1.1, 0.1, 0.1};
+    ieeet3.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    EXPECT_EQ(
+        ieeet3.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
+    EXPECT_DOUBLE_EQ(ieeet3.getStates()[2], 1.0);
+    ieeet3.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(derivative[2], 0.0);
+    inputs[exciterVsetInLocation] = 0.0;
+    EXPECT_EQ(
+        ieeet3.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
+    ieeet3.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_LT(derivative[2], 0.0);
+
+    inputs[exciterVsetInLocation] = 1.0;
+    exciters::ExciterESST2A esst2a;
+    esst2a.set("vrmax", 10.0);
+    esst2a.set("vrmin", -10.0);
+    esst2a.set("kp", 0.0);
+    esst2a.set("ki", 0.0);
+    esst2a.set("efdmax", 1.0);
+    esst2a.dynInitializeA(0.0, 0);
+    esst2a.dynInitializeB(inputs, {0.1}, fieldSet);
+    state = {1.1, 1.0, 2.0, 1.1, 1.1};
+    esst2a.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    EXPECT_EQ(
+        esst2a.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
+    EXPECT_DOUBLE_EQ(esst2a.getStates()[4], 1.0);
+    esst2a.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(derivative[4], 0.0);
+    state = {1.0, 1.0, 0.0, 1.0, 1.0};
+    esst2a.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    EXPECT_EQ(
+        esst2a.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
+    esst2a.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_LT(derivative[4], 0.0);
+}
+
+TEST(ExciterModelTests, NewExciterJacobiansMatchOffEquilibriumFiniteDifferences)
+{
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.01;
+    inputs[exciterVsetInLocation] = 1.0;
+    inputs[exciterVssInLocation] = 0.02;
+    inputs[exciterXadIfdInLocation] = 0.4;
+    inputs[exciterIdInLocation] = 0.2;
+    inputs[exciterIqInLocation] = 0.1;
+    inputs[exciterVdInLocation] = 0.1;
+    inputs[exciterVqInLocation] = 1.0;
+    IOdata fieldSet(4, 0.0);
+
+    exciters::ExciterAC7B ac7b;
+    ac7b.dynInitializeA(0.0, 0);
+    ac7b.dynInitializeB(inputs, {1.0}, fieldSet);
+    expectExciterJacobian(ac7b, inputs, {5.0, 0.98, 0.2, 0.03, 0.4, 5.0, 5.2});
+
+    exciters::ExciterAC8B ac8b;
+    ac8b.set("e1", 3.0);
+    ac8b.set("se1", 0.2);
+    ac8b.set("e2", 2.0);
+    ac8b.set("se2", 0.05);
+    ac8b.dynInitializeA(0.0, 0);
+    ac8b.dynInitializeB(inputs, {1.0}, fieldSet);
+    expectExciterJacobian(ac8b, inputs, {2.4, 0.98, 0.2, 0.03, 2.0, 2.5});
+
+    exciters::ExciterIEEET3 ieeet3;
+    ieeet3.dynInitializeA(0.0, 0);
+    ieeet3.dynInitializeB(inputs, {1.0}, fieldSet);
+    expectExciterJacobian(ieeet3, inputs, {0.9, 0.98, 0.4, 0.8, 1.1});
+
+    exciters::ExciterESST2A esst2a;
+    esst2a.dynInitializeA(0.0, 0);
+    esst2a.dynInitializeB(inputs, {1.0}, fieldSet);
+    expectExciterJacobian(esst2a, inputs, {0.9, 0.98, 0.4, 0.8, 1.1});
+}
+
 TEST_F(ExciterTests, BasicStabilityTest1)
 {
     static const exciter_parameter_map parameters{
@@ -1721,7 +2114,8 @@ TEST_F(ExciterTests, ExciterTest2AlgDiffTests)
         if (excname.starts_with("fmi") || (excname == "esst3a") || (excname == "exst1") ||
             (excname == "esst4b") || (excname == "exac1") || (excname == "exac2") ||
             (excname == "esac1a") || (excname == "exac4") || (excname == "scrx") ||
-            (excname == "esac6a")) {
+            (excname == "esac6a") || (excname == "ac7b") || (excname == "ac8b") ||
+            (excname == "ieeet3") || (excname == "esst2a")) {
             continue;
         }
         gds = readSimXMLFile(fileName);
@@ -1771,7 +2165,8 @@ TEST_F(ExciterTests, ExciterAlgDiffJacobianTests)
         if (excname.starts_with("fmi") || (excname == "esst3a") || (excname == "exst1") ||
             (excname == "esst4b") || (excname == "exac1") || (excname == "exac2") ||
             (excname == "esac1a") || (excname == "exac4") || (excname == "scrx") ||
-            (excname == "esac6a")) {
+            (excname == "esac6a") || (excname == "ac7b") || (excname == "ac8b") ||
+            (excname == "ieeet3") || (excname == "esst2a")) {
             continue;
         }
         gds = readSimXMLFile(fileName);

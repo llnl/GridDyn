@@ -128,15 +128,17 @@ void Saturation::setParam(double firstInput,
             }
             const double ssv =
                 sqrt((firstSaturation * firstInput) / (secondSaturation * secondInput));
-            const double fitDenominator = firstInput - ssv;
+            const double fitDenominator = 1.0 - ssv;
             if (std::abs(fitDenominator) < 1e-12) {
                 A = 0.0;
                 B = 0.0;
                 break;
             }
-            A = -(secondInput * ssv - firstInput) / fitDenominator;
+            A = (firstInput - secondInput * ssv) / fitDenominator;
             const double distance = firstInput - A;
-            B = (std::abs(distance) < 1e-12) ? 0.0 : firstSaturation / (distance * distance);
+            B = (std::abs(distance) < 1e-12) ?
+                0.0 :
+                (firstSaturation * firstInput) / (distance * distance);
         } break;
         case SaturationType::EXPONENTIAL:
             A = log(firstSaturation / secondSaturation) / log(firstInput / secondInput);

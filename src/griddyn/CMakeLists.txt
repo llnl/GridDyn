@@ -91,10 +91,14 @@ set(exciter_headers
     stabilizers/StabilizerST2CUT.h
     exciters/ExciterDC1A.h
     exciters/ExciterDC2A.h
+    exciters/ExciterAC7B.h
+    exciters/ExciterAC8B.h
     exciters/ExciterESST1A.h
+    exciters/ExciterESST2A.h
     exciters/ExciterESST3A.h
     exciters/ExciterESST4B.h
     exciters/ExciterEXPIC1.h
+    exciters/ExciterSignalHelper.h
     exciters/StaticExciterRectifier.h
     exciters/ExciterEXAC1.h
     exciters/ExciterESAC1A.h
@@ -104,6 +108,7 @@ set(exciter_headers
     exciters/ExciterEXST1.h
     exciters/ExciterIEEEtype1.h
     exciters/ExciterIEEEtype2.h
+    exciters/ExciterIEEET3.h
     exciters/ExciterIEEEX1.h
     exciters/ExciterSEXS.h
     exciters/ExciterSCRX.h
@@ -114,7 +119,10 @@ set(exciter_sources
     exciters/Exciter.cpp
     exciters/ExciterDC1A.cpp
     exciters/ExciterDC2A.cpp
+    exciters/ExciterAC7B.cpp
+    exciters/ExciterAC8B.cpp
     exciters/ExciterESST1A.cpp
+    exciters/ExciterESST2A.cpp
     exciters/ExciterESST3A.cpp
     exciters/ExciterESST4B.cpp
     exciters/ExciterEXPIC1.cpp
@@ -127,6 +135,7 @@ set(exciter_sources
     exciters/ExciterEXST1.cpp
     exciters/ExciterIEEEtype1.cpp
     exciters/ExciterIEEEtype2.cpp
+    exciters/ExciterIEEET3.cpp
     exciters/ExciterIEEEX1.cpp
     exciters/ExciterSEXS.cpp
     exciters/ExciterSCRX.cpp

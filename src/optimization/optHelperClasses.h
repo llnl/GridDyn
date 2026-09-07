@@ -97,6 +97,10 @@ class OptimizationOffsets {
     @param offsets the optimOffset object to use as the sizes
     */
     void increment(const OptimizationOffsets& offsets);
+    /** advance the offsets by the local sizes in another optimization object
+    @param offsets the optimization offsets whose local sizes define the increment
+    */
+    void localIncrement(const OptimizationOffsets& offsets);
     /** merge the sizes of two OptimizationOffsets
     @param offsets the optimOffset object to use as the sizes
     */

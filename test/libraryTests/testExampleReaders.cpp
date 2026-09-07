@@ -11,6 +11,16 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <vector>
+
+#ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
+#    include "optimization/gridDynOpt.h"
+#    include "optimization/models/gridBusOpt.h"
+#    include "optimization/models/gridGenOpt.h"
+#    include "optimization/models/gridLinkOpt.h"
+#    include "optimization/optHelperClasses.h"
+
+#endif
 
 namespace {
 
@@ -115,6 +125,89 @@ TEST(ExampleReaderTests, LoadPyPowerCase)
     EXPECT_EQ(gds->getInt("gencount"), 1);
     EXPECT_EQ(gds->getInt("loadcount"), 1);
 }
+
+#ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
+TEST(ExampleReaderTests, LoadPyPowerGeneratorCost)
+{
+    auto gds = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "pypower_tests" / "case2.py";
+
+    griddyn::loadFile(gds.get(), filePath.string());
+
+    auto* generator = gds->findByUserID("gen", 1);
+    ASSERT_NE(generator, nullptr);
+    auto* generatorOpt = dynamic_cast<griddyn::GridGenOpt*>(gds->getOptimizationObject(generator));
+    ASSERT_NE(generatorOpt, nullptr);
+
+    const griddyn::OptimizationMode mode{griddyn::FlowModel::DC,
+                                         griddyn::LinearityMode::QUADRATIC,
+                                         0,
+                                         1,
+                                         1.0};
+    generatorOpt->loadSizes(mode);
+    generatorOpt->setOffset(0, 0, mode);
+    // MATPOWER gencost uses MW, whereas GridDyn's optimization variables use pu.
+    const double dispatch = 0.1;
+    const griddyn::OptimizationData optimizationData{0.0, &dispatch, 0};
+
+    // case2.py specifies 0.01 * Pg^2 + Pg.
+    EXPECT_DOUBLE_EQ(generatorOpt->objValue(optimizationData, mode), 11.0);
+}
+
+
+TEST(ExampleReaderTests, TwoBusDcBranchSourceAndFlow)
+{
+    auto gds = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "pypower_tests" / "case2.py";
+    griddyn::loadFile(gds.get(), filePath.string());
+
+    auto* physicalBranch = gds->findByUserID("link", 1);
+    ASSERT_NE(physicalBranch, nullptr);
+    EXPECT_NEAR(physicalBranch->get("x"), 0.1, 1e-12);
+
+    const griddyn::OptimizationMode mode{griddyn::FlowModel::DC,
+                                         griddyn::LinearityMode::LINEAR,
+                                         0,
+                                         1,
+                                         1.0};
+    gds->initializeOptimizationModel(mode, 0);
+    auto* root = gds->getOptimizationObject();
+    ASSERT_NE(root, nullptr);
+    auto* bus1 = dynamic_cast<griddyn::GridBusOpt*>(root->findByUserID("bus", 1));
+    auto* bus2 = dynamic_cast<griddyn::GridBusOpt*>(root->findByUserID("bus", 2));
+    auto* branch = dynamic_cast<griddyn::GridLinkOpt*>(root->findByUserID("link", 1));
+    ASSERT_NE(bus1, nullptr);
+    ASSERT_NE(bus2, nullptr);
+    auto* generator = dynamic_cast<griddyn::GridGenOpt*>(bus1->getGen(0));
+    ASSERT_NE(branch, nullptr);
+    ASSERT_NE(generator, nullptr);
+    ASSERT_EQ(branch->getBus(1), bus1);
+    ASSERT_EQ(branch->getBus(2), bus2);
+
+    const auto& bus1Offsets = bus1->offsets.getOffsets(mode);
+    const auto& bus2Offsets = bus2->offsets.getOffsets(mode);
+    const auto& generatorOffsets = generator->offsets.getOffsets(mode);
+    // Flat optimizer offsets follow the simulation convention: index zero is reserved.
+    std::vector<double> values(root->objSize(mode) + 1, 0.0);
+    ASSERT_LT(bus1Offsets.aOffset, values.size());
+    ASSERT_LT(bus2Offsets.aOffset, values.size());
+    ASSERT_LT(generatorOffsets.gOffset, values.size());
+    ASSERT_NE(bus1Offsets.aOffset, bus2Offsets.aOffset);
+    values[generatorOffsets.gOffset] = 0.5;
+    values[bus1Offsets.aOffset] = 0.0;
+    values[bus2Offsets.aOffset] = -0.05;
+
+    const griddyn::OptimizationData data{0.0, values.data(), 0};
+    EXPECT_NEAR(branch->dcPowerFlow(bus1, data, mode), 0.5, 1e-12);
+    EXPECT_NEAR(branch->dcPowerFlow(bus2, data, mode), -0.5, 1e-12);
+    std::vector<double> residuals(root->constraintSize(mode), 0.0);
+    root->constraintValue(data, residuals.data(), mode);
+    EXPECT_NEAR(residuals[bus1Offsets.constraintOffset], 0.0, 1e-12);
+    EXPECT_NEAR(residuals[bus2Offsets.constraintOffset], 0.0, 1e-12);
+}
+#endif
 
 TEST(ExampleReaderTests, ExportPyPowerRoundTrip)
 {

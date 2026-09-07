@@ -85,6 +85,7 @@ class GridLoadOpt: public GridOptObject {
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
+
     virtual GridOptObject* getBus(index_t index) const override;
     virtual GridOptObject* getArea(index_t index) const override;
 

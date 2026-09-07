@@ -126,6 +126,7 @@ void GridAreaOpt::dynObjectInitializeA(std::uint32_t flags)
     }
     newObj.clear();
     // make sure all buses have an opt object
+    areaIndex = 0;
     auto* busObject = area->getBus(areaIndex);
 
     while (busObject != nullptr) {
@@ -148,6 +149,7 @@ void GridAreaOpt::dynObjectInitializeA(std::uint32_t flags)
     }
     newObj.clear();
     // make sure all links have an opt object
+    areaIndex = 0;
     linkObject = area->getLink(areaIndex);
 
     while (linkObject != nullptr) {
@@ -194,6 +196,9 @@ void GridAreaOpt::loadSizes(const OptimizationMode& oMode)
         childObject->loadSizes(oMode);
         offsetData.addSizes(childObject->offsets.getOffsets(oMode));
     }
+    // A size query after offsets are distributed must not rebuild this subtree:
+    // doing so would clear the child offsets just assigned above.
+    offsetData.loaded = true;
 }
 
 void GridAreaOpt::setValues(const OptimizationData& optimizationData, const OptimizationMode& oMode)
@@ -327,54 +332,32 @@ void GridAreaOpt::disable()
 
 void GridAreaOpt::setOffsets(const OptimizationOffsets& newOffsets, const OptimizationMode& oMode)
 {
+    auto& offsetData = offsets.getOffsets(oMode);
+    if (!offsetData.loaded) {
+        loadSizes(oMode);
+    }
     offsets.setOffsets(newOffsets, oMode);
-    OptimizationOffsets nextOffsets(offsets.getOffsets(oMode));
-    nextOffsets.localLoad();
 
-    for (auto* subareaObject : areaList) {
-        subareaObject->setOffsets(nextOffsets, oMode);
-        nextOffsets.increment(subareaObject->offsets.getOffsets(oMode));
-    }
-    for (auto* busObject : busList) {
-        busObject->setOffsets(nextOffsets, oMode);
-        nextOffsets.increment(busObject->offsets.getOffsets(oMode));
-    }
-    for (auto* linkObject : linkList) {
-        linkObject->setOffsets(nextOffsets, oMode);
-        nextOffsets.increment(linkObject->offsets.getOffsets(oMode));
-    }
-    for (auto* relayObject : relayList) {
-        relayObject->setOffsets(nextOffsets, oMode);
-        nextOffsets.increment(relayObject->offsets.getOffsets(oMode));
+    // Mirror GridArea::setOffsets: children begin after this area's local
+    // contribution, then each child advances the running offsets by its total.
+    OptimizationOffsets nextOffsets(newOffsets);
+    nextOffsets.localIncrement(offsetData);
+    for (auto* childObject : objectList) {
+        childObject->setOffsets(nextOffsets, oMode);
+        nextOffsets.increment(childObject->offsets.getOffsets(oMode));
     }
 }
 
 void GridAreaOpt::setOffset(index_t offset, index_t constraintOffset, const OptimizationMode& oMode)
 {
-    for (auto* subareaObject : areaList) {
-        subareaObject->setOffset(offset, constraintOffset, oMode);
-        constraintOffset += subareaObject->constraintSize(oMode);
-        offset += subareaObject->objSize(oMode);
-    }
-    for (auto* busObject : busList) {
-        busObject->setOffset(offset, constraintOffset, oMode);
-        constraintOffset += busObject->constraintSize(oMode);
-        offset += busObject->objSize(oMode);
-    }
-    for (auto* linkObject : linkList) {
-        linkObject->setOffset(offset, constraintOffset, oMode);
-        constraintOffset += linkObject->constraintSize(oMode);
-        offset += linkObject->objSize(oMode);
-    }
-    for (auto* relayObject : relayList) {
-        relayObject->setOffset(offset, constraintOffset, oMode);
-        constraintOffset += relayObject->constraintSize(oMode);
-        offset += relayObject->objSize(oMode);
+    for (auto* childObject : objectList) {
+        childObject->setOffset(offset, constraintOffset, oMode);
+        constraintOffset += childObject->constraintSize(oMode);
+        offset += childObject->objSize(oMode);
     }
     offsets.setConstraintOffset(constraintOffset, oMode);
     offsets.setOffset(offset, oMode);
 }
-
 void GridAreaOpt::add(CoreObject* obj)
 {
     if (dynamic_cast<GridArea*>(obj) != nullptr) {
@@ -627,15 +610,15 @@ CoreObject* GridAreaOpt::find(std::string_view objName) const
         return const_cast<GridAreaOpt*>(this);
     }
     for (auto* busObject : busList) {
-        if (objName == busObject->getName()) {
-            obj = busObject;
+        obj = busObject->find(objName);
+        if (obj != nullptr) {
             break;
         }
     }
     if (obj == nullptr) {
         for (auto* areaObject : areaList) {
-            if (objName == areaObject->getName()) {
-                obj = areaObject;
+            obj = areaObject->find(objName);
+            if (obj != nullptr) {
                 break;
             }
         }

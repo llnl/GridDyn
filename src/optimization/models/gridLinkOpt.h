@@ -111,6 +111,16 @@ class GridLinkOpt: public GridOptObject {
     virtual GridOptObject* getBus(index_t index) const override;
     virtual GridOptObject* getArea(index_t index) const override;
 
+    /** Signed DC active-power flow leaving the specified bus. */
+    double dcPowerFlow(const GridBusOpt* sourceBus,
+                       const OptimizationData& optimizationData,
+                       const OptimizationMode& oMode) const;
+    /** Add derivatives of signed DC flow to a bus-balance row. */
+    void dcPowerFlowJacobian(const GridBusOpt* sourceBus,
+                             index_t constraintRow,
+                             MatrixData<double>& matrixDataRef,
+                             const OptimizationMode& oMode) const;
+
   protected:
 };
 

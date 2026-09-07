@@ -23,7 +23,6 @@ class GridGenOpt: public GridOptObject {
   public:
     enum OptGenFlags {
         PIECEWISE_LINEAR_COST = 1,
-        LIMIT_OVERRIDE = 2,
     };
 
   protected:
@@ -34,11 +33,7 @@ class GridGenOpt: public GridOptObject {
     std::vector<double> Qcoeff;
     double m_penaltyCost = 0;
     double m_fuelCost = -1;
-    double m_Pmax = kBigNum;
-    double m_Pmin = kBigNum;
     double m_forecast = -kBigNum;
-    double systemBasePower = 100.0;  //!< the base power of the generator
-    double mBase = 100.0;  //!< the machine base of the generator
   public:
     GridGenOpt(const std::string& objName = "");
     GridGenOpt(CoreObject* obj, const std::string& objName = "");
@@ -100,8 +95,14 @@ class GridGenOpt: public GridOptObject {
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
 
-    virtual void loadCostCoeff(std::vector<double> const& coeff, int mode);
+    /** Store a MATPOWER/PYPOWER cost curve in the optimizer's per-unit variables.
+        The source format expresses power in MW/MVAr; the adapter obtains the
+        current system base from its attached Generator when converting it. */
+    virtual void loadMatPowerCostCoeff(std::vector<double> coeff, int mode, int model);
     // find components
+
+    /** Attached physical generator; optimization data remains external to it. */
+    Generator* sourceGenerator() const { return gen; }
 
     virtual GridOptObject* getBus(index_t index) const override;
     virtual GridOptObject* getArea(index_t index) const override;

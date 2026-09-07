@@ -108,8 +108,17 @@ class GridDynOptimization: public GridDynSimulation {
     {
         mOptimizerData[oMode.offsetIndex]->initializeJacArray(ssize);
     }
-    // dynamics protected
+  public:
     // void dynInitializeObjects(double initTime, double absInitTime);
+
+    /**
+     * Construct and initialize the optimization adapter tree from the same
+     * physical GridDyn hierarchy used by power-flow initialization, then size
+     * and distribute the numerical optimization variables and constraints.
+     */
+    void initializeOptimizationModel(const OptimizationMode& oMode,
+                                     int setupMode = 1,
+                                     std::uint32_t flags = 0);
 
     void setupOptOffsets(const OptimizationMode& oMode, int setupMode);
 };

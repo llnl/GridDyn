@@ -114,6 +114,40 @@ void OptimizationOffsets::increment(const OptimizationOffsets& offsets)
     constraintOffset += offsets.total.constraintsSize;
 }
 
+void OptimizationOffsets::localIncrement(const OptimizationOffsets& offsets)
+{
+    count_t continuousExtra = 0;
+    if (aOffset != kNullLocation) {
+        aOffset += offsets.local.aSize;
+    } else {
+        continuousExtra = offsets.local.aSize;
+    }
+    if (vOffset != kNullLocation) {
+        vOffset += offsets.local.vSize;
+    } else {
+        continuousExtra += offsets.local.vSize;
+    }
+    if (gOffset != kNullLocation) {
+        gOffset += offsets.local.genSize;
+    } else {
+        continuousExtra += offsets.local.genSize;
+    }
+    if (qOffset != kNullLocation) {
+        qOffset += offsets.local.qSize;
+    } else {
+        continuousExtra += offsets.local.qSize;
+    }
+    contOffset += offsets.local.contSize + continuousExtra;
+
+    if (intOffset != kNullLocation) {
+        intOffset += offsets.local.intSize;
+    } else {
+        contOffset += offsets.local.intSize;
+    }
+
+    constraintOffset += offsets.local.constraintsSize;
+}
+
 void OptimizationOffsets::addSizes(const OptimizationOffsets& offsets)
 {
     total.add(offsets.total);

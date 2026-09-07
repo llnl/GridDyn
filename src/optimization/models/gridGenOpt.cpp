@@ -108,10 +108,6 @@ CoreObject* GridGenOpt::clone(CoreObject* obj) const
     nobj->m_penaltyCost = m_penaltyCost;
     nobj->m_fuelCost = m_fuelCost;
     nobj->m_forecast = m_forecast;
-    nobj->m_Pmax = m_Pmax;
-    nobj->m_Pmin = m_Pmin;
-    nobj->systemBasePower = systemBasePower;
-    nobj->mBase = mBase;
 
     return nobj;
 }
@@ -168,25 +164,13 @@ void GridGenOpt::valueBounds(double time,
                              const OptimizationMode& oMode)
 {
     auto& optimizationOffsets = offsets.getOffsets(oMode);
-    double pUpper;
-    double pLower;
-    if (optFlags.test(LIMIT_OVERRIDE)) {
-        if (m_Pmax < kHalfBigNum) {
-            pUpper = m_Pmax;
-        } else {
-            pUpper = gen->getPmax(time);
-        }
-        if (m_Pmin > -kHalfBigNum) {
-            pLower = m_Pmin;
-        } else {
-            pLower = gen->getPmin(time);
-        }
-    } else {
-        pUpper = gen->getPmax(time);
-        pLower = gen->getPmin(time);
+    if (gen == nullptr) {
+        return;
     }
-    upperLimit[optimizationOffsets.gOffset] = pUpper;
-    lowerLimit[optimizationOffsets.gOffset] = pLower;
+    // Physical operating limits have one owner: the attached Generator.  This
+    // makes OPF see the same time-varying limits as power-flow controls.
+    upperLimit[optimizationOffsets.gOffset] = gen->getPmax(time);
+    lowerLimit[optimizationOffsets.gOffset] = gen->getPmin(time);
     if (isAC(oMode)) {
         const double qUpper = gen->getQmax(time);
         const double qLower = gen->getQmin(time);
@@ -386,13 +370,13 @@ void GridGenOpt::set(std::string_view param, double val, units::unit unitType)
         if (Pcoeff.size() < 2) {
             Pcoeff.resize(2);
         }
-        Pcoeff[1] = convert(val, unitType, currency / puMW / hr, systemBasePower);
+        Pcoeff[1] = convert(val, unitType, currency / puMW / hr, gen->getRoot()->get("basepower"));
     } else if ((param == "quadraticp") || (param == "quadp") || (param == "quadratic") ||
                (param == "quad")) {
         if (Pcoeff.size() < 3) {
             Pcoeff.resize(3);
         }
-        Pcoeff[2] = convert(val, unitType, currency / (puMW.pow(2)) / hr, systemBasePower);
+        Pcoeff[2] = convert(val, unitType, currency / (puMW.pow(2)) / hr, gen->getRoot()->get("basepower"));
     } else if (param == "constantq") {
         if (Qcoeff.empty()) {
             Qcoeff.resize(1);
@@ -402,22 +386,20 @@ void GridGenOpt::set(std::string_view param, double val, units::unit unitType)
         if (Qcoeff.size() < 2) {
             Qcoeff.resize(2);
         }
-        Qcoeff[1] = convert(val, unitType, currency / puMW / hr, systemBasePower);
+        Qcoeff[1] = convert(val, unitType, currency / puMW / hr, gen->getRoot()->get("basepower"));
     } else if ((param == "quadraticq") || (param == "quadq")) {
         if (Qcoeff.size() < 3) {
             Qcoeff.resize(3);
         }
-        Qcoeff[1] = convert(val, unitType, currency / (puMW.pow(2)) / hr, systemBasePower);
+        Qcoeff[2] = convert(val, unitType, currency / (puMW.pow(2)) / hr, gen->getRoot()->get("basepower"));
     } else if ((param == "penalty_cost") || (param == "penalty")) {
-        m_penaltyCost = convert(val, unitType, currency / puMW / hr, systemBasePower);
-    } else if (param == "pmax") {
-        m_Pmax = convert(val, unitType, puMW, systemBasePower);
-        optFlags.set(LIMIT_OVERRIDE);
-    } else if (param == "pmin") {
-        m_Pmin = convert(val, unitType, puMW, systemBasePower);
-        optFlags.set(LIMIT_OVERRIDE);
+        m_penaltyCost = convert(val, unitType, currency / puMW / hr, gen->getRoot()->get("basepower"));
+    } else if ((param == "pmax") || (param == "pmin")) {
+        if (gen != nullptr) {
+            gen->set(param, val, unitType);
+        }
     } else if (param == "forecast") {
-        m_forecast = convert(val, unitType, puMW, systemBasePower);
+        m_forecast = convert(val, unitType, puMW, gen->getRoot()->get("basepower"));
     } else {
         GridOptObject::set(param, val, unitType);
     }
@@ -433,8 +415,25 @@ double GridGenOpt::get(std::string_view param, units::unit unitType) const
     return val;
 }
 
-void GridGenOpt::loadCostCoeff(std::vector<double> const& coeff, int mode)
+void GridGenOpt::loadMatPowerCostCoeff(std::vector<double> coeff, int mode, int model)
 {
+    const auto basePower = (gen != nullptr) ? gen->getRoot()->get("basepower") : 1.0;
+    if (model == 2) {
+        // MATPOWER lists polynomial terms highest-to-lowest in MW/MVAr.  The
+        // optimizer uses per-unit injections and constant-first coefficients.
+        std::reverse(coeff.begin(), coeff.end());
+        double scale = 1.0;
+        for (auto& coefficient : coeff) {
+            coefficient *= scale;
+            scale *= basePower;
+        }
+    } else if (model == 1) {
+        // Preserve the cost ordinate, but express breakpoint power in per unit.
+        for (std::size_t index = 0; index < coeff.size(); index += 2) {
+            coeff[index] /= basePower;
+        }
+        optFlags.set(PIECEWISE_LINEAR_COST);
+    }
     if (mode == 0) {
         Pcoeff = coeff;
     } else {

@@ -48,6 +48,18 @@ CoreObject* GridDynOptimization::clone(CoreObject* obj) const
     return sim;
 }
 
+void GridDynOptimization::initializeOptimizationModel(const OptimizationMode& oMode,
+                                                       int setupMode,
+                                                       std::uint32_t flags)
+{
+    // Keep the optimizer lifecycle parallel to GridDyn power-flow setup: first
+    // traverse the physical hierarchy to construct and bind component models,
+    // then perform a second pass to assign the assembled numerical layout.
+    mGridAreaOpt->dynInitializeA(flags);
+    mGridAreaOpt->loadSizes(oMode);
+    setupOptOffsets(oMode, setupMode);
+}
+
 void GridDynOptimization::setupOptOffsets(const OptimizationMode& oMode, int setupMode)
 {
     if (setupMode == 0) {  // no distinction between Voltage, angle, and others

@@ -100,11 +100,13 @@ void GenModelGENSAL::dynObjectInitializeB(const IOdata& inputs,
         // rather than the GENSAL unsaturated q-axis internal voltage.
         const double airGapFluxMagnitude = std::abs(subtransientFlux);
         const double saturation = sat.compute(airGapFluxMagnitude);
-        const double a = airGapFluxMagnitude * (1.0 + (saturation * (Xq - Xl) / (Xd - Xl)));
-        const double b = std::abs(terminalCurrent) * (Xdpp - Xq);
+        const double saturatedAirGapFlux =
+            airGapFluxMagnitude * (1.0 + (saturation * (Xq - Xl) / (Xd - Xl)));
+        const double currentReactance = std::abs(terminalCurrent) * (Xdpp - Xq);
         const double fluxCurrentAngle = std::arg(subtransientFlux) - std::arg(terminalCurrent);
         rotorAngle =
-            std::atan((b * std::cos(fluxCurrentAngle)) / ((b * std::sin(fluxCurrentAngle)) - a)) +
+            std::atan((currentReactance * std::cos(fluxCurrentAngle)) /
+                      ((currentReactance * std::sin(fluxCurrentAngle)) - saturatedAirGapFlux)) +
             std::arg(subtransientFlux);
     }
     const std::complex<double> rotation = std::polar(1.0, -rotorAngle);

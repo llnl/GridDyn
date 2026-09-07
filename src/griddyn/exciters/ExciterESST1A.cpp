@@ -88,12 +88,12 @@ void ExciterESST1A::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*fla
 
 double ExciterESST1A::leadLagOneOutput(double input, double state) const
 {
-    return (Tb > 0.0) ? ((Tc * input + (Tb - Tc) * state) / Tb) : input;
+    return (Tb > 0.0) ? (((Tc * input) + ((Tb - Tc) * state)) / Tb) : input;
 }
 
 double ExciterESST1A::leadLagTwoOutput(double input, double state) const
 {
-    return (Tb1 > 0.0) ? ((Tc1 * input + (Tb1 - Tc1) * state) / Tb1) : input;
+    return (Tb1 > 0.0) ? (((Tc1 * input) + ((Tb1 - Tc1) * state)) / Tb1) : input;
 }
 
 ExciterESST1A::Signals ExciterESST1A::evaluate(const IOdata& inputs, const double state[]) const
@@ -115,15 +115,18 @@ ExciterESST1A::Signals ExciterESST1A::evaluate(const IOdata& inputs, const doubl
     result.leadLagTwo = leadLagTwoOutput(result.leadLagOne, state[secondLeadLagState]);
     const double lower = Vrmin * inputs[exciterVoltageInLocation];
     const double upper =
-        Vrmax * inputs[exciterVoltageInLocation] - Kc * inputs[exciterXadIfdInLocation];
+        (Vrmax * inputs[exciterVoltageInLocation]) - (Kc * inputs[exciterXadIfdInLocation]);
     // Written explicitly instead of std::clamp so a transiently inverted pair
     // of variable bounds remains deterministic (the upper bound takes priority).
     result.outputUpperLimited = (upper < lower) || (result.fieldDrive >= upper);
     result.outputLimited = result.outputUpperLimited || (result.fieldDrive <= lower);
-    result.output = result.outputUpperLimited ?
-        upper :
-        ((result.fieldDrive <= lower) ? lower : result.fieldDrive);
-    result.amplifierDrive = Ka * result.leadLagTwo - state[amplifierState];
+    result.output = result.fieldDrive;
+    if (result.outputUpperLimited) {
+        result.output = upper;
+    } else if (result.fieldDrive <= lower) {
+        result.output = lower;
+    }
+    result.amplifierDrive = (Ka * result.leadLagTwo) - state[amplifierState];
     return result;
 }
 
@@ -146,7 +149,7 @@ void ExciterESST1A::dynObjectInitializeB(const IOdata& inputs,
         fieldVoltage + currentLimit - ((vosSelector == 2) ? stabilizer : 0.0);
     const double lower = Vrmin * inputs[exciterVoltageInLocation];
     const double upper =
-        Vrmax * inputs[exciterVoltageInLocation] - Kc * inputs[exciterXadIfdInLocation];
+        (Vrmax * inputs[exciterVoltageInLocation]) - (Kc * inputs[exciterXadIfdInLocation]);
     if ((upper < lower) || (fieldVoltage < lower - 1e-8) || (fieldVoltage > upper + 1e-8) ||
         (amplifierVoltage < Vamin - 1e-8) || (amplifierVoltage > Vamax + 1e-8)) {
         throw InvalidParameterValue("ESST1A initial field voltage outside limits");
@@ -201,7 +204,7 @@ void ExciterESST1A::derivative(const IOdata& inputs,
     dst[secondLeadLagState] =
         (Tb1 > 0.0) ? (signals.leadLagOne - state[secondLeadLagState]) / Tb1 : 0.0;
     dst[amplifierState] = opFlags[AMPLIFIER_LIMITED] ? 0.0 : signals.amplifierDrive / Ta;
-    dst[feedbackState] = (-state[feedbackState] + Kf * signals.fieldDrive / Tf) / Tf;
+    dst[feedbackState] = (-state[feedbackState] + ((Kf * signals.fieldDrive) / Tf)) / Tf;
 }
 
 void ExciterESST1A::algebraicUpdate(const IOdata& inputs,
@@ -255,7 +258,7 @@ void ExciterESST1A::jacobianElements(const IOdata& inputs,
     // Transducer (or its fixed bypass state).
     matrixData.assign(diffRow + voltageMeasurementState,
                       diffRow + voltageMeasurementState,
-                      (Tr > 0.0) ? -1.0 / Tr - stateData.cj : -stateData.cj);
+                      (Tr > 0.0) ? ((-1.0 / Tr) - stateData.cj) : -stateData.cj);
     if (Tr > 0.0) {
         matrixData.assignCheckCol(diffRow + voltageMeasurementState, voltageLoc, 1.0 / Tr);
     }
@@ -270,15 +273,15 @@ void ExciterESST1A::jacobianElements(const IOdata& inputs,
     const double inputFeedbackDerivative = inputScale;
     const double inputFieldCurrentDerivative = -inputScale * Kf * rawFieldCurrentDerivative / Tf;
     const double inputStabilizerDerivative =
-        inputScale * (((vosSelector == 1) ? 1.0 : 0.0) - Kf * rawStabilizerDerivative / Tf);
+        inputScale * (((vosSelector == 1) ? 1.0 : 0.0) - ((Kf * rawStabilizerDerivative) / Tf));
     const double leadOneInputGain = (Tb > 0.0) ? Tc / Tb : 1.0;
-    const double leadOneStateGain = (Tb > 0.0) ? 1.0 - Tc / Tb : 0.0;
+    const double leadOneStateGain = (Tb > 0.0) ? (1.0 - (Tc / Tb)) : 0.0;
     const double leadTwoInputGain = (Tb1 > 0.0) ? Tc1 / Tb1 : 1.0;
-    const double leadTwoStateGain = (Tb1 > 0.0) ? 1.0 - Tc1 / Tb1 : 0.0;
+    const double leadTwoStateGain = (Tb1 > 0.0) ? (1.0 - (Tc1 / Tb1)) : 0.0;
 
     matrixData.assign(diffRow + firstLeadLagState,
                       diffRow + firstLeadLagState,
-                      (Tb > 0.0) ? -1.0 / Tb - stateData.cj : -stateData.cj);
+                      (Tb > 0.0) ? ((-1.0 / Tb) - stateData.cj) : -stateData.cj);
     if (Tb > 0.0) {
         matrixData.assign(diffRow + firstLeadLagState,
                           diffRow + voltageMeasurementState,
@@ -307,7 +310,7 @@ void ExciterESST1A::jacobianElements(const IOdata& inputs,
 
     matrixData.assign(diffRow + secondLeadLagState,
                       diffRow + secondLeadLagState,
-                      (Tb1 > 0.0) ? -1.0 / Tb1 - stateData.cj : -stateData.cj);
+                      (Tb1 > 0.0) ? ((-1.0 / Tb1) - stateData.cj) : -stateData.cj);
     if (Tb1 > 0.0) {
         matrixData.assign(diffRow + secondLeadLagState,
                           diffRow + firstLeadLagState,
@@ -352,9 +355,10 @@ void ExciterESST1A::jacobianElements(const IOdata& inputs,
                               Ta);
         matrixData.assign(diffRow + amplifierState,
                           diffRow + amplifierState,
-                          -1.0 / Ta - stateData.cj +
-                              Ka * leadTwoInputGain * leadOneInputGain * inputAmplifierDerivative /
-                                  Ta);
+                          ((-1.0 / Ta) - stateData.cj) +
+                              ((Ka * leadTwoInputGain * leadOneInputGain *
+                                inputAmplifierDerivative) /
+                               Ta));
         matrixData.assign(diffRow + amplifierState,
                           diffRow + feedbackState,
                           Ka * leadTwoInputGain * leadOneInputGain * inputFeedbackDerivative / Ta);
@@ -378,7 +382,9 @@ void ExciterESST1A::jacobianElements(const IOdata& inputs,
         }
     }
 
-    matrixData.assign(diffRow + feedbackState, diffRow + feedbackState, -1.0 / Tf - stateData.cj);
+    matrixData.assign(diffRow + feedbackState,
+                      diffRow + feedbackState,
+                      (-1.0 / Tf) - stateData.cj);
     matrixData.assign(diffRow + feedbackState, diffRow + amplifierState, Kf / (Tf * Tf));
     matrixData.assignCheckCol(diffRow + feedbackState,
                               fieldCurrentLoc,
@@ -519,22 +525,54 @@ void ExciterESST1A::set(std::string_view param, double val, units::unit unitType
 
 double ExciterESST1A::get(std::string_view param, units::unit unitType) const
 {
-    if (param == "tr") return Tr;
-    if (param == "vimax") return Vimax;
-    if (param == "vimin") return Vimin;
-    if (param == "tb") return Tb;
-    if (param == "tc") return Tc;
-    if (param == "tb1") return Tb1;
-    if (param == "tc1") return Tc1;
-    if (param == "vamax") return Vamax;
-    if (param == "vamin") return Vamin;
-    if (param == "ilr") return Ilr;
-    if (param == "klr") return Klr;
-    if (param == "kc") return Kc;
-    if (param == "kf") return Kf;
-    if (param == "tf") return Tf;
-    if (param == "uel") return static_cast<double>(uelSelector);
-    if ((param == "vos") || (param == "vosc")) return static_cast<double>(vosSelector);
+    if (param == "tr") {
+        return Tr;
+    }
+    if (param == "vimax") {
+        return Vimax;
+    }
+    if (param == "vimin") {
+        return Vimin;
+    }
+    if (param == "tb") {
+        return Tb;
+    }
+    if (param == "tc") {
+        return Tc;
+    }
+    if (param == "tb1") {
+        return Tb1;
+    }
+    if (param == "tc1") {
+        return Tc1;
+    }
+    if (param == "vamax") {
+        return Vamax;
+    }
+    if (param == "vamin") {
+        return Vamin;
+    }
+    if (param == "ilr") {
+        return Ilr;
+    }
+    if (param == "klr") {
+        return Klr;
+    }
+    if (param == "kc") {
+        return Kc;
+    }
+    if (param == "kf") {
+        return Kf;
+    }
+    if (param == "tf") {
+        return Tf;
+    }
+    if (param == "uel") {
+        return static_cast<double>(uelSelector);
+    }
+    if ((param == "vos") || (param == "vosc")) {
+        return static_cast<double>(vosSelector);
+    }
     return Exciter::get(param, unitType);
 }
 
@@ -545,13 +583,25 @@ stringVec ExciterESST1A::localStateNames() const
 
 index_t ExciterESST1A::findIndex(std::string_view field, const SolverMode& sMode) const
 {
-    if ((field == "efd") || (field == "field")) return offsets.getAlgOffset(sMode);
+    if ((field == "efd") || (field == "field")) {
+        return offsets.getAlgOffset(sMode);
+    }
     const auto offset = offsets.getDiffOffset(sMode);
-    if (field == "vmeas") return offset + voltageMeasurementState;
-    if (field == "ll1") return offset + firstLeadLagState;
-    if (field == "ll2") return offset + secondLeadLagState;
-    if (field == "va") return offset + amplifierState;
-    if (field == "rf") return offset + feedbackState;
+    if (field == "vmeas") {
+        return offset + voltageMeasurementState;
+    }
+    if (field == "ll1") {
+        return offset + firstLeadLagState;
+    }
+    if (field == "ll2") {
+        return offset + secondLeadLagState;
+    }
+    if (field == "va") {
+        return offset + amplifierState;
+    }
+    if (field == "rf") {
+        return offset + feedbackState;
+    }
     return kInvalidLocation;
 }
 

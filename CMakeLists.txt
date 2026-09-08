@@ -760,19 +760,16 @@ if(CMAKE_GENERATOR MATCHES "Visual Studio")
             get_target_property(
                 _msbuild_warnings_as_messages "${_dir_target}" VS_GLOBAL_MSBuildWarningsAsMessages
             )
-            if(NOT _msbuild_warnings_as_messages
-               OR _msbuild_warnings_as_messages STREQUAL
-                  "_msbuild_warnings_as_messages-NOTFOUND"
+            if(NOT _msbuild_warnings_as_messages OR _msbuild_warnings_as_messages STREQUAL
+                                                    "_msbuild_warnings_as_messages-NOTFOUND"
             )
                 set_target_properties(
                     "${_dir_target}" PROPERTIES VS_GLOBAL_MSBuildWarningsAsMessages "MSB8028"
                 )
             elseif(NOT _msbuild_warnings_as_messages MATCHES "(^|;)MSB8028($|;)")
                 set_target_properties(
-                    "${_dir_target}"
-                    PROPERTIES
-                        VS_GLOBAL_MSBuildWarningsAsMessages
-                        "${_msbuild_warnings_as_messages};MSB8028"
+                    "${_dir_target}" PROPERTIES VS_GLOBAL_MSBuildWarningsAsMessages
+                                                "${_msbuild_warnings_as_messages};MSB8028"
                 )
             endif()
         endforeach()

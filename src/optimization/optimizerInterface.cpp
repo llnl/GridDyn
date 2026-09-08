@@ -21,39 +21,38 @@
 #include <string_view>
 
 namespace griddyn {
-static ChildClassFactory<BasicOptimizer, OptimizerInterface>
-    gBasicFac(stringVec{"basic"});
+static ChildClassFactory<BasicOptimizer, OptimizerInterface> gBasicFac(stringVec{"basic"});
 static ChildClassFactory<EconomicDispatchOptimizer, OptimizerInterface>
     gDispatchFac(stringVec{"dispatch", "stack", "pricestack", "economic"});
 static ChildClassFactory<NativeOptimizer, OptimizerInterface>
     gNativeFac(stringVec{"native", "compact", "dense", "nativeqp", "qp"});
 
 namespace {
-constexpr double kFiniteBoundLimit = kBigNum * 0.5;
+    constexpr double kFiniteBoundLimit = kBigNum * 0.5;
 
-struct DispatchVariable {
-    index_t index = kNullLocation;
-    double lower = 0.0;
-    double upper = 0.0;
-    double linearCost = 0.0;
-    double quadraticCost = 0.0;
-};
+    struct DispatchVariable {
+        index_t index = kNullLocation;
+        double lower = 0.0;
+        double upper = 0.0;
+        double linearCost = 0.0;
+        double quadraticCost = 0.0;
+    };
 
-double finiteLower(double value)
-{
-    return (std::isfinite(value) && (value > -kFiniteBoundLimit)) ? value : 0.0;
-}
+    double finiteLower(double value)
+    {
+        return (std::isfinite(value) && (value > -kFiniteBoundLimit)) ? value : 0.0;
+    }
 
-double finiteUpper(double value)
-{
-    return (std::isfinite(value) && (value < kFiniteBoundLimit)) ? value : kBigNum;
-}
+    double finiteUpper(double value)
+    {
+        return (std::isfinite(value) && (value < kFiniteBoundLimit)) ? value : kBigNum;
+    }
 
-double marginalCostAtLower(const DispatchVariable& dispatchVariable)
-{
-    return dispatchVariable.linearCost +
-        2.0 * dispatchVariable.quadraticCost * dispatchVariable.lower;
-}
+    double marginalCostAtLower(const DispatchVariable& dispatchVariable)
+    {
+        return dispatchVariable.linearCost +
+            2.0 * dispatchVariable.quadraticCost * dispatchVariable.lower;
+    }
 }  // namespace
 
 OptimizerInterface::OptimizerInterface(std::string_view optName): HelperObject(std::string{optName})
@@ -622,7 +621,8 @@ int EconomicDispatchOptimizer::solve(double tStop, double& tReturn)
 
     std::vector<bool> hasConstraintParticipation(values.size(), false);
     for (const auto& element : constraintJacobian) {
-        if ((element.col >= 0) && (element.col < static_cast<index_t>(hasConstraintParticipation.size())) &&
+        if ((element.col >= 0) &&
+            (element.col < static_cast<index_t>(hasConstraintParticipation.size())) &&
             (std::abs(element.data) > 0.0)) {
             hasConstraintParticipation[static_cast<std::size_t>(element.col)] = true;
         }
@@ -630,10 +630,12 @@ int EconomicDispatchOptimizer::solve(double tStop, double& tReturn)
 
     std::vector<DispatchVariable> dispatchVariables;
     dispatchVariables.reserve(values.size());
-    for (index_t variableIndex = 0; variableIndex < static_cast<index_t>(values.size()); ++variableIndex) {
+    for (index_t variableIndex = 0; variableIndex < static_cast<index_t>(values.size());
+         ++variableIndex) {
         const double lower = finiteLower(lowerBounds[variableIndex]);
         const double upper = finiteUpper(upperBounds[variableIndex]);
-        if ((upper <= lower) || !hasConstraintParticipation[static_cast<std::size_t>(variableIndex)]) {
+        if ((upper <= lower) ||
+            !hasConstraintParticipation[static_cast<std::size_t>(variableIndex)]) {
             continue;
         }
         const double linearCost = linearObjective.at(variableIndex);
@@ -645,7 +647,8 @@ int EconomicDispatchOptimizer::solve(double tStop, double& tReturn)
     }
 
     if (dispatchVariables.empty()) {
-        logMessage(FUNCTION_EXECUTION_FAILURE, "economic dispatch found no bounded costed dispatch variables");
+        logMessage(FUNCTION_EXECUTION_FAILURE,
+                   "economic dispatch found no bounded costed dispatch variables");
         return FUNCTION_EXECUTION_FAILURE;
     }
 
@@ -663,8 +666,8 @@ int EconomicDispatchOptimizer::solve(double tStop, double& tReturn)
     for (index_t constraintIndex = 0;
          constraintIndex < static_cast<index_t>(constraintValues.size());
          ++constraintIndex) {
-        if (std::abs(constraintUpperBounds[constraintIndex] - constraintLowerBounds[constraintIndex]) <=
-            rtol) {
+        if (std::abs(constraintUpperBounds[constraintIndex] -
+                     constraintLowerBounds[constraintIndex]) <= rtol) {
             requiredAdditionalDispatch -= constraintValues[constraintIndex];
         }
     }
@@ -811,9 +814,8 @@ std::shared_ptr<OptimizerInterface> makeOptimizer(GridDynOptimization* gdo,
     return makeOptimizer(gdo, oMode, "basic");
 }
 
-std::shared_ptr<OptimizerInterface> makeOptimizer(GridDynOptimization* gdo,
-                                                  const OptimizationMode& oMode,
-                                                  std::string_view type)
+std::shared_ptr<OptimizerInterface>
+    makeOptimizer(GridDynOptimization* gdo, const OptimizationMode& oMode, std::string_view type)
 {
     auto optimizer = makeOptimizer(type);
     if (optimizer == nullptr) {

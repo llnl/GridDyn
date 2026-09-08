@@ -101,9 +101,7 @@ class GridGenOpt: public GridOptObject {
     /** Store a MATPOWER/PYPOWER cost curve in the optimizer's per-unit variables.
         The source format expresses power in MW/MVAr; the adapter obtains the
         current system base from its attached Generator when converting it. */
-    virtual void loadMatPowerCostCoeff(std::vector<double> coeff,
-                                       int powerMode,
-                                       int costModel);
+    virtual void loadMatPowerCostCoeff(std::vector<double> coeff, int powerMode, int costModel);
     // find components
 
     /** Attached physical generator; optimization data remains external to it. */

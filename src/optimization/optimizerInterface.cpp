@@ -634,8 +634,7 @@ int EconomicDispatchOptimizer::solve(double tStop, double& tReturn)
     for (std::size_t variableIndex = 0; variableIndex < values.size(); ++variableIndex) {
         const double lower = finiteLower(lowerBounds[variableIndex]);
         const double upper = finiteUpper(upperBounds[variableIndex]);
-        if ((upper <= lower) ||
-            !hasConstraintParticipation[variableIndex]) {
+        if ((upper <= lower) || !hasConstraintParticipation[variableIndex]) {
             continue;
         }
         const double linearCost = linearObjective.at(static_cast<index_t>(variableIndex));

@@ -482,10 +482,12 @@ double GridGenOpt::get(std::string_view param, units::unit unitType) const
     return val;
 }
 
-void GridGenOpt::loadMatPowerCostCoeff(std::vector<double> coeff, int mode, int model)
+void GridGenOpt::loadMatPowerCostCoeff(std::vector<double> coeff,
+                                       int powerMode,
+                                       int costModel)
 {
     const auto basePower = (gen != nullptr) ? gen->getRoot()->get("basepower") : 1.0;
-    if (model == 2) {
+    if (costModel == 2) {
         // MATPOWER lists polynomial terms highest-to-lowest in MW/MVAr.  The
         // optimizer uses per-unit injections and constant-first coefficients.
         std::reverse(coeff.begin(), coeff.end());
@@ -494,14 +496,14 @@ void GridGenOpt::loadMatPowerCostCoeff(std::vector<double> coeff, int mode, int 
             coefficient *= scale;
             scale *= basePower;
         }
-    } else if (model == 1) {
+    } else if (costModel == 1) {
         // Preserve the cost ordinate, but express breakpoint power in per unit.
         for (std::size_t index = 0; index < coeff.size(); index += 2) {
             coeff[index] /= basePower;
         }
         optFlags.set(PIECEWISE_LINEAR_COST);
     }
-    if (mode == 0) {
+    if (powerMode == 0) {
         Pcoeff = coeff;
     } else {
         Qcoeff = coeff;

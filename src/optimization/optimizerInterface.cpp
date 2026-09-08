@@ -19,6 +19,8 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <utility>
+#include <vector>
 
 namespace griddyn {
 static ChildClassFactory<BasicOptimizer, OptimizerInterface> gBasicFac(stringVec{"basic"});
@@ -31,11 +33,11 @@ namespace {
     constexpr double kFiniteBoundLimit = kBigNum * 0.5;
 
     struct DispatchVariable {
-        index_t index = kNullLocation;
-        double lower = 0.0;
-        double upper = 0.0;
-        double linearCost = 0.0;
-        double quadraticCost = 0.0;
+        index_t mIndex = kNullLocation;
+        double mLower = 0.0;
+        double mUpper = 0.0;
+        double mLinearCost = 0.0;
+        double mQuadraticCost = 0.0;
     };
 
     double finiteLower(double value)
@@ -50,8 +52,8 @@ namespace {
 
     double marginalCostAtLower(const DispatchVariable& dispatchVariable)
     {
-        return dispatchVariable.linearCost +
-            2.0 * dispatchVariable.quadraticCost * dispatchVariable.lower;
+        return dispatchVariable.mLinearCost +
+            (2.0 * dispatchVariable.mQuadraticCost * dispatchVariable.mLower);
     }
 }  // namespace
 
@@ -622,7 +624,7 @@ int EconomicDispatchOptimizer::solve(double tStop, double& tReturn)
     std::vector<bool> hasConstraintParticipation(values.size(), false);
     for (const auto& element : constraintJacobian) {
         if ((element.col >= 0) &&
-            (element.col < static_cast<index_t>(hasConstraintParticipation.size())) &&
+            std::cmp_less(element.col, hasConstraintParticipation.size()) &&
             (std::abs(element.data) > 0.0)) {
             hasConstraintParticipation[static_cast<std::size_t>(element.col)] = true;
         }
@@ -630,20 +632,24 @@ int EconomicDispatchOptimizer::solve(double tStop, double& tReturn)
 
     std::vector<DispatchVariable> dispatchVariables;
     dispatchVariables.reserve(values.size());
-    for (index_t variableIndex = 0; variableIndex < static_cast<index_t>(values.size());
-         ++variableIndex) {
+    for (std::size_t variableIndex = 0; variableIndex < values.size(); ++variableIndex) {
         const double lower = finiteLower(lowerBounds[variableIndex]);
         const double upper = finiteUpper(upperBounds[variableIndex]);
         if ((upper <= lower) ||
             !hasConstraintParticipation[static_cast<std::size_t>(variableIndex)]) {
             continue;
         }
-        const double linearCost = linearObjective.at(variableIndex);
-        const double quadraticCost = quadraticObjective.at(variableIndex);
+        const double linearCost = linearObjective.at(static_cast<index_t>(variableIndex));
+        const double quadraticCost = quadraticObjective.at(static_cast<index_t>(variableIndex));
         if ((linearCost == 0.0) && (quadraticCost == 0.0)) {
             continue;
         }
-        dispatchVariables.push_back({variableIndex, lower, upper, linearCost, quadraticCost});
+        dispatchVariables.push_back(
+            DispatchVariable{.mIndex = static_cast<index_t>(variableIndex),
+                             .mLower = lower,
+                             .mUpper = upper,
+                             .mLinearCost = linearCost,
+                             .mQuadraticCost = quadraticCost});
     }
 
     if (dispatchVariables.empty()) {
@@ -654,7 +660,7 @@ int EconomicDispatchOptimizer::solve(double tStop, double& tReturn)
 
     auto candidateValues = values;
     for (const auto& dispatchVariable : dispatchVariables) {
-        candidateValues[dispatchVariable.index] = dispatchVariable.lower;
+        candidateValues[dispatchVariable.mIndex] = dispatchVariable.mLower;
     }
 
     if (constraintFunction(tStop, candidateValues.data(), constraintValues.data()) !=
@@ -663,8 +669,7 @@ int EconomicDispatchOptimizer::solve(double tStop, double& tReturn)
     }
 
     double requiredAdditionalDispatch = 0.0;
-    for (index_t constraintIndex = 0;
-         constraintIndex < static_cast<index_t>(constraintValues.size());
+    for (std::size_t constraintIndex = 0; constraintIndex < constraintValues.size();
          ++constraintIndex) {
         if (std::abs(constraintUpperBounds[constraintIndex] -
                      constraintLowerBounds[constraintIndex]) <= rtol) {
@@ -689,9 +694,9 @@ int EconomicDispatchOptimizer::solve(double tStop, double& tReturn)
         if (requiredAdditionalDispatch <= rtol) {
             break;
         }
-        const double availableDispatch = dispatchVariable.upper - dispatchVariable.lower;
+        const double availableDispatch = dispatchVariable.mUpper - dispatchVariable.mLower;
         const double dispatchChange = (std::min)(availableDispatch, requiredAdditionalDispatch);
-        candidateValues[dispatchVariable.index] += dispatchChange;
+        candidateValues[dispatchVariable.mIndex] += dispatchChange;
         requiredAdditionalDispatch -= dispatchChange;
     }
 

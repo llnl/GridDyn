@@ -304,9 +304,9 @@ COST                    5 parameters defining total cost function f(p) begin in 
         GridGenOpt* generatorOpt;
         GridOptObject* optimizationObject;
         CoreObject* obj;
-        int mode = 0;
+        int powerMode = 0;
         int numc = 0;
-        int piecewiseModel = 0;
+        int costModel = 0;
         std::vector<double> coeff;
 
         auto* genOptFactory = dynamic_cast<OptObjectFactory<GridGenOpt, Generator>*>(
@@ -318,7 +318,7 @@ COST                    5 parameters defining total cost function f(p) begin in 
         int generatorIndex = 1;
         for (auto& genLine : genCost) {
             if (generatorIndex > gencount) {
-                piecewiseModel = 1;
+                powerMode = 1;
                 generatorOpt = genOptList[generatorIndex - gencount - 1];
             } else {
                 obj = parentObject->findByUserID("gen", generatorIndex);
@@ -327,19 +327,19 @@ COST                    5 parameters defining total cost function f(p) begin in 
                 }
                 generatorOpt = genOptFactory->makeTypeObject(obj);
                 genOptList[generatorIndex - 1] = generatorOpt;
-                piecewiseModel = 0;
+                powerMode = 0;
                 optimizationObject = gdo->makeOptimizationObjectPath(obj->getParent());
                 optimizationObject->add(generatorOpt);
             }
 
             ++generatorIndex;
-            mode = static_cast<int>(genLine[0]);
+            costModel = static_cast<int>(genLine[0]);
             numc = static_cast<int>(genLine[3]);
             coeff.resize(numc);
             for (int ii = 0; ii < numc; ii++) {
                 coeff[ii] = genLine[4 + ii];
             }
-            generatorOpt->loadMatPowerCostCoeff(coeff, piecewiseModel, mode);
+            generatorOpt->loadMatPowerCostCoeff(coeff, powerMode, costModel);
         }
     }
 #else

@@ -47,7 +47,8 @@ class GridGenOpt: public GridOptObject {
     virtual void dynObjectInitializeA(std::uint32_t flags) override;
     virtual void loadSizes(const OptimizationMode& oMode) override;
 
-    virtual void setValues(const OptimizationData& of, const OptimizationMode& oMode) override;
+    virtual void setValues(const OptimizationData& optimizationData,
+                           const OptimizationMode& oMode) override;
     // for saving the state
     virtual void guessState(double time, double val[], const OptimizationMode& oMode) override;
     virtual void getTols(double tols[], const OptimizationMode& oMode) override;
@@ -100,7 +101,9 @@ class GridGenOpt: public GridOptObject {
     /** Store a MATPOWER/PYPOWER cost curve in the optimizer's per-unit variables.
         The source format expresses power in MW/MVAr; the adapter obtains the
         current system base from its attached Generator when converting it. */
-    virtual void loadMatPowerCostCoeff(std::vector<double> coeff, int mode, int model);
+    virtual void loadMatPowerCostCoeff(std::vector<double> coeff,
+                                       int powerMode,
+                                       int costModel);
     // find components
 
     /** Attached physical generator; optimization data remains external to it. */

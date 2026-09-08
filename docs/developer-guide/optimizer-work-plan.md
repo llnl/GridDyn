@@ -3,12 +3,13 @@
 ## Purpose
 
 This plan takes GridDyn's distributed optimization objects from the current
-two-bus DC regression to a small integrated DC optimal-power-flow solver. It
-also defines the solver-neutral boundary for a later backend such as HiGHS.
+solver-ready DC-OPF assembly path to a small integrated DC optimal-power-flow
+solver. It also defines the solver-neutral boundary for later backends such as
+HiGHS and for later AC-OPF and unit-commitment extensions.
 
-The sequence is intentional: model identity, indexing, row definitions, and
-initialization must be reliable before numerical solver work starts. Every work
-package has an independent test gate.
+The sequence is intentional: model identity, indexing, row definitions,
+initialization, and write-back must be reliable before numerical solver math is
+trusted. Every work package has an independent test gate.
 
 The first supported problem is continuous, single-period DC-OPF. AC-OPF,
 integer decisions, security constraints, and multi-period scheduling are later
@@ -17,18 +18,84 @@ extensions, but these interfaces must not prevent them.
 ## Current baseline
 
 The library already has distributed optimization objects for areas, buses,
-generators, links, loads, and relays. It also has:
+generators, links, loads, and relays. The optimization path now includes:
 
 - MATPOWER/PYPOWER generator-cost loading into `GridGenOpt`;
-- direct use of physical generator limits and branch reactance;
+- direct use of physical generator limits, generator dispatch, branch
+  reactance, topology, and bus type from the power-system model;
 - direct aggregation of passive physical load in `GridBusOpt`;
 - DC bus-balance residuals and Jacobian contributions;
-- fixed-angle constraints for active `SLK` and `AFIX` buses; and
-- a two-bus PYPOWER regression for branch flow and both nodal balances.
+- fixed-angle constraints for active `SLK` and `AFIX` buses;
+- documented DC equations adjacent to the relevant model code;
+- branch-flow/source wiring through the physical link path;
+- public optimization initialization that mirrors the power-flow/dynamics
+  staged setup more closely than the original prototype;
+- contiguous zero-based offset propagation and exact-size optimizer storage;
+- `OptimizationData` as the callback-facing view object, with storage owned by
+  the optimizer interface;
+- factory/config creation for built-in optimizer implementations;
+- an explicit `writeBack()`/`applySolution()` stage that keeps solve results
+  separate from physical generator set points until committed;
+- a basic dry-run optimizer for lifecycle and data-path testing;
+- an `EconomicDispatchOptimizer` that performs a simple heuristic merit-order
+  dispatch and can write the resulting dispatch back to generators; and
+- a `NativeOptimizer` wrapper that prepares the complete problem data pathway
+  for the future dense solver, but intentionally does not implement solver
+  math yet.
 
-It is not yet a safe assembled optimization problem. Foundation work remains
-in adapter identity, idempotent initialization, offsets, constraint metadata,
-DC branch semantics, safe cost handling, guesses, and lifecycle allocation.
+The current regression suite covers the two-bus model and related data-path
+checks through optimizer construction, initialization, objective/constraint
+loading, residual/Jacobian evaluation, basic dispatch, and write-back. The next
+major implementation gap is the compact native mathematical solver and its
+larger DC-OPF verification suite.
+
+## Completed work
+
+This section records the optimization-framework work completed before starting
+the native dense solver effort.
+
+- Added MATPOWER/PYPOWER generator-cost import support and preserved generator
+  active-power min/max data needed by OPF.
+- Established the ownership rule that the physical power-system model remains
+  the source of truth for topology, active status, bus type, load, branch
+  parameters, generator limits, and current set points.
+- Kept economic data in the optimization layer because cost curves, penalties,
+  commitment data, and future scheduling forecasts are not needed by ordinary
+  power-flow or dynamics solves.
+- Removed passive `GridLoadOpt` creation from normal initialization and moved
+  fixed physical-load aggregation to `GridBusOpt`.
+- Built out distributed optimization adapters for buses, generators, links,
+  areas, loads, and relays so individual objects can contribute variables,
+  objectives, rows, derivatives, and write-back behavior.
+- Added DC nodal-balance equations in `GridBusOpt` and documented the equations
+  in the implementation.
+- Added DC branch flow/source-reactance wiring through `GridLinkOpt`, including
+  branch-flow contributions to bus-balance rows.
+- Added fixed-angle rows for all active buses that fix angle in the physical
+  model, including slack buses and `AFIX` buses.
+- Added two-bus DC residual/Jacobian regression coverage, including direct
+  checks of both nodal balances at a known vector.
+- Aligned optimization initialization and offset propagation with the staged
+  patterns used by power-flow and dynamics initialization.
+- Refactored `OptimizationData` so it is the object passed through callbacks,
+  while optimizer interfaces/subclasses own the underlying storage arrays.
+- Updated `OptimizerInterface` to allocate and manage primal values, bounds,
+  row data, gradient/Jacobian data, tolerances, multipliers, scratch storage,
+  and callback-facing views.
+- Added factory/config aliases for built-in optimizers so the optimizer can be
+  selected similarly to solver-interface selection.
+- Added an explicit result-commit stage through `writeBack()`/`applySolution()`
+  rather than automatically mutating the physical model during solve.
+- Added the simple economic dispatch optimizer as an included, dependency-free
+  heuristic optimizer.
+- Added the native dense optimizer shell and `prepareProblemData()` path so the
+  future solver can be developed behind the same interface.
+- Added regression tests for factory selection, data views, lifecycle
+  construction, problem loading, basic dry-run solve, economic dispatch
+  solve/write-back, branch source/flow wiring, and a larger `case9` dry-run.
+- Moved Visual Studio `MSB8028` warning demotion into CMake so the repository
+  does not need a root `Directory.Build.props` file for this local build-log
+  cleanup.
 
 ## Architecture rules
 
@@ -114,18 +181,22 @@ optimizer-owned; capability and network limits come from the physical model.
 
 ## Ordered work packages
 
-| Milestone                    | Packages | Result                                                      |
-| ---------------------------- | -------- | ----------------------------------------------------------- |
-| A. Assembly foundation       | 1-5      | A unique, active, correctly indexed, solver-neutral problem |
-| B. Complete DC model         | 6-8      | Verified DC equations, economics, and public initialization |
-| C. Native solution           | 9        | Small DC-OPF cases solved with KKT diagnostics              |
-| D. Equivalence and extension | 10-11    | MATPOWER/PYPOWER agreement and a proven backend/AC seam     |
+| Milestone                    | Packages | Status      | Result                                                      |
+| ---------------------------- | -------- | ----------- | ----------------------------------------------------------- |
+| A. Assembly foundation       | 1-5      | Mostly done | A unique, active, correctly indexed, solver-neutral problem |
+| B. Complete DC model         | 6-8      | Mostly done | Verified DC equations, economics, and public initialization |
+| C. Native solution           | 9        | Next        | Small DC-OPF cases solved with KKT diagnostics              |
+| D. Equivalence and extension | 10-11    | Later       | MATPOWER/PYPOWER agreement and a proven backend/AC seam     |
 
-Milestone A is the next implementation chunk. Solver work begins only after
-its structural exit gates pass; Milestone B then completes the numerical model
-the solver will consume.
+Milestones A and B now have enough implementation and regression coverage to
+support the native-solver effort. Some polish remains in validation diagnostics
+and in broader topology/feature tests, but those can be added alongside the
+native solver as long as the solver continues to consume only the optimizer
+problem contract.
 
 ### 1. Establish the optimization test boundary and invariants
+
+**Status:** substantially complete for the current DC-OPF assembly path.
 
 **Implementation**
 
@@ -150,6 +221,10 @@ the solver will consume.
   solver.
 
 ### 2. Make adapter mapping unique and initialization idempotent
+
+**Status:** partly complete. The current path has practical source-object
+wiring and stable test coverage for the two-bus/case9 cases. A formal root
+identity registry and stronger reinitialization diagnostics remain useful.
 
 **Implementation**
 
@@ -179,6 +254,10 @@ the solver will consume.
 
 ### 3. Propagate active topology and define invalidation
 
+**Status:** partly complete. Active participation is read from the physical
+model in the implemented DC pathways. More explicit invalidation generation
+tracking and unsupported zero-reactance diagnostics remain.
+
 **Implementation**
 
 - Derive participation from current physical enabled, connected, and
@@ -204,6 +283,10 @@ the solver will consume.
   generation, and evaluation rejects stale assembly.
 
 ### 4. Define one canonical zero-based problem layout
+
+**Status:** substantially complete for the current solver path. The optimizer
+storage is exact-sized and zero-based; extra mixed-integer and advanced layout
+cases still need broader coverage before unit commitment work.
 
 **Implementation**
 
@@ -232,6 +315,11 @@ the solver will consume.
   with no reserved entry or overlapping category offset.
 
 ### 5. Complete the solver-neutral problem contract
+
+**Status:** substantially complete for DC LP/QP preparation. `OptimizationData`
+is the callback view and `OptimizerInterface` owns the storage. The remaining
+work is to harden row metadata diagnostics, duplicate sparse-entry policy, and
+backend capability reporting.
 
 **Implementation**
 
@@ -264,6 +352,11 @@ the solver will consume.
 
 ### 6. Finish and verify the DC network formulation
 
+**Status:** mostly complete for the supported two-bus/case9 feature set.
+Additional tests for taps, phase shifts, thermal limits, angle limits,
+parallel branches, islands, and rank conditions should be added during native
+solver work.
+
 **Implementation**
 
 - `GridBusOpt` publishes one zero-bounded balance row per active bus and a
@@ -294,6 +387,10 @@ the solver will consume.
   supported branch features, and every DC row is inspectable before solve.
 
 ### 7. Complete generator variables and economic objectives
+
+**Status:** partly complete. Polynomial generator costs and basic bounds are
+loaded and exercised. Piecewise-linear costs, detailed scaling documentation,
+and broader malformed-cost diagnostics remain.
 
 **Implementation**
 
@@ -329,6 +426,10 @@ the solver will consume.
   objective representation whose values and derivatives pass independent tests.
 
 ### 8. Mirror the simulation initialization lifecycle
+
+**Status:** substantially complete for constructing and loading a DC problem
+through the public optimizer path. More explicit lifecycle-state and
+invalidation tests remain desirable.
 
 **Implementation**
 
@@ -371,6 +472,9 @@ Also:
 
 ### 9. Add the compact native DC-OPF solver
 
+**Status:** next implementation focus. The wrapper and problem-data loading
+path exist; solver math is intentionally not implemented yet.
+
 **Implementation**
 
 - Limit version one to small continuous convex DC problems with linear rows,
@@ -410,6 +514,9 @@ Also:
 
 ### 10. Validate MATPOWER/PYPOWER equivalence
 
+**Status:** later. Current work verifies import and small algebraic behavior;
+full numerical equivalence requires the native solver or an external backend.
+
 **Implementation**
 
 - Store reference results with tool version, formulation options, base, and
@@ -438,6 +545,10 @@ Also:
 
 ### 11. Prove the external-solver and AC-extension seams
 
+**Status:** later. The distributed model design and native wrapper are intended
+to preserve this seam, but conformance tests should be added after the native
+solver can solve small cases.
+
 **Implementation**
 
 - Add a mock external adapter that consumes the same contract and returns a
@@ -463,6 +574,67 @@ Also:
 - A second solver can connect without rebuilding equations or duplicating
   data, and an AC object can extend the distributed contracts without changing
   the DC solver or lifecycle architecture.
+
+## Next optimizer implementation sequence
+
+The next chunk of work should build the native solver behind the existing
+optimizer interface without changing the power-system data ownership model.
+
+1. **Freeze the native solver input contract.**
+   Confirm that `NativeOptimizer::prepareProblemData()` captures all data the
+   dense solver will need: values, variable bounds, row bounds, objective,
+   gradient, Hessian/linear-cost representation, constraint residuals,
+   Jacobian, names, types, tolerances, and model version.
+
+2. **Add problem classification.**
+   Before solving, classify the assembled problem as supported LP, supported
+   convex diagonal-QP, unsupported nonlinear, unsupported nonconvex,
+   unsupported integer/mixed-integer, infeasible-by-bounds, or structurally
+   singular/underdetermined when detectable.
+
+3. **Implement a dense equality/active-set core for small continuous DC cases.**
+   Start with equality rows, variable bounds, and linear/quadratic generator
+   costs. Use pivoted dense KKT solves, explicit scaling, feasibility checks,
+   and clear iteration limits.
+
+4. **Add Phase-I feasibility handling.**
+   A small solver needs a reliable way to find or reject feasible points before
+   optimizing. This is where insufficient generation, incompatible angle
+   constraints, missing island references, and impossible branch bounds should
+   become deterministic statuses.
+
+5. **Add inequality activation for branch and angle limits.**
+   Normalize row lower/upper bounds into candidate active constraints and move
+   them into/out of the working set based on blocking constraints and
+   multiplier signs.
+
+6. **Populate result diagnostics.**
+   Report objective value, primal feasibility, row-bound violation,
+   variable-bound violation, stationarity, complementarity, active set,
+   iteration count, and solver status. Keep physical objects unchanged until
+   `writeBack()` is called.
+
+7. **Expand the regression ladder.**
+   Keep the two-bus analytic case as the smallest executable proof. Add a
+   three-bus/two-generator case, then MATPOWER/PYPOWER cases such as `case9`
+   and `case14` for comparison once the solver is numerically useful.
+
+8. **Keep the simple economic stacker as a separate optimizer.**
+   The stacker remains a dependency-free heuristic that improves dispatch and
+   exercises write-back. The dense native solver should pursue actual KKT
+   optimality for supported small continuous cases.
+
+## Verification plan for the next chunk
+
+| Layer | What to verify | Example checks |
+| ----- | -------------- | -------------- |
+| Assembly | The solver sees the same problem the distributed objects define | exact sizes, names, bounds, guesses, row types, and sparse entries |
+| Algebra | Residuals and derivatives match hand calculations | two-bus balances, branch flow, reference-angle row, generator cost |
+| Classification | Unsupported cases stop before numerical solve | integer variable, PWL cost before support, nonconvex quadratic, bad bounds |
+| Feasibility | Phase-I reports actionable status | insufficient generation, impossible fixed angles, missing reference |
+| Optimality | Supported cases satisfy KKT tolerances | two-bus dispatch, binding generator bound, binding branch constraint |
+| Write-back | Results are committed only on request | generator set points unchanged before `writeBack()`, changed after success |
+| Equivalence | GridDyn DC-OPF agrees with reference formulations | `case2`, `case9`, then `case14` within documented tolerances |
 
 ## Verification ladder
 

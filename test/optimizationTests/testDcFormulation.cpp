@@ -7,6 +7,8 @@
 #include "../gtestHelper.h"
 #include "griddyn/Generator.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/Link.h"
+#include "griddyn/links/AcLine.h"
 #include "optimization/gridDynOpt.h"
 #include "optimization/models/gridBusOpt.h"
 #include "optimization/models/gridGenOpt.h"
@@ -189,11 +191,11 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerFactorySelectionAndProblemAs
     EXPECT_EQ(optimizer.get("problem_loaded"), 1.0);
     EXPECT_EQ(optimizer.get("native_solver"), 1.0);
     EXPECT_EQ(optimizer.size(), 3);
-    EXPECT_EQ(optimizer.constraintCount(), 3);
+    EXPECT_EQ(optimizer.constraintCount(), 4);
     EXPECT_EQ(optimizer.linearObjective.points(), 2);
     EXPECT_EQ(optimizer.quadraticObjective.points(), 1);
-    EXPECT_EQ(optimizer.constraintLowerBounds.size(), 3U);
-    EXPECT_EQ(optimizer.constraintUpperBounds.size(), 3U);
+    EXPECT_EQ(optimizer.constraintLowerBounds.size(), 4U);
+    EXPECT_EQ(optimizer.constraintUpperBounds.size(), 4U);
     EXPECT_GT(optimizer.constraintJacobian.size(), 0);
     expectFinite(optimizer.values);
     expectFinite(optimizer.lowerBounds);
@@ -237,12 +239,13 @@ TEST(OptimizationDcFormulationTests, TwoBusDcModelHasBusOwnedBalanceRows)
     EXPECT_EQ(gds->getOptimizationObject(physicalGenerator), preloadedGeneratorOpt);
 
     // DC OPF equations are distributed: each bus owns its nodal balance row,
-    // and fixed-angle buses own their reference-angle row. Passive branches
-    // contribute flow terms to the connected buses rather than owning a row.
+    // fixed-angle buses own their reference-angle row, and active branch
+    // limits own their own rows. Branches always contribute flow terms to the
+    // connected buses.
     EXPECT_EQ(bus1->constraintSize(mode), 2);
     EXPECT_EQ(bus2->constraintSize(mode), 1);
-    EXPECT_EQ(branch->constraintSize(mode), 0);
-    EXPECT_EQ(root->constraintSize(mode), 3);
+    EXPECT_EQ(branch->constraintSize(mode), 1);
+    EXPECT_EQ(root->constraintSize(mode), 4);
     EXPECT_EQ(root->objSize(mode), 3);
     EXPECT_EQ(root->aSize(mode), 2);
     EXPECT_EQ(root->genSize(mode), 1);
@@ -265,6 +268,7 @@ TEST(OptimizationDcFormulationTests, TwoBusDcModelHasBusOwnedBalanceRows)
     EXPECT_EQ(generatorOffsets.gOffset, 2);
     EXPECT_EQ(bus1Offsets.constraintOffset, 0);
     EXPECT_EQ(bus2Offsets.constraintOffset, 2);
+    EXPECT_EQ(branch->offsets.getOffsets(mode).constraintOffset, 3);
 
     std::vector<index_t> usedObjectiveOffsets{bus1Offsets.aOffset,
                                               bus2Offsets.aOffset,
@@ -274,13 +278,14 @@ TEST(OptimizationDcFormulationTests, TwoBusDcModelHasBusOwnedBalanceRows)
 
     std::vector<index_t> usedConstraintOffsets{bus1Offsets.constraintOffset,
                                                bus1Offsets.constraintOffset + 1,
-                                               bus2Offsets.constraintOffset};
+                                               bus2Offsets.constraintOffset,
+                                               branch->offsets.getOffsets(mode).constraintOffset};
     std::sort(usedConstraintOffsets.begin(), usedConstraintOffsets.end());
-    EXPECT_EQ(usedConstraintOffsets, (std::vector<index_t>{0, 1, 2}));
+    EXPECT_EQ(usedConstraintOffsets, (std::vector<index_t>{0, 1, 2, 3}));
 
     gds->initializeOptimizationModel(mode);
     EXPECT_EQ(bus1->getGen(0), preloadedGeneratorOpt);
-    EXPECT_EQ(root->constraintSize(mode), 3);
+    EXPECT_EQ(root->constraintSize(mode), 4);
     EXPECT_EQ(root->objSize(mode), 3);
     EXPECT_EQ(root->aSize(mode), 2);
     EXPECT_EQ(root->genSize(mode), 1);
@@ -333,7 +338,7 @@ TEST(OptimizationDcFormulationTests, TwoBusDcBranchSourceAndFlow)
     ASSERT_TRUE(std::filesystem::exists(filePath));
     griddyn::loadFile(gds.get(), filePath.string());
 
-    auto* physicalBranch = gds->findByUserID("link", 1);
+    auto* physicalBranch = dynamic_cast<griddyn::Link*>(gds->findByUserID("link", 1));
     ASSERT_NE(physicalBranch, nullptr);
     EXPECT_NEAR(physicalBranch->get("x"), 0.1, 1e-12);
 
@@ -371,6 +376,270 @@ TEST(OptimizationDcFormulationTests, TwoBusDcBranchSourceAndFlow)
     root->constraintValue(data, residuals.data(), mode);
     EXPECT_NEAR(residuals[bus1Offsets.constraintOffset], 0.0, 1e-12);
     EXPECT_NEAR(residuals[bus2Offsets.constraintOffset], 0.0, 1e-12);
+    EXPECT_NEAR(residuals[branch->offsets.getOffsets(mode).constraintOffset], 0.5, 1e-12);
+}
+
+TEST(OptimizationDcFormulationTests, TwoBusDcLinkUsesTapPhaseShiftAndFlowLimitRow)
+{
+    auto gds = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath = makePyPowerCasePath("case2.py");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds.get(), filePath.string());
+
+    auto* physicalBranch = gds->findByUserID("link", 1);
+    ASSERT_NE(physicalBranch, nullptr);
+    physicalBranch->set("tap", 2.0);
+    physicalBranch->set("tapangle", 0.1);
+
+    const auto mode = makeDcMode(griddyn::LinearityMode::LINEAR);
+    gds->initializeOptimizationModel(mode);
+    auto* root = gds->getOptimizationObject();
+    ASSERT_NE(root, nullptr);
+    auto* bus1 = dynamic_cast<griddyn::GridBusOpt*>(root->findByUserID("bus", 1));
+    auto* bus2 = dynamic_cast<griddyn::GridBusOpt*>(root->findByUserID("bus", 2));
+    auto* branch = dynamic_cast<griddyn::GridLinkOpt*>(root->findByUserID("link", 1));
+    ASSERT_NE(bus1, nullptr);
+    ASSERT_NE(bus2, nullptr);
+    ASSERT_NE(branch, nullptr);
+    ASSERT_TRUE(branch->isDcFlowValid());
+    ASSERT_EQ(branch->constraintSize(mode), 1);
+
+    const auto& bus1Offsets = bus1->offsets.getOffsets(mode);
+    const auto& bus2Offsets = bus2->offsets.getOffsets(mode);
+    const auto& branchOffsets = branch->offsets.getOffsets(mode);
+    std::vector<double> values(root->objSize(mode), 0.0);
+    values[bus1Offsets.aOffset] = 0.2;
+    values[bus2Offsets.aOffset] = 0.0;
+    const griddyn::OptimizationData data{0.0, values.data(), 0};
+
+    EXPECT_NEAR(branch->dcPowerFlow(bus1, data, mode), 0.5, 1e-12);
+    EXPECT_NEAR(branch->dcPowerFlow(bus2, data, mode), -0.5, 1e-12);
+
+    std::vector<double> residuals(root->constraintSize(mode), 0.0);
+    root->constraintValue(data, residuals.data(), mode);
+    EXPECT_NEAR(residuals[branchOffsets.constraintOffset], 0.5, 1e-12);
+
+    MatrixDataSparse<double> jacobian;
+    root->constraintJacobianElements(data, jacobian, mode);
+    EXPECT_NEAR(jacobian.at(branchOffsets.constraintOffset, bus1Offsets.aOffset), 5.0, 1e-12);
+    EXPECT_NEAR(jacobian.at(branchOffsets.constraintOffset, bus2Offsets.aOffset), -5.0, 1e-12);
+
+    std::vector<double> upperBounds(root->constraintSize(mode), 0.0);
+    std::vector<double> lowerBounds(root->constraintSize(mode), 0.0);
+    MatrixDataSparse<double> linearConstraints;
+    root->getConstraints(data,
+                         linearConstraints,
+                         upperBounds.data(),
+                         lowerBounds.data(),
+                         mode);
+    EXPECT_NEAR(lowerBounds[branchOffsets.constraintOffset], -0.5, 1e-12);
+    EXPECT_NEAR(upperBounds[branchOffsets.constraintOffset], 1.5, 1e-12);
+    EXPECT_NEAR(linearConstraints.at(branchOffsets.constraintOffset, bus1Offsets.aOffset),
+                5.0,
+                1e-12);
+}
+
+TEST(OptimizationDcFormulationTests, TwoBusDcLinkUsesAngleLimitRow)
+{
+    auto gds = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath = makePyPowerCasePath("case2.py");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds.get(), filePath.string());
+
+    auto* physicalBranch = gds->findByUserID("link", 1);
+    ASSERT_NE(physicalBranch, nullptr);
+    physicalBranch->set("tapangle", 0.1);
+    physicalBranch->set("minangle", -0.05);
+    physicalBranch->set("maxangle", 0.15);
+
+    const auto mode = makeDcMode(griddyn::LinearityMode::LINEAR);
+    gds->initializeOptimizationModel(mode);
+    auto* root = gds->getOptimizationObject();
+    ASSERT_NE(root, nullptr);
+    auto* bus1 = dynamic_cast<griddyn::GridBusOpt*>(root->findByUserID("bus", 1));
+    auto* bus2 = dynamic_cast<griddyn::GridBusOpt*>(root->findByUserID("bus", 2));
+    auto* branch = dynamic_cast<griddyn::GridLinkOpt*>(root->findByUserID("link", 1));
+    ASSERT_NE(bus1, nullptr);
+    ASSERT_NE(bus2, nullptr);
+    ASSERT_NE(branch, nullptr);
+    ASSERT_TRUE(branch->hasDcAngleLimit());
+    ASSERT_EQ(branch->constraintSize(mode), 2);
+
+    const auto& bus1Offsets = bus1->offsets.getOffsets(mode);
+    const auto& bus2Offsets = bus2->offsets.getOffsets(mode);
+    const auto& branchOffsets = branch->offsets.getOffsets(mode);
+    std::vector<double> values(root->objSize(mode), 0.0);
+    values[bus1Offsets.aOffset] = 0.2;
+    values[bus2Offsets.aOffset] = 0.0;
+    const griddyn::OptimizationData data{0.0, values.data(), 0};
+
+    std::vector<double> residuals(root->constraintSize(mode), 0.0);
+    root->constraintValue(data, residuals.data(), mode);
+    EXPECT_NEAR(residuals[branchOffsets.constraintOffset], 1.0, 1e-12);
+    EXPECT_NEAR(residuals[branchOffsets.constraintOffset + 1], 0.1, 1e-12);
+
+    std::vector<double> upperBounds(root->constraintSize(mode), 0.0);
+    std::vector<double> lowerBounds(root->constraintSize(mode), 0.0);
+    MatrixDataSparse<double> linearConstraints;
+    root->getConstraints(data,
+                         linearConstraints,
+                         upperBounds.data(),
+                         lowerBounds.data(),
+                         mode);
+    EXPECT_NEAR(lowerBounds[branchOffsets.constraintOffset + 1], 0.05, 1e-12);
+    EXPECT_NEAR(upperBounds[branchOffsets.constraintOffset + 1], 0.25, 1e-12);
+    EXPECT_NEAR(linearConstraints.at(branchOffsets.constraintOffset + 1,
+                                     bus1Offsets.aOffset),
+                1.0,
+                1e-12);
+    EXPECT_NEAR(linearConstraints.at(branchOffsets.constraintOffset + 1,
+                                     bus2Offsets.aOffset),
+                -1.0,
+                1e-12);
+}
+
+TEST(OptimizationDcFormulationTests, DisconnectedDcLinkContributesNoFlowOrLimitRows)
+{
+    auto gds = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath = makePyPowerCasePath("case2.py");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds.get(), filePath.string());
+
+    auto* physicalBranch = dynamic_cast<griddyn::Link*>(gds->findByUserID("link", 1));
+    ASSERT_NE(physicalBranch, nullptr);
+    physicalBranch->disconnect();
+
+    const auto mode = makeDcMode(griddyn::LinearityMode::LINEAR);
+    gds->initializeOptimizationModel(mode);
+    auto* root = gds->getOptimizationObject();
+    ASSERT_NE(root, nullptr);
+    auto* bus1 = dynamic_cast<griddyn::GridBusOpt*>(root->findByUserID("bus", 1));
+    auto* bus2 = dynamic_cast<griddyn::GridBusOpt*>(root->findByUserID("bus", 2));
+    auto* branch = dynamic_cast<griddyn::GridLinkOpt*>(root->findByUserID("link", 1));
+    ASSERT_NE(bus1, nullptr);
+    ASSERT_NE(bus2, nullptr);
+    ASSERT_NE(branch, nullptr);
+    EXPECT_TRUE(branch->isDcFlowValid());
+    EXPECT_EQ(branch->constraintSize(mode), 0);
+    EXPECT_EQ(root->constraintSize(mode), 3);
+
+    const auto& bus1Offsets = bus1->offsets.getOffsets(mode);
+    const auto& bus2Offsets = bus2->offsets.getOffsets(mode);
+    std::vector<double> values(root->objSize(mode), 0.0);
+    values[bus1Offsets.aOffset] = 0.2;
+    values[bus2Offsets.aOffset] = -0.3;
+    const griddyn::OptimizationData data{0.0, values.data(), 0};
+    EXPECT_DOUBLE_EQ(branch->dcPowerFlow(bus1, data, mode), 0.0);
+
+    std::vector<double> residuals(root->constraintSize(mode), 0.0);
+    root->constraintValue(data, residuals.data(), mode);
+    EXPECT_DOUBLE_EQ(residuals[bus1Offsets.constraintOffset], 0.0);
+    // The disconnected branch cannot serve bus 2's 50 MW load.
+    EXPECT_DOUBLE_EQ(residuals[bus2Offsets.constraintOffset], -0.5);
+}
+
+TEST(OptimizationDcFormulationTests, InvalidDcLinkParametersAreDiagnosed)
+{
+    auto makeCase = [] {
+        auto caseData = std::make_unique<griddyn::GridDynOptimization>();
+        const auto filePath = makePyPowerCasePath("case2.py");
+        griddyn::loadFile(caseData.get(), filePath.string());
+        return caseData;
+    };
+
+    {
+        auto gds = makeCase();
+        auto* physicalBranch = gds->findByUserID("link", 1);
+        ASSERT_NE(physicalBranch, nullptr);
+        physicalBranch->set("x", 1e-14);
+
+        const auto mode = makeDcMode(griddyn::LinearityMode::LINEAR);
+        gds->initializeOptimizationModel(mode);
+        auto* root = gds->getOptimizationObject();
+        ASSERT_NE(root, nullptr);
+        auto* branch = dynamic_cast<griddyn::GridLinkOpt*>(root->findByUserID("link", 1));
+        ASSERT_NE(branch, nullptr);
+        EXPECT_FALSE(branch->isDcFlowValid());
+        EXPECT_FALSE(branch->hasDcFlowLimit());
+        EXPECT_EQ(branch->constraintSize(mode), 0);
+    }
+
+    {
+        auto gds = makeCase();
+        auto* physicalBranch = gds->findByUserID("link", 1);
+        ASSERT_NE(physicalBranch, nullptr);
+        physicalBranch->set("tap", 0.0);
+
+        const auto mode = makeDcMode(griddyn::LinearityMode::LINEAR);
+        gds->initializeOptimizationModel(mode);
+        auto* root = gds->getOptimizationObject();
+        ASSERT_NE(root, nullptr);
+        auto* branch = dynamic_cast<griddyn::GridLinkOpt*>(root->findByUserID("link", 1));
+        ASSERT_NE(branch, nullptr);
+        EXPECT_FALSE(branch->isDcFlowValid());
+        EXPECT_FALSE(branch->hasDcFlowLimit());
+        EXPECT_EQ(branch->constraintSize(mode), 0);
+    }
+}
+
+TEST(OptimizationDcFormulationTests, ParallelDcLinksConserveInternalFlow)
+{
+    auto gds = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath = makePyPowerCasePath("case2.py");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds.get(), filePath.string());
+
+    auto* parallel = new griddyn::AcLine(0.0, 0.2, "parallel_link");
+    parallel->setUserID(2);
+    parallel->set("ratinga", 0.0);
+    parallel->set("minangle", -2.0 * griddyn::kPI);
+    parallel->set("maxangle", 2.0 * griddyn::kPI);
+    parallel->updateBus(dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 1)), 1);
+    parallel->updateBus(dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 2)), 2);
+    gds->add(parallel);
+
+    const auto mode = makeDcMode(griddyn::LinearityMode::LINEAR);
+    gds->initializeOptimizationModel(mode);
+    auto* root = gds->getOptimizationObject();
+    ASSERT_NE(root, nullptr);
+    auto* branch = dynamic_cast<griddyn::GridLinkOpt*>(root->findByUserID("link", 1));
+    auto* parallelOpt = dynamic_cast<griddyn::GridLinkOpt*>(root->findByUserID("link", 2));
+    auto* bus1 = dynamic_cast<griddyn::GridBusOpt*>(root->findByUserID("bus", 1));
+    auto* bus2 = dynamic_cast<griddyn::GridBusOpt*>(root->findByUserID("bus", 2));
+    ASSERT_NE(branch, nullptr);
+    ASSERT_NE(parallelOpt, nullptr);
+    ASSERT_NE(bus1, nullptr);
+    ASSERT_NE(bus2, nullptr);
+    auto* generator = dynamic_cast<griddyn::GridGenOpt*>(bus1->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    EXPECT_EQ(parallelOpt->constraintSize(mode), 0);
+
+    const auto& bus1Offsets = bus1->offsets.getOffsets(mode);
+    const auto& bus2Offsets = bus2->offsets.getOffsets(mode);
+    const auto& generatorOffsets = generator->offsets.getOffsets(mode);
+    std::vector<double> values(root->objSize(mode), 0.0);
+    values[bus1Offsets.aOffset] = 0.1;
+    values[bus2Offsets.aOffset] = 0.0;
+    values[generatorOffsets.gOffset] = 0.5;
+    const griddyn::OptimizationData data{0.0, values.data(), 0};
+
+    const double branchFlow = branch->dcPowerFlow(bus1, data, mode);
+    const double parallelFlow = parallelOpt->dcPowerFlow(bus1, data, mode);
+    EXPECT_NEAR(branchFlow, 1.0, 1e-12);
+    EXPECT_NEAR(parallelFlow, 0.5, 1e-12);
+    EXPECT_NEAR(branch->dcPowerFlow(bus2, data, mode), -branchFlow, 1e-12);
+    EXPECT_NEAR(parallelOpt->dcPowerFlow(bus2, data, mode), -parallelFlow, 1e-12);
+
+    std::vector<double> residuals(root->constraintSize(mode), 0.0);
+    root->constraintValue(data, residuals.data(), mode);
+    EXPECT_NEAR(residuals[bus1Offsets.constraintOffset] +
+                    residuals[bus2Offsets.constraintOffset],
+                0.0,
+                1e-12);
 }
 
 TEST(OptimizationDcFormulationTests, OptimizerInterfaceDrivesTwoBusDcCallbacks)
@@ -497,7 +766,7 @@ TEST(OptimizationDcFormulationTests, TwoBusIntegratedBasicOptimizerDryRunBeforeS
     auto* root = gds->getOptimizationObject();
     ASSERT_NE(root, nullptr);
     ASSERT_EQ(root->objSize(mode), 3);
-    ASSERT_EQ(root->constraintSize(mode), 3);
+    ASSERT_EQ(root->constraintSize(mode), 4);
 
     auto optimizer = griddyn::makeOptimizer(gds.get(), mode);
     ASSERT_NE(optimizer, nullptr);
@@ -509,17 +778,17 @@ TEST(OptimizationDcFormulationTests, TwoBusIntegratedBasicOptimizerDryRunBeforeS
 
     ASSERT_TRUE(optimizer->isInitialized());
     EXPECT_EQ(optimizer->size(), 3);
-    EXPECT_EQ(optimizer->constraintCount(), 3);
+    EXPECT_EQ(optimizer->constraintCount(), 4);
     EXPECT_EQ(optimizer->values.size(), 3U);
     EXPECT_EQ(optimizer->lowerBounds.size(), 3U);
     EXPECT_EQ(optimizer->upperBounds.size(), 3U);
-    EXPECT_EQ(optimizer->constraintValues.size(), 3U);
-    EXPECT_EQ(optimizer->constraintLowerBounds.size(), 3U);
-    EXPECT_EQ(optimizer->constraintUpperBounds.size(), 3U);
+    EXPECT_EQ(optimizer->constraintValues.size(), 4U);
+    EXPECT_EQ(optimizer->constraintLowerBounds.size(), 4U);
+    EXPECT_EQ(optimizer->constraintUpperBounds.size(), 4U);
     EXPECT_EQ(optimizer->gradient.size(), 3U);
     EXPECT_EQ(optimizer->variableType.size(), 3U);
     EXPECT_EQ(optimizer->tolerances.size(), 3U);
-    EXPECT_EQ(optimizer->multipliers.size(), 3U);
+    EXPECT_EQ(optimizer->multipliers.size(), 4U);
     EXPECT_EQ(optimizer->linearObjective.points(), 2);
     EXPECT_EQ(optimizer->quadraticObjective.points(), 1);
 
@@ -646,7 +915,7 @@ TEST(OptimizationDcFormulationTests, Case9IntegratedBasicOptimizerDryRunBeforeSo
     EXPECT_EQ(root->aSize(mode), 9);
     EXPECT_EQ(root->genSize(mode), 3);
     EXPECT_EQ(root->objSize(mode), 12);
-    EXPECT_EQ(root->constraintSize(mode), 10);
+    EXPECT_EQ(root->constraintSize(mode), 19);
 
     auto optimizer = griddyn::makeOptimizer(gds.get(), mode);
     ASSERT_NE(optimizer, nullptr);
@@ -657,17 +926,17 @@ TEST(OptimizationDcFormulationTests, Case9IntegratedBasicOptimizerDryRunBeforeSo
 
     EXPECT_TRUE(optimizer->isInitialized());
     EXPECT_EQ(optimizer->size(), 12);
-    EXPECT_EQ(optimizer->constraintCount(), 10);
+    EXPECT_EQ(optimizer->constraintCount(), 19);
     EXPECT_EQ(optimizer->values.size(), 12U);
     EXPECT_EQ(optimizer->lowerBounds.size(), 12U);
     EXPECT_EQ(optimizer->upperBounds.size(), 12U);
-    EXPECT_EQ(optimizer->constraintValues.size(), 10U);
-    EXPECT_EQ(optimizer->constraintLowerBounds.size(), 10U);
-    EXPECT_EQ(optimizer->constraintUpperBounds.size(), 10U);
+    EXPECT_EQ(optimizer->constraintValues.size(), 19U);
+    EXPECT_EQ(optimizer->constraintLowerBounds.size(), 19U);
+    EXPECT_EQ(optimizer->constraintUpperBounds.size(), 19U);
     EXPECT_EQ(optimizer->gradient.size(), 12U);
     EXPECT_EQ(optimizer->variableType.size(), 12U);
     EXPECT_EQ(optimizer->tolerances.size(), 12U);
-    EXPECT_EQ(optimizer->multipliers.size(), 10U);
+    EXPECT_EQ(optimizer->multipliers.size(), 19U);
     EXPECT_EQ(optimizer->linearObjective.points(), 6);
     EXPECT_EQ(optimizer->quadraticObjective.points(), 3);
     EXPECT_EQ(optimizer->get("integer_variables"), 0.0);

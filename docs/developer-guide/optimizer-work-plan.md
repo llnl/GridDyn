@@ -49,6 +49,12 @@ loading, residual/Jacobian evaluation, basic dispatch, and write-back. The next
 major implementation gap is the compact native mathematical solver and its
 larger DC-OPF verification suite.
 
+The native-solver effort described below is one end-to-end pull request. The
+stages are implementation and verification gates within that pull request, not
+separate PR boundaries. The PR is complete only when an operational native
+optimizer can solve the supported small DC-OPF cases and pass the corresponding
+failure, write-back, and regression tests.
+
 ## Completed work
 
 This section records the optimization-framework work completed before starting
@@ -185,7 +191,7 @@ optimizer-owned; capability and network limits come from the physical model.
 | ---------------------------- | -------- | ----------- | ----------------------------------------------------------- |
 | A. Assembly foundation       | 1-5      | Mostly done | A unique, active, correctly indexed, solver-neutral problem |
 | B. Complete DC model         | 6-8      | Mostly done | Verified DC equations, economics, and public initialization |
-| C. Native solution           | 9        | Next        | Small DC-OPF cases solved with KKT diagnostics              |
+| C. Native solution           | 9        | Next, single PR | Small DC-OPF cases solved with KKT diagnostics              |
 | D. Equivalence and extension | 10-11    | Later       | MATPOWER/PYPOWER agreement and a proven backend/AC seam     |
 
 Milestones A and B now have enough implementation and regression coverage to
@@ -575,10 +581,112 @@ solver can solve small cases.
   data, and an AC object can extend the distributed contracts without changing
   the DC solver or lifecycle architecture.
 
-## Next optimizer implementation sequence
+## Native solver chunk delivery boundary
+
+This chunk delivers the complete operational native optimizer in one PR. The
+scope is intentionally compact and dependency-free:
+
+- continuous single-period DC-OPF only;
+- linear rows, variable box bounds, and linear or convex diagonal-quadratic
+  generator costs;
+- active topology, fixed angles, branch status, fixed taps, phase shifts,
+  thermal limits, and supported angle-difference limits;
+- a dense bounded-QP method with explicit feasibility, optimality, scaling,
+  tolerance, and iteration diagnostics; and
+- explicit result staging and write-back, with no physical-model mutation on
+  solve or failure.
+
+AC-OPF, nonlinear and nonconvex costs, piecewise-linear costs, integer
+variables, multi-period scheduling, sparse numerical linear algebra, and an
+external solver backend remain outside this PR. IEEE-118 is the primary larger
+correctness gate. A 240-bus case is an optional performance/robustness check and
+does not replace the required smaller-case regressions.
+
+The following stages are internal gates in the single PR.
+
+### Stage 0: Complete the DC formulation boundary
+
+- Make one signed DC flow calculation cover reactance, fixed tap, phase shift,
+  active status, residuals, Jacobians, branch limits, and result checks.
+- Add flow-limit rows for finite positive physical `ratingA` values.
+- Add meaningful angle-difference rows while treating MATPOWER/PYPOWER
+  `-360/360` limits as unconstrained.
+- Propagate link constraint offsets in both flat and grouped layouts.
+- Reject or diagnose zero/near-zero reactance and invalid tap values instead of
+  silently producing zero flow.
+- Add direct tests for tap, phase shift, status, thermal limits, angle limits,
+  parallel branches, and conservation of internal flows.
+
+Current checkpoint: the first Stage 0 slice is implemented and covered by the
+optimization formulation suite. It includes active-status filtering, fixed tap
+and phase-shift flow semantics, thermal and angle-limit rows, affine bound
+handling, link offset propagation, and invalid reactance/tap diagnostics. The
+parallel-branch and flow-conservation coverage is also included. Stage 0 is
+ready to hand off to the native QP contract work; the native numerical solver
+must consume this boundary without adding a second formulation.
+
+### Stage 1: Freeze and materialize the native QP contract
+
+- Materialize values, bounds, objective coefficients, row bounds, affine row
+  constants, Jacobian entries, names, types, tolerances, and model version into
+  a solver-only dense problem structure.
+- Use the callback/Jacobian representation as the canonical native input and
+  verify any explicit linear export rather than double-counting it.
+- Classify supported LP/convex-QP problems before numerical solve and reject
+  unsupported modes, integer variables, PWL costs, nonconvex costs, malformed
+  bounds, and non-finite coefficients.
+
+### Stage 2: Implement the dense feasibility and active-set core
+
+- Implement a small pivoted dense KKT factorization using standard-library
+  containers only.
+- Add bounded Phase-I feasibility using nonnegative violation variables.
+- Implement equality and active-inequality working-set updates, blocking-step
+  selection, multiplier-sign releases, deterministic tie-breaking, and
+  explicit iteration limits.
+- Distinguish optimal, infeasible, unbounded, singular/rank-deficient,
+  numerical-failure, unsupported, nonconvex, and iteration-limit outcomes.
+
+### Stage 3: Integrate, diagnose, and protect write-back
+
+- Replace the current `NativeOptimizer::solve()` placeholder with the dense
+  solver call.
+- Validate the candidate through the original objective, constraint, and
+  Jacobian callbacks before accepting it.
+- Report objective, primal violation, bound violation, stationarity,
+  complementarity, active-set size, and iteration count.
+- Keep failed or unvalidated candidates out of the committed optimizer state.
+- Permit `writeBack()` only after a validated optimal result and only when the
+  caller explicitly requests it.
+
+### Stage 4: Run the complete regression ladder
+
+- Keep the two-bus analytic case as the smallest proof.
+- Add a three-bus/two-generator fixture covering uncongested dispatch,
+  generator-bound activation, and branch-limit activation.
+- Solve and compare `case9.m`, `case14.m`, and `case118.m` against stored
+  PYPOWER/MATPOWER references with documented formulation and unit tolerances.
+- Add deterministic repeated-solve, lifecycle, invalidation, unsupported-mode,
+  infeasibility, rank, and write-back tests.
+- Measure a 240-bus case when an input is available, recording solve time and
+  memory behavior without making it the first acceptance gate.
+
+### Single-PR acceptance gate
+
+The PR is accepted only when the native optimizer is operational, the dense
+solver unit tests and GridDyn integration tests pass, the relevant optimization
+and non-optimization regressions pass, and the native definition of done below
+is satisfied. No intermediate stage is intended to be merged independently.
+
+## Implementation sequence within the single PR
 
 The next chunk of work should build the native solver behind the existing
 optimizer interface without changing the power-system data ownership model.
+
+0. **Complete the DC formulation boundary.**
+   Finish branch status, fixed tap/phase-shift flow semantics, thermal and
+   angle-limit rows, link offset propagation, and zero-reactance diagnostics
+   before relying on native numerical results.
 
 1. **Freeze the native solver input contract.**
    Confirm that `NativeOptimizer::prepareProblemData()` captures all data the

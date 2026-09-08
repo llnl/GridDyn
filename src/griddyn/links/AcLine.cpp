@@ -336,6 +336,10 @@ double AcLine::get(std::string_view param, unit unitType) const
         val = tap;
     } else if (outparam == "tapangle") {
         val = tapAngle;
+    } else if (outparam == "minangle") {
+        val = minAngle;
+    } else if (outparam == "maxangle") {
+        val = maxAngle;
     } else {
         val = Link::get(param, unitType);
     }

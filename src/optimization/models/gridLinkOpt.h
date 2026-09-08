@@ -122,7 +122,17 @@ class GridLinkOpt: public GridOptObject {
                              MatrixData<double>& matrixDataRef,
                              const OptimizationMode& oMode) const;
 
+    /** Return true when the physical link can participate in a DC model. */
+    bool isDcFlowValid() const;
+    /** Return true when an active finite thermal limit creates a DC row. */
+    bool hasDcFlowLimit() const;
+    /** Return true when an active meaningful angle-difference limit creates a DC row. */
+    bool hasDcAngleLimit() const;
+
   protected:
+    bool isActiveDcLink() const;
+    double dcFlowCoefficient() const;
+    double dcPhaseShift() const;
 };
 
 }  // namespace griddyn

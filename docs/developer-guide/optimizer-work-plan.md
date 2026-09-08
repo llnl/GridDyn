@@ -626,15 +626,15 @@ optimizer interface without changing the power-system data ownership model.
 
 ## Verification plan for the next chunk
 
-| Layer | What to verify | Example checks |
-| ----- | -------------- | -------------- |
-| Assembly | The solver sees the same problem the distributed objects define | exact sizes, names, bounds, guesses, row types, and sparse entries |
-| Algebra | Residuals and derivatives match hand calculations | two-bus balances, branch flow, reference-angle row, generator cost |
-| Classification | Unsupported cases stop before numerical solve | integer variable, PWL cost before support, nonconvex quadratic, bad bounds |
-| Feasibility | Phase-I reports actionable status | insufficient generation, impossible fixed angles, missing reference |
-| Optimality | Supported cases satisfy KKT tolerances | two-bus dispatch, binding generator bound, binding branch constraint |
-| Write-back | Results are committed only on request | generator set points unchanged before `writeBack()`, changed after success |
-| Equivalence | GridDyn DC-OPF agrees with reference formulations | `case2`, `case9`, then `case14` within documented tolerances |
+| Layer          | What to verify                                                  | Example checks                                                             |
+| -------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Assembly       | The solver sees the same problem the distributed objects define | exact sizes, names, bounds, guesses, row types, and sparse entries         |
+| Algebra        | Residuals and derivatives match hand calculations               | two-bus balances, branch flow, reference-angle row, generator cost         |
+| Classification | Unsupported cases stop before numerical solve                   | integer variable, PWL cost before support, nonconvex quadratic, bad bounds |
+| Feasibility    | Phase-I reports actionable status                               | insufficient generation, impossible fixed angles, missing reference        |
+| Optimality     | Supported cases satisfy KKT tolerances                          | two-bus dispatch, binding generator bound, binding branch constraint       |
+| Write-back     | Results are committed only on request                           | generator set points unchanged before `writeBack()`, changed after success |
+| Equivalence    | GridDyn DC-OPF agrees with reference formulations               | `case2`, `case9`, then `case14` within documented tolerances               |
 
 ## Verification ladder
 

@@ -482,9 +482,7 @@ double GridGenOpt::get(std::string_view param, units::unit unitType) const
     return val;
 }
 
-void GridGenOpt::loadMatPowerCostCoeff(std::vector<double> coeff,
-                                       int powerMode,
-                                       int costModel)
+void GridGenOpt::loadMatPowerCostCoeff(std::vector<double> coeff, int powerMode, int costModel)
 {
     const auto basePower = (gen != nullptr) ? gen->getRoot()->get("basepower") : 1.0;
     if (costModel == 2) {

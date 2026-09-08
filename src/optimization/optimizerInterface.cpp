@@ -623,8 +623,7 @@ int EconomicDispatchOptimizer::solve(double tStop, double& tReturn)
 
     std::vector<bool> hasConstraintParticipation(values.size(), false);
     for (const auto& element : constraintJacobian) {
-        if ((element.col >= 0) &&
-            std::cmp_less(element.col, hasConstraintParticipation.size()) &&
+        if ((element.col >= 0) && std::cmp_less(element.col, hasConstraintParticipation.size()) &&
             (std::abs(element.data) > 0.0)) {
             hasConstraintParticipation[static_cast<std::size_t>(element.col)] = true;
         }
@@ -644,12 +643,11 @@ int EconomicDispatchOptimizer::solve(double tStop, double& tReturn)
         if ((linearCost == 0.0) && (quadraticCost == 0.0)) {
             continue;
         }
-        dispatchVariables.push_back(
-            DispatchVariable{.mIndex = static_cast<index_t>(variableIndex),
-                             .mLower = lower,
-                             .mUpper = upper,
-                             .mLinearCost = linearCost,
-                             .mQuadraticCost = quadraticCost});
+        dispatchVariables.push_back(DispatchVariable{.mIndex = static_cast<index_t>(variableIndex),
+                                                     .mLower = lower,
+                                                     .mUpper = upper,
+                                                     .mLinearCost = linearCost,
+                                                     .mQuadraticCost = quadraticCost});
     }
 
     if (dispatchVariables.empty()) {

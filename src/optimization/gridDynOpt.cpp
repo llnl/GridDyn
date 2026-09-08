@@ -12,6 +12,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gridOptObjects.h"
 #include "models/gridAreaOpt.h"
+#include "models/gridBusOpt.h"
 #include "optObjectFactory.h"
 // system headers
 
@@ -20,11 +21,85 @@
 #include <fstream>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <string>
 
 namespace griddyn {
 static TypeFactory<GridDynOptimization>
-    gfo("simulation", std::to_array<std::string_view>({"optimization", "optim"}));
+    gFo("simulation", std::to_array<std::string_view>({"optimization", "optim"}));
+
+namespace {
+    // The optimizer hierarchy mirrors the recursive GridDyn object hierarchy.
+    // NOLINTNEXTLINE(misc-no-recursion)
+    GridOptObject* findOptimizationObjectBySource(GridOptObject* root,
+                                                  const CoreObject* sourceObject)
+    {
+        if ((root == nullptr) || (sourceObject == nullptr)) {
+            return nullptr;
+        }
+        if (root->sourceObject() == sourceObject) {
+            return root;
+        }
+        if (auto* area = dynamic_cast<GridAreaOpt*>(root); area != nullptr) {
+            for (index_t index = 0;; ++index) {
+                auto* found = findOptimizationObjectBySource(area->getArea(index), sourceObject);
+                if (found != nullptr) {
+                    return found;
+                }
+                if (area->getArea(index) == nullptr) {
+                    break;
+                }
+            }
+            for (index_t index = 0;; ++index) {
+                auto* found = findOptimizationObjectBySource(area->getBus(index), sourceObject);
+                if (found != nullptr) {
+                    return found;
+                }
+                if (area->getBus(index) == nullptr) {
+                    break;
+                }
+            }
+            for (index_t index = 0;; ++index) {
+                auto* found = findOptimizationObjectBySource(area->getLink(index), sourceObject);
+                if (found != nullptr) {
+                    return found;
+                }
+                if (area->getLink(index) == nullptr) {
+                    break;
+                }
+            }
+            for (index_t index = 0;; ++index) {
+                auto* found = findOptimizationObjectBySource(area->getRelay(index), sourceObject);
+                if (found != nullptr) {
+                    return found;
+                }
+                if (area->getRelay(index) == nullptr) {
+                    break;
+                }
+            }
+        } else if (auto* bus = dynamic_cast<GridBusOpt*>(root); bus != nullptr) {
+            for (index_t index = 0;; ++index) {
+                auto* found = findOptimizationObjectBySource(bus->getGen(index), sourceObject);
+                if (found != nullptr) {
+                    return found;
+                }
+                if (bus->getGen(index) == nullptr) {
+                    break;
+                }
+            }
+            for (index_t index = 0;; ++index) {
+                auto* found = findOptimizationObjectBySource(bus->getLoad(index), sourceObject);
+                if (found != nullptr) {
+                    return found;
+                }
+                if (bus->getLoad(index) == nullptr) {
+                    break;
+                }
+            }
+        }
+        return nullptr;
+    }
+}  // namespace
 
 GridDynOptimization::GridDynOptimization(const std::string& simName):
     GridDynSimulation(simName), mOptimizationMode(DEFAULT_OPTIMIZATION)
@@ -48,20 +123,69 @@ CoreObject* GridDynOptimization::clone(CoreObject* obj) const
     return sim;
 }
 
+void GridDynOptimization::initializeOptimizationModel(const OptimizationMode& oMode,
+                                                      int setupMode,
+                                                      std::uint32_t flags)
+{
+    // Keep the optimizer lifecycle parallel to GridDyn power-flow setup: first
+    // traverse the physical hierarchy to construct and bind component models,
+    // then perform a second pass to assign the assembled numerical layout.
+    mGridAreaOpt->dynInitializeA(flags);
+    mGridAreaOpt->loadSizes(oMode);
+    setupOptOffsets(oMode, setupMode);
+}
+
 void GridDynOptimization::setupOptOffsets(const OptimizationMode& oMode, int setupMode)
 {
-    if (setupMode == 0) {  // no distinction between Voltage, angle, and others
-        mGridAreaOpt->setOffset(1, 0, oMode);
+    if (setupMode == 0) {
+        // Flat mixed layout.  This mirrors the simulation setOffset() pass:
+        // children allocate first, each object appends its local entries, and
+        // all objective variables live in one zero-based block.
+        mGridAreaOpt->setOffset(0, 0, oMode);
         return;
     }
+
+    const auto& rootOffsets = mGridAreaOpt->offsets.getOffsets(oMode);
+    const auto& rootSizes = rootOffsets.total;
     OptimizationOffsets baseOffset;
-    if (setupMode == 1) {  // use all the distinct categories
-        baseOffset.setOffset(1);
+    if (setupMode == 1) {
+        // Grouped physical/economic layout.  Angle, voltage, real-generation,
+        // reactive-generation, generic-continuous, and integer categories each
+        // receive a contiguous block when present.  This is the default OPF
+        // layout because it keeps variable classes easy to inspect without
+        // changing the single source of truth: sizes still come from the bound
+        // optimization objects.
         baseOffset.constraintOffset = 0;
-    } else if (setupMode == 2) {  // discriminate continuous and discrete objective variables
+        index_t nextOffset = 0;
+        if (rootSizes.aSize > 0) {
+            baseOffset.aOffset = nextOffset;
+            nextOffset += rootSizes.aSize;
+        }
+        if (rootSizes.vSize > 0) {
+            baseOffset.vOffset = nextOffset;
+            nextOffset += rootSizes.vSize;
+        }
+        if (rootSizes.genSize > 0) {
+            baseOffset.gOffset = nextOffset;
+            nextOffset += rootSizes.genSize;
+        }
+        if (rootSizes.qSize > 0) {
+            baseOffset.qOffset = nextOffset;
+            nextOffset += rootSizes.qSize;
+        }
+        baseOffset.contOffset = nextOffset;
+        nextOffset += rootSizes.contSize;
+        if (rootSizes.intSize > 0) {
+            baseOffset.intOffset = nextOffset;
+        }
+    } else if (setupMode == 2) {
+        // Solver-oriented layout: all continuous variables share one zero-based
+        // block, followed by the integer block when one exists.
         baseOffset.constraintOffset = 0;
-        baseOffset.contOffset = 1;
-        baseOffset.intOffset = 0;
+        baseOffset.contOffset = 0;
+        if (rootSizes.intSize > 0) {
+            baseOffset.intOffset = mGridAreaOpt->contObjSize(oMode);
+        }
     }
 
     // call the area setOffset function to distribute the offsets
@@ -82,6 +206,13 @@ void GridDynOptimization::set(std::string_view param, std::string_view val)
         if (optFactory->isValidType(val)) {
             mDefaultOptMode = val;
             optFactory->setDefaultType(val);
+        }
+    } else if ((param == "optimizer") || (param == "optimizer_type") ||
+               (param == "optimizersolver")) {
+        if (makeOptimizer(val) != nullptr) {
+            mDefaultOptimizerType = std::string{val};
+        } else {
+            logging::warning(this, "unknown optimizer type {}", val);
         }
     } else if (param == "optimization_mode") {
         /*default_solution,
@@ -181,11 +312,7 @@ CoreObject* GridDynOptimization::findByUserID(std::string_view typeName, index_t
 GridOptObject* GridDynOptimization::getOptimizationObject(CoreObject* obj)
 {
     if (obj != nullptr) {
-        CoreObject* nextObject = mGridAreaOpt->find(obj->getName());
-        if (nextObject != nullptr) {
-            return static_cast<GridOptObject*>(nextObject);
-        }
-        return nullptr;
+        return findOptimizationObjectBySource(mGridAreaOpt, obj);
     }
     return mGridAreaOpt;
 }
@@ -206,10 +333,35 @@ GridOptObject* GridDynOptimization::makeOptimizationObjectPath(CoreObject* obj)
     return nullptr;
 }
 
+std::shared_ptr<OptimizerInterface>
+    GridDynOptimization::getOptimizerInterface(const OptimizationMode& oMode)
+{
+    if (!isValidIndex(oMode.offsetIndex, mOptimizerData) ||
+        (mOptimizerData[oMode.offsetIndex] == nullptr)) {
+        updateOptimizer(oMode);
+    }
+    return mOptimizerData[oMode.offsetIndex];
+}
+
+std::shared_ptr<const OptimizerInterface>
+    GridDynOptimization::getOptimizerInterface(const OptimizationMode& oMode) const
+{
+    if (!isValidIndex(oMode.offsetIndex, mOptimizerData)) {
+        return nullptr;
+    }
+    return mOptimizerData[oMode.offsetIndex];
+}
+
 OptimizerInterface* GridDynOptimization::updateOptimizer(const OptimizationMode& oMode)
 {
-    mOptimizerData[oMode.offsetIndex] = makeOptimizer(this, oMode);
+    if (!isValidIndex(oMode.offsetIndex, mOptimizerData)) {
+        mOptimizerData.resize(oMode.offsetIndex + 1);
+    }
+    mOptimizerData[oMode.offsetIndex] = makeOptimizer(this, oMode, mDefaultOptimizerType);
     OptimizerInterface* optimizer = mOptimizerData[oMode.offsetIndex].get();
+    if (optimizer != nullptr) {
+        optimizer->allocate(mGridAreaOpt->objSize(oMode), mGridAreaOpt->constraintSize(oMode));
+    }
 
     return optimizer;
 }

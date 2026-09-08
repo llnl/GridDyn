@@ -28,6 +28,7 @@ class GridLoadOpt: public GridOptObject {
     ~GridLoadOpt();
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    CoreObject* sourceObject() const override;
 
     virtual void add(CoreObject* obj) override;
     virtual count_t objSize(const OptimizationMode& oMode);

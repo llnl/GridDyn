@@ -24,6 +24,10 @@ class GridBusOpt: public GridOptObject {
     };
 
   protected:
+    /** Add this bus''s active-power equation.  AC-derived adapters may override it. */
+    virtual void addActivePowerBalance(const OptimizationData& optimizationData,
+                                       double constraintValues[],
+                                       const OptimizationMode& oMode) const;
     std::vector<GridLoadOpt*> loadList;
     std::vector<GridLinkOpt*> linkList;
     std::vector<GridGenOpt*> genList;
@@ -36,6 +40,7 @@ class GridBusOpt: public GridOptObject {
     ~GridBusOpt();
 
     CoreObject* clone(CoreObject* obj = nullptr) const override;
+    CoreObject* sourceObject() const override;
     // add components
     void add(CoreObject* obj) override;
     void add(GridLoadOpt* loadObject);
@@ -123,6 +128,9 @@ class GridBusOpt: public GridOptObject {
     GridOptObject* getLoad(index_t index = 0) const;
     GridOptObject* getGen(index_t index = 0) const;
 
+    /** The attached physical bus; used to bind network adapters without copying data. */
+    GridBus* sourceBus() const { return bus; }
+
     GridOptObject* getBus(index_t /*index*/) const override
     {
         return const_cast<GridBusOpt*>(this);
@@ -131,8 +139,6 @@ class GridBusOpt: public GridOptObject {
     {
         return static_cast<GridOptObject*>(getParent());
     }
-
-  protected:
 };
 
 // bool compareBus (GridBus *bus1, GridBus *bus2, bool cmpLink = false,bool printDiff = false);

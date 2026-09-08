@@ -125,11 +125,13 @@ namespace {
 class FactoryTestOptObject: public griddyn::GridOptObject {
   public:
     FactoryTestOptObject() = default;
-    explicit FactoryTestOptObject(griddyn::CoreObject* obj): sourceObject(obj) {}
+    explicit FactoryTestOptObject(griddyn::CoreObject* obj): source(obj) {}
 
-    griddyn::CoreObject* sourceObject = nullptr;
+    griddyn::CoreObject* source = nullptr;
 
-    void add(griddyn::CoreObject* obj) override { sourceObject = obj; }
+    [[nodiscard]] griddyn::CoreObject* sourceObject() const override { return source; }
+
+    void add(griddyn::CoreObject* obj) override { source = obj; }
 };
 }  // namespace
 
@@ -150,7 +152,7 @@ TEST(OptimizationFactoryTests, PrepObjectsReusesAttachedHolder)
 
     griddyn::CoreOwningPtr<FactoryTestOptObject> optObject{factory.makeTypeObject(&gridObject)};
     ASSERT_TRUE(static_cast<bool>(optObject));
-    EXPECT_EQ(optObject->sourceObject, &gridObject);
+    EXPECT_EQ(optObject->source, &gridObject);
     EXPECT_EQ(factory.remainingPrepped(), 2U);
 
     factory.prepObjects(2, &root);

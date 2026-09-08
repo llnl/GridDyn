@@ -18,6 +18,7 @@
 #include <cstdio>
 #include <fstream>
 #include <list>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -48,6 +49,7 @@ class GridDynOptimization: public GridDynSimulation {
     std::vector<std::shared_ptr<OptimizerInterface>> mOptimizerData;
     GridAreaOpt* mGridAreaOpt = nullptr;
     std::string mDefaultOptMode;
+    std::string mDefaultOptimizerType = "basic";
     // ---------------solution mode-------------
     // total thread count
 
@@ -86,6 +88,9 @@ class GridDynOptimization: public GridDynSimulation {
     */
     virtual GridOptObject* getOptimizationObject(CoreObject* obj = nullptr);
     virtual GridOptObject* makeOptimizationObjectPath(CoreObject* obj);
+    std::shared_ptr<OptimizerInterface> getOptimizerInterface(const OptimizationMode& oMode);
+    std::shared_ptr<const OptimizerInterface>
+        getOptimizerInterface(const OptimizationMode& oMode) const;
 
   protected:
     OptimizerInterface* updateOptimizer(const OptimizationMode& oMode);
@@ -108,8 +113,18 @@ class GridDynOptimization: public GridDynSimulation {
     {
         mOptimizerData[oMode.offsetIndex]->initializeJacArray(ssize);
     }
-    // dynamics protected
+
+  public:
     // void dynInitializeObjects(double initTime, double absInitTime);
+
+    /**
+     * Construct and initialize the optimization adapter tree from the same
+     * physical GridDyn hierarchy used by power-flow initialization, then size
+     * and distribute the numerical optimization variables and constraints.
+     */
+    void initializeOptimizationModel(const OptimizationMode& oMode,
+                                     int setupMode = 1,
+                                     std::uint32_t flags = 0);
 
     void setupOptOffsets(const OptimizationMode& oMode, int setupMode);
 };

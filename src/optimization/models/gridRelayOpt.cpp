@@ -18,7 +18,7 @@
 #include <utility>
 
 namespace griddyn {
-static OptObjectFactory<GridRelayOpt, Relay> opRelay("basic", "relay");
+static OptObjectFactory<GridRelayOpt, Relay> gOpRelay("basic", "relay");
 
 using units::unit;
 
@@ -55,6 +55,11 @@ CoreObject* GridRelayOpt::clone(CoreObject* obj) const
     // clone the generators and loads
 
     return nobj;
+}
+
+CoreObject* GridRelayOpt::sourceObject() const
+{
+    return relay;
 }
 
 void GridRelayOpt::add(CoreObject* obj)

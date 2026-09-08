@@ -97,6 +97,10 @@ class OptimizationOffsets {
     @param offsets the optimOffset object to use as the sizes
     */
     void increment(const OptimizationOffsets& offsets);
+    /** advance the offsets by the local sizes in another optimization object
+    @param offsets the optimization offsets whose local sizes define the increment
+    */
+    void localIncrement(const OptimizationOffsets& offsets);
     /** merge the sizes of two OptimizationOffsets
     @param offsets the optimOffset object to use as the sizes
     */
@@ -237,14 +241,40 @@ class OptimizationOffsetTable {
     void setParamOffset(index_t newParamOffset) { paramOffset = newParamOffset; }
 };
 
-/**@brief class for containing state data information
+/**@brief class for containing optimization evaluation data information.
+ *
+ * OptimizationData mirrors StateData for optimization callbacks.  The
+ * OptimizerInterface owns the actual arrays; this object is the lightweight
+ * view passed through the distributed GridOptObject tree for a single
+ * objective, constraint, gradient, or Jacobian evaluation.
  */
 class OptimizationData {
   public:
-    double time = 0.0;  //!< time corresponding to the state data
-    const double* val = nullptr;  //!< the current values
-    count_t seqID =
-        0;  //!< a sequence id to differentiate between subsequent OptimizationData object
+    double time = 0.0;  //!< time corresponding to the optimization data
+    count_t seqID = 0;  //!< sequence id differentiating subsequent evaluations
+    index_t valueSize = 0;  //!< size of the decision-variable vector; if zero use source context
+    index_t constraintSize = 0;  //!< size of the constraint vector; if zero use source context
+    const double* val = nullptr;  //!< current decision-variable vector
+    const double* multiplier = nullptr;  //!< optional constraint/objective multiplier vector
+    double* scratch1 = nullptr;  //!< optional scratch space, owned by the optimizer interface
+    double* scratch2 = nullptr;  //!< optional scratch space, owned by the optimizer interface
+
+    OptimizationData(double evalTime = 0.0,
+                     const double* values = nullptr,
+                     count_t sequence = 0,
+                     index_t variableCount = 0,
+                     index_t constraintCount = 0):
+        time(evalTime), seqID(sequence), valueSize(variableCount), constraintSize(constraintCount),
+        val(values)
+    {
+    }
+
+    bool empty() const { return (val == nullptr); }
+    bool updateRequired(count_t checkID) const
+    {
+        return ((checkID != seqID) || (seqID == 0) || empty());
+    }
+    bool hasScratch() const { return (scratch1 != nullptr); }
 };
 
 }  // namespace griddyn

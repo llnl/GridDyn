@@ -256,76 +256,86 @@ void GridOptObject::getObjectiveNames(stringVec& objectiveNames,
                                       const std::string& prefix)
 {
     auto& offsetSet = offsets.getOffsets(oMode);
-    auto ensureSize = [&objectiveNames](count_t offset, count_t count) {
+    auto ensureSize = [&objectiveNames](index_t offset, count_t count) {
+        if ((count == 0) || (offset == kNullLocation)) {
+            return false;
+        }
         const auto requiredSize = static_cast<size_t>(offset) + static_cast<size_t>(count);
         if (objectiveNames.size() < requiredSize) {
             objectiveNames.resize(requiredSize);
         }
+        return true;
     };
     // angle variables
-    ensureSize(offsetSet.aOffset, offsetSet.total.aSize);
-    for (index_t variableIndex = 0; variableIndex < offsetSet.total.aSize; ++variableIndex) {
-        if (prefix.empty()) {
-            objectiveNames[static_cast<size_t>(offsetSet.aOffset) + variableIndex] =
-                getName() + ":angle_" + std::to_string(variableIndex);
-        } else {
-            objectiveNames[static_cast<size_t>(offsetSet.aOffset) + variableIndex] =
-                prefix + "::" + getName() + ":angle_" + std::to_string(variableIndex);
+    if (ensureSize(offsetSet.aOffset, offsetSet.total.aSize)) {
+        for (index_t variableIndex = 0; variableIndex < offsetSet.total.aSize; ++variableIndex) {
+            if (prefix.empty()) {
+                objectiveNames[static_cast<size_t>(offsetSet.aOffset) + variableIndex] =
+                    getName() + ":angle_" + std::to_string(variableIndex);
+            } else {
+                objectiveNames[static_cast<size_t>(offsetSet.aOffset) + variableIndex] =
+                    prefix + "::" + getName() + ":angle_" + std::to_string(variableIndex);
+            }
         }
     }
     // voltage variables
-    ensureSize(offsetSet.vOffset, offsetSet.total.vSize);
-    for (index_t variableIndex = 0; variableIndex < offsetSet.total.vSize; ++variableIndex) {
-        if (prefix.empty()) {
-            objectiveNames[static_cast<size_t>(offsetSet.vOffset) + variableIndex] =
-                getName() + ":voltage_" + std::to_string(variableIndex);
-        } else {
-            objectiveNames[static_cast<size_t>(offsetSet.vOffset) + variableIndex] =
-                prefix + "::" + getName() + ":voltage_" + std::to_string(variableIndex);
+    if (ensureSize(offsetSet.vOffset, offsetSet.total.vSize)) {
+        for (index_t variableIndex = 0; variableIndex < offsetSet.total.vSize; ++variableIndex) {
+            if (prefix.empty()) {
+                objectiveNames[static_cast<size_t>(offsetSet.vOffset) + variableIndex] =
+                    getName() + ":voltage_" + std::to_string(variableIndex);
+            } else {
+                objectiveNames[static_cast<size_t>(offsetSet.vOffset) + variableIndex] =
+                    prefix + "::" + getName() + ":voltage_" + std::to_string(variableIndex);
+            }
         }
     }
     // real power variables
-    ensureSize(offsetSet.gOffset, offsetSet.total.genSize);
-    for (index_t variableIndex = 0; variableIndex < offsetSet.total.genSize; ++variableIndex) {
-        if (prefix.empty()) {
-            objectiveNames[static_cast<size_t>(offsetSet.gOffset) + variableIndex] =
-                getName() + ":power_" + std::to_string(variableIndex);
-        } else {
-            objectiveNames[static_cast<size_t>(offsetSet.gOffset) + variableIndex] =
-                prefix + "::" + getName() + ":power_" + std::to_string(variableIndex);
+    if (ensureSize(offsetSet.gOffset, offsetSet.total.genSize)) {
+        for (index_t variableIndex = 0; variableIndex < offsetSet.total.genSize; ++variableIndex) {
+            if (prefix.empty()) {
+                objectiveNames[static_cast<size_t>(offsetSet.gOffset) + variableIndex] =
+                    getName() + ":power_" + std::to_string(variableIndex);
+            } else {
+                objectiveNames[static_cast<size_t>(offsetSet.gOffset) + variableIndex] =
+                    prefix + "::" + getName() + ":power_" + std::to_string(variableIndex);
+            }
         }
     }
     // angle variables
-    ensureSize(offsetSet.qOffset, offsetSet.total.qSize);
-    for (index_t variableIndex = 0; variableIndex < offsetSet.total.qSize; ++variableIndex) {
-        if (prefix.empty()) {
-            objectiveNames[static_cast<size_t>(offsetSet.qOffset) + variableIndex] =
-                getName() + ":reactive_power_" + std::to_string(variableIndex);
-        } else {
-            objectiveNames[static_cast<size_t>(offsetSet.qOffset) + variableIndex] =
-                prefix + "::" + getName() + ":reactive_power_" + std::to_string(variableIndex);
+    if (ensureSize(offsetSet.qOffset, offsetSet.total.qSize)) {
+        for (index_t variableIndex = 0; variableIndex < offsetSet.total.qSize; ++variableIndex) {
+            if (prefix.empty()) {
+                objectiveNames[static_cast<size_t>(offsetSet.qOffset) + variableIndex] =
+                    getName() + ":reactive_power_" + std::to_string(variableIndex);
+            } else {
+                objectiveNames[static_cast<size_t>(offsetSet.qOffset) + variableIndex] =
+                    prefix + "::" + getName() + ":reactive_power_" + std::to_string(variableIndex);
+            }
         }
     }
     // other continuous variables
-    ensureSize(offsetSet.contOffset, offsetSet.total.contSize);
-    for (index_t variableIndex = 0; variableIndex < offsetSet.total.contSize; ++variableIndex) {
-        if (prefix.empty()) {
-            objectiveNames[static_cast<size_t>(offsetSet.contOffset) + variableIndex] =
-                getName() + ":continuous_" + std::to_string(variableIndex);
-        } else {
-            objectiveNames[static_cast<size_t>(offsetSet.contOffset) + variableIndex] =
-                prefix + "::" + getName() + ":continuous_" + std::to_string(variableIndex);
+    if (ensureSize(offsetSet.contOffset, offsetSet.total.contSize)) {
+        for (index_t variableIndex = 0; variableIndex < offsetSet.total.contSize; ++variableIndex) {
+            if (prefix.empty()) {
+                objectiveNames[static_cast<size_t>(offsetSet.contOffset) + variableIndex] =
+                    getName() + ":continuous_" + std::to_string(variableIndex);
+            } else {
+                objectiveNames[static_cast<size_t>(offsetSet.contOffset) + variableIndex] =
+                    prefix + "::" + getName() + ":continuous_" + std::to_string(variableIndex);
+            }
         }
     }
     // integer variables
-    ensureSize(offsetSet.intOffset, offsetSet.total.intSize);
-    for (index_t variableIndex = 0; variableIndex < offsetSet.total.intSize; ++variableIndex) {
-        if (prefix.empty()) {
-            objectiveNames[static_cast<size_t>(offsetSet.intOffset) + variableIndex] =
-                getName() + ":continuous_" + std::to_string(variableIndex);
-        } else {
-            objectiveNames[static_cast<size_t>(offsetSet.intOffset) + variableIndex] =
-                prefix + "::" + getName() + ":continuous_" + std::to_string(variableIndex);
+    if (ensureSize(offsetSet.intOffset, offsetSet.total.intSize)) {
+        for (index_t variableIndex = 0; variableIndex < offsetSet.total.intSize; ++variableIndex) {
+            if (prefix.empty()) {
+                objectiveNames[static_cast<size_t>(offsetSet.intOffset) + variableIndex] =
+                    getName() + ":integer_" + std::to_string(variableIndex);
+            } else {
+                objectiveNames[static_cast<size_t>(offsetSet.intOffset) + variableIndex] =
+                    prefix + "::" + getName() + ":integer_" + std::to_string(variableIndex);
+            }
         }
     }
 }

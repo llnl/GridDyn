@@ -753,6 +753,36 @@ if(GRIDDYN_BUILD_PYTHON_LIBRARY)
     add_subdirectory(python)
 endif()
 
+if(CMAKE_GENERATOR MATCHES "Visual Studio")
+    function(griddyn_demote_msb8028 directory_path)
+        get_property(_dir_targets DIRECTORY "${directory_path}" PROPERTY BUILDSYSTEM_TARGETS)
+        foreach(_dir_target IN LISTS _dir_targets)
+            get_target_property(
+                _msbuild_warnings_as_messages "${_dir_target}" VS_GLOBAL_MSBuildWarningsAsMessages
+            )
+            if(NOT _msbuild_warnings_as_messages OR _msbuild_warnings_as_messages STREQUAL
+                                                    "_msbuild_warnings_as_messages-NOTFOUND"
+            )
+                set_target_properties(
+                    "${_dir_target}" PROPERTIES VS_GLOBAL_MSBuildWarningsAsMessages "MSB8028"
+                )
+            elseif(NOT _msbuild_warnings_as_messages MATCHES "(^|;)MSB8028($|;)")
+                set_target_properties(
+                    "${_dir_target}" PROPERTIES VS_GLOBAL_MSBuildWarningsAsMessages
+                                                "${_msbuild_warnings_as_messages};MSB8028"
+                )
+            endif()
+        endforeach()
+
+        get_property(_subdirectories DIRECTORY "${directory_path}" PROPERTY SUBDIRECTORIES)
+        foreach(_subdirectory IN LISTS _subdirectories)
+            griddyn_demote_msb8028("${_subdirectory}")
+        endforeach()
+    endfunction()
+
+    griddyn_demote_msb8028("${CMAKE_BINARY_DIR}")
+endif()
+
 # TODO make a cpack file, put this there
 # ------------------------------------------------------------
 # CPack

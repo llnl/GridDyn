@@ -29,6 +29,7 @@ class GridRelayOpt: public GridOptObject {
     ~GridRelayOpt();
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    CoreObject* sourceObject() const override;
     // add components
     virtual void add(CoreObject* obj) override;
 

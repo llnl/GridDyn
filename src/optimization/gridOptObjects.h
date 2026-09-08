@@ -37,6 +37,8 @@ class GridOptObject: public CoreObject {
   public:
     GridOptObject(const std::string& objName = "optObject_#");
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
+    /** Return the physical model object that owns this optimizer adapter's grid data. */
+    virtual CoreObject* sourceObject() const { return nullptr; }
     virtual void set(std::string_view param, std::string_view val) override;
 
     virtual void

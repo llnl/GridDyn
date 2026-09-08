@@ -17,18 +17,30 @@
 #include "gridLoadOpt.h"
 #include "griddyn/Generator.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/Load.h"
 #include "griddyn/loads/ZipLoad.h"
+#include "utilities/MatrixData.hpp"
 #include "utilities/vectData.hpp"
+#include <algorithm>
 #include <cmath>
 #include <string>
 #include <utility>
 #include <vector>
 
 namespace griddyn {
-static OptObjectFactory<GridBusOpt, GridBus> opbus("basic", "bus");
+static OptObjectFactory<GridBusOpt, GridBus> gOpbus("basic", "bus");
 // NOLINTBEGIN(bugprone-branch-clone)
 
 using units::unit;
+
+namespace {
+    bool hasFixedAngle(const GridBus* bus)
+    {
+        return (bus != nullptr) &&
+            ((bus->getType() == GridBus::BusType::SLK) ||
+             (bus->getType() == GridBus::BusType::AFIX));
+    }
+}  // namespace
 
 GridBusOpt::GridBusOpt(const std::string& objName): GridOptObject(objName) {}
 
@@ -79,8 +91,39 @@ CoreObject* GridBusOpt::clone(CoreObject* obj) const
     return nobj;
 }
 
+CoreObject* GridBusOpt::sourceObject() const
+{
+    return bus;
+}
+
 void GridBusOpt::dynObjectInitializeA(std::uint32_t flags)
 {
+    // Passive electrical demand is evaluated directly from the physical bus.
+    // Only generator adapters are required here because dispatch is an OPF
+    // decision variable; a GridLoadOpt is reserved for loads with explicit
+    // optimization behavior.
+    if (bus != nullptr) {
+        auto factory = CoreOptObjectFactory::instance();
+        for (index_t index = 0;; ++index) {
+            auto* sourceGenerator = bus->getGen(index);
+            if (sourceGenerator == nullptr) {
+                break;
+            }
+            const auto found =
+                std::any_of(genList.cbegin(),
+                            genList.cend(),
+                            [sourceGenerator](const auto* genObject) {
+                                return genObject->sourceGenerator() == sourceGenerator;
+                            });
+            if (!found) {
+                if (auto* genObject =
+                        dynamic_cast<GridGenOpt*>(factory->createObject(sourceGenerator));
+                    genObject != nullptr) {
+                    add(genObject);
+                }
+            }
+        }
+    }
     for (auto* loadObject : loadList) {
         loadObject->dynObjectInitializeA(flags);
     }
@@ -88,7 +131,6 @@ void GridBusOpt::dynObjectInitializeA(std::uint32_t flags)
         genObject->dynObjectInitializeA(flags);
     }
 }
-
 void GridBusOpt::loadSizes(const OptimizationMode& oMode)
 {
     auto& offsetData = offsets.getOffsets(oMode);
@@ -100,7 +142,8 @@ void GridBusOpt::loadSizes(const OptimizationMode& oMode)
             break;
         case FlowModel::DC:
             offsetData.local.aSize = 1;
-            offsetData.local.constraintsSize = 1;
+            // Every physical angle control remains an OPF equality constraint.
+            offsetData.local.constraintsSize = hasFixedAngle(bus) ? 2 : 1;
             break;
         case FlowModel::AC:
             offsetData.local.aSize = 1;
@@ -132,6 +175,17 @@ void GridBusOpt::setValues(const OptimizationData& optimizationData, const Optim
 // for saving the state
 void GridBusOpt::guessState(double time, double val[], const OptimizationMode& oMode)
 {
+    if ((bus != nullptr) && (val != nullptr)) {
+        const auto& optimizationOffsets = offsets.getOffsets(oMode);
+        if ((optimizationOffsets.aOffset != kNullLocation) &&
+            (optimizationOffsets.local.aSize > 0)) {
+            val[optimizationOffsets.aOffset] = bus->getAngle();
+        }
+        if ((optimizationOffsets.vOffset != kNullLocation) &&
+            (optimizationOffsets.local.vSize > 0)) {
+            val[optimizationOffsets.vOffset] = bus->getVoltage();
+        }
+    }
     for (auto* loadObject : loadList) {
         loadObject->guessState(time, val, oMode);
     }
@@ -251,6 +305,13 @@ void GridBusOpt::constraintValue(const OptimizationData& optimizationData,
                                  double cVals[],
                                  const OptimizationMode& oMode)
 {
+    addActivePowerBalance(optimizationData, cVals, oMode);
+    if ((oMode.flowMode == FlowModel::DC) && hasFixedAngle(bus)) {
+        const auto& busOffsets = offsets.getOffsets(oMode);
+        // Preserve the power-flow control equation: theta_i = theta_i,specified.
+        cVals[busOffsets.constraintOffset + 1] =
+            optimizationData.val[busOffsets.aOffset] - bus->getAngle();
+    }
     for (auto* loadObject : loadList) {
         loadObject->constraintValue(optimizationData, cVals, oMode);
     }
@@ -259,10 +320,56 @@ void GridBusOpt::constraintValue(const OptimizationData& optimizationData,
     }
 }
 
+void GridBusOpt::addActivePowerBalance(const OptimizationData& optimizationData,
+                                       double constraintValues[],
+                                       const OptimizationMode& oMode) const
+{
+    if ((bus == nullptr) || (optimizationData.val == nullptr) ||
+        (oMode.flowMode != FlowModel::DC)) {
+        return;
+    }
+    const auto& busOffsets = offsets.getOffsets(oMode);
+    auto& balance = constraintValues[busOffsets.constraintOffset];
+    // DC nodal balance is r_i = sum(P_g,i) - P_d,i - sum(P_ij), where
+    // P_ij = (theta_i - theta_j) / x_ij is positive when it leaves this bus.
+    balance = 0.0;
+    for (index_t index = 0;; ++index) {
+        auto* sourceLoad = bus->getLoad(index);
+        if (sourceLoad == nullptr) {
+            break;
+        }
+        balance -= sourceLoad->getRealPower();
+    }
+    for (const auto* generator : genList) {
+        balance += optimizationData.val[generator->offsets.getOffsets(oMode).gOffset];
+    }
+    for (const auto* linkObject : linkList) {
+        balance -= linkObject->dcPowerFlow(this, optimizationData, oMode);
+    }
+}
+
 void GridBusOpt::constraintJacobianElements(const OptimizationData& optimizationData,
                                             MatrixData<double>& matrixDataRef,
                                             const OptimizationMode& oMode)
 {
+    if (oMode.flowMode == FlowModel::DC) {
+        const auto& busOffsets = offsets.getOffsets(oMode);
+        for (const auto* generator : genList) {
+            matrixDataRef.assign(busOffsets.constraintOffset,
+                                 generator->offsets.getOffsets(oMode).gOffset,
+                                 1.0);
+        }
+        if (hasFixedAngle(bus)) {
+            // d(theta_i - theta_i,specified)/d(theta_i) = 1.
+            matrixDataRef.assign(busOffsets.constraintOffset + 1, busOffsets.aOffset, 1.0);
+        }
+        for (const auto* linkObject : linkList) {
+            linkObject->dcPowerFlowJacobian(this,
+                                            busOffsets.constraintOffset,
+                                            matrixDataRef,
+                                            oMode);
+        }
+    }
     for (auto* loadObject : loadList) {
         loadObject->constraintJacobianElements(optimizationData, matrixDataRef, oMode);
     }
@@ -293,9 +400,16 @@ void GridBusOpt::disable()
 
 void GridBusOpt::setOffsets(const OptimizationOffsets& newOffsets, const OptimizationMode& oMode)
 {
+    auto& offsetData = offsets.getOffsets(oMode);
+    if (!offsetData.loaded) {
+        loadSizes(oMode);
+    }
     offsets.setOffsets(newOffsets, oMode);
-    OptimizationOffsets nextOffsets(offsets.getOffsets(oMode));
-    nextOffsets.localLoad();
+
+    // Match AcBus::setOffsets: child variables follow this bus's own
+    // network variables and constraints, then advance by each child's total.
+    OptimizationOffsets nextOffsets(newOffsets);
+    nextOffsets.localIncrement(offsetData);
     for (auto* loadObject : loadList) {
         loadObject->setOffsets(nextOffsets, oMode);
         nextOffsets.increment(loadObject->offsets.getOffsets(oMode));
@@ -308,6 +422,17 @@ void GridBusOpt::setOffsets(const OptimizationOffsets& newOffsets, const Optimiz
 
 void GridBusOpt::setOffset(index_t offset, index_t constraintOffset, const OptimizationMode& oMode)
 {
+    auto& offsetData = offsets.getOffsets(oMode);
+    if (!offsetData.loaded) {
+        loadSizes(oMode);
+    }
+    offsets.setOffset(offset, oMode);
+    offsets.setConstraintOffset(constraintOffset, oMode);
+
+    offset += offsetData.local.aSize + offsetData.local.vSize + offsetData.local.genSize +
+        offsetData.local.qSize + offsetData.local.contSize + offsetData.local.intSize;
+    constraintOffset += offsetData.local.constraintsSize;
+
     for (auto* loadObject : loadList) {
         loadObject->setOffset(offset, constraintOffset, oMode);
         constraintOffset += loadObject->constraintSize(oMode);
@@ -318,9 +443,6 @@ void GridBusOpt::setOffset(index_t offset, index_t constraintOffset, const Optim
         constraintOffset += genObject->constraintSize(oMode);
         offset += genObject->objSize(oMode);
     }
-
-    offsets.setConstraintOffset(constraintOffset, oMode);
-    offsets.setOffset(offset, oMode);
 }
 
 // destructor
@@ -371,6 +493,8 @@ void GridBusOpt::add(GridLoadOpt* loadObject)
 {
     const CoreObject* obj = find(loadObject->getName());
     if (obj == nullptr) {
+        // The bus owns optimization children just as GridBus owns its loads.
+        loadObject->addOwningReference();
         loadObject->locIndex = static_cast<index_t>(loadList.size());
         loadList.push_back(loadObject);
         loadObject->setParent(this);
@@ -384,6 +508,8 @@ void GridBusOpt::add(GridGenOpt* gen)
 {
     const CoreObject* obj = find(gen->getName());
     if (obj == nullptr) {
+        // The bus owns optimization children just as GridBus owns its generators.
+        gen->addOwningReference();
         gen->locIndex = static_cast<index_t>(genList.size());
         genList.push_back(gen);
         gen->setParent(this);

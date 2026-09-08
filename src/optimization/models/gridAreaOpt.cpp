@@ -92,6 +92,11 @@ CoreObject* GridAreaOpt::clone(CoreObject* obj) const
     return nobj;
 }
 
+CoreObject* GridAreaOpt::sourceObject() const
+{
+    return area;
+}
+
 void GridAreaOpt::dynObjectInitializeA(std::uint32_t flags)
 {
     // first do a check to make sure all gridDyn areas are represented by gridDynOpt GridArea
@@ -109,7 +114,7 @@ void GridAreaOpt::dynObjectInitializeA(std::uint32_t flags)
     while (areaObj != nullptr) {
         found = false;
         for (auto* existingGridArea : areaList) {
-            if (areaObj->getID() == existingGridArea->getID()) {
+            if (existingGridArea->sourceObject() == areaObj) {
                 found = true;
                 break;
             }
@@ -126,12 +131,13 @@ void GridAreaOpt::dynObjectInitializeA(std::uint32_t flags)
     }
     newObj.clear();
     // make sure all buses have an opt object
+    areaIndex = 0;
     auto* busObject = area->getBus(areaIndex);
 
     while (busObject != nullptr) {
         found = false;
         for (auto* existingBus : busList) {
-            if (isSameObject(busObject, existingBus)) {
+            if (existingBus->sourceObject() == busObject) {
                 found = true;
                 break;
             }
@@ -148,12 +154,13 @@ void GridAreaOpt::dynObjectInitializeA(std::uint32_t flags)
     }
     newObj.clear();
     // make sure all links have an opt object
+    areaIndex = 0;
     linkObject = area->getLink(areaIndex);
 
     while (linkObject != nullptr) {
         found = false;
         for (auto* existingLink : linkList) {
-            if (isSameObject(linkObject, existingLink)) {
+            if (existingLink->sourceObject() == linkObject) {
                 found = true;
                 break;
             }
@@ -194,6 +201,9 @@ void GridAreaOpt::loadSizes(const OptimizationMode& oMode)
         childObject->loadSizes(oMode);
         offsetData.addSizes(childObject->offsets.getOffsets(oMode));
     }
+    // A size query after offsets are distributed must not rebuild this subtree:
+    // doing so would clear the child offsets just assigned above.
+    offsetData.loaded = true;
 }
 
 void GridAreaOpt::setValues(const OptimizationData& optimizationData, const OptimizationMode& oMode)
@@ -327,54 +337,41 @@ void GridAreaOpt::disable()
 
 void GridAreaOpt::setOffsets(const OptimizationOffsets& newOffsets, const OptimizationMode& oMode)
 {
+    auto& offsetData = offsets.getOffsets(oMode);
+    if (!offsetData.loaded) {
+        loadSizes(oMode);
+    }
     offsets.setOffsets(newOffsets, oMode);
-    OptimizationOffsets nextOffsets(offsets.getOffsets(oMode));
-    nextOffsets.localLoad();
 
-    for (auto* subareaObject : areaList) {
-        subareaObject->setOffsets(nextOffsets, oMode);
-        nextOffsets.increment(subareaObject->offsets.getOffsets(oMode));
-    }
-    for (auto* busObject : busList) {
-        busObject->setOffsets(nextOffsets, oMode);
-        nextOffsets.increment(busObject->offsets.getOffsets(oMode));
-    }
-    for (auto* linkObject : linkList) {
-        linkObject->setOffsets(nextOffsets, oMode);
-        nextOffsets.increment(linkObject->offsets.getOffsets(oMode));
-    }
-    for (auto* relayObject : relayList) {
-        relayObject->setOffsets(nextOffsets, oMode);
-        nextOffsets.increment(relayObject->offsets.getOffsets(oMode));
+    // Mirror GridArea::setOffsets: children begin after this area's local
+    // contribution, then each child advances the running offsets by its total.
+    OptimizationOffsets nextOffsets(newOffsets);
+    nextOffsets.localIncrement(offsetData);
+    for (auto* childObject : objectList) {
+        childObject->setOffsets(nextOffsets, oMode);
+        nextOffsets.increment(childObject->offsets.getOffsets(oMode));
     }
 }
 
 void GridAreaOpt::setOffset(index_t offset, index_t constraintOffset, const OptimizationMode& oMode)
 {
-    for (auto* subareaObject : areaList) {
-        subareaObject->setOffset(offset, constraintOffset, oMode);
-        constraintOffset += subareaObject->constraintSize(oMode);
-        offset += subareaObject->objSize(oMode);
+    auto& offsetData = offsets.getOffsets(oMode);
+    if (!offsetData.loaded) {
+        loadSizes(oMode);
     }
-    for (auto* busObject : busList) {
-        busObject->setOffset(offset, constraintOffset, oMode);
-        constraintOffset += busObject->constraintSize(oMode);
-        offset += busObject->objSize(oMode);
-    }
-    for (auto* linkObject : linkList) {
-        linkObject->setOffset(offset, constraintOffset, oMode);
-        constraintOffset += linkObject->constraintSize(oMode);
-        offset += linkObject->objSize(oMode);
-    }
-    for (auto* relayObject : relayList) {
-        relayObject->setOffset(offset, constraintOffset, oMode);
-        constraintOffset += relayObject->constraintSize(oMode);
-        offset += relayObject->objSize(oMode);
-    }
-    offsets.setConstraintOffset(constraintOffset, oMode);
     offsets.setOffset(offset, oMode);
-}
+    offsets.setConstraintOffset(constraintOffset, oMode);
 
+    offset += offsetData.local.aSize + offsetData.local.vSize + offsetData.local.genSize +
+        offsetData.local.qSize + offsetData.local.contSize + offsetData.local.intSize;
+    constraintOffset += offsetData.local.constraintsSize;
+
+    for (auto* childObject : objectList) {
+        childObject->setOffset(offset, constraintOffset, oMode);
+        constraintOffset += childObject->constraintSize(oMode);
+        offset += childObject->objSize(oMode);
+    }
+}
 void GridAreaOpt::add(CoreObject* obj)
 {
     if (dynamic_cast<GridArea*>(obj) != nullptr) {
@@ -441,6 +438,8 @@ void GridAreaOpt::remove(CoreObject* obj)
 void GridAreaOpt::add(GridBusOpt* bus)
 {
     if (!isMember(bus)) {
+        // The area is the owning parent, matching GridArea::add().
+        bus->addOwningReference();
         busList.push_back(bus);
         bus->setParent(this);
         bus->locIndex = static_cast<index_t>(busList.size()) - 1;
@@ -452,6 +451,8 @@ void GridAreaOpt::add(GridBusOpt* bus)
 void GridAreaOpt::add(GridAreaOpt* areaObj)
 {
     if (!isMember(areaObj)) {
+        // The area is the owning parent, matching GridArea::add().
+        areaObj->addOwningReference();
         areaList.push_back(areaObj);
         areaObj->setParent(this);
         areaObj->locIndex = static_cast<index_t>(areaList.size()) - 1;
@@ -464,6 +465,8 @@ void GridAreaOpt::add(GridAreaOpt* areaObj)
 void GridAreaOpt::add(GridLinkOpt* lnk)
 {
     if (!isMember(lnk)) {
+        // Links are owned by the area; bus endpoint lists remain non-owning.
+        lnk->addOwningReference();
         linkList.push_back(lnk);
         lnk->setParent(this);
         lnk->locIndex = static_cast<index_t>(linkList.size()) - 1;
@@ -476,6 +479,8 @@ void GridAreaOpt::add(GridLinkOpt* lnk)
 void GridAreaOpt::add(GridRelayOpt* relay)
 {
     if (!isMember(relay)) {
+        // The area is the owning parent, matching GridArea::add().
+        relay->addOwningReference();
         relayList.push_back(relay);
         relay->setParent(this);
         relay->locIndex = static_cast<index_t>(relayList.size()) - 1;
@@ -627,15 +632,15 @@ CoreObject* GridAreaOpt::find(std::string_view objName) const
         return const_cast<GridAreaOpt*>(this);
     }
     for (auto* busObject : busList) {
-        if (objName == busObject->getName()) {
-            obj = busObject;
+        obj = busObject->find(objName);
+        if (obj != nullptr) {
             break;
         }
     }
     if (obj == nullptr) {
         for (auto* areaObject : areaList) {
-            if (objName == areaObject->getName()) {
-                obj = areaObject;
+            obj = areaObject->find(objName);
+            if (obj != nullptr) {
                 break;
             }
         }

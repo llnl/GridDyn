@@ -13,7 +13,7 @@
 #include "griddyn/loads/ZipLoad.h"
 #include "readerHelper.h"
 
-#ifdef ENABLE_OPTIMIZATION_LIBRARY
+#ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
 #    include "optimization/gridDynOpt.h"
 #    include "optimization/models/gridGenOpt.h"
 #    include "optimization/optObjectFactory.h"
@@ -22,6 +22,7 @@
 #endif
 
 #include "gmlc/utilities/stringConversion.h"
+#include <algorithm>
 #include <compare>
 #include <cstdlib>
 #include <string>
@@ -236,13 +237,12 @@ namespace {
                 }
             }
 
-            if (genLine[8] != 0.0) {
-                gen->set("pmax", genLine[8], MW);
-            }
-
-            if (genLine[9] != 0) {
-                gen->set("pmin", genLine[9], MW);
-            }
+            // MATPOWER/PYPOWER PMAX and PMIN are optimization limits, and
+            // zero is a meaningful bound.  Preserve the loaded matrix values
+            // in the physical Generator so OPF adapters read the same single
+            // source of truth as power-flow and dynamics controls.
+            gen->set("pmax", genLine[8], MW);
+            gen->set("pmin", genLine[9], MW);
 
             if (genLine.size() >= 21) {
                 if ((genLine[10] != 0) && (genLine[11] != 0)) {
@@ -292,57 +292,54 @@ COST                    5 parameters defining total cost function f(p) begin in 
                             n + 1 coefficients of n-th order polynomial cost, starting with
                             highest order, where cost is f(p) = cn*p^n + ... + c1*p + c0
 */
-#ifdef ENABLE_OPTIMIZATION_LIBRARY
+#ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
     void loadGenCostArray(CoreObject* parentObject, mArray& genCost, int gencount)
     {
-        auto gdo = dynamic_cast<gridDynOptimization*>(parentObject->getRoot());
+        auto* gdo = dynamic_cast<GridDynOptimization*>(parentObject->getRoot());
         if (gdo == nullptr)  // return if the core object doesn't support optimization
         {
             return;
         }
 
-        gridGenOpt* go;
-        gridOptObject* oo;
+        GridGenOpt* generatorOpt;
+        GridOptObject* optimizationObject;
         CoreObject* obj;
-        int mode = 0;
+        int powerMode = 0;
         int numc = 0;
-        int q = 0;
+        int costModel = 0;
         std::vector<double> coeff;
 
-        auto genOptFactory = dynamic_cast<optObjectFactory<gridGenOpt, Generator>*>(
-            coreOptObjectFactory::instance()->getFactory("")->getFactory("generator"));
+        auto* genOptFactory = dynamic_cast<OptObjectFactory<GridGenOpt, Generator>*>(
+            CoreOptObjectFactory::instance()->getFactory("basic")->getFactory("gen"));
         genOptFactory->prepObjects(static_cast<count_t>(genCost.size()), parentObject);
 
-        std::vector<gridGenOpt*> genOptList(gencount);
+        std::vector<GridGenOpt*> genOptList(gencount);
 
-        int kk = 1;
+        int generatorIndex = 1;
         for (auto& genLine : genCost) {
-            if (kk > gencount) {
-                q = 1;
-                go = genOptList[kk - gencount - 1];
+            if (generatorIndex > gencount) {
+                powerMode = 1;
+                generatorOpt = genOptList[generatorIndex - gencount - 1];
             } else {
-                obj = parentObject->getSubObject("gen", kk);
+                obj = parentObject->findByUserID("gen", generatorIndex);
                 if (obj == nullptr) {
                     continue;
                 }
-                go = genOptFactory->makeTypeObject(obj);
-                genOptList[kk - 1] = go;
-                q = 0;
-                oo = gdo->makeOptimizationObjectPath(obj->getParent());
-                oo->add(go);
+                generatorOpt = genOptFactory->makeTypeObject(obj);
+                genOptList[generatorIndex - 1] = generatorOpt;
+                powerMode = 0;
+                optimizationObject = gdo->makeOptimizationObjectPath(obj->getParent());
+                optimizationObject->add(generatorOpt);
             }
 
-            ++kk;
-            mode = static_cast<int>(genLine[0]);
+            ++generatorIndex;
+            costModel = static_cast<int>(genLine[0]);
             numc = static_cast<int>(genLine[3]);
             coeff.resize(numc);
             for (int ii = 0; ii < numc; ii++) {
                 coeff[ii] = genLine[4 + ii];
             }
-            go->loadCostCoeff(coeff, q);
-            if (mode == 1) {
-                go->set("piecewise linear cost", 1);
-            }
+            generatorOpt->loadMatPowerCostCoeff(coeff, powerMode, costModel);
         }
     }
 #else

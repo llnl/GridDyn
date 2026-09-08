@@ -501,6 +501,9 @@ int GridDynSimulation::dynamicPartitioned(CoreTime tStop, CoreTime tStep)
     }
 
     // store the results to the buses
+    setState(currentTime, dynDataDiff->stateData(), dynDataDiff->derivData(), sModeDiff);
+    setState(currentTime, dynDataAlg->stateData(), nullptr, sModeAlg);
+    updateLocalCache();
     pState = GridState::DYNAMIC_COMPLETE;
     return out;
 }

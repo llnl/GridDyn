@@ -14,6 +14,7 @@
 #include "griddyn/genmodels/GenModelGENROU.h"
 #include "griddyn/genmodels/GenModelGENSAE.h"
 #include "griddyn/genmodels/GenModelGENSAL.h"
+#include "griddyn/genmodels/GenModel8.h"
 #include <cmath>
 #include <gtest/gtest.h>
 #include <memory>
@@ -376,6 +377,48 @@ TEST_F(GenModelTests, GensalAnalyticJacobianMatchesFiniteDifferences)
     ASSERT_EQ(gds->dynInitialize(), 0);
     EXPECT_EQ(runResidualCheck(gds, cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode, false), 0);
+}
+
+TEST_F(GenModelTests, GenModel8AlgebraicUpdateMatchesLeakageAwareResidual)
+{
+    gds = readSimXMLFile(std::string(GENMODEL_TEST_DIRECTORY "test_model1.xml"));
+    auto* generator = gds->getGen(0);
+    ASSERT_NE(generator, nullptr);
+
+    auto* model = new genmodels::GenModel8();
+    model->set("h", 4.0);
+    model->set("d", 0.04);
+    model->set("r", 0.001);
+    model->set("xl", 0.12);
+    model->set("xd", 1.60);
+    model->set("xq", 1.55);
+    model->set("xdp", 0.32);
+    model->set("xqp", 0.55);
+    model->set("xdpp", 0.22);
+    model->set("xqpp", 0.25);
+    model->set("tdop", 5.0);
+    model->set("tqop", 0.70);
+    model->set("tdopp", 0.05);
+    model->set("tqopp", 0.10);
+    generator->add(model);
+
+    ASSERT_EQ(gds->dynInitialize(), 0);
+
+    std::vector<double> state = gds->getState(cDaeSolverMode);
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    const auto& modelOffsets = model->getOffsets(cDaeSolverMode);
+    IOdata inputs{1.0, 0.0, 2.0, 0.8};
+    StateData stateData(0.0, state.data(), stateDerivative.data(), 12345);
+
+    std::vector<double> algebraicUpdate(state);
+    model->algebraicUpdate(inputs, stateData, algebraicUpdate.data(), cDaeSolverMode, 1.0);
+
+    std::vector<double> residual(state.size(), 0.0);
+    StateData updatedStateData(0.0, algebraicUpdate.data(), stateDerivative.data(), 12346);
+    model->residual(inputs, updatedStateData, residual.data(), cDaeSolverMode);
+
+    EXPECT_NEAR(residual[modelOffsets.algOffset], 0.0, 1e-12);
+    EXPECT_NEAR(residual[modelOffsets.algOffset + 1], 0.0, 1e-12);
 }
 
 TEST_F(GenModelTests, GenrouRejectsInvalidParameters)

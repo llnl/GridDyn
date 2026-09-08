@@ -1410,7 +1410,7 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
     }
     // Input locations differ between solver modes even when the state sequence
     // ID is unchanged, so leave subInputLocs uncached and recompute them.
-    subInputs.seqID = stateDataValue.seqID;
+    subInputLocs.seqID = stateDataValue.seqID;
 }
 
 double DynamicGenerator::pSetControlUpdate(const IOdata& inputs,

@@ -23,6 +23,11 @@ class GenModel8: public GenModel6 {
 
     virtual stringVec localStateNames() const override;
     // dynamics
+    virtual void algebraicUpdate(const IOdata& inputs,
+                                 const StateData& sD,
+                                 double update[],
+                                 const SolverMode& sMode,
+                                 double alpha) override;
     virtual void residual(const IOdata& inputs,
                           const StateData& sD,
                           double resid[],

@@ -9,6 +9,7 @@
 #include "../Generator.h"
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
+#include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
 #include <string>
@@ -62,6 +63,26 @@ void GenModel8::dynObjectInitializeB(const IOdata& inputs,
     gm[9] = -gm[6] + (Xqpp - Xl) * gm[1];
 }
 
+void GenModel8::algebraicUpdate(const IOdata& inputs,
+                                const StateData& sD,
+                                double update[],
+                                const SolverMode& sMode,
+                                double /*alpha*/)
+{
+    auto Loc = offsets.getLocations(sD, update, sMode, this);
+    updateLocalCache(inputs, sD, sMode);
+
+    gmlc::utilities::solve2x2(Rs,
+                              Xqpp - Xl,
+                              -(Xdpp - Xl),
+                              Rs,
+                              Loc.diffStateLoc[4] - Vd,
+                              Loc.diffStateLoc[5] - Vq,
+                              Loc.destLoc[0],
+                              Loc.destLoc[1]);
+    m_output = -(Loc.destLoc[1] * Vq + Loc.destLoc[0] * Vd);
+}
+
 void GenModel8::derivative(const IOdata& inputs,
                            const StateData& sD,
                            double deriv[],
@@ -83,8 +104,8 @@ void GenModel8::derivative(const IOdata& inputs,
     double Eft = inputs[genModelEftInLocation];
     double Pmt = inputs[genModelPmechInLocation];
 
-    double qrat = Tqopp * (Xqpp + Xl) / (Tqop * (Xqp + Xl));
-    double drat = Tdopp * (Xdpp + Xl) / (Tdop * (Xdp + Xl));
+    double qrat = Tqopp * (Xqpp - Xl) / (Tqop * (Xqp - Xl));
+    double drat = Tdopp * (Xdpp - Xl) / (Tdop * (Xdp - Xl));
 
     rvd[0] = systemBaseFrequency * (gmd[1] - 1.0);
     // Edp and Eqp

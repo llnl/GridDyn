@@ -429,7 +429,7 @@ void GovernorHygov::rootTrigger(CoreTime time,
                 double targetRate;
                 if (limited) {
                     targetRate = opFlags[GATE_RATE_LIMIT_HIGH] ? VELM + rateLimitTolerance :
-                                                                  -VELM - rateLimitTolerance;
+                                                                 -VELM - rateLimitTolerance;
                 } else {
                     targetRate = wasRateLimitHigh ? VELM - 2.0 * rateLimitTolerance :
                                                     -VELM + 2.0 * rateLimitTolerance;

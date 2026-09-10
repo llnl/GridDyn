@@ -404,8 +404,8 @@ namespace {
                 continue;
             }
             const double fixed = transform.fixedValues[column];
-            reduced.objectiveConstant += full.linearObjective[column] * fixed +
-                full.quadraticObjective[column] * fixed * fixed;
+            reduced.objectiveConstant += (full.linearObjective[column] * fixed) +
+                (full.quadraticObjective[column] * fixed * fixed);
         }
 
         for (std::size_t row = 0; row < full.constraintCount; ++row) {
@@ -421,11 +421,12 @@ namespace {
                 scaledBound(full.constraintLowerBounds[row] - fixedContribution, 1.0);
             reduced.constraintUpperBounds[row] =
                 scaledBound(full.constraintUpperBounds[row] - fixedContribution, 1.0);
-            if (reduced.constraintLowerBounds[row] > reduced.constraintUpperBounds[row] +
-                    options.feasibilityTolerance *
-                        (1.0 +
-                         (std::max)(std::abs(reduced.constraintLowerBounds[row]),
-                                    std::abs(reduced.constraintUpperBounds[row])))) {
+            if (reduced.constraintLowerBounds[row] >
+                (reduced.constraintUpperBounds[row] +
+                 (options.feasibilityTolerance *
+                  (1.0 +
+                   (std::max)(std::abs(reduced.constraintLowerBounds[row]),
+                              std::abs(reduced.constraintUpperBounds[row])))))) {
                 return {.successful = false,
                         .status = NativeSolveStatus::INFEASIBLE,
                         .message = "fixed-variable presolve found inconsistent row bounds"};
@@ -686,7 +687,7 @@ namespace {
         std::vector<double> gradient(model.variableCount, 0.0);
         for (std::size_t column = 0; column < model.variableCount; ++column) {
             gradient[column] = model.linearObjective[column] +
-                2.0 * model.quadraticObjective[column] * values[column];
+                (2.0 * model.quadraticObjective[column] * values[column]);
         }
         return gradient;
     }
@@ -797,7 +798,7 @@ namespace {
             // convention.
             for (std::size_t column = 0; column < model.variableCount; ++column) {
                 kktMatrix[(column * kktDimension) + column] =
-                    2.0 * model.quadraticObjective[column] + kRegularization;
+                    (2.0 * model.quadraticObjective[column]) + kRegularization;
                 kktRhs[column] = -gradient[column];
             }
             for (std::size_t active = 0; active < activeCount; ++active) {
@@ -938,7 +939,7 @@ namespace {
                 if (candidateStep < stepLength - stepTieTolerance ||
                     ((std::abs(candidateStep - stepLength) <= stepTieTolerance) &&
                      ((blockingConstraint < 0) ||
-                      (static_cast<int>(index) < blockingConstraint)))) {
+                      std::cmp_less(index, blockingConstraint)))) {
                     stepLength = (std::max)(0.0, candidateStep);
                     blockingConstraint = static_cast<int>(index);
                 }

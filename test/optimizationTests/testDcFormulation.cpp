@@ -389,8 +389,7 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverSolvesBoundedConvexQp)
     problem.constraintUpperBounds[0] = 2.0;
     problem.constraintMatrix = {1.0, 1.0};
 
-    griddyn::NativeDenseSolver solver;
-    const auto result = solver.solve(problem);
+    const auto result = griddyn::NativeDenseSolver::solve(problem);
 
     ASSERT_EQ(result.status, griddyn::NativeSolveStatus::OPTIMAL) << result.message;
     ASSERT_EQ(result.values.size(), 2U);
@@ -408,8 +407,7 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverActivatesLowerRowLimit)
     problem.constraintLowerBounds[0] = 1.0;
     problem.constraintMatrix = {1.0};
 
-    griddyn::NativeDenseSolver solver;
-    const auto result = solver.solve(problem);
+    const auto result = griddyn::NativeDenseSolver::solve(problem);
 
     ASSERT_EQ(result.status, griddyn::NativeSolveStatus::OPTIMAL) << result.message;
     ASSERT_EQ(result.values.size(), 1U);
@@ -429,8 +427,7 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverUsesPhaseOneForEqualityFea
     problem.constraintUpperBounds[0] = 3.0;
     problem.constraintMatrix = {1.0, 1.0};
 
-    griddyn::NativeDenseSolver solver;
-    const auto result = solver.solve(problem);
+    const auto result = griddyn::NativeDenseSolver::solve(problem);
 
     ASSERT_EQ(result.status, griddyn::NativeSolveStatus::OPTIMAL) << result.message;
     EXPECT_NEAR(result.values[0], 2.0, 1e-8);
@@ -445,8 +442,7 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverReportsInfeasiblePhaseOne)
     problem.constraintUpperBounds[1] = 1.0;
     problem.constraintMatrix = {1.0, 1.0};
 
-    griddyn::NativeDenseSolver solver;
-    const auto result = solver.solve(problem);
+    const auto result = griddyn::NativeDenseSolver::solve(problem);
 
     EXPECT_EQ(result.status, griddyn::NativeSolveStatus::INFEASIBLE) << result.message;
 }
@@ -456,8 +452,7 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverReportsUnboundedLinearDire
     auto problem = makeNativeTestProblem(1, 0);
     problem.linearObjective = {-1.0};
 
-    griddyn::NativeDenseSolver solver;
-    const auto result = solver.solve(problem);
+    const auto result = griddyn::NativeDenseSolver::solve(problem);
 
     EXPECT_EQ(result.status, griddyn::NativeSolveStatus::UNBOUNDED) << result.message;
 }
@@ -470,8 +465,7 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverPresolvesRedundantEqualiti
     problem.constraintMatrix = {1.0, 1.0};
     problem.initialValues = {0.0};
 
-    griddyn::NativeDenseSolver solver;
-    const auto result = solver.solve(problem);
+    const auto result = griddyn::NativeDenseSolver::solve(problem);
 
     ASSERT_EQ(result.status, griddyn::NativeSolveStatus::OPTIMAL) << result.message;
     ASSERT_EQ(result.values.size(), 1U);
@@ -486,18 +480,16 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverReportsInconsistentEqualit
     problem.constraintMatrix = {1.0, 1.0};
     problem.initialValues = {0.0};
 
-    griddyn::NativeDenseSolver solver;
-    const auto result = solver.solve(problem);
+    const auto result = griddyn::NativeDenseSolver::solve(problem);
 
     EXPECT_EQ(result.status, griddyn::NativeSolveStatus::INFEASIBLE) << result.message;
 }
 
 TEST(OptimizationDcFormulationTests, NativeDenseSolverSolvesThreeBusDispatchAndLimits)
 {
-    griddyn::NativeDenseSolver solver;
-
     const auto uncongested =
-        solver.solve(makeThreeBusNativeProblem(1.2, std::numeric_limits<double>::infinity()));
+        griddyn::NativeDenseSolver::solve(
+            makeThreeBusNativeProblem(1.2, std::numeric_limits<double>::infinity()));
     ASSERT_EQ(uncongested.status, griddyn::NativeSolveStatus::OPTIMAL) << uncongested.message;
     ASSERT_EQ(uncongested.values.size(), 5U);
     EXPECT_NEAR(uncongested.values[0], 5.0 / 6.0, 1e-8);
@@ -506,7 +498,8 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverSolvesThreeBusDispatchAndL
     EXPECT_NEAR(10.0 * (uncongested.values[2] - uncongested.values[3]), 5.0 / 6.0, 1e-8);
     EXPECT_LE(uncongested.maximumConstraintViolation, 1e-8);
 
-    const auto generatorLimited = solver.solve(makeThreeBusNativeProblem(0.6, 1.2));
+    const auto generatorLimited =
+        griddyn::NativeDenseSolver::solve(makeThreeBusNativeProblem(0.6, 1.2));
     ASSERT_EQ(generatorLimited.status, griddyn::NativeSolveStatus::OPTIMAL)
         << generatorLimited.message;
     EXPECT_NEAR(generatorLimited.values[0], 0.6, 1e-8);
@@ -514,7 +507,7 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverSolvesThreeBusDispatchAndL
     EXPECT_LE(generatorLimited.maximumBoundViolation, 1e-8);
     EXPECT_LE(generatorLimited.maximumConstraintViolation, 1e-8);
 
-    const auto congested = solver.solve(makeThreeBusNativeProblem(1.2, 0.5));
+    const auto congested = griddyn::NativeDenseSolver::solve(makeThreeBusNativeProblem(1.2, 0.5));
     ASSERT_EQ(congested.status, griddyn::NativeSolveStatus::OPTIMAL) << congested.message;
     EXPECT_NEAR(congested.values[0], 0.5, 1e-8);
     EXPECT_NEAR(congested.values[1], 0.5, 1e-8);
@@ -524,8 +517,6 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverSolvesThreeBusDispatchAndL
 
 TEST(OptimizationDcFormulationTests, NativeDenseSolverPresolvesFixedVariablesAndScalesRows)
 {
-    griddyn::NativeDenseSolver solver;
-
     auto fixedVariable = makeNativeTestProblem(2, 1);
     fixedVariable.classification = griddyn::NativeProblemClass::SUPPORTED_CONVEX_DIAGONAL_QUADRATIC;
     fixedVariable.variableLowerBounds[0] = 2.0;
@@ -538,7 +529,7 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverPresolvesFixedVariablesAnd
     fixedVariable.constraintUpperBounds[0] = 3.0;
     fixedVariable.constraintMatrix = {1.0, 1.0};
 
-    const auto fixedResult = solver.solve(fixedVariable);
+    const auto fixedResult = griddyn::NativeDenseSolver::solve(fixedVariable);
     ASSERT_EQ(fixedResult.status, griddyn::NativeSolveStatus::OPTIMAL) << fixedResult.message;
     ASSERT_EQ(fixedResult.values.size(), 2U);
     EXPECT_NEAR(fixedResult.values[0], 2.0, 1e-10);
@@ -554,7 +545,7 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverPresolvesFixedVariablesAnd
     scaledRows.constraintUpperBounds[0] = 1.0;
     scaledRows.constraintMatrix = {1.0e6, 1.0};
 
-    const auto scaledResult = solver.solve(scaledRows);
+    const auto scaledResult = griddyn::NativeDenseSolver::solve(scaledRows);
     ASSERT_EQ(scaledResult.status, griddyn::NativeSolveStatus::OPTIMAL) << scaledResult.message;
     ASSERT_EQ(scaledResult.values.size(), 2U);
     EXPECT_GT(scaledResult.values[0], 0.9e-6);

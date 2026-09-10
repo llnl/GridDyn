@@ -43,6 +43,15 @@ struct DynamicModelCase {
     std::string_view machineModel;
     std::string_view exciterModel;
     std::string_view governorModel;
+
+    constexpr DynamicModelCase(std::string_view machineModelValue,
+                               std::string_view exciterModelValue,
+                               std::string_view governorModelValue) noexcept:
+        machineModel(machineModelValue),
+        exciterModel(exciterModelValue),
+        governorModel(governorModelValue)
+    {
+    }
 };
 
 void setIfRecognized(CoreObject* object, std::string_view parameter, double value)
@@ -51,6 +60,7 @@ void setIfRecognized(CoreObject* object, std::string_view parameter, double valu
         object->set(parameter, value);
     }
     catch (const UnrecognizedParameter&) {
+        return;
     }
 }
 
@@ -463,21 +473,21 @@ TEST_F(DynamicSystemTests, DynTestGenModel)
     EXPECT_EQ(retval, 0);
     requireState(GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
 
-    std::vector<double> st = gds->getState(cDaeSolverMode);
+    std::vector<double> stateValues = gds->getState(cDaeSolverMode);
 
-    EXPECT_EQ(st.size(), 8u);
-    EXPECT_NEAR(st[1], 1.0, 1e-5);  // check the voltage
-    EXPECT_NEAR(st[0], 0.0, 1e-5);  // check the angle
+    EXPECT_EQ(stateValues.size(), 8U);
+    EXPECT_NEAR(stateValues[1], 1.0, 1e-5);  // check the voltage
+    EXPECT_NEAR(stateValues[0], 0.0, 1e-5);  // check the angle
 
-    EXPECT_NEAR(st[5], 1.0, 1e-5);  // check the rotational speed
+    EXPECT_NEAR(stateValues[5], 1.0, 1e-5);  // check the rotational speed
     gds->run();
     requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds->getState(cDaeSolverMode);
 
     // check for stability
-    ASSERT_EQ(st.size(), st2.size());
-    auto diffs = countDiffs(st, st2, 0.0001);
-    EXPECT_EQ(diffs, 0u);
+    ASSERT_EQ(stateValues.size(), st2.size());
+    auto diffs = countDiffs(stateValues, st2, 0.0001);
+    EXPECT_EQ(diffs, 0U);
 }
 
 TEST_F(DynamicSystemTests, DynTestExciter)
@@ -496,10 +506,10 @@ TEST_F(DynamicSystemTests, DynTestExciter)
     EXPECT_EQ(retval, 0);
     requireState(GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
 
-    auto st = gds->getState(cDaeSolverMode);
+    auto stateValues = gds->getState(cDaeSolverMode);
 
-    EXPECT_EQ(st.size(), 22u);
-    if (st.size() != 22) {
+    EXPECT_EQ(stateValues.size(), 22U);
+    if (stateValues.size() != 22) {
         printStateNames(gds.get(), cDaeSolverMode);
     }
 
@@ -516,7 +526,7 @@ TEST_F(DynamicSystemTests, DynTestExciter)
     auto st2 = gds->getState(cDaeSolverMode);
 
     // check for stability
-    auto diff = countDiffsIgnoreCommon(st, st2, 0.0001);
+    auto diff = countDiffsIgnoreCommon(stateValues, st2, 0.0001);
     EXPECT_EQ(diff, 0);
 }
 
@@ -543,15 +553,15 @@ TEST_F(DynamicSystemTests, DynTestSimpleCase)
     EXPECT_EQ(retval, 0);
     requireState(GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
 
-    std::vector<double> st = gds->getState(cDaeSolverMode);
+    std::vector<double> stateValues = gds->getState(cDaeSolverMode);
 
-    EXPECT_EQ(st.size(), 30u);
+    EXPECT_EQ(stateValues.size(), 30U);
 
     gds->run();
     requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds->getState(cDaeSolverMode);
 
-    auto diff = countDiffsIgnoreCommon(st, st2, 0.0001);
+    auto diff = countDiffsIgnoreCommon(stateValues, st2, 0.0001);
     EXPECT_EQ(diff, 0);
 }
 
@@ -560,20 +570,20 @@ TEST_F(DynamicSystemTests, DynTestInfiniteBus)
     std::string fileName = std::string(DYN1_TEST_DIRECTORY "test_inf_bus.xml");
     gds = readSimXMLFile(fileName);
     requireState(GridDynSimulation::GridState::STARTUP);
-    infiniteBus* bus = dynamic_cast<infiniteBus*>(gds->getBus(0));
+    auto* bus = dynamic_cast<infiniteBus*>(gds->getBus(0));
     ASSERT_NE(bus, nullptr);
     gds->pFlowInitialize();
     runJacobianCheck(gds, cPflowSolverMode);
 
     gds->powerflow();
-    std::vector<double> st = gds->getState();
+    std::vector<double> stateValues = gds->getState();
 
     gds->run();
     requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
     std::vector<double> st2 = gds->getState(cDaeSolverMode);
 
-    EXPECT_NEAR(st2[0], st[0], 1e-5);
-    EXPECT_NEAR(st2[1], st[1], 1e-5);
+    EXPECT_NEAR(st2[0], stateValues[0], 1e-5);
+    EXPECT_NEAR(st2[1], stateValues[1], 1e-5);
 }
 
 TEST_F(DynamicSystemTests, InfiniteBusLoadStepMachineModelSweep)

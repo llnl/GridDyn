@@ -24,21 +24,21 @@ class GenModel8: public GenModel6 {
     virtual stringVec localStateNames() const override;
     // dynamics
     virtual void algebraicUpdate(const IOdata& inputs,
-                                 const StateData& sD,
+                                 const StateData& stateData,
                                  double update[],
                                  const SolverMode& sMode,
                                  double alpha) override;
     virtual void residual(const IOdata& inputs,
-                          const StateData& sD,
+                          const StateData& stateData,
                           double resid[],
                           const SolverMode& sMode) override;
     virtual void derivative(const IOdata& inputs,
-                            const StateData& sD,
+                            const StateData& stateData,
                             double deriv[],
                             const SolverMode& sMode) override;
     virtual void jacobianElements(const IOdata& inputs,
-                                  const StateData& sD,
-                                  MatrixData<double>& md,
+                                  const StateData& stateData,
+                                  MatrixData<double>& matrixData,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
 };

@@ -41,6 +41,7 @@ class RawDcLine final: public Link {
   public:
     explicit RawDcLine(const std::string& objName = "rawdcline_$");
 
+    using Link::set;
     void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;
 

@@ -428,11 +428,14 @@ void GovernorHygov::rootTrigger(CoreTime time,
             const double rateStateSlope =
                 (1.0 - Tr / Tf) / (temporaryDroop * Tr);
             if (std::abs(rateStateSlope) > std::numeric_limits<double>::epsilon()) {
-                const double targetRate = limited ?
-                    (opFlags[GATE_RATE_LIMIT_HIGH] ? VELM + rateLimitTolerance :
-                                                     -VELM - rateLimitTolerance) :
-                    (wasRateLimitHigh ? VELM - 2.0 * rateLimitTolerance :
-                                       -VELM + 2.0 * rateLimitTolerance);
+                double targetRate;
+                if (limited) {
+                    targetRate = opFlags[GATE_RATE_LIMIT_HIGH] ? VELM + rateLimitTolerance :
+                                                                  -VELM - rateLimitTolerance;
+                } else {
+                    targetRate = wasRateLimitHigh ? VELM - 2.0 * rateLimitTolerance :
+                                                    -VELM + 2.0 * rateLimitTolerance;
+                }
                 state[filterState] += (targetRate - rootRate) / rateStateSlope;
             }
         }

@@ -26,7 +26,7 @@
 // #include <fstream>
 // #include <iostream>
 namespace griddyn {
-static IOdata kNullOutputVec;  //!<  this is a purposely created empty vector which gets used for
+static IOdata gNullOutputVec;  //!<  this is a purposely created empty vector which gets used for
                                //!<  functions that take as
 //! an input a vector but don't use it.
 
@@ -97,7 +97,7 @@ int GridDynSimulation::dynInitialize(CoreTime tStart)
     // dynInitializeB
     dynData->set("tolerance", tols.rtol);
     // run the dynamic initialization part B there is no actual output from an area currently
-    dynInitializeB(noInputs, noInputs, kNullOutputVec);
+    dynInitializeB(noInputs, noInputs, gNullOutputVec);
 
     // check if any updates need to take place
     // run any 0 time events
@@ -984,12 +984,12 @@ static constexpr double resid_print_tol = 1e-6;
 // IDA nonlinear function evaluation
 int GridDynSimulation::residualFunction(CoreTime time,
                                         const double state[],
-                                        const double dstate_dt[],
+                                        const double dstateDt[],
                                         double resid[],
                                         const SolverMode& sMode) noexcept
 {
     ++residCount;
-    StateData stateDataValue(time, state, dstate_dt, residCount);
+    StateData stateDataValue(time, state, dstateDt, residCount);
 
 #if (CHECK_STATE > 0)
     auto dynDataa = getSolverInterface(sMode);
@@ -1139,11 +1139,11 @@ int GridDynSimulation::residualFunction(CoreTime time,
 
 int GridDynSimulation::derivativeFunction(CoreTime time,
                                           const double state[],
-                                          double dstate_dt[],
+                                          double dstateDt[],
                                           const SolverMode& sMode) noexcept
 {
     ++residCount;
-    StateData stateDataValue(time, state, dstate_dt, residCount);
+    StateData stateDataValue(time, state, dstateDt, residCount);
     fillExtraStateData(stateDataValue, sMode);
 #if (CHECK_STATE > 0)
     auto dynDataa = getSolverInterface(sMode);
@@ -1157,15 +1157,15 @@ int GridDynSimulation::derivativeFunction(CoreTime time,
 
     // call the area based function to handle the looping
     preEx(noInputs, stateDataValue, sMode);
-    derivative(noInputs, stateDataValue, dstate_dt, sMode);
-    delayedDerivative(noInputs, stateDataValue, dstate_dt, sMode);
+    derivative(noInputs, stateDataValue, dstateDt, sMode);
+    delayedDerivative(noInputs, stateDataValue, dstateDt, sMode);
     return FUNCTION_EXECUTION_SUCCESS;
 }
 
 // Jacobian computation
 int GridDynSimulation::jacobianFunction(CoreTime time,
                                         const double state[],
-                                        const double dstate_dt[],
+                                        const double dstateDt[],
                                         MatrixData<double>& matrixDataRef,
                                         double cjValue,
                                         const SolverMode& sMode) noexcept
@@ -1173,7 +1173,7 @@ int GridDynSimulation::jacobianFunction(CoreTime time,
     ++JacobianCallCount;
     // assuming it is the same data as the preceding residual call  (it is for IDA but not sure if
     // this assumption will be generally valid)
-    StateData stateDataValue(time, state, dstate_dt, residCount);
+    StateData stateDataValue(time, state, dstateDt, residCount);
     stateDataValue.cj = cjValue;
     fillExtraStateData(stateDataValue, sMode);
     // the area function to evaluate the Jacobian elements
@@ -1187,11 +1187,11 @@ int GridDynSimulation::jacobianFunction(CoreTime time,
 
 int GridDynSimulation::rootFindingFunction(CoreTime time,
                                            const double state[],
-                                           const double dstate_dt[],
+                                           const double dstateDt[],
                                            double roots[],
                                            const SolverMode& sMode) noexcept
 {
-    StateData stateDataValue(time, state, dstate_dt, residCount);
+    StateData stateDataValue(time, state, dstateDt, residCount);
     fillExtraStateData(stateDataValue, sMode);
     rootTest(noInputs, stateDataValue, roots, sMode);
     return FUNCTION_EXECUTION_SUCCESS;

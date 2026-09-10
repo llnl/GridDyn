@@ -347,8 +347,14 @@ void runInfiniteBusLoadStepCase(GridDynSimulationTestFixture& fixture,
         if (residualMismatches != 0) {
             const auto& exciterState = exciter->getStates();
             const auto& governorState = governor->getStates();
-            std::println("exciter local states: {}", exciterState);
-            std::println("governor local states: {}", governorState);
+            std::println("exciter local states:");
+            for (std::size_t index = 0; index < exciterState.size(); ++index) {
+                std::println("  [{}] = {:g}", index, exciterState[index]);
+            }
+            std::println("governor local states:");
+            for (std::size_t index = 0; index < governorState.size(); ++index) {
+                std::println("  [{}] = {:g}", index, governorState[index]);
+            }
         }
         EXPECT_EQ(residualMismatches, 0);
         EXPECT_EQ(runJacobianCheck(fixture.gds, cDaeSolverMode, false), 0);

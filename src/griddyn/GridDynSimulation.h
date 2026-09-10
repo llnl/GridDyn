@@ -348,27 +348,27 @@ class GridDynSimulation: public GridSimulation {
     f(\hat{x},\hat{x}')$ so that r approaches 0 as the $x$ == $\hat{x}
     @param[in] time  the simulation time of the evaluation
     @param[in] state  the state information to evaluation
-    @param[in] dstate_dt  the time derivative of the state
+    @param[in] dstateDt  the time derivative of the state
     @param[out] resid the storage location for the residual function
     @param[in] sMode the SolverMode to solve for
     @return integer indicating success (0) or failure (non-zero)
     */
     int residualFunction(CoreTime time,
                          const double state[],
-                         const double dstate_dt[],
+                         const double dstateDt[],
                          double resid[],
                          const SolverMode& sMode) noexcept;
 
     /** @brief compute the derivatives for all differential states
     @param[in] time  the simulation time of the evaluation
     @param[in] state  the state information to evaluation
-    @param[out] dstate_dt  the time derivative of the state
+    @param[out] dstateDt  the time derivative of the state
     @param[in] sMode the SolverMode to solve for
     @return integer indicating success (0) or failure (non-zero)
     */
     int derivativeFunction(CoreTime time,
                            const double state[],
-                           double dstate_dt[],
+                           double dstateDt[],
                            const SolverMode& sMode) noexcept;
 
     /** @brief compute an update to all algebraic states
@@ -390,7 +390,7 @@ class GridDynSimulation: public GridSimulation {
       computes $\frac{\partial r}{\partial x}$ for all components of the residual
     @param[in] time  the simulation time of the evaluation
     @param[in] state  the state information to evaluation
-    @param[in] dstate_dt  the time derivative of the state
+    @param[in] dstateDt  the time derivative of the state
     @param[out] matrixDataRef the MatrixData object to store the Jacobian information into
     @param[in] cjValue the constant of integration for use in Jacobian elements using derivatives
     @param[in] sMode the SolverMode to solve for
@@ -398,7 +398,7 @@ class GridDynSimulation: public GridSimulation {
     */
     int jacobianFunction(CoreTime time,
                          const double state[],
-                         const double dstate_dt[],
+                         const double dstateDt[],
                          MatrixData<double>& matrixDataRef,
                          double cjValue,
                          const SolverMode& sMode) noexcept;
@@ -407,14 +407,14 @@ class GridDynSimulation: public GridSimulation {
       computes the roots for any root finding functions used in the system
     @param[in] time  the simulation time of the evaluation
     @param[in] state  the state information to evaluation
-    @param[in] dstate_dt  the time derivative of the state
+    @param[in] dstateDt  the time derivative of the state
     @param[out] roots the storage location for the roots
     @param[in] sMode the SolverMode to solve for
     @return integer indicating success (0) or failure (non-zero)
     */
     int rootFindingFunction(CoreTime time,
                             const double state[],
-                            const double dstate_dt[],
+                            const double dstateDt[],
                             double roots[],
                             const SolverMode& sMode) noexcept;
 

@@ -193,12 +193,12 @@ optimizer-owned; capability and network limits come from the physical model.
 
 ## Ordered work packages
 
-| Milestone                    | Packages | Status      | Result                                                        |
-| ---------------------------- | -------- | ----------- | ------------------------------------------------------------- |
-| A. Assembly foundation       | 1-5      | Complete for native scope | A unique, active, correctly indexed, solver-neutral problem   |
-| B. Complete DC model         | 6-8      | Complete for native scope | Verified DC equations, economics, and public initialization   |
-| C. Native solution           | 9        | Complete    | Dependency-free dense DC-OPF solver with KKT diagnostics      |
-| D. Equivalence and extension | 10-11    | Next chunk  | Larger sparse solves, HiGHS conformance, and future AC seam    |
+| Milestone                    | Packages | Status                    | Result                                                      |
+| ---------------------------- | -------- | ------------------------- | ----------------------------------------------------------- |
+| A. Assembly foundation       | 1-5      | Complete for native scope | A unique, active, correctly indexed, solver-neutral problem |
+| B. Complete DC model         | 6-8      | Complete for native scope | Verified DC equations, economics, and public initialization |
+| C. Native solution           | 9        | Complete                  | Dependency-free dense DC-OPF solver with KKT diagnostics    |
+| D. Equivalence and extension | 10-11    | Next chunk                | Larger sparse solves, HiGHS conformance, and future AC seam |
 
 Milestones A and B now have enough implementation and regression coverage to
 support the native-solver effort. Some polish remains in validation diagnostics
@@ -887,15 +887,15 @@ LP/QP backend and large-case path.
 
 ## Verification plan for the next chunk
 
-| Layer         | What to verify                                                | Example checks                                                                  |
-| ------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| Translation   | Sparse and dense paths describe the same bounded-row problem | `lower - offset`, `upper - offset`, stable indices, duplicate-entry policy     |
-| Conformance   | Backends consume the same solver-neutral contract             | native/mock/HiGHS objective, rows, bounds, statuses, and write-back            |
-| Algebra       | Sparse rows preserve the GridDyn equations                    | phase-shifted branch flow, thermal limits, angle limits, and nodal balances    |
-| Equivalence   | HiGHS agrees with the native/reference formulation             | two-bus, case9, case14, and IEEE-118 objective, dispatch, flows, and feasibility |
-| Scale         | Large assembly avoids dense allocation                         | case13659 counts, sparse nonzeros, callback time, and memory                    |
-| Performance   | Sparse solve scales beyond the dense reference                 | Illinois200 and an available 240-bus costed case, Release timings and memory  |
-| Results       | Duals and statuses are mapped without changing write-back     | row/column duals, LMPs, failed solve isolation, explicit `writeBack()`          |
+| Layer       | What to verify                                               | Example checks                                                                   |
+| ----------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| Translation | Sparse and dense paths describe the same bounded-row problem | `lower - offset`, `upper - offset`, stable indices, duplicate-entry policy       |
+| Conformance | Backends consume the same solver-neutral contract            | native/mock/HiGHS objective, rows, bounds, statuses, and write-back              |
+| Algebra     | Sparse rows preserve the GridDyn equations                   | phase-shifted branch flow, thermal limits, angle limits, and nodal balances      |
+| Equivalence | HiGHS agrees with the native/reference formulation           | two-bus, case9, case14, and IEEE-118 objective, dispatch, flows, and feasibility |
+| Scale       | Large assembly avoids dense allocation                       | case13659 counts, sparse nonzeros, callback time, and memory                     |
+| Performance | Sparse solve scales beyond the dense reference               | Illinois200 and an available 240-bus costed case, Release timings and memory     |
+| Results     | Duals and statuses are mapped without changing write-back    | row/column duals, LMPs, failed solve isolation, explicit `writeBack()`           |
 
 ## Verification ladder
 

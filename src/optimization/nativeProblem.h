@@ -67,7 +67,8 @@ struct NativeQpProblem {
     std::vector<double> constraintLowerBounds;
     std::vector<double> constraintUpperBounds;
     std::vector<double> constraintOffsets;
-    std::vector<double> constraintMatrix;  //!< row-major A, with constraintCount * variableCount entries
+    std::vector<double>
+        constraintMatrix;  //!< row-major A, with constraintCount * variableCount entries
     std::vector<double> initialConstraintValues;
     std::vector<double> initialGradient;
 
@@ -137,8 +138,8 @@ struct NativeQpProblem {
     {
         std::vector<double> gradient(variableCount, 0.0);
         for (std::size_t column = 0; column < variableCount; ++column) {
-            gradient[column] = linearObjective[column] +
-                2.0 * quadraticObjective[column] * values[column];
+            gradient[column] =
+                linearObjective[column] + 2.0 * quadraticObjective[column] * values[column];
         }
         return gradient;
     }
@@ -174,8 +175,7 @@ struct NativeQpProblem {
             if (std::isnan(lower) || std::isnan(upper)) {
                 return false;
             }
-            if ((std::isinf(lower) && (lower > 0.0)) ||
-                (std::isinf(upper) && (upper < 0.0))) {
+            if ((std::isinf(lower) && (lower > 0.0)) || (std::isinf(upper) && (upper < 0.0))) {
                 return false;
             }
             return lower <= upper;
@@ -186,8 +186,7 @@ struct NativeQpProblem {
             (variableUpperBounds.size() != variableCount) ||
             (linearObjective.size() != variableCount) ||
             (quadraticObjective.size() != variableCount) ||
-            (variableTypes.size() != variableCount) ||
-            (tolerances.size() != variableCount) ||
+            (variableTypes.size() != variableCount) || (tolerances.size() != variableCount) ||
             (initialGradient.size() != variableCount)) {
             return fail("native problem variable vectors do not match variableCount");
         }

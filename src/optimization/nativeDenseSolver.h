@@ -39,10 +39,14 @@ struct NativeSolveResult {
     NativeSolveStatus status = NativeSolveStatus::NUMERICAL_FAILURE;  //!< Solver outcome.
     std::vector<double> values;  //!< Primal values in the input problem's original coordinates.
     double objectiveValue = std::numeric_limits<double>::quiet_NaN();  //!< Objective at `values`.
-    double maximumConstraintViolation = std::numeric_limits<double>::infinity();  //!< Maximum row violation.
-    double maximumBoundViolation = std::numeric_limits<double>::infinity();  //!< Maximum variable-bound violation.
-    double maximumStationarity = std::numeric_limits<double>::infinity();  //!< Active-set stationarity residual.
-    double maximumComplementarity = std::numeric_limits<double>::infinity();  //!< Active-set complementarity residual.
+    double maximumConstraintViolation =
+        std::numeric_limits<double>::infinity();  //!< Maximum row violation.
+    double maximumBoundViolation =
+        std::numeric_limits<double>::infinity();  //!< Maximum variable-bound violation.
+    double maximumStationarity =
+        std::numeric_limits<double>::infinity();  //!< Active-set stationarity residual.
+    double maximumComplementarity =
+        std::numeric_limits<double>::infinity();  //!< Active-set complementarity residual.
     std::size_t iterationCount = 0;  //!< Active-set iterations in the final solve phase.
     std::size_t activeSetSize = 0;  //!< Number of rows in the final working set.
     std::string message;  //!< Human-readable outcome or failure explanation.

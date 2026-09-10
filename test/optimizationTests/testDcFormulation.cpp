@@ -13,8 +13,8 @@
 #include "optimization/models/gridBusOpt.h"
 #include "optimization/models/gridGenOpt.h"
 #include "optimization/models/gridLinkOpt.h"
-#include "optimization/optHelperClasses.h"
 #include "optimization/nativeDenseSolver.h"
+#include "optimization/optHelperClasses.h"
 #include "optimization/optimizerInterface.h"
 #include <algorithm>
 #include <chrono>
@@ -63,7 +63,7 @@ void expectFinite(const std::vector<double>& values)
 }
 
 griddyn::NativeQpProblem makeNativeTestProblem(std::size_t variableCount,
-                                                std::size_t constraintCount)
+                                               std::size_t constraintCount)
 {
     griddyn::NativeQpProblem problem;
     problem.valid = true;
@@ -71,16 +71,12 @@ griddyn::NativeQpProblem makeNativeTestProblem(std::size_t variableCount,
     problem.variableCount = variableCount;
     problem.constraintCount = constraintCount;
     problem.initialValues.assign(variableCount, 0.0);
-    problem.variableLowerBounds.assign(variableCount,
-                                       -std::numeric_limits<double>::infinity());
-    problem.variableUpperBounds.assign(variableCount,
-                                       std::numeric_limits<double>::infinity());
+    problem.variableLowerBounds.assign(variableCount, -std::numeric_limits<double>::infinity());
+    problem.variableUpperBounds.assign(variableCount, std::numeric_limits<double>::infinity());
     problem.linearObjective.assign(variableCount, 0.0);
     problem.quadraticObjective.assign(variableCount, 0.0);
-    problem.constraintLowerBounds.assign(constraintCount,
-                                         -std::numeric_limits<double>::infinity());
-    problem.constraintUpperBounds.assign(constraintCount,
-                                         std::numeric_limits<double>::infinity());
+    problem.constraintLowerBounds.assign(constraintCount, -std::numeric_limits<double>::infinity());
+    problem.constraintUpperBounds.assign(constraintCount, std::numeric_limits<double>::infinity());
     problem.constraintOffsets.assign(constraintCount, 0.0);
     problem.constraintMatrix.assign(variableCount * constraintCount, 0.0);
     problem.initialConstraintValues.assign(constraintCount, 0.0);
@@ -105,23 +101,22 @@ griddyn::NativeQpProblem makeThreeBusNativeProblem(double generator1UpperBound,
     // rows are nodal balances, row three fixes the angle reference, and the
     // last row is the thermal limit on the 1--2 branch.
     auto problem = makeNativeTestProblem(5, 5);
-    problem.classification =
-        griddyn::NativeProblemClass::SUPPORTED_CONVEX_DIAGONAL_QUADRATIC;
+    problem.classification = griddyn::NativeProblemClass::SUPPORTED_CONVEX_DIAGONAL_QUADRATIC;
     problem.linearObjective = {1.0, 2.0, 0.0, 0.0, 0.0};
     problem.quadraticObjective = {1.0, 2.0, 0.0, 0.0, 0.0};
-    problem.variableLowerBounds = {0.0, 0.0, -std::numeric_limits<double>::infinity(),
+    problem.variableLowerBounds = {0.0,
+                                   0.0,
+                                   -std::numeric_limits<double>::infinity(),
                                    -std::numeric_limits<double>::infinity(),
                                    -std::numeric_limits<double>::infinity()};
-    problem.variableUpperBounds = {generator1UpperBound, 1.2,
+    problem.variableUpperBounds = {generator1UpperBound,
+                                   1.2,
                                    std::numeric_limits<double>::infinity(),
                                    std::numeric_limits<double>::infinity(),
                                    std::numeric_limits<double>::infinity()};
     problem.constraintMatrix = {
-        1.0, 0.0, -10.0, 10.0, 0.0,
-        0.0, 1.0, 10.0, -15.0, 5.0,
-        0.0, 0.0, 0.0, 5.0, -5.0,
-        0.0, 0.0, 1.0, 0.0, 0.0,
-        0.0, 0.0, 10.0, -10.0, 0.0,
+        1.0, 0.0,  -10.0, 10.0, 0.0, 0.0, 1.0, 10.0, -15.0, 5.0,  0.0,   0.0, 0.0,
+        5.0, -5.0, 0.0,   0.0,  1.0, 0.0, 0.0, 0.0,  0.0,   10.0, -10.0, 0.0,
     };
     problem.constraintLowerBounds = {0.0, 0.0, 1.0, 0.0, -branch12Limit};
     problem.constraintUpperBounds = {0.0, 0.0, 1.0, 0.0, branch12Limit};
@@ -500,17 +495,14 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverSolvesThreeBusDispatchAndL
 {
     griddyn::NativeDenseSolver solver;
 
-    const auto uncongested = solver.solve(
-        makeThreeBusNativeProblem(1.2, std::numeric_limits<double>::infinity()));
-    ASSERT_EQ(uncongested.status, griddyn::NativeSolveStatus::OPTIMAL)
-        << uncongested.message;
+    const auto uncongested =
+        solver.solve(makeThreeBusNativeProblem(1.2, std::numeric_limits<double>::infinity()));
+    ASSERT_EQ(uncongested.status, griddyn::NativeSolveStatus::OPTIMAL) << uncongested.message;
     ASSERT_EQ(uncongested.values.size(), 5U);
     EXPECT_NEAR(uncongested.values[0], 5.0 / 6.0, 1e-8);
     EXPECT_NEAR(uncongested.values[1], 1.0 / 6.0, 1e-8);
     EXPECT_NEAR(uncongested.values[0] + uncongested.values[1], 1.0, 1e-8);
-    EXPECT_NEAR(10.0 * (uncongested.values[2] - uncongested.values[3]),
-                5.0 / 6.0,
-                1e-8);
+    EXPECT_NEAR(10.0 * (uncongested.values[2] - uncongested.values[3]), 5.0 / 6.0, 1e-8);
     EXPECT_LE(uncongested.maximumConstraintViolation, 1e-8);
 
     const auto generatorLimited = solver.solve(makeThreeBusNativeProblem(0.6, 1.2));
@@ -522,8 +514,7 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverSolvesThreeBusDispatchAndL
     EXPECT_LE(generatorLimited.maximumConstraintViolation, 1e-8);
 
     const auto congested = solver.solve(makeThreeBusNativeProblem(1.2, 0.5));
-    ASSERT_EQ(congested.status, griddyn::NativeSolveStatus::OPTIMAL)
-        << congested.message;
+    ASSERT_EQ(congested.status, griddyn::NativeSolveStatus::OPTIMAL) << congested.message;
     EXPECT_NEAR(congested.values[0], 0.5, 1e-8);
     EXPECT_NEAR(congested.values[1], 0.5, 1e-8);
     EXPECT_NEAR(10.0 * (congested.values[2] - congested.values[3]), 0.5, 1e-8);
@@ -535,8 +526,7 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverPresolvesFixedVariablesAnd
     griddyn::NativeDenseSolver solver;
 
     auto fixedVariable = makeNativeTestProblem(2, 1);
-    fixedVariable.classification =
-        griddyn::NativeProblemClass::SUPPORTED_CONVEX_DIAGONAL_QUADRATIC;
+    fixedVariable.classification = griddyn::NativeProblemClass::SUPPORTED_CONVEX_DIAGONAL_QUADRATIC;
     fixedVariable.variableLowerBounds[0] = 2.0;
     fixedVariable.variableUpperBounds[0] = 2.0;
     fixedVariable.variableLowerBounds[1] = 0.0;
@@ -548,16 +538,14 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverPresolvesFixedVariablesAnd
     fixedVariable.constraintMatrix = {1.0, 1.0};
 
     const auto fixedResult = solver.solve(fixedVariable);
-    ASSERT_EQ(fixedResult.status, griddyn::NativeSolveStatus::OPTIMAL)
-        << fixedResult.message;
+    ASSERT_EQ(fixedResult.status, griddyn::NativeSolveStatus::OPTIMAL) << fixedResult.message;
     ASSERT_EQ(fixedResult.values.size(), 2U);
     EXPECT_NEAR(fixedResult.values[0], 2.0, 1e-10);
     EXPECT_NEAR(fixedResult.values[1], 1.0, 1e-8);
     EXPECT_NEAR(fixedResult.objectiveValue, 9.0, 1e-8);
 
     auto scaledRows = makeNativeTestProblem(2, 1);
-    scaledRows.classification =
-        griddyn::NativeProblemClass::SUPPORTED_CONVEX_DIAGONAL_QUADRATIC;
+    scaledRows.classification = griddyn::NativeProblemClass::SUPPORTED_CONVEX_DIAGONAL_QUADRATIC;
     scaledRows.variableLowerBounds = {0.0, 0.0};
     scaledRows.variableUpperBounds = {1.0, 1.0};
     scaledRows.quadraticObjective = {1.0, 1.0};
@@ -566,8 +554,7 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverPresolvesFixedVariablesAnd
     scaledRows.constraintMatrix = {1.0e6, 1.0};
 
     const auto scaledResult = solver.solve(scaledRows);
-    ASSERT_EQ(scaledResult.status, griddyn::NativeSolveStatus::OPTIMAL)
-        << scaledResult.message;
+    ASSERT_EQ(scaledResult.status, griddyn::NativeSolveStatus::OPTIMAL) << scaledResult.message;
     ASSERT_EQ(scaledResult.values.size(), 2U);
     EXPECT_GT(scaledResult.values[0], 0.9e-6);
     EXPECT_LT(scaledResult.values[1], 1.0e-6);
@@ -625,7 +612,7 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerMaterializesTwoBusAffineQp)
 
     const auto matrixValue = [&problem](index_t row, index_t column) {
         return problem.constraintMatrix[static_cast<std::size_t>(row) * problem.variableCount +
-                                       static_cast<std::size_t>(column)];
+                                        static_cast<std::size_t>(column)];
     };
     EXPECT_DOUBLE_EQ(matrixValue(bus1Offsets.constraintOffset, generatorOffsets.gOffset), 1.0);
     EXPECT_DOUBLE_EQ(matrixValue(bus1Offsets.constraintOffset, bus1Offsets.aOffset), -5.0);
@@ -800,8 +787,8 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerPreparationIsRepeatableAndOw
     ASSERT_NE(branch, nullptr);
     const auto flowRow =
         static_cast<std::size_t>(branch->offsets.getOffsets(mode).constraintOffset);
-    const double snapshotFlow = secondSnapshot.constraintValue(flowRow,
-                                                               secondSnapshot.initialValues);
+    const double snapshotFlow =
+        secondSnapshot.constraintValue(flowRow, secondSnapshot.initialValues);
     physicalBranch->set("tapangle", 0.2);
     physicalBranch->set("ratinga", 50.0, units::MW);
 
@@ -821,7 +808,7 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerAssemblesFiniteDeterministic
         SCOPED_TRACE(caseFile);
         auto gds = std::make_unique<griddyn::GridDynOptimization>();
         const auto filePath = (caseFile == "case2.py") ? makePyPowerCasePath(caseFile) :
-                                                           makeValidationCasePath(caseFile);
+                                                         makeValidationCasePath(caseFile);
         ASSERT_TRUE(std::filesystem::exists(filePath));
         griddyn::loadFile(gds.get(), filePath.string());
 
@@ -861,7 +848,8 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerPreservesConstantGeneratorCo
     griddyn::loadFile(gds.get(), filePath.string());
     auto* physicalGenerator = gds->findByUserID("gen", 1);
     ASSERT_NE(physicalGenerator, nullptr);
-    auto* generatorOpt = dynamic_cast<griddyn::GridGenOpt*>(gds->getOptimizationObject(physicalGenerator));
+    auto* generatorOpt =
+        dynamic_cast<griddyn::GridGenOpt*>(gds->getOptimizationObject(physicalGenerator));
     ASSERT_NE(generatorOpt, nullptr);
     generatorOpt->set("constantp", 7.0);
 
@@ -984,8 +972,7 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerSetsUpCase13659WithoutSolve)
     ASSERT_GT(optimizer.linearObjective.points(), 0);
     ASSERT_GT(optimizer.quadraticObjective.points(), 0);
     for (std::size_t column = 0; column < variableCount; ++column) {
-        EXPECT_TRUE(std::isfinite(
-            optimizer.quadraticObjective.at(static_cast<index_t>(column))));
+        EXPECT_TRUE(std::isfinite(optimizer.quadraticObjective.at(static_cast<index_t>(column))));
     }
 
     const auto objectiveValue = optimizer.objectiveFunction(0.0, optimizer.values.data());
@@ -1018,8 +1005,7 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerSetsUpCase13659WithoutSolve)
     for (const auto& element : jacobian) {
         validJacobian = validJacobian && (element.row >= 0) && (element.col >= 0) &&
             (static_cast<std::size_t>(element.row) < constraintCount) &&
-            (static_cast<std::size_t>(element.col) < variableCount) &&
-            std::isfinite(element.data);
+            (static_cast<std::size_t>(element.col) < variableCount) && std::isfinite(element.data);
         if (!firstJacobianEntry) {
             if (element.row == previousRow) {
                 validJacobian = validJacobian && (element.col > previousColumn);
@@ -1037,18 +1023,17 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerSetsUpCase13659WithoutSolve)
     for (const auto& element : optimizer.linearConstraints) {
         validLinearRows = validLinearRows && (element.row >= 0) && (element.col >= 0) &&
             (static_cast<std::size_t>(element.row) < constraintCount) &&
-            (static_cast<std::size_t>(element.col) < variableCount) &&
-            std::isfinite(element.data);
+            (static_cast<std::size_t>(element.col) < variableCount) && std::isfinite(element.data);
     }
     EXPECT_TRUE(validLinearRows);
 
     const auto callbackStop = std::chrono::steady_clock::now();
-    const auto loadMilliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
-        loadStop - loadStart);
-    const auto setupMilliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
-        setupStop - setupStart);
-    const auto callbackMilliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(
-        callbackStop - callbackStart);
+    const auto loadMilliseconds =
+        std::chrono::duration_cast<std::chrono::milliseconds>(loadStop - loadStart);
+    const auto setupMilliseconds =
+        std::chrono::duration_cast<std::chrono::milliseconds>(setupStop - setupStart);
+    const auto callbackMilliseconds =
+        std::chrono::duration_cast<std::chrono::milliseconds>(callbackStop - callbackStart);
     RecordProperty("case13659_load_ms", static_cast<int>(loadMilliseconds.count()));
     RecordProperty("case13659_setup_ms", static_cast<int>(setupMilliseconds.count()));
     RecordProperty("case13659_callback_ms", static_cast<int>(callbackMilliseconds.count()));
@@ -1067,8 +1052,7 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerSetsUpCase13659WithoutSolve)
         optimizer.tolerances.capacity() * sizeof(double);
     const auto sparseBytes = (optimizer.linearConstraints.capacity() + jacobian.capacity()) *
         sizeof(MatrixElement<double>);
-    RecordProperty("case13659_callback_storage_bytes",
-                   std::to_string(vectorBytes + sparseBytes));
+    RecordProperty("case13659_callback_storage_bytes", std::to_string(vectorBytes + sparseBytes));
 
     // This is intentionally setup-only.  NativeOptimizer::prepareProblemData()
     // currently materializes a dense matrix, which is inappropriate for this
@@ -1293,11 +1277,7 @@ TEST(OptimizationDcFormulationTests, TwoBusDcLinkUsesTapPhaseShiftAndFlowLimitRo
     std::vector<double> upperBounds(root->constraintSize(mode), 0.0);
     std::vector<double> lowerBounds(root->constraintSize(mode), 0.0);
     MatrixDataSparse<double> linearConstraints;
-    root->getConstraints(data,
-                         linearConstraints,
-                         upperBounds.data(),
-                         lowerBounds.data(),
-                         mode);
+    root->getConstraints(data, linearConstraints, upperBounds.data(), lowerBounds.data(), mode);
     EXPECT_NEAR(lowerBounds[branchOffsets.constraintOffset], -0.5, 1e-12);
     EXPECT_NEAR(upperBounds[branchOffsets.constraintOffset], 1.5, 1e-12);
     EXPECT_NEAR(linearConstraints.at(branchOffsets.constraintOffset, bus1Offsets.aOffset),
@@ -1348,19 +1328,13 @@ TEST(OptimizationDcFormulationTests, TwoBusDcLinkUsesAngleLimitRow)
     std::vector<double> upperBounds(root->constraintSize(mode), 0.0);
     std::vector<double> lowerBounds(root->constraintSize(mode), 0.0);
     MatrixDataSparse<double> linearConstraints;
-    root->getConstraints(data,
-                         linearConstraints,
-                         upperBounds.data(),
-                         lowerBounds.data(),
-                         mode);
+    root->getConstraints(data, linearConstraints, upperBounds.data(), lowerBounds.data(), mode);
     EXPECT_NEAR(lowerBounds[branchOffsets.constraintOffset + 1], 0.05, 1e-12);
     EXPECT_NEAR(upperBounds[branchOffsets.constraintOffset + 1], 0.25, 1e-12);
-    EXPECT_NEAR(linearConstraints.at(branchOffsets.constraintOffset + 1,
-                                     bus1Offsets.aOffset),
+    EXPECT_NEAR(linearConstraints.at(branchOffsets.constraintOffset + 1, bus1Offsets.aOffset),
                 1.0,
                 1e-12);
-    EXPECT_NEAR(linearConstraints.at(branchOffsets.constraintOffset + 1,
-                                     bus2Offsets.aOffset),
+    EXPECT_NEAR(linearConstraints.at(branchOffsets.constraintOffset + 1, bus2Offsets.aOffset),
                 -1.0,
                 1e-12);
 }
@@ -1608,8 +1582,7 @@ TEST(OptimizationDcFormulationTests, ParallelDcLinksConserveInternalFlow)
 
     std::vector<double> residuals(root->constraintSize(mode), 0.0);
     root->constraintValue(data, residuals.data(), mode);
-    EXPECT_NEAR(residuals[bus1Offsets.constraintOffset] +
-                    residuals[bus2Offsets.constraintOffset],
+    EXPECT_NEAR(residuals[bus1Offsets.constraintOffset] + residuals[bus2Offsets.constraintOffset],
                 0.0,
                 1e-12);
 }
@@ -2062,17 +2035,16 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerSolvesCase39AgainstPypowerRe
     // GridDyn per-unit variables.  The identical quadratic costs make the
     // dispatch unique while the network limits place generators 2, 4, 5,
     // 7, and 8 at their upper bounds.
-    const std::vector<double> expectedDispatch{
-        6.6084600006,
-        6.4599999991,
-        6.6084600005,
-        6.5199999986,
-        5.0799999999,
-        6.6084600002,
-        5.7999999998,
-        5.6399999999,
-        6.6084600006,
-        6.6084600008};
+    const std::vector<double> expectedDispatch{6.6084600006,
+                                               6.4599999991,
+                                               6.6084600005,
+                                               6.5199999986,
+                                               5.0799999999,
+                                               6.6084600002,
+                                               5.7999999998,
+                                               5.6399999999,
+                                               6.6084600006,
+                                               6.6084600008};
     double dispatchTotal = 0.0;
     for (std::size_t index = 0; index < expectedDispatch.size(); ++index) {
         const auto generatorId = static_cast<int>(index + 1);
@@ -2118,14 +2090,13 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerSolvesCase57AgainstPypowerRe
     // Standard IEEE-57 PYPOWER/MATPOWER DC-OPF reference, expressed in
     // GridDyn per-unit variables.  The repository case uses the same
     // topology and generator data, with its higher-precision cost entries.
-    const std::vector<double> expectedDispatch{
-        1.3946094836,
-        0.8193132918,
-        0.4327725317,
-        0.8193132918,
-        4.8686909866,
-        0.8193132918,
-        3.3539871225};
+    const std::vector<double> expectedDispatch{1.3946094836,
+                                               0.8193132918,
+                                               0.4327725317,
+                                               0.8193132918,
+                                               4.8686909866,
+                                               0.8193132918,
+                                               3.3539871225};
     double dispatchTotal = 0.0;
     for (std::size_t index = 0; index < expectedDispatch.size(); ++index) {
         const auto generatorId = static_cast<int>(index + 1);
@@ -2173,14 +2144,13 @@ TEST(OptimizationDcFormulationTests, NativeCase57WriteBackThenPowerflow)
 
     // This is the same dispatch used by the case57 PYPOWER/MATPOWER
     // comparison test, expressed in GridDyn per-unit variables.
-    const std::vector<double> expectedDispatch{
-        1.3946094836,
-        0.8193132918,
-        0.4327725317,
-        0.8193132918,
-        4.8686909866,
-        0.8193132918,
-        3.3539871225};
+    const std::vector<double> expectedDispatch{1.3946094836,
+                                               0.8193132918,
+                                               0.4327725317,
+                                               0.8193132918,
+                                               4.8686909866,
+                                               0.8193132918,
+                                               3.3539871225};
     std::vector<double> originalPset(expectedDispatch.size());
     std::vector<double> originalRealPower(expectedDispatch.size());
     for (std::size_t index = 0; index < expectedDispatch.size(); ++index) {
@@ -2190,8 +2160,7 @@ TEST(OptimizationDcFormulationTests, NativeCase57WriteBackThenPowerflow)
         ASSERT_NE(generator, nullptr);
         const auto offset = generator->offsets.getOffsets(mode).gOffset;
         EXPECT_NEAR(optimizer->values[offset], expectedDispatch[index], 1e-6);
-        auto* physicalGenerator =
-            dynamic_cast<griddyn::Generator*>(generator->sourceObject());
+        auto* physicalGenerator = dynamic_cast<griddyn::Generator*>(generator->sourceObject());
         ASSERT_NE(physicalGenerator, nullptr);
         originalPset[index] = physicalGenerator->getPset();
         originalRealPower[index] = physicalGenerator->getRealPower();
@@ -2204,8 +2173,7 @@ TEST(OptimizationDcFormulationTests, NativeCase57WriteBackThenPowerflow)
         auto* generator =
             dynamic_cast<griddyn::GridGenOpt*>(root->findByUserID("gen", generatorId));
         ASSERT_NE(generator, nullptr);
-        auto* physicalGenerator =
-            dynamic_cast<griddyn::Generator*>(generator->sourceObject());
+        auto* physicalGenerator = dynamic_cast<griddyn::Generator*>(generator->sourceObject());
         ASSERT_NE(physicalGenerator, nullptr);
         EXPECT_NEAR(physicalGenerator->getPset(), originalPset[index], 1e-12);
         EXPECT_NEAR(physicalGenerator->getRealPower(), originalRealPower[index], 1e-12);
@@ -2217,8 +2185,7 @@ TEST(OptimizationDcFormulationTests, NativeCase57WriteBackThenPowerflow)
         auto* generator =
             dynamic_cast<griddyn::GridGenOpt*>(root->findByUserID("gen", generatorId));
         ASSERT_NE(generator, nullptr);
-        auto* physicalGenerator =
-            dynamic_cast<griddyn::Generator*>(generator->sourceObject());
+        auto* physicalGenerator = dynamic_cast<griddyn::Generator*>(generator->sourceObject());
         ASSERT_NE(physicalGenerator, nullptr);
         EXPECT_NEAR(physicalGenerator->getPset(), expectedDispatch[index], 1e-6);
         // Generator::getRealPower() is the signed network injection, so a
@@ -2231,7 +2198,8 @@ TEST(OptimizationDcFormulationTests, NativeCase57WriteBackThenPowerflow)
     // dispatch exactly, but it must be a finite, converged physical state.
     ASSERT_EQ(gds->pFlowInitialize(), FUNCTION_EXECUTION_SUCCESS);
     ASSERT_EQ(gds->powerflow(), FUNCTION_EXECUTION_SUCCESS);
-    EXPECT_EQ(gds->currentProcessState(), griddyn::GridDynSimulation::GridState::POWERFLOW_COMPLETE);
+    EXPECT_EQ(gds->currentProcessState(),
+              griddyn::GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     std::vector<double> voltages;
     std::vector<double> angles;
@@ -2275,61 +2243,60 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerSolvesCase118AgainstPypowerR
     // IEEE-118 PYPOWER/MATPOWER DC-OPF reference, expressed in GridDyn
     // per-unit variables.  The repository case has the same 54-generator
     // quadratic cost data and no effective thermal branch limits.
-    const std::vector<double> expectedDispatch{
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        4.36080779215294,
-        0.82370813646186,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        2.13195047190153,
-        3.04287476346594,
-        0.0,
-        0.06783478774674,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.18412299565456,
-        1.97689953220737,
-        0.46515283144594,
-        0.0,
-        0.0,
-        1.50205236009053,
-        1.55050943566184,
-        0.0,
-        3.78905742899775,
-        3.79874811463082,
-        5.00426919389443,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        4.62245625219357,
-        0.0,
-        0.03876273589601,
-        5.88224516435594,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        2.44205236009053,
-        0.38762735891883,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.34886462274832,
-        0.0,
-        0.0,
-        0.0};
+    const std::vector<double> expectedDispatch{0.0,
+                                               0.0,
+                                               0.0,
+                                               0.0,
+                                               4.36080779215294,
+                                               0.82370813646186,
+                                               0.0,
+                                               0.0,
+                                               0.0,
+                                               0.0,
+                                               2.13195047190153,
+                                               3.04287476346594,
+                                               0.0,
+                                               0.06783478774674,
+                                               0.0,
+                                               0.0,
+                                               0.0,
+                                               0.0,
+                                               0.0,
+                                               0.18412299565456,
+                                               1.97689953220737,
+                                               0.46515283144594,
+                                               0.0,
+                                               0.0,
+                                               1.50205236009053,
+                                               1.55050943566184,
+                                               0.0,
+                                               3.78905742899775,
+                                               3.79874811463082,
+                                               5.00426919389443,
+                                               0.0,
+                                               0.0,
+                                               0.0,
+                                               0.0,
+                                               0.0,
+                                               0.0,
+                                               4.62245625219357,
+                                               0.0,
+                                               0.03876273589601,
+                                               5.88224516435594,
+                                               0.0,
+                                               0.0,
+                                               0.0,
+                                               0.0,
+                                               2.44205236009053,
+                                               0.38762735891883,
+                                               0.0,
+                                               0.0,
+                                               0.0,
+                                               0.0,
+                                               0.34886462274832,
+                                               0.0,
+                                               0.0,
+                                               0.0};
     double dispatchTotal = 0.0;
     for (std::size_t index = 0; index < expectedDispatch.size(); ++index) {
         const auto generatorId = static_cast<int>(index + 1);
@@ -2392,14 +2359,17 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerSolvesCaseIllinois200AsScale
         return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
     };
     RecordProperty("case_illinois200_load_ms", std::to_string(milliseconds(loadStop - loadStart)));
-    RecordProperty("case_illinois200_setup_ms", std::to_string(milliseconds(setupStop - setupStart)));
-    RecordProperty("case_illinois200_solve_ms", std::to_string(milliseconds(solveStop - solveStart)));
+    RecordProperty("case_illinois200_setup_ms",
+                   std::to_string(milliseconds(setupStop - setupStart)));
+    RecordProperty("case_illinois200_solve_ms",
+                   std::to_string(milliseconds(solveStop - solveStart)));
     RecordProperty("case_illinois200_variables",
                    std::to_string(optimizer->problem().variableCount));
     RecordProperty("case_illinois200_constraints",
                    std::to_string(optimizer->problem().constraintCount));
     RecordProperty("case_illinois200_dense_matrix_bytes",
-                   std::to_string(optimizer->problem().constraintMatrix.capacity() * sizeof(double)));
+                   std::to_string(optimizer->problem().constraintMatrix.capacity() *
+                                  sizeof(double)));
     RecordProperty("case_illinois200_iterations",
                    std::to_string(optimizer->lastSolveResult().iterationCount));
     RecordProperty("case_illinois200_active_set_size",

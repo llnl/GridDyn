@@ -12,9 +12,9 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "gridAreaOpt.h"
 #include "gridBusOpt.h"
-#include "griddyn/links/AcLine.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/Link.h"
+#include "griddyn/links/AcLine.h"
 #include "utilities/MatrixData.hpp"
 #include "utilities/vectData.hpp"
 #include <cmath>
@@ -110,9 +110,8 @@ namespace {
         return std::isfinite(value) && (value != kNullVal) && (std::abs(value) < kHalfBigNum);
     }
 
-    double optionalLinkValue(const Link* sourceLink,
-                             std::string_view parameter,
-                             double defaultValue)
+    double
+        optionalLinkValue(const Link* sourceLink, std::string_view parameter, double defaultValue)
     {
         if (sourceLink == nullptr) {
             return defaultValue;
@@ -264,12 +263,8 @@ void GridLinkOpt::constraintJacobianElements(const OptimizationData& /*optimizat
     index_t row = linkOffsets.constraintOffset;
     if (hasDcFlowLimit()) {
         const double coefficient = dcFlowCoefficient();
-        matrixDataRef.assign(row,
-                             B1->offsets.getOffsets(oMode).aOffset,
-                             coefficient);
-        matrixDataRef.assign(row,
-                             B2->offsets.getOffsets(oMode).aOffset,
-                             -coefficient);
+        matrixDataRef.assign(row, B1->offsets.getOffsets(oMode).aOffset, coefficient);
+        matrixDataRef.assign(row, B2->offsets.getOffsets(oMode).aOffset, -coefficient);
         ++row;
     }
     if (hasDcAngleLimit()) {
@@ -305,8 +300,8 @@ void GridLinkOpt::getConstraints(const OptimizationData& /*optimizationData*/,
                                  double lowerLimit[],
                                  const OptimizationMode& oMode)
 {
-    if ((oMode.flowMode != FlowModel::DC) || !isActiveDcLink() ||
-        (upperLimit == nullptr) || (lowerLimit == nullptr)) {
+    if ((oMode.flowMode != FlowModel::DC) || !isActiveDcLink() || (upperLimit == nullptr) ||
+        (lowerLimit == nullptr)) {
         return;
     }
 
@@ -322,12 +317,8 @@ void GridLinkOpt::getConstraints(const OptimizationData& /*optimizationData*/,
         const double phaseShiftTerm = coefficient * dcPhaseShift();
         lowerLimit[row] = -rating + phaseShiftTerm;
         upperLimit[row] = rating + phaseShiftTerm;
-        cons.assign(row,
-                    B1->offsets.getOffsets(oMode).aOffset,
-                    coefficient);
-        cons.assign(row,
-                    B2->offsets.getOffsets(oMode).aOffset,
-                    -coefficient);
+        cons.assign(row, B1->offsets.getOffsets(oMode).aOffset, coefficient);
+        cons.assign(row, B2->offsets.getOffsets(oMode).aOffset, -coefficient);
         ++row;
     }
     if (hasDcAngleLimit()) {
@@ -351,8 +342,7 @@ void GridLinkOpt::disable()
     CoreObject::disable();
 }
 
-void GridLinkOpt::setOffsets(const OptimizationOffsets& newOffsets,
-                             const OptimizationMode& oMode)
+void GridLinkOpt::setOffsets(const OptimizationOffsets& newOffsets, const OptimizationMode& oMode)
 {
     // Link rows are allocated locally, but their offsets are assigned by the
     // owning area's traversal just like bus and generator offsets.
@@ -440,8 +430,8 @@ GridOptObject* GridLinkOpt::getArea(index_t /*index*/) const
 
 bool GridLinkOpt::isActiveDcLink() const
 {
-    return (link != nullptr) && link->isEnabled() && link->isConnected() &&
-        (B1 != nullptr) && (B2 != nullptr) && B1->isEnabled() && B2->isEnabled();
+    return (link != nullptr) && link->isEnabled() && link->isConnected() && (B1 != nullptr) &&
+        (B2 != nullptr) && B1->isEnabled() && B2->isEnabled();
 }
 
 bool GridLinkOpt::isDcFlowValid() const
@@ -472,14 +462,12 @@ bool GridLinkOpt::isDcFlowValid() const
 
 bool GridLinkOpt::hasDcFlowLimit() const
 {
-    return isActiveDcLink() && isDcFlowValid() &&
-        isFinitePositiveLimit(link->get("ratinga"));
+    return isActiveDcLink() && isDcFlowValid() && isFinitePositiveLimit(link->get("ratinga"));
 }
 
 bool GridLinkOpt::hasDcAngleLimit() const
 {
-    if (!isActiveDcLink() || (dynamic_cast<const AcLine*>(link) == nullptr) ||
-        !isDcFlowValid()) {
+    if (!isActiveDcLink() || (dynamic_cast<const AcLine*>(link) == nullptr) || !isDcFlowValid()) {
         return false;
     }
 
@@ -537,8 +525,8 @@ double GridLinkOpt::dcPowerFlow(const GridBusOpt* sourceBus,
     const auto& bus1Offsets = B1->offsets.getOffsets(oMode);
     const auto& bus2Offsets = B2->offsets.getOffsets(oMode);
     const double flow = dcFlowCoefficient() *
-        (optimizationData.val[bus1Offsets.aOffset] -
-         optimizationData.val[bus2Offsets.aOffset] - dcPhaseShift());
+        (optimizationData.val[bus1Offsets.aOffset] - optimizationData.val[bus2Offsets.aOffset] -
+         dcPhaseShift());
     return (sourceBus == B1) ? flow : -flow;
 }
 
@@ -561,12 +549,8 @@ void GridLinkOpt::dcPowerFlowJacobian(const GridBusOpt* sourceBus,
     // The bus balance subtracts the signed branch flow. Hence the derivative
     // signs are the negative of the from-to flow derivatives.
     const double coefficient = dcFlowCoefficient();
-    matrixDataRef.assign(constraintRow,
-                         sourceBus->offsets.getOffsets(oMode).aOffset,
-                         -coefficient);
-    matrixDataRef.assign(constraintRow,
-                         otherBus->offsets.getOffsets(oMode).aOffset,
-                         coefficient);
+    matrixDataRef.assign(constraintRow, sourceBus->offsets.getOffsets(oMode).aOffset, -coefficient);
+    matrixDataRef.assign(constraintRow, otherBus->offsets.getOffsets(oMode).aOffset, coefficient);
 }
 
 double GridLinkOpt::get(std::string_view param, units::unit unitType) const

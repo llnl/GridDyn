@@ -111,33 +111,26 @@ void GenModel8::derivative(const IOdata& inputs,
 
     diffResidual[0] = systemBaseFrequency * (diffState[1] - 1.0);
     // Edp and Eqp
-    diffResidual[2] = (-diffState[2] -
-                       ((Xq - Xqp - (qrat * (Xq - Xqp))) * algState[1])) /
-        Tqop;
-    diffResidual[3] = (-diffState[3] +
-                       ((Xd - Xdp - (drat * (Xd - Xdp))) * algState[0]) +
+    diffResidual[2] = (-diffState[2] - ((Xq - Xqp - (qrat * (Xq - Xqp))) * algState[1])) / Tqop;
+    diffResidual[3] = (-diffState[3] + ((Xd - Xdp - (drat * (Xd - Xdp))) * algState[0]) +
                        ((1.0 - (Taa / Tdop)) * fieldVoltage)) /
         Tdop;
     // Edpp
-    diffResidual[4] = (-diffState[4] + diffState[2] -
-                       ((Xqp - Xqpp + (qrat * (Xq - Xqp))) * algState[1])) /
-        Tqopp;
-    diffResidual[5] = (-diffState[5] + diffState[3] +
-                       ((Xdp - Xdpp + (drat * (Xd - Xdp))) * algState[0]) +
-                       (Taa / Tdop * fieldVoltage)) /
+    diffResidual[4] =
+        (-diffState[4] + diffState[2] - ((Xqp - Xqpp + (qrat * (Xq - Xqp))) * algState[1])) / Tqopp;
+    diffResidual[5] =
+        (-diffState[5] + diffState[3] + ((Xdp - Xdpp + (drat * (Xd - Xdp))) * algState[0]) +
+         (Taa / Tdop * fieldVoltage)) /
         Tdopp;
     // omega
     // double Pe = (gm[6] * gm[0]) + (gm[7] * gm[1]) + ((Xdpp - Xqpp) * gm[0] * gm[1]);
-    const double electricalPower = (diffState[6] * algState[1]) -
-        (diffState[7] * algState[0]);
-    diffResidual[1] = 0.5 * (mechanicalPower - electricalPower -
-                             (D * (diffState[1] - 1.0))) /
-        H;
+    const double electricalPower = (diffState[6] * algState[1]) - (diffState[7] * algState[0]);
+    diffResidual[1] = 0.5 * (mechanicalPower - electricalPower - (D * (diffState[1] - 1.0))) / H;
     // psid and psiq
-    diffResidual[6] = systemBaseFrequency *
-        (Vd + (Rs * algState[0]) + (diffState[1] * diffState[7]));
-    diffResidual[7] = systemBaseFrequency *
-        (Vq + (Rs * algState[1]) - (diffState[1] * diffState[6]));
+    diffResidual[6] =
+        systemBaseFrequency * (Vd + (Rs * algState[0]) + (diffState[1] * diffState[7]));
+    diffResidual[7] =
+        systemBaseFrequency * (Vq + (Rs * algState[1]) - (diffState[1] * diffState[6]));
 }
 
 void GenModel8::residual(const IOdata& inputs,
@@ -244,48 +237,42 @@ void GenModel8::jacobianElements(const IOdata& inputs,
     matrixData.assign(refDiff + 1, refDiff + 6, -0.5 * algState[1] / H);
     matrixData.assign(refDiff + 1, refDiff + 7, 0.5 * algState[0] / H);
 
-    matrixData.assignCheckCol(refDiff + 1, inputLocs[genModelPmechInLocation], -kValue);  // governor: Pm
+    matrixData.assignCheckCol(refDiff + 1,
+                              inputLocs[genModelPmechInLocation],
+                              -kValue);  // governor: Pm
 
     const double qrat = Tqopp * (Xqpp - Xl) / (Tqop * (Xqp - Xl));
     const double drat = Tdopp * (Xdpp - Xl) / (Tdop * (Xdp - Xl));
 
     // Edp
     if (hasAlgebraic(sMode)) {
-        matrixData.assign(refDiff + 2,
-                          refAlg + 1,
-                          -(Xq - Xqp - (qrat * (Xq - Xqp))) / Tqop);
+        matrixData.assign(refDiff + 2, refAlg + 1, -(Xq - Xqp - (qrat * (Xq - Xqp))) / Tqop);
     }
     matrixData.assign(refDiff + 2, refDiff + 2, (-1.0 / Tqop) - stateData.cj);
 
     // Eqp
     if (hasAlgebraic(sMode)) {
-        matrixData.assign(refDiff + 3,
-                          refAlg,
-                          (Xd - Xdp - (drat * (Xd - Xdp))) / Tdop);
+        matrixData.assign(refDiff + 3, refAlg, (Xd - Xdp - (drat * (Xd - Xdp))) / Tdop);
     }
     matrixData.assign(refDiff + 3, refDiff + 3, (-1.0 / Tdop) - stateData.cj);
 
     if (inputLocs[genModelEftInLocation] != kNullLocation)  // check if exciter exists
     {
         matrixData.assign(refDiff + 3,
-                  inputLocs[genModelEftInLocation],
-                  (1.0 - (Taa / Tdop)) / Tdop);  // exciter: Ef
+                          inputLocs[genModelEftInLocation],
+                          (1.0 - (Taa / Tdop)) / Tdop);  // exciter: Ef
         matrixData.assign(refDiff + 5, inputLocs[genModelEftInLocation], Taa / Tdop / Tdopp);
     }
     // Edpp
     if (hasAlgebraic(sMode)) {
-        matrixData.assign(refDiff + 4,
-                          refAlg + 1,
-                          -(Xqp - Xqpp + (qrat * (Xq - Xqp))) / Tqopp);
+        matrixData.assign(refDiff + 4, refAlg + 1, -(Xqp - Xqpp + (qrat * (Xq - Xqp))) / Tqopp);
     }
     matrixData.assign(refDiff + 4, refDiff + 2, 1.0 / Tqopp);
     matrixData.assign(refDiff + 4, refDiff + 4, (-1.0 / Tqopp) - stateData.cj);
 
     // Eqpp
     if (hasAlgebraic(sMode)) {
-        matrixData.assign(refDiff + 5,
-                          refAlg,
-                          (Xdp - Xdpp + (drat * (Xd - Xdp))) / Tdopp);
+        matrixData.assign(refDiff + 5, refAlg, (Xdp - Xdpp + (drat * (Xd - Xdp))) / Tdopp);
     }
     matrixData.assign(refDiff + 5, refDiff + 3, 1.0 / Tdopp);
     matrixData.assign(refDiff + 5, refDiff + 5, (-1.0 / Tdopp) - stateData.cj);
@@ -321,8 +308,8 @@ rv[9] = systemBaseFrequency*(Vq + Rs*gm[1] - gm[3] / systemBaseFrequency*gm[8]) 
     }
 }
 
-static const stringVec GEN_MODEL_8_NAMES{
-    "id", "iq", "delta", "freq", "edp", "eqp", "edpp", "eqpp", "psid", "psiq"};
+static const stringVec
+    GEN_MODEL_8_NAMES{"id", "iq", "delta", "freq", "edp", "eqp", "edpp", "eqpp", "psid", "psiq"};
 
 stringVec GenModel8::localStateNames() const
 {

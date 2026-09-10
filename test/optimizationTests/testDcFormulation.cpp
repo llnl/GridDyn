@@ -1051,9 +1051,8 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerSetsUpCase13659WithoutSolve)
         (optimizer.gradient.capacity() * sizeof(double)) +
         (optimizer.variableType.capacity() * sizeof(double)) +
         (optimizer.tolerances.capacity() * sizeof(double));
-    const auto sparseBytes =
-        ((optimizer.linearConstraints.capacity() + jacobian.capacity()) *
-         sizeof(MatrixElement<double>));
+    const auto sparseBytes = ((optimizer.linearConstraints.capacity() + jacobian.capacity()) *
+                              sizeof(MatrixElement<double>));
     RecordProperty("case13659_callback_storage_bytes", std::to_string(vectorBytes + sparseBytes));
 
     // This is intentionally setup-only.  NativeOptimizer::prepareProblemData()

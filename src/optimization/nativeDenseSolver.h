@@ -79,8 +79,8 @@ class NativeDenseSolver {
      *   an internal diagnostic iterate. Only `OPTIMAL` results are suitable
      *   for write-back.
      */
-    NativeSolveResult solve(const NativeQpProblem& problem,
-                            const NativeDenseSolverOptions& options = {}) const;
+    static NativeSolveResult solve(const NativeQpProblem& problem,
+                                   const NativeDenseSolverOptions& options = {});
 };
 
 }  // namespace griddyn

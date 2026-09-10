@@ -477,8 +477,8 @@ bool GridLinkOpt::hasDcAngleLimit() const
     // is not active.  GridDyn normally stores these limits in radians, but
     // accept the raw sentinel too so this boundary is robust to input units.
     const bool hasUnboundedSentinel =
-        ((std::abs(minimumAngle + 2.0 * kPI) <= kDcAngleLimitTolerance) &&
-         (std::abs(maximumAngle - 2.0 * kPI) <= kDcAngleLimitTolerance)) ||
+        ((std::abs(minimumAngle + (2.0 * kPI)) <= kDcAngleLimitTolerance) &&
+         (std::abs(maximumAngle - (2.0 * kPI)) <= kDcAngleLimitTolerance)) ||
         ((std::abs(minimumAngle + 360.0) <= kDcAngleLimitTolerance) &&
          (std::abs(maximumAngle - 360.0) <= kDcAngleLimitTolerance));
     // MATPOWER uses an ANGMIN/ANGMAX pair of zeroes to mean that the angle

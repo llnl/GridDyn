@@ -108,43 +108,46 @@ namespace {
         return point;
     }
 
-    bool hasPiecewiseLinearCost(const GridOptObject* object)
+    bool hasPiecewiseLinearCost(const GridOptObject* root)
     {
-        if (object == nullptr) {
+        if (root == nullptr) {
             return false;
         }
-        if (const auto* generator = dynamic_cast<const GridGenOpt*>(object); generator != nullptr) {
-            return generator->optFlags[GridGenOpt::PIECEWISE_LINEAR_COST];
-        }
-        if (const auto* area = dynamic_cast<const GridAreaOpt*>(object); area != nullptr) {
-            for (index_t index = 0;; ++index) {
-                const auto* child = area->getArea(index);
-                if (child == nullptr) {
-                    break;
-                }
-                if (hasPiecewiseLinearCost(child)) {
+        std::vector<const GridOptObject*> pending{root};
+        while (!pending.empty()) {
+            const auto* object = pending.back();
+            pending.pop_back();
+            if (const auto* generator = dynamic_cast<const GridGenOpt*>(object);
+                generator != nullptr) {
+                if (generator->optFlags[GridGenOpt::PIECEWISE_LINEAR_COST]) {
                     return true;
                 }
+                continue;
             }
-            for (index_t index = 0;; ++index) {
-                const auto* child = area->getBus(index);
-                if (child == nullptr) {
-                    break;
+            if (const auto* area = dynamic_cast<const GridAreaOpt*>(object); area != nullptr) {
+                for (index_t index = 0;; ++index) {
+                    const auto* child = area->getArea(index);
+                    if (child == nullptr) {
+                        break;
+                    }
+                    pending.push_back(child);
                 }
-                if (hasPiecewiseLinearCost(child)) {
-                    return true;
+                for (index_t index = 0;; ++index) {
+                    const auto* child = area->getBus(index);
+                    if (child == nullptr) {
+                        break;
+                    }
+                    pending.push_back(child);
                 }
+                continue;
             }
-            return false;
-        }
-        if (const auto* bus = dynamic_cast<const GridBusOpt*>(object); bus != nullptr) {
-            for (index_t index = 0;; ++index) {
-                const auto* child = bus->getGen(index);
-                if (child == nullptr) {
-                    break;
-                }
-                if (hasPiecewiseLinearCost(child)) {
-                    return true;
+            if (const auto* bus = dynamic_cast<const GridBusOpt*>(object); bus != nullptr) {
+                for (index_t index = 0;; ++index) {
+                    const auto* child = bus->getGen(index);
+                    if (child == nullptr) {
+                        break;
+                    }
+                    pending.push_back(child);
                 }
             }
         }
@@ -857,8 +860,8 @@ int NativeOptimizer::prepareProblemData(double time)
     mProblemDataLoaded = false;
     mSolutionValid = false;
     mLastSolveResult = NativeSolveResult{};
-    const auto reject = [this](std::string message) {
-        logMessage(FUNCTION_EXECUTION_FAILURE, std::move(message));
+    const auto reject = [this](const std::string& message) {
+        logMessage(FUNCTION_EXECUTION_FAILURE, message);
         return FUNCTION_EXECUTION_FAILURE;
     };
 
@@ -959,8 +962,8 @@ int NativeOptimizer::prepareProblemData(double time)
     std::vector<bool> explicitRows(candidate.constraintCount, false);
     for (const auto& element : linearConstraints) {
         if ((element.row < 0) || (element.col < 0) ||
-            (static_cast<std::size_t>(element.row) >= candidate.constraintCount) ||
-            (static_cast<std::size_t>(element.col) >= candidate.variableCount)) {
+            std::cmp_greater_equal(element.row, candidate.constraintCount) ||
+            std::cmp_greater_equal(element.col, candidate.variableCount)) {
             return reject(
                 "native optimizer received an explicit linear row outside the problem dimensions");
         }
@@ -975,8 +978,8 @@ int NativeOptimizer::prepareProblemData(double time)
                                                        std::vector<double>& dense) {
         for (const auto& element : sparseMatrix) {
             if ((element.row < 0) || (element.col < 0) ||
-                (static_cast<std::size_t>(element.row) >= candidate.constraintCount) ||
-                (static_cast<std::size_t>(element.col) >= candidate.variableCount)) {
+                std::cmp_greater_equal(element.row, candidate.constraintCount) ||
+                std::cmp_greater_equal(element.col, candidate.variableCount)) {
                 reject("native optimizer received a Jacobian entry outside the problem dimensions");
                 return false;
             }
@@ -984,7 +987,7 @@ int NativeOptimizer::prepareProblemData(double time)
                 reject("native optimizer received a non-finite Jacobian coefficient");
                 return false;
             }
-            dense[static_cast<std::size_t>(element.row) * candidate.variableCount +
+            dense[(static_cast<std::size_t>(element.row) * candidate.variableCount) +
                   static_cast<std::size_t>(element.col)] += element.data;
         }
         return true;
@@ -1122,8 +1125,8 @@ int NativeOptimizer::prepareProblemData(double time)
 
     for (const auto& element : linearConstraints) {
         if ((element.row < 0) || (element.col < 0) ||
-            (static_cast<std::size_t>(element.row) >= candidate.constraintCount) ||
-            (static_cast<std::size_t>(element.col) >= candidate.variableCount)) {
+            std::cmp_greater_equal(element.row, candidate.constraintCount) ||
+            std::cmp_greater_equal(element.col, candidate.variableCount)) {
             return reject(
                 "native optimizer received an explicit linear row outside the problem dimensions");
         }
@@ -1133,7 +1136,8 @@ int NativeOptimizer::prepareProblemData(double time)
         const auto row = static_cast<std::size_t>(element.row);
         const auto column = static_cast<std::size_t>(element.col);
         if (!nativeNearlyEqual(
-                element.data, candidate.constraintMatrix[row * candidate.variableCount + column])) {
+                element.data,
+                candidate.constraintMatrix[(row * candidate.variableCount) + column])) {
             return reject(
                 "native optimizer explicit linear rows disagree with the callback Jacobian");
         }
@@ -1179,8 +1183,7 @@ int NativeOptimizer::solve(double tStop, double& tReturn)
     // performs scaling, presolve, Phase-I, and the active-set KKT iterations;
     // this layer remains responsible for validating the resulting vector
     // against the original GridDyn callbacks.
-    NativeDenseSolver solver;
-    mLastSolveResult = solver.solve(mProblem, options);
+    mLastSolveResult = NativeDenseSolver::solve(mProblem, options);
     if (!mLastSolveResult.successful()) {
         logMessage(FUNCTION_EXECUTION_FAILURE,
                    std::string{"native optimizer solve failed with status "} +
@@ -1189,10 +1192,10 @@ int NativeOptimizer::solve(double tStop, double& tReturn)
         return FUNCTION_EXECUTION_FAILURE;
     }
 
-    const auto rejectCandidate = [this](std::string message) {
+    const auto rejectCandidate = [this](const std::string& message) {
         mSolutionValid = false;
         mLastSolveResult.status = NativeSolveStatus::NUMERICAL_FAILURE;
-        mLastSolveResult.message = std::move(message);
+        mLastSolveResult.message = message;
         logMessage(FUNCTION_EXECUTION_FAILURE, mLastSolveResult.message);
         return FUNCTION_EXECUTION_FAILURE;
     };
@@ -1281,12 +1284,12 @@ int NativeOptimizer::solve(double tStop, double& tReturn)
     std::vector<double> denseJacobian(mProblem.constraintCount * mProblem.variableCount, 0.0);
     for (const auto& element : callbackJacobian) {
         if ((element.row < 0) || (element.col < 0) ||
-            (static_cast<std::size_t>(element.row) >= mProblem.constraintCount) ||
-            (static_cast<std::size_t>(element.col) >= mProblem.variableCount) ||
+            std::cmp_greater_equal(element.row, mProblem.constraintCount) ||
+            std::cmp_greater_equal(element.col, mProblem.variableCount) ||
             !std::isfinite(element.data)) {
             return rejectCandidate("native optimizer candidate Jacobian has invalid entries");
         }
-        denseJacobian[static_cast<std::size_t>(element.row) * mProblem.variableCount +
+        denseJacobian[(static_cast<std::size_t>(element.row) * mProblem.variableCount) +
                       static_cast<std::size_t>(element.col)] += element.data;
     }
     for (std::size_t entry = 0; entry < denseJacobian.size(); ++entry) {

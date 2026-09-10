@@ -25,6 +25,7 @@
 #include <memory>
 #include <string>
 #include <string_view>
+#include <utility>
 #include <vector>
 
 namespace {
@@ -611,7 +612,7 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerMaterializesTwoBusAffineQp)
     EXPECT_EQ(problem.modelVersion, 1U);
 
     const auto matrixValue = [&problem](index_t row, index_t column) {
-        return problem.constraintMatrix[static_cast<std::size_t>(row) * problem.variableCount +
+        return problem.constraintMatrix[(static_cast<std::size_t>(row) * problem.variableCount) +
                                         static_cast<std::size_t>(column)];
     };
     EXPECT_DOUBLE_EQ(matrixValue(bus1Offsets.constraintOffset, generatorOffsets.gOffset), 1.0);
@@ -725,7 +726,7 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerSnapshotMatchesCallbacksAndJ
         ASSERT_GE(element.col, 0);
         ASSERT_LT(static_cast<std::size_t>(element.row), problem.constraintCount);
         ASSERT_LT(static_cast<std::size_t>(element.col), problem.variableCount);
-        denseJacobian[static_cast<std::size_t>(element.row) * problem.variableCount +
+        denseJacobian[(static_cast<std::size_t>(element.row) * problem.variableCount) +
                       static_cast<std::size_t>(element.col)] += element.data;
     }
     ASSERT_EQ(problem.constraintMatrix.size(), denseJacobian.size());
@@ -1004,8 +1005,8 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerSetsUpCase13659WithoutSolve)
     bool firstJacobianEntry = true;
     for (const auto& element : jacobian) {
         validJacobian = validJacobian && (element.row >= 0) && (element.col >= 0) &&
-            (static_cast<std::size_t>(element.row) < constraintCount) &&
-            (static_cast<std::size_t>(element.col) < variableCount) && std::isfinite(element.data);
+            std::cmp_less(element.row, constraintCount) &&
+            std::cmp_less(element.col, variableCount) && std::isfinite(element.data);
         if (!firstJacobianEntry) {
             if (element.row == previousRow) {
                 validJacobian = validJacobian && (element.col > previousColumn);
@@ -1022,8 +1023,8 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerSetsUpCase13659WithoutSolve)
     bool validLinearRows = true;
     for (const auto& element : optimizer.linearConstraints) {
         validLinearRows = validLinearRows && (element.row >= 0) && (element.col >= 0) &&
-            (static_cast<std::size_t>(element.row) < constraintCount) &&
-            (static_cast<std::size_t>(element.col) < variableCount) && std::isfinite(element.data);
+            std::cmp_less(element.row, constraintCount) &&
+            std::cmp_less(element.col, variableCount) && std::isfinite(element.data);
     }
     EXPECT_TRUE(validLinearRows);
 
@@ -1041,17 +1042,18 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerSetsUpCase13659WithoutSolve)
     RecordProperty("case13659_constraints", static_cast<int>(constraintCount));
     RecordProperty("case13659_linear_rows", static_cast<int>(optimizer.linearConstraints.size()));
     RecordProperty("case13659_jacobian_nnz", static_cast<int>(jacobian.size()));
-    const auto vectorBytes = optimizer.values.capacity() * sizeof(double) +
-        optimizer.lowerBounds.capacity() * sizeof(double) +
-        optimizer.upperBounds.capacity() * sizeof(double) +
-        optimizer.constraintValues.capacity() * sizeof(double) +
-        optimizer.constraintLowerBounds.capacity() * sizeof(double) +
-        optimizer.constraintUpperBounds.capacity() * sizeof(double) +
-        optimizer.gradient.capacity() * sizeof(double) +
-        optimizer.variableType.capacity() * sizeof(double) +
-        optimizer.tolerances.capacity() * sizeof(double);
-    const auto sparseBytes = (optimizer.linearConstraints.capacity() + jacobian.capacity()) *
-        sizeof(MatrixElement<double>);
+    const auto vectorBytes = (optimizer.values.capacity() * sizeof(double)) +
+        (optimizer.lowerBounds.capacity() * sizeof(double)) +
+        (optimizer.upperBounds.capacity() * sizeof(double)) +
+        (optimizer.constraintValues.capacity() * sizeof(double)) +
+        (optimizer.constraintLowerBounds.capacity() * sizeof(double)) +
+        (optimizer.constraintUpperBounds.capacity() * sizeof(double)) +
+        (optimizer.gradient.capacity() * sizeof(double)) +
+        (optimizer.variableType.capacity() * sizeof(double)) +
+        (optimizer.tolerances.capacity() * sizeof(double));
+    const auto sparseBytes =
+        ((optimizer.linearConstraints.capacity() + jacobian.capacity()) *
+         sizeof(MatrixElement<double>));
     RecordProperty("case13659_callback_storage_bytes", std::to_string(vectorBytes + sparseBytes));
 
     // This is intentionally setup-only.  NativeOptimizer::prepareProblemData()

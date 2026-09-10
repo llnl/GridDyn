@@ -8,16 +8,19 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <limits>
 #include <numeric>
+#include <string>
 #include <utility>
+#include <vector>
 
 namespace griddyn {
 namespace {
 
     constexpr double kRegularization = 1e-10;
 
-    enum class ConstraintType {
+    enum class ConstraintType : std::uint8_t {
         EQUALITY,
         INEQUALITY,
     };
@@ -25,6 +28,9 @@ namespace {
     // The active-set core stores every row as coeffs' * y <= rhs. Equality rows
     // are kept as exact rows in the KKT system; bounded NativeQpProblem rows are
     // split into one lower-side and/or one upper-side inequality here.
+    // These are private implementation aggregates. Their public fields mirror
+    // the solver's mathematical vocabulary, so keep the local names readable.
+    // NOLINTBEGIN(readability-identifier-naming)
     struct DenseConstraint {
         std::vector<double> coefficients;
         double rhs = 0.0;
@@ -89,10 +95,10 @@ namespace {
         // changing the caller's diagnostic data.
         const auto dimension = rhs.size();
         if (matrix.size() != dimension * dimension) {
-            return {.singular = true};
+            return {.solved = false, .singular = true, .solution = {}};
         }
         if (dimension == 0) {
-            return {.solved = true, .solution = {}};
+            return {.solved = true, .singular = false, .solution = {}};
         }
 
         double matrixScale = 0.0;
@@ -103,34 +109,36 @@ namespace {
 
         for (std::size_t column = 0; column < dimension; ++column) {
             std::size_t pivotRow = column;
-            double pivotMagnitude = std::abs(matrix[column * dimension + column]);
+            double pivotMagnitude = std::abs(matrix[(column * dimension) + column]);
             for (std::size_t row = column + 1; row < dimension; ++row) {
-                const double candidateMagnitude = std::abs(matrix[row * dimension + column]);
+                const double candidateMagnitude = std::abs(matrix[(row * dimension) + column]);
                 if (candidateMagnitude > pivotMagnitude) {
                     pivotMagnitude = candidateMagnitude;
                     pivotRow = row;
                 }
             }
             if (!std::isfinite(pivotMagnitude) || (pivotMagnitude <= pivotLimit)) {
-                return {.singular = true};
+                return {.solved = false, .singular = true, .solution = {}};
             }
             if (pivotRow != column) {
                 for (std::size_t entry = column; entry < dimension; ++entry) {
-                    std::swap(matrix[column * dimension + entry],
-                              matrix[pivotRow * dimension + entry]);
+                    std::swap(matrix[(column * dimension) + entry],
+                              matrix[(pivotRow * dimension) + entry]);
                 }
                 std::swap(rhs[column], rhs[pivotRow]);
             }
 
             for (std::size_t row = column + 1; row < dimension; ++row) {
                 const double factor =
-                    matrix[row * dimension + column] / matrix[column * dimension + column];
+                    matrix[(row * dimension) + column] /
+                    matrix[(column * dimension) + column];
                 if (factor == 0.0) {
                     continue;
                 }
-                matrix[row * dimension + column] = 0.0;
+                matrix[(row * dimension) + column] = 0.0;
                 for (std::size_t entry = column + 1; entry < dimension; ++entry) {
-                    matrix[row * dimension + entry] -= factor * matrix[column * dimension + entry];
+                    matrix[(row * dimension) + entry] -=
+                        factor * matrix[(column * dimension) + entry];
                 }
                 rhs[row] -= factor * rhs[column];
             }
@@ -140,18 +148,18 @@ namespace {
         for (std::size_t row = dimension; row-- > 0;) {
             double value = rhs[row];
             for (std::size_t column = row + 1; column < dimension; ++column) {
-                value -= matrix[row * dimension + column] * solution[column];
+                value -= matrix[(row * dimension) + column] * solution[column];
             }
-            const double pivot = matrix[row * dimension + row];
+            const double pivot = matrix[(row * dimension) + row];
             if (std::abs(pivot) <= pivotLimit) {
-                return {.singular = true};
+                return {.solved = false, .singular = true, .solution = {}};
             }
             solution[row] = value / pivot;
         }
         if (!finiteVector(solution)) {
-            return {.solved = false, .solution = std::move(solution)};
+            return {.solved = false, .singular = false, .solution = std::move(solution)};
         }
-        return {.solved = true, .solution = std::move(solution)};
+        return {.solved = true, .singular = false, .solution = std::move(solution)};
     }
 
     bool isFiniteLower(double bound)
@@ -190,7 +198,10 @@ namespace {
             if (isEquality(lower, upper, 1e-10)) {
                 if (includeEqualities) {
                     model.constraints.push_back(
-                        {std::move(coefficients), 0.5 * (lower + upper), ConstraintType::EQUALITY});
+                        DenseConstraint{.coefficients = std::move(coefficients),
+                                        .rhs = 0.5 * (lower + upper),
+                                        .type = ConstraintType::EQUALITY,
+                                        .variableBound = false});
                 }
                 continue;
             }
@@ -200,11 +211,17 @@ namespace {
                     coefficient = -coefficient;
                 }
                 model.constraints.push_back(
-                    {std::move(lowerCoefficients), -lower, ConstraintType::INEQUALITY});
+                    DenseConstraint{.coefficients = std::move(lowerCoefficients),
+                                    .rhs = -lower,
+                                    .type = ConstraintType::INEQUALITY,
+                                    .variableBound = false});
             }
             if (isFiniteUpper(upper)) {
                 model.constraints.push_back(
-                    {std::move(coefficients), upper, ConstraintType::INEQUALITY});
+                    DenseConstraint{.coefficients = std::move(coefficients),
+                                    .rhs = upper,
+                                    .type = ConstraintType::INEQUALITY,
+                                    .variableBound = false});
             }
         }
     }
@@ -219,21 +236,24 @@ namespace {
                 std::vector<double> coefficients(model.variableCount, 0.0);
                 coefficients[column] = -1.0;
                 model.constraints.push_back(
-                    {std::move(coefficients),
-                     -model.lowerBounds[column],
-                     isEquality(model.lowerBounds[column], model.upperBounds[column], 1e-10) ?
-                         ConstraintType::EQUALITY :
-                         ConstraintType::INEQUALITY,
-                     true});
+                    DenseConstraint{.coefficients = std::move(coefficients),
+                                    .rhs = -model.lowerBounds[column],
+                                    .type =
+                                        isEquality(model.lowerBounds[column],
+                                                   model.upperBounds[column],
+                                                   1e-10) ?
+                                        ConstraintType::EQUALITY : ConstraintType::INEQUALITY,
+                                    .variableBound = true});
             }
             if (isFiniteUpper(model.upperBounds[column]) &&
                 !isEquality(model.lowerBounds[column], model.upperBounds[column], 1e-10)) {
                 std::vector<double> coefficients(model.variableCount, 0.0);
                 coefficients[column] = 1.0;
-                model.constraints.push_back({std::move(coefficients),
-                                             model.upperBounds[column],
-                                             ConstraintType::INEQUALITY,
-                                             true});
+                model.constraints.push_back(
+                    DenseConstraint{.coefficients = std::move(coefficients),
+                                    .rhs = model.upperBounds[column],
+                                    .type = ConstraintType::INEQUALITY,
+                                    .variableBound = true});
             }
         }
     }
@@ -274,7 +294,7 @@ namespace {
                 columnMagnitude =
                     (std::max)(columnMagnitude,
                                std::abs(
-                                   problem.constraintMatrix[row * problem.variableCount + column]));
+                                   problem.constraintMatrix[(row * problem.variableCount) + column]));
             }
             // x = scale * z.  Scaling only large columns avoids magnifying small
             // physical coefficients while keeping the internal coordinates close
@@ -392,7 +412,8 @@ namespace {
             double fixedContribution = 0.0;
             for (std::size_t column = 0; column < full.variableCount; ++column) {
                 if (transform.fixedColumns[column]) {
-                    fixedContribution += full.constraintMatrix[row * full.variableCount + column] *
+                    fixedContribution +=
+                        full.constraintMatrix[(row * full.variableCount) + column] *
                         transform.fixedValues[column];
                 }
             }
@@ -620,7 +641,7 @@ namespace {
         double violation = 0.0;
         for (const auto& constraint : model.constraints) {
             const double residual = constraintValue(constraint, values) - constraint.rhs;
-            violation = (std::max)(violation, (std::max)(0.0, residual));
+            violation = (std::max)({violation, 0.0, residual});
             if (constraint.type == ConstraintType::EQUALITY) {
                 violation = (std::max)(violation, std::abs(residual));
             }
@@ -775,7 +796,7 @@ namespace {
             // it is not included in the reported objective or stationarity
             // convention.
             for (std::size_t column = 0; column < model.variableCount; ++column) {
-                kktMatrix[column * kktDimension + column] =
+                kktMatrix[(column * kktDimension) + column] =
                     2.0 * model.quadraticObjective[column] + kRegularization;
                 kktRhs[column] = -gradient[column];
             }
@@ -783,9 +804,9 @@ namespace {
                 const auto& coefficients =
                     model.constraints[static_cast<std::size_t>(workingSet[active])].coefficients;
                 for (std::size_t column = 0; column < model.variableCount; ++column) {
-                    kktMatrix[column * kktDimension + model.variableCount + active] =
+                    kktMatrix[(column * kktDimension) + model.variableCount + active] =
                         coefficients[column];
-                    kktMatrix[(model.variableCount + active) * kktDimension + column] =
+                    kktMatrix[((model.variableCount + active) * kktDimension) + column] =
                         coefficients[column];
                 }
             }
@@ -969,6 +990,7 @@ namespace {
         std::size_t originalVariableCount = 0;
         std::vector<PhaseOneSide> sides;
     };
+    // NOLINTEND(readability-identifier-naming)
 
     /**
      * Construct the L1 feasibility model used to obtain a starting point.
@@ -1006,26 +1028,39 @@ namespace {
                 const double equalityResidual = rowValue - equalityRhs;
                 if (std::abs(equalityResidual) <= feasibilityTolerance) {
                     phase.model.constraints.push_back(
-                        {baseCoefficients, equalityRhs, ConstraintType::EQUALITY});
+                        DenseConstraint{.coefficients = baseCoefficients,
+                                        .rhs = equalityRhs,
+                                        .type = ConstraintType::EQUALITY,
+                                        .variableBound = false});
                 } else if (equalityResidual < 0.0) {
                     auto coefficients = baseCoefficients;
                     for (auto& coefficient : coefficients) {
                         coefficient = -coefficient;
                     }
-                    phase.sides.push_back({std::move(coefficients), -lower, -equalityResidual});
+                    phase.sides.push_back(PhaseOneSide{.coefficients = std::move(coefficients),
+                                                       .rhs = -lower,
+                                                       .violation = -equalityResidual});
                     // The initially satisfied side remains hard.  Keeping only
                     // the violated side here would let a zero Phase-I slack
                     // settle above the equality instead of enforcing the row.
                     phase.model.constraints.push_back(
-                        {baseCoefficients, upper, ConstraintType::INEQUALITY});
+                        DenseConstraint{.coefficients = baseCoefficients,
+                                        .rhs = upper,
+                                        .type = ConstraintType::INEQUALITY,
+                                        .variableBound = false});
                 } else {
                     auto coefficients = baseCoefficients;
                     for (auto& coefficient : coefficients) {
                         coefficient = -coefficient;
                     }
                     phase.model.constraints.push_back(
-                        {std::move(coefficients), -lower, ConstraintType::INEQUALITY});
-                    phase.sides.push_back({baseCoefficients, upper, equalityResidual});
+                        DenseConstraint{.coefficients = std::move(coefficients),
+                                        .rhs = -lower,
+                                        .type = ConstraintType::INEQUALITY,
+                                        .variableBound = false});
+                    phase.sides.push_back(PhaseOneSide{.coefficients = baseCoefficients,
+                                                       .rhs = upper,
+                                                       .violation = equalityResidual});
                 }
                 continue;
             }
@@ -1034,20 +1069,30 @@ namespace {
                 for (auto& coefficient : coefficients) {
                     coefficient = -coefficient;
                 }
-                phase.sides.push_back({std::move(coefficients), -lower, lower - rowValue});
+                phase.sides.push_back(PhaseOneSide{.coefficients = std::move(coefficients),
+                                                   .rhs = -lower,
+                                                   .violation = lower - rowValue});
             } else if (isFiniteLower(lower)) {
                 auto lowerCoefficients = baseCoefficients;
                 for (auto& coefficient : lowerCoefficients) {
                     coefficient = -coefficient;
                 }
                 phase.model.constraints.push_back(
-                    {std::move(lowerCoefficients), -lower, ConstraintType::INEQUALITY});
+                    DenseConstraint{.coefficients = std::move(lowerCoefficients),
+                                    .rhs = -lower,
+                                    .type = ConstraintType::INEQUALITY,
+                                    .variableBound = false});
             }
             if (isFiniteUpper(upper) && (rowValue - upper > feasibilityTolerance)) {
-                phase.sides.push_back({baseCoefficients, upper, rowValue - upper});
+                phase.sides.push_back(PhaseOneSide{.coefficients = baseCoefficients,
+                                                   .rhs = upper,
+                                                   .violation = rowValue - upper});
             } else if (isFiniteUpper(upper)) {
                 phase.model.constraints.push_back(
-                    {baseCoefficients, upper, ConstraintType::INEQUALITY});
+                    DenseConstraint{.coefficients = baseCoefficients,
+                                    .rhs = upper,
+                                    .type = ConstraintType::INEQUALITY,
+                                    .variableBound = false});
             }
         }
 
@@ -1069,7 +1114,10 @@ namespace {
                       coefficients.begin());
             coefficients[problem.variableCount + side] = -1.0;
             phase.model.constraints.push_back(
-                {std::move(coefficients), phase.sides[side].rhs, ConstraintType::INEQUALITY});
+                DenseConstraint{.coefficients = std::move(coefficients),
+                                .rhs = phase.sides[side].rhs,
+                                .type = ConstraintType::INEQUALITY,
+                                .variableBound = false});
             phase.model.linearObjective[problem.variableCount + side] = 1.0;
         }
         addVariableBoundConstraints(phase.model);
@@ -1191,7 +1239,7 @@ namespace {
 }  // namespace
 
 NativeSolveResult NativeDenseSolver::solve(const NativeQpProblem& problem,
-                                           const NativeDenseSolverOptions& options) const
+                                           const NativeDenseSolverOptions& options)
 {
     // The solve pipeline is intentionally visible here:
     //   1. validate the solver-neutral contract;
@@ -1217,7 +1265,7 @@ NativeSolveResult NativeDenseSolver::solve(const NativeQpProblem& problem,
     }
 
     const auto model = makeDenseModel(transform.problem);
-    const auto phaseResult = runPhaseOne(transform.problem, options);
+    auto phaseResult = runPhaseOne(transform.problem, options);
     if (phaseResult.status != NativeSolveStatus::OPTIMAL) {
         return phaseResult;
     }

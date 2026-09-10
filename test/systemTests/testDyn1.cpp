@@ -47,8 +47,7 @@ struct DynamicModelCase {
     constexpr DynamicModelCase(std::string_view machineModelValue,
                                std::string_view exciterModelValue,
                                std::string_view governorModelValue) noexcept:
-        machineModel(machineModelValue),
-        exciterModel(exciterModelValue),
+        machineModel(machineModelValue), exciterModel(exciterModelValue),
         governorModel(governorModelValue)
     {
     }

@@ -130,8 +130,7 @@ namespace {
 
             for (std::size_t row = column + 1; row < dimension; ++row) {
                 const double factor =
-                    matrix[(row * dimension) + column] /
-                    matrix[(column * dimension) + column];
+                    matrix[(row * dimension) + column] / matrix[(column * dimension) + column];
                 if (factor == 0.0) {
                     continue;
                 }
@@ -217,11 +216,10 @@ namespace {
                                     .variableBound = false});
             }
             if (isFiniteUpper(upper)) {
-                model.constraints.push_back(
-                    DenseConstraint{.coefficients = std::move(coefficients),
-                                    .rhs = upper,
-                                    .type = ConstraintType::INEQUALITY,
-                                    .variableBound = false});
+                model.constraints.push_back(DenseConstraint{.coefficients = std::move(coefficients),
+                                                            .rhs = upper,
+                                                            .type = ConstraintType::INEQUALITY,
+                                                            .variableBound = false});
             }
         }
     }
@@ -238,22 +236,21 @@ namespace {
                 model.constraints.push_back(
                     DenseConstraint{.coefficients = std::move(coefficients),
                                     .rhs = -model.lowerBounds[column],
-                                    .type =
-                                        isEquality(model.lowerBounds[column],
-                                                   model.upperBounds[column],
-                                                   1e-10) ?
-                                        ConstraintType::EQUALITY : ConstraintType::INEQUALITY,
+                                    .type = isEquality(model.lowerBounds[column],
+                                                       model.upperBounds[column],
+                                                       1e-10) ?
+                                        ConstraintType::EQUALITY :
+                                        ConstraintType::INEQUALITY,
                                     .variableBound = true});
             }
             if (isFiniteUpper(model.upperBounds[column]) &&
                 !isEquality(model.lowerBounds[column], model.upperBounds[column], 1e-10)) {
                 std::vector<double> coefficients(model.variableCount, 0.0);
                 coefficients[column] = 1.0;
-                model.constraints.push_back(
-                    DenseConstraint{.coefficients = std::move(coefficients),
-                                    .rhs = model.upperBounds[column],
-                                    .type = ConstraintType::INEQUALITY,
-                                    .variableBound = true});
+                model.constraints.push_back(DenseConstraint{.coefficients = std::move(coefficients),
+                                                            .rhs = model.upperBounds[column],
+                                                            .type = ConstraintType::INEQUALITY,
+                                                            .variableBound = true});
             }
         }
     }
@@ -291,10 +288,9 @@ namespace {
         for (std::size_t column = 0; column < problem.variableCount; ++column) {
             double columnMagnitude = 0.0;
             for (std::size_t row = 0; row < problem.constraintCount; ++row) {
-                columnMagnitude =
-                    (std::max)(columnMagnitude,
-                               std::abs(
-                                   problem.constraintMatrix[(row * problem.variableCount) + column]));
+                columnMagnitude = (std::max)(
+                    columnMagnitude,
+                    std::abs(problem.constraintMatrix[(row * problem.variableCount) + column]));
             }
             // x = scale * z.  Scaling only large columns avoids magnifying small
             // physical coefficients while keeping the internal coordinates close

@@ -487,9 +487,8 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverReportsInconsistentEqualit
 
 TEST(OptimizationDcFormulationTests, NativeDenseSolverSolvesThreeBusDispatchAndLimits)
 {
-    const auto uncongested =
-        griddyn::NativeDenseSolver::solve(
-            makeThreeBusNativeProblem(1.2, std::numeric_limits<double>::infinity()));
+    const auto uncongested = griddyn::NativeDenseSolver::solve(
+        makeThreeBusNativeProblem(1.2, std::numeric_limits<double>::infinity()));
     ASSERT_EQ(uncongested.status, griddyn::NativeSolveStatus::OPTIMAL) << uncongested.message;
     ASSERT_EQ(uncongested.values.size(), 5U);
     EXPECT_NEAR(uncongested.values[0], 5.0 / 6.0, 1e-8);

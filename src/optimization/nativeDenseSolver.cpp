@@ -934,8 +934,7 @@ namespace {
                     options.feasibilityTolerance * (std::max)(std::abs(stepLength), 1e-12);
                 if (candidateStep < stepLength - stepTieTolerance ||
                     ((std::abs(candidateStep - stepLength) <= stepTieTolerance) &&
-                     ((blockingConstraint < 0) ||
-                      std::cmp_less(index, blockingConstraint)))) {
+                     ((blockingConstraint < 0) || std::cmp_less(index, blockingConstraint)))) {
                     stepLength = (std::max)(0.0, candidateStep);
                     blockingConstraint = static_cast<int>(index);
                 }

@@ -16,16 +16,16 @@
 #include "griddyn/Load.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/primary/InfiniteBus.h"
-#include "griddyn/solvers/SolverInterface.h"
 #include "griddyn/simulation/Diagnostics.h"
+#include "griddyn/solvers/SolverInterface.h"
 #include <algorithm>
 #include <array>
 #include <cmath>
 #include <gtest/gtest.h>
 #include <print>
+#include <string>
 #include <string_view>
 #include <utility>
-#include <string>
 #include <vector>
 // test case for CoreObject object
 
@@ -87,54 +87,18 @@ void applyCommonExciterParameters(CoreObject* exciter)
     // system test is model coupling/stability after a network event, not forcing
     // limiter operation in every exciter.
     for (const auto& [parameter, value] : std::array<std::pair<std::string_view, double>, 48>{{
-             {"tr", 0.02},
-             {"ka", 8.0},
-             {"ta", 0.10},
-             {"ta1", 0.02},
-             {"ta2", 0.20},
-             {"ta3", 0.03},
-             {"ta4", 0.40},
-             {"tb", 0.20},
-             {"tc", 0.05},
-             {"tb1", 0.10},
-             {"tc1", 0.02},
-             {"ke", 1.0},
-             {"te", 0.50},
-             {"kf", 0.05},
-             {"tf", 1.0},
-             {"vrmax", 20.0},
-             {"vrmin", -20.0},
-             {"vr1", 20.0},
-             {"vr2", -20.0},
-             {"vamax", 20.0},
-             {"vamin", -20.0},
-             {"vimax", 2.0},
-             {"vimin", -2.0},
-             {"efdmax", 20.0},
-             {"efdmin", -20.0},
-             {"e1", 1.0},
-             {"se1", 0.03},
-             {"e2", 2.0},
-             {"se2", 0.10},
-             {"kc", 0.0},
-             {"kd", 0.0},
-             {"kh", 0.0},
-             {"kp", 1.0},
-             {"ki", 0.2},
-             {"kpr", 8.0},
-             {"kir", 0.2},
-             {"kdr", 0.0},
-             {"tdr", 0.05},
-             {"kpa", 1.0},
-             {"kia", 0.2},
-             {"kpm", 1.0},
-             {"kim", 0.2},
-             {"tf1", 0.5},
-             {"tf2", 0.6},
-             {"vbmax", 20.0},
-             {"vgmax", 20.0},
-             {"vmmax", 20.0},
-             {"vmmin", -20.0},
+             {"tr", 0.02},      {"ka", 8.0},     {"ta", 0.10},    {"ta1", 0.02},
+             {"ta2", 0.20},     {"ta3", 0.03},   {"ta4", 0.40},   {"tb", 0.20},
+             {"tc", 0.05},      {"tb1", 0.10},   {"tc1", 0.02},   {"ke", 1.0},
+             {"te", 0.50},      {"kf", 0.05},    {"tf", 1.0},     {"vrmax", 20.0},
+             {"vrmin", -20.0},  {"vr1", 20.0},   {"vr2", -20.0},  {"vamax", 20.0},
+             {"vamin", -20.0},  {"vimax", 2.0},  {"vimin", -2.0}, {"efdmax", 20.0},
+             {"efdmin", -20.0}, {"e1", 1.0},     {"se1", 0.03},   {"e2", 2.0},
+             {"se2", 0.10},     {"kc", 0.0},     {"kd", 0.0},     {"kh", 0.0},
+             {"kp", 1.0},       {"ki", 0.2},     {"kpr", 8.0},    {"kir", 0.2},
+             {"kdr", 0.0},      {"tdr", 0.05},   {"kpa", 1.0},    {"kia", 0.2},
+             {"kpm", 1.0},      {"kim", 0.2},    {"tf1", 0.5},    {"tf2", 0.6},
+             {"vbmax", 20.0},   {"vgmax", 20.0}, {"vmmax", 20.0}, {"vmmin", -20.0},
          }}) {
         setIfRecognized(exciter, parameter, value);
     }
@@ -143,46 +107,26 @@ void applyCommonExciterParameters(CoreObject* exciter)
 void applyCommonGovernorParameters(CoreObject* governor)
 {
     for (const auto& [parameter, value] : std::array<std::pair<std::string_view, double>, 41>{{
-             {"k", 20.0},
-             {"r", 0.05},
-             {"t1", 0.20},
-             {"t2", 0.05},
-             {"t3", 0.50},
-             {"t4", 0.40},
-             {"t5", 0.40},
-             {"t6", 0.50},
-             {"t7", 0.20},
-             {"pmax", 2.0},
-             {"pmin", 0.0},
-             {"uo", 0.3},
-             {"uc", -0.25},
-             {"k1", 0.30},
-             {"k2", 0.0},
-             {"k3", 0.20},
-             {"k4", 0.0},
-             {"k5", 0.10},
-             {"k6", 0.0},
-             {"k7", 0.10},
-             {"k8", 0.0},
-             {"temporarydroop", 0.30},
-             {"tr", 5.0},
-             {"tf", 0.05},
-             {"tg", 0.50},
-             {"tw", 1.25},
-             {"velm", 0.2},
-             {"gmax", 1.20},
-             {"gmin", 0.0},
-             {"at", 1.2},
-             {"dturb", 0.2},
-             {"qnl", 0.08},
-             {"vmax", 2.0},
-             {"vmin", 0.0},
-             {"kturb", 2.0},
-             {"ldref", 1.2},
-             {"kiload", 0.0},
-             {"fswitch", 0.0},
-             {"rselect", -2.0},
-             {"teng", 0.0},
+             {"k", 20.0},       {"r", 0.05},
+             {"t1", 0.20},      {"t2", 0.05},
+             {"t3", 0.50},      {"t4", 0.40},
+             {"t5", 0.40},      {"t6", 0.50},
+             {"t7", 0.20},      {"pmax", 2.0},
+             {"pmin", 0.0},     {"uo", 0.3},
+             {"uc", -0.25},     {"k1", 0.30},
+             {"k2", 0.0},       {"k3", 0.20},
+             {"k4", 0.0},       {"k5", 0.10},
+             {"k6", 0.0},       {"k7", 0.10},
+             {"k8", 0.0},       {"temporarydroop", 0.30},
+             {"tr", 5.0},       {"tf", 0.05},
+             {"tg", 0.50},      {"tw", 1.25},
+             {"velm", 0.2},     {"gmax", 1.20},
+             {"gmin", 0.0},     {"at", 1.2},
+             {"dturb", 0.2},    {"qnl", 0.08},
+             {"vmax", 2.0},     {"vmin", 0.0},
+             {"kturb", 2.0},    {"ldref", 1.2},
+             {"kiload", 0.0},   {"fswitch", 0.0},
+             {"rselect", -2.0}, {"teng", 0.0},
              {"dm", 0.0},
          }}) {
         setIfRecognized(governor, parameter, value);
@@ -203,13 +147,16 @@ int dynamicResidualMismatchCount(GridDynSimulation* simulation, double tolerance
                                      cDaeSolverMode) != 0) {
         return static_cast<int>(residual.size()) + 1;
     }
-    const auto mismatchCount = static_cast<int>(std::ranges::count_if(
-        residual, [tolerance](double value) { return std::abs(value) > tolerance; }));
+    const auto mismatchCount =
+        static_cast<int>(std::ranges::count_if(residual, [tolerance](double value) {
+            return std::abs(value) > tolerance;
+        }));
     if (mismatchCount > 0) {
         stringVec stateNames;
         simulation->getStateName(stateNames, cDaeSolverMode);
-        const auto mismatch = std::ranges::find_if(
-            residual, [tolerance](double value) { return std::abs(value) > tolerance; });
+        const auto mismatch = std::ranges::find_if(residual, [tolerance](double value) {
+            return std::abs(value) > tolerance;
+        });
         std::println("dynamic residual mismatch at state {}: {:e}",
                      static_cast<int>(mismatch - residual.begin()),
                      *mismatch);
@@ -240,9 +187,8 @@ void runInfiniteBusLoadStepCase(GridDynSimulationTestFixture& fixture,
                                 std::string_view solverMethod = "partitioned")
 {
     SCOPED_TRACE("machine=" + std::string(dynamicCase.machineModel) +
-                 ", exciter=" + std::string(dynamicCase.exciterModel) +
-                 ", governor=" + std::string(dynamicCase.governorModel) +
-                 ", solver=" + std::string(solverMethod));
+                 ", exciter=" + std::string(dynamicCase.exciterModel) + ", governor=" +
+                 std::string(dynamicCase.governorModel) + ", solver=" + std::string(solverMethod));
 
     fixture.gds = readSimXMLFile(std::string(DYN1_TEST_DIRECTORY "test_inf_bus.xml"));
     fixture.gds->consolePrintLevel = PrintLevel::NO_PRINT;
@@ -258,8 +204,8 @@ void runInfiniteBusLoadStepCase(GridDynSimulationTestFixture& fixture,
     generator->set("pmin", 0.0);
 
     auto factory = CoreObjectFactory::instance();
-    auto* machine = dynamic_cast<GenModel*>(
-        factory->createObject("genmodel", dynamicCase.machineModel));
+    auto* machine =
+        dynamic_cast<GenModel*>(factory->createObject("genmodel", dynamicCase.machineModel));
     ASSERT_NE(machine, nullptr);
     applyCommonMachineParameters(machine);
     if (solverMethod == "dae") {
@@ -396,8 +342,8 @@ void runInfiniteBusFaultCase(GridDynSimulationTestFixture& fixture,
     ASSERT_NE(generator, nullptr);
 
     auto factory = CoreObjectFactory::instance();
-    auto* machine = dynamic_cast<GenModel*>(
-        factory->createObject("genmodel", dynamicCase.machineModel));
+    auto* machine =
+        dynamic_cast<GenModel*>(factory->createObject("genmodel", dynamicCase.machineModel));
     ASSERT_NE(machine, nullptr);
     applyCommonMachineParameters(machine);
     setIfRecognized(machine, "xqpp", 0.22);
@@ -453,8 +399,9 @@ void runInfiniteBusFaultCase(GridDynSimulationTestFixture& fixture,
     std::vector<double> faultVoltages;
     fixture.gds->getVoltage(faultVoltages);
     ASSERT_GE(faultVoltages.size(), 2U);
-    EXPECT_TRUE(std::all_of(faultVoltages.begin(), faultVoltages.end(),
-                            [](double value) { return std::isfinite(value); }));
+    EXPECT_TRUE(std::all_of(faultVoltages.begin(), faultVoltages.end(), [](double value) {
+        return std::isfinite(value);
+    }));
     EXPECT_GT(faultVoltages[1], 0.05);
 
     // Check immediately after fault clearing, then run long enough to verify
@@ -775,11 +722,12 @@ TEST_F(DynamicSystemTests, InfiniteBusLoadStepTargetMachineDaeSweep)
         {"type1", "basic"},
         {"type1", "ieesgo"},
     }};
-    for (const auto machineModel : std::array<std::string_view, 4>{
-             {"genrou", "genroe", "gensal", "gensae"}}) {
+    for (const auto machineModel :
+         std::array<std::string_view, 4>{{"genrou", "genroe", "gensal", "gensae"}}) {
         for (const auto& controllerCase : controllerCases) {
-            runInfiniteBusLoadStepCase(
-                *this, {machineModel, controllerCase.first, controllerCase.second}, "dae");
+            runInfiniteBusLoadStepCase(*this,
+                                       {machineModel, controllerCase.first, controllerCase.second},
+                                       "dae");
         }
     }
 }
@@ -790,24 +738,24 @@ TEST_F(DynamicSystemTests, InfiniteBusLoadStepEsst1aDaeSweep)
     // load-step matrix.  Keep this separate while the newer exciter families
     // are being brought in so a model-specific initialization or Jacobian issue
     // remains easy to identify.
-    for (const auto machineModel : std::array<std::string_view, 4>{
-             {"genrou", "genroe", "gensal", "gensae"}}) {
+    for (const auto machineModel :
+         std::array<std::string_view, 4>{{"genrou", "genroe", "gensal", "gensae"}}) {
         runInfiniteBusLoadStepCase(*this, {machineModel, "esst1a", "tgov1"}, "dae");
     }
 }
 
 TEST_F(DynamicSystemTests, InfiniteBusLoadStepEsst3aDaeSweep)
 {
-    for (const auto machineModel : std::array<std::string_view, 4>{
-             {"genrou", "genroe", "gensal", "gensae"}}) {
+    for (const auto machineModel :
+         std::array<std::string_view, 4>{{"genrou", "genroe", "gensal", "gensae"}}) {
         runInfiniteBusLoadStepCase(*this, {machineModel, "esst3a", "tgov1"}, "dae");
     }
 }
 
 TEST_F(DynamicSystemTests, InfiniteBusLoadStepEsst4bDaeSweep)
 {
-    for (const auto machineModel : std::array<std::string_view, 4>{
-             {"genrou", "genroe", "gensal", "gensae"}}) {
+    for (const auto machineModel :
+         std::array<std::string_view, 4>{{"genrou", "genroe", "gensal", "gensae"}}) {
         runInfiniteBusLoadStepCase(*this, {machineModel, "esst4b", "tgov1"}, "dae");
     }
 }
@@ -817,30 +765,30 @@ TEST_F(DynamicSystemTests, InfiniteBusLoadStepGgov1DaeSweep)
     // Mix the general-purpose turbine governor with each target machine and a
     // newer exciter.  This covers machine/controller signal routing as well as
     // the governor's algebraic mechanical-power output.
-    for (const auto& dynamicCase : std::array<DynamicModelCase, 4>{
-             {{"genrou", "type1", "ggov1"},
-              {"genroe", "ieeex1", "ggov1"},
-              {"gensal", "esst1a", "ggov1"},
-              {"gensae", "esst3a", "ggov1"}}}) {
+    for (const auto& dynamicCase :
+         std::array<DynamicModelCase, 4>{{{"genrou", "type1", "ggov1"},
+                                          {"genroe", "ieeex1", "ggov1"},
+                                          {"gensal", "esst1a", "ggov1"},
+                                          {"gensae", "esst3a", "ggov1"}}}) {
         runInfiniteBusLoadStepCase(*this, dynamicCase, "dae");
     }
 }
 
 TEST_F(DynamicSystemTests, InfiniteBusLoadStepHydroAndGasGovernorDaeSweep)
 {
-    for (const auto& dynamicCase : std::array<DynamicModelCase, 4>{
-             {{"gensal", "esst4b", "hygov"},
-              {"gensae", "esst1a", "hygov"},
-              {"genrou", "esst3a", "gast"},
-              {"genroe", "ieeex1", "gast"}}}) {
+    for (const auto& dynamicCase :
+         std::array<DynamicModelCase, 4>{{{"gensal", "esst4b", "hygov"},
+                                          {"gensae", "esst1a", "hygov"},
+                                          {"genrou", "esst3a", "gast"},
+                                          {"genroe", "ieeex1", "gast"}}}) {
         runInfiniteBusLoadStepCase(*this, dynamicCase, "dae");
     }
 }
 
 TEST_F(DynamicSystemTests, InfiniteBusLoadStepIeeeG1DaeSweep)
 {
-    for (const auto machineModel : std::array<std::string_view, 4>{
-             {"genrou", "genroe", "gensal", "gensae"}}) {
+    for (const auto machineModel :
+         std::array<std::string_view, 4>{{"genrou", "genroe", "gensal", "gensae"}}) {
         runInfiniteBusLoadStepCase(*this, {machineModel, "esst3a", "ieeeg1"}, "dae");
     }
 }
@@ -858,8 +806,8 @@ TEST_F(DynamicSystemTests, InfiniteBusLoadStepAdditionalExciterDaeSweep)
         "exst1",
         "expic1",
     }};
-    for (const auto machineModel : std::array<std::string_view, 4>{
-             {"genrou", "genroe", "gensal", "gensae"}}) {
+    for (const auto machineModel :
+         std::array<std::string_view, 4>{{"genrou", "genroe", "gensal", "gensae"}}) {
         for (const auto exciterModel : exciters) {
             runInfiniteBusLoadStepCase(*this, {machineModel, exciterModel, "tgov1"}, "dae");
         }
@@ -883,8 +831,8 @@ TEST_F(DynamicSystemTests, InfiniteBusLoadStepClassicExciterDaeSweep)
         "scrx",
         "exac4",
     }};
-    for (const auto machineModel : std::array<std::string_view, 4>{
-             {"genrou", "genroe", "gensal", "gensae"}}) {
+    for (const auto machineModel :
+         std::array<std::string_view, 4>{{"genrou", "genroe", "gensal", "gensae"}}) {
         for (const auto exciterModel : exciters) {
             runInfiniteBusLoadStepCase(*this, {machineModel, exciterModel, "tgov1"}, "dae");
         }
@@ -897,8 +845,8 @@ TEST_F(DynamicSystemTests, InfiniteBusLoadStepAcExciterDaeSweep)
     // their algebraic rectifier paths need a separate KLU investigation.  The
     // coupled DAE path is still valuable coverage for these newer exciters.
     constexpr std::array<std::string_view, 2> exciters{{"ac7b", "ac8b"}};
-    for (const auto machineModel : std::array<std::string_view, 4>{
-             {"genrou", "genroe", "gensal", "gensae"}}) {
+    for (const auto machineModel :
+         std::array<std::string_view, 4>{{"genrou", "genroe", "gensal", "gensae"}}) {
         for (const auto exciterModel : exciters) {
             runInfiniteBusLoadStepCase(*this, {machineModel, exciterModel, "tgov1"}, "dae");
         }
@@ -913,8 +861,8 @@ TEST_F(DynamicSystemTests, InfiniteBusLoadStepAdditionalGovernorDaeSweep)
         "ieeesteamnr",
         "ieeesteamtcsr",
     }};
-    for (const auto machineModel : std::array<std::string_view, 4>{
-             {"genrou", "genroe", "gensal", "gensae"}}) {
+    for (const auto machineModel :
+         std::array<std::string_view, 4>{{"genrou", "genroe", "gensal", "gensae"}}) {
         for (const auto governorModel : governors) {
             // Keep this first matrix on the well-conditioned Type-1 exciter so
             // a governor failure is not confused with the separate high-gain

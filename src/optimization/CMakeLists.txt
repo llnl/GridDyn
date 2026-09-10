@@ -9,8 +9,8 @@
 
 # project  name
 
-set(opt_sim_headers optHelperClasses.h gridDynOpt.h gridOptObjects.h optObjectFactory.h
-                    optimizerInterface.h
+set(opt_sim_headers optHelperClasses.h gridDynOpt.h gridOptObjects.h nativeProblem.h
+                    nativeDenseSolver.h optObjectFactory.h optimizerInterface.h
 )
 
 set(opt_sim_sources
@@ -18,6 +18,7 @@ set(opt_sim_sources
     optHelperClasses.cpp
     gridDynOpt.cpp
     gridOptObjects.cpp
+    nativeDenseSolver.cpp
     optimizerInterface.cpp
     optObjectFactory.cpp
 )

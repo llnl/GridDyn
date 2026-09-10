@@ -8,6 +8,7 @@
 
 #include "core/HelperObject.h"
 #include "griddyn/griddyn-config.h"
+#include "nativeDenseSolver.h"
 #include "optHelperClasses.h"
 #include "utilities/MatrixDataSparse.hpp"
 #include "utilities/vectData.hpp"
@@ -213,22 +214,69 @@ class EconomicDispatchOptimizer: public OptimizerInterface {
 class NativeOptimizer: public OptimizerInterface {
   private:
     bool mProblemDataLoaded = false;
+    bool mSolutionValid = false;
+    std::uint64_t mProblemVersion = 0;
+    NativeQpProblem mProblem;
+    NativeSolveResult mLastSolveResult;
 
   public:
+    /** Construct a native optimizer with the named optimizer registration. */
     explicit NativeOptimizer(std::string_view optName = "native");
 
+    /** Construct a native optimizer bound to a GridDyn optimization model. */
     NativeOptimizer(GridDynOptimization* gdo, const OptimizationMode& oMode);
 
     /** @brief assemble the current optimization problem into optimizer-owned storage
      *
-     * This is the setup stage for the compact built-in solver.  It deliberately
-     * stops before numerical solve math: the native optimizer should consume
-     * the same distributed objective, bound, constraint, residual, gradient,
-     * and Jacobian callbacks as external solvers.
+     * This is the setup stage for the compact built-in solver. It invokes the
+     * distributed objective, bound, constraint, residual, gradient, and
+     * Jacobian callbacks, then copies their results into an owned,
+     * solver-neutral snapshot. It deliberately stops before numerical solve
+     * math so the same snapshot can later be passed to a different backend.
+     *
+     * @param time time at which GridDyn callbacks are evaluated.
+     * @return FUNCTION_EXECUTION_SUCCESS when the complete snapshot is valid.
      */
     virtual int prepareProblemData(double time);
 
+    /**
+     * Return the last successfully materialized solver-neutral problem.
+     * @return an immutable snapshot owned by this optimizer; it is unchanged
+     *   until the next successful `prepareProblemData()` call.
+     */
+    const NativeQpProblem& problem() const { return mProblem; }
+    /**
+     * Return diagnostics for the most recent native solve attempt.
+     * @return the native solver result, including status, candidate values, and
+     *   numerical diagnostics.
+     */
+    const NativeSolveResult& lastSolveResult() const { return mLastSolveResult; }
+
+    /**
+     * Materialize, solve, and callback-validate the current DC problem.
+     *
+     * The candidate remains in optimizer-owned storage and is not committed to
+     * physical GridDyn objects until `writeBack()` is called.
+     *
+     * @param tStop time at which callbacks are evaluated.
+     * @param tReturn receives the time associated with the accepted result.
+     * @return FUNCTION_EXECUTION_SUCCESS only for a validated optimal result.
+     */
     int solve(double tStop, double& tReturn) override;
+
+    /**
+     * Commit the last validated native solution to the physical model.
+     * @param time solution time; `kNullVal` uses the most recent solve time.
+     * @return FUNCTION_EXECUTION_SUCCESS when the commit succeeds.
+     */
+    int writeBack(double time = kNullVal) override;
+
+    /**
+     * Return base optimizer properties plus native solver diagnostics.
+     * @param param property name, such as `problem_loaded`, `solution_valid`,
+     *   or `objective_value`.
+     * @return requested value, or the base-class null value for unknown names.
+     */
     double get(std::string_view param) const override;
 };
 

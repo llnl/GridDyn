@@ -11,10 +11,14 @@
 #include "gmlc/utilities/stringConversion.h"
 #include "gridDynOpt.h"
 #include "gridOptObjects.h"
+#include "models/gridAreaOpt.h"
+#include "models/gridBusOpt.h"
+#include "models/gridGenOpt.h"
 #include <algorithm>
 #include <cmath>
 #include <functional>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <memory>
 #include <string>
@@ -54,6 +58,121 @@ namespace {
     {
         return dispatchVariable.mLinearCost +
             (2.0 * dispatchVariable.mQuadraticCost * dispatchVariable.mLower);
+    }
+
+    double nativeLowerBound(double value)
+    {
+        if (std::isinf(value)) {
+            return (value < 0.0) ? -std::numeric_limits<double>::infinity() : value;
+        }
+        return (value <= -kFiniteBoundLimit) ? -std::numeric_limits<double>::infinity() : value;
+    }
+
+    double nativeUpperBound(double value)
+    {
+        if (std::isinf(value)) {
+            return (value > 0.0) ? std::numeric_limits<double>::infinity() : value;
+        }
+        return (value >= kFiniteBoundLimit) ? std::numeric_limits<double>::infinity() : value;
+    }
+
+    bool nativeNearlyEqual(double lhs, double rhs)
+    {
+        constexpr double comparisonTolerance = 1e-8;
+        if (lhs == rhs) {
+            return true;
+        }
+        if (!std::isfinite(lhs) || !std::isfinite(rhs)) {
+            return false;
+        }
+        return std::abs(lhs - rhs) <=
+            comparisonTolerance * (1.0 + (std::max)(std::abs(lhs), std::abs(rhs)));
+    }
+
+    std::vector<double> nativeValidationPoint(const NativeQpProblem& problem)
+    {
+        auto point = problem.initialValues;
+        for (std::size_t column = 0; column < problem.variableCount; ++column) {
+            const double lower = problem.variableLowerBounds[column];
+            const double upper = problem.variableUpperBounds[column];
+            if (nativeNearlyEqual(lower, upper)) {
+                continue;
+            }
+            const double step = 0.03125 * (1.0 + std::abs(point[column]));
+            if (!std::isfinite(upper) || (point[column] + step <= upper)) {
+                point[column] += step;
+            } else if (!std::isfinite(lower) || (point[column] - step >= lower)) {
+                point[column] -= step;
+            }
+        }
+        return point;
+    }
+
+    bool hasPiecewiseLinearCost(const GridOptObject* object)
+    {
+        if (object == nullptr) {
+            return false;
+        }
+        if (const auto* generator = dynamic_cast<const GridGenOpt*>(object);
+            generator != nullptr) {
+            return generator->optFlags[GridGenOpt::PIECEWISE_LINEAR_COST];
+        }
+        if (const auto* area = dynamic_cast<const GridAreaOpt*>(object); area != nullptr) {
+            for (index_t index = 0;; ++index) {
+                const auto* child = area->getArea(index);
+                if (child == nullptr) {
+                    break;
+                }
+                if (hasPiecewiseLinearCost(child)) {
+                    return true;
+                }
+            }
+            for (index_t index = 0;; ++index) {
+                const auto* child = area->getBus(index);
+                if (child == nullptr) {
+                    break;
+                }
+                if (hasPiecewiseLinearCost(child)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        if (const auto* bus = dynamic_cast<const GridBusOpt*>(object); bus != nullptr) {
+            for (index_t index = 0;; ++index) {
+                const auto* child = bus->getGen(index);
+                if (child == nullptr) {
+                    break;
+                }
+                if (hasPiecewiseLinearCost(child)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    const char* nativeSolveStatusName(NativeSolveStatus status)
+    {
+        switch (status) {
+            case NativeSolveStatus::OPTIMAL:
+                return "optimal";
+            case NativeSolveStatus::INFEASIBLE:
+                return "infeasible";
+            case NativeSolveStatus::UNBOUNDED:
+                return "unbounded";
+            case NativeSolveStatus::SINGULAR:
+                return "singular";
+            case NativeSolveStatus::NUMERICAL_FAILURE:
+                return "numerical_failure";
+            case NativeSolveStatus::UNSUPPORTED:
+                return "unsupported";
+            case NativeSolveStatus::NONCONVEX:
+                return "nonconvex";
+            case NativeSolveStatus::ITERATION_LIMIT:
+                return "iteration_limit";
+        }
+        return "unknown";
     }
 }  // namespace
 
@@ -736,6 +855,28 @@ NativeOptimizer::NativeOptimizer(GridDynOptimization* gdo, const OptimizationMod
 
 int NativeOptimizer::prepareProblemData(double time)
 {
+    mProblemDataLoaded = false;
+    mSolutionValid = false;
+    mLastSolveResult = NativeSolveResult{};
+    const auto reject = [this](std::string message) {
+        logMessage(FUNCTION_EXECUTION_FAILURE, std::move(message));
+        return FUNCTION_EXECUTION_FAILURE;
+    };
+
+    if (mode.flowMode != FlowModel::DC) {
+        return reject("native optimizer supports only the continuous DC flow model");
+    }
+    if (mode.linMode == LinearityMode::NONLINEAR) {
+        return reject("native optimizer does not support nonlinear optimization modes");
+    }
+    if ((mode.linMode != LinearityMode::LINEAR) &&
+        (mode.linMode != LinearityMode::QUADRATIC)) {
+        return reject("native optimizer received an unknown linearity mode");
+    }
+    if (hasPiecewiseLinearCost(rootOptimizationObject())) {
+        return reject("native optimizer does not support piecewise-linear generator costs");
+    }
+
     if (!mInitialized) {
         initialize(time);
     }
@@ -753,7 +894,12 @@ int NativeOptimizer::prepareProblemData(double time)
     if (loadTolerances() != FUNCTION_EXECUTION_SUCCESS) {
         return FUNCTION_EXECUTION_FAILURE;
     }
-    if (loadQuadraticObjective(time) != FUNCTION_EXECUTION_SUCCESS) {
+    quadraticObjective.reset();
+    if (mode.linMode == LinearityMode::LINEAR) {
+        if (loadLinearObjective(time) != FUNCTION_EXECUTION_SUCCESS) {
+            return FUNCTION_EXECUTION_FAILURE;
+        }
+    } else if (loadQuadraticObjective(time) != FUNCTION_EXECUTION_SUCCESS) {
         return FUNCTION_EXECUTION_FAILURE;
     }
     linearObjective.sortIndex();
@@ -783,6 +929,228 @@ int NativeOptimizer::prepareProblemData(double time)
     constraintJacobian.sortIndex();
     constraintJacobian.compact();
 
+    NativeQpProblem candidate;
+    candidate.modelVersion = mProblemVersion + 1;
+    candidate.mode = mode;
+    candidate.variableCount = static_cast<std::size_t>(mVariableCount);
+    candidate.constraintCount = static_cast<std::size_t>(mConstraintCount);
+    candidate.initialValues = values;
+    candidate.variableLowerBounds.resize(candidate.variableCount);
+    candidate.variableUpperBounds.resize(candidate.variableCount);
+    candidate.linearObjective.assign(candidate.variableCount, 0.0);
+    candidate.quadraticObjective.assign(candidate.variableCount, 0.0);
+    candidate.variableTypes = variableType;
+    candidate.tolerances = tolerances;
+    candidate.initialGradient = gradient;
+    candidate.initialConstraintValues = constraintValues;
+
+    for (std::size_t column = 0; column < candidate.variableCount; ++column) {
+        candidate.variableLowerBounds[column] = nativeLowerBound(lowerBounds[column]);
+        candidate.variableUpperBounds[column] = nativeUpperBound(upperBounds[column]);
+        candidate.linearObjective[column] = linearObjective.at(static_cast<index_t>(column));
+        if (mode.linMode == LinearityMode::QUADRATIC) {
+            candidate.quadraticObjective[column] =
+                quadraticObjective.at(static_cast<index_t>(column));
+        }
+    }
+
+    candidate.constraintLowerBounds.resize(candidate.constraintCount);
+    candidate.constraintUpperBounds.resize(candidate.constraintCount);
+    candidate.constraintOffsets.assign(candidate.constraintCount, 0.0);
+    candidate.constraintMatrix.assign(candidate.constraintCount * candidate.variableCount, 0.0);
+    std::vector<bool> explicitRows(candidate.constraintCount, false);
+    for (const auto& element : linearConstraints) {
+        if ((element.row < 0) || (element.col < 0) ||
+            (static_cast<std::size_t>(element.row) >= candidate.constraintCount) ||
+            (static_cast<std::size_t>(element.col) >= candidate.variableCount)) {
+            return reject("native optimizer received an explicit linear row outside the problem dimensions");
+        }
+        explicitRows[static_cast<std::size_t>(element.row)] = true;
+    }
+    for (std::size_t row = 0; row < candidate.constraintCount; ++row) {
+        candidate.constraintLowerBounds[row] =
+            nativeLowerBound(constraintLowerBounds[row]);
+        candidate.constraintUpperBounds[row] =
+            nativeUpperBound(constraintUpperBounds[row]);
+    }
+
+    const auto loadDenseMatrix = [&candidate, &reject](const MatrixDataSparse<double>& sparseMatrix,
+                                                       std::vector<double>& dense) {
+        for (const auto& element : sparseMatrix) {
+            if ((element.row < 0) || (element.col < 0) ||
+                (static_cast<std::size_t>(element.row) >= candidate.constraintCount) ||
+                (static_cast<std::size_t>(element.col) >= candidate.variableCount)) {
+                reject("native optimizer received a Jacobian entry outside the problem dimensions");
+                return false;
+            }
+            if (!std::isfinite(element.data)) {
+                reject("native optimizer received a non-finite Jacobian coefficient");
+                return false;
+            }
+            dense[static_cast<std::size_t>(element.row) * candidate.variableCount +
+                 static_cast<std::size_t>(element.col)] += element.data;
+        }
+        return true;
+    };
+    if (!loadDenseMatrix(constraintJacobian, candidate.constraintMatrix)) {
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+
+    for (std::size_t row = 0; row < candidate.constraintCount; ++row) {
+        double rowAtInitial = 0.0;
+        const auto rowStart = row * candidate.variableCount;
+        for (std::size_t column = 0; column < candidate.variableCount; ++column) {
+            rowAtInitial += candidate.constraintMatrix[rowStart + column] * values[column];
+        }
+        candidate.constraintOffsets[row] = constraintValues[row] - rowAtInitial;
+        if (explicitRows[row]) {
+            // The legacy explicit-row callback exports bounds on A*x, while
+            // the canonical callback bounds apply to A*x + offset.
+            candidate.constraintLowerBounds[row] += candidate.constraintOffsets[row];
+            candidate.constraintUpperBounds[row] += candidate.constraintOffsets[row];
+        }
+    }
+
+    std::vector<double> zeroValues(candidate.variableCount, 0.0);
+    candidate.objectiveConstant = objectiveFunction(time, zeroValues.data());
+    if (!std::isfinite(candidate.objectiveConstant)) {
+        return reject("native optimizer received a non-finite objective constant");
+    }
+
+    candidate.variableNames.resize(candidate.variableCount);
+    for (std::size_t column = 0; column < candidate.variableCount; ++column) {
+        candidate.variableNames[column] = "x[" + std::to_string(column) + "]";
+    }
+    if (auto* root = rootOptimizationObject(); root != nullptr) {
+        stringVec objectiveNames;
+        root->getObjectiveNames(objectiveNames, mode);
+        for (std::size_t column = 0;
+             (column < candidate.variableCount) && (column < objectiveNames.size());
+             ++column) {
+            if (!objectiveNames[column].empty()) {
+                candidate.variableNames[column] = objectiveNames[column];
+            }
+        }
+    }
+    candidate.constraintNames.resize(candidate.constraintCount);
+    for (std::size_t row = 0; row < candidate.constraintCount; ++row) {
+        candidate.constraintNames[row] = "constraint[" + std::to_string(row) + "]";
+    }
+
+    std::string validationError;
+    if (!candidate.validate(&validationError)) {
+        return reject("native optimizer problem validation failed: " + validationError);
+    }
+
+    for (std::size_t column = 0; column < candidate.variableCount; ++column) {
+        if (candidate.variableTypes[column] != CONTINUOUS_OBJECTIVE_VARIABLE) {
+            candidate.classification = NativeProblemClass::UNSUPPORTED_INTEGER;
+            return reject("native optimizer supports continuous variables only");
+        }
+    }
+
+    bool hasQuadraticTerm = false;
+    for (const auto quadraticCoefficient : candidate.quadraticObjective) {
+        if (quadraticCoefficient < -1e-12) {
+            candidate.classification = NativeProblemClass::NONCONVEX;
+            return reject("native optimizer requires a convex diagonal quadratic objective");
+        }
+        hasQuadraticTerm = hasQuadraticTerm || (std::abs(quadraticCoefficient) > 1e-12);
+    }
+    candidate.classification = hasQuadraticTerm ?
+        NativeProblemClass::SUPPORTED_CONVEX_DIAGONAL_QUADRATIC :
+        NativeProblemClass::SUPPORTED_LINEAR;
+
+    const auto validationPoint = nativeValidationPoint(candidate);
+    std::vector<double> validationConstraints(candidate.constraintCount, 0.0);
+    if (constraintFunction(time, validationPoint.data(), validationConstraints.data()) !=
+        FUNCTION_EXECUTION_SUCCESS) {
+        return reject("native optimizer could not evaluate constraints at its validation point");
+    }
+    std::vector<double> validationGradient(candidate.variableCount, 0.0);
+    if (gradientFunction(time, validationPoint.data(), validationGradient.data()) !=
+        FUNCTION_EXECUTION_SUCCESS) {
+        return reject("native optimizer could not evaluate the objective gradient at its validation point");
+    }
+    const double validationObjective = objectiveFunction(time, validationPoint.data());
+    if (!std::isfinite(validationObjective)) {
+        return reject("native optimizer received a non-finite objective at its validation point");
+    }
+    if (!nativeNearlyEqual(candidate.objectiveValue(candidate.initialValues),
+                           objectiveFunction(time, candidate.initialValues.data()))) {
+        return reject("native optimizer objective coefficients do not match the objective callback");
+    }
+    if (!nativeNearlyEqual(candidate.objectiveValue(validationPoint), validationObjective)) {
+        return reject("native optimizer objective is not a linear or diagonal quadratic function");
+    }
+    const auto initialGradient = candidate.objectiveGradient(candidate.initialValues);
+    const auto pointGradient = candidate.objectiveGradient(validationPoint);
+    for (std::size_t column = 0; column < candidate.variableCount; ++column) {
+        if (!nativeNearlyEqual(initialGradient[column], candidate.initialGradient[column]) ||
+            !nativeNearlyEqual(pointGradient[column], validationGradient[column])) {
+            return reject("native optimizer objective gradient does not match its coefficients");
+        }
+    }
+
+    for (std::size_t row = 0; row < candidate.constraintCount; ++row) {
+        if (!nativeNearlyEqual(candidate.constraintValue(row, candidate.initialValues),
+                               candidate.initialConstraintValues[row]) ||
+            !nativeNearlyEqual(candidate.constraintValue(row, validationPoint),
+                               validationConstraints[row])) {
+            return reject("native optimizer constraint callback is not affine in the materialized variables");
+        }
+    }
+
+    std::vector<double> validationJacobian(candidate.constraintCount * candidate.variableCount, 0.0);
+    MatrixDataSparse<double> pointJacobian;
+    if (constraintJacobianFunction(time, validationPoint.data(), pointJacobian) !=
+        FUNCTION_EXECUTION_SUCCESS) {
+        return reject("native optimizer could not evaluate the constraint Jacobian at its validation point");
+    }
+    pointJacobian.sortIndex();
+    pointJacobian.compact();
+    if (!loadDenseMatrix(pointJacobian, validationJacobian)) {
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+    for (std::size_t entry = 0; entry < candidate.constraintMatrix.size(); ++entry) {
+        if (!nativeNearlyEqual(candidate.constraintMatrix[entry], validationJacobian[entry])) {
+            return reject("native optimizer constraint Jacobian is not constant");
+        }
+    }
+
+    for (const auto& element : linearConstraints) {
+        if ((element.row < 0) || (element.col < 0) ||
+            (static_cast<std::size_t>(element.row) >= candidate.constraintCount) ||
+            (static_cast<std::size_t>(element.col) >= candidate.variableCount)) {
+            return reject("native optimizer received an explicit linear row outside the problem dimensions");
+        }
+        if (!std::isfinite(element.data)) {
+            return reject("native optimizer received a non-finite explicit linear coefficient");
+        }
+        const auto row = static_cast<std::size_t>(element.row);
+        const auto column = static_cast<std::size_t>(element.col);
+        if (!nativeNearlyEqual(element.data,
+                               candidate.constraintMatrix[row * candidate.variableCount + column])) {
+            return reject("native optimizer explicit linear rows disagree with the callback Jacobian");
+        }
+    }
+    for (std::size_t row = 0; row < candidate.constraintCount; ++row) {
+        if (!explicitRows[row]) {
+            continue;
+        }
+        const double explicitLower = nativeLowerBound(constraintLowerBounds[row]);
+        const double explicitUpper = nativeUpperBound(constraintUpperBounds[row]);
+        if (!nativeNearlyEqual(explicitLower, candidate.solverConstraintLowerBound(row)) ||
+            !nativeNearlyEqual(explicitUpper, candidate.solverConstraintUpperBound(row))) {
+            return reject("native optimizer explicit row bounds disagree with the affine callback row");
+        }
+    }
+
+    candidate.valid = true;
+    candidate.validationError.clear();
+    mProblemVersion = candidate.modelVersion;
+    mProblem = std::move(candidate);
+
     solveTime = time;
     mProblemDataLoaded = true;
     return FUNCTION_EXECUTION_SUCCESS;
@@ -790,13 +1158,161 @@ int NativeOptimizer::prepareProblemData(double time)
 
 int NativeOptimizer::solve(double tStop, double& tReturn)
 {
+    mSolutionValid = false;
+    tReturn = tStop;
     if (prepareProblemData(tStop) != FUNCTION_EXECUTION_SUCCESS) {
+        mLastSolveResult.status = NativeSolveStatus::NUMERICAL_FAILURE;
+        mLastSolveResult.message = lastErrorString;
         return FUNCTION_EXECUTION_FAILURE;
     }
-    tReturn = tStop;
-    logMessage(FUNCTION_EXECUTION_FAILURE,
-               "native optimizer problem assembly is implemented; solve math is not implemented");
-    return FUNCTION_EXECUTION_FAILURE;
+
+    NativeDenseSolverOptions options;
+    options.maxIterations = (max_iterations > 0) ? static_cast<std::size_t>(max_iterations) : 1U;
+    options.feasibilityTolerance = rtol;
+    options.optimalityTolerance = rtol;
+    // NativeDenseSolver works from the immutable solver-neutral snapshot. It
+    // performs scaling, presolve, Phase-I, and the active-set KKT iterations;
+    // this layer remains responsible for validating the resulting vector
+    // against the original GridDyn callbacks.
+    NativeDenseSolver solver;
+    mLastSolveResult = solver.solve(mProblem, options);
+    if (!mLastSolveResult.successful()) {
+        logMessage(FUNCTION_EXECUTION_FAILURE,
+                   std::string{"native optimizer solve failed with status "} +
+                       nativeSolveStatusName(mLastSolveResult.status) + ": " +
+                       mLastSolveResult.message);
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+
+    const auto rejectCandidate = [this](std::string message) {
+        mSolutionValid = false;
+        mLastSolveResult.status = NativeSolveStatus::NUMERICAL_FAILURE;
+        mLastSolveResult.message = std::move(message);
+        logMessage(FUNCTION_EXECUTION_FAILURE, mLastSolveResult.message);
+        return FUNCTION_EXECUTION_FAILURE;
+    };
+    const auto& candidate = mLastSolveResult.values;
+    if (candidate.size() != mProblem.variableCount ||
+        !std::all_of(candidate.begin(), candidate.end(), [](double value) {
+            return std::isfinite(value);
+        })) {
+        return rejectCandidate("native optimizer returned an invalid candidate vector");
+    }
+
+    const double callbackObjective = objectiveFunction(tStop, candidate.data());
+    if (!std::isfinite(callbackObjective) ||
+        !nativeNearlyEqual(callbackObjective, mLastSolveResult.objectiveValue) ||
+        !nativeNearlyEqual(callbackObjective, mProblem.objectiveValue(candidate))) {
+        return rejectCandidate("native optimizer candidate objective failed callback validation");
+    }
+
+    std::vector<double> callbackGradient(mProblem.variableCount, 0.0);
+    if (gradientFunction(tStop, candidate.data(), callbackGradient.data()) !=
+        FUNCTION_EXECUTION_SUCCESS) {
+        return rejectCandidate("native optimizer could not validate the candidate gradient");
+    }
+    const auto nativeGradient = mProblem.objectiveGradient(candidate);
+    for (std::size_t column = 0; column < mProblem.variableCount; ++column) {
+        if (!std::isfinite(callbackGradient[column]) ||
+            !nativeNearlyEqual(callbackGradient[column], nativeGradient[column])) {
+            return rejectCandidate("native optimizer candidate gradient failed callback validation");
+        }
+    }
+
+    std::vector<double> callbackConstraints(mProblem.constraintCount, 0.0);
+    if (constraintFunction(tStop, candidate.data(), callbackConstraints.data()) !=
+        FUNCTION_EXECUTION_SUCCESS) {
+        return rejectCandidate("native optimizer could not validate the candidate constraints");
+    }
+    double maximumConstraintViolation = 0.0;
+    for (std::size_t row = 0; row < mProblem.constraintCount; ++row) {
+        const double nativeValue = mProblem.constraintValue(row, candidate);
+        if (!std::isfinite(callbackConstraints[row]) ||
+            !nativeNearlyEqual(callbackConstraints[row], nativeValue)) {
+            return rejectCandidate("native optimizer candidate constraint failed callback validation");
+        }
+        const double lower = mProblem.constraintLowerBounds[row];
+        const double upper = mProblem.constraintUpperBounds[row];
+        if (std::isfinite(lower)) {
+            maximumConstraintViolation =
+                (std::max)(maximumConstraintViolation, lower - callbackConstraints[row]);
+        }
+        if (std::isfinite(upper)) {
+            maximumConstraintViolation =
+                (std::max)(maximumConstraintViolation, callbackConstraints[row] - upper);
+        }
+    }
+    maximumConstraintViolation = (std::max)(0.0, maximumConstraintViolation);
+    if (maximumConstraintViolation > options.feasibilityTolerance) {
+        return rejectCandidate("native optimizer candidate violates a constraint bound");
+    }
+
+    double maximumBoundViolation = 0.0;
+    for (std::size_t column = 0; column < mProblem.variableCount; ++column) {
+        const double value = candidate[column];
+        const double lower = mProblem.variableLowerBounds[column];
+        const double upper = mProblem.variableUpperBounds[column];
+        if (std::isfinite(lower)) {
+            maximumBoundViolation = (std::max)(maximumBoundViolation, lower - value);
+        }
+        if (std::isfinite(upper)) {
+            maximumBoundViolation = (std::max)(maximumBoundViolation, value - upper);
+        }
+    }
+    maximumBoundViolation = (std::max)(0.0, maximumBoundViolation);
+    if (maximumBoundViolation > options.feasibilityTolerance) {
+        return rejectCandidate("native optimizer candidate violates a variable bound");
+    }
+
+    MatrixDataSparse<double> callbackJacobian;
+    if (constraintJacobianFunction(tStop, candidate.data(), callbackJacobian) !=
+        FUNCTION_EXECUTION_SUCCESS) {
+        return rejectCandidate("native optimizer could not validate the candidate Jacobian");
+    }
+    callbackJacobian.sortIndex();
+    callbackJacobian.compact();
+    std::vector<double> denseJacobian(mProblem.constraintCount * mProblem.variableCount, 0.0);
+    for (const auto& element : callbackJacobian) {
+        if ((element.row < 0) || (element.col < 0) ||
+            (static_cast<std::size_t>(element.row) >= mProblem.constraintCount) ||
+            (static_cast<std::size_t>(element.col) >= mProblem.variableCount) ||
+            !std::isfinite(element.data)) {
+            return rejectCandidate("native optimizer candidate Jacobian has invalid entries");
+        }
+        denseJacobian[static_cast<std::size_t>(element.row) * mProblem.variableCount +
+                      static_cast<std::size_t>(element.col)] += element.data;
+    }
+    for (std::size_t entry = 0; entry < denseJacobian.size(); ++entry) {
+        if (!nativeNearlyEqual(denseJacobian[entry],
+                               mProblem.constraintMatrix[entry])) {
+            return rejectCandidate("native optimizer candidate Jacobian failed callback validation");
+        }
+    }
+
+    // Do not expose a candidate as solved until every callback and bound check
+    // has passed. In particular, a numerically feasible native vector is not
+    // enough if the physical model's callback representation has drifted.
+    mLastSolveResult.maximumConstraintViolation = maximumConstraintViolation;
+    mLastSolveResult.maximumBoundViolation = maximumBoundViolation;
+    values = candidate;
+    gradient = std::move(callbackGradient);
+    constraintValues = std::move(callbackConstraints);
+    constraintJacobian = std::move(callbackJacobian);
+    mSolutionValid = true;
+    solveTime = tStop;
+    lastErrorCode = FUNCTION_EXECUTION_SUCCESS;
+    lastErrorString.clear();
+    return FUNCTION_EXECUTION_SUCCESS;
+}
+
+int NativeOptimizer::writeBack(double time)
+{
+    if (!mSolutionValid || !mLastSolveResult.successful()) {
+        logMessage(FUNCTION_EXECUTION_FAILURE,
+                   "native optimizer writeBack requires a validated optimal solution");
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+    return OptimizerInterface::writeBack(time);
 }
 
 double NativeOptimizer::get(std::string_view param) const
@@ -806,6 +1322,33 @@ double NativeOptimizer::get(std::string_view param) const
     }
     if ((param == "native_solver") || (param == "native")) {
         return 1.0;
+    }
+    if ((param == "solution_valid") || (param == "optimal")) {
+        return mSolutionValid ? 1.0 : 0.0;
+    }
+    if ((param == "solve_status") || (param == "status")) {
+        return static_cast<double>(mLastSolveResult.status);
+    }
+    if ((param == "objective") || (param == "objective_value")) {
+        return mLastSolveResult.objectiveValue;
+    }
+    if ((param == "primal_violation") || (param == "constraint_violation")) {
+        return mLastSolveResult.maximumConstraintViolation;
+    }
+    if (param == "bound_violation") {
+        return mLastSolveResult.maximumBoundViolation;
+    }
+    if (param == "stationarity") {
+        return mLastSolveResult.maximumStationarity;
+    }
+    if (param == "complementarity") {
+        return mLastSolveResult.maximumComplementarity;
+    }
+    if ((param == "active_set_size") || (param == "active_constraints")) {
+        return static_cast<double>(mLastSolveResult.activeSetSize);
+    }
+    if ((param == "iterations") || (param == "iteration_count")) {
+        return static_cast<double>(mLastSolveResult.iterationCount);
     }
     return OptimizerInterface::get(param);
 }

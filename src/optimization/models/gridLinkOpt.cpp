@@ -493,7 +493,13 @@ bool GridLinkOpt::hasDcAngleLimit() const
          (std::abs(maximumAngle - 2.0 * kPI) <= kDcAngleLimitTolerance)) ||
         ((std::abs(minimumAngle + 360.0) <= kDcAngleLimitTolerance) &&
          (std::abs(maximumAngle - 360.0) <= kDcAngleLimitTolerance));
-    return !hasUnboundedSentinel;
+    // MATPOWER uses an ANGMIN/ANGMAX pair of zeroes to mean that the angle
+    // difference is unconstrained.  Treat it the same as the explicit
+    // +/-360-degree sentinel so standard MATPOWER cases do not become a set
+    // of false zero-angle equalities.
+    const bool hasZeroLimit = (std::abs(minimumAngle) <= kDcAngleLimitTolerance) &&
+        (std::abs(maximumAngle) <= kDcAngleLimitTolerance);
+    return !hasUnboundedSentinel && !hasZeroLimit;
 }
 
 double GridLinkOpt::dcFlowCoefficient() const

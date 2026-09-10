@@ -1327,8 +1327,12 @@ CoreObject* GridBus::findByUserID(std::string_view typeName, index_t searchID) c
                 return link;
             }
         }
+    } else {
+        return GridComponent::findByUserID(typeName, searchID);
     }
-    return GridComponent::findByUserID(typeName, searchID);
+    // Typed lookups must not fall through to CoreObject::findByUserID(),
+    // which matches the object's internal ID without checking typeName.
+    return nullptr;
 }
 
 Link* GridBus::getLink(index_t index) const

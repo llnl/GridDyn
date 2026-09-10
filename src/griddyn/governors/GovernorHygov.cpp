@@ -376,8 +376,8 @@ void GovernorHygov::rootTest(const IOdata& inputs,
         // Keep the active root just inside the limited region.  IDA restarts
         // from the event state after rootTrigger(); without this small
         // hysteresis it can immediately rediscover the same zero repeatedly.
-        roots[rootOffset] = (opFlags[GATE_RATE_LIMIT_HIGH] ? VELM - rate : rate + VELM) -
-            rateLimitTolerance;
+        roots[rootOffset] =
+            (opFlags[GATE_RATE_LIMIT_HIGH] ? VELM - rate : rate + VELM) - rateLimitTolerance;
     } else {
         roots[rootOffset] = std::min(VELM - rate, rate + VELM);
     }
@@ -416,8 +416,7 @@ void GovernorHygov::rootTrigger(CoreTime time,
         rateRootTransitionPending = true;
         const bool limited = (rootMask[rootOffset] < 0);
         opFlags.set(GATE_RATE_LIMITED, limited);
-        opFlags.set(GATE_RATE_LIMIT_HIGH,
-                    limited && (rootRate >= 0.0));
+        opFlags.set(GATE_RATE_LIMIT_HIGH, limited && (rootRate >= 0.0));
         if (rateRootTransition && (limited != wasRateLimited)) {
             // The state copied back from an IDA root return can be a small
             // interpolation distance inside the limiter boundary.  Nudge the
@@ -425,8 +424,7 @@ void GovernorHygov::rootTrigger(CoreTime time,
             // side after the solver restart.  This is equivalent to the
             // limiter-state nudge used by the exciter models and avoids an
             // immediate repeat of the entry root.
-            const double rateStateSlope =
-                (1.0 - Tr / Tf) / (temporaryDroop * Tr);
+            const double rateStateSlope = (1.0 - Tr / Tf) / (temporaryDroop * Tr);
             if (std::abs(rateStateSlope) > std::numeric_limits<double>::epsilon()) {
                 double targetRate;
                 if (limited) {
@@ -445,8 +443,7 @@ void GovernorHygov::rootTrigger(CoreTime time,
         const bool limited = (rootMask[rootOffset + 1] < 0);
         opFlags.set(GATE_POSITION_LIMITED, limited);
         const double midpoint = (Pmax + Pmin) / 2.0;
-        opFlags.set(GATE_POSITION_LIMIT_HIGH,
-                    limited && (state[gatePositionState] >= midpoint));
+        opFlags.set(GATE_POSITION_LIMIT_HIGH, limited && (state[gatePositionState] >= midpoint));
     }
     state[gatePositionState] =
         std::clamp(state[gatePositionState], static_cast<double>(Pmin), static_cast<double>(Pmax));

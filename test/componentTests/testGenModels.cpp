@@ -9,12 +9,12 @@
 #include "core/ObjectFactory.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Generator.h"
+#include "griddyn/genmodels/GenModel8.h"
 #include "griddyn/genmodels/GenModelClassical.h"
 #include "griddyn/genmodels/GenModelGENROE.h"
 #include "griddyn/genmodels/GenModelGENROU.h"
 #include "griddyn/genmodels/GenModelGENSAE.h"
 #include "griddyn/genmodels/GenModelGENSAL.h"
-#include "griddyn/genmodels/GenModel8.h"
 #include <cmath>
 #include <gtest/gtest.h>
 #include <memory>

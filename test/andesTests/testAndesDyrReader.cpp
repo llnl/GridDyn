@@ -82,17 +82,16 @@ std::unique_ptr<griddyn::GridDynSimulation>
     return simulation;
 }
 
-std::vector<double> runGeneratorSetpointStepCase(const std::vector<std::string_view>& dyrFiles,
-                                                 double setpoint = 0.8,
-                                                 std::string_view machineDyrFile =
-                                                     "ieee14_genrou.dyr",
-                                                 index_t targetBusId = 1,
-                                                 double minimumControllerChange = 1.0e-9)
+std::vector<double>
+    runGeneratorSetpointStepCase(const std::vector<std::string_view>& dyrFiles,
+                                 double setpoint = 0.8,
+                                 std::string_view machineDyrFile = "ieee14_genrou.dyr",
+                                 index_t targetBusId = 1,
+                                 double minimumControllerChange = 1.0e-9)
 {
     auto simulation = loadAndesDynamicCase(machineDyrFile, dyrFiles);
 
-    auto* targetBus = dynamic_cast<griddyn::GridBus*>(
-        simulation->findByUserID("bus", targetBusId));
+    auto* targetBus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", targetBusId));
     EXPECT_NE(targetBus, nullptr);
     if (targetBus == nullptr) {
         return {};
@@ -1319,8 +1318,7 @@ TEST(AndesDynamicTests, RecentExcitersRespondToGeneratorSetpointStep)
 
 TEST(AndesDynamicTests, GensaeEsst1aRespondsToGeneratorSetpointStep)
 {
-    const auto finalState =
-        runGeneratorSetpointStepCase({"ieee14_gensae_esst1a.dyr"}, 0.8, "");
+    const auto finalState = runGeneratorSetpointStepCase({"ieee14_gensae_esst1a.dyr"}, 0.8, "");
     EXPECT_FALSE(finalState.empty());
 }
 
@@ -1333,14 +1331,11 @@ TEST(AndesDynamicTests, GenroeIeeex1RespondsToGeneratorSetpointStep)
 
 TEST(AndesDynamicTests, GovernorAndRecentExciterPlantsRespondToGeneratorSetpointStep)
 {
-    for (const auto& records : {std::vector<std::string_view>{"ieee14_tgov1.dyr",
-                                                              "ieee14_esst2a.dyr"},
-                                std::vector<std::string_view>{"ieee14_gast.dyr",
-                                                              "ieee14_ieeet3.dyr"},
-                                std::vector<std::string_view>{"ieee14_ieesgo.dyr",
-                                                              "ieee14_ac7b.dyr"},
-                                std::vector<std::string_view>{"ieee14_tgov1.dyr",
-                                                              "ieee14_ac8b.dyr"}}) {
+    for (const auto& records :
+         {std::vector<std::string_view>{"ieee14_tgov1.dyr", "ieee14_esst2a.dyr"},
+          std::vector<std::string_view>{"ieee14_gast.dyr", "ieee14_ieeet3.dyr"},
+          std::vector<std::string_view>{"ieee14_ieesgo.dyr", "ieee14_ac7b.dyr"},
+          std::vector<std::string_view>{"ieee14_tgov1.dyr", "ieee14_ac8b.dyr"}}) {
         SCOPED_TRACE(testing::Message() << records[0] << " + " << records[1]);
         const auto finalState = runGeneratorSetpointStepCase(records);
         EXPECT_FALSE(finalState.empty());
@@ -1360,8 +1355,7 @@ TEST(AndesDynamicTests, GensalHygovEsst4bPlantInitializesAndRuns)
               nullptr);
     ASSERT_NE(dynamic_cast<griddyn::governors::GovernorHygov*>(generator->find("governor")),
               nullptr);
-    ASSERT_NE(dynamic_cast<griddyn::exciters::ExciterESST4B*>(generator->find("exciter")),
-              nullptr);
+    ASSERT_NE(dynamic_cast<griddyn::exciters::ExciterESST4B*>(generator->find("exciter")), nullptr);
 
     ASSERT_EQ(simulation->dynInitialize(), 0);
     const auto initialState = simulation->getState();

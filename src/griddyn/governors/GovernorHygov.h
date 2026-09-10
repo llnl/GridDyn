@@ -55,6 +55,8 @@ class GovernorHygov: public Governor {
     model_parameter Dturb = 0.2;  //!< turbine damping
     model_parameter qNL = 0.08;  //!< no-load flow at nominal head
     model_parameter h0 = 1.0;  //!< initial/head reference used by OpenIPSL
+    bool rateRootTransitionPending = false;
+    bool positionRootTransitionPending = false;
 
   public:
     explicit GovernorHygov(const std::string& objName = "govHygov_#");

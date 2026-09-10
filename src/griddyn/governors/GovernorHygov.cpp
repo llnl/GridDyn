@@ -11,6 +11,7 @@
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -25,6 +26,7 @@ namespace {
     constexpr index_t servoState = 2;
     constexpr index_t flowState = 3;
     constexpr double minimumGate = 1e-8;
+    constexpr double rateLimitTolerance = 1e-7;
 }  // namespace
 
 GovernorHygov::GovernorHygov(const std::string& objName): Governor(objName)
@@ -82,6 +84,8 @@ void GovernorHygov::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/
     opFlags.reset(GATE_RATE_LIMIT_HIGH);
     opFlags.reset(GATE_POSITION_LIMITED);
     opFlags.reset(GATE_POSITION_LIMIT_HIGH);
+    rateRootTransitionPending = false;
+    positionRootTransitionPending = false;
 }
 
 void GovernorHygov::dynObjectInitializeB(const IOdata& /*inputs*/,
@@ -179,6 +183,16 @@ double GovernorHygov::limitedGateRate(const IOdata& inputs, const double diffSta
 int GovernorHygov::gateRateLimitStatus(const IOdata& inputs, const double diffState[]) const
 {
     const double rate = unlimitedGateRate(inputs, diffState);
+    // Preserve the active branch through the roundoff-sized gap at a root.
+    // rootCheck() may be called before IDA has advanced away from the event;
+    // clearing the flag there would make the same root immediately active
+    // again.
+    if (opFlags[GATE_RATE_LIMITED]) {
+        if (opFlags[GATE_RATE_LIMIT_HIGH]) {
+            return (rate >= (VELM - rateLimitTolerance)) ? 1 : 0;
+        }
+        return (rate <= (-VELM + rateLimitTolerance)) ? -1 : 0;
+    }
     if (rate >= VELM) {
         return 1;
     }
@@ -359,7 +373,11 @@ void GovernorHygov::rootTest(const IOdata& inputs,
     const index_t rootOffset = offsets.getRootOffset(sMode);
     const double rate = unlimitedGateRate(inputs, state);
     if (opFlags[GATE_RATE_LIMITED]) {
-        roots[rootOffset] = opFlags[GATE_RATE_LIMIT_HIGH] ? VELM - rate : rate + VELM;
+        // Keep the active root just inside the limited region.  IDA restarts
+        // from the event state after rootTrigger(); without this small
+        // hysteresis it can immediately rediscover the same zero repeatedly.
+        roots[rootOffset] = (opFlags[GATE_RATE_LIMIT_HIGH] ? VELM - rate : rate + VELM) -
+            rateLimitTolerance;
     } else {
         roots[rootOffset] = std::min(VELM - rate, rate + VELM);
     }
@@ -373,7 +391,7 @@ void GovernorHygov::rootTest(const IOdata& inputs,
     }
 }
 
-void GovernorHygov::rootTrigger(CoreTime /*time*/,
+void GovernorHygov::rootTrigger(CoreTime time,
                                 const IOdata& inputs,
                                 const std::vector<int>& rootMask,
                                 const SolverMode& sMode)
@@ -383,10 +401,62 @@ void GovernorHygov::rootTrigger(CoreTime /*time*/,
         return;
     }
     double* state = m_state.data() + offsets.getDiffOffset(cLocalSolverMode);
+    const bool wasRateLimited = opFlags[GATE_RATE_LIMITED];
+    const bool wasRateLimitHigh = opFlags[GATE_RATE_LIMIT_HIGH];
+    const bool wasPositionLimited = opFlags[GATE_POSITION_LIMITED];
+    const bool wasPositionLimitHigh = opFlags[GATE_POSITION_LIMIT_HIGH];
+    const double rootRate = unlimitedGateRate(inputs, state);
+    const bool rateRootTransition = rootMask[rootOffset] != 0;
+
+    // At a limiter root, evaluating the status again can land infinitesimally
+    // inside the unsaturated region.  Use the root direction to latch the
+    // transition, otherwise IDA can report the same root indefinitely without
+    // ever entering the limited Jacobian branch.
+    if (rootMask[rootOffset] != 0) {
+        rateRootTransitionPending = true;
+        const bool limited = (rootMask[rootOffset] < 0);
+        opFlags.set(GATE_RATE_LIMITED, limited);
+        opFlags.set(GATE_RATE_LIMIT_HIGH,
+                    limited && (rootRate >= 0.0));
+        if (rateRootTransition && (limited != wasRateLimited)) {
+            // The state copied back from an IDA root return can be a small
+            // interpolation distance inside the limiter boundary.  Nudge the
+            // filter state so the active root function starts on the limited
+            // side after the solver restart.  This is equivalent to the
+            // limiter-state nudge used by the exciter models and avoids an
+            // immediate repeat of the entry root.
+            const double rateStateSlope =
+                (1.0 - Tr / Tf) / (temporaryDroop * Tr);
+            if (std::abs(rateStateSlope) > std::numeric_limits<double>::epsilon()) {
+                const double targetRate = limited ?
+                    (opFlags[GATE_RATE_LIMIT_HIGH] ? VELM + rateLimitTolerance :
+                                                     -VELM - rateLimitTolerance) :
+                    (wasRateLimitHigh ? VELM - 2.0 * rateLimitTolerance :
+                                       -VELM + 2.0 * rateLimitTolerance);
+                state[filterState] += (targetRate - rootRate) / rateStateSlope;
+            }
+        }
+    }
+    if (rootMask[rootOffset + 1] != 0) {
+        positionRootTransitionPending = true;
+        const bool limited = (rootMask[rootOffset + 1] < 0);
+        opFlags.set(GATE_POSITION_LIMITED, limited);
+        const double midpoint = (Pmax + Pmin) / 2.0;
+        opFlags.set(GATE_POSITION_LIMIT_HIGH,
+                    limited && (state[gatePositionState] >= midpoint));
+    }
     state[gatePositionState] =
         std::clamp(state[gatePositionState], static_cast<double>(Pmin), static_cast<double>(Pmax));
-    if (updateLimitFlags(inputs, state)) {
+    const bool changed = (wasRateLimited != opFlags[GATE_RATE_LIMITED]) ||
+        (wasRateLimitHigh != opFlags[GATE_RATE_LIMIT_HIGH]) ||
+        (wasPositionLimited != opFlags[GATE_POSITION_LIMITED]) ||
+        (wasPositionLimitHigh != opFlags[GATE_POSITION_LIMIT_HIGH]);
+    if (changed) {
         alert(this, JAC_COUNT_CHANGE);
+    }
+    if (changed && rateRootTransition) {
+        const StateData stateData(time, m_state.data());
+        derivative(inputs, stateData, m_dstate_dt.data(), cLocalSolverMode);
     }
 }
 
@@ -398,7 +468,42 @@ ChangeCode GovernorHygov::rootCheck(const IOdata& inputs,
     double* state = m_state.data() + offsets.getDiffOffset(cLocalSolverMode);
     state[gatePositionState] =
         std::clamp(state[gatePositionState], static_cast<double>(Pmin), static_cast<double>(Pmax));
-    if (updateLimitFlags(inputs, state)) {
+    const bool wasRateLimited = opFlags[GATE_RATE_LIMITED];
+    const bool wasRateLimitHigh = opFlags[GATE_RATE_LIMIT_HIGH];
+    const bool wasPositionLimited = opFlags[GATE_POSITION_LIMITED];
+    const bool wasPositionLimitHigh = opFlags[GATE_POSITION_LIMIT_HIGH];
+    const bool transitionRateLimited = opFlags[GATE_RATE_LIMITED];
+    const bool transitionRateLimitHigh = opFlags[GATE_RATE_LIMIT_HIGH];
+    const bool transitionPositionLimited = opFlags[GATE_POSITION_LIMITED];
+    const bool transitionPositionLimitHigh = opFlags[GATE_POSITION_LIMIT_HIGH];
+    const bool rateTransitionPending = rateRootTransitionPending;
+    const bool positionTransitionPending = positionRootTransitionPending;
+    rateRootTransitionPending = false;
+    positionRootTransitionPending = false;
+    updateLimitFlags(inputs, state);
+    // Root transitions are authoritative for the piecewise limiter state.  A
+    // root check can see an interpolated value just inside the boundary during
+    // the solver restart; the release root will clear the branch once the
+    // hysteresis margin has actually been crossed.
+    if (rateTransitionPending) {
+        opFlags.set(GATE_RATE_LIMITED, transitionRateLimited);
+        opFlags.set(GATE_RATE_LIMIT_HIGH, transitionRateLimitHigh);
+    } else if (wasRateLimited) {
+        opFlags.set(GATE_RATE_LIMITED, true);
+        opFlags.set(GATE_RATE_LIMIT_HIGH, wasRateLimitHigh);
+    }
+    if (positionTransitionPending) {
+        opFlags.set(GATE_POSITION_LIMITED, transitionPositionLimited);
+        opFlags.set(GATE_POSITION_LIMIT_HIGH, transitionPositionLimitHigh);
+    } else if (wasPositionLimited) {
+        opFlags.set(GATE_POSITION_LIMITED, true);
+        opFlags.set(GATE_POSITION_LIMIT_HIGH, wasPositionLimitHigh);
+    }
+    const bool changed = (wasRateLimited != opFlags[GATE_RATE_LIMITED]) ||
+        (wasRateLimitHigh != opFlags[GATE_RATE_LIMIT_HIGH]) ||
+        (wasPositionLimited != opFlags[GATE_POSITION_LIMITED]) ||
+        (wasPositionLimitHigh != opFlags[GATE_POSITION_LIMIT_HIGH]);
+    if (changed) {
         alert(this, JAC_COUNT_CHANGE);
         return ChangeCode::JACOBIAN_CHANGE;
     }

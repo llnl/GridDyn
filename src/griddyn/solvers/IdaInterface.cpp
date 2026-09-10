@@ -389,12 +389,16 @@ int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, boo
                     }
                     retval = IDACalcIC(solverMem, IDA_Y_INIT, t0 + tstep0);  // IDA_Y_INIT
                     if (retval == IDA_SUCCESS) {
+                        flags.reset(USE_MASK_FLAG);
+                        getCurrentData();
                         return FUNCTION_EXECUTION_SUCCESS;
                     }
 
+                    flags.reset(USE_MASK_FLAG);
                     return SOLVER_INVALID_STATE_ERROR;
                 }
             } else {
+                flags.reset(USE_MASK_FLAG);
                 switch (retval) {
                     case IDA_SUCCESS:  // no error
                         break;
@@ -412,6 +416,7 @@ int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, boo
         if (!flags[DENSE_FLAG]) {
             sparseReInit(SparseReinitMode::REFACTOR);
         }
+        getCurrentData();
     } else if (initCondMode == IcModes::FIXED_DIFF) {
         retval = IDAReInit(solverMem, t0, state, dstate_dt);
 
@@ -440,7 +445,7 @@ int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, boo
             }
             return retval;
         }
-        // getCurrentData();
+        getCurrentData();
         //  printStates();
     }
     return FUNCTION_EXECUTION_SUCCESS;
@@ -465,6 +470,15 @@ int IdaInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
                           dstate_dt,
                           (stepMode == StepMode::NORMAL) ? IDA_NORMAL : IDA_ONE_STEP);
     tReturn = tret;
+    if ((retval == IDA_SUCCESS) || (retval == IDA_ROOT_RETURN)) {
+        // IDASolve returns the state at the requested output time, but the
+        // derivative vector can retain the last internal-step value for a
+        // non-grid output time.  Refresh it from IDA's interpolation so the
+        // state/derivative pair handed to GridDyn remains consistent.
+        int dkyRet = IDAGetDky(solverMem, tret, 1, dstate_dt);
+        checkFlag(&dkyRet, "IDAGetDky", 1);
+    }
+    solveTime = tret;
     switch (retval) {
         case IDA_SUCCESS:  // no error
             break;

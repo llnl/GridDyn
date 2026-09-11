@@ -348,6 +348,13 @@ void matrixDataToSUNMatrix(MatrixData<double>& md, SUNMatrix j, count_t svsize)
         assert(indval + 1 == svsize);
         m->indexptrs[indval + 1] = sz;
     } else if (id == SUNMATRIX_DENSE) {
+        auto denseMatrix = SundialsMatrixDataDense(j);
+        denseMatrix.clear();
+        md.start();
+        while (md.moreData()) {
+            const auto element = md.next();
+            denseMatrix.assign(element.row, element.col, element.data);
+        }
     }
 }
 
@@ -432,6 +439,7 @@ int sundialsJac(sunrealtype time,
     } else {
         // if it isn't the first we can use the SUNDIALS arraySparse object
         auto a1 = makeSundialsMatrixData(j);
+        a1->clear();
         if (sd->flags[USE_MASK_FLAG]) {
             MatrixDataFilter<double> filterAd(*a1);
             filterAd.addFilter(sd->maskElements);

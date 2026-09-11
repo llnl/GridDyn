@@ -382,10 +382,12 @@ void ExciterAC7B::jacobianElements(const IOdata& inputs,
     const auto evaluation = evaluate(inputs, loc.algStateLoc[0], loc.diffStateLoc);
     if (hasAlgebraic(sMode)) {
         matrixData.assign(loc.algOffset, loc.algOffset, evaluation.algebraicDerivative);
-        for (index_t column = 0; column < stateCount; ++column) {
-            matrixData.assign(loc.algOffset,
-                              loc.diffOffset + column,
-                              evaluation.fieldStateDerivatives[column]);
+        if (!isAlgebraicOnly(sMode)) {
+            for (index_t column = 0; column < stateCount; ++column) {
+                matrixData.assign(loc.algOffset,
+                                  loc.diffOffset + column,
+                                  evaluation.fieldStateDerivatives[column]);
+            }
         }
         for (index_t input = 0; input < exciterInputCount; ++input) {
             matrixData.assignCheckCol(loc.algOffset,

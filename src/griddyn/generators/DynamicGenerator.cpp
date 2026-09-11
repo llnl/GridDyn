@@ -1339,10 +1339,11 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
                                                  const StateData& stateDataValue,
                                                  const SolverMode& sMode)
 {
-    if (!stateDataValue.updateRequired(subInputLocs.seqID)) {
-        return;
-    }
-
+    // Input locations are solver-mode dependent.  In particular, the
+    // differential-only and algebraic-only dynamic modes have different
+    // external locations even when they are evaluated from the same state
+    // sequence.  Do not use the value-cache sequence ID as a cache key here.
+    // The location map must be rebuilt for every Jacobian assembly.
     subInputLocs.inputLocs[GEN_MODEL_LOC][VOLTAGE_IN_LOCATION] = inputLocs[VOLTAGE_IN_LOCATION];
     subInputLocs.inputLocs[GEN_MODEL_LOC][ANGLE_IN_LOCATION] = inputLocs[ANGLE_IN_LOCATION];
     subInputLocs.genModelInputLocsExternal[VOLTAGE_IN_LOCATION] = inputLocs[VOLTAGE_IN_LOCATION];
@@ -1410,7 +1411,7 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
     }
     // Input locations differ between solver modes even when the state sequence
     // ID is unchanged, so leave subInputLocs uncached and recompute them.
-    subInputs.seqID = stateDataValue.seqID;
+    subInputLocs.seqID = stateDataValue.seqID;
 }
 
 double DynamicGenerator::pSetControlUpdate(const IOdata& inputs,

@@ -470,6 +470,57 @@ TEST(GovernorModelTests, HygovEnforcesVelocityAndGatePositionLimits)
     EXPECT_DOUBLE_EQ(derivative[2], 0.0);
 }
 
+TEST(GovernorModelTests, HygovLatchesRateLimitRootTransitions)
+{
+    governors::GovernorHygov governor;
+    configureHygov(governor);
+    governor.dynInitializeA(0.0, 0);
+    governor.setRootOffset(0, cLocalSolverMode);
+
+    IOdata inputs{0.95, 0.0};
+    IOdata fieldSet(2, 0.0);
+    governor.dynInitializeB(inputs, {0.4}, fieldSet);
+    const std::vector<double> state{0.4, 0.0, 0.4, 0.4, 0.4};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    governor.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+
+    std::array<double, 2> roots{};
+    governor.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
+    EXPECT_LT(roots[0], 0.0);
+    governor.rootTrigger(0.0, inputs, {-1, 0}, cLocalSolverMode);
+    EXPECT_TRUE(governor.checkFlag(governors::GovernorHygov::GATE_RATE_LIMITED));
+    EXPECT_TRUE(governor.checkFlag(governors::GovernorHygov::GATE_RATE_LIMIT_HIGH));
+    EXPECT_EQ(
+        governor.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::NO_CHANGE);
+
+    // A root in the opposite direction releases the upper rate limiter even
+    // if the value is still on the floating-point boundary.
+    inputs[govOmegaInLocation] = 1.05;
+    governor.rootTrigger(0.0, inputs, {1, 0}, cLocalSolverMode);
+    EXPECT_FALSE(governor.checkFlag(governors::GovernorHygov::GATE_RATE_LIMITED));
+    EXPECT_EQ(
+        governor.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::NO_CHANGE);
+
+    inputs[govOmegaInLocation] = 1.057;
+    governor.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
+    EXPECT_LT(roots[0], 0.0);
+    governor.rootTrigger(0.0, inputs, {-1, 0}, cLocalSolverMode);
+    EXPECT_TRUE(governor.checkFlag(governors::GovernorHygov::GATE_RATE_LIMITED));
+    EXPECT_FALSE(governor.checkFlag(governors::GovernorHygov::GATE_RATE_LIMIT_HIGH));
+    EXPECT_EQ(
+        governor.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::NO_CHANGE);
+
+    inputs[govOmegaInLocation] = 0.95;
+    governor.rootTrigger(0.0, inputs, {1, 0}, cLocalSolverMode);
+    EXPECT_FALSE(governor.checkFlag(governors::GovernorHygov::GATE_RATE_LIMITED));
+    EXPECT_EQ(
+        governor.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::NO_CHANGE);
+}
+
 TEST(GovernorModelTests, HygovFactoryCloneAndParameterValidation)
 {
     auto factory = CoreObjectFactory::instance();

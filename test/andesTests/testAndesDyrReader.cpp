@@ -67,17 +67,31 @@ std::string makeAndesTestPath(std::string_view fileName)
     return std::string{andesTestDirectory} + std::string{fileName};
 }
 
-std::vector<double> runGeneratorSetpointStepCase(const std::vector<std::string_view>& dyrFiles,
-                                                 double setpoint = 0.8)
+std::unique_ptr<griddyn::GridDynSimulation>
+    loadAndesDynamicCase(std::string_view machineDyrFile,
+                         const std::vector<std::string_view>& controllerDyrFiles)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
     griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-    for (const auto dyrFile : dyrFiles) {
+    if (!machineDyrFile.empty()) {
+        griddyn::loadFile(simulation.get(), makeAndesTestPath(machineDyrFile));
+    }
+    for (const auto dyrFile : controllerDyrFiles) {
         griddyn::loadFile(simulation.get(), makeAndesTestPath(dyrFile));
     }
+    return simulation;
+}
 
-    auto* targetBus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+std::vector<double>
+    runGeneratorSetpointStepCase(const std::vector<std::string_view>& dyrFiles,
+                                 double setpoint = 0.8,
+                                 std::string_view machineDyrFile = "ieee14_genrou.dyr",
+                                 index_t targetBusId = 1,
+                                 double minimumControllerChange = 1.0e-9)
+{
+    auto simulation = loadAndesDynamicCase(machineDyrFile, dyrFiles);
+
+    auto* targetBus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", targetBusId));
     EXPECT_NE(targetBus, nullptr);
     if (targetBus == nullptr) {
         return {};
@@ -145,7 +159,7 @@ std::vector<double> runGeneratorSetpointStepCase(const std::vector<std::string_v
                            std::abs(finalControllerState[index] - initialControllerState[index]));
         }
     }
-    EXPECT_GT(maximumControllerChange, 1.0e-9);
+    EXPECT_GT(maximumControllerChange, minimumControllerChange);
     return finalState;
 }
 }  // namespace
@@ -1237,6 +1251,28 @@ TEST(AndesDynamicTests, IeeeG1RespondsToGeneratorSetpointStep)
     EXPECT_FALSE(finalState.empty());
 }
 
+TEST(AndesDynamicTests, ConventionalGovernorsRespondToGeneratorSetpointStep)
+{
+    struct GovernorStepCase {
+        std::string_view record;
+        index_t busId;
+    };
+    constexpr std::array<GovernorStepCase, 3> cases{{
+        {.record = "ieee14_gast.dyr", .busId = 1},
+        {.record = "ieee14_ggov1.dyr", .busId = 2},
+        {.record = "ieee14_ieesgo.dyr", .busId = 1},
+    }};
+
+    for (const auto& testCase : cases) {
+        SCOPED_TRACE(testCase.record);
+        const auto finalState = runGeneratorSetpointStepCase({testCase.record},
+                                                             0.8,
+                                                             "ieee14_genrou.dyr",
+                                                             testCase.busId);
+        EXPECT_FALSE(finalState.empty());
+    }
+}
+
 TEST(AndesDynamicTests, Esst3aRespondsToGeneratorSetpointStep)
 {
     const auto finalState = runGeneratorSetpointStepCase({"ieee14_esst3a.dyr"});
@@ -1267,6 +1303,72 @@ TEST(AndesDynamicTests, ScrxRespondsToGeneratorSetpointStep)
 TEST(AndesDynamicTests, Esac6aRespondsToGeneratorSetpointStep)
 {
     const auto finalState = runGeneratorSetpointStepCase({"ieee14_esac6a.dyr"});
+    EXPECT_FALSE(finalState.empty());
+}
+
+TEST(AndesDynamicTests, RecentExcitersRespondToGeneratorSetpointStep)
+{
+    for (const auto record :
+         {"ieee14_esst2a.dyr", "ieee14_ieeet3.dyr", "ieee14_ac7b.dyr", "ieee14_ac8b.dyr"}) {
+        SCOPED_TRACE(record);
+        const auto finalState = runGeneratorSetpointStepCase({record});
+        EXPECT_FALSE(finalState.empty());
+    }
+}
+
+TEST(AndesDynamicTests, GensaeEsst1aRespondsToGeneratorSetpointStep)
+{
+    const auto finalState = runGeneratorSetpointStepCase({"ieee14_gensae_esst1a.dyr"}, 0.8, "");
+    EXPECT_FALSE(finalState.empty());
+}
+
+TEST(AndesDynamicTests, GenroeIeeex1RespondsToGeneratorSetpointStep)
+{
+    const auto finalState =
+        runGeneratorSetpointStepCase({"ieee14_genroe_ieeex1.dyr"}, 0.8, "", 1, 1.0e-10);
+    EXPECT_FALSE(finalState.empty());
+}
+
+TEST(AndesDynamicTests, GovernorAndRecentExciterPlantsRespondToGeneratorSetpointStep)
+{
+    for (const auto& records :
+         {std::vector<std::string_view>{"ieee14_tgov1.dyr", "ieee14_esst2a.dyr"},
+          std::vector<std::string_view>{"ieee14_gast.dyr", "ieee14_ieeet3.dyr"},
+          std::vector<std::string_view>{"ieee14_ieesgo.dyr", "ieee14_ac7b.dyr"},
+          std::vector<std::string_view>{"ieee14_tgov1.dyr", "ieee14_ac8b.dyr"}}) {
+        SCOPED_TRACE(testing::Message() << records[0] << " + " << records[1]);
+        const auto finalState = runGeneratorSetpointStepCase(records);
+        EXPECT_FALSE(finalState.empty());
+    }
+}
+
+TEST(AndesDynamicTests, GensalHygovEsst4bPlantInitializesAndRuns)
+{
+    auto simulation =
+        loadAndesDynamicCase("ieee14_gensal.dyr", {"ieee14_hygov.dyr", "ieee14_esst4b.dyr"});
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = bus->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    ASSERT_NE(dynamic_cast<griddyn::genmodels::GenModelGENSAL*>(generator->find("genmodel")),
+              nullptr);
+    ASSERT_NE(dynamic_cast<griddyn::governors::GovernorHygov*>(generator->find("governor")),
+              nullptr);
+    ASSERT_NE(dynamic_cast<griddyn::exciters::ExciterESST4B*>(generator->find("exciter")), nullptr);
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    const auto initialState = simulation->getState();
+    EXPECT_FALSE(initialState.empty());
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    ASSERT_EQ(simulation->run(2.0), 0);
+    EXPECT_EQ(simulation->getSimulationTime(), 2.0);
+    const auto finalState = simulation->getState();
+    ASSERT_EQ(finalState.size(), initialState.size());
+    for (const auto state : finalState) {
+        EXPECT_TRUE(std::isfinite(state));
+    }
     EXPECT_FALSE(finalState.empty());
 }
 

@@ -149,10 +149,10 @@ class OptimizationOffsetTable {
     OptimizationOffsets& getOffsets(const OptimizationMode& oMode);
 
     /** get the offsets for an OptimizationMode for const object
-    *  @return the offsets for a particular solver mode, or a null offset object
-    *  if the mode index is out of range
-    *@param[in] oMode the OptimizationMode we are interested in
-    */
+     *  @return the offsets for a particular solver mode, or a null offset object
+     *  if the mode index is out of range
+     *@param[in] oMode the OptimizationMode we are interested in
+     */
     const OptimizationOffsets& getOffsets(const OptimizationMode& oMode) const;
 
     /** set the offsets for an OptimizationMode

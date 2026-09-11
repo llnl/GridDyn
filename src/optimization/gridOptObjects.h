@@ -184,18 +184,18 @@ class GridOptObject: public CoreObject {
                              const OptimizationMode& oMode);
 
     /** load the linear objective parameters
-    @param of  the current objective variable values
-    @param linObj the structure to store the objective parameters
-    @param oMode the optimization mode to use.
+    @param optimizationDataRef the current optimization data
+    @param linearObjective the structure to store the objective parameters
+    @param optimizationMode the optimization mode to use.
     */
     virtual void linearObj(const OptimizationData& optimizationDataRef,
                            vectData<double>& linearObjective,
                            const OptimizationMode& optimizationMode);
     /** load the quadratic objective parameters
-    @param of  the current object variable values
-    @param linObj the structure to store the linear objective parameters
-    @param quadObj the structure to store the 2nd order objective parameters
-    @param oMode the optimization mode to use.
+    @param optimizationDataRef the current optimization data
+    @param linearObjective the structure to store the linear objective parameters
+    @param quadraticObjective the structure to store the second-order objective parameters
+    @param optimizationMode the optimization mode to use.
     */
     virtual void quadraticObj(const OptimizationData& optimizationDataRef,
                               vectData<double>& linearObjective,
@@ -203,21 +203,21 @@ class GridOptObject: public CoreObject {
                               const OptimizationMode& optimizationMode);
 
     /** compute the objective value
-    @param of  the current object variable values
+    @param of the current optimization data
     @param oMode the optimization mode to use.
     @return the objective value
     */
     virtual double objValue(const OptimizationData& of, const OptimizationMode& oMode);
 
     /** compute the gradients of the objective function
-    @param of  the current object variable values
+    @param of the current optimization data
     @param grad the vector containing all \frac{dC}{dO_i}
     @param oMode the optimization mode to use.
     */
     virtual void gradient(const OptimizationData& of, double grad[], const OptimizationMode& oMode);
 
     /** compute the Jacobian entries for the objective value
-    @param of  the current object variable values
+    @param of the current optimization data
     @param md the structure for storing \frac{dC_i}{dO_j}
     @param oMode the optimization mode to use.
     */
@@ -228,7 +228,7 @@ class GridOptObject: public CoreObject {
     // constraint functions
     /** get the linear constraint operations
     @details each constraint is a linear sum of coefficients of the objective values
-    @param[in] of  the current object variable values
+    @param[in] of  the current optimization data
     @param[out] cons the structure for the constraint parameters storing the coefficients, the upper
     and lower limit
     @param[out] upperLimit value for the upper bound on the constraint function
@@ -242,14 +242,14 @@ class GridOptObject: public CoreObject {
                                 const OptimizationMode& oMode);
 
     /** get the (non)linear constraint operations
-    @param of  the current object variable values
+    @param of  the current optimization data
     @param cVals the computed value of the constraint
     @param oMode the optimization mode to use.
     */
     virtual void
         constraintValue(const OptimizationData& of, double cVals[], const OptimizationMode& oMode);
     /** get the Jacobian array of the constraints \frac{dCV_i}{dO_j}
-    @param of  the current object variable values
+    @param of  the current optimization data
     @param md the structure for the constraint Jacobian entries
     @param oMode the optimization mode to use.
     */
@@ -258,7 +258,7 @@ class GridOptObject: public CoreObject {
                                             const OptimizationMode& oMode);
 
     /** get the Hessian array for the objective function
-    @param of  the current object variable values
+    @param of  the current optimization data
     @param md the structure for the constraint Jacobian entries
     @param oMode the optimization mode to use.
     */

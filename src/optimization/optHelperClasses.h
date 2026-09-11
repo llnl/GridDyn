@@ -143,47 +143,44 @@ class OptimizationOffsetTable {
     }
 
     /** get the offsets for an OptimizationMode
-     * return a pointer to the set of offsets for a particular solver mode
+     * @return the offsets for a particular solver mode
      *@param[in] oMode the OptimizationMode we are interested in
-     *@return a pointer to the
      */
     OptimizationOffsets& getOffsets(const OptimizationMode& oMode);
 
     /** get the offsets for an OptimizationMode for const object
-    *  return a pointer to the set of offsets for a particular solver mode
-    returns a point to a nullOffset object if the index is out of range
+    *  @return the offsets for a particular solver mode, or a null offset object
+    *  if the mode index is out of range
     *@param[in] oMode the OptimizationMode we are interested in
-    *@return a pointer to the
     */
     const OptimizationOffsets& getOffsets(const OptimizationMode& oMode) const;
 
     /** set the offsets for an OptimizationMode
-     * return a pointer to the set of offsets for a particular solver mode
      *@param[in] oMode the OptimizationMode we are interested in
-     *@return a pointer to the
+     *@param[in] newOffsets the offsets to store for the solver mode
      */
     void setOffsets(const OptimizationOffsets& newOffsets, const OptimizationMode& oMode);
 
     /** set the base offset
-     *@param[in] offset the location to set the offset to
+     *@param[in] newOffset the location to set the offset to
      *@param[in] oMode the OptimizationMode we are interested in
      */
     void setOffset(index_t newOffset, const OptimizationMode& oMode);
 
     /** set the continuous offset
-     *@param[in] offset the location to set the offset to
+     *@param[in] newOffset the location to set the offset to
      *@param[in] oMode the OptimizationMode we are interested in
      */
     void setContOffset(index_t newOffset, const OptimizationMode& oMode);
 
     /** set the voltage offset
-     *@param[in] offset the location to set the offset to
+     *@param[in] newOffset the location to set the offset to
      *@param[in] oMode the OptimizationMode we are interested in
      */
     void setIntOffset(index_t newOffset, const OptimizationMode& oMode);
 
     /** set the constraints offset
-     *@param[in] offset the location to set the offset to
+     *@param[in] newOffset the location to set the offset to
      *@param[in] oMode the OptimizationMode we are interested in
      */
     void setConstraintOffset(index_t newOffset, const OptimizationMode& oMode);

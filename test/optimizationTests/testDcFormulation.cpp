@@ -35,12 +35,6 @@ std::filesystem::path makePyPowerCasePath(std::string_view fileName)
     return std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "pypower_tests" / std::string{fileName};
 }
 
-std::filesystem::path makeMatPowerCasePath(std::string_view fileName)
-{
-    return std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "matlab_test_files" /
-        std::string{fileName};
-}
-
 std::filesystem::path makeValidationCasePath(std::string_view fileName)
 {
     return std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "validation_tests" /

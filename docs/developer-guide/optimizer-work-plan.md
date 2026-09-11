@@ -40,20 +40,29 @@ generators, links, loads, and relays. The optimization path now includes:
 - an `EconomicDispatchOptimizer` that performs a simple heuristic merit-order
   dispatch and can write the resulting dispatch back to generators; and
 - a solver-neutral `NativeQpProblem` snapshot that owns the materialized
-  columns, bounded affine rows, objective coefficients, and diagnostics needed
-  by multiple backends;
+  columns, sparse bounded affine rows, objective coefficients, and diagnostics
+  needed by multiple backends;
 - a dependency-free `NativeDenseSolver` that solves supported continuous
   linear and convex diagonal-quadratic DC-OPF problems with scaling,
   presolve, Phase-I feasibility, and deterministic active-set iterations; and
+- a HiGHS backend that consumes the same solver-neutral contract through one
+  sparse row-to-column translation at the solver boundary; and
 - a `NativeOptimizer` integration that validates candidates through the
   original GridDyn callbacks and stages results for explicit write-back.
 
 The regression suite now covers the two-bus model and related data-path checks,
 synthetic solver diagnostics, three-bus limit activation, PYPOWER comparisons
 through IEEE-118, the 89-bus PEGASE case, and an Illinois200 native solve. A
-setup-only case13659 PEGASE gate also exercises the distributed model at a
-larger scale without attempting dense numerical solution. The next major gap
-is a sparse high-performance backend, with HiGHS as the planned continuation.
+case13659 PEGASE gate now exercises sparse problem materialization at a larger
+scale without attempting numerical solution. HiGHS solves the same sparse
+contract for IEEE-118, Illinois200, IEEE-300, the 1354-bus PEGASE case, the
+2383-bus case, and the 6468-bus RTE case; the next gap is broader large-case
+performance and production hardening. MATPOWER generator status is honored
+during optimization adapter construction, so out-of-service generators do not
+become dispatch variables. The external ACTIVSg10k case has also been checked
+as a candidate setup-only gate: its MATPOWER file contains complete bus,
+generator, branch, and quadratic generator-cost matrices and GridDyn loads the
+10,000-bus file successfully.
 
 The native-solver effort described below is one end-to-end pull request. The
 stages are implementation and verification gates within that pull request, not
@@ -579,18 +588,17 @@ claim AC feasibility.
 
 ### 11. Prove the external-solver and AC-extension seams
 
-**Status:** next chunk. The distributed model and native wrapper preserve the
-intended seam, but an independently exercised backend conformance layer and a
-real sparse backend remain to be added.
+**Status:** in progress. The distributed model, sparse snapshot, and initial
+HiGHS wrapper preserve the intended seam; independent backend conformance,
+dual/result coverage, and larger-case hardening remain to be added.
 
 **Implementation**
 
 - Add a mock external adapter that consumes the same contract and returns a
   controlled result without adding a dependency.
 - Add backend capability queries for LP, QP, nonlinear, integer, and PWL forms.
-- Start the optional HiGHS backend after the solver-neutral contract has a
-  backend conformance suite. Continue HiGHS-specific details in
-  [`highs-opf-plan.md`](highs-opf-plan.md).
+- Continue hardening the optional HiGHS backend against the solver-neutral
+  contract. Continue HiGHS-specific details in [`highs-opf-plan.md`](highs-opf-plan.md).
 - Keep DC bus/link abstractions extensible so AC subclasses can add voltage,
   reactive power, nonlinear balance, and derivatives while reusing identity,
   hierarchy, offsets, lifecycle, validation, and result handling.
@@ -625,17 +633,16 @@ scope is intentionally compact and dependency-free:
   solve or failure.
 
 The native mathematical representation is intentionally solver-neutral. The
-dense implementation is only the first backend: a later HiGHS integration must
-be able to consume the same columns, rows, bounds, objective coefficients,
-affine normalization, and stable ordering without re-deriving the GridDyn
-constraints. HiGHS integration is outside this PR, but compatibility with its
-standard bounded-row LP/QP model is part of this PR's contract.
+dense implementation is the small reference backend, while the initial HiGHS
+integration consumes the same sparse columns, rows, bounds, objective
+coefficients, affine normalization, and stable ordering without re-deriving the
+GridDyn constraints.
 
 AC-OPF, nonlinear and nonconvex costs, piecewise-linear costs, integer
-variables, multi-period scheduling, sparse numerical linear algebra, and an
-external solver backend remain outside this PR. IEEE-118 is the primary larger
-correctness gate. A 240-bus case is an optional performance/robustness check and
-does not replace the required smaller-case regressions.
+variables, multi-period scheduling, and broader sparse numerical features
+remain outside the compact native scope. IEEE-118 is the primary correctness
+gate; a 240-bus case is an optional performance/robustness check and does not
+replace the required smaller-case regressions.
 
 The following stages are internal gates in the single PR.
 
@@ -662,8 +669,8 @@ solver consumes this boundary without adding a second network formulation.
 ### Stage 1: Freeze and materialize the native QP contract
 
 - Materialize values, bounds, objective coefficients, row bounds, affine row
-  constants, Jacobian entries, names, types, tolerances, and model version into
-  a solver-only dense problem structure.
+  constants, sparse Jacobian entries, names, types, tolerances, and model
+  version into solver-owned storage.
 - Define a solver-neutral LP/QP intermediate representation using standard
   column bounds, row bounds, a single `A` matrix, linear objective terms, and
   diagonal quadratic terms. Equality rows use equal lower and upper bounds;
@@ -673,9 +680,10 @@ solver consumes this boundary without adding a second network formulation.
   the dense backend and HiGHS. Phase-shifted branch rows must be represented by
   this same normalization rather than a backend-specific special case.
 - Use the callback/Jacobian representation as the canonical GridDyn input and
-  verify any explicit linear export rather than double-counting it. The native
-  dense matrix is a materialized view of this representation, not a second
-  formulation.
+  verify any explicit linear export rather than double-counting it. The sparse
+  matrix is a materialized view of this representation, not a second
+  formulation; only the small native reference backend expands it to dense
+  working storage.
 - Preserve stable column and row ordering and optional names so a future HiGHS
   adapter can load the same model and map primal/dual results back to GridDyn.
 - Classify supported LP/convex-QP problems before numerical solve and reject
@@ -687,20 +695,21 @@ dense solver and expressed directly as a HiGHS-style bounded-row LP/QP model
 without changing any physical constraint definition.
 
 Current checkpoint: Phase 1 is complete. `NativeQpProblem` is the frozen
-solver-neutral LP/QP
-contract. `NativeOptimizer::prepareProblemData()` materializes stable columns,
-box bounds, affine bounded rows, a dense row-major Jacobian, objective constant
-and coefficients, gradients, names, types, tolerances, and a monotonically
-increasing model version. It validates callback/Jacobian consistency and
-explicit linear-row agreement, classifies continuous linear and convex
-diagonal-quadratic cases, and rejects unsupported or malformed input. The
-contract is covered by two-bus callback/Jacobian equivalence and
-phase-shift tests, plus finite deterministic assembly tests for the two-bus,
-case9, and IEEE-118 cases. Repeated preparation is checked for identical
-solver data, and physical-model mutations after preparation are checked not to
-change the snapshot. A future HiGHS adapter can convert each row using
-`lower - offset` and `upper - offset` without touching the physical model or
-re-deriving constraints.
+solver-neutral LP/QP contract. `NativeOptimizer::prepareProblemData()`
+materializes stable columns, box bounds, affine bounded rows, a deterministic
+compressed-row sparse Jacobian, objective constant and coefficients, gradients,
+names, types, tolerances, and a monotonically increasing model version. It
+validates callback/Jacobian consistency and explicit linear-row agreement,
+classifies continuous linear and convex diagonal-quadratic cases, and rejects
+unsupported or malformed input. The contract is covered by two-bus
+callback/Jacobian equivalence and phase-shift tests, plus finite deterministic
+assembly tests for the two-bus, case9, and IEEE-118 cases. Repeated preparation
+is checked for identical solver data, physical-model mutations after
+preparation are checked not to change the snapshot, and case13659 PEGASE is
+assembled without a dense allocation. The native dense backend expands only
+after its size guard; HiGHS converts the sparse rows directly to its required
+column-wise format and shifts bounds using `lower - offset` and
+`upper - offset`.
 
 ### Stage 2: Implement the dense feasibility and active-set core
 
@@ -760,8 +769,8 @@ written back. The two-bus integration test exercises this complete sequence.
 - Add a setup-only large-case gate using `case13659pegase.m`. Load the case,
   initialize the optimization hierarchy, materialize bounds/objective data,
   evaluate callbacks, and validate sparse Jacobian indices, finiteness, timing,
-  and callback storage. This gate must not call `solve()` or require dense
-  Jacobian materialization before the sparse/HiGHS backend is integrated.
+  and callback/storage behavior. This gate must not call `solve()`; its sparse
+  snapshot must remain usable without dense Jacobian materialization.
 - Measure a 240-bus case when an input is available, recording solve time and
   memory behavior without making it the first acceptance gate.
 
@@ -772,9 +781,12 @@ The native optimizer solves the standard `case9.m`, `case14.m`, `case39.m`,
 objective values against the corresponding PYPOWER/MATPOWER reference
 formulations. It also solves the 89-bus PEGASE case with its canonical
 aggregate checks. The case13659 PEGASE setup-only gate also passes without
-calling the dense solver: the Release baseline materializes 17,751 variables,
-13,660 rows, and 55,002 sparse Jacobian entries with about 2.94 MB of callback
-storage (approximately 6.3 seconds total on the local Windows build).
+  calling a numerical solver: the Release baseline materializes 17,751
+  variables, 13,660 rows, and 55,002 sparse Jacobian entries with about 2.94 MB
+  of callback storage. The sparse solver snapshot adds compressed
+  row/column/value storage and does not allocate the roughly 1.8 GiB dense
+  equivalent. Preparation takes approximately 6 seconds total on the local
+  Windows build.
 
 The Illinois200 scale probe demonstrates the current dense limit: 249
 variables, 446 rows, an approximately 0.85 MiB dense constraint matrix, and 41
@@ -813,66 +825,61 @@ solver-neutral contract for the next backend.
 - `NativeOptimizer::solve()` validates the candidate with the original
   callbacks and does not mutate physical GridDyn objects until an explicit
   `writeBack()`.
-- The 44-test `OptimizationTests` regression ladder passes in Release for the
+- The 52-test `OptimizationTests` regression ladder passes in Release for the
   synthetic solver cases, three-bus dispatch/limit cases, case9, case14,
-  case39, case57, case89 PEGASE, IEEE-118, and the Illinois200 scale probe.
+  case39, case57, case89 PEGASE, IEEE-118, Illinois200, IEEE-300, and the
+  1354-bus PEGASE, 2383-bus, and 6468-bus RTE cases.
   The case13659 PEGASE test is setup-only by design.
 
 The simple economic stacker remains a separate dependency-free heuristic
 optimizer. It exercises lifecycle and write-back behavior, while the native
 solver provides actual KKT-based optimization for its supported problem class.
 
-## Next chunk: sparse HiGHS backend and large-case performance
+## Next chunk: HiGHS large-case performance and production hardening
 
-The next chunk should add a production-oriented sparse backend without
+The sparse backend and initial HiGHS integration are now in place without
 changing GridDyn's physical data ownership or re-deriving the DC equations.
-HiGHS is the planned backend. The native dense solver remains valuable as a
-small deterministic reference implementation and contract test oracle.
+The next chunk should harden that path for larger cases. The native dense
+solver remains valuable as a small deterministic reference implementation and
+contract test oracle.
 
 ### Objectives
 
-1. **Add a sparse solver-owned representation.** Preserve the callback and
-   `MatrixData<X>` representation as the canonical GridDyn input, but add a
-   sparse snapshot/translation path that stores row/column/value entries in a
-   HiGHS-compatible format. Do not materialize a dense `A` matrix for large
-   problems. Define duplicate-entry summation, zero-entry removal, stable
-   ordering, and index validation once at this boundary.
-2. **Add optional HiGHS integration.** Introduce a narrowly scoped CMake option
-   such as `GRIDDYN_ENABLE_HIGHS_OPTIMIZATION`, keep HiGHS headers and types
-   out of general GridDyn model headers, and start with the bounded-row LP/QP
-   form already used by `NativeQpProblem`. Map HiGHS statuses, primal values,
-   row/column duals, objective, and residual diagnostics into the existing
-   `NativeSolveResult`/optimizer result path.
-3. **Prove backend conformance.** Add a mock or translator-level backend test
+1. **Harden the sparse solver-owned representation.** Preserve the callback and
+   `MatrixData<X>` representation as the canonical GridDyn input. Keep the
+   deterministic compressed-row snapshot, duplicate-entry summation,
+   zero-entry removal, stable ordering, and index validation as the single
+   translation boundary. Avoid dense expansion except for the guarded native
+   reference backend.
+2. **Prove backend conformance.** Add a mock or translator-level backend test
    that consumes the same problem snapshot as the native solver. Run common
    objective, gradient, affine-row, bound, status, repeatability, and
    write-back tests against the dense and HiGHS paths. A HiGHS adapter must not
    access physical GridDyn objects.
-4. **Exercise scale safely.** Keep the case13659 PEGASE test setup-only until
-   the sparse path is active. Use IEEE-118 as the first native/HiGHS numerical
-   equivalence gate, then Illinois200 and any available 240-bus costed case for
-   timing, memory, and solution-quality measurements. The 13,659-bus case is a
-   model-assembly and sparse-loading gate, not a dense-solver target.
-5. **Document numerical policy and packaging.** Define how model tolerances
+3. **Exercise scale safely.** Keep the case13659 PEGASE test setup-only. Use
+   IEEE-118 as the native/HiGHS numerical equivalence gate, then Illinois200
+   and IEEE-300 as progressively larger timing and solution-quality gates;
+   continue with the 1354-bus PEGASE, 2383-bus, and 6468-bus RTE cases and the
+   external ACTIVSg10k case for setup, timing, memory, and solution quality.
+   The 13,659-bus case remains a model-assembly and sparse-loading gate, not a
+   dense-solver target. The external 10,000-bus case should first be exercised
+   setup-only in a reproducible test environment before becoming a solve gate.
+4. **Document numerical policy and packaging.** Define how model tolerances
    map to HiGHS tolerances, whether HiGHS or GridDyn owns scaling, how duals
    and LMPs are reported, and how optional dependency discovery behaves across
    MSVC, Linux, macOS, and Python-wheel builds.
 
 ### Suggested implementation order
 
-1. Extract and test a sparse snapshot/HiGHS row-bound translator without
-   linking HiGHS. Verify that `lower - offset` and `upper - offset` reproduce
-   every dense bounded row, including phase-shifted thermal and angle rows.
-2. Add the optional HiGHS CMake target and a minimal LP adapter. Reuse the
-   existing lifecycle, `NativeQpProblem` metadata, candidate validation, and
-   explicit write-back.
-3. Add convex diagonal-QP support and dual/result mapping after the LP path
-   is stable. Compare HiGHS and native results on the two-bus, case9, case14,
-   and IEEE-118 suite.
-4. Run Illinois200 and the case13659 setup gate with measured wall time,
+1. Add translator-level tests for row/column ordering, duplicate summation,
+   zero removal, and `lower - offset`/`upper - offset` on phase-shifted thermal
+   and angle rows.
+2. Compare HiGHS and native results on the two-bus, case9, case14, and
+   IEEE-118 suite, including objective, dispatch, flows, and write-back.
+3. Run Illinois200 and the case13659 setup gate with measured wall time,
    peak/working memory, sparse nonzero counts, and solver diagnostics. Add a
    240-bus case only when a costed input is available.
-5. Revisit threading only after profiling the sparse backend. The current
+4. Revisit threading only after profiling the sparse backend. The current
    dense implementation is CPU-bound and single-threaded, but parallelizing
    callback loops will not address its dominant dense KKT factorization cost;
    sparse solver factorization and HiGHS configuration are the higher-value
@@ -894,7 +901,7 @@ LP/QP backend and large-case path.
 | Algebra     | Sparse rows preserve the GridDyn equations                   | phase-shifted branch flow, thermal limits, angle limits, and nodal balances      |
 | Equivalence | HiGHS agrees with the native/reference formulation           | two-bus, case9, case14, and IEEE-118 objective, dispatch, flows, and feasibility |
 | Scale       | Large assembly avoids dense allocation                       | case13659 counts, sparse nonzeros, callback time, and memory                     |
-| Performance | Sparse solve scales beyond the dense reference               | Illinois200 and an available 240-bus costed case, Release timings and memory     |
+| Performance | Sparse solve scales beyond the dense reference               | Illinois200, IEEE-300, 1354-bus PEGASE, 2383-bus, 6468-bus RTE, and larger costed cases, Release timings and memory |
 | Results     | Duals and statuses are mapped without changing write-back    | row/column duals, LMPs, failed solve isolation, explicit `writeBack()`           |
 
 ## Verification ladder

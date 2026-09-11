@@ -219,6 +219,28 @@ class NativeOptimizer: public OptimizerInterface {
     NativeQpProblem mProblem;
     NativeSolveResult mLastSolveResult;
 
+  protected:
+    /**
+     * Validate a backend candidate against the GridDyn callbacks and retain it
+     * as the pending optimizer solution.
+     *
+     * Backends operate only on the immutable `NativeQpProblem` snapshot. This
+     * common acceptance step verifies the returned objective, gradient,
+     * affine constraints, Jacobian, and bounds against both the snapshot and
+     * the live callbacks before exposing the candidate through `values`.
+     *
+     * @param time callback/solution time.
+     * @param result backend result and candidate values.
+     * @return success only when the candidate is suitable for `writeBack()`.
+     */
+    int acceptSolution(double time, NativeSolveResult result);
+
+    /** Record a failed solve attempt when problem preparation did not finish. */
+    void recordSolveFailure(std::string message);
+
+    /** Name used in backend diagnostics and write-back errors. */
+    virtual std::string_view backendName() const { return "native"; }
+
   public:
     /** Construct a native optimizer with the named optimizer registration. */
     explicit NativeOptimizer(std::string_view optName = "native");

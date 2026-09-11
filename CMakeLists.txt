@@ -211,6 +211,14 @@ option(GRIDDYN_ENABLE_NETWORKING_LIBRARY "Enable network based communication com
 
 option(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY "Enable Optimization libraries" OFF)
 
+cmake_dependent_option(
+    GRIDDYN_ENABLE_HIGHS
+    "Build the HiGHS optimization solver for use by the optimization library"
+    ${GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY}
+    "GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY"
+    OFF
+)
+
 option(GRIDDYN_ENABLE_CLANG_TOOLS
        "if clang is found enable some custom targets for clang formatting and tidy" OFF
 )
@@ -463,6 +471,12 @@ if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/yaml-cpp/CMakeLists.txt")
     submod_update(ThirdParty/yaml-cpp)
 endif()
 
+if(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY AND GRIDDYN_ENABLE_HIGHS)
+    if(NOT EXISTS "${PROJECT_SOURCE_DIR}/ThirdParty/highs/CMakeLists.txt")
+        submod_update(ThirdParty/highs)
+    endif()
+endif()
+
 set(concurrency_clang_tidy "${PROJECT_SOURCE_DIR}/ThirdParty/concurrency/.clang-tidy")
 set(concurrency_clang_tidy_backup
     "${PROJECT_SOURCE_DIR}/ThirdParty/concurrency/.clang-tidy.griddyn-orig"
@@ -508,6 +522,13 @@ endif()
 # Sundials
 # ------------------------------------------------------------
 include(addSundials)
+
+# ------------------------------------------------------------
+# HiGHS
+# ------------------------------------------------------------
+if(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY AND GRIDDYN_ENABLE_HIGHS)
+    include(addHiGHS)
+endif()
 
 # ------------------------------------------------------------
 # Enable HELICS executable

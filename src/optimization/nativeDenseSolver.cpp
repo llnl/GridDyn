@@ -50,11 +50,33 @@ namespace {
         std::vector<DenseConstraint> constraints;
     };
 
+    /**
+     * Working copy used only by the native reference backend.  The public
+     * NativeQpProblem remains sparse; this copy is deliberately created after
+     * the backend has been selected and the size guard has passed.
+    */
+    struct DenseNativeProblem: NativeQpProblem {
+        std::vector<double> denseConstraintMatrix;
+
+        DenseNativeProblem() = default;
+
+        explicit DenseNativeProblem(const NativeQpProblem& source):
+            NativeQpProblem(source),
+            denseConstraintMatrix(source.constraintMatrix.toDense())
+        {
+        }
+
+        DenseNativeProblem(const DenseNativeProblem&) = default;
+        DenseNativeProblem(DenseNativeProblem&&) noexcept = default;
+        DenseNativeProblem& operator=(const DenseNativeProblem&) = default;
+        DenseNativeProblem& operator=(DenseNativeProblem&&) noexcept = default;
+    };
+
     // Presolve solves in scaled coordinates z, with x = variableScale .* z. The
     // free-column map and fixed values allow the final result to be expanded back
     // into the original NativeQpProblem ordering and units.
     struct SolverTransform {
-        NativeQpProblem problem;
+        DenseNativeProblem problem;
         std::vector<double> variableScale;
         std::vector<std::size_t> freeColumns;
         std::vector<bool> fixedColumns;
@@ -178,7 +200,7 @@ namespace {
             tolerance * (1.0 + (std::max)(std::abs(lower), std::abs(upper)));
     }
 
-    void addRowConstraints(const NativeQpProblem& problem,
+    void addRowConstraints(const DenseNativeProblem& problem,
                            DenseModel& model,
                            bool includeEqualities = true)
     {
@@ -187,9 +209,10 @@ namespace {
         // upper side a*y <= upper, which makes both sides interchangeable in the
         // blocking-step and multiplier logic.
         for (std::size_t row = 0; row < problem.constraintCount; ++row) {
-            const auto rowStart = row * problem.variableCount;
             std::vector<double> coefficients(problem.variableCount, 0.0);
-            std::copy_n(problem.constraintMatrix.begin() + static_cast<std::ptrdiff_t>(rowStart),
+            const auto rowStart = row * problem.variableCount;
+            std::copy_n(problem.denseConstraintMatrix.begin() +
+                            static_cast<std::ptrdiff_t>(rowStart),
                         problem.variableCount,
                         coefficients.begin());
             const double lower = problem.solverConstraintLowerBound(row);
@@ -255,7 +278,7 @@ namespace {
         }
     }
 
-    DenseModel makeDenseModel(const NativeQpProblem& problem)
+    DenseModel makeDenseModel(const DenseNativeProblem& problem)
     {
         // NativeQpProblem remains the canonical public representation. This
         // function creates the solver's one-sided rows without modifying it.
@@ -275,60 +298,62 @@ namespace {
         return std::isfinite(bound) ? bound * scale : bound;
     }
 
-    NativeQpProblem makeScaledProblem(const NativeQpProblem& problem,
-                                      std::vector<double>& variableScale)
+    DenseNativeProblem makeScaledProblem(DenseNativeProblem problem,
+                                         std::vector<double>& variableScale)
     {
         // Scale only the internal copy. For x = S*z, columns become A*S,
         // variable bounds become bounds/S, and diagonal objective coefficients
         // become q*S^2. Affine offsets are moved into the bounded-row sides so
         // the numerical core can work with a zero-offset model.
-        NativeQpProblem scaled = problem;
-        variableScale.assign(problem.variableCount, 1.0);
+        DenseNativeProblem scaled = std::move(problem);
+        variableScale.assign(scaled.variableCount, 1.0);
 
-        for (std::size_t column = 0; column < problem.variableCount; ++column) {
+        for (std::size_t column = 0; column < scaled.variableCount; ++column) {
             double columnMagnitude = 0.0;
-            for (std::size_t row = 0; row < problem.constraintCount; ++row) {
+            for (std::size_t row = 0; row < scaled.constraintCount; ++row) {
                 columnMagnitude = (std::max)(
                     columnMagnitude,
-                    std::abs(problem.constraintMatrix[(row * problem.variableCount) + column]));
+                    std::abs(scaled.denseConstraintMatrix[(row * scaled.variableCount) +
+                                                           column]));
             }
             // x = scale * z.  Scaling only large columns avoids magnifying small
             // physical coefficients while keeping the internal coordinates close
             // to unit magnitude for normal GridDyn cases.
             variableScale[column] = 1.0 / (std::max)(1.0, columnMagnitude);
             const double scale = variableScale[column];
-            scaled.initialValues[column] = problem.initialValues[column] / scale;
+            scaled.initialValues[column] /= scale;
             scaled.variableLowerBounds[column] =
-                scaledBound(problem.variableLowerBounds[column], 1.0 / scale);
+                scaledBound(scaled.variableLowerBounds[column], 1.0 / scale);
             scaled.variableUpperBounds[column] =
-                scaledBound(problem.variableUpperBounds[column], 1.0 / scale);
-            scaled.linearObjective[column] = problem.linearObjective[column] * scale;
-            scaled.quadraticObjective[column] = problem.quadraticObjective[column] * scale * scale;
+                scaledBound(scaled.variableUpperBounds[column], 1.0 / scale);
+            scaled.linearObjective[column] *= scale;
+            scaled.quadraticObjective[column] *= scale * scale;
         }
 
-        scaled.constraintOffsets.assign(problem.constraintCount, 0.0);
-        scaled.initialConstraintValues.assign(problem.constraintCount, 0.0);
-        for (std::size_t row = 0; row < problem.constraintCount; ++row) {
-            const auto rowStart = row * problem.variableCount;
+        scaled.initialConstraintValues.assign(scaled.constraintCount, 0.0);
+        for (std::size_t row = 0; row < scaled.constraintCount; ++row) {
+            const auto rowStart = row * scaled.variableCount;
             double rowMagnitude = 0.0;
-            for (std::size_t column = 0; column < problem.variableCount; ++column) {
+            for (std::size_t column = 0; column < scaled.variableCount; ++column) {
                 const double coefficient =
-                    problem.constraintMatrix[rowStart + column] * variableScale[column];
-                scaled.constraintMatrix[rowStart + column] = coefficient;
+                    scaled.denseConstraintMatrix[rowStart + column] * variableScale[column];
+                scaled.denseConstraintMatrix[rowStart + column] = coefficient;
                 rowMagnitude = (std::max)(rowMagnitude, std::abs(coefficient));
             }
             const double rowScale = 1.0 / (std::max)(1.0, rowMagnitude);
-            for (std::size_t column = 0; column < problem.variableCount; ++column) {
-                scaled.constraintMatrix[rowStart + column] *= rowScale;
+            for (std::size_t column = 0; column < scaled.variableCount; ++column) {
+                scaled.denseConstraintMatrix[rowStart + column] *= rowScale;
             }
-            const double lower = problem.solverConstraintLowerBound(row);
-            const double upper = problem.solverConstraintUpperBound(row);
+            const double lower = scaled.solverConstraintLowerBound(row);
+            const double upper = scaled.solverConstraintUpperBound(row);
+            scaled.constraintOffsets[row] = 0.0;
             scaled.constraintLowerBounds[row] = scaledBound(lower, rowScale);
             scaled.constraintUpperBounds[row] = scaledBound(upper, rowScale);
             double initialValue = 0.0;
-            for (std::size_t column = 0; column < problem.variableCount; ++column) {
+            for (std::size_t column = 0; column < scaled.variableCount; ++column) {
                 initialValue +=
-                    scaled.constraintMatrix[rowStart + column] * scaled.initialValues[column];
+                    scaled.denseConstraintMatrix[rowStart + column] *
+                    scaled.initialValues[column];
             }
             scaled.initialConstraintValues[row] = initialValue;
         }
@@ -363,7 +388,7 @@ namespace {
             return {};
         }
 
-        NativeQpProblem reduced = full;
+        DenseNativeProblem reduced = full;
         reduced.variableCount = transform.freeColumns.size();
         reduced.initialValues.clear();
         reduced.variableLowerBounds.clear();
@@ -374,7 +399,7 @@ namespace {
         reduced.variableTypes.clear();
         reduced.tolerances.clear();
         reduced.variableNames.clear();
-        reduced.constraintMatrix.assign(full.constraintCount * reduced.variableCount, 0.0);
+        reduced.denseConstraintMatrix.assign(full.constraintCount * reduced.variableCount, 0.0);
         reduced.initialValues.reserve(reduced.variableCount);
         reduced.variableLowerBounds.reserve(reduced.variableCount);
         reduced.variableUpperBounds.reserve(reduced.variableCount);
@@ -409,7 +434,7 @@ namespace {
             for (std::size_t column = 0; column < full.variableCount; ++column) {
                 if (transform.fixedColumns[column]) {
                     fixedContribution +=
-                        full.constraintMatrix[(row * full.variableCount) + column] *
+                        full.denseConstraintMatrix[(row * full.variableCount) + column] *
                         transform.fixedValues[column];
                 }
             }
@@ -431,8 +456,9 @@ namespace {
             const auto reducedRowStart = row * reduced.variableCount;
             for (std::size_t reducedColumn = 0; reducedColumn < reduced.variableCount;
                  ++reducedColumn) {
-                reduced.constraintMatrix[reducedRowStart + reducedColumn] =
-                    full.constraintMatrix[fullRowStart + transform.freeColumns[reducedColumn]];
+                reduced.denseConstraintMatrix[reducedRowStart + reducedColumn] =
+                    full.denseConstraintMatrix[fullRowStart +
+                                                transform.freeColumns[reducedColumn]];
             }
             reduced.initialConstraintValues[row] =
                 full.initialConstraintValues[row] - fixedContribution;
@@ -466,7 +492,8 @@ namespace {
             }
             std::vector<double> work(problem.variableCount, 0.0);
             const auto rowStart = row * problem.variableCount;
-            std::copy_n(problem.constraintMatrix.begin() + static_cast<std::ptrdiff_t>(rowStart),
+            std::copy_n(problem.denseConstraintMatrix.begin() +
+                            static_cast<std::ptrdiff_t>(rowStart),
                         problem.variableCount,
                         work.begin());
             double workRhs = 0.5 * (lower + upper);
@@ -522,20 +549,20 @@ namespace {
             return {};
         }
 
-        NativeQpProblem reduced = problem;
+        DenseNativeProblem reduced = problem;
         reduced.constraintCount = problem.constraintCount - removed;
         reduced.constraintLowerBounds.clear();
         reduced.constraintUpperBounds.clear();
         reduced.constraintOffsets.clear();
         reduced.initialConstraintValues.clear();
         reduced.constraintNames.clear();
-        reduced.constraintMatrix.clear();
+        reduced.denseConstraintMatrix.clear();
         reduced.constraintLowerBounds.reserve(reduced.constraintCount);
         reduced.constraintUpperBounds.reserve(reduced.constraintCount);
         reduced.constraintOffsets.reserve(reduced.constraintCount);
         reduced.initialConstraintValues.reserve(reduced.constraintCount);
         reduced.constraintNames.reserve(reduced.constraintCount);
-        reduced.constraintMatrix.reserve(reduced.constraintCount * problem.variableCount);
+        reduced.denseConstraintMatrix.reserve(reduced.constraintCount * problem.variableCount);
         for (std::size_t row = 0; row < problem.constraintCount; ++row) {
             if (!keep[row]) {
                 continue;
@@ -546,12 +573,12 @@ namespace {
             reduced.initialConstraintValues.push_back(problem.initialConstraintValues[row]);
             reduced.constraintNames.push_back(problem.constraintNames[row]);
             const auto rowStart = row * problem.variableCount;
-            reduced.constraintMatrix.insert(reduced.constraintMatrix.end(),
-                                            problem.constraintMatrix.begin() +
-                                                static_cast<std::ptrdiff_t>(rowStart),
-                                            problem.constraintMatrix.begin() +
-                                                static_cast<std::ptrdiff_t>(rowStart +
-                                                                            problem.variableCount));
+            reduced.denseConstraintMatrix.insert(reduced.denseConstraintMatrix.end(),
+                                                 problem.denseConstraintMatrix.begin() +
+                                                     static_cast<std::ptrdiff_t>(rowStart),
+                                                 problem.denseConstraintMatrix.begin() +
+                                                     static_cast<std::ptrdiff_t>(rowStart +
+                                                                                 problem.variableCount));
         }
         transform.problem = std::move(reduced);
         return {};
@@ -564,7 +591,7 @@ namespace {
         // Keep this order deliberate: scaling makes pivot tests comparable,
         // fixed substitution reduces the KKT dimension, and equality reduction
         // sees the bounds after fixed contributions have been applied.
-        transform.problem = makeScaledProblem(problem, transform.variableScale);
+        transform.problem = makeScaledProblem(DenseNativeProblem{problem}, transform.variableScale);
         auto fixedResult = eliminateFixedVariables(transform, options);
         if (!fixedResult.successful) {
             return fixedResult;
@@ -997,7 +1024,7 @@ namespace {
      * Phase-I system smaller for large, mostly feasible GridDyn models while
      * preserving all original constraints for the final active-set solve.
      */
-    PhaseOneModel makePhaseOneModel(const NativeQpProblem& problem,
+    PhaseOneModel makePhaseOneModel(const DenseNativeProblem& problem,
                                     const std::vector<double>& initialValues,
                                     double feasibilityTolerance)
     {
@@ -1013,7 +1040,8 @@ namespace {
         for (std::size_t row = 0; row < problem.constraintCount; ++row) {
             const auto rowStart = row * problem.variableCount;
             std::vector<double> baseCoefficients(problem.variableCount, 0.0);
-            std::copy_n(problem.constraintMatrix.begin() + static_cast<std::ptrdiff_t>(rowStart),
+            std::copy_n(problem.denseConstraintMatrix.begin() +
+                            static_cast<std::ptrdiff_t>(rowStart),
                         problem.variableCount,
                         baseCoefficients.begin());
             const double lower = problem.solverConstraintLowerBound(row);
@@ -1123,7 +1151,7 @@ namespace {
         return phase;
     }
 
-    std::vector<double> clampToBounds(const NativeQpProblem& problem)
+    std::vector<double> clampToBounds(const DenseNativeProblem& problem)
     {
         auto values = problem.initialValues;
         for (std::size_t column = 0; column < problem.variableCount; ++column) {
@@ -1138,7 +1166,7 @@ namespace {
     }
 
     /** Run Phase-I and return a feasible point in the solver's internal coordinates. */
-    NativeSolveResult runPhaseOne(const NativeQpProblem& problem,
+    NativeSolveResult runPhaseOne(const DenseNativeProblem& problem,
                                   const NativeDenseSolverOptions& options)
     {
         auto initialValues = clampToBounds(problem);
@@ -1249,6 +1277,19 @@ NativeSolveResult NativeDenseSolver::solve(const NativeQpProblem& problem,
     NativeSolveStatus failureStatus = NativeSolveStatus::NUMERICAL_FAILURE;
     if (!supportedProblem(problem, options, result.message, failureStatus)) {
         result.status = failureStatus;
+        return result;
+    }
+
+    // The native backend is intentionally a small dense reference solver. Do
+    // not let an accidental selection of it turn a large sparse GridDyn case
+    // into a multi-gigabyte allocation; HiGHS is the large-case backend.
+    constexpr std::size_t maxDenseMatrixEntries = 10'000'000;
+    if ((problem.variableCount != 0) &&
+        (problem.constraintCount > (maxDenseMatrixEntries / problem.variableCount))) {
+        result.status = NativeSolveStatus::UNSUPPORTED;
+        result.message =
+            "native dense solver refuses a constraint matrix larger than its reference limit; "
+            "use the HiGHS backend";
         return result;
     }
 

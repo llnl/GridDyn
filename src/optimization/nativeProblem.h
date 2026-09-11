@@ -7,6 +7,7 @@
 #pragma once
 
 #include "optHelperClasses.h"
+#include <algorithm>
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
@@ -16,6 +17,159 @@
 #include <vector>
 
 namespace griddyn {
+
+/**
+ * Solver-neutral compressed-row sparse matrix.
+ *
+ * Rows are stored in deterministic increasing column order.  Duplicate
+ * coordinates are combined while the matrix is assembled, and explicit zero
+ * values are omitted.  This is the canonical constraint representation; a
+ * dense matrix is created only inside the small native reference solver.
+ */
+struct NativeSparseMatrix {
+    std::size_t rowCount = 0;
+    std::size_t columnCount = 0;
+    std::vector<std::size_t> rowStarts;
+    std::vector<std::size_t> columnIndices;
+    std::vector<double> values;
+
+    NativeSparseMatrix() = default;
+
+    NativeSparseMatrix(std::size_t rows, std::size_t columns):
+        rowCount(rows),
+        columnCount(columns),
+        rowStarts(rows + 1, 0)
+    {
+    }
+
+    void setDimensions(std::size_t rows, std::size_t columns)
+    {
+        rowCount = rows;
+        columnCount = columns;
+        rowStarts.assign(rows + 1, 0);
+        columnIndices.clear();
+        values.clear();
+    }
+
+    void clear()
+    {
+        rowCount = 0;
+        columnCount = 0;
+        rowStarts.clear();
+        columnIndices.clear();
+        values.clear();
+    }
+
+    bool empty() const { return values.empty(); }
+    std::size_t size() const { return values.size(); }
+
+    /** Assign a row-major dense vector, primarily for compact solver tests. */
+    void assignDense(const std::vector<double>& dense)
+    {
+        if (dense.size() != rowCount * columnCount) {
+            clear();
+            return;
+        }
+        rowStarts.assign(rowCount + 1, 0);
+        columnIndices.clear();
+        values.clear();
+        for (std::size_t row = 0; row < rowCount; ++row) {
+            for (std::size_t column = 0; column < columnCount; ++column) {
+                const double value = dense[(row * columnCount) + column];
+                if (value != 0.0) {
+                    columnIndices.push_back(column);
+                    values.push_back(value);
+                }
+            }
+            rowStarts[row + 1] = values.size();
+        }
+    }
+
+    /** Return one coefficient, or zero when the coordinate is not stored. */
+    double coefficient(std::size_t row, std::size_t column) const
+    {
+        if ((row >= rowCount) || (column >= columnCount) ||
+            (rowStarts.size() != rowCount + 1)) {
+            return 0.0;
+        }
+        const auto begin = columnIndices.begin() +
+            static_cast<std::ptrdiff_t>(rowStarts[row]);
+        const auto end = columnIndices.begin() +
+            static_cast<std::ptrdiff_t>(rowStarts[row + 1]);
+        const auto entry = std::lower_bound(begin, end, column);
+        if ((entry == end) || (*entry != column)) {
+            return 0.0;
+        }
+        return values[static_cast<std::size_t>(entry - columnIndices.begin())];
+    }
+
+    /** Evaluate one sparse row against a decision vector. */
+    double rowDot(std::size_t row, const std::vector<double>& decisionValues) const
+    {
+        double result = 0.0;
+        if ((row >= rowCount) || (decisionValues.size() < columnCount) ||
+            (rowStarts.size() != rowCount + 1)) {
+            return result;
+        }
+        for (std::size_t entry = rowStarts[row]; entry < rowStarts[row + 1]; ++entry) {
+            result += values[entry] * decisionValues[columnIndices[entry]];
+        }
+        return result;
+    }
+
+    /** Expand into row-major storage for the native dense reference backend. */
+    std::vector<double> toDense() const
+    {
+        std::vector<double> dense(rowCount * columnCount, 0.0);
+        if (rowStarts.size() != rowCount + 1) {
+            return dense;
+        }
+        for (std::size_t row = 0; row < rowCount; ++row) {
+            for (std::size_t entry = rowStarts[row]; entry < rowStarts[row + 1]; ++entry) {
+                dense[(row * columnCount) + columnIndices[entry]] = values[entry];
+            }
+        }
+        return dense;
+    }
+
+    bool validate(std::string* error = nullptr) const
+    {
+        const auto fail = [error](std::string message) {
+            if (error != nullptr) {
+                *error = std::move(message);
+            }
+            return false;
+        };
+        if (rowStarts.size() != rowCount + 1) {
+            return fail("sparse matrix rowStarts has the wrong size");
+        }
+        if (rowStarts.front() != 0 || rowStarts.back() != values.size() ||
+            columnIndices.size() != values.size()) {
+            return fail("sparse matrix compressed storage is inconsistent");
+        }
+        for (std::size_t row = 0; row < rowCount; ++row) {
+            if (rowStarts[row] > rowStarts[row + 1]) {
+                return fail("sparse matrix rowStarts is not monotonic");
+            }
+            std::size_t previousColumn = 0;
+            bool first = true;
+            for (std::size_t entry = rowStarts[row]; entry < rowStarts[row + 1]; ++entry) {
+                const auto column = columnIndices[entry];
+                if ((column >= columnCount) || (!first && (column <= previousColumn))) {
+                    return fail("sparse matrix columns are invalid or not canonical");
+                }
+                if (!std::isfinite(values[entry]) || (values[entry] == 0.0)) {
+                    return fail("sparse matrix contains an invalid value");
+                }
+                previousColumn = column;
+                first = false;
+            }
+        }
+        return true;
+    }
+
+    bool operator==(const NativeSparseMatrix&) const = default;
+};
 
 /** Classification produced while materializing a native continuous LP/QP. */
 enum class NativeProblemClass {
@@ -29,7 +183,7 @@ enum class NativeProblemClass {
 };
 
 /**
- * Solver-neutral dense representation of a GridDyn optimization problem.
+ * Solver-neutral sparse representation of a GridDyn optimization problem.
  *
  * The objective is
  *
@@ -67,8 +221,7 @@ struct NativeQpProblem {
     std::vector<double> constraintLowerBounds;
     std::vector<double> constraintUpperBounds;
     std::vector<double> constraintOffsets;
-    std::vector<double>
-        constraintMatrix;  //!< row-major A, with constraintCount * variableCount entries
+    NativeSparseMatrix constraintMatrix;  //!< canonical compressed-row constraint matrix A
     std::vector<double> initialConstraintValues;
     std::vector<double> initialGradient;
 
@@ -86,10 +239,7 @@ struct NativeQpProblem {
     double constraintValue(std::size_t row, const std::vector<double>& values) const
     {
         double value = constraintOffsets[row];
-        const auto rowStart = row * variableCount;
-        for (std::size_t column = 0; column < variableCount; ++column) {
-            value += constraintMatrix[rowStart + column] * values[column];
-        }
+        value += constraintMatrix.rowDot(row, values);
         return value;
     }
 
@@ -194,16 +344,20 @@ struct NativeQpProblem {
             (constraintUpperBounds.size() != constraintCount) ||
             (constraintOffsets.size() != constraintCount) ||
             (initialConstraintValues.size() != constraintCount) ||
-            (constraintMatrix.size() != constraintCount * variableCount) ||
             (constraintNames.size() != constraintCount) ||
             (variableNames.size() != variableCount) || !std::isfinite(objectiveConstant)) {
             return fail("native problem constraint, name, or objective storage has invalid size");
         }
+        std::string matrixError;
+        if ((constraintMatrix.rowCount != constraintCount) ||
+            (constraintMatrix.columnCount != variableCount) ||
+            !constraintMatrix.validate(&matrixError)) {
+            return fail("native problem has invalid sparse constraint storage: " + matrixError);
+        }
         if (vectorHasNonFinite(initialValues) || vectorHasNonFinite(linearObjective) ||
-            vectorHasNonFinite(quadraticObjective) || vectorHasNonFinite(constraintMatrix) ||
-            vectorHasNonFinite(constraintOffsets) || vectorHasNonFinite(initialConstraintValues) ||
-            vectorHasNonFinite(initialGradient) || vectorHasNonFinite(tolerances) ||
-            vectorHasNonFinite(variableTypes)) {
+            vectorHasNonFinite(quadraticObjective) || vectorHasNonFinite(constraintOffsets) ||
+            vectorHasNonFinite(initialConstraintValues) || vectorHasNonFinite(initialGradient) ||
+            vectorHasNonFinite(tolerances) || vectorHasNonFinite(variableTypes)) {
             return fail("native problem contains a non-finite coefficient or value");
         }
         for (std::size_t column = 0; column < variableCount; ++column) {

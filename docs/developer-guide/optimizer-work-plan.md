@@ -781,12 +781,12 @@ The native optimizer solves the standard `case9.m`, `case14.m`, `case39.m`,
 objective values against the corresponding PYPOWER/MATPOWER reference
 formulations. It also solves the 89-bus PEGASE case with its canonical
 aggregate checks. The case13659 PEGASE setup-only gate also passes without
-  calling a numerical solver: the Release baseline materializes 17,751
-  variables, 13,660 rows, and 55,002 sparse Jacobian entries with about 2.94 MB
-  of callback storage. The sparse solver snapshot adds compressed
-  row/column/value storage and does not allocate the roughly 1.8 GiB dense
-  equivalent. Preparation takes approximately 6 seconds total on the local
-  Windows build.
+calling a numerical solver: the Release baseline materializes 17,751
+variables, 13,660 rows, and 55,002 sparse Jacobian entries with about 2.94 MB
+of callback storage. The sparse solver snapshot adds compressed
+row/column/value storage and does not allocate the roughly 1.8 GiB dense
+equivalent. Preparation takes approximately 6 seconds total on the local
+Windows build.
 
 The Illinois200 scale probe demonstrates the current dense limit: 249
 variables, 446 rows, an approximately 0.85 MiB dense constraint matrix, and 41
@@ -894,15 +894,15 @@ LP/QP backend and large-case path.
 
 ## Verification plan for the next chunk
 
-| Layer       | What to verify                                               | Example checks                                                                   |
-| ----------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------- |
-| Translation | Sparse and dense paths describe the same bounded-row problem | `lower - offset`, `upper - offset`, stable indices, duplicate-entry policy       |
-| Conformance | Backends consume the same solver-neutral contract            | native/mock/HiGHS objective, rows, bounds, statuses, and write-back              |
-| Algebra     | Sparse rows preserve the GridDyn equations                   | phase-shifted branch flow, thermal limits, angle limits, and nodal balances      |
-| Equivalence | HiGHS agrees with the native/reference formulation           | two-bus, case9, case14, and IEEE-118 objective, dispatch, flows, and feasibility |
-| Scale       | Large assembly avoids dense allocation                       | case13659 counts, sparse nonzeros, callback time, and memory                     |
+| Layer       | What to verify                                               | Example checks                                                                                                      |
+| ----------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| Translation | Sparse and dense paths describe the same bounded-row problem | `lower - offset`, `upper - offset`, stable indices, duplicate-entry policy                                          |
+| Conformance | Backends consume the same solver-neutral contract            | native/mock/HiGHS objective, rows, bounds, statuses, and write-back                                                 |
+| Algebra     | Sparse rows preserve the GridDyn equations                   | phase-shifted branch flow, thermal limits, angle limits, and nodal balances                                         |
+| Equivalence | HiGHS agrees with the native/reference formulation           | two-bus, case9, case14, and IEEE-118 objective, dispatch, flows, and feasibility                                    |
+| Scale       | Large assembly avoids dense allocation                       | case13659 counts, sparse nonzeros, callback time, and memory                                                        |
 | Performance | Sparse solve scales beyond the dense reference               | Illinois200, IEEE-300, 1354-bus PEGASE, 2383-bus, 6468-bus RTE, and larger costed cases, Release timings and memory |
-| Results     | Duals and statuses are mapped without changing write-back    | row/column duals, LMPs, failed solve isolation, explicit `writeBack()`           |
+| Results     | Duals and statuses are mapped without changing write-back    | row/column duals, LMPs, failed solve isolation, explicit `writeBack()`                                              |
 
 ## Verification ladder
 

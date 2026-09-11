@@ -62,8 +62,8 @@ add_library(optimization STATIC ${opt_files})
 target_link_libraries(optimization PUBLIC griddyn)
 
 if(GRIDDYN_ENABLE_HIGHS)
-    # optimization is a static library, so the HiGHS symbols referenced by
-    # its backend must remain visible to the final executable.
+    # optimization is a static library, so the HiGHS symbols referenced by its backend must remain
+    # visible to the final executable.
     target_link_libraries(optimization PUBLIC GridDyn::highs)
 endif()
 

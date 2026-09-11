@@ -7,7 +7,7 @@
 #include "optimizerInterface.h"
 
 #ifdef GRIDDYN_ENABLE_HIGHS
-#include "highsOptimizer.h"
+#    include "highsOptimizer.h"
 #endif
 
 #include "core/CoreExceptions.h"
@@ -37,8 +37,8 @@ static ChildClassFactory<EconomicDispatchOptimizer, OptimizerInterface>
 static ChildClassFactory<NativeOptimizer, OptimizerInterface>
     gNativeFac(stringVec{"native", "compact", "dense", "nativeqp", "qp"});
 #ifdef GRIDDYN_ENABLE_HIGHS
-static ChildClassFactory<HighsOptimizer, OptimizerInterface> gHighsFac(
-    stringVec{"highs", "highsqp", "highs_optimizer"});
+static ChildClassFactory<HighsOptimizer, OptimizerInterface>
+    gHighsFac(stringVec{"highs", "highsqp", "highs_optimizer"});
 #endif
 
 namespace {
@@ -142,19 +142,20 @@ namespace {
                 return false;
             }
             entries.push_back({static_cast<std::size_t>(element.row),
-                              static_cast<std::size_t>(element.col),
-                              element.data});
+                               static_cast<std::size_t>(element.col),
+                               element.data});
         }
 
-        std::sort(entries.begin(), entries.end(), [](const SparseEntry& lhs, const SparseEntry& rhs) {
-            return (lhs.row < rhs.row) ||
-                ((lhs.row == rhs.row) && (lhs.column < rhs.column));
-        });
+        std::sort(entries.begin(),
+                  entries.end(),
+                  [](const SparseEntry& lhs, const SparseEntry& rhs) {
+                      return (lhs.row < rhs.row) ||
+                          ((lhs.row == rhs.row) && (lhs.column < rhs.column));
+                  });
 
         std::size_t canonicalEntryCount = 0;
         for (const auto& entry : entries) {
-            if ((canonicalEntryCount > 0) &&
-                (entries[canonicalEntryCount - 1].row == entry.row) &&
+            if ((canonicalEntryCount > 0) && (entries[canonicalEntryCount - 1].row == entry.row) &&
                 (entries[canonicalEntryCount - 1].column == entry.column)) {
                 entries[canonicalEntryCount - 1].value += entry.value;
                 if (!std::isfinite(entries[canonicalEntryCount - 1].value)) {
@@ -199,10 +200,10 @@ namespace {
             const auto lhsEnd = lhs.rowStarts[row + 1];
             const auto rhsEnd = rhs.rowStarts[row + 1];
             while ((lhsEntry < lhsEnd) || (rhsEntry < rhsEnd)) {
-                const auto lhsColumn = (lhsEntry < lhsEnd) ?
-                    lhs.columnIndices[lhsEntry] : lhs.columnCount;
-                const auto rhsColumn = (rhsEntry < rhsEnd) ?
-                    rhs.columnIndices[rhsEntry] : rhs.columnCount;
+                const auto lhsColumn =
+                    (lhsEntry < lhsEnd) ? lhs.columnIndices[lhsEntry] : lhs.columnCount;
+                const auto rhsColumn =
+                    (rhsEntry < rhsEnd) ? rhs.columnIndices[rhsEntry] : rhs.columnCount;
                 if (lhsColumn == rhsColumn) {
                     if (!nativeNearlyEqual(lhs.values[lhsEntry], rhs.values[rhsEntry])) {
                         return false;

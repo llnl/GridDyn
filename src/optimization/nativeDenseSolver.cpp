@@ -54,15 +54,14 @@ namespace {
      * Working copy used only by the native reference backend.  The public
      * NativeQpProblem remains sparse; this copy is deliberately created after
      * the backend has been selected and the size guard has passed.
-    */
+     */
     struct DenseNativeProblem: NativeQpProblem {
         std::vector<double> denseConstraintMatrix;
 
         DenseNativeProblem() = default;
 
         explicit DenseNativeProblem(const NativeQpProblem& source):
-            NativeQpProblem(source),
-            denseConstraintMatrix(source.constraintMatrix.toDense())
+            NativeQpProblem(source), denseConstraintMatrix(source.constraintMatrix.toDense())
         {
         }
 
@@ -313,8 +312,7 @@ namespace {
             for (std::size_t row = 0; row < scaled.constraintCount; ++row) {
                 columnMagnitude = (std::max)(
                     columnMagnitude,
-                    std::abs(scaled.denseConstraintMatrix[(row * scaled.variableCount) +
-                                                           column]));
+                    std::abs(scaled.denseConstraintMatrix[(row * scaled.variableCount) + column]));
             }
             // x = scale * z.  Scaling only large columns avoids magnifying small
             // physical coefficients while keeping the internal coordinates close
@@ -352,8 +350,7 @@ namespace {
             double initialValue = 0.0;
             for (std::size_t column = 0; column < scaled.variableCount; ++column) {
                 initialValue +=
-                    scaled.denseConstraintMatrix[rowStart + column] *
-                    scaled.initialValues[column];
+                    scaled.denseConstraintMatrix[rowStart + column] * scaled.initialValues[column];
             }
             scaled.initialConstraintValues[row] = initialValue;
         }
@@ -457,8 +454,7 @@ namespace {
             for (std::size_t reducedColumn = 0; reducedColumn < reduced.variableCount;
                  ++reducedColumn) {
                 reduced.denseConstraintMatrix[reducedRowStart + reducedColumn] =
-                    full.denseConstraintMatrix[fullRowStart +
-                                                transform.freeColumns[reducedColumn]];
+                    full.denseConstraintMatrix[fullRowStart + transform.freeColumns[reducedColumn]];
             }
             reduced.initialConstraintValues[row] =
                 full.initialConstraintValues[row] - fixedContribution;
@@ -577,8 +573,8 @@ namespace {
                                                  problem.denseConstraintMatrix.begin() +
                                                      static_cast<std::ptrdiff_t>(rowStart),
                                                  problem.denseConstraintMatrix.begin() +
-                                                     static_cast<std::ptrdiff_t>(rowStart +
-                                                                                 problem.variableCount));
+                                                     static_cast<std::ptrdiff_t>(
+                                                         rowStart + problem.variableCount));
         }
         transform.problem = std::move(reduced);
         return {};

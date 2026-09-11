@@ -36,9 +36,7 @@ struct NativeSparseMatrix {
     NativeSparseMatrix() = default;
 
     NativeSparseMatrix(std::size_t rows, std::size_t columns):
-        rowCount(rows),
-        columnCount(columns),
-        rowStarts(rows + 1, 0)
+        rowCount(rows), columnCount(columns), rowStarts(rows + 1, 0)
     {
     }
 
@@ -88,14 +86,11 @@ struct NativeSparseMatrix {
     /** Return one coefficient, or zero when the coordinate is not stored. */
     double coefficient(std::size_t row, std::size_t column) const
     {
-        if ((row >= rowCount) || (column >= columnCount) ||
-            (rowStarts.size() != rowCount + 1)) {
+        if ((row >= rowCount) || (column >= columnCount) || (rowStarts.size() != rowCount + 1)) {
             return 0.0;
         }
-        const auto begin = columnIndices.begin() +
-            static_cast<std::ptrdiff_t>(rowStarts[row]);
-        const auto end = columnIndices.begin() +
-            static_cast<std::ptrdiff_t>(rowStarts[row + 1]);
+        const auto begin = columnIndices.begin() + static_cast<std::ptrdiff_t>(rowStarts[row]);
+        const auto end = columnIndices.begin() + static_cast<std::ptrdiff_t>(rowStarts[row + 1]);
         const auto entry = std::lower_bound(begin, end, column);
         if ((entry == end) || (*entry != column)) {
             return 0.0;

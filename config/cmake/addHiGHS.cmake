@@ -8,9 +8,9 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #
-# GridDyn uses the tracked HiGHS submodule for the native optimization solver.
-# Configure only the C++ library; HiGHS applications, examples, tests, language
-# bindings, and GPU support are not part of the GridDyn build.
+# GridDyn uses the tracked HiGHS submodule for the native optimization solver. Configure only the
+# C++ library; HiGHS applications, examples, tests, language bindings, and GPU support are not part
+# of the GridDyn build.
 #
 
 set(highs_SOURCE_DIR "${PROJECT_SOURCE_DIR}/ThirdParty/highs")
@@ -22,8 +22,8 @@ if(NOT EXISTS "${highs_SOURCE_DIR}/CMakeLists.txt")
     )
 endif()
 
-# HiGHS uses several generic option names. Keep its build self-contained and
-# avoid changing GridDyn's top-level BUILD_TESTING setting while configuring it.
+# HiGHS uses several generic option names. Keep its build self-contained and avoid changing
+# GridDyn's top-level BUILD_TESTING setting while configuring it.
 set(FAST_BUILD ON)
 set(BUILD_CXX ON)
 set(BUILD_CXX_EXE OFF)
@@ -47,8 +47,8 @@ set(HIGHS_COVERAGE OFF)
 
 add_subdirectory("${highs_SOURCE_DIR}" "${highs_BINARY_DIR}")
 
-# HiGHS is configured in the parent directory scope, so restore the GridDyn
-# testing option before the remaining project subdirectories are processed.
+# HiGHS is configured in the parent directory scope, so restore the GridDyn testing option before
+# the remaining project subdirectories are processed.
 set(BUILD_TESTING "${_griddyn_build_testing}")
 unset(_griddyn_build_testing)
 
@@ -64,8 +64,7 @@ foreach(_highs_target IN ITEMS highs highs_extras)
     if(TARGET ${_highs_target})
         set_target_properties(${_highs_target} PROPERTIES FOLDER Extern/HiGHS)
         target_compile_options(
-            ${_highs_target}
-            PRIVATE $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wno-error>
+            ${_highs_target} PRIVATE $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wno-error>
         )
     endif()
 endforeach()

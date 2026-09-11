@@ -212,11 +212,8 @@ option(GRIDDYN_ENABLE_NETWORKING_LIBRARY "Enable network based communication com
 option(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY "Enable Optimization libraries" OFF)
 
 cmake_dependent_option(
-    GRIDDYN_ENABLE_HIGHS
-    "Build the HiGHS optimization solver for use by the optimization library"
-    ${GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY}
-    "GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY"
-    OFF
+    GRIDDYN_ENABLE_HIGHS "Build the HiGHS optimization solver for use by the optimization library"
+    ${GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY} "GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY" OFF
 )
 
 option(GRIDDYN_ENABLE_CLANG_TOOLS

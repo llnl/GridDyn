@@ -17,7 +17,7 @@
 #include "optimization/optHelperClasses.h"
 #include "optimization/optimizerInterface.h"
 #ifdef GRIDDYN_ENABLE_HIGHS
-#include "optimization/highsOptimizer.h"
+#    include "optimization/highsOptimizer.h"
 #endif
 #include <algorithm>
 #include <chrono>
@@ -2081,8 +2081,7 @@ TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase118LikeNativeOptimi
     };
     RecordProperty("case118_native_solve_ms",
                    std::to_string(milliseconds(nativeStop - nativeStart)));
-    RecordProperty("case118_highs_solve_ms",
-                   std::to_string(milliseconds(highsStop - highsStart)));
+    RecordProperty("case118_highs_solve_ms", std::to_string(milliseconds(highsStop - highsStart)));
     RecordProperty("case118_highs_iterations",
                    std::to_string(highsOptimizer.lastSolveResult().iterationCount));
 }
@@ -2243,8 +2242,7 @@ TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase300WithAndWithoutSc
               FUNCTION_EXECUTION_SUCCESS);
     noScalingOptimizer.setMaxNonZeros(noScalingRoot->objSize(mode) *
                                       noScalingRoot->constraintSize(mode));
-    scalingOptimizer.setMaxNonZeros(scalingRoot->objSize(mode) *
-                                    scalingRoot->constraintSize(mode));
+    scalingOptimizer.setMaxNonZeros(scalingRoot->objSize(mode) * scalingRoot->constraintSize(mode));
     noScalingOptimizer.set("scaling", "no_scaling");
     scalingOptimizer.set("scaling", "scaling");
     noScalingOptimizer.initialize(0.0);
@@ -2252,8 +2250,7 @@ TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase300WithAndWithoutSc
 
     double noScalingReturnTime = -1.0;
     double scalingReturnTime = -1.0;
-    ASSERT_EQ(noScalingOptimizer.solve(0.0, noScalingReturnTime),
-              FUNCTION_EXECUTION_SUCCESS)
+    ASSERT_EQ(noScalingOptimizer.solve(0.0, noScalingReturnTime), FUNCTION_EXECUTION_SUCCESS)
         << noScalingOptimizer.lastSolveResult().message;
     ASSERT_EQ(scalingOptimizer.solve(0.0, scalingReturnTime), FUNCTION_EXECUTION_SUCCESS)
         << scalingOptimizer.lastSolveResult().message;
@@ -2266,9 +2263,9 @@ TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase300WithAndWithoutSc
     EXPECT_EQ(noScalingOptimizer.values.size(), scalingOptimizer.values.size());
     double maximumValueDifference = 0.0;
     for (std::size_t index = 0; index < noScalingOptimizer.values.size(); ++index) {
-        maximumValueDifference = (std::max)(
-            maximumValueDifference,
-            std::abs(noScalingOptimizer.values[index] - scalingOptimizer.values[index]));
+        maximumValueDifference =
+            (std::max)(maximumValueDifference,
+                       std::abs(noScalingOptimizer.values[index] - scalingOptimizer.values[index]));
     }
     EXPECT_LT(maximumValueDifference, 1e-3);
     EXPECT_NEAR(noScalingOptimizer.lastSolveResult().objectiveValue,
@@ -2326,14 +2323,10 @@ TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase1354Pegase)
     const auto milliseconds = [](auto duration) {
         return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
     };
-    RecordProperty("case1354pegase_load_ms",
-                   std::to_string(milliseconds(loadStop - loadStart)));
-    RecordProperty("case1354pegase_setup_ms",
-                   std::to_string(milliseconds(setupStop - setupStart)));
-    RecordProperty("case1354pegase_solve_ms",
-                   std::to_string(milliseconds(solveStop - solveStart)));
-    RecordProperty("case1354pegase_variables",
-                   std::to_string(optimizer->problem().variableCount));
+    RecordProperty("case1354pegase_load_ms", std::to_string(milliseconds(loadStop - loadStart)));
+    RecordProperty("case1354pegase_setup_ms", std::to_string(milliseconds(setupStop - setupStart)));
+    RecordProperty("case1354pegase_solve_ms", std::to_string(milliseconds(solveStop - solveStart)));
+    RecordProperty("case1354pegase_variables", std::to_string(optimizer->problem().variableCount));
     RecordProperty("case1354pegase_constraints",
                    std::to_string(optimizer->problem().constraintCount));
     RecordProperty("case1354pegase_jacobian_nnz",
@@ -2342,8 +2335,7 @@ TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase1354Pegase)
         optimizer->problem().constraintMatrix.rowStarts.capacity() * sizeof(std::size_t) +
         optimizer->problem().constraintMatrix.columnIndices.capacity() * sizeof(std::size_t) +
         optimizer->problem().constraintMatrix.values.capacity() * sizeof(double);
-    RecordProperty("case1354pegase_sparse_matrix_bytes",
-                   std::to_string(sparseMatrixBytes));
+    RecordProperty("case1354pegase_sparse_matrix_bytes", std::to_string(sparseMatrixBytes));
     RecordProperty("case1354pegase_highs_iterations",
                    std::to_string(optimizer->lastSolveResult().iterationCount));
 }
@@ -2398,8 +2390,7 @@ TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase2383wp)
     RecordProperty("case2383wp_setup_ms", std::to_string(milliseconds(setupStop - setupStart)));
     RecordProperty("case2383wp_solve_ms", std::to_string(milliseconds(solveStop - solveStart)));
     RecordProperty("case2383wp_variables", std::to_string(optimizer->problem().variableCount));
-    RecordProperty("case2383wp_constraints",
-                   std::to_string(optimizer->problem().constraintCount));
+    RecordProperty("case2383wp_constraints", std::to_string(optimizer->problem().constraintCount));
     RecordProperty("case2383wp_jacobian_nnz",
                    std::to_string(optimizer->problem().constraintMatrix.size()));
     const auto sparseMatrixBytes =
@@ -2461,8 +2452,7 @@ TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase6468rte)
     RecordProperty("case6468rte_setup_ms", std::to_string(milliseconds(setupStop - setupStart)));
     RecordProperty("case6468rte_solve_ms", std::to_string(milliseconds(solveStop - solveStart)));
     RecordProperty("case6468rte_variables", std::to_string(optimizer->problem().variableCount));
-    RecordProperty("case6468rte_constraints",
-                   std::to_string(optimizer->problem().constraintCount));
+    RecordProperty("case6468rte_constraints", std::to_string(optimizer->problem().constraintCount));
     RecordProperty("case6468rte_jacobian_nnz",
                    std::to_string(optimizer->problem().constraintMatrix.size()));
     const auto sparseMatrixBytes =
@@ -2522,14 +2512,12 @@ TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase13659Pegase)
     const auto milliseconds = [](auto duration) {
         return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
     };
-    RecordProperty("case13659pegase_load_ms",
-                   std::to_string(milliseconds(loadStop - loadStart)));
+    RecordProperty("case13659pegase_load_ms", std::to_string(milliseconds(loadStop - loadStart)));
     RecordProperty("case13659pegase_setup_ms",
                    std::to_string(milliseconds(setupStop - setupStart)));
     RecordProperty("case13659pegase_solve_ms",
                    std::to_string(milliseconds(solveStop - solveStart)));
-    RecordProperty("case13659pegase_variables",
-                   std::to_string(optimizer.problem().variableCount));
+    RecordProperty("case13659pegase_variables", std::to_string(optimizer.problem().variableCount));
     RecordProperty("case13659pegase_constraints",
                    std::to_string(optimizer.problem().constraintCount));
     RecordProperty("case13659pegase_jacobian_nnz",

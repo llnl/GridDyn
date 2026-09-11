@@ -168,20 +168,18 @@ void GridGenOpt::setValues(const OptimizationData& optimizationData, const Optim
          (optimizationOffsets.gOffset < optimizationData.valueSize))) {
         const double realPowerTarget = optimizationData.val[optimizationOffsets.gOffset];
         // Committing an OPF solution updates both the present generator output
-        // and its target set point.  This mirrors a static power-flow commit
-        // while keeping the explicit write-back stage available for future
-        // scheduler/time-marching dispatch policies.  Optimizer Pg is positive
-        // generation; Generator::getRealPower() uses the GridDyn output sign
-        // convention and returns -P, so the direct physical output value is
-        // stored with the opposite sign.
-        gen->set("p", -realPowerTarget);
+        // and its target set point.  The optimizer Pg is the positive
+        // generation magnitude and the physical Generator stores that same
+        // magnitude in P; Generator::getRealPower() exposes the network
+        // injection with GridDyn's negative output sign convention.
+        gen->set("p", realPowerTarget);
         gen->set("pset", realPowerTarget);
     }
 
     if (isAC(oMode) && (optimizationOffsets.qOffset != kNullLocation) &&
         ((optimizationData.valueSize == 0) ||
          (optimizationOffsets.qOffset < optimizationData.valueSize))) {
-        gen->set("q", -optimizationData.val[optimizationOffsets.qOffset]);
+        gen->set("q", optimizationData.val[optimizationOffsets.qOffset]);
     }
 }
 
@@ -195,8 +193,10 @@ void GridGenOpt::guessState(double /*time*/, double val[], const OptimizationMod
     if (optimizationOffsets.gOffset != kNullLocation) {
         // Seed OPF from the current physical dispatch.  The optimization
         // variable remains owned by the optimizer; the generator is only the
-        // single source for the initial operating point.
-        val[optimizationOffsets.gOffset] = gen->getRealPower();
+        // single source for the initial operating point.  The optimizer uses
+        // positive generation magnitudes, whereas getRealPower() is the
+        // signed network injection returned by GridDyn.
+        val[optimizationOffsets.gOffset] = -gen->getRealPower();
     }
     if (isAC(oMode) && (optimizationOffsets.qOffset != kNullLocation)) {
         const double qGuess = gen->get("q");
@@ -250,10 +250,8 @@ void GridGenOpt::linearObj(const OptimizationData& /* of */,
     auto& optimizationOffsets = offsets.getOffsets(oMode);
     if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
-        linObj.assign(0, coefficientOrZero(Pcoeff, 0) * oMode.period);
         linObj.assign(optimizationOffsets.gOffset, coefficientOrZero(Pcoeff, 1) * oMode.period);
         if ((!(Qcoeff.empty())) && (isAC(oMode))) {
-            linObj.assign(0, coefficientOrZero(Qcoeff, 0) * oMode.period);
             linObj.assign(optimizationOffsets.qOffset, coefficientOrZero(Qcoeff, 1) * oMode.period);
         }
     }
@@ -266,13 +264,11 @@ void GridGenOpt::quadraticObj(const OptimizationData& /* of */,
     auto& optimizationOffsets = offsets.getOffsets(oMode);
     if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
-        linObj.assign(0, coefficientOrZero(Pcoeff, 0) * oMode.period);
         linObj.assign(optimizationOffsets.gOffset, coefficientOrZero(Pcoeff, 1) * oMode.period);
         if (Pcoeff.size() >= 3) {
             quadObj.assign(optimizationOffsets.gOffset, Pcoeff[2] * oMode.period);
         }
         if ((!(Qcoeff.empty())) && (isAC(oMode))) {
-            linObj.assign(0, coefficientOrZero(Qcoeff, 0) * oMode.period);
             linObj.assign(optimizationOffsets.qOffset, coefficientOrZero(Qcoeff, 1) * oMode.period);
             if (Qcoeff.size() >= 3) {
                 quadObj.assign(optimizationOffsets.qOffset, Qcoeff[2] * oMode.period);

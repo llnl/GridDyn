@@ -39,15 +39,27 @@ generators, links, loads, and relays. The optimization path now includes:
 - a basic dry-run optimizer for lifecycle and data-path testing;
 - an `EconomicDispatchOptimizer` that performs a simple heuristic merit-order
   dispatch and can write the resulting dispatch back to generators; and
-- a `NativeOptimizer` wrapper that prepares the complete problem data pathway
-  for the future dense solver, but intentionally does not implement solver
-  math yet.
+- a solver-neutral `NativeQpProblem` snapshot that owns the materialized
+  columns, bounded affine rows, objective coefficients, and diagnostics needed
+  by multiple backends;
+- a dependency-free `NativeDenseSolver` that solves supported continuous
+  linear and convex diagonal-quadratic DC-OPF problems with scaling,
+  presolve, Phase-I feasibility, and deterministic active-set iterations; and
+- a `NativeOptimizer` integration that validates candidates through the
+  original GridDyn callbacks and stages results for explicit write-back.
 
-The current regression suite covers the two-bus model and related data-path
-checks through optimizer construction, initialization, objective/constraint
-loading, residual/Jacobian evaluation, basic dispatch, and write-back. The next
-major implementation gap is the compact native mathematical solver and its
-larger DC-OPF verification suite.
+The regression suite now covers the two-bus model and related data-path checks,
+synthetic solver diagnostics, three-bus limit activation, PYPOWER comparisons
+through IEEE-118, the 89-bus PEGASE case, and an Illinois200 native solve. A
+setup-only case13659 PEGASE gate also exercises the distributed model at a
+larger scale without attempting dense numerical solution. The next major gap
+is a sparse high-performance backend, with HiGHS as the planned continuation.
+
+The native-solver effort described below is one end-to-end pull request. The
+stages are implementation and verification gates within that pull request, not
+separate PR boundaries. The PR is complete only when an operational native
+optimizer can solve the supported small DC-OPF cases and pass the corresponding
+failure, write-back, and regression tests.
 
 ## Completed work
 
@@ -181,12 +193,12 @@ optimizer-owned; capability and network limits come from the physical model.
 
 ## Ordered work packages
 
-| Milestone                    | Packages | Status      | Result                                                      |
-| ---------------------------- | -------- | ----------- | ----------------------------------------------------------- |
-| A. Assembly foundation       | 1-5      | Mostly done | A unique, active, correctly indexed, solver-neutral problem |
-| B. Complete DC model         | 6-8      | Mostly done | Verified DC equations, economics, and public initialization |
-| C. Native solution           | 9        | Next        | Small DC-OPF cases solved with KKT diagnostics              |
-| D. Equivalence and extension | 10-11    | Later       | MATPOWER/PYPOWER agreement and a proven backend/AC seam     |
+| Milestone                    | Packages | Status                    | Result                                                      |
+| ---------------------------- | -------- | ------------------------- | ----------------------------------------------------------- |
+| A. Assembly foundation       | 1-5      | Complete for native scope | A unique, active, correctly indexed, solver-neutral problem |
+| B. Complete DC model         | 6-8      | Complete for native scope | Verified DC equations, economics, and public initialization |
+| C. Native solution           | 9        | Complete                  | Dependency-free dense DC-OPF solver with KKT diagnostics    |
+| D. Equivalence and extension | 10-11    | Next chunk                | Larger sparse solves, HiGHS conformance, and future AC seam |
 
 Milestones A and B now have enough implementation and regression coverage to
 support the native-solver effort. Some polish remains in validation diagnostics
@@ -352,10 +364,10 @@ backend capability reporting.
 
 ### 6. Finish and verify the DC network formulation
 
-**Status:** mostly complete for the supported two-bus/case9 feature set.
-Additional tests for taps, phase shifts, thermal limits, angle limits,
-parallel branches, islands, and rank conditions should be added during native
-solver work.
+**Status:** complete for the supported native DC scope. The implementation and
+tests cover taps, phase shifts, thermal limits, angle limits, parallel
+branches, active status, conservation, and invalid branch parameters. More
+advanced island and rank policies remain future extensions.
 
 **Implementation**
 
@@ -388,9 +400,10 @@ solver work.
 
 ### 7. Complete generator variables and economic objectives
 
-**Status:** partly complete. Polynomial generator costs and basic bounds are
-loaded and exercised. Piecewise-linear costs, detailed scaling documentation,
-and broader malformed-cost diagnostics remain.
+**Status:** complete for the native linear/convex diagonal-quadratic scope.
+Polynomial generator costs, bounds, gradients, Hessians, and constant terms
+are loaded and exercised. Piecewise-linear costs remain intentionally
+unsupported, with explicit rejection and diagnostics.
 
 **Implementation**
 
@@ -472,8 +485,9 @@ Also:
 
 ### 9. Add the compact native DC-OPF solver
 
-**Status:** next implementation focus. The wrapper and problem-data loading
-path exist; solver math is intentionally not implemented yet.
+**Status:** complete for the defined native-solver scope. The dense solver is
+operational behind `NativeOptimizer::solve()` and remains intentionally
+limited to continuous single-period DC LPs and convex diagonal-QPs.
 
 **Implementation**
 
@@ -512,10 +526,21 @@ path exist; solver math is intentionally not implemented yet.
 - Small supported cases converge without an external library, while failure
   cases return useful statuses and leave the physical model unchanged.
 
+**Current checkpoint**
+
+`NativeDenseSolver` now provides the dependency-free numerical core and
+`NativeOptimizer` integrates it with GridDyn lifecycle, callback validation,
+diagnostics, and explicit write-back. The native solver is intentionally a
+small and understandable backend, not the expected large-scale production
+solver. Its dense KKT factorization and one-threaded active-set iterations are
+appropriate for regression cases through IEEE-118 and a useful Illinois200
+scale probe, but they grow superlinearly with problem size.
+
 ### 10. Validate MATPOWER/PYPOWER equivalence
 
-**Status:** later. Current work verifies import and small algebraic behavior;
-full numerical equivalence requires the native solver or an external backend.
+**Status:** substantially complete for the supported native DC formulation.
+Reference comparisons are in place through IEEE-118; larger-scale validation
+now belongs with the sparse/HiGHS backend.
 
 **Implementation**
 
@@ -530,9 +555,10 @@ full numerical equivalence requires the native solver or an external backend.
 
 **Tests**
 
-- Use `case2.py` as the exact end-to-end regression, `case9.m` as the first
-  multi-generator case, `case14.m` for a larger topology, and `case30pwl.m`
-  when PWL cost is supported.
+- Use `case2.py` as the exact end-to-end regression, followed by `case9.m`,
+  `case14.m`, `case39.m`, `case57.m`, and `case118.m` for progressively larger
+  multi-generator comparisons. Keep PWL cases such as `case30pwl.m` outside
+  the native scope until PWL support is deliberately added.
 - Include status, fixed taps/shifts, branch ratings, generator bounds, and
   fixed-angle behavior rather than comparing only objective value.
 - Separate model-assembly tolerances from solver tolerances so formulation
@@ -543,19 +569,27 @@ full numerical equivalence requires the native solver or an external backend.
 - Supported cases agree with the selected MATPOWER/PYPOWER DC formulation
   within documented tolerances; unsupported features stop before solve.
 
+**Current checkpoint**
+
+The native regression ladder compares objective and dispatch against the
+corresponding PYPOWER/MATPOWER formulations for cases 9, 14, 39, 57, and 118,
+with additional feasibility, bound, and aggregate checks for the 89-bus
+PEGASE case. These comparisons use the same per-unit DC assumptions and do not
+claim AC feasibility.
+
 ### 11. Prove the external-solver and AC-extension seams
 
-**Status:** later. The distributed model design and native wrapper are intended
-to preserve this seam, but conformance tests should be added after the native
-solver can solve small cases.
+**Status:** next chunk. The distributed model and native wrapper preserve the
+intended seam, but an independently exercised backend conformance layer and a
+real sparse backend remain to be added.
 
 **Implementation**
 
 - Add a mock external adapter that consumes the same contract and returns a
   controlled result without adding a dependency.
 - Add backend capability queries for LP, QP, nonlinear, integer, and PWL forms.
-- Start the optional HiGHS backend only after the native and mock backends pass
-  one conformance suite. Continue its details in
+- Start the optional HiGHS backend after the solver-neutral contract has a
+  backend conformance suite. Continue HiGHS-specific details in
   [`highs-opf-plan.md`](highs-opf-plan.md).
 - Keep DC bus/link abstractions extensible so AC subclasses can add voltage,
   reactive power, nonlinear balance, and derivatives while reusing identity,
@@ -575,66 +609,293 @@ solver can solve small cases.
   data, and an AC object can extend the distributed contracts without changing
   the DC solver or lifecycle architecture.
 
-## Next optimizer implementation sequence
+## Native solver chunk delivery boundary
 
-The next chunk of work should build the native solver behind the existing
-optimizer interface without changing the power-system data ownership model.
+This chunk delivers the complete operational native optimizer in one PR. The
+scope is intentionally compact and dependency-free:
 
-1. **Freeze the native solver input contract.**
-   Confirm that `NativeOptimizer::prepareProblemData()` captures all data the
-   dense solver will need: values, variable bounds, row bounds, objective,
-   gradient, Hessian/linear-cost representation, constraint residuals,
-   Jacobian, names, types, tolerances, and model version.
+- continuous single-period DC-OPF only;
+- linear rows, variable box bounds, and linear or convex diagonal-quadratic
+  generator costs;
+- active topology, fixed angles, branch status, fixed taps, phase shifts,
+  thermal limits, and supported angle-difference limits;
+- a dense bounded-QP method with explicit feasibility, optimality, scaling,
+  tolerance, and iteration diagnostics; and
+- explicit result staging and write-back, with no physical-model mutation on
+  solve or failure.
 
-2. **Add problem classification.**
-   Before solving, classify the assembled problem as supported LP, supported
-   convex diagonal-QP, unsupported nonlinear, unsupported nonconvex,
-   unsupported integer/mixed-integer, infeasible-by-bounds, or structurally
-   singular/underdetermined when detectable.
+The native mathematical representation is intentionally solver-neutral. The
+dense implementation is only the first backend: a later HiGHS integration must
+be able to consume the same columns, rows, bounds, objective coefficients,
+affine normalization, and stable ordering without re-deriving the GridDyn
+constraints. HiGHS integration is outside this PR, but compatibility with its
+standard bounded-row LP/QP model is part of this PR's contract.
 
-3. **Implement a dense equality/active-set core for small continuous DC cases.**
-   Start with equality rows, variable bounds, and linear/quadratic generator
-   costs. Use pivoted dense KKT solves, explicit scaling, feasibility checks,
-   and clear iteration limits.
+AC-OPF, nonlinear and nonconvex costs, piecewise-linear costs, integer
+variables, multi-period scheduling, sparse numerical linear algebra, and an
+external solver backend remain outside this PR. IEEE-118 is the primary larger
+correctness gate. A 240-bus case is an optional performance/robustness check and
+does not replace the required smaller-case regressions.
 
-4. **Add Phase-I feasibility handling.**
-   A small solver needs a reliable way to find or reject feasible points before
-   optimizing. This is where insufficient generation, incompatible angle
-   constraints, missing island references, and impossible branch bounds should
-   become deterministic statuses.
+The following stages are internal gates in the single PR.
 
-5. **Add inequality activation for branch and angle limits.**
-   Normalize row lower/upper bounds into candidate active constraints and move
-   them into/out of the working set based on blocking constraints and
-   multiplier signs.
+### Stage 0: Complete the DC formulation boundary
 
-6. **Populate result diagnostics.**
-   Report objective value, primal feasibility, row-bound violation,
-   variable-bound violation, stationarity, complementarity, active set,
-   iteration count, and solver status. Keep physical objects unchanged until
-   `writeBack()` is called.
+- Make one signed DC flow calculation cover reactance, fixed tap, phase shift,
+  active status, residuals, Jacobians, branch limits, and result checks.
+- Add flow-limit rows for finite positive physical `ratingA` values.
+- Add meaningful angle-difference rows while treating MATPOWER/PYPOWER
+  `-360/360` limits as unconstrained.
+- Propagate link constraint offsets in both flat and grouped layouts.
+- Reject or diagnose zero/near-zero reactance and invalid tap values instead of
+  silently producing zero flow.
+- Add direct tests for tap, phase shift, status, thermal limits, angle limits,
+  parallel branches, and conservation of internal flows.
 
-7. **Expand the regression ladder.**
-   Keep the two-bus analytic case as the smallest executable proof. Add a
-   three-bus/two-generator case, then MATPOWER/PYPOWER cases such as `case9`
-   and `case14` for comparison once the solver is numerically useful.
+Current checkpoint: Stage 0 is complete and covered by the optimization
+formulation suite. It includes active-status filtering, fixed tap and
+phase-shift flow semantics, thermal and angle-limit rows, affine bound
+handling, link offset propagation, and invalid reactance/tap diagnostics. The
+parallel-branch and flow-conservation coverage is also included. The native
+solver consumes this boundary without adding a second network formulation.
 
-8. **Keep the simple economic stacker as a separate optimizer.**
-   The stacker remains a dependency-free heuristic that improves dispatch and
-   exercises write-back. The dense native solver should pursue actual KKT
-   optimality for supported small continuous cases.
+### Stage 1: Freeze and materialize the native QP contract
+
+- Materialize values, bounds, objective coefficients, row bounds, affine row
+  constants, Jacobian entries, names, types, tolerances, and model version into
+  a solver-only dense problem structure.
+- Define a solver-neutral LP/QP intermediate representation using standard
+  column bounds, row bounds, a single `A` matrix, linear objective terms, and
+  diagonal quadratic terms. Equality rows use equal lower and upper bounds;
+  unbounded sides use explicit infinity semantics.
+- Normalize every affine row as `lower <= A*x + offset <= upper`, with a
+  documented conversion to the equivalent bounded-row form expected by both
+  the dense backend and HiGHS. Phase-shifted branch rows must be represented by
+  this same normalization rather than a backend-specific special case.
+- Use the callback/Jacobian representation as the canonical GridDyn input and
+  verify any explicit linear export rather than double-counting it. The native
+  dense matrix is a materialized view of this representation, not a second
+  formulation.
+- Preserve stable column and row ordering and optional names so a future HiGHS
+  adapter can load the same model and map primal/dual results back to GridDyn.
+- Classify supported LP/convex-QP problems before numerical solve and reject
+  unsupported modes, integer variables, PWL costs, nonconvex costs, malformed
+  bounds, and non-finite coefficients.
+
+Phase 1 is complete when the same materialized problem can be consumed by the
+dense solver and expressed directly as a HiGHS-style bounded-row LP/QP model
+without changing any physical constraint definition.
+
+Current checkpoint: Phase 1 is complete. `NativeQpProblem` is the frozen
+solver-neutral LP/QP
+contract. `NativeOptimizer::prepareProblemData()` materializes stable columns,
+box bounds, affine bounded rows, a dense row-major Jacobian, objective constant
+and coefficients, gradients, names, types, tolerances, and a monotonically
+increasing model version. It validates callback/Jacobian consistency and
+explicit linear-row agreement, classifies continuous linear and convex
+diagonal-quadratic cases, and rejects unsupported or malformed input. The
+contract is covered by two-bus callback/Jacobian equivalence and
+phase-shift tests, plus finite deterministic assembly tests for the two-bus,
+case9, and IEEE-118 cases. Repeated preparation is checked for identical
+solver data, and physical-model mutations after preparation are checked not to
+change the snapshot. A future HiGHS adapter can convert each row using
+`lower - offset` and `upper - offset` without touching the physical model or
+re-deriving constraints.
+
+### Stage 2: Implement the dense feasibility and active-set core
+
+- Implement a small pivoted dense KKT factorization using standard-library
+  containers only.
+- Add bounded Phase-I feasibility using nonnegative violation variables.
+- Implement equality and active-inequality working-set updates, blocking-step
+  selection, multiplier-sign releases, deterministic tie-breaking, and
+  explicit iteration limits.
+- Distinguish optimal, infeasible, unbounded, singular/rank-deficient,
+  numerical-failure, unsupported, nonconvex, and iteration-limit outcomes.
+
+Current checkpoint: `NativeDenseSolver` provides the dependency-free Stage 2
+core. It consumes the frozen `NativeQpProblem`, scales rows and variables into
+bounded internal coordinates, eliminates fixed variables, removes redundant
+consistent equalities while reporting inconsistent ones as infeasible, and
+uses a pivoted dense KKT solve with deterministic active-set updates. Its
+Phase-I model keeps initially feasible sides as ordinary constraints and adds
+nonnegative violation slacks only for initially violated sides. Active-set
+convergence rechecks feasibility before reporting optimality, including
+scale-aware blocking-step tie-breaking for degenerate starts. Synthetic tests
+cover bounded convex QP optimality, Phase-I equality feasibility,
+infeasibility, unbounded linear directions, fixed variables, row scaling,
+redundant/inconsistent equalities, and the three-bus dispatch/limit fixture.
+
+### Stage 3: Integrate, diagnose, and protect write-back
+
+- Replace the current `NativeOptimizer::solve()` placeholder with the dense
+  solver call.
+- Validate the candidate through the original objective, constraint, and
+  Jacobian callbacks before accepting it.
+- Report objective, primal violation, bound violation, stationarity,
+  complementarity, active-set size, and iteration count.
+- Keep failed or unvalidated candidates out of the committed optimizer state.
+- Permit `writeBack()` only after a validated optimal result and only when the
+  caller explicitly requests it.
+
+Current checkpoint: `NativeOptimizer::solve()` now runs the dense solver for
+supported continuous DC LP/diagonal-QP problems, validates the candidate
+objective, gradient, constraints, bounds, and Jacobian through the original
+callbacks, records solver diagnostics, and leaves the GridDyn model untouched
+until `writeBack()`. Failed solves and failed callback validation cannot be
+written back. The two-bus integration test exercises this complete sequence.
+
+### Stage 4: Run the complete regression ladder
+
+- Keep the two-bus analytic case as the smallest proof.
+- Add a three-bus/two-generator fixture covering uncongested dispatch,
+  generator-bound activation, and branch-limit activation.
+- Solve and compare `case9.m`, `case14.m`, `case39.m`, `case57.m`, and `case118.m` against stored
+  PYPOWER/MATPOWER references with documented formulation and unit tolerances.
+- Solve `case89pegase.m` as a larger native dense-solver gate. Because all
+  generators have the same linear cost, verify aggregate dispatch, objective,
+  feasibility, and bounds rather than expecting a unique generator dispatch.
+- Add deterministic repeated-solve, lifecycle, invalidation, unsupported-mode,
+  infeasibility, rank, and write-back tests.
+- Add a setup-only large-case gate using `case13659pegase.m`. Load the case,
+  initialize the optimization hierarchy, materialize bounds/objective data,
+  evaluate callbacks, and validate sparse Jacobian indices, finiteness, timing,
+  and callback storage. This gate must not call `solve()` or require dense
+  Jacobian materialization before the sparse/HiGHS backend is integrated.
+- Measure a 240-bus case when an input is available, recording solve time and
+  memory behavior without making it the first acceptance gate.
+
+Current checkpoint: the three-bus/two-generator native solve covers
+uncongested dispatch, a generator upper limit, and a binding branch limit.
+The native optimizer solves the standard `case9.m`, `case14.m`, `case39.m`,
+`case57.m`, and `case118.m` DC-OPFs and compares their per-unit dispatch and
+objective values against the corresponding PYPOWER/MATPOWER reference
+formulations. It also solves the 89-bus PEGASE case with its canonical
+aggregate checks. The case13659 PEGASE setup-only gate also passes without
+calling the dense solver: the Release baseline materializes 17,751 variables,
+13,660 rows, and 55,002 sparse Jacobian entries with about 2.94 MB of callback
+storage (approximately 6.3 seconds total on the local Windows build).
+
+The Illinois200 scale probe demonstrates the current dense limit: 249
+variables, 446 rows, an approximately 0.85 MiB dense constraint matrix, and 41
+active-set iterations take about 5.9 seconds in Release and about 100 seconds
+in Debug. The work is CPU-bound and single-threaded; setup and callback
+assembly are negligible by comparison. This is sufficient evidence that the
+model contract scales beyond IEEE-118, but not that dense numerical solution
+will scale to thousands of buses. No exact local 240-bus costed case is
+currently available, so 240 buses remain an optional future measurement.
+
+### Single-PR acceptance gate
+
+The PR is accepted only when the native optimizer is operational, the dense
+solver unit tests and GridDyn integration tests pass, the relevant optimization
+and non-optimization regressions pass, and the native definition of done below
+is satisfied. No intermediate stage is intended to be merged independently.
+
+## Native solver chunk closeout
+
+This single PR has completed the native-solver chunk as one end-to-end change;
+the stages above were implementation and verification gates, not merge
+boundaries. The completed result is a compact, understandable native backend
+that is useful for small and medium regression cases while retaining a
+solver-neutral contract for the next backend.
+
+- The DC model has one canonical affine row form,
+  `lower <= A*x + offset <= upper`, including phase-shifted branch limits.
+- `NativeQpProblem` is a solver-owned snapshot. It is populated from the
+  existing GridDyn callbacks, validates constant Jacobians and supported
+  continuous LP/convex diagonal-QP structure, and preserves stable columns,
+  rows, names, bounds, objective coefficients, and offsets.
+- `NativeDenseSolver` provides pivoted dense KKT solves, variable and row
+  scaling, fixed-variable elimination, redundant-equality presolve, bounded
+  Phase-I feasibility, deterministic active-set updates, and explicit
+  diagnostics.
+- `NativeOptimizer::solve()` validates the candidate with the original
+  callbacks and does not mutate physical GridDyn objects until an explicit
+  `writeBack()`.
+- The 44-test `OptimizationTests` regression ladder passes in Release for the
+  synthetic solver cases, three-bus dispatch/limit cases, case9, case14,
+  case39, case57, case89 PEGASE, IEEE-118, and the Illinois200 scale probe.
+  The case13659 PEGASE test is setup-only by design.
+
+The simple economic stacker remains a separate dependency-free heuristic
+optimizer. It exercises lifecycle and write-back behavior, while the native
+solver provides actual KKT-based optimization for its supported problem class.
+
+## Next chunk: sparse HiGHS backend and large-case performance
+
+The next chunk should add a production-oriented sparse backend without
+changing GridDyn's physical data ownership or re-deriving the DC equations.
+HiGHS is the planned backend. The native dense solver remains valuable as a
+small deterministic reference implementation and contract test oracle.
+
+### Objectives
+
+1. **Add a sparse solver-owned representation.** Preserve the callback and
+   `MatrixData<X>` representation as the canonical GridDyn input, but add a
+   sparse snapshot/translation path that stores row/column/value entries in a
+   HiGHS-compatible format. Do not materialize a dense `A` matrix for large
+   problems. Define duplicate-entry summation, zero-entry removal, stable
+   ordering, and index validation once at this boundary.
+2. **Add optional HiGHS integration.** Introduce a narrowly scoped CMake option
+   such as `GRIDDYN_ENABLE_HIGHS_OPTIMIZATION`, keep HiGHS headers and types
+   out of general GridDyn model headers, and start with the bounded-row LP/QP
+   form already used by `NativeQpProblem`. Map HiGHS statuses, primal values,
+   row/column duals, objective, and residual diagnostics into the existing
+   `NativeSolveResult`/optimizer result path.
+3. **Prove backend conformance.** Add a mock or translator-level backend test
+   that consumes the same problem snapshot as the native solver. Run common
+   objective, gradient, affine-row, bound, status, repeatability, and
+   write-back tests against the dense and HiGHS paths. A HiGHS adapter must not
+   access physical GridDyn objects.
+4. **Exercise scale safely.** Keep the case13659 PEGASE test setup-only until
+   the sparse path is active. Use IEEE-118 as the first native/HiGHS numerical
+   equivalence gate, then Illinois200 and any available 240-bus costed case for
+   timing, memory, and solution-quality measurements. The 13,659-bus case is a
+   model-assembly and sparse-loading gate, not a dense-solver target.
+5. **Document numerical policy and packaging.** Define how model tolerances
+   map to HiGHS tolerances, whether HiGHS or GridDyn owns scaling, how duals
+   and LMPs are reported, and how optional dependency discovery behaves across
+   MSVC, Linux, macOS, and Python-wheel builds.
+
+### Suggested implementation order
+
+1. Extract and test a sparse snapshot/HiGHS row-bound translator without
+   linking HiGHS. Verify that `lower - offset` and `upper - offset` reproduce
+   every dense bounded row, including phase-shifted thermal and angle rows.
+2. Add the optional HiGHS CMake target and a minimal LP adapter. Reuse the
+   existing lifecycle, `NativeQpProblem` metadata, candidate validation, and
+   explicit write-back.
+3. Add convex diagonal-QP support and dual/result mapping after the LP path
+   is stable. Compare HiGHS and native results on the two-bus, case9, case14,
+   and IEEE-118 suite.
+4. Run Illinois200 and the case13659 setup gate with measured wall time,
+   peak/working memory, sparse nonzero counts, and solver diagnostics. Add a
+   240-bus case only when a costed input is available.
+5. Revisit threading only after profiling the sparse backend. The current
+   dense implementation is CPU-bound and single-threaded, but parallelizing
+   callback loops will not address its dominant dense KKT factorization cost;
+   sparse solver factorization and HiGHS configuration are the higher-value
+   performance path.
+
+### Explicit non-goals for the next chunk
+
+AC-OPF, nonlinear/nonconvex costs, PWL costs, unit commitment, topology
+switching, and a replacement of the compact native solver remain separate
+efforts. The HiGHS chunk should first establish a fast, solver-compatible DC
+LP/QP backend and large-case path.
 
 ## Verification plan for the next chunk
 
-| Layer          | What to verify                                                  | Example checks                                                             |
-| -------------- | --------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Assembly       | The solver sees the same problem the distributed objects define | exact sizes, names, bounds, guesses, row types, and sparse entries         |
-| Algebra        | Residuals and derivatives match hand calculations               | two-bus balances, branch flow, reference-angle row, generator cost         |
-| Classification | Unsupported cases stop before numerical solve                   | integer variable, PWL cost before support, nonconvex quadratic, bad bounds |
-| Feasibility    | Phase-I reports actionable status                               | insufficient generation, impossible fixed angles, missing reference        |
-| Optimality     | Supported cases satisfy KKT tolerances                          | two-bus dispatch, binding generator bound, binding branch constraint       |
-| Write-back     | Results are committed only on request                           | generator set points unchanged before `writeBack()`, changed after success |
-| Equivalence    | GridDyn DC-OPF agrees with reference formulations               | `case2`, `case9`, then `case14` within documented tolerances               |
+| Layer       | What to verify                                               | Example checks                                                                   |
+| ----------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| Translation | Sparse and dense paths describe the same bounded-row problem | `lower - offset`, `upper - offset`, stable indices, duplicate-entry policy       |
+| Conformance | Backends consume the same solver-neutral contract            | native/mock/HiGHS objective, rows, bounds, statuses, and write-back              |
+| Algebra     | Sparse rows preserve the GridDyn equations                   | phase-shifted branch flow, thermal limits, angle limits, and nodal balances      |
+| Equivalence | HiGHS agrees with the native/reference formulation           | two-bus, case9, case14, and IEEE-118 objective, dispatch, flows, and feasibility |
+| Scale       | Large assembly avoids dense allocation                       | case13659 counts, sparse nonzeros, callback time, and memory                     |
+| Performance | Sparse solve scales beyond the dense reference               | Illinois200 and an available 240-bus costed case, Release timings and memory     |
+| Results     | Duals and statuses are mapped without changing write-back    | row/column duals, LMPs, failed solve isolation, explicit `writeBack()`           |
 
 ## Verification ladder
 
@@ -683,7 +944,10 @@ The milestone is complete only when:
 - `case2.py`, `case9.m`, and selected larger cases agree with
   MATPOWER/PYPOWER within formulation-specific tolerances;
 - optimization-enabled and disabled builds pass relevant regressions; and
-- the mock external backend consumes exactly the native solver's contract.
+- the solver-neutral contract is sufficiently explicit for a second backend
+  to consume it without reaching into physical GridDyn objects. A mock/external
+  backend conformance test is part of the next HiGHS chunk, not a prerequisite
+  for this native-solver merge.
 
 Only after this gate should an external backend or AC-OPF equations become the
 primary implementation focus.

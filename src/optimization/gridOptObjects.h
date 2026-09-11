@@ -267,7 +267,7 @@ class GridOptObject: public CoreObject {
                                  const OptimizationMode& oMode);
 
     /** get the names of the objective variables
-    @param objNames  the location to store the names
+    @param objectiveNames  the location to store the names
     @param oMode the optimization mode to use.
     @param prefix (optional) string to place before the objective name
     */

@@ -11,3 +11,9 @@ src:*/ThirdParty/Minizip/*
 fun:unzReadCurrentFile
 fun:zip64FlushWriteBuffer
 fun:zipCloseFileInZipRaw64
+
+# HiGHS evaluates HEkkDual::solve_phase as an argument to its initial debug
+# callback before the member has been initialized. The value is ignored by
+# debugSimplex when initialise=true; keep this suppression narrow to that
+# upstream initialization path.
+fun:HEkkDual::debugDualSimplex*

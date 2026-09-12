@@ -109,6 +109,11 @@ void GridBusOpt::dynObjectInitializeA(std::uint32_t flags)
             if (sourceGenerator == nullptr) {
                 break;
             }
+            // An out-of-service MATPOWER generator is not a dispatch resource;
+            // it must not add a free optimization variable to the bus balance.
+            if (!sourceGenerator->isEnabled()) {
+                continue;
+            }
             const auto found =
                 std::any_of(genList.cbegin(),
                             genList.cend(),

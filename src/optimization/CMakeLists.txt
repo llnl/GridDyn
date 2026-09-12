@@ -29,6 +29,11 @@ set(opt_sim_sources
     optObjectFactory.cpp
 )
 
+if(GRIDDYN_ENABLE_HIGHS)
+    list(APPEND opt_sim_headers highsOptimizer.h)
+    list(APPEND opt_sim_sources highsOptimizer.cpp)
+endif()
+
 set(opt_model_headers
     models/gridBusOpt.h
     models/gridLinkOpt.h
@@ -55,6 +60,12 @@ set(header_files ${opt_sim_headers} ${opt_models_headers})
 add_library(optimization STATIC ${opt_files})
 
 target_link_libraries(optimization PUBLIC griddyn)
+
+if(GRIDDYN_ENABLE_HIGHS)
+    # optimization is a static library, so the HiGHS symbols referenced by its backend must remain
+    # visible to the final executable.
+    target_link_libraries(optimization PUBLIC GridDyn::highs)
+endif()
 
 source_group("optimization" FILES ${opt_sim_sources})
 source_group("models" FILES ${opt_model_sources})

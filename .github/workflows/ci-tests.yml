@@ -30,12 +30,14 @@ jobs:
             extra_packages: ""
             cxx_flags: ""
             optimization_flag: "-DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=OFF"
+            highs_flag: "-DGRIDDYN_ENABLE_HIGHS=OFF"
           - name: Clang 18
             c_compiler: clang-18
             cxx_compiler: clang++-18
             extra_packages: "libomp-18-dev"
             cxx_flags: "-Werror"
             optimization_flag: "-DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=ON"
+            highs_flag: "-DGRIDDYN_ENABLE_HIGHS=ON"
 
     steps:
     - uses: actions/checkout@v6
@@ -66,6 +68,7 @@ jobs:
         -DBUILD_TESTING=ON
         -DGRIDDYN_BUILD_TESTS=ON
         ${{ matrix.optimization_flag }}
+        ${{ matrix.highs_flag }}
         -DGRIDDYN_ENABLE_FMI=OFF
         -DGRIDDYN_ENABLE_HELICS_EXECUTABLE=OFF
 

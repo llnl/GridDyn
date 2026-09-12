@@ -123,9 +123,9 @@ namespace {
                           std::string& error)
     {
         struct SparseEntry {
-            std::size_t row = 0;
-            std::size_t column = 0;
-            double value = 0.0;
+            std::size_t mRow = 0;
+            std::size_t mColumn = 0;
+            double mValue = 0.0;
         };
 
         std::vector<SparseEntry> entries;
@@ -141,24 +141,25 @@ namespace {
                 error = "sparse matrix contains a non-finite coefficient";
                 return false;
             }
-            entries.push_back({static_cast<std::size_t>(element.row),
-                               static_cast<std::size_t>(element.col),
-                               element.data});
+            entries.push_back(SparseEntry{.mRow = static_cast<std::size_t>(element.row),
+                                          .mColumn = static_cast<std::size_t>(element.col),
+                                          .mValue = element.data});
         }
 
         std::sort(entries.begin(),
                   entries.end(),
                   [](const SparseEntry& lhs, const SparseEntry& rhs) {
-                      return (lhs.row < rhs.row) ||
-                          ((lhs.row == rhs.row) && (lhs.column < rhs.column));
+                      return (lhs.mRow < rhs.mRow) ||
+                          ((lhs.mRow == rhs.mRow) && (lhs.mColumn < rhs.mColumn));
                   });
 
         std::size_t canonicalEntryCount = 0;
         for (const auto& entry : entries) {
-            if ((canonicalEntryCount > 0) && (entries[canonicalEntryCount - 1].row == entry.row) &&
-                (entries[canonicalEntryCount - 1].column == entry.column)) {
-                entries[canonicalEntryCount - 1].value += entry.value;
-                if (!std::isfinite(entries[canonicalEntryCount - 1].value)) {
+            if ((canonicalEntryCount > 0) &&
+                (entries[canonicalEntryCount - 1].mRow == entry.mRow) &&
+                (entries[canonicalEntryCount - 1].mColumn == entry.mColumn)) {
+                entries[canonicalEntryCount - 1].mValue += entry.mValue;
+                if (!std::isfinite(entries[canonicalEntryCount - 1].mValue)) {
                     error = "sparse matrix duplicate coefficients overflowed";
                     return false;
                 }
@@ -171,8 +172,8 @@ namespace {
         destination.setDimensions(rowCount, columnCount);
         destination.rowStarts.assign(rowCount + 1, 0);
         for (const auto& entry : entries) {
-            if (entry.value != 0.0) {
-                ++destination.rowStarts[entry.row + 1];
+            if (entry.mValue != 0.0) {
+                ++destination.rowStarts[entry.mRow + 1];
             }
         }
         for (std::size_t row = 0; row < rowCount; ++row) {
@@ -181,9 +182,9 @@ namespace {
         destination.columnIndices.reserve(destination.rowStarts.back());
         destination.values.reserve(destination.rowStarts.back());
         for (const auto& entry : entries) {
-            if (entry.value != 0.0) {
-                destination.columnIndices.push_back(entry.column);
-                destination.values.push_back(entry.value);
+            if (entry.mValue != 0.0) {
+                destination.columnIndices.push_back(entry.mColumn);
+                destination.values.push_back(entry.mValue);
             }
         }
         return true;

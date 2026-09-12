@@ -14,6 +14,7 @@
 #include <limits>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace griddyn {
 namespace {
@@ -92,9 +93,9 @@ namespace {
     }
 
     struct HighsScalingData {
-        bool enabled = false;
-        std::vector<double> rowScale;
-        std::vector<double> variableScale;
+        bool mEnabled = false;
+        std::vector<double> mRowScale;
+        std::vector<double> mVariableScale;
     };
 
     double scaleFromMagnitude(double magnitude)
@@ -110,9 +111,9 @@ namespace {
     HighsScalingData makeScalingData(const NativeQpProblem& problem, bool enabled)
     {
         HighsScalingData scaling;
-        scaling.enabled = enabled;
-        scaling.rowScale.assign(problem.constraintCount, 1.0);
-        scaling.variableScale.assign(problem.variableCount, 1.0);
+        scaling.mEnabled = enabled;
+        scaling.mRowScale.assign(problem.constraintCount, 1.0);
+        scaling.mVariableScale.assign(problem.variableCount, 1.0);
         if (!enabled) {
             return scaling;
         }
@@ -137,7 +138,7 @@ namespace {
                     (std::max)(columnMagnitude[column],
                                std::sqrt(std::abs(2.0 * problem.quadraticObjective[column])));
             }
-            scaling.variableScale[column] = scaleFromMagnitude(columnMagnitude[column]);
+            scaling.mVariableScale[column] = scaleFromMagnitude(columnMagnitude[column]);
         }
 
         // Scale each bounded row by the largest transformed coefficient. Bounds
@@ -150,9 +151,9 @@ namespace {
                 const auto column = problem.constraintMatrix.columnIndices[entry];
                 rowMagnitude[row] = (std::max)(rowMagnitude[row],
                                                std::abs(problem.constraintMatrix.values[entry] *
-                                                        scaling.variableScale[column]));
+                                                        scaling.mVariableScale[column]));
             }
-            scaling.rowScale[row] = scaleFromMagnitude(rowMagnitude[row]);
+            scaling.mRowScale[row] = scaleFromMagnitude(rowMagnitude[row]);
         }
         return scaling;
     }
@@ -170,33 +171,33 @@ namespace {
     HighsModel makeHighsModel(const NativeQpProblem& problem, const HighsScalingData& scaling)
     {
         HighsModel model;
-        auto& lp = model.lp_;
-        lp.num_col_ = static_cast<HighsInt>(problem.variableCount);
-        lp.num_row_ = static_cast<HighsInt>(problem.constraintCount);
-        lp.sense_ = ObjSense::kMinimize;
-        lp.offset_ = problem.objectiveConstant;
-        lp.col_cost_.resize(problem.variableCount);
-        lp.col_lower_.resize(problem.variableCount);
-        lp.col_upper_.resize(problem.variableCount);
+        auto& linearProgram = model.lp_;
+        linearProgram.num_col_ = static_cast<HighsInt>(problem.variableCount);
+        linearProgram.num_row_ = static_cast<HighsInt>(problem.constraintCount);
+        linearProgram.sense_ = ObjSense::kMinimize;
+        linearProgram.offset_ = problem.objectiveConstant;
+        linearProgram.col_cost_.resize(problem.variableCount);
+        linearProgram.col_lower_.resize(problem.variableCount);
+        linearProgram.col_upper_.resize(problem.variableCount);
         for (std::size_t column = 0; column < problem.variableCount; ++column) {
-            const double variableScale = scaling.variableScale[column];
-            lp.col_cost_[column] = problem.linearObjective[column] * variableScale;
-            lp.col_lower_[column] =
+            const double variableScale = scaling.mVariableScale[column];
+            linearProgram.col_cost_[column] = problem.linearObjective[column] * variableScale;
+            linearProgram.col_lower_[column] =
                 scaleFiniteBound(problem.variableLowerBounds[column], variableScale);
-            lp.col_upper_[column] =
+            linearProgram.col_upper_[column] =
                 scaleFiniteBound(problem.variableUpperBounds[column], variableScale);
         }
-        lp.row_lower_.resize(problem.constraintCount);
-        lp.row_upper_.resize(problem.constraintCount);
-        lp.col_names_ = problem.variableNames;
-        lp.row_names_ = problem.constraintNames;
+        linearProgram.row_lower_.resize(problem.constraintCount);
+        linearProgram.row_upper_.resize(problem.constraintCount);
+        linearProgram.col_names_ = problem.variableNames;
+        linearProgram.row_names_ = problem.constraintNames;
 
         // HiGHS stores A column-wise. The canonical snapshot is compressed by row
         // so this is one solver-boundary conversion, with no dense intermediate.
-        auto& matrix = lp.a_matrix_;
+        auto& matrix = linearProgram.a_matrix_;
         matrix.format_ = MatrixFormat::kColwise;
-        matrix.num_col_ = lp.num_col_;
-        matrix.num_row_ = lp.num_row_;
+        matrix.num_col_ = linearProgram.num_col_;
+        matrix.num_row_ = linearProgram.num_row_;
         matrix.start_.clear();
         matrix.p_end_.clear();
         matrix.index_.clear();
@@ -220,15 +221,15 @@ namespace {
                 const auto target = nextEntry[column]++;
                 matrix.index_[target] = static_cast<HighsInt>(row);
                 matrix.value_[target] = problem.constraintMatrix.values[entry] *
-                    scaling.rowScale[row] * scaling.variableScale[column];
+                    scaling.mRowScale[row] * scaling.mVariableScale[column];
             }
         }
 
         for (std::size_t row = 0; row < problem.constraintCount; ++row) {
-            lp.row_lower_[row] =
-                scaleFiniteValue(problem.solverConstraintLowerBound(row), scaling.rowScale[row]);
-            lp.row_upper_[row] =
-                scaleFiniteValue(problem.solverConstraintUpperBound(row), scaling.rowScale[row]);
+            linearProgram.row_lower_[row] = scaleFiniteValue(
+                problem.solverConstraintLowerBound(row), scaling.mRowScale[row]);
+            linearProgram.row_upper_[row] = scaleFiniteValue(
+                problem.solverConstraintUpperBound(row), scaling.mRowScale[row]);
         }
 
         bool hasQuadraticTerm = false;
@@ -249,7 +250,7 @@ namespace {
             for (std::size_t column = 0; column < problem.variableCount; ++column) {
                 hessian.start_.push_back(static_cast<HighsInt>(hessian.value_.size()));
                 hessian.index_.push_back(static_cast<HighsInt>(column));
-                const double variableScale = scaling.variableScale[column];
+                const double variableScale = scaling.mVariableScale[column];
                 hessian.value_.push_back(2.0 * problem.quadraticObjective[column] * variableScale *
                                          variableScale);
             }
@@ -300,7 +301,7 @@ int HighsOptimizer::solve(double tStop, double& tReturn)
     }
 
     const HighsScalingData scaling = makeScalingData(problem(), scalingRequestedForProblem());
-    mScalingApplied = scaling.enabled;
+    mScalingApplied = scaling.mEnabled;
     auto model = makeHighsModel(problem(), scaling);
     const auto passStatus = highs.passModel(std::move(model));
     if (passStatus == HighsStatus::kError) {
@@ -340,7 +341,7 @@ int HighsOptimizer::solve(double tStop, double& tReturn)
         } else {
             result.values.resize(scaledValues.size());
             for (std::size_t column = 0; column < scaledValues.size(); ++column) {
-                result.values[column] = scaledValues[column] * scaling.variableScale[column];
+                result.values[column] = scaledValues[column] * scaling.mVariableScale[column];
             }
         }
         if (result.successful() &&

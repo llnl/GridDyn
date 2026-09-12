@@ -1075,9 +1075,9 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerSetsUpCase13659WithoutSolve)
                                         prepareStop - prepareStart)
                                         .count()));
     const auto sparseSnapshotBytes =
-        problem.constraintMatrix.rowStarts.capacity() * sizeof(std::size_t) +
-        problem.constraintMatrix.columnIndices.capacity() * sizeof(std::size_t) +
-        problem.constraintMatrix.values.capacity() * sizeof(double);
+        (problem.constraintMatrix.rowStarts.capacity() * sizeof(std::size_t)) +
+        (problem.constraintMatrix.columnIndices.capacity() * sizeof(std::size_t)) +
+        (problem.constraintMatrix.values.capacity() * sizeof(double));
     const auto denseEquivalentBytes = variableCount * constraintCount * sizeof(double);
     EXPECT_LT(sparseSnapshotBytes, denseEquivalentBytes / 100U);
     RecordProperty("case13659_sparse_snapshot_bytes", std::to_string(sparseSnapshotBytes));
@@ -2206,9 +2206,9 @@ TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase300)
     RecordProperty("case300_jacobian_nnz",
                    std::to_string(optimizer->problem().constraintMatrix.size()));
     const auto sparseMatrixBytes =
-        optimizer->problem().constraintMatrix.rowStarts.capacity() * sizeof(std::size_t) +
-        optimizer->problem().constraintMatrix.columnIndices.capacity() * sizeof(std::size_t) +
-        optimizer->problem().constraintMatrix.values.capacity() * sizeof(double);
+        (optimizer->problem().constraintMatrix.rowStarts.capacity() * sizeof(std::size_t)) +
+        (optimizer->problem().constraintMatrix.columnIndices.capacity() * sizeof(std::size_t)) +
+        (optimizer->problem().constraintMatrix.values.capacity() * sizeof(double));
     RecordProperty("case300_sparse_matrix_bytes", std::to_string(sparseMatrixBytes));
     RecordProperty("case300_highs_iterations",
                    std::to_string(optimizer->lastSolveResult().iterationCount));
@@ -2332,9 +2332,9 @@ TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase1354Pegase)
     RecordProperty("case1354pegase_jacobian_nnz",
                    std::to_string(optimizer->problem().constraintMatrix.size()));
     const auto sparseMatrixBytes =
-        optimizer->problem().constraintMatrix.rowStarts.capacity() * sizeof(std::size_t) +
-        optimizer->problem().constraintMatrix.columnIndices.capacity() * sizeof(std::size_t) +
-        optimizer->problem().constraintMatrix.values.capacity() * sizeof(double);
+        (optimizer->problem().constraintMatrix.rowStarts.capacity() * sizeof(std::size_t)) +
+        (optimizer->problem().constraintMatrix.columnIndices.capacity() * sizeof(std::size_t)) +
+        (optimizer->problem().constraintMatrix.values.capacity() * sizeof(double));
     RecordProperty("case1354pegase_sparse_matrix_bytes", std::to_string(sparseMatrixBytes));
     RecordProperty("case1354pegase_highs_iterations",
                    std::to_string(optimizer->lastSolveResult().iterationCount));
@@ -2394,9 +2394,9 @@ TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase2383wp)
     RecordProperty("case2383wp_jacobian_nnz",
                    std::to_string(optimizer->problem().constraintMatrix.size()));
     const auto sparseMatrixBytes =
-        optimizer->problem().constraintMatrix.rowStarts.capacity() * sizeof(std::size_t) +
-        optimizer->problem().constraintMatrix.columnIndices.capacity() * sizeof(std::size_t) +
-        optimizer->problem().constraintMatrix.values.capacity() * sizeof(double);
+        (optimizer->problem().constraintMatrix.rowStarts.capacity() * sizeof(std::size_t)) +
+        (optimizer->problem().constraintMatrix.columnIndices.capacity() * sizeof(std::size_t)) +
+        (optimizer->problem().constraintMatrix.values.capacity() * sizeof(double));
     RecordProperty("case2383wp_sparse_matrix_bytes", std::to_string(sparseMatrixBytes));
     RecordProperty("case2383wp_highs_iterations",
                    std::to_string(optimizer->lastSolveResult().iterationCount));
@@ -2456,9 +2456,9 @@ TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase6468rte)
     RecordProperty("case6468rte_jacobian_nnz",
                    std::to_string(optimizer->problem().constraintMatrix.size()));
     const auto sparseMatrixBytes =
-        optimizer->problem().constraintMatrix.rowStarts.capacity() * sizeof(std::size_t) +
-        optimizer->problem().constraintMatrix.columnIndices.capacity() * sizeof(std::size_t) +
-        optimizer->problem().constraintMatrix.values.capacity() * sizeof(double);
+        (optimizer->problem().constraintMatrix.rowStarts.capacity() * sizeof(std::size_t)) +
+        (optimizer->problem().constraintMatrix.columnIndices.capacity() * sizeof(std::size_t)) +
+        (optimizer->problem().constraintMatrix.values.capacity() * sizeof(double));
     RecordProperty("case6468rte_sparse_matrix_bytes", std::to_string(sparseMatrixBytes));
     RecordProperty("case6468rte_highs_iterations",
                    std::to_string(optimizer->lastSolveResult().iterationCount));
@@ -2988,9 +2988,9 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerSolvesCaseIllinois200AsScale
     RecordProperty("case_illinois200_constraints",
                    std::to_string(optimizer->problem().constraintCount));
     const auto sparseMatrixBytes =
-        optimizer->problem().constraintMatrix.rowStarts.capacity() * sizeof(std::size_t) +
-        optimizer->problem().constraintMatrix.columnIndices.capacity() * sizeof(std::size_t) +
-        optimizer->problem().constraintMatrix.values.capacity() * sizeof(double);
+        (optimizer->problem().constraintMatrix.rowStarts.capacity() * sizeof(std::size_t)) +
+        (optimizer->problem().constraintMatrix.columnIndices.capacity() * sizeof(std::size_t)) +
+        (optimizer->problem().constraintMatrix.values.capacity() * sizeof(double));
     RecordProperty("case_illinois200_sparse_matrix_bytes", std::to_string(sparseMatrixBytes));
     RecordProperty("case_illinois200_iterations",
                    std::to_string(optimizer->lastSolveResult().iterationCount));

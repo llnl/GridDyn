@@ -16,4 +16,4 @@ fun:zipCloseFileInZipRaw64
 # callback before the member has been initialized. The value is ignored by
 # debugSimplex when initialise=true; keep this suppression narrow to that
 # upstream initialization path.
-fun:HEkkDual::debugDualSimplex*
+fun:debugDualSimplex

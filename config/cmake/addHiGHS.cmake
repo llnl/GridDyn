@@ -70,9 +70,9 @@ add_library(GridDyn::highs ALIAS griddyn_highs)
 foreach(_highs_target IN ITEMS highs highs_extras)
     if(TARGET ${_highs_target})
         set_target_properties(${_highs_target} PROPERTIES FOLDER Extern/HiGHS)
-        # HiGHS exports implementation headers such as Highs.h. Treat those
-        # include directories as system paths for GridDyn consumers so
-        # third-party warnings do not become GridDyn errors under -Werror.
+        # HiGHS exports implementation headers such as Highs.h. Treat those include directories as
+        # system paths for GridDyn consumers so third-party warnings do not become GridDyn errors
+        # under -Werror.
         set_property(
             TARGET ${_highs_target}
             PROPERTY INTERFACE_SYSTEM_INCLUDE_DIRECTORIES

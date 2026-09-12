@@ -15,5 +15,10 @@ fun:zipCloseFileInZipRaw64
 # HiGHS evaluates HEkkDual::solve_phase as an argument to its initial debug
 # callback before the member has been initialized. The value is ignored by
 # debugSimplex when initialise=true; keep this suppression narrow to that
-# upstream initialization path.
-fun:debugDualSimplex
+# upstream initialization path. C++ function matchers use the mangled
+# Itanium ABI name; the suffix wildcard covers the method's parameter types.
+fun:_ZN8HEkkDual16debugDualSimplex*
+
+# HiGHS can reach the basis-change diagnostic before all pivot-selection
+# members have been initialized during large-model phase-I simplex solves.
+fun:_ZN8HEkkDual16isBadBasisChangeEv

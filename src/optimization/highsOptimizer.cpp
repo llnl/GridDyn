@@ -7,7 +7,6 @@
 #include "highsOptimizer.h"
 
 #include "core/CoreExceptions.h"
-#include "gmlc/utilities/stringConversion.h"
 #include <Highs.h>
 #include <algorithm>
 #include <cmath>
@@ -77,23 +76,7 @@ namespace {
         return true;
     }
 
-    HighsScalingMode parseScalingMode(std::string_view param, std::string_view value)
-    {
-        const auto modeName = gmlc::utilities::convertToLowerCase(value);
-        if ((modeName == "no_scaling") || (modeName == "none") || (modeName == "off")) {
-            return HighsScalingMode::NO_SCALING;
-        }
-        if ((modeName == "scaling") || (modeName == "on")) {
-            return HighsScalingMode::SCALING;
-        }
-        if ((modeName == "auto") || (modeName == "automatic")) {
-            return HighsScalingMode::AUTO;
-        }
-        throw InvalidParameterValue(param);
-    }
-
     struct HighsScalingData {
-        bool mEnabled = false;
         std::vector<double> mRowScale;
         std::vector<double> mVariableScale;
     };
@@ -108,15 +91,11 @@ namespace {
         return (std::max)(minimumScale, (std::min)(maximumScale, 1.0 / magnitude));
     }
 
-    HighsScalingData makeScalingData(const NativeQpProblem& problem, bool enabled)
+    HighsScalingData makeScalingData(const NativeQpProblem& problem)
     {
         HighsScalingData scaling;
-        scaling.mEnabled = enabled;
         scaling.mRowScale.assign(problem.constraintCount, 1.0);
         scaling.mVariableScale.assign(problem.variableCount, 1.0);
-        if (!enabled) {
-            return scaling;
-        }
 
         // Use x = D*z. Column scaling includes the diagonal Hessian so that both
         // the constraint matrix and the QP curvature remain on comparable scales.
@@ -271,7 +250,6 @@ HighsOptimizer::HighsOptimizer(GridDynOptimization* gdo, const OptimizationMode&
 int HighsOptimizer::solve(double tStop, double& tReturn)
 {
     tReturn = tStop;
-    mScalingApplied = false;
     if (prepareProblemData(tStop) != FUNCTION_EXECUTION_SUCCESS) {
         recordSolveFailure(lastErrorString);
         return FUNCTION_EXECUTION_FAILURE;
@@ -300,8 +278,10 @@ int HighsOptimizer::solve(double tStop, double& tReturn)
         return acceptSolution(tStop, std::move(result));
     }
 
-    const HighsScalingData scaling = makeScalingData(problem(), scalingRequestedForProblem());
-    mScalingApplied = scaling.mEnabled;
+    // Always scale at the solver boundary. The canonical GridDyn problem is
+    // retained unchanged and the variable transformation is undone when the
+    // HiGHS solution is copied back.
+    const HighsScalingData scaling = makeScalingData(problem());
     auto model = makeHighsModel(problem(), scaling);
     const auto passStatus = highs.passModel(std::move(model));
     if (passStatus == HighsStatus::kError) {
@@ -360,48 +340,6 @@ int HighsOptimizer::solve(double tStop, double& tReturn)
     return acceptSolution(tStop, std::move(result));
 }
 
-void HighsOptimizer::set(std::string_view param, std::string_view val)
-{
-    if ((param == "scaling") || (param == "scaling_mode")) {
-        mScalingMode = parseScalingMode(param, val);
-        return;
-    }
-    NativeOptimizer::set(param, val);
-}
-
-void HighsOptimizer::set(std::string_view param, double val)
-{
-    if ((param == "scaling") || (param == "scaling_mode")) {
-        if (!std::isfinite(val) || (val < 0.0) || (val > 2.0) || (std::floor(val) != val)) {
-            throw InvalidParameterValue(param);
-        }
-        mScalingMode = static_cast<HighsScalingMode>(static_cast<int>(val));
-        return;
-    }
-    if ((param == "scaling_threshold") || (param == "scaling_variable_threshold")) {
-        if (!std::isfinite(val) || (val < 1.0) || (std::floor(val) != val) ||
-            (val > static_cast<double>(kCountMax))) {
-            throw InvalidParameterValue(param);
-        }
-        mScalingVariableThreshold = static_cast<count_t>(val);
-        return;
-    }
-    NativeOptimizer::set(param, val);
-}
-
-bool HighsOptimizer::scalingRequestedForProblem() const noexcept
-{
-    switch (mScalingMode) {
-        case HighsScalingMode::NO_SCALING:
-            return false;
-        case HighsScalingMode::SCALING:
-            return true;
-        case HighsScalingMode::AUTO:
-            return mVariableCount >= mScalingVariableThreshold;
-    }
-    return false;
-}
-
 double HighsOptimizer::get(std::string_view param) const
 {
     if ((param == "highs_solver") || (param == "highs")) {
@@ -409,18 +347,6 @@ double HighsOptimizer::get(std::string_view param) const
     }
     if ((param == "native_solver") || (param == "native")) {
         return 0.0;
-    }
-    if ((param == "scaling") || (param == "scaling_mode")) {
-        return static_cast<double>(mScalingMode);
-    }
-    if ((param == "scaling_threshold") || (param == "scaling_variable_threshold")) {
-        return static_cast<double>(mScalingVariableThreshold);
-    }
-    if ((param == "scaling_requested") || (param == "scaling_selected")) {
-        return scalingRequestedForProblem() ? 1.0 : 0.0;
-    }
-    if (param == "scaling_applied") {
-        return mScalingApplied ? 1.0 : 0.0;
     }
     return NativeOptimizer::get(param);
 }

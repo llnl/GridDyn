@@ -865,9 +865,10 @@ contract test oracle.
    dense-solver target. The external 10,000-bus case should first be exercised
    setup-only in a reproducible test environment before becoming a solve gate.
 4. **Document numerical policy and packaging.** Define how model tolerances
-   map to HiGHS tolerances, whether HiGHS or GridDyn owns scaling, how duals
-   and LMPs are reported, and how optional dependency discovery behaves across
-   MSVC, Linux, macOS, and Python-wheel builds.
+   map to HiGHS tolerances, document that GridDyn owns unconditional
+   solver-boundary scaling, how duals and LMPs are reported, and how optional
+   dependency discovery behaves across MSVC, Linux, macOS, and Python-wheel
+   builds.
 
 ### Suggested implementation order
 

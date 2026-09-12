@@ -1930,41 +1930,6 @@ TEST(OptimizationDcFormulationTests, Case9IntegratedBasicOptimizerDryRunBeforeSo
 }
 
 #ifdef GRIDDYN_ENABLE_HIGHS
-TEST(OptimizationDcFormulationTests, HighsOptimizerScalingPolicy)
-{
-    griddyn::HighsOptimizer optimizer;
-
-    EXPECT_EQ(optimizer.scalingMode(), griddyn::HighsScalingMode::AUTO);
-    EXPECT_EQ(optimizer.scalingVariableThreshold(), 6000);
-    EXPECT_EQ(optimizer.get("scaling_mode"), 2.0);
-    EXPECT_EQ(optimizer.get("scaling_threshold"), 6000.0);
-    EXPECT_EQ(optimizer.get("scaling_requested"), 0.0);
-
-    ASSERT_EQ(optimizer.allocate(5999), FUNCTION_EXECUTION_SUCCESS);
-    EXPECT_EQ(optimizer.get("scaling_requested"), 0.0);
-    ASSERT_EQ(optimizer.allocate(6000), FUNCTION_EXECUTION_SUCCESS);
-    EXPECT_EQ(optimizer.get("scaling_requested"), 1.0);
-
-    optimizer.set("scaling", "no_scaling");
-    EXPECT_EQ(optimizer.scalingMode(), griddyn::HighsScalingMode::NO_SCALING);
-    EXPECT_EQ(optimizer.get("scaling_requested"), 0.0);
-
-    optimizer.set("scaling_mode", "scaling");
-    EXPECT_EQ(optimizer.scalingMode(), griddyn::HighsScalingMode::SCALING);
-    EXPECT_EQ(optimizer.get("scaling_requested"), 1.0);
-
-    optimizer.set("scaling", "auto");
-    optimizer.set("scaling_threshold", 12000.0);
-    EXPECT_EQ(optimizer.scalingMode(), griddyn::HighsScalingMode::AUTO);
-    EXPECT_EQ(optimizer.scalingVariableThreshold(), 12000);
-    EXPECT_EQ(optimizer.get("scaling_requested"), 0.0);
-
-    optimizer.set("scaling", 1.0);
-    EXPECT_EQ(optimizer.scalingMode(), griddyn::HighsScalingMode::SCALING);
-    EXPECT_THROW(optimizer.set("scaling", "invalid"), std::invalid_argument);
-    EXPECT_THROW(optimizer.set("scaling_threshold", 0.5), std::invalid_argument);
-}
-
 TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase9LikeNativeOptimizer)
 {
     auto factoryOptimizer = griddyn::makeOptimizer("highs");
@@ -2214,69 +2179,6 @@ TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase300)
                    std::to_string(optimizer->lastSolveResult().iterationCount));
 }
 
-TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase300WithAndWithoutScaling)
-{
-    auto noScalingGrid = std::make_unique<griddyn::GridDynOptimization>();
-    auto scalingGrid = std::make_unique<griddyn::GridDynOptimization>();
-    const auto filePath = makeValidationCasePath("case300.m");
-
-    ASSERT_TRUE(std::filesystem::exists(filePath));
-    griddyn::loadFile(noScalingGrid.get(), filePath.string());
-    griddyn::loadFile(scalingGrid.get(), filePath.string());
-
-    const auto mode = makeDcMode(griddyn::LinearityMode::QUADRATIC);
-    noScalingGrid->initializeOptimizationModel(mode);
-    scalingGrid->initializeOptimizationModel(mode);
-    auto* noScalingRoot = noScalingGrid->getOptimizationObject();
-    auto* scalingRoot = scalingGrid->getOptimizationObject();
-    ASSERT_NE(noScalingRoot, nullptr);
-    ASSERT_NE(scalingRoot, nullptr);
-
-    griddyn::HighsOptimizer noScalingOptimizer(noScalingGrid.get(), mode);
-    griddyn::HighsOptimizer scalingOptimizer(scalingGrid.get(), mode);
-    ASSERT_EQ(noScalingOptimizer.allocate(noScalingRoot->objSize(mode),
-                                          noScalingRoot->constraintSize(mode)),
-              FUNCTION_EXECUTION_SUCCESS);
-    ASSERT_EQ(scalingOptimizer.allocate(scalingRoot->objSize(mode),
-                                        scalingRoot->constraintSize(mode)),
-              FUNCTION_EXECUTION_SUCCESS);
-    noScalingOptimizer.setMaxNonZeros(noScalingRoot->objSize(mode) *
-                                      noScalingRoot->constraintSize(mode));
-    scalingOptimizer.setMaxNonZeros(scalingRoot->objSize(mode) * scalingRoot->constraintSize(mode));
-    noScalingOptimizer.set("scaling", "no_scaling");
-    scalingOptimizer.set("scaling", "scaling");
-    noScalingOptimizer.initialize(0.0);
-    scalingOptimizer.initialize(0.0);
-
-    double noScalingReturnTime = -1.0;
-    double scalingReturnTime = -1.0;
-    ASSERT_EQ(noScalingOptimizer.solve(0.0, noScalingReturnTime), FUNCTION_EXECUTION_SUCCESS)
-        << noScalingOptimizer.lastSolveResult().message;
-    ASSERT_EQ(scalingOptimizer.solve(0.0, scalingReturnTime), FUNCTION_EXECUTION_SUCCESS)
-        << scalingOptimizer.lastSolveResult().message;
-
-    ASSERT_EQ(noScalingOptimizer.lastSolveResult().status, griddyn::NativeSolveStatus::OPTIMAL);
-    ASSERT_EQ(scalingOptimizer.lastSolveResult().status, griddyn::NativeSolveStatus::OPTIMAL);
-    EXPECT_EQ(noScalingReturnTime, scalingReturnTime);
-    EXPECT_EQ(noScalingOptimizer.get("scaling_applied"), 0.0);
-    EXPECT_EQ(scalingOptimizer.get("scaling_applied"), 1.0);
-    EXPECT_EQ(noScalingOptimizer.values.size(), scalingOptimizer.values.size());
-    double maximumValueDifference = 0.0;
-    for (std::size_t index = 0; index < noScalingOptimizer.values.size(); ++index) {
-        maximumValueDifference =
-            (std::max)(maximumValueDifference,
-                       std::abs(noScalingOptimizer.values[index] - scalingOptimizer.values[index]));
-    }
-    EXPECT_LT(maximumValueDifference, 1e-3);
-    EXPECT_NEAR(noScalingOptimizer.lastSolveResult().objectiveValue,
-                scalingOptimizer.lastSolveResult().objectiveValue,
-                1e-5);
-    EXPECT_LE(noScalingOptimizer.lastSolveResult().maximumConstraintViolation, 1e-7);
-    EXPECT_LE(scalingOptimizer.lastSolveResult().maximumConstraintViolation, 1e-7);
-    EXPECT_LE(noScalingOptimizer.lastSolveResult().maximumBoundViolation, 1e-7);
-    EXPECT_LE(scalingOptimizer.lastSolveResult().maximumBoundViolation, 1e-7);
-}
-
 TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase1354Pegase)
 {
     const auto loadStart = std::chrono::steady_clock::now();
@@ -2484,8 +2386,6 @@ TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase13659Pegase)
     griddyn::HighsOptimizer optimizer(gds.get(), mode);
     ASSERT_EQ(optimizer.allocate(root->objSize(mode), root->constraintSize(mode)),
               FUNCTION_EXECUTION_SUCCESS);
-    optimizer.set("scaling", "auto");
-    EXPECT_EQ(optimizer.get("scaling_requested"), 1.0);
     optimizer.initialize(0.0);
 
     const auto solveStart = std::chrono::steady_clock::now();
@@ -2497,7 +2397,6 @@ TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase13659Pegase)
     ASSERT_EQ(optimizer.lastSolveResult().status, griddyn::NativeSolveStatus::OPTIMAL)
         << optimizer.lastSolveResult().message;
     EXPECT_EQ(returnTime, 0.0);
-    EXPECT_EQ(optimizer.get("scaling_applied"), 1.0);
     EXPECT_TRUE(optimizer.problem().valid);
     EXPECT_GT(optimizer.problem().variableCount, 13000U);
     EXPECT_GT(optimizer.problem().constraintCount, 13000U);

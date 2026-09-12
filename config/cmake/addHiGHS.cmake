@@ -56,12 +56,11 @@ if(NOT TARGET highs::highs)
     message(FATAL_ERROR "The HiGHS submodule did not create the expected highs::highs target.")
 endif()
 
-# HiGHS compiles its library with position-independent code, but its CMake
-# integration also exports POSITION_INDEPENDENT_CODE=ON as an interface
-# requirement. GridDyn intentionally mixes PIC and non-PIC targets, so
-# propagating that requirement makes otherwise valid consumers fail during
-# CMake generation. HiGHS itself retains POSITION_INDEPENDENT_CODE=ON; only
-# remove the unnecessary consumer-side requirement.
+# HiGHS compiles its library with position-independent code, but its CMake integration also exports
+# POSITION_INDEPENDENT_CODE=ON as an interface requirement. GridDyn intentionally mixes PIC and
+# non-PIC targets, so propagating that requirement makes otherwise valid consumers fail during CMake
+# generation. HiGHS itself retains POSITION_INDEPENDENT_CODE=ON; only remove the unnecessary
+# consumer-side requirement.
 set_property(TARGET highs PROPERTY INTERFACE_POSITION_INDEPENDENT_CODE "")
 
 add_library(griddyn_highs INTERFACE)

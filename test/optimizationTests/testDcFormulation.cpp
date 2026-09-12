@@ -16,6 +16,9 @@
 #include "optimization/nativeDenseSolver.h"
 #include "optimization/optHelperClasses.h"
 #include "optimization/optimizerInterface.h"
+#ifdef GRIDDYN_ENABLE_HIGHS
+#    include "optimization/highsOptimizer.h"
+#endif
 #include <algorithm>
 #include <chrono>
 #include <cmath>
@@ -57,6 +60,14 @@ void expectFinite(const std::vector<double>& values)
     }
 }
 
+void expectFinite(const griddyn::NativeSparseMatrix& matrix)
+{
+    EXPECT_TRUE(matrix.validate());
+    for (const auto value : matrix.values) {
+        EXPECT_TRUE(std::isfinite(value));
+    }
+}
+
 griddyn::NativeQpProblem makeNativeTestProblem(std::size_t variableCount,
                                                std::size_t constraintCount)
 {
@@ -73,7 +84,7 @@ griddyn::NativeQpProblem makeNativeTestProblem(std::size_t variableCount,
     problem.constraintLowerBounds.assign(constraintCount, -std::numeric_limits<double>::infinity());
     problem.constraintUpperBounds.assign(constraintCount, std::numeric_limits<double>::infinity());
     problem.constraintOffsets.assign(constraintCount, 0.0);
-    problem.constraintMatrix.assign(variableCount * constraintCount, 0.0);
+    problem.constraintMatrix.setDimensions(constraintCount, variableCount);
     problem.initialConstraintValues.assign(constraintCount, 0.0);
     problem.initialGradient.assign(variableCount, 0.0);
     problem.variableTypes.assign(variableCount, CONTINUOUS_OBJECTIVE_VARIABLE);
@@ -109,10 +120,10 @@ griddyn::NativeQpProblem makeThreeBusNativeProblem(double generator1UpperBound,
                                    std::numeric_limits<double>::infinity(),
                                    std::numeric_limits<double>::infinity(),
                                    std::numeric_limits<double>::infinity()};
-    problem.constraintMatrix = {
+    problem.constraintMatrix.assignDense({
         1.0, 0.0,  -10.0, 10.0, 0.0, 0.0, 1.0, 10.0, -15.0, 5.0,  0.0,   0.0, 0.0,
         5.0, -5.0, 0.0,   0.0,  1.0, 0.0, 0.0, 0.0,  0.0,   10.0, -10.0, 0.0,
-    };
+    });
     problem.constraintLowerBounds = {0.0, 0.0, 1.0, 0.0, -branch12Limit};
     problem.constraintUpperBounds = {0.0, 0.0, 1.0, 0.0, branch12Limit};
     return problem;
@@ -349,6 +360,7 @@ TEST(OptimizationDcFormulationTests, NativeProblemUsesHiGHSBoundedRowNormalizati
     griddyn::NativeQpProblem problem;
     problem.variableCount = 1;
     problem.constraintCount = 1;
+    problem.constraintMatrix.setDimensions(problem.constraintCount, problem.variableCount);
     problem.initialValues = {0.0};
     problem.variableLowerBounds = {-1.0};
     problem.variableUpperBounds = {2.0};
@@ -357,7 +369,7 @@ TEST(OptimizationDcFormulationTests, NativeProblemUsesHiGHSBoundedRowNormalizati
     problem.constraintLowerBounds = {-1.0};
     problem.constraintUpperBounds = {3.0};
     problem.constraintOffsets = {0.5};
-    problem.constraintMatrix = {2.0};
+    problem.constraintMatrix.assignDense({2.0});
     problem.initialConstraintValues = {0.5};
     problem.initialGradient = {3.0};
     problem.variableTypes = {CONTINUOUS_OBJECTIVE_VARIABLE};
@@ -381,7 +393,7 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverSolvesBoundedConvexQp)
     problem.linearObjective = {-2.0, -4.0};
     problem.quadraticObjective = {1.0, 1.0};
     problem.constraintUpperBounds[0] = 2.0;
-    problem.constraintMatrix = {1.0, 1.0};
+    problem.constraintMatrix.assignDense({1.0, 1.0});
 
     const auto result = griddyn::NativeDenseSolver::solve(problem);
 
@@ -399,7 +411,7 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverActivatesLowerRowLimit)
     auto problem = makeNativeTestProblem(1, 1);
     problem.linearObjective = {1.0};
     problem.constraintLowerBounds[0] = 1.0;
-    problem.constraintMatrix = {1.0};
+    problem.constraintMatrix.assignDense({1.0});
 
     const auto result = griddyn::NativeDenseSolver::solve(problem);
 
@@ -419,7 +431,7 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverUsesPhaseOneForEqualityFea
     problem.quadraticObjective = {1.0, 2.0};
     problem.constraintLowerBounds[0] = 3.0;
     problem.constraintUpperBounds[0] = 3.0;
-    problem.constraintMatrix = {1.0, 1.0};
+    problem.constraintMatrix.assignDense({1.0, 1.0});
 
     const auto result = griddyn::NativeDenseSolver::solve(problem);
 
@@ -434,7 +446,7 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverReportsInfeasiblePhaseOne)
     auto problem = makeNativeTestProblem(1, 2);
     problem.constraintLowerBounds[0] = 2.0;
     problem.constraintUpperBounds[1] = 1.0;
-    problem.constraintMatrix = {1.0, 1.0};
+    problem.constraintMatrix.assignDense({1.0, 1.0});
 
     const auto result = griddyn::NativeDenseSolver::solve(problem);
 
@@ -456,7 +468,7 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverPresolvesRedundantEqualiti
     auto problem = makeNativeTestProblem(1, 2);
     problem.constraintLowerBounds = {1.0, 1.0};
     problem.constraintUpperBounds = {1.0, 1.0};
-    problem.constraintMatrix = {1.0, 1.0};
+    problem.constraintMatrix.assignDense({1.0, 1.0});
     problem.initialValues = {0.0};
 
     const auto result = griddyn::NativeDenseSolver::solve(problem);
@@ -471,7 +483,7 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverReportsInconsistentEqualit
     auto problem = makeNativeTestProblem(1, 2);
     problem.constraintLowerBounds = {1.0, 2.0};
     problem.constraintUpperBounds = {1.0, 2.0};
-    problem.constraintMatrix = {1.0, 1.0};
+    problem.constraintMatrix.assignDense({1.0, 1.0});
     problem.initialValues = {0.0};
 
     const auto result = griddyn::NativeDenseSolver::solve(problem);
@@ -520,7 +532,7 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverPresolvesFixedVariablesAnd
     fixedVariable.quadraticObjective = {3.0, 1.0};
     fixedVariable.constraintLowerBounds[0] = 3.0;
     fixedVariable.constraintUpperBounds[0] = 3.0;
-    fixedVariable.constraintMatrix = {1.0, 1.0};
+    fixedVariable.constraintMatrix.assignDense({1.0, 1.0});
 
     const auto fixedResult = griddyn::NativeDenseSolver::solve(fixedVariable);
     ASSERT_EQ(fixedResult.status, griddyn::NativeSolveStatus::OPTIMAL) << fixedResult.message;
@@ -536,7 +548,7 @@ TEST(OptimizationDcFormulationTests, NativeDenseSolverPresolvesFixedVariablesAnd
     scaledRows.quadraticObjective = {1.0, 1.0};
     scaledRows.constraintLowerBounds[0] = 1.0;
     scaledRows.constraintUpperBounds[0] = 1.0;
-    scaledRows.constraintMatrix = {1.0e6, 1.0};
+    scaledRows.constraintMatrix.assignDense({1.0e6, 1.0});
 
     const auto scaledResult = griddyn::NativeDenseSolver::solve(scaledRows);
     ASSERT_EQ(scaledResult.status, griddyn::NativeSolveStatus::OPTIMAL) << scaledResult.message;
@@ -590,14 +602,15 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerMaterializesTwoBusAffineQp)
               griddyn::NativeProblemClass::SUPPORTED_CONVEX_DIAGONAL_QUADRATIC);
     EXPECT_EQ(problem.variableCount, 3U);
     EXPECT_EQ(problem.constraintCount, 4U);
-    EXPECT_EQ(problem.constraintMatrix.size(), 12U);
+    EXPECT_EQ(problem.constraintMatrix.rowCount, problem.constraintCount);
+    EXPECT_EQ(problem.constraintMatrix.columnCount, problem.variableCount);
     EXPECT_EQ(problem.variableNames.size(), 3U);
     EXPECT_EQ(problem.constraintNames.size(), 4U);
     EXPECT_EQ(problem.modelVersion, 1U);
 
     const auto matrixValue = [&problem](index_t row, index_t column) {
-        return problem.constraintMatrix[(static_cast<std::size_t>(row) * problem.variableCount) +
-                                        static_cast<std::size_t>(column)];
+        return problem.constraintMatrix.coefficient(static_cast<std::size_t>(row),
+                                                    static_cast<std::size_t>(column));
     };
     EXPECT_DOUBLE_EQ(matrixValue(bus1Offsets.constraintOffset, generatorOffsets.gOffset), 1.0);
     EXPECT_DOUBLE_EQ(matrixValue(bus1Offsets.constraintOffset, bus1Offsets.aOffset), -5.0);
@@ -713,9 +726,13 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerSnapshotMatchesCallbacksAndJ
         denseJacobian[(static_cast<std::size_t>(element.row) * problem.variableCount) +
                       static_cast<std::size_t>(element.col)] += element.data;
     }
-    ASSERT_EQ(problem.constraintMatrix.size(), denseJacobian.size());
-    for (std::size_t entry = 0; entry < denseJacobian.size(); ++entry) {
-        EXPECT_DOUBLE_EQ(problem.constraintMatrix[entry], denseJacobian[entry]);
+    ASSERT_EQ(problem.constraintMatrix.rowCount, problem.constraintCount);
+    ASSERT_EQ(problem.constraintMatrix.columnCount, problem.variableCount);
+    for (std::size_t row = 0; row < problem.constraintCount; ++row) {
+        for (std::size_t column = 0; column < problem.variableCount; ++column) {
+            EXPECT_DOUBLE_EQ(problem.constraintMatrix.coefficient(row, column),
+                             denseJacobian[(row * problem.variableCount) + column]);
+        }
     }
 
     const auto flowRow = static_cast<std::size_t>(branchOffsets.constraintOffset);
@@ -813,8 +830,8 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerAssemblesFiniteDeterministic
         EXPECT_EQ(firstSnapshot.variableCount, static_cast<std::size_t>(root->objSize(mode)));
         EXPECT_EQ(firstSnapshot.constraintCount,
                   static_cast<std::size_t>(root->constraintSize(mode)));
-        EXPECT_EQ(firstSnapshot.constraintMatrix.size(),
-                  firstSnapshot.variableCount * firstSnapshot.constraintCount);
+        EXPECT_EQ(firstSnapshot.constraintMatrix.rowCount, firstSnapshot.constraintCount);
+        EXPECT_EQ(firstSnapshot.constraintMatrix.columnCount, firstSnapshot.variableCount);
 
         ASSERT_EQ(optimizer.prepareProblemData(0.0), FUNCTION_EXECUTION_SUCCESS)
             << optimizer.getLastErrorString();
@@ -881,7 +898,8 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerMaterializesCase118)
     EXPECT_EQ(problem.classification, griddyn::NativeProblemClass::SUPPORTED_LINEAR);
     EXPECT_EQ(problem.variableCount, static_cast<std::size_t>(root->objSize(mode)));
     EXPECT_EQ(problem.constraintCount, static_cast<std::size_t>(root->constraintSize(mode)));
-    EXPECT_EQ(problem.constraintMatrix.size(), problem.variableCount * problem.constraintCount);
+    EXPECT_EQ(problem.constraintMatrix.rowCount, problem.constraintCount);
+    EXPECT_EQ(problem.constraintMatrix.columnCount, problem.variableCount);
     expectFinite(problem.initialValues);
     expectFinite(problem.linearObjective);
     expectFinite(problem.constraintMatrix);
@@ -1039,10 +1057,30 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerSetsUpCase13659WithoutSolve)
                               sizeof(MatrixElement<double>));
     RecordProperty("case13659_callback_storage_bytes", std::to_string(vectorBytes + sparseBytes));
 
-    // This is intentionally setup-only.  NativeOptimizer::prepareProblemData()
-    // currently materializes a dense matrix, which is inappropriate for this
-    // scale until the sparse/HiGHS backend is integrated.
-    EXPECT_TRUE(optimizer.problem().constraintMatrix.empty());
+    const auto prepareStart = std::chrono::steady_clock::now();
+    ASSERT_EQ(optimizer.prepareProblemData(0.0), FUNCTION_EXECUTION_SUCCESS)
+        << optimizer.getLastErrorString();
+    const auto prepareStop = std::chrono::steady_clock::now();
+    const auto& problem = optimizer.problem();
+    ASSERT_TRUE(problem.valid);
+    EXPECT_EQ(problem.variableCount, variableCount);
+    EXPECT_EQ(problem.constraintCount, constraintCount);
+    EXPECT_EQ(problem.constraintMatrix.rowCount, constraintCount);
+    EXPECT_EQ(problem.constraintMatrix.columnCount, variableCount);
+    EXPECT_EQ(problem.constraintMatrix.size(), jacobian.size());
+    EXPECT_LT(problem.constraintMatrix.size(), variableCount * constraintCount);
+    expectFinite(problem.constraintMatrix);
+    RecordProperty("case13659_sparse_prepare_ms",
+                   static_cast<int>(std::chrono::duration_cast<std::chrono::milliseconds>(
+                                        prepareStop - prepareStart)
+                                        .count()));
+    const auto sparseSnapshotBytes =
+        (problem.constraintMatrix.rowStarts.capacity() * sizeof(std::size_t)) +
+        (problem.constraintMatrix.columnIndices.capacity() * sizeof(std::size_t)) +
+        (problem.constraintMatrix.values.capacity() * sizeof(double));
+    const auto denseEquivalentBytes = variableCount * constraintCount * sizeof(double);
+    EXPECT_LT(sparseSnapshotBytes, denseEquivalentBytes / 100U);
+    RecordProperty("case13659_sparse_snapshot_bytes", std::to_string(sparseSnapshotBytes));
 }
 
 TEST(OptimizationDcFormulationTests, TwoBusDcModelHasBusOwnedBalanceRows)
@@ -1891,6 +1929,504 @@ TEST(OptimizationDcFormulationTests, Case9IntegratedBasicOptimizerDryRunBeforeSo
     expectFinite(optimizer->gradient);
 }
 
+#ifdef GRIDDYN_ENABLE_HIGHS
+TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase9LikeNativeOptimizer)
+{
+    auto factoryOptimizer = griddyn::makeOptimizer("highs");
+    ASSERT_NE(factoryOptimizer, nullptr);
+    EXPECT_NE(dynamic_cast<griddyn::HighsOptimizer*>(factoryOptimizer.get()), nullptr);
+
+    auto nativeGrid = std::make_unique<griddyn::GridDynOptimization>();
+    auto highsGrid = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath = makeValidationCasePath("case9.m");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(nativeGrid.get(), filePath.string());
+    griddyn::loadFile(highsGrid.get(), filePath.string());
+
+    const auto mode = makeDcMode(griddyn::LinearityMode::QUADRATIC);
+    nativeGrid->initializeOptimizationModel(mode);
+    highsGrid->initializeOptimizationModel(mode);
+    auto* nativeRoot = nativeGrid->getOptimizationObject();
+    auto* highsRoot = highsGrid->getOptimizationObject();
+    ASSERT_NE(nativeRoot, nullptr);
+    ASSERT_NE(highsRoot, nullptr);
+
+    griddyn::NativeOptimizer nativeOptimizer(nativeGrid.get(), mode);
+    griddyn::HighsOptimizer highsOptimizer(highsGrid.get(), mode);
+    ASSERT_EQ(nativeOptimizer.allocate(nativeRoot->objSize(mode), nativeRoot->constraintSize(mode)),
+              FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(highsOptimizer.allocate(highsRoot->objSize(mode), highsRoot->constraintSize(mode)),
+              FUNCTION_EXECUTION_SUCCESS);
+    nativeOptimizer.setMaxNonZeros(nativeRoot->objSize(mode) * nativeRoot->constraintSize(mode));
+    highsOptimizer.setMaxNonZeros(highsRoot->objSize(mode) * highsRoot->constraintSize(mode));
+    nativeOptimizer.initialize(0.0);
+    highsOptimizer.initialize(0.0);
+
+    double nativeReturnTime = -1.0;
+    double highsReturnTime = -1.0;
+    ASSERT_EQ(nativeOptimizer.solve(0.0, nativeReturnTime), FUNCTION_EXECUTION_SUCCESS)
+        << nativeOptimizer.lastSolveResult().message;
+    ASSERT_EQ(highsOptimizer.solve(0.0, highsReturnTime), FUNCTION_EXECUTION_SUCCESS)
+        << highsOptimizer.lastSolveResult().message;
+    ASSERT_EQ(nativeOptimizer.lastSolveResult().status, griddyn::NativeSolveStatus::OPTIMAL);
+    ASSERT_EQ(highsOptimizer.lastSolveResult().status, griddyn::NativeSolveStatus::OPTIMAL);
+    EXPECT_EQ(highsReturnTime, nativeReturnTime);
+    EXPECT_EQ(highsOptimizer.get("highs_solver"), 1.0);
+    EXPECT_EQ(highsOptimizer.get("native_solver"), 0.0);
+    ASSERT_EQ(highsOptimizer.values.size(), nativeOptimizer.values.size());
+    for (std::size_t index = 0; index < nativeOptimizer.values.size(); ++index) {
+        EXPECT_NEAR(highsOptimizer.values[index], nativeOptimizer.values[index], 1e-6)
+            << "decision variable " << index;
+    }
+    EXPECT_NEAR(highsOptimizer.lastSolveResult().objectiveValue,
+                nativeOptimizer.lastSolveResult().objectiveValue,
+                1e-5);
+    EXPECT_LE(highsOptimizer.lastSolveResult().maximumConstraintViolation, 1e-7);
+    EXPECT_LE(highsOptimizer.lastSolveResult().maximumBoundViolation, 1e-7);
+    EXPECT_EQ(highsOptimizer.get("solution_valid"), 1.0);
+}
+
+TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase118LikeNativeOptimizer)
+{
+    auto nativeGrid = std::make_unique<griddyn::GridDynOptimization>();
+    auto highsGrid = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath = makeValidationCasePath("case118.m");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(nativeGrid.get(), filePath.string());
+    griddyn::loadFile(highsGrid.get(), filePath.string());
+
+    const auto mode = makeDcMode(griddyn::LinearityMode::QUADRATIC);
+    nativeGrid->initializeOptimizationModel(mode);
+    highsGrid->initializeOptimizationModel(mode);
+    auto* nativeRoot = nativeGrid->getOptimizationObject();
+    auto* highsRoot = highsGrid->getOptimizationObject();
+    ASSERT_NE(nativeRoot, nullptr);
+    ASSERT_NE(highsRoot, nullptr);
+
+    griddyn::NativeOptimizer nativeOptimizer(nativeGrid.get(), mode);
+    griddyn::HighsOptimizer highsOptimizer(highsGrid.get(), mode);
+    ASSERT_EQ(nativeOptimizer.allocate(nativeRoot->objSize(mode), nativeRoot->constraintSize(mode)),
+              FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(highsOptimizer.allocate(highsRoot->objSize(mode), highsRoot->constraintSize(mode)),
+              FUNCTION_EXECUTION_SUCCESS);
+    nativeOptimizer.setMaxNonZeros(nativeRoot->objSize(mode) * nativeRoot->constraintSize(mode));
+    highsOptimizer.setMaxNonZeros(highsRoot->objSize(mode) * highsRoot->constraintSize(mode));
+    nativeOptimizer.initialize(0.0);
+    highsOptimizer.initialize(0.0);
+
+    double nativeReturnTime = -1.0;
+    double highsReturnTime = -1.0;
+    const auto nativeStart = std::chrono::steady_clock::now();
+    ASSERT_EQ(nativeOptimizer.solve(0.0, nativeReturnTime), FUNCTION_EXECUTION_SUCCESS)
+        << nativeOptimizer.lastSolveResult().message;
+    const auto nativeStop = std::chrono::steady_clock::now();
+    const auto highsStart = std::chrono::steady_clock::now();
+    ASSERT_EQ(highsOptimizer.solve(0.0, highsReturnTime), FUNCTION_EXECUTION_SUCCESS)
+        << highsOptimizer.lastSolveResult().message;
+    const auto highsStop = std::chrono::steady_clock::now();
+    ASSERT_EQ(nativeOptimizer.lastSolveResult().status, griddyn::NativeSolveStatus::OPTIMAL);
+    ASSERT_EQ(highsOptimizer.lastSolveResult().status, griddyn::NativeSolveStatus::OPTIMAL);
+    EXPECT_EQ(highsReturnTime, nativeReturnTime);
+    ASSERT_EQ(highsOptimizer.values.size(), nativeOptimizer.values.size());
+    for (std::size_t index = 0; index < nativeOptimizer.values.size(); ++index) {
+        EXPECT_NEAR(highsOptimizer.values[index], nativeOptimizer.values[index], 1e-4)
+            << "decision variable " << index;
+    }
+    EXPECT_NEAR(highsOptimizer.lastSolveResult().objectiveValue,
+                nativeOptimizer.lastSolveResult().objectiveValue,
+                1e-3);
+    EXPECT_LE(highsOptimizer.lastSolveResult().maximumConstraintViolation, 1e-7);
+    EXPECT_LE(highsOptimizer.lastSolveResult().maximumBoundViolation, 1e-7);
+    EXPECT_EQ(highsOptimizer.get("solution_valid"), 1.0);
+
+    const auto milliseconds = [](auto duration) {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    };
+    RecordProperty("case118_native_solve_ms",
+                   std::to_string(milliseconds(nativeStop - nativeStart)));
+    RecordProperty("case118_highs_solve_ms", std::to_string(milliseconds(highsStop - highsStart)));
+    RecordProperty("case118_highs_iterations",
+                   std::to_string(highsOptimizer.lastSolveResult().iterationCount));
+}
+
+TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCaseIllinois200LikeNativeOptimizer)
+{
+    auto nativeGrid = std::make_unique<griddyn::GridDynOptimization>();
+    auto highsGrid = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath = makeValidationCasePath("case_illinois200.m");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(nativeGrid.get(), filePath.string());
+    griddyn::loadFile(highsGrid.get(), filePath.string());
+
+    const auto mode = makeDcMode(griddyn::LinearityMode::QUADRATIC);
+    nativeGrid->initializeOptimizationModel(mode);
+    highsGrid->initializeOptimizationModel(mode);
+    auto* nativeRoot = nativeGrid->getOptimizationObject();
+    auto* highsRoot = highsGrid->getOptimizationObject();
+    ASSERT_NE(nativeRoot, nullptr);
+    ASSERT_NE(highsRoot, nullptr);
+
+    griddyn::NativeOptimizer nativeOptimizer(nativeGrid.get(), mode);
+    griddyn::HighsOptimizer highsOptimizer(highsGrid.get(), mode);
+    ASSERT_EQ(nativeOptimizer.allocate(nativeRoot->objSize(mode), nativeRoot->constraintSize(mode)),
+              FUNCTION_EXECUTION_SUCCESS);
+    ASSERT_EQ(highsOptimizer.allocate(highsRoot->objSize(mode), highsRoot->constraintSize(mode)),
+              FUNCTION_EXECUTION_SUCCESS);
+    nativeOptimizer.setMaxNonZeros(nativeRoot->objSize(mode) * nativeRoot->constraintSize(mode));
+    highsOptimizer.setMaxNonZeros(highsRoot->objSize(mode) * highsRoot->constraintSize(mode));
+    nativeOptimizer.initialize(0.0);
+    highsOptimizer.initialize(0.0);
+
+    double nativeReturnTime = -1.0;
+    double highsReturnTime = -1.0;
+    const auto nativeStart = std::chrono::steady_clock::now();
+    ASSERT_EQ(nativeOptimizer.solve(0.0, nativeReturnTime), FUNCTION_EXECUTION_SUCCESS)
+        << nativeOptimizer.lastSolveResult().message;
+    const auto nativeStop = std::chrono::steady_clock::now();
+    const auto highsStart = std::chrono::steady_clock::now();
+    ASSERT_EQ(highsOptimizer.solve(0.0, highsReturnTime), FUNCTION_EXECUTION_SUCCESS)
+        << highsOptimizer.lastSolveResult().message;
+    const auto highsStop = std::chrono::steady_clock::now();
+
+    ASSERT_EQ(nativeOptimizer.lastSolveResult().status, griddyn::NativeSolveStatus::OPTIMAL);
+    ASSERT_EQ(highsOptimizer.lastSolveResult().status, griddyn::NativeSolveStatus::OPTIMAL);
+    EXPECT_EQ(highsReturnTime, nativeReturnTime);
+    ASSERT_EQ(highsOptimizer.values.size(), nativeOptimizer.values.size());
+    for (std::size_t index = 0; index < nativeOptimizer.values.size(); ++index) {
+        EXPECT_NEAR(highsOptimizer.values[index], nativeOptimizer.values[index], 1e-4)
+            << "decision variable " << index;
+    }
+    EXPECT_NEAR(highsOptimizer.lastSolveResult().objectiveValue,
+                nativeOptimizer.lastSolveResult().objectiveValue,
+                1e-2);
+    EXPECT_LE(highsOptimizer.lastSolveResult().maximumConstraintViolation, 1e-7);
+    EXPECT_LE(highsOptimizer.lastSolveResult().maximumBoundViolation, 1e-7);
+    EXPECT_EQ(highsOptimizer.get("solution_valid"), 1.0);
+
+    const auto milliseconds = [](auto duration) {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    };
+    RecordProperty("case_illinois200_native_solve_ms",
+                   std::to_string(milliseconds(nativeStop - nativeStart)));
+    RecordProperty("case_illinois200_highs_solve_ms",
+                   std::to_string(milliseconds(highsStop - highsStart)));
+    RecordProperty("case_illinois200_highs_iterations",
+                   std::to_string(highsOptimizer.lastSolveResult().iterationCount));
+}
+
+TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase300)
+{
+    const auto loadStart = std::chrono::steady_clock::now();
+    auto gds = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath = makeValidationCasePath("case300.m");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds.get(), filePath.string());
+    const auto loadStop = std::chrono::steady_clock::now();
+
+    const auto mode = makeDcMode(griddyn::LinearityMode::QUADRATIC);
+    const auto setupStart = std::chrono::steady_clock::now();
+    gds->initializeOptimizationModel(mode);
+    const auto setupStop = std::chrono::steady_clock::now();
+    auto* root = gds->getOptimizationObject();
+    ASSERT_NE(root, nullptr);
+
+    auto optimizer = std::make_unique<griddyn::HighsOptimizer>(gds.get(), mode);
+    ASSERT_EQ(optimizer->allocate(root->objSize(mode), root->constraintSize(mode)),
+              FUNCTION_EXECUTION_SUCCESS);
+    optimizer->setMaxNonZeros(root->objSize(mode) * root->constraintSize(mode));
+    optimizer->initialize(0.0);
+
+    const auto solveStart = std::chrono::steady_clock::now();
+    double returnTime = -1.0;
+    ASSERT_EQ(optimizer->solve(0.0, returnTime), FUNCTION_EXECUTION_SUCCESS)
+        << optimizer->lastSolveResult().message;
+    const auto solveStop = std::chrono::steady_clock::now();
+
+    ASSERT_EQ(optimizer->lastSolveResult().status, griddyn::NativeSolveStatus::OPTIMAL)
+        << optimizer->lastSolveResult().message;
+    EXPECT_EQ(returnTime, 0.0);
+    EXPECT_TRUE(optimizer->problem().valid);
+    EXPECT_GT(optimizer->problem().variableCount, 300U);
+    EXPECT_GT(optimizer->problem().constraintCount, 300U);
+    EXPECT_GT(optimizer->problem().constraintMatrix.size(), 0U);
+    expectFinite(optimizer->problem().constraintMatrix);
+    expectFinite(optimizer->values);
+    EXPECT_TRUE(std::isfinite(optimizer->lastSolveResult().objectiveValue));
+    EXPECT_LE(optimizer->lastSolveResult().maximumConstraintViolation, 1e-7);
+    EXPECT_LE(optimizer->lastSolveResult().maximumBoundViolation, 1e-7);
+    EXPECT_EQ(optimizer->get("solution_valid"), 1.0);
+
+    const auto milliseconds = [](auto duration) {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    };
+    RecordProperty("case300_load_ms", std::to_string(milliseconds(loadStop - loadStart)));
+    RecordProperty("case300_setup_ms", std::to_string(milliseconds(setupStop - setupStart)));
+    RecordProperty("case300_solve_ms", std::to_string(milliseconds(solveStop - solveStart)));
+    RecordProperty("case300_variables", std::to_string(optimizer->problem().variableCount));
+    RecordProperty("case300_constraints", std::to_string(optimizer->problem().constraintCount));
+    RecordProperty("case300_jacobian_nnz",
+                   std::to_string(optimizer->problem().constraintMatrix.size()));
+    const auto sparseMatrixBytes =
+        (optimizer->problem().constraintMatrix.rowStarts.capacity() * sizeof(std::size_t)) +
+        (optimizer->problem().constraintMatrix.columnIndices.capacity() * sizeof(std::size_t)) +
+        (optimizer->problem().constraintMatrix.values.capacity() * sizeof(double));
+    RecordProperty("case300_sparse_matrix_bytes", std::to_string(sparseMatrixBytes));
+    RecordProperty("case300_highs_iterations",
+                   std::to_string(optimizer->lastSolveResult().iterationCount));
+}
+
+TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase1354Pegase)
+{
+    const auto loadStart = std::chrono::steady_clock::now();
+    auto gds = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath = makeValidationCasePath("case1354pegase.m");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds.get(), filePath.string());
+    const auto loadStop = std::chrono::steady_clock::now();
+
+    const auto mode = makeDcMode(griddyn::LinearityMode::QUADRATIC);
+    const auto setupStart = std::chrono::steady_clock::now();
+    gds->initializeOptimizationModel(mode);
+    const auto setupStop = std::chrono::steady_clock::now();
+    auto* root = gds->getOptimizationObject();
+    ASSERT_NE(root, nullptr);
+
+    auto optimizer = std::make_unique<griddyn::HighsOptimizer>(gds.get(), mode);
+    ASSERT_EQ(optimizer->allocate(root->objSize(mode), root->constraintSize(mode)),
+              FUNCTION_EXECUTION_SUCCESS);
+    optimizer->setMaxNonZeros(root->objSize(mode) * root->constraintSize(mode));
+    optimizer->initialize(0.0);
+
+    const auto solveStart = std::chrono::steady_clock::now();
+    double returnTime = -1.0;
+    ASSERT_EQ(optimizer->solve(0.0, returnTime), FUNCTION_EXECUTION_SUCCESS)
+        << optimizer->lastSolveResult().message;
+    const auto solveStop = std::chrono::steady_clock::now();
+
+    ASSERT_EQ(optimizer->lastSolveResult().status, griddyn::NativeSolveStatus::OPTIMAL)
+        << optimizer->lastSolveResult().message;
+    EXPECT_EQ(returnTime, 0.0);
+    EXPECT_TRUE(optimizer->problem().valid);
+    EXPECT_GT(optimizer->problem().variableCount, 1000U);
+    EXPECT_GT(optimizer->problem().constraintCount, 1000U);
+    EXPECT_GT(optimizer->problem().constraintMatrix.size(), 0U);
+    expectFinite(optimizer->problem().constraintMatrix);
+    expectFinite(optimizer->values);
+    EXPECT_TRUE(std::isfinite(optimizer->lastSolveResult().objectiveValue));
+    EXPECT_LE(optimizer->lastSolveResult().maximumConstraintViolation, 1e-7);
+    EXPECT_LE(optimizer->lastSolveResult().maximumBoundViolation, 1e-7);
+    EXPECT_EQ(optimizer->get("solution_valid"), 1.0);
+
+    const auto milliseconds = [](auto duration) {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    };
+    RecordProperty("case1354pegase_load_ms", std::to_string(milliseconds(loadStop - loadStart)));
+    RecordProperty("case1354pegase_setup_ms", std::to_string(milliseconds(setupStop - setupStart)));
+    RecordProperty("case1354pegase_solve_ms", std::to_string(milliseconds(solveStop - solveStart)));
+    RecordProperty("case1354pegase_variables", std::to_string(optimizer->problem().variableCount));
+    RecordProperty("case1354pegase_constraints",
+                   std::to_string(optimizer->problem().constraintCount));
+    RecordProperty("case1354pegase_jacobian_nnz",
+                   std::to_string(optimizer->problem().constraintMatrix.size()));
+    const auto sparseMatrixBytes =
+        (optimizer->problem().constraintMatrix.rowStarts.capacity() * sizeof(std::size_t)) +
+        (optimizer->problem().constraintMatrix.columnIndices.capacity() * sizeof(std::size_t)) +
+        (optimizer->problem().constraintMatrix.values.capacity() * sizeof(double));
+    RecordProperty("case1354pegase_sparse_matrix_bytes", std::to_string(sparseMatrixBytes));
+    RecordProperty("case1354pegase_highs_iterations",
+                   std::to_string(optimizer->lastSolveResult().iterationCount));
+}
+
+TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase2383wp)
+{
+    const auto loadStart = std::chrono::steady_clock::now();
+    auto gds = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath = makeValidationCasePath("case2383wp.m");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds.get(), filePath.string());
+    const auto loadStop = std::chrono::steady_clock::now();
+
+    const auto mode = makeDcMode(griddyn::LinearityMode::QUADRATIC);
+    const auto setupStart = std::chrono::steady_clock::now();
+    gds->initializeOptimizationModel(mode);
+    const auto setupStop = std::chrono::steady_clock::now();
+    auto* root = gds->getOptimizationObject();
+    ASSERT_NE(root, nullptr);
+
+    auto optimizer = std::make_unique<griddyn::HighsOptimizer>(gds.get(), mode);
+    ASSERT_EQ(optimizer->allocate(root->objSize(mode), root->constraintSize(mode)),
+              FUNCTION_EXECUTION_SUCCESS);
+    optimizer->setMaxNonZeros(root->objSize(mode) * root->constraintSize(mode));
+    optimizer->initialize(0.0);
+
+    const auto solveStart = std::chrono::steady_clock::now();
+    double returnTime = -1.0;
+    ASSERT_EQ(optimizer->solve(0.0, returnTime), FUNCTION_EXECUTION_SUCCESS)
+        << optimizer->lastSolveResult().message;
+    const auto solveStop = std::chrono::steady_clock::now();
+
+    ASSERT_EQ(optimizer->lastSolveResult().status, griddyn::NativeSolveStatus::OPTIMAL)
+        << optimizer->lastSolveResult().message;
+    EXPECT_EQ(returnTime, 0.0);
+    EXPECT_TRUE(optimizer->problem().valid);
+    EXPECT_GT(optimizer->problem().variableCount, 2000U);
+    EXPECT_GT(optimizer->problem().constraintCount, 2000U);
+    EXPECT_GT(optimizer->problem().constraintMatrix.size(), 0U);
+    expectFinite(optimizer->problem().constraintMatrix);
+    expectFinite(optimizer->values);
+    EXPECT_TRUE(std::isfinite(optimizer->lastSolveResult().objectiveValue));
+    EXPECT_LE(optimizer->lastSolveResult().maximumConstraintViolation, 1e-7);
+    EXPECT_LE(optimizer->lastSolveResult().maximumBoundViolation, 1e-7);
+    EXPECT_EQ(optimizer->get("solution_valid"), 1.0);
+
+    const auto milliseconds = [](auto duration) {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    };
+    RecordProperty("case2383wp_load_ms", std::to_string(milliseconds(loadStop - loadStart)));
+    RecordProperty("case2383wp_setup_ms", std::to_string(milliseconds(setupStop - setupStart)));
+    RecordProperty("case2383wp_solve_ms", std::to_string(milliseconds(solveStop - solveStart)));
+    RecordProperty("case2383wp_variables", std::to_string(optimizer->problem().variableCount));
+    RecordProperty("case2383wp_constraints", std::to_string(optimizer->problem().constraintCount));
+    RecordProperty("case2383wp_jacobian_nnz",
+                   std::to_string(optimizer->problem().constraintMatrix.size()));
+    const auto sparseMatrixBytes =
+        (optimizer->problem().constraintMatrix.rowStarts.capacity() * sizeof(std::size_t)) +
+        (optimizer->problem().constraintMatrix.columnIndices.capacity() * sizeof(std::size_t)) +
+        (optimizer->problem().constraintMatrix.values.capacity() * sizeof(double));
+    RecordProperty("case2383wp_sparse_matrix_bytes", std::to_string(sparseMatrixBytes));
+    RecordProperty("case2383wp_highs_iterations",
+                   std::to_string(optimizer->lastSolveResult().iterationCount));
+}
+
+TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase6468rte)
+{
+    const auto loadStart = std::chrono::steady_clock::now();
+    auto gds = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath = makeValidationCasePath("case6468rte.m");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds.get(), filePath.string());
+    const auto loadStop = std::chrono::steady_clock::now();
+
+    const auto mode = makeDcMode(griddyn::LinearityMode::QUADRATIC);
+    const auto setupStart = std::chrono::steady_clock::now();
+    gds->initializeOptimizationModel(mode);
+    const auto setupStop = std::chrono::steady_clock::now();
+    auto* root = gds->getOptimizationObject();
+    ASSERT_NE(root, nullptr);
+
+    auto optimizer = std::make_unique<griddyn::HighsOptimizer>(gds.get(), mode);
+    ASSERT_EQ(optimizer->allocate(root->objSize(mode), root->constraintSize(mode)),
+              FUNCTION_EXECUTION_SUCCESS);
+    optimizer->setMaxNonZeros(root->objSize(mode) * root->constraintSize(mode));
+    optimizer->initialize(0.0);
+
+    const auto solveStart = std::chrono::steady_clock::now();
+    double returnTime = -1.0;
+    ASSERT_EQ(optimizer->solve(0.0, returnTime), FUNCTION_EXECUTION_SUCCESS)
+        << optimizer->lastSolveResult().message;
+    const auto solveStop = std::chrono::steady_clock::now();
+
+    ASSERT_EQ(optimizer->lastSolveResult().status, griddyn::NativeSolveStatus::OPTIMAL)
+        << optimizer->lastSolveResult().message;
+    EXPECT_EQ(returnTime, 0.0);
+    EXPECT_TRUE(optimizer->problem().valid);
+    EXPECT_EQ(optimizer->problem().variableCount, 6867U);
+    EXPECT_EQ(optimizer->problem().constraintCount, 8782U);
+    EXPECT_EQ(optimizer->problem().constraintMatrix.size(), 27624U);
+    expectFinite(optimizer->problem().constraintMatrix);
+    expectFinite(optimizer->values);
+    EXPECT_TRUE(std::isfinite(optimizer->lastSolveResult().objectiveValue));
+    EXPECT_LE(optimizer->lastSolveResult().maximumConstraintViolation, 1e-7);
+    EXPECT_LE(optimizer->lastSolveResult().maximumBoundViolation, 1e-7);
+    EXPECT_EQ(optimizer->get("solution_valid"), 1.0);
+
+    const auto milliseconds = [](auto duration) {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    };
+    RecordProperty("case6468rte_load_ms", std::to_string(milliseconds(loadStop - loadStart)));
+    RecordProperty("case6468rte_setup_ms", std::to_string(milliseconds(setupStop - setupStart)));
+    RecordProperty("case6468rte_solve_ms", std::to_string(milliseconds(solveStop - solveStart)));
+    RecordProperty("case6468rte_variables", std::to_string(optimizer->problem().variableCount));
+    RecordProperty("case6468rte_constraints", std::to_string(optimizer->problem().constraintCount));
+    RecordProperty("case6468rte_jacobian_nnz",
+                   std::to_string(optimizer->problem().constraintMatrix.size()));
+    const auto sparseMatrixBytes =
+        (optimizer->problem().constraintMatrix.rowStarts.capacity() * sizeof(std::size_t)) +
+        (optimizer->problem().constraintMatrix.columnIndices.capacity() * sizeof(std::size_t)) +
+        (optimizer->problem().constraintMatrix.values.capacity() * sizeof(double));
+    RecordProperty("case6468rte_sparse_matrix_bytes", std::to_string(sparseMatrixBytes));
+    RecordProperty("case6468rte_highs_iterations",
+                   std::to_string(optimizer->lastSolveResult().iterationCount));
+}
+
+TEST(OptimizationDcFormulationTests, HighsOptimizerSolvesCase13659Pegase)
+{
+    const auto loadStart = std::chrono::steady_clock::now();
+    auto gds = std::make_unique<griddyn::GridDynOptimization>();
+    const auto filePath = makeValidationCasePath("case13659pegase.m");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds.get(), filePath.string());
+    const auto loadStop = std::chrono::steady_clock::now();
+
+    const auto mode = makeDcMode(griddyn::LinearityMode::QUADRATIC);
+    const auto setupStart = std::chrono::steady_clock::now();
+    gds->initializeOptimizationModel(mode);
+    const auto setupStop = std::chrono::steady_clock::now();
+    auto* root = gds->getOptimizationObject();
+    ASSERT_NE(root, nullptr);
+
+    griddyn::HighsOptimizer optimizer(gds.get(), mode);
+    ASSERT_EQ(optimizer.allocate(root->objSize(mode), root->constraintSize(mode)),
+              FUNCTION_EXECUTION_SUCCESS);
+    optimizer.initialize(0.0);
+
+    const auto solveStart = std::chrono::steady_clock::now();
+    double returnTime = -1.0;
+    ASSERT_EQ(optimizer.solve(0.0, returnTime), FUNCTION_EXECUTION_SUCCESS)
+        << optimizer.lastSolveResult().message;
+    const auto solveStop = std::chrono::steady_clock::now();
+
+    ASSERT_EQ(optimizer.lastSolveResult().status, griddyn::NativeSolveStatus::OPTIMAL)
+        << optimizer.lastSolveResult().message;
+    EXPECT_EQ(returnTime, 0.0);
+    EXPECT_TRUE(optimizer.problem().valid);
+    EXPECT_GT(optimizer.problem().variableCount, 13000U);
+    EXPECT_GT(optimizer.problem().constraintCount, 13000U);
+    EXPECT_GT(optimizer.problem().constraintMatrix.size(), 0U);
+    expectFinite(optimizer.problem().constraintMatrix);
+    expectFinite(optimizer.values);
+    EXPECT_TRUE(std::isfinite(optimizer.lastSolveResult().objectiveValue));
+    EXPECT_LE(optimizer.lastSolveResult().maximumConstraintViolation, 1e-6);
+    EXPECT_LE(optimizer.lastSolveResult().maximumBoundViolation, 1e-6);
+    EXPECT_EQ(optimizer.get("solution_valid"), 1.0);
+
+    const auto milliseconds = [](auto duration) {
+        return std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    };
+    RecordProperty("case13659pegase_load_ms", std::to_string(milliseconds(loadStop - loadStart)));
+    RecordProperty("case13659pegase_setup_ms",
+                   std::to_string(milliseconds(setupStop - setupStart)));
+    RecordProperty("case13659pegase_solve_ms",
+                   std::to_string(milliseconds(solveStop - solveStart)));
+    RecordProperty("case13659pegase_variables", std::to_string(optimizer.problem().variableCount));
+    RecordProperty("case13659pegase_constraints",
+                   std::to_string(optimizer.problem().constraintCount));
+    RecordProperty("case13659pegase_jacobian_nnz",
+                   std::to_string(optimizer.problem().constraintMatrix.size()));
+    RecordProperty("case13659pegase_highs_iterations",
+                   std::to_string(optimizer.lastSolveResult().iterationCount));
+}
+
+#endif
+
 TEST(OptimizationDcFormulationTests, NativeOptimizerSolvesCase9AgainstPypowerReference)
 {
     auto gds = std::make_unique<griddyn::GridDynOptimization>();
@@ -2333,9 +2869,7 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerSolvesCaseIllinois200AsScale
     EXPECT_TRUE(optimizer->problem().valid);
     EXPECT_GT(optimizer->problem().variableCount, 200U);
     EXPECT_GT(optimizer->problem().constraintCount, 200U);
-    EXPECT_TRUE(std::all_of(optimizer->problem().constraintMatrix.begin(),
-                            optimizer->problem().constraintMatrix.end(),
-                            [](double value) { return std::isfinite(value); }));
+    expectFinite(optimizer->problem().constraintMatrix);
     EXPECT_LE(optimizer->lastSolveResult().maximumConstraintViolation, 1e-6);
     EXPECT_LE(optimizer->lastSolveResult().maximumBoundViolation, 1e-6);
     EXPECT_EQ(optimizer->get("solution_valid"), 1.0);
@@ -2352,9 +2886,11 @@ TEST(OptimizationDcFormulationTests, NativeOptimizerSolvesCaseIllinois200AsScale
                    std::to_string(optimizer->problem().variableCount));
     RecordProperty("case_illinois200_constraints",
                    std::to_string(optimizer->problem().constraintCount));
-    RecordProperty("case_illinois200_dense_matrix_bytes",
-                   std::to_string(optimizer->problem().constraintMatrix.capacity() *
-                                  sizeof(double)));
+    const auto sparseMatrixBytes =
+        (optimizer->problem().constraintMatrix.rowStarts.capacity() * sizeof(std::size_t)) +
+        (optimizer->problem().constraintMatrix.columnIndices.capacity() * sizeof(std::size_t)) +
+        (optimizer->problem().constraintMatrix.values.capacity() * sizeof(double));
+    RecordProperty("case_illinois200_sparse_matrix_bytes", std::to_string(sparseMatrixBytes));
     RecordProperty("case_illinois200_iterations",
                    std::to_string(optimizer->lastSolveResult().iterationCount));
     RecordProperty("case_illinois200_active_set_size",

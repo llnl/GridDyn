@@ -322,7 +322,11 @@ COST                    5 parameters defining total cost function f(p) begin in 
                 generatorOpt = genOptList[generatorIndex - gencount - 1];
             } else {
                 obj = parentObject->findByUserID("gen", generatorIndex);
-                if (obj == nullptr) {
+                // MATPOWER includes cost rows for offline generators.  Keep
+                // the row alignment but do not create an optimization adapter
+                // for a generator that cannot participate in dispatch.
+                if ((obj == nullptr) || !obj->isEnabled()) {
+                    ++generatorIndex;
                     continue;
                 }
                 generatorOpt = genOptFactory->makeTypeObject(obj);

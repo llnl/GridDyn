@@ -38,3 +38,6 @@
 [submodule "ThirdParty/yaml-cpp"]
 	path = ThirdParty/yaml-cpp
 	url = https://github.com/jbeder/yaml-cpp.git
+[submodule "ThirdParty/highs"]
+	path = ThirdParty/highs
+	url = https://github.com/ERGO-Code/HiGHS.git

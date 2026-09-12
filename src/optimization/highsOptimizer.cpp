@@ -226,10 +226,10 @@ namespace {
         }
 
         for (std::size_t row = 0; row < problem.constraintCount; ++row) {
-            linearProgram.row_lower_[row] = scaleFiniteValue(
-                problem.solverConstraintLowerBound(row), scaling.mRowScale[row]);
-            linearProgram.row_upper_[row] = scaleFiniteValue(
-                problem.solverConstraintUpperBound(row), scaling.mRowScale[row]);
+            linearProgram.row_lower_[row] =
+                scaleFiniteValue(problem.solverConstraintLowerBound(row), scaling.mRowScale[row]);
+            linearProgram.row_upper_[row] =
+                scaleFiniteValue(problem.solverConstraintUpperBound(row), scaling.mRowScale[row]);
         }
 
         bool hasQuadraticTerm = false;

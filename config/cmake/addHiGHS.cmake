@@ -47,12 +47,6 @@ set(HIGHS_COVERAGE OFF)
 
 add_subdirectory("${highs_SOURCE_DIR}" "${highs_BINARY_DIR}")
 
-# HiGHS advertises position-independent code as a consumer requirement. Set GridDyn's default
-# before the GridDyn targets that consume the optimization library are created, so CMake assigns
-# compatible PIC properties to those targets instead of rejecting the transitive HiGHS dependency
-# during generation.
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
 # HiGHS is configured in the parent directory scope, so restore the GridDyn testing option before
 # the remaining project subdirectories are processed.
 set(BUILD_TESTING "${_griddyn_build_testing}")
@@ -63,11 +57,11 @@ if(NOT TARGET highs::highs)
 endif()
 
 # HiGHS compiles its library with position-independent code, but its CMake integration also exports
-# POSITION_INDEPENDENT_CODE=ON as an interface requirement. GridDyn intentionally mixes PIC and
-# non-PIC targets, so propagating that requirement makes otherwise valid consumers fail during CMake
-# generation. HiGHS itself retains POSITION_INDEPENDENT_CODE=ON; only remove the unnecessary
-# consumer-side requirement.
-set_property(TARGET highs PROPERTY INTERFACE_POSITION_INDEPENDENT_CODE "")
+# POSITION_INDEPENDENT_CODE=ON as an interface requirement. A PIC static library can be linked by
+# both PIC and non-PIC consumers, so the requirement is unnecessarily restrictive for GridDyn.
+# Supplying no value unsets the property; setting it to an empty string would instead impose a false
+# requirement and conflict with GridDyn's shared-library and Python targets.
+set_property(TARGET highs PROPERTY INTERFACE_POSITION_INDEPENDENT_CODE)
 
 add_library(griddyn_highs INTERFACE)
 target_link_libraries(griddyn_highs INTERFACE highs::highs highs_extras)

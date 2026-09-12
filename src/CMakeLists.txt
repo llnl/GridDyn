@@ -92,9 +92,6 @@ endif(GRIDDYN_ENABLE_HELICS_EXECUTABLE)
 if(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY)
     add_subdirectory(optimization)
     target_link_libraries(griddyn_optional INTERFACE optimization)
-    if(GRIDDYN_ENABLE_HIGHS)
-        target_link_libraries(griddyn_optional INTERFACE GridDyn::highs)
-    endif()
 endif(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY)
 
 # ------------------------------------------------------------

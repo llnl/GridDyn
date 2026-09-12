@@ -47,6 +47,12 @@ set(HIGHS_COVERAGE OFF)
 
 add_subdirectory("${highs_SOURCE_DIR}" "${highs_BINARY_DIR}")
 
+# HiGHS advertises position-independent code as a consumer requirement. Set GridDyn's default
+# before the GridDyn targets that consume the optimization library are created, so CMake assigns
+# compatible PIC properties to those targets instead of rejecting the transitive HiGHS dependency
+# during generation.
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # HiGHS is configured in the parent directory scope, so restore the GridDyn testing option before
 # the remaining project subdirectories are processed.
 set(BUILD_TESTING "${_griddyn_build_testing}")

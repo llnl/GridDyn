@@ -216,9 +216,6 @@ if(GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY)
                     "GRIDDYN_ENABLE_HIGHS is ON, but the GridDyn HiGHS solver target was not created."
             )
         endif()
-        # Keep the solver libraries on the final executable link line as well as on the optimization
-        # target: optimization is a static library.
-        target_link_libraries(OptimizationTests PRIVATE GridDyn::highs)
     endif()
 endif()
 add_gtest(LibraryTests)

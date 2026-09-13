@@ -242,9 +242,24 @@ namespace {
                 }
                 load->set("yq", -busData[5], MVAR);
             }
-            bus->setVoltageAngle(busData[7], convert(busData[8], deg, rad));
-            bus->set("vmax", busData[11]);
-            bus->set("vmin", busData[12]);
+            // Keep the bus record's voltage and angle as the initial operating
+            // point and local target.  This is the convention used by the
+            // RAW and EPC readers; generator VG is a generator setpoint and
+            // must not overwrite the bus operating point while generators are
+            // loaded.
+            if (busData[8] != 0.0) {
+                bus->set("angle", convert(busData[8], deg, rad));
+            }
+            if (busData[7] != 0.0) {
+                bus->set("vtarget", busData[7]);
+                bus->set("voltage", busData[7]);
+            }
+            if (busData[11] != 0.0) {
+                bus->set("vmax", busData[11]);
+            }
+            if (busData[12] != 0.0) {
+                bus->set("vmin", busData[12]);
+            }
         }
     }
     /*
@@ -311,16 +326,6 @@ namespace {
             }
             if (genLine[7] <= 0.0) {
                 gen->disable();
-                if (genLine[5] != 1.0) {
-                    if (!bri.checkFlag(NO_GENERATOR_BUS_VOLTAGE_RESET)) {
-                        bus->set("vtarget", genLine[5]);
-                    }
-                }
-            } else {
-                if (!bri.checkFlag(NO_GENERATOR_BUS_VOLTAGE_RESET)) {
-                    bus->set("vtarget", genLine[5]);
-                    // bus->set("voltage", genLine[5]);
-                }
             }
 
             // MATPOWER/PYPOWER PMAX and PMIN are optimization limits, and
@@ -510,8 +515,12 @@ COST                    5 parameters defining total cost function f(p) begin in 
                 lnk->disconnect();
             }
             if (linkData.size() >= 13) {
-                lnk->set("minangle", linkData[11], deg);
-                lnk->set("maxangle", linkData[12], deg);
+                // MATPOWER uses an all-zero pair for an unconstrained angle
+                // limit.  Preserve a one-sided zero as an actual bound.
+                if ((linkData[11] != 0.0) || (linkData[12] != 0.0)) {
+                    lnk->set("minangle", linkData[11], deg);
+                    lnk->set("maxangle", linkData[12], deg);
+                }
             }
         }
     }

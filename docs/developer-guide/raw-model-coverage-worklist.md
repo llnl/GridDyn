@@ -117,6 +117,36 @@ extra ratings, magnetizing data, correction-table details, and unsupported
 control modes. Do not add fields solely to retain metadata that does not affect
 the selected simulation mode.
 
+The current three-winding RAW path intentionally targets a fixed steady-state
+equivalent: one generated star bus and three `AcLine` legs. It imports the
+terminal buses and circuit ID, `CW`/`CZ`, `CM=1` magnetizing `MAG1`/`MAG2`,
+transformer status, the pairwise `R/X/SBASE` values, `VMSTAR`/`ANSTAR`, each
+winding's fixed `WINDV`/`ANG` values, and the first three winding ratings. A
+shared missing winding `CONT` bus is retained as an alias for the generated
+star bus so later RAW records, such as switched shunts, can resolve it. This
+alias does not enable transformer regulation.
+
+The following three-winding fields are currently ignored or reduced in
+meaning:
+
+- Nonzero `COD`/`CONT` control modes remain fixed at their supplied starting
+  taps; `RMA`/`RMI`, `VMA`/`VMI`, and `NTP` are not applied.
+- RAW v35 rates beyond the first three (`RATE4` through `RATE12`) are not
+  represented by the current `AcLine` rating interface.
+- `CR`/`CX` and the v35 `NOD` field are not interpreted.
+- Only the primary winding's impedance-correction table reference is applied.
+- `CM=2` magnetizing-loss data is not converted; the reader warns instead.
+- `NMETR`, the transformer `NAME`, and owner participation fields
+  (`O1`/`F1` through `O4`/`F4`) are discarded because there is no corresponding
+  GridDyn electrical or ownership model.
+
+These limitations are acceptable for the present fixed-equivalent import and
+should remain separate from the auxiliary-bus aliasing change. Future full
+integration should decide whether to construct `ThreeWindingTransformer`
+directly or extend the generated-leg representation with coordinated control,
+then add fixtures for active `COD` modes, winding limits/steps, all v35 rating
+fields, `CM=2`, and uncommon status/voltage-base combinations.
+
 ## Areas and metadata
 
 ### RAW-010: Complete area semantics

@@ -291,6 +291,43 @@ static void rawReadThreeWindingTransformer(CoreObject* parentObject,
                              units::convert(numeric_conversion<double>(impedance[10], 0.0),
                                             deg,
                                             units::rad));
+
+    // Some exporters expand a three-winding transformer into three branches
+    // around an explicit 1 kV star bus in other formats.  In RAW, that bus is
+    // implicit, but the same identifier can still appear in the winding
+    // control-bus fields and in records such as switched shunts.  Preserve
+    // that association only when all three windings agree, have no active
+    // control mode, and the identifier is not an explicit RAW bus.
+    const size_t windingControlCodeIndex = (opt.version >= 35) ? 15U : 6U;
+    const size_t windingControlBusIndex = (opt.version >= 35) ? 16U : 7U;
+    int starBusNumber = 0;
+    if ((windings[0].size() > windingControlBusIndex) &&
+        (windings[1].size() > windingControlBusIndex) &&
+        (windings[2].size() > windingControlBusIndex)) {
+        const int candidate = numeric_conversion<int>(windings[0][windingControlBusIndex], 0);
+        const bool sameControlBus =
+            (candidate > 0) &&
+            (candidate == numeric_conversion<int>(windings[1][windingControlBusIndex], 0)) &&
+            (candidate == numeric_conversion<int>(windings[2][windingControlBusIndex], 0));
+        const bool noActiveControl =
+            (numeric_conversion<int>(windings[0][windingControlCodeIndex], 0) == 0) &&
+            (numeric_conversion<int>(windings[1][windingControlCodeIndex], 0) == 0) &&
+            (numeric_conversion<int>(windings[2][windingControlCodeIndex], 0) == 0);
+        const bool isImplicitBus =
+            sameControlBus && noActiveControl &&
+            (std::cmp_greater_equal(static_cast<size_t>(candidate), busList.size()) ||
+             (busList[candidate] == nullptr));
+        if (isImplicitBus) {
+            starBusNumber = candidate;
+        }
+    }
+    if (starBusNumber > 0) {
+        if (std::cmp_greater_equal(static_cast<size_t>(starBusNumber), busList.size())) {
+            busList.resize(static_cast<size_t>(starBusNumber) + 1, nullptr);
+        }
+        starBus->setUserID(starBusNumber);
+        busList[starBusNumber] = starBus;
+    }
     addToParentWithRename(starBus, parentObject);
 
     // PSS/E stores the three pairwise leakage impedances.  Convert their
@@ -1200,9 +1237,13 @@ static int rawReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& op
         voltageAngle = numeric_conversion<double>(strvec[8], 0.0);
         if (strvec.size() > 10) {
             baseVoltage = numeric_conversion<double>(strvec[9], 0.0);
-            bus->set("vmax", baseVoltage);
+            if (baseVoltage != 0.0) {
+                bus->set("vmax", baseVoltage);
+            }
             baseVoltage = numeric_conversion<double>(strvec[10], 0.0);
-            bus->set("vmin", baseVoltage);
+            if (baseVoltage != 0.0) {
+                bus->set("vmin", baseVoltage);
+            }
         }
     } else {
         area = numeric_conversion<int>(strvec[6], 0);

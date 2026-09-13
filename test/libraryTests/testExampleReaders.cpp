@@ -8,8 +8,10 @@
 #include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/Link.h"
+#include "griddyn/links/AcLine.h"
 #include <array>
 #include <filesystem>
+#include <fstream>
 #include <gtest/gtest.h>
 #include <memory>
 #include <string>
@@ -171,6 +173,53 @@ TEST(ExampleReaderTests, LoadMatPowerAreaDefinitions)
         EXPECT_EQ(area->getInt("buscount"), expectedBusCounts[ii]);
     }
     EXPECT_EQ(gds->getInt("buscount"), 0);
+}
+
+TEST(ExampleReaderTests, MatPowerPreservesBusVoltageAndUnconstrainedAngles)
+{
+    const auto filePath = std::filesystem::temp_directory_path() /
+        "griddyn_matpower_voltage_angle_limits.m";
+    {
+        std::ofstream output(filePath);
+        ASSERT_TRUE(output.is_open());
+        output << "function mpc = griddyn_matpower_voltage_angle_limits\n"
+                  "mpc.version = '2';\n"
+                  "mpc.baseMVA = 100;\n"
+                  "mpc.bus = [\n"
+                  "1 2 0 0 0 0 1 1.0000 0.0000 230 1 1.1000 0.9000;\n"
+                  "2 1 10 2 0 0 1 0.9800 -1.0000 230 1 1.1000 0.9000;\n"
+                  "];\n"
+                  "mpc.gen = [\n"
+                  "1 10 3 50 -20 1.0500 100 1 50 0;\n"
+                  "];\n"
+                  "mpc.branch = [\n"
+                  "1 2 0.01 0.05 0.01 100 100 100 0 0 1 0 0;\n"
+                  "1 2 0.02 0.06 0.01 100 100 100 0 0 1 -30 0;\n"
+                  "];\n";
+    }
+
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(gds, filePath.string());
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    EXPECT_DOUBLE_EQ(bus->getVoltage(), 1.0);
+    EXPECT_DOUBLE_EQ(bus->get("vtarget"), 1.0);
+    EXPECT_DOUBLE_EQ(bus->get("vmax"), 1.1);
+    EXPECT_DOUBLE_EQ(bus->get("vmin"), 0.9);
+
+    auto* link = dynamic_cast<griddyn::AcLine*>(gds->findByUserID("link", 1));
+    ASSERT_NE(link, nullptr);
+    EXPECT_DOUBLE_EQ(link->get("minangle"), -griddyn::kPI / 2.0);
+    EXPECT_DOUBLE_EQ(link->get("maxangle"), griddyn::kPI / 2.0);
+
+    auto* oneSidedLink = dynamic_cast<griddyn::AcLine*>(gds->findByUserID("link", 2));
+    ASSERT_NE(oneSidedLink, nullptr);
+    EXPECT_NEAR(oneSidedLink->get("minangle"), -30.0 * griddyn::kPI / 180.0, 1.0e-6);
+    EXPECT_NEAR(oneSidedLink->get("maxangle"), 0.0, 1.0e-12);
+
+    std::error_code ec;
+    std::filesystem::remove(filePath, ec);
 }
 
 TEST(ExampleReaderTests, LoadDynamicImportExampleWithoutRunningDynamics)

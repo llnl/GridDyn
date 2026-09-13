@@ -6,8 +6,10 @@
 
 #include "../gtestHelper.h"
 #include "fileInput/readerHelper.h"
+#include "griddyn/GridBus.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/links/AdjustableTransformer.h"
+#include "griddyn/loads/Svd.h"
 #include "units/units.hpp"
 #include <array>
 #include <cmath>
@@ -106,6 +108,12 @@ namespace {
             ASSERT_NE(leg->getBus(2), nullptr);
             EXPECT_EQ(leg->getBus(2), gds->getBus(3));
         }
+
+        const auto* starBus = gds->getBus(3);
+        ASSERT_NE(starBus, nullptr);
+        EXPECT_EQ(starBus->getUserID(), 4);
+        ASSERT_EQ(starBus->getInt("loadcount"), 1);
+        EXPECT_NE(dynamic_cast<const loads::Svd*>(starBus->getLoad()), nullptr);
     }
 }  // namespace
 }  // namespace griddyn

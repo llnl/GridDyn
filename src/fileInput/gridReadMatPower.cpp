@@ -516,8 +516,14 @@ COST                    5 parameters defining total cost function f(p) begin in 
             }
             if (linkData.size() >= 13) {
                 // MATPOWER uses an all-zero pair for an unconstrained angle
-                // limit.  Preserve a one-sided zero as an actual bound.
-                if ((linkData[11] != 0.0) || (linkData[12] != 0.0)) {
+                // limit.  Preserve a one-sided zero as an actual bound and
+                // use MATPOWER's explicit unbounded sentinel in GridDyn so
+                // optimization does not mistake the AcLine default for an
+                // imported constraint.
+                if ((linkData[11] == 0.0) && (linkData[12] == 0.0)) {
+                    lnk->set("minangle", -360.0, deg);
+                    lnk->set("maxangle", 360.0, deg);
+                } else {
                     lnk->set("minangle", linkData[11], deg);
                     lnk->set("maxangle", linkData[12], deg);
                 }

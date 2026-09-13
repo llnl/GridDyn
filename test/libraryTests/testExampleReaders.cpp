@@ -210,8 +210,8 @@ TEST(ExampleReaderTests, MatPowerPreservesBusVoltageAndUnconstrainedAngles)
 
     auto* link = dynamic_cast<griddyn::AcLine*>(gds->findByUserID("link", 1));
     ASSERT_NE(link, nullptr);
-    EXPECT_DOUBLE_EQ(link->get("minangle"), -griddyn::kPI / 2.0);
-    EXPECT_DOUBLE_EQ(link->get("maxangle"), griddyn::kPI / 2.0);
+    EXPECT_NEAR(link->get("minangle"), -2.0 * griddyn::kPI, 1.0e-6);
+    EXPECT_NEAR(link->get("maxangle"), 2.0 * griddyn::kPI, 1.0e-6);
 
     auto* oneSidedLink = dynamic_cast<griddyn::AcLine*>(gds->findByUserID("link", 2));
     ASSERT_NE(oneSidedLink, nullptr);

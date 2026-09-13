@@ -210,8 +210,7 @@ TEST(ExampleReaderTests, MatPowerVoltageTargetPolicies)
     griddyn::addFlags(readerInfo, "use_bus_voltage_targets");
     auto busTargetGds = std::make_unique<griddyn::GridDynSimulation>();
     griddyn::loadFile(busTargetGds, filePath.string(), &readerInfo);
-    auto* busTargetBus =
-        dynamic_cast<griddyn::GridBus*>(busTargetGds->findByUserID("bus", 1));
+    auto* busTargetBus = dynamic_cast<griddyn::GridBus*>(busTargetGds->findByUserID("bus", 1));
     ASSERT_NE(busTargetBus, nullptr);
     EXPECT_DOUBLE_EQ(busTargetBus->getVoltage(), 1.0);
     EXPECT_DOUBLE_EQ(busTargetBus->get("vtarget"), 1.0);
@@ -232,8 +231,8 @@ TEST(ExampleReaderTests, MatPowerVoltageTargetPolicies)
 
 TEST(ExampleReaderTests, PyPowerVoltageTargetPolicies)
 {
-    const auto filePath = std::filesystem::temp_directory_path() /
-        "griddyn_pypower_voltage_angle_limits.py";
+    const auto filePath =
+        std::filesystem::temp_directory_path() / "griddyn_pypower_voltage_angle_limits.py";
     {
         std::ofstream output(filePath);
         ASSERT_TRUE(output.is_open());
@@ -267,8 +266,7 @@ TEST(ExampleReaderTests, PyPowerVoltageTargetPolicies)
     griddyn::addFlags(readerInfo, "use_bus_voltage_targets");
     auto busTargetGds = std::make_unique<griddyn::GridDynSimulation>();
     griddyn::loadFile(busTargetGds, filePath.string(), &readerInfo);
-    auto* busTargetBus =
-        dynamic_cast<griddyn::GridBus*>(busTargetGds->findByUserID("bus", 1));
+    auto* busTargetBus = dynamic_cast<griddyn::GridBus*>(busTargetGds->findByUserID("bus", 1));
     ASSERT_NE(busTargetBus, nullptr);
     EXPECT_DOUBLE_EQ(busTargetBus->getVoltage(), 1.0);
     EXPECT_DOUBLE_EQ(busTargetBus->get("vtarget"), 1.0);

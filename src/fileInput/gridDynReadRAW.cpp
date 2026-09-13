@@ -305,16 +305,14 @@ static void rawReadThreeWindingTransformer(CoreObject* parentObject,
         (windings[1].size() > windingControlBusIndex) &&
         (windings[2].size() > windingControlBusIndex)) {
         const int candidate = numeric_conversion<int>(windings[0][windingControlBusIndex], 0);
-        const bool sameControlBus =
-            (candidate > 0) &&
+        const bool sameControlBus = (candidate > 0) &&
             (candidate == numeric_conversion<int>(windings[1][windingControlBusIndex], 0)) &&
             (candidate == numeric_conversion<int>(windings[2][windingControlBusIndex], 0));
         const bool noActiveControl =
             (numeric_conversion<int>(windings[0][windingControlCodeIndex], 0) == 0) &&
             (numeric_conversion<int>(windings[1][windingControlCodeIndex], 0) == 0) &&
             (numeric_conversion<int>(windings[2][windingControlCodeIndex], 0) == 0);
-        const bool isImplicitBus =
-            sameControlBus && noActiveControl &&
+        const bool isImplicitBus = sameControlBus && noActiveControl &&
             (std::cmp_greater_equal(static_cast<size_t>(candidate), busList.size()) ||
              (busList[candidate] == nullptr));
         if (isImplicitBus) {

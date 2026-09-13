@@ -1565,8 +1565,7 @@ void GridComponent::getStateName(stringVec& stNames,
                 stNames[solverOffsetsValue.vOffset + kk] = prefix2 + stateNames[stateNameIndex];
                 ++stateNameIndex;
             } else {
-                stNames[solverOffsetsValue.vOffset + kk] =
-                    makeStateName("voltage_state", kk);
+                stNames[solverOffsetsValue.vOffset + kk] = makeStateName("voltage_state", kk);
             }
         }
         stateNameIndex = offsets.local().local.vSize;
@@ -1578,8 +1577,7 @@ void GridComponent::getStateName(stringVec& stNames,
                 stNames[solverOffsetsValue.aOffset + kk] = prefix2 + stateNames[stateNameIndex];
                 ++stateNameIndex;
             } else {
-                stNames[solverOffsetsValue.aOffset + kk] =
-                    makeStateName("angle_state", kk);
+                stNames[solverOffsetsValue.aOffset + kk] = makeStateName("angle_state", kk);
             }
         }
         stateNameIndex = offsets.local().local.vSize + offsets.local().local.aSize;
@@ -1591,8 +1589,7 @@ void GridComponent::getStateName(stringVec& stNames,
                 stNames[solverOffsetsValue.algOffset + kk] = prefix2 + stateNames[stateNameIndex];
                 ++stateNameIndex;
             } else {
-                stNames[solverOffsetsValue.algOffset + kk] =
-                    makeStateName("alg_state", kk);
+                stNames[solverOffsetsValue.algOffset + kk] = makeStateName("alg_state", kk);
             }
         }
     }
@@ -1609,8 +1606,7 @@ void GridComponent::getStateName(stringVec& stNames,
                         prefix2 + stateNames[stateNameIndex];
                     ++stateNameIndex;
                 } else {
-                    stNames[solverOffsetsValue.diffOffset + kk] =
-                        makeStateName("diff_state", kk);
+                    stNames[solverOffsetsValue.diffOffset + kk] = makeStateName("diff_state", kk);
                 }
             }
         }

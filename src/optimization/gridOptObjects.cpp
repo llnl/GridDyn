@@ -267,7 +267,7 @@ void GridOptObject::getObjectiveNames(stringVec& objectiveNames,
         return true;
     };
     const auto makeVariableName = [this, &prefix](std::string_view variableType,
-                                                   index_t variableIndex) {
+                                                  index_t variableIndex) {
         std::string variableName;
         if (prefix.empty()) {
             variableName = getName();

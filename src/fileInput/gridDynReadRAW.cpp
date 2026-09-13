@@ -173,10 +173,10 @@ static bool isRawAreaSectionHeader(const std::string& line)
         upperLine.contains("BEGIN AREA INTERCHANGE DATA");
 }
 
-static std::unordered_map<int, GridArea*> readRawAreaDefinitions(
-    CoreObject* parentObject,
-    const std::string& fileName,
-    const BasicReaderInfo& readerOptions)
+static std::unordered_map<int, GridArea*>
+    readRawAreaDefinitions(CoreObject* parentObject,
+                           const std::string& fileName,
+                           const BasicReaderInfo& readerOptions)
 {
     std::unordered_map<int, GridArea*> areas;
     std::ifstream file(fileName, std::ios::in);
@@ -1596,11 +1596,9 @@ static void rawReadBranch(CoreObject* parentObject,
     // shunts as b1/g1 and b2/g2.
     const size_t terminalShuntStart = (opt.version >= 35) ? 19U : 9U;
     lnk->set("g1", numeric_conversion<double>(strvec[terminalShuntStart], 0.0));
-    lnk->set("b1", (0.5 * val) +
-                       numeric_conversion<double>(strvec[terminalShuntStart + 1], 0.0));
+    lnk->set("b1", (0.5 * val) + numeric_conversion<double>(strvec[terminalShuntStart + 1], 0.0));
     lnk->set("g2", numeric_conversion<double>(strvec[terminalShuntStart + 2], 0.0));
-    lnk->set("b2", (0.5 * val) +
-                       numeric_conversion<double>(strvec[terminalShuntStart + 3], 0.0));
+    lnk->set("b2", (0.5 * val) + numeric_conversion<double>(strvec[terminalShuntStart + 3], 0.0));
     // RAW v35 inserts a branch name before RATE1 through RATE12.
     const size_t ratingStart = (opt.version >= 35) ? 7U : 6U;
     auto ratA = numeric_conversion<double>(strvec[ratingStart], 0.0);

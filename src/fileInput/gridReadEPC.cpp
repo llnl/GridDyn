@@ -322,8 +322,9 @@ namespace {
         return tables;
     }
 
-    std::unordered_map<int, GridArea*> readEpcAreaDefinitions(
-        CoreObject* parentObject, const std::string& fileName, const BasicReaderInfo& bri)
+    std::unordered_map<int, GridArea*> readEpcAreaDefinitions(CoreObject* parentObject,
+                                                              const std::string& fileName,
+                                                              const BasicReaderInfo& bri)
     {
         std::unordered_map<int, GridArea*> areas;
         std::ifstream file(fileName, std::ios::in);

@@ -930,21 +930,17 @@ void AcLine::faultCalc()
         linkFlows.P1 = 0;
         linkFlows.Q1 = 0;
     } else {
-        linkFlows.P1 = (((g / fault) + mp_G1) / (tap * tap)) * linkInfo.v1 *
-            linkInfo.v1;
+        linkFlows.P1 = (((g / fault) + mp_G1) / (tap * tap)) * linkInfo.v1 * linkInfo.v1;
 
-        linkFlows.Q1 = -(((b / fault) + mp_B1) / (tap * tap)) * linkInfo.v1 *
-            linkInfo.v1;
+        linkFlows.Q1 = -(((b / fault) + mp_B1) / (tap * tap)) * linkInfo.v1 * linkInfo.v1;
     }
     if (opFlags[SWITCH2_OPEN_FLAG]) {
         linkFlows.P2 = 0;
         linkFlows.Q2 = 0;
     } else {
-        linkFlows.P2 = ((g / (1.0 - fault)) + mp_G2) * linkInfo.v2 *
-            linkInfo.v2;
+        linkFlows.P2 = ((g / (1.0 - fault)) + mp_G2) * linkInfo.v2 * linkInfo.v2;
 
-        linkFlows.Q2 = -((b / (1.0 - fault)) + mp_B2) * linkInfo.v2 *
-            linkInfo.v2;
+        linkFlows.Q2 = -((b / (1.0 - fault)) + mp_B2) * linkInfo.v2 * linkInfo.v2;
     }
 }
 
@@ -1233,8 +1229,8 @@ void AcLine::swOpenCalc()
         linkFlows.P1 = (((g + shuntG1()) / (tap * tap)) * linkInfo.v1 * linkInfo.v1) -
             (g * voltageMagnitude) - (b * voltageMagnitude * deltaTheta);
 
-        linkFlows.Q1 = (-(b + shuntB1()) / (tap * tap) * linkInfo.v1 * linkInfo.v1) +
-            (b * voltageMagnitude);
+        linkFlows.Q1 =
+            (-(b + shuntB1()) / (tap * tap) * linkInfo.v1 * linkInfo.v1) + (b * voltageMagnitude);
     }
     if (opFlags[SWITCH2_OPEN_FLAG]) {
         linkFlows.P2 = 0;
@@ -1258,17 +1254,13 @@ void AcLine::faultDeriv()
 {
     LinkDeriv = {};
     if (!opFlags[SWITCH1_OPEN_FLAG]) {
-        LinkDeriv.dP1dv1 =
-            ((2 * ((g / fault) + mp_G1)) / (tap * tap)) * linkInfo.v1;
-        LinkDeriv.dQ1dv1 =
-            ((-2 * ((b / fault) + mp_B1)) / (tap * tap)) * linkInfo.v1;
+        LinkDeriv.dP1dv1 = ((2 * ((g / fault) + mp_G1)) / (tap * tap)) * linkInfo.v1;
+        LinkDeriv.dQ1dv1 = ((-2 * ((b / fault) + mp_B1)) / (tap * tap)) * linkInfo.v1;
     }
 
     if (!opFlags[SWITCH2_OPEN_FLAG]) {
-        LinkDeriv.dP2dv2 =
-            (2 * ((g / (1.0 - fault)) + mp_G2)) * linkInfo.v2;
-        LinkDeriv.dQ2dv2 =
-            (-2 * ((b / (1.0 - fault)) + mp_B2)) * linkInfo.v2;
+        LinkDeriv.dP2dv2 = (2 * ((g / (1.0 - fault)) + mp_G2)) * linkInfo.v2;
+        LinkDeriv.dQ2dv2 = (-2 * ((b / (1.0 - fault)) + mp_B2)) * linkInfo.v2;
     }
     LinkDeriv.seqID = linkInfo.seqID;
 }
@@ -1574,8 +1566,7 @@ void AcLine::smallAngleSimplifiedDeriv()
     // reactive power vs local states
     LinkDeriv.dQ1dt1 = 0;
     LinkDeriv.dQ2dt2 = 0;
-    LinkDeriv.dQ1dv1 =
-        ((-2 * (b + shuntB1()) / (tap * tap)) * linkInfo.v1) + (btap * linkInfo.v2);
+    LinkDeriv.dQ1dv1 = ((-2 * (b + shuntB1()) / (tap * tap)) * linkInfo.v1) + (btap * linkInfo.v2);
     LinkDeriv.dQ2dv2 = ((-2 * (b + shuntB2())) * linkInfo.v2) + (btap * linkInfo.v1);
 
     // real power vs remote states

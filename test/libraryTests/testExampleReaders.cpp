@@ -131,8 +131,7 @@ TEST(ExampleReaderTests, LoadRawAreaDefinitions)
     internalLinkCount += area->getInt("linkcount");
     EXPECT_GT(internalLinkCount, 0);
     EXPECT_GT(gds->getInt("linkcount"), 0);
-    EXPECT_EQ(internalLinkCount + gds->getInt("linkcount"),
-              gds->getInt("totallinkcount"));
+    EXPECT_EQ(internalLinkCount + gds->getInt("linkcount"), gds->getInt("totallinkcount"));
     EXPECT_EQ(gds->getInt("buscount"), 0);
 }
 
@@ -151,8 +150,7 @@ TEST(ExampleReaderTests, LoadEpcAreaDefinitions)
     EXPECT_EQ(area->getInt("buscount"), 14);
     expectInternalLinksBelongToArea(area);
     const auto internalLinkCount = area->getInt("linkcount");
-    EXPECT_EQ(internalLinkCount + gds->getInt("linkcount"),
-              gds->getInt("totallinkcount"));
+    EXPECT_EQ(internalLinkCount + gds->getInt("linkcount"), gds->getInt("totallinkcount"));
     EXPECT_EQ(gds->getInt("buscount"), 0);
 }
 

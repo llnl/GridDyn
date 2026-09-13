@@ -58,8 +58,10 @@ class AcLine: public Link {
     };
 
   protected:
-    model_parameter mp_B{0.0};  //!< [pu] per unit shunt capacitance (jb/2 on each end of the line)
-    model_parameter mp_G{0.0};  //!< [pu] per unit shunt conductance (g/2 on each end of the line)
+    model_parameter mp_B1{0.0};  //!< [pu] total shunt susceptance at terminal 1
+    model_parameter mp_G1{0.0};  //!< [pu] total shunt conductance at terminal 1
+    model_parameter mp_B2{0.0};  //!< [pu] total shunt susceptance at terminal 2
+    model_parameter mp_G2{0.0};  //!< [pu] total shunt conductance at terminal 2
     model_parameter fault{-1.0};  //!< fault location along the line keep at <0 for no fault
     double g{0.0};  //!< [pu] per unit conductance (calculated parameter)
     double b{0.0};  //!< [pu] per unit susceptance (calculated parameter)
@@ -208,6 +210,11 @@ class AcLine: public Link {
     virtual bool testAndTrip(int tripLevel) override;
 
   protected:
+    double shuntB1() const { return mp_B1; }
+    double shuntG1() const { return mp_G1; }
+    double shuntB2() const { return mp_B2; }
+    double shuntG2() const { return mp_G2; }
+
     void setAdmit();
     // virtual void basePowerComp ();
     /** @brief calculations for fault conditions

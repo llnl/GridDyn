@@ -10,6 +10,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewConversion.h"
 #include "griddyn/Generator.h"
+#include "griddyn/GridArea.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/links/AdjustableTransformer.h"
 #include "griddyn/links/DcLink.h"
@@ -53,6 +54,29 @@ using units::pu;
 using units::puMW;
 
 namespace {
+    CoreObject* getEpcLinkParent(CoreObject* parentObject, Link* link)
+    {
+        if ((link == nullptr) || (link->terminalCount() != 2)) {
+            return parentObject;
+        }
+
+        auto* bus1 = link->getBus(1);
+        auto* bus2 = link->getBus(2);
+        auto* area1 = (bus1 != nullptr) ? dynamic_cast<GridArea*>(bus1->getParent()) : nullptr;
+        auto* area2 = (bus2 != nullptr) ? dynamic_cast<GridArea*>(bus2->getParent()) : nullptr;
+        if ((area1 == nullptr) || (area1 != area2)) {
+            return parentObject;
+        }
+
+        for (auto* object = area1; object != nullptr;
+             object = dynamic_cast<GridArea*>(object->getParent())) {
+            if (object == parentObject) {
+                return area1;
+            }
+        }
+        return parentObject;
+    }
+
     using ImpedanceCorrectionTable = std::vector<std::pair<double, double>>;
     using ImpedanceCorrectionTables = std::unordered_map<int, ImpedanceCorrectionTable>;
 
@@ -79,7 +103,7 @@ namespace {
         return lower->second + (fraction * (upper->second - lower->second));
     }
 
-    void epcReadBus(GridBus* bus, string_view line, double base, const BasicReaderInfo& bri);
+    int epcReadBus(GridBus* bus, string_view line, double base, const BasicReaderInfo& bri);
     void epcReadDCBus(DcBus* bus, string_view line, double base, const BasicReaderInfo& bri);
     void epcReadLoad(ZipLoad* load, string_view line, double base);
     void epcReadFixedShunt(ZipLoad* load, string_view line, double base);
@@ -191,7 +215,7 @@ namespace {
             if (status == 0) {
                 leg->disable();
             }
-            addToParentWithRename(leg, parentObject);
+            addToParentWithRename(leg, getEpcLinkParent(parentObject, leg));
         }
     }
 
@@ -298,6 +322,69 @@ namespace {
         return tables;
     }
 
+    std::unordered_map<int, GridArea*> readEpcAreaDefinitions(
+        CoreObject* parentObject, const std::string& fileName, const BasicReaderInfo& bri)
+    {
+        std::unordered_map<int, GridArea*> areas;
+        std::ifstream file(fileName, std::ios::in);
+        std::string line;
+        while (nextLine(file, line)) {
+            const auto tokens = split(line, " \t");
+            if ((tokens.size() < 2) || (tokens[0] != "area") || (tokens[1] != "data")) {
+                continue;
+            }
+            const auto count = getSectionCount(line);
+            for (int ii = 0; ii < count; ++ii) {
+                if (!nextLine(file, line)) {
+                    break;
+                }
+                const auto fields =
+                    splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
+                if (fields.empty()) {
+                    continue;
+                }
+                const auto areaId = numeric_conversion<int>(fields[0], 0);
+                if ((areaId <= 0) || (areas.find(areaId) != areas.end())) {
+                    continue;
+                }
+
+                std::string areaName;
+                if (fields.size() > 1) {
+                    areaName = std::string{trim(removeQuotes(fields[1]))};
+                }
+                if (areaName.empty()) {
+                    areaName = "AREA_" + std::to_string(areaId);
+                }
+                if (!bri.prefix.empty()) {
+                    areaName = bri.prefix + '_' + areaName;
+                }
+                auto* area = new GridArea(areaName);
+                try {
+                    parentObject->add(area);
+                }
+                catch (const ObjectAddFailure&) {
+                    addToParentWithRename(area, parentObject);
+                }
+                areas.emplace(areaId, area);
+            }
+            break;
+        }
+        return areas;
+    }
+
+    struct EpcPreparseData {
+        ImpedanceCorrectionTables impedanceCorrectionTables;
+        std::unordered_map<int, GridArea*> areas;
+    };
+
+    EpcPreparseData preparseEpcFile(CoreObject* parentObject,
+                                    const std::string& fileName,
+                                    const BasicReaderInfo& bri)
+    {
+        return {readImpedanceCorrectionTables(fileName),
+                readEpcAreaDefinitions(parentObject, fileName, bri)};
+    }
+
     int getLineIndex(string_view line)
     {
         gmlc::utilities::string_viewOps::trimString(line);
@@ -386,7 +473,7 @@ void loadEpc(CoreObject* parentObject,
              const BasicReaderInfo& readerOptions)
 {
     const auto& bri = readerOptions;
-    const auto impedanceCorrectionTables = readImpedanceCorrectionTables(fileName);
+    const auto preparseData = preparseEpcFile(parentObject, fileName, bri);
     std::ifstream file(fileName.c_str(), std::ios::in);
 
     std::string temp1;  // temporary storage for substrings
@@ -467,12 +554,17 @@ void loadEpc(CoreObject* parentObject,
                 if (busList[index - 1] == nullptr) {
                     busList[index - 1] = new AcBus();
                     busList[index - 1]->set("basepower", base);
-                    epcReadBus(busList[index - 1], line, base, bri);
+                    const auto areaId = epcReadBus(busList[index - 1], line, base, bri);
+                    auto* busParent = parentObject;
+                    if (const auto area = preparseData.areas.find(areaId);
+                        area != preparseData.areas.end()) {
+                        busParent = area->second;
+                    }
                     try {
-                        parentObject->add(busList[index - 1]);
+                        busParent->add(busList[index - 1]);
                     }
                     catch (const ObjectAddFailure&) {
-                        addToParentWithRename(busList[index - 1], parentObject);
+                        addToParentWithRename(busList[index - 1], busParent);
                     }
                 } else {
                     std::cerr << "Invalid bus code " << index << '\n';
@@ -498,7 +590,12 @@ void loadEpc(CoreObject* parentObject,
             });
         } else if (tokens[0] == "transformer") {
             processSection(line, file, [&](string_view config) {
-                epcReadTX(parentObject, config, base, busList, bri, impedanceCorrectionTables);
+                epcReadTX(parentObject,
+                          config,
+                          base,
+                          busList,
+                          bri,
+                          preparseData.impedanceCorrectionTables);
             });
         } else if (tokens[0] == "generator") {
             processSectionObject<Generator>(
@@ -655,13 +752,13 @@ namespace {
         return val;
     }
 
-    void epcReadBus(GridBus* bus, string_view line, double /*base*/, const BasicReaderInfo& bri)
+    int epcReadBus(GridBus* bus, string_view line, double /*base*/, const BasicReaderInfo& bri)
     {
         auto strvec =
             splitlineBracket(line, " :", default_bracket_chars, delimiter_compression::on);
         if (strvec.size() < 11) {
             std::cerr << "invalid epc bus record\n";
-            return;
+            return 0;
         }
         // get the bus name
         auto temp = strvec[0];
@@ -731,7 +828,7 @@ namespace {
             bus->set("voltage", voltageMagnitude);
         }
 
-        // auto area = numeric_conversion<int>(strvec[7], 0);
+        const auto area = numeric_conversion<int>(strvec[dataOffset + 4], 0);
         auto zone = numeric_conversion<int>(strvec[dataOffset + 5], 0);
         if (zone != 0) {
             bus->set("zone", static_cast<double>(zone));
@@ -744,6 +841,7 @@ namespace {
         if (voltageMagnitude != 0) {
             bus->set("vmax", voltageMagnitude);
         }
+        return area;
     }
 
     void epcReadDCBus(DcBus* bus, string_view line, double /*base*/, const BasicReaderInfo& bri)
@@ -1198,7 +1296,7 @@ namespace {
         lnk->updateBus(bus1, 1);
         lnk->updateBus(bus2, 2);
 
-        addToParentWithRename(lnk, parentObject);
+        addToParentWithRename(lnk, getEpcLinkParent(parentObject, lnk));
         // get the branch parameters
         const int status = toIntSimple(strvec[9]);
         if (status == 0) {
@@ -1281,7 +1379,7 @@ namespace {
         lnk->updateBus(bus1, 1);
         lnk->updateBus(bus2, 2);
 
-        addToParentWithRename(lnk, parentObject);
+        addToParentWithRename(lnk, getEpcLinkParent(parentObject, lnk));
         // get the branch parameters
         const int status = toIntSimple(strvec[8]);
         if (status == 0) {
@@ -1402,7 +1500,7 @@ namespace {
             lnk->setDescription(std::string{longId});
         }
 
-        addToParentWithRename(lnk, parentObject);
+        addToParentWithRename(lnk, getEpcLinkParent(parentObject, lnk));
         // get the branch parameters
         status = toIntSimple(strvec[8]);
         if (status == 0) {

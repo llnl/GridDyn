@@ -12,6 +12,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/string_viewConversion.h"
 #include "griddyn/Generator.h"
+#include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/Link.h"
@@ -55,6 +56,34 @@ using units::MW;
 
 using ImpedanceCorrectionTable = std::vector<std::pair<double, double>>;
 using ImpedanceCorrectionTables = std::unordered_map<int, ImpedanceCorrectionTable>;
+
+struct RawPreparseData {
+    ImpedanceCorrectionTables impedanceCorrectionTables;
+    std::unordered_map<int, GridArea*> areas;
+};
+
+static CoreObject* getRawLinkParent(CoreObject* parentObject, Link* link)
+{
+    if ((link == nullptr) || (link->terminalCount() != 2)) {
+        return parentObject;
+    }
+
+    auto* bus1 = link->getBus(1);
+    auto* bus2 = link->getBus(2);
+    auto* area1 = (bus1 != nullptr) ? dynamic_cast<GridArea*>(bus1->getParent()) : nullptr;
+    auto* area2 = (bus2 != nullptr) ? dynamic_cast<GridArea*>(bus2->getParent()) : nullptr;
+    if ((area1 == nullptr) || (area1 != area2)) {
+        return parentObject;
+    }
+
+    for (auto* object = area1; object != nullptr;
+         object = dynamic_cast<GridArea*>(object->getParent())) {
+        if (object == parentObject) {
+            return area1;
+        }
+    }
+    return parentObject;
+}
 
 static double correctionFactor(const ImpedanceCorrectionTables& tables, int tableId, double tap)
 {
@@ -137,8 +166,84 @@ static ImpedanceCorrectionTables readImpedanceCorrectionTables(const std::string
     return tables;
 }
 
+static bool isRawAreaSectionHeader(const std::string& line)
+{
+    const auto upperLine = convertToUpperCase(line);
+    return upperLine.contains("BEGIN AREA DATA") ||
+        upperLine.contains("BEGIN AREA INTERCHANGE DATA");
+}
+
+static std::unordered_map<int, GridArea*> readRawAreaDefinitions(
+    CoreObject* parentObject,
+    const std::string& fileName,
+    const BasicReaderInfo& readerOptions)
+{
+    std::unordered_map<int, GridArea*> areas;
+    std::ifstream file(fileName, std::ios::in);
+    std::string line;
+    bool inAreaSection = false;
+
+    while (std::getline(file, line)) {
+        if (!inAreaSection) {
+            inAreaSection = isRawAreaSectionHeader(line);
+            continue;
+        }
+
+        trimString(line);
+        if (line.empty() || line.starts_with("@!")) {
+            continue;
+        }
+        if (line[0] == '0') {
+            break;
+        }
+
+        const auto fields = splitlineQuotes(line);
+        if (fields.empty()) {
+            continue;
+        }
+
+        const auto areaId = numeric_conversion<int>(fields[0], 0);
+        if ((areaId <= 0) || areas.contains(areaId)) {
+            continue;
+        }
+
+        std::string areaName;
+        if (fields.size() > 4) {
+            areaName = trim(removeQuotes(fields[4]));
+        }
+        if (areaName.empty()) {
+            areaName = "AREA_" + std::to_string(areaId);
+        }
+        if (!readerOptions.prefix.empty()) {
+            areaName = readerOptions.prefix + '_' + areaName;
+        }
+
+        auto* area = new GridArea(areaName);
+        try {
+            parentObject->add(area);
+        }
+        catch (const ObjectAddFailure&) {
+            addToParentWithRename(area, parentObject);
+        }
+        areas.emplace(areaId, area);
+    }
+
+    return areas;
+}
+
+static RawPreparseData preparseRawFile(CoreObject* parentObject,
+                                       const std::string& fileName,
+                                       const BasicReaderInfo& readerOptions)
+{
+    RawPreparseData preparseData;
+    preparseData.impedanceCorrectionTables =
+        readImpedanceCorrectionTables(fileName, readerOptions.version);
+    preparseData.areas = readRawAreaDefinitions(parentObject, fileName, readerOptions);
+    return preparseData;
+}
+
 static int getPSSversion(const std::string& line);
-static void rawReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& opt);
+static int rawReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& opt);
 static void rawReadLoad(GridLoad* loadObject, const std::string& line, BasicReaderInfo& opt);
 static void rawReadFixedShunt(GridLoad* loadObject, const std::string& line, BasicReaderInfo& opt);
 static void rawReadGen(Generator* gen, const std::string& line, BasicReaderInfo& opt);
@@ -286,7 +391,7 @@ static void rawReadThreeWindingTransformer(CoreObject* parentObject,
         if (windingOutOfService) {
             leg->disable();
         }
-        addToParentWithRename(leg, parentObject);
+        addToParentWithRename(leg, getRawLinkParent(parentObject, leg));
     }
     if (numeric_conversion<int>(header[6], 1) != 1) {
         std::cerr << "three-winding transformer magnetizing code is not fully supported\n";
@@ -384,7 +489,8 @@ static void readRawBusSection(CoreObject* parentObject,
                               std::ifstream& file,
                               std::string& line,
                               std::vector<GridBus*>& busList,
-                              BasicReaderInfo& opt)
+                              BasicReaderInfo& opt,
+                              const std::unordered_map<int, GridArea*>& areas)
 {
     while (checkNextLine(file, line)) {
         const auto pos = line.find_first_of(',');
@@ -402,20 +508,24 @@ static void readRawBusSection(CoreObject* parentObject,
             busList[index]->set("basepower", opt.base);
             busList[index]->setUserID(index);
 
-            rawReadBus(busList[index], line, opt);
+            const auto areaId = rawReadBus(busList[index], line, opt);
+            auto* busParent = parentObject;
+            if (const auto area = areas.find(areaId); area != areas.end()) {
+                busParent = area->second;
+            }
             auto* tobj = parentObject->find(busList[index]->getName());
             if (tobj == nullptr) {
-                parentObject->add(busList[index]);
+                busParent->add(busList[index]);
             } else {
                 const auto prevName = busList[index]->getName();
                 busList[index]->setName(prevName + '_' +
                                         std::to_string(busList[index]->getInt("basevoltage")));
                 try {
-                    parentObject->add(busList[index]);
+                    busParent->add(busList[index]);
                 }
                 catch (const ObjectAddFailure&) {
                     busList[index]->setName(prevName);
-                    addToParentWithRename(busList[index], parentObject);
+                    addToParentWithRename(busList[index], busParent);
                 }
             }
         } else {
@@ -428,7 +538,6 @@ void loadRaw(CoreObject* parentObject,
              const std::string& fileName,
              const BasicReaderInfo& readerOptions)
 {
-    ImpedanceCorrectionTables impedanceCorrectionTables;
     std::ifstream file(fileName.c_str(), std::ios::in);
     std::string line;  // line storage
     std::string temp1;  // temporary storage for substrings
@@ -502,7 +611,8 @@ void loadRaw(CoreObject* parentObject,
             readerOptionsCopy.version = getPSSversion(line);
         }
     }
-    impedanceCorrectionTables = readImpedanceCorrectionTables(fileName, opt.version);
+    const auto preparseData = preparseRawFile(parentObject, fileName, opt);
+    const auto& impedanceCorrectionTables = preparseData.impedanceCorrectionTables;
     if (std::getline(file, line)) {
         pos = line.find_first_of(',');
         temp1 = line.substr(0, pos);
@@ -524,7 +634,7 @@ void loadRaw(CoreObject* parentObject,
         }
     }
     // Bus data does not have a header but is always the first section.
-    readRawBusSection(parentObject, file, line, busList, opt);
+    readRawBusSection(parentObject, file, line, busList, opt, preparseData.areas);
 
     stringVec txlines;
     txlines.resize(5);
@@ -769,10 +879,10 @@ static links::RawDcLine* addRawDcCompatibilityLink(CoreObject* parentObject,
     link->updateBus(fromBus, 1);
     link->updateBus(toBus, 2);
     try {
-        parentObject->add(link);
+        getRawLinkParent(parentObject, link)->add(link);
     }
     catch (const ObjectAddFailure&) {
-        addToParentWithRename(link, parentObject);
+        addToParentWithRename(link, getRawLinkParent(parentObject, link));
     }
 
     link->set("pset", scheduledPower, MW);
@@ -987,9 +1097,10 @@ static int getPSSversion(const std::string& line)
     return ver;
 }
 
-static constexpr std::array<std::pair<std::string_view, SectionType>, 20> sectionNames{{
+static constexpr std::array<std::pair<std::string_view, SectionType>, 21> sectionNames{{
     {"BEGIN FIXED SHUNT", SectionType::FIXED_SHUNT},
     {"BEGIN SWITCHED SHUNT DATA", SectionType::SWITCHED_SHUNT},
+    {"BEGIN AREA DATA", SectionType::UNKNOWN},
     {"BEGIN AREA INTERCHANGE DATA", SectionType::UNKNOWN},
     {"BEGIN TWO-TERMINAL DC LINE DATA", SectionType::TWO_TERMINAL_DC},
     {"BEGIN TWO-TERMINAL DC DATA", SectionType::TWO_TERMINAL_DC},
@@ -1021,11 +1132,12 @@ static SectionType findSectionType(const std::string& line)
     return SectionType::UNKNOWN;
 }
 
-static void rawReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& opt)
+static int rawReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& opt)
 {
     double baseVoltage = 0.0;
     double voltageMagnitude = 0.0;
     double voltageAngle = 0.0;
+    int area = 0;
     int type;
 
     auto strvec = splitlineQuotes(line);
@@ -1080,7 +1192,8 @@ static void rawReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& o
     }
     bus->set("type", temp);
     if (opt.version >= 31) {
-        // skip the load flow area and loss zone for now
+        area = numeric_conversion<int>(strvec[4], 0);
+        // skip the loss zone for now
         // skip the owner information
         // get the voltage and angle specifications
         voltageMagnitude = numeric_conversion<double>(strvec[7], 0.0);
@@ -1092,6 +1205,7 @@ static void rawReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& o
             bus->set("vmin", baseVoltage);
         }
     } else {
+        area = numeric_conversion<int>(strvec[6], 0);
         // get the zone information
         const auto zone = numeric_conversion<double>(strvec[7], 0.0);
         bus->set("zone", zone);
@@ -1128,6 +1242,8 @@ static void rawReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& o
         bus->set("vtarget", voltageMagnitude);
         bus->set("voltage", voltageMagnitude);
     }
+
+    return area;
 }
 
 static void rawReadLoad(GridLoad* loadObject, const std::string& line, BasicReaderInfo& /*bri*/)
@@ -1317,7 +1433,7 @@ static void rawReadGen(Generator* gen, const std::string& line, BasicReaderInfo&
                 nBus->disable();
             }
             oBus->getParent()->add(nBus);
-            oBus->getParent()->add(lnk);
+            getRawLinkParent(oBus->getParent(), lnk)->add(lnk);
             // get the tap ratio
             const auto tapRatio =
                 numeric_conversion<double>(strvec[13 + generatorFieldOffset], 0.0);
@@ -1404,8 +1520,9 @@ static void rawReadBranch(CoreObject* parentObject,
 
     // check for circuit identifier
 
+    auto* linkParent = getRawLinkParent(parentObject, lnk);
     try {
-        parentObject->add(lnk);
+        linkParent->add(lnk);
     }
     catch (const ObjectAddFailure&) {
         // must be a parallel branch
@@ -1415,7 +1532,7 @@ static void rawReadBranch(CoreObject* parentObject,
             lnk->setName(sub + '_' + parallel);
             parallel = parallel + 1;
             try {
-                parentObject->add(lnk);
+                linkParent->add(lnk);
             }
             catch (const ObjectAddFailure& e) {
                 if (parallel > 'z') {
@@ -1433,6 +1550,16 @@ static void rawReadBranch(CoreObject* parentObject,
     // get line capacitance
     auto val = numeric_conversion<double>(strvec[5], 0.0);
     lnk->set("b", val);
+    // RAW branch records can add independent terminal shunts to the symmetric
+    // line charging value.  AcLine stores the resulting total terminal
+    // shunts as b1/g1 and b2/g2.
+    const size_t terminalShuntStart = (opt.version >= 35) ? 19U : 9U;
+    lnk->set("g1", numeric_conversion<double>(strvec[terminalShuntStart], 0.0));
+    lnk->set("b1", (0.5 * val) +
+                       numeric_conversion<double>(strvec[terminalShuntStart + 1], 0.0));
+    lnk->set("g2", numeric_conversion<double>(strvec[terminalShuntStart + 2], 0.0));
+    lnk->set("b2", (0.5 * val) +
+                       numeric_conversion<double>(strvec[terminalShuntStart + 3], 0.0));
     // RAW v35 inserts a branch name before RATE1 through RATE12.
     const size_t ratingStart = (opt.version >= 35) ? 7U : 6U;
     auto ratA = numeric_conversion<double>(strvec[ratingStart], 0.0);
@@ -1511,13 +1638,17 @@ static void rawReadTXadj(CoreObject* parentObject,
     auto* adjTX = new links::AdjustableTransformer();
     lnk->clone(adjTX);
     lnk->addOwningReference();
-    parentObject->remove(lnk);
+    auto* linkParent = lnk->getParent();
+    if (linkParent == nullptr) {
+        throw(ObjectRemoveFailure(lnk));
+    }
+    linkParent->remove(lnk);
     adjTX->updateBus(lnk->getBus(1), 1);
     adjTX->updateBus(lnk->getBus(2), 2);
     lnk->updateBus(nullptr, 1);
     lnk->updateBus(nullptr, 2);
     removeReference(lnk);
-    parentObject->add(adjTX);
+    getRawLinkParent(parentObject, adjTX)->add(adjTX);
     auto tapAngle = adjTX->getTapAngle();
     int code;
     if (tapAngle != 0) {
@@ -1733,8 +1864,9 @@ static int rawReadTxV33(CoreObject* parentObject,
     lnk->updateBus(bus1, 1);
     lnk->updateBus(bus2, 2);
 
+    auto* linkParent = getRawLinkParent(parentObject, lnk);
     try {
-        parentObject->add(lnk);
+        linkParent->add(lnk);
     }
     catch (const ObjectAddFailure&) {
         // must be a parallel branch
@@ -1744,7 +1876,7 @@ static int rawReadTxV33(CoreObject* parentObject,
             lnk->setName(sub + '_' + suffix);
             suffix = suffix + 1;
             try {
-                parentObject->add(lnk);
+                linkParent->add(lnk);
             }
             catch (const ObjectAddFailure& e) {
                 if (suffix > 'z') {
@@ -1987,8 +2119,9 @@ static int rawReadTX(CoreObject* parentObject,
     lnk->updateBus(bus1, 1);
     lnk->updateBus(bus2, 2);
 
+    auto* linkParent = getRawLinkParent(parentObject, lnk);
     try {
-        parentObject->add(lnk);
+        linkParent->add(lnk);
     }
     catch (const ObjectAddFailure&) {
         // must be a parallel branch
@@ -1998,7 +2131,7 @@ static int rawReadTX(CoreObject* parentObject,
             lnk->setName(sub + '_' + suffix);
             suffix = suffix + 1;
             try {
-                parentObject->add(lnk);
+                linkParent->add(lnk);
             }
             catch (const ObjectAddFailure& e) {
                 if (suffix > 'z') {

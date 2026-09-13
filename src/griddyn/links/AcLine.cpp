@@ -69,8 +69,10 @@ CoreObject* AcLine::clone(CoreObject* obj) const
     lnk->length = length;
     lnk->r = r;
     lnk->x = x;
-    lnk->mp_B = mp_B;
-    lnk->mp_G = mp_G;
+    lnk->mp_B1 = mp_B1;
+    lnk->mp_G1 = mp_G1;
+    lnk->mp_B2 = mp_B2;
+    lnk->mp_G2 = mp_G2;
     lnk->g = g;
     lnk->b = b;
     lnk->tap = tap;
@@ -133,9 +135,9 @@ void AcLine::switchChange(int switchNum)
 double AcLine::quickupdateP()
 {
     linkComp.Vmx = linkInfo.v1 * linkInfo.v2 / tap;
-    linkFlows.P1 = ((g + (0.5 * mp_G)) / (tap * tap) * linkInfo.v1 * linkInfo.v1) -
+    linkFlows.P1 = ((g + shuntG1()) / (tap * tap) * linkInfo.v1 * linkInfo.v1) -
         (g * linkComp.Vmx * (1 - linkInfo.theta1)) - (b * linkComp.Vmx * linkInfo.theta1);
-    linkFlows.P2 = ((g + (0.5 * mp_G)) * linkInfo.v2 * linkInfo.v2) -
+    linkFlows.P2 = ((g + shuntG2()) * linkInfo.v2 * linkInfo.v2) -
         (g * linkComp.Vmx * (1 - linkInfo.theta2)) - (b * linkComp.Vmx * linkInfo.theta2);
     return linkFlows.P1;
 }
@@ -156,11 +158,15 @@ void AcLine::timestep(const CoreTime time, const IOdata& /*inputs*/, const Solve
 
 void AcLine::checkMerge() {}
 
-static constexpr auto locNumStrings = std::array<std::string_view, 11>{"r",
+static constexpr auto locNumStrings = std::array<std::string_view, 15>{"r",
                                                                        "x",
                                                                        "link",
                                                                        "b",
                                                                        "g",
+                                                                       "b1",
+                                                                       "g1",
+                                                                       "b2",
+                                                                       "g2",
                                                                        "tap",
                                                                        "tapangle",
                                                                        "switch1",
@@ -247,10 +253,12 @@ void AcLine::set(std::string_view param, double val, unit unitType)
                 setAdmit();
                 break;
             case 'b':
-                mp_B = val;
+                mp_B1 = 0.5 * val;
+                mp_B2 = 0.5 * val;
                 break;
             case 'g':
-                mp_G = val;
+                mp_G1 = 0.5 * val;
+                mp_G2 = 0.5 * val;
                 break;
             case 'p':
                 Pset = convert(val, unitType, puMW, systemBasePower);
@@ -259,6 +267,22 @@ void AcLine::set(std::string_view param, double val, unit unitType)
             default:
                 throw(UnrecognizedParameter(param));
         }
+        return;
+    }
+    if (param == "b1") {
+        mp_B1 = val;
+        return;
+    }
+    if (param == "g1") {
+        mp_G1 = val;
+        return;
+    }
+    if (param == "b2") {
+        mp_B2 = val;
+        return;
+    }
+    if (param == "g2") {
+        mp_G2 = val;
         return;
     }
     std::string outparam;
@@ -312,10 +336,10 @@ double AcLine::get(std::string_view param, unit unitType) const
                 val = x;
                 break;
             case 'b':
-                val = mp_B;
+                val = mp_B1 + mp_B2;
                 break;
             case 'g':
-                val = mp_G;
+                val = mp_G1 + mp_G2;
                 break;
             case 'z':
                 val = std::hypot(r, x);
@@ -327,6 +351,18 @@ double AcLine::get(std::string_view param, unit unitType) const
                 break;
         }
         return val;
+    }
+    if (param == "b1") {
+        return mp_B1;
+    }
+    if (param == "g1") {
+        return mp_G1;
+    }
+    if (param == "b2") {
+        return mp_B2;
+    }
+    if (param == "g2") {
+        return mp_G2;
     }
     std::string outparam;
     gmlc::utilities::stringOps::trailingStringInt(param, outparam, 1);
@@ -894,17 +930,21 @@ void AcLine::faultCalc()
         linkFlows.P1 = 0;
         linkFlows.Q1 = 0;
     } else {
-        linkFlows.P1 = (((g / fault) + (fault * mp_G)) / (tap * tap)) * linkInfo.v1 * linkInfo.v1;
+        linkFlows.P1 = (((g / fault) + mp_G1) / (tap * tap)) * linkInfo.v1 *
+            linkInfo.v1;
 
-        linkFlows.Q1 = -(((b / fault) + (fault * mp_B)) / (tap * tap)) * linkInfo.v1 * linkInfo.v1;
+        linkFlows.Q1 = -(((b / fault) + mp_B1) / (tap * tap)) * linkInfo.v1 *
+            linkInfo.v1;
     }
     if (opFlags[SWITCH2_OPEN_FLAG]) {
         linkFlows.P2 = 0;
         linkFlows.Q2 = 0;
     } else {
-        linkFlows.P2 = ((g / (1.0 - fault)) + ((1.0 - fault) * mp_G)) * linkInfo.v2 * linkInfo.v2;
+        linkFlows.P2 = ((g / (1.0 - fault)) + mp_G2) * linkInfo.v2 *
+            linkInfo.v2;
 
-        linkFlows.Q2 = -((b / (1.0 - fault)) + ((1.0 - fault) * mp_B)) * linkInfo.v2 * linkInfo.v2;
+        linkFlows.Q2 = -((b / (1.0 - fault)) + mp_B2) * linkInfo.v2 *
+            linkInfo.v2;
     }
 }
 
@@ -977,8 +1017,8 @@ void AcLine::fullCalc()
     double tempc = linkComp.Vmx * linkComp.cosTheta1;
     double temps = linkComp.Vmx * linkComp.sinTheta1;
     // flows from bus 1 to bus 2
-    linkFlows.P1 = ((g + (0.5 * mp_G)) * vsq) - (g * tempc) - (b * temps);
-    linkFlows.Q1 = (-(b + (0.5 * mp_B)) * vsq) - (g * temps) + (b * tempc);
+    linkFlows.P1 = ((g + shuntG1()) * vsq) - (g * tempc) - (b * temps);
+    linkFlows.Q1 = (-(b + shuntB1()) * vsq) - (g * temps) + (b * tempc);
 
     // flows from bus 2 to bus 1
 
@@ -986,8 +1026,8 @@ void AcLine::fullCalc()
     tempc = linkComp.Vmx * linkComp.cosTheta2;
     temps = linkComp.Vmx * linkComp.sinTheta2;
 
-    linkFlows.P2 = ((g + (0.5 * mp_G)) * vsq) - (g * tempc) - (b * temps);
-    linkFlows.Q2 = (-(b + (0.5 * mp_B)) * vsq) - (g * temps) + (b * tempc);
+    linkFlows.P2 = ((g + shuntG2()) * vsq) - (g * tempc) - (b * temps);
+    linkFlows.Q2 = (-(b + shuntB2()) * vsq) - (g * temps) + (b * tempc);
 
     linkFlows.seqID = linkInfo.seqID;
 }
@@ -1003,11 +1043,11 @@ void AcLine::simplifiedCalc()
     // flows from bus 1 to bus 2
     linkFlows.P1 = -b * linkComp.Vmx * linkComp.sinTheta1;
 
-    linkFlows.Q1 = -((b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1 * linkInfo.v1;
+    linkFlows.Q1 = -((b + shuntB1()) / (tap * tap)) * linkInfo.v1 * linkInfo.v1;
     linkFlows.Q1 += b * linkComp.Vmx * linkComp.cosTheta1;
     // flows from bus 2 to bus 1
     linkFlows.P2 = -b * linkComp.Vmx * linkComp.sinTheta2;
-    linkFlows.Q2 = -(b + (0.5 * mp_B)) * linkInfo.v2 * linkInfo.v2;
+    linkFlows.Q2 = -(b + shuntB2()) * linkInfo.v2 * linkInfo.v2;
     linkFlows.Q2 += b * linkComp.Vmx * linkComp.cosTheta2;
     linkFlows.seqID = linkInfo.seqID;
 }
@@ -1019,19 +1059,19 @@ void AcLine::decoupledCalc()
     linkComp.sinTheta2 = -linkComp.sinTheta1;
     linkComp.cosTheta2 = linkComp.cosTheta1;
 
-    linkFlows.P1 = ((g + (0.5 * mp_G)) / (tap * tap)) * constLinkInfo.v1 * constLinkInfo.v1;
+    linkFlows.P1 = ((g + shuntG1()) / (tap * tap)) * constLinkInfo.v1 * constLinkInfo.v1;
     linkFlows.P1 -= g * constLinkComp.Vmx * linkComp.cosTheta1;
     linkFlows.P1 -= b * constLinkComp.Vmx * linkComp.sinTheta1;
 
-    linkFlows.Q1 = -((b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1 * linkInfo.v1;
+    linkFlows.Q1 = -((b + shuntB1()) / (tap * tap)) * linkInfo.v1 * linkInfo.v1;
     linkFlows.Q1 -= g * linkComp.Vmx * constLinkComp.sinTheta1;
     linkFlows.Q1 += b * linkComp.Vmx * constLinkComp.cosTheta1;
 
-    linkFlows.P2 = (g + (0.5 * mp_G)) * constLinkInfo.v2 * constLinkInfo.v2;
+    linkFlows.P2 = (g + shuntG2()) * constLinkInfo.v2 * constLinkInfo.v2;
     linkFlows.P2 -= g * constLinkComp.Vmx * linkComp.cosTheta2;
     linkFlows.P2 -= b * constLinkComp.Vmx * linkComp.sinTheta2;
 
-    linkFlows.Q2 = -(b + (0.5 * mp_B)) * linkInfo.v2 * linkInfo.v2;
+    linkFlows.Q2 = -(b + shuntB2()) * linkInfo.v2 * linkInfo.v2;
     linkFlows.Q2 -= g * linkComp.Vmx * constLinkComp.sinTheta2;
     linkFlows.Q2 += b * linkComp.Vmx * constLinkComp.cosTheta2;
     linkFlows.seqID = linkInfo.seqID;
@@ -1046,20 +1086,20 @@ void AcLine::smallAngleCalc()
     linkComp.cosTheta2 = 1.0;
 
     // flows from bus 1 to bus 2
-    linkFlows.P1 = ((g + (0.5 * mp_G)) / (tap * tap)) * linkInfo.v1 * linkInfo.v1;
+    linkFlows.P1 = ((g + shuntG1()) / (tap * tap)) * linkInfo.v1 * linkInfo.v1;
     linkFlows.P1 -= g * linkComp.Vmx;
     linkFlows.P1 -= b * linkComp.Vmx * linkComp.sinTheta1;
 
-    linkFlows.Q1 = -((b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1 * linkInfo.v1;
+    linkFlows.Q1 = -((b + shuntB1()) / (tap * tap)) * linkInfo.v1 * linkInfo.v1;
     linkFlows.Q1 -= g * linkComp.Vmx * linkComp.sinTheta1;
     linkFlows.Q1 += b * linkComp.Vmx;
 
     // flows from bus 2 to bus 1
-    linkFlows.P2 = (g + (0.5 * mp_G)) * linkInfo.v2 * linkInfo.v2;
+    linkFlows.P2 = (g + shuntG2()) * linkInfo.v2 * linkInfo.v2;
     linkFlows.P2 -= g * linkComp.Vmx;
     linkFlows.P2 -= b * linkComp.Vmx * linkComp.sinTheta2;
 
-    linkFlows.Q2 = -(b + (0.5 * mp_B)) * linkInfo.v2 * linkInfo.v2;
+    linkFlows.Q2 = -(b + shuntB2()) * linkInfo.v2 * linkInfo.v2;
     linkFlows.Q2 -= g * linkComp.Vmx * linkComp.sinTheta2;
     linkFlows.Q2 += b * linkComp.Vmx;
     linkFlows.seqID = linkInfo.seqID;
@@ -1076,11 +1116,11 @@ void AcLine::smallAngleSimplifiedCalc()
     // flows from bus 1 to bus 2
     linkFlows.P1 = -b * linkComp.Vmx * linkComp.sinTheta1;
 
-    linkFlows.Q1 = -((b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1 * linkInfo.v1;
+    linkFlows.Q1 = -((b + shuntB1()) / (tap * tap)) * linkInfo.v1 * linkInfo.v1;
     linkFlows.Q1 += b * linkComp.Vmx;
     // flows from bus 2 to bus 1
     linkFlows.P2 = -b * linkComp.Vmx * linkComp.sinTheta2;
-    linkFlows.Q2 = -(b + (0.5 * mp_B)) * linkInfo.v2 * linkInfo.v2;
+    linkFlows.Q2 = -(b + shuntB2()) * linkInfo.v2 * linkInfo.v2;
     linkFlows.Q2 += b * linkComp.Vmx;
     linkFlows.seqID = linkInfo.seqID;
 }
@@ -1094,12 +1134,12 @@ void AcLine::simplifiedDecoupledCalc()
 
     linkFlows.P1 = -b * constLinkComp.Vmx * linkComp.sinTheta1;
 
-    linkFlows.Q1 = -((b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1 * linkInfo.v1;
+    linkFlows.Q1 = -((b + shuntB1()) / (tap * tap)) * linkInfo.v1 * linkInfo.v1;
     linkFlows.Q1 += b * linkComp.Vmx * constLinkComp.cosTheta1;
 
     linkFlows.P2 = -b * constLinkComp.Vmx * linkComp.sinTheta2;
 
-    linkFlows.Q2 = -(b + (0.5 * mp_B)) * linkInfo.v2 * linkInfo.v2;
+    linkFlows.Q2 = -(b + shuntB2()) * linkInfo.v2 * linkInfo.v2;
     linkFlows.Q2 += b * linkComp.Vmx * constLinkComp.cosTheta2;
     linkFlows.seqID = linkInfo.seqID;
 }
@@ -1111,19 +1151,19 @@ void AcLine::smallAngleDecoupledCalc()
     linkComp.sinTheta2 = linkInfo.theta2;
     linkComp.cosTheta2 = 1;
 
-    linkFlows.P1 = ((g + (0.5 * mp_G)) / (tap * tap)) * constLinkInfo.v1 * constLinkInfo.v1;
+    linkFlows.P1 = ((g + shuntG1()) / (tap * tap)) * constLinkInfo.v1 * constLinkInfo.v1;
     linkFlows.P1 -= g * constLinkComp.Vmx;
     linkFlows.P1 -= b * constLinkComp.Vmx * linkComp.sinTheta1;
 
-    linkFlows.Q1 = -((b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1 * linkInfo.v1;
+    linkFlows.Q1 = -((b + shuntB1()) / (tap * tap)) * linkInfo.v1 * linkInfo.v1;
     linkFlows.Q1 -= g * linkComp.Vmx * constLinkComp.sinTheta1;
     linkFlows.Q1 += b * linkComp.Vmx * constLinkComp.cosTheta1;
 
-    linkFlows.P2 = (g + (0.5 * mp_G)) * constLinkInfo.v2 * constLinkInfo.v2;
+    linkFlows.P2 = (g + shuntG2()) * constLinkInfo.v2 * constLinkInfo.v2;
     linkFlows.P2 -= g * constLinkComp.Vmx;
     linkFlows.P2 -= b * constLinkComp.Vmx * linkComp.sinTheta2;
 
-    linkFlows.Q2 = -(b + (0.5 * mp_B)) * linkInfo.v2 * linkInfo.v2;
+    linkFlows.Q2 = -(b + shuntB2()) * linkInfo.v2 * linkInfo.v2;
     linkFlows.Q2 -= g * linkComp.Vmx * constLinkComp.sinTheta2;
     linkFlows.Q2 += b * linkComp.Vmx * constLinkComp.cosTheta2;
     linkFlows.seqID = linkInfo.seqID;
@@ -1171,11 +1211,11 @@ void AcLine::fastDecoupledCalc()
     linkFlows.P1 = -b * constLinkComp.Vmx * linkComp.sinTheta1;
 
     linkFlows.Q1 =
-        (-((b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1 * linkInfo.v1) + (b * linkComp.Vmx);
+        (-((b + shuntB1()) / (tap * tap)) * linkInfo.v1 * linkInfo.v1) + (b * linkComp.Vmx);
 
     linkFlows.P2 = -b * constLinkComp.Vmx * linkComp.sinTheta2;
 
-    linkFlows.Q2 = (-(b + (0.5 * mp_B)) * linkInfo.v2 * linkInfo.v2) + (b * linkComp.Vmx);
+    linkFlows.Q2 = (-(b + shuntB2()) * linkInfo.v2 * linkInfo.v2) + (b * linkComp.Vmx);
 
     linkFlows.seqID = linkInfo.seqID;
 }
@@ -1186,14 +1226,14 @@ void AcLine::swOpenCalc()
         linkFlows.P1 = 0;
         linkFlows.Q1 = 0;
     } else {
-        const double voltage2 = (b * linkInfo.v1) / tap / (b + (0.5 * mp_B));
-        const double deltaTheta = -(((g + (0.5 * mp_G)) / (b + (0.5 * mp_B))) - (g / b));
+        const double voltage2 = (b * linkInfo.v1) / tap / (b + shuntB1());
+        const double deltaTheta = -(((g + shuntG1()) / (b + shuntB1())) - (g / b));
 
         const double voltageMagnitude = linkInfo.v1 * voltage2 / tap;
-        linkFlows.P1 = (((g + (0.5 * mp_G)) / (tap * tap)) * linkInfo.v1 * linkInfo.v1) -
+        linkFlows.P1 = (((g + shuntG1()) / (tap * tap)) * linkInfo.v1 * linkInfo.v1) -
             (g * voltageMagnitude) - (b * voltageMagnitude * deltaTheta);
 
-        linkFlows.Q1 = (-((b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1 * linkInfo.v1) +
+        linkFlows.Q1 = (-(b + shuntB1()) / (tap * tap) * linkInfo.v1 * linkInfo.v1) +
             (b * voltageMagnitude);
     }
     if (opFlags[SWITCH2_OPEN_FLAG]) {
@@ -1201,14 +1241,14 @@ void AcLine::swOpenCalc()
         linkFlows.Q2 = 0;
     } else {
         // flows from bus 2 to bus
-        const double voltage1 = (b * linkInfo.v2 * tap) / (b + (0.5 * mp_B));
-        const double deltaTheta = -(((g + (0.5 * mp_G)) / (b + (0.5 * mp_B))) - (g / b));
+        const double voltage1 = (b * linkInfo.v2 * tap) / (b + shuntB2());
+        const double deltaTheta = -(((g + shuntG2()) / (b + shuntB2())) - (g / b));
 
         const double voltageMagnitude = linkInfo.v2 * voltage1 / tap;
 
-        linkFlows.P2 = ((g + (0.5 * mp_G)) * linkInfo.v2 * linkInfo.v2) - (g * voltageMagnitude) -
+        linkFlows.P2 = ((g + shuntG2()) * linkInfo.v2 * linkInfo.v2) - (g * voltageMagnitude) -
             (b * voltageMagnitude * deltaTheta);
-        linkFlows.Q2 = (-(b + (0.5 * mp_B)) * linkInfo.v2 * linkInfo.v2) + (b * voltageMagnitude);
+        linkFlows.Q2 = (-(b + shuntB2()) * linkInfo.v2 * linkInfo.v2) + (b * voltageMagnitude);
     }
 
     linkFlows.seqID = linkInfo.seqID;
@@ -1218,13 +1258,17 @@ void AcLine::faultDeriv()
 {
     LinkDeriv = {};
     if (!opFlags[SWITCH1_OPEN_FLAG]) {
-        LinkDeriv.dP1dv1 = ((2 * ((g / fault) + (fault * mp_G))) / (tap * tap)) * linkInfo.v1;
-        LinkDeriv.dQ1dv1 = ((-2 * ((b / fault) + (fault * mp_B))) / (tap * tap)) * linkInfo.v1;
+        LinkDeriv.dP1dv1 =
+            ((2 * ((g / fault) + mp_G1)) / (tap * tap)) * linkInfo.v1;
+        LinkDeriv.dQ1dv1 =
+            ((-2 * ((b / fault) + mp_B1)) / (tap * tap)) * linkInfo.v1;
     }
 
     if (!opFlags[SWITCH2_OPEN_FLAG]) {
-        LinkDeriv.dP2dv2 = (2 * ((g / (1.0 - fault)) + ((1.0 - fault) * mp_G))) * linkInfo.v2;
-        LinkDeriv.dQ2dv2 = (-2 * ((b / (1.0 - fault)) + ((1.0 - fault) * mp_B))) * linkInfo.v2;
+        LinkDeriv.dP2dv2 =
+            (2 * ((g / (1.0 - fault)) + mp_G2)) * linkInfo.v2;
+        LinkDeriv.dQ2dv2 =
+            (-2 * ((b / (1.0 - fault)) + mp_B2)) * linkInfo.v2;
     }
     LinkDeriv.seqID = linkInfo.seqID;
 }
@@ -1233,13 +1277,13 @@ void AcLine::fullDeriv()
     // real power vs local states
     LinkDeriv.dP1dt1 =
         (g * linkComp.Vmx * linkComp.sinTheta1) - (b * linkComp.Vmx * linkComp.cosTheta1);
-    LinkDeriv.dP1dv1 = ((2 * (g + (0.5 * mp_G)) / (tap * tap)) * linkInfo.v1) -
+    LinkDeriv.dP1dv1 = ((2 * (g + shuntG1()) / (tap * tap)) * linkInfo.v1) -
         ((g / tap) * linkInfo.v2 * linkComp.cosTheta1) -
         ((b / tap) * linkInfo.v2 * linkComp.sinTheta1);
 
     LinkDeriv.dP2dt2 =
         (g * linkComp.Vmx * linkComp.sinTheta2) - (b * linkComp.Vmx * linkComp.cosTheta2);
-    LinkDeriv.dP2dv2 = ((2 * (g + (0.5 * mp_G))) * linkInfo.v2) -
+    LinkDeriv.dP2dv2 = ((2 * (g + shuntG2())) * linkInfo.v2) -
         ((g / tap) * linkInfo.v1 * linkComp.cosTheta2) -
         ((b / tap) * linkInfo.v1 * linkComp.sinTheta2);
 
@@ -1248,10 +1292,10 @@ void AcLine::fullDeriv()
         (-g * linkComp.Vmx * linkComp.cosTheta1) - (b * linkComp.Vmx * linkComp.sinTheta1);
     LinkDeriv.dQ2dt2 =
         (-g * linkComp.Vmx * linkComp.cosTheta2) - (b * linkComp.Vmx * linkComp.sinTheta2);
-    LinkDeriv.dQ1dv1 = ((-2 * (b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1) -
+    LinkDeriv.dQ1dv1 = ((-2 * (b + shuntB1()) / (tap * tap)) * linkInfo.v1) -
         ((g / tap) * linkInfo.v2 * linkComp.sinTheta1) +
         ((b / tap) * linkInfo.v2 * linkComp.cosTheta1);
-    LinkDeriv.dQ2dv2 = ((-2 * (b + (0.5 * mp_B))) * linkInfo.v2) -
+    LinkDeriv.dQ2dv2 = ((-2 * (b + shuntB2())) * linkInfo.v2) -
         ((g / tap) * linkInfo.v1 * linkComp.sinTheta2) +
         ((b / tap) * linkInfo.v1 * linkComp.cosTheta2);
 
@@ -1274,11 +1318,11 @@ void AcLine::simplifiedDeriv()
     /*
     linkFlows.P1 = -b * linkComp.Vmx * linkComp.sinTheta1;
 
-    linkFlows.Q1 = -(b + 0.5 * mp_B) / (tap * tap) * linkInfo.v1 * linkInfo.v1;
+    linkFlows.Q1 = -(b + shuntB1()) / (tap * tap) * linkInfo.v1 * linkInfo.v1;
     linkFlows.Q1 += b * linkComp.Vmx * linkComp.cosTheta1;
     //flows from bus 2 to bus 1
     linkFlows.P2 = -b * linkComp.Vmx * linkComp.sinTheta2;
-    linkFlows.Q2 = -(b + 0.5 * mp_B) * linkInfo.v2 * linkInfo.v2;
+    linkFlows.Q2 = -(b + shuntB2()) * linkInfo.v2 * linkInfo.v2;
     linkFlows.Q2 += b * linkComp.Vmx * linkComp.cosTheta2;
     */
     // real power vs local states
@@ -1294,10 +1338,10 @@ void AcLine::simplifiedDeriv()
     // reactive power vs local states
     LinkDeriv.dQ1dt1 = -bvmx * linkComp.sinTheta1;
     LinkDeriv.dQ2dt2 = -bvmx * linkComp.sinTheta2;
-    LinkDeriv.dQ1dv1 = ((-2 * (b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1) +
+    LinkDeriv.dQ1dv1 = ((-2 * (b + shuntB1()) / (tap * tap)) * linkInfo.v1) +
         (btap * linkInfo.v2 * linkComp.cosTheta1);
     LinkDeriv.dQ2dv2 =
-        ((-2 * (b + (0.5 * mp_B))) * linkInfo.v2) + (btap * linkInfo.v1 * linkComp.cosTheta2);
+        ((-2 * (b + shuntB2())) * linkInfo.v2) + (btap * linkInfo.v1 * linkComp.cosTheta2);
 
     // real power vs remote states
     LinkDeriv.dP1dv2 = -linkInfo.v1 * (btap * linkComp.sinTheta1);
@@ -1317,19 +1361,19 @@ void AcLine::simplifiedDeriv()
 void AcLine::decoupledDeriv()
 {
     /*
-    linkFlows.P1 = (g + 0.5 * mp_G) / (tap * tap) * constLinkInfo.v1 * constLinkInfo.v1;
+    linkFlows.P1 = (g + shuntG1()) / (tap * tap) * constLinkInfo.v1 * constLinkInfo.v1;
     linkFlows.P1 -= g * constLinkComp.Vmx * linkComp.cosTheta1;
     linkFlows.P1 -= b * constLinkComp.Vmx * linkComp.sinTheta1;
 
-    linkFlows.Q1 = -(b + 0.5 * mp_B) / (tap * tap) * linkInfo.v1 * linkInfo.v1;
+    linkFlows.Q1 = -(b + shuntB1()) / (tap * tap) * linkInfo.v1 * linkInfo.v1;
     linkFlows.Q1 -= g * linkComp.Vmx * constLinkComp.sinTheta1;
     linkFlows.Q1 += b * linkComp.Vmx * constLinkComp.cosTheta1;
 
-    linkFlows.P2 = (g + 0.5 * mp_G) * constLinkInfo.v2 * constLinkInfo.v2;
+    linkFlows.P2 = (g + shuntG2()) * constLinkInfo.v2 * constLinkInfo.v2;
     linkFlows.P2 -= g * constLinkComp.Vmx * linkComp.cosTheta2;
     linkFlows.P2 -= b * constLinkComp.Vmx * linkComp.sinTheta2;
 
-    linkFlows.Q2 = -(b + 0.5 * mp_B) * linkInfo.v2 * linkInfo.v2;
+    linkFlows.Q2 = -(b + shuntB2()) * linkInfo.v2 * linkInfo.v2;
     linkFlows.Q2 -= g * linkComp.Vmx * constLinkComp.sinTheta2;
     linkFlows.Q2 += b * linkComp.Vmx * constLinkComp.cosTheta2;
     */
@@ -1345,10 +1389,10 @@ void AcLine::decoupledDeriv()
     // reactive power vs local states
     LinkDeriv.dQ1dt1 = 0;
     LinkDeriv.dQ2dt2 = 0;
-    LinkDeriv.dQ1dv1 = ((-2 * (b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1) -
+    LinkDeriv.dQ1dv1 = ((-2 * (b + shuntB1()) / (tap * tap)) * linkInfo.v1) -
         ((g / tap) * linkInfo.v2 * constLinkComp.sinTheta1) +
         ((b / tap) * linkInfo.v2 * constLinkComp.cosTheta1);
-    LinkDeriv.dQ2dv2 = ((-2 * (b + (0.5 * mp_B))) * linkInfo.v2) -
+    LinkDeriv.dQ2dv2 = ((-2 * (b + shuntB2())) * linkInfo.v2) -
         ((g / tap) * linkInfo.v1 * constLinkComp.sinTheta2) +
         ((b / tap) * linkInfo.v1 * constLinkComp.cosTheta2);
 
@@ -1379,38 +1423,38 @@ void AcLine::linearDeriv()
 void AcLine::smallAngleDeriv()
 {
     /*
-    linkFlows.P1 = (g + 0.5 * mp_G) / (tap * tap) * linkInfo.v1 * linkInfo.v1;
+    linkFlows.P1 = (g + shuntG1()) / (tap * tap) * linkInfo.v1 * linkInfo.v1;
     linkFlows.P1 -= g * linkComp.Vmx;
     linkFlows.P1 -= b * linkComp.Vmx * linkComp.sinTheta1;
 
-    linkFlows.Q1 = -(b + 0.5 * mp_B) / (tap * tap) * linkInfo.v1 * linkInfo.v1;
+    linkFlows.Q1 = -(b + shuntB1()) / (tap * tap) * linkInfo.v1 * linkInfo.v1;
     linkFlows.Q1 -= g * linkComp.Vmx * linkComp.sinTheta1;
     linkFlows.Q1 += b * linkComp.Vmx;
 
     //flows from bus 2 to bus 1
-    linkFlows.P2 = (g + 0.5 * mp_G) * linkInfo.v2 * linkInfo.v2;
+    linkFlows.P2 = (g + shuntG2()) * linkInfo.v2 * linkInfo.v2;
     linkFlows.P2 -= g * linkComp.Vmx;
     linkFlows.P2 -= b * linkComp.Vmx * linkComp.sinTheta2;
 
-    linkFlows.Q2 = -(b + 0.5 * mp_B) * linkInfo.v2 * linkInfo.v2;
+    linkFlows.Q2 = -(b + shuntB2()) * linkInfo.v2 * linkInfo.v2;
     linkFlows.Q2 -= g * linkComp.Vmx * linkComp.sinTheta2;
     linkFlows.Q2 += b * linkComp.Vmx;
     linkFlows.seqID = linkInfo.seqID;
     */
     LinkDeriv.dP1dt1 = -b * linkComp.Vmx;
-    LinkDeriv.dP1dv1 = ((2 * (g + (0.5 * mp_G)) / (tap * tap)) * linkInfo.v1) -
+    LinkDeriv.dP1dv1 = ((2 * (g + shuntG1()) / (tap * tap)) * linkInfo.v1) -
         ((g / tap) * linkInfo.v2) - ((b / tap) * linkInfo.v2 * linkComp.sinTheta1);
 
     LinkDeriv.dP2dt2 = -b * linkComp.Vmx * linkComp.cosTheta2;
-    LinkDeriv.dP2dv2 = ((2 * (g + (0.5 * mp_G))) * linkInfo.v2) - ((g / tap) * linkInfo.v1) -
+    LinkDeriv.dP2dv2 = ((2 * (g + shuntG2())) * linkInfo.v2) - ((g / tap) * linkInfo.v1) -
         ((b / tap) * linkInfo.v1 * linkComp.sinTheta2);
 
     // reactive power vs local states
     LinkDeriv.dQ1dt1 = -g * linkComp.Vmx;
     LinkDeriv.dQ2dt2 = -g * linkComp.Vmx;
-    LinkDeriv.dQ1dv1 = ((-2 * (b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1) -
+    LinkDeriv.dQ1dv1 = ((-2 * (b + shuntB1()) / (tap * tap)) * linkInfo.v1) -
         ((g / tap) * linkInfo.v2 * linkComp.sinTheta1) + ((b / tap) * linkInfo.v2);
-    LinkDeriv.dQ2dv2 = ((-2 * (b + (0.5 * mp_B))) * linkInfo.v2) -
+    LinkDeriv.dQ2dv2 = ((-2 * (b + shuntB2())) * linkInfo.v2) -
         ((g / tap) * linkInfo.v1 * linkComp.sinTheta2) + ((b / tap) * linkInfo.v1);
 
     // real power vs remote states
@@ -1433,12 +1477,12 @@ void AcLine::simplifiedDecoupledDeriv()
     /*
     linkFlows.P1 = -b * constLinkComp.Vmx * linkComp.sinTheta1;
 
-    linkFlows.Q1 = -(b + 0.5 * mp_B) / (tap * tap) * linkInfo.v1 * linkInfo.v1;
+    linkFlows.Q1 = -(b + shuntB1()) / (tap * tap) * linkInfo.v1 * linkInfo.v1;
     linkFlows.Q1 += b * linkComp.Vmx * constLinkComp.cosTheta1;
 
     linkFlows.P2 = -b * constLinkComp.Vmx * linkComp.sinTheta2;
 
-    linkFlows.Q2 = -(b + 0.5 * mp_B) * linkInfo.v2 * linkInfo.v2;
+    linkFlows.Q2 = -(b + shuntB2()) * linkInfo.v2 * linkInfo.v2;
     linkFlows.Q2 += b * linkComp.Vmx * constLinkComp.cosTheta2;*/
 
     LinkDeriv.dP1dt1 = -b * constLinkComp.Vmx * linkComp.cosTheta1;
@@ -1451,10 +1495,10 @@ void AcLine::simplifiedDecoupledDeriv()
     // reactive power vs local states
     LinkDeriv.dQ1dt1 = 0;
     LinkDeriv.dQ2dt2 = 0;
-    LinkDeriv.dQ1dv1 = ((-2 * (b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1) +
+    LinkDeriv.dQ1dv1 = ((-2 * (b + shuntB1()) / (tap * tap)) * linkInfo.v1) +
         (btap * linkInfo.v2 * constLinkComp.cosTheta1);
     LinkDeriv.dQ2dv2 =
-        ((-2 * (b + (0.5 * mp_B))) * linkInfo.v2) + (btap * linkInfo.v1 * constLinkComp.cosTheta2);
+        ((-2 * (b + shuntB2())) * linkInfo.v2) + (btap * linkInfo.v1 * constLinkComp.cosTheta2);
 
     // real power vs remote states
     LinkDeriv.dP1dv2 = 0;
@@ -1483,9 +1527,9 @@ void AcLine::smallAngleDecoupledDeriv()
     // reactive power vs local states
     LinkDeriv.dQ1dt1 = 0;
     LinkDeriv.dQ2dt2 = 0;
-    LinkDeriv.dQ1dv1 = ((-2 * (b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1) -
+    LinkDeriv.dQ1dv1 = ((-2 * (b + shuntB1()) / (tap * tap)) * linkInfo.v1) -
         ((g / tap) * linkInfo.v2 * constLinkComp.sinTheta1) + ((b / tap) * linkInfo.v2);
-    LinkDeriv.dQ2dv2 = ((-2 * (b + (0.5 * mp_B))) * linkInfo.v2) -
+    LinkDeriv.dQ2dv2 = ((-2 * (b + shuntB2())) * linkInfo.v2) -
         ((g / tap) * linkInfo.v1 * constLinkComp.sinTheta2) + ((b / tap) * linkInfo.v1);
 
     // real power vs remote states
@@ -1509,11 +1553,11 @@ void AcLine::smallAngleSimplifiedDeriv()
     //flows from bus 1 to bus 2
     linkFlows.P1 = -b * linkComp.Vmx * linkComp.sinTheta1;
 
-    linkFlows.Q1 = -(b + 0.5 * mp_B) / (tap * tap) * linkInfo.v1 * linkInfo.v1;
+    linkFlows.Q1 = -(b + shuntB1()) / (tap * tap) * linkInfo.v1 * linkInfo.v1;
     linkFlows.Q1 += b * linkComp.Vmx ;
     //flows from bus 2 to bus 1
     linkFlows.P2 = -b * linkComp.Vmx * linkComp.sinTheta2;
-    linkFlows.Q2 = -(b + 0.5 * mp_B) * linkInfo.v2 * linkInfo.v2;
+    linkFlows.Q2 = -(b + shuntB2()) * linkInfo.v2 * linkInfo.v2;
     linkFlows.Q2 += b * linkComp.Vmx;
     linkFlows.seqID = linkInfo.seqID;
     */
@@ -1531,8 +1575,8 @@ void AcLine::smallAngleSimplifiedDeriv()
     LinkDeriv.dQ1dt1 = 0;
     LinkDeriv.dQ2dt2 = 0;
     LinkDeriv.dQ1dv1 =
-        ((-2 * (b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1) + (btap * linkInfo.v2);
-    LinkDeriv.dQ2dv2 = ((-2 * (b + (0.5 * mp_B))) * linkInfo.v2) + (btap * linkInfo.v1);
+        ((-2 * (b + shuntB1()) / (tap * tap)) * linkInfo.v1) + (btap * linkInfo.v2);
+    LinkDeriv.dQ2dv2 = ((-2 * (b + shuntB2())) * linkInfo.v2) + (btap * linkInfo.v1);
 
     // real power vs remote states
     LinkDeriv.dP1dv2 = -linkInfo.v1 * (btap * linkComp.sinTheta1);
@@ -1554,11 +1598,11 @@ void AcLine::fastDecoupledDeriv()
     /*
     linkFlows.P1 = -b * constLinkComp.Vmx * linkComp.sinTheta1;
 
-    linkFlows.Q1 = -(b + 0.5 * mp_B) / (tap * tap) * linkInfo.v1 * linkInfo.v1+ b * linkComp.Vmx;
+    linkFlows.Q1 = -(b + shuntB1()) / (tap * tap) * linkInfo.v1 * linkInfo.v1+ b * linkComp.Vmx;
 
     linkFlows.P2 = -b * constLinkComp.Vmx;
 
-    linkFlows.Q2 = -(b + 0.5 * mp_B) * linkInfo.v2 * linkInfo.v2+ b * linkComp.Vmx;
+    linkFlows.Q2 = -(b + shuntB2()) * linkInfo.v2 * linkInfo.v2+ b * linkComp.Vmx;
     */
     // real power vs local states
     LinkDeriv.dP1dt1 = -b * constLinkComp.Vmx;
@@ -1571,8 +1615,8 @@ void AcLine::fastDecoupledDeriv()
     LinkDeriv.dQ1dt1 = 0;
     LinkDeriv.dQ2dt2 = 0;
     LinkDeriv.dQ1dv1 =
-        ((-2 * (b + (0.5 * mp_B)) / (tap * tap)) * linkInfo.v1) + ((b / tap) * linkInfo.v2);
-    LinkDeriv.dQ2dv2 = ((-2 * (b + (0.5 * mp_B))) * linkInfo.v2) + ((b / tap) * linkInfo.v1);
+        ((-2 * (b + shuntB1()) / (tap * tap)) * linkInfo.v1) + ((b / tap) * linkInfo.v2);
+    LinkDeriv.dQ2dv2 = ((-2 * (b + shuntB2())) * linkInfo.v2) + ((b / tap) * linkInfo.v1);
 
     // real power vs remote states
     LinkDeriv.dP1dv2 = 0;
@@ -1595,41 +1639,43 @@ void AcLine::swOpenDeriv()
 
     // flows from bus 2 to bus
 
-    const double admittanceFactor = 1.0 / (b + (0.5 * mp_B));
-    const double deltaTerm = -(((g + (0.5 * mp_G)) * admittanceFactor) - (g / b));
+    const double admittanceFactor1 = 1.0 / (b + shuntB1());
+    const double deltaTerm1 = -(((g + shuntG1()) * admittanceFactor1) - (g / b));
+    const double admittanceFactor2 = 1.0 / (b + shuntB2());
+    const double deltaTerm2 = -(((g + shuntG2()) * admittanceFactor2) - (g / b));
 
     if (!opFlags[SWITCH1_OPEN_FLAG]) {
         const double inverseTapSquared = 1.0 / (tap * tap);
-        LinkDeriv.dP1dv1 = 2.0 * (g + (0.5 * mp_G)) * inverseTapSquared * linkInfo.v1;
-        LinkDeriv.dP1dv1 -= 2.0 * g * b * inverseTapSquared * linkInfo.v1 * admittanceFactor;
+        LinkDeriv.dP1dv1 = 2.0 * (g + shuntG1()) * inverseTapSquared * linkInfo.v1;
+        LinkDeriv.dP1dv1 -= 2.0 * g * b * inverseTapSquared * linkInfo.v1 * admittanceFactor1;
         LinkDeriv.dP1dv1 +=
-            2.0 * b * b * inverseTapSquared * linkInfo.v1 * admittanceFactor * deltaTerm;
+            2.0 * b * b * inverseTapSquared * linkInfo.v1 * admittanceFactor1 * deltaTerm1;
 
-        LinkDeriv.dQ1dv1 = -2.0 * (b + (0.5 * mp_B)) * inverseTapSquared * linkInfo.v1;
-        LinkDeriv.dQ1dv1 += 2.0 * b * b * inverseTapSquared * linkInfo.v1 * admittanceFactor;
+        LinkDeriv.dQ1dv1 = -2.0 * (b + shuntB1()) * inverseTapSquared * linkInfo.v1;
+        LinkDeriv.dQ1dv1 += 2.0 * b * b * inverseTapSquared * linkInfo.v1 * admittanceFactor1;
     }
 
     if (!opFlags[SWITCH2_OPEN_FLAG]) {
-        LinkDeriv.dP2dv2 = 2.0 * (g + (0.5 * mp_G)) * linkInfo.v2;
-        LinkDeriv.dP2dv2 -= 2.0 * g * b * linkInfo.v2 * admittanceFactor;
-        LinkDeriv.dP2dv2 += 2.0 * b * b * linkInfo.v2 * admittanceFactor * deltaTerm;
+        LinkDeriv.dP2dv2 = 2.0 * (g + shuntG2()) * linkInfo.v2;
+        LinkDeriv.dP2dv2 -= 2.0 * g * b * linkInfo.v2 * admittanceFactor2;
+        LinkDeriv.dP2dv2 += 2.0 * b * b * linkInfo.v2 * admittanceFactor2 * deltaTerm2;
 
-        LinkDeriv.dQ2dv2 = -2.0 * (b + (0.5 * mp_B)) * linkInfo.v2;
-        LinkDeriv.dQ2dv2 += 2.0 * b * b * linkInfo.v2 * admittanceFactor;
+        LinkDeriv.dQ2dv2 = -2.0 * (b + shuntB2()) * linkInfo.v2;
+        LinkDeriv.dQ2dv2 += 2.0 * b * b * linkInfo.v2 * admittanceFactor2;
     }
     LinkDeriv.seqID = linkInfo.seqID;
 
     /*
     if (!opFlags[SWITCH1_OPEN_FLAG])
     {
-    LinkDeriv.dP1dv1 = 2 * (g + mp_G) / (tap * tap) * linkInfo.v1;
-    LinkDeriv.dQ1dv1 = -2 * (b  + mp_B) / (tap * tap) * linkInfo.v1;
+    LinkDeriv.dP1dv1 = 2 * (g + shuntG1()) / (tap * tap) * linkInfo.v1;
+    LinkDeriv.dQ1dv1 = -2 * (b + shuntB1()) / (tap * tap) * linkInfo.v1;
     }
 
     if (!opFlags[SWITCH2_OPEN_FLAG])
     {
-    LinkDeriv.dP2dv2 = 2 * (g  + mp_G) * linkInfo.v2;
-    LinkDeriv.dQ2dv2 = -2 * (b  + mp_B) * linkInfo.v2;
+    LinkDeriv.dP2dv2 = 2 * (g + shuntG2()) * linkInfo.v2;
+    LinkDeriv.dQ2dv2 = -2 * (b + shuntB2()) * linkInfo.v2;
     }
     */
     LinkDeriv.seqID = linkInfo.seqID;

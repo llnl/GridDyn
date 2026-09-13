@@ -236,13 +236,19 @@ void addToParent(CoreObject* objectToAdd, CoreObject* parentObject)
 void addToParentWithRename(CoreObject* objectToAdd, CoreObject* parentObject)
 {
     const std::string bname = objectToAdd->getName();
+    const auto makeRenamedName = [&bname](int sequence) {
+        std::string renamedName = bname;
+        renamedName.push_back('-');
+        gmlc::utilities::stringOps::appendInteger(renamedName, sequence);
+        return renamedName;
+    };
     int cnt = 2;
-    auto* fndObject = parentObject->find(bname + '-' + std::to_string(cnt));
+    auto* fndObject = parentObject->find(makeRenamedName(cnt));
     while (fndObject != nullptr) {
         ++cnt;
-        fndObject = parentObject->find(bname + '-' + std::to_string(cnt));
+        fndObject = parentObject->find(makeRenamedName(cnt));
     }
-    objectToAdd->setName(bname + '-' + std::to_string(cnt));
+    objectToAdd->setName(makeRenamedName(cnt));
     addToParent(objectToAdd, parentObject);
 }
 

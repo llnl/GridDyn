@@ -8,6 +8,7 @@
 
 #include "../GridDynSimulation.h"
 #include "../events/Event.h"
+#include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <algorithm>
 #include <array>
@@ -84,9 +85,14 @@ std::string Violation::to_string() const
     std::string violationString = m_objectName + '[';
     const auto violationText = getViolationText(violationCode);
     if (!violationText.empty()) {
-        violationString += std::string(violationText) + '(' + std::to_string(violationCode) + ")]";
+        violationString += violationText;
+        violationString += '(';
+        gmlc::utilities::stringOps::appendInteger(violationString, violationCode);
+        violationString += ")]";
     } else {
-        violationString += "unknown violation(" + std::to_string(violationCode) + ")]";
+        violationString += "unknown violation(";
+        gmlc::utilities::stringOps::appendInteger(violationString, violationCode);
+        violationString += ")]";
     }
     violationString += std::to_string(level) + "vs. " + std::to_string(limit) + " " +
         std::to_string(percentViolation) + "% violation";
@@ -108,14 +114,16 @@ std::atomic_int Contingency::contingencyCount{0};
 Contingency::Contingency(): future_ret(promise_val.get_future())
 {
     id = ++contingencyCount;
-    name = "contingency_" + std::to_string(id);
+    name = "contingency_";
+    gmlc::utilities::stringOps::appendInteger(name, id);
 }
 
 Contingency::Contingency(GridDynSimulation* sim, std::shared_ptr<Event> gridEvent):
     gds(sim), future_ret(promise_val.get_future())
 {
     id = ++contingencyCount;
-    name = "contingency_" + std::to_string(id);
+    name = "contingency_";
+    gmlc::utilities::stringOps::appendInteger(name, id);
     eventList.resize(1);
     eventList[0].push_back(std::move(gridEvent));
 }

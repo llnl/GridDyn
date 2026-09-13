@@ -5,6 +5,9 @@
  */
 
 #include "../gtestHelper.h"
+#include "griddyn/GridArea.h"
+#include "griddyn/GridBus.h"
+#include "griddyn/Link.h"
 #include <array>
 #include <filesystem>
 #include <gtest/gtest.h>
@@ -27,6 +30,19 @@ std::filesystem::path makeExamplePath(std::string_view fileName)
 {
     return std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / ".." / ".." / "examples" /
         std::string{fileName};
+}
+
+void expectInternalLinksBelongToArea(griddyn::GridArea* area)
+{
+    const auto linkCount = area->getInt("linkcount");
+    for (int linkIndex = 0; linkIndex < linkCount; ++linkIndex) {
+        auto* link = area->getLink(linkIndex);
+        ASSERT_NE(link, nullptr);
+        ASSERT_NE(link->getBus(1), nullptr);
+        ASSERT_NE(link->getBus(2), nullptr);
+        EXPECT_EQ(link->getBus(1)->getParent(), area);
+        EXPECT_EQ(link->getBus(2)->getParent(), area);
+    }
 }
 
 }  // namespace
@@ -85,6 +101,76 @@ TEST(ExampleReaderTests, LoadTopLevelExamples)
         EXPECT_EQ(gds->getInt("gencount"), exampleCase.genCount);
         EXPECT_EQ(gds->getInt("loadcount"), exampleCase.loadCount);
     }
+}
+
+TEST(ExampleReaderTests, LoadRawAreaDefinitions)
+{
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    const auto filePath = makeExamplePath("powerflow.raw");
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds, filePath.string());
+
+    ASSERT_EQ(gds->getInt("totalareacount"), 3);
+    auto* area = gds->getGridArea(0);
+    ASSERT_NE(area, nullptr);
+    EXPECT_EQ(area->getInt("buscount"), 72);
+    expectInternalLinksBelongToArea(area);
+    int internalLinkCount = area->getInt("linkcount");
+    area = gds->getGridArea(1);
+    ASSERT_NE(area, nullptr);
+    EXPECT_EQ(area->getInt("buscount"), 76);
+    expectInternalLinksBelongToArea(area);
+    internalLinkCount += area->getInt("linkcount");
+    area = gds->getGridArea(2);
+    ASSERT_NE(area, nullptr);
+    EXPECT_EQ(area->getInt("buscount"), 31);
+    expectInternalLinksBelongToArea(area);
+    internalLinkCount += area->getInt("linkcount");
+    EXPECT_GT(internalLinkCount, 0);
+    EXPECT_GT(gds->getInt("linkcount"), 0);
+    EXPECT_EQ(internalLinkCount + gds->getInt("linkcount"),
+              gds->getInt("totallinkcount"));
+    EXPECT_EQ(gds->getInt("buscount"), 0);
+}
+
+TEST(ExampleReaderTests, LoadEpcAreaDefinitions)
+{
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    const auto filePath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds, filePath.string());
+
+    ASSERT_EQ(gds->getInt("totalareacount"), 1);
+    auto* area = gds->getGridArea(0);
+    ASSERT_NE(area, nullptr);
+    EXPECT_EQ(area->getInt("buscount"), 14);
+    expectInternalLinksBelongToArea(area);
+    const auto internalLinkCount = area->getInt("linkcount");
+    EXPECT_EQ(internalLinkCount + gds->getInt("linkcount"),
+              gds->getInt("totallinkcount"));
+    EXPECT_EQ(gds->getInt("buscount"), 0);
+}
+
+TEST(ExampleReaderTests, LoadMatPowerAreaDefinitions)
+{
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    const auto filePath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "matlab_test_files" / "case24_ieee_rts.m";
+
+    ASSERT_TRUE(std::filesystem::exists(filePath));
+    griddyn::loadFile(gds, filePath.string());
+
+    ASSERT_EQ(gds->getInt("totalareacount"), 4);
+    const std::array<int, 4> expectedBusCounts{6, 4, 7, 7};
+    for (size_t ii = 0; ii < expectedBusCounts.size(); ++ii) {
+        auto* area = gds->getGridArea(static_cast<index_t>(ii));
+        ASSERT_NE(area, nullptr);
+        EXPECT_EQ(area->getInt("buscount"), expectedBusCounts[ii]);
+    }
+    EXPECT_EQ(gds->getInt("buscount"), 0);
 }
 
 TEST(ExampleReaderTests, LoadDynamicImportExampleWithoutRunningDynamics)

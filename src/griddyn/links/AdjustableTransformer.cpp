@@ -1127,11 +1127,11 @@ void AdjustableTransformer::tapPartial(index_t busId,
 
     auto offset = offsets.getAlgOffset(sMode);
 
-    double realPower1 = ((g + (0.5 * mp_G)) / (tap * tap)) * voltage1 * voltage1;
+    double realPower1 = ((g + shuntG1()) / (tap * tap)) * voltage1 * voltage1;
     realPower1 -= tvg * cosTheta1;
     realPower1 -= tvb * sinTheta1;
 
-    double reactivePower1 = (-(b + (0.5 * mp_B)) / (tap * tap)) * voltage1 * voltage1;
+    double reactivePower1 = (-(b + shuntB1()) / (tap * tap)) * voltage1 * voltage1;
     reactivePower1 -= tvg * sinTheta1;
     reactivePower1 += tvb * cosTheta1;
 
@@ -1145,11 +1145,11 @@ void AdjustableTransformer::tapPartial(index_t busId,
     } else {
         // dP1/dtap
         double temp =
-            (-realPower1 / tap) - (((g + (0.5 * mp_G)) / (tap * tap * tap)) * voltage1 * voltage1);
+            (-realPower1 / tap) - ((g + shuntG1()) / (tap * tap * tap)) * voltage1 * voltage1;
         matrixDataRef.assign(POUT_LOCATION, offset, temp);
         // dQ1/dtap
         temp = (-reactivePower1 / tap) +
-            (((b + (0.5 * mp_B)) / (tap * tap * tap)) * voltage1 * voltage1);
+            ((b + shuntB1()) / (tap * tap * tap)) * voltage1 * voltage1;
         matrixDataRef.assign(QOUT_LOCATION, offset, temp);
     }
 }
@@ -1186,7 +1186,7 @@ void AdjustableTransformer::MWJac(const StateData& /*sD*/,
 
     // dP1/dV1
     temp = ((-voltage2 * ((g * cosTheta1) + (b * sinTheta1))) / tap) +
-        ((2 * (g + (mp_G * 0.5)) / (tap * tap)) * voltage1);
+        ((2 * (g + shuntG1()) / (tap * tap)) * voltage1);
     matrixDataRef.assignCheckCol(offset, bus1VoltageOffset, temp);
 
     // dP1/dA2
@@ -1223,11 +1223,11 @@ void AdjustableTransformer::MVarJac(const StateData& /*sD*/,
     const int bus1VoltageOffset = B1->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
     const int bus2VoltageOffset = B2->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
     /*
-double P1 = (g + 0.5 * mp_G) / (tap * tap) * v1 * v1;
+double P1 = (g + shuntG1()) / (tap * tap) * v1 * v1;
 P1 -= tvg * cosTheta1;
 P1 -= tvb * sinTheta1;
 
-double Q1 = -(b + 0.5 * mp_B) / (tap * tap) * v1 * v1;
+double Q1 = -(b + shuntB1()) / (tap * tap) * v1 * v1;
 Q1 -= tvg * sinTheta1;
 Q1 += tvb * cosTheta1;
 */
@@ -1248,7 +1248,7 @@ Q1 += tvb * cosTheta1;
     matrixDataRef.assignCheckCol(offset, bus2AngleOffset, temp);
 
     // dQ2/dV2
-    temp = (-2.0 * (b + (0.5 * mp_B)) * voltage2) - ((g * voltage1 / tap) * sinTheta2) +
+        temp = (-2.0 * (b + shuntB2()) * voltage2) - ((g * voltage1 / tap) * sinTheta2) +
         ((b * voltage1 / tap) * cosTheta2);
     matrixDataRef.assignCheckCol(offset, bus2VoltageOffset, temp);
 }

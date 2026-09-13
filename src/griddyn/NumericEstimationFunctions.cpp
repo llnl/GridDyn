@@ -15,9 +15,9 @@ namespace griddyn {
 namespace {
     void appendStateRange(std::vector<index_t>& states, index_t offset, index_t count)
     {
-        auto stateRange = std::views::iota(index_t{0}, count) |
-            std::views::transform([offset](index_t stateIndex) { return offset + stateIndex; });
-        std::ranges::copy(stateRange, std::back_inserter(states));
+        states.append_range(std::views::iota(index_t{0}, count) |
+                            std::views::transform(
+                                [offset](index_t stateIndex) { return offset + stateIndex; }));
     }
 }  // namespace
 

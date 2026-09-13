@@ -74,14 +74,13 @@ provided with the default to the regular call
         using gmlc::utilities::ensureSizeAtLeast;
         using gmlc::utilities::stringOps::findCloseStringMatch;
         using gmlc::utilities::stringOps::string_match_type;
-        const auto makeIndexedName = [](std::string_view prefix,
-                                        index_t index,
-                                        std::string_view suffix = {}) {
-            std::string indexedName{prefix};
-            gmlc::utilities::stringOps::appendInteger(indexedName, index);
-            indexedName += suffix;
-            return indexedName;
-        };
+        const auto makeIndexedName =
+            [](std::string_view prefix, index_t index, std::string_view suffix = {}) {
+                std::string indexedName{prefix};
+                gmlc::utilities::stringOps::appendInteger(indexedName, index);
+                indexedName += suffix;
+                return indexedName;
+            };
 
         auto ostrings = fmisub->getOutputNames();
         auto istrings = fmisub->getInputNames();
@@ -120,8 +119,8 @@ provided with the default to the regular call
                     } else {
                         BaseObj::log(this,
                                      PrintLevel::WARNING,
-                                     "unable to match inputs for " +
-                                         makeIndexedName("input#", ii) + "(" + iNames[ii][0] + ")");
+                                     "unable to match inputs for " + makeIndexedName("input#", ii) +
+                                         "(" + iNames[ii][0] + ")");
                     }
                 }
             } else {
@@ -140,9 +139,8 @@ provided with the default to the regular call
                     } else {
                         BaseObj::log(this,
                                      PrintLevel::WARNING,
-                                     "unable to match inputs for " +
-                                         makeIndexedName("input#", ii) + "(" +
-                                         inputNames_specified[ii] + ")");
+                                     "unable to match inputs for " + makeIndexedName("input#", ii) +
+                                         "(" + inputNames_specified[ii] + ")");
                     }
                 }
             }

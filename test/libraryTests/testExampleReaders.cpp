@@ -175,8 +175,8 @@ TEST(ExampleReaderTests, LoadMatPowerAreaDefinitions)
 
 TEST(ExampleReaderTests, MatPowerPreservesBusVoltageAndUnconstrainedAngles)
 {
-    const auto filePath = std::filesystem::temp_directory_path() /
-        "griddyn_matpower_voltage_angle_limits.m";
+    const auto filePath =
+        std::filesystem::temp_directory_path() / "griddyn_matpower_voltage_angle_limits.m";
     {
         std::ofstream output(filePath);
         ASSERT_TRUE(output.is_open());

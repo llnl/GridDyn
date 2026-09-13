@@ -68,8 +68,10 @@ enum ReaderFlags {
     IGNORE_STEP_UP_TRANSFORMER = 1,  //!< ignore any step up transformer definitions
     ASSUME_POWERFLOW_ONLY =
         4,  //!< specify that some object construction may assume it will never be used for dynamics
+    USE_BUS_VOLTAGE_TARGETS =
+        5,  //!< use the bus voltage specification instead of generator VG targets
     NO_GENERATOR_BUS_VOLTAGE_RESET =
-        5,  //!< do not use generator specification to alter bus voltages
+        USE_BUS_VOLTAGE_TARGETS,  //!< legacy alias for USE_BUS_VOLTAGE_TARGETS
 
 };
 

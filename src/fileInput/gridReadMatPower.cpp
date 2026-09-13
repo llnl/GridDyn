@@ -242,18 +242,10 @@ namespace {
                 }
                 load->set("yq", -busData[5], MVAR);
             }
-            // Keep the bus record's voltage and angle as the initial operating
-            // point and local target.  This is the convention used by the
-            // RAW and EPC readers; generator VG is a generator setpoint and
-            // must not overwrite the bus operating point while generators are
-            // loaded.
-            if (busData[8] != 0.0) {
-                bus->set("angle", convert(busData[8], deg, rad));
-            }
-            if (busData[7] != 0.0) {
-                bus->set("vtarget", busData[7]);
-                bus->set("voltage", busData[7]);
-            }
+            // The MATPOWER bus record supplies the initial operating point;
+            // an active generator's VG value is applied later as the PV/slack
+            // voltage target.
+            bus->setVoltageAngle(busData[7], convert(busData[8], deg, rad));
             if (busData[11] != 0.0) {
                 bus->set("vmax", busData[11]);
             }
@@ -326,6 +318,15 @@ namespace {
             }
             if (genLine[7] <= 0.0) {
                 gen->disable();
+                if (genLine[5] != 1.0) {
+                    if (!bri.checkFlag(USE_BUS_VOLTAGE_TARGETS)) {
+                        bus->set("vtarget", genLine[5]);
+                    }
+                }
+            } else {
+                if (!bri.checkFlag(USE_BUS_VOLTAGE_TARGETS)) {
+                    bus->set("vtarget", genLine[5]);
+                }
             }
 
             // MATPOWER/PYPOWER PMAX and PMIN are optimization limits, and

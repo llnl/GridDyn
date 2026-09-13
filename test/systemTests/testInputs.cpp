@@ -392,9 +392,15 @@ static void runCompareCase(GridDynSimulationTestFixture& fixture, const CompareC
 
         int count = fixture.gds2->getInt("totalbuscount");
         EXPECT_EQ(count, bcount);
+        std::vector<GridBus*> compareBuses;
+        std::vector<GridBus*> referenceBuses;
+        fixture.gds2->getBusVector(compareBuses);
+        fixture.gds->getBusVector(referenceBuses);
+        ASSERT_EQ(compareBuses.size(), static_cast<size_t>(count));
+        ASSERT_EQ(referenceBuses.size(), static_cast<size_t>(bcount));
         for (index_t busIndex = 0; busIndex < count; ++busIndex) {
-            auto* compareBusObject = fixture.gds2->getBus(busIndex);
-            auto* referenceBusObject = fixture.gds->getBus(busIndex);
+            auto* compareBusObject = compareBuses[busIndex];
+            auto* referenceBusObject = referenceBuses[busIndex];
             auto busesMatch = compareBus(compareBusObject, referenceBusObject, false);
             if (!busesMatch) {
             }

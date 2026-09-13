@@ -173,7 +173,7 @@ TEST(ExampleReaderTests, LoadMatPowerAreaDefinitions)
     EXPECT_EQ(gds->getInt("buscount"), 0);
 }
 
-TEST(ExampleReaderTests, MatPowerPreservesBusVoltageAndUnconstrainedAngles)
+TEST(ExampleReaderTests, MatPowerVoltageTargetPolicies)
 {
     const auto filePath =
         std::filesystem::temp_directory_path() / "griddyn_matpower_voltage_angle_limits.m";
@@ -202,9 +202,19 @@ TEST(ExampleReaderTests, MatPowerPreservesBusVoltageAndUnconstrainedAngles)
     auto* bus = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 1));
     ASSERT_NE(bus, nullptr);
     EXPECT_DOUBLE_EQ(bus->getVoltage(), 1.0);
-    EXPECT_DOUBLE_EQ(bus->get("vtarget"), 1.0);
+    EXPECT_DOUBLE_EQ(bus->get("vtarget"), 1.05);
     EXPECT_DOUBLE_EQ(bus->get("vmax"), 1.1);
     EXPECT_DOUBLE_EQ(bus->get("vmin"), 0.9);
+
+    griddyn::ReaderInfo readerInfo;
+    griddyn::addFlags(readerInfo, "use_bus_voltage_targets");
+    auto busTargetGds = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(busTargetGds, filePath.string(), &readerInfo);
+    auto* busTargetBus =
+        dynamic_cast<griddyn::GridBus*>(busTargetGds->findByUserID("bus", 1));
+    ASSERT_NE(busTargetBus, nullptr);
+    EXPECT_DOUBLE_EQ(busTargetBus->getVoltage(), 1.0);
+    EXPECT_DOUBLE_EQ(busTargetBus->get("vtarget"), 1.0);
 
     auto* link = dynamic_cast<griddyn::AcLine*>(gds->findByUserID("link", 1));
     ASSERT_NE(link, nullptr);
@@ -220,7 +230,7 @@ TEST(ExampleReaderTests, MatPowerPreservesBusVoltageAndUnconstrainedAngles)
     std::filesystem::remove(filePath, ec);
 }
 
-TEST(ExampleReaderTests, PyPowerUsesMatPowerVoltageAndAngleSemantics)
+TEST(ExampleReaderTests, PyPowerVoltageTargetPolicies)
 {
     const auto filePath = std::filesystem::temp_directory_path() /
         "griddyn_pypower_voltage_angle_limits.py";
@@ -249,9 +259,19 @@ TEST(ExampleReaderTests, PyPowerUsesMatPowerVoltageAndAngleSemantics)
     auto* bus = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 1));
     ASSERT_NE(bus, nullptr);
     EXPECT_DOUBLE_EQ(bus->getVoltage(), 1.0);
-    EXPECT_DOUBLE_EQ(bus->get("vtarget"), 1.0);
+    EXPECT_DOUBLE_EQ(bus->get("vtarget"), 1.05);
     EXPECT_DOUBLE_EQ(bus->get("vmax"), 1.1);
     EXPECT_DOUBLE_EQ(bus->get("vmin"), 0.9);
+
+    griddyn::ReaderInfo readerInfo;
+    griddyn::addFlags(readerInfo, "use_bus_voltage_targets");
+    auto busTargetGds = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(busTargetGds, filePath.string(), &readerInfo);
+    auto* busTargetBus =
+        dynamic_cast<griddyn::GridBus*>(busTargetGds->findByUserID("bus", 1));
+    ASSERT_NE(busTargetBus, nullptr);
+    EXPECT_DOUBLE_EQ(busTargetBus->getVoltage(), 1.0);
+    EXPECT_DOUBLE_EQ(busTargetBus->get("vtarget"), 1.0);
 
     auto* link = dynamic_cast<griddyn::AcLine*>(gds->findByUserID("link", 1));
     ASSERT_NE(link, nullptr);

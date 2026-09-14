@@ -15,11 +15,13 @@
 #include <cassert>
 #include <cstdio>
 #include <fstream>
+#include <iterator>
 #include <memory>
 #include <print>
 #include <ranges>
 #include <string>
 #include <utility>
+#include <version>
 #include <vector>
 
 namespace griddyn {
@@ -629,9 +631,14 @@ namespace {
 
     void appendStateRange(std::vector<index_t>& localStates, index_t offset, index_t count)
     {
-        localStates.append_range(
+        auto stateRange =
             std::views::iota(index_t{0}, count) |
-            std::views::transform([offset](index_t stateIndex) { return offset + stateIndex; }));
+            std::views::transform([offset](index_t stateIndex) { return offset + stateIndex; });
+#if defined(__cpp_lib_containers_ranges) && (__cpp_lib_containers_ranges >= 202202L)
+        localStates.append_range(stateRange);
+#else
+        std::ranges::copy(stateRange, std::back_inserter(localStates));
+#endif
     }
 
     std::vector<const GridComponent*> getSubComponents(const GridComponent* comp)

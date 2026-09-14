@@ -8,16 +8,24 @@
 
 #include "GridComponent.h"
 #include "utilities/MatrixData.hpp"
+#include <algorithm>
+#include <iterator>
 #include <ranges>
+#include <version>
 #include <vector>
 
 namespace griddyn {
 namespace {
     void appendStateRange(std::vector<index_t>& states, index_t offset, index_t count)
     {
-        states.append_range(
+        auto stateRange =
             std::views::iota(index_t{0}, count) |
-            std::views::transform([offset](index_t stateIndex) { return offset + stateIndex; }));
+            std::views::transform([offset](index_t stateIndex) { return offset + stateIndex; });
+#if defined(__cpp_lib_containers_ranges) && (__cpp_lib_containers_ranges >= 202202L)
+        states.append_range(stateRange);
+#else
+        std::ranges::copy(stateRange, std::back_inserter(states));
+#endif
     }
 }  // namespace
 

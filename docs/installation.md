@@ -12,13 +12,18 @@ External software packages needing installation prior to compilation of GridDyn 
 
 Boost can be downloaded from [Boost](www.boost.org). Many of the features in GridDyn will work with older versions but going forward we will be making use of some features from Boost 1.61 and will use that as the baseline going forward. SUNDIALS can downloaded at [sundial](http://computation.llnl.gov/sundials). GridDyn requires version 2.6.2, but will be upgraded to the new version when it is released in the near future. SUNDIALS should be built with KLU support enabled for reasonable performance. KLU is part of SuiteSparse, on most Linux type systems it can be installed as a package. On Windows, cmake files can be found at [KLU](https://github.com/jlblancoc/suitesparse-metis-for-windows).
 
-GridDyn uses a cmake build system to construct build files for whatever platform you happen to be on (assuming it is supported by cmake)
-GridDyn uses C++11 extensively and will make use of some C++14 features in the near future. Therefore, required future compilers are
+GridDyn uses CMake to construct build files for the supported platforms.
+GridDyn requires a 64-bit build and C++23 or newer. The minimum compiler
+versions enforced by CMake are:
 
-- Visual Studio 2015
-- gcc 4.9.3 or higher (4.8 works for the moment but will not in near future updates)
-- clang 3.5 or higher (openMP must be turned off to use 3.4)
-- Intel 16.0 (not thoroughly tested as of yet)
+- GCC 14 or newer
+- Clang 18 or newer
+- a Visual Studio toolset with C++23 support
+
+C++23 library support varies between compiler releases. GridDyn uses
+feature-test checks where necessary so that the GCC 14 toolchain remains
+supported while newer standard libraries can provide newer library
+implementations.
 
 ## CMake options
 

@@ -386,7 +386,7 @@ Required contents:
   source reactance overwriting DYR `Xd`.
 - Focused unsaturated/saturated initialization, derivative, residual,
   algebraic, Jacobian, invalid-parameter, factory, and saturation tests.
-- A dedicated `AndesCompatibilityTests` target and an IEEE 14 test that loads
+- A dedicated `ModelComparisonTests` target and an IEEE 14 test that loads
   the RAW plus the five extracted GENROU DYR records, asserts the model type,
   and compares all eight initialized states, field voltage, and mechanical
   power with ANDES at `1e-6`.
@@ -398,13 +398,13 @@ Primary GridDyn artifacts after merge:
 - `src/fileInput/gridDynReadDYR.cpp`
 - `test/componentTests/testGenModels.cpp`
 - `test/libraryTests/testSaturation.cpp`
-- `test/andesTests/testAndesDyrReader.cpp`
-- `test/test_files/andes_tests/ieee14.raw`
-- `test/test_files/andes_tests/ieee14_genrou.dyr`
-- `test/test_files/andes_tests/andes_ieee14_genrou_reference.json`
+- `test/comparisonTests/testModelComparison.cpp`
+- `test/test_files/comparison_tests/ieee14.raw`
+- `test/test_files/comparison_tests/ieee14_genrou.dyr`
+- `test/test_files/comparison_tests/ieee14_genrou_reference.json`
 
 Merge gate: `LibraryTests`, `GeneratorComponentTests`, and
-`AndesCompatibilityTests` pass. The current implementation has passed all
+`ModelComparisonTests` pass. The current implementation has passed all
 three targets. Full network/controller trajectory parity is intentionally not
 part of PR 1.
 
@@ -445,7 +445,7 @@ Independent tests:
 
 Likely touchpoints include `src/fileInput/gridDynReadRAW.cpp`,
 `src/fileInput/gridDynReadDYR.cpp`, generator identity/storage classes, and
-`test/andesTests/`. Do not implement governors, exciters, stabilizers, or
+`test/comparisonTests/`. Do not implement governors, exciters, stabilizers, or
 `Toggle` in this PR.
 
 Merge gate: the controller-free case reaches dynamic completion, initialization
@@ -555,8 +555,8 @@ Each model must provide:
 - A minimized GENROU+exciter voltage-reference-step trajectory. ESST3A and
   EXST1 tests must pass independently of each other.
 
-Cross-simulator fixtures belong in `test/andesTests/` and
-`test/test_files/andes_tests/`; generic equation tests may live with exciter
+Cross-simulator fixtures belong in `test/comparisonTests/` and
+`test/test_files/comparison_tests/`; generic equation tests may live with exciter
 component tests. Do not add IEEEG1 or stabilizer implementations in this PR.
 
 Merge gate: all five IEEE 14 generators can attach and initialize the correct
@@ -785,8 +785,8 @@ For any new task working on PR 2 through PR 6:
    section completely. Capture reference values deliberately; never import or
    execute ANDES from the regular GridDyn C++ test.
 5. Keep ANDES comparison tests out of the generic element-reader fixture
-   folder. Use `test/andesTests/` and
-   `test/test_files/andes_tests/`; keep reusable component equation tests with
+   folder. Use `test/comparisonTests/` and
+   `test/test_files/comparison_tests/`; keep reusable component equation tests with
    their normal GridDyn component test target.
 6. Compare initialization before trajectories. A successful solve alone is
    not evidence of compatibility.
@@ -830,7 +830,7 @@ cmd /v:on /c "set PATH=& set Path=& ""C:\Program Files\CMake\bin\cmake.exe"" --b
 - The DYR reader creates the registered `GenModelGENROU` and applies the DYR
   machine parameters after attachment so RAW stator data is retained without
   allowing the RAW source reactance to overwrite `Xd`. A dedicated
-  `AndesCompatibilityTests` regression loads the ANDES IEEE 14-bus RAW file
+  `ModelComparisonTests` regression loads the ANDES IEEE 14-bus RAW file
   and five GENROU records, then compares all eight initialized machine states,
   field voltage, and mechanical power with captured ANDES v2.0.0 values at
   `1e-6`. The test supplies the captured ANDES terminal operating points to
@@ -885,8 +885,8 @@ records the lower-level GENROU work already completed or assigned to PR 2.
 | DYR parsing and attachment | **Partial:** GENROU creates the dedicated model, applies parameters in the correct RAW/DYR order, and shares exact bus-plus-machine-ID lookup with all supported DYR models. A schema-backed adapter registry and broader malformed/duplicate-record diagnostics remain.                                                         |
 | Native ANDES import        | Extend the ANDES JSON reader's dynamic-object dispatch to build the same registered machine/controller classes and control connections used by DYR adapters.                                                                                                                                                                     |
 | Model tests                | **Mostly done:** focused equation, Jacobian, initialization, saturation, invalid-parameter, and factory tests are present; add a disturbed-trajectory reference and clone regression as the model is integrated.                                                                                                                 |
-| Reader tests               | **Partial:** `test/andesTests/testAndesDyrReader.cpp` is a dedicated RAW/DYR GENROU attachment and initialization test. Add parser edge cases and disturbed trajectories as support expands.                                                                                                                                     |
-| Numerical references       | **Partial:** the IEEE 14-bus RAW input, minimized GENROU DYR input, captured GENROU initialization reference, and first GENROU+TGOV1 trajectory reference are stored under `test/test_files/andes_tests/` and run without importing ANDES. Add trajectories for the remaining controllers and cleared network disturbances next. |
+| Reader tests               | **Partial:** `test/comparisonTests/testModelComparison.cpp` is a dedicated RAW/DYR GENROU attachment and initialization test. Add parser edge cases and disturbed trajectories as support expands.                                                                                                                                     |
+| Numerical references       | **Partial:** the IEEE 14-bus RAW input, minimized GENROU DYR input, captured GENROU initialization reference, and first GENROU+TGOV1 trajectory reference are stored under `test/test_files/comparison_tests/` and run without importing ANDES. Add trajectories for the remaining controllers and cleared network disturbances next. |
 
 ### Planned GENROU reference cases
 
@@ -1059,7 +1059,7 @@ accepting a power-flow/dynamic reference.
 ## Numerical-regression policy
 
 - Keep minimized ANDES-derived input cases and captured reference results in
-  `test/test_files/andes_tests/`.
+  `test/test_files/comparison_tests/`.
 - The regular C++ tests must not execute ANDES. Refresh a reference only by
   running the documented ANDES case deliberately and reviewing the diff.
 - Each reference file stores its tolerance. Start with `1e-6` p.u. for
@@ -1089,9 +1089,9 @@ wrong model attachment, or a different post-event equilibrium.
 
 | Case                       | Coverage                                                                 |
 | -------------------------- | ------------------------------------------------------------------------ |
-| `andes_kundur_vsc_pflow`   | 10-bus AC network, DC resistor, PQ/VQ VSC controls, and AC/DC coupling.  |
-| `andes_two_bus_pflow`      | Minimal AC Slack/PQ/Line power flow.                                     |
-| `andes_shunt_pflow`        | Fixed conductance/susceptance shunt with non-system `Sn`/`Vn` bases.     |
-| `andes_jumper_pflow`       | Active and inactive zero-impedance jumpers in a loaded AC network.       |
-| `andes_vsc_resistor_pflow` | Minimal AC/DC `VSCShunt` plus DC resistance power flow.                  |
-| `andes_ieee14_genrou`      | Five PSS/e DYR GENROU attachments and initialized machine states/inputs. |
+| `kundur_vsc_pflow`         | 10-bus AC network, DC resistor, PQ/VQ VSC controls, and AC/DC coupling.  |
+| `two_bus_pflow`             | Minimal AC Slack/PQ/Line power flow.                                     |
+| `shunt_pflow`               | Fixed conductance/susceptance shunt with non-system `Sn`/`Vn` bases.     |
+| `jumper_pflow`              | Active and inactive zero-impedance jumpers in a loaded AC network.       |
+| `vsc_resistor_pflow`        | Minimal AC/DC `VSCShunt` plus DC resistance power flow.                  |
+| `ieee14_genrou`             | Five PSS/e DYR GENROU attachments and initialized machine states/inputs. |

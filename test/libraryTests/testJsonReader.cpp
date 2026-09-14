@@ -27,16 +27,16 @@
 
 static constexpr std::string_view elementReaderTestDirectory{GRIDDYN_TEST_DIRECTORY
                                                              "/element_reader_tests/"};
-static constexpr std::string_view andesTestDirectory{GRIDDYN_TEST_DIRECTORY "/andes_tests/"};
+static constexpr std::string_view comparisonTestDirectory{GRIDDYN_TEST_DIRECTORY "/comparison_tests/"};
 
 static std::string makeElementReaderTestPath(std::string_view fileName)
 {
     return std::string{elementReaderTestDirectory} + std::string{fileName};
 }
 
-static std::string makeAndesTestPath(std::string_view fileName)
+static std::string makeComparisonTestPath(std::string_view fileName)
 {
-    return std::string{andesTestDirectory} + std::string{fileName};
+    return std::string{comparisonTestDirectory} + std::string{fileName};
 }
 
 TEST(JsonElementReaderTests, JsonElementReaderTest1)
@@ -212,10 +212,10 @@ TEST(JsonElementReaderTests, JsonElementReaderTest4)
     */
 }
 
-TEST(AndesDcReaderTests, ImportsAllAndesDcComponents)
+TEST(DcReaderComparisonTests, ImportsAllAndesDcComponents)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("andes_dc_components.json"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("dc_components.json"));
 
     EXPECT_NE(dynamic_cast<griddyn::DcBus*>(simulation->find("ground_node")), nullptr);
     EXPECT_NE(dynamic_cast<griddyn::DcBus*>(simulation->find("node1")), nullptr);
@@ -229,7 +229,7 @@ TEST(AndesDcReaderTests, ImportsAllAndesDcComponents)
     EXPECT_EQ(vsc->getBus(3)->getName(), "ground_node");
 }
 
-TEST(AndesVSCShuntTests, MatchesAndesPqReferencePoint)
+TEST(VSCShuntComparisonTests, MatchesAndesPqReferencePoint)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
     auto* acBus = new griddyn::AcBus("ac");
@@ -268,7 +268,7 @@ TEST(AndesVSCShuntTests, MatchesAndesPqReferencePoint)
     EXPECT_NEAR(converter->getReactivePower(1), 0.0, 1e-9);
 }
 
-TEST(AndesVSCShuntTests, MatchesKundurVsc2OperatingPoint)
+TEST(VSCShuntComparisonTests, MatchesKundurVsc2OperatingPoint)
 {
     // Boundary values and expected current were obtained from a one-worker
     // Andes PFlow run of andes/cases/kundur/kundur_vsc.json.  Pinning the
@@ -310,16 +310,16 @@ TEST(AndesVSCShuntTests, MatchesKundurVsc2OperatingPoint)
     EXPECT_NEAR(converter->getReactivePower(1), 0.0, 1e-9);
 }
 
-TEST(AndesPowerFlowTests, MatchesCapturedKundurVscReference)
+TEST(PowerFlowComparisonTests, MatchesCapturedKundurVscReference)
 {
-    std::ifstream input(makeAndesTestPath("andes_kundur_vsc_pflow_reference.json"));
+    std::ifstream input(makeComparisonTestPath("kundur_vsc_pflow_reference.json"));
     ASSERT_TRUE(input.is_open());
     nlohmann::json reference;
     input >> reference;
     const auto tolerance = reference.at("tolerance").get<double>();
 
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("andes_kundur_vsc_pflow.json"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("kundur_vsc_pflow.json"));
     ASSERT_EQ(simulation->powerflow(), 0);
 
     for (std::size_t index = 0; index < reference.at("bus_voltage").size(); ++index) {
@@ -356,16 +356,16 @@ TEST(AndesPowerFlowTests, MatchesCapturedKundurVscReference)
     }
 }
 
-TEST(AndesPowerFlowTests, MatchesCapturedTwoBusReference)
+TEST(PowerFlowComparisonTests, MatchesCapturedTwoBusReference)
 {
-    std::ifstream input(makeAndesTestPath("andes_two_bus_pflow_reference.json"));
+    std::ifstream input(makeComparisonTestPath("two_bus_pflow_reference.json"));
     ASSERT_TRUE(input.is_open());
     nlohmann::json reference;
     input >> reference;
     const auto tolerance = reference.at("tolerance").get<double>();
 
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("andes_two_bus_pflow.json"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("two_bus_pflow.json"));
     ASSERT_EQ(simulation->powerflow(), 0);
 
     const std::array<std::string, 2> busNames{"slack_bus", "load_bus"};
@@ -377,16 +377,16 @@ TEST(AndesPowerFlowTests, MatchesCapturedTwoBusReference)
     }
 }
 
-TEST(AndesPowerFlowTests, MatchesCapturedShuntReference)
+TEST(PowerFlowComparisonTests, MatchesCapturedShuntReference)
 {
-    std::ifstream input(makeAndesTestPath("andes_shunt_pflow_reference.json"));
+    std::ifstream input(makeComparisonTestPath("shunt_pflow_reference.json"));
     ASSERT_TRUE(input.is_open());
     nlohmann::json reference;
     input >> reference;
     const auto tolerance = reference.at("tolerance").get<double>();
 
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("andes_shunt_pflow.json"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("shunt_pflow.json"));
     ASSERT_EQ(simulation->powerflow(), 0);
 
     const std::array<std::string, 2> busNames{"slack_bus", "shunt_bus"};
@@ -405,16 +405,16 @@ TEST(AndesPowerFlowTests, MatchesCapturedShuntReference)
     EXPECT_NEAR(shunt->getReactivePower(), reference["shunt_q"].get<double>(), tolerance);
 }
 
-TEST(AndesPowerFlowTests, MatchesCapturedJumperReference)
+TEST(PowerFlowComparisonTests, MatchesCapturedJumperReference)
 {
-    std::ifstream input(makeAndesTestPath("andes_jumper_pflow_reference.json"));
+    std::ifstream input(makeComparisonTestPath("jumper_pflow_reference.json"));
     ASSERT_TRUE(input.is_open());
     nlohmann::json reference;
     input >> reference;
     const auto tolerance = reference.at("tolerance").get<double>();
 
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("andes_jumper_pflow.json"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("jumper_pflow.json"));
     ASSERT_EQ(simulation->powerflow(), 0);
 
     const std::array<std::string, 3> busNames{"slack_bus", "jumper_bus", "load_bus"};
@@ -443,16 +443,16 @@ TEST(AndesPowerFlowTests, MatchesCapturedJumperReference)
               tolerance);
 }
 
-TEST(AndesPowerFlowTests, MatchesCapturedVscResistorReference)
+TEST(PowerFlowComparisonTests, MatchesCapturedVscResistorReference)
 {
-    std::ifstream input(makeAndesTestPath("andes_vsc_resistor_pflow_reference.json"));
+    std::ifstream input(makeComparisonTestPath("vsc_resistor_pflow_reference.json"));
     ASSERT_TRUE(input.is_open());
     nlohmann::json reference;
     input >> reference;
     const auto tolerance = reference.at("tolerance").get<double>();
 
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("andes_vsc_resistor_pflow.json"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("vsc_resistor_pflow.json"));
     ASSERT_EQ(simulation->powerflow(), 0);
 
     auto* acBus = dynamic_cast<griddyn::AcBus*>(simulation->find("ac_slack"));

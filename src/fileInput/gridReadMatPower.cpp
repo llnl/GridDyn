@@ -7,6 +7,7 @@
 #include "core/ObjectFactoryTemplates.hpp"
 #include "fileInput.h"
 #include "griddyn/Generator.h"
+#include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/griddyn-config.h"
 #include "griddyn/links/AcLine.h"
@@ -26,6 +27,7 @@
 #include <compare>
 #include <cstdlib>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace griddyn {
@@ -40,11 +42,42 @@ using mArray = std::vector<std::vector<double>>;
 
 namespace {
 
+    using AreaMap = std::unordered_map<int, GridArea*>;
+
+    CoreObject* getMatPowerLinkParent(CoreObject* parentObject, Link* link)
+    {
+        if ((link == nullptr) || (link->terminalCount() != 2)) {
+            return parentObject;
+        }
+
+        auto* bus1 = link->getBus(1);
+        auto* bus2 = link->getBus(2);
+        auto* area1 = (bus1 != nullptr) ? dynamic_cast<GridArea*>(bus1->getParent()) : nullptr;
+        auto* area2 = (bus2 != nullptr) ? dynamic_cast<GridArea*>(bus2->getParent()) : nullptr;
+        if ((area1 == nullptr) || (area1 != area2)) {
+            return parentObject;
+        }
+
+        for (auto* object = area1; object != nullptr;
+             object = dynamic_cast<GridArea*>(object->getParent())) {
+            if (object == parentObject) {
+                return area1;
+            }
+        }
+        return parentObject;
+    }
+
+    AreaMap createMatPowerAreas(CoreObject* parentObject,
+                                const mArray& areaData,
+                                const mArray& buses,
+                                const BasicReaderInfo& readerOptions);
+
     void loadBusArray(CoreObject* parentObject,
                       double basepower,
                       mArray& buses,
                       std::vector<GridBus*>& busList,
-                      const BasicReaderInfo& readerOptions);
+                      const BasicReaderInfo& readerOptions,
+                      const AreaMap& areas);
     int loadGenArray(CoreObject* parentObject,
                      mArray& gens,
                      std::vector<GridBus*>& busList,
@@ -77,10 +110,17 @@ void loadMatPower(CoreObject* parentObject,
         basepower = numeric_conversion(tstr, 0.0);
         parentObject->set("basepower", basepower);
     }
-    // now find the bus structure
-    if (readMatlabArray(basename + ".bus", filetext, matlabArrayData)) {
-        loadBusArray(parentObject, basepower, matlabArrayData, busList, readerOptions);
+    mArray busData;
+    mArray areaData;
+    readMatlabArray(basename + ".areas", filetext, areaData);
+    // Read the area definitions before creating buses so each bus can be placed
+    // directly into its owning GridArea.
+    if (readMatlabArray(basename + ".bus", filetext, busData)) {
+        const auto areas = createMatPowerAreas(parentObject, areaData, busData, readerOptions);
+        loadBusArray(parentObject, basepower, busData, busList, readerOptions, areas);
     }
+    // now find the remaining structures
+    matlabArrayData.clear();
     if (readMatlabArray(basename + ".gen", filetext, matlabArrayData)) {
         gencount = loadGenArray(parentObject, matlabArrayData, busList, readerOptions);
     }
@@ -94,11 +134,52 @@ void loadMatPower(CoreObject* parentObject,
 
 namespace {
 
+    AreaMap createMatPowerAreas(CoreObject* parentObject,
+                                const mArray& areaData,
+                                const mArray& buses,
+                                const BasicReaderInfo& readerOptions)
+    {
+        AreaMap areas;
+        auto addArea = [&](double value) {
+            const auto areaId = static_cast<int>(value);
+            if ((areaId <= 0) || areas.contains(areaId)) {
+                return;
+            }
+            auto areaName = "AREA_" + std::to_string(areaId);
+            if (!readerOptions.prefix.empty()) {
+                areaName = readerOptions.prefix + '_' + areaName;
+            }
+            auto* area = new GridArea(areaName);
+            try {
+                parentObject->add(area);
+            }
+            catch (const ObjectAddFailure&) {
+                addToParentWithRename(area, parentObject);
+            }
+            areas.emplace(areaId, area);
+        };
+
+        for (const auto& areaDataRow : areaData) {
+            if (!areaDataRow.empty()) {
+                addArea(areaDataRow[0]);
+            }
+        }
+        // MATPOWER stores the bus area in column 7.  Some cases omit mpc.areas,
+        // so retain those area IDs as usable placeholders as well.
+        for (const auto& busData : buses) {
+            if (busData.size() > 6) {
+                addArea(busData[6]);
+            }
+        }
+        return areas;
+    }
+
     void loadBusArray(CoreObject* parentObject,
                       double basepower,
                       mArray& buses,
                       std::vector<GridBus*>& busList,
-                      const BasicReaderInfo& /*readerOptions*/)
+                      const BasicReaderInfo& /*readerOptions*/,
+                      const AreaMap& areas)
     {
         GridLoad* load = nullptr;
         auto* busFactory = dynamic_cast<TypeFactory<GridBus>*>(
@@ -118,7 +199,14 @@ namespace {
                 busList[ind1]->set("basepower", basepower);
                 busList[ind1]->setName("Bus_" + std::to_string(ind1));
                 busList[ind1]->setUserID(ind1);
-                parentObject->add(busList[ind1]);
+                auto* busParent = parentObject;
+                if (busData.size() > 6) {
+                    if (const auto area = areas.find(static_cast<int>(busData[6]));
+                        area != areas.end()) {
+                        busParent = area->second;
+                    }
+                }
+                busParent->add(busList[ind1]);
             }
             GridBus* bus = busList[ind1];
             ind1 = static_cast<int>(busData[1]);
@@ -154,11 +242,16 @@ namespace {
                 }
                 load->set("yq", -busData[5], MVAR);
             }
-            // buses[kk][6] is the area which should be used at some point
-
+            // The MATPOWER bus record supplies the initial operating point;
+            // an active generator's VG value is applied later as the PV/slack
+            // voltage target.
             bus->setVoltageAngle(busData[7], convert(busData[8], deg, rad));
-            bus->set("vmax", busData[11]);
-            bus->set("vmin", busData[12]);
+            if (busData[11] != 0.0) {
+                bus->set("vmax", busData[11]);
+            }
+            if (busData[12] != 0.0) {
+                bus->set("vmin", busData[12]);
+            }
         }
     }
     /*
@@ -226,14 +319,13 @@ namespace {
             if (genLine[7] <= 0.0) {
                 gen->disable();
                 if (genLine[5] != 1.0) {
-                    if (!bri.checkFlag(NO_GENERATOR_BUS_VOLTAGE_RESET)) {
+                    if (!bri.checkFlag(USE_BUS_VOLTAGE_TARGETS)) {
                         bus->set("vtarget", genLine[5]);
                     }
                 }
             } else {
-                if (!bri.checkFlag(NO_GENERATOR_BUS_VOLTAGE_RESET)) {
+                if (!bri.checkFlag(USE_BUS_VOLTAGE_TARGETS)) {
                     bus->set("vtarget", genLine[5]);
-                    // bus->set("voltage", genLine[5]);
                 }
             }
 
@@ -397,7 +489,7 @@ COST                    5 parameters defining total cost function f(p) begin in 
             lnk->setUserID(linkIndex);
             lnk->updateBus(bus1, 1);
             lnk->updateBus(bus2, 2);
-            parentObject->add(lnk);
+            getMatPowerLinkParent(parentObject, lnk)->add(lnk);
             lnk->set("r", linkData[2]);
             lnk->set("x", linkData[3]);
             lnk->set("b", linkData[4]);
@@ -424,8 +516,18 @@ COST                    5 parameters defining total cost function f(p) begin in 
                 lnk->disconnect();
             }
             if (linkData.size() >= 13) {
-                lnk->set("minangle", linkData[11], deg);
-                lnk->set("maxangle", linkData[12], deg);
+                // MATPOWER uses an all-zero pair for an unconstrained angle
+                // limit.  Preserve a one-sided zero as an actual bound and
+                // use MATPOWER's explicit unbounded sentinel in GridDyn so
+                // optimization does not mistake the AcLine default for an
+                // imported constraint.
+                if ((linkData[11] == 0.0) && (linkData[12] == 0.0)) {
+                    lnk->set("minangle", -360.0, deg);
+                    lnk->set("maxangle", 360.0, deg);
+                } else {
+                    lnk->set("minangle", linkData[11], deg);
+                    lnk->set("maxangle", linkData[12], deg);
+                }
             }
         }
     }

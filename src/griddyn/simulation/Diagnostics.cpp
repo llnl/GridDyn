@@ -15,12 +15,14 @@
 #include <cassert>
 #include <cstdio>
 #include <fstream>
+#include <iterator>
 #include <memory>
 #include <print>
 #include <ranges>
 #include <string>
 #include <utility>
 #include <vector>
+#include <version>
 
 namespace griddyn {
 std::pair<double, int> checkResid(GridDynSimulation* gds, CoreTime time, const SolverMode& sMode)
@@ -631,7 +633,11 @@ namespace {
     {
         auto stateRange = std::views::iota(index_t{0}, count) |
             std::views::transform([offset](index_t stateIndex) { return offset + stateIndex; });
+#if defined(__cpp_lib_containers_ranges) && (__cpp_lib_containers_ranges >= 202202L)
+        localStates.append_range(stateRange);
+#else
         std::ranges::copy(stateRange, std::back_inserter(localStates));
+#endif
     }
 
     std::vector<const GridComponent*> getSubComponents(const GridComponent* comp)

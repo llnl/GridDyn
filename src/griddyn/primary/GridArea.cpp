@@ -405,7 +405,13 @@ CoreObject* GridArea::find(std::string_view objName) const
 CoreObject* GridArea::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "bus") {
-        return getBus(num);
+        // Indexed bus references are relative to the complete area view.  This
+        // matters when buses are stored in nested GridAreas: the solver also
+        // sees those buses through getBusVector(), while getBus() only covers
+        // the current area's direct children.
+        std::vector<GridBus*> buses;
+        getBusVector(buses);
+        return (isValidIndex(num, buses)) ? buses[num] : nullptr;
     }
     if (typeName == "link") {
         return getLink(num);
@@ -977,7 +983,7 @@ count_t GridArea::getVoltage(std::vector<double>& voltages, index_t start) const
     }
 
     auto bsize = static_cast<index_t>(m_Buses.size());
-    ensureSizeAtLeast(voltages, start + m_Buses.size());
+    ensureSizeAtLeast(voltages, start + cnt + m_Buses.size());
     for (index_t kk = 0; kk < bsize; ++kk) {
         voltages[static_cast<std::size_t>(start) + cnt + kk] = m_Buses[kk]->getVoltage();
     }
@@ -996,7 +1002,7 @@ count_t GridArea::getVoltage(std::vector<double>& voltages,
         cnt += area->getVoltage(voltages, state, sMode, start + cnt);
     }
     auto bsize = static_cast<index_t>(m_Buses.size());
-    ensureSizeAtLeast(voltages, start + bsize);
+    ensureSizeAtLeast(voltages, start + cnt + bsize);
 
     for (index_t kk = 0; kk < bsize; ++kk) {
         voltages[start + cnt + kk] = m_Buses[kk]->getVoltage(state, sMode);
@@ -1012,7 +1018,7 @@ count_t GridArea::getAngle(std::vector<double>& angles, index_t start) const
         cnt += area->getAngle(angles, start + cnt);
     }
     auto bsize = static_cast<index_t>(m_Buses.size());
-    ensureSizeAtLeast(angles, start + bsize);
+    ensureSizeAtLeast(angles, start + cnt + bsize);
     for (index_t kk = 0; kk < bsize; ++kk) {
         angles[start + cnt + kk] = m_Buses[kk]->getAngle();
     }
@@ -1030,7 +1036,7 @@ count_t GridArea::getAngle(std::vector<double>& angles,
         cnt += area->getAngle(angles, state, sMode, start + cnt);
     }
     auto bsize = static_cast<index_t>(m_Buses.size());
-    ensureSizeAtLeast(angles, start + bsize);
+    ensureSizeAtLeast(angles, start + cnt + bsize);
     for (index_t kk = 0; kk < bsize; ++kk) {
         angles[start + cnt + kk] = m_Buses[kk]->getAngle(state, sMode);
     }
@@ -1045,7 +1051,7 @@ count_t GridArea::getFreq(std::vector<double>& frequencies, index_t start) const
         cnt += area->getFreq(frequencies, start + cnt);
     }
     auto bsize = static_cast<index_t>(m_Buses.size());
-    ensureSizeAtLeast(frequencies, start + bsize);
+    ensureSizeAtLeast(frequencies, start + cnt + bsize);
     for (index_t kk = 0; kk < bsize; ++kk) {
         frequencies[start + cnt + kk] = m_Buses[kk]->getFreq();
     }
@@ -1082,7 +1088,7 @@ count_t GridArea::getLinkRealPower(std::vector<double>& powers, index_t start, i
         cnt += area->getLinkRealPower(powers, start + cnt, busNumber);
     }
     auto lsize = static_cast<index_t>(m_Links.size());
-    ensureSizeAtLeast(powers, start + lsize);
+    ensureSizeAtLeast(powers, start + cnt + lsize);
 
     for (index_t kk = 0; kk < lsize; ++kk) {
         powers[start + cnt + kk] = m_Links[kk]->getRealPower(busNumber);
@@ -1099,7 +1105,7 @@ count_t
         cnt += area->getLinkReactivePower(powers, start + cnt, busNumber);
     }
     auto lsize = static_cast<index_t>(m_Links.size());
-    ensureSizeAtLeast(powers, start + lsize);
+    ensureSizeAtLeast(powers, start + cnt + lsize);
     for (index_t kk = 0; kk < lsize; ++kk) {
         powers[start + cnt + kk] = m_Links[kk]->getReactivePower(busNumber);
     }
@@ -1114,7 +1120,7 @@ count_t GridArea::getBusGenerationReal(std::vector<double>& powers, index_t star
         cnt += area->getBusGenerationReal(powers, start + cnt);
     }
     auto bsize = static_cast<index_t>(m_Buses.size());
-    ensureSizeAtLeast(powers, start + bsize);
+    ensureSizeAtLeast(powers, start + cnt + bsize);
 
     for (index_t kk = 0; kk < bsize; ++kk) {
         powers[start + cnt + kk] = m_Buses[kk]->getGenerationReal();
@@ -1130,7 +1136,7 @@ count_t GridArea::getBusGenerationReactive(std::vector<double>& powers, index_t 
         cnt += area->getBusGenerationReactive(powers, start + cnt);
     }
     auto bsize = static_cast<index_t>(m_Buses.size());
-    ensureSizeAtLeast(powers, start + bsize);
+    ensureSizeAtLeast(powers, start + cnt + bsize);
     for (index_t kk = 0; kk < bsize; ++kk) {
         powers[start + cnt + kk] = m_Buses[kk]->getGenerationReactive();
     }
@@ -1145,7 +1151,7 @@ count_t GridArea::getBusLoadReal(std::vector<double>& powers, index_t start) con
         cnt += area->getBusLoadReal(powers, start + cnt);
     }
     auto bsize = static_cast<index_t>(m_Buses.size());
-    ensureSizeAtLeast(powers, start + bsize);
+    ensureSizeAtLeast(powers, start + cnt + bsize);
     for (index_t kk = 0; kk < bsize; ++kk) {
         powers[start + cnt + kk] = m_Buses[kk]->getLoadReal();
     }
@@ -1160,7 +1166,7 @@ count_t GridArea::getBusLoadReactive(std::vector<double>& powers, index_t start)
         cnt += area->getBusLoadReactive(powers, start + cnt);
     }
     auto bsize = static_cast<index_t>(m_Buses.size());
-    ensureSizeAtLeast(powers, start + bsize);
+    ensureSizeAtLeast(powers, start + cnt + bsize);
     for (index_t kk = 0; kk < bsize; ++kk) {
         powers[start + cnt + kk] = m_Buses[kk]->getLoadReactive();
     }
@@ -1177,9 +1183,9 @@ count_t GridArea::getLinkLoss(std::vector<double>& losses, index_t start) const
         }
     }
     auto lsize = static_cast<index_t>(m_Links.size());
-    ensureSizeAtLeast(losses, start + lsize);
+    ensureSizeAtLeast(losses, start + cnt + lsize);
     for (index_t kk = 0; kk < lsize; ++kk) {
-        losses[cnt + kk] = m_Links[kk]->getLoss();
+        losses[start + cnt + kk] = m_Links[kk]->getLoss();
     }
     return cnt + lsize;
 }
@@ -1191,7 +1197,7 @@ count_t GridArea::getBusName(stringVec& names, index_t start) const
         cnt += area->getBusName(names, start + cnt);
     }
     auto bsize = static_cast<index_t>(m_Buses.size());
-    ensureSizeAtLeast(names, start + bsize);
+    ensureSizeAtLeast(names, start + cnt + bsize);
     auto nmloc = names.begin() + start + cnt;
     for (auto* bus : m_Buses) {
         *nmloc = bus->getName();
@@ -1480,6 +1486,9 @@ void GridArea::rootTrigger(CoreTime time,
 
     auto currentRootObject = rootObjects.begin();
     auto obend = rootObjects.end();
+    if (currentRootObject == obend) {
+        return;
+    }
     auto ors = (*currentRootObject)->rootSize(sMode);
     opFlags.set(DISABLE_FLAG_UPDATES);  // root triggers can cause a flag change and the flag update
                                         // currently
@@ -1496,7 +1505,13 @@ void GridArea::rootTrigger(CoreTime time,
         while (rootCode >= rootOffset + cloc + ors) {
             cloc += ors;
             ++currentRootObject;
+            if (currentRootObject == obend) {
+                break;
+            }
             ors = (*currentRootObject)->rootSize(sMode);
+        }
+        if (currentRootObject == obend) {
+            break;
         }
         (*currentRootObject)->rootTrigger(time, inputs, rootMask, sMode);
         cloc += ors;
@@ -1872,6 +1887,13 @@ void GridArea::loadRootSizes(const SolverMode& sMode)
         solverOffsets.addRootSizes(obj->getOffsets(sMode));
     }
     solverOffsets.rootsLoaded = true;
+    if ((solverOffsets.total.diffRoots > 0) || (solverOffsets.total.algRoots > 0)) {
+        opFlags.set(HAS_ROOTS);
+        opFlags.set(HAS_ALG_ROOTS, solverOffsets.total.algRoots > 0);
+    } else {
+        opFlags.reset(HAS_ROOTS);
+        opFlags.reset(HAS_ALG_ROOTS);
+    }
 }
 
 void GridArea::loadJacobianSizes(const SolverMode& sMode)

@@ -74,6 +74,13 @@ provided with the default to the regular call
         using gmlc::utilities::ensureSizeAtLeast;
         using gmlc::utilities::stringOps::findCloseStringMatch;
         using gmlc::utilities::stringOps::string_match_type;
+        const auto makeIndexedName =
+            [](std::string_view prefix, index_t index, std::string_view suffix = {}) {
+                std::string indexedName{prefix};
+                gmlc::utilities::stringOps::appendInteger(indexedName, index);
+                indexedName += suffix;
+                return indexedName;
+            };
 
         auto ostrings = fmisub->getOutputNames();
         auto istrings = fmisub->getInputNames();
@@ -102,17 +109,17 @@ provided with the default to the regular call
                         altInames.emplace_back(iname + "_in");
                         altInames.emplace_back(iname + "_i");
                     }
-                    altInames.emplace_back("in" + std::to_string(ii));
-                    altInames.emplace_back("input" + std::to_string(ii));
-                    altInames.emplace_back("in[" + std::to_string(ii) + "]");
-                    altInames.emplace_back("input[" + std::to_string(ii) + "]");
+                    altInames.emplace_back(makeIndexedName("in", ii));
+                    altInames.emplace_back(makeIndexedName("input", ii));
+                    altInames.emplace_back(makeIndexedName("in[", ii, "]"));
+                    altInames.emplace_back(makeIndexedName("input[", ii, "]"));
                     ind = findCloseStringMatch(altInames, istrings, string_match_type::close);
                     if (ind >= 0) {
                         inputNames_actual[ii] = istrings[ind];
                     } else {
                         BaseObj::log(this,
                                      PrintLevel::WARNING,
-                                     "unable to match inputs for input#" + std::to_string(ii) +
+                                     "unable to match inputs for " + makeIndexedName("input#", ii) +
                                          "(" + iNames[ii][0] + ")");
                     }
                 }
@@ -132,7 +139,7 @@ provided with the default to the regular call
                     } else {
                         BaseObj::log(this,
                                      PrintLevel::WARNING,
-                                     "unable to match inputs for input#" + std::to_string(ii) +
+                                     "unable to match inputs for " + makeIndexedName("input#", ii) +
                                          "(" + inputNames_specified[ii] + ")");
                     }
                 }
@@ -159,7 +166,7 @@ provided with the default to the regular call
                     } else {
                         BaseObj::log(this,
                                      PrintLevel::WARNING,
-                                     "unable to match inputs for input" + std::to_string(ii));
+                                     "unable to match inputs for " + makeIndexedName("input", ii));
                     }
                 }
             } else {
@@ -178,7 +185,7 @@ provided with the default to the regular call
                     } else {
                         BaseObj::log(this,
                                      PrintLevel::WARNING,
-                                     "unable to match inputs for output" + std::to_string(ii));
+                                     "unable to match inputs for " + makeIndexedName("output", ii));
                     }
                 }
             }

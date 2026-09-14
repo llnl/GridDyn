@@ -8,6 +8,7 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/GridBus.h"
 #include "griddyn/Link.h"
+#include "griddyn/links/AcLine.h"
 #include "griddyn/links/AdjustableTransformer.h"
 #include "griddyn/links/RawDcLine.h"
 #include <array>
@@ -247,6 +248,37 @@ TEST_F(InputTests, PssERawDcComponentsImportAsScheduledLinks)
                 1e-7);
 }
 
+TEST_F(InputTests, PssERawBranchTerminalShunts)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    ASSERT_NO_THROW(
+        loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_branch_terminal_shunts.raw"));
+
+    ASSERT_EQ(gds->getInt("totallinkcount"), 1);
+    auto* line = dynamic_cast<AcLine*>(gds->getLink(0));
+    ASSERT_NE(line, nullptr);
+
+    // The RAW B field contributes half to each terminal; GI/BI and GJ/BJ are
+    // then added to those terminal shunts.
+    EXPECT_NEAR(line->get("b"), 0.03, 1e-12);
+    EXPECT_NEAR(line->get("g1"), 0.003, 1e-12);
+    EXPECT_NEAR(line->get("b1"), 0.014, 1e-12);
+    EXPECT_NEAR(line->get("g2"), 0.005, 1e-12);
+    EXPECT_NEAR(line->get("b2"), 0.016, 1e-12);
+    EXPECT_NEAR(line->get("g"), 0.008, 1e-12);
+
+    AcLine symmetricLine("symmetric_line");
+    symmetricLine.set("b", 0.02);
+    symmetricLine.set("g", 0.004);
+    EXPECT_NEAR(symmetricLine.get("b1"), 0.01, 1e-12);
+    EXPECT_NEAR(symmetricLine.get("b2"), 0.01, 1e-12);
+    EXPECT_NEAR(symmetricLine.get("g1"), 0.002, 1e-12);
+    EXPECT_NEAR(symmetricLine.get("g2"), 0.002, 1e-12);
+
+    EXPECT_EQ(gds->powerflow(), 0);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
+}
+
 TEST_F(InputTests, PssERawVscTerminalModes)
 {
     gds = std::make_unique<GridDynSimulation>();
@@ -360,9 +392,15 @@ static void runCompareCase(GridDynSimulationTestFixture& fixture, const CompareC
 
         int count = fixture.gds2->getInt("totalbuscount");
         EXPECT_EQ(count, bcount);
+        std::vector<GridBus*> compareBuses;
+        std::vector<GridBus*> referenceBuses;
+        fixture.gds2->getBusVector(compareBuses);
+        fixture.gds->getBusVector(referenceBuses);
+        ASSERT_EQ(compareBuses.size(), static_cast<size_t>(count));
+        ASSERT_EQ(referenceBuses.size(), static_cast<size_t>(bcount));
         for (index_t busIndex = 0; busIndex < count; ++busIndex) {
-            auto* compareBusObject = fixture.gds2->getBus(busIndex);
-            auto* referenceBusObject = fixture.gds->getBus(busIndex);
+            auto* compareBusObject = compareBuses[busIndex];
+            auto* referenceBusObject = referenceBuses[busIndex];
             auto busesMatch = compareBus(compareBusObject, referenceBusObject, false);
             if (!busesMatch) {
             }

@@ -8,6 +8,7 @@
 
 #include "../GridDynSimulation.h"
 #include "../events/Event.h"
+#include "gmlc/utilities/stringOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <algorithm>
 #include <array>
@@ -84,9 +85,14 @@ std::string Violation::to_string() const
     std::string violationString = m_objectName + '[';
     const auto violationText = getViolationText(violationCode);
     if (!violationText.empty()) {
-        violationString += std::string(violationText) + '(' + std::to_string(violationCode) + ")]";
+        violationString += violationText;
+        violationString += '(';
+        gmlc::utilities::stringOps::appendInteger(violationString, violationCode);
+        violationString += ")]";
     } else {
-        violationString += "unknown violation(" + std::to_string(violationCode) + ")]";
+        violationString += "unknown violation(";
+        gmlc::utilities::stringOps::appendInteger(violationString, violationCode);
+        violationString += ")]";
     }
     violationString += std::to_string(level) + "vs. " + std::to_string(limit) + " " +
         std::to_string(percentViolation) + "% violation";
@@ -108,14 +114,16 @@ std::atomic_int Contingency::contingencyCount{0};
 Contingency::Contingency(): future_ret(promise_val.get_future())
 {
     id = ++contingencyCount;
-    name = "contingency_" + std::to_string(id);
+    name = "contingency_";
+    gmlc::utilities::stringOps::appendInteger(name, id);
 }
 
 Contingency::Contingency(GridDynSimulation* sim, std::shared_ptr<Event> gridEvent):
     gds(sim), future_ret(promise_val.get_future())
 {
     id = ++contingencyCount;
-    name = "contingency_" + std::to_string(id);
+    name = "contingency_";
+    gmlc::utilities::stringOps::appendInteger(name, id);
     eventList.resize(1);
     eventList[0].push_back(std::move(gridEvent));
 }
@@ -262,12 +270,12 @@ std::string Contingency::generateHeader() const
     return stream.str();
 }
 
-const char commaQuote[] = R"(, ")";
+const char COMMA_QUOTE[] = R"(, ")";
 
 std::string Contingency::generateContingencyString() const
 {
     std::stringstream stream;
-    stream << id << ", " << name << commaQuote;
+    stream << id << ", " << name << COMMA_QUOTE;
     for (const auto& eventPtr : eventList[0]) {
         if (eventPtr) {
             stream << eventPtr->to_string() << ';';
@@ -280,7 +288,7 @@ std::string Contingency::generateContingencyString() const
 std::string Contingency::generateFullOutputLine() const
 {
     std::stringstream stream;
-    stream << id << ", " << name << commaQuote;
+    stream << id << ", " << name << COMMA_QUOTE;
     for (const auto& eventPtr : eventList[0]) {
         if (eventPtr) {
             stream << eventPtr->to_string() << ';';
@@ -307,7 +315,7 @@ std::string Contingency::generateFullOutputLine() const
     stream << ", " << preContingencyLoad - contingencyLoad;
     stream << ", " << preEventGen - contingencyGen;
     stream << ", " << preContingencyGen - contingencyGen;
-    stream << commaQuote;
+    stream << COMMA_QUOTE;
     for (const auto& violation : Violations) {
         stream << violation.to_string() << ';';
     }
@@ -318,7 +326,7 @@ std::string Contingency::generateFullOutputLine() const
 std::string Contingency::generateViolationsOutputLine() const
 {
     std::stringstream stream;
-    stream << id << ", " << name << commaQuote;
+    stream << id << ", " << name << COMMA_QUOTE;
     for (const auto& eventPtr : eventList[0]) {
         if (eventPtr) {
             stream << eventPtr->to_string() << ';';
@@ -330,7 +338,7 @@ std::string Contingency::generateViolationsOutputLine() const
     stream << ", " << preContingencyLoad - contingencyLoad;
     stream << ", " << preEventGen - contingencyGen;
     stream << ", " << preContingencyGen - contingencyGen;
-    stream << commaQuote;
+    stream << COMMA_QUOTE;
     for (const auto& violation : Violations) {
         stream << violation.to_string() << ';';
     }

@@ -7,6 +7,7 @@
 #include "CommMessage.h"
 
 #include "gmlc/utilities/stringConversion.h"
+#include "gmlc/utilities/stringOps.h"
 #include <charconv>
 #include <functional>
 #include <map>
@@ -90,7 +91,7 @@ std::string CommMessage::to_string() const
 
     if (code != 0xFFFF'FFFF) {
         message.push_back('[');
-        message.append(std::to_string(code));
+        gmlc::utilities::stringOps::appendInteger(message, code);
         message.push_back(']');
     }
     if (payload) {
@@ -274,7 +275,7 @@ std::string MessageTypeRegistry::getTypeString(int32_t type) const
         return fnd->second;
     }
     auto ret = std::string("type_");
-    ret.append(std::to_string(type));
+    gmlc::utilities::stringOps::appendInteger(ret, type);
     return ret;
 }
 

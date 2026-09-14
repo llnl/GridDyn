@@ -17,6 +17,7 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "gmlc/utilities/stringConversion.h"
+#include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixDataSparse.hpp"
 #include "utilities/MatrixDataTranslate.hpp"
 #include <algorithm>
@@ -379,7 +380,7 @@ void Sensor::generateInputGrabbers()
         if (cloc == std::string::npos) {  // if there is a colon assume the input is fully specified
             if ((opFlags[LINK_TYPE_SOURCE]) && (isdigit(istr.back()) == 0)) {
                 if (m_terminal > 0) {
-                    istr.append(std::to_string(m_terminal));
+                    gmlc::utilities::stringOps::appendInteger(istr, m_terminal);
                 }
             }
         }

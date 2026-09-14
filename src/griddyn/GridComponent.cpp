@@ -1549,6 +1549,13 @@ void GridComponent::getStateName(stringVec& stNames,
     auto stateNames = localStateNames();
     auto stsize = static_cast<index_t>(stateNames.size());
     decltype(mxsize) stateNameIndex = 0;
+    const auto makeStateName = [&prefix2](std::string_view stateType, index_t index) {
+        std::string stateName{prefix2};
+        stateName += stateType;
+        stateName.push_back('_');
+        gmlc::utilities::stringOps::appendInteger(stateName, index);
+        return stateName;
+    };
     if (hasAlgebraic(sMode)) {
         for (index_t kk = 0; kk < solverOffsetsValue.local.vSize; kk++) {
             if (!stNames[solverOffsetsValue.vOffset + kk].empty()) {
@@ -1558,8 +1565,7 @@ void GridComponent::getStateName(stringVec& stNames,
                 stNames[solverOffsetsValue.vOffset + kk] = prefix2 + stateNames[stateNameIndex];
                 ++stateNameIndex;
             } else {
-                stNames[solverOffsetsValue.vOffset + kk] =
-                    prefix2 + "voltage_state_" + std::to_string(kk);
+                stNames[solverOffsetsValue.vOffset + kk] = makeStateName("voltage_state", kk);
             }
         }
         stateNameIndex = offsets.local().local.vSize;
@@ -1571,8 +1577,7 @@ void GridComponent::getStateName(stringVec& stNames,
                 stNames[solverOffsetsValue.aOffset + kk] = prefix2 + stateNames[stateNameIndex];
                 ++stateNameIndex;
             } else {
-                stNames[solverOffsetsValue.aOffset + kk] =
-                    prefix2 + "angle_state_" + std::to_string(kk);
+                stNames[solverOffsetsValue.aOffset + kk] = makeStateName("angle_state", kk);
             }
         }
         stateNameIndex = offsets.local().local.vSize + offsets.local().local.aSize;
@@ -1584,8 +1589,7 @@ void GridComponent::getStateName(stringVec& stNames,
                 stNames[solverOffsetsValue.algOffset + kk] = prefix2 + stateNames[stateNameIndex];
                 ++stateNameIndex;
             } else {
-                stNames[solverOffsetsValue.algOffset + kk] =
-                    prefix2 + "alg_state_" + std::to_string(kk);
+                stNames[solverOffsetsValue.algOffset + kk] = makeStateName("alg_state", kk);
             }
         }
     }
@@ -1602,8 +1606,7 @@ void GridComponent::getStateName(stringVec& stNames,
                         prefix2 + stateNames[stateNameIndex];
                     ++stateNameIndex;
                 } else {
-                    stNames[solverOffsetsValue.diffOffset + kk] =
-                        prefix2 + "diff_state_" + std::to_string(kk);
+                    stNames[solverOffsetsValue.diffOffset + kk] = makeStateName("diff_state", kk);
                 }
             }
         }

@@ -226,8 +226,8 @@ TEST(ExampleReaderTests, MatPowerVoltageTargetPolicies)
     EXPECT_NEAR(oneSidedLink->get("minangle"), -30.0 * griddyn::kPI / 180.0, 1.0e-6);
     EXPECT_NEAR(oneSidedLink->get("maxangle"), 0.0, 1.0e-12);
 
-    std::error_code ec;
-    std::filesystem::remove(filePath, ec);
+    std::error_code removeError;
+    std::filesystem::remove(filePath, removeError);
 }
 
 TEST(ExampleReaderTests, PyPowerVoltageTargetPolicies)
@@ -283,8 +283,8 @@ TEST(ExampleReaderTests, PyPowerVoltageTargetPolicies)
     EXPECT_NEAR(oneSidedLink->get("minangle"), -30.0 * griddyn::kPI / 180.0, 1.0e-6);
     EXPECT_NEAR(oneSidedLink->get("maxangle"), 0.0, 1.0e-12);
 
-    std::error_code ec;
-    std::filesystem::remove(filePath, ec);
+    std::error_code removeError;
+    std::filesystem::remove(filePath, removeError);
 }
 
 TEST(ExampleReaderTests, LoadDynamicImportExampleWithoutRunningDynamics)

@@ -142,7 +142,7 @@ namespace {
         AreaMap areas;
         auto addArea = [&](double value) {
             const auto areaId = static_cast<int>(value);
-            if ((areaId <= 0) || (areas.find(areaId) != areas.end())) {
+            if ((areaId <= 0) || areas.contains(areaId)) {
                 return;
             }
             auto areaName = "AREA_" + std::to_string(areaId);

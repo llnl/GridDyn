@@ -1486,6 +1486,9 @@ void GridArea::rootTrigger(CoreTime time,
 
     auto currentRootObject = rootObjects.begin();
     auto obend = rootObjects.end();
+    if (currentRootObject == obend) {
+        return;
+    }
     auto ors = (*currentRootObject)->rootSize(sMode);
     opFlags.set(DISABLE_FLAG_UPDATES);  // root triggers can cause a flag change and the flag update
                                         // currently
@@ -1502,7 +1505,13 @@ void GridArea::rootTrigger(CoreTime time,
         while (rootCode >= rootOffset + cloc + ors) {
             cloc += ors;
             ++currentRootObject;
+            if (currentRootObject == obend) {
+                break;
+            }
             ors = (*currentRootObject)->rootSize(sMode);
+        }
+        if (currentRootObject == obend) {
+            break;
         }
         (*currentRootObject)->rootTrigger(time, inputs, rootMask, sMode);
         cloc += ors;
@@ -1878,6 +1887,13 @@ void GridArea::loadRootSizes(const SolverMode& sMode)
         solverOffsets.addRootSizes(obj->getOffsets(sMode));
     }
     solverOffsets.rootsLoaded = true;
+    if ((solverOffsets.total.diffRoots > 0) || (solverOffsets.total.algRoots > 0)) {
+        opFlags.set(HAS_ROOTS);
+        opFlags.set(HAS_ALG_ROOTS, solverOffsets.total.algRoots > 0);
+    } else {
+        opFlags.reset(HAS_ROOTS);
+        opFlags.reset(HAS_ALG_ROOTS);
+    }
 }
 
 void GridArea::loadJacobianSizes(const SolverMode& sMode)

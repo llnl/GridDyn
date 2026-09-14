@@ -270,12 +270,12 @@ std::string Contingency::generateHeader() const
     return stream.str();
 }
 
-const char commaQuote[] = R"(, ")";
+const char COMMA_QUOTE[] = R"(, ")";
 
 std::string Contingency::generateContingencyString() const
 {
     std::stringstream stream;
-    stream << id << ", " << name << commaQuote;
+    stream << id << ", " << name << COMMA_QUOTE;
     for (const auto& eventPtr : eventList[0]) {
         if (eventPtr) {
             stream << eventPtr->to_string() << ';';
@@ -288,7 +288,7 @@ std::string Contingency::generateContingencyString() const
 std::string Contingency::generateFullOutputLine() const
 {
     std::stringstream stream;
-    stream << id << ", " << name << commaQuote;
+    stream << id << ", " << name << COMMA_QUOTE;
     for (const auto& eventPtr : eventList[0]) {
         if (eventPtr) {
             stream << eventPtr->to_string() << ';';
@@ -315,7 +315,7 @@ std::string Contingency::generateFullOutputLine() const
     stream << ", " << preContingencyLoad - contingencyLoad;
     stream << ", " << preEventGen - contingencyGen;
     stream << ", " << preContingencyGen - contingencyGen;
-    stream << commaQuote;
+    stream << COMMA_QUOTE;
     for (const auto& violation : Violations) {
         stream << violation.to_string() << ';';
     }
@@ -326,7 +326,7 @@ std::string Contingency::generateFullOutputLine() const
 std::string Contingency::generateViolationsOutputLine() const
 {
     std::stringstream stream;
-    stream << id << ", " << name << commaQuote;
+    stream << id << ", " << name << COMMA_QUOTE;
     for (const auto& eventPtr : eventList[0]) {
         if (eventPtr) {
             stream << eventPtr->to_string() << ';';
@@ -338,7 +338,7 @@ std::string Contingency::generateViolationsOutputLine() const
     stream << ", " << preContingencyLoad - contingencyLoad;
     stream << ", " << preEventGen - contingencyGen;
     stream << ", " << preContingencyGen - contingencyGen;
-    stream << commaQuote;
+    stream << COMMA_QUOTE;
     for (const auto& violation : Violations) {
         stream << violation.to_string() << ';';
     }

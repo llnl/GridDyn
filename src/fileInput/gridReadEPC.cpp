@@ -345,7 +345,7 @@ namespace {
                     continue;
                 }
                 const auto areaId = numeric_conversion<int>(fields[0], 0);
-                if ((areaId <= 0) || (areas.find(areaId) != areas.end())) {
+                if ((areaId <= 0) || areas.contains(areaId)) {
                     continue;
                 }
 
@@ -357,7 +357,8 @@ namespace {
                     areaName = "AREA_" + std::to_string(areaId);
                 }
                 if (!bri.prefix.empty()) {
-                    areaName = bri.prefix + '_' + areaName;
+                    areaName.insert(0, bri.prefix);
+                    areaName.insert(bri.prefix.size(), 1, '_');
                 }
                 auto* area = new GridArea(areaName);
                 try {
@@ -374,16 +375,17 @@ namespace {
     }
 
     struct EpcPreparseData {
-        ImpedanceCorrectionTables impedanceCorrectionTables;
-        std::unordered_map<int, GridArea*> areas;
+        ImpedanceCorrectionTables mImpedanceCorrectionTables;
+        std::unordered_map<int, GridArea*> mAreas;
     };
 
     EpcPreparseData preparseEpcFile(CoreObject* parentObject,
                                     const std::string& fileName,
                                     const BasicReaderInfo& bri)
     {
-        return {readImpedanceCorrectionTables(fileName),
-                readEpcAreaDefinitions(parentObject, fileName, bri)};
+        return EpcPreparseData{
+            .mImpedanceCorrectionTables = readImpedanceCorrectionTables(fileName),
+            .mAreas = readEpcAreaDefinitions(parentObject, fileName, bri)};
     }
 
     int getLineIndex(string_view line)
@@ -557,8 +559,8 @@ void loadEpc(CoreObject* parentObject,
                     busList[index - 1]->set("basepower", base);
                     const auto areaId = epcReadBus(busList[index - 1], line, base, bri);
                     auto* busParent = parentObject;
-                    if (const auto area = preparseData.areas.find(areaId);
-                        area != preparseData.areas.end()) {
+                    if (const auto area = preparseData.mAreas.find(areaId);
+                        area != preparseData.mAreas.end()) {
                         busParent = area->second;
                     }
                     try {
@@ -596,7 +598,7 @@ void loadEpc(CoreObject* parentObject,
                           base,
                           busList,
                           bri,
-                          preparseData.impedanceCorrectionTables);
+                          preparseData.mImpedanceCorrectionTables);
             });
         } else if (tokens[0] == "generator") {
             processSectionObject<Generator>(

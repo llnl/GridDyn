@@ -57,10 +57,12 @@ using units::MW;
 using ImpedanceCorrectionTable = std::vector<std::pair<double, double>>;
 using ImpedanceCorrectionTables = std::unordered_map<int, ImpedanceCorrectionTable>;
 
-struct RawPreparseData {
-    ImpedanceCorrectionTables impedanceCorrectionTables;
-    std::unordered_map<int, GridArea*> areas;
-};
+namespace {
+    struct RawPreparseData {
+        ImpedanceCorrectionTables mImpedanceCorrectionTables;
+        std::unordered_map<int, GridArea*> mAreas;
+    };
+}
 
 static CoreObject* getRawLinkParent(CoreObject* parentObject, Link* link)
 {
@@ -215,7 +217,8 @@ static std::unordered_map<int, GridArea*>
             areaName = "AREA_" + std::to_string(areaId);
         }
         if (!readerOptions.prefix.empty()) {
-            areaName = readerOptions.prefix + '_' + areaName;
+            areaName.insert(0, readerOptions.prefix);
+            areaName.insert(readerOptions.prefix.size(), 1, '_');
         }
 
         auto* area = new GridArea(areaName);
@@ -236,9 +239,9 @@ static RawPreparseData preparseRawFile(CoreObject* parentObject,
                                        const BasicReaderInfo& readerOptions)
 {
     RawPreparseData preparseData;
-    preparseData.impedanceCorrectionTables =
+    preparseData.mImpedanceCorrectionTables =
         readImpedanceCorrectionTables(fileName, readerOptions.version);
-    preparseData.areas = readRawAreaDefinitions(parentObject, fileName, readerOptions);
+    preparseData.mAreas = readRawAreaDefinitions(parentObject, fileName, readerOptions);
     return preparseData;
 }
 
@@ -647,7 +650,7 @@ void loadRaw(CoreObject* parentObject,
         }
     }
     const auto preparseData = preparseRawFile(parentObject, fileName, opt);
-    const auto& impedanceCorrectionTables = preparseData.impedanceCorrectionTables;
+    const auto& impedanceCorrectionTables = preparseData.mImpedanceCorrectionTables;
     if (std::getline(file, line)) {
         pos = line.find_first_of(',');
         temp1 = line.substr(0, pos);
@@ -669,7 +672,7 @@ void loadRaw(CoreObject* parentObject,
         }
     }
     // Bus data does not have a header but is always the first section.
-    readRawBusSection(parentObject, file, line, busList, opt, preparseData.areas);
+    readRawBusSection(parentObject, file, line, busList, opt, preparseData.mAreas);
 
     stringVec txlines;
     txlines.resize(5);

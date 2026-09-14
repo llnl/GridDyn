@@ -1145,11 +1145,11 @@ void AdjustableTransformer::tapPartial(index_t busId,
     } else {
         // dP1/dtap
         double temp =
-            (-realPower1 / tap) - ((g + shuntG1()) / (tap * tap * tap)) * voltage1 * voltage1;
+            (-realPower1 / tap) - (((g + shuntG1()) / (tap * tap * tap)) * voltage1 * voltage1);
         matrixDataRef.assign(POUT_LOCATION, offset, temp);
         // dQ1/dtap
         temp =
-            (-reactivePower1 / tap) + ((b + shuntB1()) / (tap * tap * tap)) * voltage1 * voltage1;
+            (-reactivePower1 / tap) + (((b + shuntB1()) / (tap * tap * tap)) * voltage1 * voltage1);
         matrixDataRef.assign(QOUT_LOCATION, offset, temp);
     }
 }

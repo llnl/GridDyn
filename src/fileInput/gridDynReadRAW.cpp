@@ -62,7 +62,7 @@ namespace {
         ImpedanceCorrectionTables mImpedanceCorrectionTables;
         std::unordered_map<int, GridArea*> mAreas;
     };
-}
+}  // namespace
 
 static CoreObject* getRawLinkParent(CoreObject* parentObject, Link* link)
 {

@@ -383,9 +383,9 @@ namespace {
                                     const std::string& fileName,
                                     const BasicReaderInfo& bri)
     {
-        return EpcPreparseData{
-            .mImpedanceCorrectionTables = readImpedanceCorrectionTables(fileName),
-            .mAreas = readEpcAreaDefinitions(parentObject, fileName, bri)};
+        return EpcPreparseData{.mImpedanceCorrectionTables =
+                                   readImpedanceCorrectionTables(fileName),
+                               .mAreas = readEpcAreaDefinitions(parentObject, fileName, bri)};
     }
 
     int getLineIndex(string_view line)

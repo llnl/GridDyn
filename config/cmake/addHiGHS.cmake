@@ -82,11 +82,10 @@ foreach(_highs_target IN ITEMS highs highs_extras)
         # warnings local to HiGHS so deprecations in GridDyn remain visible.
         target_compile_options(
             ${_highs_target}
-            PRIVATE
-                $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wno-error>
-                $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wno-deprecated>
-                $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wno-deprecated-declarations>
-                $<$<CXX_COMPILER_ID:MSVC>:/wd4996>
+            PRIVATE $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wno-error>
+                    $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wno-deprecated>
+                    $<$<CXX_COMPILER_ID:GNU,Clang,AppleClang>:-Wno-deprecated-declarations>
+                    $<$<CXX_COMPILER_ID:MSVC>:/wd4996>
         )
     endif()
 endforeach()

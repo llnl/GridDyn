@@ -21,8 +21,8 @@
 #include <ranges>
 #include <string>
 #include <utility>
-#include <version>
 #include <vector>
+#include <version>
 
 namespace griddyn {
 std::pair<double, int> checkResid(GridDynSimulation* gds, CoreTime time, const SolverMode& sMode)
@@ -631,8 +631,7 @@ namespace {
 
     void appendStateRange(std::vector<index_t>& localStates, index_t offset, index_t count)
     {
-        auto stateRange =
-            std::views::iota(index_t{0}, count) |
+        auto stateRange = std::views::iota(index_t{0}, count) |
             std::views::transform([offset](index_t stateIndex) { return offset + stateIndex; });
 #if defined(__cpp_lib_containers_ranges) && (__cpp_lib_containers_ranges >= 202202L)
         localStates.append_range(stateRange);

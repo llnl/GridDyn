@@ -144,11 +144,7 @@ int GridDynSimulation::powerflow()
                     }
                 }
                 const IOdata powerFlowAdjustmentInputs{
-                    0.0,
-                    0.0,
-                    0.0,
-                    static_cast<double>(voltageIterationCount),
-                    powerFlowError};
+                    0.0, 0.0, 0.0, static_cast<double>(voltageIterationCount), powerFlowError};
 
                 if (voltageIterationCount > max_Vadjust_iterations) {
                     logging::warning(this, "WARNING::Voltage Loop iteration count limit exceeded");
@@ -160,10 +156,9 @@ int GridDynSimulation::powerflow()
 
                     if (pState == GridState::INITIALIZED) {
                         if (controlFlags[FIRST_RUN_LIMITS_ONLY]) {
-                            adjustmentChanges =
-                                powerFlowAdjust(powerFlowAdjustmentInputs,
-                                                0,
-                                                CheckLevel::REVERSABLE_ONLY);
+                            adjustmentChanges = powerFlowAdjust(powerFlowAdjustmentInputs,
+                                                                0,
+                                                                CheckLevel::REVERSABLE_ONLY);
                         } else {
                             adjustmentChanges = powerFlowAdjust(powerFlowAdjustmentInputs,
                                                                 lower_flags(controlFlags),

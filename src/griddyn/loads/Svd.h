@@ -158,9 +158,7 @@ class Svd: public RampLoad {
   protected:
     int andesMaxStep() const;
     int andesInitialStep() const;
-    double andesEffectiveValue(const std::vector<double>& blocks,
-                               double baseValue,
-                               int step) const;
+    double andesEffectiveValue(const std::vector<double>& blocks, double baseValue, int step) const;
     void updateAndesAdmittance();
     bool adjustAndesStep(int direction);
 

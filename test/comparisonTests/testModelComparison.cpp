@@ -69,7 +69,7 @@ std::string makeComparisonTestPath(std::string_view fileName)
 
 std::unique_ptr<griddyn::GridDynSimulation>
     loadComparisonDynamicCase(std::string_view machineDyrFile,
-                         const std::vector<std::string_view>& controllerDyrFiles)
+                              const std::vector<std::string_view>& controllerDyrFiles)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
     griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
@@ -1029,8 +1029,9 @@ TEST(DyrReaderComparisonTests, ResolvesAlphanumericIeeeG1PrimaryAndSecondaryIds)
     primary->setName(primaryBus->getName() + "_Gen_P1");
     secondary->setName(secondaryBus->getName() + "_Gen_S1");
 
-    EXPECT_NO_THROW(griddyn::loadFile(simulation.get(),
-                                      makeComparisonTestPath("ieee14_ieeeg1_alphanumeric_ids.dyr")));
+    EXPECT_NO_THROW(
+        griddyn::loadFile(simulation.get(),
+                          makeComparisonTestPath("ieee14_ieeeg1_alphanumeric_ids.dyr")));
     auto* governor = dynamic_cast<griddyn::governors::GovernorIeeeG1*>(primary->find("governor"));
     ASSERT_NE(governor, nullptr);
     EXPECT_EQ(primary->getMechanicalPowerSource(), governor);

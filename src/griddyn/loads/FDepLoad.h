@@ -7,8 +7,8 @@
 #pragma once
 
 #include "../Block.h"
-#include "core/CoreOwningPtr.hpp"
 #include "ExponentialLoad.h"
+#include "core/CoreOwningPtr.hpp"
 #include <string>
 namespace griddyn::loads {
 /** @brief a load with powers as a exponential function of voltage and frequency*/
@@ -68,9 +68,7 @@ class FDepLoad: public ExponentialLoad {
                                       IOdata& fieldSet) override;
 
   public:
-    virtual void timestep(CoreTime time,
-                          const IOdata& inputs,
-                          const SolverMode& sMode) override;
+    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
     virtual void residual(const IOdata& inputs,
                           const StateData& stateDataValue,

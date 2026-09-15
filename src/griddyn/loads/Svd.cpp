@@ -238,8 +238,7 @@ void Svd::guessState(CoreTime /*time*/,
 {
 }
 
-ChangeCode
-    Svd::powerFlowAdjust(const IOdata& inputs, std::uint32_t /*flags*/, CheckLevel /*level*/)
+ChangeCode Svd::powerFlowAdjust(const IOdata& inputs, std::uint32_t /*flags*/, CheckLevel /*level*/)
 {
     if (!andesBankMode || opFlags[LOCKED_FLAG] || !isConnected()) {
         return ChangeCode::NO_CHANGE;
@@ -265,7 +264,7 @@ ChangeCode
         direction = -1;
     }
     return (direction != 0 && adjustAndesStep(direction)) ? ChangeCode::JACOBIAN_CHANGE :
-                                                              ChangeCode::NO_CHANGE;
+                                                            ChangeCode::NO_CHANGE;
 }
 
 void Svd::reset(ResetLevels /*level*/)
@@ -439,9 +438,7 @@ int Svd::andesMaxStep() const
     return maxStep;
 }
 
-double Svd::andesEffectiveValue(const std::vector<double>& blocks,
-                                double baseValue,
-                                int step) const
+double Svd::andesEffectiveValue(const std::vector<double>& blocks, double baseValue, int step) const
 {
     if (blocks.empty() || andesNs.empty()) {
         return baseValue;
@@ -531,8 +528,7 @@ void Svd::timestep(CoreTime time, const IOdata& /*inputs*/, const SolverMode& /*
     if (!andesBankMode || opFlags[LOCKED_FLAG] || !isConnected() || time <= 0.0) {
         return;
     }
-    if ((andesLastSwitchTime != negTime) &&
-        (time - andesLastSwitchTime < andesDt)) {
+    if ((andesLastSwitchTime != negTime) && (time - andesLastSwitchTime < andesDt)) {
         return;
     }
 

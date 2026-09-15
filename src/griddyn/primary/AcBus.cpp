@@ -133,13 +133,10 @@ void AcBus::disable()
     }
 }
 
-void AcBus::configureFrequencyFilter(double filterTime,
-                                     double washoutTime,
-                                     double nominalFrequency)
+void AcBus::configureFrequencyFilter(double filterTime, double washoutTime, double nominalFrequency)
 {
-    if (!std::isfinite(filterTime) || (filterTime <= 0.0) ||
-        !std::isfinite(washoutTime) || (washoutTime <= 0.0) ||
-        !std::isfinite(nominalFrequency) || (nominalFrequency <= 0.0)) {
+    if (!std::isfinite(filterTime) || (filterTime <= 0.0) || !std::isfinite(washoutTime) ||
+        (washoutTime <= 0.0) || !std::isfinite(nominalFrequency) || (nominalFrequency <= 0.0)) {
         throw InvalidParameterValue("bus frequency filter parameters");
     }
     frequencyFilterTf = filterTime;
@@ -150,10 +147,9 @@ void AcBus::configureFrequencyFilter(double filterTime,
     opFlags.set(COMPUTE_FREQUENCY);
     opFlags.set(USES_BUS_FREQUENCY);
     if (!fblock) {
-        fblock = makeOwningPtr<blocks::FilteredDerivativeBlock>(frequencyFilterTf,
-                                                                frequencyFilterTw);
-        fblock->set("k",
-                     frequencyFilterTw / (2.0 * std::numbers::pi * frequencyFilterFn));
+        fblock =
+            makeOwningPtr<blocks::FilteredDerivativeBlock>(frequencyFilterTf, frequencyFilterTw);
+        fblock->set("k", frequencyFilterTw / (2.0 * std::numbers::pi * frequencyFilterFn));
         fblock->setName("frequency_calc");
         fblock->addOwningReference();
         addSubObject(fblock.get());
@@ -781,9 +777,7 @@ ChangeCode AcBus::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, Che
     ChangeCode pout;
     IOdata busInputs{voltage, angle, freq};
     if (inputs.size() > PFLOW_ITERATION_LOCATION) {
-        busInputs.insert(busInputs.end(),
-                         inputs.begin() + PFLOW_ITERATION_LOCATION,
-                         inputs.end());
+        busInputs.insert(busInputs.end(), inputs.begin() + PFLOW_ITERATION_LOCATION, inputs.end());
     }
     for (auto& gen : attachedGens) {
         if (gen->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {
@@ -850,10 +844,8 @@ void AcBus::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
         if (!fblock) {
             if (frequencyFilterConfigured) {
                 fblock = makeOwningPtr<blocks::FilteredDerivativeBlock>(frequencyFilterTf,
-                                                                         frequencyFilterTw);
-                fblock->set("k",
-                             frequencyFilterTw /
-                                 (2.0 * std::numbers::pi * frequencyFilterFn));
+                                                                        frequencyFilterTw);
+                fblock->set("k", frequencyFilterTw / (2.0 * std::numbers::pi * frequencyFilterFn));
             } else {
                 fblock = makeOwningPtr<blocks::DerivativeBlock>(Tw);
             }
@@ -1075,10 +1067,9 @@ void AcBus::setFlag(std::string_view flag, bool val)
             if (!fblock) {
                 if (frequencyFilterConfigured) {
                     fblock = makeOwningPtr<blocks::FilteredDerivativeBlock>(frequencyFilterTf,
-                                                                             frequencyFilterTw);
+                                                                            frequencyFilterTw);
                     fblock->set("k",
-                                 frequencyFilterTw /
-                                     (2.0 * std::numbers::pi * frequencyFilterFn));
+                                frequencyFilterTw / (2.0 * std::numbers::pi * frequencyFilterFn));
                 } else {
                     fblock = makeOwningPtr<blocks::DerivativeBlock>(Tw);
                 }

@@ -8,6 +8,7 @@
 #include "fileInput/fileInput.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/blocks/LeadLagBlock.h"
+#include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/loads/ApproximatingLoad.h"
 #include "griddyn/loads/FDepLoad.h"
 #include "griddyn/loads/FileLoad.h"
@@ -17,7 +18,6 @@
 #include "griddyn/loads/Svd.h"
 #include "griddyn/loads/ThreePhaseLoad.h"
 #include "griddyn/loads/ZipLoad.h"
-#include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/simulation/Diagnostics.h"
 #include <cmath>
@@ -504,8 +504,7 @@ TEST_F(LoadTests, FdepLoadOptionalFrequencyFilter)
 
     fload->set("betap", 1.0);
     fload->set("betaq", 1.0);
-    fload->add(
-        new griddyn::blocks::LeadLagBlock(2.0, 0.0, 1.0, "frequency_filter"));
+    fload->add(new griddyn::blocks::LeadLagBlock(2.0, 0.0, 1.0, "frequency_filter"));
 
     ASSERT_NE(fload->getFrequencyFilter(), nullptr);
     gds->pFlowInitialize();
@@ -532,9 +531,7 @@ TEST_F(LoadTests, FdepLoadOptionalFrequencyFilter)
                     cLocalSolverMode);
 
     EXPECT_NEAR(fload->getFrequencyFilter()->getBlockOutput(), expectedFrequency, 1e-10);
-    EXPECT_NEAR(fload->getRealPower(1.0),
-                fload->getRealPower(1.0, expectedFrequency),
-                1e-10);
+    EXPECT_NEAR(fload->getRealPower(1.0), fload->getRealPower(1.0, expectedFrequency), 1e-10);
     EXPECT_NEAR(fload->getReactivePower(1.0),
                 fload->getReactivePower(1.0, expectedFrequency),
                 1e-10);
@@ -581,22 +578,16 @@ TEST_F(LoadTests, SvdSwitchingHonorsIterationAndErrorGate)
     ASSERT_EQ(gds->pFlowInitialize(), 0);
     EXPECT_EQ(shunt->get("andesstep"), 0.0);
 
-    EXPECT_EQ(shunt->powerFlowAdjust({0.9, 0.0, 1.0, 1.0, 1.0},
-                                     0,
-                                     CheckLevel::REVERSABLE_ONLY),
+    EXPECT_EQ(shunt->powerFlowAdjust({0.9, 0.0, 1.0, 1.0, 1.0}, 0, CheckLevel::REVERSABLE_ONLY),
               ChangeCode::NO_CHANGE);
     EXPECT_EQ(shunt->get("andesstep"), 0.0);
 
-    EXPECT_EQ(shunt->powerFlowAdjust({0.9, 0.0, 1.0, 2.0, 1.0},
-                                     0,
-                                     CheckLevel::REVERSABLE_ONLY),
+    EXPECT_EQ(shunt->powerFlowAdjust({0.9, 0.0, 1.0, 2.0, 1.0}, 0, CheckLevel::REVERSABLE_ONLY),
               ChangeCode::JACOBIAN_CHANGE);
     EXPECT_EQ(shunt->get("andesstep"), 1.0);
 
     shunt->reset();
-    EXPECT_EQ(shunt->powerFlowAdjust({0.9, 0.0, 1.0, 1.0, 0.005},
-                                     0,
-                                     CheckLevel::REVERSABLE_ONLY),
+    EXPECT_EQ(shunt->powerFlowAdjust({0.9, 0.0, 1.0, 1.0, 0.005}, 0, CheckLevel::REVERSABLE_ONLY),
               ChangeCode::JACOBIAN_CHANGE);
     EXPECT_EQ(shunt->get("andesstep"), 1.0);
 }

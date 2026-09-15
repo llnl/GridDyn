@@ -145,12 +145,11 @@ namespace {
             }
 
             const bool hasNan = (text.compare(index, 3, "NaN") == 0);
-            const bool hasSignedNan = (character == '-') &&
-                (text.compare(index + 1, 3, "NaN") == 0);
+            const bool hasSignedNan =
+                (character == '-') && (text.compare(index + 1, 3, "NaN") == 0);
             const auto tokenLength = hasSignedNan ? 4U : 3U;
             if ((hasNan || hasSignedNan) &&
-                ((index == 0) ||
-                 !std::isalnum(static_cast<unsigned char>(text[index - 1]))) &&
+                ((index == 0) || !std::isalnum(static_cast<unsigned char>(text[index - 1]))) &&
                 ((index + tokenLength >= text.size()) ||
                  !std::isalnum(static_cast<unsigned char>(text[index + tokenLength])))) {
                 text.replace(index, tokenLength, "null");
@@ -190,15 +189,15 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
     // ANDES exports can contain AC data only, or both AC and DC data.  The
     // capitalized Bus/Node sections distinguish them from GridDyn's generic
     // JSON element reader without requiring a DC Node section to be present.
-    const bool hasAndesBus = document.is_object() && document.contains("Bus") &&
-        document["Bus"].is_array();
-    const bool hasAndesNode = document.is_object() && document.contains("Node") &&
-        document["Node"].is_array();
+    const bool hasAndesBus =
+        document.is_object() && document.contains("Bus") && document["Bus"].is_array();
+    const bool hasAndesNode =
+        document.is_object() && document.contains("Node") && document["Node"].is_array();
     const bool hasAndesAcModel = hasAndesBus &&
         (document.contains("PQ") || document.contains("PV") || document.contains("Slack") ||
-         document.contains("Line") || document.contains("Shunt") ||
-         document.contains("ShuntSw") || document.contains("ShuntTD") ||
-         document.contains("FLoad") || document.contains("BusFreq"));
+         document.contains("Line") || document.contains("Shunt") || document.contains("ShuntSw") ||
+         document.contains("ShuntTD") || document.contains("FLoad") ||
+         document.contains("BusFreq"));
     if (!hasAndesAcModel && !hasAndesNode) {
         return false;
     }
@@ -264,8 +263,8 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
             busFrequencyBuses.emplace(indexKey(record), bus->second);
             if (auto* acBus = dynamic_cast<AcBus*>(bus->second); acBus != nullptr) {
                 acBus->configureFrequencyFilter(number(record, "Tf", 0.02),
-                                                 number(record, "Tw", 0.1),
-                                                 number(record, "fn", 60.0));
+                                                number(record, "Tw", 0.1),
+                                                number(record, "fn", 60.0));
             }
         }
     }
@@ -281,9 +280,8 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
                                             indexKey(record, "pq"));
             }
 
-            auto* fload = new loads::FDepLoad(pq->second.p0,
-                                              pq->second.q0,
-                                              objectName(record, "FLoad"));
+            auto* fload =
+                new loads::FDepLoad(pq->second.p0, pq->second.q0, objectName(record, "FLoad"));
             fload->set("kp", number(record, "kp", 100.0));
             fload->set("kq", number(record, "kq", 100.0));
             fload->set("vref", pq->second.bus->getVoltage());
@@ -293,8 +291,7 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
             fload->set("betaq", number(record, "bq", 0.0));
             if (record.contains("busf") && !record["busf"].is_null()) {
                 const auto busf = busFrequencyBuses.find(indexKey(record, "busf"));
-                if ((busf != busFrequencyBuses.end()) &&
-                    (busf->second == pq->second.bus)) {
+                if ((busf != busFrequencyBuses.end()) && (busf->second == pq->second.bus)) {
                     fload->setLocalFrequencyBus(pq->second.bus);
                 }
             }
@@ -370,8 +367,9 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
             auto ns = numberList<int>(record, "ns");
             if ((!gs.empty() && gs.size() != ns.size()) ||
                 (!bs.empty() && bs.size() != ns.size())) {
-                throw InvalidParameterValue("ANDES ShuntSw bank arrays must have matching gs, bs, and ns lengths for " +
-                                            objectName(record, "ShuntSw"));
+                throw InvalidParameterValue(
+                    "ANDES ShuntSw bank arrays must have matching gs, bs, and ns lengths for " +
+                    objectName(record, "ShuntSw"));
             }
             for (auto& value : gs) {
                 value *= scale;

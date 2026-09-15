@@ -879,13 +879,13 @@ records the lower-level GENROU work already completed or assigned to PR 2.
 
 ### Expected GridDyn implementation touchpoints
 
-| Area                       | Expected files / change                                                                                                                                                                                                                                                                                                          |
-| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Canonical machine model    | **Done:** `src/griddyn/genmodels/GenModelGENROU.{h,cpp}` is complete at the equation/initialization level and `genrou` is registered in `src/griddyn/genmodels/GenModel.cpp`; generic model `6` remains unchanged.                                                                                                               |
-| DYR parsing and attachment | **Partial:** GENROU creates the dedicated model, applies parameters in the correct RAW/DYR order, and shares exact bus-plus-machine-ID lookup with all supported DYR models. A schema-backed adapter registry and broader malformed/duplicate-record diagnostics remain.                                                         |
-| Native ANDES import        | Extend the ANDES JSON reader's dynamic-object dispatch to build the same registered machine/controller classes and control connections used by DYR adapters.                                                                                                                                                                     |
-| Model tests                | **Mostly done:** focused equation, Jacobian, initialization, saturation, invalid-parameter, and factory tests are present; add a disturbed-trajectory reference and clone regression as the model is integrated.                                                                                                                 |
-| Reader tests               | **Partial:** `test/comparisonTests/testModelComparison.cpp` is a dedicated RAW/DYR GENROU attachment and initialization test. Add parser edge cases and disturbed trajectories as support expands.                                                                                                                                     |
+| Area                       | Expected files / change                                                                                                                                                                                                                                                                                                               |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Canonical machine model    | **Done:** `src/griddyn/genmodels/GenModelGENROU.{h,cpp}` is complete at the equation/initialization level and `genrou` is registered in `src/griddyn/genmodels/GenModel.cpp`; generic model `6` remains unchanged.                                                                                                                    |
+| DYR parsing and attachment | **Partial:** GENROU creates the dedicated model, applies parameters in the correct RAW/DYR order, and shares exact bus-plus-machine-ID lookup with all supported DYR models. A schema-backed adapter registry and broader malformed/duplicate-record diagnostics remain.                                                              |
+| Native ANDES import        | Extend the ANDES JSON reader's dynamic-object dispatch to build the same registered machine/controller classes and control connections used by DYR adapters.                                                                                                                                                                          |
+| Model tests                | **Mostly done:** focused equation, Jacobian, initialization, saturation, invalid-parameter, and factory tests are present; add a disturbed-trajectory reference and clone regression as the model is integrated.                                                                                                                      |
+| Reader tests               | **Partial:** `test/comparisonTests/testModelComparison.cpp` is a dedicated RAW/DYR GENROU attachment and initialization test. Add parser edge cases and disturbed trajectories as support expands.                                                                                                                                    |
 | Numerical references       | **Partial:** the IEEE 14-bus RAW input, minimized GENROU DYR input, captured GENROU initialization reference, and first GENROU+TGOV1 trajectory reference are stored under `test/test_files/comparison_tests/` and run without importing ANDES. Add trajectories for the remaining controllers and cleared network disturbances next. |
 
 ### Planned GENROU reference cases
@@ -1087,11 +1087,11 @@ wrong model attachment, or a different post-event equilibrium.
 
 ## Current reference cases
 
-| Case                       | Coverage                                                                 |
-| -------------------------- | ------------------------------------------------------------------------ |
-| `kundur_vsc_pflow`         | 10-bus AC network, DC resistor, PQ/VQ VSC controls, and AC/DC coupling.  |
-| `two_bus_pflow`             | Minimal AC Slack/PQ/Line power flow.                                     |
-| `shunt_pflow`               | Fixed conductance/susceptance shunt with non-system `Sn`/`Vn` bases.     |
-| `jumper_pflow`              | Active and inactive zero-impedance jumpers in a loaded AC network.       |
-| `vsc_resistor_pflow`        | Minimal AC/DC `VSCShunt` plus DC resistance power flow.                  |
-| `ieee14_genrou`             | Five PSS/e DYR GENROU attachments and initialized machine states/inputs. |
+| Case                 | Coverage                                                                 |
+| -------------------- | ------------------------------------------------------------------------ |
+| `kundur_vsc_pflow`   | 10-bus AC network, DC resistor, PQ/VQ VSC controls, and AC/DC coupling.  |
+| `two_bus_pflow`      | Minimal AC Slack/PQ/Line power flow.                                     |
+| `shunt_pflow`        | Fixed conductance/susceptance shunt with non-system `Sn`/`Vn` bases.     |
+| `jumper_pflow`       | Active and inactive zero-impedance jumpers in a loaded AC network.       |
+| `vsc_resistor_pflow` | Minimal AC/DC `VSCShunt` plus DC resistance power flow.                  |
+| `ieee14_genrou`      | Five PSS/e DYR GENROU attachments and initialized machine states/inputs. |

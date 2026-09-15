@@ -72,7 +72,8 @@ void FDepLoad::dynObjectInitializeB(const IOdata& inputs,
     GridComponent::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
     if (frequencyFilter) {
         const double frequency = (inputs.size() > FREQUENCY_IN_LOCATION) ?
-            inputs[FREQUENCY_IN_LOCATION] : bus->getFreq(emptyStateData, cLocalSolverMode);
+            inputs[FREQUENCY_IN_LOCATION] :
+            bus->getFreq(emptyStateData, cLocalSolverMode);
         IOdata filterFieldSet;
         frequencyFilter->dynInitializeB({frequency}, {}, filterFieldSet);
     }
@@ -109,8 +110,8 @@ double FDepLoad::getBusFrequency(const IOdata& inputs,
                                  const SolverMode& sMode) const
 {
     const auto* sourceBus = (frequencyBus != nullptr) ? frequencyBus : bus;
-    return (inputs.size() > FREQUENCY_IN_LOCATION) ?
-        inputs[FREQUENCY_IN_LOCATION] : sourceBus->getFreq(stateDataValue, sMode);
+    return (inputs.size() > FREQUENCY_IN_LOCATION) ? inputs[FREQUENCY_IN_LOCATION] :
+                                                     sourceBus->getFreq(stateDataValue, sMode);
 }
 
 double FDepLoad::getFrequency(const IOdata& inputs,
@@ -232,8 +233,8 @@ void FDepLoad::ioPartialDerivatives(const IOdata& inputs,
 {
     const double V = inputs[VOLTAGE_IN_LOCATION];
     const double freq = getFrequency(inputs, sD, sMode);
-    const bool useFilter = frequencyFilter && frequencyFilter->checkFlag(DYN_INITIALIZED) &&
-        isDynamic(sMode);
+    const bool useFilter =
+        frequencyFilter && frequencyFilter->checkFlag(DYN_INITIALIZED) && isDynamic(sMode);
     // power vs voltage
     if (inputLocs[VOLTAGE_IN_LOCATION] != kNullLocation) {
         md.assign(POUT_LOCATION,
@@ -266,13 +267,13 @@ void FDepLoad::outputPartialDerivatives(const IOdata& inputs,
                                         MatrixData<double>& matrixDataValue,
                                         const SolverMode& sMode)
 {
-    if (!frequencyFilter || !frequencyFilter->checkFlag(DYN_INITIALIZED) ||
-        !isDynamic(sMode) || (frequencyFilter->getOutputLoc(sMode) == kNullLocation)) {
+    if (!frequencyFilter || !frequencyFilter->checkFlag(DYN_INITIALIZED) || !isDynamic(sMode) ||
+        (frequencyFilter->getOutputLoc(sMode) == kNullLocation)) {
         return;
     }
 
-    const IOdata busInputs = inputs.empty() ? bus->getOutputs(noInputs, stateDataValue, sMode) :
-                                             inputs;
+    const IOdata busInputs =
+        inputs.empty() ? bus->getOutputs(noInputs, stateDataValue, sMode) : inputs;
     const double V = busInputs[VOLTAGE_IN_LOCATION];
     const double freq = getFrequency(busInputs, stateDataValue, sMode);
     const index_t filterOutputLocation = frequencyFilter->getOutputLoc(sMode);
@@ -289,9 +290,7 @@ void FDepLoad::outputPartialDerivatives(const IOdata& inputs,
 
 count_t FDepLoad::outputDependencyCount(index_t /*outputNum*/, const SolverMode& sMode) const
 {
-    return (frequencyFilter && isDynamic(sMode) && (frequencyFilter->stateSize(sMode) > 0)) ?
-        1 :
-        0;
+    return (frequencyFilter && isDynamic(sMode) && (frequencyFilter->stateSize(sMode) > 0)) ? 1 : 0;
 }
 
 void FDepLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
@@ -299,7 +298,8 @@ void FDepLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& s
     if (frequencyFilter && frequencyFilter->checkFlag(DYN_INITIALIZED) && isDynamic(sMode) &&
         frequencyFilter->currentTime() < time) {
         const double frequency = (inputs.size() > FREQUENCY_IN_LOCATION) ?
-            inputs[FREQUENCY_IN_LOCATION] : bus->getFreq();
+            inputs[FREQUENCY_IN_LOCATION] :
+            bus->getFreq();
         frequencyFilter->timestep(time, {frequency}, sMode);
     }
     GridComponent::timestep(time, inputs, sMode);
@@ -312,11 +312,8 @@ void FDepLoad::residual(const IOdata& inputs,
 {
     GridComponent::residual(inputs, stateDataValue, resid, sMode);
     if (frequencyFilter && isDynamic(sMode) && frequencyFilter->stateSize(sMode) > 0) {
-        frequencyFilter->blockResidual(getBusFrequency(inputs, stateDataValue, sMode),
-                                        0.0,
-                                        stateDataValue,
-                                        resid,
-                                        sMode);
+        frequencyFilter->blockResidual(
+            getBusFrequency(inputs, stateDataValue, sMode), 0.0, stateDataValue, resid, sMode);
     }
 }
 
@@ -327,11 +324,8 @@ void FDepLoad::derivative(const IOdata& inputs,
 {
     GridComponent::derivative(inputs, stateDataValue, deriv, sMode);
     if (frequencyFilter && isDynamic(sMode) && frequencyFilter->diffSize(sMode) > 0) {
-        frequencyFilter->blockDerivative(getBusFrequency(inputs, stateDataValue, sMode),
-                                          0.0,
-                                          stateDataValue,
-                                          deriv,
-                                          sMode);
+        frequencyFilter->blockDerivative(
+            getBusFrequency(inputs, stateDataValue, sMode), 0.0, stateDataValue, deriv, sMode);
     }
 }
 
@@ -343,11 +337,8 @@ void FDepLoad::algebraicUpdate(const IOdata& inputs,
 {
     GridComponent::algebraicUpdate(inputs, stateDataValue, update, sMode, alpha);
     if (frequencyFilter && isDynamic(sMode) && frequencyFilter->algSize(sMode) > 0) {
-        frequencyFilter->algebraicUpdate({getBusFrequency(inputs, stateDataValue, sMode)},
-                                          stateDataValue,
-                                          update,
-                                          sMode,
-                                          alpha);
+        frequencyFilter->algebraicUpdate(
+            {getBusFrequency(inputs, stateDataValue, sMode)}, stateDataValue, update, sMode, alpha);
     }
 }
 
@@ -357,8 +348,7 @@ void FDepLoad::jacobianElements(const IOdata& inputs,
                                 const IOlocs& inputLocs,
                                 const SolverMode& sMode)
 {
-    GridComponent::jacobianElements(
-        inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
+    GridComponent::jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
     if (frequencyFilter && isDynamic(sMode) && frequencyFilter->stateSize(sMode) > 0) {
         frequencyFilter->blockJacobianElements(getBusFrequency(inputs, stateDataValue, sMode),
                                                0.0,
@@ -377,9 +367,8 @@ double FDepLoad::getReactivePower() const
 {
     return getReactivePower(bus->getVoltage(), getLocalFrequency());
 }
-double FDepLoad::getRealPower(const IOdata& inputs,
-                              const StateData& sD,
-                              const SolverMode& sMode) const
+double
+    FDepLoad::getRealPower(const IOdata& inputs, const StateData& sD, const SolverMode& sMode) const
 {
     return getRealPower(inputs[VOLTAGE_IN_LOCATION], getFrequency(inputs, sD, sMode));
 }

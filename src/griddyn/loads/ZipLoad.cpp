@@ -12,8 +12,8 @@
 #include "FDepLoad.h"
 #include "FileLoad.h"
 #include "RampLoad.h"
-#include "SourceLoad.h"
 #include "ShuntTD.h"
+#include "SourceLoad.h"
 #include "ThreePhaseLoad.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
@@ -57,8 +57,8 @@ namespace loads {
         gSourceLoadFactory("load", std::to_array<std::string_view>({"src", "source"}));
     static ChildTypeFactory<ExponentialLoad, GridLoad>
         gExponentialLoadFactory("load", std::to_array<std::string_view>({"exponential", "exp"}));
-    static ChildTypeFactory<FDepLoad, GridLoad> gFrequencyDependentLoadFactory(
-        "load", std::to_array<std::string_view>({"fdep", "fload"}));
+    static ChildTypeFactory<FDepLoad, GridLoad>
+        gFrequencyDependentLoadFactory("load", std::to_array<std::string_view>({"fdep", "fload"}));
     static ChildTypeFactory<ThreePhaseLoad, GridLoad>
         gThreePhaseLoadFactory("load",
                                std::to_array<std::string_view>({"3phase", "3p", "threephase"}));

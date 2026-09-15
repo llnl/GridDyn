@@ -364,9 +364,7 @@ ChangeCode GridBus::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, C
     auto out = ChangeCode::NO_CHANGE;
     IOdata busInputs = {voltage, angle, freq};
     if (inputs.size() > PFLOW_ITERATION_LOCATION) {
-        busInputs.insert(busInputs.end(),
-                         inputs.begin() + PFLOW_ITERATION_LOCATION,
-                         inputs.end());
+        busInputs.insert(busInputs.end(), inputs.begin() + PFLOW_ITERATION_LOCATION, inputs.end());
     }
     for (auto& gen : attachedGens) {
         if (gen->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {

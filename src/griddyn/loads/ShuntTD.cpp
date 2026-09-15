@@ -29,11 +29,13 @@ double ShuntTD::phaseVoltage(const IOdata& inputs,
                              double phaseOffset) const
 {
     const double voltage = (inputs.size() > VOLTAGE_IN_LOCATION) ?
-        inputs[VOLTAGE_IN_LOCATION] : bus->getVoltage(stateData, sMode);
-    const double angle = (inputs.size() > ANGLE_IN_LOCATION) ?
-        inputs[ANGLE_IN_LOCATION] : bus->getAngle(stateData, sMode);
+        inputs[VOLTAGE_IN_LOCATION] :
+        bus->getVoltage(stateData, sMode);
+    const double angle = (inputs.size() > ANGLE_IN_LOCATION) ? inputs[ANGLE_IN_LOCATION] :
+                                                               bus->getAngle(stateData, sMode);
     const double frequency = (inputs.size() > FREQUENCY_IN_LOCATION) ?
-        inputs[FREQUENCY_IN_LOCATION] : bus->getFreq(stateData, sMode);
+        inputs[FREQUENCY_IN_LOCATION] :
+        bus->getFreq(stateData, sMode);
     const double time = stateData.empty() ? currentTime() : stateData.time;
 
     // GridDyn stores the system base frequency in rad/s.  ANDES uses Hz in

@@ -30,7 +30,8 @@
 
 static constexpr std::string_view elementReaderTestDirectory{GRIDDYN_TEST_DIRECTORY
                                                              "/element_reader_tests/"};
-static constexpr std::string_view comparisonTestDirectory{GRIDDYN_TEST_DIRECTORY "/comparison_tests/"};
+static constexpr std::string_view comparisonTestDirectory{GRIDDYN_TEST_DIRECTORY
+                                                          "/comparison_tests/"};
 
 static std::string makeElementReaderTestPath(std::string_view fileName)
 {
@@ -275,8 +276,8 @@ TEST(AndesShuntModelReaderTests, ImportsFLoadAndShuntVariants)
 TEST(AndesShuntModelReaderTests, KeepsInvalidFLoadBusFrequencyLinkLocal)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    EXPECT_NO_THROW(
-        griddyn::loadFile(simulation.get(), makeComparisonTestPath("shunt_model_invalid_busf.json")));
+    EXPECT_NO_THROW(griddyn::loadFile(simulation.get(),
+                                      makeComparisonTestPath("shunt_model_invalid_busf.json")));
 
     auto* fload = dynamic_cast<griddyn::loads::FDepLoad*>(simulation->find("BUS1::FLoad_1"));
     ASSERT_NE(fload, nullptr);

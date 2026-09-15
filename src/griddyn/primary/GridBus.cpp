@@ -359,19 +359,24 @@ void GridBus::reset(ResetLevels level)
     }
 }
 
-ChangeCode GridBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, CheckLevel level)
+ChangeCode GridBus::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level)
 {
     auto out = ChangeCode::NO_CHANGE;
-    const IOdata inputs = {voltage, angle, freq};
+    IOdata busInputs = {voltage, angle, freq};
+    if (inputs.size() > PFLOW_ITERATION_LOCATION) {
+        busInputs.insert(busInputs.end(),
+                         inputs.begin() + PFLOW_ITERATION_LOCATION,
+                         inputs.end());
+    }
     for (auto& gen : attachedGens) {
         if (gen->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {
-            auto pout = gen->powerFlowAdjust(inputs, flags, level);
+            auto pout = gen->powerFlowAdjust(busInputs, flags, level);
             out = (std::max)(pout, out);
         }
     }
     for (auto& load : attachedLoads) {
         if (load->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {
-            auto pout = load->powerFlowAdjust(inputs, flags, level);
+            auto pout = load->powerFlowAdjust(busInputs, flags, level);
             out = (std::max)(pout, out);
         }
     }

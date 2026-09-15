@@ -66,6 +66,10 @@ class AcBus: public GridBus {
     model_parameter tieError = 0.0;  //!< tieLine error
     model_parameter prevPower = 0.0;  //!< previous power level
     model_parameter Tw = 0.1;  //!< time constant for the frequency estimator
+    model_parameter frequencyFilterTf = 0.02;  //!< optional lag time constant [s]
+    model_parameter frequencyFilterTw = 0.1;  //!< optional washout time constant [s]
+    model_parameter frequencyFilterFn = 60.0;  //!< optional nominal frequency [Hz]
+    bool frequencyFilterConfigured = false;  //!< use the lag/washout frequency block
 
     CoreTime lastSetTime = negTime;  //!< last set time
     CoreOwningPtr<GridBlock> fblock;  //!< pointer to frequency estimator block
@@ -132,6 +136,10 @@ class AcBus: public GridBus {
 
   public:
     virtual void disable() override;
+    /** Configure the optional lag/washout bus-frequency measurement block. */
+    void configureFrequencyFilter(double filterTime,
+                                  double washoutTime,
+                                  double nominalFrequency = 60.0);
     using GridBus::reconnect;
     virtual void reconnect(GridBus* mapBus) override;
     // parameter set functions

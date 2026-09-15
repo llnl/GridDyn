@@ -1,0 +1,74 @@
+{
+  "Bus": [
+    {
+      "idx": 1,
+      "name": "BUS1",
+      "Vn": 110.0,
+      "v0": 1.02,
+      "a0": 0.0
+    }
+  ],
+  "PQ": [
+    {
+      "idx": "PQ_1",
+      "name": "PQ_1",
+      "bus": 1,
+      "p0": 0.5,
+      "q0": 0.2
+    }
+  ],
+  "FLoad": [
+    {
+      "idx": "FLoad_1",
+      "name": "FLoad_1",
+      "pq": "PQ_1",
+      "busf": "BusFreq_1",
+      "kp": 90.0,
+      "kq": 80.0,
+      "ap": 1.0,
+      "aq": 0.0,
+      "bp": 1.5,
+      "bq": 0.5
+    }
+  ],
+  "BusFreq": [
+    {
+      "idx": "BusFreq_1",
+      "name": "BusFreq_1",
+      "bus": 1,
+      "Tf": 0.02,
+      "Tw": 0.02,
+      "fn": 60.0
+    }
+  ],
+  "ShuntTD": [
+    {
+      "idx": "ShuntTD_1",
+      "name": "ShuntTD_1",
+      "bus": 1,
+      "Sn": 100.0,
+      "Vn": 110.0,
+      "g": 0.01,
+      "b": 0.10
+    }
+  ],
+  "ShuntSw": [
+    {
+      "idx": "ShuntSw_1",
+      "name": "ShuntSw_1",
+      "bus": 1,
+      "Sn": 100.0,
+      "Vn": 110.0,
+      "g": 0.0,
+      "b": 0.10,
+      "gs": "[0.0, 0.0]",
+      "bs": "[0.05, 0.05]",
+      "ns": "[1, 1]",
+      "vref": 1.0,
+      "dv": 0.05,
+      "dt": 0.2,
+      "min_iter": 2,
+      "err_tol": 0.01
+    }
+  ]
+}

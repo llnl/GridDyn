@@ -30,6 +30,18 @@ enum SecondaryOutputLocations {
     QOUT_LOCATION = 1,
 };
 
+/** @brief optional trailing inputs supplied during power-flow adjustment.
+ *
+ * The first three adjustment inputs remain the normal bus voltage, angle, and
+ * frequency values. The power-flow driver appends these two values so
+ * discrete models can defer switching until the current iteration/error gate
+ * is satisfied without changing the long-standing powerFlowAdjust interface.
+ */
+enum PowerFlowAdjustmentInputLocations {
+    PFLOW_ITERATION_LOCATION = 3,
+    PFLOW_ERROR_LOCATION = 4,
+};
+
 /** @brief base class for top level simulation objects including GridBus, Link, gridRelays, and
 GridArea GridPrimary class defines the interface for GridPrimary objects which are nominally objects
 that can be contained by a root object which is an area usually,  though there is no restriction in

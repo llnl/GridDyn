@@ -12,6 +12,9 @@
 #include "griddyn/links/DcLink.h"
 #include "griddyn/links/VSCShunt.h"
 #include "griddyn/links/ZBreaker.h"
+#include "griddyn/loads/FDepLoad.h"
+#include "griddyn/loads/ShuntTD.h"
+#include "griddyn/loads/Svd.h"
 #include "griddyn/loads/ZipLoad.h"
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/primary/DcBus.h"
@@ -227,6 +230,62 @@ TEST(DcReaderComparisonTests, ImportsAllAndesDcComponents)
     EXPECT_EQ(vsc->terminalCount(), 3U);
     ASSERT_NE(vsc->getBus(3), nullptr);
     EXPECT_EQ(vsc->getBus(3)->getName(), "ground_node");
+}
+
+TEST(AndesShuntModelReaderTests, ImportsFLoadAndShuntVariants)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("shunt_model_imports.json"));
+
+    auto* fload = dynamic_cast<griddyn::loads::FDepLoad*>(simulation->find("BUS1::FLoad_1"));
+    ASSERT_NE(fload, nullptr);
+    EXPECT_NEAR(fload->get("kp"), 90.0, 1.0e-12);
+    EXPECT_NEAR(fload->get("kq"), 80.0, 1.0e-12);
+    EXPECT_NEAR(fload->get("vref"), 1.02, 1.0e-12);
+
+    auto* acBus = dynamic_cast<griddyn::AcBus*>(simulation->find("BUS1"));
+    ASSERT_NE(acBus, nullptr);
+    EXPECT_EQ(fload->getFrequencyBus(), acBus);
+    EXPECT_NEAR(acBus->get("tf"), 0.02, 1.0e-12);
+    EXPECT_NEAR(acBus->get("tw"), 0.02, 1.0e-12);
+    EXPECT_NEAR(acBus->get("fn"), 60.0, 1.0e-12);
+
+    auto* pq = simulation->find("BUS1::PQ_1");
+    ASSERT_NE(pq, nullptr);
+    EXPECT_FALSE(pq->isEnabled());
+
+    auto* shuntTD = dynamic_cast<griddyn::loads::ShuntTD*>(simulation->find("BUS1::ShuntTD_1"));
+    ASSERT_NE(shuntTD, nullptr);
+    EXPECT_EQ(shuntTD->outputNames().size(), 5U);
+
+    auto* shuntSw = dynamic_cast<griddyn::loads::Svd*>(simulation->find("BUS1::ShuntSw_1"));
+    ASSERT_NE(shuntSw, nullptr);
+    EXPECT_NEAR(shuntSw->get("vref"), 1.0, 1.0e-12);
+    EXPECT_NEAR(shuntSw->get("dv"), 0.05, 1.0e-12);
+    EXPECT_NEAR(shuntSw->get("dt"), 0.2, 1.0e-12);
+    EXPECT_NEAR(shuntSw->get("min_iter"), 2.0, 1.0e-12);
+    EXPECT_NEAR(shuntSw->get("err_tol"), 0.01, 1.0e-12);
+    EXPECT_EQ(shuntSw->get("andesstep"), 2.0);
+    EXPECT_NEAR(shuntSw->get("effectiveb"), 0.1, 1.0e-12);
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_GE(acBus->diffSize(griddyn::cDaeSolverMode), 2U);
+}
+
+TEST(AndesShuntModelReaderTests, KeepsInvalidFLoadBusFrequencyLinkLocal)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    EXPECT_NO_THROW(
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath("shunt_model_invalid_busf.json")));
+
+    auto* fload = dynamic_cast<griddyn::loads::FDepLoad*>(simulation->find("BUS1::FLoad_1"));
+    ASSERT_NE(fload, nullptr);
+    EXPECT_NEAR(fload->get("kp"), 90.0, 1.0e-12);
+    EXPECT_NEAR(fload->get("kq"), 80.0, 1.0e-12);
+    EXPECT_EQ(fload->getFrequencyBus(), nullptr);
+    EXPECT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_NEAR(fload->getRealPower(), 0.45, 1.0e-12);
+    EXPECT_NEAR(fload->getReactivePower(), 0.16, 1.0e-12);
 }
 
 TEST(VSCShuntComparisonTests, MatchesAndesPqReferencePoint)

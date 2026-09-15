@@ -7,6 +7,7 @@
 #pragma once
 
 #include "RampLoad.h"
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -40,6 +41,23 @@ class Svd: public RampLoad {
 
     model_parameter participation = 1.0;  //!< a participation factor
 
+    // Optional ANDES switched-shunt representation. Values are stored on the
+    // GridDyn system base. Ordinary Svd/PSS/E behavior is unchanged when this
+    // bank is not configured.
+    bool andesBankMode = false;
+    std::vector<double> andesGs;
+    std::vector<double> andesBs;
+    std::vector<int> andesNs;
+    model_parameter andesVref = 1.0;
+    model_parameter andesDv = 0.05;
+    model_parameter andesDt = 30.0;
+    model_parameter andesBaseG = 0.0;
+    model_parameter andesBaseB = 0.0;
+    int andesStep = 0;
+    CoreTime andesLastSwitchTime = negTime;
+    int minIter = 2;  //!< minimum power-flow iteration before switching is enabled
+    model_parameter errTol = 0.01;  //!< power-flow error threshold that enables switching
+
   public:
     Svd(const std::string& objName = "svd_$");
     Svd(double realPower, double reactivePower, const std::string& objName = "svd_$");
@@ -70,6 +88,8 @@ class Svd: public RampLoad {
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
+    virtual double get(std::string_view param,
+                       units::unit unitType = units::defunit) const override;
     /** define which bus the Svd is controlling voltage on if it is not otherwise specified it
      * is assumed to be the parent bus
      */
@@ -81,6 +101,16 @@ class Svd: public RampLoad {
 @param[in] unitType  the units of qstep
 */
     void addBlock(int steps, double qstep, units::unit unitType = units::defunit);
+
+    /** Configure an ANDES ShuntSw block bank using system-base admittances. */
+    void configureAndesShunt(const std::vector<double>& gs,
+                             const std::vector<double>& bs,
+                             const std::vector<int>& ns,
+                             double vref,
+                             double dv,
+                             double dt,
+                             double initialG,
+                             double initialB);
 
     virtual ChangeCode
         powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level) override;
@@ -126,6 +156,14 @@ class Svd: public RampLoad {
                                  CheckLevel level) override;
 
   protected:
+    int andesMaxStep() const;
+    int andesInitialStep() const;
+    double andesEffectiveValue(const std::vector<double>& blocks,
+                               double baseValue,
+                               int step) const;
+    void updateAndesAdmittance();
+    bool adjustAndesStep(int direction);
+
     /** get the setting corresponding to a specific output level
 @param[in] level the reactive output level desired [puMW]
 @return the step number corresponding to that level (best effort)

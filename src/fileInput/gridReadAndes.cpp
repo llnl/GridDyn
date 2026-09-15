@@ -15,16 +15,22 @@
 #include "griddyn/links/DcLink.h"
 #include "griddyn/links/VSCShunt.h"
 #include "griddyn/links/ZBreaker.h"
+#include "griddyn/loads/FDepLoad.h"
+#include "griddyn/loads/ShuntTD.h"
+#include "griddyn/loads/Svd.h"
 #include "griddyn/loads/ZipLoad.h"
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/primary/DcBus.h"
 #include "nlohmann/json.hpp"
 #include <array>
+#include <cctype>
 #include <cmath>
 #include <fstream>
+#include <iterator>
 #include <string>
 #include <string_view>
 #include <unordered_map>
+#include <vector>
 
 namespace griddyn {
 namespace {
@@ -67,6 +73,101 @@ namespace {
             object->set(target, number(record, source));
         }
     }
+
+    template<class Number>
+    std::vector<Number> numberList(const Json& record, std::string_view field)
+    {
+        std::vector<Number> values;
+        if (!record.contains(field) || record[field].is_null()) {
+            return values;
+        }
+
+        const auto& value = record[field];
+        if (value.is_array()) {
+            values.reserve(value.size());
+            for (const auto& item : value) {
+                values.push_back(item.get<Number>());
+            }
+            return values;
+        }
+        if (value.is_number()) {
+            values.push_back(value.get<Number>());
+            return values;
+        }
+        if (value.is_string()) {
+            const auto parsed = Json::parse(value.get<std::string>(), nullptr, false);
+            if (parsed.is_array()) {
+                values.reserve(parsed.size());
+                for (const auto& item : parsed) {
+                    values.push_back(item.get<Number>());
+                }
+            } else if (parsed.is_number()) {
+                values.push_back(parsed.get<Number>());
+            }
+        }
+        return values;
+    }
+
+    double calculateAndesAdmittanceScale(const Json& record,
+                                         double systemBasePower,
+                                         double busBaseVoltage)
+    {
+        const auto deviceBasePower = number(record, "Sn", 100.0);
+        const auto deviceBaseVoltage = number(record, "Vn", 110.0);
+        if ((deviceBasePower <= 0.0) || (deviceBaseVoltage <= 0.0) || (busBaseVoltage <= 0.0)) {
+            return 1.0;
+        }
+        return (deviceBasePower / systemBasePower) *
+            std::pow(busBaseVoltage / deviceBaseVoltage, 2);
+    }
+
+    std::string normalizeAndesJson(std::string text)
+    {
+        bool inString = false;
+        bool escaped = false;
+        for (size_t index = 0; index < text.size();) {
+            const auto character = text[index];
+            if (inString) {
+                if (escaped) {
+                    escaped = false;
+                } else if (character == '\\') {
+                    escaped = true;
+                } else if (character == '"') {
+                    inString = false;
+                }
+                ++index;
+                continue;
+            }
+            if (character == '"') {
+                inString = true;
+                ++index;
+                continue;
+            }
+
+            const bool hasNan = (text.compare(index, 3, "NaN") == 0);
+            const bool hasSignedNan = (character == '-') &&
+                (text.compare(index + 1, 3, "NaN") == 0);
+            const auto tokenLength = hasSignedNan ? 4U : 3U;
+            if ((hasNan || hasSignedNan) &&
+                ((index == 0) ||
+                 !std::isalnum(static_cast<unsigned char>(text[index - 1]))) &&
+                ((index + tokenLength >= text.size()) ||
+                 !std::isalnum(static_cast<unsigned char>(text[index + tokenLength])))) {
+                text.replace(index, tokenLength, "null");
+                index += 4;
+            } else {
+                ++index;
+            }
+        }
+        return text;
+    }
+
+    struct AndesStaticLoad {
+        GridBus* bus = nullptr;
+        ZipLoad* load = nullptr;
+        double p0 = 0.0;
+        double q0 = 0.0;
+    };
 }  // namespace
 
 bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
@@ -78,15 +179,27 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
 
     Json document;
     try {
-        input >> document;
+        const std::string contents((std::istreambuf_iterator<char>(input)),
+                                   std::istreambuf_iterator<char>());
+        document = Json::parse(normalizeAndesJson(contents));
     }
     catch (const Json::parse_error&) {
         return false;
     }
 
-    // Node is the distinguishing ANDES DC-topology section.  Do not claim
-    // ordinary GridDyn JSON files that happen to contain a similarly named field.
-    if (!document.is_object() || !document.contains("Node") || !document["Node"].is_array()) {
+    // ANDES exports can contain AC data only, or both AC and DC data.  The
+    // capitalized Bus/Node sections distinguish them from GridDyn's generic
+    // JSON element reader without requiring a DC Node section to be present.
+    const bool hasAndesBus = document.is_object() && document.contains("Bus") &&
+        document["Bus"].is_array();
+    const bool hasAndesNode = document.is_object() && document.contains("Node") &&
+        document["Node"].is_array();
+    const bool hasAndesAcModel = hasAndesBus &&
+        (document.contains("PQ") || document.contains("PV") || document.contains("Slack") ||
+         document.contains("Line") || document.contains("Shunt") ||
+         document.contains("ShuntSw") || document.contains("ShuntTD") ||
+         document.contains("FLoad") || document.contains("BusFreq"));
+    if (!hasAndesAcModel && !hasAndesNode) {
         return false;
     }
     if (parentObject == nullptr) {
@@ -95,6 +208,8 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
 
     std::unordered_map<std::string, GridBus*> acBuses;
     std::unordered_map<std::string, double> acBaseVoltages;
+    const auto parentBasePower = parentObject->get("basepower");
+    const auto systemBasePower = (parentBasePower > 0.0) ? parentBasePower : 100.0;
     if (document.contains("Bus") && document["Bus"].is_array()) {
         for (const auto& record : document["Bus"]) {
             auto* bus = new AcBus(objectName(record, "Bus"));
@@ -114,20 +229,88 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
 
     // ANDES supplies static injections separately from its AC bus records.
     // Map those power-flow objects before adding the network branches.
+    std::unordered_map<std::string, AndesStaticLoad> pqLoads;
     if (document.contains("PQ") && document["PQ"].is_array()) {
         for (const auto& record : document["PQ"]) {
             const auto bus = acBuses.find(indexKey(record, "bus"));
             if (bus == acBuses.end()) {
                 continue;
             }
-            auto* load =
-                new ZipLoad(number(record, "p0"), number(record, "q0"), objectName(record, "PQ"));
+            const auto p0 = number(record, "p0");
+            const auto q0 = number(record, "q0");
+            auto* load = new ZipLoad(p0, q0, objectName(record, "PQ"));
+            if (number(record, "u", 1.0) == 0.0) {
+                load->disable();
+            }
             bus->second->add(load);
+            pqLoads.emplace(indexKey(record), AndesStaticLoad{bus->second, load, p0, q0});
         }
     }
+
+    // ANDES DeviceFinder resolves a valid busf index to an existing BusFreq
+    // device. GridDyn has one frequency measurement path per AcBus, so keep
+    // the compatible local association and let unresolved or remote links use
+    // the owning bus frequency path.
+    std::unordered_map<std::string, GridBus*> busFrequencyBuses;
+    if (document.contains("BusFreq") && document["BusFreq"].is_array()) {
+        for (const auto& record : document["BusFreq"]) {
+            if (number(record, "u", 1.0) == 0.0) {
+                continue;
+            }
+            const auto bus = acBuses.find(indexKey(record, "bus"));
+            if (bus == acBuses.end()) {
+                continue;
+            }
+            busFrequencyBuses.emplace(indexKey(record), bus->second);
+            if (auto* acBus = dynamic_cast<AcBus*>(bus->second); acBus != nullptr) {
+                acBus->configureFrequencyFilter(number(record, "Tf", 0.02),
+                                                 number(record, "Tw", 0.1),
+                                                 number(record, "fn", 60.0));
+            }
+        }
+    }
+
+    // ANDES FLoad replaces its linked static PQ load. GridDyn's FDepLoad is
+    // the closest model: its new scale/reference-voltage parameters preserve
+    // the FLoad P/V/f and Q/V/f equations at the import boundary.
+    if (document.contains("FLoad") && document["FLoad"].is_array()) {
+        for (const auto& record : document["FLoad"]) {
+            const auto pq = pqLoads.find(indexKey(record, "pq"));
+            if (pq == pqLoads.end()) {
+                throw InvalidParameterValue("ANDES FLoad references an unknown PQ record: " +
+                                            indexKey(record, "pq"));
+            }
+
+            auto* fload = new loads::FDepLoad(pq->second.p0,
+                                              pq->second.q0,
+                                              objectName(record, "FLoad"));
+            fload->set("kp", number(record, "kp", 100.0));
+            fload->set("kq", number(record, "kq", 100.0));
+            fload->set("vref", pq->second.bus->getVoltage());
+            fload->set("ap", number(record, "ap", 1.0));
+            fload->set("aq", number(record, "aq", 0.0));
+            fload->set("betap", number(record, "bp", 0.0));
+            fload->set("betaq", number(record, "bq", 0.0));
+            if (record.contains("busf") && !record["busf"].is_null()) {
+                const auto busf = busFrequencyBuses.find(indexKey(record, "busf"));
+                if ((busf != busFrequencyBuses.end()) &&
+                    (busf->second == pq->second.bus)) {
+                    fload->setLocalFrequencyBus(pq->second.bus);
+                }
+            }
+
+            if (number(record, "u", 1.0) == 0.0) {
+                fload->disable();
+            }
+
+            // The ANDES `replaces` relationship makes the static PQ inactive
+            // whenever an FLoad is present. The FDepLoad supplies its output.
+            pq->second.load->disable();
+            pq->second.bus->add(fload);
+        }
+    }
+
     if (document.contains("Shunt") && document["Shunt"].is_array()) {
-        const auto parentBasePower = parentObject->get("basepower");
-        const auto systemBasePower = (parentBasePower > 0.0) ? parentBasePower : 100.0;
         for (const auto& record : document["Shunt"]) {
             const auto busIndex = indexKey(record, "bus");
             const auto bus = acBuses.find(busIndex);
@@ -139,22 +322,79 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
             // ANDES marks g and b as y=True parameters. Convert from the
             // device base to the system/bus base using Zb/Zn, then map the
             // ANDES injection convention P=g*V^2, Q=-b*V^2 to ZipLoad.
-            const auto deviceBasePower = number(record, "Sn", 100.0);
-            const auto deviceBaseVoltage = number(record, "Vn", 110.0);
-            const auto busBaseVoltage = baseVoltage->second;
-            const auto admittanceScale =
-                (deviceBasePower > 0.0 && deviceBaseVoltage > 0.0 && busBaseVoltage > 0.0) ?
-                (deviceBasePower / systemBasePower) *
-                    std::pow(busBaseVoltage / deviceBaseVoltage, 2) :
-                1.0;
+            const auto scale =
+                calculateAndesAdmittanceScale(record, systemBasePower, baseVoltage->second);
 
             auto* shunt = new ZipLoad(objectName(record, "Shunt"));
-            shunt->set("yp", number(record, "g") * admittanceScale);
-            shunt->set("yq", -number(record, "b") * admittanceScale);
+            shunt->set("yp", number(record, "g") * scale);
+            shunt->set("yq", -number(record, "b") * scale);
             if (number(record, "u", 1.0) == 0.0) {
                 shunt->disable();
             }
             bus->second->add(shunt);
+        }
+    }
+    if (document.contains("ShuntTD") && document["ShuntTD"].is_array()) {
+        for (const auto& record : document["ShuntTD"]) {
+            const auto busIndex = indexKey(record, "bus");
+            const auto bus = acBuses.find(busIndex);
+            const auto baseVoltage = acBaseVoltages.find(busIndex);
+            if ((bus == acBuses.end()) || (baseVoltage == acBaseVoltages.end())) {
+                continue;
+            }
+
+            const auto scale =
+                calculateAndesAdmittanceScale(record, systemBasePower, baseVoltage->second);
+            auto* shunt = new loads::ShuntTD(objectName(record, "ShuntTD"));
+            shunt->set("yp", number(record, "g") * scale);
+            shunt->set("yq", -number(record, "b") * scale);
+            if (number(record, "u", 1.0) == 0.0) {
+                shunt->disable();
+            }
+            bus->second->add(shunt);
+        }
+    }
+    if (document.contains("ShuntSw") && document["ShuntSw"].is_array()) {
+        for (const auto& record : document["ShuntSw"]) {
+            const auto busIndex = indexKey(record, "bus");
+            const auto bus = acBuses.find(busIndex);
+            const auto baseVoltage = acBaseVoltages.find(busIndex);
+            if ((bus == acBuses.end()) || (baseVoltage == acBaseVoltages.end())) {
+                continue;
+            }
+
+            const auto scale =
+                calculateAndesAdmittanceScale(record, systemBasePower, baseVoltage->second);
+            auto gs = numberList<double>(record, "gs");
+            auto bs = numberList<double>(record, "bs");
+            auto ns = numberList<int>(record, "ns");
+            if ((!gs.empty() && gs.size() != ns.size()) ||
+                (!bs.empty() && bs.size() != ns.size())) {
+                throw InvalidParameterValue("ANDES ShuntSw bank arrays must have matching gs, bs, and ns lengths for " +
+                                            objectName(record, "ShuntSw"));
+            }
+            for (auto& value : gs) {
+                value *= scale;
+            }
+            for (auto& value : bs) {
+                value *= scale;
+            }
+
+            auto* shunt = new loads::Svd(objectName(record, "ShuntSw"));
+            bus->second->add(shunt);
+            shunt->configureAndesShunt(gs,
+                                       bs,
+                                       ns,
+                                       number(record, "vref", 1.0),
+                                       number(record, "dv", 0.05),
+                                       number(record, "dt", 30.0),
+                                       number(record, "g") * scale,
+                                       number(record, "b") * scale);
+            shunt->set("min_iter", number(record, "min_iter", 2.0));
+            shunt->set("err_tol", number(record, "err_tol", 0.01));
+            if (number(record, "u", 1.0) == 0.0) {
+                shunt->disable();
+            }
         }
     }
     if (document.contains("PV") && document["PV"].is_array()) {
@@ -224,12 +464,14 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
     }
 
     std::unordered_map<std::string, DcBus*> dcBuses;
-    for (const auto& record : document["Node"]) {
-        auto* bus = new DcBus(objectName(record, "Node"));
-        setIfPresent(bus, record, "Vdcn", "basevoltage");
-        setIfPresent(bus, record, "v0", "voltage");
-        parentObject->add(bus);
-        dcBuses.emplace(indexKey(record), bus);
+    if (hasAndesNode) {
+        for (const auto& record : document["Node"]) {
+            auto* bus = new DcBus(objectName(record, "Node"));
+            setIfPresent(bus, record, "Vdcn", "basevoltage");
+            setIfPresent(bus, record, "v0", "voltage");
+            parentObject->add(bus);
+            dcBuses.emplace(indexKey(record), bus);
+        }
     }
 
     if (document.contains("Ground") && document["Ground"].is_array()) {

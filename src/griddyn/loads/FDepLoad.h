@@ -104,7 +104,7 @@ class FDepLoad: public ExponentialLoad {
 
     virtual void ioPartialDerivatives(const IOdata& inputs,
                                       const StateData& stateData,
-                                      MatrixData<double>& md,
+                                      MatrixData<double>& matrixData,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
     virtual double getRealPower(const IOdata& inputs,

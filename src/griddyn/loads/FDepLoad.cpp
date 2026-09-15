@@ -369,10 +369,9 @@ double FDepLoad::getReactivePower() const
 {
     return getReactivePower(bus->getVoltage(), getLocalFrequency());
 }
-double
-    FDepLoad::getRealPower(const IOdata& inputs,
-                           const StateData& stateData,
-                           const SolverMode& sMode) const
+double FDepLoad::getRealPower(const IOdata& inputs,
+                              const StateData& stateData,
+                              const SolverMode& sMode) const
 {
     return getRealPower(inputs[VOLTAGE_IN_LOCATION], getFrequency(inputs, stateData, sMode));
 }

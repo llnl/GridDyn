@@ -25,17 +25,17 @@
 
 namespace griddyn {
 namespace {
-IOdata makePowerFlowAdjustmentInputs(const std::vector<GridBus*>& allBusses,
-                                     count_t iterationCount)
-{
-    double powerFlowError = 0.0;
-    for (const auto* bus : allBusses) {
-        if (bus != nullptr && bus->isEnabled()) {
-            powerFlowError = (std::max)(powerFlowError, bus->lastError());
+    IOdata makePowerFlowAdjustmentInputs(const std::vector<GridBus*>& allBusses,
+                                         count_t iterationCount)
+    {
+        double powerFlowError = 0.0;
+        for (const auto* bus : allBusses) {
+            if (bus != nullptr && bus->isEnabled()) {
+                powerFlowError = (std::max)(powerFlowError, bus->lastError());
+            }
         }
+        return {0.0, 0.0, 0.0, static_cast<double>(iterationCount), powerFlowError};
     }
-    return {0.0, 0.0, 0.0, static_cast<double>(iterationCount), powerFlowError};
-}
 }  // namespace
 
 // --------------- power flow program ---------------

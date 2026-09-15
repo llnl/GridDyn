@@ -29,8 +29,8 @@ class FDepLoad: public ExponentialLoad {
   public:
     explicit FDepLoad(const std::string& objName = "fdepLoad_$");
     /** constructor taking power arguments
-@param[in] rP the real power of the load
-@param[in] qP the reactive power of the load
+@param[in] realPower the real power of the load
+@param[in] reactivePower the reactive power of the load
 @param[in] objName the name of the object
 */
     FDepLoad(double realPower, double reactivePower, const std::string& objName = "fdepLoad_$");
@@ -111,7 +111,7 @@ class FDepLoad: public ExponentialLoad {
                                 const StateData& stateData,
                                 const SolverMode& sMode) const override;
     virtual double getReactivePower(const IOdata& inputs,
-                                    const StateData& sD,
+                                    const StateData& stateData,
                                     const SolverMode& sMode) const override;
     virtual double getRealPower(double V) const override;
     virtual double getReactivePower(double V) const override;

@@ -227,7 +227,7 @@ double FDepLoad::get(std::string_view param, units::unit unitType) const
 
 void FDepLoad::ioPartialDerivatives(const IOdata& inputs,
                                     const StateData& stateData,
-                                    MatrixData<double>& md,
+                                    MatrixData<double>& matrixData,
                                     const IOlocs& inputLocs,
                                     const SolverMode& sMode)
 {
@@ -237,28 +237,30 @@ void FDepLoad::ioPartialDerivatives(const IOdata& inputs,
         frequencyFilter && frequencyFilter->checkFlag(DYN_INITIALIZED) && isDynamic(sMode);
     // power vs voltage
     if (inputLocs[VOLTAGE_IN_LOCATION] != kNullLocation) {
-        md.assign(POUT_LOCATION,
-                  inputLocs[VOLTAGE_IN_LOCATION],
-                  getP() * powerScaleP * alphaP * pow(voltage / voltageReference, alphaP - 1.0) /
-                      voltageReference * pow(frequency, betaP));
+        matrixData.assign(POUT_LOCATION,
+                          inputLocs[VOLTAGE_IN_LOCATION],
+                          getP() * powerScaleP * alphaP *
+                              pow(voltage / voltageReference, alphaP - 1.0) /
+                              voltageReference * pow(frequency, betaP));
 
         // reactive power vs voltage
-        md.assign(QOUT_LOCATION,
-                  inputLocs[VOLTAGE_IN_LOCATION],
-                  getQ() * powerScaleQ * alphaQ * pow(voltage / voltageReference, alphaQ - 1.0) /
-                      voltageReference * pow(frequency, betaQ));
+        matrixData.assign(QOUT_LOCATION,
+                          inputLocs[VOLTAGE_IN_LOCATION],
+                          getQ() * powerScaleQ * alphaQ *
+                              pow(voltage / voltageReference, alphaQ - 1.0) /
+                              voltageReference * pow(frequency, betaQ));
     }
     // When a dynamic filter is present, the load's direct frequency input is no longer the
     // filtered signal. The filter-state dependency is added by outputPartialDerivatives().
     if (!useFilter && (inputLocs[FREQUENCY_IN_LOCATION] != kNullLocation)) {
-        md.assign(POUT_LOCATION,
-                  inputLocs[FREQUENCY_IN_LOCATION],
-                  getP() * powerScaleP * pow(voltage / voltageReference, alphaP) * betaP *
-                      pow(frequency, betaP - 1.0));
-        md.assign(QOUT_LOCATION,
-                  inputLocs[FREQUENCY_IN_LOCATION],
-                  getQ() * powerScaleQ * pow(voltage / voltageReference, alphaQ) * betaQ *
-                      pow(frequency, betaQ - 1.0));
+        matrixData.assign(POUT_LOCATION,
+                          inputLocs[FREQUENCY_IN_LOCATION],
+                          getP() * powerScaleP * pow(voltage / voltageReference, alphaP) * betaP *
+                              pow(frequency, betaP - 1.0));
+        matrixData.assign(QOUT_LOCATION,
+                          inputLocs[FREQUENCY_IN_LOCATION],
+                          getQ() * powerScaleQ * pow(voltage / voltageReference, alphaQ) * betaQ *
+                              pow(frequency, betaQ - 1.0));
     }
 }
 

@@ -9,6 +9,7 @@
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
 #include <cmath>
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -76,8 +77,8 @@ IOdata ShuntTD::getOutputs(const IOdata& inputs,
                            const SolverMode& sMode) const
 {
     IOdata outputs(5);
-    for (index_t ii = 0; ii < static_cast<index_t>(outputs.size()); ++ii) {
-        outputs[ii] = getOutput(inputs, stateData, sMode, ii);
+    for (std::size_t ii = 0; ii < outputs.size(); ++ii) {
+        outputs[ii] = getOutput(inputs, stateData, sMode, static_cast<index_t>(ii));
     }
     return outputs;
 }

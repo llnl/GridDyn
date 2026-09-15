@@ -24,6 +24,20 @@
 #include <vector>
 
 namespace griddyn {
+namespace {
+IOdata makePowerFlowAdjustmentInputs(const std::vector<GridBus*>& allBusses,
+                                     count_t iterationCount)
+{
+    double powerFlowError = 0.0;
+    for (const auto* bus : allBusses) {
+        if (bus != nullptr && bus->isEnabled()) {
+            powerFlowError = (std::max)(powerFlowError, bus->lastError());
+        }
+    }
+    return {0.0, 0.0, 0.0, static_cast<double>(iterationCount), powerFlowError};
+}
+}  // namespace
+
 // --------------- power flow program ---------------
 
 // power flow solver
@@ -137,14 +151,8 @@ int GridDynSimulation::powerflow()
 
                 voltageIterationCount++;
 
-                double powerFlowError = 0.0;
-                for (const auto* bus : allBusses) {
-                    if (bus != nullptr && bus->isEnabled()) {
-                        powerFlowError = (std::max)(powerFlowError, bus->lastError());
-                    }
-                }
-                const IOdata powerFlowAdjustmentInputs{
-                    0.0, 0.0, 0.0, static_cast<double>(voltageIterationCount), powerFlowError};
+                const IOdata powerFlowAdjustmentInputs =
+                    makePowerFlowAdjustmentInputs(allBusses, voltageIterationCount);
 
                 if (voltageIterationCount > max_Vadjust_iterations) {
                     logging::warning(this, "WARNING::Voltage Loop iteration count limit exceeded");

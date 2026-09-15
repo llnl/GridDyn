@@ -103,12 +103,12 @@ class Svd: public RampLoad {
     void addBlock(int steps, double qstep, units::unit unitType = units::defunit);
 
     /** Configure an ANDES ShuntSw block bank using system-base admittances. */
-    void configureAndesShunt(const std::vector<double>& gs,
-                             const std::vector<double>& bs,
-                             const std::vector<int>& ns,
+    void configureAndesShunt(const std::vector<double>& conductanceSteps,
+                             const std::vector<double>& susceptanceSteps,
+                             const std::vector<int>& stepCounts,
                              double vref,
-                             double dv,
-                             double dt,
+                             double voltageDelta,
+                             double timeDelay,
                              double initialG,
                              double initialB);
 

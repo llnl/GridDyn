@@ -525,7 +525,7 @@ TEST_F(LoadTests, FdepLoadOptionalFrequencyFilter)
 
     const double inputFrequency = initialFrequency + 0.1;
     const double expectedFrequency =
-        inputFrequency + (initialFrequency - inputFrequency) * std::exp(-0.5);
+        inputFrequency + ((initialFrequency - inputFrequency) * std::exp(-0.5));
     fload->timestep(gds->getSimulationTime() + 1.0,
                     {bus->getVoltage(), bus->getAngle(), inputFrequency},
                     cLocalSolverMode);

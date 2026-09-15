@@ -33,7 +33,7 @@ class FDepLoad: public ExponentialLoad {
 @param[in] qP the reactive power of the load
 @param[in] objName the name of the object
 */
-    FDepLoad(double rP, double qP, const std::string& objName = "fdepLoad_$");
+    FDepLoad(double realPower, double reactivePower, const std::string& objName = "fdepLoad_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     virtual void updateObjectLinkages(CoreObject* newRoot) override;
@@ -103,12 +103,12 @@ class FDepLoad: public ExponentialLoad {
                        units::unit unitType = units::defunit) const override;
 
     virtual void ioPartialDerivatives(const IOdata& inputs,
-                                      const StateData& sD,
+                                      const StateData& stateData,
                                       MatrixData<double>& md,
                                       const IOlocs& inputLocs,
                                       const SolverMode& sMode) override;
     virtual double getRealPower(const IOdata& inputs,
-                                const StateData& sD,
+                                const StateData& stateData,
                                 const SolverMode& sMode) const override;
     virtual double getReactivePower(const IOdata& inputs,
                                     const StateData& sD,

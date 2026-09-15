@@ -254,9 +254,13 @@ ChangeCode Svd::powerFlowAdjust(const IOdata& inputs, std::uint32_t /*flags*/, C
         return ChangeCode::NO_CHANGE;
     }
 
-    const double voltage = (controlBus != nullptr) ?
-        controlBus->getVoltage() :
-        ((inputs.size() > VOLTAGE_IN_LOCATION) ? inputs[VOLTAGE_IN_LOCATION] : bus->getVoltage());
+    double voltage = bus->getVoltage();
+    if (inputs.size() > VOLTAGE_IN_LOCATION) {
+        voltage = inputs[VOLTAGE_IN_LOCATION];
+    }
+    if (controlBus != nullptr) {
+        voltage = controlBus->getVoltage();
+    }
     int direction = 0;
     if (voltage < andesVref - andesDv) {
         direction = 1;
@@ -406,22 +410,22 @@ void Svd::addBlock(int steps, double qstep, units::unit unitType)
     stepCount += steps;
 }
 
-void Svd::configureAndesShunt(const std::vector<double>& gs,
-                              const std::vector<double>& bs,
-                              const std::vector<int>& ns,
+void Svd::configureAndesShunt(const std::vector<double>& conductanceSteps,
+                              const std::vector<double>& susceptanceSteps,
+                              const std::vector<int>& stepCounts,
                               double vref,
-                              double dv,
-                              double dt,
+                              double voltageDelta,
+                              double timeDelay,
                               double initialG,
                               double initialB)
 {
     andesBankMode = true;
-    andesGs = gs;
-    andesBs = bs;
-    andesNs = ns;
+    andesGs = conductanceSteps;
+    andesBs = susceptanceSteps;
+    andesNs = stepCounts;
     andesVref = (vref > 0.0) ? vref : 1.0;
-    andesDv = (dv >= 0.0) ? dv : 0.0;
-    andesDt = (dt >= 0.0) ? dt : 0.0;
+    andesDv = (voltageDelta >= 0.0) ? voltageDelta : 0.0;
+    andesDt = (timeDelay >= 0.0) ? timeDelay : 0.0;
     andesBaseG = initialG;
     andesBaseB = initialB;
     andesStep = andesInitialStep();
@@ -480,7 +484,7 @@ void Svd::updateAndesAdmittance()
 
 bool Svd::adjustAndesStep(int direction)
 {
-    const int newStep = (std::clamp)(andesStep + direction, 0, andesMaxStep());
+    const int newStep = std::clamp(andesStep + direction, 0, andesMaxStep());
     if (newStep == andesStep) {
         return false;
     }

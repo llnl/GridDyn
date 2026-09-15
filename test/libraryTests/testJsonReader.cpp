@@ -251,9 +251,9 @@ TEST(AndesShuntModelReaderTests, ImportsFLoadAndShuntVariants)
     EXPECT_NEAR(acBus->get("tw"), 0.02, 1.0e-12);
     EXPECT_NEAR(acBus->get("fn"), 60.0, 1.0e-12);
 
-    auto* pq = simulation->find("BUS1::PQ_1");
-    ASSERT_NE(pq, nullptr);
-    EXPECT_FALSE(pq->isEnabled());
+    auto* pqLoad = simulation->find("BUS1::PQ_1");
+    ASSERT_NE(pqLoad, nullptr);
+    EXPECT_FALSE(pqLoad->isEnabled());
 
     auto* shuntTD = dynamic_cast<griddyn::loads::ShuntTD*>(simulation->find("BUS1::ShuntTD_1"));
     ASSERT_NE(shuntTD, nullptr);

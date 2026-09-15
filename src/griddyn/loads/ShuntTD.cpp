@@ -9,6 +9,8 @@
 #include "../GridBus.h"
 #include "core/CoreObjectTemplates.hpp"
 #include <cmath>
+#include <string>
+#include <vector>
 
 namespace griddyn::loads {
 ShuntTD::ShuntTD(const std::string& objName): ZipLoad(objName) {}
@@ -40,7 +42,7 @@ double ShuntTD::phaseVoltage(const IOdata& inputs,
 
     // GridDyn stores the system base frequency in rad/s.  ANDES uses Hz in
     // 2*pi*f*t, so multiplying by the per-unit frequency gives the same angle.
-    const double electricalAngle = systemBaseFrequency * frequency * time + angle + phaseOffset;
+    const double electricalAngle = (systemBaseFrequency * frequency * time) + angle + phaseOffset;
     return voltage / std::sqrt(3.0) * std::cos(electricalAngle);
 }
 
@@ -74,7 +76,7 @@ IOdata ShuntTD::getOutputs(const IOdata& inputs,
                            const SolverMode& sMode) const
 {
     IOdata outputs(5);
-    for (index_t ii = 0; ii < outputs.size(); ++ii) {
+    for (index_t ii = 0; ii < static_cast<index_t>(outputs.size()); ++ii) {
         outputs[ii] = getOutput(inputs, stateData, sMode, ii);
     }
     return outputs;

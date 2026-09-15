@@ -149,9 +149,9 @@ namespace {
                 (character == '-') && (text.compare(index + 1, 3, "NaN") == 0);
             const auto tokenLength = hasSignedNan ? 4U : 3U;
             if ((hasNan || hasSignedNan) &&
-                ((index == 0) || !std::isalnum(static_cast<unsigned char>(text[index - 1]))) &&
+                ((index == 0) || (std::isalnum(static_cast<unsigned char>(text[index - 1])) == 0)) &&
                 ((index + tokenLength >= text.size()) ||
-                 !std::isalnum(static_cast<unsigned char>(text[index + tokenLength])))) {
+                 (std::isalnum(static_cast<unsigned char>(text[index + tokenLength])) == 0))) {
                 text.replace(index, tokenLength, "null");
                 index += 4;
             } else {
@@ -162,11 +162,201 @@ namespace {
     }
 
     struct AndesStaticLoad {
-        GridBus* bus = nullptr;
-        ZipLoad* load = nullptr;
-        double p0 = 0.0;
-        double q0 = 0.0;
+        GridBus* mBus = nullptr;
+        ZipLoad* mLoad = nullptr;
+        double mP0 = 0.0;
+        double mQ0 = 0.0;
     };
+
+    void loadAndesFrequencyDependentLoads(
+        const Json& document,
+        const std::unordered_map<std::string, GridBus*>& acBuses,
+        std::unordered_map<std::string, AndesStaticLoad>& pqLoads,
+        std::unordered_map<std::string, GridBus*>& busFrequencyBuses)
+    {
+        // ANDES supplies static injections separately from its AC bus records.
+        // Map those power-flow objects before adding the network branches.
+        if (document.contains("PQ") && document["PQ"].is_array()) {
+            for (const auto& record : document["PQ"]) {
+                const auto bus = acBuses.find(indexKey(record, "bus"));
+                if (bus == acBuses.end()) {
+                    continue;
+                }
+                const auto realPower = number(record, "p0");
+                const auto reactivePower = number(record, "q0");
+                auto* load = new ZipLoad(realPower, reactivePower, objectName(record, "PQ"));
+                if (number(record, "u", 1.0) == 0.0) {
+                    load->disable();
+                }
+                bus->second->add(load);
+                pqLoads.emplace(indexKey(record), AndesStaticLoad{
+                    .mBus = bus->second,
+                    .mLoad = load,
+                    .mP0 = realPower,
+                    .mQ0 = reactivePower});
+            }
+        }
+
+        // ANDES DeviceFinder resolves a valid busf index to an existing BusFreq
+        // device. GridDyn has one frequency measurement path per AcBus, so keep
+        // the compatible local association and let unresolved or remote links use
+        // the owning bus frequency path.
+        if (document.contains("BusFreq") && document["BusFreq"].is_array()) {
+            for (const auto& record : document["BusFreq"]) {
+                if (number(record, "u", 1.0) == 0.0) {
+                    continue;
+                }
+                const auto bus = acBuses.find(indexKey(record, "bus"));
+                if (bus == acBuses.end()) {
+                    continue;
+                }
+                busFrequencyBuses.emplace(indexKey(record), bus->second);
+                if (auto* acBus = dynamic_cast<AcBus*>(bus->second); acBus != nullptr) {
+                    acBus->configureFrequencyFilter(number(record, "Tf", 0.02),
+                                                    number(record, "Tw", 0.1),
+                                                    number(record, "fn", 60.0));
+                }
+            }
+        }
+
+        // ANDES FLoad replaces its linked static PQ load. GridDyn's FDepLoad is
+        // the closest model: its new scale/reference-voltage parameters preserve
+        // the FLoad P/V/f and Q/V/f equations at the import boundary.
+        if (document.contains("FLoad") && document["FLoad"].is_array()) {
+            for (const auto& record : document["FLoad"]) {
+                const auto pqLoad = pqLoads.find(indexKey(record, "pq"));
+                if (pqLoad == pqLoads.end()) {
+                    throw InvalidParameterValue(
+                        "ANDES FLoad references an unknown PQ record: " + indexKey(record, "pq"));
+                }
+
+                auto* fload = new loads::FDepLoad(pqLoad->second.mP0,
+                                                  pqLoad->second.mQ0,
+                                                  objectName(record, "FLoad"));
+                fload->set("kp", number(record, "kp", 100.0));
+                fload->set("kq", number(record, "kq", 100.0));
+                fload->set("vref", pqLoad->second.mBus->getVoltage());
+                fload->set("ap", number(record, "ap", 1.0));
+                fload->set("aq", number(record, "aq", 0.0));
+                fload->set("betap", number(record, "bp", 0.0));
+                fload->set("betaq", number(record, "bq", 0.0));
+                if (record.contains("busf") && !record["busf"].is_null()) {
+                    const auto busFrequency =
+                        busFrequencyBuses.find(indexKey(record, "busf"));
+                    if ((busFrequency != busFrequencyBuses.end()) &&
+                        (busFrequency->second == pqLoad->second.mBus)) {
+                        fload->setLocalFrequencyBus(pqLoad->second.mBus);
+                    }
+                }
+
+                if (number(record, "u", 1.0) == 0.0) {
+                    fload->disable();
+                }
+
+                // The ANDES `replaces` relationship makes the static PQ inactive
+                // whenever an FLoad is present. The FDepLoad supplies its output.
+                pqLoad->second.mLoad->disable();
+                pqLoad->second.mBus->add(fload);
+            }
+        }
+    }
+
+    void loadAndesShuntModels(const Json& document,
+                              const std::unordered_map<std::string, GridBus*>& acBuses,
+                              const std::unordered_map<std::string, double>& acBaseVoltages,
+                              double systemBasePower)
+    {
+        if (document.contains("Shunt") && document["Shunt"].is_array()) {
+            for (const auto& record : document["Shunt"]) {
+                const auto busIndex = indexKey(record, "bus");
+                const auto bus = acBuses.find(busIndex);
+                const auto baseVoltage = acBaseVoltages.find(busIndex);
+                if ((bus == acBuses.end()) || (baseVoltage == acBaseVoltages.end())) {
+                    continue;
+                }
+
+                // ANDES marks g and b as y=True parameters. Convert from the
+                // device base to the system/bus base using Zb/Zn, then map the
+                // ANDES injection convention P=g*V^2, Q=-b*V^2 to ZipLoad.
+                const auto scale =
+                    calculateAndesAdmittanceScale(record, systemBasePower, baseVoltage->second);
+
+                auto* shunt = new ZipLoad(objectName(record, "Shunt"));
+                shunt->set("yp", number(record, "g") * scale);
+                shunt->set("yq", -number(record, "b") * scale);
+                if (number(record, "u", 1.0) == 0.0) {
+                    shunt->disable();
+                }
+                bus->second->add(shunt);
+            }
+        }
+        if (document.contains("ShuntTD") && document["ShuntTD"].is_array()) {
+            for (const auto& record : document["ShuntTD"]) {
+                const auto busIndex = indexKey(record, "bus");
+                const auto bus = acBuses.find(busIndex);
+                const auto baseVoltage = acBaseVoltages.find(busIndex);
+                if ((bus == acBuses.end()) || (baseVoltage == acBaseVoltages.end())) {
+                    continue;
+                }
+
+                const auto scale =
+                    calculateAndesAdmittanceScale(record, systemBasePower, baseVoltage->second);
+                auto* shunt = new loads::ShuntTD(objectName(record, "ShuntTD"));
+                shunt->set("yp", number(record, "g") * scale);
+                shunt->set("yq", -number(record, "b") * scale);
+                if (number(record, "u", 1.0) == 0.0) {
+                    shunt->disable();
+                }
+                bus->second->add(shunt);
+            }
+        }
+        if (document.contains("ShuntSw") && document["ShuntSw"].is_array()) {
+            for (const auto& record : document["ShuntSw"]) {
+                const auto busIndex = indexKey(record, "bus");
+                const auto bus = acBuses.find(busIndex);
+                const auto baseVoltage = acBaseVoltages.find(busIndex);
+                if ((bus == acBuses.end()) || (baseVoltage == acBaseVoltages.end())) {
+                    continue;
+                }
+
+                const auto scale =
+                    calculateAndesAdmittanceScale(record, systemBasePower, baseVoltage->second);
+                auto conductanceSteps = numberList<double>(record, "gs");
+                auto susceptanceSteps = numberList<double>(record, "bs");
+                auto stepCounts = numberList<int>(record, "ns");
+                if ((!conductanceSteps.empty() &&
+                     conductanceSteps.size() != stepCounts.size()) ||
+                    (!susceptanceSteps.empty() &&
+                     susceptanceSteps.size() != stepCounts.size())) {
+                    throw InvalidParameterValue(
+                        "ANDES ShuntSw bank arrays must have matching gs, bs, and ns lengths for " +
+                        objectName(record, "ShuntSw"));
+                }
+                for (auto& value : conductanceSteps) {
+                    value *= scale;
+                }
+                for (auto& value : susceptanceSteps) {
+                    value *= scale;
+                }
+
+                auto* shunt = new loads::Svd(objectName(record, "ShuntSw"));
+                bus->second->add(shunt);
+                shunt->configureAndesShunt(conductanceSteps,
+                                           susceptanceSteps,
+                                           stepCounts,
+                                           number(record, "vref", 1.0),
+                                           number(record, "dv", 0.05),
+                                           number(record, "dt", 30.0),
+                                           number(record, "g") * scale,
+                                           number(record, "b") * scale);
+                shunt->set("min_iter", number(record, "min_iter", 2.0));
+                shunt->set("err_tol", number(record, "err_tol", 0.01));
+                if (number(record, "u", 1.0) == 0.0) {
+                    shunt->disable();
+                }
+            }
+        }
+    }
 }  // namespace
 
 bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
@@ -226,175 +416,10 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
         }
     }
 
-    // ANDES supplies static injections separately from its AC bus records.
-    // Map those power-flow objects before adding the network branches.
     std::unordered_map<std::string, AndesStaticLoad> pqLoads;
-    if (document.contains("PQ") && document["PQ"].is_array()) {
-        for (const auto& record : document["PQ"]) {
-            const auto bus = acBuses.find(indexKey(record, "bus"));
-            if (bus == acBuses.end()) {
-                continue;
-            }
-            const auto p0 = number(record, "p0");
-            const auto q0 = number(record, "q0");
-            auto* load = new ZipLoad(p0, q0, objectName(record, "PQ"));
-            if (number(record, "u", 1.0) == 0.0) {
-                load->disable();
-            }
-            bus->second->add(load);
-            pqLoads.emplace(indexKey(record), AndesStaticLoad{bus->second, load, p0, q0});
-        }
-    }
-
-    // ANDES DeviceFinder resolves a valid busf index to an existing BusFreq
-    // device. GridDyn has one frequency measurement path per AcBus, so keep
-    // the compatible local association and let unresolved or remote links use
-    // the owning bus frequency path.
     std::unordered_map<std::string, GridBus*> busFrequencyBuses;
-    if (document.contains("BusFreq") && document["BusFreq"].is_array()) {
-        for (const auto& record : document["BusFreq"]) {
-            if (number(record, "u", 1.0) == 0.0) {
-                continue;
-            }
-            const auto bus = acBuses.find(indexKey(record, "bus"));
-            if (bus == acBuses.end()) {
-                continue;
-            }
-            busFrequencyBuses.emplace(indexKey(record), bus->second);
-            if (auto* acBus = dynamic_cast<AcBus*>(bus->second); acBus != nullptr) {
-                acBus->configureFrequencyFilter(number(record, "Tf", 0.02),
-                                                number(record, "Tw", 0.1),
-                                                number(record, "fn", 60.0));
-            }
-        }
-    }
-
-    // ANDES FLoad replaces its linked static PQ load. GridDyn's FDepLoad is
-    // the closest model: its new scale/reference-voltage parameters preserve
-    // the FLoad P/V/f and Q/V/f equations at the import boundary.
-    if (document.contains("FLoad") && document["FLoad"].is_array()) {
-        for (const auto& record : document["FLoad"]) {
-            const auto pq = pqLoads.find(indexKey(record, "pq"));
-            if (pq == pqLoads.end()) {
-                throw InvalidParameterValue("ANDES FLoad references an unknown PQ record: " +
-                                            indexKey(record, "pq"));
-            }
-
-            auto* fload =
-                new loads::FDepLoad(pq->second.p0, pq->second.q0, objectName(record, "FLoad"));
-            fload->set("kp", number(record, "kp", 100.0));
-            fload->set("kq", number(record, "kq", 100.0));
-            fload->set("vref", pq->second.bus->getVoltage());
-            fload->set("ap", number(record, "ap", 1.0));
-            fload->set("aq", number(record, "aq", 0.0));
-            fload->set("betap", number(record, "bp", 0.0));
-            fload->set("betaq", number(record, "bq", 0.0));
-            if (record.contains("busf") && !record["busf"].is_null()) {
-                const auto busf = busFrequencyBuses.find(indexKey(record, "busf"));
-                if ((busf != busFrequencyBuses.end()) && (busf->second == pq->second.bus)) {
-                    fload->setLocalFrequencyBus(pq->second.bus);
-                }
-            }
-
-            if (number(record, "u", 1.0) == 0.0) {
-                fload->disable();
-            }
-
-            // The ANDES `replaces` relationship makes the static PQ inactive
-            // whenever an FLoad is present. The FDepLoad supplies its output.
-            pq->second.load->disable();
-            pq->second.bus->add(fload);
-        }
-    }
-
-    if (document.contains("Shunt") && document["Shunt"].is_array()) {
-        for (const auto& record : document["Shunt"]) {
-            const auto busIndex = indexKey(record, "bus");
-            const auto bus = acBuses.find(busIndex);
-            const auto baseVoltage = acBaseVoltages.find(busIndex);
-            if ((bus == acBuses.end()) || (baseVoltage == acBaseVoltages.end())) {
-                continue;
-            }
-
-            // ANDES marks g and b as y=True parameters. Convert from the
-            // device base to the system/bus base using Zb/Zn, then map the
-            // ANDES injection convention P=g*V^2, Q=-b*V^2 to ZipLoad.
-            const auto scale =
-                calculateAndesAdmittanceScale(record, systemBasePower, baseVoltage->second);
-
-            auto* shunt = new ZipLoad(objectName(record, "Shunt"));
-            shunt->set("yp", number(record, "g") * scale);
-            shunt->set("yq", -number(record, "b") * scale);
-            if (number(record, "u", 1.0) == 0.0) {
-                shunt->disable();
-            }
-            bus->second->add(shunt);
-        }
-    }
-    if (document.contains("ShuntTD") && document["ShuntTD"].is_array()) {
-        for (const auto& record : document["ShuntTD"]) {
-            const auto busIndex = indexKey(record, "bus");
-            const auto bus = acBuses.find(busIndex);
-            const auto baseVoltage = acBaseVoltages.find(busIndex);
-            if ((bus == acBuses.end()) || (baseVoltage == acBaseVoltages.end())) {
-                continue;
-            }
-
-            const auto scale =
-                calculateAndesAdmittanceScale(record, systemBasePower, baseVoltage->second);
-            auto* shunt = new loads::ShuntTD(objectName(record, "ShuntTD"));
-            shunt->set("yp", number(record, "g") * scale);
-            shunt->set("yq", -number(record, "b") * scale);
-            if (number(record, "u", 1.0) == 0.0) {
-                shunt->disable();
-            }
-            bus->second->add(shunt);
-        }
-    }
-    if (document.contains("ShuntSw") && document["ShuntSw"].is_array()) {
-        for (const auto& record : document["ShuntSw"]) {
-            const auto busIndex = indexKey(record, "bus");
-            const auto bus = acBuses.find(busIndex);
-            const auto baseVoltage = acBaseVoltages.find(busIndex);
-            if ((bus == acBuses.end()) || (baseVoltage == acBaseVoltages.end())) {
-                continue;
-            }
-
-            const auto scale =
-                calculateAndesAdmittanceScale(record, systemBasePower, baseVoltage->second);
-            auto gs = numberList<double>(record, "gs");
-            auto bs = numberList<double>(record, "bs");
-            auto ns = numberList<int>(record, "ns");
-            if ((!gs.empty() && gs.size() != ns.size()) ||
-                (!bs.empty() && bs.size() != ns.size())) {
-                throw InvalidParameterValue(
-                    "ANDES ShuntSw bank arrays must have matching gs, bs, and ns lengths for " +
-                    objectName(record, "ShuntSw"));
-            }
-            for (auto& value : gs) {
-                value *= scale;
-            }
-            for (auto& value : bs) {
-                value *= scale;
-            }
-
-            auto* shunt = new loads::Svd(objectName(record, "ShuntSw"));
-            bus->second->add(shunt);
-            shunt->configureAndesShunt(gs,
-                                       bs,
-                                       ns,
-                                       number(record, "vref", 1.0),
-                                       number(record, "dv", 0.05),
-                                       number(record, "dt", 30.0),
-                                       number(record, "g") * scale,
-                                       number(record, "b") * scale);
-            shunt->set("min_iter", number(record, "min_iter", 2.0));
-            shunt->set("err_tol", number(record, "err_tol", 0.01));
-            if (number(record, "u", 1.0) == 0.0) {
-                shunt->disable();
-            }
-        }
-    }
+    loadAndesFrequencyDependentLoads(document, acBuses, pqLoads, busFrequencyBuses);
+    loadAndesShuntModels(document, acBuses, acBaseVoltages, systemBasePower);
     if (document.contains("PV") && document["PV"].is_array()) {
         for (const auto& record : document["PV"]) {
             const auto bus = acBuses.find(indexKey(record, "bus"));

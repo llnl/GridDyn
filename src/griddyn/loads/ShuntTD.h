@@ -7,6 +7,8 @@
 #pragma once
 
 #include "ZipLoad.h"
+#include <string>
+#include <vector>
 
 namespace griddyn::loads {
 /**

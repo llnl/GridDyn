@@ -149,7 +149,8 @@ namespace {
                 (character == '-') && (text.compare(index + 1, 3, "NaN") == 0);
             const auto tokenLength = hasSignedNan ? 4U : 3U;
             if ((hasNan || hasSignedNan) &&
-                ((index == 0) || (std::isalnum(static_cast<unsigned char>(text[index - 1])) == 0)) &&
+                ((index == 0) ||
+                 (std::isalnum(static_cast<unsigned char>(text[index - 1])) == 0)) &&
                 ((index + tokenLength >= text.size()) ||
                  (std::isalnum(static_cast<unsigned char>(text[index + tokenLength])) == 0))) {
                 text.replace(index, tokenLength, "null");
@@ -189,11 +190,11 @@ namespace {
                     load->disable();
                 }
                 bus->second->add(load);
-                pqLoads.emplace(indexKey(record), AndesStaticLoad{
-                    .mBus = bus->second,
-                    .mLoad = load,
-                    .mP0 = realPower,
-                    .mQ0 = reactivePower});
+                pqLoads.emplace(indexKey(record),
+                                AndesStaticLoad{.mBus = bus->second,
+                                                .mLoad = load,
+                                                .mP0 = realPower,
+                                                .mQ0 = reactivePower});
             }
         }
 
@@ -226,8 +227,8 @@ namespace {
             for (const auto& record : document["FLoad"]) {
                 const auto pqLoad = pqLoads.find(indexKey(record, "pq"));
                 if (pqLoad == pqLoads.end()) {
-                    throw InvalidParameterValue(
-                        "ANDES FLoad references an unknown PQ record: " + indexKey(record, "pq"));
+                    throw InvalidParameterValue("ANDES FLoad references an unknown PQ record: " +
+                                                indexKey(record, "pq"));
                 }
 
                 auto* fload = new loads::FDepLoad(pqLoad->second.mP0,
@@ -241,8 +242,7 @@ namespace {
                 fload->set("betap", number(record, "bp", 0.0));
                 fload->set("betaq", number(record, "bq", 0.0));
                 if (record.contains("busf") && !record["busf"].is_null()) {
-                    const auto busFrequency =
-                        busFrequencyBuses.find(indexKey(record, "busf"));
+                    const auto busFrequency = busFrequencyBuses.find(indexKey(record, "busf"));
                     if ((busFrequency != busFrequencyBuses.end()) &&
                         (busFrequency->second == pqLoad->second.mBus)) {
                         fload->setLocalFrequencyBus(pqLoad->second.mBus);
@@ -324,10 +324,8 @@ namespace {
                 auto conductanceSteps = numberList<double>(record, "gs");
                 auto susceptanceSteps = numberList<double>(record, "bs");
                 auto stepCounts = numberList<int>(record, "ns");
-                if ((!conductanceSteps.empty() &&
-                     conductanceSteps.size() != stepCounts.size()) ||
-                    (!susceptanceSteps.empty() &&
-                     susceptanceSteps.size() != stepCounts.size())) {
+                if ((!conductanceSteps.empty() && conductanceSteps.size() != stepCounts.size()) ||
+                    (!susceptanceSteps.empty() && susceptanceSteps.size() != stepCounts.size())) {
                     throw InvalidParameterValue(
                         "ANDES ShuntSw bank arrays must have matching gs, bs, and ns lengths for " +
                         objectName(record, "ShuntSw"));

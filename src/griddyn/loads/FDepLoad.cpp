@@ -240,15 +240,15 @@ void FDepLoad::ioPartialDerivatives(const IOdata& inputs,
         matrixData.assign(POUT_LOCATION,
                           inputLocs[VOLTAGE_IN_LOCATION],
                           getP() * powerScaleP * alphaP *
-                              pow(voltage / voltageReference, alphaP - 1.0) /
-                              voltageReference * pow(frequency, betaP));
+                              pow(voltage / voltageReference, alphaP - 1.0) / voltageReference *
+                              pow(frequency, betaP));
 
         // reactive power vs voltage
         matrixData.assign(QOUT_LOCATION,
                           inputLocs[VOLTAGE_IN_LOCATION],
                           getQ() * powerScaleQ * alphaQ *
-                              pow(voltage / voltageReference, alphaQ - 1.0) /
-                              voltageReference * pow(frequency, betaQ));
+                              pow(voltage / voltageReference, alphaQ - 1.0) / voltageReference *
+                              pow(frequency, betaQ));
     }
     // When a dynamic filter is present, the load's direct frequency input is no longer the
     // filtered signal. The filter-state dependency is added by outputPartialDerivatives().

@@ -24,6 +24,20 @@
 #include <vector>
 
 namespace griddyn {
+namespace {
+    IOdata makePowerFlowAdjustmentInputs(const std::vector<GridBus*>& allBusses,
+                                         count_t iterationCount)
+    {
+        double powerFlowError = 0.0;
+        for (const auto* bus : allBusses) {
+            if (bus != nullptr && bus->isEnabled()) {
+                powerFlowError = (std::max)(powerFlowError, bus->lastError());
+            }
+        }
+        return {0.0, 0.0, 0.0, static_cast<double>(iterationCount), powerFlowError};
+    }
+}  // namespace
+
 // --------------- power flow program ---------------
 
 // power flow solver
@@ -44,6 +58,8 @@ int GridDynSimulation::powerflow()
     bool hasPowerAdjustments = controlFlags[POWER_ADJUST_ENABLED];
 
     std::vector<double> slkBusBase(slkBusses.size());
+    std::vector<GridBus*> allBusses;
+    getBusVector(allBusses);
 
     auto pFlowData = getSolverInterface(solverModeRef);
     // Create the error recovery object to use if necessary
@@ -135,6 +151,9 @@ int GridDynSimulation::powerflow()
 
                 voltageIterationCount++;
 
+                const IOdata powerFlowAdjustmentInputs =
+                    makePowerFlowAdjustmentInputs(allBusses, voltageIterationCount);
+
                 if (voltageIterationCount > max_Vadjust_iterations) {
                     logging::warning(this, "WARNING::Voltage Loop iteration count limit exceeded");
                     break;
@@ -145,15 +164,16 @@ int GridDynSimulation::powerflow()
 
                     if (pState == GridState::INITIALIZED) {
                         if (controlFlags[FIRST_RUN_LIMITS_ONLY]) {
-                            adjustmentChanges =
-                                powerFlowAdjust(noInputs, 0, CheckLevel::REVERSABLE_ONLY);
+                            adjustmentChanges = powerFlowAdjust(powerFlowAdjustmentInputs,
+                                                                0,
+                                                                CheckLevel::REVERSABLE_ONLY);
                         } else {
-                            adjustmentChanges = powerFlowAdjust(noInputs,
+                            adjustmentChanges = powerFlowAdjust(powerFlowAdjustmentInputs,
                                                                 lower_flags(controlFlags),
                                                                 CheckLevel::REVERSABLE_ONLY);
                         }
                     } else {
-                        adjustmentChanges = powerFlowAdjust(noInputs,
+                        adjustmentChanges = powerFlowAdjust(powerFlowAdjustmentInputs,
                                                             lower_flags(controlFlags),
                                                             CheckLevel::REVERSABLE_ONLY);
                     }
@@ -164,7 +184,7 @@ int GridDynSimulation::powerflow()
                     if (adjustmentChanges == ChangeCode::NO_CHANGE) {
                         // if there were no adjustable changes check if there was any non-reversable
                         // changes
-                        adjustmentChanges = powerFlowAdjust(noInputs,
+                        adjustmentChanges = powerFlowAdjust(powerFlowAdjustmentInputs,
                                                             lower_flags(controlFlags),
                                                             CheckLevel::FULL_CHECK);
                         if (adjustmentChanges > ChangeCode::NO_CHANGE) {

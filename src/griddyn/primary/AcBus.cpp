@@ -11,6 +11,7 @@
 #include "../Link.h"
 #include "../Load.h"
 #include "../blocks/DerivativeBlock.h"
+#include "../blocks/FilteredDerivativeBlock.h"
 #include "../simulation/Contingency.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
@@ -26,6 +27,7 @@
 #include <iostream>
 #include <limits>
 #include <memory>
+#include <numbers>
 #include <string>
 #include <utility>
 #include <vector>
@@ -103,6 +105,10 @@ CoreObject* AcBus::clone(CoreObject* obj) const
     nobj->prevPower = prevPower;
     nobj->participation = participation;
     nobj->Tw = Tw;
+    nobj->frequencyFilterTf = frequencyFilterTf;
+    nobj->frequencyFilterTw = frequencyFilterTw;
+    nobj->frequencyFilterFn = frequencyFilterFn;
+    nobj->frequencyFilterConfigured = frequencyFilterConfigured;
 
     nobj->busController.autogenP = busController.autogenP;
     nobj->busController.autogenQ = busController.autogenQ;
@@ -124,6 +130,37 @@ void AcBus::disable()
     alert(this, STATE_COUNT_CHANGE);
     for (auto& link : attachedLinks) {
         link->disable();
+    }
+}
+
+void AcBus::configureFrequencyFilter(double filterTime, double washoutTime, double nominalFrequency)
+{
+    if (!std::isfinite(filterTime) || (filterTime <= 0.0) || !std::isfinite(washoutTime) ||
+        (washoutTime <= 0.0) || !std::isfinite(nominalFrequency) || (nominalFrequency <= 0.0)) {
+        throw InvalidParameterValue("bus frequency filter parameters");
+    }
+    frequencyFilterTf = filterTime;
+    frequencyFilterTw = washoutTime;
+    frequencyFilterFn = nominalFrequency;
+    frequencyFilterConfigured = true;
+    Tw = washoutTime;
+    opFlags.set(COMPUTE_FREQUENCY);
+    opFlags.set(USES_BUS_FREQUENCY);
+    if (!fblock) {
+        fblock =
+            makeOwningPtr<blocks::FilteredDerivativeBlock>(frequencyFilterTf, frequencyFilterTw);
+        fblock->set("k", frequencyFilterTw / (2.0 * std::numbers::pi * frequencyFilterFn));
+        fblock->setName("frequency_calc");
+        fblock->addOwningReference();
+        addSubObject(fblock.get());
+        fblock->parentSetFlag(SEPARATE_PROCESSING, true, this);
+    }
+    if (fblock && !opFlags[DYN_INITIALIZED]) {
+        if (dynamic_cast<blocks::FilteredDerivativeBlock*>(fblock.get()) != nullptr) {
+            fblock->set("t1", filterTime);
+            fblock->set("t2", washoutTime);
+            fblock->set("k", washoutTime / (2.0 * std::numbers::pi * nominalFrequency));
+        }
     }
 }
 
@@ -569,7 +606,7 @@ double AcBus::getAverageAngle() const
     return angle;
 }
 
-ChangeCode AcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags, CheckLevel level)
+ChangeCode AcBus::powerFlowAdjust(const IOdata& inputs, std::uint32_t flags, CheckLevel level)
 {
     auto out = ChangeCode::NO_CHANGE;
     if (level == CheckLevel::LOW_VOLTAGE_CHECK) {
@@ -738,15 +775,19 @@ ChangeCode AcBus::powerFlowAdjust(const IOdata& /*inputs*/, std::uint32_t flags,
         updateLocalCache();
     }
     ChangeCode pout;
+    IOdata busInputs{voltage, angle, freq};
+    if (inputs.size() > PFLOW_ITERATION_LOCATION) {
+        busInputs.insert(busInputs.end(), inputs.begin() + PFLOW_ITERATION_LOCATION, inputs.end());
+    }
     for (auto& gen : attachedGens) {
         if (gen->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {
-            pout = gen->powerFlowAdjust({voltage, angle}, flags, level);
+            pout = gen->powerFlowAdjust(busInputs, flags, level);
             out = (std::max)(pout, out);
         }
     }
     for (auto& load : attachedLoads) {
         if (load->checkFlag(HAS_POWERFLOW_ADJUSTMENTS)) {
-            pout = load->powerFlowAdjust({voltage, angle}, flags, level);
+            pout = load->powerFlowAdjust(busInputs, flags, level);
             out = (std::max)(pout, out);
         }
     }
@@ -801,9 +842,17 @@ void AcBus::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
         opFlags.set(USES_BUS_FREQUENCY);
         logging::trace(this, "computing bus frequency using frequency block");
         if (!fblock) {
-            fblock = makeOwningPtr<blocks::DerivativeBlock>(Tw);
+            if (frequencyFilterConfigured) {
+                fblock = makeOwningPtr<blocks::FilteredDerivativeBlock>(frequencyFilterTf,
+                                                                        frequencyFilterTw);
+                fblock->set("k", frequencyFilterTw / (2.0 * std::numbers::pi * frequencyFilterFn));
+            } else {
+                fblock = makeOwningPtr<blocks::DerivativeBlock>(Tw);
+            }
             fblock->setName("frequency_calc");
-            fblock->set("k", 1.0 / systemBaseFrequency);
+            if (!frequencyFilterConfigured) {
+                fblock->set("k", 1.0 / systemBaseFrequency);
+            }
             fblock->addOwningReference();
             addSubObject(fblock.get());
             fblock->parentSetFlag(SEPARATE_PROCESSING, true, this);
@@ -1016,9 +1065,18 @@ void AcBus::setFlag(std::string_view flag, bool val)
         if (!opFlags[DYN_INITIALIZED]) {
             opFlags.set(COMPUTE_FREQUENCY);
             if (!fblock) {
-                fblock = makeOwningPtr<blocks::DerivativeBlock>(Tw);
+                if (frequencyFilterConfigured) {
+                    fblock = makeOwningPtr<blocks::FilteredDerivativeBlock>(frequencyFilterTf,
+                                                                            frequencyFilterTw);
+                    fblock->set("k",
+                                frequencyFilterTw / (2.0 * std::numbers::pi * frequencyFilterFn));
+                } else {
+                    fblock = makeOwningPtr<blocks::DerivativeBlock>(Tw);
+                }
                 fblock->setName("frequency_calc");
-                fblock->set("k", 1.0 / systemBaseFrequency);
+                if (!frequencyFilterConfigured) {
+                    fblock->set("k", 1.0 / systemBaseFrequency);
+                }
                 fblock->addOwningReference();
                 addSubObject(fblock.get());
                 fblock->parentSetFlag(SEPARATE_PROCESSING, true, this);
@@ -1105,7 +1163,7 @@ void AcBus::set(std::string_view param, double val, unit unitType)
         for (auto& load : attachedLoads) {
             load->set("basefreq", systemBaseFrequency);
         }
-        if (opFlags[COMPUTE_FREQUENCY]) {
+        if (opFlags[COMPUTE_FREQUENCY] && !frequencyFilterConfigured) {
             fblock->set("k", 1.0 / systemBaseFrequency);
         }
     } else if (param == "vtarget") {
@@ -1181,7 +1239,12 @@ void AcBus::set(std::string_view param, double val, unit unitType)
     } else if (param == "tw") {
         Tw = val;
         if (opFlags[COMPUTE_FREQUENCY]) {
-            fblock->set("t1", Tw);
+            if (frequencyFilterConfigured) {
+                frequencyFilterTw = val;
+                fblock->set("tw", Tw);
+            } else {
+                fblock->set("t1", Tw);
+            }
         }
     } else if (param == "lowvdisconnect") {
         if (voltage <= val) {
@@ -2734,6 +2797,10 @@ double AcBus::get(std::string_view param, unit unitType) const
         val = busController.Qmax;
     } else if (param == "tw") {
         val = Tw;
+    } else if (param == "tf") {
+        val = frequencyFilterTf;
+    } else if (param == "fn") {
+        val = frequencyFilterFn;
     } else {
         return GridBus::get(param, unitType);
     }

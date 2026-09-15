@@ -60,24 +60,24 @@
 #include <vector>
 
 namespace {
-constexpr std::string_view andesTestDirectory{GRIDDYN_TEST_DIRECTORY "/andes_tests/"};
+constexpr std::string_view comparisonTestDirectory{GRIDDYN_TEST_DIRECTORY "/comparison_tests/"};
 
-std::string makeAndesTestPath(std::string_view fileName)
+std::string makeComparisonTestPath(std::string_view fileName)
 {
-    return std::string{andesTestDirectory} + std::string{fileName};
+    return std::string{comparisonTestDirectory} + std::string{fileName};
 }
 
 std::unique_ptr<griddyn::GridDynSimulation>
-    loadAndesDynamicCase(std::string_view machineDyrFile,
-                         const std::vector<std::string_view>& controllerDyrFiles)
+    loadComparisonDynamicCase(std::string_view machineDyrFile,
+                              const std::vector<std::string_view>& controllerDyrFiles)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
     if (!machineDyrFile.empty()) {
-        griddyn::loadFile(simulation.get(), makeAndesTestPath(machineDyrFile));
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath(machineDyrFile));
     }
     for (const auto dyrFile : controllerDyrFiles) {
-        griddyn::loadFile(simulation.get(), makeAndesTestPath(dyrFile));
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath(dyrFile));
     }
     return simulation;
 }
@@ -89,7 +89,7 @@ std::vector<double>
                                  index_t targetBusId = 1,
                                  double minimumControllerChange = 1.0e-9)
 {
-    auto simulation = loadAndesDynamicCase(machineDyrFile, dyrFiles);
+    auto simulation = loadComparisonDynamicCase(machineDyrFile, dyrFiles);
 
     auto* targetBus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", targetBusId));
     EXPECT_NE(targetBus, nullptr);
@@ -164,16 +164,16 @@ std::vector<double>
 }
 }  // namespace
 
-TEST(AndesDyrReaderTests, LoadsGenrouAndMatchesIeee14Initialization)
+TEST(DyrReaderComparisonTests, LoadsGenrouAndMatchesIeee14Initialization)
 {
-    std::ifstream input(makeAndesTestPath("andes_ieee14_genrou_reference.json"));
+    std::ifstream input(makeComparisonTestPath("ieee14_genrou_reference.json"));
     ASSERT_TRUE(input.is_open());
     nlohmann::json reference;
     input >> reference;
 
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
 
     const auto tolerance = reference["tolerance"].get<double>();
     for (std::size_t index = 0; index < reference["generator_bus_ids"].size(); ++index) {
@@ -217,11 +217,11 @@ TEST(AndesDyrReaderTests, LoadsGenrouAndMatchesIeee14Initialization)
     }
 }
 
-TEST(AndesDyrReaderTests, SkipsDyrHeaderCommentsBeforeRecordAccumulation)
+TEST(DyrReaderComparisonTests, SkipsDyrHeaderCommentsBeforeRecordAccumulation)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou_with_comments.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou_with_comments.dyr"));
 
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
     ASSERT_NE(bus, nullptr);
@@ -231,11 +231,11 @@ TEST(AndesDyrReaderTests, SkipsDyrHeaderCommentsBeforeRecordAccumulation)
     ASSERT_NE(model, nullptr);
 }
 
-TEST(AndesDyrReaderTests, LoadsGenclsInPsseAndesFieldOrder)
+TEST(DyrReaderComparisonTests, LoadsGenclsInPsseAndesFieldOrder)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_gencls.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_gencls.dyr"));
 
     struct GenclsParameters {
         index_t busId;
@@ -271,11 +271,11 @@ TEST(AndesDyrReaderTests, LoadsGenclsInPsseAndesFieldOrder)
     EXPECT_DOUBLE_EQ(model->get("x"), 0.23);
 }
 
-TEST(AndesDyrReaderTests, LoadsAndesKundurGenclsCase)
+TEST(DyrReaderComparisonTests, LoadsAndesKundurGenclsCase)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("andes_kundur_vsc_pflow.json"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("andes_kundur_gencls.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("kundur_vsc_pflow.json"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("kundur_gencls.dyr"));
 
     constexpr std::array<double, 4> expectedInertia{13.0, 13.0, 12.35, 12.35};
     for (index_t index = 0; std::cmp_less(index, expectedInertia.size()); ++index) {
@@ -292,11 +292,11 @@ TEST(AndesDyrReaderTests, LoadsAndesKundurGenclsCase)
     }
 }
 
-TEST(AndesDyrReaderTests, MapsGensalParametersInPsseDyrOrder)
+TEST(DyrReaderComparisonTests, MapsGensalParametersInPsseDyrOrder)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_gensal.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_gensal.dyr"));
 
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
     ASSERT_NE(bus, nullptr);
@@ -326,11 +326,11 @@ TEST(AndesDyrReaderTests, MapsGensalParametersInPsseDyrOrder)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
-TEST(AndesDyrReaderTests, MapsGenroeAndIeeex1ParametersInPsseDyrOrder)
+TEST(DyrReaderComparisonTests, MapsGenroeAndIeeex1ParametersInPsseDyrOrder)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genroe_ieeex1.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genroe_ieeex1.dyr"));
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
     ASSERT_NE(bus, nullptr);
     auto* generator = bus->getGen(0);
@@ -378,11 +378,11 @@ TEST(AndesDyrReaderTests, MapsGenroeAndIeeex1ParametersInPsseDyrOrder)
     }
 }
 
-TEST(AndesDyrReaderTests, InitializesGenroeAndIeeex1WithConsistentEquations)
+TEST(DyrReaderComparisonTests, InitializesGenroeAndIeeex1WithConsistentEquations)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genroe_ieeex1.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genroe_ieeex1.dyr"));
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
     ASSERT_NE(bus, nullptr);
     auto* generator = bus->getGen(0);
@@ -397,22 +397,22 @@ TEST(AndesDyrReaderTests, InitializesGenroeAndIeeex1WithConsistentEquations)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
-TEST(AndesDyrReaderTests, RejectsMalformedGenroeAndUnsupportedIeeex1Switch)
+TEST(DyrReaderComparisonTests, RejectsMalformedGenroeAndUnsupportedIeeex1Switch)
 {
     for (const auto record : {"ieee14_genroe_bad_fields.dyr", "ieee14_ieeex1_nonzero_switch.dyr"}) {
         auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-        EXPECT_THROW(griddyn::loadFile(simulation.get(), makeAndesTestPath(record)),
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+        EXPECT_THROW(griddyn::loadFile(simulation.get(), makeComparisonTestPath(record)),
                      griddyn::InvalidParameterValue)
             << record;
     }
 }
 
-TEST(AndesDyrReaderTests, MapsGensaeAndEsst1aParametersInPsseDyrOrder)
+TEST(DyrReaderComparisonTests, MapsGensaeAndEsst1aParametersInPsseDyrOrder)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_gensae_esst1a.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_gensae_esst1a.dyr"));
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
     ASSERT_NE(bus, nullptr);
     auto* generator = bus->getGen(0);
@@ -438,13 +438,13 @@ TEST(AndesDyrReaderTests, MapsGensaeAndEsst1aParametersInPsseDyrOrder)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
-TEST(AndesDyrReaderTests, MapsNewExciterFocusedChunkInDyrOrder)
+TEST(DyrReaderComparisonTests, MapsNewExciterFocusedChunkInDyrOrder)
 {
     {
         auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_ieeet3.dyr"));
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_ieeet3.dyr"));
         auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
         ASSERT_NE(bus, nullptr);
         auto* exciter =
@@ -471,9 +471,9 @@ TEST(AndesDyrReaderTests, MapsNewExciterFocusedChunkInDyrOrder)
     }
     {
         auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_ac8b.dyr"));
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_ac8b.dyr"));
         auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
         ASSERT_NE(bus, nullptr);
         auto* exciter =
@@ -494,9 +494,9 @@ TEST(AndesDyrReaderTests, MapsNewExciterFocusedChunkInDyrOrder)
     }
     {
         auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_ac7b.dyr"));
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_ac7b.dyr"));
         auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
         ASSERT_NE(bus, nullptr);
         auto* exciter =
@@ -518,9 +518,9 @@ TEST(AndesDyrReaderTests, MapsNewExciterFocusedChunkInDyrOrder)
     }
     {
         auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_esst2a.dyr"));
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_esst2a.dyr"));
         auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
         ASSERT_NE(bus, nullptr);
         auto* exciter =
@@ -548,12 +548,12 @@ TEST(AndesDyrReaderTests, MapsNewExciterFocusedChunkInDyrOrder)
     }
 }
 
-TEST(AndesDyrReaderTests, MapsExpic1ParametersInPsseDyrOrder)
+TEST(DyrReaderComparisonTests, MapsExpic1ParametersInPsseDyrOrder)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_expic1.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_expic1.dyr"));
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
     ASSERT_NE(bus, nullptr);
     auto* generator = bus->getGen(0);
@@ -574,12 +574,12 @@ TEST(AndesDyrReaderTests, MapsExpic1ParametersInPsseDyrOrder)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
-TEST(AndesDyrReaderTests, MapsScrxParametersInPsseDyrOrder)
+TEST(DyrReaderComparisonTests, MapsScrxParametersInPsseDyrOrder)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_scrx.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_scrx.dyr"));
 
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
     ASSERT_NE(bus, nullptr);
@@ -604,12 +604,12 @@ TEST(AndesDyrReaderTests, MapsScrxParametersInPsseDyrOrder)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
-TEST(AndesDyrReaderTests, MapsEsac6aParametersInPsseDyrOrder)
+TEST(DyrReaderComparisonTests, MapsEsac6aParametersInPsseDyrOrder)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_esac6a.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_esac6a.dyr"));
 
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
     ASSERT_NE(bus, nullptr);
@@ -632,7 +632,7 @@ TEST(AndesDyrReaderTests, MapsEsac6aParametersInPsseDyrOrder)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
-TEST(AndesDyrReaderTests, MapsCanonicalDcAndTypeOneExciters)
+TEST(DyrReaderComparisonTests, MapsCanonicalDcAndTypeOneExciters)
 {
     const std::array<std::pair<std::string_view, std::string_view>, 6> records{{
         {"ieee14_esdc1a.dyr", "esdc1a"},
@@ -644,8 +644,8 @@ TEST(AndesDyrReaderTests, MapsCanonicalDcAndTypeOneExciters)
     }};
     for (const auto& [record, expectedName] : records) {
         auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-        griddyn::loadFile(simulation.get(), makeAndesTestPath(record));
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath(record));
         auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
         ASSERT_NE(bus, nullptr);
         auto* generator = bus->getGen(0);
@@ -677,12 +677,12 @@ TEST(AndesDyrReaderTests, MapsCanonicalDcAndTypeOneExciters)
     }
 }
 
-TEST(AndesDyrReaderTests, MapsEsst4bParametersAndCouplesToGensal)
+TEST(DyrReaderComparisonTests, MapsEsst4bParametersAndCouplesToGensal)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_gensal.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_esst4b.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_gensal.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_esst4b.dyr"));
 
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
     ASSERT_NE(bus, nullptr);
@@ -716,12 +716,12 @@ TEST(AndesDyrReaderTests, MapsEsst4bParametersAndCouplesToGensal)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
-TEST(AndesDyrReaderTests, MapsGastParametersInPsseDyrOrder)
+TEST(DyrReaderComparisonTests, MapsGastParametersInPsseDyrOrder)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_gast.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_gast.dyr"));
 
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
     ASSERT_NE(bus, nullptr);
@@ -746,12 +746,12 @@ TEST(AndesDyrReaderTests, MapsGastParametersInPsseDyrOrder)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
-TEST(AndesDyrReaderTests, MapsGgov1ParametersInPsseDyrOrder)
+TEST(DyrReaderComparisonTests, MapsGgov1ParametersInPsseDyrOrder)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_ggov1.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_ggov1.dyr"));
 
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
     ASSERT_NE(bus, nullptr);
@@ -775,12 +775,12 @@ TEST(AndesDyrReaderTests, MapsGgov1ParametersInPsseDyrOrder)
     EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
-TEST(AndesDyrReaderTests, MapsTgov1ParametersInAndesDyrOrder)
+TEST(DyrReaderComparisonTests, MapsTgov1ParametersInAndesDyrOrder)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_tgov1.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_tgov1.dyr"));
 
     struct Tgov1Parameters {
         index_t busId;
@@ -836,12 +836,12 @@ TEST(AndesDyrReaderTests, MapsTgov1ParametersInAndesDyrOrder)
     }
 }
 
-TEST(AndesDyrReaderTests, MapsIeesgoParametersAndInitializes)
+TEST(DyrReaderComparisonTests, MapsIeesgoParametersAndInitializes)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_ieesgo.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_ieesgo.dyr"));
 
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
     ASSERT_NE(bus, nullptr);
@@ -870,12 +870,12 @@ TEST(AndesDyrReaderTests, MapsIeesgoParametersAndInitializes)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
-TEST(AndesDyrReaderTests, MapsHygovParametersInAndesDyrOrder)
+TEST(DyrReaderComparisonTests, MapsHygovParametersInAndesDyrOrder)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_hygov.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_hygov.dyr"));
 
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
     ASSERT_NE(bus, nullptr);
@@ -905,12 +905,12 @@ TEST(AndesDyrReaderTests, MapsHygovParametersInAndesDyrOrder)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
-TEST(AndesDyrReaderTests, MapsIeeeG1ParametersInFrozenAndesDyrOrder)
+TEST(DyrReaderComparisonTests, MapsIeeeG1ParametersInFrozenAndesDyrOrder)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_ieeeg1.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_ieeeg1.dyr"));
 
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
     ASSERT_NE(bus, nullptr);
@@ -935,12 +935,12 @@ TEST(AndesDyrReaderTests, MapsIeeeG1ParametersInFrozenAndesDyrOrder)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
-TEST(AndesDyrReaderTests, ConnectsIeeeG1LowPressureOutputToSecondGenerator)
+TEST(DyrReaderComparisonTests, ConnectsIeeeG1LowPressureOutputToSecondGenerator)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_ieeeg1_cross.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_ieeeg1_cross.dyr"));
 
     auto* primaryBus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
     auto* secondaryBus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
@@ -959,10 +959,10 @@ TEST(AndesDyrReaderTests, ConnectsIeeeG1LowPressureOutputToSecondGenerator)
     EXPECT_EQ(secondary->getMechanicalPowerOutput(), griddyn::governors::GovernorIeeeG1::lpOutput);
 }
 
-TEST(AndesDyrReaderTests, ResolvesAlphanumericMachineIdsAcrossModelFamilies)
+TEST(DyrReaderComparisonTests, ResolvesAlphanumericMachineIdsAcrossModelFamilies)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
     ASSERT_NE(bus, nullptr);
     auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
@@ -970,7 +970,7 @@ TEST(AndesDyrReaderTests, ResolvesAlphanumericMachineIdsAcrossModelFamilies)
     generator->setName(bus->getName() + "_Gen_G1");
 
     EXPECT_NO_THROW(
-        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_alphanumeric_ids.dyr")));
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_alphanumeric_ids.dyr")));
     EXPECT_NE(dynamic_cast<griddyn::genmodels::GenModelGENROU*>(generator->find("genmodel")),
               nullptr);
     EXPECT_NE(dynamic_cast<griddyn::exciters::ExciterSCRX*>(generator->find("exciter")), nullptr);
@@ -980,10 +980,10 @@ TEST(AndesDyrReaderTests, ResolvesAlphanumericMachineIdsAcrossModelFamilies)
               nullptr);
 }
 
-TEST(AndesDyrReaderTests, PrefersExactNumericMachineIdOverLegacyPosition)
+TEST(DyrReaderComparisonTests, PrefersExactNumericMachineIdOverLegacyPosition)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
     ASSERT_NE(bus, nullptr);
     auto* firstGenerator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
@@ -994,30 +994,30 @@ TEST(AndesDyrReaderTests, PrefersExactNumericMachineIdOverLegacyPosition)
     exactIdGenerator->setName(bus->getName() + "_Gen_1");
     bus->add(exactIdGenerator);
 
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_scrx.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_scrx.dyr"));
     EXPECT_EQ(firstGenerator->find("exciter"), nullptr);
     EXPECT_NE(dynamic_cast<griddyn::exciters::ExciterSCRX*>(exactIdGenerator->find("exciter")),
               nullptr);
 }
 
-TEST(AndesDyrReaderTests, RetainsLegacyNumericMachinePositionFallback)
+TEST(DyrReaderComparisonTests, RetainsLegacyNumericMachinePositionFallback)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
     ASSERT_NE(bus, nullptr);
     auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
     ASSERT_NE(generator, nullptr);
     generator->setName(bus->getName() + "_Gen_G1");
 
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_scrx.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_scrx.dyr"));
     EXPECT_NE(dynamic_cast<griddyn::exciters::ExciterSCRX*>(generator->find("exciter")), nullptr);
 }
 
-TEST(AndesDyrReaderTests, ResolvesAlphanumericIeeeG1PrimaryAndSecondaryIds)
+TEST(DyrReaderComparisonTests, ResolvesAlphanumericIeeeG1PrimaryAndSecondaryIds)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
     auto* primaryBus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
     auto* secondaryBus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
     ASSERT_NE(primaryBus, nullptr);
@@ -1029,8 +1029,9 @@ TEST(AndesDyrReaderTests, ResolvesAlphanumericIeeeG1PrimaryAndSecondaryIds)
     primary->setName(primaryBus->getName() + "_Gen_P1");
     secondary->setName(secondaryBus->getName() + "_Gen_S1");
 
-    EXPECT_NO_THROW(griddyn::loadFile(simulation.get(),
-                                      makeAndesTestPath("ieee14_ieeeg1_alphanumeric_ids.dyr")));
+    EXPECT_NO_THROW(
+        griddyn::loadFile(simulation.get(),
+                          makeComparisonTestPath("ieee14_ieeeg1_alphanumeric_ids.dyr")));
     auto* governor = dynamic_cast<griddyn::governors::GovernorIeeeG1*>(primary->find("governor"));
     ASSERT_NE(governor, nullptr);
     EXPECT_EQ(primary->getMechanicalPowerSource(), governor);
@@ -1038,12 +1039,12 @@ TEST(AndesDyrReaderTests, ResolvesAlphanumericIeeeG1PrimaryAndSecondaryIds)
     EXPECT_EQ(secondary->getMechanicalPowerOutput(), griddyn::governors::GovernorIeeeG1::lpOutput);
 }
 
-TEST(AndesDyrReaderTests, LoadsEsst3aWithGenrouSignals)
+TEST(DyrReaderComparisonTests, LoadsEsst3aWithGenrouSignals)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_esst3a.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_esst3a.dyr"));
 
     for (const index_t busId : {1, 3, 6, 8}) {
         auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", busId));
@@ -1081,12 +1082,12 @@ TEST(AndesDyrReaderTests, LoadsEsst3aWithGenrouSignals)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
-TEST(AndesDyrReaderTests, MapsExst1ParametersAndCouplesToGenrou)
+TEST(DyrReaderComparisonTests, MapsExst1ParametersAndCouplesToGenrou)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_exst1.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_exst1.dyr"));
 
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
     ASSERT_NE(bus, nullptr);
@@ -1115,7 +1116,7 @@ TEST(AndesDyrReaderTests, MapsExst1ParametersAndCouplesToGenrou)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
-TEST(AndesDyrReaderTests, MapsExacParameterRecordsAndCouplesToGenrou)
+TEST(DyrReaderComparisonTests, MapsExacParameterRecordsAndCouplesToGenrou)
 {
     const std::array<std::pair<std::string_view, std::string_view>, 5> records{{
         {"ieee14_exac1.dyr", "exac1"},
@@ -1126,9 +1127,9 @@ TEST(AndesDyrReaderTests, MapsExacParameterRecordsAndCouplesToGenrou)
     }};
     for (const auto& [record, model] : records) {
         auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-        griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-        griddyn::loadFile(simulation.get(), makeAndesTestPath(record));
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath(record));
         auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
         ASSERT_NE(bus, nullptr);
         auto* generator = bus->getGen(0);
@@ -1146,12 +1147,12 @@ TEST(AndesDyrReaderTests, MapsExacParameterRecordsAndCouplesToGenrou)
     }
 }
 
-TEST(AndesDyrReaderTests, LoadsExac1WithZeroTr)
+TEST(DyrReaderComparisonTests, LoadsExac1WithZeroTr)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_exac1_tr0.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_exac1_tr0.dyr"));
 
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
     ASSERT_NE(bus, nullptr);
@@ -1166,14 +1167,14 @@ TEST(AndesDyrReaderTests, LoadsExac1WithZeroTr)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
-TEST(AndesDyrReaderTests, MapsSt2cutParametersAndCouplesToExciters)
+TEST(DyrReaderComparisonTests, MapsSt2cutParametersAndCouplesToExciters)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_esst3a.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_exst1.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_st2cut.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_esst3a.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_exst1.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_st2cut.dyr"));
 
     for (const auto& [busId, expectedK1, expectedLsmax] :
          {std::tuple{1, 1.2, 0.05}, std::tuple{2, 1.1, 0.06}}) {
@@ -1194,13 +1195,13 @@ TEST(AndesDyrReaderTests, MapsSt2cutParametersAndCouplesToExciters)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
-TEST(AndesDyrReaderTests, MapsIeeestParametersAndCouplesToExciter)
+TEST(DyrReaderComparisonTests, MapsIeeestParametersAndCouplesToExciter)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_esst3a.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_ieeest.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_esst3a.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_ieeest.dyr"));
 
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 3));
     ASSERT_NE(bus, nullptr);
@@ -1239,19 +1240,19 @@ TEST(AndesDyrReaderTests, MapsIeeestParametersAndCouplesToExciter)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
-TEST(AndesDynamicTests, Tgov1RespondsToGeneratorSetpointStep)
+TEST(DynamicComparisonTests, Tgov1RespondsToGeneratorSetpointStep)
 {
     const auto finalState = runGeneratorSetpointStepCase({"ieee14_tgov1.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, IeeeG1RespondsToGeneratorSetpointStep)
+TEST(DynamicComparisonTests, IeeeG1RespondsToGeneratorSetpointStep)
 {
     const auto finalState = runGeneratorSetpointStepCase({"ieee14_ieeeg1.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, ConventionalGovernorsRespondToGeneratorSetpointStep)
+TEST(DynamicComparisonTests, ConventionalGovernorsRespondToGeneratorSetpointStep)
 {
     struct GovernorStepCase {
         std::string_view record;
@@ -1273,19 +1274,19 @@ TEST(AndesDynamicTests, ConventionalGovernorsRespondToGeneratorSetpointStep)
     }
 }
 
-TEST(AndesDynamicTests, Esst3aRespondsToGeneratorSetpointStep)
+TEST(DynamicComparisonTests, Esst3aRespondsToGeneratorSetpointStep)
 {
     const auto finalState = runGeneratorSetpointStepCase({"ieee14_esst3a.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, Exst1RespondsToGeneratorSetpointStep)
+TEST(DynamicComparisonTests, Exst1RespondsToGeneratorSetpointStep)
 {
     const auto finalState = runGeneratorSetpointStepCase({"ieee14_exst1.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, ExacExcitersRespondToGeneratorSetpointStep)
+TEST(DynamicComparisonTests, ExacExcitersRespondToGeneratorSetpointStep)
 {
     for (const auto record :
          {"ieee14_exac1.dyr", "ieee14_exac2.dyr", "ieee14_exac4.dyr", "ieee14_esac1a_genrou.dyr"}) {
@@ -1294,19 +1295,19 @@ TEST(AndesDynamicTests, ExacExcitersRespondToGeneratorSetpointStep)
     }
 }
 
-TEST(AndesDynamicTests, ScrxRespondsToGeneratorSetpointStep)
+TEST(DynamicComparisonTests, ScrxRespondsToGeneratorSetpointStep)
 {
     const auto finalState = runGeneratorSetpointStepCase({"ieee14_scrx.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, Esac6aRespondsToGeneratorSetpointStep)
+TEST(DynamicComparisonTests, Esac6aRespondsToGeneratorSetpointStep)
 {
     const auto finalState = runGeneratorSetpointStepCase({"ieee14_esac6a.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, RecentExcitersRespondToGeneratorSetpointStep)
+TEST(DynamicComparisonTests, RecentExcitersRespondToGeneratorSetpointStep)
 {
     for (const auto record :
          {"ieee14_esst2a.dyr", "ieee14_ieeet3.dyr", "ieee14_ac7b.dyr", "ieee14_ac8b.dyr"}) {
@@ -1316,20 +1317,20 @@ TEST(AndesDynamicTests, RecentExcitersRespondToGeneratorSetpointStep)
     }
 }
 
-TEST(AndesDynamicTests, GensaeEsst1aRespondsToGeneratorSetpointStep)
+TEST(DynamicComparisonTests, GensaeEsst1aRespondsToGeneratorSetpointStep)
 {
     const auto finalState = runGeneratorSetpointStepCase({"ieee14_gensae_esst1a.dyr"}, 0.8, "");
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, GenroeIeeex1RespondsToGeneratorSetpointStep)
+TEST(DynamicComparisonTests, GenroeIeeex1RespondsToGeneratorSetpointStep)
 {
     const auto finalState =
         runGeneratorSetpointStepCase({"ieee14_genroe_ieeex1.dyr"}, 0.8, "", 1, 1.0e-10);
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, GovernorAndRecentExciterPlantsRespondToGeneratorSetpointStep)
+TEST(DynamicComparisonTests, GovernorAndRecentExciterPlantsRespondToGeneratorSetpointStep)
 {
     for (const auto& records :
          {std::vector<std::string_view>{"ieee14_tgov1.dyr", "ieee14_esst2a.dyr"},
@@ -1342,10 +1343,10 @@ TEST(AndesDynamicTests, GovernorAndRecentExciterPlantsRespondToGeneratorSetpoint
     }
 }
 
-TEST(AndesDynamicTests, GensalHygovEsst4bPlantInitializesAndRuns)
+TEST(DynamicComparisonTests, GensalHygovEsst4bPlantInitializesAndRuns)
 {
     auto simulation =
-        loadAndesDynamicCase("ieee14_gensal.dyr", {"ieee14_hygov.dyr", "ieee14_esst4b.dyr"});
+        loadComparisonDynamicCase("ieee14_gensal.dyr", {"ieee14_hygov.dyr", "ieee14_esst4b.dyr"});
 
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
     ASSERT_NE(bus, nullptr);
@@ -1372,52 +1373,52 @@ TEST(AndesDynamicTests, GensalHygovEsst4bPlantInitializesAndRuns)
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, St2cutRespondsToGeneratorSetpointStep)
+TEST(DynamicComparisonTests, St2cutRespondsToGeneratorSetpointStep)
 {
     const auto finalState = runGeneratorSetpointStepCase(
         {"ieee14_esst3a.dyr", "ieee14_exst1.dyr", "ieee14_st2cut.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, IeeestRespondsToGeneratorSetpointStep)
+TEST(DynamicComparisonTests, IeeestRespondsToGeneratorSetpointStep)
 {
     const auto finalState = runGeneratorSetpointStepCase(
         {"ieee14_esst3a.dyr", "ieee14_exst1.dyr", "ieee14_ieeest.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, CombinedControllersRespondToGeneratorSetpointStep)
+TEST(DynamicComparisonTests, CombinedControllersRespondToGeneratorSetpointStep)
 {
     const auto finalState = runGeneratorSetpointStepCase(
         {"ieee14_tgov1.dyr", "ieee14_ieeeg1.dyr", "ieee14_esst3a.dyr", "ieee14_exst1.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, CombinedControllersRemainStableWithElevatedGeneratorSetpoint)
+TEST(DynamicComparisonTests, CombinedControllersRemainStableWithElevatedGeneratorSetpoint)
 {
     const auto finalState = runGeneratorSetpointStepCase(
         {"ieee14_tgov1.dyr", "ieee14_ieeeg1.dyr", "ieee14_esst3a.dyr", "ieee14_exst1.dyr"}, 0.9);
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, ExciterControllersRemainStableWithElevatedGeneratorSetpoint)
+TEST(DynamicComparisonTests, ExciterControllersRemainStableWithElevatedGeneratorSetpoint)
 {
     const auto finalState =
         runGeneratorSetpointStepCase({"ieee14_esst3a.dyr", "ieee14_exst1.dyr"}, 0.9);
     EXPECT_FALSE(finalState.empty());
 }
 
-TEST(AndesDynamicTests, Tgov1TrajectoryMatchesAndesReference)
+TEST(DynamicComparisonTests, Tgov1TrajectoryMatchesAndesReference)
 {
-    std::ifstream input(makeAndesTestPath("andes_ieee14_tgov1_trajectory_reference.json"));
+    std::ifstream input(makeComparisonTestPath("ieee14_tgov1_trajectory_reference.json"));
     ASSERT_TRUE(input.is_open());
     nlohmann::json reference;
     input >> reference;
 
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_tgov1.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_tgov1.dyr"));
 
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
     ASSERT_NE(bus, nullptr);
@@ -1459,7 +1460,7 @@ TEST(AndesDynamicTests, Tgov1TrajectoryMatchesAndesReference)
     }
 }
 
-TEST(AndesDynamicTests, Tgov1DownwardTrajectoryMatchesAndesReference)
+TEST(DynamicComparisonTests, Tgov1DownwardTrajectoryMatchesAndesReference)
 {
     // ANDES 2.0.0 reference: TGOV1_1.pref0 is changed from its initialized
     // value to 0.6 at t=1.0 s.  This exercises the opposite direction of the
@@ -1482,9 +1483,9 @@ TEST(AndesDynamicTests, Tgov1DownwardTrajectoryMatchesAndesReference)
     }};
 
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14.raw"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_genrou.dyr"));
-    griddyn::loadFile(simulation.get(), makeAndesTestPath("ieee14_tgov1.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_tgov1.dyr"));
     auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
     ASSERT_NE(bus, nullptr);
     auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));

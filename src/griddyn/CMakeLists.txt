@@ -233,6 +233,7 @@ set(load_headers
     loads/ZipLoad.h
     loads/FrequencySensitiveLoad.h
     loads/ThreePhaseLoad.h
+    loads/ShuntTD.h
 )
 
 set(load_sources
@@ -253,6 +254,7 @@ set(load_sources
     loads/ThreePhaseLoad.cpp
     loads/FrequencySensitiveLoad.cpp
     loads/GridLabDLoad.cpp
+    loads/ShuntTD.cpp
 )
 
 set(link_headers

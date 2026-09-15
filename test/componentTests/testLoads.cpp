@@ -7,14 +7,18 @@
 #include "../gtestHelper.h"
 #include "fileInput/fileInput.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/blocks/LeadLagBlock.h"
+#include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/loads/ApproximatingLoad.h"
 #include "griddyn/loads/FDepLoad.h"
 #include "griddyn/loads/FileLoad.h"
 #include "griddyn/loads/GridLabDLoad.h"
 #include "griddyn/loads/MotorLoad5.h"
 #include "griddyn/loads/SourceLoad.h"
+#include "griddyn/loads/Svd.h"
 #include "griddyn/loads/ThreePhaseLoad.h"
 #include "griddyn/loads/ZipLoad.h"
+#include "griddyn/primary/AcBus.h"
 #include "griddyn/simulation/Diagnostics.h"
 #include <cmath>
 #include <gtest/gtest.h>
@@ -486,6 +490,106 @@ TEST_F(LoadTests, FdepTest)
     runJacobianCheck(gds, cDaeSolverMode);
     gds->run();
     requireStates(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
+}
+
+TEST_F(LoadTests, FdepLoadOptionalFrequencyFilter)
+{
+    std::string fileName = makeLoadTestPath("fdepLoad.xml");
+    readerConfig::setPrintMode(0);
+    auto gds = readSimXMLFile(fileName);
+
+    auto* bus = gds->getBus(2);
+    auto* fload = dynamic_cast<FDepLoad*>(bus->getLoad(0));
+    ASSERT_NE(fload, nullptr);
+
+    fload->set("betap", 1.0);
+    fload->set("betaq", 1.0);
+    fload->add(new griddyn::blocks::LeadLagBlock(2.0, 0.0, 1.0, "frequency_filter"));
+
+    ASSERT_NE(fload->getFrequencyFilter(), nullptr);
+    gds->pFlowInitialize();
+    gds->dynInitialize();
+
+    EXPECT_EQ(fload->algSize(cDaeSolverMode), 1);
+    EXPECT_EQ(fload->diffSize(cDaeSolverMode), 1);
+    EXPECT_EQ(runResidualCheck(gds, cDaeSolverMode), 0);
+    EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode), 0);
+
+    const double initializedFrequency = fload->getFrequencyFilter()->getBlockOutput();
+    EXPECT_NEAR(initializedFrequency, bus->getFreq(), 1e-10);
+
+    EXPECT_EQ(gds->run(), 0);
+    requireStates(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
+
+    const double initialFrequency = fload->getFrequencyFilter()->getBlockOutput();
+
+    const double inputFrequency = initialFrequency + 0.1;
+    const double expectedFrequency =
+        inputFrequency + ((initialFrequency - inputFrequency) * std::exp(-0.5));
+    fload->timestep(gds->getSimulationTime() + 1.0,
+                    {bus->getVoltage(), bus->getAngle(), inputFrequency},
+                    cLocalSolverMode);
+
+    EXPECT_NEAR(fload->getFrequencyFilter()->getBlockOutput(), expectedFrequency, 1e-10);
+    EXPECT_NEAR(fload->getRealPower(1.0), fload->getRealPower(1.0, expectedFrequency), 1e-10);
+    EXPECT_NEAR(fload->getReactivePower(1.0),
+                fload->getReactivePower(1.0, expectedFrequency),
+                1e-10);
+}
+
+TEST_F(LoadTests, FdepLoadOutputAfterSolvedDynamicInitialization)
+{
+    auto gds = std::make_unique<GridDynSimulation>();
+    auto* bus = new AcBus("bus");
+    bus->set("type", "swing");
+    bus->set("voltage", 1.08);
+    bus->add(new griddyn::DynamicGenerator("slack_generator"));
+    auto* fload = new FDepLoad(0.5, 0.2, "fload");
+    fload->set("ap", 1.0);
+    fload->set("aq", 0.0);
+    fload->set("betap", 1.0);
+    fload->set("betaq", 0.5);
+    fload->add(new griddyn::blocks::LeadLagBlock(2.0, 0.0, 1.0, "frequency_filter"));
+    bus->add(fload);
+    gds->add(bus);
+
+    ASSERT_EQ(gds->powerflow(), 0);
+    const double solvedRealPower = fload->getRealPower();
+    const double solvedReactivePower = fload->getReactivePower();
+
+    ASSERT_EQ(gds->dynInitialize(), 0);
+    EXPECT_NEAR(fload->getOutput(POUT_LOCATION), solvedRealPower, 1.0e-10);
+    EXPECT_NEAR(fload->getOutput(QOUT_LOCATION), solvedReactivePower, 1.0e-10);
+}
+
+TEST_F(LoadTests, SvdSwitchingHonorsIterationAndErrorGate)
+{
+    auto gds = std::make_unique<GridDynSimulation>();
+    auto* bus = new AcBus("bus");
+    bus->set("type", "swing");
+    bus->set("voltage", 0.9);
+    auto* shunt = new Svd("shunt");
+    bus->add(shunt);
+    gds->add(bus);
+    shunt->configureAndesShunt({0.0}, {0.05, 0.05}, {1, 1}, 1.0, 0.05, 30.0, 0.0, 0.0);
+    shunt->set("min_iter", 2.0);
+    shunt->set("err_tol", 0.01);
+
+    ASSERT_EQ(gds->pFlowInitialize(), 0);
+    EXPECT_EQ(shunt->get("andesstep"), 0.0);
+
+    EXPECT_EQ(shunt->powerFlowAdjust({0.9, 0.0, 1.0, 1.0, 1.0}, 0, CheckLevel::REVERSABLE_ONLY),
+              ChangeCode::NO_CHANGE);
+    EXPECT_EQ(shunt->get("andesstep"), 0.0);
+
+    EXPECT_EQ(shunt->powerFlowAdjust({0.9, 0.0, 1.0, 2.0, 1.0}, 0, CheckLevel::REVERSABLE_ONLY),
+              ChangeCode::JACOBIAN_CHANGE);
+    EXPECT_EQ(shunt->get("andesstep"), 1.0);
+
+    shunt->reset();
+    EXPECT_EQ(shunt->powerFlowAdjust({0.9, 0.0, 1.0, 1.0, 0.005}, 0, CheckLevel::REVERSABLE_ONLY),
+              ChangeCode::JACOBIAN_CHANGE);
+    EXPECT_EQ(shunt->get("andesstep"), 1.0);
 }
 
 TEST_F(LoadTests, ApproxloadTest1)

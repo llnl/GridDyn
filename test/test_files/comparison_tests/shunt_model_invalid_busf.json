@@ -1,0 +1,41 @@
+{
+  "Bus": [
+    {
+      "idx": 1,
+      "name": "BUS1",
+      "Vn": 110.0,
+      "v0": 1.0,
+      "a0": 0.0
+    }
+  ],
+  "PQ": [
+    {
+      "idx": "PQ_1",
+      "name": "PQ_1",
+      "bus": 1,
+      "p0": 0.5,
+      "q0": 0.2
+    }
+  ],
+  "FLoad": [
+    {
+      "idx": "FLoad_1",
+      "name": "FLoad_1",
+      "pq": "PQ_1",
+      "busf": "BusFreq_missing",
+      "kp": 90.0,
+      "kq": 80.0,
+      "bp": 1.0,
+      "bq": 0.5
+    }
+  ],
+  "Slack": [
+    {
+      "idx": "Slack_1",
+      "name": "Slack_1",
+      "bus": 1,
+      "p0": 0.0,
+      "q0": 0.0
+    }
+  ]
+}

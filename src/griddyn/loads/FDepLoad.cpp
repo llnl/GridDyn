@@ -7,6 +7,7 @@
 #include "FDepLoad.h"
 
 #include "../GridBus.h"
+#include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
@@ -14,28 +15,127 @@
 #include <string>
 namespace griddyn::loads {
 FDepLoad::FDepLoad(const std::string& objName): ExponentialLoad(objName) {}
-FDepLoad::FDepLoad(double rP, double qP, const std::string& objName):
-    ExponentialLoad(rP, qP, objName)
+FDepLoad::FDepLoad(double realPower, double reactivePower, const std::string& objName):
+    ExponentialLoad(realPower, reactivePower, objName)
 {
 }
+
+void FDepLoad::add(CoreObject* obj)
+{
+    auto* filter = dynamic_cast<GridBlock*>(obj);
+    if (filter == nullptr) {
+        throw UnrecognizedObjectException(this);
+    }
+    setFrequencyFilter(filter);
+}
+
+void FDepLoad::setFrequencyFilter(GridBlock* filter)
+{
+    if (filter == frequencyFilter.get()) {
+        return;
+    }
+    if (opFlags[DYN_INITIALIZED]) {
+        throw InvalidParameterValue(
+            "frequency filter cannot be changed after dynamic initialization");
+    }
+
+    if (frequencyFilter) {
+        removeSubObject(frequencyFilter.get());
+        frequencyFilter = nullptr;
+    }
+
+    if (filter == nullptr) {
+        if ((betaP == 0.0) && (betaQ == 0.0)) {
+            opFlags.reset(USES_BUS_FREQUENCY);
+        }
+        return;
+    }
+
+    frequencyFilter = CoreOwningPtr<GridBlock>(filter);
+    addSubObject(frequencyFilter.get());
+    frequencyFilter->parentSetFlag(SEPARATE_PROCESSING, true, this);
+    opFlags.set(USES_BUS_FREQUENCY);
+}
+
 void FDepLoad::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
-    if ((betaP != 0.0) || (betaQ != 0.0)) {
+    if ((betaP != 0.0) || (betaQ != 0.0) || frequencyFilter) {
         opFlags.set(USES_BUS_FREQUENCY);
     }
-    return ExponentialLoad::dynObjectInitializeA(time0, flags);
+    ExponentialLoad::dynObjectInitializeA(time0, flags);
+}
+
+void FDepLoad::dynObjectInitializeB(const IOdata& inputs,
+                                    const IOdata& desiredOutput,
+                                    IOdata& fieldSet)
+{
+    GridComponent::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
+    if (frequencyFilter) {
+        const double frequency = (inputs.size() > FREQUENCY_IN_LOCATION) ?
+            inputs[FREQUENCY_IN_LOCATION] :
+            bus->getFreq(emptyStateData, cLocalSolverMode);
+        IOdata filterFieldSet;
+        frequencyFilter->dynInitializeB({frequency}, {}, filterFieldSet);
+    }
 }
 
 CoreObject* FDepLoad::clone(CoreObject* obj) const
 {
-    auto ld = cloneBase<FDepLoad, ExponentialLoad>(this, obj);
-    if (ld == nullptr) {
+    auto* clonedLoad = cloneBase<FDepLoad, ExponentialLoad>(this, obj);
+    if (clonedLoad == nullptr) {
         return obj;
     }
 
-    ld->betaP = betaP;
-    ld->betaQ = betaQ;
-    return ld;
+    clonedLoad->betaP = betaP;
+    clonedLoad->betaQ = betaQ;
+    clonedLoad->powerScaleP = powerScaleP;
+    clonedLoad->powerScaleQ = powerScaleQ;
+    clonedLoad->voltageReference = voltageReference;
+    clonedLoad->frequencyBus = frequencyBus;
+    return clonedLoad;
+}
+
+void FDepLoad::updateObjectLinkages(CoreObject* newRoot)
+{
+    GridSecondary::updateObjectLinkages(newRoot);
+    // The reader only records local BusFreq links. After cloning or moving a
+    // tree, the local source is therefore the newly resolved owning bus.
+    if (frequencyBus != nullptr) {
+        frequencyBus = bus;
+    }
+}
+
+double FDepLoad::getBusFrequency(const IOdata& inputs,
+                                 const StateData& stateDataValue,
+                                 const SolverMode& sMode) const
+{
+    const auto* sourceBus = (frequencyBus != nullptr) ? frequencyBus : bus;
+    return (inputs.size() > FREQUENCY_IN_LOCATION) ? inputs[FREQUENCY_IN_LOCATION] :
+                                                     sourceBus->getFreq(stateDataValue, sMode);
+}
+
+double FDepLoad::getFrequency(const IOdata& inputs,
+                              const StateData& stateDataValue,
+                              const SolverMode& sMode) const
+{
+    const double busFrequency = getBusFrequency(inputs, stateDataValue, sMode);
+
+    if (!frequencyFilter || !frequencyFilter->checkFlag(DYN_INITIALIZED) || !isDynamic(sMode)) {
+        return busFrequency;
+    }
+    if (stateDataValue.empty()) {
+        return frequencyFilter->getBlockOutput();
+    }
+    return frequencyFilter->getBlockOutput(stateDataValue, sMode);
+}
+
+double FDepLoad::getLocalFrequency() const
+{
+    if (frequencyFilter && frequencyFilter->checkFlag(DYN_INITIALIZED)) {
+        return frequencyFilter->getBlockOutput();
+    }
+    const auto* sourceBus = (frequencyBus != nullptr) ? frequencyBus : bus;
+    return sourceBus->getFreq();
 }
 
 // set properties
@@ -92,6 +192,14 @@ void FDepLoad::set(std::string_view param, double val, units::unit unitType)
         betaQ = val;
     } else if (param == "beta") {
         betaP = betaQ = val;
+    } else if ((param == "kp") || (param == "p_scale")) {
+        powerScaleP = (param == "kp") ? val / 100.0 : val;
+    } else if ((param == "kq") || (param == "q_scale")) {
+        powerScaleQ = (param == "kq") ? val / 100.0 : val;
+    } else if ((param == "vref") || (param == "v0")) {
+        if (val > 0.0) {
+            voltageReference = val;
+        }
     } else {
         ExponentialLoad::set(param, val, unitType);
     }
@@ -100,80 +208,204 @@ void FDepLoad::set(std::string_view param, double val, units::unit unitType)
     }
 }
 
-void FDepLoad::ioPartialDerivatives(const IOdata& inputs,
-                                    const StateData& /*sD*/,
-                                    MatrixData<double>& md,
-                                    const IOlocs& inputLocs,
-                                    const SolverMode& /*sMode*/)
+double FDepLoad::get(std::string_view param, units::unit unitType) const
 {
-    const double V = inputs[VOLTAGE_IN_LOCATION];
-    double freq = inputs[FREQUENCY_IN_LOCATION];
+    if (param == "kp") {
+        return powerScaleP * 100.0;
+    }
+    if (param == "kq") {
+        return powerScaleQ * 100.0;
+    }
+    if ((param == "p_scale") || (param == "q_scale")) {
+        return (param == "p_scale") ? powerScaleP : powerScaleQ;
+    }
+    if ((param == "vref") || (param == "v0")) {
+        return voltageReference;
+    }
+    return ExponentialLoad::get(param, unitType);
+}
+
+void FDepLoad::ioPartialDerivatives(const IOdata& inputs,
+                                    const StateData& stateData,
+                                    MatrixData<double>& matrixData,
+                                    const IOlocs& inputLocs,
+                                    const SolverMode& sMode)
+{
+    const double voltage = inputs[VOLTAGE_IN_LOCATION];
+    const double frequency = getFrequency(inputs, stateData, sMode);
+    const bool useFilter =
+        frequencyFilter && frequencyFilter->checkFlag(DYN_INITIALIZED) && isDynamic(sMode);
     // power vs voltage
     if (inputLocs[VOLTAGE_IN_LOCATION] != kNullLocation) {
-        md.assign(POUT_LOCATION,
-                  inputLocs[VOLTAGE_IN_LOCATION],
-                  getP() * alphaP * pow(V, alphaP - 1.0) * pow(freq, betaP));
+        matrixData.assign(POUT_LOCATION,
+                          inputLocs[VOLTAGE_IN_LOCATION],
+                          getP() * powerScaleP * alphaP *
+                              pow(voltage / voltageReference, alphaP - 1.0) / voltageReference *
+                              pow(frequency, betaP));
 
         // reactive power vs voltage
-        md.assign(QOUT_LOCATION,
-                  inputLocs[VOLTAGE_IN_LOCATION],
-                  getQ() * alphaQ * pow(V, alphaQ - 1.0) * pow(freq, betaQ));
+        matrixData.assign(QOUT_LOCATION,
+                          inputLocs[VOLTAGE_IN_LOCATION],
+                          getQ() * powerScaleQ * alphaQ *
+                              pow(voltage / voltageReference, alphaQ - 1.0) / voltageReference *
+                              pow(frequency, betaQ));
     }
-    if (inputLocs[FREQUENCY_IN_LOCATION] != kNullLocation) {
-        md.assign(POUT_LOCATION,
-                  inputLocs[FREQUENCY_IN_LOCATION],
-                  getP() * pow(V, alphaP) * betaP * pow(freq, betaP - 1.0));
-        md.assign(QOUT_LOCATION,
-                  inputLocs[FREQUENCY_IN_LOCATION],
-                  getQ() * pow(V, alphaQ) * betaQ * pow(freq, betaQ - 1.0));
+    // When a dynamic filter is present, the load's direct frequency input is no longer the
+    // filtered signal. The filter-state dependency is added by outputPartialDerivatives().
+    if (!useFilter && (inputLocs[FREQUENCY_IN_LOCATION] != kNullLocation)) {
+        matrixData.assign(POUT_LOCATION,
+                          inputLocs[FREQUENCY_IN_LOCATION],
+                          getP() * powerScaleP * pow(voltage / voltageReference, alphaP) * betaP *
+                              pow(frequency, betaP - 1.0));
+        matrixData.assign(QOUT_LOCATION,
+                          inputLocs[FREQUENCY_IN_LOCATION],
+                          getQ() * powerScaleQ * pow(voltage / voltageReference, alphaQ) * betaQ *
+                              pow(frequency, betaQ - 1.0));
+    }
+}
+
+void FDepLoad::outputPartialDerivatives(const IOdata& inputs,
+                                        const StateData& stateDataValue,
+                                        MatrixData<double>& matrixDataValue,
+                                        const SolverMode& sMode)
+{
+    if (!frequencyFilter || !frequencyFilter->checkFlag(DYN_INITIALIZED) || !isDynamic(sMode) ||
+        (frequencyFilter->getOutputLoc(sMode) == kNullLocation)) {
+        return;
+    }
+
+    const IOdata busInputs =
+        inputs.empty() ? bus->getOutputs(noInputs, stateDataValue, sMode) : inputs;
+    const double voltage = busInputs[VOLTAGE_IN_LOCATION];
+    const double frequency = getFrequency(busInputs, stateDataValue, sMode);
+    const index_t filterOutputLocation = frequencyFilter->getOutputLoc(sMode);
+
+    matrixDataValue.assign(POUT_LOCATION,
+                           filterOutputLocation,
+                           getP() * powerScaleP * pow(voltage / voltageReference, alphaP) * betaP *
+                               pow(frequency, betaP - 1.0));
+    matrixDataValue.assign(QOUT_LOCATION,
+                           filterOutputLocation,
+                           getQ() * powerScaleQ * pow(voltage / voltageReference, alphaQ) * betaQ *
+                               pow(frequency, betaQ - 1.0));
+}
+
+count_t FDepLoad::outputDependencyCount(index_t /*outputNum*/, const SolverMode& sMode) const
+{
+    return (frequencyFilter && isDynamic(sMode) && (frequencyFilter->stateSize(sMode) > 0)) ? 1 : 0;
+}
+
+void FDepLoad::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
+{
+    if (frequencyFilter && frequencyFilter->checkFlag(DYN_INITIALIZED) && isDynamic(sMode) &&
+        frequencyFilter->currentTime() < time) {
+        const double frequency = (inputs.size() > FREQUENCY_IN_LOCATION) ?
+            inputs[FREQUENCY_IN_LOCATION] :
+            bus->getFreq();
+        frequencyFilter->timestep(time, {frequency}, sMode);
+    }
+    GridComponent::timestep(time, inputs, sMode);
+}
+
+void FDepLoad::residual(const IOdata& inputs,
+                        const StateData& stateDataValue,
+                        double resid[],
+                        const SolverMode& sMode)
+{
+    GridComponent::residual(inputs, stateDataValue, resid, sMode);
+    if (frequencyFilter && isDynamic(sMode) && frequencyFilter->stateSize(sMode) > 0) {
+        frequencyFilter->blockResidual(
+            getBusFrequency(inputs, stateDataValue, sMode), 0.0, stateDataValue, resid, sMode);
+    }
+}
+
+void FDepLoad::derivative(const IOdata& inputs,
+                          const StateData& stateDataValue,
+                          double deriv[],
+                          const SolverMode& sMode)
+{
+    GridComponent::derivative(inputs, stateDataValue, deriv, sMode);
+    if (frequencyFilter && isDynamic(sMode) && frequencyFilter->diffSize(sMode) > 0) {
+        frequencyFilter->blockDerivative(
+            getBusFrequency(inputs, stateDataValue, sMode), 0.0, stateDataValue, deriv, sMode);
+    }
+}
+
+void FDepLoad::algebraicUpdate(const IOdata& inputs,
+                               const StateData& stateDataValue,
+                               double update[],
+                               const SolverMode& sMode,
+                               double alpha)
+{
+    GridComponent::algebraicUpdate(inputs, stateDataValue, update, sMode, alpha);
+    if (frequencyFilter && isDynamic(sMode) && frequencyFilter->algSize(sMode) > 0) {
+        frequencyFilter->algebraicUpdate(
+            {getBusFrequency(inputs, stateDataValue, sMode)}, stateDataValue, update, sMode, alpha);
+    }
+}
+
+void FDepLoad::jacobianElements(const IOdata& inputs,
+                                const StateData& stateDataValue,
+                                MatrixData<double>& matrixDataValue,
+                                const IOlocs& inputLocs,
+                                const SolverMode& sMode)
+{
+    GridComponent::jacobianElements(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
+    if (frequencyFilter && isDynamic(sMode) && frequencyFilter->stateSize(sMode) > 0) {
+        frequencyFilter->blockJacobianElements(getBusFrequency(inputs, stateDataValue, sMode),
+                                               0.0,
+                                               stateDataValue,
+                                               matrixDataValue,
+                                               inputLocs[FREQUENCY_IN_LOCATION],
+                                               sMode);
     }
 }
 
 double FDepLoad::getRealPower() const
 {
-    return getRealPower(bus->getVoltage(), bus->getFreq());
+    return getRealPower(bus->getVoltage(), getLocalFrequency());
 }
 double FDepLoad::getReactivePower() const
 {
-    return getReactivePower(bus->getVoltage(), bus->getFreq());
+    return getReactivePower(bus->getVoltage(), getLocalFrequency());
 }
 double FDepLoad::getRealPower(const IOdata& inputs,
-                              const StateData& /*sD*/,
-                              const SolverMode& /*sMode*/) const
+                              const StateData& stateData,
+                              const SolverMode& sMode) const
 {
-    return getRealPower(inputs[VOLTAGE_IN_LOCATION], inputs[FREQUENCY_IN_LOCATION]);
+    return getRealPower(inputs[VOLTAGE_IN_LOCATION], getFrequency(inputs, stateData, sMode));
 }
 
 double FDepLoad::getReactivePower(const IOdata& inputs,
-                                  const StateData& /*sD*/,
-                                  const SolverMode& /*sMode*/) const
+                                  const StateData& stateData,
+                                  const SolverMode& sMode) const
 {
-    return getReactivePower(inputs[VOLTAGE_IN_LOCATION], inputs[FREQUENCY_IN_LOCATION]);
+    return getReactivePower(inputs[VOLTAGE_IN_LOCATION], getFrequency(inputs, stateData, sMode));
 }
 
-double FDepLoad::getRealPower(const double V) const
+double FDepLoad::getRealPower(const double voltage) const
 {
-    return getRealPower(V, bus->getFreq());
+    return getRealPower(voltage, getLocalFrequency());
 }
-double FDepLoad::getReactivePower(double V) const
+double FDepLoad::getReactivePower(double voltage) const
 {
-    return getReactivePower(V, bus->getFreq());
+    return getReactivePower(voltage, getLocalFrequency());
 }
-double FDepLoad::getRealPower(double V, double f) const
+double FDepLoad::getRealPower(double voltage, double frequency) const
 {
     if (isConnected()) {
         double val = getP();
-        val *= pow(V, alphaP) * pow(f, betaP);
+        val *= powerScaleP * pow(voltage / voltageReference, alphaP) * pow(frequency, betaP);
         return val;
     }
     return 0.0;
 }
 
-double FDepLoad::getReactivePower(double V, double f) const
+double FDepLoad::getReactivePower(double voltage, double frequency) const
 {
     if (isConnected()) {
         double val = getQ();
-        val *= pow(V, alphaQ) * pow(f, betaQ);
+        val *= powerScaleQ * pow(voltage / voltageReference, alphaQ) * pow(frequency, betaQ);
         return val;
     }
     return 0.0;

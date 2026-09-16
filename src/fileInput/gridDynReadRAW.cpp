@@ -109,6 +109,62 @@ static double correctionFactor(const ImpedanceCorrectionTables& tables, int tabl
     return lower->second + (fraction * (upper->second - lower->second));
 }
 
+/**
+ * Convert the PSS/E transformer magnetizing fields to GridDyn's system-base
+ * terminal admittance convention, Y = G + jB.
+ *
+ * CM=1 stores MAG1/MAG2 directly as G/B in per unit on the system base.
+ * CM=2 stores no-load loss in watts and excitation-current magnitude in per
+ * unit.  The latter gives |Y|, so the susceptance follows from
+ * B = sqrt(|Y|^2 - G^2).  CM is a representation code, not a winding-side
+ * selector; PSS/E and the open PowerModels/ANDES readers place this result on
+ * the first (I-side) winding.
+ */
+static std::pair<double, double> rawMagnetizingAdmittance(CoreObject* parentObject,
+                                                          int magnetizingCode,
+                                                          double mag1,
+                                                          double mag2,
+                                                          double systemBaseMVA)
+{
+    if (magnetizingCode == 1) {
+        return {mag1, mag2};
+    }
+    if (magnetizingCode == 2) {
+        if (systemBaseMVA <= 0.0) {
+            parentObject->log(parentObject,
+                              PrintLevel::WARNING,
+                              "cannot convert transformer CM=2 magnetizing data with a non-positive system base");
+            return {0.0, 0.0};
+        }
+
+        // MAG1 is watts at nominal voltage.  With systemBaseMVA in MW,
+        // G(pu) = MAG1(W) / (systemBaseMVA(MVA) * 1e6).
+        const auto conductance = mag1 / (systemBaseMVA * 1.0e6);
+        // MAG2 is the excitation-current magnitude in pu.  On the system
+        // base this is the magnitude of the magnetizing admittance.
+        const auto admittanceMagnitude = std::abs(mag2);
+        const auto susceptanceSquared = (admittanceMagnitude * admittanceMagnitude) -
+            (conductance * conductance);
+        if (susceptanceSquared < 0.0) {
+            parentObject->log(parentObject,
+                              PrintLevel::WARNING,
+                              "transformer CM=2 magnetizing data has |Y| less than G; setting B to zero");
+        }
+        // CM=2 gives a magnitude, so PSS/E's conventional positive result is
+        // retained.  CM=1 remains able to carry either susceptance sign.
+        return {conductance, std::sqrt(std::max(0.0, susceptanceSquared))};
+    }
+
+    if ((mag1 != 0.0) || (mag2 != 0.0)) {
+        parentObject->log(parentObject,
+                          PrintLevel::WARNING,
+                          "unsupported transformer magnetizing code " +
+                              std::to_string(magnetizingCode) +
+                              "; ignoring nonzero MAG1/MAG2");
+    }
+    return {0.0, 0.0};
+}
+
 static ImpedanceCorrectionTables readImpedanceCorrectionTables(const std::string& fileName,
                                                                int rawVersion)
 {
@@ -346,6 +402,12 @@ static void rawReadThreeWindingTransformer(CoreObject* parentObject,
                                            busList[busNumber2],
                                            busList[busNumber3]};
     const auto impedanceCode = numeric_conversion<int>(header[5], 1);
+    const auto magnetizingAdmittance = rawMagnetizingAdmittance(
+        parentObject,
+        numeric_conversion<int>(header[6], 1),
+        numeric_conversion<double>(header[7], 0.0),
+        numeric_conversion<double>(header[8], 0.0),
+        opt.base);
     for (size_t ii = 0; ii < 3; ++ii) {
         if (impedanceCode == 2) {
             if (windingBase[ii] > 0.0) {
@@ -419,9 +481,11 @@ static void rawReadThreeWindingTransformer(CoreObject* parentObject,
         leg->set("ratinga", numeric_conversion<double>(windings[ii][3], 0.0), MW);
         leg->set("ratingb", numeric_conversion<double>(windings[ii][4], 0.0), MW);
         leg->set("ratingc", numeric_conversion<double>(windings[ii][5], 0.0), MW);
-        if ((ii == 0) && (numeric_conversion<int>(header[6], 1) == 1)) {
-            leg->set("g", numeric_conversion<double>(header[7], 0.0));
-            leg->set("b", numeric_conversion<double>(header[8], 0.0));
+        if (ii == 0) {
+            // MAG1/MAG2 are on the I-side winding.  Use endpoint fields so
+            // the fixed shunt is not incorrectly split across the star leg.
+            leg->set("g1", magnetizingAdmittance.first);
+            leg->set("b1", magnetizingAdmittance.second);
         }
         const auto status = numeric_conversion<int>(header[11], 1);
         const bool windingOutOfService = (status == 0) || ((status == 2) && (ii == 1)) ||
@@ -430,9 +494,6 @@ static void rawReadThreeWindingTransformer(CoreObject* parentObject,
             leg->disable();
         }
         addToParentWithRename(leg, getRawLinkParent(parentObject, leg));
-    }
-    if (numeric_conversion<int>(header[6], 1) != 1) {
-        std::cerr << "three-winding transformer magnetizing code is not fully supported\n";
     }
 }
 
@@ -1947,6 +2008,17 @@ static int rawReadTxV33(CoreObject* parentObject,
     auto bv1 = bus1->get("basevoltage");
     auto bv2 = bus2->get("basevoltage");
 
+    const auto magnetizingAdmittance = rawMagnetizingAdmittance(
+        parentObject,
+        numeric_conversion<int>(strvec[6], 1),
+        numeric_conversion<double>(strvec[7], 0.0),
+        numeric_conversion<double>(strvec[8], 0.0),
+        opt.base);
+    // PSS/E MAG1/MAG2 belong to the first/I-side winding.  AcLine's endpoint
+    // shunt fields preserve that placement through taps and in dynamics.
+    lnk->set("g1", magnetizingAdmittance.first);
+    lnk->set("b1", magnetizingAdmittance.second);
+
     auto base = numeric_conversion<double>(strvec2[2], 0.0);
 
     if (impedanceType == 1) {
@@ -2056,13 +2128,21 @@ static int rawReadTxV33(CoreObject* parentObject,
             adjTX->set("maxtapangle", resistance, deg);
             adjTX->set("mintapangle", reactance, deg);
         } else {
-            if (reactance < 1.0) {
-                adjTX->set("maxtap", resistance);
-                adjTX->set("mintap", reactance);
-            } else {
-                adjTX->set("maxtap", resistance / vn1);
-                adjTX->set("mintap", reactance / vn1);
+            // RMA/RMI use the same voltage convention as WINDV1.  Do not use
+            // the magnitude of RMI as a proxy for that convention: valid
+            // per-unit limits can be greater than one, and NOMV1 is optional
+            // (zero) for CW=1 records.  In particular, dividing a CW=1 limit
+            // by NOMV1=0 creates NaN tap limits and poisons the power-flow
+            // state during AdjustableTransformer initialization.
+            if ((tapcode == 2) && (bv1 > 0.0)) {
+                resistance /= bv1;
+                reactance /= bv1;
+            } else if ((tapcode == 3) && (vn1 > 0.0) && (bv1 > 0.0)) {
+                resistance *= vn1 / bv1;
+                reactance *= vn1 / bv1;
             }
+            adjTX->set("maxtap", resistance);
+            adjTX->set("mintap", reactance);
         }
 
         resistance = numeric_conversion<double>(strvec3[10 + windingTailOffset], 0.0);
@@ -2201,6 +2281,17 @@ static int rawReadTX(CoreObject* parentObject,
     const auto nominalVoltage2 = numeric_conversion<double>(strvec4[1], 0.0);
     const auto busBaseVoltage1 = bus1->get("basevoltage");
     const auto busBaseVoltage2 = bus2->get("basevoltage");
+
+    const auto magnetizingAdmittance = rawMagnetizingAdmittance(
+        parentObject,
+        numeric_conversion<int>(strvec[6], 1),
+        numeric_conversion<double>(strvec[7], 0.0),
+        numeric_conversion<double>(strvec[8], 0.0),
+        opt.base);
+    // PSS/E MAG1/MAG2 belong to the first/I-side winding.  AcLine's endpoint
+    // shunt fields preserve that placement through taps and in dynamics.
+    lnk->set("g1", magnetizingAdmittance.first);
+    lnk->set("b1", magnetizingAdmittance.second);
 
     if ((impedanceCode == 2) || (impedanceCode == 3)) {
         if ((impedanceCode == 3) && (windingBase > 0.0)) {

@@ -109,6 +109,15 @@ namespace {
             EXPECT_EQ(leg->getBus(2), gds->getBus(3));
         }
 
+        // MAG1/MAG2 belong to the first external/I-side winding.  They must
+        // not be split between that leg and the synthetic star bus.
+        const auto* primary = dynamic_cast<const AcLine*>(gds->getLink(0));
+        ASSERT_NE(primary, nullptr);
+        EXPECT_NEAR(primary->get("g1"), 0.002, 1.0e-12);
+        EXPECT_NEAR(primary->get("b1"), -0.003, 1.0e-12);
+        EXPECT_NEAR(primary->get("g2"), 0.0, 1.0e-12);
+        EXPECT_NEAR(primary->get("b2"), 0.0, 1.0e-12);
+
         const auto* starBus = gds->getBus(3);
         ASSERT_NE(starBus, nullptr);
         EXPECT_EQ(starBus->getUserID(), 4);

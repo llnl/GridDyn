@@ -236,8 +236,9 @@ The full `FileReaderTests` suite passes 52/52, and the component-level
    than one independent voltage equation per generator.
 4. EPC currently applies the primary correction-table reference used by this
    case. Independent winding-2/winding-3 references need a validating fixture.
-5. Uncommon `CW=2/3` winding-voltage forms and `CM=2` magnetizing-loss forms
-   still require dedicated conversion fixtures.
+5. Uncommon `CW=2/3` winding-voltage forms still require dedicated conversion
+   fixtures. `CM=2` now has a two-winding conversion fixture; a dedicated
+   three-winding `CM=2` fixture remains desirable.
 
 ## Recommended restart sequence
 

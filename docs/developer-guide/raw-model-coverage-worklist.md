@@ -15,7 +15,7 @@ fields are currently ignored.
 
 **Review status:** 2026-09-16. The reviewed corpus is under
 `C:\\data\\Documents\\codeProjects\\griddyn_test_cases\\AESO_cases` and contains
-40 RAW files, 20 SAV files, and 40 SEQ files.
+40 RAW files, 20 SAVE files, and 40 SEQ files.
 
 ### Resolved for the current RAW use case
 
@@ -33,7 +33,7 @@ fields are currently ignored.
 
 ### Remaining format and model findings
 
-- `.sav` files are PSS/E binary saved-case files. Their headers are partially
+- `.save` files are PSS/E binary saved-case files. Their headers are partially
   inspectable, but the format is versioned/proprietary rather than an openly
   documented interchange format. Direct GridDyn support would require a
   compatible PSS/E reader or a reverse-engineered importer and is not a good

@@ -131,9 +131,10 @@ static std::pair<double, double> rawMagnetizingAdmittance(CoreObject* parentObje
     }
     if (magnetizingCode == 2) {
         if (systemBaseMVA <= 0.0) {
-            parentObject->log(parentObject,
-                              PrintLevel::WARNING,
-                              "cannot convert transformer CM=2 magnetizing data with a non-positive system base");
+            parentObject->log(
+                parentObject,
+                PrintLevel::WARNING,
+                "cannot convert transformer CM=2 magnetizing data with a non-positive system base");
             return {0.0, 0.0};
         }
 
@@ -143,12 +144,13 @@ static std::pair<double, double> rawMagnetizingAdmittance(CoreObject* parentObje
         // MAG2 is the excitation-current magnitude in pu.  On the system
         // base this is the magnitude of the magnetizing admittance.
         const auto admittanceMagnitude = std::abs(mag2);
-        const auto susceptanceSquared = (admittanceMagnitude * admittanceMagnitude) -
-            (conductance * conductance);
+        const auto susceptanceSquared =
+            (admittanceMagnitude * admittanceMagnitude) - (conductance * conductance);
         if (susceptanceSquared < 0.0) {
-            parentObject->log(parentObject,
-                              PrintLevel::WARNING,
-                              "transformer CM=2 magnetizing data has |Y| less than G; setting B to zero");
+            parentObject->log(
+                parentObject,
+                PrintLevel::WARNING,
+                "transformer CM=2 magnetizing data has |Y| less than G; setting B to zero");
         }
         // CM=2 gives a magnitude, so PSS/E's conventional positive result is
         // retained.  CM=1 remains able to carry either susceptance sign.
@@ -159,8 +161,7 @@ static std::pair<double, double> rawMagnetizingAdmittance(CoreObject* parentObje
         parentObject->log(parentObject,
                           PrintLevel::WARNING,
                           "unsupported transformer magnetizing code " +
-                              std::to_string(magnetizingCode) +
-                              "; ignoring nonzero MAG1/MAG2");
+                              std::to_string(magnetizingCode) + "; ignoring nonzero MAG1/MAG2");
     }
     return {0.0, 0.0};
 }
@@ -402,12 +403,12 @@ static void rawReadThreeWindingTransformer(CoreObject* parentObject,
                                            busList[busNumber2],
                                            busList[busNumber3]};
     const auto impedanceCode = numeric_conversion<int>(header[5], 1);
-    const auto magnetizingAdmittance = rawMagnetizingAdmittance(
-        parentObject,
-        numeric_conversion<int>(header[6], 1),
-        numeric_conversion<double>(header[7], 0.0),
-        numeric_conversion<double>(header[8], 0.0),
-        opt.base);
+    const auto magnetizingAdmittance =
+        rawMagnetizingAdmittance(parentObject,
+                                 numeric_conversion<int>(header[6], 1),
+                                 numeric_conversion<double>(header[7], 0.0),
+                                 numeric_conversion<double>(header[8], 0.0),
+                                 opt.base);
     for (size_t ii = 0; ii < 3; ++ii) {
         if (impedanceCode == 2) {
             if (windingBase[ii] > 0.0) {
@@ -2008,12 +2009,12 @@ static int rawReadTxV33(CoreObject* parentObject,
     auto bv1 = bus1->get("basevoltage");
     auto bv2 = bus2->get("basevoltage");
 
-    const auto magnetizingAdmittance = rawMagnetizingAdmittance(
-        parentObject,
-        numeric_conversion<int>(strvec[6], 1),
-        numeric_conversion<double>(strvec[7], 0.0),
-        numeric_conversion<double>(strvec[8], 0.0),
-        opt.base);
+    const auto magnetizingAdmittance =
+        rawMagnetizingAdmittance(parentObject,
+                                 numeric_conversion<int>(strvec[6], 1),
+                                 numeric_conversion<double>(strvec[7], 0.0),
+                                 numeric_conversion<double>(strvec[8], 0.0),
+                                 opt.base);
     // PSS/E MAG1/MAG2 belong to the first/I-side winding.  AcLine's endpoint
     // shunt fields preserve that placement through taps and in dynamics.
     lnk->set("g1", magnetizingAdmittance.first);
@@ -2282,12 +2283,12 @@ static int rawReadTX(CoreObject* parentObject,
     const auto busBaseVoltage1 = bus1->get("basevoltage");
     const auto busBaseVoltage2 = bus2->get("basevoltage");
 
-    const auto magnetizingAdmittance = rawMagnetizingAdmittance(
-        parentObject,
-        numeric_conversion<int>(strvec[6], 1),
-        numeric_conversion<double>(strvec[7], 0.0),
-        numeric_conversion<double>(strvec[8], 0.0),
-        opt.base);
+    const auto magnetizingAdmittance =
+        rawMagnetizingAdmittance(parentObject,
+                                 numeric_conversion<int>(strvec[6], 1),
+                                 numeric_conversion<double>(strvec[7], 0.0),
+                                 numeric_conversion<double>(strvec[8], 0.0),
+                                 opt.base);
     // PSS/E MAG1/MAG2 belong to the first/I-side winding.  AcLine's endpoint
     // shunt fields preserve that placement through taps and in dynamics.
     lnk->set("g1", magnetizingAdmittance.first);

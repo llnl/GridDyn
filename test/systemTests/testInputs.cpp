@@ -318,9 +318,8 @@ TEST_F(InputTests, PssERawGeneratorStepUpTransformerImport)
 TEST_F(InputTests, PssERawTransformerMagnetizingAdmittance)
 {
     gds = std::make_unique<GridDynSimulation>();
-    ASSERT_NO_THROW(loadFile(
-        gds,
-        std::string(INPUT_TEST_DIRECTORY) + "raw_transformer_magnetizing.raw"));
+    ASSERT_NO_THROW(
+        loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_transformer_magnetizing.raw"));
 
     ASSERT_EQ(gds->getInt("totallinkcount"), 2);
     const auto* cm1 = dynamic_cast<const AcLine*>(gds->getLink(0));

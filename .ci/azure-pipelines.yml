@@ -21,7 +21,7 @@ jobs:
       # -----------------------
       - task: CMake@1
         inputs:
-          cmakeArgs: -DGRIDDYN_BUILD_C_SHARED_LIBRARY=ON -DGRIDDYN_BUILD_TESTS=ON -DGRIDDYN_SUITESPARSE_FORCE_SUBPROJECT=ON ..
+          cmakeArgs: -DGRIDDYN_BUILD_TESTS=ON -DGRIDDYN_SUITESPARSE_FORCE_SUBPROJECT=ON ..
         displayName: "Configure GridDyn"
 
       # -----------------------
@@ -54,7 +54,7 @@ jobs:
       # -----------------------
       - task: CMake@1
         inputs:
-          cmakeArgs: -DGRIDDYN_BUILD_C_SHARED_LIBRARY=ON -DGRIDDYN_BUILD_TESTS=ON ..
+          cmakeArgs: -DGRIDDYN_BUILD_TESTS=ON ..
         displayName: "Configure GridDyn"
 
       # -----------------------
@@ -92,7 +92,7 @@ jobs:
           imageName: "windows-latest"
           langArch: "x64"
           vsArch: "x64"
-          extraFlags: "-DGRIDDYN_ENABLE_FMI=ON -DGRIDDYN_BUILD_SHARED_CXX_LIBRARY=ON -DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=ON"
+          extraFlags: "-DGRIDDYN_ENABLE_FMI=ON -DGRIDDYN_BUILD_CXX_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_OPTIMIZATION_LIBRARY=ON"
         VS2022-64bit:
           imageName: "windows-2022"
           langArch: "x64"
@@ -123,10 +123,6 @@ jobs:
         condition: ne(variables.BOOST_CACHE_RESTORED, 'true')
         displayName: Install Boost
 
-      - bash: choco install swig --yes --limit-output
-        condition: eq( variables['Agent.OS'], 'Windows_NT' )
-        displayName: Install swig
-
       - bash: choco install nsis --yes --limit-output
         condition: eq( variables['Agent.OS'], 'Windows_NT' )
         displayName: Install NSIS
@@ -149,21 +145,9 @@ jobs:
         displayName: Show environment info
       - task: CMake@1
         inputs:
-          cmakeArgs: -A $(vsArch) -DBOOST_INSTALL_PATH=$(BOOST_ROOT) -DGRIDDYN_BUILD_C_SHARED_LIBRARY=ON -DGRIDDYN_ENABLE_PACKAGE_BUILD=ON -DGRIDDYN_BUILD_TESTS=ON $(extraFlags) ..
+          cmakeArgs: -A $(vsArch) -DBOOST_INSTALL_PATH=$(BOOST_ROOT) -DGRIDDYN_ENABLE_PACKAGE_BUILD=ON -DGRIDDYN_BUILD_TESTS=ON $(extraFlags) ..
         displayName: "Configure GridDyn"
         condition: eq( variables['Agent.OS'], 'Windows_NT' )
-
-      #  - task: CMake@1
-      #    inputs:
-      #      cmakeArgs: -DBUILD_PYTHON_INTERFACE=ON .
-      #    displayName: 'Configure Python interface'
-      #    condition: and(ne( variables['imageName'], 'vs2015-win2012r2' ), eq( variables['langArch'], 'x64' ))
-
-      #  - task: CMake@1
-      #    inputs:
-      #      cmakeArgs: -DBUILD_JAVA_INTERFACE=ON .
-      #    displayName: 'Configure Java interface'
-      #    condition: eq( variables['langArch'], 'x64' )
 
       # -----------------------
       # Build GridDyn

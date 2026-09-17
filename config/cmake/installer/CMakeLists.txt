@@ -647,8 +647,6 @@ if(HELICS_EXECUTABLE)
 
     add_subdirectory(src/helics)
 endif(HELICS_EXECUTABLE)
-file(GLOB KEY_LIBRARY_FILES ${PROJECT_BINARY_DIR}/libs/bin/*)
-message(STATUS "key files ${KEY_LIBRARY_FILES}")
 # -------------------------------------------------------------
 # load the subdirectories
 # -------------------------------------------------------------
@@ -703,7 +701,6 @@ install(FILES ${efiles} DESTINATION examples)
 # SET(binfiles bin/configure.griddyn bin/pgriddyn bin/pgriddyn_debug) INSTALL(PROGRAMS ${binfiles}
 # DESTINATION bin)
 
-install(FILES ${KEY_LIBRARY_FILES} DESTINATION bin)
 
 # -------------------------------------------------------------
 # Future Additions (by Jen)

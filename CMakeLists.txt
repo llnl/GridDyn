@@ -84,7 +84,6 @@ endif()
 
 include(extraMacros)
 include(CMakeDependentOption)
-include(copy_key_files)
 include(CTest)
 include(ucm)
 include(GNUInstallDirs)
@@ -339,7 +338,7 @@ endif()
 griddyn_hide_cache_variables_by_prefix(UCM_)
 
 install(
-    TARGETS compile_flags_target build_flags_target ${GRIDDYN_EXPORT_COMMAND}
+    TARGETS compile_flags_target build_flags_target griddyn_base ${GRIDDYN_EXPORT_COMMAND}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -392,25 +391,29 @@ target_include_directories(
 # Enable OpenMP support?
 # ------------------------------------------------------------
 if(GRIDDYN_ENABLE_OPENMP)
-    find_package(OpenMP QUIET)
-    if(OPENMP_FOUND)
-        link_libraries(OpenMP::OpenMP_C OpenMP::OpenMP_CXX)
-    else(OPENMP_FOUND)
+    find_package(OpenMP QUIET COMPONENTS C CXX)
+    if(OpenMP_C_FOUND AND OpenMP_CXX_FOUND)
+        set(GRIDDYN_HAVE_OPENMP TRUE)
+        target_link_libraries(griddyn_base INTERFACE OpenMP::OpenMP_C OpenMP::OpenMP_CXX)
+    else()
+        set(GRIDDYN_HAVE_OPENMP FALSE)
         if(NOT GRIDDYN_ENABLE_OPENMP STREQUAL "AUTO")
             message(FATAL_ERROR "Disabling OpenMP support, could not determine compiler flags")
         endif()
-    endif(OPENMP_FOUND)
-endif(GRIDDYN_ENABLE_OPENMP)
+    endif()
+else()
+    set(GRIDDYN_HAVE_OPENMP FALSE)
+endif()
 
 cmake_dependent_advanced_option(
     ENABLE_OPENMP_SUNDIALS "Enable SUNDIALS NVector openMP implementation" ON
-    "GRIDDYN_ENABLE_OPENMP;OPENMP_FOUND" OFF
+    "GRIDDYN_ENABLE_OPENMP;OpenMP_C_FOUND;OpenMP_CXX_FOUND" OFF
 )
 
 cmake_dependent_advanced_option(
     # TODO look at this
     GRIDDYN_ENABLE_OPENMP_INTERNAL "Enable openmp internal to GridDyn--not used yet" OFF
-    "GRIDDYN_ENABLE_OPENMP;OPENMP_FOUND" OFF
+    "GRIDDYN_ENABLE_OPENMP;OpenMP_C_FOUND;OpenMP_CXX_FOUND" OFF
 )
 
 # ------------------------------------------------------------
@@ -498,11 +501,13 @@ endif()
 # ------------------------------------------------------------
 # finding MPI
 # ------------------------------------------------------------
+set(GRIDDYN_HAVE_MPI_CXX FALSE)
 if(GRIDDYN_ENABLE_MPI)
     include(addMPI)
     if(TARGET MPI::MPI_C)
         target_link_libraries(griddyn_base INTERFACE MPI::MPI_C)
         if(MPI_CXX_FOUND)
+            set(GRIDDYN_HAVE_MPI_CXX TRUE)
             target_link_libraries(griddyn_base INTERFACE MPI::MPI_CXX)
         endif()
     else()
@@ -709,9 +714,6 @@ if(GRIDDYN_ENABLE_DOXYGEN)
     endif(DOXYGEN_FOUND)
 endif(GRIDDYN_ENABLE_DOXYGEN)
 
-file(GLOB KEY_LIBRARY_FILES ${PROJECT_BINARY_DIR}/libs/bin/*)
-message(STATUS "key files ${KEY_LIBRARY_FILES}")
-
 # TODO this should probably be in a different file
 # ------------------------------------------------------------
 # Enable clang analysis and formatting tools
@@ -735,6 +737,28 @@ set(GRIDDYN_CMAKECONFIG_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAM
     CACHE STRING "install path for GriddynConfig.cmake"
 )
 
+if(GRIDDYN_WITH_CMAKE_PACKAGE)
+    include(CMakePackageConfigHelpers)
+
+    configure_package_config_file(
+        "${PROJECT_SOURCE_DIR}/config/GRIDDYNConfig.cmake.in"
+        "${PROJECT_BINARY_DIR}/GRIDDYNConfig.cmake"
+        INSTALL_DESTINATION "${GRIDDYN_CMAKECONFIG_INSTALL_DIR}"
+    )
+    write_basic_package_version_file(
+        "${PROJECT_BINARY_DIR}/GRIDDYNConfigVersion.cmake"
+        VERSION "${PROJECT_VERSION}"
+        COMPATIBILITY SameMajorVersion
+    )
+    install(
+        FILES
+            "${PROJECT_BINARY_DIR}/GRIDDYNConfig.cmake"
+            "${PROJECT_BINARY_DIR}/GRIDDYNConfigVersion.cmake"
+        DESTINATION "${GRIDDYN_CMAKECONFIG_INSTALL_DIR}"
+        COMPONENT libs
+    )
+endif()
+
 # TODO group the installs better
 install(DIRECTORY examples/ DESTINATION examples COMPONENT examples)
 # file(GLOB ebraidfiles "examples/braid_examples/*.*") install(FILES ${ebraidfiles} DESTINATION
@@ -743,15 +767,16 @@ install(DIRECTORY examples/ DESTINATION examples COMPONENT examples)
 set(binfiles bin/configure.griddyn bin/pgriddyn bin/pgriddyn_debug)
 install(PROGRAMS ${binfiles} DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT binaries)
 
-install(FILES ${KEY_LIBRARY_FILES} DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT binaries)
 install(DIRECTORY ThirdParty/nlohmann DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT headers)
 
-install(
-    EXPORT griddyn-targets
-    NAMESPACE Griddyn::
-    DESTINATION ${GRIDDYN_CMAKECONFIG_INSTALL_DIR}
-    COMPONENT libs
-)
+if(GRIDDYN_WITH_CMAKE_PACKAGE)
+    install(
+        EXPORT griddyn-targets
+        NAMESPACE Griddyn::
+        DESTINATION ${GRIDDYN_CMAKECONFIG_INSTALL_DIR}
+        COMPONENT libs
+    )
+endif()
 
 # ------------------------------------------------------------
 # Future Additions
@@ -826,9 +851,7 @@ if(GRIDDYN_ENABLE_PACKAGE_BUILD)
         headers
         libs
         binaries
-        matlab
         python
-        octave
         examples
     )
 
@@ -844,8 +867,6 @@ if(GRIDDYN_ENABLE_PACKAGE_BUILD)
     set(CPACK_COMPONENT_RUNTIME_DISPLAY_NAME "Runtime Libraries")
     set(CPACK_COMPONENT_EXAMPLES_DISPLAY_NAME "Examples")
 
-    set(CPACK_COMPONENT_MATLAB_GROUP interfaces)
-    set(CPACK_COMPONENT_OCTAVE_GROUP interfaces)
     set(CPACK_COMPONENT_PYTHON_GROUP interfaces)
 
     set(CPACK_COMPONENT_APPLICATION_DESCRIPTION "Executables and helper applications for GridDyn")
@@ -853,8 +874,6 @@ if(GRIDDYN_ENABLE_PACKAGE_BUILD)
     set(CPACK_COMPONENT_HEADERS_DESCRIPTION "Headers for linking and compiling with GridDyn")
     set(CPACK_COMPONENT_RUNTIME_DESCRIPTION "Runtime libraries for GrdDyn")
     set(CPACK_COMPONENT_EXAMPLES_DESCRIPTION "Example files for GridDyn")
-
-    set(CPACK_COMPONENT_GROUP_INTERFACES_DESCRIPTION "additional language interfaces for GridDyn")
 
     set(CPACK_COMPONENT_LIBS_DEPENDS headers)
     set(CPACK_COMPONENT_RUNTIME_REQUIRED ON)

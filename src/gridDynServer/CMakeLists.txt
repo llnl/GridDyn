@@ -12,20 +12,18 @@ set(griddynServer_sources gridDynServerMain.cpp gridDynServer.cpp)
 
 set(griddynServer_headers gridDynServer.h)
 
-link_directories(${external_link_directories})
 
 add_executable(griddynServer ${griddynServer_sources} ${griddynServer_headers})
+target_include_directories(
+    griddynServer
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${PROJECT_SOURCE_DIR}/src/griddyn
+        ${PROJECT_SOURCE_DIR}/src/gridDynLoader
+        ${PROJECT_SOURCE_DIR}/src/runner
+)
 target_include_directories(griddynServer SYSTEM PRIVATE ${Boost_INCLUDE_DIR})
 
-include_directories(.)
+target_link_libraries(griddynServer PRIVATE runner griddyn gridDynLoader)
 
-include_directories(${PROJECT_SOURCE_DIR}/src/formatInterpreter)
-include_directories(${PROJECT_SOURCE_DIR}/src/griddyn)
-include_directories(${PROJECT_SOURCE_DIR}/src/gridDynFileInput)
-include_directories(${PROJECT_SOURCE_DIR}/src/utilities)
-include_directories(${PROJECT_SOURCE_DIR}/src/coupling)
-include_directories(${PROJECT_SOURCE_DIR}/src/gridDynCombined)
-
-target_link_libraries(griddynServer gridDynCombined)
-
-install(TARGETS griddynServer RUNTIME DESTINATION bin)
+install(TARGETS griddynServer RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT RUNTIME)

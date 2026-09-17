@@ -164,3 +164,5 @@ if(NOT Boost_FOUND)
 endif()
 # Minimum version of Boost required for building test suite
 set(BOOST_VERSION_LEVEL ${Boost_MINOR_VERSION})
+
+griddyn_hide_cache_variables_by_prefix(BOOST_ Boost_)

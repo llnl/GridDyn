@@ -80,6 +80,7 @@ set(COMPILER_SUPPORTS_CXX11 ON)
 set(ZMQ_HAVE_NOEXCEPT ON)
 
 add_subdirectory(${${lcName}_SOURCE_DIR} ${${lcName}_BINARY_DIR} EXCLUDE_FROM_ALL)
+griddyn_hide_cache_variables_by_prefix(LIBZMQ_ ZMQ_ ZEROMQ_ ZeroMQ_)
 
 set(ZeroMQ_FOUND TRUE)
 

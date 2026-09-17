@@ -28,6 +28,8 @@ if(NOT EXISTS "${gbenchmark_SOURCE_DIR}/CMakeLists.txt")
 endif()
 
 add_subdirectory("${gbenchmark_SOURCE_DIR}" "${gbenchmark_BINARY_DIR}" EXCLUDE_FROM_ALL)
+griddyn_hide_cache_variables_by_prefix(BENCHMARK_)
+griddyn_hide_cache_variables(CXXFEATURECHECK_DEBUG LIBRT)
 
 # Target must already exist
 macro(add_benchmark_with_main TESTNAME)

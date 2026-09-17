@@ -17,6 +17,7 @@ if(NOT nanobind_result EQUAL 0)
 endif()
 
 find_package(nanobind CONFIG REQUIRED)
+griddyn_hide_cache_variables_by_prefix(nanobind_)
 
 nanobind_add_module(griddyn_python_core NB_STATIC STABLE_ABI griddyn_python.cpp)
 

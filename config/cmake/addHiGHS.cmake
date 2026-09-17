@@ -47,6 +47,36 @@ set(HIGHS_COVERAGE OFF)
 
 add_subdirectory("${highs_SOURCE_DIR}" "${highs_BINARY_DIR}")
 
+griddyn_hide_cache_variables_by_prefix(HIGHS HIPO HIPDLP_ CUPDLP_)
+griddyn_hide_cache_variables(
+    BUILD_CXX
+    BUILD_CXX_EXE
+    BUILD_EXAMPLES
+    BUILD_EXTRA_UNIT_TESTS
+    BUILD_EXTRA_PROBLEM_SET
+    BUILD_STATIC_EXE
+    BUILD_SHARED_EXTRAS_LIB
+    FAST_BUILD
+    FORTRAN
+    CSHARP
+    HIPO_PYTHON
+    CUPDLP_GPU
+    CUPDLP_FIND_CUDA
+    HIGHS_GPU_LIB
+    HIGHS_COVERAGE
+    DEBUG_MEMORY
+    EMSCRIPTEN_HTML
+    BUILD_OPENBLAS
+    ZLIB
+    NO_AVX512
+    STDCALL
+    DEBUGSOL
+    HIGHSINT64
+    HIGHS_NO_DEFAULT_THREADS
+    CI
+    USE_DOTNET_STD_21
+)
+
 # HiGHS is configured in the parent directory scope, so restore the GridDyn testing option before
 # the remaining project subdirectories are processed.
 set(BUILD_TESTING "${_griddyn_build_testing}")

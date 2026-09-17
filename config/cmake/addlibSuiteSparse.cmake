@@ -45,6 +45,22 @@ set(KLU_INCLUDE_DIR
 
 add_subdirectory("${suitesparse_SOURCE_DIR}" "${suitesparse_BINARY_DIR}" EXCLUDE_FROM_ALL)
 
+griddyn_hide_cache_variables_by_prefix(HUNTER_ SuiteSparse_ SUITESPARSE_ BLAS_ LAPACK_)
+griddyn_hide_cache_variables(
+    BUILD_METIS
+    BUILD_OBJECT_LIBS
+    BUILD_STATIC_LIBS
+    WITH_CUDA
+    WITH_TBB
+    WITH_OPENBLAS
+    WITH_MKL
+    LIBRARY_OUTPUT_PATH
+    EXECUTABLE_OUTPUT_PATH
+    LIB_POSTFIX
+    METIS_IDXTYPEWIDTH
+    EXPORT_USE_INTERFACE_LINK_LIBRARIES
+)
+
 set(SuiteSparse_FOUND ON CACHE INTERNAL "")
 
 set(SuiteSparse_LIBRARIES klu btf amd colamd suitesparseconfig)

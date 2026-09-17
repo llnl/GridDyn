@@ -74,6 +74,7 @@ endif()
 add_subdirectory(
     ${PROJECT_SOURCE_DIR}/ThirdParty/Minizip ${PROJECT_BINARY_DIR}/Minizip EXCLUDE_FROM_ALL
 )
+griddyn_hide_cache_variables_by_prefix(ZLIB MINIZIP)
 
 if(TARGET ZLIB::ZLIBSTATIC)
     set(GRIDDYN_ZLIB_TARGET ZLIB::ZLIBSTATIC)

@@ -7,9 +7,9 @@
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# cmake >= 3.28 required, minimum_required sets policy
-cmake_minimum_required(VERSION 3.28)
-cmake_policy(VERSION 3.28)
+# cmake >= 3.28 required. The upper bound keeps policies for newer supported CMake releases
+# enabled, including CMP0167 for Boost's config-package discovery.
+cmake_minimum_required(VERSION 3.28...4.2)
 
 project(GRIDDYN VERSION 0.11.3)
 
@@ -146,6 +146,7 @@ endif()
 # -------
 # options
 # -------
+
 
 cmake_dependent_option(
     GRIDDYN_BUILD_TESTS "Enable the test executables to be built" ON
@@ -335,6 +336,8 @@ else()
     ucm_set_embedded_debug(EMBEDDED)
 endif()
 
+griddyn_hide_cache_variables_by_prefix(UCM_)
+
 install(
     TARGETS compile_flags_target build_flags_target ${GRIDDYN_EXPORT_COMMAND}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -399,7 +402,7 @@ if(GRIDDYN_ENABLE_OPENMP)
     endif(OPENMP_FOUND)
 endif(GRIDDYN_ENABLE_OPENMP)
 
-cmake_dependent_option(
+cmake_dependent_advanced_option(
     ENABLE_OPENMP_SUNDIALS "Enable SUNDIALS NVector openMP implementation" ON
     "GRIDDYN_ENABLE_OPENMP;OPENMP_FOUND" OFF
 )
@@ -623,6 +626,8 @@ include(addSpdlog)
 set(GMLC_UTILITIES_INSTALL OFF CACHE INTERNAL "")
 add_subdirectory(ThirdParty/utilities)
 
+griddyn_hide_cache_variables_by_prefix(GMLC_UTILITIES_)
+
 hide_variable(GMLC_UTILITIES_GENERATE_DOXYGEN_DOC)
 hide_variable(GMLC_UTILITIES_INCLUDE_BOOST)
 hide_variable(GMLC_UTILITIES_USE_BOOST_SPIRIT)
@@ -641,6 +646,7 @@ target_include_directories(gmlc_utilities SYSTEM PRIVATE $<BUILD_INTERFACE:${Boo
 set(PUGIXML_INSTALL OFF CACHE BOOL "" FORCE)
 set(PUGIXML_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 add_subdirectory(ThirdParty/pugixml EXCLUDE_FROM_ALL)
+griddyn_hide_cache_variables_by_prefix(PUGIXML_)
 
 if(TARGET pugixml-static)
     set_target_properties(pugixml-static PROPERTIES FOLDER Extern)
@@ -660,6 +666,7 @@ set(YAML_CPP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(YAML_CPP_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
 set(YAML_CPP_INSTALL ON CACHE BOOL "" FORCE)
 add_subdirectory(ThirdParty/yaml-cpp EXCLUDE_FROM_ALL)
+griddyn_hide_cache_variables_by_prefix(YAML_)
 
 if(TARGET yaml-cpp)
     set_target_properties(yaml-cpp PROPERTIES FOLDER Extern)
@@ -821,7 +828,6 @@ if(GRIDDYN_ENABLE_PACKAGE_BUILD)
         binaries
         matlab
         python
-        java
         octave
         examples
     )
@@ -839,7 +845,6 @@ if(GRIDDYN_ENABLE_PACKAGE_BUILD)
     set(CPACK_COMPONENT_EXAMPLES_DISPLAY_NAME "Examples")
 
     set(CPACK_COMPONENT_MATLAB_GROUP interfaces)
-    set(CPACK_COMPONENT_JAVA_GROUP interfaces)
     set(CPACK_COMPONENT_OCTAVE_GROUP interfaces)
     set(CPACK_COMPONENT_PYTHON_GROUP interfaces)
 

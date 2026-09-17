@@ -102,3 +102,5 @@ if(MPI_CXX_FOUND AND NOT TARGET MPI::MPI_CXX)
     )
 
 endif()
+
+griddyn_hide_cache_variables_by_prefix(MPI_ MPIEXEC_)

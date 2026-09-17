@@ -114,3 +114,4 @@ endif()
 
 hide_variable(SuiteSparse_DIR)
 hide_variable(KLU_DIR)
+griddyn_hide_cache_variables_by_prefix(SuiteSparse_ SUITESPARSE_)

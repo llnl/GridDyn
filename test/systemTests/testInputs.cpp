@@ -337,7 +337,7 @@ TEST_F(InputTests, PssERawTransformerMagnetizingAdmittance)
     // CM=2: G = no-load-loss / (system-base * 1e6), and
     // |B| = sqrt(Iexc^2 - G^2).
     EXPECT_NEAR(cm2->get("g1"), 0.001, 1e-12);
-    EXPECT_NEAR(cm2->get("b1"), std::sqrt(0.01 * 0.01 - 0.001 * 0.001), 1e-12);
+    EXPECT_NEAR(cm2->get("b1"), std::sqrt((0.01 * 0.01) - (0.001 * 0.001)), 1e-12);
     EXPECT_NEAR(cm2->get("g2"), 0.0, 1e-12);
     EXPECT_NEAR(cm2->get("b2"), 0.0, 1e-12);
 }

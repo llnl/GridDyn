@@ -43,8 +43,7 @@ void checkCaseCounts(const GridDynSimulation* simulation)
     EXPECT_EQ(simulation->getInt("loadcount"), 221);
 }
 
-double maxAbsoluteDifference(const std::vector<double>& initial,
-                             const std::vector<double>& final)
+double maxAbsoluteDifference(const std::vector<double>& initial, const std::vector<double>& final)
 {
     if (initial.size() != final.size()) {
         return std::numeric_limits<double>::infinity();
@@ -97,17 +96,15 @@ bool allFinite(const std::vector<double>& values)
     });
 }
 
-double windowFrequencyPeakToPeak(const std::vector<DynamicSample>& samples,
-                                 size_t begin,
-                                 size_t end)
+double
+    windowFrequencyPeakToPeak(const std::vector<DynamicSample>& samples, size_t begin, size_t end)
 {
     double peakToPeak = 0.0;
     for (size_t first = begin; first < end; ++first) {
         for (size_t second = first + 1; second < end; ++second) {
-            peakToPeak =
-                (std::max)(peakToPeak,
-                           std::abs(samples[first].referenceFrequencyDeviation -
-                                    samples[second].referenceFrequencyDeviation));
+            peakToPeak = (std::max)(peakToPeak,
+                                    std::abs(samples[first].referenceFrequencyDeviation -
+                                             samples[second].referenceFrequencyDeviation));
         }
     }
     return peakToPeak;
@@ -181,8 +178,7 @@ void runActivsG500LoadStepCase(GridDynSimulationTestFixture& fixture,
     fixture.gds->getAngle(preEventAngle);
     ASSERT_FALSE(preEventAngle.empty());
     ASSERT_TRUE(allFinite(preEventAngle));
-    const double baselineReferenceFrequency =
-        (preEventAngle.front() - initialAngle.front()) / 0.9;
+    const double baselineReferenceFrequency = (preEventAngle.front() - initialAngle.front()) / 0.9;
 
     // The XML event is scheduled at t=1.0.  Stop at the event so the load
     // change can be checked before the transient is advanced further.
@@ -232,8 +228,8 @@ void runActivsG500LoadStepCase(GridDynSimulationTestFixture& fixture,
     double maximumVoltageExcursion = 0.0;
     double maximumFrequencyDeviation = 0.0;
     for (const auto& sample : samples) {
-        maximumVoltageExcursion =
-            (std::max)(maximumVoltageExcursion, maxAbsoluteDifference(initialVoltage, sample.voltage));
+        maximumVoltageExcursion = (std::max)(maximumVoltageExcursion,
+                                             maxAbsoluteDifference(initialVoltage, sample.voltage));
         maximumFrequencyDeviation =
             (std::max)(maximumFrequencyDeviation, std::abs(sample.referenceFrequencyDeviation));
     }
@@ -352,9 +348,7 @@ TEST_F(ActivsG500Tests, CvodeKinsolPartitionedPreservesInitialOperatingPoint)
 
 TEST_F(ActivsG500Tests, DaeIdaLoadStepRemainsStable)
 {
-    runActivsG500LoadStepCase(*this,
-                              "activsg500_dae_load_step.xml",
-                              ActivsG500DynamicSolver::IDA);
+    runActivsG500LoadStepCase(*this, "activsg500_dae_load_step.xml", ActivsG500DynamicSolver::IDA);
 }
 
 #ifdef GRIDDYN_ENABLE_CVODE

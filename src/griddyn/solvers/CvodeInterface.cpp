@@ -289,8 +289,8 @@ void CvodeInterface::initialize(CoreTime time0)
     m_gds->guessState(time0, stateData(), derivData(), mode);
 
     const bool wasInitialized = flags[INITIALIZED_FLAG];
-    retval = wasInitialized ? CVodeReInit(solverMem, time0, state)
-                            : CVodeInit(solverMem, cvodeFunc, time0, state);
+    retval = wasInitialized ? CVodeReInit(solverMem, time0, state) :
+                              CVodeInit(solverMem, cvodeFunc, time0, state);
     checkFlag(&retval, "CVodeInit", 1);
 
     if (rootCount > 0) {

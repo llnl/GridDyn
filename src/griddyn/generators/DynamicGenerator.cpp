@@ -1312,11 +1312,10 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
                 outputStateData.state = stateDataValue.algState;
             }
         }
-        pmech =
-            pmechSource->getOutput(sourceInputs,
-                                   outputStateData,
-                                   *outputMode,
-                                   getMechanicalPowerOutput());
+        pmech = pmechSource->getOutput(sourceInputs,
+                                       outputStateData,
+                                       *outputMode,
+                                       getMechanicalPowerOutput());
     }
     if (std::abs(pmech) > 1e25) {
         pmech = 0.0;

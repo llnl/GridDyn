@@ -217,7 +217,7 @@ GridDyn represents a three-winding transformer as a star bus and three AC
 transformer legs. RAW pairwise leakage impedances are converted from their
 delta form to those three star-leg impedances. The initial implementation
 supports the ordinary fixed-transformer cases (`CW=1`, `CZ=1/2/3`, and
-`CM=1`), per-winding ratings, tap ratios, and phase shifts.
+`CM=1/2`), per-winding ratings, tap ratios, and phase shifts.
 
 For simple planning and test cases, the following deliberately conservative
 simplifications are acceptable when documented in the test result:
@@ -228,8 +228,9 @@ simplifications are acceptable when documented in the test result:
 - Treat nonzero `COD` control records as their supplied fixed starting tap.
   This preserves the base power-flow topology but does not reproduce regulated
   tap movement or reactive/active-flow control.
-- Omit or warn on `CM=2` magnetizing-loss conversion rather than inventing an
-  admittance. `CM=1` conductance/susceptance is applied to the first star leg.
+- Convert both magnetizing encodings. `CM=1` conductance/susceptance is
+  applied to the first star leg; `CM=2` no-load-loss/excitation-current data
+  is converted to system-base `G/B` before the same placement.
 - A zero rating is retained as GridDyn's existing “no thermal limit” value; it
   is not replaced with an arbitrary finite rating.
 

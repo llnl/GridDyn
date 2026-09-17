@@ -223,8 +223,12 @@ void ThreeWindingTransformer::setMagnetizing(double conductance,
                                              double susceptance,
                                              units::unit unitType)
 {
-    windingLegs[0]->set("g", conductance, unitType);
-    windingLegs[0]->set("b", susceptance, unitType);
+    // PSS/E MAG1/MAG2 are attached to the first/external winding.  Do not use
+    // AcLine's aggregate g/b setters here: they split a shunt between both
+    // endpoints, which would incorrectly place half of the magnetizing
+    // admittance on the synthetic star bus.
+    windingLegs[0]->set("g1", conductance, unitType);
+    windingLegs[0]->set("b1", susceptance, unitType);
 }
 
 void ThreeWindingTransformer::setStarVoltageAngle(double voltage,

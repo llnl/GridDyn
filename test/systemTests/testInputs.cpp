@@ -12,6 +12,7 @@
 #include "griddyn/links/AdjustableTransformer.h"
 #include "griddyn/links/RawDcLine.h"
 #include <array>
+#include <cmath>
 #include <filesystem>
 #include <functional>
 #include <gtest/gtest.h>
@@ -312,6 +313,33 @@ TEST_F(InputTests, PssERawGeneratorStepUpTransformerImport)
     EXPECT_EQ(controlledBus->getName(), "NORTH");
     EXPECT_NEAR(controlledBus->get("qmin"), -6.5, 1e-10);
     EXPECT_NEAR(controlledBus->get("qmax"), 7.0, 1e-10);
+}
+
+TEST_F(InputTests, PssERawTransformerMagnetizingAdmittance)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    ASSERT_NO_THROW(
+        loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_transformer_magnetizing.raw"));
+
+    ASSERT_EQ(gds->getInt("totallinkcount"), 2);
+    const auto* cm1 = dynamic_cast<const AcLine*>(gds->getLink(0));
+    const auto* cm2 = dynamic_cast<const AcLine*>(gds->getLink(1));
+    ASSERT_NE(cm1, nullptr);
+    ASSERT_NE(cm2, nullptr);
+
+    // CM=1 is already G+jB in pu on the system base, and is attached to the
+    // first/I-side endpoint rather than being split across both endpoints.
+    EXPECT_NEAR(cm1->get("g1"), 0.005, 1e-12);
+    EXPECT_NEAR(cm1->get("b1"), -0.006, 1e-12);
+    EXPECT_NEAR(cm1->get("g2"), 0.0, 1e-12);
+    EXPECT_NEAR(cm1->get("b2"), 0.0, 1e-12);
+
+    // CM=2: G = no-load-loss / (system-base * 1e6), and
+    // |B| = sqrt(Iexc^2 - G^2).
+    EXPECT_NEAR(cm2->get("g1"), 0.001, 1e-12);
+    EXPECT_NEAR(cm2->get("b1"), std::sqrt((0.01 * 0.01) - (0.001 * 0.001)), 1e-12);
+    EXPECT_NEAR(cm2->get("g2"), 0.0, 1e-12);
+    EXPECT_NEAR(cm2->get("b2"), 0.0, 1e-12);
 }
 
 TEST_F(InputTests, PssERawUnsupportedTransformerControlCodeImportsFixed)

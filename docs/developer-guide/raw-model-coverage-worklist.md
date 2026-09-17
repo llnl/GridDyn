@@ -11,6 +11,53 @@ The distinction between model capability and reader coverage is important:
 GridDyn often has a useful model for a feature even when the corresponding RAW
 fields are currently ignored.
 
+## AESO case-review findings
+
+**Review status:** 2026-09-16. The reviewed corpus is under
+`C:\\data\\Documents\\codeProjects\\griddyn_test_cases\\AESO_cases` and contains
+40 RAW files, 20 SAVE files, and 40 SEQ files.
+
+### Resolved for the current RAW use case
+
+- All 20 AESO v32 RAW cases and all 20 AESO v33 RAW cases load and complete a
+  GridDyn power flow. No remaining RAW syntax or topology issue blocks those
+  cases.
+- The v33 failure was traced to fixed phase-shifter/control interpretation and
+  invalid tap-limit normalization in a `CW=1`/zero-`NOMV1` combination. The
+  reader now retains fixed negative phase-shifter controls and avoids creating
+  invalid tap limits.
+- Transformer `CM=1` and `CM=2` magnetizing data are now converted and applied
+  as first-winding terminal shunts. This is sufficient for the present
+  positive-sequence power-flow and network-dynamics models; it does not model
+  saturation, inrush, or frequency-dependent core behavior.
+
+### Remaining format and model findings
+
+- `.save` files are PSS/E binary saved-case files. Their headers are partially
+  inspectable, but the format is versioned/proprietary rather than an openly
+  documented interchange format. Direct GridDyn support would require a
+  compatible PSS/E reader or a reverse-engineered importer and is not a good
+  near-term dependency. Prefer exporting these cases to RAW/EPC/DYR when
+  possible.
+- `.seq` files are readable text PSS/E sequence-network records. They contain
+  useful positive-, negative-, and zero-sequence parameters, but GridDyn has no
+  sequence-network reader or sequence-domain network models. They are therefore
+  useful for a future short-circuit/unbalanced-study workflow, not for the
+  current positive-sequence power-flow or phasor-dynamics workflow.
+- A dedicated three-winding `CM=2` fixture and comparison against an independent
+  sequence/reference calculation are still desirable. The two-winding CM=2
+  conversion is covered; the three-winding reader uses the same conversion
+  helper and first-leg placement.
+- Transformer `CW=2/3` voltage-base conversion remains incomplete when nominal
+  winding bases differ. Active `COD`/`CONT` regulation, winding limit/step
+  fields, independent winding correction tables, v35 `RATE4`-`RATE12`/`NOD`,
+  and transformer ownership/name metadata remain reduced or discarded.
+- Outside transformers, the highest-value unimplemented RAW areas are grouped
+  generator voltage participation (`IREG`/`RMPCT` and newer remote controls),
+  induction-machine records, physical multi-terminal DC/FACTS/GNE devices,
+  emergency bus-voltage limits, and area interchange targets. These are tracked
+  in the numbered items below rather than being silently treated as supported.
+
 ## Highest-value follow-ups
 
 ### RAW-001: Preserve independent branch terminal shunts
@@ -119,12 +166,15 @@ the selected simulation mode.
 
 The current three-winding RAW path intentionally targets a fixed steady-state
 equivalent: one generated star bus and three `AcLine` legs. It imports the
-terminal buses and circuit ID, `CW`/`CZ`, `CM=1` magnetizing `MAG1`/`MAG2`,
-transformer status, the pairwise `R/X/SBASE` values, `VMSTAR`/`ANSTAR`, each
-winding's fixed `WINDV`/`ANG` values, and the first three winding ratings. A
-shared missing winding `CONT` bus is retained as an alias for the generated
-star bus so later RAW records, such as switched shunts, can resolve it. This
-alias does not enable transformer regulation.
+terminal buses and circuit ID, `CW`/`CZ`, both PSS/E magnetizing encodings
+(`CM=1` direct `MAG1`/`MAG2` and `CM=2` no-load-loss/excitation-current
+conversion), transformer status, the pairwise `R/X/SBASE` values,
+`VMSTAR`/`ANSTAR`, each winding's fixed `WINDV`/`ANG` values, and the first
+three winding ratings. The resulting magnetizing admittance is placed on the
+first external/I-side endpoint of the first star leg. A shared missing winding
+`CONT` bus is retained as an alias for the generated star bus so later RAW
+records, such as switched shunts, can resolve it. This alias does not enable
+transformer regulation.
 
 The following three-winding fields are currently ignored or reduced in
 meaning:
@@ -135,7 +185,11 @@ meaning:
   represented by the current `AcLine` rating interface.
 - `CR`/`CX` and the v35 `NOD` field are not interpreted.
 - Only the primary winding's impedance-correction table reference is applied.
-- `CM=2` magnetizing-loss data is not converted; the reader warns instead.
+- `CM` values other than 1 or 2 are ignored with a warning when their
+  `MAG1`/`MAG2` values are nonzero. `CM=2` is converted using the open ANDES
+  reader's convention: `G = MAG1/(SBASE*1e6)` and
+  `B = sqrt(MAG2^2-G^2)`. PowerModels recognizes the CM field but its current
+  parser passes CM=2's raw values through without this conversion.
 - `NMETR`, the transformer `NAME`, and owner participation fields
   (`O1`/`F1` through `O4`/`F4`) are discarded because there is no corresponding
   GridDyn electrical or ownership model.
@@ -145,7 +199,8 @@ should remain separate from the auxiliary-bus aliasing change. Future full
 integration should decide whether to construct `ThreeWindingTransformer`
 directly or extend the generated-leg representation with coordinated control,
 then add fixtures for active `COD` modes, winding limits/steps, all v35 rating
-fields, `CM=2`, and uncommon status/voltage-base combinations.
+fields, a three-winding `CM=2` case, and uncommon status/voltage-base
+combinations.
 
 ## Areas and metadata
 

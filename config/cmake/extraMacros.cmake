@@ -36,7 +36,7 @@ function(griddyn_hide_cache_variables)
     foreach(_griddyn_cache_variable IN LISTS ARGN)
         if(DEFINED ${_griddyn_cache_variable})
             set("${_griddyn_cache_variable}" "${${_griddyn_cache_variable}}" CACHE INTERNAL ""
-                FORCE
+                                                                                   FORCE
             )
         endif()
     endforeach()

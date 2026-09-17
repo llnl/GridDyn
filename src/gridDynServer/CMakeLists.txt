@@ -12,15 +12,10 @@ set(griddynServer_sources gridDynServerMain.cpp gridDynServer.cpp)
 
 set(griddynServer_headers gridDynServer.h)
 
-
 add_executable(griddynServer ${griddynServer_sources} ${griddynServer_headers})
 target_include_directories(
-    griddynServer
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ${PROJECT_SOURCE_DIR}/src/griddyn
-        ${PROJECT_SOURCE_DIR}/src/gridDynLoader
-        ${PROJECT_SOURCE_DIR}/src/runner
+    griddynServer PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/src/griddyn
+                          ${PROJECT_SOURCE_DIR}/src/gridDynLoader ${PROJECT_SOURCE_DIR}/src/runner
 )
 target_include_directories(griddynServer SYSTEM PRIVATE ${Boost_INCLUDE_DIR})
 

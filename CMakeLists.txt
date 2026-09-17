@@ -7,8 +7,8 @@
 #
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-# cmake >= 3.28 required. The upper bound keeps policies for newer supported CMake releases
-# enabled, including CMP0167 for Boost's config-package discovery.
+# cmake >= 3.28 required. The upper bound keeps policies for newer supported CMake releases enabled,
+# including CMP0167 for Boost's config-package discovery.
 cmake_minimum_required(VERSION 3.28...4.2)
 
 project(GRIDDYN VERSION 0.11.3)
@@ -145,7 +145,6 @@ endif()
 # -------
 # options
 # -------
-
 
 cmake_dependent_option(
     GRIDDYN_BUILD_TESTS "Enable the test executables to be built" ON
@@ -746,16 +745,12 @@ if(GRIDDYN_WITH_CMAKE_PACKAGE)
         INSTALL_DESTINATION "${GRIDDYN_CMAKECONFIG_INSTALL_DIR}"
     )
     write_basic_package_version_file(
-        "${PROJECT_BINARY_DIR}/GRIDDYNConfigVersion.cmake"
-        VERSION "${PROJECT_VERSION}"
+        "${PROJECT_BINARY_DIR}/GRIDDYNConfigVersion.cmake" VERSION "${PROJECT_VERSION}"
         COMPATIBILITY SameMajorVersion
     )
-    install(
-        FILES
-            "${PROJECT_BINARY_DIR}/GRIDDYNConfig.cmake"
-            "${PROJECT_BINARY_DIR}/GRIDDYNConfigVersion.cmake"
-        DESTINATION "${GRIDDYN_CMAKECONFIG_INSTALL_DIR}"
-        COMPONENT libs
+    install(FILES "${PROJECT_BINARY_DIR}/GRIDDYNConfig.cmake"
+                  "${PROJECT_BINARY_DIR}/GRIDDYNConfigVersion.cmake"
+            DESTINATION "${GRIDDYN_CMAKECONFIG_INSTALL_DIR}" COMPONENT libs
     )
 endif()
 

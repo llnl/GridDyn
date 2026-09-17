@@ -227,9 +227,10 @@ void ExciterEXST1::jacobianElements(const IOdata& inputs,
 
     if (hasAlgebraic(sMode)) {
         matrixData.assign(refAlg, refAlg, -1.0);
-        if (outputLimitStatus(inputs, state) == 0) {
+        const bool outputLimited = outputLimitStatus(inputs, state) != 0;
+        if (!outputLimited && !isAlgebraicOnly(sMode)) {
             matrixData.assign(refAlg, refDiff + regulatorState, 1.0);
-        } else {
+        } else if (outputLimited) {
             matrixData.assignCheckCol(refAlg,
                                       inputLocs[exciterXadIfdInLocation],
                                       -static_cast<double>(Kc));

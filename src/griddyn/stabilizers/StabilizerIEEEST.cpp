@@ -363,10 +363,15 @@ void StabilizerIEEEST::jacobianElements(const IOdata& inputs,
         }
     };
     const auto addLinear =
-        [&matrixData, &addInput, refDiff](index_t row, const LinearValue& value, double scale) {
-            for (index_t index = 0; index < maxDifferentialStates; ++index) {
-                if (value.stateGain[index] != 0.0) {
-                    matrixData.assign(row, refDiff + index, scale * value.stateGain[index]);
+        [&matrixData, &addInput, refDiff](index_t row,
+                                          const LinearValue& value,
+                                          double scale,
+                                          bool includeState = true) {
+            if (includeState) {
+                for (index_t index = 0; index < maxDifferentialStates; ++index) {
+                    if (value.stateGain[index] != 0.0) {
+                        matrixData.assign(row, refDiff + index, scale * value.stateGain[index]);
+                    }
                 }
             }
             if (value.inputGain != 0.0) {
@@ -378,7 +383,7 @@ void StabilizerIEEEST::jacobianElements(const IOdata& inputs,
     if (hasAlgebraic(sMode)) {
         matrixData.assign(refAlg, refAlg, -1.0);
         if (voltageEnabled(inputs) && (outputLimitStatus(state, inputs) == 0)) {
-            addLinear(refAlg, outputValue, 1.0);
+            addLinear(refAlg, outputValue, 1.0, !isAlgebraicOnly(sMode));
         }
     }
     if (!hasDifferential(sMode)) {

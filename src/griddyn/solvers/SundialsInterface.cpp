@@ -37,7 +37,7 @@
 #include <string>
 
 namespace griddyn::solvers {
-static void ensureSundialsFactories()
+void ensureSundialsFactories()
 {
     static ChildClassFactory<KinsolInterface, SolverInterface> kinFactory(
         stringVec{"kinsol", "algebraic"});

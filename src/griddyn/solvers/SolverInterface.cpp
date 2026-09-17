@@ -11,6 +11,7 @@
 #include "BasicSolver.h"
 #include "IdaInterface.h"
 #include "KinsolInterface.h"
+#include "SundialsInterface.h"
 #include "core/CoreExceptions.h"
 #include "core/FactoryTemplates.hpp"
 #include "gmlc/containers/mapOps.hpp"
@@ -331,6 +332,17 @@ static const std::map<std::string_view, int, std::less<std::string_view>> SOLVER
 
 void SolverInterface::setFlag(std::string_view flag, bool val)
 {
+    // DENSE_FLAG is bit 0, so it cannot be represented by the negative-index
+    // convention used below for flags whose default is enabled.
+    if (flag == "dense") {
+        flags.set(DENSE_FLAG, val);
+        return;
+    }
+    if (flag == "sparse") {
+        flags.set(DENSE_FLAG, !val);
+        return;
+    }
+
     const auto foundFlag = SOLVER_FLAG_MAP.find(flag);
     const int flgInd = (foundFlag != SOLVER_FLAG_MAP.end()) ? foundFlag->second : -60;
     if (flgInd > -32) {
@@ -427,6 +439,15 @@ void SolverInterface::setApproximation(std::string_view approx)
 
 bool SolverInterface::getFlag(std::string_view flag) const
 {
+    // DENSE_FLAG is bit 0, so it cannot be represented by the negative-index
+    // convention used below for flags whose default is enabled.
+    if (flag == "dense") {
+        return flags[DENSE_FLAG];
+    }
+    if (flag == "sparse") {
+        return !flags[DENSE_FLAG];
+    }
+
     const auto foundFlag = SOLVER_FLAG_MAP.find(flag);
     const int flgInd = (foundFlag != SOLVER_FLAG_MAP.end()) ? foundFlag->second : -60;
     if (flgInd > -32) {
@@ -538,6 +559,7 @@ void SolverInterface::setMaxNonZeros(count_t nonZeroCount)
 // TODO(phlpt): Change this so the defaults can be something other than sundials solvers.
 std::unique_ptr<SolverInterface> makeSolver(GridDynSimulation* gds, const SolverMode& sMode)
 {
+    solvers::ensureSundialsFactories();
     std::unique_ptr<SolverInterface> sd = nullptr;
     if (isLocal(sMode)) {
         sd = std::make_unique<SolverInterface>(gds, sMode);
@@ -566,6 +588,7 @@ std::unique_ptr<SolverInterface> makeSolver(GridDynSimulation* gds, const Solver
 
 std::unique_ptr<SolverInterface> makeSolver(std::string_view type, const std::string& name)
 {
+    solvers::ensureSundialsFactories();
     if (name.empty()) {
         return CoreClassFactory<SolverInterface>::instance()->createObject(type);
     }

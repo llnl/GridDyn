@@ -190,7 +190,7 @@ void ExciterESST4B::jacobianElements(const IOdata& inputs,
         matrixData.assign(algebraicRow,
                           algebraicRow,
                           -1.0 - (innerLimited ? 0.0 : rectifier.voltage * Kpm * Kg));
-        if (!innerLimited) {
+        if (!innerLimited && !isAlgebraicOnly(sMode)) {
             matrixData.assign(algebraicRow,
                               differentialRow + regulatorLagState,
                               rectifier.voltage * Kpm);

@@ -316,11 +316,13 @@ void ExciterSCRX::jacobianElements(const IOdata& inputs,
     const auto evaluation = evaluateModel(inputs, locations.diffStateLoc);
     if (hasAlgebraic(sMode)) {
         matrixData.assign(locations.algOffset, locations.algOffset, -1.0);
-        for (index_t column = 0; column < locations.diffSize; ++column) {
-            if (evaluation.fieldStateDerivatives[column] != 0.0) {
-                matrixData.assign(locations.algOffset,
-                                  locations.diffOffset + column,
-                                  evaluation.fieldStateDerivatives[column]);
+        if (!isAlgebraicOnly(sMode)) {
+            for (index_t column = 0; column < locations.diffSize; ++column) {
+                if (evaluation.fieldStateDerivatives[column] != 0.0) {
+                    matrixData.assign(locations.algOffset,
+                                      locations.diffOffset + column,
+                                      evaluation.fieldStateDerivatives[column]);
+                }
             }
         }
         for (index_t input = 0; input < exciterInputCount; ++input) {

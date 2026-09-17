@@ -956,7 +956,9 @@ void GridComponent::setState(CoreTime time,
     }
 
     for (auto& sub : subObjectList) {
-        sub->setState(time, state, dstateDt, sMode);
+        if (sub->isEnabled()) {
+            sub->setState(time, state, dstateDt, sMode);
+        }
     }
 }
 // for saving the state

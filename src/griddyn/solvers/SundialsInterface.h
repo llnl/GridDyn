@@ -41,6 +41,10 @@
 #define MEASURE_TIMINGS 0
 
 namespace griddyn::solvers {
+/** Ensure that the SUNDIALS-backed solver types are registered with the
+ * GridDyn solver factory before a solver type is looked up by name. */
+void ensureSundialsFactories();
+
 inline double* nvecdata([[maybe_unused]] bool omp, N_Vector data)
 {
     return (data != nullptr) ? NVECTOR_DATA(omp, data) : nullptr;

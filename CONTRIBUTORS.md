@@ -11,6 +11,34 @@ If you would like to contribute to the HELICS project see [CONTRIBUTING](CONTRIB
 - [Denis Nadeau](https://github.com/dnadeau4)
 - [Cory McNeish](<>)
 
+## External test cases and data
+
+### Texas A&M University — ACTIVSg500
+
+GridDyn includes the PSS/E RAW and DYR inputs for the **SouthCarolina 500-Bus
+System (ACTIVSg500)** in
+[`test/test_files/texas_am/ACTIVSg500`](test/test_files/texas_am/ACTIVSg500).
+This is a fully synthetic case provided by Texas A&M University researchers
+through the [Electric Grid Test Case Repository](https://electricgrids.engr.tamu.edu/electric-grid-test-cases/activsg500/);
+it does not represent the actual South Carolina grid or contain CEII.
+
+Please retain the Texas A&M attribution when creating derived GridDyn test
+cases. The repository's [references page](https://electricgrids.engr.tamu.edu/references/)
+recommends citing the following works for the synthetic network and its dynamic
+models:
+
+1. A. B. Birchfield, T. Xu, K. M. Gegner, K. S. Shetye, and T. J. Overbye,
+   “Grid Structural Characteristics as Validation Criteria for Synthetic
+   Networks,” *IEEE Transactions on Power Systems*, vol. 32, no. 4,
+   pp. 3258–3265, July 2017. [IEEE Xplore](https://ieeexplore.ieee.org/document/7725528/)
+2. T. Xu, A. B. Birchfield, K. S. Shetye, and T. J. Overbye, “Creation of
+   Synthetic Electric Grid Models for Transient Stability Studies,” *2017
+   IREP Symposium Bulk Power System Dynamics and Control*, Espinho, Portugal,
+   2017. [Paper](https://irep2017.inesctec.pt/conference-papers/conference-papers/paper23i1v5hwmh.pdf)
+3. T. Xu, A. B. Birchfield, and T. J. Overbye, “Modeling, Tuning and Validating
+   System Dynamics in Synthetic Electric Grids,” *IEEE Transactions on Power
+   Systems*, 2018. [IEEE Xplore](https://ieeexplore.ieee.org/document/8334287/)
+
 ## Used Libraries or Code
 
 ### [BOOST](https://www.boost.org)

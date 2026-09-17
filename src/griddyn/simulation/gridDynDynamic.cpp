@@ -308,7 +308,7 @@ int GridDynSimulation::dynamicDAE(CoreTime tStop)
         updateLocalCache();
         const auto eventResult = EvQ->executeEvents(currentTime);
         if (eventResult > ChangeCode::NON_STATE_CHANGE) {
-            dynamicCheckAndReset(sMode);
+            dynamicCheckAndReset(sMode, eventResult);
             retval = generateDaeDynamicInitialConditions(sMode);
             if (retval != FUNCTION_EXECUTION_SUCCESS) {
                 pState = GridState::DYNAMIC_PARTIAL;
@@ -483,14 +483,37 @@ int GridDynSimulation::dynamicPartitioned(CoreTime tStop, CoreTime tStep)
             updateLocalCache();
             const auto eventResult = EvQ->executeEvents(currentTime);
             if (eventResult > ChangeCode::NON_STATE_CHANGE) {
-                dynamicCheckAndReset(sModeDiff);
-                retval = generatePartitionedDynamicInitialConditions(sModeAlg, sModeDiff);
+                retval = generatePartitionedDynamicInitialConditions(sModeAlg, sModeDiff, false);
                 if (retval != FUNCTION_EXECUTION_SUCCESS) {
                     pState = GridState::DYNAMIC_PARTIAL;
                     logging::error(this, "simulation halted unable to converge");
                     logging::error(this, dynDataDiff->getLastErrorString());
                     return FUNCTION_EXECUTION_FAILURE;
                 }
+                // Refresh the object caches with the algebraic solution before
+                // reinitializing the differential integrator.  This makes the
+                // first post-event derivative evaluation consistent with the
+                // new algebraic operating point.
+                setState(currentTime, dynDataAlg->stateData(), nullptr, sModeAlg);
+                updateLocalCache();
+                dynamicCheckAndReset(sModeDiff, eventResult);
+                retval = derivativeFunction(currentTime,
+                                            dynDataDiff->stateData(),
+                                            dynDataDiff->derivData(),
+                                            sModeDiff);
+                if (retval != FUNCTION_EXECUTION_SUCCESS) {
+                    pState = GridState::DYNAMIC_PARTIAL;
+                    logging::error(this,
+                                   "simulation halted unable to evaluate post-event derivative");
+                    return FUNCTION_EXECUTION_FAILURE;
+                }
+                // Preserve the refreshed derivative in the component caches so a later run()
+                // call does not restore the pre-event derivative through guessState().
+                setState(currentTime,
+                         dynDataDiff->stateData(),
+                         dynDataDiff->derivData(),
+                         sModeDiff);
+                updateLocalCache();
             }
             nextEventTime = EvQ->getNextTime();
         }
@@ -698,6 +721,11 @@ bool GridDynSimulation::dynamicCheckAndReset(const SolverMode& sMode, ChangeCode
         // Allow for the fact that the new size of Jacobian now also has a different number of
         // non-zeros
         dynData->sparseReInit(SolverInterface::SparseReinitMode::RESIZE);
+    } else if (change == ChangeCode::PARAMETER_CHANGE) {
+        // A parameter event changes the residual/derivative functions without
+        // changing the state layout.  Reinitialize the time integrator so its
+        // multistep history does not straddle the discontinuity.
+        reInitDyn(sMode);
     } else if (opFlags[ROOT_CHANGE_FLAG]) {
         handleRootChange(sMode, dynData);
     } else {
@@ -800,7 +828,8 @@ int GridDynSimulation::generateDaeDynamicInitialConditions(const SolverMode& sMo
 }
 
 int GridDynSimulation::generatePartitionedDynamicInitialConditions(const SolverMode& sModeAlg,
-                                                                   const SolverMode& sModeDiff)
+                                                                   const SolverMode& sModeDiff,
+                                                                   bool advanceTime)
 {
     auto dynDataAlg = getSolverInterface(sModeAlg);
     auto dynDataDiff = getSolverInterface(sModeDiff);
@@ -832,9 +861,10 @@ int GridDynSimulation::generatePartitionedDynamicInitialConditions(const SolverM
         */
     }
     CoreTime tRet;
-    retval = dynDataAlg->solve(currentTime + probeStepTime, tRet);
-    if (retval == FUNCTION_EXECUTION_SUCCESS) {
-        currentTime += probeStepTime;
+    const auto algebraicTime = advanceTime ? currentTime + probeStepTime : currentTime;
+    retval = dynDataAlg->solve(algebraicTime, tRet);
+    if (retval == FUNCTION_EXECUTION_SUCCESS && advanceTime) {
+        currentTime = algebraicTime;
     }
     return retval;
 }

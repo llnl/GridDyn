@@ -288,12 +288,14 @@ void GovernorHygov::jacobianElements(const IOdata& inputs,
 
     if (hasAlgebraic(sMode)) {
         matrixData.assign(algOffset + pmechOutput, algOffset + pmechOutput, -1.0);
-        matrixData.assign(algOffset + pmechOutput,
-                          diffOffset + servoState,
-                          At * dHeadDGate * (flow - qNL) - Dturb * speedDeviation(inputs));
-        matrixData.assign(algOffset + pmechOutput,
-                          diffOffset + flowState,
-                          At * (dHeadDFlow * (flow - qNL) + localHead));
+        if (!isAlgebraicOnly(sMode)) {
+            matrixData.assign(algOffset + pmechOutput,
+                              diffOffset + servoState,
+                              At * dHeadDGate * (flow - qNL) - Dturb * speedDeviation(inputs));
+            matrixData.assign(algOffset + pmechOutput,
+                              diffOffset + flowState,
+                              At * (dHeadDFlow * (flow - qNL) + localHead));
+        }
         matrixData.assignCheckCol(algOffset + pmechOutput,
                                   inputLocs[govOmegaInLocation],
                                   -Dturb * state[servoState]);

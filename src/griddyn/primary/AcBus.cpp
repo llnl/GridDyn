@@ -2656,12 +2656,12 @@ void AcBus::computeDerivatives(const StateData& stateDataValue, const SolverMode
     }
     if (!isExtended(sMode)) {
         for (auto& gen : attachedGens) {
-            if (gen->isConnected()) {
+            if (gen->isConnected() && gen->isEnabled()) {
                 gen->ioPartialDerivatives(outputs, stateDataValue, partDeriv, IN_LOC, sMode);
             }
         }
         for (auto& load : attachedLoads) {
-            if (load->isConnected()) {
+            if (load->isConnected() && load->isEnabled()) {
                 load->ioPartialDerivatives(outputs, stateDataValue, partDeriv, IN_LOC, sMode);
             }
         }

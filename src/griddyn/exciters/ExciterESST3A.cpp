@@ -258,7 +258,9 @@ void ExciterESST3A::jacobianElements(const IOdata& inputs,
     if (hasAlgebraic(sMode)) {
         const auto rectifier = detail::computeRectifierData(inputs, Kp, Ki, Kc, Xl, ThetaP, Vbmax);
         matrixData.assign(refAlg, refAlg, -1.0);
-        matrixData.assign(refAlg, refDiff + fieldRegulatorState, rectifier.voltage);
+        if (!isAlgebraicOnly(sMode)) {
+            matrixData.assign(refAlg, refDiff + fieldRegulatorState, rectifier.voltage);
+        }
         const std::array<index_t, 5> rectifierInputLocations{exciterIdInLocation,
                                                              exciterIqInLocation,
                                                              exciterVdInLocation,
@@ -280,11 +282,13 @@ void ExciterESST3A::jacobianElements(const IOdata& inputs,
                 (unlimitedRegulator <= Vrmin) || (unlimitedRegulator >= Vrmax);
             if (!regulatorLimitActive) {
                 const double leadRatio = Tc / Tb;
-                matrixData.assign(refAlg + 1, refDiff + leadLagState, Ka * (1.0 - leadRatio));
-                if (!inputLimitActive) {
-                    matrixData.assign(refAlg + 1,
-                                      refDiff + voltageMeasurementState,
-                                      -Ka * leadRatio);
+                if (!isAlgebraicOnly(sMode)) {
+                    matrixData.assign(refAlg + 1, refDiff + leadLagState, Ka * (1.0 - leadRatio));
+                    if (!inputLimitActive) {
+                        matrixData.assign(refAlg + 1,
+                                          refDiff + voltageMeasurementState,
+                                          -Ka * leadRatio);
+                    }
                 }
             }
         }

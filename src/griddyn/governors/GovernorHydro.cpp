@@ -156,6 +156,9 @@ void GovernorHydro::jacobianElements(const IOdata& inputs,
 
     if (hasAlgebraic(sMode)) {
         matrixData.assign(algOffset + outputState, algOffset + outputState, -1.0);
+        if (isAlgebraicOnly(sMode)) {
+            return;
+        }
         matrixData.assign(algOffset + outputState, diffOffset + waterwayState, 1.0);
     }
     if (!hasDifferential(sMode)) {

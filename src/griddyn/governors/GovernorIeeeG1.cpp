@@ -326,6 +326,9 @@ void GovernorIeeeG1::jacobianElements(const IOdata& inputs,
         const auto fraction = normalizedFractions();
         matrixData.assign(algOffset + hpOutput, algOffset + hpOutput, -1.0);
         matrixData.assign(algOffset + lpOutput, algOffset + lpOutput, -1.0);
+        if (isAlgebraicOnly(sMode)) {
+            return;
+        }
         for (std::size_t stage = 0; stage < stageSource.size(); ++stage) {
             matrixData.assign(algOffset + hpOutput,
                               diffOffset + stageSource[stage],

@@ -115,6 +115,7 @@ set(executable_system_gtest_sources systemTests/testMainExe.cpp systemTests/test
 
 set(dynamic_system_gtest_sources
     gtestHelperFunctions.cpp
+    systemTests/testActivsG500.cpp
     systemTests/testSolverModes.cpp
     systemTests/testDyn1.cpp
     systemTests/testDyn2.cpp

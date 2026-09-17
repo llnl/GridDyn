@@ -266,6 +266,9 @@ void StabilizerST2CUT::jacobianElements(const IOdata& inputs,
 
     if (hasAlgebraic(sMode)) {
         matrixData.assign(refAlg, refAlg, -1.0);
+        if (isAlgebraicOnly(sMode)) {
+            return;
+        }
         if (voltageEnabled(inputs) && (outputLimitStatus(state) == 0)) {
             matrixData.assign(refAlg, refDiff + leadLag3State, ll3StateGain);
             matrixData.assign(refAlg, refDiff + leadLag2State, output3Gain * ll2StateGain);

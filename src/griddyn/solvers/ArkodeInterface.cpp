@@ -60,8 +60,8 @@ ArkodeInterface::ArkodeInterface(GridDynSimulation* gds, const SolverMode& sMode
 
 ArkodeInterface::~ArkodeInterface()
 {
-    // clear variables for CVode to use
-    if (flags[INITIALIZED_FLAG]) {
+    // clear variables for ARKStep to use
+    if (solverMem != nullptr) {
         ARKodeFree(&solverMem);
     }
 }
@@ -100,14 +100,18 @@ void ArkodeInterface::allocate(count_t stateCount, count_t numRoots)
     rootCount = numRoots;
     rootsfound.resize(numRoots);
 
-    // allocate the solverMemory
+    // Allocate the SUNDIALS vectors before creating the ARKStep memory.  The
+    // current ARKODE API takes the initial state vector at creation time.
+    SundialsInterface::allocate(stateCount, numRoots);
+
+    // Allocate the solver memory.
     if (solverMem != nullptr) {
         ARKodeFree(&(solverMem));
     }
-    solverMem = ARKodeCreate();
-    checkFlag(solverMem, "ARKodeCVodeCreate", 0);
-
-    SundialsInterface::allocate(stateCount, numRoots);
+    // The partitioned driver eliminates the algebraic variables with KINSOL
+    // inside arkodeFunc, leaving an explicit ODE for ARKStep to integrate.
+    solverMem = ARKStepCreate(arkodeFunc, nullptr, ZERO, state, sunctx);
+    checkFlag(solverMem, "ARKStepCreate", 0);
 }
 
 void ArkodeInterface::setMaxNonZeros(count_t nonZeroCount)
@@ -132,9 +136,9 @@ void ArkodeInterface::set(std::string_view param, double val)
         if ((maxStep < 0) || (maxStep == step)) {
             maxStep = val;
         }
-        if ((minStep < 0) || (minStep == step)) {
-            minStep = val;
-        }
+        // The outer partitioned step is an initial/maximal step, not a lower
+        // bound.  The solver must be able to reduce its internal step at a
+        // discontinuity or during a stiff transient.
         step = val;
         checkStepUpdate = true;
     } else if (param == "maxstep") {
@@ -162,17 +166,13 @@ void ArkodeInterface::set(std::string_view param, double val)
 
 double ArkodeInterface::get(std::string_view param) const
 {
-    int val = -1;
+    long int val = -1;
     if ((param == "resevals") || (param == "iterationcount")) {
-        //    CVodeGetNumResEvals(solverMem, &val);
+        ARKodeGetNumRhsEvals(solverMem, 1, &val);
     } else if (param == "iccount") {
         val = icCount;
     } else if (param == "jac calls") {
-#ifdef ENABLE_KLU
-//    CVodeCVodeSlsGetNumJacEvals(solverMem, &val);
-#else
-        ARKDlsGetNumJacEvals(solverMem, &val);
-#endif
+        ARKodeGetNumJacEvals(solverMem, &val);
     } else {
         return SundialsInterface::get(param);
     }
@@ -186,12 +186,14 @@ void ArkodeInterface::logSolverStats(PrintLevel logLevel, bool /*iconly*/) const
     if (!flags[INITIALIZED_FLAG]) {
         return;
     }
-    int nni = 0;
-    int nst, nre, nfi, netf, ncfn, nge;
+    long int nni = 0;
+    long int nst, nre, nfi, netf, ncfn, nge;
     sunrealtype tolsfac, hlast, hcur;
 
-    int retval = ARKodeGetNumRhsEvals(solverMem, &nre, &nfi);
-    checkFlag(&retval, "ARKodeGetNumResEvals", 1);
+    int retval = ARKodeGetNumRhsEvals(solverMem, 0, &nre);
+    checkFlag(&retval, "ARKodeGetNumExplicitRhsEvals", 1);
+    retval = ARKodeGetNumRhsEvals(solverMem, 1, &nfi);
+    checkFlag(&retval, "ARKodeGetNumImplicitRhsEvals", 1);
 
     retval = ARKodeGetNumNonlinSolvIters(solverMem, &nni);
     checkFlag(&retval, "ARKodeGetNumNonlinSolvIters", 1);
@@ -298,8 +300,6 @@ void ArkodeInterface::initialize(CoreTime time0)
     if (!flags[ALLOCATED_FLAG]) {
         throw(InvalidSolverOperation());
     }
-    auto jsize = m_gds->jacSize(mode);
-
     // dynInitializeB CVode - Sundials
 
     int retval = ARKodeSetUserData(solverMem, this);
@@ -308,8 +308,12 @@ void ArkodeInterface::initialize(CoreTime time0)
     // guessState an initial condition
     m_gds->guessState(time0, stateData(), derivData(), mode);
 
-    retval = ARKodeInit(solverMem, arkodeFunc, arkodeFunc, time0, state);
-    checkFlag(&retval, "ARKodeInit", 1);
+    // ARKStepCreate is called during allocation, before GridDyn has populated
+    // the initial operating point.  Reinitialize ARKStep here so its internal
+    // copy of the solution uses the guessed state rather than the allocation
+    // zero vector.
+    retval = ARKStepReInit(solverMem, arkodeFunc, nullptr, time0, state);
+    checkFlag(&retval, "ARKStepReInit", 1);
 
     if (rootCount > 0) {
         rootsfound.resize(rootCount);
@@ -325,41 +329,6 @@ void ArkodeInterface::initialize(CoreTime time0)
     retval = ARKodeSetMaxNumSteps(solverMem, max_iterations);
     checkFlag(&retval, "ARKodeSetMaxNumSteps", 1);
 
-    freeLinearSolver();
-#ifdef ENABLE_KLU
-    if (flags[DENSE_FLAG]) {
-        J = SUNDenseMatrix(svsize, svsize);
-        checkFlag(J, "SUNDenseMatrix", 0);
-        /* Create KLU solver object */
-        LS = SUNDenseLinearSolver(state, J);
-        checkFlag(LS, "SUNDenseLinearSolver", 0);
-    } else {
-        /* Create sparse SUNMatrix */
-        J = SUNSparseMatrix(svsize, svsize, jsize, CSR_MAT);
-        checkFlag(J, "SUNSparseMatrix", 0);
-
-        /* Create KLU solver object */
-        LS = SUNKLU(state, J);
-        checkFlag(LS, "SUNKLU", 0);
-    }
-#else
-    J = SUNDenseMatrix(svsize, svsize);
-    checkFlag(J, "SUNSparseMatrix", 0);
-    /* Create KLU solver object */
-    LS = SUNDenseLinearSolver(state, J);
-    checkFlag(LS, "SUNDenseLinearSolver", 0);
-#endif
-
-    retval = ARKDlsSetLinearSolver(solverMem, LS, J);
-
-    checkFlag(&retval, "IDADlsSetLinearSolver", 1);
-
-    retval = ARKDlsSetJacFn(solverMem, arkodeJac);
-    checkFlag(&retval, "IDADlsSetJacFn", 1);
-
-    retval = ARKodeSetMaxNonlinIters(solverMem, 20);
-    checkFlag(&retval, "ARKodeSetMaxNonlinIters", 1);
-
     if (maxStep > 0.0) {
         retval = ARKodeSetMaxStep(solverMem, maxStep);
         checkFlag(&retval, "ARKodeSetMaxStep", 1);
@@ -373,6 +342,7 @@ void ArkodeInterface::initialize(CoreTime time0)
         checkFlag(&retval, "ARKodeSetInitStep", 1);
     }
     setConstraints();
+    solveTime = time0;
     flags.set(INITIALIZED_FLAG);
 }
 
@@ -408,10 +378,11 @@ int ArkodeInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
     ++solverCallCount;
     icCount = 0;
     double tret;
-    int retval = ARKode(
+    int retval = ARKodeEvolve(
         solverMem, tStop, state, &tret, (stepMode == StepMode::NORMAL) ? ARK_NORMAL : ARK_ONE_STEP);
     tReturn = tret;
-    checkFlag(&retval, "ARKodeSolve", 1, false);
+    solveTime = tret;
+    checkFlag(&retval, "ARKodeEvolve", 1, false);
 
     if (retval == ARK_ROOT_RETURN) {
         retval = SOLVER_ROOT_FOUND;
@@ -430,7 +401,7 @@ void ArkodeInterface::loadMaskElements()
     std::vector<double> mStates(svsize, 0.0);
     m_gds->getVoltageStates(mStates.data(), mode);
     m_gds->getAngleStates(mStates.data(), mode);
-    maskElements = vecFindgt<double, index_t>(mStates, 0.5);
+    maskElements = gmlc::utilities::vecFindgt<double, index_t>(mStates, 0.5);
     tempState.resize(svsize);
     double* lstate = NV_DATA_S(state);
     for (auto& v : maskElements) {
@@ -456,7 +427,6 @@ int arkodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userDa
                                             NVECTOR_DATA(sd->use_omp, state),
                                             NVECTOR_DATA(sd->use_omp, dstateDt),
                                             sd->mode);
-
     if (sd->flags[FILE_CAPTURE_FLAG]) {
         if (!sd->stateFile.empty()) {
             writeVector(time,

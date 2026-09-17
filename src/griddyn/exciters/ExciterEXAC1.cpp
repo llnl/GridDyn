@@ -313,9 +313,11 @@ void ExciterEXAC1::jacobianElements(const IOdata& inputs,
     const auto fex = detail::computeRectifierFactor(normalizedCurrent);
     if (hasAlgebraic(sMode)) {
         matrixData.assign(algOffset, algOffset, -1.0);
-        matrixData.assign(algOffset,
-                          diffOffset + exciterIndex,
-                          fex.factor - fex.derivative * normalizedCurrent);
+        if (!isAlgebraicOnly(sMode)) {
+            matrixData.assign(algOffset,
+                              diffOffset + exciterIndex,
+                              fex.factor - fex.derivative * normalizedCurrent);
+        }
         matrixData.assignCheckCol(algOffset,
                                   inputLocs[exciterXadIfdInLocation],
                                   fex.derivative * Kc);

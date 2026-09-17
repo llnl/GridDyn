@@ -946,6 +946,8 @@ void DynamicGenerator::ioPartialDerivatives(const IOdata& inputs,
                                             const SolverMode& sMode)
 {
     if (isDynamic(sMode)) {
+        updateLocalCache(inputs, stateDataValue, sMode);
+        generateSubModelInputLocs(inputLocs, stateDataValue, sMode);
         const double scale = machineBasePower / systemBasePower;
         MatrixDataScale<double> scaledMatrixData(matrixDataValue, scale);
         auto gmLocs = subInputLocs.genModelInputLocsExternal;
@@ -1295,8 +1297,25 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
     auto* pmechSource = getMechanicalPowerSource();
     if ((pmechSource != nullptr) && (pmechSource->isEnabled())) {
         const auto& sourceInputs = (pmechSource == gov) ? subInputs.inputs[GOVERNOR_LOC] : noInputs;
-        pmech =
-            pmechSource->getOutput(sourceInputs, stateDataValue, sMode, getMechanicalPowerOutput());
+        const SolverMode* outputMode = &sMode;
+        StateData outputStateData = stateDataValue;
+        if (isDifferentialOnly(sMode) && (sMode.pairedOffsetIndex != kNullLocation) &&
+            (stateDataValue.algState != nullptr)) {
+            const auto& pairedMode = offsets.getSolverMode(sMode.pairedOffsetIndex);
+            if (pairedMode.algebraic &&
+                (pmechSource->algSize(pairedMode) > getMechanicalPowerOutput())) {
+                // Partitioned differential evaluations carry the algebraic
+                // solution in StateData::algState.  Use the paired mode for
+                // an algebraic controller output; otherwise GridComponent's
+                // output fallback returns the first differential state.
+                outputMode = &pairedMode;
+                outputStateData.state = stateDataValue.algState;
+            }
+        }
+        pmech = pmechSource->getOutput(sourceInputs,
+                                       outputStateData,
+                                       *outputMode,
+                                       getMechanicalPowerOutput());
     }
     if (std::abs(pmech) > 1e25) {
         pmech = 0.0;

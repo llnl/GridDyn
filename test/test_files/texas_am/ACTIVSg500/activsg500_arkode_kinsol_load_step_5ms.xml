@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="ACTIVSg500_arkode_kinsol_load_step_5ms" version="0.0.1">
+  <import file="ACTIVSg500.RAW"/>
+  <import file="ACTIVSg500_dynamics.dyr"/>
+  <event>
+    <target>BUS$4::LOAD#0</target>
+    <field>p+(MW)</field>
+    <value>10</value>
+    <time>1.0</time>
+  </event>
+  <defdyndiff>arkode</defdyndiff>
+  <dynamicsolvermethod>partitioned</dynamicsolvermethod>
+  <timestart>0</timestart>
+  <timestop>30.0</timestop>
+  <timestep>0.005</timestep>
+</griddyn>

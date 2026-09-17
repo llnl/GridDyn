@@ -104,7 +104,7 @@ void CvodeInterface::allocate(count_t stateCount, count_t numRoots)
     if (solverMem != nullptr) {
         CVodeFree(&(solverMem));
     }
-    solverMem = CVodeCreate(CV_ADAMS, sunctx);
+    solverMem = CVodeCreate(flags[USE_BDF_FLAG] ? CV_BDF : CV_ADAMS, sunctx);
     checkFlag(solverMem, "CVodeCreate", 0);
 
     SundialsInterface::allocate(stateCount, numRoots);
@@ -132,9 +132,9 @@ void CvodeInterface::set(std::string_view param, double val)
         if ((maxStep < 0) || (maxStep == step)) {
             maxStep = val;
         }
-        if ((minStep < 0) || (minStep == step)) {
-            minStep = val;
-        }
+        // The outer partitioned step is an initial/maximal step, not a lower
+        // bound.  The solver must be able to reduce its internal step at a
+        // discontinuity or during a stiff transient.
         step = val;
         checkStepUpdate = true;
     } else if (param == "maxstep") {
@@ -288,7 +288,9 @@ void CvodeInterface::initialize(CoreTime time0)
     // guessState an initial condition
     m_gds->guessState(time0, stateData(), derivData(), mode);
 
-    retval = CVodeInit(solverMem, cvodeFunc, time0, state);
+    const bool wasInitialized = flags[INITIALIZED_FLAG];
+    retval = wasInitialized ? CVodeReInit(solverMem, time0, state) :
+                              CVodeInit(solverMem, cvodeFunc, time0, state);
     checkFlag(&retval, "CVodeInit", 1);
 
     if (rootCount > 0) {
@@ -305,37 +307,39 @@ void CvodeInterface::initialize(CoreTime time0)
     retval = CVodeSetMaxNumSteps(solverMem, max_iterations);
     checkFlag(&retval, "CVodeSetMaxNumSteps", 1);
 
-    freeLinearSolver();
+    if (!wasInitialized) {
+        freeLinearSolver();
 #ifdef GRIDDYN_ENABLE_KLU
-    if (flags[DENSE_FLAG]) {
+        if (flags[DENSE_FLAG]) {
+            J = SUNDenseMatrix(svsize, svsize, sunctx);
+            checkFlag(J, "SUNDenseMatrix", 0);
+            /* Create KLU solver object */
+            LS = SUNLinSol_Dense(state, J, sunctx);
+            checkFlag(LS, "SUNLinSol_Dense", 0);
+        } else {
+            /* Create sparse SUNMatrix */
+            J = SUNSparseMatrix(svsize, svsize, jsize, CSR_MAT, sunctx);
+            checkFlag(J, "SUNSparseMatrix", 0);
+
+            /* Create KLU solver object */
+            LS = SUNLinSol_KLU(state, J, sunctx);
+            checkFlag(LS, "SUNLinSol_KLU", 0);
+        }
+#else
         J = SUNDenseMatrix(svsize, svsize, sunctx);
-        checkFlag(J, "SUNDenseMatrix", 0);
+        checkFlag(J, "SUNSparseMatrix", 0);
         /* Create KLU solver object */
         LS = SUNLinSol_Dense(state, J, sunctx);
         checkFlag(LS, "SUNLinSol_Dense", 0);
-    } else {
-        /* Create sparse SUNMatrix */
-        J = SUNSparseMatrix(svsize, svsize, jsize, CSR_MAT, sunctx);
-        checkFlag(J, "SUNSparseMatrix", 0);
-
-        /* Create KLU solver object */
-        LS = SUNLinSol_KLU(state, J, sunctx);
-        checkFlag(LS, "SUNLinSol_KLU", 0);
-    }
-#else
-    J = SUNDenseMatrix(svsize, svsize, sunctx);
-    checkFlag(J, "SUNSparseMatrix", 0);
-    /* Create KLU solver object */
-    LS = SUNLinSol_Dense(state, J, sunctx);
-    checkFlag(LS, "SUNLinSol_Dense", 0);
 #endif
 
-    retval = CVodeSetLinearSolver(solverMem, LS, J);
+        retval = CVodeSetLinearSolver(solverMem, LS, J);
 
-    checkFlag(&retval, "CVodeSetLinearSolver", 1);
+        checkFlag(&retval, "CVodeSetLinearSolver", 1);
 
-    retval = CVodeSetJacFn(solverMem, cvodeJac);
-    checkFlag(&retval, "CVodeSetJacFn", 1);
+        retval = CVodeSetJacFn(solverMem, cvodeJac);
+        checkFlag(&retval, "CVodeSetJacFn", 1);
+    }
 
     retval = CVodeSetMaxNonlinIters(solverMem, 20);
     checkFlag(&retval, "CVodeSetMaxNonlinIters", 1);
@@ -354,6 +358,7 @@ void CvodeInterface::initialize(CoreTime time0)
     }
     setConstraints();
 
+    solveTime = time0;
     flags.set(INITIALIZED_FLAG);
 }
 
@@ -393,6 +398,7 @@ int CvodeInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
     int retval = CVode(
         solverMem, tStop, state, &tret, (stepMode == StepMode::NORMAL) ? CV_NORMAL : CV_ONE_STEP);
     tReturn = tret;
+    solveTime = tret;
     checkFlag(&retval, "CVodeSolve", 1, false);
     if (retval == CV_ROOT_RETURN) {
         retval = SOLVER_ROOT_FOUND;
@@ -483,6 +489,16 @@ int cvodeJac(sunrealtype time,
              N_Vector tmp2,
              N_Vector /*tmp3*/)
 {
+    auto sd = reinterpret_cast<CvodeInterface*>(userData);
+    if (sd->mode.pairedOffsetIndex != kNullLocation) {
+        int ret = sd->m_gds->dynAlgebraicSolve(time,
+                                               NVECTOR_DATA(sd->use_omp, state),
+                                               NVECTOR_DATA(sd->use_omp, dstateDt),
+                                               sd->mode);
+        if (ret < FUNCTION_EXECUTION_SUCCESS) {
+            return ret;
+        }
+    }
     return sundialsJac(time, 0.0, state, dstateDt, j, userData, tmp1, tmp2);
 }
 

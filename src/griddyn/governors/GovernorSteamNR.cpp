@@ -135,6 +135,9 @@ void GovernorSteamNR::jacobianElements(const IOdata& inputs,
         matrixData.assign(locations.algOffset + outputState,
                           locations.algOffset + outputState,
                           -1.0);
+        if (isAlgebraicOnly(sMode)) {
+            return;
+        }
         matrixData.assign(locations.algOffset + outputState, diff + chestState, 1.0);
     }
     if (!hasDifferential(sMode)) {

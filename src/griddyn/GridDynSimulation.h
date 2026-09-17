@@ -677,7 +677,8 @@ class GridDynSimulation: public GridSimulation {
    @return FUNCTION_EXECUTION_SUCCESS(0) if successful negative number if not
     */
     int generatePartitionedDynamicInitialConditions(const SolverMode& sModeAlg,
-                                                    const SolverMode& sModeDiff);
+                                                    const SolverMode& sModeDiff,
+                                                    bool advanceTime = true);
 
     /** @brief load the offset codes for the objects
     @param[in] sMode the SolverMode to setup the offsets for

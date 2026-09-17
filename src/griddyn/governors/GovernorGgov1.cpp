@@ -336,10 +336,12 @@ void GovernorGgov1::jacobianElements(const IOdata& inputs,
     const double fuelDvalve = (fuelFlag == 1) ? omega : 1.0;
     if (hasAlgebraic(sMode)) {
         matrixData.assign(algebraicRow, algebraicRow, -1.0);
-        matrixData.assign(algebraicRow, differentialRow + turbineState, 1.0 - Tc / Tb);
-        matrixData.assign(algebraicRow,
-                          differentialRow + valveState,
-                          (Tc / Tb) * Kturb * fuelDvalve);
+        if (!isAlgebraicOnly(sMode)) {
+            matrixData.assign(algebraicRow, differentialRow + turbineState, 1.0 - Tc / Tb);
+            matrixData.assign(algebraicRow,
+                              differentialRow + valveState,
+                              (Tc / Tb) * Kturb * fuelDvalve);
+        }
         matrixData.assignCheckCol(algebraicRow,
                                   inputLocs[govOmegaInLocation],
                                   (Tc / Tb) * Kturb * fuelDomega - ((Dm >= 0.0) ? Dm : 0.0));

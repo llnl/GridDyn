@@ -140,6 +140,9 @@ void GovernorSteamTCSR::jacobianElements(const IOdata& inputs,
         matrixData.assign(locations.algOffset + outputState,
                           locations.algOffset + outputState,
                           -1.0);
+        if (isAlgebraicOnly(sMode)) {
+            return;
+        }
         matrixData.assign(locations.algOffset + outputState, diff + chestState, Fch);
         matrixData.assign(locations.algOffset + outputState, diff + reheatState, Fip);
         matrixData.assign(locations.algOffset + outputState, diff + crossoverState, Flp);

@@ -170,7 +170,10 @@ void KinsolInterface::initialize(CoreTime /*t0*/)
     retval = KINSetScaledStepTol(solverMem, tolerance / 100);
     checkFlag(&retval, "KINSetScaledStepTol", 1);
 
-    retval = KINSetNoInitSetup(solverMem, SUNTRUE);
+    // A parameter event can change the algebraic residual and its Jacobian.
+    // Let KINSOL perform a fresh setup on the next solve instead of reusing
+    // the pre-event nonlinear setup.
+    retval = KINSetNoInitSetup(solverMem, SUNFALSE);
     checkFlag(&retval, "KINSetNoInitSetup", 1);
 
     if (!flags[INITIALIZED_FLAG]) {

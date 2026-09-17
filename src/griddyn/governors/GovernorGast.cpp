@@ -196,7 +196,9 @@ void GovernorGast::jacobianElements(const IOdata& inputs,
     const double* state = loc.diffStateLoc;
     if (hasAlgebraic(sMode)) {
         matrixData.assign(alg, alg, -1.0);
-        matrixData.assign(alg, diff + turbineState, 1.0);
+        if (!isAlgebraicOnly(sMode)) {
+            matrixData.assign(alg, diff + turbineState, 1.0);
+        }
         if (inputLocs[govOmegaInLocation] != kNullLocation) {
             matrixData.assign(alg, inputLocs[govOmegaInLocation], -Dt);
         }

@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="ACTIVSg500_powerflow" version="0.0.1">
+  <import file="ACTIVSg500.RAW"/>
+</griddyn>

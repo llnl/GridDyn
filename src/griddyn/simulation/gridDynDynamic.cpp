@@ -972,7 +972,7 @@ int GridDynSimulation::reInitDyn(const SolverMode& sMode)
         if (rootSize(sMode) > 0) {
             opFlags[HAS_ROOTS] = true;
             setRootOffset(0, sMode);
-            opFlags[HAS_ALG_ROOTS] = (offsets.local().total.algRoots > 0);
+            opFlags[HAS_ALG_ROOTS] = (offsets.getOffsets(sMode).total.algRoots > 0);
         } else {
             opFlags[HAS_ROOTS] = false;
             opFlags[HAS_ALG_ROOTS] = false;

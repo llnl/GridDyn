@@ -8,10 +8,12 @@
 
 #include "../Generator.h"
 #include "../GridBus.h"
+#include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactory.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -62,6 +64,10 @@ void GovernorIeeeSimple::dynObjectInitializeB(const IOdata& /*inputs*/,
                                               const IOdata& desiredOutput,
                                               IOdata& fieldSet)
 {
+    if (desiredOutput.empty() || !std::isfinite(desiredOutput[0]) ||
+        !adjustInitialUpperLimit(desiredOutput[0], "IEEE simple initial output")) {
+        throw InvalidParameterValue("IEEE simple initial output outside upper limit");
+    }
     if (Wref < 0) {
         Wref = systemBaseFrequency;
     }
@@ -159,7 +165,8 @@ if (opFlags.test (uses_deadband))
         md.assign(refI + 1, inputLocs[govOmegaInLocation], (T1 - T2) / (T1 * T1));
     }
     if (opFlags[POWER_LIMITED]) {
-        md.assign(refI, refI, sD.cj);
+        // The active limiter residual is -dPm/dt, so its DAE diagonal is -cj.
+        md.assign(refI, refI, -sD.cj);
     } else {
         md.assign(refI, refI, -1 / T3 - sD.cj);
         md.assign(refI, refI + 1, -K / T3);

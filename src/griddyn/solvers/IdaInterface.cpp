@@ -22,14 +22,17 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstdio>
 #include <format>
 #include <iterator>
+#include <limits>
 #include <map>
 #include <memory>
 #include <print>
 #include <string>
 #include <sunlinsol/sunlinsol_dense.h>
+#include "utilities/MatrixDataSparse.hpp"
 #include <vector>
 
 namespace griddyn::solvers {
@@ -284,6 +287,22 @@ void IdaInterface::initialize(CoreTime t0)
     retval = IDASVtolerances(solverMem, tolerance / 100, abstols);
     checkFlag(&retval, "IDASVtolerances", 1);
 
+    if (flags[IDA_INTEGRATION_DIAGNOSTICS]) {
+        integrationFailureLogged = false;
+        m_gds->getRootObjectNames(rootNames, mode);
+        logging::logTo(m_gds,
+                       m_gds,
+                       PrintLevel::SUMMARY,
+                       "IDA integration diagnostics: states={}, roots={}, configured_tolerance={}, "
+                       "effective_relative_tolerance={}, absolute_tolerance={}, max_steps={}",
+                       svsize,
+                       rootCount,
+                       tolerance,
+                       tolerance / 100.0,
+                       tolerance,
+                       max_iterations);
+    }
+
     retval = IDASetMaxNumSteps(solverMem, max_iterations);
     checkFlag(&retval, "IDASetMaxNumSteps", 1);
 
@@ -352,11 +371,376 @@ void IdaInterface::setRootFinding(count_t numRoots)
 
 #define SHOW_MISSING_ELEMENTS 0
 
+namespace {
+std::string_view idaIcReturnFlagName(int retval)
+{
+    switch (retval) {
+        case IDA_SUCCESS:
+            return "IDA_SUCCESS";
+        case IDA_LSETUP_FAIL:
+            return "IDA_LSETUP_FAIL";
+        case IDA_LSOLVE_FAIL:
+            return "IDA_LSOLVE_FAIL";
+        case IDA_NO_RECOVERY:
+            return "IDA_NO_RECOVERY";
+        case IDA_LINESEARCH_FAIL:
+            return "IDA_LINESEARCH_FAIL";
+        case IDA_CONV_FAIL:
+            return "IDA_CONV_FAIL";
+        case IDA_REP_RES_ERR:
+            return "IDA_REP_RES_ERR";
+        case IDA_RES_FAIL:
+            return "IDA_RES_FAIL";
+        default:
+            return "IDA_UNKNOWN";
+    }
+}
+}  // namespace
+
+void IdaInterface::logInitialConditionDiagnostics(CoreTime t0,
+                                                  CoreTime tstep0,
+                                                  IcModes initCondMode,
+                                                  int retval,
+                                                  const std::vector<double>* initialState,
+                                                  const std::vector<double>* initialDerivative) const
+{
+    if ((m_gds == nullptr) || (svsize == 0)) {
+        return;
+    }
+
+    const auto diagnosticLevel =
+        (retval == IDA_SUCCESS) ? PrintLevel::SUMMARY : PrintLevel::ERROR;
+    logSolverStats(diagnosticLevel, true);
+
+    std::vector<double> residual(svsize, 0.0);
+    const int residualStatus =
+        m_gds->residualFunction(t0, stateData(), derivData(), residual.data(), mode);
+    const double* currentState = stateData();
+    const double* currentDerivative = derivData();
+
+    std::vector<double> variableType(svsize, 1.0);
+    m_gds->getVariableType(variableType.data(), mode);
+
+    struct ResidualEntry {
+        double magnitude;
+        index_t index;
+    };
+    std::vector<ResidualEntry> entries;
+    std::vector<ResidualEntry> algebraicResidualEntries;
+    std::vector<ResidualEntry> differentialResidualEntries;
+    entries.reserve(svsize);
+    algebraicResidualEntries.reserve(svsize);
+    differentialResidualEntries.reserve(svsize);
+
+    count_t nonFiniteResiduals = 0;
+    count_t algebraicEntries = 0;
+    count_t differentialEntries = 0;
+    double maxResidual = 0.0;
+    double maxAlgebraicResidual = 0.0;
+    double maxDifferentialResidual = 0.0;
+
+    for (index_t index = 0; index < svsize; ++index) {
+        const double value = residual[index];
+        const bool finite = std::isfinite(value);
+        const double magnitude = finite ? std::abs(value) : std::numeric_limits<double>::infinity();
+        if (!finite) {
+            ++nonFiniteResiduals;
+        }
+        maxResidual = (std::max)(maxResidual, magnitude);
+        if (variableType[index] == 1.0) {
+            ++differentialEntries;
+            maxDifferentialResidual = (std::max)(maxDifferentialResidual, magnitude);
+            differentialResidualEntries.push_back({magnitude, index});
+        } else {
+            ++algebraicEntries;
+            maxAlgebraicResidual = (std::max)(maxAlgebraicResidual, magnitude);
+            algebraicResidualEntries.push_back({magnitude, index});
+        }
+        entries.push_back({magnitude, index});
+    }
+
+    const auto entryOrder = [](const ResidualEntry& lhs, const ResidualEntry& rhs) {
+        return lhs.magnitude > rhs.magnitude;
+    };
+    const auto entryCount = (std::min)(static_cast<count_t>(8), svsize);
+    std::partial_sort(entries.begin(), entries.begin() + entryCount, entries.end(), entryOrder);
+    const auto algebraicResidualEntryCount =
+        (std::min)(size_t{8}, algebraicResidualEntries.size());
+    std::partial_sort(algebraicResidualEntries.begin(),
+                      algebraicResidualEntries.begin() + algebraicResidualEntryCount,
+                      algebraicResidualEntries.end(),
+                      entryOrder);
+    const auto differentialResidualEntryCount =
+        (std::min)(size_t{8}, differentialResidualEntries.size());
+    std::partial_sort(differentialResidualEntries.begin(),
+                      differentialResidualEntries.begin() + differentialResidualEntryCount,
+                      differentialResidualEntries.end(),
+                      entryOrder);
+
+    stringVec stateNames;
+    m_gds->getStateName(stateNames, mode);
+
+    // A small residual after FIXED_DIFF initial-condition correction only
+    // establishes DAE consistency: IDA is allowed to solve for y'.  A
+    // no-disturbance stability case additionally needs those differential
+    // derivatives to be small.  Report the largest ones separately so an IC
+    // trace can distinguish a true equilibrium from a consistent trajectory
+    // that immediately leaves its initialized state.
+    std::vector<ResidualEntry> derivativeEntries;
+    derivativeEntries.reserve(differentialEntries);
+    count_t nonFiniteDerivatives = 0;
+    double maxDifferentialDerivative = 0.0;
+    for (index_t index = 0; index < svsize; ++index) {
+        if (variableType[index] != 1.0) {
+            continue;
+        }
+        const double value = currentDerivative[index];
+        const bool finite = std::isfinite(value);
+        const double magnitude = finite ? std::abs(value) : std::numeric_limits<double>::infinity();
+        if (!finite) {
+            ++nonFiniteDerivatives;
+        }
+        maxDifferentialDerivative = (std::max)(maxDifferentialDerivative, magnitude);
+        derivativeEntries.push_back({magnitude, index});
+    }
+    const auto derivativeEntryCount = (std::min)(size_t{8}, derivativeEntries.size());
+    std::partial_sort(derivativeEntries.begin(),
+                      derivativeEntries.begin() + derivativeEntryCount,
+                      derivativeEntries.end(),
+                      entryOrder);
+
+    logging::logTo(m_gds,
+                   m_gds,
+                   diagnosticLevel,
+                   "IDA initial-condition diagnostics: return={} ({}), ic_mode={}, "
+                   "state_size={}, residual_status={}, max_residual={}, "
+                   "max_algebraic_residual={}, max_differential_residual={}, "
+                   "nonfinite_residuals={}, algebraic_entries={}, differential_entries={}",
+                   retval,
+                   idaIcReturnFlagName(retval),
+                   (initCondMode == IcModes::FIXED_DIFF) ? "FIXED_DIFF" : "FIXED_MASKED_AND_DERIV",
+                   svsize,
+                   residualStatus,
+                   maxResidual,
+                   maxAlgebraicResidual,
+                   maxDifferentialResidual,
+                   nonFiniteResiduals,
+                   algebraicEntries,
+                   differentialEntries);
+
+    for (count_t entryIndex = 0; entryIndex < entryCount; ++entryIndex) {
+        const auto& entry = entries[entryIndex];
+        const auto stateName = (entry.index < stateNames.size()) ? stateNames[entry.index] :
+                                                                     std::string{"<unnamed>"};
+        const bool hasInitialSnapshot =
+            (initialState != nullptr) && (initialDerivative != nullptr) &&
+            (initialState->size() == svsize) && (initialDerivative->size() == svsize);
+        logging::logTo(m_gds,
+                       m_gds,
+                       diagnosticLevel,
+                       "IDA IC residual[{}] {} = {}, y={}, yp={}, type={}{}",
+                       entry.index,
+                       stateName,
+                       residual[entry.index],
+                       currentState[entry.index],
+                       currentDerivative[entry.index],
+                       variableType[entry.index],
+                       hasInitialSnapshot ? std::format(
+                           ", initial_y={}, initial_yp={}",
+                           (*initialState)[entry.index],
+                           (*initialDerivative)[entry.index]) :
+                                            std::string{});
+    }
+
+    logging::logTo(m_gds,
+                   m_gds,
+                   diagnosticLevel,
+                   "IDA IC algebraic-residual probe: max_abs_residual={}, reporting={}",
+                   maxAlgebraicResidual,
+                   algebraicResidualEntryCount);
+    for (size_t entryIndex = 0; entryIndex < algebraicResidualEntryCount; ++entryIndex) {
+        const auto& entry = algebraicResidualEntries[entryIndex];
+        const auto stateName = (entry.index < stateNames.size()) ? stateNames[entry.index] :
+                                                                     std::string{"<unnamed>"};
+        logging::logTo(m_gds,
+                       m_gds,
+                       diagnosticLevel,
+                       "IDA IC algebraic residual[{}] {} = {}, y={}",
+                       entry.index,
+                       stateName,
+                       residual[entry.index],
+                       currentState[entry.index]);
+    }
+
+    logging::logTo(m_gds,
+                   m_gds,
+                   diagnosticLevel,
+                   "IDA IC differential-residual probe: max_abs_residual={}, reporting={}",
+                   maxDifferentialResidual,
+                   differentialResidualEntryCount);
+    for (size_t entryIndex = 0; entryIndex < differentialResidualEntryCount; ++entryIndex) {
+        const auto& entry = differentialResidualEntries[entryIndex];
+        const auto stateName = (entry.index < stateNames.size()) ? stateNames[entry.index] :
+                                                                     std::string{"<unnamed>"};
+        logging::logTo(m_gds,
+                       m_gds,
+                       diagnosticLevel,
+                       "IDA IC differential residual[{}] {} = {}, y={}, yp={}",
+                       entry.index,
+                       stateName,
+                       residual[entry.index],
+                       currentState[entry.index],
+                       currentDerivative[entry.index]);
+    }
+
+    logging::logTo(m_gds,
+                   m_gds,
+                   diagnosticLevel,
+                   "IDA IC differential-derivative probe: max_abs_yp={}, nonfinite_yp={}, "
+                   "reporting={}",
+                   maxDifferentialDerivative,
+                   nonFiniteDerivatives,
+                   derivativeEntryCount);
+    for (size_t entryIndex = 0; entryIndex < derivativeEntryCount; ++entryIndex) {
+        const auto& entry = derivativeEntries[entryIndex];
+        const auto stateName = (entry.index < stateNames.size()) ? stateNames[entry.index] :
+                                                                     std::string{"<unnamed>"};
+        logging::logTo(m_gds,
+                       m_gds,
+                       diagnosticLevel,
+                       "IDA IC differential yp[{}] {} = {}, y={}",
+                       entry.index,
+                       stateName,
+                       currentDerivative[entry.index],
+                       currentState[entry.index]);
+    }
+
+    MatrixDataSparse<double> jacobian;
+    jacobian.reserve(m_gds->jacSize(mode));
+    const double step = static_cast<double>(tstep0);
+    const double cj = (step > 0.0) ? 1.0 / step : 1.0;
+    const int jacobianStatus =
+        m_gds->jacobianFunction(t0, stateData(), derivData(), jacobian, cj, mode);
+    jacobian.compact();
+
+    std::vector<bool> rowPresent(svsize, false);
+    std::vector<bool> columnPresent(svsize, false);
+    std::vector<bool> diagonalPresent(svsize, false);
+    count_t nonFiniteJacobian = 0;
+    count_t zeroDiagonal = 0;
+    for (const auto& entry : jacobian) {
+        if ((entry.row < 0) || (entry.col < 0) ||
+            (entry.row >= static_cast<index_t>(svsize)) ||
+            (entry.col >= static_cast<index_t>(svsize))) {
+            continue;
+        }
+        rowPresent[entry.row] = true;
+        columnPresent[entry.col] = true;
+        if (!std::isfinite(entry.data)) {
+            ++nonFiniteJacobian;
+        }
+        if (entry.row == entry.col) {
+            diagonalPresent[entry.row] = true;
+            if (entry.data == 0.0) {
+                ++zeroDiagonal;
+            }
+        }
+    }
+
+    const auto missingRows = static_cast<count_t>(
+        std::count(rowPresent.begin(), rowPresent.end(), false));
+    const auto missingColumns = static_cast<count_t>(
+        std::count(columnPresent.begin(), columnPresent.end(), false));
+    const auto missingDiagonals = static_cast<count_t>(
+        std::count(diagonalPresent.begin(), diagonalPresent.end(), false));
+    logging::logTo(m_gds,
+                   m_gds,
+                   diagnosticLevel,
+                   "IDA IC Jacobian probe: status={}, cj={}, nonzeros={}, nonfinite={}, "
+                   "empty_rows={}, empty_columns={}, missing_diagonals={}, zero_diagonals={}",
+                   jacobianStatus,
+                   cj,
+                   jacobian.size(),
+                   nonFiniteJacobian,
+                   missingRows,
+                   missingColumns,
+                   missingDiagonals,
+                   zeroDiagonal);
+}
+
+void IdaInterface::logIntegrationFailureDiagnostics(CoreTime time, int retval) const
+{
+    if ((m_gds == nullptr) || (svsize == 0)) {
+        return;
+    }
+
+    std::vector<double> residual(svsize, 0.0);
+    const int residualStatus =
+        m_gds->residualFunction(time, stateData(), derivData(), residual.data(), mode);
+    stringVec stateNames;
+    m_gds->getStateName(stateNames, mode);
+
+    struct ResidualEntry {
+        double magnitude;
+        index_t index;
+    };
+    std::vector<ResidualEntry> entries;
+    entries.reserve(svsize);
+    double maxResidual = 0.0;
+    count_t nonFiniteResiduals = 0;
+    for (index_t index = 0; index < svsize; ++index) {
+        const double value = residual[index];
+        const bool finite = std::isfinite(value);
+        const double magnitude = finite ? std::abs(value) : std::numeric_limits<double>::infinity();
+        if (!finite) {
+            ++nonFiniteResiduals;
+        }
+        maxResidual = (std::max)(maxResidual, magnitude);
+        entries.push_back({magnitude, index});
+    }
+    const auto entryOrder = [](const ResidualEntry& lhs, const ResidualEntry& rhs) {
+        return lhs.magnitude > rhs.magnitude;
+    };
+    const auto entryCount = (std::min)(static_cast<count_t>(8), svsize);
+    std::partial_sort(entries.begin(), entries.begin() + entryCount, entries.end(), entryOrder);
+
+    logging::logTo(m_gds,
+                   m_gds,
+                   PrintLevel::ERROR,
+                   "IDA integration failure diagnostics: time={}, return={}, "
+                   "residual_status={}, max_residual={}, nonfinite_residuals={}",
+                   static_cast<double>(time),
+                   retval,
+                   residualStatus,
+                   maxResidual,
+                   nonFiniteResiduals);
+    for (count_t entryIndex = 0; entryIndex < entryCount; ++entryIndex) {
+        const auto& entry = entries[entryIndex];
+        const auto stateName = (entry.index < stateNames.size()) ? stateNames[entry.index] :
+                                                                     std::string{"<unnamed>"};
+        logging::logTo(m_gds,
+                       m_gds,
+                       PrintLevel::ERROR,
+                       "IDA integration residual[{}] {} = {}, y={}, yp={}",
+                       entry.index,
+                       stateName,
+                       residual[entry.index],
+                       stateData()[entry.index],
+                       derivData()[entry.index]);
+    }
+}
+
 int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, bool constraints)
 {
     int retval;
     ++icCount;
     assert(icCount < 200);
+    std::vector<double> initialState;
+    std::vector<double> initialDerivative;
+    if (flags[IDA_IC_DIAGNOSTICS]) {
+        initialState.assign(stateData(), stateData() + svsize);
+        initialDerivative.assign(derivData(), derivData() + svsize);
+    }
     if (initCondMode ==
         IcModes::FIXED_MASKED_AND_DERIV)  // mainly for use upon startup from steady state
     {
@@ -368,6 +752,14 @@ int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, boo
             sparseReInit(SparseReinitMode::REFACTOR);
         }
         retval = IDACalcIC(solverMem, IDA_Y_INIT, t0 + tstep0);  // IDA_Y_INIT
+        if ((retval != IDA_SUCCESS) && flags[IDA_IC_DIAGNOSTICS]) {
+            logInitialConditionDiagnostics(t0,
+                                           tstep0,
+                                           initCondMode,
+                                           retval,
+                                           &initialState,
+                                           &initialDerivative);
+        }
 
         // retval = IDACalcIC (solverMem, IDA_YA_YDP_INIT, t0 + tstep0); //IDA_YA_YDP_INIT
         //   getCurrentData();
@@ -388,6 +780,14 @@ int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, boo
                         sparseReInit(SparseReinitMode::REFACTOR);
                     }
                     retval = IDACalcIC(solverMem, IDA_Y_INIT, t0 + tstep0);  // IDA_Y_INIT
+                    if ((retval != IDA_SUCCESS) && flags[IDA_IC_DIAGNOSTICS]) {
+                        logInitialConditionDiagnostics(t0,
+                                                       tstep0,
+                                                       initCondMode,
+                                                       retval,
+                                                       &initialState,
+                                                       &initialDerivative);
+                    }
                     if (retval == IDA_SUCCESS) {
                         flags.reset(USE_MASK_FLAG);
                         getCurrentData();
@@ -417,6 +817,14 @@ int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, boo
             sparseReInit(SparseReinitMode::REFACTOR);
         }
         getCurrentData();
+        if (flags[IDA_IC_DIAGNOSTICS]) {
+            logInitialConditionDiagnostics(t0,
+                                           tstep0,
+                                           initCondMode,
+                                           IDA_SUCCESS,
+                                           &initialState,
+                                           &initialDerivative);
+        }
     } else if (initCondMode == IcModes::FIXED_DIFF) {
         retval = IDAReInit(solverMem, t0, state, dstate_dt);
 
@@ -428,6 +836,14 @@ int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, boo
         }
         //  printStates();
         retval = IDACalcIC(solverMem, IDA_YA_YDP_INIT, t0 + tstep0);  // IDA_YA_YDP_INIT
+        if ((retval != IDA_SUCCESS) && flags[IDA_IC_DIAGNOSTICS]) {
+            logInitialConditionDiagnostics(t0,
+                                           tstep0,
+                                           initCondMode,
+                                           retval,
+                                           &initialState,
+                                           &initialDerivative);
+        }
         if (retval < 0) {
 #if SHOW_MISSING_ELEMENTS > 0
             auto mvec = findMissing(&a1);
@@ -446,6 +862,14 @@ int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, boo
             return retval;
         }
         getCurrentData();
+        if (flags[IDA_IC_DIAGNOSTICS]) {
+            logInitialConditionDiagnostics(t0,
+                                           tstep0,
+                                           initCondMode,
+                                           IDA_SUCCESS,
+                                           &initialState,
+                                           &initialDerivative);
+        }
         //  printStates();
     }
     return FUNCTION_EXECUTION_SUCCESS;
@@ -462,6 +886,16 @@ int IdaInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
     assert(rootCount == m_gds->rootSize(mode));
     ++solverCallCount;
     icCount = 0;
+    if (flags[IDA_INTEGRATION_DIAGNOSTICS]) {
+        logging::logTo(m_gds,
+                       m_gds,
+                       PrintLevel::SUMMARY,
+                       "IDA solve begin: call={}, from={}, target={}, residual_evaluations={}",
+                       solverCallCount,
+                       static_cast<double>(solveTime),
+                       static_cast<double>(tStop),
+                       funcCallCount);
+    }
     double tret;
     int retval = IDASolve(solverMem,
                           tStop,
@@ -470,6 +904,21 @@ int IdaInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
                           dstate_dt,
                           (stepMode == StepMode::NORMAL) ? IDA_NORMAL : IDA_ONE_STEP);
     tReturn = tret;
+    if (flags[IDA_INTEGRATION_DIAGNOSTICS]) {
+        logSolverStats(PrintLevel::SUMMARY);
+        logging::logTo(m_gds,
+                       m_gds,
+                       PrintLevel::SUMMARY,
+                       "IDA solve end: call={}, return={}, reached={}, residual_evaluations={}",
+                       solverCallCount,
+                       retval,
+                       tret,
+                       funcCallCount);
+    }
+    if ((retval < 0) && flags[IDA_INTEGRATION_DIAGNOSTICS] && !integrationFailureLogged) {
+        logIntegrationFailureDiagnostics(tret, retval);
+        integrationFailureLogged = true;
+    }
     if ((retval == IDA_SUCCESS) || (retval == IDA_ROOT_RETURN)) {
         // IDASolve returns the state at the requested output time, but the
         // derivative vector can retain the last internal-step value for a
@@ -498,6 +947,26 @@ void IdaInterface::getRoots()
 {
     int ret = IDAGetRootInfo(solverMem, rootsfound.data());
     checkFlag(&ret, "IDAGetRootInfo", 1);
+    if (flags[IDA_INTEGRATION_DIAGNOSTICS]) {
+        std::string activeRoots;
+        for (count_t kk = 0; kk < rootsfound.size(); ++kk) {
+            if (rootsfound[kk] != 0) {
+                if (!activeRoots.empty()) {
+                    activeRoots += ',';
+                }
+                activeRoots += std::format("{}(direction={})", kk, rootsfound[kk]);
+                if ((kk < rootNames.size()) && !rootNames[kk].empty()) {
+                    activeRoots += "=" + rootNames[kk];
+                }
+            }
+        }
+        logging::logTo(m_gds,
+                       m_gds,
+                       PrintLevel::SUMMARY,
+                       "IDA root return: time={}, active_root_indices=[{}]",
+                       static_cast<double>(solveTime),
+                       activeRoots);
+    }
 }
 
 void IdaInterface::setConstraints()
@@ -526,6 +995,15 @@ void IdaInterface::loadMaskElements()
 int idaFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, N_Vector resid, void* userData)
 {
     auto sd = reinterpret_cast<IdaInterface*>(userData);
+    ++sd->funcCallCount;
+    if (sd->flags[IDA_INTEGRATION_DIAGNOSTICS] && ((sd->funcCallCount % 1000) == 0)) {
+        logging::logTo(sd->m_gds,
+                       sd->m_gds,
+                       PrintLevel::SUMMARY,
+                       "IDA residual progress: evaluations={}, internal_time={}",
+                       sd->funcCallCount,
+                       static_cast<double>(time));
+    }
     // printf("time=%f\n", time);
     int ret = sd->m_gds->residualFunction(time,
                                           NVECTOR_DATA(sd->use_omp, state),

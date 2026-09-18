@@ -808,8 +808,8 @@ namespace {
 
     void loadESAC1A(CoreObject* parentObject, stringVec& tokens)
     {
-        // BUS, 'ESAC1A', ID, TR, TB, TC, VAMAX, VAMIN, KA, TA, VRMAX,
-        // VRMIN, TE, E1, SE1, E2, SE2, KC, KD, KE, KF, TF /
+        // BUS, 'ESAC1A', ID, TR, TB, TC, KA, TA, VRMAX, VRMIN, TE, KF, TF,
+        // KC, KD, KE, E1, SE1, E2, SE2, VAMAX, VAMIN /
         if (tokens.size() != 22U) {
             throw InvalidParameterValue("ESAC1A DYR record must contain 22 fields");
         }
@@ -820,22 +820,22 @@ namespace {
         static constexpr std::array<std::string_view, 19> names{"tr",
                                                                 "tb",
                                                                 "tc",
-                                                                "vamax",
-                                                                "vamin",
                                                                 "ka",
                                                                 "ta",
                                                                 "vrmax",
                                                                 "vrmin",
                                                                 "te",
+                                                                "kf",
+                                                                "tf",
+                                                                "kc",
+                                                                "kd",
+                                                                "ke",
                                                                 "e1",
                                                                 "se1",
                                                                 "e2",
                                                                 "se2",
-                                                                "kc",
-                                                                "kd",
-                                                                "ke",
-                                                                "kf",
-                                                                "tf"};
+                                                                "vamax",
+                                                                "vamin"};
         for (std::size_t index = 0; index < names.size(); ++index) {
             exciter->set(names[index], params[index + 3]);
         }

@@ -172,7 +172,9 @@ enum InitControlFlags {
     FORCE_CONSTANT_PFLOW_INITIALIZATION = 12,  //!< for some objects that initialize through power
                                                //!< flow calculations force it to be constant
     IGNORE_SATURATION = 13,  //!< ignore saturation effects
+    STRICT_GOVERNOR_LIMITS = 14,  //!< reject governor initial outputs above upper limits
     LOW_VOLTAGE_CHECKING = 15,  //!< enable low voltage checking on buses
+    STRICT_EXCITER_LIMITS = 16,  //!< reject exciter initial outputs above upper limits
 };
 
 #define CHECK_CONTROLFLAG(flag, flagName) (((flag) & (1U << flagName)) != 0)

@@ -109,8 +109,9 @@ CoreObject* GovernorGgov1::clone(CoreObject* obj) const
     return out;
 }
 
-void GovernorGgov1::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
+void GovernorGgov1::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
+    setInitialLimitPolicy(flags);
     const std::array<double, 33> parameters{R,     Tpelec, maxerr, minerr, Kpgov,  Kigov,   Kdgov,
                                             Tdgov, Pmax,   Pmin,   Tact,   Kturb,  Wfnl,    Tb,
                                             Tc,    Teng,   Tfload, Kpload, Kiload, Ldref,   Dm,
@@ -150,7 +151,7 @@ void GovernorGgov1::dynObjectInitializeB(const IOdata& inputs,
     const double power = desiredOutput[0];
     const double electricalPower = inputs[govElectricalPowerInLocation];
     const double fuel = power / Kturb + Wfnl;
-    if ((fuel < Pmin - 1e-7) || (fuel > Pmax + 1e-7)) {
+    if ((fuel < Pmin - 1e-7) || !adjustInitialUpperLimit(fuel, "GGOV1 initial valve position")) {
         throw InvalidParameterValue("GGOV1 initial valve position outside limits");
     }
     double* state = m_state.data() + 1;

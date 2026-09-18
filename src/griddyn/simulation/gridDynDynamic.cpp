@@ -21,6 +21,7 @@
 #include <compare>
 #include <cstdio>
 #include <memory>
+#include <numeric>
 #include <print>
 #include <vector>
 // #include <fstream>
@@ -186,6 +187,45 @@ int GridDynSimulation::dynamicDAEStartupConditions(std::shared_ptr<SolverInterfa
     if (pState == GridState::DYNAMIC_INITIALIZED) {
         // do mode 0 IC calculation
         guessState(currentTime, dynData->stateData(), dynData->derivData(), sMode);
+
+        if (controlFlags[IDA_INTEGRATION_DIAGNOSTICS_FLAG]) {
+            const auto rootTotal = rootSize(sMode);
+            std::vector<double> rootValues(rootTotal, 0.0);
+            stringVec rootNames;
+            getRootObjectNames(rootNames, sMode);
+            rootFindingFunction(currentTime,
+                                dynData->stateData(),
+                                dynData->derivData(),
+                                rootValues.data(),
+                                sMode);
+
+            std::vector<index_t> closestRoots(rootTotal);
+            std::iota(closestRoots.begin(), closestRoots.end(), 0);
+            const auto rootAbs = [&rootValues](index_t left, index_t right) {
+                return std::abs(rootValues[left]) < std::abs(rootValues[right]);
+            };
+            const auto reportCount = (std::min)(closestRoots.size(), size_t{16});
+            std::partial_sort(closestRoots.begin(),
+                              closestRoots.begin() + static_cast<std::ptrdiff_t>(reportCount),
+                              closestRoots.end(),
+                              rootAbs);
+            logging::logTo(this,
+                           this,
+                           PrintLevel::SUMMARY,
+                           "IDA pre-IC root probe: roots={}, reporting {} closest-to-zero roots",
+                           rootTotal,
+                           reportCount);
+            for (size_t rootIndex = 0; rootIndex < reportCount; ++rootIndex) {
+                const auto root = closestRoots[rootIndex];
+                logging::logTo(this,
+                               this,
+                               PrintLevel::SUMMARY,
+                               "IDA pre-IC root[{}]={} owner={}",
+                               root,
+                               rootValues[root],
+                               (root < rootNames.size()) ? rootNames[root] : "<unmapped>");
+            }
+        }
 
         retval = dynData->calcIC(currentTime,
                                  probeStepTime,
@@ -668,6 +708,28 @@ void GridDynSimulation::handleEarlySolverReturn(int retval,
                      dynData->getSolverMode());
             logging::debug(this, "Root detected");
             rootTrigger(timeActual, noInputs, dynData->rootsfound, dynData->getSolverMode());
+            if (controlFlags[IDA_INTEGRATION_DIAGNOSTICS_FLAG]) {
+                const auto rootTotal = rootSize(dynData->getSolverMode());
+                std::vector<double> rootValues(rootTotal, 0.0);
+                stringVec rootNames;
+                getRootObjectNames(rootNames, dynData->getSolverMode());
+                rootFindingFunction(timeActual,
+                                    dynData->stateData(),
+                                    dynData->derivData(),
+                                    rootValues.data(),
+                                    dynData->getSolverMode());
+                for (index_t root = 0; root < rootTotal; ++root) {
+                    if (std::abs(rootValues[root]) <= 1e-9) {
+                        logging::logTo(this,
+                                       this,
+                                       PrintLevel::SUMMARY,
+                                       "IDA post-root zero probe: root[{}]={} owner={}",
+                                       root,
+                                       rootValues[root],
+                                       (root < rootNames.size()) ? rootNames[root] : "<unmapped>");
+                    }
+                }
+            }
         } else if (retval == SOLVER_INVALID_STATE_ERROR) {
             // if we get into here the most likely cause is a very low voltage bus
             const StateData stateDataValue(timeActual, dynData->stateData(), dynData->derivData());
@@ -803,6 +865,9 @@ int GridDynSimulation::generateDaeDynamicInitialConditions(const SolverMode& sMo
                  0.05);
         retval =
             dynData->calcIC(currentTime, probeStepTime, SolverInterface::IcModes::FIXED_DIFF, true);
+    }
+    if ((retval < FUNCTION_EXECUTION_SUCCESS) && dynData->getFlag("ida_ic_stop_on_failure")) {
+        return retval;
     }
     if (retval == FUNCTION_EXECUTION_SUCCESS) {
         retval = checkAlgebraicRoots(dynData);

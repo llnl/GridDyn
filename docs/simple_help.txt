@@ -37,6 +37,10 @@ constraints_disabled:  disable all constraint handling (constraints not used yet
 record_on_halt:  tell all recorders to capture a value on a IDA stop for any reason
 voltage_constraints:  activate voltage constraints for all voltages
 roots_disabled:  disable all root finding
+strict_governor_limits:  reject an initialized governor output above its upper limit; by default GridDyn raises that upper limit and emits a warning
+strict_exciter_limits:  reject an initialized exciter output above its upper limit; by default GridDyn raises that upper limit and emits a warning
+    ida_initial_condition_diagnostics:  report bounded residual/Jacobian diagnostics when IDA initial-condition correction fails
+    ida_ic_stop_on_failure:  stop after the first failed IDA initial-condition correction instead of entering recovery heuristics
 
 Parameters
 tolerance <val>  set a global relative tolerance level  (this will be updated soon)
@@ -44,6 +48,8 @@ idaprintlevel <val>  set the print levels
 <flagname> <val>  val>0 for setting , val<0 for deactivating any of the above flags
 solution_mode <solution_type>  one of dcflow, powerflow, iteratedpowerflow, contingency, steppedp, stepped, dynamic, dynamiccontingency
 flags <comma separated flagnames>  (no spaces)  -P flags=flag1,flag2,flag3
+  strict_governor_limits (alias strictgovernorlimits) enables strict validation of initialized governor upper limits; it can also be passed with -f/--flags
+  strict_exciter_limits (alias strictexciterlimits) enables strict validation of initialized exciter upper limits; it can also be passed with -f/--flags
 recorddirectory <directory>  directory to store the recorder output files
 logfile <logfilename>  file to save the logs to (not really used yet)
 statefile <statefilename>  file to save periodic complete states

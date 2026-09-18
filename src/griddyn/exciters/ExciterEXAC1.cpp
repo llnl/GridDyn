@@ -26,9 +26,16 @@ namespace {
     constexpr index_t exciterState = 3;
     constexpr index_t washoutState = 4;
     constexpr double limitTolerance = 1e-7;
-    index_t stateIndex(index_t fullIndex, bool hasVoltageTransducer)
+    index_t stateIndex(index_t fullIndex, bool hasVoltageTransducer, bool hasLeadLag)
     {
-        return hasVoltageTransducer ? fullIndex : fullIndex - 1;
+        index_t index = fullIndex;
+        if (!hasVoltageTransducer && (fullIndex > voltageMeasurementState)) {
+            --index;
+        }
+        if (!hasLeadLag && (fullIndex > leadLagState)) {
+            --index;
+        }
+        return index;
     }
 }  // namespace
 
@@ -61,19 +68,32 @@ CoreObject* ExciterEXAC1::clone(CoreObject* obj) const
     clone->E2 = E2;
     clone->Se2 = Se2;
     clone->saturation = saturation;
+    clone->leadLag = leadLag;
     return clone;
 }
 
-void ExciterEXAC1::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
+bool ExciterEXAC1::hasLeadLag() const
 {
+    return Tb > 0.0;
+}
+
+void ExciterEXAC1::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t flags)
+{
+    setInitialLimitPolicy(flags);
     if (!std::isfinite(Tr) || !std::isfinite(Tb) || !std::isfinite(Tc) || !std::isfinite(Ka) ||
         !std::isfinite(Ta) || !std::isfinite(Vrmax) || !std::isfinite(Vrmin) ||
         !std::isfinite(Te) || !std::isfinite(Kf) || !std::isfinite(Tf) || !std::isfinite(Kc) ||
         !std::isfinite(Kd) || !std::isfinite(Ke) || !std::isfinite(E1) || !std::isfinite(Se1) ||
-        !std::isfinite(E2) || !std::isfinite(Se2) || (Tr < 0.0) || (Tb <= 0.0) || (Ta <= 0.0) ||
+        !std::isfinite(E2) || !std::isfinite(Se2) || (Tr < 0.0) || (Tb < 0.0) || (Ta <= 0.0) ||
         (Te <= 0.0) || (Tf <= 0.0) || (Ka <= 0.0) || (Vrmax < Vrmin) ||
         (regulatorUpperLimit() < regulatorLowerLimit())) {
         throw InvalidParameterValue("EXAC1 gains, time constants, or limits");
+    }
+    if (!hasLeadLag() && (Tc != 0.0)) {
+        throw InvalidParameterValue("EXAC1 requires TC to be zero when TB is zero");
+    }
+    if (hasLeadLag()) {
+        leadLag.setParameters(Tc, Tb);
     }
     // ANDES disables ExcQuadSat when SE2 is zero.  Saturation::QUADRATIC
     // intentionally does not infer that convention, because its generic
@@ -81,15 +101,25 @@ void ExciterEXAC1::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flag
     if (Se2 == 0.0) {
         saturation.setType(utilities::Saturation::SaturationType::NONE);
     } else {
-        if ((E1 <= 0.0) || (E2 <= 0.0) || (Se1 <= 0.0) || (Se2 <= 0.0)) {
+        if ((E1 <= 0.0) || (E2 <= 0.0) || (Se1 < 0.0) || (Se2 <= 0.0)) {
             throw InvalidParameterValue("EXAC1 enabled saturation points");
         }
-        saturation.setType(utilities::Saturation::SaturationType::QUADRATIC);
+        if (Se1 == 0.0) {
+            if (E2 <= E1) {
+                throw InvalidParameterValue(
+                    "EXAC1 zero-first saturation requires E2 greater than E1");
+            }
+            // A zero first saturation point is a cutoff curve: saturation
+            // remains zero through E1 and rises to the second specified point.
+            saturation.setType(utilities::Saturation::SaturationType::CUTOFF_QUADRATIC);
+        } else {
+            saturation.setType(utilities::Saturation::SaturationType::QUADRATIC);
+        }
         saturation.setParam(E1, E1 * Se1, E2, E2 * Se2);
     }
     const bool hasVoltageTransducer = (Tr > 0.0);
     offsets.local().local.algSize = 1;
-    offsets.local().local.diffSize = hasVoltageTransducer ? 5 : 4;
+    offsets.local().local.diffSize = (hasVoltageTransducer ? 1 : 0) + (hasLeadLag() ? 1 : 0) + 3;
     offsets.local().local.algRoots = 1;
     offsets.local().local.jacSize = 34;
 }
@@ -132,21 +162,26 @@ void ExciterEXAC1::dynObjectInitializeB(const IOdata& inputs,
             "EXAC1 initial field voltage is incompatible with rectifier loading");
     }
     const bool hasVoltageTransducer = (Tr > 0.0);
+    const bool leadLagEnabled = hasLeadLag();
     double* state = m_state.data() + 1;
     if (hasVoltageTransducer) {
         state[voltageMeasurementState] = voltage;
     }
-    const auto regulatorIndex = stateIndex(regulatorState, hasVoltageTransducer);
-    const auto exciterIndex = stateIndex(exciterState, hasVoltageTransducer);
-    const auto washoutIndex = stateIndex(washoutState, hasVoltageTransducer);
+    const auto regulatorIndex = stateIndex(regulatorState, hasVoltageTransducer, leadLagEnabled);
+    const auto exciterIndex = stateIndex(exciterState, hasVoltageTransducer, leadLagEnabled);
+    const auto washoutIndex = stateIndex(washoutState, hasVoltageTransducer, leadLagEnabled);
     state[exciterIndex] = exciterVoltage;
     state[washoutIndex] = vfe(inputs, state);
     state[regulatorIndex] = initialRegulatorState(state[washoutIndex]);
-    if ((state[regulatorIndex] < regulatorLowerLimit() - limitTolerance) ||
-        (state[regulatorIndex] > regulatorUpperLimit() + limitTolerance)) {
-        throw InvalidParameterValue("EXAC1 initial regulator output outside limits");
+    if (state[regulatorIndex] < regulatorLowerLimit() - limitTolerance) {
+        throw InvalidParameterValue("EXAC1 initial regulator output below lower limit");
     }
-    state[stateIndex(leadLagState, hasVoltageTransducer)] = state[regulatorIndex] / Ka;
+    if (!adjustRegulatorInitialUpperLimit(state[regulatorIndex])) {
+        throw InvalidParameterValue("EXAC1 initial regulator output outside upper limit");
+    }
+    if (leadLagEnabled) {
+        state[stateIndex(leadLagState, hasVoltageTransducer, true)] = state[regulatorIndex] / Ka;
+    }
     m_state[0] = fieldVoltage;
     const double setpointInput = inputs[exciterVsetInLocation] - 1.0;
     vBias = voltage + referenceOffset(state[washoutIndex]) - Vref - setpointInput -
@@ -156,6 +191,11 @@ void ExciterEXAC1::dynObjectInitializeB(const IOdata& inputs,
     updateLimitFlags(state);
 }
 
+bool ExciterEXAC1::adjustRegulatorInitialUpperLimit(double initialValue)
+{
+    return adjustInitialUpperLimit(initialValue, Vrmax, "EXAC1 initial regulator output");
+}
+
 double ExciterEXAC1::referenceInput(const IOdata& inputs) const
 {
     return Vref + vBias + inputs[exciterVsetInLocation] - 1.0 + inputs[exciterVssInLocation];
@@ -163,7 +203,7 @@ double ExciterEXAC1::referenceInput(const IOdata& inputs) const
 
 double ExciterEXAC1::vfe(const IOdata& inputs, const double state[]) const
 {
-    const auto exciterIndex = stateIndex(exciterState, Tr > 0.0);
+    const auto exciterIndex = stateIndex(exciterState, Tr > 0.0, hasLeadLag());
     const double fieldFeedback = Ke * state[exciterIndex] + saturation(state[exciterIndex]);
     return (Kd == 0.0) ? fieldFeedback : fieldFeedback + Kd * inputs[exciterXadIfdInLocation];
 }
@@ -181,13 +221,13 @@ double ExciterEXAC1::rectifierFactor(const IOdata& inputs, double exciterVoltage
 
 double ExciterEXAC1::fieldVoltage(const IOdata& inputs, const double state[]) const
 {
-    const auto exciterIndex = stateIndex(exciterState, Tr > 0.0);
+    const auto exciterIndex = stateIndex(exciterState, Tr > 0.0, hasLeadLag());
     return state[exciterIndex] * rectifierFactor(inputs, state[exciterIndex]);
 }
 
 double ExciterEXAC1::regulatorTarget(const IOdata& /*inputs*/, const double state[]) const
 {
-    return state[stateIndex(regulatorState, Tr > 0.0)];
+    return state[stateIndex(regulatorState, Tr > 0.0, hasLeadLag())];
 }
 
 double ExciterEXAC1::regulatorUpperLimit() const
@@ -220,7 +260,7 @@ void ExciterEXAC1::regulatorTargetDerivatives(const IOdata& /*inputs*/,
 
 int ExciterEXAC1::regulatorLimitStatus(const double state[]) const
 {
-    const auto regulatorIndex = stateIndex(regulatorState, Tr > 0.0);
+    const auto regulatorIndex = stateIndex(regulatorState, Tr > 0.0, hasLeadLag());
     if (state[regulatorIndex] >= regulatorUpperLimit()) {
         return 1;
     }
@@ -267,23 +307,28 @@ void ExciterEXAC1::derivative(const IOdata& inputs,
     const double* state = locations.diffStateLoc;
     double* derivativeValues = locations.destDiffLoc;
     const bool hasVoltageTransducer = (Tr > 0.0);
-    const auto leadLagIndex = stateIndex(leadLagState, hasVoltageTransducer);
-    const auto regulatorIndex = stateIndex(regulatorState, hasVoltageTransducer);
-    const auto exciterIndex = stateIndex(exciterState, hasVoltageTransducer);
-    const auto washoutIndex = stateIndex(washoutState, hasVoltageTransducer);
+    const bool leadLagEnabled = hasLeadLag();
+    const auto regulatorIndex = stateIndex(regulatorState, hasVoltageTransducer, leadLagEnabled);
+    const auto exciterIndex = stateIndex(exciterState, hasVoltageTransducer, leadLagEnabled);
+    const auto washoutIndex = stateIndex(washoutState, hasVoltageTransducer, leadLagEnabled);
     const double measuredVoltage =
         hasVoltageTransducer ? state[voltageMeasurementState] : inputs[exciterVoltageInLocation];
     const double fieldFeedback = vfe(inputs, state);
     const double input =
         referenceInput(inputs) - measuredVoltage - Kf * (fieldFeedback - state[washoutIndex]) / Tf;
-    const double leadOutput = state[leadLagIndex] + Tc * (input - state[leadLagIndex]) / Tb;
+    const double leadOutput = leadLagEnabled ?
+        leadLag.output(input, state[stateIndex(leadLagState, hasVoltageTransducer, true)]) :
+        input;
     const double regulatorDerivative = (Ka * leadOutput - state[regulatorIndex]) / Ta;
     const int status = regulatorLimitStatus(state);
     if (hasVoltageTransducer) {
         derivativeValues[voltageMeasurementState] =
             (inputs[exciterVoltageInLocation] - state[voltageMeasurementState]) / Tr;
     }
-    derivativeValues[leadLagIndex] = (input - state[leadLagIndex]) / Tb;
+    if (leadLagEnabled) {
+        const auto leadLagIndex = stateIndex(leadLagState, hasVoltageTransducer, true);
+        derivativeValues[leadLagIndex] = leadLag.derivative(input, state[leadLagIndex]);
+    }
     derivativeValues[regulatorIndex] = ((status > 0) && (regulatorDerivative > 0.0)) ||
             ((status < 0) && (regulatorDerivative < 0.0)) ?
         0.0 :
@@ -303,10 +348,11 @@ void ExciterEXAC1::jacobianElements(const IOdata& inputs,
     const index_t diffOffset = locations.diffOffset;
     const double* state = locations.diffStateLoc;
     const bool hasVoltageTransducer = (Tr > 0.0);
-    const auto leadLagIndex = stateIndex(leadLagState, hasVoltageTransducer);
-    const auto regulatorIndex = stateIndex(regulatorState, hasVoltageTransducer);
-    const auto exciterIndex = stateIndex(exciterState, hasVoltageTransducer);
-    const auto washoutIndex = stateIndex(washoutState, hasVoltageTransducer);
+    const bool leadLagEnabled = hasLeadLag();
+    const auto leadLagIndex = stateIndex(leadLagState, hasVoltageTransducer, true);
+    const auto regulatorIndex = stateIndex(regulatorState, hasVoltageTransducer, leadLagEnabled);
+    const auto exciterIndex = stateIndex(exciterState, hasVoltageTransducer, leadLagEnabled);
+    const auto washoutIndex = stateIndex(washoutState, hasVoltageTransducer, leadLagEnabled);
     const double exciterVoltage = state[exciterIndex];
     const double normalizedCurrent =
         (exciterVoltage != 0.0) ? Kc * inputs[exciterXadIfdInLocation] / exciterVoltage : 0.0;
@@ -327,18 +373,14 @@ void ExciterEXAC1::jacobianElements(const IOdata& inputs,
     }
     const double saturationSlope = Ke + saturation.deriv(exciterVoltage);
     const double feedbackGain = Kf / Tf;
-    const double leadRatio = Tc / Tb;
     const double measuredVoltage =
         hasVoltageTransducer ? state[voltageMeasurementState] : inputs[exciterVoltageInLocation];
-    const double regulatorDerivative =
-        (Ka *
-             (state[leadLagIndex] +
-              leadRatio *
-                  (referenceInput(inputs) - measuredVoltage -
-                   feedbackGain * (vfe(inputs, state) - state[washoutIndex]) -
-                   state[leadLagIndex])) -
-         state[regulatorIndex]) /
-        Ta;
+    const double input = referenceInput(inputs) - measuredVoltage -
+        feedbackGain * (vfe(inputs, state) - state[washoutIndex]);
+    const double leadInputGain = leadLagEnabled ? leadLag.outputInputJacobian() : 1.0;
+    const double leadStateGain = leadLagEnabled ? leadLag.outputStateJacobian() : 0.0;
+    const double leadOutput = leadLagEnabled ? leadLag.output(input, state[leadLagIndex]) : input;
+    const double regulatorDerivative = (Ka * leadOutput - state[regulatorIndex]) / Ta;
     const int status = regulatorLimitStatus(state);
     const bool frozen = ((status > 0) && (regulatorDerivative > 0.0)) ||
         ((status < 0) && (regulatorDerivative < 0.0));
@@ -350,28 +392,37 @@ void ExciterEXAC1::jacobianElements(const IOdata& inputs,
         matrixData.assignCheckCol(diffOffset + voltageMeasurementState,
                                   inputLocs[exciterVoltageInLocation],
                                   1.0 / Tr);
-        matrixData.assign(diffOffset + leadLagIndex,
-                          diffOffset + voltageMeasurementState,
-                          -1.0 / Tb);
-    } else {
-        matrixData.assignCheckCol(diffOffset + leadLagIndex,
-                                  inputLocs[exciterVoltageInLocation],
-                                  -1.0 / Tb);
     }
-    matrixData.assign(diffOffset + leadLagIndex,
-                      diffOffset + leadLagIndex,
-                      -1.0 / Tb - stateData.cj);
-    matrixData.assign(diffOffset + leadLagIndex,
-                      diffOffset + exciterIndex,
-                      -feedbackGain * saturationSlope / Tb);
-    matrixData.assign(diffOffset + leadLagIndex, diffOffset + washoutIndex, feedbackGain / Tb);
-    matrixData.assignCheckCol(diffOffset + leadLagIndex,
-                              inputLocs[exciterVsetInLocation],
-                              1.0 / Tb);
-    matrixData.assignCheckCol(diffOffset + leadLagIndex, inputLocs[exciterVssInLocation], 1.0 / Tb);
-    matrixData.assignCheckCol(diffOffset + leadLagIndex,
-                              inputLocs[exciterXadIfdInLocation],
-                              -feedbackGain * Kd / Tb);
+    if (leadLagEnabled) {
+        const double leadLagInputGain = leadLag.derivativeInputJacobian();
+        if (hasVoltageTransducer) {
+            matrixData.assign(diffOffset + leadLagIndex,
+                              diffOffset + voltageMeasurementState,
+                              -leadLagInputGain);
+        } else {
+            matrixData.assignCheckCol(diffOffset + leadLagIndex,
+                                      inputLocs[exciterVoltageInLocation],
+                                      -leadLagInputGain);
+        }
+        matrixData.assign(diffOffset + leadLagIndex,
+                          diffOffset + leadLagIndex,
+                          leadLag.derivativeStateJacobian() - stateData.cj);
+        matrixData.assign(diffOffset + leadLagIndex,
+                          diffOffset + exciterIndex,
+                          -feedbackGain * saturationSlope * leadLagInputGain);
+        matrixData.assign(diffOffset + leadLagIndex,
+                          diffOffset + washoutIndex,
+                          feedbackGain * leadLagInputGain);
+        matrixData.assignCheckCol(diffOffset + leadLagIndex,
+                                  inputLocs[exciterVsetInLocation],
+                                  leadLagInputGain);
+        matrixData.assignCheckCol(diffOffset + leadLagIndex,
+                                  inputLocs[exciterVssInLocation],
+                                  leadLagInputGain);
+        matrixData.assignCheckCol(diffOffset + leadLagIndex,
+                                  inputLocs[exciterXadIfdInLocation],
+                                  -feedbackGain * Kd * leadLagInputGain);
+    }
 
     if (frozen) {
         matrixData.assign(diffOffset + regulatorIndex, diffOffset + regulatorIndex, -stateData.cj);
@@ -379,33 +430,35 @@ void ExciterEXAC1::jacobianElements(const IOdata& inputs,
         if (hasVoltageTransducer) {
             matrixData.assign(diffOffset + regulatorIndex,
                               diffOffset + voltageMeasurementState,
-                              -Ka * leadRatio / Ta);
+                              -Ka * leadInputGain / Ta);
         } else {
             matrixData.assignCheckCol(diffOffset + regulatorIndex,
                                       inputLocs[exciterVoltageInLocation],
-                                      -Ka * leadRatio / Ta);
+                                      -Ka * leadInputGain / Ta);
         }
-        matrixData.assign(diffOffset + regulatorIndex,
-                          diffOffset + leadLagIndex,
-                          Ka * (1.0 - leadRatio) / Ta);
+        if (leadLagEnabled) {
+            matrixData.assign(diffOffset + regulatorIndex,
+                              diffOffset + leadLagIndex,
+                              Ka * leadStateGain / Ta);
+        }
         matrixData.assign(diffOffset + regulatorIndex,
                           diffOffset + regulatorIndex,
                           -1.0 / Ta - stateData.cj);
         matrixData.assign(diffOffset + regulatorIndex,
                           diffOffset + exciterIndex,
-                          -Ka * leadRatio * feedbackGain * saturationSlope / Ta);
+                          -Ka * leadInputGain * feedbackGain * saturationSlope / Ta);
         matrixData.assign(diffOffset + regulatorIndex,
                           diffOffset + washoutIndex,
-                          Ka * leadRatio * feedbackGain / Ta);
+                          Ka * leadInputGain * feedbackGain / Ta);
         matrixData.assignCheckCol(diffOffset + regulatorIndex,
                                   inputLocs[exciterVsetInLocation],
-                                  Ka * leadRatio / Ta);
+                                  Ka * leadInputGain / Ta);
         matrixData.assignCheckCol(diffOffset + regulatorIndex,
                                   inputLocs[exciterVssInLocation],
-                                  Ka * leadRatio / Ta);
+                                  Ka * leadInputGain / Ta);
         matrixData.assignCheckCol(diffOffset + regulatorIndex,
                                   inputLocs[exciterXadIfdInLocation],
-                                  -Ka * leadRatio * feedbackGain * Kd / Ta);
+                                  -Ka * leadInputGain * feedbackGain * Kd / Ta);
     }
 
     double regulatorGain = 0.0;
@@ -449,7 +502,8 @@ void ExciterEXAC1::rootTest(const IOdata& /*inputs*/,
 {
     const auto locations = offsets.getLocations(stateData, sMode, this);
     const index_t rootOffset = offsets.getRootOffset(sMode);
-    const double regulator = locations.diffStateLoc[stateIndex(regulatorState, Tr > 0.0)];
+    const double regulator =
+        locations.diffStateLoc[stateIndex(regulatorState, Tr > 0.0, hasLeadLag())];
     roots[rootOffset] =
         std::min(regulatorUpperLimit() - regulator, regulator - regulatorLowerLimit());
 }
@@ -505,7 +559,7 @@ void ExciterEXAC1::set(std::string_view param, double val, units::unit unitType)
         nonnegative("TR");
         Tr = val;
     } else if (param == "tb") {
-        positive("TB");
+        nonnegative("TB");
         Tb = val;
     } else if (param == "tc") {
         finite("TC");
@@ -603,8 +657,17 @@ double ExciterEXAC1::get(std::string_view param, units::unit unitType) const
 
 stringVec ExciterEXAC1::localStateNames() const
 {
-    return (Tr > 0.0) ? stringVec{"efd", "vmeas", "ll", "va", "ve", "wf"} :
-                        stringVec{"efd", "ll", "va", "ve", "wf"};
+    stringVec names{"efd"};
+    if (Tr > 0.0) {
+        names.emplace_back("vmeas");
+    }
+    if (hasLeadLag()) {
+        names.emplace_back("ll");
+    }
+    names.emplace_back("va");
+    names.emplace_back("ve");
+    names.emplace_back("wf");
+    return names;
 }
 
 index_t ExciterEXAC1::findIndex(std::string_view field, const SolverMode& sMode) const
@@ -617,16 +680,17 @@ index_t ExciterEXAC1::findIndex(std::string_view field, const SolverMode& sMode)
         return (Tr > 0.0) ? offset + voltageMeasurementState : kInvalidLocation;
     }
     if ((field == "ll") || (field == "leadlag")) {
-        return offset + stateIndex(leadLagState, Tr > 0.0);
+        return hasLeadLag() ? offset + stateIndex(leadLagState, Tr > 0.0, true) :
+                              kInvalidLocation;
     }
     if ((field == "va") || (field == "regulator")) {
-        return offset + stateIndex(regulatorState, Tr > 0.0);
+        return offset + stateIndex(regulatorState, Tr > 0.0, hasLeadLag());
     }
     if ((field == "ve") || (field == "exciter")) {
-        return offset + stateIndex(exciterState, Tr > 0.0);
+        return offset + stateIndex(exciterState, Tr > 0.0, hasLeadLag());
     }
     if ((field == "wf") || (field == "washout")) {
-        return offset + stateIndex(washoutState, Tr > 0.0);
+        return offset + stateIndex(washoutState, Tr > 0.0, hasLeadLag());
     }
     return kInvalidLocation;
 }

@@ -21,6 +21,7 @@ namespace griddyn::governors {
 // NOLINTBEGIN(readability-math-missing-parentheses)
 namespace {
     constexpr double initializationTolerance = 1e-7;
+    constexpr double positionLimitTolerance = 1e-7;
 }
 
 GovernorIeeeG1::GovernorIeeeG1(const std::string& objName): Governor(objName)
@@ -54,8 +55,9 @@ CoreObject* GovernorIeeeG1::clone(CoreObject* obj) const
     return governorClone;
 }
 
-void GovernorIeeeG1::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
+void GovernorIeeeG1::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
+    setInitialLimitPolicy(flags);
     const double fractionSum = std::accumulate(powerFraction.begin(), powerFraction.end(), 0.0);
     if ((Pmax < Pmin) || !std::isfinite(fractionSum) || (fractionSum <= 0.0)) {
         throw InvalidParameterValue("IEEEG1 limits or power fractions");
@@ -82,7 +84,7 @@ void GovernorIeeeG1::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*
     opFlags.reset(POWER_LIMIT_HIGH);
 }
 
-void GovernorIeeeG1::dynObjectInitializeB(const IOdata& /*inputs*/,
+void GovernorIeeeG1::dynObjectInitializeB(const IOdata& inputs,
                                           const IOdata& desiredOutput,
                                           IOdata& fieldSet)
 {
@@ -96,6 +98,10 @@ void GovernorIeeeG1::dynObjectInitializeB(const IOdata& /*inputs*/,
 
     fieldSet.resize(2);
     fieldSet[govpSetInLocation] = Pset;
+    // Keep an accepted initial PMAX/PMIN operating point on the active
+    // position-limiter branch.  This lets rootTest apply its release-side
+    // hysteresis before IDA's first root evaluation.
+    updateLimitFlags(inputs, m_state.data() + offsets.getDiffOffset(cLocalSolverMode));
 }
 
 bool GovernorIeeeG1::setOutputInitializationTarget(index_t outputIndex, double target)
@@ -151,7 +157,7 @@ void GovernorIeeeG1::initializeStatesFromTargets()
     addTarget(hpOutput, hpFraction);
     addTarget(lpOutput, lpFraction);
     if (!totalSet || (totalPower < Pmin - initializationTolerance) ||
-        (totalPower > Pmax + initializationTolerance)) {
+        !adjustInitialUpperLimit(totalPower, "IEEEG1 initial valve position")) {
         throw InvalidParameterValue("IEEEG1 initial valve position outside limits");
     }
 
@@ -431,13 +437,27 @@ void GovernorIeeeG1::rootTest(const IOdata& inputs,
 
     const double limitedRate = limitedValveRate(inputs, state);
     if (opFlags[POWER_LIMITED]) {
-        roots[rootOffset + 1] = opFlags[POWER_LIMIT_HIGH] ? limitedRate : -limitedRate;
+        // Offset the release root into the active limiter region so an
+        // equilibrium exactly at Pmax/Pmin does not retrigger on every IDA
+        // restart.  The root returns when the limited rate points back into
+        // the admissible position range.
+        roots[rootOffset + 1] = opFlags[POWER_LIMIT_HIGH] ?
+            -limitedRate - (2.0 * positionLimitTolerance) :
+            limitedRate - (2.0 * positionLimitTolerance);
+    } else if (((state[valveState] >= (Pmax - positionLimitTolerance)) &&
+                (limitedRate < 0.0)) ||
+               ((state[valveState] <= (Pmin + positionLimitTolerance)) &&
+                (limitedRate > 0.0))) {
+        // A state exactly on a bound with an inward rate is not a limiter
+        // event.  Avoid presenting its geometric distance as an exact zero
+        // root to IDA.
+        roots[rootOffset + 1] = positionLimitTolerance;
     } else {
         roots[rootOffset + 1] = std::min(Pmax - state[valveState], state[valveState] - Pmin);
     }
 }
 
-void GovernorIeeeG1::rootTrigger(CoreTime /*time*/,
+void GovernorIeeeG1::rootTrigger(CoreTime time,
                                  const IOdata& inputs,
                                  const std::vector<int>& rootMask,
                                  const SolverMode& sMode)
@@ -452,8 +472,14 @@ void GovernorIeeeG1::rootTrigger(CoreTime /*time*/,
     } else if (state[valveState] <= Pmin) {
         state[valveState] = Pmin;
     }
-    if (updateLimitFlags(inputs, state)) {
+    const bool changed = updateLimitFlags(inputs, state);
+    if (changed) {
         alert(this, JAC_COUNT_CHANGE);
+        // The valve derivative depends on the active position limiter.  IDA
+        // must receive a derivative consistent with the branch selected at
+        // the root before it starts the next interval.
+        const StateData stateData(time, m_state.data());
+        derivative(inputs, stateData, m_dstate_dt.data(), cLocalSolverMode);
     }
 }
 

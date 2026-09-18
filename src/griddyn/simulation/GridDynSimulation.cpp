@@ -974,6 +974,18 @@ static const std::unordered_map<std::string, int>& getFlagControlMap()
         {"NO_POWERFLOW_ERROR_RECOVERY", NO_POWERFLOW_ERROR_RECOVERY},
         {"dae_initialization_for_partitioned", DAE_INITIALIZATION_FOR_PARTITIONED},
         {"DAE_INITIALIZATION_FOR_PARTITIONED", DAE_INITIALIZATION_FOR_PARTITIONED},
+        {"strict_governor_limits", STRICT_GOVERNOR_LIMITS},
+        {"strictgovernorlimits", STRICT_GOVERNOR_LIMITS},
+        {"strict_exciter_limits", STRICT_EXCITER_LIMITS},
+        {"strictexciterlimits", STRICT_EXCITER_LIMITS},
+        {"ida_initial_condition_diagnostics", IDA_INITIAL_CONDITION_DIAGNOSTICS},
+        {"idainitialconditiondiagnostics", IDA_INITIAL_CONDITION_DIAGNOSTICS},
+        {"ida_ic_diagnostics", IDA_INITIAL_CONDITION_DIAGNOSTICS},
+        {"ida_initial_condition_stop_on_failure", IDA_INITIAL_CONDITION_STOP_ON_FAILURE},
+        {"idainitialconditionstoponfailure", IDA_INITIAL_CONDITION_STOP_ON_FAILURE},
+        {"ida_ic_stop_on_failure", IDA_INITIAL_CONDITION_STOP_ON_FAILURE},
+        {"ida_integration_diagnostics", IDA_INTEGRATION_DIAGNOSTICS_FLAG},
+        {"ida_integration_trace", IDA_INTEGRATION_DIAGNOSTICS_FLAG},
         {"force_powerflow", FORCE_EXTRA_POWERFLOW},
         {"force_extra_powerflow", FORCE_EXTRA_POWERFLOW},
         {"FORCE_EXTRA_POWERFLOW", FORCE_EXTRA_POWERFLOW},
@@ -1536,6 +1548,12 @@ std::shared_ptr<SolverInterface> GridDynSimulation::updateSolver(const SolverMod
         solverData->set("dense", 1.0);
     }
     solverData->set("tolerance", tols.rtol);
+    solverData->setFlag("ida_ic_diagnostics",
+                        controlFlags[IDA_INITIAL_CONDITION_DIAGNOSTICS]);
+    solverData->setFlag("ida_ic_stop_on_failure",
+                        controlFlags[IDA_INITIAL_CONDITION_STOP_ON_FAILURE]);
+    solverData->setFlag("ida_integration_diagnostics",
+                        controlFlags[IDA_INTEGRATION_DIAGNOSTICS_FLAG]);
     if ((pState >= GridState::INITIALIZED) && (!isDynamic(solverModeValue))) {
         const auto stateCount = stateSize(solverModeValue);
         solverData->allocate(stateCount, rootSize(solverModeValue));

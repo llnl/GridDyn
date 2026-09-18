@@ -26,6 +26,9 @@ namespace griddyn::exciters {
  * blocked at each bound. OpenIPSL supplies the governing equations; ANDES
  * supplies an independent native implementation and the PSS/E DYR field
  * order.
+ * A zero TR bypasses the terminal-voltage measurement state, and a zero TA
+ * bypasses the regulator-lag state. Both bypasses are structural, so
+ * the corresponding differential state is omitted.
  *
  * @note GridDyn currently has no routed UEL/OEL inputs. Their normal inactive
  * values are used; VOTHSG is supplied through the standard VSS input.

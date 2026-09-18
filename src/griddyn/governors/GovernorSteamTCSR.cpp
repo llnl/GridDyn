@@ -70,7 +70,7 @@ void GovernorSteamTCSR::dynObjectInitializeB(const IOdata& /*inputs*/,
     }
     const double power = desiredOutput[outputState];
     const double stagePower = power / (Fch + Fip + Flp);
-    if ((stagePower < Pmin) || (stagePower > Pmax)) {
+    if ((stagePower < Pmin) || !adjustInitialUpperLimit(stagePower, "SteamTCSR initial valve")) {
         throw InvalidParameterValue("SteamTCSR initial valve outside limits");
     }
     const auto algOffset = offsets.getAlgOffset(cLocalSolverMode);

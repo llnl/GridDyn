@@ -50,8 +50,9 @@ CoreObject* GovernorHydro::clone(CoreObject* obj) const
 
 GovernorHydro::~GovernorHydro() = default;
 
-void GovernorHydro::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
+void GovernorHydro::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
+    setInitialLimitPolicy(flags);
     if (!std::isfinite(K) || !std::isfinite(T1) || !std::isfinite(T2) || !std::isfinite(T3) ||
         !std::isfinite(Tw) || !std::isfinite(Pmax) || !std::isfinite(Pmin) || (T1 <= 0.0) ||
         (T3 <= 0.0) || (Tw <= 0.0) || (Pmax < Pmin)) {
@@ -74,7 +75,7 @@ void GovernorHydro::dynObjectInitializeB(const IOdata& /*inputs*/,
         throw InvalidParameterValue("hydro governor initial output");
     }
     const double power = desiredOutput[outputState];
-    if ((power < Pmin) || (power > Pmax)) {
+    if ((power < Pmin) || !adjustInitialUpperLimit(power, "hydro governor initial gate")) {
         throw InvalidParameterValue("hydro governor initial gate outside limits");
     }
     Pset = power;

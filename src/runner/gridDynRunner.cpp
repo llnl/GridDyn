@@ -530,7 +530,8 @@ std::shared_ptr<CLI::App>
     ptr->add_option("--param,-P",
                     loadParamString,
                     "override simulation file parameters --param ParamName=<val>")
-        ->delimiter(',');
+        ->delimiter(',')
+        ->type_size(-1);
 
     ptr->add_option("--event", "add event after all input files")
         ->type_size(-1)

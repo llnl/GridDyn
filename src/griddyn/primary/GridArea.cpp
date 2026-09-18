@@ -1773,6 +1773,63 @@ void GridArea::setRootOffset(index_t rootOffset, const SolverMode& sMode)
     }
 }
 
+void GridArea::getRootObjectNames(stringVec& rootNames, const SolverMode& sMode) const
+{
+    rootNames.assign(rootSize(sMode), {});
+
+    const auto setName = [&rootNames](index_t rootIndex, const std::string& rootName) {
+        if ((rootIndex >= 0) && (static_cast<size_t>(rootIndex) < rootNames.size())) {
+            rootNames[static_cast<size_t>(rootIndex)] = rootName;
+        }
+    };
+
+    // Root offsets are assigned in the same order as the root evaluation:
+    // local roots first, followed by roots of subobjects.  Areas keep their
+    // root-bearing primary objects in a separate list, so recurse through
+    // that list when the object is an area and through GridComponent's
+    // subobject list otherwise.
+    const auto appendNames = [&setName](const auto& self,
+                                         const GridComponent* object) -> void {
+        const auto& objectOffsets = object->getOffsets(cDaeSolverMode);
+        const auto objectRootOffset = objectOffsets.rootOffset;
+        const auto objectPath = fullObjectName(object);
+        for (count_t root = 0; root < objectOffsets.local.algRoots; ++root) {
+            setName(objectRootOffset + static_cast<index_t>(root),
+                    objectPath + " (local algebraic root " + std::to_string(root) + ")");
+        }
+        for (count_t root = 0; root < objectOffsets.local.diffRoots; ++root) {
+            setName(objectRootOffset + static_cast<index_t>(objectOffsets.local.algRoots + root),
+                    objectPath + " (local differential root " + std::to_string(root) + ")");
+        }
+
+        if (const auto* area = dynamic_cast<const GridArea*>(object)) {
+            for (const auto* rootObject : area->rootObjects) {
+                self(self, rootObject);
+            }
+        } else {
+            for (const auto* subobject : object->getSubObjects()) {
+                if (subobject->isEnabled() && (subobject->rootSize(cDaeSolverMode) > 0)) {
+                    self(self, subobject);
+                }
+            }
+        }
+    };
+
+    const auto& localCounts = offsets.getOffsets(sMode).local;
+    const auto localRootOffset = offsets.getRootOffset(sMode);
+    for (count_t root = 0; root < localCounts.algRoots; ++root) {
+        setName(localRootOffset + static_cast<index_t>(root),
+                fullObjectName(this) + " (local algebraic root " + std::to_string(root) + ")");
+    }
+    for (count_t root = 0; root < localCounts.diffRoots; ++root) {
+        setName(localRootOffset + static_cast<index_t>(localCounts.algRoots + root),
+                fullObjectName(this) + " (local differential root " + std::to_string(root) + ")");
+    }
+    for (const auto* rootObject : rootObjects) {
+        appendNames(appendNames, rootObject);
+    }
+}
+
 double GridArea::getTieFlowReal() const
 {
     return (getGenerationReal() - getLoadReal() - getLoss());

@@ -790,7 +790,9 @@ TEST(GovernorModelTests, Ggov1FactoryTracksInactiveLoadLimiterAndValidatesDelay)
     governor->dynInitializeB(inputs, {0.8}, fieldSet);
     const auto& initialized = governor->getStates();
     ASSERT_EQ(initialized.size(), 11U);
-    EXPECT_NEAR(initialized[9], 0.2, 1e-12);
+    // Leave the inactive temperature selector just above the dispatch so the
+    // low-value selector starts in a smooth regime for Jacobian evaluation.
+    EXPECT_NEAR(initialized[9], 0.200001, 1e-12);
     std::vector<double> residual(governor->getStates().size(), 0.0);
     governor->residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
     for (double value : residual) {

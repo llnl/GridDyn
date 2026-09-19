@@ -532,10 +532,12 @@ void IdaInterface::logInitialConditionDiagnostics(
     for (count_t entryIndex = 0; entryIndex < entryCount; ++entryIndex) {
         const auto& entry = entries[entryIndex];
         const auto stateName =
-            (entry.index < stateNames.size()) ? stateNames[entry.index] : std::string{"<unnamed>"};
+            (static_cast<size_t>(entry.index) < stateNames.size()) ? stateNames[entry.index] :
+                                                                      std::string{"<unnamed>"};
         const bool hasInitialSnapshot = (initialState != nullptr) &&
-            (initialDerivative != nullptr) && (initialState->size() == svsize) &&
-            (initialDerivative->size() == svsize);
+            (initialDerivative != nullptr) &&
+            (initialState->size() == static_cast<size_t>(svsize)) &&
+            (initialDerivative->size() == static_cast<size_t>(svsize));
         logging::logTo(m_gds,
                        m_gds,
                        diagnosticLevel,
@@ -561,7 +563,8 @@ void IdaInterface::logInitialConditionDiagnostics(
     for (size_t entryIndex = 0; entryIndex < algebraicResidualEntryCount; ++entryIndex) {
         const auto& entry = algebraicResidualEntries[entryIndex];
         const auto stateName =
-            (entry.index < stateNames.size()) ? stateNames[entry.index] : std::string{"<unnamed>"};
+            (static_cast<size_t>(entry.index) < stateNames.size()) ? stateNames[entry.index] :
+                                                                      std::string{"<unnamed>"};
         logging::logTo(m_gds,
                        m_gds,
                        diagnosticLevel,
@@ -581,7 +584,8 @@ void IdaInterface::logInitialConditionDiagnostics(
     for (size_t entryIndex = 0; entryIndex < differentialResidualEntryCount; ++entryIndex) {
         const auto& entry = differentialResidualEntries[entryIndex];
         const auto stateName =
-            (entry.index < stateNames.size()) ? stateNames[entry.index] : std::string{"<unnamed>"};
+            (static_cast<size_t>(entry.index) < stateNames.size()) ? stateNames[entry.index] :
+                                                                      std::string{"<unnamed>"};
         logging::logTo(m_gds,
                        m_gds,
                        diagnosticLevel,
@@ -604,7 +608,8 @@ void IdaInterface::logInitialConditionDiagnostics(
     for (size_t entryIndex = 0; entryIndex < derivativeEntryCount; ++entryIndex) {
         const auto& entry = derivativeEntries[entryIndex];
         const auto stateName =
-            (entry.index < stateNames.size()) ? stateNames[entry.index] : std::string{"<unnamed>"};
+            (static_cast<size_t>(entry.index) < stateNames.size()) ? stateNames[entry.index] :
+                                                                      std::string{"<unnamed>"};
         logging::logTo(m_gds,
                        m_gds,
                        diagnosticLevel,
@@ -716,7 +721,8 @@ void IdaInterface::logIntegrationFailureDiagnostics(CoreTime time, int retval) c
     for (count_t entryIndex = 0; entryIndex < entryCount; ++entryIndex) {
         const auto& entry = entries[entryIndex];
         const auto stateName =
-            (entry.index < stateNames.size()) ? stateNames[entry.index] : std::string{"<unnamed>"};
+            (static_cast<size_t>(entry.index) < stateNames.size()) ? stateNames[entry.index] :
+                                                                      std::string{"<unnamed>"};
         logging::logTo(m_gds,
                        m_gds,
                        PrintLevel::ERROR,
@@ -731,7 +737,8 @@ void IdaInterface::logIntegrationFailureDiagnostics(CoreTime time, int retval) c
 
 void IdaInterface::logIntegrationStateDrift(CoreTime time) const
 {
-    if ((m_gds == nullptr) || (integrationReferenceState.size() != svsize)) {
+    if ((m_gds == nullptr) ||
+        (integrationReferenceState.size() != static_cast<size_t>(svsize))) {
         return;
     }
 
@@ -775,7 +782,8 @@ void IdaInterface::logIntegrationStateDrift(CoreTime time) const
     for (size_t entryIndex = 0; entryIndex < entryCount; ++entryIndex) {
         const auto& entry = entries[entryIndex];
         const auto stateName =
-            (entry.index < stateNames.size()) ? stateNames[entry.index] : std::string{"<unnamed>"};
+            (static_cast<size_t>(entry.index) < stateNames.size()) ? stateNames[entry.index] :
+                                                                      std::string{"<unnamed>"};
         logging::logTo(m_gds,
                        m_gds,
                        PrintLevel::SUMMARY,
@@ -1003,7 +1011,7 @@ void IdaInterface::getRoots()
     checkFlag(&ret, "IDAGetRootInfo", 1);
     if (flags[IDA_INTEGRATION_DIAGNOSTICS]) {
         std::string activeRoots;
-        for (count_t kk = 0; kk < rootsfound.size(); ++kk) {
+        for (size_t kk = 0; kk < rootsfound.size(); ++kk) {
             if (rootsfound[kk] != 0) {
                 if (!activeRoots.empty()) {
                     activeRoots += ',';

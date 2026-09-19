@@ -64,3 +64,5 @@ if(NOT TARGET spdlog::spdlog)
         hide_variable(SPDLOG_NO_TZ_OFFSET)
     endif()
 endif()
+
+griddyn_hide_cache_variables_by_prefix(SPDLOG_ spdlog_)

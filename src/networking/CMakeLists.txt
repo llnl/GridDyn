@@ -16,6 +16,7 @@ if(NOT TARGET gmlc::networking)
         ${PROJECT_SOURCE_DIR}/ThirdParty/networking ${PROJECT_BINARY_DIR}/ThirdParty/networking
         EXCLUDE_FROM_ALL
     )
+    griddyn_hide_cache_variables_by_prefix(GMLC_)
 endif()
 if(TARGET gmlc_networking)
     set_target_properties(gmlc_networking PROPERTIES FOLDER Extern)

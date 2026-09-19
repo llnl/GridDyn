@@ -157,6 +157,7 @@ option(GRIDDYN_ENABLE_SUNDIALS_LOCAL_CI
        "Include SUNDIALS Docker/Podman local-CI helper targets in the Visual Studio solution build"
        OFF
 )
+mark_as_advanced(GRIDDYN_ENABLE_SUNDIALS_LOCAL_CI)
 
 if(${PROJECT_NAME}_ENABLE_OPENMP_SUNDIALS)
     set(SUNDIALS_ENABLE_OPENMP ON CACHE INTERNAL "")
@@ -177,6 +178,31 @@ if(NOT MSVC)
 endif()
 
 add_subdirectory("${sundials_SOURCE_DIR}" "${sundials_BINARY_DIR}")
+
+griddyn_hide_cache_variables_by_prefix(
+    SUNDIALS_
+    CALIPER
+    Ginkgo
+    GKRAND
+    GKREGEX
+    HYPRE
+    Kokkos
+    KokkosKernels
+    LAPACK_
+    MAGMA
+    ONEMKL
+    PETSC
+    RAJA
+    SUPERLU
+    SUPERLUDIST
+    SUPERLUMT
+    Trilinos
+    TRILINOS
+    USE_XSDK_DEFAULTS
+    XBRAID
+    adiak
+    container_exe
+)
 
 # SUNDIALS creates these developer-only targets whenever Docker or Podman is discovered.  They are
 # not part of GridDyn's test suite and must not start a container as a side effect of Visual

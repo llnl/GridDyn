@@ -67,7 +67,7 @@ jobs:
         run: |
           lcov \
             --rc geninfo_unexecuted_blocks=1 \
-            --ignore-errors gcov,mismatch,inconsistent \
+            --ignore-errors gcov,mismatch,inconsistent,negative \
             --capture \
             --directory . \
             --output-file coverage.info

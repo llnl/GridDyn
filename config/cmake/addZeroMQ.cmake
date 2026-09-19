@@ -113,6 +113,7 @@ else()
 
 endif() # ${PROJECT_NAME}_USE_SYSTEM_ZEROMQ_ONLY
 hide_variable(ZeroMQ_DIR)
+griddyn_hide_cache_variables_by_prefix(ZeroMQ_ ZEROMQ_)
 
 if(WIN32 AND NOT MSYS AND NOT CYGWIN)
     if(TARGET libzmq)

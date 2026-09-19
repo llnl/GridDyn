@@ -1,5 +1,5 @@
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Copyright (c) 2017-2025, Battelle Memorial Institute; Lawrence Livermore
+# Copyright (c) 2017-2026, Battelle Memorial Institute; Lawrence Livermore
 # National Security, LLC; Alliance for Sustainable Energy, LLC.
 # See the top-level NOTICE for additional details.
 # All rights reserved.
@@ -27,6 +27,10 @@ if(WIN32 AND NOT UNIX_LIKE)
         endif()
     endif()
     set(boost_versions
+        boost_1_92_0
+        boost_1_91_0
+        boost_1_90_0
+        boost_1_89_0
         boost_1_88_0
         boost_1_87_0
         boost_1_86_0
@@ -76,6 +80,10 @@ if(WIN32 AND NOT UNIX_LIKE)
                 NAMES BoostConfig.cmake
                 PATHS ${BOOST_TEST_PATH}/${BOOST_MSVC_LIB_PATH}/cmake
                 PATH_SUFFIXES
+                    Boost-1.92.0
+                    Boost-1.91.0
+                    Boost-1.90.0
+                    Boost-1.89.0
                     Boost-1.88.0
                     Boost-1.87.0
                     Boost-1.86.0
@@ -142,16 +150,26 @@ if(NOT Boost_FOUND)
             math(EXPR Boost_VERSION_MINOR "${Boost_VERSION_MACRO} / 100 % 1000")
             math(EXPR Boost_VERSION_PATCH "${Boost_VERSION_MACRO} % 100")
 
+            set(Boost_VERSION
+                "${Boost_VERSION_MAJOR}.${Boost_VERSION_MINOR}.${Boost_VERSION_PATCH}"
+            )
+            set(Boost_VERSION_STRING "${Boost_VERSION}")
+            set(Boost_MINOR_VERSION "${Boost_VERSION_MINOR}")
+            set(Boost_VERSION_COUNT 3)
+
             message(STATUS "Boost VERSION ${Boost_VERSION_MACRO}")
         endif()
-        if(Boost_VERSION_MINOR GREATER_EQUAL ${BOOST_MINIMUM_VERSION})
+        if(Boost_VERSION VERSION_GREATER_EQUAL BOOST_MINIMUM_VERSION)
             add_library(Boost::headers INTERFACE IMPORTED)
             set_target_properties(
-                Boost::headers PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES
-                                          "${Boost_INCLUDE_DIR}"
+                Boost::headers
+                PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${Boost_INCLUDE_DIR}"
+                           INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${Boost_INCLUDE_DIR}"
             )
             add_library(Boost::boost INTERFACE IMPORTED)
             set_target_properties(Boost::boost PROPERTIES INTERFACE_LINK_LIBRARIES Boost::headers)
+
+            set(Boost_INCLUDE_DIRS "${Boost_INCLUDE_DIR}")
 
             set(Boost_FOUND ON)
             message(STATUS "Setting boost found to true")
@@ -164,3 +182,5 @@ if(NOT Boost_FOUND)
 endif()
 # Minimum version of Boost required for building test suite
 set(BOOST_VERSION_LEVEL ${Boost_MINOR_VERSION})
+
+griddyn_hide_cache_variables_by_prefix(BOOST_ Boost_)

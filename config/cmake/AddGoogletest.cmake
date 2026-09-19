@@ -29,6 +29,7 @@ set(HAVE_STD_REGEX ON CACHE INTERNAL "")
 set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "")
 
 add_subdirectory("${gtest_SOURCE_DIR}" "${gtest_BINARY_DIR}" EXCLUDE_FROM_ALL)
+griddyn_hide_cache_variables_by_prefix(gtest_ gmock_ GTEST_)
 
 if(GOOGLE_TEST_INDIVIDUAL)
     include(GoogleTest)

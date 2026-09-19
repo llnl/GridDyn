@@ -14,9 +14,12 @@ set(plugin_headers gridDynPluginApi.h gridDynPlugins.h)
 
 add_library(pluginLibrary STATIC ${plugin_sources} ${plugin_headers})
 
-include_directories(.)
-include_directories(${PROJECT_SOURCE_DIR}/src/griddyn)
+target_include_directories(
+    pluginLibrary PRIVATE ${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/src/griddyn
+)
 
-install(TARGETS pluginLibrary LIBRARY DESTINATION lib ARCHIVE DESTINATION lib)
+install(TARGETS pluginLibrary LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+)
 
-install(FILES ${plugin_headers} DESTINATION include/plugins)
+install(FILES ${plugin_headers} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/plugins)

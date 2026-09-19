@@ -29,6 +29,30 @@ macro(SHOW_VARIABLE var type doc default)
     endif(DEFINED ${var})
 endmacro(SHOW_VARIABLE)
 
+# Hide dependency cache entries while leaving ownership of each dependency's option list with its
+# loader. This keeps the shared helper generic and lets each loader decide which implementation
+# details belong in the CMake GUI view.
+function(griddyn_hide_cache_variables)
+    foreach(_griddyn_cache_variable IN LISTS ARGN)
+        if(DEFINED ${_griddyn_cache_variable})
+            set("${_griddyn_cache_variable}" "${${_griddyn_cache_variable}}" CACHE INTERNAL ""
+                                                                                   FORCE
+            )
+        endif()
+    endforeach()
+endfunction()
+
+function(griddyn_hide_cache_variables_by_prefix)
+    get_cmake_property(_griddyn_cache_variables CACHE_VARIABLES)
+    foreach(_griddyn_cache_prefix IN LISTS ARGN)
+        foreach(_griddyn_cache_variable IN LISTS _griddyn_cache_variables)
+            if(_griddyn_cache_variable MATCHES "^${_griddyn_cache_prefix}")
+                griddyn_hide_cache_variables("${_griddyn_cache_variable}")
+            endif()
+        endforeach()
+    endforeach()
+endfunction()
+
 # ~~~
 # the following code is derived from the cmake cmakeDependentOption macro
 #

@@ -44,3 +44,4 @@ endif()
 
 hide_variable(UNITS_HEADER_ONLY)
 hide_variable(UNITS_BUILD_OBJECT_LIBRARY)
+griddyn_hide_cache_variables_by_prefix(UNITS_)

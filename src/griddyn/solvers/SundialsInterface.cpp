@@ -36,6 +36,8 @@
 #include <memory>
 #include <print>
 #include <string>
+#include <utility>
+#include <vector>
 
 namespace griddyn::solvers {
 void ensureSundialsFactories()

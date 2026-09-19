@@ -221,7 +221,9 @@ int GridDynSimulation::dynamicDAEStartupConditions(std::shared_ptr<SolverInterfa
                                "IDA pre-IC root[{}]={} owner={}",
                                root,
                                rootValues[root],
-                               (root < rootNames.size()) ? rootNames[root] : "<unmapped>");
+                               ((root >= 0) && (static_cast<size_t>(root) < rootNames.size())) ?
+                                   rootNames[root] :
+                                   "<unmapped>");
             }
         } else if (controlFlags[IDA_INTEGRATION_DIAGNOSTICS_FLAG]) {
             logging::logTo(this,
@@ -299,7 +301,7 @@ int GridDynSimulation::dynamicDAE(CoreTime tStop)
         } else {
             retval = runDynamicSolverStep(dynData, nextStop, timeReturn);
             currentTime = timeReturn;
-            if (retval < FUNCTION_EXECUTION_SUCCESS) {
+            if ((retval < FUNCTION_EXECUTION_SUCCESS) && (retval != SOLVER_STEP_LIMIT_REACHED)) {
                 pState = GridState::DYNAMIC_PARTIAL;
                 logging::error(this, "simulation halted after dynamic solver failure");
                 logging::error(this, dynData->getLastErrorString());
@@ -769,7 +771,10 @@ void GridDynSimulation::handleEarlySolverReturn(int retval,
                                        "IDA post-root zero probe: root[{}]={} owner={}",
                                        root,
                                        rootValues[root],
-                                       (root < rootNames.size()) ? rootNames[root] : "<unmapped>");
+                                       ((root >= 0) &&
+                                        (static_cast<size_t>(root) < rootNames.size())) ?
+                                           rootNames[root] :
+                                           "<unmapped>");
                     }
                 }
             }

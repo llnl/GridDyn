@@ -55,6 +55,7 @@ class InvalidSolverOperation: public SolverException {
 #define SOLVER_ROOT_FOUND 2
 #define SOLVER_INVALID_STATE_ERROR (-36)
 #define SOLVER_INITIAL_SETUP_ERROR (-38)
+#define SOLVER_STEP_LIMIT_REACHED (-11)
 #define SOLVER_CONVERGENCE_ERROR (-12)
 
 enum SolverFlags : int {

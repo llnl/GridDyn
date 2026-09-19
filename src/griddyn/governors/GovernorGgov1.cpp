@@ -28,6 +28,7 @@ namespace {
     constexpr index_t accelerationState = 9;
     constexpr double accelerationStep = 0.005;
     constexpr double selectorTieTolerance = 1e-10;
+    constexpr double selectorInteriorMargin = 1e-6;
 
     double deadZone(double value, double width)
     {
@@ -169,7 +170,14 @@ void GovernorGgov1::dynObjectInitializeB(const IOdata& inputs,
     // limit, not the unit's present dispatch, so initializing this PI state to
     // the fuel flow would make every unloaded unit integrate toward LDREF.
     const double temperatureError = Ldref / Kturb + Wfnl - fuel;
-    state[loadIntegralState] = fuel - Kpload * temperatureError;
+    // Keep the inactive request just above the normal request.  An exact tie
+    // is a nonsmooth point of the low-value selector, so it has no unique
+    // Jacobian and makes finite-difference checks depend on perturbation
+    // direction.  Stay inside the configured range when the unit is close to
+    // its upper limit.
+    const double selectorMargin =
+        std::min(selectorInteriorMargin, std::max(0.0, 0.25 * (Pmax - fuel)));
+    state[loadIntegralState] = fuel - Kpload * temperatureError + selectorMargin;
     state[accelerationState] = 0.0;
     double feedback = 0.0;
     if (Rselect == 1) {

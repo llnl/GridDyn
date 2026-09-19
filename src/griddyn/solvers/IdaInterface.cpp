@@ -981,6 +981,13 @@ int IdaInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
         case IDA_ROOT_RETURN:
             retval = SOLVER_ROOT_FOUND;
             break;
+        case IDA_TOO_MUCH_WORK:
+            // IDA can return this after reaching an event boundary with a
+            // valid forward-time state.  GridDyn's dynamic loop can restart
+            // from that state, so keep it distinct from a hard convergence
+            // failure while preserving the negative solver status.
+            retval = SOLVER_STEP_LIMIT_REACHED;
+            break;
         case IDA_REP_RES_ERR:
             retval = SOLVER_INVALID_STATE_ERROR;
             break;

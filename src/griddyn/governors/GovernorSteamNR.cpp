@@ -70,7 +70,7 @@ void GovernorSteamNR::dynObjectInitializeB(const IOdata& /*inputs*/,
         throw InvalidParameterValue("SteamNR governor initial output");
     }
     const double power = desiredOutput[outputState];
-    if ((power < Pmin) || (power > Pmax)) {
+    if ((power < Pmin) || !adjustInitialUpperLimit(power, "SteamNR initial valve")) {
         throw InvalidParameterValue("SteamNR initial valve outside limits");
     }
     const auto algOffset = offsets.getAlgOffset(cLocalSolverMode);

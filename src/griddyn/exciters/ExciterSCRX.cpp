@@ -143,8 +143,9 @@ ExciterSCRX::StateLayout ExciterSCRX::stateLayout() const
     return layout;
 }
 
-void ExciterSCRX::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
+void ExciterSCRX::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
+    setInitialLimitPolicy(flags);
     const std::array<double, 7> parameters{TaOverTb, Tb, Ka, Te, Vrmin, Vrmax, rCrFd};
     if (std::any_of(parameters.begin(),
                     parameters.end(),
@@ -234,8 +235,11 @@ void ExciterSCRX::dynObjectInitializeB(const IOdata& inputs,
         throw InvalidParameterValue("SCRX initial source multiplier");
     }
     const double amplifierOutput = desiredOutput[0] / source;
-    if ((amplifierOutput < Vrmin - 1e-7) || (amplifierOutput > Vrmax + 1e-7)) {
-        throw InvalidParameterValue("SCRX initial amplifier output outside limits");
+    if (amplifierOutput < Vrmin - 1e-7) {
+        throw InvalidParameterValue("SCRX initial amplifier output below lower limit");
+    }
+    if (!adjustInitialUpperLimit(amplifierOutput, Vrmax, "SCRX initial amplifier output")) {
+        throw InvalidParameterValue("SCRX initial amplifier output outside upper limit");
     }
     const double error = amplifierOutput / Ka;
     const auto layout = stateLayout();

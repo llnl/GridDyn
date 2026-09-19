@@ -216,8 +216,9 @@ ExciterESAC6A::StateLayout ExciterESAC6A::stateLayout() const
     return layout;
 }
 
-void ExciterESAC6A::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
+void ExciterESAC6A::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
+    setInitialLimitPolicy(flags);
     const std::array<double, 23> parameters{Tr,    Ka,    Ta, Tk,     Tb,  Tc,    Vamax, Vamin,
                                             Vrmax, Vrmin, Te, Vfelim, Kh,  Vhmax, Th,    Tj,
                                             Kc,    Kd,    Ke, E1,     Se1, E2,    Se2};
@@ -384,11 +385,22 @@ void ExciterESAC6A::dynObjectInitializeB(const IOdata& inputs,
         std::clamp(Kh * (fieldFeedback - Vfelim), 0.0, static_cast<double>(Vhmax));
     const double voltageRegulator = fieldFeedback;
     const double leadLagOutput = voltageRegulator + feedbackLimiter;
-    const double regulatorLower = inputs[exciterVoltageInLocation] * Vrmin;
-    const double regulatorUpper = inputs[exciterVoltageInLocation] * Vrmax;
-    if ((leadLagOutput < Vamin - 1e-7) || (leadLagOutput > Vamax + 1e-7) ||
-        (voltageRegulator < regulatorLower - 1e-7) || (voltageRegulator > regulatorUpper + 1e-7)) {
-        throw InvalidParameterValue("ESAC6A initial regulator output outside limits");
+    const double terminalVoltage = inputs[exciterVoltageInLocation];
+    const double regulatorLower = terminalVoltage * Vrmin;
+    const double regulatorUpper = terminalVoltage * Vrmax;
+    if ((leadLagOutput < Vamin - 1e-7) || (voltageRegulator < regulatorLower - 1e-7)) {
+        throw InvalidParameterValue("ESAC6A initial regulator output below lower limit");
+    }
+    if (!adjustInitialUpperLimit(leadLagOutput, Vamax, "ESAC6A initial lead-lag output")) {
+        throw InvalidParameterValue("ESAC6A initial regulator output outside upper limit");
+    }
+    if (voltageRegulator > regulatorUpper + 1e-7) {
+        if ((terminalVoltage <= 0.0) ||
+            !adjustInitialUpperLimit(voltageRegulator / terminalVoltage,
+                                     Vrmax,
+                                     "ESAC6A initial regulator output")) {
+            throw InvalidParameterValue("ESAC6A initial regulator output outside upper limit");
+        }
     }
 
     const auto layout = stateLayout();

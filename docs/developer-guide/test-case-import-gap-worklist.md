@@ -308,21 +308,22 @@ are currently printed as `unknown object type ...` and skipped.
 | `brazil7Gen\PSSE\Brazilian_7_bus_Equiv_Model.dyr`                                    |                 5 | `GENSAE`                                                            |
 | `3mach-inf_bus\PSSE\ThreeMIB_Benchmark_System.dyr`                                   |                 3 | `GENSAE`, `GENROE`                                                  |
 
-### [ ] DYR-004: Decide compatibility behavior for EXAC1 `TB == 0`
+### [x] DYR-004: Decide compatibility behavior for EXAC1 `TB == 0`
 
-- Current behavior:
-  - `EXAC1` is recognized, but the Australian DYR cases abort with:
-    `invalid parameter value for EXAC1 TB must be positive and finite`.
-- Work needed:
-  - Verify whether PSS/E permits `TB = 0` for this model and, if so, implement
-    a bypass/degenerate lead-lag behavior.
-  - If not supported, improve diagnostics to include record bus/id/model/file.
+- Resolution:
+  - `TB = 0` now bypasses the EXAC1 lead-lag section when `TC = 0`; the lead-lag
+    state is omitted and the regulator receives the lead-lag input directly.
+  - `TB = 0` with nonzero `TC` is rejected during initialization.
+  - The implementation reuses `LeadLagKernel` for the normal `TB > 0` path.
 - Exercised by:
   - `Austrailian14bus\LF_Case01_R4_S\AU14GenModel.RAW`
     - `Austrailian14bus\LF_Case01_R4_S\AU14GenModel.dyr`
   - Same pattern for `LF_Case02_R4_S` through `LF_Case06_R4_S`.
-- Smoke result:
-  - All six Australian RAW+DYR pairs abort with the same `EXAC1 TB` error.
+- Regression result:
+  - EXAC1 component and DYR import/Jacobian tests pass for both `TB > 0` and
+    `TB = 0`.
+  - The ACTIVSg2000 RAW+DYR smoke import now completes successfully after the
+    ESAC1A field-order correction.
 
 ### [ ] DYR-005: Improve generator matching diagnostics and compatibility
 

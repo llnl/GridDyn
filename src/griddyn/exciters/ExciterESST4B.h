@@ -20,12 +20,13 @@ namespace griddyn::exciters {
  * V_M=\operatorname{lim}(K_{PM}e_M+x_M),
  * \f]
  * with \f$e_R=V_{ref}+V_{SS}-V_{meas}\f$ and
- * \f$e_M=V_A-K_GE_{fd}\f$. As in OpenIPSL, the integral states obey
- * \f$V_{RMIN}/K_{PR}\le x_R\le V_{RMAX}/K_{PR}\f$ and
- * \f$V_{MMIN}/K_{PM}\le x_M\le V_{MMAX}/K_{PM}\f$, with outward integration
- * blocked at each bound. OpenIPSL supplies the governing equations; ANDES
- * supplies an independent native implementation and the PSS/E DYR field
- * order.
+ * \f$e_M=V_A-K_GE_{fd}\f$. The limiter and anti-windup logic operate on
+ * \f$V_R\f$ and \f$V_M\f$; the additive integrator states are not separately
+ * clamped because the proportional paths can offset them. ANDES supplies an
+ * independent native implementation and the PSS/E DYR field order.
+ * A zero TR bypasses the terminal-voltage measurement state, and a zero TA
+ * bypasses the regulator-lag state. Both bypasses are structural, so
+ * the corresponding differential state is omitted.
  *
  * @note GridDyn currently has no routed UEL/OEL inputs. Their normal inactive
  * values are used; VOTHSG is supplied through the standard VSS input.

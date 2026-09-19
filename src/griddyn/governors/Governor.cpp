@@ -11,6 +11,7 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "utilities/MatrixDataSparse.hpp"
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -85,6 +86,7 @@ CoreObject* Governor::clone(CoreObject* obj) const
     gov->deadbandHigh = deadbandHigh;
     gov->deadbandLow = deadbandLow;
     gov->machineBasePower = machineBasePower;
+    gov->strictInitialLimitChecking = strictInitialLimitChecking;
     cb.clone(&(gov->cb));
     dbb.clone(&(gov->dbb));
 
@@ -103,6 +105,7 @@ Governor::~Governor()
 
 void Governor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
+    setInitialLimitPolicy(flags);
     prevTime = time0;
     if (Wref < 0) {
         Wref = systemBaseFrequency;
@@ -117,6 +120,33 @@ void Governor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
         addSubObject(&dbb);
     }
     GridSubModel::dynObjectInitializeA(time0, flags);
+}
+
+void Governor::setInitialLimitPolicy(std::uint32_t flags)
+{
+    strictInitialLimitChecking = CHECK_CONTROLFLAG(flags, STRICT_GOVERNOR_LIMITS);
+}
+
+bool Governor::adjustInitialUpperLimit(double initialValue, std::string_view limitName)
+{
+    constexpr double initializationTolerance = 1e-7;
+    if (initialValue <= Pmax + initializationTolerance) {
+        return true;
+    }
+    if (strictInitialLimitChecking) {
+        return false;
+    }
+
+    const double originalLimit = Pmax;
+    Pmax = initialValue;
+    delay.set("max", Pmax);
+    logging::warning(this,
+                     "{} initial value {} exceeds upper limit {}; adjusting upper limit to {}",
+                     std::string{limitName},
+                     initialValue,
+                     originalLimit,
+                     Pmax);
+    return true;
 }
 // initial conditions
 static IOdata gKNullVec;
@@ -135,6 +165,10 @@ void Governor::dynObjectInitializeB(const IOdata& inputs,
         delay.dynInitializeB(fieldSet, gKNullVec, fieldSet);
         fieldSet[0] = Pset + omegaPower;
     } else {
+        if (!std::isfinite(desiredOutput[0]) ||
+            !adjustInitialUpperLimit(desiredOutput[0], "governor initial output")) {
+            throw InvalidParameterValue("governor initial output outside upper limit");
+        }
         const double power = desiredOutput[0];
         fieldSet[0] = inputs[govOmegaInLocation];
         cb.dynInitializeB(fieldSet, gKNullVec, fieldSet);

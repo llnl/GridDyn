@@ -671,6 +671,13 @@ TEST(DyrReaderComparisonTests, MapsCanonicalDcAndTypeOneExciters)
         if (expectedName == "esac1a") {
             EXPECT_DOUBLE_EQ(exciter->get("vamax"), 6.0);
             EXPECT_DOUBLE_EQ(exciter->get("vamin"), -5.0);
+            EXPECT_DOUBLE_EQ(exciter->get("ka"), 10.0);
+            EXPECT_DOUBLE_EQ(exciter->get("ta"), 0.1);
+            EXPECT_DOUBLE_EQ(exciter->get("vrmax"), 5.0);
+            EXPECT_DOUBLE_EQ(exciter->get("vrmin"), -4.0);
+            EXPECT_DOUBLE_EQ(exciter->get("te"), 0.5);
+            EXPECT_DOUBLE_EQ(exciter->get("kf"), 0.03);
+            EXPECT_DOUBLE_EQ(exciter->get("tf"), 1.0);
             EXPECT_DOUBLE_EQ(exciter->get("kc"), 0.2);
             EXPECT_DOUBLE_EQ(exciter->get("kd"), 0.3);
         }
@@ -1163,6 +1170,27 @@ TEST(DyrReaderComparisonTests, LoadsExac1WithZeroTr)
     EXPECT_DOUBLE_EQ(exciter->get("tr"), 0.0);
     ASSERT_EQ(simulation->dynInitialize(), 0);
     EXPECT_EQ(exciter->getStates().size(), 5U);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(DyrReaderComparisonTests, LoadsExac1WithZeroTb)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_exac1_tb0.dyr"));
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 2));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = bus->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    auto* exciter = dynamic_cast<griddyn::exciters::ExciterEXAC1*>(generator->find("exciter"));
+    ASSERT_NE(exciter, nullptr);
+    EXPECT_DOUBLE_EQ(exciter->get("tb"), 0.0);
+    EXPECT_DOUBLE_EQ(exciter->get("tc"), 0.0);
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(exciter->getStates().size(), 4U);
     EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }

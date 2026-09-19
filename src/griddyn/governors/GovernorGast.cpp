@@ -53,7 +53,7 @@ CoreObject* GovernorGast::clone(CoreObject* obj) const
     return (out == nullptr) ? obj : out;
 }
 
-void GovernorGast::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
+void GovernorGast::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     const std::array<double, 10> parameters{R, T1, T2, T3, AT, KT, Pmax, Pmin, Dt, Pset};
     if (std::any_of(parameters.begin(),
@@ -63,6 +63,7 @@ void GovernorGast::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
         (Dt < 0.0) || (Pmax < Pmin)) {
         throw InvalidParameterValue("GAST gains, time constants, or valve limits");
     }
+    setInitialLimitPolicy(flags);
     effectiveT1 = std::max(static_cast<double>(T1), minimumTimeConstant);
     effectiveT2 = std::max(static_cast<double>(T2), minimumTimeConstant);
     effectiveT3 = std::max(static_cast<double>(T3), minimumTimeConstant);
@@ -96,11 +97,14 @@ void GovernorGast::dynObjectInitializeB(const IOdata& inputs,
         (initialTemperatureRequest < initialFlow - 1e-9)) {
         throw InvalidParameterValue("GAST initial operating point is temperature limited");
     }
+    if (!adjustInitialUpperLimit(initialFlow, "GAST initial fuel flow")) {
+        throw InvalidParameterValue("GAST initial fuel flow outside upper limit");
+    }
     Pset = initialFlow + (speedDeviation / R);
     // Match the GridKit and ANDES anti-windup realization: an initial point
     // outside the entered response limits is retained and may move only back
     // toward the entered range. This avoids an initialization discontinuity.
-    responseMaximum = std::max(static_cast<double>(Pmax), initialFlow);
+    responseMaximum = Pmax;
     responseMinimum = std::min(static_cast<double>(Pmin), initialFlow);
     m_state[0] = initialPower;
     m_state[1] = initialFlow;

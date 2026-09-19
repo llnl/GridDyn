@@ -100,14 +100,44 @@ CoreObject* Exciter::clone(CoreObject* obj) const
     gdE->Vref = Vref;
     gdE->vBias = vBias;
     gdE->limitState = limitState;
+    gdE->strictInitialLimitChecking = strictInitialLimitChecking;
     return gdE;
 }
 
-void Exciter::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
+void Exciter::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t flags)
 {
+    setInitialLimitPolicy(flags);
     offsets.local().local.diffSize = 1;
     offsets.local().local.jacSize = 4;
     checkForLimits();
+}
+
+void Exciter::setInitialLimitPolicy(std::uint32_t flags)
+{
+    strictInitialLimitChecking = CHECK_CONTROLFLAG(flags, STRICT_EXCITER_LIMITS);
+}
+
+bool Exciter::adjustInitialUpperLimit(double initialValue,
+                                      double& upperLimit,
+                                      std::string_view limitName)
+{
+    constexpr double initializationTolerance = 1e-7;
+    if (initialValue <= upperLimit + initializationTolerance) {
+        return true;
+    }
+    if (strictInitialLimitChecking) {
+        return false;
+    }
+
+    const double originalLimit = upperLimit;
+    upperLimit = initialValue;
+    logging::warning(this,
+                     "{} initial value {} exceeds upper limit {}; adjusting upper limit to {}",
+                     std::string{limitName},
+                     initialValue,
+                     originalLimit,
+                     upperLimit);
+    return true;
 }
 
 void Exciter::checkForLimits()

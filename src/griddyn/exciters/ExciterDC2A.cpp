@@ -50,6 +50,17 @@ CoreObject* ExciterDC2A::clone(CoreObject* obj) const
     return gdE;
 }
 
+bool ExciterDC2A::adjustInitialRegulatorLimit(double initialValue, double terminalVoltage)
+{
+    if (!std::isfinite(terminalVoltage) || (terminalVoltage <= 0.0) ||
+        (initialValue < (terminalVoltage * Vrmin) - 1e-7)) {
+        return false;
+    }
+    return adjustInitialUpperLimit(initialValue / terminalVoltage,
+                                   Vrmax,
+                                   "DC2A initial regulator output");
+}
+
 // residual
 void ExciterDC2A::residual(const IOdata& inputs,
                            const StateData& stateDataValue,
@@ -87,13 +98,15 @@ void ExciterDC2A::derivative(const IOdata& inputs,
 }
 
 void ExciterDC2A::limitJacobian(double /*V*/,
-                                int voltageLoc,
+                                int /*voltageLoc*/,
                                 int refLoc,
                                 double cjValue,
                                 MatrixData<double>& matrixDataValue)
 {
-    matrixDataValue.assign(refLoc, refLoc, 1);
-    matrixDataValue.assign(refLoc, voltageLoc, cjValue);
+    // The voltage-dependent bound controls limit detection and state
+    // projection.  Once the limiter is active, the residual is only
+    // -dot(V_R), so there is no terminal-voltage term in this Jacobian row.
+    matrixDataValue.assign(refLoc, refLoc, -cjValue);
 }
 
 void ExciterDC2A::rootTest(const IOdata& inputs,

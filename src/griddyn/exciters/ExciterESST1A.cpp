@@ -64,8 +64,9 @@ CoreObject* ExciterESST1A::clone(CoreObject* obj) const
     return result;
 }
 
-void ExciterESST1A::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
+void ExciterESST1A::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t flags)
 {
+    setInitialLimitPolicy(flags);
     if (!std::isfinite(Tr) || !std::isfinite(Vimax) || !std::isfinite(Vimin) ||
         !std::isfinite(Tb) || !std::isfinite(Tc) || !std::isfinite(Tb1) || !std::isfinite(Tc1) ||
         !std::isfinite(Vamax) || !std::isfinite(Vamin) || !std::isfinite(Ka) ||
@@ -151,7 +152,8 @@ void ExciterESST1A::dynObjectInitializeB(const IOdata& inputs,
     const double upper =
         (Vrmax * inputs[exciterVoltageInLocation]) - (Kc * inputs[exciterXadIfdInLocation]);
     if ((upper < lower) || (fieldVoltage < lower - 1e-8) || (fieldVoltage > upper + 1e-8) ||
-        (amplifierVoltage < Vamin - 1e-8) || (amplifierVoltage > Vamax + 1e-8)) {
+        (amplifierVoltage < Vamin - 1e-8) ||
+        !adjustInitialUpperLimit(amplifierVoltage, Vamax, "ESST1A initial amplifier output")) {
         throw InvalidParameterValue("ESST1A initial field voltage outside limits");
     }
     m_state[0] = fieldVoltage;

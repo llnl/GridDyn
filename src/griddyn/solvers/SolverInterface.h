@@ -55,6 +55,7 @@ class InvalidSolverOperation: public SolverException {
 #define SOLVER_ROOT_FOUND 2
 #define SOLVER_INVALID_STATE_ERROR (-36)
 #define SOLVER_INITIAL_SETUP_ERROR (-38)
+#define SOLVER_STEP_LIMIT_REACHED (-11)
 #define SOLVER_CONVERGENCE_ERROR (-12)
 
 enum SolverFlags : int {
@@ -85,6 +86,9 @@ enum SolverFlags : int {
     EXTRA_SOLVER_FLAG11 = 26,
     EXTRA_SOLVER_FLAG12 = 27,
     PRINT_RESIDUALS = 28,
+    IDA_IC_DIAGNOSTICS = 29,
+    IDA_IC_STOP_ON_FAILURE = 30,
+    IDA_INTEGRATION_DIAGNOSTICS = 31,
 };
 /** @brief class defining the data related to a specific solver
  the SolverInterface class is the base class for solvers for the GridDyn power systems program

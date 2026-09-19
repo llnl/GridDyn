@@ -51,6 +51,10 @@ double ExciterIEEEX1::regulatorDrive(const IOdata& inputs, const double state[])
 
 void ExciterIEEEX1::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
+    // The no-lead/lag path initializes through IEEEtype1 below, while the
+    // lead/lag path initializes through DC2A. Apply the common policy before
+    // either branch so strict_exciter_limits has identical behavior.
+    setInitialLimitPolicy(flags);
     if ((Ka == 0.0) || (Ta <= 0.0) || (Te <= 0.0) || (Tf <= 0.0) || (Tr < 0.0) || (Tb < 0.0) ||
         (Tc < 0.0) || (Vrmin > Vrmax)) {
         throw InvalidParameterValue("IEEEX1 gains, limits, or time constants");

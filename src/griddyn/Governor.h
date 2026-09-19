@@ -11,6 +11,7 @@
 #include "blocks/DeadbandBlock.h"
 #include "blocks/DelayBlock.h"
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace griddyn {
@@ -46,6 +47,7 @@ class Governor: public GridSubModel {
     model_parameter deadbandHigh = -kBigNum;  //!< upper threshold on the deadband;
     model_parameter deadbandLow = kBigNum;  //!< lower threshold on the deadband;
     model_parameter machineBasePower = 100.0;  //!< the machine base of the generator;
+    bool strictInitialLimitChecking = false;  //!< reject initial outputs above upper limits
     blocks::DeadbandBlock dbb;  //!< block managing the deadband
     blocks::ControlBlock cb;  //!< block managing the filtering functions on the frequency response
     blocks::DelayBlock delay;  //!< block managing the throttle filter
@@ -60,6 +62,20 @@ class Governor: public GridSubModel {
                                       const IOdata& desiredOutput,
                                       IOdata& fieldSet) override;
 
+  protected:
+    /** Configure the initial governor-limit policy from simulation flags. */
+    void setInitialLimitPolicy(std::uint32_t flags);
+
+    /**
+     * Check an initialized value against the governor upper limit.
+     *
+     * The default policy raises Pmax to an exceeded initialized value and emits
+     * a warning. Strict initialization returns false so the caller can retain
+     * its model-specific initialization error.
+     */
+    bool adjustInitialUpperLimit(double initialValue, std::string_view limitName);
+
+  public:
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;

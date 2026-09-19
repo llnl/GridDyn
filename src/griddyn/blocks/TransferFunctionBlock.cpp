@@ -31,7 +31,12 @@ TransferFunctionBlock::TransferFunctionBlock(int orderValue):
 {
     a.front() = 1.0;
     a.back() = 1.0;
-    b.front() = 1.0;
+    // The order-based constructor always sizes b, but keep this invariant
+    // explicit for static analyzers and for defensive future changes.
+    if (b.empty()) {
+        b.push_back(0.0);
+    }
+    b[0] = 1.0;
     opFlags.set(USE_STATE);
 }
 

@@ -23,6 +23,52 @@ support. Recognition is not dynamic validation: a model is complete only
 after import, initialization, limits, and disturbed trajectories agree with
 an external reference.
 
+### Governor initialization compatibility policy
+
+Dynamic initialization is permissive by default for supported governor models:
+when an initialized governor output is above its configured upper limit,
+GridDyn raises the upper limit to the initialized value and emits a warning.
+Set `strict_governor_limits` (or the alias `strictgovernorlimits`) through
+`-f/--flags` or `flags=...` to reject that initial upper-limit mismatch instead.
+This policy applies only to the initial upper-limit mismatch; invalid model
+parameters and lower-limit violations remain errors.
+
+The same compatibility policy is used for supported exciter initialization:
+when an initialized upper-bound signal exceeds its configured limit, GridDyn
+raises that limit to the initialized value and emits a warning by default.
+This covers DC1A/DC2A regulator limits, IEEE Type-1/Type-2 regulator limits,
+SCRX EMAX, ESAC6A regulator limits, ESST4B regulator/inner limits, and the
+EXAC1/ESAC1A/EXAC2 regulator limits. Set `strict_exciter_limits` (or the
+alias `strictexciterlimits`) through `-f/--flags` or `flags=...` to reject
+that initial upper-limit mismatch instead. Invalid model parameters and
+lower-limit violations remain errors.
+
+### Initial-limit consistency audit
+
+For every model using the automatic policy, the raised parameter is the same
+parameter used by the dynamic limiter: its root surface detects that adjusted
+boundary, the limiter holds the associated state only while its drive points
+outward, and the state is released when the drive becomes inward. DAE hold
+residuals use the corresponding `-cj` diagonal when the residual is
+`-dx/dt`; IEEE Type-1 and the base IEEE-simple governor were corrected to
+meet that convention. IEEE Type-2 uses `+dVr/dt` in its own residual and
+therefore correctly retains `+cj`.
+
+IEEE Type-2 previously bypassed the shared initialization policy. It now
+raises `VRMAX` by default (or rejects the point under
+`strict_exciter_limits`) before entering its normal runtime limiter.
+
+The following exciters still deliberately reject an inconsistent initial
+point rather than applying the generic policy: AC7B, AC8B, ESST1A, ESST2A,
+ESST3A, and IEEET3. They each have multiple or scaled bounds, so direct
+assignment of an initialized signal to `VRMAX` would be dimensionally wrong.
+For example, ESST1A's field ceiling is `VRMAX*Vt - KC*Ifd`, ESST3A has
+independent `VRMAX` and `VMMAX` states, and AC7B/AC8B have nested PID,
+regulator, and exciter limits. Any extension of the permissive policy must
+derive and update the particular runtime parameter for each violated bound,
+then add an active-limit residual/Jacobian regression; it should not reuse
+the one-dimensional helper blindly.
+
 ## Power-flow readiness
 
 | Case        | MATPOWER                                                    | RAW                                                                                                                     | EPC                                                                       | Current conclusion                                                                                                                                            |

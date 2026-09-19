@@ -10,6 +10,7 @@
 #include "GridSubModel.h"
 #include "units/units_decl.hpp"
 #include <string>
+#include <string_view>
 #include <vector>
 namespace griddyn {
 class Generator;
@@ -58,6 +59,7 @@ class Exciter: public GridSubModel {
     model_parameter vBias = 0.0;  //!< bias field level for adjusting the field output so the ref
                                   //!< can remain at some nominal level
     int limitState = 0;  //!< indicator of which state has the limits applied
+    bool strictInitialLimitChecking = false;  //!< reject initial outputs above upper limits
   public:
     /** @brief constructor*/
     explicit Exciter(const std::string& objName = "exciter_#");
@@ -105,6 +107,20 @@ class Exciter: public GridSubModel {
     virtual const std::vector<stringVec>& outputNames() const override;
 
   protected:
+    /** Configure the initial exciter-limit policy from simulation flags. */
+    void setInitialLimitPolicy(std::uint32_t flags);
+
+    /**
+     * Check an initialized value against an exciter upper limit.
+     *
+     * The default policy raises the supplied upper limit to an exceeded
+     * initialized value and emits a warning. Strict initialization returns
+     * false so the caller can retain its model-specific initialization error.
+     */
+    bool adjustInitialUpperLimit(double initialValue,
+                                 double& upperLimit,
+                                 std::string_view limitName);
+
     void checkForLimits();
 };
 

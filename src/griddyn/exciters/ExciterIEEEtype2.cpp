@@ -8,6 +8,7 @@
 
 #include "../Generator.h"
 #include "../GridBus.h"
+#include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
@@ -29,8 +30,9 @@ CoreObject* ExciterIEEEtype2::clone(CoreObject* obj) const
     return gdE;
 }
 
-void ExciterIEEEtype2::dynObjectInitializeA(CoreTime /*time*/, std::uint32_t /*flags*/)
+void ExciterIEEEtype2::dynObjectInitializeA(CoreTime /*time*/, std::uint32_t flags)
 {
+    setInitialLimitPolicy(flags);
     offsets.local().local.diffSize = 4;
     offsets.local().local.jacSize = 16;
     checkForLimits();
@@ -46,6 +48,10 @@ void ExciterIEEEtype2::dynObjectInitializeB(const IOdata& inputs,
                                   fieldSet);  // this will dynInitializeB the field state if need be
     double* stateValues = m_state.data();
     stateValues[1] = (Ke + (Aex * exp(Bex * stateValues[0]))) * stateValues[0];  // Vr
+    if ((stateValues[1] < Vrmin - 1e-7) ||
+        !adjustInitialUpperLimit(stateValues[1], Vrmax, "IEEE Type 2 initial regulator output")) {
+        throw InvalidParameterValue("IEEE Type 2 initial regulator output outside limits");
+    }
     stateValues[2] = 0;  // X1
     stateValues[3] = stateValues[1];  // X2
 

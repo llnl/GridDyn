@@ -7,6 +7,7 @@
 #pragma once
 
 #include "../Exciter.h"
+#include "blocks/LeadLag.h"
 #include "utilities/Saturation.h"
 #include <string>
 #include <vector>
@@ -31,7 +32,8 @@ namespace griddyn::exciters {
  * @f$E_{fd}=v_EF_{EX}(K_CX_{ad}I_{fd}/v_E)@f$.  The regulator state has an
  * anti-windup limiter @f$[V_{RMIN},V_{RMAX}]@f$.  When @f$T_R=0@f$, the
  * transducer is bypassed: @f$v_m=V_t@f$ and no measured-voltage state is
- * allocated.
+ * allocated.  When @f$T_B=0@f$, the lead-lag section is bypassed when
+ * @f$T_C=0@f$ and no lead-lag state is allocated.
  *
  * Frozen ANDES constructs the @f$T_R@f$ transducer but subtracts raw terminal
  * voltage from the regulator input.  GridDyn intentionally uses @f$v_m@f$ as
@@ -62,6 +64,7 @@ class ExciterEXAC1: public Exciter {
     model_parameter E2 = 1.0;
     model_parameter Se2 = 0.0;
     utilities::Saturation saturation{utilities::Saturation::SaturationType::QUADRATIC};
+    blocks::LeadLagKernel leadLag;
 
   public:
     explicit ExciterEXAC1(const std::string& objName = "exciterEXAC1_#");
@@ -106,6 +109,7 @@ class ExciterEXAC1: public Exciter {
     virtual double regulatorTarget(const IOdata& inputs, const double state[]) const;
     virtual double regulatorUpperLimit() const;
     virtual double regulatorLowerLimit() const;
+    virtual bool adjustRegulatorInitialUpperLimit(double initialValue);
     virtual double initialRegulatorState(double vfe) const;
     virtual double referenceOffset(double vfe) const;
     virtual void regulatorTargetDerivatives(const IOdata& inputs,
@@ -114,6 +118,7 @@ class ExciterEXAC1: public Exciter {
                                             double& exciterDerivative,
                                             double& fieldCurrentDerivative) const;
     double referenceInput(const IOdata& inputs) const;
+    bool hasLeadLag() const;
     double vfe(const IOdata& inputs, const double state[]) const;
     double rectifierFactor(const IOdata& inputs, double exciterVoltage) const;
     double fieldVoltage(const IOdata& inputs, const double state[]) const;

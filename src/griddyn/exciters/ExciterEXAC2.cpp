@@ -14,6 +14,25 @@
 
 namespace griddyn::exciters {
 namespace {
+    constexpr index_t leadLagState = 1;
+    constexpr index_t regulatorState = 2;
+    constexpr index_t exciterState = 3;
+
+    // EXAC2 reuses EXAC1's compact state layout.  Keep the derived-model
+    // limiter equations aligned with the base model when TR or TB bypasses a
+    // state.
+    index_t stateIndex(index_t fullIndex, bool hasVoltageTransducer, bool hasLeadLag)
+    {
+        index_t index = fullIndex;
+        if (!hasVoltageTransducer) {
+            --index;
+        }
+        if (!hasLeadLag && (fullIndex > leadLagState)) {
+            --index;
+        }
+        return index;
+    }
+
     // These decimal values are the specified PSS/E FEX curve coefficients,
     // not approximations of unrelated mathematical constants.
     constexpr double lowCurrentSlope = 0.577;  // NOLINT(modernize-use-std-numbers)
@@ -43,7 +62,7 @@ void ExciterEXAC2::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (!std::isfinite(Vamax) || !std::isfinite(Vamin) || !std::isfinite(Vlr) ||
         !std::isfinite(Kl) || !std::isfinite(Kh) || !std::isfinite(Kb) || (Kb <= 0.0) ||
-        (Kl <= 0.0) || (Vamax < Vamin) || (Tr <= 0.0)) {
+        (Kl <= 0.0) || (Vamax < Vamin)) {
         throw InvalidParameterValue("EXAC2 gains or limits");
     }
     ExciterEXAC1::dynObjectInitializeA(time0, flags);
@@ -155,7 +174,8 @@ double ExciterEXAC2::get(std::string_view param, units::unit unitType) const
 double ExciterEXAC2::regulatorTarget(const IOdata& inputs, const double state[]) const
 {
     const double feedback = vfe(inputs, state);
-    const double highGate = state[2] - (Kh * feedback);
+    const auto regulatorIndex = stateIndex(regulatorState, Tr > 0.0, hasLeadLag());
+    const double highGate = state[regulatorIndex] - (Kh * feedback);
     const double lowGate = Kl * (vlr0 - feedback);
     return std::clamp(Kb * std::min(highGate, lowGate),
                       static_cast<double>(Vrmin),
@@ -170,13 +190,17 @@ double ExciterEXAC2::regulatorLowerLimit() const
 {
     return Vamin;
 }
+bool ExciterEXAC2::adjustRegulatorInitialUpperLimit(double initialValue)
+{
+    return adjustInitialUpperLimit(initialValue, Vamax, "EXAC2 initial regulator output");
+}
 double ExciterEXAC2::initialRegulatorState(double vfeValue) const
 {
-    return (vfeValue * Kl) + (vfeValue / Kb);
+    return (vfeValue * Kh) + (vfeValue / Kb);
 }
 double ExciterEXAC2::referenceOffset(double vfeValue) const
 {
-    return ((vfeValue * Kl) + (vfeValue / Kb)) / Ka;
+    return ((vfeValue * Kh) + (vfeValue / Kb)) / Ka;
 }
 
 void ExciterEXAC2::regulatorTargetDerivatives(const IOdata& inputs,
@@ -185,9 +209,11 @@ void ExciterEXAC2::regulatorTargetDerivatives(const IOdata& inputs,
                                               double& exciterDerivative,
                                               double& fieldCurrentDerivative) const
 {
-    const double feedbackSlope = Ke + saturation.deriv(state[3]);
+    const auto regulatorIndex = stateIndex(regulatorState, Tr > 0.0, hasLeadLag());
+    const auto exciterIndex = stateIndex(exciterState, Tr > 0.0, hasLeadLag());
+    const double feedbackSlope = Ke + saturation.deriv(state[exciterIndex]);
     const double feedback = vfe(inputs, state);
-    const double highGate = state[2] - (Kh * feedback);
+    const double highGate = state[regulatorIndex] - (Kh * feedback);
     const double lowGate = Kl * (vlr0 - feedback);
     const double unbounded = Kb * std::min(highGate, lowGate);
     regulatorDerivative = 0.0;
@@ -196,7 +222,10 @@ void ExciterEXAC2::regulatorTargetDerivatives(const IOdata& inputs,
     if ((unbounded <= Vrmin) || (unbounded >= Vrmax)) {
         return;
     }
-    if (highGate <= lowGate) {
+    // The limiter is nonsmooth when the two gates meet.  Use the low-gate
+    // derivative at the tie so the analytic Jacobian agrees with the side
+    // selected by the min() residual under finite-difference perturbations.
+    if (highGate < lowGate) {
         regulatorDerivative = Kb;
         exciterDerivative = -Kb * Kh * feedbackSlope;
         fieldCurrentDerivative = -Kb * Kh * Kd;

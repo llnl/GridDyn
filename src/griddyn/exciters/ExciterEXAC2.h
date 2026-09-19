@@ -48,6 +48,7 @@ class ExciterEXAC2 final: public ExciterEXAC1 {
     double regulatorTarget(const IOdata& inputs, const double state[]) const override;
     double regulatorUpperLimit() const override;
     double regulatorLowerLimit() const override;
+    bool adjustRegulatorInitialUpperLimit(double initialValue) override;
     double initialRegulatorState(double vfe) const override;
     double referenceOffset(double vfe) const override;
     void regulatorTargetDerivatives(const IOdata& inputs,

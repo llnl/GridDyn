@@ -8,6 +8,7 @@
 
 #include "../Generator.h"
 #include "../GridBus.h"
+#include "core/CoreExceptions.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
@@ -52,8 +53,9 @@ CoreObject* ExciterDC1A::clone(CoreObject* obj) const
     return gdE;
 }
 
-void ExciterDC1A::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
+void ExciterDC1A::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t flags)
 {
+    setInitialLimitPolicy(flags);
     configureSaturation();
     offsets.local().local.diffSize = (Tr > 0.0) ? 5 : 4;
     offsets.local().local.jacSize = 24;
@@ -70,6 +72,9 @@ void ExciterDC1A::dynObjectInitializeB(const IOdata& inputs,
                                   fieldSet);  // this will dynInitializeB the field state if need be
     double* stateValues = m_state.data();
     stateValues[1] = saturationFeedback(stateValues[0]);  // Vr
+    if (!adjustInitialRegulatorLimit(stateValues[1], inputs[VOLTAGE_IN_LOCATION])) {
+        throw InvalidParameterValue("DC1A initial regulator output outside limits");
+    }
     stateValues[2] = stateValues[1] / Ka;  // X
     stateValues[3] = (stateValues[0] * Kf) / Tf;  // Rf
     if (Tr > 0.0) {
@@ -78,6 +83,12 @@ void ExciterDC1A::dynObjectInitializeB(const IOdata& inputs,
 
     vBias = inputs[VOLTAGE_IN_LOCATION] + (stateValues[1] / Ka) - Vref;
     fieldSet[1] = Vref;
+}
+
+bool ExciterDC1A::adjustInitialRegulatorLimit(double initialValue, double /*terminalVoltage*/)
+{
+    return (initialValue >= Vrmin - 1e-7) &&
+        adjustInitialUpperLimit(initialValue, Vrmax, "DC1A initial regulator output");
 }
 
 // residual
@@ -203,7 +214,10 @@ void ExciterDC1A::limitJacobian(double /*V*/,
                                 double cjValue,
                                 MatrixData<double>& matrixDataValue)
 {
-    matrixDataValue.assign(refLoc, refLoc, cjValue);
+    // At a regulator limit the residual is -dot(V_R), because derivative()
+    // freezes the regulator state.  The DAE Jacobian contribution is
+    // therefore -cj, not +cj.
+    matrixDataValue.assign(refLoc, refLoc, -cjValue);
 }
 
 void ExciterDC1A::rootTest(const IOdata& inputs,

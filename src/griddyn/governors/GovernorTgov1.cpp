@@ -69,6 +69,10 @@ void GovernorTgov1::dynObjectInitializeB(const IOdata& /*inputs*/,
                                          const IOdata& desiredOutput,
                                          IOdata& fieldSet)
 {
+    if (desiredOutput.empty() || !std::isfinite(desiredOutput[POUT_LOCATION]) ||
+        !adjustInitialUpperLimit(desiredOutput[POUT_LOCATION], "TGOV1 initial valve")) {
+        throw InvalidParameterValue("TGOV1 initial valve outside upper limit");
+    }
     m_state[2] = desiredOutput[POUT_LOCATION];
     m_state[1] = desiredOutput[POUT_LOCATION];
     m_state[0] = desiredOutput[POUT_LOCATION];

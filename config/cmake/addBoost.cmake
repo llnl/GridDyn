@@ -163,9 +163,8 @@ if(NOT Boost_FOUND)
             add_library(Boost::headers INTERFACE IMPORTED)
             set_target_properties(
                 Boost::headers
-                PROPERTIES
-                    INTERFACE_INCLUDE_DIRECTORIES "${Boost_INCLUDE_DIR}"
-                    INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${Boost_INCLUDE_DIR}"
+                PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${Boost_INCLUDE_DIR}"
+                           INTERFACE_SYSTEM_INCLUDE_DIRECTORIES "${Boost_INCLUDE_DIR}"
             )
             add_library(Boost::boost INTERFACE IMPORTED)
             set_target_properties(Boost::boost PROPERTIES INTERFACE_LINK_LIBRARIES Boost::headers)

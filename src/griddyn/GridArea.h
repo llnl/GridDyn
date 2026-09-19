@@ -153,6 +153,14 @@ class GridArea: public GridPrimary {
     virtual void loadRootSizes(const SolverMode& sMode) override;
     virtual void setRootOffset(index_t rootOffset, const SolverMode& sMode) override;
 
+    /** @brief describe the owner of each dynamic root offset
+     *
+     * The returned entries are indexed by the global root offset used by the
+     * solver.  This is intended for diagnostics when a solver reports a root
+     * return without identifying the model that owns the root.
+     */
+    void getRootObjectNames(stringVec& rootNames, const SolverMode& sMode) const;
+
   protected:
     virtual void pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     virtual void pFlowObjectInitializeB() override;

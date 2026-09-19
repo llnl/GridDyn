@@ -46,6 +46,8 @@ class ExciterDC2A: public ExciterDC1A {
                                  CheckLevel level) override;
 
   protected:
+    bool adjustInitialRegulatorLimit(double initialValue, double terminalVoltage) override;
+
     virtual void limitJacobian(double V,
                                int voltageLoc,
                                int refLoc,

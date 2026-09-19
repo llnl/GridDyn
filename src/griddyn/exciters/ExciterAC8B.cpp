@@ -75,8 +75,9 @@ CoreObject* ExciterAC8B::clone(CoreObject* obj) const
     return result;
 }
 
-void ExciterAC8B::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
+void ExciterAC8B::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t flags)
 {
+    setInitialLimitPolicy(flags);
     const std::array<double, 20> parameters{Tr,    Kpr,   Kir,   Kdr,   Tdr, Vpmax, Vpmin,
                                             Vrmax, Vrmin, Vemax, Vemin, Ta,  Ka,    Te,
                                             Kc,    Kd,    Ke,    E1,    Se1, E2};
@@ -273,9 +274,9 @@ void ExciterAC8B::dynObjectInitializeB(const IOdata& inputs,
              .factor) -
         fieldVoltage;
     if ((pidOutput < Vpmin - initializationTolerance) ||
-        (pidOutput > Vpmax + initializationTolerance) ||
+        !adjustInitialUpperLimit(pidOutput, Vpmax, "AC8B initial PID output") ||
         (fieldFeedback < Vrmin - initializationTolerance) ||
-        (fieldFeedback > Vrmax + initializationTolerance) ||
+        !adjustInitialUpperLimit(fieldFeedback, Vrmax, "AC8B initial regulator output") ||
         (exciterVoltage < Vemin - initializationTolerance) ||
         (fieldFeedback > Vemax + initializationTolerance) ||
         (std::abs(rectifierMismatch) > initializationTolerance)) {

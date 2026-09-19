@@ -60,8 +60,9 @@ CoreObject* ExciterESST2A::clone(CoreObject* obj) const
     return result;
 }
 
-void ExciterESST2A::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
+void ExciterESST2A::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t flags)
 {
+    setInitialLimitPolicy(flags);
     const std::array<double, 14> parameters{
         Tr, Vrmax, Vrmin, Ka, Ta, Kp, Ki, Kc, Kf, Tf, Ke, Te, Efdmax, Vref};
     if (std::any_of(parameters.begin(),
@@ -196,7 +197,7 @@ void ExciterESST2A::dynObjectInitializeB(const IOdata& inputs,
     }
     const double regulator = Ke * fieldVoltage / rectifier;
     if ((regulator < Vrmin - initializationTolerance) ||
-        (regulator > Vrmax + initializationTolerance) ||
+        !adjustInitialUpperLimit(regulator, Vrmax, "ESST2A initial regulator output") ||
         (fieldVoltage < -initializationTolerance) ||
         (fieldVoltage > Efdmax + initializationTolerance)) {
         throw InvalidParameterValue("ESST2A initial state outside limits");

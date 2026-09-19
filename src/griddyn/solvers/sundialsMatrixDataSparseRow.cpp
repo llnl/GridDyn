@@ -18,7 +18,10 @@ SundialsMatrixDataSparseRow::SundialsMatrixDataSparseRow(SUNMatrix mat):
 
 void SundialsMatrixDataSparseRow::clear()
 {
-    SUNMatZero(J);
+    // SUNMatZero also erases the compressed-row index structure.  This wrapper
+    // is used to refresh values of an already-assembled Jacobian, so retain
+    // that structure for the next KLU factorization.
+    std::fill_n(SM_DATA_S(J), static_cast<size_t>(SM_NNZ_S(J)), 0.0);
 }
 void SundialsMatrixDataSparseRow::assign(index_t row, index_t col, double num)
 {

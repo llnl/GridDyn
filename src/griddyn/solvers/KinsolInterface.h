@@ -51,6 +51,8 @@ class KinsolInterface: public SundialsInterface {
                          N_Vector tmp2);
 
   private:
+    count_t partitionedDiagnosticCallCount = 0;
+    count_t partitionedDiagnosticJacobianCallCount = 0;
 #if MEASURE_TIMINGS > 0
     double kinTime = 0;  //!< the total time spent in kinsol
     double residTime = 0;  //!< the total time spent in the residual calls

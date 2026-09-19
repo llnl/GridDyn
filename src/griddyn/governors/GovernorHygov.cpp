@@ -27,6 +27,7 @@ namespace {
     constexpr index_t flowState = 3;
     constexpr double minimumGate = 1e-8;
     constexpr double rateLimitTolerance = 1e-7;
+    constexpr double positionLimitTolerance = 1e-7;
 }  // namespace
 
 GovernorHygov::GovernorHygov(const std::string& objName): Governor(objName)
@@ -62,8 +63,9 @@ CoreObject* GovernorHygov::clone(CoreObject* obj) const
 
 GovernorHygov::~GovernorHygov() = default;
 
-void GovernorHygov::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
+void GovernorHygov::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
+    setInitialLimitPolicy(flags);
     if (!std::isfinite(K) || !std::isfinite(temporaryDroop) || !std::isfinite(Tr) ||
         !std::isfinite(Tf) || !std::isfinite(Tg) || !std::isfinite(Tw) || !std::isfinite(VELM) ||
         !std::isfinite(Pmax) || !std::isfinite(Pmin) || !std::isfinite(At) ||
@@ -88,7 +90,7 @@ void GovernorHygov::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/
     positionRootTransitionPending = false;
 }
 
-void GovernorHygov::dynObjectInitializeB(const IOdata& /*inputs*/,
+void GovernorHygov::dynObjectInitializeB(const IOdata& inputs,
                                          const IOdata& desiredOutput,
                                          IOdata& fieldSet)
 {
@@ -101,7 +103,7 @@ void GovernorHygov::dynObjectInitializeB(const IOdata& /*inputs*/,
     if (!std::isfinite(initialGate) || (std::abs(initialGate) < minimumGate)) {
         throw InvalidParameterValue("HYGOV initial gate is singular");
     }
-    if ((initialGate < Pmin) || (initialGate > Pmax)) {
+    if ((initialGate < Pmin) || !adjustInitialUpperLimit(initialGate, "HYGOV initial gate")) {
         throw InvalidParameterValue("HYGOV initial gate outside limits");
     }
     Pset = initialGate / K;
@@ -115,6 +117,11 @@ void GovernorHygov::dynObjectInitializeB(const IOdata& /*inputs*/,
     m_state[diffOffset + flowState] = initialFlow;
     fieldSet.resize(2);
     fieldSet[govpSetInLocation] = Pset;
+    // An initial output that was accepted at the configured upper bound is
+    // already in the position-limited branch.  Mark it before IDA evaluates
+    // roots so the release root is offset into the admissible region instead
+    // of being identically zero at t=0.
+    updateLimitFlags(inputs, m_state.data() + diffOffset);
 }
 
 double GovernorHygov::speedDeviation(const IOdata& inputs)
@@ -202,10 +209,15 @@ int GovernorHygov::gateRateLimitStatus(const IOdata& inputs, const double diffSt
 int GovernorHygov::gatePositionLimitStatus(const IOdata& inputs, const double diffState[]) const
 {
     const double rate = limitedGateRate(inputs, diffState);
-    if ((diffState[gatePositionState] >= Pmax) && (rate >= 0.0)) {
+    // A zero-rate state at a gate bound is a valid equilibrium, not an
+    // already-engaged position limiter.  In particular, permissive
+    // initialization can raise GMAX to the dispatched gate position.  Latching
+    // that artificial boundary makes roundoff-sized rate changes alternate
+    // between the constrained and unconstrained Jacobians.
+    if ((diffState[gatePositionState] >= Pmax) && (rate > positionLimitTolerance)) {
         return 1;
     }
-    if ((diffState[gatePositionState] <= Pmin) && (rate <= 0.0)) {
+    if ((diffState[gatePositionState] <= Pmin) && (rate < -positionLimitTolerance)) {
         return -1;
     }
     return 0;
@@ -385,8 +397,30 @@ void GovernorHygov::rootTest(const IOdata& inputs,
     }
     const double limitedRateValue = limitedGateRate(inputs, state);
     if (opFlags[GATE_POSITION_LIMITED]) {
-        roots[rootOffset + 1] =
-            opFlags[GATE_POSITION_LIMIT_HIGH] ? limitedRateValue : -limitedRateValue;
+        // Keep a governor parked at a position limit from being reported as
+        // a root at every restart when its release rate is exactly zero.  The
+        // offset is on the release side: a high limit releases for a negative
+        // rate and a low limit releases for a positive rate.
+        roots[rootOffset + 1] = opFlags[GATE_POSITION_LIMIT_HIGH] ?
+            -limitedRateValue - (2.0 * positionLimitTolerance) :
+            limitedRateValue - (2.0 * positionLimitTolerance);
+    } else if (((state[gatePositionState] >= (Pmax - positionLimitTolerance)) &&
+                (limitedRateValue < 0.0)) ||
+               ((state[gatePositionState] <= (Pmin + positionLimitTolerance)) &&
+                (limitedRateValue > 0.0))) {
+        // At a geometric boundary with an inward rate the governor is not
+        // limited, but the distance-only root would still be exactly zero.
+        // Keep IDA away from that non-eventful surface.
+        roots[rootOffset + 1] = positionLimitTolerance;
+    } else if ((std::abs(limitedRateValue) <= positionLimitTolerance) &&
+               (((state[gatePositionState] >= (Pmax - positionLimitTolerance)) &&
+                 (state[gatePositionState] <= (Pmax + positionLimitTolerance))) ||
+                ((state[gatePositionState] >= (Pmin - positionLimitTolerance)) &&
+                 (state[gatePositionState] <= (Pmin + positionLimitTolerance))))) {
+        // Likewise, a zero-rate operating point on a position bound is not a
+        // crossing.  Return a small positive value until the rate gives a
+        // definite direction for a real limiter entry or release.
+        roots[rootOffset + 1] = positionLimitTolerance;
     } else {
         roots[rootOffset + 1] =
             std::min(Pmax - state[gatePositionState], state[gatePositionState] - Pmin);
@@ -409,6 +443,7 @@ void GovernorHygov::rootTrigger(CoreTime time,
     const bool wasPositionLimitHigh = opFlags[GATE_POSITION_LIMIT_HIGH];
     const double rootRate = unlimitedGateRate(inputs, state);
     const bool rateRootTransition = rootMask[rootOffset] != 0;
+    bool positionLimitNudged = false;
 
     // At a limiter root, evaluating the status again can land infinitesimally
     // inside the unsaturated region.  Use the root direction to latch the
@@ -445,7 +480,22 @@ void GovernorHygov::rootTrigger(CoreTime time,
         const bool limited = (rootMask[rootOffset + 1] < 0);
         opFlags.set(GATE_POSITION_LIMITED, limited);
         const double midpoint = (Pmax + Pmin) / 2.0;
-        opFlags.set(GATE_POSITION_LIMIT_HIGH, limited && (state[gatePositionState] >= midpoint));
+        const bool limitHigh = limited && (state[gatePositionState] >= midpoint);
+        opFlags.set(GATE_POSITION_LIMIT_HIGH, limitHigh);
+        if (wasPositionLimited && limited && (wasPositionLimitHigh == limitHigh)) {
+            // A negative-direction position root while the same position
+            // limiter is already active is not a new branch transition: it
+            // is the release test returning to the constrained side.  IDA
+            // has stopped exactly on that test surface, so put the filter
+            // infinitesimally inside the active branch before restarting.
+            // Without this, the unchanged limiter can immediately return the
+            // same root again and cause event chatter.
+            const double rateStateSlope = (1.0 - Tr / Tf) / (temporaryDroop * Tr);
+            if (std::abs(rateStateSlope) > std::numeric_limits<double>::epsilon()) {
+                state[filterState] -= rootRate / rateStateSlope;
+                positionLimitNudged = true;
+            }
+        }
     }
     state[gatePositionState] =
         std::clamp(state[gatePositionState], static_cast<double>(Pmin), static_cast<double>(Pmax));
@@ -456,7 +506,11 @@ void GovernorHygov::rootTrigger(CoreTime time,
     if (changed) {
         alert(this, JAC_COUNT_CHANGE);
     }
-    if (changed && rateRootTransition) {
+    if (changed || positionLimitNudged) {
+        // Position-limit transitions also change the gate derivative.  Refresh
+        // yp after every branch change or boundary nudge so IDA does not
+        // restart from a state/derivative pair that belongs to the previous
+        // limiter condition.
         const StateData stateData(time, m_state.data());
         derivative(inputs, stateData, m_dstate_dt.data(), cLocalSolverMode);
     }

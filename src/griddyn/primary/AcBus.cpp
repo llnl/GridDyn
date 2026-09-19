@@ -2700,26 +2700,32 @@ void AcBus::computePowerAdjustments()
     S.reset();
 
     for (auto& link : attachedLinks) {
-        if ((link->isConnected()) && (!busController.hasVoltageAdjustments(link->getID()))) {
+        if ((link->isConnected()) && (link->isEnabled()) &&
+            (!busController.hasVoltageAdjustments(link->getID()))) {
             S.linkQ += link->getReactivePower(cid);
         }
-        if ((link->isConnected()) && (!busController.hasPowerAdjustments(link->getID()))) {
+        if ((link->isConnected()) && (link->isEnabled()) &&
+            (!busController.hasPowerAdjustments(link->getID()))) {
             S.linkP += link->getRealPower(cid);
         }
     }
     for (auto& load : attachedLoads) {
-        if ((load->isConnected()) && (!busController.hasVoltageAdjustments(load->getID()))) {
+        if ((load->isConnected()) && (load->isEnabled()) &&
+            (!busController.hasVoltageAdjustments(load->getID()))) {
             S.loadQ += load->getReactivePower(voltage);
         }
-        if ((load->isConnected()) && (!busController.hasPowerAdjustments(load->getID()))) {
+        if ((load->isConnected()) && (load->isEnabled()) &&
+            (!busController.hasPowerAdjustments(load->getID()))) {
             S.loadP += load->getRealPower(voltage);
         }
     }
     for (auto& gen : attachedGens) {
-        if ((gen->isConnected()) && (!busController.hasVoltageAdjustments(gen->getID()))) {
+        if ((gen->isConnected()) && (gen->isEnabled()) &&
+            (!busController.hasVoltageAdjustments(gen->getID()))) {
             S.genQ += gen->getReactivePower();
         }
-        if ((gen->isConnected()) && (!busController.hasPowerAdjustments(gen->getID()))) {
+        if ((gen->isConnected()) && (gen->isEnabled()) &&
+            (!busController.hasPowerAdjustments(gen->getID()))) {
             S.genP += gen->getRealPower();
         }
     }

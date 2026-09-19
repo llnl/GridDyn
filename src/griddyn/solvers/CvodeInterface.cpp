@@ -24,6 +24,7 @@
 #include <iterator>
 #include <map>
 #include <memory>
+#include <print>
 #include <string>
 #include <sunlinsol/sunlinsol_dense.h>
 #include <vector>
@@ -137,6 +138,9 @@ void CvodeInterface::set(std::string_view param, double val)
         // discontinuity or during a stiff transient.
         step = val;
         checkStepUpdate = true;
+    } else if ((param == "initialstep") || (param == "initstep")) {
+        step = val;
+        checkStepUpdate = true;
     } else if (param == "maxstep") {
         maxStep = val;
         checkStepUpdate = true;
@@ -152,9 +156,15 @@ void CvodeInterface::set(std::string_view param, double val)
     }
     if (checkStepUpdate) {
         if (flags[INITIALIZED_FLAG]) {
-            CVodeSetMaxStep(solverMem, maxStep);
-            CVodeSetMinStep(solverMem, minStep);
-            CVodeSetInitStep(solverMem, step);
+            if (maxStep >= 0.0) {
+                CVodeSetMaxStep(solverMem, maxStep);
+            }
+            if (minStep >= 0.0) {
+                CVodeSetMinStep(solverMem, minStep);
+            }
+            if (step > 0.0) {
+                CVodeSetInitStep(solverMem, step);
+            }
         }
     }
 }
@@ -324,6 +334,7 @@ void CvodeInterface::initialize(CoreTime time0)
             /* Create KLU solver object */
             LS = SUNLinSol_KLU(state, J, sunctx);
             checkFlag(LS, "SUNLinSol_KLU", 0);
+            SUNLinSol_KLUGetCommon(LS)->halt_if_singular = 1;
         }
 #else
         J = SUNDenseMatrix(svsize, svsize, sunctx);
@@ -390,7 +401,11 @@ if (checkFlag(&retval, "CVodeGetConsistentIC", 1))
 
 int CvodeInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
 {
-    assert(rootCount == m_gds->rootSize(mode));
+    // GridDyn can intentionally disable root finding for a diagnostic A/B run.  In that
+    // mode rootCount is zero even though the model still reports its available roots.
+    if (rootCount > 0) {
+        assert(rootCount == m_gds->rootSize(mode));
+    }
     ++solverCallCount;
     icCount = 0;
 
@@ -435,6 +450,19 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userDat
     auto sd = reinterpret_cast<CvodeInterface*>(userData);
     sd->funcCallCount++;
     if (sd->mode.pairedOffsetIndex != kNullLocation) {
+        if (sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) && sd->funcCallCount <= 8) {
+            std::println("CVODE differential callback {} at time={} state_size={} paired_index={}",
+                         sd->funcCallCount,
+                         static_cast<double>(time),
+                         sd->size(),
+                         sd->mode.pairedOffsetIndex);
+            sd->m_gds->partitionedDiagnostic(std::format(
+                "CVODE differential callback {} at time={} state_size={} paired_index={}",
+                sd->funcCallCount,
+                static_cast<double>(time),
+                sd->size(),
+                sd->mode.pairedOffsetIndex));
+        }
         int ret = sd->m_gds->dynAlgebraicSolve(time,
                                                NVECTOR_DATA(sd->use_omp, state),
                                                NVECTOR_DATA(sd->use_omp, dstateDt),
@@ -442,11 +470,36 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userDat
         if (ret < FUNCTION_EXECUTION_SUCCESS) {
             return ret;
         }
+        if (sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) && sd->funcCallCount <= 8) {
+            std::println("CVODE differential callback {} algebraic solve completed",
+                         sd->funcCallCount);
+            sd->m_gds->partitionedDiagnostic(
+                std::format("CVODE differential callback {} algebraic solve completed",
+                            sd->funcCallCount));
+        }
+    }
+    const bool partitionedTrace =
+        sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) && sd->funcCallCount <= 8;
+    if (partitionedTrace) {
+        std::println("CVODE differential callback {} evaluating model derivatives",
+                     sd->funcCallCount);
+        sd->m_gds->partitionedDiagnostic(
+            std::format("CVODE differential callback {} evaluating model derivatives",
+                        sd->funcCallCount));
     }
     int ret = sd->m_gds->derivativeFunction(time,
                                             NVECTOR_DATA(sd->use_omp, state),
                                             NVECTOR_DATA(sd->use_omp, dstateDt),
                                             sd->mode);
+    if (partitionedTrace) {
+        std::println("CVODE differential callback {} derivative evaluation returned {}",
+                     sd->funcCallCount,
+                     ret);
+        sd->m_gds->partitionedDiagnostic(
+            std::format("CVODE differential callback {} derivative evaluation returned {}",
+                        sd->funcCallCount,
+                        ret));
+    }
 
     if (sd->flags[FILE_CAPTURE_FLAG]) {
         if (!sd->stateFile.empty()) {

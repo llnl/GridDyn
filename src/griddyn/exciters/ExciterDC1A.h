@@ -55,6 +55,9 @@ class ExciterDC1A: public ExciterIEEEtype1 {
                                  CheckLevel level) override;
     // virtual void setTime(CoreTime time){prevTime=time;};
   protected:
+    /** Apply the initial regulator-output policy for the DC1A limit convention. */
+    virtual bool adjustInitialRegulatorLimit(double initialValue, double terminalVoltage);
+
     /** @brief the Jacobian entries for the limiter
 @param[in] V the voltage
 @param[in] Vloc the location of the voltage

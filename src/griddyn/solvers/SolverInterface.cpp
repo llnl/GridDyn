@@ -328,6 +328,12 @@ static const std::map<std::string_view, int, std::less<std::string_view>> SOLVER
     {"newton", USE_NEWTON_FLAG},
     {"print_resid", PRINT_RESIDUALS},
     {"print_residuals", PRINT_RESIDUALS},
+    {"ida_ic_diagnostics", IDA_IC_DIAGNOSTICS},
+    {"ida_initial_condition_diagnostics", IDA_IC_DIAGNOSTICS},
+    {"ida_ic_stop_on_failure", IDA_IC_STOP_ON_FAILURE},
+    {"ida_initial_condition_stop_on_failure", IDA_IC_STOP_ON_FAILURE},
+    {"ida_integration_diagnostics", IDA_INTEGRATION_DIAGNOSTICS},
+    {"ida_integration_trace", IDA_INTEGRATION_DIAGNOSTICS},
     {"block_mode_only", BLOCK_MODE_ONLY}};
 
 void SolverInterface::setFlag(std::string_view flag, bool val)

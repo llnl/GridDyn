@@ -48,8 +48,9 @@ CoreObject* ExciterIEEEtype1::clone(CoreObject* obj) const
     return gdE;
 }
 
-void ExciterIEEEtype1::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
+void ExciterIEEEtype1::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t flags)
 {
+    setInitialLimitPolicy(flags);
     configureSaturation();
     offsets.local().local.diffSize = (Tr > 0.0) ? 4 : 3;
     offsets.local().local.jacSize = 18;
@@ -66,6 +67,10 @@ void ExciterIEEEtype1::dynObjectInitializeB(const IOdata& inputs,
                                   fieldSet);  // this will dynInitializeB the field state if need be
     double* stateValues = m_state.data();
     stateValues[1] = saturationFeedback(stateValues[0]);  // Vr
+    if ((stateValues[1] < Vrmin - 1e-7) ||
+        !adjustInitialUpperLimit(stateValues[1], Vrmax, "IEEE Type 1 initial regulator output")) {
+        throw InvalidParameterValue("IEEE Type 1 initial regulator output outside limits");
+    }
     stateValues[2] = (stateValues[0] * Kf) / Tf;  // Rf
     if (Tr > 0.0) {
         stateValues[3] = inputs[VOLTAGE_IN_LOCATION];
@@ -144,7 +149,8 @@ void ExciterIEEEtype1::jacobianElements(const IOdata& /*inputs*/,
                       (-(saturationDerivative(stateData.state[offset]) / Te)) - stateData.cj);
     matrixData.assign(offset, offset + 1, 1.0 / Te);
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
-        matrixData.assign(offset + 1, offset + 1, stateData.cj);
+        // The active limiter residual is -dVr/dt, so its DAE diagonal is -cj.
+        matrixData.assign(offset + 1, offset + 1, -stateData.cj);
     } else {
         matrixData.assign(offset + 1, offset, (-Ka * Kf) / (Tf * Ta));
         matrixData.assign(offset + 1, offset + 1, (-1.0 / Ta) - stateData.cj);

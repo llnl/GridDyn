@@ -72,6 +72,10 @@ void GovernorReheat::dynObjectInitializeB(const IOdata& /*inputs*/,
                                           const IOdata& desiredOutput,
                                           IOdata& fieldSet)
 {
+    if (desiredOutput.empty() || !std::isfinite(desiredOutput[0]) ||
+        !adjustInitialUpperLimit(desiredOutput[0], "IEESGO initial valve")) {
+        throw InvalidParameterValue("IEESGO initial valve outside upper limit");
+    }
     const double power = std::clamp(desiredOutput[0], Pmin, Pmax);
     m_state[0] = power;
     m_state[1] = power;

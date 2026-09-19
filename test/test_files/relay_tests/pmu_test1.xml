@@ -16,7 +16,7 @@
       <Qmin>-2.0</Qmin>
       <generator name="gen2" dynmodel="modelonly">
          <P>1.63</P>
-         <dpdt>0.02</dpdt>
+         <dpdt>0.0001</dpdt>
       </generator>
    </bus>
    <bus name="bus3">

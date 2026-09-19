@@ -17,6 +17,7 @@
 #include "griddyn/Generator.h"
 #include "griddyn/Governor.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/GridDynSimulation.h"
 #include "griddyn/Stabilizer.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/governors/GovernorHygov.h"
@@ -82,8 +83,8 @@ namespace {
     void loadGAST(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEG1(CoreObject* parentObject, stringVec& tokens);
     void loadIEESGO(CoreObject* parentObject, stringVec& tokens);
-    void loadIEEEST(CoreObject* parentObject, stringVec& tokens);
-    void loadST2CUT(CoreObject* parentObject, stringVec& tokens);
+    void loadIEEEST(CoreObject* parentObject, stringVec& tokens, bool zeroGain = false);
+    void loadST2CUT(CoreObject* parentObject, stringVec& tokens, bool zeroGain = false);
     void loadEXDC2(CoreObject* parentObject, stringVec& tokens);
     void loadSEXS(CoreObject* parentObject, stringVec& tokens);
 }  // namespace
@@ -92,6 +93,10 @@ void loadDyr(CoreObject* parentObject,
              const std::string& fileName,
              const BasicReaderInfo& /*readerOptions*/)
 {
+    const auto* simulation = dynamic_cast<const GridDynSimulation*>(parentObject->getRoot());
+    const bool disableStabilizers =
+        (simulation != nullptr) && simulation->isFlagSet(DISABLE_STABILIZERS_FOR_DIAGNOSTICS);
+    count_t zeroGainStabilizers = 0;
     std::ifstream file(fileName.c_str(), std::ios::in);
     std::string line;  // line storage
     std::string continuedLine;
@@ -198,14 +203,26 @@ void loadDyr(CoreObject* parentObject,
         } else if (type == "'IEESGO'") {
             loadIEESGO(parentObject, lineTokens);
         } else if (type == "'IEEEST'") {
-            loadIEEEST(parentObject, lineTokens);
+            if (disableStabilizers) {
+                ++zeroGainStabilizers;
+            }
+            loadIEEEST(parentObject, lineTokens, disableStabilizers);
         } else if (type == "'ST2CUT'") {
-            loadST2CUT(parentObject, lineTokens);
+            if (disableStabilizers) {
+                ++zeroGainStabilizers;
+            }
+            loadST2CUT(parentObject, lineTokens, disableStabilizers);
         } else if (type == "'SEXS'") {
             loadSEXS(parentObject, lineTokens);
         } else {
             std::cout << "unknown object type " << type << '\n';
         }
+    }
+    if (disableStabilizers) {
+        parentObject->log(parentObject,
+                          PrintLevel::SUMMARY,
+                          "DYR diagnostic: set zero output gain on " +
+                              std::to_string(zeroGainStabilizers) + " stabilizer model records");
     }
 }
 
@@ -1136,7 +1153,7 @@ namespace {
         gen->add(governor.release());
     }
 
-    void loadST2CUT(CoreObject* parentObject, stringVec& tokens)
+    void loadST2CUT(CoreObject* parentObject, stringVec& tokens, bool zeroGain)
     {
         if (tokens.size() != 23U) {
             throw InvalidParameterValue("ST2CUT DYR record must contain 23 fields");
@@ -1172,10 +1189,14 @@ namespace {
         stabilizer->set("lsmin", params[20]);
         stabilizer->set("vcu", params[21]);
         stabilizer->set("vcl", params[22]);
+        if (zeroGain) {
+            stabilizer->set("k1", 0.0);
+            stabilizer->set("k2", 0.0);
+        }
         generator->add(stabilizer);
     }
 
-    void loadIEEEST(CoreObject* parentObject, stringVec& tokens)
+    void loadIEEEST(CoreObject* parentObject, stringVec& tokens, bool zeroGain)
     {
         if (tokens.size() != 22U) {
             throw InvalidParameterValue("IEEEST DYR record must contain 22 fields");
@@ -1210,6 +1231,9 @@ namespace {
         stabilizer->set("lsmin", params[19]);
         stabilizer->set("vcu", params[20]);
         stabilizer->set("vcl", params[21]);
+        if (zeroGain) {
+            stabilizer->set("ks", 0.0);
+        }
         generator->add(stabilizer);
     }
 }  // namespace

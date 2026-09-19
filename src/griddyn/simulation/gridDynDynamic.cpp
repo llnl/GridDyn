@@ -20,6 +20,7 @@
 #include <cassert>
 #include <compare>
 #include <cstdio>
+#include <format>
 #include <memory>
 #include <numeric>
 #include <print>
@@ -188,7 +189,8 @@ int GridDynSimulation::dynamicDAEStartupConditions(std::shared_ptr<SolverInterfa
         // do mode 0 IC calculation
         guessState(currentTime, dynData->stateData(), dynData->derivData(), sMode);
 
-        if (controlFlags[IDA_INTEGRATION_DIAGNOSTICS_FLAG]) {
+        if (controlFlags[IDA_INTEGRATION_DIAGNOSTICS_FLAG] &&
+            !controlFlags[ROOTS_DISABLED]) {
             const auto rootTotal = rootSize(sMode);
             std::vector<double> rootValues(rootTotal, 0.0);
             stringVec rootNames;
@@ -225,6 +227,11 @@ int GridDynSimulation::dynamicDAEStartupConditions(std::shared_ptr<SolverInterfa
                                rootValues[root],
                                (root < rootNames.size()) ? rootNames[root] : "<unmapped>");
             }
+        } else if (controlFlags[IDA_INTEGRATION_DIAGNOSTICS_FLAG]) {
+            logging::logTo(this,
+                           this,
+                           PrintLevel::SUMMARY,
+                           "IDA pre-IC root probe skipped because root finding is disabled");
         }
 
         retval = dynData->calcIC(currentTime,
@@ -294,7 +301,14 @@ int GridDynSimulation::dynamicDAE(CoreTime tStop)
         {  // the most likely cause of this is numerical instability in recorders and events
             timeReturn = nextStop;
         } else {
-            runDynamicSolverStep(dynData, nextStop, timeReturn);
+            retval = runDynamicSolverStep(dynData, nextStop, timeReturn);
+            currentTime = timeReturn;
+            if (retval < FUNCTION_EXECUTION_SUCCESS) {
+                pState = GridState::DYNAMIC_PARTIAL;
+                logging::error(this, "simulation halted after dynamic solver failure");
+                logging::error(this, dynData->getLastErrorString());
+                return FUNCTION_EXECUTION_FAILURE;
+            }
         }
 
         while (timeReturn + tols.timeTol <
@@ -441,10 +455,43 @@ int GridDynSimulation::dynamicPartitioned(CoreTime tStop, CoreTime tStep)
     auto dynDataDiff = getSolverInterface(*defDynDiffMode);
 
     dynDataDiff->set("step", tStep);
+    // The partitioned differential RHS invokes an algebraic Newton solve at
+    // every trial state.  Start CVODE with the same conservative probe step
+    // used by dynamic initialization, then permit it to grow to the requested
+    // partitioned maximum step.  A large initial predictor can otherwise
+    // present KINSOL with an unnecessarily remote algebraic state.
+    if ((dynDataDiff->getName() == "cvode") && (tStep > 0.0)) {
+        dynDataDiff->set("initialstep", (std::min)(tStep, probeStepTime));
+    }
     const auto& sModeAlg = dynDataAlg->getSolverMode();
     const auto& sModeDiff = dynDataDiff->getSolverMode();
+    if (controlFlags[PARTITIONED_DIAGNOSTICS_FLAG]) {
+        std::println("Partitioned startup: differential mode={} index={} states={} roots={} "
+                     "algebraic mode={} index={} states={} roots={} step={}",
+                     dynDataDiff->getName(),
+                     sModeDiff.offsetIndex,
+                     dynDataDiff->size(),
+                     rootSize(sModeDiff),
+                     dynDataAlg->getName(),
+                     sModeAlg.offsetIndex,
+                     dynDataAlg->size(),
+                     rootSize(sModeAlg),
+                     static_cast<double>(tStep));
+        partitionedDiagnostic(std::format(
+            "Partitioned startup: differential mode={} index={} states={} roots={} algebraic mode={} index={} states={} roots={} step={}",
+            dynDataDiff->getName(),
+            sModeDiff.offsetIndex,
+            dynDataDiff->size(),
+            rootSize(sModeDiff),
+            dynDataAlg->getName(),
+            sModeAlg.offsetIndex,
+            dynDataAlg->size(),
+            rootSize(sModeAlg),
+            static_cast<double>(tStep)));
+    }
 
     int tstep = 0;
+    partitionedAlgebraicCallCount = 0;
     int retval = dynamicPartitionedStartupConditions(dynDataDiff, dynDataAlg, sModeDiff, sModeAlg);
     if (retval != FUNCTION_EXECUTION_SUCCESS) {
         return retval;
@@ -1293,18 +1340,60 @@ int GridDynSimulation::rootFindingFunction(CoreTime time,
 }
 
 int GridDynSimulation::dynAlgebraicSolve(CoreTime time,
-                                         const double diffState[],
-                                         const double deriv[],
-                                         const SolverMode& sMode) noexcept
+                                          const double diffState[],
+                                          const double deriv[],
+                                          const SolverMode& sMode) noexcept
 {
+    if ((!isValidIndex(sMode.offsetIndex, extraStateInformation)) ||
+        (!isValidIndex(sMode.offsetIndex, extraDerivInformation)) ||
+        (sMode.pairedOffsetIndex == kNullLocation) || (diffState == nullptr) || (deriv == nullptr)) {
+        logging::error(this,
+                       "Partitioned algebraic callback has invalid state pairing: mode={} pair={} "
+                       "state_index_valid={} derivative_index_valid={} state_present={} derivative_present={}",
+                       sMode.offsetIndex,
+                       sMode.pairedOffsetIndex,
+                       isValidIndex(sMode.offsetIndex, extraStateInformation),
+                       isValidIndex(sMode.offsetIndex, extraDerivInformation),
+                       diffState != nullptr,
+                       deriv != nullptr);
+        return FUNCTION_EXECUTION_FAILURE;
+    }
     extraStateInformation[sMode.offsetIndex] = diffState;
     extraDerivInformation[sMode.offsetIndex] = deriv;
 
     auto solverData = getSolverInterface(sMode.pairedOffsetIndex);
     int ret = FUNCTION_EXECUTION_FAILURE;
     if (solverData) {
+        const auto callbackCount = ++partitionedAlgebraicCallCount;
+        if (controlFlags[PARTITIONED_DIAGNOSTICS_FLAG] && callbackCount <= 8) {
+            std::println("Partitioned algebraic callback: time={} differential index={} states={} "
+                         "paired algebraic index={} states={} initialized={}",
+                         static_cast<double>(time),
+                         sMode.offsetIndex,
+                         stateSize(sMode),
+                         solverData->getSolverMode().offsetIndex,
+                         solverData->size(),
+                         solverData->isInitialized());
+            partitionedDiagnostic(std::format(
+                "Partitioned algebraic callback: time={} differential index={} states={} paired algebraic index={} states={} initialized={}",
+                static_cast<double>(time),
+                sMode.offsetIndex,
+                stateSize(sMode),
+                solverData->getSolverMode().offsetIndex,
+                solverData->size(),
+                solverData->isInitialized()));
+        }
         CoreTime tret;
         ret = solverData->solve(time, tret);
+        if (controlFlags[PARTITIONED_DIAGNOSTICS_FLAG] && callbackCount <= 8) {
+            std::println("Partitioned algebraic callback returned: time={} return={} solver_time={}",
+                         static_cast<double>(time),
+                         ret,
+                         static_cast<double>(tret));
+            partitionedDiagnostic(std::format(
+                "Partitioned algebraic callback returned: time={} return={} solver_time={}",
+                static_cast<double>(time), ret, static_cast<double>(tret)));
+        }
         if (ret < 0) {
             if (jacobianCheck(this, solverData->getSolverMode()) > 0) {
                 printStateNames(this, solverData->getSolverMode());

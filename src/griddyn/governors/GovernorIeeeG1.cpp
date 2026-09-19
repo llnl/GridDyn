@@ -235,10 +235,13 @@ int GovernorIeeeG1::rateLimitStatus(const IOdata& inputs, const double diffState
 int GovernorIeeeG1::valveLimitStatus(const IOdata& inputs, const double diffState[]) const
 {
     const double rate = limitedValveRate(inputs, diffState);
-    if ((diffState[valveState] >= Pmax) && (rate >= 0.0)) {
+    // A zero-rate state at a valve bound is an equilibrium, not an active
+    // limiter.  This also prevents a permissively raised PMAX that equals the
+    // initial dispatch from creating a spurious root event.
+    if ((diffState[valveState] >= Pmax) && (rate > positionLimitTolerance)) {
         return 1;
     }
-    if ((diffState[valveState] <= Pmin) && (rate <= 0.0)) {
+    if ((diffState[valveState] <= Pmin) && (rate < -positionLimitTolerance)) {
         return -1;
     }
     return 0;
@@ -451,6 +454,15 @@ void GovernorIeeeG1::rootTest(const IOdata& inputs,
         // A state exactly on a bound with an inward rate is not a limiter
         // event.  Avoid presenting its geometric distance as an exact zero
         // root to IDA.
+        roots[rootOffset + 1] = positionLimitTolerance;
+    } else if ((std::abs(limitedRate) <= positionLimitTolerance) &&
+               (((state[valveState] >= (Pmax - positionLimitTolerance)) &&
+                 (state[valveState] <= (Pmax + positionLimitTolerance))) ||
+                ((state[valveState] >= (Pmin - positionLimitTolerance)) &&
+                 (state[valveState] <= (Pmin + positionLimitTolerance))))) {
+        // A zero-rate operating point on a valve bound is not a crossing.
+        // Wait until the rate gives a definite direction for a real limiter
+        // entry or release.
         roots[rootOffset + 1] = positionLimitTolerance;
     } else {
         roots[rootOffset + 1] = std::min(Pmax - state[valveState], state[valveState] - Pmin);

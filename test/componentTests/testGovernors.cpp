@@ -706,7 +706,9 @@ TEST(GovernorModelTests, IeeeG1AdjustsInitialUpperLimitByDefault)
     governor.setRootOffset(0, cLocalSolverMode);
     std::array<double, 2> roots{};
     governor.rootTest({1.0, 0.0}, emptyStateData, roots.data(), cLocalSolverMode);
-    EXPECT_LT(roots[1], 0.0);
+    // A permissively raised PMAX equal to the dispatch is an equilibrium,
+    // rather than an immediate position-limit event.
+    EXPECT_GT(roots[1], 0.0);
 }
 
 TEST(GovernorModelTests, GovernorStrictInitialUpperLimitPolicyRejectsViolation)
@@ -737,7 +739,9 @@ TEST(GovernorModelTests, HygovAdjustsInitialGateUpperLimitByDefault)
     governor.setRootOffset(0, cLocalSolverMode);
     std::array<double, 2> roots{};
     governor.rootTest({1.0, 0.0}, emptyStateData, roots.data(), cLocalSolverMode);
-    EXPECT_LT(roots[1], 0.0);
+    // A permissively raised GMAX equal to the dispatch is an equilibrium,
+    // rather than an immediate position-limit event.
+    EXPECT_GT(roots[1], 0.0);
 }
 
 TEST(GovernorModelTests, HygovPositionLimitReleaseRootHasHysteresis)
@@ -766,34 +770,7 @@ TEST(GovernorModelTests, HygovPositionLimitReleaseRootHasHysteresis)
     expectGovernorDaeJacobian(governor, inputs, governor.getStates(), 1.0);
 }
 
-TEST(GovernorModelTests, HygovKeepsAnExistingPositionLimitOffTheReleaseSurface)
-{
-    governors::GovernorHygov governor;
-    configureHygov(governor);
-    governor.dynInitializeA(0.0, 0);
-    governor.setRootOffset(0, cLocalSolverMode);
-
-    IOdata inputs{1.0, 0.0};
-    IOdata fieldSet(2, 0.0);
-    governor.dynInitializeB(inputs, {1.2}, fieldSet);
-    std::vector<double> state = governor.getStates();
-    std::vector<double> stateDerivative(state.size(), 0.0);
-
-    // The adjusted upper gate limit is active.  Put its release test exactly
-    // on zero, then model a negative-direction root that returns to the
-    // already-active upper-limit branch.
-    state[1] = 3.0303030303030305e-9;
-    governor.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
-    std::array<double, 2> roots{};
-    governor.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
-    EXPECT_NEAR(roots[1], 0.0, 1e-14);
-
-    governor.rootTrigger(0.0, inputs, {0, -1}, cLocalSolverMode);
-    governor.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
-    EXPECT_LT(roots[1], -1e-7);
-}
-
-TEST(GovernorModelTests, Ggov1FactoryEquilibriumAndDelayValidation)
+TEST(GovernorModelTests, Ggov1FactoryTracksInactiveLoadLimiterAndValidatesDelay)
 {
     auto factory = CoreObjectFactory::instance();
     std::unique_ptr<CoreObject> object(factory->createObject("governor", "ggov1"));
@@ -803,17 +780,42 @@ TEST(GovernorModelTests, Ggov1FactoryEquilibriumAndDelayValidation)
     governor->set("fswitch", 0.0);
     governor->set("vmax", 2.0);
     governor->set("vmin", 0.0);
-    governor->set("ldref", 0.8);
+    // LDREF is the temperature/load limit rather than the present dispatch.
+    // The inactive load PI controller must track the fuel request, otherwise
+    // its integrator winds up even in a no-disturbance initialization.
+    governor->set("ldref", 1.2);
     governor->dynInitializeA(0.0, 0);
     IOdata inputs{1.0, 0.8, 0.8};
     IOdata fieldSet(3, 0.0);
     governor->dynInitializeB(inputs, {0.8}, fieldSet);
+    const auto& initialized = governor->getStates();
+    ASSERT_EQ(initialized.size(), 11U);
+    EXPECT_NEAR(initialized[9], 0.2, 1e-12);
     std::vector<double> residual(governor->getStates().size(), 0.0);
     governor->residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
     for (double value : residual) {
         EXPECT_NEAR(value, 0.0, 1e-12);
     }
     EXPECT_DOUBLE_EQ(fieldSet[govpSetInLocation], 0.8);
+
+    // The permissive initialization policy raises the effective valve limit
+    // when the dispatched fuel flow is slightly above Vmax.  The temperature
+    // controller must use that same adjusted boundary rather than a separate
+    // literal 1.0 cap.
+    governors::GovernorGgov1 aboveNominalFuel;
+    aboveNominalFuel.set("vmax", 1.0);
+    aboveNominalFuel.set("vmin", 0.0);
+    aboveNominalFuel.set("ldref", 1.3);
+    aboveNominalFuel.dynInitializeA(0.0, 0);
+    IOdata highInputs{1.0, 1.3, 1.3};
+    IOdata highFieldSet(3, 0.0);
+    aboveNominalFuel.dynInitializeB(highInputs, {1.3}, highFieldSet);
+    std::vector<double> highResidual(aboveNominalFuel.getStates().size(), 0.0);
+    aboveNominalFuel.residual(highInputs, emptyStateData, highResidual.data(), cLocalSolverMode);
+    for (double value : highResidual) {
+        EXPECT_NEAR(value, 0.0, 1e-12);
+    }
+
     std::unique_ptr<CoreObject> cloned(governor->clone());
     ASSERT_NE(dynamic_cast<governors::GovernorGgov1*>(cloned.get()), nullptr);
 

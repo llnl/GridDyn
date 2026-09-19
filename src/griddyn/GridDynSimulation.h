@@ -64,6 +64,8 @@ enum GridDynFlags {
     IDA_INITIAL_CONDITION_DIAGNOSTICS = 57,
     IDA_INITIAL_CONDITION_STOP_ON_FAILURE = 58,
     IDA_INTEGRATION_DIAGNOSTICS_FLAG = 59,
+    DISABLE_STABILIZERS_FOR_DIAGNOSTICS = 60,
+    PARTITIONED_DIAGNOSTICS_FLAG = 61,
 };
 
 // for the status flags bitset
@@ -152,6 +154,7 @@ class GridDynSimulation: public GridSimulation {
     count_t haltCount = 0;  //!< counter for the number of times the solver was halted
     count_t residCount = 0;  //!< counter for the number of times the residual function was called
     count_t evalCount = 0;  //!< counter for the number of times the algUpdateFunction was called
+    count_t partitionedAlgebraicCallCount = 0;  //!< counter for partitioned algebraic callbacks
     count_t JacobianCallCount = 0;  //!< counter for the number of calls to the Jacobian function
     count_t rootCount = 0;  //!< counter for the number of roots
     count_t busCount = 0;  //!< counter for the number of buses
@@ -310,6 +313,12 @@ class GridDynSimulation: public GridSimulation {
     virtual std::string getString(std::string_view param) const override;
     virtual void setFlag(std::string_view flag, bool val = true) override;
 
+    /** @brief check an internal simulation control flag */
+    bool isFlagSet(GridDynFlags flag) const
+    {
+        return controlFlags.test(static_cast<std::size_t>(flag));
+    }
+
     /** @brief get a vector of the states
     @param[in]  sMode the SolverMode to get the states for
     @return a vector containing the states
@@ -451,6 +460,15 @@ class GridDynSimulation: public GridSimulation {
                           const double diffState[],
                           const double deriv[],
                           const SolverMode& sMode) noexcept;
+
+    /**
+     * @brief Write an opt-in partitioned-solver diagnostic record.
+     *
+     * This bypasses the normal console logger so a callback trace is retained
+     * even when console logging is disabled while investigating a solver
+     * failure.
+     */
+    void partitionedDiagnostic(std::string_view message) const;
 
     // SolverMode and SolverInterface search functions
 

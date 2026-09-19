@@ -209,10 +209,15 @@ int GovernorHygov::gateRateLimitStatus(const IOdata& inputs, const double diffSt
 int GovernorHygov::gatePositionLimitStatus(const IOdata& inputs, const double diffState[]) const
 {
     const double rate = limitedGateRate(inputs, diffState);
-    if ((diffState[gatePositionState] >= Pmax) && (rate >= 0.0)) {
+    // A zero-rate state at a gate bound is a valid equilibrium, not an
+    // already-engaged position limiter.  In particular, permissive
+    // initialization can raise GMAX to the dispatched gate position.  Latching
+    // that artificial boundary makes roundoff-sized rate changes alternate
+    // between the constrained and unconstrained Jacobians.
+    if ((diffState[gatePositionState] >= Pmax) && (rate > positionLimitTolerance)) {
         return 1;
     }
-    if ((diffState[gatePositionState] <= Pmin) && (rate <= 0.0)) {
+    if ((diffState[gatePositionState] <= Pmin) && (rate < -positionLimitTolerance)) {
         return -1;
     }
     return 0;
@@ -406,6 +411,15 @@ void GovernorHygov::rootTest(const IOdata& inputs,
         // At a geometric boundary with an inward rate the governor is not
         // limited, but the distance-only root would still be exactly zero.
         // Keep IDA away from that non-eventful surface.
+        roots[rootOffset + 1] = positionLimitTolerance;
+    } else if ((std::abs(limitedRateValue) <= positionLimitTolerance) &&
+               (((state[gatePositionState] >= (Pmax - positionLimitTolerance)) &&
+                 (state[gatePositionState] <= (Pmax + positionLimitTolerance))) ||
+                ((state[gatePositionState] >= (Pmin - positionLimitTolerance)) &&
+                 (state[gatePositionState] <= (Pmin + positionLimitTolerance))))) {
+        // Likewise, a zero-rate operating point on a position bound is not a
+        // crossing.  Return a small positive value until the rate gives a
+        // definite direction for a real limiter entry or release.
         roots[rootOffset + 1] = positionLimitTolerance;
     } else {
         roots[rootOffset + 1] =

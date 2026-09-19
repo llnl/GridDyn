@@ -44,6 +44,17 @@ std::atomic<GridDynSimulation*> GridDynSimulation::s_instance{nullptr};
 // local search functions for MPI based objects
 static count_t searchForGridlabDobject(const CoreObject* obj);
 
+void GridDynSimulation::partitionedDiagnostic(std::string_view message) const
+{
+    if (!controlFlags[PARTITIONED_DIAGNOSTICS_FLAG]) {
+        return;
+    }
+    std::ofstream traceFile{"partitioned-diagnostics.log", std::ios::app};
+    if (traceFile.is_open()) {
+        traceFile << message << '\n';
+    }
+}
+
 GridDynSimulation::GridDynSimulation(const std::string& objName):
     GridSimulation(objName), controlFlags(0LL)
 {
@@ -719,6 +730,19 @@ int GridDynSimulation::execute(const GridDynAction& cmd)
             if (actionQueue.empty()) {
                 const CoreTime endTimeValue =
                     (cmd.val_double != kNullVal) ? CoreTime(cmd.val_double) : stopTime;
+                if (controlFlags[IDA_INTEGRATION_DIAGNOSTICS_FLAG]) {
+                    logging::logTo(this,
+                                   this,
+                                   PrintLevel::SUMMARY,
+                                   "IDA run dispatch: state={}, current_time={}, returned_time={}, "
+                                   "stop_time={}, differential_states={}, roots_disabled={}",
+                                   static_cast<int>(pState),
+                                   static_cast<double>(currentTime),
+                                   static_cast<double>(timeReturn),
+                                   static_cast<double>(endTimeValue),
+                                   diffSize(*defDAEMode),
+                                   static_cast<bool>(controlFlags[ROOTS_DISABLED]));
+                }
                 if (controlFlags[POWER_FLOW_ONLY]) {
                     out = powerflow();
                 } else {
@@ -986,6 +1010,9 @@ static const std::unordered_map<std::string, int>& getFlagControlMap()
         {"ida_ic_stop_on_failure", IDA_INITIAL_CONDITION_STOP_ON_FAILURE},
         {"ida_integration_diagnostics", IDA_INTEGRATION_DIAGNOSTICS_FLAG},
         {"ida_integration_trace", IDA_INTEGRATION_DIAGNOSTICS_FLAG},
+        {"partitioned_diagnostics", PARTITIONED_DIAGNOSTICS_FLAG},
+        {"partitioned_trace", PARTITIONED_DIAGNOSTICS_FLAG},
+        {"disable_stabilizers", DISABLE_STABILIZERS_FOR_DIAGNOSTICS},
         {"force_powerflow", FORCE_EXTRA_POWERFLOW},
         {"force_extra_powerflow", FORCE_EXTRA_POWERFLOW},
         {"FORCE_EXTRA_POWERFLOW", FORCE_EXTRA_POWERFLOW},

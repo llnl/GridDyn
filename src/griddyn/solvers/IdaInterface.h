@@ -24,6 +24,8 @@ class IdaInterface: public SundialsInterface {
 
     std::vector<double> tempState;  //!< temporary holding location for a state vector
     std::vector<std::string> rootNames;  //!< diagnostic names indexed by the root offset
+    std::vector<double> integrationReferenceState;  //!< state at the start of a diagnostic solve
+    CoreTime integrationReferenceTime = CoreTime{};
     bool integrationFailureLogged = false;
   public:
     /** @brief constructor*/
@@ -90,6 +92,7 @@ class IdaInterface: public SundialsInterface {
                                         const std::vector<double>* initialState = nullptr,
                                         const std::vector<double>* initialDerivative = nullptr) const;
     void logIntegrationFailureDiagnostics(CoreTime time, int retval) const;
+    void logIntegrationStateDrift(CoreTime time) const;
 };
 
 }  // namespace griddyn::solvers

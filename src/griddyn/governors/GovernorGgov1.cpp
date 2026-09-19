@@ -27,6 +27,7 @@ namespace {
     constexpr index_t loadIntegralState = 8;
     constexpr index_t accelerationState = 9;
     constexpr double accelerationStep = 0.005;
+    constexpr double selectorTieTolerance = 1e-10;
 
     double deadZone(double value, double width)
     {
@@ -163,7 +164,12 @@ void GovernorGgov1::dynObjectInitializeB(const IOdata& inputs,
     state[turbineState] = power;
     state[temperatureLeadState] = fuel;
     state[temperatureState] = fuel;
-    state[loadIntegralState] = fuel;
+    // GGOV1's temperature/load controller tracks the selected fuel request
+    // while it is not the low-value-select branch.  LDREF is a temperature
+    // limit, not the unit's present dispatch, so initializing this PI state to
+    // the fuel flow would make every unloaded unit integrate toward LDREF.
+    const double temperatureError = Ldref / Kturb + Wfnl - fuel;
+    state[loadIntegralState] = fuel - Kpload * temperatureError;
     state[accelerationState] = 0.0;
     double feedback = 0.0;
     if (Rselect == 1) {
@@ -185,7 +191,7 @@ GovernorGgov1::Signals GovernorGgov1::evaluate(const IOdata& inputs, const doubl
     signals.mSpeedDeviation = omega - 1.0;
     const double temperatureError = Ldref / Kturb + Wfnl - state[temperatureState];
     signals.mTemperatureRequest =
-        std::min(1.0, state[loadIntegralState] + Kpload * temperatureError);
+        std::min(static_cast<double>(Pmax), state[loadIntegralState] + Kpload * temperatureError);
     const double acceleration = (signals.mSpeedDeviation - state[accelerationState]) / TaAccel;
     signals.mAccelerationRequest =
         state[valveState] + Ka * accelerationStep * (Aset - acceleration);
@@ -304,7 +310,16 @@ void GovernorGgov1::derivative(const IOdata& inputs,
         (signals.mTemperatureInput - state[temperatureLeadState]) / Tsb;
     stateDerivative[temperatureState] =
         (signals.mTemperatureLeadOutput - state[temperatureState]) / Tfload;
-    stateDerivative[loadIntegralState] = Kiload * (Ldref / Kturb + Wfnl - state[temperatureState]);
+    // The PSS/E GGOV1 diagram specifies tracking for the load/temperature PI
+    // controller.  Hold its integral state whenever another low-value-select
+    // branch is active; otherwise the inactive controller winds up toward its
+    // temperature limit and the initialized system is not stationary.
+    const bool temperatureLimiterActive =
+        (signals.mTemperatureRequest < signals.mNormalRequest - selectorTieTolerance) &&
+        (signals.mTemperatureRequest < signals.mAccelerationRequest - selectorTieTolerance);
+    stateDerivative[loadIntegralState] = temperatureLimiterActive ?
+        Kiload * (Ldref / Kturb + Wfnl - state[temperatureState]) :
+        0.0;
     stateDerivative[accelerationState] =
         (signals.mSpeedDeviation - state[accelerationState]) / TaAccel;
 }
@@ -445,12 +460,14 @@ void GovernorGgov1::jacobianElements(const IOdata& inputs,
     double requestTemperatureDerivative = 0.0;
     double requestLoadDerivative = 0.0;
     double requestAccelerationDerivative = 0.0;
-    if ((signals.mTemperatureRequest <= signals.mNormalRequest) &&
-        (signals.mTemperatureRequest <= signals.mAccelerationRequest)) {
+    const bool temperatureLimiterActive =
+        (signals.mTemperatureRequest < signals.mNormalRequest - selectorTieTolerance) &&
+        (signals.mTemperatureRequest < signals.mAccelerationRequest - selectorTieTolerance);
+    if (temperatureLimiterActive) {
         requestOmegaDerivative = requestResetDerivative = requestPowerDerivative = 0.0;
         requestValveDerivative = requestIntegralDerivative = requestFilterDerivative = 0.0;
         if (state[loadIntegralState] + Kpload * (Ldref / Kturb + Wfnl - state[temperatureState]) <
-            1.0) {
+            Pmax) {
             requestTemperatureDerivative = -Kpload;
             requestLoadDerivative = 1.0;
         }
@@ -544,9 +561,11 @@ void GovernorGgov1::jacobianElements(const IOdata& inputs,
     matrixData.assign(differentialRow + loadIntegralState,
                       differentialRow + loadIntegralState,
                       -stateData.cj);
-    matrixData.assign(differentialRow + loadIntegralState,
-                      differentialRow + temperatureState,
-                      -Kiload);
+    if (temperatureLimiterActive) {
+        matrixData.assign(differentialRow + loadIntegralState,
+                          differentialRow + temperatureState,
+                          -Kiload);
+    }
     matrixData.assign(differentialRow + accelerationState,
                       differentialRow + accelerationState,
                       -1.0 / TaAccel - stateData.cj);

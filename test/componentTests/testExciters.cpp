@@ -573,13 +573,21 @@ TEST(ExciterModelTests, Esst4bUsesOpenIpslBoundedIntegratorStates)
     IOdata fieldSet(4, 0.0);
     exciter.dynInitializeB(inputs, {1.0}, fieldSet);
     inputs[exciterVoltageInLocation] = 0.99;
-    // State order is [Efd, Vmeas, xR, VA, xM]. At the positive integrator
-    // bounds, outward error must be blocked even though neither total PI
-    // output has reached its own output limit.
+    // State order is [Efd, Vmeas, xR, VA, xM]. The PI integrator states are
+    // additive terms, so their values alone do not determine whether the
+    // corresponding output is limited.
     std::vector<double> state{1.0, 0.99, 0.1, 0.2, 0.5};
     std::vector<double> stateDerivative(state.size(), 0.0);
     exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
     std::vector<double> derivative(state.size(), 0.0);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[2], 0.02, 1e-14);
+    EXPECT_NEAR(derivative[4], 0.3, 1e-14);
+
+    // Once the actual PI outputs reach their respective upper limits, an
+    // outward error is blocked.
+    state = {1.0, 0.99, 1.0, 0.2, 1.0};
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
     exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
     EXPECT_DOUBLE_EQ(derivative[2], 0.0);
     EXPECT_DOUBLE_EQ(derivative[4], 0.0);

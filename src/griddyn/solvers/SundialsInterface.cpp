@@ -30,6 +30,7 @@
 #include "utilities/matrixCreation.h"
 #include <algorithm>
 #include <cassert>
+#include <cstdint>
 #include <cstdio>
 #include <format>
 #include <memory>
@@ -191,6 +192,7 @@ void SundialsInterface::setMaxNonZeros(count_t nonZeroCount)
 {
     maxNNZ = nonZeroCount;
     nnz = nonZeroCount;
+    sparsePattern.clear();
 }
 
 double* SundialsInterface::stateData() noexcept
@@ -241,6 +243,7 @@ void SundialsInterface::registerErrorHandler()
 
 void SundialsInterface::freeLinearSolver()
 {
+    sparsePattern.clear();
     if (LS != nullptr) {
         SUNLinSolFree(LS);
         LS = nullptr;
@@ -430,6 +433,60 @@ int sundialsJac(sunrealtype time,
 #endif
         matrixDataToSUNMatrix(*a1, j, sd->svsize);
         sd->nnz = a1->size();
+        if (SUNMatGetID(j) == SUNMATRIX_SPARSE) {
+            auto* matrix = SM_CONTENT_S(j);
+            const auto used = matrix->indexptrs[sd->svsize];
+            std::vector<sunindextype> pattern(static_cast<size_t>(sd->svsize) + 1 + used);
+            std::copy_n(matrix->indexptrs, static_cast<size_t>(sd->svsize) + 1, pattern.data());
+            std::copy_n(matrix->indexvals,
+                        static_cast<size_t>(used),
+                        pattern.data() + static_cast<size_t>(sd->svsize) + 1);
+            const bool structureChanged = !sd->sparsePattern.empty() &&
+                (sd->sparsePattern != pattern);
+            sd->sparsePattern = std::move(pattern);
+            if (structureChanged) {
+                // KLU caches a symbolic factorization of the compressed
+                // pattern. A changed pattern requires a fresh factorization;
+                // refactoring it as though it were unchanged is unsafe.
+                sd->kluReInit(SolverInterface::SparseReinitMode::REFACTOR);
+                if (sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
+                    (sd->mode.pairedOffsetIndex != kNullLocation)) {
+                    sd->m_gds->partitionedDiagnostic(
+                        "Partitioned sparse Jacobian pattern changed; KLU symbolic factorization reset");
+                }
+            }
+        }
+        if ((SUNMatGetID(j) == SUNMATRIX_SPARSE) &&
+            sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
+            (sd->mode.pairedOffsetIndex != kNullLocation) && (sd->jacCallCount <= 8)) {
+            auto* matrix = SM_CONTENT_S(j);
+            const auto used = matrix->indexptrs[sd->svsize];
+            bool valid = (matrix->indexptrs[0] == 0) && (used >= 0) && (used <= matrix->NNZ);
+            std::uint64_t structureHash = 1469598103934665603ULL;
+            for (index_t row = 0; valid && row < sd->svsize; ++row) {
+                const auto begin = matrix->indexptrs[row];
+                const auto end = matrix->indexptrs[row + 1];
+                valid = (begin >= 0) && (begin <= end) && (end <= used);
+                structureHash = (structureHash ^ static_cast<std::uint64_t>(begin)) *
+                    1099511628211ULL;
+            }
+            for (sunindextype index = 0; valid && index < used; ++index) {
+                const auto column = matrix->indexvals[index];
+                valid = (column >= 0) && (column < sd->svsize);
+                structureHash = (structureHash ^ static_cast<std::uint64_t>(column)) *
+                    1099511628211ULL;
+            }
+            sd->m_gds->partitionedDiagnostic(std::format(
+                "Partitioned sparse Jacobian {}: used_nnz={} capacity={} valid={} structure_hash={:016X}",
+                sd->jacCallCount,
+                used,
+                matrix->NNZ,
+                valid,
+                structureHash));
+            if (!valid) {
+                return FUNCTION_EXECUTION_FAILURE;
+            }
+        }
         if (sd->flags[FILE_CAPTURE_FLAG]) {
             if (!sd->jacFile.empty()) {
                 auto val = static_cast<std::uint32_t>(sd->get("nliterations"));

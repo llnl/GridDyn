@@ -67,12 +67,89 @@ the same integration path.
     not a fix: fewer residual evaluations with the same root sequence implicate numerical
     accuracy, whereas the same root sequence or a minimum-step failure implicates model/event
     behavior.
+14. Repeat the short no-disturbance run with limiter roots enabled and disabled. A stationary
+    case should have the same state drift in both runs; a large difference identifies root
+    handling rather than the continuous DAE as the next diagnostic target. Record the number of
+    IDA intervals, residual evaluations, root returns, nonlinear-convergence failures, and the
+    maximum state change from the initialized point.
 
 ## ACTIVSg2000 investigation log
 
 ### Current evidence
 
-#### Latest no-disturbance re-run
+#### Current no-disturbance result
+
+- The corrected ACTIVSg2000 case now completes a five-second IDA DAE run with roots enabled,
+  sparse/KLU, and configured tolerance `1e-4`. The run takes about 1.04 s, uses one successful
+  `IDASolve` interval, and has maximum state drift `2.68e-9`; no limiter root is returned.
+- The same five-second run with `roots_disabled` also completes in about 1.01 s, with 11 IDA
+  steps, 13 residual evaluations, no nonlinear-convergence failures, and maximum state drift
+  `2.86e-9`. This is consistent with a stationary operating point, not a physical instability
+  or a tolerance-driven slowdown.
+- A first-pass fixed-masked IC probe can still report `IDA_LSETUP_FAIL` with a maximum residual
+  of only `6.63e-12`. The bounded Jacobian report is finite and structurally complete; the normal
+  recovery ladder succeeds. This is a recoverable IC linear-solver trial, not the current run
+  failure.
+- The 500-bus regression suite passes all nine stability and operating-point tests. Its prior
+  repeated `CVodeSetMinStep hmin < 0` messages came from forwarding the solver's unset `-1`
+  sentinel during runtime step updates; CVODE and ARKode now guard optional max/min/init-step
+  updates before calling SUNDIALS, and the focused partitioned tests run without those warnings.
+- The initial ACTIVSg2000 CVODE/KINSOL partitioned failure was not a bad paired-state offset or
+  model derivative. The first algebraic callback and the first two differential RHS evaluations
+  succeed with valid dimensions; the native access violation occurred later in SuiteSparse KLU
+  numeric factorization. The assembled algebraic sparse pattern is valid and stable at that
+  point. KLU is now configured to stop on a detected singular factorization, allowing that
+  condition to return to KINSOL instead of continuing with a partial pivot permutation.
+- The sparse adapter also previously used `SUNMatZero` when refreshing a Jacobian. That routine
+  erases compressed row/column indices as well as values. The adapter now clears values only,
+  and GridDyn resets KLU's symbolic factorization whenever a rebuilt sparse Jacobian has a new
+  pattern. This avoids reuse of a symbolic factorization with incompatible indices.
+- CVODE's original partitioned start step was the requested maximum step (`0.05 s`), so even a
+  `0.001 s` probe evaluated a `0.05 s` trial state. CVODE now begins from the existing
+  `probeStepTime` (`0.001 s`) and may grow to the requested maximum. The 2000-bus
+  roots-disabled partitioned run now completes through `0.01 s` with the ordinary `0.05 s`
+  maximum and no access violation. A `0.05 s` run remains much slower than the DAE control and
+  needs further convergence/performance work before it is a practical five-second path.
+
+#### Partitioned CVODE diagnostic procedure
+
+- Add `partitioned_diagnostics` (or `partitioned_trace`) to retain a bounded callback trace in
+  `partitioned-diagnostics.log`, including differential/algebraic dimensions, KINSOL callbacks,
+  and sparse-pattern checks. It works even if console logging is disabled.
+- Start with a roots-disabled short run, then increase stop time gradually. A normal exit through
+  `0.01 s` is a useful startup check; inspect each KLU symbolic reset and any KINSOL iteration
+  failure before attempting a multi-second run.
+- Keep the DAE control run alongside every partitioned change. For this case, sparse IDA DAE at
+  tolerance `1e-4` completes the five-second no-disturbance run cleanly, so a slow or failed
+  partitioned run should be diagnosed in the partitioned algebraic/integrator path rather than
+  treated as evidence of physical instability.
+
+#### GGOV1 inactive-temperature branch
+
+- ACTIVSg2000 contains 288 in-service GGOV1 records with an active load limiter. The previous
+  implementation integrated the load-limiter state even when the normal or acceleration request
+  was selected. At Dallas 5042/1 this hidden derivative was about `0.640506 pu/s`, so a
+  no-disturbance run could drift even though the selected governor output was initially correct.
+- GGOV1 now initializes the inactive load-integral state to track fuel, freezes that state unless
+  the temperature request is the selected minimum, and uses `PMAX` consistently in the request
+  equation. This follows the selector/limiter behavior described in the
+  [NERC turbine governor guide](https://www.nerc.com/globalassets/who-we-are/standing-committees/rstc/ppmvtf/reliability_guideline-application_guide_for_turbine-governor_modeling.pdf)
+  and [PowerWorld GGOV1 documentation](https://www.powerworld.com/WebHelp/Content/TransientModels_HTML/Governor%20GGOV1%20and%20GGOV1D.htm).
+
+#### Governor root-equilibrium handling
+
+- The permissive governor-limit policy can set `GMAX` or `PMAX` exactly at the initial dispatch.
+  Treating a zero-rate state at that artificial upper boundary as an entering event caused root
+  chatter around `0.4096` s and `0.413` s, followed by a Windows access violation during restart.
+- HYGOV and IEEEG1 now treat a position exactly at a limit with zero limited rate as an
+  equilibrium branch. Definite outward rates still enter the limiting branch, and definite inward
+  rates still release it. The focused governor root tests pass, and the ACTIVSg2000 root-enabled
+  five-second run no longer returns these artificial roots.
+- A future built-in root diagnostic should record the owner, local root index, direction, state
+  value, limit, limited rate, and pre/post branch flags for every return. That would make event
+  chatter distinguishable from a genuine model transition without reconstructing the trace by hand.
+
+#### Superseded no-disturbance observations
 
 - The original `0.23536` per-unit algebraic residual at `Coast::FREEPORT 2 0:voltage` was
   not an exciter error. The bus dynamic initializer included the `23.536 Mvar` output of an
@@ -82,23 +159,10 @@ the same integration path.
   fixed-differential IC correction has an algebraic residual below `5.7e-13`. The prior large
   EXAC2 amplifier derivatives disappear, confirming that they were a response to the bus
   mismatch rather than an EXAC2 equation error.
-- The case reaches 0.1 s and 1.0 s cleanly with IDA/KLU. At the default configured tolerance
-  (`1e-6` absolute, `1e-8` relative), a one-second run took about 13 s. At `1e-4` configured
-  tolerance (`1e-4` absolute, `1e-6` relative), IDA used 120 rather than 199 residual
-  evaluations through one second but encountered the same limiter-event class; tolerance is
-  therefore not the primary cause of the slow five-second run.
-- The first reproducible long-run failure is a post-root IDA corrector failure near 1.47 s,
-  not an IC failure. The integration trace records numerous HYGOV, IEEEG1, IEEE Type 1, and
-  DC2A limiter events. Several HYGOV position roots remain exactly zero after a restart and
-  re-fire, which is event chatter.
-- Immediately after the `FALCON HEI~2` HYGOV position-root transition at about 1.474 s, IDA
-  reaches its minimum step with repeated nonlinear-corrector failures. The largest residuals
-  are several EXAC2/EXAC1 `va` rows, headed by `South::PEARSALL 4` EXAC2. This is a
-  system-level consequence of the failed post-event correction, not evidence that that
-  particular exciter initiated the failure.
-- The integration trace now includes root direction (`+1` release or `-1` entry according to
-  the component root convention), in addition to the mapped owner. This is needed to validate
-  limiter transitions rather than only count them.
+The entries below describe intermediate states of the investigation. They are retained because
+they show how the failure was narrowed, but the current result is recorded above. In particular,
+the old one-second timing, post-root failure, and repeated-root observations predate the GGOV1
+inactive-branch and zero-rate root-equilibrium fixes.
 
 #### Earlier investigation record
 
@@ -120,10 +184,10 @@ the same integration path.
   expected fixed-masked GGOV1 `load_int` residuals, but the fixed-differential IC correction
   completes without an IDA failure. This confirms that DC2A was a real initialization-data
   blocker rather than a pure Jacobian sparsity failure.
-- A short positive-time run remains computationally expensive after IC succeeds. The
-  diagnostic flag now also reports successful IC corrections, so the next pass can separate
-  IC cost from time-integration cost. The `roots_disabled` experiment currently exposes an
-  existing `IdaInterface::solve` root-count assertion and is not a valid large-case path.
+- At that intermediate stage a short positive-time run remained computationally expensive after
+  IC succeeded, and the first `roots_disabled` experiment exposed a root-count assertion. The
+  root-disabled path has since been repaired and is now a valid A/B diagnostic; the current
+  five-second comparison is recorded above.
 - The command-line runner accepts repeated `--param` options, so tolerance and stop time can
   be set in the same run. This is required for a valid tolerance comparison; a duplicate
   `--param` was previously rejected during parsing and could look like a fast simulation.

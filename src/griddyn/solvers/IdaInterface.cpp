@@ -272,6 +272,7 @@ void IdaInterface::initialize(CoreTime t0)
 
     // guessState an initial condition
     m_gds->guessState(t0, stateData(), derivData(), mode);
+    integrationReferenceState.clear();
 
     retval = IDAInit(solverMem, idaFunc, t0, state, dstate_dt);
     checkFlag(&retval, "IDAInit", 1);
@@ -325,6 +326,7 @@ void IdaInterface::initialize(CoreTime t0)
 
         retval = SUNLinSol_KLUSetOrdering(LS, 0);
         checkFlag(&retval, "SUNLinSol_KLUSetOrdering", 1);
+        SUNLinSol_KLUGetCommon(LS)->halt_if_singular = 1;
     }
 #else
     J = SUNDenseMatrix(svsize, svsize, sunctx);
@@ -730,6 +732,65 @@ void IdaInterface::logIntegrationFailureDiagnostics(CoreTime time, int retval) c
     }
 }
 
+void IdaInterface::logIntegrationStateDrift(CoreTime time) const
+{
+    if ((m_gds == nullptr) || (integrationReferenceState.size() != svsize)) {
+        return;
+    }
+
+    struct StateDeltaEntry {
+        double magnitude;
+        index_t index;
+    };
+    std::vector<StateDeltaEntry> entries;
+    entries.reserve(svsize);
+    count_t nonFiniteDeltas = 0;
+    double maxDelta = 0.0;
+    const double* currentState = stateData();
+    for (index_t index = 0; index < svsize; ++index) {
+        const double delta = currentState[index] - integrationReferenceState[index];
+        const bool finite = std::isfinite(delta);
+        const double magnitude = finite ? std::abs(delta) : std::numeric_limits<double>::infinity();
+        if (!finite) {
+            ++nonFiniteDeltas;
+        }
+        maxDelta = (std::max)(maxDelta, magnitude);
+        entries.push_back({magnitude, index});
+    }
+
+    const auto entryOrder = [](const StateDeltaEntry& lhs, const StateDeltaEntry& rhs) {
+        return lhs.magnitude > rhs.magnitude;
+    };
+    const auto entryCount = (std::min)(size_t{8}, entries.size());
+    std::partial_sort(entries.begin(), entries.begin() + entryCount, entries.end(), entryOrder);
+
+    stringVec stateNames;
+    m_gds->getStateName(stateNames, mode);
+    logging::logTo(m_gds,
+                   m_gds,
+                   PrintLevel::SUMMARY,
+                   "IDA integration state drift: initial_time={}, current_time={}, "
+                   "max_abs_delta={}, nonfinite_deltas={}",
+                   static_cast<double>(integrationReferenceTime),
+                   static_cast<double>(time),
+                   maxDelta,
+                   nonFiniteDeltas);
+    for (size_t entryIndex = 0; entryIndex < entryCount; ++entryIndex) {
+        const auto& entry = entries[entryIndex];
+        const auto stateName = (entry.index < stateNames.size()) ? stateNames[entry.index] :
+                                                                     std::string{"<unnamed>"};
+        logging::logTo(m_gds,
+                       m_gds,
+                       PrintLevel::SUMMARY,
+                       "IDA integration state delta[{}] {}: initial={}, current={}, delta={}",
+                       entry.index,
+                       stateName,
+                       integrationReferenceState[entry.index],
+                       currentState[entry.index],
+                       currentState[entry.index] - integrationReferenceState[entry.index]);
+    }
+}
+
 int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, bool constraints)
 {
     int retval;
@@ -883,10 +944,16 @@ void IdaInterface::getCurrentData()
 
 int IdaInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
 {
-    assert(rootCount == m_gds->rootSize(mode));
+    // A diagnostic run can disable root finding at the simulation level while the
+    // model retains its normal, nonzero root size.
+    assert((rootCount == 0) || (rootCount == m_gds->rootSize(mode)));
     ++solverCallCount;
     icCount = 0;
     if (flags[IDA_INTEGRATION_DIAGNOSTICS]) {
+        if (integrationReferenceState.empty()) {
+            integrationReferenceState.assign(stateData(), stateData() + svsize);
+            integrationReferenceTime = solveTime;
+        }
         logging::logTo(m_gds,
                        m_gds,
                        PrintLevel::SUMMARY,
@@ -926,6 +993,9 @@ int IdaInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
         // state/derivative pair handed to GridDyn remains consistent.
         int dkyRet = IDAGetDky(solverMem, tret, 1, dstate_dt);
         checkFlag(&dkyRet, "IDAGetDky", 1);
+    }
+    if (flags[IDA_INTEGRATION_DIAGNOSTICS]) {
+        logIntegrationStateDrift(tret);
     }
     solveTime = tret;
     switch (retval) {

@@ -31,6 +31,7 @@
 #include <cstdio>
 #include <memory>
 #include <string>
+#include <vector>
 #include <sundials/sundials_linearsolver.h>
 #include <sundials/sundials_types.h>
 #include <sunmatrix/sunmatrix_sparse.h> /* access to sparse SUNMatrix */
@@ -91,6 +92,7 @@ class SundialsInterface: public SolverInterface {
     SUNMatrix J = nullptr;  //!< sundials matrix to use
     SUNLinearSolver LS = nullptr;  //!< the link to the linear solver to use
     SUNContext sunctx = nullptr;  //!< SUNDIALS context
+    std::vector<sunindextype> sparsePattern;  //!< compressed sparse structure used by KLU
   public:
     explicit SundialsInterface(const std::string& objName = "sundials");
     /** @brief constructor loading the SolverInterface structure*

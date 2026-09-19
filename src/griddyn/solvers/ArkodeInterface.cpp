@@ -157,9 +157,15 @@ void ArkodeInterface::set(std::string_view param, double val)
 
     if (checkStepUpdate) {
         if (flags[INITIALIZED_FLAG]) {
-            ARKodeSetMaxStep(solverMem, maxStep);
-            ARKodeSetMinStep(solverMem, minStep);
-            ARKodeSetInitStep(solverMem, step);
+            if (maxStep >= 0.0) {
+                ARKodeSetMaxStep(solverMem, maxStep);
+            }
+            if (minStep >= 0.0) {
+                ARKodeSetMinStep(solverMem, minStep);
+            }
+            if (step > 0.0) {
+                ARKodeSetInitStep(solverMem, step);
+            }
         }
     }
 }
@@ -374,7 +380,11 @@ return(retval);
 
 int ArkodeInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
 {
-    assert(rootCount == m_gds->rootSize(mode));
+    // GridDyn can intentionally disable root finding for a diagnostic A/B run.  In that
+    // mode rootCount is zero even though the model still reports its available roots.
+    if (rootCount > 0) {
+        assert(rootCount == m_gds->rootSize(mode));
+    }
     ++solverCallCount;
     icCount = 0;
     double tret;

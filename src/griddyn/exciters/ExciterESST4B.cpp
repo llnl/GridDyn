@@ -207,23 +207,27 @@ void ExciterESST4B::derivative(const IOdata& inputs,
         (hasRegulatorLag ? state[stateIndex(regulatorLagState, hasVoltageMeasurement, hasRegulatorLag)] :
                            regulatorOutput) -
         Kg * loc.algStateLoc[0];
+    const double innerOutput =
+        std::clamp(Kpm * innerError + state[innerIndex],
+                   static_cast<double>(Vmmin),
+                   static_cast<double>(Vmmax));
     if (hasVoltageMeasurement) {
         dst[voltageMeasurementState] =
             (inputs[exciterVoltageInLocation] - state[voltageMeasurementState]) / Tr;
     }
+    // VRMAX and VMMAX limit the PI outputs, not their additive integrator
+    // states.  The latter can be offset by the proportional paths.
     dst[outerIndex] =
-        integrationBlocked(state[outerIndex], Vrmin / Kpr, Vrmax / Kpr, Kir * outerError) ?
-        0.0 :
-        Kir * outerError;
+        integrationBlocked(regulatorOutput, Vrmin, Vrmax, Kir * outerError) ? 0.0 :
+                                                                            Kir * outerError;
     if (hasRegulatorLag) {
         const auto regulatorIndex =
             stateIndex(regulatorLagState, hasVoltageMeasurement, hasRegulatorLag);
         dst[regulatorIndex] = (regulatorOutput - state[regulatorIndex]) / Ta;
     }
     dst[innerIndex] =
-        integrationBlocked(state[innerIndex], Vmmin / Kpm, Vmmax / Kpm, Kim * innerError) ?
-        0.0 :
-        Kim * innerError;
+        integrationBlocked(innerOutput, Vmmin, Vmmax, Kim * innerError) ? 0.0 :
+                                                                      Kim * innerError;
 }
 
 void ExciterESST4B::jacobianElements(const IOdata& inputs,
@@ -302,7 +306,10 @@ void ExciterESST4B::jacobianElements(const IOdata& inputs,
                                   1.0 / Tr);
     }
     const bool outerBlocked =
-        integrationBlocked(state[outerIndex], Vrmin / Kpr, Vrmax / Kpr, Kir * outerError);
+        integrationBlocked(std::clamp(outerUnlimited, static_cast<double>(Vrmin), static_cast<double>(Vrmax)),
+                           Vrmin,
+                           Vrmax,
+                           Kir * outerError);
     const auto outerRow = differentialRow + outerIndex;
     matrixData.assign(outerRow, outerRow, -stateData.cj);
     if (!outerBlocked) {
@@ -333,7 +340,10 @@ void ExciterESST4B::jacobianElements(const IOdata& inputs,
         }
     }
     const bool innerBlocked =
-        integrationBlocked(state[innerIndex], Vmmin / Kpm, Vmmax / Kpm, Kim * innerError);
+        integrationBlocked(std::clamp(innerUnlimited, static_cast<double>(Vmmin), static_cast<double>(Vmmax)),
+                           Vmmin,
+                           Vmmax,
+                           Kim * innerError);
     const auto innerRow = differentialRow + innerIndex;
     matrixData.assign(innerRow, innerRow, -stateData.cj);
     if (!innerBlocked) {
@@ -369,12 +379,6 @@ void ExciterESST4B::timestep(CoreTime time, const IOdata& inputs, const SolverMo
     for (index_t ii = 0; ii < diffSize; ++ii) {
         m_state[ii + 1] += timeStep * m_dstate_dt[ii + 1];
     }
-    m_state[outerIndex + 1] = std::clamp(m_state[outerIndex + 1],
-                                         static_cast<double>(Vrmin / Kpr),
-                                         static_cast<double>(Vrmax / Kpr));
-    m_state[innerIndex + 1] = std::clamp(m_state[innerIndex + 1],
-                                         static_cast<double>(Vmmin / Kpm),
-                                         static_cast<double>(Vmmax / Kpm));
     const double measuredVoltage = hasVoltageMeasurement ?
         m_state[voltageMeasurementState + 1] :
         inputs[exciterVoltageInLocation];

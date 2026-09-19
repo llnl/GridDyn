@@ -199,6 +199,10 @@ void KinsolInterface::initialize(CoreTime /*t0*/)
 
             retval = SUNLinSol_KLUSetOrdering(LS, 0);
             checkFlag(&retval, "SUNLinSol_KLUSetOrdering", 1);
+            // A singular Newton matrix must be reported to KINSOL. Allowing
+            // KLU to continue leaves a partial pivot permutation that can
+            // fault during numeric factorization.
+            SUNLinSol_KLUGetCommon(LS)->halt_if_singular = 1;
         }
 #else
         J = SUNDenseMatrix(svsize, svsize, sunctx);
@@ -348,6 +352,20 @@ int kinsolFunc(N_Vector state, N_Vector resid, void* userData)
 {
     auto* sd = static_cast<KinsolInterface*>(userData);
     sd->funcCallCount++;
+    const bool partitionedTrace =
+        sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
+        (sd->mode.pairedOffsetIndex != kNullLocation) && (++sd->partitionedDiagnosticCallCount <= 8);
+    if (partitionedTrace) {
+        std::println("KINSOL algebraic residual callback {} at time={} state_size={}",
+                     sd->funcCallCount,
+                     static_cast<double>(sd->solveTime),
+                     sd->size());
+        sd->m_gds->partitionedDiagnostic(
+            std::format("KINSOL algebraic residual callback {} at time={} state_size={}",
+                        sd->funcCallCount,
+                        static_cast<double>(sd->solveTime),
+                        sd->size()));
+    }
 #if MEASURE_TIMINGS > 0
     auto start_t = std::chrono::high_resolution_clock::now();
 
@@ -367,6 +385,11 @@ int kinsolFunc(N_Vector state, N_Vector resid, void* userData)
                                           NVECTOR_DATA(sd->use_omp, resid),
                                           sd->mode);
 #endif
+    if (partitionedTrace) {
+        std::println("KINSOL algebraic residual callback {} returned {}", sd->funcCallCount, ret);
+        sd->m_gds->partitionedDiagnostic(
+            std::format("KINSOL algebraic residual callback {} returned {}", sd->funcCallCount, ret));
+    }
     if (sd->flags[PRINT_RESIDUALS]) {
         long int val = 0;
         KINGetNumNonlinSolvIters(sd->solverMem, &val);
@@ -411,7 +434,32 @@ int kinsolJac(N_Vector state,
               N_Vector tmp2)
 {
     auto* sd = static_cast<KinsolInterface*>(userData);
-    return sundialsJac(sd->solveTime, 0, state, nullptr, j, userData, tmp1, tmp2);
+    const bool partitionedTrace =
+        sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
+        (sd->mode.pairedOffsetIndex != kNullLocation) &&
+        (++sd->partitionedDiagnosticJacobianCallCount <= 8);
+    if (partitionedTrace) {
+        std::println("KINSOL algebraic Jacobian callback {} at time={} state_size={}",
+                     sd->partitionedDiagnosticJacobianCallCount,
+                     static_cast<double>(sd->solveTime),
+                     sd->size());
+        sd->m_gds->partitionedDiagnostic(
+            std::format("KINSOL algebraic Jacobian callback {} at time={} state_size={}",
+                        sd->partitionedDiagnosticJacobianCallCount,
+                        static_cast<double>(sd->solveTime),
+                        sd->size()));
+    }
+    const int ret = sundialsJac(sd->solveTime, 0, state, nullptr, j, userData, tmp1, tmp2);
+    if (partitionedTrace) {
+        std::println("KINSOL algebraic Jacobian callback {} returned {}",
+                     sd->partitionedDiagnosticJacobianCallCount,
+                     ret);
+        sd->m_gds->partitionedDiagnostic(
+            std::format("KINSOL algebraic Jacobian callback {} returned {}",
+                        sd->partitionedDiagnosticJacobianCallCount,
+                        ret));
+    }
+    return ret;
 }
 
 }  // namespace griddyn::solvers

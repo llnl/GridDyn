@@ -1444,11 +1444,9 @@ TEST(ExciterModelTests, Ieeet1ActiveLimiterHasConsistentDaeJacobian)
     exciter.dynInitializeB(inputs, {1.0}, fieldSet);
 
     exciter.set("vrmax", 0.5);
-    EXPECT_EQ(exciter.rootCheck(inputs,
-                                emptyStateData,
-                                cLocalSolverMode,
-                                CheckLevel::REVERSABLE_ONLY),
-              ChangeCode::JACOBIAN_CHANGE);
+    EXPECT_EQ(
+        exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
     EXPECT_DOUBLE_EQ(exciter.getStates()[1], 0.5);
     expectExciterDaeJacobian(exciter, inputs, exciter.getStates(), 1.0);
 }
@@ -1479,11 +1477,9 @@ TEST(ExciterModelTests, Ieeet2AdjustsInitialRegulatorUpperLimitAndHonorsStrictMo
     EXPECT_NEAR(root, 1e-4, 1e-12);
 
     exciter.set("vrmax", 0.5);
-    EXPECT_EQ(exciter.rootCheck(inputs,
-                                emptyStateData,
-                                cLocalSolverMode,
-                                CheckLevel::REVERSABLE_ONLY),
-              ChangeCode::JACOBIAN_CHANGE);
+    EXPECT_EQ(
+        exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
     EXPECT_DOUBLE_EQ(exciter.getStates()[1], 0.5);
     expectExciterDaeJacobian(exciter, inputs, exciter.getStates(), 1.0);
 
@@ -1857,11 +1853,9 @@ TEST(ExciterModelTests, Dc2aActiveLimiterHasConsistentDaeJacobian)
     // Tighten the configured bound after initialization to put the already
     // initialized regulator into the active upper-limit branch.
     exciter.set("vrmax", 0.5);
-    EXPECT_EQ(exciter.rootCheck(inputs,
-                               emptyStateData,
-                               cLocalSolverMode,
-                               CheckLevel::REVERSABLE_ONLY),
-              ChangeCode::JACOBIAN_CHANGE);
+    EXPECT_EQ(
+        exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
     ASSERT_EQ(exciter.getStates().size(), 4U);
     EXPECT_DOUBLE_EQ(exciter.getStates()[1], 0.5);
 

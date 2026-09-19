@@ -27,6 +27,7 @@ class IdaInterface: public SundialsInterface {
     std::vector<double> integrationReferenceState;  //!< state at the start of a diagnostic solve
     CoreTime integrationReferenceTime = CoreTime{};
     bool integrationFailureLogged = false;
+
   public:
     /** @brief constructor*/
     explicit IdaInterface(const std::string& objName = "ida");
@@ -85,12 +86,13 @@ class IdaInterface: public SundialsInterface {
 
   protected:
     void loadMaskElements();
-    void logInitialConditionDiagnostics(CoreTime t0,
-                                        CoreTime tstep0,
-                                        IcModes initCondMode,
-                                        int retval,
-                                        const std::vector<double>* initialState = nullptr,
-                                        const std::vector<double>* initialDerivative = nullptr) const;
+    void logInitialConditionDiagnostics(
+        CoreTime t0,
+        CoreTime tstep0,
+        IcModes initCondMode,
+        int retval,
+        const std::vector<double>* initialState = nullptr,
+        const std::vector<double>* initialDerivative = nullptr) const;
     void logIntegrationFailureDiagnostics(CoreTime time, int retval) const;
     void logIntegrationStateDrift(CoreTime time) const;
 };

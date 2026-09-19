@@ -79,16 +79,16 @@ void ExciterESST4B::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t flags
         !std::isfinite(Vrmin) || !std::isfinite(Ta) || !std::isfinite(Kpm) || !std::isfinite(Kim) ||
         !std::isfinite(Vmmax) || !std::isfinite(Vmmin) || !std::isfinite(Kg) ||
         !std::isfinite(Kp) || !std::isfinite(Ki) || !std::isfinite(Vbmax) || !std::isfinite(Kc) ||
-        !std::isfinite(Xl) || !std::isfinite(ThetaP) || (Tr < 0.0) || (Ta < 0.0) ||
-        (Kpr <= 0.0) || (Kpm <= 0.0) || (Kir < 0.0) || (Kim < 0.0) || (Vrmax < Vrmin) ||
-        (Vmmax < Vmmin) || (Vbmax <= 0.0)) {
+        !std::isfinite(Xl) || !std::isfinite(ThetaP) || (Tr < 0.0) || (Ta < 0.0) || (Kpr <= 0.0) ||
+        (Kpm <= 0.0) || (Kir < 0.0) || (Kim < 0.0) || (Vrmax < Vrmin) || (Vmmax < Vmmin) ||
+        (Vbmax <= 0.0)) {
         throw InvalidParameterValue("ESST4B gains, time constants, or limits");
     }
     const bool hasVoltageMeasurement = (Tr > 0.0);
     const bool hasRegulatorLag = (Ta > 0.0);
     offsets.local().local.algSize = 1;
-    offsets.local().local.diffSize = 2 + static_cast<index_t>(hasVoltageMeasurement) +
-        static_cast<index_t>(hasRegulatorLag);
+    offsets.local().local.diffSize =
+        2 + static_cast<index_t>(hasVoltageMeasurement) + static_cast<index_t>(hasRegulatorLag);
     offsets.local().local.jacSize = 32;
 }
 
@@ -156,9 +156,8 @@ void ExciterESST4B::residual(const IOdata& inputs,
     const auto outerIndex = stateIndex(outerIntegralState, hasVoltageMeasurement, hasRegulatorLag);
     const auto innerIndex = stateIndex(innerIntegralState, hasVoltageMeasurement, hasRegulatorLag);
     const double* state = loc.diffStateLoc;
-    const double measuredVoltage = hasVoltageMeasurement ?
-        state[voltageMeasurementState] :
-        inputs[exciterVoltageInLocation];
+    const double measuredVoltage =
+        hasVoltageMeasurement ? state[voltageMeasurementState] : inputs[exciterVoltageInLocation];
     const double regulatorOutput = hasRegulatorLag ?
         state[stateIndex(regulatorLagState, hasVoltageMeasurement, hasRegulatorLag)] :
         std::clamp(Kpr * (Vref + vBias + inputs[exciterVssInLocation] - measuredVoltage) +
@@ -167,10 +166,9 @@ void ExciterESST4B::residual(const IOdata& inputs,
                    static_cast<double>(Vrmax));
     if (hasAlgebraic(sMode)) {
         const double innerError = regulatorOutput - Kg * loc.algStateLoc[0];
-        const double innerOutput =
-            std::clamp(Kpm * innerError + state[innerIndex],
-                       static_cast<double>(Vmmin),
-                       static_cast<double>(Vmmax));
+        const double innerOutput = std::clamp(Kpm * innerError + state[innerIndex],
+                                              static_cast<double>(Vmmin),
+                                              static_cast<double>(Vmmax));
         loc.destLoc[0] = rectifierVoltage(inputs) * innerOutput - loc.algStateLoc[0];
     }
     if (hasDifferential(sMode)) {
@@ -196,38 +194,36 @@ void ExciterESST4B::derivative(const IOdata& inputs,
     const bool hasRegulatorLag = (Ta > 0.0);
     const auto outerIndex = stateIndex(outerIntegralState, hasVoltageMeasurement, hasRegulatorLag);
     const auto innerIndex = stateIndex(innerIntegralState, hasVoltageMeasurement, hasRegulatorLag);
-    const double measuredVoltage = hasVoltageMeasurement ?
-        state[voltageMeasurementState] :
-        inputs[exciterVoltageInLocation];
+    const double measuredVoltage =
+        hasVoltageMeasurement ? state[voltageMeasurementState] : inputs[exciterVoltageInLocation];
     const double outerError = Vref + vBias + inputs[exciterVssInLocation] - measuredVoltage;
     const double outerUnlimited = Kpr * outerError + state[outerIndex];
     const double regulatorOutput =
         std::clamp(outerUnlimited, static_cast<double>(Vrmin), static_cast<double>(Vrmax));
     const double innerError =
-        (hasRegulatorLag ? state[stateIndex(regulatorLagState, hasVoltageMeasurement, hasRegulatorLag)] :
-                           regulatorOutput) -
+        (hasRegulatorLag ?
+             state[stateIndex(regulatorLagState, hasVoltageMeasurement, hasRegulatorLag)] :
+             regulatorOutput) -
         Kg * loc.algStateLoc[0];
-    const double innerOutput =
-        std::clamp(Kpm * innerError + state[innerIndex],
-                   static_cast<double>(Vmmin),
-                   static_cast<double>(Vmmax));
+    const double innerOutput = std::clamp(Kpm * innerError + state[innerIndex],
+                                          static_cast<double>(Vmmin),
+                                          static_cast<double>(Vmmax));
     if (hasVoltageMeasurement) {
         dst[voltageMeasurementState] =
             (inputs[exciterVoltageInLocation] - state[voltageMeasurementState]) / Tr;
     }
     // VRMAX and VMMAX limit the PI outputs, not their additive integrator
     // states.  The latter can be offset by the proportional paths.
-    dst[outerIndex] =
-        integrationBlocked(regulatorOutput, Vrmin, Vrmax, Kir * outerError) ? 0.0 :
-                                                                            Kir * outerError;
+    dst[outerIndex] = integrationBlocked(regulatorOutput, Vrmin, Vrmax, Kir * outerError) ?
+        0.0 :
+        Kir * outerError;
     if (hasRegulatorLag) {
         const auto regulatorIndex =
             stateIndex(regulatorLagState, hasVoltageMeasurement, hasRegulatorLag);
         dst[regulatorIndex] = (regulatorOutput - state[regulatorIndex]) / Ta;
     }
     dst[innerIndex] =
-        integrationBlocked(innerOutput, Vmmin, Vmmax, Kim * innerError) ? 0.0 :
-                                                                      Kim * innerError;
+        integrationBlocked(innerOutput, Vmmin, Vmmax, Kim * innerError) ? 0.0 : Kim * innerError;
 }
 
 void ExciterESST4B::jacobianElements(const IOdata& inputs,
@@ -244,9 +240,8 @@ void ExciterESST4B::jacobianElements(const IOdata& inputs,
     const bool hasRegulatorLag = (Ta > 0.0);
     const auto outerIndex = stateIndex(outerIntegralState, hasVoltageMeasurement, hasRegulatorLag);
     const auto innerIndex = stateIndex(innerIntegralState, hasVoltageMeasurement, hasRegulatorLag);
-    const double measuredVoltage = hasVoltageMeasurement ?
-        state[voltageMeasurementState] :
-        inputs[exciterVoltageInLocation];
+    const double measuredVoltage =
+        hasVoltageMeasurement ? state[voltageMeasurementState] : inputs[exciterVoltageInLocation];
     const double outerError = Vref + vBias + inputs[exciterVssInLocation] - measuredVoltage;
     const double outerUnlimited = Kpr * outerError + state[outerIndex];
     const double regulatorOutput = hasRegulatorLag ?
@@ -298,18 +293,15 @@ void ExciterESST4B::jacobianElements(const IOdata& inputs,
         return;
     }
     if (hasVoltageMeasurement) {
-        matrixData.assign(differentialRow,
-                          differentialRow,
-                          -1.0 / Tr - stateData.cj);
-        matrixData.assignCheckCol(differentialRow,
-                                  inputLocs[exciterVoltageInLocation],
-                                  1.0 / Tr);
+        matrixData.assign(differentialRow, differentialRow, -1.0 / Tr - stateData.cj);
+        matrixData.assignCheckCol(differentialRow, inputLocs[exciterVoltageInLocation], 1.0 / Tr);
     }
-    const bool outerBlocked =
-        integrationBlocked(std::clamp(outerUnlimited, static_cast<double>(Vrmin), static_cast<double>(Vrmax)),
-                           Vrmin,
-                           Vrmax,
-                           Kir * outerError);
+    const bool outerBlocked = integrationBlocked(std::clamp(outerUnlimited,
+                                                            static_cast<double>(Vrmin),
+                                                            static_cast<double>(Vrmax)),
+                                                 Vrmin,
+                                                 Vrmax,
+                                                 Kir * outerError);
     const auto outerRow = differentialRow + outerIndex;
     matrixData.assign(outerRow, outerRow, -stateData.cj);
     if (!outerBlocked) {
@@ -334,16 +326,15 @@ void ExciterESST4B::jacobianElements(const IOdata& inputs,
                                           -Kpr / Ta);
             }
             matrixData.assign(regulatorRow, outerRow, 1.0 / Ta);
-            matrixData.assignCheckCol(regulatorRow,
-                                      inputLocs[exciterVssInLocation],
-                                      Kpr / Ta);
+            matrixData.assignCheckCol(regulatorRow, inputLocs[exciterVssInLocation], Kpr / Ta);
         }
     }
-    const bool innerBlocked =
-        integrationBlocked(std::clamp(innerUnlimited, static_cast<double>(Vmmin), static_cast<double>(Vmmax)),
-                           Vmmin,
-                           Vmmax,
-                           Kim * innerError);
+    const bool innerBlocked = integrationBlocked(std::clamp(innerUnlimited,
+                                                            static_cast<double>(Vmmin),
+                                                            static_cast<double>(Vmmax)),
+                                                 Vmmin,
+                                                 Vmmax,
+                                                 Kim * innerError);
     const auto innerRow = differentialRow + innerIndex;
     matrixData.assign(innerRow, innerRow, -stateData.cj);
     if (!innerBlocked) {
@@ -374,14 +365,13 @@ void ExciterESST4B::timestep(CoreTime time, const IOdata& inputs, const SolverMo
     const bool hasRegulatorLag = (Ta > 0.0);
     const auto outerIndex = stateIndex(outerIntegralState, hasVoltageMeasurement, hasRegulatorLag);
     const auto innerIndex = stateIndex(innerIntegralState, hasVoltageMeasurement, hasRegulatorLag);
-    const auto diffSize = 2 + static_cast<index_t>(hasVoltageMeasurement) +
-        static_cast<index_t>(hasRegulatorLag);
+    const auto diffSize =
+        2 + static_cast<index_t>(hasVoltageMeasurement) + static_cast<index_t>(hasRegulatorLag);
     for (index_t ii = 0; ii < diffSize; ++ii) {
         m_state[ii + 1] += timeStep * m_dstate_dt[ii + 1];
     }
-    const double measuredVoltage = hasVoltageMeasurement ?
-        m_state[voltageMeasurementState + 1] :
-        inputs[exciterVoltageInLocation];
+    const double measuredVoltage = hasVoltageMeasurement ? m_state[voltageMeasurementState + 1] :
+                                                           inputs[exciterVoltageInLocation];
     const double outerError = Vref + vBias + inputs[exciterVssInLocation] - measuredVoltage;
     const double regulatorOutput = hasRegulatorLag ?
         m_state[stateIndex(regulatorLagState, hasVoltageMeasurement, hasRegulatorLag) + 1] :

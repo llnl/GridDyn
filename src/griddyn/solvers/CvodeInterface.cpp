@@ -456,12 +456,12 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userDat
                          static_cast<double>(time),
                          sd->size(),
                          sd->mode.pairedOffsetIndex);
-            sd->m_gds->partitionedDiagnostic(
-                std::format("CVODE differential callback {} at time={} state_size={} paired_index={}",
-                            sd->funcCallCount,
-                            static_cast<double>(time),
-                            sd->size(),
-                            sd->mode.pairedOffsetIndex));
+            sd->m_gds->partitionedDiagnostic(std::format(
+                "CVODE differential callback {} at time={} state_size={} paired_index={}",
+                sd->funcCallCount,
+                static_cast<double>(time),
+                sd->size(),
+                sd->mode.pairedOffsetIndex));
         }
         int ret = sd->m_gds->dynAlgebraicSolve(time,
                                                NVECTOR_DATA(sd->use_omp, state),
@@ -471,7 +471,8 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userDat
             return ret;
         }
         if (sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) && sd->funcCallCount <= 8) {
-            std::println("CVODE differential callback {} algebraic solve completed", sd->funcCallCount);
+            std::println("CVODE differential callback {} algebraic solve completed",
+                         sd->funcCallCount);
             sd->m_gds->partitionedDiagnostic(
                 std::format("CVODE differential callback {} algebraic solve completed",
                             sd->funcCallCount));
@@ -480,9 +481,11 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userDat
     const bool partitionedTrace =
         sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) && sd->funcCallCount <= 8;
     if (partitionedTrace) {
-        std::println("CVODE differential callback {} evaluating model derivatives", sd->funcCallCount);
+        std::println("CVODE differential callback {} evaluating model derivatives",
+                     sd->funcCallCount);
         sd->m_gds->partitionedDiagnostic(
-            std::format("CVODE differential callback {} evaluating model derivatives", sd->funcCallCount));
+            std::format("CVODE differential callback {} evaluating model derivatives",
+                        sd->funcCallCount));
     }
     int ret = sd->m_gds->derivativeFunction(time,
                                             NVECTOR_DATA(sd->use_omp, state),
@@ -492,8 +495,10 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userDat
         std::println("CVODE differential callback {} derivative evaluation returned {}",
                      sd->funcCallCount,
                      ret);
-        sd->m_gds->partitionedDiagnostic(std::format(
-            "CVODE differential callback {} derivative evaluation returned {}", sd->funcCallCount, ret));
+        sd->m_gds->partitionedDiagnostic(
+            std::format("CVODE differential callback {} derivative evaluation returned {}",
+                        sd->funcCallCount,
+                        ret));
     }
 
     if (sd->flags[FILE_CAPTURE_FLAG]) {

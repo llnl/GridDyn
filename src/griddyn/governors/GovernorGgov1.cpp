@@ -317,9 +317,8 @@ void GovernorGgov1::derivative(const IOdata& inputs,
     const bool temperatureLimiterActive =
         (signals.mTemperatureRequest < signals.mNormalRequest - selectorTieTolerance) &&
         (signals.mTemperatureRequest < signals.mAccelerationRequest - selectorTieTolerance);
-    stateDerivative[loadIntegralState] = temperatureLimiterActive ?
-        Kiload * (Ldref / Kturb + Wfnl - state[temperatureState]) :
-        0.0;
+    stateDerivative[loadIntegralState] =
+        temperatureLimiterActive ? Kiload * (Ldref / Kturb + Wfnl - state[temperatureState]) : 0.0;
     stateDerivative[accelerationState] =
         (signals.mSpeedDeviation - state[accelerationState]) / TaAccel;
 }

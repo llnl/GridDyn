@@ -441,8 +441,8 @@ int sundialsJac(sunrealtype time,
             std::copy_n(matrix->indexvals,
                         static_cast<size_t>(used),
                         pattern.data() + static_cast<size_t>(sd->svsize) + 1);
-            const bool structureChanged = !sd->sparsePattern.empty() &&
-                (sd->sparsePattern != pattern);
+            const bool structureChanged =
+                !sd->sparsePattern.empty() && (sd->sparsePattern != pattern);
             sd->sparsePattern = std::move(pattern);
             if (structureChanged) {
                 // KLU caches a symbolic factorization of the compressed
@@ -467,14 +467,14 @@ int sundialsJac(sunrealtype time,
                 const auto begin = matrix->indexptrs[row];
                 const auto end = matrix->indexptrs[row + 1];
                 valid = (begin >= 0) && (begin <= end) && (end <= used);
-                structureHash = (structureHash ^ static_cast<std::uint64_t>(begin)) *
-                    1099511628211ULL;
+                structureHash =
+                    (structureHash ^ static_cast<std::uint64_t>(begin)) * 1099511628211ULL;
             }
             for (sunindextype index = 0; valid && index < used; ++index) {
                 const auto column = matrix->indexvals[index];
                 valid = (column >= 0) && (column < sd->svsize);
-                structureHash = (structureHash ^ static_cast<std::uint64_t>(column)) *
-                    1099511628211ULL;
+                structureHash =
+                    (structureHash ^ static_cast<std::uint64_t>(column)) * 1099511628211ULL;
             }
             sd->m_gds->partitionedDiagnostic(std::format(
                 "Partitioned sparse Jacobian {}: used_nnz={} capacity={} valid={} structure_hash={:016X}",

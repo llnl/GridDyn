@@ -52,7 +52,7 @@ the same integration path.
    model equation, reader mapping, or state-offset construction before changing IDA settings.
 10. After a fix, rerun model residual checks, Jacobian checks on a representative small case,
     the full ACTIVSg2000 initialization, and a short dynamic integration.
-11. For a no-disturbance run, first require the *raw* initialized algebraic residual to be
+11. For a no-disturbance run, first require the _raw_ initialized algebraic residual to be
     small. Then distinguish a consistent DAE trajectory from a stationary operating point by
     inspecting the largest differential derivatives. A nonzero derivative in an inactive
     limiter may be physically permissible, but it must not alter the selected governor or
@@ -159,10 +159,10 @@ the same integration path.
   fixed-differential IC correction has an algebraic residual below `5.7e-13`. The prior large
   EXAC2 amplifier derivatives disappear, confirming that they were a response to the bus
   mismatch rather than an EXAC2 equation error.
-The entries below describe intermediate states of the investigation. They are retained because
-they show how the failure was narrowed, but the current result is recorded above. In particular,
-the old one-second timing, post-root failure, and repeated-root observations predate the GGOV1
-inactive-branch and zero-rate root-equilibrium fixes.
+  The entries below describe intermediate states of the investigation. They are retained because
+  they show how the failure was narrowed, but the current result is recorded above. In particular,
+  the old one-second timing, post-root failure, and repeated-root observations predate the GGOV1
+  inactive-branch and zero-rate root-equilibrium fixes.
 
 #### Earlier investigation record
 
@@ -204,7 +204,7 @@ inactive-branch and zero-rate root-equilibrium fixes.
   needed.
 - The DC2A warning at bus 5298 is data-driven. The reader maps the PSS/E ESDC2A fields in
   the documented order `E1, SE1, E2, SE2`, but this record contains `2.36, 2.36, 0.2246,
-  3.1467`, unlike the canonical two-point saturation pattern in comparable cases. An
+3.1467`, unlike the canonical two-point saturation pattern in comparable cases. An
   isolated override to `2.36, 0.2268, 3.1467, 0.9072` removes the extreme initial warning;
   this is consistent with the ESDC2A field semantics described in the
   [PowerWorld ESDC2A model documentation](https://www.powerworld.com/WebHelp/Content/TransientModels_HTML/Exciter%20ESDC2A.htm).
@@ -292,10 +292,10 @@ branches.
 
 The remaining exciter limit checks need model-specific review before being relaxed:
 
-* EXAC4 and EXST1 use field-current-offset regulator bounds.
-* EXPIC1 combines field-voltage limits with the `VR1`/`VR2` selector range.
-* IEEET3 uses a terminal-voltage-dependent regulator bound.
-* AC7B and AC8B still retain separate exciter/field-feedback bounds after their control
+- EXAC4 and EXST1 use field-current-offset regulator bounds.
+- EXPIC1 combines field-voltage limits with the `VR1`/`VR2` selector range.
+- IEEET3 uses a terminal-voltage-dependent regulator bound.
+- AC7B and AC8B still retain separate exciter/field-feedback bounds after their control
   amplifier limits are handled by the common policy.
 
 Those cases should not simply raise every upper limit. The implementation must identify which

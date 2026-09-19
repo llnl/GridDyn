@@ -189,17 +189,13 @@ int GridDynSimulation::dynamicDAEStartupConditions(std::shared_ptr<SolverInterfa
         // do mode 0 IC calculation
         guessState(currentTime, dynData->stateData(), dynData->derivData(), sMode);
 
-        if (controlFlags[IDA_INTEGRATION_DIAGNOSTICS_FLAG] &&
-            !controlFlags[ROOTS_DISABLED]) {
+        if (controlFlags[IDA_INTEGRATION_DIAGNOSTICS_FLAG] && !controlFlags[ROOTS_DISABLED]) {
             const auto rootTotal = rootSize(sMode);
             std::vector<double> rootValues(rootTotal, 0.0);
             stringVec rootNames;
             getRootObjectNames(rootNames, sMode);
-            rootFindingFunction(currentTime,
-                                dynData->stateData(),
-                                dynData->derivData(),
-                                rootValues.data(),
-                                sMode);
+            rootFindingFunction(
+                currentTime, dynData->stateData(), dynData->derivData(), rootValues.data(), sMode);
 
             std::vector<index_t> closestRoots(rootTotal);
             std::iota(closestRoots.begin(), closestRoots.end(), 0);
@@ -1340,22 +1336,24 @@ int GridDynSimulation::rootFindingFunction(CoreTime time,
 }
 
 int GridDynSimulation::dynAlgebraicSolve(CoreTime time,
-                                          const double diffState[],
-                                          const double deriv[],
-                                          const SolverMode& sMode) noexcept
+                                         const double diffState[],
+                                         const double deriv[],
+                                         const SolverMode& sMode) noexcept
 {
     if ((!isValidIndex(sMode.offsetIndex, extraStateInformation)) ||
         (!isValidIndex(sMode.offsetIndex, extraDerivInformation)) ||
-        (sMode.pairedOffsetIndex == kNullLocation) || (diffState == nullptr) || (deriv == nullptr)) {
-        logging::error(this,
-                       "Partitioned algebraic callback has invalid state pairing: mode={} pair={} "
-                       "state_index_valid={} derivative_index_valid={} state_present={} derivative_present={}",
-                       sMode.offsetIndex,
-                       sMode.pairedOffsetIndex,
-                       isValidIndex(sMode.offsetIndex, extraStateInformation),
-                       isValidIndex(sMode.offsetIndex, extraDerivInformation),
-                       diffState != nullptr,
-                       deriv != nullptr);
+        (sMode.pairedOffsetIndex == kNullLocation) || (diffState == nullptr) ||
+        (deriv == nullptr)) {
+        logging::error(
+            this,
+            "Partitioned algebraic callback has invalid state pairing: mode={} pair={} "
+            "state_index_valid={} derivative_index_valid={} state_present={} derivative_present={}",
+            sMode.offsetIndex,
+            sMode.pairedOffsetIndex,
+            isValidIndex(sMode.offsetIndex, extraStateInformation),
+            isValidIndex(sMode.offsetIndex, extraDerivInformation),
+            diffState != nullptr,
+            deriv != nullptr);
         return FUNCTION_EXECUTION_FAILURE;
     }
     extraStateInformation[sMode.offsetIndex] = diffState;
@@ -1386,13 +1384,16 @@ int GridDynSimulation::dynAlgebraicSolve(CoreTime time,
         CoreTime tret;
         ret = solverData->solve(time, tret);
         if (controlFlags[PARTITIONED_DIAGNOSTICS_FLAG] && callbackCount <= 8) {
-            std::println("Partitioned algebraic callback returned: time={} return={} solver_time={}",
-                         static_cast<double>(time),
-                         ret,
-                         static_cast<double>(tret));
+            std::println(
+                "Partitioned algebraic callback returned: time={} return={} solver_time={}",
+                static_cast<double>(time),
+                ret,
+                static_cast<double>(tret));
             partitionedDiagnostic(std::format(
                 "Partitioned algebraic callback returned: time={} return={} solver_time={}",
-                static_cast<double>(time), ret, static_cast<double>(tret)));
+                static_cast<double>(time),
+                ret,
+                static_cast<double>(tret)));
         }
         if (ret < 0) {
             if (jacobianCheck(this, solverData->getSolverMode()) > 0) {

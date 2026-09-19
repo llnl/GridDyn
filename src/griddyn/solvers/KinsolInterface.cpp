@@ -352,9 +352,9 @@ int kinsolFunc(N_Vector state, N_Vector resid, void* userData)
 {
     auto* sd = static_cast<KinsolInterface*>(userData);
     sd->funcCallCount++;
-    const bool partitionedTrace =
-        sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
-        (sd->mode.pairedOffsetIndex != kNullLocation) && (++sd->partitionedDiagnosticCallCount <= 8);
+    const bool partitionedTrace = sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
+        (sd->mode.pairedOffsetIndex != kNullLocation) &&
+        (++sd->partitionedDiagnosticCallCount <= 8);
     if (partitionedTrace) {
         std::println("KINSOL algebraic residual callback {} at time={} state_size={}",
                      sd->funcCallCount,
@@ -387,8 +387,8 @@ int kinsolFunc(N_Vector state, N_Vector resid, void* userData)
 #endif
     if (partitionedTrace) {
         std::println("KINSOL algebraic residual callback {} returned {}", sd->funcCallCount, ret);
-        sd->m_gds->partitionedDiagnostic(
-            std::format("KINSOL algebraic residual callback {} returned {}", sd->funcCallCount, ret));
+        sd->m_gds->partitionedDiagnostic(std::format(
+            "KINSOL algebraic residual callback {} returned {}", sd->funcCallCount, ret));
     }
     if (sd->flags[PRINT_RESIDUALS]) {
         long int val = 0;
@@ -434,8 +434,7 @@ int kinsolJac(N_Vector state,
               N_Vector tmp2)
 {
     auto* sd = static_cast<KinsolInterface*>(userData);
-    const bool partitionedTrace =
-        sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
+    const bool partitionedTrace = sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
         (sd->mode.pairedOffsetIndex != kNullLocation) &&
         (++sd->partitionedDiagnosticJacobianCallCount <= 8);
     if (partitionedTrace) {

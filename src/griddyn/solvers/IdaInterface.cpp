@@ -20,6 +20,7 @@
 #    include <sunlinsol/sunlinsol_klu.h>
 #endif
 
+#include "utilities/MatrixDataSparse.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -32,7 +33,6 @@
 #include <print>
 #include <string>
 #include <sunlinsol/sunlinsol_dense.h>
-#include "utilities/MatrixDataSparse.hpp"
 #include <vector>
 
 namespace griddyn::solvers {
@@ -374,44 +374,44 @@ void IdaInterface::setRootFinding(count_t numRoots)
 #define SHOW_MISSING_ELEMENTS 0
 
 namespace {
-std::string_view idaIcReturnFlagName(int retval)
-{
-    switch (retval) {
-        case IDA_SUCCESS:
-            return "IDA_SUCCESS";
-        case IDA_LSETUP_FAIL:
-            return "IDA_LSETUP_FAIL";
-        case IDA_LSOLVE_FAIL:
-            return "IDA_LSOLVE_FAIL";
-        case IDA_NO_RECOVERY:
-            return "IDA_NO_RECOVERY";
-        case IDA_LINESEARCH_FAIL:
-            return "IDA_LINESEARCH_FAIL";
-        case IDA_CONV_FAIL:
-            return "IDA_CONV_FAIL";
-        case IDA_REP_RES_ERR:
-            return "IDA_REP_RES_ERR";
-        case IDA_RES_FAIL:
-            return "IDA_RES_FAIL";
-        default:
-            return "IDA_UNKNOWN";
+    std::string_view idaIcReturnFlagName(int retval)
+    {
+        switch (retval) {
+            case IDA_SUCCESS:
+                return "IDA_SUCCESS";
+            case IDA_LSETUP_FAIL:
+                return "IDA_LSETUP_FAIL";
+            case IDA_LSOLVE_FAIL:
+                return "IDA_LSOLVE_FAIL";
+            case IDA_NO_RECOVERY:
+                return "IDA_NO_RECOVERY";
+            case IDA_LINESEARCH_FAIL:
+                return "IDA_LINESEARCH_FAIL";
+            case IDA_CONV_FAIL:
+                return "IDA_CONV_FAIL";
+            case IDA_REP_RES_ERR:
+                return "IDA_REP_RES_ERR";
+            case IDA_RES_FAIL:
+                return "IDA_RES_FAIL";
+            default:
+                return "IDA_UNKNOWN";
+        }
     }
-}
 }  // namespace
 
-void IdaInterface::logInitialConditionDiagnostics(CoreTime t0,
-                                                  CoreTime tstep0,
-                                                  IcModes initCondMode,
-                                                  int retval,
-                                                  const std::vector<double>* initialState,
-                                                  const std::vector<double>* initialDerivative) const
+void IdaInterface::logInitialConditionDiagnostics(
+    CoreTime t0,
+    CoreTime tstep0,
+    IcModes initCondMode,
+    int retval,
+    const std::vector<double>* initialState,
+    const std::vector<double>* initialDerivative) const
 {
     if ((m_gds == nullptr) || (svsize == 0)) {
         return;
     }
 
-    const auto diagnosticLevel =
-        (retval == IDA_SUCCESS) ? PrintLevel::SUMMARY : PrintLevel::ERROR;
+    const auto diagnosticLevel = (retval == IDA_SUCCESS) ? PrintLevel::SUMMARY : PrintLevel::ERROR;
     logSolverStats(diagnosticLevel, true);
 
     std::vector<double> residual(svsize, 0.0);
@@ -466,8 +466,7 @@ void IdaInterface::logInitialConditionDiagnostics(CoreTime t0,
     };
     const auto entryCount = (std::min)(static_cast<count_t>(8), svsize);
     std::partial_sort(entries.begin(), entries.begin() + entryCount, entries.end(), entryOrder);
-    const auto algebraicResidualEntryCount =
-        (std::min)(size_t{8}, algebraicResidualEntries.size());
+    const auto algebraicResidualEntryCount = (std::min)(size_t{8}, algebraicResidualEntries.size());
     std::partial_sort(algebraicResidualEntries.begin(),
                       algebraicResidualEntries.begin() + algebraicResidualEntryCount,
                       algebraicResidualEntries.end(),
@@ -532,11 +531,11 @@ void IdaInterface::logInitialConditionDiagnostics(CoreTime t0,
 
     for (count_t entryIndex = 0; entryIndex < entryCount; ++entryIndex) {
         const auto& entry = entries[entryIndex];
-        const auto stateName = (entry.index < stateNames.size()) ? stateNames[entry.index] :
-                                                                     std::string{"<unnamed>"};
-        const bool hasInitialSnapshot =
-            (initialState != nullptr) && (initialDerivative != nullptr) &&
-            (initialState->size() == svsize) && (initialDerivative->size() == svsize);
+        const auto stateName =
+            (entry.index < stateNames.size()) ? stateNames[entry.index] : std::string{"<unnamed>"};
+        const bool hasInitialSnapshot = (initialState != nullptr) &&
+            (initialDerivative != nullptr) && (initialState->size() == svsize) &&
+            (initialDerivative->size() == svsize);
         logging::logTo(m_gds,
                        m_gds,
                        diagnosticLevel,
@@ -547,10 +546,9 @@ void IdaInterface::logInitialConditionDiagnostics(CoreTime t0,
                        currentState[entry.index],
                        currentDerivative[entry.index],
                        variableType[entry.index],
-                       hasInitialSnapshot ? std::format(
-                           ", initial_y={}, initial_yp={}",
-                           (*initialState)[entry.index],
-                           (*initialDerivative)[entry.index]) :
+                       hasInitialSnapshot ? std::format(", initial_y={}, initial_yp={}",
+                                                        (*initialState)[entry.index],
+                                                        (*initialDerivative)[entry.index]) :
                                             std::string{});
     }
 
@@ -562,8 +560,8 @@ void IdaInterface::logInitialConditionDiagnostics(CoreTime t0,
                    algebraicResidualEntryCount);
     for (size_t entryIndex = 0; entryIndex < algebraicResidualEntryCount; ++entryIndex) {
         const auto& entry = algebraicResidualEntries[entryIndex];
-        const auto stateName = (entry.index < stateNames.size()) ? stateNames[entry.index] :
-                                                                     std::string{"<unnamed>"};
+        const auto stateName =
+            (entry.index < stateNames.size()) ? stateNames[entry.index] : std::string{"<unnamed>"};
         logging::logTo(m_gds,
                        m_gds,
                        diagnosticLevel,
@@ -582,8 +580,8 @@ void IdaInterface::logInitialConditionDiagnostics(CoreTime t0,
                    differentialResidualEntryCount);
     for (size_t entryIndex = 0; entryIndex < differentialResidualEntryCount; ++entryIndex) {
         const auto& entry = differentialResidualEntries[entryIndex];
-        const auto stateName = (entry.index < stateNames.size()) ? stateNames[entry.index] :
-                                                                     std::string{"<unnamed>"};
+        const auto stateName =
+            (entry.index < stateNames.size()) ? stateNames[entry.index] : std::string{"<unnamed>"};
         logging::logTo(m_gds,
                        m_gds,
                        diagnosticLevel,
@@ -605,8 +603,8 @@ void IdaInterface::logInitialConditionDiagnostics(CoreTime t0,
                    derivativeEntryCount);
     for (size_t entryIndex = 0; entryIndex < derivativeEntryCount; ++entryIndex) {
         const auto& entry = derivativeEntries[entryIndex];
-        const auto stateName = (entry.index < stateNames.size()) ? stateNames[entry.index] :
-                                                                     std::string{"<unnamed>"};
+        const auto stateName =
+            (entry.index < stateNames.size()) ? stateNames[entry.index] : std::string{"<unnamed>"};
         logging::logTo(m_gds,
                        m_gds,
                        diagnosticLevel,
@@ -631,8 +629,7 @@ void IdaInterface::logInitialConditionDiagnostics(CoreTime t0,
     count_t nonFiniteJacobian = 0;
     count_t zeroDiagonal = 0;
     for (const auto& entry : jacobian) {
-        if ((entry.row < 0) || (entry.col < 0) ||
-            (entry.row >= static_cast<index_t>(svsize)) ||
+        if ((entry.row < 0) || (entry.col < 0) || (entry.row >= static_cast<index_t>(svsize)) ||
             (entry.col >= static_cast<index_t>(svsize))) {
             continue;
         }
@@ -649,12 +646,12 @@ void IdaInterface::logInitialConditionDiagnostics(CoreTime t0,
         }
     }
 
-    const auto missingRows = static_cast<count_t>(
-        std::count(rowPresent.begin(), rowPresent.end(), false));
-    const auto missingColumns = static_cast<count_t>(
-        std::count(columnPresent.begin(), columnPresent.end(), false));
-    const auto missingDiagonals = static_cast<count_t>(
-        std::count(diagonalPresent.begin(), diagonalPresent.end(), false));
+    const auto missingRows =
+        static_cast<count_t>(std::count(rowPresent.begin(), rowPresent.end(), false));
+    const auto missingColumns =
+        static_cast<count_t>(std::count(columnPresent.begin(), columnPresent.end(), false));
+    const auto missingDiagonals =
+        static_cast<count_t>(std::count(diagonalPresent.begin(), diagonalPresent.end(), false));
     logging::logTo(m_gds,
                    m_gds,
                    diagnosticLevel,
@@ -718,8 +715,8 @@ void IdaInterface::logIntegrationFailureDiagnostics(CoreTime time, int retval) c
                    nonFiniteResiduals);
     for (count_t entryIndex = 0; entryIndex < entryCount; ++entryIndex) {
         const auto& entry = entries[entryIndex];
-        const auto stateName = (entry.index < stateNames.size()) ? stateNames[entry.index] :
-                                                                     std::string{"<unnamed>"};
+        const auto stateName =
+            (entry.index < stateNames.size()) ? stateNames[entry.index] : std::string{"<unnamed>"};
         logging::logTo(m_gds,
                        m_gds,
                        PrintLevel::ERROR,
@@ -777,8 +774,8 @@ void IdaInterface::logIntegrationStateDrift(CoreTime time) const
                    nonFiniteDeltas);
     for (size_t entryIndex = 0; entryIndex < entryCount; ++entryIndex) {
         const auto& entry = entries[entryIndex];
-        const auto stateName = (entry.index < stateNames.size()) ? stateNames[entry.index] :
-                                                                     std::string{"<unnamed>"};
+        const auto stateName =
+            (entry.index < stateNames.size()) ? stateNames[entry.index] : std::string{"<unnamed>"};
         logging::logTo(m_gds,
                        m_gds,
                        PrintLevel::SUMMARY,
@@ -814,12 +811,8 @@ int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, boo
         }
         retval = IDACalcIC(solverMem, IDA_Y_INIT, t0 + tstep0);  // IDA_Y_INIT
         if ((retval != IDA_SUCCESS) && flags[IDA_IC_DIAGNOSTICS]) {
-            logInitialConditionDiagnostics(t0,
-                                           tstep0,
-                                           initCondMode,
-                                           retval,
-                                           &initialState,
-                                           &initialDerivative);
+            logInitialConditionDiagnostics(
+                t0, tstep0, initCondMode, retval, &initialState, &initialDerivative);
         }
 
         // retval = IDACalcIC (solverMem, IDA_YA_YDP_INIT, t0 + tstep0); //IDA_YA_YDP_INIT
@@ -842,12 +835,8 @@ int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, boo
                     }
                     retval = IDACalcIC(solverMem, IDA_Y_INIT, t0 + tstep0);  // IDA_Y_INIT
                     if ((retval != IDA_SUCCESS) && flags[IDA_IC_DIAGNOSTICS]) {
-                        logInitialConditionDiagnostics(t0,
-                                                       tstep0,
-                                                       initCondMode,
-                                                       retval,
-                                                       &initialState,
-                                                       &initialDerivative);
+                        logInitialConditionDiagnostics(
+                            t0, tstep0, initCondMode, retval, &initialState, &initialDerivative);
                     }
                     if (retval == IDA_SUCCESS) {
                         flags.reset(USE_MASK_FLAG);
@@ -879,12 +868,8 @@ int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, boo
         }
         getCurrentData();
         if (flags[IDA_IC_DIAGNOSTICS]) {
-            logInitialConditionDiagnostics(t0,
-                                           tstep0,
-                                           initCondMode,
-                                           IDA_SUCCESS,
-                                           &initialState,
-                                           &initialDerivative);
+            logInitialConditionDiagnostics(
+                t0, tstep0, initCondMode, IDA_SUCCESS, &initialState, &initialDerivative);
         }
     } else if (initCondMode == IcModes::FIXED_DIFF) {
         retval = IDAReInit(solverMem, t0, state, dstate_dt);
@@ -898,12 +883,8 @@ int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, boo
         //  printStates();
         retval = IDACalcIC(solverMem, IDA_YA_YDP_INIT, t0 + tstep0);  // IDA_YA_YDP_INIT
         if ((retval != IDA_SUCCESS) && flags[IDA_IC_DIAGNOSTICS]) {
-            logInitialConditionDiagnostics(t0,
-                                           tstep0,
-                                           initCondMode,
-                                           retval,
-                                           &initialState,
-                                           &initialDerivative);
+            logInitialConditionDiagnostics(
+                t0, tstep0, initCondMode, retval, &initialState, &initialDerivative);
         }
         if (retval < 0) {
 #if SHOW_MISSING_ELEMENTS > 0
@@ -924,12 +905,8 @@ int IdaInterface::calcIC(CoreTime t0, CoreTime tstep0, IcModes initCondMode, boo
         }
         getCurrentData();
         if (flags[IDA_IC_DIAGNOSTICS]) {
-            logInitialConditionDiagnostics(t0,
-                                           tstep0,
-                                           initCondMode,
-                                           IDA_SUCCESS,
-                                           &initialState,
-                                           &initialDerivative);
+            logInitialConditionDiagnostics(
+                t0, tstep0, initCondMode, IDA_SUCCESS, &initialState, &initialDerivative);
         }
         //  printStates();
     }

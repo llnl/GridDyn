@@ -76,7 +76,6 @@ class Governor: public GridSubModel {
     bool adjustInitialUpperLimit(double initialValue, std::string_view limitName);
 
   public:
-
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;

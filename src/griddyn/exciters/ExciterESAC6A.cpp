@@ -397,8 +397,8 @@ void ExciterESAC6A::dynObjectInitializeB(const IOdata& inputs,
     if (voltageRegulator > regulatorUpper + 1e-7) {
         if ((terminalVoltage <= 0.0) ||
             !adjustInitialUpperLimit(voltageRegulator / terminalVoltage,
-                                      Vrmax,
-                                      "ESAC6A initial regulator output")) {
+                                     Vrmax,
+                                     "ESAC6A initial regulator output")) {
             throw InvalidParameterValue("ESAC6A initial regulator output outside upper limit");
         }
     }

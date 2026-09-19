@@ -31,10 +31,10 @@
 #include <cstdio>
 #include <memory>
 #include <string>
-#include <vector>
 #include <sundials/sundials_linearsolver.h>
 #include <sundials/sundials_types.h>
 #include <sunmatrix/sunmatrix_sparse.h> /* access to sparse SUNMatrix */
+#include <vector>
 
 #define ONE SUN_RCONST(1.0)
 #define ZERO SUN_RCONST(0.0)

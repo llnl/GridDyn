@@ -22,7 +22,7 @@ namespace griddyn::governors {
 namespace {
     constexpr double initializationTolerance = 1e-7;
     constexpr double positionLimitTolerance = 1e-7;
-}
+}  // namespace
 
 GovernorIeeeG1::GovernorIeeeG1(const std::string& objName): Governor(objName)
 {
@@ -447,10 +447,8 @@ void GovernorIeeeG1::rootTest(const IOdata& inputs,
         roots[rootOffset + 1] = opFlags[POWER_LIMIT_HIGH] ?
             -limitedRate - (2.0 * positionLimitTolerance) :
             limitedRate - (2.0 * positionLimitTolerance);
-    } else if (((state[valveState] >= (Pmax - positionLimitTolerance)) &&
-                (limitedRate < 0.0)) ||
-               ((state[valveState] <= (Pmin + positionLimitTolerance)) &&
-                (limitedRate > 0.0))) {
+    } else if (((state[valveState] >= (Pmax - positionLimitTolerance)) && (limitedRate < 0.0)) ||
+               ((state[valveState] <= (Pmin + positionLimitTolerance)) && (limitedRate > 0.0))) {
         // A state exactly on a bound with an inward rate is not a limiter
         // event.  Avoid presenting its geometric distance as an exact zero
         // root to IDA.

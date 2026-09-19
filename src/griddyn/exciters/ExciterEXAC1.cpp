@@ -680,8 +680,7 @@ index_t ExciterEXAC1::findIndex(std::string_view field, const SolverMode& sMode)
         return (Tr > 0.0) ? offset + voltageMeasurementState : kInvalidLocation;
     }
     if ((field == "ll") || (field == "leadlag")) {
-        return hasLeadLag() ? offset + stateIndex(leadLagState, Tr > 0.0, true) :
-                              kInvalidLocation;
+        return hasLeadLag() ? offset + stateIndex(leadLagState, Tr > 0.0, true) : kInvalidLocation;
     }
     if ((field == "va") || (field == "regulator")) {
         return offset + stateIndex(regulatorState, Tr > 0.0, hasLeadLag());

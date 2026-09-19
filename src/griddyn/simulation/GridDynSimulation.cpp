@@ -1575,8 +1575,7 @@ std::shared_ptr<SolverInterface> GridDynSimulation::updateSolver(const SolverMod
         solverData->set("dense", 1.0);
     }
     solverData->set("tolerance", tols.rtol);
-    solverData->setFlag("ida_ic_diagnostics",
-                        controlFlags[IDA_INITIAL_CONDITION_DIAGNOSTICS]);
+    solverData->setFlag("ida_ic_diagnostics", controlFlags[IDA_INITIAL_CONDITION_DIAGNOSTICS]);
     solverData->setFlag("ida_ic_stop_on_failure",
                         controlFlags[IDA_INITIAL_CONDITION_STOP_ON_FAILURE]);
     solverData->setFlag("ida_integration_diagnostics",

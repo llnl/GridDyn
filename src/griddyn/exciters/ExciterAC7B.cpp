@@ -82,8 +82,9 @@ CoreObject* ExciterAC7B::clone(CoreObject* obj) const
     return result;
 }
 
-void ExciterAC7B::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
+void ExciterAC7B::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t flags)
 {
+    setInitialLimitPolicy(flags);
     const std::array<double, 27> parameters{Tr,    Kpr,   Kir,   Kdr,   Tdr, Vrmax, Vrmin,
                                             Kpa,   Kia,   Vamax, Vamin, Kp,  Kl,    Te,
                                             Kc,    Kd,    Ke,    Kf1,   Kf2, Kf3,   Tf3,
@@ -302,9 +303,9 @@ void ExciterAC7B::dynObjectInitializeB(const IOdata& inputs,
              .factor) -
         fieldVoltage;
     if ((pidOutput < Vrmin - initializationTolerance) ||
-        (pidOutput > Vrmax + initializationTolerance) ||
+        !adjustInitialUpperLimit(pidOutput, Vrmax, "AC7B initial PID output") ||
         (piOutput < Vamin - initializationTolerance) ||
-        (piOutput > Vamax + initializationTolerance) ||
+        !adjustInitialUpperLimit(piOutput, Vamax, "AC7B initial PI output") ||
         (exciterVoltage < Vemin - initializationTolerance) ||
         (fieldFeedback > Vemax + initializationTolerance) ||
         (std::abs(rectifierMismatch) > initializationTolerance)) {

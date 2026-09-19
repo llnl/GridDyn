@@ -65,8 +65,9 @@ CoreObject* ExciterESST3A::clone(CoreObject* obj) const
     return exciterClone;
 }
 
-void ExciterESST3A::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
+void ExciterESST3A::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t flags)
 {
+    setInitialLimitPolicy(flags);
     if (!std::isfinite(Tr) || !std::isfinite(Vimax) || !std::isfinite(Vimin) ||
         !std::isfinite(Km) || !std::isfinite(Tc) || !std::isfinite(Tb) || !std::isfinite(Ka) ||
         !std::isfinite(Ta) || !std::isfinite(Vrmax) || !std::isfinite(Vrmin) ||
@@ -104,7 +105,8 @@ void ExciterESST3A::dynObjectInitializeB(const IOdata& inputs,
         throw InvalidParameterValue("ESST3A initial rectifier voltage");
     }
     const double fieldRegulator = fieldVoltage / rectifierOutput;
-    if ((fieldRegulator < Vmmin - limitTolerance) || (fieldRegulator > Vmmax + limitTolerance)) {
+    if ((fieldRegulator < Vmmin - limitTolerance) ||
+        !adjustInitialUpperLimit(fieldRegulator, Vmmax, "ESST3A initial VM output")) {
         throw InvalidParameterValue("ESST3A initial VM outside limits");
     }
 
@@ -112,7 +114,7 @@ void ExciterESST3A::dynObjectInitializeB(const IOdata& inputs,
     const double vrs = fieldRegulator / Km;
     const double regulatorVoltage = vrs + feedbackVoltage;
     if ((regulatorVoltage < Vrmin - limitTolerance) ||
-        (regulatorVoltage > Vrmax + limitTolerance)) {
+        !adjustInitialUpperLimit(regulatorVoltage, Vrmax, "ESST3A initial VR output")) {
         throw InvalidParameterValue("ESST3A initial VR outside limits");
     }
 

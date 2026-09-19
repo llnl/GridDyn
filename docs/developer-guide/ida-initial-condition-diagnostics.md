@@ -280,3 +280,25 @@ running after the first failed fixed-differential IC correction:
 This switch is diagnostic-only and is not enabled by the normal compatibility path. It keeps
 the report focused on the first reproducible IC failure instead of mixing it with later
 voltage-reset and convergence-recovery attempts.
+
+### Exciter initial-limit policy audit
+
+The permissive default for an initialized value above a control-output upper limit is now
+used by the clear cases in AC7B, AC8B, ESST1A, ESST2A, and ESST3A. These models retain hard
+failures for lower limits, nonfinite values, rectifier inconsistencies, and other physical
+constraints. IEEEX1 now also applies the common policy before selecting its lead/lag or
+non-lead/lag initialization path, so `strict_exciter_limits` has consistent behavior in both
+branches.
+
+The remaining exciter limit checks need model-specific review before being relaxed:
+
+* EXAC4 and EXST1 use field-current-offset regulator bounds.
+* EXPIC1 combines field-voltage limits with the `VR1`/`VR2` selector range.
+* IEEET3 uses a terminal-voltage-dependent regulator bound.
+* AC7B and AC8B still retain separate exciter/field-feedback bounds after their control
+  amplifier limits are handled by the common policy.
+
+Those cases should not simply raise every upper limit. The implementation must identify which
+bound is a control-element initialization limit, update the underlying model parameter used by
+the dynamic equations, and leave equipment or physical field limits strict. Each future change
+should add an interior, upper-limit, lower-limit, and strict-policy regression case.

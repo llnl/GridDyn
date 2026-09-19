@@ -101,7 +101,7 @@ jobs:
       vmImage: $(imageName)
     variables:
       BOOST_ROOT: $(Pipeline.Workspace)/ci-libs/boost
-      BOOST_URL: https://sourceforge.net/projects/boost/files/boost/1.85.0/boost_1_85_0.tar.bz2/download
+      BOOST_URL: https://sourceforge.net/projects/boost/files/boost/1.90.0/boost_1_90_0.tar.bz2/download
 
     steps:
       # -----------------------
@@ -110,7 +110,7 @@ jobs:
       - task: Cache@2
         inputs:
           path: $(BOOST_ROOT)
-          key: boost
+          key: boost-1.90.0
           cacheHitVar: BOOST_CACHE_RESTORED
         displayName: Restore Boost cache
 

@@ -26,6 +26,7 @@ class ListMaintainer {
     bool parDeriv = false;  //!< indicator that the derivative should run in parallel
     bool parAlgebraic = false;  //!< indicator that the algebraic update should run in parallel
   private:
+    int residualThreads = 1;
     std::vector<GridPrimary*> preExObjs;  //!< lists of all the objects that request pre-execution
     std::vector<std::vector<GridPrimary*>>
         objectLists;  //!< lists of all the objects with states in a certain mode
@@ -35,6 +36,7 @@ class ListMaintainer {
 
   public:
     ListMaintainer();
+    void setResidualThreads(int threadCount);
     /** generate a list of the object that requires a preEx call*/
     void makePreList(const std::vector<GridPrimary*>& possObjs);
     /** make the list of objects for a certain mode*/

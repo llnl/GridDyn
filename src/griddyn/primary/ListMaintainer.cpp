@@ -8,19 +8,27 @@
 
 #include "../GridArea.h"
 #include "griddyn/griddyn-config.h"
+#include <algorithm>
+#include <utility>
 #include <vector>
 
 namespace griddyn {
-void fillList(const SolverMode& sMode,
-              std::vector<GridPrimary*>& list,
-              std::vector<GridPrimary*>& partlist,
-              const std::vector<GridPrimary*>& possObjs);
+static void fillList(const SolverMode& sMode,
+                     std::vector<GridPrimary*>& list,
+                     std::vector<GridPrimary*>& partlist,
+                     const std::vector<GridPrimary*>& possObjs);
 
 ListMaintainer::ListMaintainer(): objectLists(4), partialLists(4), sModeLists(4) {}
 
+void ListMaintainer::setResidualThreads(int threadCount)
+{
+    residualThreads = std::max(threadCount, 1);
+    parResid = residualThreads > 1;
+}
+
 void ListMaintainer::makeList(const SolverMode& sMode, const std::vector<GridPrimary*>& possObjs)
 {
-    if (sMode.offsetIndex >= static_cast<index_t>(objectLists.size())) {
+    if (std::cmp_greater_equal(sMode.offsetIndex, objectLists.size())) {
         objectLists.resize(sMode.offsetIndex + 1);
         partialLists.resize(sMode.offsetIndex + 1);
         sModeLists.resize(sMode.offsetIndex + 1);
@@ -36,7 +44,7 @@ void ListMaintainer::makeList(const SolverMode& sMode, const std::vector<GridPri
 
 void ListMaintainer::appendList(const SolverMode& sMode, const std::vector<GridPrimary*>& possObjs)
 {
-    if (sMode.offsetIndex >= static_cast<index_t>(objectLists.size())) {
+    if (std::cmp_greater_equal(sMode.offsetIndex, objectLists.size())) {
         objectLists.resize(sMode.offsetIndex + 1);
         partialLists.resize(sMode.offsetIndex + 1);
         sModeLists.resize(sMode.offsetIndex + 1);
@@ -47,12 +55,12 @@ void ListMaintainer::appendList(const SolverMode& sMode, const std::vector<GridP
     fillList(sMode, objectLists[sMode.offsetIndex], partialLists[sMode.offsetIndex], possObjs);
 }
 
-void fillList(const SolverMode& sMode,
-              std::vector<GridPrimary*>& list,
-              std::vector<GridPrimary*>& partlist,
-              const std::vector<GridPrimary*>& possObjs)
+static void fillList(const SolverMode& sMode,
+                     std::vector<GridPrimary*>& list,
+                     std::vector<GridPrimary*>& partlist,
+                     const std::vector<GridPrimary*>& possObjs)
 {
-    for (auto& obj : possObjs) {
+    for (const auto& obj : possObjs) {
         if (obj->checkFlag(PRE_EX_REQUESTED)) {
             if (obj->checkFlag(MULTIPART_CALCULATION_CAPABLE)) {
                 partlist.push_back(obj);
@@ -70,7 +78,7 @@ void fillList(const SolverMode& sMode,
 void ListMaintainer::makePreList(const std::vector<GridPrimary*>& possObjs)
 {
     preExObjs.clear();
-    for (auto& obj : possObjs) {
+    for (const auto& obj : possObjs) {
         if (obj->checkFlag(PRE_EX_REQUESTED)) {
             preExObjs.push_back(obj);
         }
@@ -95,7 +103,7 @@ void ListMaintainer::jacobianElements(const IOdata& inputs,
     if (!isListValid(sMode)) {
         return;
     }
-#ifdef ENABLE_OPENMP_GRIDDYN
+#ifdef GRIDDYN_ENABLE_OPENMP_INTERNAL
     if (parJac) {
         auto& vz = partialLists[sMode.offsetIndex];
         int sz = static_cast<int>(vz.size());
@@ -125,11 +133,11 @@ void ListMaintainer::residual(const IOdata& inputs,
         return;
     }
 
-#ifdef ENABLE_OPENMP_GRIDDYN
-    if (parResid) {
+#ifdef GRIDDYN_ENABLE_OPENMP_INTERNAL
+    if (parResid && residualThreads > 1) {
         auto& vz = partialLists[sMode.offsetIndex];
         int sz = static_cast<index_t>(vz.size());
-#    pragma omp parallel for
+#    pragma omp parallel for num_threads(residualThreads)
         for (index_t kk = 0; kk < sz; ++kk) {
             vz[kk]->residual(inputs, stateDataValue, resid, sMode);
         }
@@ -156,7 +164,7 @@ void ListMaintainer::algebraicUpdate(const IOdata& inputs,
         return;
     }
 
-#ifdef ENABLE_OPENMP_GRIDDYN
+#ifdef GRIDDYN_ENABLE_OPENMP_INTERNAL
     if (parAlgebraic) {
         auto& vz = partialLists[sMode.offsetIndex];
         int sz = static_cast<index_t>(vz.size());
@@ -185,7 +193,7 @@ void ListMaintainer::derivative(const IOdata& inputs,
     if (!isListValid(sMode)) {
         return;
     }
-#ifdef ENABLE_OPENMP_GRIDDYN
+#ifdef GRIDDYN_ENABLE_OPENMP_INTERNAL
     if (parDeriv) {
         auto& vz = partialLists[sMode.offsetIndex];
         index_t sz = static_cast<index_t>(vz.size());

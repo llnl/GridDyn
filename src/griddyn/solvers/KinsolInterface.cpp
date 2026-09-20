@@ -20,17 +20,16 @@
 #    include <sunlinsol/sunlinsol_klu.h>
 #endif
 
-#if MEASURE_TIMINGS > 0
-#    include <chrono>
-#endif
-
+#include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <cstdio>
 #include <format>
 #include <map>
 #include <memory>
 #include <print>
 #include <string>
+#include <vector>
 
 namespace griddyn::solvers {
 int kinsolFunc(N_Vector state, N_Vector resid, void* userData);
@@ -84,6 +83,11 @@ void KinsolInterface::cloneTo(SolverInterface* si, bool fullCopy) const
     if (ai == nullptr) {
         return;
     }
+    ai->max_setup_calls = max_setup_calls;
+    ai->max_setup_calls_explicit = max_setup_calls_explicit;
+    // The factorization is owned by the source KINSOL instance and is not
+    // cloned, so the destination must force a fresh linear setup.
+    ai->linearSetupReady = false;
 }
 
 void KinsolInterface::allocate(count_t stateCount, count_t /*numRoots*/)
@@ -97,6 +101,7 @@ void KinsolInterface::allocate(count_t stateCount, count_t /*numRoots*/)
         KINFree(&(solverMem));
     }
     freeLinearSolver();
+    linearSetupReady = false;
     solverMem = KINCreate(sunctx);
     checkFlag(solverMem, "KINCreate", 0);
 
@@ -146,6 +151,8 @@ void KinsolInterface::initialize(CoreTime /*t0*/)
     if (!flags[ALLOCATED_FLAG]) {
         throw(InvalidSolverOperation());
     }
+    resetPerformanceStats();
+    linearSetupReady = false;
     if (flags[DIRECT_LOGGING_FLAG]) {
         if (!(solverLogFile.empty())) {
             if (m_sundialsInfoFile == nullptr) {
@@ -220,7 +227,15 @@ void KinsolInterface::initialize(CoreTime /*t0*/)
     retval = KINSetJacFn(solverMem, kinsolJac);
     checkFlag(&retval, "KINSetJacFn", 1);
 
-    retval = KINSetMaxSetupCalls(solverMem, 1);  // exact Newton
+    // Exact Newton is useful for standalone algebraic solves, but it is
+    // unnecessarily expensive for partitioned integration: KINSOL may take
+    // several Newton iterations at one CVODE trial state.  Reuse the
+    // Jacobian for a few iterations in that case unless the user explicitly
+    // selected a different value.
+    if ((mode.pairedOffsetIndex != kNullLocation) && !max_setup_calls_explicit) {
+        max_setup_calls = 5;
+    }
+    retval = KINSetMaxSetupCalls(solverMem, max_setup_calls);
     checkFlag(&retval, "KINSetMaxSetupCalls", 1);
 
     retval = KINSetMaxSubSetupCalls(solverMem, 2);  // residual calls
@@ -234,12 +249,33 @@ void KinsolInterface::initialize(CoreTime /*t0*/)
 
 void KinsolInterface::sparseReInit(SparseReinitMode sparseReinitMode)
 {
+    linearSetupReady = false;
+    if (flags[INITIALIZED_FLAG]) {
+        int retval = KINSetNoInitSetup(solverMem, SUNFALSE);
+        checkFlag(&retval, "KINSetNoInitSetup", 1);
+    }
     kluReInit(sparseReinitMode);
+}
+
+void KinsolInterface::kluReInit(SparseReinitMode sparseReinitMode, bool resetJacobian)
+{
+    // A KLU reinitialization invalidates the factorization retained across
+    // partitioned KINSOL solves, including reinitializations triggered from
+    // the sparse-Jacobian callback itself.
+    linearSetupReady = false;
+    SundialsInterface::kluReInit(sparseReinitMode, resetJacobian);
 }
 
 void KinsolInterface::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
+    } else if ((param == "pair") || (param == "pairedmode")) {
+        SundialsInterface::set(param, val);
+        if (flags[INITIALIZED_FLAG] && !max_setup_calls_explicit) {
+            max_setup_calls = 5;
+            int retval = KINSetMaxSetupCalls(solverMem, max_setup_calls);
+            checkFlag(&retval, "KINSetMaxSetupCalls", 1);
+        }
     } else {
         SundialsInterface::set(param, val);
     }
@@ -252,6 +288,20 @@ void KinsolInterface::set(std::string_view param, double val)
         max_iterations = static_cast<count_t>(val);
         int retval = KINSetNumMaxIters(solverMem, max_iterations);
         checkFlag(&retval, "KINSetNumMaxIters", 1);
+    } else if ((param == "maxsetupcalls") || (param == "kinsolmaxsetupcalls")) {
+        max_setup_calls = (val < 1.0) ? count_t{1} : static_cast<count_t>(val);
+        max_setup_calls_explicit = true;
+        if (flags[INITIALIZED_FLAG]) {
+            int retval = KINSetMaxSetupCalls(solverMem, max_setup_calls);
+            checkFlag(&retval, "KINSetMaxSetupCalls", 1);
+        }
+    } else if ((param == "pair") || (param == "pairedmode")) {
+        SundialsInterface::set(param, val);
+        if (flags[INITIALIZED_FLAG] && !max_setup_calls_explicit) {
+            max_setup_calls = 5;
+            int retval = KINSetMaxSetupCalls(solverMem, max_setup_calls);
+            checkFlag(&retval, "KINSetMaxSetupCalls", 1);
+        }
     } else {
         SundialsInterface::set(param, val);
     }
@@ -264,6 +314,8 @@ double KinsolInterface::get(std::string_view param) const
         KINGetNumJacEvals(solverMem, &val);
     } else if (param == "nliterations") {
         KINGetNumNonlinSolvIters(solverMem, &val);
+    } else if ((param == "maxsetupcalls") || (param == "kinsolmaxsetupcalls")) {
+        return static_cast<double>(max_setup_calls);
 #if MEASURE_TIMINGS > 0
     } else if (param == "kintime") {
         return kinTime;
@@ -292,6 +344,19 @@ int KinsolInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode /*mode*/)
 {
     // check if the multiple data sets are in use and if we should toggle the data to use
     solveTime = tStop;
+    const auto jacobianCallsBefore = jacCallCount;
+    const bool reusePreviousSetup = (mode.pairedOffsetIndex != kNullLocation) && linearSetupReady;
+    std::vector<sunrealtype> partitionedStateBackup;
+    if (mode.pairedOffsetIndex != kNullLocation) {
+        const auto* stateValues = NVECTOR_DATA(use_omp, state);
+        partitionedStateBackup.assign(stateValues, stateValues + svsize);
+    }
+    int setupFlag = KINSetNoInitSetup(solverMem, reusePreviousSetup ? SUNTRUE : SUNFALSE);
+    checkFlag(&setupFlag, "KINSetNoInitSetup", 1);
+    const bool performance = (m_gds != nullptr) && m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
+        (mode.pairedOffsetIndex != kNullLocation);
+    const auto solveStart =
+        performance ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
 #if MEASURE_TIMINGS > 0
     auto start_t = std::chrono::high_resolution_clock::now();
 
@@ -306,6 +371,36 @@ int KinsolInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode /*mode*/)
 #else
     int retval = KINSol(solverMem, state, KIN_NONE, scale, scale);
 #endif
+    if ((retval == KIN_MXNEWT_5X_EXCEEDED) || (retval == KIN_MAXITER_REACHED) ||
+        (retval == KIN_STEP_LT_STPTOL) || (retval == KIN_LSETUP_FAIL) ||
+        (retval == KIN_LINSOLV_NO_RECOVERY) || (retval == KIN_LSOLVE_FAIL)) {
+        // A retained factorization can be a poor Newton model after an ODE
+        // trial state crosses a changing algebraic sparsity region.  Retry
+        // the same solve from its original state with a fresh setup.  This is
+        // a solver-level recovery; component models are evaluated normally.
+        if (!partitionedStateBackup.empty()) {
+            auto* stateValues = NVECTOR_DATA(use_omp, state);
+            std::copy(partitionedStateBackup.begin(), partitionedStateBackup.end(), stateValues);
+            linearSetupReady = false;
+            // A failed KLU setup may have left a stale numeric/symbolic
+            // factorization behind.  Discard it before retrying the same
+            // Newton point.
+            kluReInit(SparseReinitMode::REFACTOR, false);
+            setupFlag = KINSetNoInitSetup(solverMem, SUNFALSE);
+            checkFlag(&setupFlag, "KINSetNoInitSetup", 1);
+            retval = KINSol(solverMem, state, KIN_NONE, scale, scale);
+        }
+    }
+    if (performance) {
+        performanceSolveTime +=
+            std::chrono::duration<double>(std::chrono::steady_clock::now() - solveStart).count();
+    }
+    if (mode.pairedOffsetIndex != kNullLocation) {
+        linearSetupReady =
+            (retval >= 0) && (linearSetupReady || (jacCallCount > jacobianCallsBefore));
+    } else if (retval < 0) {
+        linearSetupReady = false;
+    }
 
 #if SHOW_MISSING_ELEMENTS > 0
     if (retval == -11) {
@@ -328,7 +423,13 @@ int KinsolInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode /*mode*/)
         auto mvec = findMissing(&a1);
     }
 #endif
-    tReturn = (retval >= 0) ? solveTime : m_gds->getSimulationTime();
+    if (retval >= 0) {
+        tReturn = solveTime;
+    } else if (m_gds != nullptr) {
+        tReturn = m_gds->getSimulationTime();
+    } else {
+        tReturn = solveTime;
+    }
     ++solverCallCount;
     if (retval == KIN_REPTD_SYSFUNC_ERR) {
         retval = SOLVER_INVALID_STATE_ERROR;
@@ -351,8 +452,17 @@ void KinsolInterface::setConstraints()
 int kinsolFunc(N_Vector state, N_Vector resid, void* userData)
 {
     auto* sd = static_cast<KinsolInterface*>(userData);
+    if (sd->m_gds == nullptr) {
+        return FUNCTION_EXECUTION_FAILURE;
+    }
     sd->funcCallCount++;
-    const bool partitionedTrace = sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
+    const bool performance = (sd->m_gds != nullptr) &&
+        sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
+        (sd->mode.pairedOffsetIndex != kNullLocation);
+    const auto residualStart =
+        performance ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
+    const bool partitionedTrace = (sd->m_gds != nullptr) &&
+        sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
         (sd->mode.pairedOffsetIndex != kNullLocation) &&
         (++sd->partitionedDiagnosticCallCount <= 8);
     if (partitionedTrace) {
@@ -385,6 +495,11 @@ int kinsolFunc(N_Vector state, N_Vector resid, void* userData)
                                           NVECTOR_DATA(sd->use_omp, resid),
                                           sd->mode);
 #endif
+    if (performance) {
+        ++sd->performanceResidualCalls;
+        sd->performanceResidualTime +=
+            std::chrono::duration<double>(std::chrono::steady_clock::now() - residualStart).count();
+    }
     if (partitionedTrace) {
         std::println("KINSOL algebraic residual callback {} returned {}", sd->funcCallCount, ret);
         sd->m_gds->partitionedDiagnostic(std::format(
@@ -434,7 +549,11 @@ int kinsolJac(N_Vector state,
               N_Vector tmp2)
 {
     auto* sd = static_cast<KinsolInterface*>(userData);
-    const bool partitionedTrace = sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
+    if (sd->m_gds == nullptr) {
+        return FUNCTION_EXECUTION_FAILURE;
+    }
+    const bool partitionedTrace = (sd->m_gds != nullptr) &&
+        sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
         (sd->mode.pairedOffsetIndex != kNullLocation) &&
         (++sd->partitionedDiagnosticJacobianCallCount <= 8);
     if (partitionedTrace) {

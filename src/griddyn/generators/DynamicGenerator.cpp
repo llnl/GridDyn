@@ -1345,7 +1345,24 @@ void DynamicGenerator::generateSubModelInputs(const IOdata& inputs,
     }
     double eft = m_Eft;
     if ((ext != nullptr) && (ext->isEnabled())) {
-        eft = ext->getOutput(subInputs.inputs[EXCITER_LOC], stateDataValue, sMode, 0);
+        const SolverMode* outputMode = &sMode;
+        StateData outputStateData = stateDataValue;
+        if (isDifferentialOnly(sMode) && (sMode.pairedOffsetIndex != kNullLocation) &&
+            (stateDataValue.algState != nullptr)) {
+            const auto& pairedMode = offsets.getSolverMode(sMode.pairedOffsetIndex);
+            if (pairedMode.algebraic && (ext->algSize(pairedMode) > 0)) {
+                // The exciter field output is an algebraic state.  A
+                // differential-only callback still carries that state in
+                // StateData::algState, but GridComponent::getOutput uses the
+                // differential mode's first state when called with the
+                // differential mode.  Evaluate the output in the paired
+                // algebraic mode so the generator sees Efd rather than the
+                // exciter's first dynamic state.
+                outputMode = &pairedMode;
+                outputStateData.state = stateDataValue.algState;
+            }
+        }
+        eft = ext->getOutput(subInputs.inputs[EXCITER_LOC], outputStateData, *outputMode, 0);
     }
     subInputs.inputs[GEN_MODEL_LOC][genModelEftInLocation] = eft;
 
@@ -1383,7 +1400,12 @@ void DynamicGenerator::generateSubModelInputLocs(const IOlocs& inputLocs,
                 pss->getOutputLoc(sMode, 0) :
                 kNullLocation;
         }
-        subInputLocs.inputLocs[GEN_MODEL_LOC][genModelEftInLocation] = ext->getOutputLoc(sMode, 0);
+        // In a partitioned differential callback Efd is supplied by the
+        // paired algebraic solve, not by a column in the differential state
+        // vector.  Do not map it to the exciter's first differential state;
+        // that would create a false Jacobian dependency.
+        subInputLocs.inputLocs[GEN_MODEL_LOC][genModelEftInLocation] =
+            isDifferentialOnly(sMode) ? kNullLocation : ext->getOutputLoc(sMode, 0);
     } else {
         subInputLocs.inputLocs[GEN_MODEL_LOC][genModelEftInLocation] = kNullLocation;
     }

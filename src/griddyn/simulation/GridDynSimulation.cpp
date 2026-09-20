@@ -22,6 +22,10 @@
 #include "gmlc/containers/mapOps.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
+#ifdef GRIDDYN_ENABLE_OPENMP_INTERNAL
+#    include <omp.h>
+#endif
+#include <algorithm>
 #include <cassert>
 #include <compare>
 #include <cstdio>
@@ -100,6 +104,7 @@ CoreObject* GridDynSimulation::clone(CoreObject* obj) const
     sim->default_ordering = default_ordering;
     sim->powerFlowFile = powerFlowFile;
     sim->defaultDynamicSolverMethod = defaultDynamicSolverMethod;
+    sim->residualParallelMode = residualParallelMode;
     // std::vector < std::shared_ptr < SolverInterface >> solverInterfaces;
     // std::vector<GridComponent *>singleStepObjects;
     // now clone the solverInterfaces
@@ -257,8 +262,8 @@ int GridDynSimulation::checkNetwork(NetworkCheckType checkType)
                 // check to make sure the bus can actually work
                 if (bus->checkCapable()) {
                     bus->Network = 0;
-                    const auto BusType = bus->getType();
-                    if ((BusType == GridBus::BusType::SLK) || (BusType == GridBus::BusType::AFIX)) {
+                    const auto busType = bus->getType();
+                    if ((busType == GridBus::BusType::SLK) || (busType == GridBus::BusType::AFIX)) {
                         slkBusses.push_back(bus);
                     }
                 } else {
@@ -824,6 +829,28 @@ bool GridDynSimulation::hasDynamics() const
     return diffSize(*defDAEMode) > 0;
 }
 
+void GridDynSimulation::configureResidualParallelism()
+{
+    constexpr count_t autoBusThreshold = 1200;
+    const auto totalBuses = static_cast<count_t>(getInt("totalbuscount"));
+    const bool enable = (residualParallelMode == ResidualParallelMode::ON) ||
+        ((residualParallelMode == ResidualParallelMode::AUTO) && (totalBuses >= autoBusThreshold));
+#ifdef GRIDDYN_ENABLE_OPENMP_INTERNAL
+    constexpr count_t maxResidualThreads = 8;
+    if (enable) {
+        const auto availableThreads = static_cast<count_t>(omp_get_max_threads());
+        const auto busThreadCount = std::max<count_t>(1, (totalBuses + 299) / 300);
+        const auto threadCount = std::min({availableThreads, busThreadCount, maxResidualThreads});
+        setResidualThreadCount(static_cast<int>(threadCount));
+    } else {
+        setResidualThreadCount(1);
+    }
+#else
+    (void)enable;
+    setResidualThreadCount(1);
+#endif
+}
+
 // need to update probably with a new field in SolverInterface
 count_t GridDynSimulation::nonZeros(const SolverMode& sMode) const
 {
@@ -881,6 +908,28 @@ void GridDynSimulation::set(std::string_view param, std::string_view val)
             defaultDynamicSolverMethod = DynamicSolverMethods::DECOUPLED;
         } else {
             throw(InvalidParameterValue(val));
+        }
+    } else if ((param == "residualparallelmode") || (param == "residualparallel")) {
+        auto parallelMode = gmlc::utilities::convertToLowerCase(val);
+        if (parallelMode == "off") {
+            residualParallelMode = ResidualParallelMode::OFF;
+        } else if (parallelMode == "on") {
+            residualParallelMode = ResidualParallelMode::ON;
+        } else if (parallelMode == "auto") {
+            residualParallelMode = ResidualParallelMode::AUTO;
+        } else {
+            throw(InvalidParameterValue(val));
+        }
+    } else if ((param == "arkodetable") || (param == "erktable") ||
+               (param == "arkodecompensatedsums") || (param == "compensatedsums")) {
+        // These are solver-level ARKode controls, but accepting them here lets
+        // command-line and simulation-file parameters reach the default
+        // differential solver without adding model parameters.
+        auto solverData = getSolverInterface(*defDynDiffMode);
+        if (solverData) {
+            solverData->set(param, val);
+        } else {
+            throw(InvalidParameterValue(param));
         }
     } else {
         GridSimulation::set(param, val);
@@ -1039,7 +1088,7 @@ void GridDynSimulation::setFlag(std::string_view flag, bool val)
         controlFlags.set(PARALLEL_RESIDUAL_ENABLED, val);
         controlFlags.set(PARALLEL_CONTINGENCY_ENABLED, val);
         controlFlags.set(PARALLEL_JACOBIAN_ENABLED, val);
-        // TODO(phlpt): Add some more option controls here.
+        residualParallelMode = val ? ResidualParallelMode::ON : ResidualParallelMode::OFF;
     } else {
         GridSimulation::setFlag(flag, val);
     }

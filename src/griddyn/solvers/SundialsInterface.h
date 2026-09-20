@@ -9,7 +9,7 @@
 #include "SolverInterface.h"
 #include "utilities/MatrixDataSparse.hpp"
 // SUNDIALS libraries
-#include "griddyn/griddyn-config.h"  // Needed for ENABLE_OPENMP_SUNDIALS define
+#include "griddyn/griddyn-config.h"  // Needed for GRIDDYN_ENABLE_OPENMP_SUNDIALS
 #include "nvector/nvector_serial.h"
 #include <sundials/sundials_context.h>
 #include <sundials/sundials_errors.h>
@@ -93,6 +93,23 @@ class SundialsInterface: public SolverInterface {
     SUNLinearSolver LS = nullptr;  //!< the link to the linear solver to use
     SUNContext sunctx = nullptr;  //!< SUNDIALS context
     std::vector<sunindextype> sparsePattern;  //!< compressed sparse structure used by KLU
+
+    // Temporary, opt-in performance instrumentation.  It is enabled only for a
+    // paired solver when PARTITIONED_DIAGNOSTICS_FLAG is set, so the normal
+    // solver path does not pay for the clock reads.
+    count_t performanceResidualCalls = 0;
+    count_t performanceJacobianCalls = 0;
+    count_t performanceRhsCalls = 0;
+    count_t performanceAlgebraicCalls = 0;
+    count_t performanceDerivativeCalls = 0;
+    double performanceSolveTime = 0.0;
+    double performanceResidualTime = 0.0;
+    double performanceJacobianTime = 0.0;
+    double performanceModelJacobianTime = 0.0;
+    double performanceRhsTime = 0.0;
+    double performanceAlgebraicTime = 0.0;
+    double performanceDerivativeTime = 0.0;
+
   public:
     explicit SundialsInterface(const std::string& objName = "sundials");
     /** @brief constructor loading the SolverInterface structure*
@@ -117,6 +134,9 @@ class SundialsInterface: public SolverInterface {
     virtual void setMaxNonZeros(count_t nonZeroCount) override;
     virtual double get(std::string_view param) const override;
 
+    /** @brief clear temporary partitioned-solver performance counters. */
+    void resetPerformanceStats() noexcept;
+
     /** @brief get the dedicated memory space of the solver
 @return a void pointer to the memory location of the solver specific memory
 */
@@ -132,7 +152,7 @@ class SundialsInterface: public SolverInterface {
                            N_Vector tmp2);
 
   protected:
-    void kluReInit(SparseReinitMode sparseReinitMode);
+    virtual void kluReInit(SparseReinitMode sparseReinitMode, bool resetJacobian = true);
     void registerErrorHandler();
     void freeLinearSolver();
 };

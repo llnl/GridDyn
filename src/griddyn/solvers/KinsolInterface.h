@@ -33,6 +33,7 @@ class KinsolInterface: public SundialsInterface {
     virtual void allocate(count_t stateCount, count_t numRoots = 0) override;
     virtual void initialize(CoreTime time0) override;
     virtual void sparseReInit(SparseReinitMode sparseReinitMode) override;
+    virtual void kluReInit(SparseReinitMode sparseReinitMode, bool resetJacobian = true) override;
     int solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
     void setConstraints() override;
 
@@ -51,6 +52,9 @@ class KinsolInterface: public SundialsInterface {
                          N_Vector tmp2);
 
   private:
+    count_t max_setup_calls = 1;  //!< nonlinear iterations between Jacobian setups
+    bool max_setup_calls_explicit = false;
+    bool linearSetupReady = false;  //!< a previous partitioned solve left a usable factorization
     count_t partitionedDiagnosticCallCount = 0;
     count_t partitionedDiagnosticJacobianCallCount = 0;
 #if MEASURE_TIMINGS > 0

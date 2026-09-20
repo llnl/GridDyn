@@ -46,7 +46,7 @@ ArkodeInterface::ArkodeInterface(const std::string& objName): SundialsInterface(
     mode.dynamic = true;
     mode.differential = true;
     mode.algebraic = false;
-    max_iterations = 1500;
+    max_iterations = 10000;
 }
 
 ArkodeInterface::ArkodeInterface(GridDynSimulation* gds, const SolverMode& sMode):
@@ -55,7 +55,7 @@ ArkodeInterface::ArkodeInterface(GridDynSimulation* gds, const SolverMode& sMode
     mode.dynamic = true;
     mode.differential = true;
     mode.algebraic = false;
-    max_iterations = 1500;
+    max_iterations = 10000;
 }
 
 ArkodeInterface::~ArkodeInterface()
@@ -83,6 +83,9 @@ void ArkodeInterface::cloneTo(SolverInterface* si, bool fullCopy) const
     ai->maxStep = maxStep;
     ai->minStep = minStep;
     ai->step = step;
+    ai->initialStepSpecified = initialStepSpecified;
+    ai->explicitTable = explicitTable;
+    ai->useCompensatedSums = useCompensatedSums;
 }
 
 void ArkodeInterface::allocate(count_t stateCount, count_t numRoots)
@@ -112,18 +115,72 @@ void ArkodeInterface::allocate(count_t stateCount, count_t numRoots)
     // inside arkodeFunc, leaving an explicit ODE for ARKStep to integrate.
     solverMem = ARKStepCreate(arkodeFunc, nullptr, ZERO, state, sunctx);
     checkFlag(solverMem, "ARKStepCreate", 0);
+    applyArkodeOptions();
+}
+
+void ArkodeInterface::applyArkodeOptions()
+{
+    int retval = ARKStepSetTableNum(solverMem, ARKODE_DIRK_NONE, explicitTable);
+    checkFlag(&retval, "ARKStepSetTableNum", 1);
+
+    retval = ARKodeSetUseCompensatedSums(solverMem, useCompensatedSums ? SUNTRUE : SUNFALSE);
+    checkFlag(&retval, "ARKodeSetUseCompensatedSums", 1);
 }
 
 void ArkodeInterface::setMaxNonZeros(count_t nonZeroCount)
 {
-    maxNNZ = nonZeroCount;
+    SundialsInterface::setMaxNonZeros(nonZeroCount);
     a1.reserve(nonZeroCount);
     a1.clear();
 }
 
 void ArkodeInterface::set(std::string_view param, std::string_view val)
 {
-    if (param.empty()) {
+    if (param == "arkodetable" || param == "erktable") {
+        auto tableName = gmlc::utilities::convertToLowerCase(val);
+        if ((tableName == "default") || (tableName == "sofroniou") ||
+            (tableName == "sofroniou_spaletta") || (tableName == "sofroniou-spaletta")) {
+            explicitTable = ARKODE_SOFRONIOU_SPALETTA_5_3_4;
+        } else if ((tableName == "ark436l2sa") || (tableName == "ark436l2sa_erk_6_3_4")) {
+            explicitTable = ARKODE_ARK436L2SA_ERK_6_3_4;
+        } else if ((tableName == "ark437l2sa") || (tableName == "ark437l2sa_erk_7_3_4")) {
+            explicitTable = ARKODE_ARK437L2SA_ERK_7_3_4;
+        } else if ((tableName == "ark324l2sa") || (tableName == "ark324l2sa_erk_4_2_3")) {
+            explicitTable = ARKODE_ARK324L2SA_ERK_4_2_3;
+        } else if ((tableName == "ssp4") || (tableName == "ssp_erk_4_2_3")) {
+            explicitTable = ARKODE_SSP_ERK_4_2_3;
+        } else if ((tableName == "ssp10") || (tableName == "ssp_erk_10_3_4")) {
+            explicitTable = ARKODE_SSP_ERK_10_3_4;
+        } else if ((tableName == "ark548l2sa") || (tableName == "ark548l2sa_erk_8_4_5")) {
+            explicitTable = ARKODE_ARK548L2SA_ERK_8_4_5;
+        } else if ((tableName == "ark548l2sab") || (tableName == "ark548l2sa_b") ||
+                   (tableName == "ark548l2sab_erk_8_4_5")) {
+            explicitTable = ARKODE_ARK548L2SAb_ERK_8_4_5;
+        } else if ((tableName == "cashkarp") || (tableName == "cash_karp")) {
+            explicitTable = ARKODE_CASH_KARP_6_4_5;
+        } else if ((tableName == "dormandprince") || (tableName == "dormand_prince")) {
+            explicitTable = ARKODE_DORMAND_PRINCE_7_4_5;
+        } else if ((tableName == "fehlberg") || (tableName == "fehlberg_6_4_5")) {
+            explicitTable = ARKODE_FEHLBERG_6_4_5;
+        } else {
+            throw InvalidParameterValue(val);
+        }
+        if ((solverMem != nullptr) && !flags[INITIALIZED_FLAG]) {
+            applyArkodeOptions();
+        }
+    } else if ((param == "arkodecompensatedsums") || (param == "compensatedsums")) {
+        auto sumsMode = gmlc::utilities::convertToLowerCase(val);
+        if ((sumsMode == "on") || (sumsMode == "true") || (sumsMode == "yes")) {
+            useCompensatedSums = true;
+        } else if ((sumsMode == "off") || (sumsMode == "false") || (sumsMode == "no")) {
+            useCompensatedSums = false;
+        } else {
+            throw InvalidParameterValue(val);
+        }
+        if ((solverMem != nullptr) && !flags[INITIALIZED_FLAG]) {
+            applyArkodeOptions();
+        }
+    } else if (param.empty()) {
     } else {
         SundialsInterface::set(param, val);
     }
@@ -139,10 +196,19 @@ void ArkodeInterface::set(std::string_view param, double val)
         // The outer partitioned step is an initial/maximal step, not a lower
         // bound.  The solver must be able to reduce its internal step at a
         // discontinuity or during a stiff transient.
+        if (!initialStepSpecified) {
+            step = (maxStep > 0.0) ? 0.5 * maxStep : val;
+        }
+        checkStepUpdate = true;
+    } else if ((param == "initialstep") || (param == "initstep")) {
         step = val;
+        initialStepSpecified = true;
         checkStepUpdate = true;
     } else if (param == "maxstep") {
         maxStep = val;
+        if (!initialStepSpecified && maxStep > 0.0) {
+            step = 0.5 * maxStep;
+        }
         checkStepUpdate = true;
     } else if (param == "minstep") {
         minStep = val;
@@ -393,6 +459,16 @@ int ArkodeInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
     tReturn = tret;
     solveTime = tret;
     checkFlag(&retval, "ARKodeEvolve", 1, false);
+
+    // ARKode's RHS callback writes its argument while evaluating internal
+    // stages; that vector is owned by ARKode, not by this interface.  Refresh
+    // the derivative at the accepted endpoint before the partitioned driver
+    // exposes it to the algebraic solver and model caches.  CVODE performs
+    // the equivalent refresh with CVodeGetDky.
+    if ((retval == ARK_SUCCESS) || (retval == ARK_TSTOP_RETURN)) {
+        int dkyRet = ARKodeGetDky(solverMem, tret, 1, dstate_dt);
+        checkFlag(&dkyRet, "ARKodeGetDky", 1);
+    }
 
     if (retval == ARK_ROOT_RETURN) {
         retval = SOLVER_ROOT_FOUND;

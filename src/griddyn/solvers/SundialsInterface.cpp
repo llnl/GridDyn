@@ -30,6 +30,7 @@
 #include "utilities/matrixCreation.h"
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <cstdint>
 #include <cstdio>
 #include <format>
@@ -231,7 +232,59 @@ double SundialsInterface::get(std::string_view param) const
     if (param == "maxnnz") {
         return static_cast<double>(maxNNZ);
     }
+    if (param == "perftotal") {
+        return performanceSolveTime;
+    }
+    if (param == "perfresiduals") {
+        return static_cast<double>(performanceResidualCalls);
+    }
+    if (param == "perfresidualtime") {
+        return performanceResidualTime;
+    }
+    if (param == "perfjacobians") {
+        return static_cast<double>(performanceJacobianCalls);
+    }
+    if (param == "perfjacobiantime") {
+        return performanceJacobianTime;
+    }
+    if (param == "perfmodeljacobiantime") {
+        return performanceModelJacobianTime;
+    }
+    if (param == "perfrhs") {
+        return static_cast<double>(performanceRhsCalls);
+    }
+    if (param == "perfrhstime") {
+        return performanceRhsTime;
+    }
+    if (param == "perfalgebraic") {
+        return static_cast<double>(performanceAlgebraicCalls);
+    }
+    if (param == "perfalgebraictime") {
+        return performanceAlgebraicTime;
+    }
+    if (param == "perfderivative") {
+        return static_cast<double>(performanceDerivativeCalls);
+    }
+    if (param == "perfderivativetime") {
+        return performanceDerivativeTime;
+    }
     return SolverInterface::get(param);
+}
+
+void SundialsInterface::resetPerformanceStats() noexcept
+{
+    performanceResidualCalls = 0;
+    performanceJacobianCalls = 0;
+    performanceRhsCalls = 0;
+    performanceAlgebraicCalls = 0;
+    performanceDerivativeCalls = 0;
+    performanceSolveTime = 0.0;
+    performanceResidualTime = 0.0;
+    performanceJacobianTime = 0.0;
+    performanceModelJacobianTime = 0.0;
+    performanceRhsTime = 0.0;
+    performanceAlgebraicTime = 0.0;
+    performanceDerivativeTime = 0.0;
 }
 
 void SundialsInterface::registerErrorHandler()
@@ -256,7 +309,7 @@ void SundialsInterface::freeLinearSolver()
     }
 }
 
-void SundialsInterface::kluReInit(SparseReinitMode sparseReInitModes)
+void SundialsInterface::kluReInit(SparseReinitMode sparseReInitModes, bool resetJacobian)
 {
 #ifdef GRIDDYN_ENABLE_KLU
     if (flags[DENSE_FLAG]) {
@@ -282,7 +335,9 @@ void SundialsInterface::kluReInit(SparseReinitMode sparseReInitModes)
             }
             break;
     }
-    jacCallCount = 0;
+    if (resetJacobian) {
+        jacCallCount = 0;
+    }
 #endif
 }
 
@@ -294,12 +349,162 @@ bool isSUNMatrixSetup(SUNMatrix j)
         if ((m->indexptrs[0] != 0) || (m->indexptrs[0] > m->NNZ)) {
             return false;
         }
-        if ((m->indexptrs[m->N] <= 0) || (m->indexptrs[m->N] >= m->NNZ)) {
+        if ((m->indexptrs[m->N] <= 0) || (m->indexptrs[m->N] > m->NNZ)) {
             return false;
         }
     }
     return true;
 }
+
+namespace {
+    using SparsePattern = std::vector<sunindextype>;
+
+    SparsePattern sparsePatternFromMatrix(SUNMatrix j, count_t stateCount)
+    {
+        auto* matrix = SM_CONTENT_S(j);
+        const auto used = matrix->indexptrs[stateCount];
+        SparsePattern pattern(static_cast<size_t>(stateCount) + 1 + used);
+        std::copy_n(matrix->indexptrs, static_cast<size_t>(stateCount) + 1, pattern.data());
+        std::copy_n(matrix->indexvals,
+                    static_cast<size_t>(used),
+                    pattern.data() + static_cast<size_t>(stateCount) + 1);
+        return pattern;
+    }
+
+    SparsePattern sparsePatternFromData(MatrixData<double>& matrixData, count_t stateCount)
+    {
+        matrixData.compact();
+        std::vector<std::pair<sunindextype, sunindextype>> entries;
+        entries.reserve(matrixData.size());
+        matrixData.start();
+        while (matrixData.moreData()) {
+            const auto element = matrixData.next();
+            if ((element.row < 0) || (element.row >= stateCount) || (element.col < 0) ||
+                (element.col >= stateCount)) {
+                continue;
+            }
+            entries.emplace_back(static_cast<sunindextype>(element.row),
+                                 static_cast<sunindextype>(element.col));
+        }
+        std::sort(entries.begin(), entries.end());
+        entries.erase(std::unique(entries.begin(), entries.end()), entries.end());
+
+        SparsePattern pattern(static_cast<size_t>(stateCount) + 1, 0);
+        pattern.reserve(static_cast<size_t>(stateCount) + 1 + entries.size());
+        size_t entryIndex = 0;
+        for (sunindextype row = 0; row < stateCount; ++row) {
+            while ((entryIndex < entries.size()) && (entries[entryIndex].first == row)) {
+                ++entryIndex;
+            }
+            pattern[row + 1] = static_cast<sunindextype>(entryIndex);
+        }
+        const auto oldSize = pattern.size();
+        pattern.resize(oldSize + entries.size());
+        for (size_t index = 0; index < entries.size(); ++index) {
+            pattern[oldSize + index] = entries[index].second;
+        }
+        return pattern;
+    }
+
+    bool sparsePatternContains(const SparsePattern& base,
+                               const SparsePattern& candidate,
+                               count_t stateCount)
+    {
+        if ((base.size() < static_cast<size_t>(stateCount) + 1) ||
+            (candidate.size() < static_cast<size_t>(stateCount) + 1)) {
+            return false;
+        }
+        const auto baseColumns = base.data() + stateCount + 1;
+        const auto candidateColumns = candidate.data() + stateCount + 1;
+        for (sunindextype row = 0; row < stateCount; ++row) {
+            const auto baseBegin = baseColumns + base[row];
+            const auto baseEnd = baseColumns + base[row + 1];
+            const auto candidateBegin = candidateColumns + candidate[row];
+            const auto candidateEnd = candidateColumns + candidate[row + 1];
+            if (!std::includes(baseBegin, baseEnd, candidateBegin, candidateEnd)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    SparsePattern sparsePatternUnion(const SparsePattern& first,
+                                     const SparsePattern& second,
+                                     count_t stateCount)
+    {
+        std::vector<std::vector<sunindextype>> columns(stateCount);
+        const auto addPattern = [&](const SparsePattern& pattern) {
+            if (pattern.size() < static_cast<size_t>(stateCount) + 1) {
+                return;
+            }
+            const auto patternColumns = pattern.data() + stateCount + 1;
+            for (sunindextype row = 0; row < stateCount; ++row) {
+                const auto begin = patternColumns + pattern[row];
+                const auto end = patternColumns + pattern[row + 1];
+                columns[row].insert(columns[row].end(), begin, end);
+            }
+        };
+        addPattern(first);
+        addPattern(second);
+
+        SparsePattern result(static_cast<size_t>(stateCount) + 1, 0);
+        for (sunindextype row = 0; row < stateCount; ++row) {
+            auto& rowColumns = columns[row];
+            std::sort(rowColumns.begin(), rowColumns.end());
+            rowColumns.erase(std::unique(rowColumns.begin(), rowColumns.end()), rowColumns.end());
+            result[row + 1] = result[row] + static_cast<sunindextype>(rowColumns.size());
+        }
+        const auto oldSize = result.size();
+        result.resize(oldSize + result.back());
+        sunindextype entryIndex = 0;
+        for (const auto& rowColumns : columns) {
+            for (const auto column : rowColumns) {
+                result[oldSize + entryIndex] = column;
+                ++entryIndex;
+            }
+        }
+        return result;
+    }
+
+    bool writeFixedSparseMatrix(SUNMatrix j,
+                                const SparsePattern& pattern,
+                                MatrixData<double>& matrixData,
+                                count_t stateCount)
+    {
+        auto* matrix = SM_CONTENT_S(j);
+        const auto used = pattern.back();
+        if (used > matrix->NNZ) {
+            const auto retval = SUNSparseMatrix_Reallocate(j, used);
+            if (retval < 0) {
+                return false;
+            }
+            matrix = SM_CONTENT_S(j);
+        }
+
+        std::copy_n(pattern.data(), static_cast<size_t>(stateCount) + 1, matrix->indexptrs);
+        std::copy_n(pattern.data() + static_cast<size_t>(stateCount) + 1,
+                    static_cast<size_t>(used),
+                    matrix->indexvals);
+        std::fill_n(matrix->data, static_cast<size_t>(used), 0.0);
+
+        matrixData.start();
+        while (matrixData.moreData()) {
+            const auto element = matrixData.next();
+            if ((element.row < 0) || (element.row >= stateCount)) {
+                continue;
+            }
+            const auto row = static_cast<sunindextype>(element.row);
+            const auto column = static_cast<sunindextype>(element.col);
+            const auto begin = matrix->indexvals + matrix->indexptrs[row];
+            const auto end = matrix->indexvals + matrix->indexptrs[row + 1];
+            const auto found = std::lower_bound(begin, end, column);
+            if ((found != end) && (*found == column)) {
+                matrix->data[found - matrix->indexvals] += element.data;
+            }
+        }
+        return true;
+    }
+}  // namespace
 
 void matrixDataToSUNMatrix(MatrixData<double>& md, SUNMatrix j, count_t svsize)
 {
@@ -404,8 +609,23 @@ int sundialsJac(sunrealtype time,
                 N_Vector /*tmp2*/)
 {
     auto sd = reinterpret_cast<SundialsInterface*>(userData);
+    const bool performance = (sd->m_gds != nullptr) &&
+        sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
+        (sd->mode.pairedOffsetIndex != kNullLocation);
+    const auto jacobianStart =
+        performance ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
+    const auto finishPerformance = [&]() {
+        if (performance) {
+            ++sd->performanceJacobianCalls;
+            sd->performanceJacobianTime +=
+                std::chrono::duration<double>(std::chrono::steady_clock::now() - jacobianStart)
+                    .count();
+        }
+    };
     auto* stateData = nvecdata(sd->use_omp, state);
     auto* dstateData = nvecdata(sd->use_omp, dstateDt);
+    const bool partitionedSparse =
+        (SUNMatGetID(j) == SUNMATRIX_SPARSE) && (sd->mode.pairedOffsetIndex != kNullLocation);
 
     if (matrixNeedsSetup(sd->jacCallCount, j)) {
         auto a1 = makeSparseMatrix(sd->svsize, sd->maxNNZ);
@@ -416,12 +636,28 @@ int sundialsJac(sunrealtype time,
         if (sd->flags[USE_MASK_FLAG]) {
             MatrixDataFilter<double> filterAd(*(a1));
             filterAd.addFilter(sd->maskElements);
+            const auto modelJacobianStart = performance ? std::chrono::steady_clock::now() :
+                                                          std::chrono::steady_clock::time_point{};
             sd->m_gds->jacobianFunction(time, stateData, dstateData, filterAd, cj, sd->mode);
+            if (performance) {
+                sd->performanceModelJacobianTime +=
+                    std::chrono::duration<double>(std::chrono::steady_clock::now() -
+                                                  modelJacobianStart)
+                        .count();
+            }
             for (auto& v : sd->maskElements) {
                 a1->assign(v, v, 1.0);
             }
         } else {
+            const auto modelJacobianStart = performance ? std::chrono::steady_clock::now() :
+                                                          std::chrono::steady_clock::time_point{};
             sd->m_gds->jacobianFunction(time, stateData, dstateData, *a1, cj, sd->mode);
+            if (performance) {
+                sd->performanceModelJacobianTime +=
+                    std::chrono::duration<double>(std::chrono::steady_clock::now() -
+                                                  modelJacobianStart)
+                        .count();
+            }
         }
 
         ++sd->jacCallCount;
@@ -436,21 +672,18 @@ int sundialsJac(sunrealtype time,
         matrixDataToSUNMatrix(*a1, j, sd->svsize);
         sd->nnz = a1->size();
         if (SUNMatGetID(j) == SUNMATRIX_SPARSE) {
-            auto* matrix = SM_CONTENT_S(j);
-            const auto used = matrix->indexptrs[sd->svsize];
-            std::vector<sunindextype> pattern(static_cast<size_t>(sd->svsize) + 1 + used);
-            std::copy_n(matrix->indexptrs, static_cast<size_t>(sd->svsize) + 1, pattern.data());
-            std::copy_n(matrix->indexvals,
-                        static_cast<size_t>(used),
-                        pattern.data() + static_cast<size_t>(sd->svsize) + 1);
+            const auto pattern = sparsePatternFromMatrix(j, sd->svsize);
             const bool structureChanged =
                 !sd->sparsePattern.empty() && (sd->sparsePattern != pattern);
-            sd->sparsePattern = std::move(pattern);
+            sd->sparsePattern = pattern;
             if (structureChanged) {
                 // KLU caches a symbolic factorization of the compressed
                 // pattern. A changed pattern requires a fresh factorization;
                 // refactoring it as though it were unchanged is unsafe.
-                sd->kluReInit(SolverInterface::SparseReinitMode::REFACTOR);
+                // The current matrix has already been rebuilt here.  Keep the
+                // Jacobian-call count so subsequent partitioned callbacks use
+                // the fixed-union path instead of restarting as first setup.
+                sd->kluReInit(SolverInterface::SparseReinitMode::REFACTOR, false);
                 if (sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
                     (sd->mode.pairedOffsetIndex != kNullLocation)) {
                     sd->m_gds->partitionedDiagnostic(
@@ -486,6 +719,7 @@ int sundialsJac(sunrealtype time,
                 valid,
                 structureHash));
             if (!valid) {
+                finishPerformance();
                 return FUNCTION_EXECUTION_FAILURE;
             }
         }
@@ -495,6 +729,80 @@ int sundialsJac(sunrealtype time,
                 writeArray(time, 1, val, sd->mode.offsetIndex, *a1, sd->jacFile);
             }
         }
+    } else if (partitionedSparse) {
+        // Partitioned Jacobians can change their active entries as the trial
+        // state moves.  Build the current pattern into a temporary matrix,
+        // then add any newly observed entries to a fixed union pattern.  The
+        // union is written back into the same SUNMatrix, so KINSOL/CVODE keep
+        // the matrix handle they received from SetLinearSolver.
+        auto a1 = makeSparseMatrix(sd->svsize, sd->maxNNZ);
+        a1->setRowLimit(sd->svsize);
+        a1->setColLimit(sd->svsize);
+        if (sd->flags[USE_MASK_FLAG]) {
+            MatrixDataFilter<double> filterAd(*a1);
+            filterAd.addFilter(sd->maskElements);
+            const auto modelJacobianStart = performance ? std::chrono::steady_clock::now() :
+                                                          std::chrono::steady_clock::time_point{};
+            sd->m_gds->jacobianFunction(time, stateData, dstateData, filterAd, cj, sd->mode);
+            if (performance) {
+                sd->performanceModelJacobianTime +=
+                    std::chrono::duration<double>(std::chrono::steady_clock::now() -
+                                                  modelJacobianStart)
+                        .count();
+            }
+            for (auto& v : sd->maskElements) {
+                a1->assign(v, v, 1.0);
+            }
+        } else {
+            const auto modelJacobianStart = performance ? std::chrono::steady_clock::now() :
+                                                          std::chrono::steady_clock::time_point{};
+            sd->m_gds->jacobianFunction(time, stateData, dstateData, *a1, cj, sd->mode);
+            if (performance) {
+                sd->performanceModelJacobianTime +=
+                    std::chrono::duration<double>(std::chrono::steady_clock::now() -
+                                                  modelJacobianStart)
+                        .count();
+            }
+        }
+
+        const auto currentPattern = sparsePatternFromData(*a1, sd->svsize);
+        if (sd->sparsePattern.empty()) {
+            sd->sparsePattern = currentPattern;
+        }
+        const bool expandsPattern =
+            !sparsePatternContains(sd->sparsePattern, currentPattern, sd->svsize);
+        if (expandsPattern) {
+            const auto previousNnz = sd->sparsePattern.back();
+            const auto unionPattern =
+                sparsePatternUnion(sd->sparsePattern, currentPattern, sd->svsize);
+            if (!writeFixedSparseMatrix(j, unionPattern, *a1, sd->svsize)) {
+                finishPerformance();
+                return FUNCTION_EXECUTION_FAILURE;
+            }
+            sd->sparsePattern = unionPattern;
+            sd->maxNNZ = (std::max)(sd->maxNNZ, static_cast<count_t>(unionPattern.back()));
+            // The matrix structure has grown, so discard KLU's symbolic and
+            // numeric factors.  The Jacobian has already been populated and
+            // remains valid, therefore do not force another GridDyn Jacobian
+            // callback by resetting jacCallCount.
+            sd->kluReInit(SolverInterface::SparseReinitMode::REFACTOR, false);
+            if (sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG)) {
+                sd->m_gds->partitionedDiagnostic(std::format(
+                    "Partitioned sparse Jacobian union expanded: previous_nnz={} current_nnz={} union_nnz={}"
+                    " KLU symbolic factorization reset",
+                    previousNnz,
+                    currentPattern.back(),
+                    unionPattern.back()));
+            }
+        } else if (!writeFixedSparseMatrix(j, sd->sparsePattern, *a1, sd->svsize)) {
+            finishPerformance();
+            return FUNCTION_EXECUTION_FAILURE;
+        }
+        ++sd->jacCallCount;
+        sd->nnz = a1->size();
+        if (sd->flags[FILE_CAPTURE_FLAG] && !sd->jacFile.empty()) {
+            writeArray(time, 1, sd->jacCallCount, sd->mode.offsetIndex, *a1, sd->jacFile);
+        }
     } else {
         // if it isn't the first we can use the SUNDIALS arraySparse object
         auto a1 = makeSundialsMatrixData(j);
@@ -502,12 +810,28 @@ int sundialsJac(sunrealtype time,
         if (sd->flags[USE_MASK_FLAG]) {
             MatrixDataFilter<double> filterAd(*a1);
             filterAd.addFilter(sd->maskElements);
+            const auto modelJacobianStart = performance ? std::chrono::steady_clock::now() :
+                                                          std::chrono::steady_clock::time_point{};
             sd->m_gds->jacobianFunction(time, stateData, dstateData, filterAd, cj, sd->mode);
+            if (performance) {
+                sd->performanceModelJacobianTime +=
+                    std::chrono::duration<double>(std::chrono::steady_clock::now() -
+                                                  modelJacobianStart)
+                        .count();
+            }
             for (auto& v : sd->maskElements) {
                 a1->assign(v, v, 1.0);
             }
         } else {
+            const auto modelJacobianStart = performance ? std::chrono::steady_clock::now() :
+                                                          std::chrono::steady_clock::time_point{};
             sd->m_gds->jacobianFunction(time, stateData, dstateData, *a1, cj, sd->mode);
+            if (performance) {
+                sd->performanceModelJacobianTime +=
+                    std::chrono::duration<double>(std::chrono::steady_clock::now() -
+                                                  modelJacobianStart)
+                        .count();
+            }
         }
 
         sd->jacCallCount++;
@@ -567,6 +891,7 @@ writeArray(sd->solveTime, 1, val, sd->mode.offsetIndex, a1, sd->jacFile);
         std::println("no entries for element {}", me);
     }
 #endif
+    finishPerformance();
     return FUNCTION_EXECUTION_SUCCESS;
 }
 

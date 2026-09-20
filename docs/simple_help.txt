@@ -41,6 +41,7 @@ strict_governor_limits:  reject an initialized governor output above its upper l
 strict_exciter_limits:  reject an initialized exciter output above its upper limit; by default GridDyn raises that upper limit and emits a warning
     ida_initial_condition_diagnostics:  report bounded residual/Jacobian diagnostics when IDA initial-condition correction fails
     ida_ic_stop_on_failure:  stop after the first failed IDA initial-condition correction instead of entering recovery heuristics
+partitioned_diagnostics:  print partitioned-solver traces and opt-in performance counters
 
 Parameters
 residualparallelmode:  dynamic residual OpenMP mode: off, on, or auto (auto enables it for 1200+ buses)

@@ -85,7 +85,9 @@ void KinsolInterface::cloneTo(SolverInterface* si, bool fullCopy) const
     }
     ai->max_setup_calls = max_setup_calls;
     ai->max_setup_calls_explicit = max_setup_calls_explicit;
-    ai->linearSetupReady = linearSetupReady;
+    // The factorization is owned by the source KINSOL instance and is not
+    // cloned, so the destination must force a fresh linear setup.
+    ai->linearSetupReady = false;
 }
 
 void KinsolInterface::allocate(count_t stateCount, count_t /*numRoots*/)

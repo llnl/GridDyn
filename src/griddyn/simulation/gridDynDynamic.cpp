@@ -1429,7 +1429,8 @@ int GridDynSimulation::dynAlgebraicSolve(CoreTime time,
                 isValidIndex(sMode.offsetIndex, extraDerivInformation),
                 diffState != nullptr,
                 deriv != nullptr);
-        } catch (...) {
+        }
+        catch (...) {
             reportPartitionedDiagnosticFailure();
         }
         return FUNCTION_EXECUTION_FAILURE;
@@ -1443,7 +1444,8 @@ int GridDynSimulation::dynAlgebraicSolve(CoreTime time,
         const auto callbackCount = ++partitionedAlgebraicCallCount;
         if (controlFlags[PARTITIONED_DIAGNOSTICS_FLAG] && callbackCount <= 8) {
             try {
-                std::println("Partitioned algebraic callback: time={} differential index={} states={} "
+                std::println(
+                    "Partitioned algebraic callback: time={} differential index={} states={} "
                              "paired algebraic index={} states={} initialized={}",
                              static_cast<double>(time),
                              sMode.offsetIndex,
@@ -1459,7 +1461,8 @@ int GridDynSimulation::dynAlgebraicSolve(CoreTime time,
                     solverData->getSolverMode().offsetIndex,
                     solverData->size(),
                     solverData->isInitialized()));
-            } catch (...) {
+            }
+            catch (...) {
                 reportPartitionedDiagnosticFailure();
             }
         }
@@ -1477,7 +1480,8 @@ int GridDynSimulation::dynAlgebraicSolve(CoreTime time,
                     static_cast<double>(time),
                     ret,
                     static_cast<double>(tret)));
-            } catch (...) {
+            }
+            catch (...) {
                 reportPartitionedDiagnosticFailure();
             }
         }

@@ -1422,7 +1422,8 @@ int GridDynSimulation::dynAlgebraicSolve(CoreTime time,
                 isValidIndex(sMode.offsetIndex, extraDerivInformation),
                 diffState != nullptr,
                 deriv != nullptr);
-        } catch (...) {
+        }
+        catch (...) {
             // Diagnostics are best effort and must not escape this callback.
         }
         return FUNCTION_EXECUTION_FAILURE;
@@ -1436,14 +1437,15 @@ int GridDynSimulation::dynAlgebraicSolve(CoreTime time,
         const auto callbackCount = ++partitionedAlgebraicCallCount;
         if (controlFlags[PARTITIONED_DIAGNOSTICS_FLAG] && callbackCount <= 8) {
             try {
-                std::println("Partitioned algebraic callback: time={} differential index={} states={} "
-                             "paired algebraic index={} states={} initialized={}",
-                             static_cast<double>(time),
-                             sMode.offsetIndex,
-                             stateSize(sMode),
-                             solverData->getSolverMode().offsetIndex,
-                             solverData->size(),
-                             solverData->isInitialized());
+                std::println(
+                    "Partitioned algebraic callback: time={} differential index={} states={} "
+                    "paired algebraic index={} states={} initialized={}",
+                    static_cast<double>(time),
+                    sMode.offsetIndex,
+                    stateSize(sMode),
+                    solverData->getSolverMode().offsetIndex,
+                    solverData->size(),
+                    solverData->isInitialized());
                 partitionedDiagnostic(std::format(
                     "Partitioned algebraic callback: time={} differential index={} states={} paired algebraic index={} states={} initialized={}",
                     static_cast<double>(time),
@@ -1452,7 +1454,8 @@ int GridDynSimulation::dynAlgebraicSolve(CoreTime time,
                     solverData->getSolverMode().offsetIndex,
                     solverData->size(),
                     solverData->isInitialized()));
-            } catch (...) {
+            }
+            catch (...) {
                 // Diagnostics are best effort and must not escape this callback.
             }
         }
@@ -1470,7 +1473,8 @@ int GridDynSimulation::dynAlgebraicSolve(CoreTime time,
                     static_cast<double>(time),
                     ret,
                     static_cast<double>(tret)));
-            } catch (...) {
+            }
+            catch (...) {
                 // Diagnostics are best effort and must not escape this callback.
             }
         }

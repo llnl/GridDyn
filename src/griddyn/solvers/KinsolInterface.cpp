@@ -423,7 +423,8 @@ int KinsolInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode /*mode*/)
         auto mvec = findMissing(&a1);
     }
 #endif
-    tReturn = (retval >= 0) ? solveTime : ((m_gds != nullptr) ? m_gds->getSimulationTime() : solveTime);
+    tReturn =
+        (retval >= 0) ? solveTime : ((m_gds != nullptr) ? m_gds->getSimulationTime() : solveTime);
     ++solverCallCount;
     if (retval == KIN_REPTD_SYSFUNC_ERR) {
         retval = SOLVER_INVALID_STATE_ERROR;

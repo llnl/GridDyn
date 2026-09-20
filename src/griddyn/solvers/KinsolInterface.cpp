@@ -20,10 +20,9 @@
 #    include <sunlinsol/sunlinsol_klu.h>
 #endif
 
-#include <chrono>
-
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <cstdio>
 #include <format>
 #include <map>
@@ -351,11 +350,10 @@ int KinsolInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode /*mode*/)
     }
     int setupFlag = KINSetNoInitSetup(solverMem, reusePreviousSetup ? SUNTRUE : SUNFALSE);
     checkFlag(&setupFlag, "KINSetNoInitSetup", 1);
-    const bool performance = (m_gds != nullptr) &&
-        m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
+    const bool performance = (m_gds != nullptr) && m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
         (mode.pairedOffsetIndex != kNullLocation);
-    const auto solveStart = performance ? std::chrono::steady_clock::now() :
-                                          std::chrono::steady_clock::time_point{};
+    const auto solveStart =
+        performance ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
 #if MEASURE_TIMINGS > 0
     auto start_t = std::chrono::high_resolution_clock::now();
 
@@ -395,8 +393,8 @@ int KinsolInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode /*mode*/)
             std::chrono::duration<double>(std::chrono::steady_clock::now() - solveStart).count();
     }
     if (mode.pairedOffsetIndex != kNullLocation) {
-        linearSetupReady = (retval >= 0) &&
-            (linearSetupReady || (jacCallCount > jacobianCallsBefore));
+        linearSetupReady =
+            (retval >= 0) && (linearSetupReady || (jacCallCount > jacobianCallsBefore));
     } else if (retval < 0) {
         linearSetupReady = false;
     }
@@ -449,8 +447,8 @@ int kinsolFunc(N_Vector state, N_Vector resid, void* userData)
     const bool performance = (sd->m_gds != nullptr) &&
         sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
         (sd->mode.pairedOffsetIndex != kNullLocation);
-    const auto residualStart = performance ? std::chrono::steady_clock::now() :
-                                             std::chrono::steady_clock::time_point{};
+    const auto residualStart =
+        performance ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
     const bool partitionedTrace = sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
         (sd->mode.pairedOffsetIndex != kNullLocation) &&
         (++sd->partitionedDiagnosticCallCount <= 8);
@@ -487,8 +485,7 @@ int kinsolFunc(N_Vector state, N_Vector resid, void* userData)
     if (performance) {
         ++sd->performanceResidualCalls;
         sd->performanceResidualTime +=
-            std::chrono::duration<double>(std::chrono::steady_clock::now() - residualStart)
-                .count();
+            std::chrono::duration<double>(std::chrono::steady_clock::now() - residualStart).count();
     }
     if (partitionedTrace) {
         std::println("KINSOL algebraic residual callback {} returned {}", sd->funcCallCount, ret);

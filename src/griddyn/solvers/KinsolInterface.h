@@ -33,8 +33,7 @@ class KinsolInterface: public SundialsInterface {
     virtual void allocate(count_t stateCount, count_t numRoots = 0) override;
     virtual void initialize(CoreTime time0) override;
     virtual void sparseReInit(SparseReinitMode sparseReinitMode) override;
-    virtual void kluReInit(SparseReinitMode sparseReinitMode,
-                           bool resetJacobian = true) override;
+    virtual void kluReInit(SparseReinitMode sparseReinitMode, bool resetJacobian = true) override;
     int solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode = StepMode::NORMAL) override;
     void setConstraints() override;
 

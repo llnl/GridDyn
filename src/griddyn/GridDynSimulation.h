@@ -190,6 +190,7 @@ class GridDynSimulation: public GridSimulation {
     //!< step
     ResidualParallelMode residualParallelMode = ResidualParallelMode::AUTO;
     void configureResidualParallelism();
+
   public:
     /** @ constructor to set the name
     @param[in] objName the name of the simulation*/

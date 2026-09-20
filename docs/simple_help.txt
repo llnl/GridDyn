@@ -29,7 +29,7 @@ gridDynSimulation Flags and options
 Flags
 autoallocate : automatically adjust the power generation in a power flow solution  (distributed slack bus)
 sparse:  set the solvers to use the sparse solvers in IDA and kinsol
-threads:  (doesn't do anything yet)  turn on multithreading inside griddyn
+threads:  request the verified GridDyn residual-evaluation OpenMP path for dynamic simulation
 ignore_bus_limits:  disable reactive power limits on generators
 no_link_adjustments:  disable adjustable transformers
 dcflow_initialization:  use the dc power solution to initialize the ac power flow solution (not well tested)
@@ -43,6 +43,7 @@ strict_exciter_limits:  reject an initialized exciter output above its upper lim
     ida_ic_stop_on_failure:  stop after the first failed IDA initial-condition correction instead of entering recovery heuristics
 
 Parameters
+residualparallelmode:  dynamic residual OpenMP mode: off, on, or auto (auto enables it for 1200+ buses)
 tolerance <val>  set a global relative tolerance level  (this will be updated soon)
 idaprintlevel <val>  set the print levels
 <flagname> <val>  val>0 for setting , val<0 for deactivating any of the above flags

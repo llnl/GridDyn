@@ -51,6 +51,9 @@ class KinsolInterface: public SundialsInterface {
                          N_Vector tmp2);
 
   private:
+    count_t max_setup_calls = 1;  //!< nonlinear iterations between Jacobian setups
+    bool max_setup_calls_explicit = false;
+    bool linearSetupReady = false;  //!< a previous partitioned solve left a usable factorization
     count_t partitionedDiagnosticCallCount = 0;
     count_t partitionedDiagnosticJacobianCallCount = 0;
 #if MEASURE_TIMINGS > 0

@@ -405,13 +405,12 @@ else()
 endif()
 
 cmake_dependent_advanced_option(
-    ENABLE_OPENMP_SUNDIALS "Enable SUNDIALS NVector openMP implementation" ON
+    GRIDDYN_ENABLE_OPENMP_SUNDIALS "Enable the SUNDIALS OpenMP NVector implementation" ON
     "GRIDDYN_ENABLE_OPENMP;OpenMP_C_FOUND;OpenMP_CXX_FOUND" OFF
 )
 
 cmake_dependent_advanced_option(
-    # TODO look at this
-    GRIDDYN_ENABLE_OPENMP_INTERNAL "Enable openmp internal to GridDyn--not used yet" OFF
+    GRIDDYN_ENABLE_OPENMP_INTERNAL "Enable OpenMP for GridDyn component evaluation" ON
     "GRIDDYN_ENABLE_OPENMP;OpenMP_C_FOUND;OpenMP_CXX_FOUND" OFF
 )
 

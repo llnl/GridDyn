@@ -828,6 +828,14 @@ void GridArea::setFlag(std::string_view flag, bool val)
     }
 }
 
+void GridArea::setResidualThreadCount(int threadCount)
+{
+    opObjectLists->setResidualThreads(threadCount);
+    for (auto* area : m_GridAreas) {
+        area->setResidualThreadCount(threadCount);
+    }
+}
+
 // set properties
 void GridArea::set(std::string_view param, std::string_view val)
 {

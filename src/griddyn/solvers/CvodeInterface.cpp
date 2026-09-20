@@ -19,6 +19,7 @@
 #endif
 
 #include <cassert>
+#include <chrono>
 #include <cstdio>
 #include <format>
 #include <iterator>
@@ -287,6 +288,7 @@ void CvodeInterface::initialize(CoreTime time0)
     if (!flags[ALLOCATED_FLAG]) {
         throw(InvalidSolverOperation());
     }
+    resetPerformanceStats();
 
     auto jsize = m_gds->jacSize(mode);
 
@@ -408,6 +410,11 @@ int CvodeInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
     }
     ++solverCallCount;
     icCount = 0;
+    const bool performance = (m_gds != nullptr) &&
+        m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
+        (mode.pairedOffsetIndex != kNullLocation);
+    const auto solveStart = performance ? std::chrono::steady_clock::now() :
+                                          std::chrono::steady_clock::time_point{};
 
     double tret;
     int retval = CVode(
@@ -415,6 +422,10 @@ int CvodeInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
     tReturn = tret;
     solveTime = tret;
     checkFlag(&retval, "CVodeSolve", 1, false);
+    if (performance) {
+        performanceSolveTime +=
+            std::chrono::duration<double>(std::chrono::steady_clock::now() - solveStart).count();
+    }
     if (retval == CV_ROOT_RETURN) {
         retval = SOLVER_ROOT_FOUND;
     }
@@ -449,6 +460,20 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userDat
 {
     auto sd = reinterpret_cast<CvodeInterface*>(userData);
     sd->funcCallCount++;
+    const bool performance = (sd->m_gds != nullptr) &&
+        sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
+        (sd->mode.pairedOffsetIndex != kNullLocation);
+    const auto rhsStart = performance ? std::chrono::steady_clock::now() :
+                                        std::chrono::steady_clock::time_point{};
+    const auto finishPerformance = [&]() {
+        if (performance) {
+            const auto elapsed =
+                std::chrono::duration<double>(std::chrono::steady_clock::now() - rhsStart)
+                    .count();
+            ++sd->performanceRhsCalls;
+            sd->performanceRhsTime += elapsed;
+        }
+    };
     if (sd->mode.pairedOffsetIndex != kNullLocation) {
         if (sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) && sd->funcCallCount <= 8) {
             std::println("CVODE differential callback {} at time={} state_size={} paired_index={}",
@@ -463,11 +488,20 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userDat
                 sd->size(),
                 sd->mode.pairedOffsetIndex));
         }
+        const auto algebraicStart = performance ? std::chrono::steady_clock::now() :
+                                                  std::chrono::steady_clock::time_point{};
         int ret = sd->m_gds->dynAlgebraicSolve(time,
                                                NVECTOR_DATA(sd->use_omp, state),
                                                NVECTOR_DATA(sd->use_omp, dstateDt),
                                                sd->mode);
+        if (performance) {
+            ++sd->performanceAlgebraicCalls;
+            sd->performanceAlgebraicTime +=
+                std::chrono::duration<double>(std::chrono::steady_clock::now() - algebraicStart)
+                    .count();
+        }
         if (ret < FUNCTION_EXECUTION_SUCCESS) {
+            finishPerformance();
             return ret;
         }
         if (sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) && sd->funcCallCount <= 8) {
@@ -487,10 +521,18 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userDat
             std::format("CVODE differential callback {} evaluating model derivatives",
                         sd->funcCallCount));
     }
+    const auto derivativeStart = performance ? std::chrono::steady_clock::now() :
+                                               std::chrono::steady_clock::time_point{};
     int ret = sd->m_gds->derivativeFunction(time,
                                             NVECTOR_DATA(sd->use_omp, state),
                                             NVECTOR_DATA(sd->use_omp, dstateDt),
                                             sd->mode);
+    if (performance) {
+        ++sd->performanceDerivativeCalls;
+        sd->performanceDerivativeTime +=
+            std::chrono::duration<double>(std::chrono::steady_clock::now() - derivativeStart)
+                .count();
+    }
     if (partitionedTrace) {
         std::println("CVODE differential callback {} derivative evaluation returned {}",
                      sd->funcCallCount,
@@ -521,6 +563,7 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userDat
         }
     }
 
+    finishPerformance();
     return ret;
 }
 
@@ -544,10 +587,20 @@ int cvodeJac(sunrealtype time,
 {
     auto sd = reinterpret_cast<CvodeInterface*>(userData);
     if (sd->mode.pairedOffsetIndex != kNullLocation) {
+        const bool performance = (sd->m_gds != nullptr) &&
+            sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG);
+        const auto algebraicStart = performance ? std::chrono::steady_clock::now() :
+                                                  std::chrono::steady_clock::time_point{};
         int ret = sd->m_gds->dynAlgebraicSolve(time,
                                                NVECTOR_DATA(sd->use_omp, state),
                                                NVECTOR_DATA(sd->use_omp, dstateDt),
                                                sd->mode);
+        if (performance) {
+            ++sd->performanceAlgebraicCalls;
+            sd->performanceAlgebraicTime +=
+                std::chrono::duration<double>(std::chrono::steady_clock::now() - algebraicStart)
+                    .count();
+        }
         if (ret < FUNCTION_EXECUTION_SUCCESS) {
             return ret;
         }

@@ -8,6 +8,7 @@
 
 #include "../GridArea.h"
 #include "griddyn/griddyn-config.h"
+#include <algorithm>
 #include <vector>
 
 namespace griddyn {
@@ -17,6 +18,12 @@ void fillList(const SolverMode& sMode,
               const std::vector<GridPrimary*>& possObjs);
 
 ListMaintainer::ListMaintainer(): objectLists(4), partialLists(4), sModeLists(4) {}
+
+void ListMaintainer::setResidualThreads(int threadCount)
+{
+    residualThreads = std::max(threadCount, 1);
+    parResid = residualThreads > 1;
+}
 
 void ListMaintainer::makeList(const SolverMode& sMode, const std::vector<GridPrimary*>& possObjs)
 {
@@ -95,7 +102,7 @@ void ListMaintainer::jacobianElements(const IOdata& inputs,
     if (!isListValid(sMode)) {
         return;
     }
-#ifdef ENABLE_OPENMP_GRIDDYN
+#ifdef GRIDDYN_ENABLE_OPENMP_INTERNAL
     if (parJac) {
         auto& vz = partialLists[sMode.offsetIndex];
         int sz = static_cast<int>(vz.size());
@@ -125,11 +132,11 @@ void ListMaintainer::residual(const IOdata& inputs,
         return;
     }
 
-#ifdef ENABLE_OPENMP_GRIDDYN
-    if (parResid) {
+#ifdef GRIDDYN_ENABLE_OPENMP_INTERNAL
+    if (parResid && residualThreads > 1) {
         auto& vz = partialLists[sMode.offsetIndex];
         int sz = static_cast<index_t>(vz.size());
-#    pragma omp parallel for
+#    pragma omp parallel for num_threads(residualThreads)
         for (index_t kk = 0; kk < sz; ++kk) {
             vz[kk]->residual(inputs, stateDataValue, resid, sMode);
         }
@@ -156,7 +163,7 @@ void ListMaintainer::algebraicUpdate(const IOdata& inputs,
         return;
     }
 
-#ifdef ENABLE_OPENMP_GRIDDYN
+#ifdef GRIDDYN_ENABLE_OPENMP_INTERNAL
     if (parAlgebraic) {
         auto& vz = partialLists[sMode.offsetIndex];
         int sz = static_cast<index_t>(vz.size());
@@ -185,7 +192,7 @@ void ListMaintainer::derivative(const IOdata& inputs,
     if (!isListValid(sMode)) {
         return;
     }
-#ifdef ENABLE_OPENMP_GRIDDYN
+#ifdef GRIDDYN_ENABLE_OPENMP_INTERNAL
     if (parDeriv) {
         auto& vz = partialLists[sMode.offsetIndex];
         index_t sz = static_cast<index_t>(vz.size());

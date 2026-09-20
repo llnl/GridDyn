@@ -47,6 +47,7 @@ int GridDynSimulation::dynInitialize(CoreTime tStart)
     if (retval != FUNCTION_EXECUTION_SUCCESS || controlFlags[POWER_FLOW_ONLY]) {
         return retval;
     }
+    configureResidualParallelism();
 
     auto dynData = getSolverInterface(tempSm);
     const SolverMode& solverModeRef = dynData->getSolverMode();
@@ -603,6 +604,51 @@ int GridDynSimulation::dynamicPartitioned(CoreTime tStop, CoreTime tStep)
             nextEventTime = EvQ->getNextTime();
         }
     }
+    if (controlFlags[PARTITIONED_DIAGNOSTICS_FLAG]) {
+        const auto printPerformance = [&](const std::shared_ptr<SolverInterface>& solver,
+                                          bool differential) {
+            const double total = solver->get("perftotal");
+            const double jacobian = solver->get("perfjacobiantime");
+            const double modelJacobian = solver->get("perfmodeljacobiantime");
+            if (differential) {
+                std::println(
+                    "Partitioned performance {}: solve_calls={} solve_s={:.3f} rhs_calls={} "
+                    "rhs_s={:.3f} algebraic_calls={} algebraic_s={:.3f} derivative_calls={} "
+                    "derivative_s={:.3f} jacobian_calls={} jacobian_s={:.3f} model_jacobian_s={:.3f}",
+                    solver->getName(),
+                    solver->get("solvercount"),
+                    total,
+                    solver->get("perfrhs"),
+                    solver->get("perfrhstime"),
+                    solver->get("perfalgebraic"),
+                    solver->get("perfalgebraictime"),
+                    solver->get("perfderivative"),
+                    solver->get("perfderivativetime"),
+                    solver->get("perfjacobians"),
+                    jacobian,
+                    modelJacobian);
+            } else {
+                const double residual = solver->get("perfresidualtime");
+                const double other = (std::max)(0.0, total - residual - jacobian);
+                std::println(
+                    "Partitioned performance {}: solve_calls={} solve_s={:.3f} residual_calls={} "
+                    "residual_s={:.3f} jacobian_calls={} jacobian_s={:.3f} model_jacobian_s={:.3f} "
+                    "other_linear_solver_s={:.3f}",
+                    solver->getName(),
+                    solver->get("solvercount"),
+                    total,
+                    solver->get("perfresiduals"),
+                    residual,
+                    solver->get("perfjacobians"),
+                    jacobian,
+                    modelJacobian,
+                    other);
+            }
+        };
+        printPerformance(dynDataDiff, true);
+        printPerformance(dynDataAlg, false);
+    }
+
     if ((consolePrintLevel >= PrintLevel::TRACE) || (logPrintLevel >= PrintLevel::TRACE)) {
         dynDataDiff->logSolverStats(PrintLevel::TRACE);
         dynDataDiff->logErrorWeights(PrintLevel::TRACE);

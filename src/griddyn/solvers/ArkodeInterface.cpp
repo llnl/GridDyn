@@ -46,7 +46,7 @@ ArkodeInterface::ArkodeInterface(const std::string& objName): SundialsInterface(
     mode.dynamic = true;
     mode.differential = true;
     mode.algebraic = false;
-    max_iterations = 1500;
+    max_iterations = 10000;
 }
 
 ArkodeInterface::ArkodeInterface(GridDynSimulation* gds, const SolverMode& sMode):
@@ -55,7 +55,7 @@ ArkodeInterface::ArkodeInterface(GridDynSimulation* gds, const SolverMode& sMode
     mode.dynamic = true;
     mode.differential = true;
     mode.algebraic = false;
-    max_iterations = 1500;
+    max_iterations = 10000;
 }
 
 ArkodeInterface::~ArkodeInterface()

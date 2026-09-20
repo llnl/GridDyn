@@ -117,6 +117,11 @@ class GridDynSimulation: public GridSimulation {
         PARTITIONED,
         DECOUPLED,
     };
+    enum class ResidualParallelMode {
+        OFF,
+        ON,
+        AUTO,
+    };
     /** @brief enumeration of ordering schemes for variables*/
     enum class OffsetOrdering {
         MIXED = 0,  //!< everything is MIXED through each other
@@ -183,6 +188,8 @@ class GridDynSimulation: public GridSimulation {
         additionalPowerflowSetupFunctions;  //!< set of additional operations to execute after the
                                             //!< PflowInitializeA
     //!< step
+    ResidualParallelMode residualParallelMode = ResidualParallelMode::AUTO;
+    void configureResidualParallelism();
   public:
     /** @ constructor to set the name
     @param[in] objName the name of the simulation*/

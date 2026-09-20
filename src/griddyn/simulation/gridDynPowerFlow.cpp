@@ -328,6 +328,7 @@ int GridDynSimulation::pFlowInitialize(CoreTime time0)
 
     busCount = getInt("totalbuscount");
     linkCount = getInt("totallinkcount");
+    setResidualThreadCount(1);
     currentTime = time0;
     pFlowInitializeA(time0, lower_flags(controlFlags));
     // A controller can live on a bus initialized later than the bus it

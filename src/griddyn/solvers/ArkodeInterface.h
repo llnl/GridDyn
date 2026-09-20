@@ -7,6 +7,7 @@
 #pragma once
 
 #include "SundialsInterface.h"
+#include <arkode/arkode_butcher_erk.h>
 #include <memory>
 #include <string>
 #include <vector>
@@ -27,6 +28,11 @@ class ArkodeInterface: public SundialsInterface {
     double maxStep = -1.0;  //!< the maximum step size to take
     double minStep = -1.0;  //!< the minimum step size to take
     double step = 0.0;  //!< the current step size
+    bool initialStepSpecified = false;  //!< whether the user supplied an initial step
+    ARKODE_ERKTableID explicitTable = ARKODE_SOFRONIOU_SPALETTA_5_3_4;
+    bool useCompensatedSums = true;
+
+    void applyArkodeOptions();
 
   public:
     /** @brief constructor*/

@@ -668,7 +668,10 @@ int sundialsJac(sunrealtype time,
                 // KLU caches a symbolic factorization of the compressed
                 // pattern. A changed pattern requires a fresh factorization;
                 // refactoring it as though it were unchanged is unsafe.
-                sd->kluReInit(SolverInterface::SparseReinitMode::REFACTOR);
+                // The current matrix has already been rebuilt here.  Keep the
+                // Jacobian-call count so subsequent partitioned callbacks use
+                // the fixed-union path instead of restarting as first setup.
+                sd->kluReInit(SolverInterface::SparseReinitMode::REFACTOR, false);
                 if (sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
                     (sd->mode.pairedOffsetIndex != kNullLocation)) {
                     sd->m_gds->partitionedDiagnostic(

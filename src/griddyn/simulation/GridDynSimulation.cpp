@@ -104,6 +104,7 @@ CoreObject* GridDynSimulation::clone(CoreObject* obj) const
     sim->default_ordering = default_ordering;
     sim->powerFlowFile = powerFlowFile;
     sim->defaultDynamicSolverMethod = defaultDynamicSolverMethod;
+    sim->residualParallelMode = residualParallelMode;
     // std::vector < std::shared_ptr < SolverInterface >> solverInterfaces;
     // std::vector<GridComponent *>singleStepObjects;
     // now clone the solverInterfaces
@@ -831,13 +832,13 @@ bool GridDynSimulation::hasDynamics() const
 void GridDynSimulation::configureResidualParallelism()
 {
     constexpr count_t autoBusThreshold = 1200;
-    constexpr count_t maxResidualThreads = 8;
     const auto totalBuses = static_cast<count_t>(getInt("totalbuscount"));
     const bool enable =
         (residualParallelMode == ResidualParallelMode::ON) ||
         ((residualParallelMode == ResidualParallelMode::AUTO) && (totalBuses >= autoBusThreshold));
     count_t threadCount = 1;
 #ifdef GRIDDYN_ENABLE_OPENMP_INTERNAL
+    constexpr count_t maxResidualThreads = 8;
     if (enable) {
         const auto availableThreads = static_cast<count_t>(omp_get_max_threads());
         const auto busThreadCount = std::max<count_t>(1, (totalBuses + 299) / 300);
@@ -917,6 +918,17 @@ void GridDynSimulation::set(std::string_view param, std::string_view val)
             residualParallelMode = ResidualParallelMode::AUTO;
         } else {
             throw(InvalidParameterValue(val));
+        }
+    } else if ((param == "arkodetable") || (param == "erktable") ||
+               (param == "arkodecompensatedsums") || (param == "compensatedsums")) {
+        // These are solver-level ARKode controls, but accepting them here lets
+        // command-line and simulation-file parameters reach the default
+        // differential solver without adding model parameters.
+        auto solverData = getSolverInterface(*defDynDiffMode);
+        if (solverData) {
+            solverData->set(param, val);
+        } else {
+            throw(InvalidParameterValue(param));
         }
     } else {
         GridSimulation::set(param, val);

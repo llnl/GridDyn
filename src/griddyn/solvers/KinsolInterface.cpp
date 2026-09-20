@@ -22,6 +22,7 @@
 
 #include <chrono>
 
+#include <algorithm>
 #include <cassert>
 #include <cstdio>
 #include <format>
@@ -254,6 +255,15 @@ void KinsolInterface::sparseReInit(SparseReinitMode sparseReinitMode)
     kluReInit(sparseReinitMode);
 }
 
+void KinsolInterface::kluReInit(SparseReinitMode sparseReinitMode, bool resetJacobian)
+{
+    // A KLU reinitialization invalidates the factorization retained across
+    // partitioned KINSOL solves, including reinitializations triggered from
+    // the sparse-Jacobian callback itself.
+    linearSetupReady = false;
+    SundialsInterface::kluReInit(sparseReinitMode, resetJacobian);
+}
+
 void KinsolInterface::set(std::string_view param, std::string_view val)
 {
     if (param.empty()) {
@@ -334,6 +344,11 @@ int KinsolInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode /*mode*/)
     solveTime = tStop;
     const auto jacobianCallsBefore = jacCallCount;
     const bool reusePreviousSetup = (mode.pairedOffsetIndex != kNullLocation) && linearSetupReady;
+    std::vector<sunrealtype> partitionedStateBackup;
+    if (mode.pairedOffsetIndex != kNullLocation) {
+        const auto* stateValues = NVECTOR_DATA(use_omp, state);
+        partitionedStateBackup.assign(stateValues, stateValues + svsize);
+    }
     int setupFlag = KINSetNoInitSetup(solverMem, reusePreviousSetup ? SUNTRUE : SUNFALSE);
     checkFlag(&setupFlag, "KINSetNoInitSetup", 1);
     const bool performance = (m_gds != nullptr) &&
@@ -355,6 +370,26 @@ int KinsolInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode /*mode*/)
 #else
     int retval = KINSol(solverMem, state, KIN_NONE, scale, scale);
 #endif
+    if ((retval == KIN_MXNEWT_5X_EXCEEDED) || (retval == KIN_MAXITER_REACHED) ||
+        (retval == KIN_STEP_LT_STPTOL) || (retval == KIN_LSETUP_FAIL) ||
+        (retval == KIN_LINSOLV_NO_RECOVERY) || (retval == KIN_LSOLVE_FAIL)) {
+        // A retained factorization can be a poor Newton model after an ODE
+        // trial state crosses a changing algebraic sparsity region.  Retry
+        // the same solve from its original state with a fresh setup.  This is
+        // a solver-level recovery; component models are evaluated normally.
+        if (!partitionedStateBackup.empty()) {
+            auto* stateValues = NVECTOR_DATA(use_omp, state);
+            std::copy(partitionedStateBackup.begin(), partitionedStateBackup.end(), stateValues);
+            linearSetupReady = false;
+            // A failed KLU setup may have left a stale numeric/symbolic
+            // factorization behind.  Discard it before retrying the same
+            // Newton point.
+            kluReInit(SparseReinitMode::REFACTOR, false);
+            setupFlag = KINSetNoInitSetup(solverMem, SUNFALSE);
+            checkFlag(&setupFlag, "KINSetNoInitSetup", 1);
+            retval = KINSol(solverMem, state, KIN_NONE, scale, scale);
+        }
+    }
     if (performance) {
         performanceSolveTime +=
             std::chrono::duration<double>(std::chrono::steady_clock::now() - solveStart).count();

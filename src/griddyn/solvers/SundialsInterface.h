@@ -9,7 +9,7 @@
 #include "SolverInterface.h"
 #include "utilities/MatrixDataSparse.hpp"
 // SUNDIALS libraries
-#include "griddyn/griddyn-config.h"  // Needed for ENABLE_OPENMP_SUNDIALS define
+#include "griddyn/griddyn-config.h"  // Needed for GRIDDYN_ENABLE_OPENMP_SUNDIALS
 #include "nvector/nvector_serial.h"
 #include <sundials/sundials_context.h>
 #include <sundials/sundials_errors.h>
@@ -151,7 +151,7 @@ class SundialsInterface: public SolverInterface {
                            N_Vector tmp2);
 
   protected:
-    void kluReInit(SparseReinitMode sparseReinitMode, bool resetJacobian = true);
+    virtual void kluReInit(SparseReinitMode sparseReinitMode, bool resetJacobian = true);
     void registerErrorHandler();
     void freeLinearSolver();
 };

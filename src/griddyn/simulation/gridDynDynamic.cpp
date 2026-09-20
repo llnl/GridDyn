@@ -431,6 +431,24 @@ int GridDynSimulation::dynamicPartitionedStartupConditions(
                     return retval;
                 }
             }
+
+            // IDA stores the corrected consistent initial condition in its own
+            // state vectors.  The partitioned solvers have separate state
+            // vectors, so simply calculating the DAE IC is not sufficient: the
+            // corrected dynamic model states must be committed to the objects
+            // and then copied into the differential/algebraic solver vectors.
+            // Without this transfer, the optional DAE initialization path has
+            // no effect on the first partitioned RHS evaluation.
+            setState(currentTime,
+                     daeData->stateData(),
+                     daeData->derivData(),
+                     *defDAEMode);
+            updateLocalCache();
+            guessState(currentTime,
+                       dynDataDiff->stateData(),
+                       dynDataDiff->derivData(),
+                       sModeDiff);
+            guessState(currentTime, dynDataAlg->stateData(), nullptr, sModeAlg);
         } else {
             guessState(currentTime, dynDataDiff->stateData(), dynDataDiff->derivData(), sModeDiff);
             guessState(currentTime, dynDataAlg->stateData(), nullptr, sModeAlg);
@@ -455,11 +473,12 @@ int GridDynSimulation::dynamicPartitioned(CoreTime tStop, CoreTime tStep)
 
     dynDataDiff->set("step", tStep);
     // The partitioned differential RHS invokes an algebraic Newton solve at
-    // every trial state.  Start CVODE with the same conservative probe step
-    // used by dynamic initialization, then permit it to grow to the requested
-    // partitioned maximum step.  A large initial predictor can otherwise
-    // present KINSOL with an unnecessarily remote algebraic state.
-    if ((dynDataDiff->getName() == "cvode") && (tStep > 0.0)) {
+    // every trial state.  Start CVODE/ARKode with the same conservative probe
+    // step used by dynamic initialization, then permit it to grow to the
+    // requested partitioned maximum step.  A large initial predictor can
+    // otherwise present KINSOL with an unnecessarily remote algebraic state.
+    if (((dynDataDiff->getName() == "cvode") || (dynDataDiff->getName() == "arkode")) &&
+        (tStep > 0.0)) {
         dynDataDiff->set("initialstep", (std::min)(tStep, probeStepTime));
     }
     const auto& sModeAlg = dynDataAlg->getSolverMode();

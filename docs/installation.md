@@ -38,7 +38,7 @@ implementations.
 - **ENABLE_FMI_EXPORT** build a FMI shared library for GridDyn
 - **ENABLE_FSKIT** enable to build additional libraries and support for integration into FSKIT and PARGRID for tool coupling
 - **ENABLE_GRIDDYN_DOXYGEN** select to create a case to build the doxygen docs
-- **ENABLE_OPENMP_GRIDDYN** (doesn't do any thing yet) eventually it will enable openMP in the GridDyn evaluation functions
+- **GRIDDYN_ENABLE_OPENMP_INTERNAL** enable OpenMP for GridDyn component evaluation (when **GRIDDYN_ENABLE_OPENMP** is enabled)
 - **ENABLE_KLU** this option may be removed in the future recommended to leave selected otherwise KLU support will not be built in
 - **KLU_INSTALL_DIR** point to the installation dir for KLU if it was not found in the system directories
 - **LOAD_ARKODE** build in support for ARKODE for solving differential equations
@@ -46,10 +46,10 @@ implementations.
 - **ENABLE_EXTRA_MODELS** select to build an additional library containing a few optional models-more will likely be added in the future
 - **ENABLE_GRIDDYN_LOGGING** unselect to turn off all logging functions
 - **GRIDDYN_ENABLE_MPI** select to build with MPI support using an MPI compatible compiler
-- **ENABLE_OPENMP** option to build in support for openMP in both the solvers and in GridDyn
+- **GRIDDYN_ENABLE_OPENMP** option to build in support for OpenMP in SUNDIALS and GridDyn
 - **ENABLE_OPTIMIZATION_LIBRARY** enable building of the optimization extension. This is a work in progress and doesn't do much yet, recommended to leave unselected unless you are developing on that section.
 - **SUNDIALS_INSTALLATION_DIR** point to the installation location for SUNDIALS
-- **ENABLE_OPENMP_SUNDIALS** select to enable OpenMP in SUNDIALS assumes SUNDIALS was built with openmp support
+- **GRIDDYN_ENABLE_OPENMP_SUNDIALS** select to enable the SUNDIALS OpenMP NVector implementation
 - **ENABLE_TESTS** enable building of the testSuites
 - **ENABLE_MULTITHREADING** not used at preset but will eventually enable threaded execution in some models
 - **ENABLE_EXTRA_COMPILER_WARNINGS** enable more compiler warnings (full list in config/cmake/compiler_flags.cmake)

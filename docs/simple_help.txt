@@ -44,6 +44,9 @@ strict_exciter_limits:  reject an initialized exciter output above its upper lim
 
 Parameters
 residualparallelmode:  dynamic residual OpenMP mode: off, on, or auto (auto enables it for 1200+ buses)
+maxsetupcalls:  KINSOL nonlinear iterations between Jacobian setups (partitioned default is 5; use 1 for exact Newton)
+arkodetable:  ARKode explicit table name (for example, sofroniou, ark437l2sa, or ssp4)
+arkodecompensatedsums:  ARKode compensated summation mode: on or off (enabled by default)
 tolerance <val>  set a global relative tolerance level  (this will be updated soon)
 idaprintlevel <val>  set the print levels
 <flagname> <val>  val>0 for setting , val<0 for deactivating any of the above flags

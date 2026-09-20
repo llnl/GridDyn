@@ -1796,8 +1796,8 @@ void GridArea::getRootObjectNames(stringVec& rootNames, const SolverMode& sMode)
     // root-bearing primary objects in a separate list, so recurse through
     // that list when the object is an area and through GridComponent's
     // subobject list otherwise.
-    const auto appendNames = [&setName](const auto& self, const GridComponent* object) -> void {
-        const auto& objectOffsets = object->getOffsets(cDaeSolverMode);
+    const auto appendNames = [&setName, &sMode](const auto& self, const GridComponent* object) -> void {
+        const auto& objectOffsets = object->getOffsets(sMode);
         const auto objectRootOffset = objectOffsets.rootOffset;
         const auto objectPath = fullObjectName(object);
         for (count_t root = 0; root < objectOffsets.local.algRoots; ++root) {
@@ -1815,7 +1815,7 @@ void GridArea::getRootObjectNames(stringVec& rootNames, const SolverMode& sMode)
             }
         } else {
             for (const auto* subobject : object->getSubObjects()) {
-                if (subobject->isEnabled() && (subobject->rootSize(cDaeSolverMode) > 0)) {
+                if (subobject->isEnabled() && (subobject->rootSize(sMode) > 0)) {
                     self(self, subobject);
                 }
             }

@@ -114,7 +114,7 @@ void CvodeInterface::allocate(count_t stateCount, count_t numRoots)
 
 void CvodeInterface::setMaxNonZeros(count_t nonZeroCount)
 {
-    maxNNZ = nonZeroCount;
+    SundialsInterface::setMaxNonZeros(nonZeroCount);
     a1.reserve(nonZeroCount);
     a1.clear();
 }
@@ -429,9 +429,12 @@ int CvodeInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode stepMode)
     if (retval == CV_ROOT_RETURN) {
         retval = SOLVER_ROOT_FOUND;
     }
-    if (retval >= 0) {
-        // get the derivative information
-        CVodeGetDky(solverMem, tStop, 1, dstate_dt);
+    if ((retval == CV_SUCCESS) || (retval == CV_TSTOP_RETURN)) {
+        // Query the derivative at the actual returned time.  On a root return
+        // CVODE's current time is the root time rather than tStop; root
+        // handling refreshes the derivative after the event is processed.
+        int dkyRet = CVodeGetDky(solverMem, tret, 1, dstate_dt);
+        checkFlag(&dkyRet, "CVodeGetDky", 1);
     }
     return retval;
 }
@@ -475,19 +478,6 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userDat
         }
     };
     if (sd->mode.pairedOffsetIndex != kNullLocation) {
-        if (sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) && sd->funcCallCount <= 8) {
-            std::println("CVODE differential callback {} at time={} state_size={} paired_index={}",
-                         sd->funcCallCount,
-                         static_cast<double>(time),
-                         sd->size(),
-                         sd->mode.pairedOffsetIndex);
-            sd->m_gds->partitionedDiagnostic(std::format(
-                "CVODE differential callback {} at time={} state_size={} paired_index={}",
-                sd->funcCallCount,
-                static_cast<double>(time),
-                sd->size(),
-                sd->mode.pairedOffsetIndex));
-        }
         const auto algebraicStart = performance ? std::chrono::steady_clock::now() :
                                                   std::chrono::steady_clock::time_point{};
         int ret = sd->m_gds->dynAlgebraicSolve(time,
@@ -504,22 +494,6 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userDat
             finishPerformance();
             return ret;
         }
-        if (sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) && sd->funcCallCount <= 8) {
-            std::println("CVODE differential callback {} algebraic solve completed",
-                         sd->funcCallCount);
-            sd->m_gds->partitionedDiagnostic(
-                std::format("CVODE differential callback {} algebraic solve completed",
-                            sd->funcCallCount));
-        }
-    }
-    const bool partitionedTrace =
-        sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) && sd->funcCallCount <= 8;
-    if (partitionedTrace) {
-        std::println("CVODE differential callback {} evaluating model derivatives",
-                     sd->funcCallCount);
-        sd->m_gds->partitionedDiagnostic(
-            std::format("CVODE differential callback {} evaluating model derivatives",
-                        sd->funcCallCount));
     }
     const auto derivativeStart = performance ? std::chrono::steady_clock::now() :
                                                std::chrono::steady_clock::time_point{};
@@ -532,15 +506,6 @@ int cvodeFunc(sunrealtype time, N_Vector state, N_Vector dstateDt, void* userDat
         sd->performanceDerivativeTime +=
             std::chrono::duration<double>(std::chrono::steady_clock::now() - derivativeStart)
                 .count();
-    }
-    if (partitionedTrace) {
-        std::println("CVODE differential callback {} derivative evaluation returned {}",
-                     sd->funcCallCount,
-                     ret);
-        sd->m_gds->partitionedDiagnostic(
-            std::format("CVODE differential callback {} derivative evaluation returned {}",
-                        sd->funcCallCount,
-                        ret));
     }
 
     if (sd->flags[FILE_CAPTURE_FLAG]) {

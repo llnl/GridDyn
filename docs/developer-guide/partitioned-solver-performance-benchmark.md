@@ -26,6 +26,12 @@ prototype then reduced the same Release run from 11.232 s to 3.692 s, approximat
 3.04x faster. The previous-code Release time has not been measured, so an exact
 Release-to-Release comparison is not available.
 
+When `partitioned_diagnostics` is enabled, the partitioned driver also prints
+opt-in solver counters for total solve time, residual/RHS/derivative calls,
+Jacobian time, and model-Jacobian time. These counters are intended for
+profiling and are reset when the CVODE or KINSOL solver is initialized; normal
+runs do not take the timing calls.
+
 The previous Debug result was captured before the KINSOL Jacobian-reuse and
 partitioned sparse-union changes. Both current Release runs passed.
 
@@ -97,32 +103,208 @@ evaluations and has less repeated algebraic-solve overhead to amortize.
 ### ARKode trial on ACTIVSg500 and ACTIVSg2000
 
 An additional Release build was configured with ARKode enabled, GridDyn residual
-OpenMP enabled, and the SUNDIALS OpenMP NVector disabled. The partitioned runs
-used `defdyndiff=arkode`, `dynamicsolvermethod=partitioned`,
-`roots_disabled`, `OMP_NUM_THREADS=32`, and `maxiterations=10000`. The latter
-setting is important for this workload: the default ARKode limit of 1500
-internal steps failed on ACTIVSg500 at `t = 8.5 s` with `ARK_TOO_MUCH_WORK` and
-failed on ACTIVSg2000 near `t = 0.002 s` through an unrecoverable RHS/KINSOL
-failure. Both cases completed after increasing the solver limit.
+OpenMP enabled, and the SUNDIALS OpenMP NVector disabled. An earlier command-line
+sweep reported sub-second ACTIVSg2000 “passes,” but those runs were not valid:
+the reconstructed command used a dynamics-file path outside the
+`ACTIVSg2000` directory, and the generic root-level
+`--param=maxiterations=...` option is not a valid solver-scoped setting. The
+runner stops processing that parameter callback and exits before running the
+simulation, leaving only the version line in the output.
 
-The following measurements are five-second simulations, repeated five times
-in each mode. Initialization and model loading remain a substantial part of
-these short wall-clock runs.
+With the actual files `ACTIVSg2000/ACTIVSg2000.RAW` and
+`ACTIVSg2000/ACTIVSg2000_dynamics.dyr`, earlier Release ARKode runs failed
+near the start of the simulation with either a KINSOL scaled-step error or an
+unrecoverable KLU setup failure. Raising the ARKode constructor default from
+1500 to 10000 did not resolve those failures. The later endpoint-derivative
+fix and the conservative-step experiments below allow the no-root diagnostic
+run to complete, but the default 50 ms explicit step still produces a large
+nonphysical drift.
 
-| Case | Residual mode | Runs | Mean wall time | Standard deviation |
-|---|---|---:|---:|---:|
-| ACTIVSg500 | `off` | 5 | 0.620 s | 0.048 s |
-| ACTIVSg500 | `auto` (serial; below 1200 buses) | 5 | 0.608 s | 0.075 s |
-| ACTIVSg2000 | `off` | 5 | 0.701 s | 0.070 s |
-| ACTIVSg2000 | `auto` (7 residual threads) | 5 | 0.669 s | 0.056 s |
+### ARKode equilibrium trace
 
-The 500-bus result confirms that `auto` does not enable residual parallelism
-below the threshold. The 2000-bus result is only about 4.6% faster in this
-measurement and is within the run-to-run variability, so ARKode does not show
-the approximately 42% gain observed with the same residual path in the short
-CVODE partitioned benchmark. The dominant ARKode-specific finding is that its
-default internal-step limit is too small for these partitioned cases; that
-limit should be treated separately from the OpenMP performance question.
+A solver-level trace of the stable ACTIVSg2000 case separated the ARKode fault
+from the algebraic solve. After the DAE-consistent initial state was copied into
+the partitioned vectors, the initial largest differential RHS was `6.6e-12`.
+CVODE remained at equilibrium through `t = 3.2 s`, with an accepted endpoint
+derivative of `4.8e-12` and algebraic residuals of about `1.8e-12`.
+
+The trace also found a wrapper consistency bug: ARKode writes each RHS into an
+internal SUNDIALS vector, but `ArkodeInterface::solve` had never copied the
+accepted derivative into GridDyn's public `derivData()` vector. The partitioned
+driver subsequently exposed a zero/stale derivative to the algebraic solve and
+model caches. `ArkodeInterface::solve` now refreshes that vector with
+`ARKodeGetDky(tret, 1, ...)`, matching the existing CVODE behavior. This is a
+required correctness fix, although it is not the main source of the early
+drift: the ARKode RHS callback itself begins to grow before the endpoint vector
+is consumed.
+
+With roots disabled, the default 50 ms ARKode run grew from the initial
+`6.6e-12` RHS to about `8.0e-8` by `t = 0.1 s`, with the largest component in
+`Far West::ODESSA 1 8::ODESSA 1 8_Gen_1::exciterEXAC2_7474:va`; by `t = 4 s`
+the endpoint derivative reached about `2.0`. KINSOL continued to return
+successful algebraic solves, so this is not an algebraic Newton failure.
+
+Reducing the explicit ARKode maximum step keeps the same equilibrium stationary:
+
+| Maximum step | Endpoint at `t = 0.1 s` | Endpoint at `t = 4 s` |
+|---:|---:|---:|
+| `0.050 s` | `5.8e-7` | `2.0` |
+| `0.020 s` | `5.2e-8` | — |
+| `0.015 s` | `2.3e-11` | — |
+| `0.010 s` | `7.7e-12` | `6.0e-12` |
+
+This is the signature of an explicit-method stability boundary in the stiff
+reduced ODE, not a model event or an algebraic residual that is slowly drifting.
+The EXAC2 `va` state is the first visible unstable component; its high-gain
+regulator dynamics are coupled to the network algebraic solve. IDA and CVODE
+remain stable because their implicit treatment handles that stiff mode. Future
+ARKode work should either select an implicit/IMEX ARK configuration or derive a
+solver-side maximum-step policy from the reduced-system stiffness. No new model
+terms are indicated by this trace.
+
+### ARKode explicit-table and summation experiment
+
+The ARKode wrapper now enables compensated summation by default and accepts the
+solver-level parameters `arkodecompensatedsums=on|off` and
+`arkodetable=<name>`. The supported table names for this experiment are
+`sofroniou`, `ark324l2sa`, `ssp4`, `ark436l2sa`, `ark437l2sa`, `ssp10`,
+`ark548l2sa`, `ark548l2sab`, `cashkarp`, `dormandprince`, and `fehlberg`.
+The `step` and `maxstep` parameters now set the initial ARKode step to half the
+maximum step unless `initialstep` (or `initstep`) is supplied explicitly. This
+gives the explicit solver a short settling period without changing the maximum
+allowed internal step.
+
+Release runs on ACTIVSg2000, with roots disabled, `maxstep = 20 ms`,
+`initialstep = 10 ms`, and compensated summation enabled produced these single
+run timings:
+
+| Explicit table | Time to `t = 4 s` | Result |
+|---|---:|---|
+| `sofroniou` | 16.45 s | completed |
+| `ark437l2sa` | 6.87 s | completed |
+| `cashkarp` | 25.18 s | completed |
+| `dormandprince` | 26.27 s | completed |
+| `fehlberg` | 21.33 s | completed |
+
+The ARK437L2SA table was substantially faster in this run. With root finding
+enabled, ARK437L2SA also completed the same 4-second run in 7.20 s, while the
+default Sofroniou–Spaletta run did not complete cleanly. This makes ARK437L2SA
+the most promising explicit table for follow-up, although the root-path failure
+still needs separate diagnosis before changing the default table.
+
+Compensated summation did not show a clear performance or stability benefit in
+the default-table comparison: the measured times were 17.07 s with it enabled
+and 17.97 s with it disabled. That difference is small enough to be run-to-run
+variation, so it is retained as a low-risk numerical safeguard rather than a
+primary fix for the stiff-mode instability.
+
+### ARKode transient table sweep on ACTIVSg500
+
+The candidate tables were then run through the 500-bus 5 ms load-step test,
+which applies a 10 MW step to `BUS$4::LOAD#0` at `t = 1.0 s` and advances to
+`t = 30 s`. These are Release runs using the partitioned ARKode/KINSOL path;
+the 500-bus automatic residual-parallel threshold leaves residual OpenMP off.
+Each run also passed the GoogleTest trajectory checks, including finite states,
+bounded voltage/frequency response, and a decaying frequency envelope.
+
+| Explicit table | Stages | Time | Result |
+|---|---:|---:|---|
+| `sofroniou` | 5 | 12.396 s | passed |
+| `ssp4` | 4 | 13.163 s | passed |
+| `ark436l2sa` | 6 | 18.174 s | passed |
+| `ark437l2sa` | 7 | 21.664 s | passed |
+| `ssp10` | 10 | 30.514 s | passed |
+| `ark548l2sa` | 8 | 24.769 s | passed |
+| `ark548l2sab` | 8 | 24.737 s | passed |
+
+This transient ranking is the opposite of the equilibrium ranking: the tables
+with the larger negative-real stability intervals were slower after the load
+step. The likely explanation is that the transient is controlled more by
+complex oscillatory modes and embedded-error adaptation than by a single
+negative-real stiff mode. The wider real-axis stability region still improves
+margin, but it does not guarantee fewer stages, fewer rejected steps, or better
+overall runtime for a nonlinear transient.
+
+The four-stage `ssp4` table also passed the trajectory checks, but was about
+6.2% slower than the default at 5 ms. Its advantage on the 2000-bus case is
+therefore workload- and scale-dependent rather than a general improvement for
+small transient cases.
+
+The real-axis stability estimates remain useful diagnostically: approximately
+2.79 for Sofroniou–Spaletta, 4.23 for ARK436L2SA, 6.76 for ARK437L2SA, and
+13.9 for SSP10. For this load-step case, however, the default table is the
+fastest tested option while all candidates are stable at the 5 ms outer step.
+
+### ARKode step-size crossover for the ACTIVSg500 load step
+
+The default Sofroniou–Spaletta and ARK437L2SA tables were also compared at
+larger requested timesteps. These are Release GoogleTest runs of the same
+30-second trajectory; every run passed the transient checks.
+
+| Requested timestep | Sofroniou–Spaletta | ARK437L2SA | Faster table |
+|---:|---:|---:|---|
+| 10 ms | 7.373 s | 11.507 s | Sofroniou–Spaletta |
+| 20 ms | 3.845 s | 6.262 s | Sofroniou–Spaletta |
+| 50 ms | 3.109 s | 2.914 s | ARK437L2SA |
+
+This places the performance crossover between 20 ms and 50 ms for this case.
+At 5–20 ms, ARK437's extra stages cost more than its stability margin saves.
+At 50 ms, the wider stability region lets ARK437 avoid enough extra adaptation
+work to become slightly faster. The result supports keeping the default table
+for normal power-system timesteps while retaining ARK437 as a useful option
+when larger explicit steps are intentionally allowed.
+
+Two lower-order, four-stage tables are plausible additional candidates for
+larger requested steps: `ark324l2sa` (ARK 3(2)) and `ssp4` (SSP ERK 3(2)).
+They have one fewer stage than the default table and estimated negative-real
+stability intervals of approximately 3.66 and 5.15, respectively. The lower
+formal order can increase adaptive work at small steps, so these should be
+treated as benchmark options rather than default changes. The useful test is
+whether the saved stage evaluations outweigh any additional step rejection at
+20–50 ms.
+
+### ACTIVSg2000 load-step benchmark
+
+The repository does not include the large external ACTIVSg2000 RAW/DYR files.
+The benchmark therefore keeps the case data outside the repository and applies
+the same 10 MW step used by the 500-bus test to `BUS$4::LOAD#0` at `t = 1.0 s`.
+The checked-in runner is
+[`scripts/benchmark_activsg2000_arkode_load_step.ps1`](../../scripts/benchmark_activsg2000_arkode_load_step.ps1).
+It runs the Release executable, uses the partitioned ARKode/KINSOL path, and
+defaults residual parallelism to `auto`.
+
+Example from the standard local case-data location:
+
+```powershell
+pwsh -File .\scripts\benchmark_activsg2000_arkode_load_step.ps1 `
+  -Table sofroniou -Timestep 0.005 -StopTime 30
+```
+
+The table can be changed without editing the case, for example:
+
+```powershell
+pwsh -File .\scripts\benchmark_activsg2000_arkode_load_step.ps1 `
+  -Table ark437l2sa -Timestep 0.005 -StopTime 30
+```
+
+The event target was verified against the external case. Release runs at a 5 ms
+requested step produced the following results:
+
+| Explicit table | Stop time | Time | Result |
+|---|---:|---:|---|
+| `sofroniou` | 5 s | 6.062 s | completed |
+| `ark324l2sa` | 5 s | 6.748 s | completed |
+| `ssp4` | 5 s | 5.974 s | completed |
+| `ark437l2sa` | 5 s | 10.521 s | completed |
+| `sofroniou` | 30 s | 35.769 s | completed |
+| `ssp4` | 30 s | 34.261 s | completed |
+| `ark437l2sa` | 30 s | 58.755 s | completed |
+
+For this 2000-bus load step, `SSP4` is the only tested alternative that is
+faster than the default: about 1.5 s, or 4.2%, over 30 s. ARK437's wider
+stability interval does not compensate for its additional stages here. These
+command-line runs verify completion and timing, while the 500-bus GoogleTest
+provides the stronger trajectory checks.
 
 ### Power-flow scaling on larger cases (diagnostic)
 

@@ -9,13 +9,14 @@
 #include "../GridArea.h"
 #include "griddyn/griddyn-config.h"
 #include <algorithm>
+#include <utility>
 #include <vector>
 
 namespace griddyn {
-void fillList(const SolverMode& sMode,
-              std::vector<GridPrimary*>& list,
-              std::vector<GridPrimary*>& partlist,
-              const std::vector<GridPrimary*>& possObjs);
+static void fillList(const SolverMode& sMode,
+                     std::vector<GridPrimary*>& list,
+                     std::vector<GridPrimary*>& partlist,
+                     const std::vector<GridPrimary*>& possObjs);
 
 ListMaintainer::ListMaintainer(): objectLists(4), partialLists(4), sModeLists(4) {}
 
@@ -27,7 +28,7 @@ void ListMaintainer::setResidualThreads(int threadCount)
 
 void ListMaintainer::makeList(const SolverMode& sMode, const std::vector<GridPrimary*>& possObjs)
 {
-    if (sMode.offsetIndex >= static_cast<index_t>(objectLists.size())) {
+    if (std::cmp_greater_equal(sMode.offsetIndex, objectLists.size())) {
         objectLists.resize(sMode.offsetIndex + 1);
         partialLists.resize(sMode.offsetIndex + 1);
         sModeLists.resize(sMode.offsetIndex + 1);
@@ -43,7 +44,7 @@ void ListMaintainer::makeList(const SolverMode& sMode, const std::vector<GridPri
 
 void ListMaintainer::appendList(const SolverMode& sMode, const std::vector<GridPrimary*>& possObjs)
 {
-    if (sMode.offsetIndex >= static_cast<index_t>(objectLists.size())) {
+    if (std::cmp_greater_equal(sMode.offsetIndex, objectLists.size())) {
         objectLists.resize(sMode.offsetIndex + 1);
         partialLists.resize(sMode.offsetIndex + 1);
         sModeLists.resize(sMode.offsetIndex + 1);
@@ -54,12 +55,12 @@ void ListMaintainer::appendList(const SolverMode& sMode, const std::vector<GridP
     fillList(sMode, objectLists[sMode.offsetIndex], partialLists[sMode.offsetIndex], possObjs);
 }
 
-void fillList(const SolverMode& sMode,
-              std::vector<GridPrimary*>& list,
-              std::vector<GridPrimary*>& partlist,
-              const std::vector<GridPrimary*>& possObjs)
+static void fillList(const SolverMode& sMode,
+                     std::vector<GridPrimary*>& list,
+                     std::vector<GridPrimary*>& partlist,
+                     const std::vector<GridPrimary*>& possObjs)
 {
-    for (auto& obj : possObjs) {
+    for (const auto& obj : possObjs) {
         if (obj->checkFlag(PRE_EX_REQUESTED)) {
             if (obj->checkFlag(MULTIPART_CALCULATION_CAPABLE)) {
                 partlist.push_back(obj);
@@ -77,7 +78,7 @@ void fillList(const SolverMode& sMode,
 void ListMaintainer::makePreList(const std::vector<GridPrimary*>& possObjs)
 {
     preExObjs.clear();
-    for (auto& obj : possObjs) {
+    for (const auto& obj : possObjs) {
         if (obj->checkFlag(PRE_EX_REQUESTED)) {
             preExObjs.push_back(obj);
         }

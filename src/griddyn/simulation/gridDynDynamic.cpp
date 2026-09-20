@@ -1408,16 +1408,23 @@ int GridDynSimulation::dynAlgebraicSolve(CoreTime time,
         (!isValidIndex(sMode.offsetIndex, extraDerivInformation)) ||
         (sMode.pairedOffsetIndex == kNullLocation) || (diffState == nullptr) ||
         (deriv == nullptr)) {
-        logging::error(
-            this,
-            "Partitioned algebraic callback has invalid state pairing: mode={} pair={} "
-            "state_index_valid={} derivative_index_valid={} state_present={} derivative_present={}",
-            sMode.offsetIndex,
-            sMode.pairedOffsetIndex,
-            isValidIndex(sMode.offsetIndex, extraStateInformation),
-            isValidIndex(sMode.offsetIndex, extraDerivInformation),
-            diffState != nullptr,
-            deriv != nullptr);
+        // This callback is noexcept because it is entered from SUNDIALS. The
+        // diagnostic must not turn invalid callback input into an exception
+        // escaping through the solver library.
+        try {
+            logging::error(
+                this,
+                "Partitioned algebraic callback has invalid state pairing: mode={} pair={} "
+                "state_index_valid={} derivative_index_valid={} state_present={} derivative_present={}",
+                sMode.offsetIndex,
+                sMode.pairedOffsetIndex,
+                isValidIndex(sMode.offsetIndex, extraStateInformation),
+                isValidIndex(sMode.offsetIndex, extraDerivInformation),
+                diffState != nullptr,
+                deriv != nullptr);
+        } catch (...) {
+            // Diagnostics are best effort and must not escape this callback.
+        }
         return FUNCTION_EXECUTION_FAILURE;
     }
     extraStateInformation[sMode.offsetIndex] = diffState;
@@ -1428,36 +1435,44 @@ int GridDynSimulation::dynAlgebraicSolve(CoreTime time,
     if (solverData) {
         const auto callbackCount = ++partitionedAlgebraicCallCount;
         if (controlFlags[PARTITIONED_DIAGNOSTICS_FLAG] && callbackCount <= 8) {
-            std::println("Partitioned algebraic callback: time={} differential index={} states={} "
-                         "paired algebraic index={} states={} initialized={}",
-                         static_cast<double>(time),
-                         sMode.offsetIndex,
-                         stateSize(sMode),
-                         solverData->getSolverMode().offsetIndex,
-                         solverData->size(),
-                         solverData->isInitialized());
-            partitionedDiagnostic(std::format(
-                "Partitioned algebraic callback: time={} differential index={} states={} paired algebraic index={} states={} initialized={}",
-                static_cast<double>(time),
-                sMode.offsetIndex,
-                stateSize(sMode),
-                solverData->getSolverMode().offsetIndex,
-                solverData->size(),
-                solverData->isInitialized()));
+            try {
+                std::println("Partitioned algebraic callback: time={} differential index={} states={} "
+                             "paired algebraic index={} states={} initialized={}",
+                             static_cast<double>(time),
+                             sMode.offsetIndex,
+                             stateSize(sMode),
+                             solverData->getSolverMode().offsetIndex,
+                             solverData->size(),
+                             solverData->isInitialized());
+                partitionedDiagnostic(std::format(
+                    "Partitioned algebraic callback: time={} differential index={} states={} paired algebraic index={} states={} initialized={}",
+                    static_cast<double>(time),
+                    sMode.offsetIndex,
+                    stateSize(sMode),
+                    solverData->getSolverMode().offsetIndex,
+                    solverData->size(),
+                    solverData->isInitialized()));
+            } catch (...) {
+                // Diagnostics are best effort and must not escape this callback.
+            }
         }
         CoreTime tret;
         ret = solverData->solve(time, tret);
         if (controlFlags[PARTITIONED_DIAGNOSTICS_FLAG] && callbackCount <= 8) {
-            std::println(
-                "Partitioned algebraic callback returned: time={} return={} solver_time={}",
-                static_cast<double>(time),
-                ret,
-                static_cast<double>(tret));
-            partitionedDiagnostic(std::format(
-                "Partitioned algebraic callback returned: time={} return={} solver_time={}",
-                static_cast<double>(time),
-                ret,
-                static_cast<double>(tret)));
+            try {
+                std::println(
+                    "Partitioned algebraic callback returned: time={} return={} solver_time={}",
+                    static_cast<double>(time),
+                    ret,
+                    static_cast<double>(tret));
+                partitionedDiagnostic(std::format(
+                    "Partitioned algebraic callback returned: time={} return={} solver_time={}",
+                    static_cast<double>(time),
+                    ret,
+                    static_cast<double>(tret)));
+            } catch (...) {
+                // Diagnostics are best effort and must not escape this callback.
+            }
         }
         if (ret < 0) {
             if (jacobianCheck(this, solverData->getSolverMode()) > 0) {

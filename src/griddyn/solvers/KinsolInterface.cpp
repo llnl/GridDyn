@@ -29,6 +29,7 @@
 #include <memory>
 #include <print>
 #include <string>
+#include <vector>
 
 namespace griddyn::solvers {
 int kinsolFunc(N_Vector state, N_Vector resid, void* userData);
@@ -422,7 +423,7 @@ int KinsolInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode /*mode*/)
         auto mvec = findMissing(&a1);
     }
 #endif
-    tReturn = (retval >= 0) ? solveTime : m_gds->getSimulationTime();
+    tReturn = (retval >= 0) ? solveTime : ((m_gds != nullptr) ? m_gds->getSimulationTime() : solveTime);
     ++solverCallCount;
     if (retval == KIN_REPTD_SYSFUNC_ERR) {
         retval = SOLVER_INVALID_STATE_ERROR;
@@ -451,7 +452,8 @@ int kinsolFunc(N_Vector state, N_Vector resid, void* userData)
         (sd->mode.pairedOffsetIndex != kNullLocation);
     const auto residualStart =
         performance ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
-    const bool partitionedTrace = sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
+    const bool partitionedTrace = (sd->m_gds != nullptr) &&
+        sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
         (sd->mode.pairedOffsetIndex != kNullLocation) &&
         (++sd->partitionedDiagnosticCallCount <= 8);
     if (partitionedTrace) {
@@ -538,7 +540,8 @@ int kinsolJac(N_Vector state,
               N_Vector tmp2)
 {
     auto* sd = static_cast<KinsolInterface*>(userData);
-    const bool partitionedTrace = sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
+    const bool partitionedTrace = (sd->m_gds != nullptr) &&
+        sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
         (sd->mode.pairedOffsetIndex != kNullLocation) &&
         (++sd->partitionedDiagnosticJacobianCallCount <= 8);
     if (partitionedTrace) {

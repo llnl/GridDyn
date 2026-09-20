@@ -231,29 +231,41 @@ double SundialsInterface::get(std::string_view param) const
 {
     if (param == "maxnnz") {
         return static_cast<double>(maxNNZ);
-    } else if (param == "perftotal") {
+    }
+    if (param == "perftotal") {
         return performanceSolveTime;
-    } else if (param == "perfresiduals") {
+    }
+    if (param == "perfresiduals") {
         return static_cast<double>(performanceResidualCalls);
-    } else if (param == "perfresidualtime") {
+    }
+    if (param == "perfresidualtime") {
         return performanceResidualTime;
-    } else if (param == "perfjacobians") {
+    }
+    if (param == "perfjacobians") {
         return static_cast<double>(performanceJacobianCalls);
-    } else if (param == "perfjacobiantime") {
+    }
+    if (param == "perfjacobiantime") {
         return performanceJacobianTime;
-    } else if (param == "perfmodeljacobiantime") {
+    }
+    if (param == "perfmodeljacobiantime") {
         return performanceModelJacobianTime;
-    } else if (param == "perfrhs") {
+    }
+    if (param == "perfrhs") {
         return static_cast<double>(performanceRhsCalls);
-    } else if (param == "perfrhstime") {
+    }
+    if (param == "perfrhstime") {
         return performanceRhsTime;
-    } else if (param == "perfalgebraic") {
+    }
+    if (param == "perfalgebraic") {
         return static_cast<double>(performanceAlgebraicCalls);
-    } else if (param == "perfalgebraictime") {
+    }
+    if (param == "perfalgebraictime") {
         return performanceAlgebraicTime;
-    } else if (param == "perfderivative") {
+    }
+    if (param == "perfderivative") {
         return static_cast<double>(performanceDerivativeCalls);
-    } else if (param == "perfderivativetime") {
+    }
+    if (param == "perfderivativetime") {
         return performanceDerivativeTime;
     }
     return SolverInterface::get(param);

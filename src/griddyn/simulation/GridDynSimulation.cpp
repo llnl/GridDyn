@@ -262,8 +262,8 @@ int GridDynSimulation::checkNetwork(NetworkCheckType checkType)
                 // check to make sure the bus can actually work
                 if (bus->checkCapable()) {
                     bus->Network = 0;
-                    const auto BusType = bus->getType();
-                    if ((BusType == GridBus::BusType::SLK) || (BusType == GridBus::BusType::AFIX)) {
+                    const auto busType = bus->getType();
+                    if ((busType == GridBus::BusType::SLK) || (busType == GridBus::BusType::AFIX)) {
                         slkBusses.push_back(bus);
                     }
                 } else {
@@ -835,18 +835,20 @@ void GridDynSimulation::configureResidualParallelism()
     const auto totalBuses = static_cast<count_t>(getInt("totalbuscount"));
     const bool enable = (residualParallelMode == ResidualParallelMode::ON) ||
         ((residualParallelMode == ResidualParallelMode::AUTO) && (totalBuses >= autoBusThreshold));
-    count_t threadCount = 1;
 #ifdef GRIDDYN_ENABLE_OPENMP_INTERNAL
     constexpr count_t maxResidualThreads = 8;
     if (enable) {
         const auto availableThreads = static_cast<count_t>(omp_get_max_threads());
         const auto busThreadCount = std::max<count_t>(1, (totalBuses + 299) / 300);
-        threadCount = std::min({availableThreads, busThreadCount, maxResidualThreads});
+        const auto threadCount = std::min({availableThreads, busThreadCount, maxResidualThreads});
+        setResidualThreadCount(static_cast<int>(threadCount));
+    } else {
+        setResidualThreadCount(1);
     }
 #else
     (void)enable;
+    setResidualThreadCount(1);
 #endif
-    setResidualThreadCount(static_cast<int>(threadCount));
 }
 
 // need to update probably with a new field in SolverInterface

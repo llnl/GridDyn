@@ -33,10 +33,10 @@ static IOdata gNullOutputVec;  //!<  this is a purposely created empty vector wh
 //! an input a vector but don't use it.
 
 namespace {
-void reportPartitionedDiagnosticFailure() noexcept
-{
-    static_cast<void>(std::fputs("GridDyn: partitioned diagnostic output failed\n", stderr));
-}
+    void reportPartitionedDiagnosticFailure() noexcept
+    {
+        static_cast<void>(std::fputs("GridDyn: partitioned diagnostic output failed\n", stderr));
+    }
 }  // namespace
 
 // --------------- dynamic program ---------------
@@ -1446,13 +1446,13 @@ int GridDynSimulation::dynAlgebraicSolve(CoreTime time,
             try {
                 std::println(
                     "Partitioned algebraic callback: time={} differential index={} states={} "
-                             "paired algebraic index={} states={} initialized={}",
-                             static_cast<double>(time),
-                             sMode.offsetIndex,
-                             stateSize(sMode),
-                             solverData->getSolverMode().offsetIndex,
-                             solverData->size(),
-                             solverData->isInitialized());
+                    "paired algebraic index={} states={} initialized={}",
+                    static_cast<double>(time),
+                    sMode.offsetIndex,
+                    stateSize(sMode),
+                    solverData->getSolverMode().offsetIndex,
+                    solverData->size(),
+                    solverData->isInitialized());
                 partitionedDiagnostic(std::format(
                     "Partitioned algebraic callback: time={} differential index={} states={} paired algebraic index={} states={} initialized={}",
                     static_cast<double>(time),

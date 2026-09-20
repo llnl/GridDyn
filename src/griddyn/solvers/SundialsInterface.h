@@ -109,6 +109,7 @@ class SundialsInterface: public SolverInterface {
     double performanceRhsTime = 0.0;
     double performanceAlgebraicTime = 0.0;
     double performanceDerivativeTime = 0.0;
+
   public:
     explicit SundialsInterface(const std::string& objName = "sundials");
     /** @brief constructor loading the SolverInterface structure*

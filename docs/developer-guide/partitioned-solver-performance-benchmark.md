@@ -15,10 +15,10 @@ next performance investigations.
 
 ## Results
 
-| Test | Previous Debug | Current Debug | Release before setup reuse | Release with setup reuse |
-|---|---:|---:|---:|---:|
-| `CvodeKinsolPartitionedPreservesInitialOperatingPoint` | — | 1.916 s | 0.195 s | — |
-| `CvodeKinsolLoadStep5msRemainsStable` | 133.244 s | 76.914 s | 11.232 s | 3.692 s |
+| Test                                                   | Previous Debug | Current Debug | Release before setup reuse | Release with setup reuse |
+| ------------------------------------------------------ | -------------: | ------------: | -------------------------: | -----------------------: |
+| `CvodeKinsolPartitionedPreservesInitialOperatingPoint` |              — |       1.916 s |                    0.195 s |                        — |
+| `CvodeKinsolLoadStep5msRemainsStable`                  |      133.244 s |      76.914 s |                   11.232 s |                  3.692 s |
 
 The initial partitioned-solver changes reduced the recorded Debug load-step time
 by 56.330 s, or approximately 42.3% (1.73x). The solver-level factorization reuse
@@ -42,11 +42,11 @@ SUNDIALS, including the SUNDIALS OpenMP NVector module. The focused test was
 then run once with the normal serial NVector path and twice with the solver
 `omp` flag enabled at the solver level:
 
-| Configuration | Test time |
-|---|---:|
-| OpenMP-capable build, serial NVector | 3.642 s |
-| OpenMP NVector enabled | 6.708 s |
-| OpenMP NVector enabled | 6.992 s |
+| Configuration                        | Test time |
+| ------------------------------------ | --------: |
+| OpenMP-capable build, serial NVector |   3.642 s |
+| OpenMP NVector enabled               |   6.708 s |
+| OpenMP NVector enabled               |   6.992 s |
 
 For this 644-differential-state/1170-algebraic-state case, enabling OpenMP
 NVector operations made the partitioned solve approximately 1.9x slower. The
@@ -78,11 +78,11 @@ enabling all list operations fails the same way. Jacobian assembly updates
 shared sparse storage; derivative and algebraic update paths also need separate
 output partitioning before they can safely be parallelized.
 
-| Configuration | Runs | Wall time |
-|---|---:|---:|
-| Release, residualparallelmode=off | 3 | 5.187, 5.086, 5.275 s (5.183 s average) |
-| Release, residualparallelmode=on, 7 threads | 3 | 2.958, 3.102, 2.993 s (3.018 s average) |
-| Release, residualparallelmode=auto, 7 threads | 3 | 3.072, 2.990, 2.956 s (3.006 s average) |
+| Configuration                                 | Runs |                               Wall time |
+| --------------------------------------------- | ---: | --------------------------------------: |
+| Release, residualparallelmode=off             |    3 | 5.187, 5.086, 5.275 s (5.183 s average) |
+| Release, residualparallelmode=on, 7 threads   |    3 | 2.958, 3.102, 2.993 s (3.018 s average) |
+| Release, residualparallelmode=auto, 7 threads |    3 | 3.072, 2.990, 2.956 s (3.006 s average) |
 
 The initialized residual-only path reduced this short run by approximately
 42.0% (1.72x). The result is a solver/container change only; no model
@@ -91,10 +91,10 @@ callbacks or model terms were added.
 The same residual-only path also helps the IDA DAE solve. On the same Release
 build, the five-second roots-disabled ACTIVSg2000 run measured:
 
-| Configuration | Runs | Wall time |
-|---|---:|---:|
-| IDA, residualparallelmode=off | 3 | 1.260, 1.212, 1.248 s (1.240 s average) |
-| IDA, residualparallelmode=auto, 7 threads | 3 | 1.187, 1.165, 1.113 s (1.155 s average) |
+| Configuration                             | Runs |                               Wall time |
+| ----------------------------------------- | ---: | --------------------------------------: |
+| IDA, residualparallelmode=off             |    3 | 1.260, 1.212, 1.248 s (1.240 s average) |
+| IDA, residualparallelmode=auto, 7 threads |    3 | 1.187, 1.165, 1.113 s (1.155 s average) |
 
 This is approximately a 6.9% reduction (1.07x). The smaller benefit than the
 partitioned solve is expected because IDA performs substantially fewer residual
@@ -147,11 +147,11 @@ successful algebraic solves, so this is not an algebraic Newton failure.
 Reducing the explicit ARKode maximum step keeps the same equilibrium stationary:
 
 | Maximum step | Endpoint at `t = 0.1 s` | Endpoint at `t = 4 s` |
-|---:|---:|---:|
-| `0.050 s` | `5.8e-7` | `2.0` |
-| `0.020 s` | `5.2e-8` | — |
-| `0.015 s` | `2.3e-11` | — |
-| `0.010 s` | `7.7e-12` | `6.0e-12` |
+| -----------: | ----------------------: | --------------------: |
+|    `0.050 s` |                `5.8e-7` |                 `2.0` |
+|    `0.020 s` |                `5.2e-8` |                     — |
+|    `0.015 s` |               `2.3e-11` |                     — |
+|    `0.010 s` |               `7.7e-12` |             `6.0e-12` |
 
 This is the signature of an explicit-method stability boundary in the stiff
 reduced ODE, not a model event or an algebraic residual that is slowly drifting.
@@ -178,13 +178,13 @@ Release runs on ACTIVSg2000, with roots disabled, `maxstep = 20 ms`,
 `initialstep = 10 ms`, and compensated summation enabled produced these single
 run timings:
 
-| Explicit table | Time to `t = 4 s` | Result |
-|---|---:|---|
-| `sofroniou` | 16.45 s | completed |
-| `ark437l2sa` | 6.87 s | completed |
-| `cashkarp` | 25.18 s | completed |
-| `dormandprince` | 26.27 s | completed |
-| `fehlberg` | 21.33 s | completed |
+| Explicit table  | Time to `t = 4 s` | Result    |
+| --------------- | ----------------: | --------- |
+| `sofroniou`     |           16.45 s | completed |
+| `ark437l2sa`    |            6.87 s | completed |
+| `cashkarp`      |           25.18 s | completed |
+| `dormandprince` |           26.27 s | completed |
+| `fehlberg`      |           21.33 s | completed |
 
 The ARK437L2SA table was substantially faster in this run. With root finding
 enabled, ARK437L2SA also completed the same 4-second run in 7.20 s, while the
@@ -207,15 +207,15 @@ the 500-bus automatic residual-parallel threshold leaves residual OpenMP off.
 Each run also passed the GoogleTest trajectory checks, including finite states,
 bounded voltage/frequency response, and a decaying frequency envelope.
 
-| Explicit table | Stages | Time | Result |
-|---|---:|---:|---|
-| `sofroniou` | 5 | 12.396 s | passed |
-| `ssp4` | 4 | 13.163 s | passed |
-| `ark436l2sa` | 6 | 18.174 s | passed |
-| `ark437l2sa` | 7 | 21.664 s | passed |
-| `ssp10` | 10 | 30.514 s | passed |
-| `ark548l2sa` | 8 | 24.769 s | passed |
-| `ark548l2sab` | 8 | 24.737 s | passed |
+| Explicit table | Stages |     Time | Result |
+| -------------- | -----: | -------: | ------ |
+| `sofroniou`    |      5 | 12.396 s | passed |
+| `ssp4`         |      4 | 13.163 s | passed |
+| `ark436l2sa`   |      6 | 18.174 s | passed |
+| `ark437l2sa`   |      7 | 21.664 s | passed |
+| `ssp10`        |     10 | 30.514 s | passed |
+| `ark548l2sa`   |      8 | 24.769 s | passed |
+| `ark548l2sab`  |      8 | 24.737 s | passed |
 
 This transient ranking is the opposite of the equilibrium ranking: the tables
 with the larger negative-real stability intervals were slower after the load
@@ -241,11 +241,11 @@ The default Sofroniou–Spaletta and ARK437L2SA tables were also compared at
 larger requested timesteps. These are Release GoogleTest runs of the same
 30-second trajectory; every run passed the transient checks.
 
-| Requested timestep | Sofroniou–Spaletta | ARK437L2SA | Faster table |
-|---:|---:|---:|---|
-| 10 ms | 7.373 s | 11.507 s | Sofroniou–Spaletta |
-| 20 ms | 3.845 s | 6.262 s | Sofroniou–Spaletta |
-| 50 ms | 3.109 s | 2.914 s | ARK437L2SA |
+| Requested timestep | Sofroniou–Spaletta | ARK437L2SA | Faster table       |
+| -----------------: | -----------------: | ---------: | ------------------ |
+|              10 ms |            7.373 s |   11.507 s | Sofroniou–Spaletta |
+|              20 ms |            3.845 s |    6.262 s | Sofroniou–Spaletta |
+|              50 ms |            3.109 s |    2.914 s | ARK437L2SA         |
 
 This places the performance crossover between 20 ms and 50 ms for this case.
 At 5–20 ms, ARK437's extra stages cost more than its stability margin saves.
@@ -290,15 +290,15 @@ pwsh -File .\scripts\benchmark_activsg2000_arkode_load_step.ps1 `
 The event target was verified against the external case. Release runs at a 5 ms
 requested step produced the following results:
 
-| Explicit table | Stop time | Time | Result |
-|---|---:|---:|---|
-| `sofroniou` | 5 s | 6.062 s | completed |
-| `ark324l2sa` | 5 s | 6.748 s | completed |
-| `ssp4` | 5 s | 5.974 s | completed |
-| `ark437l2sa` | 5 s | 10.521 s | completed |
-| `sofroniou` | 30 s | 35.769 s | completed |
-| `ssp4` | 30 s | 34.261 s | completed |
-| `ark437l2sa` | 30 s | 58.755 s | completed |
+| Explicit table | Stop time |     Time | Result    |
+| -------------- | --------: | -------: | --------- |
+| `sofroniou`    |       5 s |  6.062 s | completed |
+| `ark324l2sa`   |       5 s |  6.748 s | completed |
+| `ssp4`         |       5 s |  5.974 s | completed |
+| `ark437l2sa`   |       5 s | 10.521 s | completed |
+| `sofroniou`    |      30 s | 35.769 s | completed |
+| `ssp4`         |      30 s | 34.261 s | completed |
+| `ark437l2sa`   |      30 s | 58.755 s | completed |
 
 For this 2000-bus load step, `SSP4` is the only tested alternative that is
 faster than the default: about 1.5 s, or 4.2%, over 30 s. ARK437's wider
@@ -314,11 +314,11 @@ executable was run with `--powerflow-only` on the larger cases. With
 three cases. Each run completed successfully, but the results did not justify
 parallelizing power flow.
 
-| Case | Serial | Auto, 32 threads | Auto change | OpenMP, 4 threads | OpenMP, 8 threads |
-|---|---:|---:|---:|---:|---:|
-| ACTIVSg10k | 4.323 s | 4.564 s | +5.6% | 4.407 s | 3.874 s |
-| ACTIVSg25k | 11.934 s | 14.189 s | +18.9% | 11.892 s | 11.915 s |
-| ACTIVSg70k | 38.029 s | 39.983 s | +5.1% | 37.327 s | 36.059 s |
+| Case       |   Serial | Auto, 32 threads | Auto change | OpenMP, 4 threads | OpenMP, 8 threads |
+| ---------- | -------: | ---------------: | ----------: | ----------------: | ----------------: |
+| ACTIVSg10k |  4.323 s |          4.564 s |       +5.6% |           4.407 s |           3.874 s |
+| ACTIVSg25k | 11.934 s |         14.189 s |      +18.9% |          11.892 s |          11.915 s |
+| ACTIVSg70k | 38.029 s |         39.983 s |       +5.1% |          37.327 s |          36.059 s |
 
 These are single-run measurements. A 70k-bus sweep also measured 37.594 s at
 16 threads, so eight threads was the best tested setting. The dynamic residual
@@ -371,16 +371,16 @@ so it is not a direct KLU-only timer.
 
 For the Release 5 ms test, the final cumulative counters were:
 
-| Area | Calls | Time |
-|---|---:|---:|
-| CVODE RHS callbacks | 5,818 | 3.77 s |
-| CVODE algebraic solves | 5,916 | 3.50 s |
-| CVODE differential derivative evaluation | 5,818 | 0.30 s |
-| KINSOL algebraic solves | 6,182 | 3.13 s |
-| KINSOL residual callbacks | 17,614 | 2.84 s |
-| KINSOL Jacobian callbacks | 2 | 0.003 s |
-| Model Jacobian assembly | — | 0.001 s |
-| KINSOL remainder (`other_linear_solver_s`) | — | 0.29 s |
+| Area                                       |  Calls |    Time |
+| ------------------------------------------ | -----: | ------: |
+| CVODE RHS callbacks                        |  5,818 |  3.77 s |
+| CVODE algebraic solves                     |  5,916 |  3.50 s |
+| CVODE differential derivative evaluation   |  5,818 |  0.30 s |
+| KINSOL algebraic solves                    |  6,182 |  3.13 s |
+| KINSOL residual callbacks                  | 17,614 |  2.84 s |
+| KINSOL Jacobian callbacks                  |      2 | 0.003 s |
+| Model Jacobian assembly                    |      — | 0.001 s |
+| KINSOL remainder (`other_linear_solver_s`) |      — |  0.29 s |
 
 This confirms that the dominant cost is repeated algebraic work, not the differential model
 evaluation. Reusing the previous KINSOL factorization removed nearly all repeated Jacobian

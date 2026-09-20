@@ -833,8 +833,7 @@ void GridDynSimulation::configureResidualParallelism()
 {
     constexpr count_t autoBusThreshold = 1200;
     const auto totalBuses = static_cast<count_t>(getInt("totalbuscount"));
-    const bool enable =
-        (residualParallelMode == ResidualParallelMode::ON) ||
+    const bool enable = (residualParallelMode == ResidualParallelMode::ON) ||
         ((residualParallelMode == ResidualParallelMode::AUTO) && (totalBuses >= autoBusThreshold));
     count_t threadCount = 1;
 #ifdef GRIDDYN_ENABLE_OPENMP_INTERNAL

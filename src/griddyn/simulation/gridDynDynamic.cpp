@@ -439,15 +439,9 @@ int GridDynSimulation::dynamicPartitionedStartupConditions(
             // and then copied into the differential/algebraic solver vectors.
             // Without this transfer, the optional DAE initialization path has
             // no effect on the first partitioned RHS evaluation.
-            setState(currentTime,
-                     daeData->stateData(),
-                     daeData->derivData(),
-                     *defDAEMode);
+            setState(currentTime, daeData->stateData(), daeData->derivData(), *defDAEMode);
             updateLocalCache();
-            guessState(currentTime,
-                       dynDataDiff->stateData(),
-                       dynDataDiff->derivData(),
-                       sModeDiff);
+            guessState(currentTime, dynDataDiff->stateData(), dynDataDiff->derivData(), sModeDiff);
             guessState(currentTime, dynDataAlg->stateData(), nullptr, sModeAlg);
         } else {
             guessState(currentTime, dynDataDiff->stateData(), dynDataDiff->derivData(), sModeDiff);

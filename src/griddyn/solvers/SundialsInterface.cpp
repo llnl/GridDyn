@@ -345,153 +345,153 @@ bool isSUNMatrixSetup(SUNMatrix j)
 }
 
 namespace {
-using SparsePattern = std::vector<sunindextype>;
+    using SparsePattern = std::vector<sunindextype>;
 
-SparsePattern sparsePatternFromMatrix(SUNMatrix j, count_t stateCount)
-{
-    auto* matrix = SM_CONTENT_S(j);
-    const auto used = matrix->indexptrs[stateCount];
-    SparsePattern pattern(static_cast<size_t>(stateCount) + 1 + used);
-    std::copy_n(matrix->indexptrs, static_cast<size_t>(stateCount) + 1, pattern.data());
-    std::copy_n(matrix->indexvals,
-                static_cast<size_t>(used),
-                pattern.data() + static_cast<size_t>(stateCount) + 1);
-    return pattern;
-}
+    SparsePattern sparsePatternFromMatrix(SUNMatrix j, count_t stateCount)
+    {
+        auto* matrix = SM_CONTENT_S(j);
+        const auto used = matrix->indexptrs[stateCount];
+        SparsePattern pattern(static_cast<size_t>(stateCount) + 1 + used);
+        std::copy_n(matrix->indexptrs, static_cast<size_t>(stateCount) + 1, pattern.data());
+        std::copy_n(matrix->indexvals,
+                    static_cast<size_t>(used),
+                    pattern.data() + static_cast<size_t>(stateCount) + 1);
+        return pattern;
+    }
 
-SparsePattern sparsePatternFromData(MatrixData<double>& matrixData, count_t stateCount)
-{
-    matrixData.compact();
-    std::vector<std::pair<sunindextype, sunindextype>> entries;
-    entries.reserve(matrixData.size());
-    matrixData.start();
-    while (matrixData.moreData()) {
-        const auto element = matrixData.next();
-        if ((element.row < 0) || (element.row >= stateCount) || (element.col < 0) ||
-            (element.col >= stateCount)) {
-            continue;
+    SparsePattern sparsePatternFromData(MatrixData<double>& matrixData, count_t stateCount)
+    {
+        matrixData.compact();
+        std::vector<std::pair<sunindextype, sunindextype>> entries;
+        entries.reserve(matrixData.size());
+        matrixData.start();
+        while (matrixData.moreData()) {
+            const auto element = matrixData.next();
+            if ((element.row < 0) || (element.row >= stateCount) || (element.col < 0) ||
+                (element.col >= stateCount)) {
+                continue;
+            }
+            entries.emplace_back(static_cast<sunindextype>(element.row),
+                                 static_cast<sunindextype>(element.col));
         }
-        entries.emplace_back(static_cast<sunindextype>(element.row),
-                             static_cast<sunindextype>(element.col));
-    }
-    std::sort(entries.begin(), entries.end());
-    entries.erase(std::unique(entries.begin(), entries.end()), entries.end());
+        std::sort(entries.begin(), entries.end());
+        entries.erase(std::unique(entries.begin(), entries.end()), entries.end());
 
-    SparsePattern pattern(static_cast<size_t>(stateCount) + 1, 0);
-    pattern.reserve(static_cast<size_t>(stateCount) + 1 + entries.size());
-    size_t entryIndex = 0;
-    for (sunindextype row = 0; row < stateCount; ++row) {
-        while ((entryIndex < entries.size()) && (entries[entryIndex].first == row)) {
-            ++entryIndex;
-        }
-        pattern[row + 1] = static_cast<sunindextype>(entryIndex);
-    }
-    const auto oldSize = pattern.size();
-    pattern.resize(oldSize + entries.size());
-    for (size_t index = 0; index < entries.size(); ++index) {
-        pattern[oldSize + index] = entries[index].second;
-    }
-    return pattern;
-}
-
-bool sparsePatternContains(const SparsePattern& base,
-                           const SparsePattern& candidate,
-                           count_t stateCount)
-{
-    if ((base.size() < static_cast<size_t>(stateCount) + 1) ||
-        (candidate.size() < static_cast<size_t>(stateCount) + 1)) {
-        return false;
-    }
-    const auto baseColumns = base.data() + stateCount + 1;
-    const auto candidateColumns = candidate.data() + stateCount + 1;
-    for (sunindextype row = 0; row < stateCount; ++row) {
-        const auto baseBegin = baseColumns + base[row];
-        const auto baseEnd = baseColumns + base[row + 1];
-        const auto candidateBegin = candidateColumns + candidate[row];
-        const auto candidateEnd = candidateColumns + candidate[row + 1];
-        if (!std::includes(baseBegin, baseEnd, candidateBegin, candidateEnd)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-SparsePattern sparsePatternUnion(const SparsePattern& first,
-                                 const SparsePattern& second,
-                                 count_t stateCount)
-{
-    std::vector<std::vector<sunindextype>> columns(stateCount);
-    const auto addPattern = [&](const SparsePattern& pattern) {
-        if (pattern.size() < static_cast<size_t>(stateCount) + 1) {
-            return;
-        }
-        const auto patternColumns = pattern.data() + stateCount + 1;
+        SparsePattern pattern(static_cast<size_t>(stateCount) + 1, 0);
+        pattern.reserve(static_cast<size_t>(stateCount) + 1 + entries.size());
+        size_t entryIndex = 0;
         for (sunindextype row = 0; row < stateCount; ++row) {
-            const auto begin = patternColumns + pattern[row];
-            const auto end = patternColumns + pattern[row + 1];
-            columns[row].insert(columns[row].end(), begin, end);
+            while ((entryIndex < entries.size()) && (entries[entryIndex].first == row)) {
+                ++entryIndex;
+            }
+            pattern[row + 1] = static_cast<sunindextype>(entryIndex);
         }
-    };
-    addPattern(first);
-    addPattern(second);
-
-    SparsePattern result(static_cast<size_t>(stateCount) + 1, 0);
-    for (sunindextype row = 0; row < stateCount; ++row) {
-        auto& rowColumns = columns[row];
-        std::sort(rowColumns.begin(), rowColumns.end());
-        rowColumns.erase(std::unique(rowColumns.begin(), rowColumns.end()), rowColumns.end());
-        result[row + 1] = result[row] + static_cast<sunindextype>(rowColumns.size());
-    }
-    const auto oldSize = result.size();
-    result.resize(oldSize + result.back());
-    sunindextype entryIndex = 0;
-    for (const auto& rowColumns : columns) {
-        for (const auto column : rowColumns) {
-            result[oldSize + entryIndex] = column;
-            ++entryIndex;
+        const auto oldSize = pattern.size();
+        pattern.resize(oldSize + entries.size());
+        for (size_t index = 0; index < entries.size(); ++index) {
+            pattern[oldSize + index] = entries[index].second;
         }
+        return pattern;
     }
-    return result;
-}
 
-bool writeFixedSparseMatrix(SUNMatrix j,
-                            const SparsePattern& pattern,
-                            MatrixData<double>& matrixData,
-                            count_t stateCount)
-{
-    auto* matrix = SM_CONTENT_S(j);
-    const auto used = pattern.back();
-    if (used > matrix->NNZ) {
-        const auto retval = SUNSparseMatrix_Reallocate(j, used);
-        if (retval < 0) {
+    bool sparsePatternContains(const SparsePattern& base,
+                               const SparsePattern& candidate,
+                               count_t stateCount)
+    {
+        if ((base.size() < static_cast<size_t>(stateCount) + 1) ||
+            (candidate.size() < static_cast<size_t>(stateCount) + 1)) {
             return false;
         }
-        matrix = SM_CONTENT_S(j);
+        const auto baseColumns = base.data() + stateCount + 1;
+        const auto candidateColumns = candidate.data() + stateCount + 1;
+        for (sunindextype row = 0; row < stateCount; ++row) {
+            const auto baseBegin = baseColumns + base[row];
+            const auto baseEnd = baseColumns + base[row + 1];
+            const auto candidateBegin = candidateColumns + candidate[row];
+            const auto candidateEnd = candidateColumns + candidate[row + 1];
+            if (!std::includes(baseBegin, baseEnd, candidateBegin, candidateEnd)) {
+                return false;
+            }
+        }
+        return true;
     }
 
-    std::copy_n(pattern.data(), static_cast<size_t>(stateCount) + 1, matrix->indexptrs);
-    std::copy_n(pattern.data() + static_cast<size_t>(stateCount) + 1,
-                static_cast<size_t>(used),
-                matrix->indexvals);
-    std::fill_n(matrix->data, static_cast<size_t>(used), 0.0);
+    SparsePattern sparsePatternUnion(const SparsePattern& first,
+                                     const SparsePattern& second,
+                                     count_t stateCount)
+    {
+        std::vector<std::vector<sunindextype>> columns(stateCount);
+        const auto addPattern = [&](const SparsePattern& pattern) {
+            if (pattern.size() < static_cast<size_t>(stateCount) + 1) {
+                return;
+            }
+            const auto patternColumns = pattern.data() + stateCount + 1;
+            for (sunindextype row = 0; row < stateCount; ++row) {
+                const auto begin = patternColumns + pattern[row];
+                const auto end = patternColumns + pattern[row + 1];
+                columns[row].insert(columns[row].end(), begin, end);
+            }
+        };
+        addPattern(first);
+        addPattern(second);
 
-    matrixData.start();
-    while (matrixData.moreData()) {
-        const auto element = matrixData.next();
-        if ((element.row < 0) || (element.row >= stateCount)) {
-            continue;
+        SparsePattern result(static_cast<size_t>(stateCount) + 1, 0);
+        for (sunindextype row = 0; row < stateCount; ++row) {
+            auto& rowColumns = columns[row];
+            std::sort(rowColumns.begin(), rowColumns.end());
+            rowColumns.erase(std::unique(rowColumns.begin(), rowColumns.end()), rowColumns.end());
+            result[row + 1] = result[row] + static_cast<sunindextype>(rowColumns.size());
         }
-        const auto row = static_cast<sunindextype>(element.row);
-        const auto column = static_cast<sunindextype>(element.col);
-        const auto begin = matrix->indexvals + matrix->indexptrs[row];
-        const auto end = matrix->indexvals + matrix->indexptrs[row + 1];
-        const auto found = std::lower_bound(begin, end, column);
-        if ((found != end) && (*found == column)) {
-            matrix->data[found - matrix->indexvals] += element.data;
+        const auto oldSize = result.size();
+        result.resize(oldSize + result.back());
+        sunindextype entryIndex = 0;
+        for (const auto& rowColumns : columns) {
+            for (const auto column : rowColumns) {
+                result[oldSize + entryIndex] = column;
+                ++entryIndex;
+            }
         }
+        return result;
     }
-    return true;
-}
+
+    bool writeFixedSparseMatrix(SUNMatrix j,
+                                const SparsePattern& pattern,
+                                MatrixData<double>& matrixData,
+                                count_t stateCount)
+    {
+        auto* matrix = SM_CONTENT_S(j);
+        const auto used = pattern.back();
+        if (used > matrix->NNZ) {
+            const auto retval = SUNSparseMatrix_Reallocate(j, used);
+            if (retval < 0) {
+                return false;
+            }
+            matrix = SM_CONTENT_S(j);
+        }
+
+        std::copy_n(pattern.data(), static_cast<size_t>(stateCount) + 1, matrix->indexptrs);
+        std::copy_n(pattern.data() + static_cast<size_t>(stateCount) + 1,
+                    static_cast<size_t>(used),
+                    matrix->indexvals);
+        std::fill_n(matrix->data, static_cast<size_t>(used), 0.0);
+
+        matrixData.start();
+        while (matrixData.moreData()) {
+            const auto element = matrixData.next();
+            if ((element.row < 0) || (element.row >= stateCount)) {
+                continue;
+            }
+            const auto row = static_cast<sunindextype>(element.row);
+            const auto column = static_cast<sunindextype>(element.col);
+            const auto begin = matrix->indexvals + matrix->indexptrs[row];
+            const auto end = matrix->indexvals + matrix->indexptrs[row + 1];
+            const auto found = std::lower_bound(begin, end, column);
+            if ((found != end) && (*found == column)) {
+                matrix->data[found - matrix->indexvals] += element.data;
+            }
+        }
+        return true;
+    }
 }  // namespace
 
 void matrixDataToSUNMatrix(MatrixData<double>& md, SUNMatrix j, count_t svsize)
@@ -600,8 +600,8 @@ int sundialsJac(sunrealtype time,
     const bool performance = (sd->m_gds != nullptr) &&
         sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
         (sd->mode.pairedOffsetIndex != kNullLocation);
-    const auto jacobianStart = performance ? std::chrono::steady_clock::now() :
-                                             std::chrono::steady_clock::time_point{};
+    const auto jacobianStart =
+        performance ? std::chrono::steady_clock::now() : std::chrono::steady_clock::time_point{};
     const auto finishPerformance = [&]() {
         if (performance) {
             ++sd->performanceJacobianCalls;
@@ -612,8 +612,8 @@ int sundialsJac(sunrealtype time,
     };
     auto* stateData = nvecdata(sd->use_omp, state);
     auto* dstateData = nvecdata(sd->use_omp, dstateDt);
-    const bool partitionedSparse = (SUNMatGetID(j) == SUNMATRIX_SPARSE) &&
-        (sd->mode.pairedOffsetIndex != kNullLocation);
+    const bool partitionedSparse =
+        (SUNMatGetID(j) == SUNMATRIX_SPARSE) && (sd->mode.pairedOffsetIndex != kNullLocation);
 
     if (matrixNeedsSetup(sd->jacCallCount, j)) {
         auto a1 = makeSparseMatrix(sd->svsize, sd->maxNNZ);
@@ -630,7 +630,7 @@ int sundialsJac(sunrealtype time,
             if (performance) {
                 sd->performanceModelJacobianTime +=
                     std::chrono::duration<double>(std::chrono::steady_clock::now() -
-                                                   modelJacobianStart)
+                                                  modelJacobianStart)
                         .count();
             }
             for (auto& v : sd->maskElements) {
@@ -643,7 +643,7 @@ int sundialsJac(sunrealtype time,
             if (performance) {
                 sd->performanceModelJacobianTime +=
                     std::chrono::duration<double>(std::chrono::steady_clock::now() -
-                                                   modelJacobianStart)
+                                                  modelJacobianStart)
                         .count();
             }
         }
@@ -735,7 +735,7 @@ int sundialsJac(sunrealtype time,
             if (performance) {
                 sd->performanceModelJacobianTime +=
                     std::chrono::duration<double>(std::chrono::steady_clock::now() -
-                                                   modelJacobianStart)
+                                                  modelJacobianStart)
                         .count();
             }
             for (auto& v : sd->maskElements) {
@@ -748,7 +748,7 @@ int sundialsJac(sunrealtype time,
             if (performance) {
                 sd->performanceModelJacobianTime +=
                     std::chrono::duration<double>(std::chrono::steady_clock::now() -
-                                                   modelJacobianStart)
+                                                  modelJacobianStart)
                         .count();
             }
         }
@@ -757,8 +757,8 @@ int sundialsJac(sunrealtype time,
         if (sd->sparsePattern.empty()) {
             sd->sparsePattern = currentPattern;
         }
-        const bool expandsPattern = !sparsePatternContains(
-            sd->sparsePattern, currentPattern, sd->svsize);
+        const bool expandsPattern =
+            !sparsePatternContains(sd->sparsePattern, currentPattern, sd->svsize);
         if (expandsPattern) {
             const auto previousNnz = sd->sparsePattern.back();
             const auto unionPattern =
@@ -804,7 +804,7 @@ int sundialsJac(sunrealtype time,
             if (performance) {
                 sd->performanceModelJacobianTime +=
                     std::chrono::duration<double>(std::chrono::steady_clock::now() -
-                                                   modelJacobianStart)
+                                                  modelJacobianStart)
                         .count();
             }
             for (auto& v : sd->maskElements) {
@@ -817,7 +817,7 @@ int sundialsJac(sunrealtype time,
             if (performance) {
                 sd->performanceModelJacobianTime +=
                     std::chrono::duration<double>(std::chrono::steady_clock::now() -
-                                                   modelJacobianStart)
+                                                  modelJacobianStart)
                         .count();
             }
         }

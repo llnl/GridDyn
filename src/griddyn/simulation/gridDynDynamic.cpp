@@ -32,6 +32,13 @@ static IOdata gNullOutputVec;  //!<  this is a purposely created empty vector wh
                                //!<  functions that take as
 //! an input a vector but don't use it.
 
+namespace {
+void reportPartitionedDiagnosticFailure() noexcept
+{
+    static_cast<void>(std::fputs("GridDyn: partitioned diagnostic output failed\n", stderr));
+}
+}  // namespace
+
 // --------------- dynamic program ---------------
 // dynamic solver and initial conditions
 int GridDynSimulation::dynInitialize(CoreTime tStart)
@@ -1423,7 +1430,7 @@ int GridDynSimulation::dynAlgebraicSolve(CoreTime time,
                 diffState != nullptr,
                 deriv != nullptr);
         } catch (...) {
-            // Diagnostics are best effort and must not escape this callback.
+            reportPartitionedDiagnosticFailure();
         }
         return FUNCTION_EXECUTION_FAILURE;
     }
@@ -1453,7 +1460,7 @@ int GridDynSimulation::dynAlgebraicSolve(CoreTime time,
                     solverData->size(),
                     solverData->isInitialized()));
             } catch (...) {
-                // Diagnostics are best effort and must not escape this callback.
+                reportPartitionedDiagnosticFailure();
             }
         }
         CoreTime tret;
@@ -1471,7 +1478,7 @@ int GridDynSimulation::dynAlgebraicSolve(CoreTime time,
                     ret,
                     static_cast<double>(tret)));
             } catch (...) {
-                // Diagnostics are best effort and must not escape this callback.
+                reportPartitionedDiagnosticFailure();
             }
         }
         if (ret < 0) {

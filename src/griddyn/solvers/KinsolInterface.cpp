@@ -423,7 +423,13 @@ int KinsolInterface::solve(CoreTime tStop, CoreTime& tReturn, StepMode /*mode*/)
         auto mvec = findMissing(&a1);
     }
 #endif
-    tReturn = (retval >= 0) ? solveTime : ((m_gds != nullptr) ? m_gds->getSimulationTime() : solveTime);
+    if (retval >= 0) {
+        tReturn = solveTime;
+    } else if (m_gds != nullptr) {
+        tReturn = m_gds->getSimulationTime();
+    } else {
+        tReturn = solveTime;
+    }
     ++solverCallCount;
     if (retval == KIN_REPTD_SYSFUNC_ERR) {
         retval = SOLVER_INVALID_STATE_ERROR;
@@ -446,6 +452,9 @@ void KinsolInterface::setConstraints()
 int kinsolFunc(N_Vector state, N_Vector resid, void* userData)
 {
     auto* sd = static_cast<KinsolInterface*>(userData);
+    if (sd->m_gds == nullptr) {
+        return FUNCTION_EXECUTION_FAILURE;
+    }
     sd->funcCallCount++;
     const bool performance = (sd->m_gds != nullptr) &&
         sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
@@ -540,6 +549,9 @@ int kinsolJac(N_Vector state,
               N_Vector tmp2)
 {
     auto* sd = static_cast<KinsolInterface*>(userData);
+    if (sd->m_gds == nullptr) {
+        return FUNCTION_EXECUTION_FAILURE;
+    }
     const bool partitionedTrace = (sd->m_gds != nullptr) &&
         sd->m_gds->isFlagSet(PARTITIONED_DIAGNOSTICS_FLAG) &&
         (sd->mode.pairedOffsetIndex != kNullLocation) &&

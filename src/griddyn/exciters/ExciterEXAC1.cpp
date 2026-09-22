@@ -211,8 +211,8 @@ void ExciterEXAC1::dynObjectInitializeB(const IOdata& inputs,
         state[regulatorIndex] = initialRegulator;
     } else {
         m_state[1] = std::clamp(initialRegulator,
-                                static_cast<double>(regulatorLowerLimit()),
-                                static_cast<double>(regulatorUpperLimit()));
+                                regulatorLowerLimit(),
+                                regulatorUpperLimit());
     }
     if (leadLagEnabled) {
         state[stateIndex(leadLagState, hasVoltageTransducer, true, true)] = initialRegulator / Ka;
@@ -300,8 +300,8 @@ void ExciterEXAC1::stateWithRegulator(const double state[],
 double ExciterEXAC1::staticRegulatorTarget(const IOdata& inputs, const double state[]) const
 {
     return std::clamp(regulatorDrive(inputs, state),
-                      static_cast<double>(regulatorLowerLimit()),
-                      static_cast<double>(regulatorUpperLimit()));
+                      regulatorLowerLimit(),
+                      regulatorUpperLimit());
 }
 
 double ExciterEXAC1::regulatorTargetValue(const IOdata& inputs,
@@ -409,8 +409,8 @@ bool ExciterEXAC1::updateLimitFlags(const IOdata& inputs, double state[], double
             // A root return can leave the state a tolerance outside the
             // geometric limit. Project it to the boundary before holding it.
             state[regulatorIndex] = std::clamp(state[regulatorIndex],
-                                               static_cast<double>(regulatorLowerLimit()),
-                                               static_cast<double>(regulatorUpperLimit()));
+                                               regulatorLowerLimit(),
+                                               regulatorUpperLimit());
         }
     } else if (dynamicRegulator) {
         // The solver state can restart exactly on a geometric bound while the
@@ -825,8 +825,8 @@ void ExciterEXAC1::rootTrigger(CoreTime time,
         opFlags.set(REGULATOR_LIMIT_HIGH, high);
         if (limited) {
             state[regulatorIndex] = std::clamp(state[regulatorIndex],
-                                               static_cast<double>(regulatorLowerLimit()),
-                                               static_cast<double>(regulatorUpperLimit()));
+                                               regulatorLowerLimit(),
+                                               regulatorUpperLimit());
         } else {
             state[regulatorIndex] = wasHigh ? regulatorUpperLimit() - limitTolerance :
                                               regulatorLowerLimit() + limitTolerance;

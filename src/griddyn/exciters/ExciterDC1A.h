@@ -8,6 +8,7 @@
 
 #include "ExciterIEEEtype1.h"
 #include <string>
+#include <vector>
 namespace griddyn::exciters {
 /** @brief DC1A exciter
  */

@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cmath>
 #include <string>
+#include <vector>
 namespace griddyn::exciters {
 ExciterDC1A::ExciterDC1A(const std::string& objName): ExciterIEEEtype1(objName)
 {

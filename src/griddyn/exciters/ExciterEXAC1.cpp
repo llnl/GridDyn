@@ -11,6 +11,7 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <string>
 #include <vector>
@@ -26,13 +27,17 @@ namespace {
     constexpr index_t exciterState = 3;
     constexpr index_t washoutState = 4;
     constexpr double limitTolerance = 1e-7;
-    index_t stateIndex(index_t fullIndex, bool hasVoltageTransducer, bool hasLeadLag)
+    index_t
+        stateIndex(index_t fullIndex, bool hasVoltageTransducer, bool hasLeadLag, bool hasRegulator)
     {
         index_t index = fullIndex;
         if (!hasVoltageTransducer && (fullIndex > voltageMeasurementState)) {
             --index;
         }
         if (!hasLeadLag && (fullIndex > leadLagState)) {
+            --index;
+        }
+        if (!hasRegulator && (fullIndex > regulatorState)) {
             --index;
         }
         return index;
@@ -69,12 +74,22 @@ CoreObject* ExciterEXAC1::clone(CoreObject* obj) const
     clone->Se2 = Se2;
     clone->saturation = saturation;
     clone->leadLag = leadLag;
+    clone->rootTransitionPending = rootTransitionPending;
+    clone->rootTransitionLimited = rootTransitionLimited;
+    clone->rootTransitionHigh = rootTransitionHigh;
+    clone->rootRearmPending = rootRearmPending;
+    clone->rootRearmTime = rootRearmTime;
     return clone;
 }
 
 bool ExciterEXAC1::hasLeadLag() const
 {
     return Tb > 0.0;
+}
+
+bool ExciterEXAC1::hasDynamicRegulator() const
+{
+    return Ta > 0.0;
 }
 
 void ExciterEXAC1::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t flags)
@@ -84,7 +99,7 @@ void ExciterEXAC1::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t flags)
         !std::isfinite(Ta) || !std::isfinite(Vrmax) || !std::isfinite(Vrmin) ||
         !std::isfinite(Te) || !std::isfinite(Kf) || !std::isfinite(Tf) || !std::isfinite(Kc) ||
         !std::isfinite(Kd) || !std::isfinite(Ke) || !std::isfinite(E1) || !std::isfinite(Se1) ||
-        !std::isfinite(E2) || !std::isfinite(Se2) || (Tr < 0.0) || (Tb < 0.0) || (Ta <= 0.0) ||
+        !std::isfinite(E2) || !std::isfinite(Se2) || (Tr < 0.0) || (Tb < 0.0) || (Ta < 0.0) ||
         (Te <= 0.0) || (Tf <= 0.0) || (Ka <= 0.0) || (Vrmax < Vrmin) ||
         (regulatorUpperLimit() < regulatorLowerLimit())) {
         throw InvalidParameterValue("EXAC1 gains, time constants, or limits");
@@ -95,6 +110,11 @@ void ExciterEXAC1::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t flags)
     if (hasLeadLag()) {
         leadLag.setParameters(Tc, Tb);
     }
+    rootTransitionPending = false;
+    rootTransitionLimited = false;
+    rootTransitionHigh = false;
+    rootRearmPending = false;
+    rootRearmTime = 0.0;
     // ANDES disables ExcQuadSat when SE2 is zero.  Saturation::QUADRATIC
     // intentionally does not infer that convention, because its generic
     // two-point fit permits no zero denominator.
@@ -118,10 +138,13 @@ void ExciterEXAC1::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t flags)
         saturation.setParam(E1, E1 * Se1, E2, E2 * Se2);
     }
     const bool hasVoltageTransducer = (Tr > 0.0);
-    offsets.local().local.algSize = 1;
-    offsets.local().local.diffSize = (hasVoltageTransducer ? 1 : 0) + (hasLeadLag() ? 1 : 0) + 3;
-    offsets.local().local.algRoots = 1;
-    offsets.local().local.jacSize = 34;
+    const bool leadLagEnabled = hasLeadLag();
+    const bool dynamicRegulator = hasDynamicRegulator();
+    offsets.local().local.algSize = dynamicRegulator ? 1 : 2;
+    offsets.local().local.diffSize =
+        (hasVoltageTransducer ? 1 : 0) + (leadLagEnabled ? 1 : 0) + (dynamicRegulator ? 3 : 2);
+    offsets.local().local.algRoots = dynamicRegulator ? 1 : 0;
+    offsets.local().local.jacSize = dynamicRegulator ? 34 : 40;
 }
 
 void ExciterEXAC1::dynObjectInitializeB(const IOdata& inputs,
@@ -163,24 +186,34 @@ void ExciterEXAC1::dynObjectInitializeB(const IOdata& inputs,
     }
     const bool hasVoltageTransducer = (Tr > 0.0);
     const bool leadLagEnabled = hasLeadLag();
-    double* state = m_state.data() + 1;
+    const bool dynamicRegulator = hasDynamicRegulator();
+    const index_t algebraicStateCount = dynamicRegulator ? 1 : 2;
+    double* state = m_state.data() + algebraicStateCount;
     if (hasVoltageTransducer) {
         state[voltageMeasurementState] = voltage;
     }
-    const auto regulatorIndex = stateIndex(regulatorState, hasVoltageTransducer, leadLagEnabled);
-    const auto exciterIndex = stateIndex(exciterState, hasVoltageTransducer, leadLagEnabled);
-    const auto washoutIndex = stateIndex(washoutState, hasVoltageTransducer, leadLagEnabled);
+    const auto regulatorIndex =
+        stateIndex(regulatorState, hasVoltageTransducer, leadLagEnabled, dynamicRegulator);
+    const auto exciterIndex =
+        stateIndex(exciterState, hasVoltageTransducer, leadLagEnabled, dynamicRegulator);
+    const auto washoutIndex =
+        stateIndex(washoutState, hasVoltageTransducer, leadLagEnabled, dynamicRegulator);
     state[exciterIndex] = exciterVoltage;
     state[washoutIndex] = vfe(inputs, state);
-    state[regulatorIndex] = initialRegulatorState(state[washoutIndex]);
-    if (state[regulatorIndex] < regulatorLowerLimit() - limitTolerance) {
+    const double initialRegulator = initialRegulatorState(state[washoutIndex]);
+    if (initialRegulator < regulatorLowerLimit() - limitTolerance) {
         throw InvalidParameterValue("EXAC1 initial regulator output below lower limit");
     }
-    if (!adjustRegulatorInitialUpperLimit(state[regulatorIndex])) {
+    if (!adjustRegulatorInitialUpperLimit(initialRegulator)) {
         throw InvalidParameterValue("EXAC1 initial regulator output outside upper limit");
     }
+    if (dynamicRegulator) {
+        state[regulatorIndex] = initialRegulator;
+    } else {
+        m_state[1] = std::clamp(initialRegulator, regulatorLowerLimit(), regulatorUpperLimit());
+    }
     if (leadLagEnabled) {
-        state[stateIndex(leadLagState, hasVoltageTransducer, true)] = state[regulatorIndex] / Ka;
+        state[stateIndex(leadLagState, hasVoltageTransducer, true, true)] = initialRegulator / Ka;
     }
     m_state[0] = fieldVoltage;
     const double setpointInput = inputs[exciterVsetInLocation] - 1.0;
@@ -188,7 +221,7 @@ void ExciterEXAC1::dynObjectInitializeB(const IOdata& inputs,
         inputs[exciterVssInLocation];
     fieldSet[exciterVsetInLocation] = Vref;
     std::fill(m_dstate_dt.begin(), m_dstate_dt.end(), 0.0);
-    updateLimitFlags(state);
+    updateLimitFlags(inputs, state, dynamicRegulator ? initialRegulator : m_state[1]);
 }
 
 bool ExciterEXAC1::adjustRegulatorInitialUpperLimit(double initialValue)
@@ -203,7 +236,8 @@ double ExciterEXAC1::referenceInput(const IOdata& inputs) const
 
 double ExciterEXAC1::vfe(const IOdata& inputs, const double state[]) const
 {
-    const auto exciterIndex = stateIndex(exciterState, Tr > 0.0, hasLeadLag());
+    const auto exciterIndex =
+        stateIndex(exciterState, Tr > 0.0, hasLeadLag(), hasDynamicRegulator());
     const double fieldFeedback = Ke * state[exciterIndex] + saturation(state[exciterIndex]);
     return (Kd == 0.0) ? fieldFeedback : fieldFeedback + Kd * inputs[exciterXadIfdInLocation];
 }
@@ -221,13 +255,66 @@ double ExciterEXAC1::rectifierFactor(const IOdata& inputs, double exciterVoltage
 
 double ExciterEXAC1::fieldVoltage(const IOdata& inputs, const double state[]) const
 {
-    const auto exciterIndex = stateIndex(exciterState, Tr > 0.0, hasLeadLag());
+    const auto exciterIndex =
+        stateIndex(exciterState, Tr > 0.0, hasLeadLag(), hasDynamicRegulator());
     return state[exciterIndex] * rectifierFactor(inputs, state[exciterIndex]);
+}
+
+double ExciterEXAC1::regulatorDrive(const IOdata& inputs, const double state[]) const
+{
+    const bool hasVoltageTransducer = (Tr > 0.0);
+    const bool leadLagEnabled = hasLeadLag();
+    const auto washoutIndex =
+        stateIndex(washoutState, hasVoltageTransducer, leadLagEnabled, hasDynamicRegulator());
+    const double measuredVoltage =
+        hasVoltageTransducer ? state[voltageMeasurementState] : inputs[exciterVoltageInLocation];
+    const double fieldFeedback = vfe(inputs, state);
+    const double input =
+        referenceInput(inputs) - measuredVoltage - Kf * (fieldFeedback - state[washoutIndex]) / Tf;
+    const double leadOutput = leadLagEnabled ?
+        leadLag.output(input, state[stateIndex(leadLagState, hasVoltageTransducer, true, true)]) :
+        input;
+    return Ka * leadOutput;
+}
+
+void ExciterEXAC1::stateWithRegulator(const double state[],
+                                      double regulatorValue,
+                                      double augmentedState[]) const
+{
+    const bool hasVoltageTransducer = (Tr > 0.0);
+    const bool leadLagEnabled = hasLeadLag();
+    const index_t regulatorIndex =
+        stateIndex(regulatorState, hasVoltageTransducer, leadLagEnabled, true);
+    const index_t stateSize = (hasVoltageTransducer ? 1 : 0) + (leadLagEnabled ? 1 : 0) + 2;
+    for (index_t index = 0; index < regulatorIndex; ++index) {
+        augmentedState[index] = state[index];
+    }
+    augmentedState[regulatorIndex] = regulatorValue;
+    for (index_t index = regulatorIndex; index < (stateSize - 1); ++index) {
+        augmentedState[index + 1] = state[index];
+    }
+}
+
+double ExciterEXAC1::staticRegulatorTarget(const IOdata& inputs, const double state[]) const
+{
+    return std::clamp(regulatorDrive(inputs, state), regulatorLowerLimit(), regulatorUpperLimit());
+}
+
+double ExciterEXAC1::regulatorTargetValue(const IOdata& inputs,
+                                          const double state[],
+                                          double regulatorValue) const
+{
+    if (hasDynamicRegulator()) {
+        return regulatorTarget(inputs, state);
+    }
+    std::array<double, 5> augmentedState{};
+    stateWithRegulator(state, regulatorValue, augmentedState.data());
+    return regulatorTarget(inputs, augmentedState.data());
 }
 
 double ExciterEXAC1::regulatorTarget(const IOdata& /*inputs*/, const double state[]) const
 {
-    return state[stateIndex(regulatorState, Tr > 0.0, hasLeadLag())];
+    return state[stateIndex(regulatorState, Tr > 0.0, hasLeadLag(), true)];
 }
 
 double ExciterEXAC1::regulatorUpperLimit() const
@@ -258,22 +345,90 @@ void ExciterEXAC1::regulatorTargetDerivatives(const IOdata& /*inputs*/,
     fieldCurrentDerivative = 0.0;
 }
 
-int ExciterEXAC1::regulatorLimitStatus(const double state[]) const
+int ExciterEXAC1::regulatorLimitStatus(const double state[], double regulatorValue) const
 {
-    const auto regulatorIndex = stateIndex(regulatorState, Tr > 0.0, hasLeadLag());
-    if (state[regulatorIndex] >= regulatorUpperLimit()) {
+    const double regulator = hasDynamicRegulator() ?
+        state[stateIndex(regulatorState, Tr > 0.0, hasLeadLag(), true)] :
+        regulatorValue;
+    if (regulator >= regulatorUpperLimit()) {
         return 1;
     }
-    return (state[regulatorIndex] <= regulatorLowerLimit()) ? -1 : 0;
+    return (regulator <= regulatorLowerLimit()) ? -1 : 0;
 }
 
-bool ExciterEXAC1::updateLimitFlags(const double state[])
+bool ExciterEXAC1::updateLimitFlags(const IOdata& inputs, double state[], double regulatorValue)
 {
-    const int status = regulatorLimitStatus(state);
-    const bool changed = (opFlags[REGULATOR_LIMITED] != (status != 0)) ||
-        (opFlags[REGULATOR_LIMIT_HIGH] != (status > 0));
-    opFlags.set(REGULATOR_LIMITED, status != 0);
-    opFlags.set(REGULATOR_LIMIT_HIGH, status > 0);
+    const int status = regulatorLimitStatus(state, regulatorValue);
+    const bool wasLimited = opFlags[REGULATOR_LIMITED];
+    bool limited = status != 0;
+    bool high = status > 0;
+    const bool dynamicRegulator = hasDynamicRegulator();
+    const auto regulatorIndex = stateIndex(regulatorState, Tr > 0.0, hasLeadLag(), true);
+    if (wasLimited) {
+        // A held regulator state can remain exactly on its bound after IDA
+        // returns from a root. Release from the unconstrained drive, rather
+        // than from state distance, so an equilibrium at the bound is not
+        // reported as a new root forever.
+        const double drive = regulatorDrive(inputs, state) - regulatorValue;
+        const bool wasHigh = opFlags[REGULATOR_LIMIT_HIGH];
+        const bool release = wasHigh ? (drive <= -limitTolerance) : (drive >= limitTolerance);
+        if (release) {
+            limited = false;
+            high = false;
+            if (dynamicRegulator) {
+                // Move just inside the released side of the limit.  The root
+                // is intentionally offset by limitTolerance, so leaving the
+                // state at the boundary would let the next root check
+                // immediately re-engage the limiter.
+                state[regulatorIndex] = wasHigh ? regulatorUpperLimit() - limitTolerance :
+                                                  regulatorLowerLimit() + limitTolerance;
+            }
+        } else {
+            limited = true;
+            high = wasHigh;
+        }
+    } else if (status != 0) {
+        // If an unbounded state is exactly on (or just beyond) a limit and
+        // its unconstrained drive points inward, this is the release side of
+        // the boundary, not a new limit entry.  This also keeps rootCheck()
+        // from re-latching a limiter before IDA has advanced the state.
+        const double drive = regulatorDrive(inputs, state) - regulatorValue;
+        const bool inward = (status > 0) ? (drive <= -limitTolerance) : (drive >= limitTolerance);
+        if (inward) {
+            limited = false;
+            high = false;
+            if (dynamicRegulator) {
+                state[regulatorIndex] = (status > 0) ? regulatorUpperLimit() - limitTolerance :
+                                                       regulatorLowerLimit() + limitTolerance;
+            }
+        } else if (dynamicRegulator) {
+            // A root return can leave the state a tolerance outside the
+            // geometric limit. Project it to the boundary before holding it.
+            state[regulatorIndex] =
+                std::clamp(state[regulatorIndex], regulatorLowerLimit(), regulatorUpperLimit());
+        }
+    } else if (dynamicRegulator) {
+        // The solver state can restart exactly on a geometric bound while the
+        // object-side state has already been nudged just inside it.  If the
+        // unconstrained drive still points outward, this is a real re-entry,
+        // not a release.  Recognize it before rootCheck() preserves a pending
+        // release branch, otherwise IDA immediately rediscovers the entry
+        // root at the same state.
+        const double drive = regulatorDrive(inputs, state) - regulatorValue;
+        if ((state[regulatorIndex] >= regulatorUpperLimit() - limitTolerance) &&
+            (drive > limitTolerance)) {
+            limited = true;
+            high = true;
+        } else if ((state[regulatorIndex] <= regulatorLowerLimit() + limitTolerance) &&
+                   (drive < -limitTolerance)) {
+            limited = true;
+            high = false;
+        }
+    }
+    const bool changed =
+        (opFlags[REGULATOR_LIMITED] != limited) || (opFlags[REGULATOR_LIMIT_HIGH] != high);
+    opFlags.set(REGULATOR_LIMITED, limited);
+    opFlags.set(REGULATOR_LIMIT_HIGH, high);
     return changed;
 }
 
@@ -286,6 +441,10 @@ void ExciterEXAC1::residual(const IOdata& inputs,
     if (hasAlgebraic(sMode)) {
         locations.destLoc[0] =
             fieldVoltage(inputs, locations.diffStateLoc) - locations.algStateLoc[0];
+        if (!hasDynamicRegulator()) {
+            locations.destLoc[1] =
+                staticRegulatorTarget(inputs, locations.diffStateLoc) - locations.algStateLoc[1];
+        }
     }
     if (hasDifferential(sMode)) {
         derivative(inputs, stateData, resid, sMode);
@@ -308,32 +467,42 @@ void ExciterEXAC1::derivative(const IOdata& inputs,
     double* derivativeValues = locations.destDiffLoc;
     const bool hasVoltageTransducer = (Tr > 0.0);
     const bool leadLagEnabled = hasLeadLag();
-    const auto regulatorIndex = stateIndex(regulatorState, hasVoltageTransducer, leadLagEnabled);
-    const auto exciterIndex = stateIndex(exciterState, hasVoltageTransducer, leadLagEnabled);
-    const auto washoutIndex = stateIndex(washoutState, hasVoltageTransducer, leadLagEnabled);
+    const bool dynamicRegulator = hasDynamicRegulator();
+    const auto regulatorIndex =
+        stateIndex(regulatorState, hasVoltageTransducer, leadLagEnabled, dynamicRegulator);
+    const auto exciterIndex =
+        stateIndex(exciterState, hasVoltageTransducer, leadLagEnabled, dynamicRegulator);
+    const auto washoutIndex =
+        stateIndex(washoutState, hasVoltageTransducer, leadLagEnabled, dynamicRegulator);
     const double measuredVoltage =
         hasVoltageTransducer ? state[voltageMeasurementState] : inputs[exciterVoltageInLocation];
     const double fieldFeedback = vfe(inputs, state);
     const double input =
         referenceInput(inputs) - measuredVoltage - Kf * (fieldFeedback - state[washoutIndex]) / Tf;
     const double leadOutput = leadLagEnabled ?
-        leadLag.output(input, state[stateIndex(leadLagState, hasVoltageTransducer, true)]) :
+        leadLag.output(input, state[stateIndex(leadLagState, hasVoltageTransducer, true, true)]) :
         input;
-    const double regulatorDerivative = (Ka * leadOutput - state[regulatorIndex]) / Ta;
-    const int status = regulatorLimitStatus(state);
+    const double regulatorValue =
+        dynamicRegulator ? state[regulatorIndex] : locations.algStateLoc[1];
+    const double regulatorDerivative =
+        dynamicRegulator ? (Ka * leadOutput - regulatorValue) / Ta : 0.0;
+    const int status = regulatorLimitStatus(state, regulatorValue);
     if (hasVoltageTransducer) {
         derivativeValues[voltageMeasurementState] =
             (inputs[exciterVoltageInLocation] - state[voltageMeasurementState]) / Tr;
     }
     if (leadLagEnabled) {
-        const auto leadLagIndex = stateIndex(leadLagState, hasVoltageTransducer, true);
+        const auto leadLagIndex = stateIndex(leadLagState, hasVoltageTransducer, true, true);
         derivativeValues[leadLagIndex] = leadLag.derivative(input, state[leadLagIndex]);
     }
-    derivativeValues[regulatorIndex] = ((status > 0) && (regulatorDerivative > 0.0)) ||
-            ((status < 0) && (regulatorDerivative < 0.0)) ?
-        0.0 :
-        regulatorDerivative;
-    derivativeValues[exciterIndex] = (regulatorTarget(inputs, state) - fieldFeedback) / Te;
+    if (dynamicRegulator) {
+        derivativeValues[regulatorIndex] = ((status > 0) && (regulatorDerivative > 0.0)) ||
+                ((status < 0) && (regulatorDerivative < 0.0)) ?
+            0.0 :
+            regulatorDerivative;
+    }
+    derivativeValues[exciterIndex] =
+        (regulatorTargetValue(inputs, state, regulatorValue) - fieldFeedback) / Te;
     derivativeValues[washoutIndex] = (fieldFeedback - state[washoutIndex]) / Tf;
 }
 
@@ -349,10 +518,14 @@ void ExciterEXAC1::jacobianElements(const IOdata& inputs,
     const double* state = locations.diffStateLoc;
     const bool hasVoltageTransducer = (Tr > 0.0);
     const bool leadLagEnabled = hasLeadLag();
-    const auto leadLagIndex = stateIndex(leadLagState, hasVoltageTransducer, true);
-    const auto regulatorIndex = stateIndex(regulatorState, hasVoltageTransducer, leadLagEnabled);
-    const auto exciterIndex = stateIndex(exciterState, hasVoltageTransducer, leadLagEnabled);
-    const auto washoutIndex = stateIndex(washoutState, hasVoltageTransducer, leadLagEnabled);
+    const bool dynamicRegulator = hasDynamicRegulator();
+    const auto leadLagIndex = stateIndex(leadLagState, hasVoltageTransducer, true, true);
+    const auto regulatorIndex =
+        stateIndex(regulatorState, hasVoltageTransducer, leadLagEnabled, dynamicRegulator);
+    const auto exciterIndex =
+        stateIndex(exciterState, hasVoltageTransducer, leadLagEnabled, dynamicRegulator);
+    const auto washoutIndex =
+        stateIndex(washoutState, hasVoltageTransducer, leadLagEnabled, dynamicRegulator);
     const double exciterVoltage = state[exciterIndex];
     const double normalizedCurrent =
         (exciterVoltage != 0.0) ? Kc * inputs[exciterXadIfdInLocation] / exciterVoltage : 0.0;
@@ -367,6 +540,56 @@ void ExciterEXAC1::jacobianElements(const IOdata& inputs,
         matrixData.assignCheckCol(algOffset,
                                   inputLocs[exciterXadIfdInLocation],
                                   fex.derivative * Kc);
+        if (!dynamicRegulator) {
+            matrixData.assign(algOffset + 1, algOffset + 1, -1.0);
+            const double saturationSlope = Ke + saturation.deriv(exciterVoltage);
+            const double feedbackGain = Kf / Tf;
+            const double measuredVoltage = hasVoltageTransducer ? state[voltageMeasurementState] :
+                                                                  inputs[exciterVoltageInLocation];
+            const double input = referenceInput(inputs) - measuredVoltage -
+                feedbackGain * (vfe(inputs, state) - state[washoutIndex]);
+            const double leadInputGain = leadLagEnabled ? leadLag.outputInputJacobian() : 1.0;
+            const double leadStateGain = leadLagEnabled ? leadLag.outputStateJacobian() : 0.0;
+            const double leadOutput =
+                leadLagEnabled ? leadLag.output(input, state[leadLagIndex]) : input;
+            const double unlimitedRegulator = Ka * leadOutput;
+            const bool regulatorLimitActive = (unlimitedRegulator <= regulatorLowerLimit()) ||
+                (unlimitedRegulator >= regulatorUpperLimit());
+            if (!regulatorLimitActive) {
+                if (!isAlgebraicOnly(sMode)) {
+                    if (leadLagEnabled) {
+                        matrixData.assign(algOffset + 1,
+                                          diffOffset + leadLagIndex,
+                                          Ka * leadStateGain);
+                    }
+                    if (hasVoltageTransducer) {
+                        matrixData.assign(algOffset + 1,
+                                          diffOffset + voltageMeasurementState,
+                                          -Ka * leadInputGain);
+                    }
+                    matrixData.assign(algOffset + 1,
+                                      diffOffset + exciterIndex,
+                                      -Ka * leadInputGain * feedbackGain * saturationSlope);
+                    matrixData.assign(algOffset + 1,
+                                      diffOffset + washoutIndex,
+                                      Ka * leadInputGain * feedbackGain);
+                }
+                if (!hasVoltageTransducer) {
+                    matrixData.assignCheckCol(algOffset + 1,
+                                              inputLocs[exciterVoltageInLocation],
+                                              -Ka * leadInputGain);
+                }
+                matrixData.assignCheckCol(algOffset + 1,
+                                          inputLocs[exciterVsetInLocation],
+                                          Ka * leadInputGain);
+                matrixData.assignCheckCol(algOffset + 1,
+                                          inputLocs[exciterVssInLocation],
+                                          Ka * leadInputGain);
+                matrixData.assignCheckCol(algOffset + 1,
+                                          inputLocs[exciterXadIfdInLocation],
+                                          -Ka * leadInputGain * feedbackGain * Kd);
+            }
+        }
     }
     if (!hasDifferential(sMode)) {
         return;
@@ -380,8 +603,11 @@ void ExciterEXAC1::jacobianElements(const IOdata& inputs,
     const double leadInputGain = leadLagEnabled ? leadLag.outputInputJacobian() : 1.0;
     const double leadStateGain = leadLagEnabled ? leadLag.outputStateJacobian() : 0.0;
     const double leadOutput = leadLagEnabled ? leadLag.output(input, state[leadLagIndex]) : input;
-    const double regulatorDerivative = (Ka * leadOutput - state[regulatorIndex]) / Ta;
-    const int status = regulatorLimitStatus(state);
+    const double regulatorValue =
+        dynamicRegulator ? state[regulatorIndex] : locations.algStateLoc[1];
+    const double regulatorDerivative =
+        dynamicRegulator ? (Ka * leadOutput - regulatorValue) / Ta : 0.0;
+    const int status = regulatorLimitStatus(state, regulatorValue);
     const bool frozen = ((status > 0) && (regulatorDerivative > 0.0)) ||
         ((status < 0) && (regulatorDerivative < 0.0));
 
@@ -424,9 +650,9 @@ void ExciterEXAC1::jacobianElements(const IOdata& inputs,
                                   -feedbackGain * Kd * leadLagInputGain);
     }
 
-    if (frozen) {
+    if (dynamicRegulator && frozen) {
         matrixData.assign(diffOffset + regulatorIndex, diffOffset + regulatorIndex, -stateData.cj);
-    } else {
+    } else if (dynamicRegulator) {
         if (hasVoltageTransducer) {
             matrixData.assign(diffOffset + regulatorIndex,
                               diffOffset + voltageMeasurementState,
@@ -464,8 +690,17 @@ void ExciterEXAC1::jacobianElements(const IOdata& inputs,
     double regulatorGain = 0.0;
     double targetExciterGain = 0.0;
     double targetCurrentGain = 0.0;
-    regulatorTargetDerivatives(inputs, state, regulatorGain, targetExciterGain, targetCurrentGain);
-    matrixData.assign(diffOffset + exciterIndex, diffOffset + regulatorIndex, regulatorGain / Te);
+    std::array<double, 5> augmentedState{};
+    const double* targetState = state;
+    if (!dynamicRegulator) {
+        stateWithRegulator(state, regulatorValue, augmentedState.data());
+        targetState = augmentedState.data();
+    }
+    regulatorTargetDerivatives(
+        inputs, targetState, regulatorGain, targetExciterGain, targetCurrentGain);
+    const index_t regulatorLocation =
+        dynamicRegulator ? diffOffset + regulatorIndex : algOffset + 1;
+    matrixData.assign(diffOffset + exciterIndex, regulatorLocation, regulatorGain / Te);
     matrixData.assign(diffOffset + exciterIndex,
                       diffOffset + exciterIndex,
                       (targetExciterGain - saturationSlope) / Te - stateData.cj);
@@ -485,46 +720,152 @@ void ExciterEXAC1::timestep(CoreTime time, const IOdata& inputs, const SolverMod
 {
     derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
     const double timeStep = time - prevTime;
-    double* state = m_state.data() + 1;
-    const double* derivatives = m_dstate_dt.data() + 1;
+    const bool dynamicRegulator = hasDynamicRegulator();
+    const index_t algebraicStateCount = dynamicRegulator ? 1 : 2;
+    double* state = m_state.data() + algebraicStateCount;
+    const double* derivatives = m_dstate_dt.data() + algebraicStateCount;
     for (index_t index = 0; index < offsets.local().local.diffSize; ++index) {
         state[index] += timeStep * derivatives[index];
     }
+    if (!dynamicRegulator) {
+        m_state[1] = staticRegulatorTarget(inputs, state);
+    }
     m_state[0] = fieldVoltage(inputs, state);
-    updateLimitFlags(state);
+    updateLimitFlags(inputs,
+                     state,
+                     dynamicRegulator ?
+                         state[stateIndex(regulatorState, Tr > 0.0, hasLeadLag(), true)] :
+                         m_state[1]);
     prevTime = time;
 }
 
-void ExciterEXAC1::rootTest(const IOdata& /*inputs*/,
+void ExciterEXAC1::rootTest(const IOdata& inputs,
                             const StateData& stateData,
                             double roots[],
                             const SolverMode& sMode)
 {
+    if (!hasDynamicRegulator()) {
+        return;
+    }
     const auto locations = offsets.getLocations(stateData, sMode, this);
     const index_t rootOffset = offsets.getRootOffset(sMode);
-    const double regulator =
-        locations.diffStateLoc[stateIndex(regulatorState, Tr > 0.0, hasLeadLag())];
+    const double* state = locations.diffStateLoc;
+    const double regulator = state[stateIndex(regulatorState, Tr > 0.0, hasLeadLag(), true)];
+    if (rootRearmPending) {
+        if (stateData.time <= rootRearmTime) {
+            // IDA retains the terminal root in its root history when it
+            // restarts after a Jacobian/branch update.  A no-op limiter root
+            // is not a new physical transition, so give IDA a positive
+            // one-sided value until it has taken a forward-time step.
+            roots[rootOffset] = limitTolerance;
+            return;
+        }
+        rootRearmPending = false;
+    }
+    if (opFlags[REGULATOR_LIMITED]) {
+        const double drive = regulatorDrive(inputs, state) - regulator;
+        // Once limited, the root is the release condition. Offset it into
+        // the held region so a zero drive at the limit is not rediscovered on
+        // every solver restart.
+        roots[rootOffset] =
+            opFlags[REGULATOR_LIMIT_HIGH] ? drive + limitTolerance : drive - limitTolerance;
+        return;
+    }
+    // An initialized regulator exactly at a limit is a valid equilibrium. Keep
+    // the root off zero so IDA does not rediscover the same non-event on every
+    // restart; rootCheck() still changes the limiter branch when the state
+    // moves through the limit.
     roots[rootOffset] =
-        std::min(regulatorUpperLimit() - regulator, regulator - regulatorLowerLimit());
+        std::min(regulatorUpperLimit() - regulator, regulator - regulatorLowerLimit()) +
+        limitTolerance;
 }
 
-void ExciterEXAC1::rootTrigger(CoreTime /*time*/,
-                               const IOdata& /*inputs*/,
+void ExciterEXAC1::rootTrigger(CoreTime time,
+                               const IOdata& inputs,
                                const std::vector<int>& rootMask,
                                const SolverMode& sMode)
 {
+    if (!hasDynamicRegulator()) {
+        return;
+    }
     const index_t rootOffset = offsets.getRootOffset(sMode);
-    if ((rootMask[rootOffset] != 0) && updateLimitFlags(m_state.data() + 1)) {
+    if (rootMask[rootOffset] != 0) {
+        double* state = m_state.data() + 1;
+        const auto regulatorIndex = stateIndex(regulatorState, Tr > 0.0, hasLeadLag(), true);
+        const bool wasLimited = opFlags[REGULATOR_LIMITED];
+        const bool wasHigh = opFlags[REGULATOR_LIMIT_HIGH];
+        const double stateBefore = state[regulatorIndex];
+        const double driveBefore = regulatorDrive(inputs, state) - stateBefore;
+        const double midpoint = (regulatorUpperLimit() + regulatorLowerLimit()) / 2.0;
+        bool limited;
+        bool high;
+        if (wasLimited) {
+            // A release root is valid only when the current unconstrained
+            // drive points back into the feasible region.  A stale/interpolated
+            // solver input can otherwise make an entry root look like a
+            // release, after which the state immediately crosses VAMAX/VAMIN
+            // again and produces an endless root pair.
+            const bool release =
+                wasHigh ? (driveBefore <= -limitTolerance) : (driveBefore >= limitTolerance);
+            limited = !release;
+            high = limited ? wasHigh : false;
+        } else {
+            limited = true;
+            high = state[regulatorIndex] >= midpoint;
+        }
+        rootTransitionPending = true;
+        rootTransitionLimited = limited;
+        rootTransitionHigh = high;
+        opFlags.set(REGULATOR_LIMITED, limited);
+        opFlags.set(REGULATOR_LIMIT_HIGH, high);
+        if (limited) {
+            state[regulatorIndex] =
+                std::clamp(state[regulatorIndex], regulatorLowerLimit(), regulatorUpperLimit());
+        } else {
+            state[regulatorIndex] = wasHigh ? regulatorUpperLimit() - limitTolerance :
+                                              regulatorLowerLimit() + limitTolerance;
+        }
+        const bool changed = (wasLimited != limited) || (wasHigh != high);
+        rootRearmPending = !changed;
+        if (rootRearmPending) {
+            rootRearmTime = time;
+        }
         alert(this, JAC_COUNT_CHANGE);
+        if (changed) {
+            const StateData stateData(time, m_state.data(), m_dstate_dt.data());
+            derivative(inputs, stateData, m_dstate_dt.data(), cLocalSolverMode);
+        }
     }
 }
 
-ChangeCode ExciterEXAC1::rootCheck(const IOdata& /*inputs*/,
+ChangeCode ExciterEXAC1::rootCheck(const IOdata& inputs,
                                    const StateData& /*stateData*/,
                                    const SolverMode& /*sMode*/,
                                    CheckLevel /*level*/)
 {
-    if (updateLimitFlags(m_state.data() + 1)) {
+    double* state = m_state.data() + (hasDynamicRegulator() ? 1 : 2);
+    const auto regulatorIndex = stateIndex(regulatorState, Tr > 0.0, hasLeadLag(), true);
+    const bool wasLimited = opFlags[REGULATOR_LIMITED];
+    const bool wasHigh = opFlags[REGULATOR_LIMIT_HIGH];
+    const bool transitionPending = rootTransitionPending;
+    const bool transitionLimited = rootTransitionLimited;
+    const bool transitionHigh = rootTransitionHigh;
+    rootTransitionPending = false;
+    updateLimitFlags(inputs,
+                     state,
+                     hasDynamicRegulator() ? m_state[1 + regulatorIndex] : m_state[1]);
+    if (transitionPending) {
+        if (transitionLimited || !opFlags[REGULATOR_LIMITED]) {
+            opFlags.set(REGULATOR_LIMITED, transitionLimited);
+            opFlags.set(REGULATOR_LIMIT_HIGH, transitionHigh);
+        }
+    } else if (wasLimited) {
+        opFlags.set(REGULATOR_LIMITED, true);
+        opFlags.set(REGULATOR_LIMIT_HIGH, wasHigh);
+    }
+    const bool changed =
+        (wasLimited != opFlags[REGULATOR_LIMITED]) || (wasHigh != opFlags[REGULATOR_LIMIT_HIGH]);
+    if (changed) {
         alert(this, JAC_COUNT_CHANGE);
         return ChangeCode::JACOBIAN_CHANGE;
     }
@@ -658,13 +999,18 @@ double ExciterEXAC1::get(std::string_view param, units::unit unitType) const
 stringVec ExciterEXAC1::localStateNames() const
 {
     stringVec names{"efd"};
+    if (!hasDynamicRegulator()) {
+        names.emplace_back("va");
+    }
     if (Tr > 0.0) {
         names.emplace_back("vmeas");
     }
     if (hasLeadLag()) {
         names.emplace_back("ll");
     }
-    names.emplace_back("va");
+    if (hasDynamicRegulator()) {
+        names.emplace_back("va");
+    }
     names.emplace_back("ve");
     names.emplace_back("wf");
     return names;
@@ -675,21 +1021,27 @@ index_t ExciterEXAC1::findIndex(std::string_view field, const SolverMode& sMode)
     if ((field == "efd") || (field == "field")) {
         return offsets.getAlgOffset(sMode);
     }
+    if ((field == "va") || (field == "regulator")) {
+        if (!hasDynamicRegulator()) {
+            return offsets.getAlgOffset(sMode) + 1;
+        }
+    }
     const index_t offset = offsets.getDiffOffset(sMode);
     if (field == "vmeas") {
         return (Tr > 0.0) ? offset + voltageMeasurementState : kInvalidLocation;
     }
     if ((field == "ll") || (field == "leadlag")) {
-        return hasLeadLag() ? offset + stateIndex(leadLagState, Tr > 0.0, true) : kInvalidLocation;
+        return hasLeadLag() ? offset + stateIndex(leadLagState, Tr > 0.0, true, true) :
+                              kInvalidLocation;
     }
     if ((field == "va") || (field == "regulator")) {
-        return offset + stateIndex(regulatorState, Tr > 0.0, hasLeadLag());
+        return offset + stateIndex(regulatorState, Tr > 0.0, hasLeadLag(), true);
     }
     if ((field == "ve") || (field == "exciter")) {
-        return offset + stateIndex(exciterState, Tr > 0.0, hasLeadLag());
+        return offset + stateIndex(exciterState, Tr > 0.0, hasLeadLag(), hasDynamicRegulator());
     }
     if ((field == "wf") || (field == "washout")) {
-        return offset + stateIndex(washoutState, Tr > 0.0, hasLeadLag());
+        return offset + stateIndex(washoutState, Tr > 0.0, hasLeadLag(), hasDynamicRegulator());
     }
     return kInvalidLocation;
 }

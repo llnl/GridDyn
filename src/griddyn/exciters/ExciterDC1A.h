@@ -8,6 +8,7 @@
 
 #include "ExciterIEEEtype1.h"
 #include <string>
+#include <vector>
 namespace griddyn::exciters {
 /** @brief DC1A exciter
  */
@@ -49,6 +50,10 @@ class ExciterDC1A: public ExciterIEEEtype1 {
                           const StateData& stateDataValue,
                           double root[],
                           const SolverMode& sMode) override;
+    virtual void rootTrigger(CoreTime time,
+                             const IOdata& inputs,
+                             const std::vector<int>& rootMask,
+                             const SolverMode& sMode) override;
     virtual ChangeCode rootCheck(const IOdata& inputs,
                                  const StateData& sD,
                                  const SolverMode& sMode,

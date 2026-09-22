@@ -218,6 +218,8 @@ ChangeCode ExciterIEEEX1::rootCheck(const IOdata& inputs,
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         const double drive = regulatorDrive(inputs, state);
         if ((opFlags[TRIGGER_HIGH] && (drive < 0.0)) || (!opFlags[TRIGGER_HIGH] && (drive > 0.0))) {
+            state[1] = opFlags[TRIGGER_HIGH] ? regulatorUpperLimit() * terminalVoltage :
+                                               Vrmin * terminalVoltage;
             opFlags.reset(OUTSIDE_VOLTAGE_LIMITS);
             opFlags.reset(TRIGGER_HIGH);
             alert(this, JAC_COUNT_INCREASE);
@@ -225,7 +227,7 @@ ChangeCode ExciterIEEEX1::rootCheck(const IOdata& inputs,
         }
         return ChangeCode::NO_CHANGE;
     }
-    if (state[1] > ((regulatorUpperLimit() * terminalVoltage) + 0.00001)) {
+    if (state[1] > ((regulatorUpperLimit() * terminalVoltage) + 0.000005)) {
         opFlags.set(TRIGGER_HIGH);
         opFlags.set(OUTSIDE_VOLTAGE_LIMITS);
         state[1] = regulatorUpperLimit() * terminalVoltage;
@@ -233,7 +235,7 @@ ChangeCode ExciterIEEEX1::rootCheck(const IOdata& inputs,
         alert(this, JAC_COUNT_DECREASE);
         return ChangeCode::JACOBIAN_CHANGE;
     }
-    if (state[1] < ((Vrmin * terminalVoltage) - 0.00001)) {
+    if (state[1] < ((Vrmin * terminalVoltage) - 0.000005)) {
         opFlags.reset(TRIGGER_HIGH);
         opFlags.set(OUTSIDE_VOLTAGE_LIMITS);
         state[1] = Vrmin * terminalVoltage;

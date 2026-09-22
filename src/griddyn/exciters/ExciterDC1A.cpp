@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <cmath>
 #include <string>
+#include <vector>
 namespace griddyn::exciters {
 ExciterDC1A::ExciterDC1A(const std::string& objName): ExciterIEEEtype1(objName)
 {
@@ -231,10 +232,11 @@ void ExciterDC1A::rootTest(const IOdata& inputs,
 
     const int rootOffset = offsets.getRootOffset(sMode);
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
-        root[rootOffset] =
+        const double releaseRoot =
             ((((Vref + vBias - voltage) - ((exciterState[0] * Kf) / Tf)) + exciterState[3]) * Ka *
              Tc / Tb) +
             ((exciterState[2] * (Tb - Tc) * Ka) / Tb) - exciterState[1];
+        root[rootOffset] = opFlags[TRIGGER_HIGH] ? releaseRoot + 0.00001 : releaseRoot - 0.00001;
     } else {
         root[rootOffset] =
             std::min(regulatorUpperLimit() - exciterState[1], exciterState[1] - Vrmin) + 0.00001;
@@ -242,6 +244,25 @@ void ExciterDC1A::rootTest(const IOdata& inputs,
             opFlags.set(TRIGGER_HIGH);
         }
     }
+}
+
+void ExciterDC1A::rootTrigger(CoreTime time,
+                              const IOdata& inputs,
+                              const std::vector<int>& rootMask,
+                              const SolverMode& sMode)
+{
+    const auto rootOffset = offsets.getRootOffset(sMode);
+    if ((rootOffset == kNullLocation) || (rootMask[rootOffset] == 0)) {
+        return;
+    }
+
+    // The root function has separate entry and release meanings once the
+    // limiter is active.  Let the model-specific rootCheck() decide which
+    // branch is valid instead of using Exciter::rootTrigger(), which blindly
+    // toggles the branch on every root return.
+    rootCheck(inputs, emptyStateData, sMode, CheckLevel::FULL_CHECK);
+    const StateData stateData(time, m_state.data(), m_dstate_dt.data());
+    derivative(inputs, stateData, m_dstate_dt.data(), cLocalSolverMode);
 }
 
 ChangeCode ExciterDC1A::rootCheck(const IOdata& inputs,
@@ -260,6 +281,7 @@ ChangeCode ExciterDC1A::rootCheck(const IOdata& inputs,
         if (opFlags[TRIGGER_HIGH]) {
             if (test < 0.0) {
                 ret = ChangeCode::JACOBIAN_CHANGE;
+                exciterState[1] = regulatorUpperLimit();
                 opFlags.reset(OUTSIDE_VOLTAGE_LIMITS);
                 opFlags.reset(TRIGGER_HIGH);
                 alert(this, JAC_COUNT_INCREASE);
@@ -267,18 +289,19 @@ ChangeCode ExciterDC1A::rootCheck(const IOdata& inputs,
         } else {
             if (test > 0.0) {
                 ret = ChangeCode::JACOBIAN_CHANGE;
+                exciterState[1] = Vrmin;
                 opFlags.reset(OUTSIDE_VOLTAGE_LIMITS);
                 alert(this, JAC_COUNT_INCREASE);
             }
         }
     } else {
-        if (exciterState[1] > regulatorUpperLimit() + 0.00001) {
+        if (exciterState[1] > regulatorUpperLimit() + 0.000005) {
             opFlags.set(TRIGGER_HIGH);
             opFlags.set(OUTSIDE_VOLTAGE_LIMITS);
             exciterState[1] = regulatorUpperLimit();
             ret = ChangeCode::JACOBIAN_CHANGE;
             alert(this, JAC_COUNT_DECREASE);
-        } else if (exciterState[1] < Vrmin - 0.00001) {
+        } else if (exciterState[1] < Vrmin - 0.000005) {
             opFlags.reset(TRIGGER_HIGH);
             opFlags.set(OUTSIDE_VOLTAGE_LIMITS);
             exciterState[1] = Vrmin;

@@ -126,8 +126,13 @@ void IdaInterface::set(std::string_view param, double val)
 {
     if (param == "maxiterations") {
         max_iterations = static_cast<count_t>(val);
-        int retval = IDASetMaxNumSteps(solverMem, max_iterations);
-        checkFlag(&retval, "IDASetMaxNumSteps", 1);
+        // Solver parameters may be loaded from the simulation file before IDA's
+        // memory block is allocated.  Keep the value for initialize(), where it
+        // is applied unconditionally, instead of calling into IDA with nullptr.
+        if (solverMem != nullptr) {
+            int retval = IDASetMaxNumSteps(solverMem, max_iterations);
+            checkFlag(&retval, "IDASetMaxNumSteps", 1);
+        }
     } else {
         SundialsInterface::set(param, val);
     }
@@ -424,8 +429,8 @@ void IdaInterface::logInitialConditionDiagnostics(
     m_gds->getVariableType(variableType.data(), mode);
 
     struct ResidualEntry {
-        double magnitude;
-        index_t index;
+        double mMagnitude;
+        index_t mIndex;
     };
     std::vector<ResidualEntry> entries;
     std::vector<ResidualEntry> algebraicResidualEntries;
@@ -452,17 +457,19 @@ void IdaInterface::logInitialConditionDiagnostics(
         if (variableType[index] == 1.0) {
             ++differentialEntries;
             maxDifferentialResidual = (std::max)(maxDifferentialResidual, magnitude);
-            differentialResidualEntries.push_back({magnitude, index});
+            differentialResidualEntries.push_back(
+                ResidualEntry{.mMagnitude = magnitude, .mIndex = index});
         } else {
             ++algebraicEntries;
             maxAlgebraicResidual = (std::max)(maxAlgebraicResidual, magnitude);
-            algebraicResidualEntries.push_back({magnitude, index});
+            algebraicResidualEntries.push_back(
+                ResidualEntry{.mMagnitude = magnitude, .mIndex = index});
         }
-        entries.push_back({magnitude, index});
+        entries.push_back(ResidualEntry{.mMagnitude = magnitude, .mIndex = index});
     }
 
     const auto entryOrder = [](const ResidualEntry& lhs, const ResidualEntry& rhs) {
-        return lhs.magnitude > rhs.magnitude;
+        return lhs.mMagnitude > rhs.mMagnitude;
     };
     const auto entryCount = (std::min)(static_cast<count_t>(8), svsize);
     std::partial_sort(entries.begin(), entries.begin() + entryCount, entries.end(), entryOrder);
@@ -502,7 +509,7 @@ void IdaInterface::logInitialConditionDiagnostics(
             ++nonFiniteDerivatives;
         }
         maxDifferentialDerivative = (std::max)(maxDifferentialDerivative, magnitude);
-        derivativeEntries.push_back({magnitude, index});
+        derivativeEntries.push_back(ResidualEntry{.mMagnitude = magnitude, .mIndex = index});
     }
     const auto derivativeEntryCount = (std::min)(size_t{8}, derivativeEntries.size());
     std::partial_sort(derivativeEntries.begin(),
@@ -531,8 +538,8 @@ void IdaInterface::logInitialConditionDiagnostics(
 
     for (count_t entryIndex = 0; entryIndex < entryCount; ++entryIndex) {
         const auto& entry = entries[entryIndex];
-        const auto stateName = (static_cast<size_t>(entry.index) < stateNames.size()) ?
-            stateNames[entry.index] :
+        const auto stateName = (static_cast<size_t>(entry.mIndex) < stateNames.size()) ?
+            stateNames[entry.mIndex] :
             std::string{"<unnamed>"};
         const bool hasInitialSnapshot = (initialState != nullptr) &&
             (initialDerivative != nullptr) &&
@@ -542,15 +549,15 @@ void IdaInterface::logInitialConditionDiagnostics(
                        m_gds,
                        diagnosticLevel,
                        "IDA IC residual[{}] {} = {}, y={}, yp={}, type={}{}",
-                       entry.index,
+                       entry.mIndex,
                        stateName,
-                       residual[entry.index],
-                       currentState[entry.index],
-                       currentDerivative[entry.index],
-                       variableType[entry.index],
+                       residual[entry.mIndex],
+                       currentState[entry.mIndex],
+                       currentDerivative[entry.mIndex],
+                       variableType[entry.mIndex],
                        hasInitialSnapshot ? std::format(", initial_y={}, initial_yp={}",
-                                                        (*initialState)[entry.index],
-                                                        (*initialDerivative)[entry.index]) :
+                                                        (*initialState)[entry.mIndex],
+                                                        (*initialDerivative)[entry.mIndex]) :
                                             std::string{});
     }
 
@@ -562,17 +569,17 @@ void IdaInterface::logInitialConditionDiagnostics(
                    algebraicResidualEntryCount);
     for (size_t entryIndex = 0; entryIndex < algebraicResidualEntryCount; ++entryIndex) {
         const auto& entry = algebraicResidualEntries[entryIndex];
-        const auto stateName = (static_cast<size_t>(entry.index) < stateNames.size()) ?
-            stateNames[entry.index] :
+        const auto stateName = (static_cast<size_t>(entry.mIndex) < stateNames.size()) ?
+            stateNames[entry.mIndex] :
             std::string{"<unnamed>"};
         logging::logTo(m_gds,
                        m_gds,
                        diagnosticLevel,
                        "IDA IC algebraic residual[{}] {} = {}, y={}",
-                       entry.index,
+                       entry.mIndex,
                        stateName,
-                       residual[entry.index],
-                       currentState[entry.index]);
+                       residual[entry.mIndex],
+                       currentState[entry.mIndex]);
     }
 
     logging::logTo(m_gds,
@@ -583,18 +590,18 @@ void IdaInterface::logInitialConditionDiagnostics(
                    differentialResidualEntryCount);
     for (size_t entryIndex = 0; entryIndex < differentialResidualEntryCount; ++entryIndex) {
         const auto& entry = differentialResidualEntries[entryIndex];
-        const auto stateName = (static_cast<size_t>(entry.index) < stateNames.size()) ?
-            stateNames[entry.index] :
+        const auto stateName = (static_cast<size_t>(entry.mIndex) < stateNames.size()) ?
+            stateNames[entry.mIndex] :
             std::string{"<unnamed>"};
         logging::logTo(m_gds,
                        m_gds,
                        diagnosticLevel,
                        "IDA IC differential residual[{}] {} = {}, y={}, yp={}",
-                       entry.index,
+                       entry.mIndex,
                        stateName,
-                       residual[entry.index],
-                       currentState[entry.index],
-                       currentDerivative[entry.index]);
+                       residual[entry.mIndex],
+                       currentState[entry.mIndex],
+                       currentDerivative[entry.mIndex]);
     }
 
     logging::logTo(m_gds,
@@ -607,22 +614,22 @@ void IdaInterface::logInitialConditionDiagnostics(
                    derivativeEntryCount);
     for (size_t entryIndex = 0; entryIndex < derivativeEntryCount; ++entryIndex) {
         const auto& entry = derivativeEntries[entryIndex];
-        const auto stateName = (static_cast<size_t>(entry.index) < stateNames.size()) ?
-            stateNames[entry.index] :
+        const auto stateName = (static_cast<size_t>(entry.mIndex) < stateNames.size()) ?
+            stateNames[entry.mIndex] :
             std::string{"<unnamed>"};
         logging::logTo(m_gds,
                        m_gds,
                        diagnosticLevel,
                        "IDA IC differential yp[{}] {} = {}, y={}",
-                       entry.index,
+                       entry.mIndex,
                        stateName,
-                       currentDerivative[entry.index],
-                       currentState[entry.index]);
+                       currentDerivative[entry.mIndex],
+                       currentState[entry.mIndex]);
     }
 
     MatrixDataSparse<double> jacobian;
     jacobian.reserve(m_gds->jacSize(mode));
-    const double step = static_cast<double>(tstep0);
+    const auto step = static_cast<double>(tstep0);
     const double cj = (step > 0.0) ? 1.0 / step : 1.0;
     const int jacobianStatus =
         m_gds->jacobianFunction(t0, stateData(), derivData(), jacobian, cj, mode);
@@ -685,8 +692,8 @@ void IdaInterface::logIntegrationFailureDiagnostics(CoreTime time, int retval) c
     m_gds->getStateName(stateNames, mode);
 
     struct ResidualEntry {
-        double magnitude;
-        index_t index;
+        double mMagnitude;
+        index_t mIndex;
     };
     std::vector<ResidualEntry> entries;
     entries.reserve(svsize);
@@ -700,10 +707,10 @@ void IdaInterface::logIntegrationFailureDiagnostics(CoreTime time, int retval) c
             ++nonFiniteResiduals;
         }
         maxResidual = (std::max)(maxResidual, magnitude);
-        entries.push_back({magnitude, index});
+        entries.push_back(ResidualEntry{.mMagnitude = magnitude, .mIndex = index});
     }
     const auto entryOrder = [](const ResidualEntry& lhs, const ResidualEntry& rhs) {
-        return lhs.magnitude > rhs.magnitude;
+        return lhs.mMagnitude > rhs.mMagnitude;
     };
     const auto entryCount = (std::min)(static_cast<count_t>(8), svsize);
     std::partial_sort(entries.begin(), entries.begin() + entryCount, entries.end(), entryOrder);
@@ -720,18 +727,18 @@ void IdaInterface::logIntegrationFailureDiagnostics(CoreTime time, int retval) c
                    nonFiniteResiduals);
     for (count_t entryIndex = 0; entryIndex < entryCount; ++entryIndex) {
         const auto& entry = entries[entryIndex];
-        const auto stateName = (static_cast<size_t>(entry.index) < stateNames.size()) ?
-            stateNames[entry.index] :
+        const auto stateName = (static_cast<size_t>(entry.mIndex) < stateNames.size()) ?
+            stateNames[entry.mIndex] :
             std::string{"<unnamed>"};
         logging::logTo(m_gds,
                        m_gds,
                        PrintLevel::ERROR,
                        "IDA integration residual[{}] {} = {}, y={}, yp={}",
-                       entry.index,
+                       entry.mIndex,
                        stateName,
-                       residual[entry.index],
-                       stateData()[entry.index],
-                       derivData()[entry.index]);
+                       residual[entry.mIndex],
+                       stateData()[entry.mIndex],
+                       derivData()[entry.mIndex]);
     }
 }
 
@@ -742,8 +749,8 @@ void IdaInterface::logIntegrationStateDrift(CoreTime time) const
     }
 
     struct StateDeltaEntry {
-        double magnitude;
-        index_t index;
+        double mMagnitude;
+        index_t mIndex;
     };
     std::vector<StateDeltaEntry> entries;
     entries.reserve(svsize);
@@ -758,11 +765,11 @@ void IdaInterface::logIntegrationStateDrift(CoreTime time) const
             ++nonFiniteDeltas;
         }
         maxDelta = (std::max)(maxDelta, magnitude);
-        entries.push_back({magnitude, index});
+        entries.push_back(StateDeltaEntry{.mMagnitude = magnitude, .mIndex = index});
     }
 
     const auto entryOrder = [](const StateDeltaEntry& lhs, const StateDeltaEntry& rhs) {
-        return lhs.magnitude > rhs.magnitude;
+        return lhs.mMagnitude > rhs.mMagnitude;
     };
     const auto entryCount = (std::min)(size_t{8}, entries.size());
     std::partial_sort(entries.begin(), entries.begin() + entryCount, entries.end(), entryOrder);
@@ -780,18 +787,18 @@ void IdaInterface::logIntegrationStateDrift(CoreTime time) const
                    nonFiniteDeltas);
     for (size_t entryIndex = 0; entryIndex < entryCount; ++entryIndex) {
         const auto& entry = entries[entryIndex];
-        const auto stateName = (static_cast<size_t>(entry.index) < stateNames.size()) ?
-            stateNames[entry.index] :
+        const auto stateName = (static_cast<size_t>(entry.mIndex) < stateNames.size()) ?
+            stateNames[entry.mIndex] :
             std::string{"<unnamed>"};
         logging::logTo(m_gds,
                        m_gds,
                        PrintLevel::SUMMARY,
                        "IDA integration state delta[{}] {}: initial={}, current={}, delta={}",
-                       entry.index,
+                       entry.mIndex,
                        stateName,
-                       integrationReferenceState[entry.index],
-                       currentState[entry.index],
-                       currentState[entry.index] - integrationReferenceState[entry.index]);
+                       integrationReferenceState[entry.mIndex],
+                       currentState[entry.mIndex],
+                       currentState[entry.mIndex] - integrationReferenceState[entry.mIndex]);
     }
 }
 

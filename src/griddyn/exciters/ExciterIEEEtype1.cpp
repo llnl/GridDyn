@@ -16,6 +16,10 @@
 #include <string>
 
 namespace griddyn::exciters {
+namespace {
+    constexpr double limiterRootTolerance = 0.00001;
+}
+
 ExciterIEEEtype1::ExciterIEEEtype1(const std::string& objName): Exciter(objName)
 {
     // default values that are different from inherited default values
@@ -183,9 +187,14 @@ void ExciterIEEEtype1::rootTest(const IOdata& inputs,
     // printf("t=%f V=%f\n", time, inputs[VOLTAGE_IN_LOCATION]);
 
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
-        roots[rootOffset] = exciterState[2] - ((exciterState[0] * Kf) / Tf) +
+        const double releaseRoot = exciterState[2] - ((exciterState[0] * Kf) / Tf) +
             (Vref + vBias - measuredVoltage(inputs, exciterState)) - (exciterState[1] / Ka) +
             ((0.001 * exciterState[1]) / (Ka * Ta));
+        // rootCheck() releases a high limiter when this quantity becomes
+        // negative and a low limiter when it becomes positive. Offset the
+        // held-side value so a zero release condition is not a repeated root.
+        roots[rootOffset] = opFlags[TRIGGER_HIGH] ? releaseRoot + limiterRootTolerance :
+                                                    releaseRoot - limiterRootTolerance;
     } else {
         roots[rootOffset] =
             std::min(regulatorUpperLimit() - exciterState[1], exciterState[1] - Vrmin) + 0.00001;
@@ -200,7 +209,7 @@ ChangeCode ExciterIEEEtype1::rootCheck(const IOdata& inputs,
                                        const SolverMode& /*sMode*/,
                                        CheckLevel /*level*/)
 {
-    const double* exciterState = m_state.data();
+    double* exciterState = m_state.data();
     ChangeCode ret = ChangeCode::NO_CHANGE;
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         const double test = exciterState[2] - ((exciterState[0] * Kf) / Tf) +
@@ -209,6 +218,7 @@ ChangeCode ExciterIEEEtype1::rootCheck(const IOdata& inputs,
         if (opFlags[TRIGGER_HIGH]) {
             if (test < ((-0.001 * exciterState[1]) / (Ka * Ta))) {
                 ret = ChangeCode::JACOBIAN_CHANGE;
+                exciterState[1] = regulatorUpperLimit();
 
                 logging::debug(this, "root change V={}", inputs[VOLTAGE_IN_LOCATION]);
                 opFlags.reset(OUTSIDE_VOLTAGE_LIMITS);
@@ -219,12 +229,13 @@ ChangeCode ExciterIEEEtype1::rootCheck(const IOdata& inputs,
             if (test > ((-0.001 * exciterState[1]) / (Ka * Ta))) {
                 logging::debug(this, "root change V={}", inputs[VOLTAGE_IN_LOCATION]);
                 ret = ChangeCode::JACOBIAN_CHANGE;
+                exciterState[1] = Vrmin;
                 opFlags.reset(OUTSIDE_VOLTAGE_LIMITS);
                 alert(this, JAC_COUNT_INCREASE);
             }
         }
     } else {
-        if (exciterState[1] > regulatorUpperLimit() + 0.00001) {
+        if (exciterState[1] > regulatorUpperLimit() + 0.000005) {
             logging::debug(this, "root toggle V={}", inputs[VOLTAGE_IN_LOCATION]);
             opFlags.set(TRIGGER_HIGH);
             opFlags.set(OUTSIDE_VOLTAGE_LIMITS);
@@ -232,7 +243,7 @@ ChangeCode ExciterIEEEtype1::rootCheck(const IOdata& inputs,
             m_dstate_dt[1] = 0.0;
             ret = ChangeCode::JACOBIAN_CHANGE;
             alert(this, JAC_COUNT_DECREASE);
-        } else if (exciterState[1] < Vrmin - 0.00001) {
+        } else if (exciterState[1] < Vrmin - 0.000005) {
             logging::debug(this, "root toggle V={}", inputs[VOLTAGE_IN_LOCATION]);
 
             opFlags.reset(TRIGGER_HIGH);

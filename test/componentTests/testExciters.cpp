@@ -2168,10 +2168,8 @@ TEST(ExciterModelTests, Exac2LimiterRootsReleaseAndProjectState)
     upperExciter.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
     EXPECT_GT(roots[0], 0.0);
     inputs[exciterVsetInLocation] = 1.0 + 1e-6;
-    EXPECT_EQ(upperExciter.rootCheck(inputs,
-                                     emptyStateData,
-                                     cLocalSolverMode,
-                                     CheckLevel::REVERSABLE_ONLY),
+    EXPECT_EQ(upperExciter.rootCheck(
+                  inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
               ChangeCode::NO_CHANGE);
     inputs[exciterVsetInLocation] = 1.0 - 2e-8;
     upperExciter.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
@@ -2187,10 +2185,8 @@ TEST(ExciterModelTests, Exac2LimiterRootsReleaseAndProjectState)
     EXPECT_NEAR(upperExciter.getStates()[1], 0.4 - 1e-7, 1e-12);
     upperExciter.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
     EXPECT_GT(roots[0], 0.0);
-    EXPECT_EQ(upperExciter.rootCheck(inputs,
-                                     emptyStateData,
-                                     cLocalSolverMode,
-                                     CheckLevel::REVERSABLE_ONLY),
+    EXPECT_EQ(upperExciter.rootCheck(
+                  inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
               ChangeCode::NO_CHANGE);
 
     std::vector<double> derivative(upperExciter.getStates().size(), 0.0);
@@ -2239,10 +2235,8 @@ TEST(ExciterModelTests, Exac2LimiterRootsReleaseAndProjectState)
     EXPECT_NEAR(lowerExciter.getStates()[1], -0.4 + 1e-7, 1e-12);
     lowerExciter.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
     EXPECT_GT(roots[0], 0.0);
-    EXPECT_EQ(lowerExciter.rootCheck(inputs,
-                                     emptyStateData,
-                                     cLocalSolverMode,
-                                     CheckLevel::REVERSABLE_ONLY),
+    EXPECT_EQ(lowerExciter.rootCheck(
+                  inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
               ChangeCode::NO_CHANGE);
     lowerExciter.derivative(inputs, emptyStateData, lowerDerivative.data(), cLocalSolverMode);
     EXPECT_GT(lowerDerivative[1], 0.0);

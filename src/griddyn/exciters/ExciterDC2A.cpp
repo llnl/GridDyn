@@ -123,15 +123,15 @@ void ExciterDC2A::rootTest(const IOdata& inputs,
     const double* exciterState = stateDataValue.state + offset;
     const double voltage = measuredVoltage(inputs, exciterState);
     const double drive =
-        ((((Vref + vBias - voltage) - ((exciterState[0] * Kf) / Tf)) + exciterState[3]) * Ka *
-         Tc / Tb) +
+        ((((Vref + vBias - voltage) - ((exciterState[0] * Kf) / Tf)) + exciterState[3]) * Ka * Tc /
+         Tb) +
         ((exciterState[2] * (Tb - Tc) * Ka) / Tb) - exciterState[1];
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         // rootCheck() releases a high limiter when the drive is negative and
         // a low limiter when it is positive. Keep a zero drive inside the
         // held branch so it is not reported repeatedly as a root.
-        roots[rootOffset] = opFlags[TRIGGER_HIGH] ?
-            drive + limiterRootTolerance : drive - limiterRootTolerance;
+        roots[rootOffset] =
+            opFlags[TRIGGER_HIGH] ? drive + limiterRootTolerance : drive - limiterRootTolerance;
     } else {
         roots[rootOffset] = std::min((regulatorUpperLimit() * voltage) - exciterState[1],
                                      exciterState[1] - (Vrmin * voltage)) +

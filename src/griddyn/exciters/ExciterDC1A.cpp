@@ -235,8 +235,7 @@ void ExciterDC1A::rootTest(const IOdata& inputs,
             ((((Vref + vBias - voltage) - ((exciterState[0] * Kf) / Tf)) + exciterState[3]) * Ka *
              Tc / Tb) +
             ((exciterState[2] * (Tb - Tc) * Ka) / Tb) - exciterState[1];
-        root[rootOffset] = opFlags[TRIGGER_HIGH] ? releaseRoot + 0.00001 :
-                                                    releaseRoot - 0.00001;
+        root[rootOffset] = opFlags[TRIGGER_HIGH] ? releaseRoot + 0.00001 : releaseRoot - 0.00001;
     } else {
         root[rootOffset] =
             std::min(regulatorUpperLimit() - exciterState[1], exciterState[1] - Vrmin) + 0.00001;

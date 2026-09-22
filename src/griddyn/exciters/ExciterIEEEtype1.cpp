@@ -193,8 +193,8 @@ void ExciterIEEEtype1::rootTest(const IOdata& inputs,
         // rootCheck() releases a high limiter when this quantity becomes
         // negative and a low limiter when it becomes positive. Offset the
         // held-side value so a zero release condition is not a repeated root.
-        roots[rootOffset] = opFlags[TRIGGER_HIGH] ?
-            releaseRoot + limiterRootTolerance : releaseRoot - limiterRootTolerance;
+        roots[rootOffset] = opFlags[TRIGGER_HIGH] ? releaseRoot + limiterRootTolerance :
+                                                    releaseRoot - limiterRootTolerance;
     } else {
         roots[rootOffset] =
             std::min(regulatorUpperLimit() - exciterState[1], exciterState[1] - Vrmin) + 0.00001;

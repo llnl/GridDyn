@@ -218,8 +218,8 @@ ChangeCode ExciterIEEEX1::rootCheck(const IOdata& inputs,
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         const double drive = regulatorDrive(inputs, state);
         if ((opFlags[TRIGGER_HIGH] && (drive < 0.0)) || (!opFlags[TRIGGER_HIGH] && (drive > 0.0))) {
-            state[1] = opFlags[TRIGGER_HIGH] ?
-                regulatorUpperLimit() * terminalVoltage : Vrmin * terminalVoltage;
+            state[1] = opFlags[TRIGGER_HIGH] ? regulatorUpperLimit() * terminalVoltage :
+                                               Vrmin * terminalVoltage;
             opFlags.reset(OUTSIDE_VOLTAGE_LIMITS);
             opFlags.reset(TRIGGER_HIGH);
             alert(this, JAC_COUNT_INCREASE);

@@ -508,6 +508,28 @@ TEST_F(ExciterTests, Esst4bZeroTrAndTaBypassStatesWithConsistentResidualAndJacob
     EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode, false), 0);
 }
 
+TEST_F(ExciterTests, GensalAllowsEqualTransientAndSubtransientReactance)
+{
+    gds = readSimXMLFile(std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability.xml"));
+    auto* generator = gds->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    auto* machine = new genmodels::GenModelGENSAL();
+    machine->set("h", 4.0);
+    machine->set("xl", 0.12);
+    machine->set("xd", 1.41);
+    machine->set("xq", 1.35);
+    machine->set("xdp", 0.30);
+    machine->set("xpp", 0.30);
+    machine->set("tdop", 5.0);
+    machine->set("tdopp", 0.05);
+    machine->set("tqopp", 0.10);
+    generator->add(machine);
+
+    ASSERT_EQ(gds->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(gds, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode, false), 0);
+}
+
 TEST_F(ExciterTests, Esst1aWithGensaeHasConsistentResidualAndJacobian)
 {
     gds = readSimXMLFile(std::string(EXCITER_TEST_DIRECTORY "test_exciter_stability.xml"));
@@ -1942,6 +1964,69 @@ TEST(ExciterModelTests, Exac1ZeroTbBypassesLeadLagState)
     }
 }
 
+TEST(ExciterModelTests, Exac1ZeroTaUsesAlgebraicRegulatorState)
+{
+    exciters::ExciterEXAC1 exciter;
+    exciter.set("tr", 0.0);
+    exciter.set("tb", 0.0);
+    exciter.set("tc", 0.0);
+    exciter.set("ka", 10.0);
+    exciter.set("ta", 0.0);
+    exciter.set("te", 0.5);
+    exciter.set("kf", 0.1);
+    exciter.set("tf", 1.0);
+    exciter.set("kc", 0.0);
+    exciter.set("kd", 0.0);
+    exciter.set("ke", 1.0);
+    exciter.set("vrmax", 5.0);
+    exciter.set("vrmin", -5.0);
+    exciter.dynInitializeA(0.0, 0);
+
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.0;
+    IOdata fieldSet(4, 0.0);
+    exciter.dynInitializeB(inputs, {0.4}, fieldSet);
+
+    EXPECT_EQ(exciter.getStates().size(), 4U);
+    EXPECT_EQ(exciter.localStateNames(), (stringVec{"efd", "va", "ve", "wf"}));
+    EXPECT_EQ(exciter.findIndex("va", cLocalSolverMode), 1U);
+    EXPECT_EQ(exciter.findIndex("ve", cLocalSolverMode), 2U);
+
+    const std::vector<double> state{0.4, 0.4, 0.3, 0.2};
+    expectExciterJacobian(exciter, inputs, state);
+}
+
+TEST(ExciterModelTests, Exac1LimiterRootHasBufferAtInitializedLimit)
+{
+    exciters::ExciterEXAC1 exciter;
+    exciter.set("tr", 0.0);
+    exciter.set("ka", 10.0);
+    exciter.set("ta", 0.1);
+    exciter.set("te", 0.5);
+    exciter.set("kf", 0.0);
+    exciter.set("tf", 1.0);
+    exciter.set("kc", 0.0);
+    exciter.set("kd", 0.0);
+    exciter.set("ke", 1.0);
+    exciter.set("vrmax", 1.0);
+    exciter.set("vrmin", -5.0);
+    exciter.dynInitializeA(0.0, 0);
+
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.0;
+    IOdata fieldSet(4, 0.0);
+    exciter.dynInitializeB(inputs, {1.0}, fieldSet);
+    exciter.setRootOffset(0, cLocalSolverMode);
+
+    std::vector<double> stateDerivative(exciter.getStates().size(), 0.0);
+    StateData stateData(0.0, exciter.getStates().data(), stateDerivative.data());
+    double root = 0.0;
+    exciter.rootTest(inputs, stateData, &root, cLocalSolverMode);
+    EXPECT_NEAR(root, 1e-7, 1e-12);
+}
+
 TEST(ExciterModelTests, Exac1ZeroTbRequiresZeroTc)
 {
     exciters::ExciterEXAC1 exciter;
@@ -2036,6 +2121,131 @@ TEST(ExciterModelTests, Exac2InitialRegulatorUsesHighGateGain)
     EXPECT_NEAR(derivative[1], 0.0, 1e-12);
     EXPECT_NEAR(derivative[2], 0.0, 1e-12);
     EXPECT_NEAR(derivative[3], 0.0, 1e-12);
+}
+
+TEST(ExciterModelTests, Exac2LimiterRootsReleaseAndProjectState)
+{
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.0;
+    IOdata fieldSet(4, 0.0);
+
+    // Exercise release from the upper VAMAX limit.  The first root is the
+    // release surface inside the one-sided limiter deadband.
+    exciters::ExciterEXAC2 upperExciter;
+    upperExciter.set("tr", 0.0);
+    upperExciter.set("tb", 0.0);
+    upperExciter.set("tc", 0.0);
+    upperExciter.set("ka", 10.0);
+    upperExciter.set("ta", 0.1);
+    upperExciter.set("te", 0.5);
+    upperExciter.set("kf", 0.0);
+    upperExciter.set("tf", 1.0);
+    upperExciter.set("kc", 0.0);
+    upperExciter.set("kd", 0.0);
+    upperExciter.set("ke", 1.0);
+    upperExciter.set("vrmax", 5.0);
+    upperExciter.set("vrmin", -5.0);
+    upperExciter.set("vamax", 0.4);
+    upperExciter.set("vamin", -0.4);
+    upperExciter.set("vlr", 0.0);
+    upperExciter.set("kl", 4.0);
+    upperExciter.set("kh", 0.0);
+    upperExciter.set("kb", 1.0);
+    upperExciter.dynInitializeA(0.0, 0);
+    upperExciter.dynInitializeB(inputs, {0.4}, fieldSet);
+    upperExciter.setRootOffset(0, cLocalSolverMode);
+
+    std::vector<double> roots(1, 0.0);
+    // A root return can carry a stale release direction while the state/input
+    // pair copied back to the model is still driving outward.  The limiter
+    // must remain latched, and the same root must be rearmed only after time
+    // advances.  This mirrors the interpolation mismatch seen by IDA in the
+    // 10k-bus disturbance.
+    inputs[exciterVsetInLocation] = 1.0 + 1e-6;
+    upperExciter.rootTrigger(0.0, inputs, {-1}, cLocalSolverMode);
+    inputs[exciterVsetInLocation] = 1.0 - 2e-8;
+    upperExciter.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
+    EXPECT_GT(roots[0], 0.0);
+    inputs[exciterVsetInLocation] = 1.0 + 1e-6;
+    EXPECT_EQ(upperExciter.rootCheck(inputs,
+                                     emptyStateData,
+                                     cLocalSolverMode,
+                                     CheckLevel::REVERSABLE_ONLY),
+              ChangeCode::NO_CHANGE);
+    inputs[exciterVsetInLocation] = 1.0 - 2e-8;
+    upperExciter.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
+    EXPECT_GT(roots[0], 0.0);
+    const StateData advancedState(1e-6);
+    upperExciter.rootTest(inputs, advancedState, roots.data(), cLocalSolverMode);
+    EXPECT_LT(roots[0], 0.0);
+
+    inputs[exciterVsetInLocation] = 1.0 - 2e-8;
+    upperExciter.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
+    EXPECT_LT(roots[0], 0.0);
+    upperExciter.rootTrigger(0.0, inputs, {-1}, cLocalSolverMode);
+    EXPECT_NEAR(upperExciter.getStates()[1], 0.4 - 1e-7, 1e-12);
+    upperExciter.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
+    EXPECT_GT(roots[0], 0.0);
+    EXPECT_EQ(upperExciter.rootCheck(inputs,
+                                     emptyStateData,
+                                     cLocalSolverMode,
+                                     CheckLevel::REVERSABLE_ONLY),
+              ChangeCode::NO_CHANGE);
+
+    std::vector<double> derivative(upperExciter.getStates().size(), 0.0);
+    upperExciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_LT(derivative[1], 0.0);
+
+    // Exercise entry and release from the lower VAMIN limit.
+    exciters::ExciterEXAC2 lowerExciter;
+    lowerExciter.set("tr", 0.0);
+    lowerExciter.set("tb", 0.0);
+    lowerExciter.set("tc", 0.0);
+    lowerExciter.set("ka", 10.0);
+    lowerExciter.set("ta", 0.1);
+    lowerExciter.set("te", 0.5);
+    lowerExciter.set("kf", 0.0);
+    lowerExciter.set("tf", 1.0);
+    lowerExciter.set("kc", 0.0);
+    lowerExciter.set("kd", 0.0);
+    lowerExciter.set("ke", 1.0);
+    lowerExciter.set("vrmax", 5.0);
+    lowerExciter.set("vrmin", -5.0);
+    lowerExciter.set("vamax", 0.5);
+    lowerExciter.set("vamin", -0.4);
+    lowerExciter.set("vlr", 0.0);
+    lowerExciter.set("kl", 4.0);
+    lowerExciter.set("kh", 0.0);
+    lowerExciter.set("kb", 1.0);
+    lowerExciter.dynInitializeA(0.0, 0);
+    lowerExciter.dynInitializeB(inputs, {0.4}, fieldSet);
+    lowerExciter.setRootOffset(0, cLocalSolverMode);
+
+    auto lowerState = lowerExciter.getStates();
+    lowerState[1] = -0.4 - 2e-7;
+    std::vector<double> lowerDerivative(lowerState.size(), 0.0);
+    lowerExciter.setState(0.0, lowerState.data(), lowerDerivative.data(), cLocalSolverMode);
+    inputs[exciterVsetInLocation] = 0.9199999;
+    lowerExciter.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
+    EXPECT_LT(roots[0], 0.0);
+    lowerExciter.rootTrigger(0.0, inputs, {-1}, cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(lowerExciter.getStates()[1], -0.4);
+
+    inputs[exciterVsetInLocation] = 0.9200002;
+    lowerExciter.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
+    EXPECT_GT(roots[0], 0.0);
+    lowerExciter.rootTrigger(0.0, inputs, {1}, cLocalSolverMode);
+    EXPECT_NEAR(lowerExciter.getStates()[1], -0.4 + 1e-7, 1e-12);
+    lowerExciter.rootTest(inputs, emptyStateData, roots.data(), cLocalSolverMode);
+    EXPECT_GT(roots[0], 0.0);
+    EXPECT_EQ(lowerExciter.rootCheck(inputs,
+                                     emptyStateData,
+                                     cLocalSolverMode,
+                                     CheckLevel::REVERSABLE_ONLY),
+              ChangeCode::NO_CHANGE);
+    lowerExciter.derivative(inputs, emptyStateData, lowerDerivative.data(), cLocalSolverMode);
+    EXPECT_GT(lowerDerivative[1], 0.0);
 }
 
 TEST(ExciterModelTests, Exac2BypassedStatesHaveConsistentResidualAndJacobian)

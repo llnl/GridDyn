@@ -18,6 +18,10 @@
 // terminal voltage
 
 namespace griddyn::exciters {
+namespace {
+    constexpr double limiterRootTolerance = 0.0001;
+}
+
 ExciterDC2A::ExciterDC2A(const std::string& objName): ExciterDC1A(objName)
 {
     // default values
@@ -118,15 +122,20 @@ void ExciterDC2A::rootTest(const IOdata& inputs,
     const int rootOffset = offsets.getRootOffset(sMode);
     const double* exciterState = stateDataValue.state + offset;
     const double voltage = measuredVoltage(inputs, exciterState);
+    const double drive =
+        ((((Vref + vBias - voltage) - ((exciterState[0] * Kf) / Tf)) + exciterState[3]) * Ka *
+         Tc / Tb) +
+        ((exciterState[2] * (Tb - Tc) * Ka) / Tb) - exciterState[1];
     if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
-        roots[rootOffset] =
-            ((((Vref + vBias - voltage) - ((exciterState[0] * Kf) / Tf)) + exciterState[3]) * Ka *
-             Tc / Tb) +
-            ((exciterState[2] * (Tb - Tc) * Ka) / Tb) - exciterState[1];
+        // rootCheck() releases a high limiter when the drive is negative and
+        // a low limiter when it is positive. Keep a zero drive inside the
+        // held branch so it is not reported repeatedly as a root.
+        roots[rootOffset] = opFlags[TRIGGER_HIGH] ?
+            drive + limiterRootTolerance : drive - limiterRootTolerance;
     } else {
         roots[rootOffset] = std::min((regulatorUpperLimit() * voltage) - exciterState[1],
                                      exciterState[1] - (Vrmin * voltage)) +
-            0.0001;
+            limiterRootTolerance;
         if (exciterState[1] > (voltage * regulatorUpperLimit())) {
             opFlags.set(TRIGGER_HIGH);
         }
@@ -149,6 +158,7 @@ ChangeCode ExciterDC2A::rootCheck(const IOdata& inputs,
         if (opFlags[TRIGGER_HIGH]) {
             if (test < 0.0) {
                 ret = ChangeCode::JACOBIAN_CHANGE;
+                exciterState[1] = voltage * regulatorUpperLimit();
                 opFlags.reset(OUTSIDE_VOLTAGE_LIMITS);
                 opFlags.reset(TRIGGER_HIGH);
                 alert(this, JAC_COUNT_INCREASE);
@@ -156,18 +166,19 @@ ChangeCode ExciterDC2A::rootCheck(const IOdata& inputs,
         } else {
             if (test > 0.0) {
                 ret = ChangeCode::JACOBIAN_CHANGE;
+                exciterState[1] = voltage * Vrmin;
                 opFlags.reset(OUTSIDE_VOLTAGE_LIMITS);
                 alert(this, JAC_COUNT_INCREASE);
             }
         }
     } else {
-        if (exciterState[1] > ((voltage * regulatorUpperLimit()) + 0.0001)) {
+        if (exciterState[1] > ((voltage * regulatorUpperLimit()) + 0.00005)) {
             opFlags.set(TRIGGER_HIGH);
             opFlags.set(OUTSIDE_VOLTAGE_LIMITS);
             exciterState[1] = voltage * regulatorUpperLimit();
             ret = ChangeCode::JACOBIAN_CHANGE;
             alert(this, JAC_COUNT_DECREASE);
-        } else if (exciterState[1] < ((voltage * Vrmin) - 0.0001)) {
+        } else if (exciterState[1] < ((voltage * Vrmin) - 0.00005)) {
             opFlags.reset(TRIGGER_HIGH);
             opFlags.set(OUTSIDE_VOLTAGE_LIMITS);
             exciterState[1] = voltage * Vrmin;

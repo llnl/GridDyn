@@ -19,6 +19,8 @@
 namespace griddyn::genmodels {
 // NOLINTBEGIN(readability-math-missing-parentheses)
 namespace {
+    constexpr double kReactanceTolerance = 1e-9;
+
     struct GensalCoefficients {
         double mK1d;
         double mK3d;
@@ -30,6 +32,12 @@ namespace {
                                     double directSubtransientReactance,
                                     double leakageReactance)
     {
+        if (std::abs(directTransientReactance - directSubtransientReactance) <=
+            kReactanceTolerance) {
+            // In the Xdp == Xdpp limit, the subtransient d-axis branch
+            // collapses and psi2d is exactly epq.
+            return {.mK1d = 0.0, .mK3d = 1.0, .mK4d = 0.0};
+        }
         const double denominator = directTransientReactance - leakageReactance;
         return {.mK1d = (directTransientReactance - directSubtransientReactance) *
                     (directReactance - directTransientReactance) / (denominator * denominator),
@@ -69,10 +77,8 @@ CoreObject* GenModelGENSAL::clone(CoreObject* obj) const
 
 void GenModelGENSAL::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
-    constexpr double tolerance = 1e-9;
     if ((H <= 0.0) || (Tdop <= 0.0) || (Tdopp <= 0.0) || (Tqopp <= 0.0) || (Xd <= Xdp) ||
-        (Xdp < Xdpp) || (Xq < Xqpp) || (std::abs(Xdp - Xl) <= tolerance) ||
-        (std::abs(Xdp - Xdpp) <= tolerance)) {
+        (Xdp < Xdpp) || (Xq < Xqpp) || (std::abs(Xdp - Xl) <= kReactanceTolerance)) {
         throw InvalidParameterValue("GENSAL reactances, inertia, or time constants");
     }
     offsets.local().local.algSize = 2;
@@ -118,7 +124,9 @@ void GenModelGENSAL::dynObjectInitializeB(const IOdata& inputs,
     const double psi2q = std::imag(fluxDq);
     const auto coeff = coefficients(Xd, Xdp, Xdpp, Xl);
     const double epq = psi2d - (Xdp - Xdpp) * directCurrent;
-    const double psikd = (psi2d - coeff.mK3d * epq) / coeff.mK4d;
+    const double psikd = (std::abs(Xdp - Xdpp) <= kReactanceTolerance) ?
+        epq + (Xdp - Xl) * directCurrent :
+        (psi2d - coeff.mK3d * epq) / coeff.mK4d;
     const double saturation =
         sat.compute(usesExponentialSaturation() ? std::hypot(psi2d, psi2q) : epq);
     const double efd = usesExponentialSaturation() ?

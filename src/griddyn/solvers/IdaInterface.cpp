@@ -126,8 +126,13 @@ void IdaInterface::set(std::string_view param, double val)
 {
     if (param == "maxiterations") {
         max_iterations = static_cast<count_t>(val);
-        int retval = IDASetMaxNumSteps(solverMem, max_iterations);
-        checkFlag(&retval, "IDASetMaxNumSteps", 1);
+        // Solver parameters may be loaded from the simulation file before IDA's
+        // memory block is allocated.  Keep the value for initialize(), where it
+        // is applied unconditionally, instead of calling into IDA with nullptr.
+        if (solverMem != nullptr) {
+            int retval = IDASetMaxNumSteps(solverMem, max_iterations);
+            checkFlag(&retval, "IDASetMaxNumSteps", 1);
+        }
     } else {
         SundialsInterface::set(param, val);
     }

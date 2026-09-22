@@ -33,7 +33,9 @@ namespace griddyn::exciters {
  * anti-windup limiter @f$[V_{RMIN},V_{RMAX}]@f$.  When @f$T_R=0@f$, the
  * transducer is bypassed: @f$v_m=V_t@f$ and no measured-voltage state is
  * allocated.  When @f$T_B=0@f$, the lead-lag section is bypassed when
- * @f$T_C=0@f$ and no lead-lag state is allocated.
+ * @f$T_C=0@f$ and no lead-lag state is allocated.  When @f$T_A=0@f$, the
+ * regulator output is algebraic and no regulator differential state is
+ * allocated.
  *
  * Frozen ANDES constructs the @f$T_R@f$ transducer but subtracts raw terminal
  * voltage from the regulator input.  GridDyn intentionally uses @f$v_m@f$ as
@@ -65,6 +67,16 @@ class ExciterEXAC1: public Exciter {
     model_parameter Se2 = 0.0;
     utilities::Saturation saturation{utilities::Saturation::SaturationType::QUADRATIC};
     blocks::LeadLagKernel leadLag;
+    bool rootTransitionPending = false;
+    bool rootTransitionLimited = false;
+    bool rootTransitionHigh = false;
+    // IDA can return an algebraic limiter root using its pre-return input
+    // interpolation, while the state copied back to the model is already on
+    // the constrained side.  If that root does not change the limiter branch,
+    // hold the root function positive until the solver has advanced beyond the
+    // event time so the same root is not reported repeatedly.
+    bool rootRearmPending = false;
+    CoreTime rootRearmTime = 0.0;
 
   public:
     explicit ExciterEXAC1(const std::string& objName = "exciterEXAC1_#");
@@ -119,10 +131,19 @@ class ExciterEXAC1: public Exciter {
                                             double& fieldCurrentDerivative) const;
     double referenceInput(const IOdata& inputs) const;
     bool hasLeadLag() const;
+    bool hasDynamicRegulator() const;
     double vfe(const IOdata& inputs, const double state[]) const;
     double rectifierFactor(const IOdata& inputs, double exciterVoltage) const;
     double fieldVoltage(const IOdata& inputs, const double state[]) const;
-    int regulatorLimitStatus(const double state[]) const;
-    bool updateLimitFlags(const double state[]);
+    double regulatorDrive(const IOdata& inputs, const double state[]) const;
+    void stateWithRegulator(const double state[],
+                            double regulatorValue,
+                            double augmentedState[]) const;
+    double staticRegulatorTarget(const IOdata& inputs, const double state[]) const;
+    double regulatorTargetValue(const IOdata& inputs,
+                                const double state[],
+                                double regulatorValue) const;
+    int regulatorLimitStatus(const double state[], double regulatorValue) const;
+    bool updateLimitFlags(const IOdata& inputs, double state[], double regulatorValue);
 };
 }  // namespace griddyn::exciters

@@ -204,7 +204,7 @@ void runActivsG500LoadStepCase(GridDynSimulationTestFixture& fixture,
     constexpr double samplePeriod = 0.5;
     constexpr int sampleCount = 58;
     for (int sampleIndex = 0; sampleIndex < sampleCount; ++sampleIndex) {
-        const double sampleTime = firstSampleTime + samplePeriod * static_cast<double>(sampleIndex);
+        const double sampleTime = firstSampleTime + (samplePeriod * static_cast<double>(sampleIndex));
         ASSERT_EQ(fixture.gds->run(sampleTime), 0);
         DynamicSample sample;
         fixture.gds->getVoltage(sample.voltage);

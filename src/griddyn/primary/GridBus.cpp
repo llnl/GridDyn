@@ -1159,6 +1159,11 @@ bool busPowers::needsUpdate(const StateData& stateDataValue) const
 void GridBus::updateLocalCache()
 {
     S.reset();
+    if (!isEnabled())
+    {
+        return;
+    }
+
     auto cid = getID();
     for (auto& link : attachedLinks) {
         if (link->isEnabled()) {

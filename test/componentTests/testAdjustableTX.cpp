@@ -189,3 +189,26 @@ TEST_F(AdjustableTransformerTests, AdjTestContV)
     EXPECT_NEAR(st[1], 1.0, 1e-7);
     EXPECT_NEAR(st[2], 1.0, 1e-7);
 }
+
+TEST_F(AdjustableTransformerTests, NtpControlsTapModeAndPositionCount)
+{
+    links::AdjustableTransformer transformer;
+    transformer.set("mintap", 0.9);
+    transformer.set("maxtap", 1.1);
+
+    transformer.set("nsteps", 0.0);
+    EXPECT_TRUE(transformer.checkFlag(links::AdjustableTransformer::CONTINUOUS_FLAG));
+    EXPECT_FALSE(transformer.checkFlag(links::AdjustableTransformer::NO_PFLOW_ADJUSTMENTS));
+    EXPECT_DOUBLE_EQ(transformer.get("nsteps"), 0.0);
+
+    transformer.set("nsteps", 1.0);
+    EXPECT_FALSE(transformer.checkFlag(links::AdjustableTransformer::CONTINUOUS_FLAG));
+    EXPECT_TRUE(transformer.checkFlag(links::AdjustableTransformer::NO_PFLOW_ADJUSTMENTS));
+    EXPECT_DOUBLE_EQ(transformer.get("nsteps"), 1.0);
+
+    transformer.set("nsteps", 11.0);
+    EXPECT_FALSE(transformer.checkFlag(links::AdjustableTransformer::CONTINUOUS_FLAG));
+    EXPECT_FALSE(transformer.checkFlag(links::AdjustableTransformer::NO_PFLOW_ADJUSTMENTS));
+    EXPECT_NEAR(transformer.get("stepsize"), 0.02, 1.0e-12);
+    EXPECT_NEAR(transformer.get("nsteps"), 11.0, 1.0e-12);
+}

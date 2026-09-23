@@ -18,6 +18,7 @@
 #include "griddyn/loads/Svd.h"
 #include "griddyn/loads/ThreePhaseLoad.h"
 #include "griddyn/loads/ZipLoad.h"
+#include "griddyn/links/AcLine.h"
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/simulation/Diagnostics.h"
 #include <cmath>
@@ -590,6 +591,66 @@ TEST_F(LoadTests, SvdSwitchingHonorsIterationAndErrorGate)
     EXPECT_EQ(shunt->powerFlowAdjust({0.9, 0.0, 1.0, 1.0, 0.005}, 0, CheckLevel::REVERSABLE_ONLY),
               ChangeCode::JACOBIAN_CHANGE);
     EXPECT_EQ(shunt->get("andesstep"), 1.0);
+}
+
+TEST_F(LoadTests, SvdSteppedControlHonorsInitialLevel)
+{
+    auto gds = std::make_unique<GridDynSimulation>();
+    auto* bus = new AcBus("bus");
+    bus->set("type", "swing");
+    bus->set("voltage", 0.9);
+    auto* shunt = new Svd("shunt");
+    bus->add(shunt);
+    gds->add(bus);
+
+    shunt->set("mode", "stepped");
+    shunt->set("vmin", 0.95);
+    shunt->set("vmax", 1.05);
+    shunt->addBlock(2, -0.05);
+    shunt->set("yq", -0.05);
+    shunt->setInitialReactivePower(-0.05);
+
+    ASSERT_EQ(gds->pFlowInitialize(), 0);
+    EXPECT_EQ(shunt->get("step"), 1.0);
+    EXPECT_EQ(shunt->powerFlowAdjust(noInputs, 0, CheckLevel::REVERSABLE_ONLY),
+              ChangeCode::PARAMETER_CHANGE);
+    EXPECT_EQ(shunt->get("step"), 2.0);
+    EXPECT_NEAR(shunt->get("yq"), -0.10, 1.0e-12);
+
+    bus->set("voltage", 1.1);
+    EXPECT_EQ(shunt->powerFlowAdjust(noInputs, 0, CheckLevel::REVERSABLE_ONLY),
+              ChangeCode::PARAMETER_CHANGE);
+    EXPECT_EQ(shunt->get("step"), 1.0);
+    EXPECT_NEAR(shunt->get("yq"), -0.05, 1.0e-12);
+}
+
+TEST_F(LoadTests, SvdContinuousControlHasConsistentPowerFlowJacobian)
+{
+    auto gds = std::make_unique<GridDynSimulation>();
+    auto* slack = new AcBus("slack");
+    auto* bus = new AcBus("bus");
+    slack->set("type", "swing");
+    slack->set("voltage", 1.0);
+    bus->set("type", "pq");
+    bus->set("voltage", 1.0);
+    auto* shunt = new Svd("shunt");
+    bus->add(shunt);
+    gds->add(slack);
+    gds->add(bus);
+    auto* line = new AcLine(0.01, 0.1, "line");
+    line->updateBus(slack, 1);
+    line->updateBus(bus, 2);
+    gds->add(line);
+
+    shunt->set("mode", "continuous");
+    shunt->set("vmin", 1.0);
+    shunt->set("vmax", 1.0);
+    shunt->addBlock(2, -0.05);
+    shunt->set("yq", -0.05);
+
+    ASSERT_EQ(gds->pFlowInitialize(), 0);
+    EXPECT_EQ(shunt->algSize(cPflowSolverMode), 1U);
+    EXPECT_EQ(runJacobianCheck(gds, cPflowSolverMode), 0);
 }
 
 TEST_F(LoadTests, ApproxloadTest1)

@@ -22,6 +22,11 @@ fields are currently ignored.
 - All 20 AESO v32 RAW cases and all 20 AESO v33 RAW cases load and complete a
   GridDyn power flow. No remaining RAW syntax or topology issue blocks those
   cases.
+- The 40 archived AESO RAW files contain 44 active nonzero-`IREG` records.
+  They use only remote buses `610` and `1054`, all have `RMPCT=100%`, and no
+  active generator pairs share an `IREG` bus. They therefore fit the current
+  single-controller power-flow subset; the AESO corpus does not exercise the
+  grouped-participation rejection or the step-up-generator relocation path.
 - The v33 failure was traced to fixed phase-shifter/control interpretation and
   invalid tap-limit normalization in a `CW=1`/zero-`NOMV1` combination. The
   reader now retains fixed negative phase-shifter controls and avoids creating
@@ -30,6 +35,45 @@ fields are currently ignored.
   as first-winding terminal shunts. This is sufficient for the present
   positive-sequence power-flow and network-dynamics models; it does not model
   saturation, inrush, or frequency-dependent core behavior.
+- AESO switched-shunt records contain 7,812 cards across the 40 files: 1,328
+  fixed (`MODSW=0`), 6,028 stepped-voltage (`MODSW=1`), and 456
+  continuous-voltage (`MODSW=2`). There are no AESO `MODSW=3..6` records.
+  Ordinary RAW `Svd` power-flow control now honors the supplied `BINIT` level,
+  steps the available voltage-support blocks, and uses an algebraic state for
+  continuous voltage control. Remote `SWREM` buses are resolved and validated.
+
+### Merge checkpoint and next steps
+
+The current change set is the mergeable power-flow increment for the AESO
+review. It covers the active AESO switched-shunt population, single-generator
+remote voltage control, transformer magnetizing admittance, fixed and active
+two-winding transformer import, and the observed v32/v33 correction-table
+forms. Negative transformer `CONT` direction is preserved through
+power-flow initialization, and `NTP=0`, `NTP=1`, and stepped `NTP>1` now have
+explicit continuous, fixed, and stepped semantics.
+
+The focused regression tests cover switched-shunt initialization and
+continuous-control Jacobians, remote-control rejection/operation, transformer
+magnetization, fixed negative phase-shifters, negative transformer control
+direction, and transformer tap-position counts. The 40-case AESO corpus review
+remains the compatibility baseline: grouped `RMPCT` controls are rejected
+explicitly, while the observed single-controller cases are supported in power
+flow only.
+
+Next steps should be separate follow-up changes rather than prerequisites for
+this merge:
+
+- Compare transformer tap direction, limits, correction interpolation, remote
+  `CONT`, and continuous controls against PSS/E reference solutions.
+- Decide whether to implement PSS/E `ADJM` adjustment ordering and
+  `MODSW=3..6`, or reject those modes explicitly instead of accepting reduced
+  semantics.
+- Design coordinated grouped `RMPCT` equations for generators and switched
+  shunts; dynamic remote control requires a separate controller/state design.
+- Add broader three-winding and v35 transformer coverage, including independent
+  winding correction tables, `RATE4`-`RATE12`, and `NOD`.
+- Keep `.SAVE` reverse engineering and `.SEQ` sequence-network modeling out of
+  this power-flow merge; prefer RAW/EPC/DYR export for current workflows.
 
 ### Remaining format and model findings
 
@@ -48,10 +92,23 @@ fields are currently ignored.
   sequence/reference calculation are still desirable. The two-winding CM=2
   conversion is covered; the three-winding reader uses the same conversion
   helper and first-leg placement.
-- Transformer `CW=2/3` voltage-base conversion remains incomplete when nominal
-  winding bases differ. Active `COD`/`CONT` regulation, winding limit/step
-  fields, independent winding correction tables, v35 `RATE4`-`RATE12`/`NOD`,
-  and transformer ownership/name metadata remain reduced or discarded.
+- AESO has 1,608 nonzero-`SWREM` shunt records, all with `RMPCT=100%`. Some
+  remote buses have multiple active shunts, so coordinated switched-shunt
+  `RMPCT` participation is not yet represented; the current independent-device
+  behavior is appropriate only for a single active controller per remote bus.
+  `ADJM` is preserved as readable metadata, but its PSS/E adjustment-order
+  semantics are not modeled. The AESO `ADJM=1` records are fixed shunts, so
+  this does not change their present power-flow result.
+- AESO transformer cards are all two-winding `CW=1`/`CM=1`; active controls are
+  `COD=1` voltage controls with nonzero `NTP`, and the 80 nonzero correction
+  references belong to fixed `COD=-3` phase shifters. The reader applies the
+  supplied voltage-control limits and tap positions, preserves negative
+  `CONT` direction, and uses the existing correction interpolation.
+  Independent validation against PSS/E is still needed for tap direction,
+  remote `CONT` buses, limit behavior, and continuous controls.
+  `CW=2/3`, active MW/Mvar control, independent winding correction tables,
+  v35 `RATE4`-`RATE12`/`NOD`, and transformer ownership/name metadata remain
+  reduced or discarded.
 - Outside transformers, the highest-value unimplemented RAW areas are grouped
   generator voltage participation (`IREG`/`RMPCT` and newer remote controls),
   induction-machine records, physical multi-terminal DC/FACTS/GNE devices,
@@ -148,10 +205,22 @@ larger numeric rating set before extending the reader.
 **Priority:** Medium
 
 `Generator` already has P/Q limits, a voltage target, a remote bus, machine
-base, impedance, and participation-related fields. The RAW reader does not
-fully apply `VS`, `IREG`, `RMPCT`, and newer remote-control fields. The work
-should map these into the existing control model where semantics match and
-emit a diagnostic where the RAW behavior has no equivalent.
+base, impedance, and participation-related fields. The RAW reader now applies
+`VS`, `IREG`, and `RMPCT` for one active generator regulating one remote bus in
+power flow. The generator is attached to the remote `AcBus`, and the existing
+indirect-control path uses an exact remote-voltage equation when it is the
+only voltage controller on that bus. v35's inserted `NREG` field is accounted
+for when locating the subsequent generator fields.
+
+Several-generator `IREG` groups are deliberately rejected with an error for
+now. GridDyn does not yet have the coordinated PSS/E reactive-participation
+equations needed to apply the `RMPCT` shares consistently, and this RAW
+support is power-flow-only; dynamic remote-voltage control remains future
+work. Negative/invalid remote identifiers, invalid `VS`, invalid `RMPCT`, and
+missing remote buses are also rejected rather than silently approximated.
+
+Future work should implement grouped participation and compare limit sharing
+against PSS/E, then design a separate dynamic controller/state treatment.
 
 ### RAW-004: Complete transformer operating data
 
@@ -264,10 +333,12 @@ contingency studies, or dynamic initialization in GridDyn.
 
 **Priority:** Medium
 
-`Svd` supports blocks, voltage limits, control buses, Q limits, and
-participation. The reader covers the main behavior but collapses or ignores
-some RAW mode and adjustment fields. Add focused tests before extending the
-mapping so existing Texas and SyntheticUSA behavior remains stable.
+`Svd` now supports the AESO voltage-control modes (`MODSW=1/2`) in power flow,
+including remote measurement buses, `BINIT` initialization, block stepping,
+and continuous algebraic control. `ADJM` remains metadata because its exact
+PSS/E adjustment-order algorithm is not needed by the AESO active population.
+Grouped remote `RMPCT` participation and the unused `MODSW=3..6` families need
+source-backed semantics and focused comparison tests before being enabled.
 
 ### RAW-022: Import induction-machine records
 

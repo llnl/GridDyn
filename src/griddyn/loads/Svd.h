@@ -23,6 +23,7 @@ class Svd: public RampLoad {
         REVERSE_CONTROL_FLAG = OBJECT_FLAG9,
         REVERSE_TOGGLED_FLAG = OBJECT_FLAG10,  // indicator that the reverse flag has been
                                                // toggled so don't try it again
+        AT_LIMIT_FLAG = OBJECT_FLAG11,
     };
 
   protected:
@@ -38,6 +39,8 @@ class Svd: public RampLoad {
     int stepCount = 0;  //!< the total number of steps available
     std::vector<std::pair<int, double>>
         Cblocks;  // a vector containing the capacitive blocks (count, size[puMW])
+
+    int adjustmentMethod = 0;  //!< RAW ADJM metadata; exact PSS/E switching method is not modeled
 
     model_parameter participation = 1.0;  //!< a participation factor
 
@@ -85,6 +88,13 @@ class Svd: public RampLoad {
 
     virtual void getVariableType(double sdata[], const SolverMode& sMode) override;
 
+    virtual StateSizes localStateSizes(const SolverMode& sMode) const override;
+    virtual count_t localJacobianCount(const SolverMode& sMode) const override;
+
+    virtual void updateLocalCache(const IOdata& inputs,
+                                  const StateData& stateData,
+                                  const SolverMode& sMode) override;
+
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
@@ -101,6 +111,14 @@ class Svd: public RampLoad {
 @param[in] unitType  the units of qstep
 */
     void addBlock(int steps, double qstep, units::unit unitType = units::defunit);
+
+    /** Set the presently selected stepped level without changing the supplied output.
+     *
+     * RAW BINIT is the actual initial susceptance, while the block list defines
+     * the levels available to subsequent control actions.  The reader uses this
+     * method after adding all blocks so a first adjustment starts from BINIT.
+     */
+    void setInitialReactivePower(double level, units::unit unitType = units::defunit);
 
     /** Configure an ANDES ShuntSw block bank using system-base admittances. */
     void configureAndesShunt(const std::vector<double>& conductanceSteps,
@@ -156,6 +174,11 @@ class Svd: public RampLoad {
                                  CheckLevel level) override;
 
   protected:
+    double levelForStep(int step) const;
+    int nearestStep(double level) const;
+    int voltageControlStep(double voltage) const;
+    bool powerFlowAdjustmentAllowed(const IOdata& inputs) const;
+
     int andesMaxStep() const;
     int andesInitialStep() const;
     double andesEffectiveValue(const std::vector<double>& blocks, double baseValue, int step) const;

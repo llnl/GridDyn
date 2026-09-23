@@ -7,6 +7,7 @@
 #include "../GridBus.h"
 #include "../controllers/Scheduler.h"
 #include "../measurement/ObjectGrabbers.h"
+#include "../primary/AcBus.h"
 #include "VariableGenerator.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
@@ -36,6 +37,14 @@ governor --- Pm(t0) = Pset is stored externally as well
 */
 
 namespace griddyn {
+namespace {
+    bool hasSingleRemoteVoltageController(const GridBus* remoteBus)
+    {
+        const auto* acRemoteBus = dynamic_cast<const AcBus*>(remoteBus);
+        return (acRemoteBus != nullptr) && (acRemoteBus->voltageControlCount() == 1);
+    }
+}  // namespace
+
 static TypeFactory<Generator>
     gGeneratorFactory("generator", std::to_array<std::string_view>({"basic", "simple", "pflow"}));
 static ChildTypeFactory<DynamicGenerator, Generator>
@@ -120,7 +129,13 @@ void Generator::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
         if (opFlags[LOCAL_POWER_CONTROL]) {
             if (bus->getType() != GridBus::BusType::PQ) {
                 bus->registerPowerControl(this);
-                opFlags.reset(INDIRECT_VOLTAGE_CONTROL);
+                // Local real-power control does not conflict with indirect
+                // voltage control when this generator is regulating a remote
+                // bus.  Only local-voltage-controlled generators need the
+                // direct PV-bus interpretation here.
+                if (opFlags[LOCAL_VOLTAGE_CONTROL]) {
+                    opFlags.reset(INDIRECT_VOLTAGE_CONTROL);
+                }
             }
         } else if (opFlags[REMOTE_POWER_CONTROL]) {
             // remote bus already configured
@@ -379,11 +394,11 @@ ChangeCode Generator::powerFlowAdjust(const IOdata& /*inputs*/,
     if (opFlags[AT_LIMIT]) {
         const double voltage = remoteBus->getVoltage();
         if (Q >= getQmax()) {
-            if (voltage < m_Vtarget) {
+            if (voltage > m_Vtarget) {
                 opFlags.reset(AT_LIMIT);
                 return ChangeCode::PARAMETER_CHANGE;
             }
-        } else if (voltage > m_Vtarget) {
+        } else if (voltage < m_Vtarget) {
             opFlags.reset(AT_LIMIT);
             return ChangeCode::PARAMETER_CHANGE;
         }
@@ -663,13 +678,20 @@ void Generator::algebraicUpdate(const IOdata& /*inputs*/,
 {
     if ((!isDynamic(sMode)) &&
         (opFlags[INDIRECT_VOLTAGE_CONTROL])) {  // the bus is managing a remote bus voltage
-        const double voltage = remoteBus->getVoltage(stateDataValue, sMode);
         auto offset = offsets.getAlgOffset(sMode);
-        // printf("Q=%f\n",sD.state[offset]);
-        if (!opFlags[AT_LIMIT]) {
-            update[offset] = -Qbias + ((voltage - m_Vtarget) * vRegFraction * 10000.0);
-        } else {
+        if (hasSingleRemoteVoltageController(remoteBus) && !opFlags[AT_LIMIT]) {
+            // A single controller has a direct voltage equation; its Q state
+            // is set by the terminal-bus reactive-power balance.
             update[offset] = -Q;
+        } else {
+            const double voltage = remoteBus->getVoltage(stateDataValue, sMode);
+            if (!opFlags[AT_LIMIT]) {
+                constexpr double remoteVoltageGain = 10000.0;
+                update[offset] = -Qbias +
+                    ((voltage - m_Vtarget) * vRegFraction * remoteVoltageGain);
+            } else {
+                update[offset] = -Q;
+            }
         }
     }
 }
@@ -683,10 +705,15 @@ void Generator::residual(const IOdata& /*inputs*/,
         (opFlags[INDIRECT_VOLTAGE_CONTROL])) {  // the bus is managing a remote bus voltage
         const double voltage = remoteBus->getVoltage(stateDataValue, sMode);
         auto offset = offsets.getAlgOffset(sMode);
-        // printf("Q=%f\n",sD.state[offset]);
-        if (!opFlags[AT_LIMIT]) {
+        if (hasSingleRemoteVoltageController(remoteBus) && !opFlags[AT_LIMIT]) {
+            // A single controller supplies the one voltage constraint for the
+            // remote bus.  The generator algebraic state is still solved by
+            // the terminal bus Q balance through getReactivePower().
+            resid[offset] = voltage - m_Vtarget;
+        } else if (!opFlags[AT_LIMIT]) {
+            constexpr double remoteVoltageGain = 10000.0;
             resid[offset] = stateDataValue.state[offset] + Qbias -
-                ((voltage - m_Vtarget) * vRegFraction * 10000.0);
+                ((voltage - m_Vtarget) * vRegFraction * remoteVoltageGain);
         } else {
             resid[offset] = stateDataValue.state[offset] + Q;
         }
@@ -703,10 +730,12 @@ void Generator::jacobianElements(const IOdata& /*inputs*/,
         (opFlags[INDIRECT_VOLTAGE_CONTROL])) {  // the bus is managing a remote bus voltage
         auto voltageOffset = remoteBus->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
         auto offset = offsets.getAlgOffset(sMode);
-        if (!opFlags[AT_LIMIT]) {
-            // resid[offset] = sD.state[offset] - (voltage - m_Vtarget)*remoteVRegFraction * 10000;
-            matrixDataValue.assignCheck(offset, offset, 1);
-            matrixDataValue.assignCheck(offset, voltageOffset, -vRegFraction * 10000);
+        if (hasSingleRemoteVoltageController(remoteBus) && !opFlags[AT_LIMIT]) {
+            matrixDataValue.assignCheck(offset, voltageOffset, 1.0);
+        } else if (!opFlags[AT_LIMIT]) {
+            constexpr double remoteVoltageGain = 10000.0;
+            matrixDataValue.assignCheck(offset, offset, 1.0);
+            matrixDataValue.assignCheck(offset, voltageOffset, -vRegFraction * remoteVoltageGain);
         } else {
             matrixDataValue.assignCheck(offset, offset, 1.0);
         }

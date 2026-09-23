@@ -10,6 +10,7 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringConversion.h"
+#include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
 #include <string>
@@ -53,6 +54,7 @@ CoreObject* Svd::clone(CoreObject* obj) const
     load->currentStep = currentStep;
     load->stepCount = stepCount;
     load->Cblocks = Cblocks;
+    load->adjustmentMethod = adjustmentMethod;
     load->participation = participation;
     load->andesBankMode = andesBankMode;
     load->andesGs = andesGs;
@@ -102,7 +104,13 @@ int Svd::checkSetting(double level)
         return 0;
     }
     if (opFlags[CONTINUOUS_FLAG]) {
-        return ((level >= Qlow) && (level <= Qhigh)) ? 1 : -1;
+        const auto qMin = (std::min)(Qlow, Qhigh);
+        const auto qMax = (std::max)(Qlow, Qhigh);
+        return ((level >= qMin) && (level <= qMax)) ? 1 : -1;
+    }
+
+    if (Cblocks.empty()) {
+        return -1;
     }
 
     while (true) {
@@ -163,34 +171,7 @@ void Svd::updateSetting(int step)
         currentStep = stepCount;
         setYq(Qhigh);
     } else {
-        double qlevel = Qlow;
-        if (opFlags[REVERSE_CONTROL_FLAG]) {
-            auto block = Cblocks.begin();
-            int scount = 0;
-
-            while (step > scount + (*block).first) {
-                scount += (*block).first;
-                qlevel += (*block).second;
-                ++block;
-                if (block == Cblocks.end()) {
-                    break;
-                }
-            }
-            qlevel += (step - scount) * (*block).second;
-        } else {
-            auto block = Cblocks.rbegin();
-            int scount = 0;
-            while (step > scount + (*block).first) {
-                scount += (*block).first;
-                qlevel += (*block).second;
-                ++block;
-                if (block == Cblocks.rend()) {
-                    break;
-                }
-            }
-            qlevel += (step - scount) * (*block).second;
-        }
-        setYq(qlevel);
+        setYq(levelForStep(step));
         currentStep = step;
     }
 }
@@ -210,6 +191,25 @@ void Svd::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
     ZipLoad::pFlowObjectInitializeA(time0, flags);
 }
 
+StateSizes Svd::localStateSizes(const SolverMode& sMode) const
+{
+    StateSizes sizes;
+    if ((!isDynamic(sMode)) && opFlags[CONTINUOUS_FLAG] && !opFlags[LOCKED_FLAG]) {
+        sizes.algSize = 1;
+    }
+    return sizes;
+}
+
+count_t Svd::localJacobianCount(const SolverMode& sMode) const
+{
+    if ((!isDynamic(sMode)) && opFlags[CONTINUOUS_FLAG] && !opFlags[LOCKED_FLAG]) {
+        // The first entry is the state equation's own derivative.  The second
+        // is the controlled-bus voltage column (which may be remote).
+        return 2;
+    }
+    return 0;
+}
+
 void Svd::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     if (andesBankMode) {
@@ -224,33 +224,105 @@ void Svd::dynObjectInitializeB(const IOdata& /*inputs*/,
 {
 }
 
-void Svd::setState(CoreTime /*time*/,
-                   const double /*state*/[],
-                   const double /*dstate_dt*/[],
-                   const SolverMode& /*sMode*/)
+void Svd::setState(CoreTime time,
+                   const double state[],
+                   const double dstateDt[],
+                   const SolverMode& sMode)
 {
+    if ((!isDynamic(sMode)) && opFlags[CONTINUOUS_FLAG] && !opFlags[LOCKED_FLAG] &&
+        state != nullptr) {
+        const auto offset = offsets.getAlgOffset(sMode);
+        if (offset != kNullLocation) {
+            setYq(state[offset]);
+        }
+    }
+    ZipLoad::setState(time, state, dstateDt, sMode);
 }
 
 void Svd::guessState(CoreTime /*time*/,
-                     double /*state*/[],
+                     double state[],
                      double /*dstate_dt*/[],
-                     const SolverMode& /*sMode*/)
+                     const SolverMode& sMode)
 {
+    if ((!isDynamic(sMode)) && opFlags[CONTINUOUS_FLAG] && !opFlags[LOCKED_FLAG]) {
+        const auto offset = offsets.getAlgOffset(sMode);
+        if (offset != kNullLocation) {
+            state[offset] = getYq();
+        }
+    }
 }
 
-ChangeCode Svd::powerFlowAdjust(const IOdata& inputs, std::uint32_t /*flags*/, CheckLevel /*level*/)
+void Svd::updateLocalCache(const IOdata& inputs,
+                           const StateData& stateData,
+                           const SolverMode& sMode)
 {
-    if (!andesBankMode || opFlags[LOCKED_FLAG] || !isConnected()) {
-        return ChangeCode::NO_CHANGE;
+    if ((!isDynamic(sMode)) && opFlags[CONTINUOUS_FLAG] && !opFlags[LOCKED_FLAG] &&
+        stateData.state != nullptr) {
+        const auto offset = offsets.getAlgOffset(sMode);
+        if (offset != kNullLocation) {
+            setYq(stateData.state[offset]);
+        }
     }
+    ZipLoad::updateLocalCache(inputs, stateData, sMode);
+}
 
-    // ANDES ShuntAdjust enables switching once either the minimum iteration
-    // count has been reached or the current power-flow error is within the
-    // configured tolerance. Calls without the optional context retain the
-    // historical GridDyn behavior and are allowed to adjust.
-    if ((inputs.size() > PFLOW_ERROR_LOCATION) &&
-        (static_cast<int>(inputs[PFLOW_ITERATION_LOCATION]) < minIter) &&
-        (inputs[PFLOW_ERROR_LOCATION] > errTol)) {
+void Svd::outputPartialDerivatives(const IOdata& inputs,
+                                   const StateData& stateData,
+                                   MatrixData<double>& matrixData,
+                                   const SolverMode& sMode)
+{
+    if ((!isDynamic(sMode)) && opFlags[CONTINUOUS_FLAG] && !opFlags[LOCKED_FLAG]) {
+        const auto offset = offsets.getAlgOffset(sMode);
+        if (offset != kNullLocation) {
+            const auto voltage = inputs.empty() ? bus->getVoltage(stateData, sMode) :
+                                                  inputs[VOLTAGE_IN_LOCATION];
+            matrixData.assign(QOUT_LOCATION, offset, voltage * voltage);
+        }
+    }
+    ZipLoad::outputPartialDerivatives(inputs, stateData, matrixData, sMode);
+}
+
+void Svd::jacobianElements(const IOdata& /*inputs*/,
+                           const StateData& /*stateData*/,
+                           MatrixData<double>& matrixData,
+                           const IOlocs& /*inputLocs*/,
+                           const SolverMode& sMode)
+{
+    if ((!isDynamic(sMode)) && opFlags[CONTINUOUS_FLAG] && !opFlags[LOCKED_FLAG]) {
+        const auto offset = offsets.getAlgOffset(sMode);
+        if (offset == kNullLocation) {
+            return;
+        }
+        if (!opFlags[AT_LIMIT_FLAG]) {
+            auto* voltageBus = (controlBus != nullptr) ? controlBus : bus;
+            if (voltageBus != nullptr) {
+                matrixData.assignCheckCol(
+                    offset, voltageBus->getOutputLoc(sMode, VOLTAGE_IN_LOCATION), 1.0);
+            }
+        } else {
+            // At a reactive limit the voltage equation is replaced by the
+            // algebraic bound on the shunt susceptance.  Away from a limit,
+            // the row is only voltage-target, so it has no self derivative.
+            matrixData.assign(offset, offset, 1.0);
+        }
+    }
+}
+
+bool Svd::powerFlowAdjustmentAllowed(const IOdata& inputs) const
+{
+    // The power-flow driver supplies iteration/error context.  Keep direct
+    // callers compatible with the historical behavior when that context is
+    // absent.
+    return !((inputs.size() > PFLOW_ERROR_LOCATION) &&
+             (static_cast<int>(inputs[PFLOW_ITERATION_LOCATION]) < minIter) &&
+             (inputs[PFLOW_ERROR_LOCATION] > errTol));
+}
+
+ChangeCode Svd::powerFlowAdjust(const IOdata& inputs,
+                                std::uint32_t /*flags*/,
+                                CheckLevel /*level*/)
+{
+    if (opFlags[LOCKED_FLAG] || !isConnected() || !powerFlowAdjustmentAllowed(inputs)) {
         return ChangeCode::NO_CHANGE;
     }
 
@@ -261,14 +333,66 @@ ChangeCode Svd::powerFlowAdjust(const IOdata& inputs, std::uint32_t /*flags*/, C
     if (controlBus != nullptr) {
         voltage = controlBus->getVoltage();
     }
-    int direction = 0;
-    if (voltage < andesVref - andesDv) {
-        direction = 1;
-    } else if (voltage > andesVref + andesDv) {
-        direction = -1;
+
+    if (andesBankMode) {
+        if (opFlags[LOCKED_FLAG]) {
+            return ChangeCode::NO_CHANGE;
+        }
+        int direction = 0;
+        if (voltage < andesVref - andesDv) {
+            direction = 1;
+        } else if (voltage > andesVref + andesDv) {
+            direction = -1;
+        }
+        return (direction != 0 && adjustAndesStep(direction)) ?
+            ChangeCode::JACOBIAN_CHANGE :
+            ChangeCode::NO_CHANGE;
     }
-    return (direction != 0 && adjustAndesStep(direction)) ? ChangeCode::JACOBIAN_CHANGE :
-                                                            ChangeCode::NO_CHANGE;
+
+    if (Cblocks.empty()) {
+        return ChangeCode::NO_CHANGE;
+    }
+
+    if (opFlags[CONTINUOUS_FLAG]) {
+        const auto qMin = (std::min)(Qlow, Qhigh);
+        const auto qMax = (std::max)(Qlow, Qhigh);
+        const auto qValue = getYq();
+        if (opFlags[AT_LIMIT_FLAG]) {
+            if (((qValue <= qMin) && (voltage > Vmin)) ||
+                ((qValue >= qMax) && (voltage < Vmax))) {
+                opFlags.reset(AT_LIMIT_FLAG);
+                return ChangeCode::JACOBIAN_CHANGE;
+            }
+            return ChangeCode::NO_CHANGE;
+        }
+        if (qValue < qMin) {
+            setYq(qMin);
+            opFlags.set(AT_LIMIT_FLAG);
+            alert(this, JAC_COUNT_DECREASE);
+            return ChangeCode::JACOBIAN_CHANGE;
+        }
+        if (qValue > qMax) {
+            setYq(qMax);
+            opFlags.set(AT_LIMIT_FLAG);
+            alert(this, JAC_COUNT_DECREASE);
+            return ChangeCode::JACOBIAN_CHANGE;
+        }
+        return ChangeCode::NO_CHANGE;
+    }
+
+    // Reactive-power-controlled MODSW variants need a coordinated bus-flow
+    // measurement and are intentionally not guessed here.  The AESO corpus
+    // contains no such active records.
+    if (opFlags[REACTIVE_CONTROL_FLAG]) {
+        return ChangeCode::NO_CHANGE;
+    }
+
+    const auto nextStep = voltageControlStep(voltage);
+    if (nextStep == currentStep) {
+        return ChangeCode::NO_CHANGE;
+    }
+    updateSetting(nextStep);
+    return ChangeCode::PARAMETER_CHANGE;
 }
 
 void Svd::reset(ResetLevels /*level*/)
@@ -309,6 +433,8 @@ void Svd::set(std::string_view param, std::string_view val)
         if (lowerValue == "reactive") {
             opFlags.set(REACTIVE_CONTROL_FLAG, true);
         }
+    } else if ((param == "adjm") || (param == "adjustmentmethod")) {
+        adjustmentMethod = numeric_conversion<int>(std::string{val}, 0);
     } else {
         ZipLoad::set(param, val);
     }
@@ -316,7 +442,14 @@ void Svd::set(std::string_view param, std::string_view val)
 void Svd::set(std::string_view param, double val, unit unitType)
 {
     if (param == "qlow") {
-        Qlow = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
+        const auto newQlow = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
+        if (!Cblocks.empty()) {
+            Qhigh = newQlow;
+            for (const auto& block : Cblocks) {
+                Qhigh += block.first * block.second;
+            }
+        }
+        Qlow = newQlow;
     } else if (param == "qhigh") {
         Qhigh = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
     } else if (param == "qmin") {
@@ -345,6 +478,8 @@ void Svd::set(std::string_view param, double val, unit unitType)
         minIter = (std::max)(0, static_cast<int>(val));
     } else if (param == "err_tol") {
         errTol = (std::max)(0.0, val);
+    } else if ((param == "adjm") || (param == "adjustmentmethod")) {
+        adjustmentMethod = static_cast<int>(val);
     } else if (param == "block") {
         if (Cblocks.size() == 1) {
             if (Cblocks[0].second == 0) {
@@ -375,6 +510,12 @@ void Svd::set(std::string_view param, double val, unit unitType)
 
 double Svd::get(std::string_view param, unit unitType) const
 {
+    if ((param == "adjm") || (param == "adjustmentmethod")) {
+        return static_cast<double>(adjustmentMethod);
+    }
+    if (param == "step") {
+        return static_cast<double>(currentStep);
+    }
     if (param == "vref") {
         return andesVref;
     }
@@ -404,10 +545,93 @@ double Svd::get(std::string_view param, unit unitType) const
 
 void Svd::addBlock(int steps, double qstep, units::unit unitType)
 {
+    if (steps <= 0) {
+        return;
+    }
+    if (Cblocks.empty()) {
+        Qhigh = Qlow;
+    }
     const double convertedStep = units::convert(qstep, unitType, units::puMW, systemBasePower);
     Cblocks.emplace_back(steps, convertedStep);
     Qhigh += steps * convertedStep;
     stepCount += steps;
+}
+
+double Svd::levelForStep(int step) const
+{
+    if (step <= 0 || Cblocks.empty()) {
+        return Qlow;
+    }
+    int remaining = (std::min)(step, stepCount);
+    double qlevel = Qlow;
+    if (opFlags[REVERSE_CONTROL_FLAG]) {
+        for (auto block = Cblocks.rbegin(); block != Cblocks.rend() && remaining > 0; ++block) {
+            const int selected = (std::min)(remaining, block->first);
+            qlevel += selected * block->second;
+            remaining -= selected;
+        }
+    } else {
+        for (const auto& block : Cblocks) {
+            if (remaining <= 0) {
+                break;
+            }
+            const int selected = (std::min)(remaining, block.first);
+            qlevel += selected * block.second;
+            remaining -= selected;
+        }
+    }
+    return qlevel;
+}
+
+int Svd::nearestStep(double level) const
+{
+    if (stepCount <= 0) {
+        return 0;
+    }
+    int bestStep = 0;
+    double bestError = std::abs(level - levelForStep(0));
+    for (int step = 1; step <= stepCount; ++step) {
+        const double error = std::abs(level - levelForStep(step));
+        if (error < bestError) {
+            bestError = error;
+            bestStep = step;
+        }
+    }
+    return bestStep;
+}
+
+void Svd::setInitialReactivePower(double level, units::unit unitType)
+{
+    const double convertedLevel = units::convert(level, unitType, units::puMW, systemBasePower);
+    currentStep = nearestStep(convertedLevel);
+}
+
+int Svd::voltageControlStep(double voltage) const
+{
+    if (stepCount <= 0) {
+        return currentStep;
+    }
+    const double currentLevel = levelForStep(currentStep);
+    const bool needMoreInjection = voltage < Vmin;
+    const bool needLessInjection = voltage > Vmax;
+    if (!needMoreInjection && !needLessInjection) {
+        return currentStep;
+    }
+
+    const auto isBetter = [needMoreInjection](double candidate, double current) {
+        // GridDyn stores a shunt's reactive injection as negative load Q.
+        // Lower Q therefore means more voltage support.
+        return needMoreInjection ? (candidate < current) : (candidate > current);
+    };
+    const int forward = currentStep + 1;
+    const int reverse = currentStep - 1;
+    if ((forward <= stepCount) && isBetter(levelForStep(forward), currentLevel)) {
+        return forward;
+    }
+    if ((reverse >= 0) && isBetter(levelForStep(reverse), currentLevel)) {
+        return reverse;
+    }
+    return currentStep;
 }
 
 void Svd::configureAndesShunt(const std::vector<double>& conductanceSteps,
@@ -494,10 +718,29 @@ bool Svd::adjustAndesStep(int direction)
 }
 
 void Svd::residual(const IOdata& /*inputs*/,
-                   const StateData& /*sD*/,
-                   double /*resid*/[],
-                   const SolverMode& /*sMode*/)
+                   const StateData& stateData,
+                   double resid[],
+                   const SolverMode& sMode)
 {
+    if ((!isDynamic(sMode)) && opFlags[CONTINUOUS_FLAG] && !opFlags[LOCKED_FLAG]) {
+        const auto offset = offsets.getAlgOffset(sMode);
+        if (offset == kNullLocation) {
+            return;
+        }
+        if (opFlags[AT_LIMIT_FLAG]) {
+            const auto qMin = (std::min)(Qlow, Qhigh);
+            const auto qMax = (std::max)(Qlow, Qhigh);
+            const auto qValue = stateData.state[offset];
+            resid[offset] = qValue - (((qValue <= qMin) ? qMin : qMax));
+        } else {
+            const auto* voltageBus = (controlBus != nullptr) ? controlBus : bus;
+            const auto voltage = (voltageBus != nullptr) ?
+                voltageBus->getVoltage(stateData, sMode) :
+                1.0;
+            const auto target = (Vmax >= Vmin) ? ((Vmin + Vmax) / 2.0) : 1.0;
+            resid[offset] = voltage - target;
+        }
+    }
 }
 
 void Svd::derivative(const IOdata& /*inputs*/,
@@ -507,24 +750,16 @@ void Svd::derivative(const IOdata& /*inputs*/,
 {
 }
 
-void Svd::outputPartialDerivatives(const IOdata& /*inputs*/,
-                                   const StateData& /*sD*/,
-                                   MatrixData<double>& /*md*/,
-                                   const SolverMode& /*sMode*/)
+void Svd::getStateName(stringVec& stNames,
+                       const SolverMode& sMode,
+                       const std::string& prefix) const
 {
-}
-
-void Svd::jacobianElements(const IOdata& /*inputs*/,
-                           const StateData& /*sD*/,
-                           MatrixData<double>& /*md*/,
-                           const IOlocs& /*inputLocs*/,
-                           const SolverMode& /*sMode*/)
-{
-}
-void Svd::getStateName(stringVec& /*stNames*/,
-                       const SolverMode& /*sMode*/,
-                       const std::string& /*prefix*/) const
-{
+    if ((!isDynamic(sMode)) && opFlags[CONTINUOUS_FLAG] && !opFlags[LOCKED_FLAG]) {
+        const auto offset = offsets.getAlgOffset(sMode);
+        if (offset != kNullLocation) {
+            stNames[offset] = prefix + getName() + ":susceptance";
+        }
+    }
 }
 
 void Svd::timestep(CoreTime time, const IOdata& /*inputs*/, const SolverMode& /*sMode*/)

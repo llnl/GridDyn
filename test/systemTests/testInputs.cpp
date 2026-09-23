@@ -6,6 +6,7 @@
 
 #include "../gtestHelper.h"
 #include "gmlc/utilities/vectorOps.hpp"
+#include "griddyn/Generator.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/Link.h"
 #include "griddyn/links/AcLine.h"
@@ -313,6 +314,49 @@ TEST_F(InputTests, PssERawGeneratorStepUpTransformerImport)
     EXPECT_EQ(controlledBus->getName(), "NORTH");
     EXPECT_NEAR(controlledBus->get("qmin"), -6.5, 1e-10);
     EXPECT_NEAR(controlledBus->get("qmax"), 7.0, 1e-10);
+}
+
+TEST_F(InputTests, PssERawSingleRemoteVoltageControl)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    ASSERT_NO_THROW(
+        loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_remote_voltage_control.raw"));
+
+    auto* terminalBus = dynamic_cast<GridBus*>(gds->findByUserID("bus", 3));
+    auto* remoteBus = dynamic_cast<GridBus*>(gds->findByUserID("bus", 2));
+    ASSERT_NE(terminalBus, nullptr);
+    ASSERT_NE(remoteBus, nullptr);
+    ASSERT_EQ(terminalBus->getInt("gencount"), 1);
+    auto* generator = terminalBus->getGen(0);
+    ASSERT_NE(generator, nullptr);
+
+    EXPECT_NEAR(generator->get("vtarget"), 1.04, 1e-12);
+    EXPECT_NEAR(generator->get("vcontrolfrac"), 0.5, 1e-12);
+    EXPECT_NEAR(terminalBus->get("vtarget"), 0.98, 1e-12);
+    EXPECT_NEAR(remoteBus->get("vtarget"), 1.04, 1e-12);
+
+    EXPECT_TRUE(generator->checkFlag(REMOTE_VOLTAGE_CONTROL));
+    EXPECT_FALSE(generator->checkFlag(LOCAL_VOLTAGE_CONTROL));
+    ASSERT_EQ(gds->powerflow(), 0);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
+    EXPECT_TRUE(generator->checkFlag(INDIRECT_VOLTAGE_CONTROL));
+    EXPECT_NEAR(remoteBus->getVoltage(), 1.04, 1e-7);
+}
+
+TEST_F(InputTests, PssERawRemoteVoltageGroupsAreUnsupported)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    EXPECT_THROW(
+        loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_remote_voltage_group.raw"),
+        std::runtime_error);
+}
+
+TEST_F(InputTests, PssERawRemoteSwitchedShuntGroupsAreUnsupported)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    EXPECT_THROW(
+        loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_remote_shunt_group.raw"),
+        std::runtime_error);
 }
 
 TEST_F(InputTests, PssERawTransformerMagnetizingAdmittance)

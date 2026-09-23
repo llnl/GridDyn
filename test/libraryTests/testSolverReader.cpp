@@ -82,6 +82,23 @@ namespace {
                     1.0e-12);
     }
 
+    TEST_F(SolverReaderTests, RawNegativeTransformerControlDirectionIsPreserved)
+    {
+        const std::string fileName =
+            std::string{inputTestDirectory} + "raw_negative_transformer_control.raw";
+        gds = std::make_unique<GridDynSimulation>();
+        loadFile(gds.get(), fileName);
+
+        auto* transformer = dynamic_cast<links::AdjustableTransformer*>(gds->getLink(0));
+        ASSERT_NE(transformer, nullptr);
+        EXPECT_DOUBLE_EQ(transformer->get("controlbusid"), 3.0);
+        EXPECT_DOUBLE_EQ(transformer->get("direction"), -1.0);
+
+        ASSERT_EQ(gds->pFlowInitialize(), 0);
+        EXPECT_DOUBLE_EQ(transformer->get("controlbusid"), 3.0);
+        EXPECT_DOUBLE_EQ(transformer->get("direction"), -1.0);
+    }
+
     TEST_F(SolverReaderTests, RawThreeWindingTransformerCreatesStarEquivalent)
     {
         const std::string fileName =

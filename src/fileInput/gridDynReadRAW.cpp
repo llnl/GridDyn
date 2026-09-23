@@ -53,6 +53,7 @@ using gmlc::utilities::stringOps::trimString;
 using units::deg;
 using units::MVAR;
 using units::MW;
+using units::rad;
 
 using ImpedanceCorrectionTable = std::vector<std::pair<double, double>>;
 using ImpedanceCorrectionTables = std::unordered_map<int, ImpedanceCorrectionTable>;
@@ -1737,10 +1738,18 @@ static void rawReadBranch(CoreObject* parentObject,
     lnk->set("b", val);
     // RAW branch records can add independent terminal shunts to the symmetric
     // line charging value.  AcLine stores the resulting total terminal
-    // shunts as b1/g1 and b2/g2.
+    // shunts as b1/g1 and b2/g2.  v26 transformer records reuse GI/BI as the
+    // winding tap ratio and phase angle, but the later transformer-adjustment
+    // record is the authoritative indication that this branch is a
+    // transformer.  Keep the fields as branch data here; rawReadTXadj() will
+    // remove them after it has matched the transformer.
     const size_t terminalShuntStart = (opt.version >= 35) ? 19U : 9U;
-    lnk->set("g1", numeric_conversion<double>(strvec[terminalShuntStart], 0.0));
-    lnk->set("b1", (0.5 * val) + numeric_conversion<double>(strvec[terminalShuntStart + 1], 0.0));
+    const auto terminalField1 =
+        numeric_conversion<double>(strvec[terminalShuntStart], 0.0);
+    const auto terminalField2 =
+        numeric_conversion<double>(strvec[terminalShuntStart + 1], 0.0);
+    lnk->set("g1", terminalField1);
+    lnk->set("b1", (0.5 * val) + terminalField2);
     lnk->set("g2", numeric_conversion<double>(strvec[terminalShuntStart + 2], 0.0));
     lnk->set("b2", (0.5 * val) + numeric_conversion<double>(strvec[terminalShuntStart + 3], 0.0));
     // RAW v35 inserts a branch name before RATE1 through RATE12.
@@ -1784,7 +1793,7 @@ static void rawReadBranch(CoreObject* parentObject,
             lnk->set("tap", val);
             val = numeric_conversion<double>(strvec[10], 0.0);
             if (val != 0) {
-                lnk->set("tapAngle", val, deg);
+                lnk->set("tapangle", val, deg);
             }
         }
     }
@@ -1808,8 +1817,18 @@ static void rawReadTXadj(CoreObject* parentObject,
     std::string name;
     int ind1;
     int ind2;
-    std::tie(name, ind1, ind2) =
-        generateBranchName(strvec, busList, (opt.prefix.empty()) ? "tx_" : opt.prefix + "_tx_");
+    // RAW v26 stores transformers as ordinary branch records and places their
+    // tap-control data in the separate transformer-adjustment section.  The
+    // first three fields are I, J, and circuit, so resolve the same name that
+    // rawReadBranch() created rather than looking for the v33+ "tx_" namespace.
+    // Keep the legacy lookup isolated to the v26 path; newer transformer
+    // records are named and constructed by rawReadTxV33/rawReadTX directly.
+    if (opt.version <= 26) {
+        std::tie(name, ind1, ind2) = generateBranchName(strvec, busList, opt.prefix, 2);
+    } else {
+        std::tie(name, ind1, ind2) =
+            generateBranchName(strvec, busList, (opt.prefix.empty()) ? "tx_" : opt.prefix + "_tx_");
+    }
 
     auto* lnk = static_cast<AcLine*>(parentObject->find(name));
 
@@ -1831,10 +1850,21 @@ static void rawReadTXadj(CoreObject* parentObject,
     lnk->updateBus(nullptr, 1);
     lnk->updateBus(nullptr, 2);
     removeReference(lnk);
+    if (opt.version <= 26) {
+        // In RAW v26 the branch card uses GI/BI as the transformer's initial
+        // tap ratio and phase angle.  They were initially imported as
+        // terminal shunts because the card is shared with ordinary branches;
+        // once TXADJ has identified this branch, remove that temporary
+        // interpretation from the cloned transformer.
+        adjTX->set("g1", 0.0);
+        adjTX->set("b1", 0.0);
+        adjTX->set("g2", 0.0);
+        adjTX->set("b2", 0.0);
+    }
     getRawLinkParent(parentObject, adjTX)->add(adjTX);
-    auto tapAngle = adjTX->getTapAngle();
+    const auto initialTapAngle = adjTX->getTapAngle();
     int code;
-    if (tapAngle != 0) {
+    if (initialTapAngle != 0) {
         adjTX->set("mode", "mw");
         adjTX->set("stepmode", "continuous");
         code = 3;
@@ -1875,12 +1905,16 @@ static void rawReadTXadj(CoreObject* parentObject,
         code = 3;
     }
     if (code == 3) {
-        // not sure why I need this but
-        tapAngle = tapAngle * 180 / kPI;
-        maxTap = (std::max)(tapAngle, maxTap);
-        minTap = (std::min)(tapAngle, minTap);
-        adjTX->set("maxtapangle", maxTap, deg);
-        adjTX->set("mintapangle", minTap, deg);
+        // Preserve a PSS/E initial phase angle that is just outside the
+        // declared limits.  Use radians throughout this comparison so the
+        // value copied from the branch is not converted to degrees and back
+        // before the AdjustableTransformer limit setters see it.
+        const auto maxTapAngle =
+            (std::max)(initialTapAngle, maxTap * kPI / 180.0);
+        const auto minTapAngle =
+            (std::min)(initialTapAngle, minTap * kPI / 180.0);
+        adjTX->set("maxtapangle", maxTapAngle, rad);
+        adjTX->set("mintapangle", minTapAngle, rad);
     } else {
         if (maxTap < minTap) {
             std::swap(maxTap, minTap);
@@ -1916,7 +1950,7 @@ static void rawReadTXadj(CoreObject* parentObject,
         if (val != 0) {
             // abs required since for some reason the file can have negative step sizes
             // I think just to do reverse indexing which I don't do.
-            adjTX->set("step", std::abs(val));
+            adjTX->set("stepsize", std::abs(val));
         } else {
             adjTX->set("stepmode", "continuous");
         }

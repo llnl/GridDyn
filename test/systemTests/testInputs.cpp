@@ -281,6 +281,36 @@ TEST_F(InputTests, PssERawBranchTerminalShunts)
     requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 }
 
+TEST_F(InputTests, PssERawV26TransformerFieldsAreNotTerminalShunts)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    ASSERT_NO_THROW(loadFile(gds, std::string(INPUT_TEST_DIRECTORY) +
+                                      "raw_v26_branch_transformer.raw"));
+
+    ASSERT_EQ(gds->getInt("totallinkcount"), 2);
+    const auto* line = dynamic_cast<const AcLine*>(gds->getLink(0));
+    const auto* transformer =
+        dynamic_cast<const links::AdjustableTransformer*>(gds->getLink(1));
+    ASSERT_NE(line, nullptr);
+    ASSERT_NE(transformer, nullptr);
+
+    // Ordinary v26 branch records retain their GI/BI/GJ/BJ terminal shunts.
+    EXPECT_NEAR(line->get("g1"), 0.003, 1e-12);
+    EXPECT_NEAR(line->get("b1"), 0.014, 1e-12);
+    EXPECT_NEAR(line->get("g2"), 0.005, 1e-12);
+    EXPECT_NEAR(line->get("b2"), 0.016, 1e-12);
+
+    // Transformer tap ratio and phase angle are not imported as shunts.
+    EXPECT_NEAR(transformer->get("g1"), 0.0, 1e-12);
+    EXPECT_NEAR(transformer->get("b1"), 0.0, 1e-12);
+    EXPECT_NEAR(transformer->get("g2"), 0.0, 1e-12);
+    EXPECT_NEAR(transformer->get("b2"), 0.0, 1e-12);
+    EXPECT_NEAR(transformer->get("tap"), 1.03, 1e-12);
+    EXPECT_NEAR(transformer->get("tapangle"),
+                units::convert(-5.0, units::deg, units::rad),
+                1e-12);
+}
+
 TEST_F(InputTests, PssERawVscTerminalModes)
 {
     gds = std::make_unique<GridDynSimulation>();

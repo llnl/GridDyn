@@ -287,7 +287,7 @@ void removeObject(GridArea* area, X* obj, std::vector<X*>& objVector)
         area->primaryObjects.erase(area->primaryObjects.begin() + obj->locIndex2);
         for (auto kk = obj->locIndex2; kk < static_cast<index_t>(area->primaryObjects.size());
              ++kk) {
-            objVector[kk]->locIndex2 = kk;
+            area->primaryObjects[kk]->locIndex2 = kk;
         }
         area->obList->remove(obj);
     }

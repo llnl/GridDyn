@@ -11,8 +11,8 @@
 #include "fileInput.h"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
-#include "griddyn/GridDynSimulation.h"
 #include "gridDynReadDyrModels.h"
+#include "griddyn/GridDynSimulation.h"
 #include <array>
 #include <cstddef>
 #include <fstream>
@@ -31,12 +31,13 @@ namespace {
 
     bool isDydDirectModel(std::string_view modelName)
     {
-        static constexpr std::array directModels{
-            "gencls", "genrou", "genroe", "gensae", "gensal", "esdc1a", "esdc2a",
-            "ieeet1", "ieeet3", "ieeex1", "ac7b",   "ac8b",   "esst1a", "esst2a",
-            "esst3a", "esst4b", "expic1", "scrx",   "esac6a", "exst1",  "exac1",
-            "esac1a", "exac2",  "exac4",  "exdc2",  "tgov1",  "hygov",  "gast",
-            "ieeeg1", "ieesgo", "ieeest", "sexs"};
+        static constexpr std::array directModels{"gencls", "genrou", "genroe", "gensae", "gensal",
+                                                 "esdc1a", "esdc2a", "ieeet1", "ieeet3", "ieeex1",
+                                                 "ac7b",   "ac8b",   "esst1a", "esst2a", "esst3a",
+                                                 "esst4b", "expic1", "scrx",   "esac6a", "exst1",
+                                                 "exac1",  "esac1a", "exac2",  "exac4",  "exdc2",
+                                                 "tgov1",  "hygov",  "gast",   "ieeeg1", "ieesgo",
+                                                 "ieeest", "sexs"};
         const auto normalized = gmlc::utilities::convertToLowerCase(modelName);
         for (const auto directModel : directModels) {
             if (normalized == directModel) {
@@ -74,11 +75,10 @@ namespace {
         return 0U;
     }
 
-    void addUnsupportedModel(
-        std::map<std::string, UnsupportedDydModelSummary>& unsupportedModels,
-        std::string_view modelName,
-        const stringVec& lineTokens,
-        std::size_t recordLineNumber)
+    void addUnsupportedModel(std::map<std::string, UnsupportedDydModelSummary>& unsupportedModels,
+                             std::string_view modelName,
+                             const stringVec& lineTokens,
+                             std::size_t recordLineNumber)
     {
         auto& summary = unsupportedModels[std::string{modelName}];
         ++summary.count;
@@ -134,10 +134,9 @@ void loadDyd(CoreObject* parentObject,
         const auto modelName = gmlc::utilities::convertToLowerCase(
             gmlc::utilities::stringOps::removeQuotes(header[0]));
         const auto displayModelName = gmlc::utilities::convertToUpperCase(modelName);
-        stringVec lineTokens{
-            gmlc::utilities::stringOps::removeQuotes(header[1]),
-            "'" + displayModelName + "'",
-            gmlc::utilities::stringOps::removeQuotes(header[4])};
+        stringVec lineTokens{gmlc::utilities::stringOps::removeQuotes(header[1]),
+                             "'" + displayModelName + "'",
+                             gmlc::utilities::stringOps::removeQuotes(header[4])};
         if (isDydIgnoredLoadModel(modelName)) {
             addUnsupportedModel(ignoredLoadModels, displayModelName, lineTokens, lineNumber);
             continue;
@@ -157,8 +156,7 @@ void loadDyd(CoreObject* parentObject,
             }
             // Generator DYD records carry the machine base as a named field;
             // EPC has already supplied that value to the generator object.
-            if (((modelName == "genrou") || (modelName == "gensal")) &&
-                token.starts_with("mva=")) {
+            if (((modelName == "genrou") || (modelName == "gensal")) && token.starts_with("mva=")) {
                 continue;
             }
             // Named fields in other DYD schemas need an explicit conversion
@@ -185,8 +183,8 @@ void loadDyd(CoreObject* parentObject,
         std::string message = fileName + ": unsupported DYD models:";
         for (const auto& [modelName, summary] : unsupportedModels) {
             message += "\n  " + modelName + ": " + std::to_string(summary.count) +
-                       " record(s); first at line " + std::to_string(summary.firstLine) +
-                       ", bus " + summary.firstBus + " machine " + summary.firstMachine;
+                " record(s); first at line " + std::to_string(summary.firstLine) + ", bus " +
+                summary.firstBus + " machine " + summary.firstMachine;
         }
         throw InvalidParameterValue(message);
     }
@@ -195,8 +193,8 @@ void loadDyd(CoreObject* parentObject,
             ": ignored DYD load-characteristic models (using DYR-equivalent static loads):";
         for (const auto& [modelName, summary] : ignoredLoadModels) {
             message += "\n  " + modelName + ": " + std::to_string(summary.count) +
-                       " record(s); first at line " + std::to_string(summary.firstLine) +
-                       ", bus " + summary.firstBus + " machine " + summary.firstMachine;
+                " record(s); first at line " + std::to_string(summary.firstLine) + ", bus " +
+                summary.firstBus + " machine " + summary.firstMachine;
         }
         parentObject->log(parentObject, PrintLevel::SUMMARY, message);
     }

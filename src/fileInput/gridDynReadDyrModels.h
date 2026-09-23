@@ -12,14 +12,14 @@ namespace griddyn {
 class CoreObject;
 
 namespace detail {
-/** Load one normalized DYR-style model record using the existing model loaders.
- *
- * @return true when the model type is recognized; model-specific validation
- *         errors are reported by throwing InvalidParameterValue.
- */
-bool loadDyrModelRecord(CoreObject* parentObject,
-                        stringVec& lineTokens,
-                        bool disableStabilizers,
-                        count_t& zeroGainStabilizers);
+    /** Load one normalized DYR-style model record using the existing model loaders.
+     *
+     * @return true when the model type is recognized; model-specific validation
+     *         errors are reported by throwing InvalidParameterValue.
+     */
+    bool loadDyrModelRecord(CoreObject* parentObject,
+                            stringVec& lineTokens,
+                            bool disableStabilizers,
+                            count_t& zeroGainStabilizers);
 }  // namespace detail
 }  // namespace griddyn

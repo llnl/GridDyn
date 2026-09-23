@@ -5,8 +5,8 @@
  */
 
 #include "../gtestHelper.h"
-#include "griddyn/Load.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/Load.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/solvers/IdaInterface.h"
 #include "griddyn/solvers/KinsolInterface.h"
@@ -290,14 +290,8 @@ void runActivsG500DaeStabilityCase(GridDynSimulationTestFixture& fixture,
     std::vector<double> finalAngle;
     fixture.gds->getVoltage(finalVoltage);
     fixture.gds->getAngle(finalAngle);
-    expectStable(initialVoltage,
-                 finalVoltage,
-                 stabilityTolerance,
-                 "IDA DAE bus voltage");
-    expectStable(initialAngle,
-                 finalAngle,
-                 stabilityTolerance,
-                 "IDA DAE bus angle");
+    expectStable(initialVoltage, finalVoltage, stabilityTolerance, "IDA DAE bus voltage");
+    expectStable(initialAngle, finalAngle, stabilityTolerance, "IDA DAE bus angle");
     expectStable(initialState,
                  fixture.gds->getState(cDaeSolverMode),
                  stabilityTolerance,
@@ -325,16 +319,14 @@ TEST_F(ActivsG500Tests, PowerFlowPreservesSuppliedOperatingPoint)
 
 TEST_F(ActivsG500Tests, EpcDydReaderLoadsDynamicModels)
 {
-    gds = readSimXMLFile(std::string(ACTIVSG500_TEST_DIRECTORY) +
-                         "activsg500_epc_dyd_reader.xml");
+    gds = readSimXMLFile(std::string(ACTIVSG500_TEST_DIRECTORY) + "activsg500_epc_dyd_reader.xml");
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
     checkCaseCounts(gds.get());
 
     ASSERT_EQ(gds->powerflow(), 0);
     ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     ASSERT_EQ(gds->dynInitialize(), 0);
-    ASSERT_EQ(gds->currentProcessState(),
-              GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
 
     auto* bus = dynamic_cast<GridBus*>(gds->findByUserID("bus", 9));
     ASSERT_NE(bus, nullptr);

@@ -314,11 +314,11 @@ and 7,614 configured root functions. A 10 MW step was applied to
 `BUS$50000::LOAD#0` at `t=1.0 s`, with a requested step of 5 ms. The following
 short runs isolate the cost of the disturbance and of root processing:
 
-| Configuration | Target time | Wall time | Result |
-| --- | ---: | ---: | --- |
-| No disturbance, roots disabled | 1.03 s | 3.4 s | completed |
-| 10 MW step, roots disabled | 1.03 s | 48.2 s | diagnostic only |
-| 10 MW step, roots enabled | 1.03 s | 76.0 s | completed |
+| Configuration                  | Target time | Wall time | Result          |
+| ------------------------------ | ----------: | --------: | --------------- |
+| No disturbance, roots disabled |      1.03 s |     3.4 s | completed       |
+| 10 MW step, roots disabled     |      1.03 s |    48.2 s | diagnostic only |
+| 10 MW step, roots enabled      |      1.03 s |    76.0 s | completed       |
 
 The roots-disabled cases are diagnostic only; they are not valid dynamic
 acceptance runs. In the normal run, IDA returned approximately 11 times after

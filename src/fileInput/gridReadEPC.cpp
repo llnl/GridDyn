@@ -613,14 +613,14 @@ void loadEpc(CoreObject* parentObject,
                         epcReadGen(gen, config, base);
                     });
             } else {
-                processSectionObject<DynamicGenerator>(
-                    line,
-                    file,
-                    "generator",
-                    busList,
-                    [base](DynamicGenerator* gen, string_view config) {
-                        epcReadGen(gen, config, base);
-                    });
+                processSectionObject<DynamicGenerator>(line,
+                                                       file,
+                                                       "generator",
+                                                       busList,
+                                                       [base](DynamicGenerator* gen,
+                                                              string_view config) {
+                                                           epcReadGen(gen, config, base);
+                                                       });
             }
         } else if (tokens[0] == "load") {
             processSectionObject<ZipLoad>(

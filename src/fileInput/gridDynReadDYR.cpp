@@ -12,6 +12,7 @@
 #include "fileInput.h"
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
+#include "gridDynReadDyrModels.h"
 #include "griddyn/Exciter.h"
 #include "griddyn/GenModel.h"
 #include "griddyn/Generator.h"
@@ -25,7 +26,6 @@
 #include "griddyn/governors/GovernorReheat.h"
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
-#include "gridDynReadDyrModels.h"
 #include <array>
 #include <charconv>
 #include <cmath>
@@ -96,11 +96,10 @@ namespace {
         std::string firstMachine;
     };
 
-    void addUnsupportedModel(
-        std::map<std::string, UnsupportedDyrModelSummary>& unsupportedModels,
-        std::string_view modelName,
-        const stringVec& lineTokens,
-        std::size_t recordLineNumber)
+    void addUnsupportedModel(std::map<std::string, UnsupportedDyrModelSummary>& unsupportedModels,
+                             std::string_view modelName,
+                             const stringVec& lineTokens,
+                             std::size_t recordLineNumber)
     {
         auto& summary = unsupportedModels[std::string{modelName}];
         ++summary.count;
@@ -269,8 +268,8 @@ void loadDyr(CoreObject* parentObject,
         std::string message = fileName + ": unsupported DYR models:";
         for (const auto& [modelName, summary] : unsupportedModels) {
             message += "\n  " + modelName + ": " + std::to_string(summary.count) +
-                       " record(s); first at line " + std::to_string(summary.firstLine) +
-                       ", bus " + summary.firstBus + " machine " + summary.firstMachine;
+                " record(s); first at line " + std::to_string(summary.firstLine) + ", bus " +
+                summary.firstBus + " machine " + summary.firstMachine;
         }
         throw InvalidParameterValue(message);
     }

@@ -314,9 +314,9 @@ bool Svd::powerFlowAdjustmentAllowed(const IOdata& inputs) const
     // The power-flow driver supplies iteration/error context.  Keep direct
     // callers compatible with the historical behavior when that context is
     // absent.
-    return !((inputs.size() > PFLOW_ERROR_LOCATION) &&
-             (static_cast<int>(inputs[PFLOW_ITERATION_LOCATION]) < minIter) &&
-             (inputs[PFLOW_ERROR_LOCATION] > errTol));
+    return (inputs.size() <= PFLOW_ERROR_LOCATION) ||
+        (static_cast<int>(inputs[PFLOW_ITERATION_LOCATION]) >= minIter) ||
+        (inputs[PFLOW_ERROR_LOCATION] <= errTol);
 }
 
 ChangeCode Svd::powerFlowAdjust(const IOdata& inputs, std::uint32_t /*flags*/, CheckLevel /*level*/)
@@ -728,7 +728,7 @@ void Svd::residual(const IOdata& /*inputs*/,
             const auto qMin = (std::min)(Qlow, Qhigh);
             const auto qMax = (std::max)(Qlow, Qhigh);
             const auto qValue = stateData.state[offset];
-            resid[offset] = qValue - (((qValue <= qMin) ? qMin : qMax));
+            resid[offset] = qValue - ((qValue <= qMin) ? qMin : qMax);
         } else {
             const auto* voltageBus = (controlBus != nullptr) ? controlBus : bus;
             const auto voltage =

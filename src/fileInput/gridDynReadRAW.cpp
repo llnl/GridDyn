@@ -2620,13 +2620,13 @@ static void rawReadSwitchedShunt(CoreObject* parentObject,
         rbus = busList[cbus];
     }
 
-    if ((cbus != static_cast<int>(index)) && (rbus == nullptr)) {
+    if (std::cmp_not_equal(cbus, index) && (rbus == nullptr)) {
         throw std::runtime_error("Remote control bus " + std::to_string(cbus) +
                                  " was not found for switched shunt at bus " +
                                  std::to_string(index));
     }
 
-    if ((mode == 1 || mode == 2) && inService && (cbus != static_cast<int>(index))) {
+    if ((mode == 1 || mode == 2) && inService && std::cmp_not_equal(cbus, index)) {
         if (!std::isfinite(remoteParticipation) || remoteParticipation <= 0.0 ||
             remoteParticipation > 100.0) {
             throw std::runtime_error("invalid RMPCT " + std::to_string(remoteParticipation) +

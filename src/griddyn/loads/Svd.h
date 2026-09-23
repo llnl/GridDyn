@@ -79,7 +79,7 @@ class Svd: public RampLoad {
         setLoad(double plevel, double qlevel, units::unit unitType = units::defunit) override;
     virtual void setState(CoreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const SolverMode& sMode) override;  // for saving the state
     virtual void guessState(CoreTime time,
                             double state[],
@@ -135,7 +135,7 @@ class Svd: public RampLoad {
     virtual void reset(ResetLevels level = ResetLevels::MINIMAL) override;
 
     virtual void residual(const IOdata& inputs,
-                          const StateData& sD,
+                          const StateData& stateData,
                           double resid[],
                           const SolverMode& sMode) override;
 
@@ -145,13 +145,13 @@ class Svd: public RampLoad {
                             const SolverMode& sMode) override;
 
     virtual void outputPartialDerivatives(const IOdata& inputs,
-                                          const StateData& sD,
-                                          MatrixData<double>& md,
+                                          const StateData& stateData,
+                                          MatrixData<double>& matrixData,
                                           const SolverMode& sMode) override;
 
     virtual void jacobianElements(const IOdata& inputs,
-                                  const StateData& sD,
-                                  MatrixData<double>& md,
+                                  const StateData& stateData,
+                                  MatrixData<double>& matrixData,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
     virtual void getStateName(stringVec& stNames,

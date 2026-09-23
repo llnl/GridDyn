@@ -384,9 +384,9 @@ double AdjustableTransformer::get(std::string_view param, units::unit unitType) 
         } else if (!std::isfinite(stepSize) || (stepSize <= 0.0)) {
             val = kNullVal;
         } else if (cMode == ControlMode::MW_CONTROL) {
-            val = std::abs(maxTapAngle - minTapAngle) / stepSize + 1.0;
+            val = (std::abs(maxTapAngle - minTapAngle) / stepSize) + 1.0;
         } else {
-            val = std::abs(maxTap - minTap) / stepSize + 1.0;
+            val = (std::abs(maxTap - minTap) / stepSize) + 1.0;
         }
     } else if (param == "control_mode") {
         val = static_cast<double>(cMode);

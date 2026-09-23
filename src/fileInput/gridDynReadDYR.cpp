@@ -90,10 +90,10 @@ namespace {
     void loadSEXS(CoreObject* parentObject, stringVec& tokens);
 
     struct UnsupportedDyrModelSummary {
-        std::size_t count = 0;
-        std::size_t firstLine = 0;
-        std::string firstBus;
-        std::string firstMachine;
+        std::size_t mCount = 0;
+        std::size_t mFirstLine = 0;
+        std::string mFirstBus;
+        std::string mFirstMachine;
     };
 
     void addUnsupportedModel(std::map<std::string, UnsupportedDyrModelSummary>& unsupportedModels,
@@ -102,11 +102,11 @@ namespace {
                              std::size_t recordLineNumber)
     {
         auto& summary = unsupportedModels[std::string{modelName}];
-        ++summary.count;
-        if (summary.firstLine == 0U) {
-            summary.firstLine = recordLineNumber;
-            summary.firstBus = lineTokens.empty() ? "<missing>" : lineTokens[0];
-            summary.firstMachine = (lineTokens.size() > 2U) ? lineTokens[2] : "<missing>";
+        ++summary.mCount;
+        if (summary.mFirstLine == 0U) {
+            summary.mFirstLine = recordLineNumber;
+            summary.mFirstBus = lineTokens.empty() ? "<missing>" : lineTokens[0];
+            summary.mFirstMachine = (lineTokens.size() > 2U) ? lineTokens[2] : "<missing>";
         }
     }
 
@@ -267,9 +267,9 @@ void loadDyr(CoreObject* parentObject,
     if (!unsupportedModels.empty()) {
         std::string message = fileName + ": unsupported DYR models:";
         for (const auto& [modelName, summary] : unsupportedModels) {
-            message += "\n  " + modelName + ": " + std::to_string(summary.count) +
-                " record(s); first at line " + std::to_string(summary.firstLine) + ", bus " +
-                summary.firstBus + " machine " + summary.firstMachine;
+            message += "\n  " + modelName + ": " + std::to_string(summary.mCount) +
+                " record(s); first at line " + std::to_string(summary.mFirstLine) + ", bus " +
+                summary.mFirstBus + " machine " + summary.mFirstMachine;
         }
         throw InvalidParameterValue(message);
     }

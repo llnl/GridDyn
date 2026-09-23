@@ -20,6 +20,7 @@
 #include "units/units.hpp"
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <limits>
 #include <memory>
 #include <optional>
@@ -112,7 +113,7 @@ double
     return peakToPeak;
 }
 
-enum class ActivsG500DynamicSolver { IDA, CVODE, ARKODE };
+enum class ActivsG500DynamicSolver : std::uint8_t { IDA, CVODE, ARKODE };
 
 void runActivsG500LoadStepCase(GridDynSimulationTestFixture& fixture,
                                std::string_view fileName,
@@ -199,8 +200,11 @@ void runActivsG500LoadStepCase(GridDynSimulationTestFixture& fixture,
     std::vector<DynamicSample> samples;
     // A 0.5 second observation interval measures the derivative of the
     // reference angle while keeping the test independent of recorder files.
-    const double firstSampleTime = 1.5;
-    for (double sampleTime = firstSampleTime; sampleTime <= 30.0 + 1e-9; sampleTime += 0.5) {
+    constexpr double firstSampleTime = 1.5;
+    constexpr double samplePeriod = 0.5;
+    constexpr int sampleCount = 58;
+    for (int sampleIndex = 0; sampleIndex < sampleCount; ++sampleIndex) {
+        const double sampleTime = firstSampleTime + samplePeriod * static_cast<double>(sampleIndex);
         ASSERT_EQ(fixture.gds->run(sampleTime), 0);
         DynamicSample sample;
         fixture.gds->getVoltage(sample.voltage);
@@ -214,7 +218,7 @@ void runActivsG500LoadStepCase(GridDynSimulationTestFixture& fixture,
         ASSERT_TRUE(allFinite(sample.differentialState));
         ASSERT_TRUE(allFinite(sample.algebraicState));
         sample.referenceFrequencyDeviation =
-            (sample.angle.front() - previousReferenceAngle) / (sampleTime - previousSampleTime) -
+            ((sample.angle.front() - previousReferenceAngle) / (sampleTime - previousSampleTime)) -
             baselineReferenceFrequency;
         ASSERT_TRUE(std::isfinite(sample.referenceFrequencyDeviation));
         previousReferenceAngle = sample.angle.front();
@@ -254,10 +258,10 @@ void runActivsG500LoadStepCase(GridDynSimulationTestFixture& fixture,
     }
     ASSERT_GE(envelopes.size(), 2U);
     for (size_t index = 1; index < envelopes.size(); ++index) {
-        EXPECT_LE(envelopes[index], envelopes[index - 1] * 1.15 + 1e-5)
+        EXPECT_LE(envelopes[index], (envelopes[index - 1] * 1.15) + 1e-5)
             << "transient envelope grew between windows " << (index - 1) << " and " << index;
     }
-    EXPECT_LT(envelopes.back(), envelopes.front() * 0.90 + 1e-5)
+    EXPECT_LT(envelopes.back(), (envelopes.front() * 0.90) + 1e-5)
         << "transient envelope did not decrease over the 30-second run";
 }
 

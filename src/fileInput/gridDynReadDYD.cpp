@@ -13,6 +13,7 @@
 #include "gmlc/utilities/stringOps.h"
 #include "gridDynReadDyrModels.h"
 #include "griddyn/GridDynSimulation.h"
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <fstream>
@@ -23,10 +24,10 @@
 namespace griddyn {
 namespace {
     struct UnsupportedDydModelSummary {
-        std::size_t count = 0;
-        std::size_t firstLine = 0;
-        std::string firstBus;
-        std::string firstMachine;
+        std::size_t mCount = 0;
+        std::size_t mFirstLine = 0;
+        std::string mFirstBus;
+        std::string mFirstMachine;
     };
 
     bool isDydDirectModel(std::string_view modelName)
@@ -39,23 +40,17 @@ namespace {
                                                  "tgov1",  "hygov",  "gast",   "ieeeg1", "ieesgo",
                                                  "ieeest", "sexs"};
         const auto normalized = gmlc::utilities::convertToLowerCase(modelName);
-        for (const auto directModel : directModels) {
-            if (normalized == directModel) {
-                return true;
-            }
-        }
-        return false;
+        return std::ranges::any_of(directModels, [normalized](const char* directModel) {
+            return normalized == directModel;
+        });
     }
 
     bool isDydIgnoredLoadModel(std::string_view modelName)
     {
         static constexpr std::array ignoredLoadModels{"alwscc", "blwscc", "wlwscc", "zlwscc"};
-        for (const auto ignoredModel : ignoredLoadModels) {
-            if (modelName == ignoredModel) {
-                return true;
-            }
-        }
-        return false;
+        return std::ranges::any_of(ignoredLoadModels, [modelName](const char* ignoredModel) {
+            return modelName == ignoredModel;
+        });
     }
 
     std::size_t dydPositionalPayloadLimit(std::string_view modelName)
@@ -81,11 +76,11 @@ namespace {
                              std::size_t recordLineNumber)
     {
         auto& summary = unsupportedModels[std::string{modelName}];
-        ++summary.count;
-        if (summary.firstLine == 0U) {
-            summary.firstLine = recordLineNumber;
-            summary.firstBus = lineTokens.empty() ? "<missing>" : lineTokens[0];
-            summary.firstMachine = (lineTokens.size() > 2U) ? lineTokens[2] : "<missing>";
+        ++summary.mCount;
+        if (summary.mFirstLine == 0U) {
+            summary.mFirstLine = recordLineNumber;
+            summary.mFirstBus = lineTokens.empty() ? "<missing>" : lineTokens[0];
+            summary.mFirstMachine = (lineTokens.size() > 2U) ? lineTokens[2] : "<missing>";
         }
     }
 }  // namespace
@@ -161,7 +156,7 @@ void loadDyd(CoreObject* parentObject,
             }
             // Named fields in other DYD schemas need an explicit conversion
             // table. Do not pass them through as positional DYR values.
-            if (token.find('=') != std::string::npos) {
+            if (token.contains('=')) {
                 hasUnsupportedField = true;
                 break;
             }
@@ -182,9 +177,9 @@ void loadDyd(CoreObject* parentObject,
     if (!unsupportedModels.empty()) {
         std::string message = fileName + ": unsupported DYD models:";
         for (const auto& [modelName, summary] : unsupportedModels) {
-            message += "\n  " + modelName + ": " + std::to_string(summary.count) +
-                " record(s); first at line " + std::to_string(summary.firstLine) + ", bus " +
-                summary.firstBus + " machine " + summary.firstMachine;
+            message += "\n  " + modelName + ": " + std::to_string(summary.mCount) +
+                " record(s); first at line " + std::to_string(summary.mFirstLine) + ", bus " +
+                summary.mFirstBus + " machine " + summary.mFirstMachine;
         }
         throw InvalidParameterValue(message);
     }
@@ -192,9 +187,9 @@ void loadDyd(CoreObject* parentObject,
         std::string message = fileName +
             ": ignored DYD load-characteristic models (using DYR-equivalent static loads):";
         for (const auto& [modelName, summary] : ignoredLoadModels) {
-            message += "\n  " + modelName + ": " + std::to_string(summary.count) +
-                " record(s); first at line " + std::to_string(summary.firstLine) + ", bus " +
-                summary.firstBus + " machine " + summary.firstMachine;
+            message += "\n  " + modelName + ": " + std::to_string(summary.mCount) +
+                " record(s); first at line " + std::to_string(summary.mFirstLine) + ", bus " +
+                summary.mFirstBus + " machine " + summary.mFirstMachine;
         }
         parentObject->log(parentObject, PrintLevel::SUMMARY, message);
     }

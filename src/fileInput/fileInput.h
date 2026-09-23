@@ -110,6 +110,9 @@ void loadRaw(CoreObject* parentObject,
 void loadDyr(CoreObject* parentObject,
              const std::string& fileName,
              const BasicReaderInfo& readerOptions = defInfo);
+void loadDyd(CoreObject* parentObject,
+             const std::string& fileName,
+             const BasicReaderInfo& readerOptions = defInfo);
 void loadEpc(CoreObject* parentObject,
              const std::string& fileName,
              const BasicReaderInfo& readerOptions = defInfo);

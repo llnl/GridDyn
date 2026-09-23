@@ -78,7 +78,7 @@ adapters still have attachment, parameter, equation, and validation gaps.
 | `IEEET3`, `ESDC2A`                     | Same named ANDES models | `ExciterIEEEtype2` and `ExciterDC2A` are candidates       | **Mixed.** `ESDC2A` is implemented and merged with the same DC2A/EXDC2 equations and PSS/e schema; nonzero `Switch` is rejected. `IEEET3` remains a candidate. External trajectories remain for both validation paths.                                                                                                                                                                                                                                              |
 | `ESST3A`                               | `ESST3A`                | `ExciterESST3A`                                           | **Implemented.** Exact PSS/e field mapping, ANDES-equation initialization, residual, and Jacobian coverage with GENROU; reduced-order synchronous generators use the documented controller-signal approximations.                                                                                                                                                                                                                                                   |
 | `EXST1`                                | `EXST1`                 | `ExciterEXST1`                                            | **Implemented.** PSS/e field order, captured initialization and perturbed-equation values, corrected regulator-output limiter/root tests, analytic-Jacobian finite-difference checks, and GENROU attachment are covered. The documented limiter-selector divergence from frozen ANDES is intentional. Zero `TR`, `TB`, or `TA` records and a captured disturbed trajectory remain unsupported.                                                                      |
-| `EXAC1`, `EXAC2`, `EXAC4`              | Same named ANDES models | `ExciterEXAC1`, `ExciterEXAC2`, `ExciterEXAC4`            | **Implemented.** Exact PSS/e DYR field mapping, initialization, residual/Jacobian, limiter/root, GENROU attachment, and IEEE-14 load-step coverage are present. EXAC1/EXAC2 intentionally use the sensed-voltage transducer output instead of the disconnected frozen-ANDES path documented below. EXAC1 supports the specified zero-`TR` transducer bypass; EXAC2 still requires positive `TR`, and other zero-time algebraic bypasses remain model-specific work. |
+| `EXAC1`, `EXAC2`, `EXAC4`              | Same named ANDES models | `ExciterEXAC1`, `ExciterEXAC2`, `ExciterEXAC4`            | **Implemented.** Exact PSS/e DYR field mapping, initialization, residual/Jacobian, limiter/root, GENROU attachment, and IEEE-14 load-step coverage are present. EXAC1/EXAC2 intentionally use the sensed-voltage transducer output instead of the disconnected frozen-ANDES path documented below. EXAC1 and EXAC2 support the specified zero-`TR` transducer bypass where their state layout permits it; EXAC1 also supports the `TA=0` algebraic regulator path. Stale-direction root rearming and state projection are covered; independent large-case trajectories remain open. |
 | `ESST4B`                               | `ESST4B`                | `ExciterESST4B`                                           | **Implemented natively.** Exact DYR mapping, native PI/lag/rectifier equations, bounded-integrator limits, initialization, GENSAL coupling, and analytic Jacobians are covered. External UEL/OEL routing and a captured trajectory remain.                                                                                                                                                                                                                          |
 | `ESST1A`, `AC8B`                       | Same named ANDES models | None exact                                                | **No direct analogue.** Implement model-specific exciter blocks and DYR schemas, then add initialization and trajectory tests.                                                                                                                                                                                                                                                                                                                                      |
 | `IEEEX1`                               | `IEEEX1`                | `ExciterIEEEX1`                                           | **Implemented; external trajectory pending.** The DYR adapter maps and tests every PSS/E field. Equation tests cover the `TB=0` direct path, positive-`TB` lead-lag path, transducer and washout, two-point saturation, terminal-voltage-scaled anti-windup bounds, limit transitions, residuals, and analytic Jacobians. GridDyn preserves a supplied zero `KE`, as ANDES does; nonzero PSS/E `Switch` is rejected.                                                |
@@ -945,8 +945,9 @@ it also needs native-input mapping, initialization, and a trajectory test.
 ### Texas7k dynamic-model demand
 
 `C:\Users\phlpt\Downloads\Texas7k_20210804_Plus2023\Texas7k_20210804.dyr`
-was inspected statically and was not loaded or run. It has 2,705 records in
-24 model families. The current DYR reader recognizes 1,789 records (`GENROU`,
+was inspected statically and a complete dynamic run has not succeeded. It has
+2,705 records in 24 model families. The current DYR reader recognizes 1,789
+records (`GENROU`,
 `IEEEST`, `EXAC2`, `IEEEG1`, `ESDC1A`, `ESDC2A`, `EXAC1`, `GGOV1`, `ESST4B`,
 `GENSAL`, `HYGOV`, `IEEET1`, `EXPIC1`, `SCRX`, and `ESAC6A`); 916 records require
 additional support.
@@ -959,14 +960,16 @@ case-level confirmation.
 
 A paired `RAW` plus `DYR` import was attempted on the unmodified base files.
 The reader correctly identifies the unsupported families, but it is not yet a
-strict loader: it prints an unknown-model line and continues. The first
+strict loader: it scans the file, reports a count summary for every unsupported
+model family, and then stops. The first
 `EXAC1` record (`BUS=111208`, machine ID `1`) and the other two `EXAC1`
-records use `TR=0`. GridDyn now treats this as the specified bypassed
+records use `TR=0`. GridDyn treats this as the specified bypassed
 measurement/transducer lag: it uses terminal voltage directly and omits the
-transducer differential state. The zero-`TR` path is covered by a DYR-loaded
-IEEE-14 regression with residual and Jacobian checks. `EXAC2` remains
-positive-`TR` only because its specialized equations still assume the
-five-state layout.
+transducer differential state. EXAC1 `TA=0` is likewise represented by the
+algebraic regulator path, and EXAC2 has regression coverage for its compact
+zero-`TR` state layout and limiter roots. These fixes remove the previously
+identified supported-model initialization blockers, but the unsupported
+renewable and user-written models still prevent a full Texas7k dynamic run.
 
 Full Texas7k dynamics still requires support for the 916 unsupported records.
 The merged model and EXAC1 bypass work reduces the recognized-model gap but

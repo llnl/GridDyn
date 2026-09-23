@@ -408,6 +408,22 @@ TEST(DyrReaderComparisonTests, RejectsMalformedGenroeAndUnsupportedIeeex1Switch)
     }
 }
 
+TEST(DyrReaderComparisonTests, RejectsUnsupportedModelWithRecordLocation)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    try {
+        griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_unsupported_model.dyr"));
+        FAIL() << "unsupported DYR model was accepted";
+    }
+    catch (const griddyn::InvalidParameterValue& error) {
+        const std::string message{error.what()};
+        EXPECT_NE(message.find("unsupported DYR models:"), std::string::npos);
+        EXPECT_NE(message.find("NOTAMODEL: 2 record(s)"), std::string::npos);
+        EXPECT_NE(message.find("ANOTHER: 1 record(s)"), std::string::npos);
+        EXPECT_NE(message.find("first at line 1, bus 1 machine '1'"), std::string::npos);
+    }
+}
+
 TEST(DyrReaderComparisonTests, MapsGensaeAndEsst1aParametersInPsseDyrOrder)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();

@@ -15,8 +15,8 @@ The intent is planning: each item lists the work to do, the code area likely to
 change, and the corpus files that exercise the gap. Unless otherwise noted,
 paths under "Exercised by" are relative to the case corpus root above.
 
-Last audit basis: static parser/source scan plus small `gridDynMain.exe`
-smoke runs on 2026-09-05.
+Last audit basis: static parser/source scan, Release component tests, and
+ACTIVSg10k dynamic smoke runs through 2026-09-22.
 
 Resolved during this audit:
 
@@ -50,6 +50,12 @@ Resolved during this audit:
   The normal power-flow path now converges with 103 states, 49 buses, and 63
   links. Portable regressions cover DC transfer direction, VSC terminal modes,
   and late remote-generator Q-limit aggregation.
+- The merged ACTIVSg10k dynamic compatibility work no longer stops at the
+  EXAC1 `TA=0` or valid GENSAL `Xdp == Xdpp` cases. EXAC1/EXAC2 limiter root
+  transitions also have stale-direction and rearm regression coverage. A
+  Release RAW/DYR smoke run reaches `t=1.03 s` after a 10 MW load step, but
+  full 10-second trajectory validation and the resulting root-cascade
+  performance work remain open.
 
 ## Loader / extension dispatch gaps
 
@@ -142,14 +148,23 @@ Relevant source: `src/fileInput/fileInput.cpp`.
 - Smoke result:
   - `RTS96\branch_data.txt` aborts with `unable to convert string`.
 
-### [ ] FILE-004: Add PSLF `.dyd` dynamic-data support or unsupported diagnostic
+### [x] FILE-004: Add basic PSLF `.dyd` dynamic-data support
 
-- Current behavior: `.dyd` has no top-level loader mapping. These files are
-  currently unusable as dynamic imports.
-- Work needed:
-  - Add a PSLF dynamic reader, or emit a direct unsupported-format diagnostic.
-  - If implementing, decide whether to normalize model names through existing
-    DYR model classes where schemas match.
+- Current behavior: `.dyd` is dispatched through its own reader and attaches
+  records whose schemas map directly to existing DYR model loaders. Unsupported
+  model families are summarized and reported as an import error.
+- Deliberate compatibility boundary:
+  - PSLF generalized-load records (`ALWSCC`, `BLWSCC`, `WLWSCC`, and `ZLWSCC`)
+    are accepted and summarized as ignored. Until generalized-load behavior is
+    implemented, the EPC loads retain the existing DYR-equivalent static-load
+    behavior.
+  - This is an intentional temporary approximation, not a claim of full PSLF
+    load-model equivalence.
+- Work remaining:
+  - Add generalized-load equations and validation when PSLF load behavior is
+    required.
+  - Extend the direct-model mapping as additional DYD model families are
+    implemented.
 - Exercised by:
   - `39busCase\IEEE 39 bus.dyd`
   - `3mach-inf_bus\PSLF\ThreeMIB_Benchmark_System.dyd`
@@ -206,19 +221,23 @@ Relevant sources:
 - `src/griddyn/governors/*`
 - `src/griddyn/genmodels/*`
 
-The DYR reader dispatches a fixed set of exact quoted model names. Unknown names
-are currently printed as `unknown object type ...` and skipped.
+The DYR reader dispatches a fixed set of exact quoted model names. Unsupported
+names are collected by model family and fail the import after the file is
+scanned. The diagnostic includes each model count plus the first record's DYR
+filename, line, bus, and machine ID rather than allowing a partial dynamic case
+to continue silently.
 
 ### [ ] DYR-003: Add unsupported DYR model coverage
 
 - Current behavior:
-  - Unsupported model records are skipped.
-  - Some cases continue; others later fail because dependent supported models
-    cannot attach to expected generator/controller state.
+  - Unsupported model records are collected while the file is scanned.
+  - The final error reports every unsupported model family and its count, with
+    the first source record identified for triage.
 - Work needed:
   - Add model loaders/classes, or create deliberate compatibility aliases where
     the model is equivalent to a supported implementation.
-  - At minimum, accumulate unsupported-model diagnostics by file and model.
+  - For batch inventory, the strict reader now provides the model-family
+    summary directly; normal case loading remains intentionally strict.
 - Highest-count unsupported models in the corpus:
 
 | Count | Model    |
@@ -324,6 +343,23 @@ are currently printed as `unknown object type ...` and skipped.
     `TB = 0`.
   - The ACTIVSg2000 RAW+DYR smoke import now completes successfully after the
     ESAC1A field-order correction.
+
+### [x] DYR-006: Resolve ACTIVSg10k degenerate dynamic-model cases
+
+- Resolution:
+  - EXAC1 `TA=0` uses an algebraic regulator state with the corresponding
+    residual/Jacobian and bypassed-state layout.
+  - Valid GENSAL records with `Xdp == Xdpp` are accepted through the
+    degenerate branch rather than rejected as singular.
+  - EXAC1/EXAC2 limiter roots project state consistently and rearm only after
+    the solver advances when a root return does not change the limiter branch.
+- Regression result:
+  - The Release `GeneratorComponentTests` executable passes all 182 tests.
+  - ACTIVSg10k initializes and reaches `t=1.03 s` in a 10 MW IDA load-step
+    smoke run.
+- Remaining validation:
+  - Complete the requested 10-second disturbance run, compare an independent
+    trajectory, and investigate the post-step IEEE Type-1/IEEEG1 root cascade.
 
 ### [ ] DYR-005: Improve generator matching diagnostics and compatibility
 

@@ -35,6 +35,7 @@ set(formattedfileInput_sources
     gridDynReadCDF.cpp
     gridDynReadRAW.cpp
     gridDynReadDYR.cpp
+    gridDynReadDYD.cpp
     gridDynReadPSP.cpp
     gridDynReadPTI.cpp
     gridReadEPC.cpp
@@ -57,6 +58,7 @@ set(fileInput_headers
     ReaderInfo.h
     GridParameter.h
     readElementFile.h
+    gridDynReadDyrModels.h
 )
 
 set(fileInput_sources ${xml_sources} ${reader_sources} ${elementReader_sources}

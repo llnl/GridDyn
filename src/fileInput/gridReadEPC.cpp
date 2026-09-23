@@ -11,6 +11,7 @@
 #include "gmlc/utilities/string_viewConversion.h"
 #include "griddyn/Generator.h"
 #include "griddyn/GridArea.h"
+#include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/links/AdjustableTransformer.h"
 #include "griddyn/links/DcLink.h"
@@ -18,6 +19,7 @@
 #include "griddyn/loads/ZipLoad.h"
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/primary/DcBus.h"
+#include "griddyn/simulation/GridSimulation.h"
 #include "readerHelper.h"
 #include <algorithm>
 #include <array>
@@ -475,6 +477,10 @@ void loadEpc(CoreObject* parentObject,
              const std::string& fileName,
              const BasicReaderInfo& readerOptions)
 {
+    // EPC cases, like RAW cases, are normally loaded as a new top-level
+    // network. Reset generated object names so repeated case loads in one
+    // process retain stable generator matching for subsequent DYD imports.
+    GridSimulation::resetObjectCounters();
     const auto& bri = readerOptions;
     const auto preparseData = preparseEpcFile(parentObject, fileName, bri);
     std::ifstream file(fileName.c_str(), std::ios::in);
@@ -601,10 +607,21 @@ void loadEpc(CoreObject* parentObject,
                           preparseData.mImpedanceCorrectionTables);
             });
         } else if (tokens[0] == "generator") {
-            processSectionObject<Generator>(
-                line, file, "generator", busList, [base](Generator* gen, string_view config) {
-                    epcReadGen(gen, config, base);
-                });
+            if (bri.checkFlag(ASSUME_POWERFLOW_ONLY)) {
+                processSectionObject<Generator>(
+                    line, file, "generator", busList, [base](Generator* gen, string_view config) {
+                        epcReadGen(gen, config, base);
+                    });
+            } else {
+                processSectionObject<DynamicGenerator>(
+                    line,
+                    file,
+                    "generator",
+                    busList,
+                    [base](DynamicGenerator* gen, string_view config) {
+                        epcReadGen(gen, config, base);
+                    });
+            }
         } else if (tokens[0] == "load") {
             processSectionObject<ZipLoad>(
                 line, file, "load", busList, [base](ZipLoad* load, string_view config) {
@@ -1168,8 +1185,9 @@ namespace {
 
         // get the gen index and name
         std::string prefix = gen->getParent()->getName() + "_Gen";
-        if (!trim(removeQuotes(strvec[3])).empty()) {
-            prefix += '_' + std::string{strvec[3]};
+        const auto generatorId = trim(removeQuotes(strvec[3]));
+        if (!generatorId.empty()) {
+            prefix += '_' + std::string{generatorId};
         }
         if (!trim(removeQuotes(strvec[4])).empty()) {
             gen->setName(std::string{trim(removeQuotes(strvec[4]))});

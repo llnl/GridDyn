@@ -6,6 +6,8 @@
 
 #include "../gtestHelper.h"
 #include "griddyn/Load.h"
+#include "griddyn/GridBus.h"
+#include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/solvers/IdaInterface.h"
 #include "griddyn/solvers/KinsolInterface.h"
 #ifdef GRIDDYN_ENABLE_CVODE
@@ -259,6 +261,49 @@ void runActivsG500LoadStepCase(GridDynSimulationTestFixture& fixture,
         << "transient envelope did not decrease over the 30-second run";
 }
 
+void runActivsG500DaeStabilityCase(GridDynSimulationTestFixture& fixture,
+                                   std::string_view fileName,
+                                   double stabilityTolerance = 1e-4)
+{
+    fixture.gds = readSimXMLFile(std::string(ACTIVSG500_TEST_DIRECTORY) + std::string(fileName));
+    fixture.gds->consolePrintLevel = PrintLevel::NO_PRINT;
+    checkCaseCounts(fixture.gds.get());
+
+    ASSERT_EQ(fixture.gds->powerflow(), 0);
+    ASSERT_EQ(fixture.gds->dynInitialize(), 0);
+    ASSERT_EQ(fixture.gds->currentProcessState(),
+              GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
+
+    auto daeSolver = fixture.gds->getSolverInterface(cDaeSolverMode);
+    ASSERT_NE(daeSolver, nullptr);
+    EXPECT_NE(dynamic_cast<solvers::IdaInterface*>(daeSolver.get()), nullptr);
+
+    std::vector<double> initialVoltage;
+    std::vector<double> initialAngle;
+    fixture.gds->getVoltage(initialVoltage);
+    fixture.gds->getAngle(initialAngle);
+    const auto initialState = fixture.gds->getState(cDaeSolverMode);
+
+    ASSERT_EQ(fixture.gds->run(), 0);
+    ASSERT_EQ(fixture.gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
+    std::vector<double> finalVoltage;
+    std::vector<double> finalAngle;
+    fixture.gds->getVoltage(finalVoltage);
+    fixture.gds->getAngle(finalAngle);
+    expectStable(initialVoltage,
+                 finalVoltage,
+                 stabilityTolerance,
+                 "IDA DAE bus voltage");
+    expectStable(initialAngle,
+                 finalAngle,
+                 stabilityTolerance,
+                 "IDA DAE bus angle");
+    expectStable(initialState,
+                 fixture.gds->getState(cDaeSolverMode),
+                 stabilityTolerance,
+                 "IDA DAE state");
+}
+
 }  // namespace
 
 TEST_F(ActivsG500Tests, PowerFlowPreservesSuppliedOperatingPoint)
@@ -278,30 +323,34 @@ TEST_F(ActivsG500Tests, PowerFlowPreservesSuppliedOperatingPoint)
     expectBusOperatingPointStable(gds.get(), initialVoltage, initialAngle);
 }
 
-TEST_F(ActivsG500Tests, DaeIdaPreservesInitialOperatingPoint)
+TEST_F(ActivsG500Tests, EpcDydReaderLoadsDynamicModels)
 {
-    gds = readSimXMLFile(std::string(ACTIVSG500_TEST_DIRECTORY) + "activsg500_dae_stability.xml");
+    gds = readSimXMLFile(std::string(ACTIVSG500_TEST_DIRECTORY) +
+                         "activsg500_epc_dyd_reader.xml");
     gds->consolePrintLevel = PrintLevel::NO_PRINT;
     checkCaseCounts(gds.get());
 
     ASSERT_EQ(gds->powerflow(), 0);
+    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::POWERFLOW_COMPLETE);
     ASSERT_EQ(gds->dynInitialize(), 0);
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
+    ASSERT_EQ(gds->currentProcessState(),
+              GridDynSimulation::GridState::DYNAMIC_INITIALIZED);
 
-    auto daeSolver = gds->getSolverInterface(cDaeSolverMode);
-    ASSERT_NE(daeSolver, nullptr);
-    EXPECT_NE(dynamic_cast<solvers::IdaInterface*>(daeSolver.get()), nullptr);
+    auto* bus = dynamic_cast<GridBus*>(gds->findByUserID("bus", 9));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    EXPECT_NE(generator->find("genmodel"), nullptr);
+}
 
-    std::vector<double> initialVoltage;
-    std::vector<double> initialAngle;
-    gds->getVoltage(initialVoltage);
-    gds->getAngle(initialAngle);
-    const auto initialState = gds->getState(cDaeSolverMode);
+TEST_F(ActivsG500Tests, DaeIdaPreservesInitialOperatingPoint)
+{
+    runActivsG500DaeStabilityCase(*this, "activsg500_dae_stability.xml");
+}
 
-    ASSERT_EQ(gds->run(), 0);
-    ASSERT_EQ(gds->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
-    expectBusOperatingPointStable(gds.get(), initialVoltage, initialAngle);
-    expectStable(initialState, gds->getState(cDaeSolverMode), 1e-4, "IDA DAE state");
+TEST_F(ActivsG500Tests, EpcDydDaeIdaPreservesInitialOperatingPoint)
+{
+    runActivsG500DaeStabilityCase(*this, "activsg500_epc_dyd_dae_stability.xml", 1e-3);
 }
 
 #ifdef GRIDDYN_ENABLE_CVODE
@@ -349,6 +398,13 @@ TEST_F(ActivsG500Tests, CvodeKinsolPartitionedPreservesInitialOperatingPoint)
 TEST_F(ActivsG500Tests, DaeIdaLoadStepRemainsStable)
 {
     runActivsG500LoadStepCase(*this, "activsg500_dae_load_step.xml", ActivsG500DynamicSolver::IDA);
+}
+
+TEST_F(ActivsG500Tests, EpcDydDaeIdaLoadStepRemainsStable)
+{
+    runActivsG500LoadStepCase(*this,
+                              "activsg500_epc_dyd_dae_load_step.xml",
+                              ActivsG500DynamicSolver::IDA);
 }
 
 #ifdef GRIDDYN_ENABLE_CVODE

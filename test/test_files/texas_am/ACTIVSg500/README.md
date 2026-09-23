@@ -4,7 +4,9 @@ This directory contains the PSS/E inputs used to exercise the ACTIVSg500 case
 in GridDyn:
 
 - `ACTIVSg500.RAW` — power-flow network data
+- `ACTIVSg500.EPC` — PowerWorld/EPC power-flow network data
 - `ACTIVSg500_dynamics.dyr` — transient-stability dynamic-model data
+- `ACTIVSg500_dynamics.dyd` — PSLF dynamic-model data for the EPC case
 
 ## Attribution
 

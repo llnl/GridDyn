@@ -8,6 +8,7 @@
 #include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/Link.h"
+#include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/links/AcLine.h"
 #include <array>
 #include <filesystem>
@@ -152,6 +153,55 @@ TEST(ExampleReaderTests, LoadEpcAreaDefinitions)
     const auto internalLinkCount = area->getInt("linkcount");
     EXPECT_EQ(internalLinkCount + gds->getInt("linkcount"), gds->getInt("totallinkcount"));
     EXPECT_EQ(gds->getInt("buscount"), 0);
+}
+
+TEST(ExampleReaderTests, LoadEpcDyrDynamicModels)
+{
+    griddyn::GridDynSimulation::resetObjectCounters();
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto dyrPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "comparison_tests" / "ieee14_genrou.dyr";
+
+    ASSERT_TRUE(std::filesystem::exists(epcPath));
+    ASSERT_TRUE(std::filesystem::exists(dyrPath));
+
+    auto dyrSimulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(dyrSimulation, epcPath.string());
+    griddyn::loadFile(dyrSimulation, dyrPath.string());
+    EXPECT_EQ(dyrSimulation->getInt("gencount"), 5);
+    for (const auto busId : {1, 2, 3, 6, 8}) {
+        auto* bus = dynamic_cast<griddyn::GridBus*>(dyrSimulation->findByUserID("bus", busId));
+        ASSERT_NE(bus, nullptr) << "bus " << busId;
+        auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+        ASSERT_NE(generator, nullptr) << "dynamic generator at bus " << busId;
+        EXPECT_NE(generator->find("genmodel"), nullptr) << "GENROU at bus " << busId;
+    }
+}
+
+TEST(ExampleReaderTests, LoadEpcDydDynamicModels)
+{
+    griddyn::GridDynSimulation::resetObjectCounters();
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto dydPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "comparison_tests" / "ieee14_genrou.dyd";
+
+    ASSERT_TRUE(std::filesystem::exists(epcPath));
+    ASSERT_TRUE(std::filesystem::exists(dydPath));
+
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(gds, epcPath.string());
+    griddyn::loadFile(gds, dydPath.string());
+
+    EXPECT_EQ(gds->getInt("gencount"), 5);
+    for (const auto busId : {1, 2, 3, 6, 8}) {
+        auto* bus = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", busId));
+        ASSERT_NE(bus, nullptr) << "bus " << busId;
+        auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+        ASSERT_NE(generator, nullptr) << "dynamic generator at bus " << busId;
+        EXPECT_NE(generator->find("genmodel"), nullptr) << "GENROU at bus " << busId;
+    }
 }
 
 TEST(ExampleReaderTests, LoadMatPowerAreaDefinitions)

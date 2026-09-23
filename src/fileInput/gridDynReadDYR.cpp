@@ -25,12 +25,13 @@
 #include "griddyn/governors/GovernorReheat.h"
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
+#include "gridDynReadDyrModels.h"
 #include <array>
 #include <charconv>
 #include <cmath>
 #include <cstddef>
 #include <fstream>
-#include <iostream>
+#include <map>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -87,59 +88,41 @@ namespace {
     void loadST2CUT(CoreObject* parentObject, stringVec& tokens, bool zeroGain = false);
     void loadEXDC2(CoreObject* parentObject, stringVec& tokens);
     void loadSEXS(CoreObject* parentObject, stringVec& tokens);
+
+    struct UnsupportedDyrModelSummary {
+        std::size_t count = 0;
+        std::size_t firstLine = 0;
+        std::string firstBus;
+        std::string firstMachine;
+    };
+
+    void addUnsupportedModel(
+        std::map<std::string, UnsupportedDyrModelSummary>& unsupportedModels,
+        std::string_view modelName,
+        const stringVec& lineTokens,
+        std::size_t recordLineNumber)
+    {
+        auto& summary = unsupportedModels[std::string{modelName}];
+        ++summary.count;
+        if (summary.firstLine == 0U) {
+            summary.firstLine = recordLineNumber;
+            summary.firstBus = lineTokens.empty() ? "<missing>" : lineTokens[0];
+            summary.firstMachine = (lineTokens.size() > 2U) ? lineTokens[2] : "<missing>";
+        }
+    }
+
 }  // namespace
 
-void loadDyr(CoreObject* parentObject,
-             const std::string& fileName,
-             const BasicReaderInfo& /*readerOptions*/)
-{
-    const auto* simulation = dynamic_cast<const GridDynSimulation*>(parentObject->getRoot());
-    const bool disableStabilizers =
-        (simulation != nullptr) && simulation->isFlagSet(DISABLE_STABILIZERS_FOR_DIAGNOSTICS);
-    count_t zeroGainStabilizers = 0;
-    std::ifstream file(fileName.c_str(), std::ios::in);
-    std::string line;  // line storage
-    std::string continuedLine;
-
-    if (!(file.is_open())) {
-        parentObject->log(parentObject, PrintLevel::ERROR, "Unable to open file " + fileName);
-        //    return;
-    }
-    while (std::getline(file, line)) {
-        gmlc::utilities::stringOps::trimString(line);
-        if (line.empty()) {
-            continue;
+namespace detail {
+    bool loadDyrModelRecord(CoreObject* parentObject,
+                            stringVec& lineTokens,
+                            bool disableStabilizers,
+                            count_t& zeroGainStabilizers)
+    {
+        if (lineTokens.size() < 2U) {
+            return false;
         }
-        if (isDyrCommentLine(line)) {
-            continue;
-        }
-        while (line.back() != '/') {
-            if (std::getline(file, continuedLine)) {
-                gmlc::utilities::stringOps::trimString(continuedLine);
-                if (continuedLine.empty() || isDyrCommentLine(continuedLine)) {
-                    continue;
-                }
-                line += ' ' + continuedLine;
-            } else {
-                break;
-            }
-        }
-        auto lineTokens = gmlc::utilities::stringOps::splitlineQuotes(
-            line,
-            " \t\n,",
-            gmlc::utilities::stringOps::default_quote_chars,
-            gmlc::utilities::stringOps::delimiter_compression::on);
-        // get rid of the '/' at the end of the last string
-        auto lstr = lineTokens.back();
-        lineTokens.pop_back();
-        lstr = lstr.substr(0, lstr.size() - 1);
-        if (!lstr.empty()) {
-            lineTokens.push_back(lstr);
-        }
-        if (lineTokens.size() < 2) {
-            continue;
-        }
-        auto type = normalizeDyrModelType(lineTokens[1]);
+        const auto type = normalizeDyrModelType(lineTokens[1]);
         if (type == "'GENCLS'") {
             loadGENCLS(parentObject, lineTokens);
         } else if (type == "'GENROU'") {
@@ -215,8 +198,81 @@ void loadDyr(CoreObject* parentObject,
         } else if (type == "'SEXS'") {
             loadSEXS(parentObject, lineTokens);
         } else {
-            std::cout << "unknown object type " << type << '\n';
+            return false;
         }
+        return true;
+    }
+}  // namespace detail
+
+void loadDyr(CoreObject* parentObject,
+             const std::string& fileName,
+             const BasicReaderInfo& /*readerOptions*/)
+{
+    const auto* simulation = dynamic_cast<const GridDynSimulation*>(parentObject->getRoot());
+    const bool disableStabilizers =
+        (simulation != nullptr) && simulation->isFlagSet(DISABLE_STABILIZERS_FOR_DIAGNOSTICS);
+    count_t zeroGainStabilizers = 0;
+    std::ifstream file(fileName.c_str(), std::ios::in);
+    std::string line;  // line storage
+    std::string continuedLine;
+    std::size_t lineNumber = 0;
+    std::map<std::string, UnsupportedDyrModelSummary> unsupportedModels;
+
+    if (!(file.is_open())) {
+        parentObject->log(parentObject, PrintLevel::ERROR, "Unable to open file " + fileName);
+        //    return;
+    }
+    while (std::getline(file, line)) {
+        ++lineNumber;
+        gmlc::utilities::stringOps::trimString(line);
+        if (line.empty()) {
+            continue;
+        }
+        if (isDyrCommentLine(line)) {
+            continue;
+        }
+        const auto recordLineNumber = lineNumber;
+        while (line.back() != '/') {
+            if (std::getline(file, continuedLine)) {
+                ++lineNumber;
+                gmlc::utilities::stringOps::trimString(continuedLine);
+                if (continuedLine.empty() || isDyrCommentLine(continuedLine)) {
+                    continue;
+                }
+                line += ' ' + continuedLine;
+            } else {
+                break;
+            }
+        }
+        auto lineTokens = gmlc::utilities::stringOps::splitlineQuotes(
+            line,
+            " \t\n,",
+            gmlc::utilities::stringOps::default_quote_chars,
+            gmlc::utilities::stringOps::delimiter_compression::on);
+        // get rid of the '/' at the end of the last string
+        auto lstr = lineTokens.back();
+        lineTokens.pop_back();
+        lstr = lstr.substr(0, lstr.size() - 1);
+        if (!lstr.empty()) {
+            lineTokens.push_back(lstr);
+        }
+        if (lineTokens.size() < 2) {
+            continue;
+        }
+        const auto modelName = gmlc::utilities::stringOps::removeQuotes(lineTokens[1]);
+        if (!detail::loadDyrModelRecord(
+                parentObject, lineTokens, disableStabilizers, zeroGainStabilizers)) {
+            addUnsupportedModel(unsupportedModels, modelName, lineTokens, recordLineNumber);
+        }
+    }
+    if (!unsupportedModels.empty()) {
+        std::string message = fileName + ": unsupported DYR models:";
+        for (const auto& [modelName, summary] : unsupportedModels) {
+            message += "\n  " + modelName + ": " + std::to_string(summary.count) +
+                       " record(s); first at line " + std::to_string(summary.firstLine) +
+                       ", bus " + summary.firstBus + " machine " + summary.firstMachine;
+        }
+        throw InvalidParameterValue(message);
     }
     if (disableStabilizers) {
         parentObject->log(parentObject,
@@ -254,6 +310,27 @@ namespace {
             return generator;
         }
 
+        // EPC and other steady-state readers may preserve quoting or whitespace
+        // in the generated object name. Match the normalized machine-ID suffix
+        // as a compatibility fallback before applying the legacy position rule.
+        for (index_t generatorIndex = 0;; ++generatorIndex) {
+            auto* candidate = bus->getGen(generatorIndex);
+            if (candidate == nullptr) {
+                break;
+            }
+            const auto candidateName = candidate->getName();
+            const auto suffixPosition = candidateName.rfind("_Gen_");
+            if (suffixPosition == std::string::npos) {
+                continue;
+            }
+            auto candidateId = gmlc::utilities::stringOps::removeQuotes(
+                candidateName.substr(suffixPosition + std::string_view{"_Gen_"}.size()));
+            gmlc::utilities::stringOps::trimString(candidateId);
+            if (candidateId == generatorId) {
+                return candidate;
+            }
+        }
+
         // Older GridDyn DYR inputs treated a numeric machine ID as a one-based
         // generator position. Preserve that behavior only as a fallback when
         // no generator with the actual PSS/E machine ID exists.
@@ -275,7 +352,8 @@ namespace {
         auto* generator = findDyrGenerator(parentObject, tokens[0], tokens[2]);
         if (generator == nullptr) {
             throw InvalidParameterValue(std::string{modelName} +
-                                        " requires an existing generator matching its bus and ID");
+                                        " requires an existing generator matching bus " +
+                                        tokens[0] + " and machine " + tokens[2]);
         }
         return generator;
     }

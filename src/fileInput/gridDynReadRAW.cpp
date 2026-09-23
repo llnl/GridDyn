@@ -1737,21 +1737,28 @@ static void rawReadBranch(CoreObject* parentObject,
     auto val = numeric_conversion<double>(strvec[5], 0.0);
     lnk->set("b", val);
     // RAW branch records can add independent terminal shunts to the symmetric
-    // line charging value.  AcLine stores the resulting total terminal
-    // shunts as b1/g1 and b2/g2.  v26 transformer records reuse GI/BI as the
-    // winding tap ratio and phase angle, but the later transformer-adjustment
-    // record is the authoritative indication that this branch is a
-    // transformer.  Keep the fields as branch data here; rawReadTXadj() will
-    // remove them after it has matched the transformer.
+    // line charging value.  v26 also stores fixed transformers in this
+    // section, using GI/BI for the winding tap ratio and phase angle.  A
+    // transformer does not have a separate record unless it has adjustable
+    // controls, so identify the v26 tap-ratio range here.  Ordinary branch
+    // conductances remain supported, including values such as 0.003.
     const size_t terminalShuntStart = (opt.version >= 35) ? 19U : 9U;
     const auto terminalField1 =
         numeric_conversion<double>(strvec[terminalShuntStart], 0.0);
     const auto terminalField2 =
         numeric_conversion<double>(strvec[terminalShuntStart + 1], 0.0);
-    lnk->set("g1", terminalField1);
-    lnk->set("b1", (0.5 * val) + terminalField2);
-    lnk->set("g2", numeric_conversion<double>(strvec[terminalShuntStart + 2], 0.0));
-    lnk->set("b2", (0.5 * val) + numeric_conversion<double>(strvec[terminalShuntStart + 3], 0.0));
+    const auto terminalField3 =
+        numeric_conversion<double>(strvec[terminalShuntStart + 2], 0.0);
+    const auto terminalField4 =
+        numeric_conversion<double>(strvec[terminalShuntStart + 3], 0.0);
+    const bool v26Transformer = opt.version <= 26 && terminalField1 >= 0.5 &&
+        terminalField1 <= 2.0 && terminalField3 == 0.0 && terminalField4 == 0.0;
+    if (!v26Transformer) {
+        lnk->set("g1", terminalField1);
+        lnk->set("b1", (0.5 * val) + terminalField2);
+        lnk->set("g2", terminalField3);
+        lnk->set("b2", (0.5 * val) + terminalField4);
+    }
     // RAW v35 inserts a branch name before RATE1 through RATE12.
     const size_t ratingStart = (opt.version >= 35) ? 7U : 6U;
     auto ratA = numeric_conversion<double>(strvec[ratingStart], 0.0);
@@ -1851,11 +1858,9 @@ static void rawReadTXadj(CoreObject* parentObject,
     lnk->updateBus(nullptr, 2);
     removeReference(lnk);
     if (opt.version <= 26) {
-        // In RAW v26 the branch card uses GI/BI as the transformer's initial
-        // tap ratio and phase angle.  They were initially imported as
-        // terminal shunts because the card is shared with ordinary branches;
-        // once TXADJ has identified this branch, remove that temporary
-        // interpretation from the cloned transformer.
+        // TXADJ independently identifies this branch as a transformer. Clear
+        // the terminal shunts defensively on the clone in case a producer
+        // used a tap value outside the normal v26 range used above.
         adjTX->set("g1", 0.0);
         adjTX->set("b1", 0.0);
         adjTX->set("g2", 0.0);

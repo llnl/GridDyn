@@ -9,6 +9,7 @@
 #include "griddyn/GridBus.h"
 #include "griddyn/blocks/LeadLagBlock.h"
 #include "griddyn/generators/DynamicGenerator.h"
+#include "griddyn/links/AcLine.h"
 #include "griddyn/loads/ApproximatingLoad.h"
 #include "griddyn/loads/FDepLoad.h"
 #include "griddyn/loads/FileLoad.h"
@@ -18,7 +19,6 @@
 #include "griddyn/loads/Svd.h"
 #include "griddyn/loads/ThreePhaseLoad.h"
 #include "griddyn/loads/ZipLoad.h"
-#include "griddyn/links/AcLine.h"
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/simulation/Diagnostics.h"
 #include <cmath>

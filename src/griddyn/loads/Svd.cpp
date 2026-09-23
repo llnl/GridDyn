@@ -274,8 +274,8 @@ void Svd::outputPartialDerivatives(const IOdata& inputs,
     if ((!isDynamic(sMode)) && opFlags[CONTINUOUS_FLAG] && !opFlags[LOCKED_FLAG]) {
         const auto offset = offsets.getAlgOffset(sMode);
         if (offset != kNullLocation) {
-            const auto voltage = inputs.empty() ? bus->getVoltage(stateData, sMode) :
-                                                  inputs[VOLTAGE_IN_LOCATION];
+            const auto voltage =
+                inputs.empty() ? bus->getVoltage(stateData, sMode) : inputs[VOLTAGE_IN_LOCATION];
             matrixData.assign(QOUT_LOCATION, offset, voltage * voltage);
         }
     }
@@ -296,8 +296,9 @@ void Svd::jacobianElements(const IOdata& /*inputs*/,
         if (!opFlags[AT_LIMIT_FLAG]) {
             auto* voltageBus = (controlBus != nullptr) ? controlBus : bus;
             if (voltageBus != nullptr) {
-                matrixData.assignCheckCol(
-                    offset, voltageBus->getOutputLoc(sMode, VOLTAGE_IN_LOCATION), 1.0);
+                matrixData.assignCheckCol(offset,
+                                          voltageBus->getOutputLoc(sMode, VOLTAGE_IN_LOCATION),
+                                          1.0);
             }
         } else {
             // At a reactive limit the voltage equation is replaced by the
@@ -318,9 +319,7 @@ bool Svd::powerFlowAdjustmentAllowed(const IOdata& inputs) const
              (inputs[PFLOW_ERROR_LOCATION] > errTol));
 }
 
-ChangeCode Svd::powerFlowAdjust(const IOdata& inputs,
-                                std::uint32_t /*flags*/,
-                                CheckLevel /*level*/)
+ChangeCode Svd::powerFlowAdjust(const IOdata& inputs, std::uint32_t /*flags*/, CheckLevel /*level*/)
 {
     if (opFlags[LOCKED_FLAG] || !isConnected() || !powerFlowAdjustmentAllowed(inputs)) {
         return ChangeCode::NO_CHANGE;
@@ -344,9 +343,8 @@ ChangeCode Svd::powerFlowAdjust(const IOdata& inputs,
         } else if (voltage > andesVref + andesDv) {
             direction = -1;
         }
-        return (direction != 0 && adjustAndesStep(direction)) ?
-            ChangeCode::JACOBIAN_CHANGE :
-            ChangeCode::NO_CHANGE;
+        return (direction != 0 && adjustAndesStep(direction)) ? ChangeCode::JACOBIAN_CHANGE :
+                                                                ChangeCode::NO_CHANGE;
     }
 
     if (Cblocks.empty()) {
@@ -358,8 +356,7 @@ ChangeCode Svd::powerFlowAdjust(const IOdata& inputs,
         const auto qMax = (std::max)(Qlow, Qhigh);
         const auto qValue = getYq();
         if (opFlags[AT_LIMIT_FLAG]) {
-            if (((qValue <= qMin) && (voltage > Vmin)) ||
-                ((qValue >= qMax) && (voltage < Vmax))) {
+            if (((qValue <= qMin) && (voltage > Vmin)) || ((qValue >= qMax) && (voltage < Vmax))) {
                 opFlags.reset(AT_LIMIT_FLAG);
                 return ChangeCode::JACOBIAN_CHANGE;
             }
@@ -734,9 +731,8 @@ void Svd::residual(const IOdata& /*inputs*/,
             resid[offset] = qValue - (((qValue <= qMin) ? qMin : qMax));
         } else {
             const auto* voltageBus = (controlBus != nullptr) ? controlBus : bus;
-            const auto voltage = (voltageBus != nullptr) ?
-                voltageBus->getVoltage(stateData, sMode) :
-                1.0;
+            const auto voltage =
+                (voltageBus != nullptr) ? voltageBus->getVoltage(stateData, sMode) : 1.0;
             const auto target = (Vmax >= Vmin) ? ((Vmin + Vmax) / 2.0) : 1.0;
             resid[offset] = voltage - target;
         }
@@ -750,9 +746,7 @@ void Svd::derivative(const IOdata& /*inputs*/,
 {
 }
 
-void Svd::getStateName(stringVec& stNames,
-                       const SolverMode& sMode,
-                       const std::string& prefix) const
+void Svd::getStateName(stringVec& stNames, const SolverMode& sMode, const std::string& prefix) const
 {
     if ((!isDynamic(sMode)) && opFlags[CONTINUOUS_FLAG] && !opFlags[LOCKED_FLAG]) {
         const auto offset = offsets.getAlgOffset(sMode);

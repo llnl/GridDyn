@@ -687,8 +687,8 @@ void Generator::algebraicUpdate(const IOdata& /*inputs*/,
             const double voltage = remoteBus->getVoltage(stateDataValue, sMode);
             if (!opFlags[AT_LIMIT]) {
                 constexpr double remoteVoltageGain = 10000.0;
-                update[offset] = -Qbias +
-                    ((voltage - m_Vtarget) * vRegFraction * remoteVoltageGain);
+                update[offset] =
+                    -Qbias + ((voltage - m_Vtarget) * vRegFraction * remoteVoltageGain);
             } else {
                 update[offset] = -Q;
             }

@@ -346,17 +346,15 @@ TEST_F(InputTests, PssERawSingleRemoteVoltageControl)
 TEST_F(InputTests, PssERawRemoteVoltageGroupsAreUnsupported)
 {
     gds = std::make_unique<GridDynSimulation>();
-    EXPECT_THROW(
-        loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_remote_voltage_group.raw"),
-        std::runtime_error);
+    EXPECT_THROW(loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_remote_voltage_group.raw"),
+                 std::runtime_error);
 }
 
 TEST_F(InputTests, PssERawRemoteSwitchedShuntGroupsAreUnsupported)
 {
     gds = std::make_unique<GridDynSimulation>();
-    EXPECT_THROW(
-        loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_remote_shunt_group.raw"),
-        std::runtime_error);
+    EXPECT_THROW(loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_remote_shunt_group.raw"),
+                 std::runtime_error);
 }
 
 TEST_F(InputTests, PssERawTransformerMagnetizingAdmittance)

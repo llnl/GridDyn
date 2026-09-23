@@ -830,11 +830,8 @@ void loadRaw(CoreObject* parentObject,
             case SectionType::SWITCHED_SHUNT:
                 while (moreData) {
                     if (checkNextLine(file, line)) {
-                        rawReadSwitchedShunt(parentObject,
-                                             line,
-                                             busList,
-                                             opt,
-                                             remoteSwitchedShunts);
+                        rawReadSwitchedShunt(
+                            parentObject, line, busList, opt, remoteSwitchedShunts);
                     } else {
                         moreData = false;
                     }
@@ -1545,8 +1542,8 @@ static void rawReadGen(Generator* gen,
             throw std::runtime_error(message);
         }
 
-        remoteControlBus = dynamic_cast<GridBus*>(
-            gen->getRoot()->findByUserID("bus", static_cast<index_t>(rbus)));
+        remoteControlBus =
+            dynamic_cast<GridBus*>(gen->getRoot()->findByUserID("bus", static_cast<index_t>(rbus)));
         if (remoteControlBus == nullptr) {
             const auto message = "IREG remote bus " + std::to_string(rbus) +
                 " was not found for generator on bus " +
@@ -2180,9 +2177,8 @@ static int rawReadTxV33(CoreObject* parentObject,
             if ((controlBusNumber <= 0) ||
                 std::cmp_greater_equal(static_cast<size_t>(controlBusNumber), busList.size()) ||
                 (busList[controlBusNumber] == nullptr)) {
-                throw std::runtime_error("invalid transformer control bus " +
-                                         std::to_string(cbus) + " for transformer " +
-                                         lnk->getName());
+                throw std::runtime_error("invalid transformer control bus " + std::to_string(cbus) +
+                                         " for transformer " + lnk->getName());
             }
             if (controlBusNumber == ind1) {
                 adjTX->setControlBus(1);
@@ -2469,9 +2465,8 @@ static int rawReadTX(CoreObject* parentObject,
             if ((controlBusNumber <= 0) ||
                 std::cmp_greater_equal(static_cast<size_t>(controlBusNumber), busList.size()) ||
                 (busList[controlBusNumber] == nullptr)) {
-                throw std::runtime_error("invalid transformer control bus " +
-                                         std::to_string(cbus) + " for transformer " +
-                                         lnk->getName());
+                throw std::runtime_error("invalid transformer control bus " + std::to_string(cbus) +
+                                         " for transformer " + lnk->getName());
             }
             if (controlBusNumber == ind1) {
                 adjTX->setControlBus(1);
@@ -2602,8 +2597,7 @@ static void rawReadSwitchedShunt(CoreObject* parentObject,
     auto low = numeric_conversion<double>(strvec[3 + shift], 0.0);
     // get the controlled bus
     auto cbus = numeric_conversion<int>(strvec[4 + shift], -1);
-    const auto remoteParticipation =
-        numeric_conversion<double>(strvec[5 + shift], 100.0);
+    const auto remoteParticipation = numeric_conversion<double>(strvec[5 + shift], 100.0);
 
     if (cbus < 0) {
         trimString(strvec[4 + shift]);
@@ -2665,7 +2659,7 @@ static void rawReadSwitchedShunt(CoreObject* parentObject,
                 loadObject->setControlBus(rbus);
             }
 
-        temp = remoteParticipation;
+            temp = remoteParticipation;
             if (temp > 0) {
                 loadObject->set("participation", temp / 100.0);
             }
@@ -2677,7 +2671,7 @@ static void rawReadSwitchedShunt(CoreObject* parentObject,
             if (std::cmp_not_equal(cbus, index)) {
                 loadObject->setControlBus(rbus);
             }
-        temp = remoteParticipation;
+            temp = remoteParticipation;
             if (temp > 0) {
                 loadObject->set("participation", temp / 100.0);
             }

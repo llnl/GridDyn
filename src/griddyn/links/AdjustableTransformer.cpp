@@ -76,6 +76,7 @@ CoreObject* AdjustableTransformer::clone(CoreObject* obj) const
     lnk->Qtarget = Qtarget;
 
     lnk->direction = direction;
+    lnk->directionExplicit = directionExplicit;
     lnk->controlBus = nullptr;
     lnk->controlNum = controlNum;
     lnk->dTapdt = dTapdt;
@@ -247,6 +248,7 @@ void AdjustableTransformer::set(std::string_view param, double val, unit unitTyp
         } else {
             direction = 1;
         }
+        directionExplicit = true;
     } else if (param == "mintap") {
         minTap = val;
         tap = std::max(tap, minTap);
@@ -284,10 +286,24 @@ void AdjustableTransformer::set(std::string_view param, double val, unit unitTyp
             opFlags.set(CONTINUOUS_FLAG);
         }
     } else if (param == "nsteps") {
-        if (cMode == ControlMode::MW_CONTROL) {
-            stepSize = (maxTapAngle - minTapAngle) / (val - 1);
+        if (val <= 0.0) {
+            // PSS/E uses NTP=0 for a continuously adjustable winding.
+            opFlags.set(CONTINUOUS_FLAG);
+            opFlags.reset(NO_PFLOW_ADJUSTMENTS);
+            stepSize = 0.0;
+        } else if (val <= 1.0) {
+            // A one-position winding has no usable tap adjustment.
+            opFlags.reset(CONTINUOUS_FLAG);
+            opFlags.set(NO_PFLOW_ADJUSTMENTS);
+            stepSize = 0.0;
         } else {
-            stepSize = (maxTap - minTap) / (val - 1);
+            opFlags.reset(CONTINUOUS_FLAG);
+            opFlags.reset(NO_PFLOW_ADJUSTMENTS);
+            if (cMode == ControlMode::MW_CONTROL) {
+                stepSize = std::abs(maxTapAngle - minTapAngle) / (val - 1);
+            } else {
+                stepSize = std::abs(maxTap - minTap) / (val - 1);
+            }
         }
     } else if (param == "dtapdt") {
         dTapdt = val;
@@ -305,7 +321,7 @@ double AdjustableTransformer::get(std::string_view param, units::unit unitType) 
     if (param == "controlbus") {
         val = controlNum;
     } else if (param == "controlbusid") {
-        val = static_cast<double>(controlBus->getUserID());
+        val = (controlBus != nullptr) ? static_cast<double>(controlBus->getUserID()) : kNullVal;
     } else if (param == "vmin") {
         val = Vmin;
     } else if (param == "vmax") {
@@ -361,10 +377,16 @@ double AdjustableTransformer::get(std::string_view param, units::unit unitType) 
     } else if ((param == "stepsize") || (param == "tapchange")) {
         val = stepSize;
     } else if (param == "nsteps") {
-        if (cMode == ControlMode::MW_CONTROL) {
-            val = (maxTapAngle - minTapAngle) / stepSize;
+        if (opFlags[CONTINUOUS_FLAG]) {
+            val = 0.0;
+        } else if (opFlags[NO_PFLOW_ADJUSTMENTS]) {
+            val = 1.0;
+        } else if (!std::isfinite(stepSize) || (stepSize <= 0.0)) {
+            val = kNullVal;
+        } else if (cMode == ControlMode::MW_CONTROL) {
+            val = (std::abs(maxTapAngle - minTapAngle) / stepSize) + 1.0;
         } else {
-            val = (maxTap - minTap) / stepSize;
+            val = (std::abs(maxTap - minTap) / stepSize) + 1.0;
         }
     } else if (param == "control_mode") {
         val = static_cast<double>(cMode);
@@ -388,15 +410,18 @@ void AdjustableTransformer::setControlBus(index_t busNumber)
         controlBus = B1;
         controlNum = 1;
         direction = -1;
+        directionExplicit = false;
     } else if ((busNumber == 2) || (busNumber == B2->getID())) {
         controlBus = B2;
         controlNum = 2;
         direction = 1;
+        directionExplicit = false;
     } else {
         auto* controlBusCandidate = getParent()->findByUserID("bus", busNumber);
         if (controlBusCandidate != nullptr) {
             controlBus = static_cast<GridBus*>(controlBusCandidate);
             controlNum = 0;
+            directionExplicit = false;
         }
     }
 }
@@ -437,7 +462,7 @@ void AdjustableTransformer::pFlowObjectInitializeA(CoreTime time0, std::uint32_t
                         controlBus = dynamic_cast<GridBus*>(obj);
                     }
                 }
-            } else {
+            } else if (!directionExplicit) {
                 direction = (controlBus == B1) ? (-1.0) : 1.0;
             }
             if (controlBus == nullptr) {
@@ -1360,6 +1385,10 @@ ChangeCode AdjustableTransformer::MVarControlAdjust()  // NOLINT
 
 double AdjustableTransformer::getValidTapRatio(double testTapValue) const
 {
+    const auto boundedTap = std::clamp(testTapValue, minTap, maxTap);
+    if (!std::isfinite(stepSize) || (stepSize <= 0.0)) {
+        return boundedTap;
+    }
     if (testTapValue >= maxTap) {
         return maxTap;
     }

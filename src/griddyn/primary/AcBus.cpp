@@ -303,6 +303,10 @@ void AcBus::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
         if (busController.vControlObjects.empty()) {
             logging::normal(this, "PV BUS with no controllers: converting to PQ");
             type = BusType::PQ;
+            // A bus without a local voltage controller cannot return to PV
+            // during limit handling.  This is especially important for a
+            // generator whose controller is assigned to a remote bus.
+            prevType = BusType::PQ;
         }
     }
 

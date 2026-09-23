@@ -23,6 +23,7 @@ class Svd: public RampLoad {
         REVERSE_CONTROL_FLAG = OBJECT_FLAG9,
         REVERSE_TOGGLED_FLAG = OBJECT_FLAG10,  // indicator that the reverse flag has been
                                                // toggled so don't try it again
+        AT_LIMIT_FLAG = OBJECT_FLAG11,
     };
 
   protected:
@@ -38,6 +39,8 @@ class Svd: public RampLoad {
     int stepCount = 0;  //!< the total number of steps available
     std::vector<std::pair<int, double>>
         Cblocks;  // a vector containing the capacitive blocks (count, size[puMW])
+
+    int adjustmentMethod = 0;  //!< RAW ADJM metadata; exact PSS/E switching method is not modeled
 
     model_parameter participation = 1.0;  //!< a participation factor
 
@@ -76,7 +79,7 @@ class Svd: public RampLoad {
         setLoad(double plevel, double qlevel, units::unit unitType = units::defunit) override;
     virtual void setState(CoreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const SolverMode& sMode) override;  // for saving the state
     virtual void guessState(CoreTime time,
                             double state[],
@@ -84,6 +87,13 @@ class Svd: public RampLoad {
                             const SolverMode& sMode) override;  // for initial setting of the state
 
     virtual void getVariableType(double sdata[], const SolverMode& sMode) override;
+
+    virtual StateSizes localStateSizes(const SolverMode& sMode) const override;
+    virtual count_t localJacobianCount(const SolverMode& sMode) const override;
+
+    virtual void updateLocalCache(const IOdata& inputs,
+                                  const StateData& stateData,
+                                  const SolverMode& sMode) override;
 
     virtual void set(std::string_view param, std::string_view val) override;
     virtual void
@@ -102,6 +112,14 @@ class Svd: public RampLoad {
 */
     void addBlock(int steps, double qstep, units::unit unitType = units::defunit);
 
+    /** Set the presently selected stepped level without changing the supplied output.
+     *
+     * RAW BINIT is the actual initial susceptance, while the block list defines
+     * the levels available to subsequent control actions.  The reader uses this
+     * method after adding all blocks so a first adjustment starts from BINIT.
+     */
+    void setInitialReactivePower(double level, units::unit unitType = units::defunit);
+
     /** Configure an ANDES ShuntSw block bank using system-base admittances. */
     void configureAndesShunt(const std::vector<double>& conductanceSteps,
                              const std::vector<double>& susceptanceSteps,
@@ -117,7 +135,7 @@ class Svd: public RampLoad {
     virtual void reset(ResetLevels level = ResetLevels::MINIMAL) override;
 
     virtual void residual(const IOdata& inputs,
-                          const StateData& sD,
+                          const StateData& stateData,
                           double resid[],
                           const SolverMode& sMode) override;
 
@@ -127,13 +145,13 @@ class Svd: public RampLoad {
                             const SolverMode& sMode) override;
 
     virtual void outputPartialDerivatives(const IOdata& inputs,
-                                          const StateData& sD,
-                                          MatrixData<double>& md,
+                                          const StateData& stateData,
+                                          MatrixData<double>& matrixData,
                                           const SolverMode& sMode) override;
 
     virtual void jacobianElements(const IOdata& inputs,
-                                  const StateData& sD,
-                                  MatrixData<double>& md,
+                                  const StateData& stateData,
+                                  MatrixData<double>& matrixData,
                                   const IOlocs& inputLocs,
                                   const SolverMode& sMode) override;
     virtual void getStateName(stringVec& stNames,
@@ -156,6 +174,11 @@ class Svd: public RampLoad {
                                  CheckLevel level) override;
 
   protected:
+    double levelForStep(int step) const;
+    int nearestStep(double level) const;
+    int voltageControlStep(double voltage) const;
+    bool powerFlowAdjustmentAllowed(const IOdata& inputs) const;
+
     int andesMaxStep() const;
     int andesInitialStep() const;
     double andesEffectiveValue(const std::vector<double>& blocks, double baseValue, int step) const;

@@ -368,6 +368,12 @@ class AcBus: public GridBus {
     void registerVoltageControl(GridComponent* comp) override;
     /** @brief  remove an object from voltage control on a bus*/
     void removeVoltageControl(GridComponent* comp) override;
+    /** @brief return the number of active voltage-control objects on this bus*/
+    count_t voltageControlCount() const
+    {
+        return static_cast<count_t>(busController.vControlObjects.size() +
+                                    busController.vControlLinks.size());
+    }
     /** @brief  register an object for power control on a bus*/
     void registerPowerControl(GridComponent* comp) override;
     /** @brief  remove an object from power control on a bus*/

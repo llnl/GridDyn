@@ -193,6 +193,8 @@ void loadFile(CoreObject* parentObject,
         loadRaw(parentObject, fileName, *readerInf);
     } else if (ext == "dyr") {
         loadDyr(parentObject, fileName, *readerInf);
+    } else if (ext == "dyd") {
+        loadDyd(parentObject, fileName, *readerInf);
     } else if ((ext == "cdf") || (ext == "txt")) {
         loadCdf(parentObject, fileName, *readerInf);
     } else if (ext == "uct") {

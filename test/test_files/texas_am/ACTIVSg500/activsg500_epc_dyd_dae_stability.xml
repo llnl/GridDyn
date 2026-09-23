@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="ACTIVSg500_epc_dyd_dae_stability" version="0.0.1">
+  <import file="ACTIVSg500.EPC"/>
+  <import file="ACTIVSg500_dynamics.dyd"/>
+  <dynamicsolvermethod>dae</dynamicsolvermethod>
+  <timestart>0</timestart>
+  <timestop>30.0</timestop>
+  <timestep>0.05</timestep>
+</griddyn>

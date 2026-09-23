@@ -306,6 +306,36 @@ stability interval does not compensate for its additional stages here. These
 command-line runs verify completion and timing, while the 500-bus GoogleTest
 provides the stronger trajectory checks.
 
+### ACTIVSg10k IDA load-step diagnostic
+
+The merged EXAC1/EXAC2 root-handling changes were checked against the external
+ACTIVSg10k RAW/DYR case in a Release build. The case has 55,050 solver states
+and 7,614 configured root functions. A 10 MW step was applied to
+`BUS$50000::LOAD#0` at `t=1.0 s`, with a requested step of 5 ms. The following
+short runs isolate the cost of the disturbance and of root processing:
+
+| Configuration                  | Target time | Wall time | Result          |
+| ------------------------------ | ----------: | --------: | --------------- |
+| No disturbance, roots disabled |      1.03 s |     3.4 s | completed       |
+| 10 MW step, roots disabled     |      1.03 s |    48.2 s | diagnostic only |
+| 10 MW step, roots enabled      |      1.03 s |    76.0 s | completed       |
+
+The roots-disabled cases are diagnostic only; they are not valid dynamic
+acceptance runs. In the normal run, IDA returned approximately 11 times after
+the event. Summed diagnostics were about 606 integration steps, 1,384
+residual evaluations, 870 Jacobian evaluations, and 270 nonlinear convergence
+failures. The first post-step roots were in IEEE Type-1 exciters and IEEEG1
+governors at several buses, rather than in the EXAC2 instance that previously
+chattered at one time point.
+
+This separates the remaining cost into roughly 45 seconds of disturbance-
+induced nonlinear DAE work and another 28--30 seconds of root-triggered
+restarts and Jacobian rebuilding. The old same-time EXAC2 root loop is no
+longer reproduced, but the result does not yet establish a 10-second stable
+trajectory. Follow-up work is to inspect the IEEE Type-1/IEEG1 limiter
+transitions and Jacobians, then repeat the test with a disturbance ladder or a
+ramped load change.
+
 ### Power-flow scaling on larger cases (diagnostic)
 
 Before scoping residual parallelism to dynamic initialization, the Release

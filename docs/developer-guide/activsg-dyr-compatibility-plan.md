@@ -69,6 +69,28 @@ derive and update the particular runtime parameter for each violated bound,
 then add an active-limit residual/Jacobian regression; it should not reuse
 the one-dimensional helper blindly.
 
+## Current dynamic execution status (2026-09-22)
+
+The merged branch has moved ACTIVSg10k beyond import-only status. The supplied
+RAW/DYR pair now initializes in the Release build with the supported
+conventional-machine and controller set, including the previously blocking
+EXAC1 `TA=0` algebraic regulator path and valid GENSAL records with
+`Xdp == Xdpp`. EXAC2 limiter roots also have regression coverage for state
+projection, stale root directions, and rearming after the solver advances in
+time.
+
+A no-disturbance short equilibrium check remains stationary. A diagnostic
+IDA run with a 10 MW step on `BUS$50000::LOAD#0` at `t=1.0 s` reaches
+`t=1.03 s` in approximately 76 seconds. The old same-time EXAC2 root loop is
+no longer reproduced, but the run still encounters a system-wide cascade of
+IEEE Type-1 exciter and IEEEG1 governor limiter roots. This is a usable smoke
+result, not full dynamic validation: a 9-second post-disturbance run, an
+independent trajectory comparison, and a performance fix remain outstanding.
+
+ACTIVSg25k remains power-flow validated but its DYR file has not been run
+dynamically. Its full run is still blocked by the missing renewable plant
+families listed below.
+
 ## Power-flow readiness
 
 | Case        | MATPOWER                                                    | RAW                                                                                                                     | EPC                                                                       | Current conclusion                                                                                                                                            |
@@ -103,33 +125,33 @@ consistently in both models.
 
 ## Dynamic-model inventory
 
-| PSS/E model | ACTIVSg500 | ACTIVSg2000 | ACTIVSg10k | ACTIVSg25k | ACTIVSg70k |  Total | Current status / required work                                                                                                                                          |
-| ----------- | ---------: | ----------: | ---------: | ---------: | ---------: | -----: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GENROU`    |         90 |         410 |      1,136 |      2,857 |      6,937 | 11,430 | Reader supported; continue initialization and trajectory validation.                                                                                                    |
-| `SEXS`      |         90 |           0 |          0 |          0 |          0 |     90 | Reader supported; validate case configurations.                                                                                                                         |
-| `TGOV1`     |         21 |           0 |          0 |          0 |          0 |     21 | Reader supported; validate case configurations.                                                                                                                         |
-| `IEEEST`    |          2 |         434 |      1,851 |      4,101 |      9,243 | 15,631 | Reader supported for local-input configurations; validate variants used.                                                                                                |
-| `IEEEG1`    |          0 |          43 |        162 |      1,115 |      3,518 |  4,838 | Reader supported; validate case configurations.                                                                                                                         |
-| `ESDC1A`    |          0 |          12 |        163 |        123 |        427 |    725 | Reader supported; validate case configurations.                                                                                                                         |
-| `EXAC2`     |          0 |          38 |        106 |        239 |        486 |    869 | Reader supported; validate case configurations.                                                                                                                         |
-| `GGOV1`     |          0 |         367 |        974 |      1,742 |      3,419 |  6,502 | **Reader/model implemented.** Equation, initialization, DYR-order, coupling, residual, and analytic-Jacobian tests exist. Nonzero `TENG` is rejected.                   |
-| `ESST4B`    |          0 |         278 |        745 |      1,396 |      3,187 |  5,606 | **Reader/model implemented.** Exact DYR mapping and GENSAL-coupled residual/Jacobian tests exist; external UEL/OEL inputs remain unrouted.                              |
-| `GENSAL`    |          0 |          25 |        715 |      1,244 |      2,306 |  4,290 | **Reader/model implemented.** Salient-pole equations, quadratic saturation, initialization, controller signals, and Jacobians are covered.                              |
-| `HYGOV`     |         39 |          25 |        715 |      1,244 |      2,306 |  4,329 | Dedicated `GovernorHygov` and DYR mapping implemented; validate case initialization, limits, and trajectories.                                                          |
-| `SCRX`      |          0 |           5 |        312 |        446 |      1,053 |  1,816 | **Reader/model implemented; external trajectory open.** OpenIPSL/PowerDynamics equations, source selection, crowbar behavior, and DYR mapping are covered.              |
-| `IEEET1`    |          0 |          23 |        214 |        942 |      1,907 |  3,086 | **Implemented; external trajectory open.** Native IEEE Type 1 model and exact DYR mapping are available; validate representative case configurations and trajectories.  |
-| `EXPIC1`    |          0 |          61 |        153 |        287 |        569 |  1,070 | **Implemented; external trajectory open.** GridKit-specified equations, exact DYR schema, full block tests, and whole-case residual/Jacobian coverage are present.      |
-| `ESDC2A`    |          0 |           1 |         87 |        202 |        104 |    394 | **Implemented and merged; external trajectory pending.** Shares DC2A/EXDC2 equations and DYR schema; nonzero unsupported `Switch` is rejected.                          |
-| `ESAC6A`    |          0 |           7 |         26 |        194 |        583 |    810 | **Reader/model implemented; external trajectory open.** GridKit AC6A equations, saturation/rectifier behavior, initialization, and DYR mapping are covered.             |
-| `EXAC1`     |          0 |           6 |         22 |        130 |        381 |    539 | Reader supported; validate case configurations.                                                                                                                         |
-| `ESAC1A`    |          0 |           4 |         23 |        142 |        546 |    715 | **Implemented and merged; external trajectory pending.** Dedicated AC1A DYR mapping and control-element limits reuse the AC-exciter core; UEL/OEL routing remains open. |
-| `GAST`      |         30 |           0 |          0 |          0 |          0 |     30 | **Implemented; external trajectory open.** OpenIPSL/ANDES/GridKit equations, DYR mapping, initialization, selector/limit, and Jacobian tests are present.               |
-| `REECA1`    |          0 |           0 |          0 |        614 |        571 |  1,185 | **Missing.** Add renewable electrical control; implement and validate it with the associated `REGCA1` converter model.                                                  |
-| `REGCA1`    |          0 |           0 |          0 |        614 |        571 |  1,185 | **Missing.** Add the renewable converter model; do not import it independently from `REECA1`.                                                                           |
-| `WT3E1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind electrical-control subsystem.                                                                                                          |
-| `WT3G1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind generator/drivetrain subsystem.                                                                                                        |
-| `WT3P1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind pitch-control subsystem.                                                                                                               |
-| `WT3T1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind turbine subsystem.                                                                                                                     |
+| PSS/E model | ACTIVSg500 | ACTIVSg2000 | ACTIVSg10k | ACTIVSg25k | ACTIVSg70k |  Total | Current status / required work                                                                                                                                                    |
+| ----------- | ---------: | ----------: | ---------: | ---------: | ---------: | -----: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GENROU`    |         90 |         410 |      1,136 |      2,857 |      6,937 | 11,430 | Reader supported; continue initialization and trajectory validation.                                                                                                              |
+| `SEXS`      |         90 |           0 |          0 |          0 |          0 |     90 | Reader supported; validate case configurations.                                                                                                                                   |
+| `TGOV1`     |         21 |           0 |          0 |          0 |          0 |     21 | Reader supported; validate case configurations.                                                                                                                                   |
+| `IEEEST`    |          2 |         434 |      1,851 |      4,101 |      9,243 | 15,631 | Reader supported for local-input configurations; validate variants used.                                                                                                          |
+| `IEEEG1`    |          0 |          43 |        162 |      1,115 |      3,518 |  4,838 | Reader supported; validate case configurations.                                                                                                                                   |
+| `ESDC1A`    |          0 |          12 |        163 |        123 |        427 |    725 | Reader supported; validate case configurations.                                                                                                                                   |
+| `EXAC2`     |          0 |          38 |        106 |        239 |        486 |    869 | **Implemented and merged; external trajectory pending.** Zero-`TR` and bypassed-state paths, initialization, active limits, and root rearming have regression coverage.           |
+| `GGOV1`     |          0 |         367 |        974 |      1,742 |      3,419 |  6,502 | **Reader/model implemented.** Equation, initialization, DYR-order, coupling, residual, and analytic-Jacobian tests exist. Nonzero `TENG` is rejected.                             |
+| `ESST4B`    |          0 |         278 |        745 |      1,396 |      3,187 |  5,606 | **Reader/model implemented.** Exact DYR mapping and GENSAL-coupled residual/Jacobian tests exist; external UEL/OEL inputs remain unrouted.                                        |
+| `GENSAL`    |          0 |          25 |        715 |      1,244 |      2,306 |  4,290 | **Implemented and merged.** Salient-pole equations, quadratic saturation, initialization, controller signals, Jacobians, and the valid `Xdp == Xdpp` degenerate case are covered. |
+| `HYGOV`     |         39 |          25 |        715 |      1,244 |      2,306 |  4,329 | Dedicated `GovernorHygov` and DYR mapping implemented; validate case initialization, limits, and trajectories.                                                                    |
+| `SCRX`      |          0 |           5 |        312 |        446 |      1,053 |  1,816 | **Reader/model implemented; external trajectory open.** OpenIPSL/PowerDynamics equations, source selection, crowbar behavior, and DYR mapping are covered.                        |
+| `IEEET1`    |          0 |          23 |        214 |        942 |      1,907 |  3,086 | **Implemented; external trajectory open.** Native IEEE Type 1 model and exact DYR mapping are available; validate representative case configurations and trajectories.            |
+| `EXPIC1`    |          0 |          61 |        153 |        287 |        569 |  1,070 | **Implemented; external trajectory open.** GridKit-specified equations, exact DYR schema, full block tests, and whole-case residual/Jacobian coverage are present.                |
+| `ESDC2A`    |          0 |           1 |         87 |        202 |        104 |    394 | **Implemented and merged; external trajectory pending.** Shares DC2A/EXDC2 equations and DYR schema; nonzero unsupported `Switch` is rejected.                                    |
+| `ESAC6A`    |          0 |           7 |         26 |        194 |        583 |    810 | **Reader/model implemented; external trajectory open.** GridKit AC6A equations, saturation/rectifier behavior, initialization, and DYR mapping are covered.                       |
+| `EXAC1`     |          0 |           6 |         22 |        130 |        381 |    539 | **Implemented and merged; external trajectory pending.** `TA=0` algebraic-regulator and bypassed-state paths, limits, and root behavior have regression coverage.                 |
+| `ESAC1A`    |          0 |           4 |         23 |        142 |        546 |    715 | **Implemented and merged; external trajectory pending.** Dedicated AC1A DYR mapping and control-element limits reuse the AC-exciter core; UEL/OEL routing remains open.           |
+| `GAST`      |         30 |           0 |          0 |          0 |          0 |     30 | **Implemented; external trajectory open.** OpenIPSL/ANDES/GridKit equations, DYR mapping, initialization, selector/limit, and Jacobian tests are present.                         |
+| `REECA1`    |          0 |           0 |          0 |        614 |        571 |  1,185 | **Missing.** Add renewable electrical control; implement and validate it with the associated `REGCA1` converter model.                                                            |
+| `REGCA1`    |          0 |           0 |          0 |        614 |        571 |  1,185 | **Missing.** Add the renewable converter model; do not import it independently from `REECA1`.                                                                                     |
+| `WT3E1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind electrical-control subsystem.                                                                                                                    |
+| `WT3G1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind generator/drivetrain subsystem.                                                                                                                  |
+| `WT3P1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind pitch-control subsystem.                                                                                                                         |
+| `WT3T1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind turbine subsystem.                                                                                                                               |
 
 The broader model-by-model mapping is maintained in the
 [ANDES compatibility roadmap](andes-compatibility.md); this table is the

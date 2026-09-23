@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="ACTIVSg500_epc_dyd_reader" version="0.0.1">
+  <import file="ACTIVSg500.EPC"/>
+  <import file="ACTIVSg500_dynamics.dyd"/>
+</griddyn>

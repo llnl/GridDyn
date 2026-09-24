@@ -205,11 +205,13 @@ transformer readers now consistently use `abs(COD)` for the family while
 retaining `COD < 0` as manual mode.
 
 The case contains 1,452 generator records with nonzero `IREG` values (1,161
-active remote-regulating units). GridDyn's existing per-generator attachment
-does not implement PSS/E's coordinated remote reactive participation, so the
-current case-compatible policy preserves the supplied bus voltage as a local
-target and does not add independent remote voltage constraints. Full grouped
-remote-regulation support remains a separate improvement.
+active remote-regulating units). GridDyn can now import the power-flow form of
+one active generator regulating one remote bus, including `VS`, `IREG`, and
+`RMPCT`. It deliberately rejects a bus with multiple active generators sharing
+`IREG`, because PSS/E's coordinated reactive participation is not yet
+implemented. This case therefore remains outside the supported RAW subset
+until grouped remote regulation is added. Dynamic remote-voltage control is a
+separate future task.
 
 ### Regression coverage
 
@@ -233,7 +235,8 @@ The full `FileReaderTests` suite passes 52/52, and the component-level
    can present the final record twice. The minimized reader regression checks
    that one three-winding record produces one star bus and three legs.
 3. Full PSS/E `IREG` behavior requires grouped reactive participation rather
-   than one independent voltage equation per generator.
+   than one independent voltage equation per generator. The current reader
+   supports the single-controller power-flow subset and rejects groups.
 4. EPC currently applies the primary correction-table reference used by this
    case. Independent winding-2/winding-3 references need a validating fixture.
 5. Uncommon `CW=2/3` winding-voltage forms still require dedicated conversion
@@ -255,7 +258,8 @@ The full `FileReaderTests` suite passes 52/52, and the component-level
    and another for Logan impedance correction. Verify branch flows at the
    supplied state, not only stored parameters.
 4. Implement coordinated `IREG` participation and compare generator controls,
-   switched shunts, and bus control types against PSS/E.
+   switched shunts, and bus control types against PSS/E. Then design the
+   separate dynamic remote-voltage treatment.
 5. Add independent winding correction-table and uncommon `CW`/`CM` fixtures.
 
 ## Acceptance criteria

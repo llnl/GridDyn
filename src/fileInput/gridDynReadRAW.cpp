@@ -53,6 +53,7 @@ using gmlc::utilities::stringOps::trimString;
 using units::deg;
 using units::MVAR;
 using units::MW;
+using units::rad;
 
 using ImpedanceCorrectionTable = std::vector<std::pair<double, double>>;
 using ImpedanceCorrectionTables = std::unordered_map<int, ImpedanceCorrectionTable>;
@@ -104,7 +105,13 @@ static double correctionFactor(const ImpedanceCorrectionTables& tables, int tabl
         std::lower_bound(points.begin(), points.end(), tap, [](const auto& point, double value) {
             return point.first < value;
         });
+    if (upper == points.begin()) {
+        return upper->second;
+    }
     const auto lower = std::prev(upper);
+    if (upper->first == lower->first) {
+        return upper->second;
+    }
     const auto fraction = (tap - lower->first) / (upper->first - lower->first);
     return lower->second + (fraction * (upper->second - lower->second));
 }
@@ -176,14 +183,15 @@ static ImpedanceCorrectionTables readImpedanceCorrectionTables(const std::string
     int currentTableId = 0;
     while (std::getline(file, line)) {
         if (!inCorrectionSection) {
-            inCorrectionSection = line.contains("BEGIN IMPEDANCE CORRECTION DATA");
+            inCorrectionSection = line.contains("BEGIN IMPEDANCE CORRECTION DATA") ||
+                line.contains("BEGIN IMPEDANCE CORRECTION TABLE DATA");
             continue;
         }
         trimString(line);
         if (line.empty()) {
             continue;
         }
-        if (line[0] == '0') {
+        if (line[0] == '0' && convertToUpperCase(line).contains("END")) {
             break;
         }
         const auto fields = splitline(line);
@@ -306,7 +314,10 @@ static int getPSSversion(const std::string& line);
 static int rawReadBus(GridBus* bus, const std::string& line, BasicReaderInfo& opt);
 static void rawReadLoad(GridLoad* loadObject, const std::string& line, BasicReaderInfo& opt);
 static void rawReadFixedShunt(GridLoad* loadObject, const std::string& line, BasicReaderInfo& opt);
-static void rawReadGen(Generator* gen, const std::string& line, BasicReaderInfo& opt);
+static void rawReadGen(Generator* gen,
+                       const std::string& line,
+                       BasicReaderInfo& opt,
+                       std::unordered_map<int, Generator*>& remoteControllers);
 static void rawReadBranch(CoreObject* parentObject,
                           const std::string& line,
                           std::vector<GridBus*>& busList,
@@ -507,7 +518,8 @@ static int rawReadTxV33(CoreObject* parentObject,
 static void rawReadSwitchedShunt(CoreObject* parentObject,
                                  const std::string& line,
                                  std::vector<GridBus*>& busList,
-                                 BasicReaderInfo& opt);
+                                 BasicReaderInfo& opt,
+                                 std::unordered_map<int, loads::Svd*>& remoteControllers);
 static void rawReadTXadj(CoreObject* parentObject,
                          const std::string& line,
                          std::vector<GridBus*>& busList,
@@ -642,6 +654,14 @@ void loadRaw(CoreObject* parentObject,
     std::string line;  // line storage
     std::string temp1;  // temporary storage for substrings
     std::vector<GridBus*> busList;
+    // PSS/E permits several generators to share an IREG bus and divide the
+    // reactive response with RMPCT.  The current GridDyn power-flow model can
+    // represent one indirect voltage controller cleanly, but not that group
+    // as a coordinated set.  Keep track of active controllers while reading
+    // so the unsupported case is rejected instead of being imported as two
+    // independent voltage equations.
+    std::unordered_map<int, Generator*> remoteControllers;
+    std::unordered_map<int, loads::Svd*> remoteSwitchedShunts;
     BasicReaderInfo readerOptionsCopy(readerOptions);
     auto& opt = readerOptionsCopy;
     GridLoad* loadObject;
@@ -772,7 +792,7 @@ void loadRaw(CoreObject* parentObject,
                         if (bus != nullptr) {
                             gen = gGenfactory->makeTypeObject();
                             bus->add(gen);
-                            rawReadGen(gen, line, opt);
+                            rawReadGen(gen, line, opt, remoteControllers);
                         } else {
                             std::cerr << "Invalid bus number for fixed shunt " << line.substr(0, 30)
                                       << '\n';
@@ -811,7 +831,8 @@ void loadRaw(CoreObject* parentObject,
             case SectionType::SWITCHED_SHUNT:
                 while (moreData) {
                     if (checkNextLine(file, line)) {
-                        rawReadSwitchedShunt(parentObject, line, busList, opt);
+                        rawReadSwitchedShunt(
+                            parentObject, line, busList, opt, remoteSwitchedShunts);
                     } else {
                         moreData = false;
                     }
@@ -1431,7 +1452,10 @@ static void
     }
 }
 
-static void rawReadGen(Generator* gen, const std::string& line, BasicReaderInfo& opt)
+static void rawReadGen(Generator* gen,
+                       const std::string& line,
+                       BasicReaderInfo& opt,
+                       std::unordered_map<int, Generator*>& remoteControllers)
 {
     // PSS/E v35 adds NREG after IREG.  All generator fields from MBASE
     // onward consequently move one column to the right.
@@ -1470,6 +1494,25 @@ static void rawReadGen(Generator* gen, const std::string& line, BasicReaderInfo&
     const auto pmin = numeric_conversion<double>(strvec[17 + generatorFieldOffset], 0.0);
     gen->set("pmax", pmax, MW);
     gen->set("pmin", pmin, MW);
+
+    // MBASE is the generator's MVA base.  A large mismatch with the RAW
+    // operating point usually indicates source data that deserves review,
+    // while still being legal enough to import.  Use apparent power and a
+    // deliberately high threshold to avoid warning on ordinary dispatch
+    // above the machine base.
+    constexpr double mbaseWarningRatio = 4.0;
+    const auto apparentPower = std::hypot(realPower, reactivePower);
+    if (gen->isEnabled() && (machineBase > 0.0) &&
+        (apparentPower > mbaseWarningRatio * machineBase)) {
+        const auto ratio = apparentPower / machineBase;
+        const auto message = "RAW generator on bus " +
+            std::to_string(gen->getParent()->getUserID()) + " (ID " + temp +
+            ") has apparent output " + std::to_string(apparentPower) +
+            " MVA versus MBASE " + std::to_string(machineBase) + " MVA (" +
+            std::to_string(ratio) + "x); verify the RAW MBASE value";
+        gen->log(gen, PrintLevel::WARNING, message);
+    }
+
     // get the Qmax and Qmin
     auto qmax = numeric_conversion<double>(strvec[4], 0.0);
     auto qmin = numeric_conversion<double>(strvec[5], 0.0);
@@ -1480,14 +1523,65 @@ static void rawReadGen(Generator* gen, const std::string& line, BasicReaderInfo&
         gen->set("qmax", qmax, MVAR);
         gen->set("qmin", qmin, MVAR);
     }
+    const auto voltageTarget = numeric_conversion<double>(strvec[6], 1.0);
     const auto rbus = numeric_conversion<int>(strvec[7], 0);
-    if (rbus != 0) {
-        // PSS/E IREG remote voltage regulation requires coordinated reactive
-        // participation among every generator controlling the same bus.  The
-        // present Generator remote-control path registers each unit as an
-        // independent constraint.  The bus record already preserved the
-        // supplied voltage as its local target, so leave VS/IREG unapplied for
-        // this fixed-control MATPOWER/EPC-equivalent power-flow model.
+    GridBus* remoteControlBus = nullptr;
+    const auto remoteParticipation =
+        numeric_conversion<double>(strvec[15 + generatorFieldOffset], 100.0);
+    if (rbus != 0 && gen->isEnabled()) {
+        if (rbus < 0) {
+            const auto message = "unsupported negative IREG " + std::to_string(rbus) +
+                " for generator on bus " + std::to_string(gen->getParent()->getUserID());
+            gen->log(gen, PrintLevel::ERROR, message);
+            throw std::runtime_error(message);
+        }
+        if (!std::isfinite(voltageTarget) || voltageTarget <= 0.0) {
+            const auto message = "invalid VS " + std::to_string(voltageTarget) +
+                " for remote-regulating generator on bus " +
+                std::to_string(gen->getParent()->getUserID());
+            gen->log(gen, PrintLevel::ERROR, message);
+            throw std::runtime_error(message);
+        }
+        if (!std::isfinite(remoteParticipation) || remoteParticipation <= 0.0 ||
+            remoteParticipation > 100.0) {
+            const auto message = "invalid RMPCT " + std::to_string(remoteParticipation) +
+                " for generator on bus " + std::to_string(gen->getParent()->getUserID()) +
+                " regulating bus " + std::to_string(rbus);
+            gen->log(gen, PrintLevel::ERROR, message);
+            throw std::runtime_error(message);
+        }
+
+        if (const auto existing = remoteControllers.find(rbus);
+            existing != remoteControllers.end()) {
+            const auto message = "unsupported PSS/E RMPCT group on remote bus " +
+                std::to_string(rbus) + ": generators on buses " +
+                std::to_string(existing->second->getParent()->getUserID()) + " and " +
+                std::to_string(gen->getParent()->getUserID()) +
+                " share IREG; grouped remote voltage control is not implemented";
+            gen->log(gen, PrintLevel::ERROR, message);
+            throw std::runtime_error(message);
+        }
+
+        remoteControlBus =
+            dynamic_cast<GridBus*>(gen->getRoot()->findByUserID("bus", static_cast<index_t>(rbus)));
+        if (remoteControlBus == nullptr) {
+            const auto message = "IREG remote bus " + std::to_string(rbus) +
+                " was not found for generator on bus " +
+                std::to_string(gen->getParent()->getUserID());
+            gen->log(gen, PrintLevel::ERROR, message);
+            throw std::runtime_error(message);
+        }
+
+        // The generator's vtarget is the remote voltage target used by the
+        // indirect power-flow equation.  Set the remote bus target as well so
+        // the direct-controller path has the same VS setpoint.  Do not change
+        // the generator terminal bus voltage: its RAW VM is an independent
+        // solved value in remote-control cases.
+        gen->set("vtarget", voltageTarget);
+        gen->set("vcontrolfrac", remoteParticipation / 100.0);
+        remoteControlBus->set("vtarget", voltageTarget);
+        gen->add(remoteControlBus);
+        remoteControllers.emplace(rbus, gen);
     }
 
     auto resistance = numeric_conversion<double>(strvec[9 + generatorFieldOffset], 0.0);
@@ -1506,6 +1600,11 @@ static void rawReadGen(Generator* gen, const std::string& line, BasicReaderInfo&
                 throw(ObjectAddFailure(gen));
             }
             GridBus* nBus = gBusfactory->makeTypeObject();
+            // The generated generator-side bus has no independent RAW bus card.
+            // Inherit the terminal bus base voltage instead of retaining the
+            // GridBus default (120 kV), which otherwise makes the imported
+            // internal bus metadata inconsistent with the surrounding network.
+            nBus->set("basevoltage", oBus->get("basevoltage"));
             auto* lnk = new AcLine(resistance * opt.base / machineBase,
                                    reactance * opt.base /
                                        machineBase);  // we need to adjust to the simulation base as
@@ -1545,6 +1644,13 @@ static void rawReadGen(Generator* gen, const std::string& line, BasicReaderInfo&
             // match the voltage and angle of the other bus
             nBus->setVoltageAngle(oBus->getVoltage() * tapRatio, oBus->getAngle());
             gen->add(oBus);
+            // Moving a generator through its step-up transformer temporarily
+            // attaches it to the original terminal bus.  Restore the RAW
+            // IREG association afterward; otherwise the final add above
+            // silently replaces the remote controller with the terminal bus.
+            if (remoteControlBus != nullptr) {
+                gen->add(remoteControlBus);
+            }
             // get the power again for the generator
             realPower = numeric_conversion<double>(strvec[2], 0.0);
             reactivePower = numeric_conversion<double>(strvec[3], 0.0);
@@ -1655,13 +1761,28 @@ static void rawReadBranch(CoreObject* parentObject,
     auto val = numeric_conversion<double>(strvec[5], 0.0);
     lnk->set("b", val);
     // RAW branch records can add independent terminal shunts to the symmetric
-    // line charging value.  AcLine stores the resulting total terminal
-    // shunts as b1/g1 and b2/g2.
+    // line charging value.  v26 also stores fixed transformers in this
+    // section, using GI/BI for the winding tap ratio and phase angle.  A
+    // transformer does not have a separate record unless it has adjustable
+    // controls, so identify the v26 tap-ratio range here.  Ordinary branch
+    // conductances remain supported, including values such as 0.003.
     const size_t terminalShuntStart = (opt.version >= 35) ? 19U : 9U;
-    lnk->set("g1", numeric_conversion<double>(strvec[terminalShuntStart], 0.0));
-    lnk->set("b1", (0.5 * val) + numeric_conversion<double>(strvec[terminalShuntStart + 1], 0.0));
-    lnk->set("g2", numeric_conversion<double>(strvec[terminalShuntStart + 2], 0.0));
-    lnk->set("b2", (0.5 * val) + numeric_conversion<double>(strvec[terminalShuntStart + 3], 0.0));
+    const auto terminalField1 =
+        numeric_conversion<double>(strvec[terminalShuntStart], 0.0);
+    const auto terminalField2 =
+        numeric_conversion<double>(strvec[terminalShuntStart + 1], 0.0);
+    const auto terminalField3 =
+        numeric_conversion<double>(strvec[terminalShuntStart + 2], 0.0);
+    const auto terminalField4 =
+        numeric_conversion<double>(strvec[terminalShuntStart + 3], 0.0);
+    const bool v26Transformer = opt.version <= 26 && terminalField1 >= 0.5 &&
+        terminalField1 <= 2.0 && terminalField3 == 0.0 && terminalField4 == 0.0;
+    if (!v26Transformer) {
+        lnk->set("g1", terminalField1);
+        lnk->set("b1", (0.5 * val) + terminalField2);
+        lnk->set("g2", terminalField3);
+        lnk->set("b2", (0.5 * val) + terminalField4);
+    }
     // RAW v35 inserts a branch name before RATE1 through RATE12.
     const size_t ratingStart = (opt.version >= 35) ? 7U : 6U;
     auto ratA = numeric_conversion<double>(strvec[ratingStart], 0.0);
@@ -1703,7 +1824,7 @@ static void rawReadBranch(CoreObject* parentObject,
             lnk->set("tap", val);
             val = numeric_conversion<double>(strvec[10], 0.0);
             if (val != 0) {
-                lnk->set("tapAngle", val, deg);
+                lnk->set("tapangle", val, deg);
             }
         }
     }
@@ -1727,8 +1848,18 @@ static void rawReadTXadj(CoreObject* parentObject,
     std::string name;
     int ind1;
     int ind2;
-    std::tie(name, ind1, ind2) =
-        generateBranchName(strvec, busList, (opt.prefix.empty()) ? "tx_" : opt.prefix + "_tx_");
+    // RAW v26 stores transformers as ordinary branch records and places their
+    // tap-control data in the separate transformer-adjustment section.  The
+    // first three fields are I, J, and circuit, so resolve the same name that
+    // rawReadBranch() created rather than looking for the v33+ "tx_" namespace.
+    // Keep the legacy lookup isolated to the v26 path; newer transformer
+    // records are named and constructed by rawReadTxV33/rawReadTX directly.
+    if (opt.version <= 26) {
+        std::tie(name, ind1, ind2) = generateBranchName(strvec, busList, opt.prefix, 2);
+    } else {
+        std::tie(name, ind1, ind2) =
+            generateBranchName(strvec, busList, (opt.prefix.empty()) ? "tx_" : opt.prefix + "_tx_");
+    }
 
     auto* lnk = static_cast<AcLine*>(parentObject->find(name));
 
@@ -1750,10 +1881,19 @@ static void rawReadTXadj(CoreObject* parentObject,
     lnk->updateBus(nullptr, 1);
     lnk->updateBus(nullptr, 2);
     removeReference(lnk);
+    if (opt.version <= 26) {
+        // TXADJ independently identifies this branch as a transformer. Clear
+        // the terminal shunts defensively on the clone in case a producer
+        // used a tap value outside the normal v26 range used above.
+        adjTX->set("g1", 0.0);
+        adjTX->set("b1", 0.0);
+        adjTX->set("g2", 0.0);
+        adjTX->set("b2", 0.0);
+    }
     getRawLinkParent(parentObject, adjTX)->add(adjTX);
-    auto tapAngle = adjTX->getTapAngle();
+    const auto initialTapAngle = adjTX->getTapAngle();
     int code;
-    if (tapAngle != 0) {
+    if (initialTapAngle != 0) {
         adjTX->set("mode", "mw");
         adjTX->set("stepmode", "continuous");
         code = 3;
@@ -1794,12 +1934,16 @@ static void rawReadTXadj(CoreObject* parentObject,
         code = 3;
     }
     if (code == 3) {
-        // not sure why I need this but
-        tapAngle = tapAngle * 180 / kPI;
-        maxTap = (std::max)(tapAngle, maxTap);
-        minTap = (std::min)(tapAngle, minTap);
-        adjTX->set("maxtapangle", maxTap, deg);
-        adjTX->set("mintapangle", minTap, deg);
+        // Preserve a PSS/E initial phase angle that is just outside the
+        // declared limits.  Use radians throughout this comparison so the
+        // value copied from the branch is not converted to degrees and back
+        // before the AdjustableTransformer limit setters see it.
+        const auto maxTapAngle =
+            (std::max)(initialTapAngle, maxTap * kPI / 180.0);
+        const auto minTapAngle =
+            (std::min)(initialTapAngle, minTap * kPI / 180.0);
+        adjTX->set("maxtapangle", maxTapAngle, rad);
+        adjTX->set("mintapangle", minTapAngle, rad);
     } else {
         if (maxTap < minTap) {
             std::swap(maxTap, minTap);
@@ -1835,7 +1979,7 @@ static void rawReadTXadj(CoreObject* parentObject,
         if (val != 0) {
             // abs required since for some reason the file can have negative step sizes
             // I think just to do reverse indexing which I don't do.
-            adjTX->set("step", std::abs(val));
+            adjTX->set("stepsize", std::abs(val));
         } else {
             adjTX->set("stepmode", "continuous");
         }
@@ -2092,18 +2236,30 @@ static int rawReadTxV33(CoreObject* parentObject,
     if (controlCode > 0 && !fixedV35Control && adjTX != nullptr) {
         auto cbus = numeric_conversion<int>(strvec3[7 + windingControlOffset], 0);
         if (cbus != 0) {
-            if (abs(cbus) == ind1) {
+            const auto controlBusNumber = std::abs(cbus);
+            if ((controlBusNumber <= 0) ||
+                std::cmp_greater_equal(static_cast<size_t>(controlBusNumber), busList.size()) ||
+                (busList[controlBusNumber] == nullptr)) {
+                throw std::runtime_error("invalid transformer control bus " + std::to_string(cbus) +
+                                         " for transformer " + lnk->getName());
+            }
+            if (controlBusNumber == ind1) {
                 adjTX->setControlBus(1);
-            } else if (abs(cbus) == ind2) {
+            } else if (controlBusNumber == ind2) {
                 adjTX->setControlBus(2);
             }
 
             else {
-                adjTX->setControlBus(busList[abs(cbus)]);
+                adjTX->setControlBus(busList[controlBusNumber]);
+            }
+            if (cbus < 0) {
+                // PSS/E uses a negative CONT bus number to reverse the
+                // measured/control direction.
+                adjTX->set("direction", -1);
             }
 
             if (tapcode == 2) {
-                if (abs(cbus) == ind1) {
+                if (controlBusNumber == ind1) {
                     auto tap1 = (bus1->getVoltage() / bus2->getVoltage());
                     [[maybe_unused]] auto tap2 = (bus1->getVoltage() / (vn1 / bv1));
                     auto tap3 = (bus1->getVoltage() / (vn2 / bv2));
@@ -2126,6 +2282,9 @@ static int rawReadTxV33(CoreObject* parentObject,
         reactance = numeric_conversion<double>(strvec3[9 + windingTailOffset], 0.0);
 
         if (controlCode == 3) {
+            if (resistance < reactance) {
+                std::swap(resistance, reactance);
+            }
             adjTX->set("maxtapangle", resistance, deg);
             adjTX->set("mintapangle", reactance, deg);
         } else {
@@ -2142,12 +2301,18 @@ static int rawReadTxV33(CoreObject* parentObject,
                 resistance *= vn1 / bv1;
                 reactance *= vn1 / bv1;
             }
+            if (resistance < reactance) {
+                std::swap(resistance, reactance);
+            }
             adjTX->set("maxtap", resistance);
             adjTX->set("mintap", reactance);
         }
 
         resistance = numeric_conversion<double>(strvec3[10 + windingTailOffset], 0.0);
         reactance = numeric_conversion<double>(strvec3[11 + windingTailOffset], 0.0);
+        if (resistance < reactance) {
+            std::swap(resistance, reactance);
+        }
 
         if (controlCode == 3) {
             adjTX->set("pmax", resistance, MW);
@@ -2359,12 +2524,24 @@ static int rawReadTX(CoreObject* parentObject,
     if (controlCode > 0 && adjTX != nullptr) {
         auto cbus = numeric_conversion<int>(strvec3[7], 0);
         if (cbus != 0) {
-            if (std::abs(cbus) == ind1) {
+            const auto controlBusNumber = std::abs(cbus);
+            if ((controlBusNumber <= 0) ||
+                std::cmp_greater_equal(static_cast<size_t>(controlBusNumber), busList.size()) ||
+                (busList[controlBusNumber] == nullptr)) {
+                throw std::runtime_error("invalid transformer control bus " + std::to_string(cbus) +
+                                         " for transformer " + lnk->getName());
+            }
+            if (controlBusNumber == ind1) {
                 adjTX->setControlBus(1);
-            } else if (std::abs(cbus) == ind2) {
+            } else if (controlBusNumber == ind2) {
                 adjTX->setControlBus(2);
-            } else if (std::cmp_less(std::abs(cbus), busList.size())) {
-                adjTX->setControlBus(busList[std::abs(cbus)]);
+            } else {
+                adjTX->setControlBus(busList[controlBusNumber]);
+            }
+            if (cbus < 0) {
+                // PSS/E uses a negative CONT bus number to reverse the
+                // measured/control direction.
+                adjTX->set("direction", -1);
             }
         }
 
@@ -2372,6 +2549,9 @@ static int rawReadTX(CoreObject* parentObject,
         reactance = numeric_conversion<double>(strvec3[9], 0.0);
 
         if (controlCode == 3) {
+            if (resistance < reactance) {
+                std::swap(resistance, reactance);
+            }
             adjTX->set("maxtapangle", resistance, deg);
             adjTX->set("mintapangle", reactance, deg);
         } else {
@@ -2382,6 +2562,9 @@ static int rawReadTX(CoreObject* parentObject,
                 resistance *= nominalVoltage1 / busBaseVoltage1;
                 reactance *= nominalVoltage1 / busBaseVoltage1;
             }
+            if (resistance < reactance) {
+                std::swap(resistance, reactance);
+            }
             adjTX->set("maxtap", resistance);
             adjTX->set("mintap", reactance);
         }
@@ -2391,6 +2574,9 @@ static int rawReadTX(CoreObject* parentObject,
         } else {
             resistance = numeric_conversion<double>(strvec3[10], 0.0);
             reactance = numeric_conversion<double>(strvec3[11], 0.0);
+        }
+        if (resistance < reactance) {
+            std::swap(resistance, reactance);
         }
         if (controlCode == 3) {
             adjTX->set("pmax", resistance, MW);
@@ -2426,7 +2612,8 @@ static int rawReadTX(CoreObject* parentObject,
 static void rawReadSwitchedShunt(CoreObject* parentObject,
                                  const std::string& line,
                                  std::vector<GridBus*>& busList,
-                                 BasicReaderInfo& opt)
+                                 BasicReaderInfo& opt,
+                                 std::unordered_map<int, loads::Svd*>& remoteControllers)
 {
     auto strvec = splitline(line);
 
@@ -2447,11 +2634,13 @@ static void rawReadSwitchedShunt(CoreObject* parentObject,
     auto mode = numeric_conversion<int>(strvec[1], 0);
     int shift = 0;
     int blockStart = 7;
+    int adjustmentMethod = 0;
     bool inService = true;
     // TODO(phlpt): Verify this logic; it may not be totally correct right now.
     // VERSION 32 has some ambiguity in the interpretation
     if (opt.version >= 32) {
         shift = 2;
+        adjustmentMethod = numeric_conversion<int>(strvec[2], 0);
         // In PSS/E v32+, ADJM and STAT follow MODSW. An out-of-service
         // switched shunt must retain its BINIT value but must not participate
         // in voltage/reactive-power control.
@@ -2464,12 +2653,14 @@ static void rawReadSwitchedShunt(CoreObject* parentObject,
         shift = 3;
         blockStart = 11;
         mode = numeric_conversion<int>(strvec[2], 0);
+        adjustmentMethod = numeric_conversion<int>(strvec[3], 0);
         inService = (numeric_conversion<int>(strvec[4], 1) != 0);
     }
     auto high = numeric_conversion<double>(strvec[2 + shift], 0.0);
     auto low = numeric_conversion<double>(strvec[3 + shift], 0.0);
     // get the controlled bus
     auto cbus = numeric_conversion<int>(strvec[4 + shift], -1);
+    const auto remoteParticipation = numeric_conversion<double>(strvec[5 + shift], 100.0);
 
     if (cbus < 0) {
         trimString(strvec[4 + shift]);
@@ -2484,8 +2675,40 @@ static void rawReadSwitchedShunt(CoreObject* parentObject,
     } else if (cbus == 0) {
         cbus = index;
     } else {
+        if (std::cmp_greater_equal(static_cast<size_t>(cbus), busList.size()) ||
+            (busList[cbus] == nullptr)) {
+            throw std::runtime_error("Invalid remote control bus " + std::to_string(cbus) +
+                                     " for switched shunt at bus " + std::to_string(index));
+        }
         rbus = busList[cbus];
     }
+
+    if (std::cmp_not_equal(cbus, index) && (rbus == nullptr)) {
+        throw std::runtime_error("Remote control bus " + std::to_string(cbus) +
+                                 " was not found for switched shunt at bus " +
+                                 std::to_string(index));
+    }
+
+    if ((mode == 1 || mode == 2) && inService && std::cmp_not_equal(cbus, index)) {
+        if (!std::isfinite(remoteParticipation) || remoteParticipation <= 0.0 ||
+            remoteParticipation > 100.0) {
+            throw std::runtime_error("invalid RMPCT " + std::to_string(remoteParticipation) +
+                                     " for switched shunt at bus " + std::to_string(index) +
+                                     " regulating bus " + std::to_string(cbus));
+        }
+        if (const auto existing = remoteControllers.find(cbus);
+            existing != remoteControllers.end()) {
+            throw std::runtime_error(
+                "unsupported PSS/E RMPCT group on switched-shunt control bus " +
+                std::to_string(cbus) + ": shunts at buses " +
+                std::to_string(existing->second->getParent()->getUserID()) + " and " +
+                std::to_string(index) +
+                " share SWREM; grouped remote shunt participation is not implemented");
+        }
+        remoteControllers.emplace(cbus, loadObject);
+    }
+
+    loadObject->set("adjm", static_cast<double>(adjustmentMethod));
 
     switch (mode) {
         case 0:
@@ -2499,7 +2722,7 @@ static void rawReadSwitchedShunt(CoreObject* parentObject,
                 loadObject->setControlBus(rbus);
             }
 
-            temp = numeric_conversion<double>(strvec[5 + shift], 0.0);
+            temp = remoteParticipation;
             if (temp > 0) {
                 loadObject->set("participation", temp / 100.0);
             }
@@ -2511,7 +2734,7 @@ static void rawReadSwitchedShunt(CoreObject* parentObject,
             if (std::cmp_not_equal(cbus, index)) {
                 loadObject->setControlBus(rbus);
             }
-            temp = numeric_conversion<double>(strvec[5 + shift], 0.0);
+            temp = remoteParticipation;
             if (temp > 0) {
                 loadObject->set("participation", temp / 100.0);
             }
@@ -2555,6 +2778,7 @@ static void rawReadSwitchedShunt(CoreObject* parentObject,
     // discrete/continuous SVD setting.  Set it directly so voltage-controlled
     // records retain their PowerWorld/PSS/E initial reactive injection.
     loadObject->ZipLoad::set("yq", -initVal, MVAR);
+    loadObject->setInitialReactivePower(-initVal, MVAR);
     if (!inService) {
         loadObject->disable();
     }

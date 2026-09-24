@@ -74,6 +74,7 @@ class AdjustableTransformer: public AcLine {
     model_parameter mp_Tm = 0.05;  //!< time constant for continuous tap settings
     model_parameter dTapdt = 0;  //!< rate of change of the tap
     model_parameter dTapAdt = 0;  //!< rate of change of the tapAngle
+    bool directionExplicit = false;  //!< preserve a supplied control-direction override
   private:
     int controlNum = -1;  //!< the control bus and number setting are not fully determined until
                           //!< initialization so

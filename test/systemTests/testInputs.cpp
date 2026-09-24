@@ -6,6 +6,7 @@
 
 #include "../gtestHelper.h"
 #include "gmlc/utilities/vectorOps.hpp"
+#include "griddyn/Generator.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/Link.h"
 #include "griddyn/links/AcLine.h"
@@ -280,6 +281,58 @@ TEST_F(InputTests, PssERawBranchTerminalShunts)
     requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 }
 
+TEST_F(InputTests, PssERawV26TransformerFieldsAreNotTerminalShunts)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    ASSERT_NO_THROW(loadFile(gds, std::string(INPUT_TEST_DIRECTORY) +
+                                      "raw_v26_branch_transformer.raw"));
+
+    ASSERT_EQ(gds->getInt("totallinkcount"), 2);
+    const auto* line = dynamic_cast<const AcLine*>(gds->getLink(0));
+    const auto* transformer =
+        dynamic_cast<const links::AdjustableTransformer*>(gds->getLink(1));
+    ASSERT_NE(line, nullptr);
+    ASSERT_NE(transformer, nullptr);
+
+    // Ordinary v26 branch records retain their GI/BI/GJ/BJ terminal shunts.
+    EXPECT_NEAR(line->get("g1"), 0.003, 1e-12);
+    EXPECT_NEAR(line->get("b1"), 0.014, 1e-12);
+    EXPECT_NEAR(line->get("g2"), 0.005, 1e-12);
+    EXPECT_NEAR(line->get("b2"), 0.016, 1e-12);
+
+    // Transformer tap ratio and phase angle are not imported as shunts.
+    EXPECT_NEAR(transformer->get("g1"), 0.0, 1e-12);
+    EXPECT_NEAR(transformer->get("b1"), 0.0, 1e-12);
+    EXPECT_NEAR(transformer->get("g2"), 0.0, 1e-12);
+    EXPECT_NEAR(transformer->get("b2"), 0.0, 1e-12);
+    EXPECT_NEAR(transformer->get("tap"), 1.03, 1e-12);
+    EXPECT_NEAR(transformer->get("tapangle"),
+                units::convert(-5.0, units::deg, units::rad),
+                1e-12);
+}
+
+TEST_F(InputTests, PssERawV26FixedTransformerFieldsAreNotTerminalShunts)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    ASSERT_NO_THROW(loadFile(gds, std::string(INPUT_TEST_DIRECTORY) +
+                                      "raw_v26_fixed_transformer.raw"));
+
+    ASSERT_EQ(gds->getInt("totallinkcount"), 1);
+    const auto* transformer = dynamic_cast<const AcLine*>(gds->getLink(0));
+    ASSERT_NE(transformer, nullptr);
+    EXPECT_NEAR(transformer->get("g1"), 0.0, 1e-12);
+    EXPECT_NEAR(transformer->get("b1"), 0.0, 1e-12);
+    EXPECT_NEAR(transformer->get("g2"), 0.0, 1e-12);
+    EXPECT_NEAR(transformer->get("b2"), 0.0, 1e-12);
+    EXPECT_NEAR(transformer->get("tap"), 1.03, 1e-12);
+    EXPECT_NEAR(transformer->get("tapangle"),
+                units::convert(-5.0, units::deg, units::rad),
+                1e-12);
+
+    EXPECT_EQ(gds->powerflow(), 0);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
+}
+
 TEST_F(InputTests, PssERawVscTerminalModes)
 {
     gds = std::make_unique<GridDynSimulation>();
@@ -305,6 +358,12 @@ TEST_F(InputTests, PssERawGeneratorStepUpTransformerImport)
     EXPECT_EQ(gds->getInt("totalbuscount"), 2);
     EXPECT_EQ(gds->getInt("totallinkcount"), 1);
     EXPECT_EQ(gds->getInt("gencount"), 1);
+    auto* stepUp = dynamic_cast<AcLine*>(gds->getLink(0));
+    ASSERT_NE(stepUp, nullptr);
+    ASSERT_NE(stepUp->getBus(1), nullptr);
+    ASSERT_NE(stepUp->getBus(2), nullptr);
+    EXPECT_NEAR(stepUp->getBus(1)->get("basevoltage"), 765.0, 1e-10);
+    EXPECT_NEAR(stepUp->getBus(2)->get("basevoltage"), 765.0, 1e-10);
     ASSERT_EQ(gds->powerflow(), 0);
     requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
@@ -313,6 +372,57 @@ TEST_F(InputTests, PssERawGeneratorStepUpTransformerImport)
     EXPECT_EQ(controlledBus->getName(), "NORTH");
     EXPECT_NEAR(controlledBus->get("qmin"), -6.5, 1e-10);
     EXPECT_NEAR(controlledBus->get("qmax"), 7.0, 1e-10);
+}
+
+TEST_F(InputTests, PssERawWarnsForLargeMbaseMismatch)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
+    ASSERT_NO_THROW(
+        loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_generator_mbase_warning.raw"));
+
+    EXPECT_EQ(gds->getInt("warncount"), 1);
+}
+
+TEST_F(InputTests, PssERawSingleRemoteVoltageControl)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    ASSERT_NO_THROW(
+        loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_remote_voltage_control.raw"));
+
+    auto* terminalBus = dynamic_cast<GridBus*>(gds->findByUserID("bus", 3));
+    auto* remoteBus = dynamic_cast<GridBus*>(gds->findByUserID("bus", 2));
+    ASSERT_NE(terminalBus, nullptr);
+    ASSERT_NE(remoteBus, nullptr);
+    ASSERT_EQ(terminalBus->getInt("gencount"), 1);
+    auto* generator = terminalBus->getGen(0);
+    ASSERT_NE(generator, nullptr);
+
+    EXPECT_NEAR(generator->get("vtarget"), 1.04, 1e-12);
+    EXPECT_NEAR(generator->get("vcontrolfrac"), 0.5, 1e-12);
+    EXPECT_NEAR(terminalBus->get("vtarget"), 0.98, 1e-12);
+    EXPECT_NEAR(remoteBus->get("vtarget"), 1.04, 1e-12);
+
+    EXPECT_TRUE(generator->checkFlag(REMOTE_VOLTAGE_CONTROL));
+    EXPECT_FALSE(generator->checkFlag(LOCAL_VOLTAGE_CONTROL));
+    ASSERT_EQ(gds->powerflow(), 0);
+    requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
+    EXPECT_TRUE(generator->checkFlag(INDIRECT_VOLTAGE_CONTROL));
+    EXPECT_NEAR(remoteBus->getVoltage(), 1.04, 1e-7);
+}
+
+TEST_F(InputTests, PssERawRemoteVoltageGroupsAreUnsupported)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    EXPECT_THROW(loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_remote_voltage_group.raw"),
+                 std::runtime_error);
+}
+
+TEST_F(InputTests, PssERawRemoteSwitchedShuntGroupsAreUnsupported)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    EXPECT_THROW(loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_remote_shunt_group.raw"),
+                 std::runtime_error);
 }
 
 TEST_F(InputTests, PssERawTransformerMagnetizingAdmittance)

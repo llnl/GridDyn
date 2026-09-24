@@ -295,6 +295,10 @@ int GridDynSimulation::checkNetwork(NetworkCheckType checkType)
     }
     // check to make sure we have a swing bus for each network
     networkCount = networkNum;
+    count_t disconnectedWithoutSlackNetworkCount{0};
+    count_t disconnectedWithoutSlackBusCount{0};
+    count_t disconnectedWithoutSlackOrPvNetworkCount{0};
+    count_t disconnectedWithoutSlackOrPvBusCount{0};
     for (int32_t nn = 1; nn <= networkNum; nn++) {
         bool slackFound = false;
         bool pvFound = false;
@@ -345,9 +349,10 @@ int GridDynSimulation::checkNetwork(NetworkCheckType checkType)
                     return NO_SLACK_BUS_FOUND;
                 }
 
-                logging::warning(this, "no SLK bus found in network {} disconnecting buses", nn);
+                ++disconnectedWithoutSlackNetworkCount;
                 for (auto& networkBus : bnetwork) {
                     if (networkBus->Network == nn) {
+                        ++disconnectedWithoutSlackBusCount;
                         networkBus->disconnect();
                     }
                 }
@@ -382,22 +387,31 @@ int GridDynSimulation::checkNetwork(NetworkCheckType checkType)
                         return NO_SLACK_BUS_FOUND;
                     }
 
-                    logging::warning(this,
-                                     "no SLK or PV bus found in network {} disconnecting buses",
-                                     nn);
+                    ++disconnectedWithoutSlackOrPvNetworkCount;
                     for (auto& networkBus : bnetwork) {
                         if (networkBus->Network == nn) {
-                            logging::normal(this,
-                                            "Network {} disconnect bus {}:{}",
-                                            nn,
-                                            networkBus->getUserID(),
-                                            networkBus->getName());
+                            ++disconnectedWithoutSlackOrPvBusCount;
                             networkBus->disconnect();
                         }
                     }
                 }
             }
         }
+    }
+
+    if (disconnectedWithoutSlackNetworkCount > 0) {
+        logging::summary(this,
+                         "Automatically disconnected {} buses across {} networks without a SLK "
+                         "bus",
+                         disconnectedWithoutSlackBusCount,
+                         disconnectedWithoutSlackNetworkCount);
+    }
+    if (disconnectedWithoutSlackOrPvNetworkCount > 0) {
+        logging::summary(this,
+                         "Automatically disconnected {} buses across {} networks without a SLK "
+                         "or PV bus",
+                         disconnectedWithoutSlackOrPvBusCount,
+                         disconnectedWithoutSlackOrPvNetworkCount);
     }
 
     return FUNCTION_EXECUTION_SUCCESS;

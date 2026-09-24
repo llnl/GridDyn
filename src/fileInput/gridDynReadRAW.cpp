@@ -1507,9 +1507,9 @@ static void rawReadGen(Generator* gen,
         const auto ratio = apparentPower / machineBase;
         const auto message = "RAW generator on bus " +
             std::to_string(gen->getParent()->getUserID()) + " (ID " + temp +
-            ") has apparent output " + std::to_string(apparentPower) +
-            " MVA versus MBASE " + std::to_string(machineBase) + " MVA (" +
-            std::to_string(ratio) + "x); verify the RAW MBASE value";
+            ") has apparent output " + std::to_string(apparentPower) + " MVA versus MBASE " +
+            std::to_string(machineBase) + " MVA (" + std::to_string(ratio) +
+            "x); verify the RAW MBASE value";
         gen->log(gen, PrintLevel::WARNING, message);
     }
 
@@ -1767,14 +1767,10 @@ static void rawReadBranch(CoreObject* parentObject,
     // controls, so identify the v26 tap-ratio range here.  Ordinary branch
     // conductances remain supported, including values such as 0.003.
     const size_t terminalShuntStart = (opt.version >= 35) ? 19U : 9U;
-    const auto terminalField1 =
-        numeric_conversion<double>(strvec[terminalShuntStart], 0.0);
-    const auto terminalField2 =
-        numeric_conversion<double>(strvec[terminalShuntStart + 1], 0.0);
-    const auto terminalField3 =
-        numeric_conversion<double>(strvec[terminalShuntStart + 2], 0.0);
-    const auto terminalField4 =
-        numeric_conversion<double>(strvec[terminalShuntStart + 3], 0.0);
+    const auto terminalField1 = numeric_conversion<double>(strvec[terminalShuntStart], 0.0);
+    const auto terminalField2 = numeric_conversion<double>(strvec[terminalShuntStart + 1], 0.0);
+    const auto terminalField3 = numeric_conversion<double>(strvec[terminalShuntStart + 2], 0.0);
+    const auto terminalField4 = numeric_conversion<double>(strvec[terminalShuntStart + 3], 0.0);
     const bool v26Transformer = opt.version <= 26 && terminalField1 >= 0.5 &&
         terminalField1 <= 2.0 && terminalField3 == 0.0 && terminalField4 == 0.0;
     if (!v26Transformer) {
@@ -1938,10 +1934,8 @@ static void rawReadTXadj(CoreObject* parentObject,
         // declared limits.  Use radians throughout this comparison so the
         // value copied from the branch is not converted to degrees and back
         // before the AdjustableTransformer limit setters see it.
-        const auto maxTapAngle =
-            (std::max)(initialTapAngle, maxTap * kPI / 180.0);
-        const auto minTapAngle =
-            (std::min)(initialTapAngle, minTap * kPI / 180.0);
+        const auto maxTapAngle = (std::max)(initialTapAngle, maxTap * kPI / 180.0);
+        const auto minTapAngle = (std::min)(initialTapAngle, minTap * kPI / 180.0);
         adjTX->set("maxtapangle", maxTapAngle, rad);
         adjTX->set("mintapangle", minTapAngle, rad);
     } else {

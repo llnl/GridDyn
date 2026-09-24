@@ -46,22 +46,24 @@ TEST_F(LinkTests, NetworkCheckAggregatesUnservedIslandReports)
     }
 
     std::vector<std::string> logMessages;
-    gds->setLogger([&logMessages](int, const std::string& message) {
-        logMessages.push_back(message);
-    });
-    const int networkCheckStatus =
-        gds->checkNetwork(GridDynSimulation::NetworkCheckType::FULL);
+    gds->setLogger(
+        [&logMessages](int, const std::string& message) { logMessages.push_back(message); });
+    const int networkCheckStatus = gds->checkNetwork(GridDynSimulation::NetworkCheckType::FULL);
 
     EXPECT_EQ(networkCheckStatus, 0);
     const auto summary =
         "Automatically disconnected 4 buses across 4 networks without a SLK or PV bus";
-    EXPECT_EQ(std::count_if(logMessages.begin(), logMessages.end(), [](const auto& message) {
-                  return message.find("no SLK or PV bus found") != std::string::npos;
-              }),
+    EXPECT_EQ(std::count_if(logMessages.begin(),
+                            logMessages.end(),
+                            [](const auto& message) {
+                                return message.find("no SLK or PV bus found") != std::string::npos;
+                            }),
               0);
-    EXPECT_EQ(std::count_if(logMessages.begin(), logMessages.end(), [summary](const auto& message) {
-                  return message.find(summary) != std::string::npos;
-              }),
+    EXPECT_EQ(std::count_if(logMessages.begin(),
+                            logMessages.end(),
+                            [summary](const auto& message) {
+                                return message.find(summary) != std::string::npos;
+                            }),
               1);
     for (const auto* bus : unservedBuses) {
         EXPECT_FALSE(bus->isConnected());

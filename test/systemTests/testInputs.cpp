@@ -284,13 +284,12 @@ TEST_F(InputTests, PssERawBranchTerminalShunts)
 TEST_F(InputTests, PssERawV26TransformerFieldsAreNotTerminalShunts)
 {
     gds = std::make_unique<GridDynSimulation>();
-    ASSERT_NO_THROW(loadFile(gds, std::string(INPUT_TEST_DIRECTORY) +
-                                      "raw_v26_branch_transformer.raw"));
+    ASSERT_NO_THROW(
+        loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_v26_branch_transformer.raw"));
 
     ASSERT_EQ(gds->getInt("totallinkcount"), 2);
     const auto* line = dynamic_cast<const AcLine*>(gds->getLink(0));
-    const auto* transformer =
-        dynamic_cast<const links::AdjustableTransformer*>(gds->getLink(1));
+    const auto* transformer = dynamic_cast<const links::AdjustableTransformer*>(gds->getLink(1));
     ASSERT_NE(line, nullptr);
     ASSERT_NE(transformer, nullptr);
 
@@ -306,16 +305,14 @@ TEST_F(InputTests, PssERawV26TransformerFieldsAreNotTerminalShunts)
     EXPECT_NEAR(transformer->get("g2"), 0.0, 1e-12);
     EXPECT_NEAR(transformer->get("b2"), 0.0, 1e-12);
     EXPECT_NEAR(transformer->get("tap"), 1.03, 1e-12);
-    EXPECT_NEAR(transformer->get("tapangle"),
-                units::convert(-5.0, units::deg, units::rad),
-                1e-12);
+    EXPECT_NEAR(transformer->get("tapangle"), units::convert(-5.0, units::deg, units::rad), 1e-12);
 }
 
 TEST_F(InputTests, PssERawV26FixedTransformerFieldsAreNotTerminalShunts)
 {
     gds = std::make_unique<GridDynSimulation>();
-    ASSERT_NO_THROW(loadFile(gds, std::string(INPUT_TEST_DIRECTORY) +
-                                      "raw_v26_fixed_transformer.raw"));
+    ASSERT_NO_THROW(
+        loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_v26_fixed_transformer.raw"));
 
     ASSERT_EQ(gds->getInt("totallinkcount"), 1);
     const auto* transformer = dynamic_cast<const AcLine*>(gds->getLink(0));
@@ -325,9 +322,7 @@ TEST_F(InputTests, PssERawV26FixedTransformerFieldsAreNotTerminalShunts)
     EXPECT_NEAR(transformer->get("g2"), 0.0, 1e-12);
     EXPECT_NEAR(transformer->get("b2"), 0.0, 1e-12);
     EXPECT_NEAR(transformer->get("tap"), 1.03, 1e-12);
-    EXPECT_NEAR(transformer->get("tapangle"),
-                units::convert(-5.0, units::deg, units::rad),
-                1e-12);
+    EXPECT_NEAR(transformer->get("tapangle"), units::convert(-5.0, units::deg, units::rad), 1e-12);
 
     EXPECT_EQ(gds->powerflow(), 0);
     requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);

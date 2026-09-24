@@ -358,6 +358,12 @@ TEST_F(InputTests, PssERawGeneratorStepUpTransformerImport)
     EXPECT_EQ(gds->getInt("totalbuscount"), 2);
     EXPECT_EQ(gds->getInt("totallinkcount"), 1);
     EXPECT_EQ(gds->getInt("gencount"), 1);
+    auto* stepUp = dynamic_cast<AcLine*>(gds->getLink(0));
+    ASSERT_NE(stepUp, nullptr);
+    ASSERT_NE(stepUp->getBus(1), nullptr);
+    ASSERT_NE(stepUp->getBus(2), nullptr);
+    EXPECT_NEAR(stepUp->getBus(1)->get("basevoltage"), 765.0, 1e-10);
+    EXPECT_NEAR(stepUp->getBus(2)->get("basevoltage"), 765.0, 1e-10);
     ASSERT_EQ(gds->powerflow(), 0);
     requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
@@ -366,6 +372,16 @@ TEST_F(InputTests, PssERawGeneratorStepUpTransformerImport)
     EXPECT_EQ(controlledBus->getName(), "NORTH");
     EXPECT_NEAR(controlledBus->get("qmin"), -6.5, 1e-10);
     EXPECT_NEAR(controlledBus->get("qmax"), 7.0, 1e-10);
+}
+
+TEST_F(InputTests, PssERawWarnsForLargeMbaseMismatch)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    gds->consolePrintLevel = PrintLevel::NO_PRINT;
+    ASSERT_NO_THROW(
+        loadFile(gds, std::string(INPUT_TEST_DIRECTORY) + "raw_generator_mbase_warning.raw"));
+
+    EXPECT_EQ(gds->getInt("warncount"), 1);
 }
 
 TEST_F(InputTests, PssERawSingleRemoteVoltageControl)

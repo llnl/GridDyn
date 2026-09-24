@@ -1494,6 +1494,25 @@ static void rawReadGen(Generator* gen,
     const auto pmin = numeric_conversion<double>(strvec[17 + generatorFieldOffset], 0.0);
     gen->set("pmax", pmax, MW);
     gen->set("pmin", pmin, MW);
+
+    // MBASE is the generator's MVA base.  A large mismatch with the RAW
+    // operating point usually indicates source data that deserves review,
+    // while still being legal enough to import.  Use apparent power and a
+    // deliberately high threshold to avoid warning on ordinary dispatch
+    // above the machine base.
+    constexpr double mbaseWarningRatio = 4.0;
+    const auto apparentPower = std::hypot(realPower, reactivePower);
+    if (gen->isEnabled() && (machineBase > 0.0) &&
+        (apparentPower > mbaseWarningRatio * machineBase)) {
+        const auto ratio = apparentPower / machineBase;
+        const auto message = "RAW generator on bus " +
+            std::to_string(gen->getParent()->getUserID()) + " (ID " + temp +
+            ") has apparent output " + std::to_string(apparentPower) +
+            " MVA versus MBASE " + std::to_string(machineBase) + " MVA (" +
+            std::to_string(ratio) + "x); verify the RAW MBASE value";
+        gen->log(gen, PrintLevel::WARNING, message);
+    }
+
     // get the Qmax and Qmin
     auto qmax = numeric_conversion<double>(strvec[4], 0.0);
     auto qmin = numeric_conversion<double>(strvec[5], 0.0);
@@ -1581,6 +1600,11 @@ static void rawReadGen(Generator* gen,
                 throw(ObjectAddFailure(gen));
             }
             GridBus* nBus = gBusfactory->makeTypeObject();
+            // The generated generator-side bus has no independent RAW bus card.
+            // Inherit the terminal bus base voltage instead of retaining the
+            // GridBus default (120 kV), which otherwise makes the imported
+            // internal bus metadata inconsistent with the surrounding network.
+            nBus->set("basevoltage", oBus->get("basevoltage"));
             auto* lnk = new AcLine(resistance * opt.base / machineBase,
                                    reactance * opt.base /
                                        machineBase);  // we need to adjust to the simulation base as

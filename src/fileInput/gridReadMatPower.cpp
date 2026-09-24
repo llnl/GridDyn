@@ -513,7 +513,10 @@ COST                    5 parameters defining total cost function f(p) begin in 
             }
 
             if (linkData[10] <= 0.0) {
-                lnk->disconnect();
+                // MATPOWER status 0 means the branch is out of service, not that an in-service
+                // branch has opened its switches. Disabling it also avoids treating the default
+                // (not-yet-initialized) terminal voltages as a fault during case import.
+                lnk->disable();
             }
             if (linkData.size() >= 13) {
                 // MATPOWER uses an all-zero pair for an unconstrained angle

@@ -53,6 +53,7 @@ using gmlc::utilities::stringOps::trimString;
 using units::deg;
 using units::MVAR;
 using units::MW;
+using units::rad;
 
 using ImpedanceCorrectionTable = std::vector<std::pair<double, double>>;
 using ImpedanceCorrectionTables = std::unordered_map<int, ImpedanceCorrectionTable>;
@@ -1493,6 +1494,25 @@ static void rawReadGen(Generator* gen,
     const auto pmin = numeric_conversion<double>(strvec[17 + generatorFieldOffset], 0.0);
     gen->set("pmax", pmax, MW);
     gen->set("pmin", pmin, MW);
+
+    // MBASE is the generator's MVA base.  A large mismatch with the RAW
+    // operating point usually indicates source data that deserves review,
+    // while still being legal enough to import.  Use apparent power and a
+    // deliberately high threshold to avoid warning on ordinary dispatch
+    // above the machine base.
+    constexpr double mbaseWarningRatio = 4.0;
+    const auto apparentPower = std::hypot(realPower, reactivePower);
+    if (gen->isEnabled() && (machineBase > 0.0) &&
+        (apparentPower > mbaseWarningRatio * machineBase)) {
+        const auto ratio = apparentPower / machineBase;
+        const auto message = "RAW generator on bus " +
+            std::to_string(gen->getParent()->getUserID()) + " (ID " + temp +
+            ") has apparent output " + std::to_string(apparentPower) + " MVA versus MBASE " +
+            std::to_string(machineBase) + " MVA (" + std::to_string(ratio) +
+            "x); verify the RAW MBASE value";
+        gen->log(gen, PrintLevel::WARNING, message);
+    }
+
     // get the Qmax and Qmin
     auto qmax = numeric_conversion<double>(strvec[4], 0.0);
     auto qmin = numeric_conversion<double>(strvec[5], 0.0);
@@ -1580,6 +1600,11 @@ static void rawReadGen(Generator* gen,
                 throw(ObjectAddFailure(gen));
             }
             GridBus* nBus = gBusfactory->makeTypeObject();
+            // The generated generator-side bus has no independent RAW bus card.
+            // Inherit the terminal bus base voltage instead of retaining the
+            // GridBus default (120 kV), which otherwise makes the imported
+            // internal bus metadata inconsistent with the surrounding network.
+            nBus->set("basevoltage", oBus->get("basevoltage"));
             auto* lnk = new AcLine(resistance * opt.base / machineBase,
                                    reactance * opt.base /
                                        machineBase);  // we need to adjust to the simulation base as
@@ -1736,13 +1761,24 @@ static void rawReadBranch(CoreObject* parentObject,
     auto val = numeric_conversion<double>(strvec[5], 0.0);
     lnk->set("b", val);
     // RAW branch records can add independent terminal shunts to the symmetric
-    // line charging value.  AcLine stores the resulting total terminal
-    // shunts as b1/g1 and b2/g2.
+    // line charging value.  v26 also stores fixed transformers in this
+    // section, using GI/BI for the winding tap ratio and phase angle.  A
+    // transformer does not have a separate record unless it has adjustable
+    // controls, so identify the v26 tap-ratio range here.  Ordinary branch
+    // conductances remain supported, including values such as 0.003.
     const size_t terminalShuntStart = (opt.version >= 35) ? 19U : 9U;
-    lnk->set("g1", numeric_conversion<double>(strvec[terminalShuntStart], 0.0));
-    lnk->set("b1", (0.5 * val) + numeric_conversion<double>(strvec[terminalShuntStart + 1], 0.0));
-    lnk->set("g2", numeric_conversion<double>(strvec[terminalShuntStart + 2], 0.0));
-    lnk->set("b2", (0.5 * val) + numeric_conversion<double>(strvec[terminalShuntStart + 3], 0.0));
+    const auto terminalField1 = numeric_conversion<double>(strvec[terminalShuntStart], 0.0);
+    const auto terminalField2 = numeric_conversion<double>(strvec[terminalShuntStart + 1], 0.0);
+    const auto terminalField3 = numeric_conversion<double>(strvec[terminalShuntStart + 2], 0.0);
+    const auto terminalField4 = numeric_conversion<double>(strvec[terminalShuntStart + 3], 0.0);
+    const bool v26Transformer = opt.version <= 26 && terminalField1 >= 0.5 &&
+        terminalField1 <= 2.0 && terminalField3 == 0.0 && terminalField4 == 0.0;
+    if (!v26Transformer) {
+        lnk->set("g1", terminalField1);
+        lnk->set("b1", (0.5 * val) + terminalField2);
+        lnk->set("g2", terminalField3);
+        lnk->set("b2", (0.5 * val) + terminalField4);
+    }
     // RAW v35 inserts a branch name before RATE1 through RATE12.
     const size_t ratingStart = (opt.version >= 35) ? 7U : 6U;
     auto ratA = numeric_conversion<double>(strvec[ratingStart], 0.0);
@@ -1784,7 +1820,7 @@ static void rawReadBranch(CoreObject* parentObject,
             lnk->set("tap", val);
             val = numeric_conversion<double>(strvec[10], 0.0);
             if (val != 0) {
-                lnk->set("tapAngle", val, deg);
+                lnk->set("tapangle", val, deg);
             }
         }
     }
@@ -1808,8 +1844,18 @@ static void rawReadTXadj(CoreObject* parentObject,
     std::string name;
     int ind1;
     int ind2;
-    std::tie(name, ind1, ind2) =
-        generateBranchName(strvec, busList, (opt.prefix.empty()) ? "tx_" : opt.prefix + "_tx_");
+    // RAW v26 stores transformers as ordinary branch records and places their
+    // tap-control data in the separate transformer-adjustment section.  The
+    // first three fields are I, J, and circuit, so resolve the same name that
+    // rawReadBranch() created rather than looking for the v33+ "tx_" namespace.
+    // Keep the legacy lookup isolated to the v26 path; newer transformer
+    // records are named and constructed by rawReadTxV33/rawReadTX directly.
+    if (opt.version <= 26) {
+        std::tie(name, ind1, ind2) = generateBranchName(strvec, busList, opt.prefix, 2);
+    } else {
+        std::tie(name, ind1, ind2) =
+            generateBranchName(strvec, busList, (opt.prefix.empty()) ? "tx_" : opt.prefix + "_tx_");
+    }
 
     auto* lnk = static_cast<AcLine*>(parentObject->find(name));
 
@@ -1831,10 +1877,19 @@ static void rawReadTXadj(CoreObject* parentObject,
     lnk->updateBus(nullptr, 1);
     lnk->updateBus(nullptr, 2);
     removeReference(lnk);
+    if (opt.version <= 26) {
+        // TXADJ independently identifies this branch as a transformer. Clear
+        // the terminal shunts defensively on the clone in case a producer
+        // used a tap value outside the normal v26 range used above.
+        adjTX->set("g1", 0.0);
+        adjTX->set("b1", 0.0);
+        adjTX->set("g2", 0.0);
+        adjTX->set("b2", 0.0);
+    }
     getRawLinkParent(parentObject, adjTX)->add(adjTX);
-    auto tapAngle = adjTX->getTapAngle();
+    const auto initialTapAngle = adjTX->getTapAngle();
     int code;
-    if (tapAngle != 0) {
+    if (initialTapAngle != 0) {
         adjTX->set("mode", "mw");
         adjTX->set("stepmode", "continuous");
         code = 3;
@@ -1875,12 +1930,14 @@ static void rawReadTXadj(CoreObject* parentObject,
         code = 3;
     }
     if (code == 3) {
-        // not sure why I need this but
-        tapAngle = tapAngle * 180 / kPI;
-        maxTap = (std::max)(tapAngle, maxTap);
-        minTap = (std::min)(tapAngle, minTap);
-        adjTX->set("maxtapangle", maxTap, deg);
-        adjTX->set("mintapangle", minTap, deg);
+        // Preserve a PSS/E initial phase angle that is just outside the
+        // declared limits.  Use radians throughout this comparison so the
+        // value copied from the branch is not converted to degrees and back
+        // before the AdjustableTransformer limit setters see it.
+        const auto maxTapAngle = (std::max)(initialTapAngle, maxTap * kPI / 180.0);
+        const auto minTapAngle = (std::min)(initialTapAngle, minTap * kPI / 180.0);
+        adjTX->set("maxtapangle", maxTapAngle, rad);
+        adjTX->set("mintapangle", minTapAngle, rad);
     } else {
         if (maxTap < minTap) {
             std::swap(maxTap, minTap);
@@ -1916,7 +1973,7 @@ static void rawReadTXadj(CoreObject* parentObject,
         if (val != 0) {
             // abs required since for some reason the file can have negative step sizes
             // I think just to do reverse indexing which I don't do.
-            adjTX->set("step", std::abs(val));
+            adjTX->set("stepsize", std::abs(val));
         } else {
             adjTX->set("stepmode", "continuous");
         }

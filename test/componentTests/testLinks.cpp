@@ -28,6 +28,48 @@ using namespace griddyn;
 
 class LinkTests: public GridDynSimulationTestFixture, public ::testing::Test {};
 
+TEST_F(LinkTests, NetworkCheckAggregatesUnservedIslandReports)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    gds->consolePrintLevel = PrintLevel::SUMMARY;
+
+    auto* slackBus = new AcBus("slack");
+    slackBus->set("type", "slk");
+    gds->add(slackBus);
+
+    std::vector<AcBus*> unservedBuses;
+    for (int index = 0; index < 4; ++index) {
+        auto* bus = new AcBus("unserved_" + std::to_string(index));
+        bus->set("load p", 0.1);
+        gds->add(bus);
+        unservedBuses.push_back(bus);
+    }
+
+    std::vector<std::string> logMessages;
+    gds->setLogger(
+        [&logMessages](int, const std::string& message) { logMessages.push_back(message); });
+    const int networkCheckStatus = gds->checkNetwork(GridDynSimulation::NetworkCheckType::FULL);
+
+    EXPECT_EQ(networkCheckStatus, 0);
+    const auto summary =
+        "Automatically disconnected 4 buses across 4 networks without a SLK or PV bus";
+    EXPECT_EQ(std::count_if(logMessages.begin(),
+                            logMessages.end(),
+                            [](const auto& message) {
+                                return message.find("no SLK or PV bus found") != std::string::npos;
+                            }),
+              0);
+    EXPECT_EQ(std::count_if(logMessages.begin(),
+                            logMessages.end(),
+                            [summary](const auto& message) {
+                                return message.find(summary) != std::string::npos;
+                            }),
+              1);
+    for (const auto* bus : unservedBuses) {
+        EXPECT_FALSE(bus->isConnected());
+    }
+}
+
 TEST_F(LinkTests, LinkTest1Simple)
 {
     // test a bunch of different link parameters to make sure all the solve properly

@@ -279,6 +279,49 @@ TEST(ExampleReaderTests, MatPowerVoltageTargetPolicies)
     std::filesystem::remove(filePath, removeError);
 }
 
+TEST(ExampleReaderTests, MatPowerOutOfServiceBranchesAreDisabled)
+{
+    const auto filePath =
+        std::filesystem::temp_directory_path() / "griddyn_matpower_out_of_service_branch.m";
+    {
+        std::ofstream output(filePath);
+        ASSERT_TRUE(output.is_open());
+        output << "function mpc = griddyn_matpower_out_of_service_branch\n"
+                  "mpc.version = '2';\n"
+                  "mpc.baseMVA = 100;\n"
+                  "mpc.bus = [\n"
+                  "1 3 0 0 0 0 1 1.0200 0.0000 230 1 1.1000 0.9000;\n"
+                  "2 1 10 2 0 0 1 0.9800 -1.0000 230 1 1.1000 0.9000;\n"
+                  "3 4 0 0 0 0 1 1.0000 0.0000 230 1 1.1000 0.9000;\n"
+                  "];\n"
+                  "mpc.gen = [\n"
+                  "1 10 0 50 -50 1.0200 100 1 50 0;\n"
+                  "];\n"
+                  "mpc.branch = [\n"
+                  "1 2 0.01 0.05 0.01 100 100 100 0 0 1 0 0;\n"
+                  "2 3 0.02 0.06 0.01 100 100 100 0 0 0 0 0;\n"
+                  "];\n";
+    }
+
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(gds, filePath.string());
+
+    auto* isolatedBus = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 3));
+    ASSERT_NE(isolatedBus, nullptr);
+    EXPECT_FALSE(isolatedBus->isEnabled());
+
+    auto* inServiceBranch = dynamic_cast<griddyn::AcLine*>(gds->findByUserID("link", 1));
+    ASSERT_NE(inServiceBranch, nullptr);
+    EXPECT_TRUE(inServiceBranch->isEnabled());
+
+    auto* outOfServiceBranch = dynamic_cast<griddyn::AcLine*>(gds->findByUserID("link", 2));
+    ASSERT_NE(outOfServiceBranch, nullptr);
+    EXPECT_FALSE(outOfServiceBranch->isEnabled());
+
+    std::error_code removeError;
+    std::filesystem::remove(filePath, removeError);
+}
+
 TEST(ExampleReaderTests, PyPowerVoltageTargetPolicies)
 {
     const auto filePath =

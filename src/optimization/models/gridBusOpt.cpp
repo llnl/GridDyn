@@ -367,9 +367,7 @@ void GridBusOpt::constraintJacobianElements(const OptimizationData& optimization
             if (generatorOffset == kNullLocation) {
                 continue;
             }
-            matrixDataRef.assign(busOffsets.constraintOffset,
-                                 generatorOffset,
-                                 1.0);
+            matrixDataRef.assign(busOffsets.constraintOffset, generatorOffset, 1.0);
         }
         if (hasFixedAngle(bus)) {
             // d(theta_i - theta_i,specified)/d(theta_i) = 1.

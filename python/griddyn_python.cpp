@@ -13,16 +13,16 @@
 #include "griddyn/Link.h"
 #include "griddyn/Load.h"
 #include "griddyn/Relay.h"
-#include "griddyn/griddyn-config.h"
 #include "griddyn/gridDynVersion.hpp"
+#include "griddyn/griddyn-config.h"
 #include "griddyn/relays/Sensor.h"
 #include "griddyn/simulation/GridDynSimulationFileOps.h"
 #include "runner/gridDynRunner.h"
 #include "units/units.hpp"
 #ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
 #    include "optimization/gridDynOpt.h"
-#    include "optimization/optimizerInterface.h"
 #    include "optimization/optHelperClasses.h"
+#    include "optimization/optimizerInterface.h"
 #endif
 #include <cmath>
 #include <filesystem>
@@ -1420,8 +1420,7 @@ class PySimulation {
         if (!type.empty() && type != "default" && type != "optimization") {
             throw InvalidParameterError("unsupported simulation type: " + type);
         }
-        auto simulationName =
-            name.empty() ? std::string("gridDynSim_#") : std::move(name);
+        auto simulationName = name.empty() ? std::string("gridDynSim_#") : std::move(name);
         std::shared_ptr<griddyn::GridDynSimulation> sim;
 #ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
         if (type == "optimization") {
@@ -1439,11 +1438,10 @@ class PySimulation {
         runner_ = std::make_shared<griddyn::GriddynRunner>(std::move(sim));
     }
 
-    static PySimulation
-        fromFile(const nb::object& path,
-                 std::string format = "",
-                 std::string name = "",
-                 std::string type = "default")
+    static PySimulation fromFile(const nb::object& path,
+                                 std::string format = "",
+                                 std::string name = "",
+                                 std::string type = "default")
     {
         PySimulation sim(std::move(name), std::move(type));
         sim.load(path, std::move(format));
@@ -1785,7 +1783,11 @@ NB_MODULE(_core, mod)
         .def_prop_ro("enabled", &PyModel::enabled)
         .def_prop_ro("description", &PyModel::description)
         .def("get", &PyModel::get, "field"_a)
-        .def("set", &PyModel::set, "field"_a, "value"_a, "unit"_a = std::nullopt,
+        .def("set",
+             &PyModel::set,
+             "field"_a,
+             "value"_a,
+             "unit"_a = std::nullopt,
              nb::rv_policy::reference_internal)
         .def("get_string", &PyModel::getString, "field"_a)
         .def("find", &PyModel::find, "name"_a)
@@ -1811,7 +1813,11 @@ NB_MODULE(_core, mod)
         .def_prop_ro("p_link", &PyBus::linkP)
         .def_prop_ro("q_link", &PyBus::linkQ)
         .def("get", &PyBus::get, "field"_a)
-        .def("set", &PyBus::set, "field"_a, "value"_a, "unit"_a = std::nullopt,
+        .def("set",
+             &PyBus::set,
+             "field"_a,
+             "value"_a,
+             "unit"_a = std::nullopt,
              nb::rv_policy::reference_internal)
         .def("get_string", &PyBus::getString, "field"_a)
         .def("find", &PyBus::find, "name"_a)
@@ -1821,28 +1827,32 @@ NB_MODULE(_core, mod)
                 " a=" + std::to_string(bus.angle()) + ">";
         });
 
-    auto generatorClass =
-        nb::class_<PyGenerator>(mod, "Generator")
-            .def_prop_ro("name", &PyGenerator::name)
-            .def_prop_ro("type", &PyGenerator::type)
-            .def_prop_ro("uid", &PyGenerator::userId)
-            .def_prop_ro("bus", &PyGenerator::bus)
-            .def_prop_ro("p", &PyGenerator::p)
-            .def_prop_ro("q", &PyGenerator::q)
-            .def_prop_ro("pset", &PyGenerator::pset)
-            .def_prop_ro("pmax", &PyGenerator::pmax)
-            .def_prop_ro("pmin", &PyGenerator::pmin)
-            .def_prop_ro("qmax", &PyGenerator::qmax)
-            .def_prop_ro("qmin", &PyGenerator::qmin)
-            .def("get", &PyGenerator::get, "field"_a)
-            .def("set", &PyGenerator::set, "field"_a, "value"_a, "unit"_a = std::nullopt,
-                 nb::rv_policy::reference_internal)
-            .def("get_string", &PyGenerator::getString, "field"_a)
-            .def("as_dict", &PyGenerator::asDict)
-            .def("__repr__", [](const PyGenerator& gen) {
-                return "<griddyn.Generator name='" + gen.name() + "' bus='" + gen.bus() +
-                    "' p=" + std::to_string(gen.p()) + " q=" + std::to_string(gen.q()) + ">";
-            });
+    auto generatorClass = nb::class_<PyGenerator>(mod, "Generator")
+                              .def_prop_ro("name", &PyGenerator::name)
+                              .def_prop_ro("type", &PyGenerator::type)
+                              .def_prop_ro("uid", &PyGenerator::userId)
+                              .def_prop_ro("bus", &PyGenerator::bus)
+                              .def_prop_ro("p", &PyGenerator::p)
+                              .def_prop_ro("q", &PyGenerator::q)
+                              .def_prop_ro("pset", &PyGenerator::pset)
+                              .def_prop_ro("pmax", &PyGenerator::pmax)
+                              .def_prop_ro("pmin", &PyGenerator::pmin)
+                              .def_prop_ro("qmax", &PyGenerator::qmax)
+                              .def_prop_ro("qmin", &PyGenerator::qmin)
+                              .def("get", &PyGenerator::get, "field"_a)
+                              .def("set",
+                                   &PyGenerator::set,
+                                   "field"_a,
+                                   "value"_a,
+                                   "unit"_a = std::nullopt,
+                                   nb::rv_policy::reference_internal)
+                              .def("get_string", &PyGenerator::getString, "field"_a)
+                              .def("as_dict", &PyGenerator::asDict)
+                              .def("__repr__", [](const PyGenerator& gen) {
+                                  return "<griddyn.Generator name='" + gen.name() + "' bus='" +
+                                      gen.bus() + "' p=" + std::to_string(gen.p()) +
+                                      " q=" + std::to_string(gen.q()) + ">";
+                              });
     mod.attr("Gen") = generatorClass;
 
     nb::class_<PyLoad>(mod, "Load")
@@ -1853,7 +1863,11 @@ NB_MODULE(_core, mod)
         .def_prop_ro("p", &PyLoad::p)
         .def_prop_ro("q", &PyLoad::q)
         .def("get", &PyLoad::get, "field"_a)
-        .def("set", &PyLoad::set, "field"_a, "value"_a, "unit"_a = std::nullopt,
+        .def("set",
+             &PyLoad::set,
+             "field"_a,
+             "value"_a,
+             "unit"_a = std::nullopt,
              nb::rv_policy::reference_internal)
         .def("get_string", &PyLoad::getString, "field"_a)
         .def("as_dict", &PyLoad::asDict)
@@ -1875,7 +1889,11 @@ NB_MODULE(_core, mod)
         .def_prop_ro("loss", &PyLink::loss)
         .def_prop_ro("q_loss", &PyLink::reactiveLoss)
         .def("get", &PyLink::get, "field"_a)
-        .def("set", &PyLink::set, "field"_a, "value"_a, "unit"_a = std::nullopt,
+        .def("set",
+             &PyLink::set,
+             "field"_a,
+             "value"_a,
+             "unit"_a = std::nullopt,
              nb::rv_policy::reference_internal)
         .def("get_string", &PyLink::getString, "field"_a)
         .def("as_dict", &PyLink::asDict)
@@ -1904,7 +1922,11 @@ NB_MODULE(_core, mod)
         .def_prop_ro("avg_a", &PyArea::averageAngle)
         .def_prop_ro("tie_p", &PyArea::tieP)
         .def("get", &PyArea::get, "field"_a)
-        .def("set", &PyArea::set, "field"_a, "value"_a, "unit"_a = std::nullopt,
+        .def("set",
+             &PyArea::set,
+             "field"_a,
+             "value"_a,
+             "unit"_a = std::nullopt,
              nb::rv_policy::reference_internal)
         .def("get_string", &PyArea::getString, "field"_a)
         .def("find", &PyArea::find, "name"_a)
@@ -1921,7 +1943,11 @@ NB_MODULE(_core, mod)
         .def_prop_ro("uid", &PyRelay::userId)
         .def_prop_ro("enabled", &PyRelay::enabled)
         .def("get", &PyRelay::get, "field"_a)
-        .def("set", &PyRelay::set, "field"_a, "value"_a, "unit"_a = std::nullopt,
+        .def("set",
+             &PyRelay::set,
+             "field"_a,
+             "value"_a,
+             "unit"_a = std::nullopt,
              nb::rv_policy::reference_internal)
         .def("get_string", &PyRelay::getString, "field"_a)
         .def("as_dict", &PyRelay::asDict)
@@ -1935,7 +1961,11 @@ NB_MODULE(_core, mod)
         .def_prop_ro("enabled", &PySensor::enabled)
         .def("output", &PySensor::output, "index"_a = 0)
         .def("get", &PySensor::get, "field"_a)
-        .def("set", &PySensor::set, "field"_a, "value"_a, "unit"_a = std::nullopt,
+        .def("set",
+             &PySensor::set,
+             "field"_a,
+             "value"_a,
+             "unit"_a = std::nullopt,
              nb::rv_policy::reference_internal)
         .def("get_string", &PySensor::getString, "field"_a)
         .def("as_dict", &PySensor::asDict)
@@ -2095,7 +2125,11 @@ NB_MODULE(_core, mod)
         .def("step", &PySimulation::step, "time"_a)
         .def("reset", &PySimulation::reset)
         .def("get", &PySimulation::get, "field"_a)
-        .def("set", &PySimulation::set, "field"_a, "value"_a, "unit"_a = std::nullopt,
+        .def("set",
+             &PySimulation::set,
+             "field"_a,
+             "value"_a,
+             "unit"_a = std::nullopt,
              nb::rv_policy::reference_internal)
         .def("get_string", &PySimulation::getString, "field"_a)
         .def("find", &PySimulation::find, "name"_a)

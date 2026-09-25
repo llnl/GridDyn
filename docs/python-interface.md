@@ -108,9 +108,7 @@ without optimization support has `sim.optimization is None`.
 gen = sim.Gen[0]
 optimization = sim.optimization
 print(optimization.get_generator_cost_curve(gen.uid))
-optimization.set_generator_cost_curve(
-    gen.uid, 2, [0.01, 2.0, 10.0], startup_cost=40.0
-)
+optimization.set_generator_cost_curve(gen.uid, 2, [0.01, 2.0, 10.0], startup_cost=40.0)
 ```
 
 Pass `reactive=True` to `get_generator_cost_curve()` or

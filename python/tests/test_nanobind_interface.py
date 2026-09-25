@@ -181,10 +181,8 @@ def test_generator_cost_curves_can_be_edited_and_exported(tmp_path):
     sim = gd.load(CASE9_FILE, type="optimization")
     optimization = sim.optimization
     gen = sim.Gen[0]
-    optimization.set_generator_cost_curve(
-        gen.uid, 1, [0.0, 10.0, 250.0, 1000.0], startup_cost=40.0)
-    optimization.set_generator_cost_curve(
-        gen.uid, 2, [0.01, 2.0], reactive=True, shutdown_cost=8.0)
+    optimization.set_generator_cost_curve(gen.uid, 1, [0.0, 10.0, 250.0, 1000.0], startup_cost=40.0)
+    optimization.set_generator_cost_curve(gen.uid, 2, [0.01, 2.0], reactive=True, shutdown_cost=8.0)
     expected = {
         "model": 1,
         "startup_cost": 40.0,
@@ -198,9 +196,7 @@ def test_generator_cost_curves_can_be_edited_and_exported(tmp_path):
         "coefficients": [0.01, 2.0],
     }
     assert optimization.get_generator_cost_curve(gen.uid) == expected
-    assert optimization.get_generator_cost_curve(gen.uid, reactive=True) == (
-        expected_reactive
-    )
+    assert optimization.get_generator_cost_curve(gen.uid, reactive=True) == (expected_reactive)
 
     output = tmp_path / "costed_case.py"
     warnings = sim.save_pypower_case(output)

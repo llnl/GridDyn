@@ -64,8 +64,7 @@ void GridArea::setUserID(index_t newUserID)
     }
     const auto requestedID = static_cast<count_t>(newUserID);
     auto currentID = areaCounter.load();
-    while (currentID < requestedID &&
-           !areaCounter.compare_exchange_weak(currentID, requestedID)) {
+    while (currentID < requestedID && !areaCounter.compare_exchange_weak(currentID, requestedID)) {
     }
 }
 

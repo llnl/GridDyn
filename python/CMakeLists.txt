@@ -56,8 +56,7 @@ add_custom_command(
             "${CMAKE_CURRENT_BINARY_DIR}/griddyn/__init__.py"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/griddyn/py.typed"
             "${CMAKE_CURRENT_BINARY_DIR}/griddyn/py.typed"
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-            "${CMAKE_CURRENT_SOURCE_DIR}/griddyn/examples"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/griddyn/examples"
             "${CMAKE_CURRENT_BINARY_DIR}/griddyn/examples"
 )
 

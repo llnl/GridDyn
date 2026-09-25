@@ -363,8 +363,8 @@ double Generator::get(std::string_view param, unit unitType) const
     } else if (param == "rampq") {
         ret = rampQ;
     } else if ((param == "mbase") || (param == "base") || (param == "rating")) {
-        const double machineBase = opFlags[INDEPENDENT_MACHINE_BASE] ? machineBasePower :
-                                                                        systemBasePower;
+        const double machineBase =
+            opFlags[INDEPENDENT_MACHINE_BASE] ? machineBasePower : systemBasePower;
         ret = convert(machineBase, MVAR, unitType, systemBasePower, localBaseVoltage);
     } else if (param == "pset") {
         ret = convert(getPset(), puMW, unitType, systemBasePower, localBaseVoltage);

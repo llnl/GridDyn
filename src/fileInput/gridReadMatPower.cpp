@@ -31,12 +31,12 @@
 
 namespace griddyn {
 using gmlc::utilities::numeric_conversion;
+using units::convert;
 using units::deg;
 using units::MVAR;
 using units::MW;
 using units::puMW;
 using units::rad;
-using units::convert;
 
 using mArray = std::vector<std::vector<double>>;
 
@@ -376,23 +376,23 @@ namespace {
         }
         return (genIndex - 1);
     }
-/*
-see: http://www.pserc.cornell.edu/matpower/docs/ref/matpower5.0/idx_cost.html
-MODEL                   1 cost model, 1 = piecewise linear, 2 = polynomial
-GridState::STARTUP    2 startup cost in US dollars*
-SHUTDOWN                3 shutdown cost in US dollars*
-NCOST                   4 number of cost coefficients for polynomial cost function,
-                          or number of data points for piecewise linear
-COST                    5 parameters defining total cost function f(p) begin in this column,
-                          units of f and p are $/hr and MW (or MVAr), respectively
-                          (MODEL = 1) : p0, f0, p1, f1, ..., pn, fn
-                            where p0 < p1 < ... < pn and the cost f(p) is defined by
-                            the coordinates (p0, f0), (p1, f1), ... , (pn, fn)
-                            of the end/break-points of the piecewise linear cost
-                          (MODEL = 2) ) cn, ..., c1, c0
-                            n + 1 coefficients of n-th order polynomial cost, starting with
-                            highest order, where cost is f(p) = cn*p^n + ... + c1*p + c0
-*/
+    /*
+    see: http://www.pserc.cornell.edu/matpower/docs/ref/matpower5.0/idx_cost.html
+    MODEL                   1 cost model, 1 = piecewise linear, 2 = polynomial
+    GridState::STARTUP    2 startup cost in US dollars*
+    SHUTDOWN                3 shutdown cost in US dollars*
+    NCOST                   4 number of cost coefficients for polynomial cost function,
+                              or number of data points for piecewise linear
+    COST                    5 parameters defining total cost function f(p) begin in this column,
+                              units of f and p are $/hr and MW (or MVAr), respectively
+                              (MODEL = 1) : p0, f0, p1, f1, ..., pn, fn
+                                where p0 < p1 < ... < pn and the cost f(p) is defined by
+                                the coordinates (p0, f0), (p1, f1), ... , (pn, fn)
+                                of the end/break-points of the piecewise linear cost
+                              (MODEL = 2) ) cn, ..., c1, c0
+                                n + 1 coefficients of n-th order polynomial cost, starting with
+                                highest order, where cost is f(p) = cn*p^n + ... + c1*p + c0
+    */
     void loadGenCostArray(CoreObject* parentObject, mArray& genCost, int gencount)
     {
         // MATPOWER stores active-power cost curves first, followed optionally
@@ -407,15 +407,14 @@ COST                    5 parameters defining total cost function f(p) begin in 
         for (std::size_t rowIndex = 0; rowIndex < genCost.size(); ++rowIndex) {
             const auto& row = genCost[rowIndex];
             const bool reactive = rowIndex >= static_cast<std::size_t>(gencount);
-            const auto generatorIndex = reactive ? rowIndex - static_cast<std::size_t>(gencount) :
-                                                   rowIndex;
+            const auto generatorIndex =
+                reactive ? rowIndex - static_cast<std::size_t>(gencount) : rowIndex;
             if (generatorIndex >= static_cast<std::size_t>(gencount) || row.size() < 4) {
                 continue;
             }
             if (!std::isfinite(row[0]) || !std::isfinite(row[1]) || !std::isfinite(row[2]) ||
                 !std::isfinite(row[3]) || row[3] < 1.0 || std::floor(row[3]) != row[3] ||
-                row[3] > static_cast<double>(row.size() - 4) ||
-                (row[0] != 1.0 && row[0] != 2.0)) {
+                row[3] > static_cast<double>(row.size() - 4) || (row[0] != 1.0 && row[0] != 2.0)) {
                 continue;
             }
             const auto declaredCount = static_cast<std::size_t>(row[3]);
@@ -431,16 +430,15 @@ COST                    5 parameters defining total cost function f(p) begin in 
                 continue;
             }
             bool finiteCoefficients = true;
-            for (std::size_t coefficientIndex = 4;
-                 coefficientIndex < 4 + coefficientCount;
+            for (std::size_t coefficientIndex = 4; coefficientIndex < 4 + coefficientCount;
                  ++coefficientIndex) {
                 finiteCoefficients = finiteCoefficients && std::isfinite(row[coefficientIndex]);
             }
             if (!finiteCoefficients) {
                 continue;
             }
-            auto* gen = dynamic_cast<Generator*>(parentObject->findByUserID(
-                "gen", static_cast<index_t>(generatorIndex + 1)));
+            auto* gen = dynamic_cast<Generator*>(
+                parentObject->findByUserID("gen", static_cast<index_t>(generatorIndex + 1)));
             if (gen == nullptr) {
                 continue;
             }
@@ -449,7 +447,8 @@ COST                    5 parameters defining total cost function f(p) begin in 
             curve.startupCost = row[1];
             curve.shutdownCost = row[2];
             curve.coefficients.assign(row.begin() + 4,
-                                      row.begin() + static_cast<std::ptrdiff_t>(4 + coefficientCount));
+                                      row.begin() +
+                                          static_cast<std::ptrdiff_t>(4 + coefficientCount));
             if (!curve.valid()) {
                 continue;
             }

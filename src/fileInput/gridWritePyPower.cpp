@@ -241,23 +241,15 @@ namespace {
                     static_cast<double>(busNumbers.at(bus)),
                     -gen->get("p") * basePower,
                     -gen->get("q") * basePower,
-                    finiteLimit(gen->get("qmax", units::MVAR),
-                                1.0e6,
-                                gen->getName() + ".qmax"),
-                    finiteLimit(gen->get("qmin", units::MVAR),
-                                -1.0e6,
-                                gen->getName() + ".qmin"),
+                    finiteLimit(gen->get("qmax", units::MVAR), 1.0e6, gen->getName() + ".qmax"),
+                    finiteLimit(gen->get("qmin", units::MVAR), -1.0e6, gen->getName() + ".qmin"),
                     (vtarget > 0.0) ? vtarget : bus->get("voltage"),
                     finiteLimit(gen->get("mbase", units::MVAR),
                                 basePower,
                                 gen->getName() + ".mbase"),
                     gen->isEnabled() ? 1.0 : 0.0,
-                    finiteLimit(gen->get("pmax", units::MW),
-                                1.0e6,
-                                gen->getName() + ".pmax"),
-                    finiteLimit(gen->get("pmin", units::MW),
-                                -1.0e6,
-                                gen->getName() + ".pmin")};
+                    finiteLimit(gen->get("pmax", units::MW), 1.0e6, gen->getName() + ".pmax"),
+                    finiteLimit(gen->get("pmin", units::MW), -1.0e6, gen->getName() + ".pmin")};
                 const auto& capabilityP = gen->getCapabilityPowerPoints();
                 const auto& capabilityQmin = gen->getCapabilityQminPoints();
                 const auto& capabilityQmax = gen->getCapabilityQmaxPoints();
@@ -265,11 +257,10 @@ namespace {
                     if (capabilityP.size() >= 2 && capabilityP.size() == capabilityQmin.size() &&
                         capabilityP.size() == capabilityQmax.size()) {
                         const auto appendCapabilityPoint =
-                            [&generatorRow, &capabilityP, basePower](
-                                                              std::size_t index) {
-                            generatorRow.push_back(units::convert(
-                                capabilityP[index], units::puMW, units::MW, basePower));
-                        };
+                            [&generatorRow, &capabilityP, basePower](std::size_t index) {
+                                generatorRow.push_back(units::convert(
+                                    capabilityP[index], units::puMW, units::MW, basePower));
+                            };
                         // MATPOWER stores two ends for its linear capability envelope. GridDyn
                         // accepts additional points; retain the endpoints and report any lost
                         // interior shape rather than silently implying an exact conversion.
@@ -311,15 +302,16 @@ namespace {
             dynamic_cast<const MatPowerCostCurveProvider*>(parentObject->getRoot());
         const auto getCostCurve = [costProvider](const Generator* generator, bool reactive) {
             return (costProvider != nullptr) ?
-                costProvider->matPowerCostCurve(generator, reactive) : nullptr;
+                costProvider->matPowerCostCurve(generator, reactive) :
+                nullptr;
         };
         for (const auto* generator : generators) {
             const auto* activeCost = getCostCurve(generator, false);
             const auto* reactiveCost = getCostCurve(generator, true);
             hasCostData = hasCostData || (activeCost != nullptr && activeCost->present()) ||
                 (reactiveCost != nullptr && reactiveCost->present());
-            hasReactiveCostData = hasReactiveCostData ||
-                (reactiveCost != nullptr && reactiveCost->present());
+            hasReactiveCostData =
+                hasReactiveCostData || (reactiveCost != nullptr && reactiveCost->present());
         }
         if (hasCostData) {
             std::size_t costColumnCount = 5;
@@ -327,19 +319,22 @@ namespace {
                 const auto* activeCost = getCostCurve(generator, false);
                 const auto* reactiveCost = getCostCurve(generator, true);
                 if (activeCost != nullptr && activeCost->valid()) {
-                    costColumnCount = std::max(costColumnCount, activeCost->coefficients.size() + 4);
+                    costColumnCount =
+                        std::max(costColumnCount, activeCost->coefficients.size() + 4);
                 }
                 if (hasReactiveCostData && reactiveCost != nullptr && reactiveCost->valid()) {
                     costColumnCount =
                         std::max(costColumnCount, reactiveCost->coefficients.size() + 4);
                 }
             }
-            output << ((format == CaseFormat::PYPOWER) ? "    ])\n    ppc[\"gencost\"] = array([\n" :
-                                                         "];\n\nmpc.gencost = [\n");
-            const auto writeCostCurve = [&row, &warning, costColumnCount](
-                                           const Generator* generator,
-                                           const MatPowerCostCurve* curve,
-                                           bool reactive) {
+            output << ((format == CaseFormat::PYPOWER) ?
+                           "    ])\n    ppc[\"gencost\"] = array([\n" :
+                           "];\n\nmpc.gencost = [\n");
+            const auto writeCostCurve = [&row,
+                                         &warning,
+                                         costColumnCount](const Generator* generator,
+                                                          const MatPowerCostCurve* curve,
+                                                          bool reactive) {
                 if (curve == nullptr || !curve->valid()) {
                     warning(generator->getName() + " has no valid " +
                             (reactive ? "reactive" : "active") +
@@ -369,13 +364,11 @@ namespace {
                     writeCostCurve(generator, getCostCurve(generator, true), true);
                 }
             }
-            output << ((format == CaseFormat::PYPOWER) ?
-                           "    ])\n    ppc[\"branch\"] = array([\n" :
-                           "];\n\nmpc.branch = [\n");
+            output << ((format == CaseFormat::PYPOWER) ? "    ])\n    ppc[\"branch\"] = array([\n" :
+                                                         "];\n\nmpc.branch = [\n");
         } else {
-            output << ((format == CaseFormat::PYPOWER) ?
-                           "    ])\n    ppc[\"branch\"] = array([\n" :
-                           "];\n\nmpc.branch = [\n");
+            output << ((format == CaseFormat::PYPOWER) ? "    ])\n    ppc[\"branch\"] = array([\n" :
+                                                         "];\n\nmpc.branch = [\n");
         }
         const auto linkCount = static_cast<index_t>(parentObject->get("totallinkcount"));
         for (index_t linkIndex = 1; linkIndex <= linkCount; ++linkIndex) {

@@ -11,6 +11,7 @@
 
 // header files
 #include "griddyn/GridDynSimulation.h"
+#include "griddyn/MatPowerCostCurve.h"
 #include "optimizerInterface.h"
 // libraries
 #include <array>
@@ -42,7 +43,7 @@ class OptimizationData;
 class GridAreaOpt;
 class GridOptObject;
 
-class GridDynOptimization: public GridDynSimulation {
+class GridDynOptimization: public GridDynSimulation, public MatPowerCostCurveProvider {
   public:
   protected:
     // storageSpace for SUNDIALS solverInterface
@@ -88,6 +89,11 @@ class GridDynOptimization: public GridDynSimulation {
     */
     virtual GridOptObject* getOptimizationObject(CoreObject* obj = nullptr);
     virtual GridOptObject* makeOptimizationObjectPath(CoreObject* obj);
+    const MatPowerCostCurve* matPowerCostCurve(const Generator* generator,
+                                               bool reactive = false) const override;
+    void setGeneratorCostCurve(Generator* generator,
+                               const MatPowerCostCurve& curve,
+                               bool reactive = false);
     std::shared_ptr<OptimizerInterface> getOptimizerInterface(const OptimizationMode& oMode);
     std::shared_ptr<const OptimizerInterface>
         getOptimizerInterface(const OptimizationMode& oMode) const;

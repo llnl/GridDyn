@@ -11,8 +11,10 @@
 #include "core/ObjectFactoryTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include "gridOptObjects.h"
+#include "griddyn/Generator.h"
 #include "models/gridAreaOpt.h"
 #include "models/gridBusOpt.h"
+#include "models/gridGenOpt.h"
 #include "optObjectFactory.h"
 // system headers
 
@@ -315,6 +317,35 @@ GridOptObject* GridDynOptimization::getOptimizationObject(CoreObject* obj)
         return findOptimizationObjectBySource(mGridAreaOpt, obj);
     }
     return mGridAreaOpt;
+}
+
+const MatPowerCostCurve* GridDynOptimization::matPowerCostCurve(const Generator* generator,
+                                                                bool reactive) const
+{
+    if (generator == nullptr) {
+        return nullptr;
+    }
+    const auto* generatorOpt = dynamic_cast<const GridGenOpt*>(
+        const_cast<GridDynOptimization*>(this)->getOptimizationObject(
+            const_cast<Generator*>(generator)));
+    if ((generatorOpt == nullptr) || !generatorOpt->matPowerCostCurve(reactive).present()) {
+        return nullptr;
+    }
+    return &generatorOpt->matPowerCostCurve(reactive);
+}
+
+void GridDynOptimization::setGeneratorCostCurve(Generator* generator,
+                                                const MatPowerCostCurve& curve,
+                                                bool reactive)
+{
+    if ((generator == nullptr) || (generator->getRoot() != this) || !curve.valid()) {
+        throw InvalidParameterValue("invalid generator or MATPOWER/PYPOWER cost curve");
+    }
+    auto* generatorOpt = dynamic_cast<GridGenOpt*>(makeOptimizationObjectPath(generator));
+    if (generatorOpt == nullptr) {
+        throw InvalidParameterValue("unable to create optimization model for generator");
+    }
+    generatorOpt->loadMatPowerCostCurve(curve, reactive);
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)

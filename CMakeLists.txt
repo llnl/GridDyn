@@ -11,7 +11,7 @@
 # including CMP0167 for Boost's config-package discovery.
 cmake_minimum_required(VERSION 3.28...4.2)
 
-project(GRIDDYN VERSION 0.11.3)
+project(GRIDDYN VERSION 0.11.4)
 
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
     message(FATAL_ERROR "GridDyn requires a 64-bit target platform")

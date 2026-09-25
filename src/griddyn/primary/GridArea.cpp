@@ -56,6 +56,18 @@ GridArea::GridArea(const std::string& objName): GridPrimary(objName)
     opObjectLists = std::make_unique<ListMaintainer>();
 }
 
+void GridArea::setUserID(index_t newUserID)
+{
+    CoreObject::setUserID(newUserID);
+    if (newUserID <= 0) {
+        return;
+    }
+    const auto requestedID = static_cast<count_t>(newUserID);
+    auto currentID = areaCounter.load();
+    while (currentID < requestedID && !areaCounter.compare_exchange_weak(currentID, requestedID)) {
+    }
+}
+
 CoreObject* GridArea::clone(CoreObject* obj) const
 {
     auto* area = cloneBase<GridArea, GridPrimary>(this, obj);

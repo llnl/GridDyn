@@ -22,7 +22,8 @@ griddyn_hide_cache_variables_by_prefix(nanobind_)
 nanobind_add_module(griddyn_python_core NB_STATIC STABLE_ABI griddyn_python.cpp)
 
 set(griddyn_python_warning_options
-    $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang>:-Wno-strict-aliasing -Wno-shadow>
+    $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang>:-Wno-strict-aliasing>
+    $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang>:-Wno-shadow>
 )
 
 target_compile_options(griddyn_python_core PRIVATE ${griddyn_python_warning_options})
@@ -56,7 +57,10 @@ add_custom_command(
             "${CMAKE_CURRENT_BINARY_DIR}/griddyn/__init__.py"
     COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/griddyn/py.typed"
             "${CMAKE_CURRENT_BINARY_DIR}/griddyn/py.typed"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_CURRENT_SOURCE_DIR}/griddyn/examples"
+            "${CMAKE_CURRENT_BINARY_DIR}/griddyn/examples"
 )
 
 install(TARGETS griddyn_python_core LIBRARY DESTINATION griddyn COMPONENT python)
 install(FILES griddyn/__init__.py griddyn/py.typed DESTINATION griddyn COMPONENT python)
+install(DIRECTORY griddyn/examples/ DESTINATION griddyn/examples COMPONENT python)

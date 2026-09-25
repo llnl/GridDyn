@@ -43,7 +43,7 @@ jobs:
             gcc-15 \
             g++-15
           python -m pip install --upgrade pip
-          python -m pip install build pytest
+          python -m pip install build pytest PYPOWER
 
       - name: Build wheel
         shell: bash
@@ -59,6 +59,24 @@ jobs:
         shell: bash
         run: python -m pip install dist/*.whl
 
+      - name: Check package and native versions match
+        shell: bash
+        run: |
+          python - <<'PY'
+          from importlib.metadata import version
+          import griddyn
+
+          package_version = version("griddyn")
+          native_version = griddyn.__version__.split()[0]
+          if native_version != package_version and not native_version.startswith(
+              f"{package_version}-"
+          ):
+              raise SystemExit(
+                  f"native version {griddyn.__version__!r} does not match "
+                  f"package version {package_version!r}"
+              )
+          PY
+
       - name: Check extension dependencies
         shell: bash
         run: |
@@ -72,6 +90,14 @@ jobs:
           if "minizip" in dependencies.lower():
               raise SystemExit("Python extension must not depend on shared minizip")
           PY
+
+      - name: Run packaged examples
+        shell: bash
+        run: |
+          python -m griddyn.examples.power_flow
+          python -m griddyn.examples.optimal_power_flow
+          python -m griddyn.examples.modify_load
+          python -m griddyn.examples.dynamic_time_series
 
       - name: Run Python tests
         shell: bash

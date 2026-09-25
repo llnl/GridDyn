@@ -158,8 +158,8 @@ void savePowerFlowCSV(GridDynSimulation* gds, const std::string& fileName)
     output << std::fixed << "basepower=" << basePower << '\n';
     output
         << "\"GridArea #\",\"Bus #\",\"Bus ID\",\"Bus "
-           "name\",\"voltage(pu)\",\"angle(deg)\",\"Pgen(MW)\",\"Qgen(MW)\",\"Pload(MW)\",\"Qload(MW)\","
-           "\"Plink(MW)\",\"Qlink(MW)\",\"PResid(MW)\",\"QResid(MW)\"\n";
+           "name\",\"voltage(pu)\",\"angle(deg)\",\"Pgen(MW)\",\"Qgen(MVAr)\",\"Pload(MW)\",\"Qload(MVAr)\","
+           "\"Plink(MW)\",\"Qlink(MVAr)\",\"PResid(MW)\",\"QResid(MVAr)\"\n";
     index_t areaIndex = 0;
     const auto* area = gds->getGridArea(areaIndex);
     while (area != nullptr) {
@@ -958,14 +958,14 @@ void captureJacState(GridDynSimulation* gds, const std::string& fileName, const 
     // writing the state vector
     const auto& currentMode = gds->getCurrentMode(sMode);
     auto solverInterface = gds->getSolverInterface(currentMode);
-    MatrixDataSparse<double> MatrixData;
+    MatrixDataSparse<double> matrixData;
     StateData stateDescription(gds->getSimulationTime(),
                                solverInterface->stateData(),
                                solverInterface->derivData());
 
     stateDescription.cj = 10000;
 
-    gds->jacobianElements(noInputs, stateDescription, MatrixData, noInputLocs, currentMode);
+    gds->jacobianElements(noInputs, stateDescription, matrixData, noInputLocs, currentMode);
 
     stringVec stateNames;
     gds->getStateName(stateNames, currentMode);
@@ -982,11 +982,11 @@ void captureJacState(GridDynSimulation* gds, const std::string& fileName, const 
     // write the state vector
     bFile.write(reinterpret_cast<char*>(solverInterface->stateData()), dsize * sizeof(double));
     // writing the Jacobian Matrix
-    dsize = MatrixData.size();
+    dsize = matrixData.size();
     bFile.write(reinterpret_cast<char*>(&dsize), sizeof(count_t));
 
     for (index_t elementIndex = 0; elementIndex < dsize; ++elementIndex) {
-        const auto elementData = MatrixData.element(elementIndex);
+        const auto elementData = matrixData.element(elementIndex);
         bFile.write(reinterpret_cast<const char*>(&(elementData.row)), sizeof(index_t));
         bFile.write(reinterpret_cast<const char*>(&(elementData.col)), sizeof(index_t));
         bFile.write(reinterpret_cast<const char*>(&(elementData.data)), sizeof(double));
@@ -1004,21 +1004,21 @@ void saveJacobian(GridDynSimulation* gds, const std::string& fileName, const Sol
     }
     // writing the state vector
     const auto& currentMode = gds->getCurrentMode(sMode);
-    auto SolverInterface = gds->getSolverInterface(currentMode);
+    auto solverInterface = gds->getSolverInterface(currentMode);
 
-    MatrixDataSparse<double> MatrixData;
+    MatrixDataSparse<double> matrixData;
 
     StateData stateDescription(gds->getSimulationTime(),
-                               SolverInterface->stateData(),
-                               SolverInterface->derivData());
+                               solverInterface->stateData(),
+                               solverInterface->derivData());
 
     stateDescription.cj = 10000;
-    gds->jacobianElements(noInputs, stateDescription, MatrixData, noInputLocs, currentMode);
+    gds->jacobianElements(noInputs, stateDescription, matrixData, noInputLocs, currentMode);
 
     stringVec stateNames;
     gds->getStateName(stateNames, currentMode);
 
-    count_t dsize = SolverInterface->size();
+    count_t dsize = solverInterface->size();
     bFile.write(reinterpret_cast<char*>(&dsize), sizeof(count_t));
     for (auto& stN : stateNames) {
         auto stnSize = static_cast<unsigned int>(stN.length());
@@ -1026,11 +1026,11 @@ void saveJacobian(GridDynSimulation* gds, const std::string& fileName, const Sol
         bFile.write(stN.c_str(), stnSize);
     }
     // writing the Jacobian Matrix
-    dsize = MatrixData.size();
+    dsize = matrixData.size();
     bFile.write(reinterpret_cast<char*>(&dsize), sizeof(count_t));
 
     for (index_t elementIndex = 0; elementIndex < dsize; ++elementIndex) {
-        const auto elementData = MatrixData.element(elementIndex);
+        const auto elementData = matrixData.element(elementIndex);
         bFile.write(reinterpret_cast<const char*>(&(elementData.row)), sizeof(index_t));
         bFile.write(reinterpret_cast<const char*>(&(elementData.col)), sizeof(index_t));
         bFile.write(reinterpret_cast<const char*>(&(elementData.data)), sizeof(double));

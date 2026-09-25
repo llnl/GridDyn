@@ -95,6 +95,16 @@ CoreObject* Generator::clone(CoreObject* obj) const
     gen->dQdt = dQdt;
     gen->machineBasePower = machineBasePower;
     gen->participation = participation;
+    gen->rampAgc = rampAgc;
+    gen->ramp10 = ramp10;
+    gen->ramp30 = ramp30;
+    gen->rampQ = rampQ;
+    gen->capabilityPowerPoints = capabilityPowerPoints;
+    gen->capabilityQminPoints = capabilityQminPoints;
+    gen->capabilityQmaxPoints = capabilityQmaxPoints;
+    if (bounds) {
+        gen->bounds = std::make_unique<utilities::OperatingBoundary>(*bounds);
+    }
     gen->m_Rs = m_Rs;
     gen->m_Xs = m_Xs;
     gen->m_Vtarget = m_Vtarget;
@@ -344,6 +354,18 @@ double Generator::get(std::string_view param, unit unitType) const
         ret = m_Vtarget;
     } else if (param == "participation") {
         ret = participation;
+    } else if ((param == "rampagc") || (param == "rampreg")) {
+        ret = rampAgc;
+    } else if (param == "ramp10") {
+        ret = ramp10;
+    } else if (param == "ramp30") {
+        ret = ramp30;
+    } else if (param == "rampq") {
+        ret = rampQ;
+    } else if ((param == "mbase") || (param == "base") || (param == "rating")) {
+        const double machineBase =
+            opFlags[INDEPENDENT_MACHINE_BASE] ? machineBasePower : systemBasePower;
+        ret = convert(machineBase, MVAR, unitType, systemBasePower, localBaseVoltage);
     } else if (param == "pset") {
         ret = convert(getPset(), puMW, unitType, systemBasePower, localBaseVoltage);
     } else if (param == "pmax") {
@@ -509,6 +531,14 @@ void Generator::set(std::string_view param, double val, unit unitType)
         dQdt = convert(val, unitType, puMW, systemBasePower, localBaseVoltage);
     } else if (param == "participation") {
         participation = val;
+    } else if ((param == "rampagc") || (param == "rampreg")) {
+        rampAgc = val;
+    } else if (param == "ramp10") {
+        ramp10 = val;
+    } else if (param == "ramp30") {
+        ramp30 = val;
+    } else if (param == "rampq") {
+        rampQ = val;
     } else if (param == "vcontrolfrac" || param == "vregfraction" || param == "vcfrac") {
         vRegFraction = val;
     } else if (param == "pmax") {
@@ -537,6 +567,9 @@ void Generator::setCapabilityCurve(const std::vector<double>& ppts,
                                    const std::vector<double>& qmaxpts)
 {
     if ((ppts.size() == qminpts.size()) && (ppts.size() == qmaxpts.size())) {
+        capabilityPowerPoints = ppts;
+        capabilityQminPoints = qminpts;
+        capabilityQmaxPoints = qmaxpts;
         if (!bounds) {
             bounds = std::make_unique<utilities::OperatingBoundary>(Pmin, Pmax, Qmin, Qmax);
         }

@@ -20,3 +20,7 @@
 *.py   diff=python
 *.m    diff=matlab
 *.cs   diff=csharp
+
+# Exclude dependencies and bundled test inputs from GitHub language statistics.
+/ThirdParty/** linguist-vendored=true
+/test/test_files/** linguist-vendored=true

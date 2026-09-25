@@ -110,6 +110,8 @@ CoreObject* GridGenOpt::clone(CoreObject* obj) const
     nobj->m_heatRate = m_heatRate;
     nobj->Pcoeff = Pcoeff;
     nobj->Qcoeff = Qcoeff;
+    nobj->activeCostCurve = activeCostCurve;
+    nobj->reactiveCostCurve = reactiveCostCurve;
     nobj->m_penaltyCost = m_penaltyCost;
     nobj->m_fuelCost = m_fuelCost;
     nobj->m_forecast = m_forecast;
@@ -142,6 +144,13 @@ void GridGenOpt::loadSizes(const OptimizationMode& oMode)
 {
     auto& optimizationOffsets = offsets.getOffsets(oMode);
     optimizationOffsets.reset();
+    // Cost data is retained on the optimization adapter even for generators
+    // that are out of service, but those units must not contribute dispatch
+    // variables to the OPF model.
+    if ((gen == nullptr) || !gen->isEnabled()) {
+        optimizationOffsets.localLoad(true);
+        return;
+    }
     switch (oMode.flowMode) {
         case FlowModel::NONE:
         case FlowModel::TRANSPORT:
@@ -228,7 +237,7 @@ void GridGenOpt::valueBounds(double time,
                              const OptimizationMode& oMode)
 {
     auto& optimizationOffsets = offsets.getOffsets(oMode);
-    if (gen == nullptr) {
+    if ((gen == nullptr) || (optimizationOffsets.gOffset == kNullLocation)) {
         return;
     }
     // Physical operating limits have one owner: the attached Generator.  This
@@ -248,6 +257,9 @@ void GridGenOpt::linearObj(const OptimizationData& /* of */,
                            const OptimizationMode& oMode)
 {
     auto& optimizationOffsets = offsets.getOffsets(oMode);
+    if (optimizationOffsets.gOffset == kNullLocation) {
+        return;
+    }
     if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
         linObj.assign(optimizationOffsets.gOffset, coefficientOrZero(Pcoeff, 1) * oMode.period);
@@ -262,6 +274,9 @@ void GridGenOpt::quadraticObj(const OptimizationData& /* of */,
                               const OptimizationMode& oMode)
 {
     auto& optimizationOffsets = offsets.getOffsets(oMode);
+    if (optimizationOffsets.gOffset == kNullLocation) {
+        return;
+    }
     if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
         linObj.assign(optimizationOffsets.gOffset, coefficientOrZero(Pcoeff, 1) * oMode.period);
@@ -281,6 +296,9 @@ double GridGenOpt::objValue(const OptimizationData& optimizationData, const Opti
 {
     double cost = 0;
     auto& optimizationOffsets = offsets.getOffsets(oMode);
+    if (optimizationOffsets.gOffset == kNullLocation) {
+        return cost;
+    }
     const double pValue = optimizationData.val[optimizationOffsets.gOffset];
     if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
@@ -299,6 +317,9 @@ void GridGenOpt::gradient(const OptimizationData& optimizationData,
                           const OptimizationMode& oMode)
 {
     auto& optimizationOffsets = offsets.getOffsets(oMode);
+    if (optimizationOffsets.gOffset == kNullLocation) {
+        return;
+    }
     const double pValue = optimizationData.val[optimizationOffsets.gOffset];
     if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
@@ -318,6 +339,9 @@ void GridGenOpt::jacobianElements(const OptimizationData& optimizationData,
                                   const OptimizationMode& oMode)
 {
     auto& optimizationOffsets = offsets.getOffsets(oMode);
+    if (optimizationOffsets.gOffset == kNullLocation) {
+        return;
+    }
     const double pValue = optimizationData.val[optimizationOffsets.gOffset];
     if (optFlags[PIECEWISE_LINEAR_COST]) {
     } else {
@@ -367,6 +391,9 @@ void GridGenOpt::getObjectiveNames(stringVec& objectiveNames,
                                    const std::string& prefix)
 {
     auto& optimizationOffsets = offsets.getOffsets(oMode);
+    if (optimizationOffsets.gOffset == kNullLocation) {
+        return;
+    }
     if (objectiveNames.size() <= static_cast<size_t>(optimizationOffsets.gOffset)) {
         objectiveNames.resize(static_cast<size_t>(optimizationOffsets.gOffset) + 1);
     }
@@ -502,6 +529,19 @@ void GridGenOpt::loadMatPowerCostCoeff(std::vector<double> coeff, int powerMode,
     } else {
         Qcoeff = coeff;
     }
+}
+
+void GridGenOpt::loadMatPowerCostCurve(const MatPowerCostCurve& curve, bool reactive)
+{
+    if (!curve.valid()) {
+        throw InvalidParameterValue("invalid MATPOWER/PYPOWER generator cost curve");
+    }
+    (reactive ? reactiveCostCurve : activeCostCurve) = curve;
+    optFlags.reset(PIECEWISE_LINEAR_COST);
+    if (activeCostCurve.model == 1 || reactiveCostCurve.model == 1) {
+        optFlags.set(PIECEWISE_LINEAR_COST);
+    }
+    loadMatPowerCostCoeff(curve.coefficients, reactive ? 1 : 0, curve.model);
 }
 
 GridOptObject* GridGenOpt::getBus(index_t /*index*/) const

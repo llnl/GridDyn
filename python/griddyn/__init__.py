@@ -19,6 +19,7 @@ from ._core import (
     Load,
     LoadCollection,
     Model,
+    Optimization,
     Relay,
     RelayCollection,
     Sensor,
@@ -30,9 +31,9 @@ from ._core import (
 )
 
 
-def load(path, *, format="", name=""):
+def load(path, *, format="", name="", type="default"):
     """Load a GridDyn simulation file."""
-    return Simulation.from_file(path, format=format, name=name)
+    return Simulation.from_file(path, format=format, name=name, type=type)
 
 
 __all__ = [
@@ -54,6 +55,7 @@ __all__ = [
     "Load",
     "LoadCollection",
     "Model",
+    "Optimization",
     "Relay",
     "RelayCollection",
     "Sensor",

@@ -8,6 +8,7 @@
 
 // headers
 #include "../gridOptObjects.h"
+#include "griddyn/MatPowerCostCurve.h"
 #include <string>
 #include <vector>
 // forward classes
@@ -31,6 +32,8 @@ class GridGenOpt: public GridOptObject {
     double m_heatRate = -kBigNum;
     std::vector<double> Pcoeff;
     std::vector<double> Qcoeff;
+    MatPowerCostCurve activeCostCurve;
+    MatPowerCostCurve reactiveCostCurve;
     double m_penaltyCost = 0;
     double m_fuelCost = -1;
     double m_forecast = -kBigNum;
@@ -102,6 +105,11 @@ class GridGenOpt: public GridOptObject {
         The source format expresses power in MW/MVAr; the adapter obtains the
         current system base from its attached Generator when converting it. */
     virtual void loadMatPowerCostCoeff(std::vector<double> coeff, int powerMode, int costModel);
+    void loadMatPowerCostCurve(const MatPowerCostCurve& curve, bool reactive = false);
+    const MatPowerCostCurve& matPowerCostCurve(bool reactive = false) const
+    {
+        return reactive ? reactiveCostCurve : activeCostCurve;
+    }
     // find components
 
     /** Attached physical generator; optimization data remains external to it. */

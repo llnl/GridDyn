@@ -70,6 +70,12 @@ class Generator: public GridSecondary {
         -kBigNum;  //!< [pu mbase] min steady state real power values for the generator
     model_parameter participation =
         1.0;  //!< [%]a participation factor used in auto allocating load.
+    // MATPOWER generator-table operating data. These values are retained for
+    // case interchange; ramp fields use MATPOWER's native units.
+    double rampAgc = 0.0;  //!< [MW/min] load-following/AGC ramp capability
+    double ramp10 = 0.0;  //!< [MW] 10-minute reserve capability
+    double ramp30 = 0.0;  //!< [MW] 30-minute reserve capability
+    double rampQ = 0.0;  //!< [MVAr/min] reactive ramp capability
     model_parameter vRegFraction =
         1.0;  //!< [%]  fraction of output reactive power to maintain voltage regulation
     model_parameter machineBasePower = 100;  //!< MW the internal base power of the generator;
@@ -81,6 +87,9 @@ class Generator: public GridSecondary {
     model_parameter m_Xs = 1.0;  //!< generator impedance defined on Mbase;
     GridBus* remoteBus = nullptr;  //!< the bus for remote control
     std::unique_ptr<utilities::OperatingBoundary> bounds;
+    std::vector<double> capabilityPowerPoints;
+    std::vector<double> capabilityQminPoints;
+    std::vector<double> capabilityQmaxPoints;
 
   public:
     explicit Generator(const std::string& objName = "gen_$");
@@ -173,6 +182,9 @@ class Generator: public GridSecondary {
     virtual void setCapabilityCurve(const std::vector<double>& Ppts,
                                     const std::vector<double>& Qminpts,
                                     const std::vector<double>& Qmaxpts);
+    const std::vector<double>& getCapabilityPowerPoints() const { return capabilityPowerPoints; }
+    const std::vector<double>& getCapabilityQminPoints() const { return capabilityQminPoints; }
+    const std::vector<double>& getCapabilityQmaxPoints() const { return capabilityQmaxPoints; }
 
     virtual IOdata predictOutputs(CoreTime predictionTime,
                                   const IOdata& inputs,

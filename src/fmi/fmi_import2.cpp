@@ -1,4 +1,3 @@
-/*
 /* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil;  c-set-offset 'innamespace 0; -*- */
 /*
  * Copyright (c) 2014-2026, Lawrence Livermore National Security

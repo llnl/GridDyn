@@ -32,7 +32,7 @@ class GridLoad: public GridSecondary {
     /** alternate constructor taking p and q values in addition to the name
     @param[in] realPower the real power consumption of the load
     @param[in] reactivePower the reactive power consumption of the load
-    @objName the name of the load object*/
+    @param[in] objName the name of the load object*/
     GridLoad(double realPower, double reactivePower, const std::string& objName = "load_$");
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;

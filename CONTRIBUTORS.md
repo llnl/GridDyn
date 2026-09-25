@@ -94,7 +94,7 @@ The cereal library is used for serialization of messages sent around inside HELI
 
 ### [c++17 headers](https://github.com/tcbrindle/cpp17_headers)
 
-HELICS makes use of `C++17` headers, but due to `C++14` compatibility requirements these are not available on all supported compilers. So included library headers are used from @tcbrindle including std\::any, and std\::string_view; std\::optional is used via [containers](https://github.com/GMLC-TDC/containers). These fall under the boost license, this library is an aggregate from a number of different sources, see the [README](https://github.com/tcbrindle/cpp17_headers/blob/master/README.md) for more details. The Boost versions of these libraries are not used due to incompatibilities through different boost versions that HELICS supports, so a single stable source was used. When the minimum boost version and compiler is updated this code will likely be removed.
+HELICS makes use of `C++17` headers, but due to `C++14` compatibility requirements these are not available on all supported compilers. So included library headers are used from tcbrindle including std\::any, and std\::string_view; std\::optional is used via [containers](https://github.com/GMLC-TDC/containers). These fall under the boost license, this library is an aggregate from a number of different sources, see the [README](https://github.com/tcbrindle/cpp17_headers/blob/master/README.md) for more details. The Boost versions of these libraries are not used due to incompatibilities through different boost versions that HELICS supports, so a single stable source was used. When the minimum boost version and compiler is updated this code will likely be removed.
 
 ### CMake scripts
 

@@ -1,12 +1,8 @@
-# Documentation Status
+# Development validation snapshot
 
-This Read the Docs configuration is a bootstrap scaffold.
-
-Current state:
-
-- Read the Docs now has an in-repo configuration file.
-- Sphinx and MyST are configured for Markdown-based pages.
-- The landing pages in this section are intentionally minimal.
+This page preserves an engineering snapshot recorded on 2026-09-22. It is not
+a release support matrix; current documentation work is tracked in the
+[documentation release plan](documentation-release-plan.md).
 
 ## Project status snapshot (2026-09-22)
 
@@ -35,10 +31,3 @@ families produce a summarized import error. Generalized-load records are
 currently accepted and ignored so that the EPC loads retain DYR-equivalent
 static-load behavior; implementing their voltage/frequency dependence remains
 future work.
-
-Planned improvements:
-
-- migrate the existing installation and quick-start material into Sphinx-friendly pages
-- add API documentation integration
-- organize user, developer, and reference documentation into separate sections
-- restore richer assets such as diagrams and manuals in a maintainable way

@@ -21,14 +21,12 @@ griddyn_hide_cache_variables_by_prefix(nanobind_)
 
 nanobind_add_module(griddyn_python_core NB_STATIC STABLE_ABI griddyn_python.cpp)
 
-set(griddyn_python_warning_options
-    $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang>:-Wno-strict-aliasing>
-    $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang>:-Wno-shadow>
-)
-
-target_compile_options(griddyn_python_core PRIVATE ${griddyn_python_warning_options})
 if(TARGET nanobind-static)
-    target_compile_options(nanobind-static PRIVATE ${griddyn_python_warning_options})
+    target_compile_options(
+        nanobind-static PRIVATE
+        $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang>:-Wno-strict-aliasing>
+        $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang>:-Wno-shadow>
+    )
 endif()
 
 target_link_libraries(griddyn_python_core PRIVATE runner griddyn griddyn_base griddyn_optional)

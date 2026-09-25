@@ -85,7 +85,7 @@ class GridDynOptimization: public GridDynSimulation, public MatPowerCostCurvePro
     virtual CoreObject* getSubObject(std::string_view typeName, index_t num) const override;
     virtual CoreObject* findByUserID(std::string_view typeName, index_t searchID) const override;
     /** find the economic data for a corresponding grid core object
-    @input CoreObject the object for which to find the corresponding econ Data
+    @param[in] obj the object for which to find the corresponding economic data
     */
     virtual GridOptObject* getOptimizationObject(CoreObject* obj = nullptr);
     virtual GridOptObject* makeOptimizationObjectPath(CoreObject* obj);

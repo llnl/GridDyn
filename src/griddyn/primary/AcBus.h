@@ -274,7 +274,7 @@ class AcBus: public GridBus {
     **/
     virtual double getAdjustableCapacityDown(CoreTime time = maxTime) const override;
     /** @brief the dPdf partial derivative  (may be deprecated in the future)
-     * @return the $\frac{\partial P}{\partial f}$
+     * @return the @f$\frac{\partial P}{\partial f}@f$
      **/
     virtual double getdPdf() const override;
 

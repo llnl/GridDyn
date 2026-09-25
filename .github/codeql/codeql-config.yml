@@ -1,0 +1,5 @@
+name: "GridDyn CodeQL config"
+
+paths-ignore:
+  - "ThirdParty/**"
+  - "scripts/autogen/**"

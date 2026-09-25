@@ -1,7 +1,17 @@
 # Overview
 
-GridDyn is developed as a flexible simulation platform for electric power system studies, with support for steady-state, dynamic, and coupled workflows.
+GridDyn models electric power networks and can run steady-state power flow and
+time-domain simulations. The C++ application and libraries also provide
+optional optimization, FMI, HELICS, and communications integrations, depending
+on build configuration.
 
-The current documentation set is intentionally lightweight. It exists to keep the Read the Docs build healthy while the older documentation, presentations, and generated API material are folded into a more maintainable structure.
+The published Python package focuses on simulation control, network
+inspection and editing, power-flow export, and a continuous DC optimal
+power-flow interface. It requires Python 3.13 or newer. See
+[Capabilities and limits](capabilities.md) for the currently documented
+Python surface and its boundaries.
 
-For source code and project history, use the main repository root and the project README.
+GridDyn uses CMake and requires a 64-bit C++23 toolchain. See
+[Installation](installation.md) for the Python package and
+[Building GridDyn](building.md) for source builds, optional components, and
+Doxygen generation.

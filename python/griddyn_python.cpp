@@ -28,10 +28,27 @@
 #include <filesystem>
 #include <limits>
 #include <memory>
+
+// Keep diagnostics enabled for GridDyn code while quieting warnings from the
+// nanobind and CPython headers included below.
+#if defined(__clang__)
+#    pragma clang diagnostic push
+#    pragma clang diagnostic ignored "-Wshadow"
+#elif defined(__GNUC__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wstrict-aliasing"
+#    pragma GCC diagnostic ignored "-Wshadow"
+#endif
 #include <nanobind/nanobind.h>
 #include <nanobind/stl/optional.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
+#if defined(__clang__)
+#    pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#    pragma GCC diagnostic pop
+#endif
+
 #include <optional>
 #include <stdexcept>
 #include <string>

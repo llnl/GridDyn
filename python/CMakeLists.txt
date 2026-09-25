@@ -23,9 +23,9 @@ nanobind_add_module(griddyn_python_core NB_STATIC STABLE_ABI griddyn_python.cpp)
 
 if(TARGET nanobind-static)
     target_compile_options(
-        nanobind-static PRIVATE
-        $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang>:-Wno-strict-aliasing>
-        $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang>:-Wno-shadow>
+        nanobind-static
+        PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang>:-Wno-strict-aliasing>
+                $<$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang>:-Wno-shadow>
     )
 endif()
 

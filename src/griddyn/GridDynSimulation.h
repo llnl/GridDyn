@@ -476,7 +476,7 @@ class GridDynSimulation: public GridSimulation {
      * @param[in] dstateDt time derivative of `state` for the selected solver mode.
      * @param[out] matrixDataRef receives the finite-difference partial derivatives.
      * @param[in] sMode solver mode that selects residual or differential evaluation.
-    */
+     */
     void parameterDerivatives(CoreTime time,
                               ParameterSet& parameterOperators,
                               const index_t indices[],

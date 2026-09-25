@@ -1,6 +1,6 @@
 # Documentation release plan
 
-**Review date:** 2026-09-25  
+**Review date:** 2026-09-25
 **Release context:** Python package version 0.11.4 is the current project version.
 
 This plan records a practical documentation baseline and a staged path to

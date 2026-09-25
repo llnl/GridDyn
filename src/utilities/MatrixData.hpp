@@ -141,6 +141,7 @@ class MatrixData {
     {
         (void)(newRowLimit), void(newColLimit);
     }
+
   public:
     /**
      *  @brief set the maximum row count

@@ -4,14 +4,14 @@ This page summarizes the Python package surface documented for the current
 release. GridDyn's C++ application and optional libraries expose additional
 features that are selected at build time.
 
-| Workflow | Current Python support |
-| --- | --- |
-| Load a supported network file | Load MATPOWER cases and GridDyn XML inputs through `griddyn.load()` |
-| Power flow | Run the steady-state power-flow solver and inspect bus, generator, and other object collections |
-| Dynamic simulation | Initialize and advance time-domain simulation; configure and read recorder output files |
-| Network edits | Read and set supported model parameters, including numeric values with unit conversion |
-| Power-flow export | Write static network cases in PYPOWER/MATPOWER format and power-flow result summaries |
-| Optimal power flow | Run continuous DC OPF for supported polynomial costs through quadratic order when built with the optimization library |
+| Workflow                      | Current Python support                                                                                                |
+| ----------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Load a supported network file | Load MATPOWER cases and GridDyn XML inputs through `griddyn.load()`                                                   |
+| Power flow                    | Run the steady-state power-flow solver and inspect bus, generator, and other object collections                       |
+| Dynamic simulation            | Initialize and advance time-domain simulation; configure and read recorder output files                               |
+| Network edits                 | Read and set supported model parameters, including numeric values with unit conversion                                |
+| Power-flow export             | Write static network cases in PYPOWER/MATPOWER format and power-flow result summaries                                 |
+| Optimal power flow            | Run continuous DC OPF for supported polynomial costs through quadratic order when built with the optimization library |
 
 Current Python API boundaries include no AC OPF, integer unit commitment,
 piecewise-linear cost solution, in-memory recorder-history object, or general

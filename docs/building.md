@@ -17,8 +17,10 @@ currently exercised Linux dependencies and options.
 From a Visual Studio developer command prompt or a shell where CMake can find
 the Visual Studio installation:
 
-    cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DGRIDDYN_ENABLE_FMI=OFF -DGRIDDYN_BUILD_TESTS=OFF
-    cmake --build build --config Release --parallel 4
+```powershell
+cmake -S . -B build -G "Visual Studio 17 2022" -A x64 -DGRIDDYN_ENABLE_FMI=OFF -DGRIDDYN_BUILD_TESTS=OFF
+cmake --build build --config Release --parallel 4
+```
 
 Select the generator that matches the Visual Studio version installed on your
 system. CMake may also configure the project through Visual Studio's CMake
@@ -28,8 +30,10 @@ workflow.
 
 With CMake, Ninja, a supported compiler, Boost, and SuiteSparse/KLU installed:
 
-    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DGRIDDYN_ENABLE_FMI=OFF -DGRIDDYN_BUILD_TESTS=OFF
-    cmake --build build --parallel
+```bash
+cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release -DGRIDDYN_ENABLE_FMI=OFF -DGRIDDYN_BUILD_TESTS=OFF
+cmake --build build --parallel
+```
 
 Optional features such as FMI, HELICS, networking, optimization, and extra
 solvers are controlled by `GRIDDYN_*` CMake options. Check the top-level
@@ -41,7 +45,9 @@ optional component; available settings can change as integrations evolve.
 For a test-enabled build, configure with `-DBUILD_TESTING=ON` and
 `-DGRIDDYN_BUILD_TESTS=ON`, build, then run the registered continuous tests:
 
-    ctest --test-dir build --output-on-failure -L Continuous
+```bash
+ctest --test-dir build --output-on-failure -L Continuous
+```
 
 The CI workflow is the reference for compiler-specific flags and the test
 labels used in automation.
@@ -51,8 +57,10 @@ labels used in automation.
 The published package requires Python 3.13 or newer. From the repository root,
 install the Python build frontend and build a wheel:
 
-    python -m pip install build
-    python -m build --wheel
+```bash
+python -m pip install build
+python -m build --wheel
+```
 
 The C++ compiler, CMake, Boost, and SuiteSparse/KLU are still required for a
 source wheel build. PyPI wheels avoid this local compilation when a compatible
@@ -65,9 +73,11 @@ The Doxygen target produces HTML. Set an output directory outside the source
 tree, configure with Doxygen enabled, then build the `doc` target. For example,
 from PowerShell:
 
-    $doxygenOutput = Join-Path (Get-Location) "build\doxygen-html"
-    cmake -S . -B build -DGRIDDYN_ENABLE_DOXYGEN=ON "-DDOXYGEN_OUTPUT_DIR=$doxygenOutput"
-    cmake --build build --config Release --target doc --parallel 4
+```powershell
+$doxygenOutput = Join-Path (Get-Location) "build\doxygen-html"
+cmake -S . -B build -DGRIDDYN_ENABLE_DOXYGEN=ON "-DDOXYGEN_OUTPUT_DIR=$doxygenOutput"
+cmake --build build --config Release --target doc --parallel 4
+```
 
 Open `build\doxygen-html\html\index.html` after the build. Doxygen warnings
 remain enabled and are written to `build\doxygen_warnings.log` so the complete

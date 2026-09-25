@@ -5,11 +5,15 @@
 The upcoming GridDyn PyPI release requires Python 3.13 or newer. Once it is
 available on PyPI, install or upgrade it with:
 
-    python -m pip install --upgrade griddyn
+```bash
+python -m pip install --upgrade griddyn
+```
 
 Run an included power-flow example to check the installation:
 
-    python -m griddyn.examples.power_flow
+```bash
+python -m griddyn.examples.power_flow
+```
 
 The package includes runnable examples for power flow, DC optimal power flow,
 load changes, and dynamic recorder output. See the

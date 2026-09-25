@@ -346,7 +346,10 @@ void GridBusOpt::addActivePowerBalance(const OptimizationData& optimizationData,
         balance -= sourceLoad->getRealPower();
     }
     for (const auto* generator : genList) {
-        balance += optimizationData.val[generator->offsets.getOffsets(oMode).gOffset];
+        const auto generatorOffset = generator->offsets.getOffsets(oMode).gOffset;
+        if (generatorOffset != kNullLocation) {
+            balance += optimizationData.val[generatorOffset];
+        }
     }
     for (const auto* linkObject : linkList) {
         balance -= linkObject->dcPowerFlow(this, optimizationData, oMode);
@@ -360,8 +363,12 @@ void GridBusOpt::constraintJacobianElements(const OptimizationData& optimization
     if (oMode.flowMode == FlowModel::DC) {
         const auto& busOffsets = offsets.getOffsets(oMode);
         for (const auto* generator : genList) {
+            const auto generatorOffset = generator->offsets.getOffsets(oMode).gOffset;
+            if (generatorOffset == kNullLocation) {
+                continue;
+            }
             matrixDataRef.assign(busOffsets.constraintOffset,
-                                 generator->offsets.getOffsets(oMode).gOffset,
+                                 generatorOffset,
                                  1.0);
         }
         if (hasFixedAngle(bus)) {

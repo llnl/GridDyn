@@ -27,6 +27,7 @@
 #include <cstdlib>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace griddyn {
@@ -406,10 +407,10 @@ namespace {
 #endif
         for (std::size_t rowIndex = 0; rowIndex < genCost.size(); ++rowIndex) {
             const auto& row = genCost[rowIndex];
-            const bool reactive = rowIndex >= static_cast<std::size_t>(gencount);
+            const bool reactive = std::cmp_greater_equal(rowIndex, gencount);
             const auto generatorIndex =
                 reactive ? rowIndex - static_cast<std::size_t>(gencount) : rowIndex;
-            if (generatorIndex >= static_cast<std::size_t>(gencount) || row.size() < 4) {
+            if (std::cmp_greater_equal(generatorIndex, gencount) || row.size() < 4) {
                 continue;
             }
             if (!std::isfinite(row[0]) || !std::isfinite(row[1]) || !std::isfinite(row[2]) ||

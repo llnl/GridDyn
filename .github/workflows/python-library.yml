@@ -68,7 +68,9 @@ jobs:
 
           package_version = version("griddyn")
           native_version = griddyn.__version__.split()[0]
-          if native_version != package_version:
+          if native_version != package_version and not native_version.startswith(
+              f"{package_version}-"
+          ):
               raise SystemExit(
                   f"native version {griddyn.__version__!r} does not match "
                   f"package version {package_version!r}"

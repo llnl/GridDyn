@@ -2,8 +2,8 @@
 
 ## Python package
 
-The upcoming GridDyn PyPI release requires Python 3.13 or newer. Once it is
-available on PyPI, install or upgrade it with:
+The GridDyn PyPI package requires Python 3.13 or newer. Install or upgrade it
+with:
 
 ```bash
 python -m pip install --upgrade griddyn

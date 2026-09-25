@@ -362,7 +362,7 @@ class GridBus: public GridPrimary {
     **/
     virtual double getAdjustableCapacityDown(CoreTime time = maxTime) const;
     /** @brief the dPdf partial derivative  (may be deprecated in the future)
-     * @return the $\frac{\partial P}{\partial f}$
+     * @return the @f$\frac{\partial P}{\partial f}@f$
      **/
     virtual double getdPdf() const { return 0; }
     /**@brief boolean indicator if the bus has inertial generators or loads*/

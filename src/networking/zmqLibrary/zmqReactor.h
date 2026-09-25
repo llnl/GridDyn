@@ -29,7 +29,7 @@ namespace zmqlib {
 class ZmqContextManager;
 
 /** class that manages receive sockets and triggers callbacks
-@detail the class starts up a thread that listens for */
+@details the class starts up a thread that listens for */
 class ZmqReactor {
   private:
     /** enumeration of possible reactor instructions*/

@@ -141,10 +141,7 @@ class MatrixData {
     {
         (void)(newRowLimit), void(newColLimit);
     }
-    /**
-     *  @brief get the number of points
-     *  @return the number of points
-     */
+
   public:
     /**
      *  @brief set the maximum row count
@@ -247,7 +244,7 @@ class MatrixData {
         }
     }
     /**
-     *  @merge copy and translate a row from a2 into the calling MatrixData
+     *  Copy and translate a row from a2 into the calling MatrixData.
      *  @param[in] a2 the MatrixData to  copy and translate
      *  @param[in] origRow  the original row
      *  @param[in] newRow the new row Value

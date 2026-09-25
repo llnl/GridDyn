@@ -72,7 +72,7 @@ class CommunicationsCore {
     virtual std::uint64_t lookup(std::string_view commName) const;
     /** lookup an name by id
   @param[in] did the id associated with a communicator
-  @the name of the communicator*/
+  @return the name of the communicator*/
     virtual std::string lookup(std::uint64_t did) const;
 
   private:

@@ -100,10 +100,13 @@ class Event;
 #define HANDLER_NO_RETURN (-500)
 
 enum class ContingencyMode;  // forward declare the enumeration
-/** @brief the GridDyn Simulation Class
-  the GridDynSimulation class contains the mechanics for generating solutions to various power
-  systems problems of interest
-*/
+/** @brief System-level simulation for power-system networks.
+ *
+ * Extends the general simulation engine with power-system network checks,
+ * steady-state power flow, dynamic initialization and execution, and the
+ * solver modes used by GridDyn. It also coordinates system-level operations
+ * such as load/generation balancing and event-driven actions.
+ */
 class GridDynSimulation: public GridSimulation {
   public:
     friend class powerFlowErrorRecovery;
@@ -111,16 +114,27 @@ class GridDynSimulation: public GridSimulation {
     friend class faultResetRecovery;
     //!< define various contingency modes  [probably will be changed in the near future]
 
-    //!< define an enumeration of the dynamic solver methods
+    /** @brief Selects the execution path used for a dynamic simulation.
+     *
+     * The setting selects the dynamic run method dispatched by the simulation:
+     * a coupled DAE solve, a partitioned algebraic/differential solve, or the
+     * decoupled dynamic method.
+     */
     enum class DynamicSolverMethods {
-        DAE,
-        PARTITIONED,
-        DECOUPLED,
+        DAE,  //!< Solve the coupled differential-algebraic system.
+        PARTITIONED,  //!< Use the partitioned algebraic and differential solver path.
+        DECOUPLED,  //!< Use the decoupled dynamic simulation path.
     };
+
+    /** @brief Controls parallel evaluation of system residuals.
+     *
+     * Parallel evaluation requires GridDyn's internal OpenMP support. In AUTO
+     * mode, the simulation enables it for networks with at least 1,200 buses.
+     */
     enum class ResidualParallelMode {
-        OFF,
-        ON,
-        AUTO,
+        OFF,  //!< Evaluate residuals with one thread.
+        ON,  //!< Enable parallel residual evaluation when built with support.
+        AUTO,  //!< Enable parallel residual evaluation for sufficiently large networks.
     };
     /** @brief enumeration of ordering schemes for variables*/
     enum class OffsetOrdering {
@@ -188,7 +202,16 @@ class GridDynSimulation: public GridSimulation {
         additionalPowerflowSetupFunctions;  //!< set of additional operations to execute after the
                                             //!< PflowInitializeA
     //!< step
-    ResidualParallelMode residualParallelMode = ResidualParallelMode::AUTO;
+    ResidualParallelMode residualParallelMode =
+        ResidualParallelMode::AUTO;  //!< Residual parallelism policy.
+
+    /** @brief Select the residual thread count from the configured policy and network size.
+     *
+     * When internal OpenMP support is available, AUTO mode enables parallel
+     * evaluation at 1,200 buses. The chosen count is bounded by the available
+     * OpenMP threads, one thread per roughly 300 buses, and a maximum of eight.
+     * Builds without internal OpenMP support use one residual thread.
+     */
     void configureResidualParallelism();
 
   public:
@@ -364,8 +387,8 @@ class GridDynSimulation: public GridSimulation {
     count_t nonZeros(const SolverMode& sMode) const;
 
     /** @brief compute the network residuals
-      computes a set of function for the power system such $r(\hat{x},\hat{x'})=f(x,x)-
-    f(\hat{x},\hat{x}')$ so that r approaches 0 as the $x$ == $\hat{x}
+      Computes the power-system residual \f$r(\hat{x},\hat{x}')=f(x,x)-f(\hat{x},\hat{x}')\f$
+      so that it approaches zero as \f$x=\hat{x}\f$.
     @param[in] time  the simulation time of the evaluation
     @param[in] state  the state information to evaluation
     @param[in] dstateDt  the time derivative of the state
@@ -392,7 +415,7 @@ class GridDynSimulation: public GridSimulation {
                            const SolverMode& sMode) noexcept;
 
     /** @brief compute an update to all algebraic states
-     compute $x=f(\hat{x})$
+     Compute \f$x=f(\hat{x})\f$.
     @param[in] time  the simulation time of the evaluation
     @param[in] state  the state information to evaluation
     @param[out] update  the updated state information
@@ -407,7 +430,7 @@ class GridDynSimulation: public GridSimulation {
                           double alpha) noexcept;
 
     /** @brief compute the Jacobian of the residuals
-      computes $\frac{\partial r}{\partial x}$ for all components of the residual
+      Computes \f$\frac{\partial r}{\partial x}\f$ for all components of the residual.
     @param[in] time  the simulation time of the evaluation
     @param[in] state  the state information to evaluation
     @param[in] dstateDt  the time derivative of the state
@@ -438,15 +461,22 @@ class GridDynSimulation: public GridSimulation {
                             double roots[],
                             const SolverMode& sMode) noexcept;
 
-    /** @brief find the derivatives of the residual function with respect to the given parameters
-    @param[in] time  the simulation time of the evaluation
-    @param[in] indices the indices of the parameters
-    @param[in] values the values for the parameters
-    @param[in] state  the state information to evaluation
-    @param[in] dstateDt  the time derivative of the state
-    @param[out] matrixDataRef the MatrixData object to store the partial derivatives
-    @param[in] sMode the SolverMode to use for the computations
-    */
+    /** @brief Approximate residual or derivative sensitivities to selected parameters.
+     *
+     * Evaluates the selected parameter operators at their supplied values, then
+     * perturbs each value by a forward step of 1e-7 and records the resulting
+     * finite-difference response in the output matrix. Parameter values are
+     * restored before returning.
+     * @param[in] time simulation time for the state evaluation.
+     * @param[in] parameterOperators parameter operators indexed by `indices`.
+     * @param[in] indices indices of the parameter operators to perturb.
+     * @param[in] values baseline values corresponding to `indices`.
+     * @param[in] parameterCount number of selected parameters in `indices` and `values`.
+     * @param[in] state state vector at `time`.
+     * @param[in] dstateDt time derivative of `state` for the selected solver mode.
+     * @param[out] matrixDataRef receives the finite-difference partial derivatives.
+     * @param[in] sMode solver mode that selects residual or differential evaluation.
+     */
     void parameterDerivatives(CoreTime time,
                               ParameterSet& parameterOperators,
                               const index_t indices[],
@@ -700,11 +730,15 @@ class GridDynSimulation: public GridSimulation {
     */
     int generateDaeDynamicInitialConditions(const SolverMode& sMode);
 
-    /** @brief generate a convergent partitioned solution
-    @param[in] sModeAlg the solver mode of the algebraic solver
-    @param[in] sModeDiff  the solver mode of the differential solver
-   @return FUNCTION_EXECUTION_SUCCESS(0) if successful negative number if not
-    */
+    /** @brief Compute initial conditions for a partitioned dynamic simulation.
+     *
+     * Solves using the algebraic and differential modes supplied by the caller.
+     * @param[in] sModeAlg solver mode used for the algebraic portion.
+     * @param[in] sModeDiff solver mode used for the differential portion.
+     * @param[in] advanceTime when true, solve at the next probe time and advance the simulation
+     * time; when false, solve at the current simulation time.
+     * @return FUNCTION_EXECUTION_SUCCESS (0) on success; a negative status otherwise.
+     */
     int generatePartitionedDynamicInitialConditions(const SolverMode& sModeAlg,
                                                     const SolverMode& sModeDiff,
                                                     bool advanceTime = true);

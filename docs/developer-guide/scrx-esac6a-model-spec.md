@@ -32,9 +32,9 @@ also include UEL/OEL summing inputs; GridDyn currently treats those as zero
 until a dedicated limiter interface is wired. Convert `TATB` to the lead time
 constant once on input:
 
-\[
+\f[
 T_A = TATB\,T_B.
-\]
+\f]
 
 The output is field voltage `E_fd`. `CSWITCH=0` means bus-fed and `=1` means
 solid-fed. Reject any other value.
@@ -43,7 +43,7 @@ solid-fed. Reject any other value.
 
 Define the voltage-regulator input and the lead-lag output as
 
-\[
+\f[
 \begin{aligned}
 e &= V_{ref}+V_S+V_{UEL}-V_{OEL}-E_C,\\
 T_B\dot x_L &= e-x_L,\\
@@ -53,7 +53,7 @@ T_E\dot x_E &= K v_L-x_E,\\
 M &= (1-CSWITCH)E_T+CSWITCH,\\
 v_d &= M u.
 \end{aligned}
-\]
+\f]
 
 For `TB=0`, require `TATB=0`, omit `x_L`, and use `v_L=e`. For `TE=0`,
 the limited amplifier is algebraic: `u = clamp(K*v_L, EMIN, EMAX)`.
@@ -61,12 +61,12 @@ the limited amplifier is algebraic: `u = clamp(K*v_L, EMIN, EMAX)`.
 The last step is the negative-field-current crowbar, which is present in
 OpenIPSL and in its independently validated PowerDynamics port:
 
-\[
+\f[
 E_{fd}=\begin{cases}
 -RCRFD\,I_{fd}, & I_{fd}<0,\\
 v_d, & I_{fd}\ge0.
 \end{cases}
-\]
+\f]
 
 `RCRFD=0` therefore gives zero output while the negative-current crowbar is
 active. GridKit's SCRX README describes `RCRFD` as inactive and omits this
@@ -85,7 +85,7 @@ release when the driving signal turns back toward the admissible range.
 
 For a normal, unsaturated start with `I_fd >= 0`:
 
-\[
+\f[
 \begin{aligned}
 M_0 &= (1-CSWITCH)E_{T,0}+CSWITCH,\\
 u_0 &= E_{fd,0}/M_0,\\
@@ -93,7 +93,7 @@ x_{E,0} &= u_0,\\
 v_{L,0}=x_{L,0}=e_0 &= u_0/K,\\
 V_{ref,0} &= e_0+E_{C,0}-V_{S,0}-V_{UEL,0}+V_{OEL,0}.
 \end{aligned}
-\]
+\f]
 
 Reject this closed-form branch if `M0` or `K` is zero, or if `u0` is outside
 the amplifier limits. A negative-current start is a separate crowbar branch
@@ -121,21 +121,21 @@ Fit the existing GridDyn quadratic saturation representation from `(E1,SE1)`
 and `(E2,SE2)`. When both saturation factors are zero, use `S_E=0`.
 Otherwise:
 
-\[
+\f[
 C=\sqrt{SE2/SE1},\qquad S_A=\frac{CE1-E2}{C-1},\qquad
 S_B=\frac{SE1}{(E1-S_A)^2},
-\]
+\f]
 
 and use the hard PSS/E curve
 
-\[
+\f[
 S_E(V_E)=S_B\max(V_E-S_A,0)^2.
-\]
+\f]
 
 `ExciterEXAC1` already implements the applicable PSS/E rectifier-loading
 curve. Reuse it, including its derivative:
 
-\[
+\f[
 F_{EX}(I_N)=\begin{cases}
 1,&I_N\le0,\\
 1-0.577I_N,&0<I_N\le0.433,\\
@@ -143,7 +143,7 @@ F_{EX}(I_N)=\begin{cases}
 1.732(1-I_N),&0.75<I_N\le1,\\
 0,&I_N>1.
 \end{cases}
-\]
+\f]
 
 ### Equations
 
@@ -152,7 +152,7 @@ lead-lag state `x_A`, second lead-lag state `x_L`, exciter voltage `V_E`, and
 feedback lead-lag state `x_F`. Omit `V_C` when `TR=0` and set `V_C=E_C`;
 omit `x_F` when `TH=TJ=0` and set `V_F=U_H` algebraically.
 
-\[
+\f[
 \begin{aligned}
 M_\omega &= \begin{cases}\omega,&s_{spd}=1,\\1,&s_{spd}=0,\end{cases}\\
 T_R\dot V_C &= E_C-V_C,\\
@@ -171,7 +171,7 @@ I_N &= K_C I_{fd}/V_E,\\
 V_{FE} &= (K_E+S_E(V_E))V_E+K_D I_{fd},\\
 E_{fd} &= M_\omega F_{EX}(I_N)V_E.
 \end{aligned}
-\]
+\f]
 
 For `TB=TC=0`, bypass the second lead-lag (`VL=VA`). For `TH=TJ=0`, bypass
 the feedback lead-lag and use `VF=UH`. The source diagram places `VFELIM`
@@ -189,14 +189,14 @@ GridDyn's existing transfer-function/limiter and root infrastructure.
 Given machine-provided `Efd0` and `Ifd0`, solve the scalar nonlinear output
 equation for positive `VE0`:
 
-\[
+\f[
 E_{fd,0}=M_{\omega,0}
 F_{EX}(K_C I_{fd,0}/V_{E,0})V_{E,0}.
-\]
+\f]
 
 Then, for an interior-limit start:
 
-\[
+\f[
 \begin{aligned}
 V_{FE,0}&=(K_E+S_E(V_{E,0}))V_{E,0}+K_DI_{fd,0},\\
 U_{H,0}&=\operatorname{clamp}(K_H(V_{FE,0}-VFELIM),0,V_{HMAX}),\\
@@ -205,7 +205,7 @@ V_{A,0}&=x_{A,0}=x_{L,0}=V_{L,0},\quad V_{C,0}=E_{C,0},\\
 e_0&=x_{A,0}/K_A,\\
 V_{ref,0}&=e_0+V_{C,0}-V_{UEL,0}-V_{S,0}.
 \end{aligned}
-\]
+\f]
 
 Treat starts outside the `VA` or voltage-scaled `VR` limits, with non-positive
 `VE`, or with a zero speed multiplier as initialization failures. The `UH`

@@ -211,14 +211,14 @@ class GridOptObject: public CoreObject {
 
     /** compute the gradients of the objective function
     @param of the current optimization data
-    @param grad the vector containing all \frac{dC}{dO_i}
+    @param grad the vector containing all @f$\frac{dC}{dO_i}@f$
     @param oMode the optimization mode to use.
     */
     virtual void gradient(const OptimizationData& of, double grad[], const OptimizationMode& oMode);
 
     /** compute the Jacobian entries for the objective value
     @param of the current optimization data
-    @param md the structure for storing \frac{dC_i}{dO_j}
+    @param md the structure for storing @f$\frac{dC_i}{dO_j}@f$
     @param oMode the optimization mode to use.
     */
     virtual void jacobianElements(const OptimizationData& of,
@@ -248,7 +248,7 @@ class GridOptObject: public CoreObject {
     */
     virtual void
         constraintValue(const OptimizationData& of, double cVals[], const OptimizationMode& oMode);
-    /** get the Jacobian array of the constraints \frac{dCV_i}{dO_j}
+    /** get the Jacobian array of the constraints @f$\frac{dCV_i}{dO_j}@f$
     @param of  the current optimization data
     @param md the structure for the constraint Jacobian entries
     @param oMode the optimization mode to use.

@@ -7,7 +7,14 @@
 #include "iniReaderElement.h"
 
 #include "gmlc/utilities/stringConversion.h"
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic push
+#    pragma GCC diagnostic ignored "-Wstringop-truncation"
+#endif
 #include "inih/INIReader.h"
+#if defined(__GNUC__) && !defined(__clang__)
+#    pragma GCC diagnostic pop
+#endif
 #include <cassert>
 #include <cstdio>
 #include <fstream>

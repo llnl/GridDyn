@@ -705,7 +705,7 @@ if(GRIDDYN_ENABLE_DOXYGEN)
         add_custom_target(
             doc
             ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/docs}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/docs
             COMMENT "Generating API documentation with Doxygen"
             VERBATIM
         )

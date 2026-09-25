@@ -17,8 +17,8 @@ namespace griddyn::exciters {
  *
  * This class implements the EXAC1 record in the PSS/E Model Library and the
  * frozen ANDES 2.0.0 parameter contract.  With the measured voltage
- * @f$v_m@f$, lead-lag state @f$x_L@f$, limited regulator state @f$v_A@f@,
- * exciter voltage @f$v_E@f@, and washout state @f$x_F@f@, the equations are
+ * @f$v_m@f$, lead-lag state @f$x_L@f$, limited regulator state @f$v_A@f$,
+ * exciter voltage @f$v_E@f$, and washout state @f$x_F@f$, the equations are
  * @f[
  * T_R\dot v_m=V_t-v_m,\quad T_B\dot x_L=v_i-x_L,\quad
  * y_L=x_L+\frac{T_C}{T_B}(v_i-x_L),

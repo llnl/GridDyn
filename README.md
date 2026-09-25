@@ -23,11 +23,13 @@ And hopefully even in its current state and as the software improves the broader
 
 ## Documentation
 
-[**Users Guide**](docs/manuals/GridDynUserManual.pdf)
+The current user documentation is hosted on
+[Read the Docs](https://griddyn.readthedocs.io/en/latest/), including
+installation, quick start, Python API, and build guidance. The C++ API
+reference is generated separately with Doxygen; see the build guide for
+instructions.
 
-** API Guide ** --coming soon
-
-Also available are a series of presentations
+The repository also includes background presentations:
 
 - [Intro](docs/presentations/Griddyn_intro.pptx)
 - [Execution Flow](docs/presentations/GridDyn_execution_flow.pptx)
@@ -38,11 +40,13 @@ Also available are a series of presentations
 
 ## Installation
 
-[Installation Guide](installation.md).
+For Python, install the package from PyPI with
+`python -m pip install griddyn` (Python 3.13 or newer). See the
+[installation guide](https://griddyn.readthedocs.io/en/latest/installation.html).
 
 ## Quick Start
 
-[quick start guide](quickStart.md).
+Start with the [quick start guide](https://griddyn.readthedocs.io/en/latest/quickStart.html).
 
 ## Python package
 
@@ -62,7 +66,7 @@ sim.PFlow.run()
 warnings = sim.save_pypower_case(Path("network.py"))
 ```
 
-See the [Python interface guide](https://github.com/LLNL/GridDyn/blob/main/docs/python-interface.md)
+See the [Python interface guide](https://griddyn.readthedocs.io/en/latest/python-interface.html)
 for setup, available methods, case-export limits, and four runnable examples
 covering power flow, OPF, load changes, and dynamic recorder time series. For
 example, run `python -m griddyn.examples.power_flow` after installing the package.
@@ -76,19 +80,7 @@ making it better, as well as development related to specific projects.
 
 ### Contributions
 
-We are still working out the details of accepting contributions
-For the moment you can submit a
-[pull request](https://help.github.com/articles/using-pull-requests/).
-and we can work with you to make sure the licensing is order, which basically involves making sure your contributions are released back to the repo under a BSD license like the rest of the code.
-
-Before you send a PR, your code should pass all the non-experimental test cases in testSystem, testLibrary, and testComponents
-
-If the code is a new feature or new model, it should have additional test cases explicitly testing it
-
-A style check is periodically run on the code to ensure consistent indentation and spacing. While some style guidance has been followed it is not rigorously enforced yet.
-A more formal style guide will likely evolve in the near future.
-
-The current git master branch is considered experimental so there is no stable branch to maintain as everything is in development. It is anticipated a more formal branching structure will be defined once the code base undergoes more testing and validation, and other features are added.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the current contribution process and development guidance. Please include tests for new behavior where practical.
 
 ## Authors
 

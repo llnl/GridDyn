@@ -9,7 +9,7 @@ The following is a set of guidelines for contributing to GridDyn. These are sugg
 GridDyn is distributed under the terms of the BSD-3 clause license. All new
 contributions must be made under this [LICENSE](LICENSE) in accordance with the Github [terms of service](https://help.github.com/en/articles/github-terms-of-service#6-contributions-under-repository-license), which uses inbound=outbound policy. By submitting a pull request you are acknowledging that you have the right to license your code under these terms.
 
-## [Code of Conduct](.github/CODE_OF_CONDUCT.md)
+## [Code of Conduct](https://github.com/LLNL/GridDyn/blob/master/.github/CODE_OF_CONDUCT.md)
 
 If you just have a question check out [![Gitter chat](https://badges.gitter.im/LLNL/GridDyn.png)](https://gitter.im/LLNL/GridDyn)
 
@@ -34,7 +34,7 @@ A pull request including a bug fix or feature will always be welcome.
 #### Before Submitting An Enhancement Suggestion
 
 - check the issue list for any similar issues
-- take a look at the [RoadMap](ROADMAP.md) or projects to see if the feature is already planned, and if so feel free to add some feedback if it could be improved.
+- take a look at the [GridDyn project boards](https://github.com/LLNL/GridDyn/projects) to see if the feature is already planned, and if so feel free to add some feedback if it could be improved.
 
 ### Your First Code Contribution
 
@@ -43,7 +43,7 @@ Help with documentation and test cases is always welcome. Take a look at the [co
 
 ### Submitting a pull request
 
-Typically you would want to submit a pull request against the develop branch. That branch gets merged into master periodically but the develop branch is the active development branch where all the code is tested and merged before making a release. There is a [Pull request template](.github/PULL_REQUEST_TEMPLATE.md) that will guide you through the needed information. The pull requests are run through several automated checks in Travis and Circle-CI and for the most part must pass these tests before merging. The Codacy check is evaluated but not required as the checks are sometimes a bit aggressive.
+Typically you would want to submit a pull request against the develop branch. That branch gets merged into master periodically but the develop branch is the active development branch where all the code is tested and merged before making a release. There is a [Pull request template](https://github.com/LLNL/GridDyn/blob/master/.github/PULL_REQUEST_TEMPLATE.md) that will guide you through the needed information. The pull requests are run through several automated checks in Travis and Circle-CI and for the most part must pass these tests before merging. The Codacy check is evaluated but not required as the checks are sometimes a bit aggressive.
 
 ## Styleguides
 

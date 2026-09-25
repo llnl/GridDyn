@@ -43,7 +43,7 @@ jobs:
             gcc-15 \
             g++-15
           python -m pip install --upgrade pip
-          python -m pip install build pytest PYPOWER
+          python -m pip install build pytest
 
       - name: Build wheel
         shell: bash

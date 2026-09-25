@@ -146,14 +146,14 @@ class HelicsCoordinator: public CoreObject {
                            helics::data_type type,
                            units::unit unitType = units::defunit);
     /** add a subscription to the helics federate
-@param[in] pubName the name of the value to subscribe to
+ @param[in] pubName the name of the value to subscribe to
 @param[in] unitType the units of the publication
 @return an identifier value for the publication
 */
     int32_t addSubscription(const std::string& pubName, units::unit unitType = units::defunit);
     /** update a subscription
 @param[in] index the identifier for the subscription
-@param[in] pubName the name of the value to subscribe to
+ @param[in] subName the name of the subscription to update
 @param[in] unitType the units of the publication
 */
     void updateSubscription(int32_t index,
@@ -172,7 +172,6 @@ class HelicsCoordinator: public CoreObject {
     /** update an endpoint
 @param[in] eptName the name of the endpoint
 @param[in] type the type of the endpoint(empty string is acceptable)
-@return an identifier value for endpoint
 */
     void updateEndpoint(int32_t index,
                         const std::string& eptName,

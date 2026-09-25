@@ -349,8 +349,7 @@ namespace {
                 values.push_back(static_cast<double>(curve->model));
                 values.push_back(curve->startupCost);
                 values.push_back(curve->shutdownCost);
-                const auto coefficientCount =
-                    static_cast<double>(curve->coefficients.size());
+                const auto coefficientCount = static_cast<double>(curve->coefficients.size());
                 const double costTermCount =
                     (curve->model == 1) ? coefficientCount / 2.0 : coefficientCount;
                 values.push_back(costTermCount);

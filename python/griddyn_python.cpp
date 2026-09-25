@@ -13,14 +13,26 @@
 #include "griddyn/Link.h"
 #include "griddyn/Load.h"
 #include "griddyn/Relay.h"
+#include "griddyn/griddyn-config.h"
 #include "griddyn/gridDynVersion.hpp"
 #include "griddyn/relays/Sensor.h"
+#include "griddyn/simulation/GridDynSimulationFileOps.h"
 #include "runner/gridDynRunner.h"
+#include "units/units.hpp"
+#ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
+#    include "optimization/gridDynOpt.h"
+#    include "optimization/optimizerInterface.h"
+#    include "optimization/optHelperClasses.h"
+#endif
+#include <cmath>
 #include <filesystem>
+#include <limits>
 #include <memory>
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/optional.h>
 #include <nanobind/stl/string.h>
 #include <nanobind/stl/vector.h>
+#include <optional>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -221,21 +233,36 @@ nb::object dataframeFromDicts(const nb::list& rows)
 
 void setObjectParameter(griddyn::CoreObject* object,
                         const std::string& field,
-                        const nb::object& value)
+                        const nb::object& value,
+                        const std::optional<std::string>& unit)
 {
     if (object == nullptr) {
         throw InvalidObjectError("object is not available");
     }
     if (PyUnicode_Check(value.ptr())) {
+        if (unit) {
+            throw nb::type_error("unit can only be specified when setting a numeric value");
+        }
         object->set(field, nb::cast<std::string>(value));
         return;
     }
     if (PyBool_Check(value.ptr())) {
+        if (unit) {
+            throw nb::type_error("unit can only be specified when setting a numeric value");
+        }
         object->set(field, PyObject_IsTrue(value.ptr()) ? 1.0 : 0.0);
         return;
     }
     if (PyFloat_Check(value.ptr()) || PyLong_Check(value.ptr())) {
-        object->set(field, nb::cast<double>(value));
+        if (unit) {
+            const auto unitType = units::unit_cast_from_string(*unit);
+            if (units::is_error(unitType)) {
+                throw InvalidParameterError("unknown unit '" + *unit + "'");
+            }
+            object->set(field, nb::cast<double>(value), unitType);
+        } else {
+            object->set(field, nb::cast<double>(value));
+        }
         return;
     }
     throw nb::type_error("set value must be a string, bool, int, or float");
@@ -258,9 +285,11 @@ class PyModel {
     bool enabled() const { return object_->isEnabled(); }
     std::string description() const { return object_->getDescription(); }
     double get(const std::string& field) const { return object_->get(field); }
-    PyModel& set(const std::string& field, const nb::object& value)
+    PyModel& set(const std::string& field,
+                 const nb::object& value,
+                 const std::optional<std::string>& unit)
     {
-        setObjectParameter(object_, field, value);
+        setObjectParameter(object_, field, value, unit);
         return *this;
     }
     std::string getString(const std::string& field) const { return object_->getString(field); }
@@ -305,9 +334,11 @@ class PyBus {
     double linkP() const { return bus_->getLinkReal(); }
     double linkQ() const { return bus_->getLinkReactive(); }
     double get(const std::string& field) const { return bus_->get(field); }
-    PyBus& set(const std::string& field, const nb::object& value)
+    PyBus& set(const std::string& field,
+               const nb::object& value,
+               const std::optional<std::string>& unit)
     {
-        setObjectParameter(bus_, field, value);
+        setObjectParameter(bus_, field, value, unit);
         return *this;
     }
     std::string getString(const std::string& field) const { return bus_->getString(field); }
@@ -360,9 +391,11 @@ class PyGenerator {
     double qmax() const { return generator_->getQmax(); }
     double qmin() const { return generator_->getQmin(); }
     double get(const std::string& field) const { return generator_->get(field); }
-    PyGenerator& set(const std::string& field, const nb::object& value)
+    PyGenerator& set(const std::string& field,
+                     const nb::object& value,
+                     const std::optional<std::string>& unit)
     {
-        setObjectParameter(generator_, field, value);
+        setObjectParameter(generator_, field, value, unit);
         return *this;
     }
     std::string getString(const std::string& field) const { return generator_->getString(field); }
@@ -405,9 +438,11 @@ class PyLoad {
     double p() const { return load_->getRealPower(); }
     double q() const { return load_->getReactivePower(); }
     double get(const std::string& field) const { return load_->get(field); }
-    PyLoad& set(const std::string& field, const nb::object& value)
+    PyLoad& set(const std::string& field,
+                const nb::object& value,
+                const std::optional<std::string>& unit)
     {
-        setObjectParameter(load_, field, value);
+        setObjectParameter(load_, field, value, unit);
         return *this;
     }
     std::string getString(const std::string& field) const { return load_->getString(field); }
@@ -449,9 +484,11 @@ class PyLink {
     double loss() const { return link_->getLoss(); }
     double reactiveLoss() const { return link_->getReactiveLoss(); }
     double get(const std::string& field) const { return link_->get(field); }
-    PyLink& set(const std::string& field, const nb::object& value)
+    PyLink& set(const std::string& field,
+                const nb::object& value,
+                const std::optional<std::string>& unit)
     {
-        setObjectParameter(link_, field, value);
+        setObjectParameter(link_, field, value, unit);
         return *this;
     }
     std::string getString(const std::string& field) const { return link_->getString(field); }
@@ -504,9 +541,11 @@ class PyArea {
     double averageAngle() const { return area_->getAvgAngle(); }
     double tieP() const { return area_->getTieFlowReal(); }
     double get(const std::string& field) const { return area_->get(field); }
-    PyArea& set(const std::string& field, const nb::object& value)
+    PyArea& set(const std::string& field,
+                const nb::object& value,
+                const std::optional<std::string>& unit)
     {
-        setObjectParameter(area_, field, value);
+        setObjectParameter(area_, field, value, unit);
         return *this;
     }
     std::string getString(const std::string& field) const { return area_->getString(field); }
@@ -556,9 +595,11 @@ class PyRelay {
     int userId() const { return relay_->getUserID(); }
     bool enabled() const { return relay_->isEnabled(); }
     double get(const std::string& field) const { return relay_->get(field); }
-    PyRelay& set(const std::string& field, const nb::object& value)
+    PyRelay& set(const std::string& field,
+                 const nb::object& value,
+                 const std::optional<std::string>& unit)
     {
-        setObjectParameter(relay_, field, value);
+        setObjectParameter(relay_, field, value, unit);
         return *this;
     }
     std::string getString(const std::string& field) const { return relay_->getString(field); }
@@ -597,9 +638,11 @@ class PySensor {
         return sensor_->getOutput(static_cast<index_t>(index));
     }
     double get(const std::string& field) const { return sensor_->get(field); }
-    PySensor& set(const std::string& field, const nb::object& value)
+    PySensor& set(const std::string& field,
+                  const nb::object& value,
+                  const std::optional<std::string>& unit)
     {
-        setObjectParameter(sensor_, field, value);
+        setObjectParameter(sensor_, field, value, unit);
         return *this;
     }
     std::string getString(const std::string& field) const { return sensor_->getString(field); }
@@ -1122,28 +1165,298 @@ std::string withObjectContext(const griddyn::CoreObjectException& exc)
     return std::string(exc.what()) + " [" + who + "]";
 }
 
+struct PyOptimizationState {
+    bool modelInitialized = false;
+    std::string optimizer;
+};
+
+class PyOptimization {
+  public:
+    PyOptimization(std::shared_ptr<griddyn::GriddynRunner> runner,
+                   std::shared_ptr<PyOptimizationState> state):
+        runner_(std::move(runner)), state_(std::move(state))
+    {
+    }
+
+    nb::dict solveOpf(std::string optimizerType = "native", bool apply = true)
+    {
+#ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
+        auto sim = simulation();
+        auto* optimization = dynamic_cast<griddyn::GridDynOptimization*>(sim.get());
+        if (optimization == nullptr) {
+            throw ExecutionError("this simulation was not created with optimization support");
+        }
+        if (optimizerType.empty()) {
+            optimizerType = "native";
+        }
+        auto candidate = griddyn::makeOptimizer(optimizerType);
+        if (!candidate) {
+            throw InvalidParameterError("unknown OPF optimizer: " + optimizerType);
+        }
+        if (dynamic_cast<griddyn::NativeOptimizer*>(candidate.get()) == nullptr) {
+            throw InvalidParameterError(
+                "OPF Python results require a native or HiGHS optimizer backend");
+        }
+        if (state_->modelInitialized && optimizerType != state_->optimizer) {
+            throw InvalidParameterError(
+                "the OPF optimizer cannot be changed after the model has been initialized");
+        }
+
+        const griddyn::OptimizationMode mode{.flowMode = griddyn::FlowModel::DC,
+                                             .linMode = griddyn::LinearityMode::QUADRATIC,
+                                             .offsetIndex = 0,
+                                             .numPeriods = 1,
+                                             .period = 1.0};
+        int solveStatus = -1;
+        int writeBackStatus = -1;
+        bool successful = false;
+        std::string status;
+        std::string message;
+        double objectiveValue = std::numeric_limits<double>::quiet_NaN();
+        double maximumConstraintViolation = std::numeric_limits<double>::quiet_NaN();
+        double maximumBoundViolation = std::numeric_limits<double>::quiet_NaN();
+        double maximumStationarity = std::numeric_limits<double>::quiet_NaN();
+        double maximumComplementarity = std::numeric_limits<double>::quiet_NaN();
+        std::size_t iterationCount = 0;
+
+        {
+            nb::gil_scoped_release release;
+            if (!state_->modelInitialized) {
+                optimization->set("optimizer", optimizerType);
+                optimization->initializeOptimizationModel(mode);
+                state_->modelInitialized = true;
+                state_->optimizer = optimizerType;
+            }
+            auto optimizer = optimization->getOptimizerInterface(mode);
+            if (!optimizer) {
+                throw ExecutionError("unable to create the OPF optimizer");
+            }
+            auto* native = dynamic_cast<griddyn::NativeOptimizer*>(optimizer.get());
+            if (native == nullptr) {
+                throw ExecutionError("the selected OPF optimizer does not expose native results");
+            }
+            if (!optimizer->isInitialized()) {
+                optimizer->initialize(0.0);
+            }
+            double returnTime = 0.0;
+            solveStatus = optimizer->solve(0.0, returnTime);
+            const auto& solveResult = native->lastSolveResult();
+            successful = (solveStatus >= 0) && solveResult.successful();
+            switch (solveResult.status) {
+                case griddyn::NativeSolveStatus::OPTIMAL:
+                    status = "optimal";
+                    break;
+                case griddyn::NativeSolveStatus::INFEASIBLE:
+                    status = "infeasible";
+                    break;
+                case griddyn::NativeSolveStatus::UNBOUNDED:
+                    status = "unbounded";
+                    break;
+                case griddyn::NativeSolveStatus::SINGULAR:
+                    status = "singular";
+                    break;
+                case griddyn::NativeSolveStatus::NUMERICAL_FAILURE:
+                    status = "numerical_failure";
+                    break;
+                case griddyn::NativeSolveStatus::UNSUPPORTED:
+                    status = "unsupported";
+                    break;
+                case griddyn::NativeSolveStatus::NONCONVEX:
+                    status = "nonconvex";
+                    break;
+                case griddyn::NativeSolveStatus::ITERATION_LIMIT:
+                    status = "iteration_limit";
+                    break;
+            }
+            message = solveResult.message;
+            objectiveValue = solveResult.objectiveValue;
+            maximumConstraintViolation = solveResult.maximumConstraintViolation;
+            maximumBoundViolation = solveResult.maximumBoundViolation;
+            maximumStationarity = solveResult.maximumStationarity;
+            maximumComplementarity = solveResult.maximumComplementarity;
+            iterationCount = solveResult.iterationCount;
+            if (successful && apply) {
+                writeBackStatus = optimizer->writeBack(returnTime);
+                if (writeBackStatus < 0) {
+                    throw SolveError("OPF succeeded but applying the dispatch failed");
+                }
+            }
+        }
+
+        nb::dict result;
+        result["success"] = successful;
+        result["status"] = status;
+        result["message"] = message;
+        result["solver"] = optimizerType;
+        result["objective_value"] = nb::none();
+        if (std::isfinite(objectiveValue)) {
+            result["objective_value"] = objectiveValue;
+        }
+        result["iterations"] = iterationCount;
+        result["maximum_constraint_violation"] = nb::none();
+        result["maximum_bound_violation"] = nb::none();
+        result["maximum_stationarity"] = nb::none();
+        result["maximum_complementarity"] = nb::none();
+        if (std::isfinite(maximumConstraintViolation)) {
+            result["maximum_constraint_violation"] = maximumConstraintViolation;
+        }
+        if (std::isfinite(maximumBoundViolation)) {
+            result["maximum_bound_violation"] = maximumBoundViolation;
+        }
+        if (std::isfinite(maximumStationarity)) {
+            result["maximum_stationarity"] = maximumStationarity;
+        }
+        if (std::isfinite(maximumComplementarity)) {
+            result["maximum_complementarity"] = maximumComplementarity;
+        }
+        result["applied"] = successful && apply && writeBackStatus >= 0;
+        return result;
+#else
+        (void)optimizerType;
+        (void)apply;
+        throw ExecutionError("this GridDyn build does not include optimization support");
+#endif
+    }
+
+    nb::object getGeneratorCostCurve(int generatorId, bool reactive = false) const
+    {
+#ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
+        auto sim = simulation();
+        auto* optimization = dynamic_cast<griddyn::GridDynOptimization*>(sim.get());
+        if (optimization == nullptr) {
+            throw ExecutionError("generator cost curves require an optimization simulation");
+        }
+        auto* generator = dynamic_cast<griddyn::Generator*>(
+            sim->findByUserID("gen", static_cast<index_t>(generatorId)));
+        if (generator == nullptr) {
+            throw InvalidObjectError("generator ID was not found: " + std::to_string(generatorId));
+        }
+        const auto* curve = optimization->matPowerCostCurve(generator, reactive);
+        if (curve == nullptr) {
+            return nb::none();
+        }
+        nb::dict result;
+        result["model"] = curve->model;
+        result["startup_cost"] = curve->startupCost;
+        result["shutdown_cost"] = curve->shutdownCost;
+        result["coefficients"] = curve->coefficients;
+        return result;
+#else
+        (void)generatorId;
+        (void)reactive;
+        throw ExecutionError("this GridDyn build does not include optimization support");
+#endif
+    }
+
+    PyOptimization& setGeneratorCostCurve(int generatorId,
+                                          int model,
+                                          const std::vector<double>& coefficients,
+                                          bool reactive = false,
+                                          double startupCost = 0.0,
+                                          double shutdownCost = 0.0)
+    {
+#ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
+        if (state_->modelInitialized) {
+            throw ExecutionError("set generator cost curves before initializing the OPF model");
+        }
+        const bool valid = (model == 2 && !coefficients.empty()) ||
+            (model == 1 && coefficients.size() >= 4 && (coefficients.size() % 2 == 0));
+        if (!valid || !std::isfinite(startupCost) || !std::isfinite(shutdownCost)) {
+            throw InvalidParameterError(
+                "cost curves require model 2 with coefficients or model 1 with at least two "
+                "(power, cost) points, and finite startup/shutdown costs");
+        }
+        for (const auto coefficient : coefficients) {
+            if (!std::isfinite(coefficient)) {
+                throw InvalidParameterError("cost curve coefficients must be finite");
+            }
+        }
+        if (model == 1) {
+            for (std::size_t index = 2; index < coefficients.size(); index += 2) {
+                if (coefficients[index] <= coefficients[index - 2]) {
+                    throw InvalidParameterError(
+                        "piecewise cost curve power breakpoints must be strictly increasing");
+                }
+            }
+        }
+        auto sim = simulation();
+        auto* optimization = dynamic_cast<griddyn::GridDynOptimization*>(sim.get());
+        if (optimization == nullptr) {
+            throw ExecutionError("generator cost curves require an optimization simulation");
+        }
+        auto* generator = dynamic_cast<griddyn::Generator*>(
+            sim->findByUserID("gen", static_cast<index_t>(generatorId)));
+        if (generator == nullptr) {
+            throw InvalidObjectError("generator ID was not found: " + std::to_string(generatorId));
+        }
+        const griddyn::MatPowerCostCurve curve{model, startupCost, shutdownCost, coefficients};
+        optimization->setGeneratorCostCurve(generator, curve, reactive);
+        return *this;
+#else
+        (void)generatorId;
+        (void)model;
+        (void)coefficients;
+        (void)reactive;
+        (void)startupCost;
+        (void)shutdownCost;
+        throw ExecutionError("this GridDyn build does not include optimization support");
+#endif
+    }
+
+  private:
+    std::shared_ptr<griddyn::GridDynSimulation> simulation() const
+    {
+        return simulationFromRunner(runner_);
+    }
+
+    std::shared_ptr<griddyn::GriddynRunner> runner_;
+    std::shared_ptr<PyOptimizationState> state_;
+};
+
 class PySimulation {
   public:
     explicit PySimulation(std::string name = "", std::string type = "default")
     {
-        if (!type.empty() && type != "default") {
+        if (!type.empty() && type != "default" && type != "optimization") {
             throw InvalidParameterError("unsupported simulation type: " + type);
         }
-        auto sim = std::make_shared<griddyn::GridDynSimulation>(
-            name.empty() ? std::string("gridDynSim_#") : std::move(name));
+        auto simulationName =
+            name.empty() ? std::string("gridDynSim_#") : std::move(name);
+        std::shared_ptr<griddyn::GridDynSimulation> sim;
+#ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
+        if (type == "optimization") {
+            sim = std::make_shared<griddyn::GridDynOptimization>(std::move(simulationName));
+        } else {
+            sim = std::make_shared<griddyn::GridDynSimulation>(std::move(simulationName));
+        }
+#else
+        if (type == "optimization") {
+            throw InvalidParameterError(
+                "optimization simulation type is unavailable in this GridDyn build");
+        }
+        sim = std::make_shared<griddyn::GridDynSimulation>(std::move(simulationName));
+#endif
         runner_ = std::make_shared<griddyn::GriddynRunner>(std::move(sim));
     }
 
     static PySimulation
-        fromFile(const nb::object& path, std::string format = "", std::string name = "")
+        fromFile(const nb::object& path,
+                 std::string format = "",
+                 std::string name = "",
+                 std::string type = "default")
     {
-        PySimulation sim(std::move(name));
+        PySimulation sim(std::move(name), std::move(type));
         sim.load(path, std::move(format));
         return sim;
     }
 
     PySimulation& load(const nb::object& path, std::string format = "")
     {
+#ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
+        if (optimizationState_->modelInitialized) {
+            throw ExecutionError("load the network before initializing its OPF model");
+        }
+#endif
         auto filePath = pathToString(path);
         if (!std::filesystem::exists(filePath)) {
             throw FileLoadError("file does not exist: " + filePath);
@@ -1199,6 +1512,33 @@ class PySimulation {
         }
     }
 
+    int execute(const std::string& action)
+    {
+        auto sim = simulation();
+        nb::gil_scoped_release release;
+        return sim->execute(action);
+    }
+
+    std::vector<std::string> savePyPowerCase(const nb::object& path) const
+    {
+        return savePowerFlowCase(path, griddyn::savePyPowerCase, "PYPOWER");
+    }
+
+    std::vector<std::string> saveMatPowerCase(const nb::object& path) const
+    {
+        return savePowerFlowCase(path, griddyn::saveMatPowerCase, "MATPOWER");
+    }
+
+    void savePowerFlowCsv(const nb::object& path) const
+    {
+        savePowerFlowResults(path, griddyn::savePowerFlowCSV);
+    }
+
+    void savePowerFlowXml(const nb::object& path) const
+    {
+        savePowerFlowResults(path, griddyn::savePowerFlowXML);
+    }
+
     double run()
     {
         nb::gil_scoped_release release;
@@ -1239,9 +1579,11 @@ class PySimulation {
 
     double get(const std::string& field) const { return simulation()->get(field); }
 
-    PySimulation& set(const std::string& field, const nb::object& value)
+    PySimulation& set(const std::string& field,
+                      const nb::object& value,
+                      const std::optional<std::string>& unit)
     {
-        setObjectParameter(simulation().get(), field, value);
+        setObjectParameter(simulation().get(), field, value, unit);
         return *this;
     }
 
@@ -1251,6 +1593,19 @@ class PySimulation {
     {
         auto sim = simulation();
         return modelFromObject(runner_, sim->find(name));
+    }
+
+    nb::object optimization() const
+    {
+#ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
+        auto sim = simulation();
+        if (dynamic_cast<griddyn::GridDynOptimization*>(sim.get()) == nullptr) {
+            return nb::none();
+        }
+        return nb::cast(PyOptimization(runner_, optimizationState_));
+#else
+        return nb::none();
+#endif
     }
 
     PyPowerFlowRoutine powerFlowRoutine() const { return PyPowerFlowRoutine(runner_); }
@@ -1272,10 +1627,58 @@ class PySimulation {
     PySensorCollection sensorCollection() const { return PySensorCollection(runner_); }
 
   private:
+    using PowerFlowCaseWriter = bool (*)(const griddyn::CoreObject*,
+                                         const std::string&,
+                                         griddyn::stringVec*);
+    using PowerFlowResultWriter = void (*)(griddyn::GridDynSimulation*, const std::string&);
+
     static std::string pathToString(const nb::object& path)
     {
         auto fspath = nb::module_::import_("os").attr("fspath");
         return nb::cast<std::string>(fspath(path));
+    }
+
+    std::vector<std::string> savePowerFlowCase(const nb::object& path,
+                                               PowerFlowCaseWriter writer,
+                                               const char* format) const
+    {
+        auto filePath = pathToString(path);
+        if (filePath.empty()) {
+            throw nb::value_error("output path must not be empty");
+        }
+
+        auto sim = simulation();
+        griddyn::stringVec warnings;
+        bool success = false;
+        {
+            nb::gil_scoped_release release;
+            success = writer(sim.get(), filePath, &warnings);
+        }
+        if (!success) {
+            std::string message = std::string(format) + " export failed";
+            for (const auto& warning : warnings) {
+                message += ": " + warning;
+            }
+            throw ExecutionError(message);
+        }
+        return warnings;
+    }
+
+    void savePowerFlowResults(const nb::object& path, PowerFlowResultWriter writer) const
+    {
+        auto filePath = pathToString(path);
+        if (filePath.empty()) {
+            throw nb::value_error("output path must not be empty");
+        }
+
+        auto sim = simulation();
+        try {
+            nb::gil_scoped_release release;
+            writer(sim.get(), filePath);
+        }
+        catch (const griddyn::FileOperationError& exc) {
+            throw ExecutionError(exc.what());
+        }
     }
 
     std::shared_ptr<griddyn::GridDynSimulation> simulation() const
@@ -1284,6 +1687,8 @@ class PySimulation {
     }
 
     std::shared_ptr<griddyn::GriddynRunner> runner_;
+    std::shared_ptr<PyOptimizationState> optimizationState_ =
+        std::make_shared<PyOptimizationState>();
 };
 
 void setPythonError(PyObject* type, const std::string& message)
@@ -1380,7 +1785,8 @@ NB_MODULE(_core, mod)
         .def_prop_ro("enabled", &PyModel::enabled)
         .def_prop_ro("description", &PyModel::description)
         .def("get", &PyModel::get, "field"_a)
-        .def("set", &PyModel::set, "field"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("set", &PyModel::set, "field"_a, "value"_a, "unit"_a = std::nullopt,
+             nb::rv_policy::reference_internal)
         .def("get_string", &PyModel::getString, "field"_a)
         .def("find", &PyModel::find, "name"_a)
         .def("as_dict", &PyModel::asDict)
@@ -1405,7 +1811,8 @@ NB_MODULE(_core, mod)
         .def_prop_ro("p_link", &PyBus::linkP)
         .def_prop_ro("q_link", &PyBus::linkQ)
         .def("get", &PyBus::get, "field"_a)
-        .def("set", &PyBus::set, "field"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("set", &PyBus::set, "field"_a, "value"_a, "unit"_a = std::nullopt,
+             nb::rv_policy::reference_internal)
         .def("get_string", &PyBus::getString, "field"_a)
         .def("find", &PyBus::find, "name"_a)
         .def("as_dict", &PyBus::asDict)
@@ -1428,7 +1835,8 @@ NB_MODULE(_core, mod)
             .def_prop_ro("qmax", &PyGenerator::qmax)
             .def_prop_ro("qmin", &PyGenerator::qmin)
             .def("get", &PyGenerator::get, "field"_a)
-            .def("set", &PyGenerator::set, "field"_a, "value"_a, nb::rv_policy::reference_internal)
+            .def("set", &PyGenerator::set, "field"_a, "value"_a, "unit"_a = std::nullopt,
+                 nb::rv_policy::reference_internal)
             .def("get_string", &PyGenerator::getString, "field"_a)
             .def("as_dict", &PyGenerator::asDict)
             .def("__repr__", [](const PyGenerator& gen) {
@@ -1445,7 +1853,8 @@ NB_MODULE(_core, mod)
         .def_prop_ro("p", &PyLoad::p)
         .def_prop_ro("q", &PyLoad::q)
         .def("get", &PyLoad::get, "field"_a)
-        .def("set", &PyLoad::set, "field"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("set", &PyLoad::set, "field"_a, "value"_a, "unit"_a = std::nullopt,
+             nb::rv_policy::reference_internal)
         .def("get_string", &PyLoad::getString, "field"_a)
         .def("as_dict", &PyLoad::asDict)
         .def("__repr__", [](const PyLoad& load) {
@@ -1466,7 +1875,8 @@ NB_MODULE(_core, mod)
         .def_prop_ro("loss", &PyLink::loss)
         .def_prop_ro("q_loss", &PyLink::reactiveLoss)
         .def("get", &PyLink::get, "field"_a)
-        .def("set", &PyLink::set, "field"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("set", &PyLink::set, "field"_a, "value"_a, "unit"_a = std::nullopt,
+             nb::rv_policy::reference_internal)
         .def("get_string", &PyLink::getString, "field"_a)
         .def("as_dict", &PyLink::asDict)
         .def("__repr__", [](const PyLink& link) {
@@ -1494,7 +1904,8 @@ NB_MODULE(_core, mod)
         .def_prop_ro("avg_a", &PyArea::averageAngle)
         .def_prop_ro("tie_p", &PyArea::tieP)
         .def("get", &PyArea::get, "field"_a)
-        .def("set", &PyArea::set, "field"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("set", &PyArea::set, "field"_a, "value"_a, "unit"_a = std::nullopt,
+             nb::rv_policy::reference_internal)
         .def("get_string", &PyArea::getString, "field"_a)
         .def("find", &PyArea::find, "name"_a)
         .def("as_dict", &PyArea::asDict)
@@ -1510,7 +1921,8 @@ NB_MODULE(_core, mod)
         .def_prop_ro("uid", &PyRelay::userId)
         .def_prop_ro("enabled", &PyRelay::enabled)
         .def("get", &PyRelay::get, "field"_a)
-        .def("set", &PyRelay::set, "field"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("set", &PyRelay::set, "field"_a, "value"_a, "unit"_a = std::nullopt,
+             nb::rv_policy::reference_internal)
         .def("get_string", &PyRelay::getString, "field"_a)
         .def("as_dict", &PyRelay::asDict)
         .def("__repr__",
@@ -1523,7 +1935,8 @@ NB_MODULE(_core, mod)
         .def_prop_ro("enabled", &PySensor::enabled)
         .def("output", &PySensor::output, "index"_a = 0)
         .def("get", &PySensor::get, "field"_a)
-        .def("set", &PySensor::set, "field"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("set", &PySensor::set, "field"_a, "value"_a, "unit"_a = std::nullopt,
+             nb::rv_policy::reference_internal)
         .def("get_string", &PySensor::getString, "field"_a)
         .def("as_dict", &PySensor::asDict)
         .def("__repr__", [](const PySensor& sensor) {
@@ -1616,26 +2029,79 @@ NB_MODULE(_core, mod)
             return "<griddyn.SensorCollection size=" + std::to_string(sensors.size()) + ">";
         });
 
+    nb::class_<PyOptimization>(mod, "Optimization")
+        .def("opf",
+             &PyOptimization::solveOpf,
+             "optimizer"_a = "native",
+             "apply"_a = true,
+             "Solve a DC optimal power flow and, by default, apply its generator dispatch.")
+        .def("solve_opf",
+             &PyOptimization::solveOpf,
+             "optimizer"_a = "native",
+             "apply"_a = true,
+             "Solve a DC optimal power flow and, by default, apply its generator dispatch.")
+        .def("get_generator_cost_curve",
+             &PyOptimization::getGeneratorCostCurve,
+             "generator_id"_a,
+             "reactive"_a = false)
+        .def("set_generator_cost_curve",
+             &PyOptimization::setGeneratorCostCurve,
+             "generator_id"_a,
+             "model"_a,
+             "coefficients"_a,
+             "reactive"_a = false,
+             "startup_cost"_a = 0.0,
+             "shutdown_cost"_a = 0.0,
+             nb::rv_policy::reference_internal)
+        .def("__repr__", [](const PyOptimization&) { return "<griddyn.Optimization>"; });
+
     nb::class_<PySimulation>(mod, "Simulation")
         .def(nb::init<std::string, std::string>(), "name"_a = "", "type"_a = "default")
-        .def_static("from_file", &PySimulation::fromFile, "path"_a, "format"_a = "", "name"_a = "")
+        .def_static("from_file",
+                    &PySimulation::fromFile,
+                    "path"_a,
+                    "format"_a = "",
+                    "name"_a = "",
+                    "type"_a = "default")
         .def("load", &PySimulation::load, "path"_a, "format"_a = "")
         .def("load_file", &PySimulation::load, "path"_a, "format"_a = "")
         .def("initialize", &PySimulation::initialize)
         .def("initialize_from_string", &PySimulation::initializeFromString, "args"_a)
         .def("initialize_from_args", &PySimulation::initializeFromArgs, "args"_a)
         .def("powerflow", &PySimulation::powerflow)
+        .def("save_pypower_case",
+             &PySimulation::savePyPowerCase,
+             "path"_a,
+             "Write a PYPOWER version 2 case file. Return warnings for detected unsupported data.")
+        .def("save_matpower_case",
+             &PySimulation::saveMatPowerCase,
+             "path"_a,
+             "Write a MATPOWER version 2 case file. Return warnings for detected unsupported data.")
+        .def("save_powerflow_csv",
+             &PySimulation::savePowerFlowCsv,
+             "path"_a,
+             "Write the current power-flow results to CSV.")
+        .def("save_powerflow_xml",
+             &PySimulation::savePowerFlowXml,
+             "path"_a,
+             "Write the current power-flow results to XML.")
+        .def("execute",
+             &PySimulation::execute,
+             "action"_a,
+             "Execute a GridDyn action string immediately and return its status code.")
         .def("run", &PySimulation::run)
         .def("run_until", &PySimulation::runUntil, "time"_a)
         .def("run_to", &PySimulation::runUntil, "time"_a)
         .def("step", &PySimulation::step, "time"_a)
         .def("reset", &PySimulation::reset)
         .def("get", &PySimulation::get, "field"_a)
-        .def("set", &PySimulation::set, "field"_a, "value"_a, nb::rv_policy::reference_internal)
+        .def("set", &PySimulation::set, "field"_a, "value"_a, "unit"_a = std::nullopt,
+             nb::rv_policy::reference_internal)
         .def("get_string", &PySimulation::getString, "field"_a)
         .def("find", &PySimulation::find, "name"_a)
         .def_prop_rw("name", &PySimulation::name, &PySimulation::setName)
         .def_prop_ro("time", &PySimulation::time)
+        .def_prop_ro("optimization", &PySimulation::optimization)
         .def_prop_ro("PFlow", &PySimulation::powerFlowRoutine)
         .def_prop_ro("pflow", &PySimulation::powerFlowRoutine)
         .def_prop_ro("TDS", &PySimulation::timeDomainRoutine)

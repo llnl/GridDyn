@@ -48,6 +48,12 @@ jobs:
         if os.environ["EVENT_NAME"] in {"workflow_dispatch", "pull_request"}:
             should_build = True
         elif os.environ["REF"].startswith("refs/tags/"):
+            tag_version = os.environ["REF"].removeprefix("refs/tags/").removeprefix("v")
+            if tag_version != current_version:
+                raise SystemExit(
+                    f"release tag version {tag_version!r} does not match "
+                    f"pyproject.toml version {current_version!r}"
+                )
             should_build = True
         elif os.environ["EVENT_NAME"] == "push" and os.environ["REF"] == "refs/heads/main":
             if before_sha and set(before_sha) != {"0"}:

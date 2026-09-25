@@ -1,8 +1,14 @@
 # Python Nanobind Migration Plan
 
-This document tracks the plan for replacing GridDyn's SWIG-generated Python
-interface with a first-class nanobind interface built directly on the C++
-simulation API. It is intended to stay current as the work progresses.
+> **Status (2026-09):** The initial nanobind migration is complete and the
+> package is built through `pyproject.toml` and cross-platform wheel CI. This
+> document began as a design plan; sections below describing the first
+> milestone and future phases are historical planning context. The maintained
+> Python API is documented in [Python interface](python-interface.md).
+
+This document records the design and completion of replacing GridDyn's
+SWIG-generated Python interface with a first-class nanobind interface built
+directly on the C++ simulation API.
 
 ## Summary
 
@@ -11,10 +17,9 @@ GridDyn previously exposed Python through SWIG wrappers over the C API in
 nanobind that calls GridDyn C++ directly. The C API and SWIG-generated wrappers
 are no longer part of the maintained Python implementation.
 
-The first milestone is deliberately narrow: expose the simulation object and the
-minimum surface needed to load, initialize, solve, and run a GridDyn model from
-Python. Object editing, events, queries, solver internals, and detailed result
-access can follow after the simulation workflow is stable.
+The first milestone was deliberately narrow. The implementation has since
+grown to include model inspection and editing, result collections, dynamic
+simulation, and PYPOWER/MATPOWER power-flow case export.
 
 ## Goals
 
@@ -208,9 +213,9 @@ SolveError
 ExecutionError
 ```
 
-The first implementation can map all known GridDyn exceptions to the closest
-Python exception and use `GridDynError` as the fallback. The mapping should live
-in the nanobind source so it is shared by every wrapped method.
+The implementation maps common GridDyn failures to Python exceptions, with
+`GridDynError` as the public base class. The mapping lives in the nanobind
+source so it is shared by wrapped methods.
 
 ## GIL Policy
 
@@ -314,24 +319,19 @@ The first tests should be small and workflow-oriented:
 
 The first tests should not depend on SWIG or the C API.
 
-The CI workflow should build and smoke-test the Python wheel, but it should not
-publish to TestPyPI or PyPI until the Python API is more complete.
+The CI workflow builds and smoke-tests wheels. The release workflow publishes
+versioned releases to PyPI and checks that a release tag matches the package
+version.
 
-## Open Decisions
+## Decisions In Use
 
-1. Should the package source live in top-level `python/` or under
-   `interfaces/python_nb/` during the transition?
-2. Should the extension be named `griddyn._core`, `griddyn._griddyn`, or
-   something else?
-3. What is the smallest existing model file suitable for a fast Python
-   smoke test?
-4. Should `initialize(args=...)` accept a string, a sequence, or both in the
-   first milestone?
-5. What minimum Python version should be required?
-6. Should stable ABI wheels be attempted early, or deferred until packaging is
-   otherwise stable?
-7. Should the first nanobind build link static GridDyn components into the
-   extension or ship dependent GridDyn shared libraries beside it?
+- Package sources live in top-level `python/` and users import `griddyn`.
+- The compiled extension is `griddyn._core` and uses nanobind's stable ABI.
+- The package requires Python 3.13 or newer and CI builds platform wheels.
+- The extension links the required GridDyn components statically into the
+  package wheel.
+- Initialization accepts either a command-line string or a sequence of
+  arguments through distinct methods.
 
 ## Working Checklist
 
@@ -343,8 +343,8 @@ publish to TestPyPI or PyPI until the Python API is more complete.
 - [x] Bind `Simulation` in nanobind.
 - [x] Add GridDyn exception translation.
 - [x] Add basic Python import and construction smoke test.
-- [x] Add CI wheel build and smoke test without package-index publishing.
-- [ ] Add load and powerflow smoke test.
-- [ ] Add documentation for the first Python API.
+- [x] Add CI wheel build and smoke test.
+- [x] Add load and powerflow smoke test.
+- [x] Add documentation for the Python API and case export.
 - [x] Remove SWIG interface sources and CMake build paths.
 - [x] Remove the C shared-library target.

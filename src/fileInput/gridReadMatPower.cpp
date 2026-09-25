@@ -9,22 +9,21 @@
 #include "griddyn/Generator.h"
 #include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
-#include "griddyn/griddyn-config.h"
+#include "griddyn/MatPowerCostCurve.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/loads/ZipLoad.h"
+#include "griddyn/simulation/GridSimulation.h"
 #include "readerHelper.h"
 
 #ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
 #    include "optimization/gridDynOpt.h"
-#    include "optimization/models/gridGenOpt.h"
-#    include "optimization/optObjectFactory.h"
-#else
-#    include "griddyn/simulation/GridSimulation.h"
 #endif
 
 #include "gmlc/utilities/stringConversion.h"
 #include <algorithm>
+#include <cmath>
 #include <compare>
+#include <cstddef>
 #include <cstdlib>
 #include <string>
 #include <unordered_map>
@@ -35,8 +34,9 @@ using gmlc::utilities::numeric_conversion;
 using units::deg;
 using units::MVAR;
 using units::MW;
+using units::puMW;
 using units::rad;
-using units::s;
+using units::convert;
 
 using mArray = std::vector<std::vector<double>>;
 
@@ -150,6 +150,7 @@ namespace {
                 areaName = readerOptions.prefix + '_' + areaName;
             }
             auto* area = new GridArea(areaName);
+            area->setUserID(static_cast<index_t>(areaId));
             try {
                 parentObject->add(area);
             }
@@ -209,6 +210,9 @@ namespace {
                 busParent->add(busList[ind1]);
             }
             GridBus* bus = busList[ind1];
+            if (busData.size() > 10) {
+                bus->set("zone", busData[10]);
+            }
             ind1 = static_cast<int>(busData[1]);
             if (ind1 == 2) {
                 bus->set("type", "PV");
@@ -291,6 +295,7 @@ namespace {
                      const BasicReaderInfo& readerOptions)
     {
         const auto& bri = readerOptions;
+        const double basepower = parentObject->get("basepower", MW);
         index_t genIndex = 1;
         const std::string generatorType = (bri.checkFlag(ASSUME_POWERFLOW_ONLY)) ? "simple" : "";
         auto* genFactory = dynamic_cast<TypeFactory<Generator>*>(
@@ -337,32 +342,36 @@ namespace {
             gen->set("pmin", genLine[9], MW);
 
             if (genLine.size() >= 21) {
-                if ((genLine[10] != 0) && (genLine[11] != 0)) {
-                    const std::vector<double> capabilityPower{genLine[10], genLine[11]};
-                    const std::vector<double> minimumReactivePower{genLine[12], genLine[14]};
-                    const std::vector<double> maximumReactivePower{genLine[13], genLine[15]};
+                if ((genLine[10] != 0.0) || (genLine[11] != 0.0) || (genLine[12] != 0.0) ||
+                    (genLine[13] != 0.0) || (genLine[14] != 0.0) || (genLine[15] != 0.0)) {
+                    const std::vector<double> capabilityPower{
+                        convert(genLine[10], MW, puMW, basepower),
+                        convert(genLine[11], MW, puMW, basepower)};
+                    const std::vector<double> minimumReactivePower{
+                        convert(genLine[12], MVAR, puMW, basepower),
+                        convert(genLine[14], MVAR, puMW, basepower)};
+                    const std::vector<double> maximumReactivePower{
+                        convert(genLine[13], MVAR, puMW, basepower),
+                        convert(genLine[15], MVAR, puMW, basepower)};
                     gen->setCapabilityCurve(capabilityPower,
                                             minimumReactivePower,
                                             maximumReactivePower);
                 }
                 if (genLine[16] != 0) {
-                    gen->set("rampreg", genLine[16], MW / s);
+                    gen->set("rampagc", genLine[16]);
                 }
                 if (genLine[17] != 0) {
-                    gen->set("ramp10", genLine[17], MW / s);
+                    gen->set("ramp10", genLine[17]);
                 }
                 if (genLine[18] != 0) {
-                    gen->set("ramp30", genLine[18], MW / s);
+                    gen->set("ramp30", genLine[18]);
                 }
                 if (genLine[19] != 0) {
-                    gen->set("rampq", genLine[19], MW / s);
+                    gen->set("rampq", genLine[19]);
                 }
-                if (genLine[20] != 0) {
-                    // MATPOWER APF is its area participation factor.  GridDyn
-                    // exposes the equivalent generator property as
-                    // "participation"; "apf" is not a GridDyn parameter.
-                    gen->set("participation", genLine[20]);
-                }
+                // MATPOWER APF is its area participation factor. Preserve
+                // explicit zero values as well as nonzero values.
+                gen->set("participation", genLine[20]);
             }
         }
         return (genIndex - 1);
@@ -384,63 +393,75 @@ COST                    5 parameters defining total cost function f(p) begin in 
                             n + 1 coefficients of n-th order polynomial cost, starting with
                             highest order, where cost is f(p) = cn*p^n + ... + c1*p + c0
 */
-#ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
     void loadGenCostArray(CoreObject* parentObject, mArray& genCost, int gencount)
     {
-        auto* gdo = dynamic_cast<GridDynOptimization*>(parentObject->getRoot());
-        if (gdo == nullptr)  // return if the core object doesn't support optimization
-        {
+        // MATPOWER stores active-power cost curves first, followed optionally
+        // by one reactive-power curve per generator.  Cost data belongs to
+        // the optimization model, so only optimization simulations retain it.
+        if (gencount <= 0) {
             return;
         }
-
-        GridGenOpt* generatorOpt;
-        GridOptObject* optimizationObject;
-        CoreObject* obj;
-        int powerMode = 0;
-        int numc = 0;
-        int costModel = 0;
-        std::vector<double> coeff;
-
-        auto* genOptFactory = dynamic_cast<OptObjectFactory<GridGenOpt, Generator>*>(
-            CoreOptObjectFactory::instance()->getFactory("basic")->getFactory("gen"));
-        genOptFactory->prepObjects(static_cast<count_t>(genCost.size()), parentObject);
-
-        std::vector<GridGenOpt*> genOptList(gencount);
-
-        int generatorIndex = 1;
-        for (auto& genLine : genCost) {
-            if (generatorIndex > gencount) {
-                powerMode = 1;
-                generatorOpt = genOptList[generatorIndex - gencount - 1];
-            } else {
-                obj = parentObject->findByUserID("gen", generatorIndex);
-                // MATPOWER includes cost rows for offline generators.  Keep
-                // the row alignment but do not create an optimization adapter
-                // for a generator that cannot participate in dispatch.
-                if ((obj == nullptr) || !obj->isEnabled()) {
-                    ++generatorIndex;
+#ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
+        auto* optimization = dynamic_cast<GridDynOptimization*>(parentObject->getRoot());
+#endif
+        for (std::size_t rowIndex = 0; rowIndex < genCost.size(); ++rowIndex) {
+            const auto& row = genCost[rowIndex];
+            const bool reactive = rowIndex >= static_cast<std::size_t>(gencount);
+            const auto generatorIndex = reactive ? rowIndex - static_cast<std::size_t>(gencount) :
+                                                   rowIndex;
+            if (generatorIndex >= static_cast<std::size_t>(gencount) || row.size() < 4) {
+                continue;
+            }
+            if (!std::isfinite(row[0]) || !std::isfinite(row[1]) || !std::isfinite(row[2]) ||
+                !std::isfinite(row[3]) || row[3] < 1.0 || std::floor(row[3]) != row[3] ||
+                row[3] > static_cast<double>(row.size() - 4) ||
+                (row[0] != 1.0 && row[0] != 2.0)) {
+                continue;
+            }
+            const auto declaredCount = static_cast<std::size_t>(row[3]);
+            std::size_t coefficientCount = declaredCount;
+            if (row[0] == 1.0) {
+                // NCOST counts points for piecewise linear curves, each of
+                // which contributes both a power and a cost value.
+                if (declaredCount < 2 || declaredCount > (row.size() - 4) / 2) {
                     continue;
                 }
-                generatorOpt = genOptFactory->makeTypeObject(obj);
-                genOptList[generatorIndex - 1] = generatorOpt;
-                powerMode = 0;
-                optimizationObject = gdo->makeOptimizationObjectPath(obj->getParent());
-                optimizationObject->add(generatorOpt);
+                coefficientCount *= 2;
+            } else if (declaredCount > row.size() - 4) {
+                continue;
             }
-
-            ++generatorIndex;
-            costModel = static_cast<int>(genLine[0]);
-            numc = static_cast<int>(genLine[3]);
-            coeff.resize(numc);
-            for (int ii = 0; ii < numc; ii++) {
-                coeff[ii] = genLine[4 + ii];
+            bool finiteCoefficients = true;
+            for (std::size_t coefficientIndex = 4;
+                 coefficientIndex < 4 + coefficientCount;
+                 ++coefficientIndex) {
+                finiteCoefficients = finiteCoefficients && std::isfinite(row[coefficientIndex]);
             }
-            generatorOpt->loadMatPowerCostCoeff(coeff, powerMode, costModel);
+            if (!finiteCoefficients) {
+                continue;
+            }
+            auto* gen = dynamic_cast<Generator*>(parentObject->findByUserID(
+                "gen", static_cast<index_t>(generatorIndex + 1)));
+            if (gen == nullptr) {
+                continue;
+            }
+            MatPowerCostCurve curve;
+            curve.model = static_cast<int>(row[0]);
+            curve.startupCost = row[1];
+            curve.shutdownCost = row[2];
+            curve.coefficients.assign(row.begin() + 4,
+                                      row.begin() + static_cast<std::ptrdiff_t>(4 + coefficientCount));
+            if (!curve.valid()) {
+                continue;
+            }
+#ifdef GRIDDYN_ENABLE_OPTIMIZATION_LIBRARY
+            if (optimization != nullptr) {
+                optimization->setGeneratorCostCurve(gen, curve, reactive);
+            }
+#else
+            (void)curve;
+#endif
         }
     }
-#else
-    void loadGenCostArray(CoreObject* /*parentObject*/, mArray& /*genCost*/, int /*gencount*/) {}
-#endif
     /*
     see: http://www.pserc.cornell.edu/matpower/docs/ref/matpower6.0/idx_brch.html
     Branch data

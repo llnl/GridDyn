@@ -44,6 +44,29 @@ Also available are a series of presentations
 
 [quick start guide](quickStart.md).
 
+## Python package
+
+The `griddyn` Python package provides simulation control, network inspection,
+and PYPOWER/MATPOWER power-flow case export. Install it on Python 3.13 or newer:
+
+```sh
+python -m pip install griddyn
+```
+
+```python
+from pathlib import Path
+import griddyn as gd
+
+sim = gd.load(Path("network.xml"))
+sim.PFlow.run()
+warnings = sim.save_pypower_case(Path("network.py"))
+```
+
+See the [Python interface guide](https://github.com/LLNL/GridDyn/blob/main/docs/python-interface.md)
+for setup, available methods, case-export limits, and four runnable examples
+covering power flow, OPF, load changes, and dynamic recorder time series. For
+example, run `python -m griddyn.examples.power_flow` after installing the package.
+
 ## Get Involved!
 
 GridDyn is an open source project. Questions, discussion, and

@@ -13,4 +13,5 @@ building
 status
 developer-guide/powerflow-validation-followups
 python-nanobind-migration-plan
+python-interface
 ```

@@ -110,6 +110,8 @@ CoreObject* GridGenOpt::clone(CoreObject* obj) const
     nobj->m_heatRate = m_heatRate;
     nobj->Pcoeff = Pcoeff;
     nobj->Qcoeff = Qcoeff;
+    nobj->activeCostCurve = activeCostCurve;
+    nobj->reactiveCostCurve = reactiveCostCurve;
     nobj->m_penaltyCost = m_penaltyCost;
     nobj->m_fuelCost = m_fuelCost;
     nobj->m_forecast = m_forecast;
@@ -502,6 +504,19 @@ void GridGenOpt::loadMatPowerCostCoeff(std::vector<double> coeff, int powerMode,
     } else {
         Qcoeff = coeff;
     }
+}
+
+void GridGenOpt::loadMatPowerCostCurve(const MatPowerCostCurve& curve, bool reactive)
+{
+    if (!curve.valid()) {
+        throw InvalidParameterValue("invalid MATPOWER/PYPOWER generator cost curve");
+    }
+    (reactive ? reactiveCostCurve : activeCostCurve) = curve;
+    optFlags.reset(PIECEWISE_LINEAR_COST);
+    if (activeCostCurve.model == 1 || reactiveCostCurve.model == 1) {
+        optFlags.set(PIECEWISE_LINEAR_COST);
+    }
+    loadMatPowerCostCoeff(curve.coefficients, reactive ? 1 : 0, curve.model);
 }
 
 GridOptObject* GridGenOpt::getBus(index_t /*index*/) const

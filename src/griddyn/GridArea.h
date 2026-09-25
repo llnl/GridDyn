@@ -75,6 +75,9 @@ class GridArea: public GridPrimary {
     /** @brief the default destructor*/
     virtual ~GridArea();
 
+    /** Set an external area identifier and keep future generated IDs unique. */
+    void setUserID(index_t newUserID);
+
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void updateObjectLinkages(CoreObject* newRoot) override;

@@ -158,8 +158,8 @@ void savePowerFlowCSV(GridDynSimulation* gds, const std::string& fileName)
     output << std::fixed << "basepower=" << basePower << '\n';
     output
         << "\"GridArea #\",\"Bus #\",\"Bus ID\",\"Bus "
-           "name\",\"voltage(pu)\",\"angle(deg)\",\"Pgen(MW)\",\"Qgen(MW)\",\"Pload(MW)\",\"Qload(MW)\","
-           "\"Plink(MW)\",\"Qlink(MW)\",\"PResid(MW)\",\"QResid(MW)\"\n";
+           "name\",\"voltage(pu)\",\"angle(deg)\",\"Pgen(MW)\",\"Qgen(MVAr)\",\"Pload(MW)\",\"Qload(MVAr)\","
+           "\"Plink(MW)\",\"Qlink(MVAr)\",\"PResid(MW)\",\"QResid(MVAr)\"\n";
     index_t areaIndex = 0;
     const auto* area = gds->getGridArea(areaIndex);
     while (area != nullptr) {

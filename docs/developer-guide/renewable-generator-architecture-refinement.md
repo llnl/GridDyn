@@ -1,5 +1,39 @@
 # RenewableGenerator architecture refinement
 
+## Implemented scope (September 2026)
+
+`RenewableGenerator` hosts independent `RenewableComponent` instances. The
+first eight concrete models are `REGCA1`, `REECA1`, `REECB1`, `REPCA1`,
+`WTDTA1`, `WTARA1`, `WTPTA1`, and `WTTQA1`. Each has its own factory identity, parameters,
+states, residual, Jacobian, and DYR reader entry. A renewable DYR record
+converts a steady-state `Generator` to a `RenewableGenerator` in its existing
+bus position. Records may appear in any order. Duplicate roles, missing
+signal providers, and unsupported model modes fail before dynamics start.
+
+The implemented converter path is `REPCA1` incremental P/Q references to
+`REECA1` or `REECB1` current commands to `REGCA1` terminal P/Q. `REECB1` has
+flat current limits. The wind path connects
+`REGCA1` electrical power to `WTDTA1`, `WTTQA1` torque reference to the
+selected electrical controller,
+and optionally `WTPTA1` pitch to `WTARA1` mechanical power. The host converts
+terminal P/Q between machine and system bases and reconciles the wind shaft
+and torque controller at a nonunity initial operating speed. The component
+tests cover DYR assembly in either order, steady residuals, DAE Jacobians
+across the electrical and mechanical connections, voltage and pitch response,
+invalid assemblies, and solar/wind network integration on the IEEE 14-bus case.
+
+The present equations cover the main local modes. `REECA1` accepts its
+constant-Q branch (`PFFLAG=QFLAG=PFLAG=0`); `REECB1` accepts the corresponding
+branch (`PFFLAG=QFLAG=0`). Unsupported branches are rejected.
+`REPCA1` accepts local voltage/reactive control and rejects frequency,
+compensated remote, and monitored-line modes. `REGCA1` rejects nonzero
+`Accel`. `WTDTA1` requires a two-mass shaft (`0 < Htfrac < 1`); a one-mass
+alternative is still needed. `WTARA1` uses a linear pitch-to-mechanical-power
+response, and `WTPTA1`/`WTTQA1` implement their PI and limit behavior in
+GridDyn state form. They have not yet been benchmarked against an ANDES
+transient case. Remote measurement bindings, Type-1/Type-2 wind generator
+electrical models, and turbine-base conversion are future extensions.
+
 ## Decision
 
 Use `RenewableGenerator : Generator` as a small composition host. Give it one
@@ -29,12 +63,18 @@ GridSubModel
 
 `RenewableComponent` earns its place by giving the host a stable role key and
 typed connection declarations. `TerminalElectricalModel` earns its place by
-enforcing the one electrical boundary every renewable assembly shares: bus
-voltage in, terminal P/Q out, solved-operating-point initialization, and
-output derivatives. Other role classes should be introduced only if multiple
-implementations actually share code or a substantial invariant. Models with
-shared equations may have private family bases or helpers without losing
-their separate factory names and dynamics records.
+enforcing the one electrical boundary every renewable assembly shares:
+terminal network conditions in, terminal P/Q out, solved-operating-point
+initialization, and output derivatives. It must not assume current commands
+internally. A grid-forming voltage-source model can satisfy the same terminal
+boundary while owning different internal states and equations.
+`RenewableComponent` ports handle signals between attached components;
+frequency/ROCOF, PLL angle, and synchronous-machine speed require explicit
+external measurement-provider bindings. Other role classes should be
+introduced only if multiple implementations actually share code or a
+substantial invariant. Models with shared equations may have private family
+bases or helpers without losing their separate factory names and dynamics
+records.
 
 ## Model roles and ports
 
@@ -191,14 +231,14 @@ and missing or conflicting signal.
 | One `RenewableComponent` plus one `TerminalElectricalModel` | Recommended: a small common composition contract and a real electrical invariant; concrete controls stay independent. |
 | Fully general signal-graph framework | More flexibility than the present model set requires; raises solver and Jacobian complexity across GridDyn. Keep a local binding table first. |
 
-## Verification before committing to the API
+## Next verification and extension work
 
-Prototype the port/binding contract with `REGCA1` and `REECA1`, then attach
-`REPCA1` without changing the host evaluation loop. Prove the boundary with
-a test-only induction electrical model that supplies terminal P/Q and accepts
-mechanical coupling without current-command ports. Test each dynamics-record
-order, role replacement, clone/remove, mismatched ports, base conversion,
-operating-point initialization, bus P/Q signs, and analytic Jacobians against
-finite differences in full and partitioned solver modes. Add the Type-3 wind
-components one at a time through the same contract. Implementing real
-Type-1/Type-2 equations remains later work.
+Run transient cases against independently known renewable responses,
+including voltage dips, torque and pitch events, and multiple generator
+ratings. Add partitioned solver tests with both algebraic and differential
+state arrays, and extend the network integration check to events and longer
+time horizons. Compare the simplified aerodynamic and
+controller equations with the intended source model over those cases before
+claiming parameter-level equivalence. A test-only induction electrical model
+would then exercise the same host with Type-1/Type-2 mechanical ports without
+converter current commands.

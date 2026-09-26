@@ -1,5 +1,11 @@
 # ACTIVSg PSS/E compatibility plan
 
+For the current ACTIVSg25k renewable parameter and format audit, see
+[ACTIVSg25k dynamic-model audit](activsg25k-dynamics-audit.md). The renewable
+"Missing" labels in the historical inventory below predate the current
+REGCA1/REECA1 implementation; the audit describes the remaining case-specific
+gaps and is the source of truth for ACTIVSg25k renewable status.
+
 ## Scope
 
 This is the single compatibility plan for the supplied ACTIVSg500,

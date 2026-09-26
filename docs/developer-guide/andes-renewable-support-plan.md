@@ -56,21 +56,24 @@ and removing `REPCA1` must leave the converter and electrical controller usable.
 
 | ANDES behavior family | Natural GridDyn component |
 | --- | --- |
-| `REGCA1`, `REGCP1` | Separately selectable converter electrical models; optional PLL input for `REGCP1`. |
-| `REECA1` variants, `REECB1` | Separately selectable renewable electrical controllers producing active/reactive current requests. |
+| `REGCA1`, `REGCP1` | Separately selectable terminal electrical models; `REGCP1` may consume measured phase angle from a PLL. |
+| `REECA1` variants, `REECB1` | Separately selectable renewable electrical controllers; frequency-enabled variants need frequency/ROCOF or synchronous-speed measurements. |
 | `REPCA1` | Independently selectable optional plant controller using GridDyn bus/line measurements. |
 | `WTDS`, `WTDTA1` | Optional single- or dual-mass wind drivetrain. |
 | `WTARA1`, `WTARV1`, `WTPTA1`, `WTTQA1` | Separately selectable aerodynamic, pitch, and torque models; share internal blocks where useful. |
-| `REGCV1/2`, `REGF1/2/3`, `PVD1` | Alternative converter/distributed-resource behaviors sharing the host where their electrical contract fits. |
+| `REGCV1/2`, `REGF1/2/3` | Grid-forming terminal electrical models. They share the terminal P/Q boundary, but retain their own voltage-source, frequency, and control equations rather than inheriting a current-command assumption. |
+| `PVD1` | Distributed PV model; assess its availability/source and converter paths before deciding which pieces attach to `RenewableGenerator`. |
 
 The proposed `RenewableGenerator` owns one terminal electrical model and a
 role-indexed collection of optional components. `REGCA1`,
 `REECA1`, and `REPCA1` are separate `GridSubModel` objects with separate
 parameter storage, states, factory names, clone behavior, and solver callbacks.
 One `RenewableComponent` contract declares each model's role and typed ports;
-`TerminalElectricalModel` adds the common terminal P/Q contract. The host
-handles bus injection and routing; it does not embed any
-one model's equations. A dynamics reader creates one object per model record,
+`TerminalElectricalModel` adds the common terminal P/Q contract. It must not
+require a current-command formulation: grid-following converters,
+grid-forming voltage sources, and future induction-machine models can each
+produce terminal P/Q using their own equations. The host handles bus injection
+and routing; it does not embed any one model's equations. A dynamics reader creates one object per model record,
 attaches it by bus and machine ID, and validates compatible combinations before
 dynamic initialization. Input record order should not determine whether the
 assembly succeeds.
@@ -176,12 +179,68 @@ Type-4 equivalent and the wind case as Type 3.
    dynamics formats can create the same model objects through their own
    adapters. Keep ANDES JSON and native `.xlsx` import optional. File syntax
    and ANDES' group hierarchy remain outside the simulation classes.
-6. **Extend model families.** Add `REGCP1` behavior with optional PLL;
-   `REGCV1`/`REGCV2` and `REGF1`/`REGF2`/`REGF3` as appropriate converter
-   alternatives; then distributed `PVD1` and related storage/EV behaviors if
-   those are included in the support target. Reuse the generator host and
-   GridDyn building blocks while preserving each model's distinctive external
-   dynamics.
+6. **Extend model families in the order below.** Preserve independent concrete
+   model identities and readers; share private equations/helpers only when the
+   models actually have the same behavior. Distributed storage/EV models are
+   outside the renewable-generator sequence and need a separate host-fit
+   decision.
+
+## Remaining ANDES renewable implementation order
+
+The current `RenewableComponent` port contract and role-based `add` logic are a
+good fit for these additions: the host selects by role and connects matching
+typed signals, rather than needing one host branch for every model name. The
+terminal model contract is only the network boundary. It can cover both
+current-controlled and grid-forming equipment as long as each concrete
+terminal model provides its own equations and Jacobians. The main framework
+addition is external measurement binding for signals that are not produced by
+an attached component. Do not silently substitute terminal angle for a
+configured PLL or another machine's speed for a frequency signal.
+
+| Order | Models | Why this order / prerequisite |
+| --- | --- | --- |
+| 1 | `WTDS`, `WTARV1` | Directly extend the existing drivetrain and aerodynamics roles. Reuse the established speed, mechanical-power, and pitch ports; keep WTDS single-mass equations distinct from WTDTA1's two-mass shaft. |
+| 2 | `REGCP1` | Reuses REGCA1 converter and current-limit behavior. Add a measured-angle input and optional PLL provider; its no-PLL mode can use the terminal angle as ANDES does. |
+| 3 | `REECA1E` | Reuses REECA1 electrical-control branches, with explicit bus-frequency and ROCOF measurement inputs for its active-power response. |
+| 4 | `REECA1G` | Reuses REECA1 but requires a typed speed measurement from a synchronous generator, crossing the RenewableGenerator ownership boundary. Add after external provider binding is in place. |
+| 5 | `REGCV1`, `REGCV2` | Implement the virtual-synchronous/grid-forming family after terminal electrical residual and signal bindings support its internal voltage and frequency states. Keep the models separately selectable. |
+| 6 | `REGF1`, `REGF2`, `REGF3` | Implement the grid-forming droop family against that same terminal boundary. Preserve each variant's parameter and control differences; factor shared code only after equation comparison. |
+| 7 | `PVD1` | Review as a separate distributed-PV integration. It combines resource-side and terminal behavior, so decide which parts compose as renewable submodels and whether an availability input is needed. |
+
+`ESD1`, `EV1`, and `EV2` are distributed storage/vehicle models rather than
+renewable-generator submodels. Track them separately and choose a distributed
+resource host that represents signed power and state-of-charge behavior; do
+not add them to `RenewableGenerator` solely because PVD1 shares source code.
+
+## Wider ANDES support gaps and case priorities
+
+The local ANDES model inventory is broader than the renewable scope. The
+current [ANDES compatibility inventory](andes-compatibility.md#dynamic-model-inventory)
+tracks missing, partial, and untriaged nonrenewable models. Examples of
+nonrenewable gaps are `PLBVFU1` and `IEEEVC` (no direct analogue); `TG2`,
+`TGOV1DB`, `TGOV1N`, `TGOV1NDB`, `HYGOVDB`, and `HYGOV4` (planned governor
+variants); `SHAFT5`; and the separate exciter models `IEEET3`, `AC8B`,
+`ESST1A`, and `ESAC5A`. `BusFreq`, `BusROCOF`, `PMU`, `PLL1`, `PLL2`,
+`FreqDiv`, `ACE`, `ACEc`, and `COI` still need a compatibility decision or
+model-specific measurement/control integration. Existing analogues can also
+have unsupported flags or parameters, so “model exists” does not establish
+full behavior compatibility.
+
+For ACTIVSg25k specifically, the [case audit](activsg25k-dynamics-audit.md)
+finds GridDyn DYR reader branches for all 16 nonrenewable model families in
+the case. Their parameter profiles and full disturbance trajectories still
+need validation. The four `WT3*` wind models are a separate gap: they are in
+the case, absent from the local ANDES model catalog, and must be implemented
+from their own equations and reference material rather than mapped to the
+newer `WTDTA1` family. The two-bus renewable fault fixture and its limits are
+documented in [`test/reference/renewable_fault/README.md`](../../test/reference/renewable_fault/README.md).
+
+Next, finish the case-specific evidence before expanding to unrelated model
+families: compare the 25k `REGCA1`/`REECA1` parameter branches with
+PowerWorld/PSS/E, run the full RAW+DYR case through initialization and a bus
+fault, then use case demand and available reference equations to prioritize
+the nonrenewable gaps above. Keep `WT3*` as its own four-model implementation
+and validation track.
 
 ## Verification and acceptance gates
 

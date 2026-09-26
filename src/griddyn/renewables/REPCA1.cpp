@@ -16,11 +16,11 @@
 
 namespace griddyn {
 namespace {
-    constexpr std::array<RenewablePort, 2> inputs{{
+    constexpr std::array<RenewablePort, 2> inputPortMap{{
         {.signal = RenewableSignal::terminalVoltage, .ioIndex = 0},
         {.signal = RenewableSignal::reactivePower, .ioIndex = 1, .base = RenewableBase::machine},
     }};
-    constexpr std::array<RenewablePort, 2> outputs{{
+    constexpr std::array<RenewablePort, 2> outputPortMap{{
         {.signal = RenewableSignal::activeReferenceIncrement,
          .ioIndex = 0,
          .base = RenewableBase::machine},
@@ -82,11 +82,11 @@ CoreObject* REPCA1::clone(CoreObject* obj) const
 
 std::span<const RenewablePort> REPCA1::inputPorts() const
 {
-    return inputs;
+    return inputPortMap;
 }
 std::span<const RenewablePort> REPCA1::outputPorts() const
 {
-    return outputs;
+    return outputPortMap;
 }
 
 void REPCA1::set(std::string_view param, double val, units::unit unitType)

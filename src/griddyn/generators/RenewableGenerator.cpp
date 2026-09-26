@@ -15,6 +15,7 @@
 #include <array>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace griddyn {
@@ -99,7 +100,7 @@ CoreObject* RenewableGenerator::find(std::string_view object) const
 CoreObject* RenewableGenerator::getSubObject(std::string_view typeName, index_t num) const
 {
     if (typeName == "renewable_component" && num >= 0 &&
-        static_cast<std::size_t>(num) < roleCount) {
+        std::cmp_less(num, roleCount)) {
         return components[static_cast<std::size_t>(num)];
     }
     return Generator::getSubObject(typeName, num);

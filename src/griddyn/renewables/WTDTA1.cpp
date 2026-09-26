@@ -10,12 +10,13 @@
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
+#include <cstddef>
 #include <cmath>
 #include <string>
 
 namespace griddyn {
 namespace {
-    constexpr std::array<RenewablePort, 3> inputs{{
+    constexpr std::array<RenewablePort, 3> inputPortMap{{
         {.signal = RenewableSignal::electricalPower, .ioIndex = 0, .base = RenewableBase::machine},
         {.signal = RenewableSignal::mechanicalPower,
          .ioIndex = 1,
@@ -26,7 +27,7 @@ namespace {
          .base = RenewableBase::none,
          .required = false},
     }};
-    constexpr std::array<RenewablePort, 2> outputs{{
+    constexpr std::array<RenewablePort, 2> outputPortMap{{
         {.signal = RenewableSignal::generatorSpeed, .ioIndex = 0},
         {.signal = RenewableSignal::turbineSpeed, .ioIndex = 1},
     }};
@@ -57,11 +58,11 @@ CoreObject* WTDTA1::clone(CoreObject* obj) const
 
 std::span<const RenewablePort> WTDTA1::inputPorts() const
 {
-    return inputs;
+    return inputPortMap;
 }
 std::span<const RenewablePort> WTDTA1::outputPorts() const
 {
-    return outputs;
+    return outputPortMap;
 }
 
 void WTDTA1::set(std::string_view param, double val, units::unit unitType)
@@ -149,10 +150,10 @@ std::array<double, 3> WTDTA1::rates(const IOdata& inputs, const double state[]) 
     const double delta = state[windTurbine] - state[windGenerator];
     const double powerDifference = Dshaft * delta;
     const double stiffness = ht2 * hg2 * 0.5 * Freq1 * Freq1 / H;
-    return {(-electricalPower / std::max(state[windGenerator], 0.01) + state[shaft] -
-             DAMP * (state[windGenerator] - operatingSpeed) + powerDifference) /
+    return {(-(electricalPower / std::max(state[windGenerator], 0.01)) + state[shaft] -
+             (DAMP * (state[windGenerator] - operatingSpeed)) + powerDifference) /
                 hg2,
-            (mechanicalPower / std::max(state[windTurbine], 0.01) - state[shaft] -
+            ((mechanicalPower / std::max(state[windTurbine], 0.01)) - state[shaft] -
              powerDifference) /
                 ht2,
             stiffness * delta};
@@ -214,7 +215,7 @@ void WTDTA1::jacobianElements(const IOdata& inputs,
                                   (index == column ? stateData.cj : 0.0));
         }
     }
-    for (index_t column = 0; column < 2 && column < inputLocs.size(); ++column) {
+    for (std::size_t column = 0; column < 2 && column < inputLocs.size(); ++column) {
         if (inputLocs[column] == kNullLocation || (column == 1 && inputs[column] == kNullVal)) {
             continue;
         }

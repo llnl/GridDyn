@@ -11,11 +11,12 @@
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <string>
 
 namespace griddyn {
 namespace {
-    constexpr std::array<RenewablePort, 5> inputs{{
+    constexpr std::array<RenewablePort, 5> inputPortMap{{
         {.signal = RenewableSignal::turbineSpeed, .ioIndex = 0},
         {.signal = RenewableSignal::orderedPower, .ioIndex = 1, .base = RenewableBase::machine},
         {.signal = RenewableSignal::activeReference, .ioIndex = 2, .base = RenewableBase::machine},
@@ -25,7 +26,7 @@ namespace {
          .required = false},
         {.signal = RenewableSignal::initialPitchAngle, .ioIndex = 4},
     }};
-    constexpr std::array<RenewablePort, 1> outputs{{
+    constexpr std::array<RenewablePort, 1> outputPortMap{{
         {.signal = RenewableSignal::pitchAngle, .ioIndex = 0},
     }};
     constexpr index_t theta = 0, speedIntegral = 1, powerIntegral = 2;
@@ -58,11 +59,11 @@ CoreObject* WTPTA1::clone(CoreObject* obj) const
 
 std::span<const RenewablePort> WTPTA1::inputPorts() const
 {
-    return inputs;
+    return inputPortMap;
 }
 std::span<const RenewablePort> WTPTA1::outputPorts() const
 {
-    return outputs;
+    return outputPortMap;
 }
 
 void WTPTA1::set(std::string_view param, double val, units::unit unitType)
@@ -233,7 +234,7 @@ void WTPTA1::jacobianElements(const IOdata& inputs,
                                   (index == column ? stateData.cj : 0.0));
         }
     }
-    for (index_t column = 0; column < 4 && column < inputLocs.size(); ++column) {
+    for (std::size_t column = 0; column < 4 && column < inputLocs.size(); ++column) {
         if (inputLocs[column] == kNullLocation || (column == 3 && inputs[column] == kNullVal)) {
             continue;
         }

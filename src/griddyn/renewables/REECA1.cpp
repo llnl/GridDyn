@@ -17,7 +17,7 @@
 
 namespace griddyn {
 namespace {
-    constexpr std::array<RenewablePort, 4> inputs{{
+    constexpr std::array<RenewablePort, 4> inputPortMap{{
         {.signal = RenewableSignal::terminalVoltage, .ioIndex = 0},
         {.signal = RenewableSignal::activeReferenceIncrement,
          .ioIndex = 1,
@@ -32,7 +32,7 @@ namespace {
          .base = RenewableBase::machine,
          .required = false},
     }};
-    constexpr std::array<RenewablePort, 3> outputs{{
+    constexpr std::array<RenewablePort, 3> outputPortMap{{
         {.signal = RenewableSignal::activeCurrentCommand,
          .ioIndex = 0,
          .base = RenewableBase::machine},
@@ -127,11 +127,11 @@ CoreObject* REECA1::clone(CoreObject* obj) const
 
 std::span<const RenewablePort> REECA1::inputPorts() const
 {
-    return inputs;
+    return inputPortMap;
 }
 std::span<const RenewablePort> REECA1::outputPorts() const
 {
-    return outputs;
+    return outputPortMap;
 }
 
 void REECA1::set(std::string_view param, double val, units::unit unitType)
@@ -495,7 +495,7 @@ std::array<double, 4> REECA1::rates(const IOdata& inputs, const double state[]) 
             pRate,
             Tpord == 0.0 ? 0.0 :
                            (std::clamp(state[powerFilter], PMIN, PMAX) - state[powerOrder]) / Tpord,
-            (qref / std::max(voltage, 0.01) - state[reactiveFilter]) / Tiq};
+            ((qref / std::max(voltage, 0.01)) - state[reactiveFilter]) / Tiq};
 }
 
 void REECA1::dynObjectInitializeB(const IOdata& inputs,

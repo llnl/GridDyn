@@ -15,13 +15,13 @@
 
 namespace griddyn {
 namespace {
-    constexpr std::array<RenewablePort, 1> inputs{{
+    constexpr std::array<RenewablePort, 1> inputPortMap{{
         {.signal = RenewableSignal::pitchAngle,
          .ioIndex = 0,
          .base = RenewableBase::none,
          .required = false},
     }};
-    constexpr std::array<RenewablePort, 2> outputs{{
+    constexpr std::array<RenewablePort, 2> outputPortMap{{
         {.signal = RenewableSignal::mechanicalPower, .ioIndex = 0, .base = RenewableBase::machine},
         {.signal = RenewableSignal::initialPitchAngle, .ioIndex = 1},
     }};
@@ -46,11 +46,11 @@ CoreObject* WTARA1::clone(CoreObject* obj) const
 
 std::span<const RenewablePort> WTARA1::inputPorts() const
 {
-    return inputs;
+    return inputPortMap;
 }
 std::span<const RenewablePort> WTARA1::outputPorts() const
 {
-    return outputs;
+    return outputPortMap;
 }
 
 void WTARA1::set(std::string_view param, double val, units::unit unitType)

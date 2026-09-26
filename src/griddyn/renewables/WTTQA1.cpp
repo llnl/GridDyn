@@ -11,15 +11,16 @@
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
+#include <cstddef>
 #include <string>
 
 namespace griddyn {
 namespace {
-    constexpr std::array<RenewablePort, 2> inputs{{
+    constexpr std::array<RenewablePort, 2> inputPortMap{{
         {.signal = RenewableSignal::electricalPower, .ioIndex = 0, .base = RenewableBase::machine},
         {.signal = RenewableSignal::generatorSpeed, .ioIndex = 1},
     }};
-    constexpr std::array<RenewablePort, 2> outputs{{
+    constexpr std::array<RenewablePort, 2> outputPortMap{{
         {.signal = RenewableSignal::activeReference, .ioIndex = 0, .base = RenewableBase::machine},
         {.signal = RenewableSignal::speedReference, .ioIndex = 1},
     }};
@@ -53,11 +54,11 @@ CoreObject* WTTQA1::clone(CoreObject* obj) const
 
 std::span<const RenewablePort> WTTQA1::inputPorts() const
 {
-    return inputs;
+    return inputPortMap;
 }
 std::span<const RenewablePort> WTTQA1::outputPorts() const
 {
-    return outputs;
+    return outputPortMap;
 }
 
 void WTTQA1::set(std::string_view param, double val, units::unit unitType)
@@ -197,7 +198,7 @@ void WTTQA1::dynObjectInitializeB(const IOdata& inputs,
     m_state[1 + pef] = inputs[0];
     m_state[1 + wref] = curve(inputs[0]);
     const double err = error(inputs, m_state.data() + 1);
-    m_state[1 + integral] = inputs[0] / inputs[1] - Kpp * err;
+    m_state[1 + integral] = (inputs[0] / inputs[1]) - (Kpp * err);
     if (inputs[0] / inputs[1] < Temin || inputs[0] / inputs[1] > Temax) {
         throw InvalidParameterValue("WTTQA1 initial torque exceeds limits");
     }
@@ -283,7 +284,7 @@ void WTTQA1::jacobianElements(const IOdata& inputs,
             }
         }
     }
-    for (index_t column = 0; column < 2 && column < inputLocs.size(); ++column) {
+    for (std::size_t column = 0; column < 2 && column < inputLocs.size(); ++column) {
         if (inputLocs[column] == kNullLocation) {
             continue;
         }

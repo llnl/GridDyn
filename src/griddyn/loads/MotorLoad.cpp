@@ -143,6 +143,62 @@ void MotorLoad::set(std::string_view param, std::string_view val)
     }
 }
 
+double MotorLoad::get(std::string_view param, units::unit unitType) const
+{
+    if (param == "pmot") {
+        return convert(Pmot, puMW, unitType, systemBasePower, localBaseVoltage);
+    }
+    if (param == "r") {
+        return r;
+    }
+    if (param == "x") {
+        return x;
+    }
+    if (param == "r1") {
+        return r1;
+    }
+    if (param == "x1") {
+        return x1;
+    }
+    if (param == "xm") {
+        return xm;
+    }
+    if (param == "h") {
+        return H;
+    }
+    if (param == "alpha") {
+        return alpha;
+    }
+    if (param == "beta") {
+        return beta;
+    }
+    if (param == "gamma") {
+        return gamma;
+    }
+    if (param == "a") {
+        return a;
+    }
+    if (param == "b") {
+        return b;
+    }
+    if (param == "c") {
+        return c;
+    }
+    if ((param == "base") || (param == "mbase") || (param == "rating")) {
+        return convert(mBase, MVAR, unitType, systemBasePower, localBaseVoltage);
+    }
+    if ((param == "vcontrol") || (param == "Vcontrol")) {
+        return convert(Vcontrol, puV, unitType, systemBasePower, localBaseVoltage);
+    }
+    if (param == "init_slip") {
+        return init_slip;
+    }
+    if (param == "scale") {
+        return scale;
+    }
+    return GridLoad::get(param, unitType);
+}
+
 void MotorLoad::set(std::string_view param, double val, units::unit unitType)
 {
     bool slipCheck = false;

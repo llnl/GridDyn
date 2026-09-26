@@ -9,6 +9,7 @@ For users of the Python package, start with [installation](installation.md),
 then follow the [quick start](quickStart.md) or the detailed
 [Python interface guide](python-interface.md). Source-build instructions and
 the C++ documentation workflow are in [Building GridDyn](building.md).
+For GridDyn-specific network files, see [GridDyn XML inputs](xml-input.md).
 
 ```{toctree}
 :maxdepth: 2
@@ -17,6 +18,7 @@ the C++ documentation workflow are in [Building GridDyn](building.md).
 overview
 installation
 quickStart
+xml-input
 python-interface
 capabilities
 building

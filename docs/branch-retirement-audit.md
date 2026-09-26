@@ -1,6 +1,19 @@
 # Branch Retirement Audit
 
-Date: 2026-04-27
+## Current status (2026-09-26)
+
+The pending findings in the earlier audits have now been resolved for
+`paradae-updates`, `braid-unscheduled-events`, `braid_work_update`, and
+`message_serialization`. The useful Braid and ParaDAE root handling and the
+message serialization work are already in current `main`; the remaining limit
+framework and one-off workaround are obsolete or superseded. These four
+branches can be retired without losing behavior the project currently intends
+to keep. Preserve any unrelated uncommitted worktree edits before cleanup that
+could overwrite them. The detailed reviews are recorded at the end of this
+document.
+
+Initial audit date: 2026-04-27 (historical findings below are superseded by the
+current status and the later audits at the end of this document.)
 
 Branches audited:
 
@@ -244,3 +257,116 @@ That pass should end with one of two outcomes for each item:
 
 - **port**
 - **intentionally drop with rationale**
+
+## Audit: `rtd` and `helics_updates_meson`
+
+Audit date: 2026-09-26
+
+### `rtd`
+
+- The branch's Read the Docs setup, contributor list, and style guidance are
+  already represented by current files on `main`.
+- Its XML input guide contained the remaining useful documentation intent. A
+  current, example-based guide is now in `docs/xml-input.md` and linked from
+  `docs/index.md`.
+- The old installation, build, component, and design descriptions predate the
+  current C++23/CMake project and were not copied verbatim.
+
+### `helics_updates_meson`
+
+- Its standard-library `std::variant` conversion, namespaced utility calls,
+  JSON-reader modernization, solver API fixes, and library-loader namespace
+  handling are already present in current code.
+- The branch's removal of the unused custom `src/utilities/assert.h` is now
+  applied to `main`.
+- Its Meson build and bundled third-party dependency snapshot are obsolete for
+  the current CMake-based project and were not ported.
+- The branch also attempted to install GridDyn as a C++ library SDK. This is
+  intentionally retired: the project no longer offers the C library, and
+  future library support would require a significant redesign. Do not treat
+  the old Meson packaging work as a retained requirement.
+
+### Retirement decision
+
+After the current `main` worktree changes are preserved in its history, these
+two branches can be deleted without losing code or documentation the project
+currently intends to keep. The SDK-install attempt is an explicit product
+decision to retire, not an unreviewed omission. This audit does not delete the
+branch refs.
+
+## Audit: `paradae-updates`, `braid-unscheduled-events`, and `braid_work_update`
+
+Audit date: 2026-09-26
+
+This review supersedes the initial “not fully retired” status above. The branch
+refs remain untouched.
+
+### `paradae-updates`
+
+- Its ParaDAE root bookkeeping and solver callbacks are represented in current
+  `main` through `Equation` root masks, `EquationGridDyn` callbacks, and the
+  ParaDAE time integrator.
+- The branch's LAPACKE discovery change has been superseded. Current CMake uses
+  `find_package(LAPACKE)` and validates LAPACKE, Braid, and MPI before enabling
+  the solver sources.
+- The old `LimitManager` and output-hook scaffold belongs to the retired
+  experimental limit pipeline described below; no current feature depends on
+  it.
+
+### `braid-unscheduled-events`
+
+- The useful unscheduled-event work is already in current `main`: root counts
+  and masks, GridDyn root callbacks, Braid root extraction, and root-step
+  follow-through. Current `main` also reevaluates roots around continuation and
+  synchronizes component state before applying root actions.
+- The branch's extra `setState` call was in its old `limitCheckingFunction`.
+  That callback was removed with the limit pipeline. Current root evaluation
+  builds `StateData` from the evaluated solver vectors and passes it to
+  `rootTest`, while root actions synchronize component state before triggers
+  run.
+- The branch's `ExciterIEEEtype1` hard clipping is superseded by the current
+  root-based upper/lower limit and release handling, including derivative
+  reset and Jacobian notifications.
+- The branch's `SineSource` early-return workaround disables output updates.
+  Current `SineSource` retains its update path, so the workaround is not
+  useful to preserve.
+- The broader `limitTest`/`limitTrigger` and `LimitManager` pipeline is an old
+  solver-specific prototype. Current components use the root API for model
+  transitions; carrying both systems forward would duplicate behavior.
+- Debug-output cleanup commits are already irrelevant to current `main`.
+
+### `braid_work_update`
+
+- Its Braid/ParaDAE root-action changes are represented by current `main`'s
+  root callbacks and solver continuation. The same intent was merged into
+  `main` in commit `f18076f3` and has since been kept in the current code.
+- Its `ThirdParty/units` pointer (`3ec79a8`) is an ancestor of the current
+  pointer (`22550ff`), so its dependency update is included.
+
+### Retirement decision
+
+No additional source changes need to be ported from these branches. The
+behavior worth keeping is present in current `main`, and the remaining branch
+content is obsolete, superseded, or intentionally dropped with the rationale
+above. These three branch refs can be deleted safely with respect to code
+preservation. This review does not delete them; preserve unrelated worktree
+edits before cleanup operations that could overwrite them.
+
+## Audit: `message_serialization`
+
+Audit date: 2026-09-26
+
+- The branch tip (`e898ec64`) is an ancestor of current `main`; `main` is 369
+  commits ahead and the branch has no commits absent from `main`.
+- Its message serialization implementation is present in the current
+  communication layer: `CommMessage` retains Cereal save/load support and
+  byte, vector, and data-string conversion; control and scheduler payloads
+  retain Cereal serialization registration; communicator transports use the
+  data-string conversion methods.
+- Current code has since modernized names, file casing, and APIs around that
+  behavior. No additional source changes need to be ported from this branch.
+
+### Retirement decision
+
+The branch can be deleted without losing its serialization work. This review
+does not delete the branch ref.

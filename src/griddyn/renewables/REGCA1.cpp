@@ -12,23 +12,30 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <string>
 
 namespace griddyn {
 namespace {
-constexpr std::array<RenewablePort, 3> inputs{{
-    {RenewableSignal::terminalVoltage, 0},
-    {RenewableSignal::activeCurrentCommand, 1, RenewableBase::machine, false},
-    {RenewableSignal::reactiveCurrentCommand, 2, RenewableBase::machine, false},
-}};
-constexpr std::array<RenewablePort, 2> outputs{{
-    {RenewableSignal::electricalPower, 0, RenewableBase::machine},
-    {RenewableSignal::reactivePower, 1, RenewableBase::machine},
-}};
-constexpr index_t activePower = 0;
-constexpr index_t reactivePower = 1;
-constexpr index_t activeCurrent = 0;
-constexpr index_t reactiveCurrent = 1;
-constexpr index_t filteredVoltage = 2;
+    constexpr std::array<RenewablePort, 3> inputs{{
+        {.signal = RenewableSignal::terminalVoltage, .ioIndex = 0},
+        {.signal = RenewableSignal::activeCurrentCommand,
+         .ioIndex = 1,
+         .base = RenewableBase::machine,
+         .required = false},
+        {.signal = RenewableSignal::reactiveCurrentCommand,
+         .ioIndex = 2,
+         .base = RenewableBase::machine,
+         .required = false},
+    }};
+    constexpr std::array<RenewablePort, 2> outputs{{
+        {.signal = RenewableSignal::electricalPower, .ioIndex = 0, .base = RenewableBase::machine},
+        {.signal = RenewableSignal::reactivePower, .ioIndex = 1, .base = RenewableBase::machine},
+    }};
+    constexpr index_t activePower = 0;
+    constexpr index_t reactivePower = 1;
+    constexpr index_t activeCurrent = 0;
+    constexpr index_t reactiveCurrent = 1;
+    constexpr index_t filteredVoltage = 2;
 }  // namespace
 
 REGCA1::REGCA1(const std::string& name): TerminalElectricalModel(name)
@@ -82,8 +89,9 @@ void REGCA1::set(std::string_view param, double val, units::unit unitType)
     else if (key == "iqrmax") { Iqrmax = val; }
     else if (key == "iqrmin") { Iqrmin = val; }
     else if (key == "lvplsw") {
-        if (val != 0.0 && val != 1.0)
+        if (val != 0.0 && val != 1.0) {
             throw InvalidParameterValue("REGCA1 Lvplsw must be zero or one");
+        }
         Lvplsw = val == 1.0;
     }
     else if (key == "accel") {
@@ -94,21 +102,51 @@ void REGCA1::set(std::string_view param, double val, units::unit unitType)
 double REGCA1::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key == "tg") return Tg;
-    if (key == "rrpwr") return Rrpwr;
-    if (key == "brkpt") return Brkpt;
-    if (key == "zerox") return Zerox;
-    if (key == "lvpl1") return Lvpl1;
-    if (key == "volim") return Volim;
-    if (key == "lvpnt1") return Lvpnt1;
-    if (key == "lvpnt0") return Lvpnt0;
-    if (key == "iolim") return Iolim;
-    if (key == "tfltr") return Tfltr;
-    if (key == "khv") return Khv;
-    if (key == "iqrmax") return Iqrmax;
-    if (key == "iqrmin") return Iqrmin;
-    if (key == "lvplsw") return Lvplsw ? 1.0 : 0.0;
-    if (key == "accel") return Accel;
+    if (key == "tg") {
+        return Tg;
+    }
+    if (key == "rrpwr") {
+        return Rrpwr;
+    }
+    if (key == "brkpt") {
+        return Brkpt;
+    }
+    if (key == "zerox") {
+        return Zerox;
+    }
+    if (key == "lvpl1") {
+        return Lvpl1;
+    }
+    if (key == "volim") {
+        return Volim;
+    }
+    if (key == "lvpnt1") {
+        return Lvpnt1;
+    }
+    if (key == "lvpnt0") {
+        return Lvpnt0;
+    }
+    if (key == "iolim") {
+        return Iolim;
+    }
+    if (key == "tfltr") {
+        return Tfltr;
+    }
+    if (key == "khv") {
+        return Khv;
+    }
+    if (key == "iqrmax") {
+        return Iqrmax;
+    }
+    if (key == "iqrmin") {
+        return Iqrmin;
+    }
+    if (key == "lvplsw") {
+        return Lvplsw ? 1.0 : 0.0;
+    }
+    if (key == "accel") {
+        return Accel;
+    }
     return TerminalElectricalModel::get(param, unitType);
 }
 
@@ -117,7 +155,7 @@ void REGCA1::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
     const std::array<double, 13> params{Tg, Rrpwr, Brkpt, Zerox, Lvpl1, Volim,
                                          Lvpnt1, Lvpnt0, Iolim, Tfltr, Khv,
                                          Iqrmax, Iqrmin};
-    if (std::any_of(params.begin(), params.end(), [](double x) { return !std::isfinite(x); }) ||
+    if (std::any_of(params.begin(), params.end(), [](double stateValue) { return !std::isfinite(stateValue); }) ||
         Tg <= 0.0 || Tfltr <= 0.0 || Rrpwr <= 0.0 ||
         Brkpt <= Zerox || Lvpnt1 <= Lvpnt0 || Lvpl1 < 0.0 ||
         !std::isfinite(Accel) ||
@@ -138,19 +176,23 @@ double REGCA1::lowVoltageGain(double voltage) const
 
 double REGCA1::lowVoltagePowerLimit(double voltage) const
 {
-    if (!Lvplsw || voltage >= Brkpt) return kBigNum;
-    if (voltage <= Zerox) return 0.0;
+    if (!Lvplsw || voltage >= Brkpt) {
+        return kBigNum;
+    }
+    if (voltage <= Zerox) {
+        return 0.0;
+    }
     return Lvpl1 * (voltage - Zerox) / (Brkpt - Zerox);
 }
 
-double REGCA1::activeCommand(const IOdata& values) const
+double REGCA1::activeCommand(const IOdata& inputs) const
 {
-    return values.size() > 1 && values[1] != kNullVal ? values[1] : heldIpCommand;
+    return inputs.size() > 1 && inputs[1] != kNullVal ? inputs[1] : heldIpCommand;
 }
 
-double REGCA1::reactiveCommand(const IOdata& values) const
+double REGCA1::reactiveCommand(const IOdata& inputs) const
 {
-    return values.size() > 2 && values[2] != kNullVal ? values[2] : heldIqCommand;
+    return inputs.size() > 2 && inputs[2] != kNullVal ? inputs[2] : heldIqCommand;
 }
 
 double REGCA1::limitReactiveRate(double rate) const
@@ -158,10 +200,12 @@ double REGCA1::limitReactiveRate(double rate) const
     // REGCA1 applies the recovery slew limit only in the direction selected
     // by the initial reactive power. A nonpositive upper limit or nonnegative
     // lower limit disables that recovery direction in PowerWorld's REGC_A.
-    if (initialReactivePower > 0.0 && Iqrmax > 0.0)
+    if (initialReactivePower > 0.0 && Iqrmax > 0.0) {
         return std::min(rate, Iqrmax);
-    if (initialReactivePower < 0.0 && Iqrmin < 0.0)
+    }
+    if (initialReactivePower < 0.0 && Iqrmin < 0.0) {
         return std::max(rate, Iqrmin);
+    }
     return rate;
 }
 
@@ -171,93 +215,99 @@ bool REGCA1::reactiveRateFree(double rate) const
         (initialReactivePower >= 0.0 || Iqrmin >= 0.0 || rate > Iqrmin);
 }
 
-void REGCA1::dynObjectInitializeB(const IOdata& values, const IOdata& desiredOutput,
+void REGCA1::dynObjectInitializeB(const IOdata& inputs, const IOdata& desiredOutput,
                                   IOdata& fieldSet)
 {
-    if (values.empty() || desiredOutput.size() < 2 ||
-        !std::isfinite(values[0]) || values[0] <= 0.0 ||
+    if (inputs.empty() || desiredOutput.size() < 2 ||
+        !std::isfinite(inputs[0]) || inputs[0] <= 0.0 ||
         !std::isfinite(desiredOutput[0]) || !std::isfinite(desiredOutput[1])) {
         throw InvalidParameterValue("REGCA1 terminal voltage or initial P/Q");
     }
-    const double v = values[0];
-    const double gain = lowVoltageGain(v);
+    const double voltage = inputs[0];
+    const double gain = lowVoltageGain(voltage);
     if (gain == 0.0 && desiredOutput[0] != 0.0) {
         throw InvalidParameterValue("REGCA1 initial active power at zero low-voltage gain");
     }
-    const double ip = gain == 0.0 ? 0.0 : desiredOutput[0] / (v * gain);
-    const double iq = desiredOutput[1] / v;
-    heldIpCommand = ip;
-    heldIqCommand = -iq;
+    const double activeCurrent = gain == 0.0 ? 0.0 : desiredOutput[0] / (voltage * gain);
+    const double reactiveCurrent = desiredOutput[1] / voltage;
+    heldIpCommand = activeCurrent;
+    heldIqCommand = -reactiveCurrent;
     initialReactivePower = desiredOutput[1];
     m_state[activePower] = desiredOutput[0];
     m_state[reactivePower] = desiredOutput[1];
-    m_state[2 + activeCurrent] = ip;
-    m_state[2 + reactiveCurrent] = iq;
-    m_state[2 + filteredVoltage] = v;
-    fieldSet = {ip, -iq};
+    m_state[2 + activeCurrent] = activeCurrent;
+    m_state[2 + reactiveCurrent] = reactiveCurrent;
+    m_state[2 + filteredVoltage] = voltage;
+    fieldSet = {activeCurrent, -reactiveCurrent};
 }
 
-void REGCA1::derivative(const IOdata& values, const StateData& stateData,
+void REGCA1::derivative(const IOdata& inputs, const StateData& stateData,
                         double deriv[], const SolverMode& sMode)
 {
-    if (!hasDifferential(sMode)) return;
+    if (!hasDifferential(sMode)) {
+        return;
+    }
     const auto loc = offsets.getLocations(stateData, deriv, sMode, this);
     const double* state = loc.diffStateLoc;
-    const double ipTarget = std::min(activeCommand(values),
+    const double ipTarget = std::min(activeCommand(inputs),
                                      lowVoltagePowerLimit(state[filteredVoltage]));
-    const double iqTarget = std::max(Iolim, -reactiveCommand(values) -
-                                              Khv * std::max(values[0] - Volim, 0.0));
+    const double iqTarget =
+        std::max(Iolim, -reactiveCommand(inputs) - (Khv * std::max(inputs[0] - Volim, 0.0)));
     loc.destDiffLoc[activeCurrent] = std::min((ipTarget - state[activeCurrent]) / Tg, Rrpwr);
     loc.destDiffLoc[reactiveCurrent] = limitReactiveRate(
         (iqTarget - state[reactiveCurrent]) / Tg);
-    loc.destDiffLoc[filteredVoltage] = (values[0] - state[filteredVoltage]) / Tfltr;
+    loc.destDiffLoc[filteredVoltage] = (inputs[0] - state[filteredVoltage]) / Tfltr;
 }
 
-void REGCA1::residual(const IOdata& values, const StateData& stateData,
+void REGCA1::residual(const IOdata& inputs, const StateData& stateData,
                       double resid[], const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, resid, sMode, this);
     if (hasAlgebraic(sMode)) {
-        loc.destLoc[activePower] = values[0] * loc.diffStateLoc[activeCurrent] *
-            lowVoltageGain(values[0]) - loc.algStateLoc[activePower];
-        loc.destLoc[reactivePower] = values[0] * loc.diffStateLoc[reactiveCurrent] -
+        loc.destLoc[activePower] = inputs[0] * loc.diffStateLoc[activeCurrent] *
+            lowVoltageGain(inputs[0]) - loc.algStateLoc[activePower];
+        loc.destLoc[reactivePower] = inputs[0] * loc.diffStateLoc[reactiveCurrent] -
             loc.algStateLoc[reactivePower];
     }
     if (hasDifferential(sMode)) {
-        derivative(values, stateData, resid, sMode);
-        for (index_t i = 0; i < loc.diffSize; ++i) {
-            loc.destDiffLoc[i] -= loc.dstateLoc[i];
+        derivative(inputs, stateData, resid, sMode);
+        for (index_t index = 0; index < loc.diffSize; ++index) {
+            loc.destDiffLoc[index] -= loc.dstateLoc[index];
         }
     }
 }
 
-void REGCA1::algebraicUpdate(const IOdata& values, const StateData& stateData,
+void REGCA1::algebraicUpdate(const IOdata& inputs, const StateData& stateData,
                              double update[], const SolverMode& sMode,
                              double /*alpha*/)
 {
-    if (!hasAlgebraic(sMode)) return;
+    if (!hasAlgebraic(sMode)) {
+        return;
+    }
     const auto loc = offsets.getLocations(stateData, update, sMode, this);
-    loc.destLoc[activePower] = values[0] * loc.diffStateLoc[activeCurrent] *
-        lowVoltageGain(values[0]);
-    loc.destLoc[reactivePower] = values[0] * loc.diffStateLoc[reactiveCurrent];
+    loc.destLoc[activePower] = inputs[0] * loc.diffStateLoc[activeCurrent] *
+        lowVoltageGain(inputs[0]);
+    loc.destLoc[reactivePower] = inputs[0] * loc.diffStateLoc[reactiveCurrent];
 }
 
-void REGCA1::timestep(CoreTime time, const IOdata& values,
+void REGCA1::timestep(CoreTime time, const IOdata& inputs,
                       const SolverMode& /*sMode*/)
 {
-    const double dt = time - prevTime;
-    if (dt < 0.0) throw InvalidParameterValue("REGCA1 timestep precedes current time");
-    derivative(values, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
-    for (index_t i = 0; i < 3; ++i) {
-        m_state[2 + i] += dt * m_dstate_dt[2 + i];
+    const double deltaTime = time - prevTime;
+    if (deltaTime < 0.0) {
+        throw InvalidParameterValue("REGCA1 timestep precedes current time");
     }
-    m_state[activePower] = values[0] * m_state[2 + activeCurrent] *
-        lowVoltageGain(values[0]);
-    m_state[reactivePower] = values[0] * m_state[2 + reactiveCurrent];
+    derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
+    for (index_t index = 0; index < 3; ++index) {
+        m_state[2 + index] += deltaTime * m_dstate_dt[2 + index];
+    }
+    m_state[activePower] = inputs[0] * m_state[2 + activeCurrent] *
+        lowVoltageGain(inputs[0]);
+    m_state[reactivePower] = inputs[0] * m_state[2 + reactiveCurrent];
     prevTime = time;
 }
 
-void REGCA1::jacobianElements(const IOdata& values, const StateData& stateData,
+void REGCA1::jacobianElements(const IOdata& inputs, const StateData& stateData,
                               MatrixData<double>& matrixData, const IOlocs& inputLocs,
                               const SolverMode& sMode)
 {
@@ -265,29 +315,31 @@ void REGCA1::jacobianElements(const IOdata& values, const StateData& stateData,
     const double* state = loc.diffStateLoc;
     const index_t alg = loc.algOffset;
     const index_t diff = loc.diffOffset;
-    const double v = values[0];
-    const double gain = lowVoltageGain(v);
-    const double gainSlope = v > Lvpnt0 && v < Lvpnt1 ? 1.0 / (Lvpnt1 - Lvpnt0) : 0.0;
+    const double voltage = inputs[0];
+    const double gain = lowVoltageGain(voltage);
+    const double gainSlope = voltage > Lvpnt0 && voltage < Lvpnt1 ? 1.0 / (Lvpnt1 - Lvpnt0) : 0.0;
     if (hasAlgebraic(sMode)) {
         matrixData.assign(alg + activePower, alg + activePower, -1.0);
         matrixData.assign(alg + reactivePower, alg + reactivePower, -1.0);
         if (!isAlgebraicOnly(sMode)) {
-            matrixData.assign(alg + activePower, diff + activeCurrent, v * gain);
-            matrixData.assign(alg + reactivePower, diff + reactiveCurrent, v);
+            matrixData.assign(alg + activePower, diff + activeCurrent, voltage * gain);
+            matrixData.assign(alg + reactivePower, diff + reactiveCurrent, voltage);
         }
         matrixData.assignCheckCol(alg + activePower, inputLocs[0],
-                                  state[activeCurrent] * (gain + v * gainSlope));
+                                  state[activeCurrent] * (gain + voltage * gainSlope));
         matrixData.assignCheckCol(alg + reactivePower, inputLocs[0], state[reactiveCurrent]);
     }
-    if (!hasDifferential(sMode)) return;
+    if (!hasDifferential(sMode)) {
+        return;
+    }
     const double ipLimit = lowVoltagePowerLimit(state[filteredVoltage]);
-    const double ipTarget = std::min(activeCommand(values), ipLimit);
+    const double ipTarget = std::min(activeCommand(inputs), ipLimit);
     const double ipRate = (ipTarget - state[activeCurrent]) / Tg;
     matrixData.assign(diff + activeCurrent, diff + activeCurrent,
                       (ipRate < Rrpwr ? -1.0 / Tg : 0.0) - stateData.cj);
     if (ipRate < Rrpwr) {
-        if (activeCommand(values) <= ipLimit) {
-            if (inputLocs.size() > 1 && values.size() > 1 && values[1] != kNullVal) {
+        if (activeCommand(inputs) <= ipLimit) {
+            if (inputLocs.size() > 1 && inputs.size() > 1 && inputs[1] != kNullVal) {
                 matrixData.assignCheckCol(diff + activeCurrent, inputLocs[1], 1.0 / Tg);
             }
         } else if (state[filteredVoltage] > Zerox && state[filteredVoltage] < Brkpt) {
@@ -295,33 +347,34 @@ void REGCA1::jacobianElements(const IOdata& values, const StateData& stateData,
                               Lvpl1 / ((Brkpt - Zerox) * Tg));
         }
     }
-    const double iqRaw = -reactiveCommand(values) - Khv * std::max(v - Volim, 0.0);
+    const double iqRaw = -reactiveCommand(inputs) - (Khv * std::max(voltage - Volim, 0.0));
     const double iqTarget = std::max(Iolim, iqRaw);
     const double iqRate = (iqTarget - state[reactiveCurrent]) / Tg;
     const bool iqFree = reactiveRateFree(iqRate);
     matrixData.assign(diff + reactiveCurrent, diff + reactiveCurrent,
                       (iqFree ? -1.0 / Tg : 0.0) - stateData.cj);
     if (iqFree && iqRaw > Iolim) {
-        if (inputLocs.size() > 2 && values.size() > 2 && values[2] != kNullVal) {
+        if (inputLocs.size() > 2 && inputs.size() > 2 && inputs[2] != kNullVal) {
             matrixData.assignCheckCol(diff + reactiveCurrent, inputLocs[2], -1.0 / Tg);
         }
-        if (v > Volim) {
+        if (voltage > Volim) {
             matrixData.assignCheckCol(diff + reactiveCurrent, inputLocs[0], -Khv / Tg);
         }
     }
-    matrixData.assign(diff + filteredVoltage, diff + filteredVoltage,
-                      -1.0 / Tfltr - stateData.cj);
+    matrixData.assign(diff + filteredVoltage,
+                      diff + filteredVoltage,
+                      (-1.0 / Tfltr) - stateData.cj);
     matrixData.assignCheckCol(diff + filteredVoltage, inputLocs[0], 1.0 / Tfltr);
 }
 
-IOdata REGCA1::getOutputs(const IOdata& /*values*/, const StateData& stateData,
+IOdata REGCA1::getOutputs(const IOdata& /*inputs*/, const StateData& stateData,
                           const SolverMode& sMode) const
 {
     const auto loc = offsets.getLocations(stateData, sMode, this);
     return {loc.algStateLoc[activePower], loc.algStateLoc[reactivePower]};
 }
 
-void REGCA1::outputPartialDerivatives(const IOdata& /*values*/,
+void REGCA1::outputPartialDerivatives(const IOdata& /*inputs*/,
                                       const StateData& /*stateData*/,
                                       MatrixData<double>& matrixData,
                                       const SolverMode& sMode)

@@ -5,6 +5,7 @@
  */
 #pragma once
 #include "RenewableComponent.h"
+#include <string>
 #include <array>
 
 namespace griddyn {
@@ -44,7 +45,7 @@ class WTTQA1 final: public RenewableComponent {
     std::array<double,4> power{0.2,0.4,0.6,0.8};
     std::array<double,4> speed{0.58,0.72,0.86,1.0};
     double initialPower=0.0;
-    double curve(double pe) const;
+    double curve(double electricalPower) const;
     double error(const IOdata& inputs,const double state[]) const;
     double reference(const IOdata& inputs,const double state[]) const;
     std::array<double,3> rates(const IOdata& inputs,const double state[]) const;

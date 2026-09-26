@@ -272,7 +272,7 @@ void loadDyr(CoreObject* parentObject,
         }
         auto lineTokens = gmlc::utilities::stringOps::splitlineQuotes(
             line,
-            " \t\n,",
+            " \timeValue\n,",
             gmlc::utilities::stringOps::default_quote_chars,
             gmlc::utilities::stringOps::delimiter_compression::on);
         // get rid of the '/' at the end of the last string
@@ -292,11 +292,14 @@ void loadDyr(CoreObject* parentObject,
                 addUnsupportedModel(unsupportedModels, modelName, lineTokens, recordLineNumber);
             }
         } catch (const InvalidParameterValue& error) {
-            throw InvalidParameterValue(fileName + ":" + std::to_string(recordLineNumber) +
-                                        " " + modelName + " bus " + lineTokens[0] +
-                                        " machine " +
-                                        (lineTokens.size() > 2U ? lineTokens[2] : "<missing>") +
-                                        ": " + error.what());
+            std::string message{fileName};
+            message.push_back(':');
+            message.append(std::to_string(recordLineNumber));
+            message.append(" ").append(modelName).append(" bus ").append(lineTokens[0]);
+            message.append(" machine ");
+            message.append(lineTokens.size() > 2U ? lineTokens[2] : "<missing>");
+            message.append(": ").append(error.what());
+            throw InvalidParameterValue(message);
         }
     }
     if (!unsupportedModels.empty()) {
@@ -427,31 +430,42 @@ namespace {
             "tflag", "kpp", "kip", "tp", "twref", "temax", "temin",
             "p1", "spd1", "p2", "spd2", "p3", "spd3", "p4", "spd4", "trate"});
 
-        const auto expected = modelName == "REGCA1" ? 18U :
-            modelName == "REECA1" ? 54U : modelName == "REECB1" ? 33U :
-            modelName == "REPCA1" ? 37U :
-            modelName == "WTDTA1" ? 8U : modelName == "WTARA1" ? 5U :
-            modelName == "WTPTA1" ? 13U : 19U;
+        std::size_t expected = 19U;
+        if (modelName == "REGCA1") {
+            expected = 18U;
+        } else if (modelName == "REECA1") {
+            expected = 54U;
+        } else if (modelName == "REECB1") {
+            expected = 33U;
+        } else if (modelName == "REPCA1") {
+            expected = 37U;
+        } else if (modelName == "WTDTA1") {
+            expected = 8U;
+        } else if (modelName == "WTARA1") {
+            expected = 5U;
+        } else if (modelName == "WTPTA1") {
+            expected = 13U;
+        }
         if (tokens.size() != expected) {
             throw InvalidParameterValue(std::string{modelName} +
                                         " DYR record has the wrong field count");
         }
         auto* generator = requireDyrGenerator(parentObject, tokens, modelName);
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
-        std::string modelKey = gmlc::utilities::convertToLowerCase(modelName);
+        std::string const modelKey = gmlc::utilities::convertToLowerCase(modelName);
         std::unique_ptr<RenewableComponent> model(dynamic_cast<RenewableComponent*>(
             CoreObjectFactory::instance()->createObject("renewable_model", modelKey)));
         if (model == nullptr) {
             throw InvalidParameterValue(std::string{modelName} + " factory is unavailable");
         }
         const auto setFields = [&](const auto& fields, std::size_t firstIndex) {
-            for (std::size_t i = 0; i < fields.size(); ++i) {
-                const auto value = params[firstIndex + i];
+            for (std::size_t index = 0; index < fields.size(); ++index) {
+                const auto value = params[firstIndex + index];
                 if (!std::isfinite(value) || value == kNullVal) {
                     throw InvalidParameterValue(std::string{modelName} +
                                                 " DYR record has a nonnumeric field");
                 }
-                model->set(fields[i], value);
+                model->set(fields[index], value);
             }
         };
         if (modelName == "REGCA1") {
@@ -506,10 +520,12 @@ namespace {
                 throw InvalidParameterValue("renewable DYR generator has no parent bus");
             }
             bus->replaceGenerator(generator, replacement.get());
-            replacement.release();
+            auto* releasedReplacement = replacement.release();
+            (void)releasedReplacement;
         }
         renewable->add(model.get());
-        model.release();
+        auto* releasedModel = model.release();
+        (void)releasedModel;
     }
 
     void loadGENCLS(CoreObject* parentObject, stringVec& tokens)
@@ -523,7 +539,7 @@ namespace {
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         auto* genModel = static_cast<GenModel*>(
             CoreObjectFactory::instance()->createObject("genmodel", "gencls"));
-        // The RAW generator supplies ra and x'd. Attach before applying the
+        // The RAW generator supplies ra and stateValue'd. Attach before applying the
         // two GENCLS DYR parameters so DynamicGenerator transfers ZSOURCE.
         gen->add(genModel);
         genModel->set("h", params[3]);

@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <array>
 #include <stdexcept>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 namespace {
@@ -96,8 +98,9 @@ CoreObject* RenewableGenerator::find(std::string_view object) const
 
 CoreObject* RenewableGenerator::getSubObject(std::string_view typeName, index_t num) const
 {
-    if (typeName == "renewable_component" && num < roleCount) {
-        return components[num];
+    if (typeName == "renewable_component" && num >= 0 &&
+        static_cast<std::size_t>(num) < roleCount) {
+        return components[static_cast<std::size_t>(num)];
     }
     return Generator::getSubObject(typeName, num);
 }
@@ -156,18 +159,19 @@ IOdata RenewableGenerator::modelInputs(const RenewableComponent* model,
 {
     IOdata result;
     for (const auto& port : model->inputPorts()) {
-        if (result.size() <= port.ioIndex) {
-            result.resize(port.ioIndex + 1, kNullVal);
+        const auto portIndex = static_cast<std::size_t>(port.ioIndex);
+        if (result.size() <= portIndex) {
+            result.resize(portIndex + 1, kNullVal);
         }
         switch (port.signal) {
             case RenewableSignal::terminalVoltage:
                 if (inputs.size() > VOLTAGE_IN_LOCATION) {
-                    result[port.ioIndex] = inputs[VOLTAGE_IN_LOCATION];
+                    result[portIndex] = inputs[VOLTAGE_IN_LOCATION];
                 }
                 break;
             case RenewableSignal::terminalAngle:
                 if (inputs.size() > ANGLE_IN_LOCATION) {
-                    result[port.ioIndex] = inputs[ANGLE_IN_LOCATION];
+                    result[portIndex] = inputs[ANGLE_IN_LOCATION];
                 }
                 break;
             default:
@@ -191,7 +195,7 @@ IOdata RenewableGenerator::modelInputs(const RenewableComponent* model,
                                     outputState.state = stateDataValue.algState;
                                 }
                             }
-                            result[port.ioIndex] = candidate->getOutput(
+                            result[portIndex] = candidate->getOutput(
                                 {}, outputState, *outputMode, output.ioIndex);
                         }
                     }
@@ -207,15 +211,16 @@ IOlocs RenewableGenerator::modelInputLocs(const RenewableComponent* model,
 {
     IOlocs result;
     for (const auto& port : model->inputPorts()) {
-        if (result.size() <= port.ioIndex) {
-            result.resize(port.ioIndex + 1, kNullLocation);
+        const auto portIndex = static_cast<std::size_t>(port.ioIndex);
+        if (result.size() <= portIndex) {
+            result.resize(portIndex + 1, kNullLocation);
         }
         if (port.signal == RenewableSignal::terminalVoltage &&
             inputLocs.size() > VOLTAGE_IN_LOCATION) {
-            result[port.ioIndex] = inputLocs[VOLTAGE_IN_LOCATION];
+            result[portIndex] = inputLocs[VOLTAGE_IN_LOCATION];
         } else if (port.signal == RenewableSignal::terminalAngle &&
                    inputLocs.size() > ANGLE_IN_LOCATION) {
-            result[port.ioIndex] = inputLocs[ANGLE_IN_LOCATION];
+            result[portIndex] = inputLocs[ANGLE_IN_LOCATION];
         } else {
             for (const auto* candidate : components) {
                 if (candidate == nullptr || candidate == model || !candidate->isEnabled()) {
@@ -223,7 +228,7 @@ IOlocs RenewableGenerator::modelInputLocs(const RenewableComponent* model,
                 }
                 for (const auto& output : candidate->outputPorts()) {
                     if (output.signal == port.signal && output.base == port.base) {
-                        result[port.ioIndex] = candidate->getOutputLoc(sMode,
+                        result[portIndex] = candidate->getOutputLoc(sMode,
                                                                       output.ioIndex);
                     }
                 }
@@ -245,7 +250,7 @@ void RenewableGenerator::dynObjectInitializeB(const IOdata& inputs,
 {
     Generator::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
     const double scale = systemBasePower / machineBasePower;
-    IOdata target{P * scale, Q * scale};
+    IOdata const target{P * scale, Q * scale};
     IOdata modelFieldSet;
     electricalModel->dynInitializeB(modelInputs(electricalModel, inputs, emptyStateData,
                                                 cLocalSolverMode),
@@ -274,24 +279,28 @@ void RenewableGenerator::dynObjectInitializeB(const IOdata& inputs,
     }
 }
 
-void RenewableGenerator::setState(CoreTime time, const double state[],
-                                  const double dstate_dt[], const SolverMode& sMode)
+void RenewableGenerator::setState(CoreTime time,
+                                  const double state[],
+                                  const double dstateDt[],
+                                  const SolverMode& sMode)
 {
-    Generator::setState(time, state, dstate_dt, sMode);
+    Generator::setState(time, state, dstateDt, sMode);
     for (auto* component : components) {
         if (component != nullptr && component->isEnabled()) {
-            component->setState(time, state, dstate_dt, sMode);
+            component->setState(time, state, dstateDt, sMode);
         }
     }
 }
 
-void RenewableGenerator::guessState(CoreTime time, double state[], double dstate_dt[],
+void RenewableGenerator::guessState(CoreTime time,
+                                    double state[],
+                                    double dstateDt[],
                                     const SolverMode& sMode)
 {
-    Generator::guessState(time, state, dstate_dt, sMode);
+    Generator::guessState(time, state, dstateDt, sMode);
     for (auto* component : components) {
         if (component != nullptr && component->isEnabled()) {
-            component->guessState(time, state, dstate_dt, sMode);
+            component->guessState(time, state, dstateDt, sMode);
         }
     }
 }
@@ -355,15 +364,15 @@ void RenewableGenerator::timestep(CoreTime time, const IOdata& inputs,
     stepRole(RenewableRole::electricalControl);
     stepRole(RenewableRole::pitchControl);
     stepRole(RenewableRole::aerodynamics);
-    for (std::size_t i = 0; i < roleCount; ++i) {
-        if (i != roleIndex(RenewableRole::plantControl) &&
-            i != roleIndex(RenewableRole::driveTrain) &&
-            i != roleIndex(RenewableRole::torqueControl) &&
-            i != roleIndex(RenewableRole::electricalControl) &&
-            i != roleIndex(RenewableRole::pitchControl) &&
-            i != roleIndex(RenewableRole::aerodynamics) &&
-            i != roleIndex(RenewableRole::electrical)) {
-            stepRole(static_cast<RenewableRole>(i));
+    for (std::size_t index = 0; index < roleCount; ++index) {
+        if (index != roleIndex(RenewableRole::plantControl) &&
+            index != roleIndex(RenewableRole::driveTrain) &&
+            index != roleIndex(RenewableRole::torqueControl) &&
+            index != roleIndex(RenewableRole::electricalControl) &&
+            index != roleIndex(RenewableRole::pitchControl) &&
+            index != roleIndex(RenewableRole::aerodynamics) &&
+            index != roleIndex(RenewableRole::electrical)) {
+            stepRole(static_cast<RenewableRole>(index));
         }
     }
     stepRole(RenewableRole::electrical);

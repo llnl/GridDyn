@@ -6,6 +6,7 @@
 #pragma once
 #include "RenewableComponent.h"
 #include <array>
+#include <string>
 
 namespace griddyn {
 

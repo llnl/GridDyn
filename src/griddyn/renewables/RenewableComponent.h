@@ -9,6 +9,7 @@
 #include "../GridSubModel.h"
 #include <array>
 #include <span>
+#include <string>
 
 namespace griddyn {
 

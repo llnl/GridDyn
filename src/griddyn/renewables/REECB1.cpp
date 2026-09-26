@@ -7,6 +7,7 @@
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/stringOps.h"
+#include <string>
 
 namespace griddyn {
 
@@ -31,8 +32,8 @@ void REECB1::set(std::string_view param,double val,units::unit unitType)
     }
     REECA1::set(param,val,unitType);
     if (key=="imax") {
-        for (int i=1;i<=4;++i) {
-            const auto suffix=std::to_string(i);
+        for (int index=1;index<=4;++index) {
+            const auto suffix=std::to_string(index);
             REECA1::set("ip"+suffix,val);
             REECA1::set("iq"+suffix,val);
         }

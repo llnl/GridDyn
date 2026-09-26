@@ -22,12 +22,14 @@
 #include "fileInput/fileInput.h"
 #include "utilities/MatrixDataSparse.hpp"
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <array>
 #include <filesystem>
 #include <cmath>
 #include <fstream>
 #include <memory>
 #include <sstream>
+#include <string>
 #include <vector>
 
 using namespace griddyn;
@@ -84,7 +86,9 @@ void loadRenewableRecords(GridDynSimulation& simulation,
         ("griddyn_renewable_" + std::to_string(simulation.getID()) + ".dyr");
     {
         std::ofstream stream(file);
-        for (auto model : models) stream << renewableDyrRecord(model,busId);
+        for (auto model : models) {
+            stream << renewableDyrRecord(model, busId);
+        }
     }
     try {
         loadDyr(&simulation, file.string(), BasicReaderInfo{});
@@ -106,7 +110,9 @@ void loadOtherMachines(GridDynSimulation& simulation)
         std::ofstream output(file);
         std::string line;
         while (std::getline(input,line)) {
-            if (line.find("2 'GENCLS'")!=0) output << line << '\n';
+            if (!line.starts_with("2 'GENCLS'")) {
+                output << line << '\n';
+            }
         }
     }
     try {loadDyr(&simulation,file.string(),BasicReaderInfo{});}
@@ -152,14 +158,14 @@ TEST(RenewableModels, REGCA1SteadyInitializationAndHostSign)
     host.dynInitializeA(0.0, 0);
     IOdata fields;
     host.dynInitializeB({1.0, 0.0}, {0.8, 0.1}, fields);
-    ASSERT_EQ(converter->getStates().size(), 5u);
+    ASSERT_EQ(converter->getStates().size(), 5U);
     EXPECT_NEAR(converter->getStates()[0], 0.8, 1e-12);
     EXPECT_NEAR(converter->getStates()[1], 0.1, 1e-12);
     EXPECT_NEAR(converter->getStates()[2], 0.8, 1e-12);
     EXPECT_NEAR(converter->getStates()[3], 0.1, 1e-12);
     EXPECT_NEAR(converter->getStates()[4], 1.0, 1e-12);
     const auto output = host.getOutputs({1.0, 0.0}, emptyStateData, cLocalSolverMode);
-    ASSERT_EQ(output.size(), 2u);
+    ASSERT_EQ(output.size(), 2U);
     EXPECT_NEAR(output[0], -0.8, 1e-12);
     EXPECT_NEAR(output[1], -0.1, 1e-12);
     double residual[5]{};
@@ -171,7 +177,7 @@ TEST(RenewableModels, REGCA1SteadyInitializationAndHostSign)
     host.setOffset(0, cDaeSolverMode);
     std::vector<double> daeState(host.stateSize(cDaeSolverMode));
     std::vector<double> daeRate(daeState.size());
-    ASSERT_EQ(daeState.size(), 5u);
+    ASSERT_EQ(daeState.size(), 5U);
     host.guessState(0.0, daeState.data(), daeRate.data(), cDaeSolverMode);
     StateData stateData(0.0, daeState.data(), daeRate.data());
     stateData.stateSize = static_cast<count_t>(daeState.size());
@@ -221,8 +227,8 @@ TEST(RenewableModels, REECA1ZeroCurvesAndZeroOrderingLag)
     REECA1 controller;
     controller.set("tpord", 0.0);
     controller.set("imax", 1.3);
-    for (int i=1; i<=4; ++i) {
-        const auto suffix=std::to_string(i);
+    for (int index=1; index<=4; ++index) {
+        const auto suffix=std::to_string(index);
         controller.set("vq"+suffix, 0.0);
         controller.set("iq"+suffix, 0.0);
         controller.set("vp"+suffix, 0.0);
@@ -243,7 +249,7 @@ TEST(RenewableModels, REECA1ZeroCurvesAndZeroOrderingLag)
     controller.set("thld2",0.5);
     EXPECT_DOUBLE_EQ(controller.get("thld2"),0.5);
     EXPECT_NO_THROW(controller.dynInitializeA(0.0,0));
-    EXPECT_EQ(controller.rootSize(cDaeSolverMode),2u);
+    EXPECT_EQ(controller.rootSize(cDaeSolverMode), 2U);
 }
 
 TEST(RenewableModels, ACTIVSg25kDyrProfileLoadsRecoveryHold)
@@ -272,7 +278,7 @@ TEST(RenewableModels, ACTIVSg25kDyrProfileLoadsRecoveryHold)
     ASSERT_NE(electrical,nullptr);
     EXPECT_DOUBLE_EQ(electrical->get("thld2"),0.5);
     EXPECT_DOUBLE_EQ(electrical->get("tpord"),0.0);
-    EXPECT_EQ(electrical->rootSize(cDaeSolverMode),2u);
+    EXPECT_EQ(electrical->rootSize(cDaeSolverMode), 2U);
 }
 
 TEST(RenewableModels, REECA1HoldsDipLimitAfterRecovery)
@@ -284,10 +290,11 @@ TEST(RenewableModels, REECA1HoldsDipLimitAfterRecovery)
     controller.set("imax",0.85);
     controller.set("qmax",1.0);
     controller.set("qmin",-1.0);
-    for (int i=1;i<=4;++i) {
-        const auto suffix=std::to_string(i);
-        for (auto prefix : {"vq","iq","vp","ip"})
-            controller.set(std::string{prefix}+suffix,0.0);
+    for (int index=1;index<=4;++index) {
+        const auto suffix=std::to_string(index);
+        for (auto prefix : {"vq", "iq", "vp", "ip"}) {
+            controller.set(std::string{prefix} + suffix, 0.0);
+        }
     }
     controller.dynInitializeA(0.0,0);
     IOdata fields;
@@ -303,8 +310,9 @@ TEST(RenewableModels, REECA1HoldsDipLimitAfterRecovery)
     double update[6]{};
     EXPECT_NO_THROW(controller.algebraicUpdate({0.7},emptyStateData,update,
                                                cLocalSolverMode,1.0));
-    for (int step=11;step<=19;++step)
-        controller.timestep(step*0.01,{0.7,0.0,0.0,0.8},cLocalSolverMode);
+    for (int step = 11; step <= 19; ++step) {
+        controller.timestep(step * 0.01, {0.7, 0.0, 0.0, 0.8}, cLocalSolverMode);
+    }
     EXPECT_NEAR(controller.getOutputs({0.7},emptyStateData,cLocalSolverMode)[2],
                 0.8,1e-12);
     EXPECT_LT(controller.getOutputs({0.7},emptyStateData,
@@ -366,8 +374,8 @@ TEST(RenewableModels, RenewableGeneratorForwardsREECA1VoltageRoots)
     host.dynInitializeA(0.0,0);
     IOdata fields;
     host.dynInitializeB({1.0,0.0},{0.8,0.1},fields);
-    ASSERT_EQ(host.rootSize(cLocalSolverMode),2u);
-    EXPECT_EQ(electrical->rootSize(cLocalSolverMode),2u);
+    ASSERT_EQ(host.rootSize(cLocalSolverMode), 2U);
+    EXPECT_EQ(electrical->rootSize(cLocalSolverMode), 2U);
     host.setRootOffset(0,cLocalSolverMode);
     double roots[2]{};
     host.rootTest({0.7,0.0},StateData(0.1),roots,cLocalSolverMode);
@@ -464,7 +472,9 @@ TEST(RenewableModels, IndependentElectricalAndPlantControls)
     data.stateSize = static_cast<count_t>(state.size());
     std::vector<double> residual(state.size(), 0.0);
     host.residual({1.0, 0.0}, data, residual.data(), cDaeSolverMode);
-    for (double value : residual) EXPECT_NEAR(value, 0.0, 1e-10);
+    for (double value : residual) {
+        EXPECT_NEAR(value, 0.0, 1e-10);
+    }
 
     plant->set("vref", 1.05);
     host.timestep(0.01, {1.0, 0.0}, cLocalSolverMode);
@@ -488,9 +498,9 @@ TEST(RenewableModels, REECA1UnsupportedModesFail)
 
 TEST(RenewableModels, DyrAssemblesIndependentModelsInEitherOrder)
 {
-    for (const std::vector<std::string_view> order : {
-             std::vector<std::string_view>{"REGCA1", "REECA1", "REPCA1"},
-             std::vector<std::string_view>{"REPCA1", "REECA1", "REGCA1"}}) {
+    for (const std::vector<std::string_view>& order :
+         {std::vector<std::string_view>{"REGCA1", "REECA1", "REPCA1"},
+          std::vector<std::string_view>{"REPCA1", "REECA1", "REGCA1"}}) {
         auto simulation = renewableDyrSimulation();
         loadRenewableRecords(*simulation, order);
         auto* bus = dynamic_cast<GridBus*>(simulation->findByUserID("bus", 101));
@@ -524,9 +534,9 @@ TEST(RenewableModels, REECB1LoadsAsIndependentElectricalControl)
     std::unique_ptr<CoreObject> factoryObject(
         CoreObjectFactory::instance()->createObject("renewable_model","reecb1"));
     ASSERT_NE(dynamic_cast<REECB1*>(factoryObject.get()),nullptr);
-    for (const std::vector<std::string_view> order : {
-             std::vector<std::string_view>{"REGCA1","REECB1"},
-             std::vector<std::string_view>{"REECB1","REGCA1"}}) {
+    for (const std::vector<std::string_view>& order :
+         {std::vector<std::string_view>{"REGCA1", "REECB1"},
+          std::vector<std::string_view>{"REECB1", "REGCA1"}}) {
         auto simulation=renewableDyrSimulation();
         loadRenewableRecords(*simulation,order);
         auto* bus=dynamic_cast<GridBus*>(simulation->findByUserID("bus",101));
@@ -581,8 +591,9 @@ TEST(RenewableModels, ACTIVSg25kType3WindDoesNotAliasNewerWindModels)
         FAIL() << "WT3 models require their own equations";
     } catch (const InvalidParameterValue& error) {
         const std::string message=error.what();
-        for (auto name : {"WT3G1","WT3E1","WT3T1","WT3P1"})
-            EXPECT_NE(message.find(name),std::string::npos);
+        for (auto name : {"WT3G1", "WT3E1", "WT3T1", "WT3P1"}) {
+            EXPECT_NE(message.find(name), std::string::npos);
+        }
     }
     std::filesystem::remove(file);
     EXPECT_EQ(dynamic_cast<RenewableGenerator*>(simulation->getBus(0)->getGen(0)),
@@ -647,11 +658,10 @@ TEST(RenewableModels, ThreeModelDaeJacobianIncludesSignalConnections)
 
 TEST(RenewableModels, WindDyrAssemblesConnectedChainInEitherOrder)
 {
-    for (const std::vector<std::string_view> order : {
-             std::vector<std::string_view>{"REGCA1","REECA1","WTDTA1",
-                                           "WTARA1","WTPTA1","WTTQA1"},
-             std::vector<std::string_view>{"WTTQA1","WTPTA1","WTARA1",
-                                           "WTDTA1","REECA1","REGCA1"}}) {
+    for (const std::vector<std::string_view>& order :
+         {std::vector<std::string_view>{"REGCA1", "REECA1", "WTDTA1", "WTARA1", "WTPTA1", "WTTQA1"},
+          std::vector<std::string_view>{
+              "WTTQA1", "WTPTA1", "WTARA1", "WTDTA1", "REECA1", "REGCA1"}}) {
         auto simulation=renewableDyrSimulation();
         loadRenewableRecords(*simulation,order);
         auto* bus=dynamic_cast<GridBus*>(simulation->findByUserID("bus",101));
@@ -689,7 +699,9 @@ TEST(RenewableModels, WindDyrAssemblesConnectedChainInEitherOrder)
         data.stateSize=static_cast<count_t>(state.size());
         std::vector<double> residual(state.size());
         host->residual({1.0,0.0},data,residual.data(),cDaeSolverMode);
-        for (double value:residual) EXPECT_NEAR(value,0.0,1e-8);
+        for (double value : residual) {
+            EXPECT_NEAR(value, 0.0, 1e-8);
+        }
     }
 }
 
@@ -734,10 +746,10 @@ TEST(RenewableModels, WindChainDaeJacobianIncludesMechanicalFeedback)
     std::vector<double> rate(state.size());
     host.guessState(0.0,state.data(),rate.data(),cDaeSolverMode);
     const auto theta=pitch->getOutputLoc(cDaeSolverMode,0);
-    const auto wg=drivetrain->getOutputLoc(cDaeSolverMode,0);
+    const auto windGenerator=drivetrain->getOutputLoc(cDaeSolverMode,0);
     const auto wref=torque->getOutputLoc(cDaeSolverMode,1);
     state[theta]=2.0;state[theta+1]=1.0;state[theta+2]=1.0;
-    state[wg]=1.02;state[wg+1]=1.01;
+    state[windGenerator]=1.02;state[windGenerator+1]=1.01;
     state[wref-1]=0.7;state[wref]=0.95;state[wref+1]=0.8;
     StateData data(0.0,state.data(),rate.data());
     data.stateSize=static_cast<count_t>(state.size());
@@ -760,10 +772,10 @@ TEST(RenewableModels, WindChainDaeJacobianIncludesMechanicalFeedback)
         shifted[column]+=step;
         shiftedRate[column]+=step;
         const auto residual=residualAt(shifted,shiftedRate);
-        for (index_t row=0;row<state.size();++row)
-            EXPECT_NEAR(jacobian.at(row,column),
-                        (residual[row]-base[row])/step,3e-4)
+        for (index_t row = 0; row < state.size(); ++row) {
+            EXPECT_NEAR(jacobian.at(row, column), (residual[row] - base[row]) / step, 3e-4)
                 << "row " << row << " column " << column;
+        }
     }
 }
 
@@ -806,7 +818,9 @@ TEST(RenewableModels, WindTorqueSetsNonunitySteadySpeed)
     data.stateSize=static_cast<count_t>(state.size());
     std::vector<double> residual(state.size());
     host.residual({1.0,0.0},data,residual.data(),cDaeSolverMode);
-    for (double value:residual) EXPECT_NEAR(value,0.0,1e-8);
+    for (double value : residual) {
+        EXPECT_NEAR(value, 0.0, 1e-8);
+    }
 }
 
 TEST(RenewableModels, WindDyrIntegratesInNetwork)
@@ -825,7 +839,9 @@ TEST(RenewableModels, WindDyrIntegratesInNetwork)
     EXPECT_EQ(runResidualCheck(simulation,cDaeSolverMode,false),0);
     EXPECT_EQ(runJacobianCheck(simulation,cDaeSolverMode,false),0);
     ASSERT_EQ(simulation->run(0.1),0);
-    for (double value:simulation->getState()) EXPECT_TRUE(std::isfinite(value));
+    for (double value : simulation->getState()) {
+        EXPECT_TRUE(std::isfinite(value));
+    }
 }
 
 TEST(RenewableModels, SolarDyrIntegratesInNetwork)
@@ -848,8 +864,9 @@ TEST(RenewableModels, SolarDyrIntegratesInNetwork)
         }
         loadOtherMachines(*simulation);
         ASSERT_EQ(simulation->dynInitialize(),0);
-        if (std::string_view{electricalControl} == "REECA1")
-            EXPECT_GT(simulation->rootSize(cDaeSolverMode),0u);
+        if (std::string_view{electricalControl} == "REECA1") {
+            EXPECT_GT(simulation->rootSize(cDaeSolverMode), 0U);
+        }
         EXPECT_EQ(runResidualCheck(simulation,cDaeSolverMode,false),0);
         EXPECT_EQ(runJacobianCheck(simulation,cDaeSolverMode,false),0);
         ASSERT_EQ(simulation->run(0.1),0);
@@ -883,7 +900,9 @@ TEST(RenewableModels, TwoBusRenewableFaultMatchesAndesReference)
     auto* ree=useReecb ? static_cast<REECA1*>(new REECB1) : new REECA1;
     ree->set("vflag",0.0);
     ree->set("pqflag",0.0);
-    if (!useReecb) ree->set("thld2",0.5);
+    if (!useReecb) {
+        ree->set("thld2", 0.5);
+    }
     ree->set("tpord",useReecb ? 0.02 : 0.0);
     ree->set("imax",1.3);
     ree->set("qmax",1.0);
@@ -920,10 +939,17 @@ TEST(RenewableModels, TwoBusRenewableFaultMatchesAndesReference)
     }
     bus->add(host);
     ASSERT_EQ(simulation->dynInitialize(),0);
-    const auto reference=xml.parent_path() /
-        (useReecb ? "andes_reecb_reference.csv" :
-         includeWind ? "andes_wind_reference.csv" :
-         includePlant ? "andes_plant_reference.csv" : "andes_reference.csv");
+    std::string referenceName = "andes_reference.csv";
+    if (includePlant) {
+        referenceName = "andes_plant_reference.csv";
+    }
+    if (includeWind) {
+        referenceName = "andes_wind_reference.csv";
+    }
+    if (useReecb) {
+        referenceName = "andes_reecb_reference.csv";
+    }
+    const auto reference = xml.parent_path() / referenceName;
     std::ifstream stream(reference);
     ASSERT_TRUE(stream.is_open());
     std::string line;
@@ -933,7 +959,9 @@ TEST(RenewableModels, TwoBusRenewableFaultMatchesAndesReference)
               ",generator_speed,turbine_speed,pitch_angle,mechanical_power" : header);
     int samples=0;
     while (std::getline(stream,line)) {
-        if (line.empty()) continue;
+        if (line.empty()) {
+            continue;
+        }
         std::istringstream row(line);
         std::vector<double> expected(includeWind?10:6);
         for (auto& value : expected) {
@@ -941,18 +969,18 @@ TEST(RenewableModels, TwoBusRenewableFaultMatchesAndesReference)
             ASSERT_TRUE(static_cast<bool>(std::getline(row,field,',')));
             value=std::stod(field);
         }
-        const double t=expected[0];
-        ASSERT_EQ(simulation->run(t),0) << t;
-        EXPECT_NEAR(bus->getVoltage(),expected[1],0.012) << t;
-        EXPECT_NEAR(reg->getStates()[0],expected[2],0.012) << t;
-        EXPECT_NEAR(reg->getStates()[1],expected[3],0.012) << t;
-        EXPECT_NEAR(ree->getStates()[0],expected[4],0.012) << t;
-        EXPECT_NEAR(ree->getStates()[1],expected[5],0.012) << t;
+        const double timeValue=expected[0];
+        ASSERT_EQ(simulation->run(timeValue),0) << timeValue;
+        EXPECT_NEAR(bus->getVoltage(),expected[1],0.012) << timeValue;
+        EXPECT_NEAR(reg->getStates()[0],expected[2],0.012) << timeValue;
+        EXPECT_NEAR(reg->getStates()[1],expected[3],0.012) << timeValue;
+        EXPECT_NEAR(ree->getStates()[0],expected[4],0.012) << timeValue;
+        EXPECT_NEAR(ree->getStates()[1],expected[5],0.012) << timeValue;
         if (includeWind) {
-            EXPECT_NEAR(shaft->getStates()[0],expected[6],0.001) << t;
-            EXPECT_NEAR(shaft->getStates()[1],expected[7],0.001) << t;
-            EXPECT_NEAR(pitch->getStates()[0],expected[8],0.0001) << t;
-            EXPECT_NEAR(aerodynamic->getStates()[0],expected[9],0.002) << t;
+            EXPECT_NEAR(shaft->getStates()[0],expected[6],0.001) << timeValue;
+            EXPECT_NEAR(shaft->getStates()[1],expected[7],0.001) << timeValue;
+            EXPECT_NEAR(pitch->getStates()[0],expected[8],0.0001) << timeValue;
+            EXPECT_NEAR(aerodynamic->getStates()[0],expected[9],0.002) << timeValue;
         }
         ++samples;
     }

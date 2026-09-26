@@ -11,18 +11,23 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <string>
 
 namespace griddyn {
 namespace {
-constexpr std::array<RenewablePort,2> inputs{{
-    {RenewableSignal::terminalVoltage,0},
-    {RenewableSignal::reactivePower,1,RenewableBase::machine},
-}};
-constexpr std::array<RenewablePort,2> outputs{{
-    {RenewableSignal::activeReferenceIncrement,0,RenewableBase::machine},
-    {RenewableSignal::reactiveReferenceIncrement,1,RenewableBase::machine},
-}};
-constexpr index_t pext=0,qext=1,vf=0,qf=1,integral=2,lag=3;
+    constexpr std::array<RenewablePort, 2> inputs{{
+        {.signal = RenewableSignal::terminalVoltage, .ioIndex = 0},
+        {.signal = RenewableSignal::reactivePower, .ioIndex = 1, .base = RenewableBase::machine},
+    }};
+    constexpr std::array<RenewablePort, 2> outputs{{
+        {.signal = RenewableSignal::activeReferenceIncrement,
+         .ioIndex = 0,
+         .base = RenewableBase::machine},
+        {.signal = RenewableSignal::reactiveReferenceIncrement,
+         .ioIndex = 1,
+         .base = RenewableBase::machine},
+    }};
+    constexpr index_t pext = 0, qext = 1, voltageFilter = 0, reactiveFilter = 1, integral = 2, lag = 3;
 }  // namespace
 
 REPCA1::REPCA1(const std::string& name): RenewableComponent(name)
@@ -34,7 +39,9 @@ REPCA1::REPCA1(const std::string& name): RenewableComponent(name)
 CoreObject* REPCA1::clone(CoreObject* obj) const
 {
     auto* out=cloneBase<REPCA1,RenewableComponent>(this,obj);
-    if (out==nullptr) return obj;
+    if (out == nullptr) {
+        return obj;
+    }
     out->VCFlag=VCFlag; out->RefFlag=RefFlag; out->Fflag=Fflag; out->PLflag=PLflag;
     out->Tfltr=Tfltr; out->Kp=Kp; out->Ki=Ki; out->Tft=Tft; out->Tfv=Tfv;
     out->Vfrz=Vfrz; out->Rc=Rc; out->Xc=Xc; out->Kc=Kc;
@@ -53,68 +60,124 @@ void REPCA1::set(std::string_view param,double val,units::unit unitType)
 {
     const auto key=gmlc::utilities::convertToLowerCase(std::string{param});
     if (key=="vcflag" || key=="refflag" || key=="fflag" || key=="plflag") {
-        if (val!=0.0 && val!=1.0)
+        if (val != 0.0 && val != 1.0) {
             throw InvalidParameterValue("REPCA1 flag must be zero or one");
+        }
         const auto flag=static_cast<int>(val);
-        if (key=="vcflag") VCFlag=flag;
-        else if (key=="refflag") RefFlag=flag;
-        else if (key=="fflag") Fflag=flag;
-        else PLflag=flag;
+        if (key == "vcflag") {
+            VCFlag = flag;
+        } else if (key == "refflag") {
+            RefFlag = flag;
+        } else if (key == "fflag") {
+            Fflag = flag;
+        } else {
+            PLflag = flag;
+        }
+    } else if (key == "tfltr") {
+        Tfltr = val;
+    } else if (key == "kp") {
+        Kp = val;
+    } else if (key == "ki") {
+        Ki = val;
+    } else if (key == "tft") {
+        Tft = val;
+    } else if (key == "tfv") {
+        Tfv = val;
+    } else if (key == "vfrz") {
+        Vfrz = val;
+    } else if (key == "rc") {
+        Rc = val;
+    } else if (key == "xc") {
+        Xc = val;
+    } else if (key == "kc") {
+        Kc = val;
+    } else if (key == "emax") {
+        emax = val;
+    } else if (key == "emin") {
+        emin = val;
+    } else if (key == "dbd1") {
+        dbd1 = val;
+    } else if (key == "dbd2") {
+        dbd2 = val;
+    } else if (key == "qmax") {
+        Qmax = val;
+    } else if (key == "qmin") {
+        Qmin = val;
+    } else if (key == "kpg") {
+        Kpg = val;
+    } else if (key == "kig") {
+        Kig = val;
+    } else if (key == "tp") {
+        Tp = val;
+    } else if (key == "fdbd1") {
+        fdbd1 = val;
+    } else if (key == "fdbd2") {
+        fdbd2 = val;
+    } else if (key == "femax") {
+        femax = val;
+    } else if (key == "femin") {
+        femin = val;
+    } else if (key == "pmax") {
+        Pmax = val;
+    } else if (key == "pmin") {
+        Pmin = val;
+    } else if (key == "tg") {
+        Tg = val;
+    } else if (key == "ddn") {
+        Ddn = val;
+    } else if (key == "dup") {
+        Dup = val;
+    } else if (key == "vref") {
+        vReference = val;
+    } else if (key == "qref") {
+        qReference = val;
+    } else {
+        RenewableComponent::set(param, val, unitType);
     }
-    else if (key=="tfltr") Tfltr=val;
-    else if (key=="kp") Kp=val;
-    else if (key=="ki") Ki=val;
-    else if (key=="tft") Tft=val;
-    else if (key=="tfv") Tfv=val;
-    else if (key=="vfrz") Vfrz=val;
-    else if (key=="rc") Rc=val;
-    else if (key=="xc") Xc=val;
-    else if (key=="kc") Kc=val;
-    else if (key=="emax") emax=val;
-    else if (key=="emin") emin=val;
-    else if (key=="dbd1") dbd1=val;
-    else if (key=="dbd2") dbd2=val;
-    else if (key=="qmax") Qmax=val;
-    else if (key=="qmin") Qmin=val;
-    else if (key=="kpg") Kpg=val;
-    else if (key=="kig") Kig=val;
-    else if (key=="tp") Tp=val;
-    else if (key=="fdbd1") fdbd1=val;
-    else if (key=="fdbd2") fdbd2=val;
-    else if (key=="femax") femax=val;
-    else if (key=="femin") femin=val;
-    else if (key=="pmax") Pmax=val;
-    else if (key=="pmin") Pmin=val;
-    else if (key=="tg") Tg=val;
-    else if (key=="ddn") Ddn=val;
-    else if (key=="dup") Dup=val;
-    else if (key=="vref") vReference=val;
-    else if (key=="qref") qReference=val;
-    else RenewableComponent::set(param,val,unitType);
 }
 
 double REPCA1::get(std::string_view param,units::unit unitType) const
 {
     const auto key=gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key=="vcflag") return VCFlag;
-    if (key=="refflag") return RefFlag;
-    if (key=="fflag") return Fflag;
-    if (key=="kp") return Kp;
-    if (key=="ki") return Ki;
-    if (key=="tfltr") return Tfltr;
-    if (key=="vref") return vReference;
-    if (key=="qref") return qReference;
-    if (key=="qmax") return Qmax;
-    if (key=="qmin") return Qmin;
+    if (key == "vcflag") {
+        return VCFlag;
+    }
+    if (key == "refflag") {
+        return RefFlag;
+    }
+    if (key == "fflag") {
+        return Fflag;
+    }
+    if (key == "kp") {
+        return Kp;
+    }
+    if (key == "ki") {
+        return Ki;
+    }
+    if (key == "tfltr") {
+        return Tfltr;
+    }
+    if (key == "vref") {
+        return vReference;
+    }
+    if (key == "qref") {
+        return qReference;
+    }
+    if (key == "qmax") {
+        return Qmax;
+    }
+    if (key == "qmin") {
+        return Qmin;
+    }
     return RenewableComponent::get(param,unitType);
 }
 
 void REPCA1::dynObjectInitializeA(CoreTime time0,std::uint32_t /*flags*/)
 {
-    const std::array<double,27> values{Tfltr,Kp,Ki,Tft,Tfv,Vfrz,Rc,Xc,Kc,
+    const std::array<double,27> inputs{Tfltr,Kp,Ki,Tft,Tfv,Vfrz,Rc,Xc,Kc,
         emax,emin,dbd1,dbd2,Qmax,Qmin,Kpg,Kig,Tp,fdbd1,fdbd2,
         femax,femin,Pmax,Pmin,Tg,Ddn,Dup};
-    if (std::any_of(values.begin(),values.end(),[](double x){return !std::isfinite(x);}) ||
+    if (std::any_of(inputs.begin(),inputs.end(),[](double stateValue){return !std::isfinite(stateValue);}) ||
         Tfltr<=0 || Tfv<=0 || Tft<0 || Kp<0 || Ki<0 || Qmax<Qmin ||
         emax<emin || dbd1>0 || dbd2<0 || (RefFlag!=0 && RefFlag!=1) ||
         (VCFlag!=0 && VCFlag!=1) || (PLflag!=0 && PLflag!=1) ||
@@ -128,148 +191,189 @@ void REPCA1::dynObjectInitializeA(CoreTime time0,std::uint32_t /*flags*/)
     prevTime=time0;
 }
 
-void REPCA1::dynObjectInitializeB(const IOdata& values,const IOdata& desiredOutput,
+void REPCA1::dynObjectInitializeB(const IOdata& inputs,const IOdata& desiredOutput,
                                    IOdata& fieldSet)
 {
-    if (values.size()<2 || desiredOutput.size()<2 || !std::isfinite(values[0]) ||
-        !std::isfinite(values[1]) || values[0]<=0) {
+    if (inputs.size()<2 || desiredOutput.size()<2 || !std::isfinite(inputs[0]) ||
+        !std::isfinite(inputs[1]) || inputs[0]<=0) {
         throw InvalidParameterValue("REPCA1 initial terminal voltage or Q");
     }
-    vReference=values[0];
-    qReference=values[1];
+    vReference=inputs[0];
+    qReference=inputs[1];
     m_state[pext]=0; m_state[qext]=0;
-    m_state[2+vf]=values[0]; m_state[2+qf]=values[1];
+    m_state[2+voltageFilter]=inputs[0]; m_state[2+reactiveFilter]=inputs[1];
     m_state[2+integral]=0; m_state[2+lag]=0;
     fieldSet={0.0,0.0};
 }
 
-double REPCA1::controllerError(double v,const double state[]) const
+double REPCA1::controllerError(double voltage,const double state[]) const
 {
-    if (v<Vfrz) return 0.0;
-    const double raw=(RefFlag==1?vReference-state[vf]:qReference-state[qf]);
-    const double deadband=raw>dbd2?raw-dbd2:(raw<dbd1?raw-dbd1:0.0);
+    if (voltage < Vfrz) {
+        return 0.0;
+    }
+    const double raw=(RefFlag==1?vReference-state[voltageFilter]:qReference-state[reactiveFilter]);
+    double deadband = 0.0;
+    if (raw > dbd2) {
+        deadband = raw - dbd2;
+    } else if (raw < dbd1) {
+        deadband = raw - dbd1;
+    }
     return std::clamp(deadband,emin,emax);
 }
 
-double REPCA1::piOutput(double v,const double state[]) const
+double REPCA1::piOutput(double voltage,const double state[]) const
 {
-    return std::clamp(Kp*controllerError(v,state)+Ki*state[integral],Qmin,Qmax);
+    return std::clamp((Kp * controllerError(voltage, state)) + (Ki * state[integral]), Qmin, Qmax);
 }
 
-double REPCA1::reactiveIncrement(double v,const double state[]) const
+double REPCA1::reactiveIncrement(double voltage,const double state[]) const
 {
     const double ratio=Tft/Tfv;
-    return ratio*piOutput(v,state)+(1.0-ratio)*state[lag];
+    return (ratio * piOutput(voltage, state)) + ((1.0 - ratio) * state[lag]);
 }
 
-std::array<double,4> REPCA1::rates(const IOdata& values,const double state[]) const
+std::array<double,4> REPCA1::rates(const IOdata& inputs,const double state[]) const
 {
-    const double v=values[0], q=values[1];
-    const double err=controllerError(v,state);
-    const double raw=Kp*err+Ki*state[integral];
+    const double voltage = inputs[0];
+    const double reactivePower = inputs[1];
+    const double err=controllerError(voltage,state);
+    const double raw = (Kp * err) + (Ki * state[integral]);
     const bool upper=raw>=Qmax && err>0;
     const bool lower=raw<=Qmin && err<0;
-    return {(v-state[vf])/Tfltr,(q-state[qf])/Tfltr,
-            upper||lower?0.0:err,(piOutput(v,state)-state[lag])/Tfv};
+    return {(voltage-state[voltageFilter])/Tfltr,
+            (reactivePower-state[reactiveFilter])/Tfltr,
+            upper||lower?0.0:err,(piOutput(voltage,state)-state[lag])/Tfv};
 }
 
-void REPCA1::derivative(const IOdata& values,const StateData& stateData,
+void REPCA1::derivative(const IOdata& inputs,const StateData& stateData,
                         double deriv[],const SolverMode& sMode)
 {
-    if (!hasDifferential(sMode)) return;
+    if (!hasDifferential(sMode)) {
+        return;
+    }
     const auto loc=offsets.getLocations(stateData,deriv,sMode,this);
-    const auto result=rates(values,loc.diffStateLoc);
-    for (index_t i=0;i<4;++i) loc.destDiffLoc[i]=result[i];
+    const auto result=rates(inputs,loc.diffStateLoc);
+    for (index_t index = 0; index < 4; ++index) {
+        loc.destDiffLoc[index] = result[index];
+    }
 }
 
-void REPCA1::residual(const IOdata& values,const StateData& stateData,
+void REPCA1::residual(const IOdata& inputs,const StateData& stateData,
                       double resid[],const SolverMode& sMode)
 {
     const auto loc=offsets.getLocations(stateData,resid,sMode,this);
     if (hasAlgebraic(sMode)) {
         loc.destLoc[pext]=-loc.algStateLoc[pext];
-        loc.destLoc[qext]=reactiveIncrement(values[0],loc.diffStateLoc)-loc.algStateLoc[qext];
+        loc.destLoc[qext]=reactiveIncrement(inputs[0],loc.diffStateLoc)-loc.algStateLoc[qext];
     }
     if (hasDifferential(sMode)) {
-        derivative(values,stateData,resid,sMode);
-        for (index_t i=0;i<loc.diffSize;++i) loc.destDiffLoc[i]-=loc.dstateLoc[i];
+        derivative(inputs,stateData,resid,sMode);
+        for (index_t index = 0; index < loc.diffSize; ++index) {
+            loc.destDiffLoc[index] -= loc.dstateLoc[index];
+        }
     }
 }
 
-void REPCA1::algebraicUpdate(const IOdata& values,const StateData& stateData,
+void REPCA1::algebraicUpdate(const IOdata& inputs,const StateData& stateData,
                              double update[],const SolverMode& sMode,double /*alpha*/)
 {
-    if (!hasAlgebraic(sMode)) return;
+    if (!hasAlgebraic(sMode)) {
+        return;
+    }
     const auto loc=offsets.getLocations(stateData,update,sMode,this);
     loc.destLoc[pext]=0.0;
-    loc.destLoc[qext]=reactiveIncrement(values[0],loc.diffStateLoc);
+    loc.destLoc[qext]=reactiveIncrement(inputs[0],loc.diffStateLoc);
 }
 
-void REPCA1::jacobianElements(const IOdata& values,const StateData& stateData,
+void REPCA1::jacobianElements(const IOdata& inputs,const StateData& stateData,
                               MatrixData<double>& matrixData,const IOlocs& inputLocs,
                               const SolverMode& sMode)
 {
     const auto loc=offsets.getLocations(stateData,sMode,this);
-    const auto alg=loc.algOffset,diff=loc.diffOffset;
+    const auto alg = loc.algOffset;
+    const auto diff = loc.diffOffset;
     const double* state=loc.diffStateLoc;
     constexpr double step=1e-6;
     if (hasAlgebraic(sMode)) {
         matrixData.assign(alg+pext,alg+pext,-1.0);
         matrixData.assign(alg+qext,alg+qext,-1.0);
     }
-    if (!hasDifferential(sMode) && !hasAlgebraic(sMode)) return;
+    if (!hasDifferential(sMode) && !hasAlgebraic(sMode)) {
+        return;
+    }
     if (!isAlgebraicOnly(sMode)) {
-        for (index_t j=0;j<4;++j) {
+        for (index_t column=0;column<4;++column) {
             std::array<double,4> plus{state[0],state[1],state[2],state[3]};
             auto minus=plus;
-            plus[j]+=step; minus[j]-=step;
-            if (hasAlgebraic(sMode))
-                matrixData.assign(alg+qext,diff+j,
-                    (reactiveIncrement(values[0],plus.data())-
-                     reactiveIncrement(values[0],minus.data()))/(2*step));
+            plus[column]+=step; minus[column]-=step;
+            if (hasAlgebraic(sMode)) {
+                matrixData.assign(alg + qext,
+                                  diff + column,
+                                  (reactiveIncrement(inputs[0], plus.data()) -
+                                   reactiveIncrement(inputs[0], minus.data())) /
+                                      (2 * step));
+            }
             if (hasDifferential(sMode)) {
-                const auto upper=rates(values,plus.data());
-                const auto lower=rates(values,minus.data());
-                for (index_t i=0;i<4;++i)
-                    matrixData.assign(diff+i,diff+j,
-                        (upper[i]-lower[i])/(2*step)-(i==j?stateData.cj:0.0));
+                const auto upper=rates(inputs,plus.data());
+                const auto lower=rates(inputs,minus.data());
+                for (index_t index = 0; index < 4; ++index) {
+                    matrixData.assign(diff + index,
+                                      diff + column,
+                                      ((upper[index] - lower[index]) / (2 * step)) -
+                                          (index == column ? stateData.cj : 0.0));
+                }
             }
         }
     }
-    for (index_t j=0;j<2 && j<inputLocs.size();++j) {
-        if (inputLocs[j]==kNullLocation) continue;
-        auto plus=values,minus=values;
-        plus[j]+=step; minus[j]-=step;
-        if (hasAlgebraic(sMode) && j==0)
-            matrixData.assign(alg+qext,inputLocs[j],
-                (reactiveIncrement(plus[0],state)-reactiveIncrement(minus[0],state))/(2*step));
+    for (std::size_t column = 0; column < 2 && column < inputLocs.size(); ++column) {
+        if (inputLocs[column] == kNullLocation) {
+            continue;
+        }
+        auto plus = inputs;
+        auto minus = inputs;
+        plus[column]+=step; minus[column]-=step;
+        if (hasAlgebraic(sMode) && column == 0) {
+            matrixData.assign(alg + qext,
+                              inputLocs[column],
+                              (reactiveIncrement(plus[0], state) -
+                               reactiveIncrement(minus[0], state)) /
+                                  (2 * step));
+        }
         if (hasDifferential(sMode)) {
-            const auto upper=rates(plus,state),lower=rates(minus,state);
-            for (index_t i=0;i<4;++i)
-                matrixData.assign(diff+i,inputLocs[j],(upper[i]-lower[i])/(2*step));
+            const auto upper = rates(plus, state);
+            const auto lower = rates(minus, state);
+            for (index_t index = 0; index < 4; ++index) {
+                matrixData.assign(diff + index, inputLocs[column], (upper[index] - lower[index]) / (2 * step));
+            }
         }
     }
 }
 
-void REPCA1::timestep(CoreTime time,const IOdata& values,const SolverMode& /*sMode*/)
+void REPCA1::timestep(CoreTime time,const IOdata& inputs,const SolverMode& /*sMode*/)
 {
-    const double dt=time-prevTime;
-    if (dt<0) throw InvalidParameterValue("REPCA1 timestep precedes current time");
-    const auto rate=rates(values,m_state.data()+2);
-    for (index_t i=0;i<4;++i) m_state[2+i]+=dt*rate[i];
+    const double deltaTime=time-prevTime;
+    if (deltaTime < 0) {
+        throw InvalidParameterValue("REPCA1 timestep precedes current time");
+    }
+    const auto rate=rates(inputs,m_state.data()+2);
+    for (index_t index = 0; index < 4; ++index) {
+        m_state[2 + index] += deltaTime * rate[index];
+    }
     m_state[pext]=0.0;
-    m_state[qext]=reactiveIncrement(values[0],m_state.data()+2);
+    m_state[qext]=reactiveIncrement(inputs[0],m_state.data()+2);
     prevTime=time;
 }
 
-IOdata REPCA1::getOutputs(const IOdata&,const StateData& stateData,
+IOdata REPCA1::getOutputs(const IOdata& /*inputs*/,
+                          const StateData& stateData,
                           const SolverMode& sMode) const
 {
     const auto loc=offsets.getLocations(stateData,sMode,this);
     return {loc.algStateLoc[pext],loc.algStateLoc[qext]};
 }
 
-void REPCA1::outputPartialDerivatives(const IOdata&,const StateData&,
+void REPCA1::outputPartialDerivatives(const IOdata& /*inputs*/,
+                                      const StateData& /*stateDataValue*/,
                                       MatrixData<double>& matrixData,
                                       const SolverMode& sMode)
 {

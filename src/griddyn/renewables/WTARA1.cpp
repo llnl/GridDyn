@@ -10,16 +10,20 @@
 #include "utilities/MatrixData.hpp"
 #include <array>
 #include <cmath>
+#include <string>
 
 namespace griddyn {
 namespace {
-constexpr std::array<RenewablePort,1> inputs{{
-    {RenewableSignal::pitchAngle,0,RenewableBase::none,false},
-}};
-constexpr std::array<RenewablePort,2> outputs{{
-    {RenewableSignal::mechanicalPower,0,RenewableBase::machine},
-    {RenewableSignal::initialPitchAngle,1},
-}};
+    constexpr std::array<RenewablePort, 1> inputs{{
+        {.signal = RenewableSignal::pitchAngle,
+         .ioIndex = 0,
+         .base = RenewableBase::none,
+         .required = false},
+    }};
+    constexpr std::array<RenewablePort, 2> outputs{{
+        {.signal = RenewableSignal::mechanicalPower, .ioIndex = 0, .base = RenewableBase::machine},
+        {.signal = RenewableSignal::initialPitchAngle, .ioIndex = 1},
+    }};
 } // namespace
 
 WTARA1::WTARA1(const std::string& name):RenewableComponent(name)
@@ -40,79 +44,104 @@ std::span<const RenewablePort> WTARA1::outputPorts() const {return outputs;}
 void WTARA1::set(std::string_view param,double val,units::unit unitType)
 {
     const auto key=gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key=="ka") Ka=val;
-    else if (key=="theta0") theta0=val;
-    else RenewableComponent::set(param,val,unitType);
+    if (key == "ka") {
+        Ka = val;
+    } else if (key == "theta0") {
+        theta0 = val;
+    } else {
+        RenewableComponent::set(param, val, unitType);
+    }
 }
 
 double WTARA1::get(std::string_view param,units::unit unitType) const
 {
     const auto key=gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key=="ka") return Ka;
-    if (key=="theta0") return theta0;
+    if (key == "ka") {
+        return Ka;
+    }
+    if (key == "theta0") {
+        return theta0;
+    }
     return RenewableComponent::get(param,unitType);
 }
 
-void WTARA1::dynObjectInitializeA(CoreTime time0,std::uint32_t)
+void WTARA1::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
 {
-    if (!std::isfinite(Ka) || !std::isfinite(theta0) || Ka<0)
+    if (!std::isfinite(Ka) || !std::isfinite(theta0) || Ka < 0) {
         throw InvalidParameterValue("WTARA1 invalid pitch gain or initial angle");
+    }
     auto& local=offsets.local().local;
     local.algSize=2;local.jacSize=3;
     prevTime=time0;
 }
 
-double WTARA1::mechanicalPower(const IOdata& values) const
+double WTARA1::mechanicalPower(const IOdata& inputs) const
 {
-    const double theta=values.empty() || values[0]==kNullVal?theta0:values[0];
-    return initialPower-Ka*(theta-theta0);
+    const double theta=inputs.empty() || inputs[0]==kNullVal?theta0:inputs[0];
+    return initialPower - (Ka * (theta - theta0));
 }
 
-void WTARA1::dynObjectInitializeB(const IOdata&,const IOdata& desiredOutput,
-                                   IOdata& fieldSet)
+void WTARA1::dynObjectInitializeB(const IOdata& /*inputs*/,
+                                  const IOdata& desiredOutput,
+                                  IOdata& fieldSet)
 {
-    if (desiredOutput.empty() || !std::isfinite(desiredOutput[0]))
+    if (desiredOutput.empty() || !std::isfinite(desiredOutput[0])) {
         throw InvalidParameterValue("WTARA1 requires initial mechanical power");
+    }
     initialPower=desiredOutput[0];
     m_state[0]=initialPower;
     m_state[1]=theta0;
     fieldSet={initialPower,theta0};
 }
 
-void WTARA1::residual(const IOdata& values,const StateData& stateData,
+void WTARA1::residual(const IOdata& inputs,const StateData& stateData,
                       double resid[],const SolverMode& sMode)
 {
-    if (!hasAlgebraic(sMode)) return;
+    if (!hasAlgebraic(sMode)) {
+        return;
+    }
     const auto loc=offsets.getLocations(stateData,resid,sMode,this);
-    loc.destLoc[0]=mechanicalPower(values)-loc.algStateLoc[0];
+    loc.destLoc[0]=mechanicalPower(inputs)-loc.algStateLoc[0];
     loc.destLoc[1]=theta0-loc.algStateLoc[1];
 }
 
-void WTARA1::algebraicUpdate(const IOdata& values,const StateData& stateData,
-                             double update[],const SolverMode& sMode,double)
+void WTARA1::algebraicUpdate(const IOdata& inputs,
+                             const StateData& stateData,
+                             double update[],
+                             const SolverMode& sMode,
+                             double /*alpha*/)
 {
-    if (!hasAlgebraic(sMode)) return;
+    if (!hasAlgebraic(sMode)) {
+        return;
+    }
     const auto loc=offsets.getLocations(stateData,update,sMode,this);
-    loc.destLoc[0]=mechanicalPower(values);
+    loc.destLoc[0]=mechanicalPower(inputs);
     loc.destLoc[1]=theta0;
 }
 
-void WTARA1::jacobianElements(const IOdata& values,const StateData&,
-                              MatrixData<double>& matrixData,const IOlocs& inputLocs,
+void WTARA1::jacobianElements(const IOdata& inputs,
+                              const StateData& /*stateDataValue*/,
+                              MatrixData<double>& matrixData,
+                              const IOlocs& inputLocs,
                               const SolverMode& sMode)
 {
-    if (!hasAlgebraic(sMode)) return;
+    if (!hasAlgebraic(sMode)) {
+        return;
+    }
     const auto alg=offsets.getAlgOffset(sMode);
     matrixData.assign(alg,alg,-1.0);
     matrixData.assign(alg+1,alg+1,-1.0);
-    if (!inputLocs.empty() && !values.empty() && values[0]!=kNullVal)
-        matrixData.assignCheckCol(alg,inputLocs[0],-Ka);
+    if (!inputLocs.empty() && !inputs.empty() && inputs[0] != kNullVal) {
+        matrixData.assignCheckCol(alg, inputLocs[0], -Ka);
+    }
 }
 
-void WTARA1::timestep(CoreTime time,const IOdata& values,const SolverMode&)
+void WTARA1::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
-    if (time<prevTime) throw InvalidParameterValue("WTARA1 timestep precedes current time");
-    m_state[0]=mechanicalPower(values);
+    if (time < prevTime) {
+        throw InvalidParameterValue("WTARA1 timestep precedes current time");
+    }
+    m_state[0]=mechanicalPower(inputs);
     prevTime=time;
 }
 

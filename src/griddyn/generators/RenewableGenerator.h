@@ -9,6 +9,8 @@
 #include "../Generator.h"
 #include "../renewables/RenewableComponent.h"
 #include <array>
+#include <string>
+#include <vector>
 
 namespace griddyn {
 
@@ -28,9 +30,9 @@ class RenewableGenerator: public Generator {
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
-    void setState(CoreTime time, const double state[], const double dstate_dt[],
+    void setState(CoreTime time, const double state[], const double dstateDt[],
                   const SolverMode& sMode) override;
-    void guessState(CoreTime time, double state[], double dstate_dt[],
+    void guessState(CoreTime time, double state[], double dstateDt[],
                     const SolverMode& sMode) override;
     void residual(const IOdata& inputs,
                   const StateData& stateDataValue,

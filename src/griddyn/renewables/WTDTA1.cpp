@@ -10,19 +10,26 @@
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
+#include <string>
 
 namespace griddyn {
 namespace {
-constexpr std::array<RenewablePort,3> inputs{{
-    {RenewableSignal::electricalPower,0,RenewableBase::machine},
-    {RenewableSignal::mechanicalPower,1,RenewableBase::machine,false},
-    {RenewableSignal::speedReference,2,RenewableBase::none,false},
-}};
-constexpr std::array<RenewablePort,2> outputs{{
-    {RenewableSignal::generatorSpeed,0},
-    {RenewableSignal::turbineSpeed,1},
-}};
-constexpr index_t wg=0,wt=1,shaft=2;
+    constexpr std::array<RenewablePort, 3> inputs{{
+        {.signal = RenewableSignal::electricalPower, .ioIndex = 0, .base = RenewableBase::machine},
+        {.signal = RenewableSignal::mechanicalPower,
+         .ioIndex = 1,
+         .base = RenewableBase::machine,
+         .required = false},
+        {.signal = RenewableSignal::speedReference,
+         .ioIndex = 2,
+         .base = RenewableBase::none,
+         .required = false},
+    }};
+    constexpr std::array<RenewablePort, 2> outputs{{
+        {.signal = RenewableSignal::generatorSpeed, .ioIndex = 0},
+        {.signal = RenewableSignal::turbineSpeed, .ioIndex = 1},
+    }};
+    constexpr index_t windGenerator = 0, windTurbine = 1, shaft = 2;
 } // namespace
 
 WTDTA1::WTDTA1(const std::string& name):RenewableComponent(name)
@@ -48,28 +55,48 @@ std::span<const RenewablePort> WTDTA1::outputPorts() const {return outputs;}
 void WTDTA1::set(std::string_view param,double val,units::unit unitType)
 {
     const auto key=gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key=="h") H=val;
-    else if (key=="damp") DAMP=val;
-    else if (key=="htfrac") Htfrac=val;
-    else if (key=="freq1") Freq1=val;
-    else if (key=="dshaft") Dshaft=val;
-    else if (key=="w0") w0=val;
-    else RenewableComponent::set(param,val,unitType);
+    if (key == "h") {
+        H = val;
+    } else if (key == "damp") {
+        DAMP = val;
+    } else if (key == "htfrac") {
+        Htfrac = val;
+    } else if (key == "freq1") {
+        Freq1 = val;
+    } else if (key == "dshaft") {
+        Dshaft = val;
+    } else if (key == "w0") {
+        w0 = val;
+    } else {
+        RenewableComponent::set(param, val, unitType);
+    }
 }
 
 double WTDTA1::get(std::string_view param,units::unit unitType) const
 {
     const auto key=gmlc::utilities::convertToLowerCase(std::string{param});
-    if (key=="h") return H;
-    if (key=="damp") return DAMP;
-    if (key=="htfrac") return Htfrac;
-    if (key=="freq1") return Freq1;
-    if (key=="dshaft") return Dshaft;
-    if (key=="w0") return w0;
+    if (key == "h") {
+        return H;
+    }
+    if (key == "damp") {
+        return DAMP;
+    }
+    if (key == "htfrac") {
+        return Htfrac;
+    }
+    if (key == "freq1") {
+        return Freq1;
+    }
+    if (key == "dshaft") {
+        return Dshaft;
+    }
+    if (key == "w0") {
+        return w0;
+    }
     return RenewableComponent::get(param,unitType);
 }
 
-void WTDTA1::dynObjectInitializeA(CoreTime time0,std::uint32_t)
+void WTDTA1::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
 {
     if (!std::isfinite(H) || !std::isfinite(DAMP) || !std::isfinite(Htfrac) ||
         !std::isfinite(Freq1) || !std::isfinite(Dshaft) || !std::isfinite(w0) ||
@@ -83,89 +110,113 @@ void WTDTA1::dynObjectInitializeA(CoreTime time0,std::uint32_t)
     prevTime=time0;
 }
 
-void WTDTA1::dynObjectInitializeB(const IOdata& values,const IOdata&,
-                                   IOdata& fieldSet)
+void WTDTA1::dynObjectInitializeB(const IOdata& inputs,
+                                  const IOdata& /*desiredOutput*/,
+                                  IOdata& fieldSet)
 {
-    if (values.empty() || !std::isfinite(values[0])) {
+    if (inputs.empty() || !std::isfinite(inputs[0])) {
         throw InvalidParameterValue("WTDTA1 requires initial electrical power");
     }
-    initialPower=values[0];
-    operatingSpeed=values.size()>2 && values[2]!=kNullVal?values[2]:w0;
-    if (!std::isfinite(operatingSpeed) || operatingSpeed<=0)
+    initialPower=inputs[0];
+    operatingSpeed=inputs.size()>2 && inputs[2]!=kNullVal?inputs[2]:w0;
+    if (!std::isfinite(operatingSpeed) || operatingSpeed <= 0) {
         throw InvalidParameterValue("WTDTA1 initial speed reference must be positive");
-    m_state[wg]=operatingSpeed;
-    m_state[wt]=operatingSpeed;
+    }
+    m_state[windGenerator]=operatingSpeed;
+    m_state[windTurbine]=operatingSpeed;
     m_state[shaft]=initialPower/operatingSpeed;
     fieldSet={operatingSpeed,operatingSpeed};
 }
 
-std::array<double,3> WTDTA1::rates(const IOdata& values,const double state[]) const
+std::array<double,3> WTDTA1::rates(const IOdata& inputs,const double state[]) const
 {
-    const double pe=values[0];
-    const double pm=values.size()>1 && values[1]!=kNullVal?values[1]:initialPower;
-    const double ht2=2*Htfrac*H,hg2=2*(1-Htfrac)*H;
-    const double delta=state[wt]-state[wg];
-    const double pd=Dshaft*delta;
+    const double electricalPower=inputs[0];
+    const double mechanicalPower=inputs.size()>1 && inputs[1]!=kNullVal?inputs[1]:initialPower;
+    const double ht2 = 2 * Htfrac * H;
+    const double hg2 = 2 * (1 - Htfrac) * H;
+    const double delta=state[windTurbine]-state[windGenerator];
+    const double powerDifference=Dshaft*delta;
     const double stiffness=ht2*hg2*0.5*Freq1*Freq1/H;
-    return {(-pe/std::max(state[wg],0.01)+state[shaft]-
-             DAMP*(state[wg]-operatingSpeed)+pd)/hg2,
-            (pm/std::max(state[wt],0.01)-state[shaft]-pd)/ht2,
+    return {(-electricalPower/std::max(state[windGenerator],0.01)+state[shaft]-
+             DAMP*(state[windGenerator]-operatingSpeed)+powerDifference)/hg2,
+            (mechanicalPower/std::max(state[windTurbine],0.01)-state[shaft]-powerDifference)/ht2,
             stiffness*delta};
 }
 
-void WTDTA1::derivative(const IOdata& values,const StateData& stateData,
+void WTDTA1::derivative(const IOdata& inputs,const StateData& stateData,
                         double deriv[],const SolverMode& sMode)
 {
-    if (!hasDifferential(sMode)) return;
+    if (!hasDifferential(sMode)) {
+        return;
+    }
     const auto loc=offsets.getLocations(stateData,deriv,sMode,this);
-    const auto result=rates(values,loc.diffStateLoc);
-    for (index_t i=0;i<3;++i) loc.destDiffLoc[i]=result[i];
+    const auto result=rates(inputs,loc.diffStateLoc);
+    for (index_t index = 0; index < 3; ++index) {
+        loc.destDiffLoc[index] = result[index];
+    }
 }
 
-void WTDTA1::residual(const IOdata& values,const StateData& stateData,
+void WTDTA1::residual(const IOdata& inputs,const StateData& stateData,
                       double resid[],const SolverMode& sMode)
 {
-    if (!hasDifferential(sMode)) return;
+    if (!hasDifferential(sMode)) {
+        return;
+    }
     const auto loc=offsets.getLocations(stateData,resid,sMode,this);
-    derivative(values,stateData,resid,sMode);
-    for (index_t i=0;i<3;++i) loc.destDiffLoc[i]-=loc.dstateLoc[i];
+    derivative(inputs,stateData,resid,sMode);
+    for (index_t index = 0; index < 3; ++index) {
+        loc.destDiffLoc[index] -= loc.dstateLoc[index];
+    }
 }
 
-void WTDTA1::jacobianElements(const IOdata& values,const StateData& stateData,
+void WTDTA1::jacobianElements(const IOdata& inputs,const StateData& stateData,
                               MatrixData<double>& matrixData,const IOlocs& inputLocs,
                               const SolverMode& sMode)
 {
-    if (!hasDifferential(sMode)) return;
+    if (!hasDifferential(sMode)) {
+        return;
+    }
     const auto loc=offsets.getLocations(stateData,sMode,this);
     constexpr double step=1e-6;
     const auto diff=loc.diffOffset;
-    for (index_t j=0;j<3;++j) {
+    for (index_t column=0;column<3;++column) {
         std::array<double,3> plus{loc.diffStateLoc[0],loc.diffStateLoc[1],
                                   loc.diffStateLoc[2]};
         auto minus=plus;
-        plus[j]+=step; minus[j]-=step;
-        const auto upper=rates(values,plus.data()),lower=rates(values,minus.data());
-        for (index_t i=0;i<3;++i)
-            matrixData.assign(diff+i,diff+j,(upper[i]-lower[i])/(2*step)-
-                              (i==j?stateData.cj:0.0));
+        plus[column]+=step; minus[column]-=step;
+        const auto upper = rates(inputs, plus.data());
+        const auto lower = rates(inputs, minus.data());
+        for (index_t index = 0; index < 3; ++index) {
+            matrixData.assign(diff + index,
+                              diff + column,
+                              ((upper[index] - lower[index]) / (2 * step)) - (index == column ? stateData.cj : 0.0));
+        }
     }
-    for (index_t j=0;j<2 && j<inputLocs.size();++j) {
-        if (inputLocs[j]==kNullLocation || (j==1 && values[j]==kNullVal)) continue;
-        auto plus=values,minus=values;
-        plus[j]+=step;minus[j]-=step;
+    for (index_t column=0;column<2 && column<inputLocs.size();++column) {
+        if (inputLocs[column] == kNullLocation || (column == 1 && inputs[column] == kNullVal)) {
+            continue;
+        }
+        auto plus = inputs;
+        auto minus = inputs;
+        plus[column]+=step;minus[column]-=step;
         const auto upper=rates(plus,loc.diffStateLoc);
         const auto lower=rates(minus,loc.diffStateLoc);
-        for (index_t i=0;i<3;++i)
-            matrixData.assign(diff+i,inputLocs[j],(upper[i]-lower[i])/(2*step));
+        for (index_t index = 0; index < 3; ++index) {
+            matrixData.assign(diff + index, inputLocs[column], (upper[index] - lower[index]) / (2 * step));
+        }
     }
 }
 
-void WTDTA1::timestep(CoreTime time,const IOdata& values,const SolverMode&)
+void WTDTA1::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
 {
-    const double dt=time-prevTime;
-    if (dt<0) throw InvalidParameterValue("WTDTA1 timestep precedes current time");
-    const auto rate=rates(values,m_state.data());
-    for (index_t i=0;i<3;++i) m_state[i]+=dt*rate[i];
+    const double deltaTime=time-prevTime;
+    if (deltaTime < 0) {
+        throw InvalidParameterValue("WTDTA1 timestep precedes current time");
+    }
+    const auto rate=rates(inputs,m_state.data());
+    for (index_t index = 0; index < 3; ++index) {
+        m_state[index] += deltaTime * rate[index];
+    }
     prevTime=time;
 }
 

@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstddef>
 #include <filesystem>
 #include <fstream>
 #include <gtest/gtest.h>
@@ -426,14 +427,16 @@ TEST(RenewableModels, REGCA1DaeJacobianMatchesResidual)
     };
     const auto base = residualAt(state, dstate);
     constexpr double step = 1e-7;
-    for (index_t column = 0; column < state.size(); ++column) {
+    for (std::size_t column = 0; column < state.size(); ++column) {
         auto shifted = state;
         auto rates = dstate;
         shifted[column] += step;
         rates[column] += step;
         const auto residual = residualAt(shifted, rates);
-        for (index_t row = 0; row < state.size(); ++row) {
-            EXPECT_NEAR(jacobian.at(row, column), (residual[row] - base[row]) / step, 1e-5)
+        for (std::size_t row = 0; row < state.size(); ++row) {
+            EXPECT_NEAR(jacobian.at(static_cast<index_t>(row), static_cast<index_t>(column)),
+                        (residual[row] - base[row]) / step,
+                        1e-5)
                 << "row " << row << " column " << column;
         }
     }
@@ -631,14 +634,16 @@ TEST(RenewableModels, ThreeModelDaeJacobianIncludesSignalConnections)
     };
     const auto base = residualAt(state, rate);
     constexpr double step = 1e-7;
-    for (index_t column = 0; column < state.size(); ++column) {
+    for (std::size_t column = 0; column < state.size(); ++column) {
         auto shifted = state;
         auto shiftedRate = rate;
         shifted[column] += step;
         shiftedRate[column] += step;
         const auto residual = residualAt(shifted, shiftedRate);
-        for (index_t row = 0; row < state.size(); ++row) {
-            EXPECT_NEAR(jacobian.at(row, column), (residual[row] - base[row]) / step, 2e-4)
+        for (std::size_t row = 0; row < state.size(); ++row) {
+            EXPECT_NEAR(jacobian.at(static_cast<index_t>(row), static_cast<index_t>(column)),
+                        (residual[row] - base[row]) / step,
+                        2e-4)
                 << "row " << row << " column " << column;
         }
     }
@@ -763,14 +768,16 @@ TEST(RenewableModels, WindChainDaeJacobianIncludesMechanicalFeedback)
     };
     const auto base = residualAt(state, rate);
     constexpr double step = 1e-7;
-    for (index_t column = 0; column < state.size(); ++column) {
+    for (std::size_t column = 0; column < state.size(); ++column) {
         auto shifted = state;
         auto shiftedRate = rate;
         shifted[column] += step;
         shiftedRate[column] += step;
         const auto residual = residualAt(shifted, shiftedRate);
-        for (index_t row = 0; row < state.size(); ++row) {
-            EXPECT_NEAR(jacobian.at(row, column), (residual[row] - base[row]) / step, 3e-4)
+        for (std::size_t row = 0; row < state.size(); ++row) {
+            EXPECT_NEAR(jacobian.at(static_cast<index_t>(row), static_cast<index_t>(column)),
+                        (residual[row] - base[row]) / step,
+                        3e-4)
                 << "row " << row << " column " << column;
         }
     }

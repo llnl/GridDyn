@@ -21,9 +21,18 @@
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/Stabilizer.h"
 #include "griddyn/generators/DynamicGenerator.h"
+#include "griddyn/generators/RenewableGenerator.h"
 #include "griddyn/governors/GovernorHygov.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorReheat.h"
+#include "griddyn/renewables/REECA1.h"
+#include "griddyn/renewables/REECB1.h"
+#include "griddyn/renewables/REGCA1.h"
+#include "griddyn/renewables/REPCA1.h"
+#include "griddyn/renewables/WTARA1.h"
+#include "griddyn/renewables/WTDTA1.h"
+#include "griddyn/renewables/WTPTA1.h"
+#include "griddyn/renewables/WTTQA1.h"
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
 #include <array>
@@ -88,6 +97,7 @@ namespace {
     void loadST2CUT(CoreObject* parentObject, stringVec& tokens, bool zeroGain = false);
     void loadEXDC2(CoreObject* parentObject, stringVec& tokens);
     void loadSEXS(CoreObject* parentObject, stringVec& tokens);
+    void loadRenewable(CoreObject* parentObject, stringVec& tokens, std::string_view modelName);
 
     struct UnsupportedDyrModelSummary {
         std::size_t mCount = 0;
@@ -196,6 +206,22 @@ namespace detail {
             loadST2CUT(parentObject, lineTokens, disableStabilizers);
         } else if (type == "'SEXS'") {
             loadSEXS(parentObject, lineTokens);
+        } else if (type == "'REGCA1'") {
+            loadRenewable(parentObject, lineTokens, "REGCA1");
+        } else if (type == "'REECA1'") {
+            loadRenewable(parentObject, lineTokens, "REECA1");
+        } else if (type == "'REECB1'") {
+            loadRenewable(parentObject, lineTokens, "REECB1");
+        } else if (type == "'REPCA1'") {
+            loadRenewable(parentObject, lineTokens, "REPCA1");
+        } else if (type == "'WTDTA1'") {
+            loadRenewable(parentObject, lineTokens, "WTDTA1");
+        } else if (type == "'WTARA1'") {
+            loadRenewable(parentObject, lineTokens, "WTARA1");
+        } else if (type == "'WTPTA1'") {
+            loadRenewable(parentObject, lineTokens, "WTPTA1");
+        } else if (type == "'WTTQA1'") {
+            loadRenewable(parentObject, lineTokens, "WTTQA1");
         } else {
             return false;
         }
@@ -245,7 +271,7 @@ void loadDyr(CoreObject* parentObject,
         }
         auto lineTokens = gmlc::utilities::stringOps::splitlineQuotes(
             line,
-            " \t\n,",
+            " \timeValue\n,",
             gmlc::utilities::stringOps::default_quote_chars,
             gmlc::utilities::stringOps::delimiter_compression::on);
         // get rid of the '/' at the end of the last string
@@ -259,9 +285,21 @@ void loadDyr(CoreObject* parentObject,
             continue;
         }
         const auto modelName = gmlc::utilities::stringOps::removeQuotes(lineTokens[1]);
-        if (!detail::loadDyrModelRecord(
-                parentObject, lineTokens, disableStabilizers, zeroGainStabilizers)) {
-            addUnsupportedModel(unsupportedModels, modelName, lineTokens, recordLineNumber);
+        try {
+            if (!detail::loadDyrModelRecord(
+                    parentObject, lineTokens, disableStabilizers, zeroGainStabilizers)) {
+                addUnsupportedModel(unsupportedModels, modelName, lineTokens, recordLineNumber);
+            }
+        }
+        catch (const InvalidParameterValue& error) {
+            std::string message{fileName};
+            message.push_back(':');
+            message.append(std::to_string(recordLineNumber));
+            message.append(" ").append(modelName).append(" bus ").append(lineTokens[0]);
+            message.append(" machine ");
+            message.append(lineTokens.size() > 2U ? lineTokens[2] : "<missing>");
+            message.append(": ").append(error.what());
+            throw InvalidParameterValue(message);
         }
     }
     if (!unsupportedModels.empty()) {
@@ -357,6 +395,168 @@ namespace {
         return generator;
     }
 
+    void loadRenewable(CoreObject* parentObject, stringVec& tokens, std::string_view modelName)
+    {
+        static constexpr auto regcaFields = std::to_array<std::string_view>({"lvplsw",
+                                                                             "tg",
+                                                                             "rrpwr",
+                                                                             "brkpt",
+                                                                             "zerox",
+                                                                             "lvpl1",
+                                                                             "volim",
+                                                                             "lvpnt1",
+                                                                             "lvpnt0",
+                                                                             "iolim",
+                                                                             "tfltr",
+                                                                             "khv",
+                                                                             "iqrmax",
+                                                                             "iqrmin",
+                                                                             "accel"});
+        static constexpr auto reecaFields = std::to_array<std::string_view>(
+            {"pfflag", "vflag", "qflag", "pflag", "pqflag", "vdip",  "vup",   "trv",   "dbd1",
+             "dbd2",   "kqv",   "iqh1",  "iql1",  "vref0",  "iqfrz", "thld",  "thld2", "tp",
+             "qmax",   "qmin",  "vmax",  "vmin",  "kqp",    "kqi",   "kvp",   "kvi",   "vref1",
+             "tiq",    "dpmax", "dpmin", "pmax",  "pmin",   "imax",  "tpord", "vq1",   "iq1",
+             "vq2",    "iq2",   "vq3",   "iq3",   "vq4",    "iq4",   "vp1",   "ip1",   "vp2",
+             "ip2",    "vp3",   "ip3",   "vp4",   "ip4"});
+        static constexpr auto repcaFields = std::to_array<std::string_view>(
+            {"vcflag", "refflag", "fflag", "tfltr", "kp",   "ki",    "tft",   "tfv",
+             "vfrz",   "rc",      "xc",    "kc",    "emax", "emin",  "dbd1",  "dbd2",
+             "qmax",   "qmin",    "kpg",   "kig",   "tp",   "fdbd1", "fdbd2", "femax",
+             "femin",  "pmax",    "pmin",  "tg",    "ddn",  "dup"});
+        static constexpr auto reecbFields = std::to_array<std::string_view>(
+            {"pfflag", "vflag", "qflag", "pqflag", "vdip",  "vup",  "trv",  "dbd1", "dbd2", "kqv",
+             "iqh1",   "iql1",  "vref0", "tp",     "qmax",  "qmin", "vmax", "vmin", "kqp",  "kqi",
+             "kvp",    "kvi",   "tiq",   "dpmax",  "dpmin", "pmax", "pmin", "imax", "tpord"});
+        static constexpr auto wtdtaFields =
+            std::to_array<std::string_view>({"h", "damp", "htfrac", "freq1", "dshaft"});
+        static constexpr auto wtaraFields = std::to_array<std::string_view>({"ka", "theta0"});
+        static constexpr auto wtptaFields = std::to_array<std::string_view>({"kiw",
+                                                                             "kpw",
+                                                                             "kic",
+                                                                             "kpc",
+                                                                             "kcc",
+                                                                             "tp",
+                                                                             "tetamax",
+                                                                             "tetamin",
+                                                                             "rtetamax",
+                                                                             "rtetamin"});
+        static constexpr auto wttqaFields = std::to_array<std::string_view>({"tflag",
+                                                                             "kpp",
+                                                                             "kip",
+                                                                             "tp",
+                                                                             "twref",
+                                                                             "temax",
+                                                                             "temin",
+                                                                             "p1",
+                                                                             "spd1",
+                                                                             "p2",
+                                                                             "spd2",
+                                                                             "p3",
+                                                                             "spd3",
+                                                                             "p4",
+                                                                             "spd4",
+                                                                             "trate"});
+
+        std::size_t expected = 19U;
+        if (modelName == "REGCA1") {
+            expected = 18U;
+        } else if (modelName == "REECA1") {
+            expected = 54U;
+        } else if (modelName == "REECB1") {
+            expected = 33U;
+        } else if (modelName == "REPCA1") {
+            expected = 37U;
+        } else if (modelName == "WTDTA1") {
+            expected = 8U;
+        } else if (modelName == "WTARA1") {
+            expected = 5U;
+        } else if (modelName == "WTPTA1") {
+            expected = 13U;
+        }
+        if (tokens.size() != expected) {
+            throw InvalidParameterValue(std::string{modelName} +
+                                        " DYR record has the wrong field count");
+        }
+        auto* generator = requireDyrGenerator(parentObject, tokens, modelName);
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        std::string const modelKey = gmlc::utilities::convertToLowerCase(modelName);
+        std::unique_ptr<RenewableComponent> model(dynamic_cast<RenewableComponent*>(
+            CoreObjectFactory::instance()->createObject("renewable_model", modelKey)));
+        if (model == nullptr) {
+            throw InvalidParameterValue(std::string{modelName} + " factory is unavailable");
+        }
+        const auto setFields = [&](const auto& fields, std::size_t firstIndex) {
+            for (std::size_t index = 0; index < fields.size(); ++index) {
+                const auto value = params[firstIndex + index];
+                if (!std::isfinite(value) || value == kNullVal) {
+                    throw InvalidParameterValue(std::string{modelName} +
+                                                " DYR record has a nonnumeric field");
+                }
+                model->set(fields[index], value);
+            }
+        };
+        if (modelName == "REGCA1") {
+            setFields(regcaFields, 3);
+        } else if (modelName == "REECA1") {
+            if (params[3] != 0.0) {
+                throw InvalidParameterValue("REECA1 remote BUSR is not yet supported");
+            }
+            setFields(reecaFields, 4);
+        } else if (modelName == "REECB1") {
+            if (params[3] != 0.0) {
+                throw InvalidParameterValue("REECB1 remote BUSR is not yet supported");
+            }
+            setFields(reecbFields, 4);
+        } else if (modelName == "REPCA1") {
+            if (params[3] != 0.0 || params[4] != 0.0 || params[5] != 0.0) {
+                throw InvalidParameterValue(
+                    "REPCA1 remote bus or monitored line is not yet supported");
+            }
+            setFields(repcaFields, 7);
+        } else if (modelName == "WTDTA1") {
+            setFields(wtdtaFields, 3);
+        } else if (modelName == "WTARA1") {
+            setFields(wtaraFields, 3);
+        } else if (modelName == "WTPTA1") {
+            setFields(wtptaFields, 3);
+        } else {
+            setFields(wttqaFields, 3);
+        }
+        // Validate mode flags and numerical ranges before replacing a steady-state generator.
+        model->dynInitializeA(0.0, 0);
+
+        auto* renewable = dynamic_cast<RenewableGenerator*>(generator);
+        std::unique_ptr<RenewableGenerator> replacement;
+        if (renewable == nullptr) {
+            if (!generator->getSubObjects().empty()) {
+                throw InvalidParameterValue(std::string{modelName} +
+                                            " conflicts with an attached synchronous model");
+            }
+            replacement = std::make_unique<RenewableGenerator>(generator->getName());
+            generator->Generator::clone(replacement.get());
+            renewable = replacement.get();
+        }
+        const auto role = static_cast<index_t>(model->role());
+        if (renewable->getSubObject("renewable_component", role) != nullptr) {
+            throw InvalidParameterValue(std::string{modelName} +
+                                        " duplicate renewable role for bus " + tokens[0] +
+                                        " machine " + tokens[2]);
+        }
+        if (replacement != nullptr) {
+            auto* bus = dynamic_cast<GridBus*>(generator->getParent());
+            if (bus == nullptr) {
+                throw InvalidParameterValue("renewable DYR generator has no parent bus");
+            }
+            bus->replaceGenerator(generator, replacement.get());
+            auto* releasedReplacement = replacement.release();
+            (void)releasedReplacement;
+        }
+        renewable->add(model.get());
+        auto* releasedModel = model.release();
+        (void)releasedModel;
+    }
+
     void loadGENCLS(CoreObject* parentObject, stringVec& tokens)
     {
         if (tokens.size() < 5) {
@@ -368,7 +568,7 @@ namespace {
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         auto* genModel = static_cast<GenModel*>(
             CoreObjectFactory::instance()->createObject("genmodel", "gencls"));
-        // The RAW generator supplies ra and x'd. Attach before applying the
+        // The RAW generator supplies ra and stateValue'd. Attach before applying the
         // two GENCLS DYR parameters so DynamicGenerator transfers ZSOURCE.
         gen->add(genModel);
         genModel->set("h", params[3]);

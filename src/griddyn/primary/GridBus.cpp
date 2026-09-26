@@ -188,6 +188,20 @@ void GridBus::add(Generator* gen)
     addObject(this, gen, attachedGens);
 }
 
+void GridBus::replaceGenerator(Generator* previous, Generator* replacement)
+{
+    if (previous == nullptr || replacement == nullptr ||
+        !isValidIndex(previous->locIndex, attachedGens) ||
+        !isSameObject(previous, attachedGens[previous->locIndex])) {
+        throw ObjectAddFailure(this);
+    }
+    const auto position = previous->locIndex;
+    replacement->locIndex = position;
+    replacement->set("basevoltage", localBaseVoltage);
+    replaceSubObject(replacement, previous);
+    attachedGens[position] = replacement;
+}
+
 // add link
 void GridBus::add(Link* lnk)
 {

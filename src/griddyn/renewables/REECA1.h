@@ -19,39 +19,56 @@ class REECA1: public RenewableComponent {
     RenewableRole role() const override { return RenewableRole::electricalControl; }
     std::span<const RenewablePort> inputPorts() const override;
     std::span<const RenewablePort> outputPorts() const override;
-    void set(std::string_view param, double val,
-             units::unit unitType = units::defunit) override;
-    double get(std::string_view param,
-               units::unit unitType = units::defunit) const override;
+    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
+    double get(std::string_view param, units::unit unitType = units::defunit) const override;
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
-    void dynObjectInitializeB(const IOdata& inputs, const IOdata& desiredOutput,
+    void dynObjectInitializeB(const IOdata& inputs,
+                              const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
-    void residual(const IOdata& inputs, const StateData& stateData,
-                  double resid[], const SolverMode& sMode) override;
-    void derivative(const IOdata& inputs, const StateData& stateData,
-                    double deriv[], const SolverMode& sMode) override;
-    void algebraicUpdate(const IOdata& inputs, const StateData& stateData,
-                         double update[], const SolverMode& sMode, double alpha) override;
-    void jacobianElements(const IOdata& inputs, const StateData& stateData,
-                          MatrixData<double>& matrixData, const IOlocs& inputLocs,
+    void residual(const IOdata& inputs,
+                  const StateData& stateData,
+                  double resid[],
+                  const SolverMode& sMode) override;
+    void derivative(const IOdata& inputs,
+                    const StateData& stateData,
+                    double deriv[],
+                    const SolverMode& sMode) override;
+    void algebraicUpdate(const IOdata& inputs,
+                         const StateData& stateData,
+                         double update[],
+                         const SolverMode& sMode,
+                         double alpha) override;
+    void jacobianElements(const IOdata& inputs,
+                          const StateData& stateData,
+                          MatrixData<double>& matrixData,
+                          const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
     void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
-    IOdata getOutputs(const IOdata& inputs, const StateData& stateData,
+    IOdata getOutputs(const IOdata& inputs,
+                      const StateData& stateData,
                       const SolverMode& sMode) const override;
     using RenewableComponent::getOutput;
-    double getOutput(const IOdata& inputs, const StateData& stateData,
-                     const SolverMode& sMode, index_t outputNum) const override;
+    double getOutput(const IOdata& inputs,
+                     const StateData& stateData,
+                     const SolverMode& sMode,
+                     index_t outputNum) const override;
     index_t getOutputLoc(const SolverMode& sMode, index_t outputNum) const override;
-    void outputPartialDerivatives(const IOdata& inputs, const StateData& stateData,
+    void outputPartialDerivatives(const IOdata& inputs,
+                                  const StateData& stateData,
                                   MatrixData<double>& matrixData,
                                   const SolverMode& sMode) override;
-    void rootTest(const IOdata& inputs, const StateData& stateData,
-                  double roots[], const SolverMode& sMode) override;
-    void rootTrigger(CoreTime time, const IOdata& inputs,
+    void rootTest(const IOdata& inputs,
+                  const StateData& stateData,
+                  double roots[],
+                  const SolverMode& sMode) override;
+    void rootTrigger(CoreTime time,
+                     const IOdata& inputs,
                      const std::vector<int>& rootMask,
                      const SolverMode& sMode) override;
-    ChangeCode rootCheck(const IOdata& inputs, const StateData& stateData,
-                         const SolverMode& sMode, CheckLevel level) override;
+    ChangeCode rootCheck(const IOdata& inputs,
+                         const StateData& stateData,
+                         const SolverMode& sMode,
+                         CheckLevel level) override;
     stringVec localStateNames() const override;
 
   protected:
@@ -83,7 +100,8 @@ class REECA1: public RenewableComponent {
     double heldPowerOrder = 0.0;
     bool voltageDip(double v) const { return v < Vdip || v > Vup; }
     bool dipMode(double v) const { return Thld2 > 0.0 ? voltageDipActive : voltageDip(v); }
-    static double curve(double voltage, const std::array<double, 4>& points,
+    static double curve(double voltage,
+                        const std::array<double, 4>& points,
                         const std::array<double, 4>& currents);
     double activeLimit(double voltage, const double state[]) const;
     void transition(CoreTime time, double voltage, bool entering);

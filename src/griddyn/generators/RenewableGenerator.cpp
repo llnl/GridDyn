@@ -5,6 +5,7 @@
  */
 
 #include "RenewableGenerator.h"
+
 #include "../GridBus.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
@@ -18,11 +19,11 @@
 
 namespace griddyn {
 namespace {
-bool isTerminalSignal(RenewableSignal signal)
-{
-    return signal == RenewableSignal::terminalVoltage ||
-        signal == RenewableSignal::terminalAngle;
-}
+    bool isTerminalSignal(RenewableSignal signal)
+    {
+        return signal == RenewableSignal::terminalVoltage ||
+            signal == RenewableSignal::terminalAngle;
+    }
 }  // namespace
 
 RenewableGenerator::RenewableGenerator(const std::string& name): Generator(name) {}
@@ -45,8 +46,7 @@ void RenewableGenerator::add(GridSubModel* obj)
 {
     if (obj == nullptr ||
         (obj->getParent() != nullptr &&
-         !isSameObject(static_cast<id_type_t>(0), obj->getParent()) &&
-         obj->getParent() != this)) {
+         !isSameObject(static_cast<id_type_t>(0), obj->getParent()) && obj->getParent() != this)) {
         throw UnrecognizedObjectException(this);
     }
     auto* renewable = dynamic_cast<RenewableComponent*>(obj);
@@ -187,16 +187,15 @@ IOdata RenewableGenerator::modelInputs(const RenewableComponent* model,
                             if (isDifferentialOnly(sMode) &&
                                 sMode.pairedOffsetIndex != kNullLocation &&
                                 stateDataValue.algState != nullptr) {
-                                const auto& paired =
-                                    offsets.getSolverMode(sMode.pairedOffsetIndex);
+                                const auto& paired = offsets.getSolverMode(sMode.pairedOffsetIndex);
                                 if (paired.algebraic &&
                                     candidate->algSize(paired) > output.ioIndex) {
                                     outputMode = &paired;
                                     outputState.state = stateDataValue.algState;
                                 }
                             }
-                            result[portIndex] = candidate->getOutput(
-                                {}, outputState, *outputMode, output.ioIndex);
+                            result[portIndex] =
+                                candidate->getOutput({}, outputState, *outputMode, output.ioIndex);
                         }
                     }
                 }
@@ -228,8 +227,7 @@ IOlocs RenewableGenerator::modelInputLocs(const RenewableComponent* model,
                 }
                 for (const auto& output : candidate->outputPorts()) {
                     if (output.signal == port.signal && output.base == port.base) {
-                        result[portIndex] = candidate->getOutputLoc(sMode,
-                                                                      output.ioIndex);
+                        result[portIndex] = candidate->getOutputLoc(sMode, output.ioIndex);
                     }
                 }
             }
@@ -252,28 +250,32 @@ void RenewableGenerator::dynObjectInitializeB(const IOdata& inputs,
     const double scale = systemBasePower / machineBasePower;
     IOdata const target{P * scale, Q * scale};
     IOdata modelFieldSet;
-    electricalModel->dynInitializeB(modelInputs(electricalModel, inputs, emptyStateData,
-                                                cLocalSolverMode),
-                                    target, modelFieldSet);
+    electricalModel->dynInitializeB(
+        modelInputs(electricalModel, inputs, emptyStateData, cLocalSolverMode),
+        target,
+        modelFieldSet);
     for (auto* component : components) {
         if (component != nullptr && component != electricalModel && component->isEnabled()) {
             IOdata ignored;
-            component->dynInitializeB(modelInputs(component, inputs, emptyStateData,
-                                                  cLocalSolverMode),
-                                      target, ignored);
+            component->dynInitializeB(
+                modelInputs(component, inputs, emptyStateData, cLocalSolverMode), target, ignored);
         }
     }
     // A torque model chooses the wind operating speed from its power-speed curve.
     // Reconcile the shaft, torque integral, and pitch after every provider exists.
     if (components[roleIndex(RenewableRole::driveTrain)] != nullptr &&
         components[roleIndex(RenewableRole::torqueControl)] != nullptr) {
-        for (auto role : {RenewableRole::driveTrain, RenewableRole::torqueControl,
-                          RenewableRole::aerodynamics, RenewableRole::pitchControl}) {
+        for (auto role : {RenewableRole::driveTrain,
+                          RenewableRole::torqueControl,
+                          RenewableRole::aerodynamics,
+                          RenewableRole::pitchControl}) {
             auto* component = components[roleIndex(role)];
             if (component != nullptr && component->isEnabled()) {
                 IOdata ignored;
-                component->dynInitializeB(modelInputs(component, inputs, emptyStateData,
-                                                      cLocalSolverMode), target, ignored);
+                component->dynInitializeB(
+                    modelInputs(component, inputs, emptyStateData, cLocalSolverMode),
+                    target,
+                    ignored);
             }
         }
     }
@@ -305,8 +307,10 @@ void RenewableGenerator::guessState(CoreTime time,
     }
 }
 
-void RenewableGenerator::residual(const IOdata& inputs, const StateData& stateDataValue,
-                                  double resid[], const SolverMode& sMode)
+void RenewableGenerator::residual(const IOdata& inputs,
+                                  const StateData& stateDataValue,
+                                  double resid[],
+                                  const SolverMode& sMode)
 {
     if (!isDynamic(sMode)) {
         Generator::residual(inputs, stateDataValue, resid, sMode);
@@ -315,25 +319,32 @@ void RenewableGenerator::residual(const IOdata& inputs, const StateData& stateDa
     for (auto* component : components) {
         if (component != nullptr && component->isEnabled()) {
             component->residual(modelInputs(component, inputs, stateDataValue, sMode),
-                                stateDataValue, resid, sMode);
+                                stateDataValue,
+                                resid,
+                                sMode);
         }
     }
 }
 
-void RenewableGenerator::derivative(const IOdata& inputs, const StateData& stateDataValue,
-                                    double deriv[], const SolverMode& sMode)
+void RenewableGenerator::derivative(const IOdata& inputs,
+                                    const StateData& stateDataValue,
+                                    double deriv[],
+                                    const SolverMode& sMode)
 {
     for (auto* component : components) {
         if (component != nullptr && component->isEnabled()) {
             component->derivative(modelInputs(component, inputs, stateDataValue, sMode),
-                                  stateDataValue, deriv, sMode);
+                                  stateDataValue,
+                                  deriv,
+                                  sMode);
         }
     }
 }
 
 void RenewableGenerator::algebraicUpdate(const IOdata& inputs,
                                          const StateData& stateDataValue,
-                                         double update[], const SolverMode& sMode,
+                                         double update[],
+                                         const SolverMode& sMode,
                                          double alpha)
 {
     if (!isDynamic(sMode)) {
@@ -343,19 +354,22 @@ void RenewableGenerator::algebraicUpdate(const IOdata& inputs,
     for (auto* component : components) {
         if (component != nullptr && component->isEnabled()) {
             component->algebraicUpdate(modelInputs(component, inputs, stateDataValue, sMode),
-                                       stateDataValue, update, sMode, alpha);
+                                       stateDataValue,
+                                       update,
+                                       sMode,
+                                       alpha);
         }
     }
 }
 
-void RenewableGenerator::timestep(CoreTime time, const IOdata& inputs,
-                                  const SolverMode& sMode)
+void RenewableGenerator::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
     const auto stepRole = [&](RenewableRole role) {
         auto* component = components[roleIndex(role)];
         if (component != nullptr && component->isEnabled()) {
-            component->timestep(time, modelInputs(component, inputs, emptyStateData,
-                                                  cLocalSolverMode), sMode);
+            component->timestep(time,
+                                modelInputs(component, inputs, emptyStateData, cLocalSolverMode),
+                                sMode);
         }
     };
     stepRole(RenewableRole::plantControl);
@@ -395,8 +409,10 @@ void RenewableGenerator::jacobianElements(const IOdata& inputs,
     for (auto* component : components) {
         if (component != nullptr && component->isEnabled()) {
             component->jacobianElements(modelInputs(component, inputs, stateDataValue, sMode),
-                                        stateDataValue, matrixDataValue,
-                                        modelInputLocs(component, inputLocs, sMode), sMode);
+                                        stateDataValue,
+                                        matrixDataValue,
+                                        modelInputLocs(component, inputLocs, sMode),
+                                        sMode);
         }
     }
 }
@@ -418,8 +434,10 @@ IOdata RenewableGenerator::getOutputs(const IOdata& inputs,
             outputState.state = stateDataValue.algState;
         }
     }
-    auto output = electricalModel->getOutputs(
-        modelInputs(electricalModel, inputs, stateDataValue, sMode), outputState, *outputMode);
+    auto output =
+        electricalModel->getOutputs(modelInputs(electricalModel, inputs, stateDataValue, sMode),
+                                    outputState,
+                                    *outputMode);
     const double scale = -machineBasePower / systemBasePower;
     output[POUT_LOCATION] *= scale;
     output[QOUT_LOCATION] *= scale;
@@ -451,8 +469,7 @@ void RenewableGenerator::outputPartialDerivatives(const IOdata& inputs,
     }
     MatrixDataScale<double> scaled(matrixDataValue, -machineBasePower / systemBasePower);
     electricalModel->outputPartialDerivatives(
-        modelInputs(electricalModel, inputs, stateDataValue, sMode), stateDataValue, scaled,
-        sMode);
+        modelInputs(electricalModel, inputs, stateDataValue, sMode), stateDataValue, scaled, sMode);
 }
 
 void RenewableGenerator::ioPartialDerivatives(const IOdata& inputs,
@@ -462,67 +479,73 @@ void RenewableGenerator::ioPartialDerivatives(const IOdata& inputs,
                                               const SolverMode& sMode)
 {
     if (!isDynamic(sMode)) {
-        Generator::ioPartialDerivatives(inputs, stateDataValue, matrixDataValue, inputLocs,
-                                        sMode);
+        Generator::ioPartialDerivatives(inputs, stateDataValue, matrixDataValue, inputLocs, sMode);
         return;
     }
     MatrixDataScale<double> scaled(matrixDataValue, -machineBasePower / systemBasePower);
     electricalModel->ioPartialDerivatives(
-        modelInputs(electricalModel, inputs, stateDataValue, sMode), stateDataValue, scaled,
-        modelInputLocs(electricalModel, inputLocs, sMode), sMode);
+        modelInputs(electricalModel, inputs, stateDataValue, sMode),
+        stateDataValue,
+        scaled,
+        modelInputLocs(electricalModel, inputLocs, sMode),
+        sMode);
 }
 
 void RenewableGenerator::rootTest(const IOdata& inputs,
                                   const StateData& stateDataValue,
-                                  double roots[], const SolverMode& sMode)
+                                  double roots[],
+                                  const SolverMode& sMode)
 {
     for (auto* component : components) {
-        if (component != nullptr && component->isEnabled() &&
-            component->rootSize(sMode) > 0) {
+        if (component != nullptr && component->isEnabled() && component->rootSize(sMode) > 0) {
             component->rootTest(modelInputs(component, inputs, stateDataValue, sMode),
-                                stateDataValue, roots, sMode);
+                                stateDataValue,
+                                roots,
+                                sMode);
         }
     }
 }
 
-void RenewableGenerator::rootTrigger(CoreTime time, const IOdata& inputs,
+void RenewableGenerator::rootTrigger(CoreTime time,
+                                     const IOdata& inputs,
                                      const std::vector<int>& rootMask,
                                      const SolverMode& sMode)
 {
     for (auto* component : components) {
-        if (component != nullptr && component->isEnabled() &&
-            component->rootSize(sMode) > 0) {
+        if (component != nullptr && component->isEnabled() && component->rootSize(sMode) > 0) {
             component->rootTrigger(time,
-                modelInputs(component, inputs, emptyStateData, cLocalSolverMode),
-                rootMask, sMode);
+                                   modelInputs(component, inputs, emptyStateData, cLocalSolverMode),
+                                   rootMask,
+                                   sMode);
         }
     }
 }
 
 ChangeCode RenewableGenerator::rootCheck(const IOdata& inputs,
                                          const StateData& stateDataValue,
-                                         const SolverMode& sMode, CheckLevel level)
+                                         const SolverMode& sMode,
+                                         CheckLevel level)
 {
-    auto result=ChangeCode::NO_CHANGE;
+    auto result = ChangeCode::NO_CHANGE;
     for (auto* component : components) {
-        if (component != nullptr && component->isEnabled() &&
-            component->rootSize(sMode) > 0) {
-            result=std::max(result,component->rootCheck(
-                modelInputs(component,inputs,stateDataValue,sMode),
-                stateDataValue,sMode,level));
+        if (component != nullptr && component->isEnabled() && component->rootSize(sMode) > 0) {
+            result =
+                std::max(result,
+                         component->rootCheck(modelInputs(component, inputs, stateDataValue, sMode),
+                                              stateDataValue,
+                                              sMode,
+                                              level));
         }
     }
     return result;
 }
 
-count_t RenewableGenerator::outputDependencyCount(index_t num,
-                                                  const SolverMode& sMode) const
+count_t RenewableGenerator::outputDependencyCount(index_t num, const SolverMode& sMode) const
 {
     if (!isDynamic(sMode)) {
         return Generator::outputDependencyCount(num, sMode);
     }
-    return electricalModel == nullptr ? 0 :
-        electricalModel->outputDependencyCount(num, sMode) + 1;
+    return electricalModel == nullptr ? 0 : electricalModel->outputDependencyCount(num, sMode) + 1;
 }
 
 void RenewableGenerator::getStateName(stringVec& stNames,

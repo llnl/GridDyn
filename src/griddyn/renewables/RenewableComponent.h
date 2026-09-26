@@ -14,7 +14,7 @@
 namespace griddyn {
 
 /** Attachment roles are independent of the concrete dynamics-file model name. */
-enum class RenewableRole: index_t {
+enum class RenewableRole : index_t {
     electrical = 0,
     electricalControl,
     plantControl,

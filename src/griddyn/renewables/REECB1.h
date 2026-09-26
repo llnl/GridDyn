@@ -12,12 +12,13 @@ namespace griddyn {
 /** REEC_B controller with flat current limits and no speed-dependent P flag. */
 class REECB1 final: public REECA1 {
   public:
-    explicit REECB1(const std::string& name="REECB1_#");
-    CoreObject* clone(CoreObject* obj=nullptr) const override;
-    void set(std::string_view param,double val,units::unit unitType=units::defunit) override;
+    explicit REECB1(const std::string& name = "REECB1_#");
+    CoreObject* clone(CoreObject* obj = nullptr) const override;
+    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
+
   protected:
     // REEC_B injection follows filtered voltage through fault recovery.
     bool useVoltageInjection(double) const override { return true; }
 };
 
-} // namespace griddyn
+}  // namespace griddyn

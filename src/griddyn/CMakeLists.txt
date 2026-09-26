@@ -47,21 +47,38 @@ set(genmodel_sources
     genmodels/GenModelInverter.cpp
 )
 
-set(generator_headers Generator.h generators/VariableGenerator.h generators/IsocController.h
-                      generators/DynamicGenerator.h generators/RenewableGenerator.h
-                      renewables/RenewableComponent.h renewables/REGCA1.h
-                      renewables/REECA1.h renewables/REECB1.h renewables/REPCA1.h
-                      renewables/WTDTA1.h renewables/WTARA1.h
-                      renewables/WTPTA1.h renewables/WTTQA1.h
+set(generator_headers
+    Generator.h
+    generators/VariableGenerator.h
+    generators/IsocController.h
+    generators/DynamicGenerator.h
+    generators/RenewableGenerator.h
+    renewables/RenewableComponent.h
+    renewables/REGCA1.h
+    renewables/REECA1.h
+    renewables/REECB1.h
+    renewables/REPCA1.h
+    renewables/WTDTA1.h
+    renewables/WTARA1.h
+    renewables/WTPTA1.h
+    renewables/WTTQA1.h
 )
 
 set(generator_sources
-    ${generator_headers} generators/Generator.cpp generators/VariableGenerator.cpp
-    generators/IsocController.cpp generators/DynamicGenerator.cpp
-    generators/RenewableGenerator.cpp renewables/REGCA1.cpp
-    renewables/REECA1.cpp renewables/REECB1.cpp renewables/REPCA1.cpp
-    renewables/WTDTA1.cpp renewables/WTARA1.cpp
-    renewables/WTPTA1.cpp renewables/WTTQA1.cpp
+    ${generator_headers}
+    generators/Generator.cpp
+    generators/VariableGenerator.cpp
+    generators/IsocController.cpp
+    generators/DynamicGenerator.cpp
+    generators/RenewableGenerator.cpp
+    renewables/REGCA1.cpp
+    renewables/REECA1.cpp
+    renewables/REECB1.cpp
+    renewables/REPCA1.cpp
+    renewables/WTDTA1.cpp
+    renewables/WTARA1.cpp
+    renewables/WTPTA1.cpp
+    renewables/WTTQA1.cpp
 )
 
 set(gridSource_headers

@@ -10,12 +10,12 @@ GridDyn event uses the corresponding shunt susceptance `yq=5`. Both run to
 
 The four CSV files cover these model assemblies:
 
-| CSV | ANDES / GridDyn submodels |
-| --- | --- |
-| `andes_reference.csv` | REGCA1 + REECA1 |
-| `andes_plant_reference.csv` | REGCA1 + REECA1 + REPCA1 |
-| `andes_wind_reference.csv` | REGCA1 + REECA1 + WTDTA1 + WTARA1 + WTPTA1 + WTTQA1 |
-| `andes_reecb_reference.csv` | REGCA1 + REECB1 |
+| CSV                         | ANDES / GridDyn submodels                           |
+| --------------------------- | --------------------------------------------------- |
+| `andes_reference.csv`       | REGCA1 + REECA1                                     |
+| `andes_plant_reference.csv` | REGCA1 + REECA1 + REPCA1                            |
+| `andes_wind_reference.csv`  | REGCA1 + REECA1 + WTDTA1 + WTARA1 + WTPTA1 + WTTQA1 |
+| `andes_reecb_reference.csv` | REGCA1 + REECB1                                     |
 
 The C++ test `RenewableModels.TwoBusRenewableFaultMatchesAndesReference`
 loads `two_bus.xml`, adds each model assembly, and compares bus voltage,

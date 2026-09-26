@@ -30,9 +30,13 @@ class RenewableGenerator: public Generator {
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
-    void setState(CoreTime time, const double state[], const double dstateDt[],
+    void setState(CoreTime time,
+                  const double state[],
+                  const double dstateDt[],
                   const SolverMode& sMode) override;
-    void guessState(CoreTime time, double state[], double dstateDt[],
+    void guessState(CoreTime time,
+                    double state[],
+                    double dstateDt[],
                     const SolverMode& sMode) override;
     void residual(const IOdata& inputs,
                   const StateData& stateDataValue,
@@ -42,8 +46,11 @@ class RenewableGenerator: public Generator {
                     const StateData& stateDataValue,
                     double deriv[],
                     const SolverMode& sMode) override;
-    void algebraicUpdate(const IOdata& inputs, const StateData& stateDataValue,
-                         double update[], const SolverMode& sMode, double alpha) override;
+    void algebraicUpdate(const IOdata& inputs,
+                         const StateData& stateDataValue,
+                         double update[],
+                         const SolverMode& sMode,
+                         double alpha) override;
     void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
     void jacobianElements(const IOdata& inputs,
                           const StateData& stateDataValue,
@@ -68,15 +75,21 @@ class RenewableGenerator: public Generator {
                               MatrixData<double>& matrixDataValue,
                               const IOlocs& inputLocs,
                               const SolverMode& sMode) override;
-    void rootTest(const IOdata& inputs, const StateData& stateDataValue,
-                  double roots[], const SolverMode& sMode) override;
-    void rootTrigger(CoreTime time, const IOdata& inputs,
+    void rootTest(const IOdata& inputs,
+                  const StateData& stateDataValue,
+                  double roots[],
+                  const SolverMode& sMode) override;
+    void rootTrigger(CoreTime time,
+                     const IOdata& inputs,
                      const std::vector<int>& rootMask,
                      const SolverMode& sMode) override;
-    ChangeCode rootCheck(const IOdata& inputs, const StateData& stateDataValue,
-                         const SolverMode& sMode, CheckLevel level) override;
+    ChangeCode rootCheck(const IOdata& inputs,
+                         const StateData& stateDataValue,
+                         const SolverMode& sMode,
+                         CheckLevel level) override;
     count_t outputDependencyCount(index_t num, const SolverMode& sMode) const override;
-    void getStateName(stringVec& stNames, const SolverMode& sMode,
+    void getStateName(stringVec& stNames,
+                      const SolverMode& sMode,
                       const std::string& prefix) const override;
 
   private:

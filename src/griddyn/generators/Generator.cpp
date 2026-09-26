@@ -8,16 +8,16 @@
 #include "../controllers/Scheduler.h"
 #include "../measurement/ObjectGrabbers.h"
 #include "../primary/AcBus.h"
-#include "VariableGenerator.h"
-#include "RenewableGenerator.h"
-#include "../renewables/REGCA1.h"
 #include "../renewables/REECA1.h"
 #include "../renewables/REECB1.h"
+#include "../renewables/REGCA1.h"
 #include "../renewables/REPCA1.h"
-#include "../renewables/WTDTA1.h"
 #include "../renewables/WTARA1.h"
+#include "../renewables/WTDTA1.h"
 #include "../renewables/WTPTA1.h"
 #include "../renewables/WTTQA1.h"
+#include "RenewableGenerator.h"
+#include "VariableGenerator.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
@@ -64,7 +64,8 @@ static ChildTypeFactory<VariableGenerator, Generator>
     gVariableGeneratorFactory("generator",
                               std::to_array<std::string_view>({"variable", "renewable"}));
 static TypeFactory<RenewableGenerator> gRenewableGeneratorFactory(
-    "generator", std::to_array<std::string_view>({"renewable_dynamic", "renewable_generator"}));
+    "generator",
+    std::to_array<std::string_view>({"renewable_dynamic", "renewable_generator"}));
 static TypeFactory<REGCA1> gREGCA1Factory("renewable_model", "regca1");
 static TypeFactory<REECA1> gREECA1Factory("renewable_model", "reeca1");
 static TypeFactory<REECB1> gREECB1Factory("renewable_model", "reecb1");

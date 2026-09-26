@@ -186,7 +186,7 @@ identity, rather than copying raw pointers.
 
 The host builds per-component `IOdata` and `IOlocs` from a compiled binding
 table. `GridComponent` already traverses child state sizes and offsets, but
-its default residual/Jacobian traversal passes the *same* input array to every
+its default residual/Jacobian traversal passes the _same_ input array to every
 child. Renewable components need different input arrays, so the host still
 needs one generic evaluation loop. Outputs must be taken from the current
 `StateData`, including partitioned algebraic states, and derivatives of
@@ -207,15 +207,15 @@ bus or line reference, and any model-specific prerequisites. Check that every
 attached control component has a path to a terminal or mechanical effect, so
 an accepted dynamics record cannot be silently inert. Examples:
 
-| Assembly | Result |
-| --- | --- |
-| `REGCA1` + `REECA1` | Bind active/reactive current commands to the converter. |
-| `REGCA1` alone | Use an explicit initialized-command hold mode if supported; never substitute an undocumented zero input. |
-| `REGCV` without `REECA1` | Valid when its terminal model declares autonomous controls. |
-| `REGCV` + `REECA1` | Reject unless that converter accepts current commands. |
-| `REPCA1` + `REECA1` | Bind incremental active/reactive references only if the controller accepts them. |
-| Future `WT1G` with turbine | Bind mechanical torque/power and speed; do not demand converter controls. |
-| Future `WT2G` + `WT2E` | Bind external rotor resistance; reject `WT2E` with an electrical model lacking that port. |
+| Assembly                   | Result                                                                                                   |
+| -------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `REGCA1` + `REECA1`        | Bind active/reactive current commands to the converter.                                                  |
+| `REGCA1` alone             | Use an explicit initialized-command hold mode if supported; never substitute an undocumented zero input. |
+| `REGCV` without `REECA1`   | Valid when its terminal model declares autonomous controls.                                              |
+| `REGCV` + `REECA1`         | Reject unless that converter accepts current commands.                                                   |
+| `REPCA1` + `REECA1`        | Bind incremental active/reactive references only if the controller accepts them.                         |
+| Future `WT1G` with turbine | Bind mechanical torque/power and speed; do not demand converter controls.                                |
+| Future `WT2G` + `WT2E`     | Bind external rotor resistance; reject `WT2E` with an electrical model lacking that port.                |
 
 Initialization uses the power-flow P/Q as the terminal target, then solves
 or iterates the coupled controls and mechanics to a consistent equilibrium.
@@ -225,11 +225,11 @@ and missing or conflicting signal.
 
 ## Why this hierarchy
 
-| Option | Assessment |
-| --- | --- |
-| Seven abstract role subclasses and seven typed host pointers | Clear but repetitive; each new role changes the host and many subclasses have no shared implementation. |
-| One `RenewableComponent` plus one `TerminalElectricalModel` | Recommended: a small common composition contract and a real electrical invariant; concrete controls stay independent. |
-| Fully general signal-graph framework | More flexibility than the present model set requires; raises solver and Jacobian complexity across GridDyn. Keep a local binding table first. |
+| Option                                                       | Assessment                                                                                                                                    |
+| ------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| Seven abstract role subclasses and seven typed host pointers | Clear but repetitive; each new role changes the host and many subclasses have no shared implementation.                                       |
+| One `RenewableComponent` plus one `TerminalElectricalModel`  | Recommended: a small common composition contract and a real electrical invariant; concrete controls stay independent.                         |
+| Fully general signal-graph framework                         | More flexibility than the present model set requires; raises solver and Jacobian complexity across GridDyn. Keep a local binding table first. |
 
 ## Next verification and extension work
 

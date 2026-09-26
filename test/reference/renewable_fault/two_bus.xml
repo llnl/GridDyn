@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="renewable_fault_reference" version="0.0.1">
+  <basepower>100</basepower>
+  <bus name="source">
+    <type>infinite</type>
+    <angle>0</angle>
+    <voltage>1</voltage>
+  </bus>
+  <bus name="solar_bus">
+    <type>PV</type>
+    <voltage>1</voltage>
+    <load name="demand">
+      <p>0.4</p>
+      <q>0.1</q>
+    </load>
+    <load name="fault_shunt">
+      <yq>0</yq>
+      <event>
+        <field>yq</field>
+        <time>0.1,0.2</time>
+        <value>5,0</value>
+      </event>
+    </load>
+  </bus>
+  <link name="connection" from="source" to="solar_bus">
+    <r>0.01</r>
+    <x>0.1</x>
+    <b>0</b>
+  </link>
+</griddyn>

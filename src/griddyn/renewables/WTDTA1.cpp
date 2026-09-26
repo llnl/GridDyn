@@ -10,8 +10,8 @@
 #include "gmlc/utilities/stringOps.h"
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
-#include <cstddef>
 #include <cmath>
+#include <cstddef>
 #include <string>
 
 namespace griddyn {

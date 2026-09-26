@@ -293,8 +293,7 @@ void REGCA1::residual(const IOdata& inputs,
             (inputs[0] * loc.diffStateLoc[activeCurrentState] * lowVoltageGain(inputs[0])) -
             loc.algStateLoc[activePower];
         loc.destLoc[reactivePower] =
-            (inputs[0] * loc.diffStateLoc[reactiveCurrentState]) -
-            loc.algStateLoc[reactivePower];
+            (inputs[0] * loc.diffStateLoc[reactiveCurrentState]) - loc.algStateLoc[reactivePower];
     }
     if (hasDifferential(sMode)) {
         derivative(inputs, stateData, resid, sMode);

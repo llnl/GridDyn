@@ -329,8 +329,9 @@ void RenewableGenerator::dynObjectInitializeB(const IOdata& inputs,
     }
     if (speedRequired) {
         IOdata ignored;
-        control->dynInitializeB(
-            modelInputs(control, inputs, emptyStateData, cLocalSolverMode), target, ignored);
+        control->dynInitializeB(modelInputs(control, inputs, emptyStateData, cLocalSolverMode),
+                                target,
+                                ignored);
     }
 }
 

@@ -20,8 +20,8 @@
 #include "griddyn/renewables/REGCP1.h"
 #include "griddyn/renewables/REPCA1.h"
 #include "griddyn/renewables/WTARA1.h"
-#include "griddyn/renewables/WTDTA1.h"
 #include "griddyn/renewables/WTDS.h"
+#include "griddyn/renewables/WTDTA1.h"
 #include "griddyn/renewables/WTPTA1.h"
 #include "griddyn/renewables/WTTQA1.h"
 #include "utilities/MatrixDataSparse.hpp"
@@ -101,8 +101,7 @@ void loadRenewableRecords(GridDynSimulation& simulation,
         for (auto model : models) {
             auto record = renewableDyrRecord(model, busId);
             if (model == "REECA1" &&
-                std::find(models.begin(), models.end(), std::string_view{"WTDS"}) !=
-                    models.end()) {
+                std::find(models.begin(), models.end(), std::string_view{"WTDS"}) != models.end()) {
                 const auto flags = record.find("0 0 1 0 0 1 .8");
                 if (flags != std::string::npos) {
                     record.replace(flags, 14, "0 0 1 0 1 1 .8");
@@ -247,8 +246,7 @@ TEST(RenewableModels, WTDSOneMassEquationAndAliasedSpeeds)
     IOdata fields;
     shaft.dynInitializeB({0.8}, {0.8, 0.1}, fields);
     EXPECT_EQ(fields, (IOdata{1.1, 1.1}));
-    EXPECT_EQ(shaft.getOutputLoc(cLocalSolverMode, 0),
-              shaft.getOutputLoc(cLocalSolverMode, 1));
+    EXPECT_EQ(shaft.getOutputLoc(cLocalSolverMode, 0), shaft.getOutputLoc(cLocalSolverMode, 1));
     std::array<double, 1> derivative{};
     shaft.derivative({0.7, 1.0, 1.0}, emptyStateData, derivative.data(), cLocalSolverMode);
     const double expected = ((1.0 - 0.7) / 1.1 - 0.5 * (1.1 - 1.0)) / 4.0;
@@ -560,9 +558,7 @@ TEST(RenewableModels, REECA1SpeedBranchRequiresShaftAndTracksSpeed)
     control.dynInitializeA(0.0, 0);
     IOdata fields;
     EXPECT_THROW(control.dynInitializeB({1.0}, {0.8, 0.1}, fields), InvalidParameterValue);
-    control.dynInitializeB({1.0, kNullVal, kNullVal, kNullVal, 0.8},
-                           {0.8, 0.1},
-                           fields);
+    control.dynInitializeB({1.0, kNullVal, kNullVal, kNullVal, 0.8}, {0.8, 0.1}, fields);
     EXPECT_NEAR(control.getStates()[3], 1.0, 1e-12);
     std::array<double, 6> rate{};
     control.derivative({1.0, kNullVal, kNullVal, kNullVal, 1.0},
@@ -673,27 +669,24 @@ TEST(RenewableModels, REECA1EZeroGainMatchesREECA1)
     frequencyControl.set("busroc", std::string_view{"freq1"});
     frequencyControl.set("kf", 0.0);
     frequencyControl.set("kdf", 0.0);
-    for (auto* control : {static_cast<REECA1*>(&base),
-                          static_cast<REECA1*>(&frequencyControl)}) {
+    for (auto* control : {static_cast<REECA1*>(&base), static_cast<REECA1*>(&frequencyControl)}) {
         control->set("tpord", 0.05);
         control->dynInitializeA(0.0, 0);
     }
     IOdata baseFields;
     IOdata frequencyFields;
     base.dynInitializeB({1.0}, {0.8, 0.1}, baseFields);
-    frequencyControl.dynInitializeB(
-        {1.0, kNullVal, kNullVal, kNullVal, kNullVal, 0.0, 0.0},
-        {0.8, 0.1},
-        frequencyFields);
+    frequencyControl.dynInitializeB({1.0, kNullVal, kNullVal, kNullVal, kNullVal, 0.0, 0.0},
+                                    {0.8, 0.1},
+                                    frequencyFields);
     EXPECT_EQ(baseFields, frequencyFields);
     for (int sample = 1; sample <= 20; ++sample) {
         const double time = 0.005 * sample;
         const double voltage = sample < 8 ? 0.9 : 1.04;
         base.timestep(time, {voltage}, cLocalSolverMode);
-        frequencyControl.timestep(
-            time,
-            {voltage, kNullVal, kNullVal, kNullVal, kNullVal, 0.02, -0.03},
-            cLocalSolverMode);
+        frequencyControl.timestep(time,
+                                  {voltage, kNullVal, kNullVal, kNullVal, kNullVal, 0.02, -0.03},
+                                  cLocalSolverMode);
         ASSERT_EQ(base.getStates().size(), frequencyControl.getStates().size());
         for (std::size_t index = 0; index < base.getStates().size(); ++index) {
             EXPECT_NEAR(base.getStates()[index], frequencyControl.getStates()[index], 1e-12)
@@ -807,18 +800,11 @@ TEST(RenewableModels, REECA1EReadsMeasurementInPairedSolverModes)
     algebraicData.diffState = differential.data();
     algebraicData.pairIndex = differentialMode.offsetIndex;
     std::vector<double> algebraicResidual(algebraic.size());
-    host.residual({1.0, 0.0},
-                  algebraicData,
-                  algebraicResidual.data(),
-                  algebraicMode);
+    host.residual({1.0, 0.0}, algebraicData, algebraicResidual.data(), algebraicMode);
     EXPECT_NEAR(algebraicResidual[deviationLoc], -0.01, 1e-12);
     EXPECT_NEAR(algebraicResidual[rocofLoc], -0.02, 1e-12);
     MatrixDataSparse<double> algebraicJacobian;
-    host.jacobianElements({1.0, 0.0},
-                          algebraicData,
-                          algebraicJacobian,
-                          {30, 31},
-                          algebraicMode);
+    host.jacobianElements({1.0, 0.0}, algebraicData, algebraicJacobian, {30, 31}, algebraicMode);
     EXPECT_NEAR(algebraicJacobian.at(deviationLoc, deviationLoc), -1.0, 1e-12);
     EXPECT_NEAR(algebraicJacobian.at(rocofLoc, rocofLoc), -1.0, 1e-12);
 
@@ -829,28 +815,18 @@ TEST(RenewableModels, REECA1EReadsMeasurementInPairedSolverModes)
     differentialData.cj = 1.0;
     std::vector<double> differentialResidual(differential.size());
     const auto filterResidual = [&] {
-        host.residual({1.0, 0.0},
-                      differentialData,
-                      differentialResidual.data(),
-                      differentialMode);
+        host.residual({1.0, 0.0}, differentialData, differentialResidual.data(), differentialMode);
         return differentialResidual[filterLoc];
     };
     const double base = filterResidual();
     MatrixDataSparse<double> zeroGainJacobian;
-    host.jacobianElements({1.0, 0.0},
-                          differentialData,
-                          zeroGainJacobian,
-                          {30, 31},
-                          differentialMode);
+    host.jacobianElements(
+        {1.0, 0.0}, differentialData, zeroGainJacobian, {30, 31}, differentialMode);
     control->set("kf", 4.0);
     control->set("kdf", 0.5);
     EXPECT_NEAR(filterResidual() - base, -2.5, 1e-10);
     MatrixDataSparse<double> jacobian;
-    host.jacobianElements({1.0, 0.0},
-                          differentialData,
-                          jacobian,
-                          {30, 31},
-                          differentialMode);
+    host.jacobianElements({1.0, 0.0}, differentialData, jacobian, {30, 31}, differentialMode);
     const double combined = differentialResidual[filterLoc];
     constexpr double step = 1e-7;
     for (const auto location : {deviationLoc, rocofLoc}) {
@@ -865,9 +841,7 @@ TEST(RenewableModels, REECA1EReadsMeasurementInPairedSolverModes)
         algebraic[location] -= step;
         differential[location] += step;
         rate[location] += step;
-        EXPECT_NEAR(jacobian.at(filterLoc, location),
-                    (filterResidual() - combined) / step,
-                    1e-5);
+        EXPECT_NEAR(jacobian.at(filterLoc, location), (filterResidual() - combined) / step, 1e-5);
         differential[location] -= step;
         rate[location] -= step;
     }
@@ -916,9 +890,7 @@ TEST(RenewableModels, SpeedCoupledWindAssemblyHasConsistentDaeJacobian)
     const auto base = residualAt(state, rate);
     const auto perturbed = residualAt(shifted, shiftedRate);
     for (auto row : {orderLoc - 1, orderLoc, speedLoc}) {
-        EXPECT_NEAR(jacobian.at(row, speedLoc),
-                    (perturbed[row] - base[row]) / step,
-                    1e-4);
+        EXPECT_NEAR(jacobian.at(row, speedLoc), (perturbed[row] - base[row]) / step, 1e-4);
     }
 }
 
@@ -966,8 +938,9 @@ TEST(RenewableModels, DyrLoadsREGCP1AndWTDSInEitherOrder)
         auto* host = dynamic_cast<RenewableGenerator*>(bus->getGen(0));
         ASSERT_NE(host, nullptr);
         EXPECT_NE(dynamic_cast<REGCP1*>(host->find("electrical")), nullptr);
-        EXPECT_NE(dynamic_cast<WTDS*>(host->getSubObject(
-                      "renewable_component", static_cast<index_t>(RenewableRole::driveTrain))),
+        EXPECT_NE(dynamic_cast<WTDS*>(
+                      host->getSubObject("renewable_component",
+                                         static_cast<index_t>(RenewableRole::driveTrain))),
                   nullptr);
         host->dynInitializeA(0.0, 0);
         IOdata fields;
@@ -1381,8 +1354,8 @@ TEST(RenewableModels, TwoBusRenewableFaultMatchesAndesReference)
         const bool useWtds = profile == 4;
         const bool useReeca1e = profile == 5;
         SCOPED_TRACE(useReeca1e       ? "REECA1E frequency assembly" :
-                         useWtds     ? "WTDS speed assembly" :
-                         includeWind ? "wind assembly" :
+                         useWtds      ? "WTDS speed assembly" :
+                         includeWind  ? "wind assembly" :
                          includePlant ? "REPCA1" :
                          useReecb     ? "REECB1" :
                                         "REGCA1+REECA1");
@@ -1401,9 +1374,9 @@ TEST(RenewableModels, TwoBusRenewableFaultMatchesAndesReference)
         reg->set("iqrmax", 999.0);
         reg->set("iqrmin", -999.0);
         reg->set("lvplsw", 0.0);
-        auto* ree = useReecb     ? static_cast<REECA1*>(new REECB1) :
-            useReeca1e          ? static_cast<REECA1*>(new REECA1E) :
-                                  new REECA1;
+        auto* ree = useReecb ? static_cast<REECA1*>(new REECB1) :
+            useReeca1e       ? static_cast<REECA1*>(new REECA1E) :
+                               new REECA1;
         ree->set("vflag", 0.0);
         ree->set("pqflag", 0.0);
         if (!useReecb) {
@@ -1489,8 +1462,9 @@ TEST(RenewableModels, TwoBusRenewableFaultMatchesAndesReference)
         EXPECT_EQ(line,
                   includeWind ?
                       header + ",generator_speed,turbine_speed,pitch_angle,mechanical_power" :
-                      useWtds ? header + ",generator_speed" :
-                      useReeca1e ? header + ",frequency_deviation,rocof" : header);
+                      useWtds    ? header + ",generator_speed" :
+                      useReeca1e ? header + ",frequency_deviation,rocof" :
+                                   header);
         int samples = 0;
         while (std::getline(stream, line)) {
             if (line.empty()) {

@@ -10,8 +10,9 @@ import andes  # noqa: E402
 import numpy as np  # noqa: E402
 
 
-def build_case(include_plant=False, include_wind=False, use_reecb=False,
-               use_wtds=False, use_reeca1e=False):
+def build_case(
+    include_plant=False, include_wind=False, use_reecb=False, use_wtds=False, use_reeca1e=False
+):
     system = andes.System(no_output=True, default_config=True)
     system.add("Bus", idx=1, Vn=100, v0=1.0)
     system.add("Bus", idx=2, Vn=100, v0=1.0)
@@ -138,9 +139,7 @@ def main():
     profile.add_argument(
         "--wtds", action="store_true", help="use REGCP1, speed-dependent REECA1, and WTDS"
     )
-    profile.add_argument(
-        "--reeca1e", action="store_true", help="use REECA1E and BusROCOF"
-    )
+    profile.add_argument("--reeca1e", action="store_true", help="use REECA1E and BusROCOF")
     args = parser.parse_args()
     ss = build_case(args.plant, args.wind, args.reecb, args.wtds, args.reeca1e)
     if not ss.PFlow.run():
@@ -204,14 +203,18 @@ def main():
     target = Path(__file__).with_name(
         "andes_reeca1e_reference.csv"
         if args.reeca1e
-        else "andes_wtds_reference.csv"
-        if args.wtds
-        else "andes_reecb_reference.csv"
-        if args.reecb
         else (
-            "andes_wind_reference.csv"
-            if args.wind
-            else "andes_plant_reference.csv" if args.plant else "andes_reference.csv"
+            "andes_wtds_reference.csv"
+            if args.wtds
+            else (
+                "andes_reecb_reference.csv"
+                if args.reecb
+                else (
+                    "andes_wind_reference.csv"
+                    if args.wind
+                    else "andes_plant_reference.csv" if args.plant else "andes_reference.csv"
+                )
+            )
         )
     )
     with target.open("w", newline="", encoding="utf-8") as stream:

@@ -93,8 +93,8 @@ double BusROCOF::get(std::string_view param, units::unit unitType) const
 
 void BusROCOF::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
 {
-    if (!std::isfinite(Tf) || !std::isfinite(Tw) || !std::isfinite(Tr) ||
-        !std::isfinite(fn) || Tf <= 0.0 || Tw <= 0.0 || Tr <= 0.0 || fn <= 0.0) {
+    if (!std::isfinite(Tf) || !std::isfinite(Tw) || !std::isfinite(Tr) || !std::isfinite(fn) ||
+        Tf <= 0.0 || Tw <= 0.0 || Tr <= 0.0 || fn <= 0.0) {
         throw InvalidParameterValue("BusROCOF requires positive Tf, Tw, Tr, and fn");
     }
     auto& local = offsets.local().local;
@@ -123,8 +123,7 @@ void BusROCOF::dynObjectInitializeB(const IOdata& inputs,
 
 double BusROCOF::deviation(const double state[]) const
 {
-    return (state[angleLag] - state[angleWashout]) /
-        (2.0 * std::numbers::pi * fn * Tw);
+    return (state[angleLag] - state[angleWashout]) / (2.0 * std::numbers::pi * fn * Tw);
 }
 
 std::array<double, 3> BusROCOF::rates(double angle, const double state[]) const
@@ -156,8 +155,7 @@ void BusROCOF::residual(const IOdata& inputs,
 {
     const auto loc = offsets.getLocations(stateData, resid, sMode, this);
     const double df = deviation(loc.diffStateLoc);
-    const double dfdt =
-        (1.0 + df - loc.diffStateLoc[frequencyWashout]) / Tr;
+    const double dfdt = (1.0 + df - loc.diffStateLoc[frequencyWashout]) / Tr;
     if (hasAlgebraic(sMode)) {
         loc.destLoc[deviationOutput] = df - loc.algStateLoc[deviationOutput];
         loc.destLoc[rocofOutput] = dfdt - loc.algStateLoc[rocofOutput];
@@ -182,8 +180,7 @@ void BusROCOF::algebraicUpdate(const IOdata& /*inputs*/,
     const auto loc = offsets.getLocations(stateData, update, sMode, this);
     const double df = deviation(loc.diffStateLoc);
     loc.destLoc[deviationOutput] = df;
-    loc.destLoc[rocofOutput] =
-        (1.0 + df - loc.diffStateLoc[frequencyWashout]) / Tr;
+    loc.destLoc[rocofOutput] = (1.0 + df - loc.diffStateLoc[frequencyWashout]) / Tr;
 }
 
 void BusROCOF::jacobianElements(const IOdata& /*inputs*/,
@@ -215,14 +212,10 @@ void BusROCOF::jacobianElements(const IOdata& /*inputs*/,
         matrixData.assignCheckCol(diff + angleLag, inputLocs[0], 1.0 / Tf);
     }
     matrixData.assign(diff + angleWashout, diff + angleLag, 1.0 / Tw);
-    matrixData.assign(diff + angleWashout,
-                      diff + angleWashout,
-                      -1.0 / Tw - stateData.cj);
+    matrixData.assign(diff + angleWashout, diff + angleWashout, -1.0 / Tw - stateData.cj);
     matrixData.assign(diff + frequencyWashout, diff + angleLag, gain / Tr);
     matrixData.assign(diff + frequencyWashout, diff + angleWashout, -gain / Tr);
-    matrixData.assign(diff + frequencyWashout,
-                      diff + frequencyWashout,
-                      -1.0 / Tr - stateData.cj);
+    matrixData.assign(diff + frequencyWashout, diff + frequencyWashout, -1.0 / Tr - stateData.cj);
 }
 
 void BusROCOF::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)

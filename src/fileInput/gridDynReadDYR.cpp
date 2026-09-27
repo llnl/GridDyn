@@ -25,6 +25,7 @@
 #include "griddyn/governors/GovernorHygov.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorReheat.h"
+#include "griddyn/renewables/BusROCOF.h"
 #include "griddyn/renewables/REECA1.h"
 #include "griddyn/renewables/REECA1E.h"
 #include "griddyn/renewables/REECB1.h"
@@ -32,9 +33,8 @@
 #include "griddyn/renewables/REGCP1.h"
 #include "griddyn/renewables/REPCA1.h"
 #include "griddyn/renewables/WTARA1.h"
-#include "griddyn/renewables/WTDTA1.h"
 #include "griddyn/renewables/WTDS.h"
-#include "griddyn/renewables/BusROCOF.h"
+#include "griddyn/renewables/WTDTA1.h"
 #include "griddyn/renewables/WTPTA1.h"
 #include "griddyn/renewables/WTTQA1.h"
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
@@ -526,8 +526,7 @@ namespace {
                 throw InvalidParameterValue("REECA1E remote BUSR is not yet supported");
             }
             setFields(reecaFields, 4);
-            static constexpr auto frequencyFields =
-                std::to_array<std::string_view>({"kf", "kdf"});
+            static constexpr auto frequencyFields = std::to_array<std::string_view>({"kf", "kdf"});
             setFields(frequencyFields, 54);
             model->set("busroc", gmlc::utilities::stringOps::removeQuotes(tokens[56]));
         } else if (modelName == "REECB1") {

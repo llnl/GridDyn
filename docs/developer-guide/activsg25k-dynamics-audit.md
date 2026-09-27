@@ -12,16 +12,16 @@ disturbance trajectories.
 families below all have GridDyn DYR reader branches. Their case configurations
 still require full-case initialization and trajectory checks.
 
-| Model | Records | Model | Records |
-| --- | ---: | --- | ---: |
-| GENROU | 2,857 | GENSAL | 1,244 |
-| GGOV1 | 1,742 | HYGOV | 1,244 |
-| IEEEG1 | 1,115 | IEEEST | 4,101 |
-| ESST4B | 1,396 | IEEET1 | 942 |
-| SCRX | 446 | EXPIC1 | 287 |
-| EXAC2 | 239 | ESDC2A | 202 |
-| ESAC6A | 194 | ESAC1A | 142 |
-| EXAC1 | 130 | ESDC1A | 123 |
+| Model  | Records | Model  | Records |
+| ------ | ------: | ------ | ------: |
+| GENROU |   2,857 | GENSAL |   1,244 |
+| GGOV1  |   1,742 | HYGOV  |   1,244 |
+| IEEEG1 |   1,115 | IEEEST |   4,101 |
+| ESST4B |   1,396 | IEEET1 |     942 |
+| SCRX   |     446 | EXPIC1 |     287 |
+| EXAC2  |     239 | ESDC2A |     202 |
+| ESAC6A |     194 | ESAC1A |     142 |
+| EXAC1  |     130 | ESDC1A |     123 |
 
 All 1,742 `GGOV1` records use `TENG=0`, all 202 `ESDC2A` records use
 `Switch=0`, all 4,101 `IEEEST` records use `MODE=1` and `BUSR=0`, and all
@@ -29,14 +29,14 @@ All 1,742 `GGOV1` records use `TENG=0`, all 202 `ESDC2A` records use
 unsupported options in the corresponding GridDyn models. Other numeric
 parameters and initial conditions are not yet certified by this audit.
 
-| Renewable model | DYR records | Current GridDyn status |
-| --- | ---: | --- |
-| REGCA1 | 614 | Reader and converter exist. `Accel=0.8` is accepted as a numerical parameter. Zero reactive recovery limits are treated as disabled. Trajectories need validation. |
-| REECA1 | 614 | Reader, constant-Q branch, zeroed VDL tables, `Tpord=0`, and the `Thld2=0.5` active-current hold are implemented. The case profile initializes in a reader test; disturbance trajectories still need validation. |
-| WT3G1 | 119 | No reader or Type-3 generator implementation. |
-| WT3E1 | 119 | No reader or Type-3 electrical control implementation. |
-| WT3T1 | 119 | No reader or Type-3 turbine implementation. |
-| WT3P1 | 119 | No reader or Type-3 pitch implementation. |
+| Renewable model | DYR records | Current GridDyn status                                                                                                                                                                                           |
+| --------------- | ----------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| REGCA1          |         614 | Reader and converter exist. `Accel=0.8` is accepted as a numerical parameter. Zero reactive recovery limits are treated as disabled. Trajectories need validation.                                               |
+| REECA1          |         614 | Reader, constant-Q branch, zeroed VDL tables, `Tpord=0`, and the `Thld2=0.5` active-current hold are implemented. The case profile initializes in a reader test; disturbance trajectories still need validation. |
+| WT3G1           |         119 | No reader or Type-3 generator implementation.                                                                                                                                                                    |
+| WT3E1           |         119 | No reader or Type-3 electrical control implementation.                                                                                                                                                           |
+| WT3T1           |         119 | No reader or Type-3 turbine implementation.                                                                                                                                                                      |
+| WT3P1           |         119 | No reader or Type-3 pitch implementation.                                                                                                                                                                        |
 
 The 614 `REGCA1`/`REECA1` pairs represent one renewable family and the 119
 four-record `WT3*` bundles represent a separate Type-3 wind family. The

@@ -74,10 +74,9 @@ class REECA1: public RenewableComponent {
   protected:
     virtual bool useVoltageInjection(double voltage) const { return dipMode(voltage); }
     virtual double activeReferenceAdjustment(const IOdata&) const { return 0.0; }
-    virtual void activeReferenceJacobian(const IOlocs&,
-                                         MatrixData<double>&,
-                                         index_t,
-                                         double) const {}
+    virtual void activeReferenceJacobian(const IOlocs&, MatrixData<double>&, index_t, double) const
+    {
+    }
 
   private:
     double Vdip = 0.8, Vup = 1.2, Trv = 0.02;

@@ -33,9 +33,13 @@ namespace {
         {.signal = RenewableSignal::rateOfChangeOfFrequency, .ioIndex = 6},
     }};
     constexpr std::array<RenewablePort, 7> inputPortMapWithSpeed{{
-        inputPortMap[0], inputPortMap[1], inputPortMap[2], inputPortMap[3],
+        inputPortMap[0],
+        inputPortMap[1],
+        inputPortMap[2],
+        inputPortMap[3],
         {.signal = RenewableSignal::generatorSpeed, .ioIndex = 4},
-        inputPortMap[4], inputPortMap[5],
+        inputPortMap[4],
+        inputPortMap[5],
     }};
 }  // namespace
 

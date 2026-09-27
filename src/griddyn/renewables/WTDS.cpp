@@ -92,7 +92,8 @@ void WTDS::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
 {
     if (!std::isfinite(H) || !std::isfinite(D) || !std::isfinite(w0) || H <= 0.0 || D < 0.0 ||
         w0 <= 0.0) {
-        throw InvalidParameterValue("WTDS requires positive inertia and speed, nonnegative damping");
+        throw InvalidParameterValue(
+            "WTDS requires positive inertia and speed, nonnegative damping");
     }
     auto& local = offsets.local().local;
     local.diffSize = 1;
@@ -166,9 +167,8 @@ void WTDS::jacobianElements(const IOdata& inputs,
         inputs.size() > 1 && inputs[1] != kNullVal ? inputs[1] : initialPower;
     const double speedDenominator = std::max(speed, 0.01);
     const double invInertia = 1.0 / (2.0 * H);
-    const double powerSlope = speed > 0.01 ?
-        -(mechanicalPower - inputs[0]) / (speedDenominator * speedDenominator) :
-        0.0;
+    const double powerSlope =
+        speed > 0.01 ? -(mechanicalPower - inputs[0]) / (speedDenominator * speedDenominator) : 0.0;
     const index_t row = loc.diffOffset;
     matrixData.assign(row, row, (powerSlope - D) * invInertia - stateData.cj);
     if (!inputLocs.empty()) {

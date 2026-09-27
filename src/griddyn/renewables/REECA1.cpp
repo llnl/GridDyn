@@ -33,7 +33,10 @@ namespace {
          .required = false},
     }};
     constexpr std::array<RenewablePort, 5> inputPortMapWithSpeed{{
-        inputPortMap[0], inputPortMap[1], inputPortMap[2], inputPortMap[3],
+        inputPortMap[0],
+        inputPortMap[1],
+        inputPortMap[2],
+        inputPortMap[3],
         {.signal = RenewableSignal::generatorSpeed, .ioIndex = 4},
     }};
     constexpr std::array<RenewablePort, 3> outputPortMap{{
@@ -516,10 +519,9 @@ std::array<double, 4> REECA1::rates(const IOdata& inputs, const double state[]) 
     }
     return {(voltage - state[voltageFilter]) / Trv,
             pRate,
-            Tpord == 0.0 ? 0.0 :
-                           (std::clamp(speed * state[powerFilter], PMIN, PMAX) -
-                            state[powerOrder]) /
-                               Tpord,
+            Tpord == 0.0 ?
+                0.0 :
+                (std::clamp(speed * state[powerFilter], PMIN, PMAX) - state[powerOrder]) / Tpord,
             ((qref / std::max(voltage, 0.01)) - state[reactiveFilter]) / Tiq};
 }
 
@@ -666,8 +668,9 @@ void REECA1::jacobianElements(const IOdata& inputs,
         matrixData.assignCheckCol(diff + powerFilter, inputLocs[3], 1.0 / (speed * Tpfilt));
     }
     if (PFLAG == 1 && pFree && inputLocs.size() > 4) {
-        matrixData.assignCheckCol(
-            diff + powerFilter, inputLocs[4], -rawPref / (speed * speed * Tpfilt));
+        matrixData.assignCheckCol(diff + powerFilter,
+                                  inputLocs[4],
+                                  -rawPref / (speed * speed * Tpfilt));
     }
     if (pFree) {
         activeReferenceJacobian(inputLocs, matrixData, diff + powerFilter, 1.0 / Tpfilt);
@@ -683,8 +686,9 @@ void REECA1::jacobianElements(const IOdata& inputs,
         if (Tpord != 0.0 && selectedPower > PMIN && selectedPower < PMAX) {
             matrixData.assign(diff + powerOrder, diff + powerFilter, speed / Tpord);
             if (PFLAG == 1 && inputLocs.size() > 4) {
-                matrixData.assignCheckCol(
-                    diff + powerOrder, inputLocs[4], state[powerFilter] / Tpord);
+                matrixData.assignCheckCol(diff + powerOrder,
+                                          inputLocs[4],
+                                          state[powerFilter] / Tpord);
             }
         }
         matrixData.assign(diff + reactiveFilter,

@@ -62,16 +62,19 @@ class MotorLoad: public GridLoad {
   public:
     virtual void set(std::string_view param, std::string_view val) override;
 
+    virtual double get(std::string_view param,
+                       units::unit unitType = units::defunit) const override;
+
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
     virtual void setState(CoreTime time,
                           const double state[],
-                          const double dstate_dt[],
+                          const double dstateDt[],
                           const SolverMode& sMode) override;  // for saving the state
     virtual void guessState(CoreTime time,
                             double state[],
-                            double dstate_dt[],
+                            double dstateDt[],
                             const SolverMode& sMode) override;
     virtual StateSizes localStateSizes(const SolverMode& sMode) const override;
 
@@ -149,10 +152,10 @@ class MotorLoad: public GridLoad {
 
   protected:
     /** @brief compute the slip based on an elecrical load
-@param[in] Ptarget  the electrical load of the motor
+@param[in] ptarget  the electrical load of the motor
 @return the computed slip
 */
-    double computeSlip(double Ptarget) const;
+    double computeSlip(double ptarget) const;
 
     /** @brief compute the real load of the motor based on voltage and slip
 @param[in] vin  the the motor terminal voltage

@@ -24,13 +24,13 @@ using units::puMW;
 using units::puV;
 
 // setup the load object factories
-static TypeFactory<MotorLoad> mlf1("load", std::to_array<std::string_view>({"motor", "motor1"}));
+static TypeFactory<MotorLoad> gMlf1("load", std::to_array<std::string_view>({"motor", "motor1"}));
 
-static TypeFactory<MotorLoad3> mlf3("load",
-                                    std::to_array<std::string_view>({"motor3", "motorIII", "m3"}));
+static TypeFactory<MotorLoad3> gMlf3("load",
+                                     std::to_array<std::string_view>({"motor3", "motorIII", "m3"}));
 
-static TypeFactory<MotorLoad5> mlf5("load",
-                                    std::to_array<std::string_view>({"motor5", "motorIV", "m5"}));
+static TypeFactory<MotorLoad5> gMlf5("load",
+                                     std::to_array<std::string_view>({"motor5", "motorIV", "m5"}));
 
 static constexpr double cSmallDiff = 1e-7;
 MotorLoad::MotorLoad(const std::string& objName): GridLoad(objName)
@@ -143,6 +143,62 @@ void MotorLoad::set(std::string_view param, std::string_view val)
     }
 }
 
+double MotorLoad::get(std::string_view param, units::unit unitType) const
+{
+    if (param == "pmot") {
+        return convert(Pmot, puMW, unitType, systemBasePower, localBaseVoltage);
+    }
+    if (param == "r") {
+        return r;
+    }
+    if (param == "x") {
+        return x;
+    }
+    if (param == "r1") {
+        return r1;
+    }
+    if (param == "x1") {
+        return x1;
+    }
+    if (param == "xm") {
+        return xm;
+    }
+    if (param == "h") {
+        return H;
+    }
+    if (param == "alpha") {
+        return alpha;
+    }
+    if (param == "beta") {
+        return beta;
+    }
+    if (param == "gamma") {
+        return gamma;
+    }
+    if (param == "a") {
+        return a;
+    }
+    if (param == "b") {
+        return b;
+    }
+    if (param == "c") {
+        return c;
+    }
+    if ((param == "base") || (param == "mbase") || (param == "rating")) {
+        return convert(mBase, MVAR, unitType, systemBasePower, localBaseVoltage);
+    }
+    if ((param == "vcontrol") || (param == "Vcontrol")) {
+        return convert(Vcontrol, puV, unitType, systemBasePower, localBaseVoltage);
+    }
+    if (param == "init_slip") {
+        return init_slip;
+    }
+    if (param == "scale") {
+        return scale;
+    }
+    return GridLoad::get(param, unitType);
+}
+
 void MotorLoad::set(std::string_view param, double val, units::unit unitType)
 {
     bool slipCheck = false;
@@ -223,7 +279,7 @@ void MotorLoad::set(std::string_view param, double val, units::unit unitType)
 
 void MotorLoad::setState(CoreTime time,
                          const double state[],
-                         const double dstate_dt[],
+                         const double dstateDt[],
                          const SolverMode& sMode)
 {
     if (isDynamic(sMode)) {
@@ -233,7 +289,7 @@ void MotorLoad::setState(CoreTime time,
 
         auto offset = offsets.getDiffOffset(sMode);
         m_state[0] = state[offset];
-        m_dstate_dt[0] = dstate_dt[offset];
+        m_dstate_dt[0] = dstateDt[offset];
     } else if (!opFlags[INIT_TRANSIENT]) {
         auto offset = offsets.getAlgOffset(sMode);
         m_state[0] = state[offset];
@@ -243,14 +299,14 @@ void MotorLoad::setState(CoreTime time,
 
 void MotorLoad::guessState(CoreTime /*time*/,
                            double state[],
-                           double dstate_dt[],
+                           double dstateDt[],
                            const SolverMode& sMode)
 {
     if (isDynamic(sMode)) {
         if (hasDifferential(sMode)) {
             auto offset = offsets.getDiffOffset(sMode);
             state[offset] = m_state[0];
-            dstate_dt[offset] = m_dstate_dt[0];
+            dstateDt[offset] = m_dstate_dt[0];
         }
     } else if (!opFlags[INIT_TRANSIENT]) {
         auto offset = offsets.getAlgOffset(sMode);
@@ -423,8 +479,8 @@ void MotorLoad::ioPartialDerivatives(const IOdata& inputs,
         double slip = m_state[0];
         const double voltage = inputs[VOLTAGE_IN_LOCATION];
         if (isDynamic(sMode)) {
-            auto Loc = offsets.getLocations(stateDataValue, sMode, this);
-            slip = Loc.diffStateLoc[0];
+            auto loc = offsets.getLocations(stateDataValue, sMode, this);
+            slip = loc.diffStateLoc[0];
         } else if (!opFlags[INIT_TRANSIENT]) {
             slip = stateDataValue.state[offsets.getAlgOffset(sMode)];
         }
@@ -452,8 +508,8 @@ void MotorLoad::rootTest(const IOdata& inputs,
                          double roots[],
                          const SolverMode& sMode)
 {
-    auto Loc = offsets.getLocations(stateDataValue, sMode, this);
-    const double slip = Loc.diffStateLoc[0];
+    auto loc = offsets.getLocations(stateDataValue, sMode, this);
+    const double slip = loc.diffStateLoc[0];
     const auto rootOffset = offsets.getRootOffset(sMode);
     if (opFlags[STALLED]) {
         roots[rootOffset] = rPower(inputs[VOLTAGE_IN_LOCATION] * Vcontrol, 1.0) - mechPower(1.0);
@@ -521,22 +577,22 @@ double MotorLoad::getRealPower(const IOdata& inputs,
 {
     const double voltage = inputs[VOLTAGE_IN_LOCATION];
 
-    double Ptemp;
+    double ptemp;
     if (isDynamic(sMode)) {
-        auto Loc = offsets.getLocations(stateDataValue, sMode, this);
+        auto loc = offsets.getLocations(stateDataValue, sMode, this);
 
-        const double slip = Loc.diffStateLoc[0];
-        Ptemp = rPower(voltage * Vcontrol, slip);
+        const double slip = loc.diffStateLoc[0];
+        ptemp = rPower(voltage * Vcontrol, slip);
     } else if (opFlags[INIT_TRANSIENT]) {
         const double slip = m_state[0];
-        Ptemp = rPower(voltage * Vcontrol, slip);
+        ptemp = rPower(voltage * Vcontrol, slip);
     } else {
         auto offset = offsets.getAlgOffset(sMode);
         const double slip = stateDataValue.state[offset];
-        Ptemp = rPower(voltage * Vcontrol, slip);
+        ptemp = rPower(voltage * Vcontrol, slip);
     }
 
-    return Ptemp * scale;
+    return ptemp * scale;
 }
 
 double MotorLoad::getReactivePower(const IOdata& inputs,
@@ -544,21 +600,21 @@ double MotorLoad::getReactivePower(const IOdata& inputs,
                                    const SolverMode& sMode) const
 {
     const double voltage = inputs[VOLTAGE_IN_LOCATION];
-    double Qtemp;
+    double qtemp;
     if (isDynamic(sMode)) {
-        auto Loc = offsets.getLocations(stateDataValue, sMode, this);
+        auto loc = offsets.getLocations(stateDataValue, sMode, this);
 
-        const double slip = Loc.diffStateLoc[0];
-        Qtemp = qPower(voltage, slip);
+        const double slip = loc.diffStateLoc[0];
+        qtemp = qPower(voltage, slip);
     } else if (opFlags[INIT_TRANSIENT]) {
         const double slip = m_state[0];
-        Qtemp = qPower(voltage * Vcontrol, slip);
+        qtemp = qPower(voltage * Vcontrol, slip);
     } else {
         auto offset = offsets.getAlgOffset(sMode);
         const double slip = stateDataValue.state[offset];
-        Qtemp = qPower(voltage * Vcontrol, slip);
+        qtemp = qPower(voltage * Vcontrol, slip);
     }
-    return Qtemp * scale;
+    return qtemp * scale;
 }
 
 double MotorLoad::getRealPower(const double voltage) const
@@ -586,16 +642,16 @@ double MotorLoad::dmechds(double slip) const
     return torqueMechanicalDerivative;
 }
 
-double MotorLoad::computeSlip(double Ptarget) const
+double MotorLoad::computeSlip(double ptarget) const
 {
     if (gamma == 0) {
-        return (beta == 0) ? 0.05 : (Ptarget - alpha) / beta;
+        return (beta == 0) ? 0.05 : (ptarget - alpha) / beta;
     }
 
     const double outSlip1 =
-        (-beta + std::sqrt((beta * beta) - (4.0 * gamma * (alpha - Ptarget)))) / (2.0 * gamma);
+        (-beta + std::sqrt((beta * beta) - (4.0 * gamma * (alpha - ptarget)))) / (2.0 * gamma);
     const double outSlip2 =
-        (-beta - std::sqrt((beta * beta) - (4.0 * gamma * (alpha - Ptarget)))) / (2.0 * gamma);
+        (-beta - std::sqrt((beta * beta) - (4.0 * gamma * (alpha - ptarget)))) / (2.0 * gamma);
 
     if ((outSlip1 >= 0) && (outSlip1 <= 1.0)) {
         return outSlip1;

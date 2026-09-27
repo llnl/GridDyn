@@ -56,7 +56,7 @@ class GovernorHygovDB final: public GovernorHygov {
     double dbU = 0.0;
     double governorSpeedDeviation(const IOdata& inputs) const;
     double governorSpeedSlope(const IOdata& inputs) const;
-    double gateRate(const double* x) const;
-    double mechanicalPower(const IOdata& inputs, const double* x) const;
+    double gateRate(const double* state) const;
+    double mechanicalPower(const IOdata& inputs, const double* state) const;
 };
 }  // namespace griddyn::governors

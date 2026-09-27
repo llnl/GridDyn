@@ -46,8 +46,8 @@ class GovernorHygov4 final: public Governor {
     double Tp = 0.05, Tg = 0.05, Tr = 0.05, Tw = 1.0;
     double At = 1.0, Dturb = 0.0, Hdam = 1.0, qNL = 0.1, paux = 0.0;
     double referenceOffset = 0.0;
-    double regularizedGate(double gate) const;
-    double mechanicalPower(const IOdata& inputs, const double* x) const;
-    double gateRate(const double* x) const;
+    static double regularizedGate(double gate);
+    double mechanicalPower(const IOdata& inputs, const double* state) const;
+    double gateRate(const double* state) const;
 };
 }  // namespace griddyn::governors

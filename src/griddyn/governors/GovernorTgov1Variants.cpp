@@ -96,11 +96,11 @@ void GovernorTgov1Variant::dynObjectInitializeB(const IOdata& /*inputs*/,
         throw InvalidParameterValue("ANDES TGOV1 initial valve outside limits");
     }
     const double valve = desiredOutput[0];
-    const auto a = offsets.getAlgOffset(cLocalSolverMode);
-    const auto d = offsets.getDiffOffset(cLocalSolverMode);
-    m_state[a] = valve;
-    m_state[d] = valve;
-    m_state[d + 1] = valve;
+    const auto algOffset = offsets.getAlgOffset(cLocalSolverMode);
+    const auto diffOffset = offsets.getDiffOffset(cLocalSolverMode);
+    m_state[algOffset] = valve;
+    m_state[diffOffset] = valve;
+    m_state[diffOffset + 1] = valve;
     fieldSet.resize(2);
     // Pset input is the effective valve reference. In ANDES the unnormalized
     // model stores R*Pset and divides its sum by R; N stores Pset directly.
@@ -110,39 +110,40 @@ void GovernorTgov1Variant::dynObjectInitializeB(const IOdata& /*inputs*/,
 
 double GovernorTgov1Variant::speedSignal(const IOdata& inputs) const
 {
-    const double wd = inputs[govOmegaInLocation] - 1.0;
+    const double speedDeviation = inputs[govOmegaInLocation] - 1.0;
     if (!useDeadband) {
-        return wd;
+        return speedDeviation;
     }
-    if (wd < dbL) {
-        return wd - dbL;
+    if (speedDeviation < dbL) {
+        return speedDeviation - dbL;
     }
-    if (wd > dbU) {
-        return wd - dbU;
+    if (speedDeviation > dbU) {
+        return speedDeviation - dbU;
     }
     return 0.0;
 }
 double GovernorTgov1Variant::speedSlope(const IOdata& inputs) const
 {
-    const double wd = inputs[govOmegaInLocation] - 1.0;
-    return (!useDeadband || wd < dbL || wd > dbU) ? 1.0 : 0.0;
+    const double speedDeviation = inputs[govOmegaInLocation] - 1.0;
+    return (!useDeadband || speedDeviation < dbL || speedDeviation > dbU) ? 1.0 : 0.0;
 }
 double GovernorTgov1Variant::valveCommand(const IOdata& inputs) const
 {
     return inputs[govpSetInLocation] + referenceOffset + (normalized ? paux : K * paux) -
-        K * speedSignal(inputs);
+        (K * speedSignal(inputs));
 }
-double GovernorTgov1Variant::valveRate(const IOdata& inputs, const double* x) const
+double GovernorTgov1Variant::valveRate(const IOdata& inputs, const double* state) const
 {
-    const double raw = (valveCommand(inputs) - x[0]) / T1;
-    if ((x[0] >= Pmax && raw > 0.0) || (x[0] <= Pmin && raw < 0.0)) {
+    const double raw = (valveCommand(inputs) - state[0]) / T1;
+    if ((state[0] >= Pmax && raw > 0.0) || (state[0] <= Pmin && raw < 0.0)) {
         return 0.0;
     }
     return raw;
 }
-double GovernorTgov1Variant::output(const IOdata& inputs, const double* x) const
+double GovernorTgov1Variant::output(const IOdata& inputs, const double* state) const
 {
-    return (T3 > 0.0 ? x[1] + (T2 / T3) * (x[0] - x[1]) : x[0]) - Dt * speedSignal(inputs);
+    return (T3 > 0.0 ? state[1] + ((T2 / T3) * (state[0] - state[1])) : state[0]) -
+        (Dt * speedSignal(inputs));
 }
 
 void GovernorTgov1Variant::derivative(const IOdata& inputs,
@@ -176,7 +177,7 @@ void GovernorTgov1Variant::algebraicUpdate(const IOdata& inputs,
                                            const StateData& stateData,
                                            double update[],
                                            const SolverMode& sMode,
-                                           double)
+                                           [[maybe_unused]] double alpha)
 {
     if (!hasAlgebraic(sMode)) {
         return;
@@ -186,21 +187,22 @@ void GovernorTgov1Variant::algebraicUpdate(const IOdata& inputs,
 }
 void GovernorTgov1Variant::jacobianElements(const IOdata& inputs,
                                             const StateData& stateData,
-                                            MatrixData<double>& mat,
-                                            const IOlocs& cols,
+                                            MatrixData<double>& matrixData,
+                                            const IOlocs& inputLocs,
                                             const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, sMode, this);
-    const double a = (T3 > 0.0) ? T2 / T3 : 1.0;
+    const double outputLeadFraction = (T3 > 0.0) ? T2 / T3 : 1.0;
     if (hasAlgebraic(sMode)) {
-        mat.assign(loc.algOffset, loc.algOffset, -1.0);
+        matrixData.assign(loc.algOffset, loc.algOffset, -1.0);
         if (!isAlgebraicOnly(sMode)) {
-            mat.assign(loc.algOffset, loc.diffOffset, a);
+            matrixData.assign(loc.algOffset, loc.diffOffset, outputLeadFraction);
             if (T3 > 0.0) {
-                mat.assign(loc.algOffset, loc.diffOffset + 1, 1.0 - a);
+                matrixData.assign(loc.algOffset, loc.diffOffset + 1, 1.0 - outputLeadFraction);
             }
         }
-        mat.assignCheckCol(loc.algOffset, cols[govOmegaInLocation], -Dt * speedSlope(inputs));
+        matrixData.assignCheckCol(
+            loc.algOffset, inputLocs[govOmegaInLocation], -Dt * speedSlope(inputs));
     }
     if (!hasDifferential(sMode)) {
         return;
@@ -208,26 +210,32 @@ void GovernorTgov1Variant::jacobianElements(const IOdata& inputs,
     const double raw = (valveCommand(inputs) - loc.diffStateLoc[0]) / T1;
     const bool limited =
         (loc.diffStateLoc[0] >= Pmax && raw > 0.0) || (loc.diffStateLoc[0] <= Pmin && raw < 0.0);
-    mat.assign(loc.diffOffset, loc.diffOffset, (limited ? 0.0 : -1.0 / T1) - stateData.cj);
+    matrixData.assign(
+        loc.diffOffset, loc.diffOffset, (limited ? 0.0 : -1.0 / T1) - stateData.cj);
     if (!limited) {
-        mat.assignCheckCol(loc.diffOffset, cols[govOmegaInLocation], -K * speedSlope(inputs) / T1);
-        mat.assignCheckCol(loc.diffOffset, cols[govpSetInLocation], 1.0 / T1);
+        matrixData.assignCheckCol(
+            loc.diffOffset, inputLocs[govOmegaInLocation], -K * speedSlope(inputs) / T1);
+        matrixData.assignCheckCol(loc.diffOffset, inputLocs[govpSetInLocation], 1.0 / T1);
     }
     if (T3 > 0.0) {
-        mat.assign(loc.diffOffset + 1, loc.diffOffset, 1.0 / T3);
+        matrixData.assign(loc.diffOffset + 1, loc.diffOffset, 1.0 / T3);
     }
-    mat.assign(loc.diffOffset + 1, loc.diffOffset + 1, (T3 > 0.0 ? -1.0 / T3 : 0.0) - stateData.cj);
+    matrixData.assign(
+        loc.diffOffset + 1, loc.diffOffset + 1, (T3 > 0.0 ? -1.0 / T3 : 0.0) - stateData.cj);
 }
-void GovernorTgov1Variant::timestep(CoreTime time, const IOdata& inputs, const SolverMode&)
+void GovernorTgov1Variant::timestep(CoreTime time,
+                                    const IOdata& inputs,
+                                    [[maybe_unused]] const SolverMode& sMode)
 {
     derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
-    const double dt = time - prevTime;
-    const auto d = offsets.getDiffOffset(cLocalSolverMode);
-    m_state[d] = std::clamp(m_state[d] + dt * m_dstate_dt[d],
-                            static_cast<double>(Pmin),
-                            static_cast<double>(Pmax));
-    m_state[d + 1] += dt * m_dstate_dt[d + 1];
-    m_state[offsets.getAlgOffset(cLocalSolverMode)] = output(inputs, m_state.data() + d);
+    const double timeStep = time - prevTime;
+    const auto diffOffset = offsets.getDiffOffset(cLocalSolverMode);
+    m_state[diffOffset] =
+        std::clamp(m_state[diffOffset] + (timeStep * m_dstate_dt[diffOffset]),
+                   static_cast<double>(Pmin),
+                   static_cast<double>(Pmax));
+    m_state[diffOffset + 1] += timeStep * m_dstate_dt[diffOffset + 1];
+    m_state[offsets.getAlgOffset(cLocalSolverMode)] = output(inputs, m_state.data() + diffOffset);
     prevTime = time;
 }
 index_t GovernorTgov1Variant::findIndex(std::string_view field, const SolverMode& mode) const

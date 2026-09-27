@@ -11,6 +11,8 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <string>
+#include <vector>
 
 namespace griddyn::exciters {
 ExciterESAC5A::ExciterESAC5A(const std::string& objName): Exciter(objName)
@@ -78,8 +80,8 @@ void ExciterESAC5A::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     if (!noSaturation) {
         // ANDES ExcQuadSat fits S(E1)=E1*SE1 and S(E2)=E2*SE2.
         saturation.setParam(E1, E1 * Se1, E2, E2 * Se2);
-        if (!std::isfinite(saturation(E2)) || (std::abs(saturation(E2) - E2 * Se2) > 1e-9) ||
-            (std::abs(saturation(E1) - E1 * Se1) > 1e-9)) {
+        if (!std::isfinite(saturation(E2)) || (std::abs(saturation(E2) - (E2 * Se2)) > 1e-9) ||
+            (std::abs(saturation(E1) - (E1 * Se1)) > 1e-9)) {
             throw InvalidParameterValue("ESAC5A saturation fit");
         }
     }
@@ -101,12 +103,12 @@ ExciterESAC5A::Evaluation ExciterESAC5A::evaluate(const IOdata& inputs, const do
     const double washoutState = state[indices.washout];
     const double leadFraction = (Tf2 > 0.0) ? Tf3 / Tf2 : 1.0;
     const double leadLag = (Tf2 > 0.0) ?
-        state[indices.leadLag] + leadFraction * (regulator - state[indices.leadLag]) :
+        state[indices.leadLag] + (leadFraction * (regulator - state[indices.leadLag])) :
         regulator;
     const double feedback = Kf / Tf1 * (leadLag - washoutState);
     const double reference =
         Vref + vBias - 1.0 + inputs[exciterVsetInLocation] + inputs[exciterVssInLocation];
-    result.regulatorDrive = (Ka * (reference - measured - feedback) - regulator) / Ta;
+    result.regulatorDrive = ((Ka * (reference - measured - feedback)) - regulator) / Ta;
 
     if (Tr > 0.0) {
         result.rates[indices.sensed] = (inputs[exciterVoltageInLocation] - measured) / Tr;
@@ -116,7 +118,7 @@ ExciterESAC5A::Evaluation ExciterESAC5A::evaluate(const IOdata& inputs, const do
     if (!opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
         result.rates[indices.regulator] = result.regulatorDrive;
         auto& row = result.stateJac[indices.regulator];
-        row[indices.regulator] = (-1.0 - Ka * Kf * leadFraction / Tf1) / Ta;
+        row[indices.regulator] = (-1.0 - ((Ka * Kf * leadFraction) / Tf1)) / Ta;
         if (Tr > 0.0) {
             row[indices.sensed] = -Ka / Ta;
         } else {
@@ -141,7 +143,7 @@ ExciterESAC5A::Evaluation ExciterESAC5A::evaluate(const IOdata& inputs, const do
     }
     result.stateJac[indices.washout][indices.washout] = -1.0 / Tf1;
     const auto saturationData = saturation.evaluate(field);
-    result.rates[indices.field] = (regulator - Ke * field - saturationData.value) / Te;
+    result.rates[indices.field] = (regulator - (Ke * field) - saturationData.value) / Te;
     result.stateJac[indices.field][indices.regulator] = 1.0 / Te;
     result.stateJac[indices.field][indices.field] = (-Ke - saturationData.derivative) / Te;
     return result;
@@ -158,7 +160,7 @@ void ExciterESAC5A::dynObjectInitializeB(const IOdata& inputs,
         throw InvalidParameterValue("ESAC5A initial voltage signals");
     }
     const double field = desiredOutput[0];
-    const double regulator = Ke * field + saturation(field);
+    const double regulator = (Ke * field) + saturation(field);
     if ((regulator < Vrmin - 1e-7) ||
         !adjustInitialUpperLimit(regulator, Vrmax, "ESAC5A initial regulator output")) {
         throw InvalidParameterValue("ESAC5A initial regulator output outside limits");
@@ -175,7 +177,7 @@ void ExciterESAC5A::dynObjectInitializeB(const IOdata& inputs,
     state[indices.washout] = regulator;
     state[indices.field] = field;
     m_state[0] = field;
-    vBias = inputs[exciterVoltageInLocation] + regulator / Ka - Vref -
+    vBias = inputs[exciterVoltageInLocation] + (regulator / Ka) - Vref -
         (inputs[exciterVsetInLocation] - 1.0) - inputs[exciterVssInLocation];
     fieldSet.resize(2);
     fieldSet[exciterVsetInLocation] = Vref;
@@ -304,9 +306,11 @@ void ExciterESAC5A::rootTest(const IOdata& inputs,
     const auto indices = layout();
     const double regulator = locations.diffStateLoc[indices.regulator];
     const double drive = evaluate(inputs, locations.diffStateLoc).regulatorDrive;
-    roots[offsets.getRootOffset(sMode)] = opFlags[OUTSIDE_VOLTAGE_LIMITS] ?
-        (opFlags[TRIGGER_HIGH] ? -drive : drive) :
-        std::min(Vrmax - regulator, regulator - Vrmin);
+    double rootValue = std::min(Vrmax - regulator, regulator - Vrmin);
+    if (opFlags[OUTSIDE_VOLTAGE_LIMITS]) {
+        rootValue = opFlags[TRIGGER_HIGH] ? -drive : drive;
+    }
+    roots[offsets.getRootOffset(sMode)] = rootValue;
 }
 
 void ExciterESAC5A::rootTrigger(CoreTime /*time*/,

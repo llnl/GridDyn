@@ -75,70 +75,70 @@ double GovernorHygovDB::get(std::string_view param, units::unit unitType) const
 
 double GovernorHygovDB::governorSpeedDeviation(const IOdata& inputs) const
 {
-    const double wd = inputs[govOmegaInLocation] - 1.0;
-    if (wd < dbL) {
-        return wd - dbL;
+    const double speedDeviation = inputs[govOmegaInLocation] - 1.0;
+    if (speedDeviation < dbL) {
+        return speedDeviation - dbL;
     }
-    if (wd > dbU) {
-        return wd - dbU;
+    if (speedDeviation > dbU) {
+        return speedDeviation - dbU;
     }
     return 0.0;
 }
 
 double GovernorHygovDB::governorSpeedSlope(const IOdata& inputs) const
 {
-    const double wd = inputs[govOmegaInLocation] - 1.0;
-    return (wd < dbL || wd > dbU) ? 1.0 : 0.0;
+    const double speedDeviation = inputs[govOmegaInLocation] - 1.0;
+    return (speedDeviation < dbL || speedDeviation > dbU) ? 1.0 : 0.0;
 }
 
-double GovernorHygovDB::gateRate(const double* x) const
+double GovernorHygovDB::gateRate(const double* state) const
 {
-    const double rate = std::clamp(x[0], -static_cast<double>(VELM), static_cast<double>(VELM));
-    if ((x[1] >= Pmax && rate > 0.0) || (x[1] <= Pmin && rate < 0.0)) {
+    const double rate = std::clamp(state[0], -static_cast<double>(VELM), static_cast<double>(VELM));
+    if ((state[1] >= Pmax && rate > 0.0) || (state[1] <= Pmin && rate < 0.0)) {
         return 0.0;
     }
     return rate;
 }
 
-double GovernorHygovDB::mechanicalPower(const IOdata& inputs, const double* x) const
+double GovernorHygovDB::mechanicalPower(const IOdata& inputs, const double* state) const
 {
-    const double gate = std::abs(x[2]) >= 1e-8 ? x[2] : std::copysign(1e-8, x[2]);
-    const double head = (x[3] / gate) * (x[3] / gate);
-    return At * head * (x[3] - qNL) - Dturb * x[2] * (inputs[govOmegaInLocation] - 1.0);
+    const double gate = std::abs(state[2]) >= 1e-8 ? state[2] : std::copysign(1e-8, state[2]);
+    const double head = (state[3] / gate) * (state[3] / gate);
+    return (At * head * (state[3] - qNL)) - (Dturb * state[2] * (inputs[govOmegaInLocation] - 1.0));
 }
 
 void GovernorHygovDB::derivative(const IOdata& inputs,
                                  const StateData& stateData,
                                  double deriv[],
-                                 const SolverMode& mode)
+                                 const SolverMode& sMode)
 {
-    if (!hasDifferential(mode)) {
+    if (!hasDifferential(sMode)) {
         return;
     }
-    const auto loc = offsets.getLocations(stateData, deriv, mode, this);
-    const double* x = loc.diffStateLoc;
-    const double dg = x[0] / temporaryDroop + x[1];
-    const double gate = std::abs(x[2]) >= 1e-8 ? x[2] : std::copysign(1e-8, x[2]);
-    const double head = (x[3] / gate) * (x[3] / gate);
-    loc.destDiffLoc[0] = (Pset - governorSpeedDeviation(inputs) - dg / K - x[0]) / Tf;
-    loc.destDiffLoc[1] = gateRate(x);
-    loc.destDiffLoc[2] = (dg - x[2]) / Tg;
+    const auto loc = offsets.getLocations(stateData, deriv, sMode, this);
+    const double* state = loc.diffStateLoc;
+    const double droopGain = (state[0] / temporaryDroop) + state[1];
+    const double gate = std::abs(state[2]) >= 1e-8 ? state[2] : std::copysign(1e-8, state[2]);
+    const double head = (state[3] / gate) * (state[3] / gate);
+    loc.destDiffLoc[0] = (Pset - governorSpeedDeviation(inputs) - (droopGain / K) - state[0]) / Tf;
+    loc.destDiffLoc[1] = gateRate(state);
+    loc.destDiffLoc[2] = (droopGain - state[2]) / Tg;
     loc.destDiffLoc[3] = (h0 - head) / Tw;
 }
 
 void GovernorHygovDB::residual(const IOdata& inputs,
                                const StateData& stateData,
                                double resid[],
-                               const SolverMode& mode)
+                               const SolverMode& sMode)
 {
-    const auto loc = offsets.getLocations(stateData, resid, mode, this);
-    if (hasAlgebraic(mode)) {
+    const auto loc = offsets.getLocations(stateData, resid, sMode, this);
+    if (hasAlgebraic(sMode)) {
         loc.destLoc[0] = mechanicalPower(inputs, loc.diffStateLoc) - loc.algStateLoc[0];
     }
-    if (hasDifferential(mode)) {
-        derivative(inputs, stateData, resid, mode);
-        for (index_t i = 0; i < 4; ++i) {
-            loc.destDiffLoc[i] -= loc.dstateLoc[i];
+    if (hasDifferential(sMode)) {
+        derivative(inputs, stateData, resid, sMode);
+        for (index_t stateIndex = 0; stateIndex < 4; ++stateIndex) {
+            loc.destDiffLoc[stateIndex] -= loc.dstateLoc[stateIndex];
         }
     }
 }
@@ -146,83 +146,98 @@ void GovernorHygovDB::residual(const IOdata& inputs,
 void GovernorHygovDB::algebraicUpdate(const IOdata& inputs,
                                       const StateData& stateData,
                                       double update[],
-                                      const SolverMode& mode,
-                                      double)
+                                      const SolverMode& sMode,
+                                      [[maybe_unused]] double alpha)
 {
-    if (!hasAlgebraic(mode)) {
+    if (!hasAlgebraic(sMode)) {
         return;
     }
-    const auto loc = offsets.getLocations(stateData, update, mode, this);
+    const auto loc = offsets.getLocations(stateData, update, sMode, this);
     loc.destLoc[0] = mechanicalPower(inputs, loc.diffStateLoc);
 }
 
 void GovernorHygovDB::jacobianElements(const IOdata& inputs,
                                        const StateData& stateData,
-                                       MatrixData<double>& mat,
-                                       const IOlocs& cols,
-                                       const SolverMode& mode)
+                                       MatrixData<double>& matrixData,
+                                       const IOlocs& inputLocs,
+                                       const SolverMode& sMode)
 {
-    const auto loc = offsets.getLocations(stateData, mode, this);
-    const double* x = loc.diffStateLoc;
-    const double gate = std::abs(x[2]) >= 1e-8 ? x[2] : std::copysign(1e-8, x[2]);
-    const double head = (x[3] / gate) * (x[3] / gate);
-    const double dhdg = std::abs(x[2]) >= 1e-8 ? -2.0 * head / gate : 0.0;
-    const double dhdq = 2.0 * x[3] / (gate * gate);
-    if (hasAlgebraic(mode)) {
-        mat.assign(loc.algOffset, loc.algOffset, -1.0);
-        if (!isAlgebraicOnly(mode)) {
-            mat.assign(loc.algOffset,
+    const auto loc = offsets.getLocations(stateData, sMode, this);
+    const double* state = loc.diffStateLoc;
+    const double gate = std::abs(state[2]) >= 1e-8 ? state[2] : std::copysign(1e-8, state[2]);
+    const double head = (state[3] / gate) * (state[3] / gate);
+    const double dhdg = std::abs(state[2]) >= 1e-8 ? -2.0 * head / gate : 0.0;
+    const double dhdq = 2.0 * state[3] / (gate * gate);
+    if (hasAlgebraic(sMode)) {
+        matrixData.assign(loc.algOffset, loc.algOffset, -1.0);
+        if (!isAlgebraicOnly(sMode)) {
+            matrixData.assign(loc.algOffset,
                        loc.diffOffset + 2,
-                       At * dhdg * (x[3] - qNL) - Dturb * (inputs[govOmegaInLocation] - 1.0));
-            mat.assign(loc.algOffset, loc.diffOffset + 3, At * (dhdq * (x[3] - qNL) + head));
+                       (At * dhdg * (state[3] - qNL)) -
+                           (Dturb * (inputs[govOmegaInLocation] - 1.0)));
+            matrixData.assign(loc.algOffset,
+                              loc.diffOffset + 3,
+                              At * ((dhdq * (state[3] - qNL)) + head));
         }
-        mat.assignCheckCol(loc.algOffset, cols[govOmegaInLocation], -Dturb * x[2]);
+        matrixData.assignCheckCol(loc.algOffset, inputLocs[govOmegaInLocation], -Dturb * state[2]);
     }
-    if (!hasDifferential(mode)) {
+    if (!hasDifferential(sMode)) {
         return;
     }
-    mat.assign(loc.diffOffset,
+    matrixData.assign(loc.diffOffset,
                loc.diffOffset,
-               -(1.0 + 1.0 / (K * temporaryDroop)) / Tf - stateData.cj);
-    mat.assign(loc.diffOffset, loc.diffOffset + 1, -1.0 / (K * Tf));
-    mat.assignCheckCol(loc.diffOffset, cols[govOmegaInLocation], -governorSpeedSlope(inputs) / Tf);
-    const double raw = x[0];
+               (-((1.0 + (1.0 / (K * temporaryDroop))) / Tf)) - stateData.cj);
+    matrixData.assign(loc.diffOffset, loc.diffOffset + 1, -1.0 / (K * Tf));
+    matrixData.assignCheckCol(
+        loc.diffOffset, inputLocs[govOmegaInLocation], -governorSpeedSlope(inputs) / Tf);
+    const double raw = state[0];
     const double rate = std::clamp(raw, -static_cast<double>(VELM), static_cast<double>(VELM));
-    const bool positionLimited = (x[1] >= Pmax && rate > 0.0) || (x[1] <= Pmin && rate < 0.0);
+    const bool positionLimited =
+        (state[1] >= Pmax && rate > 0.0) || (state[1] <= Pmin && rate < 0.0);
     if (!positionLimited && raw > -VELM && raw < VELM) {
-        mat.assign(loc.diffOffset + 1, loc.diffOffset, 1.0);
+        matrixData.assign(loc.diffOffset + 1, loc.diffOffset, 1.0);
     }
-    mat.assign(loc.diffOffset + 1, loc.diffOffset + 1, -stateData.cj);
-    mat.assign(loc.diffOffset + 2, loc.diffOffset, 1.0 / (temporaryDroop * Tg));
-    mat.assign(loc.diffOffset + 2, loc.diffOffset + 1, 1.0 / Tg);
-    mat.assign(loc.diffOffset + 2, loc.diffOffset + 2, -1.0 / Tg - stateData.cj);
-    mat.assign(loc.diffOffset + 3, loc.diffOffset + 2, -dhdg / Tw);
-    mat.assign(loc.diffOffset + 3, loc.diffOffset + 3, -dhdq / Tw - stateData.cj);
+    matrixData.assign(loc.diffOffset + 1, loc.diffOffset + 1, -stateData.cj);
+    matrixData.assign(loc.diffOffset + 2, loc.diffOffset, 1.0 / (temporaryDroop * Tg));
+    matrixData.assign(loc.diffOffset + 2, loc.diffOffset + 1, 1.0 / Tg);
+    matrixData.assign(loc.diffOffset + 2, loc.diffOffset + 2, (-1.0 / Tg) - stateData.cj);
+    matrixData.assign(loc.diffOffset + 3, loc.diffOffset + 2, -dhdg / Tw);
+    matrixData.assign(loc.diffOffset + 3, loc.diffOffset + 3, (-dhdq / Tw) - stateData.cj);
 }
 
-void GovernorHygovDB::timestep(CoreTime time, const IOdata& inputs, const SolverMode&)
+void GovernorHygovDB::timestep(CoreTime time,
+                               const IOdata& inputs,
+                               [[maybe_unused]] const SolverMode& sMode)
 {
     derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
-    const auto d = offsets.getDiffOffset(cLocalSolverMode);
-    const double dt = time - prevTime;
-    for (index_t i = 0; i < 4; ++i) {
-        m_state[d + i] += dt * m_dstate_dt[d + i];
+    const auto diffOffset = offsets.getDiffOffset(cLocalSolverMode);
+    const double timeStep = time - prevTime;
+    for (index_t stateIndex = 0; stateIndex < 4; ++stateIndex) {
+        m_state[diffOffset + stateIndex] += timeStep * m_dstate_dt[diffOffset + stateIndex];
     }
-    m_state[d + 1] =
-        std::clamp(m_state[d + 1], static_cast<double>(Pmin), static_cast<double>(Pmax));
-    m_state[offsets.getAlgOffset(cLocalSolverMode)] = mechanicalPower(inputs, m_state.data() + d);
+    m_state[diffOffset + 1] = std::clamp(
+        m_state[diffOffset + 1], static_cast<double>(Pmin), static_cast<double>(Pmax));
+    m_state[offsets.getAlgOffset(cLocalSolverMode)] =
+        mechanicalPower(inputs, m_state.data() + diffOffset);
     prevTime = time;
 }
 
-void GovernorHygovDB::rootTest(const IOdata&, const StateData&, double[], const SolverMode&) {}
-void GovernorHygovDB::rootTrigger(CoreTime,
-                                  const IOdata&,
-                                  const std::vector<int>&,
-                                  const SolverMode&)
+void GovernorHygovDB::rootTest([[maybe_unused]] const IOdata& inputs,
+                               [[maybe_unused]] const StateData& stateData,
+                               [[maybe_unused]] double roots[],
+                               [[maybe_unused]] const SolverMode& sMode)
 {
 }
-ChangeCode
-    GovernorHygovDB::rootCheck(const IOdata&, const StateData&, const SolverMode&, CheckLevel)
+void GovernorHygovDB::rootTrigger([[maybe_unused]] CoreTime time,
+                                  [[maybe_unused]] const IOdata& inputs,
+                                  [[maybe_unused]] const std::vector<int>& rootMask,
+                                  [[maybe_unused]] const SolverMode& sMode)
+{
+}
+ChangeCode GovernorHygovDB::rootCheck([[maybe_unused]] const IOdata& inputs,
+                                      [[maybe_unused]] const StateData& stateData,
+                                      [[maybe_unused]] const SolverMode& sMode,
+                                      [[maybe_unused]] CheckLevel level)
 {
     return ChangeCode::NO_CHANGE;
 }

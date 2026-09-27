@@ -54,8 +54,8 @@ class GovernorTgov1Variant: public Governor {
     double speedSignal(const IOdata& inputs) const;
     double speedSlope(const IOdata& inputs) const;
     double valveCommand(const IOdata& inputs) const;
-    double valveRate(const IOdata& inputs, const double* x) const;
-    double output(const IOdata& inputs, const double* x) const;
+    double valveRate(const IOdata& inputs, const double* state) const;
+    double output(const IOdata& inputs, const double* state) const;
 };
 
 class GovernorTgov1DB final: public GovernorTgov1Variant {

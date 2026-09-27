@@ -9,6 +9,7 @@
 #include "utilities/Saturation.h"
 #include <array>
 #include <string>
+#include <vector>
 
 namespace griddyn::exciters {
 /** IEEE AC5A excitation system using the ANDES ESAC5A state equations. */

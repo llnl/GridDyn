@@ -969,12 +969,30 @@ TEST(DyrReaderComparisonTests, MapsGovernorVariants)
         std::string_view parameter;
         double value;
     };
-    for (const Case testCase : {Case{"ieee14_tg2.dyr", "tg2", "t2", 10.0},
-                                Case{"ieee14_tgov1db.dyr", "tgov1db", "dbu", 0.001},
-                                Case{"ieee14_tgov1n.dyr", "tgov1n", "t3", 2.0},
-                                Case{"ieee14_tgov1ndb.dyr", "tgov1ndb", "dbl", -0.001},
-                                Case{"ieee14_hygovdb.dyr", "hygovdb", "dbu", 0.001},
-                                Case{"ieee14_hygov4.dyr", "hygov4", "hdam", 1.0}}) {
+    for (const Case testCase : {Case{.file = "ieee14_tg2.dyr",
+                                     .factory = "tg2",
+                                     .parameter = "t2",
+                                     .value = 10.0},
+                                Case{.file = "ieee14_tgov1db.dyr",
+                                     .factory = "tgov1db",
+                                     .parameter = "dbu",
+                                     .value = 0.001},
+                                Case{.file = "ieee14_tgov1n.dyr",
+                                     .factory = "tgov1n",
+                                     .parameter = "t3",
+                                     .value = 2.0},
+                                Case{.file = "ieee14_tgov1ndb.dyr",
+                                     .factory = "tgov1ndb",
+                                     .parameter = "dbl",
+                                     .value = -0.001},
+                                Case{.file = "ieee14_hygovdb.dyr",
+                                     .factory = "hygovdb",
+                                     .parameter = "dbu",
+                                     .value = 0.001},
+                                Case{.file = "ieee14_hygov4.dyr",
+                                     .factory = "hygov4",
+                                     .parameter = "hdam",
+                                     .value = 1.0}}) {
         SCOPED_TRACE(std::string(testCase.file));
         auto simulation = loadComparisonDynamicCase("ieee14_genrou.dyr", {testCase.file});
         auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));

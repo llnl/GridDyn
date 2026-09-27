@@ -1058,15 +1058,15 @@ TEST(ExciterModelTests, Esac5aMatchesAndesEquationsAndJacobian)
     inputs[exciterVssInLocation] = 0.02;
     std::vector<double> derivative(state.size(), 0.0);
     exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
-    const double leadLag = 0.6 + 0.1 / 0.4 * (0.7 - 0.6);
-    const double feedback = 0.2 / 0.5 * (leadLag - 0.4);
+    const double leadLag = 0.6 + ((0.1 / 0.4) * (0.7 - 0.6));
+    const double feedback = (0.2 / 0.5) * (leadLag - 0.4);
     const double ratio = std::sqrt((1.0 * 0.1) / (2.0 * 0.4));
-    const double saturationThreshold = (1.0 - ratio * 2.0) / (1.0 - ratio);
+    const double saturationThreshold = (1.0 - (ratio * 2.0)) / (1.0 - ratio);
     const double saturationFactor = 0.8 / std::pow(2.0 - saturationThreshold, 2);
     const double saturation = saturationFactor * std::pow(1.5 - saturationThreshold, 2);
     EXPECT_NEAR(derivative[1], (1.03 - 1.02) / 0.2, 1e-12);
     EXPECT_NEAR(derivative[2],
-                (10.0 * (1.03 + initialRegulator / 10.0 - 1.02 - feedback) - 0.7) / 0.5,
+                ((10.0 * (1.03 + initialRegulator / 10.0 - 1.02 - feedback)) - 0.7) / 0.5,
                 1e-12);
     EXPECT_NEAR(derivative[3], (0.7 - 0.6) / 0.4, 1e-12);
     EXPECT_NEAR(derivative[4], (leadLag - 0.4) / 0.5, 1e-12);
@@ -1107,9 +1107,10 @@ TEST(ExciterModelTests, Esac5aStepMatchesClosedFormAndesResponse)
         exciter.timestep(count * 0.0001, inputs, cLocalSolverMode);
     }
     const double time = 0.4;
-    const double expectedRegulator = 1.02 - 0.02 * std::exp(-time / 0.2);
+    const double expectedRegulator = 1.02 - (0.02 * std::exp(-time / 0.2));
     const double expectedField =
-        1.0 + 0.02 * (1.0 - (0.5 * std::exp(-time / 0.5) - 0.2 * std::exp(-time / 0.2)) / 0.3);
+        1.0 + (0.02 * (1.0 -
+                       (((0.5 * std::exp(-time / 0.5)) - (0.2 * std::exp(-time / 0.2))) / 0.3)));
     EXPECT_NEAR(exciter.getStates()[1], expectedRegulator, 2e-5);
     EXPECT_NEAR(exciter.getStates()[3], expectedField, 2e-5);
     EXPECT_NEAR(exciter.getStates()[0], expectedField, 2e-5);

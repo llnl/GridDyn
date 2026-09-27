@@ -1449,8 +1449,8 @@ namespace {
         if (governor == nullptr) {
             throw InvalidParameterValue(std::string(model) + " governor factory registration");
         }
-        for (std::size_t i = 0; i < names.size(); ++i) {
-            governor->set(names[i], params[i + 3]);
+        for (std::size_t parameterIndex = 0; parameterIndex < names.size(); ++parameterIndex) {
+            governor->set(names[parameterIndex], params[parameterIndex + 3]);
         }
         gen->add(governor.release());
     }

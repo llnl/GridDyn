@@ -53,7 +53,9 @@ void GovernorTG2::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     local.jacSize = 8;
     prevTime = time0;
 }
-void GovernorTG2::dynObjectInitializeB(const IOdata&, const IOdata& desired, IOdata& fieldSet)
+void GovernorTG2::dynObjectInitializeB([[maybe_unused]] const IOdata& inputs,
+                                       const IOdata& desired,
+                                       IOdata& fieldSet)
 {
     if (desired.empty() || !std::isfinite(desired[0]) ||
         (hardLimitEnabled &&
@@ -68,26 +70,27 @@ void GovernorTG2::dynObjectInitializeB(const IOdata&, const IOdata& desired, IOd
 }
 double GovernorTG2::speedInput(const IOdata& inputs) const
 {
-    const double wd = 1.0 - inputs[govOmegaInLocation];
+    const double speedDeviation = 1.0 - inputs[govOmegaInLocation];
     if (!deadbandEnabled) {
-        return wd;
+        return speedDeviation;
     }
     // ANDES DeadBandRT currently has no working return-direction flags:
     // outside the band it passes the speed deviation, inside it gives zero.
-    if (wd < dbL || wd > dbU) {
-        return wd;
+    if (speedDeviation < dbL || speedDeviation > dbU) {
+        return speedDeviation;
     }
     return 0.0;
 }
 double GovernorTG2::speedSlope(const IOdata& inputs) const
 {
-    const double wd = 1.0 - inputs[govOmegaInLocation];
-    return (!deadbandEnabled || wd < dbL || wd > dbU) ? -1.0 : 0.0;
+    const double speedDeviation = 1.0 - inputs[govOmegaInLocation];
+    return (!deadbandEnabled || speedDeviation < dbL || speedDeviation > dbU) ? -1.0 : 0.0;
 }
 double GovernorTG2::output(const IOdata& inputs, double state) const
 {
     const double raw =
-        inputs[govpSetInLocation] + state + (T1 / T2) * (K * speedInput(inputs) - state);
+        inputs[govpSetInLocation] + state +
+        ((T1 / T2) * ((K * speedInput(inputs)) - state));
     return hardLimitEnabled ?
         std::clamp(raw, static_cast<double>(Pmin), static_cast<double>(Pmax)) :
         raw;
@@ -95,75 +98,79 @@ double GovernorTG2::output(const IOdata& inputs, double state) const
 double GovernorTG2::outputSlope(const IOdata& inputs, double state) const
 {
     const double raw =
-        inputs[govpSetInLocation] + state + (T1 / T2) * (K * speedInput(inputs) - state);
+        inputs[govpSetInLocation] + state +
+        ((T1 / T2) * ((K * speedInput(inputs)) - state));
     return (!hardLimitEnabled || (raw > Pmin && raw < Pmax)) ? 1.0 : 0.0;
 }
 void GovernorTG2::derivative(const IOdata& inputs,
-                             const StateData& sd,
-                             double out[],
-                             const SolverMode& mode)
+                             const StateData& stateData,
+                             double deriv[],
+                             const SolverMode& sMode)
 {
-    if (!hasDifferential(mode)) {
+    if (!hasDifferential(sMode)) {
         return;
     }
-    const auto loc = offsets.getLocations(sd, out, mode, this);
-    loc.destDiffLoc[0] = (K * speedInput(inputs) - loc.diffStateLoc[0]) / T2;
+    const auto loc = offsets.getLocations(stateData, deriv, sMode, this);
+    loc.destDiffLoc[0] = ((K * speedInput(inputs)) - loc.diffStateLoc[0]) / T2;
 }
 void GovernorTG2::residual(const IOdata& inputs,
-                           const StateData& sd,
-                           double out[],
-                           const SolverMode& mode)
+                           const StateData& stateData,
+                           double resid[],
+                           const SolverMode& sMode)
 {
-    const auto loc = offsets.getLocations(sd, out, mode, this);
-    if (hasAlgebraic(mode)) {
+    const auto loc = offsets.getLocations(stateData, resid, sMode, this);
+    if (hasAlgebraic(sMode)) {
         loc.destLoc[0] = output(inputs, loc.diffStateLoc[0]) - loc.algStateLoc[0];
     }
-    if (hasDifferential(mode)) {
-        derivative(inputs, sd, out, mode);
+    if (hasDifferential(sMode)) {
+        derivative(inputs, stateData, resid, sMode);
         loc.destDiffLoc[0] -= loc.dstateLoc[0];
     }
 }
 void GovernorTG2::algebraicUpdate(const IOdata& inputs,
-                                  const StateData& sd,
-                                  double out[],
-                                  const SolverMode& mode,
-                                  double)
+                                  const StateData& stateData,
+                                  double update[],
+                                  const SolverMode& sMode,
+                                  [[maybe_unused]] double alpha)
 {
-    if (!hasAlgebraic(mode)) {
+    if (!hasAlgebraic(sMode)) {
         return;
     }
-    const auto loc = offsets.getLocations(sd, out, mode, this);
+    const auto loc = offsets.getLocations(stateData, update, sMode, this);
     loc.destLoc[0] = output(inputs, loc.diffStateLoc[0]);
 }
 void GovernorTG2::jacobianElements(const IOdata& inputs,
-                                   const StateData& sd,
-                                   MatrixData<double>& mat,
-                                   const IOlocs& cols,
-                                   const SolverMode& mode)
+                                   const StateData& stateData,
+                                   MatrixData<double>& matrixData,
+                                   const IOlocs& inputLocs,
+                                   const SolverMode& sMode)
 {
-    const auto loc = offsets.getLocations(sd, mode, this);
+    const auto loc = offsets.getLocations(stateData, sMode, this);
     const double active = outputSlope(inputs, loc.diffStateLoc[0]);
-    if (hasAlgebraic(mode)) {
-        mat.assign(loc.algOffset, loc.algOffset, -1.0);
-        if (!isAlgebraicOnly(mode)) {
-            mat.assign(loc.algOffset, loc.diffOffset, active * (1.0 - T1 / T2));
+    if (hasAlgebraic(sMode)) {
+        matrixData.assign(loc.algOffset, loc.algOffset, -1.0);
+        if (!isAlgebraicOnly(sMode)) {
+            matrixData.assign(loc.algOffset, loc.diffOffset, active * (1.0 - (T1 / T2)));
         }
-        mat.assignCheckCol(loc.algOffset,
-                           cols[govOmegaInLocation],
-                           active * (T1 / T2) * K * speedSlope(inputs));
-        mat.assignCheckCol(loc.algOffset, cols[govpSetInLocation], active);
+        matrixData.assignCheckCol(loc.algOffset,
+                                  inputLocs[govOmegaInLocation],
+                                  active * (T1 / T2) * K * speedSlope(inputs));
+        matrixData.assignCheckCol(loc.algOffset, inputLocs[govpSetInLocation], active);
     }
-    if (hasDifferential(mode)) {
-        mat.assign(loc.diffOffset, loc.diffOffset, -1.0 / T2 - sd.cj);
-        mat.assignCheckCol(loc.diffOffset, cols[govOmegaInLocation], K * speedSlope(inputs) / T2);
+    if (hasDifferential(sMode)) {
+        matrixData.assign(loc.diffOffset, loc.diffOffset, (-1.0 / T2) - stateData.cj);
+        matrixData.assignCheckCol(
+            loc.diffOffset, inputLocs[govOmegaInLocation], K * speedSlope(inputs) / T2);
     }
 }
-void GovernorTG2::timestep(CoreTime time, const IOdata& inputs, const SolverMode&)
+void GovernorTG2::timestep(CoreTime time,
+                           const IOdata& inputs,
+                           [[maybe_unused]] const SolverMode& sMode)
 {
     derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
-    const auto d = offsets.getDiffOffset(cLocalSolverMode);
-    m_state[d] += (time - prevTime) * m_dstate_dt[d];
-    m_state[offsets.getAlgOffset(cLocalSolverMode)] = output(inputs, m_state[d]);
+    const auto diffOffset = offsets.getDiffOffset(cLocalSolverMode);
+    m_state[diffOffset] += (time - prevTime) * m_dstate_dt[diffOffset];
+    m_state[offsets.getAlgOffset(cLocalSolverMode)] = output(inputs, m_state[diffOffset]);
     prevTime = time;
 }
 index_t GovernorTG2::findIndex(std::string_view field, const SolverMode& mode) const

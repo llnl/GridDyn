@@ -201,8 +201,9 @@ void GovernorTgov1Variant::jacobianElements(const IOdata& inputs,
                 matrixData.assign(loc.algOffset, loc.diffOffset + 1, 1.0 - outputLeadFraction);
             }
         }
-        matrixData.assignCheckCol(
-            loc.algOffset, inputLocs[govOmegaInLocation], -Dt * speedSlope(inputs));
+        matrixData.assignCheckCol(loc.algOffset,
+                                  inputLocs[govOmegaInLocation],
+                                  -Dt * speedSlope(inputs));
     }
     if (!hasDifferential(sMode)) {
         return;
@@ -210,18 +211,19 @@ void GovernorTgov1Variant::jacobianElements(const IOdata& inputs,
     const double raw = (valveCommand(inputs) - loc.diffStateLoc[0]) / T1;
     const bool limited =
         (loc.diffStateLoc[0] >= Pmax && raw > 0.0) || (loc.diffStateLoc[0] <= Pmin && raw < 0.0);
-    matrixData.assign(
-        loc.diffOffset, loc.diffOffset, (limited ? 0.0 : -1.0 / T1) - stateData.cj);
+    matrixData.assign(loc.diffOffset, loc.diffOffset, (limited ? 0.0 : -1.0 / T1) - stateData.cj);
     if (!limited) {
-        matrixData.assignCheckCol(
-            loc.diffOffset, inputLocs[govOmegaInLocation], -K * speedSlope(inputs) / T1);
+        matrixData.assignCheckCol(loc.diffOffset,
+                                  inputLocs[govOmegaInLocation],
+                                  -K * speedSlope(inputs) / T1);
         matrixData.assignCheckCol(loc.diffOffset, inputLocs[govpSetInLocation], 1.0 / T1);
     }
     if (T3 > 0.0) {
         matrixData.assign(loc.diffOffset + 1, loc.diffOffset, 1.0 / T3);
     }
-    matrixData.assign(
-        loc.diffOffset + 1, loc.diffOffset + 1, (T3 > 0.0 ? -1.0 / T3 : 0.0) - stateData.cj);
+    matrixData.assign(loc.diffOffset + 1,
+                      loc.diffOffset + 1,
+                      (T3 > 0.0 ? -1.0 / T3 : 0.0) - stateData.cj);
 }
 void GovernorTgov1Variant::timestep(CoreTime time,
                                     const IOdata& inputs,
@@ -230,10 +232,9 @@ void GovernorTgov1Variant::timestep(CoreTime time,
     derivative(inputs, emptyStateData, m_dstate_dt.data(), cLocalSolverMode);
     const double timeStep = time - prevTime;
     const auto diffOffset = offsets.getDiffOffset(cLocalSolverMode);
-    m_state[diffOffset] =
-        std::clamp(m_state[diffOffset] + (timeStep * m_dstate_dt[diffOffset]),
-                   static_cast<double>(Pmin),
-                   static_cast<double>(Pmax));
+    m_state[diffOffset] = std::clamp(m_state[diffOffset] + (timeStep * m_dstate_dt[diffOffset]),
+                                     static_cast<double>(Pmin),
+                                     static_cast<double>(Pmax));
     m_state[diffOffset + 1] += timeStep * m_dstate_dt[diffOffset + 1];
     m_state[offsets.getAlgOffset(cLocalSolverMode)] = output(inputs, m_state.data() + diffOffset);
     prevTime = time;

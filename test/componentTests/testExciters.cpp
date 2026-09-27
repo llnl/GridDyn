@@ -1108,9 +1108,8 @@ TEST(ExciterModelTests, Esac5aStepMatchesClosedFormAndesResponse)
     }
     const double time = 0.4;
     const double expectedRegulator = 1.02 - (0.02 * std::exp(-time / 0.2));
-    const double expectedField =
-        1.0 + (0.02 * (1.0 -
-                       (((0.5 * std::exp(-time / 0.5)) - (0.2 * std::exp(-time / 0.2))) / 0.3)));
+    const double expectedField = 1.0 +
+        (0.02 * (1.0 - (((0.5 * std::exp(-time / 0.5)) - (0.2 * std::exp(-time / 0.2))) / 0.3)));
     EXPECT_NEAR(exciter.getStates()[1], expectedRegulator, 2e-5);
     EXPECT_NEAR(exciter.getStates()[3], expectedField, 2e-5);
     EXPECT_NEAR(exciter.getStates()[0], expectedField, 2e-5);

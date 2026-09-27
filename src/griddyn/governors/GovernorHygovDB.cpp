@@ -172,9 +172,9 @@ void GovernorHygovDB::jacobianElements(const IOdata& inputs,
         matrixData.assign(loc.algOffset, loc.algOffset, -1.0);
         if (!isAlgebraicOnly(sMode)) {
             matrixData.assign(loc.algOffset,
-                       loc.diffOffset + 2,
-                       (At * dhdg * (state[3] - qNL)) -
-                           (Dturb * (inputs[govOmegaInLocation] - 1.0)));
+                              loc.diffOffset + 2,
+                              (At * dhdg * (state[3] - qNL)) -
+                                  (Dturb * (inputs[govOmegaInLocation] - 1.0)));
             matrixData.assign(loc.algOffset,
                               loc.diffOffset + 3,
                               At * ((dhdq * (state[3] - qNL)) + head));
@@ -185,11 +185,12 @@ void GovernorHygovDB::jacobianElements(const IOdata& inputs,
         return;
     }
     matrixData.assign(loc.diffOffset,
-               loc.diffOffset,
-               (-((1.0 + (1.0 / (K * temporaryDroop))) / Tf)) - stateData.cj);
+                      loc.diffOffset,
+                      (-((1.0 + (1.0 / (K * temporaryDroop))) / Tf)) - stateData.cj);
     matrixData.assign(loc.diffOffset, loc.diffOffset + 1, -1.0 / (K * Tf));
-    matrixData.assignCheckCol(
-        loc.diffOffset, inputLocs[govOmegaInLocation], -governorSpeedSlope(inputs) / Tf);
+    matrixData.assignCheckCol(loc.diffOffset,
+                              inputLocs[govOmegaInLocation],
+                              -governorSpeedSlope(inputs) / Tf);
     const double raw = state[0];
     const double rate = std::clamp(raw, -static_cast<double>(VELM), static_cast<double>(VELM));
     const bool positionLimited =
@@ -215,8 +216,8 @@ void GovernorHygovDB::timestep(CoreTime time,
     for (index_t stateIndex = 0; stateIndex < 4; ++stateIndex) {
         m_state[diffOffset + stateIndex] += timeStep * m_dstate_dt[diffOffset + stateIndex];
     }
-    m_state[diffOffset + 1] = std::clamp(
-        m_state[diffOffset + 1], static_cast<double>(Pmin), static_cast<double>(Pmax));
+    m_state[diffOffset + 1] =
+        std::clamp(m_state[diffOffset + 1], static_cast<double>(Pmin), static_cast<double>(Pmax));
     m_state[offsets.getAlgOffset(cLocalSolverMode)] =
         mechanicalPower(inputs, m_state.data() + diffOffset);
     prevTime = time;

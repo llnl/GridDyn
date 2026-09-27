@@ -868,9 +868,7 @@ TEST(GovernorModelTests, Tgov1VariantsMatchLeadLagAndDeadbandEquations)
                         0.2,
                     1e-12);
         EXPECT_NEAR(deriv[2], (0.52 - 0.48) / 2.0, 1e-12);
-        EXPECT_NEAR(resid[0],
-                    0.48 + (0.2 * (0.52 - 0.48)) - (0.1 * speedDeviation) - 0.49,
-                    1e-12);
+        EXPECT_NEAR(resid[0], 0.48 + (0.2 * (0.52 - 0.48)) - (0.1 * speedDeviation) - 0.49, 1e-12);
         EXPECT_NEAR(resid[1], deriv[1], 1e-12);
         EXPECT_NEAR(resid[2], deriv[2], 1e-12);
         expectGovernorEquationConsistency(*governor, input, state);
@@ -941,14 +939,11 @@ TEST(GovernorModelTests, HygovDbAppliesDeadbandOnlyToController)
     EXPECT_NEAR(deriv[2], 0.01, 1e-12);
     EXPECT_NEAR(deriv[3], (desiredGate - 0.41) / 0.5, 1e-12);
     const double head = (0.42 / 0.41) * (0.42 / 0.41);
-    EXPECT_NEAR(resid[0],
-                (1.2 * head * (0.42 - 0.08)) - (0.2 * 0.41 * 0.01) - 0.4,
-                1e-12);
+    EXPECT_NEAR(resid[0], (1.2 * head * (0.42 - 0.08)) - (0.2 * 0.41 * 0.01) - 0.4, 1e-12);
     expectGovernorEquationConsistency(governor, inputs, state);
     inputs[govOmegaInLocation] = 1.03;
     governor.derivative(inputs, emptyStateData, deriv.data(), cLocalSolverMode);
-    EXPECT_NEAR(
-        deriv[1], (fieldSet[1] - 0.01 - (0.05 * desiredGate) - 0.01) / 0.05, 1e-12);
+    EXPECT_NEAR(deriv[1], (fieldSet[1] - 0.01 - (0.05 * desiredGate) - 0.01) / 0.05, 1e-12);
     expectGovernorEquationConsistency(governor, inputs, state);
 }
 
@@ -991,9 +986,7 @@ TEST(GovernorModelTests, Hygov4MatchesWashoutServoAndWaterEquations)
                 (fieldSet[1] - (0.1 * 0.42) - (0.2 * (0.42 - 0.40)) - 0.01 - 0.03) / 0.4,
                 1e-12);
     EXPECT_NEAR(deriv[4], (1.0 - head) / 1.25, 1e-12);
-    EXPECT_NEAR(resid[0],
-                (1.2 * head * (0.43 - 0.08)) - (0.2 * 0.42 * 0.01) - 0.41,
-                1e-12);
+    EXPECT_NEAR(resid[0], (1.2 * head * (0.43 - 0.08)) - (0.2 * 0.42 * 0.01) - 0.41, 1e-12);
     expectGovernorEquationConsistency(governor, inputs, state);
     state[3] = 0.3;
     governor.setState(0.0, state.data(), zero.data(), cLocalSolverMode);

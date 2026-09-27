@@ -180,8 +180,7 @@ void BusROCOF::algebraicUpdate(const IOdata& /*inputs*/,
     const auto loc = offsets.getLocations(stateData, update, sMode, this);
     const double frequencyDeviation = deviation(loc.diffStateLoc);
     loc.destLoc[deviationOutput] = frequencyDeviation;
-    loc.destLoc[rocofOutput] =
-        (1.0 + frequencyDeviation - loc.diffStateLoc[frequencyWashout]) / Tr;
+    loc.destLoc[rocofOutput] = (1.0 + frequencyDeviation - loc.diffStateLoc[frequencyWashout]) / Tr;
 }
 
 void BusROCOF::jacobianElements(const IOdata& /*inputs*/,
@@ -216,9 +215,7 @@ void BusROCOF::jacobianElements(const IOdata& /*inputs*/,
     matrixData.assign(diff + angleWashout, diff + angleWashout, (-1.0 / Tw) - stateData.cj);
     matrixData.assign(diff + frequencyWashout, diff + angleLag, gain / Tr);
     matrixData.assign(diff + frequencyWashout, diff + angleWashout, -gain / Tr);
-    matrixData.assign(diff + frequencyWashout,
-                      diff + frequencyWashout,
-                      (-1.0 / Tr) - stateData.cj);
+    matrixData.assign(diff + frequencyWashout, diff + frequencyWashout, (-1.0 / Tr) - stateData.cj);
 }
 
 void BusROCOF::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
@@ -244,9 +241,9 @@ void BusROCOF::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /
     const auto fourthStageState = intermediate(thirdSlope, 1.0);
     const auto fourthSlope = rates(inputs[0], fourthStageState.data());
     for (index_t index = 0; index < 3; ++index) {
-        m_state[2 + index] +=
-            (deltaTime / 6.0) * (initialSlope[index] + (2.0 * secondSlope[index]) +
-                                 (2.0 * thirdSlope[index]) + fourthSlope[index]);
+        m_state[2 + index] += (deltaTime / 6.0) *
+            (initialSlope[index] + (2.0 * secondSlope[index]) + (2.0 * thirdSlope[index]) +
+             fourthSlope[index]);
     }
     const double frequencyDeviation = deviation(m_state.data() + 2);
     m_state[deviationOutput] = frequencyDeviation;

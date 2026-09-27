@@ -73,6 +73,10 @@ class REECA1: public RenewableComponent {
 
   protected:
     virtual bool useVoltageInjection(double voltage) const { return dipMode(voltage); }
+    virtual double activeReferenceAdjustment(const IOdata&) const { return 0.0; }
+    virtual void activeReferenceJacobian(const IOlocs&, MatrixData<double>&, index_t, double) const
+    {
+    }
 
   private:
     double Vdip = 0.8, Vup = 1.2, Trv = 0.02;
@@ -106,6 +110,7 @@ class REECA1: public RenewableComponent {
     double activeLimit(double voltage, const double state[]) const;
     void transition(CoreTime time, double voltage, bool entering);
     std::array<double, 2> commands(double v, const double state[]) const;
+    double generatorSpeed(const IOdata& inputs) const;
     std::array<double, 4> rates(const IOdata& inputs, const double state[]) const;
 };
 

@@ -12,11 +12,15 @@
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/generators/RenewableGenerator.h"
 #include "griddyn/primary/AcBus.h"
+#include "griddyn/renewables/BusROCOF.h"
 #include "griddyn/renewables/REECA1.h"
+#include "griddyn/renewables/REECA1E.h"
 #include "griddyn/renewables/REECB1.h"
 #include "griddyn/renewables/REGCA1.h"
+#include "griddyn/renewables/REGCP1.h"
 #include "griddyn/renewables/REPCA1.h"
 #include "griddyn/renewables/WTARA1.h"
+#include "griddyn/renewables/WTDS.h"
 #include "griddyn/renewables/WTDTA1.h"
 #include "griddyn/renewables/WTPTA1.h"
 #include "griddyn/renewables/WTTQA1.h"
@@ -39,12 +43,15 @@ namespace {
 std::string renewableDyrRecord(std::string_view model, int busId = 101)
 {
     std::string payload;
-    if (model == "REGCA1") {
+    if (model == "REGCA1" || model == "REGCP1") {
         payload = "1 .1 10 1 .5 1 1.2 .8 .4 -1.5 .1 .7 1 -1 0";
-    } else if (model == "REECA1") {
+    } else if (model == "REECA1" || model == "REECA1E") {
         payload = "0 0 1 0 0 1 .8 1.2 .02 -.02 .02 1 999 -999 0 0 0 0 "
                   ".02 999 -999 999 -999 1 .1 1 .1 1 .02 999 -999 999 0 999 .02 "
                   ".2 2 .4 4 .8 8 1 10 .2 2 .4 4 .8 8 1 12";
+        if (model == "REECA1E") {
+            payload += " 4 .5 'freq1'";
+        }
     } else if (model == "REECB1") {
         payload = "0 0 1 0 1 .8 1.2 .02 -.02 .02 1 999 -999 0 .02 "
                   "999 -999 999 -999 1 .1 1 .1 .02 999 -999 999 0 999 .02";
@@ -54,6 +61,10 @@ std::string renewableDyrRecord(std::string_view model, int busId = 101)
                   ".05 -.05 999 -999 .02 10 10";
     } else if (model == "WTDTA1") {
         payload = "3 0 .5 1 1";
+    } else if (model == "WTDS") {
+        payload = "3 1 1";
+    } else if (model == "BUSROCOF") {
+        payload = "'freq1' .02 .1 .1 60";
     } else if (model == "WTARA1") {
         payload = "1 0";
     } else if (model == "WTPTA1") {
@@ -88,7 +99,15 @@ void loadRenewableRecords(GridDynSimulation& simulation,
     {
         std::ofstream stream(file);
         for (auto model : models) {
-            stream << renewableDyrRecord(model, busId);
+            auto record = renewableDyrRecord(model, busId);
+            if (model == "REECA1" &&
+                std::find(models.begin(), models.end(), std::string_view{"WTDS"}) != models.end()) {
+                const auto flags = record.find("0 0 1 0 0 1 .8");
+                if (flags != std::string::npos) {
+                    record.replace(flags, 14, "0 0 1 0 1 1 .8");
+                }
+            }
+            stream << record;
         }
     }
     try {
@@ -193,6 +212,48 @@ TEST(RenewableModels, REGCA1SteadyInitializationAndHostSign)
     const auto daeOutput = host.getOutputs({1.0, 0.0}, stateData, cDaeSolverMode);
     EXPECT_NEAR(daeOutput[0], -0.8, 1e-12);
     EXPECT_NEAR(daeOutput[1], -0.1, 1e-12);
+}
+
+TEST(RenewableModels, REGCP1NoPllIsIndependentAndRejectsPllSelection)
+{
+    REGCP1 converter;
+    EXPECT_THROW(converter.set("pll", 1.0), InvalidParameterValue);
+    EXPECT_THROW(converter.set("pll", std::string_view{"PLL1"}), InvalidParameterValue);
+    converter.set("pll", std::string_view{"none"});
+    converter.dynInitializeA(0.0, 0);
+    IOdata fields;
+    converter.dynInitializeB({1.0, 0.0, 0.0}, {0.8, 0.1}, fields);
+    REGCA1 reference;
+    reference.dynInitializeA(0.0, 0);
+    IOdata referenceFields;
+    reference.dynInitializeB({1.0, 0.0, 0.0}, {0.8, 0.1}, referenceFields);
+    EXPECT_TRUE(std::equal(converter.getStates().begin(),
+                           converter.getStates().end(),
+                           reference.getStates().begin()));
+    EXPECT_EQ(converter.getOutputs({1.0, 0.0, 0.0}, emptyStateData, cLocalSolverMode),
+              reference.getOutputs({1.0, 0.0, 0.0}, emptyStateData, cLocalSolverMode));
+    std::unique_ptr<CoreObject> copy(converter.clone());
+    ASSERT_NE(dynamic_cast<REGCP1*>(copy.get()), nullptr);
+}
+
+TEST(RenewableModels, WTDSOneMassEquationAndAliasedSpeeds)
+{
+    WTDS shaft;
+    shaft.set("h", 2.0);
+    shaft.set("d", 0.5);
+    shaft.set("w0", 1.1);
+    shaft.dynInitializeA(0.0, 0);
+    IOdata fields;
+    shaft.dynInitializeB({0.8}, {0.8, 0.1}, fields);
+    EXPECT_EQ(fields, (IOdata{1.1, 1.1}));
+    EXPECT_EQ(shaft.getOutputLoc(cLocalSolverMode, 0), shaft.getOutputLoc(cLocalSolverMode, 1));
+    std::array<double, 1> derivative{};
+    shaft.derivative({0.7, 1.0, 1.0}, emptyStateData, derivative.data(), cLocalSolverMode);
+    const double expected = (((1.0 - 0.7) / 1.1) - (0.5 * (1.1 - 1.0))) / 4.0;
+    EXPECT_NEAR(derivative[0], expected, 1e-12);
+    shaft.timestep(0.1, {0.7, 1.0, 1.0}, cLocalSolverMode);
+    EXPECT_NEAR(shaft.getOutput(0), 1.1 + (0.1 * expected), 1e-12);
+    EXPECT_NEAR(shaft.getOutput(1), shaft.getOutput(0), 1e-12);
 }
 
 TEST(RenewableModels, REGCA1AcceptsCaseAccelerationAndValidatesRange)
@@ -490,6 +551,349 @@ TEST(RenewableModels, REECA1UnsupportedModesFail)
     EXPECT_THROW(plant.dynInitializeA(0.0, 0), InvalidParameterValue);
 }
 
+TEST(RenewableModels, REECA1SpeedBranchRequiresShaftAndTracksSpeed)
+{
+    REECA1 control;
+    control.set("pflag", 1.0);
+    control.dynInitializeA(0.0, 0);
+    IOdata fields;
+    EXPECT_THROW(control.dynInitializeB({1.0}, {0.8, 0.1}, fields), InvalidParameterValue);
+    control.dynInitializeB({1.0, kNullVal, kNullVal, kNullVal, 0.8}, {0.8, 0.1}, fields);
+    EXPECT_NEAR(control.getStates()[3], 1.0, 1e-12);
+    std::array<double, 6> rate{};
+    control.derivative({1.0, kNullVal, kNullVal, kNullVal, 1.0},
+                       emptyStateData,
+                       rate.data(),
+                       cLocalSolverMode);
+    EXPECT_NEAR(rate[3], -10.0, 1e-10);
+    EXPECT_NEAR(rate[4], 10.0, 1e-10);
+    control.set("tpord", 0.0);
+    EXPECT_THROW(control.dynInitializeA(0.0, 0), InvalidParameterValue);
+
+    RenewableGenerator missingShaft;
+    missingShaft.add(new REGCA1);
+    auto* missingControl = new REECA1;
+    missingControl->set("pflag", 1.0);
+    missingShaft.add(missingControl);
+    EXPECT_THROW(missingShaft.dynInitializeA(0.0, 0), InvalidParameterValue);
+}
+
+TEST(RenewableModels, BusROCOFMatchesContinuousFilterAndDaeJacobian)
+{
+    BusROCOF measurement("freq1");
+    measurement.dynInitializeA(0.0, 0);
+    IOdata fields;
+    measurement.dynInitializeB({0.0}, {}, fields);
+    EXPECT_EQ(fields, (IOdata{0.0, 0.0}));
+    measurement.timestep(0.01, {0.1}, cLocalSolverMode);
+    EXPECT_GT(measurement.getOutput(0), 0.0);
+    EXPECT_GT(measurement.getOutput(1), 0.0);
+
+    measurement.setOffset(0, cDaeSolverMode);
+    std::vector<double> state(measurement.stateSize(cDaeSolverMode));
+    std::vector<double> rate(state.size());
+    measurement.guessState(0.01, state.data(), rate.data(), cDaeSolverMode);
+    StateData data(0.01, state.data(), rate.data());
+    data.stateSize = static_cast<count_t>(state.size());
+    data.cj = 1.0;
+    MatrixDataSparse<double> jacobian;
+    measurement.jacobianElements({0.1}, data, jacobian, {20}, cDaeSolverMode);
+    const auto residualAt = [&](const std::vector<double>& values,
+                                const std::vector<double>& derivatives) {
+        StateData trial(0.01, values.data(), derivatives.data());
+        trial.stateSize = static_cast<count_t>(values.size());
+        std::vector<double> residual(values.size());
+        measurement.residual({0.1}, trial, residual.data(), cDaeSolverMode);
+        return residual;
+    };
+    const auto base = residualAt(state, rate);
+    constexpr double step = 1e-7;
+    for (std::size_t column = 0; column < state.size(); ++column) {
+        auto shifted = state;
+        auto shiftedRate = rate;
+        shifted[column] += step;
+        if (column >= 2) {
+            shiftedRate[column] += step;
+        }
+        const auto perturbed = residualAt(shifted, shiftedRate);
+        for (std::size_t row = 0; row < state.size(); ++row) {
+            EXPECT_NEAR(jacobian.at(static_cast<index_t>(row), static_cast<index_t>(column)),
+                        (perturbed[row] - base[row]) / step,
+                        1e-5)
+                << "row " << row << " column " << column;
+        }
+    }
+}
+
+TEST(RenewableModels, BusROCOFMatchesAndesForIdenticalAngleInput)
+{
+    const auto reference = std::filesystem::path(__FILE__).parent_path().parent_path() /
+        "reference" / "renewable_fault" / "andes_busrocof_angle_reference.csv";
+    std::ifstream stream(reference);
+    ASSERT_TRUE(stream.is_open());
+    std::string line;
+    ASSERT_TRUE(static_cast<bool>(std::getline(stream, line)));
+    ASSERT_EQ(line, "time,angle,frequency_deviation,rocof");
+    BusROCOF measurement("freq1");
+    measurement.dynInitializeA(0.0, 0);
+    bool initialized = false;
+    int samples = 0;
+    while (std::getline(stream, line)) {
+        if (line.empty()) {
+            continue;
+        }
+        std::istringstream row(line);
+        std::array<double, 4> expected{};
+        for (auto& value : expected) {
+            std::string field;
+            ASSERT_TRUE(static_cast<bool>(std::getline(row, field, ',')));
+            value = std::stod(field);
+        }
+        if (!initialized) {
+            IOdata fields;
+            measurement.dynInitializeB({expected[1]}, {}, fields);
+            initialized = true;
+        }
+        measurement.timestep(expected[0], {expected[1]}, cLocalSolverMode);
+        EXPECT_NEAR(measurement.getOutput(0), expected[2], 0.0001) << expected[0];
+        EXPECT_NEAR(measurement.getOutput(1), expected[3], 0.001) << expected[0];
+        ++samples;
+    }
+    EXPECT_GE(samples, 180);
+}
+
+TEST(RenewableModels, REECA1EZeroGainMatchesREECA1)
+{
+    REECA1 base;
+    REECA1E frequencyControl;
+    frequencyControl.set("busroc", std::string_view{"freq1"});
+    frequencyControl.set("kf", 0.0);
+    frequencyControl.set("kdf", 0.0);
+    for (auto* control : {&base, static_cast<REECA1*>(&frequencyControl)}) {
+        control->set("tpord", 0.05);
+        control->dynInitializeA(0.0, 0);
+    }
+    IOdata baseFields;
+    IOdata frequencyFields;
+    base.dynInitializeB({1.0}, {0.8, 0.1}, baseFields);
+    frequencyControl.dynInitializeB({1.0, kNullVal, kNullVal, kNullVal, kNullVal, 0.0, 0.0},
+                                    {0.8, 0.1},
+                                    frequencyFields);
+    EXPECT_EQ(baseFields, frequencyFields);
+    for (int sample = 1; sample <= 20; ++sample) {
+        const double time = 0.005 * sample;
+        const double voltage = sample < 8 ? 0.9 : 1.04;
+        base.timestep(time, {voltage}, cLocalSolverMode);
+        frequencyControl.timestep(time,
+                                  {voltage, kNullVal, kNullVal, kNullVal, kNullVal, 0.02, -0.03},
+                                  cLocalSolverMode);
+        ASSERT_EQ(base.getStates().size(), frequencyControl.getStates().size());
+        for (std::size_t index = 0; index < base.getStates().size(); ++index) {
+            EXPECT_NEAR(base.getStates()[index], frequencyControl.getStates()[index], 1e-12)
+                << "sample " << sample << " state " << index;
+        }
+        const auto baseOutput = base.getOutputs({}, emptyStateData, cLocalSolverMode);
+        const auto frequencyOutput =
+            frequencyControl.getOutputs({}, emptyStateData, cLocalSolverMode);
+        ASSERT_EQ(baseOutput.size(), frequencyOutput.size());
+        for (std::size_t index = 0; index < baseOutput.size(); ++index) {
+            EXPECT_NEAR(baseOutput[index], frequencyOutput[index], 1e-12);
+        }
+    }
+}
+
+TEST(RenewableModels, REECA1EBindsNamedMeasurementAndFrequencyJacobian)
+{
+    REECA1E unnamed;
+    EXPECT_THROW(unnamed.dynInitializeA(0.0, 0), InvalidParameterValue);
+    RenewableGenerator host;
+    host.add(new REGCA1);
+    auto* control = new REECA1E;
+    control->set("kf", 4.0);
+    control->set("kdf", 0.5);
+    control->set("busroc", std::string_view{"freq1"});
+    host.add(control);
+    EXPECT_THROW(host.dynInitializeA(0.0, 0), InvalidParameterValue);
+    host.add(new BusROCOF("wrong"));
+    EXPECT_THROW(host.dynInitializeA(0.0, 0), InvalidParameterValue);
+    auto* measurement = new BusROCOF("freq1");
+    host.add(measurement);
+    host.dynInitializeA(0.0, 0);
+    IOdata fields;
+    host.dynInitializeB({1.0, 0.0}, {0.8, 0.1}, fields);
+    host.setOffset(0, cDaeSolverMode);
+    std::vector<double> state(host.stateSize(cDaeSolverMode));
+    std::vector<double> rate(state.size());
+    host.guessState(0.0, state.data(), rate.data(), cDaeSolverMode);
+    const auto deviationLoc = measurement->getOutputLoc(cDaeSolverMode, 0);
+    const auto rocofLoc = measurement->getOutputLoc(cDaeSolverMode, 1);
+    const auto filterLoc = control->getOutputLoc(cDaeSolverMode, 2) - 1;
+    state[deviationLoc] = 0.01;
+    state[rocofLoc] = 0.02;
+    StateData data(0.0, state.data(), rate.data());
+    data.stateSize = static_cast<count_t>(state.size());
+    data.cj = 1.0;
+    std::vector<double> residual(state.size());
+    const auto filterResidual = [&](double frequencyGain, double rocofGain) {
+        control->set("kf", frequencyGain);
+        control->set("kdf", rocofGain);
+        host.residual({1.0, 0.0}, data, residual.data(), cDaeSolverMode);
+        return residual[filterLoc];
+    };
+    const double base = filterResidual(0.0, 0.0);
+    EXPECT_NEAR(filterResidual(4.0, 0.0) - base, -2.0, 1e-10);
+    EXPECT_NEAR(filterResidual(0.0, 0.5) - base, -0.5, 1e-10);
+    EXPECT_NEAR(filterResidual(4.0, 0.5) - base, -2.5, 1e-10);
+    MatrixDataSparse<double> jacobian;
+    host.jacobianElements({1.0, 0.0}, data, jacobian, {30, 31}, cDaeSolverMode);
+    EXPECT_NEAR(jacobian.at(filterLoc, deviationLoc), -200.0, 1e-10);
+    EXPECT_NEAR(jacobian.at(filterLoc, rocofLoc), -25.0, 1e-10);
+    const double combined = residual[filterLoc];
+    constexpr double step = 1e-7;
+    for (const auto location : {deviationLoc, rocofLoc}) {
+        state[location] += step;
+        host.residual({1.0, 0.0}, data, residual.data(), cDaeSolverMode);
+        EXPECT_NEAR(jacobian.at(filterLoc, location),
+                    (residual[filterLoc] - combined) / step,
+                    1e-5);
+        state[location] -= step;
+    }
+}
+
+TEST(RenewableModels, REECA1EReadsMeasurementInPairedSolverModes)
+{
+    RenewableGenerator host;
+    host.add(new REGCA1);
+    auto* control = new REECA1E;
+    control->set("busroc", std::string_view{"freq1"});
+    host.add(control);
+    auto* measurement = new BusROCOF("freq1");
+    host.add(measurement);
+    host.dynInitializeA(0.0, 0);
+    IOdata fields;
+    host.dynInitializeB({1.0, 0.0}, {0.8, 0.1}, fields);
+
+    auto algebraicMode = cDynAlgSolverMode;
+    auto differentialMode = cDynDiffSolverMode;
+    algebraicMode.pairedOffsetIndex = differentialMode.offsetIndex;
+    differentialMode.pairedOffsetIndex = algebraicMode.offsetIndex;
+    const auto algebraicSize = host.stateSize(algebraicMode);
+    const auto differentialSize = host.stateSize(differentialMode);
+    host.setOffset(0, algebraicMode);
+    host.setOffset(0, differentialMode);
+    std::vector<double> algebraic(algebraicSize);
+    std::vector<double> differential(differentialSize);
+    std::vector<double> rate(differential.size());
+    host.guessState(0.0, algebraic.data(), rate.data(), algebraicMode);
+    host.guessState(0.0, differential.data(), rate.data(), differentialMode);
+    const auto deviationLoc = measurement->getOutputLoc(algebraicMode, 0);
+    const auto rocofLoc = measurement->getOutputLoc(algebraicMode, 1);
+    const auto filterLoc = control->getOutputLoc(differentialMode, 2) - 1;
+    ASSERT_GE(deviationLoc, 0);
+    ASSERT_GE(rocofLoc, 0);
+    ASSERT_GE(filterLoc, 0);
+    algebraic[deviationLoc] = 0.01;
+    algebraic[rocofLoc] = 0.02;
+
+    StateData algebraicData(0.0, algebraic.data(), rate.data());
+    algebraicData.stateSize = static_cast<count_t>(algebraic.size());
+    algebraicData.diffState = differential.data();
+    algebraicData.pairIndex = differentialMode.offsetIndex;
+    std::vector<double> algebraicResidual(algebraic.size());
+    host.residual({1.0, 0.0}, algebraicData, algebraicResidual.data(), algebraicMode);
+    EXPECT_NEAR(algebraicResidual[deviationLoc], -0.01, 1e-12);
+    EXPECT_NEAR(algebraicResidual[rocofLoc], -0.02, 1e-12);
+    MatrixDataSparse<double> algebraicJacobian;
+    host.jacobianElements({1.0, 0.0}, algebraicData, algebraicJacobian, {30, 31}, algebraicMode);
+    EXPECT_NEAR(algebraicJacobian.at(deviationLoc, deviationLoc), -1.0, 1e-12);
+    EXPECT_NEAR(algebraicJacobian.at(rocofLoc, rocofLoc), -1.0, 1e-12);
+
+    StateData differentialData(0.0, differential.data(), rate.data());
+    differentialData.stateSize = static_cast<count_t>(differential.size());
+    differentialData.algState = algebraic.data();
+    differentialData.pairIndex = algebraicMode.offsetIndex;
+    differentialData.cj = 1.0;
+    std::vector<double> differentialResidual(differential.size());
+    const auto filterResidual = [&] {
+        host.residual({1.0, 0.0}, differentialData, differentialResidual.data(), differentialMode);
+        return differentialResidual[filterLoc];
+    };
+    const double base = filterResidual();
+    MatrixDataSparse<double> zeroGainJacobian;
+    host.jacobianElements(
+        {1.0, 0.0}, differentialData, zeroGainJacobian, {30, 31}, differentialMode);
+    control->set("kf", 4.0);
+    control->set("kdf", 0.5);
+    EXPECT_NEAR(filterResidual() - base, -2.5, 1e-10);
+    MatrixDataSparse<double> jacobian;
+    host.jacobianElements({1.0, 0.0}, differentialData, jacobian, {30, 31}, differentialMode);
+    const double combined = differentialResidual[filterLoc];
+    constexpr double step = 1e-7;
+    for (const auto location : {deviationLoc, rocofLoc}) {
+        ASSERT_LT(location, differential.size());
+        EXPECT_NEAR(jacobian.at(filterLoc, location),
+                    zeroGainJacobian.at(filterLoc, location),
+                    1e-12);
+        algebraic[location] += step;
+        EXPECT_NEAR((filterResidual() - combined) / step,
+                    location == deviationLoc ? -200.0 : -25.0,
+                    1e-5);
+        algebraic[location] -= step;
+        differential[location] += step;
+        rate[location] += step;
+        EXPECT_NEAR(jacobian.at(filterLoc, location), (filterResidual() - combined) / step, 1e-5);
+        differential[location] -= step;
+        rate[location] -= step;
+    }
+}
+
+TEST(RenewableModels, SpeedCoupledWindAssemblyHasConsistentDaeJacobian)
+{
+    RenewableGenerator host;
+    host.add(new REGCP1);
+    auto* control = new REECA1;
+    control->set("pflag", 1.0);
+    host.add(control);
+    auto* shaft = new WTDS;
+    shaft->set("w0", 0.9);
+    host.add(shaft);
+    host.dynInitializeA(0.0, 0);
+    IOdata fields;
+    host.dynInitializeB({1.0, 0.0}, {0.8, 0.1}, fields);
+    EXPECT_NEAR(shaft->getOutput(0), 0.9, 1e-12);
+    EXPECT_NEAR(control->getStates()[3], 0.8 / 0.9, 1e-12);
+    host.setOffset(0, cDaeSolverMode);
+    std::vector<double> state(host.stateSize(cDaeSolverMode));
+    std::vector<double> rate(state.size());
+    host.guessState(0.0, state.data(), rate.data(), cDaeSolverMode);
+    const auto speedLoc = shaft->getOutputLoc(cDaeSolverMode, 0);
+    const auto orderLoc = control->getOutputLoc(cDaeSolverMode, 2);
+    state[speedLoc] = 0.95;
+    StateData data(0.0, state.data(), rate.data());
+    data.stateSize = static_cast<count_t>(state.size());
+    data.cj = 1.0;
+    MatrixDataSparse<double> jacobian;
+    host.jacobianElements({1.0, 0.0}, data, jacobian, {30, 31}, cDaeSolverMode);
+    const auto residualAt = [&](const std::vector<double>& trialState,
+                                const std::vector<double>& trialRate) {
+        StateData trial(0.0, trialState.data(), trialRate.data());
+        trial.stateSize = static_cast<count_t>(trialState.size());
+        std::vector<double> residual(trialState.size());
+        host.residual({1.0, 0.0}, trial, residual.data(), cDaeSolverMode);
+        return residual;
+    };
+    constexpr double step = 1e-7;
+    auto shifted = state;
+    auto shiftedRate = rate;
+    shifted[speedLoc] += step;
+    shiftedRate[speedLoc] += step;
+    const auto base = residualAt(state, rate);
+    const auto perturbed = residualAt(shifted, shiftedRate);
+    for (auto row : {orderLoc - 1, orderLoc, speedLoc}) {
+        EXPECT_NEAR(jacobian.at(row, speedLoc), (perturbed[row] - base[row]) / step, 1e-4);
+    }
+}
+
 TEST(RenewableModels, DyrAssemblesIndependentModelsInEitherOrder)
 {
     for (const std::vector<std::string_view>& order :
@@ -519,6 +923,52 @@ TEST(RenewableModels, DyrAssemblesIndependentModelsInEitherOrder)
         const auto output = generator->getOutputs({1.0, 0.0}, emptyStateData, cLocalSolverMode);
         EXPECT_NEAR(output[0], -0.8, 1e-12);
         EXPECT_NEAR(output[1], -0.1, 1e-12);
+    }
+}
+
+TEST(RenewableModels, DyrLoadsREGCP1AndWTDSInEitherOrder)
+{
+    for (const std::vector<std::string_view>& order :
+         {std::vector<std::string_view>{"REGCP1", "REECA1", "WTDS"},
+          std::vector<std::string_view>{"WTDS", "REECA1", "REGCP1"}}) {
+        auto simulation = renewableDyrSimulation();
+        loadRenewableRecords(*simulation, order);
+        auto* bus = dynamic_cast<GridBus*>(simulation->findByUserID("bus", 101));
+        ASSERT_NE(bus, nullptr);
+        auto* host = dynamic_cast<RenewableGenerator*>(bus->getGen(0));
+        ASSERT_NE(host, nullptr);
+        EXPECT_NE(dynamic_cast<REGCP1*>(host->find("electrical")), nullptr);
+        EXPECT_NE(dynamic_cast<WTDS*>(
+                      host->getSubObject("renewable_component",
+                                         static_cast<index_t>(RenewableRole::driveTrain))),
+                  nullptr);
+        host->dynInitializeA(0.0, 0);
+        IOdata fields;
+        host->dynInitializeB({1.0, 0.0}, {0.8, 0.1}, fields);
+    }
+}
+
+TEST(RenewableModels, DyrLoadsREECA1EAndBusROCOFInEitherOrder)
+{
+    for (const std::vector<std::string_view>& order :
+         {std::vector<std::string_view>{"REGCA1", "REECA1E", "BUSROCOF"},
+          std::vector<std::string_view>{"BUSROCOF", "REECA1E", "REGCA1"}}) {
+        auto simulation = renewableDyrSimulation();
+        loadRenewableRecords(*simulation, order);
+        auto* bus = dynamic_cast<GridBus*>(simulation->findByUserID("bus", 101));
+        ASSERT_NE(bus, nullptr);
+        auto* host = dynamic_cast<RenewableGenerator*>(bus->getGen(0));
+        ASSERT_NE(host, nullptr);
+        auto* control = dynamic_cast<REECA1E*>(host->find("electrical_control"));
+        auto* measurement = dynamic_cast<BusROCOF*>(host->find("measurement"));
+        ASSERT_NE(control, nullptr);
+        ASSERT_NE(measurement, nullptr);
+        EXPECT_EQ(measurement->getName(), "freq1");
+        EXPECT_DOUBLE_EQ(control->get("kf"), 4.0);
+        EXPECT_DOUBLE_EQ(control->get("kdf"), 0.5);
+        host->dynInitializeA(0.0, 0);
+        IOdata fields;
+        host->dynInitializeB({1.0, 0.0}, {0.8, 0.1}, fields);
     }
 }
 
@@ -849,6 +1299,23 @@ TEST(RenewableModels, WindDyrIntegratesInNetwork)
     }
 }
 
+TEST(RenewableModels, SpeedCoupledWindDyrIntegratesInNetwork)
+{
+    const auto raw = std::filesystem::path(__FILE__).parent_path().parent_path() / "test_files" /
+        "comparison_tests" / "ieee14.raw";
+    auto simulation = std::make_unique<GridDynSimulation>();
+    loadFile(simulation.get(), raw.string());
+    loadRenewableRecords(*simulation, {"REGCP1", "REECA1", "WTDS"}, 2);
+    loadOtherMachines(*simulation);
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, cDaeSolverMode, false), 0);
+    ASSERT_EQ(simulation->run(0.1), 0);
+    for (double value : simulation->getState()) {
+        EXPECT_TRUE(std::isfinite(value));
+    }
+}
+
 TEST(RenewableModels, SolarDyrIntegratesInNetwork)
 {
     const auto raw = std::filesystem::path(__FILE__).parent_path().parent_path() / "test_files" /
@@ -880,11 +1347,15 @@ TEST(RenewableModels, SolarDyrIntegratesInNetwork)
 
 TEST(RenewableModels, TwoBusRenewableFaultMatchesAndesReference)
 {
-    for (int profile = 0; profile < 4; ++profile) {
+    for (int profile = 0; profile < 6; ++profile) {
         const bool includePlant = profile == 1;
         const bool includeWind = profile == 2;
         const bool useReecb = profile == 3;
-        SCOPED_TRACE(includeWind      ? "wind assembly" :
+        const bool useWtds = profile == 4;
+        const bool useReeca1e = profile == 5;
+        SCOPED_TRACE(useReeca1e       ? "REECA1E frequency assembly" :
+                         useWtds      ? "WTDS speed assembly" :
+                         includeWind  ? "wind assembly" :
                          includePlant ? "REPCA1" :
                          useReecb     ? "REECB1" :
                                         "REGCA1+REECA1");
@@ -897,19 +1368,34 @@ TEST(RenewableModels, TwoBusRenewableFaultMatchesAndesReference)
         auto* host = new RenewableGenerator("solar");
         host->set("p", 0.6);
         host->set("mbase", 100.0, units::MVAR);
-        auto* reg = new REGCA1;
+        auto* reg = useWtds ? static_cast<REGCA1*>(new REGCP1) : new REGCA1;
         reg->set("tg", 0.02);
         reg->set("tfltr", 0.02);
         reg->set("iqrmax", 999.0);
         reg->set("iqrmin", -999.0);
         reg->set("lvplsw", 0.0);
-        auto* ree = useReecb ? static_cast<REECA1*>(new REECB1) : new REECA1;
+        REECA1* ree = nullptr;
+        if (useReecb) {
+            ree = new REECB1;
+        } else if (useReeca1e) {
+            ree = new REECA1E;
+        } else {
+            ree = new REECA1;
+        }
         ree->set("vflag", 0.0);
         ree->set("pqflag", 0.0);
         if (!useReecb) {
             ree->set("thld2", 0.5);
         }
-        ree->set("tpord", useReecb ? 0.02 : 0.0);
+        if (useWtds) {
+            ree->set("pflag", 1.0);
+        }
+        if (useReeca1e) {
+            ree->set("kf", 4.0);
+            ree->set("kdf", 0.5);
+            static_cast<REECA1E*>(ree)->set("busroc", std::string_view{"freq1"});
+        }
+        ree->set("tpord", useReecb || useWtds ? 0.02 : 0.0);
         ree->set("imax", 1.3);
         ree->set("qmax", 1.0);
         ree->set("qmin", -1.0);
@@ -943,6 +1429,16 @@ TEST(RenewableModels, TwoBusRenewableFaultMatchesAndesReference)
             host->add(pitch);
             host->add(new WTTQA1);
         }
+        WTDS* oneMass = nullptr;
+        if (useWtds) {
+            oneMass = new WTDS;
+            host->add(oneMass);
+        }
+        BusROCOF* measurement = nullptr;
+        if (useReeca1e) {
+            measurement = new BusROCOF("freq1");
+            host->add(measurement);
+        }
         bus->add(host);
         ASSERT_EQ(simulation->dynInitialize(), 0);
         std::string referenceName = "andes_reference.csv";
@@ -955,6 +1451,12 @@ TEST(RenewableModels, TwoBusRenewableFaultMatchesAndesReference)
         if (useReecb) {
             referenceName = "andes_reecb_reference.csv";
         }
+        if (useWtds) {
+            referenceName = "andes_wtds_reference.csv";
+        }
+        if (useReeca1e) {
+            referenceName = "andes_reeca1e_reference.csv";
+        }
         const auto reference = xml.parent_path() / referenceName;
         std::ifstream stream(reference);
         ASSERT_TRUE(stream.is_open());
@@ -965,14 +1467,26 @@ TEST(RenewableModels, TwoBusRenewableFaultMatchesAndesReference)
         EXPECT_EQ(line,
                   includeWind ?
                       header + ",generator_speed,turbine_speed,pitch_angle,mechanical_power" :
-                      header);
+                      useWtds    ? header + ",generator_speed" :
+                      useReeca1e ? header + ",frequency_deviation,rocof" :
+                                   header);
         int samples = 0;
         while (std::getline(stream, line)) {
             if (line.empty()) {
                 continue;
             }
             std::istringstream row(line);
-            std::vector<double> expected(includeWind ? 10 : 6);
+            std::size_t expectedSize = 6;
+            if (useReeca1e) {
+                expectedSize = 8;
+            }
+            if (useWtds) {
+                expectedSize = 7;
+            }
+            if (includeWind) {
+                expectedSize = 10;
+            }
+            std::vector<double> expected(expectedSize);
             for (auto& value : expected) {
                 std::string field;
                 ASSERT_TRUE(static_cast<bool>(std::getline(row, field, ',')));
@@ -990,6 +1504,13 @@ TEST(RenewableModels, TwoBusRenewableFaultMatchesAndesReference)
                 EXPECT_NEAR(shaft->getStates()[1], expected[7], 0.001) << timeValue;
                 EXPECT_NEAR(pitch->getStates()[0], expected[8], 0.0001) << timeValue;
                 EXPECT_NEAR(aerodynamic->getStates()[0], expected[9], 0.002) << timeValue;
+            }
+            if (useWtds) {
+                EXPECT_NEAR(oneMass->getStates()[0], expected[6], 0.001) << timeValue;
+            }
+            if (useReeca1e) {
+                EXPECT_NEAR(measurement->getStates()[0], expected[6], 0.0006) << timeValue;
+                EXPECT_NEAR(measurement->getStates()[1], expected[7], 0.005) << timeValue;
             }
             ++samples;
         }

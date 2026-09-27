@@ -10,7 +10,9 @@ import andes  # noqa: E402
 import numpy as np  # noqa: E402
 
 
-def build_case(include_plant=False, include_wind=False, use_reecb=False):
+def build_case(
+    include_plant=False, include_wind=False, use_reecb=False, use_wtds=False, use_reeca1e=False
+):
     system = andes.System(no_output=True, default_config=True)
     system.add("Bus", idx=1, Vn=100, v0=1.0)
     system.add("Bus", idx=2, Vn=100, v0=1.0)
@@ -19,7 +21,7 @@ def build_case(include_plant=False, include_wind=False, use_reecb=False):
     system.add("PQ", idx="load", bus=2, Vn=100, p0=0.4, q0=0.1)
     system.add("Line", idx="line", bus1=1, bus2=2, Sn=100, Vn1=100, Vn2=100, r=0.01, x=0.1, b=0.0)
     system.add(
-        "REGCA1",
+        "REGCP1" if use_wtds else "REGCA1",
         idx=1,
         bus=2,
         gen=2,
@@ -47,19 +49,19 @@ def build_case(include_plant=False, include_wind=False, use_reecb=False):
         )
     else:
         system.add(
-            "REECA1",
+            "REECA1E" if use_reeca1e else "REECA1",
             idx=1,
             reg=1,
             PFFLAG=0,
             VFLAG=0,
             QFLAG=0,
-            PFLAG=0,
+            PFLAG=1 if use_wtds else 0,
             PQFLAG=0,
             Vref0=0.0,
             Iqfrz=0.0,
             Thld=0.0,
             Thld2=0.5,
-            Tpord=0.0,
+            Tpord=0.02 if use_wtds else 0.0,
             Imax=1.3,
             QMax=1.0,
             QMin=-1.0,
@@ -71,7 +73,10 @@ def build_case(include_plant=False, include_wind=False, use_reecb=False):
             Ip2=1.3,
             Ip3=1.3,
             Ip4=1.3,
+            **({"Kf": 4.0, "Kdf": 0.5, "busroc": 1} if use_reeca1e else {}),
         )
+    if use_reeca1e:
+        system.add("BusROCOF", idx=1, bus=2, Tf=0.02, Tw=0.1, Tr=0.1, fn=60.0)
     if include_plant:
         system.add(
             "REPCA1", idx=1, ree=1, line="line", VCFlag=0, RefFlag=1, Fflag=0, PLflag=0, Kc=0.0
@@ -116,6 +121,8 @@ def build_case(include_plant=False, include_wind=False, use_reecb=False):
             p4=0.8,
             sp4=1.0,
         )
+    if use_wtds:
+        system.add("WTDS", idx=1, ree=1, H=3.0, D=1.0, w0=1.0)
     system.add("Fault", idx=1, bus=2, tf=0.1, tc=0.2, xf=0.2)
     system.setup()
     return system
@@ -129,8 +136,12 @@ def main():
         "--wind", action="store_true", help="include the four Type-3 wind components"
     )
     profile.add_argument("--reecb", action="store_true", help="use REECB1 instead of REECA1")
+    profile.add_argument(
+        "--wtds", action="store_true", help="use REGCP1, speed-dependent REECA1, and WTDS"
+    )
+    profile.add_argument("--reeca1e", action="store_true", help="use REECA1E and BusROCOF")
     args = parser.parse_args()
-    ss = build_case(args.plant, args.wind, args.reecb)
+    ss = build_case(args.plant, args.wind, args.reecb, args.wtds, args.reeca1e)
     if not ss.PFlow.run():
         raise RuntimeError("ANDES power flow failed")
     ss.TDS.config.tf = 0.9
@@ -142,12 +153,20 @@ def main():
     times = ss.dae.ts.t
     columns = {
         "voltage": ss.TDS.get_timeseries(ss.Bus.v).iloc[:, 1].to_numpy(),
-        "converter_p": ss.TDS.get_timeseries(ss.REGCA1.Pe).iloc[:, 0].to_numpy(),
-        "converter_q": ss.TDS.get_timeseries(ss.REGCA1.Qe).iloc[:, 0].to_numpy(),
-        "electrical_ip": ss.TDS.get_timeseries(ss.REECB1.Ipcmd if args.reecb else ss.REECA1.Ipcmd)
+        "converter_p": ss.TDS.get_timeseries(ss.REGCP1.Pe if args.wtds else ss.REGCA1.Pe)
         .iloc[:, 0]
         .to_numpy(),
-        "electrical_iq": ss.TDS.get_timeseries(ss.REECB1.Iqcmd if args.reecb else ss.REECA1.Iqcmd)
+        "converter_q": ss.TDS.get_timeseries(ss.REGCP1.Qe if args.wtds else ss.REGCA1.Qe)
+        .iloc[:, 0]
+        .to_numpy(),
+        "electrical_ip": ss.TDS.get_timeseries(
+            ss.REECB1.Ipcmd if args.reecb else ss.REECA1E.Ipcmd if args.reeca1e else ss.REECA1.Ipcmd
+        )
+        .iloc[:, 0]
+        .to_numpy(),
+        "electrical_iq": ss.TDS.get_timeseries(
+            ss.REECB1.Iqcmd if args.reecb else ss.REECA1E.Iqcmd if args.reeca1e else ss.REECA1.Iqcmd
+        )
         .iloc[:, 0]
         .to_numpy(),
     }
@@ -160,13 +179,42 @@ def main():
                 "mechanical_power": ss.TDS.get_timeseries(ss.WTDTA1.Pm).iloc[:, 0].to_numpy(),
             }
         )
+    if args.wtds:
+        columns.update(
+            {
+                "generator_speed": ss.TDS.get_timeseries(ss.WTDS.wg).iloc[:, 0].to_numpy(),
+            }
+        )
+    if args.reeca1e:
+        angle = ss.TDS.get_timeseries(ss.Bus.a).iloc[:, 1].to_numpy()
+        deviation = ss.TDS.get_timeseries(ss.BusROCOF.WO_y).iloc[:, 0].to_numpy()
+        rocof = ss.TDS.get_timeseries(ss.BusROCOF.Wf_y).iloc[:, 0].to_numpy()
+        angle_reference = Path(__file__).with_name("andes_busrocof_angle_reference.csv")
+        with angle_reference.open("w", newline="", encoding="utf-8") as stream:
+            writer = csv.writer(stream, lineterminator="\n")
+            writer.writerow(["time", "angle", "frequency_deviation", "rocof"])
+            writer.writerows(zip(times, angle, deviation, rocof))
+        columns.update(
+            {
+                "frequency_deviation": deviation,
+                "rocof": rocof,
+            }
+        )
     target = Path(__file__).with_name(
-        "andes_reecb_reference.csv"
-        if args.reecb
+        "andes_reeca1e_reference.csv"
+        if args.reeca1e
         else (
-            "andes_wind_reference.csv"
-            if args.wind
-            else "andes_plant_reference.csv" if args.plant else "andes_reference.csv"
+            "andes_wtds_reference.csv"
+            if args.wtds
+            else (
+                "andes_reecb_reference.csv"
+                if args.reecb
+                else (
+                    "andes_wind_reference.csv"
+                    if args.wind
+                    else "andes_plant_reference.csv" if args.plant else "andes_reference.csv"
+                )
+            )
         )
     )
     with target.open("w", newline="", encoding="utf-8") as stream:

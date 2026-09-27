@@ -8,11 +8,15 @@
 #include "../controllers/Scheduler.h"
 #include "../measurement/ObjectGrabbers.h"
 #include "../primary/AcBus.h"
+#include "../renewables/BusROCOF.h"
 #include "../renewables/REECA1.h"
+#include "../renewables/REECA1E.h"
 #include "../renewables/REECB1.h"
 #include "../renewables/REGCA1.h"
+#include "../renewables/REGCP1.h"
 #include "../renewables/REPCA1.h"
 #include "../renewables/WTARA1.h"
+#include "../renewables/WTDS.h"
 #include "../renewables/WTDTA1.h"
 #include "../renewables/WTPTA1.h"
 #include "../renewables/WTTQA1.h"
@@ -67,10 +71,14 @@ static TypeFactory<RenewableGenerator> gRenewableGeneratorFactory(
     "generator",
     std::to_array<std::string_view>({"renewable_dynamic", "renewable_generator"}));
 static TypeFactory<REGCA1> gREGCA1Factory("renewable_model", "regca1");
+static TypeFactory<REGCP1> gREGCP1Factory("renewable_model", "regcp1");
 static TypeFactory<REECA1> gREECA1Factory("renewable_model", "reeca1");
+static TypeFactory<REECA1E> gREECA1EFactory("renewable_model", "reeca1e");
 static TypeFactory<REECB1> gREECB1Factory("renewable_model", "reecb1");
 static TypeFactory<REPCA1> gREPCA1Factory("renewable_model", "repca1");
 static TypeFactory<WTDTA1> gWTDTA1Factory("renewable_model", "wtdta1");
+static TypeFactory<WTDS> gWTDSFactory("renewable_model", "wtds");
+static TypeFactory<BusROCOF> gBusROCOFFactory("renewable_model", "busrocof");
 static TypeFactory<WTARA1> gWTARA1Factory("renewable_model", "wtara1");
 static TypeFactory<WTPTA1> gWTPTA1Factory("renewable_model", "wtpta1");
 static TypeFactory<WTTQA1> gWTTQA1Factory("renewable_model", "wttqa1");

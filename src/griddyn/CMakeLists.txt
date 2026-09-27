@@ -55,10 +55,14 @@ set(generator_headers
     generators/RenewableGenerator.h
     renewables/RenewableComponent.h
     renewables/REGCA1.h
+    renewables/REGCP1.h
     renewables/REECA1.h
+    renewables/REECA1E.h
     renewables/REECB1.h
     renewables/REPCA1.h
     renewables/WTDTA1.h
+    renewables/WTDS.h
+    renewables/BusROCOF.h
     renewables/WTARA1.h
     renewables/WTPTA1.h
     renewables/WTTQA1.h
@@ -72,10 +76,14 @@ set(generator_sources
     generators/DynamicGenerator.cpp
     generators/RenewableGenerator.cpp
     renewables/REGCA1.cpp
+    renewables/REGCP1.cpp
     renewables/REECA1.cpp
+    renewables/REECA1E.cpp
     renewables/REECB1.cpp
     renewables/REPCA1.cpp
     renewables/WTDTA1.cpp
+    renewables/WTDS.cpp
+    renewables/BusROCOF.cpp
     renewables/WTARA1.cpp
     renewables/WTPTA1.cpp
     renewables/WTTQA1.cpp

@@ -25,11 +25,15 @@
 #include "griddyn/governors/GovernorHygov.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorReheat.h"
+#include "griddyn/renewables/BusROCOF.h"
 #include "griddyn/renewables/REECA1.h"
+#include "griddyn/renewables/REECA1E.h"
 #include "griddyn/renewables/REECB1.h"
 #include "griddyn/renewables/REGCA1.h"
+#include "griddyn/renewables/REGCP1.h"
 #include "griddyn/renewables/REPCA1.h"
 #include "griddyn/renewables/WTARA1.h"
+#include "griddyn/renewables/WTDS.h"
 #include "griddyn/renewables/WTDTA1.h"
 #include "griddyn/renewables/WTPTA1.h"
 #include "griddyn/renewables/WTTQA1.h"
@@ -208,14 +212,22 @@ namespace detail {
             loadSEXS(parentObject, lineTokens);
         } else if (type == "'REGCA1'") {
             loadRenewable(parentObject, lineTokens, "REGCA1");
+        } else if (type == "'REGCP1'") {
+            loadRenewable(parentObject, lineTokens, "REGCP1");
         } else if (type == "'REECA1'") {
             loadRenewable(parentObject, lineTokens, "REECA1");
+        } else if (type == "'REECA1E'") {
+            loadRenewable(parentObject, lineTokens, "REECA1E");
         } else if (type == "'REECB1'") {
             loadRenewable(parentObject, lineTokens, "REECB1");
         } else if (type == "'REPCA1'") {
             loadRenewable(parentObject, lineTokens, "REPCA1");
         } else if (type == "'WTDTA1'") {
             loadRenewable(parentObject, lineTokens, "WTDTA1");
+        } else if (type == "'WTDS'") {
+            loadRenewable(parentObject, lineTokens, "WTDS");
+        } else if (type == "'BUSROCOF'") {
+            loadRenewable(parentObject, lineTokens, "BUSROCOF");
         } else if (type == "'WTARA1'") {
             loadRenewable(parentObject, lineTokens, "WTARA1");
         } else if (type == "'WTPTA1'") {
@@ -459,16 +471,20 @@ namespace {
                                                                              "trate"});
 
         std::size_t expected = 19U;
-        if (modelName == "REGCA1") {
+        if (modelName == "REGCA1" || modelName == "REGCP1") {
             expected = 18U;
         } else if (modelName == "REECA1") {
             expected = 54U;
+        } else if (modelName == "REECA1E") {
+            expected = 57U;
         } else if (modelName == "REECB1") {
             expected = 33U;
         } else if (modelName == "REPCA1") {
             expected = 37U;
-        } else if (modelName == "WTDTA1") {
+        } else if (modelName == "WTDTA1" || modelName == "BUSROCOF") {
             expected = 8U;
+        } else if (modelName == "WTDS") {
+            expected = 6U;
         } else if (modelName == "WTARA1") {
             expected = 5U;
         } else if (modelName == "WTPTA1") {
@@ -496,13 +512,21 @@ namespace {
                 model->set(fields[index], value);
             }
         };
-        if (modelName == "REGCA1") {
+        if (modelName == "REGCA1" || modelName == "REGCP1") {
             setFields(regcaFields, 3);
         } else if (modelName == "REECA1") {
             if (params[3] != 0.0) {
                 throw InvalidParameterValue("REECA1 remote BUSR is not yet supported");
             }
             setFields(reecaFields, 4);
+        } else if (modelName == "REECA1E") {
+            if (params[3] != 0.0) {
+                throw InvalidParameterValue("REECA1E remote BUSR is not yet supported");
+            }
+            setFields(reecaFields, 4);
+            static constexpr auto frequencyFields = std::to_array<std::string_view>({"kf", "kdf"});
+            setFields(frequencyFields, 54);
+            model->set("busroc", gmlc::utilities::stringOps::removeQuotes(tokens[56]));
         } else if (modelName == "REECB1") {
             if (params[3] != 0.0) {
                 throw InvalidParameterValue("REECB1 remote BUSR is not yet supported");
@@ -516,6 +540,18 @@ namespace {
             setFields(repcaFields, 7);
         } else if (modelName == "WTDTA1") {
             setFields(wtdtaFields, 3);
+        } else if (modelName == "WTDS") {
+            static constexpr auto wtdsFields = std::to_array<std::string_view>({"h", "d", "w0"});
+            setFields(wtdsFields, 3);
+        } else if (modelName == "BUSROCOF") {
+            static constexpr auto measurementFields =
+                std::to_array<std::string_view>({"tf", "tw", "tr", "fn"});
+            const auto name = gmlc::utilities::stringOps::removeQuotes(tokens[3]);
+            if (name.empty()) {
+                throw InvalidParameterValue("BUSROCOF requires a measurement name");
+            }
+            model->setName(name);
+            setFields(measurementFields, 4);
         } else if (modelName == "WTARA1") {
             setFields(wtaraFields, 3);
         } else if (modelName == "WTPTA1") {

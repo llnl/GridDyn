@@ -32,6 +32,10 @@ namespace {
          .base = RenewableBase::machine,
          .required = false},
     }};
+    constexpr std::array<RenewablePort, 5> inputPortMapWithSpeed{{
+        inputPortMap[0], inputPortMap[1], inputPortMap[2], inputPortMap[3],
+        {.signal = RenewableSignal::generatorSpeed, .ioIndex = 4},
+    }};
     constexpr std::array<RenewablePort, 3> outputPortMap{{
         {.signal = RenewableSignal::activeCurrentCommand,
          .ioIndex = 0,
@@ -127,7 +131,8 @@ CoreObject* REECA1::clone(CoreObject* obj) const
 
 std::span<const RenewablePort> REECA1::inputPorts() const
 {
-    return inputPortMap;
+    return PFLAG == 1 ? std::span<const RenewablePort>{inputPortMapWithSpeed} :
+                        std::span<const RenewablePort>{inputPortMap};
 }
 std::span<const RenewablePort> REECA1::outputPorts() const
 {
@@ -145,6 +150,7 @@ void REECA1::set(std::string_view param, double val, units::unit unitType)
         QFLAG = binaryFlag(val);
     } else if (key == "pflag") {
         PFLAG = binaryFlag(val);
+        m_inputSize = PFLAG == 1 ? 5 : 4;
     } else if (key == "pqflag") {
         PQFLAG = binaryFlag(val);
     } else if (key == "vdip") {
@@ -365,8 +371,11 @@ void REECA1::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
         dbd1 > 0 || dbd2 < 0 || Iqh1 < Iql1 || dPmax < 0 || dPmin > 0 || PMAX < PMIN ||
         QMax < QMin || Imax < 0 || !std::isfinite(Iqfrz) || !std::isfinite(Thld) ||
         !std::isfinite(Thld2) || (PQFLAG != 0 && PQFLAG != 1) || (VFLAG != 0 && VFLAG != 1) ||
-        PFFLAG != 0 || QFLAG != 0 || PFLAG != 0) {
+        PFFLAG != 0 || QFLAG != 0) {
         throw InvalidParameterValue("REECA1 unsupported flags or invalid parameters");
+    }
+    if (PFLAG == 1 && Tpord == 0.0) {
+        throw InvalidParameterValue("REECA1 PFLAG=1 with Tpord=0 is not implemented");
     }
     if (Iqfrz != 0.0 || Thld != 0.0 || Thld2 < 0.0) {
         throw InvalidParameterValue(
@@ -481,11 +490,25 @@ std::array<double, 2> REECA1::commands(double voltage, const double state[]) con
     return {activeCurrent, -reactiveCurrent};
 }
 
+double REECA1::generatorSpeed(const IOdata& inputs) const
+{
+    if (PFLAG == 0) {
+        return 1.0;
+    }
+    if (inputs.size() <= 4 || !std::isfinite(inputs[4]) || inputs[4] <= 0.0) {
+        throw InvalidParameterValue("REECA1 PFLAG=1 requires positive generator speed");
+    }
+    return inputs[4];
+}
+
 std::array<double, 4> REECA1::rates(const IOdata& inputs, const double state[]) const
 {
     const double voltage = inputs[0];
     const double external = inputs.size() > 3 ? inputs[3] : kNullVal;
-    const double pref = (external == kNullVal ? initialP : external) + optionalIncrement(inputs, 1);
+    const double speed = generatorSpeed(inputs);
+    const double pref =
+        ((external == kNullVal ? initialP : external) + optionalIncrement(inputs, 1)) / speed +
+        activeReferenceAdjustment(inputs);
     const double qref = std::clamp(initialQ + optionalIncrement(inputs, 2), QMin, QMax);
     const double pRate = std::clamp((pref - state[powerFilter]) / Tpfilt, dPmin, dPmax);
     if (dipMode(voltage)) {
@@ -494,7 +517,9 @@ std::array<double, 4> REECA1::rates(const IOdata& inputs, const double state[]) 
     return {(voltage - state[voltageFilter]) / Trv,
             pRate,
             Tpord == 0.0 ? 0.0 :
-                           (std::clamp(state[powerFilter], PMIN, PMAX) - state[powerOrder]) / Tpord,
+                           (std::clamp(speed * state[powerFilter], PMIN, PMAX) -
+                            state[powerOrder]) /
+                               Tpord,
             ((qref / std::max(voltage, 0.01)) - state[reactiveFilter]) / Tiq};
 }
 
@@ -516,7 +541,7 @@ void REECA1::dynObjectInitializeB(const IOdata& inputs,
         throw InvalidParameterValue("REECA1 initial power outside reference limits");
     }
     m_state[2 + voltageFilter] = inputs[0];
-    m_state[2 + powerFilter] = initialP;
+    m_state[2 + powerFilter] = initialP / generatorSpeed(inputs);
     m_state[2 + powerOrder] = initialP;
     m_state[2 + reactiveFilter] = initialQ / inputs[0];
     heldPowerOrder = initialP;
@@ -625,17 +650,27 @@ void REECA1::jacobianElements(const IOdata& inputs,
     matrixData.assign(diff + voltageFilter, diff + voltageFilter, (-1.0 / Trv) - stateData.cj);
     matrixData.assignCheckCol(diff + voltageFilter, inputLocs[0], 1.0 / Trv);
     const double external = inputs.size() > 3 ? inputs[3] : kNullVal;
-    const double pref = (external == kNullVal ? initialP : external) + optionalIncrement(inputs, 1);
+    const double speed = generatorSpeed(inputs);
+    const double rawPref =
+        (external == kNullVal ? initialP : external) + optionalIncrement(inputs, 1);
+    const double pref = rawPref / speed + activeReferenceAdjustment(inputs);
     const double pRaw = (pref - state[powerFilter]) / Tpfilt;
     const bool pFree = pRaw > dPmin && pRaw < dPmax;
     matrixData.assign(diff + powerFilter,
                       diff + powerFilter,
                       (pFree ? -1.0 / Tpfilt : 0.0) - stateData.cj);
     if (pFree && inputLocs.size() > 1 && inputs.size() > 1 && inputs[1] != kNullVal) {
-        matrixData.assignCheckCol(diff + powerFilter, inputLocs[1], 1.0 / Tpfilt);
+        matrixData.assignCheckCol(diff + powerFilter, inputLocs[1], 1.0 / (speed * Tpfilt));
     }
     if (pFree && inputLocs.size() > 3 && external != kNullVal) {
-        matrixData.assignCheckCol(diff + powerFilter, inputLocs[3], 1.0 / Tpfilt);
+        matrixData.assignCheckCol(diff + powerFilter, inputLocs[3], 1.0 / (speed * Tpfilt));
+    }
+    if (PFLAG == 1 && pFree && inputLocs.size() > 4) {
+        matrixData.assignCheckCol(
+            diff + powerFilter, inputLocs[4], -rawPref / (speed * speed * Tpfilt));
+    }
+    if (pFree) {
+        activeReferenceJacobian(inputLocs, matrixData, diff + powerFilter, 1.0 / Tpfilt);
     }
     if (dipMode(inputs[0])) {
         matrixData.assign(diff + powerOrder, diff + powerOrder, -stateData.cj);
@@ -644,8 +679,13 @@ void REECA1::jacobianElements(const IOdata& inputs,
         matrixData.assign(diff + powerOrder,
                           diff + powerOrder,
                           (Tpord == 0.0 ? 0.0 : -1.0 / Tpord) - stateData.cj);
-        if (Tpord != 0.0 && state[powerFilter] > PMIN && state[powerFilter] < PMAX) {
-            matrixData.assign(diff + powerOrder, diff + powerFilter, 1.0 / Tpord);
+        const double selectedPower = speed * state[powerFilter];
+        if (Tpord != 0.0 && selectedPower > PMIN && selectedPower < PMAX) {
+            matrixData.assign(diff + powerOrder, diff + powerFilter, speed / Tpord);
+            if (PFLAG == 1 && inputLocs.size() > 4) {
+                matrixData.assignCheckCol(
+                    diff + powerOrder, inputLocs[4], state[powerFilter] / Tpord);
+            }
         }
         matrixData.assign(diff + reactiveFilter,
                           diff + reactiveFilter,

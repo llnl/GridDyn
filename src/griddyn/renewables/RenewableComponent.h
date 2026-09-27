@@ -10,6 +10,7 @@
 #include <array>
 #include <span>
 #include <string>
+#include <string_view>
 
 namespace griddyn {
 
@@ -23,6 +24,7 @@ enum class RenewableRole : index_t {
     pitchControl,
     torqueControl,
     rotorResistanceControl,
+    measurement,
     count,
 };
 
@@ -43,6 +45,8 @@ enum class RenewableSignal {
     mechanicalPower,
     generatorSpeed,
     turbineSpeed,
+    frequencyDeviation,
+    rateOfChangeOfFrequency,
     pitchAngle,
     initialPitchAngle,
     rotorResistance,
@@ -67,6 +71,7 @@ class RenewableComponent: public GridSubModel {
     virtual RenewableRole role() const = 0;
     virtual std::span<const RenewablePort> inputPorts() const = 0;
     virtual std::span<const RenewablePort> outputPorts() const = 0;
+    virtual std::string_view sourceName(RenewableSignal) const { return {}; }
 };
 
 /** The one mandatory grid-facing role: terminal generation P/Q on machine base. */

@@ -23,7 +23,15 @@ namespace {
     bool isTerminalSignal(RenewableSignal signal)
     {
         return signal == RenewableSignal::terminalVoltage ||
-            signal == RenewableSignal::terminalAngle;
+            signal == RenewableSignal::terminalAngle ||
+            signal == RenewableSignal::terminalFrequency;
+    }
+    bool matchesSource(const RenewableComponent* consumer,
+                       const RenewableComponent* provider,
+                       RenewableSignal signal)
+    {
+        const auto requested = consumer->sourceName(signal);
+        return requested.empty() || requested == provider->getName();
     }
 }  // namespace
 
@@ -94,6 +102,9 @@ CoreObject* RenewableGenerator::find(std::string_view object) const
     if (object == "plant_control") {
         return components[roleIndex(RenewableRole::plantControl)];
     }
+    if (object == "measurement") {
+        return components[roleIndex(RenewableRole::measurement)];
+    }
     return Generator::find(object);
 }
 
@@ -120,7 +131,8 @@ void RenewableGenerator::validateAssembly() const
             }
             count_t providers = 0;
             for (const auto* candidate : components) {
-                if (candidate == nullptr || candidate == component || !candidate->isEnabled()) {
+                if (candidate == nullptr || candidate == component || !candidate->isEnabled() ||
+                    !matchesSource(component, candidate, input.signal)) {
                     continue;
                 }
                 for (const auto& output : candidate->outputPorts()) {
@@ -141,7 +153,8 @@ void RenewableGenerator::validateAssembly() const
                         continue;
                     }
                     for (const auto& input : consumer->inputPorts()) {
-                        consumed |= input.signal == output.signal && input.base == output.base;
+                        consumed |= input.signal == output.signal && input.base == output.base &&
+                            matchesSource(consumer, component, input.signal);
                     }
                 }
             }
@@ -174,10 +187,16 @@ IOdata RenewableGenerator::modelInputs(const RenewableComponent* model,
                     result[portIndex] = inputs[ANGLE_IN_LOCATION];
                 }
                 break;
+            case RenewableSignal::terminalFrequency:
+                if (inputs.size() > FREQUENCY_IN_LOCATION) {
+                    result[portIndex] = inputs[FREQUENCY_IN_LOCATION];
+                }
+                break;
             default:
                 for (const auto* candidate : components) {
                     if (candidate == nullptr || candidate == model || !candidate->isEnabled() ||
-                        !candidate->checkFlag(DYN_INITIALIZED)) {
+                        !candidate->checkFlag(DYN_INITIALIZED) ||
+                        !matchesSource(model, candidate, port.signal)) {
                         continue;
                     }
                     for (const auto& output : candidate->outputPorts()) {
@@ -220,13 +239,23 @@ IOlocs RenewableGenerator::modelInputLocs(const RenewableComponent* model,
         } else if (port.signal == RenewableSignal::terminalAngle &&
                    inputLocs.size() > ANGLE_IN_LOCATION) {
             result[portIndex] = inputLocs[ANGLE_IN_LOCATION];
+        } else if (port.signal == RenewableSignal::terminalFrequency &&
+                   inputLocs.size() > FREQUENCY_IN_LOCATION) {
+            result[portIndex] = inputLocs[FREQUENCY_IN_LOCATION];
         } else {
             for (const auto* candidate : components) {
-                if (candidate == nullptr || candidate == model || !candidate->isEnabled()) {
+                if (candidate == nullptr || candidate == model || !candidate->isEnabled() ||
+                    !matchesSource(model, candidate, port.signal)) {
                     continue;
                 }
                 for (const auto& output : candidate->outputPorts()) {
                     if (output.signal == port.signal && output.base == port.base) {
+                        const auto algebraicOutputs = candidate->algSize(cLocalSolverMode);
+                        // Paired states supply values, not columns in this mode's Jacobian.
+                        if ((isDifferentialOnly(sMode) && output.ioIndex < algebraicOutputs) ||
+                            (isAlgebraicOnly(sMode) && output.ioIndex >= algebraicOutputs)) {
+                            continue;
+                        }
                         result[portIndex] = candidate->getOutputLoc(sMode, output.ioIndex);
                     }
                 }
@@ -250,12 +279,31 @@ void RenewableGenerator::dynObjectInitializeB(const IOdata& inputs,
     const double scale = systemBasePower / machineBasePower;
     IOdata const target{P * scale, Q * scale};
     IOdata modelFieldSet;
+    auto* control = components[roleIndex(RenewableRole::electricalControl)];
+    auto* driveTrain = components[roleIndex(RenewableRole::driveTrain)];
+    const bool speedRequired = control != nullptr && control->isEnabled() &&
+        std::any_of(control->inputPorts().begin(),
+                    control->inputPorts().end(),
+                    [](const auto& port) {
+                        return port.signal == RenewableSignal::generatorSpeed && port.required;
+                    });
+    if (speedRequired && driveTrain != nullptr && driveTrain->isEnabled()) {
+        IOdata ignored;
+        driveTrain->dynInitializeB({target[0]}, target, ignored);
+    }
     electricalModel->dynInitializeB(
         modelInputs(electricalModel, inputs, emptyStateData, cLocalSolverMode),
         target,
         modelFieldSet);
+    auto* measurement = components[roleIndex(RenewableRole::measurement)];
+    if (measurement != nullptr && measurement->isEnabled()) {
+        IOdata ignored;
+        measurement->dynInitializeB(
+            modelInputs(measurement, inputs, emptyStateData, cLocalSolverMode), target, ignored);
+    }
     for (auto* component : components) {
-        if (component != nullptr && component != electricalModel && component->isEnabled()) {
+        if (component != nullptr && component != electricalModel && component != measurement &&
+            component->isEnabled()) {
             IOdata ignored;
             component->dynInitializeB(
                 modelInputs(component, inputs, emptyStateData, cLocalSolverMode), target, ignored);
@@ -278,6 +326,11 @@ void RenewableGenerator::dynObjectInitializeB(const IOdata& inputs,
                     ignored);
             }
         }
+    }
+    if (speedRequired) {
+        IOdata ignored;
+        control->dynInitializeB(
+            modelInputs(control, inputs, emptyStateData, cLocalSolverMode), target, ignored);
     }
 }
 
@@ -372,6 +425,7 @@ void RenewableGenerator::timestep(CoreTime time, const IOdata& inputs, const Sol
                                 sMode);
         }
     };
+    stepRole(RenewableRole::measurement);
     stepRole(RenewableRole::plantControl);
     stepRole(RenewableRole::driveTrain);
     stepRole(RenewableRole::torqueControl);
@@ -379,7 +433,8 @@ void RenewableGenerator::timestep(CoreTime time, const IOdata& inputs, const Sol
     stepRole(RenewableRole::pitchControl);
     stepRole(RenewableRole::aerodynamics);
     for (std::size_t index = 0; index < roleCount; ++index) {
-        if (index != roleIndex(RenewableRole::plantControl) &&
+        if (index != roleIndex(RenewableRole::measurement) &&
+            index != roleIndex(RenewableRole::plantControl) &&
             index != roleIndex(RenewableRole::driveTrain) &&
             index != roleIndex(RenewableRole::torqueControl) &&
             index != roleIndex(RenewableRole::electricalControl) &&

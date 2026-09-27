@@ -1066,7 +1066,7 @@ TEST(ExciterModelTests, Esac5aMatchesAndesEquationsAndJacobian)
     const double saturation = saturationFactor * std::pow(1.5 - saturationThreshold, 2);
     EXPECT_NEAR(derivative[1], (1.03 - 1.02) / 0.2, 1e-12);
     EXPECT_NEAR(derivative[2],
-                ((10.0 * (1.03 + initialRegulator / 10.0 - 1.02 - feedback)) - 0.7) / 0.5,
+                ((10.0 * (1.03 + (initialRegulator / 10.0) - 1.02 - feedback)) - 0.7) / 0.5,
                 1e-12);
     EXPECT_NEAR(derivative[3], (0.7 - 0.6) / 0.4, 1e-12);
     EXPECT_NEAR(derivative[4], (leadLag - 0.4) / 0.5, 1e-12);

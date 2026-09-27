@@ -46,6 +46,7 @@
 #include <fstream>
 #include <map>
 #include <memory>
+#include <span>
 #include <string>
 #include <string_view>
 
@@ -89,10 +90,13 @@ namespace {
     void loadEXST1(CoreObject* parentObject, stringVec& tokens);
     void loadEXAC1(CoreObject* parentObject, stringVec& tokens);
     void loadESAC1A(CoreObject* parentObject, stringVec& tokens);
+    void loadESAC5A(CoreObject* parentObject, stringVec& tokens);
     void loadEXAC2(CoreObject* parentObject, stringVec& tokens);
     void loadEXAC4(CoreObject* parentObject, stringVec& tokens);
     void loadTGOV1(CoreObject* parentObject, stringVec& tokens);
     void loadHYGOV(CoreObject* parentObject, stringVec& tokens);
+    void loadGovernorVariant(CoreObject* parentObject, stringVec& tokens,
+                           std::string_view model);
     void loadGGOV1(CoreObject* parentObject, stringVec& tokens);
     void loadGAST(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEG1(CoreObject* parentObject, stringVec& tokens);
@@ -180,6 +184,8 @@ namespace detail {
             loadEXAC1(parentObject, lineTokens);
         } else if (type == "'ESAC1A'") {
             loadESAC1A(parentObject, lineTokens);
+        } else if (type == "'ESAC5A'") {
+            loadESAC5A(parentObject, lineTokens);
         } else if (type == "'EXAC2'") {
             loadEXAC2(parentObject, lineTokens);
         } else if (type == "'EXAC4'") {
@@ -190,6 +196,18 @@ namespace detail {
             loadTGOV1(parentObject, lineTokens);
         } else if (type == "'HYGOV'") {
             loadHYGOV(parentObject, lineTokens);
+        } else if (type == "'TG2'") {
+            loadGovernorVariant(parentObject, lineTokens, "TG2");
+        } else if (type == "'TGOV1DB'") {
+            loadGovernorVariant(parentObject, lineTokens, "TGOV1DB");
+        } else if (type == "'TGOV1N'") {
+            loadGovernorVariant(parentObject, lineTokens, "TGOV1N");
+        } else if (type == "'TGOV1NDB'") {
+            loadGovernorVariant(parentObject, lineTokens, "TGOV1NDB");
+        } else if (type == "'HYGOVDB'") {
+            loadGovernorVariant(parentObject, lineTokens, "HYGOVDB");
+        } else if (type == "'HYGOV4'") {
+            loadGovernorVariant(parentObject, lineTokens, "HYGOV4");
         } else if (type == "'GGOV1'") {
             loadGGOV1(parentObject, lineTokens);
         } else if (type == "'GAST'") {
@@ -1172,6 +1190,26 @@ namespace {
         gen->add(exciter);
     }
 
+    void loadESAC5A(CoreObject* parentObject, stringVec& tokens)
+    {
+        // PSS/E CON(J..J+14): TR, KA, TA, VRMAX, VRMIN, KE, TE, KF,
+        // TF1, TF2, TF3, E1, SE(E1), E2, SE(E2).
+        if (tokens.size() != 18U) {
+            throw InvalidParameterValue("ESAC5A DYR record must contain 18 fields");
+        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "ESAC5A");
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* exciter =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "esac5a"));
+        static constexpr std::array<std::string_view, 15> names{
+            "tr", "ka", "ta", "vrmax", "vrmin", "ke", "te", "kf", "tf1", "tf2",
+            "tf3", "e1", "se1", "e2", "se2"};
+        for (std::size_t index = 0; index < names.size(); ++index) {
+            exciter->set(names[index], params[index + 3]);
+        }
+        gen->add(exciter);
+    }
+
     void loadEXAC2(CoreObject* parentObject, stringVec& tokens)
     {
         auto* gen = requireDyrGenerator(parentObject, tokens, "EXAC2");
@@ -1334,6 +1372,47 @@ namespace {
         governor->set("dturb", params[13]);
         governor->set("qnl", params[14]);
 
+        gen->add(governor.release());
+    }
+
+    void loadGovernorVariant(CoreObject* parentObject, stringVec& tokens,
+                           std::string_view model)
+    {
+        // These six names are not part of ANDES's psse-dyr.yaml. This is an
+        // explicit GridDyn extension using the model's ANDES parameter order.
+        static constexpr std::array<std::string_view, 8> tg2{
+            "r", "pmax", "pmin", "dbl", "dbu", "dbc", "t1", "t2"};
+        static constexpr std::array<std::string_view, 7> tgov{
+            "r", "pmax", "pmin", "t1", "t2", "t3", "dt"};
+        static constexpr std::array<std::string_view, 9> tgovdb{
+            "r", "pmax", "pmin", "t1", "t2", "t3", "dt", "dbl", "dbu"};
+        static constexpr std::array<std::string_view, 14> hygovdb{
+            "r", "temporarydroop", "gmax", "gmin", "velm", "tf", "tr", "tg",
+            "dturb", "qnl", "tw", "at", "dbl", "dbu"};
+        static constexpr std::array<std::string_view, 14> hygov4{
+            "rperm", "rtemp", "uo", "uc", "pmax", "pmin", "tp", "tg",
+            "tr", "tw", "at", "dturb", "hdam", "qnl"};
+        std::span<const std::string_view> names;
+        if (model == "TG2") { names = tg2; }
+        else if (model == "TGOV1N") { names = tgov; }
+        else if (model == "TGOV1DB" || model == "TGOV1NDB") { names = tgovdb; }
+        else if (model == "HYGOVDB") { names = hygovdb; }
+        else { names = hygov4; }
+        if (tokens.size() != names.size()+3U) {
+            throw InvalidParameterValue(std::string(model)+" DYR record has the wrong field count");
+        }
+        auto* gen=requireDyrGenerator(parentObject,tokens,model);
+        const auto params=gmlc::utilities::str2vector(tokens,kNullVal);
+        std::string factoryName(model);
+        gmlc::utilities::makeLowerCase(factoryName);
+        std::unique_ptr<Governor> governor(static_cast<Governor*>(
+            CoreObjectFactory::instance()->createObject("governor",factoryName)));
+        if (governor == nullptr) {
+            throw InvalidParameterValue(std::string(model)+" governor factory registration");
+        }
+        for (std::size_t i=0;i<names.size();++i) {
+            governor->set(names[i],params[i+3]);
+        }
         gen->add(governor.release());
     }
 

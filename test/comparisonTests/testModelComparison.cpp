@@ -17,6 +17,7 @@
 #include "griddyn/exciters/ExciterDC1A.h"
 #include "griddyn/exciters/ExciterDC2A.h"
 #include "griddyn/exciters/ExciterESAC1A.h"
+#include "griddyn/exciters/ExciterESAC5A.h"
 #include "griddyn/exciters/ExciterESAC6A.h"
 #include "griddyn/exciters/ExciterESST1A.h"
 #include "griddyn/exciters/ExciterESST2A.h"
@@ -620,6 +621,27 @@ TEST(DyrReaderComparisonTests, MapsScrxParametersInPsseDyrOrder)
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
+TEST(DyrReaderComparisonTests, MapsEsac5aParametersInPsseDyrOrder)
+{
+    auto simulation = loadComparisonDynamicCase("ieee14_genrou.dyr", {"ieee14_esac5a.dyr"});
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = bus->getGen(0);
+    ASSERT_NE(generator, nullptr);
+    auto* exciter = dynamic_cast<griddyn::exciters::ExciterESAC5A*>(generator->find("exciter"));
+    ASSERT_NE(exciter, nullptr);
+    const std::pair<std::string_view, double> expected[]{
+        {"tr", 0.05}, {"ka", 20.0}, {"ta", 0.1}, {"vrmax", 100.0}, {"vrmin", -100.0},
+        {"ke", 1.0}, {"te", 0.5}, {"kf", 0.03}, {"tf1", 1.0}, {"tf2", 0.8},
+        {"tf3", 1.0}, {"e1", 0.0}, {"se1", 0.0}, {"e2", 1.0}, {"se2", 0.0}};
+    for (const auto& [name, value] : expected) {
+        EXPECT_DOUBLE_EQ(exciter->get(name), value) << name;
+    }
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
 TEST(DyrReaderComparisonTests, MapsEsac6aParametersInPsseDyrOrder)
 {
     auto simulation = std::make_unique<griddyn::GridDynSimulation>();
@@ -926,6 +948,57 @@ TEST(DyrReaderComparisonTests, MapsHygovParametersInAndesDyrOrder)
     ASSERT_EQ(simulation->dynInitialize(), 0);
     EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+}
+
+TEST(DyrReaderComparisonTests, MapsGovernorVariants)
+{
+    struct Case { std::string_view file; std::string_view factory; std::string_view parameter;
+                  double value; };
+    for (const Case testCase : {
+             Case{"ieee14_tg2.dyr","tg2","t2",10.0},
+             Case{"ieee14_tgov1db.dyr","tgov1db","dbu",0.001},
+             Case{"ieee14_tgov1n.dyr","tgov1n","t3",2.0},
+             Case{"ieee14_tgov1ndb.dyr","tgov1ndb","dbl",-0.001},
+             Case{"ieee14_hygovdb.dyr","hygovdb","dbu",0.001},
+             Case{"ieee14_hygov4.dyr","hygov4","hdam",1.0}}) {
+        SCOPED_TRACE(std::string(testCase.file));
+        auto simulation=loadComparisonDynamicCase("ieee14_genrou.dyr",{testCase.file});
+        auto* bus=dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus",1));
+        ASSERT_NE(bus,nullptr);
+        auto* generator=bus->getGen(0);
+        ASSERT_NE(generator,nullptr);
+        auto* governor=dynamic_cast<griddyn::Governor*>(generator->find("governor"));
+        ASSERT_NE(governor,nullptr);
+        EXPECT_DOUBLE_EQ(governor->get(testCase.parameter),testCase.value);
+        ASSERT_EQ(simulation->dynInitialize(),0);
+        EXPECT_EQ(runResidualCheck(simulation,griddyn::cDaeSolverMode,false),0);
+        EXPECT_EQ(runJacobianCheck(simulation,griddyn::cDaeSolverMode,false),0);
+    }
+}
+
+TEST(DynamicComparisonTests, GovernorVariantsRespondToGeneratorStep)
+{
+    for (const auto file : {"ieee14_tg2.dyr", "ieee14_tgov1db.dyr",
+                            "ieee14_tgov1n.dyr", "ieee14_tgov1ndb.dyr",
+                            "ieee14_hygov4.dyr"}) {
+        SCOPED_TRACE(file);
+        const auto finalState=runGeneratorSetpointStepCase({file});
+        EXPECT_FALSE(finalState.empty());
+    }
+}
+
+TEST(DynamicComparisonTests, HygovDbRemainsAtEquilibriumInsideSpeedDeadband)
+{
+    auto simulation=loadComparisonDynamicCase("ieee14_genrou.dyr",{"ieee14_hygovdb.dyr"});
+    ASSERT_EQ(simulation->dynInitialize(),0);
+    const auto initial=simulation->getState();
+    ASSERT_EQ(simulation->run(2.0),0);
+    const auto final=simulation->getState();
+    ASSERT_EQ(final.size(),initial.size());
+    for (std::size_t i=0;i<final.size();++i) {
+        EXPECT_TRUE(std::isfinite(final[i]));
+        EXPECT_NEAR(final[i],initial[i],1e-5);
+    }
 }
 
 TEST(DyrReaderComparisonTests, MapsIeeeG1ParametersInFrozenAndesDyrOrder)
@@ -1348,6 +1421,12 @@ TEST(DynamicComparisonTests, ScrxRespondsToGeneratorSetpointStep)
 TEST(DynamicComparisonTests, Esac6aRespondsToGeneratorSetpointStep)
 {
     const auto finalState = runGeneratorSetpointStepCase({"ieee14_esac6a.dyr"});
+    EXPECT_FALSE(finalState.empty());
+}
+
+TEST(DynamicComparisonTests, Esac5aRespondsToGeneratorSetpointStep)
+{
+    const auto finalState = runGeneratorSetpointStepCase({"ieee14_esac5a.dyr"});
     EXPECT_FALSE(finalState.empty());
 }
 

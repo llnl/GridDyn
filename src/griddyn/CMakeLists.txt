@@ -135,6 +135,7 @@ set(exciter_headers
     exciters/StaticExciterRectifier.h
     exciters/ExciterEXAC1.h
     exciters/ExciterESAC1A.h
+    exciters/ExciterESAC5A.h
     exciters/ExciterESAC6A.h
     exciters/ExciterEXAC2.h
     exciters/ExciterEXAC4.h
@@ -162,6 +163,7 @@ set(exciter_sources
     exciters/StaticExciterRectifier.cpp
     exciters/ExciterEXAC1.cpp
     exciters/ExciterESAC1A.cpp
+    exciters/ExciterESAC5A.cpp
     exciters/ExciterESAC6A.cpp
     exciters/ExciterEXAC2.cpp
     exciters/ExciterEXAC4.cpp
@@ -182,6 +184,10 @@ set(gov_headers
     governors/GovernorTypes.h
     governors/GovernorHydro.h
     governors/GovernorHygov.h
+    governors/GovernorHygovDB.h
+    governors/GovernorHygov4.h
+    governors/GovernorTG2.h
+    governors/GovernorTgov1Variants.h
     governors/GovernorGgov1.h
     governors/GovernorGast.h
     governors/GovernorIeeeG1.h
@@ -197,6 +203,10 @@ set(gov_sources
     governors/Governor.cpp
     governors/GovernorHydro.cpp
     governors/GovernorHygov.cpp
+    governors/GovernorHygovDB.cpp
+    governors/GovernorHygov4.cpp
+    governors/GovernorTG2.cpp
+    governors/GovernorTgov1Variants.cpp
     governors/GovernorGgov1.cpp
     governors/GovernorGast.cpp
     governors/GovernorIeeeG1.cpp

@@ -1030,7 +1030,9 @@ TEST(GovernorModelTests, GovernorVariantFactoryClonesPreserveModelAndParameters)
         governor->set(parameter, 0.07);
         std::unique_ptr<CoreObject> cloned(original->clone());
         ASSERT_NE(cloned, nullptr);
-        EXPECT_EQ(typeid(*original), typeid(*cloned));
+        const CoreObject* originalObject = original.get();
+        const CoreObject* clonedObject = cloned.get();
+        EXPECT_EQ(typeid(*originalObject), typeid(*clonedObject));
         auto* copied = dynamic_cast<Governor*>(cloned.get());
         ASSERT_NE(copied, nullptr);
         EXPECT_DOUBLE_EQ(copied->get(parameter), 0.07);

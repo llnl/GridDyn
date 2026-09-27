@@ -1,6 +1,13 @@
+/*
+ * Copyright (c) 2014-2026, Lawrence Livermore National Security
+ * See the top-level NOTICE for additional details. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
 #pragma once
 
 #include "../Governor.h"
+#include <string>
 
 namespace griddyn::governors {
 /** Shared TGOV1 variants. State order: mechanical output, valve, turbine lag. */

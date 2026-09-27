@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2014-2026, Lawrence Livermore National Security
+ * See the top-level NOTICE for additional details. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
 #include "GovernorTG2.h"
 
 #include "core/CoreExceptions.h"
@@ -5,6 +11,7 @@
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
+#include <string>
 
 namespace griddyn::governors {
 GovernorTG2::GovernorTG2(const std::string& name): Governor(name)

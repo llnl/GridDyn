@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2014-2026, Lawrence Livermore National Security
+ * See the top-level NOTICE for additional details. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
 #include "GovernorHygov4.h"
 
 #include "core/CoreExceptions.h"
@@ -6,6 +12,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <string>
 
 namespace griddyn::governors {
 GovernorHygov4::GovernorHygov4(const std::string& name): Governor(name)

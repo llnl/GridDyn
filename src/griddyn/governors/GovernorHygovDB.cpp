@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2014-2026, Lawrence Livermore National Security
+ * See the top-level NOTICE for additional details. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+
 #include "GovernorHygovDB.h"
 
 #include "core/CoreExceptions.h"
@@ -5,6 +11,8 @@
 #include "utilities/MatrixData.hpp"
 #include <algorithm>
 #include <cmath>
+#include <string>
+#include <vector>
 
 namespace griddyn::governors {
 GovernorHygovDB::GovernorHygovDB(const std::string& name): GovernorHygov(name)

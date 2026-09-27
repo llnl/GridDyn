@@ -15,6 +15,7 @@
 #include "griddyn/exciters/ExciterAC8B.h"
 #include "griddyn/exciters/ExciterDC1A.h"
 #include "griddyn/exciters/ExciterDC2A.h"
+#include "griddyn/exciters/ExciterESAC5A.h"
 #include "griddyn/exciters/ExciterESAC6A.h"
 #include "griddyn/exciters/ExciterESST1A.h"
 #include "griddyn/exciters/ExciterESST2A.h"
@@ -873,7 +874,6 @@ TEST(ExciterModelTests, Expic1UsesRawSaturationCoefficients)
     inputs[exciterVsetInLocation] = 1.0;
     IOdata fieldSet(2, 0.0);
     exciter.dynInitializeB(inputs, {0.5}, fieldSet);
-
     std::vector<double> state{2.0, 0.0};
     std::vector<double> stateDerivative(state.size(), 0.0);
     exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
@@ -1015,6 +1015,145 @@ TEST(ExciterModelTests, ScrxMatchesOpenIpslPerturbedEquationsAndSelectors)
     exciter.set("cswitch", 1.0);
     exciter.algebraicUpdate(inputs, emptyStateData, update.data(), cLocalSolverMode, 1.0);
     EXPECT_NEAR(update[0], 0.5, 1e-12);
+}
+
+TEST(ExciterModelTests, Esac5aMatchesAndesEquationsAndJacobian)
+{
+    exciters::ExciterESAC5A exciter;
+    exciter.set("tr", 0.2);
+    exciter.set("ka", 10.0);
+    exciter.set("ta", 0.5);
+    exciter.set("te", 0.8);
+    exciter.set("kf", 0.2);
+    exciter.set("tf1", 0.5);
+    exciter.set("tf2", 0.4);
+    exciter.set("tf3", 0.1);
+    exciter.set("ke", 1.0);
+    exciter.set("e1", 1.0);
+    exciter.set("se1", 0.1);
+    exciter.set("e2", 2.0);
+    exciter.set("se2", 0.4);
+    exciter.dynInitializeA(0.0, 0);
+    EXPECT_EQ(exciter.localStateNames(), (stringVec{"efd", "vc", "vr", "xll", "xwf", "ve"}));
+
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.0;
+    IOdata fieldSet(2, 0.0);
+    exciter.dynInitializeB(inputs, {0.5}, fieldSet);
+    const double initialRegulator = exciter.getStates()[2];
+    std::vector<double> initializedDerivative(6, 0.0);
+    exciter.derivative(inputs, emptyStateData, initializedDerivative.data(), cLocalSolverMode);
+    for (index_t row = 1; row < 6; ++row) {
+        EXPECT_NEAR(initializedDerivative[row], 0.0, 1e-12) << row;
+    }
+
+    // ANDES: LL_y = LL_x + TF3/TF2*(VR_y-LL_x),
+    // WF_y = KF/TF1*(LL_y-WF_x), VFE = KE*INT_y + Se(INT_y).
+    std::vector<double> state{0.65, 1.02, 0.7, 0.6, 0.4, 1.5};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    exciter.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    inputs[exciterVoltageInLocation] = 1.03;
+    inputs[exciterVsetInLocation] = 1.01;
+    inputs[exciterVssInLocation] = 0.02;
+    std::vector<double> derivative(state.size(), 0.0);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    const double leadLag = 0.6 + ((0.1 / 0.4) * (0.7 - 0.6));
+    const double feedback = (0.2 / 0.5) * (leadLag - 0.4);
+    const double ratio = std::sqrt((1.0 * 0.1) / (2.0 * 0.4));
+    const double saturationThreshold = (1.0 - (ratio * 2.0)) / (1.0 - ratio);
+    const double saturationFactor = 0.8 / std::pow(2.0 - saturationThreshold, 2);
+    const double saturation = saturationFactor * std::pow(1.5 - saturationThreshold, 2);
+    EXPECT_NEAR(derivative[1], (1.03 - 1.02) / 0.2, 1e-12);
+    EXPECT_NEAR(derivative[2],
+                ((10.0 * (1.03 + (initialRegulator / 10.0) - 1.02 - feedback)) - 0.7) / 0.5,
+                1e-12);
+    EXPECT_NEAR(derivative[3], (0.7 - 0.6) / 0.4, 1e-12);
+    EXPECT_NEAR(derivative[4], (leadLag - 0.4) / 0.5, 1e-12);
+    EXPECT_NEAR(derivative[5], (0.7 - 1.5 - saturation) / 0.8, 1e-12);
+
+    std::vector<double> residual(state.size(), 0.0);
+    exciter.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    EXPECT_NEAR(residual[0], 1.5 - 0.65, 1e-12);
+    for (index_t row = 1; row < 6; ++row) {
+        EXPECT_NEAR(residual[row], derivative[row], 1e-12) << row;
+    }
+    expectExciterDaeJacobian(exciter, inputs, state, 1.0);
+}
+
+TEST(ExciterModelTests, Esac5aStepMatchesClosedFormAndesResponse)
+{
+    exciters::ExciterESAC5A exciter;
+    exciter.set("tr", 0.0);
+    exciter.set("ka", 2.0);
+    exciter.set("ta", 0.2);
+    exciter.set("te", 0.5);
+    exciter.set("kf", 0.0);
+    exciter.set("tf1", 1.0);
+    exciter.set("tf2", 0.0);
+    exciter.set("tf3", 1.0);  // ANDES bypasses TF3 when TF2 is zero.
+    exciter.set("ke", 1.0);
+    exciter.set("se1", 0.0);
+    exciter.set("se2", 0.0);
+    exciter.dynInitializeA(0.0, 0);
+    EXPECT_EQ(exciter.localStateNames(), (stringVec{"efd", "vr", "xwf", "ve"}));
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.0;
+    IOdata fieldSet(2, 0.0);
+    exciter.dynInitializeB(inputs, {1.0}, fieldSet);
+    inputs[exciterVoltageInLocation] = 0.99;
+    for (int count = 1; count <= 4000; ++count) {
+        exciter.timestep(count * 0.0001, inputs, cLocalSolverMode);
+    }
+    const double time = 0.4;
+    const double expectedRegulator = 1.02 - (0.02 * std::exp(-time / 0.2));
+    const double expectedField = 1.0 +
+        (0.02 * (1.0 - (((0.5 * std::exp(-time / 0.5)) - (0.2 * std::exp(-time / 0.2))) / 0.3)));
+    EXPECT_NEAR(exciter.getStates()[1], expectedRegulator, 2e-5);
+    EXPECT_NEAR(exciter.getStates()[3], expectedField, 2e-5);
+    EXPECT_NEAR(exciter.getStates()[0], expectedField, 2e-5);
+}
+
+TEST(ExciterModelTests, Esac5aLimiterAndZeroLeadLagHaveConsistentJacobian)
+{
+    exciters::ExciterESAC5A exciter;
+    exciter.set("tr", 0.0);
+    exciter.set("tf2", 0.0);
+    exciter.set("tf3", 0.7);
+    exciter.set("ka", 10.0);
+    exciter.set("ta", 0.1);
+    exciter.set("te", 0.5);
+    exciter.set("kf", 0.1);
+    exciter.set("tf1", 1.0);
+    exciter.set("ke", 1.0);
+    exciter.set("se1", 0.0);
+    exciter.set("se2", 0.0);
+    exciter.set("vrmax", 2.0);
+    exciter.dynInitializeA(0.0, 0);
+    IOdata inputs(exciterInputCount, 0.0);
+    inputs[exciterVoltageInLocation] = 1.0;
+    inputs[exciterVsetInLocation] = 1.0;
+    IOdata fieldSet(2, 0.0);
+    exciter.dynInitializeB(inputs, {1.0}, fieldSet);
+    expectExciterDaeJacobian(exciter, inputs, exciter.getStates(), 1.0);
+
+    exciter.set("vrmax", 0.5);
+    EXPECT_EQ(
+        exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
+    EXPECT_DOUBLE_EQ(exciter.getStates()[1], 0.5);
+    std::vector<double> derivative(exciter.getStates().size(), 0.0);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(derivative[1], 0.0);
+    expectExciterDaeJacobian(exciter, inputs, exciter.getStates(), 1.0);
+
+    inputs[exciterVsetInLocation] = 0.8;
+    EXPECT_EQ(
+        exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
+    exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_LT(derivative[1], 0.0);
 }
 
 TEST(ExciterModelTests, Esac6aMatchesGridKitPerturbedEquations)

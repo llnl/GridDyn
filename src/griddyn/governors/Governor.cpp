@@ -29,6 +29,12 @@ namespace governors {
         gFgov2("governor", std::to_array<std::string_view>({"ieeehydro", "hydro"}));
     static ChildTypeFactory<GovernorHygov, Governor>
         gFgovHygov("governor", std::to_array<std::string_view>({"hygov", "pssehygov"}));
+    static ChildTypeFactory<GovernorHygovDB, Governor> gFgovHygovDB("governor", "hygovdb");
+    static ChildTypeFactory<GovernorHygov4, Governor> gFgovHygov4("governor", "hygov4");
+    static ChildTypeFactory<GovernorTG2, Governor> gFgovTG2("governor", "tg2");
+    static ChildTypeFactory<GovernorTgov1DB, Governor> gFgovTgov1DB("governor", "tgov1db");
+    static ChildTypeFactory<GovernorTgov1N, Governor> gFgovTgov1N("governor", "tgov1n");
+    static ChildTypeFactory<GovernorTgov1NDB, Governor> gFgovTgov1NDB("governor", "tgov1ndb");
 
     static ChildTypeFactory<GovernorSteamNR, Governor>
         gFgov3("governor", std::to_array<std::string_view>({"ieeesteamnr", "steamnr"}));

@@ -15,6 +15,7 @@
 #include "ExciterDC1A.h"
 #include "ExciterDC2A.h"
 #include "ExciterESAC1A.h"
+#include "ExciterESAC5A.h"
 #include "ExciterESAC6A.h"
 #include "ExciterESST1A.h"
 #include "ExciterESST2A.h"
@@ -62,6 +63,7 @@ namespace exciters {
         static ChildTypeFactory<ExciterEXPIC1, Exciter> gfeExpic1("exciter", "expic1");  // NOLINT
         static ChildTypeFactory<ExciterEXAC1, Exciter> gfeExac1("exciter", "exac1");  // NOLINT
         static ChildTypeFactory<ExciterESAC1A, Exciter> gfeEsac1a("exciter", "esac1a");  // NOLINT
+        static ChildTypeFactory<ExciterESAC5A, Exciter> gfeEsac5a("exciter", "esac5a");  // NOLINT
         static ChildTypeFactory<ExciterESAC6A, Exciter> gfeEsac6a("exciter", "esac6a");  // NOLINT
         static ChildTypeFactory<ExciterEXAC2, Exciter> gfeExac2("exciter", "exac2");  // NOLINT
         static ChildTypeFactory<ExciterEXAC4, Exciter> gfeExac4("exciter", "exac4");  // NOLINT

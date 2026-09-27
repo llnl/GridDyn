@@ -21,9 +21,9 @@
 #include "griddyn/governors/GovernorIeeeSimple.h"
 #include "griddyn/governors/GovernorSteamNR.h"
 #include "griddyn/governors/GovernorSteamTCSR.h"
+#include "griddyn/governors/GovernorTG2.h"
 #include "griddyn/governors/GovernorTgov1.h"
 #include "griddyn/governors/GovernorTgov1Variants.h"
-#include "griddyn/governors/GovernorTG2.h"
 #include "griddyn/simulation/Diagnostics.h"
 #include "utilities/MatrixDataSparse.hpp"
 #include <algorithm>
@@ -825,188 +825,215 @@ TEST(GovernorModelTests, Tgov1VariantsMatchLeadLagAndDeadbandEquations)
         SCOPED_TRACE(std::string(model));
         std::unique_ptr<CoreObject> object(
             CoreObjectFactory::instance()->createObject("governor", model));
-        auto* governor=dynamic_cast<governors::GovernorTgov1Variant*>(object.get());
-        ASSERT_NE(governor,nullptr);
-        governor->set("r",0.05); governor->set("t1",0.2);
-        governor->set("t2",0.4); governor->set("t3",2.0);
-        governor->set("pmin",0.0); governor->set("pmax",1.2);
-        governor->set("dt",0.1); governor->set("dbl",-0.02);
-        governor->set("dbu",0.02); governor->set("paux",0.01);
-        governor->dynInitializeA(0.0,0);
-        IOdata input{1.0,0.0}; IOdata fieldSet(2,0.0);
-        governor->dynInitializeB(input,{0.5},fieldSet);
-        governor->set("paux",0.02);
-        ASSERT_EQ(governor->getStates().size(),3U);
-        EXPECT_NEAR(governor->getStates()[0],0.5,1e-14);
-        input[govOmegaInLocation]=1.03;
-        input[govpSetInLocation]=fieldSet[govpSetInLocation];
-        const std::vector<double> state{0.49,0.52,0.48};
-        std::vector<double> zero(3,0.0), deriv(3,0.0), resid(3,0.0);
-        governor->setState(0.0,state.data(),zero.data(),cLocalSolverMode);
-        governor->derivative(input,emptyStateData,deriv.data(),cLocalSolverMode);
-        governor->residual(input,emptyStateData,resid.data(),cLocalSolverMode);
-        const bool db=model!="tgov1n";
-        const double wd=db ? 0.01 : 0.03;
-        const double pauxGain=model=="tgov1db" ? 20.0 : 1.0;
+        auto* governor = dynamic_cast<governors::GovernorTgov1Variant*>(object.get());
+        ASSERT_NE(governor, nullptr);
+        governor->set("r", 0.05);
+        governor->set("t1", 0.2);
+        governor->set("t2", 0.4);
+        governor->set("t3", 2.0);
+        governor->set("pmin", 0.0);
+        governor->set("pmax", 1.2);
+        governor->set("dt", 0.1);
+        governor->set("dbl", -0.02);
+        governor->set("dbu", 0.02);
+        governor->set("paux", 0.01);
+        governor->dynInitializeA(0.0, 0);
+        IOdata input{1.0, 0.0};
+        IOdata fieldSet(2, 0.0);
+        governor->dynInitializeB(input, {0.5}, fieldSet);
+        governor->set("paux", 0.02);
+        ASSERT_EQ(governor->getStates().size(), 3U);
+        EXPECT_NEAR(governor->getStates()[0], 0.5, 1e-14);
+        input[govOmegaInLocation] = 1.03;
+        input[govpSetInLocation] = fieldSet[govpSetInLocation];
+        const std::vector<double> state{0.49, 0.52, 0.48};
+        std::vector<double> zero(3, 0.0), deriv(3, 0.0), resid(3, 0.0);
+        governor->setState(0.0, state.data(), zero.data(), cLocalSolverMode);
+        governor->derivative(input, emptyStateData, deriv.data(), cLocalSolverMode);
+        governor->residual(input, emptyStateData, resid.data(), cLocalSolverMode);
+        const bool db = model != "tgov1n";
+        const double wd = db ? 0.01 : 0.03;
+        const double pauxGain = model == "tgov1db" ? 20.0 : 1.0;
         EXPECT_NEAR(deriv[1],
-                    (fieldSet[govpSetInLocation]+pauxGain*0.01-20.0*wd-0.52)/0.2,1e-12);
-        EXPECT_NEAR(deriv[2],(0.52-0.48)/2.0,1e-12);
-        EXPECT_NEAR(resid[0],0.48+0.2*(0.52-0.48)-0.1*wd-0.49,1e-12);
-        EXPECT_NEAR(resid[1],deriv[1],1e-12);
-        EXPECT_NEAR(resid[2],deriv[2],1e-12);
-        expectGovernorEquationConsistency(*governor,input,state);
+                    (fieldSet[govpSetInLocation] + pauxGain * 0.01 - 20.0 * wd - 0.52) / 0.2,
+                    1e-12);
+        EXPECT_NEAR(deriv[2], (0.52 - 0.48) / 2.0, 1e-12);
+        EXPECT_NEAR(resid[0], 0.48 + 0.2 * (0.52 - 0.48) - 0.1 * wd - 0.49, 1e-12);
+        EXPECT_NEAR(resid[1], deriv[1], 1e-12);
+        EXPECT_NEAR(resid[2], deriv[2], 1e-12);
+        expectGovernorEquationConsistency(*governor, input, state);
     }
 }
 
 TEST(GovernorModelTests, Tg2MatchesLeadLagAndLimitBranches)
 {
     governors::GovernorTG2 governor;
-    governor.set("r",0.05); governor.set("t1",0.2); governor.set("t2",2.0);
-    governor.set("pmin",0.0); governor.set("pmax",1.0);
-    governor.dynInitializeA(0.0,0);
-    IOdata inputs{1.0,0.0}, fieldSet(2,0.0);
-    governor.dynInitializeB(inputs,{0.6},fieldSet);
-    EXPECT_NEAR(governor.getStates()[0],0.6,1e-14);
-    EXPECT_NEAR(governor.getStates()[1],0.0,1e-14);
-    inputs={0.99,fieldSet[govpSetInLocation]};
-    std::vector<double> state{0.62,0.04}, zero(2,0.0), deriv(2,0.0), resid(2,0.0);
-    governor.setState(0.0,state.data(),zero.data(),cLocalSolverMode);
-    governor.derivative(inputs,emptyStateData,deriv.data(),cLocalSolverMode);
-    governor.residual(inputs,emptyStateData,resid.data(),cLocalSolverMode);
-    EXPECT_NEAR(deriv[1],(20.0*0.01-0.04)/2.0,1e-12);
-    EXPECT_NEAR(resid[0],0.6+0.04+0.1*(0.2-0.04)-0.62,1e-12);
-    expectGovernorEquationConsistency(governor,inputs,state);
-    governor.set("deadbandenabled",1.0); governor.set("dbl",-0.02);
-    governor.set("dbu",0.02);
-    governor.residual(inputs,emptyStateData,resid.data(),cLocalSolverMode);
-    EXPECT_NEAR(resid[0],0.6+0.04+0.1*(0.0-0.04)-0.62,1e-12);
-    expectGovernorEquationConsistency(governor,inputs,state);
-    inputs[govOmegaInLocation]=0.97;
-    governor.residual(inputs,emptyStateData,resid.data(),cLocalSolverMode);
-    EXPECT_NEAR(resid[0],0.6+0.04+0.1*(0.6-0.04)-0.62,1e-12);
-    governor.set("pmax",0.64);
-    EXPECT_NEAR(governor.get("pmax"),0.64,1e-14);
-    governor.residual(inputs,emptyStateData,resid.data(),cLocalSolverMode);
-    EXPECT_NEAR(resid[0],0.64-0.62,1e-12);
-    expectGovernorEquationConsistency(governor,inputs,state);
+    governor.set("r", 0.05);
+    governor.set("t1", 0.2);
+    governor.set("t2", 2.0);
+    governor.set("pmin", 0.0);
+    governor.set("pmax", 1.0);
+    governor.dynInitializeA(0.0, 0);
+    IOdata inputs{1.0, 0.0}, fieldSet(2, 0.0);
+    governor.dynInitializeB(inputs, {0.6}, fieldSet);
+    EXPECT_NEAR(governor.getStates()[0], 0.6, 1e-14);
+    EXPECT_NEAR(governor.getStates()[1], 0.0, 1e-14);
+    inputs = {0.99, fieldSet[govpSetInLocation]};
+    std::vector<double> state{0.62, 0.04}, zero(2, 0.0), deriv(2, 0.0), resid(2, 0.0);
+    governor.setState(0.0, state.data(), zero.data(), cLocalSolverMode);
+    governor.derivative(inputs, emptyStateData, deriv.data(), cLocalSolverMode);
+    governor.residual(inputs, emptyStateData, resid.data(), cLocalSolverMode);
+    EXPECT_NEAR(deriv[1], (20.0 * 0.01 - 0.04) / 2.0, 1e-12);
+    EXPECT_NEAR(resid[0], 0.6 + 0.04 + 0.1 * (0.2 - 0.04) - 0.62, 1e-12);
+    expectGovernorEquationConsistency(governor, inputs, state);
+    governor.set("deadbandenabled", 1.0);
+    governor.set("dbl", -0.02);
+    governor.set("dbu", 0.02);
+    governor.residual(inputs, emptyStateData, resid.data(), cLocalSolverMode);
+    EXPECT_NEAR(resid[0], 0.6 + 0.04 + 0.1 * (0.0 - 0.04) - 0.62, 1e-12);
+    expectGovernorEquationConsistency(governor, inputs, state);
+    inputs[govOmegaInLocation] = 0.97;
+    governor.residual(inputs, emptyStateData, resid.data(), cLocalSolverMode);
+    EXPECT_NEAR(resid[0], 0.6 + 0.04 + 0.1 * (0.6 - 0.04) - 0.62, 1e-12);
+    governor.set("pmax", 0.64);
+    EXPECT_NEAR(governor.get("pmax"), 0.64, 1e-14);
+    governor.residual(inputs, emptyStateData, resid.data(), cLocalSolverMode);
+    EXPECT_NEAR(resid[0], 0.64 - 0.62, 1e-12);
+    expectGovernorEquationConsistency(governor, inputs, state);
 }
 
 TEST(GovernorModelTests, HygovDbAppliesDeadbandOnlyToController)
 {
     governors::GovernorHygovDB governor;
     configureHygov(governor);
-    governor.set("dbl",-0.02); governor.set("dbu",0.02);
-    governor.dynInitializeA(0.0,0);
-    IOdata inputs{1.0,0.0}, fieldSet(2,0.0);
-    governor.dynInitializeB(inputs,{0.4},fieldSet);
-    inputs={1.01,fieldSet[govpSetInLocation]};
-    std::vector<double> state{0.4,0.01,0.4,0.41,0.42},zero(5,0.0),
-                        deriv(5,0.0),resid(5,0.0);
-    governor.setState(0.0,state.data(),zero.data(),cLocalSolverMode);
-    governor.derivative(inputs,emptyStateData,deriv.data(),cLocalSolverMode);
-    governor.residual(inputs,emptyStateData,resid.data(),cLocalSolverMode);
-    const double desiredGate=0.01/0.3+0.4;
-    EXPECT_NEAR(deriv[1],(fieldSet[1]-0.05*desiredGate-0.01)/0.05,1e-12);
-    EXPECT_NEAR(deriv[2],0.01,1e-12);
-    EXPECT_NEAR(deriv[3],(desiredGate-0.41)/0.5,1e-12);
-    const double head=(0.42/0.41)*(0.42/0.41);
-    EXPECT_NEAR(resid[0],1.2*head*(0.42-0.08)-0.2*0.41*0.01-0.4,1e-12);
-    expectGovernorEquationConsistency(governor,inputs,state);
-    inputs[govOmegaInLocation]=1.03;
-    governor.derivative(inputs,emptyStateData,deriv.data(),cLocalSolverMode);
-    EXPECT_NEAR(deriv[1],(fieldSet[1]-0.01-0.05*desiredGate-0.01)/0.05,1e-12);
-    expectGovernorEquationConsistency(governor,inputs,state);
+    governor.set("dbl", -0.02);
+    governor.set("dbu", 0.02);
+    governor.dynInitializeA(0.0, 0);
+    IOdata inputs{1.0, 0.0}, fieldSet(2, 0.0);
+    governor.dynInitializeB(inputs, {0.4}, fieldSet);
+    inputs = {1.01, fieldSet[govpSetInLocation]};
+    std::vector<double> state{0.4, 0.01, 0.4, 0.41, 0.42}, zero(5, 0.0), deriv(5, 0.0),
+        resid(5, 0.0);
+    governor.setState(0.0, state.data(), zero.data(), cLocalSolverMode);
+    governor.derivative(inputs, emptyStateData, deriv.data(), cLocalSolverMode);
+    governor.residual(inputs, emptyStateData, resid.data(), cLocalSolverMode);
+    const double desiredGate = 0.01 / 0.3 + 0.4;
+    EXPECT_NEAR(deriv[1], (fieldSet[1] - 0.05 * desiredGate - 0.01) / 0.05, 1e-12);
+    EXPECT_NEAR(deriv[2], 0.01, 1e-12);
+    EXPECT_NEAR(deriv[3], (desiredGate - 0.41) / 0.5, 1e-12);
+    const double head = (0.42 / 0.41) * (0.42 / 0.41);
+    EXPECT_NEAR(resid[0], 1.2 * head * (0.42 - 0.08) - 0.2 * 0.41 * 0.01 - 0.4, 1e-12);
+    expectGovernorEquationConsistency(governor, inputs, state);
+    inputs[govOmegaInLocation] = 1.03;
+    governor.derivative(inputs, emptyStateData, deriv.data(), cLocalSolverMode);
+    EXPECT_NEAR(deriv[1], (fieldSet[1] - 0.01 - 0.05 * desiredGate - 0.01) / 0.05, 1e-12);
+    expectGovernorEquationConsistency(governor, inputs, state);
 }
 
 TEST(GovernorModelTests, Hygov4MatchesWashoutServoAndWaterEquations)
 {
     governors::GovernorHygov4 governor;
-    governor.set("rperm",0.1); governor.set("rtemp",0.2);
-    governor.set("uo",0.3); governor.set("uc",-0.3);
-    governor.set("pmax",1.0); governor.set("pmin",0.0);
-    governor.set("tp",0.4); governor.set("tg",0.5);
-    governor.set("tr",2.0); governor.set("tw",1.25);
-    governor.set("at",1.2); governor.set("dturb",0.2);
-    governor.set("hdam",1.0); governor.set("qnl",0.08);
-    governor.dynInitializeA(0.0,0);
-    IOdata inputs{1.0,0.0},fieldSet(2,0.0);
-    governor.dynInitializeB(inputs,{0.4},fieldSet);
-    const double q0=0.08+0.4/1.2;
-    EXPECT_NEAR(governor.getStates()[1],q0,1e-12);
-    EXPECT_NEAR(fieldSet[1],0.1*q0,1e-12);
-    inputs={1.01,0.4};
-    std::vector<double> state{0.41,0.42,0.40,0.03,0.43},zero(5,0.0),
-                        deriv(5,0.0),resid(5,0.0);
-    governor.setState(0.0,state.data(),zero.data(),cLocalSolverMode);
-    governor.derivative(inputs,emptyStateData,deriv.data(),cLocalSolverMode);
-    governor.residual(inputs,emptyStateData,resid.data(),cLocalSolverMode);
-    const double head=(0.43/0.42)*(0.43/0.42);
-    EXPECT_NEAR(deriv[1],0.03/0.5,1e-12);
-    EXPECT_NEAR(deriv[2],(0.42-0.40)/2.0,1e-12);
-    EXPECT_NEAR(deriv[3],(fieldSet[1]-0.1*0.42-0.2*(0.42-0.40)-0.01-0.03)/0.4,1e-12);
-    EXPECT_NEAR(deriv[4],(1.0-head)/1.25,1e-12);
-    EXPECT_NEAR(resid[0],1.2*head*(0.43-0.08)-0.2*0.42*0.01-0.41,1e-12);
-    expectGovernorEquationConsistency(governor,inputs,state);
-    state[3]=0.3;
-    governor.setState(0.0,state.data(),zero.data(),cLocalSolverMode);
-    governor.derivative(inputs,emptyStateData,deriv.data(),cLocalSolverMode);
-    EXPECT_NEAR(deriv[1],0.3,1e-12);
-    expectGovernorEquationConsistency(governor,inputs,state);
+    governor.set("rperm", 0.1);
+    governor.set("rtemp", 0.2);
+    governor.set("uo", 0.3);
+    governor.set("uc", -0.3);
+    governor.set("pmax", 1.0);
+    governor.set("pmin", 0.0);
+    governor.set("tp", 0.4);
+    governor.set("tg", 0.5);
+    governor.set("tr", 2.0);
+    governor.set("tw", 1.25);
+    governor.set("at", 1.2);
+    governor.set("dturb", 0.2);
+    governor.set("hdam", 1.0);
+    governor.set("qnl", 0.08);
+    governor.dynInitializeA(0.0, 0);
+    IOdata inputs{1.0, 0.0}, fieldSet(2, 0.0);
+    governor.dynInitializeB(inputs, {0.4}, fieldSet);
+    const double q0 = 0.08 + 0.4 / 1.2;
+    EXPECT_NEAR(governor.getStates()[1], q0, 1e-12);
+    EXPECT_NEAR(fieldSet[1], 0.1 * q0, 1e-12);
+    inputs = {1.01, 0.4};
+    std::vector<double> state{0.41, 0.42, 0.40, 0.03, 0.43}, zero(5, 0.0), deriv(5, 0.0),
+        resid(5, 0.0);
+    governor.setState(0.0, state.data(), zero.data(), cLocalSolverMode);
+    governor.derivative(inputs, emptyStateData, deriv.data(), cLocalSolverMode);
+    governor.residual(inputs, emptyStateData, resid.data(), cLocalSolverMode);
+    const double head = (0.43 / 0.42) * (0.43 / 0.42);
+    EXPECT_NEAR(deriv[1], 0.03 / 0.5, 1e-12);
+    EXPECT_NEAR(deriv[2], (0.42 - 0.40) / 2.0, 1e-12);
+    EXPECT_NEAR(deriv[3],
+                (fieldSet[1] - 0.1 * 0.42 - 0.2 * (0.42 - 0.40) - 0.01 - 0.03) / 0.4,
+                1e-12);
+    EXPECT_NEAR(deriv[4], (1.0 - head) / 1.25, 1e-12);
+    EXPECT_NEAR(resid[0], 1.2 * head * (0.43 - 0.08) - 0.2 * 0.42 * 0.01 - 0.41, 1e-12);
+    expectGovernorEquationConsistency(governor, inputs, state);
+    state[3] = 0.3;
+    governor.setState(0.0, state.data(), zero.data(), cLocalSolverMode);
+    governor.derivative(inputs, emptyStateData, deriv.data(), cLocalSolverMode);
+    EXPECT_NEAR(deriv[1], 0.3, 1e-12);
+    expectGovernorEquationConsistency(governor, inputs, state);
 }
 
 TEST(GovernorModelTests, Tg2SpeedStepMatchesAnalyticTrajectory)
 {
     governors::GovernorTG2 governor;
-    governor.set("r",0.05); governor.set("t1",0.2); governor.set("t2",2.0);
-    governor.set("pmin",0.0); governor.set("pmax",2.0);
-    governor.dynInitializeA(0.0,0);
-    IOdata inputs{1.0,0.0},fieldSet(2,0.0);
-    governor.dynInitializeB(inputs,{0.6},fieldSet);
-    inputs={0.99,fieldSet[1]};
-    for (int step=1;step<=1000;++step) {
-        governor.timestep(step*0.001,inputs,cLocalSolverMode);
+    governor.set("r", 0.05);
+    governor.set("t1", 0.2);
+    governor.set("t2", 2.0);
+    governor.set("pmin", 0.0);
+    governor.set("pmax", 2.0);
+    governor.dynInitializeA(0.0, 0);
+    IOdata inputs{1.0, 0.0}, fieldSet(2, 0.0);
+    governor.dynInitializeB(inputs, {0.6}, fieldSet);
+    inputs = {0.99, fieldSet[1]};
+    for (int step = 1; step <= 1000; ++step) {
+        governor.timestep(step * 0.001, inputs, cLocalSolverMode);
     }
-    const double lag=0.2*(1.0-std::exp(-0.5));
-    const auto& state=governor.getStates();
-    EXPECT_NEAR(state[1],lag,5e-5);
-    EXPECT_NEAR(state[0],0.6+lag+0.1*(0.2-lag),5e-5);
+    const double lag = 0.2 * (1.0 - std::exp(-0.5));
+    const auto& state = governor.getStates();
+    EXPECT_NEAR(state[1], lag, 5e-5);
+    EXPECT_NEAR(state[0], 0.6 + lag + 0.1 * (0.2 - lag), 5e-5);
 }
 
 TEST(GovernorModelTests, Tgov1ZeroTurbineLagUsesValveDirectly)
 {
     governors::GovernorTgov1N governor;
-    governor.set("r",0.05); governor.set("t1",0.1);
-    governor.set("t2",0.2); governor.set("t3",0.0);
-    governor.set("pmax",1.0); governor.set("pmin",0.0);
-    governor.dynInitializeA(0.0,0);
-    IOdata inputs{1.01,0.5},fieldSet(2,0.0);
-    governor.dynInitializeB(inputs,{0.5},fieldSet);
-    std::vector<double> state{0.55,0.6,0.4},zero(3,0.0),resid(3,0.0);
-    governor.setState(0.0,state.data(),zero.data(),cLocalSolverMode);
-    governor.residual(inputs,emptyStateData,resid.data(),cLocalSolverMode);
-    EXPECT_NEAR(resid[0],0.6-0.55,1e-12);
-    EXPECT_NEAR(resid[2],0.0,1e-12);
-    expectGovernorEquationConsistency(governor,inputs,state);
+    governor.set("r", 0.05);
+    governor.set("t1", 0.1);
+    governor.set("t2", 0.2);
+    governor.set("t3", 0.0);
+    governor.set("pmax", 1.0);
+    governor.set("pmin", 0.0);
+    governor.dynInitializeA(0.0, 0);
+    IOdata inputs{1.01, 0.5}, fieldSet(2, 0.0);
+    governor.dynInitializeB(inputs, {0.5}, fieldSet);
+    std::vector<double> state{0.55, 0.6, 0.4}, zero(3, 0.0), resid(3, 0.0);
+    governor.setState(0.0, state.data(), zero.data(), cLocalSolverMode);
+    governor.residual(inputs, emptyStateData, resid.data(), cLocalSolverMode);
+    EXPECT_NEAR(resid[0], 0.6 - 0.55, 1e-12);
+    EXPECT_NEAR(resid[2], 0.0, 1e-12);
+    expectGovernorEquationConsistency(governor, inputs, state);
 }
 
 TEST(GovernorModelTests, GovernorVariantFactoryClonesPreserveModelAndParameters)
 {
-    for (const std::string_view name : {"tg2","tgov1db","tgov1n","tgov1ndb",
-                                        "hygovdb","hygov4"}) {
+    for (const std::string_view name :
+         {"tg2", "tgov1db", "tgov1n", "tgov1ndb", "hygovdb", "hygov4"}) {
         SCOPED_TRACE(std::string(name));
         std::unique_ptr<CoreObject> original(
-            CoreObjectFactory::instance()->createObject("governor",name));
-        ASSERT_NE(original,nullptr);
-        auto* governor=dynamic_cast<Governor*>(original.get());
-        ASSERT_NE(governor,nullptr);
-        const std::string_view parameter=name=="hygov4" ? "rperm" : "r";
-        governor->set(parameter,0.07);
+            CoreObjectFactory::instance()->createObject("governor", name));
+        ASSERT_NE(original, nullptr);
+        auto* governor = dynamic_cast<Governor*>(original.get());
+        ASSERT_NE(governor, nullptr);
+        const std::string_view parameter = name == "hygov4" ? "rperm" : "r";
+        governor->set(parameter, 0.07);
         std::unique_ptr<CoreObject> cloned(original->clone());
-        ASSERT_NE(cloned,nullptr);
-        EXPECT_EQ(typeid(*original),typeid(*cloned));
-        auto* copied=dynamic_cast<Governor*>(cloned.get());
-        ASSERT_NE(copied,nullptr);
-        EXPECT_DOUBLE_EQ(copied->get(parameter),0.07);
+        ASSERT_NE(cloned, nullptr);
+        EXPECT_EQ(typeid(*original), typeid(*cloned));
+        auto* copied = dynamic_cast<Governor*>(cloned.get());
+        ASSERT_NE(copied, nullptr);
+        EXPECT_DOUBLE_EQ(copied->get(parameter), 0.07);
     }
 }
 

@@ -1034,8 +1034,7 @@ TEST(ExciterModelTests, Esac5aMatchesAndesEquationsAndJacobian)
     exciter.set("e2", 2.0);
     exciter.set("se2", 0.4);
     exciter.dynInitializeA(0.0, 0);
-    EXPECT_EQ(exciter.localStateNames(),
-              (stringVec{"efd", "vc", "vr", "xll", "xwf", "ve"}));
+    EXPECT_EQ(exciter.localStateNames(), (stringVec{"efd", "vc", "vr", "xll", "xwf", "ve"}));
 
     IOdata inputs(exciterInputCount, 0.0);
     inputs[exciterVoltageInLocation] = 1.0;
@@ -1110,8 +1109,7 @@ TEST(ExciterModelTests, Esac5aStepMatchesClosedFormAndesResponse)
     const double time = 0.4;
     const double expectedRegulator = 1.02 - 0.02 * std::exp(-time / 0.2);
     const double expectedField =
-        1.0 + 0.02 *
-            (1.0 - (0.5 * std::exp(-time / 0.5) - 0.2 * std::exp(-time / 0.2)) / 0.3);
+        1.0 + 0.02 * (1.0 - (0.5 * std::exp(-time / 0.5) - 0.2 * std::exp(-time / 0.2)) / 0.3);
     EXPECT_NEAR(exciter.getStates()[1], expectedRegulator, 2e-5);
     EXPECT_NEAR(exciter.getStates()[3], expectedField, 2e-5);
     EXPECT_NEAR(exciter.getStates()[0], expectedField, 2e-5);
@@ -1141,9 +1139,9 @@ TEST(ExciterModelTests, Esac5aLimiterAndZeroLeadLagHaveConsistentJacobian)
     expectExciterDaeJacobian(exciter, inputs, exciter.getStates(), 1.0);
 
     exciter.set("vrmax", 0.5);
-    EXPECT_EQ(exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode,
-                                CheckLevel::REVERSABLE_ONLY),
-              ChangeCode::JACOBIAN_CHANGE);
+    EXPECT_EQ(
+        exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
     EXPECT_DOUBLE_EQ(exciter.getStates()[1], 0.5);
     std::vector<double> derivative(exciter.getStates().size(), 0.0);
     exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
@@ -1151,9 +1149,9 @@ TEST(ExciterModelTests, Esac5aLimiterAndZeroLeadLagHaveConsistentJacobian)
     expectExciterDaeJacobian(exciter, inputs, exciter.getStates(), 1.0);
 
     inputs[exciterVsetInLocation] = 0.8;
-    EXPECT_EQ(exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode,
-                                CheckLevel::REVERSABLE_ONLY),
-              ChangeCode::JACOBIAN_CHANGE);
+    EXPECT_EQ(
+        exciter.rootCheck(inputs, emptyStateData, cLocalSolverMode, CheckLevel::REVERSABLE_ONLY),
+        ChangeCode::JACOBIAN_CHANGE);
     exciter.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
     EXPECT_LT(derivative[1], 0.0);
 }

@@ -15,6 +15,6 @@
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorReheat.h"
 #include "griddyn/governors/GovernorSteamTCSR.h"
+#include "griddyn/governors/GovernorTG2.h"
 #include "griddyn/governors/GovernorTgov1.h"
 #include "griddyn/governors/GovernorTgov1Variants.h"
-#include "griddyn/governors/GovernorTG2.h"

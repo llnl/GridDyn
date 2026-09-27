@@ -95,8 +95,7 @@ namespace {
     void loadEXAC4(CoreObject* parentObject, stringVec& tokens);
     void loadTGOV1(CoreObject* parentObject, stringVec& tokens);
     void loadHYGOV(CoreObject* parentObject, stringVec& tokens);
-    void loadGovernorVariant(CoreObject* parentObject, stringVec& tokens,
-                           std::string_view model);
+    void loadGovernorVariant(CoreObject* parentObject, stringVec& tokens, std::string_view model);
     void loadGGOV1(CoreObject* parentObject, stringVec& tokens);
     void loadGAST(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEG1(CoreObject* parentObject, stringVec& tokens);
@@ -1201,9 +1200,21 @@ namespace {
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         auto* exciter =
             static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "esac5a"));
-        static constexpr std::array<std::string_view, 15> names{
-            "tr", "ka", "ta", "vrmax", "vrmin", "ke", "te", "kf", "tf1", "tf2",
-            "tf3", "e1", "se1", "e2", "se2"};
+        static constexpr std::array<std::string_view, 15> names{"tr",
+                                                                "ka",
+                                                                "ta",
+                                                                "vrmax",
+                                                                "vrmin",
+                                                                "ke",
+                                                                "te",
+                                                                "kf",
+                                                                "tf1",
+                                                                "tf2",
+                                                                "tf3",
+                                                                "e1",
+                                                                "se1",
+                                                                "e2",
+                                                                "se2"};
         for (std::size_t index = 0; index < names.size(); ++index) {
             exciter->set(names[index], params[index + 3]);
         }
@@ -1375,8 +1386,7 @@ namespace {
         gen->add(governor.release());
     }
 
-    void loadGovernorVariant(CoreObject* parentObject, stringVec& tokens,
-                           std::string_view model)
+    void loadGovernorVariant(CoreObject* parentObject, stringVec& tokens, std::string_view model)
     {
         // These six names are not part of ANDES's psse-dyr.yaml. This is an
         // explicit GridDyn extension using the model's ANDES parameter order.
@@ -1386,32 +1396,61 @@ namespace {
             "r", "pmax", "pmin", "t1", "t2", "t3", "dt"};
         static constexpr std::array<std::string_view, 9> tgovdb{
             "r", "pmax", "pmin", "t1", "t2", "t3", "dt", "dbl", "dbu"};
-        static constexpr std::array<std::string_view, 14> hygovdb{
-            "r", "temporarydroop", "gmax", "gmin", "velm", "tf", "tr", "tg",
-            "dturb", "qnl", "tw", "at", "dbl", "dbu"};
-        static constexpr std::array<std::string_view, 14> hygov4{
-            "rperm", "rtemp", "uo", "uc", "pmax", "pmin", "tp", "tg",
-            "tr", "tw", "at", "dturb", "hdam", "qnl"};
+        static constexpr std::array<std::string_view, 14> hygovdb{"r",
+                                                                  "temporarydroop",
+                                                                  "gmax",
+                                                                  "gmin",
+                                                                  "velm",
+                                                                  "tf",
+                                                                  "tr",
+                                                                  "tg",
+                                                                  "dturb",
+                                                                  "qnl",
+                                                                  "tw",
+                                                                  "at",
+                                                                  "dbl",
+                                                                  "dbu"};
+        static constexpr std::array<std::string_view, 14> hygov4{"rperm",
+                                                                 "rtemp",
+                                                                 "uo",
+                                                                 "uc",
+                                                                 "pmax",
+                                                                 "pmin",
+                                                                 "tp",
+                                                                 "tg",
+                                                                 "tr",
+                                                                 "tw",
+                                                                 "at",
+                                                                 "dturb",
+                                                                 "hdam",
+                                                                 "qnl"};
         std::span<const std::string_view> names;
-        if (model == "TG2") { names = tg2; }
-        else if (model == "TGOV1N") { names = tgov; }
-        else if (model == "TGOV1DB" || model == "TGOV1NDB") { names = tgovdb; }
-        else if (model == "HYGOVDB") { names = hygovdb; }
-        else { names = hygov4; }
-        if (tokens.size() != names.size()+3U) {
-            throw InvalidParameterValue(std::string(model)+" DYR record has the wrong field count");
+        if (model == "TG2") {
+            names = tg2;
+        } else if (model == "TGOV1N") {
+            names = tgov;
+        } else if (model == "TGOV1DB" || model == "TGOV1NDB") {
+            names = tgovdb;
+        } else if (model == "HYGOVDB") {
+            names = hygovdb;
+        } else {
+            names = hygov4;
         }
-        auto* gen=requireDyrGenerator(parentObject,tokens,model);
-        const auto params=gmlc::utilities::str2vector(tokens,kNullVal);
+        if (tokens.size() != names.size() + 3U) {
+            throw InvalidParameterValue(std::string(model) +
+                                        " DYR record has the wrong field count");
+        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, model);
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         std::string factoryName(model);
         gmlc::utilities::makeLowerCase(factoryName);
         std::unique_ptr<Governor> governor(static_cast<Governor*>(
-            CoreObjectFactory::instance()->createObject("governor",factoryName)));
+            CoreObjectFactory::instance()->createObject("governor", factoryName)));
         if (governor == nullptr) {
-            throw InvalidParameterValue(std::string(model)+" governor factory registration");
+            throw InvalidParameterValue(std::string(model) + " governor factory registration");
         }
-        for (std::size_t i=0;i<names.size();++i) {
-            governor->set(names[i],params[i+3]);
+        for (std::size_t i = 0; i < names.size(); ++i) {
+            governor->set(names[i], params[i + 3]);
         }
         gen->add(governor.release());
     }

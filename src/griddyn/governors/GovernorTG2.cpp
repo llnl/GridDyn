@@ -89,8 +89,7 @@ double GovernorTG2::speedSlope(const IOdata& inputs) const
 double GovernorTG2::output(const IOdata& inputs, double state) const
 {
     const double raw =
-        inputs[govpSetInLocation] + state +
-        ((T1 / T2) * ((K * speedInput(inputs)) - state));
+        inputs[govpSetInLocation] + state + ((T1 / T2) * ((K * speedInput(inputs)) - state));
     return hardLimitEnabled ?
         std::clamp(raw, static_cast<double>(Pmin), static_cast<double>(Pmax)) :
         raw;
@@ -98,8 +97,7 @@ double GovernorTG2::output(const IOdata& inputs, double state) const
 double GovernorTG2::outputSlope(const IOdata& inputs, double state) const
 {
     const double raw =
-        inputs[govpSetInLocation] + state +
-        ((T1 / T2) * ((K * speedInput(inputs)) - state));
+        inputs[govpSetInLocation] + state + ((T1 / T2) * ((K * speedInput(inputs)) - state));
     return (!hardLimitEnabled || (raw > Pmin && raw < Pmax)) ? 1.0 : 0.0;
 }
 void GovernorTG2::derivative(const IOdata& inputs,
@@ -159,8 +157,9 @@ void GovernorTG2::jacobianElements(const IOdata& inputs,
     }
     if (hasDifferential(sMode)) {
         matrixData.assign(loc.diffOffset, loc.diffOffset, (-1.0 / T2) - stateData.cj);
-        matrixData.assignCheckCol(
-            loc.diffOffset, inputLocs[govOmegaInLocation], K * speedSlope(inputs) / T2);
+        matrixData.assignCheckCol(loc.diffOffset,
+                                  inputLocs[govOmegaInLocation],
+                                  K * speedSlope(inputs) / T2);
     }
 }
 void GovernorTG2::timestep(CoreTime time,

@@ -122,9 +122,9 @@ void GovernorHygov4::derivative(const IOdata& inputs,
     const double head = (state[3] / gate) * (state[3] / gate);
     loc.destDiffLoc[0] = gateRate(state);
     loc.destDiffLoc[1] = (state[0] - state[1]) / Tr;
-    loc.destDiffLoc[2] = (inputs[govpSetInLocation] + referenceOffset + paux - (Rperm * state[0]) -
-                          (Rtemp * (state[0] - state[1])) - (inputs[govOmegaInLocation] - 1.0) -
-                          state[2]) /
+    loc.destDiffLoc[2] =
+        (inputs[govpSetInLocation] + referenceOffset + paux - (Rperm * state[0]) -
+         (Rtemp * (state[0] - state[1])) - (inputs[govOmegaInLocation] - 1.0) - state[2]) /
         Tp;
     loc.destDiffLoc[3] = (Hdam - head) / Tw;
 }
@@ -211,8 +211,8 @@ void GovernorHygov4::timestep(CoreTime time,
     for (index_t stateIndex = 0; stateIndex < 4; ++stateIndex) {
         m_state[diffOffset + stateIndex] += timeStep * m_dstate_dt[diffOffset + stateIndex];
     }
-    m_state[diffOffset] = std::clamp(
-        m_state[diffOffset], static_cast<double>(Pmin), static_cast<double>(Pmax));
+    m_state[diffOffset] =
+        std::clamp(m_state[diffOffset], static_cast<double>(Pmin), static_cast<double>(Pmax));
     m_state[offsets.getAlgOffset(cLocalSolverMode)] =
         mechanicalPower(inputs, m_state.data() + diffOffset);
     prevTime = time;

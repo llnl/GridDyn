@@ -249,10 +249,10 @@ TEST(RenewableModels, WTDSOneMassEquationAndAliasedSpeeds)
     EXPECT_EQ(shaft.getOutputLoc(cLocalSolverMode, 0), shaft.getOutputLoc(cLocalSolverMode, 1));
     std::array<double, 1> derivative{};
     shaft.derivative({0.7, 1.0, 1.0}, emptyStateData, derivative.data(), cLocalSolverMode);
-    const double expected = ((1.0 - 0.7) / 1.1 - 0.5 * (1.1 - 1.0)) / 4.0;
+    const double expected = (((1.0 - 0.7) / 1.1) - (0.5 * (1.1 - 1.0))) / 4.0;
     EXPECT_NEAR(derivative[0], expected, 1e-12);
     shaft.timestep(0.1, {0.7, 1.0, 1.0}, cLocalSolverMode);
-    EXPECT_NEAR(shaft.getOutput(0), 1.1 + 0.1 * expected, 1e-12);
+    EXPECT_NEAR(shaft.getOutput(0), 1.1 + (0.1 * expected), 1e-12);
     EXPECT_NEAR(shaft.getOutput(1), shaft.getOutput(0), 1e-12);
 }
 
@@ -669,7 +669,7 @@ TEST(RenewableModels, REECA1EZeroGainMatchesREECA1)
     frequencyControl.set("busroc", std::string_view{"freq1"});
     frequencyControl.set("kf", 0.0);
     frequencyControl.set("kdf", 0.0);
-    for (auto* control : {static_cast<REECA1*>(&base), static_cast<REECA1*>(&frequencyControl)}) {
+    for (auto* control : {&base, static_cast<REECA1*>(&frequencyControl)}) {
         control->set("tpord", 0.05);
         control->dynInitializeA(0.0, 0);
     }
@@ -1374,9 +1374,14 @@ TEST(RenewableModels, TwoBusRenewableFaultMatchesAndesReference)
         reg->set("iqrmax", 999.0);
         reg->set("iqrmin", -999.0);
         reg->set("lvplsw", 0.0);
-        auto* ree = useReecb ? static_cast<REECA1*>(new REECB1) :
-            useReeca1e       ? static_cast<REECA1*>(new REECA1E) :
-                               new REECA1;
+        REECA1* ree = nullptr;
+        if (useReecb) {
+            ree = new REECB1;
+        } else if (useReeca1e) {
+            ree = new REECA1E;
+        } else {
+            ree = new REECA1;
+        }
         ree->set("vflag", 0.0);
         ree->set("pqflag", 0.0);
         if (!useReecb) {
@@ -1471,7 +1476,17 @@ TEST(RenewableModels, TwoBusRenewableFaultMatchesAndesReference)
                 continue;
             }
             std::istringstream row(line);
-            std::vector<double> expected(includeWind ? 10 : useWtds ? 7 : useReeca1e ? 8 : 6);
+            std::size_t expectedSize = 6;
+            if (useReeca1e) {
+                expectedSize = 8;
+            }
+            if (useWtds) {
+                expectedSize = 7;
+            }
+            if (includeWind) {
+                expectedSize = 10;
+            }
+            std::vector<double> expected(expectedSize);
             for (auto& value : expected) {
                 std::string field;
                 ASSERT_TRUE(static_cast<bool>(std::getline(row, field, ',')));

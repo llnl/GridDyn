@@ -481,12 +481,10 @@ namespace {
             expected = 33U;
         } else if (modelName == "REPCA1") {
             expected = 37U;
-        } else if (modelName == "WTDTA1") {
+        } else if (modelName == "WTDTA1" || modelName == "BUSROCOF") {
             expected = 8U;
         } else if (modelName == "WTDS") {
             expected = 6U;
-        } else if (modelName == "BUSROCOF") {
-            expected = 8U;
         } else if (modelName == "WTARA1") {
             expected = 5U;
         } else if (modelName == "WTPTA1") {

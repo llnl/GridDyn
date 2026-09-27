@@ -170,7 +170,7 @@ void WTDS::jacobianElements(const IOdata& inputs,
     const double powerSlope =
         speed > 0.01 ? -(mechanicalPower - inputs[0]) / (speedDenominator * speedDenominator) : 0.0;
     const index_t row = loc.diffOffset;
-    matrixData.assign(row, row, (powerSlope - D) * invInertia - stateData.cj);
+    matrixData.assign(row, row, ((powerSlope - D) * invInertia) - stateData.cj);
     if (!inputLocs.empty()) {
         matrixData.assignCheckCol(row, inputLocs[0], -invInertia / speedDenominator);
     }

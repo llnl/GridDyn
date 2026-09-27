@@ -154,10 +154,10 @@ void BusROCOF::residual(const IOdata& inputs,
                         const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, resid, sMode, this);
-    const double df = deviation(loc.diffStateLoc);
-    const double dfdt = (1.0 + df - loc.diffStateLoc[frequencyWashout]) / Tr;
+    const double frequencyDeviation = deviation(loc.diffStateLoc);
+    const double dfdt = (1.0 + frequencyDeviation - loc.diffStateLoc[frequencyWashout]) / Tr;
     if (hasAlgebraic(sMode)) {
-        loc.destLoc[deviationOutput] = df - loc.algStateLoc[deviationOutput];
+        loc.destLoc[deviationOutput] = frequencyDeviation - loc.algStateLoc[deviationOutput];
         loc.destLoc[rocofOutput] = dfdt - loc.algStateLoc[rocofOutput];
     }
     if (hasDifferential(sMode)) {
@@ -178,9 +178,10 @@ void BusROCOF::algebraicUpdate(const IOdata& /*inputs*/,
         return;
     }
     const auto loc = offsets.getLocations(stateData, update, sMode, this);
-    const double df = deviation(loc.diffStateLoc);
-    loc.destLoc[deviationOutput] = df;
-    loc.destLoc[rocofOutput] = (1.0 + df - loc.diffStateLoc[frequencyWashout]) / Tr;
+    const double frequencyDeviation = deviation(loc.diffStateLoc);
+    loc.destLoc[deviationOutput] = frequencyDeviation;
+    loc.destLoc[rocofOutput] =
+        (1.0 + frequencyDeviation - loc.diffStateLoc[frequencyWashout]) / Tr;
 }
 
 void BusROCOF::jacobianElements(const IOdata& /*inputs*/,
@@ -207,15 +208,17 @@ void BusROCOF::jacobianElements(const IOdata& /*inputs*/,
     if (!hasDifferential(sMode)) {
         return;
     }
-    matrixData.assign(diff + angleLag, diff + angleLag, -1.0 / Tf - stateData.cj);
+    matrixData.assign(diff + angleLag, diff + angleLag, (-1.0 / Tf) - stateData.cj);
     if (!inputLocs.empty()) {
         matrixData.assignCheckCol(diff + angleLag, inputLocs[0], 1.0 / Tf);
     }
     matrixData.assign(diff + angleWashout, diff + angleLag, 1.0 / Tw);
-    matrixData.assign(diff + angleWashout, diff + angleWashout, -1.0 / Tw - stateData.cj);
+    matrixData.assign(diff + angleWashout, diff + angleWashout, (-1.0 / Tw) - stateData.cj);
     matrixData.assign(diff + frequencyWashout, diff + angleLag, gain / Tr);
     matrixData.assign(diff + frequencyWashout, diff + angleWashout, -gain / Tr);
-    matrixData.assign(diff + frequencyWashout, diff + frequencyWashout, -1.0 / Tr - stateData.cj);
+    matrixData.assign(diff + frequencyWashout,
+                      diff + frequencyWashout,
+                      (-1.0 / Tr) - stateData.cj);
 }
 
 void BusROCOF::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
@@ -228,25 +231,26 @@ void BusROCOF::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /
     const auto intermediate = [&](const std::array<double, 3>& slope, double scale) {
         std::array<double, 3> state{};
         for (index_t index = 0; index < 3; ++index) {
-            state[index] = old[index] + scale * deltaTime * slope[index];
+            state[index] = old[index] + (scale * deltaTime * slope[index]);
         }
         return state;
     };
     const double middleAngle = 0.5 * (lastAngle + inputs[0]);
-    const auto k1 = rates(lastAngle, old.data());
-    const auto s2 = intermediate(k1, 0.5);
-    const auto k2 = rates(middleAngle, s2.data());
-    const auto s3 = intermediate(k2, 0.5);
-    const auto k3 = rates(middleAngle, s3.data());
-    const auto s4 = intermediate(k3, 1.0);
-    const auto k4 = rates(inputs[0], s4.data());
+    const auto initialSlope = rates(lastAngle, old.data());
+    const auto secondStageState = intermediate(initialSlope, 0.5);
+    const auto secondSlope = rates(middleAngle, secondStageState.data());
+    const auto thirdStageState = intermediate(secondSlope, 0.5);
+    const auto thirdSlope = rates(middleAngle, thirdStageState.data());
+    const auto fourthStageState = intermediate(thirdSlope, 1.0);
+    const auto fourthSlope = rates(inputs[0], fourthStageState.data());
     for (index_t index = 0; index < 3; ++index) {
         m_state[2 + index] +=
-            (deltaTime / 6.0) * (k1[index] + 2.0 * k2[index] + 2.0 * k3[index] + k4[index]);
+            (deltaTime / 6.0) * (initialSlope[index] + (2.0 * secondSlope[index]) +
+                                 (2.0 * thirdSlope[index]) + fourthSlope[index]);
     }
-    const double df = deviation(m_state.data() + 2);
-    m_state[deviationOutput] = df;
-    m_state[rocofOutput] = (1.0 + df - m_state[2 + frequencyWashout]) / Tr;
+    const double frequencyDeviation = deviation(m_state.data() + 2);
+    m_state[deviationOutput] = frequencyDeviation;
+    m_state[rocofOutput] = (1.0 + frequencyDeviation - m_state[2 + frequencyWashout]) / Tr;
     lastAngle = inputs[0];
     prevTime = time;
 }

@@ -510,7 +510,7 @@ std::array<double, 4> REECA1::rates(const IOdata& inputs, const double state[]) 
     const double external = inputs.size() > 3 ? inputs[3] : kNullVal;
     const double speed = generatorSpeed(inputs);
     const double pref =
-        ((external == kNullVal ? initialP : external) + optionalIncrement(inputs, 1)) / speed +
+        (((external == kNullVal ? initialP : external) + optionalIncrement(inputs, 1)) / speed) +
         activeReferenceAdjustment(inputs);
     const double qref = std::clamp(initialQ + optionalIncrement(inputs, 2), QMin, QMax);
     const double pRate = std::clamp((pref - state[powerFilter]) / Tpfilt, dPmin, dPmax);
@@ -655,7 +655,7 @@ void REECA1::jacobianElements(const IOdata& inputs,
     const double speed = generatorSpeed(inputs);
     const double rawPref =
         (external == kNullVal ? initialP : external) + optionalIncrement(inputs, 1);
-    const double pref = rawPref / speed + activeReferenceAdjustment(inputs);
+    const double pref = (rawPref / speed) + activeReferenceAdjustment(inputs);
     const double pRaw = (pref - state[powerFilter]) / Tpfilt;
     const bool pFree = pRaw > dPmin && pRaw < dPmax;
     matrixData.assign(diff + powerFilter,

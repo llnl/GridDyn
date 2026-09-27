@@ -127,7 +127,7 @@ double REECA1E::activeReferenceAdjustment(const IOdata& inputs) const
         inputs[5] == kNullVal || inputs[6] == kNullVal) {
         throw InvalidParameterValue("REECA1E requires frequency deviation and ROCOF");
     }
-    return -Kf * inputs[5] - Kdf * inputs[6];
+    return (-Kf * inputs[5]) - (Kdf * inputs[6]);
 }
 
 void REECA1E::activeReferenceJacobian(const IOlocs& inputLocs,

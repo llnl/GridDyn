@@ -24,13 +24,13 @@ enum class RenewableRole : index_t {
     pitchControl,
     torqueControl,
     rotorResistanceControl,
-    measurement,
     count,
 };
 
 enum class RenewableSignal {
     terminalVoltage,
     terminalAngle,
+    measuredAngle,
     terminalFrequency,
     electricalPower,
     reactivePower,

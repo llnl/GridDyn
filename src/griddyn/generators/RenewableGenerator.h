@@ -10,9 +10,11 @@
 #include "../renewables/RenewableComponent.h"
 #include <array>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace griddyn {
+class BusMeasurementSensor;
 
 /** Generator host for independently replaceable renewable dynamic components. */
 class RenewableGenerator: public Generator {
@@ -105,6 +107,8 @@ class RenewableGenerator: public Generator {
                           const IOlocs& inputLocs,
                           const SolverMode& sMode) const;
     void validateAssembly() const;
+    std::pair<BusMeasurementSensor*, index_t> measurementSource(const RenewableComponent* model,
+                                                                RenewableSignal signal) const;
     static std::size_t roleIndex(RenewableRole role);
 };
 

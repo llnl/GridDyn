@@ -367,6 +367,9 @@ void Sensor::generateInputGrabbers()
     auto iSize = static_cast<int>(inputStrings.size());
     ensureSizeAtLeast(dataSources, iSize);
     for (int ii = 0; ii < iSize; ++ii) {
+        if (inputStrings[ii].empty()) {
+            throw InvalidParameterValue("sensor input expression is empty");
+        }
         if (inputStrings[ii].front() == '#')  // escape hatch for previously loaded grabbers
         {
             continue;
@@ -374,6 +377,9 @@ void Sensor::generateInputGrabbers()
         auto istr = inputStrings[ii];
         if (istr.back() == '_') {
             istr.pop_back();
+        }
+        if (istr.empty()) {
+            throw InvalidParameterValue("sensor input expression is empty");
         }
         auto cloc = istr.find_first_of(':');
 
@@ -597,9 +603,16 @@ void Sensor::dynObjectInitializeB(const IOdata& inputs,
     const auto outputCount = m_outputSize;
     const auto filterBlockCount = static_cast<int>(filterBlocks.size());
     const auto dataSourceCount = static_cast<int>(dataSources.size());
+    if (outputMode.size() < static_cast<std::size_t>(outputCount) ||
+        outputs.size() < static_cast<std::size_t>(outputCount)) {
+        throw InvalidParameterValue("sensor output names and output sources have different counts");
+    }
     for (count_t kk = 0; kk < outputCount; ++kk) {
         switch (outputMode[kk]) {
             case OutputMode::BLOCK:
+                if (filterBlockCount == 0) {
+                    throw InvalidParameterValue("sensor block output has no filter block");
+                }
                 if ((outputs[kk] < 0) || (outputs[kk] >= filterBlockCount)) {
                     if (blkcnt < filterBlockCount) {
                         outputs[kk] = blkcnt;
@@ -610,6 +623,9 @@ void Sensor::dynObjectInitializeB(const IOdata& inputs,
                 ++blkcnt;
                 break;
             case OutputMode::BLOCK_DERIV:
+                if (filterBlockCount == 0) {
+                    throw InvalidParameterValue("sensor derivative output has no filter block");
+                }
                 if ((outputs[kk] < 0) || (outputs[kk] >= filterBlockCount)) {
                     if (blkcnt < filterBlockCount) {
                         outputs[kk] = blkcnt;
@@ -619,6 +635,9 @@ void Sensor::dynObjectInitializeB(const IOdata& inputs,
                 }
                 break;
             case OutputMode::DIRECT:
+                if (dataSourceCount == 0) {
+                    throw InvalidParameterValue("sensor direct output has no data source");
+                }
                 if ((outputs[kk] < 0) || (outputs[kk] >= dataSourceCount)) {
                     if (ocount < dataSourceCount) {
                         outputs[kk] = ocount;
@@ -629,6 +648,11 @@ void Sensor::dynObjectInitializeB(const IOdata& inputs,
                 ++ocount;
                 break;
             case OutputMode::PROCESSED:
+                if (outGrabbers.size() <= static_cast<std::size_t>(kk) ||
+                    outGrabbers[kk] == nullptr) {
+                    throw InvalidParameterValue("sensor processed output has no grabber");
+                }
+                break;
             default:
                 break;
         }
@@ -871,7 +895,17 @@ void Sensor::outputPartialDerivatives(const IOdata& /*inputs*/,
                                                                     sMode);
                 break;
             case OutputMode::PROCESSED:
+                if (outGrabbers[pp] && outGrabbers[pp]->hasJacobian()) {
+                    aDT.setTranslation(0, pp);
+                    outGrabbers[pp]->outputPartialDerivatives(stateDataValue, aDT, sMode);
+                }
+                break;
             case OutputMode::DIRECT:
+                if (dataSources[outputs[pp]] && dataSources[outputs[pp]]->hasJacobian()) {
+                    aDT.setTranslation(0, pp);
+                    dataSources[outputs[pp]]->outputPartialDerivatives(stateDataValue, aDT, sMode);
+                }
+                break;
             default:
                 // out[pp] = kNullVal;
                 break;

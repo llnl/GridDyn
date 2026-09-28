@@ -17,8 +17,8 @@
 #include "griddyn/GenModel.h"
 #include "griddyn/Generator.h"
 #include "griddyn/Governor.h"
-#include "griddyn/GridBus.h"
 #include "griddyn/GridArea.h"
+#include "griddyn/GridBus.h"
 #include "griddyn/GridDynSimulation.h"
 #include "griddyn/Stabilizer.h"
 #include "griddyn/generators/DynamicGenerator.h"
@@ -26,6 +26,7 @@
 #include "griddyn/governors/GovernorHygov.h"
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorReheat.h"
+#include "griddyn/relays/BusMeasurementSensor.h"
 #include "griddyn/renewables/BusROCOF.h"
 #include "griddyn/renewables/REECA1.h"
 #include "griddyn/renewables/REECA1E.h"
@@ -38,7 +39,6 @@
 #include "griddyn/renewables/WTDTA1.h"
 #include "griddyn/renewables/WTPTA1.h"
 #include "griddyn/renewables/WTTQA1.h"
-#include "griddyn/relays/BusMeasurementSensor.h"
 #include "griddyn/stabilizers/StabilizerIEEEST.h"
 #include "griddyn/stabilizers/StabilizerST2CUT.h"
 #include <array>
@@ -436,7 +436,8 @@ namespace {
     void loadMeasurement(CoreObject* parentObject, stringVec& tokens, std::string_view modelName)
     {
         const std::size_t expected = modelName == "BUSROCOF" || modelName == "PLL1" ? 8U :
-            modelName == "PLL2" ? 6U : 3U;
+            modelName == "PLL2"                                                     ? 6U :
+                                                                                      3U;
         if (tokens.size() != expected) {
             throw InvalidParameterValue(std::string{modelName} +
                                         " DYR record has the wrong field count");
@@ -445,8 +446,8 @@ namespace {
             requireDyrGenerator(parentObject, tokens, modelName);
         }
         int busId = 0;
-        const auto parsed = std::from_chars(tokens[0].data(),
-                                            tokens[0].data() + tokens[0].size(), busId);
+        const auto parsed =
+            std::from_chars(tokens[0].data(), tokens[0].data() + tokens[0].size(), busId);
         if (parsed.ec != std::errc{} || parsed.ptr != tokens[0].data() + tokens[0].size()) {
             throw InvalidParameterValue(std::string{modelName} + " requires a numeric bus ID");
         }
@@ -466,10 +467,15 @@ namespace {
             }
         }
         std::unique_ptr<BusMeasurementSensor> sensor;
-        if (modelName == "BUSROCOF") { sensor = std::make_unique<BusROCOFSensor>(name); }
-        else if (modelName == "PLL1") { sensor = std::make_unique<PLL1Sensor>(name); }
-        else if (modelName == "PLL2") { sensor = std::make_unique<PLL2Sensor>(name); }
-        else { sensor = std::make_unique<FreqDivSensor>(name); }
+        if (modelName == "BUSROCOF") {
+            sensor = std::make_unique<BusROCOFSensor>(name);
+        } else if (modelName == "PLL1") {
+            sensor = std::make_unique<PLL1Sensor>(name);
+        } else if (modelName == "PLL2") {
+            sensor = std::make_unique<PLL2Sensor>(name);
+        } else {
+            sensor = std::make_unique<FreqDivSensor>(name);
+        }
         sensor->setSource(source);
         const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
         const auto setFields = [&](std::span<const std::string_view> fields, std::size_t first) {
@@ -483,10 +489,12 @@ namespace {
             }
         };
         if (modelName == "BUSROCOF") {
-            static constexpr auto fields = std::to_array<std::string_view>({"tf", "tw", "tr", "fn"});
+            static constexpr auto fields =
+                std::to_array<std::string_view>({"tf", "tw", "tr", "fn"});
             setFields(fields, 4);
         } else if (modelName == "PLL1") {
-            static constexpr auto fields = std::to_array<std::string_view>({"kp", "ki", "tf", "tp", "fn"});
+            static constexpr auto fields =
+                std::to_array<std::string_view>({"kp", "ki", "tf", "tp", "fn"});
             setFields(fields, 3);
         } else if (modelName == "PLL2") {
             static constexpr auto fields = std::to_array<std::string_view>({"kp", "ki", "fn"});
@@ -495,14 +503,13 @@ namespace {
         if (modelName == "BUSROCOF") {
             for (const auto key : {"tf", "tw", "tr", "fn"}) {
                 if (sensor->get(key) <= 0.0) {
-                    throw InvalidParameterValue("BUSROCOF DYR time constants and fn must be positive");
+                    throw InvalidParameterValue(
+                        "BUSROCOF DYR time constants and fn must be positive");
                 }
             }
         } else if (modelName == "PLL1" || modelName == "PLL2") {
-            if (sensor->get("kp") < 0.0 || sensor->get("ki") < 0.0 ||
-                sensor->get("fn") <= 0.0 ||
-                (modelName == "PLL1" &&
-                 (sensor->get("tf") <= 0.0 || sensor->get("tp") <= 0.0))) {
+            if (sensor->get("kp") < 0.0 || sensor->get("ki") < 0.0 || sensor->get("fn") <= 0.0 ||
+                (modelName == "PLL1" && (sensor->get("tf") <= 0.0 || sensor->get("tp") <= 0.0))) {
                 throw InvalidParameterValue(std::string{modelName} + " DYR parameters are invalid");
             }
         }

@@ -6,8 +6,8 @@
 
 #include "RenewableGenerator.h"
 
-#include "../GridBus.h"
 #include "../GridArea.h"
+#include "../GridBus.h"
 #include "../relays/BusMeasurementSensor.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
@@ -128,8 +128,7 @@ void RenewableGenerator::validateAssembly() const
             continue;
         }
         for (const auto& input : component->inputPorts()) {
-            if (isTerminalSignal(input.signal) &&
-                component->sourceName(input.signal).empty()) {
+            if (isTerminalSignal(input.signal) && component->sourceName(input.signal).empty()) {
                 continue;
             }
             count_t providers = 0;
@@ -148,7 +147,8 @@ void RenewableGenerator::validateAssembly() const
                 }
             }
             if (((input.required || !component->sourceName(input.signal).empty()) &&
-                 providers != 1) || providers > 1) {
+                 providers != 1) ||
+                providers > 1) {
                 throw InvalidParameterValue("renewable input has no unique compatible provider");
             }
         }
@@ -173,8 +173,8 @@ void RenewableGenerator::validateAssembly() const
 }
 
 std::pair<BusMeasurementSensor*, index_t>
-RenewableGenerator::measurementSource(const RenewableComponent* model,
-                                       RenewableSignal signal) const
+    RenewableGenerator::measurementSource(const RenewableComponent* model,
+                                          RenewableSignal signal) const
 {
     const auto requested = model->sourceName(signal);
     if (requested.empty()) {
@@ -197,17 +197,28 @@ RenewableGenerator::measurementSource(const RenewableComponent* model,
         }
         index_t candidateOutput = kNullLocation;
         if (dynamic_cast<BusROCOFSensor*>(sensor) != nullptr) {
-            if (signal == RenewableSignal::frequencyDeviation) { candidateOutput = 0; }
-            if (signal == RenewableSignal::rateOfChangeOfFrequency) { candidateOutput = 1; }
+            if (signal == RenewableSignal::frequencyDeviation) {
+                candidateOutput = 0;
+            }
+            if (signal == RenewableSignal::rateOfChangeOfFrequency) {
+                candidateOutput = 1;
+            }
         } else if (dynamic_cast<PLLSensor*>(sensor) != nullptr) {
             if (signal == RenewableSignal::terminalAngle ||
-                signal == RenewableSignal::measuredAngle) { candidateOutput = 0; }
-            if (signal == RenewableSignal::frequencyDeviation) { candidateOutput = 1; }
+                signal == RenewableSignal::measuredAngle) {
+                candidateOutput = 0;
+            }
+            if (signal == RenewableSignal::frequencyDeviation) {
+                candidateOutput = 1;
+            }
         } else if (dynamic_cast<FreqDivSensor*>(sensor) != nullptr) {
-            if (signal == RenewableSignal::terminalFrequency) { candidateOutput = 0; }
+            if (signal == RenewableSignal::terminalFrequency) {
+                candidateOutput = 0;
+            }
         }
         if (candidateOutput == kNullLocation || match != nullptr) {
-            throw InvalidParameterValue("named renewable measurement has an incompatible or duplicate output");
+            throw InvalidParameterValue(
+                "named renewable measurement has an incompatible or duplicate output");
         }
         match = sensor;
         output = candidateOutput;
@@ -494,7 +505,9 @@ void RenewableGenerator::timestep(CoreTime time, const IOdata& inputs, const Sol
     // measurements consumed by this generator before stepping its controls.
     std::vector<BusMeasurementSensor*> advanced;
     for (const auto* component : components) {
-        if (component == nullptr || !component->isEnabled()) { continue; }
+        if (component == nullptr || !component->isEnabled()) {
+            continue;
+        }
         for (const auto& port : component->inputPorts()) {
             auto* sensor = measurementSource(component, port.signal).first;
             if (sensor != nullptr && sensor->diffSize(cLocalSolverMode) > 0 &&

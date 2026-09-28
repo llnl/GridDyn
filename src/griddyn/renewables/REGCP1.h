@@ -27,10 +27,10 @@ class REGCP1 final: public REGCA1 {
 
   protected:
     std::array<double, 2> powerInjection(const IOdata& inputs,
-                                          double activeCurrent,
-                                          double reactiveCurrent) const override;
+                                         double activeCurrent,
+                                         double reactiveCurrent) const override;
     std::array<double, 2> initialCurrentFramePower(const IOdata& inputs,
-                                                    const IOdata& desiredOutput) const override;
+                                                   const IOdata& desiredOutput) const override;
     void powerJacobian(const IOdata& inputs,
                        const double state[],
                        MatrixData<double>& matrixData,

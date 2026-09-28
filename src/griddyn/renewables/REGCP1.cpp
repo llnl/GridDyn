@@ -20,9 +20,13 @@ namespace {
     constexpr std::array<RenewablePort, 5> inputPortMap{{
         {.signal = RenewableSignal::terminalVoltage, .ioIndex = 0},
         {.signal = RenewableSignal::activeCurrentCommand,
-         .ioIndex = 1, .base = RenewableBase::machine, .required = false},
+         .ioIndex = 1,
+         .base = RenewableBase::machine,
+         .required = false},
         {.signal = RenewableSignal::reactiveCurrentCommand,
-         .ioIndex = 2, .base = RenewableBase::machine, .required = false},
+         .ioIndex = 2,
+         .base = RenewableBase::machine,
+         .required = false},
         {.signal = RenewableSignal::terminalAngle, .ioIndex = 3},
         {.signal = RenewableSignal::measuredAngle, .ioIndex = 4, .required = false},
     }};
@@ -36,7 +40,9 @@ REGCP1::REGCP1(const std::string& name): REGCA1(name)
 CoreObject* REGCP1::clone(CoreObject* obj) const
 {
     auto* out = cloneBase<REGCP1, REGCA1>(this, obj);
-    if (out != nullptr) { out->pllName = pllName; }
+    if (out != nullptr) {
+        out->pllName = pllName;
+    }
     return out == nullptr ? obj : out;
 }
 
@@ -47,7 +53,8 @@ std::span<const RenewablePort> REGCP1::inputPorts() const
 
 std::string_view REGCP1::sourceName(RenewableSignal signal) const
 {
-    return signal == RenewableSignal::measuredAngle ? std::string_view{pllName} : std::string_view{};
+    return signal == RenewableSignal::measuredAngle ? std::string_view{pllName} :
+                                                      std::string_view{};
 }
 
 void REGCP1::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
@@ -73,7 +80,8 @@ void REGCP1::set(std::string_view param, std::string_view val)
     if (gmlc::utilities::convertToLowerCase(std::string{param}) == "pll") {
         const auto value = gmlc::utilities::convertToLowerCase(std::string{val});
         pllName = value.empty() || value == "none" || value == "null" || value == "0" ?
-            std::string{} : std::string{val};
+            std::string{} :
+            std::string{val};
         return;
     }
     GridComponent::set(param, val);
@@ -81,7 +89,9 @@ void REGCP1::set(std::string_view param, std::string_view val)
 
 double REGCP1::angleDifference(const IOdata& inputs) const
 {
-    if (pllName.empty()) { return 0.0; }
+    if (pllName.empty()) {
+        return 0.0;
+    }
     if (inputs.size() <= 4 || inputs[3] == kNullVal || inputs[4] == kNullVal ||
         !std::isfinite(inputs[3]) || !std::isfinite(inputs[4])) {
         throw InvalidParameterValue("REGCP1 requires terminal and named PLL angles");
@@ -89,9 +99,8 @@ double REGCP1::angleDifference(const IOdata& inputs) const
     return inputs[3] - inputs[4];
 }
 
-std::array<double, 2> REGCP1::powerInjection(const IOdata& inputs,
-                                              double activeCurrent,
-                                              double reactiveCurrent) const
+std::array<double, 2>
+    REGCP1::powerInjection(const IOdata& inputs, double activeCurrent, double reactiveCurrent) const
 {
     const double delta = angleDifference(inputs);
     const double cosine = std::cos(delta);
@@ -102,7 +111,7 @@ std::array<double, 2> REGCP1::powerInjection(const IOdata& inputs,
 }
 
 std::array<double, 2> REGCP1::initialCurrentFramePower(const IOdata& inputs,
-                                                         const IOdata& desiredOutput) const
+                                                       const IOdata& desiredOutput) const
 {
     const double delta = angleDifference(inputs);
     return {std::cos(delta) * desiredOutput[0] + std::sin(delta) * desiredOutput[1],
@@ -110,12 +119,12 @@ std::array<double, 2> REGCP1::initialCurrentFramePower(const IOdata& inputs,
 }
 
 void REGCP1::powerJacobian(const IOdata& inputs,
-                            const double state[],
-                            MatrixData<double>& matrixData,
-                            const IOlocs& inputLocs,
-                            const SolverMode& sMode,
-                            index_t alg,
-                            index_t diff) const
+                           const double state[],
+                           MatrixData<double>& matrixData,
+                           const IOlocs& inputLocs,
+                           const SolverMode& sMode,
+                           index_t alg,
+                           index_t diff) const
 {
     const double voltage = inputs[0];
     const double delta = angleDifference(inputs);

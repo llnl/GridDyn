@@ -58,14 +58,23 @@ class PLLSensor: public BusMeasurementSensor {
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
-    void residual(const IOdata& inputs, const StateData& stateData, double resid[],
+    void residual(const IOdata& inputs,
+                  const StateData& stateData,
+                  double resid[],
                   const SolverMode& sMode) override;
-    void derivative(const IOdata& inputs, const StateData& stateData, double deriv[],
+    void derivative(const IOdata& inputs,
+                    const StateData& stateData,
+                    double deriv[],
                     const SolverMode& sMode) override;
-    void algebraicUpdate(const IOdata& inputs, const StateData& stateData, double update[],
-                         const SolverMode& sMode, double alpha) override;
-    void jacobianElements(const IOdata& inputs, const StateData& stateData,
-                          MatrixData<double>& matrixData, const IOlocs& inputLocs,
+    void algebraicUpdate(const IOdata& inputs,
+                         const StateData& stateData,
+                         double update[],
+                         const SolverMode& sMode,
+                         double alpha) override;
+    void jacobianElements(const IOdata& inputs,
+                          const StateData& stateData,
+                          MatrixData<double>& matrixData,
+                          const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
     void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
@@ -98,14 +107,23 @@ class BusROCOFSensor final: public BusMeasurementSensor {
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
-    void residual(const IOdata& inputs, const StateData& stateData, double resid[],
+    void residual(const IOdata& inputs,
+                  const StateData& stateData,
+                  double resid[],
                   const SolverMode& sMode) override;
-    void derivative(const IOdata& inputs, const StateData& stateData, double deriv[],
+    void derivative(const IOdata& inputs,
+                    const StateData& stateData,
+                    double deriv[],
                     const SolverMode& sMode) override;
-    void algebraicUpdate(const IOdata& inputs, const StateData& stateData, double update[],
-                         const SolverMode& sMode, double alpha) override;
-    void jacobianElements(const IOdata& inputs, const StateData& stateData,
-                          MatrixData<double>& matrixData, const IOlocs& inputLocs,
+    void algebraicUpdate(const IOdata& inputs,
+                         const StateData& stateData,
+                         double update[],
+                         const SolverMode& sMode,
+                         double alpha) override;
+    void jacobianElements(const IOdata& inputs,
+                          const StateData& stateData,
+                          MatrixData<double>& matrixData,
+                          const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
     void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
 
@@ -127,12 +145,19 @@ class FreqDivSensor final: public BusMeasurementSensor {
     void dynObjectInitializeB(const IOdata& inputs,
                               const IOdata& desiredOutput,
                               IOdata& fieldSet) override;
-    void residual(const IOdata& inputs, const StateData& stateData, double resid[],
+    void residual(const IOdata& inputs,
+                  const StateData& stateData,
+                  double resid[],
                   const SolverMode& sMode) override;
-    void algebraicUpdate(const IOdata& inputs, const StateData& stateData, double update[],
-                         const SolverMode& sMode, double alpha) override;
-    void jacobianElements(const IOdata& inputs, const StateData& stateData,
-                          MatrixData<double>& matrixData, const IOlocs& inputLocs,
+    void algebraicUpdate(const IOdata& inputs,
+                         const StateData& stateData,
+                         double update[],
+                         const SolverMode& sMode,
+                         double alpha) override;
+    void jacobianElements(const IOdata& inputs,
+                          const StateData& stateData,
+                          MatrixData<double>& matrixData,
+                          const IOlocs& inputLocs,
                           const SolverMode& sMode) override;
 
   protected:
@@ -153,7 +178,8 @@ class FreqDivSensor final: public BusMeasurementSensor {
     double diagonal = 0.0;
     std::pair<double, double> lineCoefficients(const Neighbor& neighbor) const;
     double effectiveDiagonal() const;
-    double frequencyResidual(const StateData& stateData, const SolverMode& sMode,
+    double frequencyResidual(const StateData& stateData,
+                             const SolverMode& sMode,
                              double ownFrequency) const;
 };
 

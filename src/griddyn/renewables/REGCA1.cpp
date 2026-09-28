@@ -199,16 +199,14 @@ double REGCA1::lowVoltageGainSlope(double voltage) const
     return voltage > Lvpnt0 && voltage < Lvpnt1 ? 1.0 / (Lvpnt1 - Lvpnt0) : 0.0;
 }
 
-std::array<double, 2> REGCA1::powerInjection(const IOdata& inputs,
-                                             double activeCurrent,
-                                             double reactiveCurrent) const
+std::array<double, 2>
+    REGCA1::powerInjection(const IOdata& inputs, double activeCurrent, double reactiveCurrent) const
 {
-    return {inputs[0] * activeCurrent * lowVoltageGain(inputs[0]),
-            inputs[0] * reactiveCurrent};
+    return {inputs[0] * activeCurrent * lowVoltageGain(inputs[0]), inputs[0] * reactiveCurrent};
 }
 
 std::array<double, 2> REGCA1::initialCurrentFramePower(const IOdata&,
-                                                        const IOdata& desiredOutput) const
+                                                       const IOdata& desiredOutput) const
 {
     return {desiredOutput[0], desiredOutput[1]};
 }
@@ -373,9 +371,8 @@ void REGCA1::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*s
     for (index_t index = 0; index < 3; ++index) {
         m_state[2 + index] += deltaTime * m_dstate_dt[2 + index];
     }
-    const auto power = powerInjection(inputs,
-                                      m_state[2 + activeCurrentState],
-                                      m_state[2 + reactiveCurrentState]);
+    const auto power =
+        powerInjection(inputs, m_state[2 + activeCurrentState], m_state[2 + reactiveCurrentState]);
     m_state[activePower] = power[0];
     m_state[reactivePower] = power[1];
     prevTime = time;

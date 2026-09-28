@@ -107,8 +107,8 @@ class RenewableGenerator: public Generator {
                           const IOlocs& inputLocs,
                           const SolverMode& sMode) const;
     void validateAssembly() const;
-    std::pair<BusMeasurementSensor*, index_t>
-        measurementSource(const RenewableComponent* model, RenewableSignal signal) const;
+    std::pair<BusMeasurementSensor*, index_t> measurementSource(const RenewableComponent* model,
+                                                                RenewableSignal signal) const;
     static std::size_t roleIndex(RenewableRole role);
 };
 

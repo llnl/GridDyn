@@ -9,11 +9,12 @@
 #include "core/ObjectFactory.hpp"
 #include "fileInput/ReaderInfo.h"
 #include "fileInput/fileInput.h"
-#include "griddyn/GridDynSimulation.h"
 #include "griddyn/GridArea.h"
+#include "griddyn/GridDynSimulation.h"
 #include "griddyn/generators/RenewableGenerator.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/primary/AcBus.h"
+#include "griddyn/relays/BusMeasurementSensor.h"
 #include "griddyn/renewables/BusROCOF.h"
 #include "griddyn/renewables/REECA1.h"
 #include "griddyn/renewables/REECA1E.h"
@@ -26,7 +27,6 @@
 #include "griddyn/renewables/WTDTA1.h"
 #include "griddyn/renewables/WTPTA1.h"
 #include "griddyn/renewables/WTTQA1.h"
-#include "griddyn/relays/BusMeasurementSensor.h"
 #include "utilities/MatrixDataSparse.hpp"
 #include <algorithm>
 #include <array>
@@ -267,11 +267,15 @@ TEST(RenewableModels, REGCP1RotatesPowerAndInitializesCurrentFrame)
     EXPECT_EQ(converter.sourceName(RenewableSignal::measuredAngle), "pll1");
     double residual[5]{};
     converter.residual({1.0, kNullVal, kNullVal, delta, 0.0},
-                       emptyStateData, residual, cLocalSolverMode);
-    for (double value : residual) { EXPECT_NEAR(value, 0.0, 1e-12); }
+                       emptyStateData,
+                       residual,
+                       cLocalSolverMode);
+    for (double value : residual) {
+        EXPECT_NEAR(value, 0.0, 1e-12);
+    }
     std::array<double, 5> update{};
-    converter.algebraicUpdate({1.0, kNullVal, kNullVal, 0.0, 0.0},
-                              emptyStateData, update.data(), cLocalSolverMode, 1.0);
+    converter.algebraicUpdate(
+        {1.0, kNullVal, kNullVal, 0.0, 0.0}, emptyStateData, update.data(), cLocalSolverMode, 1.0);
     EXPECT_NEAR(update[0], converter.getStates()[2], 1e-12);
     EXPECT_NEAR(update[1], converter.getStates()[3], 1e-12);
     std::unique_ptr<CoreObject> copy(converter.clone());
@@ -295,8 +299,8 @@ TEST(RenewableModels, REGCP1AngleAndCurrentJacobiansMatchResidual)
     data.stateSize = static_cast<count_t>(state.size());
     IOdata inputs{0.9, kNullVal, kNullVal, 0.2, 0.05};
     MatrixDataSparse<double> jacobian;
-    converter.jacobianElements(inputs, data, jacobian,
-                               {10, kNullLocation, kNullLocation, 11, 12}, cDaeSolverMode);
+    converter.jacobianElements(
+        inputs, data, jacobian, {10, kNullLocation, kNullLocation, 11, 12}, cDaeSolverMode);
     const auto evaluate = [&]() {
         std::vector<double> residual(state.size());
         converter.residual(inputs, data, residual.data(), cDaeSolverMode);
@@ -309,7 +313,8 @@ TEST(RenewableModels, REGCP1AngleAndCurrentJacobiansMatchResidual)
         const auto shifted = evaluate();
         for (std::size_t row = 0; row < 2; ++row) {
             EXPECT_NEAR(jacobian.at(static_cast<index_t>(row), static_cast<index_t>(column)),
-                        (shifted[row] - base[row]) / step, 1e-5);
+                        (shifted[row] - base[row]) / step,
+                        1e-5);
         }
         state[column] -= step;
     }
@@ -318,7 +323,8 @@ TEST(RenewableModels, REGCP1AngleAndCurrentJacobiansMatchResidual)
         const auto shifted = evaluate();
         for (std::size_t row = 0; row < 2; ++row) {
             EXPECT_NEAR(jacobian.at(static_cast<index_t>(row), location),
-                        (shifted[row] - base[row]) / step, 1e-5);
+                        (shifted[row] - base[row]) / step,
+                        1e-5);
         }
         inputs[index] -= step;
     }
@@ -743,7 +749,8 @@ TEST(RenewableModels, MultiplePLLSensorsHaveIndependentStates)
     PLL1Sensor first("pll1a");
     PLL1Sensor second("pll1b");
     PLL2Sensor third("pll2");
-    for (auto* sensor : {static_cast<PLLSensor*>(&first), static_cast<PLLSensor*>(&second),
+    for (auto* sensor : {static_cast<PLLSensor*>(&first),
+                         static_cast<PLLSensor*>(&second),
                          static_cast<PLLSensor*>(&third)}) {
         sensor->setSource(&bus);
         sensor->dynInitializeA(0.0, 0);
@@ -826,17 +833,20 @@ TEST(RenewableModels, PLLSensorDaeJacobiansMatchResiduals)
         constexpr double step = 1e-7;
         for (std::size_t column = 0; column < state.size(); ++column) {
             state[column] += step;
-            if (column >= 1) { rate[column] += step; }
+            if (column >= 1) {
+                rate[column] += step;
+            }
             const auto perturbed = evaluate();
             for (std::size_t row = 0; row < state.size(); ++row) {
-                EXPECT_NEAR(jacobian.at(static_cast<index_t>(row),
-                                        static_cast<index_t>(column)),
+                EXPECT_NEAR(jacobian.at(static_cast<index_t>(row), static_cast<index_t>(column)),
                             (perturbed[row] - base[row]) / step,
                             1e-4)
                     << sensor->getName() << " row " << row << " column " << column;
             }
             state[column] -= step;
-            if (column >= 1) { rate[column] -= step; }
+            if (column >= 1) {
+                rate[column] -= step;
+            }
         }
     }
 }
@@ -869,16 +879,19 @@ TEST(RenewableModels, BusROCOFSensorDaeJacobianMatchesResidual)
     constexpr double step = 1e-7;
     for (std::size_t column = 0; column < state.size(); ++column) {
         state[column] += step;
-        if (column >= 2) { rate[column] += step; }
+        if (column >= 2) {
+            rate[column] += step;
+        }
         const auto perturbed = evaluate();
         for (std::size_t row = 0; row < state.size(); ++row) {
-            EXPECT_NEAR(jacobian.at(static_cast<index_t>(row),
-                                    static_cast<index_t>(column)),
+            EXPECT_NEAR(jacobian.at(static_cast<index_t>(row), static_cast<index_t>(column)),
                         (perturbed[row] - base[row]) / step,
                         1e-5);
         }
         state[column] -= step;
-        if (column >= 2) { rate[column] -= step; }
+        if (column >= 2) {
+            rate[column] -= step;
+        }
     }
 }
 
@@ -1286,10 +1299,8 @@ TEST(RenewableModels, DyrBindsREGCP1ToNamedPLLInEitherOrder)
         const auto ip = converter->getStates()[2];
         const auto iq = converter->getStates()[3];
         host->timestep(0.0, {1.0, 0.2}, cLocalSolverMode);
-        EXPECT_NEAR(converter->getStates()[0],
-                    std::cos(0.2) * ip - std::sin(0.2) * iq, 1e-12);
-        EXPECT_NEAR(converter->getStates()[1],
-                    std::sin(0.2) * ip + std::cos(0.2) * iq, 1e-12);
+        EXPECT_NEAR(converter->getStates()[0], std::cos(0.2) * ip - std::sin(0.2) * iq, 1e-12);
+        EXPECT_NEAR(converter->getStates()[1], std::sin(0.2) * ip + std::cos(0.2) * iq, 1e-12);
     }
     auto missing = renewableDyrSimulation();
     loadRenewableRecords(*missing, {"REGCP1_PLL"});
@@ -1783,7 +1794,9 @@ TEST(RenewableModels, REGCP1NamedPLLIntegratesInNetwork)
     EXPECT_EQ(runResidualCheck(simulation, cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(simulation, cDaeSolverMode, false), 0);
     ASSERT_EQ(simulation->run(0.1), 0);
-    for (double value : simulation->getState()) { EXPECT_TRUE(std::isfinite(value)); }
+    for (double value : simulation->getState()) {
+        EXPECT_TRUE(std::isfinite(value));
+    }
 }
 
 TEST(RenewableModels, SolarDyrIntegratesInNetwork)

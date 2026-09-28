@@ -53,11 +53,10 @@ class REGCA1: public TerminalElectricalModel {
     stringVec localStateNames() const override;
 
   protected:
-    virtual std::array<double, 2> powerInjection(const IOdata& inputs,
-                                                  double activeCurrent,
-                                                  double reactiveCurrent) const;
+    virtual std::array<double, 2>
+        powerInjection(const IOdata& inputs, double activeCurrent, double reactiveCurrent) const;
     virtual std::array<double, 2> initialCurrentFramePower(const IOdata& inputs,
-                                                            const IOdata& desiredOutput) const;
+                                                           const IOdata& desiredOutput) const;
     virtual void powerJacobian(const IOdata& inputs,
                                const double state[],
                                MatrixData<double>& matrixData,

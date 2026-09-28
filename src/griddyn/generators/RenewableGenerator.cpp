@@ -104,9 +104,6 @@ CoreObject* RenewableGenerator::find(std::string_view object) const
     if (object == "plant_control") {
         return components[roleIndex(RenewableRole::plantControl)];
     }
-    if (object == "measurement") {
-        return components[roleIndex(RenewableRole::measurement)];
-    }
     return Generator::find(object);
 }
 
@@ -187,7 +184,8 @@ std::pair<BusMeasurementSensor*, index_t>
     }
     BusMeasurementSensor* match = nullptr;
     index_t output = kNullLocation;
-    for (index_t index = 0; auto* relay = area->getRelay(index); ++index) {
+    for (index_t index = 0; area->getRelay(index) != nullptr; ++index) {
+        auto* relay = area->getRelay(index);
         if (relay->getName() != requested || !relay->isEnabled()) {
             continue;
         }
@@ -378,15 +376,8 @@ void RenewableGenerator::dynObjectInitializeB(const IOdata& inputs,
         modelInputs(electricalModel, inputs, emptyStateData, cLocalSolverMode),
         target,
         modelFieldSet);
-    auto* measurement = components[roleIndex(RenewableRole::measurement)];
-    if (measurement != nullptr && measurement->isEnabled()) {
-        IOdata ignored;
-        measurement->dynInitializeB(
-            modelInputs(measurement, inputs, emptyStateData, cLocalSolverMode), target, ignored);
-    }
     for (auto* component : components) {
-        if (component != nullptr && component != electricalModel && component != measurement &&
-            component->isEnabled()) {
+        if (component != nullptr && component != electricalModel && component->isEnabled()) {
             IOdata ignored;
             component->dynInitializeB(
                 modelInputs(component, inputs, emptyStateData, cLocalSolverMode), target, ignored);
@@ -525,7 +516,6 @@ void RenewableGenerator::timestep(CoreTime time, const IOdata& inputs, const Sol
                                 sMode);
         }
     };
-    stepRole(RenewableRole::measurement);
     stepRole(RenewableRole::plantControl);
     stepRole(RenewableRole::driveTrain);
     stepRole(RenewableRole::torqueControl);
@@ -533,8 +523,7 @@ void RenewableGenerator::timestep(CoreTime time, const IOdata& inputs, const Sol
     stepRole(RenewableRole::pitchControl);
     stepRole(RenewableRole::aerodynamics);
     for (std::size_t index = 0; index < roleCount; ++index) {
-        if (index != roleIndex(RenewableRole::measurement) &&
-            index != roleIndex(RenewableRole::plantControl) &&
+        if (index != roleIndex(RenewableRole::plantControl) &&
             index != roleIndex(RenewableRole::driveTrain) &&
             index != roleIndex(RenewableRole::torqueControl) &&
             index != roleIndex(RenewableRole::electricalControl) &&

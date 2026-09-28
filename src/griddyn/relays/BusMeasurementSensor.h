@@ -176,7 +176,7 @@ class FreqDivSensor final: public BusMeasurementSensor {
     std::vector<Neighbor> neighbors;
     std::vector<Machine> machines;
     double diagonal = 0.0;
-    std::pair<double, double> lineCoefficients(const Neighbor& neighbor) const;
+    static std::pair<double, double> lineCoefficients(const Neighbor& neighbor);
     double effectiveDiagonal() const;
     double frequencyResidual(const StateData& stateData,
                              const SolverMode& sMode,

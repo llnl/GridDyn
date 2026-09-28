@@ -85,7 +85,9 @@ void BusMeasurementSensor::dynObjectInitializeA(CoreTime time0, std::uint32_t fl
     Sensor::dynObjectInitializeA(time0, flags);
 }
 
-void BusMeasurementSensor::dynObjectInitializeB(const IOdata&, const IOdata&, IOdata& fieldSet)
+void BusMeasurementSensor::dynObjectInitializeB(const IOdata& /*inputs*/,
+                                                const IOdata& /*desiredOutput*/,
+                                                IOdata& fieldSet)
 {
     fieldSet.resize(m_outputSize);
     for (index_t index = 0; index < m_outputSize; ++index) {
@@ -93,13 +95,13 @@ void BusMeasurementSensor::dynObjectInitializeB(const IOdata&, const IOdata&, IO
     }
 }
 
-double BusMeasurementSensor::getOutput(const IOdata&,
+double BusMeasurementSensor::getOutput(const IOdata& /*inputs*/,
                                        const StateData& stateData,
                                        const SolverMode& sMode,
                                        index_t outNum) const
 {
     const auto stateIndex = outputState(outNum);
-    if (stateIndex == kNullLocation || stateIndex >= m_state.size()) {
+    if (stateIndex == kNullLocation || static_cast<std::size_t>(stateIndex) >= m_state.size()) {
         return kNullVal;
     }
     if (stateData.state == nullptr || isLocal(sMode)) {
@@ -123,7 +125,9 @@ double BusMeasurementSensor::getOutput(const IOdata&,
 double BusMeasurementSensor::getOutput(index_t outNum) const
 {
     const auto index = outputState(outNum);
-    return index == kNullLocation || index >= m_state.size() ? kNullVal : m_state[index];
+    return index == kNullLocation || static_cast<std::size_t>(index) >= m_state.size() ?
+        kNullVal :
+        m_state[index];
 }
 
 index_t BusMeasurementSensor::getOutputLoc(const SolverMode& sMode, index_t outNum) const
@@ -140,8 +144,8 @@ index_t BusMeasurementSensor::getOutputLoc(const SolverMode& sMode, index_t outN
                                     kNullLocation;
 }
 
-void BusMeasurementSensor::outputPartialDerivatives(const IOdata&,
-                                                    const StateData&,
+void BusMeasurementSensor::outputPartialDerivatives(const IOdata& /*inputs*/,
+                                                    const StateData& /*stateDataValue*/,
                                                     MatrixData<double>& matrixData,
                                                     const SolverMode& sMode)
 {
@@ -246,13 +250,13 @@ void PLLSensor::dynObjectInitializeB(const IOdata& inputs,
                                      const IOdata& desiredOutput,
                                      IOdata& fieldSet)
 {
-    const double a = bus()->getAngle();
+    const double busAngle = bus()->getAngle();
     if (phaseDetector) {
-        m_state[2] = a;
+        m_state[2] = busAngle;
     } else {
-        m_state[1] = a;
-        m_state[3] = a;
-        m_state[4] = a;
+        m_state[1] = busAngle;
+        m_state[3] = busAngle;
+        m_state[4] = busAngle;
     }
     BusMeasurementSensor::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
 }
@@ -268,7 +272,7 @@ index_t PLLSensor::outputState(index_t outNum) const
     return kNullLocation;
 }
 
-void PLLSensor::derivative(const IOdata&,
+void PLLSensor::derivative(const IOdata& /*inputs*/,
                            const StateData& stateData,
                            double deriv[],
                            const SolverMode& sMode)
@@ -277,20 +281,20 @@ void PLLSensor::derivative(const IOdata&,
         return;
     }
     const auto loc = offsets.getLocations(stateData, deriv, sMode, this);
-    const auto* x = loc.diffStateLoc;
-    const double a = angle(stateData, sMode);
+    const auto* states = loc.diffStateLoc;
+    const double busAngle = angle(stateData, sMode);
     if (phaseDetector) {
-        const double e = voltage(stateData, sMode) * std::sin(a - x[1]);
-        const double df = Kp * e + x[0];
-        loc.destDiffLoc[0] = Ki * e;
-        loc.destDiffLoc[1] = twoPi * fn * df;
+        const double error = voltage(stateData, sMode) * std::sin(busAngle - states[1]);
+        const double frequencyDeviation = (Kp * error) + states[0];
+        loc.destDiffLoc[0] = Ki * error;
+        loc.destDiffLoc[1] = twoPi * fn * frequencyDeviation;
     } else {
-        const double e = x[0] - x[3];
-        const double df = Kp * e + x[1];
-        loc.destDiffLoc[0] = (a - x[0]) / Tf;
-        loc.destDiffLoc[1] = Ki * e;
-        loc.destDiffLoc[2] = twoPi * fn * df;
-        loc.destDiffLoc[3] = (x[2] - x[3]) / Tp;
+        const double error = states[0] - states[3];
+        const double frequencyDeviation = (Kp * error) + states[1];
+        loc.destDiffLoc[0] = (busAngle - states[0]) / Tf;
+        loc.destDiffLoc[1] = Ki * error;
+        loc.destDiffLoc[2] = twoPi * fn * frequencyDeviation;
+        loc.destDiffLoc[3] = (states[2] - states[3]) / Tp;
     }
 }
 
@@ -300,13 +304,13 @@ void PLLSensor::residual(const IOdata& inputs,
                          const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, resid, sMode, this);
-    const auto* x = loc.diffStateLoc;
-    const double e = phaseDetector ?
-        voltage(stateData, sMode) * std::sin(angle(stateData, sMode) - x[1]) :
-        x[0] - x[3];
-    const double df = Kp * e + x[phaseDetector ? 0 : 1];
+    const auto* states = loc.diffStateLoc;
+    const double error = phaseDetector ?
+        voltage(stateData, sMode) * std::sin(angle(stateData, sMode) - states[1]) :
+        states[0] - states[3];
+    const double frequencyDeviation = (Kp * error) + states[phaseDetector ? 0 : 1];
     if (hasAlgebraic(sMode)) {
-        loc.destLoc[0] = df - loc.algStateLoc[0];
+        loc.destLoc[0] = frequencyDeviation - loc.algStateLoc[0];
     }
     if (hasDifferential(sMode)) {
         derivative(inputs, stateData, resid, sMode);
@@ -316,104 +320,106 @@ void PLLSensor::residual(const IOdata& inputs,
     }
 }
 
-void PLLSensor::algebraicUpdate(const IOdata&,
+void PLLSensor::algebraicUpdate(const IOdata& /*inputs*/,
                                 const StateData& stateData,
                                 double update[],
                                 const SolverMode& sMode,
-                                double)
+                                double /*alpha*/)
 {
     if (!hasAlgebraic(sMode)) {
         return;
     }
     const auto loc = offsets.getLocations(stateData, update, sMode, this);
-    const auto* x = loc.diffStateLoc;
-    const double e = phaseDetector ?
-        voltage(stateData, sMode) * std::sin(angle(stateData, sMode) - x[1]) :
-        x[0] - x[3];
-    loc.destLoc[0] = Kp * e + x[phaseDetector ? 0 : 1];
+    const auto* states = loc.diffStateLoc;
+    const double error = phaseDetector ?
+        voltage(stateData, sMode) * std::sin(angle(stateData, sMode) - states[1]) :
+        states[0] - states[3];
+    loc.destLoc[0] = (Kp * error) + states[phaseDetector ? 0 : 1];
 }
 
-void PLLSensor::jacobianElements(const IOdata&,
+void PLLSensor::jacobianElements(const IOdata& /*inputs*/,
                                  const StateData& stateData,
                                  MatrixData<double>& matrixData,
-                                 const IOlocs&,
+                                 const IOlocs& /*inputLocs*/,
                                  const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, sMode, this);
-    const auto d = loc.diffOffset;
-    const auto a = loc.algOffset;
-    const auto* x = loc.diffStateLoc;
-    const double phase = phaseDetector ? angle(stateData, sMode) - x[1] : 0.0;
+    const auto diffOffset = loc.diffOffset;
+    const auto algOffset = loc.algOffset;
+    const auto* states = loc.diffStateLoc;
+    const double phase = phaseDetector ? angle(stateData, sMode) - states[1] : 0.0;
     const double dErrAm = phaseDetector ? -voltage(stateData, sMode) * std::cos(phase) : -1.0;
     const double dErrFiltered = phaseDetector ? 0.0 : 1.0;
     const auto busAngleLoc = bus()->getOutputLoc(sMode, ANGLE_IN_LOCATION);
     if (hasAlgebraic(sMode)) {
-        matrixData.assign(a, a, -1.0);
+        matrixData.assign(algOffset, algOffset, -1.0);
         if (!isAlgebraicOnly(sMode)) {
-            matrixData.assign(a, d + (phaseDetector ? 0 : 1), 1.0);
-            matrixData.assign(a, d + (phaseDetector ? 1 : 3), Kp * dErrAm);
+            matrixData.assign(algOffset, diffOffset + (phaseDetector ? 0 : 1), 1.0);
+            matrixData.assign(algOffset, diffOffset + (phaseDetector ? 1 : 3), Kp * dErrAm);
             if (!phaseDetector) {
-                matrixData.assign(a, d, Kp);
+                matrixData.assign(algOffset, diffOffset, Kp);
             }
         }
     }
     if (!hasDifferential(sMode)) {
         return;
     }
-    const double cj = stateData.cj;
+    const double solverScale = stateData.cj;
     if (phaseDetector) {
-        const double v = voltage(stateData, sMode);
-        matrixData.assign(d, d, -cj);
-        matrixData.assign(d, d + 1, Ki * dErrAm);
-        matrixData.assign(d + 1, d, twoPi * fn);
-        matrixData.assign(d + 1, d + 1, twoPi * fn * Kp * dErrAm - cj);
-        matrixData.assignCheckCol(d, busAngleLoc, Ki * v * std::cos(phase));
-        matrixData.assignCheckCol(d + 1, busAngleLoc, twoPi * fn * Kp * v * std::cos(phase));
+        const double busVoltage = voltage(stateData, sMode);
+        matrixData.assign(diffOffset, diffOffset, -solverScale);
+        matrixData.assign(diffOffset, diffOffset + 1, Ki * dErrAm);
+        matrixData.assign(diffOffset + 1, diffOffset, twoPi * fn);
+        matrixData.assign(diffOffset + 1, diffOffset + 1, (twoPi * fn * Kp * dErrAm) - solverScale);
+        matrixData.assignCheckCol(diffOffset, busAngleLoc, Ki * busVoltage * std::cos(phase));
+        matrixData.assignCheckCol(diffOffset + 1,
+                                  busAngleLoc,
+                                  twoPi * fn * Kp * busVoltage * std::cos(phase));
         const auto vloc = bus()->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
-        matrixData.assignCheckCol(d, vloc, Ki * std::sin(phase));
-        matrixData.assignCheckCol(d + 1, vloc, twoPi * fn * Kp * std::sin(phase));
+        matrixData.assignCheckCol(diffOffset, vloc, Ki * std::sin(phase));
+        matrixData.assignCheckCol(diffOffset + 1, vloc, twoPi * fn * Kp * std::sin(phase));
     } else {
-        matrixData.assign(d, d, -1.0 / Tf - cj);
-        matrixData.assignCheckCol(d, busAngleLoc, 1.0 / Tf);
-        matrixData.assign(d + 1, d, Ki * dErrFiltered);
-        matrixData.assign(d + 1, d + 1, -cj);
-        matrixData.assign(d + 1, d + 3, -Ki);
-        matrixData.assign(d + 2, d, twoPi * fn * Kp);
-        matrixData.assign(d + 2, d + 1, twoPi * fn);
-        matrixData.assign(d + 2, d + 2, -cj);
-        matrixData.assign(d + 2, d + 3, twoPi * fn * Kp * dErrAm);
-        matrixData.assign(d + 3, d + 2, 1.0 / Tp);
-        matrixData.assign(d + 3, d + 3, -1.0 / Tp - cj);
+        matrixData.assign(diffOffset, diffOffset, (-1.0 / Tf) - solverScale);
+        matrixData.assignCheckCol(diffOffset, busAngleLoc, 1.0 / Tf);
+        matrixData.assign(diffOffset + 1, diffOffset, Ki * dErrFiltered);
+        matrixData.assign(diffOffset + 1, diffOffset + 1, -solverScale);
+        matrixData.assign(diffOffset + 1, diffOffset + 3, -Ki);
+        matrixData.assign(diffOffset + 2, diffOffset, twoPi * fn * Kp);
+        matrixData.assign(diffOffset + 2, diffOffset + 1, twoPi * fn);
+        matrixData.assign(diffOffset + 2, diffOffset + 2, -solverScale);
+        matrixData.assign(diffOffset + 2, diffOffset + 3, twoPi * fn * Kp * dErrAm);
+        matrixData.assign(diffOffset + 3, diffOffset + 2, 1.0 / Tp);
+        matrixData.assign(diffOffset + 3, diffOffset + 3, (-1.0 / Tp) - solverScale);
     }
 }
 
-void PLLSensor::timestep(CoreTime time, const IOdata&, const SolverMode& sMode)
+void PLLSensor::timestep(CoreTime time, const IOdata& /*inputs*/, const SolverMode& sMode)
 {
-    const double dt = time - prevTime;
-    if (dt < 0.0) {
+    const double timeStep = time - prevTime;
+    if (timeStep < 0.0) {
         throw InvalidParameterValue("PLL timestep precedes current time");
     }
     // Explicit integration is only used by the sampled path; the DAE path uses derivative().
-    const double a = bus()->getAngle();
-    const double v = bus()->getVoltage();
+    const double busAngle = bus()->getAngle();
+    const double busVoltage = bus()->getVoltage();
     if (phaseDetector) {
-        const double e = v * std::sin(a - m_state[2]);
-        const double df = Kp * e + m_state[1];
-        m_state[1] += dt * Ki * e;
-        m_state[2] += dt * twoPi * fn * df;
-        m_state[0] = Kp * v * std::sin(a - m_state[2]) + m_state[1];
+        const double error = busVoltage * std::sin(busAngle - m_state[2]);
+        const double frequencyDeviation = (Kp * error) + m_state[1];
+        m_state[1] += timeStep * Ki * error;
+        m_state[2] += timeStep * twoPi * fn * frequencyDeviation;
+        m_state[0] = (Kp * busVoltage * std::sin(busAngle - m_state[2])) + m_state[1];
     } else {
-        const double e = m_state[1] - m_state[4];
-        const double df = Kp * e + m_state[2];
-        const double filtered = (a - m_state[1]) / Tf;
-        const double integral = Ki * e;
-        const double estimated = twoPi * fn * df;
+        const double error = m_state[1] - m_state[4];
+        const double frequencyDeviation = (Kp * error) + m_state[2];
+        const double filtered = (busAngle - m_state[1]) / Tf;
+        const double integral = Ki * error;
+        const double estimated = twoPi * fn * frequencyDeviation;
         const double measured = (m_state[3] - m_state[4]) / Tp;
-        m_state[1] += dt * filtered;
-        m_state[2] += dt * integral;
-        m_state[3] += dt * estimated;
-        m_state[4] += dt * measured;
-        m_state[0] = Kp * (m_state[1] - m_state[4]) + m_state[2];
+        m_state[1] += timeStep * filtered;
+        m_state[2] += timeStep * integral;
+        m_state[3] += timeStep * estimated;
+        m_state[4] += timeStep * measured;
+        m_state[0] = (Kp * (m_state[1] - m_state[4])) + m_state[2];
     }
     prevTime = time;
     Relay::timestep(time, {}, sMode);
@@ -502,7 +508,7 @@ double BusROCOFSensor::deviation(const double diff[]) const
     return (diff[0] - diff[1]) / (twoPi * fn * Tw);
 }
 
-void BusROCOFSensor::derivative(const IOdata&,
+void BusROCOFSensor::derivative(const IOdata& /*inputs*/,
                                 const StateData& stateData,
                                 double deriv[],
                                 const SolverMode& sMode)
@@ -511,10 +517,10 @@ void BusROCOFSensor::derivative(const IOdata&,
         return;
     }
     const auto loc = offsets.getLocations(stateData, deriv, sMode, this);
-    const auto* x = loc.diffStateLoc;
-    loc.destDiffLoc[0] = (angle(stateData, sMode) - initialAngle - x[0]) / Tf;
-    loc.destDiffLoc[1] = (x[0] - x[1]) / Tw;
-    loc.destDiffLoc[2] = (1.0 + deviation(x) - x[2]) / Tr;
+    const auto* states = loc.diffStateLoc;
+    loc.destDiffLoc[0] = (angle(stateData, sMode) - initialAngle - states[0]) / Tf;
+    loc.destDiffLoc[1] = (states[0] - states[1]) / Tw;
+    loc.destDiffLoc[2] = (1.0 + deviation(states) - states[2]) / Tr;
 }
 
 void BusROCOFSensor::residual(const IOdata& inputs,
@@ -523,11 +529,11 @@ void BusROCOFSensor::residual(const IOdata& inputs,
                               const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, resid, sMode, this);
-    const auto* x = loc.diffStateLoc;
-    const double df = deviation(x);
+    const auto* states = loc.diffStateLoc;
+    const double frequencyDeviation = deviation(states);
     if (hasAlgebraic(sMode)) {
-        loc.destLoc[0] = df - loc.algStateLoc[0];
-        loc.destLoc[1] = (1.0 + df - x[2]) / Tr - loc.algStateLoc[1];
+        loc.destLoc[0] = frequencyDeviation - loc.algStateLoc[0];
+        loc.destLoc[1] = ((1.0 + frequencyDeviation - states[2]) / Tr) - loc.algStateLoc[1];
     }
     if (hasDifferential(sMode)) {
         derivative(inputs, stateData, resid, sMode);
@@ -537,79 +543,81 @@ void BusROCOFSensor::residual(const IOdata& inputs,
     }
 }
 
-void BusROCOFSensor::algebraicUpdate(const IOdata&,
+void BusROCOFSensor::algebraicUpdate(const IOdata& /*inputs*/,
                                      const StateData& stateData,
                                      double update[],
                                      const SolverMode& sMode,
-                                     double)
+                                     double /*alpha*/)
 {
     if (!hasAlgebraic(sMode)) {
         return;
     }
     const auto loc = offsets.getLocations(stateData, update, sMode, this);
-    const double df = deviation(loc.diffStateLoc);
-    loc.destLoc[0] = df;
-    loc.destLoc[1] = (1.0 + df - loc.diffStateLoc[2]) / Tr;
+    const double frequencyDeviation = deviation(loc.diffStateLoc);
+    loc.destLoc[0] = frequencyDeviation;
+    loc.destLoc[1] = (1.0 + frequencyDeviation - loc.diffStateLoc[2]) / Tr;
 }
 
-void BusROCOFSensor::jacobianElements(const IOdata&,
+void BusROCOFSensor::jacobianElements(const IOdata& /*inputs*/,
                                       const StateData& stateData,
                                       MatrixData<double>& matrixData,
-                                      const IOlocs&,
+                                      const IOlocs& /*inputLocs*/,
                                       const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, sMode, this);
-    const auto a = loc.algOffset;
-    const auto d = loc.diffOffset;
+    const auto algOffset = loc.algOffset;
+    const auto diffOffset = loc.diffOffset;
     const double gain = 1.0 / (twoPi * fn * Tw);
     if (hasAlgebraic(sMode)) {
-        matrixData.assign(a, a, -1.0);
-        matrixData.assign(a + 1, a + 1, -1.0);
+        matrixData.assign(algOffset, algOffset, -1.0);
+        matrixData.assign(algOffset + 1, algOffset + 1, -1.0);
         if (!isAlgebraicOnly(sMode)) {
-            matrixData.assign(a, d, gain);
-            matrixData.assign(a, d + 1, -gain);
-            matrixData.assign(a + 1, d, gain / Tr);
-            matrixData.assign(a + 1, d + 1, -gain / Tr);
-            matrixData.assign(a + 1, d + 2, -1.0 / Tr);
+            matrixData.assign(algOffset, diffOffset, gain);
+            matrixData.assign(algOffset, diffOffset + 1, -gain);
+            matrixData.assign(algOffset + 1, diffOffset, gain / Tr);
+            matrixData.assign(algOffset + 1, diffOffset + 1, -gain / Tr);
+            matrixData.assign(algOffset + 1, diffOffset + 2, -1.0 / Tr);
         }
     }
     if (!hasDifferential(sMode)) {
         return;
     }
-    matrixData.assign(d, d, -1.0 / Tf - stateData.cj);
-    matrixData.assignCheckCol(d, bus()->getOutputLoc(sMode, ANGLE_IN_LOCATION), 1.0 / Tf);
-    matrixData.assign(d + 1, d, 1.0 / Tw);
-    matrixData.assign(d + 1, d + 1, -1.0 / Tw - stateData.cj);
-    matrixData.assign(d + 2, d, gain / Tr);
-    matrixData.assign(d + 2, d + 1, -gain / Tr);
-    matrixData.assign(d + 2, d + 2, -1.0 / Tr - stateData.cj);
+    matrixData.assign(diffOffset, diffOffset, (-1.0 / Tf) - stateData.cj);
+    matrixData.assignCheckCol(diffOffset, bus()->getOutputLoc(sMode, ANGLE_IN_LOCATION), 1.0 / Tf);
+    matrixData.assign(diffOffset + 1, diffOffset, 1.0 / Tw);
+    matrixData.assign(diffOffset + 1, diffOffset + 1, (-1.0 / Tw) - stateData.cj);
+    matrixData.assign(diffOffset + 2, diffOffset, gain / Tr);
+    matrixData.assign(diffOffset + 2, diffOffset + 1, -gain / Tr);
+    matrixData.assign(diffOffset + 2, diffOffset + 2, (-1.0 / Tr) - stateData.cj);
 }
 
-void BusROCOFSensor::timestep(CoreTime time, const IOdata&, const SolverMode& sMode)
+void BusROCOFSensor::timestep(CoreTime time, const IOdata& /*inputs*/, const SolverMode& sMode)
 {
-    const double dt = time - prevTime;
-    if (dt < 0.0) {
+    const double timeStep = time - prevTime;
+    if (timeStep < 0.0) {
         throw InvalidParameterValue("BUSROCOF timestep precedes current time");
     }
     const std::array<double, 3> old{m_state[2], m_state[3], m_state[4]};
     const double now = bus()->getAngle();
-    const auto rates = [&](double a, const std::array<double, 3>& x) {
-        return std::array<double, 3>{(a - initialAngle - x[0]) / Tf,
-                                     (x[0] - x[1]) / Tw,
-                                     (1.0 + deviation(x.data()) - x[2]) / Tr};
+    const auto rates = [&](double sampleAngle, const std::array<double, 3>& states) {
+        return std::array<double, 3>{(sampleAngle - initialAngle - states[0]) / Tf,
+                                     (states[0] - states[1]) / Tw,
+                                     (1.0 + deviation(states.data()) - states[2]) / Tr};
     };
-    const auto stage = [&](const std::array<double, 3>& k, double scale) {
-        return std::array<double, 3>{old[0] + scale * dt * k[0],
-                                     old[1] + scale * dt * k[1],
-                                     old[2] + scale * dt * k[2]};
+    const auto stage = [&](const std::array<double, 3>& slope, double scale) {
+        return std::array<double, 3>{old[0] + (scale * timeStep * slope[0]),
+                                     old[1] + (scale * timeStep * slope[1]),
+                                     old[2] + (scale * timeStep * slope[2])};
     };
-    const auto k1 = rates(lastAngle, old);
-    const auto k2 = rates((lastAngle + now) / 2.0, stage(k1, 0.5));
-    const auto k3 = rates((lastAngle + now) / 2.0, stage(k2, 0.5));
-    const auto k4 = rates(now, stage(k3, 1.0));
+    const auto slope1 = rates(lastAngle, old);
+    const auto slope2 = rates((lastAngle + now) / 2.0, stage(slope1, 0.5));
+    const auto slope3 = rates((lastAngle + now) / 2.0, stage(slope2, 0.5));
+    const auto slope4 = rates(now, stage(slope3, 1.0));
     for (index_t index = 0; index < 3; ++index) {
-        m_state[2 + index] =
-            old[index] + dt * (k1[index] + 2.0 * k2[index] + 2.0 * k3[index] + k4[index]) / 6.0;
+        m_state[2 + index] = old[index] +
+            ((timeStep *
+              (slope1[index] + (2.0 * slope2[index]) + (2.0 * slope3[index]) + slope4[index])) /
+             6.0);
     }
     m_state[0] = deviation(m_state.data() + 2);
     m_state[1] = (1.0 + m_state[0] - m_state[4]) / Tr;
@@ -654,7 +662,8 @@ void FreqDivSensor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     const auto findNeighbor = [&](GridBus* target) {
         FreqDivSensor* match = nullptr;
         std::function<void(GridArea*)> visit = [&](GridArea* area) {
-            for (index_t relayIndex = 0; auto* relay = area->getRelay(relayIndex); ++relayIndex) {
+            for (index_t relayIndex = 0; area->getRelay(relayIndex) != nullptr; ++relayIndex) {
+                auto* relay = area->getRelay(relayIndex);
                 auto* candidate = dynamic_cast<FreqDivSensor*>(relay);
                 if (candidate != nullptr && candidate->sourceBus() == target &&
                     candidate->isEnabled()) {
@@ -664,7 +673,8 @@ void FreqDivSensor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
                     match = candidate;
                 }
             }
-            for (index_t areaIndex = 0; auto* child = area->getArea(areaIndex); ++areaIndex) {
+            for (index_t areaIndex = 0; area->getArea(areaIndex) != nullptr; ++areaIndex) {
+                auto* child = area->getArea(areaIndex);
                 visit(child);
             }
         };
@@ -672,7 +682,8 @@ void FreqDivSensor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
         return match;
     };
     auto* source = bus();
-    for (index_t index = 0; auto* link = source->getLink(index); ++index) {
+    for (index_t index = 0; source->getLink(index) != nullptr; ++index) {
+        auto* link = source->getLink(index);
         auto* line = dynamic_cast<AcLine*>(link);
         if (line == nullptr) {
             throw InvalidParameterValue(
@@ -685,9 +696,9 @@ void FreqDivSensor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
             throw InvalidParameterValue(
                 "FreqDiv transformer taps and phase shifts are unsupported");
         }
-        const double r = line->get("r");
-        const double x = line->get("x");
-        const double denom = r * r + x * x;
+        const double resistance = line->get("r");
+        const double reactance = line->get("x");
+        const double denom = (resistance * resistance) + (reactance * reactance);
         if (!std::isfinite(denom) || denom <= 0.0) {
             throw InvalidParameterValue("FreqDiv requires finite nonzero line impedance");
         }
@@ -701,12 +712,13 @@ void FreqDivSensor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
             throw InvalidParameterValue(
                 "FreqDiv requires a sensor for every adjacent bus in its area");
         }
-        const double b = -x / denom;
-        const double self = b + line->get(first ? "b1" : "b2");
+        const double susceptance = -reactance / denom;
+        const double self = susceptance + line->get(first ? "b1" : "b2");
         diagonal += self;
-        neighbors.push_back({neighbor, link, first});
+        neighbors.push_back({.sensor = neighbor, .link = link, .firstTerminal = first});
     }
-    for (index_t index = 0; auto* generator = source->getGen(index); ++index) {
+    for (index_t index = 0; source->getGen(index) != nullptr; ++index) {
+        auto* generator = source->getGen(index);
         if (!generator->isEnabled()) {
             continue;
         }
@@ -720,20 +732,21 @@ void FreqDivSensor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
         }
         const double xdpp = model->get("xdpp");
         const double xqpp = model->get("xqpp");
-        double xg = (std::isfinite(xdpp) && xdpp > 0.0 && std::isfinite(xqpp) && xqpp > 0.0) ?
+        double generatorReactance =
+            (std::isfinite(xdpp) && xdpp > 0.0 && std::isfinite(xqpp) && xqpp > 0.0) ?
             (xdpp + xqpp) / 2.0 :
             model->get("xdp");
-        if (!std::isfinite(xg) || xg <= 0.0) {
-            xg = model->get("xs");
+        if (!std::isfinite(generatorReactance) || generatorReactance <= 0.0) {
+            generatorReactance = model->get("xs");
         }
-        if (!std::isfinite(xg) || xg <= 0.0) {
+        if (!std::isfinite(generatorReactance) || generatorReactance <= 0.0) {
             throw InvalidParameterValue("FreqDiv generator has no supported reactance");
         }
         const double mbase = dynamic->get("mbase", units::MVAR);
         requirePositive(mbase, "FreqDiv generator MBASE");
-        const double gain = mbase / (systemBasePower * xg);
+        const double gain = mbase / (systemBasePower * generatorReactance);
         diagonal -= gain;
-        machines.push_back({dynamic, gain});
+        machines.push_back({.generator = dynamic, .coefficient = gain});
     }
     if (!std::isfinite(diagonal) || std::abs(diagonal) < 1e-12) {
         throw InvalidParameterValue("FreqDiv has a zero frequency equation diagonal");
@@ -756,20 +769,20 @@ double FreqDivSensor::effectiveDiagonal() const
     return value;
 }
 
-std::pair<double, double> FreqDivSensor::lineCoefficients(const Neighbor& neighbor) const
+std::pair<double, double> FreqDivSensor::lineCoefficients(const Neighbor& neighbor)
 {
     const auto* line = static_cast<AcLine*>(neighbor.link);
     if (std::abs(line->get("tap") - 1.0) > 1e-12 || std::abs(line->get("tapangle")) > 1e-12) {
         throw InvalidParameterValue("FreqDiv transformer taps and phase shifts are unsupported");
     }
-    const double r = line->get("r");
-    const double x = line->get("x");
-    const double denom = r * r + x * x;
+    const double resistance = line->get("r");
+    const double reactance = line->get("x");
+    const double denom = (resistance * resistance) + (reactance * reactance);
     if (!std::isfinite(denom) || denom <= 0.0) {
         throw InvalidParameterValue("FreqDiv requires finite nonzero line impedance");
     }
-    const double b = -x / denom;
-    return {b + line->get(neighbor.firstTerminal ? "b1" : "b2"), -b};
+    const double susceptance = -reactance / denom;
+    return {susceptance + line->get(neighbor.firstTerminal ? "b1" : "b2"), -susceptance};
 }
 
 void FreqDivSensor::dynObjectInitializeB(const IOdata& inputs,
@@ -804,7 +817,7 @@ double FreqDivSensor::frequencyResidual(const StateData& stateData,
     return result;
 }
 
-void FreqDivSensor::residual(const IOdata&,
+void FreqDivSensor::residual(const IOdata& /*inputs*/,
                              const StateData& stateData,
                              double resid[],
                              const SolverMode& sMode)
@@ -816,11 +829,11 @@ void FreqDivSensor::residual(const IOdata&,
     loc.destLoc[0] = frequencyResidual(stateData, sMode, loc.algStateLoc[0]);
 }
 
-void FreqDivSensor::algebraicUpdate(const IOdata&,
+void FreqDivSensor::algebraicUpdate(const IOdata& /*inputs*/,
                                     const StateData& stateData,
                                     double update[],
                                     const SolverMode& sMode,
-                                    double)
+                                    double /*alpha*/)
 {
     if (!hasAlgebraic(sMode)) {
         return;
@@ -830,13 +843,13 @@ void FreqDivSensor::algebraicUpdate(const IOdata&,
     if (std::abs(currentDiagonal) < 1e-12) {
         throw InvalidParameterValue("FreqDiv lost its frequency equation reference");
     }
-    loc.destLoc[0] = 1.0 - frequencyResidual(stateData, sMode, 1.0) / currentDiagonal;
+    loc.destLoc[0] = 1.0 - (frequencyResidual(stateData, sMode, 1.0) / currentDiagonal);
 }
 
-void FreqDivSensor::jacobianElements(const IOdata&,
+void FreqDivSensor::jacobianElements(const IOdata& /*inputs*/,
                                      const StateData& stateData,
                                      MatrixData<double>& matrixData,
-                                     const IOlocs&,
+                                     const IOlocs& /*inputLocs*/,
                                      const SolverMode& sMode)
 {
     if (!hasAlgebraic(sMode)) {

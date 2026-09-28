@@ -205,7 +205,7 @@ std::array<double, 2>
     return {inputs[0] * activeCurrent * lowVoltageGain(inputs[0]), inputs[0] * reactiveCurrent};
 }
 
-std::array<double, 2> REGCA1::initialCurrentFramePower(const IOdata&,
+std::array<double, 2> REGCA1::initialCurrentFramePower(const IOdata& /*inputs*/,
                                                        const IOdata& desiredOutput) const
 {
     return {desiredOutput[0], desiredOutput[1]};
@@ -230,7 +230,7 @@ void REGCA1::powerJacobian(const IOdata& inputs,
     matrixData.assignCheckCol(alg + activePower,
                               inputLocs[0],
                               state[activeCurrentState] *
-                                  (gain + voltage * lowVoltageGainSlope(voltage)));
+                                  (gain + (voltage * lowVoltageGainSlope(voltage))));
     matrixData.assignCheckCol(alg + reactivePower, inputLocs[0], state[reactiveCurrentState]);
 }
 

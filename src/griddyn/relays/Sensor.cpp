@@ -603,7 +603,8 @@ void Sensor::dynObjectInitializeB(const IOdata& inputs,
     const auto outputCount = m_outputSize;
     const auto filterBlockCount = static_cast<int>(filterBlocks.size());
     const auto dataSourceCount = static_cast<int>(dataSources.size());
-    if (outputMode.size() < outputCount || outputs.size() < outputCount) {
+    if (outputMode.size() < static_cast<std::size_t>(outputCount) ||
+        outputs.size() < static_cast<std::size_t>(outputCount)) {
         throw InvalidParameterValue("sensor output names and output sources have different counts");
     }
     for (count_t kk = 0; kk < outputCount; ++kk) {
@@ -647,7 +648,8 @@ void Sensor::dynObjectInitializeB(const IOdata& inputs,
                 ++ocount;
                 break;
             case OutputMode::PROCESSED:
-                if (outGrabbers.size() <= kk || outGrabbers[kk] == nullptr) {
+                if (outGrabbers.size() <= static_cast<std::size_t>(kk) ||
+                    outGrabbers[kk] == nullptr) {
                     throw InvalidParameterValue("sensor processed output has no grabber");
                 }
                 break;

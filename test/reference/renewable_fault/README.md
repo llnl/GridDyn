@@ -17,7 +17,7 @@ The fault CSV files cover these model assemblies:
 | `andes_wind_reference.csv`    | REGCA1 + REECA1 + WTDTA1 + WTARA1 + WTPTA1 + WTTQA1 |
 | `andes_reecb_reference.csv`   | REGCA1 + REECB1                                     |
 | `andes_wtds_reference.csv`    | REGCP1 (no PLL) + REECA1 (`PFLAG=1`) + WTDS         |
-| `andes_reeca1e_reference.csv` | REGCA1 + REECA1E + BusROCOF                         |
+| `andes_reeca1e_reference.csv` | REGCA1 + REECA1E + area-owned BusROCOF sensor       |
 
 The C++ test `RenewableModels.TwoBusRenewableFaultMatchesAndesReference`
 loads `two_bus.xml`, adds each model assembly, and compares bus voltage,
@@ -67,7 +67,7 @@ feedback branch and one-mass equation together. ANDES fails initialization
 for this fixture with `w0=0.9` because its REECA1 speed algebraic variable
 starts at 1.0, so the checked-in trajectory uses nominal initial speed.
 
-The REECA1E profile uses `Kf=4`, `Kdf=0.5` and an attached `BusROCOF`
+The REECA1E profile uses `Kf=4`, `Kdf=0.5` and an area-owned `BusROCOF` sensor
 measurement with ANDES-equivalent angle lag, angle washout, and frequency
 washout. GridDyn's local timestep uses RK4 with a linear angle interpolation
 between samples. The continuous DAE model has analytic Jacobians. The current

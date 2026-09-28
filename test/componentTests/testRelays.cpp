@@ -44,8 +44,8 @@ TEST_F(RelayTests, RelayTest1)
 
     gds->dynInitialize(timeZero);
 
-    auto Yp = dynamic_cast<relays::ZonalRelay*>(gds->getRelay(0));
-    EXPECT_NE(Yp, nullptr);
+    auto* zonalRelay = dynamic_cast<relays::ZonalRelay*>(gds->getRelay(0));
+    EXPECT_NE(zonalRelay, nullptr);
 }
 
 #ifdef ENABLE_EXPERIMENTAL_TEST_CASES
@@ -116,7 +116,7 @@ TEST_F(RelayTests, TestDifferentialRelay)
     gds = readSimXMLFile(fileName);
     gds->consolePrintLevel = PrintLevel::SUMMARY;
     gds->run();
-    auto obj = gds->find("bus1_to_bus3");
+    auto* obj = gds->find("bus1_to_bus3");
     ASSERT_NE(obj, nullptr);
     EXPECT_FALSE(static_cast<GridComponent*>(obj)->isConnected());
     requireState(GridDynSimulation::GridState::DYNAMIC_COMPLETE);
@@ -127,22 +127,22 @@ TEST_F(RelayTests, TestControlRelay)
     std::string fileName = std::string(RELAY_TEST_DIRECTORY "test_control_relay.xml");
     gds = readSimXMLFile(fileName);
     // gds->consolePrintLevel = PrintLevel::NO_PRINT;
-    auto obj = gds->find("bus4::load4");
-    auto cr = dynamic_cast<relays::ControlRelay*>(gds->getRelay(0));
+    auto* obj = gds->find("bus4::load4");
+    auto* controlRelay = dynamic_cast<relays::ControlRelay*>(gds->getRelay(0));
     ASSERT_NE(obj, nullptr);
-    ASSERT_NE(cr, nullptr);
+    ASSERT_NE(controlRelay, nullptr);
     gds->dynInitialize();
 
     auto comm = makeCommunicator("", "control", 0);
     comm->initialize();
 
-    auto cm = std::make_shared<CommMessage>(comms::ControlMessagePayload::SET);
-    auto data = cm->getPayload<comms::ControlMessagePayload>();
+    auto controlMessage = std::make_shared<CommMessage>(comms::ControlMessagePayload::SET);
+    auto* data = controlMessage->getPayload<comms::ControlMessagePayload>();
     ASSERT_NE(data, nullptr);
     data->m_field = "P";
     data->m_value = 1.3;
 
-    comm->transmit("cld4", cm);
+    comm->transmit("cld4", controlMessage);
 
     EXPECT_TRUE(comm->messagesAvailable());
     std::uint64_t src;
@@ -150,20 +150,20 @@ TEST_F(RelayTests, TestControlRelay)
     ASSERT_TRUE(rep);
     EXPECT_EQ(rep->getMessageType(), comms::ControlMessagePayload::SET_SUCCESS);
     auto ldr = obj->get("p");
-    EXPECT_NEAR(ldr, 1.3, std::abs(1.3) * 1e-6 + 1e-12);
+    EXPECT_NEAR(ldr, 1.3, (std::abs(1.3) * 1e-6) + 1e-12);
     // send a get request
-    cm->setMessageType(comms::ControlMessagePayload::GET);
-    auto getData = cm->getPayload<comms::ControlMessagePayload>();
+    controlMessage->setMessageType(comms::ControlMessagePayload::GET);
+    auto* getData = controlMessage->getPayload<comms::ControlMessagePayload>();
     ASSERT_NE(getData, nullptr);
     getData->m_field = "q";
 
-    comm->transmit("cld4", cm);
+    comm->transmit("cld4", controlMessage);
     rep = comm->getMessage(src);
     ASSERT_TRUE(rep);
     EXPECT_EQ(rep->getMessageType(), comms::ControlMessagePayload::GET_RESULT);
     EXPECT_NEAR(rep->getPayload<comms::ControlMessagePayload>()->m_value,
                 0.126,
-                std::abs(0.126) * 1e-5 + 1e-12);
+                (std::abs(0.126) * 1e-5) + 1e-12);
 }
 
 TEST_F(RelayTests, TestRelayComms)
@@ -172,7 +172,7 @@ TEST_F(RelayTests, TestRelayComms)
     gds = readSimXMLFile(fileName);
     // gds->consolePrintLevel = PrintLevel::NO_PRINT;
     gds->dynInitialize();
-    auto obj = gds->find("sensor1");
+    auto* obj = gds->find("sensor1");
     ASSERT_NE(obj, nullptr);
     double val = obj->get("current1");
     EXPECT_NE(val, kNullVal);
@@ -192,15 +192,19 @@ TEST_F(RelayTests, PmuTest1)
 
     gds->dynInitialize(timeZero);
 
-    auto pmu = dynamic_cast<relays::Pmu*>(gds->getRelay(0));
+    auto* pmu = dynamic_cast<relays::Pmu*>(gds->getRelay(0));
     ASSERT_NE(pmu, nullptr);
 
-    auto bus3 = gds->getBus(2);
+    auto* bus3 = gds->getBus(2);
     ASSERT_NE(bus3, nullptr);
     EXPECT_TRUE(isSameObject(bus3, pmu->find("target")));
-    EXPECT_NEAR(bus3->getVoltage(), pmu->getOutput(0), std::abs(pmu->getOutput(0)) * 1e-6 + 1e-12);
+    EXPECT_NEAR(bus3->getVoltage(),
+                pmu->getOutput(0),
+                (std::abs(pmu->getOutput(0)) * 1e-6) + 1e-12);
 
-    EXPECT_NEAR(pmu->get("voltage"), pmu->getOutput(0), std::abs(pmu->getOutput(0)) * 1e-6 + 1e-12);
+    EXPECT_NEAR(pmu->get("voltage"),
+                pmu->getOutput(0),
+                (std::abs(pmu->getOutput(0)) * 1e-6) + 1e-12);
 
     double val = pmu->get("voltage");
     double ang = pmu->get("angle");

@@ -62,7 +62,6 @@ set(generator_headers
     renewables/REPCA1.h
     renewables/WTDTA1.h
     renewables/WTDS.h
-    renewables/BusROCOF.h
     renewables/WTARA1.h
     renewables/WTPTA1.h
     renewables/WTTQA1.h
@@ -83,7 +82,6 @@ set(generator_sources
     renewables/REPCA1.cpp
     renewables/WTDTA1.cpp
     renewables/WTDS.cpp
-    renewables/BusROCOF.cpp
     renewables/WTARA1.cpp
     renewables/WTPTA1.cpp
     renewables/WTTQA1.cpp

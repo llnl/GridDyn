@@ -24,7 +24,6 @@ enum class RenewableRole : index_t {
     pitchControl,
     torqueControl,
     rotorResistanceControl,
-    measurement,
     count,
 };
 

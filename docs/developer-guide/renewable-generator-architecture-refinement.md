@@ -308,14 +308,15 @@ no-PLL `REGCP1`.
 | 3    | `REECA1G`                    | Reuse the active-reference hook for `-Kf*(omega-1)`, binding `sg` to a specific synchronous generator speed state. Reject missing, ambiguous, or renewable-only machine references. Test a generator-speed event, DAE Jacobian, DYR loading in either record order, and zero-gain equivalence to `REECA1`.                                                                                                                                                                                                                                                                             |
 | 4    | `REGCP1` with PLL            | Keep `REGCP1` as a separate terminal model. Bind a named measured-angle provider, then use `vd=V cos(a-am)` and `vq=-V sin(a-am)` for the current-frame P/Q equations; retain the present no-PLL path when no provider is selected. Factor the shared `REGCA1` current lag and limiter code instead of copying it. Compare angle-step and fault trajectories with ANDES `PLL1` and `ieee14_regcp1.xlsx`, including angle derivatives in the DAE Jacobian.                                                                                                                              |
 
-The generator-local portion of step 1 is implemented, as is step 2. A
-`BusROCOF` renewable component takes terminal angle and exposes filtered
+The generator-local portion of step 1 is implemented, as is step 2. An
+area-owned `BusROCOFSensor` reads terminal angle and exposes filtered
 frequency deviation and ROCOF as continuous DAE algebraic outputs. `REECA1E`
 is a separate electrical control with named input ports and adds
 `-Kf*df-Kdf*dfdt` to the active reference after `Pref0/wg`. The host resolves
 provider name, signal, and base, checks required ports during assembly, and
-passes solver state locations for analytic Jacobian terms. It initializes and
-steps the measurement before the electrical control. Terminal frequency is
+passes solver state locations for analytic Jacobian terms. The area initializes
+the sensor before its consuming generator, and the host advances named sensors
+before the electrical control in the explicit path. Terminal frequency is
 also available to future components as a host input.
 
 `BUSROCOF` and `REECA1E` load independently from DYR records in either order.
@@ -325,7 +326,7 @@ remote `BUSR` fails loading. Tests cover each gain alone and together, zero
 gain behavior, measurement and control Jacobians, DYR order, and ANDES
 comparison. The two-bus fault checks voltage, P/Q, current commands,
 frequency deviation, and ROCOF. A separate test replays the exact ANDES bus
-angle waveform through `BusROCOF`, avoiding network angle differences when
+angle waveform through `BusROCOFSensor`, avoiding network angle differences when
 checking the filter equations; see
 `test/reference/renewable_fault/README.md`.
 
@@ -335,8 +336,7 @@ solver-mode test checks measurement values across the algebraic/differential
 state split and verifies that the differential-only Jacobian does not assign
 algebraic measurement columns to unrelated differential states.
 
-The binding supports the legacy generator-attached measurement role and a
-named `BusMeasurementSensor` on the generator's bus. `REECA1E` can use an
+The binding uses a named `BusMeasurementSensor` on the generator's bus. `REECA1E` uses an
 area-owned `BusROCOF` sensor; provider type, name, source bus, and uniqueness
 are checked during assembly. `REECA1G`'s synchronous-machine speed reference
 is still separate work. `REGCP1` now binds a named PLL sensor through a
@@ -356,9 +356,8 @@ enter `primaryObjects` for state offsets, residuals, derivatives, and
 Jacobians. Use that collection and execution path for sensors. The area
 containing a sensor's measured bus should own it. A named sensor may serve
 multiple controls.
-The present generator-attached `BUSROCOF` path remains compatible while the
-area-owned path is added; the same measurement equations should be shared or
-checked for equivalence. Model-specific sensor subclasses can supply PLL
+`BUSROCOF` now uses the area-owned sensor exclusively; its trajectory is
+checked against the ANDES measurement. Model-specific sensor subclasses supply PLL
 feedback equations and their own output derivatives where the generic filter
 block path is insufficient. A new general measurement-provider hierarchy is
 not required for this work.
@@ -416,10 +415,9 @@ dynamic bus sensor before its own explicit control step; the later area relay
 visit has zero elapsed time. The combined DAE path uses the shared solver
 states directly.
 
-`BUSROCOF` DYR records now create an area-owned sensor. The old
-generator-attached `BusROCOF` component remains available to existing
-programmatic assemblies. Both forms use the same equations and have a
-trajectory equivalence test. The new DYR record shapes are:
+`BUSROCOF` DYR records create an area-owned sensor. The generator-attached
+duplicate model and measurement role were removed; the ANDES angle waveform
+and fault trajectory now test the sensor directly. The DYR record shapes are:
 
 ```text
 bus 'PLL1' 'name' Kp Ki Tf Tp fn /

@@ -27,7 +27,6 @@
 #include "griddyn/governors/GovernorIeeeG1.h"
 #include "griddyn/governors/GovernorReheat.h"
 #include "griddyn/relays/BusMeasurementSensor.h"
-#include "griddyn/renewables/BusROCOF.h"
 #include "griddyn/renewables/REECA1.h"
 #include "griddyn/renewables/REECA1E.h"
 #include "griddyn/renewables/REECB1.h"
@@ -435,9 +434,12 @@ namespace {
 
     void loadMeasurement(CoreObject* parentObject, stringVec& tokens, std::string_view modelName)
     {
-        const std::size_t expected = modelName == "BUSROCOF" || modelName == "PLL1" ? 8U :
-            modelName == "PLL2"                                                     ? 6U :
-                                                                                      3U;
+        std::size_t expected = 3U;
+        if (modelName == "BUSROCOF" || modelName == "PLL1") {
+            expected = 8U;
+        } else if (modelName == "PLL2") {
+            expected = 6U;
+        }
         if (tokens.size() != expected) {
             throw InvalidParameterValue(std::string{modelName} +
                                         " DYR record has the wrong field count");
@@ -461,7 +463,8 @@ namespace {
         if (name.empty()) {
             throw InvalidParameterValue(std::string{modelName} + " requires a measurement name");
         }
-        for (index_t index = 0; auto* existing = owner->getRelay(index); ++index) {
+        for (index_t index = 0; owner->getRelay(index) != nullptr; ++index) {
+            auto* existing = owner->getRelay(index);
             if (existing->getName() == name) {
                 throw InvalidParameterValue(std::string{modelName} + " duplicates a relay name");
             }
@@ -501,7 +504,7 @@ namespace {
             setFields(fields, 3);
         }
         if (modelName == "BUSROCOF") {
-            for (const auto key : {"tf", "tw", "tr", "fn"}) {
+            for (const auto* const key : {"tf", "tw", "tr", "fn"}) {
                 if (sensor->get(key) <= 0.0) {
                     throw InvalidParameterValue(
                         "BUSROCOF DYR time constants and fn must be positive");
@@ -514,7 +517,7 @@ namespace {
             }
         }
         owner->add(sensor.get());
-        (void)sensor.release();
+        [[maybe_unused]] auto* areaOwnedSensor = sensor.release();
     }
 
     void loadRenewable(CoreObject* parentObject, stringVec& tokens, std::string_view modelName)
@@ -593,7 +596,7 @@ namespace {
             expected = 33U;
         } else if (modelName == "REPCA1") {
             expected = 37U;
-        } else if (modelName == "WTDTA1" || modelName == "BUSROCOF") {
+        } else if (modelName == "WTDTA1") {
             expected = 8U;
         } else if (modelName == "WTDS") {
             expected = 6U;
@@ -658,15 +661,6 @@ namespace {
         } else if (modelName == "WTDS") {
             static constexpr auto wtdsFields = std::to_array<std::string_view>({"h", "d", "w0"});
             setFields(wtdsFields, 3);
-        } else if (modelName == "BUSROCOF") {
-            static constexpr auto measurementFields =
-                std::to_array<std::string_view>({"tf", "tw", "tr", "fn"});
-            const auto name = gmlc::utilities::stringOps::removeQuotes(tokens[3]);
-            if (name.empty()) {
-                throw InvalidParameterValue("BUSROCOF requires a measurement name");
-            }
-            model->setName(name);
-            setFields(measurementFields, 4);
         } else if (modelName == "WTARA1") {
             setFields(wtaraFields, 3);
         } else if (modelName == "WTPTA1") {

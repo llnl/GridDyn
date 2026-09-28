@@ -30,7 +30,7 @@ namespace {
         {.signal = RenewableSignal::terminalAngle, .ioIndex = 3},
         {.signal = RenewableSignal::measuredAngle, .ioIndex = 4, .required = false},
     }};
-}
+}  // namespace
 
 REGCP1::REGCP1(const std::string& name): REGCA1(name)
 {
@@ -105,17 +105,17 @@ std::array<double, 2>
     const double delta = angleDifference(inputs);
     const double cosine = std::cos(delta);
     const double sine = std::sin(delta);
-    const double ip = activeCurrent * lowVoltageGain(inputs[0]);
-    return {inputs[0] * (cosine * ip - sine * reactiveCurrent),
-            inputs[0] * (sine * ip + cosine * reactiveCurrent)};
+    const double activeCurrentLimited = activeCurrent * lowVoltageGain(inputs[0]);
+    return {inputs[0] * ((cosine * activeCurrentLimited) - (sine * reactiveCurrent)),
+            inputs[0] * ((sine * activeCurrentLimited) + (cosine * reactiveCurrent))};
 }
 
 std::array<double, 2> REGCP1::initialCurrentFramePower(const IOdata& inputs,
                                                        const IOdata& desiredOutput) const
 {
     const double delta = angleDifference(inputs);
-    return {std::cos(delta) * desiredOutput[0] + std::sin(delta) * desiredOutput[1],
-            -std::sin(delta) * desiredOutput[0] + std::cos(delta) * desiredOutput[1]};
+    return {(std::cos(delta) * desiredOutput[0]) + (std::sin(delta) * desiredOutput[1]),
+            (-std::sin(delta) * desiredOutput[0]) + (std::cos(delta) * desiredOutput[1])};
 }
 
 void REGCP1::powerJacobian(const IOdata& inputs,
@@ -131,8 +131,8 @@ void REGCP1::powerJacobian(const IOdata& inputs,
     const double cosine = std::cos(delta);
     const double sine = std::sin(delta);
     const double gain = lowVoltageGain(voltage);
-    const double ip = state[0] * gain;
-    const double iq = state[1];
+    const double activeCurrentLimited = state[0] * gain;
+    const double reactiveCurrent = state[1];
     matrixData.assign(alg, alg, -1.0);
     matrixData.assign(alg + 1, alg + 1, -1.0);
     if (!isAlgebraicOnly(sMode)) {
@@ -141,12 +141,18 @@ void REGCP1::powerJacobian(const IOdata& inputs,
         matrixData.assign(alg + 1, diff, voltage * sine * gain);
         matrixData.assign(alg + 1, diff + 1, voltage * cosine);
     }
-    const double voltageGain = gain + voltage * lowVoltageGainSlope(voltage);
-    matrixData.assignCheckCol(alg, inputLocs[0], cosine * state[0] * voltageGain - sine * iq);
-    matrixData.assignCheckCol(alg + 1, inputLocs[0], sine * state[0] * voltageGain + cosine * iq);
+    const double voltageGain = gain + (voltage * lowVoltageGainSlope(voltage));
+    matrixData.assignCheckCol(alg,
+                              inputLocs[0],
+                              (cosine * state[0] * voltageGain) - (sine * reactiveCurrent));
+    matrixData.assignCheckCol(alg + 1,
+                              inputLocs[0],
+                              (sine * state[0] * voltageGain) + (cosine * reactiveCurrent));
     if (!pllName.empty()) {
-        const double active = voltage * (cosine * ip - sine * iq);
-        const double reactive = voltage * (sine * ip + cosine * iq);
+        const double active =
+            voltage * ((cosine * activeCurrentLimited) - (sine * reactiveCurrent));
+        const double reactive =
+            voltage * ((sine * activeCurrentLimited) + (cosine * reactiveCurrent));
         if (inputLocs.size() > 3) {
             matrixData.assignCheckCol(alg, inputLocs[3], -reactive);
             matrixData.assignCheckCol(alg + 1, inputLocs[3], active);

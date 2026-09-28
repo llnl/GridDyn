@@ -276,28 +276,28 @@ TEST(RenewableModels, GridFormingVariantsDaeJacobians)
             return result;
         };
         const auto base = calc();
-        constexpr double h = 1e-7;
+        constexpr double perturbation = 1e-7;
         for (std::size_t column = 0; column < state.size(); ++column) {
-            state[column] += h;
+            state[column] += perturbation;
             const auto shifted = calc();
             for (std::size_t row = 0; row < state.size(); ++row) {
                 EXPECT_NEAR(jacobian.at(static_cast<index_t>(row), static_cast<index_t>(column)),
-                            (shifted[row] - base[row]) / h,
+                            (shifted[row] - base[row]) / perturbation,
                             1e-4)
                     << name;
             }
-            state[column] -= h;
+            state[column] -= perturbation;
         }
         for (std::size_t column = 0; column < inputs.size(); ++column) {
-            inputs[column] += h;
+            inputs[column] += perturbation;
             const auto shifted = calc();
             for (std::size_t row = 0; row < state.size(); ++row) {
                 EXPECT_NEAR(jacobian.at(static_cast<index_t>(row), locations[column]),
-                            (shifted[row] - base[row]) / h,
+                            (shifted[row] - base[row]) / perturbation,
                             1e-4)
                     << name;
             }
-            inputs[column] -= h;
+            inputs[column] -= perturbation;
         }
     }
 }
@@ -459,7 +459,7 @@ TEST(RenewableModels, GridFormingTwoBusFaultAndAndesReference)
                     << name << " at " << expected[0];
                 EXPECT_NEAR(model->getStates()[1], expected[3], 0.04)
                     << name << " at " << expected[0];
-                const index_t deltaIndex = std::string_view{name}.substr(0, 5) == "regcv" ? 3 : 2;
+                const index_t deltaIndex = std::string_view{name}.starts_with("regcv") ? 3 : 2;
                 EXPECT_NEAR(model->getStates()[deltaIndex], expected[4], 0.1)
                     << name << " at " << expected[0];
                 ++samples;

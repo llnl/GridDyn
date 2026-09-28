@@ -248,11 +248,14 @@ DynamicGenerator* RenewableGenerator::machineSource(const RenewableComponent* mo
         root = parentArea;
     }
     DynamicGenerator* match = nullptr;
-    const auto visit = [&](const auto& self, GridArea* area) -> void {
+    std::vector<GridArea*> pendingAreas{root};
+    while (!pendingAreas.empty()) {
+        auto* area = pendingAreas.back();
+        pendingAreas.pop_back();
         for (index_t busIndex = 0; area->getBus(busIndex) != nullptr; ++busIndex) {
-            auto* bus = area->getBus(busIndex);
-            for (index_t genIndex = 0; bus->getGen(genIndex) != nullptr; ++genIndex) {
-                auto* generator = bus->getGen(genIndex);
+            auto* candidateBus = area->getBus(busIndex);
+            for (index_t genIndex = 0; candidateBus->getGen(genIndex) != nullptr; ++genIndex) {
+                auto* generator = candidateBus->getGen(genIndex);
                 if (generator->getName() != requested || !generator->isEnabled()) {
                     continue;
                 }
@@ -270,10 +273,9 @@ DynamicGenerator* RenewableGenerator::machineSource(const RenewableComponent* mo
             }
         }
         for (index_t areaIndex = 0; area->getArea(areaIndex) != nullptr; ++areaIndex) {
-            self(self, area->getArea(areaIndex));
+            pendingAreas.push_back(area->getArea(areaIndex));
         }
-    };
-    visit(visit, root);
+    }
     return match;
 }
 

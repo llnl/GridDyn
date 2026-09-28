@@ -13,59 +13,60 @@
 #include <array>
 #include <cmath>
 #include <cstddef>
+#include <cstdint>
 #include <string>
 #include <string_view>
 
 namespace griddyn {
 namespace {
-    enum Parameter : index_t {
-        fn,
-        tc,
-        kw,
-        kv,
-        inertia,
-        damping,
-        resistance,
-        reactance,
-        kpvd,
-        kivd,
-        kpvq,
-        kivq,
-        kpid,
-        kiid,
-        kpiq,
-        kiiq,
-        tid,
-        tiq,
-        wdrp,
-        qdrp,
-        tr,
-        te,
-        kpi,
-        kii,
-        kpv,
-        kiv,
-        pmax,
-        pmin,
-        kpplim,
-        kiplim,
-        qmax,
-        qmin,
-        kpqlim,
-        kiqlim,
-        tpm,
-        dwmax,
-        dwmin,
-        mf,
-        dd,
-        count
+    enum Parameter : std::uint8_t {
+        FN,
+        TC,
+        KW,
+        KV,
+        INERTIA,
+        DAMPING,
+        RESISTANCE,
+        REACTANCE,
+        KPVD,
+        KIVD,
+        KPVQ,
+        KIVQ,
+        KPID,
+        KIID,
+        KPIQ,
+        KIIQ,
+        TID,
+        TIQ,
+        WDRP,
+        QDRP,
+        TR,
+        TE,
+        KPI,
+        KII,
+        KPV,
+        KIV,
+        PMAX,
+        PMIN,
+        KPPLIM,
+        KIPLIM,
+        QMAX,
+        QMIN,
+        KPQLIM,
+        KIQLIM,
+        TPM,
+        DWMAX,
+        DWMIN,
+        MF,
+        DD,
+        COUNT
     };
-    constexpr std::array<std::string_view, count> names{
+    constexpr std::array<std::string_view, COUNT> names{
         {"fn",   "tc",   "kw",     "kv",     "m",    "d",     "ra",    "xs",   "kpvd",   "kivd",
          "kpvq", "kivq", "kpid",   "kiid",   "kpiq", "kiiq",  "tid",   "tiq",  "wdrp",   "qdrp",
          "tr",   "te",   "kpi",    "kii",    "kpv",  "kiv",   "pmax",  "pmin", "kpplim", "kiplim",
          "qmax", "qmin", "kpqlim", "kiqlim", "tpm",  "dwmax", "dwmin", "mf",   "dd"}};
-    constexpr std::array<double, count> defaults{
+    constexpr std::array<double, COUNT> defaults{
         {60.0, .01,  0.0, 0.0,  10.0, 0.0,  0.0,  .2,   .5,   .02,  .5,    .02, .2,
          .01,  .2,   .01, .01,  .01,  .033, .045, .005, .005, .5,   20.0,  3.0, 10.0,
          1.0,  -1.0, 5.0, 30.0, 1.0,  -1.0, .1,   1.5,  .025, 75.0, -75.0, .15, .11}};
@@ -82,7 +83,7 @@ namespace {
         {.signal = RenewableSignal::electricalPower, .ioIndex = 0, .base = RenewableBase::machine},
         {.signal = RenewableSignal::reactivePower, .ioIndex = 1, .base = RenewableBase::machine},
     }};
-    constexpr double pi = 3.14159265358979323846;
+    constexpr double piConstant = 3.14159265358979323846;
 }  // namespace
 
 GridFormingConverter::GridFormingConverter(Variant variantType, const std::string& name):
@@ -131,13 +132,13 @@ std::string_view GridFormingConverter::sourceName(RenewableSignal signal) const
 void GridFormingConverter::set(std::string_view param, double val, units::unit unitType)
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    for (index_t k = 0; k < count; ++k) {
-        if (key == names[k] || (key == "rf" && k == resistance) ||
-            (key == "xf" && k == reactance)) {
+    for (index_t parameterIndex = 0; parameterIndex < COUNT; ++parameterIndex) {
+        if (key == names[parameterIndex] || (key == "rf" && parameterIndex == RESISTANCE) ||
+            (key == "xf" && parameterIndex == REACTANCE)) {
             if (!std::isfinite(val)) {
                 throw InvalidParameterValue("grid-forming converter parameter must be finite");
             }
-            parameters[k] = val;
+            parameters[parameterIndex] = val;
             return;
         }
     }
@@ -156,10 +157,10 @@ void GridFormingConverter::set(std::string_view param, std::string_view val)
 double GridFormingConverter::get(std::string_view param, units::unit unitType) const
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
-    for (index_t k = 0; k < count; ++k) {
-        if (key == names[k] || (key == "rf" && k == resistance) ||
-            (key == "xf" && k == reactance)) {
-            return parameters[k];
+    for (index_t parameterIndex = 0; parameterIndex < COUNT; ++parameterIndex) {
+        if (key == names[parameterIndex] || (key == "rf" && parameterIndex == RESISTANCE) ||
+            (key == "xf" && parameterIndex == REACTANCE)) {
+            return parameters[parameterIndex];
         }
     }
     return TerminalElectricalModel::get(param, unitType);
@@ -178,20 +179,21 @@ index_t GridFormingConverter::stateCount() const
 
 void GridFormingConverter::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
 {
-    const bool cv = variant == Variant::cv1 || variant == Variant::cv2;
-    const double z2 = (parameters[resistance] * parameters[resistance]) +
-        (parameters[reactance] * parameters[reactance]);
+    const bool isVoltageControlled = variant == Variant::cv1 || variant == Variant::cv2;
+    const double impedanceSquared = (parameters[RESISTANCE] * parameters[RESISTANCE]) +
+        (parameters[REACTANCE] * parameters[REACTANCE]);
     if (std::any_of(parameters.begin(),
-                    parameters.begin() + count,
-                    [](double v) { return !std::isfinite(v); }) ||
-        parameters[fn] <= 0.0 || z2 <= 0.0 || (cv && parameters[inertia] <= 0.0) ||
-        (variant == Variant::cv1 && parameters[tc] <= 0.0) ||
-        (variant == Variant::cv2 && (parameters[tid] <= 0.0 || parameters[tiq] <= 0.0)) ||
-        (!cv &&
-         (parameters[tr] <= 0.0 || parameters[te] <= 0.0 || parameters[tpm] <= 0.0 ||
-          parameters[wdrp] <= 0.0 || parameters[pmin] > parameters[pmax] ||
-          parameters[qmin] > parameters[qmax] || parameters[dwmin] > parameters[dwmax])) ||
-        (variant == Variant::f2 && (parameters[mf] <= 0.0 || pllName.empty()))) {
+                    parameters.begin() + COUNT,
+                    [](double value) { return !std::isfinite(value); }) ||
+        parameters[FN] <= 0.0 || impedanceSquared <= 0.0 ||
+        (isVoltageControlled && parameters[INERTIA] <= 0.0) ||
+        (variant == Variant::cv1 && parameters[TC] <= 0.0) ||
+        (variant == Variant::cv2 && (parameters[TID] <= 0.0 || parameters[TIQ] <= 0.0)) ||
+        (!isVoltageControlled &&
+         (parameters[TR] <= 0.0 || parameters[TE] <= 0.0 || parameters[TPM] <= 0.0 ||
+          parameters[WDRP] <= 0.0 || parameters[PMIN] > parameters[PMAX] ||
+          parameters[QMIN] > parameters[QMAX] || parameters[DWMIN] > parameters[DWMAX])) ||
+        (variant == Variant::f2 && (parameters[MF] <= 0.0 || pllName.empty()))) {
         throw InvalidParameterValue("grid-forming converter parameters or PLL binding");
     }
     auto& local = offsets.local().local;
@@ -214,9 +216,11 @@ void GridFormingConverter::dynObjectInitializeB(const IOdata& inputs,
         throw InvalidParameterValue("REGF2 requires a named PLL frequency deviation");
     }
     const double dCurrent = desiredOutput[0] / inputs[0];
-    const double iq = -desiredOutput[1] / inputs[0];
-    const double ud = inputs[0] + parameters[resistance] * dCurrent - parameters[reactance] * iq;
-    const double uq = parameters[resistance] * iq + parameters[reactance] * dCurrent;
+    const double reactiveCurrent = -desiredOutput[1] / inputs[0];
+    const double internalVoltageD =
+        inputs[0] + (parameters[RESISTANCE] * dCurrent) - (parameters[REACTANCE] * reactiveCurrent);
+    const double internalVoltageQ =
+        (parameters[RESISTANCE] * reactiveCurrent) + (parameters[REACTANCE] * dCurrent);
     m_state[0] = desiredOutput[0];
     m_state[1] = desiredOutput[1];
     initialActivePower = desiredOutput[0];
@@ -226,15 +230,15 @@ void GridFormingConverter::dynObjectInitializeB(const IOdata& inputs,
         m_state[2] = 0.0;  // dw
         m_state[3] = inputs[1];  // delta
         m_state[4] = dCurrent;  // outer d integral
-        m_state[5] = iq;  // outer q integral
+        m_state[5] = reactiveCurrent;  // outer q integral
         if (variant == Variant::cv1) {
-            m_state[6] = parameters[resistance] * dCurrent;
-            m_state[7] = parameters[resistance] * iq;
-            m_state[8] = ud;
-            m_state[9] = uq;
+            m_state[6] = parameters[RESISTANCE] * dCurrent;
+            m_state[7] = parameters[RESISTANCE] * reactiveCurrent;
+            m_state[8] = internalVoltageD;
+            m_state[9] = internalVoltageQ;
         } else {
             m_state[6] = dCurrent;
-            m_state[7] = iq;
+            m_state[7] = reactiveCurrent;
         }
     } else {
         m_state[2] = inputs[1];  // delta
@@ -245,11 +249,11 @@ void GridFormingConverter::dynObjectInitializeB(const IOdata& inputs,
         m_state[7] = desiredOutput[0];  // PIplim integral
         m_state[8] = desiredOutput[1];  // PIqlim integral
         m_state[9] = dCurrent;  // outer d integral
-        m_state[10] = iq;  // outer q integral
+        m_state[10] = reactiveCurrent;  // outer q integral
         m_state[11] = 0.0;  // inner d integral
         m_state[12] = 0.0;  // inner q integral
-        m_state[13] = ud;
-        m_state[14] = uq;
+        m_state[13] = internalVoltageD;
+        m_state[14] = internalVoltageQ;
         if (variant == Variant::f2) {
             m_state[15] = 1.0;
         }
@@ -262,106 +266,123 @@ void GridFormingConverter::dynObjectInitializeB(const IOdata& inputs,
 
 void GridFormingConverter::evaluate(const IOdata& inputs,
                                     const double* alg,
-                                    const double* x,
+                                    const double* state,
                                     double* powerResidual,
                                     double* rates) const
 {
-    const bool cv = variant == Variant::cv1 || variant == Variant::cv2;
-    const double v = inputs[0];
+    const bool isVoltageControlled = variant == Variant::cv1 || variant == Variant::cv2;
+    const double voltage = inputs[0];
     const double angle = inputs[1];
-    const double delta = x[cv ? 1 : 0];
-    const double vd = v * std::cos(delta - angle);
-    const double vq = -v * std::sin(delta - angle);
-    const double r = parameters[resistance];
-    const double react = parameters[reactance];
-    const double z2 = r * r + react * react;
-    const double ud = variant == Variant::cv2 ? 0.0 : x[cv ? 6 : 11];
-    const double uq = variant == Variant::cv2 ? 0.0 : x[cv ? 7 : 12];
-    const double dCurrent =
-        variant == Variant::cv2 ? x[4] : (r * (ud - vd) + react * (uq - vq)) / z2;
-    const double iq = variant == Variant::cv2 ? x[5] : (-react * (ud - vd) + r * (uq - vq)) / z2;
-    powerResidual[0] = vd * dCurrent + vq * iq - alg[0];
-    powerResidual[1] = -vd * iq + vq * dCurrent - alg[1];
-    const double w0 = 2.0 * pi * parameters[fn];
-    if (cv) {
-        const double pref2 = initialActivePower - parameters[kw] * x[0];
-        const double vref2 = initialVoltage + parameters[kv] * (initialReactivePower - alg[1]);
-        const double ed = vd - vref2;
-        const double eq = vq;
-        const double idref = x[2] + parameters[kpvd] * ed;
-        const double iqref = x[3] + parameters[kpvq] * eq;
-        rates[0] = (pref2 - alg[0] - parameters[damping] * x[0]) / parameters[inertia];
-        rates[1] = w0 * x[0];
-        rates[2] = parameters[kivd] * ed;
-        rates[3] = parameters[kivq] * eq;
+    const double delta = state[isVoltageControlled ? 1 : 0];
+    const double terminalVoltageD = voltage * std::cos(delta - angle);
+    const double terminalVoltageQ = -voltage * std::sin(delta - angle);
+    const double resistanceValue = parameters[RESISTANCE];
+    const double react = parameters[REACTANCE];
+    const double impedanceSquared = (resistanceValue * resistanceValue) + (react * react);
+    const double internalVoltageD =
+        variant == Variant::cv2 ? 0.0 : state[isVoltageControlled ? 6 : 11];
+    const double internalVoltageQ =
+        variant == Variant::cv2 ? 0.0 : state[isVoltageControlled ? 7 : 12];
+    const double dCurrent = variant == Variant::cv2 ?
+        state[4] :
+        ((resistanceValue * (internalVoltageD - terminalVoltageD)) +
+         (react * (internalVoltageQ - terminalVoltageQ))) /
+            impedanceSquared;
+    const double reactiveCurrent = variant == Variant::cv2 ?
+        state[5] :
+        ((-react * (internalVoltageD - terminalVoltageD)) +
+         (resistanceValue * (internalVoltageQ - terminalVoltageQ))) /
+            impedanceSquared;
+    powerResidual[0] =
+        (terminalVoltageD * dCurrent) + (terminalVoltageQ * reactiveCurrent) - alg[0];
+    powerResidual[1] =
+        (-terminalVoltageD * reactiveCurrent) + (terminalVoltageQ * dCurrent) - alg[1];
+    const double nominalAngularFrequency = 2.0 * piConstant * parameters[FN];
+    if (isVoltageControlled) {
+        const double pref2 = initialActivePower - (parameters[KW] * state[0]);
+        const double vref2 = initialVoltage + (parameters[KV] * (initialReactivePower - alg[1]));
+        const double voltageErrorD = terminalVoltageD - vref2;
+        const double voltageErrorQ = terminalVoltageQ;
+        const double idref = state[2] + (parameters[KPVD] * voltageErrorD);
+        const double iqref = state[3] + (parameters[KPVQ] * voltageErrorQ);
+        rates[0] = (pref2 - alg[0] - (parameters[DAMPING] * state[0])) / parameters[INERTIA];
+        rates[1] = nominalAngularFrequency * state[0];
+        rates[2] = parameters[KIVD] * voltageErrorD;
+        rates[3] = parameters[KIVQ] * voltageErrorQ;
         if (variant == Variant::cv2) {
-            rates[4] = (idref - dCurrent) / parameters[tid];
-            rates[5] = (iqref - iq) / parameters[tiq];
+            rates[4] = (idref - dCurrent) / parameters[TID];
+            rates[5] = (iqref - reactiveCurrent) / parameters[TIQ];
         } else {
             const double eid = dCurrent - idref;
-            const double eiq = iq - iqref;
-            rates[4] = parameters[kiid] * eid;
-            rates[5] = parameters[kiiq] * eiq;
-            const double udref = x[4] + parameters[kpid] * eid + vd - iqref * react;
-            const double uqref = x[5] + parameters[kpiq] * eiq + vq + idref * react;
-            rates[6] = (udref - ud) / parameters[tc];
-            rates[7] = (uqref - uq) / parameters[tc];
+            const double eiq = reactiveCurrent - iqref;
+            rates[4] = parameters[KIID] * eid;
+            rates[5] = parameters[KIIQ] * eiq;
+            const double udref =
+                state[4] + (parameters[KPID] * eid) + terminalVoltageD - (iqref * react);
+            const double uqref =
+                state[5] + (parameters[KPIQ] * eiq) + terminalVoltageQ + (idref * react);
+            rates[6] = (udref - internalVoltageD) / parameters[TC];
+            rates[7] = (uqref - internalVoltageQ) / parameters[TC];
         }
         return;
     }
-    const double perr = x[3] - x[1];
-    const double qerr = x[4] - x[2];
-    const double plim = x[5] + parameters[kpplim] * perr;
-    const double qlim = x[6] + parameters[kpqlim] * qerr;
-    const double vref2 =
-        variant == Variant::f3 ? x[13] : initialVoltage + parameters[qdrp] * (qlim - x[2]);
-    double dw = w0 * parameters[wdrp] * (plim - x[1]);
+    const double perr = state[3] - state[1];
+    const double qerr = state[4] - state[2];
+    const double plim = state[5] + (parameters[KPPLIM] * perr);
+    const double qlim = state[6] + (parameters[KPQLIM] * qerr);
+    const double vref2 = variant == Variant::f3 ?
+        state[13] :
+        initialVoltage + (parameters[QDRP] * (qlim - state[2]));
+    double frequencyDeviationRate = nominalAngularFrequency * parameters[WDRP] * (plim - state[1]);
     if (variant == Variant::f2) {
-        dw = w0 * (x[13] - 1.0);
+        frequencyDeviationRate = nominalAngularFrequency * (state[13] - 1.0);
     }
     if (variant == Variant::f3) {
-        dw /= vref2 * vref2;
+        frequencyDeviationRate /= vref2 * vref2;
     }
-    rates[0] = std::clamp(dw, parameters[dwmin], parameters[dwmax]);
-    rates[1] = (alg[0] - x[1]) / parameters[tr];
-    rates[2] = (alg[1] - x[2]) / parameters[tr];
-    const double pLimitRate = (x[1] - x[3]) / parameters[tpm];
-    const double qLimitRate = (x[2] - x[4]) / parameters[tpm];
-    rates[3] = ((x[3] >= parameters[pmax] && pLimitRate > 0.0) ||
-                (x[3] <= parameters[pmin] && pLimitRate < 0.0)) ?
+    rates[0] = std::clamp(frequencyDeviationRate, parameters[DWMIN], parameters[DWMAX]);
+    rates[1] = (alg[0] - state[1]) / parameters[TR];
+    rates[2] = (alg[1] - state[2]) / parameters[TR];
+    const double pLimitRate = (state[1] - state[3]) / parameters[TPM];
+    const double qLimitRate = (state[2] - state[4]) / parameters[TPM];
+    rates[3] = ((state[3] >= parameters[PMAX] && pLimitRate > 0.0) ||
+                (state[3] <= parameters[PMIN] && pLimitRate < 0.0)) ?
         0.0 :
         pLimitRate;
-    rates[4] = ((x[4] >= parameters[qmax] && qLimitRate > 0.0) ||
-                (x[4] <= parameters[qmin] && qLimitRate < 0.0)) ?
+    rates[4] = ((state[4] >= parameters[QMAX] && qLimitRate > 0.0) ||
+                (state[4] <= parameters[QMIN] && qLimitRate < 0.0)) ?
         0.0 :
         qLimitRate;
-    rates[5] = parameters[kiplim] * perr;
-    rates[6] = parameters[kiqlim] * qerr;
-    const double ed = vref2 - vd;
-    const double eq = -vq;
-    const double idref = x[7] + parameters[kpv] * ed;
-    const double iqref = x[8] + parameters[kpv] * eq;
-    rates[7] = parameters[kiv] * ed;
-    rates[8] = parameters[kiv] * eq;
+    rates[5] = parameters[KIPLIM] * perr;
+    rates[6] = parameters[KIQLIM] * qerr;
+    const double voltageErrorD = vref2 - terminalVoltageD;
+    const double voltageErrorQ = -terminalVoltageQ;
+    const double idref = state[7] + (parameters[KPV] * voltageErrorD);
+    const double iqref = state[8] + (parameters[KPV] * voltageErrorQ);
+    rates[7] = parameters[KIV] * voltageErrorD;
+    rates[8] = parameters[KIV] * voltageErrorQ;
     const double eid = idref - dCurrent;
-    const double eiq = iqref - iq;
-    rates[9] = parameters[kii] * eid;
-    rates[10] = parameters[kii] * eiq;
-    const double udref = x[9] + parameters[kpi] * eid + vd + r * dCurrent - react * iq;
-    const double uqref = x[10] + parameters[kpi] * eiq + vq + r * iq + react * dCurrent;
-    rates[11] = (udref - ud) / parameters[te];
-    rates[12] = (uqref - uq) / parameters[te];
+    const double eiq = iqref - reactiveCurrent;
+    rates[9] = parameters[KII] * eid;
+    rates[10] = parameters[KII] * eiq;
+    const double udref = state[9] + (parameters[KPI] * eid) + terminalVoltageD +
+        (resistanceValue * dCurrent) - (react * reactiveCurrent);
+    const double uqref = state[10] + (parameters[KPI] * eiq) + terminalVoltageQ +
+        (resistanceValue * reactiveCurrent) + (react * dCurrent);
+    rates[11] = (udref - internalVoltageD) / parameters[TE];
+    rates[12] = (uqref - internalVoltageQ) / parameters[TE];
     if (variant == Variant::f2) {
-        rates[13] = (inputs[2] * parameters[dd] * parameters[wdrp] + 1.0 +
-                     parameters[wdrp] * (plim - x[1]) - x[13]) /
-            (parameters[mf] * parameters[wdrp]);
+        rates[13] = ((inputs[2] * parameters[DD] * parameters[WDRP]) + 1.0 +
+                     (parameters[WDRP] * (plim - state[1])) - state[13]) /
+            (parameters[MF] * parameters[WDRP]);
     } else if (variant == Variant::f3) {
-        const double qd = parameters[qdrp];
-        const double denom = 100000000.0 - 2.0 * std::pow(100.0 - 100.0 * qd, 2.0) - 10000.0;
-        const double kdvoc = parameters[wdrp] * 400000000.0 / (denom * denom);
-        rates[13] = w0 *
-            (parameters[wdrp] * (qlim - x[2]) / vref2 +
-             vref2 * kdvoc * (initialVoltage + vref2) * (initialVoltage - vref2));
+        const double reactiveDroop = parameters[QDRP];
+        const double denom =
+            100000000.0 - (2.0 * std::pow(100.0 - (100.0 * reactiveDroop), 2.0)) - 10000.0;
+        const double kdvoc = parameters[WDRP] * 400000000.0 / (denom * denom);
+        rates[13] = nominalAngularFrequency *
+            ((parameters[WDRP] * (qlim - state[2]) / vref2) +
+             (vref2 * kdvoc * (initialVoltage + vref2) * (initialVoltage - vref2)));
     }
 }
 
@@ -392,8 +413,8 @@ void GridFormingConverter::residual(const IOdata& inputs,
         loc.destLoc[1] = power[1];
     }
     if (hasDifferential(sMode)) {
-        for (index_t k = 0; k < stateCount(); ++k) {
-            loc.destDiffLoc[k] = rates[k] - loc.dstateLoc[k];
+        for (index_t parameterIndex = 0; parameterIndex < stateCount(); ++parameterIndex) {
+            loc.destDiffLoc[parameterIndex] = rates[parameterIndex] - loc.dstateLoc[parameterIndex];
         }
     }
 }
@@ -419,15 +440,15 @@ void GridFormingConverter::timestep(CoreTime time,
                                     const IOdata& inputs,
                                     const SolverMode& /*sMode*/)
 {
-    const double dt = time - prevTime;
-    if (dt < 0.0) {
+    const double timeIncrement = time - prevTime;
+    if (timeIncrement < 0.0) {
         throw InvalidParameterValue("grid-forming converter timestep precedes current time");
     }
     std::array<double, 14> rates{};
     std::array<double, 2> power{};
     evaluate(inputs, m_state.data(), m_state.data() + 2, power.data(), rates.data());
-    for (index_t k = 0; k < stateCount(); ++k) {
-        m_state[2 + k] += dt * rates[k];
+    for (index_t parameterIndex = 0; parameterIndex < stateCount(); ++parameterIndex) {
+        m_state[2 + parameterIndex] += timeIncrement * rates[parameterIndex];
     }
     evaluate(inputs, m_state.data(), m_state.data() + 2, power.data(), rates.data());
     m_state[0] += power[0];
@@ -442,61 +463,67 @@ void GridFormingConverter::jacobianElements(const IOdata& inputs,
                                             const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, sMode, this);
-    const index_t n = stateCount();
+    const index_t differentialCount = stateCount();
     std::array<double, 2> alg{{loc.algStateLoc[0], loc.algStateLoc[1]}};
     std::array<double, 14> state{};
-    std::copy_n(loc.diffStateLoc, n, state.begin());
+    std::copy_n(loc.diffStateLoc, differentialCount, state.begin());
     std::array<double, 2> basePower{};
     std::array<double, 14> baseRates{};
     evaluate(inputs, alg.data(), state.data(), basePower.data(), baseRates.data());
     const auto addColumn = [&](index_t column,
-                               const std::array<double, 2>& p,
-                               const std::array<double, 14>& d,
-                               double h) {
+                               const std::array<double, 2>& shiftedPower,
+                               const std::array<double, 14>& shiftedRates,
+                               double stepSize) {
         if (hasAlgebraic(sMode)) {
-            matrixData.assignCheckCol(loc.algOffset, column, (p[0] - basePower[0]) / h);
-            matrixData.assignCheckCol(loc.algOffset + 1, column, (p[1] - basePower[1]) / h);
+            matrixData.assignCheckCol(loc.algOffset,
+                                      column,
+                                      (shiftedPower[0] - basePower[0]) / stepSize);
+            matrixData.assignCheckCol(loc.algOffset + 1,
+                                      column,
+                                      (shiftedPower[1] - basePower[1]) / stepSize);
         }
         if (hasDifferential(sMode)) {
-            for (index_t row = 0; row < n; ++row) {
+            for (index_t row = 0; row < differentialCount; ++row) {
                 matrixData.assignCheckCol(loc.diffOffset + row,
                                           column,
-                                          (d[row] - baseRates[row]) / h);
+                                          (shiftedRates[row] - baseRates[row]) / stepSize);
             }
         }
     };
-    for (index_t k = 0; k < 2; ++k) {
-        const double h = 1e-7 * std::max(1.0, std::abs(alg[k]));
-        alg[k] += h;
-        std::array<double, 2> p{};
-        std::array<double, 14> d{};
-        evaluate(inputs, alg.data(), state.data(), p.data(), d.data());
-        addColumn(loc.algOffset + k, p, d, h);
-        alg[k] -= h;
+    for (index_t parameterIndex = 0; parameterIndex < 2; ++parameterIndex) {
+        const double stepSize = 1e-7 * std::max(1.0, std::abs(alg[parameterIndex]));
+        alg[parameterIndex] += stepSize;
+        std::array<double, 2> shiftedPower{};
+        std::array<double, 14> shiftedRates{};
+        evaluate(inputs, alg.data(), state.data(), shiftedPower.data(), shiftedRates.data());
+        addColumn(loc.algOffset + parameterIndex, shiftedPower, shiftedRates, stepSize);
+        alg[parameterIndex] -= stepSize;
         if (hasAlgebraic(sMode)) {
-            matrixData.assign(loc.algOffset + k, loc.algOffset + k, -1.0);
+            matrixData.assign(loc.algOffset + parameterIndex, loc.algOffset + parameterIndex, -1.0);
         }
     }
-    for (index_t k = 0; k < n; ++k) {
-        const double h = 1e-7 * std::max(1.0, std::abs(state[k]));
-        state[k] += h;
-        std::array<double, 2> p{};
-        std::array<double, 14> d{};
-        evaluate(inputs, alg.data(), state.data(), p.data(), d.data());
-        addColumn(loc.diffOffset + k, p, d, h);
-        state[k] -= h;
+    for (index_t parameterIndex = 0; parameterIndex < differentialCount; ++parameterIndex) {
+        const double stepSize = 1e-7 * std::max(1.0, std::abs(state[parameterIndex]));
+        state[parameterIndex] += stepSize;
+        std::array<double, 2> shiftedPower{};
+        std::array<double, 14> shiftedRates{};
+        evaluate(inputs, alg.data(), state.data(), shiftedPower.data(), shiftedRates.data());
+        addColumn(loc.diffOffset + parameterIndex, shiftedPower, shiftedRates, stepSize);
+        state[parameterIndex] -= stepSize;
         if (hasDifferential(sMode)) {
-            matrixData.assign(loc.diffOffset + k, loc.diffOffset + k, -stateData.cj);
+            matrixData.assign(loc.diffOffset + parameterIndex,
+                              loc.diffOffset + parameterIndex,
+                              -stateData.cj);
         }
     }
-    for (std::size_t k = 0; k < inputs.size(); ++k) {
+    for (std::size_t parameterIndex = 0; parameterIndex < inputs.size(); ++parameterIndex) {
         IOdata perturbed = inputs;
-        const double h = 1e-7 * std::max(1.0, std::abs(inputs[k]));
-        perturbed[k] += h;
-        std::array<double, 2> p{};
-        std::array<double, 14> d{};
-        evaluate(perturbed, alg.data(), state.data(), p.data(), d.data());
-        addColumn(inputLocs[k], p, d, h);
+        const double stepSize = 1e-7 * std::max(1.0, std::abs(inputs[parameterIndex]));
+        perturbed[parameterIndex] += stepSize;
+        std::array<double, 2> shiftedPower{};
+        std::array<double, 14> shiftedRates{};
+        evaluate(perturbed, alg.data(), state.data(), shiftedPower.data(), shiftedRates.data());
+        addColumn(inputLocs[parameterIndex], shiftedPower, shiftedRates, stepSize);
     }
 }
 

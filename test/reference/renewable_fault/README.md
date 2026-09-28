@@ -103,12 +103,12 @@ models and both load profiles.
 GridDyn accepts a local positional DYR schema for these models; ANDES has no
 `psse-dyr.yaml` definitions for them. After `BUS 'MODEL' 'ID'`, the fields are:
 
-| Model | Fields |
-| --- | --- |
-| `REGCV1` | `fn Tc kw kv M D ra xs Kpvd Kivd Kpvq Kivq KpId KiId KpIq KiIq` |
-| `REGCV2` | `fn kw kv M D ra xs Kpvd Kivd Kpvq Kivq Tid Tiq` |
+| Model            | Fields                                                                                                     |
+| ---------------- | ---------------------------------------------------------------------------------------------------------- |
+| `REGCV1`         | `fn Tc kw kv M D ra xs Kpvd Kivd Kpvq Kivq KpId KiId KpIq KiIq`                                            |
+| `REGCV2`         | `fn kw kv M D ra xs Kpvd Kivd Kpvq Kivq Tid Tiq`                                                           |
 | `REGF1`, `REGF3` | `fn rf xf dwmax dwmin wdrp Qdrp Tr Te KPi KIi KPv KIv Pmax Pmin KPplim KIplim Qmax Qmin KPqlim KIqlim Tpm` |
-| `REGF2` | The `REGF1` fields, then `mf dd 'PLL_NAME'` |
+| `REGF2`          | The `REGF1` fields, then `mf dd 'PLL_NAME'`                                                                |
 
 `REGF2` requires a named local sensor that provides frequency deviation;
 the reference case uses `PLL2`. These terminal models own their

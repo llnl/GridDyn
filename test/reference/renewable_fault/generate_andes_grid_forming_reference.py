@@ -23,8 +23,7 @@ def build_case(model_name, load_profile):
     system.PQ.config.p2z = float(not constant_power)
     system.PQ.config.q2q = float(constant_power)
     system.PQ.config.q2z = float(not constant_power)
-    system.add("Line", idx="line", bus1=1, bus2=2, Sn=100, Vn1=100, Vn2=100,
-               r=0.01, x=0.1, b=0.0)
+    system.add("Line", idx="line", bus1=1, bus2=2, Sn=100, Vn1=100, Vn2=100, r=0.01, x=0.1, b=0.0)
     system.add(model_name, idx=1, bus=2, gen=2, Sn=100)
     if model_name == "REGF2":
         system.add("PLL2", idx="pll2a", bus=2)
@@ -55,14 +54,17 @@ def main():
                 "delta": system.TDS.get_timeseries(model.delta).iloc[:, 0].to_numpy(),
             }
             suffix = "" if load_profile == "power" else "_impedance"
-            target = Path(__file__).with_name(
-                f"andes_{model_name.lower()}{suffix}_reference.csv")
+            target = Path(__file__).with_name(f"andes_{model_name.lower()}{suffix}_reference.csv")
             with target.open("w", newline="", encoding="utf-8") as stream:
                 writer = csv.writer(stream, lineterminator="\n")
                 writer.writerow(["time", *columns])
                 for time in (0.05, 0.15, 0.21, 0.23, 0.25, 0.4, 0.75, 0.9):
-                    writer.writerow([time, *(float(np.interp(time, times, values))
-                                            for values in columns.values())])
+                    writer.writerow(
+                        [
+                            time,
+                            *(float(np.interp(time, times, values)) for values in columns.values()),
+                        ]
+                    )
             print(f"Wrote {target}")
 
 

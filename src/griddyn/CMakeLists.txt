@@ -54,10 +54,12 @@ set(generator_headers
     generators/DynamicGenerator.h
     generators/RenewableGenerator.h
     renewables/RenewableComponent.h
+    renewables/GridFormingConverter.h
     renewables/REGCA1.h
     renewables/REGCP1.h
     renewables/REECA1.h
     renewables/REECA1E.h
+    renewables/REECA1G.h
     renewables/REECB1.h
     renewables/REPCA1.h
     renewables/WTDTA1.h
@@ -74,10 +76,12 @@ set(generator_sources
     generators/IsocController.cpp
     generators/DynamicGenerator.cpp
     generators/RenewableGenerator.cpp
+    renewables/GridFormingConverter.cpp
     renewables/REGCA1.cpp
     renewables/REGCP1.cpp
     renewables/REECA1.cpp
     renewables/REECA1E.cpp
+    renewables/REECA1G.cpp
     renewables/REECB1.cpp
     renewables/REPCA1.cpp
     renewables/WTDTA1.cpp

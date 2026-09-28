@@ -44,6 +44,7 @@ enum class RenewableSignal {
     speedReference,
     mechanicalPower,
     generatorSpeed,
+    synchronousSpeed,
     turbineSpeed,
     frequencyDeviation,
     rateOfChangeOfFrequency,

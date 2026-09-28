@@ -8,7 +8,9 @@
 
 #include "../GridArea.h"
 #include "../GridBus.h"
+#include "../genmodels/GenModelClassical.h"
 #include "../relays/BusMeasurementSensor.h"
+#include "DynamicGenerator.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "utilities/MatrixData.hpp"
@@ -132,6 +134,9 @@ void RenewableGenerator::validateAssembly() const
             if (measurementSource(component, input.signal).first != nullptr) {
                 ++providers;
             }
+            if (machineSource(component, input.signal) != nullptr) {
+                ++providers;
+            }
             for (const auto* candidate : components) {
                 if (candidate == nullptr || candidate == component || !candidate->isEnabled() ||
                     !matchesSource(component, candidate, input.signal)) {
@@ -224,6 +229,54 @@ std::pair<BusMeasurementSensor*, index_t>
     return {match, output};
 }
 
+DynamicGenerator* RenewableGenerator::machineSource(const RenewableComponent* model,
+                                                    RenewableSignal signal) const
+{
+    if (signal != RenewableSignal::synchronousSpeed) {
+        return nullptr;
+    }
+    const auto requested = model->sourceName(signal);
+    if (requested.empty()) {
+        return nullptr;
+    }
+    auto* sourceBus = dynamic_cast<GridBus*>(getParent());
+    auto* root = sourceBus == nullptr ? nullptr : dynamic_cast<GridArea*>(sourceBus->getParent());
+    if (root == nullptr) {
+        return nullptr;
+    }
+    while (auto* parentArea = dynamic_cast<GridArea*>(root->getParent())) {
+        root = parentArea;
+    }
+    DynamicGenerator* match = nullptr;
+    const auto visit = [&](const auto& self, GridArea* area) -> void {
+        for (index_t busIndex = 0; area->getBus(busIndex) != nullptr; ++busIndex) {
+            auto* bus = area->getBus(busIndex);
+            for (index_t genIndex = 0; bus->getGen(genIndex) != nullptr; ++genIndex) {
+                auto* generator = bus->getGen(genIndex);
+                if (generator->getName() != requested || !generator->isEnabled()) {
+                    continue;
+                }
+                auto* candidate = dynamic_cast<DynamicGenerator*>(generator);
+                if (candidate == nullptr ||
+                    dynamic_cast<genmodels::GenModelClassical*>(candidate->find("genmodel")) ==
+                        nullptr) {
+                    throw InvalidParameterValue(
+                        "REECA1G speed source is not a synchronous dynamic generator");
+                }
+                if (match != nullptr) {
+                    throw InvalidParameterValue("REECA1G speed source name is ambiguous");
+                }
+                match = candidate;
+            }
+        }
+        for (index_t areaIndex = 0; area->getArea(areaIndex) != nullptr; ++areaIndex) {
+            self(self, area->getArea(areaIndex));
+        }
+    };
+    visit(visit, root);
+    return match;
+}
+
 IOdata RenewableGenerator::modelInputs(const RenewableComponent* model,
                                        const IOdata& inputs,
                                        const StateData& stateDataValue,
@@ -258,6 +311,10 @@ IOdata RenewableGenerator::modelInputs(const RenewableComponent* model,
                 }
                 break;
             default:
+                if (auto* machine = machineSource(model, port.signal); machine != nullptr) {
+                    index_t location = kNullLocation;
+                    result[portIndex] = machine->getFreq(stateDataValue, sMode, &location);
+                }
                 if (const auto [sensor, output] = measurementSource(model, port.signal);
                     sensor != nullptr) {
                     result[portIndex] = sensor->getOutput({}, stateDataValue, sMode, output);
@@ -320,6 +377,11 @@ IOlocs RenewableGenerator::modelInputLocs(const RenewableComponent* model,
                 result[portIndex] = inputLocs[FREQUENCY_IN_LOCATION];
             }
         } else {
+            if (auto* machine = machineSource(model, port.signal); machine != nullptr) {
+                index_t location = kNullLocation;
+                machine->getFreq(emptyStateData, sMode, &location);
+                result[portIndex] = location;
+            }
             if (const auto [sensor, output] = measurementSource(model, port.signal);
                 sensor != nullptr) {
                 result[portIndex] = sensor->getOutputLoc(sMode, output);

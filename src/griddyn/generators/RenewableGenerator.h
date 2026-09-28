@@ -15,6 +15,7 @@
 
 namespace griddyn {
 class BusMeasurementSensor;
+class DynamicGenerator;
 
 /** Generator host for independently replaceable renewable dynamic components. */
 class RenewableGenerator: public Generator {
@@ -109,6 +110,7 @@ class RenewableGenerator: public Generator {
     void validateAssembly() const;
     std::pair<BusMeasurementSensor*, index_t> measurementSource(const RenewableComponent* model,
                                                                 RenewableSignal signal) const;
+    DynamicGenerator* machineSource(const RenewableComponent* model, RenewableSignal signal) const;
     static std::size_t roleIndex(RenewableRole role);
 };
 

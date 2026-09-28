@@ -29,6 +29,7 @@
 #include "griddyn/relays/BusMeasurementSensor.h"
 #include "griddyn/renewables/REECA1.h"
 #include "griddyn/renewables/REECA1E.h"
+#include "griddyn/renewables/REECA1G.h"
 #include "griddyn/renewables/REECB1.h"
 #include "griddyn/renewables/REGCA1.h"
 #include "griddyn/renewables/REGCP1.h"
@@ -233,10 +234,15 @@ namespace detail {
             loadRenewable(parentObject, lineTokens, "REGCA1");
         } else if (type == "'REGCP1'") {
             loadRenewable(parentObject, lineTokens, "REGCP1");
+        } else if (type == "'REGCV1'" || type == "'REGCV2'" || type == "'REGF1'" ||
+                   type == "'REGF2'" || type == "'REGF3'") {
+            loadRenewable(parentObject, lineTokens, gmlc::utilities::stringOps::removeQuotes(type));
         } else if (type == "'REECA1'") {
             loadRenewable(parentObject, lineTokens, "REECA1");
         } else if (type == "'REECA1E'") {
             loadRenewable(parentObject, lineTokens, "REECA1E");
+        } else if (type == "'REECA1G'") {
+            loadRenewable(parentObject, lineTokens, "REECA1G");
         } else if (type == "'REECB1'") {
             loadRenewable(parentObject, lineTokens, "REECB1");
         } else if (type == "'REPCA1'") {
@@ -582,6 +588,28 @@ namespace {
                                                                              "p4",
                                                                              "spd4",
                                                                              "trate"});
+        static constexpr auto regcv1Fields = std::to_array<std::string_view>({"fn",
+                                                                              "tc",
+                                                                              "kw",
+                                                                              "kv",
+                                                                              "m",
+                                                                              "d",
+                                                                              "ra",
+                                                                              "xs",
+                                                                              "kpvd",
+                                                                              "kivd",
+                                                                              "kpvq",
+                                                                              "kivq",
+                                                                              "kpid",
+                                                                              "kiid",
+                                                                              "kpiq",
+                                                                              "kiiq"});
+        static constexpr auto regcv2Fields = std::to_array<std::string_view>(
+            {"fn", "kw", "kv", "m", "d", "ra", "xs", "kpvd", "kivd", "kpvq", "kivq", "tid", "tiq"});
+        static constexpr auto regfFields = std::to_array<std::string_view>(
+            {"fn",     "rf",   "xf",   "dwmax",  "dwmin",  "wdrp", "qdrp", "tr",
+             "te",     "kpi",  "kii",  "kpv",    "kiv",    "pmax", "pmin", "kpplim",
+             "kiplim", "qmax", "qmin", "kpqlim", "kiqlim", "tpm"});
 
         std::size_t expected = 19U;
         if (modelName == "REGCP1" && tokens.size() == 19U) {
@@ -592,8 +620,18 @@ namespace {
             expected = 54U;
         } else if (modelName == "REECA1E") {
             expected = 57U;
+        } else if (modelName == "REECA1G") {
+            expected = 56U;
         } else if (modelName == "REECB1") {
             expected = 33U;
+        } else if (modelName == "REGCV1") {
+            expected = 3U + regcv1Fields.size();
+        } else if (modelName == "REGCV2") {
+            expected = 3U + regcv2Fields.size();
+        } else if (modelName == "REGF1" || modelName == "REGF3") {
+            expected = 3U + regfFields.size();
+        } else if (modelName == "REGF2") {
+            expected = 6U + regfFields.size();
         } else if (modelName == "REPCA1") {
             expected = 37U;
         } else if (modelName == "WTDTA1") {
@@ -645,11 +683,30 @@ namespace {
             static constexpr auto frequencyFields = std::to_array<std::string_view>({"kf", "kdf"});
             setFields(frequencyFields, 54);
             model->set("busroc", gmlc::utilities::stringOps::removeQuotes(tokens[56]));
+        } else if (modelName == "REECA1G") {
+            if (params[3] != 0.0) {
+                throw InvalidParameterValue("REECA1G remote BUSR is not yet supported");
+            }
+            setFields(reecaFields, 4);
+            static constexpr auto speedFields = std::to_array<std::string_view>({"kf"});
+            setFields(speedFields, 54);
+            model->set("sg", gmlc::utilities::stringOps::removeQuotes(tokens[55]));
         } else if (modelName == "REECB1") {
             if (params[3] != 0.0) {
                 throw InvalidParameterValue("REECB1 remote BUSR is not yet supported");
             }
             setFields(reecbFields, 4);
+        } else if (modelName == "REGCV1") {
+            setFields(regcv1Fields, 3);
+        } else if (modelName == "REGCV2") {
+            setFields(regcv2Fields, 3);
+        } else if (modelName == "REGF1" || modelName == "REGF2" || modelName == "REGF3") {
+            setFields(regfFields, 3);
+            if (modelName == "REGF2") {
+                static constexpr auto vsmFields = std::to_array<std::string_view>({"mf", "dd"});
+                setFields(vsmFields, 3U + regfFields.size());
+                model->set("pll", gmlc::utilities::stringOps::removeQuotes(tokens.back()));
+            }
         } else if (modelName == "REPCA1") {
             if (params[3] != 0.0 || params[4] != 0.0 || params[5] != 0.0) {
                 throw InvalidParameterValue(

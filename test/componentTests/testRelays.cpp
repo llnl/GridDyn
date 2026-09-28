@@ -5,11 +5,13 @@
  */
 
 #include "../gtestHelper.h"
+#include "core/CoreExceptions.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/comms/Communicator.h"
 #include "griddyn/comms/ControlMessage.h"
 #include "griddyn/relays/ControlRelay.h"
 #include "griddyn/relays/Pmu.h"
+#include "griddyn/relays/Sensor.h"
 #include "griddyn/relays/ZonalRelay.h"
 #include <gtest/gtest.h>
 #include <memory>
@@ -24,6 +26,15 @@
 using namespace griddyn;
 
 class RelayTests: public GridDynSimulationTestFixture, public ::testing::Test {};
+
+TEST(RelaySensorTests, InvalidOutputConfigurationFailsWithoutIndexingPastVectors)
+{
+    Sensor sensor("invalidSensor");
+    sensor.set("outputname0", std::string_view{"unbound"});
+    sensor.dynInitializeA(0.0, 0);
+    IOdata fields;
+    EXPECT_THROW(sensor.dynInitializeB({}, {}, fields), InvalidParameterValue);
+}
 
 TEST_F(RelayTests, RelayTest1)
 {

@@ -7,6 +7,8 @@
 #include "RenewableGenerator.h"
 
 #include "../GridBus.h"
+#include "../GridArea.h"
+#include "../relays/BusMeasurementSensor.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "utilities/MatrixData.hpp"
@@ -126,10 +128,14 @@ void RenewableGenerator::validateAssembly() const
             continue;
         }
         for (const auto& input : component->inputPorts()) {
-            if (isTerminalSignal(input.signal)) {
+            if (isTerminalSignal(input.signal) &&
+                component->sourceName(input.signal).empty()) {
                 continue;
             }
             count_t providers = 0;
+            if (measurementSource(component, input.signal).first != nullptr) {
+                ++providers;
+            }
             for (const auto* candidate : components) {
                 if (candidate == nullptr || candidate == component || !candidate->isEnabled() ||
                     !matchesSource(component, candidate, input.signal)) {
@@ -141,7 +147,8 @@ void RenewableGenerator::validateAssembly() const
                     }
                 }
             }
-            if ((input.required && providers != 1) || providers > 1) {
+            if (((input.required || !component->sourceName(input.signal).empty()) &&
+                 providers != 1) || providers > 1) {
                 throw InvalidParameterValue("renewable input has no unique compatible provider");
             }
         }
@@ -165,6 +172,49 @@ void RenewableGenerator::validateAssembly() const
     }
 }
 
+std::pair<BusMeasurementSensor*, index_t>
+RenewableGenerator::measurementSource(const RenewableComponent* model,
+                                       RenewableSignal signal) const
+{
+    const auto requested = model->sourceName(signal);
+    if (requested.empty()) {
+        return {nullptr, kNullLocation};
+    }
+    auto* sourceBus = dynamic_cast<GridBus*>(getParent());
+    auto* area = sourceBus == nullptr ? nullptr : dynamic_cast<GridArea*>(sourceBus->getParent());
+    if (area == nullptr) {
+        return {nullptr, kNullLocation};
+    }
+    BusMeasurementSensor* match = nullptr;
+    index_t output = kNullLocation;
+    for (index_t index = 0; auto* relay = area->getRelay(index); ++index) {
+        if (relay->getName() != requested || !relay->isEnabled()) {
+            continue;
+        }
+        auto* sensor = dynamic_cast<BusMeasurementSensor*>(relay);
+        if (sensor == nullptr || sensor->sourceBus() != sourceBus) {
+            throw InvalidParameterValue("named renewable measurement is not a sensor on its bus");
+        }
+        index_t candidateOutput = kNullLocation;
+        if (dynamic_cast<BusROCOFSensor*>(sensor) != nullptr) {
+            if (signal == RenewableSignal::frequencyDeviation) { candidateOutput = 0; }
+            if (signal == RenewableSignal::rateOfChangeOfFrequency) { candidateOutput = 1; }
+        } else if (dynamic_cast<PLLSensor*>(sensor) != nullptr) {
+            if (signal == RenewableSignal::terminalAngle ||
+                signal == RenewableSignal::measuredAngle) { candidateOutput = 0; }
+            if (signal == RenewableSignal::frequencyDeviation) { candidateOutput = 1; }
+        } else if (dynamic_cast<FreqDivSensor*>(sensor) != nullptr) {
+            if (signal == RenewableSignal::terminalFrequency) { candidateOutput = 0; }
+        }
+        if (candidateOutput == kNullLocation || match != nullptr) {
+            throw InvalidParameterValue("named renewable measurement has an incompatible or duplicate output");
+        }
+        match = sensor;
+        output = candidateOutput;
+    }
+    return {match, output};
+}
+
 IOdata RenewableGenerator::modelInputs(const RenewableComponent* model,
                                        const IOdata& inputs,
                                        const StateData& stateDataValue,
@@ -183,16 +233,26 @@ IOdata RenewableGenerator::modelInputs(const RenewableComponent* model,
                 }
                 break;
             case RenewableSignal::terminalAngle:
-                if (inputs.size() > ANGLE_IN_LOCATION) {
+                if (const auto [sensor, output] = measurementSource(model, port.signal);
+                    sensor != nullptr) {
+                    result[portIndex] = sensor->getOutput({}, stateDataValue, sMode, output);
+                } else if (inputs.size() > ANGLE_IN_LOCATION) {
                     result[portIndex] = inputs[ANGLE_IN_LOCATION];
                 }
                 break;
             case RenewableSignal::terminalFrequency:
-                if (inputs.size() > FREQUENCY_IN_LOCATION) {
+                if (const auto [sensor, output] = measurementSource(model, port.signal);
+                    sensor != nullptr) {
+                    result[portIndex] = sensor->getOutput({}, stateDataValue, sMode, output);
+                } else if (inputs.size() > FREQUENCY_IN_LOCATION) {
                     result[portIndex] = inputs[FREQUENCY_IN_LOCATION];
                 }
                 break;
             default:
+                if (const auto [sensor, output] = measurementSource(model, port.signal);
+                    sensor != nullptr) {
+                    result[portIndex] = sensor->getOutput({}, stateDataValue, sMode, output);
+                }
                 for (const auto* candidate : components) {
                     if (candidate == nullptr || candidate == model || !candidate->isEnabled() ||
                         !candidate->checkFlag(DYN_INITIALIZED) ||
@@ -236,13 +296,25 @@ IOlocs RenewableGenerator::modelInputLocs(const RenewableComponent* model,
         if (port.signal == RenewableSignal::terminalVoltage &&
             inputLocs.size() > VOLTAGE_IN_LOCATION) {
             result[portIndex] = inputLocs[VOLTAGE_IN_LOCATION];
-        } else if (port.signal == RenewableSignal::terminalAngle &&
-                   inputLocs.size() > ANGLE_IN_LOCATION) {
-            result[portIndex] = inputLocs[ANGLE_IN_LOCATION];
-        } else if (port.signal == RenewableSignal::terminalFrequency &&
-                   inputLocs.size() > FREQUENCY_IN_LOCATION) {
-            result[portIndex] = inputLocs[FREQUENCY_IN_LOCATION];
+        } else if (port.signal == RenewableSignal::terminalAngle) {
+            if (const auto [sensor, output] = measurementSource(model, port.signal);
+                sensor != nullptr) {
+                result[portIndex] = sensor->getOutputLoc(sMode, output);
+            } else if (inputLocs.size() > ANGLE_IN_LOCATION) {
+                result[portIndex] = inputLocs[ANGLE_IN_LOCATION];
+            }
+        } else if (port.signal == RenewableSignal::terminalFrequency) {
+            if (const auto [sensor, output] = measurementSource(model, port.signal);
+                sensor != nullptr) {
+                result[portIndex] = sensor->getOutputLoc(sMode, output);
+            } else if (inputLocs.size() > FREQUENCY_IN_LOCATION) {
+                result[portIndex] = inputLocs[FREQUENCY_IN_LOCATION];
+            }
         } else {
+            if (const auto [sensor, output] = measurementSource(model, port.signal);
+                sensor != nullptr) {
+                result[portIndex] = sensor->getOutputLoc(sMode, output);
+            }
             for (const auto* candidate : components) {
                 if (candidate == nullptr || candidate == model || !candidate->isEnabled() ||
                     !matchesSource(model, candidate, port.signal)) {
@@ -418,6 +490,20 @@ void RenewableGenerator::algebraicUpdate(const IOdata& inputs,
 
 void RenewableGenerator::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
+    // Area relay traversal follows bus traversal. Advance any named continuous
+    // measurements consumed by this generator before stepping its controls.
+    std::vector<BusMeasurementSensor*> advanced;
+    for (const auto* component : components) {
+        if (component == nullptr || !component->isEnabled()) { continue; }
+        for (const auto& port : component->inputPorts()) {
+            auto* sensor = measurementSource(component, port.signal).first;
+            if (sensor != nullptr && sensor->diffSize(cLocalSolverMode) > 0 &&
+                std::find(advanced.begin(), advanced.end(), sensor) == advanced.end()) {
+                sensor->timestep(time, {}, sMode);
+                advanced.push_back(sensor);
+            }
+        }
+    }
     const auto stepRole = [&](RenewableRole role) {
         auto* component = components[roleIndex(role)];
         if (component != nullptr && component->isEnabled()) {

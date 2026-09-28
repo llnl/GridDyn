@@ -194,6 +194,48 @@ double REGCA1::lowVoltageGain(double voltage) const
     return std::clamp((voltage - Lvpnt0) / (Lvpnt1 - Lvpnt0), 0.0, 1.0);
 }
 
+double REGCA1::lowVoltageGainSlope(double voltage) const
+{
+    return voltage > Lvpnt0 && voltage < Lvpnt1 ? 1.0 / (Lvpnt1 - Lvpnt0) : 0.0;
+}
+
+std::array<double, 2> REGCA1::powerInjection(const IOdata& inputs,
+                                             double activeCurrent,
+                                             double reactiveCurrent) const
+{
+    return {inputs[0] * activeCurrent * lowVoltageGain(inputs[0]),
+            inputs[0] * reactiveCurrent};
+}
+
+std::array<double, 2> REGCA1::initialCurrentFramePower(const IOdata&,
+                                                        const IOdata& desiredOutput) const
+{
+    return {desiredOutput[0], desiredOutput[1]};
+}
+
+void REGCA1::powerJacobian(const IOdata& inputs,
+                           const double state[],
+                           MatrixData<double>& matrixData,
+                           const IOlocs& inputLocs,
+                           const SolverMode& sMode,
+                           index_t alg,
+                           index_t diff) const
+{
+    const double voltage = inputs[0];
+    const double gain = lowVoltageGain(voltage);
+    matrixData.assign(alg + activePower, alg + activePower, -1.0);
+    matrixData.assign(alg + reactivePower, alg + reactivePower, -1.0);
+    if (!isAlgebraicOnly(sMode)) {
+        matrixData.assign(alg + activePower, diff + activeCurrentState, voltage * gain);
+        matrixData.assign(alg + reactivePower, diff + reactiveCurrentState, voltage);
+    }
+    matrixData.assignCheckCol(alg + activePower,
+                              inputLocs[0],
+                              state[activeCurrentState] *
+                                  (gain + voltage * lowVoltageGainSlope(voltage)));
+    matrixData.assignCheckCol(alg + reactivePower, inputLocs[0], state[reactiveCurrentState]);
+}
+
 double REGCA1::lowVoltagePowerLimit(double voltage) const
 {
     if (!Lvplsw || voltage >= Brkpt) {
@@ -245,11 +287,12 @@ void REGCA1::dynObjectInitializeB(const IOdata& inputs,
     }
     const double voltage = inputs[0];
     const double gain = lowVoltageGain(voltage);
-    if (gain == 0.0 && desiredOutput[0] != 0.0) {
+    const auto framePower = initialCurrentFramePower(inputs, desiredOutput);
+    if (gain == 0.0 && framePower[0] != 0.0) {
         throw InvalidParameterValue("REGCA1 initial active power at zero low-voltage gain");
     }
-    const double activeCurrentInitial = gain == 0.0 ? 0.0 : desiredOutput[0] / (voltage * gain);
-    const double reactiveCurrentInitial = desiredOutput[1] / voltage;
+    const double activeCurrentInitial = gain == 0.0 ? 0.0 : framePower[0] / (voltage * gain);
+    const double reactiveCurrentInitial = framePower[1] / voltage;
     heldIpCommand = activeCurrentInitial;
     heldIqCommand = -reactiveCurrentInitial;
     initialReactivePower = desiredOutput[1];
@@ -289,11 +332,11 @@ void REGCA1::residual(const IOdata& inputs,
 {
     const auto loc = offsets.getLocations(stateData, resid, sMode, this);
     if (hasAlgebraic(sMode)) {
-        loc.destLoc[activePower] =
-            (inputs[0] * loc.diffStateLoc[activeCurrentState] * lowVoltageGain(inputs[0])) -
-            loc.algStateLoc[activePower];
-        loc.destLoc[reactivePower] =
-            (inputs[0] * loc.diffStateLoc[reactiveCurrentState]) - loc.algStateLoc[reactivePower];
+        const auto power = powerInjection(inputs,
+                                          loc.diffStateLoc[activeCurrentState],
+                                          loc.diffStateLoc[reactiveCurrentState]);
+        loc.destLoc[activePower] = power[0] - loc.algStateLoc[activePower];
+        loc.destLoc[reactivePower] = power[1] - loc.algStateLoc[reactivePower];
     }
     if (hasDifferential(sMode)) {
         derivative(inputs, stateData, resid, sMode);
@@ -313,9 +356,11 @@ void REGCA1::algebraicUpdate(const IOdata& inputs,
         return;
     }
     const auto loc = offsets.getLocations(stateData, update, sMode, this);
-    loc.destLoc[activePower] =
-        inputs[0] * loc.diffStateLoc[activeCurrentState] * lowVoltageGain(inputs[0]);
-    loc.destLoc[reactivePower] = inputs[0] * loc.diffStateLoc[reactiveCurrentState];
+    const auto power = powerInjection(inputs,
+                                      loc.diffStateLoc[activeCurrentState],
+                                      loc.diffStateLoc[reactiveCurrentState]);
+    loc.destLoc[activePower] = power[0];
+    loc.destLoc[reactivePower] = power[1];
 }
 
 void REGCA1::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
@@ -328,8 +373,11 @@ void REGCA1::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*s
     for (index_t index = 0; index < 3; ++index) {
         m_state[2 + index] += deltaTime * m_dstate_dt[2 + index];
     }
-    m_state[activePower] = inputs[0] * m_state[2 + activeCurrentState] * lowVoltageGain(inputs[0]);
-    m_state[reactivePower] = inputs[0] * m_state[2 + reactiveCurrentState];
+    const auto power = powerInjection(inputs,
+                                      m_state[2 + activeCurrentState],
+                                      m_state[2 + reactiveCurrentState]);
+    m_state[activePower] = power[0];
+    m_state[reactivePower] = power[1];
     prevTime = time;
 }
 
@@ -344,19 +392,8 @@ void REGCA1::jacobianElements(const IOdata& inputs,
     const index_t alg = loc.algOffset;
     const index_t diff = loc.diffOffset;
     const double voltage = inputs[0];
-    const double gain = lowVoltageGain(voltage);
-    const double gainSlope = voltage > Lvpnt0 && voltage < Lvpnt1 ? 1.0 / (Lvpnt1 - Lvpnt0) : 0.0;
     if (hasAlgebraic(sMode)) {
-        matrixData.assign(alg + activePower, alg + activePower, -1.0);
-        matrixData.assign(alg + reactivePower, alg + reactivePower, -1.0);
-        if (!isAlgebraicOnly(sMode)) {
-            matrixData.assign(alg + activePower, diff + activeCurrentState, voltage * gain);
-            matrixData.assign(alg + reactivePower, diff + reactiveCurrentState, voltage);
-        }
-        matrixData.assignCheckCol(alg + activePower,
-                                  inputLocs[0],
-                                  state[activeCurrentState] * (gain + (voltage * gainSlope)));
-        matrixData.assignCheckCol(alg + reactivePower, inputLocs[0], state[reactiveCurrentState]);
+        powerJacobian(inputs, state, matrixData, inputLocs, sMode, alg, diff);
     }
     if (!hasDifferential(sMode)) {
         return;

@@ -10,7 +10,9 @@
 #include "fileInput/ReaderInfo.h"
 #include "fileInput/fileInput.h"
 #include "griddyn/GridDynSimulation.h"
+#include "griddyn/GridArea.h"
 #include "griddyn/generators/RenewableGenerator.h"
+#include "griddyn/links/AcLine.h"
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/renewables/BusROCOF.h"
 #include "griddyn/renewables/REECA1.h"
@@ -24,6 +26,7 @@
 #include "griddyn/renewables/WTDTA1.h"
 #include "griddyn/renewables/WTPTA1.h"
 #include "griddyn/renewables/WTTQA1.h"
+#include "griddyn/relays/BusMeasurementSensor.h"
 #include "utilities/MatrixDataSparse.hpp"
 #include <algorithm>
 #include <array>
@@ -35,6 +38,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 using namespace griddyn;
@@ -42,6 +46,19 @@ using namespace griddyn;
 namespace {
 std::string renewableDyrRecord(std::string_view model, int busId = 101)
 {
+    if (model == "PLL1") {
+        return std::to_string(busId) + " 'PLL1' 'pll1a' 1 2 .02 .03 60 /\n";
+    }
+    if (model == "PLL2") {
+        return std::to_string(busId) + " 'PLL2' 'pll2a' 1 2 60 /\n";
+    }
+    if (model == "FREQDIV") {
+        return std::to_string(busId) + " 'FREQDIV' 'frequency' /\n";
+    }
+    if (model == "REGCP1_PLL") {
+        return std::to_string(busId) +
+            " 'REGCP1' '1' 1 .1 10 1 .5 1 1.2 .8 .4 -1.5 .1 .7 1 -1 0 'pll1a' /\n";
+    }
     std::string payload;
     if (model == "REGCA1" || model == "REGCP1") {
         payload = "1 .1 10 1 .5 1 1.2 .8 .4 -1.5 .1 .7 1 -1 0";
@@ -214,11 +231,10 @@ TEST(RenewableModels, REGCA1SteadyInitializationAndHostSign)
     EXPECT_NEAR(daeOutput[1], -0.1, 1e-12);
 }
 
-TEST(RenewableModels, REGCP1NoPllIsIndependentAndRejectsPllSelection)
+TEST(RenewableModels, REGCP1NoPllMatchesREGCA1)
 {
     REGCP1 converter;
     EXPECT_THROW(converter.set("pll", 1.0), InvalidParameterValue);
-    EXPECT_THROW(converter.set("pll", std::string_view{"PLL1"}), InvalidParameterValue);
     converter.set("pll", std::string_view{"none"});
     converter.dynInitializeA(0.0, 0);
     IOdata fields;
@@ -234,6 +250,78 @@ TEST(RenewableModels, REGCP1NoPllIsIndependentAndRejectsPllSelection)
               reference.getOutputs({1.0, 0.0, 0.0}, emptyStateData, cLocalSolverMode));
     std::unique_ptr<CoreObject> copy(converter.clone());
     ASSERT_NE(dynamic_cast<REGCP1*>(copy.get()), nullptr);
+}
+
+TEST(RenewableModels, REGCP1RotatesPowerAndInitializesCurrentFrame)
+{
+    REGCP1 converter;
+    converter.set("pll", std::string_view{"pll1"});
+    converter.dynInitializeA(0.0, 0);
+    IOdata fields;
+    constexpr double delta = 0.2;
+    converter.dynInitializeB({1.0, kNullVal, kNullVal, delta, 0.0}, {0.8, 0.1}, fields);
+    EXPECT_NEAR(converter.getStates()[0], 0.8, 1e-12);
+    EXPECT_NEAR(converter.getStates()[1], 0.1, 1e-12);
+    EXPECT_NEAR(converter.getStates()[2], 0.8 * std::cos(delta) + 0.1 * std::sin(delta), 1e-12);
+    EXPECT_NEAR(converter.getStates()[3], -0.8 * std::sin(delta) + 0.1 * std::cos(delta), 1e-12);
+    EXPECT_EQ(converter.sourceName(RenewableSignal::measuredAngle), "pll1");
+    double residual[5]{};
+    converter.residual({1.0, kNullVal, kNullVal, delta, 0.0},
+                       emptyStateData, residual, cLocalSolverMode);
+    for (double value : residual) { EXPECT_NEAR(value, 0.0, 1e-12); }
+    std::array<double, 5> update{};
+    converter.algebraicUpdate({1.0, kNullVal, kNullVal, 0.0, 0.0},
+                              emptyStateData, update.data(), cLocalSolverMode, 1.0);
+    EXPECT_NEAR(update[0], converter.getStates()[2], 1e-12);
+    EXPECT_NEAR(update[1], converter.getStates()[3], 1e-12);
+    std::unique_ptr<CoreObject> copy(converter.clone());
+    auto* cloned = dynamic_cast<REGCP1*>(copy.get());
+    ASSERT_NE(cloned, nullptr);
+    EXPECT_EQ(cloned->sourceName(RenewableSignal::measuredAngle), "pll1");
+}
+
+TEST(RenewableModels, REGCP1AngleAndCurrentJacobiansMatchResidual)
+{
+    REGCP1 converter;
+    converter.set("pll", std::string_view{"pll1"});
+    converter.dynInitializeA(0.0, 0);
+    IOdata fields;
+    converter.dynInitializeB({0.9, kNullVal, kNullVal, 0.2, 0.05}, {0.7, 0.2}, fields);
+    converter.setOffset(0, cDaeSolverMode);
+    std::vector<double> state(converter.stateSize(cDaeSolverMode));
+    std::vector<double> rate(state.size());
+    converter.guessState(0.0, state.data(), rate.data(), cDaeSolverMode);
+    StateData data(0.0, state.data(), rate.data());
+    data.stateSize = static_cast<count_t>(state.size());
+    IOdata inputs{0.9, kNullVal, kNullVal, 0.2, 0.05};
+    MatrixDataSparse<double> jacobian;
+    converter.jacobianElements(inputs, data, jacobian,
+                               {10, kNullLocation, kNullLocation, 11, 12}, cDaeSolverMode);
+    const auto evaluate = [&]() {
+        std::vector<double> residual(state.size());
+        converter.residual(inputs, data, residual.data(), cDaeSolverMode);
+        return residual;
+    };
+    const auto base = evaluate();
+    constexpr double step = 1e-7;
+    for (std::size_t column = 0; column < 5; ++column) {
+        state[column] += step;
+        const auto shifted = evaluate();
+        for (std::size_t row = 0; row < 2; ++row) {
+            EXPECT_NEAR(jacobian.at(static_cast<index_t>(row), static_cast<index_t>(column)),
+                        (shifted[row] - base[row]) / step, 1e-5);
+        }
+        state[column] -= step;
+    }
+    for (const auto [index, location] : {std::pair{0, 10}, std::pair{3, 11}, std::pair{4, 12}}) {
+        inputs[index] += step;
+        const auto shifted = evaluate();
+        for (std::size_t row = 0; row < 2; ++row) {
+            EXPECT_NEAR(jacobian.at(static_cast<index_t>(row), location),
+                        (shifted[row] - base[row]) / step, 1e-5);
+        }
+        inputs[index] -= step;
+    }
 }
 
 TEST(RenewableModels, WTDSOneMassEquationAndAliasedSpeeds)
@@ -625,6 +713,232 @@ TEST(RenewableModels, BusROCOFMatchesContinuousFilterAndDaeJacobian)
     }
 }
 
+TEST(RenewableModels, BusROCOFSensorMatchesLegacyMeasurementTrajectory)
+{
+    AcBus bus("measuredBus");
+    BusROCOF legacy("legacy");
+    BusROCOFSensor sensor("areaMeasurement");
+    sensor.setSource(&bus);
+    legacy.dynInitializeA(0.0, 0);
+    sensor.dynInitializeA(0.0, 0);
+    IOdata legacyFields;
+    IOdata sensorFields;
+    legacy.dynInitializeB({0.0}, {}, legacyFields);
+    sensor.dynInitializeB({}, {}, sensorFields);
+    EXPECT_EQ(sensor.stateSize(cLocalSolverMode), legacy.stateSize(cLocalSolverMode));
+    for (int sample = 1; sample <= 100; ++sample) {
+        const double time = 0.002 * sample;
+        const double angle = sample < 40 ? 0.1 : -0.03;
+        bus.set("angle", angle);
+        legacy.timestep(time, {angle}, cLocalSolverMode);
+        sensor.timestep(time, {}, cLocalSolverMode);
+        EXPECT_NEAR(sensor.getOutput(0), legacy.getOutput(0), 1e-10);
+        EXPECT_NEAR(sensor.getOutput(1), legacy.getOutput(1), 1e-9);
+    }
+}
+
+TEST(RenewableModels, MultiplePLLSensorsHaveIndependentStates)
+{
+    AcBus bus("measuredBus");
+    PLL1Sensor first("pll1a");
+    PLL1Sensor second("pll1b");
+    PLL2Sensor third("pll2");
+    for (auto* sensor : {static_cast<PLLSensor*>(&first), static_cast<PLLSensor*>(&second),
+                         static_cast<PLLSensor*>(&third)}) {
+        sensor->setSource(&bus);
+        sensor->dynInitializeA(0.0, 0);
+        IOdata fields;
+        sensor->dynInitializeB({}, {}, fields);
+        EXPECT_NEAR(sensor->getOutput(0), static_cast<GridBus&>(bus).getAngle(), 1e-12);
+        EXPECT_DOUBLE_EQ(sensor->getOutput(1), 0.0);
+    }
+    EXPECT_EQ(first.diffSize(cLocalSolverMode), 4);
+    EXPECT_EQ(third.diffSize(cLocalSolverMode), 2);
+    second.set("kp", 2.0);
+    bus.set("angle", 0.01);
+    first.timestep(0.0001, {}, cLocalSolverMode);
+    second.timestep(0.0001, {}, cLocalSolverMode);
+    third.timestep(0.0001, {}, cLocalSolverMode);
+    EXPECT_NE(first.getOutput(1), second.getOutput(1));
+    EXPECT_NE(first.getOutput(0), third.getOutput(0));
+}
+
+TEST(RenewableModels, AreaSensorOutputsSurvivePartitionedStateUpdates)
+{
+    AcBus bus("measuredBus");
+    BusROCOFSensor sensor("frequency");
+    sensor.setSource(&bus);
+    sensor.dynInitializeA(0.0, 0);
+    IOdata fields;
+    sensor.dynInitializeB({}, {}, fields);
+    auto algebraicMode = cDynAlgSolverMode;
+    auto differentialMode = cDynDiffSolverMode;
+    algebraicMode.pairedOffsetIndex = differentialMode.offsetIndex;
+    differentialMode.pairedOffsetIndex = algebraicMode.offsetIndex;
+    const auto algebraicSize = sensor.stateSize(algebraicMode);
+    const auto differentialSize = sensor.stateSize(differentialMode);
+    sensor.setOffset(0, algebraicMode);
+    sensor.setOffset(0, differentialMode);
+    std::vector<double> algebraic(algebraicSize);
+    std::vector<double> differential(differentialSize);
+    std::vector<double> algebraicRate(algebraic.size());
+    std::vector<double> differentialRate(differential.size());
+    sensor.guessState(0.0, algebraic.data(), algebraicRate.data(), algebraicMode);
+    sensor.guessState(0.0, differential.data(), differentialRate.data(), differentialMode);
+    algebraic[sensor.getOutputLoc(algebraicMode, 0)] = 0.03;
+    algebraic[sensor.getOutputLoc(algebraicMode, 1)] = -0.02;
+    sensor.setState(0.0, algebraic.data(), algebraicRate.data(), algebraicMode);
+    sensor.setState(0.0, differential.data(), differentialRate.data(), differentialMode);
+    StateData state(0.0, differential.data(), differentialRate.data());
+    state.algState = algebraic.data();
+    EXPECT_EQ(sensor.getOutputLoc(differentialMode, 0), kNullLocation);
+    EXPECT_DOUBLE_EQ(sensor.getOutput({}, state, differentialMode, 0), 0.03);
+    EXPECT_DOUBLE_EQ(sensor.getOutput({}, state, differentialMode, 1), -0.02);
+}
+
+TEST(RenewableModels, PLLSensorDaeJacobiansMatchResiduals)
+{
+    AcBus bus("measuredBus");
+    std::vector<std::unique_ptr<PLLSensor>> sensors;
+    sensors.push_back(std::make_unique<PLL1Sensor>("pll1"));
+    sensors.push_back(std::make_unique<PLL2Sensor>("pll2"));
+    for (auto& sensor : sensors) {
+        sensor->setSource(&bus);
+        sensor->dynInitializeA(0.0, 0);
+        IOdata fields;
+        sensor->dynInitializeB({}, {}, fields);
+        sensor->setOffset(0, cDaeSolverMode);
+        std::vector<double> state(sensor->stateSize(cDaeSolverMode));
+        std::vector<double> rate(state.size());
+        sensor->guessState(0.0, state.data(), rate.data(), cDaeSolverMode);
+        state[sensor->getOutputLoc(cDaeSolverMode, 0)] += 0.01;
+        StateData data(0.0, state.data(), rate.data());
+        data.stateSize = static_cast<count_t>(state.size());
+        data.cj = 1.0;
+        MatrixDataSparse<double> jacobian;
+        sensor->jacobianElements({}, data, jacobian, {}, cDaeSolverMode);
+        const auto evaluate = [&]() {
+            std::vector<double> residual(state.size());
+            sensor->residual({}, data, residual.data(), cDaeSolverMode);
+            return residual;
+        };
+        const auto base = evaluate();
+        constexpr double step = 1e-7;
+        for (std::size_t column = 0; column < state.size(); ++column) {
+            state[column] += step;
+            if (column >= 1) { rate[column] += step; }
+            const auto perturbed = evaluate();
+            for (std::size_t row = 0; row < state.size(); ++row) {
+                EXPECT_NEAR(jacobian.at(static_cast<index_t>(row),
+                                        static_cast<index_t>(column)),
+                            (perturbed[row] - base[row]) / step,
+                            1e-4)
+                    << sensor->getName() << " row " << row << " column " << column;
+            }
+            state[column] -= step;
+            if (column >= 1) { rate[column] -= step; }
+        }
+    }
+}
+
+TEST(RenewableModels, BusROCOFSensorDaeJacobianMatchesResidual)
+{
+    AcBus bus("measuredBus");
+    BusROCOFSensor sensor("frequency");
+    sensor.setSource(&bus);
+    sensor.dynInitializeA(0.0, 0);
+    IOdata fields;
+    sensor.dynInitializeB({}, {}, fields);
+    sensor.setOffset(0, cDaeSolverMode);
+    std::vector<double> state(sensor.stateSize(cDaeSolverMode));
+    std::vector<double> rate(state.size());
+    sensor.guessState(0.0, state.data(), rate.data(), cDaeSolverMode);
+    state[2] = 0.01;
+    state[3] = 0.005;
+    StateData data(0.0, state.data(), rate.data());
+    data.stateSize = static_cast<count_t>(state.size());
+    data.cj = 1.0;
+    MatrixDataSparse<double> jacobian;
+    sensor.jacobianElements({}, data, jacobian, {}, cDaeSolverMode);
+    const auto evaluate = [&]() {
+        std::vector<double> residual(state.size());
+        sensor.residual({}, data, residual.data(), cDaeSolverMode);
+        return residual;
+    };
+    const auto base = evaluate();
+    constexpr double step = 1e-7;
+    for (std::size_t column = 0; column < state.size(); ++column) {
+        state[column] += step;
+        if (column >= 2) { rate[column] += step; }
+        const auto perturbed = evaluate();
+        for (std::size_t row = 0; row < state.size(); ++row) {
+            EXPECT_NEAR(jacobian.at(static_cast<index_t>(row),
+                                    static_cast<index_t>(column)),
+                        (perturbed[row] - base[row]) / step,
+                        1e-5);
+        }
+        state[column] -= step;
+        if (column >= 2) { rate[column] -= step; }
+    }
+}
+
+TEST(RenewableModels, FreqDivSensorsOwnCoupledAreaEquations)
+{
+    GridArea area("frequencyArea");
+    auto* firstArea = new GridArea("firstArea");
+    auto* secondArea = new GridArea("secondArea");
+    area.add(firstArea);
+    area.add(secondArea);
+    auto* bus1 = new AcBus("bus1");
+    auto* bus2 = new AcBus("bus2");
+    firstArea->add(bus1);
+    secondArea->add(bus2);
+    auto* line = new AcLine(0.0, 0.1, "line");
+    line->updateBus(bus1, 1);
+    line->updateBus(bus2, 2);
+    area.add(line);
+    auto* first = new FreqDivSensor("freq1");
+    auto* second = new FreqDivSensor("freq2");
+    first->setSource(bus1);
+    second->setSource(bus2);
+    firstArea->add(first);
+    secondArea->add(second);
+    first->dynInitializeA(0.0, 0);
+    second->dynInitializeA(0.0, 0);
+    IOdata fields;
+    first->dynInitializeB({}, {}, fields);
+    second->dynInitializeB({}, {}, fields);
+    first->setOffset(0, cDaeSolverMode);
+    second->setOffset(1, cDaeSolverMode);
+    std::array<double, 2> state{1.02, 1.0};
+    std::array<double, 2> rate{};
+    StateData data(0.0, state.data(), rate.data());
+    data.stateSize = 2;
+    std::array<double, 2> residual{};
+    first->residual({}, data, residual.data(), cDaeSolverMode);
+    second->residual({}, data, residual.data(), cDaeSolverMode);
+    EXPECT_NEAR(residual[0], -0.2, 1e-12);
+    EXPECT_NEAR(residual[1], 0.2, 1e-12);
+    MatrixDataSparse<double> jacobian;
+    first->jacobianElements({}, data, jacobian, {}, cDaeSolverMode);
+    second->jacobianElements({}, data, jacobian, {}, cDaeSolverMode);
+    EXPECT_NEAR(jacobian.at(0, 0), -10.0, 1e-12);
+    EXPECT_NEAR(jacobian.at(0, 1), 10.0, 1e-12);
+    EXPECT_NEAR(jacobian.at(1, 0), 10.0, 1e-12);
+    EXPECT_NEAR(jacobian.at(1, 1), -10.0, 1e-12);
+    line->set("b1", 0.2);
+    residual = {};
+    first->residual({}, data, residual.data(), cDaeSolverMode);
+    EXPECT_NEAR(residual[0], -0.196, 1e-12);
+    line->disconnect();
+    residual = {};
+    first->residual({}, data, residual.data(), cDaeSolverMode);
+    EXPECT_DOUBLE_EQ(residual[0], 0.0);
+    std::array<double, 2> update{};
+    EXPECT_THROW(first->algebraicUpdate({}, data, update.data(), cDaeSolverMode, 1.0),
+                 InvalidParameterValue);
+}
+
 TEST(RenewableModels, BusROCOFMatchesAndesForIdenticalAngleInput)
 {
     const auto reference = std::filesystem::path(__FILE__).parent_path().parent_path() /
@@ -948,6 +1262,121 @@ TEST(RenewableModels, DyrLoadsREGCP1AndWTDSInEitherOrder)
     }
 }
 
+TEST(RenewableModels, DyrBindsREGCP1ToNamedPLLInEitherOrder)
+{
+    for (const std::vector<std::string_view>& order :
+         {std::vector<std::string_view>{"REGCP1_PLL", "PLL1"},
+          std::vector<std::string_view>{"PLL1", "REGCP1_PLL"}}) {
+        auto simulation = renewableDyrSimulation();
+        loadRenewableRecords(*simulation, order);
+        auto* bus = dynamic_cast<GridBus*>(simulation->findByUserID("bus", 101));
+        ASSERT_NE(bus, nullptr);
+        auto* host = dynamic_cast<RenewableGenerator*>(bus->getGen(0));
+        auto* pll = dynamic_cast<PLL1Sensor*>(simulation->getRelay(0));
+        ASSERT_NE(host, nullptr);
+        ASSERT_NE(pll, nullptr);
+        auto* converter = dynamic_cast<REGCP1*>(host->find("electrical"));
+        ASSERT_NE(converter, nullptr);
+        EXPECT_EQ(converter->sourceName(RenewableSignal::measuredAngle), "pll1a");
+        pll->dynInitializeA(0.0, 0);
+        IOdata fields;
+        pll->dynInitializeB({}, {}, fields);
+        host->dynInitializeA(0.0, 0);
+        host->dynInitializeB({1.0, 0.0}, {0.8, 0.1}, fields);
+        const auto ip = converter->getStates()[2];
+        const auto iq = converter->getStates()[3];
+        host->timestep(0.0, {1.0, 0.2}, cLocalSolverMode);
+        EXPECT_NEAR(converter->getStates()[0],
+                    std::cos(0.2) * ip - std::sin(0.2) * iq, 1e-12);
+        EXPECT_NEAR(converter->getStates()[1],
+                    std::sin(0.2) * ip + std::cos(0.2) * iq, 1e-12);
+    }
+    auto missing = renewableDyrSimulation();
+    loadRenewableRecords(*missing, {"REGCP1_PLL"});
+    auto* bus = dynamic_cast<GridBus*>(missing->findByUserID("bus", 101));
+    ASSERT_NE(bus, nullptr);
+    auto* host = dynamic_cast<RenewableGenerator*>(bus->getGen(0));
+    ASSERT_NE(host, nullptr);
+    EXPECT_THROW(host->dynInitializeA(0.0, 0), InvalidParameterValue);
+
+    auto wrongType = renewableDyrSimulation();
+    loadRenewableRecords(*wrongType, {"REGCP1_PLL"});
+    auto* wrongTypeBus = dynamic_cast<GridBus*>(wrongType->findByUserID("bus", 101));
+    ASSERT_NE(wrongTypeBus, nullptr);
+    auto* frequency = new FreqDivSensor("pll1a");
+    frequency->setSource(wrongTypeBus);
+    wrongType->add(frequency);
+    auto* wrongTypeHost = dynamic_cast<RenewableGenerator*>(wrongTypeBus->getGen(0));
+    ASSERT_NE(wrongTypeHost, nullptr);
+    EXPECT_THROW(wrongTypeHost->dynInitializeA(0.0, 0), InvalidParameterValue);
+
+    auto wrongBus = renewableDyrSimulation();
+    loadRenewableRecords(*wrongBus, {"REGCP1_PLL"});
+    auto* otherBus = new AcBus("otherBus");
+    wrongBus->add(otherBus);
+    auto* otherPll = new PLL1Sensor("pll1a");
+    otherPll->setSource(otherBus);
+    wrongBus->add(otherPll);
+    auto* originalBus = dynamic_cast<GridBus*>(wrongBus->findByUserID("bus", 101));
+    ASSERT_NE(originalBus, nullptr);
+    auto* wrongBusHost = dynamic_cast<RenewableGenerator*>(originalBus->getGen(0));
+    ASSERT_NE(wrongBusHost, nullptr);
+    EXPECT_THROW(wrongBusHost->dynInitializeA(0.0, 0), InvalidParameterValue);
+}
+
+TEST(RenewableModels, REGCP1HostJacobianCouplesBusAndPLLAngles)
+{
+    auto simulation = renewableDyrSimulation();
+    loadRenewableRecords(*simulation, {"PLL1", "REGCP1_PLL"});
+    auto* bus = dynamic_cast<GridBus*>(simulation->findByUserID("bus", 101));
+    ASSERT_NE(bus, nullptr);
+    auto* host = dynamic_cast<RenewableGenerator*>(bus->getGen(0));
+    auto* owner = dynamic_cast<GridArea*>(bus->getParent());
+    ASSERT_NE(owner, nullptr);
+    auto* pll = dynamic_cast<PLL1Sensor*>(owner->getRelay(0));
+    ASSERT_NE(host, nullptr);
+    ASSERT_NE(pll, nullptr);
+    pll->dynInitializeA(0.0, 0);
+    IOdata fields;
+    pll->dynInitializeB({}, {}, fields);
+    host->dynInitializeA(0.0, 0);
+    host->dynInitializeB({1.0, 0.0}, {0.8, 0.1}, fields);
+    const auto sensorSize = pll->stateSize(cDaeSolverMode);
+    pll->setOffset(0, cDaeSolverMode);
+    host->setOffset(sensorSize, cDaeSolverMode);
+    std::vector<double> state(sensorSize + host->stateSize(cDaeSolverMode));
+    std::vector<double> rate(state.size());
+    pll->guessState(0.0, state.data(), rate.data(), cDaeSolverMode);
+    host->guessState(0.0, state.data(), rate.data(), cDaeSolverMode);
+    const auto pllAngle = pll->getOutputLoc(cDaeSolverMode, 0);
+    state[pllAngle] = 0.04;
+    StateData data(0.0, state.data(), rate.data());
+    data.stateSize = static_cast<count_t>(state.size());
+    IOdata inputs{1.0, 0.2};
+    MatrixDataSparse<double> jacobian;
+    host->jacobianElements(inputs, data, jacobian, {30, 31}, cDaeSolverMode);
+    auto* converter = dynamic_cast<REGCP1*>(host->find("electrical"));
+    ASSERT_NE(converter, nullptr);
+    const auto power = converter->getOutputLoc(cDaeSolverMode, 0);
+    const auto reactive = converter->getOutputLoc(cDaeSolverMode, 1);
+    const auto evaluate = [&]() {
+        std::vector<double> residual(state.size());
+        host->residual(inputs, data, residual.data(), cDaeSolverMode);
+        return residual;
+    };
+    const auto base = evaluate();
+    constexpr double step = 1e-7;
+    state[pllAngle] += step;
+    const auto pllShift = evaluate();
+    state[pllAngle] -= step;
+    inputs[1] += step;
+    const auto busShift = evaluate();
+    for (auto row : {power, reactive}) {
+        EXPECT_NEAR(jacobian.at(row, pllAngle), (pllShift[row] - base[row]) / step, 1e-5);
+        EXPECT_NEAR(jacobian.at(row, 31), (busShift[row] - base[row]) / step, 1e-5);
+    }
+}
+
 TEST(RenewableModels, DyrLoadsREECA1EAndBusROCOFInEitherOrder)
 {
     for (const std::vector<std::string_view>& order :
@@ -960,16 +1389,33 @@ TEST(RenewableModels, DyrLoadsREECA1EAndBusROCOFInEitherOrder)
         auto* host = dynamic_cast<RenewableGenerator*>(bus->getGen(0));
         ASSERT_NE(host, nullptr);
         auto* control = dynamic_cast<REECA1E*>(host->find("electrical_control"));
-        auto* measurement = dynamic_cast<BusROCOF*>(host->find("measurement"));
+        auto* measurement = dynamic_cast<BusROCOFSensor*>(simulation->getRelay(0));
         ASSERT_NE(control, nullptr);
         ASSERT_NE(measurement, nullptr);
+        EXPECT_EQ(host->find("measurement"), nullptr);
         EXPECT_EQ(measurement->getName(), "freq1");
         EXPECT_DOUBLE_EQ(control->get("kf"), 4.0);
         EXPECT_DOUBLE_EQ(control->get("kdf"), 0.5);
+        measurement->dynInitializeA(0.0, 0);
+        IOdata measurementFields;
+        measurement->dynInitializeB({}, {}, measurementFields);
         host->dynInitializeA(0.0, 0);
         IOdata fields;
         host->dynInitializeB({1.0, 0.0}, {0.8, 0.1}, fields);
+        bus->set("angle", 0.1);
+        host->timestep(0.01, {1.0, 0.1}, cLocalSolverMode);
+        EXPECT_GT(measurement->getOutput(0), 0.0);
     }
+}
+
+TEST(RenewableModels, DyrLoadsMultipleAreaMeasurements)
+{
+    auto simulation = renewableDyrSimulation();
+    loadRenewableRecords(*simulation, {"PLL1", "PLL2", "FREQDIV"});
+    EXPECT_NE(dynamic_cast<PLL1Sensor*>(simulation->getRelay(0)), nullptr);
+    EXPECT_NE(dynamic_cast<PLL2Sensor*>(simulation->getRelay(1)), nullptr);
+    EXPECT_NE(dynamic_cast<FreqDivSensor*>(simulation->getRelay(2)), nullptr);
+    EXPECT_EQ(simulation->getRelay(3), nullptr);
 }
 
 TEST(RenewableModels, REECB1LoadsAsIndependentElectricalControl)
@@ -1314,6 +1760,30 @@ TEST(RenewableModels, SpeedCoupledWindDyrIntegratesInNetwork)
     for (double value : simulation->getState()) {
         EXPECT_TRUE(std::isfinite(value));
     }
+}
+
+TEST(RenewableModels, REGCP1NamedPLLIntegratesInNetwork)
+{
+    const auto raw = std::filesystem::path(__FILE__).parent_path().parent_path() / "test_files" /
+        "comparison_tests" / "ieee14.raw";
+    auto simulation = std::make_unique<GridDynSimulation>();
+    loadFile(simulation.get(), raw.string());
+    loadRenewableRecords(*simulation, {"PLL1", "REGCP1_PLL", "REECA1"}, 2);
+    loadOtherMachines(*simulation);
+    auto* bus = dynamic_cast<GridBus*>(simulation->findByUserID("bus", 2));
+    ASSERT_NE(bus, nullptr);
+    auto* host = dynamic_cast<RenewableGenerator*>(bus->getGen(0));
+    auto* owner = dynamic_cast<GridArea*>(bus->getParent());
+    ASSERT_NE(owner, nullptr);
+    auto* pll = dynamic_cast<PLL1Sensor*>(owner->getRelay(0));
+    ASSERT_NE(host, nullptr);
+    ASSERT_NE(pll, nullptr);
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_NEAR(pll->getOutput(0), bus->getAngle(), 1e-10);
+    EXPECT_EQ(runResidualCheck(simulation, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, cDaeSolverMode, false), 0);
+    ASSERT_EQ(simulation->run(0.1), 0);
+    for (double value : simulation->getState()) { EXPECT_TRUE(std::isfinite(value)); }
 }
 
 TEST(RenewableModels, SolarDyrIntegratesInNetwork)

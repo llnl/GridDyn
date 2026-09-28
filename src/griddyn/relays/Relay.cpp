@@ -14,6 +14,7 @@
 #include "../measurement/StateGrabber.h"
 #include "Breaker.h"
 #include "BusRelay.h"
+#include "BusMeasurementSensor.h"
 #include "ControlRelay.h"
 #include "DifferentialRelay.h"
 #include "Fuse.h"
@@ -39,6 +40,10 @@ using units::convert;
 
 static TypeFactory<Relay> gBf("relay", std::to_array<std::string_view>({"basic"}), "basic");
 static TypeFactory<Sensor> gSensorFactory("relay", "sensor");
+static ChildTypeFactory<PLL1Sensor, Sensor> gPll1Factory("relay", "pll1");
+static ChildTypeFactory<PLL2Sensor, Sensor> gPll2Factory("relay", "pll2");
+static ChildTypeFactory<BusROCOFSensor, Sensor> gBusRocofFactory("relay", "busrocof");
+static ChildTypeFactory<FreqDivSensor, Sensor> gFreqDivFactory("relay", "freqdiv");
 namespace relays {
     static TypeFactory<ZonalRelay> gZonalRelayFactory(
         "relay",

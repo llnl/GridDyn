@@ -6,6 +6,7 @@
 
 #pragma once
 #include "RenewableComponent.h"
+#include <array>
 #include <string>
 
 namespace griddyn {
@@ -51,6 +52,22 @@ class REGCA1: public TerminalElectricalModel {
                                   const SolverMode& sMode) override;
     stringVec localStateNames() const override;
 
+  protected:
+    virtual std::array<double, 2> powerInjection(const IOdata& inputs,
+                                                  double activeCurrent,
+                                                  double reactiveCurrent) const;
+    virtual std::array<double, 2> initialCurrentFramePower(const IOdata& inputs,
+                                                            const IOdata& desiredOutput) const;
+    virtual void powerJacobian(const IOdata& inputs,
+                               const double state[],
+                               MatrixData<double>& matrixData,
+                               const IOlocs& inputLocs,
+                               const SolverMode& sMode,
+                               index_t alg,
+                               index_t diff) const;
+    double lowVoltageGain(double voltage) const;
+    double lowVoltageGainSlope(double voltage) const;
+
   private:
     double Tg = 0.1;
     double Rrpwr = 10.0;
@@ -70,7 +87,6 @@ class REGCA1: public TerminalElectricalModel {
     bool Lvplsw = true;
     double heldIpCommand = 0.0;
     double heldIqCommand = 0.0;
-    double lowVoltageGain(double voltage) const;
     double lowVoltagePowerLimit(double filteredVoltage) const;
     double activeCommand(const IOdata& inputs) const;
     double reactiveCommand(const IOdata& inputs) const;

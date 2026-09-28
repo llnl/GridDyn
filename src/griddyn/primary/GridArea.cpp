@@ -11,6 +11,7 @@
 #include "../GridDynSimulation.h"
 #include "../Link.h"
 #include "../Relay.h"
+#include "../relays/BusMeasurementSensor.h"
 #include "../measurement/ObjectGrabbers.h"
 #include "ListMaintainer.h"
 #include "core/CoreExceptions.h"
@@ -767,6 +768,13 @@ void GridArea::dynObjectInitializeB(const IOdata& inputs,
             }
         }
     }
+    // Renewable generator initialization can consume area-owned bus measurements.
+    // Their initial values come from the completed power flow, so seed them first.
+    for (auto* rel : m_Relays) {
+        if (rel->isEnabled() && dynamic_cast<BusMeasurementSensor*>(rel) != nullptr) {
+            rel->dynInitializeB(inputs, desiredOutput, fieldSet);
+        }
+    }
     double pmx = 0;
     for (auto* bus : m_Buses) {
         if (bus->isEnabled()) {
@@ -783,7 +791,7 @@ void GridArea::dynObjectInitializeB(const IOdata& inputs,
         }
     }
     for (auto* rel : m_Relays) {
-        if (rel->isEnabled()) {
+        if (rel->isEnabled() && dynamic_cast<BusMeasurementSensor*>(rel) == nullptr) {
             if (rel->checkFlag(LATE_B_INITIALIZE)) {
                 lateBObjects.push_back(rel);
             } else {

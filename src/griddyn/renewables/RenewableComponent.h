@@ -31,6 +31,7 @@ enum class RenewableRole : index_t {
 enum class RenewableSignal {
     terminalVoltage,
     terminalAngle,
+    measuredAngle,
     terminalFrequency,
     electricalPower,
     reactivePower,

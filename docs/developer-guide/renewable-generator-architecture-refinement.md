@@ -246,10 +246,9 @@ converter current commands.
 ## Next ANDES renewable batch
 
 GridDyn has `REGCA1`, `REECA1`, `REECB1`, `REPCA1`, `WTDTA1`, `WTDS`,
-`WTARA1`, `WTPTA1`, `WTTQA1`, and the no-PLL `REGCP1` path. The remaining
-models registered under `andes.models.renewable` are `WTARV1`, `REECA1E`,
-`REECA1G`, `REGCV1`, `REGCV2`, and `REGF1` through `REGF3`; the `REGCP1`
-PLL path is also pending. Andes also
+`WTARA1`, `WTPTA1`, `WTTQA1`, `REECA1E`, and both `REGCP1` paths. The remaining
+models registered under `andes.models.renewable` are `WTARV1`, `REECA1G`,
+`REGCV1`, `REGCV2`, and `REGF1` through `REGF3`. Andes also
 registers `PVD1` under `andes.models.distributed`; it is an integrated PV
 generator relevant to renewable coverage. These names are distinct model
 implementations, not aliases for the existing GridDyn classes.
@@ -257,8 +256,8 @@ implementations, not aliases for the existing GridDyn classes.
 | Order | Models                                      | GridDyn fit and prerequisite                                                                                                                                                                                                                                                                                                                                                                                                                | Validation source                                                                                                                                                                    |
 | ----- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 1     | `REECA1` speed branch and `WTDS`            | Add the `PFLAG=1` speed-dependent active-power path, with a declared generator-speed input and its Jacobian. Then add `WTDS` in the existing drivetrain role: one speed state with electrical power, mechanical power, and speed-reference inputs; generator and turbine speed outputs can refer to the same state. Do not copy ANDES' unused dummy shaft state.                                                                            | `andes/cases/kundur/kundur_wtds.xlsx`; compare an initialized state and a power or pitch disturbance.                                                                                |
-| 2     | `REGCP1` without PLL                        | A separate terminal electrical class can share `REGCA1` current dynamics. Without a PLL its d/q frame reduces to bus voltage and reproduces `REGCA1`. Explicitly reject a nonempty PLL reference until the measurement connection in step 3 is available.                                                                                                                                                                                   | `andes/cases/ieee14/ieee14_regcp1_nopll.json`; check equivalence to `REGCA1` for the same parameters.                                                                                |
-| 3     | `REECA1E`, `REECA1G`, and `REGCP1` PLL path | Add external measurement binding with state locations and Jacobian terms; the current host only resolves terminal voltage/angle and component ports. Separate electrical-control classes can reuse `REECA1`: `REECA1E` adds `-Kf*df-Kdf*dfdt` to active reference from bus frequency/ROCOF; `REECA1G` adds `-Kf*(omega-1)` from a named synchronous machine. Finish `REGCP1` with measured angle, rotated d/q voltage, and P/Q derivatives. | Construct small ANDES frequency and machine-speed event cases, check zero-gain equivalence to `REECA1`, and use `andes/cases/ieee14/ieee14_regcp1.xlsx` for PLL behavior.            |
+| 2     | `REGCP1` without PLL                        | A separate terminal electrical class can share `REGCA1` current dynamics. Without a PLL its d/q frame reduces to bus voltage and reproduces `REGCA1`. The named PLL case is completed in the measured-angle step.                                                                                                                                                                                   | `andes/cases/ieee14/ieee14_regcp1_nopll.json`; check equivalence to `REGCA1` for the same parameters.                                                                                |
+| 3     | `REECA1E`, `REECA1G`, and `REGCP1` PLL path | Add external measurement binding with state locations and Jacobian terms; the host resolves terminal signals, component ports, and named sensors. Separate electrical-control classes can reuse `REECA1`: `REECA1E` adds `-Kf*df-Kdf*dfdt` to active reference from bus frequency/ROCOF; `REECA1G` adds `-Kf*(omega-1)` from a named synchronous machine. Finish `REGCP1` with measured angle, rotated d/q voltage, and P/Q derivatives. | Construct small ANDES frequency and machine-speed event cases, check zero-gain equivalence to `REECA1`, and use `andes/cases/ieee14/ieee14_regcp1.xlsx` for PLL behavior.            |
 | 4     | `PVD1`                                      | A self-contained `TerminalElectricalModel` with current lags, P/Q priority, voltage and frequency response, and trip/recovery logic. It needs the frequency measurement and optional remote-bus binding from the preceding step.                                                                                                                                                                                                            | `andes/cases/ieee14/ieee14_pvd1.json` and associated cases, including voltage/frequency trip and recovery events.                                                                    |
 | 5     | `REGCV1/2`, then `REGF1/2/3`                | Self-controlled grid-forming terminal models. Reuse terminal P/Q and d/q network algebra where equations agree, while keeping VSG, droop, VSM, oscillator, and inner-loop variants separate. `REGF2` additionally needs a PLL frequency input. These models do not require `REECA1` current-command ports.                                                                                                                                  | Create small ANDES cases because this checkout contains no dedicated case files for these five models; compare initialization, voltage steps, frequency response, and DAE Jacobians. |
 
@@ -280,8 +279,8 @@ initializes the shaft before the speed-dependent control and reconciles the
 control again after mechanical initialization. `PFLAG=1` with `Tpord=0`
 remains explicitly rejected because the current bypass output has no
 speed-dependent output Jacobian. `REGCP1` is a distinct loadable terminal
-model using the `REGCA1` equations for its no-PLL case; a nonempty PLL
-selection is rejected until the measured-angle path is implemented.
+model using the `REGCA1` equations for its no-PLL case. Its named PLL path is
+described below.
 The DYR reader accepts `REGCP1` with the 15 numeric `REGCA1` parameters
 (implicitly no PLL) and `WTDS` with `H`, `D`, and `w0`.
 
@@ -295,8 +294,8 @@ mechanical-power disturbance should later cover a larger operating range.
 
 ### Measurement binding and frequency controls
 
-The first measurement-binding path now serves `REECA1E`. `REECA1G` and the
-`REGCP1` PLL variant can reuse its source resolution and solver-location rules.
+The first measurement-binding path now serves `REECA1E` and the `REGCP1` PLL
+variant. `REECA1G` can reuse its source resolution and solver-location rules.
 These models must remain
 independently selectable in dynamics files; a missing measurement or machine
 reference is a load/assembly error, not a reason to substitute `REECA1` or
@@ -336,11 +335,125 @@ solver-mode test checks measurement values across the algebraic/differential
 state split and verifies that the differential-only Jacobian does not assign
 algebraic measurement columns to unrelated differential states.
 
-The binding currently supports one generator-attached measurement role. It
-does not yet resolve a separately attached bus PMU or a shared remote
-measurement. The next set should extend the binding to an external named
-source with explicit ambiguity and remote-bus checks, then implement
-`REECA1G`'s synchronous-machine speed reference and `REGCP1`'s PLL path.
+The binding supports the legacy generator-attached measurement role and a
+named `BusMeasurementSensor` on the generator's bus. `REECA1E` can use an
+area-owned `BusROCOF` sensor; provider type, name, source bus, and uniqueness
+are checked during assembly. `REECA1G`'s synchronous-machine speed reference
+is still separate work. `REGCP1` now binds a named PLL sensor through a
+separate measured-angle port while retaining the terminal bus angle. Its
+current-frame P/Q rotation and angle Jacobian use the shared `REGCA1` current
+lag and limit equations.
 Their DYR records must retain explicit model selection. `PVD1` follows because
 it also needs frequency measurements; the grid-forming `REGCV*` and `REGF*`
 families remain after that.
+
+### Area-owned frequency and phase measurements
+
+Use the existing `Sensor` DAE contract for independent `PLL1`, `PLL2`,
+`BusFreq`, and `BusROCOF` measurements. `Sensor` is a `Relay`, and `GridArea`
+already owns relays through `add(Relay*)` and `m_Relays`; those objects also
+enter `primaryObjects` for state offsets, residuals, derivatives, and
+Jacobians. Use that collection and execution path for sensors. The area
+containing a sensor's measured bus should own it. A named sensor may serve
+multiple controls.
+The present generator-attached `BUSROCOF` path remains compatible while the
+area-owned path is added; the same measurement equations should be shared or
+checked for equivalence. Model-specific sensor subclasses can supply PLL
+feedback equations and their own output derivatives where the generic filter
+block path is insufficient. A new general measurement-provider hierarchy is
+not required for this work.
+
+`FreqDiv` should also be represented by one algebraic frequency estimate per
+measured bus, owned by that bus's `GridArea` through the same Relay collection.
+Its equation is a row of
+`(B_BB + B_B0)(f_B - 1) + B_BG(omega_G - 1) = 0`. The row uses the bus's
+admittance connections and attached synchronous-machine data. An AC tie to a
+different area contributes a coefficient for the neighboring area's bus
+frequency. Area ownership therefore does not truncate the electrical equation:
+the simulation's DAE solver couples all connected rows.
+If an area must estimate frequency from only information available inside its
+boundary, use a measured local tie-bus frequency as an explicit boundary
+condition. That area-limited variant has different equations and should be
+selected explicitly. Dropping tie terms would not implement `FreqDiv`.
+
+Implement this in the following order:
+
+1. Prove area-owned `Sensor` state allocation, named output lookup, and
+   cross-object Jacobian propagation in combined and partitioned solver modes.
+   Extend the renewable input resolver to use those outputs, and place sensors
+   from dynamics records in the area containing their referenced bus.
+2. Add area-owned `BusFreq`/`BusROCOF` and `PLL1`/`PLL2` sensors. Check the
+   existing `AcBus` frequency filter and `Pmu` blocks for exact reusable
+   transfer functions. Preserve the existing `BUSROCOF` DYR behavior. Compare
+   standalone measurements and `REGCP1`'s PLL input with ANDES trajectories;
+   test `REGF2`'s PLL input when that control model is implemented.
+3. Add per-bus `FreqDiv` algebraic rows. Derive susceptance coefficients from
+   supported network elements, including inter-area AC ties and generator
+   reactances; reject unsupported elements instead of approximating them.
+   Refresh affected rows and exact Jacobians after link, shunt, or generator
+   status changes. Validate coverage and solvability per connected AC island.
+
+The acceptance case is two areas joined by an AC tie, with local frequency
+sensors and one or more synchronous generators. Compare `FreqDiv` outputs with
+ANDES before and after a disturbance and tie trip; check inter-area Jacobian
+entries and the new electrical islands. Include a case where one area has no
+synchronous generator, since its bus-frequency estimate still depends on the
+tie while connected. Review AGC ownership, tie-flow measurement, and its use
+of sensor outputs separately after the sensor models and bindings are validated.
+
+#### Implemented sensor stage
+
+`BusMeasurementSensor` is a `Sensor` subclass for continuous bus measurements
+with local DAE states and explicit output locations. `PLL1Sensor` implements
+the filtered-angle PI loop, `PLL2Sensor` the voltage-phase PI loop, and
+`BusROCOFSensor` the existing angle-lag/washout/ROCOF equations. Their
+independent instances can be owned by the bus's area; `GridArea`'s existing
+relay and primary-object lists size and execute them. The generic `Sensor`
+also propagates direct and processed grabber output Jacobians and rejects
+empty input expressions and inconsistent output configuration. Because area
+relay stepping follows bus stepping, `RenewableGenerator` advances any named
+dynamic bus sensor before its own explicit control step; the later area relay
+visit has zero elapsed time. The combined DAE path uses the shared solver
+states directly.
+
+`BUSROCOF` DYR records now create an area-owned sensor. The old
+generator-attached `BusROCOF` component remains available to existing
+programmatic assemblies. Both forms use the same equations and have a
+trajectory equivalence test. The new DYR record shapes are:
+
+```text
+bus 'PLL1' 'name' Kp Ki Tf Tp fn /
+bus 'PLL2' 'name' Kp Ki fn /
+bus 'FREQDIV' 'name' /
+bus 'BUSROCOF' 'machine' 'name' Tf Tw Tr fn /
+```
+
+`FreqDivSensor` owns one algebraic frequency row per bus. It includes AC line
+terms across area boundaries, line shunts, and dynamic-machine reactance
+weights. The residual and Jacobian use current line and generator status;
+line impedance and shunt values are read again after parameter changes.
+Unsupported link classes, transformer taps, and phase shifts fail explicitly.
+All adjacent buses need `FreqDivSensor` instances, including buses in another
+area of the same simulation. A disconnected line remains in the topology
+catalogue so reconnection restores its terms. If the local diagonal vanishes,
+the explicit algebraic update reports a missing frequency reference.
+
+Focused tests cover independent PLL states, finite-difference PLL and ROCOF
+Jacobians, ROCOF trajectory equivalence, named DYR binding, partitioned state
+values, inter-area FreqDiv residuals and Jacobians, changed shunts, and a tie
+trip. The next validation step is an ANDES trajectory with a synchronous
+generator and a tie trip, plus a full connected-island reference check. The
+current FreqDiv neighbor lookup scans area relays during initialization;
+index those references before applying FreqDiv to very large networks.
+`REGCP1` accepts an optional trailing PLL name in its DYR record. The
+no-PLL record retains its existing 15 numeric fields. A named PLL must be an
+enabled `PLLSensor` on the generator's bus. `BusFreq` and AGC integration
+remain separate work.
+
+`REGCP1` tests cover no-PLL equivalence, initialization in a rotated current
+frame, finite-difference power Jacobians, host coupling to both bus and PLL
+angles, DYR model order, and rejection of missing, wrong-type, or wrong-bus
+PLL references. The IEEE 14-bus integration test checks that area-owned PLL
+initialization precedes generator initialization and that the combined DAE
+residual, Jacobian, and short run succeed. A full network fault trajectory
+against ANDES with PLL enabled remains a validation step.

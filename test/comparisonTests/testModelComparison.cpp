@@ -773,11 +773,20 @@ TEST(DyrReaderComparisonTests, MapsIeeet2ParametersInOpenIpslDyrOrder)
     auto* exciter =
         dynamic_cast<griddyn::exciters::ExciterIEEEtype2*>(bus->getGen(0)->find("exciter"));
     ASSERT_NE(exciter, nullptr);
-    const std::pair<std::string_view, double> expected[]{
-        {"tr", 0.0},      {"ka", 729.0},  {"ta", 0.04},   {"vrmax", 5.32},
-        {"vrmin", -4.05}, {"ke", 1.0},    {"te", 0.44},   {"kf", 0.0667},
-        {"tf1", 2.0},     {"tf2", 0.44},  {"e1", 6.5},    {"se1", 0.054},
-        {"e2", 8.0},      {"se2", 0.202}};
+    const std::pair<std::string_view, double> expected[]{{"tr", 0.0},
+                                                         {"ka", 729.0},
+                                                         {"ta", 0.04},
+                                                         {"vrmax", 5.32},
+                                                         {"vrmin", -4.05},
+                                                         {"ke", 1.0},
+                                                         {"te", 0.44},
+                                                         {"kf", 0.0667},
+                                                         {"tf1", 2.0},
+                                                         {"tf2", 0.44},
+                                                         {"e1", 6.5},
+                                                         {"se1", 0.054},
+                                                         {"e2", 8.0},
+                                                         {"se2", 0.202}};
     for (const auto& [name, value] : expected) {
         EXPECT_DOUBLE_EQ(exciter->get(name), value) << name;
     }

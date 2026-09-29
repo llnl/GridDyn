@@ -129,12 +129,12 @@ class MotorLoad: public GridLoad {
 @param[in]  slip  the slip on the motor
 @return the mechanical output power
 */
-    double mechPower(double slip) const;
+    virtual double mechPower(double slip) const;
     /** @brief compute the partial derivative of the torque with respect to the slip
 @param[in]  slip  the slip on the motor
 @return dTorque/dslip
 */
-    double dmechds(double slip) const;
+    virtual double dmechds(double slip) const;
 
     virtual index_t findIndex(std::string_view field, const SolverMode& sMode) const override;
     virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;

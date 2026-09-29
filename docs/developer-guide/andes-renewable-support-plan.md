@@ -219,8 +219,10 @@ current [ANDES compatibility inventory](andes-compatibility.md#dynamic-model-inv
 tracks missing, partial, and untriaged nonrenewable models. Examples of
 nonrenewable gaps are `PLBVFU1` and `IEEEVC` (no direct analogue); `TG2`,
 `TGOV1DB`, `TGOV1N`, `TGOV1NDB`, `HYGOVDB`, and `HYGOV4` (planned governor
-variants); `SHAFT5`; and the separate exciter models `IEEET3`, `AC8B`,
-`ESST1A`, and `ESAC5A`. `BusFreq`, `BusROCOF`, `PMU`, `PLL1`, `PLL2`,
+variants); `SHAFT5`; and remaining measurement/control integration. The
+separate exciter models `IEEET3`, `AC8B`, `ESST1A`, and `ESAC5A` now have
+native GridDyn paths and remain external-trajectory validation work. `BusFreq`,
+`BusROCOF`, `PMU`, `PLL1`, `PLL2`,
 `FreqDiv`, `ACE`, `ACEc`, and `COI` still need a compatibility decision or
 model-specific measurement/control integration. Existing analogues can also
 have unsupported flags or parameters, so “model exists” does not establish

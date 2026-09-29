@@ -22,6 +22,7 @@ set(genmodel_headers
     genmodels/GenModelGENROE.h
     genmodels/GenModelGENSAE.h
     genmodels/GenModelGENSAL.h
+    genmodels/GenModelGENTPJ.h
     genmodels/GenModel8.h
     genmodels/GenModelInverter.h
     genmodels/otherGenModels.h
@@ -43,6 +44,7 @@ set(genmodel_sources
     genmodels/GenModelGENROE.cpp
     genmodels/GenModelGENSAE.cpp
     genmodels/GenModelGENSAL.cpp
+    genmodels/GenModelGENTPJ.cpp
     genmodels/GenModel8.cpp
     genmodels/GenModelInverter.cpp
 )
@@ -272,6 +274,7 @@ set(load_headers
     loads/MotorLoad.h
     loads/MotorLoad3.h
     loads/MotorLoad5.h
+    loads/CIMLoad.h
     loads/GridLabDLoad.h
     loads/Svd.h
     loads/AggregateLoad.h
@@ -289,6 +292,7 @@ set(load_sources
     loads/MotorLoad.cpp
     loads/MotorLoad3.cpp
     loads/MotorLoad5.cpp
+    loads/CIMLoad.cpp
     loads/ApproximatingLoad.cpp
     loads/ExponentialLoad.cpp
     loads/FDepLoad.cpp

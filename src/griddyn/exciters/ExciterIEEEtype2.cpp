@@ -246,4 +246,36 @@ void ExciterIEEEtype2::set(std::string_view param, double val, units::unit unitT
     }
 }
 
+double ExciterIEEEtype2::get(std::string_view param, units::unit unitType) const
+{
+    if (param == "ka") {
+        return Ka;
+    }
+    if (param == "ta") {
+        return Ta;
+    }
+    if (param == "vrmax") {
+        return Vrmax;
+    }
+    if (param == "vrmin") {
+        return Vrmin;
+    }
+    if (param == "ke") {
+        return Ke;
+    }
+    if (param == "te") {
+        return Te;
+    }
+    if (param == "kf") {
+        return Kf;
+    }
+    if (param == "tf1") {
+        return Tf;
+    }
+    if (param == "tf2") {
+        return Tf2;
+    }
+    return ExciterIEEEtype1::get(param, unitType);
+}
+
 }  // namespace griddyn::exciters

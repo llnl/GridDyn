@@ -72,12 +72,14 @@ namespace {
 
     void loadGENCLS(CoreObject* parentObject, stringVec& tokens);
     void loadGENROU(CoreObject* parentObject, stringVec& tokens);
+    void loadGENTPJ(CoreObject* parentObject, stringVec& tokens);
     void loadGENROE(CoreObject* parentObject, stringVec& tokens);
     void loadGENSAE(CoreObject* parentObject, stringVec& tokens);
     void loadGENSAL(CoreObject* parentObject, stringVec& tokens);
     void loadESDC1A(CoreObject* parentObject, stringVec& tokens);
     void loadESDC2A(CoreObject* parentObject, stringVec& tokens);
     void loadIEEET1(CoreObject* parentObject, stringVec& tokens);
+    void loadIEEET2(CoreObject* parentObject, stringVec& tokens);
     void loadIEEET3(CoreObject* parentObject, stringVec& tokens);
     void loadIEEEX1(CoreObject* parentObject, stringVec& tokens);
     void loadAC7B(CoreObject* parentObject, stringVec& tokens);
@@ -146,6 +148,8 @@ namespace detail {
             loadGENCLS(parentObject, lineTokens);
         } else if (type == "'GENROU'") {
             loadGENROU(parentObject, lineTokens);
+        } else if (type == "'GENTPJ'") {
+            loadGENTPJ(parentObject, lineTokens);
         } else if (type == "'GENROE'") {
             loadGENROE(parentObject, lineTokens);
         } else if (type == "'GENSAE'") {
@@ -158,6 +162,8 @@ namespace detail {
             loadESDC2A(parentObject, lineTokens);
         } else if (type == "'IEEET1'") {
             loadIEEET1(parentObject, lineTokens);
+        } else if (type == "'IEEET2'") {
+            loadIEEET2(parentObject, lineTokens);
         } else if (type == "'IEEET3'") {
             loadIEEET3(parentObject, lineTokens);
         } else if (type == "'IEEEX1'") {
@@ -805,6 +811,34 @@ namespace {
         genModel->set("s12", params[16]);
     }
 
+    void loadGENTPJ(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 19U) {
+            throw InvalidParameterValue("GENTPJ DYR record must contain 19 fields");
+        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "GENTPJ");
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* model = static_cast<GenModel*>(
+            CoreObjectFactory::instance()->createObject("genmodel", "gentpj"));
+        gen->add(model);
+        model->set("tdop", params[3]);
+        model->set("tdopp", params[4]);
+        model->set("tqop", params[5]);
+        model->set("tqopp", params[6]);
+        model->set("h", params[7]);
+        model->set("d", params[8]);
+        model->set("xd", params[9]);
+        model->set("xq", params[10]);
+        model->set("xdp", params[11]);
+        model->set("xqp", params[12]);
+        model->set("xdpp", params[13]);
+        model->set("xqpp", params[14]);
+        model->set("xl", params[15]);
+        model->set("s10", params[16]);
+        model->set("s12", params[17]);
+        model->set("kis", params[18]);
+    }
+
     void loadGENROE(CoreObject* parentObject, stringVec& tokens)
     {
         if (tokens.size() != 17U) {
@@ -971,6 +1005,31 @@ namespace {
         exciterModel->set("se1", params[14]);
         exciterModel->set("e2", params[15]);
         exciterModel->set("se2", params[16]);
+        gen->add(exciterModel);
+    }
+
+    void loadIEEET2(CoreObject* parentObject, stringVec& tokens)
+    {
+        if (tokens.size() != 17U) {
+            throw InvalidParameterValue("IEEET2 DYR record must contain 17 fields");
+        }
+        auto* gen = requireDyrGenerator(parentObject, tokens, "IEEET2");
+        const auto params = gmlc::utilities::str2vector(tokens, kNullVal);
+        auto* exciterModel =
+            static_cast<Exciter*>(CoreObjectFactory::instance()->createObject("exciter", "ieeet2"));
+        if (exciterModel == nullptr) {
+            throw InvalidParameterValue("IEEET2 factory registration");
+        }
+
+        // Exact PSS/E/OpenIPSL order after BUS and machine ID:
+        // TR, KA, TA, VRMAX, VRMIN, KE, TE, KF, TF1, TF2,
+        // E1, SE1, E2, SE2.
+        static constexpr std::array<std::string_view, 14> names{
+            "tr", "ka", "ta", "vrmax", "vrmin", "ke", "te",
+            "kf", "tf1", "tf2", "e1", "se1", "e2", "se2"};
+        for (std::size_t index = 0; index < names.size(); ++index) {
+            exciterModel->set(names[index], params[index + 3]);
+        }
         gen->add(exciterModel);
     }
 

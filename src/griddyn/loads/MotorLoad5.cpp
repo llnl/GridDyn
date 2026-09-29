@@ -7,10 +7,12 @@
 #include "MotorLoad5.h"
 
 #include "../GridBus.h"
+#include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactory.hpp"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
+#include <cmath>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -32,6 +34,7 @@ CoreObject* MotorLoad5::clone(CoreObject* obj) const
     ld->xpp = xpp;
     ld->r2 = r2;
     ld->x2 = x2;
+    ld->motorType = motorType;
     return ld;
 }
 
@@ -42,8 +45,24 @@ void MotorLoad5::pFlowObjectInitializeA(CoreTime time0, std::uint32_t flags)
     xp = x + x1 * xm / (x1 + xm);
     T0p = (x1 + xm) / (systemBaseFrequency * r1);
 
-    T0pp = (x2 + x1 * xm / (x1 + xm)) / (systemBaseFrequency * r2);
-    xpp = x + x1 * x2 * xm / (x1 * x2 + x1 * xm + x2 * xm);
+    if ((r2 <= 0.0) || (x2 <= 0.0)) {
+        // The CIM single-cage form removes the subtransient circuit.  Retain
+        // the five-state formulation with the same short time constant used
+        // by the PSS/E/OpenIPSL equations, so it collapses to the transient
+        // circuit without a divide-by-zero during initialization.
+        xpp = xp;
+        T0pp = 1e-7;
+    } else if (motorType == 2) {
+        // PSS/E CIM Type-B: the two rotor cages are in series for the
+        // transient circuit and in parallel for the subtransient circuit.
+        xp = x + xm * (x1 + x2) / (x1 + x2 + xm);
+        T0p = (x1 + x2 + xm) / (systemBaseFrequency * r2);
+        T0pp = (x1 + xm) * x2 / (x1 + xm + x2) / (systemBaseFrequency * r1);
+        xpp = xp;
+    } else {
+        T0pp = (x2 + x1 * xm / (x1 + xm)) / (systemBaseFrequency * r2);
+        xpp = x + x1 * x2 * xm / (x1 * x2 + x1 * xm + x2 * xm);
+    }
 
     scale = mBase / systemBasePower;
     m_state.resize(7, 0);
@@ -180,13 +199,42 @@ void MotorLoad5::set(std::string_view param, std::string_view val)
 
 void MotorLoad5::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "r2") {
+    if ((param == "mtype") || (param == "type")) {
+        if ((std::abs(val - std::round(val)) > 1e-12) || ((val != 1.0) && (val != 2.0))) {
+            throw InvalidParameterValue("CIM motor type must be 1 (A) or 2 (B)");
+        }
+        motorType = static_cast<int>(val);
+    } else if (param == "r2") {
         r2 = val;
     } else if (param == "x2") {
         x2 = val;
     } else {
         MotorLoad3::set(param, val, unitType);
     }
+}
+
+double MotorLoad5::mechPower(double slip) const
+{
+    return MotorLoad::mechPower(slip);
+}
+
+double MotorLoad5::dmechds(double slip) const
+{
+    return MotorLoad::dmechds(slip);
+}
+
+double MotorLoad5::saturationFactor(double /*erpp*/, double /*empp*/) const
+{
+    return 0.0;
+}
+
+void MotorLoad5::saturationFactorDerivatives(double /*erpp*/,
+                                             double /*empp*/,
+                                             double& derivativeErpp,
+                                             double& derivativeEmpp) const
+{
+    derivativeErpp = 0.0;
+    derivativeEmpp = 0.0;
 }
 
 // residual
@@ -253,8 +301,11 @@ void MotorLoad5::residual(const IOdata& inputs,
             rv[slipA] = (mechPower(slip) - Te) / (2 * H);
         }
         // Erp and Emp
-        rv[erpA] = systemBaseFrequency * slip * gm[empA] - (gm[erpA] + (x0 - xp) * gm[imA]) / T0p;
-        rv[empA] = -systemBaseFrequency * slip * gm[erpA] - (gm[empA] - (x0 - xp) * gm[irA]) / T0p;
+        const double saturation = saturationFactor(gm[erppA], gm[emppA]);
+        rv[erpA] = systemBaseFrequency * slip * gm[empA] - (gm[erpA] + (x0 - xp) * gm[imA]) / T0p +
+            gm[emppA] * saturation / T0p;
+        rv[empA] = -systemBaseFrequency * slip * gm[erpA] - (gm[empA] - (x0 - xp) * gm[irA]) / T0p -
+            gm[erppA] * saturation / T0p;
         rv[erppA] = -systemBaseFrequency * slip * (gm[empA] - gm[emppA]) -
             (gm[erpA] - gm[emppA] - (xp - xpp) * gm[imA]) / T0pp;
         rv[emppA] = systemBaseFrequency * slip * (gm[erpA] - gm[erppA]) -
@@ -351,8 +402,11 @@ void MotorLoad5::derivative(const IOdata& /*inputs*/,
     }
     // printf("t=%f, slip=%f mp=%f, te=%f, dslip=%e\n", sD.time, slip,mechPower(slip), Te,dv[0]
     // ); Edp and Eqp
-    dv[erpD] = systemBaseFrequency * slip * dst[empD] - (dst[erpD] + (x0 - xp) * ast[imA]) / T0p;
-    dv[empD] = -systemBaseFrequency * slip * dst[erpD] - (dst[empD] - (x0 - xp) * ast[irA]) / T0p;
+    const double saturation = saturationFactor(dst[erppD], dst[emppD]);
+    dv[erpD] = systemBaseFrequency * slip * dst[empD] - (dst[erpD] + (x0 - xp) * ast[imA]) / T0p +
+        dst[emppD] * saturation / T0p;
+    dv[empD] = -systemBaseFrequency * slip * dst[erpD] - (dst[empD] - (x0 - xp) * ast[irA]) / T0p -
+        dst[erppD] * saturation / T0p;
     dv[erppD] = -systemBaseFrequency * slip * (dst[empD] - dst[emppD]) + ddt[erpD] -
         (dst[erpD] - dst[emppD] - (xp - xpp) * ast[imA]) / T0pp;
     dv[emppD] = systemBaseFrequency * slip * (dst[erpD] - dst[erppD]) + ddt[empD] -
@@ -462,6 +516,20 @@ void MotorLoad5::jacobianElements(const IOdata& inputs,
     md.assign(refDiff + 2, refDiff, -systemBaseFrequency * dst[1]);
     md.assign(refDiff + 2, refDiff + 1, -systemBaseFrequency * slip);
     md.assign(refDiff + 2, refDiff + 2, -1 / T0p - cj);
+
+    double saturationDerivativeErpp;
+    double saturationDerivativeEmpp;
+    saturationFactorDerivatives(dst[erppD],
+                                dst[emppD],
+                                saturationDerivativeErpp,
+                                saturationDerivativeEmpp);
+    const double saturation = saturationFactor(dst[erppD], dst[emppD]);
+    md.assign(refDiff + 1, refDiff + 3, dst[emppD] * saturationDerivativeErpp / T0p);
+    md.assign(refDiff + 1, refDiff + 4, (saturation + dst[emppD] * saturationDerivativeEmpp) / T0p);
+    md.assign(refDiff + 2,
+              refDiff + 3,
+              -(saturation + dst[erppD] * saturationDerivativeErpp) / T0p);
+    md.assign(refDiff + 2, refDiff + 4, -dst[erppD] * saturationDerivativeEmpp / T0p);
 
     // Erpp and Empp
     // dv[3] = -systemBaseFrequency*slip*(dst[2] - dst[4]) + ddt[1] - (dst[1] - dst[4] - (xp -

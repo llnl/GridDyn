@@ -75,3 +75,42 @@ DYR extension accepts a local `BUSROCOF` record with name, `Tf`, `Tw`, `Tr`,
 and `fn`; `REECA1E` appends `Kf`, `Kdf`, and the quoted measurement name to
 the existing REECA1 fields. A nonzero remote `BUSR` is rejected until an
 external bus measurement binding is available.
+
+## Grid-forming converter references
+
+`generate_andes_grid_forming_reference.py` builds two load profiles for each
+of `REGCV1`, `REGCV2`, `REGF1`, `REGF2`, and `REGF3`: constant P/Q
+(`two_bus.xml`) and constant impedance (`two_bus_impedance.xml`). Each profile
+has a checked-in CSV with terminal voltage, P, Q, and virtual rotor angle at
+the eight sample times above. Both start with 0.4 pu P and 0.1 pu Q at 1 pu
+voltage, then the impedance load varies as voltage squared. Regenerate with:
+
+```powershell
+python test/reference/renewable_fault/generate_andes_grid_forming_reference.py
+```
+
+`GridFormingTwoBusFaultAndAndesReference` compares all eight samples for both
+load profiles and all five models. The ANDES run uses a 0.2 ms fixed step:
+its default 5 ms step substantially under-resolves the fast `REGF*` current
+loops. The reference generator explicitly selects ANDES PQ's dynamic load
+fractions for each profile. The earlier 0.08 pu `REGF2` Q discrepancy at
+0.21 s came from comparing GridDyn's constant P/Q demand against ANDES's
+default constant impedance demand. With constant P/Q on both sides, GridDyn
+and ANDES give 2.203 and 2.210 pu, respectively. The test uses 0.02 pu for
+voltage, 0.04 pu for P and Q, and 0.1 rad for virtual rotor angle across all
+models and both load profiles.
+
+GridDyn accepts a local positional DYR schema for these models; ANDES has no
+`psse-dyr.yaml` definitions for them. After `BUS 'MODEL' 'ID'`, the fields are:
+
+| Model            | Fields                                                                                                     |
+| ---------------- | ---------------------------------------------------------------------------------------------------------- |
+| `REGCV1`         | `fn Tc kw kv M D ra xs Kpvd Kivd Kpvq Kivq KpId KiId KpIq KiIq`                                            |
+| `REGCV2`         | `fn kw kv M D ra xs Kpvd Kivd Kpvq Kivq Tid Tiq`                                                           |
+| `REGF1`, `REGF3` | `fn rf xf dwmax dwmin wdrp Qdrp Tr Te KPi KIi KPv KIv Pmax Pmin KPplim KIplim Qmax Qmin KPqlim KIqlim Tpm` |
+| `REGF2`          | The `REGF1` fields, then `mf dd 'PLL_NAME'`                                                                |
+
+`REGF2` requires a named local sensor that provides frequency deviation;
+the reference case uses `PLL2`. These terminal models own their
+voltage/frequency controls and reject an attached `REECA1` electrical control
+because they expose no current-command inputs.

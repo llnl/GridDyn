@@ -245,10 +245,10 @@ converter current commands.
 
 ## Next ANDES renewable batch
 
-GridDyn has `REGCA1`, `REECA1`, `REECB1`, `REPCA1`, `WTDTA1`, `WTDS`,
-`WTARA1`, `WTPTA1`, `WTTQA1`, `REECA1E`, and both `REGCP1` paths. The remaining
-models registered under `andes.models.renewable` are `WTARV1`, `REECA1G`,
-`REGCV1`, `REGCV2`, and `REGF1` through `REGF3`. Andes also
+At the time this batch was planned, GridDyn had `REGCA1`, `REECA1`, `REECB1`,
+`REPCA1`, `WTDTA1`, `WTDS`, `WTARA1`, `WTPTA1`, `WTTQA1`, `REECA1E`, and both
+`REGCP1` paths. The outstanding models registered under `andes.models.renewable`
+were `WTARV1`, `REECA1G`, `REGCV1`, `REGCV2`, and `REGF1` through `REGF3`. Andes also
 registers `PVD1` under `andes.models.distributed`; it is an integrated PV
 generator relevant to renewable coverage. These names are distinct model
 implementations, not aliases for the existing GridDyn classes.
@@ -260,6 +260,23 @@ implementations, not aliases for the existing GridDyn classes.
 | 3     | `REECA1E`, `REECA1G`, and `REGCP1` PLL path | Add external measurement binding with state locations and Jacobian terms; the host resolves terminal signals, component ports, and named sensors. Separate electrical-control classes can reuse `REECA1`: `REECA1E` adds `-Kf*df-Kdf*dfdt` to active reference from bus frequency/ROCOF; `REECA1G` adds `-Kf*(omega-1)` from a named synchronous machine. Finish `REGCP1` with measured angle, rotated d/q voltage, and P/Q derivatives. | Construct small ANDES frequency and machine-speed event cases, check zero-gain equivalence to `REECA1`, and use `andes/cases/ieee14/ieee14_regcp1.xlsx` for PLL behavior.            |
 | 4     | `PVD1`                                      | A self-contained `TerminalElectricalModel` with current lags, P/Q priority, voltage and frequency response, and trip/recovery logic. It needs the frequency measurement and optional remote-bus binding from the preceding step.                                                                                                                                                                                                         | `andes/cases/ieee14/ieee14_pvd1.json` and associated cases, including voltage/frequency trip and recovery events.                                                                    |
 | 5     | `REGCV1/2`, then `REGF1/2/3`                | Self-controlled grid-forming terminal models. Reuse terminal P/Q and d/q network algebra where equations agree, while keeping VSG, droop, VSM, oscillator, and inner-loop variants separate. `REGF2` additionally needs a PLL frequency input. These models do not require `REECA1` current-command ports.                                                                                                                               | Create small ANDES cases because this checkout contains no dedicated case files for these five models; compare initialization, voltage steps, frequency response, and DAE Jacobians. |
+
+The current batch implements `REECA1G` as an independent electrical-control
+class with a named synchronous-machine speed input. The five `REGCV*`/`REGF*`
+models share `GridFormingConverter` for terminal P/Q and d/q network algebra;
+each variant has its own state and control branches and a separate factory
+identity. GridDyn's local DYR schemas, ANDES two-bus references, and the
+current trajectory comparison limits are documented in
+`test/reference/renewable_fault/README.md`. The 0.2 ms ANDES references cover
+both constant P/Q and constant impedance demand, resolve the fast `REGF*`
+loops, and match the GridDyn fault trajectories within the same documented
+tolerances for all five models.
+
+`GridFormingConverter` currently forms its DAE Jacobians by finite differences.
+That is covered by the component Jacobian tests, but large-network performance
+has not been benchmarked for this batch. `REECA1G` resolves its named machine
+speed source through the area tree during solver evaluation; that lookup may
+also warrant caching if many such controllers are used in a large case.
 
 `WTARV1` is not in the implementation queue yet: its ANDES class says work is in
 progress and defines a pitch algebraic variable but no wind-velocity to

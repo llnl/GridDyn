@@ -472,3 +472,62 @@ PLL references. The IEEE 14-bus integration test checks that area-owned PLL
 initialization precedes generator initialization and that the combined DAE
 residual, Jacobian, and short run succeed. A full network fault trajectory
 against ANDES with PLL enabled remains a validation step.
+
+### Distributed PV, storage, EV, and protection models
+
+`PVD1`, `ESD1`, `EV1`, and `EV2` are `TerminalElectricalModel` instances hosted
+by `RenewableGenerator`. They share a current-source converter with active and
+reactive current lags, frequency-active-power droop, voltage-reactive-power
+droop, voltage and frequency response curves, P/Q current priority, and a
+current magnitude limit. `ESD1` adds SOC and bidirectional power. `EV1` adds
+the charging power floor `pmn`, and `EV2` adds the upper power cap
+`pcap * pmx`. `EV2` defaults to `pcap=0` and `ddn=1`, matching the ANDES
+input defaults. Storage and EV charging uses negative power. `En` is in MWh;
+SOC changes use the system MVA base and charge/discharge efficiencies.
+
+`DGPRCT1` and `DGPRCTExt` are area-owned `Relay` instances. Each targets a
+distributed converter and uses timed voltage and frequency threshold
+conditions to set its `blocked` property. `DGPRCTExt` reads the numeric
+`external_voltage` property, which a GridDyn `Player` or other event can
+update. `DGPRCT1` reads its source bus voltage. A trip holds output current
+commands at zero; when all conditions clear, the relay releases the block
+after `Tres` seconds of continuous healthy measurements. A new violation
+restarts that interval. The severe outer thresholds trip immediately.
+
+The converter's `vrflag` and `frflag` are implemented as latch controls. Zero
+holds the respective trip until a `reset=1` event; one releases the latch once
+the measurement returns between the inner thresholds. A value between zero
+and one permits that fraction of current command while latched. `recflag=1`
+enables the continuous voltage and frequency recovery curves; zero bypasses
+those curves but does not override a latched trip. These state changes are
+handled by converter roots and explicit steps, rather than relying on the
+currently unimplemented ANDES latching branch.
+
+Native GridDyn XML uses the ordinary factories. For example:
+
+```xml
+<generator name="battery" type="renewable_dynamic" p="-0.2" q="0" mbase="100">
+  <renewable_model name="battery_electrical" type="esd1" socinit="0.6"
+                   en="20" pmx="1" pref="-0.2" />
+</generator>
+```
+
+`pref`, `qref`, `paux`, `pcap`, and `blocked` are numeric properties available
+to GridDyn `Player` and `Event` targets. Converter references use the machine
+MVA base; the generator's `p` and `q` use the simulation base. For a relay in
+an XML case, set its `source` to the measured bus and `sink` to the
+converter. ANDES JSON `PVD1`/`ESD1`/`EV1`/`EV2` records create one generator
+per device, including when multiple devices reference the same static PV
+record; `DGPRCT1`/`DGPRCTExt` records link by their `dev` index. These are
+not PSS/E DYR model names, so no DYR mappings are registered. ANDES case
+loading here covers its JSON format.
+
+Focused tests cover factory creation, XML and ANDES JSON loading,
+player-driven setpoints, charging and SOC limits, latching and timed
+protection, combined and partitioned converter DAE Jacobians, and short IEEE 14-bus runs for all four
+converter types. A full ANDES-to-GridDyn disturbance trajectory for these
+distributed models remains to be added. Remote `igreg` currently selects the
+voltage used for droop and recovery while the generator remains electrically
+connected at its declared terminal bus, consistent with GridDyn's generator
+ownership. This can differ from an ANDES case that treats `igreg` as the
+injection bus, so such a case needs an explicit topology review.

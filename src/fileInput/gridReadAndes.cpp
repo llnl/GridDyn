@@ -11,6 +11,7 @@
 #include "griddyn/GridBus.h"
 #include "griddyn/Link.h"
 #include "griddyn/generators/DynamicGenerator.h"
+#include "griddyn/generators/RenewableGenerator.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/links/DcLink.h"
 #include "griddyn/links/VSCShunt.h"
@@ -21,6 +22,8 @@
 #include "griddyn/loads/ZipLoad.h"
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/primary/DcBus.h"
+#include "griddyn/renewables/DistributedConverter.h"
+#include "griddyn/relays/DGProtectionRelay.h"
 #include "nlohmann/json.hpp"
 #include <array>
 #include <cctype>
@@ -385,7 +388,8 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
         (document.contains("PQ") || document.contains("PV") || document.contains("Slack") ||
          document.contains("Line") || document.contains("Shunt") || document.contains("ShuntSw") ||
          document.contains("ShuntTD") || document.contains("FLoad") ||
-         document.contains("BusFreq"));
+         document.contains("BusFreq") || document.contains("PVD1") ||
+         document.contains("ESD1") || document.contains("EV1") || document.contains("EV2"));
     if (!hasAndesAcModel && !hasAndesNode) {
         return false;
     }
@@ -418,6 +422,8 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
     std::unordered_map<std::string, GridBus*> busFrequencyBuses;
     loadAndesFrequencyDependentLoads(document, acBuses, pqLoads, busFrequencyBuses);
     loadAndesShuntModels(document, acBuses, acBaseVoltages, systemBasePower);
+    std::unordered_map<std::string, Json> staticGenerators;
+    std::unordered_map<std::string, Generator*> staticGeneratorObjects;
     if (document.contains("PV") && document["PV"].is_array()) {
         for (const auto& record : document["PV"]) {
             const auto bus = acBuses.find(indexKey(record, "bus"));
@@ -429,6 +435,8 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
             auto* generator = new DynamicGenerator(objectName(record, "PV"));
             generator->set("p", number(record, "p0"));
             bus->second->add(generator);
+            staticGenerators.emplace(indexKey(record), record);
+            staticGeneratorObjects.emplace(indexKey(record), generator);
         }
     }
     if (document.contains("Slack") && document["Slack"].is_array()) {
@@ -444,6 +452,109 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
             generator->set("p", number(record, "p0"));
             generator->set("q", number(record, "q0"));
             bus->second->add(generator);
+            staticGenerators.emplace(indexKey(record), record);
+            staticGeneratorObjects.emplace(indexKey(record), generator);
+        }
+    }
+    std::unordered_map<std::string, DistributedConverter*> distributedModels;
+    const std::array<std::string_view, 4> distributedTypes{{"PVD1", "ESD1", "EV1", "EV2"}};
+    for (auto type : distributedTypes) {
+        if (!document.contains(type) || !document[type].is_array()) { continue; }
+        for (const auto& record : document[type]) {
+            const auto bus = acBuses.find(indexKey(record, "bus"));
+            const auto staticRecord = staticGenerators.find(indexKey(record, "gen"));
+            if (bus == acBuses.end() || staticRecord == staticGenerators.end()) {
+                throw InvalidParameterValue("ANDES distributed device has unknown bus or static generator");
+            }
+            if (indexKey(staticRecord->second, "bus") != indexKey(record, "bus")) {
+                throw InvalidParameterValue("ANDES distributed device and static generator buses differ");
+            }
+            const double sn = number(record, "Sn", 100.0);
+            if (sn <= 0.0) { throw InvalidParameterValue("ANDES distributed device Sn must be positive"); }
+            const double scale = systemBasePower / sn;
+            auto* generator = new RenewableGenerator(objectName(record, type));
+            generator->set("mbase", sn, units::MVAR);
+            const double initialP = number(record, "gammap", 1.0) *
+                number(staticRecord->second, "p0");
+            const double initialQ = number(record, "gammaq", 1.0) *
+                number(staticRecord->second, "q0");
+            generator->set("p", initialP);
+            generator->set("q", initialQ);
+            DistributedConverter* model = nullptr;
+            if (type == "PVD1") { model = new PVD1(objectName(record, type) + "_electrical"); }
+            else if (type == "ESD1") { model = new ESD1(objectName(record, type) + "_electrical"); }
+            else if (type == "EV1") { model = new EV1(objectName(record, type) + "_electrical"); }
+            else { model = new EV2(objectName(record, type) + "_electrical"); }
+            model->set("pref", initialP * scale);
+            model->set("qref", initialQ * scale);
+            const std::array<std::string_view, 37> parameters{{
+                "fn", "xc", "pqflag", "qmx", "qmn", "pmx", "pmn", "v0", "v1", "dqdv",
+                "fdbd", "ddn", "ialim", "vt0", "vt1", "vt2", "vt3", "ft0", "ft1",
+                "ft2", "ft3", "vrflag", "frflag", "recflag", "tip", "tiq", "pcap",
+                "Tf", "SOCmin", "SOCmax", "SOCinit", "En", "EtaC", "EtaD",
+                "Pext0", "pref0", "qref0"}};
+            for (auto parameter : parameters) {
+                if (record.contains(parameter) && !record[parameter].is_null()) {
+                    model->set(parameter, number(record, parameter));
+                }
+            }
+            if (record.contains("igreg") && !record["igreg"].is_null()) {
+                const auto regulationBus = acBuses.find(indexKey(record, "igreg"));
+                if (regulationBus == acBuses.end()) {
+                    throw InvalidParameterValue("ANDES distributed device igreg bus was not found");
+                }
+                model->set("igreg", regulationBus->second->getName());
+            }
+            if (record.contains("busf") && !record["busf"].is_null()) {
+                const auto measuredBus = busFrequencyBuses.find(indexKey(record, "busf"));
+                if (measuredBus == busFrequencyBuses.end() || measuredBus->second != bus->second) {
+                    throw InvalidParameterValue("ANDES distributed device BusFreq is missing or remote");
+                }
+            }
+            generator->add(model);
+            if (number(record, "u", 1.0) == 0.0) { generator->disable(); }
+            bus->second->add(generator);
+            staticGeneratorObjects.at(indexKey(record, "gen"))->disable();
+            if (!distributedModels.emplace(indexKey(record), model).second) {
+                throw InvalidParameterValue("ANDES distributed device idx is duplicated");
+            }
+        }
+    }
+    for (auto type : {std::string_view{"DGPRCT1"}, std::string_view{"DGPRCTExt"}}) {
+        if (!document.contains(type) || !document[type].is_array()) { continue; }
+        for (const auto& record : document[type]) {
+            const auto device = distributedModels.find(indexKey(record, "dev"));
+            if (device == distributedModels.end()) {
+                throw InvalidParameterValue("ANDES DG protection target device was not found");
+            }
+            auto* model = device->second;
+            auto* generator = dynamic_cast<RenewableGenerator*>(model->getParent());
+            auto* bus = generator == nullptr ? nullptr : dynamic_cast<GridBus*>(generator->getParent());
+            if (bus == nullptr) {
+                throw InvalidParameterValue("ANDES DG protection target has no terminal bus");
+            }
+            DGProtectionRelay* relay = type == "DGPRCT1" ?
+                static_cast<DGProtectionRelay*>(new DGPRCT1(objectName(record, type))) :
+                static_cast<DGProtectionRelay*>(new DGPRCTExt(objectName(record, type)));
+            relay->setSource(bus);
+            relay->setSink(model);
+            const auto fields = std::to_array<std::string_view>({
+                "fen", "Ven", "fl3", "fl2", "fl1", "fu1", "fu2", "fu3",
+                "Tfl1", "Tfl2", "Tfu1", "Tfu2", "vl4", "vl3", "vl2", "vl1",
+                "vu1", "vu2", "vu3", "Tvl1", "Tvl2", "Tvl3", "Tvu1", "Tvu2", "Tres"});
+            for (auto field : fields) {
+                if (record.contains(field) && !record[field].is_null()) {
+                    relay->set(field, number(record, field));
+                }
+            }
+            if (record.contains("busfreq") && !record["busfreq"].is_null()) {
+                const auto frequency = busFrequencyBuses.find(indexKey(record, "busfreq"));
+                if (frequency == busFrequencyBuses.end() || frequency->second != bus) {
+                    throw InvalidParameterValue("ANDES DG protection BusFreq is missing or remote");
+                }
+            }
+            if (number(record, "u", 1.0) == 0.0) { relay->disable(); }
+            parentObject->add(relay);
         }
     }
     if (document.contains("Line") && document["Line"].is_array()) {

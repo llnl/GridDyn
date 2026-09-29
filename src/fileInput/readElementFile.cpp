@@ -240,7 +240,7 @@ static const IgnoreListType& keywords()
                            "generator", "array",     "relay",         "parent",  "genmodel",
                            "line",      "solver",    "agc",           "reserve", "reservedispatch",
                            "dispatch",  "econ",      "configuration", "custom",  "purpose",
-                           "event",     "collector", "extra"};
+                           "event",     "collector", "extra", "renewable_model"};
     return *keywordSet;
 }
 

@@ -127,6 +127,13 @@ void RenewableGenerator::validateAssembly() const
             continue;
         }
         for (const auto& input : component->inputPorts()) {
+            if (input.signal == RenewableSignal::regulationVoltage) {
+                if (!component->sourceName(input.signal).empty() &&
+                    regulationSource(component) == nullptr) {
+                    throw InvalidParameterValue("renewable regulation bus was not found");
+                }
+                continue;
+            }
             if (isTerminalSignal(input.signal) && component->sourceName(input.signal).empty()) {
                 continue;
             }
@@ -279,6 +286,35 @@ DynamicGenerator* RenewableGenerator::machineSource(const RenewableComponent* mo
     return match;
 }
 
+GridBus* RenewableGenerator::regulationSource(const RenewableComponent* model) const
+{
+    const auto requested = model->sourceName(RenewableSignal::regulationVoltage);
+    if (requested.empty()) {
+        return dynamic_cast<GridBus*>(getParent());
+    }
+    auto* terminal = dynamic_cast<GridBus*>(getParent());
+    auto* root = terminal == nullptr ? nullptr : dynamic_cast<GridArea*>(terminal->getParent());
+    if (root == nullptr) { return nullptr; }
+    while (auto* parentArea = dynamic_cast<GridArea*>(root->getParent())) { root = parentArea; }
+    GridBus* match = nullptr;
+    std::vector<GridArea*> pending{root};
+    while (!pending.empty()) {
+        auto* area = pending.back();
+        pending.pop_back();
+        for (index_t i = 0; area->getBus(i) != nullptr; ++i) {
+            auto* bus = area->getBus(i);
+            if (bus->getName() == requested) {
+                if (match != nullptr) {
+                    throw InvalidParameterValue("renewable regulation bus name is ambiguous");
+                }
+                match = bus;
+            }
+        }
+        for (index_t i = 0; area->getArea(i) != nullptr; ++i) { pending.push_back(area->getArea(i)); }
+    }
+    return match;
+}
+
 IOdata RenewableGenerator::modelInputs(const RenewableComponent* model,
                                        const IOdata& inputs,
                                        const StateData& stateDataValue,
@@ -310,6 +346,11 @@ IOdata RenewableGenerator::modelInputs(const RenewableComponent* model,
                     result[portIndex] = sensor->getOutput({}, stateDataValue, sMode, output);
                 } else if (inputs.size() > FREQUENCY_IN_LOCATION) {
                     result[portIndex] = inputs[FREQUENCY_IN_LOCATION];
+                }
+                break;
+            case RenewableSignal::regulationVoltage:
+                if (auto* bus = regulationSource(model); bus != nullptr) {
+                    result[portIndex] = bus->getVoltage(stateDataValue, sMode);
                 }
                 break;
             default:
@@ -377,6 +418,10 @@ IOlocs RenewableGenerator::modelInputLocs(const RenewableComponent* model,
                 result[portIndex] = sensor->getOutputLoc(sMode, output);
             } else if (inputLocs.size() > FREQUENCY_IN_LOCATION) {
                 result[portIndex] = inputLocs[FREQUENCY_IN_LOCATION];
+            }
+        } else if (port.signal == RenewableSignal::regulationVoltage) {
+            if (auto* bus = regulationSource(model); bus != nullptr) {
+                result[portIndex] = bus->getOutputLoc(sMode, VOLTAGE_IN_LOCATION);
             }
         } else {
             if (auto* machine = machineSource(model, port.signal); machine != nullptr) {

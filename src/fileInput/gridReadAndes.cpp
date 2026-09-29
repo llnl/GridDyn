@@ -22,8 +22,8 @@
 #include "griddyn/loads/ZipLoad.h"
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/primary/DcBus.h"
-#include "griddyn/renewables/DistributedConverter.h"
 #include "griddyn/relays/DGProtectionRelay.h"
+#include "griddyn/renewables/DistributedConverter.h"
 #include "nlohmann/json.hpp"
 #include <array>
 #include <cctype>
@@ -388,8 +388,8 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
         (document.contains("PQ") || document.contains("PV") || document.contains("Slack") ||
          document.contains("Line") || document.contains("Shunt") || document.contains("ShuntSw") ||
          document.contains("ShuntTD") || document.contains("FLoad") ||
-         document.contains("BusFreq") || document.contains("PVD1") ||
-         document.contains("ESD1") || document.contains("EV1") || document.contains("EV2"));
+         document.contains("BusFreq") || document.contains("PVD1") || document.contains("ESD1") ||
+         document.contains("EV1") || document.contains("EV2"));
     if (!hasAndesAcModel && !hasAndesNode) {
         return false;
     }
@@ -459,40 +459,51 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
     std::unordered_map<std::string, DistributedConverter*> distributedModels;
     const std::array<std::string_view, 4> distributedTypes{{"PVD1", "ESD1", "EV1", "EV2"}};
     for (auto type : distributedTypes) {
-        if (!document.contains(type) || !document[type].is_array()) { continue; }
+        if (!document.contains(type) || !document[type].is_array()) {
+            continue;
+        }
         for (const auto& record : document[type]) {
             const auto bus = acBuses.find(indexKey(record, "bus"));
             const auto staticRecord = staticGenerators.find(indexKey(record, "gen"));
             if (bus == acBuses.end() || staticRecord == staticGenerators.end()) {
-                throw InvalidParameterValue("ANDES distributed device has unknown bus or static generator");
+                throw InvalidParameterValue(
+                    "ANDES distributed device has unknown bus or static generator");
             }
             if (indexKey(staticRecord->second, "bus") != indexKey(record, "bus")) {
-                throw InvalidParameterValue("ANDES distributed device and static generator buses differ");
+                throw InvalidParameterValue(
+                    "ANDES distributed device and static generator buses differ");
             }
             const double sn = number(record, "Sn", 100.0);
-            if (sn <= 0.0) { throw InvalidParameterValue("ANDES distributed device Sn must be positive"); }
+            if (sn <= 0.0) {
+                throw InvalidParameterValue("ANDES distributed device Sn must be positive");
+            }
             const double scale = systemBasePower / sn;
             auto* generator = new RenewableGenerator(objectName(record, type));
             generator->set("mbase", sn, units::MVAR);
-            const double initialP = number(record, "gammap", 1.0) *
-                number(staticRecord->second, "p0");
-            const double initialQ = number(record, "gammaq", 1.0) *
-                number(staticRecord->second, "q0");
+            const double initialP =
+                number(record, "gammap", 1.0) * number(staticRecord->second, "p0");
+            const double initialQ =
+                number(record, "gammaq", 1.0) * number(staticRecord->second, "q0");
             generator->set("p", initialP);
             generator->set("q", initialQ);
             DistributedConverter* model = nullptr;
-            if (type == "PVD1") { model = new PVD1(objectName(record, type) + "_electrical"); }
-            else if (type == "ESD1") { model = new ESD1(objectName(record, type) + "_electrical"); }
-            else if (type == "EV1") { model = new EV1(objectName(record, type) + "_electrical"); }
-            else { model = new EV2(objectName(record, type) + "_electrical"); }
+            if (type == "PVD1") {
+                model = new PVD1(objectName(record, type) + "_electrical");
+            } else if (type == "ESD1") {
+                model = new ESD1(objectName(record, type) + "_electrical");
+            } else if (type == "EV1") {
+                model = new EV1(objectName(record, type) + "_electrical");
+            } else {
+                model = new EV2(objectName(record, type) + "_electrical");
+            }
             model->set("pref", initialP * scale);
             model->set("qref", initialQ * scale);
-            const std::array<std::string_view, 37> parameters{{
-                "fn", "xc", "pqflag", "qmx", "qmn", "pmx", "pmn", "v0", "v1", "dqdv",
-                "fdbd", "ddn", "ialim", "vt0", "vt1", "vt2", "vt3", "ft0", "ft1",
-                "ft2", "ft3", "vrflag", "frflag", "recflag", "tip", "tiq", "pcap",
-                "Tf", "SOCmin", "SOCmax", "SOCinit", "En", "EtaC", "EtaD",
-                "Pext0", "pref0", "qref0"}};
+            const std::array<std::string_view, 37> parameters{
+                {"fn",   "xc",   "pqflag", "qmx",   "qmn",    "pmx",    "pmn",     "v0",
+                 "v1",   "dqdv", "fdbd",   "ddn",   "ialim",  "vt0",    "vt1",     "vt2",
+                 "vt3",  "ft0",  "ft1",    "ft2",   "ft3",    "vrflag", "frflag",  "recflag",
+                 "tip",  "tiq",  "pcap",   "Tf",    "SOCmin", "SOCmax", "SOCinit", "En",
+                 "EtaC", "EtaD", "Pext0",  "pref0", "qref0"}};
             for (auto parameter : parameters) {
                 if (record.contains(parameter) && !record[parameter].is_null()) {
                     model->set(parameter, number(record, parameter));
@@ -508,11 +519,14 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
             if (record.contains("busf") && !record["busf"].is_null()) {
                 const auto measuredBus = busFrequencyBuses.find(indexKey(record, "busf"));
                 if (measuredBus == busFrequencyBuses.end() || measuredBus->second != bus->second) {
-                    throw InvalidParameterValue("ANDES distributed device BusFreq is missing or remote");
+                    throw InvalidParameterValue(
+                        "ANDES distributed device BusFreq is missing or remote");
                 }
             }
             generator->add(model);
-            if (number(record, "u", 1.0) == 0.0) { generator->disable(); }
+            if (number(record, "u", 1.0) == 0.0) {
+                generator->disable();
+            }
             bus->second->add(generator);
             staticGeneratorObjects.at(indexKey(record, "gen"))->disable();
             if (!distributedModels.emplace(indexKey(record), model).second) {
@@ -521,7 +535,9 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
         }
     }
     for (auto type : {std::string_view{"DGPRCT1"}, std::string_view{"DGPRCTExt"}}) {
-        if (!document.contains(type) || !document[type].is_array()) { continue; }
+        if (!document.contains(type) || !document[type].is_array()) {
+            continue;
+        }
         for (const auto& record : document[type]) {
             const auto device = distributedModels.find(indexKey(record, "dev"));
             if (device == distributedModels.end()) {
@@ -529,7 +545,8 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
             }
             auto* model = device->second;
             auto* generator = dynamic_cast<RenewableGenerator*>(model->getParent());
-            auto* bus = generator == nullptr ? nullptr : dynamic_cast<GridBus*>(generator->getParent());
+            auto* bus =
+                generator == nullptr ? nullptr : dynamic_cast<GridBus*>(generator->getParent());
             if (bus == nullptr) {
                 throw InvalidParameterValue("ANDES DG protection target has no terminal bus");
             }
@@ -538,10 +555,10 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
                 static_cast<DGProtectionRelay*>(new DGPRCTExt(objectName(record, type)));
             relay->setSource(bus);
             relay->setSink(model);
-            const auto fields = std::to_array<std::string_view>({
-                "fen", "Ven", "fl3", "fl2", "fl1", "fu1", "fu2", "fu3",
-                "Tfl1", "Tfl2", "Tfu1", "Tfu2", "vl4", "vl3", "vl2", "vl1",
-                "vu1", "vu2", "vu3", "Tvl1", "Tvl2", "Tvl3", "Tvu1", "Tvu2", "Tres"});
+            const auto fields = std::to_array<std::string_view>(
+                {"fen",  "Ven",  "fl3",  "fl2",  "fl1",  "fu1",  "fu2", "fu3", "Tfl1",
+                 "Tfl2", "Tfu1", "Tfu2", "vl4",  "vl3",  "vl2",  "vl1", "vu1", "vu2",
+                 "vu3",  "Tvl1", "Tvl2", "Tvl3", "Tvu1", "Tvu2", "Tres"});
             for (auto field : fields) {
                 if (record.contains(field) && !record[field].is_null()) {
                     relay->set(field, number(record, field));
@@ -553,7 +570,9 @@ bool loadAndesJson(CoreObject* parentObject, const std::string& fileName)
                     throw InvalidParameterValue("ANDES DG protection BusFreq is missing or remote");
                 }
             }
-            if (number(record, "u", 1.0) == 0.0) { relay->disable(); }
+            if (number(record, "u", 1.0) == 0.0) {
+                relay->disable();
+            }
             parentObject->add(relay);
         }
     }

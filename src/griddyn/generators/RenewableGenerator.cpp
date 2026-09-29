@@ -294,8 +294,12 @@ GridBus* RenewableGenerator::regulationSource(const RenewableComponent* model) c
     }
     auto* terminal = dynamic_cast<GridBus*>(getParent());
     auto* root = terminal == nullptr ? nullptr : dynamic_cast<GridArea*>(terminal->getParent());
-    if (root == nullptr) { return nullptr; }
-    while (auto* parentArea = dynamic_cast<GridArea*>(root->getParent())) { root = parentArea; }
+    if (root == nullptr) {
+        return nullptr;
+    }
+    while (auto* parentArea = dynamic_cast<GridArea*>(root->getParent())) {
+        root = parentArea;
+    }
     GridBus* match = nullptr;
     std::vector<GridArea*> pending{root};
     while (!pending.empty()) {
@@ -310,7 +314,9 @@ GridBus* RenewableGenerator::regulationSource(const RenewableComponent* model) c
                 match = bus;
             }
         }
-        for (index_t i = 0; area->getArea(i) != nullptr; ++i) { pending.push_back(area->getArea(i)); }
+        for (index_t i = 0; area->getArea(i) != nullptr; ++i) {
+            pending.push_back(area->getArea(i));
+        }
     }
     return match;
 }

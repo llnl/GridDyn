@@ -19,8 +19,8 @@
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/relays/BusMeasurementSensor.h"
 #include "griddyn/relays/DGProtectionRelay.h"
-#include "griddyn/renewables/GridFormingConverter.h"
 #include "griddyn/renewables/DistributedConverter.h"
+#include "griddyn/renewables/GridFormingConverter.h"
 #include "griddyn/renewables/REECA1.h"
 #include "griddyn/renewables/REECA1E.h"
 #include "griddyn/renewables/REECA1G.h"
@@ -2222,15 +2222,25 @@ TEST(RenewableModels, DistributedConvertersIntegrateInNetwork)
         host->set("mbase", 100.0, units::MVAR);
         DistributedConverter* converter = nullptr;
         switch (variant) {
-            case 0: converter = new PVD1; break;
-            case 1: converter = new ESD1; break;
-            case 2: converter = new EV1; break;
-            default: converter = new EV2; break;
+            case 0:
+                converter = new PVD1;
+                break;
+            case 1:
+                converter = new ESD1;
+                break;
+            case 2:
+                converter = new EV1;
+                break;
+            default:
+                converter = new EV2;
+                break;
         }
         converter->set("vrflag", 1.0);
         converter->set("frflag", 1.0);
         converter->set("pmn", -2.0);
-        if (variant == 3) { converter->set("pcap", 1.0); }
+        if (variant == 3) {
+            converter->set("pcap", 1.0);
+        }
         host->add(converter);
         staticGenerator->disable();
         bus->add(host);
@@ -2247,7 +2257,9 @@ TEST(RenewableModels, DistributedConvertersIntegrateInNetwork)
         EXPECT_EQ(runResidualCheck(simulation, cDaeSolverMode, false), 0);
         EXPECT_EQ(runJacobianCheck(simulation, cDaeSolverMode, false), 0);
         ASSERT_EQ(simulation->run(0.05), 0);
-        for (double value : simulation->getState()) { EXPECT_TRUE(std::isfinite(value)); }
+        for (double value : simulation->getState()) {
+            EXPECT_TRUE(std::isfinite(value));
+        }
     }
 }
 

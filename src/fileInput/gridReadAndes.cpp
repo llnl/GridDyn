@@ -469,8 +469,8 @@ namespace {
                 }
                 auto* model = device->second;
                 auto* generator = dynamic_cast<RenewableGenerator*>(model->getParent());
-                auto* bus = generator == nullptr ? nullptr :
-                    dynamic_cast<GridBus*>(generator->getParent());
+                auto* bus =
+                    generator == nullptr ? nullptr : dynamic_cast<GridBus*>(generator->getParent());
                 if (bus == nullptr) {
                     throw InvalidParameterValue("ANDES DG protection target has no terminal bus");
                 }

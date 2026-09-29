@@ -162,7 +162,7 @@ double DistributedConverter::get(std::string_view param, units::unit unitType) c
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
 #define GET_FIELD(name, field)                                                                     \
     if (key == (name)) {                                                                           \
-        return (field);                                                                           \
+        return (field);                                                                            \
     }
     GET_FIELD("fn", fn)
     GET_FIELD("xc", xc)
@@ -232,9 +232,9 @@ void DistributedConverter::dynObjectInitializeA(CoreTime time0, std::uint32_t /*
 {
     if (fn <= 0.0 || ialim <= 0.0 || tip <= 0.0 || tiq <= 0.0 || dqdv >= 0.0 || fdbd > 0.0 ||
         ddn < 0.0 || vt0 >= vt1 || vt1 > vt2 || vt2 >= vt3 || ft0 >= ft1 || ft1 > ft2 ||
-        ft2 >= ft3 || v0 >= v1 || qmn > qmx || pmx < 0.0 ||
-        (pqflag != 0.0 && pqflag != 1.0) || vrflag < 0.0 || vrflag > 1.0 || frflag < 0.0 ||
-        frflag > 1.0 || recflag < 0.0 || recflag > 1.0 ||
+        ft2 >= ft3 || v0 >= v1 || qmn > qmx || pmx < 0.0 || (pqflag != 0.0 && pqflag != 1.0) ||
+        vrflag < 0.0 || vrflag > 1.0 || frflag < 0.0 || frflag > 1.0 || recflag < 0.0 ||
+        recflag > 1.0 ||
         (variant != Variant::pv &&
          (en <= 0.0 || tf <= 0.0 || socmin >= socmax || socinit < socmin || socinit > socmax ||
           etac <= 0.0 || etac > 1.0 || etad <= 0.0 || etad > 1.0)) ||
@@ -314,9 +314,8 @@ void DistributedConverter::evaluate(const IOdata& inputs,
     const double activeCurrent = state[0];
     const double reactiveCurrent = state[1];
     power = {voltage * activeCurrent, voltage * reactiveCurrent};
-    const double vcomp = std::hypot(
-        (regulationVoltage * std::cos(angle)) - (xc * reactiveCurrent),
-        (regulationVoltage * std::sin(angle)) + (xc * activeCurrent));
+    const double vcomp = std::hypot((regulationVoltage * std::cos(angle)) - (xc * reactiveCurrent),
+                                    (regulationVoltage * std::sin(angle)) + (xc * activeCurrent));
     double voltageDeviation = 0.0;
     if (vcomp < v0) {
         voltageDeviation = vcomp - v0;
@@ -337,16 +336,15 @@ void DistributedConverter::evaluate(const IOdata& inputs,
     }
     const double pTarget = std::clamp(pref + paux + pDroop, lowerPower, upperPower);
     const double qTarget = std::clamp(qref + qdroop, qmn, qmx);
-    const double voltageCurve = lowerTrip(regulationVoltage, vt0, vt1) *
-        upperTrip(regulationVoltage, vt2, vt3);
-    const double frequencyCurve = lowerTrip(frequencyHz, ft0, ft1) *
-        upperTrip(frequencyHz, ft2, ft3);
+    const double voltageCurve =
+        lowerTrip(regulationVoltage, vt0, vt1) * upperTrip(regulationVoltage, vt2, vt3);
+    const double frequencyCurve =
+        lowerTrip(frequencyHz, ft0, ft1) * upperTrip(frequencyHz, ft2, ft3);
     const double voltageFactor = voltageLatched ? vrflag : 1.0;
     const double frequencyFactor = frequencyLatched ? frflag : 1.0;
-    const double response = blocked ?
-        0.0 :
-        voltageFactor * frequencyFactor *
-        (1.0 - recflag + (recflag * voltageCurve * frequencyCurve));
+    const double response = blocked ? 0.0 :
+                                      voltageFactor * frequencyFactor *
+            (1.0 - recflag + (recflag * voltageCurve * frequencyCurve));
     const double safeVoltage = std::max(voltage, 0.01);
     double ipCommand = response * pTarget / safeVoltage;
     double iqCommand = response * qTarget / safeVoltage;
@@ -539,15 +537,14 @@ void DistributedConverter::rootTest(const IOdata& inputs,
     const auto offset = offsets.getRootOffset(sMode);
     const double voltage = inputs.size() > 3 && inputs[3] != kNullVal ? inputs[3] : inputs[0];
     const double frequencyHz = fn * (inputs.size() > 2 && inputs[2] != kNullVal ? inputs[2] : 1.0);
-    const std::array<double, 8> values{
-        {voltage - vt0,
-         voltage - vt1,
-         voltage - vt2,
-         voltage - vt3,
-         frequencyHz - ft0,
-         frequencyHz - ft1,
-         frequencyHz - ft2,
-         frequencyHz - ft3}};
+    const std::array<double, 8> values{{voltage - vt0,
+                                        voltage - vt1,
+                                        voltage - vt2,
+                                        voltage - vt3,
+                                        frequencyHz - ft0,
+                                        frequencyHz - ft1,
+                                        frequencyHz - ft2,
+                                        frequencyHz - ft3}};
     std::copy(values.begin(), values.end(), roots + offset);
 }
 void DistributedConverter::rootTrigger(CoreTime /*time*/,

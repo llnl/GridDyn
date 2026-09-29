@@ -193,15 +193,13 @@ void GenModelGENTPJ::dynObjectInitializeB(const IOdata& in, const IOdata& out, I
                perturbedQuadratureVoltage,
                qp);
         const double fp = perturbedDirectVoltage + Rs * perturbedDirectCurrent +
-            qp.xqpp * perturbedQuadratureCurrent +
-            perturbedQuadratureCurrent * (Xq - Xqpp) / qp.qs;
+            qp.xqpp * perturbedQuadratureCurrent + perturbedQuadratureCurrent * (Xq - Xqpp) / qp.qs;
         delta -= (f / (fp - f)) * 1e-6;
     }
     double directCurrent, quadratureCurrent, directVoltage, quadratureVoltage;
     Terms q;
     values(delta, directCurrent, quadratureCurrent, directVoltage, quadratureVoltage, q);
-    const double psid =
-        quadratureVoltage + Rs * quadratureCurrent - q.xdpp * directCurrent;
+    const double psid = quadratureVoltage + Rs * quadratureCurrent - q.xdpp * directCurrent;
     const double psiq = directVoltage + Rs * directCurrent + q.xqpp * quadratureCurrent;
     auto* z = m_state.data();
     z[0] = directCurrent;
@@ -228,8 +226,7 @@ void GenModelGENTPJ::dynObjectInitializeB(const IOdata& in, const IOdata& out, I
               Kis,
               sat);
     fs[genModelEftInLocation] = q.ds * q.eq1;
-    fs[genModelPmechInLocation] =
-        (directVoltage + Rs * directCurrent) * directCurrent +
+    fs[genModelPmechInLocation] = (directVoltage + Rs * directCurrent) * directCurrent +
         (quadratureVoltage + Rs * quadratureCurrent) * quadratureCurrent;
     Vd = directVoltage;
     Vq = quadratureVoltage;

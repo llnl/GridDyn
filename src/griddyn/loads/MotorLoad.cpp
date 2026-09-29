@@ -7,8 +7,8 @@
 #include "MotorLoad.h"
 
 #include "../GridBus.h"
-#include "MotorLoad5.h"
 #include "CIMLoad.h"
+#include "MotorLoad5.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"

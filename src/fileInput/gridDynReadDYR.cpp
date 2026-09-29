@@ -1024,9 +1024,20 @@ namespace {
         // Exact PSS/E/OpenIPSL order after BUS and machine ID:
         // TR, KA, TA, VRMAX, VRMIN, KE, TE, KF, TF1, TF2,
         // E1, SE1, E2, SE2.
-        static constexpr std::array<std::string_view, 14> names{
-            "tr", "ka", "ta", "vrmax", "vrmin", "ke", "te",
-            "kf", "tf1", "tf2", "e1", "se1", "e2", "se2"};
+        static constexpr std::array<std::string_view, 14> names{"tr",
+                                                                "ka",
+                                                                "ta",
+                                                                "vrmax",
+                                                                "vrmin",
+                                                                "ke",
+                                                                "te",
+                                                                "kf",
+                                                                "tf1",
+                                                                "tf2",
+                                                                "e1",
+                                                                "se1",
+                                                                "e2",
+                                                                "se2"};
         for (std::size_t index = 0; index < names.size(); ++index) {
             exciterModel->set(names[index], params[index + 3]);
         }

@@ -5,8 +5,8 @@
  */
 
 #include "../gtestHelper.h"
-#include "fileInput/fileInput.h"
 #include "core/CoreExceptions.h"
+#include "fileInput/fileInput.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/blocks/LeadLagBlock.h"
 #include "griddyn/generators/DynamicGenerator.h"
@@ -511,7 +511,8 @@ TEST_F(LoadTests, Cim5SaturationInitializesAndIntegrates)
     EXPECT_EQ(runResidualCheck(simulation, cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(simulation, cDaeSolverMode, false), 0);
     simulation->run();
-    requireStates(simulation->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
+    requireStates(simulation->currentProcessState(),
+                  GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 
 TEST_F(LoadTests, Cim6SaturationInitializesAndIntegrates)
@@ -525,7 +526,8 @@ TEST_F(LoadTests, Cim6SaturationInitializesAndIntegrates)
     EXPECT_EQ(runResidualCheck(simulation, cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(simulation, cDaeSolverMode, false), 0);
     simulation->run();
-    requireStates(simulation->currentProcessState(), GridDynSimulation::GridState::DYNAMIC_COMPLETE);
+    requireStates(simulation->currentProcessState(),
+                  GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 
 #ifdef ENABLE_IN_DEVELOPMENT_CASES

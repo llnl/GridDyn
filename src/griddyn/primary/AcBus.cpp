@@ -2677,6 +2677,13 @@ void AcBus::updateLocalCache(const IOdata& inputs,
                              const StateData& stateDataValue,
                              const SolverMode& sMode)
 {
+    if (sMode.offsetIndex != lastSmode) {
+        // The bus output locations are solver-mode dependent.  Refresh them
+        // even when the cached power balance is current; partitioned dynamic
+        // Jacobian checks reuse a StateData sequence across solver modes.
+        outLocs = getOutputLocs(sMode);
+        lastSmode = sMode.offsetIndex;
+    }
     if (!S.needsUpdate(stateDataValue)) {
         return;
     }
@@ -2685,9 +2692,6 @@ void AcBus::updateLocalCache(const IOdata& inputs,
         return;
     }
     GridBus::updateLocalCache(inputs, stateDataValue, sMode);
-    if (sMode.offsetIndex != lastSmode) {
-        outLocs = getOutputLocs(sMode);
-    }
 }
 
 // computed power at bus

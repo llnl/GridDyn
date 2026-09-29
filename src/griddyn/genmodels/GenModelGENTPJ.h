@@ -2,6 +2,7 @@
  * SPDX-License-Identifier: BSD-3-Clause */
 #pragma once
 #include "GenModel5.h"
+#include <string>
 namespace griddyn::genmodels {
 /**
  * @brief Sixth-order WECC/PSS/E Type-J round-rotor synchronous machine.

@@ -8,6 +8,7 @@
 
 #include "MotorLoad5.h"
 #include "utilities/Saturation.h"
+#include <string>
 
 namespace griddyn::loads {
 /**

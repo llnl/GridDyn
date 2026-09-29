@@ -91,9 +91,12 @@ TEST(CIMLoadTests, Cim6MechanicalTorqueAndDerivativeFollowConfiguredCurve)
     constexpr double slip = 0.2;
     constexpr double omega = 1.0 - slip;
     EXPECT_NEAR(motor.mechPower(slip),
-                2.0 * (0.1 * omega * omega + 0.2 * omega + 0.3 + 0.4 * omega * omega * omega),
+                2.0 * ((0.1 * omega * omega) + (0.2 * omega) + 0.3 +
+                       (0.4 * omega * omega * omega)),
                 1e-12);
-    EXPECT_NEAR(motor.dmechds(slip), -(2.0 * (0.2 * omega + 0.2 + 1.2 * omega * omega)), 1e-12);
+    EXPECT_NEAR(motor.dmechds(slip),
+                -(2.0 * ((0.2 * omega) + 0.2 + (1.2 * omega * omega))),
+                1e-12);
 }
 
 TEST_F(LoadTests, BasicLoadTest)

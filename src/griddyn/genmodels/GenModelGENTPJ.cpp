@@ -9,7 +9,18 @@
 #include <array>
 #include <cmath>
 #include <complex>
+#include <string>
 namespace griddyn::genmodels {
+// The helper names mirror the published dq equations.  The surrounding
+// model code uses the same compact notation, and the explicit parentheses in
+// the public equations/documentation are the authoritative readability aid.
+// NOLINTBEGIN(readability-identifier-length, readability-identifier-naming,
+//             readability-math-missing-parentheses, readability-braces-around-statements,
+//             google-readability-braces-around-statements, hicpp-braces-around-statements,
+//             readability-isolate-declaration, hicpp-member-init, google-explicit-constructor,
+//             readability-implicit-bool-conversion, hicpp-named-parameter,
+//             readability-named-parameter, readability-qualified-auto,
+//             readability-inconsistent-ifelse-braces)
 namespace {
     struct Terms {
         double ds, qs, xdpp, xqpp, eq1, ed1, eq2, ed2, psid, psiq;
@@ -120,24 +131,26 @@ namespace {
         return t;
     }
 }  // namespace
-GenModelGENTPJ::GenModelGENTPJ(const std::string& n): GenModel5(n)
+GenModelGENTPJ::GenModelGENTPJ(const std::string& objName): GenModel5(objName)
 {
     S10 = 0;
     S12 = 1;
     sat.setType(utilities::Saturation::SaturationType::CUTOFF_SCALED_QUADRATIC);
     sat.setParam(S10, S12);
 }
-CoreObject* GenModelGENTPJ::clone(CoreObject* o) const
+CoreObject* GenModelGENTPJ::clone(CoreObject* obj) const
 {
-    auto* c = cloneBase<GenModelGENTPJ, GenModel5>(this, o);
+    auto* c = cloneBase<GenModelGENTPJ, GenModel5>(this, obj);
     if (c) {
         c->Kis = Kis;
         c->sat = sat;
     }
-    return c ? c : o;
+    return c ? c : obj;
 }
-void GenModelGENTPJ::dynObjectInitializeA(CoreTime, std::uint32_t)
+void GenModelGENTPJ::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
+    (void)time0;
+    (void)flags;
     if (H <= 0 || Tdop <= 0 || Tqop <= 0 || Tdopp <= 0 || Tqopp <= 0 || Xd <= Xdp || Xq <= Xqp ||
         Xdp <= Xdpp || Xqp <= Xqpp)
         throw InvalidParameterValue("GENTPJ machine parameters");
@@ -145,10 +158,13 @@ void GenModelGENTPJ::dynObjectInitializeA(CoreTime, std::uint32_t)
     offsets.local().local.algSize = 2;
     offsets.local().local.jacSize = 96;
 }
-void GenModelGENTPJ::dynObjectInitializeB(const IOdata& in, const IOdata& out, IOdata& fs)
+void GenModelGENTPJ::dynObjectInitializeB(const IOdata& inputs,
+                                         const IOdata& desiredOutput,
+                                         IOdata& fieldSet)
 {
-    const std::complex<double> voltage = std::polar(in[0], in[1]);
-    const std::complex<double> current = std::complex<double>(out[0], -out[1]) / std::conj(voltage);
+    const std::complex<double> voltage = std::polar(inputs[0], inputs[1]);
+    const std::complex<double> current =
+        std::complex<double>(desiredOutput[0], -desiredOutput[1]) / std::conj(voltage);
     auto values = [&](double delta,
                       double& directCurrent,
                       double& quadratureCurrent,
@@ -158,8 +174,8 @@ void GenModelGENTPJ::dynObjectInitializeB(const IOdata& in, const IOdata& out, I
         const auto dq = std::conj(current * std::polar(1.0, -delta));
         quadratureCurrent = std::real(dq);
         directCurrent = -std::imag(dq);
-        directVoltage = -in[0] * std::sin(delta - in[1]);
-        quadratureVoltage = in[0] * std::cos(delta - in[1]);
+        directVoltage = -inputs[0] * std::sin(delta - inputs[1]);
+        quadratureVoltage = inputs[0] * std::cos(delta - inputs[1]);
         double s[6]{};
         q = terms(directVoltage,
                   quadratureVoltage,
@@ -225,42 +241,44 @@ void GenModelGENTPJ::dynObjectInitializeB(const IOdata& in, const IOdata& out, I
               Xqpp,
               Kis,
               sat);
-    fs[genModelEftInLocation] = q.ds * q.eq1;
-    fs[genModelPmechInLocation] = (directVoltage + Rs * directCurrent) * directCurrent +
+    fieldSet[genModelEftInLocation] = q.ds * q.eq1;
+    fieldSet[genModelPmechInLocation] = (directVoltage + Rs * directCurrent) * directCurrent +
         (quadratureVoltage + Rs * quadratureCurrent) * quadratureCurrent;
     Vd = directVoltage;
     Vq = quadratureVoltage;
 }
-void GenModelGENTPJ::set(std::string_view p, double v, units::unit u)
+void GenModelGENTPJ::set(std::string_view param, double value, units::unit unitType)
 {
-    if (p == "kis")
-        Kis = v;
-    else if (p == "s10" || p == "s1") {
-        S10 = v;
+    if (param == "kis") {
+        Kis = value;
+    } else if (param == "s10" || param == "s1") {
+        S10 = value;
         sat.setParam(S10, S12);
-    } else if (p == "s12") {
-        S12 = v;
+    } else if (param == "s12") {
+        S12 = value;
         sat.setParam(S10, S12);
-    } else
-        GenModel5::set(p, v, u);
+    } else {
+        GenModel5::set(param, value, unitType);
+    }
 }
-double GenModelGENTPJ::get(std::string_view p, units::unit u) const
+double GenModelGENTPJ::get(std::string_view param, units::unit unitType) const
 {
-    if (p == "kis") return Kis;
-    return GenModel5::get(p, u);
+    if (param == "kis") return Kis;
+    return GenModel5::get(param, unitType);
 }
 stringVec GenModelGENTPJ::localStateNames() const
 {
     return {"id", "iq", "delta", "freq", "epd", "epq", "psippd", "psippq"};
 }
-void GenModelGENTPJ::algebraicUpdate(const IOdata& in,
-                                     const StateData& sd,
-                                     double up[],
-                                     const SolverMode& sm,
-                                     double)
+void GenModelGENTPJ::algebraicUpdate(const IOdata& inputs,
+                                     const StateData& stateData,
+                                     double update[],
+                                     const SolverMode& solverMode,
+                                     double alpha)
 {
-    auto l = offsets.getLocations(sd, up, sm, this);
-    updateLocalCache(in, sd, sm);
+    (void)alpha;
+    auto l = offsets.getLocations(stateData, update, solverMode, this);
+    updateLocalCache(inputs, stateData, solverMode);
     auto t = terms(Vd,
                    Vq,
                    l.algStateLoc[0],
@@ -279,33 +297,33 @@ void GenModelGENTPJ::algebraicUpdate(const IOdata& in,
     gmlc::utilities::solve2x2(
         Rs, t.xqpp, -t.xdpp, Rs, t.psiq - Vd, t.psid - Vq, l.destLoc[0], l.destLoc[1]);
 }
-void GenModelGENTPJ::derivative(const IOdata& in,
-                                const StateData& sd,
-                                double d[],
-                                const SolverMode& sm)
+void GenModelGENTPJ::derivative(const IOdata& inputs,
+                                const StateData& stateData,
+                                double derivativeValues[],
+                                const SolverMode& solverMode)
 {
-    if (isAlgebraicOnly(sm)) return;
-    auto l = offsets.getLocations(sd, d, sm, this);
+    if (isAlgebraicOnly(solverMode)) return;
+    auto l = offsets.getLocations(stateData, derivativeValues, solverMode, this);
     auto* t = l.algStateLoc;
     auto* s = l.diffStateLoc;
     auto* v = l.destDiffLoc;
     auto q = terms(Vd, Vq, t[0], t[1], s, Rs, Xl, Xd, Xq, Xdp, Xqp, Xdpp, Xqpp, Kis, sat);
     const double te = (q.psid + q.xdpp * t[0]) * t[1] + (q.psiq - q.xqpp * t[1]) * t[0];
     v[0] = systemBaseFrequency * (s[1] - 1);
-    v[1] = (in[genModelPmechInLocation] - te - D * (s[1] - 1)) / (2 * H);
+    v[1] = (inputs[genModelPmechInLocation] - te - D * (s[1] - 1)) / (2 * H);
     v[2] = -q.qs * q.ed1 / Tqop;
-    v[3] = (in[genModelEftInLocation] - q.ds * q.eq1) / Tdop;
+    v[3] = (inputs[genModelEftInLocation] - q.ds * q.eq1) / Tdop;
     v[4] = -q.ds * (Xdp - Xdpp) / (Xd - Xdpp) * q.eq2 / Tdopp;
     v[5] = q.qs * (Xqp - Xqpp) / (Xq - Xqpp) * q.ed2 / Tqopp;
 }
-void GenModelGENTPJ::residual(const IOdata& in,
-                              const StateData& sd,
-                              double r[],
-                              const SolverMode& sm)
+void GenModelGENTPJ::residual(const IOdata& inputs,
+                              const StateData& stateData,
+                              double residualValues[],
+                              const SolverMode& solverMode)
 {
-    auto l = offsets.getLocations(sd, r, sm, this);
-    updateLocalCache(in, sd, sm);
-    if (hasAlgebraic(sm)) {
+    auto l = offsets.getLocations(stateData, residualValues, solverMode, this);
+    updateLocalCache(inputs, stateData, solverMode);
+    if (hasAlgebraic(solverMode)) {
         auto q = terms(Vd,
                        Vq,
                        l.algStateLoc[0],
@@ -324,29 +342,29 @@ void GenModelGENTPJ::residual(const IOdata& in,
         l.destLoc[0] = Vd + Rs * l.algStateLoc[0] + q.xqpp * l.algStateLoc[1] - q.psiq;
         l.destLoc[1] = Vq + Rs * l.algStateLoc[1] - q.xdpp * l.algStateLoc[0] - q.psid;
     }
-    if (hasDifferential(sm)) {
-        derivative(in, sd, r, sm);
+    if (hasDifferential(solverMode)) {
+        derivative(inputs, stateData, residualValues, solverMode);
         for (index_t k = 0; k < 6; ++k)
             l.destDiffLoc[k] -= l.dstateLoc[k];
     }
 }
-void GenModelGENTPJ::jacobianElements(const IOdata& in,
-                                      const StateData& sd,
+void GenModelGENTPJ::jacobianElements(const IOdata& inputs,
+                                      const StateData& stateData,
                                       MatrixData<double>& md,
-                                      const IOlocs& il,
-                                      const SolverMode& sm)
+                                      const IOlocs& inputLocs,
+                                      const SolverMode& solverMode)
 {
-    auto l = offsets.getLocations(sd, sm, this);
-    if (!hasAlgebraic(sm) && !hasDifferential(sm)) return;
+    auto l = offsets.getLocations(stateData, solverMode, this);
+    if (!hasAlgebraic(solverMode) && !hasDifferential(solverMode)) return;
     std::array<Dual, jacobianVariableCount> x{};
     x[0] = Dual(l.algStateLoc[0], 0);
     x[1] = Dual(l.algStateLoc[1], 1);
     for (std::size_t k = 0; k < 6; ++k)
         x[k + 2] = Dual(l.diffStateLoc[k], k + 2);
-    x[8] = Dual(in[0], 8);
-    x[9] = Dual(in[1], 9);
-    x[10] = Dual(in[2], 10);
-    x[11] = Dual(in[3], 11);
+    x[8] = Dual(inputs[0], 8);
+    x[9] = Dual(inputs[1], 9);
+    x[10] = Dual(inputs[2], 10);
+    x[11] = Dual(inputs[3], 11);
     const Dual vd = -x[8] * sine(x[2] - x[9]), vq = x[8] * cosine(x[2] - x[9]);
     const Dual agd = vq + Rs * x[1] - Xl * x[0], agq = -vd - Rs * x[0] - Xl * x[1],
                se = saturation(squareRoot(agd * agd + agq * agq) +
@@ -383,16 +401,40 @@ void GenModelGENTPJ::jacobianElements(const IOdata& in,
                                        l.diffOffset + 3,
                                        l.diffOffset + 4,
                                        l.diffOffset + 5,
-                                       il[0],
-                                       il[1],
-                                       il[2],
-                                       il[3]};
+                                       inputLocs[0],
+                                       inputLocs[1],
+                                       inputLocs[2],
+                                       inputLocs[3]};
+    const bool includeAlgebraicColumns = hasAlgebraic(solverMode);
+    const bool includeDifferentialColumns = hasDifferential(solverMode);
     for (std::size_t r = 0; r < 8; ++r) {
-        if ((r < 2 && !hasAlgebraic(sm)) || (r >= 2 && !hasDifferential(sm))) continue;
-        for (std::size_t c = 0; c < 12; ++c)
-            if (cols[c] != kNullLocation && f[r].derivative[c] != 0.0 && ((r < 2) || (c != r)))
+        if ((r < 2 && !hasAlgebraic(solverMode)) ||
+            (r >= 2 && !hasDifferential(solverMode)))
+            continue;
+        for (std::size_t c = 0; c < 12; ++c) {
+            // Differential-only solves use the paired algebraic state for
+            // evaluation, but those algebraic variables are not columns in
+            // this solver's Jacobian.
+            const bool algebraicColumn = c < 2;
+            const bool differentialColumn = (c >= 2) && (c < 8);
+            if ((!includeAlgebraicColumns && algebraicColumn) ||
+                (!includeDifferentialColumns && differentialColumn) ||
+                cols[c] == kNullLocation) {
+                continue;
+            }
+            if (f[r].derivative[c] != 0.0 && ((r < 2) || (c != r))) {
                 md.assign(rows[r], cols[c], f[r].derivative[c]);
-        if (r >= 2) md.assign(rows[r], rows[r], f[r].derivative[r] - sd.cj);
+            }
+        }
+        if (r >= 2)
+            md.assign(rows[r], rows[r], f[r].derivative[r] - stateData.cj);
     }
 }
 }  // namespace griddyn::genmodels
+// NOLINTEND(readability-identifier-length, readability-identifier-naming,
+//           readability-math-missing-parentheses, readability-braces-around-statements,
+//           google-readability-braces-around-statements, hicpp-braces-around-statements,
+//           readability-isolate-declaration, hicpp-member-init, google-explicit-constructor,
+//           readability-implicit-bool-conversion, hicpp-named-parameter,
+//           readability-named-parameter, readability-qualified-auto,
+//           readability-inconsistent-ifelse-braces)

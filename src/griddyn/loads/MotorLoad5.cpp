@@ -17,6 +17,17 @@
 #include <string>
 #include <vector>
 namespace griddyn::loads {
+// MotorLoad5 preserves the established five-state PSS/E state names and
+// equation notation used by MotorLoad3.  The derived CIM models share this
+// implementation, so changing the legacy notation here would obscure the
+// state mapping and make equation comparisons harder to audit.
+// NOLINTBEGIN(readability-identifier-length, readability-identifier-naming,
+//             readability-math-missing-parentheses, misc-const-correctness,
+//             readability-braces-around-statements, google-readability-braces-around-statements,
+//             hicpp-braces-around-statements, readability-isolate-declaration,
+//             readability-qualified-auto, hicpp-member-init,
+//             readability-inconsistent-ifelse-braces, readability-implicit-bool-conversion,
+//             hicpp-named-parameter, readability-named-parameter)
 // setup the load object factories
 
 MotorLoad5::MotorLoad5(const std::string& objName): MotorLoad3(objName)
@@ -636,3 +647,10 @@ ChangeCode MotorLoad5::rootCheck(const IOdata& /*inputs*/,
     return ChangeCode::NO_CHANGE;
 }
 }  // namespace griddyn::loads
+// NOLINTEND(readability-identifier-length, readability-identifier-naming,
+//           readability-math-missing-parentheses, misc-const-correctness,
+//           readability-braces-around-statements, google-readability-braces-around-statements,
+//           hicpp-braces-around-statements, readability-isolate-declaration,
+//           readability-qualified-auto, hicpp-member-init,
+//           readability-inconsistent-ifelse-braces, readability-implicit-bool-conversion,
+//           hicpp-named-parameter, readability-named-parameter)

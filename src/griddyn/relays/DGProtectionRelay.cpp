@@ -63,27 +63,27 @@ void DGProtectionRelay::set(std::string_view param, double val, units::unit unit
         {"vl4", "vl3", "vl2", "vl1", "vu1", "vu2", "vu3"}};
     constexpr std::array<std::string_view, 4> ftNames{{"tfl1", "tfl2", "tfu1", "tfu2"}};
     constexpr std::array<std::string_view, 5> vtNames{{"tvl1", "tvl2", "tvl3", "tvu1", "tvu2"}};
-    for (std::size_t i = 0; i < fNames.size(); ++i) {
-        if (key == fNames[i]) {
-            frequency[i] = val;
+    for (std::size_t index = 0; index < fNames.size(); ++index) {
+        if (key == fNames[index]) {
+            frequency[index] = val;
             return;
         }
     }
-    for (std::size_t i = 0; i < vNames.size(); ++i) {
-        if (key == vNames[i]) {
-            voltage[i] = val;
+    for (std::size_t index = 0; index < vNames.size(); ++index) {
+        if (key == vNames[index]) {
+            voltage[index] = val;
             return;
         }
     }
-    for (std::size_t i = 0; i < ftNames.size(); ++i) {
-        if (key == ftNames[i]) {
-            frequencyTime[i] = val;
+    for (std::size_t index = 0; index < ftNames.size(); ++index) {
+        if (key == ftNames[index]) {
+            frequencyTime[index] = val;
             return;
         }
     }
-    for (std::size_t i = 0; i < vtNames.size(); ++i) {
-        if (key == vtNames[i]) {
-            voltageTime[i] = val;
+    for (std::size_t index = 0; index < vtNames.size(); ++index) {
+        if (key == vtNames[index]) {
+            voltageTime[index] = val;
             return;
         }
     }
@@ -196,8 +196,8 @@ void DGProtectionRelay::updateA(CoreTime time)
     if (!lock) {
         return;
     }
-    for (index_t i = 0; i < configuredConditions; ++i) {
-        if (checkCondition(i)) {
+    for (index_t condition = 0; condition < configuredConditions; ++condition) {
+        if (checkCondition(condition)) {
             clearDeadline = maxTime;
             return;
         }
@@ -231,8 +231,8 @@ void DGProtectionRelay::conditionCleared(index_t /*conditionNum*/, CoreTime time
     if (!lock) {
         return;
     }
-    for (index_t i = 0; i < configuredConditions; ++i) {
-        if (checkCondition(i)) {
+    for (index_t condition = 0; condition < configuredConditions; ++condition) {
+        if (checkCondition(condition)) {
             return;
         }
     }

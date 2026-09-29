@@ -24,7 +24,7 @@ class DGProtectionRelay: public Relay {
     void updateA(CoreTime time) override;
 
   protected:
-    void copyParametersTo(DGProtectionRelay* target) const;
+    void copyParametersTo(DGProtectionRelay* out) const;
     void actionTaken(index_t actionNum,
                      index_t conditionNum,
                      ChangeCode actionReturn,

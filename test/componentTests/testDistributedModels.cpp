@@ -226,7 +226,7 @@ TEST(DistributedModels, ConverterPartitionedSolverStates)
     }
     MatrixDataSparse<double> diffJacobian;
     model.jacobianElements(inputs, diffData, diffJacobian, {10, 11, 12, 13}, diffMode);
-    EXPECT_NEAR(diffJacobian.at(0, 0), -1.0 / model.get("tip") - 1.0, 1e-5);
+    EXPECT_NEAR(diffJacobian.at(0, 0), (-1.0 / model.get("tip")) - 1.0, 1e-5);
 }
 
 TEST(DistributedModels, ProtectionUsesAreaRelayAndExternalPlayerValue)

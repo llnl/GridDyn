@@ -305,8 +305,8 @@ GridBus* RenewableGenerator::regulationSource(const RenewableComponent* model) c
     while (!pending.empty()) {
         auto* area = pending.back();
         pending.pop_back();
-        for (index_t i = 0; area->getBus(i) != nullptr; ++i) {
-            auto* bus = area->getBus(i);
+        for (index_t busIndex = 0; area->getBus(busIndex) != nullptr; ++busIndex) {
+            auto* bus = area->getBus(busIndex);
             if (bus->getName() == requested) {
                 if (match != nullptr) {
                     throw InvalidParameterValue("renewable regulation bus name is ambiguous");
@@ -314,8 +314,8 @@ GridBus* RenewableGenerator::regulationSource(const RenewableComponent* model) c
                 match = bus;
             }
         }
-        for (index_t i = 0; area->getArea(i) != nullptr; ++i) {
-            pending.push_back(area->getArea(i));
+        for (index_t areaIndex = 0; area->getArea(areaIndex) != nullptr; ++areaIndex) {
+            pending.push_back(area->getArea(areaIndex));
         }
     }
     return match;

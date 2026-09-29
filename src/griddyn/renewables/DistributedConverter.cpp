@@ -78,8 +78,8 @@ void DistributedConverter::set(std::string_view param, double val, units::unit u
         throw InvalidParameterValue("distributed converter parameter must be finite");
     }
 #define SET_FIELD(name, field)                                                                     \
-    if (key == name) {                                                                             \
-        field = val;                                                                               \
+    if (key == (name)) {                                                                           \
+        (field) = val;                                                                             \
         return;                                                                                    \
     }
     SET_FIELD("fn", fn)
@@ -161,8 +161,8 @@ double DistributedConverter::get(std::string_view param, units::unit unitType) c
 {
     const auto key = gmlc::utilities::convertToLowerCase(std::string{param});
 #define GET_FIELD(name, field)                                                                     \
-    if (key == name) {                                                                             \
-        return field;                                                                              \
+    if (key == (name)) {                                                                           \
+        return (field);                                                                           \
     }
     GET_FIELD("fn", fn)
     GET_FIELD("xc", xc)
@@ -215,7 +215,10 @@ double DistributedConverter::get(std::string_view param, units::unit unitType) c
         return frequencyLatched ? 1.0 : 0.0;
     }
     if (key == "soc") {
-        return variant == Variant::pv ? kNullVal : (m_state.size() > 4 ? m_state[4] : socinit);
+        if (variant == Variant::pv) {
+            return kNullVal;
+        }
+        return m_state.size() > 4 ? m_state[4] : socinit;
     }
     return TerminalElectricalModel::get(param, unitType);
 }
@@ -228,14 +231,14 @@ count_t DistributedConverter::stateCount() const
 void DistributedConverter::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
 {
     if (fn <= 0.0 || ialim <= 0.0 || tip <= 0.0 || tiq <= 0.0 || dqdv >= 0.0 || fdbd > 0.0 ||
-        ddn < 0.0 || !(vt0 < vt1 && vt1 <= vt2 && vt2 < vt3) ||
-        !(ft0 < ft1 && ft1 <= ft2 && ft2 < ft3) || v0 >= v1 || qmn > qmx || pmx < 0.0 ||
+        ddn < 0.0 || vt0 >= vt1 || vt1 > vt2 || vt2 >= vt3 || ft0 >= ft1 || ft1 > ft2 ||
+        ft2 >= ft3 || v0 >= v1 || qmn > qmx || pmx < 0.0 ||
         (pqflag != 0.0 && pqflag != 1.0) || vrflag < 0.0 || vrflag > 1.0 || frflag < 0.0 ||
         frflag > 1.0 || recflag < 0.0 || recflag > 1.0 ||
         (variant != Variant::pv &&
          (en <= 0.0 || tf <= 0.0 || socmin >= socmax || socinit < socmin || socinit > socmax ||
           etac <= 0.0 || etac > 1.0 || etad <= 0.0 || etad > 1.0)) ||
-        (variant == Variant::ev1 || variant == Variant::ev2 ? pmn > pmx : false) ||
+        ((variant == Variant::ev1 || variant == Variant::ev2) && pmn > pmx) ||
         (variant == Variant::ev2 && (pcap < -1.0 || pcap > 1.0 || pmn > pmx * pcap))) {
         throw InvalidParameterValue("distributed converter limits, thresholds, or time constants");
     }
@@ -303,28 +306,48 @@ void DistributedConverter::evaluate(const IOdata& inputs,
                                     std::array<double, 2>& power,
                                     std::array<double, 3>& rates) const
 {
-    const double v = inputs[0];
-    const double a = inputs.size() > 1 && inputs[1] != kNullVal ? inputs[1] : 0.0;
-    const double fHz = fn * (inputs.size() > 2 && inputs[2] != kNullVal ? inputs[2] : 1.0);
-    const double vreg = inputs.size() > 3 && inputs[3] != kNullVal ? inputs[3] : v;
-    const double ip = state[0], iq = state[1];
-    power = {v * ip, v * iq};
-    const double vcomp = std::hypot(vreg * std::cos(a) - xc * iq, vreg * std::sin(a) + xc * ip);
-    const double qdroop = dqdv * (vcomp < v0 ? vcomp - v0 : (vcomp > v1 ? vcomp - v1 : 0.0));
+    const double voltage = inputs[0];
+    const double angle = inputs.size() > 1 && inputs[1] != kNullVal ? inputs[1] : 0.0;
+    const double frequencyHz = fn * (inputs.size() > 2 && inputs[2] != kNullVal ? inputs[2] : 1.0);
+    const double regulationVoltage =
+        inputs.size() > 3 && inputs[3] != kNullVal ? inputs[3] : voltage;
+    const double activeCurrent = state[0];
+    const double reactiveCurrent = state[1];
+    power = {voltage * activeCurrent, voltage * reactiveCurrent};
+    const double vcomp = std::hypot(
+        (regulationVoltage * std::cos(angle)) - (xc * reactiveCurrent),
+        (regulationVoltage * std::sin(angle)) + (xc * activeCurrent));
+    double voltageDeviation = 0.0;
+    if (vcomp < v0) {
+        voltageDeviation = vcomp - v0;
+    } else if (vcomp > v1) {
+        voltageDeviation = vcomp - v1;
+    }
+    const double qdroop = dqdv * voltageDeviation;
     const double pDroop = ddn *
-        (std::abs(fn - fHz) > -fdbd ? std::copysign(std::abs(fn - fHz) + fdbd, fn - fHz) : 0.0);
-    double upperPower = variant == Variant::ev2 ? pmx * pcap : pmx;
-    double lowerPower = variant == Variant::pv ? 0.0 : (variant == Variant::storage ? -pmx : pmn);
-    double pTarget = std::clamp(pref + paux + pDroop, lowerPower, upperPower);
+        (std::abs(fn - frequencyHz) > -fdbd ?
+             std::copysign(std::abs(fn - frequencyHz) + fdbd, fn - frequencyHz) :
+             0.0);
+    const double upperPower = variant == Variant::ev2 ? pmx * pcap : pmx;
+    double lowerPower = pmn;
+    if (variant == Variant::pv) {
+        lowerPower = 0.0;
+    } else if (variant == Variant::storage) {
+        lowerPower = -pmx;
+    }
+    const double pTarget = std::clamp(pref + paux + pDroop, lowerPower, upperPower);
     const double qTarget = std::clamp(qref + qdroop, qmn, qmx);
-    const double voltageCurve = lowerTrip(vreg, vt0, vt1) * upperTrip(vreg, vt2, vt3);
-    const double frequencyCurve = lowerTrip(fHz, ft0, ft1) * upperTrip(fHz, ft2, ft3);
+    const double voltageCurve = lowerTrip(regulationVoltage, vt0, vt1) *
+        upperTrip(regulationVoltage, vt2, vt3);
+    const double frequencyCurve = lowerTrip(frequencyHz, ft0, ft1) *
+        upperTrip(frequencyHz, ft2, ft3);
     const double voltageFactor = voltageLatched ? vrflag : 1.0;
     const double frequencyFactor = frequencyLatched ? frflag : 1.0;
     const double response = blocked ?
         0.0 :
-        voltageFactor * frequencyFactor * (1.0 - recflag + recflag * voltageCurve * frequencyCurve);
-    const double safeVoltage = std::max(v, 0.01);
+        voltageFactor * frequencyFactor *
+        (1.0 - recflag + (recflag * voltageCurve * frequencyCurve));
+    const double safeVoltage = std::max(voltage, 0.01);
     double ipCommand = response * pTarget / safeVoltage;
     double iqCommand = response * qTarget / safeVoltage;
     if (variant != Variant::pv) {
@@ -337,15 +360,17 @@ void DistributedConverter::evaluate(const IOdata& inputs,
     }
     if (pqflag == 1.0) {
         ipCommand = std::clamp(ipCommand, -ialim, ialim);
-        const double remaining = std::sqrt(std::max(0.0, ialim * ialim - ipCommand * ipCommand));
+        const double remaining =
+            std::sqrt(std::max(0.0, (ialim * ialim) - (ipCommand * ipCommand)));
         iqCommand = std::clamp(iqCommand, -remaining, remaining);
     } else {
         iqCommand = std::clamp(iqCommand, -ialim, ialim);
-        const double remaining = std::sqrt(std::max(0.0, ialim * ialim - iqCommand * iqCommand));
+        const double remaining =
+            std::sqrt(std::max(0.0, (ialim * ialim) - (iqCommand * iqCommand)));
         ipCommand = std::clamp(ipCommand, -remaining, remaining);
     }
-    rates[0] = (ipCommand - ip) / tip;
-    rates[1] = (iqCommand - iq) / tiq;
+    rates[0] = (ipCommand - activeCurrent) / tip;
+    rates[1] = (iqCommand - reactiveCurrent) / tiq;
     rates[2] = 0.0;
     if (variant != Variant::pv) {
         const double efficiency = power[0] < 0.0 ? etac : 1.0 / etad;
@@ -412,8 +437,8 @@ void DistributedConverter::algebraicUpdate(const IOdata& inputs,
 
 void DistributedConverter::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*mode*/)
 {
-    const double dt = time - prevTime;
-    if (dt < 0.0) {
+    const double timeStep = time - prevTime;
+    if (timeStep < 0.0) {
         throw InvalidParameterValue("distributed converter timestep precedes time");
     }
     updateLatches(inputs);
@@ -421,7 +446,7 @@ void DistributedConverter::timestep(CoreTime time, const IOdata& inputs, const S
     std::array<double, 3> rates{};
     evaluate(inputs, m_state.data() + 2, power, rates);
     for (index_t index = 0; index < stateCount(); ++index) {
-        m_state[2 + index] += dt * rates[index];
+        m_state[2 + index] += timeStep * rates[index];
     }
     evaluate(inputs, m_state.data() + 2, power, rates);
     m_state[0] = power[0];
@@ -474,7 +499,7 @@ void DistributedConverter::jacobianElements(const IOdata& inputs,
         if (hasDifferential(sMode)) {
             matrixData.assign(loc.diffOffset + index,
                               loc.diffOffset + index,
-                              (rates[index] - baseRates[index]) / step - stateData.cj);
+                              ((rates[index] - baseRates[index]) / step) - stateData.cj);
         }
         states[index] -= step;
     }
@@ -512,10 +537,17 @@ void DistributedConverter::rootTest(const IOdata& inputs,
                                     const SolverMode& sMode)
 {
     const auto offset = offsets.getRootOffset(sMode);
-    const double v = inputs.size() > 3 && inputs[3] != kNullVal ? inputs[3] : inputs[0];
-    const double f = fn * (inputs.size() > 2 && inputs[2] != kNullVal ? inputs[2] : 1.0);
+    const double voltage = inputs.size() > 3 && inputs[3] != kNullVal ? inputs[3] : inputs[0];
+    const double frequencyHz = fn * (inputs.size() > 2 && inputs[2] != kNullVal ? inputs[2] : 1.0);
     const std::array<double, 8> values{
-        {v - vt0, v - vt1, v - vt2, v - vt3, f - ft0, f - ft1, f - ft2, f - ft3}};
+        {voltage - vt0,
+         voltage - vt1,
+         voltage - vt2,
+         voltage - vt3,
+         frequencyHz - ft0,
+         frequencyHz - ft1,
+         frequencyHz - ft2,
+         frequencyHz - ft3}};
     std::copy(values.begin(), values.end(), roots + offset);
 }
 void DistributedConverter::rootTrigger(CoreTime /*time*/,
@@ -530,10 +562,12 @@ ChangeCode DistributedConverter::rootCheck(const IOdata& inputs,
                                            const SolverMode& /*sMode*/,
                                            CheckLevel /*level*/)
 {
-    const bool oldV = voltageLatched, oldF = frequencyLatched;
+    const bool oldVoltageLatch = voltageLatched;
+    const bool oldFrequencyLatch = frequencyLatched;
     updateLatches(inputs);
-    return oldV != voltageLatched || oldF != frequencyLatched ? ChangeCode::NON_STATE_CHANGE :
-                                                                ChangeCode::NO_CHANGE;
+    return oldVoltageLatch != voltageLatched || oldFrequencyLatch != frequencyLatched ?
+        ChangeCode::NON_STATE_CHANGE :
+        ChangeCode::NO_CHANGE;
 }
 stringVec DistributedConverter::localStateNames() const
 {

@@ -159,8 +159,8 @@ void GenModelGENTPJ::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
     offsets.local().local.jacSize = 96;
 }
 void GenModelGENTPJ::dynObjectInitializeB(const IOdata& inputs,
-                                         const IOdata& desiredOutput,
-                                         IOdata& fieldSet)
+                                          const IOdata& desiredOutput,
+                                          IOdata& fieldSet)
 {
     const std::complex<double> voltage = std::polar(inputs[0], inputs[1]);
     const std::complex<double> current =
@@ -408,8 +408,7 @@ void GenModelGENTPJ::jacobianElements(const IOdata& inputs,
     const bool includeAlgebraicColumns = hasAlgebraic(solverMode);
     const bool includeDifferentialColumns = hasDifferential(solverMode);
     for (std::size_t r = 0; r < 8; ++r) {
-        if ((r < 2 && !hasAlgebraic(solverMode)) ||
-            (r >= 2 && !hasDifferential(solverMode)))
+        if ((r < 2 && !hasAlgebraic(solverMode)) || (r >= 2 && !hasDifferential(solverMode)))
             continue;
         for (std::size_t c = 0; c < 12; ++c) {
             // Differential-only solves use the paired algebraic state for
@@ -418,16 +417,14 @@ void GenModelGENTPJ::jacobianElements(const IOdata& inputs,
             const bool algebraicColumn = c < 2;
             const bool differentialColumn = (c >= 2) && (c < 8);
             if ((!includeAlgebraicColumns && algebraicColumn) ||
-                (!includeDifferentialColumns && differentialColumn) ||
-                cols[c] == kNullLocation) {
+                (!includeDifferentialColumns && differentialColumn) || cols[c] == kNullLocation) {
                 continue;
             }
             if (f[r].derivative[c] != 0.0 && ((r < 2) || (c != r))) {
                 md.assign(rows[r], cols[c], f[r].derivative[c]);
             }
         }
-        if (r >= 2)
-            md.assign(rows[r], rows[r], f[r].derivative[r] - stateData.cj);
+        if (r >= 2) md.assign(rows[r], rows[r], f[r].derivative[r] - stateData.cj);
     }
 }
 }  // namespace griddyn::genmodels

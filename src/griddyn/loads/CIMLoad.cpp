@@ -52,8 +52,8 @@ namespace {
             return;
         }
         const auto evaluation = saturation.evaluate(magnitude);
-        const double derivativeMagnitude = ((evaluation.derivative * magnitude) - evaluation.value) /
-            (magnitude * magnitude);
+        const double derivativeMagnitude =
+            ((evaluation.derivative * magnitude) - evaluation.value) / (magnitude * magnitude);
         derivativeErpp = derivativeMagnitude * erpp / magnitude;
         derivativeEmpp = derivativeMagnitude * empp / magnitude;
     }

@@ -8,6 +8,7 @@
 #include "../controllers/Scheduler.h"
 #include "../measurement/ObjectGrabbers.h"
 #include "../primary/AcBus.h"
+#include "../renewables/DistributedConverter.h"
 #include "../renewables/GridFormingConverter.h"
 #include "../renewables/REECA1.h"
 #include "../renewables/REECA1E.h"
@@ -81,6 +82,10 @@ static TypeFactory<REGF3> gREGF3Factory("renewable_model", "regf3");
 static TypeFactory<REECA1> gREECA1Factory("renewable_model", "reeca1");
 static TypeFactory<REECA1E> gREECA1EFactory("renewable_model", "reeca1e");
 static TypeFactory<REECA1G> gREECA1GFactory("renewable_model", "reeca1g");
+static TypeFactory<PVD1> gPVD1Factory("renewable_model", "pvd1");
+static TypeFactory<ESD1> gESD1Factory("renewable_model", "esd1");
+static TypeFactory<EV1> gEV1Factory("renewable_model", "ev1");
+static TypeFactory<EV2> gEV2Factory("renewable_model", "ev2");
 static TypeFactory<REECB1> gREECB1Factory("renewable_model", "reecb1");
 static TypeFactory<REPCA1> gREPCA1Factory("renewable_model", "repca1");
 static TypeFactory<WTDTA1> gWTDTA1Factory("renewable_model", "wtdta1");

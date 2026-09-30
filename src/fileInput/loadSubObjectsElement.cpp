@@ -28,6 +28,7 @@
 #include "griddyn/controllers/ReserveDispatcher.h"
 #include "griddyn/controllers/Scheduler.h"
 #include "griddyn/loads/ZipLoad.h"
+#include "griddyn/renewables/RenewableComponent.h"
 
 namespace griddyn {
 namespace {
@@ -46,6 +47,17 @@ namespace {
     {
         return elementReader(
             currentElement, static_cast<GenModel*>(nullptr), "genmodel", readerInf, parentObject);
+    }
+
+    CoreObject* loadRenewableModel(std::shared_ptr<ReaderElement>& currentElement,
+                                   ReaderInfo& readerInf,
+                                   CoreObject* parentObject)
+    {
+        return elementReader(currentElement,
+                             static_cast<RenewableComponent*>(nullptr),
+                             "renewable_model",
+                             readerInf,
+                             parentObject);
     }
 
     CoreObject* loadExciter(std::shared_ptr<ReaderElement>& currentElement,
@@ -191,8 +203,9 @@ namespace {
         return parentObject;
     }
 
-    constexpr std::array<LoadFunctionEntry, 19> loadFunctionMap{
+    constexpr std::array<LoadFunctionEntry, 20> loadFunctionMap{
         {{.mName = "genmodel", .mLoader = &loadGenModel},
+         {.mName = "renewable_model", .mLoader = &loadRenewableModel},
          {.mName = "exciter", .mLoader = &loadExciter},
          {.mName = "governor", .mLoader = &loadGovernor},
          {.mName = "pss", .mLoader = &loadPss},

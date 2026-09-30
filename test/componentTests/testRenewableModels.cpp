@@ -18,6 +18,8 @@
 #include "griddyn/links/AcLine.h"
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/relays/BusMeasurementSensor.h"
+#include "griddyn/relays/DGProtectionRelay.h"
+#include "griddyn/renewables/DistributedConverter.h"
 #include "griddyn/renewables/GridFormingConverter.h"
 #include "griddyn/renewables/REECA1.h"
 #include "griddyn/renewables/REECA1E.h"
@@ -2199,6 +2201,65 @@ TEST(RenewableModels, SolarDyrIntegratesInNetwork)
         EXPECT_EQ(runResidualCheck(simulation, cDaeSolverMode, false), 0);
         EXPECT_EQ(runJacobianCheck(simulation, cDaeSolverMode, false), 0);
         ASSERT_EQ(simulation->run(0.1), 0);
+    }
+}
+
+TEST(RenewableModels, DistributedConvertersIntegrateInNetwork)
+{
+    const auto raw = std::filesystem::path(__FILE__).parent_path().parent_path() / "test_files" /
+        "comparison_tests" / "ieee14.raw";
+    for (int variant = 0; variant < 4; ++variant) {
+        SCOPED_TRACE(variant);
+        auto simulation = std::make_unique<GridDynSimulation>();
+        loadFile(simulation.get(), raw.string());
+        auto* bus = dynamic_cast<GridBus*>(simulation->findByUserID("bus", 2));
+        ASSERT_NE(bus, nullptr);
+        auto* staticGenerator = bus->getGen(0);
+        ASSERT_NE(staticGenerator, nullptr);
+        auto* host = new RenewableGenerator("distributed_bus2");
+        host->set("p", -staticGenerator->get("p"));
+        host->set("q", -staticGenerator->get("q"));
+        host->set("mbase", 100.0, units::MVAR);
+        DistributedConverter* converter = nullptr;
+        switch (variant) {
+            case 0:
+                converter = new PVD1;
+                break;
+            case 1:
+                converter = new ESD1;
+                break;
+            case 2:
+                converter = new EV1;
+                break;
+            default:
+                converter = new EV2;
+                break;
+        }
+        converter->set("vrflag", 1.0);
+        converter->set("frflag", 1.0);
+        converter->set("pmn", -2.0);
+        if (variant == 3) {
+            converter->set("pcap", 1.0);
+        }
+        host->add(converter);
+        staticGenerator->disable();
+        bus->add(host);
+        if (variant == 0) {
+            auto* protection = new DGPRCT1("distributed_protection");
+            protection->setSource(bus);
+            protection->setSink(converter);
+            protection->set("fen", 0.0);
+            protection->set("ven", 1.0);
+            simulation->add(protection);
+        }
+        loadOtherMachines(*simulation);
+        ASSERT_EQ(simulation->dynInitialize(), 0);
+        EXPECT_EQ(runResidualCheck(simulation, cDaeSolverMode, false), 0);
+        EXPECT_EQ(runJacobianCheck(simulation, cDaeSolverMode, false), 0);
+        ASSERT_EQ(simulation->run(0.05), 0);
+        for (double value : simulation->getState()) {
+            EXPECT_TRUE(std::isfinite(value));
+        }
     }
 }
 

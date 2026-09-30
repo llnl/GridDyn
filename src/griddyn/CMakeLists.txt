@@ -55,6 +55,7 @@ set(generator_headers
     generators/RenewableGenerator.h
     renewables/RenewableComponent.h
     renewables/GridFormingConverter.h
+    renewables/DistributedConverter.h
     renewables/REGCA1.h
     renewables/REGCP1.h
     renewables/REECA1.h
@@ -77,6 +78,7 @@ set(generator_sources
     generators/DynamicGenerator.cpp
     generators/RenewableGenerator.cpp
     renewables/GridFormingConverter.cpp
+    renewables/DistributedConverter.cpp
     renewables/REGCA1.cpp
     renewables/REGCP1.cpp
     renewables/REECA1.cpp
@@ -517,6 +519,7 @@ set(comm_sources
 )
 
 set(relay_headers
+    relays/DGProtectionRelay.h
     Relay.h
     relays/ZonalRelay.h
     relays/LoadRelay.h
@@ -532,6 +535,7 @@ set(relay_headers
 
 set(relay_sources
     ${relay_headers}
+    relays/DGProtectionRelay.cpp
     relays/Relay.cpp
     relays/ZonalRelay.cpp
     relays/LoadRelay.cpp

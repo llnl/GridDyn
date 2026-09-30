@@ -32,6 +32,7 @@ enum class RenewableSignal {
     terminalAngle,
     measuredAngle,
     terminalFrequency,
+    regulationVoltage,
     electricalPower,
     reactivePower,
     activeCurrentCommand,

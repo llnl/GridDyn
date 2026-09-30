@@ -61,6 +61,7 @@ set(generator_component_gtest_sources
     componentTests/testGenerators.cpp
     componentTests/testGenModels.cpp
     componentTests/testRenewableModels.cpp
+    componentTests/testDistributedModels.cpp
     componentTests/testExciters.cpp
 )
 

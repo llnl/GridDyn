@@ -136,6 +136,7 @@ class AcBus: public GridBus {
 
   public:
     virtual void disable() override;
+    virtual void disconnect() override;
     /** Configure the optional lag/washout bus-frequency measurement block. */
     void configureFrequencyFilter(double filterTime,
                                   double washoutTime,

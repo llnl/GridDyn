@@ -70,6 +70,7 @@ namespace exciters {
         static ChildTypeFactory<ExciterEXST1, Exciter> gfeExst1("exciter", "exst1");  // NOLINT
         static ChildTypeFactory<ExciterIEEEtype1, Exciter> gfeType1("exciter", "type1");  // NOLINT
         ChildTypeFactory<ExciterIEEEtype1, Exciter> gFeIeeet1("exciter", "ieeet1");  // NOLINT
+        ChildTypeFactory<ExciterIEEEtype2, Exciter> gFeIeeet2("exciter", "ieeet2");  // NOLINT
         ChildTypeFactory<ExciterIEEET3, Exciter> gFeIeeet3("exciter", "ieeet3");  // NOLINT
         ChildTypeFactory<ExciterIEEEX1, Exciter> gFeIeeex1("exciter", "ieeex1");  // NOLINT
         static TypeFactory<Exciter> gfeDefault(  // NOLINT

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="cim6_saturation" version="0.0.1">
+  <bus name="source">
+    <type>infinite</type>
+    <angle>0</angle>
+    <voltage>1</voltage>
+  </bus>
+  <bus name="motor_bus">
+    <load name="cim" type="cim6">
+      <p>0.7</p>
+      <h>2.1</h>
+      <tnom>1</tnom>
+      <a>0.1</a>
+      <b>0.2</b>
+      <c0>0.3</c0>
+      <d>0.4</d>
+      <e>2</e>
+      <e1>0.5</e1>
+      <se1>0.05</se1>
+      <e2>0.8</e2>
+      <se2>0.2</se2>
+    </load>
+  </bus>
+  <link from="source" name="source_to_motor" to="motor_bus">
+    <r>0</r>
+    <x>0.015</x>
+  </link>
+  <basepower>100</basepower>
+  <timestart>0</timestart>
+  <timestop>0.1</timestop>
+  <timestep>0.01</timestep>
+</griddyn>

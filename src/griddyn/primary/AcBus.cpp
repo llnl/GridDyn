@@ -127,10 +127,17 @@ CoreObject* AcBus::clone(CoreObject* obj) const
 void AcBus::disable()
 {
     CoreObject::disable();
+    lastSmode = kInvalidLocation;
     alert(this, STATE_COUNT_CHANGE);
     for (auto& link : attachedLinks) {
         link->disable();
     }
+}
+
+void AcBus::disconnect()
+{
+    GridBus::disconnect();
+    lastSmode = kInvalidLocation;
 }
 
 void AcBus::configureFrequencyFilter(double filterTime, double washoutTime, double nominalFrequency)
@@ -2378,6 +2385,7 @@ stringVec AcBus::localStateNames() const
 
 void AcBus::setOffsets(const SolverOffsets& newOffsets, const SolverMode& sMode)
 {
+    lastSmode = kInvalidLocation;
     offsets.setOffsets(newOffsets, sMode);
     SolverOffsets newLocalOffsets(newOffsets);
     newLocalOffsets.localIncrement(offsets.getOffsets(sMode));
@@ -2404,6 +2412,7 @@ void AcBus::setOffsets(const SolverOffsets& newOffsets, const SolverMode& sMode)
 
 void AcBus::setOffset(index_t offset, const SolverMode& sMode)
 {
+    lastSmode = kInvalidLocation;
     for (auto* load : attachedLoads) {
         load->setOffset(offset, sMode);
         offset += load->stateSize(sMode);
@@ -2452,6 +2461,7 @@ void AcBus::reconnect(GridBus* mapBus)
     }
 
     GridBus::reconnect(mapBus);
+    lastSmode = kInvalidLocation;
 
     std::vector<GridBus*> pendingReconnects(busController.slaveBusses.begin(),
                                             busController.slaveBusses.end());
@@ -2677,6 +2687,13 @@ void AcBus::updateLocalCache(const IOdata& inputs,
                              const StateData& stateDataValue,
                              const SolverMode& sMode)
 {
+    if (sMode.offsetIndex != lastSmode) {
+        // The bus output locations are solver-mode dependent.  Refresh them
+        // even when the cached power balance is current; partitioned dynamic
+        // Jacobian checks reuse a StateData sequence across solver modes.
+        outLocs = getOutputLocs(sMode);
+        lastSmode = sMode.offsetIndex;
+    }
     if (!S.needsUpdate(stateDataValue)) {
         return;
     }
@@ -2685,9 +2702,6 @@ void AcBus::updateLocalCache(const IOdata& inputs,
         return;
     }
     GridBus::updateLocalCache(inputs, stateDataValue, sMode);
-    if (sMode.offsetIndex != lastSmode) {
-        outLocs = getOutputLocs(sMode);
-    }
 }
 
 // computed power at bus

@@ -76,6 +76,8 @@ static ChildTypeFactory<griddyn::genmodels::GenModelGENSAE, GenModel>
     gGensaeModelFactory("genmodel", std::to_array<std::string_view>({"gensae"}));
 static ChildTypeFactory<griddyn::genmodels::GenModelGENSAL, GenModel>
     gGensalModelFactory("genmodel", std::to_array<std::string_view>({"gensal"}));
+static ChildTypeFactory<griddyn::genmodels::GenModelGENTPJ, GenModel>
+    gGentpjModelFactory("genmodel", std::to_array<std::string_view>({"gentpj"}));
 static ChildTypeFactory<griddyn::genmodels::GenModel8, GenModel> gEighthOrderGenModelFactory(
     "genmodel",
     std::to_array<std::string_view>({"8", "eight", "eighthorder", "VIII"}));

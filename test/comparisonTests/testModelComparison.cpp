@@ -31,6 +31,7 @@
 #include "griddyn/exciters/ExciterIEEET3.h"
 #include "griddyn/exciters/ExciterIEEEX1.h"
 #include "griddyn/exciters/ExciterIEEEtype1.h"
+#include "griddyn/exciters/ExciterIEEEtype2.h"
 #include "griddyn/exciters/ExciterSCRX.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/genmodels/GenModelClassical.h"
@@ -38,6 +39,7 @@
 #include "griddyn/genmodels/GenModelGENROU.h"
 #include "griddyn/genmodels/GenModelGENSAE.h"
 #include "griddyn/genmodels/GenModelGENSAL.h"
+#include "griddyn/genmodels/GenModelGENTPJ.h"
 #include "griddyn/governors/GovernorGast.h"
 #include "griddyn/governors/GovernorGgov1.h"
 #include "griddyn/governors/GovernorHygov.h"
@@ -216,6 +218,33 @@ TEST(DyrReaderComparisonTests, LoadsGenrouAndMatchesIeee14Initialization)
                     tolerance)
             << "GENROU mechanical power at bus " << busId;
     }
+}
+
+TEST(DyrReaderComparisonTests, LoadsGentpjAndInitializesIeee14)
+{
+    auto simulation = loadComparisonDynamicCase("ieee14_gentpj.dyr", {});
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* model = dynamic_cast<griddyn::genmodels::GenModelGENTPJ*>(generator->find("genmodel"));
+    ASSERT_NE(model, nullptr);
+    EXPECT_DOUBLE_EQ(model->get("kis"), 0.03);
+    EXPECT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    simulation->run(0.1);
+    EXPECT_EQ(simulation->getSimulationTime(), 0.1);
+}
+
+TEST(DyrReaderComparisonTests, CouplesGentpjToIeeet2Exciter)
+{
+    auto simulation = loadComparisonDynamicCase("ieee14_gentpj.dyr", {"ieee14_ieeet2.dyr"});
+    EXPECT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    simulation->run(0.1);
+    EXPECT_EQ(simulation->getSimulationTime(), 0.1);
 }
 
 TEST(DyrReaderComparisonTests, SkipsDyrHeaderCommentsBeforeRecordAccumulation)
@@ -731,6 +760,39 @@ TEST(DyrReaderComparisonTests, MapsCanonicalDcAndTypeOneExciters)
             EXPECT_DOUBLE_EQ(exciter->get("kd"), 0.3);
         }
     }
+}
+
+TEST(DyrReaderComparisonTests, MapsIeeet2ParametersInOpenIpslDyrOrder)
+{
+    auto simulation = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14.raw"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_genrou.dyr"));
+    griddyn::loadFile(simulation.get(), makeComparisonTestPath("ieee14_ieeet2.dyr"));
+    auto* bus = dynamic_cast<griddyn::GridBus*>(simulation->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* exciter =
+        dynamic_cast<griddyn::exciters::ExciterIEEEtype2*>(bus->getGen(0)->find("exciter"));
+    ASSERT_NE(exciter, nullptr);
+    const std::pair<std::string_view, double> expected[]{{"tr", 0.0},
+                                                         {"ka", 729.0},
+                                                         {"ta", 0.04},
+                                                         {"vrmax", 5.32},
+                                                         {"vrmin", -4.05},
+                                                         {"ke", 1.0},
+                                                         {"te", 0.44},
+                                                         {"kf", 0.0667},
+                                                         {"tf1", 2.0},
+                                                         {"tf2", 0.44},
+                                                         {"e1", 6.5},
+                                                         {"se1", 0.054},
+                                                         {"e2", 8.0},
+                                                         {"se2", 0.202}};
+    for (const auto& [name, value] : expected) {
+        EXPECT_DOUBLE_EQ(exciter->get(name), value) << name;
+    }
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
 }
 
 TEST(DyrReaderComparisonTests, MapsEsst4bParametersAndCouplesToGensal)

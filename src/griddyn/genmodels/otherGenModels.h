@@ -13,4 +13,5 @@
 #include "GenModelGENROU.h"
 #include "GenModelGENSAE.h"
 #include "GenModelGENSAL.h"
+#include "GenModelGENTPJ.h"
 #include "GenModelInverter.h"

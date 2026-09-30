@@ -15,8 +15,9 @@ The intent is planning: each item lists the work to do, the code area likely to
 change, and the corpus files that exercise the gap. Unless otherwise noted,
 paths under "Exercised by" are relative to the case corpus root above.
 
-Last audit basis: static parser/source scan, Release component tests, and
-ACTIVSg10k dynamic smoke runs through 2026-09-22.
+Last audit basis: static parser/source scan, Release component tests, current
+DYR dispatch/source review, and ACTIVSg10k dynamic smoke runs through
+2026-09-29.
 
 Resolved during this audit:
 
@@ -56,6 +57,16 @@ Resolved during this audit:
   Release RAW/DYR smoke run reaches `t=1.03 s` after a 10 MW load step, but
   full 10-second trajectory validation and the resulting root-cascade
   performance work remain open.
+- The historical unsupported-model scan is pre-integration evidence for
+  several source-backed records. Current reader/model paths now exist for
+  `GENSAE`, `IEEET2`, `IEEET3`, `ESST1A`, `AC8B`, and `ESAC5A`; retain them as
+  validation work, not missing implementation work. `IEEET2` now has the
+  exact 14-field PSS/E/OpenIPSL mapping, native factory alias, initialization,
+  residual, and analytic-Jacobian coverage.
+- The renewable chain is no longer a planned-from-scratch gap: `REGCA1`,
+  `REECA1`, `REECB1`, `REPCA1`, and the current WECC wind components have
+  native models and reader paths. Remaining work is case-level and external
+  trajectory validation plus the separate `WT3*` implementation.
 
 ## Loader / extension dispatch gaps
 
@@ -238,23 +249,20 @@ to continue silently.
     the model is equivalent to a supported implementation.
   - For batch inventory, the strict reader now provides the model-family
     summary directly; normal case loading remains intentionally strict.
-- Highest-count unsupported models in the corpus:
+- Highest-count models in the pre-integration unsupported scan (resolved
+  records are omitted from the current queue):
 
 | Count | Model    |
 | ----: | -------- |
 |   229 | `DISTR1` |
 |   109 | `IEELBL` |
-|    88 | `ESST1A` |
-|    75 | `IEEET2` |
 |    66 | `COMP`   |
 |    59 | `EXAC3`  |
-|    54 | `IEEET3` |
 |    46 | `EXST3`  |
 |    44 | `IEE2ST` |
 |    43 | `IEEEG3` |
 |    40 | `IEEEG2` |
 |    39 | `IEEEVC` |
-|    36 | `GENSAE` |
 |    35 | `IEEEX4` |
 |    35 | `CSVGN1` |
 |    34 | `IEEEX2` |
@@ -267,7 +275,7 @@ to continue silently.
     `ESAC2A`, `IEET1A`, `IEET5A`, `STAB3`, `MNLEX2`,
     `IEELAL`, `IEEEX3`, `WESGOV`, `ESAC3A`, `TGOV2`,
     `PTIST3`, `EXAC1A`, `IEEX2A`, `PTIST1`, `BBSEX1`,
-    `EXST2A`, `ESAC5A`, `USRMDL`, `HYGOV2`, `SYSANG`.
+    `EXST2A`, `USRMDL`, `HYGOV2`, `SYSANG`.
 - Reference-source triage:
   - Local open-source references checked:
     - `C:\data\Documents\codeProjects\OpenIPSL`
@@ -280,52 +288,58 @@ to continue silently.
     `EXAC1`, `EXAC2`, `ESDC2A`, `SCRX`, `EXPIC1`, `PSS1A`, `REGCA`,
     `REECB`, and `REPCA`.
 
+Distribution-oriented records such as `DISTR1` remain inventory-only and are
+excluded from the active implementation waves. The current queue is limited to
+transmission-side positive-sequence models and their validation.
+
+Status update (2026-09): `GENTPJ`, `CIM5`, and `CIM6` have moved from the first implementation wave to the validation queue. `GENTPJ` has native equations and a PSS/e DYR reader; CIM5/6 have native saturation and torque equations but intentionally do not yet accept motor DYR records. Their remaining work is independent OpenIPSL trajectories plus Type-A/Type-B and single-/double-cage case variants.
+
 | Planning group                                 | Models                                                                                                                                                                                                                                                                                                                | Source position                                                                                                                                                                                                        | Suggested action                                                                                                |
 | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| First wave: high-count and source-backed       | `ESST1A`, `IEEET2`, `IEEET3`, `IEEEG2`, `IEEEVC`, `GENSAE`, `CSVGN1`                                                                                                                                                                                                                                                  | Exact equations found in OpenIPSL, PowerDynamics, or ANDES. `IEEEX1` and `GENROE` are now implemented and require only external trajectories.                                                                          | Port/audit exact models; add DYR schema, initialization, limits, and disturbed-trajectory tests.                |
-| Second wave: source-backed but more structural | `IEE2ST`, `PSS2A`, `STAB3`, `MNLEX2`, `WPIDHY`, `ESAC2A`, `ESAC5A`                                                                                                                                                                                                                                                    | Exact equations found, but require stabilizer, UEL/OEL, compensator, hydro-governor, or exciter-interface work.                                                                                                        | Implement after the core machine/exciter/governor path is stable.                                               |
+| First wave: high-count and source-backed       | `IEEEG2`, `IEEEVC`, `CSVGN1`, `GENTPJ`, `CIM5`, `CIM6`                                                                                                                                                                                                                                                                | Exact equations found in OpenIPSL, PowerDynamics, or ANDES. Existing `GENSAE`, `IEEET2`, `IEEET3`, `ESST1A`, `AC8B`, and `ESAC5A` paths are implemented and move to validation.                                        | Add missing reader/model paths, then initialization, limits, and disturbed-trajectory tests.                    |
+| Second wave: source-backed but more structural | `IEE2ST`, `PSS2A`, `STAB3`, `MNLEX2`, `WPIDHY`, `ESAC2A`                                                                                                                                                                                                                                                              | Exact equations found, but require stabilizer, UEL/OEL, compensator, hydro-governor, or exciter-interface work.                                                                                                        | Implement after the core machine/exciter/governor path is stable.                                               |
 | Archaeology / external documentation needed    | `DISTR1`, `IEELBL`, `COMP`, `EXAC3`, `EXST3`, `IEEEX4`, `IEEEX2`, `TIOCR1`, `CGEN1`, `IEEET4`, `IEEET5`, `GAST2A`, `CRCMGV`, `STAB1`, `EXST2`, `TGOV3`, `OEX12T`, `IEET1A`, `IEET5A`, `IEELAL`, `IEEEX3`, `WESGOV`, `ESAC3A`, `TGOV2`, `PTIST3`, `EXAC1A`, `IEEX2A`, `PTIST1`, `BBSEX1`, `EXST2A`, `HYGOV2`, `SYSANG` | No exact local OpenIPSL/GridKit/PowerDynamics/ANDES source found. Several `interpss\psse\v30\Bus200` records look like protection, distribution, or legacy relay/control data rather than ordinary generator controls. | Obtain PSS/E/InterPSS/vendor documentation, or choose explicit unsupported diagnostics/approved approximations. |
 | Blocked external dependency                    | `USRMDL`                                                                                                                                                                                                                                                                                                              | User-written model; DYR parameters alone are insufficient.                                                                                                                                                             | Obtain compiled-model equations/source or an approved replacement before implementation.                        |
 
 - Exact source hits:
 
-| Model    | Source found                        | Notes                                                                                                                          |
-| -------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `GENROE` | OpenIPSL + PowerDynamics.jl         | **Implemented; external trajectory pending.** Dedicated exponential saturation; do not alias to quadratic-saturation `GENROU`. |
-| `GENSAE` | OpenIPSL + PowerDynamics.jl         | PowerDynamics has OpenIPSL validation tests; do not alias to quadratic-saturation `GENSAL`.                                    |
-| `ESST1A` | OpenIPSL + PowerDynamics.jl + ANDES | Common static exciter with multiple source paths.                                                                              |
-| `IEEEX1` | OpenIPSL + ANDES                    | **Implemented; external trajectory pending.** Formerly the highest-count source-backed gap.                                    |
-| `IEEET2` | OpenIPSL                            | Exact OpenIPSL model exists.                                                                                                   |
-| `IEEET3` | ANDES                               | Exact ANDES implementation exists.                                                                                             |
-| `IEEEG2` | OpenIPSL                            | Exact OpenIPSL governor model exists.                                                                                          |
-| `IEEEVC` | OpenIPSL + ANDES                    | Requires terminal-current compensation / voltage-compensator interface work.                                                   |
-| `IEE2ST` | OpenIPSL                            | Exact stabilizer model source exists.                                                                                          |
-| `PSS2A`  | OpenIPSL                            | Exact stabilizer model source exists.                                                                                          |
-| `STAB3`  | OpenIPSL                            | Exact stabilizer model source exists.                                                                                          |
-| `MNLEX2` | OpenIPSL                            | Exact under-excitation limiter model source exists.                                                                            |
-| `WPIDHY` | OpenIPSL                            | Exact hydro governor model source exists.                                                                                      |
-| `ESAC2A` | OpenIPSL                            | Exact exciter model source exists.                                                                                             |
-| `ESAC5A` | ANDES                               | Exact ANDES implementation exists.                                                                                             |
-| `CSVGN1` | OpenIPSL                            | Exact static shunt compensator model source exists.                                                                            |
+| Model    | Source found                        | Notes                                                                                                                                                            |
+| -------- | ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GENROE` | OpenIPSL + PowerDynamics.jl         | **Implemented; external trajectory pending.** Dedicated exponential saturation; do not alias to quadratic-saturation `GENROU`.                                   |
+| `GENSAE` | OpenIPSL + PowerDynamics.jl         | PowerDynamics has OpenIPSL validation tests; do not alias to quadratic-saturation `GENSAL`.                                                                      |
+| `ESST1A` | OpenIPSL + PowerDynamics.jl + ANDES | **Implemented; external trajectory pending.** Native model and DYR path exist; retain the source-specific limiter and signal-path audit.                         |
+| `IEEEX1` | OpenIPSL + ANDES                    | **Implemented; external trajectory pending.** Formerly the highest-count source-backed gap.                                                                      |
+| `IEEET2` | OpenIPSL                            | **Implemented; external trajectory pending.** Exact 14-field OpenIPSL/PSS/E order is mapped by the native DYR reader; validate the trajectory and case variants. |
+| `IEEET3` | ANDES                               | Exact ANDES implementation exists.                                                                                                                               |
+| `IEEEG2` | OpenIPSL                            | Exact OpenIPSL governor model exists.                                                                                                                            |
+| `IEEEVC` | OpenIPSL + ANDES                    | Requires terminal-current compensation / voltage-compensator interface work.                                                                                     |
+| `IEE2ST` | OpenIPSL                            | Exact stabilizer model source exists.                                                                                                                            |
+| `PSS2A`  | OpenIPSL                            | Exact stabilizer model source exists.                                                                                                                            |
+| `STAB3`  | OpenIPSL                            | Exact stabilizer model source exists.                                                                                                                            |
+| `MNLEX2` | OpenIPSL                            | Exact under-excitation limiter model source exists.                                                                                                              |
+| `WPIDHY` | OpenIPSL                            | Exact hydro governor model source exists.                                                                                                                        |
+| `ESAC2A` | OpenIPSL                            | Exact exciter model source exists.                                                                                                                               |
+| `ESAC5A` | ANDES                               | **Implemented; external trajectory pending.** Native model and DYR path exist.                                                                                   |
+| `CSVGN1` | OpenIPSL                            | Exact static shunt compensator model source exists.                                                                                                              |
 
 - Exercised by:
 
-| File                                                                                 | Unsupported count | Main unsupported models                                             |
-| ------------------------------------------------------------------------------------ | ----------------: | ------------------------------------------------------------------- |
-| `Base.dyr`                                                                           |              1599 | `IEEEX1`, `IEEET2`, `COMP`, `EXAC3`, `IEEET3`, `EXST3`, many others |
-| `interpss\psse\v30\Bus200\200bus-gen-0805.dyr`                                       |               450 | `DISTR1`, `IEELBL`, `CGEN1`, `TIOCR1`, `IEE2ST`, `OEX12T`           |
-| `Austrailian14bus\LF_Case01_R4_S\AU14GenModel.dyr`                                   |                29 | `GENROE`, `ESST1A`, `CSVGN1`, `IEELAL`                              |
-| `Austrailian14bus\LF_Case02_R4_S\AU14GenModel.dyr`                                   |                29 | `GENROE`, `ESST1A`, `CSVGN1`, `IEELAL`                              |
-| `Austrailian14bus\LF_Case03_R4_S\AU14GenModel.dyr`                                   |                29 | `GENROE`, `ESST1A`, `CSVGN1`, `IEELAL`                              |
-| `Austrailian14bus\LF_Case04_R4_S\AU14GenModel.dyr`                                   |                29 | `GENROE`, `ESST1A`, `CSVGN1`, `IEELAL`                              |
-| `Austrailian14bus\LF_Case05_R4_S\AU14GenModel.dyr`                                   |                29 | `GENROE`, `ESST1A`, `CSVGN1`, `IEELAL`                              |
-| `Austrailian14bus\LF_Case06_R4_S\AU14GenModel.dyr`                                   |                29 | `GENROE`, `ESST1A`, `CSVGN1`, `IEELAL`                              |
-| `TwoAreaSystem\1.Benchmark_4ger_ESST1A_TGR_2015\Benchmark_4ger_33_2015.dyr`          |                 8 | `ESST1A`, `GENROE`                                                  |
-| `TwoAreaSystem\2.Benchmark_4ger_ESST1A_noTGR_PSSmod_2015\Benchmark_4ger_33_2015.dyr` |                 8 | `ESST1A`, `GENROE`                                                  |
-| `TwoAreaSystem\3.Benchmark_4ger_ESST1A_noTGR_PSSori_2015\Benchmark_4ger_33_2015.dyr` |                 8 | `ESST1A`, `GENROE`                                                  |
-| `brazil7Gen\PSLF\Brazilian_7_bus_Equiv_Model.dyr`                                    |                 5 | `GENSAE`                                                            |
-| `brazil7Gen\PSSE\Brazilian_7_bus_Equiv_Model.dyr`                                    |                 5 | `GENSAE`                                                            |
-| `3mach-inf_bus\PSSE\ThreeMIB_Benchmark_System.dyr`                                   |                 3 | `GENSAE`, `GENROE`                                                  |
+| File                                                                                 | Pre-integration unsupported count | Main unsupported models                                                                   |
+| ------------------------------------------------------------------------------------ | --------------------------------: | ----------------------------------------------------------------------------------------- |
+| `Base.dyr`                                                                           |                              1599 | Pre-integration scan: `IEEEX1`, `IEEET2`, `COMP`, `EXAC3`, `IEEET3`, `EXST3`, many others |
+| `interpss\psse\v30\Bus200\200bus-gen-0805.dyr`                                       |                               450 | `DISTR1`, `IEELBL`, `CGEN1`, `TIOCR1`, `IEE2ST`, `OEX12T`                                 |
+| `Austrailian14bus\LF_Case01_R4_S\AU14GenModel.dyr`                                   |                                29 | `GENROE`, `ESST1A`, `CSVGN1`, `IEELAL`                                                    |
+| `Austrailian14bus\LF_Case02_R4_S\AU14GenModel.dyr`                                   |                                29 | `GENROE`, `ESST1A`, `CSVGN1`, `IEELAL`                                                    |
+| `Austrailian14bus\LF_Case03_R4_S\AU14GenModel.dyr`                                   |                                29 | `GENROE`, `ESST1A`, `CSVGN1`, `IEELAL`                                                    |
+| `Austrailian14bus\LF_Case04_R4_S\AU14GenModel.dyr`                                   |                                29 | `GENROE`, `ESST1A`, `CSVGN1`, `IEELAL`                                                    |
+| `Austrailian14bus\LF_Case05_R4_S\AU14GenModel.dyr`                                   |                                29 | `GENROE`, `ESST1A`, `CSVGN1`, `IEELAL`                                                    |
+| `Austrailian14bus\LF_Case06_R4_S\AU14GenModel.dyr`                                   |                                29 | `GENROE`, `ESST1A`, `CSVGN1`, `IEELAL`                                                    |
+| `TwoAreaSystem\1.Benchmark_4ger_ESST1A_TGR_2015\Benchmark_4ger_33_2015.dyr`          |                                 8 | `ESST1A`, `GENROE`                                                                        |
+| `TwoAreaSystem\2.Benchmark_4ger_ESST1A_noTGR_PSSmod_2015\Benchmark_4ger_33_2015.dyr` |                                 8 | `ESST1A`, `GENROE`                                                                        |
+| `TwoAreaSystem\3.Benchmark_4ger_ESST1A_noTGR_PSSori_2015\Benchmark_4ger_33_2015.dyr` |                                 8 | `ESST1A`, `GENROE`                                                                        |
+| `brazil7Gen\PSLF\Brazilian_7_bus_Equiv_Model.dyr`                                    |                                 5 | `GENSAE`                                                                                  |
+| `brazil7Gen\PSSE\Brazilian_7_bus_Equiv_Model.dyr`                                    |                                 5 | `GENSAE`                                                                                  |
+| `3mach-inf_bus\PSSE\ThreeMIB_Benchmark_System.dyr`                                   |                                 3 | `GENSAE`, `GENROE`                                                                        |
 
 ### [x] DYR-004: Decide compatibility behavior for EXAC1 `TB == 0`
 

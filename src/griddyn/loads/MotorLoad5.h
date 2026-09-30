@@ -20,6 +20,7 @@ class MotorLoad5: public MotorLoad3 {
     enum PLocD { slipD = 0, erpD = 1, empD = 2, erppD = 3, emppD = 4 };
 
   protected:
+    int motorType = 1;  //!< PSS/E CIM motor topology: 1 (A) or 2 (B)
     double r2 = 0.002;  //!< 3rd level loop resistance
     double x2 = 0.04;  //!< 3 impedance loop reactance
     double T0pp = 0.0;  //!< subtransient time constant
@@ -85,6 +86,17 @@ class MotorLoad5: public MotorLoad3 {
     // TODO(phlpt): Change to algebraic update.
     virtual void
         updateCurrents(const IOdata& inputs, const StateData& sD, const SolverMode& sMode) override;
+
+    virtual double mechPower(double slip) const override;
+    virtual double dmechds(double slip) const override;
+
+    /** PSS/E CIM saturation multiplier SE(|E''|)/|E''| and its Cartesian
+        derivatives.  The legacy five-state motor remains unsaturated. */
+    virtual double saturationFactor(double erpp, double empp) const;
+    virtual void saturationFactorDerivatives(double erpp,
+                                             double empp,
+                                             double& derivativeErpp,
+                                             double& derivativeEmpp) const;
 
   private:
     /** @brief estimate the initial state values of the motor

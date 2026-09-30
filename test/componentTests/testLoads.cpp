@@ -5,12 +5,14 @@
  */
 
 #include "../gtestHelper.h"
+#include "core/CoreExceptions.h"
 #include "fileInput/fileInput.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/blocks/LeadLagBlock.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/loads/ApproximatingLoad.h"
+#include "griddyn/loads/CIMLoad.h"
 #include "griddyn/loads/FDepLoad.h"
 #include "griddyn/loads/FileLoad.h"
 #include "griddyn/loads/GridLabDLoad.h"
@@ -45,6 +47,54 @@ static std::string makeGridlabdTestPath(std::string_view fileName)
 }
 
 class LoadTests: public GridLoadTestFixture, public ::testing::Test {};
+
+class CIM5SaturationAccess final: public CIM5 {
+  public:
+    using CIM5::CIM5;
+    using CIM5::saturationFactor;
+    using CIM5::saturationFactorDerivatives;
+};
+
+class CIM6TorqueAccess final: public CIM6 {
+  public:
+    using CIM6::CIM6;
+    using CIM6::dmechds;
+    using CIM6::mechPower;
+};
+
+TEST(CIMLoadTests, SaturationParametersProduceOpenIpslScaledQuadraticFactor)
+{
+    CIM5SaturationAccess motor;
+    EXPECT_DOUBLE_EQ(motor.get("e1"), 1.0);
+    EXPECT_DOUBLE_EQ(motor.get("se2"), 0.6);
+    const double factor = motor.saturationFactor(1.2, 0.0);
+    EXPECT_NEAR(factor, 0.5, 1e-12);
+    double derivativeErpp;
+    double derivativeEmpp;
+    motor.saturationFactorDerivatives(1.2, 0.0, derivativeErpp, derivativeEmpp);
+    EXPECT_TRUE(std::isfinite(derivativeErpp));
+    EXPECT_NEAR(derivativeEmpp, 0.0, 1e-12);
+    EXPECT_THROW(motor.set("mtype", 3.0), InvalidParameterValue);
+    EXPECT_THROW(motor.set("mtype", 1.5), InvalidParameterValue);
+}
+
+TEST(CIMLoadTests, Cim6MechanicalTorqueAndDerivativeFollowConfiguredCurve)
+{
+    CIM6TorqueAccess motor;
+    motor.set("tnom", 2.0);
+    motor.set("a", 0.1);
+    motor.set("b", 0.2);
+    motor.set("c0", 0.3);
+    motor.set("d", 0.4);
+    motor.set("e", 3.0);
+
+    constexpr double slip = 0.2;
+    constexpr double omega = 1.0 - slip;
+    EXPECT_NEAR(motor.mechPower(slip),
+                2.0 * ((0.1 * omega * omega) + (0.2 * omega) + 0.3 + (0.4 * omega * omega * omega)),
+                1e-12);
+    EXPECT_NEAR(motor.dmechds(slip), -(2.0 * ((0.2 * omega) + 0.2 + (1.2 * omega * omega))), 1e-12);
+}
 
 TEST_F(LoadTests, BasicLoadTest)
 {
@@ -448,6 +498,36 @@ TEST_F(LoadTests, MotorTest3Stall)
     EXPECT_TRUE(mtld->checkFlag(MotorLoad::STALLED));
     gds->run();
     EXPECT_FALSE(mtld->checkFlag(MotorLoad::STALLED));
+}
+
+TEST_F(LoadTests, Cim5SaturationInitializesAndIntegrates)
+{
+    auto simulation = readSimXMLFile(makeLoadTestPath("cim5_saturation.xml"));
+    auto* bus = simulation->getBus(1);
+    ASSERT_NE(bus, nullptr);
+    ASSERT_NE(dynamic_cast<CIM5*>(bus->getLoad()), nullptr);
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, cDaeSolverMode, false), 0);
+    simulation->run();
+    requireStates(simulation->currentProcessState(),
+                  GridDynSimulation::GridState::DYNAMIC_COMPLETE);
+}
+
+TEST_F(LoadTests, Cim6SaturationInitializesAndIntegrates)
+{
+    auto simulation = readSimXMLFile(makeLoadTestPath("cim6_saturation.xml"));
+    auto* bus = simulation->getBus(1);
+    ASSERT_NE(bus, nullptr);
+    ASSERT_NE(dynamic_cast<CIM6*>(bus->getLoad()), nullptr);
+
+    ASSERT_EQ(simulation->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(simulation, cDaeSolverMode, false), 0);
+    EXPECT_EQ(runJacobianCheck(simulation, cDaeSolverMode, false), 0);
+    simulation->run();
+    requireStates(simulation->currentProcessState(),
+                  GridDynSimulation::GridState::DYNAMIC_COMPLETE);
 }
 
 #ifdef ENABLE_IN_DEVELOPMENT_CASES

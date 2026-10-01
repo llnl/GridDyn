@@ -15,10 +15,10 @@ The local test corpus contains repeatable PSS/E DYR records in:
 
 Representative records are:
 
-| Model | Status values observed | Positional values after status | Established |
-| --- | --- | --- | --- |
-| `WT3T1` | `1`, `Z` | `1.25, 4.95, 0, 0.007, 21.98, 0, 1.8, 1.5` | Eight-field record shape only |
-| `WT3P1` | `1`, `Z` | `0.3, 150, 25, 3, 30, 0, 27, 10, 1` | Nine-field record shape only |
+| Model   | Status values observed | Positional values after status             | Established                   |
+| ------- | ---------------------- | ------------------------------------------ | ----------------------------- |
+| `WT3T1` | `1`, `Z`               | `1.25, 4.95, 0, 0.007, 21.98, 0, 1.8, 1.5` | Eight-field record shape only |
+| `WT3P1` | `1`, `Z`               | `0.3, 150, 25, 3, 30, 0, 27, 10, 1`        | Nine-field record shape only  |
 
 The relevant fixtures include `EI_NPCC_WIND20_WT3G1.dyr` and `WECC_WIND10.dyr`.
 They are suitable as future parser and full-bundle regression fixtures, but

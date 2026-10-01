@@ -338,8 +338,7 @@ void DistributedConverter::evaluate(const IOdata& inputs,
     } else if (variant == Variant::storage) {
         lowerPower = -pmx;
     }
-    const double scheduledPower =
-        inputs.size() > 4 && inputs[4] != kNullVal ? inputs[4] : pref;
+    const double scheduledPower = inputs.size() > 4 && inputs[4] != kNullVal ? inputs[4] : pref;
     const double pTarget = std::clamp(scheduledPower + paux + pDroop, lowerPower, upperPower);
     const double qTarget = std::clamp(qref + qdroop, qmn, qmx);
     const double voltageCurve =

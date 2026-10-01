@@ -4,10 +4,10 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "../GridArea.h"
 #include "../comms/SchedulerMessage.h"
 #include "AGControl.h"
 #include "Scheduler.h"
-#include "../GridArea.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include <algorithm>
@@ -158,8 +158,8 @@ double SchedulerReg::predict(CoreTime time)
     }
     const double baseOutput = m_output - regCurrent + SchedulerRamp::getRamp() * deltaTime;
     const double regulation = std::clamp(regTarget,
-                                          regCurrent - regRampDown * deltaTime,
-                                          regCurrent + regRampUp * deltaTime);
+                                         regCurrent - regRampDown * deltaTime,
+                                         regCurrent + regRampUp * deltaTime);
     return baseOutput + regulation;
 }
 
@@ -332,14 +332,13 @@ void SchedulerReg::set(std::string_view param, double val, units::unit unitType)
         return;
     }
 
-    if (!std::isfinite(newMin) || !std::isfinite(newMax) ||
-        !std::isfinite(newRegRampUp) || !std::isfinite(newRegRampDown) ||
-        newRegRampUp < 0.0 || newRegRampDown < 0.0) {
+    if (!std::isfinite(newMin) || !std::isfinite(newMax) || !std::isfinite(newRegRampUp) ||
+        !std::isfinite(newRegRampDown) || newRegRampUp < 0.0 || newRegRampDown < 0.0) {
         throw InvalidParameterValue(
             "scheduler regulation limits and ramp rates must be nonnegative and finite");
     }
-    validateRegulationBounds(newBaseMW, newMin, newMax, newUpFraction, newDownFraction,
-                             newRegEnabled);
+    validateRegulationBounds(
+        newBaseMW, newMin, newMax, newUpFraction, newDownFraction, newRegEnabled);
     if (regulationConfigChanged) {
         const bool wasEnabled = regEnabled;
         m_Base = newBaseMW;

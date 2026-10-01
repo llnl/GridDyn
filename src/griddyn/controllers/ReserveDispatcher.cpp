@@ -200,8 +200,8 @@ void ReserveDispatcher::add(SchedulerRamp* sched)
     if (sched->reserveDispatcher != nullptr && sched->reserveDispatcher != this) {
         sched->reserveDispatcher->remove(sched);
     }
-    const auto schedIter = std::find_if(
-        schedList.begin(), schedList.end(), [sched](SchedulerRamp* candidate) {
+    const auto schedIter =
+        std::find_if(schedList.begin(), schedList.end(), [sched](SchedulerRamp* candidate) {
             return isSameObject(candidate, sched);
         });
     if (schedIter == schedList.end()) {

@@ -23,5 +23,5 @@
 #include "events/Event.h"
 #include "loads/ZipLoad.h"
 #include "measurement/Collector.h"
-#include "relays/ZonalRelay.h"
 #include "relays/COISensor.h"
+#include "relays/ZonalRelay.h"

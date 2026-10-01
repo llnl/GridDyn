@@ -317,8 +317,8 @@ void SchedulerRamp::set(std::string_view param, double val, units::unit unitType
         }
         ramp30Down = amount;
     } else if (param == "ramptime") {
-        const double seconds = units::convert(
-            val, unitType == units::defunit ? units::s : unitType, units::s);
+        const double seconds =
+            units::convert(val, unitType == units::defunit ? units::s : unitType, units::s);
         if (!std::isfinite(seconds) || seconds <= 0.0) {
             throw InvalidParameterValue("scheduler ramp time must be positive");
         }
@@ -335,16 +335,15 @@ void SchedulerRamp::set(std::string_view param, double val, units::unit unitType
         reserveUse = std::min(reserveUse, reserveAvail);
         pCurr = std::clamp(pCurr, pMin, pMax - reserveAvail);
     } else if (param == "reserveramptime") {
-        const double seconds = units::convert(
-            val, unitType == units::defunit ? units::s : unitType, units::s);
+        const double seconds =
+            units::convert(val, unitType == units::defunit ? units::s : unitType, units::s);
         if (!std::isfinite(seconds) || seconds <= 0.0) {
             throw InvalidParameterValue("scheduler reserve ramp time must be positive");
         }
         reserveRampTime = seconds;
     } else if ((param == "max") || (param == "min")) {
         const double bound = units::convert(val, unitType, units::puMW, m_Base);
-        if (!std::isfinite(bound) ||
-            (param == "max" && bound - reserveAvail < pMin) ||
+        if (!std::isfinite(bound) || (param == "max" && bound - reserveAvail < pMin) ||
             (param == "min" && bound > pMax - reserveAvail)) {
             throw InvalidParameterValue("scheduler power bounds conflict with reserve");
         }
@@ -398,7 +397,7 @@ void SchedulerRamp::updatePTarget()
         }
         const double delay = difference / rate;
         return (delay > 0.0 && std::isfinite(delay)) ? delay :
-            std::numeric_limits<double>::infinity();
+                                                       std::numeric_limits<double>::infinity();
     };
 
     if (rampCompletionPending) {
@@ -411,7 +410,7 @@ void SchedulerRamp::updatePTarget()
         }
         if (pTarget.empty() || pTarget.front().time > prevTime) {
             nextUpdateTime = pTarget.empty() ? rampCompletionTime :
-                std::min(rampCompletionTime, pTarget.front().time);
+                                               std::min(rampCompletionTime, pTarget.front().time);
             return;
         }
         // A newly due target replaces the target whose ramp was in progress.
@@ -452,7 +451,8 @@ void SchedulerRamp::updatePTarget()
             if (std::isfinite(remtime)) {
                 rampCompletionPending = true;
                 rampCompletionTime = prevTime + remtime;
-                nextUpdateTime = pTarget.empty() ? rampCompletionTime :
+                nextUpdateTime = pTarget.empty() ?
+                    rampCompletionTime :
                     std::min(rampCompletionTime, pTarget.front().time);
             } else {
                 pRampCurr = 0.0;

@@ -105,8 +105,8 @@ void COISensor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 }
 
 void COISensor::dynObjectInitializeB(const IOdata& /*inputs*/,
-                                    const IOdata& /*desiredOutput*/,
-                                    IOdata& fieldSet)
+                                     const IOdata& /*desiredOutput*/,
+                                     IOdata& fieldSet)
 {
     m_state[0] = 1.0;
     m_state[1] = 0.0;
@@ -150,9 +150,9 @@ index_t COISensor::getOutputLoc(const SolverMode& sMode, index_t outNum) const
 }
 
 void COISensor::outputPartialDerivatives(const IOdata& /*inputs*/,
-                                        const StateData& /*stateData*/,
-                                        MatrixData<double>& matrixData,
-                                        const SolverMode& sMode)
+                                         const StateData& /*stateData*/,
+                                         MatrixData<double>& matrixData,
+                                         const SolverMode& sMode)
 {
     for (index_t output = 0; output < m_outputSize; ++output) {
         matrixData.assignCheckCol(output, getOutputLoc(sMode, output), 1.0);
@@ -196,10 +196,10 @@ void COISensor::algebraicUpdate(const IOdata& /*inputs*/,
 }
 
 void COISensor::jacobianElements(const IOdata& /*inputs*/,
-                                const StateData& /*stateData*/,
-                                MatrixData<double>& matrixData,
-                                const IOlocs& /*inputLocs*/,
-                                const SolverMode& sMode)
+                                 const StateData& /*stateData*/,
+                                 MatrixData<double>& matrixData,
+                                 const IOlocs& /*inputLocs*/,
+                                 const SolverMode& sMode)
 {
     if (!hasAlgebraic(sMode)) {
         return;

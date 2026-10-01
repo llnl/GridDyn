@@ -988,14 +988,10 @@ TEST(RenewableModels, SchedulerDrivesDistributedConverterReference)
     host.dynInitializeA(0.0, 0);
     IOdata fields;
     host.dynInitializeB({1.0, 0.0, 1.0}, {0.4, 0.0}, fields);
-    EXPECT_NEAR(host.getOutputs({1.0, 0.0, 1.0}, emptyStateData, cLocalSolverMode)[0],
-                -0.4,
-                1e-12);
+    EXPECT_NEAR(host.getOutputs({1.0, 0.0, 1.0}, emptyStateData, cLocalSolverMode)[0], -0.4, 1e-12);
     scheduler->setTarget(0.1, 0.5);
     host.timestep(0.1, {1.0, 0.0, 1.0}, cLocalSolverMode);
-    EXPECT_NEAR(host.getOutputs({1.0, 0.0, 1.0}, emptyStateData, cLocalSolverMode)[0],
-                -0.5,
-                1e-10);
+    EXPECT_NEAR(host.getOutputs({1.0, 0.0, 1.0}, emptyStateData, cLocalSolverMode)[0], -0.5, 1e-10);
 }
 
 TEST(RenewableModels, REECA1UnsupportedModesFail)

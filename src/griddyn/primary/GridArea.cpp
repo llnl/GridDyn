@@ -20,8 +20,8 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
-#include "gmlc/utilities/vectorOps.hpp"
 #include "gmlc/utilities/string_viewOps.h"
+#include "gmlc/utilities/vectorOps.hpp"
 #include <algorithm>
 #include <array>
 #include <charconv>
@@ -40,6 +40,7 @@ namespace griddyn {
 // NOLINTBEGIN(misc-no-recursion)
 using gmlc::utilities::ensureSizeAtLeast;
 using gmlc::utilities::vecFindne;
+using gmlc::utilities::string_viewOps::trim;
 using units::convert;
 using units::defunit;
 using units::Hz;
@@ -47,7 +48,6 @@ using units::MW;
 using units::rad;
 using units::s;
 using units::unit;
-using gmlc::utilities::string_viewOps::trim;
 
 std::atomic<count_t> GridArea::areaCounter{0};
 
@@ -97,8 +97,7 @@ void GridArea::setInterAreaTransfer(index_t fromAreaID,
                                     std::string_view transferID,
                                     double scheduledMW)
 {
-    if (fromAreaID <= 0 || toAreaID <= 0 || fromAreaID == toAreaID ||
-        !std::isfinite(scheduledMW)) {
+    if (fromAreaID <= 0 || toAreaID <= 0 || fromAreaID == toAreaID || !std::isfinite(scheduledMW)) {
         throw InvalidParameterValue("inter-area transfer requires distinct positive area IDs and "
                                     "a finite scheduled MW value");
     }
@@ -111,12 +110,8 @@ void GridArea::setInterAreaTransfer(index_t fromAreaID,
                                        transfer.transferID == transferKey;
                                });
     if (record == interAreaTransfers.end()) {
-        interAreaTransfers.push_back({fromAreaID,
-                                      toAreaID,
-                                      transferKey,
-                                      scheduledMW,
-                                      nullptr,
-                                      nullptr});
+        interAreaTransfers.push_back(
+            {fromAreaID, toAreaID, transferKey, scheduledMW, nullptr, nullptr});
         record = std::prev(interAreaTransfers.end());
     } else {
         record->scheduledMW = scheduledMW;
@@ -127,8 +122,7 @@ void GridArea::setInterAreaTransfer(index_t fromAreaID,
 void GridArea::resolveInterAreaTransfers()
 {
     for (auto& transfer : interAreaTransfers) {
-        transfer.fromArea = dynamic_cast<GridArea*>(
-            findByUserID("area", transfer.fromAreaID));
+        transfer.fromArea = dynamic_cast<GridArea*>(findByUserID("area", transfer.fromAreaID));
         transfer.toArea = dynamic_cast<GridArea*>(findByUserID("area", transfer.toAreaID));
     }
 }
@@ -1039,8 +1033,8 @@ void GridArea::set(std::string_view param, std::string_view val)
     }
 }
 
-static constexpr std::array<std::string_view, 2> locNumStrings{
-    "schedulednetinterchange", "interchangetolerance"};
+static constexpr std::array<std::string_view, 2> locNumStrings{"schedulednetinterchange",
+                                                               "interchangetolerance"};
 static constexpr std::array<std::string_view, 1> locStrStrings{"interchangeslackbus"};
 static constexpr std::array<std::string_view, 0> flagStrings{};
 
@@ -1089,14 +1083,17 @@ double GridArea::get(std::string_view param, unit unitType) const
     size_t vali = 0;
     if (param == "schedulednetinterchange") {
         return scheduledNetInterchangeMW.has_value() ?
-            convert(*scheduledNetInterchangeMW, MW, (unitType == defunit) ? MW : unitType,
+            convert(*scheduledNetInterchangeMW,
+                    MW,
+                    (unitType == defunit) ? MW : unitType,
                     systemBasePower) :
             kNullVal;
     } else if (param == "interchangetolerance") {
-        return interchangeToleranceMW.has_value() ?
-            convert(*interchangeToleranceMW, MW, (unitType == defunit) ? MW : unitType,
-                    systemBasePower) :
-            kNullVal;
+        return interchangeToleranceMW.has_value() ? convert(*interchangeToleranceMW,
+                                                            MW,
+                                                            (unitType == defunit) ? MW : unitType,
+                                                            systemBasePower) :
+                                                    kNullVal;
     } else if (param == "interchangeslackbus") {
         if (auto* bus = getInterchangeSlackBus()) {
             return static_cast<double>(bus->getUserID());
@@ -2178,8 +2175,7 @@ double GridArea::getScheduledTieFlowReal(index_t areaUserID) const
         networkRoot = parentArea;
     }
     auto* otherArea = dynamic_cast<GridArea*>(networkRoot->findByUserID("area", areaUserID));
-    if ((otherArea == nullptr) || isSameObject(otherArea, this) ||
-        systemBasePower <= 0.0) {
+    if ((otherArea == nullptr) || isSameObject(otherArea, this) || systemBasePower <= 0.0) {
         return kNullVal;
     }
 
@@ -2189,8 +2185,7 @@ double GridArea::getScheduledTieFlowReal(index_t areaUserID) const
         if ((transfer.fromAreaID == getUserID()) && (transfer.toAreaID == areaUserID)) {
             scheduledMW += transfer.scheduledMW;
             foundSchedule = true;
-        } else if ((transfer.fromAreaID == areaUserID) &&
-                   (transfer.toAreaID == getUserID())) {
+        } else if ((transfer.fromAreaID == areaUserID) && (transfer.toAreaID == getUserID())) {
             scheduledMW -= transfer.scheduledMW;
             foundSchedule = true;
         }

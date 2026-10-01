@@ -9,13 +9,13 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/GridBus.h"
 #include "griddyn/Link.h"
-#include "griddyn/simulation/GridSimulation.h"
 #include "griddyn/controllers/AGControl.h"
 #include "griddyn/controllers/Scheduler.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/generators/RenewableGenerator.h"
 #include "griddyn/relays/Sensor.h"
 #include "griddyn/renewables/DistributedConverter.h"
+#include "griddyn/simulation/GridSimulation.h"
 #include <cmath>
 #include <gtest/gtest.h>
 #include <memory>
@@ -34,19 +34,13 @@ class FixedFlowLink: public Link {
     double p1{0.0};
     double p2{0.0};
 
-    double getRealPower(id_type_t terminal) const override
-    {
-        return (terminal == 2) ? p2 : p1;
-    }
+    double getRealPower(id_type_t terminal) const override { return (terminal == 2) ? p2 : p1; }
 };
 
 class MutableFrequencySensor: public Sensor {
   public:
     double frequency = 1.0;
-    explicit MutableFrequencySensor(const std::string& name): Sensor(name)
-    {
-        m_outputSize = 1;
-    }
+    explicit MutableFrequencySensor(const std::string& name): Sensor(name) { m_outputSize = 1; }
     double getOutput(index_t /*outNum*/ = 0) const override { return frequency; }
 };
 

@@ -5,10 +5,10 @@
  */
 
 #include "elementReaderTemplates.hpp"
-#include "griddyn/GridArea.h"
 #include "fileInput.h"
-#include "readElement.h"
 #include "gmlc/utilities/stringConversion.h"
+#include "griddyn/GridArea.h"
+#include "readElement.h"
 #include <array>
 #include <cstdio>
 #include <iterator>

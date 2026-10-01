@@ -63,9 +63,7 @@ class AGControl: public GridSubModel {
     void add(SchedulerReg* sched);
     void remove(CoreObject* obj) override;
     void set(std::string_view param, std::string_view val) override;
-    void set(std::string_view param,
-             double val,
-             units::unit unitType = units::defunit) override;
+    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
     double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
     double getACE() const { return ace; }

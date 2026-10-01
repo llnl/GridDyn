@@ -6,9 +6,9 @@
 
 #include "AGControl.h"
 
+#include "../Generator.h"
 #include "../GridArea.h"
 #include "../GridBus.h"
-#include "../Generator.h"
 #include "../generators/DynamicGenerator.h"
 #include "../generators/RenewableGenerator.h"
 #include "../generators/VariableGenerator.h"
@@ -145,7 +145,8 @@ void AGControl::addInterchangeSlackParticipant()
             continue;
         }
         if (target != nullptr) {
-            throw InvalidParameterValue("AGC ISW bus has multiple enabled generators; specify participants explicitly");
+            throw InvalidParameterValue(
+                "AGC ISW bus has multiple enabled generators; specify participants explicitly");
         }
         target = generator;
     }
@@ -157,7 +158,8 @@ void AGControl::addInterchangeSlackParticipant()
     if ((dynamicGen == nullptr &&
          (renewableGen == nullptr || !renewableGen->supportsActivePowerSchedule())) ||
         dynamic_cast<VariableGenerator*>(target) != nullptr) {
-        throw InvalidParameterValue("AGC ISW generator does not support a SchedulerReg power setpoint");
+        throw InvalidParameterValue(
+            "AGC ISW generator does not support a SchedulerReg power setpoint");
     }
     if (target->find("pset") != nullptr) {
         throw InvalidParameterValue("AGC ISW generator already has a power setpoint source");
@@ -165,9 +167,10 @@ void AGControl::addInterchangeSlackParticipant()
     const double baseMW = area->get("basepower", units::MW);
     const double ratingMW = target->get("mbase", units::MW);
     const double pset = target->get("pset", units::puMW);
-    if (!std::isfinite(baseMW) || baseMW <= 0.0 || !std::isfinite(ratingMW) ||
-        ratingMW <= 0.0 || !std::isfinite(pset) || pset <= -kHalfBigNum) {
-        throw InvalidParameterValue("AGC ISW generator requires a finite setpoint and positive rating");
+    if (!std::isfinite(baseMW) || baseMW <= 0.0 || !std::isfinite(ratingMW) || ratingMW <= 0.0 ||
+        !std::isfinite(pset) || pset <= -kHalfBigNum) {
+        throw InvalidParameterValue(
+            "AGC ISW generator requires a finite setpoint and positive rating");
     }
     const double rating = ratingMW / baseMW;
     const double pmax = target->get("pmax", units::puMW);
@@ -208,9 +211,8 @@ void AGControl::dynObjectInitializeB(const IOdata& /*inputs*/,
 
 double AGControl::measuredFrequency() const
 {
-    const double measurement = frequencySensor == nullptr ?
-        fixedFrequency :
-        frequencySensor->getOutput(frequencyOutput);
+    const double measurement =
+        frequencySensor == nullptr ? fixedFrequency : frequencySensor->getOutput(frequencyOutput);
     const double frequency = measurement + (frequencyIsDeviation ? 1.0 : 0.0);
     if (!std::isfinite(frequency) || frequency <= 0.0) {
         throw InvalidParameterValue("AGC frequency measurement must be positive and finite");
@@ -226,8 +228,7 @@ double AGControl::measuredACE() const
     }
     const double baseMW = area->get("basepower", units::MW);
     const double baseHz = area->get("basefrequency", units::Hz);
-    if (!std::isfinite(baseMW) || baseMW <= 0.0 || !std::isfinite(baseHz) ||
-        baseHz <= 0.0) {
+    if (!std::isfinite(baseMW) || baseMW <= 0.0 || !std::isfinite(baseHz) || baseHz <= 0.0) {
         throw InvalidParameterValue("AGC requires positive area power and frequency bases");
     }
     double scheduledMW = 0.0;
@@ -279,8 +280,8 @@ void AGControl::updateA(CoreTime time)
     regChange();
     ace = measuredACE();
     filteredAce += (tf <= 0.0 ? 1.0 : dt / (tf + dt)) * (ace - filteredAce);
-    const double controlError = std::copysign(
-        std::max(0.0, std::abs(filteredAce) - deadband), filteredAce);
+    const double controlError =
+        std::copysign(std::max(0.0, std::abs(filteredAce) - deadband), filteredAce);
     const double candidateIntegral = integralAce + controlError * dt;
     const auto* area = static_cast<const GridArea*>(getParent());
     const double baseMW = area->get("basepower", units::MW);
@@ -309,9 +310,8 @@ void AGControl::dispatch()
             continue;
         }
         const double available = reg >= 0.0 ? regUpAvailable : regDownAvailable;
-        const double resource = reg >= 0.0 ?
-            sched->getRegUpAvailable() :
-            sched->getRegDownAvailable();
+        const double resource =
+            reg >= 0.0 ? sched->getRegUpAvailable() : sched->getRegDownAvailable();
         sched->setReg(available > 0.0 ? reg * resource / available : 0.0);
     }
 }
@@ -401,8 +401,10 @@ void AGControl::set(std::string_view param, double val, units::unit unitType)
         if (val < 0.0) {
             throw InvalidParameterValue("AGC deadband must be nonnegative");
         }
-        deadband = units::convert(val, unitType == units::defunit ? units::MW : unitType,
-                                  units::MW, systemBasePower);
+        deadband = units::convert(val,
+                                  unitType == units::defunit ? units::MW : unitType,
+                                  units::MW,
+                                  systemBasePower);
     } else if (param == "bias") {
         if (val > 0.0) {
             throw InvalidParameterValue("AGC frequency bias must be nonpositive");
@@ -451,8 +453,8 @@ void AGControl::set(std::string_view param, double val, units::unit unitType)
         frequencyIsDeviation = val != 0.0;
         frequencyDeviationExplicit = true;
     } else if (param == "period" || param == "updateperiod" || param == "sampleinterval") {
-        const double seconds = units::convert(
-            val, unitType == units::defunit ? units::s : unitType, units::s);
+        const double seconds =
+            units::convert(val, unitType == units::defunit ? units::s : unitType, units::s);
         if (seconds <= 0.0) {
             throw InvalidParameterValue("AGC sample interval must be positive");
         }
@@ -465,12 +467,16 @@ void AGControl::set(std::string_view param, double val, units::unit unitType)
 double AGControl::get(std::string_view param, units::unit unitType) const
 {
     if (param == "ace") {
-        return units::convert(ace, units::MW, unitType == units::defunit ? units::MW : unitType,
+        return units::convert(ace,
+                              units::MW,
+                              unitType == units::defunit ? units::MW : unitType,
                               systemBasePower);
     }
     if (param == "filteredace") {
-        return units::convert(filteredAce, units::MW,
-                              unitType == units::defunit ? units::MW : unitType, systemBasePower);
+        return units::convert(filteredAce,
+                              units::MW,
+                              unitType == units::defunit ? units::MW : unitType,
+                              systemBasePower);
     }
     if (param == "regulation") {
         return reg;

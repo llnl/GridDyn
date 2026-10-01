@@ -451,7 +451,7 @@ corpus.
   - Inter-area transfer rows are stored on the root area with their endpoint
     IDs and resolved area pointers, transfer ID, and scheduled MW.
   - XML supports `<interareatransfer fromArea="1" toArea="2"
-    transferID="A" scheduledMW="50"/>` under the root `<griddyn>` element.
+transferID="A" scheduledMW="50"/>` under the root `<griddyn>` element.
   - This is record keeping only. Actual transfer measurement and comparison
     with scheduled values remains future work.
 - Exercised by:

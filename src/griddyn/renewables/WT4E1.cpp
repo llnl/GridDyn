@@ -38,10 +38,14 @@ namespace {
          .base = RenewableBase::machine},
         {.signal = RenewableSignal::orderedPower, .ioIndex = 2, .base = RenewableBase::machine},
     }};
-    constexpr index_t vf = 0, pf = 1, pInt = 2, qInt = 3, iqState = 4;
-    double optional(const IOdata& in, std::size_t index)
+    constexpr index_t voltageFilterState = 0;
+    constexpr index_t powerFilterState = 1;
+    constexpr index_t powerIntegratorState = 2;
+    constexpr index_t reactiveIntegratorState = 3;
+    constexpr index_t reactiveCurrentFilterState = 4;
+    double optional(const IOdata& inputData, std::size_t index)
     {
-        return in.size() > index && in[index] != kNullVal ? in[index] : 0.0;
+        return inputData.size() > index && inputData[index] != kNullVal ? inputData[index] : 0.0;
     }
     int flag(double value)
     {
@@ -255,13 +259,15 @@ double WT4E1::get(std::string_view param, units::unit unitType) const
     return RenewableComponent::get(param, unitType);
 }
 
-void WT4E1::dynObjectInitializeA(CoreTime time0, std::uint32_t)
+void WT4E1::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     const std::array<double, 25> values{Tfv,  Kpv,    Kiv,      Kpp,     Kip,   Kf,    Tf,
                                         Qmax, Qmin,   Ipmax,    Trv,     dPmax, dPmin, Tpower,
                                         Kqi,  Vmincl, Vmaxcl,   Kvi,     Tv,    Tp,    Imax,
                                         Iphl, Iqhl,   initialP, initialQ};
-    if (std::any_of(values.begin(), values.end(), [](double v) { return !std::isfinite(v); }) ||
+    if (std::any_of(values.begin(),
+                    values.end(),
+                    [](double value) { return !std::isfinite(value); }) ||
         Tfv <= 0 || Tf <= 0 || Trv <= 0 || Tpower <= 0 || Tv <= 0 || Tp <= 0 || Qmax < Qmin ||
         Ipmax <= 0 || Imax <= 0 || Iphl <= 0 || Iqhl <= 0 || Vmaxcl < Vmincl) {
         throw InvalidParameterValue("WT4E1 invalid time constant or limit");
@@ -271,6 +277,7 @@ void WT4E1::dynObjectInitializeA(CoreTime time0, std::uint32_t)
     local.diffSize = 5;
     local.jacSize = 64;
     prevTime = time0;
+    (void)flags;
 }
 
 void WT4E1::dynObjectInitializeB(const IOdata& inputs,
@@ -284,16 +291,17 @@ void WT4E1::dynObjectInitializeB(const IOdata& inputs,
     initialP = desiredOutput[0];
     initialQ = desiredOutput[1];
     vref = inputs[0];
-    const double initIp = initialP / vref, initIq = initialQ / vref;
-    m_state[0] = initIp;
-    m_state[1] = initIq;
+    const double initialActiveCurrent = initialP / vref;
+    const double initialReactiveCurrent = initialQ / vref;
+    m_state[0] = initialActiveCurrent;
+    m_state[1] = initialReactiveCurrent;
     m_state[2] = initialP;
-    m_state[3 + vf] = vref;
-    m_state[3 + pf] = initialP;
-    m_state[3 + pInt] = 0.0;
-    m_state[3 + qInt] = 0.0;
-    m_state[3 + iqState] = initIq;
-    fieldSet = {initIp, initIq, initialP};
+    m_state[3 + voltageFilterState] = vref;
+    m_state[3 + powerFilterState] = initialP;
+    m_state[3 + powerIntegratorState] = 0.0;
+    m_state[3 + reactiveIntegratorState] = 0.0;
+    m_state[3 + reactiveCurrentFilterState] = initialReactiveCurrent;
+    fieldSet = {initialActiveCurrent, initialReactiveCurrent, initialP};
 }
 
 std::array<double, 2> WT4E1::commands(const IOdata& inputs, const double state[]) const
@@ -301,37 +309,42 @@ std::array<double, 2> WT4E1::commands(const IOdata& inputs, const double state[]
     const double voltage = std::max(inputs[0], 0.01);
     const double pReference = initialP + optional(inputs, 3);
     const double qReference = initialQ + optional(inputs, 4);
-    const double pOrder = std::clamp(pReference + Kpp * (pReference - state[pf]) + state[pInt],
+    const double pOrder = std::clamp(pReference + (Kpp * (pReference - state[powerFilterState])) +
+                                         state[powerIntegratorState],
                                      dPmin + initialP,
                                      dPmax + initialP);
-    double ip = std::clamp(pOrder / voltage, -Ipmax, Ipmax);
-    const double qOrder =
-        std::clamp(qReference + Kpv * (vref - state[vf]) + state[qInt], Qmin, Qmax);
-    double iq = std::clamp(qOrder / voltage, -Iqhl, Iqhl);
+    double activeCurrent = std::clamp(pOrder / voltage, -Ipmax, Ipmax);
+    const double qOrder = std::clamp(qReference + (Kpv * (vref - state[voltageFilterState])) +
+                                         state[reactiveIntegratorState],
+                                     Qmin,
+                                     Qmax);
+    double reactiveCurrent = std::clamp(qOrder / voltage, -Iqhl, Iqhl);
     if (pqPriority == 1) {
-        iq = std::clamp(iq,
-                        -std::sqrt(std::max(0.0, Imax * Imax - ip * ip)),
-                        std::sqrt(std::max(0.0, Imax * Imax - ip * ip)));
+        reactiveCurrent =
+            std::clamp(reactiveCurrent,
+                       -std::sqrt(std::max(0.0, (Imax * Imax) - (activeCurrent * activeCurrent))),
+                       std::sqrt(std::max(0.0, (Imax * Imax) - (activeCurrent * activeCurrent))));
     } else {
-        ip = std::clamp(ip,
-                        -std::sqrt(std::max(0.0, Imax * Imax - iq * iq)),
-                        std::sqrt(std::max(0.0, Imax * Imax - iq * iq)));
+        activeCurrent = std::clamp(
+            activeCurrent,
+            -std::sqrt(std::max(0.0, (Imax * Imax) - (reactiveCurrent * reactiveCurrent))),
+            std::sqrt(std::max(0.0, (Imax * Imax) - (reactiveCurrent * reactiveCurrent))));
     }
-    return {ip, iq};
+    return {activeCurrent, reactiveCurrent};
 }
 
 std::array<double, 5> WT4E1::rates(const IOdata& inputs, const double state[]) const
 {
     const auto command = commands(inputs, state);
-    const double p = inputs.size() > 1 && inputs[1] != kNullVal ? inputs[1] : initialP;
-    const double q = inputs.size() > 2 && inputs[2] != kNullVal ? inputs[2] : initialQ;
-    const double pError = (initialP + optional(inputs, 3)) - state[pf];
-    const double qError = (initialQ + optional(inputs, 4)) - q;
-    return {(inputs[0] - state[vf]) / Trv,
-            (p - state[pf]) / Tpower,
-            std::clamp(Kip * pError, dPmin, dPmax),
-            Kiv * (vref - state[vf]) + Kqi * qError,
-            (command[1] - state[iqState]) / Tiq};
+    const double activePower = inputs.size() > 1 && inputs[1] != kNullVal ? inputs[1] : initialP;
+    const double reactivePower = inputs.size() > 2 && inputs[2] != kNullVal ? inputs[2] : initialQ;
+    const double activePowerError = (initialP + optional(inputs, 3)) - state[powerFilterState];
+    const double reactivePowerError = (initialQ + optional(inputs, 4)) - reactivePower;
+    return {(inputs[0] - state[voltageFilterState]) / Trv,
+            (activePower - state[powerFilterState]) / Tpower,
+            std::clamp(Kip * activePowerError, dPmin, dPmax),
+            (Kiv * (vref - state[voltageFilterState])) + (Kqi * reactivePowerError),
+            (command[1] - state[reactiveCurrentFilterState]) / Tiq};
 }
 
 void WT4E1::derivative(const IOdata& inputs,
@@ -342,10 +355,10 @@ void WT4E1::derivative(const IOdata& inputs,
     if (!hasDifferential(sMode)) {
         return;
     }
-    const auto loc = offsets.getLocations(stateData, deriv, sMode, this);
-    const auto r = rates(inputs, loc.diffStateLoc);
-    for (index_t i = 0; i < 5; ++i) {
-        loc.destDiffLoc[i] = r[i];
+    const auto locations = offsets.getLocations(stateData, deriv, sMode, this);
+    const auto stateRates = rates(inputs, locations.diffStateLoc);
+    for (index_t stateIndex = 0; stateIndex < 5; ++stateIndex) {
+        locations.destDiffLoc[stateIndex] = stateRates[stateIndex];
     }
 }
 void WT4E1::residual(const IOdata& inputs,
@@ -353,17 +366,18 @@ void WT4E1::residual(const IOdata& inputs,
                      double resid[],
                      const SolverMode& sMode)
 {
-    const auto loc = offsets.getLocations(stateData, resid, sMode, this);
+    const auto locations = offsets.getLocations(stateData, resid, sMode, this);
     if (hasAlgebraic(sMode)) {
-        const auto c = commands(inputs, loc.diffStateLoc);
-        loc.destLoc[0] = c[0] - loc.algStateLoc[0];
-        loc.destLoc[1] = loc.diffStateLoc[iqState] - loc.algStateLoc[1];
-        loc.destLoc[2] = initialP + optional(inputs, 3) - loc.algStateLoc[2];
+        const auto commandValues = commands(inputs, locations.diffStateLoc);
+        locations.destLoc[0] = commandValues[0] - locations.algStateLoc[0];
+        locations.destLoc[1] =
+            locations.diffStateLoc[reactiveCurrentFilterState] - locations.algStateLoc[1];
+        locations.destLoc[2] = initialP + optional(inputs, 3) - locations.algStateLoc[2];
     }
     if (hasDifferential(sMode)) {
         derivative(inputs, stateData, resid, sMode);
-        for (index_t i = 0; i < 5; ++i) {
-            loc.destDiffLoc[i] -= loc.dstateLoc[i];
+        for (index_t stateIndex = 0; stateIndex < 5; ++stateIndex) {
+            locations.destDiffLoc[stateIndex] -= locations.dstateLoc[stateIndex];
         }
     }
 }
@@ -371,16 +385,17 @@ void WT4E1::algebraicUpdate(const IOdata& inputs,
                             const StateData& stateData,
                             double update[],
                             const SolverMode& sMode,
-                            double)
+                            double alpha)
 {
     if (!hasAlgebraic(sMode)) {
         return;
     }
-    const auto loc = offsets.getLocations(stateData, update, sMode, this);
-    const auto c = commands(inputs, loc.diffStateLoc);
-    loc.destLoc[0] = c[0];
-    loc.destLoc[1] = loc.diffStateLoc[iqState];
-    loc.destLoc[2] = initialP + optional(inputs, 3);
+    const auto locations = offsets.getLocations(stateData, update, sMode, this);
+    const auto commandValues = commands(inputs, locations.diffStateLoc);
+    locations.destLoc[0] = commandValues[0];
+    locations.destLoc[1] = locations.diffStateLoc[reactiveCurrentFilterState];
+    locations.destLoc[2] = initialP + optional(inputs, 3);
+    (void)alpha;
 }
 
 void WT4E1::jacobianElements(const IOdata& inputs,
@@ -389,125 +404,153 @@ void WT4E1::jacobianElements(const IOdata& inputs,
                              const IOlocs& inputLocs,
                              const SolverMode& sMode)
 {
-    const auto loc = offsets.getLocations(stateData, sMode, this);
-    constexpr double h = 1e-6;
-    const auto assign = [&](const auto& upper, const auto& lower, index_t col, bool differential) {
-        for (index_t row = 0; row < (differential ? 5 : 3); ++row) {
-            matrixData.assign(differential ? loc.diffOffset + row : loc.algOffset + row,
-                              col,
-                              (upper[row] - lower[row]) / (2 * h));
+    const auto locations = offsets.getLocations(stateData, sMode, this);
+    constexpr double step = 1e-6;
+    const auto assign = [&](const auto& upperValues,
+                            const auto& lowerValues,
+                            index_t columnIndex,
+                            bool differential) {
+        for (index_t rowIndex = 0; rowIndex < (differential ? 5 : 3); ++rowIndex) {
+            matrixData.assign(differential ? locations.diffOffset + rowIndex :
+                                             locations.algOffset + rowIndex,
+                              columnIndex,
+                              (upperValues[rowIndex] - lowerValues[rowIndex]) / (2 * step));
         }
     };
     if (hasAlgebraic(sMode)) {
-        for (index_t i = 0; i < 3; ++i) {
-            matrixData.assign(loc.algOffset + i, loc.algOffset + i, -1.0);
+        for (index_t rowIndex = 0; rowIndex < 3; ++rowIndex) {
+            matrixData.assign(locations.algOffset + rowIndex, locations.algOffset + rowIndex, -1.0);
         }
-        for (index_t c = 0; c < 5; ++c) {
-            auto plus = std::array<double, 5>{loc.diffStateLoc[0],
-                                              loc.diffStateLoc[1],
-                                              loc.diffStateLoc[2],
-                                              loc.diffStateLoc[3],
-                                              loc.diffStateLoc[4]};
+        for (index_t stateIndex = 0; stateIndex < 5; ++stateIndex) {
+            auto plus = std::array<double, 5>{locations.diffStateLoc[0],
+                                              locations.diffStateLoc[1],
+                                              locations.diffStateLoc[2],
+                                              locations.diffStateLoc[3],
+                                              locations.diffStateLoc[4]};
             auto minus = plus;
-            plus[c] += h;
-            minus[c] -= h;
-            const auto cp = commands(inputs, plus.data());
-            const auto cm = commands(inputs, minus.data());
-            std::array<double, 3> up{cp[0], plus[iqState], initialP + optional(inputs, 3)},
-                down{cm[0], minus[iqState], initialP + optional(inputs, 3)};
-            assign(up, down, loc.diffOffset + c, false);
+            plus[stateIndex] += step;
+            minus[stateIndex] -= step;
+            const auto upperCommands = commands(inputs, plus.data());
+            const auto lowerCommands = commands(inputs, minus.data());
+            const std::array<double, 3> upperValues{upperCommands[0],
+                                                    plus[reactiveCurrentFilterState],
+                                                    initialP + optional(inputs, 3)};
+            const std::array<double, 3> lowerValues{lowerCommands[0],
+                                                    minus[reactiveCurrentFilterState],
+                                                    initialP + optional(inputs, 3)};
+            assign(upperValues, lowerValues, locations.diffOffset + stateIndex, false);
         }
     }
-    for (std::size_t c = 0; c < inputs.size() && c < inputLocs.size(); ++c) {
-        if (inputLocs[c] == kNullLocation || inputs[c] == kNullVal) {
+    for (std::size_t inputIndex = 0; inputIndex < inputs.size() && inputIndex < inputLocs.size();
+         ++inputIndex) {
+        if (inputLocs[inputIndex] == kNullLocation || inputs[inputIndex] == kNullVal) {
             continue;
         }
-        auto plus = inputs, minus = inputs;
-        plus[c] += h;
-        minus[c] -= h;
+        auto plus = inputs;
+        auto minus = inputs;
+        plus[inputIndex] += step;
+        minus[inputIndex] -= step;
         if (hasAlgebraic(sMode)) {
-            const auto cp = commands(plus, loc.diffStateLoc);
-            const auto cm = commands(minus, loc.diffStateLoc);
-            std::array<double, 3> up{cp[0],
-                                     loc.diffStateLoc[iqState],
-                                     initialP + optional(plus, 3)},
-                down{cm[0], loc.diffStateLoc[iqState], initialP + optional(minus, 3)};
-            assign(up, down, inputLocs[c], false);
+            const auto upperCommands = commands(plus, locations.diffStateLoc);
+            const auto lowerCommands = commands(minus, locations.diffStateLoc);
+            const std::array<double, 3> upperValues{
+                upperCommands[0],
+                locations.diffStateLoc[reactiveCurrentFilterState],
+                initialP + optional(plus, 3)};
+            const std::array<double, 3> lowerValues{
+                lowerCommands[0],
+                locations.diffStateLoc[reactiveCurrentFilterState],
+                initialP + optional(minus, 3)};
+            assign(upperValues, lowerValues, inputLocs[inputIndex], false);
         }
     }
     if (!hasDifferential(sMode)) {
         return;
     }
-    for (index_t c = 0; c < 5; ++c) {
-        auto plus = std::array<double, 5>{loc.diffStateLoc[0],
-                                          loc.diffStateLoc[1],
-                                          loc.diffStateLoc[2],
-                                          loc.diffStateLoc[3],
-                                          loc.diffStateLoc[4]};
+    for (index_t stateIndex = 0; stateIndex < 5; ++stateIndex) {
+        auto plus = std::array<double, 5>{locations.diffStateLoc[0],
+                                          locations.diffStateLoc[1],
+                                          locations.diffStateLoc[2],
+                                          locations.diffStateLoc[3],
+                                          locations.diffStateLoc[4]};
         auto minus = plus;
-        plus[c] += h;
-        minus[c] -= h;
-        const auto up = rates(inputs, plus.data()), down = rates(inputs, minus.data());
-        for (index_t row = 0; row < 5; ++row) {
-            matrixData.assign(loc.diffOffset + row,
-                              loc.diffOffset + c,
-                              (up[row] - down[row]) / (2 * h) - (row == c ? stateData.cj : 0.0));
+        plus[stateIndex] += step;
+        minus[stateIndex] -= step;
+        const auto upperRates = rates(inputs, plus.data());
+        const auto lowerRates = rates(inputs, minus.data());
+        for (index_t rowIndex = 0; rowIndex < 5; ++rowIndex) {
+            matrixData.assign(locations.diffOffset + rowIndex,
+                              locations.diffOffset + stateIndex,
+                              ((upperRates[rowIndex] - lowerRates[rowIndex]) / (2 * step)) -
+                                  (rowIndex == stateIndex ? stateData.cj : 0.0));
         }
     }
-    for (std::size_t c = 0; c < inputs.size() && c < inputLocs.size(); ++c) {
-        if (inputLocs[c] == kNullLocation || inputs[c] == kNullVal) {
+    for (std::size_t inputIndex = 0; inputIndex < inputs.size() && inputIndex < inputLocs.size();
+         ++inputIndex) {
+        if (inputLocs[inputIndex] == kNullLocation || inputs[inputIndex] == kNullVal) {
             continue;
         }
-        auto plus = inputs, minus = inputs;
-        plus[c] += h;
-        minus[c] -= h;
-        const auto up = rates(plus, loc.diffStateLoc), down = rates(minus, loc.diffStateLoc);
-        for (index_t row = 0; row < 5; ++row) {
-            matrixData.assign(loc.diffOffset + row, inputLocs[c], (up[row] - down[row]) / (2 * h));
+        auto plus = inputs;
+        auto minus = inputs;
+        plus[inputIndex] += step;
+        minus[inputIndex] -= step;
+        const auto upperRates = rates(plus, locations.diffStateLoc);
+        const auto lowerRates = rates(minus, locations.diffStateLoc);
+        for (index_t rowIndex = 0; rowIndex < 5; ++rowIndex) {
+            matrixData.assign(locations.diffOffset + rowIndex,
+                              inputLocs[inputIndex],
+                              (upperRates[rowIndex] - lowerRates[rowIndex]) / (2 * step));
         }
     }
 }
 
-void WT4E1::timestep(CoreTime time, const IOdata& inputs, const SolverMode&)
+void WT4E1::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
-    const double dt = time - prevTime;
-    if (dt < 0) {
+    const double timeStep = time - prevTime;
+    if (timeStep < 0) {
         throw InvalidParameterValue("WT4E1 timestep precedes current time");
     }
-    const auto r = rates(inputs, m_state.data());
-    for (index_t i = 0; i < 5; ++i)
-        m_state[3 + i] += dt * r[i];
-    const auto c = commands(inputs, m_state.data() + 3);
-    m_state[0] = c[0];
-    m_state[1] = m_state[3 + iqState];
+    const auto stateRates = rates(inputs, m_state.data());
+    for (index_t stateIndex = 0; stateIndex < 5; ++stateIndex) {
+        m_state[3 + stateIndex] += timeStep * stateRates[stateIndex];
+    }
+    const auto commandValues = commands(inputs, m_state.data() + 3);
+    m_state[0] = commandValues[0];
+    m_state[1] = m_state[3 + reactiveCurrentFilterState];
     m_state[2] = initialP + optional(inputs, 3);
     prevTime = time;
+    (void)sMode;
 }
-IOdata WT4E1::getOutputs(const IOdata&, const StateData& stateData, const SolverMode& sMode) const
+IOdata WT4E1::getOutputs(const IOdata& inputs,
+                         const StateData& stateData,
+                         const SolverMode& sMode) const
 {
-    const auto loc = offsets.getLocations(stateData, sMode, this);
-    return {loc.algStateLoc[0], loc.algStateLoc[1], loc.algStateLoc[2]};
+    const auto locations = offsets.getLocations(stateData, sMode, this);
+    (void)inputs;
+    return {locations.algStateLoc[0], locations.algStateLoc[1], locations.algStateLoc[2]};
 }
-double WT4E1::getOutput(const IOdata&,
+double WT4E1::getOutput(const IOdata& inputs,
                         const StateData& stateData,
                         const SolverMode& sMode,
-                        index_t index) const
+                        index_t outputNum) const
 {
-    return getOutputs({}, stateData, sMode).at(static_cast<std::size_t>(index));
+    return getOutputs(inputs, stateData, sMode).at(static_cast<std::size_t>(outputNum));
 }
-index_t WT4E1::getOutputLoc(const SolverMode& sMode, index_t index) const
+index_t WT4E1::getOutputLoc(const SolverMode& sMode, index_t outputNum) const
 {
-    return offsets.getAlgOffset(sMode) + index;
+    return offsets.getAlgOffset(sMode) + outputNum;
 }
-void WT4E1::outputPartialDerivatives(const IOdata&,
-                                     const StateData&,
+void WT4E1::outputPartialDerivatives(const IOdata& inputs,
+                                     const StateData& stateData,
                                      MatrixData<double>& matrixData,
                                      const SolverMode& sMode)
 {
     const auto alg = offsets.getAlgOffset(sMode);
-    for (index_t i = 0; i < 3; ++i) {
-        matrixData.assign(i, alg + i, 1.0);
+    for (index_t outputIndex = 0; outputIndex < 3; ++outputIndex) {
+        matrixData.assign(outputIndex, alg + outputIndex, 1.0);
     }
+    (void)inputs;
+    (void)stateData;
 }
 stringVec WT4E1::localStateNames() const
 {

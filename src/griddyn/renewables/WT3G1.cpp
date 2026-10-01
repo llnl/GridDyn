@@ -38,7 +38,12 @@ namespace {
          .ioIndex = 3,
          .base = RenewableBase::machine},
     }};
-    constexpr index_t pe = 0, qe = 1, ip = 0, eq = 1, pllInt = 2, delta = 3;
+    constexpr index_t electricalActivePower = 0;
+    constexpr index_t electricalReactivePower = 1;
+    constexpr index_t activeCurrentState = 0;
+    constexpr index_t reactiveVoltageState = 1;
+    constexpr index_t pllIntegratorState = 2;
+    constexpr index_t rotorAngleState = 3;
     constexpr double twoPi60 = 2.0 * 3.14159265358979323846 * 60.0;
 }  // namespace
 
@@ -107,7 +112,7 @@ double WT3G1::get(std::string_view param, units::unit unitType) const
     }
     return TerminalElectricalModel::get(param, unitType);
 }
-void WT3G1::dynObjectInitializeA(CoreTime time0, std::uint32_t)
+void WT3G1::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     const std::array<double, 5> values{Xeq, Kpll, Kipll, Pllmax, Prated};
     if (std::any_of(values.begin(),
@@ -121,6 +126,7 @@ void WT3G1::dynObjectInitializeA(CoreTime time0, std::uint32_t)
     local.diffSize = 4;
     local.jacSize = 48;
     prevTime = time0;
+    (void)flags;
 }
 void WT3G1::dynObjectInitializeB(const IOdata& inputs,
                                  const IOdata& desiredOutput,
@@ -132,34 +138,42 @@ void WT3G1::dynObjectInitializeB(const IOdata& inputs,
     }
     const double voltage = inputs[0];
     heldIp = desiredOutput[0] / voltage;
-    const double iq = (desiredOutput[1] + voltage * voltage / Xeq) / voltage;
-    heldEq = -Xeq * iq;
-    m_state[pe] = desiredOutput[0];
-    m_state[qe] = desiredOutput[1];
-    m_state[2 + ip] = heldIp;
-    m_state[2 + eq] = heldEq;
-    m_state[2 + pllInt] = 0.0;
-    m_state[2 + delta] = inputs[1];
+    const double reactiveCurrent = (desiredOutput[1] + (voltage * voltage / Xeq)) / voltage;
+    heldEq = -Xeq * reactiveCurrent;
+    m_state[electricalActivePower] = desiredOutput[0];
+    m_state[electricalReactivePower] = desiredOutput[1];
+    m_state[2 + activeCurrentState] = heldIp;
+    m_state[2 + reactiveVoltageState] = heldEq;
+    m_state[2 + pllIntegratorState] = 0.0;
+    m_state[2 + rotorAngleState] = inputs[1];
     fieldSet = {heldIp, heldEq};
 }
 std::array<double, 2> WT3G1::power(const IOdata& inputs, const double state[]) const
 {
-    const double angle = inputs[1] - state[delta];
-    const double vx = inputs[0] * std::cos(angle);
-    const double vy = inputs[0] * std::sin(angle);
-    const double iy = -state[eq] / Xeq;
-    return {vx * state[ip] + vy * iy, vx * iy - vy * state[ip] - (inputs[0] * inputs[0] / Xeq)};
+    const double angle = inputs[1] - state[rotorAngleState];
+    const double voltageReal = inputs[0] * std::cos(angle);
+    const double voltageImag = inputs[0] * std::sin(angle);
+    const double currentImag = -state[reactiveVoltageState] / Xeq;
+    return {(voltageReal * state[activeCurrentState]) + (voltageImag * currentImag),
+            (voltageReal * currentImag) - (voltageImag * state[activeCurrentState]) -
+                (inputs[0] * inputs[0] / Xeq)};
 }
 std::array<double, 4> WT3G1::rates(const IOdata& inputs, const double state[]) const
 {
     const double ipcmd = inputs.size() > 2 && inputs[2] != kNullVal ? inputs[2] : heldIp;
     const double eqcmd = inputs.size() > 3 && inputs[3] != kNullVal ? inputs[3] : heldEq;
-    const double vy = inputs[0] * std::sin(inputs[1] - state[delta]);
-    const double pll = std::clamp(state[pllInt] + Kpll * vy / twoPi60, -Pllmax, Pllmax);
-    const double integral = state[pllInt] <= -Pllmax && pll < 0.0 ? 0.0 :
-        state[pllInt] >= Pllmax && pll > 0.0                      ? 0.0 :
-                                                                    Kipll * pll;
-    return {(ipcmd - state[ip]) / 0.02, (eqcmd - state[eq]) / 0.02, integral, twoPi60 * pll};
+    const double voltageImag = inputs[0] * std::sin(inputs[1] - state[rotorAngleState]);
+    const double pllSignal =
+        std::clamp(state[pllIntegratorState] + (Kpll * voltageImag / twoPi60), -Pllmax, Pllmax);
+    double pllIntegral = Kipll * pllSignal;
+    if ((state[pllIntegratorState] <= -Pllmax && pllSignal < 0.0) ||
+        (state[pllIntegratorState] >= Pllmax && pllSignal > 0.0)) {
+        pllIntegral = 0.0;
+    }
+    return {(ipcmd - state[activeCurrentState]) / 0.02,
+            (eqcmd - state[reactiveVoltageState]) / 0.02,
+            pllIntegral,
+            twoPi60 * pllSignal};
 }
 void WT3G1::derivative(const IOdata& inputs,
                        const StateData& stateData,
@@ -170,9 +184,9 @@ void WT3G1::derivative(const IOdata& inputs,
         return;
     }
     const auto loc = offsets.getLocations(stateData, deriv, sMode, this);
-    const auto r = rates(inputs, loc.diffStateLoc);
-    for (index_t i = 0; i < 4; ++i) {
-        loc.destDiffLoc[i] = r[i];
+    const auto stateRates = rates(inputs, loc.diffStateLoc);
+    for (index_t stateIndex = 0; stateIndex < 4; ++stateIndex) {
+        loc.destDiffLoc[stateIndex] = stateRates[stateIndex];
     }
 }
 void WT3G1::residual(const IOdata& inputs,
@@ -182,14 +196,16 @@ void WT3G1::residual(const IOdata& inputs,
 {
     const auto loc = offsets.getLocations(stateData, resid, sMode, this);
     if (hasAlgebraic(sMode)) {
-        const auto pq = power(inputs, loc.diffStateLoc);
-        loc.destLoc[pe] = pq[0] - loc.algStateLoc[pe];
-        loc.destLoc[qe] = pq[1] - loc.algStateLoc[qe];
+        const auto powerValues = power(inputs, loc.diffStateLoc);
+        loc.destLoc[electricalActivePower] =
+            powerValues[0] - loc.algStateLoc[electricalActivePower];
+        loc.destLoc[electricalReactivePower] =
+            powerValues[1] - loc.algStateLoc[electricalReactivePower];
     }
     if (hasDifferential(sMode)) {
         derivative(inputs, stateData, resid, sMode);
-        for (index_t i = 0; i < 4; ++i) {
-            loc.destDiffLoc[i] -= loc.dstateLoc[i];
+        for (index_t stateIndex = 0; stateIndex < 4; ++stateIndex) {
+            loc.destDiffLoc[stateIndex] -= loc.dstateLoc[stateIndex];
         }
     }
 }
@@ -197,15 +213,16 @@ void WT3G1::algebraicUpdate(const IOdata& inputs,
                             const StateData& stateData,
                             double update[],
                             const SolverMode& sMode,
-                            double)
+                            double alpha)
 {
     if (!hasAlgebraic(sMode)) {
         return;
     }
     const auto loc = offsets.getLocations(stateData, update, sMode, this);
-    const auto pq = power(inputs, loc.diffStateLoc);
-    loc.destLoc[pe] = pq[0];
-    loc.destLoc[qe] = pq[1];
+    const auto powerValues = power(inputs, loc.diffStateLoc);
+    loc.destLoc[electricalActivePower] = powerValues[0];
+    loc.destLoc[electricalReactivePower] = powerValues[1];
+    (void)alpha;
 }
 void WT3G1::jacobianElements(const IOdata& inputs,
                              const StateData& stateData,
@@ -214,104 +231,126 @@ void WT3G1::jacobianElements(const IOdata& inputs,
                              const SolverMode& sMode)
 {
     const auto loc = offsets.getLocations(stateData, sMode, this);
-    constexpr double h = 1e-6;
+    constexpr double step = 1e-6;
     if (hasAlgebraic(sMode)) {
-        matrixData.assign(loc.algOffset + pe, loc.algOffset + pe, -1.0);
-        matrixData.assign(loc.algOffset + qe, loc.algOffset + qe, -1.0);
-        for (index_t c = 0; c < 4; ++c) {
+        matrixData.assign(loc.algOffset + electricalActivePower,
+                          loc.algOffset + electricalActivePower,
+                          -1.0);
+        matrixData.assign(loc.algOffset + electricalReactivePower,
+                          loc.algOffset + electricalReactivePower,
+                          -1.0);
+        for (index_t stateIndex = 0; stateIndex < 4; ++stateIndex) {
             auto plus = std::array<double, 4>{loc.diffStateLoc[0],
                                               loc.diffStateLoc[1],
                                               loc.diffStateLoc[2],
                                               loc.diffStateLoc[3]};
             auto minus = plus;
-            plus[c] += h;
-            minus[c] -= h;
-            const auto up = power(inputs, plus.data()), down = power(inputs, minus.data());
+            plus[stateIndex] += step;
+            minus[stateIndex] -= step;
+            const auto upper = power(inputs, plus.data());
+            const auto lower = power(inputs, minus.data());
             for (index_t row = 0; row < 2; ++row) {
                 matrixData.assign(loc.algOffset + row,
-                                  loc.diffOffset + c,
-                                  (up[row] - down[row]) / (2 * h));
+                                  loc.diffOffset + stateIndex,
+                                  (upper[row] - lower[row]) / (2 * step));
             }
         }
     }
     if (!hasDifferential(sMode)) {
         return;
     }
-    for (index_t c = 0; c < 4; ++c) {
+    for (index_t stateIndex = 0; stateIndex < 4; ++stateIndex) {
         auto plus = std::array<double, 4>{loc.diffStateLoc[0],
                                           loc.diffStateLoc[1],
                                           loc.diffStateLoc[2],
                                           loc.diffStateLoc[3]};
         auto minus = plus;
-        plus[c] += h;
-        minus[c] -= h;
-        const auto up = rates(inputs, plus.data()), down = rates(inputs, minus.data());
+        plus[stateIndex] += step;
+        minus[stateIndex] -= step;
+        const auto upper = rates(inputs, plus.data());
+        const auto lower = rates(inputs, minus.data());
         for (index_t row = 0; row < 4; ++row) {
             matrixData.assign(loc.diffOffset + row,
-                              loc.diffOffset + c,
-                              (up[row] - down[row]) / (2 * h) - (row == c ? stateData.cj : 0.0));
+                              loc.diffOffset + stateIndex,
+                              ((upper[row] - lower[row]) / (2 * step)) -
+                                  (row == stateIndex ? stateData.cj : 0.0));
         }
     }
-    for (std::size_t c = 0; c < inputs.size() && c < inputLocs.size(); ++c) {
-        if (inputLocs[c] == kNullLocation || inputs[c] == kNullVal) {
+    for (std::size_t inputIndex = 0; inputIndex < inputs.size() && inputIndex < inputLocs.size();
+         ++inputIndex) {
+        if (inputLocs[inputIndex] == kNullLocation || inputs[inputIndex] == kNullVal) {
             continue;
         }
-        auto plus = inputs, minus = inputs;
-        plus[c] += h;
-        minus[c] -= h;
-        const auto up = rates(plus, loc.diffStateLoc), down = rates(minus, loc.diffStateLoc);
+        auto plus = inputs;
+        auto minus = inputs;
+        plus[inputIndex] += step;
+        minus[inputIndex] -= step;
+        const auto upper = rates(plus, loc.diffStateLoc);
+        const auto lower = rates(minus, loc.diffStateLoc);
         for (index_t row = 0; row < 4; ++row) {
-            matrixData.assign(loc.diffOffset + row, inputLocs[c], (up[row] - down[row]) / (2 * h));
+            matrixData.assign(loc.diffOffset + row,
+                              inputLocs[inputIndex],
+                              (upper[row] - lower[row]) / (2 * step));
         }
         if (hasAlgebraic(sMode)) {
-            const auto pup = power(plus, loc.diffStateLoc), pdown = power(minus, loc.diffStateLoc);
+            const auto powerUpper = power(plus, loc.diffStateLoc);
+            const auto powerLower = power(minus, loc.diffStateLoc);
             for (index_t row = 0; row < 2; ++row) {
                 matrixData.assign(loc.algOffset + row,
-                                  inputLocs[c],
-                                  (pup[row] - pdown[row]) / (2 * h));
+                                  inputLocs[inputIndex],
+                                  (powerUpper[row] - powerLower[row]) / (2 * step));
             }
         }
     }
 }
-void WT3G1::timestep(CoreTime time, const IOdata& inputs, const SolverMode&)
+void WT3G1::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
-    const double dt = time - prevTime;
-    if (dt < 0.0) {
+    const double timeStep = time - prevTime;
+    if (timeStep < 0.0) {
         throw InvalidParameterValue("WT3G1 timestep precedes current time");
     }
-    const auto r = rates(inputs, m_state.data() + 2);
-    for (index_t i = 0; i < 4; ++i) {
-        m_state[2 + i] += dt * r[i];
+    const auto stateRates = rates(inputs, m_state.data() + 2);
+    for (index_t stateIndex = 0; stateIndex < 4; ++stateIndex) {
+        m_state[2 + stateIndex] += timeStep * stateRates[stateIndex];
     }
-    const auto pq = power(inputs, m_state.data() + 2);
-    m_state[pe] = pq[0];
-    m_state[qe] = pq[1];
+    const auto powerValues = power(inputs, m_state.data() + 2);
+    m_state[electricalActivePower] = powerValues[0];
+    m_state[electricalReactivePower] = powerValues[1];
     prevTime = time;
+    (void)sMode;
 }
-IOdata WT3G1::getOutputs(const IOdata&, const StateData& stateData, const SolverMode& sMode) const
+IOdata WT3G1::getOutputs(const IOdata& inputs,
+                         const StateData& stateData,
+                         const SolverMode& sMode) const
 {
     const auto loc = offsets.getLocations(stateData, sMode, this);
-    return {loc.algStateLoc[pe], loc.algStateLoc[qe], heldIp, heldEq};
+    (void)inputs;
+    return {loc.algStateLoc[electricalActivePower],
+            loc.algStateLoc[electricalReactivePower],
+            heldIp,
+            heldEq};
 }
-double WT3G1::getOutput(const IOdata&,
+double WT3G1::getOutput(const IOdata& inputs,
                         const StateData& stateData,
                         const SolverMode& sMode,
-                        index_t index) const
+                        index_t outputNum) const
 {
-    return getOutputs({}, stateData, sMode).at(static_cast<std::size_t>(index));
+    return getOutputs(inputs, stateData, sMode).at(static_cast<std::size_t>(outputNum));
 }
-index_t WT3G1::getOutputLoc(const SolverMode& sMode, index_t index) const
+index_t WT3G1::getOutputLoc(const SolverMode& sMode, index_t outputNum) const
 {
-    return index < 2 ? offsets.getAlgOffset(sMode) + index : kNullLocation;
+    return outputNum < 2 ? offsets.getAlgOffset(sMode) + outputNum : kNullLocation;
 }
-void WT3G1::outputPartialDerivatives(const IOdata&,
-                                     const StateData&,
+void WT3G1::outputPartialDerivatives(const IOdata& inputs,
+                                     const StateData& stateData,
                                      MatrixData<double>& matrixData,
                                      const SolverMode& sMode)
 {
     const auto alg = offsets.getAlgOffset(sMode);
-    matrixData.assign(pe, alg + pe, 1.0);
-    matrixData.assign(qe, alg + qe, 1.0);
+    matrixData.assign(electricalActivePower, alg + electricalActivePower, 1.0);
+    matrixData.assign(electricalReactivePower, alg + electricalReactivePower, 1.0);
+    (void)inputs;
+    (void)stateData;
 }
 stringVec WT3G1::localStateNames() const
 {

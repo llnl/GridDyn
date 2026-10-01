@@ -17,6 +17,10 @@
 #include "../renewables/REGCA1.h"
 #include "../renewables/REGCP1.h"
 #include "../renewables/REPCA1.h"
+#include "../renewables/WT3E1.h"
+#include "../renewables/WT3G1.h"
+#include "../renewables/WT4E1.h"
+#include "../renewables/WT4G1.h"
 #include "../renewables/WTARA1.h"
 #include "../renewables/WTDS.h"
 #include "../renewables/WTDTA1.h"
@@ -88,6 +92,10 @@ static TypeFactory<EV1> gEV1Factory("renewable_model", "ev1");
 static TypeFactory<EV2> gEV2Factory("renewable_model", "ev2");
 static TypeFactory<REECB1> gREECB1Factory("renewable_model", "reecb1");
 static TypeFactory<REPCA1> gREPCA1Factory("renewable_model", "repca1");
+static TypeFactory<WT3G1> gWT3G1Factory("renewable_model", "wt3g1");
+static TypeFactory<WT3E1> gWT3E1Factory("renewable_model", "wt3e1");
+static TypeFactory<WT4G1> gWT4G1Factory("renewable_model", "wt4g1");
+static TypeFactory<WT4E1> gWT4E1Factory("renewable_model", "wt4e1");
 static TypeFactory<WTDTA1> gWTDTA1Factory("renewable_model", "wtdta1");
 static TypeFactory<WTDS> gWTDSFactory("renewable_model", "wtds");
 static TypeFactory<WTARA1> gWTARA1Factory("renewable_model", "wtara1");

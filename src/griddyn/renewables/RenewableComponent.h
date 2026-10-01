@@ -37,6 +37,12 @@ enum class RenewableSignal {
     reactivePower,
     activeCurrentCommand,
     reactiveCurrentCommand,
+    /** Type-3 DFIG converter reactive-voltage command (WEQCMD/Eqcmd). */
+    reactiveVoltageCommand,
+    /** Initialization-only WT3G command supplied to the WT3 electrical control. */
+    initialActiveCurrentCommand,
+    /** Initialization-only WT3G reactive-voltage command supplied to WT3E. */
+    initialReactiveVoltageCommand,
     activeReference,
     reactiveReference,
     activeReferenceIncrement,

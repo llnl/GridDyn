@@ -152,12 +152,12 @@ consistently in both models.
 | `EXAC1`     |          0 |           6 |         22 |        130 |        381 |    539 | **Implemented and merged; external trajectory pending.** `TA=0` algebraic-regulator and bypassed-state paths, limits, and root behavior have regression coverage.                 |
 | `ESAC1A`    |          0 |           4 |         23 |        142 |        546 |    715 | **Implemented and merged; external trajectory pending.** Dedicated AC1A DYR mapping and control-element limits reuse the AC-exciter core; UEL/OEL routing remains open.           |
 | `GAST`      |         30 |           0 |          0 |          0 |          0 |     30 | **Implemented; external trajectory open.** OpenIPSL/ANDES/GridKit equations, DYR mapping, initialization, selector/limit, and Jacobian tests are present.                         |
-| `REECA1`    |          0 |           0 |          0 |        614 |        571 |  1,185 | **Missing.** Add renewable electrical control; implement and validate it with the associated `REGCA1` converter model.                                                            |
-| `REGCA1`    |          0 |           0 |          0 |        614 |        571 |  1,185 | **Missing.** Add the renewable converter model; do not import it independently from `REECA1`.                                                                                     |
-| `WT3E1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind electrical-control subsystem.                                                                                                                    |
-| `WT3G1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind generator/drivetrain subsystem.                                                                                                                  |
-| `WT3P1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind pitch-control subsystem.                                                                                                                         |
-| `WT3T1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing.** Add the Type-3 wind turbine subsystem.                                                                                                                               |
+| `REECA1`    |          0 |           0 |          0 |        614 |        571 |  1,185 | **Implemented; validation pending.** Native renewable electrical control and DYR mapping are available with the associated `REGCA1` converter; complete external and whole-case trajectory checks. |
+| `REGCA1`    |          0 |           0 |          0 |        614 |        571 |  1,185 | **Implemented; validation pending.** Native renewable converter and DYR mapping are available with `REECA1`; complete external and whole-case trajectory checks. |
+| `WT3E1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Partial Type-3 support.** Dedicated electrical control, DYR mapping, initialization, and host-Jacobian coverage are present. A complete Type-3 plant remains blocked by `WT3P1`/`WT3T1`. |
+| `WT3G1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Partial Type-3 support.** Dedicated electrical interface, DYR mapping, initialization, and host-Jacobian coverage are present. A complete Type-3 plant remains blocked by `WT3P1`/`WT3T1`. |
+| `WT3P1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing; source acquisition required.** The local test corpus confirms a nine-field record, but exact equations, field semantics, limits, and initialization are not yet authoritative.                                               |
+| `WT3T1`     |          0 |           0 |          0 |        119 |        576 |    695 | **Missing; source acquisition required.** The local test corpus confirms an eight-field record; an historical OpenIPSL `WT12T1` file is an equation lead only, not a verified PSS/E mapping.                                                       |
 
 The broader model-by-model mapping is maintained in the
 [ANDES compatibility roadmap](andes-compatibility.md); this table is the
@@ -187,11 +187,10 @@ dependent on the separate RAW/DYR delivery; GridKit cannot substitute for it.
 ### ACTIVSg25k static DYR assessment
 
 `ACTIVSg25k.dyr` was inspected as text only and was not loaded or run. It has
-18,108 records in 22 model families. The current DYR dispatch recognizes 14
-of the families used by this file (`GENROU`, `IEEEST`, `IEEEG1`, `ESDC1A`,
-`ESDC2A`, `EXAC1`, `EXAC2`, `ESAC1A`, `GGOV1`, `ESST4B`, `GENSAL`, `HYGOV`,
-`IEEET1`, `EXPIC1`, `SCRX`, and `ESAC6A`), accounting for
-15,776 records. The other 2,332 records cannot yet be represented faithfully.
+18,108 records in 22 model families. The current DYR dispatch recognizes 20
+families: the 16 conventional families listed above, `REGCA1`, `REECA1`,
+`WT3G1`, and `WT3E1`. The remaining `WT3P1` and `WT3T1` records account for
+238 records and prevent a complete Type-3 plant simulation.
 
 The largest remaining gap is now the renewable groups. `REECA1` and `REGCA1` must be initialized and
 validated together; the four `WT3*` models are likewise one Type-3 wind-turbine
@@ -204,10 +203,9 @@ coverage.
 
 `ACTIVSg70k_dynamics.dyr` was inspected as text only and was not loaded or run.
 It has 40,418 records in 22 model families. The current DYR dispatch recognizes
-35,336 records in 14 families (`GENROU`, `IEEEST`, `IEEEG1`, `ESDC1A`,
-`ESDC2A`, `EXAC1`, `EXAC2`, `ESAC1A`, `GGOV1`, `ESST4B`, `GENSAL`, `HYGOV`,
-`IEEET1`, `EXPIC1`, `SCRX`, and `ESAC6A`); 3,446 records
-remain unsupported.
+20 families: the 16 conventional families, `REGCA1`, `REECA1`, `WT3G1`, and
+`WT3E1`. The 576 `WT3P1` and 576 `WT3T1` records remain unsupported, so the
+complete Type-3 plants cannot be initialized or simulated.
 
 `GENSAL`, `HYGOV`, `GGOV1`, `ESST4B`, `SCRX`, and `ESAC6A` are recognized and
 have focused model and reader tests, but still need large-case initialization
@@ -228,13 +226,13 @@ every record for a machine ID before initializing the case.
 | Round-rotor conventional plants | `GENROU`, exciter, governor, and optional `IEEEST` |                   6,937 `GENROU` records | The machine and the six currently recognized controller families need full initialization and trajectory validation; missing controller records cannot be dropped. |
 | Salient-pole hydro plants       | `GENSAL` + `HYGOV` + exciter + optional `IEEEST`   | 2,306 `GENSAL` and 2,306 `HYGOV` records | Native machine and governor models are implemented; validate whole-plant initialization, bases, limits, controller interfaces, and disturbed trajectories.         |
 | General-governor plants         | `GENROU` + `GGOV1` + exciter + optional `IEEEST`   |                    3,419 `GGOV1` records | Native selectable governor/turbine modes are implemented; validate case parameter combinations and reject nonzero `TENG` until transport delay is added.           |
-| Renewable converter plants      | `REGCA1` + `REECA1`                                |                              571 of each | Blocked until the converter and electrical controller initialize and enforce their current-limit ordering as a pair.                                               |
-| Type-3 wind plants              | `WT3G1` + `WT3E1` + `WT3P1` + `WT3T1`              |                              576 of each | Blocked until the complete generator, electrical, pitch, and turbine assembly is available; no individual `WT3*` record may be omitted.                            |
+| Renewable converter plants      | `REGCA1` + `REECA1`                                |                              571 of each | Components and DYR mappings are implemented; whole-case initialization and disturbed-trajectory validation remain required. |
+| Type-3 wind plants              | `WT3G1` + `WT3E1` + `WT3P1` + `WT3T1`              |                              576 of each | The electrical pair is implemented, but the complete generator, electrical, pitch, and turbine assembly remains blocked by `WT3P1`/`WT3T1`. Do not run or represent this as a complete Type-3 plant. |
 
 Accordingly, GridDyn may use the RAW alone for static power-flow work once
 large-scale topology validation is complete, but it must reject a requested
-full 70k DYR run until the remaining unsupported families are implemented:
-`WT3P1`, `WT3T1`, `WT3E1`, `WT3G1`, `REGCA1`, and `REECA1`.
+full 70k DYR run until the remaining unsupported Type-3 families are
+implemented: `WT3P1` and `WT3T1`.
 A strict diagnostic is preferable
 to a partial dynamic simulation.
 
@@ -268,11 +266,13 @@ equations before implementation.
    `ESAC6A` are implemented with exact DYR mappings and focused equation
    tests. Capture external trajectories; ANDES's `SEXS` conversion remains
    only an approximation for SCRX/ESAC6A.
-4. **P1 renewable generation:** implement and validate `REGCA1` plus
-   `REECA1` (and `REPCA1` for Texas7k), then the coupled
-   `WT3G1`/`WT3E1`/`WT3P1`/`WT3T1` Type-3 system. The latter two models have
-   no exact external source and must be derived or obtained as part of the
-   complete system, not silently omitted.
+4. **P1 renewable generation:** validate the implemented `REGCA1` plus
+   `REECA1` (and `REPCA1` for Texas7k), then complete the coupled
+   `WT3G1`/`WT3E1`/`WT3P1`/`WT3T1` Type-3 system. `WT3G1`/`WT3E1` have native
+   components and DYR input; the latter two models have DYR fixtures but no
+   authoritative field/equation specification and must be obtained as part of
+   the complete system, not silently omitted or approximated from WECC/GE/PSAT
+   models.
 5. **P2 remaining excitation/source gaps:** `ESDC2A`, `ESAC1A`, `EXPIC1`, and
    `ESAC6A` are merged; capture independent trajectories and add UEL/OEL
    routing where the exciter interface needs it.

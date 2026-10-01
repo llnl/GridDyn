@@ -28,6 +28,10 @@
 #include "griddyn/renewables/REGCA1.h"
 #include "griddyn/renewables/REGCP1.h"
 #include "griddyn/renewables/REPCA1.h"
+#include "griddyn/renewables/WT3E1.h"
+#include "griddyn/renewables/WT3G1.h"
+#include "griddyn/renewables/WT4E1.h"
+#include "griddyn/renewables/WT4G1.h"
 #include "griddyn/renewables/WTARA1.h"
 #include "griddyn/renewables/WTDS.h"
 #include "griddyn/renewables/WTDTA1.h"
@@ -1845,7 +1849,7 @@ TEST(RenewableModels, DyrRejectsDuplicateAndUnsupportedRecords)
     EXPECT_THROW(generator->dynInitializeA(0.0, 0), InvalidParameterValue);
 }
 
-TEST(RenewableModels, ACTIVSg25kType3WindDoesNotAliasNewerWindModels)
+TEST(RenewableModels, DyrLoadsDedicatedType3WindElectricalModels)
 {
     auto simulation = renewableDyrSimulation();
     const auto file = std::filesystem::temp_directory_path() /
@@ -1857,36 +1861,127 @@ TEST(RenewableModels, ACTIVSg25kType3WindDoesNotAliasNewerWindModels)
                   "3 0.6 1.12 0.04 0.436 -0.436 1.7 0.02 0.45 -0.45 "
                   "60 0.1 0.9 1.1 40 0.5 1.45 0.05 0.05 1 "
                   "0.69 0.78 0.98 1.12 0.74 1.2 /\n";
-        output << "101 'WT3T1' '1' 1.25 4.95 0 0.007 21.98 0 1.8 2.3 /\n";
-        output << "101 'WT3P1' '1' 0.3 150 25 3 30 0 27 10 1 /\n";
     }
-    try {
-        loadDyr(simulation.get(), file.string(), BasicReaderInfo{});
-        FAIL() << "WT3 models require their own equations";
-    }
-    catch (const InvalidParameterValue& error) {
-        const std::string message = error.what();
-        for (const auto* name : {"WT3G1", "WT3E1", "WT3T1", "WT3P1"}) {
-            EXPECT_NE(message.find(name), std::string::npos);
-        }
-    }
+    ASSERT_NO_THROW(loadDyr(simulation.get(), file.string(), BasicReaderInfo{}));
     std::filesystem::remove(file);
-    EXPECT_EQ(dynamic_cast<RenewableGenerator*>(simulation->getBus(0)->getGen(0)), nullptr);
+    auto* generator = dynamic_cast<RenewableGenerator*>(simulation->getBus(0)->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    EXPECT_NE(dynamic_cast<WT3G1*>(generator->find("electrical")), nullptr);
+    EXPECT_NE(dynamic_cast<WT3E1*>(generator->find("electrical_control")), nullptr);
+}
 
-    auto dyd = file;
-    dyd.replace_extension(".dyd");
+TEST(RenewableModels, DyrLoadsDedicatedType4WindElectricalModels)
+{
+    auto simulation = renewableDyrSimulation();
+    const auto file = std::filesystem::temp_directory_path() /
+        ("griddyn_wt4_" + std::to_string(simulation->getID()) + ".dyr");
     {
-        std::ofstream output(dyd);
-        output << "wt3e 101 \"bus101\" 13.8 \"1\" : #9 0 1 1 0 /\n";
+        std::ofstream output(file);
+        output << "101 'WT4G1' '1' 100 0.02 0.02 0.4 0.8 1.0 1.2 0.0 10.0 0.02 /\n";
+        output << "101 'WT4E1' '1' 0 0 1 0 0.02 1.0 0.1 1.0 0.1 0.0 0.02 "
+                  "999 -999 2.0 0.02 999 -999 0.02 0.0 0.9 1.1 0.0 0.02 0.02 2.0 2.0 2.0 /\n";
     }
-    try {
-        loadDyd(simulation.get(), dyd.string(), BasicReaderInfo{});
-        FAIL() << "WT3 DYD must remain unsupported";
-    }
-    catch (const InvalidParameterValue& error) {
-        EXPECT_NE(std::string{error.what()}.find("WT3E"), std::string::npos);
-    }
-    std::filesystem::remove(dyd);
+    ASSERT_NO_THROW(loadDyr(simulation.get(), file.string(), BasicReaderInfo{}));
+    std::filesystem::remove(file);
+    auto* generator = dynamic_cast<RenewableGenerator*>(simulation->getBus(0)->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    EXPECT_NE(dynamic_cast<WT4G1*>(generator->find("electrical")), nullptr);
+    EXPECT_NE(dynamic_cast<WT4E1*>(generator->find("electrical_control")), nullptr);
+}
+
+TEST(RenewableModels, Type3AndType4WindHostsInitializeAtSteadyState)
+{
+    const auto initializeAndCheck = [](RenewableGenerator& host) {
+        host.dynInitializeA(0.0, 0);
+        IOdata fields;
+        host.dynInitializeB({1.0, 0.0}, {0.8, 0.1}, fields);
+        host.setOffset(0, cDaeSolverMode);
+        std::vector<double> state(host.stateSize(cDaeSolverMode));
+        std::vector<double> rate(state.size());
+        host.guessState(0.0, state.data(), rate.data(), cDaeSolverMode);
+        StateData data(0.0, state.data(), rate.data());
+        data.stateSize = static_cast<count_t>(state.size());
+        std::vector<double> residual(state.size());
+        host.residual({1.0, 0.0}, data, residual.data(), cDaeSolverMode);
+        for (const auto value : residual) {
+            EXPECT_NEAR(value, 0.0, 1e-8);
+        }
+    };
+
+    RenewableGenerator type3;
+    type3.add(new WT3G1);
+    type3.add(new WT3E1);
+    initializeAndCheck(type3);
+
+    RenewableGenerator type4;
+    type4.add(new WT4G1);
+    type4.add(new WT4E1);
+    initializeAndCheck(type4);
+}
+
+TEST(RenewableModels, Type3AndType4WindHostDaeJacobiansMatchResiduals)
+{
+    const auto checkJacobian = [](RenewableGenerator& host) {
+        host.dynInitializeA(0.0, 0);
+        IOdata fields;
+        host.dynInitializeB({1.0, 0.0}, {0.8, 0.1}, fields);
+        host.setOffset(0, cDaeSolverMode);
+        std::vector<double> state(host.stateSize(cDaeSolverMode));
+        std::vector<double> rate(state.size());
+        host.guessState(0.0, state.data(), rate.data(), cDaeSolverMode);
+        StateData data(0.0, state.data(), rate.data());
+        data.stateSize = static_cast<count_t>(state.size());
+        data.cj = 1.0;
+        MatrixDataSparse<double> jacobian;
+        host.jacobianElements({1.0, 0.0}, data, jacobian, {20, 21}, cDaeSolverMode);
+        const auto residualAt = [&](const IOdata& input,
+                                    const std::vector<double>& values,
+                                    const std::vector<double>& rates) {
+            StateData trial(0.0, values.data(), rates.data());
+            trial.stateSize = static_cast<count_t>(values.size());
+            std::vector<double> residual(values.size());
+            host.residual(input, trial, residual.data(), cDaeSolverMode);
+            return residual;
+        };
+        const IOdata baseInput{1.0, 0.0};
+        const auto base = residualAt(baseInput, state, rate);
+        constexpr double step = 1e-7;
+        for (std::size_t column = 0; column < state.size(); ++column) {
+            auto shifted = state;
+            auto shiftedRate = rate;
+            shifted[column] += step;
+            shiftedRate[column] += step;
+            const auto residual = residualAt(baseInput, shifted, shiftedRate);
+            for (std::size_t row = 0; row < state.size(); ++row) {
+                EXPECT_NEAR(jacobian.at(static_cast<index_t>(row), static_cast<index_t>(column)),
+                            (residual[row] - base[row]) / step,
+                            3e-4)
+                    << "row " << row << " column " << column;
+            }
+        }
+        for (std::size_t inputIndex = 0; inputIndex < baseInput.size(); ++inputIndex) {
+            auto shiftedInput = baseInput;
+            shiftedInput[inputIndex] += step;
+            const auto residual = residualAt(shiftedInput, state, rate);
+            const auto column = static_cast<index_t>(20 + inputIndex);
+            for (std::size_t row = 0; row < state.size(); ++row) {
+                EXPECT_NEAR(jacobian.at(static_cast<index_t>(row), column),
+                            (residual[row] - base[row]) / step,
+                            3e-4)
+                    << "input " << inputIndex << " row " << row;
+            }
+        }
+    };
+
+    RenewableGenerator type3;
+    type3.add(new WT3G1);
+    type3.add(new WT3E1);
+    checkJacobian(type3);
+
+    RenewableGenerator type4;
+    type4.add(new WT4G1);
+    type4.add(new WT4E1);
+    checkJacobian(type4);
 }
 
 TEST(RenewableModels, ThreeModelDaeJacobianIncludesSignalConnections)

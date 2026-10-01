@@ -35,6 +35,10 @@
 #include "griddyn/renewables/REGCP1.h"
 #include "griddyn/renewables/REPCA1.h"
 #include "griddyn/renewables/WTARA1.h"
+#include "griddyn/renewables/WT3E1.h"
+#include "griddyn/renewables/WT3G1.h"
+#include "griddyn/renewables/WT4E1.h"
+#include "griddyn/renewables/WT4G1.h"
 #include "griddyn/renewables/WTDS.h"
 #include "griddyn/renewables/WTDTA1.h"
 #include "griddyn/renewables/WTPTA1.h"
@@ -271,6 +275,14 @@ namespace detail {
             loadRenewable(parentObject, lineTokens, "WTPTA1");
         } else if (type == "'WTTQA1'") {
             loadRenewable(parentObject, lineTokens, "WTTQA1");
+        } else if (type == "'WT3G1'") {
+            loadRenewable(parentObject, lineTokens, "WT3G1");
+        } else if (type == "'WT3E1'") {
+            loadRenewable(parentObject, lineTokens, "WT3E1");
+        } else if (type == "'WT4G1'") {
+            loadRenewable(parentObject, lineTokens, "WT4G1");
+        } else if (type == "'WT4E1'") {
+            loadRenewable(parentObject, lineTokens, "WT4E1");
         } else {
             return false;
         }
@@ -567,6 +579,18 @@ namespace {
              "kvp",    "kvi",   "tiq",   "dpmax",  "dpmin", "pmax", "pmin", "imax", "tpord"});
         static constexpr auto wtdtaFields =
             std::to_array<std::string_view>({"h", "damp", "htfrac", "freq1", "dshaft"});
+        static constexpr auto wt3gFields =
+            std::to_array<std::string_view>({"xeq", "kpll", "kipll", "pllmax", "prated"});
+        static constexpr auto wt3eFields = std::to_array<std::string_view>(
+            {"tfv", "kpv", "kiv", "xc", "tfp", "kpp", "kip", "pmx", "pmn", "qmx", "qmn",
+             "ipmax", "trv", "rpmx", "rpmn", "tpower", "kqi", "vmincl", "vmaxcl", "kqv",
+             "xiqmin", "xiqmax", "tv", "tp", "fn", "wpmin", "wp20", "wp40", "wp60",
+             "pminspeed", "wp100"});
+        static constexpr auto wt4gFields = std::to_array<std::string_view>(
+            {"tiqcmd", "tipcmd", "vlvpl1", "vlvpl2", "glvpl", "vhvrcr", "curhvrcr", "riplvpl", "tlvpl"});
+        static constexpr auto wt4eFields = std::to_array<std::string_view>(
+            {"tfv", "kpv", "kiv", "kpp", "kip", "kf", "tf", "qmx", "qmn", "ipmax", "trv",
+             "dpmx", "dpmn", "tpower", "kqi", "vmincl", "vmaxcl", "kvi", "tv", "tp", "imaxtd", "iphl", "iqhl"});
         static constexpr auto wtaraFields = std::to_array<std::string_view>({"ka", "theta0"});
         static constexpr auto wtptaFields = std::to_array<std::string_view>({"kiw",
                                                                              "kpw",
@@ -648,6 +672,16 @@ namespace {
             expected = 5U;
         } else if (modelName == "WTPTA1") {
             expected = 13U;
+        } else if (modelName == "WT3G1") {
+            expected = 9U;
+        } else if (modelName == "WT3E1") {
+            // PSS/E WT3E1 retains six leading machine/mode fields before the
+            // electrical-control parameter block used by WT3E1.
+            expected = 9U + wt3eFields.size();
+        } else if (modelName == "WT4G1") {
+            expected = 4U + wt4gFields.size();
+        } else if (modelName == "WT4E1") {
+            expected = 7U + wt4eFields.size();
         }
         if (tokens.size() != expected) {
             throw InvalidParameterValue(std::string{modelName} +
@@ -728,6 +762,23 @@ namespace {
             setFields(wtaraFields, 3);
         } else if (modelName == "WTPTA1") {
             setFields(wtptaFields, 3);
+        } else if (modelName == "WT3G1") {
+            // WIND_BASE at field 4 belongs to the generator machine base;
+            // the WT3G electrical equations start with XEQ.
+            setFields(wt3gFields, 4);
+        } else if (modelName == "WT3E1") {
+            model->set("varflg", params[3]);
+            model->set("vlrflg", params[4]);
+            setFields(wt3eFields, 9);
+        } else if (modelName == "WT4G1") {
+            // MBASE is represented by RenewableGenerator::machineBasePower.
+            setFields(wt4gFields, 4);
+        } else if (modelName == "WT4E1") {
+            model->set("pfaflg", params[3]);
+            model->set("varflg", params[4]);
+            model->set("pqflag", params[5]);
+            model->set("pssematch", params[6]);
+            setFields(wt4eFields, 7);
         } else {
             setFields(wttqaFields, 3);
         }

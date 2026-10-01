@@ -29,14 +29,14 @@ All 1,742 `GGOV1` records use `TENG=0`, all 202 `ESDC2A` records use
 unsupported options in the corresponding GridDyn models. Other numeric
 parameters and initial conditions are not yet certified by this audit.
 
-| Renewable model | DYR records | Current GridDyn status                                                                                                                                                                                           |
-| --------------- | ----------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| REGCA1          |         614 | Reader and converter exist. `Accel=0.8` is accepted as a numerical parameter. Zero reactive recovery limits are treated as disabled. Trajectories need validation.                                               |
-| REECA1          |         614 | Reader, constant-Q branch, zeroed VDL tables, `Tpord=0`, and the `Thld2=0.5` active-current hold are implemented. The case profile initializes in a reader test; disturbance trajectories still need validation. |
-| WT3G1           |         119 | Dedicated Type-3 electrical interface, PSS/E DYR mapping, PLL/equivalent-reactance path, steady-state initialization, and host-Jacobian tests are implemented. Full-plant validation remains blocked by WT3T1/WT3P1. |
+| Renewable model | DYR records | Current GridDyn status                                                                                                                                                                                                 |
+| --------------- | ----------: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| REGCA1          |         614 | Reader and converter exist. `Accel=0.8` is accepted as a numerical parameter. Zero reactive recovery limits are treated as disabled. Trajectories need validation.                                                     |
+| REECA1          |         614 | Reader, constant-Q branch, zeroed VDL tables, `Tpord=0`, and the `Thld2=0.5` active-current hold are implemented. The case profile initializes in a reader test; disturbance trajectories still need validation.       |
+| WT3G1           |         119 | Dedicated Type-3 electrical interface, PSS/E DYR mapping, PLL/equivalent-reactance path, steady-state initialization, and host-Jacobian tests are implemented. Full-plant validation remains blocked by WT3T1/WT3P1.   |
 | WT3E1           |         119 | Dedicated Type-3 electrical controller, PSS/E DYR mapping, initialization-command handoff, steady-state initialization, and host-Jacobian tests are implemented. Full-plant validation remains blocked by WT3T1/WT3P1. |
-| WT3T1           |         119 | No reader or Type-3 turbine implementation.                                                                                                                                                                      |
-| WT3P1           |         119 | No reader or Type-3 pitch implementation.                                                                                                                                                                        |
+| WT3T1           |         119 | No reader or Type-3 turbine implementation.                                                                                                                                                                            |
+| WT3P1           |         119 | No reader or Type-3 pitch implementation.                                                                                                                                                                              |
 
 The 614 `REGCA1`/`REECA1` pairs represent one renewable family and the 119
 four-record `WT3*` bundles represent a separate Type-3 wind family. The
@@ -106,10 +106,10 @@ The local test corpus at
 shapes, but not the model specifications. Representative records in the
 `EI_NPCC_WIND20_WT3G1.dyr` and `WECC_WIND10.dyr` fixtures are:
 
-| Record | Status values observed | Positional values after status | Evidence currently established |
-| ------ | ---------------------- | ------------------------------ | ------------------------------- |
-| `WT3T1` | `1`, `Z` | `1.25, 4.95, 0, 0.007, 21.98, 0, 1.8, 1.5` | Eight-field schema and repeatable case values; parameter names, equations, signs, and initialization are still unverified. |
-| `WT3P1` | `1`, `Z` | `0.3, 150, 25, 3, 30, 0, 27, 10, 1` | Nine-field schema and repeatable case values; parameter names, equations, limits, flags, and initialization are still unverified. |
+| Record  | Status values observed | Positional values after status             | Evidence currently established                                                                                                    |
+| ------- | ---------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| `WT3T1` | `1`, `Z`               | `1.25, 4.95, 0, 0.007, 21.98, 0, 1.8, 1.5` | Eight-field schema and repeatable case values; parameter names, equations, signs, and initialization are still unverified.        |
+| `WT3P1` | `1`, `Z`               | `0.3, 150, 25, 3, 30, 0, 27, 10, 1`        | Nine-field schema and repeatable case values; parameter names, equations, limits, flags, and initialization are still unverified. |
 
 An older OpenIPSL history artifact,
 `OpenIPSL/Electrical/Wind/PSSE/WT1G/WT12T1.mo` (commit `56e4cd9`), has a

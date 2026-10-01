@@ -8,6 +8,7 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "griddyn/Generator.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/GridArea.h"
 #include "griddyn/Link.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/links/AdjustableTransformer.h"
@@ -31,6 +32,26 @@ using namespace griddyn;
 using namespace gmlc::utilities;
 
 class InputTests: public GridDynSimulationTestFixture, public ::testing::Test {};
+
+TEST_F(InputTests, InterAreaTransferLoadsFromRaw)
+{
+    gds = std::make_unique<GridDynSimulation>();
+    loadFile(gds.get(), std::string(INPUT_TEST_DIRECTORY "raw_interarea_transfer.raw"));
+    auto* fromArea = dynamic_cast<GridArea*>(gds->findByUserID("area", 1));
+    ASSERT_NE(fromArea, nullptr);
+    ASSERT_TRUE(fromArea->getScheduledNetInterchangeMW().has_value());
+    EXPECT_DOUBLE_EQ(*fromArea->getScheduledNetInterchangeMW(), 50.0);
+    ASSERT_TRUE(fromArea->getInterchangeToleranceMW().has_value());
+    EXPECT_DOUBLE_EQ(*fromArea->getInterchangeToleranceMW(), 1.0);
+    const auto& transfers = gds->getInterAreaTransfers();
+    ASSERT_EQ(transfers.size(), 1U);
+    EXPECT_EQ(transfers[0].fromAreaID, 1);
+    EXPECT_EQ(transfers[0].toAreaID, 2);
+    EXPECT_EQ(transfers[0].transferID, "T1");
+    EXPECT_DOUBLE_EQ(transfers[0].scheduledMW, -37.5);
+    EXPECT_EQ(transfers[0].fromArea, gds->findByUserID("area", 1));
+    EXPECT_EQ(transfers[0].toArea, gds->findByUserID("area", 2));
+}
 
 struct PowerFlowInputCase {
     std::string_view fileName;

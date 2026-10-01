@@ -733,7 +733,7 @@ void GridComponent::set(std::string_view param, double val, units::unit unitType
     } else if ((param == "basefreq") || (param == "basefrequency") ||
                (param == "systembasefrequency")) {
         systemBaseFrequency = units::convert(val, unitType, units::rad / units::s);
-        setAll("all", "basefreq", systemBasePower);
+        setAll("all", "basefreq", systemBaseFrequency, units::rad / units::s);
     } else if (subObjectSet(param, val, unitType)) {
         return;
     } else {

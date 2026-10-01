@@ -18,11 +18,15 @@
 
 namespace griddyn {
 namespace {
-    constexpr std::array<RenewablePort, 4> inputPortsDefinition{{
+    constexpr std::array<RenewablePort, 5> inputPortsDefinition{{
         {.signal = RenewableSignal::terminalVoltage, .ioIndex = 0},
         {.signal = RenewableSignal::terminalAngle, .ioIndex = 1},
         {.signal = RenewableSignal::terminalFrequency, .ioIndex = 2},
         {.signal = RenewableSignal::regulationVoltage, .ioIndex = 3, .required = false},
+        {.signal = RenewableSignal::activeReference,
+         .ioIndex = 4,
+         .base = RenewableBase::machine,
+         .required = false},
     }};
     constexpr std::array<RenewablePort, 2> outputs{{
         {.signal = RenewableSignal::electricalPower, .ioIndex = 0, .base = RenewableBase::machine},
@@ -42,7 +46,7 @@ namespace {
 DistributedConverter::DistributedConverter(Variant type, const std::string& name):
     TerminalElectricalModel(name), variant(type)
 {
-    m_inputSize = 4;
+    m_inputSize = 5;
     if (variant == Variant::ev1 || variant == Variant::ev2) {
         pmn = -999.0;
     }
@@ -334,7 +338,9 @@ void DistributedConverter::evaluate(const IOdata& inputs,
     } else if (variant == Variant::storage) {
         lowerPower = -pmx;
     }
-    const double pTarget = std::clamp(pref + paux + pDroop, lowerPower, upperPower);
+    const double scheduledPower =
+        inputs.size() > 4 && inputs[4] != kNullVal ? inputs[4] : pref;
+    const double pTarget = std::clamp(scheduledPower + paux + pDroop, lowerPower, upperPower);
     const double qTarget = std::clamp(qref + qdroop, qmn, qmx);
     const double voltageCurve =
         lowerTrip(regulationVoltage, vt0, vt1) * upperTrip(regulationVoltage, vt2, vt3);

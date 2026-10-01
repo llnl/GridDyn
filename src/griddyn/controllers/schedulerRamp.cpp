@@ -8,10 +8,13 @@
 #include "AGControl.h"
 #include "ReserveDispatcher.h"
 #include "Scheduler.h"
+#include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "gmlc/utilities/stringOps.h"
 #include <algorithm>
+#include <cmath>
+#include <limits>
 #include <memory>
 #include <string>
 
@@ -21,6 +24,13 @@ SchedulerRamp::SchedulerRamp(const std::string& objName): Scheduler(objName) {}
 SchedulerRamp::SchedulerRamp(double initialValue, const std::string& objName):
     Scheduler(initialValue, objName)
 {
+}
+
+SchedulerRamp::~SchedulerRamp()
+{
+    if (reserveDispatcher != nullptr) {
+        reserveDispatcher->remove(this);
+    }
 }
 
 CoreObject* SchedulerRamp::clone(CoreObject* obj) const
@@ -46,6 +56,9 @@ CoreObject* SchedulerRamp::clone(CoreObject* obj) const
     nobj->ramp30Up = ramp30Up;
     nobj->ramp10Down = ramp10Down;
     nobj->ramp30Down = ramp30Down;
+    nobj->rampCompletionPending = rampCompletionPending;
+    nobj->rampCompletionTime = rampCompletionTime;
+    nobj->reserveDispatcher = nullptr;
 
     return nobj;
 }
@@ -114,10 +127,7 @@ void SchedulerRamp::dynObjectInitializeB(const IOdata& inputs,
 {
     Scheduler::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
     if (reserveAvail > 0) {
-        //  if (resDispatch==nullptr)
-        //  {
-        //      reserveDispatcherLink();
-        //  }
+        reserveDispatcherLink();
     }
     while (!pTarget.empty()) {
         if ((pTarget.front()).time < prevTime) {
@@ -135,9 +145,9 @@ double SchedulerRamp::getRamp() const
     double ramp = pRampCurr;
     const double diff = reserveUse - reserveAct;
     if (diff > 0.001) {
-        ramp = rampUp;
+        ramp = getRampLimitUp();
     } else if (diff < -0.001) {
-        ramp = -rampDown;
+        ramp = -getRampLimitDown();
     }
 
     return ramp;
@@ -147,10 +157,12 @@ double SchedulerRamp::getRampTime() const
 {
     const double diff = reserveUse - reserveAct;
     if (diff > 0.001) {
-        return diff / (rampUp - pRampCurr);
+        const double rate = getRampLimitUp() - pRampCurr;
+        return (rate > 0.0) ? diff / rate : static_cast<double>(kDayLength);
     }
     if (diff < -0.001) {
-        return diff / (-rampDown - pRampCurr);
+        const double rate = -getRampLimitDown() - pRampCurr;
+        return (rate < 0.0) ? diff / rate : static_cast<double>(kDayLength);
     }
 
     if (pTarget.empty()) {
@@ -160,9 +172,23 @@ double SchedulerRamp::getRampTime() const
     return (pTarget.front()).time - prevTime;
 }
 
+double SchedulerRamp::getRampLimitUp() const
+{
+    double limit = std::min({rampUp, ramp10Up / 600.0, ramp30Up / 1800.0});
+    if (reserveAvail >= 0.001) {
+        limit -= (reserveAvail - reserveUse) / reserveRampTime;
+    }
+    return std::max(0.0, limit);
+}
+
+double SchedulerRamp::getRampLimitDown() const
+{
+    return std::max(0.0, std::min({rampDown, ramp10Down / 600.0, ramp30Down / 1800.0}));
+}
+
 double SchedulerRamp::getMax(const CoreTime /*time*/) const
 {
-    return pMax;
+    return pMax - reserveAvail;
 }
 
 double SchedulerRamp::getMin(CoreTime /*time*/) const
@@ -172,10 +198,13 @@ double SchedulerRamp::getMin(CoreTime /*time*/) const
 
 void SchedulerRamp::setReserveTarget(double target)
 {
-    if (target <= reserveAvail) {
-        reserveUse = target;
-    } else {
-        reserveUse = reserveAvail;
+    if (!std::isfinite(target) || target < 0.0) {
+        throw InvalidParameterValue("scheduler reserve target must be finite and nonnegative");
+    }
+    reserveUse = std::clamp(target, 0.0, reserveAvail);
+    updatePTarget();
+    if (reserveDispatcher != nullptr) {
+        reserveDispatcher->schedChange();
     }
 }
 
@@ -183,95 +212,153 @@ void SchedulerRamp::set(std::string_view param, std::string_view val)
 {
     if (param == "rampmode") {
         const auto modeString = gmlc::utilities::convertToLowerCase(val);
+        RampMode newMode;
         if (modeString == "midpoint") {
-            mode = MID_POINT;
-        } else if (modeString == "justInTime") {
-            mode = JUST_IN_TIME;
+            newMode = MID_POINT;
+        } else if (modeString == "justintime") {
+            newMode = JUST_IN_TIME;
         } else if (modeString == "ontargetramp") {
-            mode = ON_TARGET_RAMP;
+            newMode = ON_TARGET_RAMP;
         } else if (modeString == "delayed") {
-            mode = DELAYED;
+            newMode = DELAYED;
         } else if (modeString == "interp") {
-            mode = INTERP;
+            newMode = INTERP;
+        } else {
+            throw InvalidParameterValue("unsupported scheduler ramp mode");
         }
+        mode = newMode;
+        rampCompletionPending = false;
+        rampCompletionTime = maxTime;
+        updatePTarget();
     } else {
         Scheduler::set(param, val);
     }
 }
 
-void SchedulerRamp::dispatcherLink() {}
+void SchedulerRamp::dispatcherLink()
+{
+    reserveDispatcherLink();
+}
+
+void SchedulerRamp::reserveDispatcherLink()
+{
+    auto* dispatcher = dynamic_cast<ReserveDispatcher*>(find("reservedispatcher"));
+    if (reserveDispatcher != nullptr && reserveDispatcher != dispatcher) {
+        reserveDispatcher->remove(this);
+    }
+    if (dispatcher != nullptr && reserveAvail > 0.0) {
+        dispatcher->add(this);
+    } else if (reserveDispatcher != nullptr) {
+        reserveDispatcher->remove(this);
+    }
+}
 
 void SchedulerRamp::set(std::string_view param, double val, units::unit unitType)
 {
-    double temp;
-    if (param == "ramp") {
-        rampUp = units::convert(val, unitType, units::puMW / units::s, m_Base);
-        rampDown = rampUp;
-    } else if (param == "rampup") {
-        rampUp = val;
-    } else if (param == "rampdown") {
-        rampDown = val;
-        if (rampDown < 0) {
-            rampDown = -rampDown;
-        }
-    }
-    if (param == "ramp10") {
-        temp = val;
-        ramp10Up = temp;
-        ramp10Down = temp;
-    } else if (param == "ramp10up") {
-        ramp10Up = val;
-    } else if (param == "ramp10down") {
-        ramp10Down = val;
-        if (ramp10Down < 0) {
-            ramp10Down = -ramp10Down;
-        }
+    if (!std::isfinite(val)) {
+        throw InvalidParameterValue("scheduler ramp parameters must be finite");
     }
 
-    if (param == "ramp30") {
-        temp = val;
-        ramp30Up = temp;
-        ramp30Down = temp;
+    if (param == "ramp") {
+        const double rate = units::convert(val, unitType, units::puMW / units::s, m_Base);
+        if (!std::isfinite(rate) || rate < 0.0) {
+            throw InvalidParameterValue("scheduler ramp rates must be nonnegative");
+        }
+        rampUp = rate;
+        rampDown = rampUp;
+    } else if (param == "rampup") {
+        const double rate = units::convert(val, unitType, units::puMW / units::s, m_Base);
+        if (!std::isfinite(rate) || rate < 0.0) {
+            throw InvalidParameterValue("scheduler ramp rates must be nonnegative");
+        }
+        rampUp = rate;
+    } else if (param == "rampdown") {
+        const double rate = units::convert(val, unitType, units::puMW / units::s, m_Base);
+        if (!std::isfinite(rate) || rate < 0.0) {
+            throw InvalidParameterValue("scheduler ramp rates must be nonnegative");
+        }
+        rampDown = rate;
+    } else if (param == "ramp10") {
+        const double amount = units::convert(val, unitType, units::puMW, m_Base);
+        if (!std::isfinite(amount) || amount < 0.0) {
+            throw InvalidParameterValue("scheduler 10-minute ramp limits must be nonnegative");
+        }
+        ramp10Up = amount;
+        ramp10Down = amount;
+    } else if (param == "ramp10up") {
+        const double amount = units::convert(val, unitType, units::puMW, m_Base);
+        if (!std::isfinite(amount) || amount < 0.0) {
+            throw InvalidParameterValue("scheduler 10-minute ramp limits must be nonnegative");
+        }
+        ramp10Up = amount;
+    } else if (param == "ramp10down") {
+        const double amount = units::convert(val, unitType, units::puMW, m_Base);
+        if (!std::isfinite(amount) || amount < 0.0) {
+            throw InvalidParameterValue("scheduler 10-minute ramp limits must be nonnegative");
+        }
+        ramp10Down = amount;
+    } else if (param == "ramp30") {
+        const double amount = units::convert(val, unitType, units::puMW, m_Base);
+        if (!std::isfinite(amount) || amount < 0.0) {
+            throw InvalidParameterValue("scheduler 30-minute ramp limits must be nonnegative");
+        }
+        ramp30Up = amount;
+        ramp30Down = amount;
     } else if (param == "ramp30up") {
-        ramp30Up = val;
+        const double amount = units::convert(val, unitType, units::puMW, m_Base);
+        if (!std::isfinite(amount) || amount < 0.0) {
+            throw InvalidParameterValue("scheduler 30-minute ramp limits must be nonnegative");
+        }
+        ramp30Up = amount;
     } else if (param == "ramp30down") {
-        ramp30Down = val;
-        if (ramp30Down < 0) {
-            ramp30Down = -ramp30Down;
+        const double amount = units::convert(val, unitType, units::puMW, m_Base);
+        if (!std::isfinite(amount) || amount < 0.0) {
+            throw InvalidParameterValue("scheduler 30-minute ramp limits must be nonnegative");
         }
+        ramp30Down = amount;
     } else if (param == "ramptime") {
-        rampTime = val;
-    } else if (param == "target") {
-        setTarget(val);
-    } else if (param == "reserve") {
-        temp = val;
-        // check to updateP the reservedispatcher
-        if (temp != reserveAvail) {
-            /*
-            if (reserveAvail==0)
-            {
-                reserveAvail=temp;
-                if (resDispatch==nullptr)
-                {
-                    reserveDispatcherLink(nullptr);
-                }
-            }
-            else
-            {
-                reserveAvail=temp;
-                if (resDispatch!=nullptr)
-                {
-                    resDispatch->schedChange();
-                }
-            }
-            */
+        const double seconds = units::convert(
+            val, unitType == units::defunit ? units::s : unitType, units::s);
+        if (!std::isfinite(seconds) || seconds <= 0.0) {
+            throw InvalidParameterValue("scheduler ramp time must be positive");
         }
+        rampTime = seconds;
+    } else if (param == "target") {
+        Scheduler::set(param, val, unitType);
+    } else if (param == "reserve") {
+        const double amount = units::convert(val, unitType, units::puMW, m_Base);
+        if (!std::isfinite(amount) || amount < 0.0 || amount > pMax - pMin) {
+            throw InvalidParameterValue(
+                "scheduler reserve must be nonnegative and fit within its power range");
+        }
+        reserveAvail = amount;
+        reserveUse = std::min(reserveUse, reserveAvail);
+        pCurr = std::clamp(pCurr, pMin, pMax - reserveAvail);
     } else if (param == "reserveramptime") {
-        reserveRampTime = val;
+        const double seconds = units::convert(
+            val, unitType == units::defunit ? units::s : unitType, units::s);
+        if (!std::isfinite(seconds) || seconds <= 0.0) {
+            throw InvalidParameterValue("scheduler reserve ramp time must be positive");
+        }
+        reserveRampTime = seconds;
+    } else if ((param == "max") || (param == "min")) {
+        const double bound = units::convert(val, unitType, units::puMW, m_Base);
+        if (!std::isfinite(bound) ||
+            (param == "max" && bound - reserveAvail < pMin) ||
+            (param == "min" && bound > pMax - reserveAvail)) {
+            throw InvalidParameterValue("scheduler power bounds conflict with reserve");
+        }
+        Scheduler::set(param, val, unitType);
     } else {
-        Scheduler::set(param, val);
+        Scheduler::set(param, val, unitType);
     }
     updatePTarget();
+    if (param == "reserve") {
+        reserveDispatcherLink();
+        if (reserveDispatcher != nullptr) {
+            reserveDispatcher->schedChange();
+        }
+    }
 }
 
 void SchedulerRamp::setTarget(const std::string& fileName)
@@ -288,14 +375,48 @@ void SchedulerRamp::updatePTarget()
     double target;
     CoreTime time;
     double targetSpan;
-    double rampLimitUp;
+    const double rampLimitUp = getRampLimitUp();
+    const double rampLimitDown = getRampLimitDown();
+    const auto boundedRate = [rampLimitUp, rampLimitDown](double difference, double rate) {
+        if (difference > 0.0) {
+            if (!std::isfinite(rate) || rate <= 0.0) {
+                rate = rampLimitUp;
+            }
+            return std::clamp(rate, 0.0, rampLimitUp);
+        }
+        if (!std::isfinite(rate) || rate >= 0.0) {
+            rate = -rampLimitDown;
+        }
+        return std::clamp(rate, -rampLimitDown, 0.0);
+    };
+    const auto completionDelay = [](double difference, double rate) {
+        if (std::abs(difference) <= 1.0e-12) {
+            return 0.0;
+        }
+        if (!std::isfinite(rate) || difference * rate <= 0.0) {
+            return std::numeric_limits<double>::infinity();
+        }
+        const double delay = difference / rate;
+        return (delay > 0.0 && std::isfinite(delay)) ? delay :
+            std::numeric_limits<double>::infinity();
+    };
 
-    if (reserveAvail < 0.001) {
-        rampLimitUp = rampUp;
-    } else if (reserveUse == 0) {
-        rampLimitUp = rampUp - reserveAvail / reserveRampTime;
-    } else {
-        rampLimitUp = rampUp - (reserveAvail - reserveUse) / reserveRampTime;
+    if (rampCompletionPending) {
+        if (prevTime >= rampCompletionTime) {
+            rampCompletionPending = false;
+            rampCompletionTime = maxTime;
+            pRampCurr = 0.0;
+            nextUpdateTime = pTarget.empty() ? maxTime : pTarget.front().time;
+            return;
+        }
+        if (pTarget.empty() || pTarget.front().time > prevTime) {
+            nextUpdateTime = pTarget.empty() ? rampCompletionTime :
+                std::min(rampCompletionTime, pTarget.front().time);
+            return;
+        }
+        // A newly due target replaces the target whose ramp was in progress.
+        rampCompletionPending = false;
+        rampCompletionTime = maxTime;
     }
     if (pTarget.empty()) {
         pRampCurr = 0;
@@ -320,20 +441,55 @@ void SchedulerRamp::updatePTarget()
             rempower = 0.0;
         }
         lastTargetTime = time;
-        if (pTarget.empty()) {
+        if (mode == ON_TARGET_RAMP) {
+            if (rempower == 0.0) {
+                pRampCurr = 0.0;
+                nextUpdateTime = pTarget.empty() ? maxTime : pTarget.front().time;
+                return;
+            }
+            pRampCurr = (rempower > 0.0) ? rampLimitUp : -rampLimitDown;
+            remtime = completionDelay(rempower, pRampCurr);
+            if (std::isfinite(remtime)) {
+                rampCompletionPending = true;
+                rampCompletionTime = prevTime + remtime;
+                nextUpdateTime = pTarget.empty() ? rampCompletionTime :
+                    std::min(rampCompletionTime, pTarget.front().time);
+            } else {
+                pRampCurr = 0.0;
+                nextUpdateTime = pTarget.empty() ? maxTime : pTarget.front().time;
+            }
+            return;
+        }
+        while (!pTarget.empty() && pTarget.front().time <= prevTime) {
+            target = pTarget.front().target;
+            time = pTarget.front().time;
+            pTarget.pop_front();
+            target = std::clamp(target, pMin, pMax - reserveAvail);
+            rempower = target - pCurr;
+            if (std::abs(rempower) <= 0.0001) {
+                rempower = 0.0;
+            }
+            lastTargetTime = time;
+        }
+        if (!pTarget.empty()) {
             target = (pTarget.front()).target;
             time = (pTarget.front()).time;
-            if (target > (pMax - reserveAvail)) {
-                target = (pMax - reserveAvail);
-            } else if (target < pMin) {
-                target = pMin;
-            }
+            target = std::clamp(target, pMin, pMax - reserveAvail);
         } else {
             if (rempower != 0.0) {
-                // assume we were ramp limited so just keep ramping
-                remtime = rempower / pRampCurr;
-                insertTarget(Tsched(target, prevTime + remtime));
-                nextUpdateTime = prevTime + remtime;
+                // Continue the ramp to the final requested target.
+                if (rempower * pRampCurr <= 0.0) {
+                    pRampCurr = (rempower > 0.0) ? rampLimitUp : -rampLimitDown;
+                }
+                remtime = completionDelay(rempower, pRampCurr);
+                if (std::isfinite(remtime)) {
+                    const CoreTime completionTime = prevTime + remtime;
+                    insertTarget(Tsched(completionTime, target));
+                    nextUpdateTime = completionTime;
+                } else {
+                    pRampCurr = 0.0;
+                    nextUpdateTime = maxTime;
+                }
             } else {
                 pRampCurr = 0;
                 nextUpdateTime = maxTime;
@@ -343,6 +499,11 @@ void SchedulerRamp::updatePTarget()
     }
     const double targetDeltaTime = (time - prevTime);
     const double powerDifference = target - pCurr;
+    if (targetDeltaTime <= 0.0) {
+        pRampCurr = 0.0;
+        nextUpdateTime = maxTime;
+        return;
+    }
     if (rempower == 0.0) {
         if ((powerDifference < 0.0001) && (powerDifference > -0.0001)) {
             pRampCurr = 0;
@@ -357,16 +518,20 @@ void SchedulerRamp::updatePTarget()
             pRampCurr = powerDifference / targetDeltaTime;
             if (pRampCurr > rampLimitUp) {
                 pRampCurr = rampLimitUp;
-            } else if (pRampCurr < -rampDown) {
-                pRampCurr = -rampDown;
+            } else if (pRampCurr < -rampLimitDown) {
+                pRampCurr = -rampLimitDown;
             }
             break;
         case MID_POINT:
             if (targetDeltaTime >= rampTime) {
                 if (rempower != 0.0) {
                     /*keep ramp until we would begin ramping for the next target*/
-                    remtime = rempower / pRampCurr;
-                    if (remtime < ((targetDeltaTime - rampTime) / 2.0)) {
+                    pRampCurr = boundedRate(rempower, pRampCurr);
+                    remtime = completionDelay(rempower, pRampCurr);
+                    if (!std::isfinite(remtime)) {
+                        pRampCurr = 0.0;
+                        nextUpdateTime = time;
+                    } else if (remtime < ((targetDeltaTime - rampTime) / 2.0)) {
                         nextUpdateTime = prevTime + remtime;
                     } else {
                         nextUpdateTime = prevTime + ((targetDeltaTime - rampTime) / 2.0);
@@ -379,14 +544,15 @@ void SchedulerRamp::updatePTarget()
                             pRampCurr = powerDifference / rampTime;
                             if (pRampCurr > rampLimitUp) {
                                 pRampCurr = rampLimitUp;
-                            } else if (pRampCurr < -rampDown) {
-                                pRampCurr = -rampDown;
+                            } else if (pRampCurr < -rampLimitDown) {
+                                pRampCurr = -rampLimitDown;
                             }
                             nextUpdateTime =
                                 lastTargetTime + (targetSpan - rampTime) / 2.0 + rampTime;
                         } else {
-                            remtime = powerDifference / pRampCurr;
-                            nextUpdateTime = prevTime + remtime;
+                            pRampCurr = boundedRate(powerDifference, pRampCurr);
+                            remtime = completionDelay(powerDifference, pRampCurr);
+                            nextUpdateTime = std::isfinite(remtime) ? prevTime + remtime : time;
                             if (time < nextUpdateTime) {
                                 nextUpdateTime = time;
                             }
@@ -399,8 +565,9 @@ void SchedulerRamp::updatePTarget()
             } else {
                 targetSpan = time - lastTargetTime;
                 if (prevTime >= (lastTargetTime + (targetSpan - rampTime) / 2.0 + rampTime)) {
-                    remtime = powerDifference / pRampCurr;
-                    nextUpdateTime = prevTime + remtime;
+                    pRampCurr = boundedRate(powerDifference, pRampCurr);
+                    remtime = completionDelay(powerDifference, pRampCurr);
+                    nextUpdateTime = std::isfinite(remtime) ? prevTime + remtime : time;
                     if (time < nextUpdateTime) {
                         nextUpdateTime = time;
                     }
@@ -410,14 +577,14 @@ void SchedulerRamp::updatePTarget()
                         if (powerDifference > 0) {
                             pRampCurr = rampLimitUp;
                         } else {
-                            pRampCurr = -rampDown;
+                            pRampCurr = -rampLimitDown;
                         }
                     } else {
                         pRampCurr = powerDifference / targetDeltaTime;
                         if (pRampCurr > rampLimitUp) {
                             pRampCurr = rampLimitUp;
-                        } else if (pRampCurr < -rampDown) {
-                            pRampCurr = -rampDown;
+                        } else if (pRampCurr < -rampLimitDown) {
+                            pRampCurr = -rampLimitDown;
                         }
                     }
                 }
@@ -425,20 +592,17 @@ void SchedulerRamp::updatePTarget()
             break;
         case DELAYED:
             if (rempower != 0.0) {
-                if (rempower > 0.0) {
-                    remtime = rempower / rampLimitUp;
-                } else {
-                    remtime = rempower / rampDown;
-                }
+                const double rate = (rempower > 0.0) ? rampLimitUp : rampLimitDown;
+                remtime = (rate > 0.0) ? std::abs(rempower) / rate : targetDeltaTime;
                 if (remtime < rampTime) {
                     remtime = rampTime;
                 }
                 remtime = std::min(remtime, targetDeltaTime);
-                pRampCurr = rempower / remtime;
+                pRampCurr = (remtime > 0.0) ? rempower / remtime : 0.0;
                 if (pRampCurr > rampLimitUp) {
                     pRampCurr = rampLimitUp;
-                } else if (pRampCurr < -rampDown) {
-                    pRampCurr = -rampDown;
+                } else if (pRampCurr < -rampLimitDown) {
+                    pRampCurr = -rampLimitDown;
                 }
                 nextUpdateTime = prevTime + remtime;
             } else {
@@ -446,8 +610,32 @@ void SchedulerRamp::updatePTarget()
                 nextUpdateTime = time;
             }
             break;
-        case JUST_IN_TIME:
+        case JUST_IN_TIME: {
+            if (std::abs(powerDifference) <= 0.0001) {
+                pRampCurr = 0.0;
+                nextUpdateTime = time;
+                break;
+            }
+            const double rateLimit = (powerDifference > 0.0) ? rampLimitUp : rampLimitDown;
+            if (rateLimit <= 0.0) {
+                pRampCurr = 0.0;
+                nextUpdateTime = time;
+                break;
+            }
+            const double requiredTime = std::abs(powerDifference) / rateLimit;
+            const CoreTime rampStartTime = time - requiredTime;
+            if (prevTime < rampStartTime) {
+                pRampCurr = 0.0;
+                nextUpdateTime = rampStartTime;
+            } else {
+                pRampCurr = boundedRate(powerDifference, powerDifference / targetDeltaTime);
+                nextUpdateTime = time;
+            }
+            break;
+        }
         case ON_TARGET_RAMP:
+            pRampCurr = 0.0;
+            nextUpdateTime = time;
             break;
     }
 }
@@ -463,13 +651,43 @@ void SchedulerRamp::insertTarget(Tsched targetSchedule)
 
 double SchedulerRamp::get(std::string_view param, units::unit unitType) const
 {
-    double val = kNullVal;
     if (param == "reserve") {
-        val = reserveAvail;
-    } else {
-        val = Scheduler::get(param, unitType);
+        return units::convert(reserveAvail, units::puMW, unitType, m_Base);
     }
-    return val;
+    if (param == "ramp") {
+        return units::convert(rampUp, units::puMW / units::s, unitType, m_Base);
+    }
+    if (param == "rampup") {
+        return units::convert(rampUp, units::puMW / units::s, unitType, m_Base);
+    }
+    if (param == "rampdown") {
+        return units::convert(rampDown, units::puMW / units::s, unitType, m_Base);
+    }
+    if (param == "ramp10") {
+        return units::convert(std::min(ramp10Up, ramp10Down), units::puMW, unitType, m_Base);
+    }
+    if (param == "ramp10up") {
+        return units::convert(ramp10Up, units::puMW, unitType, m_Base);
+    }
+    if (param == "ramp10down") {
+        return units::convert(ramp10Down, units::puMW, unitType, m_Base);
+    }
+    if (param == "ramp30") {
+        return units::convert(std::min(ramp30Up, ramp30Down), units::puMW, unitType, m_Base);
+    }
+    if (param == "ramp30up") {
+        return units::convert(ramp30Up, units::puMW, unitType, m_Base);
+    }
+    if (param == "ramp30down") {
+        return units::convert(ramp30Down, units::puMW, unitType, m_Base);
+    }
+    if (param == "ramptime") {
+        return units::convert(rampTime, units::s, unitType);
+    }
+    if (param == "reserveramptime") {
+        return units::convert(reserveRampTime, units::s, unitType);
+    }
+    return Scheduler::get(param, unitType);
 }
 
 void SchedulerRamp::receiveMessage(std::uint64_t sourceID,

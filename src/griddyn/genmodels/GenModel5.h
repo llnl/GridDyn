@@ -51,6 +51,12 @@ class GenModel5: public GenModel4 {
                                  double update[],
                                  const SolverMode& sMode,
                                  double alpha) override;
+    double getFreq(const StateData& stateDataValue,
+                   const SolverMode& sMode,
+                   index_t* freqOffset = nullptr) const override;
+    double getAngle(const StateData& stateDataValue,
+                    const SolverMode& sMode,
+                    index_t* angleOffset = nullptr) const override;
 };
 
 }  // namespace griddyn::genmodels

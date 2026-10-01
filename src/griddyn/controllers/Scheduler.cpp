@@ -9,6 +9,7 @@
 #include "../comms/Communicator.h"
 #include "../comms/SchedulerMessage.h"
 #include "Dispatcher.h"
+#include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "gmlc/utilities/TimeSeries.hpp"
 #include "griddyn/griddyn-config.h"
@@ -117,6 +118,13 @@ void Scheduler::setTarget(CoreTime time, double target)
 
 void Scheduler::setTarget(std::vector<double>& time, std::vector<double>& target)
 {
+    if (time.size() != target.size()) {
+        throw InvalidParameterValue("scheduler target times and values must have equal lengths");
+    }
+    if (time.empty()) {
+        return;
+    }
+
     auto timeIter = time.begin();
     auto targetIter = target.begin();
     const auto timeEnd = time.end();
@@ -127,7 +135,7 @@ void Scheduler::setTarget(std::vector<double>& time, std::vector<double>& target
         ++targetIter;
     }
     pTarget.sort();
-    if (pTarget.front().time != nextUpdateTime) {
+    if (!pTarget.empty() && pTarget.front().time != nextUpdateTime) {
         nextUpdateTime = (pTarget.front()).time;
         alert(this, UPDATE_TIME_CHANGE);
     }
@@ -148,7 +156,7 @@ void Scheduler::setTarget(const std::string& fileName)
         return loadedTargets;
     }();
     pTarget.merge(targetList);
-    if (pTarget.front().time != nextUpdateTime) {
+    if (!pTarget.empty() && pTarget.front().time != nextUpdateTime) {
         nextUpdateTime = (pTarget.front()).time;
         alert(this, UPDATE_TIME_CHANGE);
     }

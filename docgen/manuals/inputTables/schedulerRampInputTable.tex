@@ -4,17 +4,16 @@
 \hline
 string(s) & type & default & description \\
 \hline
-ramp, ramp10, ramp30, reserve & number & 0 & \\
-rampup & number & 1e+48 & maximum ramp rate in the up direction\\
-rampdown & number & 1e+48 & maximum ramp rate in the down direction\\
-ramp10up & number & 1e+48 & The 10 minute maximum up ramp\\
-ramp10down & number & 1e+48 & the 10 minute maximum down ramp\\
-ramp30up & number & 1e+48 & the 30 minute maximum up ramp\\
-ramp30down & number & 1e+48 & the 30 minute maximum down ramp\\
-ramptime & number & 1200 & the ramp window\\
+ramp & number & 0 & Symmetric maximum ramp rate [scheduler puMW/s]\\
+rampup & number & 1e+48 & Maximum upward ramp rate [scheduler puMW/s]\\
+rampdown & number & 1e+48 & Maximum downward ramp rate [scheduler puMW/s]\\
+ramp10, ramp10up, ramp10down & number & 1e+48 & Maximum power change over 10 minutes [scheduler puMW]; limits the corresponding rate\\
+ramp30, ramp30up, ramp30down & number & 1e+48 & Maximum power change over 30 minutes [scheduler puMW]; limits the corresponding rate\\
+reserve & number & 0 & Available upward reserve [scheduler puMW]; reduces scheduled upward headroom and ramp capability\\
+ramptime & number & 1200 & Ramp window in seconds used by midpoint and delayed modes\\
 target & number & 0 & \\
-reserveramptime & number & 900 & the time window the object has to meet the reserve\\
-rampmode & string & 0 & \\
+reserveramptime & number & 900 & Time window in seconds for delivering reserve\\
+rampmode & string & interp & interp ramps toward the scheduled target; midpoint centers the ramp window; delayed waits for the configured window; justintime starts at the latest feasible time to reach the target; ontargetramp starts ramping at the target time\\
 \hline
 \end{tabular}
 \caption{Set options for schedulerRamp objects. See Table~\ref{table:scheduler} for additional settable options through scheduler}

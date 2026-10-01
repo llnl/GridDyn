@@ -15,8 +15,8 @@ namespace griddyn {
 namespace {
     const IgnoreListType& areaIgnoreElements()
     {
-        static const auto* ignoreElements =
-            new IgnoreListType{"agc", "reserve", "reservedispatch", "dispatch"};
+        static const auto* ignoreElements = new IgnoreListType{
+            "agc", "reserve", "reservedispatch", "dispatch", "interareatransfer"};
         return *ignoreElements;
     }
 }  // namespace

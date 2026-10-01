@@ -249,6 +249,55 @@ stringVec GenModel5::localStateNames() const
 {
     return genModel5Names;
 }
+
+double GenModel5::getFreq(const StateData& stateDataValue,
+                          const SolverMode& sMode,
+                          index_t* freqOffset) const
+{
+    if (isLocal(sMode)) {
+        const auto frequencyState = offsets.local().local.algSize + 1;
+        if (freqOffset != nullptr) {
+            *freqOffset = kNullLocation;
+        }
+        return frequencyState < m_state.size() ? m_state[frequencyState] : 1.0;
+    }
+    if (!stateDataValue.empty()) {
+        const auto loc = offsets.getLocations(stateDataValue, sMode, this);
+        if (freqOffset != nullptr) {
+            *freqOffset = isAlgebraicOnly(sMode) ? kNullLocation : loc.diffOffset + 1;
+        }
+        return loc.diffStateLoc[1];
+    }
+    if (freqOffset != nullptr) {
+        *freqOffset = isAlgebraicOnly(sMode) ? kNullLocation : offsets.getDiffOffset(sMode) + 1;
+    }
+    return 1.0;
+}
+
+double GenModel5::getAngle(const StateData& stateDataValue,
+                           const SolverMode& sMode,
+                           index_t* angleOffset) const
+{
+    if (isLocal(sMode)) {
+        const auto angleState = offsets.local().local.algSize;
+        if (angleOffset != nullptr) {
+            *angleOffset = kNullLocation;
+        }
+        return angleState < m_state.size() ? m_state[angleState] : 0.0;
+    }
+    if (!stateDataValue.empty()) {
+        const auto loc = offsets.getLocations(stateDataValue, sMode, this);
+        if (angleOffset != nullptr) {
+            *angleOffset = isAlgebraicOnly(sMode) ? kNullLocation : loc.diffOffset;
+        }
+        return loc.diffStateLoc[0];
+    }
+    if (angleOffset != nullptr) {
+        *angleOffset = isAlgebraicOnly(sMode) ? kNullLocation : offsets.getDiffOffset(sMode);
+    }
+    return 0.0;
+}
+
 // set parameters
 void GenModel5::set(std::string_view param, std::string_view val)
 {

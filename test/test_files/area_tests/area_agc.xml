@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="area-agc-test" version="0.0.1">
+  <area name="AreaOne" id="101" schedulednetinterchange="0">
+    <agc name="agc" sampleinterval="6" />
+  </area>
+</griddyn>

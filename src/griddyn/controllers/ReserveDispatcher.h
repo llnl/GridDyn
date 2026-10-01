@@ -55,7 +55,10 @@ class ReserveDispatcher: public CoreObject {
     virtual void
         set(std::string_view param, double val, units::unit unitType = units::defunit) override;
 
-    double getAvailable() { return reserveAvailable; }
+    double getAvailable() const
+    {
+        return (reserveAvailable > currentDispatch) ? reserveAvailable - currentDispatch : 0.0;
+    }
 
     virtual void schedChange();
 

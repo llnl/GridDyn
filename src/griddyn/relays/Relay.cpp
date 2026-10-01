@@ -15,6 +15,7 @@
 #include "Breaker.h"
 #include "BusMeasurementSensor.h"
 #include "BusRelay.h"
+#include "COISensor.h"
 #include "ControlRelay.h"
 #include "DGProtectionRelay.h"
 #include "DifferentialRelay.h"
@@ -45,6 +46,7 @@ static ChildTypeFactory<PLL1Sensor, Sensor> gPll1Factory("relay", "pll1");
 static ChildTypeFactory<PLL2Sensor, Sensor> gPll2Factory("relay", "pll2");
 static ChildTypeFactory<BusROCOFSensor, Sensor> gBusRocofFactory("relay", "busrocof");
 static ChildTypeFactory<FreqDivSensor, Sensor> gFreqDivFactory("relay", "freqdiv");
+static ChildTypeFactory<COISensor, Sensor> gCoiFactory("relay", "coi");
 static TypeFactory<DGPRCT1> gDgprct1Factory("relay", "dgprct1");
 static TypeFactory<DGPRCTExt> gDgprctExtFactory("relay", "dgprctext");
 namespace relays {

@@ -287,6 +287,35 @@ static std::unordered_map<int, GridArea*>
         }
 
         auto* area = new GridArea(areaName);
+        area->setUserID(static_cast<index_t>(areaId));
+        if (fields.size() > 1) {
+            const auto slackBusField = trim(fields[1]);
+            const bool quotedBusName = slackBusField.size() >= 2 &&
+                ((slackBusField.front() == '\'' && slackBusField.back() == '\'') ||
+                 (slackBusField.front() == '"' && slackBusField.back() == '"'));
+            if (quotedBusName) {
+                area->set("interchangeslackbus", slackBusField);
+            } else {
+                const auto slackBusID = numeric_conversion<double>(slackBusField, kNullVal);
+                if (slackBusID != kNullVal) {
+                    area->set("interchangeslackbus", slackBusID);
+                } else if (!slackBusField.empty()) {
+                    area->set("interchangeslackbus", slackBusField);
+                }
+            }
+        }
+        if (fields.size() > 2) {
+            const auto scheduledMW = numeric_conversion<double>(fields[2], kNullVal);
+            if (scheduledMW != kNullVal) {
+                area->setScheduledNetInterchangeMW(scheduledMW);
+            }
+        }
+        if (fields.size() > 3) {
+            const auto toleranceMW = numeric_conversion<double>(fields[3], kNullVal);
+            if (toleranceMW != kNullVal) {
+                area->setInterchangeToleranceMW(toleranceMW);
+            }
+        }
         try {
             parentObject->add(area);
         }
@@ -553,7 +582,8 @@ namespace {
         SWITCHED_SHUNT,
         TXADJ,
         TWO_TERMINAL_DC,
-        VSC_DC
+        VSC_DC,
+        INTER_AREA_TRANSFER
     };
 }  // namespace
 
@@ -941,6 +971,33 @@ void loadRaw(CoreObject* parentObject,
                     }
                 }
                 break;
+            case SectionType::INTER_AREA_TRANSFER:
+                while (moreData) {
+                    if (checkNextLine(file, line)) {
+                        const auto fields = splitlineQuotes(line);
+                        if (fields.size() < 4) {
+                            std::cerr << "Invalid inter-area transfer record: " << line << '\n';
+                            continue;
+                        }
+                        const auto fromAreaID = numeric_conversion<index_t>(fields[0], 0);
+                        const auto toAreaID = numeric_conversion<index_t>(fields[1], 0);
+                        const auto scheduledMW = numeric_conversion<double>(fields[3], kNullVal);
+                        if (scheduledMW == kNullVal) {
+                            std::cerr << "Invalid scheduled MW in inter-area transfer: " << line
+                                      << '\n';
+                            continue;
+                        }
+                        if (auto* areaRoot = dynamic_cast<GridArea*>(parentObject)) {
+                            areaRoot->setInterAreaTransfer(fromAreaID,
+                                                           toAreaID,
+                                                           removeQuotes(fields[2]),
+                                                           scheduledMW);
+                        }
+                    } else {
+                        moreData = false;
+                    }
+                }
+                break;
             case SectionType::UNKNOWN:
             default:
                 while (moreData) {
@@ -1218,7 +1275,7 @@ static int getPSSversion(const std::string& line)
     return ver;
 }
 
-static constexpr std::array<std::pair<std::string_view, SectionType>, 21> sectionNames{{
+static constexpr std::array<std::pair<std::string_view, SectionType>, 22> sectionNames{{
     {"BEGIN FIXED SHUNT", SectionType::FIXED_SHUNT},
     {"BEGIN SWITCHED SHUNT DATA", SectionType::SWITCHED_SHUNT},
     {"BEGIN AREA DATA", SectionType::UNKNOWN},
@@ -1232,7 +1289,7 @@ static constexpr std::array<std::pair<std::string_view, SectionType>, 21> sectio
     {"BEGIN MULTI-TERMINAL DC LINE DATA", SectionType::UNKNOWN},
     {"BEGIN MULTI-SECTION LINE GROUP DATA", SectionType::UNKNOWN},
     {"BEGIN ZONE DATA", SectionType::UNKNOWN},
-    {"BEGIN INTER-AREA TRANSFER DATA", SectionType::UNKNOWN},
+    {"BEGIN INTER-AREA TRANSFER DATA", SectionType::INTER_AREA_TRANSFER},
     {"BEGIN OWNER DATA", SectionType::UNKNOWN},
     {"BEGIN FACTS CONTROL DEVICE DATA", SectionType::UNKNOWN},
     {"BEGIN LOAD DATA", SectionType::LOAD},

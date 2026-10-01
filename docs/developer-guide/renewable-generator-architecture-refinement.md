@@ -522,6 +522,26 @@ record; `DGPRCT1`/`DGPRCTExt` records link by their `dev` index. These are
 not PSS/E DYR model names, so no DYR mappings are registered. ANDES case
 loading here covers its JSON format.
 
+### Scheduled active power
+
+`RenewableGenerator` owns an attached `Scheduler` and exposes it through both
+`find("sched")` and `find("pset")`. A scheduler output is in per unit on the
+simulation base; the host converts it to the machine base before supplying
+the `activeReference` input. `REECA1`/`REECB1` electrical controls and the
+distributed `PVD1`/`ESD1`/`EV1`/`EV2` converters consume that input. Their
+existing power filters, current lags, droop, and limits still determine the
+electrical response. For distributed converters, the scheduled value replaces
+`pref`; `paux` remains an additive adjustment.
+
+The area AGC can create a `SchedulerReg` at the ISW bus for a renewable
+generator with an available active reference, or use an explicitly attached
+participant. A scheduler is rejected when another renewable component already
+provides the absolute active reference, including the `WTTQA1` wind torque
+path. `REGCV1`/`REGCV2` and `REGF1`/`REGF2`/`REGF3` do not yet expose a
+scheduled power input, so attaching a scheduler to them fails during assembly
+validation. Their dispatch controls need model-specific equations before
+automatic AGC participation can be enabled.
+
 Focused tests cover factory creation, XML and ANDES JSON loading,
 player-driven setpoints, charging and SOC limits, latching and timed
 protection, combined and partitioned converter DAE Jacobians, and short IEEE 14-bus runs for all four

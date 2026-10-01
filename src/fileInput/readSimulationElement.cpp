@@ -19,7 +19,8 @@ namespace {
 
     const IgnoreListType& simIgnoreFields()
     {
-        static const auto* ignoreFields = new IgnoreListType{"version", "basepower"};
+        static const auto* ignoreFields =
+            new IgnoreListType{"version", "basepower", "interareatransfer"};
         return *ignoreFields;
     }
 

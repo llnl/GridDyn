@@ -443,14 +443,17 @@ corpus.
 | `interpss\psse\v30\42bus_3winding_from_PSSE_V30.raw`      |       1 |
 | `interpss\psse\v30\42bus_3winding_from_PSSE_V30_NoDC.raw` |       1 |
 
-### [ ] RAW-004: Decide treatment for area interchange and inter-area transfer
+### [x] RAW-004: Preserve area interchange and inter-area transfer records
 
 - Current behavior:
-  - Area/inter-area records are skipped. These are often metadata/dispatch, but
-    may matter for interchange-constrained studies or round-trip fidelity.
-- Work needed:
-  - Decide whether to model them, preserve them as metadata, or explicitly log
-    that they are ignored.
+  - Area `ISW`, `PDES`, and `PTOL` are retained as area metadata, with MW values
+    kept in MW at the reader boundary.
+  - Inter-area transfer rows are stored on the root area with their endpoint
+    IDs and resolved area pointers, transfer ID, and scheduled MW.
+  - XML supports `<interareatransfer fromArea="1" toArea="2"
+    transferID="A" scheduledMW="50"/>` under the root `<griddyn>` element.
+  - This is record keeping only. Actual transfer measurement and comparison
+    with scheduled values remains future work.
 - Exercised by:
 
 | Section             | File                                                      | Records |

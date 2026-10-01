@@ -34,11 +34,11 @@
 #include "griddyn/renewables/REGCA1.h"
 #include "griddyn/renewables/REGCP1.h"
 #include "griddyn/renewables/REPCA1.h"
-#include "griddyn/renewables/WTARA1.h"
 #include "griddyn/renewables/WT3E1.h"
 #include "griddyn/renewables/WT3G1.h"
 #include "griddyn/renewables/WT4E1.h"
 #include "griddyn/renewables/WT4G1.h"
+#include "griddyn/renewables/WTARA1.h"
 #include "griddyn/renewables/WTDS.h"
 #include "griddyn/renewables/WTDTA1.h"
 #include "griddyn/renewables/WTPTA1.h"
@@ -582,15 +582,23 @@ namespace {
         static constexpr auto wt3gFields =
             std::to_array<std::string_view>({"xeq", "kpll", "kipll", "pllmax", "prated"});
         static constexpr auto wt3eFields = std::to_array<std::string_view>(
-            {"tfv", "kpv", "kiv", "xc", "tfp", "kpp", "kip", "pmx", "pmn", "qmx", "qmn",
-             "ipmax", "trv", "rpmx", "rpmn", "tpower", "kqi", "vmincl", "vmaxcl", "kqv",
-             "xiqmin", "xiqmax", "tv", "tp", "fn", "wpmin", "wp20", "wp40", "wp60",
-             "pminspeed", "wp100"});
-        static constexpr auto wt4gFields = std::to_array<std::string_view>(
-            {"tiqcmd", "tipcmd", "vlvpl1", "vlvpl2", "glvpl", "vhvrcr", "curhvrcr", "riplvpl", "tlvpl"});
+            {"tfv", "kpv",    "kiv",    "xc",    "tfp",    "kpp",       "kip",  "pmx",
+             "pmn", "qmx",    "qmn",    "ipmax", "trv",    "rpmx",      "rpmn", "tpower",
+             "kqi", "vmincl", "vmaxcl", "kqv",   "xiqmin", "xiqmax",    "tv",   "tp",
+             "fn",  "wpmin",  "wp20",   "wp40",  "wp60",   "pminspeed", "wp100"});
+        static constexpr auto wt4gFields = std::to_array<std::string_view>({"tiqcmd",
+                                                                            "tipcmd",
+                                                                            "vlvpl1",
+                                                                            "vlvpl2",
+                                                                            "glvpl",
+                                                                            "vhvrcr",
+                                                                            "curhvrcr",
+                                                                            "riplvpl",
+                                                                            "tlvpl"});
         static constexpr auto wt4eFields = std::to_array<std::string_view>(
-            {"tfv", "kpv", "kiv", "kpp", "kip", "kf", "tf", "qmx", "qmn", "ipmax", "trv",
-             "dpmx", "dpmn", "tpower", "kqi", "vmincl", "vmaxcl", "kvi", "tv", "tp", "imaxtd", "iphl", "iqhl"});
+            {"tfv",    "kpv",   "kiv", "kpp",  "kip",    "kf",     "tf",  "qmx",
+             "qmn",    "ipmax", "trv", "dpmx", "dpmn",   "tpower", "kqi", "vmincl",
+             "vmaxcl", "kvi",   "tv",  "tp",   "imaxtd", "iphl",   "iqhl"});
         static constexpr auto wtaraFields = std::to_array<std::string_view>({"ka", "theta0"});
         static constexpr auto wtptaFields = std::to_array<std::string_view>({"kiw",
                                                                              "kpw",

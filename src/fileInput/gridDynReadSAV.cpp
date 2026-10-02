@@ -81,8 +81,7 @@ namespace {
 
     class SqliteStatement {
       public:
-        SqliteStatement(sqlite3* database, const std::string& sql, const std::string& fileName):
-            mDatabase(database)
+        SqliteStatement(sqlite3* database, const std::string& sql, const std::string& fileName)
         {
             const auto result = sqlite3_prepare_v2(database, sql.c_str(), -1, &mStatement, nullptr);
             if (result != SQLITE_OK) {
@@ -104,7 +103,6 @@ namespace {
 
         [[nodiscard]] sqlite3_stmt* get() const { return mStatement; }
       private:
-        sqlite3* mDatabase = nullptr;
         sqlite3_stmt* mStatement = nullptr;
     };
 

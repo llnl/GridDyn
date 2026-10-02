@@ -193,7 +193,10 @@ namespace {
         }
 
         std::size_t payloadLimit = 0U;
-        if (modelName == "gensal") {
+        // GENSAL and HYGOV consume 12-field prefixes. Extended HYGOV records
+        // append options (trip, deadband, curves, and blade control) that
+        // GridDyn does not currently implement.
+        if ((modelName == "gensal") || (modelName == "hygov")) {
             payloadLimit = 12U;
         } else if (modelName == "genrou") {
             payloadLimit = 14U;
@@ -201,16 +204,14 @@ namespace {
             payloadLimit = 17U;
         } else if (modelName == "gast") {
             payloadLimit = 9U;
-        } else if (modelName == "hygov") {
-            // HYGOV's DYR adapter consumes the 12-field PSS/E-compatible prefix.
-            // Extended records add options such as turbine trip, deadband,
-            // nonlinear gate curves, and Kaplan blade control, which GridDyn
-            // does not currently implement.
-            payloadLimit = 12U;
         } else if (modelName == "ggov1") {
             payloadLimit = 35U;
         } else if (modelName == "ieeeg1") {
             payloadLimit = 20U;
+        } else if (modelName == "ieeest") {
+            // PSLF IEEEST appends Tdelay after the 19 PSS/E parameters;
+            // StabilizerIEEEST does not currently implement that delay.
+            payloadLimit = 19U;
         } else if (modelName == "gpwscc") {
             payloadLimit = 32U;
         } else if (modelName == "regca1") {

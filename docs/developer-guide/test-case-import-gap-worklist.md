@@ -231,6 +231,24 @@ Relevant source: `src/fileInput/fileInput.cpp`.
 - Exercised by: `test\test_files\texas_am\ACTIVSg500\ACTIVSg500_dynamics.dyd`
   (HYGOV at bus 71).
 
+### [ ] DYD-002: Handle PSLF IEEEST input delay
+
+- Current behavior: the DYD adapter passes the 19 PSS/E-compatible IEEEST
+  parameters to the existing DYR loader and discards the trailing PSLF
+  `Tdelay` parameter. The ACTIVSg500 records for buses 144 and 145 set
+  `Tdelay=0`, so discarding it permits import without changing those records'
+  delay behavior; nonzero delays are not modeled.
+- PowerWorld's model reference identifies `Tdelay` as the final IEEEST parameter
+  and notes PSLF support for the time delay. See [PowerWorld IEEEST reference](https://www.powerworld.com/WebHelp/Content/TransientModels_HTML/Stabilizer%20IEEEST.htm)
+  and the [PSLF-supported model diagram](https://www.powerworld.com/files/Block-Diagrams-17.pdf).
+- Work needed:
+  - Confirm the PSLF version/schema and map the delay into the stabilizer when
+    implemented.
+  - Until then, emit an explicit diagnostic for nonzero `Tdelay` values.
+  - Add import and delayed-signal behavior tests.
+- Exercised by: `test\test_files\texas_am\ACTIVSg500\ACTIVSg500_dynamics.dyd`
+  (IEEEST at buses 144 and 145).
+
 ### [ ] FILE-005: Add diagnostics for unsupported binary/container formats
 
 - Current behavior: these files are present in the corpus but are not mapped by

@@ -102,6 +102,7 @@ namespace {
         SqliteStatement& operator=(const SqliteStatement&) = delete;
 
         [[nodiscard]] sqlite3_stmt* get() const { return mStatement; }
+
       private:
         sqlite3_stmt* mStatement = nullptr;
     };
@@ -484,8 +485,8 @@ namespace {
     {
         std::vector<AreaData> areas;
         const SqliteStatement statement(database,
-                                  "SELECT _idx, arnum, arname FROM area ORDER BY _idx",
-                                  fileName);
+                                        "SELECT _idx, arnum, arname FROM area ORDER BY _idx",
+                                        fileName);
         while (true) {
             const auto result = sqlite3_step(statement.get());
             if (result == SQLITE_DONE) {
@@ -512,7 +513,9 @@ namespace {
 
     size_t readZoneCount(sqlite3* database, const std::string& fileName)
     {
-        const SqliteStatement statement(database, "SELECT _idx, zonum FROM zone ORDER BY _idx", fileName);
+        const SqliteStatement statement(database,
+                                        "SELECT _idx, zonum FROM zone ORDER BY _idx",
+                                        fileName);
         std::unordered_set<int> zoneNumbers;
         size_t row = 0;
         while (true) {
@@ -585,8 +588,8 @@ namespace {
     void readVoltages(sqlite3* database, const std::string& fileName, std::vector<BusData>& buses)
     {
         const SqliteStatement statement(database,
-                                  "SELECT _idx, vr, vi, vm, va FROM volt ORDER BY _idx",
-                                  fileName);
+                                        "SELECT _idx, vr, vi, vm, va FROM volt ORDER BY _idx",
+                                        fileName);
         size_t row = 0;
         while (true) {
             const auto result = sqlite3_step(statement.get());
@@ -814,8 +817,8 @@ namespace {
     {
         std::vector<ShuntData> shunts;
         const SqliteStatement statement(database,
-                                  "SELECT _idx, ifrom, id, st, g, b FROM shunt ORDER BY _idx",
-                                  fileName);
+                                        "SELECT _idx, ifrom, id, st, g, b FROM shunt ORDER BY _idx",
+                                        fileName);
         while (true) {
             const auto result = sqlite3_step(statement.get());
             if (result == SQLITE_DONE) {
@@ -1019,8 +1022,7 @@ namespace {
     {
         auto* bus = buses[static_cast<size_t>(loadData.mBus)];
         auto loadId = loadData.mId.empty() ? std::to_string(loadData.mIndex) : loadData.mId;
-        auto* load =
-            new ZipLoad(prefixedName(readerOptions, bus->getName() + "_load_" + loadId));
+        auto* load = new ZipLoad(prefixedName(readerOptions, bus->getName() + "_load_" + loadId));
         load->set("basepower", bus->get("basepower", units::MW), units::MW);
         load->set("basevoltage", bus->get("basevoltage", units::kV), units::kV);
         // PSLF stores constant-power and constant-current load components in

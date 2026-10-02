@@ -30,8 +30,7 @@ void executeSql(sqlite3* database, const char* sql)
 
 std::filesystem::path makeSavFixture()
 {
-    auto filePath =
-        std::filesystem::temp_directory_path() / "griddyn_pslf_sqlite_reader.save";
+    auto filePath = std::filesystem::temp_directory_path() / "griddyn_pslf_sqlite_reader.save";
     std::error_code removeError;
     std::filesystem::remove(filePath, removeError);
 

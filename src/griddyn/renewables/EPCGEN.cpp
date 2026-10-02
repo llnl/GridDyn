@@ -280,15 +280,13 @@ EPCGEN::Evaluation EPCGEN::evaluate(const IOdata& inputs, const double state[]) 
     result.rates[qIntegrator] = ki * (voltageError + (qCommand - reactiveCommand));
     result.rates[voltageFilter] = (voltage - filteredVoltage) / tfrq;
     result.rates[governor] = (commandedActivePower - state[governor]) / tg;
-    result.rates[leadLag] =
-        (state[governor] - state[leadLag] - (state[governor] * t1 / t2)) / t2;
+    result.rates[leadLag] = (state[governor] - state[leadLag] - (state[governor] * t1 / t2)) / t2;
     result.rates[reactiveCurrent] = (limitedReactiveCurrent - state[reactiveCurrent]) / tq;
     result.rates[activeCurrent] = (limitedActiveCurrent - state[activeCurrent]) / td;
 
     const double internalDVoltage =
         voltage + (state[activeCurrent] * rsrc) - (state[reactiveCurrent] * xsrc);
-    const double internalQVoltage =
-        (state[reactiveCurrent] * rsrc) + (state[activeCurrent] * xsrc);
+    const double internalQVoltage = (state[reactiveCurrent] * rsrc) + (state[activeCurrent] * xsrc);
     result.rates[internalD] = (internalDVoltage - state[internalD]) / ted;
     result.rates[internalQ] = (internalQVoltage - state[internalQ]) / teq;
     result.rates[activeCorrection] = kip * (pCommand - activePower);

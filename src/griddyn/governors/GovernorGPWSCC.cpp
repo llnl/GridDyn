@@ -114,8 +114,7 @@ bool GovernorGPWSCC::hasUsableCurve() const
     return true;
 }
 
-GovernorGPWSCC::DeadbandEvaluation GovernorGPWSCC::evaluateDeadband(double value,
-                                                                    double width)
+GovernorGPWSCC::DeadbandEvaluation GovernorGPWSCC::evaluateDeadband(double value, double width)
 {
     if (value > width) {
         return {.value = value - width, .derivative = 1.0};

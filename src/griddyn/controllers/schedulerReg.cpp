@@ -115,8 +115,8 @@ void SchedulerReg::updateRegulationLimits()
     if (regEnabled) {
         const double upReservation = regUpFrac * participationRating;
         const double downReservation = regDownFrac * participationRating;
-        rampUp = std::max(0.0, regRampUp - upReservation / 600.0);
-        rampDown = std::max(0.0, regRampDown - downReservation / 600.0);
+        rampUp = std::max(0.0, regRampUp - (upReservation / 600.0));
+        rampDown = std::max(0.0, regRampDown - (downReservation / 600.0));
         pMax = regMax - upReservation;
         pMin = regMin + downReservation;
     } else {
@@ -156,10 +156,10 @@ double SchedulerReg::predict(CoreTime time)
     if (deltaTime <= 0.0) {
         return m_output;
     }
-    const double baseOutput = m_output - regCurrent + SchedulerRamp::getRamp() * deltaTime;
+    const double baseOutput = m_output - regCurrent + (SchedulerRamp::getRamp() * deltaTime);
     const double regulation = std::clamp(regTarget,
-                                         regCurrent - regRampDown * deltaTime,
-                                         regCurrent + regRampUp * deltaTime);
+                                         regCurrent - (regRampDown * deltaTime),
+                                         regCurrent + (regRampUp * deltaTime));
     return baseOutput + regulation;
 }
 
@@ -201,7 +201,8 @@ double SchedulerReg::getRamp() const
     const double diff = regTarget - regCurrent;
     if (diff > 0.001) {
         return baseRamp + regRampUp;
-    } else if (diff < -0.001) {
+    }
+    if (diff < -0.001) {
         return baseRamp - regRampDown;
     }
     return baseRamp;

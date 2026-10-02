@@ -110,8 +110,12 @@ void GridArea::setInterAreaTransfer(index_t fromAreaID,
                                        transfer.transferID == transferKey;
                                });
     if (record == interAreaTransfers.end()) {
-        interAreaTransfers.push_back(
-            {fromAreaID, toAreaID, transferKey, scheduledMW, nullptr, nullptr});
+        interAreaTransfers.push_back({.fromAreaID = fromAreaID,
+                                      .toAreaID = toAreaID,
+                                      .transferID = transferKey,
+                                      .scheduledMW = scheduledMW,
+                                      .fromArea = nullptr,
+                                      .toArea = nullptr});
         record = std::prev(interAreaTransfers.end());
     } else {
         record->scheduledMW = scheduledMW;
@@ -1088,20 +1092,23 @@ double GridArea::get(std::string_view param, unit unitType) const
                     (unitType == defunit) ? MW : unitType,
                     systemBasePower) :
             kNullVal;
-    } else if (param == "interchangetolerance") {
+    }
+    if (param == "interchangetolerance") {
         return interchangeToleranceMW.has_value() ? convert(*interchangeToleranceMW,
                                                             MW,
                                                             (unitType == defunit) ? MW : unitType,
                                                             systemBasePower) :
                                                     kNullVal;
-    } else if (param == "interchangeslackbus") {
+    }
+    if (param == "interchangeslackbus") {
         if (auto* bus = getInterchangeSlackBus()) {
             return static_cast<double>(bus->getUserID());
         }
         return interchangeSlackBusUserID.has_value() ?
             static_cast<double>(*interchangeSlackBusUserID) :
             kNullVal;
-    } else if (param == "buscount") {
+    }
+    if (param == "buscount") {
         vali = m_Buses.size();
     } else if (param == "linkcount") {
         vali = m_Links.size();
@@ -2136,7 +2143,7 @@ double GridArea::getTieFlowReal(index_t areaUserID) const
     }
 
     auto areaContainsBus = [](const GridArea* area, const GridBus* bus) {
-        auto* object = static_cast<const CoreObject*>(bus);
+        const auto* object = static_cast<const CoreObject*>(bus);
         while (object != nullptr) {
             if (isSameObject(object, area)) {
                 return true;

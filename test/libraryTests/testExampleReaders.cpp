@@ -120,9 +120,9 @@ TEST(ExampleReaderTests, LoadRawAreaDefinitions)
     EXPECT_EQ(area->getUserID(), 1);
     EXPECT_EQ(area->getInterchangeSlackBus(), nullptr);
     ASSERT_TRUE(area->getScheduledNetInterchangeMW().has_value());
-    EXPECT_DOUBLE_EQ(*area->getScheduledNetInterchangeMW(), 0.0);
+    EXPECT_DOUBLE_EQ(area->getScheduledNetInterchangeMW().value(), 0.0);
     ASSERT_TRUE(area->getInterchangeToleranceMW().has_value());
-    EXPECT_DOUBLE_EQ(*area->getInterchangeToleranceMW(), 5.0);
+    EXPECT_DOUBLE_EQ(area->getInterchangeToleranceMW().value(), 5.0);
     EXPECT_DOUBLE_EQ(area->get("interchangetolerance", units::MW), 5.0);
     EXPECT_DOUBLE_EQ(area->get("interchangetolerance", units::puMW), 0.05);
     EXPECT_EQ(area->getInt("buscount"), 72);
@@ -156,7 +156,7 @@ TEST(ExampleReaderTests, AreaInterchangePropertiesDistinguishUnsetFromZero)
     area.set("schedulednetinterchange", 0.0, units::MW);
     area.set("interchangetolerance", 2.5, units::MW);
     ASSERT_TRUE(area.getScheduledNetInterchangeMW().has_value());
-    EXPECT_DOUBLE_EQ(*area.getScheduledNetInterchangeMW(), 0.0);
+    EXPECT_DOUBLE_EQ(area.getScheduledNetInterchangeMW().value(), 0.0);
     EXPECT_DOUBLE_EQ(area.get("schedulednetinterchange", units::MW), 0.0);
     EXPECT_DOUBLE_EQ(area.get("interchangetolerance", units::MW), 2.5);
 }

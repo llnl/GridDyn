@@ -676,6 +676,86 @@ static void readRawBusSection(CoreObject* parentObject,
     }
 }
 
+static void loadRawFactories()
+{
+    if (gBusfactory == nullptr) {
+        // get the basic busFactory
+        gBusfactory = static_cast<decltype(gBusfactory)>(
+            CoreObjectFactory::instance()->getFactory("bus")->getFactory(""));
+
+        // get the basic load Factory
+        gLdfactory = static_cast<decltype(gLdfactory)>(
+            CoreObjectFactory::instance()->getFactory("load")->getFactory(""));
+
+        // get the basic load Factory
+        gGenfactory = static_cast<decltype(gGenfactory)>(
+            CoreObjectFactory::instance()->getFactory("generator")->getFactory(""));
+        // get the basic link Factory
+        gLinkfactory = static_cast<decltype(gLinkfactory)>(
+            CoreObjectFactory::instance()->getFactory("link")->getFactory(""));
+    }
+}
+
+static bool readRawCaseHeader(std::ifstream& file,
+                              CoreObject* parentObject,
+                              BasicReaderInfo& readerOptions,
+                              std::string& line)
+{
+    if (!std::getline(file, line)) {
+        return true;
+    }
+    // PSS/E v35 writes an @!IC field-definition card before the actual
+    // case-identification record.
+    if (line.starts_with("@!IC") && !std::getline(file, line)) {
+        return false;
+    }
+
+    const auto fields = splitlineQuotes(line);
+    if (fields.size() >= 6) {
+        readerOptions.base = numeric_conversion<double>(fields[1], 100.0);
+        readerOptions.version = numeric_conversion<int>(fields[2], 0);
+        readerOptions.basefreq = numeric_conversion<double>(fields[5], 60.0);
+    }
+    if (readerOptions.base != 100.0) {
+        parentObject->set("basepower", readerOptions.base);
+    }
+    if (readerOptions.basefreq != 60.0) {
+        parentObject->set("basefreq", readerOptions.basefreq);
+    }
+    if (readerOptions.version == 0) {
+        readerOptions.version = getPSSversion(line);
+    }
+    return true;
+}
+
+static void readRawCaseDescription(std::ifstream& file,
+                                   CoreObject* parentObject,
+                                   const BasicReaderInfo& readerOptions,
+                                   std::string& line)
+{
+    if (std::getline(file, line)) {
+        const auto pos = line.find_first_of(',');
+        auto caseName = line.substr(0, pos);
+        trimString(caseName);
+        parentObject->setName(caseName);
+    }
+    std::string description = line;
+    // get the second comment line and ignore it
+    std::getline(file, line);
+    description = description + '\n' + line;
+    // set the case description
+    parentObject->setDescription(description);
+
+    // PSS/E v35 RAW files can include a system-wide-data block between the
+    // two comment lines and the bus section.  Skip it through its explicit
+    // bus-section marker before treating subsequent records as bus cards.
+    if (readerOptions.version >= 35) {
+        while (!line.contains("BEGIN BUS DATA") && std::getline(file, line)) {
+            trimString(line);
+        }
+    }
+}
+
 void loadRaw(CoreObject* parentObject,
              const std::string& fileName,
              const BasicReaderInfo& readerOptions)
@@ -697,25 +777,9 @@ void loadRaw(CoreObject* parentObject,
     GridLoad* loadObject;
     Generator* gen;
     GridBus* bus;
-    size_t pos;
 
     /*load up the factories*/
-    if (gBusfactory == nullptr) {
-        // get the basic busFactory
-        gBusfactory = static_cast<decltype(gBusfactory)>(
-            CoreObjectFactory::instance()->getFactory("bus")->getFactory(""));
-
-        // get the basic load Factory
-        gLdfactory = static_cast<decltype(gLdfactory)>(
-            CoreObjectFactory::instance()->getFactory("load")->getFactory(""));
-
-        // get the basic load Factory
-        gGenfactory = static_cast<decltype(gGenfactory)>(
-            CoreObjectFactory::instance()->getFactory("generator")->getFactory(""));
-        // get the basic link Factory
-        gLinkfactory = static_cast<decltype(gLinkfactory)>(
-            CoreObjectFactory::instance()->getFactory("link")->getFactory(""));
-    }
+    loadRawFactories();
     /* Process the first line
     First card in file.
 
@@ -730,59 +794,12 @@ void loadRaw(CoreObject* parentObject,
     // reset all the object counters
     GridSimulation::resetObjectCounters();
     // get the base scenario information
-    if (std::getline(file, line)) {
-        // PSS/E v35 writes an @!IC field-definition card before the actual
-        // case-identification record.
-        if (line.starts_with("@!IC") && !std::getline(file, line)) {
-            return;
-        }
-        // auto res = sscanf(
-        //    line.c_str(), "%*d, %lf, %d,%*d,%*d,%lf", &(opt.base), &(opt.version),
-        //    &(opt.basefreq));
-
-        auto strvec = splitlineQuotes(line);
-        if (strvec.size() >= 6) {
-            readerOptionsCopy.base = numeric_conversion<double>(strvec[1], 100.0);
-            readerOptionsCopy.version = numeric_conversion<int>(strvec[2], 0);
-            readerOptionsCopy.basefreq = numeric_conversion<double>(strvec[5], 60.0);
-        }
-        if (readerOptionsCopy.base != 100.0) {
-            parentObject->set("basepower", readerOptionsCopy.base);
-        }
-        // temp1=line.substr(45,27);
-        // parentObject->set("name",&temp1);
-        // if (res > 2) {
-        if (readerOptionsCopy.basefreq != 60.0) {
-            parentObject->set("basefreq", readerOptionsCopy.basefreq);
-        }
-        //}
-
-        if (readerOptionsCopy.version == 0) {
-            readerOptionsCopy.version = getPSSversion(line);
-        }
+    if (!readRawCaseHeader(file, parentObject, readerOptionsCopy, line)) {
+        return;
     }
     const auto preparseData = preparseRawFile(parentObject, fileName, opt);
     const auto& impedanceCorrectionTables = preparseData.mImpedanceCorrectionTables;
-    if (std::getline(file, line)) {
-        pos = line.find_first_of(',');
-        temp1 = line.substr(0, pos);
-        trimString(temp1);
-        parentObject->setName(temp1);
-    }
-    temp1 = line;
-    // get the second comment line and ignore it
-    std::getline(file, line);
-    temp1 = temp1 + '\n' + line;
-    // set the case description
-    parentObject->setDescription(temp1);
-    // PSS/E v35 RAW files can include a system-wide-data block between the
-    // two comment lines and the bus section.  Skip it through its explicit
-    // bus-section marker before treating subsequent records as bus cards.
-    if (opt.version >= 35) {
-        while (!line.contains("BEGIN BUS DATA") && std::getline(file, line)) {
-            trimString(line);
-        }
-    }
+    readRawCaseDescription(file, parentObject, opt, line);
     // Bus data does not have a header but is always the first section.
     readRawBusSection(parentObject, file, line, busList, opt, preparseData.mAreas);
 

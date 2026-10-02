@@ -34,14 +34,17 @@ class FixedFlowLink: public Link {
     double p1{0.0};
     double p2{0.0};
 
-    double getRealPower(id_type_t terminal) const override { return (terminal == 2) ? p2 : p1; }
+    [[nodiscard]] double getRealPower(id_type_t terminal) const override
+    {
+        return (terminal == 2) ? p2 : p1;
+    }
 };
 
 class MutableFrequencySensor: public Sensor {
   public:
     double frequency = 1.0;
     explicit MutableFrequencySensor(const std::string& name): Sensor(name) { m_outputSize = 1; }
-    double getOutput(index_t /*outNum*/ = 0) const override { return frequency; }
+    [[nodiscard]] double getOutput(index_t /*outNum*/) const override { return frequency; }
 };
 
 TEST_F(AreaTests, AreaTest1)
@@ -66,7 +69,7 @@ TEST_F(AreaTests, AreaTest1)
     gds->powerflow();
     requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
-    auto st = gds->getState();
+    auto state = gds->getState();
 
     fileName = std::string(AREA_TEST_DIRECTORY "area_test0.xml");
 
@@ -76,7 +79,7 @@ TEST_F(AreaTests, AreaTest1)
     requireState(GridDynSimulation::GridState::POWERFLOW_COMPLETE);
 
     auto st2 = gds2->getState();
-    auto diffs = gmlc::utilities::countDiffs(st, st2, 0.00001);
+    auto diffs = gmlc::utilities::countDiffs(state, st2, 0.00001);
     EXPECT_EQ(diffs, 0);
 }
 

@@ -106,7 +106,11 @@ void AGControl::addInterchangeSlackParticipant()
     }
     // A configured scheduler may not have linked to this AGC yet. Generators
     // initialize after the AGC, so inspect their power sources first.
-    for (index_t index = 0; auto* generator = area->getGen(index); ++index) {
+    for (index_t index = 0;; ++index) {
+        auto* generator = area->getGen(index);
+        if (generator == nullptr) {
+            break;
+        }
         if (!generator->isEnabled()) {
             continue;
         }
@@ -140,7 +144,11 @@ void AGControl::addInterchangeSlackParticipant()
         return;
     }
     Generator* target = nullptr;
-    for (index_t index = 0; auto* generator = slackBus->getGen(index); ++index) {
+    for (index_t index = 0;; ++index) {
+        auto* generator = slackBus->getGen(index);
+        if (generator == nullptr) {
+            break;
+        }
         if (!generator->isEnabled()) {
             continue;
         }
@@ -187,8 +195,10 @@ void AGControl::addInterchangeSlackParticipant()
         scheduler->set("ramp", rampMWPerMinute / (60.0 * baseMW));
     }
     target->add(scheduler.get());
-    scheduler.release();
     auto* attached = dynamic_cast<SchedulerReg*>(target->find("pset"));
+    if (scheduler.release() != attached) {
+        throw InvalidParameterValue("AGC could not attach its ISW scheduler");
+    }
     attached->regSettings(true, upFraction, downFraction);
 }
 
@@ -255,7 +265,7 @@ double AGControl::measuredACE() const
     }
     const double actualMW = area->getBoundaryTieFlowReal() * baseMW;
     const double frequencyErrorHz = (measuredFrequency() - targetFrequency) * baseHz;
-    return actualMW - scheduledMW - 10.0 * bias * frequencyErrorHz;
+    return actualMW - scheduledMW - (10.0 * bias * frequencyErrorHz);
 }
 
 void AGControl::updateA(CoreTime time)
@@ -267,8 +277,8 @@ void AGControl::updateA(CoreTime time)
         CoreObject::updateA(time);
         return;
     }
-    const double dt = time - prevTime;
-    if (dt <= 0.0) {
+    const double deltaTime = time - prevTime;
+    if (deltaTime <= 0.0) {
         CoreObject::updateA(time);
         return;
     }
@@ -279,19 +289,21 @@ void AGControl::updateA(CoreTime time)
     }
     regChange();
     ace = measuredACE();
-    filteredAce += (tf <= 0.0 ? 1.0 : dt / (tf + dt)) * (ace - filteredAce);
+    filteredAce += (tf <= 0.0 ? 1.0 : deltaTime / (tf + deltaTime)) *
+        (ace - filteredAce);
     const double controlError =
         std::copysign(std::max(0.0, std::abs(filteredAce) - deadband), filteredAce);
-    const double candidateIntegral = integralAce + controlError * dt;
+    const double candidateIntegral = integralAce + (controlError * deltaTime);
     const auto* area = static_cast<const GridArea*>(getParent());
     const double baseMW = area->get("basepower", units::MW);
-    const double candidateReg = -(kp * controlError + ki * candidateIntegral) / baseMW;
+    const double candidateReg = -((kp * controlError) + (ki * candidateIntegral)) / baseMW;
     if ((candidateReg <= regUpAvailable || controlError >= 0.0) &&
         (candidateReg >= -regDownAvailable || controlError <= 0.0)) {
         integralAce = candidateIntegral;
     }
-    const double rawReg = -(kp * controlError + ki * integralAce) / baseMW;
-    requestedReg += (tr <= 0.0 ? 1.0 : dt / (tr + dt)) * (rawReg - requestedReg);
+    const double rawReg = -((kp * controlError) + (ki * integralAce)) / baseMW;
+    requestedReg += (tr <= 0.0 ? 1.0 : deltaTime / (tr + deltaTime)) *
+        (rawReg - requestedReg);
     reg = std::clamp(requestedReg, -regDownAvailable, regUpAvailable);
     dispatch();
     prevTime = time;
@@ -369,12 +381,12 @@ void AGControl::add(SchedulerReg* sched)
 
 void AGControl::remove(CoreObject* obj)
 {
-    const auto it = std::find(schedList.begin(), schedList.end(), obj);
-    if (it != schedList.end()) {
-        if ((*it)->agcController == this) {
-            (*it)->agcController = nullptr;
+    const auto schedulerPosition = std::find(schedList.begin(), schedList.end(), obj);
+    if (schedulerPosition != schedList.end()) {
+        if ((*schedulerPosition)->agcController == this) {
+            (*schedulerPosition)->agcController = nullptr;
         }
-        schedList.erase(it);
+        schedList.erase(schedulerPosition);
         regChange();
     } else if (auto* sched = dynamic_cast<SchedulerReg*>(obj);
                sched != nullptr && sched->agcController == this) {

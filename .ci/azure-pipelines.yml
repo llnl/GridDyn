@@ -110,7 +110,7 @@ jobs:
       - task: Cache@2
         inputs:
           path: $(BOOST_ROOT)
-          key: boost-1.90.0
+          key: '"boost-1.90.0"'
           cacheHitVar: BOOST_CACHE_RESTORED
         # A cache restore failure should fall through to the dependency install.
         continueOnError: true

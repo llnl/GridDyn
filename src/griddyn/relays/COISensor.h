@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Sensor.h"
+#include <string>
 #include <vector>
 
 namespace griddyn {

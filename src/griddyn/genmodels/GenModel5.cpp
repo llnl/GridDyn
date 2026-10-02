@@ -12,6 +12,7 @@
 #include "gmlc/utilities/vectorOps.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
+#include <cstddef>
 #include <complex>
 #include <string>
 
@@ -19,16 +20,16 @@ namespace griddyn::genmodels {
 GenModel5::GenModel5(const std::string& objName): GenModel4(objName) {}
 CoreObject* GenModel5::clone(CoreObject* obj) const
 {
-    auto* gd = cloneBase<GenModel5, GenModel4>(this, obj);
-    if (gd == nullptr) {
+    auto* clonedModel = cloneBase<GenModel5, GenModel4>(this, obj);
+    if (clonedModel == nullptr) {
         return obj;
     }
-    gd->Tqopp = Tqopp;
-    gd->Taa = Taa;
-    gd->Tdopp = Tdopp;
-    gd->Xdpp = Xdpp;
-    gd->Xqpp = Xqpp;
-    return gd;
+    clonedModel->Tqopp = Tqopp;
+    clonedModel->Taa = Taa;
+    clonedModel->Tdopp = Tdopp;
+    clonedModel->Xdpp = Xdpp;
+    clonedModel->Xqpp = Xqpp;
+    return clonedModel;
 }
 
 void GenModel5::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
@@ -42,148 +43,163 @@ void GenModel5::dynObjectInitializeB(const IOdata& inputs,
                                      const IOdata& desiredOutput,
                                      IOdata& fieldSet)
 {
-    double* gm = m_state.data();
+    double* generatorState = m_state.data();
     computeInitialAngleAndCurrent(inputs, desiredOutput, Rs, Xq);
 
     // Edp and Eqp  and Edpp
 
-    gm[5] = Vq + Rs * gm[1] - (Xdp)*gm[0];
-    gm[6] = Vd + Rs * gm[0] + (Xqp)*gm[1];
+    generatorState[5] = Vq + (Rs * generatorState[1]) - (Xdp * generatorState[0]);
+    generatorState[6] = Vd + (Rs * generatorState[0]) + (Xqp * generatorState[1]);
 
-    double xrat = Tqopp * (Xdp + Xl) / (Tqop * (Xqp + Xl));
-    gm[4] = gm[6] + (Xqp - Xdp + xrat * (Xq - Xqp)) * gm[1];
+    const double transientReactanceRatio = Tqopp * (Xdp + Xl) / (Tqop * (Xqp + Xl));
+    generatorState[4] = generatorState[6] +
+        ((Xqp - Xdp + (transientReactanceRatio * (Xq - Xqp))) * generatorState[1]);
 
     // record Pm = Pset
     // this should be close to P from above
-    double Pmt = gm[6] * gm[0] + gm[5] * gm[1] + (Xdp - Xqp) * gm[0] * gm[1];
+    const double mechanicalPower = (generatorState[6] * generatorState[0]) +
+        (generatorState[5] * generatorState[1]) +
+        ((Xdp - Xqp) * generatorState[0] * generatorState[1]);
     // exciter - assign Ef
-    double Eft = gm[5] - (Xd - Xdp) * gm[0];
+    const double exciterField = generatorState[5] - ((Xd - Xdp) * generatorState[0]);
     // preset the inputs that should be initialized
-    fieldSet[2] = Eft;
-    fieldSet[3] = Pmt;
+    fieldSet[2] = exciterField;
+    fieldSet[3] = mechanicalPower;
 }
 
 void GenModel5::algebraicUpdate(const IOdata& inputs,
-                                const StateData& sD,
+                                const StateData& stateData,
                                 double update[],
                                 const SolverMode& sMode,
                                 double /*alpha*/)
 {
-    auto Loc = offsets.getLocations(sD, update, sMode, this);
-    updateLocalCache(inputs, sD, sMode);
+    const auto locations = offsets.getLocations(stateData, update, sMode, this);
+    updateLocalCache(inputs, stateData, sMode);
     gmlc::utilities::solve2x2(Rs,
                               (Xqp),
                               -(Xdp),
                               Rs,
-                              Loc.diffStateLoc[4] - Vd,
-                              Loc.diffStateLoc[3] - Vq,
-                              Loc.destLoc[0],
-                              Loc.destLoc[1]);
-    m_output = -(Loc.destLoc[1] * Vq + Loc.destLoc[0] * Vd);
+                               locations.diffStateLoc[4] - Vd,
+                               locations.diffStateLoc[3] - Vq,
+                               locations.destLoc[0],
+                               locations.destLoc[1]);
+    m_output = -((locations.destLoc[1] * Vq) + (locations.destLoc[0] * Vd));
 }
 
 void GenModel5::residual(const IOdata& inputs,
-                         const StateData& sD,
+                         const StateData& stateData,
                          double resid[],
                          const SolverMode& sMode)
 {
-    auto Loc = offsets.getLocations(sD, resid, sMode, this);
-    const double* gm = Loc.algStateLoc;
-    const double* gmd = Loc.diffStateLoc;
-    const double* gmp = Loc.dstateLoc;
+    const auto locations = offsets.getLocations(stateData, resid, sMode, this);
+    const double* generatorState = locations.algStateLoc;
+    const double* differentialState = locations.diffStateLoc;
+    const double* differentialDerivative = locations.dstateLoc;
 
-    double* rva = Loc.destLoc;
-    double* rvd = Loc.destDiffLoc;
-    updateLocalCache(inputs, sD, sMode);
+    double* algebraicResidual = locations.destLoc;
+    double* differentialResidual = locations.destDiffLoc;
+    updateLocalCache(inputs, stateData, sMode);
 
     // Id and Iq
     if (hasAlgebraic(sMode)) {
-        rva[0] = Vd + Rs * gm[0] + (Xqp)*gm[1] - gmd[4];
-        rva[1] = Vq + Rs * gm[1] - (Xdp)*gm[0] - gmd[3];
+        algebraicResidual[0] =
+            Vd + (Rs * generatorState[0]) + (Xqp * generatorState[1]) - differentialState[4];
+        algebraicResidual[1] =
+            Vq + (Rs * generatorState[1]) - (Xdp * generatorState[0]) - differentialState[3];
     }
 
     if (hasDifferential(sMode)) {
-        derivative(inputs, sD, resid, sMode);
+        derivative(inputs, stateData, resid, sMode);
         // Get the exciter field
 
         // delta
-        rvd[0] -= gmp[0];
-        rvd[1] -= gmp[1];
-        rvd[2] -= gmp[2];
-        rvd[3] -= gmp[3];
-        rvd[4] -= gmp[4];
+        differentialResidual[0] -= differentialDerivative[0];
+        differentialResidual[1] -= differentialDerivative[1];
+        differentialResidual[2] -= differentialDerivative[2];
+        differentialResidual[3] -= differentialDerivative[3];
+        differentialResidual[4] -= differentialDerivative[4];
     }
 }
 
 void GenModel5::derivative(const IOdata& inputs,
-                           const StateData& sD,
+                           const StateData& stateData,
                            double deriv[],
                            const SolverMode& sMode)
 {
-    auto Loc = offsets.getLocations(sD, deriv, sMode, this);
-    const double* ast = Loc.algStateLoc;
-    const double* dst = Loc.diffStateLoc;
-    double* dv = Loc.destDiffLoc;
+    const auto locations = offsets.getLocations(stateData, deriv, sMode, this);
+    const double* algebraicState = locations.algStateLoc;
+    const double* differentialState = locations.diffStateLoc;
+    double* derivativeValues = locations.destDiffLoc;
     // Get the exciter field
-    double Eft = inputs[genModelEftInLocation];
-    double Pmt = inputs[genModelPmechInLocation];
+    const double exciterField = inputs[genModelEftInLocation];
+    const double mechanicalPower = inputs[genModelPmechInLocation];
 
     // Id and Iq
 
     // delta
-    dv[0] = systemBaseFrequency * (dst[1] - 1.0);
+    derivativeValues[0] = systemBaseFrequency * (differentialState[1] - 1.0);
     // Edp and Eqp
 
-    double xrat = Tqopp * (Xdp + Xl) / (Tqop * (Xqp + Xl));
+    const double transientReactanceRatio = Tqopp * (Xdp + Xl) / (Tqop * (Xqp + Xl));
     // Edp and Eqp
-    dv[2] = (-dst[2] - (Xq - Xqp - xrat * (Xq - Xqp)) * ast[1]) / Tqop;
-    dv[3] = (-dst[3] + (Xd - Xdp) * ast[0] + Eft) / Tdop;
+    derivativeValues[2] =
+        (-differentialState[2] -
+         ((Xq - Xqp - (transientReactanceRatio * (Xq - Xqp))) * algebraicState[1])) /
+        Tqop;
+    derivativeValues[3] =
+        (-differentialState[3] + ((Xd - Xdp) * algebraicState[0]) + exciterField) / Tdop;
     // Edpp
-    dv[4] = (-dst[4] + dst[2] - (Xqp - Xdp + xrat * (Xq - Xqp)) * ast[1]) / Tqopp;
+    derivativeValues[4] =
+        (-differentialState[4] + differentialState[2] -
+         ((Xqp - Xdp + (transientReactanceRatio * (Xq - Xqp))) * algebraicState[1])) /
+        Tqopp;
     // omega
 
-    double Pe = dst[4] * ast[0] + dst[3] * ast[1] + (Xdp - Xqp) * ast[0] * ast[1];
-    dv[1] = 0.5 * (Pmt - Pe - D * (dst[1] - 1.0)) / H;
+    const double electricalPower = (differentialState[4] * algebraicState[0]) +
+        (differentialState[3] * algebraicState[1]) +
+        ((Xdp - Xqp) * algebraicState[0] * algebraicState[1]);
+    derivativeValues[1] =
+        0.5 * (mechanicalPower - electricalPower - (D * (differentialState[1] - 1.0))) / H;
 }
 
 void GenModel5::jacobianElements(const IOdata& inputs,
-                                 const StateData& sD,
-                                 MatrixData<double>& md,
+                                 const StateData& stateData,
+                                 MatrixData<double>& matrixData,
                                  const IOlocs& inputLocs,
                                  const SolverMode& sMode)
 {
     // md.assign (arrayIndex, RowIndex, ColIndex, value) const
-    auto Loc = offsets.getLocations(sD, nullptr, sMode, this);
+    const auto locations = offsets.getLocations(stateData, nullptr, sMode, this);
 
-    auto refAlg = Loc.algOffset;
-    auto refDiff = Loc.diffOffset;
-    const double* gm = Loc.algStateLoc;
+    auto refAlg = locations.algOffset;
+    auto refDiff = locations.diffOffset;
+    const double* generatorState = locations.algStateLoc;
 
-    auto VLoc = inputLocs[VOLTAGE_IN_LOCATION];
-    auto TLoc = inputLocs[ANGLE_IN_LOCATION];
+    const auto voltageLocation = inputLocs[VOLTAGE_IN_LOCATION];
+    const auto angleLocation = inputLocs[ANGLE_IN_LOCATION];
 
-    updateLocalCache(inputs, sD, sMode);
+    updateLocalCache(inputs, stateData, sMode);
 
-    bool hasAlg = hasAlgebraic(sMode);
+    const bool hasAlgebraicEquations = hasAlgebraic(sMode);
     // P
-    if (hasAlg) {
-        if (TLoc != kNullLocation) {
-            md.assign(refAlg, TLoc, Vq);
-            md.assign(refAlg + 1, TLoc, -Vd);
+    if (hasAlgebraicEquations) {
+        if (angleLocation != kNullLocation) {
+            matrixData.assign(refAlg, angleLocation, Vq);
+            matrixData.assign(refAlg + 1, angleLocation, -Vd);
         }
 
         // Q
-        if (VLoc != kNullLocation) {
-            double V = inputs[VOLTAGE_IN_LOCATION];
-            md.assign(refAlg, VLoc, Vd / V);
-            md.assign(refAlg + 1, VLoc, Vq / V);
+        if (voltageLocation != kNullLocation) {
+            const double voltageMagnitude = inputs[VOLTAGE_IN_LOCATION];
+            matrixData.assign(refAlg, voltageLocation, Vd / voltageMagnitude);
+            matrixData.assign(refAlg + 1, voltageLocation, Vq / voltageMagnitude);
         }
 
-        md.assign(refAlg, refAlg, Rs);
-        md.assign(refAlg, refAlg + 1, (Xqp));
+        matrixData.assign(refAlg, refAlg, Rs);
+        matrixData.assign(refAlg, refAlg + 1, Xqp);
 
-        md.assign(refAlg + 1, refAlg, -(Xdp));
-        md.assign(refAlg + 1, refAlg + 1, Rs);
+        matrixData.assign(refAlg + 1, refAlg, -Xdp);
+        matrixData.assign(refAlg + 1, refAlg + 1, Rs);
 
         if (isAlgebraicOnly(sMode)) {
             return;
@@ -191,63 +207,73 @@ void GenModel5::jacobianElements(const IOdata& inputs,
 
         // Id Additional
 
-        md.assign(refAlg, refDiff, -Vq);
-        md.assign(refAlg, refDiff + 4, -1);
+        matrixData.assign(refAlg, refDiff, -Vq);
+        matrixData.assign(refAlg, refDiff + 4, -1);
 
         // Iq Additional
-        md.assign(refAlg + 1, refDiff, Vd);
-        md.assign(refAlg + 1, refDiff + 3, -1);
+        matrixData.assign(refAlg + 1, refDiff, Vd);
+        matrixData.assign(refAlg + 1, refDiff + 3, -1);
     }
 
     if (hasDifferential(sMode)) {
         // delta
-        md.assign(refDiff, refDiff, -sD.cj);
-        md.assign(refDiff, refDiff + 1, systemBaseFrequency);
+        matrixData.assign(refDiff, refDiff, -stateData.cj);
+        matrixData.assign(refDiff, refDiff + 1, systemBaseFrequency);
 
         // omega
-        double kVal = -0.5 / H;
-        if (hasAlg) {
-            md.assign(refDiff + 1, refAlg, -0.5 * (gm[6] + (Xdp - Xqp) * gm[1]) / H);
-            md.assign(refDiff + 1, refAlg + 1, -0.5 * (gm[5] + (Xdp - Xqp) * gm[0]) / H);
+        const double inertiaFactor = -0.5 / H;
+        if (hasAlgebraicEquations) {
+            matrixData.assign(refDiff + 1,
+                              refAlg,
+                              -0.5 * (generatorState[6] + ((Xdp - Xqp) * generatorState[1])) / H);
+            matrixData.assign(refDiff + 1,
+                              refAlg + 1,
+                              -0.5 * (generatorState[5] + ((Xdp - Xqp) * generatorState[0])) / H);
         }
 
-        md.assign(refDiff + 1, refDiff + 1, -0.5 * D / H - sD.cj);
-        md.assign(refDiff + 1, refDiff + 4, -0.5 * gm[0] / H);
-        md.assign(refDiff + 1, refDiff + 3, -0.5 * gm[1] / H);
+        matrixData.assign(refDiff + 1, refDiff + 1, (-0.5 * D / H) - stateData.cj);
+        matrixData.assign(refDiff + 1, refDiff + 4, -0.5 * generatorState[0] / H);
+        matrixData.assign(refDiff + 1, refDiff + 3, -0.5 * generatorState[1] / H);
 
-        md.assignCheckCol(refDiff + 1, inputLocs[genModelPmechInLocation],
-                          -kVal);  // governor: Pm
+        matrixData.assignCheckCol(refDiff + 1,
+                                  inputLocs[genModelPmechInLocation],
+                                  -inertiaFactor);  // governor: Pm
 
-        double xrat = Tqopp * (Xdp + Xl) / (Tqop * (Xqp + Xl));
+        const double transientReactanceRatio = Tqopp * (Xdp + Xl) / (Tqop * (Xqp + Xl));
         // Edp
-        if (hasAlg) {
-            md.assign(refDiff + 2, refAlg + 1, -(Xq - Xqp - xrat * (Xq - Xqp)) / Tqop);
+        if (hasAlgebraicEquations) {
+            matrixData.assign(refDiff + 2,
+                              refAlg + 1,
+                              -(Xq - Xqp - (transientReactanceRatio * (Xq - Xqp))) / Tqop);
         }
-        md.assign(refDiff + 2, refDiff + 2, -1 / Tqop - sD.cj);
+        matrixData.assign(refDiff + 2, refDiff + 2, -(1 / Tqop) - stateData.cj);
 
         // Eqp
-        if (hasAlg) {
-            md.assign(refDiff + 3, refAlg, (Xd - Xdp) / Tdop);
+        if (hasAlgebraicEquations) {
+            matrixData.assign(refDiff + 3, refAlg, (Xd - Xdp) / Tdop);
         }
-        md.assign(refDiff + 3, refDiff + 3, -1 / Tdop - sD.cj);
+        matrixData.assign(refDiff + 3, refDiff + 3, -(1 / Tdop) - stateData.cj);
 
-        md.assignCheckCol(refDiff + 3, inputLocs[genModelEftInLocation],
-                          1 / Tdop);  // exciter: Ef
+        matrixData.assignCheckCol(refDiff + 3,
+                                  inputLocs[genModelEftInLocation],
+                                  1 / Tdop);  // exciter: Ef
 
         // Edpp
-        if (hasAlg) {
-            md.assign(refDiff + 4, refAlg + 1, -(Xqp - Xdp + xrat * (Xq - Xqp)) / Tqopp);
+        if (hasAlgebraicEquations) {
+            matrixData.assign(refDiff + 4,
+                              refAlg + 1,
+                              -(Xqp - Xdp + (transientReactanceRatio * (Xq - Xqp))) / Tqopp);
         }
-        md.assign(refDiff + 4, refDiff + 2, 1 / Tqopp);
-        md.assign(refDiff + 4, refDiff + 4, -1 / Tqopp - sD.cj);
+        matrixData.assign(refDiff + 4, refDiff + 2, 1 / Tqopp);
+        matrixData.assign(refDiff + 4, refDiff + 4, -(1 / Tqopp) - stateData.cj);
     }
 }
 
-static const stringVec genModel5Names{"id", "iq", "delta", "freq", "edp", "eqp", "edpp"};
+static const stringVec GEN_MODEL_5_NAMES{"id", "iq", "delta", "freq", "edp", "eqp", "edpp"};
 
 stringVec GenModel5::localStateNames() const
 {
-    return genModel5Names;
+    return GEN_MODEL_5_NAMES;
 }
 
 double GenModel5::getFreq(const StateData& stateDataValue,
@@ -259,7 +285,9 @@ double GenModel5::getFreq(const StateData& stateDataValue,
         if (freqOffset != nullptr) {
             *freqOffset = kNullLocation;
         }
-        return frequencyState < m_state.size() ? m_state[frequencyState] : 1.0;
+        return (frequencyState >= 0 && static_cast<std::size_t>(frequencyState) < m_state.size()) ?
+            m_state[static_cast<std::size_t>(frequencyState)] :
+            1.0;
     }
     if (!stateDataValue.empty()) {
         const auto loc = offsets.getLocations(stateDataValue, sMode, this);
@@ -283,7 +311,9 @@ double GenModel5::getAngle(const StateData& stateDataValue,
         if (angleOffset != nullptr) {
             *angleOffset = kNullLocation;
         }
-        return angleState < m_state.size() ? m_state[angleState] : 0.0;
+        return (angleState >= 0 && static_cast<std::size_t>(angleState) < m_state.size()) ?
+            m_state[static_cast<std::size_t>(angleState)] :
+            0.0;
     }
     if (!stateDataValue.empty()) {
         const auto loc = offsets.getLocations(stateDataValue, sMode, this);
@@ -301,7 +331,7 @@ double GenModel5::getAngle(const StateData& stateDataValue,
 // set parameters
 void GenModel5::set(std::string_view param, std::string_view val)
 {
-    return GenModel4::set(param, val);
+    GenModel4::set(param, val);
 }
 void GenModel5::set(std::string_view param, double val, units::unit unitType)
 {

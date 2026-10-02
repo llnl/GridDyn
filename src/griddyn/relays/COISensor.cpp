@@ -14,6 +14,7 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "utilities/MatrixData.hpp"
 #include <cmath>
+#include <cstddef>
 #include <functional>
 #include <string>
 
@@ -75,7 +76,7 @@ void COISensor::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
                     throw InvalidParameterValue("COI generator MBASE must be positive and finite");
                 }
                 const double weight = inertia * machineBase / systemBase;
-                machines.push_back({generator, weight});
+                machines.push_back({.generator = generator, .weight = weight});
                 totalInertia += weight;
             }
         }
@@ -138,7 +139,9 @@ double COISensor::getOutput(const IOdata& /*inputs*/,
 
 double COISensor::getOutput(index_t outNum) const
 {
-    return outNum < m_state.size() ? m_state[outNum] : kNullVal;
+    return (outNum >= 0 && static_cast<std::size_t>(outNum) < m_state.size()) ?
+        m_state[static_cast<std::size_t>(outNum)] :
+        kNullVal;
 }
 
 index_t COISensor::getOutputLoc(const SolverMode& sMode, index_t outNum) const

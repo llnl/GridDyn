@@ -19,6 +19,188 @@
 #include <string>
 
 namespace griddyn {
+namespace {
+    struct RampTargetUpdate {
+        double rampRate;
+        CoreTime nextUpdateTime;
+    };
+
+    double boundedRampRate(double difference,
+                           double rate,
+                           double rampLimitUp,
+                           double rampLimitDown)
+    {
+        if (difference > 0.0) {
+            if (!std::isfinite(rate) || rate <= 0.0) {
+                rate = rampLimitUp;
+            }
+            return std::clamp(rate, 0.0, rampLimitUp);
+        }
+        if (!std::isfinite(rate) || rate >= 0.0) {
+            rate = -rampLimitDown;
+        }
+        return std::clamp(rate, -rampLimitDown, 0.0);
+    }
+
+    double rampCompletionDelay(double difference, double rate)
+    {
+        if (std::abs(difference) <= 1.0e-12) {
+            return 0.0;
+        }
+        if (!std::isfinite(rate) || difference * rate <= 0.0) {
+            return std::numeric_limits<double>::infinity();
+        }
+        const double delay = difference / rate;
+        return (delay > 0.0 && std::isfinite(delay)) ? delay :
+                                                       std::numeric_limits<double>::infinity();
+    }
+
+    RampTargetUpdate calculateRampTargetUpdate(SchedulerRamp::RampMode mode,
+                                               double remainingPower,
+                                               double powerDifference,
+                                               double targetDeltaTime,
+                                               CoreTime previousTime,
+                                               CoreTime targetTime,
+                                               CoreTime lastTargetTime,
+                                               double rampTime,
+                                               double currentRampRate,
+                                               double rampLimitUp,
+                                               double rampLimitDown)
+    {
+        double rampRate = currentRampRate;
+        CoreTime nextUpdateTime = targetTime;
+        double remainingTime;
+
+        switch (mode) {
+            case SchedulerRamp::INTERP:
+                rampRate = powerDifference / targetDeltaTime;
+                if (rampRate > rampLimitUp) {
+                    rampRate = rampLimitUp;
+                } else if (rampRate < -rampLimitDown) {
+                    rampRate = -rampLimitDown;
+                }
+                break;
+            case SchedulerRamp::MID_POINT:
+                if (targetDeltaTime >= rampTime) {
+                    if (remainingPower != 0.0) {
+                        rampRate = boundedRampRate(
+                            remainingPower, rampRate, rampLimitUp, rampLimitDown);
+                        remainingTime = rampCompletionDelay(remainingPower, rampRate);
+                        if (!std::isfinite(remainingTime)) {
+                            rampRate = 0.0;
+                            nextUpdateTime = targetTime;
+                        } else if (remainingTime < ((targetDeltaTime - rampTime) / 2.0)) {
+                            nextUpdateTime = previousTime + remainingTime;
+                        } else {
+                            nextUpdateTime = previousTime + ((targetDeltaTime - rampTime) / 2.0);
+                        }
+                    } else {
+                        const double targetSpan = targetTime - lastTargetTime;
+                        if ((previousTime - lastTargetTime) >= ((targetSpan - rampTime) / 2.0)) {
+                            const CoreTime rampEndTime =
+                                lastTargetTime + ((targetSpan - rampTime) / 2.0) + rampTime;
+                            if (previousTime < rampEndTime) {
+                                rampRate = powerDifference / rampTime;
+                                if (rampRate > rampLimitUp) {
+                                    rampRate = rampLimitUp;
+                                } else if (rampRate < -rampLimitDown) {
+                                    rampRate = -rampLimitDown;
+                                }
+                                nextUpdateTime = rampEndTime;
+                            } else {
+                                rampRate = boundedRampRate(
+                                    powerDifference, rampRate, rampLimitUp, rampLimitDown);
+                                remainingTime = rampCompletionDelay(powerDifference, rampRate);
+                                nextUpdateTime = std::isfinite(remainingTime) ?
+                                    previousTime + remainingTime :
+                                    targetTime;
+                                nextUpdateTime = std::min(targetTime, nextUpdateTime);
+                            }
+                        } else {
+                            rampRate = 0.0;
+                            nextUpdateTime = lastTargetTime + ((targetSpan - rampTime) / 2.0);
+                        }
+                    }
+                } else {
+                    const double targetSpan = targetTime - lastTargetTime;
+                    const CoreTime rampEndTime =
+                        lastTargetTime + ((targetSpan - rampTime) / 2.0) + rampTime;
+                    if (previousTime >= rampEndTime) {
+                        rampRate = boundedRampRate(
+                            powerDifference, rampRate, rampLimitUp, rampLimitDown);
+                        remainingTime = rampCompletionDelay(powerDifference, rampRate);
+                        nextUpdateTime = std::isfinite(remainingTime) ?
+                            previousTime + remainingTime :
+                            targetTime;
+                        nextUpdateTime = std::min(targetTime, nextUpdateTime);
+                    } else {
+                        nextUpdateTime = targetTime;
+                        if (targetDeltaTime == 0.0) {
+                            rampRate = (powerDifference > 0.0) ? rampLimitUp : -rampLimitDown;
+                        } else {
+                            rampRate = powerDifference / targetDeltaTime;
+                            if (rampRate > rampLimitUp) {
+                                rampRate = rampLimitUp;
+                            } else if (rampRate < -rampLimitDown) {
+                                rampRate = -rampLimitDown;
+                            }
+                        }
+                    }
+                }
+                break;
+            case SchedulerRamp::DELAYED:
+                if (remainingPower != 0.0) {
+                    const double rate = (remainingPower > 0.0) ? rampLimitUp : rampLimitDown;
+                    remainingTime = (rate > 0.0) ? std::abs(remainingPower) / rate :
+                                                   targetDeltaTime;
+                    remainingTime = std::max(remainingTime, rampTime);
+                    remainingTime = std::min(remainingTime, targetDeltaTime);
+                    rampRate = (remainingTime > 0.0) ? remainingPower / remainingTime : 0.0;
+                    if (rampRate > rampLimitUp) {
+                        rampRate = rampLimitUp;
+                    } else if (rampRate < -rampLimitDown) {
+                        rampRate = -rampLimitDown;
+                    }
+                    nextUpdateTime = previousTime + remainingTime;
+                } else {
+                    rampRate = 0.0;
+                    nextUpdateTime = targetTime;
+                }
+                break;
+            case SchedulerRamp::JUST_IN_TIME: {
+                if (std::abs(powerDifference) <= 0.0001) {
+                    rampRate = 0.0;
+                    nextUpdateTime = targetTime;
+                    break;
+                }
+                const double rateLimit = (powerDifference > 0.0) ? rampLimitUp : rampLimitDown;
+                if (rateLimit <= 0.0) {
+                    rampRate = 0.0;
+                    nextUpdateTime = targetTime;
+                    break;
+                }
+                const double requiredTime = std::abs(powerDifference) / rateLimit;
+                const CoreTime rampStartTime = targetTime - requiredTime;
+                if (previousTime < rampStartTime) {
+                    rampRate = 0.0;
+                    nextUpdateTime = rampStartTime;
+                } else {
+                    rampRate = boundedRampRate(powerDifference,
+                                               powerDifference / targetDeltaTime,
+                                               rampLimitUp,
+                                               rampLimitDown);
+                }
+                break;
+            }
+            case SchedulerRamp::ON_TARGET_RAMP:
+                rampRate = 0.0;
+                nextUpdateTime = targetTime;
+                break;
+        }
+        return {.rampRate = rampRate, .nextUpdateTime = nextUpdateTime};
+    }
+}  // namespace
+
 SchedulerRamp::SchedulerRamp(const std::string& objName): Scheduler(objName) {}
 
 SchedulerRamp::SchedulerRamp(double initialValue, const std::string& objName):
@@ -323,8 +505,6 @@ void SchedulerRamp::set(std::string_view param, double val, units::unit unitType
             throw InvalidParameterValue("scheduler ramp time must be positive");
         }
         rampTime = seconds;
-    } else if (param == "target") {
-        Scheduler::set(param, val, unitType);
     } else if (param == "reserve") {
         const double amount = units::convert(val, unitType, units::puMW, m_Base);
         if (!std::isfinite(amount) || amount < 0.0 || amount > pMax - pMin) {
@@ -373,32 +553,9 @@ void SchedulerRamp::updatePTarget()
     double remtime = 0.0;
     double target;
     CoreTime time;
-    double targetSpan;
     const double rampLimitUp = getRampLimitUp();
     const double rampLimitDown = getRampLimitDown();
-    const auto boundedRate = [rampLimitUp, rampLimitDown](double difference, double rate) {
-        if (difference > 0.0) {
-            if (!std::isfinite(rate) || rate <= 0.0) {
-                rate = rampLimitUp;
-            }
-            return std::clamp(rate, 0.0, rampLimitUp);
-        }
-        if (!std::isfinite(rate) || rate >= 0.0) {
-            rate = -rampLimitDown;
-        }
-        return std::clamp(rate, -rampLimitDown, 0.0);
-    };
-    const auto completionDelay = [](double difference, double rate) {
-        if (std::abs(difference) <= 1.0e-12) {
-            return 0.0;
-        }
-        if (!std::isfinite(rate) || difference * rate <= 0.0) {
-            return std::numeric_limits<double>::infinity();
-        }
-        const double delay = difference / rate;
-        return (delay > 0.0 && std::isfinite(delay)) ? delay :
-                                                       std::numeric_limits<double>::infinity();
-    };
+
 
     if (rampCompletionPending) {
         if (prevTime >= rampCompletionTime) {
@@ -447,7 +604,7 @@ void SchedulerRamp::updatePTarget()
                 return;
             }
             pRampCurr = (rempower > 0.0) ? rampLimitUp : -rampLimitDown;
-            remtime = completionDelay(rempower, pRampCurr);
+            remtime = rampCompletionDelay(rempower, pRampCurr);
             if (std::isfinite(remtime)) {
                 rampCompletionPending = true;
                 rampCompletionTime = prevTime + remtime;
@@ -481,7 +638,7 @@ void SchedulerRamp::updatePTarget()
                 if (rempower * pRampCurr <= 0.0) {
                     pRampCurr = (rempower > 0.0) ? rampLimitUp : -rampLimitDown;
                 }
-                remtime = completionDelay(rempower, pRampCurr);
+                remtime = rampCompletionDelay(rempower, pRampCurr);
                 if (std::isfinite(remtime)) {
                     const CoreTime completionTime = prevTime + remtime;
                     insertTarget(Tsched(completionTime, target));
@@ -512,132 +669,19 @@ void SchedulerRamp::updatePTarget()
         }
     }
 
-    switch (mode) {
-        case INTERP:
-            nextUpdateTime = time;
-            pRampCurr = powerDifference / targetDeltaTime;
-            if (pRampCurr > rampLimitUp) {
-                pRampCurr = rampLimitUp;
-            } else if (pRampCurr < -rampLimitDown) {
-                pRampCurr = -rampLimitDown;
-            }
-            break;
-        case MID_POINT:
-            if (targetDeltaTime >= rampTime) {
-                if (rempower != 0.0) {
-                    /*keep ramp until we would begin ramping for the next target*/
-                    pRampCurr = boundedRate(rempower, pRampCurr);
-                    remtime = completionDelay(rempower, pRampCurr);
-                    if (!std::isfinite(remtime)) {
-                        pRampCurr = 0.0;
-                        nextUpdateTime = time;
-                    } else if (remtime < ((targetDeltaTime - rampTime) / 2.0)) {
-                        nextUpdateTime = prevTime + remtime;
-                    } else {
-                        nextUpdateTime = prevTime + ((targetDeltaTime - rampTime) / 2.0);
-                    }
-                } else {
-                    targetSpan = time - lastTargetTime;
-                    if ((prevTime - lastTargetTime) >= (targetSpan - rampTime) / 2.0) {
-                        if (prevTime <
-                            (lastTargetTime + (targetSpan - rampTime) / 2.0 + rampTime)) {
-                            pRampCurr = powerDifference / rampTime;
-                            if (pRampCurr > rampLimitUp) {
-                                pRampCurr = rampLimitUp;
-                            } else if (pRampCurr < -rampLimitDown) {
-                                pRampCurr = -rampLimitDown;
-                            }
-                            nextUpdateTime =
-                                lastTargetTime + (targetSpan - rampTime) / 2.0 + rampTime;
-                        } else {
-                            pRampCurr = boundedRate(powerDifference, pRampCurr);
-                            remtime = completionDelay(powerDifference, pRampCurr);
-                            nextUpdateTime = std::isfinite(remtime) ? prevTime + remtime : time;
-                            if (time < nextUpdateTime) {
-                                nextUpdateTime = time;
-                            }
-                        }
-                    } else {
-                        pRampCurr = 0;
-                        nextUpdateTime = lastTargetTime + (targetSpan - rampTime) / 2.0;
-                    }
-                }
-            } else {
-                targetSpan = time - lastTargetTime;
-                if (prevTime >= (lastTargetTime + (targetSpan - rampTime) / 2.0 + rampTime)) {
-                    pRampCurr = boundedRate(powerDifference, pRampCurr);
-                    remtime = completionDelay(powerDifference, pRampCurr);
-                    nextUpdateTime = std::isfinite(remtime) ? prevTime + remtime : time;
-                    if (time < nextUpdateTime) {
-                        nextUpdateTime = time;
-                    }
-                } else {
-                    nextUpdateTime = time;
-                    if (targetDeltaTime == 0) {
-                        if (powerDifference > 0) {
-                            pRampCurr = rampLimitUp;
-                        } else {
-                            pRampCurr = -rampLimitDown;
-                        }
-                    } else {
-                        pRampCurr = powerDifference / targetDeltaTime;
-                        if (pRampCurr > rampLimitUp) {
-                            pRampCurr = rampLimitUp;
-                        } else if (pRampCurr < -rampLimitDown) {
-                            pRampCurr = -rampLimitDown;
-                        }
-                    }
-                }
-            }
-            break;
-        case DELAYED:
-            if (rempower != 0.0) {
-                const double rate = (rempower > 0.0) ? rampLimitUp : rampLimitDown;
-                remtime = (rate > 0.0) ? std::abs(rempower) / rate : targetDeltaTime;
-                if (remtime < rampTime) {
-                    remtime = rampTime;
-                }
-                remtime = std::min(remtime, targetDeltaTime);
-                pRampCurr = (remtime > 0.0) ? rempower / remtime : 0.0;
-                if (pRampCurr > rampLimitUp) {
-                    pRampCurr = rampLimitUp;
-                } else if (pRampCurr < -rampLimitDown) {
-                    pRampCurr = -rampLimitDown;
-                }
-                nextUpdateTime = prevTime + remtime;
-            } else {
-                pRampCurr = 0;
-                nextUpdateTime = time;
-            }
-            break;
-        case JUST_IN_TIME: {
-            if (std::abs(powerDifference) <= 0.0001) {
-                pRampCurr = 0.0;
-                nextUpdateTime = time;
-                break;
-            }
-            const double rateLimit = (powerDifference > 0.0) ? rampLimitUp : rampLimitDown;
-            if (rateLimit <= 0.0) {
-                pRampCurr = 0.0;
-                nextUpdateTime = time;
-                break;
-            }
-            const double requiredTime = std::abs(powerDifference) / rateLimit;
-            const CoreTime rampStartTime = time - requiredTime;
-            if (prevTime < rampStartTime) {
-                pRampCurr = 0.0;
-                nextUpdateTime = rampStartTime;
-            } else {
-                pRampCurr = boundedRate(powerDifference, powerDifference / targetDeltaTime);
-                nextUpdateTime = time;
-            }
-            break;
-        }
-        case ON_TARGET_RAMP:
-            pRampCurr = 0.0;
-            nextUpdateTime = time;
-            break;
-    }
+    const auto rampUpdate = calculateRampTargetUpdate(mode,
+                                                      rempower,
+                                                      powerDifference,
+                                                      targetDeltaTime,
+                                                      prevTime,
+                                                      time,
+                                                      lastTargetTime,
+                                                      rampTime,
+                                                      pRampCurr,
+                                                      rampLimitUp,
+                                                      rampLimitDown);
+    pRampCurr = rampUpdate.rampRate;
+    nextUpdateTime = rampUpdate.nextUpdateTime;
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)

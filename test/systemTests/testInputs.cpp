@@ -40,9 +40,9 @@ TEST_F(InputTests, InterAreaTransferLoadsFromRaw)
     auto* fromArea = dynamic_cast<GridArea*>(gds->findByUserID("area", 1));
     ASSERT_NE(fromArea, nullptr);
     ASSERT_TRUE(fromArea->getScheduledNetInterchangeMW().has_value());
-    EXPECT_DOUBLE_EQ(*fromArea->getScheduledNetInterchangeMW(), 50.0);
+    EXPECT_DOUBLE_EQ(fromArea->getScheduledNetInterchangeMW().value(), 50.0);
     ASSERT_TRUE(fromArea->getInterchangeToleranceMW().has_value());
-    EXPECT_DOUBLE_EQ(*fromArea->getInterchangeToleranceMW(), 1.0);
+    EXPECT_DOUBLE_EQ(fromArea->getInterchangeToleranceMW().value(), 1.0);
     const auto& transfers = gds->getInterAreaTransfers();
     ASSERT_EQ(transfers.size(), 1U);
     EXPECT_EQ(transfers[0].fromAreaID, 1);

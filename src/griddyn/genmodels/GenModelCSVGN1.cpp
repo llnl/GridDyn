@@ -187,12 +187,15 @@ GenModelCSVGN1::RegulatorSignals GenModelCSVGN1::getRegulatorSignals(double volt
 {
     RegulatorSignals signals;
     signals.error = voltage - voltageReference();
-    signals.firstOutput = (T1 / T3) * signals.error + (1.0 - (T1 / T3)) * state[0];
-    signals.secondOutput = (T2 / T4) * signals.firstOutput + (1.0 - (T2 / T4)) * state[1];
+    signals.firstOutput = ((T1 / T3) * signals.error) + ((1.0 - (T1 / T3)) * state[0]);
+    signals.secondOutput =
+        ((T2 / T4) * signals.firstOutput) + ((1.0 - (T2 / T4)) * state[1]);
     const double rawOutput = K * signals.secondOutput;
     signals.limitedOutput = std::clamp(rawOutput, VMIN, VMAX);
+    // The clamp is nondifferentiable at its limits. Use its right-sided slope,
+    // matching the forward perturbations used by the GridDyn Jacobian checker.
     signals.limitedOutputGain =
-        ((rawOutput > VMIN) && (rawOutput < VMAX)) ? K : 0.0;
+        ((rawOutput >= VMIN) && (rawOutput < VMAX)) ? K : 0.0;
     return signals;
 }
 

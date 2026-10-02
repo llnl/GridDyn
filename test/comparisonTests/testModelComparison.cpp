@@ -279,6 +279,29 @@ TEST(DyrReaderComparisonTests, MapsCsvgn1ParametersAndRunsAsMachineModel)
     EXPECT_EQ(model->getStates().size(), 3U);
     EXPECT_EQ(runResidualCheck(simulation, griddyn::cDaeSolverMode, false), 0);
     EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0);
+
+    // Check both one-sided branches of the regulator output clamp. The lower-limit
+    // Jacobian uses the interior slope; the upper-limit Jacobian uses the saturated slope.
+    const auto states = model->getStates();
+    const double voltage = svcBus->getVoltage();
+    const double error = voltage - (voltage - states[0]);
+    const double firstOutput = (model->get("t1") / model->get("t3")) * error +
+        (1.0 - (model->get("t1") / model->get("t3"))) * states[0];
+    const double secondOutput = (model->get("t2") / model->get("t4")) * firstOutput +
+        (1.0 - (model->get("t2") / model->get("t4"))) * states[1];
+    const double regulatorOutput = model->get("k") * secondOutput;
+    ASSERT_GT(regulatorOutput, model->get("vmin"));
+    ASSERT_LT(regulatorOutput, model->get("vmax"));
+
+    model->set("vmin", regulatorOutput);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0)
+        << "CSVGN1 Jacobian at the lower regulator limit";
+
+    model->set("vmin", 0.02);
+    model->set("vmax", regulatorOutput);
+    EXPECT_EQ(runJacobianCheck(simulation, griddyn::cDaeSolverMode, false), 0)
+        << "CSVGN1 Jacobian at the upper regulator limit";
+
     simulation->run(0.1);
     EXPECT_EQ(simulation->getSimulationTime(), 0.1);
 }

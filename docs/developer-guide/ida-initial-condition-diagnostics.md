@@ -240,10 +240,10 @@ The results below use each case's RAW file and a diagnostic DYR copy with its un
 `IEELAL` record removed. They isolate this IDA startup path; they are not a full run of every
 original DYR record.
 
-| Case | First pass | Successful retry | Simulation result |
-| --- | --- | --- | --- |
-| 05 | State size 385; max residual `4.6770e-8`, all algebraic; max differential residual `4.3410e-12`; no nonfinite residuals. | `FIXED_DIFF` returns `IDA_SUCCESS` with the same residual norms. | Reached 30 s; 11 steps, 0 error-test failures, 0 nonlinear-convergence failures; maximum state drift `2.59e-6`. |
-| 06 | State size 381; max residual `1.0586e-7`, all algebraic; max differential residual `3.8192e-12`; no nonfinite residuals. | `FIXED_DIFF` returns `IDA_SUCCESS` with the same residual norms. | Reached 2 s; 11 steps, 0 error-test failures, 0 nonlinear-convergence failures; maximum state drift `1.03e-8`. |
+| Case | First pass                                                                                                               | Successful retry                                                 | Simulation result                                                                                               |
+| ---- | ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| 05   | State size 385; max residual `4.6770e-8`, all algebraic; max differential residual `4.3410e-12`; no nonfinite residuals. | `FIXED_DIFF` returns `IDA_SUCCESS` with the same residual norms. | Reached 30 s; 11 steps, 0 error-test failures, 0 nonlinear-convergence failures; maximum state drift `2.59e-6`. |
+| 06   | State size 381; max residual `1.0586e-7`, all algebraic; max differential residual `3.8192e-12`; no nonfinite residuals. | `FIXED_DIFF` returns `IDA_SUCCESS` with the same residual norms. | Reached 2 s; 11 steps, 0 error-test failures, 0 nonlinear-convergence failures; maximum state drift `1.03e-8`.  |
 
 These runs reached their requested stop times with small residuals and no subsequent IDA
 integration failures. The first-pass setup error is therefore a failed initialization strategy

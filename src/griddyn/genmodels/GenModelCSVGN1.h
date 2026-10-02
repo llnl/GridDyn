@@ -83,11 +83,8 @@ class GenModelCSVGN1: public GenModel {
      * @param val Numeric parameter value.
      * @param unitType Units associated with val.
      */
-    void set(std::string_view param,
-             double val,
-             units::unit unitType = units::defunit) override;
-    double get(std::string_view param,
-               units::unit unitType = units::defunit) const override;
+    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
+    double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
     stringVec localStateNames() const override;
     void derivative(const IOdata& inputs,
@@ -134,8 +131,7 @@ class GenModelCSVGN1: public GenModel {
         double limitedOutputGain = 0.0;
     };
 
-    RegulatorSignals getRegulatorSignals(double voltage,
-                                         const double state[]) const;
+    RegulatorSignals getRegulatorSignals(double voltage, const double state[]) const;
     double voltageReference() const;
     double reactorMinimumPU() const;
     double reactiveOutput(double voltage, double reactorCommand) const;

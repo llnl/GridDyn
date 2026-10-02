@@ -137,7 +137,7 @@ class EPCGEN final: public TerminalElectricalModel {
     bool tripped = false;
 
     Evaluation evaluate(const IOdata& inputs, const double state[]) const;
-    double frequencyHz(const IOdata& inputs) const;
+    static double frequencyHz(const IOdata& inputs);
     double reactiveLimit(double voltage, double activePower) const;
     void copyParametersTo(EPCGEN* target) const;
 };

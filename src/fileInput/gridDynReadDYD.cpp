@@ -87,7 +87,7 @@ namespace {
 
     std::string canonicalDydModelName(std::string_view modelName)
     {
-        const auto normalized = gmlc::utilities::convertToLowerCase(modelName);
+        auto normalized = gmlc::utilities::convertToLowerCase(modelName);
         if (normalized == "esac7b") {
             return "ac7b";
         }
@@ -157,7 +157,7 @@ namespace {
             if (sourcePayload.size() != 30U) {
                 return false;
             }
-            payload.push_back("0");
+            payload.emplace_back("0");
             for (std::size_t index = 26U; index < 30U; ++index) {
                 payload.push_back(sourcePayload[index]);
             }
@@ -185,7 +185,7 @@ namespace {
             for (const auto index : regcaOrder) {
                 payload.push_back(sourcePayload[index]);
             }
-            payload.push_back("0");
+            payload.emplace_back("0");
             payload.push_back(sourcePayload[12U]);
             payload.push_back(sourcePayload[13U]);
             payload.push_back(sourcePayload[9U]);
@@ -201,6 +201,12 @@ namespace {
             payloadLimit = 17U;
         } else if (modelName == "gast") {
             payloadLimit = 9U;
+        } else if (modelName == "hygov") {
+            // HYGOV's DYR adapter consumes the 12-field PSS/E-compatible prefix.
+            // Extended records add options such as turbine trip, deadband,
+            // nonlinear gate curves, and Kaplan blade control, which GridDyn
+            // does not currently implement.
+            payloadLimit = 12U;
         } else if (modelName == "ggov1") {
             payloadLimit = 35U;
         } else if (modelName == "ieeeg1") {
@@ -253,8 +259,11 @@ namespace {
         for (std::size_t index = 0; index < rawPayload.size(); ++index) {
             const auto token = gmlc::utilities::stringOps::removeQuotes(rawPayload[index]);
             const auto normalized = gmlc::utilities::convertToLowerCase(token);
-            auto field = std::find(fieldNames.begin(), fieldNames.end(), normalized);
-            if (field != fieldNames.end()) {
+            std::size_t fieldIndex = 0U;
+            while ((fieldIndex < fieldNames.size()) && (fieldNames[fieldIndex] != normalized)) {
+                ++fieldIndex;
+            }
+            if (fieldIndex < fieldNames.size()) {
                 if (index + 1U >= rawPayload.size()) {
                     return false;
                 }
@@ -262,7 +271,7 @@ namespace {
                 if (value.empty() || value.contains('=')) {
                     return false;
                 }
-                values[static_cast<std::size_t>(field - fieldNames.begin())] = value;
+                values[fieldIndex] = value;
                 sawNamedField = true;
                 continue;
             }
@@ -444,8 +453,8 @@ void loadDyd(CoreObject* parentObject,
                 // PSLF IEEEG1 is a single-generator record. The DYR loader
                 // also supports the PSS/E two-generator form, so provide a
                 // zero secondary bus and a harmless ID.
-                lineTokens.push_back("0");
-                lineTokens.push_back("'1'");
+                lineTokens.emplace_back("0");
+                lineTokens.emplace_back("'1'");
             }
             lineTokens.insert(lineTokens.end(), normalizedPayload.begin(), normalizedPayload.end());
         }

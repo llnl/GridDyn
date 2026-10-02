@@ -117,13 +117,13 @@ class GovernorGPWSCC final: public Governor {
     bool hasIdentityCurve() const;
     bool hasUsableCurve() const;
     std::size_t lastCurvePoint() const;
-    DeadbandEvaluation evaluateDeadband(double value, double width) const;
+    static DeadbandEvaluation evaluateDeadband(double value, double width);
     CurveEvaluation evaluateCurve(double gate) const;
     double inverseCurve(double power) const;
     double gateOutput(double rawGate) const;
     double inverseGateOutput(double gate) const;
     void updateOutputLimits();
     Signals evaluate(const IOdata& inputs, const double state[]) const;
-    double mechanicalPower(const Signals& signals) const;
+    static double mechanicalPower(const Signals& signals);
 };
 }  // namespace griddyn::governors

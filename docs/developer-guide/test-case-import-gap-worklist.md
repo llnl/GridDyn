@@ -207,6 +207,30 @@ Relevant source: `src/fileInput/fileInput.cpp`.
     `esst5b`, `esac7b`, `esst6b`, `esdc1a`, `esac2a`,
     `upfc`, `esdc3a`.
 
+### [ ] DYD-001: Handle extended PSLF HYGOV parameters
+
+- Current behavior: the DYD adapter passes the 12-field PSS/E-compatible
+  HYGOV prefix to the existing DYR loader and discards the remaining fields.
+  This lets extended records load but does not preserve the extension's model
+  behavior.
+- The ACTIVSg500 record in
+  `test\test_files\texas_am\ACTIVSg500\ACTIVSg500_dynamics.dyd` has the
+  extended suffix: `ttrip` (called `Ttur` in PowerWorld documentation), `tn`,
+  `tnp`, `db1`, `eps`, `db2`, six `(GV, Pgv)` curve points, `hdam`, six `Bgv`
+  blade-servo points, `bmax`, and `tblade`. In this record, `ttrip` is `0.5`,
+  `hdam` is `1`, and `tblade` is `100`.
+- These fields are documented for PSLF HYGOV as well as by PowerWorld; they are
+  not arbitrary trailing padding. See [PSERC report, Table A.1](https://documents.pserc.wisc.edu/documents/publications/reports/2019_reports/S_75_Final_Report.pdf#page=70)
+  and [PowerWorld HYGOV parameter reference](https://www.powerworld.com/WebHelp/Content/TransientModels_HTML/Governor%20HYGOV%20and%20HYGOVD.htm).
+- Work needed:
+  - Define the supported source schema/version and parse the extension fields
+    explicitly.
+  - Implement the supported options; otherwise report unsupported active
+    extension values instead of silently discarding them.
+  - Add import and dynamic-behavior tests with nonzero extension values.
+- Exercised by: `test\test_files\texas_am\ACTIVSg500\ACTIVSg500_dynamics.dyd`
+  (HYGOV at bus 71).
+
 ### [ ] FILE-005: Add diagnostics for unsupported binary/container formats
 
 - Current behavior: these files are present in the corpus but are not mapped by

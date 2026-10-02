@@ -16,6 +16,7 @@
 #include <cstddef>
 #include <limits>
 #include <string>
+#include <vector>
 
 namespace griddyn {
 namespace {
@@ -106,7 +107,8 @@ void EPCGEN::set(std::string_view param, double val, units::unit unitType)
         rsrc = val;
     } else if (key == "xsrc") {
         xsrc = val;
-    } else if (key == "tfrq") {
+    } else if (key == "tfrq" || key == "tr") {
+        // Preserve "tr" as a legacy alias for the exposed TFRQ parameter.
         tfrq = val;
     } else if (key == "ofpdb") {
         ofpdb = val;
@@ -126,10 +128,6 @@ void EPCGEN::set(std::string_view param, double val, units::unit unitType)
         pmin = val;
     } else if (key == "pref") {
         pref = val;
-    } else if (key == "tr") {
-        // Retain compatibility with the parameter names in the supplied
-        // source.  The v7 record uses TFRQ as its exposed time constant.
-        tfrq = val;
     } else if (key == "kp") {
         kp = val;
     } else if (key == "ki") {
@@ -229,7 +227,7 @@ void EPCGEN::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
     tripped = false;
 }
 
-double EPCGEN::frequencyHz(const IOdata& inputs) const
+double EPCGEN::frequencyHz(const IOdata& inputs)
 {
     if (inputs.size() <= 1 || inputs[1] == kNullVal || !std::isfinite(inputs[1])) {
         return nominalFrequency;
@@ -242,8 +240,8 @@ double EPCGEN::reactiveLimit(double voltage, double activePower) const
     if (voltage <= 0.0) {
         return 0.0;
     }
-    const double currentPowerLimit =
-        std::sqrt(std::max(0.0, (imax * voltage) * (imax * voltage) - activePower * activePower));
+    const double currentPowerLimit = std::sqrt(
+        std::max(0.0, ((imax * voltage) * (imax * voltage)) - (activePower * activePower)));
     const double voltageFactor = vbreak >= 1.0 ?
         1.0 :
         std::clamp((voltage - vbreak) / std::max(1.0 - vbreak, minimumVoltage), 0.0, 1.0);
@@ -265,12 +263,12 @@ EPCGEN::Evaluation EPCGEN::evaluate(const IOdata& inputs, const double state[]) 
     const double commandedActivePower =
         std::clamp(pref + underFrequencyPower - overFrequencyPower, pmin, pmax);
     const double filteredVoltage = state[voltageFilter];
-    const double voltageError = initialVoltageReference - filteredVoltage - rq * reactivePower;
+    const double voltageError = initialVoltageReference - filteredVoltage - (rq * reactivePower);
     const double reactiveCommand = std::clamp((kp * voltageError) + state[qIntegrator],
                                               -reactiveLimit(voltage, commandedActivePower),
                                               reactiveLimit(voltage, commandedActivePower));
-    const double activeCurrentCommand = commandedActivePower / voltage + state[activeCorrection];
-    const double reactiveCurrentCommand = -reactiveCommand / voltage + state[reactiveCorrection];
+    const double activeCurrentCommand = (commandedActivePower / voltage) + state[activeCorrection];
+    const double reactiveCurrentCommand = (-reactiveCommand / voltage) + state[reactiveCorrection];
 
     const double currentMagnitude = std::hypot(activeCurrentCommand, reactiveCurrentCommand);
     const double currentScale = currentMagnitude > imax ? imax / currentMagnitude : 1.0;
@@ -282,14 +280,17 @@ EPCGEN::Evaluation EPCGEN::evaluate(const IOdata& inputs, const double state[]) 
     result.rates[qIntegrator] = ki * (voltageError + (qCommand - reactiveCommand));
     result.rates[voltageFilter] = (voltage - filteredVoltage) / tfrq;
     result.rates[governor] = (commandedActivePower - state[governor]) / tg;
-    result.rates[leadLag] = (state[governor] - state[leadLag] - state[governor] * t1 / t2) / t2;
+    result.rates[leadLag] =
+        (state[governor] - state[leadLag] - (state[governor] * t1 / t2)) / t2;
     result.rates[reactiveCurrent] = (limitedReactiveCurrent - state[reactiveCurrent]) / tq;
     result.rates[activeCurrent] = (limitedActiveCurrent - state[activeCurrent]) / td;
 
-    const double ed = voltage + (state[activeCurrent] * rsrc) - (state[reactiveCurrent] * xsrc);
-    const double eq = (state[reactiveCurrent] * rsrc) + (state[activeCurrent] * xsrc);
-    result.rates[internalD] = (ed - state[internalD]) / ted;
-    result.rates[internalQ] = (eq - state[internalQ]) / teq;
+    const double internalDVoltage =
+        voltage + (state[activeCurrent] * rsrc) - (state[reactiveCurrent] * xsrc);
+    const double internalQVoltage =
+        (state[reactiveCurrent] * rsrc) + (state[activeCurrent] * xsrc);
+    result.rates[internalD] = (internalDVoltage - state[internalD]) / ted;
+    result.rates[internalQ] = (internalQVoltage - state[internalQ]) / teq;
     result.rates[activeCorrection] = kip * (pCommand - activePower);
     result.rates[reactiveCorrection] = kiq * (qCommand - reactivePower);
     if (tripped) {
@@ -317,7 +318,7 @@ void EPCGEN::dynObjectInitializeB(const IOdata& inputs,
     state[qIntegrator] = initialQ;
     state[voltageFilter] = voltage;
     state[governor] = initialP;
-    state[leadLag] = initialP * (1.0 - t1 / t2);
+    state[leadLag] = initialP * (1.0 - (t1 / t2));
     state[reactiveCurrent] = -initialQ / voltage;
     state[activeCurrent] = initialP / voltage;
     state[internalD] = voltage + (state[activeCurrent] * rsrc) - (state[reactiveCurrent] * xsrc);

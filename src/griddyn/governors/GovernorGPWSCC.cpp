@@ -115,27 +115,28 @@ bool GovernorGPWSCC::hasUsableCurve() const
 }
 
 GovernorGPWSCC::DeadbandEvaluation GovernorGPWSCC::evaluateDeadband(double value,
-                                                                    double width) const
+                                                                    double width)
 {
     if (value > width) {
-        return {value - width, 1.0};
+        return {.value = value - width, .derivative = 1.0};
     }
     if (value < -width) {
-        return {value + width, 1.0};
+        return {.value = value + width, .derivative = 1.0};
     }
-    return {0.0, 0.0};
+    return {.value = 0.0, .derivative = 0.0};
 }
 
 GovernorGPWSCC::CurveEvaluation GovernorGPWSCC::evaluateCurve(double gate) const
 {
     if (!hasUsableCurve() || hasIdentityCurve()) {
-        return {gate, 1.0};
+        return {.value = gate, .slope = 1.0};
     }
     const auto last = lastCurvePoint();
     const auto evaluateSegment = [this, gate](std::size_t left, std::size_t right) {
         const double slope =
             (curvePower[right] - curvePower[left]) / (curveGate[right] - curveGate[left]);
-        return CurveEvaluation{curvePower[left] + slope * (gate - curveGate[left]), slope};
+        return CurveEvaluation{.value = curvePower[left] + (slope * (gate - curveGate[left])),
+                               .slope = slope};
     };
     if (gate <= curveGate[0]) {
         return evaluateSegment(0U, 1U);
@@ -160,7 +161,7 @@ double GovernorGPWSCC::inverseCurve(double power) const
             return curveGate[right];
         }
         return curveGate[left] +
-            (power - curvePower[left]) * (curveGate[right] - curveGate[left]) / deltaPower;
+            ((power - curvePower[left]) * (curveGate[right] - curveGate[left]) / deltaPower);
     };
     if (power <= curvePower[0]) {
         return invertSegment(0U, 1U);
@@ -277,39 +278,40 @@ GovernorGPWSCC::Signals GovernorGPWSCC::evaluate(const IOdata& inputs, const dou
     const double omega = inputs[govOmegaInLocation];
     const auto speed = evaluateDeadband(1.0 - omega, db1 + eps);
     const double controllerOutput = (Kp * state[filterState]) + state[integratorState] +
-        Kd * (state[filterState] - state[derivativeState]) / Tf;
+        (Kd * (state[filterState] - state[derivativeState]) / Tf);
     const double feedback = (Tt > 0.0) ? state[electricalPowerState] : controllerOutput;
-    const double setpointChange = inputs[govpSetInLocation] / scale - initializedInputReference;
-    const double error = speed.value + Paux + setpointChange - R * feedback;
+    const double setpointChange = (inputs[govpSetInLocation] / scale) - initializedInputReference;
+    const double error = speed.value + Paux + setpointChange - (R * feedback);
     const double rawRate = state[valveState];
     const double limitedRate =
         std::clamp(rawRate, static_cast<double>(Velclose), static_cast<double>(Velopen));
     const bool gateAtUpper = state[gateState] >= gateMaximum;
     const bool gateAtLower = state[gateState] <= gateMinimum;
-    const bool gateRateActive =
-        !((gateAtUpper && (limitedRate > 0.0)) || (gateAtLower && (limitedRate < 0.0)));
+    const bool gateRateBlocked =
+        (gateAtUpper && (limitedRate > 0.0)) || (gateAtLower && (limitedRate < 0.0));
+    const bool gateRateActive = !gateRateBlocked;
     const auto curve = evaluateCurve(gateOutput(state[gateState]));
     const auto gateDeadband = evaluateDeadband(state[gateState], db2);
     const double gatePowerDerivative = curve.slope * gateDeadband.derivative;
     const double turbinePower = (Tturb > 0.0) ?
-        (Aturb / Bturb) * curve.value + (1.0 - Aturb / Bturb) * state[turbineState] :
+        ((Aturb / Bturb) * curve.value) + ((1.0 - (Aturb / Bturb)) * state[turbineState]) :
         curve.value;
     const bool integralBlocked =
         ((gateAtUpper && (controllerOutput >= state[gateState]) && (state[filterState] > 0.0)) ||
          (gateAtLower && (controllerOutput <= state[gateState]) && (state[filterState] < 0.0)));
-    return {error,
-            controllerOutput,
-            limitedRate,
-            curve.value,
-            turbinePower,
-            scale * turbinePower,
-            -speed.derivative,
-            gatePowerDerivative,
-            integralBlocked,
-            gateRateActive};
+    return {.error = error,
+            .controllerOutput = controllerOutput,
+            .gateRate = limitedRate,
+            .gatePower = curve.value,
+            .turbinePower = turbinePower,
+            .mechanicalPower = scale * turbinePower,
+            .speedDerivative = -speed.derivative,
+            .gatePowerDerivative = gatePowerDerivative,
+            .integralBlocked = integralBlocked,
+            .gateRateActive = gateRateActive};
 }
 
-double GovernorGPWSCC::mechanicalPower(const Signals& signals) const
+double GovernorGPWSCC::mechanicalPower(const Signals& signals)
 {
     return signals.mechanicalPower;
 }
@@ -349,10 +351,10 @@ void GovernorGPWSCC::derivative(const IOdata& inputs,
     stateDerivative[integratorState] = signals.integralBlocked ? 0.0 : Ki * state[filterState];
     stateDerivative[derivativeState] = (state[filterState] - state[derivativeState]) / Tf;
     stateDerivative[electricalPowerState] = (Tt > 0.0) ?
-        (inputs[govElectricalPowerInLocation] / powerScale() - state[electricalPowerState]) / Tt :
+        ((inputs[govElectricalPowerInLocation] / powerScale()) - state[electricalPowerState]) / Tt :
         0.0;
     stateDerivative[valveState] =
-        (Kg * (signals.controllerOutput - state[gateState]) - state[valveState]) / Tp;
+        ((Kg * (signals.controllerOutput - state[gateState])) - state[valveState]) / Tp;
     stateDerivative[gateState] = signals.gateRateActive ? signals.gateRate : 0.0;
     stateDerivative[turbineState] =
         (Tturb > 0.0) ? (signals.gatePower - state[turbineState]) / (Bturb * Tturb) : 0.0;
@@ -382,7 +384,7 @@ void GovernorGPWSCC::jacobianElements(const IOdata& inputs,
     const double* state = loc.diffStateLoc;
     const auto signals = evaluate(inputs, state);
     const double scale = powerScale();
-    const double controllerFilterDerivative = Kp + Kd / Tf;
+    const double controllerFilterDerivative = Kp + (Kd / Tf);
     const double controllerIntegratorDerivative = 1.0;
     const double controllerDerivativeDerivative = -Kd / Tf;
     const bool filteredFeedback = Tt > 0.0;
@@ -400,7 +402,7 @@ void GovernorGPWSCC::jacobianElements(const IOdata& inputs,
                 scale * signals.gatePowerDerivative;
             matrixData.assign(alg, diff + gateState, gateOutputDerivative);
             if (Tturb > 0.0) {
-                matrixData.assign(alg, diff + turbineState, scale * (1.0 - Aturb / Bturb));
+                matrixData.assign(alg, diff + turbineState, scale * (1.0 - (Aturb / Bturb)));
             }
         }
     }
@@ -410,7 +412,7 @@ void GovernorGPWSCC::jacobianElements(const IOdata& inputs,
 
     matrixData.assign(diff + filterState,
                       diff + filterState,
-                      (errorFilterDerivative - 1.0) / Td - stateData.cj);
+                      ((errorFilterDerivative - 1.0) / Td) - stateData.cj);
     matrixData.assign(diff + filterState, diff + integratorState, errorIntegratorDerivative / Td);
     matrixData.assign(diff + filterState, diff + derivativeState, errorDerivativeDerivative / Td);
     if (filteredFeedback) {
@@ -428,7 +430,7 @@ void GovernorGPWSCC::jacobianElements(const IOdata& inputs,
         matrixData.assign(diff + integratorState, diff + integratorState, -stateData.cj);
     }
     matrixData.assign(diff + derivativeState, diff + filterState, 1.0 / Tf);
-    matrixData.assign(diff + derivativeState, diff + derivativeState, -1.0 / Tf - stateData.cj);
+    matrixData.assign(diff + derivativeState, diff + derivativeState, (-1.0 / Tf) - stateData.cj);
 
     matrixData.assign(diff + electricalPowerState,
                       diff + electricalPowerState,
@@ -446,7 +448,7 @@ void GovernorGPWSCC::jacobianElements(const IOdata& inputs,
     matrixData.assign(diff + valveState,
                       diff + derivativeState,
                       Kg * controllerDerivativeDerivative / Tp);
-    matrixData.assign(diff + valveState, diff + valveState, -1.0 / Tp - stateData.cj);
+    matrixData.assign(diff + valveState, diff + valveState, (-1.0 / Tp) - stateData.cj);
     matrixData.assign(diff + valveState, diff + gateState, -Kg / Tp);
 
     matrixData.assign(diff + gateState, diff + gateState, -stateData.cj);
@@ -456,7 +458,7 @@ void GovernorGPWSCC::jacobianElements(const IOdata& inputs,
 
     matrixData.assign(diff + turbineState,
                       diff + turbineState,
-                      (Tturb > 0.0) ? -1.0 / (Bturb * Tturb) - stateData.cj : -stateData.cj);
+                      (Tturb > 0.0) ? (-1.0 / (Bturb * Tturb)) - stateData.cj : -stateData.cj);
     if (Tturb > 0.0) {
         matrixData.assign(diff + turbineState,
                           diff + gateState,
@@ -538,12 +540,18 @@ void GovernorGPWSCC::set(std::string_view param, double val, units::unit unitTyp
             "gv1", "gv2", "gv3", "gv4", "gv5", "gv6"};
         static constexpr std::array<std::string_view, 6> powerNames{
             "pgv1", "pgv2", "pgv3", "pgv4", "pgv5", "pgv6"};
-        const auto gate = std::find(gateNames.begin(), gateNames.end(), param);
-        const auto power = std::find(powerNames.begin(), powerNames.end(), param);
-        if (gate != gateNames.end()) {
-            curveGate[static_cast<std::size_t>(gate - gateNames.begin())] = val;
-        } else if (power != powerNames.end()) {
-            curvePower[static_cast<std::size_t>(power - powerNames.begin())] = val;
+        std::size_t gateIndex = 0U;
+        while ((gateIndex < gateNames.size()) && (gateNames[gateIndex] != param)) {
+            ++gateIndex;
+        }
+        std::size_t powerIndex = 0U;
+        while ((powerIndex < powerNames.size()) && (powerNames[powerIndex] != param)) {
+            ++powerIndex;
+        }
+        if (gateIndex < gateNames.size()) {
+            curveGate[gateIndex] = val;
+        } else if (powerIndex < powerNames.size()) {
+            curvePower[powerIndex] = val;
         } else {
             Governor::set(param, val, unitType);
             return;
@@ -624,13 +632,19 @@ double GovernorGPWSCC::get(std::string_view param, units::unit unitType) const
         "gv1", "gv2", "gv3", "gv4", "gv5", "gv6"};
     static constexpr std::array<std::string_view, 6> powerNames{
         "pgv1", "pgv2", "pgv3", "pgv4", "pgv5", "pgv6"};
-    const auto gate = std::find(gateNames.begin(), gateNames.end(), param);
-    if (gate != gateNames.end()) {
-        return curveGate[static_cast<std::size_t>(gate - gateNames.begin())];
+    std::size_t gateIndex = 0U;
+    while ((gateIndex < gateNames.size()) && (gateNames[gateIndex] != param)) {
+        ++gateIndex;
     }
-    const auto power = std::find(powerNames.begin(), powerNames.end(), param);
-    if (power != powerNames.end()) {
-        return curvePower[static_cast<std::size_t>(power - powerNames.begin())];
+    if (gateIndex < gateNames.size()) {
+        return curveGate[gateIndex];
+    }
+    std::size_t powerIndex = 0U;
+    while ((powerIndex < powerNames.size()) && (powerNames[powerIndex] != param)) {
+        ++powerIndex;
+    }
+    if (powerIndex < powerNames.size()) {
+        return curvePower[powerIndex];
     }
     return Governor::get(param, unitType);
 }

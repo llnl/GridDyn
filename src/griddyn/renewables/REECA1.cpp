@@ -13,6 +13,7 @@
 #include <array>
 #include <cmath>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace griddyn {
@@ -462,7 +463,7 @@ double REECA1::voltageReference(const IOdata& inputs, const double state[]) cons
     }
     const double qReference = reactivePowerReference(inputs);
     const double qError = std::clamp(qReference, QMin, QMax) - reactivePowerFeedback(inputs);
-    return std::clamp(Kqp * qError + state[reactivePowerIntegrator], VMIN, VMAX);
+    return std::clamp((Kqp * qError) + state[reactivePowerIntegrator], VMIN, VMAX);
 }
 
 double REECA1::reactivePowerReference(const IOdata& inputs) const
@@ -483,7 +484,7 @@ double REECA1::reactiveControl(const IOdata& inputs, const double state[]) const
     if (QFLAG == 0) {
         return state[reactiveFilter];
     }
-    return state[reactiveFilter] + Kvp * (voltageReference(inputs, state) - state[voltageFilter]);
+    return state[reactiveFilter] + (Kvp * (voltageReference(inputs, state) - state[voltageFilter]));
 }
 
 double REECA1::activeLimit(const IOdata& inputs, const double state[]) const
@@ -563,7 +564,8 @@ double REECA1::generatorSpeed(const IOdata& inputs) const
         return 1.0;
     }
     const auto index = speedInputIndex();
-    if (inputs.size() <= index || !std::isfinite(inputs[index]) || inputs[index] <= 0.0) {
+    if (std::cmp_less_equal(inputs.size(), index) || !std::isfinite(inputs[index]) ||
+        inputs[index] <= 0.0) {
         throw InvalidParameterValue("REECA1 PFLAG=1 requires positive generator speed");
     }
     return inputs[index];
@@ -642,12 +644,12 @@ void REECA1::dynObjectInitializeB(const IOdata& inputs,
         const double qError =
             std::clamp(reactivePowerReference(inputs), QMin, QMax) - reactivePowerFeedback(inputs);
         const double voltageControlReference = std::clamp(inputs[0], VMIN, VMAX);
-        m_state[2 + reactivePowerIntegrator] = voltageControlReference - Kqp * qError;
+        m_state[2 + reactivePowerIntegrator] = voltageControlReference - (Kqp * qError);
         m_state[2 + reactiveFilter] =
-            initialQ / inputs[0] - injection - Kvp * (voltageControlReference - inputs[0]);
+            (initialQ / inputs[0]) - injection - (Kvp * (voltageControlReference - inputs[0]));
     } else if (QFLAG != 0) {
         m_state[2 + reactiveFilter] =
-            initialQ / inputs[0] - injection - Kvp * (initialVref - inputs[0]);
+            (initialQ / inputs[0]) - injection - (Kvp * (initialVref - inputs[0]));
     } else {
         m_state[2 + reactiveFilter] = initialQ / inputs[0];
     }
@@ -743,7 +745,7 @@ void REECA1::jacobianElements(const IOdata& inputs,
             }
         }
         const auto inputCount = std::min(inputs.size(), inputLocs.size());
-        for (index_t input = 0; input < inputCount; ++input) {
+        for (std::size_t input = 0; input < inputCount; ++input) {
             if (inputLocs[input] == kNullLocation || inputs[input] == kNullVal) {
                 continue;
             }
@@ -781,7 +783,7 @@ void REECA1::jacobianElements(const IOdata& inputs,
     if (pFree && inputLocs.size() > 3 && external != kNullVal) {
         matrixData.assignCheckCol(diff + powerFilter, inputLocs[3], 1.0 / (speed * Tpfilt));
     }
-    if (PFLAG == 1 && pFree && inputLocs.size() > speedInputIndex()) {
+    if (PFLAG == 1 && pFree && std::cmp_greater(inputLocs.size(), speedInputIndex())) {
         matrixData.assignCheckCol(diff + powerFilter,
                                   inputLocs[speedInputIndex()],
                                   -rawPref / (speed * speed * Tpfilt));
@@ -804,7 +806,7 @@ void REECA1::jacobianElements(const IOdata& inputs,
         const double selectedPower = speed * state[powerFilter];
         if (Tpord != 0.0 && selectedPower > PMIN && selectedPower < PMAX) {
             matrixData.assign(diff + powerOrder, diff + powerFilter, speed / Tpord);
-            if (PFLAG == 1 && inputLocs.size() > speedInputIndex()) {
+            if (PFLAG == 1 && std::cmp_greater(inputLocs.size(), speedInputIndex())) {
                 matrixData.assignCheckCol(diff + powerOrder,
                                           inputLocs[speedInputIndex()],
                                           state[powerFilter] / Tpord);
@@ -835,7 +837,7 @@ void REECA1::jacobianElements(const IOdata& inputs,
             matrixData.assign(diff + reactiveFilter, diff + voltageFilter, -Kvi);
             if (cascadedVoltageControl()) {
                 const double qError = std::clamp(qRaw, QMin, QMax) - reactivePowerFeedback(inputs);
-                const double qPiRaw = Kqp * qError + state[reactivePowerIntegrator];
+                const double qPiRaw = (Kqp * qError) + state[reactivePowerIntegrator];
                 const bool qPiFree = qPiRaw > VMIN && qPiRaw < VMAX;
                 matrixData.assign(diff + reactivePowerIntegrator,
                                   diff + reactivePowerIntegrator,

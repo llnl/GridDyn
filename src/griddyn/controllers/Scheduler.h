@@ -20,6 +20,7 @@ class AGControl;
 class Generator;
 class Communicator;
 class CommMessage;
+class ReserveDispatcher;
 /** object to manage scheduling for devices
  */
 class Scheduler: public Source {
@@ -47,7 +48,7 @@ class Scheduler: public Source {
     virtual void setTarget(const std::string& fileName);
     virtual void setTarget(std::vector<double>& time, std::vector<double>& target);
     virtual double getTarget() const;
-    double getEnergy() { return pCurr; }
+    double getScheduledPower() const { return pCurr; }
 
   protected:
     virtual void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
@@ -86,11 +87,11 @@ as well as handling spinning reserve like capacity in an object
 class SchedulerRamp: public Scheduler {
   public:
     enum RampMode {
-        MID_POINT,
-        JUST_IN_TIME,
-        ON_TARGET_RAMP,
-        DELAYED,
-        INTERP,
+        MID_POINT,  //!< Start the configured ramp window centered on the target time.
+        JUST_IN_TIME,  //!< Start at the latest feasible time to reach the target.
+        ON_TARGET_RAMP,  //!< Begin the ramp at the target time and finish afterward.
+        DELAYED,  //!< Delay the ramp according to the configured ramp window.
+        INTERP,  //!< Ramp toward the target over the interval from the previous target.
     };
 
   protected:
@@ -101,11 +102,13 @@ class SchedulerRamp: public Scheduler {
     double pRampCurr = 0.0;  //!< the current scheduled ramp rate
     CoreTime lastTargetTime = negTime;  //!< the time of the last scheduled target power level
 
-    double ramp10Up = kBigNum;  //!<[puMW] The 10 minute maximum up ramp
-    double ramp30Up = kBigNum;  //!< the 30 minute maximum up ramp
-    double ramp10Down = kBigNum;  //!< the 10 minute maximum down ramp
-    double ramp30Down = kBigNum;  //!< the 30 minute maximum down ramp
+    double ramp10Up = kBigNum;  //!< [puMW] Maximum upward change over 10 minutes
+    double ramp30Up = kBigNum;  //!< [puMW] Maximum upward change over 30 minutes
+    double ramp10Down = kBigNum;  //!< [puMW] Maximum downward change over 10 minutes
+    double ramp30Down = kBigNum;  //!< [puMW] Maximum downward change over 30 minutes
     RampMode mode = INTERP;  //!< the interpolation mode
+    bool rampCompletionPending = false;
+    CoreTime rampCompletionTime = maxTime;
 
     // spinning reserve capacity
     double reserveAvail = 0.0;  //!< the amount of reserve power in the generator
@@ -114,9 +117,15 @@ class SchedulerRamp: public Scheduler {
     double reserveAct = 0.0;  //!< the actual current reserve
     double reservePriority = 0.0;  //!< the priority level of the reserve
 
+  private:
+    friend class ReserveDispatcher;
+    ReserveDispatcher* reserveDispatcher = nullptr;
+    void reserveDispatcherLink();
+
   public:
     explicit SchedulerRamp(const std::string& objName = "schedulerRamp_#");
     SchedulerRamp(double initialValue, const std::string& objName = "schedulerRamp_#");
+    ~SchedulerRamp() override;
 
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
     using Scheduler::setTarget;
@@ -150,6 +159,8 @@ class SchedulerRamp: public Scheduler {
     virtual double getMin(CoreTime time = maxTime) const override;
 
   protected:
+    double getRampLimitUp() const;
+    double getRampLimitDown() const;
     virtual void updatePTarget();
     virtual void insertTarget(Tsched targetSchedule) override;
 
@@ -173,8 +184,17 @@ class SchedulerReg: public SchedulerRamp {
     double regPriority = 0.0;  // a priority queue for the AGC controller if used.
     bool regEnabled = false;  //!< flag indicating that the regulation system is active
     double participationRating = 0.0;  //!< regulation participation rating base
+    bool baseUpdateInProgress = false;  //!< separate schedule and regulation ramps
   private:
+    friend class AGControl;
     AGControl* agcController = nullptr;
+    void updateRegulationLimits();
+    void validateRegulationBounds(double baseMW,
+                                  double minValue,
+                                  double maxValue,
+                                  double upFraction,
+                                  double downFraction,
+                                  bool enabled) const;
 
   public:
     explicit SchedulerReg(const std::string& objName = "schedulerReg_#");

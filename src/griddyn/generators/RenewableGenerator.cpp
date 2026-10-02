@@ -8,6 +8,7 @@
 
 #include "../GridArea.h"
 #include "../GridBus.h"
+#include "../controllers/Scheduler.h"
 #include "../genmodels/GenModelClassical.h"
 #include "../relays/BusMeasurementSensor.h"
 #include "DynamicGenerator.h"
@@ -64,6 +65,17 @@ void RenewableGenerator::add(GridSubModel* obj)
     }
     auto* renewable = dynamic_cast<RenewableComponent*>(obj);
     if (renewable == nullptr) {
+        if (auto* scheduler = dynamic_cast<Scheduler*>(obj); scheduler != nullptr) {
+            if (!scheduler->purpose_.empty() && scheduler->purpose_ != "power" &&
+                scheduler->purpose_ != "pset") {
+                throw UnrecognizedObjectException(this);
+            }
+            if (sched != scheduler) {
+                replaceSubObject(scheduler, sched);
+                sched = scheduler;
+            }
+            return;
+        }
         Generator::add(obj);
         return;
     }
@@ -84,6 +96,9 @@ void RenewableGenerator::add(GridSubModel* obj)
 
 void RenewableGenerator::remove(CoreObject* obj)
 {
+    if (sched == obj) {
+        sched = nullptr;
+    }
     for (auto& component : components) {
         if (component == obj) {
             component = nullptr;
@@ -97,6 +112,9 @@ void RenewableGenerator::remove(CoreObject* obj)
 
 CoreObject* RenewableGenerator::find(std::string_view object) const
 {
+    if (object == "pset") {
+        return sched;
+    }
     if (object == "electrical") {
         return electricalModel;
     }
@@ -107,6 +125,43 @@ CoreObject* RenewableGenerator::find(std::string_view object) const
         return components[roleIndex(RenewableRole::plantControl)];
     }
     return Generator::find(object);
+}
+
+bool RenewableGenerator::supportsActivePowerSchedule() const
+{
+    count_t consumers = 0;
+    for (const auto* component : components) {
+        if (component == nullptr || !component->isEnabled()) {
+            continue;
+        }
+        if (component->role() != RenewableRole::electrical &&
+            component->role() != RenewableRole::electricalControl) {
+            continue;
+        }
+        for (const auto& port : component->inputPorts()) {
+            if (port.signal != RenewableSignal::activeReference ||
+                port.base != RenewableBase::machine) {
+                continue;
+            }
+            if (!component->sourceName(port.signal).empty()) {
+                return false;
+            }
+            ++consumers;
+            for (const auto* provider : components) {
+                if (provider == nullptr || provider == component || !provider->isEnabled() ||
+                    !matchesSource(component, provider, RenewableSignal::activeReference)) {
+                    continue;
+                }
+                for (const auto& output : provider->outputPorts()) {
+                    if (output.signal == RenewableSignal::activeReference &&
+                        output.base == RenewableBase::machine) {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+    return consumers == 1;
 }
 
 CoreObject* RenewableGenerator::getSubObject(std::string_view typeName, index_t num) const
@@ -121,6 +176,10 @@ void RenewableGenerator::validateAssembly() const
 {
     if (electricalModel == nullptr || !electricalModel->isEnabled()) {
         throw InvalidParameterValue("renewable generator requires a terminal electrical model");
+    }
+    if (sched != nullptr && !supportsActivePowerSchedule()) {
+        throw InvalidParameterValue(
+            "renewable scheduler requires one unclaimed active power reference");
     }
     for (const auto* component : components) {
         if (component == nullptr || !component->isEnabled()) {
@@ -138,6 +197,10 @@ void RenewableGenerator::validateAssembly() const
                 continue;
             }
             count_t providers = 0;
+            if (input.signal == RenewableSignal::activeReference &&
+                input.base == RenewableBase::machine && sched != nullptr && sched->isEnabled()) {
+                ++providers;
+            }
             if (measurementSource(component, input.signal).first != nullptr) {
                 ++providers;
             }
@@ -360,6 +423,12 @@ IOdata RenewableGenerator::modelInputs(const RenewableComponent* model,
                 }
                 break;
             default:
+                if (port.signal == RenewableSignal::activeReference &&
+                    port.base == RenewableBase::machine && sched != nullptr && sched->isEnabled()) {
+                    const auto queryTime = stateDataValue.empty() ? prevTime : stateDataValue.time;
+                    result[portIndex] =
+                        sched->predict(queryTime) * systemBasePower / machineBasePower;
+                }
                 if (auto* machine = machineSource(model, port.signal); machine != nullptr) {
                     index_t location = kNullLocation;
                     result[portIndex] = machine->getFreq(stateDataValue, sMode, &location);
@@ -472,6 +541,10 @@ void RenewableGenerator::dynObjectInitializeB(const IOdata& inputs,
                                               IOdata& fieldSet)
 {
     Generator::dynObjectInitializeB(inputs, desiredOutput, fieldSet);
+    if (sched != nullptr && sched->isEnabled()) {
+        IOdata ignored;
+        sched->dynInitializeB({}, {Pset}, ignored);
+    }
     const double scale = systemBasePower / machineBasePower;
     IOdata const target{P * scale, Q * scale};
     IOdata modelFieldSet;
@@ -607,6 +680,10 @@ void RenewableGenerator::algebraicUpdate(const IOdata& inputs,
 
 void RenewableGenerator::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
 {
+    if (sched != nullptr && sched->isEnabled()) {
+        sched->updateA(time);
+        sched->timestep(time, {}, sMode);
+    }
     // Area relay traversal follows bus traversal. Advance any named continuous
     // measurements consumed by this generator before stepping its controls.
     std::vector<BusMeasurementSensor*> advanced;

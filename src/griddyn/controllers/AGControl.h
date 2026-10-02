@@ -6,127 +6,75 @@
 
 #pragma once
 
-#include "core/CoreOwningPtr.hpp"
 #include "griddyn/GridSubModel.h"
-#include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace griddyn {
-class GridArea;
 class SchedulerReg;
-class Generator;
-class battery;
-namespace blocks {
-    class PidBlock;
-    class DelayBlock;
-    class DeadbandBlock;
-}  // namespace blocks
+class Sensor;
 
-class Communicator;
+/** Area generation control updated only at its configured sampling interval. */
 class AGControl: public GridSubModel {
-  public:
-    enum AGCType {
-        BASIC_AGC,
-        BATTERY_AGC,
-        BATT_DR,
-    };
-
   protected:
     double ki = 0.005;
     double kp = 1.0;
-    double beta = 8.0;
-    double deadband = 20;
-
+    double bias = -8.0;  //!< MW per 0.1 Hz, negative by convention
+    double deadband = 0.0;  //!< MW of ACE
     double tf = 8.0;
-    double tr = 15;
-    double ace = 0;
-    double filteredAce = 0;
-    double freg = 0;
-    double reg = 0;
-    double regUpAvailable = 0;
-    double regDownAvailable = 0;
-
-    CoreOwningPtr<blocks::PidBlock> pid;
-    CoreOwningPtr<blocks::DelayBlock> filt1;
-    CoreOwningPtr<blocks::DelayBlock> filt2;
-    CoreOwningPtr<blocks::DeadbandBlock> db;
-
-    count_t schedCount = 0;
-
+    double tr = 15.0;
+    double ace = 0.0;  //!< MW, positive means excess export
+    double filteredAce = 0.0;  //!< MW
+    double integralAce = 0.0;  //!< MW seconds
+    double requestedReg = 0.0;  //!< pu on system base
+    double reg = 0.0;  //!< dispatched pu on system base
+    double regUpAvailable = 0.0;
+    double regDownAvailable = 0.0;
+    double fixedFrequency = 1.0;  //!< pu; can be set by a Player
+    double targetFrequency = 1.0;  //!< pu
+    std::string frequencySensorName;
+    Sensor* frequencySensor = nullptr;
+    index_t frequencyOutput = 0;
+    bool frequencyIsDeviation = false;
+    bool frequencyOutputExplicit = false;
+    bool frequencyDeviationExplicit = false;
+    bool initialized = false;
     std::vector<SchedulerReg*> schedList;
-    std::vector<double> upRat;
-    std::vector<double> downRat;
-    std::shared_ptr<Communicator> comms;
 
   public:
-    AGControl(const std::string& objName = "AGC_#");
-    virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
-    virtual ~AGControl();
+    explicit AGControl(const std::string& objName = "AGC_#");
+    CoreObject* clone(CoreObject* obj = nullptr) const override;
+    ~AGControl() override;
 
-    virtual void dynObjectInitializeB(const IOdata& inputs,
-                                      const IOdata& desiredOutput,
-                                      IOdata& fieldSet) override;
+    void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
+    void dynObjectInitializeB(const IOdata& inputs,
+                              const IOdata& desiredOutput,
+                              IOdata& fieldSet) override;
+    void updateA(CoreTime time) override;
+    CoreTime updateB() override;
 
-    virtual void updateA(CoreTime time) override;
+    double getOutput(const IOdata& inputs,
+                     const StateData& sD,
+                     const SolverMode& sMode,
+                     index_t num = 0) const override;
+    double getOutput(index_t num = 0) const override;
+    void add(CoreObject* obj) override;
+    void add(SchedulerReg* sched);
+    void remove(CoreObject* obj) override;
+    void set(std::string_view param, std::string_view val) override;
+    void set(std::string_view param, double val, units::unit unitType = units::defunit) override;
+    double get(std::string_view param, units::unit unitType = units::defunit) const override;
 
-    virtual void timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode) override;
+    double getACE() const { return ace; }
+    double getfACE() const { return filteredAce; }
+    double getRegulation() const { return reg; }
+    void regChange();
 
-    virtual double getOutput(const IOdata& inputs,
-                             const StateData& sD,
-                             const SolverMode& sMode,
-                             index_t num = 0) const override;
-
-    virtual double getOutput(index_t /*num*/ = 0) const override;
-    virtual void add(CoreObject* obj) override;
-    virtual void add(SchedulerReg* sched);
-    virtual void remove(CoreObject* obj) override;
-    virtual void set(std::string_view param, std::string_view val) override;
-    virtual void
-        set(std::string_view param, double val, units::unit unitType = units::defunit) override;
-
-    double getACE() { return ace; }
-    double getfACE() { return filteredAce; }
-
-    virtual void regChange();
+  private:
+    void addInterchangeSlackParticipant();
+    double measuredFrequency() const;
+    double measuredACE() const;
+    void dispatch();
 };
-
-/*
-class AGControlBattery:public AGControl
-{
-public:
-
-protected:
-        std::vector <battery *> batList;
-        std::vector<int> isBat;
-        std::vector<double> batUpRat;
-        std::vector<double> batDownRat;
-        std::vector<double> genSched;
-        size_t batCount;
-        double batUpMax;
-        double batDownMax;
-        double batRolloff;
-
-        double convReg;
-        double batReg;
-public:
-        AGControlBattery();
-        virtual CoreObject *clone(CoreObject *obj = nullptr, bool copyName = false) const;
-        virtual ~AGControlBattery();
-
-        virtual double dynObjectInitializeA (CoreTime time0,double freq0,double tiedev0);
-
-        virtual double updateA(CoreTime time, double freq, double tiedev);
-
-        virtual void addGen(schedulerReg *sched);
-        virtual void removeSched(schedulerReg *sched);
-        virtual void set (const std::string &param, std::string val);
-        virtual void set (const std::string &param, double val, units::unit unitType =
-units::defunit);
-
-        virtual void regChange();
-protected:
-};
-
-*/
 }  // namespace griddyn

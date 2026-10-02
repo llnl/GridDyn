@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="transfer-record-test" version="0.0.1">
+  <area name="AreaOne" id="101" />
+  <area name="AreaTwo" id="102" />
+  <interareatransfer fromArea="101" toArea="102" transferID="T1" scheduledMW="-37.5" />
+</griddyn>

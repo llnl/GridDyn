@@ -6,6 +6,8 @@
 
 #include "elementReaderTemplates.hpp"
 #include "fileInput.h"
+#include "gmlc/utilities/stringConversion.h"
+#include "griddyn/GridArea.h"
 #include "readElement.h"
 #include <array>
 #include <cstdio>
@@ -18,7 +20,6 @@
 #include "griddyn/GenModel.h"
 #include "griddyn/Generator.h"
 #include "griddyn/Governor.h"
-#include "griddyn/GridArea.h"
 #include "griddyn/GridBus.h"
 #include "griddyn/Link.h"
 #include "griddyn/Relay.h"
@@ -273,6 +274,28 @@ void loadSubObjects(std::shared_ptr<ReaderElement>& element,
     while (element->isValid()) {
         auto fieldName = gmlc::utilities::convertToLowerCase(element->getName());
         if ((fieldName == "bus") || (fieldName == "area")) {
+            element->moveToNextSibling();
+            continue;
+        }
+
+        if (fieldName == "interareatransfer") {
+            auto* area = dynamic_cast<GridArea*>(parentObject);
+            if (area != nullptr) {
+                const auto fromAreaID = gmlc::utilities::numeric_conversion<index_t>(
+                    element->getAttributeText("fromArea"), 0);
+                const auto toAreaID = gmlc::utilities::numeric_conversion<index_t>(
+                    element->getAttributeText("toArea"), 0);
+                const auto scheduledMW = gmlc::utilities::numeric_conversion<double>(
+                    element->getAttributeText("scheduledMW"), kNullVal);
+                if (scheduledMW == kNullVal) {
+                    throw InvalidParameterValue(
+                        "inter-area transfer XML requires a numeric scheduledMW attribute");
+                }
+                area->setInterAreaTransfer(fromAreaID,
+                                           toAreaID,
+                                           element->getAttributeText("transferID"),
+                                           scheduledMW);
+            }
             element->moveToNextSibling();
             continue;
         }

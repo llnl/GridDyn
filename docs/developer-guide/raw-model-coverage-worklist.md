@@ -292,12 +292,43 @@ own arrangement. The readers perform the area-parent selection after the
 endpoint connections are known, including for reader-generated line and
 transformer link objects.
 
-The reader still does not map area `ISW`, `PDES`, or `PTOL` into area-control or
-interchange-target objects. There is also no direct RAW inter-area-transfer
-record model.
+RAW area IDs, `ISW`, `PDES`, and `PTOL` are retained on `GridArea`, with the
+scheduled interchange and tolerance kept in MW. RAW Inter-Area Transfer Data
+is retained on the root area as endpoint area IDs/references, transfer ID, and
+signed scheduled MW. XML can use direct `<interareatransfer fromArea="1"
+toArea="2" transferID="A" scheduledMW="50"/>` children of the root
+`<griddyn>` element. `getTieFlowReal(otherAreaID)` and
+`getScheduledTieFlowReal(otherAreaID)` expose pairwise actual and scheduled
+exports in system per unit. `getBoundaryTieFlowReal()` sums all enabled
+two-terminal links crossing the area's boundary, using power at the area's
+terminal so that line losses do not change its export sign.
 
-Possible follow-up work is to add explicit area identifiers and interchange
-targets, then connect them to the existing AGC/tie-flow infrastructure.
+An area can own one `AGControl`. It is an event-queue controller with no DAE
+states, sampled every four seconds by default (`sampleinterval` is configurable
+in seconds). It reads a named area frequency sensor through `frequencysensor`,
+or the settable `frequency` value for a quasi-steady study. COI and FreqDiv
+provide per-unit frequency; PLL models provide per-unit frequency deviation.
+The controller computes ACE in MW from boundary export minus configured `PDES`
+(or the sum of bilateral schedules when `PDES` is absent), and from a negative
+frequency bias in MW per 0.1 Hz. Missing schedules and unresolved sensors fail
+initialization. Its sampled regulation target is apportioned among enabled
+`SchedulerReg` participants using available up or down regulation capacity;
+those schedulers update their delivered output at the AGC sample times, subject
+to their own ramp limits. If there are no configured participants and the area
+has an interchange slack bus (`ISW`), AGC attaches a `SchedulerReg` to its sole
+enabled `DynamicGenerator` (excluding `VariableGenerator`). The scheduler
+starts at the generator setpoint and
+uses its rating and real-power limits for regulation capacity, and uses the
+generator's `rampagc` when it is positive. An ISW bus with
+multiple enabled generators, an unsupported generator class, or a generator
+with an existing power setpoint source requires explicit participant
+configuration. An absent ISW remains valid and creates no participant. A
+standalone power flow does not run AGC
+feedback.
+
+The current boundary calculation omits links with more than two terminals.
+Full dynamic trajectory validation of AGC with governors and renewable active
+power controls remains to be done.
 
 ### RAW-011: Preserve zones and owners
 

@@ -540,6 +540,7 @@ set(relay_headers
     relays/Breaker.h
     relays/Sensor.h
     relays/BusMeasurementSensor.h
+    relays/COISensor.h
     relays/DifferentialRelay.h
     relays/ControlRelay.h
     relays/Pmu.h
@@ -556,6 +557,7 @@ set(relay_sources
     relays/Breaker.cpp
     relays/Sensor.cpp
     relays/BusMeasurementSensor.cpp
+    relays/COISensor.cpp
     relays/DifferentialRelay.cpp
     relays/ControlRelay.cpp
     relays/Pmu.cpp

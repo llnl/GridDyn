@@ -7,6 +7,7 @@
 #include "../gtestHelper.h"
 #include "core/CoreExceptions.h"
 #include "griddyn/GridBus.h"
+#include "griddyn/comms/CommMessage.h"
 #include "griddyn/comms/Communicator.h"
 #include "griddyn/comms/ControlMessage.h"
 #include "griddyn/relays/ControlRelay.h"
@@ -26,6 +27,36 @@
 using namespace griddyn;
 
 class RelayTests: public GridDynSimulationTestFixture, public ::testing::Test {};
+
+TEST(CommMessageSerializationTests, StringAndVectorStreamsRoundTripEquivalentBytes)
+{
+    CommMessage message;
+    message.setMessageType(CommMessage::PING_MESSAGE_TYPE);
+    message.setPayload(std::vector<char>{'A', '\0', 'B'});
+
+    const std::string dataString = message.toDataString();
+    const std::vector<char> dataVector = message.toVector();
+    std::string dataStringOutput;
+    std::vector<char> dataVectorOutput;
+    message.toDataString(dataStringOutput);
+    message.toVector(dataVectorOutput);
+
+    EXPECT_EQ(dataString, dataStringOutput);
+    EXPECT_EQ(dataVector, dataVectorOutput);
+    EXPECT_EQ(std::vector<char>(dataString.begin(), dataString.end()), dataVector);
+    std::vector<char> dataArray(dataVector.size());
+    EXPECT_EQ(message.toByteArray(dataArray.data(), dataArray.size()),
+              static_cast<int>(dataVector.size()));
+    EXPECT_EQ(dataArray, dataVector);
+
+    CommMessage fromString;
+    fromString.fromDataString(dataString);
+    EXPECT_EQ(fromString.toVector(), dataVector);
+
+    CommMessage fromVector;
+    fromVector.fromVector(dataVector);
+    EXPECT_EQ(fromVector.toDataString(), dataString);
+}
 
 TEST(RelaySensorTests, InvalidOutputConfigurationFailsWithoutIndexingPastVectors)
 {

@@ -11,6 +11,7 @@
 #include "../GridDynSimulation.h"
 #include "../Link.h"
 #include "../Relay.h"
+#include "../controllers/AGControl.h"
 #include "../measurement/ObjectGrabbers.h"
 #include "../relays/BusMeasurementSensor.h"
 #include "ListMaintainer.h"
@@ -19,13 +20,18 @@
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
 #include "core/ObjectInterpreter.h"
+#include "gmlc/utilities/string_viewOps.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include <algorithm>
 #include <array>
+#include <charconv>
+#include <cmath>
 #include <cstdio>
+#include <limits>
 #include <memory>
 #include <print>
 #include <string>
+#include <system_error>
 #include <utility>
 #include <vector>
 
@@ -34,6 +40,7 @@ namespace griddyn {
 // NOLINTBEGIN(misc-no-recursion)
 using gmlc::utilities::ensureSizeAtLeast;
 using gmlc::utilities::vecFindne;
+using gmlc::utilities::string_viewOps::trim;
 using units::convert;
 using units::defunit;
 using units::Hz;
@@ -69,6 +76,109 @@ void GridArea::setUserID(index_t newUserID)
     }
 }
 
+void GridArea::setScheduledNetInterchangeMW(double scheduledMW)
+{
+    if (!std::isfinite(scheduledMW)) {
+        throw InvalidParameterValue("scheduled net interchange must be finite");
+    }
+    scheduledNetInterchangeMW = scheduledMW;
+}
+
+void GridArea::setInterchangeToleranceMW(double toleranceMW)
+{
+    if (!std::isfinite(toleranceMW) || toleranceMW < 0.0) {
+        throw InvalidParameterValue("interchange tolerance must be finite and non-negative");
+    }
+    interchangeToleranceMW = toleranceMW;
+}
+
+void GridArea::setInterAreaTransfer(index_t fromAreaID,
+                                    index_t toAreaID,
+                                    std::string_view transferID,
+                                    double scheduledMW)
+{
+    if (fromAreaID <= 0 || toAreaID <= 0 || fromAreaID == toAreaID || !std::isfinite(scheduledMW)) {
+        throw InvalidParameterValue("inter-area transfer requires distinct positive area IDs and "
+                                    "a finite scheduled MW value");
+    }
+    const auto transferKey = std::string{trim(transferID)};
+    auto record = std::find_if(interAreaTransfers.begin(),
+                               interAreaTransfers.end(),
+                               [fromAreaID, toAreaID, &transferKey](const auto& transfer) {
+                                   return transfer.fromAreaID == fromAreaID &&
+                                       transfer.toAreaID == toAreaID &&
+                                       transfer.transferID == transferKey;
+                               });
+    if (record == interAreaTransfers.end()) {
+        interAreaTransfers.push_back({.fromAreaID = fromAreaID,
+                                      .toAreaID = toAreaID,
+                                      .transferID = transferKey,
+                                      .scheduledMW = scheduledMW,
+                                      .fromArea = nullptr,
+                                      .toArea = nullptr});
+        record = std::prev(interAreaTransfers.end());
+    } else {
+        record->scheduledMW = scheduledMW;
+    }
+    resolveInterAreaTransfers();
+}
+
+void GridArea::resolveInterAreaTransfers()
+{
+    for (auto& transfer : interAreaTransfers) {
+        transfer.fromArea = dynamic_cast<GridArea*>(findByUserID("area", transfer.fromAreaID));
+        transfer.toArea = dynamic_cast<GridArea*>(findByUserID("area", transfer.toAreaID));
+    }
+}
+
+void GridArea::setInterchangeSlackBus(index_t busUserID)
+{
+    if (std::cmp_less(busUserID, 0)) {
+        throw InvalidParameterValue("interchange slack bus ID must be non-negative");
+    }
+    if (busUserID == 0) {
+        interchangeSlackBusUserID.reset();
+        interchangeSlackBusName.reset();
+        interchangeSlackBus = nullptr;
+        return;
+    }
+    interchangeSlackBusUserID = busUserID;
+    interchangeSlackBusName.reset();
+    resolveInterchangeSlackBus();
+}
+
+void GridArea::setInterchangeSlackBus(std::string_view busName)
+{
+    auto trimmedBusName = trim(busName);
+    if (trimmedBusName.size() >= 2 &&
+        ((trimmedBusName.front() == '\'' && trimmedBusName.back() == '\'') ||
+         (trimmedBusName.front() == '"' && trimmedBusName.back() == '"'))) {
+        trimmedBusName = trim(trimmedBusName.substr(1, trimmedBusName.size() - 2));
+    }
+    if (trimmedBusName.empty()) {
+        interchangeSlackBusUserID.reset();
+        interchangeSlackBusName.reset();
+        interchangeSlackBus = nullptr;
+        return;
+    }
+    interchangeSlackBusUserID.reset();
+    interchangeSlackBusName = std::string{trimmedBusName};
+    resolveInterchangeSlackBus();
+}
+
+void GridArea::resolveInterchangeSlackBus() const noexcept
+{
+    interchangeSlackBus = nullptr;
+    for (auto* bus : m_Buses) {
+        if ((interchangeSlackBusUserID.has_value() &&
+             bus->getUserID() == *interchangeSlackBusUserID) ||
+            (interchangeSlackBusName.has_value() && bus->getName() == *interchangeSlackBusName)) {
+            interchangeSlackBus = bus;
+            return;
+        }
+    }
+}
+
 CoreObject* GridArea::clone(CoreObject* obj) const
 {
     auto* area = cloneBase<GridArea, GridPrimary>(this, obj);
@@ -78,6 +188,11 @@ CoreObject* GridArea::clone(CoreObject* obj) const
 
     area->masterBus = masterBus;
     area->fTarget = fTarget;
+    area->scheduledNetInterchangeMW = scheduledNetInterchangeMW;
+    area->interchangeToleranceMW = interchangeToleranceMW;
+    area->interAreaTransfers = interAreaTransfers;
+    area->interchangeSlackBusUserID = interchangeSlackBusUserID;
+    area->interchangeSlackBusName = interchangeSlackBusName;
     // clone all the areas
     for (size_t kk = 0; kk < m_GridAreas.size(); kk++) {
         if (kk >= area->m_GridAreas.size()) {
@@ -131,6 +246,14 @@ CoreObject* GridArea::clone(CoreObject* obj) const
         }
     }
 
+    if (agcController != nullptr) {
+        if (area->agcController == nullptr) {
+            area->add(agcController->clone());
+        } else {
+            agcController->clone(area->agcController);
+        }
+    }
+
     if ((isRoot()) &&
         (obj ==
          nullptr)) {  // Now make sure to update all the objects linkages in the different objects
@@ -145,6 +268,8 @@ CoreObject* GridArea::clone(CoreObject* obj) const
 
 void GridArea::updateObjectLinkages(CoreObject* newRoot)
 {
+    resolveInterchangeSlackBus();
+    resolveInterAreaTransfers();
     for (auto* obj : primaryObjects) {
         obj->updateObjectLinkages(newRoot);
     }
@@ -179,12 +304,24 @@ void GridArea::add(CoreObject* obj)
         add(static_cast<Relay*>(obj));
         return;
     }
+    auto* agc = dynamic_cast<AGControl*>(obj);
+    if (agc != nullptr && agcController == agc) {
+        return;
+    }
+    if (agc != nullptr && agcController != nullptr && agcController != agc) {
+        throw(ObjectAddFailure(this));
+    }
 
     obj->addOwningReference();
     objectHolder.push_back(obj);
     obj->locIndex = static_cast<index_t>(objectHolder.size()) - 1;
     obj->setParent(this);
     obList->insert(obj);
+    if (agc != nullptr) {
+        agc->set("basepower", systemBasePower, units::MW);
+        agc->set("basefreq", systemBaseFrequency, units::rad / units::s);
+        agcController = agc;
+    }
     if (obj->getNextUpdateTime() < kHalfBigNum)  // check if the object has updates
     {
         alert(obj, UPDATE_REQUIRED);
@@ -205,7 +342,7 @@ void addObject(GridArea* area, X* obj, std::vector<X*>& objVector)
         obj->locIndex = static_cast<index_t>(objVector.size()) - 1;
 
         obj->set("basepower", area->systemBasePower);
-        obj->set("basefreq", area->systemBaseFrequency);
+        obj->set("basefreq", area->systemBaseFrequency, units::rad / units::s);
         area->primaryObjects.push_back(obj);
         obj->locIndex2 = static_cast<index_t>(area->primaryObjects.size()) - 1;
         if (area->checkFlag(POWERFLOW_INITIALIZED)) {
@@ -217,6 +354,7 @@ void addObject(GridArea* area, X* obj, std::vector<X*>& objVector)
 void GridArea::add(GridBus* bus)
 {
     addObject(this, bus, m_Buses);
+    resolveInterchangeSlackBus();
 }
 
 void GridArea::add(GridArea* area)
@@ -262,6 +400,10 @@ void GridArea::remove(CoreObject* obj)
     if ((!isValidIndex(obj->locIndex, objectHolder)) ||
         (!isSameObject(objectHolder[obj->locIndex], obj))) {
         throw(ObjectRemoveFailure(this));
+    }
+
+    if (isSameObject(agcController, obj)) {
+        agcController = nullptr;
     }
 
     objectHolder[obj->locIndex]->setParent(nullptr);
@@ -310,6 +452,7 @@ void removeObject(GridArea* area, X* obj, std::vector<X*>& objVector)
 void GridArea::remove(GridBus* bus)
 {
     removeObject(this, bus, m_Buses);
+    resolveInterchangeSlackBus();
 }
 
 // remove link
@@ -510,7 +653,11 @@ void GridArea::setAll(std::string_view type,
 
 CoreObject* GridArea::findByUserID(std::string_view typeName, index_t searchID) const
 {
-    if ((typeName == "area") && (searchID == getUserID())) {
+    // The simulation root is a container, not a user-defined PSS/E area. Its
+    // generated object ID can collide with an imported area ID, so continue
+    // searching its child areas instead of returning the root as a false match.
+    if ((typeName == "area") && (searchID == getUserID()) &&
+        (dynamic_cast<const GridDynSimulation*>(this) == nullptr)) {
         return const_cast<GridArea*>(this);
     }
     if ((typeName == "gen") || (typeName == "load") || (typeName == "generator")) {
@@ -736,6 +883,9 @@ void GridArea::pFlowCheck(std::vector<Violation>& violationVector)
 // dynInitializeB states for dynamic solution
 void GridArea::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
+    if (agcController != nullptr && agcController->isEnabled()) {
+        agcController->dynInitializeA(time0, flags);
+    }
     for (auto* obj : primaryObjects) {
         if (obj->isEnabled()) {
             obj->dynInitializeA(time0, flags);
@@ -803,6 +953,11 @@ void GridArea::dynObjectInitializeB(const IOdata& inputs,
         obj->dynInitializeB(inputs, desiredOutput, fieldSet);
     }
 
+    if (agcController != nullptr && agcController->isEnabled()) {
+        IOdata agcFieldSet;
+        agcController->dynInitializeB({}, {}, agcFieldSet);
+    }
+
     opObjectLists->makePreList(primaryObjects);
 }
 
@@ -859,11 +1014,32 @@ void GridArea::setResidualThreadCount(int threadCount)
 // set properties
 void GridArea::set(std::string_view param, std::string_view val)
 {
-    GridPrimary::set(param, val);
+    if (param == "interchangeslackbus") {
+        auto busReference = trim(val);
+        const bool quoted = busReference.size() >= 2 &&
+            ((busReference.front() == '\'' && busReference.back() == '\'') ||
+             (busReference.front() == '"' && busReference.back() == '"'));
+        if (quoted) {
+            setInterchangeSlackBus(busReference);
+        } else {
+            index_t busUserID = 0;
+            const auto [end, error] = std::from_chars(busReference.data(),
+                                                      busReference.data() + busReference.size(),
+                                                      busUserID);
+            if (error == std::errc{} && end == busReference.data() + busReference.size()) {
+                setInterchangeSlackBus(busUserID);
+            } else {
+                setInterchangeSlackBus(busReference);
+            }
+        }
+    } else {
+        GridPrimary::set(param, val);
+    }
 }
 
-static constexpr std::array<std::string_view, 0> locNumStrings{};
-static constexpr std::array<std::string_view, 0> locStrStrings{};
+static constexpr std::array<std::string_view, 2> locNumStrings{"schedulednetinterchange",
+                                                               "interchangetolerance"};
+static constexpr std::array<std::string_view, 1> locStrStrings{"interchangeslackbus"};
 static constexpr std::array<std::string_view, 0> flagStrings{};
 
 void GridArea::getParameterStrings(stringVec& pstr, ParamStringType pstype) const
@@ -888,6 +1064,18 @@ void GridArea::set(std::string_view param, double val, unit unitType)
         for (auto* obj : primaryObjects) {
             obj->set(param, systemBaseFrequency, rad / s);
         }
+    } else if (param == "schedulednetinterchange") {
+        const auto inputUnit = (unitType == defunit) ? MW : unitType;
+        setScheduledNetInterchangeMW(convert(val, inputUnit, MW, systemBasePower));
+    } else if (param == "interchangetolerance") {
+        const auto inputUnit = (unitType == defunit) ? MW : unitType;
+        setInterchangeToleranceMW(convert(val, inputUnit, MW, systemBasePower));
+    } else if (param == "interchangeslackbus") {
+        if (!std::isfinite(val) || val < 0.0 || std::floor(val) != val ||
+            val > static_cast<double>(std::numeric_limits<index_t>::max())) {
+            throw InvalidParameterValue("interchange slack bus ID must be a non-negative integer");
+        }
+        setInterchangeSlackBus(static_cast<index_t>(val));
     } else {
         GridPrimary::set(param, val, unitType);
     }
@@ -897,6 +1085,29 @@ double GridArea::get(std::string_view param, unit unitType) const
 {
     double val = 0.0;
     size_t vali = 0;
+    if (param == "schedulednetinterchange") {
+        return scheduledNetInterchangeMW.has_value() ?
+            convert(*scheduledNetInterchangeMW,
+                    MW,
+                    (unitType == defunit) ? MW : unitType,
+                    systemBasePower) :
+            kNullVal;
+    }
+    if (param == "interchangetolerance") {
+        return interchangeToleranceMW.has_value() ? convert(*interchangeToleranceMW,
+                                                            MW,
+                                                            (unitType == defunit) ? MW : unitType,
+                                                            systemBasePower) :
+                                                    kNullVal;
+    }
+    if (param == "interchangeslackbus") {
+        if (auto* bus = getInterchangeSlackBus()) {
+            return static_cast<double>(bus->getUserID());
+        }
+        return interchangeSlackBusUserID.has_value() ?
+            static_cast<double>(*interchangeSlackBusUserID) :
+            kNullVal;
+    }
     if (param == "buscount") {
         vali = m_Buses.size();
     } else if (param == "linkcount") {
@@ -949,6 +1160,27 @@ double GridArea::get(std::string_view param, unit unitType) const
         return GridPrimary::get(param, unitType);
     }
     return (vali != 0) ? (static_cast<double>(vali)) : val;
+}
+
+std::string GridArea::getString(std::string_view param) const
+{
+    if (param == "interchangeslackbus") {
+        if (interchangeSlackBusName.has_value()) {
+            index_t numericBusName = 0;
+            const auto& slackBusName = *interchangeSlackBusName;
+            const auto [end, error] = std::from_chars(slackBusName.data(),
+                                                      slackBusName.data() + slackBusName.size(),
+                                                      numericBusName);
+            if (error == std::errc{} && end == slackBusName.data() + slackBusName.size()) {
+                return "'" + slackBusName + "'";
+            }
+            return slackBusName;
+        }
+        if (interchangeSlackBusUserID.has_value()) {
+            return std::to_string(*interchangeSlackBusUserID);
+        }
+    }
+    return GridPrimary::getString(param);
 }
 
 void GridArea::timestep(CoreTime time, const IOdata& inputs, const SolverMode& sMode)
@@ -1861,6 +2093,111 @@ void GridArea::getRootObjectNames(stringVec& rootNames, const SolverMode& sMode)
 double GridArea::getTieFlowReal() const
 {
     return (getGenerationReal() - getLoadReal() - getLoss());
+}
+
+double GridArea::getBoundaryTieFlowReal() const
+{
+    auto* root = const_cast<GridArea*>(this);
+    while (auto* parentArea = dynamic_cast<GridArea*>(root->getParent())) {
+        root = parentArea;
+    }
+    auto containsBus = [this](const GridBus* bus) {
+        const CoreObject* object = bus;
+        while (object != nullptr) {
+            if (isSameObject(object, this)) {
+                return true;
+            }
+            const auto* parent = object->getParent();
+            if (parent == object) {
+                break;
+            }
+            object = parent;
+        }
+        return false;
+    };
+    std::vector<Link*> links;
+    root->getLinkVector(links);
+    double result = 0.0;
+    for (const auto* link : links) {
+        if (!link->isEnabled() || link->terminalCount() != 2) {
+            continue;
+        }
+        const bool firstInside = containsBus(link->getBus(1));
+        const bool secondInside = containsBus(link->getBus(2));
+        if (firstInside != secondInside) {
+            result += link->getRealPower(firstInside ? 1 : 2);
+        }
+    }
+    return result;
+}
+
+double GridArea::getTieFlowReal(index_t areaUserID) const
+{
+    auto* networkRoot = const_cast<GridArea*>(this);
+    while (auto* parentArea = dynamic_cast<GridArea*>(networkRoot->getParent())) {
+        networkRoot = parentArea;
+    }
+    auto* otherArea = dynamic_cast<GridArea*>(networkRoot->findByUserID("area", areaUserID));
+    if ((otherArea == nullptr) || isSameObject(otherArea, this)) {
+        return kNullVal;
+    }
+
+    auto areaContainsBus = [](const GridArea* area, const GridBus* bus) {
+        const auto* object = static_cast<const CoreObject*>(bus);
+        while (object != nullptr) {
+            if (isSameObject(object, area)) {
+                return true;
+            }
+            auto* parent = object->getParent();
+            if (parent == object) {
+                break;
+            }
+            object = parent;
+        }
+        return false;
+    };
+
+    std::vector<Link*> links;
+    networkRoot->getLinkVector(links);
+    double tieFlow = 0.0;
+    for (const auto* link : links) {
+        if (!link->isEnabled() || link->terminalCount() != 2) {
+            continue;
+        }
+        const auto* bus1 = link->getBus(1);
+        const auto* bus2 = link->getBus(2);
+        if (areaContainsBus(this, bus1) && areaContainsBus(otherArea, bus2)) {
+            tieFlow += link->getRealPower(1);
+        } else if (areaContainsBus(this, bus2) && areaContainsBus(otherArea, bus1)) {
+            tieFlow += link->getRealPower(2);
+        }
+    }
+    return tieFlow;
+}
+
+double GridArea::getScheduledTieFlowReal(index_t areaUserID) const
+{
+    auto* networkRoot = const_cast<GridArea*>(this);
+    while (auto* parentArea = dynamic_cast<GridArea*>(networkRoot->getParent())) {
+        networkRoot = parentArea;
+    }
+    auto* otherArea = dynamic_cast<GridArea*>(networkRoot->findByUserID("area", areaUserID));
+    if ((otherArea == nullptr) || isSameObject(otherArea, this) || systemBasePower <= 0.0) {
+        return kNullVal;
+    }
+
+    double scheduledMW = 0.0;
+    bool foundSchedule = false;
+    for (const auto& transfer : networkRoot->getInterAreaTransfers()) {
+        if ((transfer.fromAreaID == getUserID()) && (transfer.toAreaID == areaUserID)) {
+            scheduledMW += transfer.scheduledMW;
+            foundSchedule = true;
+        } else if ((transfer.fromAreaID == areaUserID) && (transfer.toAreaID == getUserID())) {
+            scheduledMW -= transfer.scheduledMW;
+            foundSchedule = true;
+        }
+    }
+    return foundSchedule ? scheduledMW / systemBasePower : kNullVal;
 }
 
 double GridArea::getMasterAngle(const StateData& stateDataValue, const SolverMode& sMode) const

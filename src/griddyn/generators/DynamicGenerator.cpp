@@ -362,7 +362,11 @@ void DynamicGenerator::dynObjectInitializeB(const IOdata& inputs,
             continue;
         }
         if (sub->isEnabled()) {
+            if (sub == pSetControl && dynamic_cast<Scheduler*>(sub) != nullptr) {
+                localDesiredOutput = {Pset};
+            }
             sub->dynInitializeB(modelInputs, localDesiredOutput, computedFieldSet);
+            localDesiredOutput.clear();
             //    sub->guessState (prevTime, m_state.data (), m_dstate_dt.data (),
             //    cLocalbSolverMode);
         }

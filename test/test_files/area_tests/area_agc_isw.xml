@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<griddyn name="area-agc-isw" version="0.0.1">
+  <area name="controlled" id="101" schedulednetinterchange="0" interchangeslackbus="101">
+    <bus name="isw" id="101">
+      <type>SLK</type>
+      <voltage>1</voltage>
+      <generator name="unit" type="dynamic">
+        <p>0.4</p>
+        <pmax>0.9</pmax>
+        <pmin>0.1</pmin>
+        <rampagc>6</rampagc>
+      </generator>
+      <load name="local" p="0.4"/>
+    </bus>
+    <agc name="agc"/>
+  </area>
+</griddyn>

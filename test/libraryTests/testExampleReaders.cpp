@@ -117,16 +117,26 @@ TEST(ExampleReaderTests, LoadRawAreaDefinitions)
     ASSERT_EQ(gds->getInt("totalareacount"), 3);
     auto* area = gds->getGridArea(0);
     ASSERT_NE(area, nullptr);
+    EXPECT_EQ(area->getUserID(), 1);
+    EXPECT_EQ(area->getInterchangeSlackBus(), nullptr);
+    ASSERT_TRUE(area->getScheduledNetInterchangeMW().has_value());
+    EXPECT_DOUBLE_EQ(area->getScheduledNetInterchangeMW().value_or(griddyn::kNullVal), 0.0);
+    ASSERT_TRUE(area->getInterchangeToleranceMW().has_value());
+    EXPECT_DOUBLE_EQ(area->getInterchangeToleranceMW().value_or(griddyn::kNullVal), 5.0);
+    EXPECT_DOUBLE_EQ(area->get("interchangetolerance", units::MW), 5.0);
+    EXPECT_DOUBLE_EQ(area->get("interchangetolerance", units::puMW), 0.05);
     EXPECT_EQ(area->getInt("buscount"), 72);
     expectInternalLinksBelongToArea(area);
     int internalLinkCount = area->getInt("linkcount");
     area = gds->getGridArea(1);
     ASSERT_NE(area, nullptr);
+    EXPECT_EQ(area->getUserID(), 2);
     EXPECT_EQ(area->getInt("buscount"), 76);
     expectInternalLinksBelongToArea(area);
     internalLinkCount += area->getInt("linkcount");
     area = gds->getGridArea(2);
     ASSERT_NE(area, nullptr);
+    EXPECT_EQ(area->getUserID(), 3);
     EXPECT_EQ(area->getInt("buscount"), 31);
     expectInternalLinksBelongToArea(area);
     internalLinkCount += area->getInt("linkcount");
@@ -134,6 +144,45 @@ TEST(ExampleReaderTests, LoadRawAreaDefinitions)
     EXPECT_GT(gds->getInt("linkcount"), 0);
     EXPECT_EQ(internalLinkCount + gds->getInt("linkcount"), gds->getInt("totallinkcount"));
     EXPECT_EQ(gds->getInt("buscount"), 0);
+}
+
+TEST(ExampleReaderTests, AreaInterchangePropertiesDistinguishUnsetFromZero)
+{
+    griddyn::GridArea area("test_area");
+    EXPECT_FALSE(area.getScheduledNetInterchangeMW().has_value());
+    EXPECT_FALSE(area.getInterchangeToleranceMW().has_value());
+    EXPECT_EQ(area.get("schedulednetinterchange", units::MW), griddyn::kNullVal);
+
+    area.set("schedulednetinterchange", 0.0, units::MW);
+    area.set("interchangetolerance", 2.5, units::MW);
+    ASSERT_TRUE(area.getScheduledNetInterchangeMW().has_value());
+    EXPECT_DOUBLE_EQ(area.getScheduledNetInterchangeMW().value_or(griddyn::kNullVal), 0.0);
+    EXPECT_DOUBLE_EQ(area.get("schedulednetinterchange", units::MW), 0.0);
+    EXPECT_DOUBLE_EQ(area.get("interchangetolerance", units::MW), 2.5);
+}
+
+TEST(ExampleReaderTests, AreaInterchangeSlackBusAcceptsBusNumberAndName)
+{
+    auto area = std::make_unique<griddyn::GridArea>("test_area");
+    area->set("interchangeslackbus", 101.0);
+    EXPECT_EQ(area->getInterchangeSlackBus(), nullptr);
+
+    auto* numberedBus = new griddyn::GridBus("numbered_slack");
+    numberedBus->setUserID(101);
+    area->add(numberedBus);
+    EXPECT_EQ(area->getInterchangeSlackBus(), numberedBus);
+    EXPECT_EQ(area->get("interchangeslackbus"), 101.0);
+
+    area->set("interchangeslackbus", "Named Slack");
+    auto* namedBus = new griddyn::GridBus("Named Slack");
+    namedBus->setUserID(202);
+    area->add(namedBus);
+    EXPECT_EQ(area->getInterchangeSlackBus(), namedBus);
+    EXPECT_EQ(area->getString("interchangeslackbus"), "Named Slack");
+
+    area->set("interchangeslackbus", 0.0);
+    EXPECT_EQ(area->getInterchangeSlackBus(), nullptr);
+    EXPECT_EQ(area->get("interchangeslackbus"), griddyn::kNullVal);
 }
 
 TEST(ExampleReaderTests, LoadEpcAreaDefinitions)

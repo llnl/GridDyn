@@ -8,253 +8,508 @@
 
 #include "../Generator.h"
 #include "../GridArea.h"
-#include "../blocks/blockLibrary.h"
+#include "../GridBus.h"
+#include "../generators/DynamicGenerator.h"
+#include "../generators/RenewableGenerator.h"
+#include "../generators/VariableGenerator.h"
+#include "../relays/BusMeasurementSensor.h"
+#include "../relays/Sensor.h"
 #include "Scheduler.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <limits>
+#include <memory>
 #include <string>
+#include <string_view>
 
 namespace griddyn {
-static const TypeFactory<GridBlock>
+static const TypeFactory<AGControl>
     AGC_FACTORY("agc", std::to_array<std::string_view>({"basic", "agc"}), "basic");
-/*
-class AGControl
-{
-public:
-        char name[32];
-        GridArea *Parent;
-
-protected:
-        double KI;
-        double KP;
-        double beta;
-        double deadband;
-        double alpha;
-
-        double ACE;
-        double fACE;
-        double reg;
-        double regUpAvailable;
-        double regDownAvailable;
-
-        PidBlock *pid;
-
-        int schedCount;
-
-        std::vector<scheduler *> schedList;
-        double upRat;
-        double downRat;
-
-public:
-        AGControl();
-
-        ~AGControl();
-
-        double initialize(CoreTime time0,double freq0,double tiedev0);
-
-        double updateP(CoreTime time, double freq, double tiedev);
-        double currentValue();
-
-        double addGen(scheduler *sched);
-        void set (const std::string &param, double val,unit unitType=defunit);
-        void set (const std::string &param, double val,unit unitType=defunit){return set(param,&val,
-unitType);};
-
-        void regChange();
-protected:
-        void checkGen();
-};
-*/
-
-AGControl::~AGControl() = default;
 
 AGControl::AGControl(const std::string& objName): GridSubModel(objName)
 {
-    pid = makeOwningPtr<blocks::PidBlock>(kp, ki, 0, "pid");
-    pid->setParent(this);
-    filt1 = makeOwningPtr<blocks::DelayBlock>(tf, "delay1");
-    filt1->setParent(this);
-    filt2 = makeOwningPtr<blocks::DelayBlock>(tr, "delay2");
-    filt2->setParent(this);
-    db = makeOwningPtr<blocks::DeadbandBlock>(deadband, "deadband");
-    db->setParent(this);
-    db->set("rampband", 4);
+    updatePeriod = 4.0;
+}
+
+AGControl::~AGControl()
+{
+    for (auto* sched : schedList) {
+        if (sched != nullptr && sched->agcController == this) {
+            sched->agcController = nullptr;
+        }
+    }
+    schedList.clear();
 }
 
 CoreObject* AGControl::clone(CoreObject* obj) const
 {
-    auto* nobj = cloneBase<AGControl, GridSubModel>(this, obj);
-    if (nobj == nullptr) {
+    auto* result = cloneBase<AGControl, GridSubModel>(this, obj);
+    if (result == nullptr) {
         return obj;
     }
+    result->ki = ki;
+    result->kp = kp;
+    result->bias = bias;
+    result->deadband = deadband;
+    result->tf = tf;
+    result->tr = tr;
+    result->fixedFrequency = fixedFrequency;
+    result->targetFrequency = targetFrequency;
+    result->frequencySensorName = frequencySensorName;
+    result->frequencyOutput = frequencyOutput;
+    result->frequencyIsDeviation = frequencyIsDeviation;
+    result->frequencyOutputExplicit = frequencyOutputExplicit;
+    result->frequencyDeviationExplicit = frequencyDeviationExplicit;
+    result->frequencySensor = nullptr;
+    result->schedList.clear();
+    result->initialized = false;
+    return result;
+}
 
-    nobj->ki = ki;
-    nobj->kp = kp;
-    nobj->beta = beta;
-    nobj->deadband = deadband;
+void AGControl::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
+{
+    auto* area = dynamic_cast<GridArea*>(getParent());
+    if (area == nullptr) {
+        throw InvalidParameterValue("AGC requires an owning area");
+    }
+    if (updatePeriod <= 0.0) {
+        throw InvalidParameterValue("AGC sample interval must be positive");
+    }
+    frequencySensor = nullptr;
+    if (!frequencySensorName.empty()) {
+        frequencySensor = dynamic_cast<Sensor*>(area->find(frequencySensorName));
+        if (frequencySensor == nullptr) {
+            throw InvalidParameterValue("AGC frequency sensor was not found");
+        }
+        // The built-in PLL reports deviation in output 1; COI and FreqDiv report pu frequency.
+        const bool pllMeasurement = dynamic_cast<PLLSensor*>(frequencySensor) != nullptr;
+        if (!frequencyOutputExplicit) {
+            frequencyOutput = pllMeasurement ? 1 : 0;
+        }
+        if (!frequencyDeviationExplicit) {
+            frequencyIsDeviation = pllMeasurement;
+        }
+    }
+    addInterchangeSlackParticipant();
+    initialized = false;
+}
 
-    nobj->tf = tf;
-    nobj->tr = tr;
+void AGControl::addInterchangeSlackParticipant()
+{
+    auto* area = static_cast<GridArea*>(getParent());
+    if (!schedList.empty()) {
+        return;
+    }
+    // A configured scheduler may not have linked to this AGC yet. Generators
+    // initialize after the AGC, so inspect their power sources first.
+    for (index_t index = 0;; ++index) {
+        auto* generator = area->getGen(index);
+        if (generator == nullptr) {
+            break;
+        }
+        if (!generator->isEnabled()) {
+            continue;
+        }
+        const CoreObject* ancestor = generator->getParent();
+        bool belongsToThisAGC = true;
+        while (ancestor != nullptr && !isSameObject(ancestor, area)) {
+            const auto* subarea = dynamic_cast<const GridArea*>(ancestor);
+            if (subarea != nullptr && subarea->getAGControl() != nullptr) {
+                belongsToThisAGC = false;
+                break;
+            }
+            const auto* ancestorParent = ancestor->getParent();
+            if (ancestorParent == ancestor) {
+                break;
+            }
+            ancestor = ancestorParent;
+        }
+        if (!belongsToThisAGC) {
+            continue;
+        }
+        auto* configured = dynamic_cast<SchedulerReg*>(generator->find("sched"));
+        if (configured == nullptr) {
+            configured = dynamic_cast<SchedulerReg*>(generator->find("pset"));
+        }
+        if (configured != nullptr && configured->getRegEnabled()) {
+            return;
+        }
+    }
+    auto* slackBus = area->getInterchangeSlackBus();
+    if (slackBus == nullptr) {
+        return;
+    }
+    Generator* target = nullptr;
+    for (index_t index = 0;; ++index) {
+        auto* generator = slackBus->getGen(index);
+        if (generator == nullptr) {
+            break;
+        }
+        if (!generator->isEnabled()) {
+            continue;
+        }
+        if (target != nullptr) {
+            throw InvalidParameterValue(
+                "AGC ISW bus has multiple enabled generators; specify participants explicitly");
+        }
+        target = generator;
+    }
+    if (target == nullptr) {
+        throw InvalidParameterValue("AGC ISW bus has no enabled generator");
+    }
+    auto* dynamicGen = dynamic_cast<DynamicGenerator*>(target);
+    auto* renewableGen = dynamic_cast<RenewableGenerator*>(target);
+    if ((dynamicGen == nullptr &&
+         (renewableGen == nullptr || !renewableGen->supportsActivePowerSchedule())) ||
+        dynamic_cast<VariableGenerator*>(target) != nullptr) {
+        throw InvalidParameterValue(
+            "AGC ISW generator does not support a SchedulerReg power setpoint");
+    }
+    if (target->find("pset") != nullptr) {
+        throw InvalidParameterValue("AGC ISW generator already has a power setpoint source");
+    }
+    const double baseMW = area->get("basepower", units::MW);
+    const double ratingMW = target->get("mbase", units::MW);
+    const double pset = target->get("pset", units::puMW);
+    if (!std::isfinite(baseMW) || baseMW <= 0.0 || !std::isfinite(ratingMW) || ratingMW <= 0.0 ||
+        !std::isfinite(pset) || pset <= -kHalfBigNum) {
+        throw InvalidParameterValue(
+            "AGC ISW generator requires a finite setpoint and positive rating");
+    }
+    const double rating = ratingMW / baseMW;
+    const double pmax = target->get("pmax", units::puMW);
+    const double pmin = target->get("pmin", units::puMW);
+    const double upFraction = std::clamp((pmax - pset) / rating, 0.0, 1.0);
+    const double downFraction = std::clamp((pset - pmin) / rating, 0.0, 1.0);
+    auto scheduler = std::make_unique<SchedulerReg>(pset);
+    scheduler->set("purpose", "pset");
+    scheduler->set("rating", ratingMW);
+    scheduler->set("max", pmax);
+    scheduler->set("min", pmin);
+    const double rampMWPerMinute = target->get("rampagc");
+    if (std::isfinite(rampMWPerMinute) && rampMWPerMinute > 0.0) {
+        scheduler->set("ramp", rampMWPerMinute / (60.0 * baseMW));
+    }
+    target->add(scheduler.get());
+    auto* attached = dynamic_cast<SchedulerReg*>(target->find("pset"));
+    if (scheduler.release() != attached) {
+        throw InvalidParameterValue("AGC could not attach its ISW scheduler");
+    }
+    attached->regSettings(true, upFraction, downFraction);
+}
 
-    pid->clone(nobj->pid.get());
-    filt1->clone(nobj->filt1.get());
-    filt2->clone(nobj->filt2.get());
-    db->clone(nobj->db.get());
-    return nobj;
+void AGControl::dynObjectInitializeB(const IOdata& /*inputs*/,
+                                     const IOdata& /*desiredOutput*/,
+                                     IOdata& fieldSet)
+{
+    if (frequencySensor != nullptr && frequencyOutput >= frequencySensor->numOutputs()) {
+        throw InvalidParameterValue("AGC frequency sensor output is unavailable");
+    }
+    ace = measuredACE();
+    filteredAce = ace;
+    integralAce = 0.0;
+    requestedReg = 0.0;
+    reg = 0.0;
+    initialized = true;
+    fieldSet.resize(1);
+    fieldSet[0] = reg;
+}
+
+double AGControl::measuredFrequency() const
+{
+    const double measurement =
+        frequencySensor == nullptr ? fixedFrequency : frequencySensor->getOutput(frequencyOutput);
+    const double frequency = measurement + (frequencyIsDeviation ? 1.0 : 0.0);
+    if (!std::isfinite(frequency) || frequency <= 0.0) {
+        throw InvalidParameterValue("AGC frequency measurement must be positive and finite");
+    }
+    return frequency;
+}
+
+double AGControl::measuredACE() const
+{
+    const auto* area = dynamic_cast<GridArea*>(getParent());
+    if (area == nullptr) {
+        throw InvalidParameterValue("AGC requires an owning area");
+    }
+    const double baseMW = area->get("basepower", units::MW);
+    const double baseHz = area->get("basefrequency", units::Hz);
+    if (!std::isfinite(baseMW) || baseMW <= 0.0 || !std::isfinite(baseHz) || baseHz <= 0.0) {
+        throw InvalidParameterValue("AGC requires positive area power and frequency bases");
+    }
+    double scheduledMW = 0.0;
+    if (const auto netSchedule = area->getScheduledNetInterchangeMW(); netSchedule) {
+        scheduledMW = *netSchedule;
+    } else {
+        auto* root = const_cast<GridArea*>(area);
+        while (auto* parentArea = dynamic_cast<GridArea*>(root->getParent())) {
+            root = parentArea;
+        }
+        bool found = false;
+        for (const auto& transfer : root->getInterAreaTransfers()) {
+            if (transfer.fromAreaID == area->getUserID()) {
+                scheduledMW += transfer.scheduledMW;
+                found = true;
+            } else if (transfer.toAreaID == area->getUserID()) {
+                scheduledMW -= transfer.scheduledMW;
+                found = true;
+            }
+        }
+        if (!found) {
+            throw InvalidParameterValue("AGC requires a configured area interchange schedule");
+        }
+    }
+    const double actualMW = area->getBoundaryTieFlowReal() * baseMW;
+    const double frequencyErrorHz = (measuredFrequency() - targetFrequency) * baseHz;
+    return actualMW - scheduledMW - (10.0 * bias * frequencyErrorHz);
+}
+
+void AGControl::updateA(CoreTime time)
+{
+    if (time + 1e-9 < getNextUpdateTime()) {
+        return;
+    }
+    if (!initialized || !isEnabled()) {
+        CoreObject::updateA(time);
+        return;
+    }
+    const double deltaTime = time - prevTime;
+    if (deltaTime <= 0.0) {
+        CoreObject::updateA(time);
+        return;
+    }
+    for (auto* sched : schedList) {
+        if (sched->isEnabled() && sched->getRegEnabled()) {
+            sched->updateA(time);
+        }
+    }
+    regChange();
+    ace = measuredACE();
+    filteredAce += (tf <= 0.0 ? 1.0 : deltaTime / (tf + deltaTime)) * (ace - filteredAce);
+    const double controlError =
+        std::copysign(std::max(0.0, std::abs(filteredAce) - deadband), filteredAce);
+    const double candidateIntegral = integralAce + (controlError * deltaTime);
+    const auto* area = static_cast<const GridArea*>(getParent());
+    const double baseMW = area->get("basepower", units::MW);
+    const double candidateReg = -((kp * controlError) + (ki * candidateIntegral)) / baseMW;
+    if ((candidateReg <= regUpAvailable || controlError >= 0.0) &&
+        (candidateReg >= -regDownAvailable || controlError <= 0.0)) {
+        integralAce = candidateIntegral;
+    }
+    const double rawReg = -((kp * controlError) + (ki * integralAce)) / baseMW;
+    requestedReg += (tr <= 0.0 ? 1.0 : deltaTime / (tr + deltaTime)) * (rawReg - requestedReg);
+    reg = std::clamp(requestedReg, -regDownAvailable, regUpAvailable);
+    dispatch();
+    prevTime = time;
+    CoreObject::updateA(time);
+}
+
+CoreTime AGControl::updateB()
+{
+    return CoreObject::updateB();
+}
+
+void AGControl::dispatch()
+{
+    for (auto* sched : schedList) {
+        if (!sched->isEnabled() || !sched->getRegEnabled()) {
+            continue;
+        }
+        const double available = reg >= 0.0 ? regUpAvailable : regDownAvailable;
+        const double resource =
+            reg >= 0.0 ? sched->getRegUpAvailable() : sched->getRegDownAvailable();
+        sched->setReg(available > 0.0 ? reg * resource / available : 0.0);
+    }
 }
 
 double AGControl::getOutput(const IOdata& /*inputs*/,
                             const StateData& /*sD*/,
                             const SolverMode& /*sMode*/,
-                            index_t /*outNum*/) const
+                            index_t /*num*/) const
 {
     return reg;
 }
 
-double AGControl::getOutput(index_t /*outNum*/) const
+double AGControl::getOutput(index_t /*num*/) const
 {
     return reg;
-}
-
-void AGControl::dynObjectInitializeB(const IOdata& inputs,
-                                     const IOdata& desiredOutput,
-                                     IOdata& fieldSet)
-{
-    IOdata iSet(1);
-    if (desiredOutput.empty()) {
-        ace = (inputs[1]) - (10.0 * beta * inputs[0]);
-    } else {
-        ace = desiredOutput[0];
-    }
-    filt1->dynInitializeB({0}, {ace}, iSet);
-    filteredAce = ace;
-    pid->dynInitializeB({0}, {filteredAce}, iSet);
-    fieldSet[0] = pid->getOutput();
-}
-
-void AGControl::updateA(CoreTime /*time*/) {}
-
-void AGControl::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*sMode*/)
-{
-    prevTime = time;
-
-    ace = (inputs[1]) - (10.0 * beta * inputs[0]);
-    filteredAce = filt1->step(time, ace);
-
-    reg += pid->step(time, filteredAce - reg);
-
-    reg = db->step(time, reg);
-
-    freg = filt2->step(time, reg);
-
-    for (index_t kk = 0; kk < schedCount; kk++) {
-        if (freg >= 0.0) {
-            if (freg > regUpAvailable) {
-                schedList[kk]->setReg(regUpAvailable * upRat[kk]);
-                reg = regUpAvailable;
-            } else {
-                schedList[kk]->setReg(freg * upRat[kk]);
-            }
-        } else {
-            if (freg < -regDownAvailable) {
-                schedList[kk]->setReg(-regDownAvailable * downRat[kk]);
-                reg = -regDownAvailable;
-            } else {
-                schedList[kk]->setReg(freg * downRat[kk]);
-            }
-        }
-    }
 }
 
 void AGControl::add(CoreObject* obj)
 {
-    if (dynamic_cast<SchedulerReg*>(obj) != nullptr) {
-        add(static_cast<SchedulerReg*>(obj));
-    } else {
-        throw(UnrecognizedObjectException(this));
+    auto* sched = dynamic_cast<SchedulerReg*>(obj);
+    if (sched == nullptr) {
+        throw UnrecognizedObjectException(this);
     }
+    add(sched);
 }
 
 void AGControl::add(SchedulerReg* sched)
 {
-    schedCount++;
-    schedList.push_back(sched);
-    upRat.resize(schedCount);
-    downRat.resize(schedCount);
-    regChange();
+    if (sched == nullptr) {
+        return;
+    }
+    const auto* owner = dynamic_cast<GridArea*>(getParent());
+    if (owner != nullptr) {
+        const CoreObject* object = sched;
+        while (object != nullptr && !isSameObject(object, owner)) {
+            const auto* ancestor = object->getParent();
+            if (ancestor == object) {
+                break;
+            }
+            object = ancestor;
+        }
+        if (!isSameObject(object, owner)) {
+            throw InvalidParameterValue("AGC participant belongs to another area");
+        }
+    }
+    if (sched->agcController != nullptr && sched->agcController != this) {
+        sched->agcController->remove(sched);
+    }
+    if (std::find(schedList.begin(), schedList.end(), sched) == schedList.end()) {
+        schedList.push_back(sched);
+        regChange();
+    }
+    sched->agcController = this;
 }
 
 void AGControl::remove(CoreObject* obj)
 {
-    for (index_t kk = 0; kk < schedCount; kk++) {
-        if (isSameObject(schedList[kk], obj)) {
-            schedList.erase(schedList.begin() + kk);
-            schedCount--;
-            upRat.resize(schedCount);
-            downRat.resize(schedCount);
-            regChange();
-            break;
+    const auto schedulerPosition = std::find(schedList.begin(), schedList.end(), obj);
+    if (schedulerPosition != schedList.end()) {
+        if ((*schedulerPosition)->agcController == this) {
+            (*schedulerPosition)->agcController = nullptr;
         }
+        schedList.erase(schedulerPosition);
+        regChange();
+    } else if (auto* sched = dynamic_cast<SchedulerReg*>(obj);
+               sched != nullptr && sched->agcController == this) {
+        sched->agcController = nullptr;
     }
 }
 
 void AGControl::set(std::string_view param, std::string_view val)
 {
-    CoreObject::set(param, val);
+    if (param == "frequencysensor") {
+        frequencySensorName = val;
+        frequencySensor = nullptr;
+    } else {
+        CoreObject::set(param, val);
+    }
 }
 
 void AGControl::set(std::string_view param, double val, units::unit unitType)
 {
-    if (param == "deadband") {
-        deadband = val;
-        db->set("deadband", deadband);
-        db->set("rampband", 0.2 * deadband);
-    } else if (param == "beta") {
-        beta = val;
-    } else if (param == "ki") {
-        ki = val;
-        pid->set("I", val);
-    } else if (param == "kp") {
-        kp = val;
-        pid->set("P", val);
-    } else if (param == "tf") {
-        tf = val;
-        filt1->set("T1", tf);
-    } else if (param == "tr") {
-        tr = val;
-        filt2->set("T1", tr);
-    } else {
-        CoreObject::set(param, val, unitType);
+    if (!std::isfinite(val)) {
+        throw InvalidParameterValue("AGC parameters must be finite");
     }
+    if (param == "deadband") {
+        if (val < 0.0) {
+            throw InvalidParameterValue("AGC deadband must be nonnegative");
+        }
+        deadband = units::convert(val,
+                                  unitType == units::defunit ? units::MW : unitType,
+                                  units::MW,
+                                  systemBasePower);
+    } else if (param == "bias") {
+        if (val > 0.0) {
+            throw InvalidParameterValue("AGC frequency bias must be nonpositive");
+        }
+        bias = val;
+    } else if (param == "beta") {
+        bias = -std::abs(val);
+    } else if (param == "ki") {
+        if (val < 0.0) {
+            throw InvalidParameterValue("AGC integral gain must be nonnegative");
+        }
+        ki = val;
+    } else if (param == "kp") {
+        if (val < 0.0) {
+            throw InvalidParameterValue("AGC proportional gain must be nonnegative");
+        }
+        kp = val;
+    } else if (param == "tf") {
+        if (val < 0.0) {
+            throw InvalidParameterValue("AGC filter time must be nonnegative");
+        }
+        tf = units::convert(val, unitType == units::defunit ? units::s : unitType, units::s);
+    } else if (param == "tr") {
+        if (val < 0.0) {
+            throw InvalidParameterValue("AGC response time must be nonnegative");
+        }
+        tr = units::convert(val, unitType == units::defunit ? units::s : unitType, units::s);
+    } else if (param == "frequency") {
+        if (val <= 0.0) {
+            throw InvalidParameterValue("AGC frequency must be positive");
+        }
+        fixedFrequency = val;
+    } else if (param == "targetfrequency") {
+        if (val <= 0.0) {
+            throw InvalidParameterValue("AGC target frequency must be positive");
+        }
+        targetFrequency = val;
+    } else if (param == "frequencyoutput") {
+        if (val < 0.0 || std::floor(val) != val ||
+            val > static_cast<double>(std::numeric_limits<index_t>::max())) {
+            throw InvalidParameterValue("AGC frequency output must be an index");
+        }
+        frequencyOutput = static_cast<index_t>(val);
+        frequencyOutputExplicit = true;
+    } else if (param == "frequencyisdeviation") {
+        frequencyIsDeviation = val != 0.0;
+        frequencyDeviationExplicit = true;
+    } else if (param == "period" || param == "updateperiod" || param == "sampleinterval") {
+        const double seconds =
+            units::convert(val, unitType == units::defunit ? units::s : unitType, units::s);
+        if (!std::isfinite(seconds) || seconds <= 0.0 ||
+            seconds >= static_cast<double>(CoreTime::maxVal())) {
+            throw InvalidParameterValue("AGC sample interval must be positive and representable");
+        }
+        updatePeriod = seconds;
+    } else {
+        GridSubModel::set(param, val, unitType);
+    }
+}
+
+double AGControl::get(std::string_view param, units::unit unitType) const
+{
+    if (param == "ace") {
+        return units::convert(ace,
+                              units::MW,
+                              unitType == units::defunit ? units::MW : unitType,
+                              systemBasePower);
+    }
+    if (param == "filteredace") {
+        return units::convert(filteredAce,
+                              units::MW,
+                              unitType == units::defunit ? units::MW : unitType,
+                              systemBasePower);
+    }
+    if (param == "regulation") {
+        return reg;
+    }
+    if (param == "bias" || param == "beta") {
+        return param == "beta" ? -bias : bias;
+    }
+    if (param == "sampleinterval") {
+        return updatePeriod;
+    }
+    return GridSubModel::get(param, unitType);
 }
 
 void AGControl::regChange()
 {
-    regUpAvailable = 0;
-    regDownAvailable = 0;
-
-    for (auto& sched : schedList) {
-        regUpAvailable += sched->getRegUpAvailable();
-        regDownAvailable += sched->getRegDownAvailable();
-    }
-    for (index_t kk = 0; kk < schedCount; kk++) {
-        upRat[kk] = schedList[kk]->getRegUpAvailable() / regUpAvailable;
-        downRat[kk] = schedList[kk]->getRegDownAvailable() / regDownAvailable;
+    regUpAvailable = 0.0;
+    regDownAvailable = 0.0;
+    for (const auto* sched : schedList) {
+        if (sched->isEnabled() && sched->getRegEnabled()) {
+            regUpAvailable += std::max(0.0, sched->getRegUpAvailable());
+            regDownAvailable += std::max(0.0, sched->getRegDownAvailable());
+        }
     }
 }
-
-/*
-static AGControl* newAGC(const std::string& type)
-{
-    AGControl* agc = nullptr;
-    if ((type.empty()) || (type == "basic")) {
-        agc = new AGControl();
-    } else if ((type == "battery") || (type == "battDR")) {
-        // agc= new AGCControlBattDR();
-    }
-    return agc;
-}
-*/
-
 }  // namespace griddyn

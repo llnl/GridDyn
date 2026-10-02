@@ -9,7 +9,9 @@
 // headers
 #include "GridPrimary.h"
 #include <memory>
+#include <optional>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -23,6 +25,7 @@ class Generator;
 class Source;
 class CoreObjectList;
 class ListMaintainer;
+class AGControl;
 
 /** @brief class implementing a power system area
  the area class acts as a container for other primary objects including areas
@@ -33,6 +36,16 @@ class GridArea: public GridPrimary {
     friend class ListMaintainer;
 
   public:
+    /** A scheduled transfer specification between two areas. Power is stored in MW. */
+    struct InterAreaTransfer {
+        index_t fromAreaID{0};
+        index_t toAreaID{0};
+        std::string transferID;
+        double scheduledMW{0.0};
+        GridArea* fromArea{nullptr};
+        GridArea* toArea{nullptr};
+    };
+
     /** @brief flags for area operations and control*/
     enum AreaFlags {
         REVERSE_CONVERGE = OBJECT_FLAG1,  //!< flag indicating that the area should do a
@@ -68,6 +81,16 @@ class GridArea: public GridPrimary {
     std::unique_ptr<ListMaintainer> opObjectLists;  //!<
     double fTarget = 1.0;  //!<[puHz] a target frequency
     int masterBus = -1;  //!< the master bus for frequency calculations purposes
+    std::optional<double> scheduledNetInterchangeMW;  //!< configured area net interchange [MW]
+    std::optional<double> interchangeToleranceMW;  //!< configured interchange tolerance [MW]
+    mutable GridBus* interchangeSlackBus = nullptr;  //!< area interchange slack bus
+    std::optional<index_t> interchangeSlackBusUserID;
+    std::optional<std::string> interchangeSlackBusName;
+    std::vector<InterAreaTransfer> interAreaTransfers;
+    AGControl* agcController = nullptr;  //!< one sampled controller per area
+
+    void resolveInterchangeSlackBus() const noexcept;
+    void resolveInterAreaTransfers();
 
   public:
     /** @brief the default constructor*/
@@ -78,11 +101,47 @@ class GridArea: public GridPrimary {
     /** Set an external area identifier and keep future generated IDs unique. */
     void setUserID(index_t newUserID);
 
+    /** Set the scheduled net interchange in MW. A value of zero is a configured target. */
+    void setScheduledNetInterchangeMW(double scheduledMW);
+    /** Return the scheduled interchange if one has been configured. */
+    std::optional<double> getScheduledNetInterchangeMW() const noexcept
+    {
+        return scheduledNetInterchangeMW;
+    }
+    /** Set the interchange tolerance in MW. A value of zero is a configured tolerance. */
+    void setInterchangeToleranceMW(double toleranceMW);
+    /** Return the interchange tolerance if one has been configured. */
+    std::optional<double> getInterchangeToleranceMW() const noexcept
+    {
+        return interchangeToleranceMW;
+    }
+    /** Set the interchange slack bus by its GridDyn user ID; zero clears the reference. */
+    void setInterchangeSlackBus(index_t busUserID);
+    /** Set the interchange slack bus by its name. */
+    void setInterchangeSlackBus(std::string_view busName);
+    /** Return the resolved interchange slack bus, or nullptr if unset or unresolved. */
+    GridBus* getInterchangeSlackBus() const noexcept
+    {
+        resolveInterchangeSlackBus();
+        return interchangeSlackBus;
+    }
+    /** Store or replace a scheduled transfer record, identified by endpoints and transfer ID. */
+    void setInterAreaTransfer(index_t fromAreaID,
+                              index_t toAreaID,
+                              std::string_view transferID,
+                              double scheduledMW);
+    /** Return the configured bilateral transfer specifications. */
+    const std::vector<InterAreaTransfer>& getInterAreaTransfers() const noexcept
+    {
+        return interAreaTransfers;
+    }
+
     virtual CoreObject* clone(CoreObject* obj = nullptr) const override;
 
     virtual void updateObjectLinkages(CoreObject* newRoot) override;
     // add components
     virtual void add(CoreObject* obj) override;
+    AGControl* getAGControl() const noexcept { return agcController; }
     /** @brief add a bus to the area
     @param[in] bus  the bus to add
     @throw ObjectAddFailure on add failure typically duplicated names
@@ -198,6 +257,7 @@ class GridArea: public GridPrimary {
 
     virtual double get(std::string_view param,
                        units::unit unitType = units::defunit) const override;
+    virtual std::string getString(std::string_view param) const override;
     /** @brief determine if an object is already a member of the area
     @param[in] object  the object to check
     @return true if the object is a member false if not
@@ -470,6 +530,13 @@ class GridArea: public GridPrimary {
     @return the total tie line flows
     */
     double getTieFlowReal() const;
+    /** Return sum of boundary-end real-power flows, positive outward, in system pu. */
+    double getBoundaryTieFlowReal() const;
+    /** Return real-power flow from this area to the specified area, in pu on system base. */
+    double getTieFlowReal(index_t areaUserID) const;
+    /** Return the scheduled transfer from this area to the specified area, in pu on system base,
+     *  or kNullVal when no schedule is configured for the pair. */
+    double getScheduledTieFlowReal(index_t areaUserID) const;
     /** flag all the voltage states
      * get a vector with an indicator of voltage states
      *@param[out] vStates a vector with a value of 1.0 for all voltage states and 0 otherwise

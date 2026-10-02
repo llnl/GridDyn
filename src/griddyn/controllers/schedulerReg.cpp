@@ -4,10 +4,14 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+#include "../GridArea.h"
 #include "../comms/SchedulerMessage.h"
 #include "AGControl.h"
 #include "Scheduler.h"
+#include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
+#include <algorithm>
+#include <cmath>
 #include <cstdio>
 #include <memory>
 #include <string>
@@ -68,7 +72,10 @@ SchedulerReg::~SchedulerReg()
 
 void SchedulerReg::setReg(double regLevel)
 {
-    participationRating = (m_Base >= kHalfBigNum) ? regMax : m_Base;
+    if (!std::isfinite(regLevel)) {
+        throw InvalidParameterValue("scheduler regulation target must be finite");
+    }
+    participationRating = (m_Base >= kHalfBigNum) ? regMax : m_Base / systemBasePower;
 
     if (regLevel > regUpFrac * participationRating) {
         regTarget = regUpFrac * participationRating;
@@ -79,53 +86,87 @@ void SchedulerReg::setReg(double regLevel)
     }
 }
 
+void SchedulerReg::validateRegulationBounds(double baseMW,
+                                            double minValue,
+                                            double maxValue,
+                                            double upFraction,
+                                            double downFraction,
+                                            bool enabled) const
+{
+    if (!std::isfinite(baseMW) || baseMW <= 0.0 || !std::isfinite(minValue) ||
+        !std::isfinite(maxValue) || minValue > maxValue || !std::isfinite(upFraction) ||
+        !std::isfinite(downFraction) || upFraction < 0.0 || upFraction > 1.0 ||
+        downFraction < 0.0 || downFraction > 1.0) {
+        throw InvalidParameterValue("scheduler regulation settings are outside valid ranges");
+    }
+    const double rating = (baseMW >= kHalfBigNum) ? maxValue : baseMW / systemBasePower;
+    const double effectiveMin = minValue + (enabled ? downFraction * rating : 0.0);
+    const double effectiveMax = maxValue - (enabled ? upFraction * rating : 0.0);
+    if (!std::isfinite(rating) || effectiveMin > effectiveMax - reserveAvail) {
+        throw InvalidParameterValue(
+            "scheduler regulation limits and reserve exceed the available power range");
+    }
+}
+
+void SchedulerReg::updateRegulationLimits()
+{
+    validateRegulationBounds(m_Base, regMin, regMax, regUpFrac, regDownFrac, regEnabled);
+    participationRating = (m_Base >= kHalfBigNum) ? regMax : m_Base / systemBasePower;
+    if (regEnabled) {
+        const double upReservation = regUpFrac * participationRating;
+        const double downReservation = regDownFrac * participationRating;
+        rampUp = std::max(0.0, regRampUp - (upReservation / 600.0));
+        rampDown = std::max(0.0, regRampDown - (downReservation / 600.0));
+        pMax = regMax - upReservation;
+        pMin = regMin + downReservation;
+    } else {
+        rampUp = regRampUp;
+        rampDown = regRampDown;
+        pMax = regMax;
+        pMin = regMin;
+    }
+    pCurr = std::clamp(pCurr, pMin, pMax - reserveAvail);
+    updatePTarget();
+    if (agcController != nullptr) {
+        agcController->regChange();
+    }
+}
+
 void SchedulerReg::updateA(CoreTime time)
 {
     const double deltaTime = (time - prevTime);
-
-    if (deltaTime == 0) {
+    if (deltaTime <= 0.0) {
         return;
     }
-    const double prevOutput = m_output;
+    m_output -= regCurrent;
+    baseUpdateInProgress = true;
     SchedulerRamp::updateA(time);
-
-    double ramp = ((regTarget - regCurrent) / deltaTime) + dpdt;
-    if (ramp > regRampUp) {
-        ramp = regRampUp;
-    } else if (ramp < -regRampDown) {
-        ramp = -regRampDown;
-    }
-
-    m_output = prevOutput + (ramp * deltaTime);
-
-    dpdt = ramp;
-    regCurrent = m_output - pCurr - reserveAct;
+    baseUpdateInProgress = false;
+    const double baseRamp = dpdt;
+    const double regulationRamp =
+        std::clamp((regTarget - regCurrent) / deltaTime, -regRampDown, regRampUp);
+    regCurrent += regulationRamp * deltaTime;
+    m_output += regCurrent;
+    dpdt = baseRamp + regulationRamp;
 }
 
 double SchedulerReg::predict(CoreTime time)
 {
     const double deltaTime = (time - prevTime);
-    if (deltaTime == 0) {
+    if (deltaTime <= 0.0) {
         return m_output;
     }
-    const double predictedOutput = SchedulerRamp::predict(time);
-
-    double ramp =
-        ((regTarget - regCurrent) / deltaTime) + ((predictedOutput - m_output) / deltaTime);
-    if (ramp > regRampUp) {
-        ramp = regRampUp;
-    } else if (ramp < -regRampDown) {
-        ramp = -regRampDown;
-    }
-
-    const double predictedRampOutput = m_output + (ramp * deltaTime);
-    return predictedRampOutput;
+    const double baseOutput = m_output - regCurrent + (SchedulerRamp::getRamp() * deltaTime);
+    const double regulation = std::clamp(regTarget,
+                                         regCurrent - (regRampDown * deltaTime),
+                                         regCurrent + (regRampUp * deltaTime));
+    return baseOutput + regulation;
 }
 
 void SchedulerReg::dynObjectInitializeA(CoreTime time0, std::uint32_t flags)
 {
     SchedulerRamp::dynObjectInitializeA(time0, flags);
-    participationRating = (m_Base >= kHalfBigNum) ? regMax : m_Base;
+    participationRating = (m_Base >= kHalfBigNum) ? regMax : m_Base / systemBasePower;
 
     if ((regUpFrac > 0) || (regDownFrac > 0)) {
         if (agcController == nullptr) {
@@ -153,34 +194,36 @@ void SchedulerReg::dynObjectInitializeB(const IOdata& inputs,
 
 double SchedulerReg::getRamp() const
 {
-    double ramp = 0;
+    const double baseRamp = SchedulerRamp::getRamp();
+    if (baseUpdateInProgress) {
+        return baseRamp;
+    }
     const double diff = regTarget - regCurrent;
     if (diff > 0.001) {
-        ramp = regRampUp;
-    } else if (diff < 0.001) {
-        ramp = regRampDown;
-    } else {
-        ramp = SchedulerRamp::getRamp();
+        return baseRamp + regRampUp;
     }
-    return ramp;
+    if (diff < -0.001) {
+        return baseRamp - regRampDown;
+    }
+    return baseRamp;
 }
 
 double SchedulerReg::getRampTime() const
 {
+    const double baseTime = SchedulerRamp::getRampTime();
     const double diff = regTarget - regCurrent;
-    if (diff > 0.001) {
-        return (regTarget - regCurrent) / (regRampUp - pRampCurr);
+    if (diff > 0.001 && regRampUp > 0.0) {
+        return std::min(baseTime, diff / regRampUp);
     }
-    if (diff < 0.001) {
-        return (regTarget - regCurrent) / (regRampDown - pRampCurr);
+    if (diff < -0.001 && regRampDown > 0.0) {
+        return std::min(baseTime, -diff / regRampDown);
     }
-
-    return SchedulerRamp::getRampTime();
+    return baseTime;
 }
 
 double SchedulerReg::getMax(const CoreTime /*time*/) const
 {
-    return pMax;
+    return pMax - reserveAvail;
 }
 
 double SchedulerReg::getMin(CoreTime /*time*/) const
@@ -190,44 +233,29 @@ double SchedulerReg::getMin(CoreTime /*time*/) const
 
 void SchedulerReg::regSettings(bool active, double upFrac, double downFrac)
 {
+    if (!std::isfinite(upFrac) || !std::isfinite(downFrac)) {
+        throw InvalidParameterValue("scheduler regulation fractions must be finite");
+    }
+    double newUpFraction = regUpFrac;
+    double newDownFraction = regDownFrac;
+    if (upFrac >= 0.0) {
+        newUpFraction = upFrac;
+        newDownFraction = downFrac;
+    }
+    validateRegulationBounds(m_Base, regMin, regMax, newUpFraction, newDownFraction, active);
+
     if (upFrac < 0) {
-        if (regEnabled) {
-            if (!active) {
-                if (agcController != nullptr) {
-                    agcController->remove(this);
-                }
-                regEnabled = false;
-            }
-        } else {
-            if (active) {
-                regEnabled = true;
-                if (agcController != nullptr) {
-                    agcController->add(this);
-                } else {
-                    dispatcherLink();
-                }
-            }
-        }
+        regEnabled = active;
     } else {
         regEnabled = active;
-        regUpFrac = upFrac;
-        regDownFrac = downFrac;
+        regUpFrac = newUpFraction;
+        regDownFrac = newDownFraction;
     }
-    if (regEnabled) {
-        participationRating = (m_Base >= kHalfBigNum) ? regMax : m_Base;
-        rampUp = regRampUp - ((regUpFrac * participationRating) / 600);
-        rampDown = regRampDown - ((regDownFrac * participationRating) / 600);
-        pMax = regMax - (regUpFrac * participationRating);
-        pMin = regMin + (regDownFrac * participationRating);
-    } else {
-        rampUp = regRampUp;
-        rampDown = regRampDown;
-        pMax = regMax;
-        pMin = regMin;
-    }
-    updatePTarget();
-    if (agcController != nullptr) {
-        agcController->regChange();
+    updateRegulationLimits();
+    if (!regEnabled && agcController != nullptr) {
+        agcController->remove(this);
+    } else if (regEnabled && agcController == nullptr) {
+        dispatcherLink();
     }
 }
 
@@ -238,99 +266,129 @@ void SchedulerReg::set(std::string_view param, std::string_view val)
 
 void SchedulerReg::set(std::string_view param, double val, units::unit unitType)
 {
-    double temp;
-    if (param == "max") {
-        regMax = val;
-    } else if (param == "min") {
-        regMin = val;
-    } else if (param == "rampup") {
-        regRampUp = val;
-    } else if (param == "rampdown") {
-        regRampDown = val;
-        if (regRampDown < 0) {
-            regRampDown = -regRampDown;
-        }
-    } else if (param == "ramp") {
-        regRampUp = val;
-        regRampDown = val;
-    } else if ((param == "rating") || (param == "base")) {
-        m_Base = val;
-        if (agcController != nullptr) {
-            agcController->regChange();
-        }
-    } else if (param == "regfrac") {
-        temp = val;
-        regUpFrac = temp;
-        regDownFrac = temp;
-        if (agcController != nullptr) {
-            agcController->regChange();
-        }
-    } else if (param == "regupfrac") {
-        regUpFrac = val;
-        if (agcController != nullptr) {
-            agcController->regChange();
-        }
-    } else if (param == "regdownfrac") {
-        regDownFrac = val;
+    if (!std::isfinite(val)) {
+        throw InvalidParameterValue("scheduler regulation parameters must be finite");
+    }
 
-        if (agcController != nullptr) {
-            agcController->regChange();
-        }
+    double newBaseMW = m_Base;
+    double newMin = regMin;
+    double newMax = regMax;
+    double newUpFraction = regUpFrac;
+    double newDownFraction = regDownFrac;
+    double newRegRampUp = regRampUp;
+    double newRegRampDown = regRampDown;
+    bool newRegEnabled = regEnabled;
+    bool regulationConfigChanged = false;
+
+    if (param == "max") {
+        newMax = units::convert(val, unitType, units::puMW, m_Base);
+        regulationConfigChanged = true;
+    } else if (param == "min") {
+        newMin = units::convert(val, unitType, units::puMW, m_Base);
+        regulationConfigChanged = true;
+    } else if (param == "rampup") {
+        newRegRampUp = units::convert(val, unitType, units::puMW / units::s, m_Base);
+        regulationConfigChanged = true;
+    } else if (param == "rampdown") {
+        newRegRampDown = units::convert(val, unitType, units::puMW / units::s, m_Base);
+        regulationConfigChanged = true;
+    } else if (param == "ramp") {
+        newRegRampUp = units::convert(val, unitType, units::puMW / units::s, m_Base);
+        newRegRampDown = newRegRampUp;
+        regulationConfigChanged = true;
+    } else if ((param == "rating") || (param == "base")) {
+        newBaseMW = units::convert(val, unitType, units::MW, systemBasePower);
+        regulationConfigChanged = true;
+    } else if (param == "regfrac") {
+        newUpFraction = val;
+        newDownFraction = val;
+        regulationConfigChanged = true;
+    } else if (param == "regupfrac") {
+        newUpFraction = val;
+        regulationConfigChanged = true;
+    } else if (param == "regdownfrac") {
+        newDownFraction = val;
+        regulationConfigChanged = true;
     } else if (param == "regenabled") {
-        const bool active = val > 0;
-        if (regEnabled) {
-            if (!active) {
-                if (agcController != nullptr) {
-                    agcController->remove(this);
-                }
-                regEnabled = false;
-            }
-        } else {
-            if (active) {
-                regEnabled = true;
-                if (agcController != nullptr) {
-                    agcController->add(this);
-                }
-            }
+        newRegEnabled = val > 0.0;
+        regulationConfigChanged = true;
+    } else if (param == "reserve") {
+        const double amount = units::convert(val, unitType, units::puMW, m_Base);
+        const double rating = (m_Base >= kHalfBigNum) ? regMax : m_Base / systemBasePower;
+        const double effectiveMin = regMin + (regEnabled ? regDownFrac * rating : 0.0);
+        const double effectiveMax = regMax - (regEnabled ? regUpFrac * rating : 0.0);
+        if (!std::isfinite(amount) || amount < 0.0 || amount > effectiveMax - effectiveMin) {
+            throw InvalidParameterValue("scheduler reserve exceeds the available power range");
         }
+        SchedulerRamp::set(param, val, unitType);
+        if (regEnabled) {
+            updateRegulationLimits();
+        }
+        return;
     } else {
         SchedulerRamp::set(param, val, unitType);
+        if (regEnabled) {
+            updateRegulationLimits();
+        }
+        return;
     }
-    if (regEnabled) {
-        participationRating = (m_Base >= kHalfBigNum) ? regMax : m_Base;
-        rampUp = regRampUp - ((regUpFrac * participationRating) / 600);
-        rampDown = regRampDown - ((regDownFrac * participationRating) / 600);
-        pMax = regMax - (regUpFrac * participationRating);
-        pMin = regMin + (regDownFrac * participationRating);
-    } else {
-        rampUp = regRampUp;
-        rampDown = regRampDown;
-        pMax = regMax;
-        pMin = regMin;
+
+    if (!std::isfinite(newMin) || !std::isfinite(newMax) || !std::isfinite(newRegRampUp) ||
+        !std::isfinite(newRegRampDown) || newRegRampUp < 0.0 || newRegRampDown < 0.0) {
+        throw InvalidParameterValue(
+            "scheduler regulation limits and ramp rates must be nonnegative and finite");
     }
-    updatePTarget();
+    validateRegulationBounds(
+        newBaseMW, newMin, newMax, newUpFraction, newDownFraction, newRegEnabled);
+    if (regulationConfigChanged) {
+        const bool wasEnabled = regEnabled;
+        m_Base = newBaseMW;
+        regMin = newMin;
+        regMax = newMax;
+        regUpFrac = newUpFraction;
+        regDownFrac = newDownFraction;
+        regRampUp = newRegRampUp;
+        regRampDown = newRegRampDown;
+        regEnabled = newRegEnabled;
+        updateRegulationLimits();
+        if (!regEnabled && wasEnabled && agcController != nullptr) {
+            agcController->remove(this);
+        } else if (regEnabled && agcController == nullptr) {
+            dispatcherLink();
+        }
+    } else if (regEnabled && agcController == nullptr) {
+        dispatcherLink();
+    }
 }
 
 void SchedulerReg::dispatcherLink()
 {
-    agcController = static_cast<AGControl*>(find("agc"));
-    if (agcController != nullptr) {
-        agcController->add(this);
+    auto* object = getParent();
+    AGControl* controller = nullptr;
+    while (object != nullptr) {
+        auto* area = dynamic_cast<GridArea*>(object);
+        if (area != nullptr && area->getAGControl() != nullptr) {
+            controller = area->getAGControl();
+            break;
+        }
+        auto* parentObject = object->getParent();
+        if (parentObject == object) {
+            break;
+        }
+        object = parentObject;
+    }
+    if (agcController != nullptr && agcController != controller) {
+        agcController->remove(this);
+    }
+    if (controller != nullptr) {
+        controller->add(this);
     }
     SchedulerRamp::dispatcherLink();
 }
 
 double SchedulerReg::get(std::string_view param, units::unit unitType) const
 {
-    double val;
-    if (param == "min") {
-        val = pMin;
-    } else if (param == "max") {
-        val = pMax;
-    } else {
-        return SchedulerRamp::get(param, unitType);
-    }
-    return val;
+    return SchedulerRamp::get(param, unitType);
 }
 
 void SchedulerReg::receiveMessage(std::uint64_t sourceID,

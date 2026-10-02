@@ -11,13 +11,16 @@
 #include "fileInput/fileInput.h"
 #include "griddyn/GridArea.h"
 #include "griddyn/GridDynSimulation.h"
+#include "griddyn/controllers/Scheduler.h"
 #include "griddyn/generators/DynamicGenerator.h"
 #include "griddyn/generators/RenewableGenerator.h"
 #include "griddyn/genmodels/GenModelClassical.h"
+#include "griddyn/genmodels/GenModelGENROU.h"
 #include "griddyn/genmodels/GenModelInverter.h"
 #include "griddyn/links/AcLine.h"
 #include "griddyn/primary/AcBus.h"
 #include "griddyn/relays/BusMeasurementSensor.h"
+#include "griddyn/relays/COISensor.h"
 #include "griddyn/relays/DGProtectionRelay.h"
 #include "griddyn/renewables/DistributedConverter.h"
 #include "griddyn/renewables/GridFormingConverter.h"
@@ -919,6 +922,82 @@ TEST(RenewableModels, IndependentElectricalAndPlantControls)
     EXPECT_NEAR(host.getOutputs({1.0, 0.0}, emptyStateData, cLocalSolverMode)[0], -0.8, 1e-3);
 }
 
+TEST(RenewableModels, SchedulerDrivesElectricalActiveReferenceOnMachineBase)
+{
+    RenewableGenerator host;
+    host.set("mbase", 50.0, units::MVAR);
+    auto* converter = new REGCA1;
+    auto* control = new REECA1;
+    auto* scheduler = new Scheduler("dispatch", 0.4);
+    scheduler->set("purpose", "pset");
+    host.add(converter);
+    host.add(control);
+    host.add(scheduler);
+    ASSERT_EQ(host.find("pset"), scheduler);
+    EXPECT_EQ(scheduler->getParent(), &host);
+    EXPECT_TRUE(host.supportsActivePowerSchedule());
+    host.dynInitializeA(0.0, 0);
+    IOdata fields;
+    host.dynInitializeB({1.0, 0.0}, {0.4, 0.0}, fields);
+    host.setOffset(0, cDaeSolverMode);
+    std::vector<double> state(host.stateSize(cDaeSolverMode));
+    std::vector<double> rate(state.size(), 0.0);
+    host.guessState(0.0, state.data(), rate.data(), cDaeSolverMode);
+    StateData data(0.0, state.data(), rate.data());
+    data.stateSize = static_cast<count_t>(state.size());
+    std::vector<double> residual(state.size(), 0.0);
+    host.residual({1.0, 0.0}, data, residual.data(), cDaeSolverMode);
+    for (double value : residual) {
+        EXPECT_NEAR(value, 0.0, 1e-10);
+    }
+    scheduler->setTarget(1.0, 0.5);
+    scheduler->updateA(1.0);
+    data.time = 1.0;
+    host.residual({1.0, 0.0}, data, residual.data(), cDaeSolverMode);
+    EXPECT_NEAR(residual[control->getOutputLoc(cDaeSolverMode, 2) - 1], 10.0, 1e-9);
+}
+
+TEST(RenewableModels, SchedulerRejectsUncontrolledAndCompetingReferences)
+{
+    RenewableGenerator unsupported;
+    unsupported.add(new REGCA1);
+    unsupported.add(new SchedulerReg("dispatch"));
+    EXPECT_FALSE(unsupported.supportsActivePowerSchedule());
+    EXPECT_THROW(unsupported.dynInitializeA(0.0, 0), InvalidParameterValue);
+
+    RenewableGenerator gridForming;
+    gridForming.add(new REGF1);
+    gridForming.add(new SchedulerReg("dispatch"));
+    EXPECT_FALSE(gridForming.supportsActivePowerSchedule());
+    EXPECT_THROW(gridForming.dynInitializeA(0.0, 0), InvalidParameterValue);
+
+    RenewableGenerator wind;
+    wind.add(new REGCA1);
+    wind.add(new REECA1);
+    wind.add(new WTTQA1);
+    wind.add(new SchedulerReg("dispatch"));
+    EXPECT_FALSE(wind.supportsActivePowerSchedule());
+    EXPECT_THROW(wind.dynInitializeA(0.0, 0), InvalidParameterValue);
+}
+
+TEST(RenewableModels, SchedulerDrivesDistributedConverterReference)
+{
+    RenewableGenerator host;
+    host.set("mbase", 50.0, units::MVAR);
+    auto* converter = new PVD1;
+    converter->set("tip", 0.1);
+    auto* scheduler = new Scheduler("dispatch", 0.4);
+    host.add(converter);
+    host.add(scheduler);
+    host.dynInitializeA(0.0, 0);
+    IOdata fields;
+    host.dynInitializeB({1.0, 0.0, 1.0}, {0.4, 0.0}, fields);
+    EXPECT_NEAR(host.getOutputs({1.0, 0.0, 1.0}, emptyStateData, cLocalSolverMode)[0], -0.4, 1e-12);
+    scheduler->setTarget(0.1, 0.5);
+    host.timestep(0.1, {1.0, 0.0, 1.0}, cLocalSolverMode);
+    EXPECT_NEAR(host.getOutputs({1.0, 0.0, 1.0}, emptyStateData, cLocalSolverMode)[0], -0.5, 1e-10);
+}
+
 TEST(RenewableModels, REECA1UnsupportedModesFail)
 {
     REECA1 electrical;
@@ -1185,6 +1264,88 @@ TEST(RenewableModels, FreqDivSensorsOwnCoupledAreaEquations)
     std::array<double, 2> update{};
     EXPECT_THROW(first->algebraicUpdate({}, data, update.data(), cDaeSolverMode, 1.0),
                  InvalidParameterValue);
+}
+
+TEST(RenewableModels, COISensorUsesAreaInertiaWeightsAndHasConsistentJacobian)
+{
+    GridArea area("coiArea");
+    auto* leftArea = new GridArea("leftArea");
+    auto* rightArea = new GridArea("rightArea");
+    area.add(leftArea);
+    area.add(rightArea);
+    auto* leftBus = new AcBus("leftBus");
+    auto* rightBus = new AcBus("rightBus");
+    leftArea->add(leftBus);
+    rightArea->add(rightBus);
+
+    auto* leftGenerator = new DynamicGenerator("leftGenerator");
+    auto* leftModel = new genmodels::GenModelClassical;
+    leftModel->set("h", 2.0);
+    leftGenerator->set("mbase", 100.0, units::MVAR);
+    leftGenerator->add(leftModel);
+    leftBus->add(leftGenerator);
+    auto* rightGenerator = new DynamicGenerator("rightGenerator");
+    auto* rightModel = new genmodels::GenModelGENROU;
+    rightModel->set("h", 6.0);
+    rightGenerator->set("mbase", 200.0, units::MVAR);
+    rightGenerator->add(rightModel);
+    rightBus->add(rightGenerator);
+
+    auto* coi = new COISensor("coi");
+    area.add(coi);
+    leftGenerator->dynInitializeA(0.0, 0);
+    rightGenerator->dynInitializeA(0.0, 0);
+    coi->dynInitializeA(0.0, 0);
+    IOdata fields;
+    coi->dynInitializeB({}, {}, fields);
+
+    index_t offset = 0;
+    leftGenerator->setOffset(offset, cDaeSolverMode);
+    offset += leftGenerator->stateSize(cDaeSolverMode);
+    rightGenerator->setOffset(offset, cDaeSolverMode);
+    offset += rightGenerator->stateSize(cDaeSolverMode);
+    coi->setOffset(offset, cDaeSolverMode);
+    const auto stateSize = offset + coi->stateSize(cDaeSolverMode);
+    std::vector<double> state(stateSize, 0.0);
+    std::vector<double> rate(stateSize, 0.0);
+    index_t leftFrequency = kNullLocation;
+    index_t leftAngle = kNullLocation;
+    index_t rightFrequency = kNullLocation;
+    index_t rightAngle = kNullLocation;
+    leftGenerator->getFreq({}, cDaeSolverMode, &leftFrequency);
+    leftGenerator->getAngle({}, cDaeSolverMode, &leftAngle);
+    rightGenerator->getFreq({}, cDaeSolverMode, &rightFrequency);
+    rightGenerator->getAngle({}, cDaeSolverMode, &rightAngle);
+    ASSERT_NE(leftFrequency, kNullLocation);
+    ASSERT_NE(leftAngle, kNullLocation);
+    ASSERT_NE(rightFrequency, kNullLocation);
+    ASSERT_NE(rightAngle, kNullLocation);
+    state[leftFrequency] = 1.02;
+    state[leftAngle] = 0.1;
+    state[rightFrequency] = 0.98;
+    state[rightAngle] = -0.1;
+    const auto coiFrequency = coi->getOutputLoc(cDaeSolverMode, 0);
+    const auto coiAngle = coi->getOutputLoc(cDaeSolverMode, 1);
+    ASSERT_NE(coiFrequency, kNullLocation);
+    ASSERT_NE(coiAngle, kNullLocation);
+    state[coiFrequency] = 6.9 / 7.0;
+    state[coiAngle] = -0.5 / 7.0;
+
+    StateData stateData(0.0, state.data(), rate.data());
+    stateData.stateSize = stateSize;
+    std::vector<double> residual(stateSize, 0.0);
+    coi->residual({}, stateData, residual.data(), cDaeSolverMode);
+    EXPECT_NEAR(residual[coiFrequency], 0.0, 1e-12);
+    EXPECT_NEAR(residual[coiAngle], 0.0, 1e-12);
+
+    MatrixDataSparse<double> jacobian;
+    coi->jacobianElements({}, stateData, jacobian, {}, cDaeSolverMode);
+    EXPECT_NEAR(jacobian.at(coiFrequency, coiFrequency), 1.0, 1e-12);
+    EXPECT_NEAR(jacobian.at(coiFrequency, leftFrequency), -1.0 / 7.0, 1e-12);
+    EXPECT_NEAR(jacobian.at(coiFrequency, rightFrequency), -6.0 / 7.0, 1e-12);
+    EXPECT_NEAR(jacobian.at(coiAngle, coiAngle), 1.0, 1e-12);
+    EXPECT_NEAR(jacobian.at(coiAngle, leftAngle), -1.0 / 7.0, 1e-12);
+    EXPECT_NEAR(jacobian.at(coiAngle, rightAngle), -6.0 / 7.0, 1e-12);
 }
 
 TEST(RenewableModels, BusROCOFMatchesAndesForIdenticalAngleInput)

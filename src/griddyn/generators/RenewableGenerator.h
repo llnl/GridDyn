@@ -29,6 +29,7 @@ class RenewableGenerator: public Generator {
     void remove(CoreObject* obj) override;
     CoreObject* find(std::string_view object) const override;
     CoreObject* getSubObject(std::string_view typeName, index_t num) const override;
+    bool supportsActivePowerSchedule() const;
 
     void dynObjectInitializeA(CoreTime time0, std::uint32_t flags) override;
     void dynObjectInitializeB(const IOdata& inputs,

@@ -8,16 +8,18 @@
 
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
+#include <algorithm>
 #include <charconv>
 #include <functional>
+#include <limits>
 #include <map>
 #include <memory>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
 
-#include <boost/iostreams/device/back_inserter.hpp>
 #include <boost/iostreams/stream.hpp>
 
 using archiver = cereal::PortableBinaryOutputArchive;
@@ -129,13 +131,14 @@ int CommMessage::toByteArray(char* data, size_t bufferSize) const
     if ((data == nullptr) || (bufferSize == 0)) {
         return -1;
     }
-    boost::iostreams::basic_array_sink<char> sinkRange(data, bufferSize);
-    boost::iostreams::stream<boost::iostreams::basic_array_sink<char>> sinkStream(sinkRange);
-
-    archiver outputArchive(sinkStream);
     try {
-        save(outputArchive);
-        return static_cast<int>(boost::iostreams::seek(sinkStream, 0, std::ios_base::cur));
+        const std::string serialized = toDataString();
+        if (serialized.size() > bufferSize ||
+            serialized.size() > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
+            return -1;
+        }
+        std::copy(serialized.begin(), serialized.end(), data);
+        return static_cast<int>(serialized.size());
     }
     catch (const std::ios_base::failure&) {
         return -1;
@@ -144,61 +147,49 @@ int CommMessage::toByteArray(char* data, size_t bufferSize) const
 
 std::string CommMessage::toDataString() const
 {
-    std::string data;
-    boost::iostreams::back_insert_device<std::string> inserter(data);
-    boost::iostreams::stream<boost::iostreams::back_insert_device<std::string>> outputStream(
-        inserter);
+    std::ostringstream outputStream;
     archiver outputArchive(outputStream);
 
     save(outputArchive);
 
-    // don't forget to flush the stream to finish writing into the buffer
     outputStream.flush();
-    return data;
+    return outputStream.str();
 }
 
 std::vector<char> CommMessage::toVector() const
 {
-    std::vector<char> data;
-    boost::iostreams::back_insert_device<std::vector<char>> inserter(data);
-    boost::iostreams::stream<boost::iostreams::back_insert_device<std::vector<char>>> outputStream(
-        inserter);
+    std::ostringstream outputStream;
     archiver outputArchive(outputStream);
 
     save(outputArchive);
 
-    // don't forget to flush the stream to finish writing into the buffer
     outputStream.flush();
+    const std::string serialized = outputStream.str();
+    std::vector<char> data(serialized.begin(), serialized.end());
     return data;
 }
 
 void CommMessage::toVector(std::vector<char>& data) const
 {
-    data.clear();
-    boost::iostreams::back_insert_device<std::vector<char>> inserter(data);
-    boost::iostreams::stream<boost::iostreams::back_insert_device<std::vector<char>>> outputStream(
-        inserter);
+    std::ostringstream outputStream;
     archiver outputArchive(outputStream);
 
     save(outputArchive);
 
-    // don't forget to flush the stream to finish writing into the buffer
     outputStream.flush();
+    const std::string serialized = outputStream.str();
+    data.assign(serialized.begin(), serialized.end());
 }
 
 void CommMessage::toDataString(std::string& data) const
 {
-    data.clear();
-
-    boost::iostreams::back_insert_device<std::string> inserter(data);
-    boost::iostreams::stream<boost::iostreams::back_insert_device<std::string>> outputStream(
-        inserter);
+    std::ostringstream outputStream;
     archiver outputArchive(outputStream);
 
     save(outputArchive);
 
-    // don't forget to flush the stream to finish writing into the buffer
     outputStream.flush();
+    data = outputStream.str();
 }
 
 void CommMessage::fromByteArray(const char* data, size_t bufferSize)

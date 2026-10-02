@@ -85,31 +85,35 @@ CoreObject* ReserveDispatcher::clone(CoreObject* obj) const
 
 ReserveDispatcher::~ReserveDispatcher()
 {
-    for (index_t schedIndex = 0; schedIndex < schedCount; ++schedIndex) {
-        // schedList[kk]->reserveDispatcherUnlink();
+    for (auto* sched : schedList) {
+        if (sched != nullptr && sched->reserveDispatcher == this) {
+            sched->reserveDispatcher = nullptr;
+        }
     }
+    schedList.clear();
+    reserveUsed.clear();
+    reserveAvailableByScheduler.clear();
+    schedCount = 0;
 }
 
 void ReserveDispatcher::moveSchedulers(ReserveDispatcher* dispatcherToMove)
 {
-    schedList.resize(this->schedCount + dispatcherToMove->schedCount);
-    reserveUsed.resize(this->schedCount + dispatcherToMove->schedCount);
-    reserveAvailableByScheduler.resize(this->schedCount + dispatcherToMove->schedCount);
-
-    for (index_t schedIndex = 0; schedIndex < dispatcherToMove->schedCount; ++schedIndex) {
-        //    rD->schedList[kk]->reserveDispatcherUnlink();
-        this->schedList[this->schedCount + schedIndex] = dispatcherToMove->schedList[schedIndex];
-        //    rD->schedList[kk]->reserveDispatcherLink(this);
+    if (dispatcherToMove == nullptr || dispatcherToMove == this) {
+        return;
     }
-    schedCount = static_cast<count_t>(schedList.size());
+    const auto movedSchedulers = dispatcherToMove->schedList;
+    for (auto* sched : movedSchedulers) {
+        add(sched);
+    }
     checkGen();
 }
 
 double ReserveDispatcher::dynInitializeA(CoreTime time0, double dispatchSet)
 {
-    currentDispatch = dispatchSet;
-    if (dispatchSet > 0) {
-        dispatch(dispatchSet);
+    checkGen();
+    const double targetDispatch = std::max(0.0, dispatchSet);
+    if (targetDispatch != currentDispatch) {
+        dispatch(targetDispatch);
         dispatchTime = time0;
     }
     prevTime = time0;
@@ -168,7 +172,14 @@ void ReserveDispatcher::remove(SchedulerRamp* sched)
     if (schedIter != schedList.end()) {
         schedList.erase(schedIter);
         schedCount = static_cast<count_t>(schedList.size());
+        reserveUsed.resize(schedCount);
+        reserveAvailableByScheduler.resize(schedCount);
+        if (sched != nullptr && sched->reserveDispatcher == this) {
+            sched->reserveDispatcher = nullptr;
+        }
         checkGen();
+    } else if (sched != nullptr && sched->reserveDispatcher == this) {
+        sched->reserveDispatcher = nullptr;
     }
 }
 
@@ -183,11 +194,23 @@ void ReserveDispatcher::add(CoreObject* obj)
 
 void ReserveDispatcher::add(SchedulerRamp* sched)
 {
-    schedList.push_back(sched);
-    schedCount = static_cast<count_t>(schedList.size());
-    reserveUsed.resize(schedCount);
-    reserveAvailableByScheduler.resize(schedCount);
-    //    sched->reserveDispatcherLink(this);
+    if (sched == nullptr) {
+        return;
+    }
+    if (sched->reserveDispatcher != nullptr && sched->reserveDispatcher != this) {
+        sched->reserveDispatcher->remove(sched);
+    }
+    const auto schedIter =
+        std::find_if(schedList.begin(), schedList.end(), [sched](SchedulerRamp* candidate) {
+            return isSameObject(candidate, sched);
+        });
+    if (schedIter == schedList.end()) {
+        schedList.push_back(sched);
+        schedCount = static_cast<count_t>(schedList.size());
+        reserveUsed.resize(schedCount);
+        reserveAvailableByScheduler.resize(schedCount);
+    }
+    sched->reserveDispatcher = this;
     checkGen();
 }
 
@@ -227,11 +250,12 @@ void ReserveDispatcher::schedChange()
 void ReserveDispatcher::checkGen()
 {
     reserveAvailable = 0;
+    currentDispatch = 0.0;
     for (decltype(schedCount) schedIndex = 0; schedIndex < schedCount; ++schedIndex) {
-        reserveAvailableByScheduler[schedIndex] = schedList[schedIndex]->getReserveTarget();
+        reserveAvailableByScheduler[schedIndex] = schedList[schedIndex]->getReserveAvailable();
         reserveAvailable += reserveAvailableByScheduler[schedIndex];
-
         reserveUsed[schedIndex] = schedList[schedIndex]->getReserveTarget();
+        currentDispatch += reserveUsed[schedIndex];
     }
 }
 
@@ -241,6 +265,8 @@ void ReserveDispatcher::dispatch(double level)
     int ind = -1;
     // if the dispatch is too low
     while (currentDispatch < level) {
+        avail = 0.0;
+        ind = -1;
         for (decltype(schedCount) schedIndex = 0; schedIndex < schedCount; ++schedIndex) {
             auto tempAvail = reserveAvailableByScheduler[schedIndex] - reserveUsed[schedIndex];
             if (tempAvail > avail) {
@@ -253,18 +279,16 @@ void ReserveDispatcher::dispatch(double level)
         }
         if (avail <= (level - currentDispatch)) {
             schedList[ind]->setReserveTarget(reserveUsed[ind] + avail);
-            reserveUsed[ind] = reserveUsed[ind] + avail;
-            currentDispatch += avail;
         } else {
             auto tempAvail = level - currentDispatch;
             schedList[ind]->setReserveTarget(reserveUsed[ind] + tempAvail);
-            reserveUsed[ind] = reserveUsed[ind] + tempAvail;
-            currentDispatch += tempAvail;
         }
     }
 
     // if the dispatch is too high
     while (currentDispatch > level) {
+        avail = 0.0;
+        ind = -1;
         for (decltype(schedCount) schedIndex = 0; schedIndex < schedCount; ++schedIndex) {
             auto tempAvail = reserveUsed[schedIndex];
             if (tempAvail > avail) {
@@ -277,13 +301,9 @@ void ReserveDispatcher::dispatch(double level)
         }
         if (avail < (currentDispatch - level)) {
             schedList[ind]->setReserveTarget(0);
-            reserveUsed[ind] = 0;
-            currentDispatch -= avail;
         } else {
             auto tempAvail = currentDispatch - level;
             schedList[ind]->setReserveTarget(reserveUsed[ind] - tempAvail);
-            reserveUsed[ind] = reserveUsed[ind] - tempAvail;
-            currentDispatch -= tempAvail;
         }
     }
 }

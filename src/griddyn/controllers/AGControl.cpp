@@ -76,8 +76,8 @@ void AGControl::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/
     if (area == nullptr) {
         throw InvalidParameterValue("AGC requires an owning area");
     }
-    if (!std::isfinite(updatePeriod) || updatePeriod <= 0.0) {
-        throw InvalidParameterValue("AGC sample interval must be positive and finite");
+    if (updatePeriod <= 0.0) {
+        throw InvalidParameterValue("AGC sample interval must be positive");
     }
     frequencySensor = nullptr;
     if (!frequencySensorName.empty()) {
@@ -122,11 +122,11 @@ void AGControl::addInterchangeSlackParticipant()
                 belongsToThisAGC = false;
                 break;
             }
-            const auto* parent = ancestor->getParent();
-            if (parent == ancestor) {
+            const auto* ancestorParent = ancestor->getParent();
+            if (ancestorParent == ancestor) {
                 break;
             }
-            ancestor = parent;
+            ancestor = ancestorParent;
         }
         if (!belongsToThisAGC) {
             continue;
@@ -465,8 +465,9 @@ void AGControl::set(std::string_view param, double val, units::unit unitType)
     } else if (param == "period" || param == "updateperiod" || param == "sampleinterval") {
         const double seconds =
             units::convert(val, unitType == units::defunit ? units::s : unitType, units::s);
-        if (seconds <= 0.0) {
-            throw InvalidParameterValue("AGC sample interval must be positive");
+        if (!std::isfinite(seconds) || seconds <= 0.0 ||
+            seconds >= static_cast<double>(CoreTime::maxVal())) {
+            throw InvalidParameterValue("AGC sample interval must be positive and representable");
         }
         updatePeriod = seconds;
     } else {

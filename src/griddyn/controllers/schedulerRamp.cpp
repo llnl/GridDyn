@@ -21,8 +21,8 @@
 namespace griddyn {
 namespace {
     struct RampTargetUpdate {
-        double rampRate;
-        CoreTime nextUpdateTime;
+        double mRampRate;
+        CoreTime mNextUpdateTime;
     };
 
     double boundedRampRate(double difference, double rate, double rampLimitUp, double rampLimitDown)
@@ -196,7 +196,7 @@ namespace {
                 nextUpdateTime = targetTime;
                 break;
         }
-        return {.rampRate = rampRate, .nextUpdateTime = nextUpdateTime};
+        return {.mRampRate = rampRate, .mNextUpdateTime = nextUpdateTime};
     }
 }  // namespace
 
@@ -678,8 +678,8 @@ void SchedulerRamp::updatePTarget()
                                                       pRampCurr,
                                                       rampLimitUp,
                                                       rampLimitDown);
-    pRampCurr = rampUpdate.rampRate;
-    nextUpdateTime = rampUpdate.nextUpdateTime;
+    pRampCurr = rampUpdate.mRampRate;
+    nextUpdateTime = rampUpdate.mNextUpdateTime;
 }
 
 // NOLINTNEXTLINE(misc-no-recursion)

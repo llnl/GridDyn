@@ -8,8 +8,10 @@
 
 #include "gmlc/utilities/stringConversion.h"
 #include "gmlc/utilities/stringOps.h"
+#include <algorithm>
 #include <charconv>
 #include <functional>
+#include <limits>
 #include <map>
 #include <memory>
 #include <sstream>
@@ -129,13 +131,14 @@ int CommMessage::toByteArray(char* data, size_t bufferSize) const
     if ((data == nullptr) || (bufferSize == 0)) {
         return -1;
     }
-    boost::iostreams::basic_array_sink<char> sinkRange(data, bufferSize);
-    boost::iostreams::stream<boost::iostreams::basic_array_sink<char>> sinkStream(sinkRange);
-
-    archiver outputArchive(sinkStream);
     try {
-        save(outputArchive);
-        return static_cast<int>(boost::iostreams::seek(sinkStream, 0, std::ios_base::cur));
+        const std::string serialized = toDataString();
+        if (serialized.size() > bufferSize ||
+            serialized.size() > static_cast<std::size_t>(std::numeric_limits<int>::max())) {
+            return -1;
+        }
+        std::copy(serialized.begin(), serialized.end(), data);
+        return static_cast<int>(serialized.size());
     }
     catch (const std::ios_base::failure&) {
         return -1;

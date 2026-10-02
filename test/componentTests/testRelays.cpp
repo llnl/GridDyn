@@ -44,6 +44,10 @@ TEST(CommMessageSerializationTests, StringAndVectorStreamsRoundTripEquivalentByt
     EXPECT_EQ(dataString, dataStringOutput);
     EXPECT_EQ(dataVector, dataVectorOutput);
     EXPECT_EQ(std::vector<char>(dataString.begin(), dataString.end()), dataVector);
+    std::vector<char> dataArray(dataVector.size());
+    EXPECT_EQ(message.toByteArray(dataArray.data(), dataArray.size()),
+              static_cast<int>(dataVector.size()));
+    EXPECT_EQ(dataArray, dataVector);
 
     CommMessage fromString;
     fromString.fromDataString(dataString);

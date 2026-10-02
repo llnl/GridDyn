@@ -18,6 +18,7 @@
 #include "griddyn/simulation/GridSimulation.h"
 #include <cmath>
 #include <gtest/gtest.h>
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
@@ -163,6 +164,17 @@ TEST_F(AreaTests, AGCLoadsAsAreaOwnedSampledController)
     ASSERT_NE(copy->getAGControl(), nullptr);
     EXPECT_NE(copy->getAGControl(), area->getAGControl());
     EXPECT_DOUBLE_EQ(copy->getAGControl()->get("sampleinterval"), 6.0);
+}
+
+TEST_F(AreaTests, AGCRejectsNonFiniteAndUnrepresentableSampleIntervals)
+{
+    AGControl agc("agc");
+    EXPECT_THROW(agc.set("sampleinterval", std::numeric_limits<double>::quiet_NaN()),
+                 InvalidParameterValue);
+    EXPECT_THROW(agc.set("sampleinterval", std::numeric_limits<double>::infinity()),
+                 InvalidParameterValue);
+    EXPECT_THROW(agc.set("sampleinterval", std::numeric_limits<double>::max()),
+                 InvalidParameterValue);
 }
 
 TEST_F(AreaTests, AGCUsesEventQueueSampleTimes)

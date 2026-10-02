@@ -13,6 +13,7 @@
 #include "griddyn/genmodels/GenModel6.h"
 #include "griddyn/governors/GovernorGast.h"
 #include "griddyn/governors/GovernorGgov1.h"
+#include "griddyn/governors/GovernorGPWSCC.h"
 #include "griddyn/governors/GovernorHydro.h"
 #include "griddyn/governors/GovernorHygov.h"
 #include "griddyn/governors/GovernorHygov4.h"
@@ -117,6 +118,30 @@ void configureGast(governors::GovernorGast& governor)
     governor.set("vmax", 1.5);
     governor.set("vmin", -0.05);
     governor.set("dt", 0.1);
+}
+
+void configureGPWSCC(governors::GovernorGPWSCC& governor)
+{
+    governor.set("mwcap", 100.0);
+    governor.set("mvabase", 100.0);
+    governor.set("gmax", 0.85);
+    governor.set("gmin", 0.0);
+    governor.set("r", 0.055);
+    governor.set("td", 0.04);
+    governor.set("tf", 0.04);
+    governor.set("tp", 0.13);
+    governor.set("velopen", 0.3);
+    governor.set("velclose", -0.3);
+    governor.set("kp", 4.0);
+    governor.set("kd", 1.5);
+    governor.set("ki", 2.0);
+    governor.set("kg", 15.0);
+    governor.set("tturb", 1.0);
+    governor.set("aturb", 0.8);
+    governor.set("bturb", 1.0);
+    governor.set("tt", 2.0);
+    // The supplied PSLF records use an all-zero Gv/Pgv curve.  GPWSCC treats
+    // that documented-default form as Pgv=Gv.
 }
 
 void configureSteam(governors::GovernorSteamNR& governor)
@@ -491,6 +516,106 @@ TEST(GovernorModelTests, GastCanonicalDefaultsFactoryCloneAndTimeFloor)
     temperatureLimited.dynInitializeA(0.0, 0);
     EXPECT_THROW(temperatureLimited.dynInitializeB({1.0, 0.0, 0.0}, {0.8}, fieldSet),
                  InvalidParameterValue);
+}
+
+TEST(GovernorModelTests, GPWSCCMatchesPidGateAndTurbineDiagram)
+{
+    governors::GovernorGPWSCC governor;
+    configureGPWSCC(governor);
+    governor.dynInitializeA(0.0, 0);
+    IOdata inputs{1.0, 0.5, 0.5};
+    IOdata fieldSet(2, 0.0);
+    governor.dynInitializeB(inputs, {0.5}, fieldSet);
+
+    const auto& initialized = governor.getStates();
+    ASSERT_EQ(initialized.size(), 8U);
+    EXPECT_DOUBLE_EQ(initialized[0], 0.5);
+    EXPECT_DOUBLE_EQ(initialized[1], 0.0);
+    EXPECT_DOUBLE_EQ(initialized[2], 0.5);
+    EXPECT_DOUBLE_EQ(initialized[3], 0.0);
+    EXPECT_DOUBLE_EQ(initialized[4], 0.5);
+    EXPECT_DOUBLE_EQ(initialized[5], 0.0);
+    EXPECT_DOUBLE_EQ(initialized[6], 0.5);
+    EXPECT_DOUBLE_EQ(initialized[7], 0.5);
+    EXPECT_DOUBLE_EQ(fieldSet[govpSetInLocation], 0.5);
+
+    std::vector<double> residual(initialized.size(), 0.0);
+    governor.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    for (const auto value : residual) {
+        EXPECT_NEAR(value, 0.0, 1e-14);
+    }
+
+    // xD=.01, xDer=.005 gives CV=.7275.  At a 1% speed drop the documented
+    // sign convention raises the gate command.  The all-zero curve is the
+    // identity and the turbine is (1+.8s)/(1+s).
+    std::vector<double> state{0.5, 0.01, 0.5, 0.005, 0.48, 0.02, 0.5, 0.48};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    governor.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    inputs[govOmegaInLocation] = 0.99;
+    std::vector<double> derivative(state.size(), 0.0);
+    governor.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_NEAR(derivative[1], 0.0275, 1e-14);
+    EXPECT_NEAR(derivative[2], 0.02, 1e-14);
+    EXPECT_NEAR(derivative[3], 0.125, 1e-14);
+    EXPECT_NEAR(derivative[4], 0.01, 1e-14);
+    EXPECT_NEAR(derivative[5], 26.096153846153847, 1e-13);
+    EXPECT_NEAR(derivative[6], 0.02, 1e-14);
+    EXPECT_NEAR(derivative[7], 0.02, 1e-14);
+    governor.residual(inputs, emptyStateData, residual.data(), cLocalSolverMode);
+    EXPECT_NEAR(residual[0], -0.004, 1e-14);
+
+    expectGovernorEquationConsistency(governor, inputs, state, 5e-5);
+}
+
+TEST(GovernorModelTests, GPWSCCScalesCapacityBaseAndInvertsGateCurve)
+{
+    governors::GovernorGPWSCC governor;
+    configureGPWSCC(governor);
+    governor.set("mwcap", 50.0);
+    governor.set("mvabase", 100.0);
+    governor.set("gmax", 1.0);
+    governor.set("gv1", 0.0);
+    governor.set("pgv1", 0.0);
+    governor.set("gv2", 0.5);
+    governor.set("pgv2", 0.4);
+    governor.set("gv3", 1.0);
+    governor.set("pgv3", 1.0);
+    governor.dynInitializeA(0.0, 0);
+    IOdata inputs{1.0, 0.25, 0.25};
+    IOdata fieldSet(2, 0.0);
+    governor.dynInitializeB(inputs, {0.25}, fieldSet);
+
+    // 0.25 pu on the 100 MVA machine base is 0.5 pu on MWCap.  Inverting
+    // the 0/.0, .5/.4, 1/1 characteristic gives a raw gate of 7/12.
+    const auto& initialized = governor.getStates();
+    ASSERT_EQ(initialized.size(), 8U);
+    EXPECT_NEAR(initialized[6], 7.0 / 12.0, 1e-14);
+    EXPECT_NEAR(initialized[7], 0.5, 1e-14);
+    EXPECT_NEAR(governor.get("pmax"), 0.5, 1e-14);
+
+    // Gate limits block outward motion and the PID integrator freezes only
+    // while it would make the saturated command still larger.
+    std::vector<double> state{0.25, 0.01, 1.0, 0.0, 0.5, 0.2, 1.0, 0.8};
+    std::vector<double> stateDerivative(state.size(), 0.0);
+    governor.setState(0.0, state.data(), stateDerivative.data(), cLocalSolverMode);
+    std::vector<double> derivative(state.size(), 0.0);
+    governor.derivative(inputs, emptyStateData, derivative.data(), cLocalSolverMode);
+    EXPECT_DOUBLE_EQ(derivative[2], 0.0);
+    EXPECT_DOUBLE_EQ(derivative[6], 0.0);
+}
+
+TEST(GovernorModelTests, GPWSCCFactoryAndOriginalParameterSetAreAvailable)
+{
+    auto factory = CoreObjectFactory::instance();
+    std::unique_ptr<CoreObject> object(factory->createObject("governor", "gpwscc"));
+    auto* governor = dynamic_cast<governors::GovernorGPWSCC*>(object.get());
+    ASSERT_NE(governor, nullptr);
+    configureGPWSCC(*governor);
+    EXPECT_DOUBLE_EQ(governor->get("mwcap"), 100.0);
+    EXPECT_DOUBLE_EQ(governor->get("gmax"), 0.85);
+    EXPECT_DOUBLE_EQ(governor->get("tturb"), 1.0);
+    EXPECT_DOUBLE_EQ(governor->get("aturb"), 0.8);
+    EXPECT_DOUBLE_EQ(governor->get("bturb"), 1.0);
 }
 
 TEST(GovernorModelTests, HydroMatchesCgmesSimpleHydroEquations)
@@ -1332,6 +1457,28 @@ TEST(GovernorModelTests, Tgov1SpeedStepTrajectoryMatchesAndesEquations)
             EXPECT_NEAR(state[2], 0.9999999995877648, 2e-4);
         }
     }
+}
+
+TEST_F(GovernorTests, GPWSCCCouplesToDynamicGeneratorAndHasAnalyticJacobian)
+{
+    const std::string fileName = std::string(GOVERNOR_TEST_DIRECTORY "test_gov_stability.xml");
+
+    GridDynSimulation::resetObjectCounters();
+    gds = readSimXMLFile(fileName);
+    auto* generator = dynamic_cast<DynamicGenerator*>(gds->findByUserID("gen", 2));
+    ASSERT_NE(generator, nullptr);
+
+    auto* governor = new governors::GovernorGPWSCC();
+    configureGPWSCC(*governor);
+    // Keep the fixture's 1.2 pu dispatch within the entered gate range and
+    // stay inside the speed-deadband branch for a smooth system Jacobian.
+    governor->set("gmax", 2.0);
+    governor->set("db1", 0.01);
+    generator->add(governor);
+
+    ASSERT_EQ(gds->dynInitialize(), 0);
+    EXPECT_EQ(runResidualCheck(gds, cDaeSolverMode), 0);
+    EXPECT_EQ(runJacobianCheck(gds, cDaeSolverMode), 0);
 }
 
 TEST_F(GovernorTests, GovStabilityTest)

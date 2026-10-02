@@ -1010,6 +1010,34 @@ TEST(RenewableModels, REECA1UnsupportedModesFail)
     EXPECT_THROW(plant.dynInitializeA(0.0, 0), InvalidParameterValue);
 }
 
+TEST(RenewableModels, REECB1QFlagVoltageControlInitializes)
+{
+    REECB1 direct;
+    direct.set("qflag", 1.0);
+    direct.set("vflag", 0.0);
+    direct.set("pqflag", 1.0);
+    direct.dynInitializeA(0.0, 0);
+    IOdata fields;
+    direct.dynInitializeB({1.0, kNullVal, kNullVal, kNullVal}, {0.5, 0.1}, fields);
+    ASSERT_EQ(fields.size(), 2U);
+    EXPECT_NEAR(fields[0], 0.5, 1e-12);
+    EXPECT_NEAR(fields[1], -0.1, 1e-12);
+    EXPECT_EQ(direct.getStates().size(), 6U);
+
+    REECB1 cascaded;
+    cascaded.set("qflag", 1.0);
+    cascaded.set("vflag", 1.0);
+    cascaded.set("pqflag", 1.0);
+    cascaded.dynInitializeA(0.0, 0);
+    cascaded.dynInitializeB({1.0, kNullVal, kNullVal, kNullVal, 0.1},
+                            {0.5, 0.1},
+                            fields);
+    ASSERT_EQ(fields.size(), 2U);
+    EXPECT_NEAR(fields[0], 0.5, 1e-12);
+    EXPECT_NEAR(fields[1], -0.1, 1e-12);
+    EXPECT_EQ(cascaded.getStates().size(), 7U);
+}
+
 TEST(RenewableModels, REECA1SpeedBranchRequiresShaftAndTracksSpeed)
 {
     REECA1 control;

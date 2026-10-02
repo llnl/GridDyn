@@ -59,6 +59,7 @@ set(generator_headers
     renewables/GridFormingConverter.h
     renewables/DistributedConverter.h
     renewables/REGCA1.h
+    renewables/EPCGEN.h
     renewables/REGCP1.h
     renewables/REECA1.h
     renewables/REECA1E.h
@@ -86,6 +87,7 @@ set(generator_sources
     renewables/GridFormingConverter.cpp
     renewables/DistributedConverter.cpp
     renewables/REGCA1.cpp
+    renewables/EPCGEN.cpp
     renewables/REGCP1.cpp
     renewables/REECA1.cpp
     renewables/REECA1E.cpp
@@ -204,6 +206,7 @@ set(gov_headers
     governors/GovernorTgov1Variants.h
     governors/GovernorGgov1.h
     governors/GovernorGast.h
+    governors/GovernorGPWSCC.h
     governors/GovernorIeeeG1.h
     governors/GovernorIeeeSimple.h
     governors/GovernorReheat.h
@@ -223,6 +226,7 @@ set(gov_sources
     governors/GovernorTgov1Variants.cpp
     governors/GovernorGgov1.cpp
     governors/GovernorGast.cpp
+    governors/GovernorGPWSCC.cpp
     governors/GovernorIeeeG1.cpp
     governors/GovernorIeeeSimple.cpp
     governors/GovernorReheat.cpp

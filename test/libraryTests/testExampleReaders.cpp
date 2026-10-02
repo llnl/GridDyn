@@ -9,6 +9,8 @@
 #include "griddyn/GridBus.h"
 #include "griddyn/Link.h"
 #include "griddyn/generators/DynamicGenerator.h"
+#include "griddyn/generators/RenewableGenerator.h"
+#include "griddyn/governors/GovernorGPWSCC.h"
 #include "griddyn/links/AcLine.h"
 #include <array>
 #include <filesystem>
@@ -251,6 +253,110 @@ TEST(ExampleReaderTests, LoadEpcDydDynamicModels)
         ASSERT_NE(generator, nullptr) << "dynamic generator at bus " << busId;
         EXPECT_NE(generator->find("genmodel"), nullptr) << "GENROU at bus " << busId;
     }
+}
+
+TEST(ExampleReaderTests, LoadDydAliasesAndContinuationRecords)
+{
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto dydPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "comparison_tests" / "dyd_alias_models.dyd";
+
+    ASSERT_TRUE(std::filesystem::exists(epcPath));
+    ASSERT_TRUE(std::filesystem::exists(dydPath));
+
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    griddyn::loadFile(gds, epcPath.string());
+    EXPECT_NO_THROW(griddyn::loadFile(gds, dydPath.string()));
+
+    auto* bus1 = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 1));
+    auto* bus2 = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 2));
+    auto* bus3 = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 3));
+    auto* bus6 = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 6));
+    ASSERT_NE(bus1, nullptr);
+    ASSERT_NE(bus2, nullptr);
+    ASSERT_NE(bus3, nullptr);
+    ASSERT_NE(bus6, nullptr);
+
+    auto* synchronous1 = dynamic_cast<griddyn::DynamicGenerator*>(bus1->getGen(0));
+    ASSERT_NE(synchronous1, nullptr);
+    EXPECT_NE(synchronous1->find("genmodel"), nullptr);
+    EXPECT_NE(synchronous1->find("exciter"), nullptr);
+    EXPECT_NE(synchronous1->find("governor"), nullptr);
+
+    auto* synchronous2 = dynamic_cast<griddyn::DynamicGenerator*>(bus2->getGen(0));
+    ASSERT_NE(synchronous2, nullptr);
+    EXPECT_NE(synchronous2->find("genmodel"), nullptr);
+    EXPECT_NE(synchronous2->find("exciter"), nullptr);
+
+    auto* renewable = dynamic_cast<griddyn::RenewableGenerator*>(bus3->getGen(0));
+    ASSERT_NE(renewable, nullptr);
+    EXPECT_EQ(renewable->getSubObjects().size(), 2U);
+
+    auto* synchronous6 = dynamic_cast<griddyn::DynamicGenerator*>(bus6->getGen(0));
+    ASSERT_NE(synchronous6, nullptr);
+    EXPECT_NE(synchronous6->find("genmodel"), nullptr);
+    EXPECT_NE(synchronous6->find("governor"), nullptr);
+}
+
+TEST(ExampleReaderTests, LoadGPWSCCDydRecordWithNamedMWCap)
+{
+    const auto epcPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "IEEE_test_cases" / "IEEE 14 bus.epc";
+    const auto genrouPath =
+        std::filesystem::path{GRIDDYN_TEST_DIRECTORY} / "comparison_tests" / "ieee14_genrou.dyd";
+    const auto dydPath =
+        std::filesystem::temp_directory_path() / "griddyn_gpwscc_named_mwcap.dyd";
+    {
+        std::ofstream output(dydPath);
+        ASSERT_TRUE(output.is_open());
+        // This is the GPWSCC parameter set used by the original PSLF case.
+        // Its named MWCap must be retained, whereas other DYD model families
+        // obtain their base from the static network data.
+        output << "gpwscc 1 ! ! \"1 \" : #9 mwcap=51.9 0.85 0.0 0.055 0.04 0.04 0.13 "
+                  "0.3 -0.3 4.0 1.5 2.0 15.0 1.0 0.8 1.0 2.0 0.0 0.0 0.0 "
+                  "0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 /\n";
+    }
+
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    ASSERT_NO_THROW(griddyn::loadFile(gds, epcPath.string()));
+    ASSERT_NO_THROW(griddyn::loadFile(gds, genrouPath.string()));
+    EXPECT_NO_THROW(griddyn::loadFile(gds, dydPath.string()));
+
+    auto* bus = dynamic_cast<griddyn::GridBus*>(gds->findByUserID("bus", 1));
+    ASSERT_NE(bus, nullptr);
+    auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(bus->getGen(0));
+    ASSERT_NE(generator, nullptr);
+    auto* governor =
+        dynamic_cast<griddyn::governors::GovernorGPWSCC*>(generator->find("governor"));
+    ASSERT_NE(governor, nullptr);
+    EXPECT_DOUBLE_EQ(governor->get("mwcap"), 51.9);
+    EXPECT_DOUBLE_EQ(governor->get("gmax"), 0.85);
+    EXPECT_DOUBLE_EQ(governor->get("tturb"), 1.0);
+    EXPECT_DOUBLE_EQ(governor->get("aturb"), 0.8);
+    EXPECT_DOUBLE_EQ(governor->get("bturb"), 1.0);
+
+    std::error_code removeError;
+    std::filesystem::remove(dydPath, removeError);
+}
+
+TEST(ExampleReaderTests, IgnoreNonessentialDydModelsWithWarning)
+{
+    const auto dydPath =
+        std::filesystem::temp_directory_path() / "griddyn_ignored_nonessential_models.dyd";
+    {
+        std::ofstream output(dydPath);
+        ASSERT_TRUE(output.is_open());
+        output << "fmetr 1001 ! ! \"1 \" : #9 0.0 /\n"
+                  "vmetr 1001 ! ! \"1 \" : #9 0.0 /\n"
+                  "lsdt1 3107 ! ! \"41\" : #9 59.3 0.1 0.0833 1.0 0.0 0.0 0.0 0.0 0.0 0.0 /\n";
+    }
+
+    auto gds = std::make_unique<griddyn::GridDynSimulation>();
+    EXPECT_NO_THROW(griddyn::loadFile(gds, dydPath.string()));
+
+    std::error_code removeError;
+    std::filesystem::remove(dydPath, removeError);
 }
 
 TEST(ExampleReaderTests, LoadMatPowerAreaDefinitions)

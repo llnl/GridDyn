@@ -519,8 +519,8 @@ void GovernorIeeeG1::set(std::string_view param, std::string_view val)
 void GovernorIeeeG1::set(std::string_view param, double val, units::unit unitType)
 {
     if ((param == "k") || (param == "droop")) {
-        if (!std::isfinite(val) || (val <= 0.0)) {
-            throw InvalidParameterValue("IEEEG1 gain must be positive and finite");
+        if (!std::isfinite(val) || (val < 0.0)) {
+            throw InvalidParameterValue("IEEEG1 gain must be nonnegative and finite");
         }
         Governor::set(param, val, unitType);
     } else if (param == "r") {

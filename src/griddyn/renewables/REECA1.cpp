@@ -39,6 +39,25 @@ namespace {
         inputPortMap[3],
         {.signal = RenewableSignal::generatorSpeed, .ioIndex = 4},
     }};
+    constexpr std::array<RenewablePort, 5> inputPortMapWithReactivePower{{
+        inputPortMap[0],
+        inputPortMap[1],
+        inputPortMap[2],
+        inputPortMap[3],
+        {.signal = RenewableSignal::reactivePower,
+         .ioIndex = 4,
+         .base = RenewableBase::machine},
+    }};
+    constexpr std::array<RenewablePort, 6> inputPortMapWithReactivePowerAndSpeed{{
+        inputPortMap[0],
+        inputPortMap[1],
+        inputPortMap[2],
+        inputPortMap[3],
+        {.signal = RenewableSignal::reactivePower,
+         .ioIndex = 4,
+         .base = RenewableBase::machine},
+        {.signal = RenewableSignal::generatorSpeed, .ioIndex = 5},
+    }};
     constexpr std::array<RenewablePort, 3> outputPortMap{{
         {.signal = RenewableSignal::activeCurrentCommand,
          .ioIndex = 0,
@@ -50,6 +69,7 @@ namespace {
     }};
     constexpr index_t ipCommand = 0, iqCommand = 1;
     constexpr index_t voltageFilter = 0, powerFilter = 1, powerOrder = 2, reactiveFilter = 3;
+    constexpr index_t reactivePowerIntegrator = 4;
     double optionalIncrement(const IOdata& inputs, std::size_t index)
     {
         return inputs.size() > index && inputs[index] != kNullVal ? inputs[index] : 0.0;
@@ -72,8 +92,13 @@ namespace {
 
 REECA1::REECA1(const std::string& name): RenewableComponent(name)
 {
-    m_inputSize = 4;
+    updateInputSize();
     m_outputSize = 3;
+}
+
+void REECA1::updateInputSize()
+{
+    m_inputSize = 4 + (PFLAG == 1 ? 1 : 0) + (cascadedVoltageControl() ? 1 : 0);
 }
 
 CoreObject* REECA1::clone(CoreObject* obj) const
@@ -134,6 +159,10 @@ CoreObject* REECA1::clone(CoreObject* obj) const
 
 std::span<const RenewablePort> REECA1::inputPorts() const
 {
+    if (cascadedVoltageControl()) {
+        return PFLAG == 1 ? std::span<const RenewablePort>{inputPortMapWithReactivePowerAndSpeed} :
+                            std::span<const RenewablePort>{inputPortMapWithReactivePower};
+    }
     return PFLAG == 1 ? std::span<const RenewablePort>{inputPortMapWithSpeed} :
                         std::span<const RenewablePort>{inputPortMap};
 }
@@ -149,11 +178,13 @@ void REECA1::set(std::string_view param, double val, units::unit unitType)
         PFFLAG = binaryFlag(val);
     } else if (key == "vflag") {
         VFLAG = binaryFlag(val);
+        updateInputSize();
     } else if (key == "qflag") {
         QFLAG = binaryFlag(val);
+        updateInputSize();
     } else if (key == "pflag") {
         PFLAG = binaryFlag(val);
-        m_inputSize = PFLAG == 1 ? 5 : 4;
+        updateInputSize();
     } else if (key == "pqflag") {
         PQFLAG = binaryFlag(val);
     } else if (key == "vdip") {
@@ -374,7 +405,7 @@ void REECA1::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
         dbd1 > 0 || dbd2 < 0 || Iqh1 < Iql1 || dPmax < 0 || dPmin > 0 || PMAX < PMIN ||
         QMax < QMin || Imax < 0 || !std::isfinite(Iqfrz) || !std::isfinite(Thld) ||
         !std::isfinite(Thld2) || (PQFLAG != 0 && PQFLAG != 1) || (VFLAG != 0 && VFLAG != 1) ||
-        PFFLAG != 0 || QFLAG != 0) {
+        PFFLAG != 0 || (QFLAG != 0 && QFLAG != 1)) {
         throw InvalidParameterValue("REECA1 unsupported flags or invalid parameters");
     }
     if (PFLAG == 1 && Tpord == 0.0) {
@@ -396,8 +427,8 @@ void REECA1::dynObjectInitializeA(CoreTime time0, std::uint32_t /*flags*/)
     }
     auto& local = offsets.local().local;
     local.algSize = 2;
-    local.diffSize = 4;
-    local.jacSize = 42;
+    local.diffSize = cascadedVoltageControl() ? 5 : 4;
+    local.jacSize = cascadedVoltageControl() ? 54 : 42;
     local.algRoots = Thld2 > 0.0 ? 2 : 0;
     local.diffRoots = 0;
     voltageDipActive = false;
@@ -425,8 +456,43 @@ double REECA1::curve(double voltage,
     return currents[3];
 }
 
-double REECA1::activeLimit(double voltage, const double state[]) const
+double REECA1::voltageReference(const IOdata& inputs, const double state[]) const
 {
+    if (!cascadedVoltageControl()) {
+        // In REEC_B direct-voltage mode QEXT is a voltage reference.  GridDyn's
+        // renewable signal is an increment, so the local Vref0 remains the
+        // operating-point reference and a connected plant signal adjusts it.
+        return initialVref + optionalIncrement(inputs, 2);
+    }
+    const double qReference = reactivePowerReference(inputs);
+    const double qError = std::clamp(qReference, QMin, QMax) - reactivePowerFeedback(inputs);
+    return std::clamp(Kqp * qError + state[reactivePowerIntegrator], VMIN, VMAX);
+}
+
+double REECA1::reactivePowerReference(const IOdata& inputs) const
+{
+    return initialQ + optionalIncrement(inputs, 2);
+}
+
+double REECA1::reactivePowerFeedback(const IOdata& inputs) const
+{
+    if (!cascadedVoltageControl() || inputs.size() <= 4 || !std::isfinite(inputs[4])) {
+        return initialQ;
+    }
+    return inputs[4];
+}
+
+double REECA1::reactiveControl(const IOdata& inputs, const double state[]) const
+{
+    if (QFLAG == 0) {
+        return state[reactiveFilter];
+    }
+    return state[reactiveFilter] + Kvp * (voltageReference(inputs, state) - state[voltageFilter]);
+}
+
+double REECA1::activeLimit(const IOdata& inputs, const double state[]) const
+{
+    const double voltage = inputs[0];
     const double err = initialVref - state[voltageFilter];
     double deadband = 0.0;
     if (err > dbd2) {
@@ -443,13 +509,15 @@ double REECA1::activeLimit(double voltage, const double state[]) const
     }
     const double iqCap =
         disabledCurve(Vq, Iq) ? Imax : std::min(Imax, curve(state[voltageFilter], Vq, Iq));
-    const double reactiveCurrent = std::clamp(state[reactiveFilter] + injection, -iqCap, iqCap);
+    const double reactiveCurrent =
+        std::clamp(reactiveControl(inputs, state) + injection, -iqCap, iqCap);
     return std::min(ipCap,
                     std::sqrt(std::max(0.0, (Imax * Imax) - (reactiveCurrent * reactiveCurrent))));
 }
 
-std::array<double, 2> REECA1::commands(double voltage, const double state[]) const
+std::array<double, 2> REECA1::commands(const IOdata& inputs, const double state[]) const
 {
+    const double voltage = inputs[0];
     if (Tpord == 0.0 && Thld2 == 0.0 && voltageDip(voltage)) {
         throw InvalidParameterValue(
             "REECA1 zero-Tpord power-order hold during a voltage dip is not implemented");
@@ -474,8 +542,8 @@ std::array<double, 2> REECA1::commands(double voltage, const double state[]) con
         }
     }
     const double rawIp = std::max(0.0, activePowerOrder / voltagePoint);
-    const double rawIq = state[reactiveFilter] + injection;
-    const double ipCap = activeLimitHeld ? heldActiveLimit : activeLimit(voltage, state);
+    const double rawIq = reactiveControl(inputs, state) + injection;
+    const double ipCap = activeLimitHeld ? heldActiveLimit : activeLimit(inputs, state);
     double activeCurrent = 0.0;
     double reactiveCurrent = 0.0;
     if (PQFLAG == 0) {
@@ -498,13 +566,14 @@ double REECA1::generatorSpeed(const IOdata& inputs) const
     if (PFLAG == 0) {
         return 1.0;
     }
-    if (inputs.size() <= 4 || !std::isfinite(inputs[4]) || inputs[4] <= 0.0) {
+    const auto index = speedInputIndex();
+    if (inputs.size() <= index || !std::isfinite(inputs[index]) || inputs[index] <= 0.0) {
         throw InvalidParameterValue("REECA1 PFLAG=1 requires positive generator speed");
     }
-    return inputs[4];
+    return inputs[index];
 }
 
-std::array<double, 4> REECA1::rates(const IOdata& inputs, const double state[]) const
+std::array<double, 5> REECA1::rates(const IOdata& inputs, const double state[]) const
 {
     const double voltage = inputs[0];
     const double external = inputs.size() > 3 ? inputs[3] : kNullVal;
@@ -512,17 +581,35 @@ std::array<double, 4> REECA1::rates(const IOdata& inputs, const double state[]) 
     const double pref =
         (((external == kNullVal ? initialP : external) + optionalIncrement(inputs, 1)) / speed) +
         activeReferenceAdjustment(inputs);
-    const double qref = std::clamp(initialQ + optionalIncrement(inputs, 2), QMin, QMax);
+    const double qref = std::clamp(reactivePowerReference(inputs), QMin, QMax);
     const double pRate = std::clamp((pref - state[powerFilter]) / Tpfilt, dPmin, dPmax);
     if (dipMode(voltage)) {
-        return {(voltage - state[voltageFilter]) / Trv, pRate, 0.0, 0.0};
+        return {(voltage - state[voltageFilter]) / Trv,
+                pRate,
+                0.0,
+                0.0,
+                0.0};
+    }
+    if (QFLAG != 0) {
+        const double qError = qref - reactivePowerFeedback(inputs);
+        const double qPiRate = cascadedVoltageControl() ? Kqi * qError : 0.0;
+        const double vPiRate = Kvi * (voltageReference(inputs, state) - state[voltageFilter]);
+        return {(voltage - state[voltageFilter]) / Trv,
+                pRate,
+                Tpord == 0.0 ?
+                    0.0 :
+                    (std::clamp(speed * state[powerFilter], PMIN, PMAX) - state[powerOrder]) /
+                        Tpord,
+                vPiRate,
+                qPiRate};
     }
     return {(voltage - state[voltageFilter]) / Trv,
             pRate,
             Tpord == 0.0 ?
                 0.0 :
                 (std::clamp(speed * state[powerFilter], PMIN, PMAX) - state[powerOrder]) / Tpord,
-            ((qref / std::max(voltage, 0.01)) - state[reactiveFilter]) / Tiq};
+            ((qref / std::max(voltage, 0.01)) - state[reactiveFilter]) / Tiq,
+            0.0};
 }
 
 void REECA1::dynObjectInitializeB(const IOdata& inputs,
@@ -545,10 +632,36 @@ void REECA1::dynObjectInitializeB(const IOdata& inputs,
     m_state[2 + voltageFilter] = inputs[0];
     m_state[2 + powerFilter] = initialP / generatorSpeed(inputs);
     m_state[2 + powerOrder] = initialP;
-    m_state[2 + reactiveFilter] = initialQ / inputs[0];
+    const double injection = [&]() {
+        const double err = initialVref - inputs[0];
+        double deadband = 0.0;
+        if (err > dbd2) {
+            deadband = err - dbd2;
+        } else if (err < dbd1) {
+            deadband = err - dbd1;
+        }
+        return useVoltageInjection(inputs[0]) ? std::clamp(Kqv * deadband, Iql1, Iqh1) : 0.0;
+    }();
+    if (cascadedVoltageControl()) {
+        // At the operating point the measured reactive power equals the
+        // requested power in the usual case.  Preserve the general Q-PI
+        // error as well, since an attached plant controller can provide a
+        // nonzero reactive-power reference increment at initialization.
+        const double qError =
+            std::clamp(reactivePowerReference(inputs), QMin, QMax) - reactivePowerFeedback(inputs);
+        const double voltageControlReference = std::clamp(inputs[0], VMIN, VMAX);
+        m_state[2 + reactivePowerIntegrator] = voltageControlReference - Kqp * qError;
+        m_state[2 + reactiveFilter] =
+            initialQ / inputs[0] - injection - Kvp * (voltageControlReference - inputs[0]);
+    } else if (QFLAG != 0) {
+        m_state[2 + reactiveFilter] =
+            initialQ / inputs[0] - injection - Kvp * (initialVref - inputs[0]);
+    } else {
+        m_state[2 + reactiveFilter] = initialQ / inputs[0];
+    }
     heldPowerOrder = initialP;
-    heldActiveLimit = activeLimit(inputs[0], m_state.data() + 2);
-    const auto current = commands(inputs[0], m_state.data() + 2);
+    heldActiveLimit = activeLimit(inputs, m_state.data() + 2);
+    const auto current = commands(inputs, m_state.data() + 2);
     if (std::abs(current[0] - (initialP / inputs[0])) > 1e-8 ||
         std::abs(current[1] + (initialQ / inputs[0])) > 1e-8) {
         throw InvalidParameterValue("REECA1 initial P/Q exceeds current limits");
@@ -568,7 +681,7 @@ void REECA1::derivative(const IOdata& inputs,
     }
     const auto loc = offsets.getLocations(stateData, deriv, sMode, this);
     const auto result = rates(inputs, loc.diffStateLoc);
-    for (index_t index = 0; index < 4; ++index) {
+    for (index_t index = 0; index < loc.diffSize; ++index) {
         loc.destDiffLoc[index] = result[index];
     }
 }
@@ -580,7 +693,7 @@ void REECA1::residual(const IOdata& inputs,
 {
     const auto loc = offsets.getLocations(stateData, resid, sMode, this);
     if (hasAlgebraic(sMode)) {
-        const auto current = commands(inputs[0], loc.diffStateLoc);
+        const auto current = commands(inputs, loc.diffStateLoc);
         loc.destLoc[ipCommand] = current[0] - loc.algStateLoc[ipCommand];
         loc.destLoc[iqCommand] = current[1] - loc.algStateLoc[iqCommand];
     }
@@ -602,7 +715,7 @@ void REECA1::algebraicUpdate(const IOdata& inputs,
         return;
     }
     const auto loc = offsets.getLocations(stateData, update, sMode, this);
-    const auto current = commands(inputs[0], loc.diffStateLoc);
+    const auto current = commands(inputs, loc.diffStateLoc);
     loc.destLoc[ipCommand] = current[0];
     loc.destLoc[iqCommand] = current[1];
 }
@@ -622,13 +735,14 @@ void REECA1::jacobianElements(const IOdata& inputs,
         matrixData.assign(alg + iqCommand, alg + iqCommand, -1.0);
         constexpr double step = 1e-6;
         if (!isAlgebraicOnly(sMode)) {
-            for (index_t column = 0; column < 4; ++column) {
-                std::array<double, 4> plus{state[0], state[1], state[2], state[3]};
+            for (index_t column = 0; column < loc.diffSize; ++column) {
+                std::array<double, 5> plus{};
+                std::copy_n(state, loc.diffSize, plus.begin());
                 auto minus = plus;
                 plus[column] += step;
                 minus[column] -= step;
-                const auto upper = commands(inputs[0], plus.data());
-                const auto lower = commands(inputs[0], minus.data());
+                const auto upper = commands(inputs, plus.data());
+                const auto lower = commands(inputs, minus.data());
                 for (index_t index = 0; index < 2; ++index) {
                     matrixData.assign(alg + index,
                                       diff + column,
@@ -636,13 +750,21 @@ void REECA1::jacobianElements(const IOdata& inputs,
                 }
             }
         }
-        if (!inputLocs.empty() && inputLocs[0] != kNullLocation) {
-            const auto upper = commands(inputs[0] + step, state);
-            const auto lower = commands(inputs[0] - step, state);
-            for (index_t index = 0; index < 2; ++index) {
-                matrixData.assign(alg + index,
-                                  inputLocs[0],
-                                  (upper[index] - lower[index]) / (2 * step));
+        const auto inputCount = std::min(inputs.size(), inputLocs.size());
+        for (index_t input = 0; input < inputCount; ++input) {
+            if (inputLocs[input] == kNullLocation || inputs[input] == kNullVal) {
+                continue;
+            }
+            auto upperInputs = inputs;
+            auto lowerInputs = inputs;
+            upperInputs[input] += step;
+            lowerInputs[input] -= step;
+            const auto upper = commands(upperInputs, state);
+            const auto lower = commands(lowerInputs, state);
+            for (index_t output = 0; output < 2; ++output) {
+                matrixData.assign(alg + output,
+                                  inputLocs[input],
+                                  (upper[output] - lower[output]) / (2 * step));
             }
         }
     }
@@ -667,9 +789,9 @@ void REECA1::jacobianElements(const IOdata& inputs,
     if (pFree && inputLocs.size() > 3 && external != kNullVal) {
         matrixData.assignCheckCol(diff + powerFilter, inputLocs[3], 1.0 / (speed * Tpfilt));
     }
-    if (PFLAG == 1 && pFree && inputLocs.size() > 4) {
+    if (PFLAG == 1 && pFree && inputLocs.size() > speedInputIndex()) {
         matrixData.assignCheckCol(diff + powerFilter,
-                                  inputLocs[4],
+                                  inputLocs[speedInputIndex()],
                                   -rawPref / (speed * speed * Tpfilt));
     }
     if (pFree) {
@@ -678,6 +800,11 @@ void REECA1::jacobianElements(const IOdata& inputs,
     if (dipMode(inputs[0])) {
         matrixData.assign(diff + powerOrder, diff + powerOrder, -stateData.cj);
         matrixData.assign(diff + reactiveFilter, diff + reactiveFilter, -stateData.cj);
+        if (cascadedVoltageControl()) {
+            matrixData.assign(diff + reactivePowerIntegrator,
+                              diff + reactivePowerIntegrator,
+                              -stateData.cj);
+        }
     } else {
         matrixData.assign(diff + powerOrder,
                           diff + powerOrder,
@@ -685,26 +812,74 @@ void REECA1::jacobianElements(const IOdata& inputs,
         const double selectedPower = speed * state[powerFilter];
         if (Tpord != 0.0 && selectedPower > PMIN && selectedPower < PMAX) {
             matrixData.assign(diff + powerOrder, diff + powerFilter, speed / Tpord);
-            if (PFLAG == 1 && inputLocs.size() > 4) {
+            if (PFLAG == 1 && inputLocs.size() > speedInputIndex()) {
                 matrixData.assignCheckCol(diff + powerOrder,
-                                          inputLocs[4],
+                                          inputLocs[speedInputIndex()],
                                           state[powerFilter] / Tpord);
             }
         }
-        matrixData.assign(diff + reactiveFilter,
-                          diff + reactiveFilter,
-                          (-1.0 / Tiq) - stateData.cj);
-        const double qRaw = initialQ + optionalIncrement(inputs, 2);
-        const double qref = std::clamp(qRaw, QMin, QMax);
-        const double voltage = std::max(inputs[0], 0.01);
-        if (inputs[0] > 0.01) {
-            matrixData.assignCheckCol(diff + reactiveFilter,
-                                      inputLocs[0],
-                                      -qref / (voltage * voltage * Tiq));
-        }
-        if (qRaw > QMin && qRaw < QMax && inputLocs.size() > 2 && inputs.size() > 2 &&
-            inputs[2] != kNullVal) {
-            matrixData.assignCheckCol(diff + reactiveFilter, inputLocs[2], 1.0 / (voltage * Tiq));
+        if (QFLAG == 0) {
+            matrixData.assign(diff + reactiveFilter,
+                              diff + reactiveFilter,
+                              (-1.0 / Tiq) - stateData.cj);
+            const double qRaw = reactivePowerReference(inputs);
+            const double qref = std::clamp(qRaw, QMin, QMax);
+            const double voltage = std::max(inputs[0], 0.01);
+            if (inputs[0] > 0.01) {
+                matrixData.assignCheckCol(diff + reactiveFilter,
+                                          inputLocs[0],
+                                          -qref / (voltage * voltage * Tiq));
+            }
+            if (qRaw > QMin && qRaw < QMax && inputLocs.size() > 2 && inputs.size() > 2 &&
+                inputs[2] != kNullVal) {
+                matrixData.assignCheckCol(diff + reactiveFilter,
+                                          inputLocs[2],
+                                          1.0 / (voltage * Tiq));
+            }
+        } else {
+            const double qRaw = reactivePowerReference(inputs);
+            const bool qFree = qRaw > QMin && qRaw < QMax;
+            matrixData.assign(diff + reactiveFilter, diff + reactiveFilter, -stateData.cj);
+            matrixData.assign(diff + reactiveFilter,
+                              diff + voltageFilter,
+                              -Kvi);
+            if (cascadedVoltageControl()) {
+                const double qError = std::clamp(qRaw, QMin, QMax) - reactivePowerFeedback(inputs);
+                const double qPiRaw = Kqp * qError + state[reactivePowerIntegrator];
+                const bool qPiFree = qPiRaw > VMIN && qPiRaw < VMAX;
+                matrixData.assign(diff + reactivePowerIntegrator,
+                                  diff + reactivePowerIntegrator,
+                                  -stateData.cj);
+                if (qFree && inputLocs.size() > 2 && inputs.size() > 2 &&
+                    inputs[2] != kNullVal) {
+                    matrixData.assignCheckCol(
+                        diff + reactivePowerIntegrator, inputLocs[2], Kqi);
+                }
+                if (qFree && inputLocs.size() > 4 && inputs.size() > 4 &&
+                    inputs[4] != kNullVal) {
+                    matrixData.assignCheckCol(
+                        diff + reactivePowerIntegrator, inputLocs[4], -Kqi);
+                }
+                if (qPiFree) {
+                    matrixData.assign(diff + reactiveFilter,
+                                      diff + reactivePowerIntegrator,
+                                      Kvi);
+                    if (qFree && inputLocs.size() > 2 && inputs.size() > 2 &&
+                        inputs[2] != kNullVal) {
+                        matrixData.assignCheckCol(diff + reactiveFilter,
+                                                  inputLocs[2],
+                                                  Kvi * Kqp);
+                    }
+                    if (qFree && inputLocs.size() > 4 && inputs.size() > 4 &&
+                        inputs[4] != kNullVal) {
+                        matrixData.assignCheckCol(diff + reactiveFilter,
+                                                  inputLocs[4],
+                                                  -Kvi * Kqp);
+                    }
+                }
+            } else if (inputLocs.size() > 2 && inputs.size() > 2 && inputs[2] != kNullVal) {
+                matrixData.assignCheckCol(diff + reactiveFilter, inputLocs[2], Kvi);
+            }
         }
     }
 }
@@ -718,17 +893,18 @@ void REECA1::timestep(CoreTime time, const IOdata& inputs, const SolverMode& /*s
     if (Thld2 > 0.0) {
         const bool dip = voltageDip(inputs[0]);
         if (dip != voltageDipActive) {
-            transition(time, inputs[0], dip);
+            transition(time, inputs, dip);
         }
         if (!dip && activeLimitHeld && time >= activeLimitRelease) {
             activeLimitHeld = false;
         }
     }
     const auto rate = rates(inputs, m_state.data() + 2);
-    for (index_t index = 0; index < 4; ++index) {
+    const auto diffSize = offsets.local().local.diffSize;
+    for (index_t index = 0; index < diffSize; ++index) {
         m_state[2 + index] += deltaTime * rate[index];
     }
-    const auto current = commands(inputs[0], m_state.data() + 2);
+    const auto current = commands(inputs, m_state.data() + 2);
     m_state[ipCommand] = current[0];
     m_state[iqCommand] = current[1];
     prevTime = time;
@@ -792,7 +968,7 @@ void REECA1::outputPartialDerivatives(const IOdata& /*inputs*/,
     }
 }
 
-void REECA1::transition(CoreTime time, double voltage, bool entering)
+void REECA1::transition(CoreTime time, const IOdata& inputs, bool entering)
 {
     if (entering) {
         heldPowerOrder = std::clamp(m_state[2 + powerFilter], PMIN, PMAX);
@@ -801,7 +977,7 @@ void REECA1::transition(CoreTime time, double voltage, bool entering)
     } else {
         // The limit follows the reactive current during the dip. Capture its
         // final dip value before clearing the dip branch for post-dip hold.
-        heldActiveLimit = activeLimit(voltage, m_state.data() + 2);
+        heldActiveLimit = activeLimit(inputs, m_state.data() + 2);
         voltageDipActive = false;
         activeLimitHeld = true;
         activeLimitRelease = time + Thld2;
@@ -837,14 +1013,14 @@ void REECA1::rootTrigger(CoreTime time,
     }
     const auto root = offsets.getRootOffset(sMode);
     if (rootMask[root] != 0) {
-        transition(time, inputs[0], rootMask[root] < 0);
+        transition(time, inputs, rootMask[root] < 0);
     }
     if (rootMask[root + 1] != 0 && !voltageDipActive && activeLimitHeld &&
         time >= activeLimitRelease - 1e-9) {
         activeLimitHeld = false;
         alert(this, JAC_COUNT_CHANGE);
     }
-    const auto current = commands(inputs[0], m_state.data() + 2);
+    const auto current = commands(inputs, m_state.data() + 2);
     m_state[ipCommand] = current[0];
     m_state[iqCommand] = current[1];
 }
@@ -859,8 +1035,8 @@ ChangeCode REECA1::rootCheck(const IOdata& inputs,
     }
     // Network events can jump across both voltage thresholds without a
     // continuous root crossing.  setState() has already synchronized m_state.
-    transition(prevTime, inputs[0], voltageDip(inputs[0]));
-    const auto current = commands(inputs[0], m_state.data() + 2);
+    transition(prevTime, inputs, voltageDip(inputs[0]));
+    const auto current = commands(inputs, m_state.data() + 2);
     m_state[ipCommand] = current[0];
     m_state[iqCommand] = current[1];
     return ChangeCode::JACOBIAN_CHANGE;
@@ -868,6 +1044,12 @@ ChangeCode REECA1::rootCheck(const IOdata& inputs,
 
 stringVec REECA1::localStateNames() const
 {
+    if (cascadedVoltageControl()) {
+        return {"Ipcmd", "Iqcmd", "Vf", "Pf", "Pord", "Vpi", "Qpi"};
+    }
+    if (QFLAG != 0) {
+        return {"Ipcmd", "Iqcmd", "Vf", "Pf", "Pord", "Vpi"};
+    }
     return {"Ipcmd", "Iqcmd", "Vf", "Pf", "Pord", "Qf"};
 }
 }  // namespace griddyn

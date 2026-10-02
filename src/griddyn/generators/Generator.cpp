@@ -9,6 +9,7 @@
 #include "../measurement/ObjectGrabbers.h"
 #include "../primary/AcBus.h"
 #include "../renewables/DistributedConverter.h"
+#include "../renewables/EPCGEN.h"
 #include "../renewables/GridFormingConverter.h"
 #include "../renewables/REECA1.h"
 #include "../renewables/REECA1E.h"
@@ -77,6 +78,7 @@ static TypeFactory<RenewableGenerator> gRenewableGeneratorFactory(
     "generator",
     std::to_array<std::string_view>({"renewable_dynamic", "renewable_generator"}));
 static TypeFactory<REGCA1> gREGCA1Factory("renewable_model", "regca1");
+static TypeFactory<EPCGEN> gEPCGENFactory("renewable_model", "epcgen");
 static TypeFactory<REGCP1> gREGCP1Factory("renewable_model", "regcp1");
 static TypeFactory<REGCV1> gREGCV1Factory("renewable_model", "regcv1");
 static TypeFactory<REGCV2> gREGCV2Factory("renewable_model", "regcv2");

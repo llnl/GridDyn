@@ -39,6 +39,7 @@ set(file_reader_gtest_sources
     gtestHelperFunctions.cpp
     libraryTests/testReaderInfo.cpp
     libraryTests/testExampleReaders.cpp
+    libraryTests/testSavReader.cpp
     libraryTests/testSolverReader.cpp
     libraryTests/testXML.cpp
     libraryTests/testJsonReader.cpp
@@ -60,6 +61,7 @@ set(generator_component_gtest_sources
     componentTests/testStabilizers.cpp
     componentTests/testGenerators.cpp
     componentTests/testGenModels.cpp
+    componentTests/testEPCGEN.cpp
     componentTests/testRenewableModels.cpp
     componentTests/testDistributedModels.cpp
     componentTests/testExciters.cpp

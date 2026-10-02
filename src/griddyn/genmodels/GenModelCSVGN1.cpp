@@ -39,12 +39,11 @@ CoreObject* GenModelCSVGN1::clone(CoreObject* obj) const
 
 void GenModelCSVGN1::dynObjectInitializeA(CoreTime /*time0*/, std::uint32_t /*flags*/)
 {
-    if (!std::isfinite(K) || (K <= 0.0) || !std::isfinite(T1) || (T1 < 0.0) ||
-        !std::isfinite(T2) || (T2 < 0.0) || !std::isfinite(T3) || (T3 <= 0.0) ||
-        !std::isfinite(T4) || (T4 <= 0.0) || !std::isfinite(T5) || (T5 <= 0.0) ||
-        !std::isfinite(VMIN) || !std::isfinite(VMAX) || (VMIN > VMAX) ||
-        !std::isfinite(RMIN) || (RMIN < 0.0) || !std::isfinite(CBASE) || (CBASE < 0.0) ||
-        !std::isfinite(machineBasePower) || (machineBasePower <= 0.0) ||
+    if (!std::isfinite(K) || (K <= 0.0) || !std::isfinite(T1) || (T1 < 0.0) || !std::isfinite(T2) ||
+        (T2 < 0.0) || !std::isfinite(T3) || (T3 <= 0.0) || !std::isfinite(T4) || (T4 <= 0.0) ||
+        !std::isfinite(T5) || (T5 <= 0.0) || !std::isfinite(VMIN) || !std::isfinite(VMAX) ||
+        (VMIN > VMAX) || !std::isfinite(RMIN) || (RMIN < 0.0) || !std::isfinite(CBASE) ||
+        (CBASE < 0.0) || !std::isfinite(machineBasePower) || (machineBasePower <= 0.0) ||
         (RMIN > machineBasePower)) {
         throw InvalidParameterValue("CSVGN1 parameters or machine MBASE");
     }
@@ -71,9 +70,8 @@ void GenModelCSVGN1::dynObjectInitializeB(const IOdata& inputs,
         (CBASE / machineBasePower) - (desiredOutput[QOUT_LOCATION] / (voltage * voltage));
     const double reactorMin = reactorMinimumPU();
     constexpr double initTolerance = 1.0e-6;
-    if ((reactorCommand < reactorMin - initTolerance) ||
-        (reactorCommand > 1.0 + initTolerance) || (reactorCommand < VMIN - initTolerance) ||
-        (reactorCommand > VMAX + initTolerance)) {
+    if ((reactorCommand < reactorMin - initTolerance) || (reactorCommand > 1.0 + initTolerance) ||
+        (reactorCommand < VMIN - initTolerance) || (reactorCommand > VMAX + initTolerance)) {
         throw InvalidParameterValue("CSVGN1 power-flow Q cannot be initialized within its limits");
     }
 
@@ -218,12 +216,9 @@ void GenModelCSVGN1::derivative(const IOdata& inputs,
     const double reactorMin = reactorMinimumPU();
     const double reactorCommand = state[2];
     const double thyristorRate = (signals.limitedOutput - reactorCommand) / T5;
-    const bool blockedAtLowerLimit =
-        (state[2] <= reactorMin) && (thyristorRate < 0.0);
+    const bool blockedAtLowerLimit = (state[2] <= reactorMin) && (thyristorRate < 0.0);
     const bool blockedAtUpperLimit = (state[2] >= 1.0) && (thyristorRate > 0.0);
-    stateDerivative[2] = (blockedAtLowerLimit || blockedAtUpperLimit) ?
-        0.0 :
-        thyristorRate;
+    stateDerivative[2] = (blockedAtLowerLimit || blockedAtUpperLimit) ? 0.0 : thyristorRate;
 }
 
 void GenModelCSVGN1::residual(const IOdata& inputs,
@@ -301,9 +296,7 @@ void GenModelCSVGN1::jacobianElements(const IOdata& inputs,
     const double secondOutputStateGain = 1.0 - (T2 / T4);
 
     matrixDataValue.assign(row, col, (-1.0 / T3) - stateDataValue.cj);
-    matrixDataValue.assignCheckCol(row,
-                                   inputLocs[VOLTAGE_IN_LOCATION],
-                                   1.0 / T3);
+    matrixDataValue.assignCheckCol(row, inputLocs[VOLTAGE_IN_LOCATION], 1.0 / T3);
 
     matrixDataValue.assign(row + 1, col, firstOutputStateGain / T4);
     matrixDataValue.assign(row + 1, col + 1, (-1.0 / T4) - stateDataValue.cj);
@@ -313,8 +306,7 @@ void GenModelCSVGN1::jacobianElements(const IOdata& inputs,
 
     const double reactorMin = reactorMinimumPU();
     const double thyristorRate = (signals.limitedOutput - state[2]) / T5;
-    const bool blockedAtLowerLimit =
-        (state[2] <= reactorMin) && (thyristorRate < 0.0);
+    const bool blockedAtLowerLimit = (state[2] <= reactorMin) && (thyristorRate < 0.0);
     const bool blockedAtUpperLimit = (state[2] >= 1.0) && (thyristorRate > 0.0);
     if (blockedAtLowerLimit || blockedAtUpperLimit) {
         matrixDataValue.assign(row + 2, col + 2, -stateDataValue.cj);
@@ -344,9 +336,7 @@ void GenModelCSVGN1::outputPartialDerivatives(const IOdata& inputs,
     const double reactor = locations.diffStateLoc[2];
     if ((reactor >= reactorMinimumPU()) && (reactor <= 1.0)) {
         const double voltage = inputs[VOLTAGE_IN_LOCATION];
-        matrixDataValue.assign(QOUT_LOCATION,
-                               locations.diffOffset + 2,
-                               voltage * voltage);
+        matrixDataValue.assign(QOUT_LOCATION, locations.diffOffset + 2, voltage * voltage);
     }
 }
 

@@ -34,8 +34,8 @@
 #include "griddyn/exciters/ExciterIEEEtype2.h"
 #include "griddyn/exciters/ExciterSCRX.h"
 #include "griddyn/generators/DynamicGenerator.h"
-#include "griddyn/genmodels/GenModelClassical.h"
 #include "griddyn/genmodels/GenModelCSVGN1.h"
+#include "griddyn/genmodels/GenModelClassical.h"
 #include "griddyn/genmodels/GenModelGENROE.h"
 #include "griddyn/genmodels/GenModelGENROU.h"
 #include "griddyn/genmodels/GenModelGENSAE.h"
@@ -259,8 +259,7 @@ TEST(DyrReaderComparisonTests, MapsCsvgn1ParametersAndRunsAsMachineModel)
     ASSERT_NE(svcBus, nullptr);
     auto* generator = dynamic_cast<griddyn::DynamicGenerator*>(svcBus->getGen(0));
     ASSERT_NE(generator, nullptr);
-    auto* model =
-        dynamic_cast<griddyn::genmodels::GenModelCSVGN1*>(generator->find("genmodel"));
+    auto* model = dynamic_cast<griddyn::genmodels::GenModelCSVGN1*>(generator->find("genmodel"));
     ASSERT_NE(model, nullptr);
 
     EXPECT_DOUBLE_EQ(model->get("k"), 23.5);

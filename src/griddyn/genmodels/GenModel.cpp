@@ -6,10 +6,10 @@
 
 #include "../Generator.h"
 #include "../GridBus.h"
+#include "GenModelCSVGN1.h"
 #include "core/CoreExceptions.h"
 #include "core/CoreObjectTemplates.hpp"
 #include "core/ObjectFactoryTemplates.hpp"
-#include "GenModelCSVGN1.h"
 #include "gmlc/utilities/vectorOps.hpp"
 #include "otherGenModels.h"
 #include "utilities/MatrixData.hpp"
